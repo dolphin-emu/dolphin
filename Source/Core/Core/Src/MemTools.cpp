@@ -160,7 +160,7 @@ void InstallExceptionHandler()
 
 #else  // _WIN32
 
-#if defined __APPLE__ || defined __linux__ || defined _WIN32
+#if defined __APPLE__ || defined __linux__ || defined __FreeBSD__ || defined _WIN32
 #ifndef _WIN32
 #include <execinfo.h>
 #endif

@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#if defined(__FreeBSD__)
+#define __STDC_CONSTANT_MACROS 1
+#endif 
+
 #include "AVIDump.h"
 #include "HW/VideoInterface.h" //for TargetRefreshRate
 #include "VideoConfig.h"

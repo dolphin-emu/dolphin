@@ -45,6 +45,8 @@ _mm_shuffle_epi8(__m128i a, __m128i mask)
 #include <errno.h>
 #ifdef __linux__
 #include <byteswap.h>
+#elif defined __FreeBSD__
+#include <sys/endian.h>
 #endif
 
 // go to debugger mode
@@ -137,6 +139,10 @@ inline __attribute__((always_inline)) u32 swap32(u32 _data)
 	{return __builtin_bswap32(_data);}
 inline __attribute__((always_inline)) u64 swap64(u64 _data)
 	{return __builtin_bswap64(_data);}
+#elif __FreeBSD__
+inline u16 swap16(u16 _data) {return bswap16(_data);}
+inline u32 swap32(u32 _data) {return bswap32(_data);}
+inline u64 swap64(u64 _data) {return bswap64(_data);}
 #else
 // Slow generic implementation.
 inline u16 swap16(u16 data) {return (data >> 8) | (data << 8);}

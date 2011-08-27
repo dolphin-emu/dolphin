@@ -32,6 +32,10 @@
 //#include <config/i386/cpuid.h>
 #include <xmmintrin.h>
 
+#if defined __FreeBSD__
+#include <sys/types.h>
+#include <machine/cpufunc.h>
+#else
 static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 						    unsigned int *ecx, unsigned int *edx)
 {
@@ -65,15 +69,20 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 		);
 #endif
 }
+#endif /* defined __FreeBSD__ */
 
 static void __cpuid(int info[4], int x)
 {
+#if defined __FreeBSD__
+    do_cpuid((unsigned int)x, (unsigned int*)info);
+#else
 	unsigned int eax = x, ebx = 0, ecx = 0, edx = 0;
 	do_cpuid(&eax, &ebx, &ecx, &edx);
 	info[0] = eax;
 	info[1] = ebx;
 	info[2] = ecx;
 	info[3] = edx;
+#endif
 }
 
 #endif
