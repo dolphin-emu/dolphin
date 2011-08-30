@@ -333,12 +333,6 @@ static const char *tevRasTable[] =
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
 };
 
-static const char *alphaRef[2] =
-{
-	I_ALPHA"[0].r",
-	I_ALPHA"[0].g"
-};
-
 //static const char *tevTexFunc[] = { "tex2D", "texRECT" };
 
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
@@ -385,7 +379,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
-	BuildSwapModeTable();
+	BuildSwapModeTable(); // Needed for WriteStage
 	int numStages = bpmem.genMode.numtevstages + 1;
 	int numTexgen = bpmem.genMode.numtexgens;
 
@@ -505,10 +499,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function
 			WRITE(p, "ocol0 = 0;\n");
-			if(DepthTextureEnable)
-				WRITE(p, "depth = 1.f;\n");
-			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "ocol1 = 0;\n");
 			WRITE(p, "discard;\n");
 			if(ApiType != API_D3D11)
 				WRITE(p, "return;\n");
@@ -626,6 +616,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
 		WRITE(p, "prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
+	// TODO: Why are we doing a second alpha pretest here?
 	if (!WriteAlphaTest(p, ApiType, dstAlphaMode))
 	{
 		// alpha test will always fail, so restart the shader and just make it an empty function
@@ -740,10 +731,6 @@ static const char *TEVCMPAlphaOPTable[16] =
 
 static void WriteStage(char *&p, int n, API_TYPE ApiType)
 {
-	char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
-	char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
-
-
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
 	bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
 	bool bHasIndStage = bpmem.tevind[n].IsActive() && bpmem.tevind[n].bt < bpmem.genMode.numindstages;
@@ -780,11 +767,13 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 			}
 			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord)
 			{ // s matrix
+				// TODO: Might become negative?
 				int mtxidx = 2*(bpmem.tevind[n].mid-5);
 				WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
 			}
 			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord)
 			{ // t matrix
+				// TODO: Might become negative?
 				int mtxidx = 2*(bpmem.tevind[n].mid-9);
 				WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}
@@ -823,11 +812,14 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
-	bool bCRas = cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC || cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC || cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC || cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC;
-	bool bARas = ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA || ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA;
-
-	if(bCRas || bARas)
+	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
+		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
+		|| cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC
+		|| cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC
+		|| ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA
+		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
 	{
+		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		WRITE(p, "rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
 		WRITE(p, "crastemp = frac(rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 	}
@@ -835,7 +827,6 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 
 	if (bpmem.tevorders[n/2].getEnable(n&1))
 	{
-		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		if(!bHasIndStage)
 		{
 			// calc tevcord
@@ -845,20 +836,19 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 				WRITE(p, "tevcoord.xy = float2(0.0f, 0.0f);\n");
 		}
 
+		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
+		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		SampleTexture(p, "textemp", "tevcoord", texswap, texmap, ApiType);
 	}
 	else
 		WRITE(p, "textemp = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 
-	int kc = bpmem.tevksel[n / 2].getKC(n & 1);
-	int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 
-
-
-	bool bCKonst = cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST;
-	bool bAKonst = ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST;
-	if (bCKonst || bAKonst )
+	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST
+		|| ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST)
 	{
+		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
+		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 		WRITE(p, "konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 		if(kc > 7 || ka > 7)
 		{
@@ -870,15 +860,10 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		}
 	}
 
-	if(cc.a == TEVCOLORARG_CPREV
-	|| cc.a == TEVCOLORARG_APREV
-	|| cc.b == TEVCOLORARG_CPREV
-	|| cc.b == TEVCOLORARG_APREV
-	|| cc.c == TEVCOLORARG_CPREV
-	|| cc.c == TEVCOLORARG_APREV
-	|| ac.a == TEVALPHAARG_APREV
-	|| ac.b == TEVALPHAARG_APREV
-	|| ac.c == TEVALPHAARG_APREV)
+	if(cc.a == TEVCOLORARG_CPREV || cc.a == TEVCOLORARG_APREV
+		|| cc.b == TEVCOLORARG_CPREV || cc.b == TEVCOLORARG_APREV
+		|| cc.c == TEVCOLORARG_CPREV || cc.c == TEVCOLORARG_APREV
+		|| ac.a == TEVALPHAARG_APREV || ac.b == TEVALPHAARG_APREV || ac.c == TEVALPHAARG_APREV)
 	{
 		if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
 		{
@@ -893,15 +878,10 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		RegisterStates[0].AuxStored = true;
 	}
 
-	if(cc.a == TEVCOLORARG_C0
-	|| cc.a == TEVCOLORARG_A0
-	|| cc.b == TEVCOLORARG_C0
-	|| cc.b == TEVCOLORARG_A0
-	|| cc.c == TEVCOLORARG_C0
-	|| cc.c == TEVCOLORARG_A0
-	|| ac.a == TEVALPHAARG_A0
-	|| ac.b == TEVALPHAARG_A0
-	|| ac.c == TEVALPHAARG_A0)
+	if(cc.a == TEVCOLORARG_C0 || cc.a == TEVCOLORARG_A0
+	|| cc.b == TEVCOLORARG_C0 || cc.b == TEVCOLORARG_A0
+	|| cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0
+	|| ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 || ac.c == TEVALPHAARG_A0)
 	{
 		if(RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
 		{
@@ -916,15 +896,10 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		RegisterStates[1].AuxStored = true;
 	}
 
-	if(cc.a == TEVCOLORARG_C1
-	|| cc.a == TEVCOLORARG_A1
-	|| cc.b == TEVCOLORARG_C1
-	|| cc.b == TEVCOLORARG_A1
-	|| cc.c == TEVCOLORARG_C1
-	|| cc.c == TEVCOLORARG_A1
-	|| ac.a == TEVALPHAARG_A1
-	|| ac.b == TEVALPHAARG_A1
-	|| ac.c == TEVALPHAARG_A1)
+	if(cc.a == TEVCOLORARG_C1 || cc.a == TEVCOLORARG_A1
+	|| cc.b == TEVCOLORARG_C1 || cc.b == TEVCOLORARG_A1
+	|| cc.c == TEVCOLORARG_C1 || cc.c == TEVCOLORARG_A1
+	|| ac.a == TEVALPHAARG_A1 || ac.b == TEVALPHAARG_A1 || ac.c == TEVALPHAARG_A1)
 	{
 		if(RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
 		{
@@ -939,15 +914,10 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		RegisterStates[2].AuxStored = true;
 	}
 
-	if(cc.a == TEVCOLORARG_C2
-	|| cc.a == TEVCOLORARG_A2
-	|| cc.b == TEVCOLORARG_C2
-	|| cc.b == TEVCOLORARG_A2
-	|| cc.c == TEVCOLORARG_C2
-	|| cc.c == TEVCOLORARG_A2
-	|| ac.a == TEVALPHAARG_A2
-	|| ac.b == TEVALPHAARG_A2
-	|| ac.c == TEVALPHAARG_A2)
+	if(cc.a == TEVCOLORARG_C2 || cc.a == TEVCOLORARG_A2
+	|| cc.b == TEVCOLORARG_C2 || cc.b == TEVCOLORARG_A2
+	|| cc.c == TEVCOLORARG_C2 || cc.c == TEVCOLORARG_A2
+	|| ac.a == TEVALPHAARG_A2 || ac.b == TEVALPHAARG_A2 || ac.c == TEVALPHAARG_A2)
 	{
 		if(RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
 		{
@@ -994,7 +964,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 
 		WRITE(p, "%s", tevBiasTable[cc.bias]);
 
-		if (cc.shift > 0)
+		if (cc.shift > TEVSCALE_1)
 			WRITE(p, ")");
 	}
 	else
@@ -1122,6 +1092,11 @@ static int AlphaPreTest()
 
 static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode)
 {
+	static const char *alphaRef[2] =
+	{
+		I_ALPHA"[0].r",
+		I_ALPHA"[0].g"
+	};
 
 	int Pretest = AlphaPreTest();
 	if(Pretest >= 0)
@@ -1139,7 +1114,10 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
-	WRITE(p, ")){ocol0 = 0;%s%sdiscard;%s}\n",dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "ocol1 = 0;" : "",DepthTextureEnable ? "depth = 1.f;" : "",(ApiType != API_D3D11)? "return;" : "");
+	WRITE(p, ")){ocol0 = 0;%s%s discard;%s}\n",
+			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND	? "ocol1 = 0;"		: "",
+			DepthTextureEnable							? "depth = 1.f;"	: "",
+			(ApiType != API_D3D11)						? "return;"			: "");
 	return true;
 }
 
