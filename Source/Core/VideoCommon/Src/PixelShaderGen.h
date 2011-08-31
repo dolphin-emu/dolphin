@@ -44,7 +44,7 @@
 #define C_PLIGHTS		(C_FOG + 3)
 #define C_PMATERIALS	(C_PLIGHTS + 40)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
-#define PIXELSHADERUID_MAX_VALUES (5 + 32 + 6 + 11 + 2)
+#define PIXELSHADERUID_MAX_VALUES 67
 
 // DO NOT make anything in this class virtual.
 class PIXELSHADERUID
@@ -71,7 +71,7 @@ public:
 
 	int GetNumValues() const
 	{
-		return tevstages + indstages + 4;
+		return tevstages;
 	}
 
 	bool operator <(const PIXELSHADERUID& _Right) const
