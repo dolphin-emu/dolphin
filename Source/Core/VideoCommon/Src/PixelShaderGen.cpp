@@ -353,15 +353,6 @@ static char swapModeTable[4][5];
 static char text[16384];
 static bool DepthTextureEnable;
 
-struct RegisterState
-{
-	bool ColorNeedOverflowControl;
-	bool AlphaNeedOverflowControl;
-	bool AuxStored;
-};
-
-static RegisterState RegisterStates[4];
-
 static void BuildSwapModeTable()
 {
 	for (int i = 0; i < 4; i++)
@@ -582,16 +573,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 	}
 
-	RegisterStates[0].AlphaNeedOverflowControl = false;
-	RegisterStates[0].ColorNeedOverflowControl = false;
-	RegisterStates[0].AuxStored = false;
-	for(int i = 1; i < 4; i++)
-	{
-		RegisterStates[i].AlphaNeedOverflowControl = true;
-		RegisterStates[i].ColorNeedOverflowControl = true;
-		RegisterStates[i].AuxStored = false;
-	}
-
 	for (int i = 0; i < numStages; i++)
 		WriteStage(p, i, ApiType); //build the equation for this stage
 
@@ -599,22 +580,11 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 		// The results of the last texenv stage are put onto the screen,
 		// regardless of the used destination register
-		if(bpmem.combiners[numStages - 1].colorC.dest != 0)
-		{
-			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].AuxStored;
-			WRITE(p, "prev.rgb = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
-			RegisterStates[0].ColorNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl;
-		}
-		if(bpmem.combiners[numStages - 1].alphaC.dest != 0)
-		{
-			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AuxStored;
-			WRITE(p, "prev.a = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
-			RegisterStates[0].AlphaNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl;
-		}
+		WRITE(p, "prev.rgb = %s;\n",tevCOutputTable[bpmem.combiners[numStages-1].colorC.dest]);
+		WRITE(p, "prev.a = %s;\n",tevAOutputTable[bpmem.combiners[numStages-1].alphaC.dest]);
 	}
-	// emulation of unisgned 8 overflow when casting if needed
-	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
-		WRITE(p, "prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+	// emulation of unsigned 8 overflow when casting
+	WRITE(p, "prev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
 	// TODO: Why are we doing a second alpha pretest here?
 	if (!WriteAlphaTest(p, ApiType, dstAlphaMode))
@@ -864,76 +834,30 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		|| cc.b == TEVCOLORARG_CPREV || cc.b == TEVCOLORARG_APREV
 		|| cc.c == TEVCOLORARG_CPREV || cc.c == TEVCOLORARG_APREV
 		|| ac.a == TEVALPHAARG_APREV || ac.b == TEVALPHAARG_APREV || ac.c == TEVALPHAARG_APREV)
-	{
-		if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
-		{
-			WRITE(p, "cprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[0].AlphaNeedOverflowControl = false;
-			RegisterStates[0].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cprev = prev;\n");
-		}
-		RegisterStates[0].AuxStored = true;
-	}
+		WRITE(p, "cprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+
 
 	if(cc.a == TEVCOLORARG_C0 || cc.a == TEVCOLORARG_A0
 	|| cc.b == TEVCOLORARG_C0 || cc.b == TEVCOLORARG_A0
 	|| cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0
 	|| ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 || ac.c == TEVALPHAARG_A0)
-	{
-		if(RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
-		{
-			WRITE(p, "cc0 = frac(c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[1].AlphaNeedOverflowControl = false;
-			RegisterStates[1].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cc0 = c0;\n");
-		}
-		RegisterStates[1].AuxStored = true;
-	}
+		WRITE(p, "cc0 = frac(c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+
 
 	if(cc.a == TEVCOLORARG_C1 || cc.a == TEVCOLORARG_A1
 	|| cc.b == TEVCOLORARG_C1 || cc.b == TEVCOLORARG_A1
 	|| cc.c == TEVCOLORARG_C1 || cc.c == TEVCOLORARG_A1
 	|| ac.a == TEVALPHAARG_A1 || ac.b == TEVALPHAARG_A1 || ac.c == TEVALPHAARG_A1)
-	{
-		if(RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
-		{
-			WRITE(p, "cc1 = frac(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[2].AlphaNeedOverflowControl = false;
-			RegisterStates[2].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cc1 = c1;\n");
-		}
-		RegisterStates[2].AuxStored = true;
-	}
+		WRITE(p, "cc1 = frac(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+
 
 	if(cc.a == TEVCOLORARG_C2 || cc.a == TEVCOLORARG_A2
 	|| cc.b == TEVCOLORARG_C2 || cc.b == TEVCOLORARG_A2
 	|| cc.c == TEVCOLORARG_C2 || cc.c == TEVCOLORARG_A2
 	|| ac.a == TEVALPHAARG_A2 || ac.b == TEVALPHAARG_A2 || ac.c == TEVALPHAARG_A2)
-	{
-		if(RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
-		{
 			WRITE(p, "cc2 = frac(c2 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[3].AlphaNeedOverflowControl = false;
-			RegisterStates[3].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cc2 = c2;\n");
-		}
-		RegisterStates[3].AuxStored = true;
-	}
 
-	RegisterStates[cc.dest].ColorNeedOverflowControl = (cc.clamp == 0);
-	RegisterStates[cc.dest].AuxStored = false;
+
 	if (cc.clamp)
 		WRITE(p, "%s = saturate(", tevCOutputTable[cc.dest]);
 	else
@@ -980,8 +904,6 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		WRITE(p, ")");
 	WRITE(p,";\n");
 
-	RegisterStates[ac.dest].AlphaNeedOverflowControl = (ac.clamp == 0);
-	RegisterStates[ac.dest].AuxStored = false;
 	// combine the alpha channel
 	if (ac.clamp)
 		WRITE(p, "%s = saturate(", tevAOutputTable[ac.dest]);
