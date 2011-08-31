@@ -37,7 +37,7 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 		(xfregs.numChan.numColorChans << 27) |
 		(xfregs.dualTexTrans.enabled << 29);
 
-	for (int i = 0; i < 2; ++i) {
+	for (int i = 0; i < xfregs.numChan.numColorChans; ++i) {
 		uid->values[1+i] = xfregs.color[i].enablelighting ?
 			(u32)xfregs.color[i].hex :
 			(u32)xfregs.color[i].matsource;
