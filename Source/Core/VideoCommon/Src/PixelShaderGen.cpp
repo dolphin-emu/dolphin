@@ -124,6 +124,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 	{
 		// Courtesy of PreAlphaTest, we're done already ;)
 		// TODO: There's a comment including bpmem.genmode.numindstages.. shouldnt really bother about that though.
+		uid->tevstages = 1;
 		return;
 	}
 
