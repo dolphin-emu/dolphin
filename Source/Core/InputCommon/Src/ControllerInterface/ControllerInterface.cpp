@@ -18,7 +18,10 @@
 
 #include "Thread.h"
 
-#define INPUT_DETECT_THRESHOLD			0.85f
+namespace
+{
+const float INPUT_DETECT_THRESHOLD = 0.65f;
+}
 
 ControllerInterface g_controller_interface;
 
