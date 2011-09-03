@@ -652,39 +652,15 @@ bool Renderer::SetScissorRect()
 	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
 	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
 
-	if (rc.left > rc.right)
-	{
-		int temp = rc.right;
-		rc.right = rc.left;
-		rc.left = temp;
-	}
-	if (rc.top > rc.bottom)
-	{
-		int temp = rc.bottom;
-		rc.bottom = rc.top;
-		rc.top = temp;
-	}
+	if (rc.left > rc.right) rc.right = rc.left;
+	if (rc.top > rc.bottom) rc.bottom = rc.top;
 
-	// Check that the coordinates are good
-	if (rc.right != rc.left && rc.bottom != rc.top)
-	{
-		glScissor(
-			EFBToScaledX(rc.left), // x = 0 for example
-			EFBToScaledY(EFB_HEIGHT - rc.bottom), // y = 0 for example
-			EFBToScaledX(rc.right - rc.left), // width = 640 for example
-			EFBToScaledY(rc.bottom - rc.top)); // height = 480 for example
-		return true;
-	}
-	else
-	{
-		glScissor(
-			0,
-			0,
-			Renderer::GetTargetWidth(),
-			Renderer::GetTargetHeight()
-			);
-	}
-	return false;
+	glScissor(
+		EFBToScaledX(rc.left), // x = 0 for example
+		EFBToScaledY(EFB_HEIGHT - rc.bottom), // y = 0 for example
+		EFBToScaledX(rc.right - rc.left), // width = 640 for example
+		EFBToScaledY(rc.bottom - rc.top)); // height = 480 for example
+	return true;
 }
 
 void Renderer::SetColorMask()
