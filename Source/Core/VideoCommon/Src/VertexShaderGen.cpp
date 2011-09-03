@@ -69,6 +69,27 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 	}
 }
 
+void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components)
+{
+	// Just store all used registers here without caring whether we need all bits or less.
+	u32* ptr = uid->values;
+	*ptr++ = components;
+	*ptr++ = xfregs.numTexGen.hex;
+	*ptr++ = xfregs.numChan.hex;
+	*ptr++ = xfregs.dualTexTrans.hex;
+
+	for (int i = 0; i < 2; ++i) {
+		*ptr++ = xfregs.color[i].hex;
+		*ptr++ = xfregs.alpha[i].hex;
+	}
+	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	for (unsigned int i = 0; i < 8; ++i) {
+		*ptr++ = xfregs.texMtxInfo[i].hex;
+		*ptr++ = xfregs.postMtxInfo[i].hex;
+	}
+	_assert_((ptr - uid->values) == uid->GetNumValues());
+}
+
 static char text[16384];
 
 #define WRITE p+=sprintf
