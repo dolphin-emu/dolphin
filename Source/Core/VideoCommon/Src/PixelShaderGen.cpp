@@ -164,7 +164,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 	}
 
 	u32* ptr = &uid->values[2];
-	for (unsigned int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
+	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
 	{
 		StageHash(i, ptr);
 		ptr += 4; // max: ptr = &uid->values[66]
@@ -314,6 +314,46 @@ void _GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 	uid->indstages = (u32)(pcurvalue - &uid->values[0] - (hdr - 1) - uid->tevstages);
 
 }
+
+void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode)
+{
+	u32* ptr = uid->values;
+	*ptr++ = dstAlphaMode;
+	*ptr++ = bpmem.genMode.hex;
+	*ptr++ = bpmem.ztex2.hex;
+	*ptr++ = bpmem.zcontrol.hex;
+	*ptr++ = bpmem.zmode.hex;
+	*ptr++ = g_ActiveConfig.bEnablePerPixelDepth;
+	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	*ptr++ = xfregs.numTexGen.hex;
+
+	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	{
+		// TODO: Include register states for lighting shader
+	}
+
+	for (unsigned int i = 0; i < 8; ++i)
+		*ptr++ = xfregs.texMtxInfo[i].hex;
+
+	for (unsigned int i = 0; i < 16; ++i)
+		*ptr++ = bpmem.tevind[i].hex;
+
+	*ptr++ = bpmem.tevindref.hex;
+
+	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
+	{
+		// TODO ...
+		StageHash(i, ptr);
+		ptr += 4; // max: ptr = &uid->values[66]
+	}
+
+	*ptr++ = bpmem.fog.c_proj_fsel.hex;
+
+	*ptr++ = bpmem.fogRange.Base.hex;
+
+	_assert_((ptr - uid->values) == uid->GetNumValues());
+}
+
 
 //   old tev->pixelshader notes
 //
@@ -539,8 +579,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	char *p = text;
 	WRITE(p, "//Pixel Shader for TEV stages\n");
-	WRITE(p, "//%i TEV stages, %i texgens, %i IND stages\n",
-		numStages, numTexgen, bpmem.genMode.numindstages);
+	WRITE(p, "//%i TEV stages, %i texgens, XXX IND stages\n",
+		numStages, numTexgen/*, bpmem.genMode.numindstages*/);
 
 	int nIndirectStagesUsed = 0;
 	if (bpmem.genMode.numindstages > 0)
@@ -876,7 +916,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 
 	if (bHasIndStage)
 	{
-		WRITE(p, "// indirect op\n", n);
+		WRITE(p, "// indirect op\n");
 		// perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
 		if (bpmem.tevind[n].bs != ITBA_OFF)
 		{
@@ -1026,7 +1066,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 			WRITE(p, "cc2 = frac(c2 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
 
-	WRITE(p, "// color combine\n", n);
+	WRITE(p, "// color combine\n");
 	if (cc.clamp)
 		WRITE(p, "%s = saturate(", tevCOutputTable[cc.dest]);
 	else
@@ -1073,7 +1113,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		WRITE(p, ")");
 	WRITE(p,";\n");
 
-	WRITE(p, "// alpha combine\n", n);
+	WRITE(p, "// alpha combine\n");
 	// combine the alpha channel
 	if (ac.clamp)
 		WRITE(p, "%s = saturate(", tevAOutputTable[ac.dest]);
@@ -1119,7 +1159,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (ac.clamp)
 		WRITE(p, ")");
 	WRITE(p, ";\n\n");
-	WRITE(p, "// TEV done\n", n);
+	WRITE(p, "// TEV done\n");
 }
 
 void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)

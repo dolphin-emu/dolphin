@@ -57,7 +57,7 @@ public:
 
 	_VERTEXSHADERUID()
 	{
-		memset(values, 0, sizeof(values));		
+		memset(values, 0, sizeof(values));
 	}
 
 	_VERTEXSHADERUID(const _VERTEXSHADERUID& r)

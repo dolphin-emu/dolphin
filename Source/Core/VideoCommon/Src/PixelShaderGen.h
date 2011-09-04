@@ -45,36 +45,39 @@
 #define C_PMATERIALS	(C_PLIGHTS + 40)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
 #define PIXELSHADERUID_MAX_VALUES 67
+#define PIXELSHADERUID_MAX_VALUES_SAFE 100
 
 // DO NOT make anything in this class virtual.
-class PIXELSHADERUID
+template<bool safe>
+class _PIXELSHADERUID
 {
 public:
-	u32 values[PIXELSHADERUID_MAX_VALUES];
+	u32 values[safe ? PIXELSHADERUID_MAX_VALUES_SAFE : PIXELSHADERUID_MAX_VALUES];
 	u16 tevstages, indstages;
 
-	PIXELSHADERUID()
+	_PIXELSHADERUID()
 	{
-		memset(values, 0, PIXELSHADERUID_MAX_VALUES * 4);
+		memset(values, 0, sizeof(values));
 		tevstages = indstages = 0;
 	}
 
-	PIXELSHADERUID(const PIXELSHADERUID& r)
+	_PIXELSHADERUID(const _PIXELSHADERUID& r)
 	{
 		tevstages = r.tevstages;
 		indstages = r.indstages;
 		int N = GetNumValues();
-		_assert_(N <= PIXELSHADERUID_MAX_VALUES);
+		_assert_(N <= GetNumValues());
 		for (int i = 0; i < N; ++i)
 			values[i] = r.values[i];
 	}
 
 	int GetNumValues() const
 	{
-		return tevstages;
+		if (safe) return (sizeof(values) / sizeof(u32));
+		else return tevstages;
 	}
 
-	bool operator <(const PIXELSHADERUID& _Right) const
+	bool operator <(const _PIXELSHADERUID& _Right) const
 	{
 		if (values[0] < _Right.values[0])
 			return true;
@@ -91,7 +94,7 @@ public:
 		return false;
 	}
 
-	bool operator ==(const PIXELSHADERUID& _Right) const
+	bool operator ==(const _PIXELSHADERUID& _Right) const
 	{
 		if (values[0] != _Right.values[0])
 			return false;
@@ -104,6 +107,8 @@ public:
 		return true;
 	}
 };
+typedef _PIXELSHADERUID<false> PIXELSHADERUID;
+typedef _PIXELSHADERUID<true> PIXELSHADERUIDSAFE;
 
 // Different ways to achieve rendering with destination alpha
 enum DSTALPHA_MODE
@@ -115,6 +120,7 @@ enum DSTALPHA_MODE
 
 const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode);
+void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode);
 
 extern PIXELSHADERUID last_pixel_shader_uid;
 
