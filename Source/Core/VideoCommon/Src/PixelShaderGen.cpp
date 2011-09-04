@@ -62,7 +62,8 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 
 	uid->values[2] = (u32)bpmem.fog.c_proj_fsel.fsel |
 				   ((u32)bpmem.fog.c_proj_fsel.proj << 3) |
-				   ((u32)enableZTexture << 4) | ((u32)bpmem.fogRange.Base.Enabled << 5);
+				   ((u32)enableZTexture << 4) | ((u32)bpmem.fogRange.Base.Enabled << 5) |
+				   ((u32)bpmem.zcontrol.zcomploc << 6);
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -1148,7 +1149,7 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 		WRITE(p, "depth = 1.f;\n");
 	if (!bpmem.zcontrol.zcomploc)
 	{
-			WRITE(p, "discard;\n");
+		WRITE(p, "discard;\n");
 		if (ApiType != API_D3D11)
 			WRITE(p, "return;\n");
 	}
