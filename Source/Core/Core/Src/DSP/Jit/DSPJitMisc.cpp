@@ -31,10 +31,7 @@ void DSPEmitter::mrr(const UDSPInstruction opc)
 	u8 sreg = opc & 0x1f;
 	u8 dreg = (opc >> 5) & 0x1f;
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg, EDX);
-	else
-		dsp_op_read_reg(sreg, EDX);
+	dsp_op_read_reg(sreg, EDX);
 	dsp_op_write_reg(dreg, EDX);
 	dsp_conditional_extend_accum(dreg);
 }
