@@ -38,7 +38,7 @@ enum
 
 void FlushPipeline();
 void SetGenerationMode(const BPCmd &bp);
-void SetScissor(const BPCmd &bp);
+void SetScissor();
 void SetLineWidth(const BPCmd &bp);
 void SetDepthMode(const BPCmd &bp);
 void SetBlendMode(const BPCmd &bp);
