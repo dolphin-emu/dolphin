@@ -642,9 +642,9 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
-bool Renderer::SetScissorRect()
+void Renderer::SetScissorRect()
 {
-	MathUtil::Rectangle<float> rc;
+	EFBRectangle rc;
 	GetScissorRect(rc);
 
 	if (rc.left < 0) rc.left = 0;
@@ -655,12 +655,8 @@ bool Renderer::SetScissorRect()
 	if (rc.left > rc.right) rc.right = rc.left;
 	if (rc.top > rc.bottom) rc.bottom = rc.top;
 
-	glScissor(
-		EFBToScaledX(rc.left), // x = 0 for example
-		EFBToScaledY(EFB_HEIGHT - rc.bottom), // y = 0 for example
-		EFBToScaledX(rc.right - rc.left), // width = 640 for example
-		EFBToScaledY(rc.bottom - rc.top)); // height = 480 for example
-	return true;
+	TargetRectangle trc = ConvertEFBRectangle(rc);
+	glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
 }
 
 void Renderer::SetColorMask()

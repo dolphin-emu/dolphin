@@ -426,55 +426,21 @@ bool Renderer::CheckForResize()
 	return false;
 }
 
-bool Renderer::SetScissorRect()
+void Renderer::SetScissorRect()
 {
-	TargetRectangle rc;
+	EFBRectangle rc;
 	GetScissorRect(rc);
 
 	if (rc.left < 0) rc.left = 0;
-	if (rc.right < 0) rc.right = 0;
 	if (rc.top < 0) rc.top = 0;
-	if (rc.bottom < 0) rc.bottom = 0;
-
-	if (rc.left > EFB_WIDTH) rc.left = EFB_WIDTH;
 	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
-	if (rc.top > EFB_HEIGHT) rc.top = EFB_HEIGHT;
 	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
 
-	if (rc.left > rc.right)
-	{
-		int temp = rc.right;
-		rc.right = rc.left;
-		rc.left = temp;
-	}
-	if (rc.top > rc.bottom)
-	{
-		int temp = rc.bottom;
-		rc.bottom = rc.top;
-		rc.top = temp;
-	}
+	if (rc.left > rc.right) rc.right = rc.left;
+	if (rc.top > rc.bottom) rc.bottom = rc.top;
 
-	rc.left   = EFBToScaledX(rc.left);
-	rc.top    = EFBToScaledY(rc.top);
-	rc.right  = EFBToScaledX(rc.right);
-	rc.bottom = EFBToScaledY(rc.bottom);
-
-	// Check that the coordinates are good
-	if (rc.right != rc.left && rc.bottom != rc.top)
-	{
-		D3D::dev->SetScissorRect(rc.AsRECT());
-		return true;
-	}
-	else
-	{
-		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
-		rc.left   = 0;
-		rc.top    = 0;
-		rc.right  = s_target_width;
-		rc.bottom = s_target_height;
-		D3D::dev->SetScissorRect(rc.AsRECT());
-	}
-	return false;
+	TargetRectangle trc = ConvertEFBRectangle(rc);
+	D3D::dev->SetScissorRect(trc.AsRECT());
 }
 
 void Renderer::SetColorMask()

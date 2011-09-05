@@ -54,7 +54,7 @@ public:
 
 	virtual void SetColorMask() = 0;
 	virtual void SetBlendMode(bool forceUpdate) = 0;
-	virtual bool SetScissorRect() = 0;
+	virtual void SetScissorRect() = 0;
 	virtual void SetGenerationMode() = 0;
 	virtual void SetDepthMode() = 0;
 	virtual void SetLogicOpMode() = 0;
