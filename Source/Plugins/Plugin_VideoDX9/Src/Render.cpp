@@ -53,6 +53,7 @@
 #include "Debugger.h"
 #include "Core.h"
 #include "Movie.h"
+#include "BPFunctions.h"
 
 namespace DX9
 {
@@ -426,21 +427,9 @@ bool Renderer::CheckForResize()
 	return false;
 }
 
-void Renderer::SetScissorRect()
+void Renderer::SetScissorRect(const TargetRectangle& rc)
 {
-	EFBRectangle rc;
-	GetScissorRect(rc);
-
-	if (rc.left < 0) rc.left = 0;
-	if (rc.top < 0) rc.top = 0;
-	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
-	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
-
-	if (rc.left > rc.right) rc.right = rc.left;
-	if (rc.top > rc.bottom) rc.bottom = rc.top;
-
-	TargetRectangle trc = ConvertEFBRectangle(rc);
-	D3D::dev->SetScissorRect(trc.AsRECT());
+	D3D::dev->SetScissorRect(rc.AsRECT());
 }
 
 void Renderer::SetColorMask()
@@ -1259,7 +1248,7 @@ void Renderer::RestoreAPIState()
 	D3D::SetRenderState(D3DRS_FILLMODE, g_ActiveConfig.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
 	VertexShaderManager::SetViewportChanged();
-	SetScissorRect();
+	BPFunctions::SetScissor();
 	if (bpmem.zmode.testenable) {
 		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
 		if (bpmem.zmode.updateenable)

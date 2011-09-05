@@ -54,7 +54,7 @@ public:
 
 	virtual void SetColorMask() = 0;
 	virtual void SetBlendMode(bool forceUpdate) = 0;
-	virtual void SetScissorRect() = 0;
+	virtual void SetScissorRect(const TargetRectangle& rc) = 0;
 	virtual void SetGenerationMode() = 0;
 	virtual void SetDepthMode() = 0;
 	virtual void SetLogicOpMode() = 0;
@@ -174,17 +174,5 @@ private:
 extern Renderer *g_renderer;
 
 void UpdateViewport(Matrix44& vpCorrection);
-
-template <typename R>
-void GetScissorRect(MathUtil::Rectangle<R> &rect)
-{
-	const int xoff = bpmem.scissorOffset.x * 2 - 342;
-	const int yoff = bpmem.scissorOffset.y * 2 - 342;
-
-	rect.left   = (R)(bpmem.scissorTL.x - xoff - 342);
-	rect.top    = (R)(bpmem.scissorTL.y - yoff - 342);
-	rect.right  = (R)(bpmem.scissorBR.x - xoff - 341);
-	rect.bottom = (R)(bpmem.scissorBR.y - yoff - 341);
-}
 
 #endif // _COMMON_RENDERBASE_H_

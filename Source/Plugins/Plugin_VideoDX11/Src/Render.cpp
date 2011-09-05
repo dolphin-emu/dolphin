@@ -42,6 +42,7 @@
 #include "Movie.h"
 #include "Television.h"
 #include "Host.h"
+#include "BPFunctions.h"
 
 namespace DX11
 {
@@ -444,21 +445,9 @@ bool Renderer::CheckForResize()
 	return false;
 }
 
-void Renderer::SetScissorRect()
+void Renderer::SetScissorRect(const TargetRectangle& rc)
 {
-	EFBRectangle rc;
-	GetScissorRect(rc);
-
-	if (rc.left < 0) rc.left = 0;
-	if (rc.top < 0) rc.top = 0;
-	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
-	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
-
-	if (rc.left > rc.right) rc.right = rc.left;
-	if (rc.top > rc.bottom) rc.bottom = rc.top;
-
-	TargetRectangle trc = ConvertEFBRectangle(rc);
-	D3D::context->RSSetScissorRects(1, trc.AsRECT());
+	D3D::context->RSSetScissorRects(1, rc.AsRECT());
 }
 
 void Renderer::SetColorMask()
@@ -1133,7 +1122,7 @@ void Renderer::RestoreAPIState()
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();
 	VertexShaderManager::SetViewportChanged();
-	SetScissorRect();
+	BPFunctions::SetScissor();
 }
 
 void Renderer::ApplyState(bool bUseDstAlpha)

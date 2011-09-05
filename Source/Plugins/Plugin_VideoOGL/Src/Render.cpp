@@ -60,6 +60,7 @@
 #include "Core.h"
 #include "Movie.h"
 #include "Host.h"
+#include "BPFunctions.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -642,21 +643,9 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
-void Renderer::SetScissorRect()
+void Renderer::SetScissorRect(const TargetRectangle& rc)
 {
-	EFBRectangle rc;
-	GetScissorRect(rc);
-
-	if (rc.left < 0) rc.left = 0;
-	if (rc.top < 0) rc.top = 0;
-	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
-	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
-
-	if (rc.left > rc.right) rc.right = rc.left;
-	if (rc.top > rc.bottom) rc.bottom = rc.top;
-
-	TargetRectangle trc = ConvertEFBRectangle(rc);
-	glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
+	glScissor(rc.left, rc.bottom, rc.GetWidth(), rc.GetHeight());
 }
 
 void Renderer::SetColorMask()
@@ -1404,7 +1393,7 @@ void Renderer::RestoreAPIState()
 	// Gets us back into a more game-like state.
 	glEnable(GL_SCISSOR_TEST);
 	SetGenerationMode();
-	SetScissorRect();
+	BPFunctions::SetScissor();
 	SetColorMask();
 	SetDepthMode();
 	SetBlendMode(true);
