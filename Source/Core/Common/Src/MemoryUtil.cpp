@@ -27,7 +27,7 @@
 #include <stdio.h>
 #endif
 
-#if !defined(MAP_32BIT)
+#if !defined(_WIN32) && defined(__x86_64__) && !defined(MAP_32BIT)
 #include <unistd.h>
 #define PAGE_MASK     (getpagesize() - 1)
 #define round_page(x) ((((unsigned long)(x)) + PAGE_MASK) & ~(PAGE_MASK))
@@ -38,15 +38,14 @@
 
 void* AllocateExecutableMemory(size_t size, bool low)
 {
+#if defined(_WIN32)
+	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+#else
 	static char *map_hint = 0;
 #if defined(__x86_64__) && !defined(MAP_32BIT)
 	if (low && (!map_hint))
 		map_hint = (char*)round_page(512*1024*1024); /* 0.5 GB rounded up to the next page */
 #endif
-
-#if defined(_WIN32)
-	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-#else
 	void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 		MAP_ANON | MAP_PRIVATE
 #if defined(__x86_64__)
@@ -72,7 +71,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 #endif	
 		PanicAlert("Failed to allocate executable memory");
 	}
-#if defined(__x86_64__) && !defined(MAP_32BIT)
+#if !defined(_WIN32) && defined(__x86_64__) && !defined(MAP_32BIT)
 	else
 	{
 		if (low)
