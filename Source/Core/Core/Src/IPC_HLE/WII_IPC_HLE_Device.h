@@ -93,11 +93,11 @@ public:
 
 	virtual bool IsHardware() { return m_Hardware; }
 	virtual bool IsOpened() { return m_Active; }
-
+public:
+	std::string m_Name;
 protected:
 
 	// STATE_TO_SAVE
-	std::string m_Name;
 	u32 m_DeviceID;
 	bool m_Hardware;
 	bool m_Active;

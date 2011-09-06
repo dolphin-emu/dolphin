@@ -18,12 +18,22 @@
 #ifndef _WII_IPC_HLE_DEVICE_NET_H_
 #define _WII_IPC_HLE_DEVICE_NET_H_
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4748)
+#pragma optimize("",off)
+#endif
+
 #include "WII_IPC_HLE_Device.h"
+
+#ifdef _WIN32
+#include <ws2tcpip.h>
+#endif
+
 
 // data layout of the network configuration file (/shared2/sys/net/02/config.dat)
 // needed for /dev/net/ncd/manage
 #pragma pack(1)
-typedef struct
+struct netcfg_proxy_t
 {
 	u8 use_proxy;             // 0x00 -> no proxy;  0x01 -> proxy
 	u8 use_proxy_userandpass; // 0x00 -> don't use username and password;  0x01 -> use username and password
@@ -34,9 +44,9 @@ typedef struct
 	u8 proxy_username[32];
 	u8 padding_3;
 	u8 proxy_password[32];
-} netcfg_proxy_t;
+};
 
-typedef struct
+struct netcfg_connection_t
 {
 	// settings common to both wired and wireless connections
 	u8 flags; //  Connection selected
@@ -87,27 +97,24 @@ typedef struct
 
 	u8 key[64];         // encryption key; for WEP, key is stored 4 times (20 bytes for WEP64 and 52 bytes for WEP128) then padded with 0x00
 	u8 padding_12[236];
-} netcfg_connection_t;
+};
 
-typedef struct
+struct network_config_t
 {
-	u8 header0;    // 0x00
-	u8 header1;    // 0x00
-	u8 header2;    // 0x00
-	u8 header3;    // 0x00
-	u8 header4;    // 0x01 if there's at least one valid connection to the Internet.
-	u8 header5;    // 0x00
-	u8 header6;    // always 0x07?
-	u8 header7;    // 0x00
+	u32 version;
+	u8 connType;    // 0x01 if there's at least one valid connection to the Internet.
+	u8 nwc24Permission;    // 0x00
+	u8 linkTimeout;    // always 0x07?
+	u8 padding;    // 0x00
 
 	netcfg_connection_t connection[3];
-} network_config_t;
+};
 #pragma pack()
 
 
-// **********************************************************************************
-// KD is the IOS module responsible for implementing WiiConnect24 functionality. It
-// can perform HTTPS downloads, send and receive mail via SMTP, and execute a
+//////////////////////////////////////////////////////////////////////////
+// KD is the IOS module responsible for implementing WiiConnect24 functionality.
+// It can perform HTTPS downloads, send and receive mail via SMTP, and execute a
 // JavaScript-like language while the Wii is in standby mode.
 class CWII_IPC_HLE_Device_net_kd_request : public IWII_IPC_HLE_Device
 {
@@ -125,24 +132,24 @@ private:
     {
         IOCTL_NWC24_SUSPEND_SCHEDULAR               = 0x01,
         IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR      = 0x02,
-        IOCTL_NWC24_UNK_3                           = 0x03,
-        IOCTL_NWC24_UNK_4                           = 0x04,
+        IOCTL_NWC24_EXEC_RESUME_SCHEDULAR           = 0x03,
+        IOCTL_NWC24_KD_GET_TIME_TRIGGERS            = 0x04,
         IOCTL_NWC24_UNK_5                           = 0x05,
         IOCTL_NWC24_STARTUP_SOCKET                  = 0x06,
         IOCTL_NWC24_CLEANUP_SOCKET                  = 0x07,
         IOCTL_NWC24_LOCK_SOCKET                     = 0x08,
         IOCTL_NWC24_UNLOCK_SOCKET                   = 0x09,
-        IOCTL_NWC24_UNK_A                           = 0x0A,
-        IOCTL_NWC24_UNK_B                           = 0x0B,
-        IOCTL_NWC24_UNK_C                           = 0x0C,
+        IOCTL_NWC24_CHECK_MAIL_NOW                  = 0x0A,
+        IOCTL_NWC24_SEND_MAIL_NOW                   = 0x0B,
+        IOCTL_NWC24_RECEIVE_MAIL_NOW                = 0x0C,
         IOCTL_NWC24_SAVE_MAIL_NOW                   = 0x0D,
         IOCTL_NWC24_DOWNLOAD_NOW_EX                 = 0x0E,
         IOCTL_NWC24_REQUEST_GENERATED_USER_ID       = 0x0F,
         IOCTL_NWC24_REQUEST_REGISTER_USER_ID        = 0x10,
         IOCTL_NWC24_GET_SCHEDULAR_STAT              = 0x1E,
-        IOCTL_NWC24_UNK_1F                          = 0x1F,
-        IOCTL_NWC24_UNK_20                          = 0x20,
-        IOCTL_NWC24_UNK_21                          = 0x21,
+        IOCTL_NWC24_SET_FILTER_MODE                 = 0x1F,
+        IOCTL_NWC24_SET_DEBUG_MODE                  = 0x20,
+        IOCTL_NWC24_KD_SET_NEXT_WAKEUP              = 0x21,
         IOCTL_NWC24_SET_SCRIPT_MODE                 = 0x22,
         IOCTL_NWC24_REQUEST_SHUTDOWN                = 0x28,
     };
@@ -151,13 +158,16 @@ private:
 	std::string m_UserID;
 };
 
-// **********************************************************************************
+//////////////////////////////////////////////////////////////////////////
 class CWII_IPC_HLE_Device_net_kd_time : public IWII_IPC_HLE_Device
 {
+	u64 timediff;
 public:
-	CWII_IPC_HLE_Device_net_kd_time(u32 _DeviceID, const std::string& _rDeviceName) :
-	  IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	  {}
+	CWII_IPC_HLE_Device_net_kd_time(u32 _DeviceID, const std::string& _rDeviceName)
+		: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+	{
+		timediff = 1337; // this must be stored somewhere?
+	}
 
 	virtual ~CWII_IPC_HLE_Device_net_kd_time()
 	{}
@@ -188,26 +198,29 @@ public:
         switch (Parameter)
         {
         case IOCTL_NW24_SET_RTC_COUNTER: // NWC24iSetRtcCounter (but prolly just the first 4 bytes are intresting...)
+		{
             _dbg_assert_msg_(WII_IPC_NET, BufferInSize==0x20, "NET_KD_TIME: Set RTC Counter BufferIn to small");
             _dbg_assert_msg_(WII_IPC_NET, BufferOutSize==0x20, "NET_KD_TIME: Set RTC Counter BufferOut to small");            
-
-            for (int i=0; i<0x20; i++)
-            {
-                m_RtcCounter[i] = Memory::Read_U8(BufferIn+i);
-            }
-            
-            // send back for sync?? at least there is a out buffer...
-            for (int i=0; i<0x20; i++)
-            {
-                Memory::Write_U8(m_RtcCounter[i], BufferOut+i);
-            }
-
+			u64 rtctime = Memory::Read_U64(BufferIn+4);
+			Memory::Write_U32(0, BufferOut);
+			Memory::Write_U64(rtctime + timediff, BufferOut+4);
+           
             INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Set RTC Counter");
 
             Memory::Write_U32(0, _CommandAddress + 0x4);
             return true;
+		}
 
-		case IOCTL_NW24_GET_TIME_DIFF: // Input: none, Output: 32
+		case IOCTL_NW24_GET_TIME_DIFF:
+		{
+            Memory::Write_U32(0, BufferOut);
+            Memory::Write_U64(timediff, BufferOut+4);
+            INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Get time diff");
+
+			Memory::Write_U32(0, _CommandAddress + 0x4);
+            return true;
+		}
+
         default:
             ERROR_LOG(WII_IPC_NET, "%s - IOCtl:\n"
                 "    Parameter: 0x%x   (0x17 NWC24iSetRtcCounter) \n"
@@ -234,7 +247,7 @@ private:
     u8 m_RtcCounter[0x20];
 };
 
-// **********************************************************************************
+//////////////////////////////////////////////////////////////////////////
 class CWII_IPC_HLE_Device_net_ip_top : public IWII_IPC_HLE_Device
 {
 public:
@@ -248,7 +261,12 @@ public:
 	virtual bool IOCtlV(u32 _CommandAddress);
 	
 private:
-    enum {
+#ifdef _WIN32
+	WSADATA InitData;
+#endif
+	
+    enum
+	{
         IOCTL_SO_ACCEPT = 1,
         IOCTL_SO_BIND,
         IOCTL_SO_CLOSE,
@@ -287,6 +305,7 @@ private:
     };
 
 	u32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
+	u32 ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer CommandBuffer);
 };
 
 // **********************************************************************************
@@ -303,16 +322,23 @@ public:
 	virtual bool IOCtlV(u32 _CommandAddress);
 
 private:
-	enum {
-		IOCTLV_NCD_UNK1                  = 0x1,  // NCDLockWirelessDriver
-		IOCTLV_NCD_UNK2                  = 0x2,  // NCDUnlockWirelessDriver
-		IOCTLV_NCD_READCONFIG            = 0x3,  // NCDReadConfig?
-		IOCTLV_NCD_UNK4                  = 0x4,
-		IOCTLV_NCD_GETLINKSTATUS         = 0x7,  // NCDGetLinkStatus
-		IOCTLV_NCD_GETWIRELESSMACADDRESS = 0x8,  // NCDGetWirelessMacAddress
+	enum
+	{
+		IOCTLV_NCD_LOCKWIRELESSDRIVER		= 0x1,  // NCDLockWirelessDriver
+		IOCTLV_NCD_UNLOCKWIRELESSDRIVER		= 0x2,  // NCDUnlockWirelessDriver
+		IOCTLV_NCD_GETCONFIG				= 0x3,  // NCDiGetConfig
+		IOCTLV_NCD_SETCONFIG				= 0x4,  // NCDiSetConfig
+		IOCTLV_NCD_READCONFIG				= 0x5,
+		IOCTLV_NCD_WRITECONFIG				= 0x6,
+		IOCTLV_NCD_GETLINKSTATUS			= 0x7,  // NCDGetLinkStatus
+		IOCTLV_NCD_GETWIRELESSMACADDRESS	= 0x8,  // NCDGetWirelessMacAddress
 	};
 
 	network_config_t m_Ifconfig;
 };
+
+#ifdef _MSC_VER
+#pragma optimize("",on)
+#endif
 
 #endif

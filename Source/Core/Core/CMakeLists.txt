@@ -139,6 +139,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_fs.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_net.cpp
+			Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
@@ -192,7 +193,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/JitCommon/JitCache.cpp
 			Src/PowerPC/JitCommon/Jit_Util.cpp)
 
-set(LIBS bdisasm inputcommon videoogl videosoftware sfml-network)
+set(LIBS bdisasm inputcommon videoogl videosoftware sfml-network ssl)
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp
