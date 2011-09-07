@@ -170,6 +170,10 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 		ptr += 4; // max: ptr = &uid->values[66]
 	}
 
+	ptr[0] |= bpmem.alphaFunc.comp0; // 3
+	ptr[0] |= bpmem.alphaFunc.comp1 << 3; // 3
+	ptr[0] |= bpmem.alphaFunc.logic << 6; // 2
+
 	if (alphaPreTest == 0 || alphaPreTest == 2)
 	{
 		ptr[0] |= bpmem.fog.c_proj_fsel.fsel << 8; // 3
