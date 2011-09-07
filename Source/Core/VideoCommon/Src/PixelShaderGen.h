@@ -119,6 +119,8 @@ enum DSTALPHA_MODE
 };
 
 const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
+
+// TODO: Wtf, those need components as well! -.-
 void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode);
 void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode);
 

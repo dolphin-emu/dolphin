@@ -56,6 +56,8 @@ class PixelShaderCache
 		{
 			shader.Destroy();
 		}
+		PIXELSHADERUIDSAFE safe_uid;
+		std::string code;
 	};
 
 	typedef std::map<PIXELSHADERUID, PSCacheEntry> PSCache;

@@ -172,13 +172,13 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 
 	if (alphaPreTest == 0 || alphaPreTest == 2)
 	{
-		ptr[0] |= bpmem.fog.c_proj_fsel.fsel; // 3
+		ptr[0] |= bpmem.fog.c_proj_fsel.fsel << 8; // 3
 		if (DepthTextureEnable)
 		{
-			ptr[0] |= bpmem.ztex2.op << 3; // 2
-			ptr[0] |= bpmem.zcontrol.zcomploc << 5; // 1
-			ptr[0] |= bpmem.zmode.testenable << 6; // 1
-			ptr[0] |= bpmem.zmode.updateenable << 7; // 1
+			ptr[0] |= bpmem.ztex2.op << 11; // 2
+			ptr[0] |= bpmem.zcontrol.zcomploc << 13; // 1
+			ptr[0] |= bpmem.zmode.testenable << 14; // 1
+			ptr[0] |= bpmem.zmode.updateenable << 15; // 1
 		}
 	}
 
@@ -186,8 +186,8 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 	{
 		if (bpmem.fog.c_proj_fsel.fsel != 0)
 		{
-			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 8; // 1
-			ptr[0] |= bpmem.fogRange.Base.Enabled << 9; // 1
+			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 16; // 1
+			ptr[0] |= bpmem.fogRange.Base.Enabled << 17; // 1
 		}
 	}
 	uid->tevstages = (ptr+1) - uid->values;
@@ -318,14 +318,14 @@ void _GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode)
 {
 	u32* ptr = uid->values;
-	*ptr++ = dstAlphaMode;
-	*ptr++ = bpmem.genMode.hex;
-	*ptr++ = bpmem.ztex2.hex;
-	*ptr++ = bpmem.zcontrol.hex;
-	*ptr++ = bpmem.zmode.hex;
-	*ptr++ = g_ActiveConfig.bEnablePerPixelDepth;
-	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
-	*ptr++ = xfregs.numTexGen.hex;
+	*ptr++ = dstAlphaMode; // 0
+	*ptr++ = bpmem.genMode.hex; // 1
+	*ptr++ = bpmem.ztex2.hex; // 2
+	*ptr++ = bpmem.zcontrol.hex; // 3
+	*ptr++ = bpmem.zmode.hex; // 4
+	*ptr++ = g_ActiveConfig.bEnablePerPixelDepth; // 5
+	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting; // 6
+	*ptr++ = xfregs.numTexGen.hex; // 7
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -333,25 +333,28 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode)
 	}
 
 	for (unsigned int i = 0; i < 8; ++i)
-		*ptr++ = xfregs.texMtxInfo[i].hex;
+		*ptr++ = xfregs.texMtxInfo[i].hex; // 8-15
 
 	for (unsigned int i = 0; i < 16; ++i)
-		*ptr++ = bpmem.tevind[i].hex;
+		*ptr++ = bpmem.tevind[i].hex; // 16-31
 
-	*ptr++ = bpmem.tevindref.hex;
+	*ptr++ = bpmem.tevindref.hex; // 32
 
-	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
+	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i) // up to 16 times
 	{
 		// TODO ...
 		StageHash(i, ptr);
-		ptr += 4; // max: ptr = &uid->values[66]
+		ptr += 4; // max: ptr = &uid->values[33+63]
 	}
 
-	*ptr++ = bpmem.fog.c_proj_fsel.hex;
+	ptr = &uid->values[97];
 
-	*ptr++ = bpmem.fogRange.Base.hex;
+	*ptr++ = bpmem.alphaFunc.hex; // 97
 
-	_assert_((ptr - uid->values) == uid->GetNumValues());
+	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 98
+	*ptr++ = bpmem.fogRange.Base.hex; // 99
+
+	_assert_((ptr - uid->values) <= uid->GetNumValues());
 }
 
 
