@@ -485,7 +485,6 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	D3DBlob* pbytecode;
 	if (!D3D::CompilePixelShader(code, (unsigned int)strlen(code), &pbytecode))
 	{
-		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return false;
 	}
@@ -504,10 +503,8 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const void* byt
 {
 	ID3D11PixelShader* shader = D3D::CreatePixelShaderFromByteCode(bytecode, bytecodelen);
 	if (shader == NULL)
-	{
-		PanicAlert("Failed to create pixel shader at %s %d\n", __FILE__, __LINE__);
 		return false;
-	}
+
 	// TODO: Somehow make the debug name a bit more specific
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a pixel shader of PixelShaderCache");
 
