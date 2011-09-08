@@ -64,8 +64,6 @@ ID3D11DepthStencilState* resetdepthstate = NULL;
 ID3D11RasterizerState* resetraststate = NULL;
 
 static ID3D11Texture2D* s_screenshot_texture = NULL;
-static bool s_bAVIDumping;
-static char *s_frame_data = NULL;
 
 // GX pipeline state
 struct
@@ -355,9 +353,6 @@ Renderer::Renderer()
 
 	SetupDeviceObjects();
 
-	bLastFrameDumped = false;
-	s_bAVIDumping = false;
-
 
 	// Setup GX pipeline state
 	memset(&gx_state.blenddc, 0, sizeof(gx_state.blenddc));
@@ -406,15 +401,6 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
-	if (g_ActiveConfig.bDumpFrames && bLastFrameDumped && s_bAVIDumping)
-	{
-		SAFE_DELETE_ARRAY(s_frame_data);
-
-		AVIDump::Stop();
-		s_bAVIDumping = false;
-		bLastFrameDumped = false;
-	}
-
 	TeardownDeviceObjects();
 	D3D::EndFrame();
 	D3D::Present();
@@ -900,8 +886,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
-		if (g_ActiveConfig.bDumpFrames)
-			AVIDump::AddFrame(s_frame_data);
+		if (g_ActiveConfig.bDumpFrames && frame_data)
+			AVIDump::AddFrame(frame_data);
 
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -914,8 +900,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
-		if (g_ActiveConfig.bDumpFrames)
-			AVIDump::AddFrame(s_frame_data);
+		if (g_ActiveConfig.bDumpFrames && frame_data)
+			AVIDump::AddFrame(frame_data);
 
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -1034,8 +1020,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		{
 			s_recordWidth = dst_rect.GetWidth();
 			s_recordHeight = dst_rect.GetHeight();
-			s_bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
-			if (!s_bAVIDumping)
+			bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
+			if (!bAVIDumping)
 			{
 				PanicAlert("Error dumping frames to AVI.");
 			}
@@ -1047,33 +1033,33 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				OSD::AddMessage(msg, 2000);
 			}
 		}
-		if (s_bAVIDumping)
+		if (bAVIDumping)
 		{
 			D3D11_MAPPED_SUBRESOURCE map;
 			D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
 
-			if (!s_frame_data || w != s_recordWidth || h != s_recordHeight)
+			if (!frame_data || w != s_recordWidth || h != s_recordHeight)
 			{
-				delete[] s_frame_data;
-				s_frame_data = new char[3 * s_recordWidth * s_recordHeight];
+				delete[] frame_data;
+				frame_data = new char[3 * s_recordWidth * s_recordHeight];
 				w = s_recordWidth;
 				h = s_recordHeight;
 			}
-			formatBufferDump((char*)map.pData, s_frame_data, s_recordWidth, s_recordHeight, map.RowPitch);
-			AVIDump::AddFrame(s_frame_data);
+			formatBufferDump((char*)map.pData, frame_data, s_recordWidth, s_recordHeight, map.RowPitch);
+			AVIDump::AddFrame(frame_data);
 			D3D::context->Unmap(s_screenshot_texture, 0);
 		}
 		bLastFrameDumped = true;
 	}
 	else
 	{
-		if (bLastFrameDumped && s_bAVIDumping)
+		if (bLastFrameDumped && bAVIDumping)
 		{
-			SAFE_DELETE_ARRAY(s_frame_data);
+			SAFE_DELETE_ARRAY(frame_data);
 			w = h = 0;
 
 			AVIDump::Stop();
-			s_bAVIDumping = false;
+			bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames to AVI", 2000);
 		}
 		bLastFrameDumped = false;

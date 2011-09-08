@@ -42,6 +42,7 @@
 #include "Host.h"
 #include "XFMemory.h"
 #include "FifoPlayer/FifoRecorder.h"
+#include "AVIDump.h"
 
 #include <cmath>
 #include <string>
@@ -52,7 +53,6 @@ int OSDChoice, OSDTime;
 
 Renderer *g_renderer = NULL;
 
-bool bLastFrameDumped = false;
 std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;
 
@@ -81,15 +81,28 @@ bool Renderer::s_EnableDLCachingAfterRecording;
 
 unsigned int Renderer::prev_efb_format = (unsigned int)-1;
 
-Renderer::Renderer()
+Renderer::Renderer() : frame_data(NULL), bLastFrameDumped(false)
 {
 	UpdateActiveConfig();
+
+#if defined _WIN32 || defined HAVE_LIBAV
+	bAVIDumping = false;
+#endif
 }
 
 Renderer::~Renderer()
 {
 	// invalidate previous efb format
 	prev_efb_format = (unsigned int)-1;
+
+#if defined _WIN32 || defined HAVE_LIBAV
+	if (g_ActiveConfig.bDumpFrames && bLastFrameDumped && bAVIDumping)
+		AVIDump::Stop();
+#else
+	if (f_pFrameDump.IsOpen())
+		f_pFrameDump.Close();
+#endif
+	delete[] frame_data;
 }
 
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
