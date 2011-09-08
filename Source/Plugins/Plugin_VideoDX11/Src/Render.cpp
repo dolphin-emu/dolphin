@@ -871,13 +871,15 @@ void formatBufferDump(const char *in, char *out, int w, int h, int p)
 {
 	for (int y = 0; y < h; ++y)
 	{
-		const u32 *line = (u32*)(in + (h - y - 1) * p);
+		const u8 *line = (u8*)(in + (h - y - 1) * p);
 		for (int x = 0; x < w; ++x)
 		{
-			memcpy(out, line, 3);
+			out[0] = line[2];
+			out[1] = line[1];
+			out[2] = line[0];
 			out += 3;
 			line += 4;
-		}			
+		}
 	}
 }
 
@@ -1045,7 +1047,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				w = s_recordWidth;
 				h = s_recordHeight;
 			}
-			formatBufferDump((char*)map.pData, frame_data, s_recordWidth, s_recordHeight, map.RowPitch);
+			char* source_ptr = (char*)map.pData + dst_rect.left*4 + dst_rect.top*map.RowPitch;
+			formatBufferDump(source_ptr, frame_data, s_recordWidth, s_recordHeight, map.RowPitch);
 			AVIDump::AddFrame(frame_data);
 			D3D::context->Unmap(s_screenshot_texture, 0);
 		}
