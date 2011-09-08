@@ -60,12 +60,6 @@ namespace DX9
 
 static int s_fps = 0;
 
-static int s_recordWidth;
-static int s_recordHeight;
-
-static bool s_bLastFrameDumped;
-static bool s_bAVIDumping;
-
 static u32 s_blendMode;
 static u32 s_LastAA;
 static bool IS_AMD;
@@ -73,6 +67,7 @@ static bool IS_AMD;
 static char *st;
 
 static LPDIRECT3DSURFACE9 ScreenShootMEMSurface = NULL;
+static bool s_bAVIDumping;
 
 
 // State translation lookup tables
@@ -297,7 +292,7 @@ Renderer::Renderer()
 	// Make sure to use valid texture sizes
 	D3D::FixTextureSize(s_target_width, s_target_height);
 
-	s_bLastFrameDumped = false;
+	bLastFrameDumped = false;
 	s_bAVIDumping = false;
 
 	// We're not using fixed function.
@@ -845,11 +840,11 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	static char* data = 0;
-	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
 		if (g_ActiveConfig.bDumpFrames && data)
 			AVIDump::AddFrame(data);
+
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -862,6 +857,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
+		if (g_ActiveConfig.bDumpFrames && data)
+			AVIDump::AddFrame(data);
+
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -1027,10 +1025,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		SaveScreenshot(s_sScreenshotName, dst_rect);
 		s_bScreenshot = false;
 	}
+
+	// Dump frames
+	static int w = 0, h = 0;
 	if (g_ActiveConfig.bDumpFrames)
 	{
+		static int s_recordWidth;
+		static int s_recordHeight;
+
 		HRESULT hr = D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);
-		if (!s_bLastFrameDumped)
+		if (!bLastFrameDumped)
 		{
 			s_recordWidth = dst_rect.GetWidth();
 			s_recordHeight = dst_rect.GetHeight();
@@ -1064,11 +1068,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				ScreenShootMEMSurface->UnlockRect();
 			}
 		}
-		s_bLastFrameDumped = true;
+		bLastFrameDumped = true;
 	}
 	else
 	{
-		if (s_bLastFrameDumped && s_bAVIDumping)
+		if (bLastFrameDumped && s_bAVIDumping)
 		{
 			if (data)
 			{
@@ -1080,7 +1084,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			s_bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames to AVI", 2000);
 		}
-		s_bLastFrameDumped = false;
+		bLastFrameDumped = false;
 	}
 
 	// Finish up the current frame, print some stats

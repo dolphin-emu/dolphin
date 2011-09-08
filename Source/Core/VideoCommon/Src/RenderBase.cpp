@@ -52,7 +52,7 @@ int OSDChoice, OSDTime;
 
 Renderer *g_renderer = NULL;
 
-bool s_bLastFrameDumped = false;
+bool bLastFrameDumped = false;
 std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;
 

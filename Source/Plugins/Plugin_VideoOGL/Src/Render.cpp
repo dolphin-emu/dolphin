@@ -521,7 +521,7 @@ Renderer::~Renderer()
 	if(s_bAVIDumping)
 	{
 		AVIDump::Stop();
-		s_bLastFrameDumped = false;
+		bLastFrameDumped = false;
 		s_bAVIDumping = false;
 	}
 #else
@@ -970,11 +970,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
 		if (g_ActiveConfig.bDumpFrames && data)
-		#ifdef _WIN32
+		{
+#ifdef _WIN32
 			AVIDump::AddFrame((char *) data);
-		#elif defined HAVE_LIBAV
+#elif defined HAVE_LIBAV
 			AVIDump::AddFrame(data, w, h);
-		#endif
+#endif
+		}
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -1145,7 +1147,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
 		{
-			if (!s_bLastFrameDumped)
+			if (!bLastFrameDumped)
 			{
 				#ifdef _WIN32
 					s_bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
@@ -1171,14 +1173,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				#endif
 			}
 
-			s_bLastFrameDumped = true;
+			bLastFrameDumped = true;
 		}
 		else
 			NOTICE_LOG(VIDEO, "Error reading framebuffer");
 	}
 	else
 	{
-		if (s_bLastFrameDumped && s_bAVIDumping)
+		if (bLastFrameDumped && s_bAVIDumping)
 		{
 			if (data)
 			{
@@ -1190,7 +1192,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			s_bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames", 2000);
 		}
-		s_bLastFrameDumped = false;
+		bLastFrameDumped = false;
 	}
 #else
 	if (g_ActiveConfig.bDumpFrames)
