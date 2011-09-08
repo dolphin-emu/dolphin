@@ -132,9 +132,6 @@ public:
 
 protected:
 
-	static std::mutex s_criticalScreenshot;
-	static std::string s_sScreenshotName;
-
 	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);
 	static bool CalculateTargetSize(int multiplier = 1);
 	static void CalculateXYScale(const TargetRectangle& dst_rect);
@@ -143,6 +140,16 @@ protected:
 	static void RecordVideoMemory();
 
 	static volatile bool s_bScreenshot;
+	static std::mutex s_criticalScreenshot;
+	static std::string s_sScreenshotName;
+
+#if defined _WIN32 || defined HAVE_LIBAV
+	bool bAVIDumping;
+#else
+	File::IOFile pFrameDump;
+#endif
+	char* frame_data;
+	bool bLastFrameDumped;
 
 	// The framebuffer size
 	static int s_target_width;
