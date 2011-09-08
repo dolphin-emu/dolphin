@@ -17,11 +17,12 @@
 
 #pragma once
 
-#include <map>
+#include "PixelShaderGen.h"
 
 #include <d3d11.h>
 
-class PIXELSHADERUID;
+#include <map>
+
 enum DSTALPHA_MODE;
 
 namespace DX11

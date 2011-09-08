@@ -100,13 +100,15 @@ static void StageHash(int stage, u32* out)
 	}
 }
 
+// Mash together all the inputs that contribute to the code of a generated pixel shader into
+// a unique identifier, basically containing all the bits. Yup, it's a lot ....
+// It would likely be a lot more efficient to build this incrementally as the attributes
+// are set...
 void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 {
 	uid->values[0] |= bpmem.genMode.numtevstages; // 4
 	uid->values[0] |= bpmem.genMode.numtexgens << 4; // 4
 	uid->values[0] |= dstAlphaMode << 8; // 2
-
-	uid->tevstages = bpmem.genMode.numtevstages;
 
 	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth;
 
@@ -124,7 +126,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 	{
 		// Courtesy of PreAlphaTest, we're done already ;)
 		// TODO: There's a comment including bpmem.genmode.numindstages.. shouldnt really bother about that though.
-		uid->tevstages = 1;
+		uid->num_values = 1;
 		return;
 	}
 
@@ -140,8 +142,6 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 		else
 			uid->values[1] |= xfregs.texMtxInfo[i].projection << (i - 14); // 1
 	}
-
-	uid->indstages = bpmem.genMode.numindstages;
 
 	uid->values[1] = bpmem.genMode.numindstages << 2; // 3
 	u32 indirectStagesUsed = 0;
@@ -194,129 +194,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 			ptr[0] |= bpmem.fogRange.Base.Enabled << 17; // 1
 		}
 	}
-	uid->tevstages = (ptr+1) - uid->values;
-}
-
-// Mash together all the inputs that contribute to the code of a generated pixel shader into
-// a unique identifier, basically containing all the bits. Yup, it's a lot ....
-// It would likely be a lot more efficient to build this incrementally as the attributes
-// are set...
-void _GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
-{
-	u32 numstages = bpmem.genMode.numtevstages + 1;
-	u32 projtexcoords = 0;
-	for (u32 i = 0; i < numstages; i++)
-	{
-		if (bpmem.tevorders[i/2].getEnable(i & 1))
-		{
-			int texcoord = bpmem.tevorders[i / 2].getTexCoord(i & 1);
-			if (xfregs.texMtxInfo[i].projection)
-				projtexcoords |= 1 << texcoord;
-		}
-	}
-	uid->values[0] = (u32)bpmem.genMode.numtevstages |
-				   ((u32)bpmem.genMode.numindstages << 4) |
-				   ((u32)bpmem.genMode.numtexgens << 7) |
-				   ((u32)dstAlphaMode << 11) |
-				   ((u32)((bpmem.alphaFunc.hex >> 16) & 0xff) << 13) |
-				   (projtexcoords << 21) |
-				   ((u32)bpmem.ztex2.op << 29);
-
-	// swap table
-	for (int i = 0; i < 8; i += 2)
-		((u8*)&uid->values[1])[i / 2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
-
-	u32 enableZTexture = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ? 1 : 0;
-
-	uid->values[2] = (u32)bpmem.fog.c_proj_fsel.fsel |
-				   ((u32)bpmem.fog.c_proj_fsel.proj << 3) |
-				   ((u32)enableZTexture << 4) | ((u32)bpmem.fogRange.Base.Enabled << 5);
-
-	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-	{
-		for (int i = 0; i < 2; ++i) {
-			uid->values[3 + i] = xfregs.color[i].enablelighting ?
-				(u32)xfregs.color[i].hex :
-				(u32)xfregs.color[i].matsource;
-			uid->values[3 + i] |= (xfregs.alpha[i].enablelighting ?
-				(u32)xfregs.alpha[i].hex :
-				(u32)xfregs.alpha[i].matsource) << 15;
-		}
-	}
-	uid->values[4] |= (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting) << 31;
-
-	int hdr = 5;
-	u32 *pcurvalue = &uid->values[hdr];
-	for (u32 i = 0; i < numstages; ++i)
-	{
-		TevStageCombiner::ColorCombiner &cc = bpmem.combiners[i].colorC;
-		TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[i].alphaC;
-
-		u32 val0 = cc.hex & 0xffffff;
-		u32 val1 = ac.hex & 0xffffff;
-		val0 |= bpmem.tevksel[i / 2].getKC(i & 1) << 24;
-		val1 |= bpmem.tevksel[i / 2].getKA(i & 1) << 24;
-		pcurvalue[0] = val0;
-		pcurvalue[1] = val1;
-		pcurvalue += 2;
-	}
-
-	for (u32 i = 0; i < numstages / 2; ++i)
-	{
-		u32 val0, val1;
-		if (bpmem.tevorders[i].hex & 0x40)
-			val0 = bpmem.tevorders[i].hex & 0x3ff;
-		else
-			val0 = bpmem.tevorders[i].hex & 0x380;
-		if (bpmem.tevorders[i].hex & 0x40000)
-			val1 = (bpmem.tevorders[i].hex & 0x3ff000) >> 12;
-		else
-			val1 = (bpmem.tevorders[i].hex & 0x380000) >> 12;
-
-		switch (i % 3) {
-			case 0: pcurvalue[0] = val0|(val1<<10); break;
-			case 1: pcurvalue[0] |= val0<<20; pcurvalue[1] = val1; pcurvalue++; break;
-			case 2: pcurvalue[1] |= (val0<<10)|(val1<<20); pcurvalue++; break;
-			default: PanicAlert("Unknown case for Tev Stages / 2: %08x", (i % 3));
-		}
-	}
-
-	if (numstages & 1) { // odd
-		u32 val0;
-		if (bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x40)
-			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x3ff;
-		else
-			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x380;
-
-		switch (bpmem.genMode.numtevstages % 3)
-		{
-		case 0: pcurvalue[0] = val0; break;
-		case 1: pcurvalue[0] |= val0 << 20; break;
-		case 2: pcurvalue[1] |= val0 << 10; pcurvalue++; break;
-		default: PanicAlert("Unknown case for Tev Stages: %08x", bpmem.genMode.numtevstages % 3);
-		}
-	}
-
-	if ((bpmem.genMode.numtevstages % 3) != 2)
-		++pcurvalue;
-
-	uid->tevstages = (u32)(pcurvalue - &uid->values[0] - hdr);
-
-	for (u32 i = 0; i < bpmem.genMode.numindstages; ++i)
-	{
-		u32 val = bpmem.tevind[i].hex & 0x1fffff; // 21 bits
-		switch (i % 3)
-		{
-		case 0: pcurvalue[0] = val; break;
-		case 1: pcurvalue[0] |= val << 21; pcurvalue[1] = val >> 11; ++pcurvalue; break;
-		case 2: pcurvalue[0] |= val << 10; ++pcurvalue; break;
-		default: PanicAlert("Unknown case for Ind Stages: %08x", (i % 3));
-		}
-	}
-
-	// yeah, well ....
-	uid->indstages = (u32)(pcurvalue - &uid->values[0] - (hdr - 1) - uid->tevstages);
-
+	uid->num_values = (ptr+1) - uid->values;
 }
 
 void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode)
@@ -346,19 +224,21 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode)
 
 	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i) // up to 16 times
 	{
-		// TODO ...
-		StageHash(i, ptr);
-		ptr += 4; // max: ptr = &uid->values[33+63]
+		*ptr++ = bpmem.combiners[i].colorC.hex; // 33+5*i
+		*ptr++ = bpmem.combiners[i].alphaC.hex; // 34+5*i
+		*ptr++ = bpmem.tevind[i].hex; // 35+5*i
+		*ptr++ = bpmem.tevksel[i/2].hex; // 36+5*i
+		*ptr++ = bpmem.tevorders[i/2].hex; // 37+5*i
 	}
 
-	ptr = &uid->values[97];
+	ptr = &uid->values[113];
 
-	*ptr++ = bpmem.alphaFunc.hex; // 97
+	*ptr++ = bpmem.alphaFunc.hex; // 113
 
-	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 98
-	*ptr++ = bpmem.fogRange.Base.hex; // 99
+	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 114
+	*ptr++ = bpmem.fogRange.Base.hex; // 115
 
-	_assert_((ptr - uid->values) <= uid->GetNumValues());
+	_assert_((ptr - uid->values) == uid->GetNumValues());
 }
 
 

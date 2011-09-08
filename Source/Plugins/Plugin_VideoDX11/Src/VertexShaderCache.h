@@ -18,12 +18,12 @@
 #ifndef _VERTEXSHADERCACHE_H
 #define _VERTEXSHADERCACHE_H
 
-#include <map>
+#include "VertexShaderGen.h"
 
 #include "D3DBase.h"
 #include "D3DBlob.h"
 
-class VERTEXSHADERUID;
+#include <map>
 
 namespace DX11 {
 

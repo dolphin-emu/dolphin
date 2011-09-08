@@ -45,7 +45,7 @@
 #define C_PMATERIALS	(C_PLIGHTS + 40)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
 #define PIXELSHADERUID_MAX_VALUES 67
-#define PIXELSHADERUID_MAX_VALUES_SAFE 100
+#define PIXELSHADERUID_MAX_VALUES_SAFE 115
 
 // DO NOT make anything in this class virtual.
 template<bool safe>
@@ -53,38 +53,37 @@ class _PIXELSHADERUID
 {
 public:
 	u32 values[safe ? PIXELSHADERUID_MAX_VALUES_SAFE : PIXELSHADERUID_MAX_VALUES];
-	u16 tevstages, indstages;
+	u16 num_values;
 
 	_PIXELSHADERUID()
 	{
 		memset(values, 0, sizeof(values));
-		tevstages = indstages = 0;
+
+		if (safe) num_values = sizeof(values) / sizeof(values[0]);
+		else num_values = 0;
 	}
 
 	_PIXELSHADERUID(const _PIXELSHADERUID& r)
 	{
-		tevstages = r.tevstages;
-		indstages = r.indstages;
-		int N = GetNumValues();
-		_assert_(N <= GetNumValues());
-		for (int i = 0; i < N; ++i)
-			values[i] = r.values[i];
+		num_values = r.num_values;
+		if (safe) memcpy(values, r.values, PIXELSHADERUID_MAX_VALUES_SAFE);
+		else memcpy(values, r.values, r.GetNumValues() * sizeof(values[0]));
 	}
 
 	int GetNumValues() const
 	{
 		if (safe) return (sizeof(values) / sizeof(u32));
-		else return tevstages;
+		else return num_values;
 	}
 
 	bool operator <(const _PIXELSHADERUID& _Right) const
 	{
-		if (values[0] < _Right.values[0])
-			return true;
-		else if (values[0] > _Right.values[0])
-			return false;
 		int N = GetNumValues();
-		for (int i = 1; i < N; ++i)
+		if (N < _Right.GetNumValues())
+			return true;
+		else if (N > _Right.GetNumValues())
+			return false;
+		for (int i = 0; i < N; ++i)
 		{
 			if (values[i] < _Right.values[i])
 				return true;
@@ -96,10 +95,10 @@ public:
 
 	bool operator ==(const _PIXELSHADERUID& _Right) const
 	{
-		if (values[0] != _Right.values[0])
-			return false;
 		int N = GetNumValues();
-		for (int i = 1; i < N; ++i)
+		if (N != _Right.GetNumValues())
+			return false;
+		for (int i = 0; i < N; ++i)
 		{
 			if (values[i] != _Right.values[i])
 				return false;
