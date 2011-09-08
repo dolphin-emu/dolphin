@@ -43,6 +43,7 @@
 #include "Television.h"
 #include "Host.h"
 #include "BPFunctions.h"
+#include "AVIDump.h"
 
 namespace DX11
 {
@@ -61,6 +62,8 @@ ID3D11DepthStencilState* cleardepthstates[3] = {NULL};
 ID3D11BlendState* resetblendstate = NULL;
 ID3D11DepthStencilState* resetdepthstate = NULL;
 ID3D11RasterizerState* resetraststate = NULL;
+
+static ID3D11Texture2D* s_screenshot_texture = NULL;
 
 // GX pipeline state
 struct
@@ -296,9 +299,14 @@ void SetupDeviceObjects()
 	hr = D3D::device->CreateRasterizerState(&rastdesc, &resetraststate);
 	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
+
+	D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
+	hr = D3D::device->CreateTexture2D(&scrtex_desc, NULL, &s_screenshot_texture);
+	CHECK(hr==S_OK, "Create screenshot staging texture");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
 }
 
-// Kill off all POOL_DEFAULT device objects.
+// Kill off all device objects
 void TeardownDeviceObjects()
 {
 	delete g_framebuffer_manager;
@@ -314,6 +322,7 @@ void TeardownDeviceObjects()
 	SAFE_RELEASE(resetblendstate);
 	SAFE_RELEASE(resetdepthstate);
 	SAFE_RELEASE(resetraststate);
+	SAFE_RELEASE(s_screenshot_texture);
 
 	s_television.Shutdown();
 }
@@ -343,6 +352,7 @@ Renderer::Renderer()
 	CalculateTargetSize();
 
 	SetupDeviceObjects();
+
 
 	// Setup GX pipeline state
 	memset(&gx_state.blenddc, 0, sizeof(gx_state.blenddc));
@@ -835,15 +845,11 @@ void Renderer::SetBlendMode(bool forceUpdate)
 bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &rc)
 {
 	// copy back buffer to system memory
-	ID3D11Texture2D* buftex;
-	D3D11_TEXTURE2D_DESC tex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
-	HRESULT hr = D3D::device->CreateTexture2D(&tex_desc, NULL, &buftex);
-	if (FAILED(hr)) PanicAlert("Failed to create screenshot buffer texture");
-	D3D::context->CopyResource(buftex, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
+	D3D::context->CopyResource(s_screenshot_texture, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
 
 	// D3DX11SaveTextureToFileA doesn't allow us to ignore the alpha channel, so we need to strip it out ourselves
 	D3D11_MAPPED_SUBRESOURCE map;
-	D3D::context->Map(buftex, 0, D3D11_MAP_READ_WRITE, 0, &map);
+	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 	for (unsigned int y = 0; y < D3D::GetBackBufferHeight(); ++y)
 	{
 		u8* ptr = (u8*)map.pData + y * map.RowPitch + 3;
@@ -853,21 +859,38 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 			ptr += 4;
 		}
 	}
-	D3D::context->Unmap(buftex, 0);
+	D3D::context->Unmap(s_screenshot_texture, 0);
 
 	// ready to be saved
-	hr = PD3DX11SaveTextureToFileA(D3D::context, buftex, D3DX11_IFF_PNG, filename.c_str());
-	buftex->Release();
+	HRESULT hr = PD3DX11SaveTextureToFileA(D3D::context, s_screenshot_texture, D3DX11_IFF_PNG, filename.c_str());
 
 	return SUCCEEDED(hr);
 }
 
+void formatBufferDump(const char *in, char *out, int w, int h, int p)
+{
+	for (int y = 0; y < h; ++y)
+	{
+		const u8 *line = (u8*)(in + (h - y - 1) * p);
+		for (int x = 0; x < w; ++x)
+		{
+			out[0] = line[2];
+			out[1] = line[1];
+			out[2] = line[0];
+			out += 3;
+			line += 4;
+		}
+	}
+}
 
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
+		if (g_ActiveConfig.bDumpFrames && frame_data)
+			AVIDump::AddFrame(frame_data);
+
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -879,6 +902,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
+		if (g_ActiveConfig.bDumpFrames && frame_data)
+			AVIDump::AddFrame(frame_data);
+
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -982,6 +1008,64 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		SaveScreenshot(s_sScreenshotName, dst_rect);
 		s_bScreenshot = false;
+	}
+
+	// Dump frames
+	static int w = 0, h = 0;
+	if (g_ActiveConfig.bDumpFrames)
+	{
+		static int s_recordWidth;
+		static int s_recordHeight;
+
+		D3D::context->CopyResource(s_screenshot_texture, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
+		if (!bLastFrameDumped)
+		{
+			s_recordWidth = dst_rect.GetWidth();
+			s_recordHeight = dst_rect.GetHeight();
+			bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
+			if (!bAVIDumping)
+			{
+				PanicAlert("Error dumping frames to AVI.");
+			}
+			else
+			{
+				char msg [255];
+				sprintf_s(msg,255, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), s_recordWidth, s_recordHeight);
+				OSD::AddMessage(msg, 2000);
+			}
+		}
+		if (bAVIDumping)
+		{
+			D3D11_MAPPED_SUBRESOURCE map;
+			D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
+
+			if (!frame_data || w != s_recordWidth || h != s_recordHeight)
+			{
+				delete[] frame_data;
+				frame_data = new char[3 * s_recordWidth * s_recordHeight];
+				w = s_recordWidth;
+				h = s_recordHeight;
+			}
+			char* source_ptr = (char*)map.pData + dst_rect.left*4 + dst_rect.top*map.RowPitch;
+			formatBufferDump(source_ptr, frame_data, s_recordWidth, s_recordHeight, map.RowPitch);
+			AVIDump::AddFrame(frame_data);
+			D3D::context->Unmap(s_screenshot_texture, 0);
+		}
+		bLastFrameDumped = true;
+	}
+	else
+	{
+		if (bLastFrameDumped && bAVIDumping)
+		{
+			SAFE_DELETE_ARRAY(frame_data);
+			w = h = 0;
+
+			AVIDump::Stop();
+			bAVIDumping = false;
+			OSD::AddMessage("Stop dumping frames to AVI", 2000);
+		}
+		bLastFrameDumped = false;
 	}
 
 	// Finish up the current frame, print some stats
