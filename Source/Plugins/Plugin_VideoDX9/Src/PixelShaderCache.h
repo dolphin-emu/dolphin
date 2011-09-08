@@ -42,6 +42,9 @@ private:
 		bool owns_shader;
 		int frameCount;
 
+		PIXELSHADERUIDSAFE safe_uid;
+		std::string code;
+
 		PSCacheEntry() : shader(NULL), owns_shader(true), frameCount(0) {}
 		void Destroy()
 		{

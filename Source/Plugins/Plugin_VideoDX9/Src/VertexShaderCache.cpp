@@ -187,6 +187,7 @@ bool VertexShaderCache::SetShader(u32 components)
 	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
 	{
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+		ValidateVertexShaderIDs(API_D3D9, vshaders[uid].safe_uid, vshaders[uid].code, components);
 		return (vshaders[uid].shader != NULL);
 	}
 
@@ -201,6 +202,7 @@ bool VertexShaderCache::SetShader(u32 components)
 
 		if (entry.shader) D3D::SetVertexShader(entry.shader);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+		ValidateVertexShaderIDs(API_D3D9, entry.safe_uid, entry.code, components);
 		return (entry.shader != NULL);
 	}
 
@@ -215,10 +217,15 @@ bool VertexShaderCache::SetShader(u32 components)
 	g_vs_disk_cache.Append(uid, bytecode, bytecodelen);
 	g_vs_disk_cache.Sync();
 
-	bool result = InsertByteCode(uid, bytecode, bytecodelen, true);
+	bool success = InsertByteCode(uid, bytecode, bytecodelen, true);
+	if (success)
+	{
+		vshaders[uid].code = code;
+		GetSafeVertexShaderId(&vshaders[uid].safe_uid, components);
+	}
 	delete [] bytecode;
 	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-	return result;
+	return success;
 }
 
 bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate) {

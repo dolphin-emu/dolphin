@@ -90,6 +90,42 @@ void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components)
 	_assert_((ptr - uid->values) == uid->GetNumValues());
 }
 
+
+void ValidateVertexShaderIDs(API_TYPE api, VERTEXSHADERUIDSAFE old_id, const std::string& old_code, u32 components)
+{
+	VERTEXSHADERUIDSAFE new_id;
+	GetSafeVertexShaderId(&new_id, components);
+
+	if (!(old_id == new_id))
+	{
+		std::string new_code(GenerateVertexShaderCode(components, api));
+		if (old_code != new_code)
+		{
+			_assert_(old_id.GetNumValues() == new_id.GetNumValues());
+
+			char msg[8192];
+			char* ptr = msg;
+			ptr += sprintf(ptr, "Vertex shader IDs matched but unique IDs did not!\nUnique IDs (old <-> new):\n");
+			const int N = new_id.GetNumValues();
+			for (int i = 0; i < N/2; ++i)
+				ptr += sprintf(ptr, "%02d, %08X  %08X  |  %08X  %08X\n", 2*i, old_id.values[2*i], old_id.values[2*i+1],
+																			new_id.values[2*i], new_id.values[2*i+1]);
+			if (N % 2)
+				ptr += sprintf(ptr, "%02d, %08X  |  %08X\n", N-1, old_id.values[N-1], new_id.values[N-1]);
+				
+			static int num_failures = 0;
+			char szTemp[MAX_PATH];
+			sprintf(szTemp, "%svsuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+			std::ofstream file(szTemp);
+			file << msg;
+			file.close();
+
+			PanicAlert("Unique pixel shader ID mismatch!\n\nReport this to the devs, along with the contents of %s.", szTemp);
+		}
+	}
+}
+
+
 static char text[16384];
 
 #define WRITE p+=sprintf

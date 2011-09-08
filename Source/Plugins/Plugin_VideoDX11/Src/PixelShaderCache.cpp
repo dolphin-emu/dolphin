@@ -461,6 +461,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	{
 		PSCache::const_iterator iter = PixelShaders.find(uid);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
+		ValidatePixelShaderIDs(API_D3D11, PixelShaders[uid].safe_uid, PixelShaders[uid].code, dstAlphaMode, components);
 		return (iter != PixelShaders.end() && iter->second.shader);
 	}
 
@@ -476,6 +477,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 		last_entry = &entry;
 		
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
+		ValidatePixelShaderIDs(API_D3D11, entry.safe_uid, entry.code, dstAlphaMode, components);
 		return (entry.shader != NULL);
 	}
 
@@ -494,10 +496,17 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	g_ps_disk_cache.Append(uid, pbytecode->Data(), pbytecode->Size());
 	g_ps_disk_cache.Sync();
 
-	bool result = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
+	bool success = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
 	pbytecode->Release();
+
+	if (success)
+	{
+		PixelShaders[uid].code = code;
+		GetSafePixelShaderId(&PixelShaders[uid].safe_uid, dstAlphaMode);
+	}
+
 	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-	return result;
+	return success;
 }
 
 bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const void* bytecode, unsigned int bytecodelen)

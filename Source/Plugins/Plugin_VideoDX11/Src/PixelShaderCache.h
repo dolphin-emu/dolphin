@@ -55,6 +55,9 @@ private:
 		ID3D11PixelShader* shader;
 		int frameCount;
 
+		PIXELSHADERUIDSAFE safe_uid;
+		std::string code;
+
 		PSCacheEntry() : shader(NULL), frameCount(0) {}
 		void Destroy() { SAFE_RELEASE(shader); }
 	};

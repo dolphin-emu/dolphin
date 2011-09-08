@@ -77,6 +77,7 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
 	{
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+		ValidateVertexShaderIDs(API_OPENGL, vshaders[uid].safe_uid, vshaders[uid].shader.strprog, components);
 		return pShaderLast;
 	}
 	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
@@ -86,11 +87,11 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 	{
 		iter->second.frameCount = frameCount;
 		VSCacheEntry &entry = iter->second;
-		if (&entry.shader != pShaderLast) {
+		if (&entry.shader != pShaderLast)
 			pShaderLast = &entry.shader;
-		}
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+		ValidateVertexShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, components);
 		return pShaderLast;
 	}
 
@@ -182,9 +183,9 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	cgDestroyProgram(tempprog);
 #endif
 
-#if defined(_DEBUG) || defined(DEBUGFAST) 
+//#if defined(_DEBUG) || defined(DEBUGFAST) 
 	vs.strprog = pstrprogram;
-#endif
+//#endif
 
 	return true;
 }

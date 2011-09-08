@@ -32,9 +32,9 @@ struct VERTEXSHADER
 	VERTEXSHADER() : glprogid(0) {}
 	GLuint glprogid; // opengl program id
 
-#if defined(_DEBUG) || defined(DEBUGFAST) 
+//#if defined(_DEBUG) || defined(DEBUGFAST) 
 	std::string strprog;
-#endif
+//#endif
 };
 
 class VertexShaderCache
@@ -42,6 +42,7 @@ class VertexShaderCache
 	struct VSCacheEntry
 	{ 
 		VERTEXSHADER shader;
+		VERTEXSHADERUIDSAFE safe_uid;
 		int frameCount;
 		VSCacheEntry() : frameCount(0) {}
 		void Destroy() {

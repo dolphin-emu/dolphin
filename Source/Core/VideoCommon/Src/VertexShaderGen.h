@@ -109,8 +109,12 @@ typedef _VERTEXSHADERUID<true> VERTEXSHADERUIDSAFE;
 // components is included in the uid.
 char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE api_type);
 const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type);
+
 void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components);
 void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components);
+
+// Used to make sure that our optimized vertex shader IDs don't lose any possible shader code changes
+void ValidateVertexShaderIDs(API_TYPE api, VERTEXSHADERUIDSAFE old_id, const std::string& old_code, u32 components);
 
 extern VERTEXSHADERUID  last_vertex_shader_uid;
 

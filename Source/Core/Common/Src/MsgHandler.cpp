@@ -53,7 +53,7 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 {
 	// Read message and write it to the log
 	std::string caption;
-	char buffer[4096];
+	char buffer[2048];
 
 	static std::string info_caption;
 	static std::string warn_caption;

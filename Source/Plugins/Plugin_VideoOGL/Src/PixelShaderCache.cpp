@@ -184,30 +184,13 @@ void PixelShaderCache::Shutdown()
 FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	PIXELSHADERUID uid;
-	PIXELSHADERUIDSAFE safe_uid;
 	GetPixelShaderId(&uid, dstAlphaMode);
-	GetSafePixelShaderId(&safe_uid, dstAlphaMode);
-
+	
 	// Check if the shader is already set - TODO: Use pShaderLast instead of PixelShaders[uid]?
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
 	{
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-
-		if (!(safe_uid == PixelShaders[uid].safe_uid))
-		{
-			std::string code(GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components));
-			if (code != PixelShaders[uid].code)
-			{
-				char msg[4096];
-				char* ptr = msg;
-				ptr += sprintf(ptr, "Mismatch!\nUnique IDs:\n");
-				for (int i = 0; i < PixelShaders[uid].safe_uid.GetNumValues()/2; ++i)
-					ptr += sprintf(ptr, "%02d, %08X  %08X  |  %08X  %08X\n", 2*i, PixelShaders[uid].safe_uid.values[2*i], PixelShaders[uid].safe_uid.values[2*i+1],
-																	safe_uid.values[2*i], safe_uid.values[2*i+1]);
-				PanicAlert(msg);
-			}
-		}
-
+		ValidatePixelShaderIDs(API_OPENGL, PixelShaders[uid].safe_uid, PixelShaders[uid].code, dstAlphaMode, components);
 		return pShaderLast;
 	}
 
@@ -220,35 +203,19 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 		iter->second.frameCount = frameCount;
 		PSCacheEntry &entry = iter->second;
 		if (&entry.shader != pShaderLast)
-		{
 			pShaderLast = &entry.shader;
-		}
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		if (!(safe_uid == entry.safe_uid))
-		{
-			std::string code(GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components));
-			if (code != entry.code)
-			{
-				char msg[4096];
-				char *ptr = msg;
-				ptr += sprintf(ptr, "Mismatch!\nUnique IDs:\n");
-				for (int i = 0; i < entry.safe_uid.GetNumValues()/2; ++i)
-					ptr += sprintf(ptr, "%02d\t%08X  %08X  |  %08X  %08X\n", 2*i, entry.safe_uid.values[2*i], entry.safe_uid.values[2*i+1],
-																	safe_uid.values[2*i], safe_uid.values[2*i+1]);
-				PanicAlert(msg);
-			}
-		}
-
+		ValidatePixelShaderIDs(API_OPENGL, entry.safe_uid, entry.code, dstAlphaMode, components);
 		return pShaderLast;
 	}
 
 	// Make an entry in the table
 	PSCacheEntry& newentry = PixelShaders[uid];
 	newentry.frameCount = frameCount;
-	newentry.safe_uid = safe_uid;
 	pShaderLast = &newentry.shader;
 	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
+	GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode);
 	newentry.code = code;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)

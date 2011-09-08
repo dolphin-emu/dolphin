@@ -35,9 +35,10 @@ private:
 	{ 
 		LPDIRECT3DVERTEXSHADER9 shader;
 		int frameCount;
-#if defined(_DEBUG) || defined(DEBUGFAST)
+//#if defined(_DEBUG) || defined(DEBUGFAST)
 		std::string code;
-#endif
+		VERTEXSHADERUIDSAFE safe_uid;
+//#endif
 		VSCacheEntry() : shader(NULL), frameCount(0) {}
 		void Destroy()
 		{

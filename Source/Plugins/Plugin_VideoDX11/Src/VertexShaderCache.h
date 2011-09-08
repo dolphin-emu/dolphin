@@ -53,6 +53,9 @@ private:
 		D3DBlob* bytecode; // needed to initialize the input layout
 		int frameCount;
 
+		VERTEXSHADERUIDSAFE safe_uid;
+		std::string code;
+
 		VSCacheEntry() : shader(NULL), bytecode(NULL), frameCount(0) {}
 		void SetByteCode(D3DBlob* blob)
 		{

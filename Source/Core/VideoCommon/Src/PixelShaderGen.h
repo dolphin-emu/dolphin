@@ -123,6 +123,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode);
 void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode);
 
+// Used to make sure that our optimized pixel shader IDs don't lose any possible shader code changes
+void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::string& old_code, DSTALPHA_MODE dstAlphaMode, u32 components);
+
 extern PIXELSHADERUID last_pixel_shader_uid;
 
 #endif // GCOGL_PIXELSHADER_H
