@@ -99,8 +99,8 @@ Renderer::~Renderer()
 	if (g_ActiveConfig.bDumpFrames && bLastFrameDumped && bAVIDumping)
 		AVIDump::Stop();
 #else
-	if (f_pFrameDump.IsOpen())
-		f_pFrameDump.Close();
+	if (pFrameDump.IsOpen())
+		pFrameDump.Close();
 #endif
 	delete[] frame_data;
 }
