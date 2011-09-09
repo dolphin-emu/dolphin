@@ -100,6 +100,7 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 	entry.frameCount = frameCount;
 	pShaderLast = &entry.shader;
 	const char *code = GenerateVertexShaderCode(components, API_OPENGL);
+	GetSafeVertexShaderId(&entry.safe_uid, components);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
@@ -183,9 +184,8 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	cgDestroyProgram(tempprog);
 #endif
 
-//#if defined(_DEBUG) || defined(DEBUGFAST) 
-	vs.strprog = pstrprogram;
-//#endif
+	if (g_ActiveConfig.bEnableShaderDebugging)
+		vs.strprog = pstrprogram;
 
 	return true;
 }

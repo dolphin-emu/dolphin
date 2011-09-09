@@ -39,9 +39,7 @@ struct FRAGMENTSHADER
 		}
 	}
 	GLuint glprogid; // opengl program id
-#if defined(_DEBUG) || defined(DEBUGFAST) 
 	std::string strprog;
-#endif
 };
 
 class PixelShaderCache
@@ -57,7 +55,6 @@ class PixelShaderCache
 			shader.Destroy();
 		}
 		PIXELSHADERUIDSAFE safe_uid;
-		std::string code;
 	};
 
 	typedef std::map<PIXELSHADERUID, PSCacheEntry> PSCache;

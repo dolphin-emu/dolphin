@@ -96,6 +96,8 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
 	iniFile.Get("Settings", "OMPDecoder", &bOMPDecoder, false);
 
+	iniFile.Get("Settings", "EnableShaderDebugging", &bEnableShaderDebugging, false);
+
 	iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
 	iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
@@ -231,6 +233,8 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "EnableOpenCL", bEnableOpenCL);
 	iniFile.Set("Settings", "OMPDecoder", bOMPDecoder);
 	
+	iniFile.Set("Settings", "EnableShaderDebugging", bEnableShaderDebugging);
+
 	iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
 	iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
 	iniFile.Set("Enhancements", "PostProcessingShader", sPostProcessingShader);

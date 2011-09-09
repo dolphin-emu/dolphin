@@ -359,9 +359,12 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	// Need to compile a new shader
 	const char *code = GeneratePixelShaderCode(dstAlphaMode, ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF) < 3 ? API_D3D9_SM20 : API_D3D9_SM30, components);
 
-	u32 code_hash = HashAdler32((const u8 *)code, strlen(code));
-	unique_shaders.insert(code_hash);
-	SETSTAT(stats.numUniquePixelShaders, unique_shaders.size());
+	if (g_ActiveConfig.bEnableShaderDebugging)
+	{
+		u32 code_hash = HashAdler32((const u8 *)code, strlen(code));
+		unique_shaders.insert(code_hash);
+		SETSTAT(stats.numUniquePixelShaders, unique_shaders.size());
+	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
@@ -388,7 +391,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	bool success = InsertByteCode(uid, bytecode, bytecodelen, true);
 	delete [] bytecode;
 
-	if (success)
+	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
 		PixelShaders[uid].code = code;
 		GetSafePixelShaderId(&PixelShaders[uid].safe_uid, dstAlphaMode);

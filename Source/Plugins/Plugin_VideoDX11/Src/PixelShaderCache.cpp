@@ -499,7 +499,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	bool success = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
 	pbytecode->Release();
 
-	if (success)
+	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
 		PixelShaders[uid].code = code;
 		GetSafePixelShaderId(&PixelShaders[uid].safe_uid, dstAlphaMode);

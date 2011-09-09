@@ -218,7 +218,7 @@ bool VertexShaderCache::SetShader(u32 components)
 	g_vs_disk_cache.Sync();
 
 	bool success = InsertByteCode(uid, bytecode, bytecodelen, true);
-	if (success)
+	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
 		vshaders[uid].code = code;
 		GetSafeVertexShaderId(&vshaders[uid].safe_uid, components);

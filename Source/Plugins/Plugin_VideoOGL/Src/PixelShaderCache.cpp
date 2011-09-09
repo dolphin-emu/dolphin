@@ -190,7 +190,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
 	{
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		ValidatePixelShaderIDs(API_OPENGL, PixelShaders[uid].safe_uid, PixelShaders[uid].code, dstAlphaMode, components);
+		ValidatePixelShaderIDs(API_OPENGL, PixelShaders[uid].safe_uid, PixelShaders[uid].shader.strprog, dstAlphaMode, components);
 		return pShaderLast;
 	}
 
@@ -206,7 +206,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 			pShaderLast = &entry.shader;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		ValidatePixelShaderIDs(API_OPENGL, entry.safe_uid, entry.code, dstAlphaMode, components);
+		ValidatePixelShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, dstAlphaMode, components);
 		return pShaderLast;
 	}
 
@@ -215,8 +215,12 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 	newentry.frameCount = frameCount;
 	pShaderLast = &newentry.shader;
 	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
-	GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode);
-	newentry.code = code;
+
+	if (g_ActiveConfig.bEnableShaderDebugging && code)
+	{
+		GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode);
+		newentry.shader.strprog = code;
+	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
@@ -320,9 +324,6 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	cgDestroyProgram(tempprog);
 #endif
 
-#if defined(_DEBUG) || defined(DEBUGFAST) 
-	ps.strprog = pstrprogram;
-#endif
 	return true;
 }
 

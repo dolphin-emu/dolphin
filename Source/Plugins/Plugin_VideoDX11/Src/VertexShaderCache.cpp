@@ -240,7 +240,7 @@ bool VertexShaderCache::SetShader(u32 components)
 	bool success = InsertByteCode(uid, pbytecode);
 	pbytecode->Release();
 
-	if (success)
+	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
 		vshaders[uid].code = code;
 		GetSafeVertexShaderId(&vshaders[uid].safe_uid, components);
