@@ -243,6 +243,9 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode)
 
 void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::string& old_code, DSTALPHA_MODE dstAlphaMode, u32 components)
 {
+	if (!g_ActiveConfig.bEnableShaderDebugging)
+		return;
+
 	PIXELSHADERUIDSAFE new_id;
 	GetSafePixelShaderId(&new_id, dstAlphaMode);
 

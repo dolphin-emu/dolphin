@@ -93,6 +93,9 @@ void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components)
 
 void ValidateVertexShaderIDs(API_TYPE api, VERTEXSHADERUIDSAFE old_id, const std::string& old_code, u32 components)
 {
+	if (!g_ActiveConfig.bEnableShaderDebugging)
+		return;
+
 	VERTEXSHADERUIDSAFE new_id;
 	GetSafeVertexShaderId(&new_id, components);
 
