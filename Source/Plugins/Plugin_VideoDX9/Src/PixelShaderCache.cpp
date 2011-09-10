@@ -283,6 +283,9 @@ void PixelShaderCache::Init()
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	PixelShaderCacheInserter inserter;
 	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
+
+	if (g_Config.bEnableShaderDebugging) // TODO: Hacks..
+		Clear();
 }
 
 // ONLY to be used during shutdown.
@@ -326,6 +329,7 @@ void PixelShaderCache::Shutdown()
 
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
+	const API_TYPE api = ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF) < 3 ? API_D3D9_SM20 : API_D3D9_SM30;
 	PIXELSHADERUID uid;
 	GetPixelShaderId(&uid, dstAlphaMode);
 
@@ -334,7 +338,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	{
 		PSCache::const_iterator iter = PixelShaders.find(uid);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		ValidatePixelShaderIDs(API_D3D9, PixelShaders[uid].safe_uid, PixelShaders[uid].code, dstAlphaMode, components);
+		ValidatePixelShaderIDs(api, PixelShaders[uid].safe_uid, PixelShaders[uid].code, dstAlphaMode, components);
 		return (iter != PixelShaders.end() && iter->second.shader);
 	}
 
@@ -351,13 +355,13 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 
 		if (entry.shader) D3D::SetPixelShader(entry.shader);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		ValidatePixelShaderIDs(API_D3D9, entry.safe_uid, entry.code, dstAlphaMode, components);
+		ValidatePixelShaderIDs(api, entry.safe_uid, entry.code, dstAlphaMode, components);
 		return (entry.shader != NULL);
 	}
 
 
 	// Need to compile a new shader
-	const char *code = GeneratePixelShaderCode(dstAlphaMode, ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF) < 3 ? API_D3D9_SM20 : API_D3D9_SM30, components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, api, components);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{

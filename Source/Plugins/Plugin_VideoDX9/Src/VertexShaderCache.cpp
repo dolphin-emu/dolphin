@@ -151,6 +151,9 @@ void VertexShaderCache::Init()
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	VertexShaderCacheInserter inserter;
 	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
+
+	if (g_Config.bEnableShaderDebugging) // TODO: Hacks..
+		Clear();
 }
 
 void VertexShaderCache::Clear()

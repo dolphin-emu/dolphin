@@ -271,6 +271,8 @@ void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::
 			sprintf(szTemp, "%spsuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
 			std::ofstream file(szTemp);
 			file << msg;
+			file << "\n\nOld shader code:\n" << old_code;
+			file << "\n\nNew shader code:\n" << new_code;
 			file.close();
 
 			PanicAlert("Unique pixel shader ID mismatch!\n\nReport this to the devs, along with the contents of %s.", szTemp);

@@ -412,6 +412,9 @@ void PixelShaderCache::Init()
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	PixelShaderCacheInserter inserter;
 	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
+
+	if (g_Config.bEnableShaderDebugging) // TODO: Hacks..
+		Clear();
 }
 
 // ONLY to be used during shutdown.
