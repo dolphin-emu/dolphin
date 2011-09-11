@@ -181,6 +181,11 @@ void Host_UpdateMainFrame()
 
 void Host_UpdateTitle(const char* title)
 {
+	// TODO: Doesn't work perfectly with render to main, yet.
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+		mainWindow->setWindowTitle(QString(title));
+	else
+		mainWindow->GetRenderWindow()->setWindowTitle(QString(title));
 }
 
 void Host_UpdateDisasmDialog()
