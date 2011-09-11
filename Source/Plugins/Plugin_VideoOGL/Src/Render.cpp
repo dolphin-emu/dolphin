@@ -76,12 +76,6 @@
 
 
 
-void VideoConfig::UpdateProjectionHack()
-{
-	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
-}
-
-
 #if defined(HAVE_WX) && HAVE_WX
 // Screenshot thread struct
 typedef struct

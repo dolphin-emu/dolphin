@@ -49,7 +49,7 @@
 #include "D3DUtil.h"
 #include "EmuWindow.h"
 #include "VideoState.h"
-#include "render.h"
+#include "Render.h"
 #include "DLCache.h"
 #include "IniFile.h"
 #include "Core.h"

@@ -23,6 +23,8 @@
 #include "VideoCommon.h"
 #include "FileUtil.h"
 
+#include "VertexShaderManager.h"
+
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 
@@ -170,6 +172,11 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video", "PH_ZNear", &sPhackvalue[0]);
 	iniFile.GetIfExists("Video", "PH_ZFar", &sPhackvalue[1]);
 	iniFile.GetIfExists("Video", "ZTPSpeedupHack", &bZTPSpeedHack);
+}
+
+void VideoConfig::UpdateProjectionHack()
+{
+	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
 void VideoConfig::VerifyValidity()
