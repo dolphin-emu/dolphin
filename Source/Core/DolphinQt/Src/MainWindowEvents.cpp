@@ -63,15 +63,16 @@ std::string DMainWindow::RequestBootFilename()
 
 	// Otherwise, try the default ISO and then the previously booted ISO
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
-	std::string filename;
 
-	if (!StartUp.m_strDefaultGCM.empty() && File::Exists(StartUp.m_strDefaultGCM.c_str()))
-		return StartUp.m_strDefaultGCM;
+	// NOTE: Decided to drop default ISO support in Qt GUI since it was kinda pointless, re-enable this code if this decision gets revised
+//	if (!StartUp.m_strDefaultGCM.empty() && File::Exists(StartUp.m_strDefaultGCM.c_str()))
+//		return StartUp.m_strDefaultGCM;
 
 	if (!SConfig::GetInstance().m_LastFilename.empty() && File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
 		return SConfig::GetInstance().m_LastFilename;
 
-	// TODO: m_GameListCtrl->BrowseForDirectory() and return the selected ISO
+	QString selection = QFileDialog::getOpenFileName(this, tr("Open File"), QString(), tr("All GC/Wii Files (elf, dol, gcm, iso, ciso, gcz, wad)(*.elf, *.dol, *.gcm, *.iso, *.ciso, *.gcz, *.wad);;All Files (*)"));
+	if(selection.length()) return selection.toStdString();
 
 	return std::string();
 }
