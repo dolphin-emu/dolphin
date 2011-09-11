@@ -108,6 +108,7 @@ private slots:
 
 protected:
 	void RefreshView();
+	void RebuildGrid();
 	void resizeEvent(QResizeEvent*);
 
 private:

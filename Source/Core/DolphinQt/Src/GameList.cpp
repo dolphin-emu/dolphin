@@ -201,6 +201,9 @@ void AbstractGameBrowser::Rescan()
 
 DGameList::DGameList(const AbstractGameBrowser& gameBrowser) : abstrGameBrowser(gameBrowser)
 {
+	// TODO: Make this configurable
+	currentColumn = AbstractGameBrowser::COLUMN_TITLE;
+
 	sourceModel = new QStandardItemModel(this);
 	setModel(sourceModel);
 	setRootIsDecorated(false);
@@ -312,6 +315,9 @@ void DGameList::OnItemActivated(const QModelIndex& index)
 
 DGameTable::DGameTable(const AbstractGameBrowser& gameBrowser) : abstrGameBrowser(gameBrowser), num_columns(5)
 {
+	// TODO: Make this configurable
+	currentColumn = AbstractGameBrowser::COLUMN_TITLE;
+
 	sourceModel = new QStandardItemModel(this);
 	setModel(sourceModel);
 	setAlternatingRowColors(true);
@@ -332,7 +338,15 @@ DGameTable::~DGameTable()
 
 void DGameTable::RefreshView()
 {
-	// TODO: There's still some problems if you scroll away from a cell and back to it => banner won't get redrawn
+	// This usually is called when the GameListItem list has been reloaded
+	// In that case, our pixmap_cache is invalid
+	// TODO: Maybe we should solve this more elegantly?
+	pixmap_cache.clear();
+	RebuildGrid();
+}
+
+void DGameTable::RebuildGrid()
+{
 	const std::vector<GameListItem>& items = abstrGameBrowser.getItems();
 
 	// Use 146 if there are no columns, yet, and the actual column width otherwise
@@ -394,10 +408,10 @@ void DGameTable::resizeEvent(QResizeEvent* event)
 	// Dynamically adjust the number of columns so that the central area is always filled
 	if (num_columns > 1)
 		if (event->size().width() < columnViewportPosition(num_columns-1) + columnWidth(0) - columnViewportPosition(0))
-			RefreshView();
+			RebuildGrid();
 
 	if (event->size().width() > columnViewportPosition(num_columns-1) + 2*columnWidth(0) - columnViewportPosition(0))
-		RefreshView();
+		RebuildGrid();
 }
 
 class DGameListProgressBar : public QProgressBar, public AbstractProgressBar
