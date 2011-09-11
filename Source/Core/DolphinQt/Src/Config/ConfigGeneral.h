@@ -1,11 +1,11 @@
-#include <QWidget>
+#include <QTabWidget>
 
 class QButtonGroup;
 class QCheckBox;
 class QComboBox;
 class DControlStateManager;
 
-class DConfigMainGeneralTab : public QWidget
+class DConfigMainGeneralTab : public QTabWidget
 {
 	Q_OBJECT
 
@@ -17,6 +17,9 @@ public slots:
 	void Apply();
 
 private:
+	QWidget* CreateCoreTabWidget(QWidget* parent);
+	QWidget* CreatePathsTabWidget(QWidget* parent);
+
 	QCheckBox* cbDualCore;
 	QCheckBox* cbIdleSkipping;
 	QCheckBox* cbCheats;
