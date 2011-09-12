@@ -1,5 +1,8 @@
 #include <QTabWidget>
 
+class QCheckBox;
+class QComboBox;
+class DControlStateManager;
 class DConfigGfx : public QTabWidget
 {
 	Q_OBJECT
@@ -10,4 +13,23 @@ public:
 public slots:
 	void Reset();
 	void Apply();
+
+private:
+	QWidget* CreateGeneralTabWidget();
+	QWidget* CreateEnhancementsTabWidget();
+	QWidget* CreateHacksTabWidget();
+	QWidget* CreateAdvancedTabWidget();
+
+	QComboBox* cbBackend;
+
+	QCheckBox* cbVsync;
+	QCheckBox* cbFullscreen;
+
+	QCheckBox* cbFPS;
+	QCheckBox* cbAutoWindowSize;
+	QCheckBox* cbHideCursor;
+	QCheckBox* cbRenderToMain;
+
+
+	DControlStateManager* ctrlManager;
 };
