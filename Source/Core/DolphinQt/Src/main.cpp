@@ -218,8 +218,10 @@ void Host_SetDebugMode(bool enable)
 
 bool Host_RendererHasFocus()
 {
-	// TODO: Doesn't work when rendering to main window, yet.
-	return mainWindow->GetRenderWindow()->hasFocus();
+	// TODO: Sometimes with render to main this won't return the correct value
+	if (mainWindow->GetRenderWindow())
+		return mainWindow->GetRenderWindow()->hasFocus();
+	else return false;
 }
 
 
