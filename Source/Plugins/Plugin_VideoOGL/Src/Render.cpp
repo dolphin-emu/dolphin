@@ -1178,7 +1178,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		std::string movie_file_name;
 		w = dst_rect.GetWidth();
 		h = dst_rect.GetHeight();
-		frame_data = new u8[3 * w * h];
+		frame_data = new char[3 * w * h];
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR)
@@ -1198,7 +1198,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			}
 			if (pFrameDump)
 			{
-				FlipImageData(frame_data, w, h);
+				FlipImageData((u8*)frame_data, w, h);
 				pFrameDump.WriteBytes(frame_data, w * 3 * h);
 				pFrameDump.Flush();
 			}
