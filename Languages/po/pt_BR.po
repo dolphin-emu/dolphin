@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-08-10 08:30-0500\n"
-"PO-Revision-Date: 2011-09-11 23:35-0300\n"
+"PO-Revision-Date: 2011-09-12 22:54-0300\n"
 "Last-Translator: Runo <i.am.runo@hotmail.com>\n"
 "Language-Team: Portuguese (BR) <dolphinbrtrans@gmail.com>\n"
 "MIME-Version: 1.0\n"
@@ -739,7 +739,7 @@ msgstr "Input em Background"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:279
 msgid "Backward"
-msgstr "Para trás"
+msgstr "Para Trás"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:264
 msgid "Bad File Header"
