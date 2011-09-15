@@ -60,6 +60,7 @@
 #include "Core.h"
 #include "Movie.h"
 #include "Host.h"
+#include "BPFunctions.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -108,12 +109,6 @@ int s_fps=0;
 
 
 RasterFont* s_pfont = NULL;
-
-#if defined _WIN32 || defined HAVE_LIBAV
-static bool s_bAVIDumping = false;
-#else
-static File::IOFile f_pFrameDump;
-#endif
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
@@ -249,9 +244,6 @@ Renderer::Renderer()
 
 	s_fps=0;
 	s_blendMode = 0;
-#if defined _WIN32 || defined HAVE_LIBAV
-	s_bAVIDumping = false;
-#endif
 
 #if defined HAVE_CG && HAVE_CG
 	g_cgcontext = cgCreateContext();
@@ -515,19 +507,6 @@ Renderer::~Renderer()
 #endif
 
 	delete g_framebuffer_manager;
-
-#if defined _WIN32 || defined HAVE_LIBAV
-	if(s_bAVIDumping)
-	{
-		AVIDump::Stop();
-		s_bLastFrameDumped = false;
-		s_bAVIDumping = false;
-	}
-#else
-	if (f_pFrameDump.IsOpen())
-		f_pFrameDump.Close();
-	s_bLastFrameDumped = false;
-#endif
 }
 
 // Create On-Screen-Messages
@@ -642,49 +621,9 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
-bool Renderer::SetScissorRect()
+void Renderer::SetScissorRect(const TargetRectangle& rc)
 {
-	MathUtil::Rectangle<float> rc;
-	GetScissorRect(rc);
-
-	if (rc.left < 0) rc.left = 0;
-	if (rc.top < 0) rc.top = 0;
-	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
-	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
-
-	if (rc.left > rc.right)
-	{
-		int temp = rc.right;
-		rc.right = rc.left;
-		rc.left = temp;
-	}
-	if (rc.top > rc.bottom)
-	{
-		int temp = rc.bottom;
-		rc.bottom = rc.top;
-		rc.top = temp;
-	}
-
-	// Check that the coordinates are good
-	if (rc.right != rc.left && rc.bottom != rc.top)
-	{
-		glScissor(
-			EFBToScaledX(rc.left), // x = 0 for example
-			EFBToScaledY(EFB_HEIGHT - rc.bottom), // y = 0 for example
-			EFBToScaledX(rc.right - rc.left), // width = 640 for example
-			EFBToScaledY(rc.bottom - rc.top)); // height = 480 for example
-		return true;
-	}
-	else
-	{
-		glScissor(
-			0,
-			0,
-			Renderer::GetTargetWidth(),
-			Renderer::GetTargetHeight()
-			);
-	}
-	return false;
+	glScissor(rc.left, rc.bottom, rc.GetWidth(), rc.GetHeight());
 }
 
 void Renderer::SetColorMask()
@@ -986,15 +925,14 @@ void Renderer::SetBlendMode(bool forceUpdate)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
-	static u8 *data = NULL;
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
-		if (g_ActiveConfig.bDumpFrames && data)
+		if (g_ActiveConfig.bDumpFrames && frame_data)
 		#ifdef _WIN32
-			AVIDump::AddFrame((char *) data);
+			AVIDump::AddFrame(frame_data);
 		#elif defined HAVE_LIBAV
-			AVIDump::AddFrame(data, w, h);
+			AVIDump::AddFrame((u8*)frame_data, w, h);
 		#endif
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -1008,12 +946,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
-		if (g_ActiveConfig.bDumpFrames && data)
-		#ifdef _WIN32
-			AVIDump::AddFrame((char *) data);
-		#elif defined HAVE_LIBAV
-			AVIDump::AddFrame(data, w, h);
-		#endif
+		if (g_ActiveConfig.bDumpFrames && frame_data)
+		{
+#ifdef _WIN32
+			AVIDump::AddFrame(frame_data);
+#elif defined HAVE_LIBAV
+			AVIDump::AddFrame((u8*)frame_data, w, h);
+#endif
+		}
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -1172,26 +1112,26 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		if (!data || w != dst_rect.GetWidth() ||
+		if (!frame_data || w != dst_rect.GetWidth() ||
 		             h != dst_rect.GetHeight())
 		{
-			if (data) delete[] data;
+			if (frame_data) delete[] frame_data;
 			w = dst_rect.GetWidth();
 			h = dst_rect.GetHeight();
-			data = new u8[3 * w * h];
+			frame_data = new char[3 * w * h];
 		}
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
 		{
-			if (!s_bLastFrameDumped)
+			if (!bLastFrameDumped)
 			{
 				#ifdef _WIN32
-					s_bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
+					bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
 				#else
-					s_bAVIDumping = AVIDump::Start(w, h);
+					bAVIDumping = AVIDump::Start(w, h);
 				#endif
-				if (!s_bAVIDumping)
+				if (!bAVIDumping)
 					OSD::AddMessage("AVIDump Start failed", 2000);
 				else
 				{
@@ -1200,36 +1140,36 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 								File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h).c_str(), 2000);
 				}
 			}
-			if (s_bAVIDumping)
+			if (bAVIDumping)
 			{
 				#ifdef _WIN32
-					AVIDump::AddFrame((char *) data);
+					AVIDump::AddFrame(frame_data);
 				#else
-					FlipImageData(data, w, h);
-					AVIDump::AddFrame(data, w, h);
+					FlipImageData((u8*)frame_data, w, h);
+					AVIDump::AddFrame((u8*)frame_data, w, h);
 				#endif
 			}
 
-			s_bLastFrameDumped = true;
+			bLastFrameDumped = true;
 		}
 		else
 			NOTICE_LOG(VIDEO, "Error reading framebuffer");
 	}
 	else
 	{
-		if (s_bLastFrameDumped && s_bAVIDumping)
+		if (bLastFrameDumped && bAVIDumping)
 		{
-			if (data)
+			if (frame_data)
 			{
-				delete[] data;
-				data = NULL;
+				delete[] frame_data;
+				frame_data = NULL;
 				w = h = 0;
 			}
 			AVIDump::Stop();
-			s_bAVIDumping = false;
+			bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames", 2000);
 		}
-		s_bLastFrameDumped = false;
+		bLastFrameDumped = false;
 	}
 #else
 	if (g_ActiveConfig.bDumpFrames)
@@ -1238,16 +1178,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		std::string movie_file_name;
 		w = dst_rect.GetWidth();
 		h = dst_rect.GetHeight();
-		data = new u8[3 * w * h];
+		frame_data = new char[3 * w * h];
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR)
 		{
-			if (!s_bLastFrameDumped)
+			if (!bLastFrameDumped)
 			{
 				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
-				f_pFrameDump.Open(movie_file_name, "wb");
-				if (!f_pFrameDump)
+				pFrameDump.Open(movie_file_name, "wb");
+				if (!pFrameDump)
 					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 				else
 				{
@@ -1256,22 +1196,22 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 					OSD::AddMessage(msg, 2000);
 				}
 			}
-			if (f_pFrameDump)
+			if (pFrameDump)
 			{
-				FlipImageData(data, w, h);
-				f_pFrameDump.WriteBytes(data, w * 3 * h);
-				f_pFrameDump.Flush();
+				FlipImageData((u8*)frame_data, w, h);
+				pFrameDump.WriteBytes(frame_data, w * 3 * h);
+				pFrameDump.Flush();
 			}
-			s_bLastFrameDumped = true;
+			bLastFrameDumped = true;
 		}
 
-		delete[] data;
+		delete[] frame_data;
 	}
 	else
 	{
-		if (s_bLastFrameDumped)
-			f_pFrameDump.Close();
-		s_bLastFrameDumped = false;
+		if (bLastFrameDumped)
+			pFrameDump.Close();
+		bLastFrameDumped = false;
 	}
 #endif
 
@@ -1432,7 +1372,7 @@ void Renderer::RestoreAPIState()
 	// Gets us back into a more game-like state.
 	glEnable(GL_SCISSOR_TEST);
 	SetGenerationMode();
-	SetScissorRect();
+	BPFunctions::SetScissor();
 	SetColorMask();
 	SetDepthMode();
 	SetBlendMode(true);

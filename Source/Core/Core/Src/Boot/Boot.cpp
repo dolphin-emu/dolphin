@@ -47,6 +47,8 @@
 #include "../ConfigManager.h"
 #include "VolumeCreator.h" // DiscIO
 #include "NANDContentLoader.h"
+#include "Hash.h"
+#include "CommonPaths.h"
 
 void CBoot::Load_FST(bool _bIsWii)
 {
@@ -140,10 +142,40 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 // It does not initialize the hardware or anything else like BS1 does.
 bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 {
+	const u32 USA = 0x1FCE3FD6;
+	const u32 USA_v1_1 = 0x4D5935D1;
+	const u32 JAP = 0x87424396;
+	const u32 PAL = 0xA0EA7341;
+	//const u32 PanasonicQJ = 0xAEA8265C;
+	//const u32 PanasonicQU = 0x94015753;
+
 	// Load the whole ROM dump
 	std::string data;
 	if (!File::ReadFileToString(false, _rBootROMFilename.c_str(), data))
 		return false;
+
+	u32 ipl_hash = HashAdler32((const u8*)data.data(), data.size());
+	std::string ipl_region;
+	switch (ipl_hash)
+	{
+	case USA:
+	case USA_v1_1:
+		ipl_region = USA_DIR;
+		break;
+	case JAP:
+		ipl_region = JAP_DIR;
+		break;
+	case PAL:
+		ipl_region = EUR_DIR;
+		break;
+	default:
+		PanicAlert("IPL with unknown hash %x", ipl_hash);
+		break;
+	}
+
+	std::string BootRegion = _rBootROMFilename.substr(_rBootROMFilename.find_last_of(DIR_SEP) - 3, 3);
+	if (BootRegion != ipl_region)
+		PanicAlert("%s ipl found in %s directory, the disc may not be recognized", ipl_region.c_str(), BootRegion.c_str());
 
 	// Run the descrambler over the encrypted section containing BS1/BS2
 	CEXIIPL::Descrambler((u8*)data.data()+0x100, 0x1AFE00);

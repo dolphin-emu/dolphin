@@ -103,7 +103,7 @@ void TexDecoder_OpenCL_Initialize()
 		char dolphin_rev[HEADER_SIZE];
 
 		filename = File::GetUserPath(D_OPENCL_IDX) + "kernel.bin";
-		snprintf(dolphin_rev, HEADER_SIZE, "%-31s", svn_rev_str);
+		snprintf(dolphin_rev, HEADER_SIZE, "%-31s", scm_rev_str);
 
 		{
 		File::IOFile input(filename, "rb");

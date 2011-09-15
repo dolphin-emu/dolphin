@@ -146,7 +146,8 @@ void X11_MainLoop()
 	Window win = (Window)Core::GetWindowHandle();
 	XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
 
-	X11Utils::InhibitScreensaver(dpy, win, true);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+		X11Utils::InhibitScreensaver(dpy, win, true);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	X11Utils::XRRConfiguration *XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
@@ -258,8 +259,8 @@ void X11_MainLoop()
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	delete XRRConfig;
 #endif
-
-	X11Utils::InhibitScreensaver(dpy, win, false);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
+		X11Utils::InhibitScreensaver(dpy, win, false);
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 		XFreeCursor(dpy, blankCursor);
@@ -294,13 +295,13 @@ int main(int argc, char* argv[])
 			help = 1;
 			break;
 		case 'v':
-			fprintf(stderr, "%s\n", svn_rev_str);
+			fprintf(stderr, "%s\n", scm_rev_str);
 			return 1;
 		}
 	}
 
 	if (help == 1 || argc == optind) {
-		fprintf(stderr, "%s\n\n", svn_rev_str);
+		fprintf(stderr, "%s\n\n", scm_rev_str);
 		fprintf(stderr, "A multi-platform Gamecube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
 		fprintf(stderr, "  -e, --exec	Load the specified file\n");

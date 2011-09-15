@@ -279,8 +279,9 @@ void DMainWindow::OnSwitchToGameGrid()
 
 void DMainWindow::OnAbout()
 {
+	// TODO: Improve SCM information
 	QMessageBox::about(this, tr("About Dolphin"),
-						tr(	"Dolphin SVN revision %1\n"
+						tr(	"Dolphin SCM revision %1\n"
 							"Copyright (c) 2003-2010+ Dolphin Team\n"
 							"\n"
 							"Dolphin is a Gamecube/Wii emulator, which was\n"
@@ -306,7 +307,7 @@ void DMainWindow::OnAbout()
 							"Gamecube and Wii are trademarks of Nintendo.\n"
 							"The emulator is for educational purposes only\n"
 							"and should not be used to play games you do\n"
-							"not legally own.").arg(svn_rev_str));
+							"not legally own.").arg(scm_rev_str));
 }
 
 void DMainWindow::OnLogWindowClosed()

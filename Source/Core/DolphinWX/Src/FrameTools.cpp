@@ -950,6 +950,7 @@ void CFrame::StartGame(const std::string& filename)
 	else
 	{
 #if defined(HAVE_X11) && HAVE_X11
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), true);
 #endif
@@ -1070,10 +1071,11 @@ void CFrame::DoStop()
 		wxEndBusyCursor();
 
 #if defined(HAVE_X11) && HAVE_X11
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), false);
 #endif
-		m_RenderFrame->SetTitle(wxString::FromAscii(svn_rev_str));
+		m_RenderFrame->SetTitle(wxString::FromAscii(scm_rev_str));
 
 		// Destroy the renderer frame when not rendering to main
 		m_RenderParent->Disconnect(wxID_ANY, wxEVT_SIZE,

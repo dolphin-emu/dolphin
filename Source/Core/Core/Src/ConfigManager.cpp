@@ -191,6 +191,7 @@ void SConfig::SaveSettings()
 	ini.Set("Display", "RenderWindowHeight",	m_LocalCoreStartupParameter.iRenderWindowHeight);
 	ini.Set("Display", "RenderWindowAutoSize",	m_LocalCoreStartupParameter.bRenderWindowAutoSize);
 	ini.Set("Display", "ProgressiveScan",		m_LocalCoreStartupParameter.bProgressive);
+	ini.Set("Display", "DisableScreenSaver",	m_LocalCoreStartupParameter.bDisableScreenSaver);
 	ini.Set("Display", "ForceNTSCJ",			m_LocalCoreStartupParameter.bForceNTSCJ);
 
 	// Game List Control
@@ -320,6 +321,7 @@ void SConfig::LoadSettings()
 		ini.Get("Display", "RenderWindowHeight",	&m_LocalCoreStartupParameter.iRenderWindowHeight, 480);
 		ini.Get("Display", "RenderWindowAutoSize",	&m_LocalCoreStartupParameter.bRenderWindowAutoSize, false);
 		ini.Get("Display", "ProgressiveScan",		&m_LocalCoreStartupParameter.bProgressive, false);
+		ini.Get("Display", "DisableScreenSaver",	&m_LocalCoreStartupParameter.bDisableScreenSaver, true);
 		ini.Get("Display", "ForceNTSCJ",			&m_LocalCoreStartupParameter.bForceNTSCJ, false);
 
 		// Game List Control

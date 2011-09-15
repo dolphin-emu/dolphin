@@ -53,17 +53,12 @@
 #include "Debugger.h"
 #include "Core.h"
 #include "Movie.h"
+#include "BPFunctions.h"
 
 namespace DX9
 {
 
 static int s_fps = 0;
-
-static int s_recordWidth;
-static int s_recordHeight;
-
-static bool s_bLastFrameDumped;
-static bool s_bAVIDumping;
 
 static u32 s_blendMode;
 static u32 s_LastAA;
@@ -296,9 +291,6 @@ Renderer::Renderer()
 	// Make sure to use valid texture sizes
 	D3D::FixTextureSize(s_target_width, s_target_height);
 
-	s_bLastFrameDumped = false;
-	s_bAVIDumping = false;
-
 	// We're not using fixed function.
 	// Let's just set the matrices to identity to be sure.
 	D3DXMATRIX mtx;
@@ -341,10 +333,6 @@ Renderer::~Renderer()
 	D3D::Present();
 	D3D::Close();
 	
-	if (s_bAVIDumping)
-	{
-		AVIDump::Stop();
-	}
 	delete[] st;
 }
 
@@ -426,55 +414,9 @@ bool Renderer::CheckForResize()
 	return false;
 }
 
-bool Renderer::SetScissorRect()
+void Renderer::SetScissorRect(const TargetRectangle& rc)
 {
-	TargetRectangle rc;
-	GetScissorRect(rc);
-
-	if (rc.left < 0) rc.left = 0;
-	if (rc.right < 0) rc.right = 0;
-	if (rc.top < 0) rc.top = 0;
-	if (rc.bottom < 0) rc.bottom = 0;
-
-	if (rc.left > EFB_WIDTH) rc.left = EFB_WIDTH;
-	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
-	if (rc.top > EFB_HEIGHT) rc.top = EFB_HEIGHT;
-	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
-
-	if (rc.left > rc.right)
-	{
-		int temp = rc.right;
-		rc.right = rc.left;
-		rc.left = temp;
-	}
-	if (rc.top > rc.bottom)
-	{
-		int temp = rc.bottom;
-		rc.bottom = rc.top;
-		rc.top = temp;
-	}
-
-	rc.left   = EFBToScaledX(rc.left);
-	rc.top    = EFBToScaledY(rc.top);
-	rc.right  = EFBToScaledX(rc.right);
-	rc.bottom = EFBToScaledY(rc.bottom);
-
-	// Check that the coordinates are good
-	if (rc.right != rc.left && rc.bottom != rc.top)
-	{
-		D3D::dev->SetScissorRect(rc.AsRECT());
-		return true;
-	}
-	else
-	{
-		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
-		rc.left   = 0;
-		rc.top    = 0;
-		rc.right  = s_target_width;
-		rc.bottom = s_target_height;
-		D3D::dev->SetScissorRect(rc.AsRECT());
-	}
-	return false;
+	D3D::dev->SetScissorRect(rc.AsRECT());
 }
 
 void Renderer::SetColorMask()
@@ -889,12 +831,11 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
-	static char* data = 0;
-	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
-		if (g_ActiveConfig.bDumpFrames && data)
-			AVIDump::AddFrame(data);
+		if (g_ActiveConfig.bDumpFrames && frame_data)
+			AVIDump::AddFrame(frame_data);
+
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -907,6 +848,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
+		if (g_ActiveConfig.bDumpFrames && frame_data)
+			AVIDump::AddFrame(frame_data);
+
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -1072,15 +1016,21 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		SaveScreenshot(s_sScreenshotName, dst_rect);
 		s_bScreenshot = false;
 	}
+
+	// Dump frames
+	static int w = 0, h = 0;
 	if (g_ActiveConfig.bDumpFrames)
 	{
+		static int s_recordWidth;
+		static int s_recordHeight;
+
 		HRESULT hr = D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);
-		if (!s_bLastFrameDumped)
+		if (!bLastFrameDumped)
 		{
 			s_recordWidth = dst_rect.GetWidth();
 			s_recordHeight = dst_rect.GetHeight();
-			s_bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
-			if (!s_bAVIDumping)
+			bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
+			if (!bAVIDumping)
 			{
 				PanicAlert("Error dumping frames to AVI.");
 			}
@@ -1092,40 +1042,40 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				OSD::AddMessage(msg, 2000);
 			}
 		}
-		if (s_bAVIDumping)
+		if (bAVIDumping)
 		{
 			D3DLOCKED_RECT rect;
 			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, dst_rect.AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
 			{
-				if (!data || w != s_recordWidth || h != s_recordHeight)
+				if (!frame_data || w != s_recordWidth || h != s_recordHeight)
 				{
-					free(data);
-					data = (char*)malloc(3 * s_recordWidth * s_recordHeight);
+					delete[] frame_data;
+					frame_data = new char[3 * s_recordWidth * s_recordHeight];
 					w = s_recordWidth;
 					h = s_recordHeight;
 				}
-				formatBufferDump((const char*)rect.pBits, data, s_recordWidth, s_recordHeight, rect.Pitch);
-				AVIDump::AddFrame(data);
+				formatBufferDump((const char*)rect.pBits, frame_data, s_recordWidth, s_recordHeight, rect.Pitch);
+				AVIDump::AddFrame(frame_data);
 				ScreenShootMEMSurface->UnlockRect();
 			}
 		}
-		s_bLastFrameDumped = true;
+		bLastFrameDumped = true;
 	}
 	else
 	{
-		if (s_bLastFrameDumped && s_bAVIDumping)
+		if (bLastFrameDumped && bAVIDumping)
 		{
-			if (data)
+			if (frame_data)
 			{
-				free(data);
-				data = 0;
+				delete[] frame_data;
+				frame_data = 0;
 				w = h = 0;
 			}
 			AVIDump::Stop();
-			s_bAVIDumping = false;
+			bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames to AVI", 2000);
 		}
-		s_bLastFrameDumped = false;
+		bLastFrameDumped = false;
 	}
 
 	// Finish up the current frame, print some stats
@@ -1293,7 +1243,7 @@ void Renderer::RestoreAPIState()
 	D3D::SetRenderState(D3DRS_FILLMODE, g_ActiveConfig.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
 	VertexShaderManager::SetViewportChanged();
-	SetScissorRect();
+	BPFunctions::SetScissor();
 	if (bpmem.zmode.testenable) {
 		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
 		if (bpmem.zmode.updateenable)

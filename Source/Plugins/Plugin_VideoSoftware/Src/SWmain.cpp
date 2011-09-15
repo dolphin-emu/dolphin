@@ -265,7 +265,7 @@ unsigned int VideoSoftware::PeekMessages()
 void VideoSoftware::UpdateFPSDisplay(const char *text)
 {
 	char temp[100];
-	snprintf(temp, sizeof temp, "%s | Software | %s", svn_rev_str, text);
+	snprintf(temp, sizeof temp, "%s | Software | %s", scm_rev_str, text);
 	OpenGL_SetWindowText(temp);
 }
 

@@ -2,6 +2,7 @@
 # -*- python -*-
 
 import os
+import re
 import sys
 import platform
 
@@ -92,7 +93,10 @@ if not env.has_key('install') or env['install'] == 'local':
     if env['flavor'] == 'debug' or env['flavor'] == 'prof':
         env['prefix'] += '-' + env['flavor']
 
-env['svnrev'] = os.popen('svnversion -n .').read().split(':')[0]
+env['gitrev'] = os.popen('git rev-parse HEAD').read().split('\n')[0]
+env['gitdesc'] = re.sub('-[^-]+(-dirty)?$', '',
+    os.popen('git describe --always --long --dirty').read().split('\n')[0])
+env['gitbranch'] = os.popen('git rev-parse --abbrev-ref HEAD').read().split('\n')[0]
 
 # OS X specifics
 if sys.platform == 'darwin':

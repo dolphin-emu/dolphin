@@ -49,9 +49,21 @@ endfunction(enable_precompiled_headers)
 # for revision info
 include(FindGit OPTIONAL)
 if(GIT_FOUND AND NOT DOLPHIN_WC_REVISION)
-	# defines DOLPHIN_WC_REVISION
+# defines DOLPHIN_WC_REVISION
 	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
 	OUTPUT_VARIABLE DOLPHIN_WC_REVISION
+	OUTPUT_STRIP_TRAILING_WHITESPACE)
+# defines DOLPHIN_WC_DESCRIBE
+	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} describe --always --long --dirty
+	OUTPUT_VARIABLE DOLPHIN_WC_DESCRIBE
+	OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# remove hash from description
+	STRING(REGEX REPLACE "-[^-]+((-dirty)?)$" "\\1" DOLPHIN_WC_DESCRIBE "${DOLPHIN_WC_DESCRIBE}")
+
+# defines DOLPHIN_WC_BRANCH
+	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+	OUTPUT_VARIABLE DOLPHIN_WC_BRANCH
 	OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
@@ -311,13 +323,16 @@ else(SDL_FOUND)
 	add_subdirectory(Externals/SDL)
 endif(SDL_FOUND)
 
-check_lib(SFML sfml-network SFML/Network/Ftp.hpp QUIET)
-if(SFML_FOUND)
-	message("Using shared sfml-network")
+set(SFML_FIND_VERSION TRUE)
+set(SFML_FIND_VERSION_MAJOR 1)
+set(SFML_FIND_VERSION_MINOR 5)
+include(FindSFML OPTIONAL)
+if(SFML_FOUND AND NOT SFML_VERSION_MAJOR) # SFML 1.x doesn't define SFML_VERSION_MAJOR
+       message("Using shared SFML")
 else()
-	message("Shared sfml-network not found, falling back to the static library")
-	add_subdirectory(Externals/SFML)
-	include_directories(Externals/SFML/include)
+       message("Shared SFML < 2.0 not found, falling back to the static library")
+       add_subdirectory(Externals/SFML)
+       include_directories(Externals/SFML/include)
 endif()
 
 check_lib(SOIL SOIL SOIL/SOIL.h QUIET)
@@ -421,10 +436,20 @@ elseif(NOT DISABLE_QT4 AND NOT DISABLE_WX)
 endif()
 
 ########################################
-# Pre-build events: Define configuration variables and write svnrev header
+# Pre-build events: Define configuration variables and write SCM info header
 #
-file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/svnrev.h
-	"#define SVN_REV_STR \"" ${DOLPHIN_WC_REVISION} "-" ${CMAKE_BUILD_TYPE} "\"\n")
+if(DOLPHIN_WC_BRANCH STREQUAL "master")
+	set(DOLPHIN_WC_IS_MASTER "1")
+else()
+	set(DOLPHIN_WC_IS_MASTER "0")
+endif()
+
+file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/scmrev.h
+	"#define SCM_REV_STR \"" ${DOLPHIN_WC_REVISION} "\"\n"
+	"#define SCM_DESC_STR \"" ${DOLPHIN_WC_DESCRIBE} "\"\n"
+	"#define SCM_BRANCH_STR \"" ${DOLPHIN_WC_BRANCH} "\"\n"
+	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_MASTER} "\n"
+	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
 
@@ -452,7 +477,7 @@ if(GETTEXT_FOUND AND NOT DISABLE_WX)
 	file(GLOB LINGUAS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Languages/po/*.po) 
 	GETTEXT_CREATE_TRANSLATIONS(Languages/po/dolphin-emu.pot ALL ${LINGUAS})
 endif()
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND (NOT ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD"))
 	install(FILES Data/license.txt DESTINATION ${datadir})
 endif()
 

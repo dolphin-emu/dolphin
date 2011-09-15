@@ -68,6 +68,9 @@ void PixelShaderCache::Init()
 	s_displayCompileAlert = true;
 
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
+	
+	if(s_nMaxPixelInstructions == 0) // Some combination of drivers and hardware returns zero for some reason.
+		s_nMaxPixelInstructions = 4096;
 	if (strstr((const char*)glGetString(GL_VENDOR), "Humper") != NULL) s_nMaxPixelInstructions = 4096;
 #if CG_VERSION_NUM == 2100
 	if (strstr((const char*)glGetString(GL_VENDOR), "ATI") != NULL)

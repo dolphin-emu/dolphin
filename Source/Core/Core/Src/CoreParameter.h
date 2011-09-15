@@ -135,7 +135,7 @@ struct SCoreStartupParameter
 	int iRenderWindowWidth, iRenderWindowHeight;
 	bool bRenderWindowAutoSize;
 	bool bFullscreen, bRenderToMain;
-	bool bProgressive;
+	bool bProgressive, bDisableScreenSaver;
 
 	int iTheme;
 	int iPosX, iPosY, iWidth, iHeight;

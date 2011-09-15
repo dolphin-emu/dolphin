@@ -228,7 +228,6 @@ bool VertexShaderCache::SetShader(u32 components)
 
 	if (pbytecode == NULL)
 	{
-		PanicAlert("Failed to compile Vertex Shader %s %d:\n\n%s", __FILE__, __LINE__, code);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return false;
 	}
@@ -245,10 +244,8 @@ bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, D3DBlob* bcod
 {
 	ID3D11VertexShader* shader = D3D::CreateVertexShaderFromByteCode(bcodeblob);
 	if (shader == NULL)
-	{
-		PanicAlert("Failed to create vertex shader from %p size %d at %s %d\n", bcodeblob->Data(), bcodeblob->Size(), __FILE__, __LINE__);
 		return false;
-	}
+
 	// TODO: Somehow make the debug name a bit more specific
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a vertex shader of VertexShaderCache");
 
