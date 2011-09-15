@@ -89,6 +89,7 @@ public:
 
 public slots:
 	void OnReset();
+	//void OnApply(); // TODO: This should be used to change the behavior of OnReset()
 
 private:
 	QMap<QCheckBox*, bool> checkbox_states;
@@ -99,4 +100,3 @@ private:
 signals:
 	void settingChanged(); // TODO!
 };
-

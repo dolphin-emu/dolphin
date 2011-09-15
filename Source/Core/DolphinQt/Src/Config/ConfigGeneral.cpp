@@ -105,6 +105,8 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 	mainLayout->addLayout(pathListButtonLayout);
 	tab->setLayout(mainLayout);
 
+	// TODO: Need to register path widget..
+
 	return tab;
 }
 
