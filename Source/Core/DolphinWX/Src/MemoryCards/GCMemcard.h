@@ -67,7 +67,7 @@ enum
 	CI8,
 };
 
-class GCMemcard 
+class GCMemcard : NonCopyable
 {
 private:
 	friend class CMemcardManagerDebug;
@@ -175,7 +175,7 @@ public:
 	bool IsValid() { return m_valid; }
 	bool IsAsciiEncoding();
 	bool Save();
-	bool Format(bool sjis = false, bool New = true, int slot = 0, u16 SizeMb = MemCard2043Mb, bool hdrOnly = false);
+	bool Format(bool sjis = false, int slot = 0, u16 SizeMb = MemCard2043Mb);
 	
 	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
 	u32 TestChecksums();

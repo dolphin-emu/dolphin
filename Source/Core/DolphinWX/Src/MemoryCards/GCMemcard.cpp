@@ -61,7 +61,10 @@ void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
 	}
 }
 
-GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis) : m_valid(false), m_fileName(filename)
+GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
+	: m_valid(false)
+	, m_fileName(filename)
+	, mc_data(NULL)
 { 
 	File::IOFile mcdFile(m_fileName, "r+b");
 	if (!mcdFile.IsOpen())
@@ -71,10 +74,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis) : m_va
 			return;
 		}
 		Format(forceCreation ? sjis : !AskYesNoT("Format as ascii (NTSC\\PAL)?\nChoose no for sjis (NTSC-J)"));
-		if (!mcdFile.Open(m_fileName, "r+b"))
-		{
-			return;
-		}
+		return;
 	}
 	else
 	{
@@ -1157,20 +1157,15 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays)
 	return frames;
 }
 
-bool GCMemcard::Format(bool sjis, bool New, int slot, u16 SizeMb, bool hdrOnly)
+bool GCMemcard::Format(bool sjis, int slot, u16 SizeMb)
 {
 	// Currently only formats cards for slot A
-	const u32 data_size = BLOCK_SIZE * (SizeMb * MBIT_TO_BLOCKS - MC_FST_BLOCKS);
-
+	m_sizeMb = SizeMb;
+	mc_data_size = BLOCK_SIZE * (m_sizeMb * MBIT_TO_BLOCKS - MC_FST_BLOCKS);
+	
 	SRAM m_SRAM;
 
-	if (New)
-	{
-		mc_data_size = data_size;
-		mc_data = new u8[mc_data_size];
-	}
-	// Only Format 16MB memcards for now
-	if ((SizeMb != MemCard2043Mb) || (data_size != mc_data_size)) return false;
+
 
 	File::IOFile pStream(File::GetUserPath(F_GCSRAM_IDX), "rb");
 	if (pStream)
@@ -1199,28 +1194,39 @@ bool GCMemcard::Format(bool sjis, bool New, int slot, u16 SizeMb, bool hdrOnly)
 	hdr.fmtTime.low = time & 0xFFFFFFFF;
 	*(u32*)&(hdr.SramBias) = m_SRAM.counter_bias;
 	*(u32*)&(hdr.SramLang) = m_SRAM.lang;
-	*(u32*)&(hdr.Unk2) = Common::swap32(1);		// = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-	// TODO: find out why memcard cares if component cable used for now set to one like main app
+	// TODO: determine the purpose of Unk2 1 works for slot A, 0 works for both slot A and slot B
+	*(u32*)&(hdr.Unk2) = 0;		// = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
 	*(u16*)&(hdr.deviceID) = 0;
-	*(u16*)&(hdr.SizeMb) = Common::swap16(SizeMb);
+	*(u16*)&(hdr.SizeMb) = Common::swap16(m_sizeMb);
 	*(u16*)&(hdr.Encoding) = Common::swap16(sjis ? 1 : 0);
 
-	if (!hdrOnly)
-	{
-		memset(&dir, 0xFF, BLOCK_SIZE);
-		memset(&dir_backup, 0xFF, BLOCK_SIZE);
-		*(u16*)&dir.UpdateCounter = 0;
-		*(u16*)&dir_backup.UpdateCounter = Common::swap16(1);
-		memset(&bat, 0, BLOCK_SIZE);
-		memset(&bat_backup, 0, BLOCK_SIZE);
-		*(u16*)&bat.UpdateCounter = 0;
-		*(u16*)&bat_backup.UpdateCounter = Common::swap16(1);
-		*(u16*)&bat.FreeBlocks = *(u16*)&bat_backup.FreeBlocks = Common::swap16(SizeMb * MBIT_TO_BLOCKS - MC_FST_BLOCKS);
-		*(u16*)&bat.LastAllocated = *(u16*)&bat_backup.LastAllocated = Common::swap16(4);
-		memset(mc_data, 0xFF, mc_data_size);
-	}
+	memset(&dir, 0xFF, BLOCK_SIZE);
+	memset(&dir_backup, 0xFF, BLOCK_SIZE);
+	*(u16*)&dir.UpdateCounter = 0;
+	*(u16*)&dir_backup.UpdateCounter = Common::swap16(1);
+
 	
+	maxBlock = (u32)m_sizeMb * MBIT_TO_BLOCKS;
+
+	memset(&bat, 0, BLOCK_SIZE);
+	memset(&bat_backup, 0, BLOCK_SIZE);
+	*(u16*)&bat.UpdateCounter = 0;
+	*(u16*)&bat_backup.UpdateCounter = Common::swap16(1);
+	*(u16*)&bat.FreeBlocks = *(u16*)&bat_backup.FreeBlocks = Common::swap16(maxBlock - MC_FST_BLOCKS);
+	*(u16*)&bat.LastAllocated = *(u16*)&bat_backup.LastAllocated = Common::swap16(4);
+
+	if (mc_data)
+	{
+		delete mc_data;
+		mc_data = NULL;
+	}
+	mc_data = new u8[mc_data_size];
+	if (!mc_data)
+		return false;
+
+	memset(mc_data, 0xFF, mc_data_size);
+	m_valid = true;
+
 	FixChecksums();
-	Save();
-	return true;
+	return Save();
 }
