@@ -29,6 +29,7 @@
 #include "RenderBase.h"
 #include "Atomic.h"
 #include "BPMemory.h"
+#include "ConfigManager.h"
 #include "CommandProcessor.h"
 #include "CPMemory.h"
 #include "MainBase.h"
@@ -343,10 +344,16 @@ void Renderer::SetWindowSize(int width, int height)
 	if (height < 1)
 		height = 1;
 
-	// Scale the window size by the EFB scale.
-	CalculateTargetScale(width, height, width, height);
+	// TODO: Should also be !fullscreen
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize)
+	{
+		// Scale the window size by the EFB scale.
+		const int oldwidth = width, oldheight = height;
+		CalculateTargetScale(width, height, width, height);
 
-	Host_RequestRenderWindowSize(width, height);
+		if (oldwidth != width || oldheight != height)
+			Host_RequestRenderWindowSize(width, height);
+	}
 }
 
 void Renderer::CheckFifoRecording()

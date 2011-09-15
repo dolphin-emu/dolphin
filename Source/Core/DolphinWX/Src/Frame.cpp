@@ -675,7 +675,6 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED ||
-			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize || 
 			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
 		return;
 
