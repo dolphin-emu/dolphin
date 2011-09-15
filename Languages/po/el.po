@@ -8,13 +8,13 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-08-10 08:30-0500\n"
-"PO-Revision-Date: 2011-08-25 20:16+0200\n"
+"PO-Revision-Date: 2011-09-13 17:28+0200\n"
 "Last-Translator: Linktothepast <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
-"Language: Greek\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: Greek\n"
 "X-Poedit-Language: Greek\n"
 "X-Poedit-Country: GREECE\n"
 
@@ -862,7 +862,7 @@ msgid ""
 msgstr ""
 "Υπολογίζει τον φωτισμό των 3D γραφικών ανά pixel αντί ανά vertex.\n"
 "Μειώνει την ταχύτητα εξομοίωσης κατά κάποιο ποσοστό (ανάλογα με την GPU).\n"
-"Αυτή είναι συνήθως μια ασφαλής βελτίωση, αλλά μπορεί να προκαλέσει προβλήματα ορισμένες φορές.\n"
+"Αυτή συνήθως είναι μια ασφαλής βελτίωση, αλλά μπορεί να προκαλέσει ορισμένες φορές προβλήματα.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -1116,7 +1116,7 @@ msgstr "Ρυθμίσεις Χειριστηρίων"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:442
 msgid "Configure..."
-msgstr "Γενικές Ρυθμίσεις......"
+msgstr "Γενικές Ρυθμίσεις..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1229
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1257
@@ -1741,7 +1741,7 @@ msgstr "Επεξεργασία..."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:44
 msgid "Effect"
-msgstr "Εφφέ"
+msgstr "Εφέ"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:424
 msgid "Embedded Frame Buffer"
@@ -1759,7 +1759,7 @@ msgid ""
 "If unsure, check virtual XFB emulation instead."
 msgstr ""
 "Εξομοιώνει τα XFBs με ακρίβεια.\n"
-"Επιβραδύνει την εξομοίωση αρκετά και αποτρέπει την απόδοση γραφικών υψηλής ανάλυσης, αλλά είναι απαραίτητο για την σωστή εξομοίωση ορισμένου αριθμού παιχνιδιών.\n"
+"Επιβραδύνει αρκετά την εξομοίωση και αποτρέπει την απόδοση γραφικών υψηλής ανάλυσης, αλλά είναι απαραίτητο για την σωστή εξομοίωση ορισμένου αριθμού παιχνιδιών.\n"
 "\n"
 "Αν δεν είστε σίγουροι, επιλέξτε εικονική XFB εξομοίωση."
 
@@ -2634,12 +2634,12 @@ msgstr "Host"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.h:44
 msgid "Hotkey Configuration"
-msgstr "Ρυθμίσεις Πλήκτρων Συντομεύσεως"
+msgstr "Ρυθμίσεις Πλήκτρων Συντόμευσης"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
 msgid "Hotkeys"
-msgstr "Πλήκτρα Συντομεύσεως"
+msgstr "Πλήκτρα Συντόμευσης"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
 msgid "Hungarian"
@@ -2708,7 +2708,7 @@ msgstr "Αν τα FPS διακυμαίνονται, αυτή η επιλογή �
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:481
 msgid "If you set Framelimit higher than game full speed (NTSC:60, PAL:50), you also have to disable Audio Throttle in DSP to make it effective."
 msgstr ""
-"Αν θέσετε τον περιορισμό καρέ υψηλότερα από ότι την πλήρη ταχύτητα του παιχνιδιού (NTSC:60, PAL:50),\n"
+"Αν θέσετε τιμή υψηλότερη από την πλήρη ταχύτητα του παιχνιδιού (NTSC:60, PAL:50),\n"
 "θα πρέπει επίσης να απενεργοποιήσετε το Throttle Ήχου στο DSP για να έχει αποτέλεσμα. "
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:427
@@ -2773,7 +2773,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Βελτιώνει τις επιδόσεις αλλά προκαλεί προβλήματα σε παιχνίδια που βασίζονται στη σωστή εξομοίωση ομίχλης.\n"
+"Βελτιώνει τις επιδόσεις αλλά προκαλεί προβλήματα σε παιχνίδια που βασίζονται στη σωστή εξομοίωση της ομίχλης.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -3022,7 +3022,7 @@ msgstr "Μικρότερο από"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:539
 msgid "Limit by FPS"
-msgstr "Περιορισμός με βάση τα FPS"
+msgstr "Περιορισμός με βάση τα Καρέ"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:928
 msgid "Load"
@@ -4312,8 +4312,8 @@ msgid ""
 "Disabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."
 msgstr ""
 "Εμφάνιση μηνύματος όταν προκύψει ένα πιθανά σοβαρό σφάλμα.\n"
-"Απενεργοποιώντας αυτήν την επιλογή μπορεί να σας γλιτώσει από ενοχλητικά μη κρίσιμα σφάλματα, αλλά επίσης σημαίνει\n"
-"ότι το Dolphin μπορεί να κρασάρει ξαφνικά χωρίς καμία εξήγηση. "
+"Απενεργοποιώντας αυτήν την επιλογή μπορεί να γλιτώσετε από ενοχλητικά μη κρίσιμα σφάλματα, αλλά \n"
+"το Dolphin μπορεί να κρασάρει ξαφνικά χωρίς καμία εξήγηση. "
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:812
 msgid "Show first block"
@@ -4393,7 +4393,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Παράλειψη του destination alpha pass που χρησιμοποιείται σε πολλά παιχνίδια για ποικίλα γραφικά εφέ.\n"
+"Παράλειψη του destination alpha pass που χρησιμοποιείται από πολλά παιχνίδια σε διάφορα γραφικά εφέ.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -4427,7 +4427,7 @@ msgid ""
 msgstr ""
 "Η απεικόνιση λογισμικού είναι αρκετές βαθμίδες πιο αργή απ' ότι τα υπόλοιπα backends.\n"
 "Είναι μόνο χρήσιμη για debugging σκοπούς.\n"
-"Θέλετε όντως να χρησιμοπποιήσετε την απεικόνιση λογισμικού; Αν δεν είστε σίγουροι, επιλέξτε 'No'."
+"Θέλετε όντως να χρησιμοποιήσετε την απεικόνιση λογισμικού; Αν δεν είστε σίγουροι, επιλέξτε 'Όχι'."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:618
 msgid "Sound Settings"
@@ -4727,8 +4727,8 @@ msgid ""
 "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
 msgstr ""
 "Χρησιμοποιείται για τον έλεγχο της ταχύτητας του παιχνιδιού με throttle ήχου.\n"
-"Απενεργοποίησή της μπορεί να προκαλέσει μη φυσιολογική ταχύτητα παιχνιδιού, όπως πολύ γρήγορη.\n"
-"Αλλά μερικές φορές η ενεργοποίησή της μπορεί να προκαλέσει μόνιμο θόρυβο.\n"
+"Απενεργοποιώντας το μπορεί να προκλήθει αφύσικη ταχύτητα σε παιχνίδια, π.χ. πολύ γρήγορη.\n"
+"Όμως ορισμένες φορές η ενεργοποίησή της μπορεί να προκαλέσει μόνιμο θόρυβο.\n"
 "\n"
 "Συντόμευση πληκτρολογίου <TAB>: Κρατήστε το πατημένο για να απενεργοποιηθεί η λειτουργία Throttle."
 
@@ -4747,7 +4747,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:283
 msgid "This will let you Manually Edit the INI config file"
-msgstr "Αυτό θα σας επιτρέψει να επεξεργαστείτε χειροκίνητα το αρχείο ρυθμίσεων INI"
+msgstr "Αυτό σας επιτρέπει την χειροκίνητη επεξεργασία του αρχείου ρυθμίσεων INI"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:249
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:254
@@ -5044,7 +5044,7 @@ msgid ""
 msgstr ""
 "Προειδοποίηση: Αυτό θα αντικαταστήσει όλα τα υπάρχοντα σημεία αποθήκευσης που υπάρχουν στον φάκελο:\n"
 "%s\n"
-"κι έχουν το ίδιο όνομα με αρχεία στη memcard\n"
+"και έχουν το ίδιο όνομα με αρχεία στη memcard\n"
 "Συνέχεια;"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:106
@@ -5257,7 +5257,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "[ΧΑΛΑΣΜΕΝΟ]\n"
-"Τονίζει τις περιοχές από όπου το EFB αντιγράφηκε.\n"
+"Τονίζει τις περιοχές από όπου έγινε αντιγραφή του EFB.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
