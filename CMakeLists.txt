@@ -424,7 +424,7 @@ endif(NOT DISABLE_WX)
 option(DISABLE_QT4 "Disable Qt4 (use wxWidgets or CLI interface)" ON)
 if(NOT DISABLE_QT4 AND DISABLE_WX)
 	include(FindQt4)
-	find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL OPTIONAL)
+	find_package(Qt4 COMPONENTS QtCore QtGui)
 
 	if(QT4_FOUND AND QT_QTCORE_FOUND AND QT_QTGUI_FOUND AND QT_QTOPENGL_FOUND)
 		include(${QT_USE_FILE})
