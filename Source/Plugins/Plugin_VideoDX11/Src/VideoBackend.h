@@ -12,7 +12,7 @@ class VideoBackend : public VideoBackendHardware
 	bool Initialize(void *&);
 	void Shutdown();
 
-	std::string GetName();
+	std::string GetName() const;
 
 	void Video_Prepare();
 

@@ -49,9 +49,9 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 	menusView->setViewMode(QListView::IconMode);
 	menusView->setIconSize(QSize(48,48)); // TODO: Need better/bigger icons
 	menusView->setMovement(QListView::Static);
-	menusView->setMaximumWidth(72); // TODO: Rather, set this to the widest widget width
-	menusView->setMinimumHeight(76*5); // TODO: Don't hardcode this
-	menusView->setSpacing(6);
+	menusView->setMaximumWidth(78); // TODO: Rather, set this to the widest widget width
+	menusView->setMinimumHeight(72*5+26); // TODO: Don't hardcode this
+	menusView->setFlow(QListView::TopToBottom);
 
 	menusView->addItem(generalConfigButton);
 	menusView->addItem(graphicsConfigButton);
@@ -59,6 +59,8 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 	menusView->addItem(padConfigButton);
 	menusView->addItem(wiimoteConfigButton);
 	menusView->setCurrentRow(initialConfigItem);
+	for (int i = 0; i < menusView->count(); ++i)
+		menusView->item(i)->setSizeHint(QSize(72,72));
 
 
 	// Configuration widgets

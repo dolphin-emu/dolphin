@@ -1,6 +1,7 @@
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QLabel>
 #include <QTabBar>
 #include "ConfigGfx.h"
 #include "Util.h"
@@ -9,15 +10,31 @@
 #include "VideoBackendBase.h"
 #include "VideoConfig.h"
 
+// TODO: Clean this up...
+static std::string GetIniName(const VideoBackend* backend)
+{
+	if (backend->GetName() == std::string("Direct3D9")) return std::string("gfx_dx9.ini");
+	else if (backend->GetName() == std::string("Direct3D11")) return std::string("gfx_dx11.ini");
+	else if (backend->GetName() == std::string("OpenGL")) return std::string("gfx_opengl.ini");
+	else if (backend->GetName() == std::string("Software Renderer")) return std::string(); // TODO: other stuff for VideoSoftware..
+	else return std::string();
+}
 
 QWidget* DConfigGfx::CreateGeneralTabWidget()
 {
+	// TODO: Should just make all backends use the same config file, that's easier to handle from a code perspective and more user friendly, too
+	// TODO: As long as we don't do that, we should have an event handler for backend changes.
+	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + GetIniName(g_video_backend)).c_str());
+
 	QWidget* tab = new QWidget;
 
 	// Widgets
 	cbBackend = new QComboBox;
 	for (std::vector<VideoBackend*>::iterator it = g_available_video_backends.begin(); it != g_available_video_backends.end(); ++it)
 		cbBackend->addItem(QString::fromStdString((*it)->GetName()));
+
+	chAspectRatio = new QComboBox;
+	chAspectRatio->addItems(QStringList() << tr("Auto") << tr("Force 16:9") << tr("Force 4:3") << tr("Stretch to Window"));
 
 	cbVsync = new QCheckBox(tr("V-Sync"));
 	cbFullscreen = new QCheckBox(tr("Fullscreen"));
@@ -29,12 +46,15 @@ QWidget* DConfigGfx::CreateGeneralTabWidget()
 
 
 	// Layouts
-	DGroupBoxV* groupGeneral = new DGroupBoxV(tr("General"));
-	groupGeneral->addWidget(cbBackend);
-
-	DGroupBoxV* groupDisplay = new DGroupBoxV(tr("Display"));
-	groupDisplay->addWidget(cbVsync);
-	groupDisplay->addWidget(cbFullscreen);
+	QGroupBox* groupDisplay = new QGroupBox(tr("Display"));
+	QGridLayout* layoutDisplay = new QGridLayout;
+	layoutDisplay->addWidget(new QLabel(tr("Backend:")), 0, 0);
+	layoutDisplay->addWidget(cbBackend, 0, 1);
+	layoutDisplay->addWidget(new QLabel(tr("Aspect Ratio:")), 1, 0);
+	layoutDisplay->addWidget(chAspectRatio, 1, 1);
+	layoutDisplay->addWidget(cbVsync, 2, 0, 1, 2);
+	layoutDisplay->addWidget(cbFullscreen, 3, 0, 1, 2);
+	groupDisplay->setLayout(layoutDisplay);
 
 	DGroupBoxV* groupEmuWindow = new DGroupBoxV(tr("Emulation Window"));
 	groupEmuWindow->addWidget(cbFPS);
@@ -43,7 +63,6 @@ QWidget* DConfigGfx::CreateGeneralTabWidget()
 	groupEmuWindow->addWidget(cbRenderToMain);
 
 	QBoxLayout* mainLayout = new QVBoxLayout;
-	mainLayout->addWidget(groupGeneral);
 	mainLayout->addWidget(groupDisplay);
 	mainLayout->addWidget(groupEmuWindow);
 	mainLayout->addStretch();
@@ -54,6 +73,7 @@ QWidget* DConfigGfx::CreateGeneralTabWidget()
 	// TODO: Load the actual config, don't use the current one (which might be "dirtied" by game inis.
 	ctrlManager = new DControlStateManager(this);
 	ctrlManager->RegisterControl(cbBackend, QString::fromStdString(g_video_backend->GetName()));
+	ctrlManager->RegisterControl(chAspectRatio, g_Config.iAspectRatio);
 	ctrlManager->RegisterControl(cbVsync, g_Config.bVSync);
 	ctrlManager->RegisterControl(cbFullscreen, SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 	ctrlManager->RegisterControl(cbFPS, g_Config.bShowFPS);
@@ -119,8 +139,8 @@ DConfigGfx::DConfigGfx(QWidget* parent) : QTabWidget(parent)
 {
 	addTab(CreateGeneralTabWidget(), tr("General"));
 	addTab(CreateEnhancementsTabWidget(), tr("Enhancements"));
-	addTab(CreateHacksTabWidget(), tr("Hacks"));
-	addTab(CreateAdvancedTabWidget(), tr("Advanced"));
+//	addTab(CreateHacksTabWidget(), tr("Hacks"));
+//	addTab(CreateAdvancedTabWidget(), tr("Advanced"));
 
 	tabBar()->setUsesScrollButtons(false);
 }
@@ -136,8 +156,7 @@ void DConfigGfx::Apply()
 
 	g_video_backend = g_available_video_backends[cbBackend->currentIndex()];
 	StartUp.m_strVideoBackend = g_video_backend->GetName();
-	//cbBackend; TODO!
-
+	g_Config.iAspectRatio = chAspectRatio->currentIndex();
 	g_Config.bVSync = cbVsync->isChecked();
 	StartUp.bFullscreen = cbFullscreen->isChecked();
 
@@ -145,4 +164,6 @@ void DConfigGfx::Apply()
 	StartUp.bRenderWindowAutoSize = cbAutoWindowSize->isChecked();
 	StartUp.bHideCursor = cbHideCursor->isChecked(); // StartUp.AutoHideCursor??
 	StartUp.bRenderToMain = cbRenderToMain->isChecked();
+
+	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + GetIniName(g_video_backend)).c_str());
 }

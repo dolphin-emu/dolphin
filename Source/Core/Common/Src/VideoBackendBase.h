@@ -97,7 +97,7 @@ public:
 	virtual void DoState(PointerWrap &p) = 0;
 	virtual void RunLoop(bool enable) = 0;
 
-	virtual std::string GetName() = 0;
+	virtual std::string GetName() const = 0;
 
 	virtual void ShowConfig(void*) {}
 

@@ -12,7 +12,7 @@ class VideoSoftware : public VideoBackend
 	bool Initialize(void *&);
 	void Shutdown();
 
-	std::string GetName();
+	std::string GetName() const;
 
 	void EmuStateChange(EMUSTATE_CHANGE newState);
 

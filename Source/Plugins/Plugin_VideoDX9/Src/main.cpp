@@ -81,7 +81,7 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 	SetWindowText(EmuWindow::GetWnd(), temp);
 }
 
-std::string VideoBackend::GetName()
+std::string VideoBackend::GetName() const
 {
 	return "Direct3D9";
 }

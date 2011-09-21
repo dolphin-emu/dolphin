@@ -54,6 +54,7 @@ QWidget* DConfigMainGeneralTab::CreateCoreTabWidget(QWidget* parent)
 	mainLayout->addWidget(coreSettingsBox);
 	mainLayout->addWidget(CPUEngineBox);
 	mainLayout->addWidget(interfaceBox);
+	mainLayout->addStretch();
 	tab->setLayout(mainLayout);
 
 

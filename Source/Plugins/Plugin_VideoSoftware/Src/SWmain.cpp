@@ -47,7 +47,7 @@ static volatile bool fifoStateRun = false;
 static volatile bool emuRunningState = false;
 
 
-std::string VideoSoftware::GetName()
+std::string VideoSoftware::GetName() const
 {
 	return _trans("Software Renderer");
 }

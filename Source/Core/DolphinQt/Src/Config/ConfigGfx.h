@@ -21,7 +21,7 @@ private:
 	QWidget* CreateAdvancedTabWidget();
 
 	QComboBox* cbBackend;
-
+	QComboBox* chAspectRatio;
 	QCheckBox* cbVsync;
 	QCheckBox* cbFullscreen;
 
