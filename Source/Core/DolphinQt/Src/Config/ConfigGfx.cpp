@@ -89,14 +89,40 @@ QWidget* DConfigGfx::CreateEnhancementsTabWidget()
 	QWidget* tab = new QWidget;
 
 	// Widgets
+	chInternalResolution = new QComboBox;
+	chInternalResolution->addItems(QStringList() << tr("Auto (Window Size)") << tr("Auto (Multiple of 640x528)")
+									<< tr("1x Native (640x528)") << tr("1.5x Native (960x792)") << tr("2x Native (1280x1056)")
+									<< tr("2.5x Native (1600x1320)") << tr("3x Native (1920x1584)") << tr("4x Native (2560x2112)"));
 
+	//chAntiAliasing = new QComboBox;
+	chAnisotropicFiltering = new QComboBox;
+	chAnisotropicFiltering->addItems(QStringList() << tr("1x") << tr("2x") << tr("4x") << tr("8x") << tr("16x"));
+
+	cbPerPixelLighting = new QCheckBox(tr("Enable per-Pixel Lighting"));
 
 	// Layouts
+	QGroupBox* groupEnhancements = new QGroupBox(tr("Enhancements"));
+	QGridLayout* layoutEnhancements = new QGridLayout;
+	layoutEnhancements->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
+	layoutEnhancements->addWidget(chInternalResolution, 0, 1);
+	//layoutEnhancements->addWidget(new QLabel(tr("Anti-Aliasing:")), 1, 0);
+	//layoutEnhancements->addWidget(chAntiAliasing, 1, 1);
+	layoutEnhancements->addWidget(new QLabel(tr("Anisotropic Filtering:")), 1, 0);
+	layoutEnhancements->addWidget(chAnisotropicFiltering, 1, 1);
+	layoutEnhancements->addWidget(cbPerPixelLighting, 2, 0, 1, 2);
+	groupEnhancements->setLayout(layoutEnhancements);
+
 	QBoxLayout* mainLayout = new QVBoxLayout;
+	mainLayout->addWidget(groupEnhancements);
+	mainLayout->addStretch();
 	tab->setLayout(mainLayout);
 
 
 	// Initial values
+	ctrlManager->RegisterControl(chInternalResolution, g_Config.iEFBScale);
+	//ctrlManager->RegisterControl(chAntiAliasing, TODO);
+	ctrlManager->RegisterControl(chAnisotropicFiltering, g_Config.iMaxAnisotropy);
+	ctrlManager->RegisterControl(cbPerPixelLighting, g_Config.bEnablePixelLighting);
 
 	return tab;
 }
@@ -164,6 +190,11 @@ void DConfigGfx::Apply()
 	StartUp.bRenderWindowAutoSize = cbAutoWindowSize->isChecked();
 	StartUp.bHideCursor = cbHideCursor->isChecked(); // StartUp.AutoHideCursor??
 	StartUp.bRenderToMain = cbRenderToMain->isChecked();
+
+	g_Config.iEFBScale = chInternalResolution->currentIndex();
+	// TODO: Antialiasing = chAntiAliasing->currentIndex()
+	g_Config.iMaxAnisotropy = chAnisotropicFiltering->currentIndex();
+	g_Config.bEnablePixelLighting = cbPerPixelLighting->isChecked();
 
 	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + GetIniName(g_video_backend)).c_str());
 }

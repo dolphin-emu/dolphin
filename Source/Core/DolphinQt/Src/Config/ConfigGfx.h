@@ -20,6 +20,7 @@ private:
 	QWidget* CreateHacksTabWidget();
 	QWidget* CreateAdvancedTabWidget();
 
+	// General
 	QComboBox* cbBackend;
 	QComboBox* chAspectRatio;
 	QCheckBox* cbVsync;
@@ -30,6 +31,11 @@ private:
 	QCheckBox* cbHideCursor;
 	QCheckBox* cbRenderToMain;
 
+	// Enhancements
+	QComboBox* chInternalResolution;
+	QComboBox* chAntiAliasing;
+	QComboBox* chAnisotropicFiltering;
+	QCheckBox* cbPerPixelLighting;
 
 	DControlStateManager* ctrlManager;
 };
