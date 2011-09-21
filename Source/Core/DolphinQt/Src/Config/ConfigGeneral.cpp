@@ -1,6 +1,7 @@
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFileDialog>
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
@@ -83,23 +84,28 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 	QWidget* tab = new QWidget(this);
 
 	// Widgets
-	QListWidget* pathList = new QListWidget;
+	pathList = new QListWidget;
 	for (std::vector<std::string>::iterator it = SConfig::GetInstance().m_ISOFolder.begin(); it != SConfig::GetInstance().m_ISOFolder.end(); ++it)
-	{
 		pathList->addItem(new QListWidgetItem(QString::fromStdString(*it)));
-	}
 
-	QPushButton* addPath = new QPushButton(tr("Add"));
-	QPushButton* removePath = new QPushButton(tr("Remove"));
+	QPushButton* addPath = new QPushButton(tr("Add")); // TODO: Icon
+	QPushButton* removePath = new QPushButton(tr("Remove")); // TODO: Icon
 	QPushButton* clearPathList = new QPushButton(tr("Clear"));
 
+
+	// Signals
+	connect(addPath, SIGNAL(clicked()), this, SLOT(OnAddIsoPath()));
+	connect(removePath, SIGNAL(clicked()), this, SLOT(OnRemoveIsoPath()));
+	connect(clearPathList, SIGNAL(clicked()), this, SLOT(OnClearIsoPathList()));
+	// TODO: "Remove" button should be disabled if no item is selected in the path list
+	// TODO: "Clear" button should be disabled if no items are in the path list
 
 	// Layouts
 	QBoxLayout* pathListButtonLayout = new QHBoxLayout;
 	pathListButtonLayout->addWidget(clearPathList);
 	pathListButtonLayout->addStretch();
-	pathListButtonLayout->addWidget(removePath);
 	pathListButtonLayout->addWidget(addPath);
+	pathListButtonLayout->addWidget(removePath);
 
 	QBoxLayout* mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(pathList);
@@ -134,4 +140,26 @@ void DConfigMainGeneralTab::Apply()
 
 	Startup.bConfirmStop = cbConfirmOnStop->isChecked();
 	Startup.bRenderToMain = cbRenderToMain->isChecked();
+
+	SConfig::GetInstance().m_ISOFolder.clear();
+	for (int i = 0; i < pathList->count(); ++i)
+		SConfig::GetInstance().m_ISOFolder.push_back(pathList->item(i)->text().toStdString());
+}
+
+void DConfigMainGeneralTab::OnAddIsoPath()
+{
+	QString selection = QFileDialog::getExistingDirectory(this, tr("Select a directory to add"));
+	if(selection.length() == 0) return;
+
+	pathList->addItem(selection);
+}
+
+void DConfigMainGeneralTab::OnRemoveIsoPath()
+{
+	delete pathList->takeItem(pathList->row(pathList->currentItem()));
+}
+
+void DConfigMainGeneralTab::OnClearIsoPathList()
+{
+	pathList->clear();
 }
