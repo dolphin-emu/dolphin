@@ -26,6 +26,7 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceMemoryCard.h"
 #include "Sram.h"
+#include "../../DolphinWx/Src/MemoryCards/GCMemcard.h"
 
 #define MC_STATUS_BUSY					0x80   
 #define MC_STATUS_UNLOCKED				0x40
@@ -34,6 +35,7 @@
 #define MC_STATUS_PROGRAMEERROR			0x08
 #define MC_STATUS_READY					0x01
 #define SIZE_TO_Mb (1024 * 8 * 16)
+#define MC_HDR_SIZE 0xA000
 
 static CEXIMemoryCard *cards[2];
 
@@ -84,7 +86,6 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
  
 		INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
 		pFile.ReadBytes(memory_card_content, memory_card_size);
-		SetCardFlashID(memory_card_content, card_index);
 
 	}
 	else
@@ -94,11 +95,11 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 		memory_card_size = nintendo_card_id * SIZE_TO_Mb;
 
 		memory_card_content = new u8[memory_card_size];
-		memset(memory_card_content, 0xFF, memory_card_size);
- 
+		GCMemcard::Format(memory_card_content, m_strFilename.find(".JAP.raw") != std::string::npos, nintendo_card_id);
+		memset(memory_card_content+MC_HDR_SIZE, 0xFF, memory_card_size-MC_HDR_SIZE); 
 		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
-		Flush();
 	}
+	SetCardFlashID(memory_card_content, card_index);
 }
 
 void innerFlush(FlushData* data)

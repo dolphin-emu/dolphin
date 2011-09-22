@@ -23,8 +23,8 @@
 #include "StringUtil.h"
 #include "../../../Core/Src/HW/EXI_DeviceIPL.h"
 
-#define BE32(x) ((u32((x)[0])<<24) | (u32((x)[1])<<16) | (u32((x)[2])<<8) | u32((x)[3]))
-#define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
+#define BE32(x) (Common::swap32(x))
+#define BE16(x) (Common::swap16(x))
 #define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
 
 enum
@@ -81,15 +81,10 @@ private:
 	u16 m_sizeMb;
 
 #pragma pack(push,1)
-	struct OSTime {
-		u32 low;
-		u32 high;
-	};
-
 	struct Header {			//Offset	Size	Description
 		 // Serial in libogc
 		u8 serial[12];		//0x0000	12		?
-		OSTime fmtTime;		//0x000c	8		time of format (OSTime value)
+		u64 formatTime;		//0x000c	8		time of format (OSTime value)
 		u8 SramBias[4];		//0x0014	4		sram bias at time of format
 		u8 SramLang[4];		//0x0018	4		sram language
 		u8 Unk2[4];			//0x001c	4	 	? almost always 0
@@ -99,8 +94,8 @@ private:
 		u8 Encoding[2];		//0x0024	2		encoding (ASCII or japanese)
 		u8 Unused1[468];	//0x0026	468		unused (0xff)
 		u8 UpdateCounter[2];//0x01fa	2		update Counter (?, probably unused)
-		u8 CheckSum1[2];	//0x01fc	2		Checksum 1 (?)
-		u8 CheckSum2[2];	//0x01fe	2		Checksum 2 (?)
+		u16 Checksum;		//0x01fc	2		Additive Checksum
+		u16 Checksum_Inv;	//0x01fe	2		Inverse Checksum
 		u8 Unused2[7680];	//0x0200	0x1e00	unused (0xff)
 	} hdr;
 
@@ -153,31 +148,38 @@ private:
 		DEntry Dir[DIRLEN];	//0x0000	 	Directory Entries (max 127)
 		u8 Padding[0x3a];
 		u8 UpdateCounter[2];//0x1ffa	2	update Counter
-		u8 CheckSum1[2];	//0x1ffc	2	Checksum 1
-		u8 CheckSum2[2];	//0x1ffe	2	Checksum 2
+		u16 Checksum;		//0x1ffc	2	Additive Checksum
+		u16 Checksum_Inv;	//0x1ffe	2	Inverse Checksum
 	} dir, dir_backup;
 
 	struct BlockAlloc {
-		u8 CheckSum1[2];	//0x0000	2	Checksum 1
-		u8 CheckSum2[2];	//0x0002	2	Checksum 2
+		u16 Checksum;		//0x0000	2	Additive Checksum
+		u16 Checksum_Inv;	//0x0002	2	Inverse Checksum
 		u8 UpdateCounter[2];//0x0004	2	update Counter
 		u8 FreeBlocks[2];	//0x0006	2	free Blocks
 		u8 LastAllocated[2];//0x0008	2	last allocated Block
 		u16 Map[0xFFB];		//0x000a	0x1ff8	Map of allocated Blocks
 	} bat,bat_backup;
+	struct GCMC_Header
+	{
+		Header *hdr;
+		Directory *dir, *dir_backup;
+		BlockAlloc *bat, *bat_backup;
+	};
 #pragma pack(pop)
 
 	u32 ImportGciInternal(FILE* gcih, const char *inputFile, std::string outputFile);
-
+	static void FormatInternal(GCMC_Header &GCP);
 public:
 
 	GCMemcard(const char* fileName, bool forceCreation=false, bool sjis=false);
 	bool IsValid() { return m_valid; }
 	bool IsAsciiEncoding();
 	bool Save();
-	bool Format(bool sjis = false, int slot = 0, u16 SizeMb = MemCard2043Mb);
+	bool Format(bool sjis = false, u16 SizeMb = MemCard2043Mb);
+	static bool Format(u8 * card_data, bool sjis = false, u16 SizeMb = MemCard2043Mb);
 	
-	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
+	static void calc_checksumsBE(u16 *buf, u32 length, u16 *csum, u16 *inv_csum);
 	u32 TestChecksums();
 	bool FixChecksums();
 	

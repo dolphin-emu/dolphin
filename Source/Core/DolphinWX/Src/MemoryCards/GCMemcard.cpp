@@ -227,7 +227,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 
 bool GCMemcard::IsAsciiEncoding()
 {
-	return hdr.Encoding[1] == 0;
+	return hdr.Encoding == 0;
 }
 
 bool GCMemcard::Save()
@@ -245,51 +245,49 @@ bool GCMemcard::Save()
 	return mcdFile.Close();
 }
 
-void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
+void GCMemcard::calc_checksumsBE(u16 *buf, u32 length, u16 *csum, u16 *inv_csum)
 {
-	*c1 = 0;*c2 = 0;
-	for (u32 i = 0; i < num; ++i)
+	*csum = *inv_csum = 0;
+
+	for (u32 i = 0; i < length; ++i)
 	{
 		//weird warnings here
-		*c1 += Common::swap16(buf[i]);
-		*c2 += Common::swap16((u16)(buf[i] ^ 0xffff));
+		*csum += BE16(buf[i]);
+		*inv_csum += BE16((u16)(buf[i] ^ 0xffff));
 	}
-	if (*c1 == 0xffff)
+	*csum = BE16(*csum);
+	*inv_csum = BE16(*inv_csum);
+	if (*csum == 0xffff)
 	{
-		*c1 = 0;
+		*csum = 0;
 	}
-	if (*c2 == 0xffff)
+	if (*inv_csum == 0xffff)
 	{
-		*c2 = 0;
+		*inv_csum = 0;
 	}
 }
 
 u32  GCMemcard::TestChecksums()
 {
-	u16 csum1=0,
-		csum2=0;
+	u16 csum=0,
+		csum_inv=0;
 
 	u32 results = 0;
 
-	calc_checksumsBE((u16*)&hdr, 0xFE , &csum1, &csum2);
-	if (BE16(hdr.CheckSum1) != csum1) results |= 1;
-	if (BE16(hdr.CheckSum2) != csum2) results |= 1;
+	calc_checksumsBE((u16*)&hdr, 0xFE , &csum, &csum_inv);
+	if ((hdr.Checksum != csum) || (hdr.Checksum_Inv != csum_inv)) results |= 1;
 
-	calc_checksumsBE((u16*)&dir, 0xFFE, &csum1, &csum2);
-	if (BE16(dir.CheckSum1) != csum1) results |= 2;
-	if (BE16(dir.CheckSum2) != csum2) results |= 2;
+	calc_checksumsBE((u16*)&dir, 0xFFE, &csum, &csum_inv);
+	if ((dir.Checksum != csum) || (dir.Checksum_Inv != csum_inv)) results |= 2;
 
-	calc_checksumsBE((u16*)&dir_backup, 0xFFE, &csum1, &csum2);
-	if (BE16(dir_backup.CheckSum1) != csum1) results |= 4;
-	if (BE16(dir_backup.CheckSum2) != csum2) results |= 4;
+	calc_checksumsBE((u16*)&dir_backup, 0xFFE, &csum, &csum_inv);
+	if ((dir_backup.Checksum != csum) || (dir_backup.Checksum_Inv != csum_inv)) results |= 4;
 
-	calc_checksumsBE((u16*)(((u8*)&bat)+4), 0xFFE, &csum1, &csum2);
-	if (BE16(bat.CheckSum1) != csum1) results |= 8;
-	if (BE16(bat.CheckSum2) != csum2) results |= 8;
+	calc_checksumsBE((u16*)(((u8*)&bat)+4), 0xFFE, &csum, &csum_inv);
+	if ((bat.Checksum != csum) || (bat.Checksum_Inv != csum_inv)) results |= 8;
 
-	calc_checksumsBE((u16*)(((u8*)&bat_backup)+4), 0xFFE, &csum1, &csum2);
-	if (BE16(bat_backup.CheckSum1) != csum1) results |= 16;
-	if (BE16(bat_backup.CheckSum2) != csum2) results |= 16;
+	calc_checksumsBE((u16*)(((u8*)&bat_backup)+4), 0xFFE, &csum, &csum_inv);
+	if ((bat_backup.Checksum != csum) || (bat_backup.Checksum_Inv != csum_inv)) results |= 16;
 
 	return results;
 }
@@ -298,39 +296,12 @@ bool GCMemcard::FixChecksums()
 {
 	if (!m_valid)
 		return false;
-
-	u16 csum1=0,
-		csum2=0;
-
-	calc_checksumsBE((u16*)&hdr, 0xFE, &csum1, &csum2);
-	hdr.CheckSum1[0] = u8(csum1 >> 8);
-	hdr.CheckSum1[1] = u8(csum1);
-	hdr.CheckSum2[0] = u8(csum2 >> 8);
-	hdr.CheckSum2[1] = u8(csum2);
-
-	calc_checksumsBE((u16*)&dir, 0xFFE, &csum1, &csum2);
-	dir.CheckSum1[0] = u8(csum1 >> 8);
-	dir.CheckSum1[1] = u8(csum1);
-	dir.CheckSum2[0] = u8(csum2 >> 8);
-	dir.CheckSum2[1] = u8(csum2);
-
-	calc_checksumsBE((u16*)&dir_backup, 0xFFE, &csum1, &csum2);
-	dir_backup.CheckSum1[0] = u8(csum1 >> 8);
-	dir_backup.CheckSum1[1] = u8(csum1);
-	dir_backup.CheckSum2[0] = u8(csum2 >> 8);
-	dir_backup.CheckSum2[1] = u8(csum2);
-
-	calc_checksumsBE((u16*)(((u8*)&bat)+4), 0xFFE, &csum1, &csum2);
-	bat.CheckSum1[0] = u8(csum1 >> 8);
-	bat.CheckSum1[1] = u8(csum1);
-	bat.CheckSum2[0] = u8(csum2 >> 8);
-	bat.CheckSum2[1] = u8(csum2);
-
-	calc_checksumsBE((u16*)(((u8*)&bat_backup)+4), 0xFFE, &csum1, &csum2);
-	bat_backup.CheckSum1[0] = u8(csum1 >> 8);
-	bat_backup.CheckSum1[1] = u8(csum1);
-	bat_backup.CheckSum2[0] = u8(csum2 >> 8);
-	bat_backup.CheckSum2[1] = u8(csum2);
+	
+	calc_checksumsBE((u16*)&hdr, 0xFE, &hdr.Checksum, &hdr.Checksum_Inv);
+	calc_checksumsBE((u16*)&dir, 0xFFE, &dir.Checksum, &dir.Checksum_Inv);
+	calc_checksumsBE((u16*)&dir_backup, 0xFFE, &dir_backup.Checksum, &dir_backup.Checksum_Inv);
+	calc_checksumsBE((u16*)&bat+2, 0xFFE, &bat.Checksum, &bat.Checksum_Inv);
+	calc_checksumsBE((u16*)&bat_backup+2, 0xFFE, &bat_backup.Checksum, &bat_backup.Checksum_Inv);
 
 	return true;
 }
@@ -620,8 +591,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 		{
 			index = i;
 			dir.Dir[i] = direntry;
-			dir.Dir[i].FirstBlock[0] = u8(firstFree1 >> 8);
-			dir.Dir[i].FirstBlock[1] = u8(firstFree1);
+			*(u16*)&dir.Dir[i].FirstBlock = BE16(firstFree1);
 			if (!remove)
 			{
 				dir.Dir[i].CopyCounter = dir.Dir[i].CopyCounter+1;
@@ -642,7 +612,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 	int j = 2;
 	while(j < BE16(direntry.BlockCount) + 1)
 	{
-		bat_backup.Map[i] = Common::swap16(last + (u16)j);
+		bat_backup.Map[i] = BE16(last + (u16)j);
 		i++;
 		j++;
 	}
@@ -654,25 +624,16 @@ u32 GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 	}
 
 	//update last allocated block
-	int lastallocated = BE16(bat_backup.LastAllocated) + j - 1;
-	bat_backup.LastAllocated[0] = u8(lastallocated >> 8);
-	bat_backup.LastAllocated[1] = u8(lastallocated);
-
+	*(u16*)&bat_backup.LastAllocated = BE16(BE16(bat_backup.LastAllocated) + j - 1);
 	//update freespace counter
-	int freespace1 = totalspace - firstFree1 - fileBlocks + MC_FST_BLOCKS;
-	bat_backup.FreeBlocks[0] = u8(freespace1 >> 8);
-	bat_backup.FreeBlocks[1] = u8(freespace1);
+	*(u16*)&bat_backup.FreeBlocks = BE16(totalspace - firstFree1 - fileBlocks + MC_FST_BLOCKS);
 
 	
 	if (!remove)
 	{	// ... and dir update counter
-		int updateCtr = BE16(dir_backup.UpdateCounter) + 1;
-		dir_backup.UpdateCounter[0] = u8(updateCtr >> 8);
-		dir_backup.UpdateCounter[1] = u8(updateCtr);
+		*(u16*)&dir_backup.UpdateCounter = BE16(BE16(dir_backup.UpdateCounter) + 1);
 		// ... and bat update counter
-		updateCtr = BE16(bat_backup.UpdateCounter) + 1;
-		bat_backup.UpdateCounter[0] = u8(updateCtr >> 8);
-		bat_backup.UpdateCounter[1] = u8(updateCtr);
+		*(u16*)&bat_backup.UpdateCounter = BE16(BE16(bat_backup.UpdateCounter) + 1);
 	}
 	bat = bat_backup;
 	return SUCCESS;
@@ -698,9 +659,7 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 
 	//free the blocks
 	int blocks_left = BE16(dir.Dir[index].BlockCount);
-	int block = BE16(dir.Dir[index].FirstBlock) - 1;
-	bat.LastAllocated[0] = (u8)(block  >> 8);
-	bat.LastAllocated[1] = (u8)block;
+	*(u16*)&bat.LastAllocated = BE16(BE16(dir.Dir[index].FirstBlock) - 1);
 
 	u8 nextIndex = index + 1;
 	memset(&(dir.Dir[index]), 0xFF, DENTRY_SIZE);
@@ -713,9 +672,7 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 		//Only get file data if it is a valid dir entry
 		if (BE16(tempDEntry->FirstBlock) != 0xFFFF)
 		{
-			u16 freeBlock= BE16(bat.FreeBlocks) - BE16(tempDEntry->BlockCount);
-			bat.FreeBlocks[0] = u8(freeBlock >> 8);
-			bat.FreeBlocks[1] = u8(freeBlock);
+			*(u16*)&bat.FreeBlocks = BE16(BE16(bat.FreeBlocks) - BE16(tempDEntry->BlockCount));
 
 			u16 size = DEntry_BlockCount(nextIndex);
 			if (size != 0xFFFF)
@@ -754,9 +711,7 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 		}
 	}
 	// increment update counter
-	int updateCtr = BE16(dir.UpdateCounter) + 1;
-	dir.UpdateCounter[0] = u8(updateCtr >> 8);
-	dir.UpdateCounter[1] = u8(updateCtr);
+	*(u16*)&dir.UpdateCounter = BE16(BE16(dir.UpdateCounter) + 1);
 
 	return SUCCESS;
 }
@@ -989,9 +944,7 @@ void GCMemcard::Gcs_SavConvert(DEntry* tempDEntry, int saveType, int length)
 		// It is stored only within the corresponding GSV file.
 		// If the GCS file is added without using the GameSaves software,
 		// the value stored is always "1"
-		int blockCount = length / BLOCK_SIZE;
-		tempDEntry->BlockCount[0] = u8(blockCount >> 8);
-		tempDEntry->BlockCount[1] = u8(blockCount);
+		*(u16*)&tempDEntry->BlockCount = BE16(length / BLOCK_SIZE);
 	}
 		break;
 	case SAV:
@@ -1157,69 +1110,55 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays)
 	return frames;
 }
 
-bool GCMemcard::Format(bool sjis, int slot, u16 SizeMb)
+
+bool GCMemcard::Format(u8 * card_data, bool sjis, u16 SizeMb)
 {
-	// Currently only formats cards for slot A
-	m_sizeMb = SizeMb;
-	mc_data_size = BLOCK_SIZE * (m_sizeMb * MBIT_TO_BLOCKS - MC_FST_BLOCKS);
-	
-	SRAM m_SRAM;
+	if (!card_data)
+		return false;
+	memset(card_data, 0xFF, BLOCK_SIZE*3);
+	memset(card_data + BLOCK_SIZE*3, 0, BLOCK_SIZE*2);
 
+	GCMC_Header gcp;
+	gcp.hdr = (Header*)card_data;
+	gcp.dir = (Directory *)(card_data + BLOCK_SIZE);
+	gcp.dir_backup = (Directory *)(card_data + BLOCK_SIZE*2);
+	gcp.bat = (BlockAlloc *)(card_data + BLOCK_SIZE*3);
+	gcp.bat_backup = (BlockAlloc *)(card_data + BLOCK_SIZE*4);
 
+	*(u16*)gcp.hdr->SizeMb = BE16(SizeMb);
+	*(u16*)gcp.hdr->Encoding = BE16(sjis ? 1 : 0);
 
-	File::IOFile pStream(File::GetUserPath(F_GCSRAM_IDX), "rb");
-	if (pStream)
-	{
-		pStream.ReadBytes(&m_SRAM, 64);
-		pStream.Close();
-	}
-	else
-	{
-		m_SRAM = sram_dump;
-	}
-	
-	const u64 time = CEXIIPL::GetGCTime();
-	u64 rand = Common::swap64(time);
+	FormatInternal(gcp);
+	return true;
+}
 
+bool GCMemcard::Format(bool sjis, u16 SizeMb)
+{
 	memset(&hdr, 0xFF, BLOCK_SIZE);
-	for(int i = 0; i < 12; i++)
-	{
-		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-		hdr.serial[i] = (u8)(m_SRAM.flash_id[slot][i] + (u32)rand);
-		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);	
-		rand &= (u64)0x0000000000007fffULL;
-	}
-
-	hdr.fmtTime.high = (time >> 32) & 0xFFFFFFFF;
-	hdr.fmtTime.low = time & 0xFFFFFFFF;
-	*(u32*)&(hdr.SramBias) = m_SRAM.counter_bias;
-	*(u32*)&(hdr.SramLang) = m_SRAM.lang;
-	// TODO: determine the purpose of Unk2 1 works for slot A, 0 works for both slot A and slot B
-	*(u32*)&(hdr.Unk2) = 0;		// = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-	*(u16*)&(hdr.deviceID) = 0;
-	*(u16*)&(hdr.SizeMb) = Common::swap16(m_sizeMb);
-	*(u16*)&(hdr.Encoding) = Common::swap16(sjis ? 1 : 0);
-
 	memset(&dir, 0xFF, BLOCK_SIZE);
 	memset(&dir_backup, 0xFF, BLOCK_SIZE);
-	*(u16*)&dir.UpdateCounter = 0;
-	*(u16*)&dir_backup.UpdateCounter = Common::swap16(1);
-
-	
-	maxBlock = (u32)m_sizeMb * MBIT_TO_BLOCKS;
-
 	memset(&bat, 0, BLOCK_SIZE);
 	memset(&bat_backup, 0, BLOCK_SIZE);
-	*(u16*)&bat.UpdateCounter = 0;
-	*(u16*)&bat_backup.UpdateCounter = Common::swap16(1);
-	*(u16*)&bat.FreeBlocks = *(u16*)&bat_backup.FreeBlocks = Common::swap16(maxBlock - MC_FST_BLOCKS);
-	*(u16*)&bat.LastAllocated = *(u16*)&bat_backup.LastAllocated = Common::swap16(4);
 
+	GCMC_Header gcp;
+	gcp.hdr = &hdr;
+	gcp.dir = &dir;
+	gcp.dir_backup = &dir_backup;
+	gcp.bat = &bat;
+	gcp.bat_backup = &bat_backup;
+	
+	*(u16*)hdr.SizeMb = BE16(SizeMb);
+	*(u16*)hdr.Encoding = BE16(sjis ? 1 : 0);
+	FormatInternal(gcp);
+
+	m_sizeMb = SizeMb;
+	maxBlock = (u32)m_sizeMb * MBIT_TO_BLOCKS;
 	if (mc_data)
 	{
 		delete mc_data;
 		mc_data = NULL;
 	}
+	mc_data_size = BLOCK_SIZE * (m_sizeMb * MBIT_TO_BLOCKS - MC_FST_BLOCKS);
 	mc_data = new u8[mc_data_size];
 	if (!mc_data)
 		return false;
@@ -1227,6 +1166,41 @@ bool GCMemcard::Format(bool sjis, int slot, u16 SizeMb)
 	memset(mc_data, 0xFF, mc_data_size);
 	m_valid = true;
 
-	FixChecksums();
 	return Save();
+}
+
+void GCMemcard::FormatInternal(GCMC_Header &GCP)
+{
+	Header *p_hdr = GCP.hdr;
+	u64 rand = CEXIIPL::GetGCTime();
+	p_hdr->formatTime = Common::swap64(rand);
+
+	for(int i = 0; i < 12; i++)
+	{
+		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
+		p_hdr->serial[i] = (u8)(g_SRAM.flash_id[0][i] + (u32)rand);
+		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);	
+		rand &= (u64)0x0000000000007fffULL;
+	}
+	*(u32*)&p_hdr->SramBias = g_SRAM.counter_bias;
+	*(u32*)&p_hdr->SramLang = g_SRAM.lang;
+	// TODO: determine the purpose of Unk2 1 works for slot A, 0 works for both slot A and slot B
+	*(u32*)&p_hdr->Unk2 = 0;		// = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+	*(u16*)&p_hdr->deviceID = 0;
+	calc_checksumsBE((u16*)p_hdr, 0xFE, &p_hdr->Checksum, &p_hdr->Checksum_Inv);
+
+	Directory *p_dir = GCP.dir,
+		*p_dir_backup = GCP.dir_backup;
+	*(u16*)&p_dir->UpdateCounter = 0;
+	*(u16*)&p_dir_backup->UpdateCounter = BE16(1);
+	calc_checksumsBE((u16*)p_dir, 0xFFE, &p_dir->Checksum, &p_dir->Checksum_Inv);
+	calc_checksumsBE((u16*)p_dir_backup, 0xFFE, &p_dir_backup->Checksum, &p_dir_backup->Checksum_Inv);
+	
+	BlockAlloc *p_bat = GCP.bat,
+		*p_bat_backup = GCP.bat_backup;
+	*(u16*)&p_bat_backup->UpdateCounter = BE16(1);
+	*(u16*)&p_bat->FreeBlocks = *(u16*)&p_bat_backup->FreeBlocks = BE16(( BE16(p_hdr->SizeMb) * MBIT_TO_BLOCKS) - MC_FST_BLOCKS);
+	*(u16*)&p_bat->LastAllocated = *(u16*)&p_bat_backup->LastAllocated = BE16(4);
+	calc_checksumsBE((u16*)p_bat+2, 0xFFE, &p_bat->Checksum, &p_bat->Checksum_Inv);
+	calc_checksumsBE((u16*)p_bat_backup+2, 0xFFE, &p_bat_backup->Checksum, &p_bat_backup->Checksum_Inv);
 }
