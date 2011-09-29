@@ -125,14 +125,9 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 	if (alphaPreTest == 1 || (alphaPreTest && !DepthTextureEnable && dstAlphaMode == DSTALPHA_ALPHA_PASS))
 	{
 		// Courtesy of PreAlphaTest, we're done already ;)
-		// TODO: There's a comment including bpmem.genmode.numindstages.. shouldnt really bother about that though.
+		// NOTE: The comment header of generated shaders depends on the value of bpmem.genmode.numindstages.. shouldnt really bother about that though.
 		uid->num_values = 1;
 		return;
-	}
-
-	if (enablePL)
-	{
-		// TODO: Include register states for lighting shader
 	}
 
 	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
@@ -194,7 +189,12 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 			ptr[0] |= bpmem.fogRange.Base.Enabled << 17; // 1
 		}
 	}
-	uid->num_values = (ptr+1) - uid->values;
+
+	++ptr;
+	if (enablePL)
+		ptr += GetLightingShaderId(ptr);
+
+	uid->num_values = ptr - uid->values;
 }
 
 void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode)
@@ -212,6 +212,10 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode)
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		// TODO: Include register states for lighting shader
+		*ptr++ = xfregs.color[0].hex;
+		*ptr++ = xfregs.alpha[0].hex;
+		*ptr++ = xfregs.color[1].hex;
+		*ptr++ = xfregs.alpha[1].hex;
 	}
 
 	for (unsigned int i = 0; i < 8; ++i)

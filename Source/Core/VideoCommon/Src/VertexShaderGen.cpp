@@ -37,14 +37,9 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 		(xfregs.numChan.numColorChans << 27) |
 		(xfregs.dualTexTrans.enabled << 29);
 
-	for (int i = 0; i < xfregs.numChan.numColorChans; ++i) {
-		uid->values[1+i] = xfregs.color[i].enablelighting ?
-			(u32)xfregs.color[i].hex :
-			(u32)xfregs.color[i].matsource;
-		uid->values[1+i] |= (xfregs.alpha[i].enablelighting ?
-			(u32)xfregs.alpha[i].hex :
-			(u32)xfregs.alpha[i].matsource) << 15;
-	}
+	// TODO: If pixel lighting is enabled, do we even have to bother about storing lighting related registers here?
+	GetLightingShaderId(&uid->values[1]);
+
 	uid->values[2] |= (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting) << 31;
 	u32 *pcurvalue = &uid->values[3];
 	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i) {
@@ -306,7 +301,8 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		else
 			WRITE(p, "o.colors_0 = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");		
 	}
-	
+
+	// TODO: This probably isn't necessary if pixel lighting is enabled.
 	p = GenerateLightingShader(p, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
 	if(xfregs.numChan.numColorChans < 2)
