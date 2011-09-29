@@ -223,7 +223,6 @@ bool VertexShaderCache::SetShader(u32 components)
 		return false;
 	}
 	g_vs_disk_cache.Append(uid, bytecode, bytecodelen);
-	g_vs_disk_cache.Sync();
 
 	bool success = InsertByteCode(uid, bytecode, bytecodelen, true);
 	if (g_ActiveConfig.bEnableShaderDebugging && success)

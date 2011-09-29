@@ -244,7 +244,6 @@ bool VertexShaderCache::SetShader(u32 components)
 		return false;
 	}
 	g_vs_disk_cache.Append(uid, pbytecode->Data(), pbytecode->Size());
-	g_vs_disk_cache.Sync();
 
 	bool success = InsertByteCode(uid, pbytecode);
 	pbytecode->Release();

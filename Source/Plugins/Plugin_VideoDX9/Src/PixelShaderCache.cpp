@@ -393,7 +393,6 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 
 	// Insert the bytecode into the caches
 	g_ps_disk_cache.Append(uid, bytecode, bytecodelen);
-	g_ps_disk_cache.Sync();
 
 	// And insert it into the shader cache.
 	bool success = InsertByteCode(uid, bytecode, bytecodelen, true);
