@@ -38,6 +38,7 @@ namespace DX9
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
+VERTEXSHADERUID VertexShaderCache::last_uid;
 
 #define MAX_SSAA_SHADERS 3
 
@@ -154,6 +155,8 @@ void VertexShaderCache::Init()
 
 	if (g_Config.bEnableShaderDebugging)
 		Clear();
+
+	last_entry = NULL;
 }
 
 void VertexShaderCache::Clear()
@@ -162,7 +165,7 @@ void VertexShaderCache::Clear()
 		iter->second.Destroy();
 	vshaders.clear();
 
-	memset(&last_vertex_shader_uid, 0xFF, sizeof(last_vertex_shader_uid));
+	last_entry = NULL;
 }
 
 void VertexShaderCache::Shutdown()
@@ -187,19 +190,21 @@ bool VertexShaderCache::SetShader(u32 components)
 {
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(&uid, components);
-	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
+	if (last_entry)
 	{
-		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-		ValidateVertexShaderIDs(API_D3D9, vshaders[uid].safe_uid, vshaders[uid].code, components);
-		return (vshaders[uid].shader != NULL);
+		if (uid == last_uid)
+		{
+			GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+			ValidateVertexShaderIDs(API_D3D9, last_entry->safe_uid, last_entry->code, components);
+			return (last_entry->shader != NULL);
+		}
 	}
 
-	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
+	last_uid = uid;
 
 	VSCache::iterator iter = vshaders.find(uid);
 	if (iter != vshaders.end())
 	{
-		iter->second.frameCount = frameCount;
 		const VSCacheEntry &entry = iter->second;
 		last_entry = &entry;
 
@@ -237,7 +242,6 @@ bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, const u8 *byt
 	// Make an entry in the table
 	VSCacheEntry entry;
 	entry.shader = shader;
-	entry.frameCount = frameCount;
 
 	vshaders[uid] = entry;
 	last_entry = &vshaders[uid];

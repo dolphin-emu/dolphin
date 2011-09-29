@@ -41,6 +41,7 @@ namespace DX11
 
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
+PIXELSHADERUID PixelShaderCache::last_uid;
 
 LinearDiskCache<PIXELSHADERUID, u8> g_ps_disk_cache;
 
@@ -415,6 +416,8 @@ void PixelShaderCache::Init()
 
 	if (g_Config.bEnableShaderDebugging)
 		Clear();
+
+	last_entry = NULL;
 }
 
 // ONLY to be used during shutdown.
@@ -423,6 +426,8 @@ void PixelShaderCache::Clear()
 	for (PSCache::iterator iter = PixelShaders.begin(); iter != PixelShaders.end(); iter++)
 		iter->second.Destroy();
 	PixelShaders.clear(); 
+
+	last_entry = NULL;
 }
 
 // Used in Swap() when AA mode has changed
@@ -457,25 +462,26 @@ void PixelShaderCache::Shutdown()
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlphaMode);
+	GetPixelShaderId(&uid, dstAlphaMode, components);
 
 	// Check if the shader is already set
-	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
+	if (last_entry)
 	{
-		PSCache::const_iterator iter = PixelShaders.find(uid);
-		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
-		ValidatePixelShaderIDs(API_D3D11, PixelShaders[uid].safe_uid, PixelShaders[uid].code, dstAlphaMode, components);
-		return (iter != PixelShaders.end() && iter->second.shader);
+		if (uid == last_uid)
+		{
+			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
+			ValidatePixelShaderIDs(API_D3D11, last_entry->safe_uid, last_entry->code, dstAlphaMode, components);
+			return (last_entry->shader != NULL);
+		}
 	}
 
-	memcpy(&last_pixel_shader_uid, &uid, sizeof(PIXELSHADERUID));
+	last_uid = uid;
 
 	// Check if the shader is already in the cache
 	PSCache::iterator iter;
 	iter = PixelShaders.find(uid);
 	if (iter != PixelShaders.end())
 	{
-		iter->second.frameCount = frameCount;
 		const PSCacheEntry &entry = iter->second;
 		last_entry = &entry;
 		
@@ -504,7 +510,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
 		PixelShaders[uid].code = code;
-		GetSafePixelShaderId(&PixelShaders[uid].safe_uid, dstAlphaMode);
+		GetSafePixelShaderId(&PixelShaders[uid].safe_uid, dstAlphaMode, components);
 	}
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
@@ -523,7 +529,6 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const void* byt
 	// Make an entry in the table
 	PSCacheEntry newentry;
 	newentry.shader = shader;
-	newentry.frameCount = frameCount;
 	PixelShaders[uid] = newentry;
 	last_entry = &PixelShaders[uid];
 

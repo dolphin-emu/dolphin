@@ -34,12 +34,11 @@ private:
 	struct VSCacheEntry
 	{ 
 		LPDIRECT3DVERTEXSHADER9 shader;
-		int frameCount;
-//#if defined(_DEBUG) || defined(DEBUGFAST)
+
 		std::string code;
 		VERTEXSHADERUIDSAFE safe_uid;
-//#endif
-		VSCacheEntry() : shader(NULL), frameCount(0) {}
+
+		VSCacheEntry() : shader(NULL) {}
 		void Destroy()
 		{
 			if (shader)
@@ -52,6 +51,7 @@ private:
 
 	static VSCache vshaders;
 	static const VSCacheEntry *last_entry;
+	static VERTEXSHADERUID last_uid;
 	static void Clear();
 
 public:

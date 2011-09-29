@@ -53,12 +53,11 @@ private:
 	struct PSCacheEntry
 	{
 		ID3D11PixelShader* shader;
-		int frameCount;
 
 		PIXELSHADERUIDSAFE safe_uid;
 		std::string code;
 
-		PSCacheEntry() : shader(NULL), frameCount(0) {}
+		PSCacheEntry() : shader(NULL) {}
 		void Destroy() { SAFE_RELEASE(shader); }
 	};
 
@@ -66,6 +65,7 @@ private:
 
 	static PSCache PixelShaders;
 	static const PSCacheEntry* last_entry;
+	static PIXELSHADERUID last_uid;
 };
 
 }  // namespace DX11
