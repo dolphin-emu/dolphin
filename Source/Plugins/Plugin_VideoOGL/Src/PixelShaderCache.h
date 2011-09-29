@@ -47,8 +47,7 @@ class PixelShaderCache
 	struct PSCacheEntry
 	{
 		FRAGMENTSHADER shader;
-		int frameCount;
-		PSCacheEntry() : frameCount(0) {}
+		PSCacheEntry() {}
 		~PSCacheEntry() {}
 		void Destroy()
 		{
@@ -66,6 +65,8 @@ class PixelShaderCache
     static bool s_displayCompileAlert;
 
 	static GLuint CurrentShader;
+	static PSCacheEntry* last_entry;
+	static PIXELSHADERUID last_uid;
 
 	static bool ShaderEnabled;
 

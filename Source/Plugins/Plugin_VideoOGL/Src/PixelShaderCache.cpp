@@ -44,7 +44,8 @@ bool PixelShaderCache::s_displayCompileAlert;
 GLuint PixelShaderCache::CurrentShader;
 bool PixelShaderCache::ShaderEnabled;
 
-static FRAGMENTSHADER* pShaderLast = NULL;
+PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry = NULL;
+PIXELSHADERUID PixelShaderCache::last_uid;
 
 GLuint PixelShaderCache::GetDepthMatrixProgram()
 {
@@ -61,9 +62,8 @@ void PixelShaderCache::Init()
 	glEnable(GL_FRAGMENT_PROGRAM_ARB);
 	ShaderEnabled = true;
 	CurrentShader = 0;
+	last_entry = NULL;
 	GL_REPORT_ERRORD();
-
-	memset(&last_pixel_shader_uid, 0xFF, sizeof(last_pixel_shader_uid));
 
 	s_displayCompileAlert = true;
 
@@ -184,41 +184,40 @@ void PixelShaderCache::Shutdown()
 FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlphaMode);
+	GetPixelShaderId(&uid, dstAlphaMode, components);
 	
-	// Check if the shader is already set - TODO: Use pShaderLast instead of PixelShaders[uid]?
-	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
+	// Check if the shader is already set
+	if (last_entry)
 	{
-		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		ValidatePixelShaderIDs(API_OPENGL, PixelShaders[uid].safe_uid, PixelShaders[uid].shader.strprog, dstAlphaMode, components);
-		return pShaderLast;
+		if (uid == last_uid)
+		{
+			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
+			ValidatePixelShaderIDs(API_OPENGL, last_entry->safe_uid, last_entry->shader.strprog, dstAlphaMode, components);
+			return &last_entry->shader;
+		}
 	}
 
-	memcpy(&last_pixel_shader_uid, &uid, sizeof(PIXELSHADERUID));
+	last_uid = uid;
 
 	PSCache::iterator iter = PixelShaders.find(uid);
-
 	if (iter != PixelShaders.end())
 	{
-		iter->second.frameCount = frameCount;
 		PSCacheEntry &entry = iter->second;
-		if (&entry.shader != pShaderLast)
-			pShaderLast = &entry.shader;
+		last_entry = &entry;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
 		ValidatePixelShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, dstAlphaMode, components);
-		return pShaderLast;
+		return &last_entry->shader;
 	}
 
 	// Make an entry in the table
 	PSCacheEntry& newentry = PixelShaders[uid];
-	newentry.frameCount = frameCount;
-	pShaderLast = &newentry.shader;
+	last_entry = &newentry;
 	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
 
 	if (g_ActiveConfig.bEnableShaderDebugging && code)
 	{
-		GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode);
+		GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode, components);
 		newentry.shader.strprog = code;
 	}
 
@@ -240,7 +239,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 	INCSTAT(stats.numPixelShadersCreated);
 	SETSTAT(stats.numPixelShadersAlive, PixelShaders.size());
 	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-	return pShaderLast;
+	return &last_entry->shader;
 }
 
 bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)

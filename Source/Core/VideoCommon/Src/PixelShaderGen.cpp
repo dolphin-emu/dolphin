@@ -27,8 +27,6 @@
 #include "VideoConfig.h"
 #include "NativeVertexFormat.h"
 
-PIXELSHADERUID last_pixel_shader_uid;
-
 static int AlphaPreTest();
 
 static void StageHash(int stage, u32* out)
@@ -104,8 +102,9 @@ static void StageHash(int stage, u32* out)
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 // It would likely be a lot more efficient to build this incrementally as the attributes
 // are set...
-void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
+void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components)
 {
+	memset(uid->values, 0, sizeof(uid->values));
 	uid->values[0] |= bpmem.genMode.numtevstages; // 4
 	uid->values[0] |= bpmem.genMode.numtexgens << 4; // 4
 	uid->values[0] |= dstAlphaMode << 8; // 2
@@ -192,13 +191,17 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
 
 	++ptr;
 	if (enablePL)
+	{
 		ptr += GetLightingShaderId(ptr);
+		*ptr++ = components;
+	}
 
 	uid->num_values = ptr - uid->values;
 }
 
-void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode)
+void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u32 components)
 {
+	memset(uid->values, 0, sizeof(uid->values));
 	u32* ptr = uid->values;
 	*ptr++ = dstAlphaMode; // 0
 	*ptr++ = bpmem.genMode.hex; // 1
@@ -211,11 +214,11 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode)
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		// TODO: Include register states for lighting shader
 		*ptr++ = xfregs.color[0].hex;
 		*ptr++ = xfregs.alpha[0].hex;
 		*ptr++ = xfregs.color[1].hex;
 		*ptr++ = xfregs.alpha[1].hex;
+		*ptr++ = components;
 	}
 
 	for (unsigned int i = 0; i < 8; ++i)
@@ -251,7 +254,7 @@ void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::
 		return;
 
 	PIXELSHADERUIDSAFE new_id;
-	GetSafePixelShaderId(&new_id, dstAlphaMode);
+	GetSafePixelShaderId(&new_id, dstAlphaMode, components);
 
 	if (!(old_id == new_id))
 	{
@@ -874,13 +877,13 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 			}
 			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord)
 			{ // s matrix
-				// TODO: Might become negative?
+				_assert_(bpmem.tevind[n].mid >= 5);
 				int mtxidx = 2*(bpmem.tevind[n].mid-5);
 				WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
 			}
 			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord)
 			{ // t matrix
-				// TODO: Might become negative?
+				_assert_(bpmem.tevind[n].mid >= 9);
 				int mtxidx = 2*(bpmem.tevind[n].mid-9);
 				WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}

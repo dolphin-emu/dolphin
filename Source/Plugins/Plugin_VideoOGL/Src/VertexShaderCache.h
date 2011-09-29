@@ -32,9 +32,7 @@ struct VERTEXSHADER
 	VERTEXSHADER() : glprogid(0) {}
 	GLuint glprogid; // opengl program id
 
-//#if defined(_DEBUG) || defined(DEBUGFAST) 
 	std::string strprog;
-//#endif
 };
 
 class VertexShaderCache
@@ -43,8 +41,7 @@ class VertexShaderCache
 	{ 
 		VERTEXSHADER shader;
 		VERTEXSHADERUIDSAFE safe_uid;
-		int frameCount;
-		VSCacheEntry() : frameCount(0) {}
+		VSCacheEntry() {}
 		void Destroy() {
 			// printf("Destroying vs %i\n", shader.glprogid);
 			glDeleteProgramsARB(1, &shader.glprogid);
@@ -55,6 +52,9 @@ class VertexShaderCache
 	typedef std::map<VERTEXSHADERUID, VSCacheEntry> VSCache;
 
 	static VSCache vshaders;
+
+	static VSCacheEntry* last_entry;
+	static VERTEXSHADERUID last_uid;
 
 	static GLuint CurrentShader;
 	static bool ShaderEnabled;

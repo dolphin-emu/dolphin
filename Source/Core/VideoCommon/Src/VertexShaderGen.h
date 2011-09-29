@@ -57,7 +57,6 @@ public:
 
 	_VERTEXSHADERUID()
 	{
-		memset(values, 0, sizeof(values));
 	}
 
 	_VERTEXSHADERUID(const _VERTEXSHADERUID& r)
@@ -115,7 +114,5 @@ void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components);
 
 // Used to make sure that our optimized vertex shader IDs don't lose any possible shader code changes
 void ValidateVertexShaderIDs(API_TYPE api, VERTEXSHADERUIDSAFE old_id, const std::string& old_code, u32 components);
-
-extern VERTEXSHADERUID  last_vertex_shader_uid;
 
 #endif // GCOGL_VERTEXSHADER_H

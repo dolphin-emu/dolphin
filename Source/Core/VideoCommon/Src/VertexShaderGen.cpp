@@ -26,12 +26,11 @@
 #include "VertexShaderGen.h"
 #include "VideoConfig.h"
 
-VERTEXSHADERUID  last_vertex_shader_uid;
-
 // Mash together all the inputs that contribute to the code of a generated vertex shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 {
+	memset(uid->values, 0, sizeof(uid->values));
 	uid->values[0] = components |
 		(xfregs.numTexGen.numTexGens << 23) |
 		(xfregs.numChan.numColorChans << 27) |
@@ -67,6 +66,7 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components)
 {
 	// Just store all used registers here without caring whether we need all bits or less.
+	memset(uid->values, 0, sizeof(uid->values));
 	u32* ptr = uid->values;
 	*ptr++ = components;
 	*ptr++ = xfregs.numTexGen.hex;

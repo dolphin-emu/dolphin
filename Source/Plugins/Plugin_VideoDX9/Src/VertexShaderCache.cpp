@@ -152,7 +152,7 @@ void VertexShaderCache::Init()
 	VertexShaderCacheInserter inserter;
 	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
 
-	if (g_Config.bEnableShaderDebugging) // TODO: Hacks..
+	if (g_Config.bEnableShaderDebugging)
 		Clear();
 }
 

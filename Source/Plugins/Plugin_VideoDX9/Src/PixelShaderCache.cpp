@@ -284,7 +284,7 @@ void PixelShaderCache::Init()
 	PixelShaderCacheInserter inserter;
 	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 
-	if (g_Config.bEnableShaderDebugging) // TODO: Hacks..
+	if (g_Config.bEnableShaderDebugging)
 		Clear();
 }
 

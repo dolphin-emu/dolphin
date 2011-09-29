@@ -44,8 +44,8 @@
 #define C_PLIGHTS		(C_FOG + 3)
 #define C_PMATERIALS	(C_PLIGHTS + 40)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
-#define PIXELSHADERUID_MAX_VALUES 69
-#define PIXELSHADERUID_MAX_VALUES_SAFE 117
+#define PIXELSHADERUID_MAX_VALUES 70
+#define PIXELSHADERUID_MAX_VALUES_SAFE 120
 
 // DO NOT make anything in this class virtual.
 template<bool safe>
@@ -53,14 +53,10 @@ class _PIXELSHADERUID
 {
 public:
 	u32 values[safe ? PIXELSHADERUID_MAX_VALUES_SAFE : PIXELSHADERUID_MAX_VALUES];
-	u16 num_values;
+	int num_values;
 
 	_PIXELSHADERUID()
 	{
-		memset(values, 0, sizeof(values));
-
-		if (safe) num_values = sizeof(values) / sizeof(values[0]);
-		else num_values = 0;
 	}
 
 	_PIXELSHADERUID(const _PIXELSHADERUID& r)
@@ -119,13 +115,10 @@ enum DSTALPHA_MODE
 
 const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 
-// TODO: Wtf, those need components as well! -.-
-void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode);
-void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode);
+void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
+void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
 
 // Used to make sure that our optimized pixel shader IDs don't lose any possible shader code changes
 void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::string& old_code, DSTALPHA_MODE dstAlphaMode, u32 components);
-
-extern PIXELSHADERUID last_pixel_shader_uid;
 
 #endif // GCOGL_PIXELSHADER_H
