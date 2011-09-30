@@ -26,25 +26,19 @@
 #include "VertexShaderGen.h"
 #include "VideoConfig.h"
 
-VERTEXSHADERUID  last_vertex_shader_uid;
-
 // Mash together all the inputs that contribute to the code of a generated vertex shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 {
+	memset(uid->values, 0, sizeof(uid->values));
 	uid->values[0] = components |
 		(xfregs.numTexGen.numTexGens << 23) |
 		(xfregs.numChan.numColorChans << 27) |
 		(xfregs.dualTexTrans.enabled << 29);
 
-	for (int i = 0; i < 2; ++i) {
-		uid->values[1+i] = xfregs.color[i].enablelighting ?
-			(u32)xfregs.color[i].hex :
-			(u32)xfregs.color[i].matsource;
-		uid->values[1+i] |= (xfregs.alpha[i].enablelighting ?
-			(u32)xfregs.alpha[i].hex :
-			(u32)xfregs.alpha[i].matsource) << 15;
-	}
+	// TODO: If pixel lighting is enabled, do we even have to bother about storing lighting related registers here?
+	GetLightingShaderId(&uid->values[1]);
+
 	uid->values[2] |= (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting) << 31;
 	u32 *pcurvalue = &uid->values[3];
 	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i) {
@@ -68,6 +62,69 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 		}
 	}
 }
+
+void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components)
+{
+	// Just store all used registers here without caring whether we need all bits or less.
+	memset(uid->values, 0, sizeof(uid->values));
+	u32* ptr = uid->values;
+	*ptr++ = components;
+	*ptr++ = xfregs.numTexGen.hex;
+	*ptr++ = xfregs.numChan.hex;
+	*ptr++ = xfregs.dualTexTrans.hex;
+
+	for (int i = 0; i < 2; ++i) {
+		*ptr++ = xfregs.color[i].hex;
+		*ptr++ = xfregs.alpha[i].hex;
+	}
+	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	for (unsigned int i = 0; i < 8; ++i) {
+		*ptr++ = xfregs.texMtxInfo[i].hex;
+		*ptr++ = xfregs.postMtxInfo[i].hex;
+	}
+	_assert_((ptr - uid->values) == uid->GetNumValues());
+}
+
+
+void ValidateVertexShaderIDs(API_TYPE api, VERTEXSHADERUIDSAFE old_id, const std::string& old_code, u32 components)
+{
+	if (!g_ActiveConfig.bEnableShaderDebugging)
+		return;
+
+	VERTEXSHADERUIDSAFE new_id;
+	GetSafeVertexShaderId(&new_id, components);
+
+	if (!(old_id == new_id))
+	{
+		std::string new_code(GenerateVertexShaderCode(components, api));
+		if (old_code != new_code)
+		{
+			_assert_(old_id.GetNumValues() == new_id.GetNumValues());
+
+			char msg[8192];
+			char* ptr = msg;
+			ptr += sprintf(ptr, "Vertex shader IDs matched but unique IDs did not!\nUnique IDs (old <-> new):\n");
+			const int N = new_id.GetNumValues();
+			for (int i = 0; i < N/2; ++i)
+				ptr += sprintf(ptr, "%02d, %08X  %08X  |  %08X  %08X\n", 2*i, old_id.values[2*i], old_id.values[2*i+1],
+																			new_id.values[2*i], new_id.values[2*i+1]);
+			if (N % 2)
+				ptr += sprintf(ptr, "%02d, %08X  |  %08X\n", N-1, old_id.values[N-1], new_id.values[N-1]);
+				
+			static int num_failures = 0;
+			char szTemp[MAX_PATH];
+			sprintf(szTemp, "%svsuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+			std::ofstream file(szTemp);
+			file << msg;
+			file << "\n\nOld shader code:\n" << old_code;
+			file << "\n\nNew shader code:\n" << new_code;
+			file.close();
+
+			PanicAlert("Unique pixel shader ID mismatch!\n\nReport this to the devs, along with the contents of %s.", szTemp);
+		}
+	}
+}
+
 
 static char text[16384];
 
@@ -244,7 +301,8 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		else
 			WRITE(p, "o.colors_0 = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");		
 	}
-	
+
+	// TODO: This probably isn't necessary if pixel lighting is enabled.
 	p = GenerateLightingShader(p, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
 	if(xfregs.numChan.numColorChans < 2)

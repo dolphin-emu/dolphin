@@ -21,12 +21,10 @@
 #include "Common.h"
 #include <fstream>
 
-// Update this to the current SVN revision every time you change shader generation code.
-// We don't automatically get this from SVN_REV because that would mean regenerating the
-// shader cache for every revision, graphics-related or not, which is simply annoying.
+// Increment this every time you change shader generation code.
 enum
 {
-	LINEAR_DISKCACHE_VER = 6964
+	LINEAR_DISKCACHE_VER = 6967
 };
 
 // On disk format:
