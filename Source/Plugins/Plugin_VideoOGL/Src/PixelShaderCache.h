@@ -39,9 +39,7 @@ struct FRAGMENTSHADER
 		}
 	}
 	GLuint glprogid; // opengl program id
-#if defined(_DEBUG) || defined(DEBUGFAST) 
 	std::string strprog;
-#endif
 };
 
 class PixelShaderCache
@@ -49,13 +47,13 @@ class PixelShaderCache
 	struct PSCacheEntry
 	{
 		FRAGMENTSHADER shader;
-		int frameCount;
-		PSCacheEntry() : frameCount(0) {}
+		PSCacheEntry() {}
 		~PSCacheEntry() {}
 		void Destroy()
 		{
 			shader.Destroy();
 		}
+		PIXELSHADERUIDSAFE safe_uid;
 	};
 
 	typedef std::map<PIXELSHADERUID, PSCacheEntry> PSCache;
@@ -67,6 +65,8 @@ class PixelShaderCache
     static bool s_displayCompileAlert;
 
 	static GLuint CurrentShader;
+	static PSCacheEntry* last_entry;
+	static PIXELSHADERUID last_uid;
 
 	static bool ShaderEnabled;
 

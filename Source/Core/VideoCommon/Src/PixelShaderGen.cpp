@@ -27,128 +27,264 @@
 #include "VideoConfig.h"
 #include "NativeVertexFormat.h"
 
-PIXELSHADERUID last_pixel_shader_uid;
+static int AlphaPreTest();
+
+static void StageHash(int stage, u32* out)
+{
+	out[0] |= bpmem.combiners[stage].colorC.hex & 0xFFFFFF; // 24
+	u32 alphaC = bpmem.combiners[stage].alphaC.hex & 0xFFFFF0; // 24, strip out tswap and rswap for now
+	out[0] |= (alphaC&0xF0) << 24; // 8
+	out[1] |= alphaC >> 8; // 16
+
+	// reserve 3 bits for bpmem.tevorders[stage/2].getTexMap
+	out[1] |= bpmem.tevorders[stage/2].getTexCoord(stage&1) << 19; // 3
+	out[1] |= bpmem.tevorders[stage/2].getEnable(stage&1) << 22; // 1
+	// reserve 3 bits for bpmem.tevorders[stage/2].getColorChan
+
+	bool bHasIndStage = bpmem.tevind[stage].IsActive() && bpmem.tevind[stage].bt < bpmem.genMode.numindstages;
+	out[2] |= bHasIndStage << 2; // 1
+
+	bool needstexcoord = false;
+
+	if (bHasIndStage)
+	{
+		out[2] |= (bpmem.tevind[stage].hex & 0x17FFFF) << 3; // 21, TODO: needs an explanation
+		needstexcoord = true;
+	}
+
+
+	TevStageCombiner::ColorCombiner& cc = bpmem.combiners[stage].colorC;
+	TevStageCombiner::AlphaCombiner& ac = bpmem.combiners[stage].alphaC;
+
+	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
+		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
+		|| cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC
+		|| cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC
+		|| ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA
+		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
+	{
+		out[0] |= bpmem.combiners[stage].alphaC.rswap;
+		out[2] |= bpmem.tevksel[bpmem.combiners[stage].alphaC.rswap*2].swap1 << 24; // 2
+		out[2] |= bpmem.tevksel[bpmem.combiners[stage].alphaC.rswap*2].swap2 << 26; // 2
+		out[2] |= bpmem.tevksel[bpmem.combiners[stage].alphaC.rswap*2+1].swap1 << 28; // 2
+		out[2] |= bpmem.tevksel[bpmem.combiners[stage].alphaC.rswap*2+1].swap2 << 30; // 2
+		out[1] |= (bpmem.tevorders[stage/2].getColorChan(stage&1)&1) << 23;
+		out[2] |= (bpmem.tevorders[stage/2].getColorChan(stage&1)&0x6) >> 1;
+	}
+
+	out[3] |= bpmem.tevorders[stage/2].getEnable(stage&1);
+	if (bpmem.tevorders[stage/2].getEnable(stage&1))
+	{
+		if (bHasIndStage) needstexcoord = true;
+
+		out[0] |= bpmem.combiners[stage].alphaC.tswap;
+		out[3] |= bpmem.tevksel[bpmem.combiners[stage].alphaC.tswap*2].swap1 << 1; // 2
+		out[3] |= bpmem.tevksel[bpmem.combiners[stage].alphaC.tswap*2].swap2 << 3; // 2
+		out[3] |= bpmem.tevksel[bpmem.combiners[stage].alphaC.tswap*2+1].swap1 << 5; // 2
+		out[3] |= bpmem.tevksel[bpmem.combiners[stage].alphaC.tswap*2+1].swap2 << 7; // 2
+		out[1] |= bpmem.tevorders[stage/2].getTexMap(stage&1) << 16;
+	}
+
+	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST
+		|| ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST)
+	{
+		out[3] |= bpmem.tevksel[stage/2].getKC(stage&1) << 9; // 5
+		out[3] |= bpmem.tevksel[stage/2].getKA(stage&1) << 14; // 5
+	}
+
+	if (needstexcoord)
+	{
+		out[1] |= bpmem.tevorders[stage/2].getTexCoord(stage&1) << 16;
+	}
+}
 
 // Mash together all the inputs that contribute to the code of a generated pixel shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 // It would likely be a lot more efficient to build this incrementally as the attributes
 // are set...
-void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode)
+void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components)
 {
-	u32 numstages = bpmem.genMode.numtevstages + 1;
-	u32 projtexcoords = 0;
-	for (u32 i = 0; i < numstages; i++)
+	memset(uid->values, 0, sizeof(uid->values));
+	uid->values[0] |= bpmem.genMode.numtevstages; // 4
+	uid->values[0] |= bpmem.genMode.numtexgens << 4; // 4
+	uid->values[0] |= dstAlphaMode << 8; // 2
+
+	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth;
+
+	uid->values[0] |= DepthTextureEnable << 10; // 1
+
+	bool enablePL = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	uid->values[0] |= enablePL << 11; // 1
+
+	if (!enablePL) uid->values[0] |= xfregs.numTexGen.numTexGens << 12; // 4
+	u32 alphaPreTest = AlphaPreTest()+1;
+
+	uid->values[0] |= alphaPreTest << 16; // 2
+
+	if (alphaPreTest == 1 || (alphaPreTest && !DepthTextureEnable && dstAlphaMode == DSTALPHA_ALPHA_PASS))
 	{
-		if (bpmem.tevorders[i/2].getEnable(i & 1))
-		{
-			int texcoord = bpmem.tevorders[i / 2].getTexCoord(i & 1);
-			if (xfregs.texMtxInfo[i].projection)
-				projtexcoords |= 1 << texcoord;
-		}
-	}
-	uid->values[0] = (u32)bpmem.genMode.numtevstages |
-				   ((u32)bpmem.genMode.numindstages << 4) |
-				   ((u32)bpmem.genMode.numtexgens << 7) |
-				   ((u32)dstAlphaMode << 11) |
-				   ((u32)((bpmem.alphaFunc.hex >> 16) & 0xff) << 13) |
-				   (projtexcoords << 21) |
-				   ((u32)bpmem.ztex2.op << 29);
-
-	// swap table
-	for (int i = 0; i < 8; i += 2)
-		((u8*)&uid->values[1])[i / 2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
-
-	u32 enableZTexture = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ? 1 : 0;
-
-	uid->values[2] = (u32)bpmem.fog.c_proj_fsel.fsel |
-				   ((u32)bpmem.fog.c_proj_fsel.proj << 3) |
-				   ((u32)enableZTexture << 4) | ((u32)bpmem.fogRange.Base.Enabled << 5);
-
-	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-	{
-		for (int i = 0; i < 2; ++i) {
-			uid->values[3 + i] = xfregs.color[i].enablelighting ?
-				(u32)xfregs.color[i].hex :
-				(u32)xfregs.color[i].matsource;
-			uid->values[3 + i] |= (xfregs.alpha[i].enablelighting ?
-				(u32)xfregs.alpha[i].hex :
-				(u32)xfregs.alpha[i].matsource) << 15;
-		}
-	}
-	uid->values[4] |= (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting) << 31;
-
-	int hdr = 5;
-	u32 *pcurvalue = &uid->values[hdr];
-	for (u32 i = 0; i < numstages; ++i)
-	{
-		TevStageCombiner::ColorCombiner &cc = bpmem.combiners[i].colorC;
-		TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[i].alphaC;
-
-		u32 val0 = cc.hex & 0xffffff;
-		u32 val1 = ac.hex & 0xffffff;
-		val0 |= bpmem.tevksel[i / 2].getKC(i & 1) << 24;
-		val1 |= bpmem.tevksel[i / 2].getKA(i & 1) << 24;
-		pcurvalue[0] = val0;
-		pcurvalue[1] = val1;
-		pcurvalue += 2;
+		// Courtesy of PreAlphaTest, we're done already ;)
+		// NOTE: The comment header of generated shaders depends on the value of bpmem.genmode.numindstages.. shouldnt really bother about that though.
+		uid->num_values = 1;
+		return;
 	}
 
-	for (u32 i = 0; i < numstages / 2; ++i)
+	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
 	{
-		u32 val0, val1;
-		if (bpmem.tevorders[i].hex & 0x40)
-			val0 = bpmem.tevorders[i].hex & 0x3ff;
+		if (18+i < 32)
+			uid->values[0] |= xfregs.texMtxInfo[i].projection << (18+i); // 1
 		else
-			val0 = bpmem.tevorders[i].hex & 0x380;
-		if (bpmem.tevorders[i].hex & 0x40000)
-			val1 = (bpmem.tevorders[i].hex & 0x3ff000) >> 12;
-		else
-			val1 = (bpmem.tevorders[i].hex & 0x380000) >> 12;
-
-		switch (i % 3) {
-			case 0: pcurvalue[0] = val0|(val1<<10); break;
-			case 1: pcurvalue[0] |= val0<<20; pcurvalue[1] = val1; pcurvalue++; break;
-			case 2: pcurvalue[1] |= (val0<<10)|(val1<<20); pcurvalue++; break;
-			default: PanicAlert("Unknown case for Tev Stages / 2: %08x", (i % 3));
-		}
+			uid->values[1] |= xfregs.texMtxInfo[i].projection << (i - 14); // 1
 	}
 
-	if (numstages & 1) { // odd
-		u32 val0;
-		if (bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x40)
-			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x3ff;
-		else
-			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x380;
+	uid->values[1] = bpmem.genMode.numindstages << 2; // 3
+	u32 indirectStagesUsed = 0;
+	for (unsigned int i = 0; i < bpmem.genMode.numindstages; ++i)
+		if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
+			indirectStagesUsed |= (1 << bpmem.tevind[i].bt);
 
-		switch (bpmem.genMode.numtevstages % 3)
-		{
-		case 0: pcurvalue[0] = val0; break;
-		case 1: pcurvalue[0] |= val0 << 20; break;
-		case 2: pcurvalue[1] |= val0 << 10; pcurvalue++; break;
-		default: PanicAlert("Unknown case for Tev Stages: %08x", bpmem.genMode.numtevstages % 3);
-		}
-	}
+	assert(indirectStagesUsed == (indirectStagesUsed & 0xF));
 
-	if ((bpmem.genMode.numtevstages % 3) != 2)
-		++pcurvalue;
+	uid->values[1] |= indirectStagesUsed << 5; // 4;
 
-	uid->tevstages = (u32)(pcurvalue - &uid->values[0] - hdr);
-
-	for (u32 i = 0; i < bpmem.genMode.numindstages; ++i)
+	for (unsigned int i = 0; i < bpmem.genMode.numindstages; ++i)
 	{
-		u32 val = bpmem.tevind[i].hex & 0x1fffff; // 21 bits
-		switch (i % 3)
+		if (indirectStagesUsed & (1 << i))
 		{
-		case 0: pcurvalue[0] = val; break;
-		case 1: pcurvalue[0] |= val << 21; pcurvalue[1] = val >> 11; ++pcurvalue; break;
-		case 2: pcurvalue[0] |= val << 10; ++pcurvalue; break;
-		default: PanicAlert("Unknown case for Ind Stages: %08x", (i % 3));
+			uid->values[1] |= (bpmem.tevindref.getTexCoord(i) < bpmem.genMode.numtexgens) << (9 + 3*i); // 1
+			if (bpmem.tevindref.getTexCoord(i) < bpmem.genMode.numtexgens)
+				uid->values[1] |= bpmem.tevindref.getTexCoord(i) << (10 + 3*i); // 2
 		}
 	}
 
-	// yeah, well ....
-	uid->indstages = (u32)(pcurvalue - &uid->values[0] - (hdr - 1) - uid->tevstages);
+	u32* ptr = &uid->values[2];
+	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
+	{
+		StageHash(i, ptr);
+		ptr += 4; // max: ptr = &uid->values[66]
+	}
 
+	ptr[0] |= bpmem.alphaFunc.comp0; // 3
+	ptr[0] |= bpmem.alphaFunc.comp1 << 3; // 3
+	ptr[0] |= bpmem.alphaFunc.logic << 6; // 2
+
+	if (alphaPreTest == 0 || alphaPreTest == 2)
+	{
+		ptr[0] |= bpmem.fog.c_proj_fsel.fsel << 8; // 3
+		if (DepthTextureEnable)
+		{
+			ptr[0] |= bpmem.ztex2.op << 11; // 2
+			ptr[0] |= bpmem.zcontrol.zcomploc << 13; // 1
+			ptr[0] |= bpmem.zmode.testenable << 14; // 1
+			ptr[0] |= bpmem.zmode.updateenable << 15; // 1
+		}
+	}
+
+	if (dstAlphaMode != DSTALPHA_ALPHA_PASS)
+	{
+		if (bpmem.fog.c_proj_fsel.fsel != 0)
+		{
+			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 16; // 1
+			ptr[0] |= bpmem.fogRange.Base.Enabled << 17; // 1
+		}
+	}
+
+	++ptr;
+	if (enablePL)
+	{
+		ptr += GetLightingShaderId(ptr);
+		*ptr++ = components;
+	}
+
+	uid->num_values = ptr - uid->values;
+}
+
+void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u32 components)
+{
+	memset(uid->values, 0, sizeof(uid->values));
+	u32* ptr = uid->values;
+	*ptr++ = dstAlphaMode; // 0
+	*ptr++ = bpmem.genMode.hex; // 1
+	*ptr++ = bpmem.ztex2.hex; // 2
+	*ptr++ = bpmem.zcontrol.hex; // 3
+	*ptr++ = bpmem.zmode.hex; // 4
+	*ptr++ = g_ActiveConfig.bEnablePerPixelDepth; // 5
+	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting; // 6
+	*ptr++ = xfregs.numTexGen.hex; // 7
+
+	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	{
+		*ptr++ = xfregs.color[0].hex;
+		*ptr++ = xfregs.alpha[0].hex;
+		*ptr++ = xfregs.color[1].hex;
+		*ptr++ = xfregs.alpha[1].hex;
+		*ptr++ = components;
+	}
+
+	for (unsigned int i = 0; i < 8; ++i)
+		*ptr++ = xfregs.texMtxInfo[i].hex; // 8-15
+
+	for (unsigned int i = 0; i < 16; ++i)
+		*ptr++ = bpmem.tevind[i].hex; // 16-31
+
+	*ptr++ = bpmem.tevindref.hex; // 32
+
+	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i) // up to 16 times
+	{
+		*ptr++ = bpmem.combiners[i].colorC.hex; // 33+5*i
+		*ptr++ = bpmem.combiners[i].alphaC.hex; // 34+5*i
+		*ptr++ = bpmem.tevind[i].hex; // 35+5*i
+		*ptr++ = bpmem.tevksel[i/2].hex; // 36+5*i
+		*ptr++ = bpmem.tevorders[i/2].hex; // 37+5*i
+	}
+
+	ptr = &uid->values[113];
+
+	*ptr++ = bpmem.alphaFunc.hex; // 113
+
+	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 114
+	*ptr++ = bpmem.fogRange.Base.hex; // 115
+
+	_assert_((ptr - uid->values) == uid->GetNumValues());
+}
+
+void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::string& old_code, DSTALPHA_MODE dstAlphaMode, u32 components)
+{
+	if (!g_ActiveConfig.bEnableShaderDebugging)
+		return;
+
+	PIXELSHADERUIDSAFE new_id;
+	GetSafePixelShaderId(&new_id, dstAlphaMode, components);
+
+	if (!(old_id == new_id))
+	{
+		std::string new_code(GeneratePixelShaderCode(dstAlphaMode, api, components));
+		if (old_code != new_code)
+		{
+			_assert_(old_id.GetNumValues() == new_id.GetNumValues());
+
+			char msg[8192];
+			char* ptr = msg;
+			ptr += sprintf(ptr, "Pixel shader IDs matched but unique IDs did not!\nUnique IDs (old <-> new):\n");
+			const int N = new_id.GetNumValues();
+			for (int i = 0; i < N/2; ++i)
+				ptr += sprintf(ptr, "%02d, %08X  %08X  |  %08X  %08X\n", 2*i, old_id.values[2*i], old_id.values[2*i+1],
+																			new_id.values[2*i], new_id.values[2*i+1]);
+			if (N % 2)
+				ptr += sprintf(ptr, "%02d, %08X  |  %08X\n", N-1, old_id.values[N-1], new_id.values[N-1]);
+	
+			static int num_failures = 0;
+			char szTemp[MAX_PATH];
+			sprintf(szTemp, "%spsuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+			std::ofstream file(szTemp);
+			file << msg;
+			file << "\n\nOld shader code:\n" << old_code;
+			file << "\n\nNew shader code:\n" << new_code;
+			file.close();
+
+			PanicAlert("Unique pixel shader ID mismatch!\n\nReport this to the devs, along with the contents of %s.", szTemp);
+		}
+	}
 }
 
 //   old tev->pixelshader notes
@@ -165,7 +301,6 @@ static void SampleTexture(char *&p, const char *destination, const char *texcoor
 // static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode);
 static void WriteFog(char *&p);
-static int AlphaPreTest();
 
 static const char *tevKSelTableC[] = // KCSEL
 {
@@ -333,12 +468,6 @@ static const char *tevRasTable[] =
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
 };
 
-static const char *alphaRef[2] =
-{
-	I_ALPHA"[0].r",
-	I_ALPHA"[0].g"
-};
-
 //static const char *tevTexFunc[] = { "tex2D", "texRECT" };
 
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
@@ -353,23 +482,14 @@ static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "7.0f" };
 
 #define WRITE p+=sprintf
 
-static const char *swapColors = "rgba";
 static char swapModeTable[4][5];
 
 static char text[16384];
 static bool DepthTextureEnable;
 
-struct RegisterState
-{
-	bool ColorNeedOverflowControl;
-	bool AlphaNeedOverflowControl;
-	bool AuxStored;
-};
-
-static RegisterState RegisterStates[4];
-
 static void BuildSwapModeTable()
 {
+	static const char *swapColors = "rgba";
 	for (int i = 0; i < 4; i++)
 	{
 		swapModeTable[i][0] = swapColors[bpmem.tevksel[i*2].swap1];
@@ -385,14 +505,14 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
-	BuildSwapModeTable();
+	BuildSwapModeTable(); // Needed for WriteStage
 	int numStages = bpmem.genMode.numtevstages + 1;
 	int numTexgen = bpmem.genMode.numtexgens;
 
 	char *p = text;
 	WRITE(p, "//Pixel Shader for TEV stages\n");
-	WRITE(p, "//%i TEV stages, %i texgens, %i IND stages\n",
-		numStages, numTexgen, bpmem.genMode.numindstages);
+	WRITE(p, "//%i TEV stages, %i texgens, XXX IND stages\n",
+		numStages, numTexgen/*, bpmem.genMode.numindstages*/);
 
 	int nIndirectStagesUsed = 0;
 	if (bpmem.genMode.numindstages > 0)
@@ -505,10 +625,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function
 			WRITE(p, "ocol0 = 0;\n");
-			if(DepthTextureEnable)
-				WRITE(p, "depth = 1.f;\n");
-			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "ocol1 = 0;\n");
 			WRITE(p, "discard;\n");
 			if(ApiType != API_D3D11)
 				WRITE(p, "return;\n");
@@ -594,16 +710,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 	}
 
-	RegisterStates[0].AlphaNeedOverflowControl = false;
-	RegisterStates[0].ColorNeedOverflowControl = false;
-	RegisterStates[0].AuxStored = false;
-	for(int i = 1; i < 4; i++)
-	{
-		RegisterStates[i].AlphaNeedOverflowControl = true;
-		RegisterStates[i].ColorNeedOverflowControl = true;
-		RegisterStates[i].AuxStored = false;
-	}
-
 	for (int i = 0; i < numStages; i++)
 		WriteStage(p, i, ApiType); //build the equation for this stage
 
@@ -611,23 +717,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 		// The results of the last texenv stage are put onto the screen,
 		// regardless of the used destination register
-		if(bpmem.combiners[numStages - 1].colorC.dest != 0)
-		{
-			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].AuxStored;
-			WRITE(p, "prev.rgb = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
-			RegisterStates[0].ColorNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl;
-		}
-		if(bpmem.combiners[numStages - 1].alphaC.dest != 0)
-		{
-			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AuxStored;
-			WRITE(p, "prev.a = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
-			RegisterStates[0].AlphaNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl;
-		}
+		WRITE(p, "prev.rgb = %s;\n",tevCOutputTable[bpmem.combiners[numStages-1].colorC.dest]);
+		WRITE(p, "prev.a = %s;\n",tevAOutputTable[bpmem.combiners[numStages-1].alphaC.dest]);
 	}
-	// emulation of unisgned 8 overflow when casting if needed
-	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
-		WRITE(p, "prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+	// emulation of unsigned 8 overflow when casting
+	WRITE(p, "prev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
+	// TODO: Why are we doing a second alpha pretest here?
 	if (!WriteAlphaTest(p, ApiType, dstAlphaMode))
 	{
 		// alpha test will always fail, so restart the shader and just make it an empty function
@@ -742,10 +838,6 @@ static const char *TEVCMPAlphaOPTable[16] =
 
 static void WriteStage(char *&p, int n, API_TYPE ApiType)
 {
-	char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
-	char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
-
-
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
 	bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
 	bool bHasIndStage = bpmem.tevind[n].IsActive() && bpmem.tevind[n].bt < bpmem.genMode.numindstages;
@@ -754,8 +846,11 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (!bHasTexCoord)
 		texcoord = 0;
 
+	WRITE(p, "// TEV stage %d\n", n);
+
 	if (bHasIndStage)
 	{
+		WRITE(p, "// indirect op\n");
 		// perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
 		if (bpmem.tevind[n].bs != ITBA_OFF)
 		{
@@ -782,11 +877,13 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 			}
 			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord)
 			{ // s matrix
+				_assert_(bpmem.tevind[n].mid >= 5);
 				int mtxidx = 2*(bpmem.tevind[n].mid-5);
 				WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
 			}
 			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord)
 			{ // t matrix
+				_assert_(bpmem.tevind[n].mid >= 9);
 				int mtxidx = 2*(bpmem.tevind[n].mid-9);
 				WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}
@@ -825,11 +922,15 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
-	bool bCRas = cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC || cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC || cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC || cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC;
-	bool bARas = ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA || ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA;
-
-	if(bCRas || bARas)
+	// blah1
+	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
+		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
+		|| cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC
+		|| cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC
+		|| ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA
+		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
 	{
+		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		WRITE(p, "rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
 		WRITE(p, "crastemp = frac(rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 	}
@@ -837,7 +938,6 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 
 	if (bpmem.tevorders[n/2].getEnable(n&1))
 	{
-		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		if(!bHasIndStage)
 		{
 			// calc tevcord
@@ -847,20 +947,20 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 				WRITE(p, "tevcoord.xy = float2(0.0f, 0.0f);\n");
 		}
 
+		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
+		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		SampleTexture(p, "textemp", "tevcoord", texswap, texmap, ApiType);
 	}
 	else
 		WRITE(p, "textemp = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 
-	int kc = bpmem.tevksel[n / 2].getKC(n & 1);
-	int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 
-
-
-	bool bCKonst = cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST;
-	bool bAKonst = ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST;
-	if (bCKonst || bAKonst )
+	// blah2
+	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST
+		|| ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST)
 	{
+		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
+		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 		WRITE(p, "konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 		if(kc > 7 || ka > 7)
 		{
@@ -872,100 +972,35 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		}
 	}
 
-	if(cc.a == TEVCOLORARG_CPREV
-	|| cc.a == TEVCOLORARG_APREV
-	|| cc.b == TEVCOLORARG_CPREV
-	|| cc.b == TEVCOLORARG_APREV
-	|| cc.c == TEVCOLORARG_CPREV
-	|| cc.c == TEVCOLORARG_APREV
-	|| ac.a == TEVALPHAARG_APREV
-	|| ac.b == TEVALPHAARG_APREV
-	|| ac.c == TEVALPHAARG_APREV)
-	{
-		if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
-		{
-			WRITE(p, "cprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[0].AlphaNeedOverflowControl = false;
-			RegisterStates[0].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cprev = prev;\n");
-		}
-		RegisterStates[0].AuxStored = true;
-	}
+	if(cc.a == TEVCOLORARG_CPREV || cc.a == TEVCOLORARG_APREV
+		|| cc.b == TEVCOLORARG_CPREV || cc.b == TEVCOLORARG_APREV
+		|| cc.c == TEVCOLORARG_CPREV || cc.c == TEVCOLORARG_APREV
+		|| ac.a == TEVALPHAARG_APREV || ac.b == TEVALPHAARG_APREV || ac.c == TEVALPHAARG_APREV)
+		WRITE(p, "cprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
-	if(cc.a == TEVCOLORARG_C0
-	|| cc.a == TEVCOLORARG_A0
-	|| cc.b == TEVCOLORARG_C0
-	|| cc.b == TEVCOLORARG_A0
-	|| cc.c == TEVCOLORARG_C0
-	|| cc.c == TEVCOLORARG_A0
-	|| ac.a == TEVALPHAARG_A0
-	|| ac.b == TEVALPHAARG_A0
-	|| ac.c == TEVALPHAARG_A0)
-	{
-		if(RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
-		{
-			WRITE(p, "cc0 = frac(c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[1].AlphaNeedOverflowControl = false;
-			RegisterStates[1].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cc0 = c0;\n");
-		}
-		RegisterStates[1].AuxStored = true;
-	}
 
-	if(cc.a == TEVCOLORARG_C1
-	|| cc.a == TEVCOLORARG_A1
-	|| cc.b == TEVCOLORARG_C1
-	|| cc.b == TEVCOLORARG_A1
-	|| cc.c == TEVCOLORARG_C1
-	|| cc.c == TEVCOLORARG_A1
-	|| ac.a == TEVALPHAARG_A1
-	|| ac.b == TEVALPHAARG_A1
-	|| ac.c == TEVALPHAARG_A1)
-	{
-		if(RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
-		{
-			WRITE(p, "cc1 = frac(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[2].AlphaNeedOverflowControl = false;
-			RegisterStates[2].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cc1 = c1;\n");
-		}
-		RegisterStates[2].AuxStored = true;
-	}
+	if(cc.a == TEVCOLORARG_C0 || cc.a == TEVCOLORARG_A0
+	|| cc.b == TEVCOLORARG_C0 || cc.b == TEVCOLORARG_A0
+	|| cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0
+	|| ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 || ac.c == TEVALPHAARG_A0)
+		WRITE(p, "cc0 = frac(c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
-	if(cc.a == TEVCOLORARG_C2
-	|| cc.a == TEVCOLORARG_A2
-	|| cc.b == TEVCOLORARG_C2
-	|| cc.b == TEVCOLORARG_A2
-	|| cc.c == TEVCOLORARG_C2
-	|| cc.c == TEVCOLORARG_A2
-	|| ac.a == TEVALPHAARG_A2
-	|| ac.b == TEVALPHAARG_A2
-	|| ac.c == TEVALPHAARG_A2)
-	{
-		if(RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
-		{
+
+	if(cc.a == TEVCOLORARG_C1 || cc.a == TEVCOLORARG_A1
+	|| cc.b == TEVCOLORARG_C1 || cc.b == TEVCOLORARG_A1
+	|| cc.c == TEVCOLORARG_C1 || cc.c == TEVCOLORARG_A1
+	|| ac.a == TEVALPHAARG_A1 || ac.b == TEVALPHAARG_A1 || ac.c == TEVALPHAARG_A1)
+		WRITE(p, "cc1 = frac(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+
+
+	if(cc.a == TEVCOLORARG_C2 || cc.a == TEVCOLORARG_A2
+	|| cc.b == TEVCOLORARG_C2 || cc.b == TEVCOLORARG_A2
+	|| cc.c == TEVCOLORARG_C2 || cc.c == TEVCOLORARG_A2
+	|| ac.a == TEVALPHAARG_A2 || ac.b == TEVALPHAARG_A2 || ac.c == TEVALPHAARG_A2)
 			WRITE(p, "cc2 = frac(c2 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[3].AlphaNeedOverflowControl = false;
-			RegisterStates[3].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cc2 = c2;\n");
-		}
-		RegisterStates[3].AuxStored = true;
-	}
 
-	RegisterStates[cc.dest].ColorNeedOverflowControl = (cc.clamp == 0);
-	RegisterStates[cc.dest].AuxStored = false;
+
+	WRITE(p, "// color combine\n");
 	if (cc.clamp)
 		WRITE(p, "%s = saturate(", tevCOutputTable[cc.dest]);
 	else
@@ -996,7 +1031,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 
 		WRITE(p, "%s", tevBiasTable[cc.bias]);
 
-		if (cc.shift > 0)
+		if (cc.shift > TEVSCALE_1)
 			WRITE(p, ")");
 	}
 	else
@@ -1012,8 +1047,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		WRITE(p, ")");
 	WRITE(p,";\n");
 
-	RegisterStates[ac.dest].AlphaNeedOverflowControl = (ac.clamp == 0);
-	RegisterStates[ac.dest].AuxStored = false;
+	WRITE(p, "// alpha combine\n");
 	// combine the alpha channel
 	if (ac.clamp)
 		WRITE(p, "%s = saturate(", tevAOutputTable[ac.dest]);
@@ -1059,6 +1093,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (ac.clamp)
 		WRITE(p, ")");
 	WRITE(p, ";\n\n");
+	WRITE(p, "// TEV done\n");
 }
 
 void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
@@ -1124,6 +1159,11 @@ static int AlphaPreTest()
 
 static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode)
 {
+	static const char *alphaRef[2] =
+	{
+		I_ALPHA"[0].r",
+		I_ALPHA"[0].g"
+	};
 
 	int Pretest = AlphaPreTest();
 	if(Pretest >= 0)
@@ -1141,7 +1181,10 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
-	WRITE(p, ")){ocol0 = 0;%s%sdiscard;%s}\n",dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "ocol1 = 0;" : "",DepthTextureEnable ? "depth = 1.f;" : "",(ApiType != API_D3D11)? "return;" : "");
+	WRITE(p, ")){ocol0 = 0;%s%s discard;%s}\n",
+			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND	? "ocol1 = 0;"		: "",
+			DepthTextureEnable							? "depth = 1.f;"	: "",
+			(ApiType != API_D3D11)						? "return;"			: "");
 	return true;
 }
 

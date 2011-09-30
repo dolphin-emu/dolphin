@@ -147,6 +147,9 @@ struct VideoConfig
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
 
+	// Debugging
+	bool bEnableShaderDebugging;
+
 	// Static config per API
 	// TODO: Move this out of VideoConfig
 	struct
