@@ -246,7 +246,7 @@ void Init()
 
 		// FIXME: does Wiimote Speaker support really require a different interval? (issue 4608)
 		const int interval = SConfig::GetInstance().m_LocalCoreStartupParameter.
-				bDisableWiimoteSpeaker ? 1250 : 1500;
+				bDisableWiimoteSpeaker ? 1250 : 3000;
 		const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.
 				bVBeam ? 2 : 1;
 		IPC_HLE_PERIOD = GetTicksPerSecond() / (interval * fields);
