@@ -30,7 +30,12 @@ const char *scm_rev_str = "Dolphin "
 #if !SCM_IS_MASTER
 	"[" SCM_BRANCH_STR "] "
 #endif
+
+#ifdef __INTEL_COMPILER
+	BUILD_TYPE_STR SCM_DESC_STR "-ICC";
+#else
 	BUILD_TYPE_STR SCM_DESC_STR;
+#endif
 
 #ifdef _M_X64
 #define NP_ARCH "x64"
