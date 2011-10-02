@@ -159,7 +159,15 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 	//	//((wm_report_mode*)(data + 2))->continuous = false;
 	//}
 
- 	if (rpt.first[0] == 0xa2 && rpt.first[1] == 0x18 && rpt.second == 23)
+	// Convert output DATA packets to SET_REPORT packets.
+	// Nintendo Wiimotes work without this translation, but 3rd
+	// party ones don't.
+ 	if (rpt.first[0] == 0xa2)
+	{
+		rpt.first[0] = 0x52;
+ 	}
+
+ 	if (rpt.first[0] == 0x52 && rpt.first[1] == 0x18 && rpt.second == 23)
 	{
 		m_audio_reports.Push(rpt);
  		return;
