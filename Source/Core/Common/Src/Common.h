@@ -89,6 +89,8 @@ private:
 // Since it is always around on windows
 	#define HAVE_WX 1
 
+	#define HAVE_PORTAUDIO 1
+
 // Debug definitions
 	#if defined(_DEBUG)
 		#include <crtdbg.h>
