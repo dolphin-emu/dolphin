@@ -59,7 +59,6 @@ void CEXIMic::StreamInit()
 
 void CEXIMic::StreamTerminate()
 {
-	// TODO keep track of number of mics...
 	if (pa_init && --mic_count <= 0)
 		pa_error = Pa_Terminate();
 

@@ -276,7 +276,6 @@ void CheckExceptions()
 	// Read volatile data once
 	u32 exceptions = ppcState.Exceptions;
 
-	// This check is unnecessary in JIT mode. However, it probably doesn't really hurt.
 	if (!exceptions)
 		return;
 
