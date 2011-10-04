@@ -59,7 +59,7 @@ void CEXIMic::StreamInit()
 
 void CEXIMic::StreamTerminate()
 {
-	if (pa_init && --mic_count <= 0)
+	if (--mic_count <= 0 && pa_init)
 		pa_error = Pa_Terminate();
 
 	if (pa_error != paNoError)
@@ -98,14 +98,16 @@ void CEXIMic::StreamReadOne()
 	{
 		pa_error = Pa_ReadStream(pa_stream, ring_buffer, buff_size_samples);
 
-		if (pa_error != paNoError)
+		if (pa_error == paInputOverflowed)
 		{
 			status.buff_ovrflw = 1;
 			// Input overflowed - is re-setting the stream the only to recover?
-			StreamLog("Pa_ReadStream");
-
 			StreamStop();
 			StreamStart();
+		}
+		else if (pa_error != paNoError)
+		{
+			StreamLog("Pa_ReadStream");
 		}
 	}
 }
@@ -125,10 +127,17 @@ int CEXIMic::mic_count = 0;
 
 CEXIMic::CEXIMic()
 {
-	status.U16 = 0;
-	command = 0;
 	m_position = 0;
+	command = 0;
+	status.U16 = 0;
+
+	sample_rate = rate_base;
+	buff_size = ring_base;
+	buff_size_samples = buff_size / sample_size;
+	
 	ring_pos = 0;
+	memset(ring_buffer, 0, sizeof(ring_buffer));
+	
 	next_int_ticks = 0;
 
 	StreamInit();
@@ -194,7 +203,11 @@ void CEXIMic::TransferByte(u8 &byte)
 		break;
 
 	case cmdGetStatus:
+		if (pos == 0)
+			status.button = 0;// TODO
+
 		byte = status.U8[pos ^ 1];
+		
 		if (pos == 1 && status.buff_ovrflw)
 			status.buff_ovrflw = 0;
 		break;

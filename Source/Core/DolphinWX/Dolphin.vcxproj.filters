@@ -135,6 +135,9 @@
     <ClCompile Include="Src\TASInputDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Src\GCMicDlg.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Main.h" />
@@ -262,6 +265,9 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="Src\TASInputDlg.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GCMicDlg.h">
       <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>

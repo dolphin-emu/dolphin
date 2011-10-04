@@ -55,7 +55,9 @@ private:
 		struct
 		{
 			u16	out			:4; // MICSet/GetOut...???
-			u16 button		:5; // Buttons. Top bit is mic button. Lowest bit is used for MICGetDeviceID (always 0)
+			u16 id			:1; // Used for MICGetDeviceID (always 0)
+			u16 button_unk	:3; // Button bits which appear unused
+			u16 button		:1; // The actual button on the mic
 			u16 buff_ovrflw	:1; // Ring buffer wrote over bytes which weren't read by console
 			u16 gain		:1; // Gain: 0dB or 15dB
 			u16 sample_rate	:2; // Sample rate, 00-11025, 01-22050, 10-44100, 11-??
