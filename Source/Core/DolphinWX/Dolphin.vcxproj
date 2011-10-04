@@ -255,7 +255,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Src\MemcardManager.cpp" />
-    <ClCompile Include="Src\MemoryCards\GCMemcard.cpp" />
     <ClCompile Include="Src\MemoryCards\WiiSaveCrypted.cpp" />
     <ClCompile Include="Src\Debugger\MemoryCheckDlg.cpp" />
     <ClCompile Include="Src\Debugger\MemoryView.cpp" />
@@ -309,7 +308,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="Src\LogWindow.h" />
     <ClInclude Include="Src\Main.h" />
     <ClInclude Include="Src\MemcardManager.h" />
-    <ClInclude Include="Src\MemoryCards\GCMemcard.h" />
     <ClInclude Include="Src\MemoryCards\WiiSaveCrypted.h" />
     <ClInclude Include="Src\Debugger\MemoryCheckDlg.h" />
     <ClInclude Include="Src\Debugger\MemoryView.h" />

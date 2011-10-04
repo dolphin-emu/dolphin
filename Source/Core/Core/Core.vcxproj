@@ -287,6 +287,7 @@
     <ClCompile Include="Src\HW\EXI_DeviceIPL.cpp" />
     <ClCompile Include="Src\HW\EXI_DeviceMemoryCard.cpp" />
     <ClCompile Include="Src\HW\EXI_DeviceMic.cpp" />
+    <ClCompile Include="Src\HW\GCMemcard.cpp" />
     <ClCompile Include="Src\HW\GCPad.cpp" />
     <ClCompile Include="Src\HW\GCPadEmu.cpp" />
     <ClCompile Include="Src\HW\GPFifo.cpp" />
@@ -483,6 +484,7 @@
     <ClInclude Include="Src\HW\EXI_DeviceIPL.h" />
     <ClInclude Include="Src\HW\EXI_DeviceMemoryCard.h" />
     <ClInclude Include="Src\HW\EXI_DeviceMic.h" />
+    <ClInclude Include="Src\HW\GCMemcard.h" />
     <ClInclude Include="Src\HW\GCPad.h" />
     <ClInclude Include="Src\HW\GCPadEmu.h" />
     <ClInclude Include="Src\HW\GPFifo.h" />

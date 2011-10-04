@@ -19,9 +19,9 @@
 #define __GCMEMCARD_h__
 
 #include "Common.h"
-#include "../../../Core/Src/HW/Sram.h"
+#include "Sram.h"
 #include "StringUtil.h"
-#include "../../../Core/Src/HW/EXI_DeviceIPL.h"
+#include "EXI_DeviceIPL.h"
 
 #define BE32(x) (Common::swap32(x))
 #define BE16(x) (Common::swap16(x))

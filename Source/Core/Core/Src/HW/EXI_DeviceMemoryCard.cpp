@@ -26,7 +26,7 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceMemoryCard.h"
 #include "Sram.h"
-#include "../../DolphinWx/Src/MemoryCards/GCMemcard.h"
+#include "GCMemcard.h"
 
 #define MC_STATUS_BUSY					0x80   
 #define MC_STATUS_UNLOCKED				0x40
