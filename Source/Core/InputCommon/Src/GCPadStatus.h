@@ -51,7 +51,6 @@ typedef struct
 	unsigned char	triggerRight;           // 0 <= triggerRight <= 255
 	unsigned char	analogA;                // 0 <= analogA      <= 255
 	unsigned char	analogB;                // 0 <= analogB      <= 255
-	bool			MicButton;				// HAX
 	signed char		err;                    // one of PAD_ERR_* number
 } SPADStatus;
 
