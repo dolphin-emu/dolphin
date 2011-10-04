@@ -29,7 +29,7 @@
 
 #include "IniFile.h"
 #include "FileUtil.h"
-#include "MemoryCards/GCMemcard.h"
+#include "HW/GCMemcard.h"
 
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX

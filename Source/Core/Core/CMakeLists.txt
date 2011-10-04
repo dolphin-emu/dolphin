@@ -101,6 +101,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/EXI_DeviceIPL.cpp
 			Src/HW/EXI_DeviceMemoryCard.cpp
 			Src/HW/EXI_DeviceMic.cpp
+			Src/HW/GCMemcard.cpp
 			Src/HW/GCPad.cpp
 			Src/HW/GCPadEmu.cpp
 			Src/HW/GPFifo.cpp

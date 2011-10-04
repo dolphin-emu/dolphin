@@ -52,7 +52,6 @@ if(wxWidgets_FOUND)
 				Src/LogWindow.cpp
 				Src/Main.cpp
 				Src/MemcardManager.cpp
-				Src/MemoryCards/GCMemcard.cpp
 				Src/MemoryCards/WiiSaveCrypted.cpp
 				Src/NetWindow.cpp
 				Src/PHackSettings.cpp
