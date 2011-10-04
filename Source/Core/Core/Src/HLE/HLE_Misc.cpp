@@ -22,6 +22,12 @@
 #include "../PowerPC/PowerPC.h"
 #include "../HW/Memmap.h"
 #include "../Host.h"
+#include "IPC_HLE/WII_IPC_HLE_Device_DI.h"
+#include "ConfigManager.h"
+#include "VolumeCreator.h"
+#include "Filesystem.h"
+#include "../Boot/Boot_DOL.h"
+#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
 namespace HLE_Misc
 {
@@ -280,6 +286,44 @@ void HBReload()
 	// There isn't much we can do. Just stop cleanly.
 	PowerPC::Pause();
 	Host_Message(WM_USER_STOP);
+}
+
+
+void OSBootDol()
+{
+	std::string dol;
+
+	u32 r28 = GPR(28);
+	Memory::GetString(dol, r28);
+
+	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
+	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
+
+	size_t fileSize = (size_t) pFileSystem->GetFileSize(dol.substr(1).c_str());
+	u8* dolFile = new u8[fileSize];
+	if (dolFile)
+	{
+		pFileSystem->ReadFile(dol.substr(1).c_str(), dolFile, fileSize);
+		CDolLoader dolLoader(dolFile, fileSize);
+		dolLoader.Load();
+		PowerPC::ppcState.iCache.Reset();
+
+		static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
+		for (unsigned int i = 0; i < 4; i++)
+		{
+			if (s_Usb->m_WiiMotes[i].IsConnected())
+			{
+				s_Usb->m_WiiMotes[i].Activate(false);
+				s_Usb->m_WiiMotes[i].Activate(true);
+			}
+			else
+			{
+				s_Usb->m_WiiMotes[i].Activate(false);
+			}
+		}
+
+		NPC = dolLoader.GetEntryPoint() | 0x80000000;
+	}
 }
 
 }

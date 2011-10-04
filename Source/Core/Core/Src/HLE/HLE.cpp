@@ -27,6 +27,7 @@
 
 #include "HLE_OS.h"
 #include "HLE_Misc.h"
+#include "IPC_HLE/WII_IPC_HLE_Device_es.h"
 
 namespace HLE
 {
@@ -93,7 +94,8 @@ static const SPatch OSPatches[] =
 	//	{ "GXPeekARGB",					HLE_Misc::GXPeekARGB},
 
 	// Name doesn't matter, installed in CBoot::BootUp()
-	{ "HBReload",						HLE_Misc::HBReload			},
+	{ "HBReload",						HLE_Misc::HBReload },
+	{ "__OSBootDol",					HLE_Misc::OSBootDol },
 };
 
 static const SPatch OSBreakPoints[] =
