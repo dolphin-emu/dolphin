@@ -143,8 +143,6 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 		if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 			indirectStagesUsed |= (1 << bpmem.tevind[i].bt);
 
-	assert(indirectStagesUsed == (indirectStagesUsed & 0xF));
-
 	uid->values[1] |= indirectStagesUsed << 5; // 4;
 
 	for (unsigned int i = 0; i < bpmem.genMode.numindstages; ++i)
@@ -171,10 +169,10 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	if (alphaPreTest == 0 || alphaPreTest == 2)
 	{
 		ptr[0] |= bpmem.fog.c_proj_fsel.fsel << 8; // 3
+		ptr[0] |= bpmem.zcontrol.zcomploc << 11; // 1
 		if (DepthTextureEnable)
 		{
-			ptr[0] |= bpmem.ztex2.op << 11; // 2
-			ptr[0] |= bpmem.zcontrol.zcomploc << 13; // 1
+			ptr[0] |= bpmem.ztex2.op << 12; // 2
 			ptr[0] |= bpmem.zmode.testenable << 14; // 1
 			ptr[0] |= bpmem.zmode.updateenable << 15; // 1
 		}
@@ -1181,10 +1179,21 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
-	WRITE(p, ")){ocol0 = 0;%s%s discard;%s}\n",
-			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND	? "ocol1 = 0;"		: "",
-			DepthTextureEnable							? "depth = 1.f;"	: "",
-			(ApiType != API_D3D11)						? "return;"			: "");
+	WRITE(p, ")) {\n");
+
+	WRITE(p, "ocol0 = 0;\n");
+	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+		WRITE(p, "ocol1 = 0;\n");
+	if (DepthTextureEnable)
+		WRITE(p, "depth = 1.f;\n");
+	if (!bpmem.zcontrol.zcomploc)
+	{
+		WRITE(p, "discard;\n");
+		if (ApiType != API_D3D11)
+			WRITE(p, "return;\n");
+	}
+
+	WRITE(p, "}\n");
 	return true;
 }
 
