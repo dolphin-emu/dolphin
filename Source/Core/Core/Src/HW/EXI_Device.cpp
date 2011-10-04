@@ -127,7 +127,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 		break;
 
 	case EXIDEVICE_MIC:
-		return new CEXIMic(1);
+		return new CEXIMic();
 		break;
 
 	case EXIDEVICE_ETH:

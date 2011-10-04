@@ -18,58 +18,90 @@
 #ifndef _EXI_DEVICEMIC_H
 #define _EXI_DEVICEMIC_H
 
+#if HAVE_PORTAUDIO
+
 class CEXIMic : public IEXIDevice
 {
 public:
-	CEXIMic(int _Index);
+	CEXIMic();
 	virtual ~CEXIMic();
 	void SetCS(int cs);
-	void Update();
 	bool IsInterruptSet();
 	bool IsPresent();
 
 private:
+	static int mic_count;
+	static u8 const exi_id[];
+	static int const sample_size = sizeof(s16);
+	static int const rate_base = 11025;
+	static int const ring_base = 32;
 
 	enum
-	{
-		EXI_DEVTYPE_MIC	= 0x0A000000
-	};
-
-	enum 
 	{
 		cmdID			= 0x00,
 		cmdGetStatus	= 0x40,
 		cmdSetStatus	= 0x80,
 		cmdGetBuffer	= 0x20,
-		cmdWakeUp		= 0xFF,
+		cmdReset		= 0xFF,
 	};
 
 	// STATE_TO_SAVE
-	int interruptSwitch;
+	u32 m_position;
 	int command;
-	union uStatus
+	union UStatus
 	{
 		u16 U16;
 		u8 U8[2];
 		struct
 		{
-			u16				:8; // Unknown
-			u16 button		:1; // 1: Button Pressed
-			u16 unk1		:1; // 1 ? Overflow?
-			u16 unk2		:1; // Unknown related to 0 and 15 values It seems
-			u16 sRate		:2; // Sample Rate, 00-11025, 01-22050, 10-44100, 11-??
-			u16 pLength		:2; // Period Length, 00-32, 01-64, 10-128, 11-???
-			u16 sampling	:1; // If We Are Sampling or Not
+			u16	out			:4; // MICSet/GetOut...???
+			u16 button		:5; // Buttons. Top bit is mic button. Lowest bit is used for MICGetDeviceID (always 0)
+			u16 buff_ovrflw	:1; // Ring buffer wrote over bytes which weren't read by console
+			u16 gain		:1; // Gain: 0dB or 15dB
+			u16 sample_rate	:2; // Sample rate, 00-11025, 01-22050, 10-44100, 11-??
+			u16 buff_size	:2; // Ring buffer size in bytes, 00-32, 01-64, 10-128, 11-???
+			u16 is_active	:1; // If we are sampling or not
 		};
 	};
-	int Index;
-	u32 m_uPosition;
-	uStatus Status;	
+	UStatus status;
+
+	// status bits converted to nice numbers
+	int sample_rate;
+	int buff_size;
+	int buff_size_samples;
+
+	// 64 is the max size, can be 16 or 32 as well
+	int ring_pos;
+	u8 ring_buffer[64 * sample_size];
+
+	// 0 to disable interrupts, else it will be checked against current cpu ticks
+	// to determine if interrupt should be raised
+	u64 next_int_ticks;
+	void UpdateNextInterruptTicks();
+
+	// Streaming input interface
+	int pa_error; // PaError
+	void *pa_stream; // PaStream
+
+	void StreamLog(const char *msg);
+	void StreamInit();
+	void StreamTerminate();
+	void StreamStart();
+	void StreamStop();
+	void StreamReadOne();
 	
 protected:
 	virtual void TransferByte(u8 &byte);
 };
 
-void SetMic(bool Value);
+#else // HAVE_PORTAUDIO
+
+class CEXIMic : public IEXIDevice
+{
+public:
+	CEXIMic() {}
+};
 
 #endif
+
+#endif // _EXI_DEVICEMIC_H

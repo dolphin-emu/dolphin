@@ -16,115 +16,131 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+
+#if HAVE_PORTAUDIO
+
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "../Core.h"
 #include "../CoreTiming.h"
+#include "SystemTimers.h"
 
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
 
-// Unfortunately this must be enabled in Common.h for windows users. Scons should enable it otherwise
-#if !HAVE_PORTAUDIO
-
-void SetMic(bool Value){}
-
-CEXIMic::CEXIMic(int _Index){}
-CEXIMic::~CEXIMic(){}
-bool CEXIMic::IsPresent() {return false;}
-void CEXIMic::SetCS(int cs){}
-void CEXIMic::Update(){}
-void CEXIMic::TransferByte(u8 &byte){}
-bool CEXIMic::IsInterruptSet(){return false;}
-
-#else
-
-// We use PortAudio for cross-platform audio input.
-// It needs the headers and a lib file for the dll
 #include <portaudio.h>
 
-#ifdef _WIN32
-#pragma comment(lib, "C:/Users/Shawn/Desktop/portaudio/portaudio-v19/portaudio_x64.lib")
-#endif
+static bool pa_init = false;
 
-static bool MicButton = false;
-static bool IsOpen;
-
-union InputData
+void CEXIMic::StreamLog(const char *msg)
 {
-	s16 word;
-	u8 byte[2];
-};
-
-InputData inputData[64]; // 64 words = Max 128 bytes returned????
-PaStream *stream;
-PaError err;
-unsigned short SFreq;
-unsigned short SNum;
-bool m_bInterruptSet;
-bool Sampling;
-
-
-void SetMic(bool Value)
-{
-	MicButton = Value;
-	if(Sampling)
-		Pa_StartStream( stream );
-	else
-		Pa_StopStream( stream );
+	DEBUG_LOG(EXPANSIONINTERFACE, "%s: %s",
+		msg, Pa_GetErrorText(pa_error));
 }
 
-int patestCallback( const void *inputBuffer, void *outputBuffer,
-				   unsigned long frameCount,
-				   const PaStreamCallbackTimeInfo* timeInfo,
-				   PaStreamCallbackFlags statusFlags,
-				   void *userData )
+void CEXIMic::StreamInit()
 {
-	s16 *data = (s16*)inputBuffer;
-	//s16 *out = (s16*)outputBuffer;
-
-	if (!m_bInterruptSet && Sampling)
+	// Setup the wonderful c-interfaced lib...
+	pa_error = paNoError;
+	if (!pa_init)
 	{
-		for(unsigned int i = 0; i < SNum; ++i)
+		pa_error = Pa_Initialize();
+
+		if (pa_error != paNoError)
 		{
-			inputData[i].word = data[i];
-			//out[i] = inputData[i].word;
+			StreamLog("Pa_Initialize");
 		}
-		m_bInterruptSet = true;
+		else
+			pa_init = true;
 	}
-	return paContinue;
+
+	mic_count++;
 }
 
+void CEXIMic::StreamTerminate()
+{
+	// TODO keep track of number of mics...
+	if (pa_init && --mic_count <= 0)
+		pa_error = Pa_Terminate();
+
+	if (pa_error != paNoError)
+	{
+		StreamLog("Pa_Terminate");
+	}
+	else
+		pa_init = false;
+}
+
+void CEXIMic::StreamStart()
+{
+	// Open stream with current parameters
+	if (pa_init)
+	{
+		pa_error = Pa_OpenDefaultStream(&pa_stream, 1, 0, paInt16,
+			sample_rate, buff_size_samples, NULL, NULL);
+		StreamLog("Pa_OpenDefaultStream");
+		pa_error = Pa_StartStream(pa_stream);
+		StreamLog("Pa_StartStream");
+	}
+}
+
+void CEXIMic::StreamStop()
+{
+	// Acts as if Pa_AbortStream was called
+	pa_error = Pa_CloseStream(pa_stream);
+	StreamLog("Pa_CloseStream");
+}
+
+void CEXIMic::StreamReadOne()
+{
+	// Returns num samples or error
+	pa_error = Pa_GetStreamReadAvailable(pa_stream);
+	if (pa_error >= buff_size_samples)
+	{
+		pa_error = Pa_ReadStream(pa_stream, ring_buffer, buff_size_samples);
+
+		if (pa_error != paNoError)
+		{
+			status.buff_ovrflw = 1;
+			// Input overflowed - is re-setting the stream the only to recover?
+			StreamLog("Pa_ReadStream");
+
+			StreamStop();
+			StreamStart();
+		}
+	}
+}
 
 // EXI Mic Device
+// This works by opening and starting a portaudio input stream when the is_active
+// bit is set. The interrupt is scheduled in the future based on sample rate and
+// buffer size settings. When the console handles the interrupt, it will send
+// cmdGetBuffer, which is when we actually read data from a buffer portaudio fills
+// in the background (ie on demand instead of realtime). Because of this we need
+// to clear portaudio's buffer if emulation speed drops below realtime, or else
+// a bad audio lag develops. It's actually kind of convenient because it gives
+// us a way to detect if buff_ovrflw should be set.
 
-CEXIMic::CEXIMic(int _Index)
+u8 const CEXIMic::exi_id[] = { 0, 0x0a, 0, 0, 0 };
+int CEXIMic::mic_count = 0;
+
+CEXIMic::CEXIMic()
 {
-	Index = _Index;
-
-	memset(&inputData, 0 , sizeof(inputData));
-	memset(&Status.U16, 0 , sizeof(u16));
+	status.U16 = 0;
 	command = 0;
-	m_uPosition = 0;
-	m_bInterruptSet = false;
-	MicButton = false;
-	IsOpen = false;
-	err = Pa_Initialize();
-	if (err != paNoError)
-		ERROR_LOG(EXPANSIONINTERFACE, "EXI MIC: PortAudio Initialize error %s", Pa_GetErrorText(err));
+	m_position = 0;
+	ring_pos = 0;
+	next_int_ticks = 0;
+
+	StreamInit();
 }
 
 CEXIMic::~CEXIMic()
 {
-	err = Pa_CloseStream( stream );
-	if (err != paNoError)
-		ERROR_LOG(EXPANSIONINTERFACE,  "EXI MIC: PortAudio Close error %s", Pa_GetErrorText(err));
-	err = Pa_Terminate();
-	if (err != paNoError)
-		ERROR_LOG(EXPANSIONINTERFACE,  "EXI MIC: PortAudio Terminate error %s", Pa_GetErrorText(err));
+	StreamTerminate();
 }
 
-bool CEXIMic::IsPresent() 
+bool CEXIMic::IsPresent()
 {
 	return true;
 }
@@ -132,38 +148,26 @@ bool CEXIMic::IsPresent()
 void CEXIMic::SetCS(int cs)
 {
 	if (cs) // not-selected to selected
-		m_uPosition = 0;
-	else
-	{	
-		switch (command)
-		{
-		case cmdID:
-		case cmdGetStatus:
-		case cmdSetStatus:
-		case cmdGetBuffer:
-			break;
-		case cmdWakeUp:
-			// This is probably not a command, but anyway...
-			// The command 0xff seems to be used to get in sync with the microphone or to wake it up.
-			// Normally, it is issued before any other command, or to recover from errors.
-			WARN_LOG(EXPANSIONINTERFACE, "EXI MIC: WakeUp cmd");
-			break;
-		default:
-			WARN_LOG(EXPANSIONINTERFACE, "EXI MIC: unknown CS command %02x\n", command);
-			break;
-		}
-	}
+		m_position = 0;
+	// Doesn't appear to do anything we care about
+	//else if (command == cmdReset)
 }
 
-void CEXIMic::Update()
+void CEXIMic::UpdateNextInterruptTicks()
 {
+	next_int_ticks = CoreTiming::GetTicks() +
+		(SystemTimers::GetTicksPerSecond() / sample_rate) *	buff_size_samples;
 }
 
 bool CEXIMic::IsInterruptSet()
 {
-	if(m_bInterruptSet)
+	if (next_int_ticks && CoreTiming::GetTicks() >= next_int_ticks)
 	{
-		m_bInterruptSet = false;
+		if (status.is_active)
+			UpdateNextInterruptTicks();
+		else
+			next_int_ticks = 0;
+
 		return true;
 	}
 	else
@@ -174,124 +178,66 @@ bool CEXIMic::IsInterruptSet()
 
 void CEXIMic::TransferByte(u8 &byte)
 {
-	if (m_uPosition == 0)
+	if (m_position == 0)
 	{
 		command = byte;	// first byte is command
 		byte = 0xFF;	// would be tristate, but we don't care.
-	} 
-	else
-	{
-		switch (command)
-		{
-		case cmdID:
-			if (m_uPosition == 1)
-				;//byte = 0x80; // dummy cycle - taken from memcard, it doesn't seem to need it here
-			else
-				byte = (u8)(EXI_DEVTYPE_MIC >> (24-(((m_uPosition-2) & 3) * 8)));
-			break;
-		case cmdGetStatus:
-			{
-				if (m_uPosition != 1 && m_uPosition != 2)
-					WARN_LOG(EXPANSIONINTERFACE, "EXI MIC: WARNING GetStatus @ pos: %d should never happen", m_uPosition);
-				if((!Status.button && MicButton)||(Status.button && !MicButton))
-					WARN_LOG(EXPANSIONINTERFACE, "EXI MIC: Mic button %s", MicButton ? "pressed" : "released");
-
-				Status.button = MicButton ? 1 : 0;
-				byte = Status.U8[ (m_uPosition - 1) ? 0 : 1];
-				INFO_LOG(EXPANSIONINTERFACE, "EXI MIC: Status is    0x%04x", Status.U16);
-			}
-			break;
-		case cmdSetStatus:
-			{
-				// 0x80 0xXX 0xYY
-				// cmd  pos1 pos2
-
-				// Here we assign the byte to the proper place in Status and update portaudio settings
-				Status.U8[ (m_uPosition - 1) ? 0 : 1] = byte;
-
-				if(m_uPosition == 2)
-				{
-					Sampling = (Status.sampling == 1) ? true : false;
-
-					switch (Status.sRate)
-					{
-					case 0:
-						SFreq = 11025;
-						break;
-					case 1:
-						SFreq = 22050;
-						break;
-					case 2:
-						SFreq = 44100;
-						break;
-					default:
-						ERROR_LOG(EXPANSIONINTERFACE, "EXI MIC: Trying to set unknown sampling rate");
-						SFreq = 44100;
-						break;
-					}
-
-					switch (Status.pLength)
-					{
-					case 0:
-						SNum = 32;
-						break;
-					case 1:
-						SNum = 64;
-						break;
-					case 2:
-						SNum = 128;
-						break;
-					default:
-						ERROR_LOG(EXPANSIONINTERFACE,  "EXI MIC: Trying to set unknown period length");
-						SNum = 128;
-						break;
-					}
-
-					DEBUG_LOG(EXPANSIONINTERFACE, "//////////////////////////////////////////////////////////////////////////");
-					DEBUG_LOG(EXPANSIONINTERFACE, "EXI MIC: Status is now 0x%04x", Status.U16);
-					DEBUG_LOG(EXPANSIONINTERFACE, "\tbutton %i\tsRate %i\tpLength %i\tsampling %i\n",
-						Status.button, SFreq, SNum, Status.sampling);
-
-					if(!IsOpen)
-					{
-						// Open Our PortAudio Stream
-						// (shuffle2) This (and the callback) could still be wrong
-						err = Pa_OpenDefaultStream(
-							&stream,	// Our PaStream
-							1,			// Input Channels
-							0,			// Output Channels
-							paInt16,	// Output format - GC wants PCM samples in signed 16-bit format 
-							SFreq,		// Sample Rate
-							SNum,		// Period Length (frames per buffer)
-							patestCallback,// Our callback!
-							NULL);		// Pointer passed to our callback
-						if (err != paNoError)
-						{
-							ERROR_LOG(EXPANSIONINTERFACE, "EXI MIC: PortAudio error %s", Pa_GetErrorText(err));
-						}
-						else
-							IsOpen = true;
-					}
-				}
-			}
-			break;
-		case cmdGetBuffer:
-			{
-				int pos = m_uPosition - 1;
-				// (sonicadvance1)I think if we set the Interrupt to false, it reads another 64
-				// Will Look in to it.
-				// (shuffle2)Seems like games just continuously get the buffer as long as
-				// they're sampling and the mic is generating interrupts
-				byte = inputData[pos].byte[ (pos & 1) ? 0 : 1 ];
-				INFO_LOG(EXPANSIONINTERFACE, "EXI MIC: GetBuffer%s%d/%d byte: 0x%02x",
-					(pos > 9) ? " " : "  ", pos, SNum, byte);
-			}
-			break;
-		default:
-			ERROR_LOG(EXPANSIONINTERFACE,  "EXI MIC: unknown command byte %02x\n", command);
-			break;
-		}
+		m_position++;
+		return;
 	}
-	m_uPosition++;
+
+	int pos = m_position - 1;
+
+	switch (command)
+	{
+	case cmdID:
+		byte = exi_id[pos];
+		break;
+
+	case cmdGetStatus:
+		byte = status.U8[pos ^ 1];
+		if (pos == 1 && status.buff_ovrflw)
+			status.buff_ovrflw = 0;
+		break;
+
+	case cmdSetStatus:
+		{
+		bool wasactive = status.is_active;
+		status.U8[pos ^ 1] = byte;
+
+		// safe to do since these can only be entered if both bytes of status have been written
+		if (!wasactive && status.is_active)
+		{
+			sample_rate = rate_base << status.sample_rate;
+			buff_size = ring_base << status.buff_size;
+			buff_size_samples = buff_size / sample_size;
+
+			UpdateNextInterruptTicks();
+			
+			StreamStart();
+		}
+		else if (wasactive && !status.is_active)
+		{
+			StreamStop();
+		}
+		}
+		break;
+
+	case cmdGetBuffer:
+		if (ring_pos == 0)
+		{
+			// Can set buff_ovrflw
+			StreamReadOne();
+		}
+		byte = ring_buffer[ring_pos ^ 1];
+		ring_pos = (ring_pos + 1) % buff_size;
+		break;
+
+	default:
+		ERROR_LOG(EXPANSIONINTERFACE,  "EXI MIC: unknown command byte %02x", command);
+		break;
+	}
+
+	m_position++;
 }
 #endif
