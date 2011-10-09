@@ -208,9 +208,7 @@ void CEXIMic::TransferByte(u8 &byte)
 	case cmdGetStatus:
 		if (pos == 0)
 		{
-			SPADStatus silly;
-			Pad::GetStatus(0, &silly);
-			status.button = !!(silly.button & PAD_BUTTON_A);
+			status.button = Pad::GetMicButton(0);	// TODO: slot A/B -> 0/1
 		}
 
 		byte = status.U8[pos ^ 1];
