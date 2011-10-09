@@ -32,15 +32,13 @@ struct FlushData
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-	CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int card_index);
+	CEXIMemoryCard(const int index);
 	virtual ~CEXIMemoryCard();
 	void SetCS(int cs);
 	void Update();
 	bool IsInterruptSet();
 	bool IsPresent();
 	void DoState(PointerWrap &p);
-
-	inline const std::string &GetFileName() const { return m_strFilename; };
 
 private:
 	// This is scheduled whenever a page write is issued. The this pointer is passed

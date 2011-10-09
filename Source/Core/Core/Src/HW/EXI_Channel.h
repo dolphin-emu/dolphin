@@ -112,12 +112,12 @@ private:
 
 public:
 	// get device
-	IEXIDevice* GetDevice(u8 _CHIP_SELECT);
+	IEXIDevice* GetDevice(const u8 _CHIP_SELECT);
 
 	CEXIChannel(u32 ChannelId);
 	~CEXIChannel();
 
-	void AddDevice(const TEXIDevices _device, const unsigned int _iSlot);
+	void AddDevice(const TEXIDevices device_type, const int device_num);
 
 	// Remove all devices
 	void RemoveDevices();

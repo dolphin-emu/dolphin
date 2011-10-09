@@ -19,9 +19,6 @@
 
 #if HAVE_PORTAUDIO
 
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "../Core.h"
 #include "../CoreTiming.h"
 #include "SystemTimers.h"
 
@@ -30,7 +27,6 @@
 
 #include <portaudio.h>
 
-#include "GCPadStatus.h"
 #include "GCPad.h"
 
 static bool pa_init = false;
@@ -128,7 +124,8 @@ void CEXIMic::StreamReadOne()
 u8 const CEXIMic::exi_id[] = { 0, 0x0a, 0, 0, 0 };
 int CEXIMic::mic_count = 0;
 
-CEXIMic::CEXIMic()
+CEXIMic::CEXIMic(int index)
+	: slot(index)
 {
 	m_position = 0;
 	command = 0;
@@ -207,13 +204,11 @@ void CEXIMic::TransferByte(u8 &byte)
 
 	case cmdGetStatus:
 		if (pos == 0)
-		{
-			status.button = Pad::GetMicButton(0);	// TODO: slot A/B -> 0/1
-		}
+			status.button = Pad::GetMicButton(slot);
 
 		byte = status.U8[pos ^ 1];
 		
-		if (pos == 1 && status.buff_ovrflw)
+		if (pos == 1)
 			status.buff_ovrflw = 0;
 		break;
 

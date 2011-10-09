@@ -102,20 +102,16 @@ public:
 
 
 // F A C T O R Y 
-IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
+IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int device_num)
 {
-	switch(_EXIDevice)
+	switch (device_type)
 	{
 	case EXIDEVICE_DUMMY:
 		return new CEXIDummy("Dummy");
 		break;
 
-	case EXIDEVICE_MEMORYCARD_A:
-        return new CEXIMemoryCard("MemoryCardA", SConfig::GetInstance().m_strMemoryCardA, 0);
-		break;
-
-	case EXIDEVICE_MEMORYCARD_B:
-		return new CEXIMemoryCard("MemoryCardB", SConfig::GetInstance().m_strMemoryCardB, 1);
+	case EXIDEVICE_MEMORYCARD:
+		return new CEXIMemoryCard(device_num);
 		break;
 
 	case EXIDEVICE_MASKROM:
@@ -127,7 +123,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 		break;
 
 	case EXIDEVICE_MIC:
-		return new CEXIMic();
+		return new CEXIMic(device_num);
 		break;
 
 	case EXIDEVICE_ETH:

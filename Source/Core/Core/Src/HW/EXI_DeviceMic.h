@@ -23,7 +23,7 @@
 class CEXIMic : public IEXIDevice
 {
 public:
-	CEXIMic();
+	CEXIMic(const int index);
 	virtual ~CEXIMic();
 	void SetCS(int cs);
 	bool IsInterruptSet();
@@ -46,6 +46,8 @@ private:
 	};
 
 	// STATE_TO_SAVE
+	int slot;
+
 	u32 m_position;
 	int command;
 	union UStatus
@@ -101,7 +103,7 @@ protected:
 class CEXIMic : public IEXIDevice
 {
 public:
-	CEXIMic() {}
+	CEXIMic(const int) {}
 };
 
 #endif

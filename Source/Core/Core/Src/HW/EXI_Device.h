@@ -53,8 +53,7 @@ public:
 enum TEXIDevices
 {
 	EXIDEVICE_DUMMY,
-	EXIDEVICE_MEMORYCARD_A,
-	EXIDEVICE_MEMORYCARD_B,
+	EXIDEVICE_MEMORYCARD,
 	EXIDEVICE_MASKROM,
 	EXIDEVICE_AD16,
 	EXIDEVICE_MIC,
@@ -64,6 +63,6 @@ enum TEXIDevices
 	EXIDEVICE_NONE = (u8)-1
 };
 
-extern IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice);
+extern IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int device_num);
 
 #endif
