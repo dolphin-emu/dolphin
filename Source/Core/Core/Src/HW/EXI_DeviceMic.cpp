@@ -30,6 +30,9 @@
 
 #include <portaudio.h>
 
+#include "GCPadStatus.h"
+#include "GCPad.h"
+
 static bool pa_init = false;
 
 void CEXIMic::StreamLog(const char *msg)
@@ -204,7 +207,11 @@ void CEXIMic::TransferByte(u8 &byte)
 
 	case cmdGetStatus:
 		if (pos == 0)
-			status.button = 0;// TODO
+		{
+			SPADStatus silly;
+			Pad::GetStatus(0, &silly);
+			status.button = !!(silly.button & PAD_BUTTON_A);
+		}
 
 		byte = status.U8[pos ^ 1];
 		
