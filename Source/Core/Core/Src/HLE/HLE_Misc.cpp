@@ -292,9 +292,13 @@ void HBReload()
 void OSBootDol()
 {
 	std::string dol;
+	std::string args;
 
 	u32 r28 = GPR(28);
 	Memory::GetString(dol, r28);
+
+	u32 argsPtr = Memory::Read_U32(GPR(5));
+	Memory::GetString(args, argsPtr);
 
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
 	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
@@ -320,6 +324,22 @@ void OSBootDol()
 			{
 				s_Usb->m_WiiMotes[i].Activate(false);
 			}
+		}
+
+		if (argsPtr)
+		{
+			u32 args_base = Memory::Read_U32(0x800000f4);
+			u32 ptr_to_num_args = 0xc;
+			u32 num_args = 1;
+			u32 hi_ptr = args_base + ptr_to_num_args + 4;
+			u32 new_args_ptr = args_base + ptr_to_num_args + 8;
+
+			Memory::Write_U32(ptr_to_num_args, args_base + 8);
+			Memory::Write_U32(num_args, args_base + ptr_to_num_args);
+			Memory::Write_U32(0x14, hi_ptr);
+
+			for (int i = 0; i < args.length(); i++)
+				Memory::WriteUnchecked_U8(args[i], new_args_ptr+i);
 		}
 
 		NPC = dolLoader.GetEntryPoint() | 0x80000000;
