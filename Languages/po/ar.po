@@ -7,9 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
+<<<<<<< HEAD
 "POT-Creation-Date: 2011-12-18 13:39-0600\n"
 "PO-Revision-Date: 2011-10-16 11:25-0500\n"
 "Last-Translator: mansoor\n"
+=======
+"POT-Creation-Date: 2011-10-11 23:25-0500\n"
+"PO-Revision-Date: 2011-07-20 13:33+0300\n"
+"Last-Translator: \n"
+>>>>>>> Update translation files for recent changes in the code.
 "Language-Team: \n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -418,6 +424,10 @@ msgid "Accurate VBeam emulation"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
+<<<<<<< HEAD
+=======
+#, fuzzy
+>>>>>>> Update translation files for recent changes in the code.
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -529,9 +539,15 @@ msgstr "أضف باتش"
 msgid "Add new pane"
 msgstr "إضافة جزء جديد"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:411
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Add..."
 msgstr "أضف"
 
@@ -585,8 +601,13 @@ msgstr ""
 msgid "All Gamecube GCM files (gcm)"
 msgstr "جميع ملفات الجيم كيوب (gcm)"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
+>>>>>>> Update translation files for recent changes in the code.
 msgid "All Save States (sav, s##)"
 msgstr "حفظ جميع الحالات (sav, s##)"
 
@@ -615,8 +636,14 @@ msgstr ""
 "إذا لم تكن متأكدا اترك هذا غير محددة."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
+<<<<<<< HEAD
 msgid "Alternate Wiimote Timing"
 msgstr "بديل ويموت"
+=======
+#, fuzzy
+msgid "Alternate Wiimote Timing"
+msgstr "محاكاة ويموت"
+>>>>>>> Update translation files for recent changes in the code.
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
 msgid "Anisotropic Filtering:"
@@ -671,7 +698,11 @@ msgstr "هل أنت متأكد أنك تريد حذف هذه الملف؟ "
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "هل أنت متأكد أنك تريد حذف هذه الملفات؟"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:729
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:725
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:284
 msgid "Aspect Ratio:"
 msgstr "نسبة العرض :"
@@ -692,7 +723,11 @@ msgstr "صوت الخلفية :"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr ""
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:239
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:238
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
 msgid "Auto"
 msgstr "تلقائي"
@@ -807,7 +842,11 @@ msgid "Blue Right"
 msgstr "اليمين أزرق"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Bottom"
 msgstr "أسفل"
 
@@ -840,7 +879,11 @@ msgstr "لاستعراض الدليل الإخراج"
 msgid "Buffer:"
 msgstr "العازلة :"
 
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:71
+=======
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:68
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:89
 msgid "Buttons"
@@ -1082,7 +1125,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:213
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:244
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:563
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:559
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:592
 msgid "Close"
 msgstr "إغلاق"
@@ -1191,7 +1238,11 @@ msgstr "توصيل ويموت 3"
 msgid "Connect Wiimote 4"
 msgstr "توصيل ويموت 4"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:597
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:598
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Connecting..."
 msgstr "توصيل"
 
@@ -1384,7 +1435,11 @@ msgid "DSP Emulator Engine"
 msgstr "محرك محاكي الصوت"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
+>>>>>>> Update translation files for recent changes in the code.
 msgid "DSP HLE emulation (fast)"
 msgstr "DSP HLE emulation (سريع)"
 
@@ -1613,7 +1668,11 @@ msgstr ""
 msgid "Divide"
 msgstr "انقسام"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1068
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1052
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Do you want to stop the current emulation?"
 msgstr "هل تريد اغلق اللعبة الحالية؟"
 
@@ -1642,12 +1701,21 @@ msgstr "إعدادات تحكم الوي"
 msgid "Dolphin FIFO"
 msgstr "دولفين"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1220
 msgid "Dolphin GCPad Configuration"
 msgstr "إعدادات تحكم الجيم كيوب"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:751
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1160
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1204
+msgid "Dolphin GCPad Configuration"
+msgstr "إعدادات تحكم الجيم كيوب"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:742
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1144
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr ""
 
@@ -1741,9 +1809,15 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدا اترك هذا غير محددة."
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Dutch"
 msgstr "Dutch"
 
@@ -1879,15 +1953,22 @@ msgstr "BAT تمكين"
 msgid "Enable Block Merging"
 msgstr "تمكين منع الدمج"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
 msgid "Enable Bounding Box Calculation"
 msgstr ""
 
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:440
 msgid "Enable Cache"
 msgstr "تمكين التخزين المؤقت"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:536
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Enable Cheats"
 msgstr "تمكين الاسرار "
 
@@ -2035,9 +2116,15 @@ msgstr ""
 msgid "End"
 msgstr "نهاية"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+>>>>>>> Update translation files for recent changes in the code.
 msgid "English"
 msgstr "English"
 
@@ -2066,6 +2153,7 @@ msgstr "المساواة"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1175
 msgid "Error"
 msgstr "خطأ"
@@ -2077,6 +2165,12 @@ msgid ""
 "Sorry, Wii recording is temporarily broken."
 msgstr ""
 
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1169
+msgid "Error"
+msgstr "خطأ"
+
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/Main.cpp:346
 msgid "Error loading selected language. Falling back to system default."
 msgstr "خطأ في تحميل اللغة المختارة. يتراجع إلى النظام الافتراضية."
@@ -2511,9 +2605,15 @@ msgstr "إطارات لتسجيل"
 msgid "Free Look"
 msgstr "تحكم بكاميرا اللعبة"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:478
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
+>>>>>>> Update translation files for recent changes in the code.
 msgid "French"
 msgstr "French"
 
@@ -2580,7 +2680,11 @@ msgid "Gamecube &Pad Settings"
 msgstr "إعدادات تحكم جيم كيوب"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1011
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "بطاقه ذاكره الجيم كيوب (*.raw,*.gcp) "
 
@@ -2603,8 +2707,12 @@ msgstr ""
 "(إما غير رمز سيئة أو نوع رمز غير مدعومة حتى الآن.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:525
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:204
 msgid "General"
 msgstr "عام"
@@ -2613,9 +2721,15 @@ msgstr "عام"
 msgid "General Settings"
 msgstr "الإعدادات العامة"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:477
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
+>>>>>>> Update translation files for recent changes in the code.
 msgid "German"
 msgstr "German"
 
@@ -2637,6 +2751,10 @@ msgid "Greater Than"
 msgstr "أكبر من"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
+<<<<<<< HEAD
+=======
+#, fuzzy
+>>>>>>> Update translation files for recent changes in the code.
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -2745,8 +2863,12 @@ msgid "Hotkey Configuration"
 msgstr "إعدادات الاختصارات"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:276
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:574
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Hotkeys"
 msgstr "الاختصارات"
 
@@ -2955,7 +3077,11 @@ msgid ""
 "InstallExceptionHandler called, but this platform does not yet support it."
 msgstr ""
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1379
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1363
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Installing WAD..."
 msgstr "wad تثبيت"
 
@@ -3034,9 +3160,15 @@ msgstr "تسجيل الملف غير صالح"
 msgid "Invalid state"
 msgstr "غير صالح حالة"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Italian"
 msgstr "Italian"
 
@@ -3189,11 +3321,19 @@ msgstr "8 تحميل حالة"
 msgid "Load State..."
 msgstr "تحميل حالة"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1418
 msgid "Load Wii System Menu"
 msgstr "تحميل قائمة نظام الوي"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1413
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1402
+msgid "Load Wii System Menu"
+msgstr "تحميل قائمة نظام الوي"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1397
+>>>>>>> Update translation files for recent changes in the code.
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "تحميل قائمة نظام الوي %d%c"
@@ -3273,7 +3413,11 @@ msgstr "MMU سرعة هاك"
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr ""
 
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:76
+=======
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:47
 msgid "Main Stick"
 msgstr "العصا الأيسر"
@@ -3304,7 +3448,11 @@ msgid "Memory Byte"
 msgstr "ذاكرة بايت"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Memory Card"
 msgstr "بطاقة الذاكرة"
 
@@ -3500,7 +3648,11 @@ msgstr "التبويب"
 msgid "NP Up"
 msgstr "فوق"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:455
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:451
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:58
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:49
 msgid "Name:"
@@ -3587,7 +3739,11 @@ msgstr "لا يساوي"
 msgid "Not Set"
 msgstr "غير مجموعة"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:596
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:597
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Not connected"
 msgstr "غير متصل"
 
@@ -3648,7 +3804,10 @@ msgstr "فقط %d كتل متاحة"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:433
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:182
+=======
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Open"
 msgstr "فتح"
 
@@ -3779,8 +3938,13 @@ msgstr "باتش"
 msgid "Paths"
 msgstr "مسارات"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1621
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1622
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1605
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1606
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
 msgid "Pause"
 msgstr "وقفة"
@@ -3800,8 +3964,13 @@ msgstr "مشهد %d"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:437
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1630
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1631
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1614
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1615
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Play"
 msgstr "بدأ اللعبه"
 
@@ -3827,7 +3996,11 @@ msgstr "خيارات التشغيل"
 msgid "Players"
 msgstr "لاعبين"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1069
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1053
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Please confirm..."
 msgstr "يرجى تأكيد"
 
@@ -4038,10 +4211,17 @@ msgstr "تحديث قائمة"
 msgid "Refresh game list"
 msgstr "تحديث القائمة"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:438
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
+#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Remove"
 msgstr "إزالة"
 
@@ -4060,7 +4240,10 @@ msgid "Render to Main Window"
 msgstr "تقدم إلى الشاشة الرئيسية"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:188
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
 msgid "Reset"
 msgstr "إعادة ضبط"
@@ -4103,7 +4286,11 @@ msgstr "حفظ الحالة"
 msgid "Safe"
 msgstr "آمنة"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:632
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Sample Rate:"
 msgstr "معدل العينة :"
 
@@ -4185,9 +4372,15 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Scaled EFB Copy"
+<<<<<<< HEAD
 msgstr "EFB Copia a escala"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
+=======
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:598
+>>>>>>> Update translation files for recent changes in the code.
 #, c-format
 msgid "Scanning %s"
 msgstr "فحص %s"
@@ -4227,12 +4420,21 @@ msgstr ""
 msgid "Select"
 msgstr "حدد"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:749
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1158
 msgid "Select The Recording File"
 msgstr "اختر ملف تسجيل"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1367
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:740
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1142
+msgid "Select The Recording File"
+msgstr "اختر ملف تسجيل"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1351
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Select a Wii WAD file to install"
 msgstr "لتثبيت wad حدد ملف"
 
@@ -4258,6 +4460,7 @@ msgstr "اختر النوافذ العائمة"
 msgid "Select the file to load"
 msgstr "حدد الملف لتحميل"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1324
 msgid "Select the save file"
 msgstr "حدد حفظ الملف"
@@ -4267,6 +4470,17 @@ msgid "Select the state to load"
 msgstr "حدد حالة التحميل"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1487
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1308
+msgid "Select the save file"
+msgstr "حدد حفظ الملف"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1457
+msgid "Select the state to load"
+msgstr "حدد حالة التحميل"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1471
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Select the state to save"
 msgstr "حدد حالة الحفظ"
 
@@ -4640,9 +4854,15 @@ msgstr "فشل إنشاء المخزن المؤقت الصوت : %s"
 msgid "Space"
 msgstr "مجال"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Spanish"
 msgstr "Spanish"
 
@@ -4686,7 +4906,11 @@ msgstr ""
 msgid "Standard Controller"
 msgstr "وحدة تحكم القياسية"
 
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
+=======
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:309
 msgid "Start"
@@ -4721,7 +4945,10 @@ msgstr "عصا"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:315
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:438
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:187
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:187
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:312
 msgid "Stop"
 msgstr "اغلق اللعبه"
@@ -4798,7 +5025,10 @@ msgstr "الجدول الأيمن"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:368
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:440
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:197
+=======
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Take Screenshot"
 msgstr "اخذ لقطه من الشاشه"
 
@@ -4811,12 +5041,23 @@ msgid "Test"
 msgstr "اختبار"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:438
+<<<<<<< HEAD
 msgid "Texture"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:455
 msgid "Texture Cache"
 msgstr ""
+=======
+#, fuzzy
+msgid "Texture"
+msgstr "Texturesتعطيل "
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:455
+#, fuzzy
+msgid "Texture Cache"
+msgstr "إزالة التخزين المؤقت"
+>>>>>>> Update translation files for recent changes in the code.
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:530
 msgid "Texture Format Overlay"
@@ -5031,12 +5272,19 @@ msgstr "تبديل جميع أنواع السجل"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:439
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:196
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:196
+=======
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Toggle Fullscreen"
 msgstr "اللعب بالشاشة كاملة"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Top"
 msgstr "أعلى"
 
@@ -5143,6 +5391,18 @@ msgstr "تلقى رسالة مجهولة مع معرف : %d"
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr ""
 
+<<<<<<< HEAD
+=======
+#: Source/Core/Core/Src/HW/Memmap.cpp:633
+#, c-format
+msgid ""
+"Unknown pointer %#08x\n"
+"Continue?"
+msgstr ""
+"مؤشر غير معروف %#08x\n"
+"مواصلة?"
+
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
 msgid "Up"
@@ -5365,7 +5625,11 @@ msgstr ""
 msgid "Wii Save Import"
 msgstr "استيراد حفظ الوي"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1310
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "ملفات حفظ الوي (*.bin)|*.bin"
 
@@ -5396,7 +5660,11 @@ msgstr ""
 "أو ربما هو بسبب الخمول وقت مستقطع أو لسبب آخر.\n"
 "هل تريد إعادة الاتصال على الفور?"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:598
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:599
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Wiimote Connected"
 msgstr "ويموت متصل"
 
@@ -5428,9 +5696,15 @@ msgstr "نوافذ اليمين"
 msgid "Word Wrap"
 msgstr "كلمة ختامية"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1380
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1282
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1364
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1194
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1327
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Working..."
 msgstr "العمل"
 
@@ -5661,10 +5935,13 @@ msgstr "أو"
 #~ msgid "< as Default Profile >"
 #~ msgstr "< الوضع الافتراضي >"
 
+<<<<<<< HEAD
 #, fuzzy
 #~ msgid "AOSound"
 #~ msgstr "&الصوت"
 
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #~ msgid "Accurate Texture Cache"
 #~ msgstr "دقة المظهر السطحي المؤقت"
 
@@ -5702,6 +5979,7 @@ msgstr "أو"
 #~ "the EFB scale.\n"
 #~ "ومن الأفضل ل تعيين نسبة العرض إلى الارتفاع لتمتد عند استخدامه."
 
+<<<<<<< HEAD
 #~ msgid "Bad gameini filename"
 #~ msgstr "Nombre de archivo gameini incorrecto"
 
@@ -5736,6 +6014,8 @@ msgstr "أو"
 #~ msgid "Config..."
 #~ msgstr "إعدادات"
 
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #~ msgid "Configuration profile"
 #~ msgstr "التكوين الشخصي"
 
@@ -5836,6 +6116,7 @@ msgstr "أو"
 #~ msgid "Enable CPU Access"
 #~ msgstr "CPU Access تمكين"
 
+<<<<<<< HEAD
 #~ msgid "Enable Copy to EFB"
 #~ msgstr "Habilitar Copiado al EFB"
 
@@ -5851,12 +6132,15 @@ msgstr "أو"
 #~ msgid "Enable JIT Dynarec"
 #~ msgstr "تمكين صفحات"
 
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #~ msgid "Enable OpenCL"
 #~ msgstr "OpenCL تمكين "
 
 #~ msgid "Enable Screen Saver (burn-in reduction)"
 #~ msgstr "تمكين شاشة التوقف"
 
+<<<<<<< HEAD
 #, fuzzy
 #~ msgid ""
 #~ "Enables dynamic recompilation of DSP code.\n"
@@ -5930,6 +6214,8 @@ msgstr "أو"
 #~ msgid "Force Bi/Trilinear Filtering"
 #~ msgstr "Forzar Filtro Bi/Tri-linear"
 
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #~ msgid "Fractional"
 #~ msgstr "جزئي"
 
@@ -6072,6 +6358,7 @@ msgstr "أو"
 #~ msgid "Required for using the Japanese ROM font."
 #~ msgstr "اللازمة لاستعمال الخط القرص اليابانية."
 
+<<<<<<< HEAD
 #, fuzzy
 #~ msgid "Run"
 #~ msgstr "Enter"
@@ -6079,6 +6366,8 @@ msgstr "أو"
 #~ msgid "Running script...\n"
 #~ msgstr "Ejecutando script...\n"
 
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #~ msgid "Scale:"
 #~ msgstr "النطاق :"
 
@@ -6136,6 +6425,7 @@ msgstr "أو"
 #~ "عرض إحصاءات مختلفة.\n"
 #~ "وهذا مفيد فقط لأغراض التصحيح."
 
+<<<<<<< HEAD
 #~ msgid "Skies of Arcadia"
 #~ msgstr "Skies of Arcadia"
 
@@ -6175,12 +6465,15 @@ msgstr "أو"
 #~ msgid "Specify an audio plugin"
 #~ msgstr "حدد الخلفية ملف فيديو"
 
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #~ msgid "Start Renderer in Fullscreen"
 #~ msgstr "بدء في كمال ملء الشاشة"
 
 #~ msgid "Start the rendering window in fullscreen mode."
 #~ msgstr "بدء التقديم في إطار وضع ملء الشاشة."
 
+<<<<<<< HEAD
 #~ msgid "The file "
 #~ msgstr "El archivo "
 
@@ -6201,6 +6494,8 @@ msgstr "أو"
 #~ "مؤشر غير معروف %#08x\n"
 #~ "مواصلة?"
 
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #~ msgid "Use FPS For Limiting"
 #~ msgstr "لحد عدد الاطارات"
 

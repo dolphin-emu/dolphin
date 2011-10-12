@@ -7,8 +7,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
+<<<<<<< HEAD
 "POT-Creation-Date: 2011-12-18 13:39-0600\n"
 "PO-Revision-Date: 2011-10-12 20:45+0900\n"
+=======
+"POT-Creation-Date: 2011-10-11 23:25-0500\n"
+"PO-Revision-Date: 2011-08-19 08:37-0500\n"
+>>>>>>> Update translation files for recent changes in the code.
 "Last-Translator: DanbSky\n"
 "Language-Team: \n"
 "Language: Japanese\n"
@@ -426,6 +431,10 @@ msgid "Accurate VBeam emulation"
 msgstr "Accurate VBeam emulation"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
+<<<<<<< HEAD
+=======
+#, fuzzy
+>>>>>>> Update translation files for recent changes in the code.
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -550,9 +559,15 @@ msgstr "パッチを追加"
 msgid "Add new pane"
 msgstr ""
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:411
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Add..."
 msgstr "追加"
 
@@ -618,8 +633,13 @@ msgstr "全ての GC/Wii イメージ (gcm, iso, ciso, gcz)"
 msgid "All Gamecube GCM files (gcm)"
 msgstr "GC GCMファイル (gcm)|*.gcm"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
+>>>>>>> Update translation files for recent changes in the code.
 msgid "All Save States (sav, s##)"
 msgstr "全てのステートセーブファイル (sav, s##)"
 
@@ -648,8 +668,14 @@ msgstr ""
 "よく分からなければ、チェックを入れないでください。"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
+<<<<<<< HEAD
 msgid "Alternate Wiimote Timing"
 msgstr "Wii リモコンの同期調整"
+=======
+#, fuzzy
+msgid "Alternate Wiimote Timing"
+msgstr "Wii リモコンをエミュレート"
+>>>>>>> Update translation files for recent changes in the code.
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
 msgid "Anisotropic Filtering:"
@@ -707,7 +733,11 @@ msgstr ""
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "このタイトルの実体ファイルを削除しますか？元に戻すことはできません！"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:729
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:725
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:284
 msgid "Aspect Ratio:"
 msgstr "アスペクト比："
@@ -728,7 +758,11 @@ msgstr "出力API (Audio Backend)"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: Error opening AO device.\n"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:239
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:238
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
 msgid "Auto"
 msgstr "自動"
@@ -843,7 +877,11 @@ msgid "Blue Right"
 msgstr "青 - 右"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Bottom"
 msgstr "下部"
 
@@ -876,7 +914,11 @@ msgstr "出力先を選択"
 msgid "Buffer:"
 msgstr "バッファ："
 
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:71
+=======
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:68
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:89
 msgid "Buttons"
@@ -1123,7 +1165,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:213
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:244
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:563
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:559
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:592
 msgid "Close"
 msgstr "閉じる"
@@ -1232,7 +1278,11 @@ msgstr "3PのWii リモコンを接続／切断"
 msgid "Connect Wiimote 4"
 msgstr "4PのWii リモコンを接続／切断"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:597
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:598
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Connecting..."
 msgstr "接続中..."
 
@@ -1423,7 +1473,11 @@ msgid "DSP Emulator Engine"
 msgstr "DSPエミュレーション方式"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
+>>>>>>> Update translation files for recent changes in the code.
 msgid "DSP HLE emulation (fast)"
 msgstr "DSP-HLE エミュレーション (高速)"
 
@@ -1654,7 +1708,11 @@ msgstr ""
 msgid "Divide"
 msgstr "Divide"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1068
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1052
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Do you want to stop the current emulation?"
 msgstr "動作中のゲームを停止しますか？"
 
@@ -1683,12 +1741,21 @@ msgstr "Wii リモコンのエミュレーション設定"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1220
 msgid "Dolphin GCPad Configuration"
 msgstr "GCコントローラ設定"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:751
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1160
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1204
+msgid "Dolphin GCPad Configuration"
+msgstr "GCコントローラ設定"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:742
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1144
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS ムービー (*.dtm)"
 
@@ -1785,9 +1852,15 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Dutch"
 msgstr "オランダ語"
 
@@ -1931,15 +2004,22 @@ msgstr "Enable BAT"
 msgid "Enable Block Merging"
 msgstr "Enable Block Merging"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
 msgid "Enable Bounding Box Calculation"
 msgstr ""
 
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:440
 msgid "Enable Cache"
 msgstr "Enable Cache"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:536
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Enable Cheats"
 msgstr "チートコードを有効化"
 
@@ -2093,9 +2173,15 @@ msgstr ""
 msgid "End"
 msgstr "End"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+>>>>>>> Update translation files for recent changes in the code.
 msgid "English"
 msgstr "英語"
 
@@ -2124,6 +2210,7 @@ msgstr "に一致する"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1175
 msgid "Error"
 msgstr "エラー"
@@ -2135,6 +2222,12 @@ msgid ""
 "Sorry, Wii recording is temporarily broken."
 msgstr ""
 
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1169
+msgid "Error"
+msgstr "エラー"
+
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/Main.cpp:346
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
@@ -2593,9 +2686,15 @@ msgstr "録画フレーム数設定"
 msgid "Free Look"
 msgstr "フリールック"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:478
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
+>>>>>>> Update translation files for recent changes in the code.
 msgid "French"
 msgstr "フランス語"
 
@@ -2662,7 +2761,11 @@ msgid "Gamecube &Pad Settings"
 msgstr "ゲームキューブ入力設定(&P)"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1011
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "メモリーカードファイル (*.raw,*.gcp)|*.raw;*.gcp"
 
@@ -2685,8 +2788,12 @@ msgstr ""
 "(コードに問題があるか、まだサポートされていないタイプのコードです)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:525
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:204
 msgid "General"
 msgstr "一般"
@@ -2695,9 +2802,15 @@ msgstr "一般"
 msgid "General Settings"
 msgstr "一般"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:477
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
+>>>>>>> Update translation files for recent changes in the code.
 msgid "German"
 msgstr "ドイツ語"
 
@@ -2720,6 +2833,10 @@ msgid "Greater Than"
 msgstr "より大きい"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
+<<<<<<< HEAD
+=======
+#, fuzzy
+>>>>>>> Update translation files for recent changes in the code.
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -2829,8 +2946,12 @@ msgid "Hotkey Configuration"
 msgstr "ホットキーの設定"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:276
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:574
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Hotkeys"
 msgstr "ホットキー"
 
@@ -3053,7 +3174,11 @@ msgstr ""
 "InstallExceptionHandler が呼び出されましたが、このプラットフォームはまだサ"
 "ポートされていません"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1379
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1363
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Installing WAD..."
 msgstr "WADファイルを追加しています..."
 
@@ -3135,9 +3260,15 @@ msgstr "不正な録画ファイル"
 msgid "Invalid state"
 msgstr "不正なセーブ／ロードファイル"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Italian"
 msgstr "イタリア語"
 
@@ -3295,11 +3426,19 @@ msgstr "ステートロード - スロット 8"
 msgid "Load State..."
 msgstr "ファイルからロード"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1418
 msgid "Load Wii System Menu"
 msgstr "Wiiメニューを起動"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1413
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1402
+msgid "Load Wii System Menu"
+msgstr "Wiiメニューを起動"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1397
+>>>>>>> Update translation files for recent changes in the code.
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Wiiメニューを起動 ( バージョン：%d %c )"
@@ -3382,7 +3521,11 @@ msgstr "MMU Speed Hack"
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "MadCatz Gameshark セーブファイル(*.gcs)"
 
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:76
+=======
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:47
 msgid "Main Stick"
 msgstr "コントロールスティック"
@@ -3413,7 +3556,11 @@ msgid "Memory Byte"
 msgstr "メモリバイト"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Memory Card"
 msgstr "メモリーカード"
 
@@ -3609,7 +3756,11 @@ msgstr "NP Tab"
 msgid "NP Up"
 msgstr "NP Up"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:455
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:451
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:58
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:49
 msgid "Name:"
@@ -3696,7 +3847,11 @@ msgstr "に一致しない"
 msgid "Not Set"
 msgstr "未確認"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:596
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:597
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Not connected"
 msgstr "未接続"
 
@@ -3757,7 +3912,10 @@ msgstr "残り %d ブロックしかありません！"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:433
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:182
+=======
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Open"
 msgstr "開く"
 
@@ -3888,8 +4046,13 @@ msgstr "パッチ"
 msgid "Paths"
 msgstr "フォルダ"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1621
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1622
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1605
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1606
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
 msgid "Pause"
 msgstr "一時停止"
@@ -3909,8 +4072,13 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:437
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1630
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1631
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1614
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1615
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Play"
 msgstr "開始"
 
@@ -3936,7 +4104,11 @@ msgstr "再生オプション"
 msgid "Players"
 msgstr "プレイヤー一覧"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1069
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1053
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Please confirm..."
 msgstr "確認"
 
@@ -4148,10 +4320,17 @@ msgstr "ゲームリストを再更新"
 msgid "Refresh game list"
 msgstr "ゲームリストを再更新します"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:438
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
+#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Remove"
 msgstr "削除"
 
@@ -4170,7 +4349,10 @@ msgid "Render to Main Window"
 msgstr "メインウィンドウ部分に描画"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:188
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
 msgid "Reset"
 msgstr "初期化"
@@ -4213,7 +4395,11 @@ msgstr "ステートセーブ(&V)"
 msgid "Safe"
 msgstr "Safe"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:632
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Sample Rate:"
 msgstr "サンプルレート"
 
@@ -4297,7 +4483,11 @@ msgstr "Savestate movie %s の破損を確認しました。録画を中止し�
 msgid "Scaled EFB Copy"
 msgstr "Scaled EFB Copy"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
+=======
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:598
+>>>>>>> Update translation files for recent changes in the code.
 #, c-format
 msgid "Scanning %s"
 msgstr "確認中... .%s"
@@ -4337,12 +4527,21 @@ msgstr "Section %s not found in SYSCONF"
 msgid "Select"
 msgstr "選択"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:749
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1158
 msgid "Select The Recording File"
 msgstr "録画ファイルを選択"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1367
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:740
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1142
+msgid "Select The Recording File"
+msgstr "録画ファイルを選択"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1351
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Select a Wii WAD file to install"
 msgstr "追加するWADファイルを選択"
 
@@ -4368,6 +4567,7 @@ msgstr ""
 msgid "Select the file to load"
 msgstr "ロードするファイルを選択"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1324
 msgid "Select the save file"
 msgstr "セーブファイルを選択"
@@ -4377,6 +4577,17 @@ msgid "Select the state to load"
 msgstr "ロードするステートセーブファイルを選択"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1487
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1308
+msgid "Select the save file"
+msgstr "セーブファイルを選択"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1457
+msgid "Select the state to load"
+msgstr "ロードするステートセーブファイルを選択"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1471
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Select the state to save"
 msgstr "ステートセーブの保存先を選択"
 
@@ -4755,9 +4966,15 @@ msgstr "Sound buffer creation failed: %s"
 msgid "Space"
 msgstr "Space"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Spanish"
 msgstr "スペイン語"
 
@@ -4801,7 +5018,11 @@ msgstr "丸み"
 msgid "Standard Controller"
 msgstr "標準コントローラ"
 
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
+=======
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:309
 msgid "Start"
@@ -4836,7 +5057,10 @@ msgstr "スティック"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:315
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:438
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:187
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:187
+=======
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:312
 msgid "Stop"
 msgstr "停止"
@@ -4913,7 +5137,10 @@ msgstr "右テーブル"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:368
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:440
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:197
+=======
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Take Screenshot"
 msgstr "スクリーンショット"
 
@@ -5164,12 +5391,19 @@ msgstr "全てのログ情報を選択／解除"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:439
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:196
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:196
+=======
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Toggle Fullscreen"
 msgstr "フルスクリーン表示切り替え"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Top"
 msgstr "上部"
 
@@ -5278,6 +5512,18 @@ msgstr "次のIDから不明なメッセージを受信 : %d"
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr "Unknown message with id:%d received from player:%d Kicking player!"
 
+<<<<<<< HEAD
+=======
+#: Source/Core/Core/Src/HW/Memmap.cpp:633
+#, c-format
+msgid ""
+"Unknown pointer %#08x\n"
+"Continue?"
+msgstr ""
+"不明なポインタ %#08x\n"
+"続けますか？"
+
+>>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
 msgid "Up"
@@ -5501,7 +5747,11 @@ msgstr "Wii NANDルート"
 msgid "Wii Save Import"
 msgstr "Wiiのセーブデータをインポート"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1310
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Wiiセーブデータ (*.bin)|*.bin"
 
@@ -5532,7 +5782,11 @@ msgstr ""
 "またはしばらく入力がなかったため省電力モードに入ったのかもしれません\n"
 "再接続しますか？"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:598
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:599
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Wiimote Connected"
 msgstr "Wii リモコン接続中"
 
@@ -5564,9 +5818,15 @@ msgstr "Windows Right"
 msgid "Word Wrap"
 msgstr "ワードラップ"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1380
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1282
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1364
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1194
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1327
+>>>>>>> Update translation files for recent changes in the code.
 msgid "Working..."
 msgstr "動作中..."
 
@@ -6263,6 +6523,7 @@ msgstr "| (...もしくは)"
 
 #~ msgid "This is usually used to play voice and sound effects."
 #~ msgstr "音声や効果音の再生によく使用されます"
+<<<<<<< HEAD
 
 #~ msgid ""
 #~ "Unknown pointer %#08x\n"
@@ -6270,6 +6531,8 @@ msgstr "| (...もしくは)"
 #~ msgstr ""
 #~ "Unknown pointer %#08x\n"
 #~ "Continue?"
+=======
+>>>>>>> Update translation files for recent changes in the code.
 
 #~ msgid "Use FPS For Limiting"
 #~ msgstr "有効化"
