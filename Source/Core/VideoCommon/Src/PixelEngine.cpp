@@ -31,6 +31,7 @@
 #include "CommandProcessor.h"
 #include "HW/ProcessorInterface.h"
 #include "DLCache.h"
+#include "State.h"
 namespace PixelEngine
 {
 
@@ -329,6 +330,8 @@ void UpdateFinishInterrupt(bool active)
 	{
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
 		interruptSetFinish = active;
+		if (active)
+			State::ProcessRequestedStates(0);
 	}
 }
 

@@ -81,6 +81,9 @@ void DoState(PointerWrap &p)
 
 	SystemTimers::DecrementerSet();
 	SystemTimers::TimeBaseSet();
+
+	if (jit && p.GetMode() == PointerWrap::MODE_READ)
+		jit->GetBlockCache()->ClearSafe();
 }
 
 void ResetRegisters()
