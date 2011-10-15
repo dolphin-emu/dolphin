@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-10-11 23:25-0500\n"
-"PO-Revision-Date: 2011-08-11 15:30+0100\n"
+"PO-Revision-Date: 2011-10-15 23:23+0100\n"
 "Last-Translator: Petiso Carambanal <diegoae@gmail.com>\n"
 "Language-Team: DARIO_FF <LL@li.org>\n"
 "Language: Spanish\n"
@@ -430,7 +430,6 @@ msgid "Accurate VBeam emulation"
 msgstr "Emulación de VBeam Precisa"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -442,7 +441,7 @@ msgstr ""
 "Algunos juegos dependen de esto para algunos efectos gráficos o "
 "funcionalidad del juego.\n"
 "\n"
-"Si está inseguro, déjelo marcado."
+"Si está inseguro, elija EFB a textura."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -659,9 +658,8 @@ msgstr ""
 "Si está inseguro, déjelo sin marcar."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
-#, fuzzy
 msgid "Alternate Wiimote Timing"
-msgstr "Wiimote emulado"
+msgstr "Sincronización alternativa del Wiimote"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
 msgid "Anisotropic Filtering:"
@@ -2703,7 +2701,6 @@ msgid "Greater Than"
 msgstr "Mayor que"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -2715,8 +2712,8 @@ msgid ""
 msgstr ""
 "Aumenta bastante la calidad de las texturas generadas utilizando los efectos "
 "de renderización para la textura.\n"
-"Aumentar la resolución interna va a mejorar el efecto de esta definición.\n"
-"Diminuye ligeramente el desempenño y probablemente provoca fallos (aunque es "
+"Aumentar la resolución interna va a mejorar el efecto de este ajuste.\n"
+"Diminuye ligeramente el desempeño y probablemente provoca fallos (aunque es "
 "improbable).\n"
 "\n"
 "Si está inseguro, déjelo marcado."
