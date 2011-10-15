@@ -12,8 +12,12 @@ msgstr ""
 "PO-Revision-Date: 2011-12-09 00:28+0100\n"
 =======
 "POT-Creation-Date: 2011-10-11 23:25-0500\n"
+<<<<<<< HEAD
 "PO-Revision-Date: 2011-08-11 15:30+0100\n"
 >>>>>>> Update translation files for recent changes in the code.
+=======
+"PO-Revision-Date: 2011-10-15 23:23+0100\n"
+>>>>>>> Updated Spanish translation
 "Last-Translator: Petiso Carambanal <diegoae@gmail.com>\n"
 "Language-Team: DARIO_FF <LL@li.org>\n"
 "Language: Spanish\n"
@@ -437,9 +441,12 @@ msgstr "Emulación de VBeam Precisa"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Updated Spanish translation
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -681,6 +688,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 <<<<<<< HEAD
+<<<<<<< HEAD
 msgid "Alternate Wiimote Timing"
 msgstr "Sincronización alternativa del Wiimote"
 =======
@@ -688,6 +696,10 @@ msgstr "Sincronización alternativa del Wiimote"
 msgid "Alternate Wiimote Timing"
 msgstr "Wiimote emulado"
 >>>>>>> Update translation files for recent changes in the code.
+=======
+msgid "Alternate Wiimote Timing"
+msgstr "Sincronización alternativa del Wiimote"
+>>>>>>> Updated Spanish translation
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
 msgid "Anisotropic Filtering:"
@@ -2867,9 +2879,12 @@ msgstr "Mayor que"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Updated Spanish translation
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -2887,9 +2902,14 @@ msgstr ""
 =======
 "Aumenta bastante la calidad de las texturas generadas utilizando los efectos "
 "de renderización para la textura.\n"
+<<<<<<< HEAD
 "Aumentar la resolución interna va a mejorar el efecto de esta definición.\n"
 "Diminuye ligeramente el desempenño y probablemente provoca fallos (aunque es "
 >>>>>>> Update translation files for recent changes in the code.
+=======
+"Aumentar la resolución interna va a mejorar el efecto de este ajuste.\n"
+"Diminuye ligeramente el desempeño y probablemente provoca fallos (aunque es "
+>>>>>>> Updated Spanish translation
 "improbable).\n"
 "\n"
 "Si está inseguro, déjelo marcado."
