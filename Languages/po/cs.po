@@ -9,6 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 "POT-Creation-Date: 2011-12-18 13:39-0600\n"
 "PO-Revision-Date: 2011-10-15 14:50+0100\n"
 =======
@@ -17,6 +18,9 @@ msgstr ""
 >>>>>>> Update translation files for recent changes in the code.
 =======
 "POT-Creation-Date: 2011-08-10 08:30-0500\n"
+=======
+"POT-Creation-Date: 2011-10-11 23:25-0500\n"
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 "PO-Revision-Date: 2011-10-15 14:50+0100\n"
 >>>>>>> Update Greek and Czech translations
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
@@ -40,7 +44,7 @@ msgstr " Hra : "
 msgid "! NOT"
 msgstr "! NE"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:69
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:72
 #, c-format
 msgid ""
 "\"%s\" does not exist.\n"
@@ -82,7 +86,7 @@ msgstr "%s už existuje, přepsat?"
 msgid "%s failed to be scrubbed. Probably the image is corrupt."
 msgstr "%s nelze vyčistit. Obraz je pravděpodobně poškozen."
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:97
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:97
 #, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
@@ -91,7 +95,7 @@ msgstr ""
 "%s nelze načíst jako paměťovou kartu\n"
 "Soubor karty je neplatný (0x%x bajtů)"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:112
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:112
 #, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
@@ -100,7 +104,7 @@ msgstr ""
 "%s nelze načíst jako paměťovou kartu\n"
 "Velikost karty je neplatná (0x%x bajtů)"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:92
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:92
 #, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
@@ -317,7 +321,7 @@ msgstr "(-)+zNear"
 msgid "(UNKNOWN)"
 msgstr "(NEZNÁMÝ)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:377
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:381
 msgid "(off)"
 msgstr "(vypnuto)"
 
@@ -329,7 +333,7 @@ msgstr "16 bit"
 msgid "32 bit"
 msgstr "32 bit"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:406
 msgid "3D Vision"
 msgstr "3D Vision"
 
@@ -341,7 +345,7 @@ msgstr "8 bit"
 msgid "<Insert name here>"
 msgstr "<Zde vložte jméno>"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:258
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:262
 msgid "<No resolutions found>"
 msgstr "<Žádné rozlišení nenalezeno>"
 
@@ -428,10 +432,15 @@ msgstr "O Dolphinu"
 msgid "Acceleration"
 msgstr "Zrychlení"
 
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:471
+msgid "Accuracy:"
+msgstr "Přesnost:"
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:314
 msgid "Accurate VBeam emulation"
 msgstr "Precizní emulace VBeam"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
 <<<<<<< HEAD
@@ -441,12 +450,15 @@ msgstr "Precizní emulace VBeam"
 >>>>>>> Update Greek and Czech translations
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
 "functionality.\n"
 "\n"
-"If unsure, leave this checked."
+"If unsure, check EFB to Texture instead."
 msgstr ""
 "Přesně emulovat EFB kopie.\n"
 "Některé hry na tomto závisí pro určité grafické efekty nebo herní funkce.\n"
@@ -545,12 +557,12 @@ msgstr "Action Replay: Normální Kód %i: Neplatný podtyp %08x (%s)"
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "Action Replay: Normální Kód 0: Neplatný Podtyp %08x (%s)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:245
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:249
 msgid "Adapter:"
 msgstr "Adaptér:"
 
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:75
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:73
+#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:75
 msgid "Add"
 msgstr "Přidat"
 
@@ -568,6 +580,7 @@ msgstr "Přidat nový panel"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
@@ -581,6 +594,11 @@ msgstr "Přidat nový panel"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:411
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:411
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Add..."
 msgstr "Přidat..."
 
@@ -628,7 +646,7 @@ msgstr ""
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "Upravte tlak analogového ovládání potřebný k aktivaci tlačítek."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:486
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:520
 msgid "Advanced"
 msgstr "Pokročilé"
 
@@ -650,6 +668,7 @@ msgstr "Všechny soubory Gamecube GCM )gcm)"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
 =======
@@ -660,6 +679,10 @@ msgstr "Všechny soubory Gamecube GCM )gcm)"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1457
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1471
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "All Save States (sav, s##)"
 msgstr "Všechny Uložené Stavy (sav, s##)"
 
@@ -675,7 +698,7 @@ msgstr "Všechny komprimované soubory GC/WII ISO (gcz)"
 msgid "All files (*.*)|*.*"
 msgstr "Všechny soubory (*.*)|*.*"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:121
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:124
 msgid ""
 "Allows toggling certain options via the hotkeys 3, 4, 5, 6 and 7 within the "
 "emulation window.\n"
@@ -687,6 +710,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 <<<<<<< HEAD
@@ -702,10 +726,17 @@ msgstr "Emulovaný Wiimote"
 =======
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:368
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
+msgid "Alternate Wiimote Timing"
+msgstr "Střídat časování Wiimote"
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Anisotropic Filtering:"
 msgstr "Anizotropní Filtrování:"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:351
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:355
 msgid "Anti-Aliasing:"
 msgstr "Vyhlazení okrajů"
 
@@ -725,7 +756,7 @@ msgstr "Zavaděč aplikace:"
 msgid "Apply"
 msgstr "Použít"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:122
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:125
 msgid ""
 "Apply a post-processing effect after finishing a frame.\n"
 "\n"
@@ -761,11 +792,15 @@ msgstr "Opravdu chcete smazat tento soubor? Bude navždy ztracen!"
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:725
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:284
 =======
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:280
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:284
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Aspect Ratio:"
 msgstr "Poměr Stran:"
 
@@ -790,23 +825,27 @@ msgstr "AudioCommon: Chyba při otevírání zařízení zvukového výstupu.\n"
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:238
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
 =======
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:278
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Auto"
 msgstr "Auto"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:338
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:342
 msgid "Auto (Multiple of 640x528)"
 msgstr "Auto (Násobek 640x528)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:338
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:342
 msgid "Auto (Window Size)"
 msgstr "Auto (Velikost Okna)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:299
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:303
 msgid "Auto adjust Window Size"
 msgstr "Automaticky upravovat Velikost Okna"
 
@@ -820,6 +859,18 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:86
+msgid ""
+"Automatically generate mipmaps rather than decoding them from memory.\n"
+"Increases performance a bit but might cause minor texture defects.\n"
+"\n"
+"If unsure, leave this checked."
+msgstr ""
+"Automaticky vytvořit mipmapy, raději než dekódovat je z paměti.\n"
+"Trochu zlepší výkon, ale může způsobit malé chyby paměti.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto zaškrtnuté."
+
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
 msgstr "Zpět"
@@ -828,8 +879,8 @@ msgstr "Zpět"
 msgid "Backend Settings"
 msgstr "Nastavení Backendu"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:209
 #: Source/Plugins/Plugin_VideoSoftware/Src/VideoConfigDialog.cpp:62
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:213
 msgid "Backend:"
 msgstr "Backend:"
 
@@ -863,7 +914,7 @@ msgstr "Plakát:"
 msgid "Bar"
 msgstr "Vibráto"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:309
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:313
 msgid "Basic"
 msgstr "Základní"
 
@@ -875,7 +926,7 @@ msgstr "Základní nastavení"
 msgid "Bass"
 msgstr "Basy"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:188
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:188
 msgid "Block Allocation Table checksum failed"
 msgstr "Kontrolní součet Alokační Tabulky Bloku selhal"
 
@@ -896,6 +947,7 @@ msgid "Blue Right"
 msgstr "Modrá vpravo"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
@@ -906,6 +958,10 @@ msgstr "Modrá vpravo"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Bottom"
 msgstr "Dole"
 
@@ -940,6 +996,7 @@ msgstr "Vyrovnávací paměť:"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:71
 =======
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:68
@@ -949,7 +1006,11 @@ msgstr "Vyrovnávací paměť:"
 >>>>>>> Update Greek and Czech translations
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:89
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:68
+#: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
+#: Source/Core/DolphinWX/Src/TASInputDlg.cpp:89
 msgid "Buttons"
 msgstr "Tlačítka"
 
@@ -965,11 +1026,11 @@ msgstr "Kr-Stick"
 msgid "CPU Emulator Engine"
 msgstr "Jádro Emulátoru Procesoru"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:465
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:499
 msgid "Cache Display Lists"
 msgstr "Ukládat předvyt. obj. do vyr. pam."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:89
 msgid ""
 "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
 "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
@@ -984,7 +1045,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:86
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:88
 msgid ""
 "Calculate lighting of 3D graphics per-pixel rather than per vertex.\n"
 "Decreases emulation speed by some percent (depending on your GPU).\n"
@@ -999,8 +1060,8 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Src/WXInputBase.cpp:41
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:137
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:41
 msgid "Cancel"
 msgstr "Zrušit"
 
@@ -1044,10 +1105,10 @@ msgstr "Nelze najít Wiimote podle bz: %02x:%02x:%02x:%02x:%02x:%02x"
 msgid "Cant find WiiMote by connection handle %02x"
 msgstr "Nelze najít Wiimote pomocí obslužné rutiny spojení %02x"
 
-#: Source/Core/Core/Src/HW/DVDInterface.cpp:643
-#: Source/Core/Core/Src/HW/DVDInterface.cpp:653
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:236
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:331
+#: Source/Core/Core/Src/HW/DVDInterface.cpp:643
+#: Source/Core/Core/Src/HW/DVDInterface.cpp:653
 msgid "Cant read from DVD_Plugin - DVD-Interface: Fatal Error"
 msgstr "Nelze číst ze zásuvného modulu DVD - DVD-Rozhraní: Závažná chyba"
 
@@ -1170,10 +1231,10 @@ msgstr "Kruhový Stick"
 msgid "Classic"
 msgstr "Klasické"
 
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:142
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:43
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:491
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:917
-#: Source/Core/DolphinWX/Src/WXInputBase.cpp:43
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:142
 msgid "Clear"
 msgstr "Vyčistit"
 
@@ -1188,18 +1249,22 @@ msgid ""
 msgstr ""
 "Klient odpojen při běhu hry!! NetPlay je vypnut. Hru musíte ukončit ručně."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:558
+#: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:213
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:244
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:563
 =======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:559
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:592
 =======
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:213
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:592
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Close"
 msgstr "Zavřít"
 
@@ -1309,6 +1374,7 @@ msgstr "Připojit Wiimote 4"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:597
 =======
 #: Source/Core/DolphinWX/Src/Main.cpp:598
@@ -1316,6 +1382,9 @@ msgstr "Připojit Wiimote 4"
 =======
 #: Source/Core/DolphinWX/Src/Main.cpp:608
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:598
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Connecting..."
 msgstr "Připojuji..."
 
@@ -1383,7 +1452,7 @@ msgstr ""
 "Nelze nastavit pady. Hráč odešel, nebo hra v současnosti běží!.\n"
 "(nastavení padů za běhu hry není ještě podporováno)"
 
-#: Source/Core/Core/Src/HW/EXI_DeviceMemoryCard.cpp:118
+#: Source/Core/Core/Src/HW/EXI_DeviceMemoryCard.cpp:119
 #, c-format
 msgid ""
 "Could not write memory card file %s.\n"
@@ -1453,11 +1522,11 @@ msgstr "Tvůrce:"
 msgid "Critical"
 msgstr "Kritické"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:527
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:561
 msgid "Crop"
 msgstr "Oříznout"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:117
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:120
 msgid ""
 "Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.\n"
 "\n"
@@ -1505,6 +1574,7 @@ msgid "DSP Emulator Engine"
 msgstr "Jádro Emulátoru DSP"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
@@ -1515,6 +1585,10 @@ msgstr "Jádro Emulátoru DSP"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "DSP HLE emulation (fast)"
 msgstr "DSP HLE emulace (rychlé)"
 
@@ -1563,7 +1637,7 @@ msgstr "Mrtvá Zóna"
 msgid "Debug"
 msgstr "Ladění"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:499
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:533
 msgid "Debugging"
 msgstr "Ladění"
 
@@ -1596,8 +1670,8 @@ msgstr "Výchozí ISO:"
 msgid "Default font"
 msgstr "Výchozí typ písma"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:930
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:32
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:930
 msgid "Delete"
 msgstr "Smazat"
 
@@ -1605,12 +1679,12 @@ msgstr "Smazat"
 msgid "Delete Save"
 msgstr "Smazat Uloženou Hru"
 
-#: Source/Core/VideoCommon/Src/AVIDump.cpp:73
+#: Source/Core/VideoCommon/Src/AVIDump.cpp:77
 #, c-format
 msgid "Delete the existing file '%s'?"
 msgstr "Vymazat existující soubor '%s'?"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:651
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:685
 msgid "Description"
 msgstr "Popis"
 
@@ -1641,15 +1715,15 @@ msgstr "Nastavení Zařízení"
 msgid "Dial"
 msgstr "Kruhová stupnice"
 
-#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:147
+#: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:146
 msgid "Direct3D11"
 msgstr "Direct3D11"
 
-#: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:129
+#: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:128
 msgid "Direct3D9"
 msgstr "Direct3D9"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:169
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:169
 msgid ""
 "Directory checksum failed\n"
 " and Directory backup checksum failed"
@@ -1657,32 +1731,28 @@ msgstr ""
 "Kontrolní součet adresáře\n"
 "i záložní kontrolní součet Adresáře selhal"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:432
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:450
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:437
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:483
 msgid "Disable"
 msgstr "Zakázat"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:467
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:501
 msgid "Disable Fog"
 msgstr "Zakázat Mlhu"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:466
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:500
 msgid "Disable Lighting"
 msgstr "Zakázat Osvětlení"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:468
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:502
 msgid "Disable Per-Pixel Depth"
 msgstr "Zakázat Hloubku Podle Pixelu"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:497
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:531
 msgid "Disable Textures"
 msgstr "Zakázat Textury"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
-msgid "Disable Wiimote Speaker"
-msgstr "Zakázat Reproduktor Wiimote"
-
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:106
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:109
 msgid ""
 "Disable any XFB emulation.\n"
 "Speeds up emulation a lot but causes heavy glitches in many games which rely "
@@ -1696,7 +1766,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:93
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
 msgid ""
 "Disable emulation of EFB copies.\n"
 "These are often used for post-processing or render-to-texture effects, so "
@@ -1712,7 +1782,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
 msgid ""
 "Disable texturing.\n"
 "\n"
@@ -1731,11 +1801,11 @@ msgstr "Disk"
 msgid "Disc Read Error"
 msgstr "Chyba čtení disku"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:313
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:317
 msgid "Display"
 msgstr "Obraz"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:102
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:105
 msgid ""
 "Display the inputs read by the emulator.\n"
 "\n"
@@ -1751,6 +1821,7 @@ msgstr "Rozdělit"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1068
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1052
@@ -1758,6 +1829,9 @@ msgstr "Rozdělit"
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1051
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1052
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Do you want to stop the current emulation?"
 msgstr "Chcete současnou emulaci zastavit?"
 
@@ -1765,7 +1839,7 @@ msgstr "Chcete současnou emulaci zastavit?"
 msgid "Dolphin"
 msgstr "Dolphin"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:185
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:189
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "Dolphin %s Grafická Nastavení"
@@ -1788,6 +1862,7 @@ msgstr "Dolphin FIFO"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1220
 msgid "Dolphin GCPad Configuration"
 msgstr "Dolphin GCPad Nastavení"
@@ -1799,16 +1874,23 @@ msgstr "Dolphin GCPad Nastavení"
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1202
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1204
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Dolphin GCPad Configuration"
 msgstr "Dolphin GCPad Nastavení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:742
+<<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1144
 >>>>>>> Update translation files for recent changes in the code.
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1142
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1144
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Doplhin Filmy TAS (*.dtm)"
 
@@ -1836,8 +1918,8 @@ msgstr ""
 "Dolphin je v současnosti nastaven na skrytí všech her. Klikněte zde dvakrát "
 "pro zobrazení všech her..."
 
-#: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
 msgid "Down"
 msgstr "Dolů"
 
@@ -1862,19 +1944,19 @@ msgstr "Atrapa"
 msgid "Dump Audio"
 msgstr "Vypsat Zvuk"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:510
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:544
 msgid "Dump EFB Target"
 msgstr "Vypsat Cíl EFB"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:511
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:545
 msgid "Dump Frames"
 msgstr "Vypsat Snímky"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:508
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:542
 msgid "Dump Textures"
 msgstr "Vypsat Textury"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:112
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:115
 msgid ""
 "Dump all rendered frames to an AVI file in User/Dump/Frames/\n"
 "\n"
@@ -1884,7 +1966,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:109
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:112
 msgid ""
 "Dump decoded game textures to User/Dump/Textures/<game_id>/\n"
 "\n"
@@ -1894,7 +1976,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:111
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:114
 msgid ""
 "Dump the contents of EFB copies to User/Dump/Textures/\n"
 "\n"
@@ -1904,6 +1986,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
@@ -1919,6 +2002,11 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Dutch"
 msgstr "Nizozemština"
 
@@ -1926,7 +2014,7 @@ msgstr "Nizozemština"
 msgid "E&xit"
 msgstr "O&dejít"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:430
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:435
 msgid "EFB Copies"
 msgstr "EFB Kopie"
 
@@ -1979,7 +2067,7 @@ msgstr "Upravit"
 msgid "Effect"
 msgstr "Efekt"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:424
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:429
 msgid "Embedded Frame Buffer"
 msgstr "Vnořená Vyr. Pamět Snímků"
 
@@ -1987,7 +2075,7 @@ msgstr "Vnořená Vyr. Pamět Snímků"
 msgid "Emu Thread already running"
 msgstr "Vlákno Emulace již běží"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:108
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:111
 msgid ""
 "Emulate XFBs accurately.\n"
 "Slows down emulation a lot and prohibits high-resolution rendering but is "
@@ -2001,7 +2089,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, zaškrtněte místo tohoto virtuální emulaci XFB."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:107
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:110
 msgid ""
 "Emulate XFBs using GPU texture objects.\n"
 "Fixes many games which don't work without XFB emulation while not being as "
@@ -2029,7 +2117,7 @@ msgstr "Stav Emulace:"
 msgid "Enable"
 msgstr "Povolit"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:89
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:91
 msgid ""
 "Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's "
 "supported by your GPU.\n"
@@ -2063,21 +2151,27 @@ msgstr "Zapnout Slučování Bloků"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
 msgid "Enable Bounding Box Calculation"
 msgstr ""
 
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:440
 msgid "Enable Cache"
 msgstr "Povolit vyrovnávací paměť"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
 =======
 =======
 >>>>>>> Update Greek and Czech translations
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:536
 >>>>>>> Update translation files for recent changes in the code.
 msgid "Enable Cheats"
@@ -2095,7 +2189,7 @@ msgstr "Povolit dvojité jádro"
 msgid "Enable Dual Core (speedup)"
 msgstr "Zapnout dvojité jádro (zrychlení)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:528
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:562
 msgid "Enable Hotkeys"
 msgstr "Povolit klávesové zkratky"
 
@@ -2111,8 +2205,8 @@ msgstr "Povolit Přeskakování Nečinných Příkazů (zrychlení)"
 msgid "Enable MMU"
 msgstr "Zapnout MMU"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:534
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:322
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:568
 msgid "Enable Progressive Scan"
 msgstr "Povolit Progresivní Skenování"
 
@@ -2124,7 +2218,7 @@ msgstr "Povolit Spořič Obrazovky"
 msgid "Enable WideScreen"
 msgstr "Povolit Širokoúhlou obrazovku"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:493
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:527
 msgid "Enable Wireframe"
 msgstr "Povolit Drátěný Model"
 
@@ -2221,7 +2315,7 @@ msgstr ""
 "Povolí Jednotku Správy Paměti, potřebnou v nějakých hrách. (ZAPNUTO = "
 "Kompatibilní, VYPNUTO = Rychlé)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:114
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:117
 msgid ""
 "Encode frame dumps using the FFV1 codec.\n"
 "\n"
@@ -2237,6 +2331,7 @@ msgstr "End"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
@@ -2250,11 +2345,16 @@ msgstr "End"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "English"
 msgstr "Angličtina"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:330
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:406
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:334
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:411
 msgid "Enhancements"
 msgstr "Vylepšení"
 
@@ -2277,6 +2377,7 @@ msgid "Equal"
 msgstr "Rovná se"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
 <<<<<<< HEAD
@@ -2296,16 +2397,24 @@ msgstr ""
 >>>>>>> Update Greek and Czech translations
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1169
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1169
 msgid "Error"
 msgstr "Chyba"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/DolphinWX/Src/Main.cpp:346
 =======
 #: Source/Core/DolphinWX/Src/Main.cpp:356
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:346
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "Chyba při nahrávání zvoleného jazyka. Vracím se na výchozí jazyk systému."
@@ -2388,7 +2497,7 @@ msgstr "Exportovat Uloženou hru jako..."
 msgid "Extension"
 msgstr "Rozšíření"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:448
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:481
 msgid "External Frame Buffer"
 msgstr "Vnější Vyr. Paměť Snímků"
 
@@ -2510,7 +2619,7 @@ msgstr "Nelze nahrát hid.dll"
 msgid "Failed to read banner.bin"
 msgstr "Nelze číst z banner.bin"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:150
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:150
 msgid ""
 "Failed to read block allocation table backup correctly\n"
 "(0x8000-0x9FFF)"
@@ -2518,7 +2627,7 @@ msgstr ""
 "Nelze správně číst zálohu alokační tabulky bloku\n"
 "(0x8000-0x9FFF)"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:144
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:144
 msgid ""
 "Failed to read block allocation table correctly\n"
 "(0x6000-0x7FFF)"
@@ -2531,7 +2640,7 @@ msgstr ""
 msgid "Failed to read data from file %d"
 msgstr "Nelze číst data ze souboru %d"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:138
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:138
 msgid ""
 "Failed to read directory backup correctly\n"
 "(0x4000-0x5FFF)"
@@ -2539,7 +2648,7 @@ msgstr ""
 "Nelze správně číst zálohu adresáře\n"
 "(0x4000-0x5FFF)"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:132
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:132
 msgid ""
 "Failed to read directory correctly\n"
 "(0x2000-0x3FFF)"
@@ -2547,7 +2656,7 @@ msgstr ""
 "Nelze správně číst adresář\n"
 "(0x2000-0x3FFF)"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:121
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:121
 msgid ""
 "Failed to read header correctly\n"
 "(0x0000-0x1FFF)"
@@ -2555,7 +2664,7 @@ msgstr ""
 "Nelze správně číst hlavičku\n"
 "(0x0000-0x1FFF)"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:222
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:222
 msgid ""
 "Failed to read save data\n"
 "(0xA000-)\n"
@@ -2587,6 +2696,14 @@ msgstr "Zápis hlavičky selhal pro %s"
 msgid "Failed to write header for file %d"
 msgstr "Selhal zápis hlavičky souboru %d"
 
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:475
+msgid "Fast"
+msgstr "Rychlá"
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:498
+msgid "Fast Mipmaps"
+msgstr "Rychlé Mipmapy"
+
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
 msgid "Fast version of the MMU.  Does not work for every game."
 msgstr "Rychlá verze MMU. Nefunguje v každé hře."
@@ -2615,7 +2732,7 @@ msgstr ""
 "Soubor nelze otevřít\n"
 "nebo nemá platnou příponu"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:86
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:86
 #, c-format
 msgid ""
 "File has the extension \"%s\"\n"
@@ -2653,11 +2770,11 @@ msgstr "První blok"
 msgid "Fix Checksums"
 msgstr "Spravit Kontrolní Součty"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:278
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
 msgid "Force 16:9"
 msgstr "Vynutit 16:9"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:278
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
 msgid "Force 4:3"
 msgstr "Vynutit 4:3"
 
@@ -2665,11 +2782,11 @@ msgstr "Vynutit 4:3"
 msgid "Force Console as NTSC-J"
 msgstr "Donutit konzoli být jako NTSC-J"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:398
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:403
 msgid "Force Texture Filtering"
 msgstr "Vynutit Filtrování Textur"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:88
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:90
 msgid ""
 "Force texture filtering even if the emulated game explicitly disabled it.\n"
 "Improves texture quality slightly but causes glitches in some games.\n"
@@ -2703,7 +2820,7 @@ msgstr ""
 "Pokud není zaškrtnuto, Dolphin standardně přejde na NTSC-U a automaticky "
 "zapne toto nastavení při hraní Japonských her."
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:73
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:76
 msgid ""
 "Format as ascii (NTSC\\PAL)?\n"
 "Choose no for sjis (NTSC-J)"
@@ -2729,7 +2846,7 @@ msgstr "Snímek"
 msgid "Frame Advance"
 msgstr "Postup Snímkem"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:514
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:548
 msgid "Frame Dumps use FFV1"
 msgstr "Uložení snímků použije FFV1"
 
@@ -2749,10 +2866,11 @@ msgstr "Limit Snímků:"
 msgid "Frames To Record"
 msgstr "Snímky k Nahrání"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:512
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:546
 msgid "Free Look"
 msgstr "Rozhlížení pomocí myši"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
@@ -2768,6 +2886,11 @@ msgstr "Rozhlížení pomocí myši"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:478
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:478
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "French"
 msgstr "Francouzština"
 
@@ -2784,7 +2907,7 @@ msgstr "Z"
 msgid "FullScr"
 msgstr "CelObr"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:259
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:263
 msgid "Fullscreen resolution:"
 msgstr "Rozlišení celé obrazovky:"
 
@@ -2834,6 +2957,7 @@ msgid "Gamecube &Pad Settings"
 msgstr "Nastavení Gamecube &Pad"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1011
@@ -2844,6 +2968,10 @@ msgstr "Nastavení Gamecube &Pad"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "Paměťové karty Gamecube (*.raw,*.gcp)"
 
@@ -2866,6 +2994,7 @@ msgstr ""
 "(buď špatný kód, nebo typ kódu není ještě podporován.)"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
@@ -2879,6 +3008,11 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:200
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:525
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:204
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "General"
 msgstr "Obecné"
 
@@ -2886,6 +3020,7 @@ msgstr "Obecné"
 msgid "General Settings"
 msgstr "Obecná Nastavení"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
@@ -2901,6 +3036,11 @@ msgstr "Obecná Nastavení"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:477
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:477
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "German"
 msgstr "Němčina"
 
@@ -2922,6 +3062,7 @@ msgid "Greater Than"
 msgstr "Větší než"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 <<<<<<< HEAD
 =======
@@ -2930,10 +3071,15 @@ msgstr "Větší než"
 >>>>>>> Update Greek and Czech translations
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid ""
-"Greatly increases quality of textures generated using render-to-texture "
+"Greatly increases quality of textures generated using render to texture "
 "effects.\n"
 "Raising the internal resolution will improve the effect of this setting.\n"
+"Slightly decreases performance and possibly causes issues (although "
+"unlikely).\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
@@ -2968,11 +3114,11 @@ msgstr "Kytara"
 msgid "HCI_CMD_INQUIRY is called, please report!"
 msgstr "Byl zavolán HCI_CMD_INQUIRY, prosím ohlaste!"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:420
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:425
 msgid "Hacks"
 msgstr "Hacky"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:160
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:160
 msgid "Header checksum failed"
 msgstr "Kontrolní součet hlavičky selhal"
 
@@ -3008,7 +3154,7 @@ msgstr ""
 msgid "Hide"
 msgstr "Skrýt"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:300
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:304
 msgid "Hide Mouse Cursor"
 msgstr "Skrýt kurzor myši"
 
@@ -3036,6 +3182,7 @@ msgid "Hotkey Configuration"
 msgstr "Nastavení klávesových zkratek"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:276
@@ -3047,6 +3194,10 @@ msgstr "Nastavení klávesových zkratek"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Hotkeys"
 msgstr "Klávesové zkratky"
 
@@ -3133,11 +3284,11 @@ msgstr ""
 "Pokud nastavíte limit snímků větší než plná rychlost hry (NTSC:60, PAL:50), "
 "měli byste také vypnout Přiškrcení Zvuku v DSP, aby to bylo účinné."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:427
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:432
 msgid "Ignore Format Changes"
 msgstr "Ignorovat Změny Formátu"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:92
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
 msgid ""
 "Ignore any changes to the EFB format.\n"
 "Improves performance in many games without any negative effect. Causes "
@@ -3151,7 +3302,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:91
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:93
 msgid ""
 "Ignore any requests of the CPU to read from or write to the EFB.\n"
 "Improves performance in some games, but might disable some gameplay-related "
@@ -3193,7 +3344,7 @@ msgstr ""
 "\"Importovaný soubor má příponu sav\n"
 "ale nemá správnou hlavičku\""
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:99
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:102
 msgid ""
 "Improves performance but causes glitches in most games which rely on proper "
 "fog emulation.\n"
@@ -3205,7 +3356,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
 msgid ""
 "Improves performance but causes lighting to disappear in most games.\n"
 "\n"
@@ -3223,8 +3374,8 @@ msgstr "Ve Hře"
 msgid "In-Game"
 msgstr "Ve Hře"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:301
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:49
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:301
 msgid "Info"
 msgstr "Info"
 
@@ -3269,6 +3420,7 @@ msgstr ""
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1379
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1363
@@ -3276,6 +3428,9 @@ msgstr ""
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1361
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1363
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Installing WAD..."
 msgstr "Instaluji WAD..."
 
@@ -3304,7 +3459,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Vnitřní chyba LZO - lzo_init() selhalo"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:345
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:349
 msgid "Internal Resolution:"
 msgstr "Vnitřní Rozlišení:"
 
@@ -3359,6 +3514,7 @@ msgstr "Neplatný stav"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
@@ -3372,6 +3528,11 @@ msgstr "Neplatný stav"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Italian"
 msgstr "Italština"
 
@@ -3433,8 +3594,8 @@ msgstr "Poslední Přepsaný Stav"
 msgid "Last Saved State"
 msgstr "Poslední Uložený Stav"
 
-#: Source/Core/DolphinWX/Src/WXInputBase.cpp:52
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:52
 msgid "Left"
 msgstr "Vlevo"
 
@@ -3481,7 +3642,7 @@ msgstr "Limitovat podle SzS"
 msgid "Load"
 msgstr "Nahrát"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:509
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:543
 msgid "Load Custom Textures"
 msgstr "Nahrát Vlastní Textury"
 
@@ -3531,6 +3692,7 @@ msgstr "Nahrát Stav..."
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1418
 msgid "Load Wii System Menu"
 msgstr "Nahrát Systémové Menu Wii"
@@ -3550,11 +3712,18 @@ msgstr "Nahrát Systémové Menu Wii"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1395
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1402
+msgid "Load Wii System Menu"
+msgstr "Nahrát Systémové Menu Wii"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1397
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Nahrát Systémové Menu Wii %d%c"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:110
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
 msgid ""
 "Load custom textures from User/Load/Textures/<game_id>/\n"
 "\n"
@@ -3596,8 +3765,8 @@ msgstr "Typy Záznamu"
 msgid "Logger Outputs"
 msgstr "Výstup Zapisovače"
 
-#: Source/Core/DolphinWX/Src/Frame.cpp:398
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:132
+#: Source/Core/DolphinWX/Src/Frame.cpp:398
 msgid "Logging"
 msgstr "Protokolování"
 
@@ -3633,6 +3802,7 @@ msgstr "Soubory MadCatz Gameshark (*.gcs)"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:76
 =======
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
@@ -3640,7 +3810,10 @@ msgstr "Soubory MadCatz Gameshark (*.gcs)"
 =======
 >>>>>>> Update Greek and Czech translations
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:47
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
+#: Source/Core/DolphinWX/Src/TASInputDlg.cpp:47
 msgid "Main Stick"
 msgstr "Hlavní Stick"
 
@@ -3670,6 +3843,7 @@ msgid "Memory Byte"
 msgstr "Bajt Paměti"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
@@ -3680,6 +3854,10 @@ msgstr "Bajt Paměti"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Memory Card"
 msgstr "Paměťová karta"
 
@@ -3708,7 +3886,7 @@ msgstr ""
 "%s\n"
 "Chtěli byste starý soubor zkopírovat do nového umístění?\n"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp:126
+#: Source/Core/Core/Src/HW/GCMemcard.cpp:126
 msgid "Memorycard filesize does not match the header size"
 msgstr "Velikost paměťové karty se neshoduje s velikosti hlavičky"
 
@@ -3725,7 +3903,7 @@ msgstr "Mikrofon"
 msgid "Min"
 msgstr "Min"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:548
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:582
 msgid "Misc"
 msgstr "Ostatní"
 
@@ -3738,7 +3916,7 @@ msgstr "Ostatní Nastavení"
 msgid "Modifier"
 msgstr "Modifikátor"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:104
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:107
 msgid ""
 "Modify textures to show the format they're encoded in. Needs an emulation "
 "reset in most cases.\n"
@@ -3763,7 +3941,7 @@ msgstr "Motion Plus"
 msgid "Motor"
 msgstr "Motor"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:634
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:668
 msgid ""
 "Move the mouse pointer over an option to display a detailed description.\n"
 "\n"
@@ -3879,15 +4057,18 @@ msgstr "NK Nahoru"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:455
 =======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:451
 >>>>>>> Update translation files for recent changes in the code.
 =======
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:451
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:58
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:49
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:451
 msgid "Name:"
 msgstr "Jméno:"
 
@@ -3974,6 +4155,7 @@ msgstr "Nenastaven"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:596
 =======
 #: Source/Core/DolphinWX/Src/Main.cpp:597
@@ -3981,6 +4163,9 @@ msgstr "Nenastaven"
 =======
 #: Source/Core/DolphinWX/Src/Main.cpp:607
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:597
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Not connected"
 msgstr "Nepřipojen"
 
@@ -4009,8 +4194,8 @@ msgstr "Num Lock"
 msgid "Number Of Codes: "
 msgstr "Počet Kódů:"
 
-#: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:26
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Nunchuk.cpp:30
+#: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:26
 msgid "Nunchuk"
 msgstr "Nunčak"
 
@@ -4039,6 +4224,7 @@ msgstr "Logická Adresa:"
 msgid "Only %d blocks available"
 msgstr "Pouze bloky %d jsou dostupné"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4048,6 +4234,10 @@ msgstr "Pouze bloky %d jsou dostupné"
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:433
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:433
+#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Open"
 msgstr "Otevřít"
 
@@ -4077,11 +4267,11 @@ msgstr "OpenAL: nelze nalézt zvuková zařízení"
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: nelze otevřít zařízení %s"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:470
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:504
 msgid "OpenCL Texture Decoder"
 msgstr "OpenCL Dekodér Textury"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:471
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:505
 msgid "OpenMP Texture Decoder"
 msgstr "OpenMP Dekodér Textury"
 
@@ -4112,8 +4302,8 @@ msgstr ""
 "Klikněte pravým tlačítkem a exportujte všechna uložení,\n"
 "a importujte je do nové paměťové karty\n"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:317
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:473
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:321
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:507
 msgid "Other"
 msgstr "Jiné"
 
@@ -4179,6 +4369,7 @@ msgstr "Cesty"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1621
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1622
 =======
@@ -4187,13 +4378,15 @@ msgstr "Cesty"
 >>>>>>> Update translation files for recent changes in the code.
 =======
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1605
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1606
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1603
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1604
 msgid "Pause"
 msgstr "Pozastavit"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:397
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
 msgid "Per-Pixel Lighting"
 msgstr "Osvětlení Podle Pixelu"
 
@@ -4206,6 +4399,7 @@ msgstr "Dokonalá"
 msgid "Perspective %d"
 msgstr "Perspektiva %d"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:437
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4220,6 +4414,12 @@ msgstr "Perspektiva %d"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1613
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:437
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1614
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1615
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Play"
 msgstr "Spustit"
 
@@ -4247,6 +4447,7 @@ msgstr "Hráči"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1069
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1053
@@ -4254,6 +4455,9 @@ msgstr "Hráči"
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1052
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1053
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Please confirm..."
 msgstr "Prosím potvrďte..."
 
@@ -4298,7 +4502,7 @@ msgstr "Portugalština"
 msgid "Portuguese (Brazilian)"
 msgstr "Portugalština (Brazilská)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:392
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:396
 msgid "Post-Processing Effect:"
 msgstr "Efekt Následného Zpracování:"
 
@@ -4372,7 +4576,7 @@ msgstr "Tlačítko R"
 msgid "R-Analog"
 msgstr "Pravý Analog"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:434
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:439
 msgid "RAM"
 msgstr "RAM"
 
@@ -4389,7 +4593,7 @@ msgstr "Rozsah"
 msgid "Read-only mode"
 msgstr "Režim pouze pro čtení"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:452
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:485
 msgid "Real"
 msgstr "Opravdová"
 
@@ -4449,9 +4653,9 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, vyberte Žádný."
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:907
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:434
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:71
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:434
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:907
 msgid "Refresh"
 msgstr "Obnovit"
 
@@ -4464,6 +4668,7 @@ msgstr "Obnovit Seznam"
 msgid "Refresh game list"
 msgstr "Obnovit seznam her"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
@@ -4482,10 +4687,16 @@ msgstr "Obnovit seznam her"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
+#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Remove"
 msgstr "Odstranit"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:96
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:99
 msgid ""
 "Render the scene as a wireframe.\n"
 "\n"
@@ -4495,10 +4706,11 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:301
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:305
 msgid "Render to Main Window"
 msgstr "Vykreslit do Hlavního okna"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
 <<<<<<< HEAD
@@ -4508,7 +4720,10 @@ msgstr "Vykreslit do Hlavního okna"
 =======
 >>>>>>> Update Greek and Czech translations
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
 msgid "Reset"
 msgstr "Resetovat"
 
@@ -4520,8 +4735,8 @@ msgstr "Výsledky"
 msgid "Return"
 msgstr "Enter"
 
-#: Source/Core/DolphinWX/Src/WXInputBase.cpp:54
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:277
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:54
 msgid "Right"
 msgstr "Vpravo"
 
@@ -4547,23 +4762,29 @@ msgid "Sa&ve State"
 msgstr "Uložit Sta&v"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:473
 msgid "Safe"
 msgstr "Bezpečná"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
 =======
 =======
 >>>>>>> Update Greek and Czech translations
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:632
 >>>>>>> Update translation files for recent changes in the code.
 msgid "Sample Rate:"
 msgstr "Vzorkovací frekvence:"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:929
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:459
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:181
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:459
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:929
 msgid "Save"
 msgstr "Uložit"
 
@@ -4638,15 +4859,21 @@ msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Uložený stav filmu %s je poškozen, nahrávání filmu je zastaveno..."
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Scaled EFB Copy"
 msgstr "EFB Kopie Změněné Velikosti"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
 =======
 =======
 >>>>>>> Update Greek and Czech translations
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:598
 >>>>>>> Update translation files for recent changes in the code.
 #, c-format
@@ -4683,8 +4910,8 @@ msgstr "Hledat Podadresáře"
 msgid "Section %s not found in SYSCONF"
 msgstr "Sekce %s nebyla v SYSCONF nalezena"
 
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:494
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:56
+#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:494
 msgid "Select"
 msgstr "Vybrat"
 
@@ -4697,16 +4924,20 @@ msgstr "Vyberte Soubor s Nahrávkou"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1367
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:740
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1140
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1142
 msgid "Select The Recording File"
 msgstr "Vyberte Soubor s Nahrávkou"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1351
 >>>>>>> Update translation files for recent changes in the code.
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1349
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1351
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Select a Wii WAD file to install"
 msgstr "Vyberte soubor Wii WAD k instalování"
 
@@ -4734,6 +4965,7 @@ msgstr "Vyberte soubor k nahrání"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1324
 msgid "Select the save file"
 msgstr "Vyberte soubor s uloženou hrou"
@@ -4748,19 +4980,26 @@ msgstr "Vyberte stav k nahrání"
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1306
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1308
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Select the save file"
 msgstr "Vyberte soubor s uloženou hrou"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1455
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1457
 msgid "Select the state to load"
 msgstr "Vyberte stav k nahrání"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1471
 >>>>>>> Update translation files for recent changes in the code.
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1469
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1471
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Select the state to save"
 msgstr "Vyberte stav k uložení"
 
@@ -4898,11 +5137,11 @@ msgstr "Zobrazit Panel Nás&trojů"
 msgid "Show Drives"
 msgstr "Zobrazit Disky"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:494
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:528
 msgid "Show EFB Copy Regions"
 msgstr "Zobrazit EFB Regiony Kopie"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:298
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:302
 msgid "Show FPS"
 msgstr "Zobrazit Snímky za Sekundu"
 
@@ -4914,7 +5153,7 @@ msgstr "Zobrazit Francii"
 msgid "Show GameCube"
 msgstr "Zobrazit GameCube"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:526
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:560
 msgid "Show Input Display"
 msgstr "Zobrazit Obrazovku Vstupu"
 
@@ -4950,7 +5189,7 @@ msgstr "Zobrazit Platformy"
 msgid "Show Regions"
 msgstr "Zobrazit Regiony"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:495
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:529
 msgid "Show Statistics"
 msgstr "Zobrazit Statistiky"
 
@@ -5004,7 +5243,7 @@ msgstr "Zobrazit ikonu uložení"
 msgid "Show save title"
 msgstr "Zobrazit název uložení"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:104
 msgid ""
 "Show the number of frames rendered per second as a measure of emulation "
 "speed.\n"
@@ -5024,7 +5263,7 @@ msgstr "Zobrazit tuto zprávu nápovědy"
 msgid "Show unknown"
 msgstr "Zobrazit neznámé"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:103
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:106
 msgid ""
 "Show various statistics.\n"
 "\n"
@@ -5050,15 +5289,15 @@ msgstr "Velikost"
 msgid "Skip BIOS"
 msgstr "Přeskočit BIOS"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:469
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:503
 msgid "Skip Dest. Alpha Pass"
 msgstr "Vypnout Průchod Cíl. Průhl."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:441
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:448
 msgid "Skip EFB Access from CPU"
 msgstr "Přeskočit EFB Přístup z Procesoru"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:103
 msgid ""
 "Skip the destination alpha pass used in many games for various graphical "
 "effects.\n"
@@ -5067,6 +5306,22 @@ msgid ""
 msgstr ""
 "Přeskočit průchod cílové průhlednosti používaný ve většině her pro různé "
 "grafické efekty.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:126
+msgid ""
+"Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\n"
+"Sometimes also increases visual quality.\n"
+"If you're experiencing any issues, try raising texture cache accuracy or "
+"disable this option.\n"
+"\n"
+"If unsure, leave this unchecked."
+msgstr ""
+"Lehce zrychlí kopie EFB do RAM obětováním přesnosti emulace.\n"
+"Někdy také zvýší kvalitu obrazu.\n"
+"Pokud se setkáváte s jakýmikoliv problémy, zkuste zvýšit přesnost textury, "
+"nebo tuto možnost vypnout.\n"
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
@@ -5125,6 +5380,7 @@ msgstr "Mezerník"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
@@ -5138,6 +5394,11 @@ msgstr "Mezerník"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Spanish"
 msgstr "Španělština"
 
@@ -5145,7 +5406,7 @@ msgstr "Španělština"
 msgid "Speaker Volume:"
 msgstr "Hlasitost Reproduktoru:"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:90
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:92
 msgid ""
 "Specifies the resolution used to render at. A high resolution will improve "
 "visual quality a lot but is also quite heavy on performance and might cause "
@@ -5183,15 +5444,18 @@ msgstr "Standardní Ovladač"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
 =======
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
 >>>>>>> Update translation files for recent changes in the code.
 =======
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:309
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
 msgid "Start"
 msgstr "Start"
 
@@ -5221,6 +5485,7 @@ msgstr "Ukládání stavu"
 msgid "Stick"
 msgstr "Stick"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:187
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5231,11 +5496,30 @@ msgstr "Stick"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:438
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:315
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:315
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:438
+#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:187
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:312
 msgid "Stop"
 msgstr "Zastavit"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:278
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:96
+msgid ""
+"Store EFB copies in GPU texture objects.\n"
+"This is not so accurate, but it works well enough for most games and gives a "
+"great speedup over EFB to RAM.\n"
+"\n"
+"If unsure, leave this checked."
+msgstr ""
+"Ukládat EFB kopie do objektů textury grafického procesoru.\n"
+"Toto není přesné, ale pro většinu her funguje dostatečně dobře a dává větší "
+"zrychlení než EFB do RAM.\n"
+"\n"
+"Pokud si nejste jisti, nechejte toto odškrtnuté."
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
 msgid "Stretch to Window"
 msgstr "Roztáhnout do Okna"
 
@@ -5269,8 +5553,8 @@ msgstr "Jazyk Systému:"
 msgid "TAIWAN"
 msgstr "TCHAJ-WAN"
 
-#: Source/Core/DolphinWX/Src/TASInputDlg.h:32
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
+#: Source/Core/DolphinWX/Src/TASInputDlg.h:32
 msgid "TAS Input"
 msgstr "TAS Vstup"
 
@@ -5290,9 +5574,9 @@ msgstr "Deska vlevo"
 msgid "Table Right"
 msgstr "Deska vpravo"
 
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:368
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:440
+<<<<<<< HEAD
 <<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
 <<<<<<< HEAD
@@ -5301,6 +5585,9 @@ msgstr "Deska vpravo"
 >>>>>>> Update translation files for recent changes in the code.
 =======
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Take Screenshot"
 msgstr "Vytvořit Snímek Obrazovky"
 
@@ -5312,7 +5599,15 @@ msgstr ""
 msgid "Test"
 msgstr "Test"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:496
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:438
+msgid "Texture"
+msgstr "Textura"
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:455
+msgid "Texture Cache"
+msgstr "Vyrovnávací Paměť Textur"
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:530
 msgid "Texture Format Overlay"
 msgstr "Překryv Formátu Textury"
 
@@ -5357,7 +5652,7 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "Soubor %s je už otevřen, hlavička souboru nebude zapsána."
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:281
+#: Source/Core/Core/Src/Boot/Boot.cpp:313
 #, c-format
 msgid "The file you specified (%s) does not exist"
 msgstr "Zadaný soubor (%s) neexistuje"
@@ -5374,11 +5669,23 @@ msgstr "Jméno nemůže obsahovat znak ','"
 msgid "The resulting decrypted AR code doesn't contain any lines."
 msgstr "Výsledný rozšifrovaný kód AR neobsahuje žádné řádky."
 
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
+msgid ""
+"The safer you adjust this, the less likely the emulator will be missing any "
+"texture updates from RAM.\n"
+"\n"
+"If unsure, use the second-fastest value from the right."
+msgstr ""
+"Čím bezpečnější toto bude, tím bude méně pravděpodobné, že emulátoru budou "
+"chybět jakékoliv aktualizace textur z RAM.\n"
+"\n"
+"Pokud si nejste jisti, použijte druhou nejrychlejší hodnotu zprava."
+
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:447
 msgid "The save you are trying to copy has an invalid file size"
 msgstr "Uložená hra, kterou se snažíte zkopírovat má neplatnou délku souboru"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:363
+#: Source/Core/DolphinWX/Src/Main.cpp:353
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -5447,7 +5754,7 @@ msgstr ""
 msgid "This could cause slow down in Wii Menu and some games."
 msgstr "Toto může způsobit zpomalení ve Wii Menu a v některých hrách."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:116
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:119
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Hold the right mouse button and move the mouse to pan the camera around. "
@@ -5522,6 +5829,7 @@ msgstr "Do"
 msgid "Toggle All Log Types"
 msgstr "Zapnout Všechny Typy Záznamů"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:196
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5538,13 +5846,19 @@ msgstr "Přepnout na Celou Obrazovku"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
 >>>>>>> Update translation files for recent changes in the code.
 =======
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:439
+#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:196
 msgid "Toggle Fullscreen"
 msgstr "Přepnout na Celou Obrazovku"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
+<<<<<<< HEAD
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Top"
 msgstr "Nahoře"
 
@@ -5552,7 +5866,7 @@ msgstr "Nahoře"
 msgid "Traditional Chinese"
 msgstr "Tradiční Čínština"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:375
+#: Source/Core/Core/Src/Boot/Boot.cpp:407
 msgid "Tried to load an unknown file type."
 msgstr "Pokus o načtení souboru neznámého typu."
 
@@ -5588,8 +5902,8 @@ msgstr "Typ"
 msgid "UDP Port:"
 msgstr "UDP Port:"
 
-#: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:12
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:269
+#: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:12
 msgid "UDP Wiimote"
 msgstr "UDP Wiimote"
 
@@ -5665,12 +5979,16 @@ msgstr ""
 "Pokračovat?"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 =======
 >>>>>>> Update Greek and Czech translations
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
+#: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
 msgid "Up"
 msgstr "Nahoru"
 
@@ -5687,7 +6005,7 @@ msgstr "Svislý Wiimote"
 msgid "Use EuRGB60 Mode (PAL60)"
 msgstr "Použít režim EuRGB60 (PAL60)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:289
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:293
 msgid "Use Fullscreen"
 msgstr "Použít Celou Obrazovku"
 
@@ -5699,7 +6017,7 @@ msgstr "Použít Šestnáctkovou soustavu"
 msgid "Use Panic Handlers"
 msgstr "Použít Obslužné Rutiny Paniky"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:120
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:123
 msgid ""
 "Use multiple threads to decode textures.\n"
 "Might result in a speedup (especially on CPUs with more than two cores).\n"
@@ -5712,7 +6030,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:123
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:127
 msgid ""
 "Usually if shader compilation fails, an error message is displayed.\n"
 "However, one may skip the popups to allow interruption free gameplay by "
@@ -5726,11 +6044,11 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:517
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:551
 msgid "Utility"
 msgstr "Pomůcky"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:288
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:292
 msgid "V-Sync"
 msgstr "V-Synch"
 
@@ -5754,8 +6072,7 @@ msgstr "Úroveň"
 msgid "Video"
 msgstr "Obraz"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:433
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:451
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:484
 msgid "Virtual"
 msgstr "Virtuální"
 
@@ -5782,21 +6099,21 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.h:84
-#: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:48
 #: Source/Core/Common/Src/MsgHandler.cpp:67
+#: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:48
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.h:84
 msgid "Warning"
 msgstr "Varování"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:240
+#: Source/Core/Core/Src/Boot/Boot.cpp:272
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "Varování - DOL se spouští ve špatném režimu konzole!"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:290
+#: Source/Core/Core/Src/Boot/Boot.cpp:322
 msgid "Warning - starting ELF in wrong console mode!"
 msgstr "Varování - ELF se spouští ve špatném režimu konzole!"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:185
+#: Source/Core/Core/Src/Boot/Boot.cpp:217
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Varování - ISO se spouští ve špatném režimu konzole!"
 
@@ -5868,7 +6185,7 @@ msgstr "WaveFileWriter - soubor není otevřen."
 msgid "Whammy"
 msgstr "Whammy"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:530
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:564
 msgid "Widescreen Hack"
 msgstr "Hack Širokoúhlého obrazu"
 
@@ -5894,6 +6211,7 @@ msgstr "Import uložených pozic Wii"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1310
@@ -5901,6 +6219,9 @@ msgstr "Import uložených pozic Wii"
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1308
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1310
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Wii soubory s uložením (*.bin)|*.bin"
 
@@ -5908,8 +6229,8 @@ msgstr "Wii soubory s uložením (*.bin)|*.bin"
 msgid "WiiWAD: Could not read from file"
 msgstr "WiiWAD Nelze číst ze souboru"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:446
 #: Source/Core/Core/Src/HW/Wiimote.cpp:16
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:446
 msgid "Wiimote"
 msgstr "Wiimote"
 
@@ -5933,6 +6254,7 @@ msgstr ""
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:598
 =======
 #: Source/Core/DolphinWX/Src/Main.cpp:599
@@ -5940,6 +6262,9 @@ msgstr ""
 =======
 #: Source/Core/DolphinWX/Src/Main.cpp:609
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:599
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Wiimote Connected"
 msgstr "Wiimote Připojen"
 
@@ -5973,6 +6298,7 @@ msgstr "Zalamování textu"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1380
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1282
@@ -5981,6 +6307,9 @@ msgstr "Zalamování textu"
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1362
 >>>>>>> Update Greek and Czech translations
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1364
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1194
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1327
 >>>>>>> Update translation files for recent changes in the code.
@@ -6089,7 +6418,7 @@ msgstr "Nulový kód, který dolphin nezná: %08x"
 msgid "[ waiting ]"
 msgstr "[ čekám ]"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:105
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:108
 msgid ""
 "[BROKEN]\n"
 "Highlight regions the EFB was copied from.\n"
@@ -6105,7 +6434,7 @@ msgstr ""
 msgid "[Custom]"
 msgstr "[Vlastní]"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:121
 msgid ""
 "[EXPERIMENTAL]\n"
 "Aims to speed up emulation by offloading texture decoding to the GPU using "
@@ -6124,7 +6453,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:119
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:122
 msgid ""
 "[EXPERIMENTAL]\n"
 "Speeds up emulation a bit by caching display lists.\n"
@@ -6231,9 +6560,6 @@ msgstr "| NEBO"
 #~ msgid "< as Default Profile >"
 #~ msgstr "< jako Výchozí Profil >"
 
-#~ msgid "Accuracy:"
-#~ msgstr "Přesnost:"
-
 #~ msgid "Accurate Texture Cache"
 #~ msgstr "Precizní Vyrovnávací Paměť Textur"
 
@@ -6253,9 +6579,6 @@ msgstr "| NEBO"
 #~ "ale zapnutí této možnosti může mít také velký negativní dopad na výkon "
 #~ "pokud hra tuto funkci hodně využívá."
 
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "Střídat časování Wiimote"
-
 #~ msgid "Auto [recommended]"
 #~ msgstr "Auto [doporučeno]"
 
@@ -6267,17 +6590,6 @@ msgstr "| NEBO"
 #~ "Automaticky upravovat velikost okna pro shodu s výstupním rozlišením hry "
 #~ "nastavená pomocí změny velikosti EFB.\n"
 #~ "Při používání tohoto je nejlepší nastavit poměr stran na roztáhnutí."
-
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Automaticky vytvořit mipmapy, raději než dekódovat je z paměti.\n"
-#~ "Trochu zlepší výkon, ale může způsobit malé chyby paměti.\n"
-#~ "\n"
-#~ "Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
 #~ msgid ""
 #~ "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
@@ -6314,6 +6626,9 @@ msgstr "| NEBO"
 
 #~ msgid "Danish"
 #~ msgstr "Dánština"
+
+#~ msgid "Disable Wiimote Speaker"
+#~ msgstr "Zakázat Reproduktor Wiimote"
 
 #~ msgid ""
 #~ "Disable texturing.\n"
@@ -6359,9 +6674,6 @@ msgstr "| NEBO"
 
 #~ msgid "Enable CPU Access"
 #~ msgstr "Povolit Přístup k Procesoru"
-
-#~ msgid "Enable Cache"
-#~ msgstr "Povolit vyrovnávací paměť"
 
 #~ msgid "Enable Copy to EFB"
 #~ msgstr "Povolit Kopírování do EFB"
@@ -6420,12 +6732,6 @@ msgstr "| NEBO"
 
 #~ msgid "Failed to load DSP ROM: %s"
 #~ msgstr "Nelze nahrát DSP ROM : %s"
-
-#~ msgid "Fast"
-#~ msgstr "Rychlá"
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Rychlé Mipmapy"
 
 #~ msgid ""
 #~ "Faster variants look at fewer pixels and thus have more potential for "
@@ -6540,14 +6846,8 @@ msgstr "| NEBO"
 #~ msgid "Required for using the Japanese ROM font."
 #~ msgstr "Nutné pro použití Japonského písma ROM"
 
-#~ msgid "Safe"
-#~ msgstr "Bezpečná"
-
 #~ msgid "Scale:"
 #~ msgstr "Změna Velikosti:"
-
-#~ msgid "Scaled EFB Copy"
-#~ msgstr "EFB Kopie Změněné Velikosti"
 
 #~ msgid "Select resolution for fullscreen mode"
 #~ msgstr "Vyberte rozlišení v režimu celé obrazovky"
@@ -6593,21 +6893,6 @@ msgstr "| NEBO"
 #~ "Zobrazí různé statistiky.\n"
 #~ "Jsou užitečné pouze pro účely ladění."
 
-#~ msgid ""
-#~ "Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\n"
-#~ "Sometimes also increases visual quality.\n"
-#~ "If you're experiencing any issues, try raising texture cache accuracy or "
-#~ "disable this option.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Lehce zrychlí kopie EFB do RAM obětováním přesnosti emulace.\n"
-#~ "Někdy také zvýší kvalitu obrazu.\n"
-#~ "Pokud se setkáváte s jakýmikoliv problémy, zkuste zvýšit přesnost "
-#~ "textury, nebo tuto možnost vypnout.\n"
-#~ "\n"
-#~ "Pokud si nejste jisti, nechejte toto odškrtnuté."
-
 #~ msgid "Slot"
 #~ msgstr "Slot"
 
@@ -6641,6 +6926,7 @@ msgstr "| NEBO"
 #~ msgid "Start the rendering window in fullscreen mode."
 #~ msgstr "Spustí vykreslovací okno v režimu celé obrazovky."
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 #~ msgid ""
@@ -6684,6 +6970,8 @@ msgstr "| NEBO"
 #~ "Pokud si nejste jisti, použijte druhou nejrychlejší hodnotu zprava."
 
 >>>>>>> Update Greek and Czech translations
+=======
+>>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #~ msgid "Use FPS For Limiting"
 #~ msgstr "Použít SzS pro Omezení"
 
