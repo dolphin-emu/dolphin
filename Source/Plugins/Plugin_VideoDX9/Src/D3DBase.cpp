@@ -28,7 +28,8 @@ D3DXCOMPILESHADERTYPE PD3DXCompileShader = NULL;
 
 namespace DX9
 {
-
+static char vsVersions[5][7] = {"ERROR", "vs_1_4", "vs_2_a", "vs_3_0", "vs_4_0"};
+static char psVersions[5][7] = {"ERROR", "ps_1_4", "ps_2_a", "ps_3_0", "ps_4_0"};
 // D3DX
 HINSTANCE hD3DXDll = NULL;
 int d3dx_dll_ref = 0;
@@ -55,6 +56,7 @@ static bool auto_depth_stencil = false;
 
 #define VENDOR_NVIDIA 4318
 #define VENDOR_ATI    4098
+#define VENDOR_INTEL  32902
 
 bool bFrameInProgress = false;
 
@@ -112,6 +114,10 @@ bool IsATIDevice()
 {
 	return GetCurAdapter().ident.VendorId == VENDOR_ATI;
 }
+bool IsIntelDevice()
+{
+	return GetCurAdapter().ident.VendorId == VENDOR_INTEL;
+}
 
 
 HRESULT Init()
@@ -139,6 +145,11 @@ HRESULT Init()
 	int adapter = g_Config.iAdapter;
 	D3D->GetDeviceCaps((adapter >= 0 && adapter < std::min(MAX_ADAPTERS, numAdapters)) ? adapter : D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &caps);
 	Enumerate();
+	if(IsIntelDevice()){
+		// Murder the a because Intel doesn't support 2.0a because the 'a' part was a ATI and Nvidia war going on
+		psVersions[2][5] = '0';
+		vsVersions[2][5] = '0';
+	}
 
 	return S_OK;
 }
@@ -522,16 +533,14 @@ D3DFORMAT GetSupportedDepthSurfaceFormat(D3DFORMAT target_format)
 
 const char *VertexShaderVersionString()
 {
-	static const char *versions[5] = {"ERROR", "vs_1_4", "vs_2_a", "vs_3_0", "vs_4_0"};
 	int version = ((D3D::caps.VertexShaderVersion >> 8) & 0xFF);
-	return versions[std::min(4, version)];
+	return vsVersions[std::min(4, version)];
 }
 
 const char *PixelShaderVersionString()
 {
-	static const char *versions[5] = {"ERROR", "ps_1_4", "ps_2_a", "ps_3_0", "ps_4_0"};
 	int version = ((D3D::caps.PixelShaderVersion >> 8) & 0xFF);
-	return versions[std::min(4, version)];
+	return psVersions[std::min(4, version)];
 }
 
 LPDIRECT3DSURFACE9 GetBackBufferSurface()

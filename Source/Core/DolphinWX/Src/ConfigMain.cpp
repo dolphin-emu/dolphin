@@ -27,6 +27,7 @@
 #include "HW/SI.h"
 #include "HW/DSPHLE/DSPHLE.h"
 #include "HW/DSPLLE/DSPLLE.h"
+#include "HW/GCMemcard.h"
 #include "IPC_HLE/WII_IPC_HLE.h"
 #include "NANDContentLoader.h"
 
@@ -37,7 +38,6 @@
 #include "Frame.h"
 #include "HotkeyDlg.h"
 #include "Main.h"
-#include "MemoryCards/GCMemcard.h"
 #include "VideoBackendBase.h"
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
