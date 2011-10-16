@@ -418,17 +418,17 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		if (address & JIT_ICACHE_VMEM_BIT)
 		{
 			u32 cacheaddr = address & JIT_ICACHE_MASK;
-			memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
+			memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 96);
 		}
 		else if (address & JIT_ICACHE_EXRAM_BIT)
 		{
 			u32 cacheaddr = address & JIT_ICACHEEX_MASK;
-			memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
+			memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 96);
 		}
 		else
 		{
 			u32 cacheaddr = address & JIT_ICACHE_MASK;
-			memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
+			memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 96);
 		}
 #endif
 	}
