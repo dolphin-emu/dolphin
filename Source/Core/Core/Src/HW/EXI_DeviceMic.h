@@ -30,7 +30,6 @@ public:
 	bool IsPresent();
 
 private:
-	static int mic_count;
 	static u8 const exi_id[];
 	static int const sample_size = sizeof(s16);
 	static int const rate_base = 11025;

@@ -29,8 +29,6 @@
 
 #include "GCPad.h"
 
-static bool pa_init = false;
-
 void CEXIMic::StreamLog(const char *msg)
 {
 	DEBUG_LOG(EXPANSIONINTERFACE, "%s: %s",
@@ -40,46 +38,24 @@ void CEXIMic::StreamLog(const char *msg)
 void CEXIMic::StreamInit()
 {
 	// Setup the wonderful c-interfaced lib...
-	pa_error = paNoError;
-	if (!pa_init)
-	{
-		pa_error = Pa_Initialize();
-
-		if (pa_error != paNoError)
-		{
-			StreamLog("Pa_Initialize");
-		}
-		else
-			pa_init = true;
-	}
-
-	mic_count++;
+	if ((pa_error = Pa_Initialize()) != paNoError)
+		StreamLog("Pa_Initialize");
 }
 
 void CEXIMic::StreamTerminate()
 {
-	if (--mic_count <= 0 && pa_init)
-		pa_error = Pa_Terminate();
-
-	if (pa_error != paNoError)
-	{
+	if ((pa_error = Pa_Terminate()) != paNoError)
 		StreamLog("Pa_Terminate");
-	}
-	else
-		pa_init = false;
 }
 
 void CEXIMic::StreamStart()
 {
 	// Open stream with current parameters
-	if (pa_init)
-	{
-		pa_error = Pa_OpenDefaultStream(&pa_stream, 1, 0, paInt16,
-			sample_rate, buff_size_samples, NULL, NULL);
-		StreamLog("Pa_OpenDefaultStream");
-		pa_error = Pa_StartStream(pa_stream);
-		StreamLog("Pa_StartStream");
-	}
+	pa_error = Pa_OpenDefaultStream(&pa_stream, 1, 0, paInt16,
+		sample_rate, buff_size_samples, NULL, NULL);
+	StreamLog("Pa_OpenDefaultStream");
+	pa_error = Pa_StartStream(pa_stream);
+	StreamLog("Pa_StartStream");
 }
 
 void CEXIMic::StreamStop()
@@ -122,7 +98,6 @@ void CEXIMic::StreamReadOne()
 // us a way to detect if buff_ovrflw should be set.
 
 u8 const CEXIMic::exi_id[] = { 0, 0x0a, 0, 0, 0 };
-int CEXIMic::mic_count = 0;
 
 CEXIMic::CEXIMic(int index)
 	: slot(index)
