@@ -102,7 +102,7 @@ public:
 
 
 // F A C T O R Y 
-IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int device_num)
+IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 {
 	switch (device_type)
 	{
@@ -111,7 +111,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int device_num)
 		break;
 
 	case EXIDEVICE_MEMORYCARD:
-		return new CEXIMemoryCard(device_num);
+		return new CEXIMemoryCard(channel_num);
 		break;
 
 	case EXIDEVICE_MASKROM:
@@ -123,7 +123,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int device_num)
 		break;
 
 	case EXIDEVICE_MIC:
-		return new CEXIMic(device_num);
+		return new CEXIMic(channel_num);
 		break;
 
 	case EXIDEVICE_ETH:

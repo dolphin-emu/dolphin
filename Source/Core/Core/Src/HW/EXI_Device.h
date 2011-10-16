@@ -63,6 +63,6 @@ enum TEXIDevices
 	EXIDEVICE_NONE = (u8)-1
 };
 
-extern IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int device_num);
+extern IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);
 
 #endif

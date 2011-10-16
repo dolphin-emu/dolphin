@@ -42,7 +42,7 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 		m_Status.CHIP_SELECT = 1;
 
 	for (int i = 0; i < NUM_DEVICES; i++)
-		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_NONE, i);
+		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -71,7 +71,7 @@ void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 	}
 
 	// create the new one
-	m_pDevices[device_num] = EXIDevice_Create(device_type, device_num);
+	m_pDevices[device_num] = EXIDevice_Create(device_type, m_ChannelId);
 
 	// This means "device presence changed", software has to check
 	// m_Status.EXT to see if it is now present or not
