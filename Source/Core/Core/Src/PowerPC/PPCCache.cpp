@@ -134,6 +134,8 @@ namespace PowerPC
 #endif
 		if (t == 0xff) // load to the cache
 		{
+			if (jit)
+				jit->GetBlockCache()->InvalidateICache(addr);
 			if (HID0.ILOCK) // instruction cache is locked
 				return Memory::ReadUnchecked_U32(addr);
 			// select a way
