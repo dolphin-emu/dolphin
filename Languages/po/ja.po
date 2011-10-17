@@ -1,14 +1,14 @@
 # Translation of dolphin-emu.pot to Japanese
 # Copyright (C) 2003-2011
 # This file is distributed under the same license as the dolphin-emu package.
-# DanbSky, 2011
+# Danbsky, 2011.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-10-11 23:25-0500\n"
-"PO-Revision-Date: 2011-08-19 08:37-0500\n"
+"PO-Revision-Date: 2011-10-12 20:45+0900\n"
 "Last-Translator: DanbSky\n"
 "Language-Team: \n"
 "Language: Japanese\n"
@@ -36,8 +36,8 @@ msgid ""
 "\"%s\" does not exist.\n"
 " Create a new 16MB Memcard?"
 msgstr ""
-"\"%s\" は存在しません\n"
-" 新しく容量16MBのメモリーカードを作成しますか？"
+"メモリーカード \"%s\" は存在しません\n"
+"容量16MBで新しく作ってもいい ?"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:144
 #, c-format
@@ -65,7 +65,7 @@ msgstr "接続数 %i 個"
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:296
 #, c-format
 msgid "%s already exists, overwrite?"
-msgstr " %s はすでに存在します。上書きしますか？"
+msgstr "%s はすでに存在します。上書きしますか？"
 
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:167
 #, c-format
@@ -96,7 +96,7 @@ msgid ""
 "%s failed to load as a memorycard \n"
 "file is not large enough to be a valid memory card file (0x%x bytes)"
 msgstr ""
-"%s をメモリーカードファイルとして読み込めませんでした \n"
+"%s をメモリーカードファイルとして読み込めませんでした\n"
 "このファイルのサイズは小さすぎます。正しいファイルではありません (0x%x バイ"
 "ト)"
 
@@ -225,7 +225,7 @@ msgstr "ステートロード(&L)"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:203
 msgid "&Memcard Manager (GC)"
-msgstr "メモリーカード編集ツール(&M)"
+msgstr "GCメモリーカードマネージャ(&M)"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:245
 msgid "&Memory"
@@ -425,7 +425,6 @@ msgid "Accurate VBeam emulation"
 msgstr "Accurate VBeam emulation"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -436,7 +435,7 @@ msgstr ""
 "より正確なEFBコピーエミュレーションを行います。\n"
 "いくつかのゲームの画面効果やゲームプレイ性はこの機能に依っています。\n"
 "\n"
-"よく分からなければ、チェックを外さないでください。"
+"よく分からなければ、【Texture】を選択したままにしてください。"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 msgid "Action"
@@ -560,7 +559,6 @@ msgid "Address :"
 msgstr "接続先："
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:57
-#, fuzzy
 msgid ""
 "Adds the specified value to zFar Parameter.\n"
 "Two ways to express the floating point values.\n"
@@ -578,7 +576,6 @@ msgstr ""
 "補足：取得値はログウィンドウ／コンソールで確認します"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:52
-#, fuzzy
 msgid ""
 "Adds the specified value to zNear Parameter.\n"
 "Two ways to express the floating point values.\n"
@@ -649,9 +646,8 @@ msgstr ""
 "よく分からなければ、チェックを入れないでください。"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
-#, fuzzy
 msgid "Alternate Wiimote Timing"
-msgstr "Wii リモコンをエミュレート"
+msgstr "Wii リモコンの同期調整"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
 msgid "Anisotropic Filtering:"
@@ -1397,11 +1393,11 @@ msgstr "カレントフォルダは wxFileSelector の後に %s から %s に変
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:333
 msgid "Custom Projection Hack"
-msgstr "タイトル別投影補正"
+msgstr "Custom Projection Hack"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.h:30
 msgid "Custom Projection Hack Settings"
-msgstr "タイトル別投影補正設定"
+msgstr "Custom Projection Hack Settings"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:336
 msgid "Customize some Orthographic Projection parameters."
@@ -1761,8 +1757,8 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"User/Dump/Frames/\n"
-"フォルダにレンダリングしたフレーム全てをダンプし、AVIとして保存します。\n"
+"User/Dump/Frames/ フォルダにレンダリングしたフレーム全てをダンプし、AVIとして"
+"保存します。\n"
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
@@ -1782,8 +1778,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"User/Dump/Textures/\n"
-"フォルダにEFBコピーの内容をダンプします。\n"
+"User/Dump/Textures/ フォルダにEFBコピーの内容をダンプします。\n"
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
@@ -1910,11 +1905,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"ステレオスコピック3D(立体視)表示を有効にします。\n"
-"※GPUがNvidia 3D Visionをサポートしている必要があります。\n"
+"ステレオスコピック3D(立体視)表示を有効にします。使用するには GPUによるNvidia "
+"3D Visionのサポートが必要です。\n"
 "ほとんどの場合何かしらの問題が発生するでしょう。\n"
-"\n"
 "この機能はフルスクリーン表示時のみ動作します。\n"
+"\n"
 "よく分からなければ、チェックを入れないでください。"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:111
@@ -2050,12 +2045,12 @@ msgid ""
 "Fast)"
 msgstr ""
 "Block Address Translation (BAT)：メモリ管理機構の機能の一つで、有効にすると"
-"ハードウェアのエミュレーション精度が向上します\n"
-"[有効＝互換性重視,／無効＝動作速度向上]"
+"ハードウェアのエミュレーション精度が向上します[有効＝互換性重視,／無効＝動作"
+"速度向上]"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:334
 msgid "Enables Custom Projection Hack"
-msgstr "タイトル別の投影補正を有効にします"
+msgstr "Enables Custom Projection Hack"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:80
 msgid ""
@@ -2235,7 +2230,7 @@ msgstr "このファイルを抽出"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:615
 msgid "Extract Partition..."
-msgstr "このパーティションを抽出"
+msgstr "この Partition を抽出"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:724
 #, c-format
@@ -2306,7 +2301,7 @@ msgstr ""
 "DSPSpyを使用してあなたのGC/Wii 実機よりダンプを行って下さい\n"
 "\n"
 "ダンプが難しい環境ではこのファイルが不要なDSP-HLEエンジンを使用してください\n"
-"(Dolphin本体の設定→サウンド設定で選択できます)"
+"(Dolphin本体の設定→\"サウンド設定\"で選択できます)"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:99
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:119
@@ -2592,7 +2587,7 @@ msgstr "開始"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:439
 msgid "FullScr"
-msgstr "全画面表示"
+msgstr "全画面"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:263
 msgid "Fullscreen resolution:"
@@ -2696,7 +2691,6 @@ msgid "Greater Than"
 msgstr "より大きい"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -2709,7 +2703,7 @@ msgstr ""
 "テクスチャエフェクトを表示するために作成されたテクスチャの品質を 著しく向上さ"
 "せます。\n"
 "特に高解像度出力時に効果が大きく出ます。\n"
-"\n"
+"動作速度は少々低下し、まれに描画バグの原因にもなることもあります。\n"
 "よく分からなければ、チェックを外さないでください。"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
@@ -3482,7 +3476,7 @@ msgid ""
 "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No "
 "effect on emulated wiimotes."
 msgstr ""
-"Wii リモコン上のスピーカーを無効化します。実機Wii リモコン使用時にランダムで"
+"Wii リモコン内蔵のスピーカーを無効化します。実機Wii リモコン使用中ランダムに"
 "切断される問題を解消します"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:126
@@ -3976,7 +3970,7 @@ msgstr "キャッシュの整頓を実行"
 
 #: Source/Core/Common/Src/MsgHandler.cpp:66
 msgid "Question"
-msgstr "質問"
+msgstr "確認"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:146
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:303
@@ -4243,7 +4237,7 @@ msgstr "確認中..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:440
 msgid "ScrShot"
-msgstr "画面を撮影"
+msgstr "画面撮影"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:103
 msgid "Scroll Lock"
@@ -4392,7 +4386,7 @@ msgstr "適用"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:987
 msgid "Set as &default ISO"
-msgstr "Wiiメニューに表示(&D)"
+msgstr "Wiiメニュー(ディスクチャンネル)に表示(&D)"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:798
 #, c-format
@@ -5206,8 +5200,8 @@ msgid ""
 "Unknown pointer %#08x\n"
 "Continue?"
 msgstr ""
-"不明なポインタ %#08x\n"
-"続けますか？"
+"Unknown pointer %#08x\n"
+"Continue?"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
@@ -5648,7 +5642,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:461
 msgid "s"
-msgstr " "
+msgstr "　"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:443
 #, c-format
