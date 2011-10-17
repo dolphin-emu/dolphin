@@ -20,6 +20,8 @@
 
 #if HAVE_PORTAUDIO
 
+#include "StdMutex.h"
+
 class CEXIMic : public IEXIDevice
 {
 public:
@@ -68,11 +70,6 @@ private:
 	};
 	UStatus status;
 
-	// status bits converted to nice numbers
-	int sample_rate;
-	int buff_size;
-	int buff_size_samples;
-
 	// 64 is the max size, can be 16 or 32 as well
 	int ring_pos;
 	u8 ring_buffer[64 * sample_size];
@@ -92,6 +89,21 @@ private:
 	void StreamStart();
 	void StreamStop();
 	void StreamReadOne();
+
+public:
+	std::mutex ring_lock;
+
+	// status bits converted to nice numbers
+	int sample_rate;
+	int buff_size;
+	int buff_size_samples;
+
+	// Arbitrarily small ringbuffer used by audio input backend in order to
+	// keep delay tolerable
+	s16 stream_buffer[64 * sample_size * 500];
+	static int const stream_size;
+	int stream_wpos;
+	int stream_rpos;
 	
 protected:
 	virtual void TransferByte(u8 &byte);

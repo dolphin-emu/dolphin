@@ -40,19 +40,64 @@ void CEXIMic::StreamInit()
 	// Setup the wonderful c-interfaced lib...
 	if ((pa_error = Pa_Initialize()) != paNoError)
 		StreamLog("Pa_Initialize");
+
+	stream_wpos = stream_rpos = 0;
+	memset(stream_buffer, 0, stream_size * sample_size);
 }
 
 void CEXIMic::StreamTerminate()
 {
+	Pa_AbortStream(pa_stream);
+
 	if ((pa_error = Pa_Terminate()) != paNoError)
 		StreamLog("Pa_Terminate");
+}
+
+static int Pa_Callback(const void *inputBuffer, void *outputBuffer,
+	unsigned long framesPerBuffer,
+	const PaStreamCallbackTimeInfo *timeInfo,
+	PaStreamCallbackFlags statusFlags,
+	void *userData)
+{
+	(void)outputBuffer;
+	(void)timeInfo;
+
+	CEXIMic *mic = (CEXIMic *)userData;
+
+	std::lock_guard<std::mutex> lk(mic->ring_lock);
+
+	if (mic->stream_wpos + mic->buff_size_samples >= mic->stream_size)
+		mic->stream_wpos = 0;
+
+	s16 *buff_in = (s16 *)inputBuffer;
+	s16 *buff_out = &mic->stream_buffer[mic->stream_wpos];
+
+	if (buff_in == NULL)
+	{
+		for (int i = 0; i < mic->buff_size_samples; i++)
+		{
+			buff_out[i] = 0;
+		}
+	}
+	else
+	{
+		for (int i = 0; i < mic->buff_size_samples; i++)
+		{
+			buff_out[i] = buff_in[i];
+		}
+	}
+
+	mic->stream_wpos += mic->buff_size_samples;
+	mic->stream_wpos %= mic->stream_size;
+
+	return paContinue;
 }
 
 void CEXIMic::StreamStart()
 {
 	// Open stream with current parameters
 	pa_error = Pa_OpenDefaultStream(&pa_stream, 1, 0, paInt16,
-		sample_rate, buff_size_samples, NULL, NULL);
+		sample_rate, buff_size_samples, Pa_Callback, this);
 	StreamLog("Pa_OpenDefaultStream");
 	pa_error = Pa_StartStream(pa_stream);
 	StreamLog("Pa_StartStream");
@@ -67,23 +112,26 @@ void CEXIMic::StreamStop()
 
 void CEXIMic::StreamReadOne()
 {
-	// Returns num samples or error
-	pa_error = Pa_GetStreamReadAvailable(pa_stream);
-	if (pa_error >= buff_size_samples)
-	{
-		pa_error = Pa_ReadStream(pa_stream, ring_buffer, buff_size_samples);
+	std::lock_guard<std::mutex> lk(ring_lock);
 
-		if (pa_error == paInputOverflowed)
-		{
-			status.buff_ovrflw = 1;
-			// Input overflowed - is re-setting the stream the only to recover?
-			StreamStop();
-			StreamStart();
-		}
-		else if (pa_error != paNoError)
-		{
-			StreamLog("Pa_ReadStream");
-		}
+	int samples_avail = (stream_wpos > stream_rpos) ?
+		stream_wpos - stream_rpos :
+		stream_size - stream_rpos + stream_wpos;
+
+	if (samples_avail >= buff_size_samples)
+	{
+		s16 *last_buffer = &stream_buffer[stream_rpos];
+		memcpy(ring_buffer, last_buffer, buff_size);
+
+		stream_rpos += buff_size_samples;
+		stream_rpos %= stream_size;
+
+		// TODO: if overflow bit matters, find a nice way
+		//if (samples_avail >= buff_size_samples * 2)
+		//{
+		//	status.buff_ovrflw = 1;
+		//	stream_rpos = stream_wpos = 0;
+		//}
 	}
 }
 
@@ -91,13 +139,11 @@ void CEXIMic::StreamReadOne()
 // This works by opening and starting a portaudio input stream when the is_active
 // bit is set. The interrupt is scheduled in the future based on sample rate and
 // buffer size settings. When the console handles the interrupt, it will send
-// cmdGetBuffer, which is when we actually read data from a buffer portaudio fills
-// in the background (ie on demand instead of realtime). Because of this we need
-// to clear portaudio's buffer if emulation speed drops below realtime, or else
-// a bad audio lag develops. It's actually kind of convenient because it gives
-// us a way to detect if buff_ovrflw should be set.
+// cmdGetBuffer, which is when we actually read data from a buffer filled
+// in the background by Pa_Callback.
 
 u8 const CEXIMic::exi_id[] = { 0, 0x0a, 0, 0, 0 };
+int const CEXIMic::stream_size = sizeof(stream_buffer) / sizeof(*stream_buffer);
 
 CEXIMic::CEXIMic(int index)
 	: slot(index)
@@ -211,13 +257,13 @@ void CEXIMic::TransferByte(u8 &byte)
 		break;
 
 	case cmdGetBuffer:
-		if (ring_pos == 0)
 		{
-			// Can set buff_ovrflw
+		if (ring_pos == 0)
 			StreamReadOne();
-		}
+		
 		byte = ring_buffer[ring_pos ^ 1];
 		ring_pos = (ring_pos + 1) % buff_size;
+		}
 		break;
 
 	default:
