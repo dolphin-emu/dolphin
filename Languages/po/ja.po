@@ -12,8 +12,12 @@ msgstr ""
 "PO-Revision-Date: 2011-10-12 20:45+0900\n"
 =======
 "POT-Creation-Date: 2011-10-11 23:25-0500\n"
+<<<<<<< HEAD
 "PO-Revision-Date: 2011-08-19 08:37-0500\n"
 >>>>>>> Update translation files for recent changes in the code.
+=======
+"PO-Revision-Date: 2011-10-12 20:45+0900\n"
+>>>>>>> Update Arabic and Japanese translations.
 "Last-Translator: DanbSky\n"
 "Language-Team: \n"
 "Language: Japanese\n"
@@ -432,9 +436,12 @@ msgstr "Accurate VBeam emulation"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -669,6 +676,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 <<<<<<< HEAD
+<<<<<<< HEAD
 msgid "Alternate Wiimote Timing"
 msgstr "Wii リモコンの同期調整"
 =======
@@ -676,6 +684,10 @@ msgstr "Wii リモコンの同期調整"
 msgid "Alternate Wiimote Timing"
 msgstr "Wii リモコンをエミュレート"
 >>>>>>> Update translation files for recent changes in the code.
+=======
+msgid "Alternate Wiimote Timing"
+msgstr "Wii リモコンの同期調整"
+>>>>>>> Update Arabic and Japanese translations.
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
 msgid "Anisotropic Filtering:"
@@ -2834,9 +2846,12 @@ msgstr "より大きい"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -5520,8 +5535,8 @@ msgid ""
 "Unknown pointer %#08x\n"
 "Continue?"
 msgstr ""
-"不明なポインタ %#08x\n"
-"続けますか？"
+"Unknown pointer %#08x\n"
+"Continue?"
 
 >>>>>>> Update translation files for recent changes in the code.
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274

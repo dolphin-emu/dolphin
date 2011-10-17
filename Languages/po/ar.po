@@ -13,9 +13,14 @@ msgstr ""
 "Last-Translator: mansoor\n"
 =======
 "POT-Creation-Date: 2011-10-11 23:25-0500\n"
+<<<<<<< HEAD
 "PO-Revision-Date: 2011-07-20 13:33+0300\n"
 "Last-Translator: \n"
 >>>>>>> Update translation files for recent changes in the code.
+=======
+"PO-Revision-Date: 2011-10-16 11:25-0500\n"
+"Last-Translator: mansoor\n"
+>>>>>>> Update Arabic and Japanese translations.
 "Language-Team: \n"
 "Language: \n"
 "MIME-Version: 1.0\n"
@@ -425,9 +430,12 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -637,6 +645,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 <<<<<<< HEAD
+<<<<<<< HEAD
 msgid "Alternate Wiimote Timing"
 msgstr "بديل ويموت"
 =======
@@ -644,6 +653,10 @@ msgstr "بديل ويموت"
 msgid "Alternate Wiimote Timing"
 msgstr "محاكاة ويموت"
 >>>>>>> Update translation files for recent changes in the code.
+=======
+msgid "Alternate Wiimote Timing"
+msgstr "بديل ويموت"
+>>>>>>> Update Arabic and Japanese translations.
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
 msgid "Anisotropic Filtering:"
@@ -947,11 +960,22 @@ msgstr "إلغاء"
 msgid "Cannot open %s"
 msgstr "لا يمكن فتح %s"
 
+<<<<<<< HEAD
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:721
+msgid "Cannot record movies in read-only mode."
+msgstr "لا يمكن تسجيل الأفلام في وضع للقراءة فقط."
+
+>>>>>>> Update Arabic and Japanese translations.
 #: Source/Core/Core/Src/CoreTiming.cpp:122
 msgid "Cannot unregister events with events pending"
 msgstr "لا يمكن إلغاء تسجيل الأحداث مع الأحداث المعلقة"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1020
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1016
+>>>>>>> Update Arabic and Japanese translations.
 #, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
@@ -2752,9 +2776,12 @@ msgstr "أكبر من"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -4373,11 +4400,15 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Scaled EFB Copy"
 <<<<<<< HEAD
+<<<<<<< HEAD
 msgstr "EFB Copia a escala"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
 =======
 msgstr ""
+=======
+msgstr "EFB Copia a escala"
+>>>>>>> Update Arabic and Japanese translations.
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:598
 >>>>>>> Update translation files for recent changes in the code.
@@ -5042,6 +5073,7 @@ msgstr "اختبار"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:438
 <<<<<<< HEAD
+<<<<<<< HEAD
 msgid "Texture"
 msgstr ""
 
@@ -5050,14 +5082,19 @@ msgid "Texture Cache"
 msgstr ""
 =======
 #, fuzzy
+=======
+>>>>>>> Update Arabic and Japanese translations.
 msgid "Texture"
-msgstr "Texturesتعطيل "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:455
-#, fuzzy
 msgid "Texture Cache"
+<<<<<<< HEAD
 msgstr "إزالة التخزين المؤقت"
 >>>>>>> Update translation files for recent changes in the code.
+=======
+msgstr ""
+>>>>>>> Update Arabic and Japanese translations.
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:530
 msgid "Texture Format Overlay"
@@ -5556,6 +5593,7 @@ msgstr ""
 "%s\n"
 "ولها نفس اسم الملف على بطاقة ذاكرة الخاصة بك\n"
 "تستمر?"
+<<<<<<< HEAD
 
 #: Source/Core/Core/Src/Movie.cpp:629
 #, c-format
@@ -5591,6 +5629,8 @@ msgid ""
 "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
 "%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 msgstr ""
+=======
+>>>>>>> Update Arabic and Japanese translations.
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:106
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:120
@@ -5936,12 +5976,18 @@ msgstr "أو"
 #~ msgstr "< الوضع الافتراضي >"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #, fuzzy
 #~ msgid "AOSound"
 #~ msgstr "&الصوت"
 
+<<<<<<< HEAD
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "Accurate Texture Cache"
 #~ msgstr "دقة المظهر السطحي المؤقت"
 
@@ -5980,6 +6026,9 @@ msgstr "أو"
 #~ "ومن الأفضل ل تعيين نسبة العرض إلى الارتفاع لتمتد عند استخدامه."
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "Bad gameini filename"
 #~ msgstr "Nombre de archivo gameini incorrecto"
 
@@ -6007,15 +6056,21 @@ msgstr "أو"
 #~ msgid "Can't open %s, it has a missing function"
 #~ msgstr "No se puede abrir %s, no tiene una función"
 
+<<<<<<< HEAD
 #~ msgid "Cannot record movies in read-only mode."
 #~ msgstr "لا يمكن تسجيل الأفلام في وضع للقراءة فقط."
 
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #, fuzzy
 #~ msgid "Config..."
 #~ msgstr "إعدادات"
 
+<<<<<<< HEAD
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "Configuration profile"
 #~ msgstr "التكوين الشخصي"
 
@@ -6117,6 +6172,9 @@ msgstr "أو"
 #~ msgstr "CPU Access تمكين"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "Enable Copy to EFB"
 #~ msgstr "Habilitar Copiado al EFB"
 
@@ -6132,8 +6190,11 @@ msgstr "أو"
 #~ msgid "Enable JIT Dynarec"
 #~ msgstr "تمكين صفحات"
 
+<<<<<<< HEAD
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "Enable OpenCL"
 #~ msgstr "OpenCL تمكين "
 
@@ -6141,6 +6202,9 @@ msgstr "أو"
 #~ msgstr "تمكين شاشة التوقف"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #, fuzzy
 #~ msgid ""
 #~ "Enables dynamic recompilation of DSP code.\n"
@@ -6214,8 +6278,11 @@ msgstr "أو"
 #~ msgid "Force Bi/Trilinear Filtering"
 #~ msgstr "Forzar Filtro Bi/Tri-linear"
 
+<<<<<<< HEAD
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "Fractional"
 #~ msgstr "جزئي"
 
@@ -6359,6 +6426,9 @@ msgstr "أو"
 #~ msgstr "اللازمة لاستعمال الخط القرص اليابانية."
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #, fuzzy
 #~ msgid "Run"
 #~ msgstr "Enter"
@@ -6366,8 +6436,11 @@ msgstr "أو"
 #~ msgid "Running script...\n"
 #~ msgstr "Ejecutando script...\n"
 
+<<<<<<< HEAD
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "Scale:"
 #~ msgstr "النطاق :"
 
@@ -6426,6 +6499,9 @@ msgstr "أو"
 #~ "وهذا مفيد فقط لأغراض التصحيح."
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "Skies of Arcadia"
 #~ msgstr "Skies of Arcadia"
 
@@ -6465,8 +6541,11 @@ msgstr "أو"
 #~ msgid "Specify an audio plugin"
 #~ msgstr "حدد الخلفية ملف فيديو"
 
+<<<<<<< HEAD
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "Start Renderer in Fullscreen"
 #~ msgstr "بدء في كمال ملء الشاشة"
 
@@ -6474,6 +6553,9 @@ msgstr "أو"
 #~ msgstr "بدء التقديم في إطار وضع ملء الشاشة."
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "The file "
 #~ msgstr "El archivo "
 
@@ -6487,6 +6569,7 @@ msgstr "أو"
 #~ msgid "Type %d config not supported in plugin %s"
 #~ msgstr "Configuración de tipo %d no soportado en el plugin %s"
 
+<<<<<<< HEAD
 #~ msgid ""
 #~ "Unknown pointer %#08x\n"
 #~ "Continue?"
@@ -6496,6 +6579,8 @@ msgstr "أو"
 
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Arabic and Japanese translations.
 #~ msgid "Use FPS For Limiting"
 #~ msgstr "لحد عدد الاطارات"
 
