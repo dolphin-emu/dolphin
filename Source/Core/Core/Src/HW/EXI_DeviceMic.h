@@ -46,7 +46,6 @@ private:
 		cmdReset		= 0xFF,
 	};
 
-	// STATE_TO_SAVE
 	int slot;
 
 	u32 m_position;
@@ -68,7 +67,6 @@ private:
 			u16 is_active	:1; // If we are sampling or not
 		};
 	};
-	UStatus status;
 
 	// 64 is the max size, can be 16 or 32 as well
 	int ring_pos;
@@ -91,6 +89,8 @@ private:
 	void StreamReadOne();
 
 public:
+	UStatus status;
+
 	std::mutex ring_lock;
 
 	// status bits converted to nice numbers
@@ -100,10 +100,11 @@ public:
 
 	// Arbitrarily small ringbuffer used by audio input backend in order to
 	// keep delay tolerable
-	s16 stream_buffer[64 * sample_size * 500];
-	static int const stream_size;
+	s16 *stream_buffer;
+	int stream_size;
 	int stream_wpos;
 	int stream_rpos;
+	int samples_avail;
 	
 protected:
 	virtual void TransferByte(u8 &byte);

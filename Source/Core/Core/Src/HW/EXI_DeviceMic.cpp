@@ -38,16 +38,18 @@ void CEXIMic::StreamLog(const char *msg)
 void CEXIMic::StreamInit()
 {
 	// Setup the wonderful c-interfaced lib...
+	pa_stream = NULL;
+
 	if ((pa_error = Pa_Initialize()) != paNoError)
 		StreamLog("Pa_Initialize");
 
-	stream_wpos = stream_rpos = 0;
-	memset(stream_buffer, 0, stream_size * sample_size);
+	stream_buffer = NULL;
+	samples_avail = stream_wpos = stream_rpos = 0;
 }
 
 void CEXIMic::StreamTerminate()
 {
-	Pa_AbortStream(pa_stream);
+	StreamStop();
 
 	if ((pa_error = Pa_Terminate()) != paNoError)
 		StreamLog("Pa_Terminate");
@@ -61,12 +63,13 @@ static int Pa_Callback(const void *inputBuffer, void *outputBuffer,
 {
 	(void)outputBuffer;
 	(void)timeInfo;
+	(void)statusFlags;
 
 	CEXIMic *mic = (CEXIMic *)userData;
 
 	std::lock_guard<std::mutex> lk(mic->ring_lock);
 
-	if (mic->stream_wpos + mic->buff_size_samples >= mic->stream_size)
+	if (mic->stream_wpos + mic->buff_size_samples > mic->stream_size)
 		mic->stream_wpos = 0;
 
 	s16 *buff_in = (s16 *)inputBuffer;
@@ -87,6 +90,13 @@ static int Pa_Callback(const void *inputBuffer, void *outputBuffer,
 		}
 	}
 
+	mic->samples_avail += mic->buff_size_samples;
+	if (mic->samples_avail > mic->stream_size)
+	{
+		mic->samples_avail = 0;
+		mic->status.buff_ovrflw = 1;
+	}
+
 	mic->stream_wpos += mic->buff_size_samples;
 	mic->stream_wpos %= mic->stream_size;
 
@@ -96,6 +106,9 @@ static int Pa_Callback(const void *inputBuffer, void *outputBuffer,
 void CEXIMic::StreamStart()
 {
 	// Open stream with current parameters
+	stream_size = buff_size_samples * 500;
+	stream_buffer = new s16[stream_size];
+
 	pa_error = Pa_OpenDefaultStream(&pa_stream, 1, 0, paInt16,
 		sample_rate, buff_size_samples, Pa_Callback, this);
 	StreamLog("Pa_OpenDefaultStream");
@@ -105,33 +118,26 @@ void CEXIMic::StreamStart()
 
 void CEXIMic::StreamStop()
 {
-	// Acts as if Pa_AbortStream was called
-	pa_error = Pa_CloseStream(pa_stream);
-	StreamLog("Pa_CloseStream");
+	if (pa_stream != NULL && Pa_IsStreamActive(pa_stream) >= paNoError)
+		Pa_AbortStream(pa_stream);
+
+	delete [] stream_buffer;
+	stream_buffer = NULL;
 }
 
 void CEXIMic::StreamReadOne()
 {
 	std::lock_guard<std::mutex> lk(ring_lock);
-
-	int samples_avail = (stream_wpos > stream_rpos) ?
-		stream_wpos - stream_rpos :
-		stream_size - stream_rpos + stream_wpos;
-
+	
 	if (samples_avail >= buff_size_samples)
 	{
 		s16 *last_buffer = &stream_buffer[stream_rpos];
 		memcpy(ring_buffer, last_buffer, buff_size);
 
+		samples_avail -= buff_size_samples;
+
 		stream_rpos += buff_size_samples;
 		stream_rpos %= stream_size;
-
-		// TODO: if overflow bit matters, find a nice way
-		//if (samples_avail >= buff_size_samples * 2)
-		//{
-		//	status.buff_ovrflw = 1;
-		//	stream_rpos = stream_wpos = 0;
-		//}
 	}
 }
 
@@ -143,7 +149,6 @@ void CEXIMic::StreamReadOne()
 // in the background by Pa_Callback.
 
 u8 const CEXIMic::exi_id[] = { 0, 0x0a, 0, 0, 0 };
-int const CEXIMic::stream_size = sizeof(stream_buffer) / sizeof(*stream_buffer);
 
 CEXIMic::CEXIMic(int index)
 	: slot(index)
