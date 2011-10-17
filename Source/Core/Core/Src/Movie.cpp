@@ -483,10 +483,8 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 
 	// dtm files don't save the mic button or error bit. not sure if they're actually
 	// used, but better safe than sorry
-	bool m = PadStatus->MicButton;
 	signed char e = PadStatus->err;
 	memset(PadStatus, 0, sizeof(SPADStatus));
-	PadStatus->MicButton = m;
 	PadStatus->err = e;
 	
 	memcpy(&g_padState, &(tmpInput[inputOffset]), 8);

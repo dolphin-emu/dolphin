@@ -236,6 +236,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile Include="Src\FrameAui.cpp" />
     <ClCompile Include="Src\FrameTools.cpp" />
     <ClCompile Include="Src\GameListCtrl.cpp" />
+    <ClCompile Include="Src\GCMicDlg.cpp" />
     <ClCompile Include="Src\GeckoCodeDiag.cpp" />
     <ClCompile Include="Src\HotkeyDlg.cpp" />
     <ClCompile Include="Src\InputConfigDiag.cpp" />
@@ -297,6 +298,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="Src\FifoPlayerDlg.h" />
     <ClInclude Include="Src\Frame.h" />
     <ClInclude Include="Src\GameListCtrl.h" />
+    <ClInclude Include="Src\GCMicDlg.h" />
     <ClInclude Include="Src\GeckoCodeDiag.h" />
     <ClInclude Include="Src\Globals.h" />
     <ClInclude Include="Src\HotkeyDlg.h" />

@@ -107,4 +107,15 @@ void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 	}
 }
 
+bool GetMicButton(u8 pad)
+{
+	
+	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
+
+	if (!lk.owns_lock())
+		return false;
+
+	return ((GCPad*)g_plugin.controllers[pad])->GetMicButton();
+}
+
 }

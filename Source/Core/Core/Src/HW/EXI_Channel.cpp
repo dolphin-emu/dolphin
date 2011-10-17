@@ -42,7 +42,7 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 		m_Status.CHIP_SELECT = 1;
 
 	for (int i = 0; i < NUM_DEVICES; i++)
-		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_NONE);
+		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -59,19 +59,19 @@ void CEXIChannel::RemoveDevices()
 	}
 }
 
-void CEXIChannel::AddDevice(const TEXIDevices _device, const unsigned int _iSlot)
+void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 {
-	_dbg_assert_(EXPANSIONINTERFACE, _iSlot < NUM_DEVICES);
+	_dbg_assert_(EXPANSIONINTERFACE, device_num < NUM_DEVICES);
 
 	// delete the old device
-	if (m_pDevices[_iSlot] != NULL)
+	if (m_pDevices[device_num] != NULL)
 	{
-		delete m_pDevices[_iSlot];
-		m_pDevices[_iSlot] = NULL;
+		delete m_pDevices[device_num];
+		m_pDevices[device_num] = NULL;
 	}
 
 	// create the new one
-	m_pDevices[_iSlot] = EXIDevice_Create(_device);
+	m_pDevices[device_num] = EXIDevice_Create(device_type, m_ChannelId);
 
 	// This means "device presence changed", software has to check
 	// m_Status.EXT to see if it is now present or not
@@ -107,9 +107,9 @@ bool CEXIChannel::IsCausingInterrupt()
 	}
 }
 
-IEXIDevice* CEXIChannel::GetDevice(u8 _CHIP_SELECT)
+IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
 {
-	switch(_CHIP_SELECT)
+	switch (chip_select)
 	{
 	case 1: return m_pDevices[0];
 	case 2: return m_pDevices[1];

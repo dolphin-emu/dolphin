@@ -406,8 +406,7 @@ void CConfigMain::InitializeGUIValues()
 		case EXIDEVICE_NONE:
 			GCEXIDevice[i]->SetStringSelection(SlotDevices[0]);
 			break;
-		case EXIDEVICE_MEMORYCARD_A:
-		case EXIDEVICE_MEMORYCARD_B:
+		case EXIDEVICE_MEMORYCARD:
 			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
 			break;
 		case EXIDEVICE_MIC:
@@ -1030,7 +1029,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 				// Change memcard to the new file
 				ExpansionInterface::ChangeDevice(
 					isSlotA ? 0 : 1, // SlotA: channel 0, SlotB channel 1
-					isSlotA ? EXIDEVICE_MEMORYCARD_A : EXIDEVICE_MEMORYCARD_B,
+					EXIDEVICE_MEMORYCARD,
 					0);	// SP1 is device 2, slots are device 0
 			}
 		}
@@ -1068,7 +1067,7 @@ void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)
 	TEXIDevices tempType;
 
 	if (!deviceName.compare(CSTR_TRANS(EXIDEV_MEMCARD_STR)))
-		tempType = deviceNum ? EXIDEVICE_MEMORYCARD_B : EXIDEVICE_MEMORYCARD_A;
+		tempType = EXIDEVICE_MEMORYCARD;
 	else if (!deviceName.compare(CSTR_TRANS(EXIDEV_MIC_STR)))
 		tempType = EXIDEVICE_MIC;
 	else if (!deviceName.compare(EXIDEV_BBA_STR))
@@ -1083,7 +1082,7 @@ void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)
 		tempType = EXIDEVICE_DUMMY;
 
 	// Gray out the memcard path button if we're not on a memcard
-	if (tempType == EXIDEVICE_MEMORYCARD_A || tempType == EXIDEVICE_MEMORYCARD_B)
+	if (tempType == EXIDEVICE_MEMORYCARD)
 		GCMemcardPath[deviceNum]->Enable();
 	else if (deviceNum == 0 || deviceNum == 1)
 		GCMemcardPath[deviceNum]->Disable();

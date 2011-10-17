@@ -45,13 +45,13 @@ void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 	ptr->Flush();
 }
 
-CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int _card_index) :
-	m_strFilename(_rFilename),
-	card_index(_card_index),
-	m_bDirty(false)
+CEXIMemoryCard::CEXIMemoryCard(const int index)
+	: card_index(index)
+	, m_bDirty(false)
 {
-	cards[_card_index] = this;
-	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
+	m_strFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
+	cards[card_index] = this;
+	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardA" : "memcardB", FlushCallback);
 	reloadOnState = SConfig::GetInstance().b_reloadMCOnState;
  
 	interruptSwitch = 0;
@@ -427,9 +427,6 @@ void CEXIMemoryCard::DoState(PointerWrap &p)
 {
 	if (reloadOnState)
 	{
-		int slot = 0;
-		if (GetFileName() == SConfig::GetInstance().m_strMemoryCardA)
-			slot = 1;
-		ExpansionInterface::ChangeDevice(slot, slot ? EXIDEVICE_MEMORYCARD_B : EXIDEVICE_MEMORYCARD_A, 0);
+		ExpansionInterface::ChangeDevice(card_index, EXIDEVICE_MEMORYCARD, 0);
 	}
 }

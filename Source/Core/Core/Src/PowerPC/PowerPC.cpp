@@ -37,6 +37,7 @@
 #include "CPUCoreBase.h"
 
 #include "../Host.h"
+#include "HW/EXI.h"
 
 CPUCoreBase *cpu_core_base;
 
@@ -268,10 +269,13 @@ void Stop()
 
 void CheckExceptions()
 {
+	// Make sure we are checking against the latest EXI status. This is required
+	// for devices which interrupt frequently, such as the gc mic
+	ExpansionInterface::UpdateInterrupts();
+
 	// Read volatile data once
 	u32 exceptions = ppcState.Exceptions;
 
-	// This check is unnecessary in JIT mode. However, it probably doesn't really hurt.
 	if (!exceptions)
 		return;
 

@@ -239,8 +239,6 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		}
 	}
 
-	SetMic(PadStatus.MicButton); // This is dumb and should not be here
-
 	return true;
 }
 

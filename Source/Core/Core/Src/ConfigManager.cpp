@@ -355,7 +355,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "MemcardA",		&m_strMemoryCardA);
 		ini.Get("Core", "MemcardB",		&m_strMemoryCardB);
 		ini.Get("Core", "ReloadMemcardOnState",	&b_reloadMCOnState, true);
-		ini.Get("Core", "SlotA",		(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD_A);
+		ini.Get("Core", "SlotA",		(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
 		ini.Get("Core", "SlotB",		(int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 		ini.Get("Core", "SerialPort1",	(int*)&m_EXIDevice[2], EXIDEVICE_NONE);
 		ini.Get("Core", "BBA_MAC",		&m_bba_mac);
