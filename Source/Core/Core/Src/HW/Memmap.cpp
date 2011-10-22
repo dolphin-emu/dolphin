@@ -373,6 +373,8 @@ void DoState(PointerWrap &p)
 	p.DoArray(m_pPhysicalRAM, RAM_SIZE);
 //	p.DoArray(m_pVirtualEFB, EFB_SIZE);
 	p.DoArray(m_pVirtualL1Cache, L1_CACHE_SIZE);
+	if (bFakeVMEM)
+		p.DoArray(m_pVirtualFakeVMEM, FAKEVMEM_SIZE);
 	if (wii)
 		p.DoArray(m_pEXRAM, EXRAM_SIZE);
 }
