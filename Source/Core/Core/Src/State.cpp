@@ -31,6 +31,9 @@
 #include "VideoBackendBase.h"
 
 #include <lzo/lzo1x.h>
+#include "HW/Memmap.h"
+#include "HW/VideoInterface.h"
+#include "HW/SystemTimers.h"
 
 namespace State
 {
@@ -64,6 +67,12 @@ static std::vector<u8> g_current_buffer;
 
 static std::thread g_save_thread;
 
+static const u8 NUM_HOOKS = 2;
+static u8 waiting;
+static u8 waitingslot;
+static u64 lastCheckedStates[NUM_HOOKS];
+static u8 hook;
+
 // Don't forget to increase this after doing changes on the savestate system 
 static const int STATE_VERSION = 5;
 
@@ -71,6 +80,13 @@ struct StateHeader
 {
 	u8 gameID[6];
 	size_t size;
+};
+
+enum
+{
+	STATE_NONE = 0,
+	STATE_SAVE = 1,
+	STATE_LOAD = 2,
 };
 
 static bool g_use_compression = true;
@@ -103,6 +119,12 @@ void DoState(PointerWrap &p)
 
 	// Resume the video thread
 	g_video_backend->RunLoop(true);
+}
+
+void ResetCounters()
+{
+	for (int i = 0; i < NUM_HOOKS; ++i)
+		lastCheckedStates[i] = CoreTiming::GetTicks();
 }
 
 void LoadBufferStateCallback(u64 userdata, int cyclesLate)
@@ -217,10 +239,6 @@ void SaveFileStateCallback(u64 userdata, int cyclesLate)
 	// Pause the core while we save the state
 	CCPU::EnableStepping(true);
 
-	// Wait for the other threaded sub-systems to stop too
-	// TODO: this is ugly
-	SLEEP(100);
-
 	Flush();
 
 	// Measure the size of the buffer.
@@ -318,10 +336,6 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 	// Stop the core while we load the state
 	CCPU::EnableStepping(true);
 
-	// Wait for the other threaded sub-systems to stop too
-	// TODO: uglyyy
-	SLEEP(100);
-
 	Flush();
 
 	// Save temp buffer for undo load state
@@ -349,6 +363,8 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 		else if (!Movie::IsRecordingInputFromSaveState())
 			Movie::EndPlayInput(false);
 	}
+
+	ResetCounters();
 
 	g_op_in_progress = false;
 
@@ -386,6 +402,11 @@ void Init()
 	ev_BufferSave = CoreTiming::RegisterEvent("SaveBufferState", &SaveBufferStateCallback);
 	ev_BufferVerify = CoreTiming::RegisterEvent("VerifyBufferState", &VerifyBufferStateCallback);
 
+	waiting = STATE_NONE;
+	waitingslot = 0;
+	hook = 0;
+	ResetCounters();
+
 	if (lzo_init() != LZO_E_OK)
 		PanicAlertT("Internal LZO Error - lzo_init() failed");
 }
@@ -413,40 +434,100 @@ static std::string MakeStateFilename(int number)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), number);
 }
 
-void ScheduleFileEvent(const std::string &filename, int ev)
+void ScheduleFileEvent(const std::string &filename, int ev, bool immediate)
 {
 	if (g_op_in_progress)
 		return;
 	g_op_in_progress = true;
 
 	g_current_filename = filename;
-	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev);
+
+	if (immediate)
+		CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev);
+	else
+		CoreTiming::ScheduleEvent_Threadsafe(0, ev);
+}
+
+void SaveAs(const std::string &filename, bool immediate)
+{
+	g_last_filename = filename;
+	ScheduleFileEvent(filename, ev_FileSave, immediate);
 }
 
 void SaveAs(const std::string &filename)
 {
-	g_last_filename = filename;
-	ScheduleFileEvent(filename, ev_FileSave);
+	SaveAs(filename, true);
+}
+
+void LoadAs(const std::string &filename, bool immediate)
+{
+	ScheduleFileEvent(filename, ev_FileLoad, immediate);
 }
 
 void LoadAs(const std::string &filename)
 {
-	ScheduleFileEvent(filename, ev_FileLoad);
+	LoadAs(filename, true);
 }
 
 void VerifyAt(const std::string &filename)
 {
-	ScheduleFileEvent(filename, ev_FileVerify);
+	ScheduleFileEvent(filename, ev_FileVerify, true);
+}
+
+bool ProcessRequestedStates(int priority)
+{
+	bool save = true;
+
+	if (hook == priority)
+	{
+		if (waiting == STATE_SAVE)
+		{
+			SaveAs(MakeStateFilename(waitingslot), false);
+			waitingslot = 0;
+			waiting = STATE_NONE;
+		}
+		else if (waiting == STATE_LOAD)
+		{
+			LoadAs(MakeStateFilename(waitingslot), false);
+			waitingslot = 0;
+			waiting = STATE_NONE;
+			save = false;
+		}
+	}
+
+	// Change hooks if the new hook gets called frequently (at least once a frame) and if the old
+	// hook has not been called for the last 5 seconds
+	if ((CoreTiming::GetTicks() - lastCheckedStates[priority]) < (VideoInterface::GetTicksPerFrame()))
+	{
+		lastCheckedStates[priority] = CoreTiming::GetTicks();
+		if (hook < NUM_HOOKS && priority >= (hook + 1) &&
+			(lastCheckedStates[priority] - lastCheckedStates[hook]) > (SystemTimers::GetTicksPerSecond() * 5))
+		{
+			hook++;
+		}
+	}
+	else
+		lastCheckedStates[priority] = CoreTiming::GetTicks();
+
+	return save;
 }
 
 void Save(int slot)
 {
-	SaveAs(MakeStateFilename(slot));
+	if (waiting == STATE_NONE)
+	{
+		waiting = STATE_SAVE;
+		waitingslot = slot;
+	}
 }
 
 void Load(int slot)
 {
-	LoadAs(MakeStateFilename(slot));
+	if (waiting == STATE_NONE)
+	{
+		waiting = STATE_LOAD;
+		waitingslot = slot;
+	}
 }
 
 void Verify(int slot)

@@ -28,6 +28,7 @@
 #include "StringUtil.h"
 
 #include "VideoBackendBase.h"
+#include "State.h"
 
 namespace VideoInterface
 {
@@ -698,6 +699,9 @@ void UpdateInterrupts()
 	{
 		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_VI, false);
 	}
+
+	if (m_InterruptRegister[1].IR_INT && m_InterruptRegister[1].IR_MASK)
+		State::ProcessRequestedStates(1);
 }
 
 u32 GetXFBAddressTop()
