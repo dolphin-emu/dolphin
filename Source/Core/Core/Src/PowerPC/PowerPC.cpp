@@ -310,7 +310,7 @@ void CheckExceptions()
 	{
 		SRR0 = PC;
 		// say that it's a trap exception
-		SRR1 = (MSR & 0x87C0FFFF) | 0x40000;
+		SRR1 = (MSR & 0x87C0FFFF) | 0x20000;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
 		NPC = 0x80000700;
