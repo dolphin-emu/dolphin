@@ -723,7 +723,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 	}
 
 	for (int i = 0; i < 4; i++) {
-		if (SConfig::GetInstance().m_SIDevice[i] == SI_GC_CONTROLLER)
+		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
 			controllers |= (1 << i);
 
 		if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)

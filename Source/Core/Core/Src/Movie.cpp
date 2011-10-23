@@ -181,7 +181,7 @@ void ChangePads(bool instantly)
 	int controllers = 0;
 
 	for (int i = 0; i < 4; i++)
-		if (SConfig::GetInstance().m_SIDevice[i] == SI_GC_CONTROLLER)
+		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
 			controllers |= (1 << i);
 
 	if (instantly && (g_numPads & 0x0F) == controllers)
@@ -189,9 +189,9 @@ void ChangePads(bool instantly)
 
 	for (int i = 0; i < 4; i++)
 		if (instantly) // Changes from savestates need to be instantaneous
-			SerialInterface::AddDevice(IsUsingPad(i) ? SI_GC_CONTROLLER : SI_NONE, i);
+			SerialInterface::AddDevice(IsUsingPad(i) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
 		else
-			SerialInterface::ChangeDevice(IsUsingPad(i) ? SI_GC_CONTROLLER : SI_NONE, i);
+			SerialInterface::ChangeDevice(IsUsingPad(i) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
 }
 
 void ChangeWiiPads(bool instantly)

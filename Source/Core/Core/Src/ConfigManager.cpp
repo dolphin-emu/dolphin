@@ -366,7 +366,7 @@ void SConfig::LoadSettings()
 		for (int i = 0; i < 4; ++i)
 		{
 			sprintf(sidevicenum, "SIDevice%i", i);
-			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], i==0 ? SI_GC_CONTROLLER:SI_NONE);
+			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
 		}
 
 		ini.Get("Core", "WiiSDCard",		&m_WiiSDCard,									false);

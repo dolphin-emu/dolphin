@@ -52,7 +52,7 @@ struct SConfig : NonCopyable
 	//this is necessary to save after loading a savestate
 	bool b_reloadMCOnState;
 	TEXIDevices m_EXIDevice[3];
-	TSIDevices m_SIDevice[4];
+	SIDevices m_SIDevice[4];
 	std::string m_bba_mac;
 
 	// interface language
