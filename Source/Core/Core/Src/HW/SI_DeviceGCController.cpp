@@ -59,60 +59,49 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	// For debug logging only
 	ISIDevice::RunBuffer(_pBuffer, _iLength);
 
-	int iPosition = 0;
-	while (iPosition < _iLength)
+	// Read the command
+	EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[3]);
+
+	// Handle it
+	switch (command)
 	{
-		// Read the command
-		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
-		iPosition++;
+	case CMD_RESET:
+		*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER;
+		break;
 
-		// Handle it
-		switch (command)
+	case CMD_ORIGIN:
 		{
-		case CMD_RESET:
+			INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
+			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
+			for (int i = 0; i < (int)sizeof(SOrigin); i++)
 			{
-				*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER;
-				iPosition = _iLength; // Break the while loop
+				_pBuffer[i ^ 3] = *pCalibration++;
 			}
-			break;
-
-		case CMD_ORIGIN:
-			{
-				INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
-				u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
-				for (int i = 0; i < (int)sizeof(SOrigin); i++)
-				{
-					_pBuffer[i ^ 3] = *pCalibration++;
-				}				
-			}
-			iPosition = _iLength;
-			break;
-
-		// Recalibrate (FiRES: i am not 100 percent sure about this)
-		case CMD_RECALIBRATE:
-			{
-				INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
-				u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
-				for (int i = 0; i < (int)sizeof(SOrigin); i++)
-				{
-					_pBuffer[i ^ 3] = *pCalibration++;
-				}				
-			}
-			iPosition = _iLength;
-			break;
-
-		// DEFAULT
-		default:
-			{
-				ERROR_LOG(SERIALINTERFACE, "unknown SI command     (0x%x)", command);
-				PanicAlert("SI: Unknown command");
-				iPosition = _iLength;
-			}			
-			break;
 		}
+		break;
+
+	// Recalibrate (FiRES: i am not 100 percent sure about this)
+	case CMD_RECALIBRATE:
+		{
+			INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
+			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
+			for (int i = 0; i < (int)sizeof(SOrigin); i++)
+			{
+				_pBuffer[i ^ 3] = *pCalibration++;
+			}				
+		}
+		break;
+
+	// DEFAULT
+	default:
+		{
+			ERROR_LOG(SERIALINTERFACE, "unknown SI command     (0x%x)", command);
+			PanicAlert("SI: Unknown command");
+		}			
+		break;
 	}
 
-	return iPosition;
+	return _iLength;
 }
 
 
@@ -156,9 +145,7 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	// Thankfully changing mode does not change the high bits ;)
 	_Hi  = (u32)((u8)PadStatus.stickY);
 	_Hi |= (u32)((u8)PadStatus.stickX << 8);
-	_Hi |= (u32)((u16)PadStatus.button << 16);
-	_Hi |= 0x00800000; // F|RES: means that the pad must be "combined" with the origin to match the "final" OSPad-Struct
-	//_Hi |= 0x20000000; // ?
+	_Hi |= (u32)((u16)(PadStatus.button | PAD_USE_ORIGIN) << 16);
 
 	// Low bits are packed differently per mode
 	if (m_Mode == 0 || m_Mode == 5 || m_Mode == 6 || m_Mode == 7)

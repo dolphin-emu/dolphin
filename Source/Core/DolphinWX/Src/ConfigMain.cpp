@@ -78,6 +78,7 @@ static const wxLanguage langIds[] =
 #define DEV_DUMMY_STR		_trans("Dummy")
 
 #define SIDEV_STDCONT_STR	_trans("Standard Controller")
+#define SIDEV_BONGO_STR		_trans("TaruKonga (Bongos)")
 #define SIDEV_GBA_STR		"GBA"
 #define SIDEV_AM_BB_STR		_trans("AM-Baseboard")
 
@@ -388,6 +389,7 @@ void CConfigMain::InitializeGUIValues()
 	wxArrayString SIDevices;
 		SIDevices.Add(_(DEV_NONE_STR));
 		SIDevices.Add(_(SIDEV_STDCONT_STR));
+		SIDevices.Add(_(SIDEV_BONGO_STR));
 		SIDevices.Add(_(SIDEV_GBA_STR));
 		SIDevices.Add(_(SIDEV_AM_BB_STR));
 
@@ -436,14 +438,17 @@ void CConfigMain::InitializeGUIValues()
 
 		switch (SConfig::GetInstance().m_SIDevice[i])
 		{
-		case SI_GC_CONTROLLER:
+		case SIDEVICE_GC_CONTROLLER:
 			GCSIDevice[i]->SetStringSelection(SIDevices[1]);
 			break;
-		case SI_GBA:
+		case SIDEVICE_GC_TARUKONGA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[2]);
 			break;
-		case SI_AM_BASEBOARD:
+		case SIDEVICE_GC_GBA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[3]);
+			break;
+		case SIDEVICE_AM_BASEBOARD:
+			GCSIDevice[i]->SetStringSelection(SIDevices[4]);
 			break;
 		default:
 			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
@@ -1043,15 +1048,17 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 
 void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
 {
-	TSIDevices tempType;
+	SIDevices tempType;
 	if (!deviceName.compare(CSTR_TRANS(SIDEV_STDCONT_STR)))
-		tempType = SI_GC_CONTROLLER;
+		tempType = SIDEVICE_GC_CONTROLLER;
+	else if (!deviceName.compare(CSTR_TRANS(SIDEV_BONGO_STR)))
+		tempType = SIDEVICE_GC_TARUKONGA;
 	else if (!deviceName.compare(SIDEV_GBA_STR))
-		tempType = SI_GBA;
+		tempType = SIDEVICE_GC_GBA;
 	else if (!deviceName.compare(CSTR_TRANS(SIDEV_AM_BB_STR)))
-		tempType = SI_AM_BASEBOARD;
+		tempType = SIDEVICE_AM_BASEBOARD;
 	else
-		tempType = SI_NONE;
+		tempType = SIDEVICE_NONE;
 
 	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
 

@@ -62,8 +62,6 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	memset(_pPADStatus, 0, sizeof(*_pPADStatus));
 	_pPADStatus->err = PAD_ERR_NONE;
-	// wtf is this?
-	_pPADStatus->button = PAD_USE_ORIGIN;
 
 	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
 
