@@ -101,7 +101,7 @@ void LOADERDECL PosMtx_Write()
 
 void LOADERDECL UpdateBoundingBox() 
 {
-    if (!PixelEngine::bbox_active)
+	if (!PixelEngine::bbox_active)
 		return;
 
 	// Truly evil hack, reading backwards from the write pointer. If we were writing to write-only
@@ -119,40 +119,46 @@ void LOADERDECL UpdateBoundingBox()
 	t[1] = p[0] * world_matrix[4] + p[1] * world_matrix[5] + p[2] * world_matrix[6] + world_matrix[7];
 	t[2] = p[0] * world_matrix[8] + p[1] * world_matrix[9] + p[2] * world_matrix[10] + world_matrix[11];
 
-	float o[4];
-	o[2] = t[0] * proj_matrix[8]  + t[1] * proj_matrix[9]  + t[2] * proj_matrix[10] + proj_matrix[11];
-	// Depth culling
-	if (o[2] < 0.0) {
-		// No pixels are likely to be drawn - don't update bounding box.
-		return;
-	}
+	float o[3];
 	o[0] = t[0] * proj_matrix[0]  + t[1] * proj_matrix[1]  + t[2] * proj_matrix[2] + proj_matrix[3];
 	o[1] = t[0] * proj_matrix[4]  + t[1] * proj_matrix[5]  + t[2] * proj_matrix[6] + proj_matrix[7];
-	o[3] = t[0] * proj_matrix[12] + t[1] * proj_matrix[13] + t[2] * proj_matrix[14] + proj_matrix[15];
-	
-	o[0] /= o[3];
-	o[1] /= o[3];
+	o[2] = t[0] * proj_matrix[12] + t[1] * proj_matrix[13] + t[2] * proj_matrix[14] + proj_matrix[15];
+
+
+	o[0] /= o[2];
+	o[1] /= o[2];
 
 	// should possibly adjust for viewport?
-	o[0] = (o[0] + 1.0f) * 320.0f;
-	o[1] = (o[1] + 1.0f) * 240.0f;
+	o[0] = (o[0] + 1.0f) * 304.0f;
+	o[1] = (1.0f - o[1]) * 240.0f;
 
-    if (o[0] < PixelEngine::bbox[0]) PixelEngine::bbox[0] = (u16)std::max(0.0f, o[0]);
-	if (o[0] > PixelEngine::bbox[1]) PixelEngine::bbox[1] = (u16)std::min(640.0f, o[0]);
-	if (o[1] < PixelEngine::bbox[2]) PixelEngine::bbox[2] = (u16)std::max(0.0f, o[1]);
-	if (o[1] > PixelEngine::bbox[3]) PixelEngine::bbox[3] = (u16)std::min(480.0f, o[1]);
+    if (o[0] < PixelEngine::bbox[0])
+	{
+		PixelEngine::bbox[0] = (u16) std::max(0.0f, o[0]);
 
-	// Hardware tests bounding boxes in 2x2 blocks => left and top are even, right and bottom are odd
-	PixelEngine::bbox[0] &= ~1;
-	PixelEngine::bbox[1] |= 1;
-	PixelEngine::bbox[2] &= ~1;
-	PixelEngine::bbox[3] |= 1;
+		// Hardware tests bounding boxes in 2x2 blocks => left and top are even, right and bottom are odd
+		PixelEngine::bbox[0] &= ~1;
+	}
 
-	/*
-	if (GetAsyncKeyState(VK_LSHIFT)) {
-		ERROR_LOG(VIDEO, "XForm: %f %f %f to %f %f", p[0], p[1], p[2], o[0], o[1]);
-		ERROR_LOG(VIDEO, "%i %i %i %i", g_VideoInitialize.pBBox[0], g_VideoInitialize.pBBox[1], g_VideoInitialize.pBBox[2], g_VideoInitialize.pBBox[3]);
-	}*/
+	if (o[0] > PixelEngine::bbox[1])
+	{
+		PixelEngine::bbox[1] = (u16) std::min(608.0f, o[0]);
+		if(!(PixelEngine::bbox[1] & 1) && PixelEngine::bbox[1] != 0)
+			PixelEngine::bbox[1]--;
+	}
+
+	if (o[1] < PixelEngine::bbox[2])
+	{
+		PixelEngine::bbox[2] = (u16) std::max(0.0f, o[1]);
+		PixelEngine::bbox[2] &= ~1;
+	}
+
+	if (o[1] > PixelEngine::bbox[3])
+	{
+		PixelEngine::bbox[3] = (u16) std::min(480.0f, o[1]);
+		if(!(PixelEngine::bbox[3] & 1) && PixelEngine::bbox[3] != 0)
+			PixelEngine::bbox[3]--;
+	}
 }
 
 void LOADERDECL TexMtx_ReadDirect_UByte()
@@ -290,9 +296,8 @@ void VertexLoader::CompileVertexTranslator()
 
 	// OK, so we just got a point. Let's go back and read it for the bounding box.
 	
-#ifdef BBOX_SUPPORT
-	WriteCall(UpdateBoundingBox);
-#endif
+	if(g_ActiveConfig.bUseBBox)
+		WriteCall(UpdateBoundingBox);
 
 	// Normals
 	vtx_decl.num_normals = 0;

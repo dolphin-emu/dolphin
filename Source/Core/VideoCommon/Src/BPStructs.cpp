@@ -257,9 +257,8 @@ void BPWritten(const BPCmd& bp)
 				// We should be able to get away with deactivating the current bbox tracking
 				// here. Not sure if there's a better spot to put this.
 				// the number of lines copied is determined by the y scale * source efb height
-#ifdef BBOX_SUPPORT
+			
 				PixelEngine::bbox_active = false;
-#endif
 
 				float yScale;
 				if (PE_copy.scale_invert)
@@ -400,28 +399,29 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_CLEARBBOX1:
 	case BPMEM_CLEARBBOX2:
 		{
-#ifdef BBOX_SUPPORT
-		// which is which? these are GUESSES!
-		if (bp.address == BPMEM_CLEARBBOX1) {
-			int right = bp.newvalue >> 10;
-			int left = bp.newvalue & 0x3ff;
+		if(g_ActiveConfig.bUseBBox)
+		{
+			// which is which? these are GUESSES!
+			if (bp.address == BPMEM_CLEARBBOX1) {
+				int right = bp.newvalue >> 10;
+				int left = bp.newvalue & 0x3ff;
 			
-			// We should only set these if bbox is calculated properly.
-			PixelEngine::bbox[0] = left;
-			PixelEngine::bbox[1] = right;
-			PixelEngine::bbox_active = true;
-			// WARN_LOG(VIDEO, "ClearBBox LR: %i, %08x - %i, %i", bp.address, bp.newvalue, left, right);
-		} else {
-			int bottom = bp.newvalue >> 10;
-			int top = bp.newvalue & 0x3ff;
+				// We should only set these if bbox is calculated properly.
+				PixelEngine::bbox[0] = left;
+				PixelEngine::bbox[1] = right;
+				PixelEngine::bbox_active = true;
+				// WARN_LOG(VIDEO, "ClearBBox LR: %i, %08x - %i, %i", bp.address, bp.newvalue, left, right);
+			} else {
+				int bottom = bp.newvalue >> 10;
+				int top = bp.newvalue & 0x3ff;
 
-			// We should only set these if bbox is calculated properly.
-			PixelEngine::bbox[2] = top;
-			PixelEngine::bbox[3] = bottom;
-			PixelEngine::bbox_active = true;
-			// WARN_LOG(VIDEO, "ClearBBox TB: %i, %08x - %i, %i", bp.address, bp.newvalue, top, bottom);
+				// We should only set these if bbox is calculated properly.
+				PixelEngine::bbox[2] = top;
+				PixelEngine::bbox[3] = bottom;
+				PixelEngine::bbox_active = true;
+				// WARN_LOG(VIDEO, "ClearBBox TB: %i, %08x - %i, %i", bp.address, bp.newvalue, top, bottom);
+			}
 		}
-#endif
 		}
 		break;
 	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow

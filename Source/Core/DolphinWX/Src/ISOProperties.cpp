@@ -325,6 +325,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	DisableWiimoteSpeaker->SetToolTip(_("Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No effect on emulated wiimotes."));
 
 	// Video
+	UseBBox = new wxCheckBox(m_GameConfig, ID_ZTP_SPEEDUP, _("Enable Bounding Box Calculation"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER);
+	UseBBox->SetToolTip(_("If checked, the bounding box registers will be updated. Used by the Paper Mario games."));
+
 	UseZTPSpeedupHack = new wxCheckBox(m_GameConfig, ID_ZTP_SPEEDUP, _("ZTP hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER);
 	UseZTPSpeedupHack->SetToolTip(_("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
 	
@@ -383,6 +386,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	wxStaticBoxSizer * const sbVideoOverrides =
 		new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
+	sbVideoOverrides->Add(UseBBox, 0, wxLEFT, 5);
 	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxLEFT, 5);
 	szrPHackSettings->Add(PHackEnable, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
 	szrPHackSettings->Add(PHSettings, 0, wxLEFT, 5);
@@ -898,7 +902,13 @@ void CISOProperties::LoadGameConfig()
 		DisableWiimoteSpeaker->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		DisableWiimoteSpeaker->Set3StateValue(wxCHK_UNDETERMINED);
-	
+
+	if (GameIni.Get("Video", "UseBBox", &bTemp))
+		UseBBox->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		UseBBox->Set3StateValue(wxCHK_UNDETERMINED);
+
+
 	if (GameIni.Get("Video", "ZTPSpeedupHack", &bTemp))
 		UseZTPSpeedupHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -991,6 +1001,11 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Wii", "DisableWiimoteSpeaker");
 	else
 		GameIni.Set("Wii", "DisableWiimoteSpeaker", DisableWiimoteSpeaker->Get3StateValue());
+
+	if (UseBBox->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "UseBBox");
+	else
+		GameIni.Set("Video", "UseBBox", UseBBox->Get3StateValue());
 
 	if (UseZTPSpeedupHack->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "ZTPSpeedupHack");

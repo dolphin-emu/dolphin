@@ -74,7 +74,7 @@ private:
 	// Wii
 	wxCheckBox *EnableProgressiveScan, *EnableWideScreen, *DisableWiimoteSpeaker;
 	// Video
-	wxCheckBox *UseZTPSpeedupHack, *PHackEnable;
+	wxCheckBox *UseZTPSpeedupHack, *PHackEnable, *UseBBox;
 	wxButton *PHSettings;
 
 	wxArrayString arrayStringFor_EmuState;
