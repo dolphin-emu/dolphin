@@ -369,6 +369,9 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
 {
 	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything.
 	// Seen used during initialization.
+	u32 address = Helper_Get_EA_X(_inst);
+	if (jit)
+		jit->GetBlockCache()->InvalidateICache(address & ~0x1f);
 }
 
 void Interpreter::dcbst(UGeckoInstruction _inst)
