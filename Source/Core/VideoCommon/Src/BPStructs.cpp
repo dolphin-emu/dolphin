@@ -37,6 +37,8 @@ u32 mapTexAddress;
 bool mapTexFound;
 int numWrites;
 
+extern volatile bool g_bSkipCurrentFrame;
+
 static const float s_gammaLUT[] = 
 {
 	1.0f,
@@ -401,7 +403,11 @@ void BPWritten(const BPCmd& bp)
 		{
 		if(g_ActiveConfig.bUseBBox)
 		{
-			// which is which? these are GUESSES!
+			// Don't compute bounding box if this frame is being skipped!
+			// Wrong but valid values are better than bogus values...
+			if(g_bSkipCurrentFrame)
+				break;
+
 			if (bp.address == BPMEM_CLEARBBOX1) {
 				int right = bp.newvalue >> 10;
 				int left = bp.newvalue & 0x3ff;
@@ -410,7 +416,6 @@ void BPWritten(const BPCmd& bp)
 				PixelEngine::bbox[0] = left;
 				PixelEngine::bbox[1] = right;
 				PixelEngine::bbox_active = true;
-				// WARN_LOG(VIDEO, "ClearBBox LR: %i, %08x - %i, %i", bp.address, bp.newvalue, left, right);
 			} else {
 				int bottom = bp.newvalue >> 10;
 				int top = bp.newvalue & 0x3ff;
@@ -419,7 +424,6 @@ void BPWritten(const BPCmd& bp)
 				PixelEngine::bbox[2] = top;
 				PixelEngine::bbox[3] = bottom;
 				PixelEngine::bbox_active = true;
-				// WARN_LOG(VIDEO, "ClearBBox TB: %i, %08x - %i, %i", bp.address, bp.newvalue, top, bottom);
 			}
 		}
 		}

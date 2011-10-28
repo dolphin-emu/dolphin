@@ -111,7 +111,7 @@ void LOADERDECL UpdateBoundingBox()
 	// Then convert to screen space and update the bounding box.
 	float p[3] = {data[0], data[1], data[2]};
 
-    const float *world_matrix  = (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
+	const float *world_matrix  = (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
 	const float *proj_matrix = &g_fProjectionMatrix[0];
 
 	float t[3];
@@ -124,41 +124,18 @@ void LOADERDECL UpdateBoundingBox()
 	o[1] = t[0] * proj_matrix[4]  + t[1] * proj_matrix[5]  + t[2] * proj_matrix[6] + proj_matrix[7];
 	o[2] = t[0] * proj_matrix[12] + t[1] * proj_matrix[13] + t[2] * proj_matrix[14] + proj_matrix[15];
 
-
 	o[0] /= o[2];
 	o[1] /= o[2];
 
-	// should possibly adjust for viewport?
+	// Max width seems to be 608, while max height is 480
+	// Here height is set to 484 as BBox bottom always seems to be off by a few pixels
 	o[0] = (o[0] + 1.0f) * 304.0f;
-	o[1] = (1.0f - o[1]) * 240.0f;
+	o[1] = (1.0f - o[1]) * 242.0f;
 
-    if (o[0] < PixelEngine::bbox[0])
-	{
-		PixelEngine::bbox[0] = (u16) std::max(0.0f, o[0]);
-
-		// Hardware tests bounding boxes in 2x2 blocks => left and top are even, right and bottom are odd
-		PixelEngine::bbox[0] &= ~1;
-	}
-
-	if (o[0] > PixelEngine::bbox[1])
-	{
-		PixelEngine::bbox[1] = (u16) std::min(608.0f, o[0]);
-		if(!(PixelEngine::bbox[1] & 1) && PixelEngine::bbox[1] != 0)
-			PixelEngine::bbox[1]--;
-	}
-
-	if (o[1] < PixelEngine::bbox[2])
-	{
-		PixelEngine::bbox[2] = (u16) std::max(0.0f, o[1]);
-		PixelEngine::bbox[2] &= ~1;
-	}
-
-	if (o[1] > PixelEngine::bbox[3])
-	{
-		PixelEngine::bbox[3] = (u16) std::min(480.0f, o[1]);
-		if(!(PixelEngine::bbox[3] & 1) && PixelEngine::bbox[3] != 0)
-			PixelEngine::bbox[3]--;
-	}
+	if (o[0] < PixelEngine::bbox[0]) PixelEngine::bbox[0] = (u16) std::max(0.0f, o[0]);
+	if (o[0] > PixelEngine::bbox[1]) PixelEngine::bbox[1] = (u16) o[0]; 
+	if (o[1] < PixelEngine::bbox[2]) PixelEngine::bbox[2] = (u16) std::max(0.0f, o[1]);
+	if (o[1] > PixelEngine::bbox[3]) PixelEngine::bbox[3] = (u16) o[1];
 }
 
 void LOADERDECL TexMtx_ReadDirect_UByte()

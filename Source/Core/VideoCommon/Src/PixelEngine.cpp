@@ -206,14 +206,45 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		INFO_LOG(PIXELENGINE, "(r16) TOKEN_REG : %04x", _uReturnValue);
 		break;
 
-		// The return values for these BBOX registers need to be gotten from the bounding box of the object. 
-		// See http://code.google.com/p/dolphin-emu/issues/detail?id=360#c74 for more details.
+	case PE_BBOX_LEFT:
+	{
+		// Left must be even and 606px max
+		_uReturnValue = std::min((u16) 606, bbox[0]) & ~1;
 
-	// 0x80, 0xa0, 0x80, 0xa0 makes Paper Mario happy.
-	case PE_BBOX_LEFT:   _uReturnValue = bbox[0]; INFO_LOG(PIXELENGINE, "R: BBOX_LEFT   = %i", bbox[0]); bbox_active = false; break;
-	case PE_BBOX_RIGHT:  _uReturnValue = bbox[1]; INFO_LOG(PIXELENGINE, "R: BBOX_RIGHT  = %i", bbox[1]); bbox_active = false; break;
-	case PE_BBOX_TOP:    _uReturnValue = bbox[2]; INFO_LOG(PIXELENGINE, "R: BBOX_TOP    = %i", bbox[2]); bbox_active = false; break;
-	case PE_BBOX_BOTTOM: _uReturnValue = bbox[3]; INFO_LOG(PIXELENGINE, "R: BBOX_BOTTOM = %i", bbox[3]); bbox_active = false; break;
+		INFO_LOG(PIXELENGINE, "R: BBOX_LEFT   = %i", _uReturnValue);
+		bbox_active = false;
+		break;
+	}
+
+	case PE_BBOX_RIGHT:
+	{
+		// Right must be odd and 607px max
+		_uReturnValue = std::min((u16) 607, bbox[1]) | 1;
+
+		INFO_LOG(PIXELENGINE, "R: BBOX_RIGHT  = %i", _uReturnValue);
+		bbox_active = false;
+		break;
+	}
+
+	case PE_BBOX_TOP:
+	{
+		// Top must be even and 478px max
+		_uReturnValue = std::min((u16) 478, bbox[2]) & ~1;
+
+		INFO_LOG(PIXELENGINE, "R: BBOX_TOP    = %i", _uReturnValue);
+		bbox_active = false;
+		break;
+	}
+
+	case PE_BBOX_BOTTOM:
+	{
+		// Bottom must be odd and 479px max
+		_uReturnValue = std::min((u16) 479, bbox[3]) | 1;
+
+		INFO_LOG(PIXELENGINE, "R: BBOX_BOTTOM = %i", _uReturnValue);
+		bbox_active = false;
+		break;
+	}
 
 	case PE_PERF_0L:
 	case PE_PERF_0H:
