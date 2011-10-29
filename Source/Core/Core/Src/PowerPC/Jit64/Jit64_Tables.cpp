@@ -210,12 +210,12 @@ static GekkoOPTemplate table31[] =
 	{824, &Jit64::srawix}, //"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 	{24,  &Jit64::slwx}, //"slwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 
-	{54,   &Jit64::Default}, //"dcbst",  OPTYPE_DCACHE, 0, 4}},
-	{86,   &Jit64::DoNothing}, //"dcbf",   OPTYPE_DCACHE, 0, 4}},
-	{246,  &Jit64::Default}, //"dcbtst", OPTYPE_DCACHE, 0, 1}},
-	{278,  &Jit64::Default}, //"dcbt",   OPTYPE_DCACHE, 0, 1}},
+	{54,   &Jit64::DoNothing}, //"dcbst",  OPTYPE_DCACHE, 0, 4}},
+	{86,   &Jit64::Default}, //"dcbf",   OPTYPE_DCACHE, 0, 4}},
+	{246,  &Jit64::DoNothing}, //"dcbtst", OPTYPE_DCACHE, 0, 1}},
+	{278,  &Jit64::DoNothing}, //"dcbt",   OPTYPE_DCACHE, 0, 1}},
 	{470,  &Jit64::Default}, //"dcbi",   OPTYPE_DCACHE, 0, 4}},
-	{758,  &Jit64::Default}, //"dcba",   OPTYPE_DCACHE, 0, 4}},
+	{758,  &Jit64::DoNothing}, //"dcba",   OPTYPE_DCACHE, 0, 4}},
 	{1014, &Jit64::dcbz}, //"dcbz",   OPTYPE_DCACHE, 0, 4}},
 
 	//load word
