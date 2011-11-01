@@ -267,7 +267,6 @@ bool CBoot::BootUp()
 				db.Apply(&g_symbolDB);
 			}
 			HLE::PatchFunctions();
-			g_symbolDB.Clear();
 		}
 
 		/* Try to load the symbol map if there is one, and then scan it for

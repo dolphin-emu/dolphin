@@ -28,9 +28,16 @@
 #include "Filesystem.h"
 #include "../Boot/Boot_DOL.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "HLE.h"
 
 namespace HLE_Misc
 {
+
+std::string dol;
+std::string args;
+u32 argsPtr;
+u32 bootType;
+u16 IOSv;
 
 // Helper to quickly read the floating point value at a memory location.
 inline float F(u32 addr)
@@ -288,26 +295,19 @@ void HBReload()
 	Host_Message(WM_USER_STOP);
 }
 
-
-void OSBootDol()
+void BootDOLFromDisc()
 {
-	std::string dol;
-	std::string args;
-
-	u32 r28 = GPR(28);
-	Memory::GetString(dol, r28);
-
-	u32 argsPtr = Memory::Read_U32(GPR(5));
-	Memory::GetString(args, argsPtr);
-
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
 	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
-	size_t fileSize = (size_t) pFileSystem->GetFileSize(dol.substr(1).c_str());
+	if (dol.substr(1, 1).compare("//"))
+		dol = dol.substr(1);
+
+	u32 fileSize = (u32) pFileSystem->GetFileSize(dol.c_str());
 	u8* dolFile = new u8[fileSize];
-	if (dolFile)
+	if (fileSize > 0)
 	{
-		pFileSystem->ReadFile(dol.substr(1).c_str(), dolFile, fileSize);
+		pFileSystem->ReadFile(dol.c_str(), dolFile, fileSize);
 		CDolLoader dolLoader(dolFile, fileSize);
 		dolLoader.Load();
 		PowerPC::ppcState.iCache.Reset();
@@ -344,6 +344,70 @@ void OSBootDol()
 
 		NPC = dolLoader.GetEntryPoint() | 0x80000000;
 	}
+}
+
+u32 GetDolFileSize()
+{
+	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
+	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
+
+	std::string dolFile;
+
+	if (dol.substr(1, 1).compare("//"))
+		dolFile = dol.substr(1);
+
+	return (u32)pFileSystem->GetFileSize(dolFile.c_str());
+}
+
+void OSBootDol()
+{
+	IOSv = Memory::Read_U16(0x00003140);
+
+	if (IOSv >= 30)
+	{
+		bootType = GPR(4);
+
+		if ((GPR(4) >> 28) == 0x8)
+		{
+			// Reset from menu
+			PanicAlert("Reset from menu");
+		}
+		else if ((GPR(4) >> 28) == 0xA)
+		{
+			// Boot from disc partition
+			PanicAlert("Boot Partition: %08x", GPR(26));
+		}
+		else if ((GPR(4) >> 28) == 0xC)
+		{
+			// Boot DOL from disc
+			u32 ptr = GPR(28);
+			Memory::GetString(dol, ptr);
+
+			if (GetDolFileSize() == 0)
+			{
+				ptr = GPR(30);
+				Memory::GetString(dol, ptr);
+				if (GetDolFileSize() == 0)
+				{
+					// Cannot locate the dol file, exit.
+					HLE::UnPatch("__OSBootDol");
+					NPC = PC;
+					return;
+				}
+			}
+
+			argsPtr = Memory::Read_U32(GPR(5));
+			Memory::GetString(args, argsPtr);
+			BootDOLFromDisc();
+			return;
+		}
+		else
+		{
+			PanicAlert("Unknown boot type: %08x", GPR(4));
+		}
+	}
+	HLE::UnPatch("__OSBootDol");
+	NPC = PC;
 }
 
 }

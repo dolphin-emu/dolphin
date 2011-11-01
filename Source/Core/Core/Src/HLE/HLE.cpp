@@ -28,6 +28,7 @@
 #include "HLE_OS.h"
 #include "HLE_Misc.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_es.h"
+#include "ConfigManager.h"
 
 namespace HLE
 {
@@ -137,13 +138,16 @@ void PatchFunctions()
 		}
 	}
 
-	for (size_t i = 1; i < sizeof(OSBreakPoints) / sizeof(SPatch); i++)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
-		Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
-		if (symbol > 0)
+		for (size_t i = 1; i < sizeof(OSBreakPoints) / sizeof(SPatch); i++)
 		{
-			PowerPC::breakpoints.Add(symbol->address, false);
-			INFO_LOG(OSHLE, "Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
+			Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
+			if (symbol > 0)
+			{
+				PowerPC::breakpoints.Add(symbol->address, false);
+				INFO_LOG(OSHLE, "Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
+			}
 		}
 	}
 
@@ -169,6 +173,21 @@ u32 GetOrigInstruction(u32 addr)
 {
 	std::map<u32, u32>::const_iterator iter = orig_instruction.find(addr);
 	return (iter != orig_instruction.end()) ?  iter->second : 0;
+}
+
+u32 UnPatch(std::string patchName)
+{
+	Symbol *symbol = g_symbolDB.GetSymbolFromName(patchName.c_str());
+	if (symbol > 0)
+	{
+		for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
+		{
+			Memory::WriteUnchecked_U32(orig_instruction[addr], addr);
+			PowerPC::ppcState.iCache.Invalidate(addr);
+		}
+		return symbol->address;
+	}
+	return 0;
 }
 
 }  // end of namespace HLE
