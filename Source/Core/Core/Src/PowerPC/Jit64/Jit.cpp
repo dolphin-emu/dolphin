@@ -393,6 +393,7 @@ void STACKALIGN Jit64::Jit(u32 em_address)
 	{
 		ClearCache();
 	}
+
 	int block_num = blocks.AllocateBlock(em_address);
 	JitBlock *b = blocks.GetBlock(block_num);
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
@@ -612,14 +613,14 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 #ifdef _M_IX86
 		if (js.compilerPC & JIT_ICACHE_VMEM_BIT)
 			MOV(32, M((jit->GetBlockCache()->GetICacheVMEM() + (js.compilerPC & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
-		else if (js.blockStart & JIT_ICACHE_EXRAM_BIT)
+		else if (js.compilerPC & JIT_ICACHE_EXRAM_BIT)
 			MOV(32, M((jit->GetBlockCache()->GetICacheEx() + (js.compilerPC & JIT_ICACHEEX_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
 		else
 			MOV(32, M((jit->GetBlockCache()->GetICache() + (js.compilerPC & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
 #else
 		if (js.compilerPC & JIT_ICACHE_VMEM_BIT)
 			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICacheVMEM() + (js.compilerPC & JIT_ICACHE_MASK)));
-		else if (js.blockStart & JIT_ICACHE_EXRAM_BIT)
+		else if (js.compilerPC & JIT_ICACHE_EXRAM_BIT)
 			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICacheEx() + (js.compilerPC & JIT_ICACHEEX_MASK)));
 		else
 			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICache() + (js.compilerPC & JIT_ICACHE_MASK)));

@@ -82,8 +82,6 @@ namespace PowerPC
 
 	void InstructionCache::Invalidate(u32 addr)
 	{
-		if (jit)
-			jit->GetBlockCache()->InvalidateICache(addr);
 		if (!HID0.ICE)
 			return;
 		// invalidates the whole set
@@ -101,6 +99,14 @@ namespace PowerPC
 			}
 #endif
 		valid[set] = 0;
+		if (jit)
+			jit->GetBlockCache()->InvalidateICache(addr);
+	}
+
+	void InstructionCache::InvalidateBlock(u32 addr)
+	{
+		if (jit)
+			jit->GetBlockCache()->InvalidateICache(addr);
 	}
 
 	u32 InstructionCache::ReadInstruction(u32 addr)
