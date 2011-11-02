@@ -52,13 +52,21 @@ size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
 std::string CGameListCtrl::m_currentFilename;
 
-static int currentColumn = 0;
-bool operator < (const GameListItem &one, const GameListItem &other)
+static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
+                                long sortData = CGameListCtrl::COLUMN_TITLE)
 {
+	int t = 1;
+
+	if (sortData < 0)
+	{
+		t = -1;
+		sortData = -sortData;
+	}
+
 	int indexOne = 0;
 	int indexOther = 0;
 
-	switch (one.GetCountry())
+	switch (iso1->GetCountry())
 	{
 		case DiscIO::IVolume::COUNTRY_JAPAN:
 		case DiscIO::IVolume::COUNTRY_USA:
@@ -68,7 +76,7 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 			indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 
-	switch (other.GetCountry())
+	switch (iso2->GetCountry())
 	{
 		case DiscIO::IVolume::COUNTRY_JAPAN:
 		case DiscIO::IVolume::COUNTRY_USA:
@@ -78,35 +86,63 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 			indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 
-	switch (currentColumn)
+	switch(sortData)
 	{
 		case CGameListCtrl::COLUMN_TITLE:
-			return strcasecmp(one.GetName(indexOne).c_str(),
-					other.GetName(indexOther).c_str()) < 0;
+			return strcasecmp(iso1->GetName(indexOne).c_str(),
+					iso2->GetName(indexOther).c_str()) * t;
 		case CGameListCtrl::COLUMN_NOTES:
 			{
-				// On Gamecube we show the company string, while it's empty on
-				// other platforms, so we show the description instead
 				std::string cmp1 =
-					(one.GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-					one.GetCompany() : one.GetDescription(indexOne);
+					(iso1->GetPlatform() == GameListItem::GAMECUBE_DISC) ?
+					iso1->GetCompany() : iso1->GetDescription(indexOne);
 				std::string cmp2 =
-					(other.GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-					other.GetCompany() : other.GetDescription(indexOther);
-				return strcasecmp(cmp1.c_str(), cmp2.c_str()) < 0;
+					(iso2->GetPlatform() == GameListItem::GAMECUBE_DISC) ?
+					iso2->GetCompany() : iso2->GetDescription(indexOther);
+				return strcasecmp(cmp1.c_str(), cmp2.c_str()) * t;
 			}
 		case CGameListCtrl::COLUMN_COUNTRY:
-			return (one.GetCountry() < other.GetCountry());
+			if(iso1->GetCountry() > iso2->GetCountry())
+				return  1 * t;
+			if(iso1->GetCountry() < iso2->GetCountry())
+				return -1 * t;
+			return 0;
 		case CGameListCtrl::COLUMN_SIZE:
-			return (one.GetFileSize() < other.GetFileSize());
+			if (iso1->GetFileSize() > iso2->GetFileSize())
+				return  1 * t;
+			if (iso1->GetFileSize() < iso2->GetFileSize())
+				return -1 * t;
+			return 0;
 		case CGameListCtrl::COLUMN_PLATFORM:
-			return (one.GetPlatform() < other.GetPlatform());
-		default:
-			return strcasecmp(one.GetName(indexOne).c_str(),
-					other.GetName(indexOther).c_str()) < 0;
+			if(iso1->GetPlatform() > iso2->GetPlatform())
+				return  1 * t;
+			if(iso1->GetPlatform() < iso2->GetPlatform())
+				return -1 * t;
+			return 0;
+
+		case CGameListCtrl::COLUMN_EMULATION_STATE:
+		{
+			const int
+				nState1 = iso1->GetEmuState(),
+				nState2 = iso2->GetEmuState();
+
+			if (nState1 > nState2)
+				return  1 * t;
+			if (nState1 < nState2)
+				return -1 * t;
+			else
+				return 0;
+		}
+			break;
 	}
+
+	return 0;
 }
 
+bool operator < (const GameListItem &one, const GameListItem &other)
+{
+	return CompareGameListItems(&one, &other) < 0;
+}
 
 BEGIN_EVENT_TABLE(wxEmuStateTip, wxTipWindow)
 	EVT_KEY_DOWN(wxEmuStateTip::OnKeyDown)
@@ -702,88 +738,7 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 	const GameListItem *iso1 = caller->GetISO(item1);
 	const GameListItem *iso2 = caller->GetISO(item2);
 
-	int t = 1;
-
-	if (sortData < 0)
-	{
-		t = -1;
-		sortData = -sortData;
-	}
-
-	int indexOne = 0;
-	int indexOther = 0;
-
-	switch (iso1->GetCountry())
-	{
-		case DiscIO::IVolume::COUNTRY_JAPAN:
-		case DiscIO::IVolume::COUNTRY_USA:
-			indexOne = 0;
-			break;
-		default:
-			indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
-	}
-
-	switch (iso2->GetCountry())
-	{
-		case DiscIO::IVolume::COUNTRY_JAPAN:
-		case DiscIO::IVolume::COUNTRY_USA:
-			indexOther = 0;
-			break;
-		default:
-			indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
-	}
-
-	switch(sortData)
-	{
-		case CGameListCtrl::COLUMN_TITLE:
-			return strcasecmp(iso1->GetName(indexOne).c_str(),
-					iso2->GetName(indexOther).c_str()) * t;
-		case CGameListCtrl::COLUMN_NOTES:
-			{
-				std::string cmp1 =
-					(iso1->GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-					iso1->GetCompany() : iso1->GetDescription(indexOne);
-				std::string cmp2 =
-					(iso2->GetPlatform() == GameListItem::GAMECUBE_DISC) ?
-					iso2->GetCompany() : iso2->GetDescription(indexOther);
-				return strcasecmp(cmp1.c_str(), cmp2.c_str()) * t;
-			}
-		case CGameListCtrl::COLUMN_COUNTRY:
-			if(iso1->GetCountry() > iso2->GetCountry())
-				return  1 * t;
-			if(iso1->GetCountry() < iso2->GetCountry())
-				return -1 * t;
-			return 0;
-		case CGameListCtrl::COLUMN_SIZE:
-			if (iso1->GetFileSize() > iso2->GetFileSize())
-				return  1 * t;
-			if (iso1->GetFileSize() < iso2->GetFileSize())
-				return -1 * t;
-			return 0;
-		case CGameListCtrl::COLUMN_PLATFORM:
-			if(iso1->GetPlatform() > iso2->GetPlatform())
-				return  1 * t;
-			if(iso1->GetPlatform() < iso2->GetPlatform())
-				return -1 * t;
-			return 0;
-
-		case CGameListCtrl::COLUMN_EMULATION_STATE:
-		{
-			const int
-				nState1 = iso1->GetEmuState(),
-				nState2 = iso2->GetEmuState();
-
-			if (nState1 > nState2)
-				return  1 * t;
-			if (nState1 < nState2)
-				return -1 * t;
-			else
-				return 0;
-		}
-			break;
-	}
-
-	return 0;
+	return CompareGameListItems(iso1, iso2, sortData);
 }
 
 void CGameListCtrl::OnColumnClick(wxListEvent& event)
