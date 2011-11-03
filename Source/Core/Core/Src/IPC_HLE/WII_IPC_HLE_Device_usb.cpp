@@ -120,9 +120,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_ScanEnable);
 	m_acl_pool.DoState(p);
 
-	if (p.GetMode() == PointerWrap::MODE_READ) {
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
 	    m_EventQueue.clear();
 	}
+
 	if (p.GetMode() == PointerWrap::MODE_READ &&
 		SConfig::GetInstance().m_WiimoteReconnectOnLoad)
 	{
@@ -131,12 +133,12 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	    {
         	if (m_WiiMotes[i].IsConnected())
             {
-                    m_WiiMotes[i].Activate(false);
-                    m_WiiMotes[i].Activate(true);
+				m_WiiMotes[i].Activate(false);
+				m_WiiMotes[i].Activate(true);
 	        }
         	else
             {
-                    m_WiiMotes[i].Activate(false);
+                 m_WiiMotes[i].Activate(false);
 	        }
         }
 	}

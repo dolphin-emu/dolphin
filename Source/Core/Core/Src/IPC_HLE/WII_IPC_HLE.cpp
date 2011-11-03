@@ -49,6 +49,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "WII_IPC_HLE_Device_es.h"
 #include "WII_IPC_HLE_Device_usb.h"
 #include "WII_IPC_HLE_Device_usb_kbd.h"
+#include "WII_IPC_HLE_WiiSpeak.h"
 #include "WII_IPC_HLE_Device_sdio_slot0.h"
 
 #include "FileUtil.h" // For Copy
@@ -82,6 +83,8 @@ void Init()
 	u32 i = IPC_FIRST_HARDWARE_ID;
 	// Build hardware devices
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh1_57e_305(i, std::string("/dev/usb/oh1/57e/305")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh0(i, std::string("/dev/usb/oh0")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh0_57e_308(i, std::string("/dev/usb/oh0/57e/308")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_immediate(i, std::string("/dev/stm/immediate")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_eventhook(i, std::string("/dev/stm/eventhook")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_fs(i, std::string("/dev/fs")); i++;
