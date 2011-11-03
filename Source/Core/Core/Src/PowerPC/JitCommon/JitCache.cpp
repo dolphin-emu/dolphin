@@ -133,9 +133,9 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			DestroyBlock(i, false);
 		}
 		links_to.clear();
+		block_map.clear();
 		num_blocks = 0;
 		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
-		ClearSafe();
 	}
 
 	void JitBlockCache::ClearSafe()
@@ -207,9 +207,8 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		blockCodePointers[block_num] = code_ptr;
 		JitBlock &b = blocks[block_num];
 		b.originalFirstOpcode = Memory::Read_Opcode_JIT(b.originalAddress);
-		if ((b.originalAddress + b.originalSize) > code_high)
-			code_high = b.originalAddress + b.originalSize;
 		Memory::Write_Opcode_JIT(b.originalAddress, (JIT_OPCODE << 26) | block_num);
+		block_map[std::make_pair(b.originalAddress + 4 * b.originalSize - 1, b.originalAddress)] = block_num;
 		if (block_link)
 		{
 			for (int i = 0; i < 2; i++)
@@ -356,44 +355,79 @@ bool JitBlock::ContainsAddress(u32 em_address)
 
 	void JitBlockCache::DestroyBlock(int block_num, bool invalidate)
 	{
+		if (block_num < 0 || block_num >= num_blocks)
+		{
+			PanicAlert("DestroyBlock: Invalid block number %d", block_num);
+			return;
+		}
 		JitBlock &b = blocks[block_num];
 		if (b.invalid)
 		{
+			if (invalidate)
+				PanicAlert("Invalidating invalid block %d", block_num);
 			return;
 		}
 		b.invalid = true;
 #ifdef JIT_UNLIMITED_ICACHE
-		Memory::Write_Opcode_JIT(b.originalAddress, JIT_ICACHE_INVALID_WORD);
+		Memory::Write_Opcode_JIT(b.originalAddress, b.originalFirstOpcode?b.originalFirstOpcode:JIT_ICACHE_INVALID_WORD);
 #else
 		if (Memory::ReadFast32(b.originalAddress) == block_num)
 			Memory::WriteUnchecked_U32(b.originalFirstOpcode, b.originalAddress);
 #endif
+
+		// We don't unlink blocks, we just send anyone who tries to run them back to the dispatcher.
+		// Not entirely ideal, but .. pretty good.
+		// Spurious entrances from previously linked blocks can only come through checkedEntry
+		XEmitter emit((u8 *)b.checkedEntry);
+		emit.MOV(32, M(&PC), Imm32(b.originalAddress));
+		emit.JMP(jit->GetAsmRoutines()->dispatcher, true);
+		// this is not needed really
+		/*
+		emit.SetCodePtr((u8 *)blockCodePointers[blocknum]);
+		emit.MOV(32, M(&PC), Imm32(b.originalAddress));
+		emit.JMP(asm_routines.dispatcher, true);
+		*/
 	}
 
 
 	void JitBlockCache::InvalidateICache(u32 address)
 	{
 		address &= ~0x1f;
+		// destroy JIT blocks
+		// !! this works correctly under assumption that any two overlapping blocks end at the same address
+		std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(address, 0)), it2 = it1, it;
+		while (it2 != block_map.end() && it2->first.second < address + 0x20)
+		{
+			DestroyBlock(it2->second, true);
+			it2++;
+		}
+		if (it1 != it2)
+		{
+			block_map.erase(it1, it2);
+		}
+
 #ifdef JIT_UNLIMITED_ICACHE
+		// invalidate iCache.
+		// icbi can be called with any address, so we should check
+		if ((address & ~JIT_ICACHE_MASK) != 0x80000000 && (address & ~JIT_ICACHE_MASK) != 0x00000000 &&
+			(address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
+			(address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (address & ~JIT_ICACHEEX_MASK) != 0x10000000)
+		{
+			return;
+		}
 		if (address & JIT_ICACHE_VMEM_BIT)
 		{
 			u32 cacheaddr = address & JIT_ICACHE_MASK;
-			if (cacheaddr > (code_high & JIT_ICACHE_MASK))
-				return;
 			memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
 		}
 		else if (address & JIT_ICACHE_EXRAM_BIT)
 		{
 			u32 cacheaddr = address & JIT_ICACHEEX_MASK;
-			if (cacheaddr > (code_high & JIT_ICACHEEX_MASK))
-				return;
 			memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
 		}
 		else
 		{
 			u32 cacheaddr = address & JIT_ICACHE_MASK;
-			if (cacheaddr > (code_high & JIT_ICACHE_MASK))
-				return;
 			memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
 		}
 #endif

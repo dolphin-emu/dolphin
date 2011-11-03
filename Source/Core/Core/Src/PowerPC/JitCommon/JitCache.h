@@ -76,6 +76,7 @@ class JitBlockCache
 	JitBlock *blocks;
 	int num_blocks;
 	std::multimap<u32, int> links_to;
+	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
 #ifdef JIT_UNLIMITED_ICACHE
 	u8 *iCache;
 	u8 *iCacheEx;
@@ -104,7 +105,6 @@ public:
 	void Reset();
 
 	bool IsFull() const;
-	u32 code_high;
 
 	// Code Cache
 	JitBlock *GetBlock(int block_num);

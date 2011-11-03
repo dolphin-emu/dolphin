@@ -419,6 +419,44 @@ u32 Read_Instruction(const u32 em_address)
 		return inst.hex;
 }
 
+u32 Read_Opcode_JIT_Uncached(const u32 _Address)
+{
+	u8* iCache;
+	u32 addr;
+	if (_Address & JIT_ICACHE_VMEM_BIT)
+	{
+		iCache = jit->GetBlockCache()->GetICacheVMEM();
+		addr = _Address & JIT_ICACHE_MASK;
+	}
+	else if (_Address & JIT_ICACHE_EXRAM_BIT)
+	{
+		iCache = jit->GetBlockCache()->GetICacheEx();
+		addr = _Address & JIT_ICACHEEX_MASK;
+	}
+	else
+	{
+		iCache = jit->GetBlockCache()->GetICache();
+		addr = _Address & JIT_ICACHE_MASK;
+	}
+	u32 inst = *(u32*)(iCache + addr);
+	if (inst == JIT_ICACHE_INVALID_WORD)
+	{
+		u32 cache_block_start = addr & ~0x1f;
+		u32 mem_block_start = _Address & ~0x1f;
+		u8 *pMem = Memory::GetPointer(mem_block_start);
+		memcpy(iCache + cache_block_start, pMem, 32);
+		inst = *(u32*)(iCache + addr);
+	}
+	inst = Common::swap32(inst);
+
+	if ((inst & 0xfc000000) == 0)
+	{
+		inst = jit->GetBlockCache()->GetOriginalFirstOp(inst);
+	}
+
+	return inst;
+}
+
 u32 Read_Opcode_JIT(u32 _Address)
 {
 #ifdef FAST_ICACHE	
@@ -430,8 +468,13 @@ u32 Read_Opcode_JIT(u32 _Address)
 			return 0;
 		}
 	}
+	u32 inst = 0;
 
-	u32 inst =  PowerPC::ppcState.iCache.ReadInstruction(_Address);
+	// Bypass the icache for the external interrupt exception handler
+	if ( (_Address & 0x0FFFFF00) == 0x00000500 )
+		inst = Read_Opcode_JIT_Uncached(_Address);
+	else
+		inst = PowerPC::ppcState.iCache.ReadInstruction(_Address);
 #else
 	u32 inst = Memory::ReadUnchecked_U32(_Address);
 #endif
