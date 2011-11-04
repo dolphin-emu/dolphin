@@ -976,7 +976,8 @@ void Jit64::addx(UGeckoInstruction inst)
     INSTRUCTION_START
     JITDISABLE(Integer)
     int a = inst.RA, b = inst.RB, d = inst.RD;
-    _assert_msg_(DYNA_REC, !inst.OE, "Add - OE enabled :(");
+	if (inst.OE)
+		NOTICE_LOG(DYNA_REC, "Add - OE enabled :(");
 	
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
 	{
