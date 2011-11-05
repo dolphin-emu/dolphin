@@ -1347,6 +1347,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 				Core::g_CoreStartupParameter.iTLBHack) {
 				mem_mask |= Memory::ADDR_MASK_MEM1;
 			}
+#ifdef ENABLE_MEM_CHECK
+			if (Core::g_CoreStartupParameter.bEnableDebugging)
+			{
+				mem_mask |= Memory::EXRAM_MASK;
+			}
+#endif
 			Jit->TEST(32, regLocForInst(RI, getOp2(I)), Imm32(mem_mask));
 			FixupBranch safe = Jit->J_CC(CC_NZ);
 				// Fast routine

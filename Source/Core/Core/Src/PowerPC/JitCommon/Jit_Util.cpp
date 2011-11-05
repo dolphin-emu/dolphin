@@ -118,7 +118,11 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 
 void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend)
 {
+#ifdef ENABLE_MEM_CHECK
+	if (Core::g_CoreStartupParameter.bUseFastMem && (accessSize == 32) && !Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
+#else
 	if (Core::g_CoreStartupParameter.bUseFastMem && (accessSize == 32) && !Core::g_CoreStartupParameter.bMMU)
+#endif
 	{
 		// BackPatch only supports 32-bits accesses
 		UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
@@ -130,7 +134,14 @@ void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s
 		{
 			mem_mask |= Memory::ADDR_MASK_MEM1;
 		}
-		
+
+#ifdef ENABLE_MEM_CHECK
+		if (Core::g_CoreStartupParameter.bEnableDebugging)
+		{
+			mem_mask |= Memory::EXRAM_MASK;
+		}
+#endif
+
 		if (opAddress.IsImm())
 		{
 			u32 address = (u32)opAddress.offset + offset;
@@ -232,6 +243,13 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 		mem_mask |= Memory::ADDR_MASK_MEM1;
 	}
 
+#ifdef ENABLE_MEM_CHECK
+	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	{
+		mem_mask |= Memory::EXRAM_MASK;
+	}
+#endif
+
 	TEST(32, R(reg_addr), Imm32(mem_mask));
 	FixupBranch fast = J_CC(CC_Z);
 
@@ -255,6 +273,13 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr)
 	{
 		mem_mask |= Memory::ADDR_MASK_MEM1;
 	}
+
+#ifdef ENABLE_MEM_CHECK
+	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	{
+		mem_mask |= Memory::EXRAM_MASK;
+	}
+#endif
 
 	TEST(32, R(reg_addr), Imm32(mem_mask));
 	if (false && cpu_info.bSSSE3) {
