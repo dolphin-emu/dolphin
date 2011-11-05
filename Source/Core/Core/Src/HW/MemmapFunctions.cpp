@@ -265,7 +265,6 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		((em_address & 0xF0000000) == 0xC0000000) ||
 		((em_address & 0xF0000000) == 0x00000000))
 	{
-		PowerPC::ppcState.iCache.InvalidateBlock(em_address);
 		*(T*)&m_pRAM[em_address & RAM_MASK] = bswap(data);
 		return;
 	}
@@ -273,7 +272,6 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		((em_address & 0xF0000000) == 0xD0000000) ||
 		((em_address & 0xF0000000) == 0x10000000))
 	{
-		PowerPC::ppcState.iCache.InvalidateBlock(em_address);
 		*(T*)&m_pEXRAM[em_address & EXRAM_MASK] = bswap(data);
 		return;
 	}
@@ -286,7 +284,6 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		(bFakeVMEM && ((em_address &0xF0000000) == 0x40000000)))
 	{
 		// fake VMEM
-		PowerPC::ppcState.iCache.InvalidateBlock(em_address);
 		*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
 	}
 	else

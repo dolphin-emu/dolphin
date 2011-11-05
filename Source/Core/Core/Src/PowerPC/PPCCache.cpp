@@ -103,12 +103,6 @@ namespace PowerPC
 			jit->GetBlockCache()->InvalidateICache(addr);
 	}
 
-	void InstructionCache::InvalidateBlock(u32 addr)
-	{
-		if (jit)
-			jit->GetBlockCache()->InvalidateICache(addr);
-	}
-
 	u32 InstructionCache::ReadInstruction(u32 addr)
 	{		
 		if (!HID0.ICE) // instruction cache is disabled

@@ -53,7 +53,6 @@ namespace PowerPC
 		void Reset();
 		u32 ReadInstruction(u32 addr);
 		void Invalidate(u32 addr);
-		void InvalidateBlock(u32 addr);
 	};
 
 }
