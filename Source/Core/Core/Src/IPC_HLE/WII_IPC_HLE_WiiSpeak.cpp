@@ -17,7 +17,7 @@
 
 #include "WII_IPC_HLE_WiiSpeak.h"
 #include "StringUtil.h"
-
+#pragma optimize("",off)
 CWII_IPC_HLE_Device_usb_oh0::CWII_IPC_HLE_Device_usb_oh0(u32 DeviceID, const std::string& DeviceName)
 	: IWII_IPC_HLE_Device(DeviceID, DeviceName)
 {
@@ -52,25 +52,25 @@ bool CWII_IPC_HLE_Device_usb_oh0::IOCtlV(u32 CommandAddress)
 
 	switch (CommandBuffer.Parameter)
 	{
+	case USBV0_IOCTL_DEVINSERTHOOKID:
 	case USBV0_IOCTL_DEVINSERTHOOK:
 		{
 			u16 vid = Memory::Read_U16(CommandBuffer.InBuffer[0].m_Address);
 			u16 pid = Memory::Read_U16(CommandBuffer.InBuffer[1].m_Address);
-			DEBUG_LOG(OSHLE, "DEVINSERTHOOK %x/%x", vid, pid);
+			WARN_LOG(OSHLE, "DEVINSERTHOOK %x/%x", vid, pid);
 			// It is inserted
 			SendReply = true;
 		}
 		break;
 
 	default:
-		_dbg_assert_msg_(OSHLE, 0, "Unknown: %x", CommandBuffer.Parameter);
-
-		DEBUG_LOG(OSHLE, "%s - IOCtlV:", GetDeviceName().c_str());
-		DEBUG_LOG(OSHLE, "    Parameter: 0x%x", CommandBuffer.Parameter);
-		DEBUG_LOG(OSHLE, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
-		DEBUG_LOG(OSHLE, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
-		DEBUG_LOG(OSHLE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
-		DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
+		WARN_LOG(OSHLE, "%s - IOCtlV:", GetDeviceName().c_str());
+		WARN_LOG(OSHLE, "    Parameter: 0x%x", CommandBuffer.Parameter);
+		WARN_LOG(OSHLE, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
+		WARN_LOG(OSHLE, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
+		WARN_LOG(OSHLE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
+		DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer,
+			CommandBuffer.NumberPayloadBuffer, LogTypes::OSHLE, LogTypes::LWARNING);
 		break;
 	}
 
@@ -80,6 +80,15 @@ bool CWII_IPC_HLE_Device_usb_oh0::IOCtlV(u32 CommandAddress)
 
 bool CWII_IPC_HLE_Device_usb_oh0::IOCtl(u32 CommandAddress)
 {
+	u32 Command			= Memory::Read_U32(CommandAddress + 0x0c);
+	u32 BufferIn		= Memory::Read_U32(CommandAddress + 0x10);
+	u32 BufferInSize	= Memory::Read_U32(CommandAddress + 0x14);
+	u32 BufferOut		= Memory::Read_U32(CommandAddress + 0x18);
+	u32 BufferOutSize	= Memory::Read_U32(CommandAddress + 0x1c);
+
+	WARN_LOG(OSHLE, "%s - IOCtl:%x", GetDeviceName().c_str(), Command);
+	WARN_LOG(OSHLE, "%x:%x %x:%x", BufferIn, BufferInSize, BufferOut, BufferOutSize);
+
 	return IOCtlV(CommandAddress);
 }
 
@@ -93,6 +102,161 @@ void CWII_IPC_HLE_Device_usb_oh0::DoState(PointerWrap &p)
 
 }
 
+CWII_IPC_HLE_Device_usb_ven::CWII_IPC_HLE_Device_usb_ven(u32 DeviceID, const std::string& DeviceName)
+	: IWII_IPC_HLE_Device(DeviceID, DeviceName)
+{
+	usb_devdesc vantage_device_desc = {
+		18, 1, 0x200, 0, 0, 0, 8,
+		0x046d, 0x0a03, 0x102, 1, 2, 0, 1, NULL
+	};
+	vantage_desc.device_desc = vantage_device_desc;
+
+	usb_configurationdesc vantage_config_desc = {
+		9, 2, 121, 2, 1, 3, 0x80, 30, NULL
+	};
+	vantage_desc.config_desc = vantage_config_desc;
+
+	usb_interfacedesc vantage_audio_control_interface = {
+		9, 4, 0, 0, 0, 1, 1, 0, 0, NULL, 0, NULL
+	};
+	vantage_desc.audio_control = vantage_audio_control_interface;
+
+	usb_interfacedesc vantage_audio_stream_interface = {
+		9, 4, 1, 0, 0, 1, 2, 0, 0, NULL, 0, NULL
+	};
+	vantage_desc.audio_stream = vantage_audio_stream_interface;
+	
+	usb_interfacedesc vantage_audio_stream_alt_interface = {
+		9, 4, 1, 1, 1, 1, 2, 0, 0, NULL, 0, NULL
+	};
+	vantage_desc.audio_stream_alt = vantage_audio_stream_alt_interface;
+
+	usb_endpointdesc vantage_endpoint = {
+		9, 5, 0x84, 13, 0x60, 1 //, 0, 0
+	};
+	vantage_desc.audio_endp = vantage_endpoint;
+}
+
+CWII_IPC_HLE_Device_usb_ven::~CWII_IPC_HLE_Device_usb_ven()
+{
+
+}
+
+bool CWII_IPC_HLE_Device_usb_ven::Open(u32 CommandAddress, u32 Mode)
+{
+	Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
+	m_Active = true;
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_usb_ven::Close(u32 CommandAddress, bool Force)
+{
+	if (!Force)
+		Memory::Write_U32(0, CommandAddress + 4);
+	m_Active = false;
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_usb_ven::IOCtlV(u32 CommandAddress)
+{
+	bool SendReply = false;
+
+	SIOCtlVBuffer CommandBuffer(CommandAddress);
+
+	switch (CommandBuffer.Parameter)
+	{
+	default:
+		WARN_LOG(OSHLE, "%s - IOCtlV:", GetDeviceName().c_str());
+		WARN_LOG(OSHLE, "    Parameter: 0x%x", CommandBuffer.Parameter);
+		WARN_LOG(OSHLE, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
+		WARN_LOG(OSHLE, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
+		WARN_LOG(OSHLE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
+		DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
+		break;
+	}
+
+	Memory::Write_U32(0, CommandAddress + 4);
+	return SendReply;
+}
+
+bool CWII_IPC_HLE_Device_usb_ven::IOCtl(u32 CommandAddress)
+{
+	bool SendReply		= false;
+	u32 Command			= Memory::Read_U32(CommandAddress + 0x0c);
+	u32 BufferIn		= Memory::Read_U32(CommandAddress + 0x10);
+	u32 BufferInSize	= Memory::Read_U32(CommandAddress + 0x14);
+	u32 BufferOut		= Memory::Read_U32(CommandAddress + 0x18);
+	u32 BufferOutSize	= Memory::Read_U32(CommandAddress + 0x1c);
+
+	WARN_LOG(OSHLE, "%s - IOCtl:%x", GetDeviceName().c_str(), Command);
+	WARN_LOG(OSHLE, "%x:%x %x:%x", BufferIn, BufferInSize, BufferOut, BufferOutSize);
+
+	switch (Command)
+	{
+	case USBV5_IOCTL_GETVERSION:
+		Memory::Write_U32(0x50001, BufferOut);
+		SendReply = true;
+		break;
+
+	case USBV5_IOCTL_GETDEVICECHANGE:
+		{
+		// fd
+		Memory::Write_U32(0xcd000030, BufferOut);
+		// vid, pid
+		Memory::Write_U32(0x046d0a03, BufferOut + 4);
+		// token
+		//Memory::Write_U32(0, BufferOut + 8);
+		
+		// sent on change
+		static bool firstcall = true;
+		if (firstcall)
+			SendReply = true, firstcall = false;
+		// num devices
+		Memory::Write_U32(1, CommandAddress + 4);
+		return SendReply;
+		}
+		break;
+
+	case USBV5_IOCTL_ATTACHFINISH:
+		SendReply = true;
+		break;
+
+	case USBV5_IOCTL_SUSPEND_RESUME:
+		WARN_LOG(OSHLE, "device:%i resumed:%i", Memory::Read_U32(BufferIn), Memory::Read_U32(BufferIn + 4));
+		SendReply = true;
+		break;
+
+	case USBV5_IOCTL_GETDEVPARAMS:
+		{
+		s32 device = Memory::Read_U32(BufferIn);
+		u32 unk = Memory::Read_U32(BufferIn + 4);
+
+		WARN_LOG(OSHLE, "USBV5_IOCTL_GETDEVPARAMS device:%i unk:%i", device, unk);
+
+		Memory::Write_U32(0, BufferOut);
+
+		SendReply = true;
+		}
+		break;
+
+	default:
+		//WARN_LOG(OSHLE, "%x:%x %x:%x", BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		break;
+	}
+
+	Memory::Write_U32(0, CommandAddress + 4);
+	return SendReply;
+}
+
+u32 CWII_IPC_HLE_Device_usb_ven::Update()
+{
+	return IWII_IPC_HLE_Device::Update();
+}
+
+void CWII_IPC_HLE_Device_usb_ven::DoState(PointerWrap &p)
+{
+
+}
 
 CWII_IPC_HLE_Device_usb_oh0_57e_308::CWII_IPC_HLE_Device_usb_oh0_57e_308(u32 DeviceID, const std::string& DeviceName)
 	: IWII_IPC_HLE_Device(DeviceID, DeviceName)
@@ -302,9 +466,9 @@ bool CWII_IPC_HLE_Device_usb_oh0_57e_308::IOCtlV(u32 CommandAddress)
 				initialized = false;
 				break;
 			default:
-				DEBUG_LOG(OSHLE, "UNK %02x %02x %04x %04x",
+				WARN_LOG(OSHLE, "UNK %02x %02x %04x %04x",
 					setup_packet.bmRequestType, setup_packet.bRequest,
-					setup_packet.wLength, setup_packet.wValue);
+					setup_packet.wValue, setup_packet.wLength);
 				break;
 			}
 
@@ -323,13 +487,13 @@ bool CWII_IPC_HLE_Device_usb_oh0_57e_308::IOCtlV(u32 CommandAddress)
 		case DATA_OUT:
 			{
 			u16 len = Memory::Read_U16(CommandBuffer.InBuffer[1].m_Address);
-			DEBUG_LOG(OSHLE, "SEND DATA %x %x %x", len, CommandBuffer.PayloadBuffer[0].m_Address, CommandBuffer.PayloadBuffer[0].m_Size);
+			WARN_LOG(OSHLE, "SEND DATA %x %x %x", len, CommandBuffer.PayloadBuffer[0].m_Address, CommandBuffer.PayloadBuffer[0].m_Size);
 			SendReply = true;
 			}
 			break;
 
 		default:
-			DEBUG_LOG(OSHLE, "UNK BLKMSG %i", Command);
+			WARN_LOG(OSHLE, "UNK BLKMSG %i", Command);
 			break;
 		}
 		}
@@ -349,8 +513,8 @@ bool CWII_IPC_HLE_Device_usb_oh0_57e_308::IOCtlV(u32 CommandAddress)
 		for (int i = 0; i < num_packets; i++)
 		{
 			u16 packet_len = Common::swap16(packet_sizes[i]);
-			DEBUG_LOG(OSHLE, "packet %i [%i] to endpoint %02x", i, packet_len, endpoint);
-			DEBUG_LOG(OSHLE, "%s", ArrayToString(packets, packet_len, 16).c_str());
+			WARN_LOG(OSHLE, "packet %i [%i] to endpoint %02x", i, packet_len, endpoint);
+			WARN_LOG(OSHLE, "%s", ArrayToString(packets, packet_len, 16).c_str());
 			packets += packet_len;
 		}
 		*/
@@ -365,13 +529,11 @@ bool CWII_IPC_HLE_Device_usb_oh0_57e_308::IOCtlV(u32 CommandAddress)
 		break;
 
 	default:
-		_dbg_assert_msg_(OSHLE, 0, "Unknown: %x", CommandBuffer.Parameter);
-
-		DEBUG_LOG(OSHLE, "%s - IOCtlV:", GetDeviceName().c_str());
-		DEBUG_LOG(OSHLE, "    Parameter: 0x%x", CommandBuffer.Parameter);
-		DEBUG_LOG(OSHLE, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
-		DEBUG_LOG(OSHLE, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
-		DEBUG_LOG(OSHLE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
+		WARN_LOG(OSHLE, "%s - IOCtlV:", GetDeviceName().c_str());
+		WARN_LOG(OSHLE, "    Parameter: 0x%x", CommandBuffer.Parameter);
+		WARN_LOG(OSHLE, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
+		WARN_LOG(OSHLE, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
+		WARN_LOG(OSHLE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
 		//DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::OSHLE, LogTypes::LWARNING);
 		break;
 	}
@@ -382,7 +544,7 @@ bool CWII_IPC_HLE_Device_usb_oh0_57e_308::IOCtlV(u32 CommandAddress)
 
 void CWII_IPC_HLE_Device_usb_oh0_57e_308::SetRegister(const u32 cmd_ptr)
 {
-	DEBUG_LOG(OSHLE, "cmd -> %s",
+	WARN_LOG(OSHLE, "cmd -> %s",
 		ArrayToString(Memory::GetPointer(cmd_ptr), 10, 16).c_str());
 
 	const u8 reg = Memory::Read_U8(cmd_ptr + 1) & ~1;
@@ -526,7 +688,7 @@ void CWII_IPC_HLE_Device_usb_oh0_57e_308::GetRegister(const u32 cmd_ptr) const
 		break;
 	}
 
-	DEBUG_LOG(OSHLE, "cmd <- %s",
+	WARN_LOG(OSHLE, "cmd <- %s",
 		ArrayToString(Memory::GetPointer(cmd_ptr), 10, 16).c_str());
 }
 
@@ -544,13 +706,11 @@ bool CWII_IPC_HLE_Device_usb_oh0_57e_308::IOCtl(u32 CommandAddress)
 		break;
 
 	default:
-		_dbg_assert_msg_(OSHLE, 0, "Unknown: %x", CommandBuffer.Parameter);
-
-		DEBUG_LOG(OSHLE, "%s - IOCtl:", GetDeviceName().c_str());
-		DEBUG_LOG(OSHLE, "    Parameter: 0x%x", CommandBuffer.Parameter);
-		DEBUG_LOG(OSHLE, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
-		DEBUG_LOG(OSHLE, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
-		DEBUG_LOG(OSHLE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
+		WARN_LOG(OSHLE, "%s - IOCtl:", GetDeviceName().c_str());
+		WARN_LOG(OSHLE, "    Parameter: 0x%x", CommandBuffer.Parameter);
+		WARN_LOG(OSHLE, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
+		WARN_LOG(OSHLE, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
+		WARN_LOG(OSHLE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
 		DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
 		break;
 	}
@@ -568,3 +728,289 @@ void CWII_IPC_HLE_Device_usb_oh0_57e_308::DoState(PointerWrap &p)
 {
 
 }
+
+CWII_IPC_HLE_Device_usb_oh0_46d_a03::CWII_IPC_HLE_Device_usb_oh0_46d_a03(u32 DeviceID, const std::string& DeviceName)
+	: IWII_IPC_HLE_Device(DeviceID, DeviceName)
+{
+
+}
+
+CWII_IPC_HLE_Device_usb_oh0_46d_a03::~CWII_IPC_HLE_Device_usb_oh0_46d_a03()
+{
+
+}
+
+bool CWII_IPC_HLE_Device_usb_oh0_46d_a03::Open(u32 CommandAddress, u32 Mode)
+{
+	Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
+	m_Active = true;
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_usb_oh0_46d_a03::Close(u32 CommandAddress, bool Force)
+{
+	if (!Force)
+		Memory::Write_U32(0, CommandAddress + 4);
+	m_Active = false;
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_usb_oh0_46d_a03::IOCtlV(u32 CommandAddress)
+{
+	bool SendReply = false;
+
+	SIOCtlVBuffer CommandBuffer(CommandAddress);
+
+	switch (CommandBuffer.Parameter)
+	{
+	case USBV0_IOCTL_CTRLMSG:
+		{
+			USBSetupPacket setup_packet;
+			setup_packet.bmRequestType	= *( u8*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address);
+			setup_packet.bRequest		= *( u8*)Memory::GetPointer(CommandBuffer.InBuffer[1].m_Address);
+			setup_packet.wValue			= *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[2].m_Address);
+			setup_packet.wIndex			= *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[3].m_Address);
+			setup_packet.wLength		= *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[4].m_Address);
+
+			const u32 payload_addr = CommandBuffer.PayloadBuffer[0].m_Address;
+
+#define DIR_TO_DEV	0
+#define DIR_TO_HOST	1
+#define TYPE_STANDARD	0
+#define TYPE_CLASS		1
+#define TYPE_VENDOR		2
+#define RECP_DEV	0
+#define RECP_INT	1
+#define RECP_ENDP	2
+#define USBHDR(dir, type, recipient, request) \
+	((((dir << 7) | (type << 5) | recipient) << 8) | request)
+
+			switch (((u16)setup_packet.bmRequestType << 8) | setup_packet.bRequest)
+			{
+			case USBHDR(DIR_TO_HOST, TYPE_STANDARD, RECP_DEV, 6):
+				// GET_DESCRIPTOR
+				switch (setup_packet.wValue >> 8)
+				{
+					// CONFIGURATION
+				case 2:
+					{
+					const usb_configurationdesc config = { 9, 2, 121, 2, 1, 3, 0x80, 30 };
+					if (setup_packet.wLength == 9)
+					{
+						memcpy(Memory::GetPointer(payload_addr), &config, setup_packet.wLength);
+					}
+					else
+					{
+						#define LE24(x) (x & 0xff), ((x >> 8) & 0xff), (x >> 16)
+						#pragma pack(push, 1)
+						struct {
+							usb_configurationdesc config;
+							usb_interfacedesc int0;
+							struct audiocontrol_hdr {
+								u8 bLength;
+								u8 bDescriptorType;
+								u8 bDescriptorSubtype;
+							};
+							struct {
+								audiocontrol_hdr hdr;
+								u16 bcdADC;
+								u16 wTotalLength;
+								u8 bInCollection;
+								u8 baInterfaceNr;
+							} audiocontrol_header;
+							struct {
+								audiocontrol_hdr hdr;
+								u8 bTerminalID;
+								u16 wTerminalType;
+								u8 bAssocTerminal;
+								u8 bNrChannels;
+								u16 wChannelConfig;
+								u8 iChannelNames;
+								u8 iTerminal;
+							} audiocontrol_input_terminal;
+							struct {
+								audiocontrol_hdr hdr;
+								u8 bUnitID;
+								u8 bSourceID;
+								u8 bControlSize;
+								u8 bmaControls0;
+								u8 bmaControls1;
+								u8 iFeature;
+							} audiocontrol_feature_unit;
+							struct {
+								audiocontrol_hdr hdr;
+								u8 bTerminalID;
+								u16 wTerminalType;
+								u8 bAssocTerminal;
+								u8 bSourceID;
+								u8 iTerminal;
+							} audiocontrol_output_terminal;
+							usb_interfacedesc int1;
+							usb_interfacedesc int2;
+							struct {
+								audiocontrol_hdr hdr;
+								u8 bTerminalLink;
+								u8 bDelay;
+								u16 wFormatTag;
+							} audiocontrol_as_general;
+							struct {
+								audiocontrol_hdr hdr;
+								u8 bFormatType;
+								u8 bNrChannels;
+								u8 bSubframeSize;
+								u8 bBitResolution;
+								u8 bSamFreqType;
+								u8 tSamFreq[3 * 5];
+							} audiocontrol_format_type;
+							usb_endpointdesc endp;
+							struct {
+								audiocontrol_hdr hdr;
+								u8 bmAttributes;
+								u8 bLockDelayUnits;
+								u16 wLockDelay;
+							} audiocontrol_ep_general;
+						} const fullconfig = {
+							config,
+								{ 9, 4, 0, 0, 0, 1, 1, 0, 0 },
+									{ 9, 36, 1, 0x100, 39, 1, 1 },
+									{ 12, 36, 2, 13, 0x201, 0, 1, 0, 0, 0 },
+									{ 9, 36, 6, 2, 13, 1, 3, 0 },
+									{ 9, 36, 3, 10, 0x101, 0, 2, 0 },
+								{ 9, 4, 1, 0, 0, 1, 2, 0, 0 },
+								{ 9, 4, 1, 1, 1, 1, 2, 0, 0 },
+									{ 7, 36, 1, 10, 0, 1 },
+									{ 23, 36, 2, 1, 1, 2, 16, 5,
+										LE24(8000), LE24(11025), LE24(22050),
+										LE24(44100), LE24(48000) },
+									{ 9, 5, 0x84, 13, 0x60, 1, 0, 0	},
+										{ 7, 37, 1, 1, 2, 1 }
+						};
+						#pragma pack(pop)
+						#undef LE24
+						memcpy(Memory::GetPointer(payload_addr), &fullconfig, setup_packet.wLength);
+					}
+
+					Memory::Write_U32(sizeof(USBSetupPacket) + setup_packet.wLength, CommandAddress + 4);
+					return true;
+					}
+					break;
+
+				default:
+					goto outerdefault;
+				}
+				break;
+
+			case USBHDR(DIR_TO_HOST, TYPE_CLASS, RECP_INT, 0x82):
+			case USBHDR(DIR_TO_HOST, TYPE_CLASS, RECP_INT, 0x83):
+				if (setup_packet.bRequest & 1)
+					Memory::Write_U16(0x7fff, payload_addr);
+				else
+					Memory::Write_U16(0x8000, payload_addr);
+				break;
+
+			case USBHDR(DIR_TO_DEV, TYPE_CLASS, RECP_ENDP, 1):
+				{
+				u32 freq = *(u32*)Memory::GetPointer(payload_addr) & 0xffffff;
+				WARN_LOG(OSHLE, "set freq: %x", freq);
+				}
+				break;
+
+			case USBHDR(DIR_TO_DEV, TYPE_STANDARD, RECP_INT, 11):
+				break;
+
+			outerdefault:
+			default:
+				WARN_LOG(OSHLE, "UNK %02x %02x %04x %04x",
+					setup_packet.bmRequestType, setup_packet.bRequest,
+					setup_packet.wValue, setup_packet.wLength);
+				break;
+			}
+
+			// command finished, send a reply to command
+			WII_IPC_HLE_Interface::EnqReply(CommandBuffer.m_Address);
+		}
+		break;
+
+	case USBV0_IOCTL_ISOMSG:
+		{
+		// endp 81 = mic -> console
+		// endp 03 = console -> mic
+		u8 endpoint = Memory::Read_U8(CommandBuffer.InBuffer[0].m_Address);
+		u16 length = Memory::Read_U16(CommandBuffer.InBuffer[1].m_Address);
+		u8 num_packets = Memory::Read_U8(CommandBuffer.InBuffer[2].m_Address);
+		u16 *packet_sizes = (u16*)Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address);
+		u8 *packets = Memory::GetPointer(CommandBuffer.PayloadBuffer[1].m_Address);
+
+		u16 packet_len = Common::swap16(packet_sizes[0]);
+		WARN_LOG(OSHLE, "%i to endpoint %02x", packet_len, endpoint);
+
+		/*
+		for (int i = 0; i < num_packets; i++)
+		{
+			u16 packet_len = Common::swap16(packet_sizes[i]);
+			WARN_LOG(OSHLE, "packet %i [%i] to endpoint %02x", i, packet_len, endpoint);
+			WARN_LOG(OSHLE, "%s", ArrayToString(packets, packet_len, 16).c_str());
+			packets += packet_len;
+		}
+		*/
+		
+		if (endpoint == AUDIO_IN)
+			for (u16 *sample = (u16*)packets; sample != (u16*)(packets + length); sample++)
+				*sample = 0;
+		
+		// TODO actual responses should obey some kinda timey thing
+		SendReply = true;
+		}
+		break;
+
+	default:
+		WARN_LOG(OSHLE, "%s - IOCtlV:", GetDeviceName().c_str());
+		WARN_LOG(OSHLE, "    Parameter: 0x%x", CommandBuffer.Parameter);
+		WARN_LOG(OSHLE, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
+		WARN_LOG(OSHLE, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
+		WARN_LOG(OSHLE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
+		//DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer, LogTypes::OSHLE, LogTypes::LWARNING);
+		break;
+	}
+
+	Memory::Write_U32(0, CommandAddress + 4);
+	return SendReply;
+}
+
+bool CWII_IPC_HLE_Device_usb_oh0_46d_a03::IOCtl(u32 CommandAddress)
+{
+	bool SendReply = false;
+
+	SIOCtlVBuffer CommandBuffer(CommandAddress);
+
+	switch (CommandBuffer.Parameter)
+	{
+	case USBV0_IOCTL_DEVREMOVALHOOK:
+		// Reply is sent when device is removed
+		//SendReply = true;
+		break;
+
+	default:
+		WARN_LOG(OSHLE, "%s - IOCtl:", GetDeviceName().c_str());
+		WARN_LOG(OSHLE, "    Parameter: 0x%x", CommandBuffer.Parameter);
+		WARN_LOG(OSHLE, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
+		WARN_LOG(OSHLE, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
+		WARN_LOG(OSHLE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
+		DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
+		break;
+	}
+
+	Memory::Write_U32(0, CommandAddress + 4);
+	return SendReply;
+}
+
+u32 CWII_IPC_HLE_Device_usb_oh0_46d_a03::Update()
+{
+	return IWII_IPC_HLE_Device::Update();
+}
+
+void CWII_IPC_HLE_Device_usb_oh0_46d_a03::DoState(PointerWrap &p)
+{
+
+}
+#pragma optimize("",on)
