@@ -127,19 +127,36 @@ QWidget* DConfigGfx::CreateEnhancementsTabWidget()
 	return tab;
 }
 
-QWidget* DConfigGfx::CreateHacksTabWidget()
+QWidget* DConfigGfx::CreateEmulationTabWidget()
 {
 	QWidget* tab = new QWidget;
 
 	// Widgets
-
+	chEfbCopyMethod = new QComboBox;
+	chEfbCopyMethod->addItems(QStringList(tr("Disabled")) << tr("Fast") << tr("Fast + Pretty") << tr("Accurate"));
 
 	// Layouts
+	QGroupBox* groupEfbCopy = new QGroupBox(tr("EFB Copy Emulation"));
+	QGridLayout* layoutEfbCopy = new QGridLayout;
+	layoutEfbCopy->addWidget(new QLabel(tr("Copy Method")), 0, 0);
+	layoutEfbCopy->addWidget(chEfbCopyMethod, 0, 1);
+	groupEfbCopy->setLayout(layoutEfbCopy);
+
 	QBoxLayout* mainLayout = new QVBoxLayout;
+	mainLayout->addWidget(groupEfbCopy);
+	mainLayout->addStretch();
 	tab->setLayout(mainLayout);
 
 
 	// Initial values
+	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	int efb_copy_method;
+	if (!g_Config.bEFBCopyEnable) efb_copy_method = 0;
+	else if (!g_Config.bCopyEFBToTexture) efb_copy_method = 3;
+	else if (!g_Config.bCopyEFBScaled) efb_copy_method = 1;
+	else efb_copy_method = 2;
+
+	ctrlManager->RegisterControl(chEfbCopyMethod, efb_copy_method);
 
 	return tab;
 }
@@ -165,7 +182,7 @@ DConfigGfx::DConfigGfx(QWidget* parent) : QTabWidget(parent)
 {
 	addTab(CreateGeneralTabWidget(), tr("General"));
 	addTab(CreateEnhancementsTabWidget(), tr("Enhancements"));
-//	addTab(CreateHacksTabWidget(), tr("Hacks"));
+	addTab(CreateEmulationTabWidget(), tr("Emulation"));
 //	addTab(CreateAdvancedTabWidget(), tr("Advanced"));
 
 	tabBar()->setUsesScrollButtons(false);
@@ -195,6 +212,10 @@ void DConfigGfx::Apply()
 	// TODO: Antialiasing = chAntiAliasing->currentIndex()
 	g_Config.iMaxAnisotropy = chAnisotropicFiltering->currentIndex();
 	g_Config.bEnablePixelLighting = cbPerPixelLighting->isChecked();
+
+	g_Config.bEFBCopyEnable = chEfbCopyMethod->currentIndex() != ECM_DISABLED;
+	g_Config.bCopyEFBToTexture = chEfbCopyMethod->currentIndex() != ECM_ACCURATE && g_Config.bEFBCopyEnable;
+	g_Config.bCopyEFBScaled = chEfbCopyMethod->currentIndex() != ECM_FAST && g_Config.bCopyEFBToTexture;
 
 	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + GetIniName(g_video_backend)).c_str());
 }

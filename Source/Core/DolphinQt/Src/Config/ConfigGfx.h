@@ -7,6 +7,14 @@ class DConfigGfx : public QTabWidget
 {
 	Q_OBJECT
 
+	enum EfbCopyMethod
+	{
+		ECM_DISABLED,
+		ECM_FAST,
+		ECM_FASTPRETTY,
+		ECM_ACCURATE,
+	};
+
 public:
 	DConfigGfx(QWidget* parent = NULL);
 
@@ -17,7 +25,7 @@ public slots:
 private:
 	QWidget* CreateGeneralTabWidget();
 	QWidget* CreateEnhancementsTabWidget();
-	QWidget* CreateHacksTabWidget();
+	QWidget* CreateEmulationTabWidget();
 	QWidget* CreateAdvancedTabWidget();
 
 	// General
@@ -36,6 +44,9 @@ private:
 	QComboBox* chAntiAliasing;
 	QComboBox* chAnisotropicFiltering;
 	QCheckBox* cbPerPixelLighting;
+
+	// Emulation
+	QComboBox* chEfbCopyMethod;
 
 	DControlStateManager* ctrlManager;
 };
