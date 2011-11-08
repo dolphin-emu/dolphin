@@ -85,8 +85,6 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 
 	// Widgets
 	pathList = new QListWidget;
-	for (std::vector<std::string>::iterator it = SConfig::GetInstance().m_ISOFolder.begin(); it != SConfig::GetInstance().m_ISOFolder.end(); ++it)
-		pathList->addItem(new QListWidgetItem(QString::fromStdString(*it)));
 
 	QPushButton* addPath = new QPushButton(tr("Add")); // TODO: Icon
 	QPushButton* removePath = new QPushButton(tr("Remove")); // TODO: Icon
@@ -100,6 +98,10 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 	// TODO: "Remove" button should be disabled if no item is selected in the path list
 	// TODO: "Clear" button should be disabled if no items are in the path list
 
+	connect(addPath, SIGNAL(clicked()), this, SLOT(OnPathListChanged()));
+	connect(removePath, SIGNAL(clicked()), this, SLOT(OnPathListChanged()));
+	connect(clearPathList, SIGNAL(clicked()), this, SLOT(OnPathListChanged()));
+
 	// Layouts
 	QBoxLayout* pathListButtonLayout = new QHBoxLayout;
 	pathListButtonLayout->addWidget(clearPathList);
@@ -112,12 +114,16 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 	mainLayout->addLayout(pathListButtonLayout);
 	tab->setLayout(mainLayout);
 
+	// Initial values
+	for (std::vector<std::string>::iterator it = SConfig::GetInstance().m_ISOFolder.begin(); it != SConfig::GetInstance().m_ISOFolder.end(); ++it)
+		pathList->addItem(new QListWidgetItem(QString::fromStdString(*it)));
+
 	// TODO: Need to register path widget..
 
 	return tab;
 }
 
-DConfigMainGeneralTab::DConfigMainGeneralTab(QWidget* parent) : QTabWidget(parent)
+DConfigMainGeneralTab::DConfigMainGeneralTab(QWidget* parent) : QTabWidget(parent), paths_changed(false)
 {
 	addTab(CreateCoreTabWidget(this), tr("Core"));
 	addTab(CreatePathsTabWidget(this), tr("Paths"));
@@ -141,9 +147,15 @@ void DConfigMainGeneralTab::Apply()
 	Startup.bConfirmStop = cbConfirmOnStop->isChecked();
 	Startup.bRenderToMain = cbRenderToMain->isChecked();
 
-	SConfig::GetInstance().m_ISOFolder.clear();
-	for (int i = 0; i < pathList->count(); ++i)
-		SConfig::GetInstance().m_ISOFolder.push_back(pathList->item(i)->text().toStdString());
+	if (paths_changed)
+	{
+		SConfig::GetInstance().m_ISOFolder.clear();
+		for (int i = 0; i < pathList->count(); ++i)
+			SConfig::GetInstance().m_ISOFolder.push_back(pathList->item(i)->text().toStdString());
+
+		emit IsoPathsChanged();
+		paths_changed = false;
+	}
 }
 
 void DConfigMainGeneralTab::OnAddIsoPath()
@@ -162,4 +174,9 @@ void DConfigMainGeneralTab::OnRemoveIsoPath()
 void DConfigMainGeneralTab::OnClearIsoPathList()
 {
 	pathList->clear();
+}
+
+void DConfigMainGeneralTab::OnPathListChanged()
+{
+	paths_changed = true;
 }

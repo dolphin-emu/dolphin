@@ -81,6 +81,8 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 	connect(this, SIGNAL(Reset()), padWidget, SLOT(Reset()));
 	connect(this, SIGNAL(Reset()), wiimoteWidget, SLOT(Reset()));
 
+	connect(generalWidget, SIGNAL(IsoPathsChanged()), this, SIGNAL(IsoPathsChanged()));
+
 	stackWidget = new QStackedWidget;
 	stackWidget->addWidget(generalWidget);
 	stackWidget->addWidget(gfxWidget);

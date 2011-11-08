@@ -323,34 +323,37 @@ void DMainWindow::OnLogSettingsWindowClosed()
 	showLogSettingsAct->setChecked(false);
 }
 
+void DMainWindow::OpenConfigDialog(DConfigDialog::InitialConfigItem initialConfigItem)
+{
+	DConfigDialog* dialog = new DConfigDialog(initialConfigItem, this);
+	connect(dialog, SIGNAL(IsoPathsChanged()), this, SLOT(OnRefreshList()));
+	dialog->show();
+}
+
+
 void DMainWindow::OnConfigure()
 {
-	DConfigDialog* dialog = new DConfigDialog(DConfigDialog::ICI_General, this);
-	dialog->show();
+	OpenConfigDialog(DConfigDialog::ICI_General);
 }
 
 void DMainWindow::OnGfxSettings()
 {
-	DConfigDialog* dialog = new DConfigDialog(DConfigDialog::ICI_Graphics, this);
-	dialog->show();
+	OpenConfigDialog(DConfigDialog::ICI_Graphics);
 }
 
 void DMainWindow::OnSoundSettings()
 {
-	DConfigDialog* dialog = new DConfigDialog(DConfigDialog::ICI_Sound, this);
-	dialog->show();
+	OpenConfigDialog(DConfigDialog::ICI_Sound);
 }
 
 void DMainWindow::OnGCPadSettings()
 {
-	DConfigDialog* dialog = new DConfigDialog(DConfigDialog::ICI_GCPad, this);
-	dialog->show();
+	OpenConfigDialog(DConfigDialog::ICI_GCPad);
 }
 
 void DMainWindow::OnWiimoteSettings()
 {
-	DConfigDialog* dialog = new DConfigDialog(DConfigDialog::ICI_Wiimote, this);
-	dialog->show();
+	OpenConfigDialog(DConfigDialog::ICI_Wiimote);
 }
 
 void DMainWindow::OnReportIssue()

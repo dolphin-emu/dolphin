@@ -1,11 +1,10 @@
 #pragma once
 
 #include <QMainWindow>
+#include "Config/ConfigMain.h"
 #include "RenderWindow.h"
 #include "Util.h"
 
-// TODO: remove
-#include <QtGui>
 #include <Core.h>
 class DLogWindow;
 class DLogSettingsDock;
@@ -53,6 +52,8 @@ private:
 	void CreateToolBars();
 	void CreateStatusBar();
 	void CreateDockWidgets();
+
+	void OpenConfigDialog(DConfigDialog::InitialConfigItem initialConfigItem);
 
 	void StartGame(const std::string& filename);
 	std::string RequestBootFilename();

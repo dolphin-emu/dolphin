@@ -13,6 +13,9 @@ class DConfigMainGeneralTab : public QTabWidget
 public:
     DConfigMainGeneralTab(QWidget* parent = NULL);
 
+signals:
+	void IsoPathsChanged();
+
 public slots:
 	void Reset();
 	void Apply();
@@ -20,6 +23,8 @@ public slots:
 	void OnAddIsoPath();
 	void OnRemoveIsoPath();
 	void OnClearIsoPathList();
+
+	void OnPathListChanged();
 
 private:
 	QWidget* CreateCoreTabWidget(QWidget* parent);
@@ -38,6 +43,7 @@ private:
 
 	// Paths
 	QListWidget* pathList;
+	bool paths_changed;
 
 	DControlStateManager* ctrlManager;
 };

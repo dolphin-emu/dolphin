@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QDialog>
-#include <QTabWidget>
 
 class QButtonGroup;
 class QCheckBox;
@@ -45,4 +44,5 @@ private:
 signals:
 	void Apply();
 	void Reset();
+	void IsoPathsChanged();
 };
