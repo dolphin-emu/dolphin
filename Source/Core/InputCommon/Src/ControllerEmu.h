@@ -35,6 +35,13 @@ enum
 	GROUP_TYPE_SLIDER,
 };
 
+enum
+{
+	SETTING_RADIUS,
+	SETTING_DEADZONE,
+	SETTING_SQUARE,
+};
+
 const char * const named_directions[] = 
 {
 	"Up",
@@ -126,8 +133,9 @@ public:
 			ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
 			ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
-			ControlState deadzone = settings[0]->value;
-			ControlState square = settings[1]->value;
+			ControlState radius = settings[SETTING_RADIUS]->value;
+			ControlState deadzone = settings[SETTING_DEADZONE]->value;
+			ControlState square = settings[SETTING_SQUARE]->value;
 			ControlState m = controls[4]->control_ref->State();
 
 			// modifier code
@@ -138,11 +146,11 @@ public:
 			}
 
 			// deadzone / square stick code
-			if (deadzone || square)
+			if (radius != 1 || deadzone || square)
 			{
 				// this section might be all wrong, but its working good enough, I think
 
-				ControlState ang = atan2(yy, xx); 
+				ControlState ang = atan2(yy, xx);
 				ControlState ang_sin = sin(ang);
 				ControlState ang_cos = cos(ang);
 
@@ -162,6 +170,9 @@ public:
 				// square stick code
 				ControlState amt = dist / stick_full;
 				dist -= ((square_full - 1) * amt * square);
+
+				// radius
+				dist *= radius;
 
 				yy = std::max(-1.0f, std::min(1.0f, ang_sin * dist));
 				xx = std::max(-1.0f, std::min(1.0f, ang_cos * dist));
