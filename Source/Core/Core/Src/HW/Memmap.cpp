@@ -625,53 +625,45 @@ void GetString(std::string& _string, const u32 em_address)
 
 // GetPointer must always return an address in the bottom 32 bits of address space, so that 64-bit
 // programs don't have problems directly addressing any part of memory.
+// TODO re-think with respect to other BAT setups...
 u8 *GetPointer(const u32 _Address)
 {
-	switch (_Address >> 24)
+	switch (_Address >> 28)
 	{
-	case 0x00:
-	case 0x01:
-	case 0x80:
-	case 0x81:
-	case 0xC0:
-	case 0xC1:
-		return (u8*)(((char*)m_pPhysicalRAM) + (_Address & RAM_MASK));
+	case 0x0:
+	case 0x8:
+		return m_pPhysicalRAM + (_Address & RAM_MASK);
+	case 0xc:
+		switch (_Address >> 24)
+		{
+		case 0xcc:
+		case 0xcd:
+			_dbg_assert_msg_(MEMMAP, 0, "GetPointer from IO Bridge doesnt work");
+		case 0xc8:
+			// EFB. We don't want to return a pointer here since we have no memory mapped for it.
+			return 0;
 
-	case 0x10:
-	case 0x11:
-	case 0x12:
-	case 0x13:
-	case 0x90:
-	case 0x91:
-	case 0x92:
-	case 0x93:
-	case 0xD0:
-	case 0xD1:
-	case 0xD2:
-	case 0xD3:
+		default:
+			return m_pPhysicalRAM + (_Address & RAM_MASK);
+		}
+
+	case 0x1:
+	case 0x9:
+	case 0xd:
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-			return (u8*)(((char*)m_pPhysicalEXRAM) + (_Address & EXRAM_MASK));
+			return m_pPhysicalEXRAM + (_Address & EXRAM_MASK);
 		else
 			return 0;
 
-	case 0xE0:
+	case 0xe:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
 			return GetCachePtr() + (_Address & L1_CACHE_MASK);
 		else
 			return 0;
 
-	case 0xC8:
-		return 0;  // EFB. We don't want to return a pointer here since we have no memory mapped for it.
-
-	case 0xCC:
-	case 0xCD:
-		_dbg_assert_msg_(MEMMAP, 0, "GetPointer from IO Bridge doesnt work");
-		return NULL;
 	default:
 		if (bFakeVMEM)
-		{
-			return (u8*)(((char*)m_pVirtualFakeVMEM) + (_Address & RAM_MASK));
-		}
+			return m_pVirtualFakeVMEM + (_Address & FAKEVMEM_MASK);
 		else
 		{
 			if (!Core::g_CoreStartupParameter.bMMU &&
@@ -679,15 +671,14 @@ u8 *GetPointer(const u32 _Address)
 				Crash();
 			return 0;
 		}
-		break;
 	}
-	return NULL;
 }
 
 
 bool IsRAMAddress(const u32 addr, bool allow_locked_cache) 
 {
-	switch ((addr >> 24) & 0xFC) {
+	switch ((addr >> 24) & 0xFC)
+	{
 	case 0x00:
 	case 0x80:
 	case 0xC0:

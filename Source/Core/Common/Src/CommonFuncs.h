@@ -27,6 +27,13 @@
 template <bool> struct CompileTimeAssert;
 template<> struct CompileTimeAssert<true> {};
 
+#define b2(x)   (   (x) | (   (x) >> 1) )
+#define b4(x)   ( b2(x) | ( b2(x) >> 2) )
+#define b8(x)   ( b4(x) | ( b4(x) >> 4) )
+#define b16(x)  ( b8(x) | ( b8(x) >> 8) )  
+#define b32(x)  (b16(x) | (b16(x) >>16) )
+#define ROUND_UP_POW2(x)	(b32(x - 1) + 1)
+
 #if defined __GNUC__ && !defined __SSSE3__
 #include <emmintrin.h>
 static __inline __m128i __attribute__((__always_inline__))

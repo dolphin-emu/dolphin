@@ -58,20 +58,22 @@ extern u8 *m_pL1Cache;
 
 enum
 {
-	// The size should be just 24MB instead of 32, but the RAM_MASK wouldn't
-	// work.
-	RAM_SIZE		= 0x2000000,
-	RAM_MASK		= 0x1FFFFFF,
+	// RAM_SIZE is the amount allocated by the emulator, whereas REALRAM_SIZE is
+	// what will be reported in lowmem, and thus used by emulated software.
+	// Note: Writing to lowmem is done by IPL. If using retail IPL, it will
+	// always be set to 24MB.
+	REALRAM_SIZE	= 0x1800000,
+	RAM_SIZE		= ROUND_UP_POW2(REALRAM_SIZE),
+	RAM_MASK		= RAM_SIZE - 1,
 	FAKEVMEM_SIZE	= 0x2000000,
-	FAKEVMEM_MASK	= 0x1FFFFFF,
-	REALRAM_SIZE	= 0x1800000,		
+	FAKEVMEM_MASK	= FAKEVMEM_SIZE - 1,
 	L1_CACHE_SIZE	= 0x40000,
-	L1_CACHE_MASK	= 0x3FFFF,
+	L1_CACHE_MASK	= L1_CACHE_SIZE - 1,
 	EFB_SIZE	    = 0x200000,
-	EFB_MASK	    = 0x1FFFFF,
+	EFB_MASK	    = EFB_SIZE - 1,
 	IO_SIZE         = 0x10000,
 	EXRAM_SIZE      = 0x4000000,
-	EXRAM_MASK      = 0x3FFFFFF,
+	EXRAM_MASK      = EXRAM_SIZE - 1,
 
 	ADDR_MASK_HW_ACCESS	= 0x0c000000,
 	ADDR_MASK_MEM1		= 0x20000000,
