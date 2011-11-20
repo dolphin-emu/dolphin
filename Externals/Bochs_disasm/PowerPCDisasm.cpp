@@ -563,7 +563,7 @@ typedef unsigned int ppc_word;
 	}
 
 
-	static unsigned int Helper_Mask(int mb, int me)
+	static unsigned int Helper_Rotate_Mask(int r, int mb, int me)
 	{
 		//first make 001111111111111 part
 		unsigned int begin = 0xFFFFFFFF >> mb;
@@ -573,9 +573,9 @@ typedef unsigned int ppc_word;
 		unsigned int mask = begin ^ end;
 		//and invert if backwards
 		if (me < mb) 
-			return ~mask;
-		else
-			return mask;
+			mask = ~mask;
+		//rotate the mask so it can be applied to source reg
+		return _rotl(mask, 32 - r);
 	}
 
 
@@ -587,7 +587,7 @@ typedef unsigned int ppc_word;
 		int mb = (int)PPCGETC(in);
 		int me = (int)PPCGETM(in);
 		sprintf(dp->opcode,"rlw%s%c",name,in&1?'.':'\0');
-		sprintf(dp->operands,"%s, %s, %s%d, %d, %d (%08x)",regnames[a],regnames[s],regsel[i],bsh,mb,me,Helper_Mask(mb, me));
+		sprintf(dp->operands,"%s, %s, %s%d, %d, %d (%08x)",regnames[a],regnames[s],regsel[i],bsh,mb,me,Helper_Rotate_Mask(bsh, mb, me));
 	}
 
 
