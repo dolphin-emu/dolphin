@@ -39,6 +39,11 @@
 
 #include "PowerPCDisasm.h"
 
+#ifndef _MSC_VER
+// Pull in rotate functions for non-msvc
+#include "Common.h"
+#endif
+
 namespace PPCDisasm
 {
 
