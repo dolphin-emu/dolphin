@@ -43,18 +43,20 @@ void* AllocateExecutableMemory(size_t size, bool low)
 #else
 	static char *map_hint = 0;
 #if defined(__x86_64__) && !defined(MAP_32BIT)
+	// This OS has no flag to enforce allocation below the 4 GB boundary,
+	// but if we hint that we want a low address it is very likely we will
+	// get one.
+	// An older version of this code used MAP_FIXED, but that has the side
+	// effect of discarding already mapped pages that happen to be in the
+	// requested virtual memory range (such as the emulated RAM, sometimes).
 	if (low && (!map_hint))
 		map_hint = (char*)round_page(512*1024*1024); /* 0.5 GB rounded up to the next page */
 #endif
 	void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 		MAP_ANON | MAP_PRIVATE
-#if defined(__x86_64__)
-#if defined(MAP_32BIT)
+#if defined(__x86_64__) && defined(MAP_32BIT)
 		| (low ? MAP_32BIT : 0)
-#else
-		| (low ? MAP_FIXED : 0)
-#endif /* defined(MAP_32BIT) */
-#endif /* defined(__x86_64__) */
+#endif
 		, -1, 0);
 #endif /* defined(_WIN32) */
 
