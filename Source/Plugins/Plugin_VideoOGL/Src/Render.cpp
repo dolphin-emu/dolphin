@@ -1426,10 +1426,6 @@ void Renderer::ResetAPIState()
 	glDisable(GL_BLEND);
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-	// make sure to disable wireframe when drawing the clear quad
-	// TODO: ClearScreen no longer draws a quad. Can this be killed?
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void Renderer::RestoreAPIState()
