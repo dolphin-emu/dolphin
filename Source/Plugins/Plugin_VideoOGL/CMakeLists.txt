@@ -4,6 +4,7 @@ set(SRCS	Src/FramebufferManager.cpp
 			Src/NativeVertexFormat.cpp
 			Src/PixelShaderCache.cpp
 			Src/PostProcessing.cpp
+			Src/ProgramShaderCache.cpp
 			Src/RasterFont.cpp
 			Src/Render.cpp
 			Src/TextureCache.cpp

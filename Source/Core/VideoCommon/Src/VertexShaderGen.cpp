@@ -130,7 +130,7 @@ static char text[16384];
 
 #define WRITE p+=sprintf
 
-char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE api_type)
+char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 {
 	WRITE(p, "struct VS_OUTPUT {\n");
 	WRITE(p, "  float4 pos : POSITION;\n");
@@ -161,7 +161,10 @@ char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE api_type)
 	return p;
 }
 
-const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
+extern const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num);
+
+
+const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
@@ -169,7 +172,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
 	
-	bool is_d3d = (api_type & API_D3D9 || api_type == API_D3D11);
+	bool is_d3d = (ApiType & API_D3D9 || ApiType == API_D3D11);
 	u32 lightMask = 0;
 	if (xfregs.numChan.numColorChans > 0)
 		lightMask |= xfregs.color[0].GetFullLightMask() | xfregs.alpha[0].GetFullLightMask();
@@ -178,78 +181,109 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 
 	char *p = text;
 	WRITE(p, "//Vertex Shader: comp:%x, \n", components);
-	WRITE(p, "typedef struct { float4 T0, T1, T2; float4 N0, N1, N2; } s_" I_POSNORMALMATRIX";\n"
-		"typedef struct { float4 t; } FLT4;\n"
-		"typedef struct { FLT4 T[24]; } s_" I_TEXMATRICES";\n"
-		"typedef struct { FLT4 T[64]; } s_" I_TRANSFORMMATRICES";\n"
-		"typedef struct { FLT4 T[32]; } s_" I_NORMALMATRICES";\n"
-		"typedef struct { FLT4 T[64]; } s_" I_POSTTRANSFORMMATRICES";\n"
-		"typedef struct { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; } Light;\n"
-		"typedef struct { Light lights[8]; } s_" I_LIGHTS";\n"
-		"typedef struct { float4 C0, C1, C2, C3; } s_" I_MATERIALS";\n"
-		"typedef struct { float4 T0, T1, T2, T3; } s_" I_PROJECTION";\n"
-		);
-
-	p = GenerateVSOutputStruct(p, components, api_type);
-
-	// uniforms
-
-	WRITE(p, "uniform s_" I_TRANSFORMMATRICES" " I_TRANSFORMMATRICES" : register(c%d);\n", C_TRANSFORMMATRICES);
-	WRITE(p, "uniform s_" I_TEXMATRICES" " I_TEXMATRICES" : register(c%d);\n", C_TEXMATRICES); // also using tex matrices
-	WRITE(p, "uniform s_" I_NORMALMATRICES" " I_NORMALMATRICES" : register(c%d);\n", C_NORMALMATRICES);
-	WRITE(p, "uniform s_" I_POSNORMALMATRIX" " I_POSNORMALMATRIX" : register(c%d);\n", C_POSNORMALMATRIX);
-	WRITE(p, "uniform s_" I_POSTTRANSFORMMATRICES" " I_POSTTRANSFORMMATRICES" : register(c%d);\n", C_POSTTRANSFORMMATRICES);
-	WRITE(p, "uniform s_" I_LIGHTS" " I_LIGHTS" : register(c%d);\n", C_LIGHTS);
-	WRITE(p, "uniform s_" I_MATERIALS" " I_MATERIALS" : register(c%d);\n", C_MATERIALS);
-	WRITE(p, "uniform s_" I_PROJECTION" " I_PROJECTION" : register(c%d);\n", C_PROJECTION);
-	WRITE(p, "uniform float4 " I_DEPTHPARAMS" : register(c%d);\n", C_DEPTHPARAMS);
-
-	WRITE(p, "VS_OUTPUT main(\n");	
 	
-	// inputs
-	if (components & VB_HAS_NRM0)
-		WRITE(p, "  float3 rawnorm0 : NORMAL0,\n");
-	if (components & VB_HAS_NRM1) {
-		if (is_d3d)
-			WRITE(p, "  float3 rawnorm1 : NORMAL1,\n");
-		else
-			WRITE(p, "  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
+	if(ApiType == API_GLSL)
+	{
+			// A few required defines and ones that will make our lives a lot easier
+			WRITE(p, "#version 120\n");
+			// Silly differences
+			WRITE(p, "#define float2 vec2\n");
+			WRITE(p, "#define float3 vec3\n");
+			WRITE(p, "#define float4 vec4\n");
+
+			// cg to glsl function translation
+			WRITE(p, "#define frac(x) fract(x)\n");
+			WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
+			WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
 	}
-	if (components & VB_HAS_NRM2) {
-		if (is_d3d)
-			WRITE(p, "  float3 rawnorm2 : NORMAL2,\n");
-		else
-			WRITE(p, "  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
-	}
-	if (components & VB_HAS_COL0)
-		WRITE(p, "  float4 color0 : COLOR0,\n");
-	if (components & VB_HAS_COL1)
-		WRITE(p, "  float4 color1 : COLOR1,\n");
-	for (int i = 0; i < 8; ++i) {
-		u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
-		if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
-			WRITE(p, "  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
-	}
-	if (components & VB_HAS_POSMTXIDX) {
-		if (is_d3d)
-		{
-			WRITE(p, "  float4 blend_indices : BLENDINDICES,\n");
+	// uniforms
+	WRITE(p, "uniform float4 "I_TRANSFORMMATRICES"[64] %s;\n", WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));
+	WRITE(p, "uniform float4 "I_TEXMATRICES"[24] %s;\n", WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
+	WRITE(p, "uniform float4 "I_NORMALMATRICES"[32] %s;\n", WriteRegister(ApiType, "c", C_NORMALMATRICES));
+	WRITE(p, "uniform float4 "I_POSNORMALMATRIX"[6] %s;\n", WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
+	WRITE(p, "uniform float4 "I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
+	WRITE(p, "uniform float4 "I_LIGHTS"[40] %s;\n", WriteRegister(ApiType, "c", C_LIGHTS));
+	WRITE(p, "uniform float4 "I_MATERIALS"[4] %s;\n", WriteRegister(ApiType, "c", C_MATERIALS));
+	WRITE(p, "uniform float4 "I_PROJECTION"[4] %s;\n", WriteRegister(ApiType, "c", C_PROJECTION));
+	WRITE(p, "uniform float4 "I_DEPTHPARAMS" %s;\n", WriteRegister(ApiType, "c", C_DEPTHPARAMS));
+
+	p = GenerateVSOutputStruct(p, components, ApiType);
+
+	 if(ApiType == API_GLSL)
+	{
+		if (components & VB_HAS_NRM0)
+				WRITE(p, " float3 rawnorm0 = gl_Normal; // NORMAL0,\n");
+
+		if (components & VB_HAS_POSMTXIDX)
+				WRITE(p, "attribute float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		if (components & VB_HAS_NRM1)
+				WRITE(p, "attribute float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
+		if (components & VB_HAS_NRM2)
+				WRITE(p, "attribute float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
+
+		if (components & VB_HAS_COL0)
+				WRITE(p, "  float4 color0 = gl_Color; // COLOR0,\n");
+		if (components & VB_HAS_COL1)
+				WRITE(p, "  float4 color1 = gl_SecondaryColor; // COLOR1,\n");
+		for (int i = 0; i < 8; ++i) {
+				u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
+				if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
+						WRITE(p, "  float%d tex%d = gl_MultiTexCoord%d.xy%s; // TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i, hastexmtx ? "z" : "", i);
 		}
-		else
-			WRITE(p, "  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		WRITE(p, "  float4 rawpos = gl_Vertex;\n") ;
+
+		WRITE(p, "void main()\n{\n");
 	}
-	WRITE(p, "  float4 rawpos : POSITION) {\n");
+	else
+	{
+
+		WRITE(p, "VS_OUTPUT main(\n");	
+		
+		// inputs
+		if (components & VB_HAS_NRM0)
+			WRITE(p, "  float3 rawnorm0 : NORMAL0,\n");
+		if (components & VB_HAS_NRM1) {
+			if (is_d3d)
+				WRITE(p, "  float3 rawnorm1 : NORMAL1,\n");
+			else
+				WRITE(p, "  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
+		}
+		if (components & VB_HAS_NRM2) {
+			if (is_d3d)
+				WRITE(p, "  float3 rawnorm2 : NORMAL2,\n");
+			else
+				WRITE(p, "  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
+		}
+		if (components & VB_HAS_COL0)
+			WRITE(p, "  float4 color0 : COLOR0,\n");
+		if (components & VB_HAS_COL1)
+			WRITE(p, "  float4 color1 : COLOR1,\n");
+		for (int i = 0; i < 8; ++i) {
+			u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
+			if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
+				WRITE(p, "  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
+		}
+		if (components & VB_HAS_POSMTXIDX) {
+			if (is_d3d)
+			{
+				WRITE(p, "  float4 blend_indices : BLENDINDICES,\n");
+			}
+			else
+				WRITE(p, "  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		}
+		WRITE(p, "  float4 rawpos : POSITION) {\n");
+	}
 	WRITE(p, "VS_OUTPUT o;\n");	
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
 	{
-		if (api_type & API_D3D9)
+		if (ApiType & API_D3D9)
 		{
 			WRITE(p, "int4 indices = D3DCOLORtoUBYTE4(blend_indices);\n");
 			WRITE(p, "int posmtx = indices.x;\n");
 		}
-		else if (api_type == API_D3D11)
+		else if (ApiType == API_D3D11)
 		{
 			WRITE(p, "int posmtx = blend_indices.x * 255.0f;\n");
 		}
@@ -500,8 +534,38 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		WRITE(p, "o.pos = o.pos + float4(" I_DEPTHPARAMS".z, " I_DEPTHPARAMS".w, 0.f, 0.f);\n");
 	}
 
-	WRITE(p, "return o;\n}\n");
+	if(ApiType == API_GLSL)
+	{
+		// Bit ugly here
+		// Will look better when we bind uniforms in GLSL 1.3
+		// clipPos/w needs to be done in pixel shader, not here
 
+		if (xfregs.numTexGen.numTexGens < 7) {
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+						WRITE(p, " gl_TexCoord[%d].xyz =  o.tex%d;\n", i, i);
+				WRITE(p, "  gl_TexCoord[%d] = o.clipPos;\n", xfregs.numTexGen.numTexGens);
+				if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+						WRITE(p, "  gl_TexCoord[%d] = o.Normal;\n", xfregs.numTexGen.numTexGens + 1);
+		} else {
+				// clip position is in w of first 4 texcoords
+				if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+				{
+						for (int i = 0; i < 8; ++i)
+								WRITE(p, " gl_TexCoord[%d] = o.tex%d;\n", i, i);
+				}
+				else
+				{
+						for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+								WRITE(p, "  gl_TexCoord[%d]%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
+				}
+		}               
+		WRITE(p, "gl_FrontColor = o.colors_0;\n");
+		WRITE(p, "gl_FrontSecondaryColor = o.colors_1;\n");
+		WRITE(p, "gl_Position = o.pos;\n");
+		WRITE(p, "}\n");
+	}
+	else
+			WRITE(p, "return o;\n}\n");
 
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");

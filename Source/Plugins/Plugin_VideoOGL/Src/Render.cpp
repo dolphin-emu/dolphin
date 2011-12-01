@@ -45,6 +45,7 @@
 #include "DLCache.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
+#include "ProgramShaderCache.h"
 #include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
 #include "VertexLoaderManager.h"
@@ -1407,8 +1408,13 @@ void Renderer::ResetAPIState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
 	// image copies with textured quads, etc.
-	VertexShaderCache::DisableShader();
-	PixelShaderCache::DisableShader();
+	if(g_ActiveConfig.bUseGLSL) 
+		ProgramShaderCache::SetBothShaders(0, 0);
+	else
+	{
+		VertexShaderCache::DisableShader();
+		PixelShaderCache::DisableShader();
+	}
 	glDisable(GL_SCISSOR_TEST);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -1430,8 +1436,13 @@ void Renderer::RestoreAPIState()
 
 	glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
 
-	VertexShaderCache::SetCurrentShader(0);
-	PixelShaderCache::SetCurrentShader(0);
+	if(g_ActiveConfig.bUseGLSL)
+		ProgramShaderCache::SetBothShaders(0, 0);
+	else
+	{
+		VertexShaderCache::SetCurrentShader(0);
+		PixelShaderCache::SetCurrentShader(0);
+	}
 }
 
 void Renderer::SetGenerationMode()

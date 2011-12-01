@@ -141,6 +141,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog);
 	iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL);
 	iniFile.GetIfExists("Video_Settings", "OMPDecoder", &bOMPDecoder);
+	iniFile.GetIfExists("Video_Settings", "UseGLSL", &bUseGLSL);
 
 	iniFile.GetIfExists("Video_Enhancements", "ForceFiltering", &bForceFiltering);
 	iniFile.GetIfExists("Video_Enhancements", "MaxAnisotropy", &iMaxAnisotropy);  // NOTE - this is x in (1 << x)
@@ -173,6 +174,7 @@ void VideoConfig::VerifyValidity()
 	if (!backend_info.bSupports3DVision) b3DVision = false;
 	if (!backend_info.bSupportsFormatReinterpretation) bEFBEmulateFormatChanges = false;
 	if (!backend_info.bSupportsPixelLighting) bEnablePixelLighting = false;
+	if (!backend_info.bSupportsGLSL) bUseGLSL = false;
 }
 
 void VideoConfig::Save(const char *ini_file)
@@ -214,6 +216,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "Wireframe", bWireFrame);
 	iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
 	iniFile.Set("Settings", "DisableFog", bDisableFog);
+	iniFile.Set("Settings", "bUseGLSL", bUseGLSL);
 
 	iniFile.Set("Settings", "EnableOpenCL", bEnableOpenCL);
 	iniFile.Set("Settings", "OMPDecoder", bOMPDecoder);
@@ -276,6 +279,7 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "DisableFog", bDisableFog);
 	SET_IF_DIFFERS("Video_Settings", "EnableOpenCL", bEnableOpenCL);
 	SET_IF_DIFFERS("Video_Settings", "OMPDecoder", bOMPDecoder);
+	SET_IF_DIFFERS("Video_Settings", "UseGLSL", bUseGLSL);
 
 	SET_IF_DIFFERS("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	SET_IF_DIFFERS("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
