@@ -292,11 +292,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 			WRITE(p, "int posmtx = fposmtx;\n");
 		}
 
-		WRITE(p, "float4 pos = float4(dot(" I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot(" I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot(" I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos), 1);\n");		
+		WRITE(p, "float4 pos = float4(dot("I_TRANSFORMMATRICES"[posmtx], rawpos), dot("I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot("I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");		
 
 		if (components & VB_HAS_NRMALL) {
 			WRITE(p, "int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
-			WRITE(p, "float3 N0 = " I_NORMALMATRICES".T[normidx].t.xyz, N1 = " I_NORMALMATRICES".T[normidx+1].t.xyz, N2 = " I_NORMALMATRICES".T[normidx+2].t.xyz;\n");
+			WRITE(p, "float3 N0 = "I_NORMALMATRICES"[normidx].xyz, N1 = "I_NORMALMATRICES"[normidx+1].xyz, N2 = "I_NORMALMATRICES"[normidx+2].xyz;\n");
 		}
 
 		if (components & VB_HAS_NRM0)
@@ -308,13 +308,13 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	}
 	else
 	{
-		WRITE(p, "float4 pos = float4(dot(" I_POSNORMALMATRIX".T0, rawpos), dot(" I_POSNORMALMATRIX".T1, rawpos), dot(" I_POSNORMALMATRIX".T2, rawpos), 1.0f);\n");
+		WRITE(p, "float4 pos = float4(dot("I_POSNORMALMATRIX"[0], rawpos), dot("I_POSNORMALMATRIX"[1], rawpos), dot("I_POSNORMALMATRIX"[2], rawpos), 1.0f);\n");
 		if (components & VB_HAS_NRM0)
-			WRITE(p, "float3 _norm0 = normalize(float3(dot(" I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot(" I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot(" I_POSNORMALMATRIX".N2.xyz, rawnorm0)));\n");
+			WRITE(p, "float3 _norm0 = normalize(float3(dot("I_POSNORMALMATRIX"[3].xyz, rawnorm0), dot("I_POSNORMALMATRIX"[4].xyz, rawnorm0), dot("I_POSNORMALMATRIX"[5].xyz, rawnorm0)));\n");
 		if (components & VB_HAS_NRM1)
-			WRITE(p, "float3 _norm1 = float3(dot(" I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot(" I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot(" I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");
+			WRITE(p, "float3 _norm1 = float3(dot("I_POSNORMALMATRIX"[3].xyz, rawnorm1), dot("I_POSNORMALMATRIX"[4].xyz, rawnorm1), dot("I_POSNORMALMATRIX"[5].xyz, rawnorm1));\n");
 		if (components & VB_HAS_NRM2)
-			WRITE(p, "float3 _norm2 = float3(dot(" I_POSNORMALMATRIX".N0.xyz, rawnorm2), dot(" I_POSNORMALMATRIX".N1.xyz, rawnorm2), dot(" I_POSNORMALMATRIX".N2.xyz, rawnorm2));\n");
+			WRITE(p, "float3 _norm2 = float3(dot("I_POSNORMALMATRIX".[3].xyz, rawnorm2), dot("I_POSNORMALMATRIX"[4].xyz, rawnorm2), dot("I_POSNORMALMATRIX"[5].xyz, rawnorm2));\n");
 	}
 
 	if (!(components & VB_HAS_NRM0))
@@ -322,7 +322,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 
 	
 
-	WRITE(p, "o.pos = float4(dot(" I_PROJECTION".T0, pos), dot(" I_PROJECTION".T1, pos), dot(" I_PROJECTION".T2, pos), dot(" I_PROJECTION".T3, pos));\n");
+	WRITE(p, "o.pos = float4(dot("I_PROJECTION"[0], pos), dot("I_PROJECTION"[1], pos), dot("I_PROJECTION"[2], pos), dot("I_PROJECTION"[3], pos));\n");
 
 	WRITE(p, "float4 mat, lacc;\n"
 	"float3 ldir, h;\n"
@@ -421,18 +421,20 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 				break;
 			case XF_TEXGEN_REGULAR:
 			default:
-				if (components & (VB_HAS_TEXMTXIDX0<<i)) {
+				if (components & (VB_HAS_TEXMTXIDX0<<i))
+				{
+					WRITE(p, "int tmp = int(tex%d.z);\n", i);
 					if (texinfo.projection == XF_TEXPROJ_STQ)
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+1].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+2].t));\n", i, i, i, i);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TRANSFORMMATRICES"[tmp]), dot(coord, "I_TRANSFORMMATRICES"[tmp+1]), dot(coord, "I_TRANSFORMMATRICES"[tmp+2]));\n", i);
 					else {
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+1].t), 1);\n", i, i, i);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TRANSFORMMATRICES"[tmp]), dot(coord, "I_TRANSFORMMATRICES"[tmp+1]), 1);\n", i);
 					}
 				}
 				else {
 					if (texinfo.projection == XF_TEXPROJ_STQ)
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES".T[%d].t), dot(coord, " I_TEXMATRICES".T[%d].t), dot(coord, " I_TEXMATRICES".T[%d].t));\n", i, 3*i, 3*i+1, 3*i+2);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TEXMATRICES"[%d]), dot(coord, "I_TEXMATRICES"[%d]), dot(coord, "I_TEXMATRICES"[%d]));\n", i, 3*i, 3*i+1, 3*i+2);
 					else
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES".T[%d].t), dot(coord, " I_TEXMATRICES".T[%d].t), 1);\n", i, 3*i, 3*i+1);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TEXMATRICES"[%d]), dot(coord, "I_TEXMATRICES"[%d]), 1);\n", i, 3*i, 3*i+1);
 				}
 				break;
 		}
@@ -441,9 +443,9 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 			const PostMtxInfo& postInfo = xfregs.postMtxInfo[i];
 
 			int postidx = postInfo.index;
-			WRITE(p, "float4 P0 = " I_POSTTRANSFORMMATRICES".T[%d].t;\n"
-				"float4 P1 = " I_POSTTRANSFORMMATRICES".T[%d].t;\n"
-				"float4 P2 = " I_POSTTRANSFORMMATRICES".T[%d].t;\n",
+			WRITE(p, "float4 P0 = "I_POSTTRANSFORMMATRICES"[%d];\n"
+				"float4 P1 = "I_POSTTRANSFORMMATRICES"[%d];\n"
+				"float4 P2 = "I_POSTTRANSFORMMATRICES"[%d];\n",
 				postidx&0x3f, (postidx+1)&0x3f, (postidx+2)&0x3f);
 
 			if (texGenSpecialCase) {
