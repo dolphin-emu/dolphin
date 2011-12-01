@@ -509,11 +509,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					File::IOFile pFile(TicketFilename, "rb");
 					if (pFile)
 					{
-						u8 Ticket[DiscIO::INANDContentLoader::TICKET_SIZE];
-						for (unsigned int View = 0; View != maxViews && pFile.ReadBytes(Ticket, DiscIO::INANDContentLoader::TICKET_SIZE); ++View)
+						u8 FileTicket[DiscIO::INANDContentLoader::TICKET_SIZE];
+						for (unsigned int View = 0; View != maxViews && pFile.ReadBytes(FileTicket, DiscIO::INANDContentLoader::TICKET_SIZE); ++View)
 						{
 							Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address + View * 0xD8);
-							Memory::WriteBigEData(Ticket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
+							Memory::WriteBigEData(FileTicket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
 						}
 					}
 				}
