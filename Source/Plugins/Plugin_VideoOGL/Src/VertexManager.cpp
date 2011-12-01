@@ -33,6 +33,7 @@
 #include "PixelShaderManager.h"
 #include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
+#include "ProgramShaderCache.h"
 #include "VertexShaderGen.h"
 #include "VertexLoader.h"
 #include "VertexManager.h"
@@ -176,10 +177,6 @@ void VertexManager::vFlush()
 		}
 	}
 
-	// set global constants
-	VertexShaderManager::SetConstants();
-	PixelShaderManager::SetConstants();
-
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
@@ -212,8 +209,18 @@ void VertexManager::vFlush()
 	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
 #endif
 	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
-	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
-	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
+	
+	if(g_ActiveConfig.bUseGLSL)
+		ProgramShaderCache::SetBothShaders(ps->glprogid, vs->glprogid);
+	else
+	{
+		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
+		if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
+	}
+
+	// set global constants
+	VertexShaderManager::SetConstants();
+	PixelShaderManager::SetConstants();
 
 	Draw();
 
@@ -221,7 +228,13 @@ void VertexManager::vFlush()
 	if (useDstAlpha && !dualSourcePossible)
 	{
 		ps = PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
-		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
+		if(g_ActiveConfig.bUseGLSL)
+		{
+			ProgramShaderCache::SetBothShaders(ps->glprogid, 0);
+			PixelShaderManager::SetConstants(); // Need to set these again
+		}
+		else
+			if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
 
 		// only update alpha
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);

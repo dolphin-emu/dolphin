@@ -73,6 +73,8 @@ class PixelShaderCache
 public:
 	static void Init();
 	static void Shutdown();
+	// This is a GLSL only function
+    static void SetPSSampler(const char * name, unsigned int Tex);
 
 	static FRAGMENTSHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
 	static bool CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
@@ -85,7 +87,15 @@ public:
 
 	static void DisableShader();
 };
+// GLSL Specific
+void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
+void SetGLSLPSConstant4fv(unsigned int const_number, const float *f);
+void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
 
+//CG Specific
+void SetCGPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
+void SetCGPSConstant4fv(unsigned int const_number, const float *f);
+void SetMultiCGPSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
 }  // namespace OGL
 
 #endif // _PIXELSHADERCACHE_H_

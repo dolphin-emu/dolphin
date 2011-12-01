@@ -106,6 +106,7 @@ struct VideoConfig
 	bool bDisableTexturing;
 	bool bDstAlphaPass;
 	bool bDisableFog;
+	bool bUseGLSL;
 	
 	// Utility
 	bool bDumpTextures;
@@ -166,6 +167,7 @@ struct VideoConfig
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
+		bool bSupportsGLSL;
 	} backend_info;
 };
 

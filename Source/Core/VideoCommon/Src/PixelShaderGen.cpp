@@ -500,6 +500,15 @@ static void BuildSwapModeTable()
 	}
 }
 
+const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
+{
+        if(ApiType == API_GLSL)
+                return ""; // Nothing to do here
+        static char result[64];
+        sprintf(result, " : register(%s%d)", prefix, num);
+        return result;
+}
+
 const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
@@ -524,6 +533,21 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 	}
 	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ;
+
+	if(ApiType == API_GLSL)
+	{
+			// A few required defines and ones that will make our lives a lot easier
+			WRITE(p, "#version 120\n");
+			// Silly differences
+			WRITE(p, "#define float2 vec2\n");
+			WRITE(p, "#define float3 vec3\n");
+			WRITE(p, "#define float4 vec4\n");
+
+			// cg to glsl function translation
+			WRITE(p, "#define frac(x) fract(x)\n");
+			WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
+			WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
+	}
 	// Declare samplers
 
 	if(ApiType != API_D3D11)
@@ -538,7 +562,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	bool bfirst = true;
 	for (int i = 0; i < 8; ++i)
 	{
-		WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",", i, i);
+		WRITE(p, "%s samp%d %s", bfirst?"":",", i, WriteRegister(ApiType, "s", i));
 		bfirst = false;
 	}
 	WRITE(p, ";\n");
@@ -555,67 +579,107 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 
 	WRITE(p, "\n");
-
-	WRITE(p, "uniform float4 "I_COLORS"[4] : register(c%d);\n", C_COLORS);
-	WRITE(p, "uniform float4 "I_KCOLORS"[4] : register(c%d);\n", C_KCOLORS);
-	WRITE(p, "uniform float4 "I_ALPHA"[1] : register(c%d);\n", C_ALPHA);
-	WRITE(p, "uniform float4 "I_TEXDIMS"[8] : register(c%d);\n", C_TEXDIMS);
-	WRITE(p, "uniform float4 "I_ZBIAS"[2] : register(c%d);\n", C_ZBIAS);
-	WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] : register(c%d);\n", C_INDTEXSCALE);
-	WRITE(p, "uniform float4 "I_INDTEXMTX"[6] : register(c%d);\n", C_INDTEXMTX);
-	WRITE(p, "uniform float4 "I_FOG"[3] : register(c%d);\n", C_FOG);
+	
+	WRITE(p, "uniform float4 "I_COLORS"[4] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
+	WRITE(p, "uniform float4 "I_KCOLORS"[4] %s;\n", WriteRegister(ApiType, "c", C_KCOLORS));
+	WRITE(p, "uniform float4 "I_ALPHA"[1] %s;\n", WriteRegister(ApiType, "c", C_ALPHA));
+	WRITE(p, "uniform float4 "I_TEXDIMS"[8] %s;\n", WriteRegister(ApiType, "c", C_TEXDIMS));
+	WRITE(p, "uniform float4 "I_ZBIAS"[2] %s;\n", WriteRegister(ApiType, "c", C_ZBIAS));
+	WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] %s;\n", WriteRegister(ApiType, "c", C_INDTEXSCALE));
+	WRITE(p, "uniform float4 "I_INDTEXMTX"[6] %s;\n", WriteRegister(ApiType, "c", C_INDTEXMTX));
+	WRITE(p, "uniform float4 "I_FOG"[3] %s;\n", WriteRegister(ApiType, "c", C_FOG));
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		WRITE(p,"typedef struct { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; } Light;\n");
-		WRITE(p,"typedef struct { Light lights[8]; } s_"I_PLIGHTS";\n");
-		WRITE(p, "uniform s_"I_PLIGHTS" "I_PLIGHTS" : register(c%d);\n", C_PLIGHTS);
-		WRITE(p, "typedef struct { float4 C0, C1, C2, C3; } s_"I_PMATERIALS";\n");
-		WRITE(p, "uniform s_"I_PMATERIALS" "I_PMATERIALS" : register(c%d);\n", C_PMATERIALS);
+			WRITE(p, "uniform float4 "I_PLIGHTS"[40] %s;\n", WriteRegister(ApiType, "c", C_PLIGHTS));
+			WRITE(p, "uniform float4 "I_PMATERIALS"[4] %s;\n", WriteRegister(ApiType, "c", C_PMATERIALS));
 	}
 
-	WRITE(p, "void main(\n");
-	if(ApiType != API_D3D11)
-	{
-		WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
-			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
-			DepthTextureEnable ? "\n  out float depth : DEPTH," : "",
-			ApiType & API_OPENGL ? "WPOS" : ApiType & API_D3D9_SM20 ? "POSITION" : "VPOS");
-	}
-	else
-	{
-		WRITE(p, "  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
-			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
-			DepthTextureEnable ? "\n  out float depth : SV_Depth," : "");
-	}
-
-	WRITE(p, "  in float4 colors_0 : COLOR0,\n");
-	WRITE(p, "  in float4 colors_1 : COLOR1");
-
-	// compute window position if needed because binding semantic WPOS is not widely supported
-	if (numTexgen < 7)
-	{
-		for (int i = 0; i < numTexgen; ++i)
-			WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
-		WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
-	}
-	else
-	{
-		// wpos is in w of first 4 texcoords
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+    if(ApiType != API_GLSL)
+    {
+		WRITE(p, "void main(\n");
+		if(ApiType != API_D3D11)
 		{
-			for (int i = 0; i < 8; ++i)
-				WRITE(p, ",\n  in float4 uv%d : TEXCOORD%d", i, i);
+			WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
+				dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
+				DepthTextureEnable ? "\n  out float depth : DEPTH," : "",
+				ApiType & API_OPENGL ? "WPOS" : ApiType & API_D3D9_SM20 ? "POSITION" : "VPOS");
 		}
 		else
 		{
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, ",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
+			WRITE(p, "  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
+				dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
+				DepthTextureEnable ? "\n  out float depth : SV_Depth," : "");
 		}
+
+		WRITE(p, "  in float4 colors_0 : COLOR0,\n");
+		WRITE(p, "  in float4 colors_1 : COLOR1");
+
+		// compute window position if needed because binding semantic WPOS is not widely supported
+		if (numTexgen < 7)
+		{
+			for (int i = 0; i < numTexgen; ++i)
+				WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
+			WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
+			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+				WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
+		}
+		else
+		{
+			// wpos is in w of first 4 texcoords
+			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				for (int i = 0; i < 8; ++i)
+					WRITE(p, ",\n  in float4 uv%d : TEXCOORD%d", i, i);
+			}
+			else
+			{
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+					WRITE(p, ",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
+			}
+		}
+		WRITE(p, "        ) {\n");
 	}
-	WRITE(p, "        ) {\n");
+	else
+	{
+	   // GLSL doesn't do main arguments
+	   // Once we switch to GLSL 1.3 we will bind a lot of these.
+
+		WRITE(p, "  float4 ocol0;\n");
+		if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+				WRITE(p, " float4 ocol1;\n"); // Will be supported later
+		if(DepthTextureEnable)
+				WRITE(p, "  float depth;\n"); // TODO: Passed to Vertex Shader right?
+		WRITE(p, "   float4 rawpos = gl_FragCoord;\n");
+
+		WRITE(p, "   float4 colors_0 = gl_Color;\n");
+		WRITE(p, "   float4 colors_1 = gl_SecondaryColor;\n");
+
+		// compute window position if needed because binding semantic WPOS is not widely supported
+		if (numTexgen < 7)
+		{
+			for (int i = 0; i < numTexgen; ++i)
+					WRITE(p, "  float3 uv%d = gl_TexCoord[%d].xyz;\n", i, i);
+			WRITE(p, "   float4 clipPos = gl_TexCoord[%d];\n", numTexgen);
+			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+					WRITE(p, "   float4 Normal = gl_TexCoord[%d];\n", numTexgen + 1);
+		}
+		else
+		{
+			// wpos is in w of first 4 texcoords
+			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+					for (int i = 0; i < 8; ++i)
+							WRITE(p, "   float4 uv%d = gl_TexCoord[%d];\n", i, i);
+			}
+			else
+			{
+					for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+							WRITE(p, "   float%d uv%d = gl_TexCoord[%d]%s;\n", i < 4 ? 4 : 3 , i, i, i < 4 ? ".xyz" : "");
+			}
+		}
+		WRITE(p, "void main()\n{\n");
+	}
 
 	char* pmainstart = p;
 	int Pretest = AlphaPreTest();
@@ -624,8 +688,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if (!Pretest)
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function
-			WRITE(p, "ocol0 = 0;\n");
+			WRITE(p, "ocol0 = float4(0);\n");
 			WRITE(p, "discard;\n");
+			if(ApiType == API_GLSL)
+					WRITE(p, "gl_FragData[0] = ocol0;\n");
 			if(ApiType != API_D3D11)
 				WRITE(p, "return;\n");
 		}
@@ -733,6 +799,15 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "depth = 1.f;\n");
 		if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 				WRITE(p, "ocol1 = 0;\n");
+		if(ApiType == API_GLSL)
+		{
+				// Once we switch to GLSL 1.3 and bind variables, we won't need to do this
+				WRITE(p, "gl_FragData[0] = ocol0;\n");
+				if(DepthTextureEnable)
+						WRITE(p, "gl_FragDepth = depth;\n");
+				if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+						; // TODO: Will do this later
+		}
 		WRITE(p, "discard;\n");
 		if(ApiType != API_D3D11)
 			WRITE(p, "return;\n");
@@ -780,6 +855,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "  ocol1 = ocol0;\n");
 			// ...and the alpha from ocol0 will be written to the framebuffer.
 			WRITE(p, "  ocol0.a = "I_ALPHA"[0].a;\n");
+		}
+
+		if(ApiType == API_GLSL)
+		{
+			if(DepthTextureEnable)
+					WRITE(p, "gl_FragDepth = depth;\n");
+			WRITE(p, "gl_FragData[0] = ocol0;\n");
 		}
 	}
 	WRITE(p, "}\n");

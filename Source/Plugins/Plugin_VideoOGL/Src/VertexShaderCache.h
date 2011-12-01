@@ -70,7 +70,17 @@ public:
 	static void DisableShader();
 	
 };
+// GLSL Specific
+void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
+void SetGLSLVSConstant4fv(unsigned int const_number, const float *f);
+void SetMultiGLSLVSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
+void SetMultiGLSLVSConstant3fv(unsigned int const_number, unsigned int count, const float *f);
 
+// CG Specific
+void SetCGVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
+void SetCGVSConstant4fv(unsigned int const_number, const float *f);
+void SetMultiCGVSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
+void SetMultiCGVSConstant3fv(unsigned int const_number, unsigned int count, const float *f);
 }  // namespace OGL
 
 #endif // _VERTEXSHADERCACHE_H_
