@@ -125,8 +125,8 @@ static std::thread scrshotThread;
 
 // EFB cache related
 const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
-const u32 EFB_CACHE_WIDTH = EFB_WIDTH / EFB_CACHE_RECT_SIZE;
-const u32 EFB_CACHE_HEIGHT = EFB_HEIGHT / EFB_CACHE_RECT_SIZE;
+const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
+const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
@@ -698,7 +698,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	if (!g_ActiveConfig.bEFBAccessEnable)
 		return 0;
 
-	u32 cacheRectIdx = ((x / EFB_CACHE_RECT_SIZE) << 16) | (y / EFB_CACHE_RECT_SIZE);
+	u32 cacheRectIdx = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_WIDTH
+	                 + (x / EFB_CACHE_RECT_SIZE);
 
 	// Get the rectangular target region containing the EFB pixel
 	EFBRectangle efbPixelRc;
