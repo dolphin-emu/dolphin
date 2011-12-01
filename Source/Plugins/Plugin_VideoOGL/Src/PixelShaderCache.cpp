@@ -269,10 +269,7 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
     }
 
 #if defined HAVE_CG && HAVE_CG
-    char stropt[128];
-    sprintf(stropt, "MaxLocalParams=32,NumInstructionSlots=%d", s_nMaxPixelInstructions);
-    const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
-    CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
+    CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", NULL);
 
     // handle errors
     if (!cgIsProgram(tempprog))
@@ -281,13 +278,13 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 
         static int num_failures = 0;
         char szTemp[MAX_PATH];
-        sprintf(szTemp, "%sbad_ps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+        sprintf(szTemp, "bad_ps_%04i.txt", num_failures++);
         std::ofstream file(szTemp);
         file << pstrprogram;
         file.close();
 
-        PanicAlert("Failed to compile pixel shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
-                   szTemp,
+        PanicAlert("Failed to compile pixel shader %d!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
+                   num_failures - 1, szTemp,
                    g_cgfProf,
                    cgGetLastListing(g_cgcontext));
 
