@@ -595,7 +595,7 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
 	const int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
 	const int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
-	
+
 	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
 		((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
 
@@ -872,39 +872,31 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {
 	ResetAPIState();
 
-	GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
-	if (colorEnable) ColorMask = GL_TRUE;
-	if (alphaEnable) AlphaMask = GL_TRUE;
-	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
+	// color
+	GLboolean const
+		color_mask = colorEnable ? GL_TRUE : GL_FALSE,
+		alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
+	glColorMask(color_mask,  color_mask,  color_mask,  alpha_mask);
 
-	if (zEnable)
-	{
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
-		glDepthFunc(GL_ALWAYS);
-	}
-	else
-	{
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
-		glDepthFunc(GL_NEVER);
-	}
+	glClearColor(
+		float((color >> 16) & 0xFF) / 255.0f,
+		float((color >> 8) & 0xFF) / 255.0f,
+		float((color >> 0) & 0xFF) / 255.0f,
+		float((color >> 24) & 0xFF) / 255.0f);
 
-	// Update viewport for clearing the picture
-	TargetRectangle targetRc = ConvertEFBRectangle(rc);
-	glViewport(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
-	glDepthRange(0.0, (float)(z & 0xFFFFFF) / float(0xFFFFFF));
+	// depth
+	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-	glColor4f((float)((color >> 16) & 0xFF) / 255.0f,
-				(float)((color >> 8) & 0xFF) / 255.0f,
-				(float)(color & 0xFF) / 255.0f,
-				(float)((color >> 24) & 0xFF) / 255.0f);
-	glBegin(GL_QUADS);
-	glVertex3f(-1.f, -1.f, 1.f);
-	glVertex3f(-1.f,  1.f, 1.f);
-	glVertex3f( 1.f,  1.f, 1.f);
-	glVertex3f( 1.f, -1.f, 1.f);
-	glEnd();
+	glClearDepth(float(z & 0xFFFFFF) / float(0xFFFFFF));
+
+	// Update rect for clearing the picture
+	glEnable(GL_SCISSOR_TEST);
+
+	TargetRectangle const targetRc = ConvertEFBRectangle(rc);
+	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+
+	// glColorMask/glDepthMask/glScissor affect glClear (glViewport does not)
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	RestoreAPIState();
 
@@ -1435,9 +1427,6 @@ void Renderer::ResetAPIState()
 	glDisable(GL_BLEND);
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-	// make sure to disable wireframe when drawing the clear quad
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void Renderer::RestoreAPIState()
@@ -1451,8 +1440,7 @@ void Renderer::RestoreAPIState()
 	SetBlendMode(true);
 	VertexShaderManager::SetViewportChanged();
 
-	if (g_ActiveConfig.bWireFrame)
- 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
 
 	VertexShaderCache::SetCurrentShader(0);
 	PixelShaderCache::SetCurrentShader(0);
