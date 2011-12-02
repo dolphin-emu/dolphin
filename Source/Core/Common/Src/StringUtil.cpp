@@ -125,7 +125,7 @@ std::string StripQuotes(const std::string& s)
 bool TryParse(const std::string &str, u32 *const output)
 {
 	char *endptr = NULL;
-	u32 value = strtoul(str.c_str(), &endptr, 0);
+	unsigned long value = strtoul(str.c_str(), &endptr, 0);
 	
 	if (!endptr || *endptr)
 		return false;
@@ -133,7 +133,13 @@ bool TryParse(const std::string &str, u32 *const output)
 	if (value == ULONG_MAX && errno == ERANGE)
 		return false;
 
-	*output = value;
+	if (ULONG_MAX > UINT_MAX) {
+		// Leading bits must be either all 0 or all 1.
+		if ((~value | UINT_MAX) != ULONG_MAX && (value | UINT_MAX) != ULONG_MAX)
+			return false;
+	}
+
+	*output = static_cast<u32>(value);
 	return true;
 }
 
