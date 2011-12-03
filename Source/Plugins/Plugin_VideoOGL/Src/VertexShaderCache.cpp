@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <math.h>
+#include <assert.h>
 
 #include "Globals.h"
 #include "VideoConfig.h"
@@ -73,7 +74,7 @@ void VertexShaderCache::Init()
         pSetVSConstant4fv = SetCGVSConstant4fv;
         pSetMultiVSConstant4fv = SetMultiCGVSConstant4fv;
         pSetMultiVSConstant3fv = SetMultiCGVSConstant3fv;
-        pCompileVertexShader = CompileGLSLVertexShader;
+        pCompileVertexShader = CompileCGVertexShader;
     }
 
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
@@ -124,7 +125,8 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
     // Make an entry in the table
     VSCacheEntry& entry = vshaders[uid];
     last_entry = &entry;
-    const char *code = GenerateVertexShaderCode(components, API_OPENGL);
+    entry.shader.bGLSL = g_ActiveConfig.bUseGLSL;
+    const char *code = GenerateVertexShaderCode(components, g_ActiveConfig.bUseGLSL ? API_GLSL : API_OPENGL);
     GetSafeVertexShaderId(&entry.safe_uid, components);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -155,6 +157,8 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 
 void VertexShaderCache::DisableShader()
 {
+	if(g_ActiveConfig.bUseGLSL)
+		assert(true);
     if (ShaderEnabled)
     {
         glDisable(GL_VERTEX_PROGRAM_ARB);
@@ -165,6 +169,8 @@ void VertexShaderCache::DisableShader()
 
 void VertexShaderCache::SetCurrentShader(GLuint Shader)
 {
+	if(g_ActiveConfig.bUseGLSL)
+		assert(true);
     if (!ShaderEnabled)
     {
         glEnable(GL_VERTEX_PROGRAM_ARB);
