@@ -198,7 +198,15 @@ bool CompileGLSLVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
 		GLsizei charsWritten;
 		GLchar* infoLog = new GLchar[length];
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-		WARN_LOG(VIDEO, "Shader info log:\n%s", infoLog);
+		WARN_LOG(VIDEO, "VS Shader info log:\n%s", infoLog);
+				char szTemp[MAX_PATH];
+				sprintf(szTemp, "vs_%d.txt", result);
+				FILE *fp = fopen(szTemp, "wb");
+				fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
+				fclose(fp);
+		
+		if(strstr(infoLog, "warning") != NULL || strstr(infoLog, "error") != NULL)
+			exit(0);
 		delete[] infoLog;
 	}
 

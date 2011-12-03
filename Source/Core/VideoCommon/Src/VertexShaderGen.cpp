@@ -132,30 +132,32 @@ static char text[16384];
 
 char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 {
+	// This turned a bit ugly with GLSL
+	// Will be less ugly with GLSL 1.3...hopefully
 	WRITE(p, "struct VS_OUTPUT {\n");
-	WRITE(p, "  float4 pos : POSITION;\n");
-	WRITE(p, "  float4 colors_0 : COLOR0;\n");
-	WRITE(p, "  float4 colors_1 : COLOR1;\n");
+	WRITE(p, "  float4 pos %s POSITION;\n", ApiType == API_GLSL ? ";//" : ":");
+	WRITE(p, "  float4 colors_0 %s COLOR0;\n", ApiType == API_GLSL ? ";//" : ":");
+	WRITE(p, "  float4 colors_1 %s COLOR1;\n", ApiType == API_GLSL ? ";//" : ":");
 
 	if (xfregs.numTexGen.numTexGens < 7) {
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			WRITE(p, "  float3 tex%d : TEXCOORD%d;\n", i, i);
-		WRITE(p, "  float4 clipPos : TEXCOORD%d;\n", xfregs.numTexGen.numTexGens);
+			WRITE(p, "  float3 tex%d %s TEXCOORD%d;\n", i, ApiType == API_GLSL ? ";//" : ":", i);
+		WRITE(p, "  float4 clipPos %s TEXCOORD%d;\n", ApiType == API_GLSL ? ";//" : ":", xfregs.numTexGen.numTexGens);
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			WRITE(p, "  float4 Normal : TEXCOORD%d;\n", xfregs.numTexGen.numTexGens + 1);
+			WRITE(p, "  float4 Normal %s TEXCOORD%d;\n", ApiType == API_GLSL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
 	} else {
 		// clip position is in w of first 4 texcoords
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
 			for (int i = 0; i < 8; ++i)
-				WRITE(p, "  float4 tex%d : TEXCOORD%d;\n", i, i);
+				WRITE(p, "  float4 tex%d %s TEXCOORD%d;\n", i, ApiType == API_GLSL ? ";//" : ":", i);
 		}
 		else
 		{
 			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, "  float%d tex%d : TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, i);
+				WRITE(p, "  float%d tex%d %s TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, ApiType == API_GLSL ? ";//" : ":", i);
 		}
-	}	
+	}
 	WRITE(p, "};\n");
 
 	return p;

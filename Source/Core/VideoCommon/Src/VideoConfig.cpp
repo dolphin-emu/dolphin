@@ -43,6 +43,7 @@ VideoConfig::VideoConfig()
 	backend_info.APIType = API_NONE;
 	backend_info.bUseRGBATextures = false;
 	backend_info.bSupports3DVision = false;
+	backend_info.bSupportsGLSL = false;
 }
 
 void VideoConfig::Load(const char *ini_file)
@@ -86,6 +87,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
 	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
+	iniFile.Get("Settings", "UseGLSL", &bUseGLSL, 0);
 	
 	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
 	iniFile.Get("Settings", "OMPDecoder", &bOMPDecoder, false);
@@ -216,7 +218,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "Wireframe", bWireFrame);
 	iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
 	iniFile.Set("Settings", "DisableFog", bDisableFog);
-	iniFile.Set("Settings", "bUseGLSL", bUseGLSL);
+	iniFile.Set("Settings", "UseGLSL", bUseGLSL);
 
 	iniFile.Set("Settings", "EnableOpenCL", bEnableOpenCL);
 	iniFile.Set("Settings", "OMPDecoder", bOMPDecoder);

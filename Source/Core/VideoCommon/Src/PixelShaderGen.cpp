@@ -1198,7 +1198,7 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 	if (ApiType == API_D3D11)
 		WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
 	else
-		WRITE(p, "%s=tex2D(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
+		WRITE(p, "%s=%s(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, ApiType == API_GLSL ? "texture2D" : "tex2D", texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
