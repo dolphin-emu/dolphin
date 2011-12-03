@@ -50,6 +50,7 @@ void (*pSetVSConstant4f)(unsigned int, float, float, float, float);
 void (*pSetVSConstant4fv)(unsigned int, const float*);
 void (*pSetMultiVSConstant4fv)(unsigned int, unsigned int, const float*);
 void (*pSetMultiVSConstant3fv)(unsigned int, unsigned int, const float*);
+bool (*pCompileVertexShader)(VERTEXSHADER&, const char*);
 
 void VertexShaderCache::Init()
 {
@@ -64,6 +65,7 @@ void VertexShaderCache::Init()
         pSetVSConstant4fv = SetGLSLVSConstant4fv;
         pSetMultiVSConstant4fv = SetMultiGLSLVSConstant4fv;
         pSetMultiVSConstant3fv = SetMultiGLSLVSConstant3fv;
+        pCompileVertexShader = CompileGLSLVertexShader;
     }
     else
     {
@@ -71,6 +73,7 @@ void VertexShaderCache::Init()
         pSetVSConstant4fv = SetCGVSConstant4fv;
         pSetMultiVSConstant4fv = SetMultiCGVSConstant4fv;
         pSetMultiVSConstant3fv = SetMultiCGVSConstant3fv;
+        pCompileVertexShader = CompileGLSLVertexShader;
     }
 
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
@@ -147,66 +150,7 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 
 bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
 {
-    // Reset GL error before compiling shaders. Yeah, we need to investigate the causes of these.
-    GLenum err = GL_REPORT_ERROR();
-    if (err != GL_NO_ERROR)
-    {
-        ERROR_LOG(VIDEO, "glError %08x before VS!", err);
-    }
-
-#if defined HAVE_CG && HAVE_CG
-    CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", NULL);
-    if (!cgIsProgram(tempprog)) {
-        static int num_failures = 0;
-        char szTemp[MAX_PATH];
-        sprintf(szTemp, "bad_vs_%04i.txt", num_failures++);
-        std::ofstream file(szTemp);
-        file << pstrprogram;
-        file.close();
-
-        PanicAlert("Failed to compile vertex shader %d!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
-                   num_failures - 1, szTemp,
-                   g_cgfProf,
-                   cgGetLastListing(g_cgcontext));
-
-        cgDestroyProgram(tempprog);
-        ERROR_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
-        ERROR_LOG(VIDEO, "%s", pstrprogram);
-        return false;
-    }
-
-    if (cgGetError() != CG_NO_ERROR)
-    {
-        WARN_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
-        WARN_LOG(VIDEO, "%s", pstrprogram);
-    }
-
-    // This looks evil - we modify the program through the const char * we got from cgGetProgramString!
-    // It SHOULD not have any nasty side effects though - but you never know...
-    char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
-    char *plocal = strstr(pcompiledprog, "program.local");
-    while (plocal != NULL) {
-        const char* penv = "  program.env";
-        memcpy(plocal, penv, 13);
-        plocal = strstr(plocal + 13, "program.local");
-    }
-    glGenProgramsARB(1, &vs.glprogid);
-    SetCurrentShader(vs.glprogid);
-
-    glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
-    err = GL_REPORT_ERROR();
-    if (err != GL_NO_ERROR) {
-        ERROR_LOG(VIDEO, "%s", pstrprogram);
-        ERROR_LOG(VIDEO, "%s", pcompiledprog);
-    }
-
-    cgDestroyProgram(tempprog);
-#endif
-
-    if (g_ActiveConfig.bEnableShaderDebugging)
-        vs.strprog = pstrprogram;
-
-    return true;
+	return pCompileVertexShader(vs, pstrprogram);
 }
 
 void VertexShaderCache::DisableShader()
@@ -234,6 +178,10 @@ void VertexShaderCache::SetCurrentShader(GLuint Shader)
     }
 }
 // GLSL Specific
+bool CompileGLSLVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
+{
+	return false;
+}
 void SetVSConstant4fvByName(const char * name, unsigned int offset, const float *f, const unsigned int count = 1)
 {
     PROGRAMSHADER tmp = ProgramShaderCache::GetShaderProgram();
@@ -315,6 +263,69 @@ void SetMultiGLSLVSConstant3fv(unsigned int const_number, unsigned int count, co
 }
 
 // CG Specific
+bool CompileCGVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
+{
+    // Reset GL error before compiling shaders. Yeah, we need to investigate the causes of these.
+    GLenum err = GL_REPORT_ERROR();
+    if (err != GL_NO_ERROR)
+    {
+        ERROR_LOG(VIDEO, "glError %08x before VS!", err);
+    }
+
+#if defined HAVE_CG && HAVE_CG
+    CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", NULL);
+    if (!cgIsProgram(tempprog)) {
+        static int num_failures = 0;
+        char szTemp[MAX_PATH];
+        sprintf(szTemp, "bad_vs_%04i.txt", num_failures++);
+        std::ofstream file(szTemp);
+        file << pstrprogram;
+        file.close();
+
+        PanicAlert("Failed to compile vertex shader %d!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
+                   num_failures - 1, szTemp,
+                   g_cgfProf,
+                   cgGetLastListing(g_cgcontext));
+
+        cgDestroyProgram(tempprog);
+        ERROR_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
+        ERROR_LOG(VIDEO, "%s", pstrprogram);
+        return false;
+    }
+
+    if (cgGetError() != CG_NO_ERROR)
+    {
+        WARN_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
+        WARN_LOG(VIDEO, "%s", pstrprogram);
+    }
+
+    // This looks evil - we modify the program through the const char * we got from cgGetProgramString!
+    // It SHOULD not have any nasty side effects though - but you never know...
+    char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
+    char *plocal = strstr(pcompiledprog, "program.local");
+    while (plocal != NULL) {
+        const char* penv = "  program.env";
+        memcpy(plocal, penv, 13);
+        plocal = strstr(plocal + 13, "program.local");
+    }
+    glGenProgramsARB(1, &vs.glprogid);
+    VertexShaderCache::SetCurrentShader(vs.glprogid);
+
+    glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
+    err = GL_REPORT_ERROR();
+    if (err != GL_NO_ERROR) {
+        ERROR_LOG(VIDEO, "%s", pstrprogram);
+        ERROR_LOG(VIDEO, "%s", pcompiledprog);
+    }
+
+    cgDestroyProgram(tempprog);
+#endif
+
+    if (g_ActiveConfig.bEnableShaderDebugging)
+        vs.strprog = pstrprogram;
+
+    return true;
+}
 void SetCGVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
     glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, const_number, f1, f2, f3, f4);
