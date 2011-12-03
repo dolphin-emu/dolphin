@@ -29,16 +29,21 @@ namespace OGL
 
 struct FRAGMENTSHADER
 {
-	FRAGMENTSHADER() : glprogid(0) { }
+	FRAGMENTSHADER() : glprogid(0), bGLSL(0) { }
 	void Destroy()
 	{
 		if (glprogid)
 		{
-			glDeleteProgramsARB(1, &glprogid);
+			if(bGLSL)
+				glDeleteShader(glprogid);
+			else
+				glDeleteProgramsARB(1, &glprogid);
 			glprogid = 0;
 		}
 	}
 	GLuint glprogid; // opengl program id
+	
+	bool bGLSL;
 	std::string strprog;
 };
 

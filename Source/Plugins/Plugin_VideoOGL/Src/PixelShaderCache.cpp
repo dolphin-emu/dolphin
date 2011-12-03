@@ -20,6 +20,7 @@
 #include "GLUtil.h"
 
 #include <cmath>
+#include <assert.h>
 
 #include "Statistics.h"
 #include "VideoConfig.h"
@@ -234,7 +235,8 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
     // Make an entry in the table
     PSCacheEntry& newentry = PixelShaders[uid];
     last_entry = &newentry;
-    const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
+    newentry.shader.bGLSL = g_ActiveConfig.bUseGLSL;
+    const char *code = GeneratePixelShaderCode(dstAlphaMode, g_ActiveConfig.bUseGLSL ? API_GLSL : API_OPENGL, components);
 
     if (g_ActiveConfig.bEnableShaderDebugging && code)
     {
@@ -271,6 +273,8 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 //Disable Fragment programs and reset the selected Program
 void PixelShaderCache::DisableShader()
 {
+	if(g_ActiveConfig.bUseGLSL)
+		assert(true);
     if(ShaderEnabled)
     {
         glDisable(GL_FRAGMENT_PROGRAM_ARB);
@@ -281,6 +285,8 @@ void PixelShaderCache::DisableShader()
 //bind a program if is diferent from the binded oone
 void PixelShaderCache::SetCurrentShader(GLuint Shader)
 {
+	if(g_ActiveConfig.bUseGLSL)
+		assert(true);
     if(!ShaderEnabled)
     {
         glEnable(GL_FRAGMENT_PROGRAM_ARB);

@@ -29,9 +29,18 @@ namespace OGL
 
 struct VERTEXSHADER
 {
-	VERTEXSHADER() : glprogid(0) {}
+	VERTEXSHADER() : glprogid(0), bGLSL(0) {}
+	void Destroy()
+	{
+		if(bGLSL)
+			glDeleteShader(glprogid);
+		else
+			glDeleteProgramsARB(1, &glprogid);
+		glprogid = 0;
+	}
 	GLuint glprogid; // opengl program id
 
+	bool bGLSL;
 	std::string strprog;
 };
 
@@ -43,9 +52,7 @@ class VertexShaderCache
 		VERTEXSHADERUIDSAFE safe_uid;
 		VSCacheEntry() {}
 		void Destroy() {
-			// printf("Destroying vs %i\n", shader.glprogid);
-			glDeleteProgramsARB(1, &shader.glprogid);
-			shader.glprogid = 0;
+			shader.Destroy();
 		}
 	};
 
