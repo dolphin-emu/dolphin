@@ -51,6 +51,7 @@ PIXELSHADERUID PixelShaderCache::last_uid;
 void(*pSetPSConstant4f)(unsigned int, float, float, float, float);
 void(*pSetPSConstant4fv)(unsigned int, const float*);
 void(*pSetMultiPSConstant4fv)(unsigned int, unsigned int, const float*);
+bool (*pCompilePixelShader)(FRAGMENTSHADER&, const char*);
 
 GLuint PixelShaderCache::GetDepthMatrixProgram()
 {
@@ -77,12 +78,14 @@ void PixelShaderCache::Init()
         pSetPSConstant4f = SetGLSLPSConstant4f;
         pSetPSConstant4fv = SetGLSLPSConstant4fv;
         pSetMultiPSConstant4fv = SetMultiGLSLPSConstant4fv;
+        pCompilePixelShader = CompileGLSLPixelShader;
     }
     else
     {
         pSetPSConstant4f = SetCGPSConstant4f;
         pSetPSConstant4fv = SetCGPSConstant4fv;
         pSetMultiPSConstant4fv = SetMultiCGPSConstant4fv;
+        pCompilePixelShader = CompileCGPixelShader;
     }
 
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
@@ -262,86 +265,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 
 bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 {
-    GLenum err = GL_REPORT_ERROR();
-    if (err != GL_NO_ERROR)
-    {
-        ERROR_LOG(VIDEO, "glError %08x before PS!", err);
-    }
-
-#if defined HAVE_CG && HAVE_CG
-	char stropt[128];
-	sprintf(stropt, "MaxLocalParams=224,NumInstructionSlots=%d", s_nMaxPixelInstructions);
-	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
-	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
-
-	// handle errors
-	if (!cgIsProgram(tempprog))
-	{
-		cgDestroyProgram(tempprog);
-
-		static int num_failures = 0;
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sbad_ps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-		std::ofstream file(szTemp);
-		file << pstrprogram;
-		file.close();
-
-		PanicAlert("Failed to compile pixel shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
-						szTemp,
-						g_cgfProf,
-						cgGetLastListing(g_cgcontext));
-
-		return false;
-	}
-
-	// handle warnings
-	if (cgGetError() != CG_NO_ERROR)
-	{
-		WARN_LOG(VIDEO, "Warnings on compile ps %s:", cgGetLastListing(g_cgcontext));
-		WARN_LOG(VIDEO, "%s", pstrprogram);
-	}
-
-	// This looks evil - we modify the program through the const char * we got from cgGetProgramString!
-	// It SHOULD not have any nasty side effects though - but you never know...
-	char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
-	char *plocal = strstr(pcompiledprog, "program.local");
-	while (plocal != NULL)
-	{
-		const char *penv = "  program.env";
-		memcpy(plocal, penv, 13);
-		plocal = strstr(plocal+13, "program.local");
-	}
-
-	glGenProgramsARB(1, &ps.glprogid);
-	SetCurrentShader(ps.glprogid);	
-	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
-
-	err = GL_REPORT_ERROR();
-	if (err != GL_NO_ERROR)
-	{
-		GLint error_pos, native_limit;
-		glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &error_pos);
-		glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &native_limit);
-		// Error occur
-		if (error_pos != -1) {
-			const char *program_error = (const char *)glGetString(GL_PROGRAM_ERROR_STRING_ARB);
-			char line[256];
-			strncpy(line, (const char *)pcompiledprog + error_pos, 255);
-			line[255] = 0;
-			ERROR_LOG(VIDEO, "Error at %i: %s", error_pos, program_error);
-			ERROR_LOG(VIDEO, "Line dump: \n%s", line);
-		} else if (native_limit != -1) {
-			ERROR_LOG(VIDEO, "Hit limit? %i", native_limit);
-			// TODO
-		}
-		ERROR_LOG(VIDEO, "%s", pstrprogram);
-		ERROR_LOG(VIDEO, "%s", pcompiledprog);
-	}
-
-	cgDestroyProgram(tempprog);
-#endif
-
-    return true;
+		return pCompilePixelShader(ps, pstrprogram);
 }
 
 //Disable Fragment programs and reset the selected Program
@@ -370,6 +294,10 @@ void PixelShaderCache::SetCurrentShader(GLuint Shader)
     }
 }
 // GLSL Specific
+bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
+{
+	return false;
+}
 void PixelShaderCache::SetPSSampler(const char * name, unsigned int Tex)
 {
     PROGRAMSHADER tmp = ProgramShaderCache::GetShaderProgram();
@@ -440,6 +368,87 @@ void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, co
     }
 }
 // CG Specific
+
+bool CompileCGPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
+{
+    GLenum err = GL_REPORT_ERROR();
+    if (err != GL_NO_ERROR)
+    {
+        ERROR_LOG(VIDEO, "glError %08x before PS!", err);
+    }
+
+#if defined HAVE_CG && HAVE_CG
+    CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", NULL);
+
+    // handle errors
+    if (!cgIsProgram(tempprog))
+    {
+        cgDestroyProgram(tempprog);
+
+        static int num_failures = 0;
+        char szTemp[MAX_PATH];
+        sprintf(szTemp, "bad_ps_%04i.txt", num_failures++);
+        std::ofstream file(szTemp);
+        file << pstrprogram;
+        file.close();
+
+        PanicAlert("Failed to compile pixel shader %d!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
+                   num_failures - 1, szTemp,
+                   g_cgfProf,
+                   cgGetLastListing(g_cgcontext));
+
+        return false;
+    }
+
+    // handle warnings
+    if (cgGetError() != CG_NO_ERROR)
+    {
+        WARN_LOG(VIDEO, "Warnings on compile ps %s:", cgGetLastListing(g_cgcontext));
+        WARN_LOG(VIDEO, "%s", pstrprogram);
+    }
+
+    // This looks evil - we modify the program through the const char * we got from cgGetProgramString!
+    // It SHOULD not have any nasty side effects though - but you never know...
+    char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
+    char *plocal = strstr(pcompiledprog, "program.local");
+    while (plocal != NULL)
+    {
+        const char *penv = "  program.env";
+        memcpy(plocal, penv, 13);
+        plocal = strstr(plocal+13, "program.local");
+    }
+
+    glGenProgramsARB(1, &ps.glprogid);
+    PixelShaderCache::SetCurrentShader(ps.glprogid);
+    glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
+
+    err = GL_REPORT_ERROR();
+    if (err != GL_NO_ERROR)
+    {
+        GLint error_pos, native_limit;
+        glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &error_pos);
+        glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &native_limit);
+        // Error occur
+        if (error_pos != -1) {
+            const char *program_error = (const char *)glGetString(GL_PROGRAM_ERROR_STRING_ARB);
+            char line[256];
+            strncpy(line, (const char *)pcompiledprog + error_pos, 255);
+            line[255] = 0;
+            ERROR_LOG(VIDEO, "Error at %i: %s", error_pos, program_error);
+            ERROR_LOG(VIDEO, "Line dump: \n%s", line);
+        } else if (native_limit != -1) {
+            ERROR_LOG(VIDEO, "Hit limit? %i", native_limit);
+            // TODO
+        }
+        ERROR_LOG(VIDEO, "%s", pstrprogram);
+        ERROR_LOG(VIDEO, "%s", pcompiledprog);
+    }
+
+    cgDestroyProgram(tempprog);
+#endif
+
+    return true;
+}
 void SetCGPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
     float f[4] = { f1, f2, f3, f4 };

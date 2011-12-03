@@ -75,12 +75,14 @@ void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3
 void SetGLSLVSConstant4fv(unsigned int const_number, const float *f);
 void SetMultiGLSLVSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
 void SetMultiGLSLVSConstant3fv(unsigned int const_number, unsigned int count, const float *f);
+bool CompileGLSLVertexShader(VERTEXSHADER& vs, const char* pstrprogram);
 
 // CG Specific
 void SetCGVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
 void SetCGVSConstant4fv(unsigned int const_number, const float *f);
 void SetMultiCGVSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
 void SetMultiCGVSConstant3fv(unsigned int const_number, unsigned int count, const float *f);
+bool CompileCGVertexShader(VERTEXSHADER& vs, const char* pstrprogram);
 }  // namespace OGL
 
 #endif // _VERTEXSHADERCACHE_H_

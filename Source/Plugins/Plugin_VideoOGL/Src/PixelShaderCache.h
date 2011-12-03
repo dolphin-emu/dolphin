@@ -91,11 +91,13 @@ public:
 void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
 void SetGLSLPSConstant4fv(unsigned int const_number, const float *f);
 void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
+bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
 
 //CG Specific
 void SetCGPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
 void SetCGPSConstant4fv(unsigned int const_number, const float *f);
 void SetMultiCGPSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
+bool CompileCGPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
 }  // namespace OGL
 
 #endif // _PIXELSHADERCACHE_H_
