@@ -173,7 +173,7 @@ void VertexShaderManager::Dirty()
 // TODO: A cleaner way to control the matricies without making a mess in the parameters field
 void VertexShaderManager::SetConstants()
 {
-	if (nTransformMatricesChanged[0] >= 0)
+	if (nTransformMatricesChanged[0] >= 0 || g_ActiveConfig.bUseGLSL)
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
 		int endn = (nTransformMatricesChanged[1] + 3) / 4;
@@ -181,7 +181,7 @@ void VertexShaderManager::SetConstants()
 		SetMultiVSConstant4fv(C_TRANSFORMMATRICES + startn, endn - startn, pstart);
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
 	}
-	if (nNormalMatricesChanged[0] >= 0)
+	if (nNormalMatricesChanged[0] >= 0 || g_ActiveConfig.bUseGLSL)
 	{
 		int startn = nNormalMatricesChanged[0] / 3;
 		int endn = (nNormalMatricesChanged[1] + 2) / 3;
@@ -190,7 +190,7 @@ void VertexShaderManager::SetConstants()
 		nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
 	}
 
-	if (nPostTransformMatricesChanged[0] >= 0)
+	if (nPostTransformMatricesChanged[0] >= 0 || g_ActiveConfig.bUseGLSL)
 	{
 		int startn = nPostTransformMatricesChanged[0] / 4;
 		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
@@ -198,7 +198,7 @@ void VertexShaderManager::SetConstants()
 		SetMultiVSConstant4fv(C_POSTTRANSFORMMATRICES + startn, endn - startn, pstart);
 	}
 
-	if (nLightsChanged[0] >= 0)
+	if (nLightsChanged[0] >= 0 || g_ActiveConfig.bUseGLSL)
 	{
 		// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 		int istart = nLightsChanged[0] / 0x10;
@@ -234,14 +234,14 @@ void VertexShaderManager::SetConstants()
 		nLightsChanged[0] = nLightsChanged[1] = -1;
 	}
 
-	if (nMaterialsChanged)
+	if (nMaterialsChanged || g_ActiveConfig.bUseGLSL)
 	{
 		float GC_ALIGNED16(material[4]);
 		float NormalizationCoef = 1 / 255.0f;
 
 		for (int i = 0; i < 4; ++i)
 		{
-			if (nMaterialsChanged & (1 << i))
+			if (nMaterialsChanged & (1 << i) || g_ActiveConfig.bUseGLSL)
 			{
 				u32 data = *(xfregs.ambColor + i);
 
@@ -257,7 +257,7 @@ void VertexShaderManager::SetConstants()
 		nMaterialsChanged = 0;
 	}
 
-	if (bPosNormalMatrixChanged)
+	if (bPosNormalMatrixChanged || g_ActiveConfig.bUseGLSL)
 	{
 		bPosNormalMatrixChanged = false;
 
@@ -268,7 +268,7 @@ void VertexShaderManager::SetConstants()
 		SetMultiVSConstant3fv(C_POSNORMALMATRIX + 3, 3, norm);
 	}
 
-	if (bTexMatricesChanged[0])
+	if (bTexMatricesChanged[0] || g_ActiveConfig.bUseGLSL)
 	{
 		bTexMatricesChanged[0] = false;
 		const float *fptrs[] = 
@@ -283,7 +283,7 @@ void VertexShaderManager::SetConstants()
 		}
 	}
 
-	if (bTexMatricesChanged[1])
+	if (bTexMatricesChanged[1] || g_ActiveConfig.bUseGLSL)
 	{
 		bTexMatricesChanged[1] = false;
 		const float *fptrs[] = {
@@ -297,7 +297,7 @@ void VertexShaderManager::SetConstants()
 		}
 	}
 
-	if (bViewportChanged)
+	if (bViewportChanged || g_ActiveConfig.bUseGLSL)
 	{
 		bViewportChanged = false;
 		SetVSConstant4f(C_DEPTHPARAMS,xfregs.viewport.farZ / 16777216.0f,xfregs.viewport.zRange / 16777216.0f,0.0f,0.0f);
@@ -306,7 +306,7 @@ void VertexShaderManager::SetConstants()
 		bProjectionChanged = true;
 	}
 
-	if (bProjectionChanged)
+	if (bProjectionChanged || g_ActiveConfig.bUseGLSL)
 	{
 		bProjectionChanged = false;
 
