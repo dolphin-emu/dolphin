@@ -296,7 +296,36 @@ void PixelShaderCache::SetCurrentShader(GLuint Shader)
 // GLSL Specific
 bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 {
-	return false;
+	GLuint result = glCreateShader(GL_FRAGMENT_SHADER);
+
+	glShaderSource(result, 1, &pstrprogram, NULL);
+	glCompileShader(result);
+	GLsizei length = 0;
+
+	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
+	if (length > 0)
+	{
+		GLsizei charsWritten;
+		GLchar* infoLog = new GLchar[length];
+		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
+		WARN_LOG(VIDEO, "Shader info log:\n%s", infoLog);
+		delete[] infoLog;
+	}
+
+	GLint compileStatus;
+	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
+	if (compileStatus != GL_TRUE)
+	{
+		// Compile failed
+		ERROR_LOG(VIDEO, "Shader compilation failed; see info log");
+		// Don't try to use this shader
+		glDeleteShader(result);
+		return false;
+	}
+
+	(void)GL_REPORT_ERROR();
+	ps.glprogid = result;
+	return true;
 }
 void PixelShaderCache::SetPSSampler(const char * name, unsigned int Tex)
 {
