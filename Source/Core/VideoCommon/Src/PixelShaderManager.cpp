@@ -87,35 +87,35 @@ void PixelShaderManager::SetConstants()
 {
     for (int i = 0; i < 2; ++i)
 	{
-        if (s_nColorsChanged[i])
+        if (s_nColorsChanged[i] || g_ActiveConfig.bUseGLSL)
 		{
             int baseind = i ? C_KCOLORS : C_COLORS;
             for (int j = 0; j < 4; ++j)
 			{
-                if (s_nColorsChanged[i] & (1 << j))
+                if (s_nColorsChanged[i] & (1 << j) || g_ActiveConfig.bUseGLSL)
                     SetPSConstant4fv(baseind+j, &lastRGBAfull[i][j][0]);
             }
             s_nColorsChanged[i] = 0;
         }
     }
 
-    if (s_nTexDimsChanged)
+    if (s_nTexDimsChanged || g_ActiveConfig.bUseGLSL)
 	{
         for (int i = 0; i < 8; ++i)
 		{
-            if (s_nTexDimsChanged & (1<<i))
+            if (s_nTexDimsChanged & (1<<i) || g_ActiveConfig.bUseGLSL)
 				SetPSTextureDims(i);
         }
         s_nTexDimsChanged = 0;
     }
 
-    if (s_bAlphaChanged)
+    if (s_bAlphaChanged || g_ActiveConfig.bUseGLSL)
 	{
 		SetPSConstant4f(C_ALPHA, (lastAlpha&0xff)/255.0f, ((lastAlpha>>8)&0xff)/255.0f, 0, ((lastAlpha>>16)&0xff)/255.0f);
 		s_bAlphaChanged = false;
     }
 
-	if (s_bZTextureTypeChanged)
+	if (s_bZTextureTypeChanged || g_ActiveConfig.bUseGLSL)
 	{
         float ftemp[4];
         switch (bpmem.ztex2.type)
@@ -137,7 +137,7 @@ void PixelShaderManager::SetConstants()
 		s_bZTextureTypeChanged = false;
 	}
 
-	if (s_bZBiasChanged || s_bDepthRangeChanged)
+	if (s_bZBiasChanged || s_bDepthRangeChanged || g_ActiveConfig.bUseGLSL)
 	{
         // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 		// [0] = width/2
@@ -153,12 +153,12 @@ void PixelShaderManager::SetConstants()
     }
 
     // indirect incoming texture scales
-    if (s_nIndTexScaleChanged)
+    if (s_nIndTexScaleChanged || g_ActiveConfig.bUseGLSL)
 	{
 		// set as two sets of vec4s, each containing S and T of two ind stages.
         float f[8];
 
-        if (s_nIndTexScaleChanged & 0x03)
+        if (s_nIndTexScaleChanged & 0x03 || g_ActiveConfig.bUseGLSL)
 		{
             for (u32 i = 0; i < 2; ++i)
 			{
@@ -169,7 +169,7 @@ void PixelShaderManager::SetConstants()
 			SetPSConstant4fv(C_INDTEXSCALE, f);
         }
 
-        if (s_nIndTexScaleChanged & 0x0c) {
+        if (s_nIndTexScaleChanged & 0x0c || g_ActiveConfig.bUseGLSL) {
             for (u32 i = 2; i < 4; ++i) {
                 f[2 * i] = bpmem.texscale[1].getScaleS(i & 1);
                 f[2 * i + 1] = bpmem.texscale[1].getScaleT(i & 1);
@@ -181,11 +181,11 @@ void PixelShaderManager::SetConstants()
         s_nIndTexScaleChanged = 0;
     }
 
-    if (s_nIndTexMtxChanged)
+    if (s_nIndTexMtxChanged || g_ActiveConfig.bUseGLSL)
 	{
         for (int i = 0; i < 3; ++i)
 		{
-            if (s_nIndTexMtxChanged & (1 << i))
+            if (s_nIndTexMtxChanged & (1 << i) || g_ActiveConfig.bUseGLSL)
 			{
                 int scale = ((u32)bpmem.indmtx[i].col0.s0 << 0) |
 					        ((u32)bpmem.indmtx[i].col1.s1 << 2) |
@@ -215,13 +215,13 @@ void PixelShaderManager::SetConstants()
         s_nIndTexMtxChanged = 0;
     }
 
-    if (s_bFogColorChanged)
+    if (s_bFogColorChanged || g_ActiveConfig.bUseGLSL)
 	{
 		SetPSConstant4f(C_FOG, bpmem.fog.color.r / 255.0f, bpmem.fog.color.g / 255.0f, bpmem.fog.color.b / 255.0f, 0);
 		s_bFogColorChanged = false;
     }
 
-    if (s_bFogParamChanged)
+    if (s_bFogParamChanged || g_ActiveConfig.bUseGLSL)
 	{
 		if(!g_ActiveConfig.bDisableFog)
 		{
@@ -237,7 +237,7 @@ void PixelShaderManager::SetConstants()
         s_bFogParamChanged = false;
     }
 
-	if (s_bFogRangeAdjustChanged)
+	if (s_bFogRangeAdjustChanged || g_ActiveConfig.bUseGLSL)
 	{
 		if(!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled == 1)
 		{
@@ -261,7 +261,7 @@ void PixelShaderManager::SetConstants()
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)  // config check added because the code in here was crashing for me inside SetPSConstant4f
 	{
-		if (nLightsChanged[0] >= 0)
+		if (nLightsChanged[0] >= 0 || g_ActiveConfig.bUseGLSL)
 		{
 			// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 			int istart = nLightsChanged[0] / 0x10;
@@ -297,14 +297,14 @@ void PixelShaderManager::SetConstants()
 			nLightsChanged[0] = nLightsChanged[1] = -1;
 		}
 
-		if (nMaterialsChanged)
+		if (nMaterialsChanged || g_ActiveConfig.bUseGLSL)
 		{
 			float GC_ALIGNED16(material[4]);
 			float NormalizationCoef = 1 / 255.0f;
 
 			for (int i = 0; i < 4; ++i)
 			{
-				if (nMaterialsChanged & (1 << i))
+				if (nMaterialsChanged & (1 << i) || g_ActiveConfig.bUseGLSL)
 				{
 					u32 data = *(xfregs.ambColor + i);
 
