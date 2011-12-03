@@ -585,14 +585,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			}
 		}
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-		if (gpr.SanityCheck() || fpr.SanityCheck())
-		{
-			char ppcInst[256];
-			DisassembleGekko(ops[i].inst.hex, em_address, ppcInst, 256);
-			NOTICE_LOG(DYNA_REC, "Unflushed reg: %s", ppcInst);
-		}
-#endif
 
 		if (js.skipnext) {
 			js.skipnext = false;
