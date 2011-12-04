@@ -389,6 +389,21 @@ if(NOT DISABLE_WX)
 	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
 
 	if(wxWidgets_FOUND)
+		EXECUTE_PROCESS(
+			COMMAND sh "${wxWidgets_CONFIG_EXECUTABLE}"
+				${wxWidgets_CONFIG_OPTIONS} --version
+			OUTPUT_VARIABLE wxWidgets_VERSION
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+			ERROR_QUIET
+			)
+		message("Found wxWidgets version ${wxWidgets_VERSION}")
+		if(${wxWidgets_VERSION} VERSION_LESS "2.9.0")
+			message("At least 2.9.0 is required; ignoring found version")
+			unset(wxWidgets_FOUND)
+		endif()
+	endif(wxWidgets_FOUND)
+		
+	if(wxWidgets_FOUND)
 		include(${wxWidgets_USE_FILE})
 
 		if(UNIX AND NOT APPLE)
