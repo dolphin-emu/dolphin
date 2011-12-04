@@ -371,6 +371,10 @@ else()
 	endif(NOT GLEW_FOUND)
 
 	check_lib(CG Cg Cg/cg.h)
+	if(NOT CG_FOUND)
+		message("Shared Cg not found, falling back to the static library")
+		include_directories(Externals)
+	endif(NOT CG_FOUND)
 	check_lib(CGGL CgGL Cg/cgGL.h)
 endif()
 
