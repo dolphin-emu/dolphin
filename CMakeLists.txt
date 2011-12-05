@@ -311,6 +311,7 @@ else()
 	message("Shared lzo not found, falling back to the static library")
 	add_subdirectory(Externals/LZO)
 	include_directories(Externals/LZO)
+	set(LZO lzo2)
 endif()
 
 include(FindSDL OPTIONAL)

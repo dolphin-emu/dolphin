@@ -1,5 +1,5 @@
 set(LIBS	core
-			lzo2
+			${LZO}
 			discio
 			bdisasm
 			inputcommon
