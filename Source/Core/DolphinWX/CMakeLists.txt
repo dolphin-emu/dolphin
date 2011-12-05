@@ -8,7 +8,7 @@ set(LIBS	core
 			z
 			sfml-network
 			SDL
-			GL
+			${OPENGL_LIBRARIES}
 			${XRANDR_LIBRARIES}
 			${X11_LIBRARIES})
 
