@@ -100,6 +100,10 @@ if(UNIX AND NOT APPLE)
 endif()
 
 if (APPLE)
+	# Ignore MacPorts and Fink and any other locally installed packages that
+	# might prevent building a distributable binary.
+	set(CMAKE_SYSTEM_PREFIX_PATH /usr)
+
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -x none")
