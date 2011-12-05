@@ -1210,7 +1210,6 @@ set(SRCS_ZLIB
 
 include_directories(.)
 include_directories(include)
-include_directories(../libpng)
 
 set(SRCS
 	${SRCS_AUI}
@@ -1240,5 +1239,11 @@ add_definitions(-D__WXOSX_COCOA__)
 add_definitions(-DWXBUILDING)
 add_definitions(-Wno-deprecated-declarations)
 add_definitions(-Wno-shadow)
+set(LIBS iconv)
+
+include_directories(../libpng)
+add_subdirectory(../libpng ../libpng)
+list(APPEND LIBS png)
 
 add_library(wx STATIC ${SRCS})
+target_link_libraries(wx ${LIBS})
