@@ -40,6 +40,10 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/memcpy_amd.cpp)
 
 set(LIBS core)
+if(NOT ${CL} STREQUAL CL-NOTFOUND)
+	list(APPEND LIBS ${CL})
+endif()
+
 if(wxWidgets_FOUND AND WIN32)
 	set(SRCS ${SRCS} Src/EmuWindow.cpp)
 endif()
