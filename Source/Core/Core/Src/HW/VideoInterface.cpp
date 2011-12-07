@@ -759,7 +759,7 @@ void UpdateParameters()
     }
 }
 
-unsigned GetTicksPerLine()
+unsigned int GetTicksPerLine()
 {
 	if (s_lineCount == 0)
 	{
@@ -771,7 +771,7 @@ unsigned GetTicksPerLine()
 	}
 }
 
-unsigned GetTicksPerFrame()
+unsigned int GetTicksPerFrame()
 {
 	return TicksPerFrame;
 }

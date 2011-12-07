@@ -357,8 +357,8 @@ union UVIDTVStatus
     // Change values pertaining to video mode
     void UpdateParameters();
 
-	unsigned GetTicksPerLine();
-	unsigned GetTicksPerFrame();
+	unsigned int GetTicksPerLine();
+	unsigned int GetTicksPerFrame();
 };
 
 #endif // _VIDEOINTERFACE_H
