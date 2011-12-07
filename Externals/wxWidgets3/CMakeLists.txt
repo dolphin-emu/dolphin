@@ -1239,7 +1239,17 @@ add_definitions(-D__WXOSX_COCOA__)
 add_definitions(-DWXBUILDING)
 add_definitions(-Wno-deprecated-declarations)
 add_definitions(-Wno-shadow)
-set(LIBS iconv)
+set(LIBS
+	iconv
+	${APPKIT_LIBRARY}
+	${APPSERV_LIBRARY}
+	${ATB_LIBRARY}
+	${CARBON_LIBRARY}
+	${COCOA_LIBRARY}
+	${COREFUND_LIBRARY}
+	${CORESERV_LIBRARY}
+	${IOK_LIBRARY}
+	)
 
 include_directories(../libpng)
 add_subdirectory(../libpng ../libpng)

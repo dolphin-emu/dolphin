@@ -71,10 +71,22 @@ endif()
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/stdafx.cpp)
-elseif((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND NOT wxWidgets_FOUND)
-	# TODO
-elseif((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND wxWidgets_FOUND)
-	# TODO
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	list(APPEND LIBS
+		${APPKIT_LIBRARY}
+		${AU_LIBRARY}
+		${COREAUDIO_LIBRARY}
+		${COREFUND_LIBRARY}
+		${CORESERV_LIBRARY}
+		${IOB_LIBRARY}
+		${IOK_LIBRARY}
+		)
+	if(wxWidgets_FOUND)
+		list(APPEND LIBS
+			${APPSERV_LIBRARY}
+			${COCOA_LIBRARY}
+			)
+	endif()
 else()
 	set(SRCS ${SRCS} Src/X11Utils.cpp)
 endif()
