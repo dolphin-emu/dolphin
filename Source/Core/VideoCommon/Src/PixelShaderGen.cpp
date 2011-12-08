@@ -833,20 +833,18 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 		// alpha test will always fail, so restart the shader and just make it an empty function
 		p = pmainstart;
-		WRITE(p, "ocol0 = 0;\n");
+		WRITE(p, "ocol0 = vec4(0.0f);\n");
 		if(DepthTextureEnable)
 			WRITE(p, "depth = 1.f;\n");
 		if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "ocol1 = 0;\n");
+				WRITE(p, "ocol1 = vec4(0.0f);\n");
 		if(ApiType == API_GLSL)
 		{
-				// Once we switch to GLSL 1.3 and bind variables, we won't need to do this
-				if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
-					WRITE(p, "gl_FragData[0] = ocol0;\n");
-				if(DepthTextureEnable)
-						WRITE(p, "gl_FragDepth = depth;\n");
-				if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-						; // TODO: Will do this later
+			// Once we switch to GLSL 1.3 and bind variables, we won't need to do this
+			if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
+				WRITE(p, "gl_FragData[0] = ocol0;\n");
+			if(DepthTextureEnable)
+					WRITE(p, "gl_FragDepth = depth;\n");
 		}
 		WRITE(p, "discard;\n");
 		if(ApiType != API_D3D11)
@@ -1011,10 +1009,10 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 				WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}
 			else
-				WRITE(p, "float2 indtevtrans%d = 0;\n", n);
+				WRITE(p, "float2 indtevtrans%d = float2(0.0f);\n", n);
 		}
 		else
-			WRITE(p, "float2 indtevtrans%d = 0;\n", n);
+			WRITE(p, "float2 indtevtrans%d = float2(0.0f);\n", n);
 
 		// ---------
 		// Wrapping
@@ -1304,8 +1302,8 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
-	WRITE(p, ")){ocol0 = float4(0.0);%s%s discard;%s}\n",
-			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND	? "ocol1 = 0;"		: "",
+	WRITE(p, ")){ocol0 = float4(0.0f);%s%s discard;%s}\n",
+			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND	? "ocol1 = vec4(0.0f);"		: "",
 			DepthTextureEnable							? "depth = 1.f;"	: "",
 			(ApiType != API_D3D11)						? "return;"			: "");
 	return true;
