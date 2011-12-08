@@ -43,6 +43,7 @@
 #include "ImageWrite.h"
 #include "MemoryUtil.h"
 #include "PixelShaderCache.h"
+#include "ProgramShaderCache.h"
 #include "PixelShaderManager.h"
 #include "Render.h"
 #include "Statistics.h"
@@ -299,7 +300,13 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
-		PixelShaderCache::SetCurrentShader((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
+		if(g_ActiveConfig.bUseGLSL)
+		{
+			ProgramShaderCache::SetBothShaders((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram(), 0);
+			PixelShaderCache::SetPSSampler("samp0", 0);
+		}
+		else
+			PixelShaderCache::SetCurrentShader((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
 		PixelShaderManager::SetColorMatrix(colmat); // set transformation
 		GL_REPORT_ERRORD();
 

@@ -291,7 +291,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		}
 		else
 		{
-			WRITE(p, "int posmtx = fposmtx;\n");
+			WRITE(p, "int posmtx = int(fposmtx);\n");
 		}
 
 		WRITE(p, "float4 pos = float4(dot("I_TRANSFORMMATRICES"[posmtx], rawpos), dot("I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot("I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");		

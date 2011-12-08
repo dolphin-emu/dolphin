@@ -38,8 +38,8 @@ namespace OGL
 {
 
 static int s_nMaxPixelInstructions;
-static GLuint s_ColorMatrixProgram = 0;
-static GLuint s_DepthMatrixProgram = 0;
+static FRAGMENTSHADER s_ColorMatrixProgram;
+static FRAGMENTSHADER s_DepthMatrixProgram;
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 PIXELSHADERUID PixelShaderCache::s_curuid;
 bool PixelShaderCache::s_displayCompileAlert;
@@ -56,12 +56,12 @@ bool (*pCompilePixelShader)(FRAGMENTSHADER&, const char*);
 
 GLuint PixelShaderCache::GetDepthMatrixProgram()
 {
-    return s_DepthMatrixProgram;
+    return s_DepthMatrixProgram.glprogid;
 }
 
 GLuint PixelShaderCache::GetColorMatrixProgram()
 {
-    return s_ColorMatrixProgram;
+    return s_ColorMatrixProgram.glprogid;
 }
 
 void PixelShaderCache::Init()
@@ -105,98 +105,154 @@ void PixelShaderCache::Init()
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&maxinst);
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ATTRIBS_ARB, (GLint *)&maxattribs);
     INFO_LOG(VIDEO, "pixel max_alu=%d, max_inst=%d, max_attrib=%d", s_nMaxPixelInstructions, maxinst, maxattribs);
+	if(g_ActiveConfig.bUseGLSL)
+	{
+		char pmatrixprog[2048];
+		sprintf(pmatrixprog, "#extension GL_ARB_texture_rectangle : enable\n"
+			"uniform sampler2DRect samp0;\n"
+			"uniform vec4 "I_COLORS"[7];\n"
+			"void main(){\n"
+			"vec4 Temp0, Temp1;\n"
+			"vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
+			"Temp0 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
+			"Temp0 = Temp0 * "I_COLORS"[%d];\n"
+			"Temp0 = Temp0 + K0;\n"
+			"Temp0 = floor(Temp0);\n"
+			"Temp0 = Temp0 * "I_COLORS"[%d];\n"
+			"Temp1.x = dot(Temp0, "I_COLORS"[%d]);\n"
+			"Temp1.y = dot(Temp0, "I_COLORS"[%d]);\n"
+			"Temp1.z = dot(Temp0, "I_COLORS"[%d]);\n"
+			"Temp1.w = dot(Temp0, "I_COLORS"[%d]);\n"
+			"gl_FragData[0] = Temp1 + "I_COLORS"[%d];\n"
+			"}\n", C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+		if(!pCompilePixelShader(s_ColorMatrixProgram, pmatrixprog))
+		{
+			ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
+			s_ColorMatrixProgram.Destroy();
+		}
+		sprintf(pmatrixprog, "#extension GL_ARB_texture_rectangle : enable\n"
+			"uniform sampler2DRect samp0;\n"
+			"uniform vec4 "I_COLORS"[5];\n"
+			"void main(){\n"
+			"vec4 R0, R1, R2;\n"
+			"vec4 K0 = vec4(255.99998474121, 0.003921568627451, 256.0, 0.0);\n"
+			"vec4 K1 = vec4(15.0, 0.066666666666, 0.0, 0.0);\n"
+			"R2 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
+			"R0.x = R2.x * K0.x;\n"
+			"R0.x = floor(R0).x;\n"
+			"R0.yzw = (R0 - R0.x).yzw;\n"
+			"R0.yzw = (R0 * K0.z).yzw;\n"
+			"R0.y = floor(R0).y;\n"
+			"R0.zw = (R0 - R0.y).zw;\n"
+			"R0.zw = (R0 * K0.z).zw;\n"
+			"R0.z = floor(R0).z;\n"
+			"R0.w = R0.x;\n"
+			"R0 = R0 * K0.y;\n"
+			"R0.w = (R0 * K1.x).w;\n"
+			"R0.w = floor(R0).w;\n"
+			"R0.w = (R0 * K1.y).w;\n"
+			"R1.x = dot(R0, "I_COLORS"[%d]);\n"
+			"R1.y = dot(R0, "I_COLORS"[%d]);\n"
+			"R1.z = dot(R0, "I_COLORS"[%d]);\n"
+			"R1.w = dot(R0, "I_COLORS"[%d]);\n"
+			"gl_FragData[0] = R1 * "I_COLORS"[%d];\n"
+			"}\n", C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+		if(!pCompilePixelShader(s_DepthMatrixProgram, pmatrixprog))
+		{
+			ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
+			s_DepthMatrixProgram.Destroy();
+		}
+	}
+	else
+	{
+		char pmatrixprog[2048];
+		sprintf(pmatrixprog, "!!ARBfp1.0"
+				"TEMP R0;\n"
+				"TEMP R1;\n"
+				"PARAM K0 = { 0.5, 0.5, 0.5, 0.5};\n"
+				"TEX R0, fragment.texcoord[0], texture[0], RECT;\n"
+				"MUL R0, R0, program.env[%d];\n"
+				"ADD R0, R0, K0;\n"
+				"FLR R0, R0;\n"
+				"MUL R0, R0, program.env[%d];\n"
+				"DP4 R1.x, R0, program.env[%d];\n"
+				"DP4 R1.y, R0, program.env[%d];\n"
+				"DP4 R1.z, R0, program.env[%d];\n"
+				"DP4 R1.w, R0, program.env[%d];\n"
+				"ADD result.color, R1, program.env[%d];\n"
+				"END\n",C_COLORS+5,C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+		glGenProgramsARB(1, &s_ColorMatrixProgram.glprogid);
+		SetCurrentShader(s_ColorMatrixProgram.glprogid);
+		glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pmatrixprog), pmatrixprog);
 
-    char pmatrixprog[2048];
-    sprintf(pmatrixprog, "!!ARBfp1.0"
-            "TEMP R0;\n"
-            "TEMP R1;\n"
-            "PARAM K0 = { 0.5, 0.5, 0.5, 0.5};\n"
-            "TEX R0, fragment.texcoord[0], texture[0], RECT;\n"
-            "MUL R0, R0, program.env[%d];\n"
-            "ADD R0, R0, K0;\n"
-            "FLR R0, R0;\n"
-            "MUL R0, R0, program.env[%d];\n"
-            "DP4 R1.x, R0, program.env[%d];\n"
-            "DP4 R1.y, R0, program.env[%d];\n"
-            "DP4 R1.z, R0, program.env[%d];\n"
-            "DP4 R1.w, R0, program.env[%d];\n"
-            "ADD result.color, R1, program.env[%d];\n"
-            "END\n",C_COLORMATRIX+5,C_COLORMATRIX+6, C_COLORMATRIX, C_COLORMATRIX+1, C_COLORMATRIX+2, C_COLORMATRIX+3, C_COLORMATRIX+4);
-    glGenProgramsARB(1, &s_ColorMatrixProgram);
-    SetCurrentShader(s_ColorMatrixProgram);
-    glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pmatrixprog), pmatrixprog);
+		GLenum err = GL_REPORT_ERROR();
+		if (err != GL_NO_ERROR) {
+			ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
+			s_ColorMatrixProgram.Destroy();
+		}
 
-    GLenum err = GL_REPORT_ERROR();
-    if (err != GL_NO_ERROR) {
-        ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
-        glDeleteProgramsARB(1, &s_ColorMatrixProgram);
-        s_ColorMatrixProgram = 0;
-    }
+		sprintf(pmatrixprog, "!!ARBfp1.0\n"
+				"TEMP R0;\n"
+				"TEMP R1;\n"
+				"TEMP R2;\n"
+				//16777215/16777216*256, 1/255, 256, 0
+				"PARAM K0 = { 255.99998474121, 0.003921568627451, 256.0, 0.0};\n"
+				"PARAM K1 = { 15.0, 0.066666666666, 0.0, 0.0};\n"
+				//sample the depth value
+				"TEX R2, fragment.texcoord[0], texture[0], RECT;\n"
 
-    sprintf(pmatrixprog, "!!ARBfp1.0\n"
-            "TEMP R0;\n"
-            "TEMP R1;\n"
-            "TEMP R2;\n"
-            //16777215/16777216*256, 1/255, 256, 0
-            "PARAM K0 = { 255.99998474121, 0.003921568627451, 256.0, 0.0};\n"
-            "PARAM K1 = { 15.0, 0.066666666666, 0.0, 0.0};\n"
-            //sample the depth value
-            "TEX R2, fragment.texcoord[0], texture[0], RECT;\n"
+				//scale from [0*16777216..1*16777216] to
+				//[0*16777215..1*16777215], multiply by 256
+				"MUL R0, R2.x, K0.x;\n" // *16777215/16777216*256
 
-            //scale from [0*16777216..1*16777216] to
-            //[0*16777215..1*16777215], multiply by 256
-            "MUL R0, R2.x, K0.x;\n" // *16777215/16777216*256
+				//It is easy to get bad results due to low precision
+				//here, for example converting like this:
+				//MUL R0,R0,{ 65536, 256, 1, 16777216 }
+				//FRC R0,R0
+				//gives {?, 128/255, 254/255, ?} for depth value 254/255
+				//on some gpus
 
-            //It is easy to get bad results due to low precision
-            //here, for example converting like this:
-            //MUL R0,R0,{ 65536, 256, 1, 16777216 }
-            //FRC R0,R0
-            //gives {?, 128/255, 254/255, ?} for depth value 254/255
-            //on some gpus
+				"FLR R0.x,R0;\n"        //bits 31..24
 
-            "FLR R0.x,R0;\n"        //bits 31..24
+				"SUB R0.yzw,R0,R0.x;\n" //subtract bits 31..24 from rest
+				"MUL R0.yzw,R0,K0.z;\n" // *256
+				"FLR R0.y,R0;\n"        //bits 23..16
 
-            "SUB R0.yzw,R0,R0.x;\n" //subtract bits 31..24 from rest
-            "MUL R0.yzw,R0,K0.z;\n" // *256
-            "FLR R0.y,R0;\n"        //bits 23..16
+				"SUB R0.zw,R0,R0.y;\n"  //subtract bits 23..16 from rest
+				"MUL R0.zw,R0,K0.z;\n"  // *256
+				"FLR R0.z,R0;\n"        //bits 15..8
 
-            "SUB R0.zw,R0,R0.y;\n"  //subtract bits 23..16 from rest
-            "MUL R0.zw,R0,K0.z;\n"  // *256
-            "FLR R0.z,R0;\n"        //bits 15..8
+				"MOV R0.w,R0.x;\n"   //duplicate bit 31..24
 
-            "MOV R0.w,R0.x;\n"   //duplicate bit 31..24
+				"MUL R0,R0,K0.y;\n"     // /255
 
-            "MUL R0,R0,K0.y;\n"     // /255
+				"MUL R0.w,R0,K1.x;\n"   // *15
+				"FLR R0.w,R0;\n"        //bits 31..28
+				"MUL R0.w,R0,K1.y;\n"   // /15
 
-            "MUL R0.w,R0,K1.x;\n"   // *15
-            "FLR R0.w,R0;\n"        //bits 31..28
-            "MUL R0.w,R0,K1.y;\n"   // /15
+				"DP4 R1.x, R0, program.env[%d];\n"
+				"DP4 R1.y, R0, program.env[%d];\n"
+				"DP4 R1.z, R0, program.env[%d];\n"
+				"DP4 R1.w, R0, program.env[%d];\n"
+				"ADD result.color, R1, program.env[%d];\n"
+				"END\n", C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+		glGenProgramsARB(1, &s_DepthMatrixProgram.glprogid);
+		SetCurrentShader(s_DepthMatrixProgram.glprogid);
+		glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pmatrixprog), pmatrixprog);
 
-            "DP4 R1.x, R0, program.env[%d];\n"
-            "DP4 R1.y, R0, program.env[%d];\n"
-            "DP4 R1.z, R0, program.env[%d];\n"
-            "DP4 R1.w, R0, program.env[%d];\n"
-            "ADD result.color, R1, program.env[%d];\n"
-            "END\n", C_COLORMATRIX, C_COLORMATRIX+1, C_COLORMATRIX+2, C_COLORMATRIX+3, C_COLORMATRIX+4);
-    glGenProgramsARB(1, &s_DepthMatrixProgram);
-    SetCurrentShader(s_DepthMatrixProgram);
-    glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pmatrixprog), pmatrixprog);
-
-    err = GL_REPORT_ERROR();
-    if (err != GL_NO_ERROR) {
-        ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
-        glDeleteProgramsARB(1, &s_DepthMatrixProgram);
-        s_DepthMatrixProgram = 0;
-    }
+		err = GL_REPORT_ERROR();
+		if (err != GL_NO_ERROR) {
+			ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
+			s_DepthMatrixProgram.Destroy();
+		}
+	}
 
 }
 
 void PixelShaderCache::Shutdown()
 {
-    glDeleteProgramsARB(1, &s_ColorMatrixProgram);
-    s_ColorMatrixProgram = 0;
-    glDeleteProgramsARB(1, &s_DepthMatrixProgram);
-    s_DepthMatrixProgram = 0;
+	s_ColorMatrixProgram.Destroy();
+	s_DepthMatrixProgram.Destroy();
     PSCache::iterator iter = PixelShaders.begin();
     for (; iter != PixelShaders.end(); iter++)
         iter->second.Destroy();
@@ -235,7 +291,6 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
     // Make an entry in the table
     PSCacheEntry& newentry = PixelShaders[uid];
     last_entry = &newentry;
-    newentry.shader.bGLSL = g_ActiveConfig.bUseGLSL;
     const char *code = GeneratePixelShaderCode(dstAlphaMode, g_ActiveConfig.bUseGLSL ? API_GLSL : API_OPENGL, components);
 
     if (g_ActiveConfig.bEnableShaderDebugging && code)
@@ -320,7 +375,6 @@ bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 				FILE *fp = fopen(szTemp, "wb");
 				fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
 				fclose(fp);
-		
 		if(strstr(infoLog, "warning") != NULL || strstr(infoLog, "error") != NULL)
 			exit(0);
 		delete[] infoLog;
@@ -339,6 +393,7 @@ bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 
 	(void)GL_REPORT_ERROR();
 	ps.glprogid = result;
+	ps.bGLSL = true;
 	return true;
 }
 void PixelShaderCache::SetPSSampler(const char * name, unsigned int Tex)
@@ -462,6 +517,7 @@ bool CompileCGPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
     }
 
     glGenProgramsARB(1, &ps.glprogid);
+    ps.bGLSL = false;
     PixelShaderCache::SetCurrentShader(ps.glprogid);
     glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
 

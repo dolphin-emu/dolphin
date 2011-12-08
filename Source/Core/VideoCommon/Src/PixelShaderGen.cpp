@@ -1274,7 +1274,7 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
 	WRITE(p, ")) {\n");
 
-	WRITE(p, "ocol0 = 0;\n");
+	WRITE(p, "ocol0 = float4(0);\n");
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		WRITE(p, "ocol1 = 0;\n");
 	if (DepthTextureEnable)
