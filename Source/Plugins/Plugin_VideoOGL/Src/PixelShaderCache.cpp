@@ -63,7 +63,6 @@ GLuint PixelShaderCache::GetColorMatrixProgram()
 {
     return s_ColorMatrixProgram.glprogid;
 }
-
 void PixelShaderCache::Init()
 {
     ShaderEnabled = true;
@@ -79,6 +78,12 @@ void PixelShaderCache::Init()
         pSetPSConstant4fv = SetGLSLPSConstant4fv;
         pSetMultiPSConstant4fv = SetMultiGLSLPSConstant4fv;
         pCompilePixelShader = CompileGLSLPixelShader;
+        // Should this be set here?
+        if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
+			g_ActiveConfig.backend_info.bSupportsGLSLBinding = true;
+		// This bit doesn't quite work yet, always set to false
+		//if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_separate_shader_objects") != NULL)
+		g_ActiveConfig.backend_info.bSupportsGLSLLocation = false;
     }
     else
     {
@@ -108,56 +113,118 @@ void PixelShaderCache::Init()
 	if(g_ActiveConfig.bUseGLSL)
 	{
 		char pmatrixprog[2048];
-		sprintf(pmatrixprog, "#extension GL_ARB_texture_rectangle : enable\n"
-			"uniform sampler2DRect samp0;\n"
-			"uniform vec4 "I_COLORS"[7];\n"
-			"void main(){\n"
-			"vec4 Temp0, Temp1;\n"
-			"vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
-			"Temp0 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
-			"Temp0 = Temp0 * "I_COLORS"[%d];\n"
-			"Temp0 = Temp0 + K0;\n"
-			"Temp0 = floor(Temp0);\n"
-			"Temp0 = Temp0 * "I_COLORS"[%d];\n"
-			"Temp1.x = dot(Temp0, "I_COLORS"[%d]);\n"
-			"Temp1.y = dot(Temp0, "I_COLORS"[%d]);\n"
-			"Temp1.z = dot(Temp0, "I_COLORS"[%d]);\n"
-			"Temp1.w = dot(Temp0, "I_COLORS"[%d]);\n"
-			"gl_FragData[0] = Temp1 + "I_COLORS"[%d];\n"
-			"}\n", C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
-		if(!pCompilePixelShader(s_ColorMatrixProgram, pmatrixprog))
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+		{
+			sprintf(pmatrixprog, "#version 330 compatibility\n"
+				"#extension GL_ARB_texture_rectangle : enable\n"
+				"#extension GL_ARB_shading_language_420pack : enable\n"
+				"layout(binding = 0) uniform sampler2DRect samp0;\n"
+				"uniform vec4 "I_COLORS"[7];\n"
+				"void main(){\n"
+				"vec4 Temp0, Temp1;\n"
+				"vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
+				"Temp0 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
+				"Temp0 = Temp0 * "I_COLORS"[%d];\n"
+				"Temp0 = Temp0 + K0;\n"
+				"Temp0 = floor(Temp0);\n"
+				"Temp0 = Temp0 * "I_COLORS"[%d];\n"
+				"Temp1.x = dot(Temp0, "I_COLORS"[%d]);\n"
+				"Temp1.y = dot(Temp0, "I_COLORS"[%d]);\n"
+				"Temp1.z = dot(Temp0, "I_COLORS"[%d]);\n"
+				"Temp1.w = dot(Temp0, "I_COLORS"[%d]);\n"
+				"gl_FragData[0] = Temp1 + "I_COLORS"[%d];\n"
+				"}\n", C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+		}
+		else
+		{
+			sprintf(pmatrixprog, "#version 120\n"
+				"#extension GL_ARB_texture_rectangle : enable\n"
+				"uniform sampler2DRect samp0;\n"
+				"uniform vec4 "I_COLORS"[7];\n"
+				"void main(){\n"
+				"vec4 Temp0, Temp1;\n"
+				"vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
+				"Temp0 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
+				"Temp0 = Temp0 * "I_COLORS"[%d];\n"
+				"Temp0 = Temp0 + K0;\n"
+				"Temp0 = floor(Temp0);\n"
+				"Temp0 = Temp0 * "I_COLORS"[%d];\n"
+				"Temp1.x = dot(Temp0, "I_COLORS"[%d]);\n"
+				"Temp1.y = dot(Temp0, "I_COLORS"[%d]);\n"
+				"Temp1.z = dot(Temp0, "I_COLORS"[%d]);\n"
+				"Temp1.w = dot(Temp0, "I_COLORS"[%d]);\n"
+				"gl_FragData[0] = Temp1 + "I_COLORS"[%d];\n"
+				"}\n", C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+		}
+		if (!pCompilePixelShader(s_ColorMatrixProgram, pmatrixprog))
 		{
 			ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
 			s_ColorMatrixProgram.Destroy();
 		}
-		sprintf(pmatrixprog, "#extension GL_ARB_texture_rectangle : enable\n"
-			"uniform sampler2DRect samp0;\n"
-			"uniform vec4 "I_COLORS"[5];\n"
-			"void main(){\n"
-			"vec4 R0, R1, R2;\n"
-			"vec4 K0 = vec4(255.99998474121, 0.003921568627451, 256.0, 0.0);\n"
-			"vec4 K1 = vec4(15.0, 0.066666666666, 0.0, 0.0);\n"
-			"R2 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
-			"R0.x = R2.x * K0.x;\n"
-			"R0.x = floor(R0).x;\n"
-			"R0.yzw = (R0 - R0.x).yzw;\n"
-			"R0.yzw = (R0 * K0.z).yzw;\n"
-			"R0.y = floor(R0).y;\n"
-			"R0.zw = (R0 - R0.y).zw;\n"
-			"R0.zw = (R0 * K0.z).zw;\n"
-			"R0.z = floor(R0).z;\n"
-			"R0.w = R0.x;\n"
-			"R0 = R0 * K0.y;\n"
-			"R0.w = (R0 * K1.x).w;\n"
-			"R0.w = floor(R0).w;\n"
-			"R0.w = (R0 * K1.y).w;\n"
-			"R1.x = dot(R0, "I_COLORS"[%d]);\n"
-			"R1.y = dot(R0, "I_COLORS"[%d]);\n"
-			"R1.z = dot(R0, "I_COLORS"[%d]);\n"
-			"R1.w = dot(R0, "I_COLORS"[%d]);\n"
-			"gl_FragData[0] = R1 * "I_COLORS"[%d];\n"
-			"}\n", C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
-		if(!pCompilePixelShader(s_DepthMatrixProgram, pmatrixprog))
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+		{
+			sprintf(pmatrixprog, "#version 330 compatibility\n"
+				"#extension GL_ARB_texture_rectangle : enable\n"
+				"#extension GL_ARB_shading_language_420pack : enable\n"
+				"layout(binding = 0) uniform sampler2DRect samp0;\n"
+				"uniform vec4 "I_COLORS"[5];\n"
+				"void main(){\n"
+				"vec4 R0, R1, R2;\n"
+				"vec4 K0 = vec4(255.99998474121, 0.003921568627451, 256.0, 0.0);\n"
+				"vec4 K1 = vec4(15.0, 0.066666666666, 0.0, 0.0);\n"
+				"R2 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
+				"R0.x = R2.x * K0.x;\n"
+				"R0.x = floor(R0).x;\n"
+				"R0.yzw = (R0 - R0.x).yzw;\n"
+				"R0.yzw = (R0 * K0.z).yzw;\n"
+				"R0.y = floor(R0).y;\n"
+				"R0.zw = (R0 - R0.y).zw;\n"
+				"R0.zw = (R0 * K0.z).zw;\n"
+				"R0.z = floor(R0).z;\n"
+				"R0.w = R0.x;\n"
+				"R0 = R0 * K0.y;\n"
+				"R0.w = (R0 * K1.x).w;\n"
+				"R0.w = floor(R0).w;\n"
+				"R0.w = (R0 * K1.y).w;\n"
+				"R1.x = dot(R0, "I_COLORS"[%d]);\n"
+				"R1.y = dot(R0, "I_COLORS"[%d]);\n"
+				"R1.z = dot(R0, "I_COLORS"[%d]);\n"
+				"R1.w = dot(R0, "I_COLORS"[%d]);\n"
+				"gl_FragData[0] = R1 * "I_COLORS"[%d];\n"
+				"}\n", C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+		}
+		else
+		{
+			sprintf(pmatrixprog, "#version 120\n"
+				"#extension GL_ARB_texture_rectangle : enable\n"
+				"uniform sampler2DRect samp0;\n"
+				"uniform vec4 "I_COLORS"[5];\n"
+				"void main(){\n"
+				"vec4 R0, R1, R2;\n"
+				"vec4 K0 = vec4(255.99998474121, 0.003921568627451, 256.0, 0.0);\n"
+				"vec4 K1 = vec4(15.0, 0.066666666666, 0.0, 0.0);\n"
+				"R2 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
+				"R0.x = R2.x * K0.x;\n"
+				"R0.x = floor(R0).x;\n"
+				"R0.yzw = (R0 - R0.x).yzw;\n"
+				"R0.yzw = (R0 * K0.z).yzw;\n"
+				"R0.y = floor(R0).y;\n"
+				"R0.zw = (R0 - R0.y).zw;\n"
+				"R0.zw = (R0 * K0.z).zw;\n"
+				"R0.z = floor(R0).z;\n"
+				"R0.w = R0.x;\n"
+				"R0 = R0 * K0.y;\n"
+				"R0.w = (R0 * K1.x).w;\n"
+				"R0.w = floor(R0).w;\n"
+				"R0.w = (R0 * K1.y).w;\n"
+				"R1.x = dot(R0, "I_COLORS"[%d]);\n"
+				"R1.y = dot(R0, "I_COLORS"[%d]);\n"
+				"R1.z = dot(R0, "I_COLORS"[%d]);\n"
+				"R1.w = dot(R0, "I_COLORS"[%d]);\n"
+				"gl_FragData[0] = R1 * "I_COLORS"[%d];\n"
+				"}\n", C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+		}
+		if (!pCompilePixelShader(s_DepthMatrixProgram, pmatrixprog))
 		{
 			ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
 			s_DepthMatrixProgram.Destroy();
@@ -398,6 +465,8 @@ bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 }
 void PixelShaderCache::SetPSSampler(const char * name, unsigned int Tex)
 {
+	if(g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+		return;
     PROGRAMSHADER tmp = ProgramShaderCache::GetShaderProgram();
     for(int a = 0; a < NUM_UNIFORMS; ++a)
         if(!strcmp(name, UniformNames[a]))
@@ -429,6 +498,12 @@ void SetPSConstant4fvByName(const char * name, unsigned int offset, const float 
 void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
     float f[4] = { f1, f2, f3, f4 };
+    
+    if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+	{
+		glUniform4fv(const_number, 1, f);
+		return;
+	}
     for( unsigned int a = 0; a < 10; ++a)
     {
         if( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
@@ -442,6 +517,11 @@ void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3
 
 void SetGLSLPSConstant4fv(unsigned int const_number, const float *f)
 {
+	if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+	{
+		glUniform4fv(const_number, 1, f);
+		return;
+	}
     for( unsigned int a = 0; a < 10; ++a)
     {
         if( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
@@ -455,6 +535,11 @@ void SetGLSLPSConstant4fv(unsigned int const_number, const float *f)
 
 void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
+	if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+	{
+		glUniform4fv(const_number, count, f);
+		return;
+	}
     for( unsigned int a = 0; a < 10; ++a)
     {
         if( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))

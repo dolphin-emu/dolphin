@@ -88,6 +88,8 @@ public:
 
     static GLuint GetDepthMatrixProgram();
 
+    static bool SupportsBinding();
+
 	static void SetCurrentShader(GLuint Shader);
 
 	static void DisableShader();

@@ -247,6 +247,11 @@ void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3
     buf[1] = f2;
     buf[2] = f3;
     buf[3] = f4;
+    if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+	{
+		glUniform4fv(const_number, 1, buf);
+		return;
+	}
     for( unsigned int a = 0; a < 9; ++a)
     {
         if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
@@ -260,6 +265,11 @@ void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3
 
 void SetGLSLVSConstant4fv(unsigned int const_number, const float *f)
 {
+	if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+	{
+		glUniform4fv(const_number, 1, f);
+		return;
+	}
     for( unsigned int a = 0; a < 9; ++a)
     {
         if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
@@ -273,6 +283,11 @@ void SetGLSLVSConstant4fv(unsigned int const_number, const float *f)
 
 void SetMultiGLSLVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
+	if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+	{
+		glUniform4fv(const_number, count, f);
+		return;
+	}
     for( unsigned int a = 0; a < 9; ++a)
     {
         if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
@@ -294,6 +309,11 @@ void SetMultiGLSLVSConstant3fv(unsigned int const_number, unsigned int count, co
         buf[4*i+2] = *f++;
         buf[4*i+3] = 0.f;
     }
+    if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+	{
+		glUniform4fv(const_number, count, buf);
+		return;
+	}
     for( unsigned int a = 0; a < 9; ++a)
     {
         if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
