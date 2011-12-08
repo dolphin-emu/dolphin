@@ -129,9 +129,6 @@ void VertexManager::vFlush()
 	//glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer, GL_STREAM_DRAW);
 	GL_REPORT_ERRORD();
 
-	// setup the pointers
-	if (g_nativeVertexFmt)
-		g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
 
 	u32 usedtextures = 0;
@@ -221,6 +218,21 @@ void VertexManager::vFlush()
 	// set global constants
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
+	
+	// setup the pointers
+	if (g_nativeVertexFmt)
+		g_nativeVertexFmt->SetupVertexPointers();
+	GL_REPORT_ERRORD();
+	if(g_ActiveConfig.bUseGLSL)
+		for (int i = 0; i < 8; i++)
+		{
+				if (usedtextures & (1 << i))
+				{
+						char tmp[16];
+						sprintf(tmp, "samp%d", i); // Bake this in to something so we don't have to sprintf?
+						PixelShaderCache::SetPSSampler(tmp, i);
+				}
+		}
 
 	Draw();
 
@@ -232,6 +244,17 @@ void VertexManager::vFlush()
 		{
 			ProgramShaderCache::SetBothShaders(ps->glprogid, 0);
 			PixelShaderManager::SetConstants(); // Need to set these again
+			if (g_nativeVertexFmt)
+				g_nativeVertexFmt->SetupVertexPointers();
+			for (int i = 0; i < 8; i++)
+			{
+					if (usedtextures & (1 << i))
+					{
+							char tmp[16];
+							sprintf(tmp, "samp%d", i); // Bake this in to something so we don't have to sprintf?
+							PixelShaderCache::SetPSSampler(tmp, i);
+					}
+			}
 		}
 		else
 			if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);

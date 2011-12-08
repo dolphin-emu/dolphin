@@ -125,7 +125,6 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
     // Make an entry in the table
     VSCacheEntry& entry = vshaders[uid];
     last_entry = &entry;
-    entry.shader.bGLSL = g_ActiveConfig.bUseGLSL;
     const char *code = GenerateVertexShaderCode(components, g_ActiveConfig.bUseGLSL ? API_GLSL : API_OPENGL);
     GetSafeVertexShaderId(&entry.safe_uid, components);
 
@@ -223,6 +222,7 @@ bool CompileGLSLVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
 
 	(void)GL_REPORT_ERROR();
 	vs.glprogid = result;
+	vs.bGLSL = true;
 	return true;
 }
 void SetVSConstant4fvByName(const char * name, unsigned int offset, const float *f, const unsigned int count = 1)
@@ -352,6 +352,7 @@ bool CompileCGVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
         plocal = strstr(plocal + 13, "program.local");
     }
     glGenProgramsARB(1, &vs.glprogid);
+    vs.bGLSL = false;
     VertexShaderCache::SetCurrentShader(vs.glprogid);
 
     glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);

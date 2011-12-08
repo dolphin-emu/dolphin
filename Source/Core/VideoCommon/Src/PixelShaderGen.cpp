@@ -1263,7 +1263,7 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
-	WRITE(p, ")){ocol0 = 0;%s%s discard;%s}\n",
+	WRITE(p, ")){ocol0 = float4(0.0);%s%s discard;%s}\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND	? "ocol1 = 0;"		: "",
 			DepthTextureEnable							? "depth = 1.f;"	: "",
 			(ApiType != API_D3D11)						? "return;"			: "");
