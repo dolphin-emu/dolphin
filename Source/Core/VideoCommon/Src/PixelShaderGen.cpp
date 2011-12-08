@@ -628,7 +628,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "%suniform float4 "I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType, C_INDTEXSCALE), WriteRegister(ApiType, "c", C_INDTEXSCALE));
 	WRITE(p, "%suniform float4 "I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType, C_INDTEXMTX), WriteRegister(ApiType, "c", C_INDTEXMTX));
 	WRITE(p, "%suniform float4 "I_FOG"[3] %s;\n", WriteLocation(ApiType, C_FOG), WriteRegister(ApiType, "c", C_FOG));
->>>>>>> Add support for GL_ARB_shading_language_420pack so we don't have to binding sampler locations. Also add support for GL_ARB_separate_shader_objects which doesn't currently work for some reason....investigating.
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -875,16 +874,14 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if(DepthTextureEnable)
 			WRITE(p, "depth = 1.f;\n");
 		if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "ocol1 = 0;\n");
+				WRITE(p, "ocol1 = vec4(0.0f);\n");
 		if(ApiType == API_GLSL)
 		{
-				// Once we switch to GLSL 1.3 and bind variables, we won't need to do this
-				if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
-					WRITE(p, "gl_FragData[0] = ocol0;\n");
-				if(DepthTextureEnable)
-						WRITE(p, "gl_FragDepth = depth;\n");
-				if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-						; // TODO: Will do this later
+			// Once we switch to GLSL 1.3 and bind variables, we won't need to do this
+			if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
+				WRITE(p, "gl_FragData[0] = ocol0;\n");
+			if(DepthTextureEnable)
+					WRITE(p, "gl_FragDepth = depth;\n");
 		}
 		WRITE(p, "discard;\n");
 		if(ApiType != API_D3D11)
@@ -1047,10 +1044,10 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 				WRITE(p, "float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}
 			else
-				WRITE(p, "float2 indtevtrans%d = 0;\n", n);
+				WRITE(p, "float2 indtevtrans%d = float2(0.0f);\n", n);
 		}
 		else
-			WRITE(p, "float2 indtevtrans%d = 0;\n", n);
+			WRITE(p, "float2 indtevtrans%d = float2(0.0f);\n", n);
 
 		// ---------
 		// Wrapping
@@ -1383,6 +1380,7 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
+<<<<<<< HEAD
 	WRITE(p, ")) {\n");
 
 	WRITE(p, "ocol0 = float4(0);\n");
@@ -1412,6 +1410,13 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	WRITE(p, "}\n");
 	
+=======
+	WRITE(p, ")){ocol0 = float4(0.0f);%s%s discard;%s}\n",
+			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND	? "ocol1 = vec4(0.0f);"		: "",
+			DepthTextureEnable							? "depth = 1.f;"	: "",
+			(ApiType != API_D3D11)						? "return;"			: "");
+	return true;
+>>>>>>> Few compiler errors that got exposed once I got Dual Source Blending working. Seems it isn't working quite 100% either. Good chance I missed something anyway.
 }
 
 static const char *tevFogFuncsTable[] =
