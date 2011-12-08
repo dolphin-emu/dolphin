@@ -55,7 +55,6 @@ bool (*pCompileVertexShader)(VERTEXSHADER&, const char*);
 
 void VertexShaderCache::Init()
 {
-    glEnable(GL_VERTEX_PROGRAM_ARB);
     ShaderEnabled = true;
     CurrentShader = 0;
     last_entry = NULL;
@@ -75,6 +74,7 @@ void VertexShaderCache::Init()
         pSetMultiVSConstant4fv = SetMultiCGVSConstant4fv;
         pSetMultiVSConstant3fv = SetMultiCGVSConstant3fv;
         pCompileVertexShader = CompileCGVertexShader;
+        glEnable(GL_VERTEX_PROGRAM_ARB);
     }
 
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);

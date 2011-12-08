@@ -66,7 +66,6 @@ GLuint PixelShaderCache::GetColorMatrixProgram()
 
 void PixelShaderCache::Init()
 {
-    glEnable(GL_FRAGMENT_PROGRAM_ARB);
     ShaderEnabled = true;
     CurrentShader = 0;
     last_entry = NULL;
@@ -87,6 +86,7 @@ void PixelShaderCache::Init()
         pSetPSConstant4fv = SetCGPSConstant4fv;
         pSetMultiPSConstant4fv = SetMultiCGPSConstant4fv;
         pCompilePixelShader = CompileCGPixelShader;
+        glEnable(GL_FRAGMENT_PROGRAM_ARB);
     }
 
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
