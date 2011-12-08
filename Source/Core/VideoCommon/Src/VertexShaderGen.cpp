@@ -195,9 +195,15 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 					WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
 				if (g_ActiveConfig.backend_info.bSupportsGLSLLocation)
 					WRITE(p, "#extension GL_ARB_separate_shader_objects : enable\n");
+				WRITE(p, "#define ATTRIN in\n");
+				WRITE(p, "#define ATTROUT out\n");
 			}
 			else
+			{
 				WRITE(p, "#version 120\n");
+				WRITE(p, "#define ATTRIN attribute\n");
+				WRITE(p, "#define ATTROUT attribute\n");
+			}
 			// Silly differences
 			WRITE(p, "#define float2 vec2\n");
 			WRITE(p, "#define float3 vec3\n");
@@ -227,11 +233,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 				WRITE(p, " float3 rawnorm0 = gl_Normal; // NORMAL0,\n");
 
 		if (components & VB_HAS_POSMTXIDX)
-				WRITE(p, "attribute float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+				WRITE(p, "ATTRIN float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 		if (components & VB_HAS_NRM1)
-				WRITE(p, "attribute float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
+				WRITE(p, "ATTRIN float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
 		if (components & VB_HAS_NRM2)
-				WRITE(p, "attribute float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
+				WRITE(p, "ATTRIN float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
 
 		if (components & VB_HAS_COL0)
 				WRITE(p, "  float4 color0 = gl_Color; // COLOR0,\n");

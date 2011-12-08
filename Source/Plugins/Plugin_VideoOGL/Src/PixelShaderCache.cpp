@@ -80,10 +80,11 @@ void PixelShaderCache::Init()
         pCompilePixelShader = CompileGLSLPixelShader;
         // Should this be set here?
         if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
-			g_ActiveConfig.backend_info.bSupportsGLSLBinding = true;
+			g_Config.backend_info.bSupportsGLSLBinding = true;
 		// This bit doesn't quite work yet, always set to false
 		//if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_separate_shader_objects") != NULL)
-		g_ActiveConfig.backend_info.bSupportsGLSLLocation = false;
+		g_Config.backend_info.bSupportsGLSLLocation = false;
+		UpdateActiveConfig();
     }
     else
     {

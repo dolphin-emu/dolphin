@@ -926,7 +926,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if(ApiType == API_GLSL)
 		{
 			if(DepthTextureEnable)
-					WRITE(p, "gl_FragDepth = depth;\n");
+				WRITE(p, "gl_FragDepth = depth;\n");
+
 			WRITE(p, "gl_FragData[0] = ocol0;\n");
 		}
 	}
