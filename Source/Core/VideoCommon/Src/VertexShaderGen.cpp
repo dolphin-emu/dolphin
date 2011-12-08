@@ -332,7 +332,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		if (components & VB_HAS_NRM1)
 			WRITE(p, "float3 _norm1 = float3(dot("I_POSNORMALMATRIX"[3].xyz, rawnorm1), dot("I_POSNORMALMATRIX"[4].xyz, rawnorm1), dot("I_POSNORMALMATRIX"[5].xyz, rawnorm1));\n");
 		if (components & VB_HAS_NRM2)
-			WRITE(p, "float3 _norm2 = float3(dot("I_POSNORMALMATRIX".[3].xyz, rawnorm2), dot("I_POSNORMALMATRIX"[4].xyz, rawnorm2), dot("I_POSNORMALMATRIX"[5].xyz, rawnorm2));\n");
+			WRITE(p, "float3 _norm2 = float3(dot("I_POSNORMALMATRIX"[3].xyz, rawnorm2), dot("I_POSNORMALMATRIX"[4].xyz, rawnorm2), dot("I_POSNORMALMATRIX"[5].xyz, rawnorm2));\n");
 	}
 
 	if (!(components & VB_HAS_NRM0))
