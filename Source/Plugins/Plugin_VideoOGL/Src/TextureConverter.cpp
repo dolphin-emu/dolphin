@@ -263,6 +263,8 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	}
 
 	GL_REPORT_ERRORD();
+	if(g_ActiveConfig.bUseGLSL)
+		PixelShaderCache::SetPSSampler("samp0", 0);
 
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
 
