@@ -125,8 +125,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 		WRITE(p,"  in float2 uv0 : TEXCOORD0)\n");
 	}
 	
-	WRITE(p,"  in float2 uv0 : TEXCOORD0)\n"
-	"{\n"    
+	WRITE(p, "{\n"    
     "  float2 sampleUv;\n"
 	"  float2 uv1 = floor(uv0);\n");
 
@@ -448,10 +447,9 @@ void WriteRGB565Encoder(char* p,API_TYPE ApiType)
 	WriteSampleColor(p, "rgb", "float3 texSample0",ApiType);
 	WriteIncrementSampleX(p,ApiType);
 	WriteSampleColor(p, "rgb", "float3 texSample1",ApiType);
-
-	WRITE(p, "  float2 texRs = {texSample0.r, texSample1.r};\n");
-	WRITE(p, "  float2 texGs = {texSample0.g, texSample1.g};\n");
-	WRITE(p, "  float2 texBs = {texSample0.b, texSample1.b};\n");
+	WRITE(p, "  float2 texRs = float2(texSample0.r, texSample1.r);\n");
+	WRITE(p, "  float2 texGs = float2(texSample0.g, texSample1.g);\n");
+	WRITE(p, "  float2 texBs = float2(texSample0.b, texSample1.b);\n");
   
 	WriteToBitDepth(p, 6, "texGs", "float2 gInt");
 	WRITE(p, "  float2 gUpper = floor(gInt / 8.0f);\n");

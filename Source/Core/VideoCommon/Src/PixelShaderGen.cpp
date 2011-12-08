@@ -750,7 +750,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			// optional perspective divides
 			if (xfregs.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
 			{
-				WRITE(p, "if (uv%d.z)", i);
+				WRITE(p, "if (uv%d.z != 0.0f)", i);
 				WRITE(p, "	uv%d.xy = uv%d.xy / uv%d.z;\n", i, i, i);
 			}
 
