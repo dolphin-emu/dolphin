@@ -210,8 +210,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	}
 	
 	
-	WRITE(p,"  in float2 uv0 : TEXCOORD0)\n"
-	"{\n"    
+	WRITE(p, "{\n"    
     "  float2 sampleUv;\n"
 	"  float2 uv1 = floor(uv0);\n");
 	
