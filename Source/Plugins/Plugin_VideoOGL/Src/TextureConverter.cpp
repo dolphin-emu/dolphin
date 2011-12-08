@@ -24,6 +24,7 @@
 #include "TextureConversionShader.h"
 #include "TextureCache.h"
 #include "PixelShaderCache.h"
+#include "ProgramShaderCache.h"
 #include "VertexShaderManager.h"
 #include "FramebufferManager.h"
 #include "Globals.h"
@@ -228,7 +229,7 @@ void Shutdown()
 	s_texConvFrameBuffer = 0;
 }
 
-void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TargetRectangle& sourceRc,
+void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 				            u8* destAddr, int dstWidth, int dstHeight, int readStride,
 						   	bool toTexture, bool linearFilter)
 {
@@ -264,8 +265,6 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	GL_REPORT_ERRORD();
 
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
-
-	PixelShaderCache::SetCurrentShader(shader.glprogid);
 
 	// Draw...
 	glBegin(GL_QUADS);
@@ -347,13 +346,6 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
     float sampleStride = bScaleByHalf ? 2.f : 1.f;
-	TextureConversionShader::SetShaderParameters(
-		(float)expandedWidth,
-		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
-		(float)Renderer::EFBToScaledX(source.left),
-		(float)Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight),
-		Renderer::EFBToScaledXf(sampleStride),
-		Renderer::EFBToScaledYf(sampleStride));
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
@@ -366,7 +358,23 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	g_renderer->ResetAPIState();
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
+
+	if(g_ActiveConfig.bUseGLSL)
+		ProgramShaderCache::SetBothShaders(texconv_shader.glprogid, 0);
+	else
+		PixelShaderCache::SetCurrentShader(texconv_shader.glprogid);
+		
+	TextureConversionShader::SetShaderParameters(
+		(float)expandedWidth,
+		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
+		(float)Renderer::EFBToScaledX(source.left),
+		(float)Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight),
+		Renderer::EFBToScaledXf(sampleStride),
+		Renderer::EFBToScaledYf(sampleStride));
+		
+	EncodeToRamUsingShader(source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
+
+	
 	FramebufferManager::SetFramebuffer(0);
 	VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
@@ -411,6 +419,11 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
+	if(g_ActiveConfig.bUseGLSL)
+		ProgramShaderCache::SetBothShaders(texconv_shader.glprogid, 0);
+	else
+		PixelShaderCache::SetCurrentShader(texconv_shader.glprogid);
+		
 	float sampleStride = bScaleByHalf ? 2.f : 1.f;
 	TextureConversionShader::SetShaderParameters((float)expandedWidth,
 		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
@@ -430,7 +443,7 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 
 	int readStride = (expandedWidth * cacheBytes) /
 		TexDecoder_GetBlockWidthInTexels(format);
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource,
+	EncodeToRamUsingShader(source_texture, scaledSource,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
 		true, bScaleByHalf > 0 && !bFromZBuffer);
 
@@ -451,7 +464,13 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)
 {
 	g_renderer->ResetAPIState();
-	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
+	
+	if(g_ActiveConfig.bUseGLSL)
+		ProgramShaderCache::SetBothShaders(s_rgbToYuyvProgram.glprogid, 0);
+	else
+		PixelShaderCache::SetCurrentShader(s_rgbToYuyvProgram.glprogid);
+		
+	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	FramebufferManager::SetFramebuffer(0);
 	VertexShaderManager::SetViewportChanged();
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
