@@ -169,8 +169,8 @@ void VertexManager::vFlush()
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
-#ifdef USE_DUAL_SOURCE_BLEND
-	bool dualSourcePossible = GLEW_ARB_blend_func_extended;
+	// Makes sure we can actually do Dual source blending
+	bool dualSourcePossible = g_ActiveConfig.bUseGLSL && g_ActiveConfig.backend_info.bSupportsGLSLBinding;
 
 	// finally bind
 	FRAGMENTSHADER* ps;
@@ -193,10 +193,6 @@ void VertexManager::vFlush()
 	{
 		ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
 	}
-#else
-	bool dualSourcePossible = false;
-	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
-#endif
 	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 	
 	if(g_ActiveConfig.bUseGLSL)

@@ -685,10 +685,18 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 	   // GLSL doesn't do main arguments
 	   // Once we switch to GLSL 1.3 we will bind a lot of these.
-
-		WRITE(p, "  float4 ocol0;\n");
+	   
+		
 		if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, " float4 ocol1;\n"); // Will be supported later
+		{
+			// This won't get hit unless we support GL 3.3
+			WRITE(p, "	layout(location = 0) out float4 ocol0;\n");
+			WRITE(p, "	layout(location = 0, index = 1) out float4 ocol1;\n"); // Will be supported later
+		}
+		else
+		{
+			WRITE(p, "	float4 ocol0;\n");
+		}
 		if(DepthTextureEnable)
 				WRITE(p, "  float depth;\n"); // TODO: Passed to Vertex Shader right?
 		WRITE(p, "   float4 rawpos = gl_FragCoord;\n");
@@ -730,12 +738,12 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function		
 			
-			WRITE(p, "ocol0 = 0;\n");
+			WRITE(p, "ocol0 = float(0.0);\n");
 			if(DepthTextureEnable)
 				WRITE(p, "depth = 1.f;\n");
 			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 					WRITE(p, "ocol1 = 0;\n");
-			if(ApiType == API_GLSL)
+			if(ApiType == API_GLSL && dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
 					WRITE(p, "gl_FragData[0] = ocol0;\n");
 			if(ApiType != API_D3D11)
 				WRITE(p, "return;\n");
@@ -871,7 +879,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if(ApiType == API_GLSL)
 		{
 				// Once we switch to GLSL 1.3 and bind variables, we won't need to do this
-				WRITE(p, "gl_FragData[0] = ocol0;\n");
+				if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
+					WRITE(p, "gl_FragData[0] = ocol0;\n");
 				if(DepthTextureEnable)
 						WRITE(p, "gl_FragDepth = depth;\n");
 				if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
@@ -927,8 +936,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			if(DepthTextureEnable)
 				WRITE(p, "gl_FragDepth = depth;\n");
-
-			WRITE(p, "gl_FragData[0] = ocol0;\n");
+			if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
+				WRITE(p, "gl_FragData[0] = ocol0;\n");
 		}
 	}
 	
