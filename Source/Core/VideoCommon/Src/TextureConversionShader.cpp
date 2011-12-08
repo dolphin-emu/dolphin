@@ -26,6 +26,7 @@
 #include "PixelShaderGen.h"
 #include "BPMemory.h"
 #include "RenderBase.h"
+#include "VideoConfig.h"
 
 #define WRITE p+=sprintf
 
@@ -92,6 +93,8 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	}
 	else if (ApiType == API_GLSL)
 	{
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+			WRITE(p, "layout(binding = 0) ");
 		WRITE(p, "uniform sampler2DRect samp0;\n");
 	}
 	else if (ApiType & API_D3D9)
@@ -177,6 +180,8 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	}
 	else if (ApiType == API_GLSL)
 	{
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+			WRITE(p, "layout(binding = 0) ");
 		WRITE(p, "uniform sampler2DRect samp0;\n");
 	}
 	else if (ApiType & API_D3D9)
@@ -834,7 +839,13 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 	if(ApiType == API_GLSL)
 	{
 		// A few required defines and ones that will make our lives a lot easier
-		WRITE(p, "#version 120\n");
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+		{
+			WRITE(p, "#version 330 compatibility\n");
+			WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
+		}
+		else
+			WRITE(p, "#version 120\n");
 		// Silly differences
 		WRITE(p, "#define float2 vec2\n");
 		WRITE(p, "#define float3 vec3\n");

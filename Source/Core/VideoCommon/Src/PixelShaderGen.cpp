@@ -517,22 +517,123 @@ const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
         sprintf(result, " : register(%s%d)", prefix, num);
         return result;
 }
+const char* WriteBinding(API_TYPE ApiType, const u32 num)
+{
+	if(ApiType != API_GLSL || !g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+		return "";
+	static char result[64];
+	sprintf(result, "layout(binding = %d) ", num);
+	return result;
+}
+const char* WriteLocation(API_TYPE ApiType, const u32 num)
+{
+	if(ApiType != API_GLSL || !g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+		return "";
+	static char result[64];
+	sprintf(result, "layout(location = %d) ", num);
+	return result;
+}
 
 const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	WRITE(p, "uniform float4 "I_COLORS"[4] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
-	WRITE(p, "uniform float4 "I_KCOLORS"[4] %s;\n", WriteRegister(ApiType, "c", C_KCOLORS));
-	WRITE(p, "uniform float4 "I_ALPHA"[1] %s;\n", WriteRegister(ApiType, "c", C_ALPHA));
-	WRITE(p, "uniform float4 "I_TEXDIMS"[8] %s;\n", WriteRegister(ApiType, "c", C_TEXDIMS));
-	WRITE(p, "uniform float4 "I_ZBIAS"[2] %s;\n", WriteRegister(ApiType, "c", C_ZBIAS));
-	WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] %s;\n", WriteRegister(ApiType, "c", C_INDTEXSCALE));
-	WRITE(p, "uniform float4 "I_INDTEXMTX"[6] %s;\n", WriteRegister(ApiType, "c", C_INDTEXMTX));
-	WRITE(p, "uniform float4 "I_FOG"[3] %s;\n", WriteRegister(ApiType, "c", C_FOG));
+	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
+	text[sizeof(text) - 1] = 0x7C;  // canary
+
+	BuildSwapModeTable(); // Needed for WriteStage
+	int numStages = bpmem.genMode.numtevstages + 1;
+	int numTexgen = bpmem.genMode.numtexgens;
+
+	char *p = text;
+	WRITE(p, "//Pixel Shader for TEV stages\n");
+	WRITE(p, "//%i TEV stages, %i texgens, XXX IND stages\n",
+		numStages, numTexgen/*, bpmem.genMode.numindstages*/);
+
+	int nIndirectStagesUsed = 0;
+	if (bpmem.genMode.numindstages > 0)
+	{
+		for (int i = 0; i < numStages; ++i)
+		{
+			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
+				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
+		}
+	}
+	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ;
+
+	if(ApiType == API_GLSL)
+	{
+			// A few required defines and ones that will make our lives a lot easier
+			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+			{
+				WRITE(p, "#version 330 compatibility\n");
+				if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+					WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
+				if (g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+					WRITE(p, "#extension GL_ARB_separate_shader_objects : enable\n");
+			}
+			else
+				WRITE(p, "#version 120\n");
+			// Silly differences
+			WRITE(p, "#define float2 vec2\n");
+			WRITE(p, "#define float3 vec3\n");
+			WRITE(p, "#define float4 vec4\n");
+
+			// cg to glsl function translation
+			WRITE(p, "#define frac(x) fract(x)\n");
+			WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
+			WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
+			
+		for (int i = 0; i < 8; ++i)
+			WRITE(p, "%suniform sampler2D samp%d;\n", WriteBinding(ApiType, i), i);
+	}
+	else
+	{
+		// Declare samplers
+
+		if(ApiType != API_D3D11)
+		{
+			WRITE(p, "uniform sampler2D ");
+		}
+		else
+		{
+			WRITE(p, "sampler ");
+		}
+
+		bool bfirst = true;
+		for (int i = 0; i < 8; ++i)
+		{
+			WRITE(p, "%s samp%d %s", bfirst?"":",", i, WriteRegister(ApiType, "s", i));
+			bfirst = false;
+		}
+		WRITE(p, ";\n");
+		if(ApiType == API_D3D11)
+		{
+			WRITE(p, "Texture2D ");
+			bfirst = true;
+			for (int i = 0; i < 8; ++i)
+			{
+				WRITE(p, "%s Tex%d : register(t%d)", bfirst?"":",", i, i);
+				bfirst = false;
+			}
+			WRITE(p, ";\n");
+		}
+	}
+
+	WRITE(p, "\n");
+	
+	WRITE(p, "%suniform float4 "I_COLORS"[4] %s;\n", WriteLocation(ApiType, C_COLORS), WriteRegister(ApiType, "c", C_COLORS));
+	WRITE(p, "%suniform float4 "I_KCOLORS"[4] %s;\n", WriteLocation(ApiType, C_KCOLORS), WriteRegister(ApiType, "c", C_KCOLORS));
+	WRITE(p, "%suniform float4 "I_ALPHA"[1] %s;\n", WriteLocation(ApiType, C_ALPHA), WriteRegister(ApiType, "c", C_ALPHA));
+	WRITE(p, "%suniform float4 "I_TEXDIMS"[8] %s;\n", WriteLocation(ApiType, C_TEXDIMS), WriteRegister(ApiType, "c", C_TEXDIMS));
+	WRITE(p, "%suniform float4 "I_ZBIAS"[2] %s;\n", WriteLocation(ApiType, C_ZBIAS), WriteRegister(ApiType, "c", C_ZBIAS));
+	WRITE(p, "%suniform float4 "I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType, C_INDTEXSCALE), WriteRegister(ApiType, "c", C_INDTEXSCALE));
+	WRITE(p, "%suniform float4 "I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType, C_INDTEXMTX), WriteRegister(ApiType, "c", C_INDTEXMTX));
+	WRITE(p, "%suniform float4 "I_FOG"[3] %s;\n", WriteLocation(ApiType, C_FOG), WriteRegister(ApiType, "c", C_FOG));
+>>>>>>> Add support for GL_ARB_shading_language_420pack so we don't have to binding sampler locations. Also add support for GL_ARB_separate_shader_objects which doesn't currently work for some reason....investigating.
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-			WRITE(p, "uniform float4 "I_PLIGHTS"[40] %s;\n", WriteRegister(ApiType, "c", C_PLIGHTS));
-			WRITE(p, "uniform float4 "I_PMATERIALS"[4] %s;\n", WriteRegister(ApiType, "c", C_PMATERIALS));
+			WRITE(p, "%suniform float4 "I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType, C_PLIGHTS), WriteRegister(ApiType, "c", C_PLIGHTS));
+			WRITE(p, "%suniform float4 "I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType, C_PMATERIALS), WriteRegister(ApiType, "c", C_PMATERIALS));
 	}
 
     if(ApiType != API_GLSL)
