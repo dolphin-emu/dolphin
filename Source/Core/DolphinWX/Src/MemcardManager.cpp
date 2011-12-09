@@ -101,6 +101,7 @@ CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString
 	memoryCard[SLOT_A]=NULL;
 	memoryCard[SLOT_B]=NULL;
 
+	mcmSettings.twoCardsLoaded = false;
 	if (!LoadSettings())
 	{
 		itemsPerPage = 16;
@@ -283,7 +284,7 @@ void CMemcardManager::ChangePath(int slot)
 		m_PrevPage[slot]->Disable();
 		m_MemcardList[slot]->prevPage = false;
 	}
-	if (!strcasecmp(m_MemcardPath[slot2]->GetPath().mb_str(), m_MemcardPath[slot]->GetPath().mb_str()))
+	if (!m_MemcardPath[SLOT_A]->GetPath().CmpNoCase(m_MemcardPath[SLOT_B]->GetPath()))
 	{
 		if(m_MemcardPath[slot]->GetPath().length())
 			PanicAlertT("Memcard already opened");
@@ -292,7 +293,10 @@ void CMemcardManager::ChangePath(int slot)
 	{
 		if (m_MemcardPath[slot]->GetPath().length() && ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot))
 		{
-			mcmSettings.twoCardsLoaded = true;
+			if (memoryCard[slot2])
+			{
+				mcmSettings.twoCardsLoaded = true;
+			}
 			m_SaveImport[slot]->Enable();
 			m_SaveExport[slot]->Enable();
 			m_Delete[slot]->Enable();
@@ -318,16 +322,9 @@ void CMemcardManager::ChangePath(int slot)
 			}
 		}
 	}
-	if (m_Delete[SLOT_A]->IsEnabled() && m_Delete[SLOT_B]->IsEnabled())
-	{
-		m_CopyFrom[SLOT_A]->Enable();
-		m_CopyFrom[SLOT_B]->Enable();
-	}
-	else
-	{
-		m_CopyFrom[SLOT_A]->Disable();
-		m_CopyFrom[SLOT_B]->Disable();
-	}
+
+	m_CopyFrom[SLOT_A]->Enable(mcmSettings.twoCardsLoaded);
+	m_CopyFrom[SLOT_B]->Enable(mcmSettings.twoCardsLoaded);
 }
 
 void CMemcardManager::OnPageChange(wxCommandEvent& event)
