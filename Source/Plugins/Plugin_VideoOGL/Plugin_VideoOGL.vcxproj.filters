@@ -27,6 +27,9 @@
     <ClCompile Include="Src\PostProcessing.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="Src\ProgramShaderCache.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
     <ClCompile Include="Src\Render.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -61,6 +64,9 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Src\PostProcessing.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ProgramShaderCache.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Src\Render.h">
