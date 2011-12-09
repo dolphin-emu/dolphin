@@ -167,9 +167,11 @@ struct VideoConfig
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
+		
 		bool bSupportsGLSL;
 		bool bSupportsGLSLBinding;
 		bool bSupportsGLSLLocation;
+		bool bSupportsGLSLUBO;
 	} backend_info;
 };
 

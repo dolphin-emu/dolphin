@@ -252,6 +252,11 @@ void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3
 		glUniform4fv(const_number, 1, buf);
 		return;
 	}
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		ProgramShaderCache::SetUniformObjects(1, const_number, buf);
+		return;
+	}
     for( unsigned int a = 0; a < 9; ++a)
     {
         if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
@@ -270,6 +275,11 @@ void SetGLSLVSConstant4fv(unsigned int const_number, const float *f)
 		glUniform4fv(const_number, 1, f);
 		return;
 	}
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		ProgramShaderCache::SetUniformObjects(1, const_number, f);
+		return;
+	}
     for( unsigned int a = 0; a < 9; ++a)
     {
         if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
@@ -286,6 +296,11 @@ void SetMultiGLSLVSConstant4fv(unsigned int const_number, unsigned int count, co
 	if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
 	{
 		glUniform4fv(const_number, count, f);
+		return;
+	}
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		ProgramShaderCache::SetUniformObjects(1, const_number, f, count);
 		return;
 	}
     for( unsigned int a = 0; a < 9; ++a)
@@ -312,6 +327,11 @@ void SetMultiGLSLVSConstant3fv(unsigned int const_number, unsigned int count, co
     if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
 	{
 		glUniform4fv(const_number, count, buf);
+		return;
+	}
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		ProgramShaderCache::SetUniformObjects(1, const_number, buf, count);
 		return;
 	}
     for( unsigned int a = 0; a < 9; ++a)
