@@ -185,6 +185,7 @@ public:
 	
 	// get number of file entries in the directory
 	u8 GetNumFiles();
+	u8 GetFileIndex(u8 fileNumber);
 
 	// get the free blocks from bat
 	u16 GetFreeBlocks();

@@ -320,6 +320,27 @@ u8 GCMemcard::GetNumFiles()
 	return j;
 }
 
+u8 GCMemcard::GetFileIndex(u8 fileNumber)
+{
+	if (m_valid)
+	{
+
+		u8 j = 0;
+		for (int i = 0; i < DIRLEN; i++)
+		{
+			if (BE32(dir.Dir[i].Gamecode)!= 0xFFFFFFFF)
+			{
+				if (j == fileNumber)
+				{
+					return i;
+				}
+				j++;
+			}
+		}
+	}
+	return -1;
+}
+
 u16 GCMemcard::GetFreeBlocks()
 {
 	if (!m_valid)

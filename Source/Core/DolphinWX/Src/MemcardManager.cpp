@@ -493,6 +493,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		slot2 = SLOT_B;
 	case ID_COPYFROM_A:
 		index = slot2 ? index_B : index_A;
+		index = memoryCard[slot2]->GetFileIndex(index);
 		if ((index != wxNOT_FOUND))
 		{
 			CopyDeleteSwitch(memoryCard[slot]->CopyFrom(*memoryCard[slot2], index), slot);
@@ -542,6 +543,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		slot=SLOT_A;
 		index = index_A;
 	case ID_SAVEEXPORT_B:
+		index = memoryCard[slot]->GetFileIndex(index);
 		if (index != wxNOT_FOUND)
 		{
 			char tempC[10 + DENTRY_STRLEN],
@@ -588,6 +590,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		slot = SLOT_A;
 		index = index_A;
 	case ID_DELETE_B:
+		index = memoryCard[slot]->GetFileIndex(index);
 		if (index != wxNOT_FOUND)
 		{
 			CopyDeleteSwitch(memoryCard[slot]->RemoveFile(index), slot);
@@ -628,18 +631,19 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	wxImageList *list = m_MemcardList[card]->GetImageList(wxIMAGE_LIST_SMALL);
 	list->RemoveAll();
 
-	int nFiles = memoryCard[card]->GetNumFiles();
+	u8 nFiles = memoryCard[card]->GetNumFiles();
 	int *images = new int[nFiles*2];
 
-	for (int i = 0;i < nFiles;i++)
+	for (u8 i = 0;i < nFiles;i++)
 	{
 		static u32 pxdata[96*32];
 		static u8  animDelay[8];
 		static u32 animData[32*32*8];
 
-		int numFrames = memoryCard[card]->ReadAnimRGBA8(i,animData,animDelay);
+		u8 fileIndex = memoryCard[card]->GetFileIndex(i);
+		int numFrames = memoryCard[card]->ReadAnimRGBA8(fileIndex, animData, animDelay);
 
-		if (!memoryCard[card]->ReadBannerRGBA8(i,pxdata))
+		if (!memoryCard[card]->ReadBannerRGBA8(fileIndex, pxdata))
 		{
 			memset(pxdata,0,96*32*4);
 
@@ -689,13 +693,15 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		char comment[DENTRY_STRLEN];
 		u16 blocks;
 		u16 firstblock;
+		u8 fileIndex = memoryCard[card]->GetFileIndex(j);
+
 
 		int index = m_MemcardList[card]->InsertItem(j, wxEmptyString);
 
 		m_MemcardList[card]->SetItem(index, COLUMN_BANNER, wxEmptyString);
 
-		if (!memoryCard[card]->DEntry_Comment1(j, title)) title[0]=0;
-		if (!memoryCard[card]->DEntry_Comment2(j, comment)) comment[0]=0;
+		if (!memoryCard[card]->DEntry_Comment1(fileIndex, title)) title[0]=0;
+		if (!memoryCard[card]->DEntry_Comment2(fileIndex, comment)) comment[0]=0;
 
 		bool ascii = memoryCard[card]->IsAsciiEncoding();
 
@@ -721,14 +727,14 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxTitle);
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxComment);
 
-		blocks = memoryCard[card]->DEntry_BlockCount(j);
+		blocks = memoryCard[card]->DEntry_BlockCount(fileIndex);
 		if (blocks == 0xFFFF) blocks = 0;
 		wxBlock.Printf(wxT("%10d"), blocks);
 		m_MemcardList[card]->SetItem(index,COLUMN_BLOCKS, wxBlock);
-		firstblock = memoryCard[card]->DEntry_FirstBlock(j);
+		firstblock = memoryCard[card]->DEntry_FirstBlock(fileIndex);
 		if (firstblock == 0xFFFF) firstblock = 3;	// to make firstblock -1
 		wxFirstBlock.Printf(wxT("%15d"), firstblock-4);
-		m_MemcardList[card]->SetItem(index,COLUMN_FIRSTBLOCK, wxFirstBlock);
+		m_MemcardList[card]->SetItem(index, COLUMN_FIRSTBLOCK, wxFirstBlock);
 		m_MemcardList[card]->SetItem(index, COLUMN_ICON, wxEmptyString);
 
 		if (images[j] >= 0)
