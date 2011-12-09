@@ -231,7 +231,8 @@ void VertexManager::vFlush()
 		if(g_ActiveConfig.bUseGLSL)
 		{
 			ProgramShaderCache::SetBothShaders(ps->glprogid, 0);
-			PixelShaderManager::SetConstants(); // Need to set these again
+			if(!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+				PixelShaderManager::SetConstants(); // Need to set these again, if we don't support UBO
 			if (g_nativeVertexFmt)
 				g_nativeVertexFmt->SetupVertexPointers();
 			for (int i = 0; i < 8; i++)

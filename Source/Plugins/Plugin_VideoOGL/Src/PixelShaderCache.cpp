@@ -82,8 +82,13 @@ void PixelShaderCache::Init()
         if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
 			g_Config.backend_info.bSupportsGLSLBinding = true;
 		// This bit doesn't quite work yet, always set to false
+		// TODO: Probably just drop this entirely in favour of UBOS
 		//if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_separate_shader_objects") != NULL)
 		g_Config.backend_info.bSupportsGLSLLocation = false;
+		
+		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_uniform_buffer_object") != NULL)
+			g_Config.backend_info.bSupportsGLSLUBO = true;
+		
 		UpdateActiveConfig();
     }
     else
@@ -466,11 +471,11 @@ bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 }
 void PixelShaderCache::SetPSSampler(const char * name, unsigned int Tex)
 {
-	if(g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 		return;
     PROGRAMSHADER tmp = ProgramShaderCache::GetShaderProgram();
-    for(int a = 0; a < NUM_UNIFORMS; ++a)
-        if(!strcmp(name, UniformNames[a]))
+    for (int a = 0; a < NUM_UNIFORMS; ++a)
+        if (!strcmp(name, UniformNames[a]))
         {
             if(tmp.UniformLocations[a] == -1)
                 return;
@@ -484,8 +489,8 @@ void PixelShaderCache::SetPSSampler(const char * name, unsigned int Tex)
 void SetPSConstant4fvByName(const char * name, unsigned int offset, const float *f, const unsigned int count = 1)
 {
     PROGRAMSHADER tmp = ProgramShaderCache::GetShaderProgram();
-    for(int a = 0; a < NUM_UNIFORMS; ++a)
-        if(!strcmp(name, UniformNames[a]))
+    for (int a = 0; a < NUM_UNIFORMS; ++a)
+        if (!strcmp(name, UniformNames[a]))
         {
             if(tmp.UniformLocations[a] == -1)
                 return;
@@ -500,14 +505,19 @@ void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3
 {
     float f[4] = { f1, f2, f3, f4 };
     
-    if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+    if (g_ActiveConfig.backend_info.bSupportsGLSLLocation)
 	{
 		glUniform4fv(const_number, 1, f);
 		return;
 	}
-    for( unsigned int a = 0; a < 10; ++a)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		ProgramShaderCache::SetUniformObjects(0, const_number, f);
+		return;
+	}
+    for (unsigned int a = 0; a < 10; ++a)
     {
-        if( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
+        if ( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
         {
             unsigned int offset = const_number - PSVar_Loc[a].reg;
             SetPSConstant4fvByName(PSVar_Loc[a].name, offset, f);
@@ -518,14 +528,19 @@ void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3
 
 void SetGLSLPSConstant4fv(unsigned int const_number, const float *f)
 {
-	if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLLocation)
 	{
 		glUniform4fv(const_number, 1, f);
 		return;
 	}
-    for( unsigned int a = 0; a < 10; ++a)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		ProgramShaderCache::SetUniformObjects(0, const_number, f);
+		return;
+	}
+    for (unsigned int a = 0; a < 10; ++a)
     {
-        if( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
+        if ( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
         {
             unsigned int offset = const_number - PSVar_Loc[a].reg;
             SetPSConstant4fvByName(PSVar_Loc[a].name, offset, f);
@@ -536,14 +551,19 @@ void SetGLSLPSConstant4fv(unsigned int const_number, const float *f)
 
 void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	if(g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLLocation)
 	{
 		glUniform4fv(const_number, count, f);
 		return;
 	}
-    for( unsigned int a = 0; a < 10; ++a)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		ProgramShaderCache::SetUniformObjects(0, const_number, f, count);
+		return;
+	}
+    for (unsigned int a = 0; a < 10; ++a)
     {
-        if( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
+        if (const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
         {
             unsigned int offset = const_number - PSVar_Loc[a].reg;
             SetPSConstant4fvByName(PSVar_Loc[a].name, offset, f, count);

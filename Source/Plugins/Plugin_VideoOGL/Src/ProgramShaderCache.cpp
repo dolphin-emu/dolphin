@@ -14,12 +14,15 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #include "ProgramShaderCache.h"
+#include <assert.h>
 
 namespace OGL
 {
         GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
         ProgramShaderCache::PCache ProgramShaderCache::pshaders;
+        GLuint ProgramShaderCache::UBOBuffers[2];
 
         std::pair<u64, u64> ProgramShaderCache::CurrentShaderProgram;
         const char *UniformNames[NUM_UNIFORMS] = {
@@ -85,12 +88,14 @@ namespace OGL
                 // Let's attach everything
                 if(entry.program.vsid != 0) // attaching zero vertex shader makes it freak out
                         glAttachShader(entry.program.glprogid, entry.program.vsid);
+                        
                 glAttachShader(entry.program.glprogid, entry.program.psid);
+                
                 glLinkProgram(entry.program.glprogid);
-                //checkForGLError("linking program");
-                glUseProgram(entry.program.glprogid);
-                //checkForGLError("using program");
 
+                glUseProgram(entry.program.glprogid);
+
+		
                 // We cache our uniform locations for now
                 // Once we move up to a newer version of GLSL, ~1.30
                 // We can remove this
@@ -122,18 +127,40 @@ namespace OGL
                 CurrentShaderProgram = ShaderPair;
                 CurrentProgram = entry.program.glprogid;
         }
-
+		void ProgramShaderCache::SetUniformObjects(int Buffer, unsigned int offset, const float *f, unsigned int count)
+		{
+			assert(Buffer > 1);
+			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[Buffer]);
+			// glBufferSubData expects data in bytes, so multiply count by four
+			// Expects the offset in bytes as well, so multiply by *4 *4 since we are passing in a vec4 location 
+			glBufferSubData(GL_UNIFORM_BUFFER, offset * 4 * 4, count * 4, (void*)&f[0]);
+		}
         GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
 
         GLint ProgramShaderCache::GetAttr(int num)
         {
                 return pshaders[CurrentShaderProgram].program.attrLoc[num];
         }
-        PROGRAMSHADER ProgramShaderCache::GetShaderProgram()
+        PROGRAMSHADER ProgramShaderCache::GetShaderProgram(void)
         {
                 return pshaders[CurrentShaderProgram].program;
         }
-
+		void ProgramShaderCache::Init(void)
+		{
+			glGenBuffers(2, UBOBuffers);
+			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[0]);
+			// We multiply by *4*4 because we need to get down to basic machine units.
+			// So multiply by four to get how many floats we have from vec4s
+			// Then once more to get bytes
+			glBufferData(GL_UNIFORM_BUFFER, C_PENVCONST_END * 4 * 4, NULL, GL_DYNAMIC_DRAW);
+			// Now bind the buffer to the index point
+			// We know PS is 0 since we have it statically set in the shader
+			glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBuffers[0]);
+			// Repeat for VS shader
+			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[1]);
+			glBufferData(GL_UNIFORM_BUFFER, C_VENVCONST_END * 4 * 4, NULL, GL_DYNAMIC_DRAW);
+			glBindBufferBase(GL_UNIFORM_BUFFER, 1, UBOBuffers[1]);
+		}
         void ProgramShaderCache::Shutdown(void)
         {
                 PCache::iterator iter = pshaders.begin();
