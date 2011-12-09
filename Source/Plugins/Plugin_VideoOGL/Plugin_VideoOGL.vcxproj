@@ -202,6 +202,7 @@
     <ClCompile Include="Src\NativeVertexFormat.cpp" />
     <ClCompile Include="Src\PixelShaderCache.cpp" />
     <ClCompile Include="Src\PostProcessing.cpp" />
+    <ClCompile Include="Src\ProgramShaderCache.cpp" />
     <ClCompile Include="Src\RasterFont.cpp" />
     <ClCompile Include="Src\Render.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
@@ -224,6 +225,7 @@
     <ClInclude Include="Src\main.h" />
     <ClInclude Include="Src\PixelShaderCache.h" />
     <ClInclude Include="Src\PostProcessing.h" />
+    <ClInclude Include="Src\ProgramShaderCache.h" />
     <ClInclude Include="Src\RasterFont.h" />
     <ClInclude Include="Src\Render.h" />
     <ClInclude Include="Src\stdafx.h" />
