@@ -17,16 +17,6 @@
 
 #include "ProgramShaderCache.h"
 #include <assert.h>
-GLuint GLERR(const char *function)
-{
-	GLint err = glGetError();
-	if (err != GL_NO_ERROR)
-	{
-		printf( "(%s) OpenGL error 0x%x - %s\n",
-				function, err, gluErrorString(err));
-	}
-	return err;
-}
 namespace OGL
 {
         GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
@@ -101,19 +91,14 @@ namespace OGL
                 glAttachShader(entry.program.glprogid, entry.program.psid);
                 
                 glLinkProgram(entry.program.glprogid);
-                        GLsizei length = 0;
-
-        glGetProgramiv(entry.program.glprogid, GL_INFO_LOG_LENGTH, &length);
-        if (length > 0)
-        {
-                GLsizei charsWritten;
-                GLchar* infoLog = new GLchar[length];
-                glGetProgramInfoLog(entry.program.glprogid, length, &charsWritten, infoLog);
-                printf("Program info log:\n%s", infoLog);
-                delete[] infoLog;
-        }
                 
                 glUseProgram(entry.program.glprogid);
+
+                // Dunno why this is needed when I have the binding
+                // points statically set in the shader source
+                // Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
+                glUniformBlockBinding( entry.program.glprogid, 0, 1 );
+                glUniformBlockBinding( entry.program.glprogid, 1, 2 );
 				
                 // We cache our uniform locations for now
                 // Once we move up to a newer version of GLSL, ~1.30
@@ -148,13 +133,11 @@ namespace OGL
         }
 		void ProgramShaderCache::SetUniformObjects(int Buffer, unsigned int offset, const float *f, unsigned int count)
 		{
-			GLERR("");
 			assert(Buffer > 1);
 			static int _Buffer = -1;
 			if(_Buffer != Buffer)
 			{
 				_Buffer = Buffer;
-				GLERR("bind");
 				glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[_Buffer]);
 			}
 			// Query for the offsets of each block variable
@@ -162,7 +145,6 @@ namespace OGL
 			// glBufferSubData expects data in bytes, so multiply count by four
 			// Expects the offset in bytes as well, so multiply by *4 *4 since we are passing in a vec4 location 
 			glBufferSubData(GL_UNIFORM_BUFFER, offset * 4 * 4, count * 4 * 4, f);
-			GLERR("sub");
 
 		}
         GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
@@ -179,7 +161,6 @@ namespace OGL
 		{
 			glGenBuffers(2, UBOBuffers);
 			
-			
 			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[0]);
 			// We multiply by *4*4 because we need to get down to basic machine units.
 			// So multiply by four to get how many floats we have from vec4s
@@ -187,13 +168,12 @@ namespace OGL
 			glBufferData(GL_UNIFORM_BUFFER, C_PENVCONST_END * 4 * 4, NULL, GL_DYNAMIC_DRAW);
 			// Now bind the buffer to the index point
 			// We know PS is 0 since we have it statically set in the shader
-			glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBuffers[0]);
+			glBindBufferBase(GL_UNIFORM_BUFFER, 1, UBOBuffers[0]);
 			
 			// Repeat for VS shader
-			//glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[1]);
-			//glBufferData(GL_UNIFORM_BUFFER, C_PENVCONST_END * 4 * 4, NULL, GL_DYNAMIC_DRAW);
-			//glBindBufferBase(GL_UNIFORM_BUFFER, 2, UBOBuffers[1]);
-			GLERR("init");
+			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[1]);
+			glBufferData(GL_UNIFORM_BUFFER, 1024*1024, NULL, GL_DYNAMIC_DRAW);
+			glBindBufferBase(GL_UNIFORM_BUFFER, 2, UBOBuffers[1]);
 		}
         void ProgramShaderCache::Shutdown(void)
         {

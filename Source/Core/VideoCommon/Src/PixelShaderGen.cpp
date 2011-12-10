@@ -518,7 +518,7 @@ const char* WriteBinding(API_TYPE ApiType, const u32 num)
 }
 const char *WriteLocation(API_TYPE ApiType)
 {
-	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if(ApiType == API_GLSL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		return "";
 	static char result[64];
 	sprintf(result, "uniform ");
@@ -611,7 +611,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	WRITE(p, "\n");
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140, binding = 0) uniform PSBlock {\n");
+		WRITE(p, "layout(std140, binding = 1) uniform PSBlock {\n");
 		
 		WRITE(p, "%sfloat4 "I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
 		WRITE(p, "%sfloat4 "I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_KCOLORS));

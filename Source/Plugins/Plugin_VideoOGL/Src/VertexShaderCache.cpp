@@ -189,25 +189,6 @@ bool CompileGLSLVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
 
 	glShaderSource(result, 1, &pstrprogram, NULL);
 	glCompileShader(result);
-	GLsizei length = 0;
-
-	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
-	if (length > 0)
-	{
-		GLsizei charsWritten;
-		GLchar* infoLog = new GLchar[length];
-		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-		WARN_LOG(VIDEO, "VS Shader info log:\n%s", infoLog);
-				char szTemp[MAX_PATH];
-				sprintf(szTemp, "vs_%d.txt", result);
-				FILE *fp = fopen(szTemp, "wb");
-				fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
-				fclose(fp);
-		
-		if(strstr(infoLog, "warning") != NULL || strstr(infoLog, "error") != NULL)
-			exit(0);
-		delete[] infoLog;
-	}
 
 	GLint compileStatus;
 	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
@@ -215,6 +196,23 @@ bool CompileGLSLVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
 	{
 		// Compile failed
 		ERROR_LOG(VIDEO, "Shader compilation failed; see info log");
+
+		GLsizei length = 0;
+		glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
+		if (length > 0)
+		{
+			GLsizei charsWritten;
+			GLchar* infoLog = new GLchar[length];
+			glGetShaderInfoLog(result, length, &charsWritten, infoLog);
+			WARN_LOG(VIDEO, "VS Shader info log:\n%s", infoLog);
+					char szTemp[MAX_PATH];
+					sprintf(szTemp, "vs_%d.txt", result);
+					FILE *fp = fopen(szTemp, "wb");
+					fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
+					fclose(fp);
+			
+			delete[] infoLog;
+		}
 		// Don't try to use this shader
 		glDeleteShader(result);
 		return false;
@@ -240,7 +238,6 @@ void SetVSConstant4fvByName(const char * name, unsigned int offset, const float 
             }
         }
 }
-#define MAX_UNIFORM 0
 void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
     float buf[4];
@@ -250,9 +247,8 @@ void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3
     buf[3] = f4;
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		if(const_number < MAX_UNIFORM)
-			ProgramShaderCache::SetUniformObjects(1, const_number, buf);
-		//return;
+		ProgramShaderCache::SetUniformObjects(1, const_number, buf);
+		return;
 	}
     for( unsigned int a = 0; a < 9; ++a)
     {
@@ -269,9 +265,8 @@ void SetGLSLVSConstant4fv(unsigned int const_number, const float *f)
 {
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		if(const_number < MAX_UNIFORM)
 		ProgramShaderCache::SetUniformObjects(1, const_number, f);
-		//return;
+		return;
 	}
     for( unsigned int a = 0; a < 9; ++a)
     {
@@ -288,9 +283,8 @@ void SetMultiGLSLVSConstant4fv(unsigned int const_number, unsigned int count, co
 {
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		if(const_number < MAX_UNIFORM)
 		ProgramShaderCache::SetUniformObjects(1, const_number, f, count);
-		//return;
+		return;
 	}
     for( unsigned int a = 0; a < 9; ++a)
     {
@@ -315,9 +309,8 @@ void SetMultiGLSLVSConstant3fv(unsigned int const_number, unsigned int count, co
     }
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		if(const_number < MAX_UNIFORM)
 		ProgramShaderCache::SetUniformObjects(1, const_number, buf, count);
-		//return;
+		return;
 	}
     for( unsigned int a = 0; a < 9; ++a)
     {

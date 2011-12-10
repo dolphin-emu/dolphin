@@ -173,7 +173,7 @@ void VertexShaderManager::Dirty()
 // TODO: A cleaner way to control the matricies without making a mess in the parameters field
 void VertexShaderManager::SetConstants()
 {
-	//if (g_ActiveConfig.bUseGLSL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.bUseGLSL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		Dirty();
 	if (nTransformMatricesChanged[0] >= 0)
 	{
