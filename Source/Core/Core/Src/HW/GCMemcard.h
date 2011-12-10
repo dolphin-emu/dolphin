@@ -76,11 +76,14 @@ private:
 	std::string m_fileName;
 
 	u32 maxBlock;
-	u32 mc_data_size;
-	u8* mc_data;
-
 	u16 m_sizeMb;
-
+	struct GCMBlock
+	{
+		GCMBlock(){erase();}
+		void erase() {memset(block, 0xFF, BLOCK_SIZE);}
+		u8 block[BLOCK_SIZE];
+	};
+	std::vector<GCMBlock> mc_data_blocks;
 #pragma pack(push,1)
 	struct Header {			//Offset	Size	Description
 		 // Serial in libogc
@@ -220,11 +223,11 @@ public:
 	// old determines if function uses old or new method of copying data
 	// some functions only work with old way, some only work with new way
 	// TODO: find a function that works for all calls or split into 2 functions
-	u32 DEntry_GetSaveData(u8 index, u8* buffer, bool old) const;
+	u32 GetSaveData(u8 index, std::vector<GCMBlock> &saveBlocks) const;
 
 	// adds the file to the directory and copies its contents
 	// if remove > 0 it will pad bat.map with 0's sizeof remove
-	u32 ImportFile(DEntry& direntry, u8* contents, int remove);
+	u32 ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, int remove);
 
 	// delete a file from the directory
 	u32 RemoveFile(u8 index);
