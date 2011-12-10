@@ -94,7 +94,15 @@ namespace OGL
                 glLinkProgram(entry.program.glprogid);
                 
                 glUseProgram(entry.program.glprogid);
-		
+				
+				GLint Info = -1;
+				GLuint Indice = 1;
+				//glGetIntegeri_v(GL_UNIFORM_BLOCK_DATA_SIZE, 4, &Info);
+				//glGetIntegerv(GL_UNIFORM_BLOCK_DATA_SIZE, &Info);
+        glGetActiveUniformsiv(entry.program.glprogid, 1, &Indice,
+                                 GL_UNIFORM_SIZE, &Info);
+				printf("Minimum size: %d\n", Info);
+				
                 // We cache our uniform locations for now
                 // Once we move up to a newer version of GLSL, ~1.30
                 // We can remove this
@@ -132,7 +140,8 @@ namespace OGL
 			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[Buffer]);
 			// glBufferSubData expects data in bytes, so multiply count by four
 			// Expects the offset in bytes as well, so multiply by *4 *4 since we are passing in a vec4 location 
-			glBufferSubData(GL_UNIFORM_BUFFER, offset * 4 * 4, count * 4, (void*)&f[0]);
+			glBufferSubData(GL_UNIFORM_BUFFER_EXT, offset * 4 * 4, count * 4 * 4, f);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
         GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
 
@@ -151,14 +160,15 @@ namespace OGL
 			// We multiply by *4*4 because we need to get down to basic machine units.
 			// So multiply by four to get how many floats we have from vec4s
 			// Then once more to get bytes
-			glBufferData(GL_UNIFORM_BUFFER, C_PENVCONST_END * 4 * 4, NULL, GL_DYNAMIC_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, 1024 *1024 *1024, NULL, GL_DYNAMIC_DRAW);
 			// Now bind the buffer to the index point
 			// We know PS is 0 since we have it statically set in the shader
-			glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBuffers[0]);
+			glBindBufferRange(GL_UNIFORM_BUFFER, 4, UBOBuffers[0], 0, (C_PENVCONST_END * 4 * 4) - (C_PENVCONST_END * 4 * 4 % 256) + 256);
 			// Repeat for VS shader
 			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[1]);
-			glBufferData(GL_UNIFORM_BUFFER, C_VENVCONST_END * 4 * 4, NULL, GL_DYNAMIC_DRAW);
-			glBindBufferBase(GL_UNIFORM_BUFFER, 1, UBOBuffers[1]);
+			glBufferData(GL_UNIFORM_BUFFER, 1024*1024*1024, NULL, GL_DYNAMIC_DRAW);
+			glBindBufferRange(GL_UNIFORM_BUFFER, 5, UBOBuffers[1], 0, (C_VENVCONST_END * 4 * 4) - (C_VENVCONST_END * 4 * 4 % 256) + 256);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
         void ProgramShaderCache::Shutdown(void)
         {

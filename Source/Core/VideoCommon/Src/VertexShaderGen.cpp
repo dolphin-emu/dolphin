@@ -217,7 +217,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	
 	// uniforms
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140, binding = 1) uniform VSBlock {\n");
+		WRITE(p, "layout(std140, binding = 5) uniform VSBlock {\n");
 		
 		WRITE(p, "%sfloat4 "I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
 		WRITE(p, "%sfloat4 "I_PROJECTION"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PROJECTION));
