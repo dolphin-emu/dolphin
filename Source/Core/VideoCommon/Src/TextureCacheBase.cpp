@@ -429,7 +429,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	float colmat[28] = {0};
 	float *const fConstAdd = colmat + 16;
 	float *const ColorMask = colmat + 20;
-	ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f; 
+	ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f;
 	ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 255.0f;
 	unsigned int cbufid = -1;
 
@@ -437,7 +437,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	{
 		switch (dstFormat)
 		{
-		case 0: // Z4				
+		case 0: // Z4
 			colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
 			cbufid = 0;
 			break;
@@ -447,7 +447,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			cbufid = 1;
 			break;
 
-		case 3: // Z16 
+		case 3: // Z16
 			colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
 			cbufid = 24;
 			break;
@@ -472,8 +472,10 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			cbufid = 5;
 			break;
 
-		case 12: // Z16L
-			colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1.0f;
+		case 12: // Z16L - copy lower 16 depth bits
+			// expected to be used as an IA8 texture (upper 8 bits stored as intensity, lower 8 bits stored as alpha)
+			// Used e.g. in Zelda: Skyward Sword
+			colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
 			cbufid = 6;
 			break;
 
@@ -483,7 +485,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			cbufid = 7;
 			break;
 		}
-		
 	}
 	else if (isIntensity) 
 	{
