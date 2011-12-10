@@ -140,7 +140,7 @@ namespace OGL
 			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[Buffer]);
 			// glBufferSubData expects data in bytes, so multiply count by four
 			// Expects the offset in bytes as well, so multiply by *4 *4 since we are passing in a vec4 location 
-			glBufferSubData(GL_UNIFORM_BUFFER_EXT, offset * 4 * 4, count * 4 * 4, f);
+			glBufferSubData(GL_UNIFORM_BUFFER, offset * 4 * 4, count * 4 * 4, f);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
         GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
