@@ -164,20 +164,26 @@ namespace OGL
         }
 		void ProgramShaderCache::Init(void)
 		{
+			// We have to get the UBO alignment here because
+			// if we generate a buffer that isn't aligned
+			// then the UBO will fail.
+			GLint Align;
+			glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &Align);
+			
 			glGenBuffers(2, UBOBuffers);
 			
 			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[0]);
 			// We multiply by *4*4 because we need to get down to basic machine units.
 			// So multiply by four to get how many floats we have from vec4s
 			// Then once more to get bytes
-			glBufferData(GL_UNIFORM_BUFFER, C_PENVCONST_END * 4 * 4, NULL, GL_DYNAMIC_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, (C_PENVCONST_END * 4 * 4) - (C_PENVCONST_END * 4 * 4 % Align) + Align, NULL, GL_DYNAMIC_DRAW);
 			// Now bind the buffer to the index point
 			// We know PS is 0 since we have it statically set in the shader
 			glBindBufferBase(GL_UNIFORM_BUFFER, 1, UBOBuffers[0]);
 			
 			// Repeat for VS shader
 			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[1]);
-			glBufferData(GL_UNIFORM_BUFFER, 1024 * 1024, NULL, GL_DYNAMIC_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, (C_VENVCONST_END * 4 * 4) - (C_VENVCONST_END * 4 * 4 % Align) + Align, NULL, GL_DYNAMIC_DRAW);
 			glBindBufferBase(GL_UNIFORM_BUFFER, 2, UBOBuffers[1]);
 		}
         void ProgramShaderCache::Shutdown(void)
