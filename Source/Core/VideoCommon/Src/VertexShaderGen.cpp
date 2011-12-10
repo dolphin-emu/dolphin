@@ -165,7 +165,6 @@ char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 
 extern const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num);
 extern const char* WriteBinding(API_TYPE ApiType, const u32 num);
-extern const char* WriteLocation(API_TYPE ApiType, const u32 num);
 
 const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 {
@@ -188,13 +187,13 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	if(ApiType == API_GLSL)
 	{
 			// A few required defines and ones that will make our lives a lot easier
-			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 			{
 				WRITE(p, "#version 330 compatibility\n");
 				if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 					WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
-				if (g_ActiveConfig.backend_info.bSupportsGLSLLocation)
-					WRITE(p, "#extension GL_ARB_separate_shader_objects : enable\n");
+				if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+					WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
 				WRITE(p, "#define ATTRIN in\n");
 				WRITE(p, "#define ATTROUT out\n");
 			}
@@ -219,15 +218,15 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140, binding = 1) uniform VSBlock {\n");
 		
-		WRITE(p, "%suniform float4 "I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType, C_POSNORMALMATRIX), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
-		WRITE(p, "%suniform float4 "I_PROJECTION"[4] %s;\n", WriteLocation(ApiType, C_PROJECTION), WriteRegister(ApiType, "c", C_PROJECTION));
-		WRITE(p, "%suniform float4 "I_MATERIALS"[4] %s;\n", WriteLocation(ApiType, C_MATERIALS), WriteRegister(ApiType, "c", C_MATERIALS));
-		WRITE(p, "%suniform float4 "I_LIGHTS"[40] %s;\n", WriteLocation(ApiType, C_LIGHTS), WriteRegister(ApiType, "c", C_LIGHTS));
-		WRITE(p, "%suniform float4 "I_TEXMATRICES"[24] %s;\n", WriteLocation(ApiType, C_TEXMATRICES), WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
-		WRITE(p, "%suniform float4 "I_TRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType, C_TRANSFORMMATRICES), WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));
-		WRITE(p, "%suniform float4 "I_NORMALMATRICES"[32] %s;\n", WriteLocation(ApiType, C_NORMALMATRICES), WriteRegister(ApiType, "c", C_NORMALMATRICES));
-		WRITE(p, "%suniform float4 "I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType, C_POSTTRANSFORMMATRICES), WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
-		WRITE(p, "%suniform float4 "I_DEPTHPARAMS" %s;\n", WriteLocation(ApiType, C_DEPTHPARAMS), WriteRegister(ApiType, "c", C_DEPTHPARAMS));
+		WRITE(p, "uniform float4 "I_POSNORMALMATRIX"[6] %s;\n", WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
+		WRITE(p, "uniform float4 "I_PROJECTION"[4] %s;\n", WriteRegister(ApiType, "c", C_PROJECTION));
+		WRITE(p, "uniform float4 "I_MATERIALS"[4] %s;\n", WriteRegister(ApiType, "c", C_MATERIALS));
+		WRITE(p, "uniform float4 "I_LIGHTS"[40] %s;\n", WriteRegister(ApiType, "c", C_LIGHTS));
+		WRITE(p, "uniform float4 "I_TEXMATRICES"[24] %s;\n", WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
+		WRITE(p, "uniform float4 "I_TRANSFORMMATRICES"[64] %s;\n", WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));
+		WRITE(p, "uniform float4 "I_NORMALMATRICES"[32] %s;\n", WriteRegister(ApiType, "c", C_NORMALMATRICES));
+		WRITE(p, "uniform float4 "I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
+		WRITE(p, "uniform float4 "I_DEPTHPARAMS" %s;\n", WriteRegister(ApiType, "c", C_DEPTHPARAMS));
 		
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");

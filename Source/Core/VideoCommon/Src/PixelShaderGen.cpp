@@ -516,14 +516,6 @@ const char* WriteBinding(API_TYPE ApiType, const u32 num)
 	sprintf(result, "layout(binding = %d) ", num);
 	return result;
 }
-const char* WriteLocation(API_TYPE ApiType, const u32 num)
-{
-	if(ApiType != API_GLSL || !g_ActiveConfig.backend_info.bSupportsGLSLLocation)
-		return "";
-	static char result[64];
-	sprintf(result, "layout(location = %d) ", num);
-	return result;
-}
 
 const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
@@ -553,13 +545,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if(ApiType == API_GLSL)
 	{
 			// A few required defines and ones that will make our lives a lot easier
-			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLLocation)
+			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 			{
 				WRITE(p, "#version 330 compatibility\n");
 				if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 					WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
-				if (g_ActiveConfig.backend_info.bSupportsGLSLLocation)
-					WRITE(p, "#extension GL_ARB_separate_shader_objects : enable\n");
+				if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+					WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
 			}
 			else
 				WRITE(p, "#version 120\n");
@@ -613,18 +605,18 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140, binding = 0) uniform PSBlock {\n");
 		
-		WRITE(p, "%suniform float4 "I_COLORS"[4] %s;\n", WriteLocation(ApiType, C_COLORS), WriteRegister(ApiType, "c", C_COLORS));
-		WRITE(p, "%suniform float4 "I_KCOLORS"[4] %s;\n", WriteLocation(ApiType, C_KCOLORS), WriteRegister(ApiType, "c", C_KCOLORS));
-		WRITE(p, "%suniform float4 "I_ALPHA"[1] %s;\n", WriteLocation(ApiType, C_ALPHA), WriteRegister(ApiType, "c", C_ALPHA));
-		WRITE(p, "%suniform float4 "I_TEXDIMS"[8] %s;\n", WriteLocation(ApiType, C_TEXDIMS), WriteRegister(ApiType, "c", C_TEXDIMS));
-		WRITE(p, "%suniform float4 "I_ZBIAS"[2] %s;\n", WriteLocation(ApiType, C_ZBIAS), WriteRegister(ApiType, "c", C_ZBIAS));
-		WRITE(p, "%suniform float4 "I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType, C_INDTEXSCALE), WriteRegister(ApiType, "c", C_INDTEXSCALE));
-		WRITE(p, "%suniform float4 "I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType, C_INDTEXMTX), WriteRegister(ApiType, "c", C_INDTEXMTX));
-		WRITE(p, "%suniform float4 "I_FOG"[3] %s;\n", WriteLocation(ApiType, C_FOG), WriteRegister(ApiType, "c", C_FOG));
+		WRITE(p, "uniform float4 "I_COLORS"[4] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
+		WRITE(p, "uniform float4 "I_KCOLORS"[4] %s;\n", WriteRegister(ApiType, "c", C_KCOLORS));
+		WRITE(p, "uniform float4 "I_ALPHA"[1] %s;\n", WriteRegister(ApiType, "c", C_ALPHA));
+		WRITE(p, "uniform float4 "I_TEXDIMS"[8] %s;\n",  WriteRegister(ApiType, "c", C_TEXDIMS));
+		WRITE(p, "uniform float4 "I_ZBIAS"[2] %s;\n", WriteRegister(ApiType, "c", C_ZBIAS));
+		WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] %s;\n",  WriteRegister(ApiType, "c", C_INDTEXSCALE));
+		WRITE(p, "uniform float4 "I_INDTEXMTX"[6] %s;\n", WriteRegister(ApiType, "c", C_INDTEXMTX));
+		WRITE(p, "uniform float4 "I_FOG"[3] %s;\n", WriteRegister(ApiType, "c", C_FOG));
 		
 		// Compiler will optimize these out by itself.
-		WRITE(p, "%suniform float4 "I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType, C_PLIGHTS), WriteRegister(ApiType, "c", C_PLIGHTS));
-		WRITE(p, "%suniform float4 "I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType, C_PMATERIALS), WriteRegister(ApiType, "c", C_PMATERIALS));
+		WRITE(p, "uniform float4 "I_PLIGHTS"[40] %s;\n", WriteRegister(ApiType, "c", C_PLIGHTS));
+		WRITE(p, "uniform float4 "I_PMATERIALS"[4] %s;\n", WriteRegister(ApiType, "c", C_PMATERIALS));
 		
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
