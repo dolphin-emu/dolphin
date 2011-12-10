@@ -516,6 +516,14 @@ const char* WriteBinding(API_TYPE ApiType, const u32 num)
 	sprintf(result, "layout(binding = %d) ", num);
 	return result;
 }
+const char *WriteLocation(API_TYPE ApiType)
+{
+	static char result[64];
+	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		return "";
+	sprintf(result, "uniform ");
+	return result;
+}
 
 const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
@@ -605,18 +613,18 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140, binding = 0) uniform PSBlock {\n");
 		
-		WRITE(p, "uniform float4 "I_COLORS"[4] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
-		WRITE(p, "uniform float4 "I_KCOLORS"[4] %s;\n", WriteRegister(ApiType, "c", C_KCOLORS));
-		WRITE(p, "uniform float4 "I_ALPHA"[1] %s;\n", WriteRegister(ApiType, "c", C_ALPHA));
-		WRITE(p, "uniform float4 "I_TEXDIMS"[8] %s;\n",  WriteRegister(ApiType, "c", C_TEXDIMS));
-		WRITE(p, "uniform float4 "I_ZBIAS"[2] %s;\n", WriteRegister(ApiType, "c", C_ZBIAS));
-		WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] %s;\n",  WriteRegister(ApiType, "c", C_INDTEXSCALE));
-		WRITE(p, "uniform float4 "I_INDTEXMTX"[6] %s;\n", WriteRegister(ApiType, "c", C_INDTEXMTX));
-		WRITE(p, "uniform float4 "I_FOG"[3] %s;\n", WriteRegister(ApiType, "c", C_FOG));
+		WRITE(p, "%sfloat4 "I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
+		WRITE(p, "%sfloat4 "I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_KCOLORS));
+		WRITE(p, "%sfloat4 "I_ALPHA"[1] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_ALPHA));
+		WRITE(p, "%sfloat4 "I_TEXDIMS"[8] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXDIMS));
+		WRITE(p, "%sfloat4 "I_ZBIAS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_ZBIAS));
+		WRITE(p, "%sfloat4 "I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType),  WriteRegister(ApiType, "c", C_INDTEXSCALE));
+		WRITE(p, "%sfloat4 "I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_INDTEXMTX));
+		WRITE(p, "%sfloat4 "I_FOG"[3] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_FOG));
 		
 		// Compiler will optimize these out by itself.
-		WRITE(p, "uniform float4 "I_PLIGHTS"[40] %s;\n", WriteRegister(ApiType, "c", C_PLIGHTS));
-		WRITE(p, "uniform float4 "I_PMATERIALS"[4] %s;\n", WriteRegister(ApiType, "c", C_PMATERIALS));
+		WRITE(p, "%sfloat4 "I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
+		WRITE(p, "%sfloat4 "I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PMATERIALS));
 		
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");

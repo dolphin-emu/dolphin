@@ -94,7 +94,6 @@ namespace OGL
                 glLinkProgram(entry.program.glprogid);
                 
                 glUseProgram(entry.program.glprogid);
-
 		
                 // We cache our uniform locations for now
                 // Once we move up to a newer version of GLSL, ~1.30
