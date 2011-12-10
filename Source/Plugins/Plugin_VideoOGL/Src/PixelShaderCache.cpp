@@ -120,7 +120,9 @@ void PixelShaderCache::Init()
 				"#extension GL_ARB_texture_rectangle : enable\n"
 				"#extension GL_ARB_shading_language_420pack : enable\n"
 				"layout(binding = 0) uniform sampler2DRect samp0;\n"
-				"uniform vec4 "I_COLORS"[7];\n"
+				"%s\n"
+				"%svec4 "I_COLORS"[7];\n"
+				"%s\n"
 				"void main(){\n"
 				"vec4 Temp0, Temp1;\n"
 				"vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
@@ -134,14 +136,20 @@ void PixelShaderCache::Init()
 				"Temp1.z = dot(Temp0, "I_COLORS"[%d]);\n"
 				"Temp1.w = dot(Temp0, "I_COLORS"[%d]);\n"
 				"gl_FragData[0] = Temp1 + "I_COLORS"[%d];\n"
-				"}\n", C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+				"}\n",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140, binding = 1) uniform PSBlock {" : "",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "};" : "",
+				C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
 		}
 		else
 		{
 			sprintf(pmatrixprog, "#version 120\n"
 				"#extension GL_ARB_texture_rectangle : enable\n"
 				"uniform sampler2DRect samp0;\n"
-				"uniform vec4 "I_COLORS"[7];\n"
+				"%s\n"
+				"%svec4 "I_COLORS"[7];\n"
+				"%s\n"
 				"void main(){\n"
 				"vec4 Temp0, Temp1;\n"
 				"vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
@@ -155,9 +163,13 @@ void PixelShaderCache::Init()
 				"Temp1.z = dot(Temp0, "I_COLORS"[%d]);\n"
 				"Temp1.w = dot(Temp0, "I_COLORS"[%d]);\n"
 				"gl_FragData[0] = Temp1 + "I_COLORS"[%d];\n"
-				"}\n", C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+				"}\n",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140) uniform PSBlock {" : "",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "};" : "",
+				C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
 		}
-		if (!pCompilePixelShader(s_ColorMatrixProgram, pmatrixprog))
+		if (!PixelShaderCache::CompilePixelShader(s_ColorMatrixProgram, pmatrixprog))
 		{
 			ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
 			s_ColorMatrixProgram.Destroy();
@@ -168,7 +180,9 @@ void PixelShaderCache::Init()
 				"#extension GL_ARB_texture_rectangle : enable\n"
 				"#extension GL_ARB_shading_language_420pack : enable\n"
 				"layout(binding = 0) uniform sampler2DRect samp0;\n"
-				"uniform vec4 "I_COLORS"[5];\n"
+				"%s\n"
+				"%svec4 "I_COLORS"[5];\n"
+				"%s\n"
 				"void main(){\n"
 				"vec4 R0, R1, R2;\n"
 				"vec4 K0 = vec4(255.99998474121, 0.003921568627451, 256.0, 0.0);\n"
@@ -192,14 +206,20 @@ void PixelShaderCache::Init()
 				"R1.z = dot(R0, "I_COLORS"[%d]);\n"
 				"R1.w = dot(R0, "I_COLORS"[%d]);\n"
 				"gl_FragData[0] = R1 * "I_COLORS"[%d];\n"
-				"}\n", C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+				"}\n",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140, binding = 1) uniform PSBlock {" : "",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "};" : "",
+				C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
 		}
 		else
 		{
 			sprintf(pmatrixprog, "#version 120\n"
 				"#extension GL_ARB_texture_rectangle : enable\n"
 				"uniform sampler2DRect samp0;\n"
-				"uniform vec4 "I_COLORS"[5];\n"
+				"%s\n"
+				"%svec4 "I_COLORS"[5];\n"
+				"%s\n"
 				"void main(){\n"
 				"vec4 R0, R1, R2;\n"
 				"vec4 K0 = vec4(255.99998474121, 0.003921568627451, 256.0, 0.0);\n"
@@ -223,9 +243,13 @@ void PixelShaderCache::Init()
 				"R1.z = dot(R0, "I_COLORS"[%d]);\n"
 				"R1.w = dot(R0, "I_COLORS"[%d]);\n"
 				"gl_FragData[0] = R1 * "I_COLORS"[%d];\n"
-				"}\n", C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+				"}\n",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140) uniform PSBlock {" : "",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "};" : "",
+				 C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
 		}
-		if (!pCompilePixelShader(s_DepthMatrixProgram, pmatrixprog))
+		if (!PixelShaderCache::CompilePixelShader(s_DepthMatrixProgram, pmatrixprog))
 		{
 			ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
 			s_DepthMatrixProgram.Destroy();
@@ -444,9 +468,9 @@ bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 			GLsizei charsWritten;
 			GLchar* infoLog = new GLchar[length];
 			glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-			WARN_LOG(VIDEO, "VS Shader info log:\n%s", infoLog);
+			WARN_LOG(VIDEO, "PS Shader info log:\n%s", infoLog);
 					char szTemp[MAX_PATH];
-					sprintf(szTemp, "vs_%d.txt", result);
+					sprintf(szTemp, "ps_%d.txt", result);
 					FILE *fp = fopen(szTemp, "wb");
 					fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
 					fclose(fp);
@@ -503,7 +527,7 @@ void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
 			ProgramShaderCache::SetUniformObjects(0, const_number, f);
-			//return;
+			return;
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
@@ -521,7 +545,7 @@ void SetGLSLPSConstant4fv(unsigned int const_number, const float *f)
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
 			ProgramShaderCache::SetUniformObjects(0, const_number, f);
-			//return;
+			return;
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
@@ -539,7 +563,7 @@ void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, co
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
 			ProgramShaderCache::SetUniformObjects(0, const_number, f, count);
-			//return;
+			return;
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {

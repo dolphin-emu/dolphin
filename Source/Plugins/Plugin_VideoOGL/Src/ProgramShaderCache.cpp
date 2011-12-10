@@ -111,8 +111,9 @@ namespace OGL
                 //For some reason this fails on my hardware     
                 //glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
                 //Got to do it this crappy way.
-                for(int a = 0; a < NUM_UNIFORMS; ++a)
-                        entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
+                if(!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+					for(int a = 0; a < NUM_UNIFORMS; ++a)
+							entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
 
                 // Need to get some attribute locations
                 if(uid.uid.vsid != 0) // We have no vertex Shader
@@ -176,7 +177,7 @@ namespace OGL
 			
 			// Repeat for VS shader
 			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[1]);
-			glBufferData(GL_UNIFORM_BUFFER, 1024*1024, NULL, GL_DYNAMIC_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, 1024 * 1024, NULL, GL_DYNAMIC_DRAW);
 			glBindBufferBase(GL_UNIFORM_BUFFER, 2, UBOBuffers[1]);
 		}
         void ProgramShaderCache::Shutdown(void)
@@ -185,6 +186,7 @@ namespace OGL
                 for (; iter != pshaders.end(); iter++)
                         iter->second.Destroy();
                 pshaders.clear();
+                glDeleteBuffers(2, UBOBuffers);
         }
 }
 
