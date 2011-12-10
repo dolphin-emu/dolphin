@@ -527,7 +527,7 @@ const char* WriteBinding(API_TYPE ApiType, const u32 num)
 }
 const char *WriteLocation(API_TYPE ApiType)
 {
-	if(ApiType == API_GLSL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		return "";
 	static char result[64];
 	sprintf(result, "uniform ");
@@ -581,6 +581,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "#define frac(x) fract(x)\n");
 			WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
 			WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
+
 			
 		for (int i = 0; i < 8; ++i)
 			WRITE(p, "%suniform sampler2D samp%d;\n", WriteBinding(ApiType, i), i);
@@ -620,7 +621,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	WRITE(p, "\n");
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140, binding = 1) uniform PSBlock {\n");
+		WRITE(p, "layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 1" : "");
 		
 		WRITE(p, "%sfloat4 "I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
 		WRITE(p, "%sfloat4 "I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_KCOLORS));

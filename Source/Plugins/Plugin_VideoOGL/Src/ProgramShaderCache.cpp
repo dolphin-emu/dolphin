@@ -96,9 +96,13 @@ namespace OGL
 
                 // Dunno why this is needed when I have the binding
                 // points statically set in the shader source
+                // We should only need these two functions when we don't support binding but do support UBO
                 // Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
-                glUniformBlockBinding( entry.program.glprogid, 0, 1 );
-                glUniformBlockBinding( entry.program.glprogid, 1, 2 );
+                //if(!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+                {
+					glUniformBlockBinding( entry.program.glprogid, 0, 1 );
+					glUniformBlockBinding( entry.program.glprogid, 1, 2 );
+				}
 				
                 // We cache our uniform locations for now
                 // Once we move up to a newer version of GLSL, ~1.30
