@@ -17,7 +17,13 @@
 
 #include "ProgramShaderCache.h"
 #include <assert.h>
-
+static GLenum checkForGLError(const char * situation)
+{
+        GLenum error = glGetError();
+        if (error != GL_NO_ERROR)
+                printf("Error: %d -- %s\n", error, situation);
+        return error;
+}
 namespace OGL
 {
         GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
@@ -94,14 +100,8 @@ namespace OGL
                 glLinkProgram(entry.program.glprogid);
                 
                 glUseProgram(entry.program.glprogid);
+                checkForGLError("User");
 				
-				GLint Info = -1;
-				GLuint Indice = 1;
-				//glGetIntegeri_v(GL_UNIFORM_BLOCK_DATA_SIZE, 4, &Info);
-				//glGetIntegerv(GL_UNIFORM_BLOCK_DATA_SIZE, &Info);
-        glGetActiveUniformsiv(entry.program.glprogid, 1, &Indice,
-                                 GL_UNIFORM_SIZE, &Info);
-				printf("Minimum size: %d\n", Info);
 				
                 // We cache our uniform locations for now
                 // Once we move up to a newer version of GLSL, ~1.30
@@ -160,15 +160,16 @@ namespace OGL
 			// We multiply by *4*4 because we need to get down to basic machine units.
 			// So multiply by four to get how many floats we have from vec4s
 			// Then once more to get bytes
-			glBufferData(GL_UNIFORM_BUFFER, 1024 *1024 *1024, NULL, GL_DYNAMIC_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, 1024 *1024, NULL, GL_DYNAMIC_DRAW);
 			// Now bind the buffer to the index point
 			// We know PS is 0 since we have it statically set in the shader
-			glBindBufferRange(GL_UNIFORM_BUFFER, 4, UBOBuffers[0], 0, (C_PENVCONST_END * 4 * 4) - (C_PENVCONST_END * 4 * 4 % 256) + 256);
+			glBindBufferBase(GL_UNIFORM_BUFFER, 4, UBOBuffers[0]);
 			// Repeat for VS shader
 			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[1]);
-			glBufferData(GL_UNIFORM_BUFFER, 1024*1024*1024, NULL, GL_DYNAMIC_DRAW);
-			glBindBufferRange(GL_UNIFORM_BUFFER, 5, UBOBuffers[1], 0, (C_VENVCONST_END * 4 * 4) - (C_VENVCONST_END * 4 * 4 % 256) + 256);
+			glBufferData(GL_UNIFORM_BUFFER, 1024*1024, NULL, GL_DYNAMIC_DRAW);
+			glBindBufferBase(GL_UNIFORM_BUFFER, 5, UBOBuffers[1]);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			checkForGLError("Init");
 		}
         void ProgramShaderCache::Shutdown(void)
         {
