@@ -165,6 +165,7 @@ char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 
 extern const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num);
 extern const char* WriteBinding(API_TYPE ApiType, const u32 num);
+const char *WriteLocation(API_TYPE ApiType);
 
 const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 {
@@ -218,15 +219,15 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140, binding = 1) uniform VSBlock {\n");
 		
-		WRITE(p, "uniform float4 "I_POSNORMALMATRIX"[6] %s;\n", WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
-		WRITE(p, "uniform float4 "I_PROJECTION"[4] %s;\n", WriteRegister(ApiType, "c", C_PROJECTION));
-		WRITE(p, "uniform float4 "I_MATERIALS"[4] %s;\n", WriteRegister(ApiType, "c", C_MATERIALS));
-		WRITE(p, "uniform float4 "I_LIGHTS"[40] %s;\n", WriteRegister(ApiType, "c", C_LIGHTS));
-		WRITE(p, "uniform float4 "I_TEXMATRICES"[24] %s;\n", WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
-		WRITE(p, "uniform float4 "I_TRANSFORMMATRICES"[64] %s;\n", WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));
-		WRITE(p, "uniform float4 "I_NORMALMATRICES"[32] %s;\n", WriteRegister(ApiType, "c", C_NORMALMATRICES));
-		WRITE(p, "uniform float4 "I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
-		WRITE(p, "uniform float4 "I_DEPTHPARAMS" %s;\n", WriteRegister(ApiType, "c", C_DEPTHPARAMS));
+		WRITE(p, "%sfloat4 "I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
+		WRITE(p, "%sfloat4 "I_PROJECTION"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PROJECTION));
+		WRITE(p, "%sfloat4 "I_MATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_MATERIALS));
+		WRITE(p, "%sfloat4 "I_LIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_LIGHTS));
+		WRITE(p, "%sfloat4 "I_TEXMATRICES"[24] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
+		WRITE(p, "%sfloat4 "I_TRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));
+		WRITE(p, "%sfloat4 "I_NORMALMATRICES"[32] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_NORMALMATRICES));
+		WRITE(p, "%sfloat4 "I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
+		WRITE(p, "%sfloat4 "I_DEPTHPARAMS" %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_DEPTHPARAMS));
 		
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");

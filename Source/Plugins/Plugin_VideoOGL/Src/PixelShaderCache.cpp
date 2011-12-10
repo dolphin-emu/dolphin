@@ -503,7 +503,7 @@ void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
 		ProgramShaderCache::SetUniformObjects(0, const_number, f);
-		return;
+		//return;
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
@@ -521,7 +521,7 @@ void SetGLSLPSConstant4fv(unsigned int const_number, const float *f)
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
 		ProgramShaderCache::SetUniformObjects(0, const_number, f);
-		return;
+		//return;
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
@@ -539,7 +539,7 @@ void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, co
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
 		ProgramShaderCache::SetUniformObjects(0, const_number, f, count);
-		return;
+		//return;
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
