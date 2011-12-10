@@ -579,8 +579,10 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	}
 
 	glViewport(0, 0, srcWidth, srcHeight);
-
-	PixelShaderCache::SetCurrentShader(s_yuyvToRgbProgram.glprogid);
+	if(g_ActiveConfig.bUseGLSL)
+		ProgramShaderCache::SetBothShaders(s_yuyvToRgbProgram.glprogid, 0);
+	else
+		PixelShaderCache::SetCurrentShader(s_yuyvToRgbProgram.glprogid);
 
 	GL_REPORT_ERRORD();
 

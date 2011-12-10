@@ -74,6 +74,14 @@ const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
         sprintf(result, " : register(%s%d)", prefix, num);
         return result;
 }
+const char *WriteLocation(API_TYPE ApiType)
+{
+	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		return "";
+	static char result[64];
+	sprintf(result, "uniform ");
+	return result;
+}
 
 // block dimensions : widthStride, heightStride 
 // texture dims : width, height, x offset, y offset
@@ -82,7 +90,13 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
     // [0] left, top, right, bottom of source rectangle within source texture
     // [1] width and height of destination texture in pixels
     // Two were merged for GLSL
-    WRITE(p, "uniform float4 "I_COLORS"[2] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
+    if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		WRITE(p, "layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 1" : "");
+		
+    WRITE(p, "%sfloat4 "I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
+    
+     if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		WRITE(p, "};\n");
 
     float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
 	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
@@ -168,7 +182,11 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
     // [0] left, top, right, bottom of source rectangle within source texture
     // [1] width and height of destination texture in pixels
     // Two were merged for GLSL
-    WRITE(p, "uniform float4 "I_COLORS"[2] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
+     if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		WRITE(p, "layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 1" : "");
+    WRITE(p, "%sfloat4 "I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
+    if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		WRITE(p, "};\n");
 
     float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
 	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
@@ -839,10 +857,13 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 	if(ApiType == API_GLSL)
 	{
 		// A few required defines and ones that will make our lives a lot easier
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		{
 			WRITE(p, "#version 330 compatibility\n");
-			WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
+			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+				WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
+			if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+				WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
 		}
 		else
 			WRITE(p, "#version 120\n");
