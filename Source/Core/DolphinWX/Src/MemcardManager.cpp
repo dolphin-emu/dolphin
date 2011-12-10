@@ -546,15 +546,16 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		index = memoryCard[slot]->GetFileIndex(index);
 		if (index != wxNOT_FOUND)
 		{
-			char tempC[10 + DENTRY_STRLEN],
-				 tempC2[DENTRY_STRLEN];
-			memoryCard[slot]->DEntry_GameCode(index,tempC);
-			memoryCard[slot]->DEntry_FileName(index,tempC2);
-			sprintf(tempC, "%s_%s.gci", tempC, tempC2);
+			std::string gciFilename;
+			if (!memoryCard[slot]->GCI_FileName(index, gciFilename))
+			{
+				PanicAlert("invalid index");
+				return;
+			}
 			wxString fileName = wxFileSelector(
 				_("Export save as..."),
 				wxString::From8BitData(DefaultIOPath.c_str()),
-				wxString::From8BitData(tempC), wxT(".gci"),
+				wxString::From8BitData(gciFilename.c_str()), wxT(".gci"),
 				_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
 				_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
 				_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),
@@ -562,7 +563,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 
 			if (fileName.length() > 0)
 			{
-				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, fileName.mb_str(), NULL), -1))
+				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, fileName.mb_str(), ""), -1))
 				{
 					File::Delete(std::string(fileName.mb_str()));
 				}
@@ -582,7 +583,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					"%s\nand have the same name as a file on your memcard\nContinue?", path1.c_str()))
 		for (int i = 0; i < DIRLEN; i++)
 		{
-			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, ".", &path1), -1);
+			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, NULL, path1), -1);
 		}
 		break;
 	}
@@ -614,8 +615,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 			 wxComment,
 			 wxBlock,
 			 wxFirstBlock,
-			 wxLabel,
-			 tString;
+			 wxLabel;
 
 
 	m_MemcardList[card]->Hide();
@@ -689,8 +689,6 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 	for (j = page[card] * itemsPerPage; (j < nFiles) && (j < pagesMax); j++)
 	{
-		char title[DENTRY_STRLEN];
-		char comment[DENTRY_STRLEN];
 		u16 blocks;
 		u16 firstblock;
 		u8 fileIndex = memoryCard[card]->GetFileIndex(j);
@@ -700,8 +698,8 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 		m_MemcardList[card]->SetItem(index, COLUMN_BANNER, wxEmptyString);
 
-		if (!memoryCard[card]->DEntry_Comment1(fileIndex, title)) title[0]=0;
-		if (!memoryCard[card]->DEntry_Comment2(fileIndex, comment)) comment[0]=0;
+		std::string title = memoryCard[card]->GetSaveComment1(fileIndex);
+		std::string comment = memoryCard[card]->GetSaveComment2(fileIndex);
 
 		bool ascii = memoryCard[card]->IsAsciiEncoding();
 
@@ -721,8 +719,8 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		// it returns CP-932, in order to use iconv we need to use CP932
 		wxCSConv SJISConv(wxT("CP932"));
 #endif
-		wxTitle  =  wxString(title, ascii ? *wxConvCurrent : SJISConv);
-		wxComment = wxString(comment, ascii ? *wxConvCurrent : SJISConv);
+		wxTitle  =  wxString(title.c_str(), ascii ? *wxConvCurrent : SJISConv);
+		wxComment = wxString(comment.c_str(), ascii ? *wxConvCurrent : SJISConv);
 
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxTitle);
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxComment);

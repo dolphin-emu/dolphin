@@ -19,6 +19,7 @@
 #define __GCMEMCARD_h__
 
 #include "Common.h"
+#include "CommonPaths.h"
 #include "Sram.h"
 #include "StringUtil.h"
 #include "EXI_DeviceIPL.h"
@@ -101,7 +102,7 @@ private:
 
 	struct DEntry {
 		u8 Gamecode[4];		//0x00		0x04	Gamecode
-		u8 Markercode[2];	//0x04		0x02	Makercode
+		u8 Makercode[2];	//0x04		0x02	Makercode
 		u8 Unused1;			//0x06		0x01	reserved/unused (always 0xff, has no effect)
 		u8 BIFlags;			//0x07		0x01	banner gfx format and icon animation (Image Key)
 							//		bit(s)	description
@@ -168,67 +169,58 @@ private:
 	};
 #pragma pack(pop)
 
-	u32 ImportGciInternal(FILE* gcih, const char *inputFile, std::string outputFile);
+	u32 ImportGciInternal(FILE* gcih, const char *inputFile, const std::string &outputFile);
 	static void FormatInternal(GCMC_Header &GCP);
 public:
 
 	GCMemcard(const char* fileName, bool forceCreation=false, bool sjis=false);
-	bool IsValid() { return m_valid; }
-	bool IsAsciiEncoding();
+	bool IsValid() const { return m_valid; }
+	bool IsAsciiEncoding() const;
 	bool Save();
 	bool Format(bool sjis = false, u16 SizeMb = MemCard2043Mb);
 	static bool Format(u8 * card_data, bool sjis = false, u16 SizeMb = MemCard2043Mb);
 	
 	static void calc_checksumsBE(u16 *buf, u32 length, u16 *csum, u16 *inv_csum);
-	u32 TestChecksums();
+	u32 TestChecksums() const;
 	bool FixChecksums();
 	
 	// get number of file entries in the directory
-	u8 GetNumFiles();
-	u8 GetFileIndex(u8 fileNumber);
+	u8 GetNumFiles() const;
+	u8 GetFileIndex(u8 fileNumber) const;
 
 	// get the free blocks from bat
-	u16 GetFreeBlocks();
+	u16 GetFreeBlocks() const;
 
 	// If title already on memcard returns index, otherwise returns -1
-	u8 TitlePresent(DEntry d);
-	
-	// DEntry functions, all take u8 index < DIRLEN (127)
-	// Functions that have ascii output take a char *buffer
+	u8 TitlePresent(DEntry d) const;
 
-	// buffer needs to be a char[5] or bigger
-	bool DEntry_GameCode(u8 index, char *buffer);
-	// buffer needs to be a char[2] or bigger
-	bool DEntry_Markercode(u8 index, char *buffer);
-	// buffer needs to be a char[9] or bigger
-	bool DEntry_BIFlags(u8 index, char *buffer);
-	// buffer needs to be a char[32] or bigger
-	bool DEntry_FileName(u8 index, char *buffer);
-	u32 DEntry_ModTime(u8 index);
-	u32 DEntry_ImageOffset(u8 index);
-	// buffer needs to be a char[17] or bigger
-	bool DEntry_IconFmt(u8 index, char *buffer);
-	u16 DEntry_AnimSpeed(u8 index);
-	// buffer needs to be a char[4] or bigger
-	bool DEntry_Permissions(u8 index, char *buffer);
-	u8 DEntry_CopyCounter(u8 index);
+	bool GCI_FileName(u8 index, std::string &filename) const;
+	// DEntry functions, all take u8 index < DIRLEN (127)
+	std::string DEntry_GameCode(u8 index) const;
+	std::string DEntry_Makercode(u8 index) const;
+	std::string DEntry_BIFlags(u8 index) const;
+	std::string DEntry_FileName(u8 index) const;
+	u32 DEntry_ModTime(u8 index) const;
+	u32 DEntry_ImageOffset(u8 index) const;
+	std::string DEntry_IconFmt(u8 index) const;
+	u16 DEntry_AnimSpeed(u8 index) const;
+	std::string DEntry_Permissions(u8 index) const;
+	u8 DEntry_CopyCounter(u8 index) const;
 	// get first block for file
-	u16 DEntry_FirstBlock(u8 index);
+	u16 DEntry_FirstBlock(u8 index) const;
 	// get file length in blocks
-	u16 DEntry_BlockCount(u8 index);
-	u32 DEntry_CommentsAddress(u8 index);
-	// buffer needs to be a char[32] or bigger
-	bool DEntry_Comment1(u8 index, char *buffer);
-	// buffer needs to be a char[32] or bigger
-	bool DEntry_Comment2(u8 index, char *buffer);
+	u16 DEntry_BlockCount(u8 index) const;
+	u32 DEntry_CommentsAddress(u8 index) const;
+	std::string GetSaveComment1(u8 index) const;
+	std::string GetSaveComment2(u8 index) const;
 	// Copies a DEntry from u8 index to DEntry& data
-	bool DEntry_Copy(u8 index, DEntry& data);
+	bool GetDEntry(u8 index, DEntry &dest) const;
 
 	// assumes there's enough space in buffer
 	// old determines if function uses old or new method of copying data
 	// some functions only work with old way, some only work with new way
 	// TODO: find a function that works for all calls or split into 2 functions
-	u32 DEntry_GetSaveData(u8 index, u8* buffer, bool old);
+	u32 DEntry_GetSaveData(u8 index, u8* buffer, bool old) const;
 
 	// adds the file to the directory and copies its contents
 	// if remove > 0 it will pad bat.map with 0's sizeof remove
@@ -238,23 +230,23 @@ public:
 	u32 RemoveFile(u8 index);
 
 	// reads a save from another memcard, and imports the data into this memcard
-	u32 CopyFrom(GCMemcard& source, u8 index);
+	u32 CopyFrom(const GCMemcard& source, u8 index);
 
 	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
-	u32 ImportGci(const char* inputFile, std::string outputFile);
+	u32 ImportGci(const char* inputFile,const std::string &outputFile);
 
 	// writes a .gci file to disk containing index
-	u32 ExportGci(u8 index, const char* fileName, std::string* fileName2);
+	u32 ExportGci(u8 index, const char* fileName, const std::string &directory) const;
 
 	// GCI files are untouched, SAV files are byteswapped
 	// GCS files have the block count set, default is 1 (For export as GCS)
-	void Gcs_SavConvert(DEntry* tempDEntry, int saveType, int length = BLOCK_SIZE);
+	static void Gcs_SavConvert(DEntry &tempDEntry, int saveType, int length = BLOCK_SIZE);
 
 	// reads the banner image
-	bool ReadBannerRGBA8(u8 index, u32* buffer);
+	bool ReadBannerRGBA8(u8 index, u32* buffer) const;
 
 	// reads the animation frames
-	u32 ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays);
+	u32 ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const;
 };
 #endif
 
