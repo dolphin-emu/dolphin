@@ -240,6 +240,7 @@ void SetVSConstant4fvByName(const char * name, unsigned int offset, const float 
             }
         }
 }
+#define MAX_UNIFORM 0
 void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
     float buf[4];
@@ -249,7 +250,8 @@ void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3
     buf[3] = f4;
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		ProgramShaderCache::SetUniformObjects(1, const_number, buf);
+		if(const_number < MAX_UNIFORM)
+			ProgramShaderCache::SetUniformObjects(1, const_number, buf);
 		//return;
 	}
     for( unsigned int a = 0; a < 9; ++a)
@@ -267,6 +269,7 @@ void SetGLSLVSConstant4fv(unsigned int const_number, const float *f)
 {
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
+		if(const_number < MAX_UNIFORM)
 		ProgramShaderCache::SetUniformObjects(1, const_number, f);
 		//return;
 	}
@@ -285,6 +288,7 @@ void SetMultiGLSLVSConstant4fv(unsigned int const_number, unsigned int count, co
 {
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
+		if(const_number < MAX_UNIFORM)
 		ProgramShaderCache::SetUniformObjects(1, const_number, f, count);
 		//return;
 	}
@@ -311,6 +315,7 @@ void SetMultiGLSLVSConstant3fv(unsigned int const_number, unsigned int count, co
     }
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
+		if(const_number < MAX_UNIFORM)
 		ProgramShaderCache::SetUniformObjects(1, const_number, buf, count);
 		//return;
 	}

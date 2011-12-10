@@ -55,7 +55,7 @@ const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
                                                 {I_TRANSFORMMATRICES , C_TRANSFORMMATRICES, 64  },
                                                 {I_NORMALMATRICES , C_NORMALMATRICES, 32  },
                                                 {I_POSTTRANSFORMMATRICES, C_POSTTRANSFORMMATRICES, 64 },
-                                                {I_DEPTHPARAMS, C_DEPTHPARAMS, 4 },
+                                                {I_DEPTHPARAMS, C_DEPTHPARAMS, 1 },
                                                 };                                            
 template<bool safe>
 class _VERTEXSHADERUID

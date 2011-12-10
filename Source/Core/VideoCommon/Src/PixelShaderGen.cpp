@@ -502,11 +502,11 @@ static void BuildSwapModeTable()
 
 const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 {
-        if(ApiType == API_GLSL)
-                return ""; // Nothing to do here
-        static char result[64];
-        sprintf(result, " : register(%s%d)", prefix, num);
-        return result;
+	if(ApiType == API_GLSL)
+		return ""; // Nothing to do here
+	static char result[64];
+	sprintf(result, " : register(%s%d)", prefix, num);
+	return result;
 }
 const char* WriteBinding(API_TYPE ApiType, const u32 num)
 {
@@ -518,9 +518,9 @@ const char* WriteBinding(API_TYPE ApiType, const u32 num)
 }
 const char *WriteLocation(API_TYPE ApiType)
 {
-	static char result[64];
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		return "";
+	static char result[64];
 	sprintf(result, "uniform ");
 	return result;
 }
@@ -611,7 +611,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	WRITE(p, "\n");
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140, binding = 4) uniform PSBlock {\n");
+		WRITE(p, "layout(std140, binding = 0) uniform PSBlock {\n");
 		
 		WRITE(p, "%sfloat4 "I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
 		WRITE(p, "%sfloat4 "I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_KCOLORS));
