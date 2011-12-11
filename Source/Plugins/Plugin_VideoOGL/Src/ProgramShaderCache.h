@@ -27,10 +27,10 @@
 
 	union PID
 	{
-	        struct {
-	        GLuint vsid, psid;
-	        };
-	        u64 id;
+		struct {
+		GLuint vsid, psid;
+		};
+		u64 id;
 	};
 
 class PROGRAMUID
@@ -41,22 +41,22 @@ public:
 
 	PROGRAMUID()
 	{
-	        uid.id = 0;
+		uid.id = 0;
 	}
 
 	PROGRAMUID(const PROGRAMUID& r)
 	{
-	        uid.id = r.uid.id;
+		uid.id = r.uid.id;
 	}
 	PROGRAMUID(GLuint _v, GLuint _p)
 	{
-	        uid.vsid = _v;
-	        uid.psid = _p;
+		uid.vsid = _v;
+		uid.psid = _p;
 	}
 
 	int GetNumValues() const
 	{
-	        return uid.id;
+		return uid.id;
 	}
 };
 void GetProgramShaderId(PROGRAMUID *uid, GLuint _v, GLuint _p);
@@ -81,13 +81,13 @@ class ProgramShaderCache
 {
 	struct PCacheEntry
 	{
-	        PROGRAMSHADER program;
-	        int frameCount;
-	        PCacheEntry() : frameCount(0) {}
-	        void Destroy() {
-	                glDeleteProgram(program.glprogid);
-	                program.glprogid = 0;
-	        }
+		PROGRAMSHADER program;
+		int frameCount;
+		PCacheEntry() : frameCount(0) {}
+		void Destroy() {
+			glDeleteProgram(program.glprogid);
+			program.glprogid = 0;
+		}
 	};
 	typedef std::map<std::pair<u64, u64>, PCacheEntry> PCache;
 

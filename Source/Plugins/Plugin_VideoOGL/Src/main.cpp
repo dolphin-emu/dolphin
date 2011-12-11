@@ -112,19 +112,19 @@ void GetShaders(std::vector<std::string> &shaders)
 	shaders.clear();
 	if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX)))
 	{
-	        File::FSTEntry entry;
-	        File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
-	        for (u32 i = 0; i < entry.children.size(); i++) 
-	        {
-	                std::string name = entry.children[i].virtualName.c_str();
-	                if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt"))
-	                        name = name.substr(0, name.size() - 4);
-	                shaders.push_back(name);
-	        }
+		File::FSTEntry entry;
+		File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
+		for (u32 i = 0; i < entry.children.size(); i++) 
+		{
+			std::string name = entry.children[i].virtualName.c_str();
+			if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt"))
+				name = name.substr(0, name.size() - 4);
+			shaders.push_back(name);
+		}
 	}
 	else
 	{
-	        File::CreateDir(File::GetUserPath(D_SHADERS_IDX).c_str());
+		File::CreateDir(File::GetUserPath(D_SHADERS_IDX).c_str());
 	}
 }
 
