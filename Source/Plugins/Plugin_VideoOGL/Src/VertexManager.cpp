@@ -206,6 +206,9 @@ void VertexManager::vFlush()
 	// set global constants
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
+
+	if(g_ActiveConfig.bUseGLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		ProgramShaderCache::FlushConstants();
 	
 	// setup the pointers
 	if (g_nativeVertexFmt)
