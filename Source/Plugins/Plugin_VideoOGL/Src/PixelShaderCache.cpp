@@ -74,12 +74,12 @@ void PixelShaderCache::Init()
 
     if(g_ActiveConfig.bUseGLSL)
     {
-        pSetPSConstant4f = SetGLSLPSConstant4f;
-        pSetPSConstant4fv = SetGLSLPSConstant4fv;
-        pSetMultiPSConstant4fv = SetMultiGLSLPSConstant4fv;
-        pCompilePixelShader = CompileGLSLPixelShader;
-        // Should this be set here?
-        if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
+	pSetPSConstant4f = SetGLSLPSConstant4f;
+	pSetPSConstant4fv = SetGLSLPSConstant4fv;
+	pSetMultiPSConstant4fv = SetMultiGLSLPSConstant4fv;
+	pCompilePixelShader = CompileGLSLPixelShader;
+	// Should this be set here?
+	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
 			g_Config.backend_info.bSupportsGLSLBinding = true;
 		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_uniform_buffer_object") != NULL)
 			g_Config.backend_info.bSupportsGLSLUBO = true;
@@ -88,22 +88,22 @@ void PixelShaderCache::Init()
     }
     else
     {
-        pSetPSConstant4f = SetCGPSConstant4f;
-        pSetPSConstant4fv = SetCGPSConstant4fv;
-        pSetMultiPSConstant4fv = SetMultiCGPSConstant4fv;
-        pCompilePixelShader = CompileCGPixelShader;
-        glEnable(GL_FRAGMENT_PROGRAM_ARB);
+	pSetPSConstant4f = SetCGPSConstant4f;
+	pSetPSConstant4fv = SetCGPSConstant4fv;
+	pSetMultiPSConstant4fv = SetMultiCGPSConstant4fv;
+	pCompilePixelShader = CompileCGPixelShader;
+	glEnable(GL_FRAGMENT_PROGRAM_ARB);
     }
 
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
 
     if(s_nMaxPixelInstructions == 0) // Some combination of drivers and hardware returns zero for some reason.
-        s_nMaxPixelInstructions = 4096;
+	s_nMaxPixelInstructions = 4096;
     if (strstr((const char*)glGetString(GL_VENDOR), "Humper") != NULL) s_nMaxPixelInstructions = 4096;
 #if CG_VERSION_NUM == 2100
     if (strstr((const char*)glGetString(GL_VENDOR), "ATI") != NULL)
     {
-        s_nMaxPixelInstructions = 4096;
+	s_nMaxPixelInstructions = 4096;
     }
 #endif
 
@@ -347,7 +347,7 @@ void PixelShaderCache::Shutdown()
 	s_DepthMatrixProgram.Destroy();
     PSCache::iterator iter = PixelShaders.begin();
     for (; iter != PixelShaders.end(); iter++)
-        iter->second.Destroy();
+	iter->second.Destroy();
     PixelShaders.clear();
 }
 
@@ -359,12 +359,12 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
     // Check if the shader is already set
     if (last_entry)
     {
-        if (uid == last_uid)
-        {
-            GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-            ValidatePixelShaderIDs(API_OPENGL, last_entry->safe_uid, last_entry->shader.strprog, dstAlphaMode, components);
-            return &last_entry->shader;
-        }
+	if (uid == last_uid)
+	{
+	    GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
+	    ValidatePixelShaderIDs(API_OPENGL, last_entry->safe_uid, last_entry->shader.strprog, dstAlphaMode, components);
+	    return &last_entry->shader;
+	}
     }
 
     last_uid = uid;
@@ -372,12 +372,12 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
     PSCache::iterator iter = PixelShaders.find(uid);
     if (iter != PixelShaders.end())
     {
-        PSCacheEntry &entry = iter->second;
-        last_entry = &entry;
+	PSCacheEntry &entry = iter->second;
+	last_entry = &entry;
 
-        GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-        ValidatePixelShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, dstAlphaMode, components);
-        return &last_entry->shader;
+	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
+	ValidatePixelShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, dstAlphaMode, components);
+	return &last_entry->shader;
     }
 
     // Make an entry in the table
@@ -387,23 +387,23 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 
     if (g_ActiveConfig.bEnableShaderDebugging && code)
     {
-        GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode, components);
-        newentry.shader.strprog = code;
+	GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode, components);
+	newentry.shader.strprog = code;
     }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
-        static int counter = 0;
-        char szTemp[MAX_PATH];
-        sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+	static int counter = 0;
+	char szTemp[MAX_PATH];
+	sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 
-        SaveData(szTemp, code);
+	SaveData(szTemp, code);
     }
 #endif
 
     if (!code || !CompilePixelShader(newentry.shader, code)) {
-        GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
-        return NULL;
+	GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
+	return NULL;
     }
 
     INCSTAT(stats.numPixelShadersCreated);
@@ -424,8 +424,8 @@ void PixelShaderCache::DisableShader()
 		assert(true);
     if(ShaderEnabled)
     {
-        glDisable(GL_FRAGMENT_PROGRAM_ARB);
-        ShaderEnabled = false;
+	glDisable(GL_FRAGMENT_PROGRAM_ARB);
+	ShaderEnabled = false;
     }
 }
 
@@ -436,14 +436,14 @@ void PixelShaderCache::SetCurrentShader(GLuint Shader)
 		assert(true);
     if(!ShaderEnabled)
     {
-        glEnable(GL_FRAGMENT_PROGRAM_ARB);
-        ShaderEnabled = true;
+	glEnable(GL_FRAGMENT_PROGRAM_ARB);
+	ShaderEnabled = true;
     }
     if(CurrentShader != Shader)
     {
-        if(Shader != 0)
-            CurrentShader = Shader;
-        glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
+	if(Shader != 0)
+	    CurrentShader = Shader;
+	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
     }
 }
 // GLSL Specific
@@ -493,31 +493,31 @@ void PixelShaderCache::SetPSSampler(const char * name, unsigned int Tex)
 		return;
     PROGRAMSHADER tmp = ProgramShaderCache::GetShaderProgram();
     for (int a = 0; a < NUM_UNIFORMS; ++a)
-        if (!strcmp(name, UniformNames[a]))
-        {
-            if(tmp.UniformLocations[a] == -1)
-                return;
-            else
-            {
-                glUniform1i(tmp.UniformLocations[a], Tex);
-                return;
-            }
-        }
+	if (!strcmp(name, UniformNames[a]))
+	{
+	    if(tmp.UniformLocations[a] == -1)
+	        return;
+	    else
+	    {
+	        glUniform1i(tmp.UniformLocations[a], Tex);
+	        return;
+	    }
+	}
 }
 void SetPSConstant4fvByName(const char * name, unsigned int offset, const float *f, const unsigned int count = 1)
 {
     PROGRAMSHADER tmp = ProgramShaderCache::GetShaderProgram();
     for (int a = 0; a < NUM_UNIFORMS; ++a)
-        if (!strcmp(name, UniformNames[a]))
-        {
-            if(tmp.UniformLocations[a] == -1)
-                return;
-            else
-            {
-                glUniform4fv(tmp.UniformLocations[a] + offset, count, f);
-                return;
-            }
-        }
+	if (!strcmp(name, UniformNames[a]))
+	{
+	    if(tmp.UniformLocations[a] == -1)
+	        return;
+	    else
+	    {
+	        glUniform4fv(tmp.UniformLocations[a] + offset, count, f);
+	        return;
+	    }
+	}
 }
 
 void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
@@ -531,12 +531,12 @@ void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
-        if ( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
-        {
-            unsigned int offset = const_number - PSVar_Loc[a].reg;
-            SetPSConstant4fvByName(PSVar_Loc[a].name, offset, f);
-            return;
-        }
+	if ( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
+	{
+	    unsigned int offset = const_number - PSVar_Loc[a].reg;
+	    SetPSConstant4fvByName(PSVar_Loc[a].name, offset, f);
+	    return;
+	}
     }
 }
 
@@ -549,12 +549,12 @@ void SetGLSLPSConstant4fv(unsigned int const_number, const float *f)
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
-        if ( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
-        {
-            unsigned int offset = const_number - PSVar_Loc[a].reg;
-            SetPSConstant4fvByName(PSVar_Loc[a].name, offset, f);
-            return;
-        }
+	if ( const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
+	{
+	    unsigned int offset = const_number - PSVar_Loc[a].reg;
+	    SetPSConstant4fvByName(PSVar_Loc[a].name, offset, f);
+	    return;
+	}
     }
 }
 
@@ -567,12 +567,12 @@ void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, co
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
-        if (const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
-        {
-            unsigned int offset = const_number - PSVar_Loc[a].reg;
-            SetPSConstant4fvByName(PSVar_Loc[a].name, offset, f, count);
-            return;
-        }
+	if (const_number >= PSVar_Loc[a].reg && const_number < (PSVar_Loc[a].reg + PSVar_Loc[a].size))
+	{
+	    unsigned int offset = const_number - PSVar_Loc[a].reg;
+	    SetPSConstant4fvByName(PSVar_Loc[a].name, offset, f, count);
+	    return;
+	}
     }
 }
 // CG Specific
@@ -582,7 +582,7 @@ bool CompileCGPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
     GLenum err = GL_REPORT_ERROR();
     if (err != GL_NO_ERROR)
     {
-        ERROR_LOG(VIDEO, "glError %08x before PS!", err);
+	ERROR_LOG(VIDEO, "glError %08x before PS!", err);
     }
 
 #if defined HAVE_CG && HAVE_CG
@@ -591,28 +591,28 @@ bool CompileCGPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
     // handle errors
     if (!cgIsProgram(tempprog))
     {
-        cgDestroyProgram(tempprog);
+	cgDestroyProgram(tempprog);
 
-        static int num_failures = 0;
-        char szTemp[MAX_PATH];
-        sprintf(szTemp, "bad_ps_%04i.txt", num_failures++);
-        std::ofstream file(szTemp);
-        file << pstrprogram;
-        file.close();
+	static int num_failures = 0;
+	char szTemp[MAX_PATH];
+	sprintf(szTemp, "bad_ps_%04i.txt", num_failures++);
+	std::ofstream file(szTemp);
+	file << pstrprogram;
+	file.close();
 
-        PanicAlert("Failed to compile pixel shader %d!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
-                   num_failures - 1, szTemp,
-                   g_cgfProf,
-                   cgGetLastListing(g_cgcontext));
+	PanicAlert("Failed to compile pixel shader %d!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
+	           num_failures - 1, szTemp,
+	           g_cgfProf,
+	           cgGetLastListing(g_cgcontext));
 
-        return false;
+	return false;
     }
 
     // handle warnings
     if (cgGetError() != CG_NO_ERROR)
     {
-        WARN_LOG(VIDEO, "Warnings on compile ps %s:", cgGetLastListing(g_cgcontext));
-        WARN_LOG(VIDEO, "%s", pstrprogram);
+	WARN_LOG(VIDEO, "Warnings on compile ps %s:", cgGetLastListing(g_cgcontext));
+	WARN_LOG(VIDEO, "%s", pstrprogram);
     }
 
     // This looks evil - we modify the program through the const char * we got from cgGetProgramString!
@@ -621,9 +621,9 @@ bool CompileCGPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
     char *plocal = strstr(pcompiledprog, "program.local");
     while (plocal != NULL)
     {
-        const char *penv = "  program.env";
-        memcpy(plocal, penv, 13);
-        plocal = strstr(plocal+13, "program.local");
+	const char *penv = "  program.env";
+	memcpy(plocal, penv, 13);
+	plocal = strstr(plocal+13, "program.local");
     }
 
     glGenProgramsARB(1, &ps.glprogid);
@@ -634,23 +634,23 @@ bool CompileCGPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
     err = GL_REPORT_ERROR();
     if (err != GL_NO_ERROR)
     {
-        GLint error_pos, native_limit;
-        glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &error_pos);
-        glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &native_limit);
-        // Error occur
-        if (error_pos != -1) {
-            const char *program_error = (const char *)glGetString(GL_PROGRAM_ERROR_STRING_ARB);
-            char line[256];
-            strncpy(line, (const char *)pcompiledprog + error_pos, 255);
-            line[255] = 0;
-            ERROR_LOG(VIDEO, "Error at %i: %s", error_pos, program_error);
-            ERROR_LOG(VIDEO, "Line dump: \n%s", line);
-        } else if (native_limit != -1) {
-            ERROR_LOG(VIDEO, "Hit limit? %i", native_limit);
-            // TODO
-        }
-        ERROR_LOG(VIDEO, "%s", pstrprogram);
-        ERROR_LOG(VIDEO, "%s", pcompiledprog);
+	GLint error_pos, native_limit;
+	glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &error_pos);
+	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &native_limit);
+	// Error occur
+	if (error_pos != -1) {
+	    const char *program_error = (const char *)glGetString(GL_PROGRAM_ERROR_STRING_ARB);
+	    char line[256];
+	    strncpy(line, (const char *)pcompiledprog + error_pos, 255);
+	    line[255] = 0;
+	    ERROR_LOG(VIDEO, "Error at %i: %s", error_pos, program_error);
+	    ERROR_LOG(VIDEO, "Line dump: \n%s", line);
+	} else if (native_limit != -1) {
+	    ERROR_LOG(VIDEO, "Hit limit? %i", native_limit);
+	    // TODO
+	}
+	ERROR_LOG(VIDEO, "%s", pstrprogram);
+	ERROR_LOG(VIDEO, "%s", pcompiledprog);
     }
 
     cgDestroyProgram(tempprog);
@@ -672,21 +672,21 @@ void SetCGPSConstant4fv(unsigned int const_number, const float *f)
 void SetMultiCGPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
     for (unsigned int i = 0; i < count; i++,f+=4)
-        glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number + i, f);
+	glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number + i, f);
 }
 // Renderer functions
 void Renderer::SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-        pSetPSConstant4f(const_number, f1, f2, f3, f4);
+	pSetPSConstant4f(const_number, f1, f2, f3, f4);
 }
 
 void Renderer::SetPSConstant4fv(unsigned int const_number, const float *f)
 {
-        pSetPSConstant4fv(const_number, f);
+	pSetPSConstant4fv(const_number, f);
 }
 
 void Renderer::SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-        pSetMultiPSConstant4fv(const_number, count, f);
+	pSetMultiPSConstant4fv(const_number, count, f);
 }
 }  // namespace OGL

@@ -61,20 +61,20 @@ void VertexShaderCache::Init()
 
     if(g_ActiveConfig.bUseGLSL)
     {
-        pSetVSConstant4f = SetGLSLVSConstant4f;
-        pSetVSConstant4fv = SetGLSLVSConstant4fv;
-        pSetMultiVSConstant4fv = SetMultiGLSLVSConstant4fv;
-        pSetMultiVSConstant3fv = SetMultiGLSLVSConstant3fv;
-        pCompileVertexShader = CompileGLSLVertexShader;
+	pSetVSConstant4f = SetGLSLVSConstant4f;
+	pSetVSConstant4fv = SetGLSLVSConstant4fv;
+	pSetMultiVSConstant4fv = SetMultiGLSLVSConstant4fv;
+	pSetMultiVSConstant3fv = SetMultiGLSLVSConstant3fv;
+	pCompileVertexShader = CompileGLSLVertexShader;
     }
     else
     {
-        pSetVSConstant4f = SetCGVSConstant4f;
-        pSetVSConstant4fv = SetCGVSConstant4fv;
-        pSetMultiVSConstant4fv = SetMultiCGVSConstant4fv;
-        pSetMultiVSConstant3fv = SetMultiCGVSConstant3fv;
-        pCompileVertexShader = CompileCGVertexShader;
-        glEnable(GL_VERTEX_PROGRAM_ARB);
+	pSetVSConstant4f = SetCGVSConstant4f;
+	pSetVSConstant4fv = SetCGVSConstant4fv;
+	pSetMultiVSConstant4fv = SetMultiCGVSConstant4fv;
+	pSetMultiVSConstant3fv = SetMultiCGVSConstant3fv;
+	pCompileVertexShader = CompileCGVertexShader;
+	glEnable(GL_VERTEX_PROGRAM_ARB);
     }
 
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
@@ -82,7 +82,7 @@ void VertexShaderCache::Init()
 #if CG_VERSION_NUM == 2100
     if (strstr((const char*)glGetString(GL_VENDOR), "ATI") != NULL)
     {
-        s_nMaxVertexInstructions = 4096;
+	s_nMaxVertexInstructions = 4096;
     }
 #endif
 }
@@ -90,7 +90,7 @@ void VertexShaderCache::Init()
 void VertexShaderCache::Shutdown()
 {
     for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
-        iter->second.Destroy();
+	iter->second.Destroy();
     vshaders.clear();
 }
 
@@ -101,12 +101,12 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
     GetVertexShaderId(&uid, components);
     if (last_entry)
     {
-        if (uid == last_uid)
-        {
-            GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-            ValidateVertexShaderIDs(API_OPENGL, vshaders[uid].safe_uid, vshaders[uid].shader.strprog, components);
-            return &last_entry->shader;
-        }
+	if (uid == last_uid)
+	{
+	    GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+	    ValidateVertexShaderIDs(API_OPENGL, vshaders[uid].safe_uid, vshaders[uid].shader.strprog, components);
+	    return &last_entry->shader;
+	}
     }
 
     last_uid = uid;
@@ -114,12 +114,12 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
     VSCache::iterator iter = vshaders.find(uid);
     if (iter != vshaders.end())
     {
-        VSCacheEntry &entry = iter->second;
-        last_entry = &entry;
+	VSCacheEntry &entry = iter->second;
+	last_entry = &entry;
 
-        GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-        ValidateVertexShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, components);
-        return &last_entry->shader;
+	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+	ValidateVertexShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, components);
+	return &last_entry->shader;
     }
 
     // Make an entry in the table
@@ -130,17 +130,17 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
-        static int counter = 0;
-        char szTemp[MAX_PATH];
-        sprintf(szTemp, "%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+	static int counter = 0;
+	char szTemp[MAX_PATH];
+	sprintf(szTemp, "%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 
-        SaveData(szTemp, code);
+	SaveData(szTemp, code);
     }
 #endif
 
     if (!code || !VertexShaderCache::CompileVertexShader(entry.shader, code)) {
-        GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
-        return NULL;
+	GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
+	return NULL;
     }
 
     INCSTAT(stats.numVertexShadersCreated);
@@ -160,8 +160,8 @@ void VertexShaderCache::DisableShader()
 		assert(true);
     if (ShaderEnabled)
     {
-        glDisable(GL_VERTEX_PROGRAM_ARB);
-        ShaderEnabled = false;
+	glDisable(GL_VERTEX_PROGRAM_ARB);
+	ShaderEnabled = false;
     }
 }
 
@@ -172,14 +172,14 @@ void VertexShaderCache::SetCurrentShader(GLuint Shader)
 		assert(true);
     if (!ShaderEnabled)
     {
-        glEnable(GL_VERTEX_PROGRAM_ARB);
-        ShaderEnabled= true;
+	glEnable(GL_VERTEX_PROGRAM_ARB);
+	ShaderEnabled= true;
     }
     if (CurrentShader != Shader)
     {
-        if(Shader != 0)
-            CurrentShader = Shader;
-        glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
+	if(Shader != 0)
+	    CurrentShader = Shader;
+	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
     }
 }
 // GLSL Specific
@@ -227,16 +227,16 @@ void SetVSConstant4fvByName(const char * name, unsigned int offset, const float 
 {
     PROGRAMSHADER tmp = ProgramShaderCache::GetShaderProgram();
     for(int a = 0; a < NUM_UNIFORMS; ++a)
-        if(!strcmp(name, UniformNames[a]))
-        {
-            if(tmp.UniformLocations[a] == -1)
-                return;
-            else
-            {
-                glUniform4fv(tmp.UniformLocations[a] + offset, count, f);
-                return;
-            }
-        }
+	if(!strcmp(name, UniformNames[a]))
+	{
+	    if(tmp.UniformLocations[a] == -1)
+	        return;
+	    else
+	    {
+	        glUniform4fv(tmp.UniformLocations[a] + offset, count, f);
+	        return;
+	    }
+	}
 }
 void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
@@ -252,12 +252,12 @@ void SetGLSLVSConstant4f(unsigned int const_number, float f1, float f2, float f3
 	}
     for( unsigned int a = 0; a < 9; ++a)
     {
-        if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
-        {
-            unsigned int offset = const_number - VSVar_Loc[a].reg;
-            SetVSConstant4fvByName(VSVar_Loc[a].name, offset, buf);
-            return;
-        }
+	if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
+	{
+	    unsigned int offset = const_number - VSVar_Loc[a].reg;
+	    SetVSConstant4fvByName(VSVar_Loc[a].name, offset, buf);
+	    return;
+	}
     }
 }
 
@@ -270,12 +270,12 @@ void SetGLSLVSConstant4fv(unsigned int const_number, const float *f)
 	}
     for( unsigned int a = 0; a < 9; ++a)
     {
-        if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
-        {
-            unsigned int offset = const_number - VSVar_Loc[a].reg;
-            SetVSConstant4fvByName(VSVar_Loc[a].name, offset, f);
-            return;
-        }
+	if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
+	{
+	    unsigned int offset = const_number - VSVar_Loc[a].reg;
+	    SetVSConstant4fvByName(VSVar_Loc[a].name, offset, f);
+	    return;
+	}
     }
 }
 
@@ -288,12 +288,12 @@ void SetMultiGLSLVSConstant4fv(unsigned int const_number, unsigned int count, co
 	}
     for( unsigned int a = 0; a < 9; ++a)
     {
-        if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
-        {
-            unsigned int offset = const_number - VSVar_Loc[a].reg;
-            SetVSConstant4fvByName(VSVar_Loc[a].name, offset, f, count);
-            return;
-        }
+	if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
+	{
+	    unsigned int offset = const_number - VSVar_Loc[a].reg;
+	    SetVSConstant4fvByName(VSVar_Loc[a].name, offset, f, count);
+	    return;
+	}
     }
 }
 
@@ -302,10 +302,10 @@ void SetMultiGLSLVSConstant3fv(unsigned int const_number, unsigned int count, co
     float buf[4 * C_VENVCONST_END];
     for (unsigned int i = 0; i < count; i++)
     {
-        buf[4*i  ] = *f++;
-        buf[4*i+1] = *f++;
-        buf[4*i+2] = *f++;
-        buf[4*i+3] = 0.f;
+	buf[4*i  ] = *f++;
+	buf[4*i+1] = *f++;
+	buf[4*i+2] = *f++;
+	buf[4*i+3] = 0.f;
     }
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
@@ -314,12 +314,12 @@ void SetMultiGLSLVSConstant3fv(unsigned int const_number, unsigned int count, co
 	}
     for( unsigned int a = 0; a < 9; ++a)
     {
-        if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
-        {
-            unsigned int offset = const_number - VSVar_Loc[a].reg;
-            SetVSConstant4fvByName(VSVar_Loc[a].name, offset, buf, count);
-            return;
-        }
+	if( const_number >= VSVar_Loc[a].reg && const_number < ( VSVar_Loc[a].reg + VSVar_Loc[a].size))
+	{
+	    unsigned int offset = const_number - VSVar_Loc[a].reg;
+	    SetVSConstant4fvByName(VSVar_Loc[a].name, offset, buf, count);
+	    return;
+	}
     }
 }
 
@@ -330,34 +330,34 @@ bool CompileCGVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
     GLenum err = GL_REPORT_ERROR();
     if (err != GL_NO_ERROR)
     {
-        ERROR_LOG(VIDEO, "glError %08x before VS!", err);
+	ERROR_LOG(VIDEO, "glError %08x before VS!", err);
     }
 
 #if defined HAVE_CG && HAVE_CG
     CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", NULL);
     if (!cgIsProgram(tempprog)) {
-        static int num_failures = 0;
-        char szTemp[MAX_PATH];
-        sprintf(szTemp, "bad_vs_%04i.txt", num_failures++);
-        std::ofstream file(szTemp);
-        file << pstrprogram;
-        file.close();
+	static int num_failures = 0;
+	char szTemp[MAX_PATH];
+	sprintf(szTemp, "bad_vs_%04i.txt", num_failures++);
+	std::ofstream file(szTemp);
+	file << pstrprogram;
+	file.close();
 
-        PanicAlert("Failed to compile vertex shader %d!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
-                   num_failures - 1, szTemp,
-                   g_cgfProf,
-                   cgGetLastListing(g_cgcontext));
+	PanicAlert("Failed to compile vertex shader %d!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
+	           num_failures - 1, szTemp,
+	           g_cgfProf,
+	           cgGetLastListing(g_cgcontext));
 
-        cgDestroyProgram(tempprog);
-        ERROR_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
-        ERROR_LOG(VIDEO, "%s", pstrprogram);
-        return false;
+	cgDestroyProgram(tempprog);
+	ERROR_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
+	ERROR_LOG(VIDEO, "%s", pstrprogram);
+	return false;
     }
 
     if (cgGetError() != CG_NO_ERROR)
     {
-        WARN_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
-        WARN_LOG(VIDEO, "%s", pstrprogram);
+	WARN_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
+	WARN_LOG(VIDEO, "%s", pstrprogram);
     }
 
     // This looks evil - we modify the program through the const char * we got from cgGetProgramString!
@@ -365,9 +365,9 @@ bool CompileCGVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
     char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
     char *plocal = strstr(pcompiledprog, "program.local");
     while (plocal != NULL) {
-        const char* penv = "  program.env";
-        memcpy(plocal, penv, 13);
-        plocal = strstr(plocal + 13, "program.local");
+	const char* penv = "  program.env";
+	memcpy(plocal, penv, 13);
+	plocal = strstr(plocal + 13, "program.local");
     }
     glGenProgramsARB(1, &vs.glprogid);
     vs.bGLSL = false;
@@ -376,15 +376,15 @@ bool CompileCGVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
     glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
     err = GL_REPORT_ERROR();
     if (err != GL_NO_ERROR) {
-        ERROR_LOG(VIDEO, "%s", pstrprogram);
-        ERROR_LOG(VIDEO, "%s", pcompiledprog);
+	ERROR_LOG(VIDEO, "%s", pstrprogram);
+	ERROR_LOG(VIDEO, "%s", pcompiledprog);
     }
 
     cgDestroyProgram(tempprog);
 #endif
 
     if (g_ActiveConfig.bEnableShaderDebugging)
-        vs.strprog = pstrprogram;
+	vs.strprog = pstrprogram;
 
     return true;
 }
@@ -402,12 +402,12 @@ void SetMultiCGVSConstant4fv(unsigned int const_number, unsigned int count, cons
 {
     if(GLEW_EXT_gpu_program_parameters)
     {
-        glProgramEnvParameters4fvEXT(GL_VERTEX_PROGRAM_ARB, const_number, count, f);
+	glProgramEnvParameters4fvEXT(GL_VERTEX_PROGRAM_ARB, const_number, count, f);
     }
     else
     {
-        for (unsigned int i = 0; i < count; i++,f+=4)
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, f);
+	for (unsigned int i = 0; i < count; i++,f+=4)
+	    glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, f);
     }
 }
 
@@ -415,49 +415,49 @@ void SetMultiCGVSConstant3fv(unsigned int const_number, unsigned int count, cons
 {
     if(GLEW_EXT_gpu_program_parameters)
     {
-        float buf[4 * C_VENVCONST_END];
-        for (unsigned int i = 0; i < count; i++)
-        {
-            buf[4*i  ] = *f++;
-            buf[4*i+1] = *f++;
-            buf[4*i+2] = *f++;
-            buf[4*i+3] = 0.f;
-        }
-        glProgramEnvParameters4fvEXT(GL_VERTEX_PROGRAM_ARB, const_number, count, buf);
+	float buf[4 * C_VENVCONST_END];
+	for (unsigned int i = 0; i < count; i++)
+	{
+	    buf[4*i  ] = *f++;
+	    buf[4*i+1] = *f++;
+	    buf[4*i+2] = *f++;
+	    buf[4*i+3] = 0.f;
+	}
+	glProgramEnvParameters4fvEXT(GL_VERTEX_PROGRAM_ARB, const_number, count, buf);
     }
     else
     {
-        for (unsigned int i = 0; i < count; i++)
-        {
-            float buf[4];
-            buf[0] = *f++;
-            buf[1] = *f++;
-            buf[2] = *f++;
-            buf[3] = 0.f;
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, buf);
-        }
+	for (unsigned int i = 0; i < count; i++)
+	{
+	    float buf[4];
+	    buf[0] = *f++;
+	    buf[1] = *f++;
+	    buf[2] = *f++;
+	    buf[3] = 0.f;
+	    glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, buf);
+	}
     }
 }
 
 // Renderer Functions
 void Renderer::SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-        pSetVSConstant4f(const_number, f1, f2, f3, f4);
+	pSetVSConstant4f(const_number, f1, f2, f3, f4);
 }
 
 void Renderer::SetVSConstant4fv(unsigned int const_number, const float *f)
 {
-        pSetVSConstant4fv(const_number, f);
+	pSetVSConstant4fv(const_number, f);
 }
 
 void Renderer::SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-        pSetMultiVSConstant4fv(const_number, count, f);
+	pSetMultiVSConstant4fv(const_number, count, f);
 }
 
 void Renderer::SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
 {
-        pSetMultiVSConstant3fv(const_number, count, f);
+	pSetMultiVSConstant3fv(const_number, count, f);
 }
 
 

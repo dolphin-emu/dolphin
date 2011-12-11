@@ -68,11 +68,11 @@ u16 GetEncodedSampleCount(u32 format)
 }
 const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 {
-        if(ApiType == API_GLSL)
-                return ""; // Once we switch to GLSL 1.3 we can do something here
-        static char result[64];
-        sprintf(result, " : register(%s%d)", prefix, num);
-        return result;
+	if(ApiType == API_GLSL)
+	        return ""; // Once we switch to GLSL 1.3 we can do something here
+	static char result[64];
+	sprintf(result, " : register(%s%d)", prefix, num);
+	return result;
 }
 const char *WriteLocation(API_TYPE ApiType)
 {
@@ -821,13 +821,13 @@ void WriteZ24Encoder(char* p, API_TYPE ApiType)
 
     for (int i = 0; i < 2; i++)
     {
-        WRITE(p, "  depth%i *= 16777215.0f;\n", i);
+	WRITE(p, "  depth%i *= 16777215.0f;\n", i);
 
-        WRITE(p, "  expanded%i.r = floor(depth%i / (256 * 256));\n", i, i);
-        WRITE(p, "  depth%i -= expanded%i.r * 256 * 256;\n", i, i);
-        WRITE(p, "  expanded%i.g = floor(depth%i / 256);\n", i, i);
-        WRITE(p, "  depth%i -= expanded%i.g * 256;\n", i, i);
-        WRITE(p, "  expanded%i.b = depth%i;\n", i, i);
+	WRITE(p, "  expanded%i.r = floor(depth%i / (256 * 256));\n", i, i);
+	WRITE(p, "  depth%i -= expanded%i.r * 256 * 256;\n", i, i);
+	WRITE(p, "  expanded%i.g = floor(depth%i / 256);\n", i, i);
+	WRITE(p, "  depth%i -= expanded%i.g * 256;\n", i, i);
+	WRITE(p, "  expanded%i.b = depth%i;\n", i, i);
     }
 
     WRITE(p, "  if(cl > 0.5f) {\n");
