@@ -69,9 +69,10 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 	char ArgumentBuffer[256];
 	u32 ParameterCounter = 4;    
 	u32 FloatingParameterCounter = 1;
-	char* pString = (char*)Memory::GetPointer(GPR(strReg));
-	if (!pString) {
-		//PanicAlert("Invalid GetStringVA call");
+	char *pString = (char*)Memory::GetPointer(GPR(strReg));
+	if (!pString)
+	{
+		ERROR_LOG(OSREPORT, "r%i invalid", strReg);
 		return;
 	}
 
