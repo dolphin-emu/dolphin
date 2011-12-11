@@ -48,7 +48,7 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 		"movl  %%ebx,%1;"
 		"mov   %%rdi,%%rbx;"
 		: "=a" (*eax),
-		  "=g" (*ebx),
+		  "=r" (*ebx),
 		  "=c" (*ecx),
 		  "=d" (*edx)
 		: "a"  (*eax)
@@ -61,7 +61,7 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 		"movl   %%ebx,%1;"
 		"movl   %%edi,%%ebx;"
 		: "=a" (*eax),
-		  "=g" (*ebx),
+		  "=r" (*ebx),
 		  "=c" (*ecx),
 		  "=d" (*edx)
 		: "a"  (*eax)
