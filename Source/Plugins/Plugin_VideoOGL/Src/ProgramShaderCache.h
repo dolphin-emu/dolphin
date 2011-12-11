@@ -96,10 +96,7 @@ class ProgramShaderCache
 	static std::pair<u64, u64> CurrentShaderProgram;
 
 	static GLuint s_ps_vs_ubo;
-	static float* s_ps_vs_mapped_data;
 	static GLintptr s_vs_data_offset;
-
-	static void MapBuffer();
 	
 public:
 	static PROGRAMSHADER GetShaderProgram(void);
@@ -109,8 +106,6 @@ public:
 
 	static void SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count);
 	static void SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count);
-
-	static void FlushConstants();
 	
 	static void Init(void);
 	static void Shutdown(void);
