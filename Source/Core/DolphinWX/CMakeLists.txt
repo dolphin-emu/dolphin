@@ -72,6 +72,7 @@ endif()
 if(WIN32)
 	set(SRCS ${SRCS} Src/stdafx.cpp)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	# Link against OS X system frameworks.
 	list(APPEND LIBS
 		${APPKIT_LIBRARY}
 		${AU_LIBRARY}
@@ -87,6 +88,11 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			${COCOA_LIBRARY}
 			)
 	endif()
+	# Add resource files to application bundle.
+	set(RESOURCES resources/Dolphin.icns)
+	list(APPEND SRCS ${RESOURCES})
+	set_source_files_properties(${RESOURCES} PROPERTIES
+		MACOSX_PACKAGE_LOCATION Resources)
 else()
 	set(SRCS ${SRCS} Src/X11Utils.cpp)
 endif()
@@ -96,13 +102,52 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
 	set(LIBS ${LIBS} usbhid)
 endif()
 
-if(wxWidgets_FOUND)
-	set(DOLPHIN_EXE dolphin-emu)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(DOLPHIN_EXE_BASE Dolphin)
 else()
-	set(DOLPHIN_EXE dolphin-emu-nogui)
+	set(DOLPHIN_EXE_BASE dolphin-emu)
+endif()
+if(wxWidgets_FOUND)
+	set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE})
+else()
+	set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE}-nogui)
 endif()
 
 add_executable(${DOLPHIN_EXE} ${SRCS})
 target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
 install(TARGETS ${DOLPHIN_EXE} RUNTIME DESTINATION ${bindir})
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	include(BundleUtilities)
+	set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
+
+	# Ask for an application bundle.
+	set_target_properties(${DOLPHIN_EXE} PROPERTIES
+		MACOSX_BUNDLE true
+		MACOSX_BUNDLE_BUNDLE_NAME Dolphin
+		MACOSX_BUNDLE_ICON_FILE Dolphin.icns
+		MACOSX_BUNDLE_GUI_IDENTIFIER com.dolphin-emulator.dolphin
+		MACOSX_BUNDLE_SHORT_VERSION_STRING ${DOLPHIN_WC_DESCRIBE}
+		MACOSX_BUNDLE_LONG_VERSION_STRING ${DOLPHIN_WC_REVISION}
+		)
+
+	# Install Cg framework into application bundle.
+	copy_resolved_framework_into_bundle(
+		# Our framework in "Externals" does not have "Versions/Current/" in
+		# its path; work around the missing directory levels using "././".
+		"${CMAKE_SOURCE_DIR}/Externals/Cg/Cg.framework/././Cg"
+		"${BUNDLE_PATH}/Contents/Frameworks/Cg.framework/././Cg"
+		)
+
+	# Fix up the bundle after it is finished.
+	# There does not seem to be an easy way to run CMake commands post-build,
+	# so we invoke CMake again on a generated script.
+	file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/postprocess_bundle.cmake "
+		include(BundleUtilities)
+		message(\"Fixing up application bundle: ${BUNDLE_PATH}\")
+		fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
+		")
+	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -P postprocess_bundle.cmake
+		)
+endif()
