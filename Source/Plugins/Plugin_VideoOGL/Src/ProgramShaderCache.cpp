@@ -23,7 +23,8 @@ namespace OGL
 {
 	GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
 	ProgramShaderCache::PCache ProgramShaderCache::pshaders;
-	GLuint ProgramShaderCache::UBOBuffers[2];
+	GLuint ProgramShaderCache::s_ps_ubo;
+	GLuint ProgramShaderCache::s_vs_ubo;
 
 	std::pair<u64, u64> ProgramShaderCache::CurrentShaderProgram;
 	const char *UniformNames[NUM_UNIFORMS] = {
@@ -138,22 +139,21 @@ namespace OGL
 		CurrentShaderProgram = ShaderPair;
 		CurrentProgram = entry.program.glprogid;
 	}
-	void ProgramShaderCache::SetUniformObjects(int Buffer, unsigned int offset, const float *f, unsigned int count)
-	{
-		assert(Buffer > 1);
-		static int _Buffer = -1;
-		if(_Buffer != Buffer)
+
+		void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
 		{
-			_Buffer = Buffer;
-			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[_Buffer]);
+			glBindBuffer(GL_UNIFORM_BUFFER, s_ps_ubo);
+			glBufferSubData(GL_UNIFORM_BUFFER, offset * sizeof(float) * 4, count * sizeof(float) * 4, f);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
-		// Query for the offsets of each block variable
-
-		// glBufferSubData expects data in bytes, so multiply count by four
-		// Expects the offset in bytes as well, so multiply by *4 *4 since we are passing in a vec4 location 
-		glBufferSubData(GL_UNIFORM_BUFFER, offset * 4 * 4, count * 4 * 4, f);
-
+        
+		void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
+		{
+			glBindBuffer(GL_UNIFORM_BUFFER, s_vs_ubo);
+			glBufferSubData(GL_UNIFORM_BUFFER, offset * sizeof(float) * 4, count * sizeof(float) * 4, f);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
+        
 	GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
 
 	GLint ProgramShaderCache::GetAttr(int num)
@@ -173,32 +173,35 @@ namespace OGL
 		{
 			GLint Align;
 			glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &Align);
-			
-			glGenBuffers(2, UBOBuffers);
-			
-			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[0]);
+		
 			// We multiply by *4*4 because we need to get down to basic machine units.
 			// So multiply by four to get how many floats we have from vec4s
 			// Then once more to get bytes
-			glBufferData(GL_UNIFORM_BUFFER, ROUND_UP(C_PENVCONST_END * 4 * 4, Align), NULL, GL_DYNAMIC_DRAW);
+			glGenBuffers(1, &s_ps_ubo);
+			glBindBuffer(GL_UNIFORM_BUFFER, s_ps_ubo);
+			glBufferData(GL_UNIFORM_BUFFER, ROUND_UP(C_PENVCONST_END * sizeof(float) * 4, Align), NULL, GL_DYNAMIC_DRAW);
+			glGenBuffers(1, &s_vs_ubo);
+			glBindBuffer(GL_UNIFORM_BUFFER, s_vs_ubo);
+			glBufferData(GL_UNIFORM_BUFFER, ROUND_UP(C_VENVCONST_END * sizeof(float) * 4, Align), NULL, GL_DYNAMIC_DRAW);
+
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			// Now bind the buffer to the index point
 			// We know PS is 0 since we have it statically set in the shader
-			glBindBufferBase(GL_UNIFORM_BUFFER, 1, UBOBuffers[0]);
-			
 			// Repeat for VS shader
-			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[1]);
-			glBufferData(GL_UNIFORM_BUFFER, ROUND_UP(C_VENVCONST_END * 4 * 4, Align), NULL, GL_DYNAMIC_DRAW);
-			glBindBufferBase(GL_UNIFORM_BUFFER, 2, UBOBuffers[1]);
+			glBindBufferBase(GL_UNIFORM_BUFFER, 1, s_ps_ubo);
+			glBindBufferBase(GL_UNIFORM_BUFFER, 2, s_vs_ubo);
 		}
 	}
+	
 	void ProgramShaderCache::Shutdown(void)
 	{
 		PCache::iterator iter = pshaders.begin();
-		for (; iter != pshaders.end(); iter++)
+		for (; iter != pshaders.end(); ++iter)
 			iter->second.Destroy();
 		pshaders.clear();
-		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-			glDeleteBuffers(2, UBOBuffers);
+
+		glDeleteBuffers(1, &s_ps_ubo);
+		glDeleteBuffers(1, &s_ps_ubo);
 	}
 }
 
