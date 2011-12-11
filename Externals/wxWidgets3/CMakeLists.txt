@@ -1249,6 +1249,7 @@ set(LIBS
 	${COREFUND_LIBRARY}
 	${CORESERV_LIBRARY}
 	${IOK_LIBRARY}
+	${QUICKTIME_LIBRARY}
 	)
 
 include_directories(../libpng)

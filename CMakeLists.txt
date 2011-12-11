@@ -127,6 +127,7 @@ if (APPLE)
 	find_library(CORESERV_LIBRARY CoreServices)
 	find_library(IOB_LIBRARY IOBluetooth)
 	find_library(IOK_LIBRARY IOKit)
+	find_library(QUICKTIME_LIBRARY QuickTime)
 	find_library(WEBKIT_LIBRARY WebKit)
 endif()
 
