@@ -23,10 +23,9 @@ namespace OGL
 {
 	GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
 	ProgramShaderCache::PCache ProgramShaderCache::pshaders;
-	GLuint ProgramShaderCache::s_ps_ubo;
-	GLuint ProgramShaderCache::s_vs_ubo;
-	float* ProgramShaderCache::s_ps_mapped_data;
-	float* ProgramShaderCache::s_vs_mapped_data;
+	GLuint ProgramShaderCache::s_ps_vs_ubo;
+	float* ProgramShaderCache::s_ps_vs_mapped_data;
+	GLintptr ProgramShaderCache::s_vs_data_offset;
 
 	std::pair<u64, u64> ProgramShaderCache::CurrentShaderProgram;
 	const char *UniformNames[NUM_UNIFORMS] = {
@@ -142,55 +141,40 @@ namespace OGL
 		CurrentProgram = entry.program.glprogid;
 	}
 
-	void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
+	void ProgramShaderCache::MapBuffer()
 	{
-		if (!s_ps_mapped_data)
+		if (!s_ps_vs_mapped_data)
 		{
-			glBindBuffer(GL_UNIFORM_BUFFER, s_ps_ubo);
-			s_ps_mapped_data = reinterpret_cast<float*>(glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY));
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			s_ps_vs_mapped_data = reinterpret_cast<float*>(glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY));
 
-			if (!s_ps_mapped_data)
+			if (!s_ps_vs_mapped_data)
 				PanicAlert("glMapBuffer");
 		}
+	}
 
-		std::copy(f, f + count * 4, s_ps_mapped_data + offset * 4);
+	void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
+	{
+		MapBuffer();
+
+		std::copy(f, f + count * 4, s_ps_vs_mapped_data + offset * 4);
 	}
 
 	void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
 	{
-		if (!s_vs_mapped_data)
-		{
-			glBindBuffer(GL_UNIFORM_BUFFER, s_vs_ubo);
-			s_vs_mapped_data = reinterpret_cast<float*>(glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY));
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		MapBuffer();
 
-			if (!s_vs_mapped_data)
-				PanicAlert("glMapBuffer");
-		}
-
-		std::copy(f, f + count * 4, s_vs_mapped_data + offset * 4);
+		// TODO: division = hax
+		std::copy(f, f + count * 4, s_ps_vs_mapped_data + (s_vs_data_offset / sizeof(float)) + offset * 4);
 	}
 
 	void ProgramShaderCache::FlushConstants()
 	{
-		if (s_ps_mapped_data)
+		if (s_ps_vs_mapped_data)
 		{
-			glBindBuffer(GL_UNIFORM_BUFFER, s_ps_ubo);
 			if (!glUnmapBuffer(GL_UNIFORM_BUFFER))
 				PanicAlert("glUnmapBuffer");
-			s_ps_mapped_data = NULL;
+			s_ps_vs_mapped_data = NULL;
 		}
-		
-		if (s_vs_mapped_data)
-		{
-			glBindBuffer(GL_UNIFORM_BUFFER, s_vs_ubo);
-			if (!glUnmapBuffer(GL_UNIFORM_BUFFER))
-				PanicAlert("glUnmapBuffer");
-			s_vs_mapped_data = NULL;
-		}
-
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
 	GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
@@ -212,23 +196,23 @@ namespace OGL
 		{
 			GLint Align;
 			glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &Align);
+
+			GLintptr const ps_data_size = ROUND_UP(C_PENVCONST_END * sizeof(float) * 4, Align);
+			GLintptr const vs_data_size = ROUND_UP(C_VENVCONST_END * sizeof(float) * 4, Align);
+			s_vs_data_offset = ps_data_size;
 		
 			// We multiply by *4*4 because we need to get down to basic machine units.
 			// So multiply by four to get how many floats we have from vec4s
 			// Then once more to get bytes
-			glGenBuffers(1, &s_ps_ubo);
-			glBindBuffer(GL_UNIFORM_BUFFER, s_ps_ubo);
-			glBufferData(GL_UNIFORM_BUFFER, ROUND_UP(C_PENVCONST_END * sizeof(float) * 4, Align), NULL, GL_DYNAMIC_DRAW);
-			glGenBuffers(1, &s_vs_ubo);
-			glBindBuffer(GL_UNIFORM_BUFFER, s_vs_ubo);
-			glBufferData(GL_UNIFORM_BUFFER, ROUND_UP(C_VENVCONST_END * sizeof(float) * 4, Align), NULL, GL_DYNAMIC_DRAW);
-
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			glGenBuffers(1, &s_ps_vs_ubo);
+			glBindBuffer(GL_UNIFORM_BUFFER, s_ps_vs_ubo);
+			glBufferData(GL_UNIFORM_BUFFER, ps_data_size + vs_data_size, NULL, GL_DYNAMIC_DRAW);
+			
 			// Now bind the buffer to the index point
 			// We know PS is 0 since we have it statically set in the shader
 			// Repeat for VS shader
-			glBindBufferBase(GL_UNIFORM_BUFFER, 1, s_ps_ubo);
-			glBindBufferBase(GL_UNIFORM_BUFFER, 2, s_vs_ubo);
+			glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_ps_vs_ubo, 0, ps_data_size);
+			glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_vs_data_offset, vs_data_size);
 		}
 	}
 	
@@ -239,11 +223,11 @@ namespace OGL
 			iter->second.Destroy();
 		pshaders.clear();
 
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		// "A buffer object's mapped data store is automatically unmapped when the buffer object is deleted"
-		glDeleteBuffers(1, &s_ps_ubo);
-		glDeleteBuffers(1, &s_vs_ubo);
-		s_ps_ubo = s_vs_ubo = 0;
-		s_ps_mapped_data = s_vs_mapped_data = NULL;
+		glDeleteBuffers(1, &s_ps_vs_ubo);
+		s_ps_vs_ubo = 0;
+		s_ps_vs_mapped_data = NULL;
 	}
 }
 

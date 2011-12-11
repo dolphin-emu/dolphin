@@ -95,8 +95,12 @@ class ProgramShaderCache
 	static GLuint CurrentFShader, CurrentVShader, CurrentProgram;
 	static std::pair<u64, u64> CurrentShaderProgram;
 
-	static GLuint s_ps_ubo, s_vs_ubo;
-	static float *s_ps_mapped_data, *s_vs_mapped_data;
+	static GLuint s_ps_vs_ubo;
+	static float* s_ps_vs_mapped_data;
+	static GLintptr s_vs_data_offset;
+
+	static void MapBuffer();
+	
 public:
 	static PROGRAMSHADER GetShaderProgram(void);
 	static GLint GetAttr(int num);
