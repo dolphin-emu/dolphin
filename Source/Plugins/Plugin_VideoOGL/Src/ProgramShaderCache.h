@@ -95,14 +95,15 @@ class ProgramShaderCache
 	static GLuint CurrentFShader, CurrentVShader, CurrentProgram;
 	static std::pair<u64, u64> CurrentShaderProgram;
 
-	// For UBOS
-	static GLuint UBOBuffers[2]; // PS is 0, VS is 1
+	static GLuint s_ps_ubo, s_vs_ubo;
 public:
 	static PROGRAMSHADER GetShaderProgram(void);
 	static GLint GetAttr(int num);
 	static void SetBothShaders(GLuint PS, GLuint VS);
 	static GLuint GetCurrentProgram(void);
-	static void SetUniformObjects(int Buffer, unsigned int offset, const float *f, unsigned int count = 1);
+
+	static void SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count);
+	static void SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count);
 	
 	static void Init(void);
 	static void Shutdown(void);

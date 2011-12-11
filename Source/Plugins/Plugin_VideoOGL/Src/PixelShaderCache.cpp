@@ -522,12 +522,12 @@ void SetPSConstant4fvByName(const char * name, unsigned int offset, const float 
 
 void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-    float f[4] = { f1, f2, f3, f4 };
+    float const f[4] = {f1, f2, f3, f4};
     
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-			ProgramShaderCache::SetUniformObjects(0, const_number, f);
-			return;
+		ProgramShaderCache::SetMultiPSConstant4fv(const_number, f, 1);
+		return;
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
@@ -544,8 +544,8 @@ void SetGLSLPSConstant4fv(unsigned int const_number, const float *f)
 {
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-			ProgramShaderCache::SetUniformObjects(0, const_number, f);
-			return;
+		ProgramShaderCache::SetMultiPSConstant4fv(const_number, f, 1);
+		return;
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
@@ -562,8 +562,8 @@ void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, co
 {
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-			ProgramShaderCache::SetUniformObjects(0, const_number, f, count);
-			return;
+		ProgramShaderCache::SetMultiPSConstant4fv(const_number, f, count);
+		return;
 	}
     for (unsigned int a = 0; a < 10; ++a)
     {
