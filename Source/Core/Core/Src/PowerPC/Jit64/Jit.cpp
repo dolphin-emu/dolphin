@@ -418,7 +418,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	}
 
 	if (em_address == 0)
-		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
+	{
+		Core::SetState(Core::CORE_PAUSE);
+		PanicAlert("ERROR: Compiling at 0. LR=%08x CTR=%08x", LR, CTR);
+	}
 
 	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
 	{

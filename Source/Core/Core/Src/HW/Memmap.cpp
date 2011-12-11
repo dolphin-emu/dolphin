@@ -641,7 +641,7 @@ u8 *GetPointer(const u32 _Address)
 			_dbg_assert_msg_(MEMMAP, 0, "GetPointer from IO Bridge doesnt work");
 		case 0xc8:
 			// EFB. We don't want to return a pointer here since we have no memory mapped for it.
-			return 0;
+			break;
 
 		default:
 			return m_pPhysicalRAM + (_Address & RAM_MASK);
@@ -653,25 +653,22 @@ u8 *GetPointer(const u32 _Address)
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 			return m_pPhysicalEXRAM + (_Address & EXRAM_MASK);
 		else
-			return 0;
+			break;
 
 	case 0xe:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
 			return GetCachePtr() + (_Address & L1_CACHE_MASK);
 		else
-			return 0;
+			break;
 
 	default:
 		if (bFakeVMEM)
 			return m_pVirtualFakeVMEM + (_Address & FAKEVMEM_MASK);
-		else
-		{
-			if (!Core::g_CoreStartupParameter.bMMU &&
-				!PanicYesNoT("Unknown pointer %#08x\nContinue?", _Address))
-				Crash();
-			return 0;
-		}
 	}
+
+	ERROR_LOG(MEMMAP, "Unknown Pointer %#8x PC %#8x LR %#8x", _Address, PC, LR);
+
+	return NULL;
 }
 
 
