@@ -113,9 +113,44 @@ if (APPLE)
 	# might prevent building a distributable binary.
 	set(CMAKE_SYSTEM_PREFIX_PATH /usr)
 
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
+	# Some of our code contains Objective C constructs.
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
+	# Avoid mistaking an object file for a source file on the link command line.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -x none")
+
+	# Identify the target system:
+	# Ask for 32/64-bit fat binary.
+	set(TARGET_FLAGS "-arch x86_64 -arch i386")
+	# Minimum OS X version.
+	# This is inserted into the Info.plist as well.
+	# Note that the SDK determines the maximum version of which optional
+	# features can be used, not the minimum required version to run.
+	set(OSX_MIN_VERSION "10.5.4")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot /Developer/SDKs/MacOSX10.6.sdk")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk")
+	# Specify target CPUs.
+	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -msse3")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -march=prescott")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -mssse3")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -march=core2")
+	message("target flags: ${TARGET_FLAGS}")
+	# Target flags apply to both C and C++ compilation.
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TARGET_FLAGS}")
+	# TODO: It seems that CMake passes compile flags to the linker anyway.
+	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${TARGET_FLAGS}")
+	message("C++ flags: ${CMAKE_CXX_FLAGS}")
+
+	# Linker flags.
+	# Drop unreachable code and data.
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip,-dead_strip_dylibs")
+	# Reserve the minimum size for the zero page.
+	# Our JIT requires virtual memory space below 2GB, while the default zero
+	# page on x86_64 is 4GB in size.
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-pagezero_size,0x1000")
+
 	find_library(APPKIT_LIBRARY AppKit)
 	find_library(APPSERV_LIBRARY ApplicationServices)
 	find_library(ATB_LIBRARY AudioToolbox)

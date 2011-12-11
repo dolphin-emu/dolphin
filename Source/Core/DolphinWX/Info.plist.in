@@ -54,7 +54,7 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Licensed under GPL version 2</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.5.4</string>
+	<string>${OSX_MIN_VERSION}</string>
 	<key>LSRequiresCarbon</key>
 	<true/>
 	<key>CSResourcesFileMapped</key>
