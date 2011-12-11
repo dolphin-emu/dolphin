@@ -582,6 +582,15 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
 			WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
 
+			// A function here
+			// Fmod implementation gleaned from Nvidia
+			// At http://http.developer.nvidia.com/Cg/fmod.html
+			WRITE(p, "float fmod( float x, float y )\n");
+			WRITE(p, "{\n");
+			WRITE(p, "float z = fract( abs( x / y) ) * abs( y );\n");
+			WRITE(p, "return (x < 0) ? -z : z;\n");
+			WRITE(p, "}\n");
+
 			
 		for (int i = 0; i < 8; ++i)
 			WRITE(p, "%suniform sampler2D samp%d;\n", WriteBinding(ApiType, i), i);
