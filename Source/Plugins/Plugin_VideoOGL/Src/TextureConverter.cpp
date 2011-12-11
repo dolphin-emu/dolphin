@@ -407,7 +407,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	scaledSource.right = expandedWidth / samples;
 	int cacheBytes = 32;
     if ((format & 0x0f) == 6)
-        cacheBytes = 64;
+	cacheBytes = 64;
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	g_renderer->ResetAPIState();

@@ -21,123 +21,123 @@
 #include <assert.h>
 namespace OGL
 {
-        GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
-        ProgramShaderCache::PCache ProgramShaderCache::pshaders;
-        GLuint ProgramShaderCache::UBOBuffers[2];
+	GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
+	ProgramShaderCache::PCache ProgramShaderCache::pshaders;
+	GLuint ProgramShaderCache::UBOBuffers[2];
 
-        std::pair<u64, u64> ProgramShaderCache::CurrentShaderProgram;
-        const char *UniformNames[NUM_UNIFORMS] = {
-                // SAMPLERS
-                        "samp0","samp1","samp2","samp3","samp4","samp5","samp6","samp7",
-                // PIXEL SHADER UNIFORMS
-                        I_COLORS,
-                        I_KCOLORS,
-                        I_ALPHA,
-                        I_TEXDIMS,
-                        I_ZBIAS ,
-                        I_INDTEXSCALE ,
-                        I_INDTEXMTX,
-                        I_FOG,
-                        I_PLIGHTS,
-                        I_PMATERIALS,
-                // VERTEX SHADER UNIFORMS
-                        I_POSNORMALMATRIX,
-                        I_PROJECTION ,
-                        I_MATERIALS,
-                        I_LIGHTS,
-                        I_TEXMATRICES,
-                        I_TRANSFORMMATRICES ,
-                        I_NORMALMATRICES ,
-                        I_POSTTRANSFORMMATRICES,
-                        I_DEPTHPARAMS,
-                };
+	std::pair<u64, u64> ProgramShaderCache::CurrentShaderProgram;
+	const char *UniformNames[NUM_UNIFORMS] = {
+	        // SAMPLERS
+	                "samp0","samp1","samp2","samp3","samp4","samp5","samp6","samp7",
+	        // PIXEL SHADER UNIFORMS
+	                I_COLORS,
+	                I_KCOLORS,
+	                I_ALPHA,
+	                I_TEXDIMS,
+	                I_ZBIAS ,
+	                I_INDTEXSCALE ,
+	                I_INDTEXMTX,
+	                I_FOG,
+	                I_PLIGHTS,
+	                I_PMATERIALS,
+	        // VERTEX SHADER UNIFORMS
+	                I_POSNORMALMATRIX,
+	                I_PROJECTION ,
+	                I_MATERIALS,
+	                I_LIGHTS,
+	                I_TEXMATRICES,
+	                I_TRANSFORMMATRICES ,
+	                I_NORMALMATRICES ,
+	                I_POSTTRANSFORMMATRICES,
+	                I_DEPTHPARAMS,
+	        };
 
-        void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
-        {
-                PROGRAMUID uid;
-                CurrentFShader = PS;
-                CurrentVShader = VS;
+	void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
+	{
+	        PROGRAMUID uid;
+	        CurrentFShader = PS;
+	        CurrentVShader = VS;
 
 
-                GetProgramShaderId(&uid, CurrentVShader, CurrentFShader);
+	        GetProgramShaderId(&uid, CurrentVShader, CurrentFShader);
 
-                if(uid.uid.id == 0)
-                {
-                        CurrentProgram = 0;
-                        glUseProgram(0);
-                        return;
-                }
+	        if(uid.uid.id == 0)
+	        {
+	                CurrentProgram = 0;
+	                glUseProgram(0);
+	                return;
+	        }
 
-                // Fragment shaders can survive without Vertex Shaders
-                // We have a valid fragment shader, let's create our program
-                std::pair<u64, u64> ShaderPair = std::make_pair(uid.uid.psid, uid.uid.vsid);
-                PCache::iterator iter = pshaders.find(ShaderPair);
-                if (iter != pshaders.end())
-                {
-                        PCacheEntry &entry = iter->second;
-                        glUseProgram(entry.program.glprogid);
-                        CurrentShaderProgram = ShaderPair;
-                        CurrentProgram = entry.program.glprogid;
-                        return;
-                }
-                PCacheEntry entry;
-                entry.program.vsid = CurrentVShader;
-                entry.program.psid = CurrentFShader;
-                entry.program.glprogid = glCreateProgram();
+	        // Fragment shaders can survive without Vertex Shaders
+	        // We have a valid fragment shader, let's create our program
+	        std::pair<u64, u64> ShaderPair = std::make_pair(uid.uid.psid, uid.uid.vsid);
+	        PCache::iterator iter = pshaders.find(ShaderPair);
+	        if (iter != pshaders.end())
+	        {
+	                PCacheEntry &entry = iter->second;
+	                glUseProgram(entry.program.glprogid);
+	                CurrentShaderProgram = ShaderPair;
+	                CurrentProgram = entry.program.glprogid;
+	                return;
+	        }
+	        PCacheEntry entry;
+	        entry.program.vsid = CurrentVShader;
+	        entry.program.psid = CurrentFShader;
+	        entry.program.glprogid = glCreateProgram();
 
-                // Right, the program is created now
-                // Let's attach everything
-                if(entry.program.vsid != 0) // attaching zero vertex shader makes it freak out
-                        glAttachShader(entry.program.glprogid, entry.program.vsid);
-                        
-                glAttachShader(entry.program.glprogid, entry.program.psid);
-                
-                glLinkProgram(entry.program.glprogid);
-                
-                glUseProgram(entry.program.glprogid);
+	        // Right, the program is created now
+	        // Let's attach everything
+	        if(entry.program.vsid != 0) // attaching zero vertex shader makes it freak out
+	                glAttachShader(entry.program.glprogid, entry.program.vsid);
+	                
+	        glAttachShader(entry.program.glprogid, entry.program.psid);
+	        
+	        glLinkProgram(entry.program.glprogid);
+	        
+	        glUseProgram(entry.program.glprogid);
 
-                // Dunno why this is needed when I have the binding
-                // points statically set in the shader source
-                // We should only need these two functions when we don't support binding but do support UBO
-                // Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
-                //if(!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-                {
+	        // Dunno why this is needed when I have the binding
+	        // points statically set in the shader source
+	        // We should only need these two functions when we don't support binding but do support UBO
+	        // Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
+	        //if(!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+	        {
 					glUniformBlockBinding( entry.program.glprogid, 0, 1 );
 					glUniformBlockBinding( entry.program.glprogid, 1, 2 );
 				}
 				
-                // We cache our uniform locations for now
-                // Once we move up to a newer version of GLSL, ~1.30
-                // We can remove this
-                
-                //For some reason this fails on my hardware     
-                //glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
-                //Got to do it this crappy way.
-                if(!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	        // We cache our uniform locations for now
+	        // Once we move up to a newer version of GLSL, ~1.30
+	        // We can remove this
+	        
+	        //For some reason this fails on my hardware     
+	        //glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
+	        //Got to do it this crappy way.
+	        if(!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 					for(int a = 0; a < NUM_UNIFORMS; ++a)
 							entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
 
-                // Need to get some attribute locations
-                if(uid.uid.vsid != 0) // We have no vertex Shader
-                {
-                        entry.program.attrLoc[0] = glGetAttribLocation(entry.program.glprogid, "rawnorm1");
-                        entry.program.attrLoc[1] = glGetAttribLocation(entry.program.glprogid, "rawnorm2");
-                        entry.program.attrLoc[2] = glGetAttribLocation(entry.program.glprogid, "fposmtx");
-                        if(entry.program.attrLoc[0] > 0)
-                                glEnableVertexAttribArray(entry.program.attrLoc[0]);
-                        if(entry.program.attrLoc[1] > 0)
-                                glEnableVertexAttribArray(entry.program.attrLoc[1]);
-                        if(entry.program.attrLoc[2] > 0)
-                                glEnableVertexAttribArray(entry.program.attrLoc[2]);
-                }
-                else
-                        entry.program.attrLoc[0] = entry.program.attrLoc[1] = entry.program.attrLoc[2] = 0;
+	        // Need to get some attribute locations
+	        if(uid.uid.vsid != 0) // We have no vertex Shader
+	        {
+	                entry.program.attrLoc[0] = glGetAttribLocation(entry.program.glprogid, "rawnorm1");
+	                entry.program.attrLoc[1] = glGetAttribLocation(entry.program.glprogid, "rawnorm2");
+	                entry.program.attrLoc[2] = glGetAttribLocation(entry.program.glprogid, "fposmtx");
+	                if(entry.program.attrLoc[0] > 0)
+	                        glEnableVertexAttribArray(entry.program.attrLoc[0]);
+	                if(entry.program.attrLoc[1] > 0)
+	                        glEnableVertexAttribArray(entry.program.attrLoc[1]);
+	                if(entry.program.attrLoc[2] > 0)
+	                        glEnableVertexAttribArray(entry.program.attrLoc[2]);
+	        }
+	        else
+	                entry.program.attrLoc[0] = entry.program.attrLoc[1] = entry.program.attrLoc[2] = 0;
 
 
-                pshaders[ShaderPair] = entry;
-                CurrentShaderProgram = ShaderPair;
-                CurrentProgram = entry.program.glprogid;
-        }
+	        pshaders[ShaderPair] = entry;
+	        CurrentShaderProgram = ShaderPair;
+	        CurrentProgram = entry.program.glprogid;
+	}
 		void ProgramShaderCache::SetUniformObjects(int Buffer, unsigned int offset, const float *f, unsigned int count)
 		{
 			assert(Buffer > 1);
@@ -154,16 +154,16 @@ namespace OGL
 			glBufferSubData(GL_UNIFORM_BUFFER, offset * 4 * 4, count * 4 * 4, f);
 
 		}
-        GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
+	GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
 
-        GLint ProgramShaderCache::GetAttr(int num)
-        {
-                return pshaders[CurrentShaderProgram].program.attrLoc[num];
-        }
-        PROGRAMSHADER ProgramShaderCache::GetShaderProgram(void)
-        {
-                return pshaders[CurrentShaderProgram].program;
-        }
+	GLint ProgramShaderCache::GetAttr(int num)
+	{
+	        return pshaders[CurrentShaderProgram].program.attrLoc[num];
+	}
+	PROGRAMSHADER ProgramShaderCache::GetShaderProgram(void)
+	{
+	        return pshaders[CurrentShaderProgram].program;
+	}
 		void ProgramShaderCache::Init(void)
 		{
 			// We have to get the UBO alignment here because
@@ -188,18 +188,18 @@ namespace OGL
 			glBufferData(GL_UNIFORM_BUFFER, ROUND_UP(C_VENVCONST_END * 4 * 4, Align), NULL, GL_DYNAMIC_DRAW);
 			glBindBufferBase(GL_UNIFORM_BUFFER, 2, UBOBuffers[1]);
 		}
-        void ProgramShaderCache::Shutdown(void)
-        {
-                PCache::iterator iter = pshaders.begin();
-                for (; iter != pshaders.end(); iter++)
-                        iter->second.Destroy();
-                pshaders.clear();
-                glDeleteBuffers(2, UBOBuffers);
-        }
+	void ProgramShaderCache::Shutdown(void)
+	{
+	        PCache::iterator iter = pshaders.begin();
+	        for (; iter != pshaders.end(); iter++)
+	                iter->second.Destroy();
+	        pshaders.clear();
+	        glDeleteBuffers(2, UBOBuffers);
+	}
 }
 
 void GetProgramShaderId(PROGRAMUID *uid, GLuint _v, GLuint _p)
 {
-        uid->uid.vsid = _v;
-        uid->uid.psid = _p;
+	uid->uid.vsid = _v;
+	uid->uid.psid = _p;
 }

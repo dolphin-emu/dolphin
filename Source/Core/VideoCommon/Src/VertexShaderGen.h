@@ -48,15 +48,15 @@
 #define C_DEPTHPARAMS           (C_POSTTRANSFORMMATRICES + 64)
 #define C_VENVCONST_END			(C_DEPTHPARAMS + 1)
 const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
-                                                {I_PROJECTION , C_PROJECTION, 4  },
-                                                {I_MATERIALS, C_MATERIALS, 4 },
-                                                {I_LIGHTS, C_LIGHTS, 40 },
-                                                {I_TEXMATRICES, C_TEXMATRICES, 24 },
-                                                {I_TRANSFORMMATRICES , C_TRANSFORMMATRICES, 64  },
-                                                {I_NORMALMATRICES , C_NORMALMATRICES, 32  },
-                                                {I_POSTTRANSFORMMATRICES, C_POSTTRANSFORMMATRICES, 64 },
-                                                {I_DEPTHPARAMS, C_DEPTHPARAMS, 1 },
-                                                };                                            
+	                                        {I_PROJECTION , C_PROJECTION, 4  },
+	                                        {I_MATERIALS, C_MATERIALS, 4 },
+	                                        {I_LIGHTS, C_LIGHTS, 40 },
+	                                        {I_TEXMATRICES, C_TEXMATRICES, 24 },
+	                                        {I_TRANSFORMMATRICES , C_TRANSFORMMATRICES, 64  },
+	                                        {I_NORMALMATRICES , C_NORMALMATRICES, 32  },
+	                                        {I_POSTTRANSFORMMATRICES, C_POSTTRANSFORMMATRICES, 64 },
+	                                        {I_DEPTHPARAMS, C_DEPTHPARAMS, 1 },
+	                                        };                                            
 template<bool safe>
 class _VERTEXSHADERUID
 {

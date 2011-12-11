@@ -25,39 +25,39 @@
 #include "PixelShaderGen.h"
 #include "VertexShaderGen.h"
 
-        union PID
-        {
-                struct {
-                GLuint vsid, psid;
-                };
-                u64 id;
-        };
+	union PID
+	{
+	        struct {
+	        GLuint vsid, psid;
+	        };
+	        u64 id;
+	};
 
 class PROGRAMUID
 {
 public:
 
-        PID uid;
+	PID uid;
 
-        PROGRAMUID()
-        {
-                uid.id = 0;
-        }
+	PROGRAMUID()
+	{
+	        uid.id = 0;
+	}
 
-        PROGRAMUID(const PROGRAMUID& r)
-        {
-                uid.id = r.uid.id;
-        }
-        PROGRAMUID(GLuint _v, GLuint _p)
-        {
-                uid.vsid = _v;
-                uid.psid = _p;
-        }
+	PROGRAMUID(const PROGRAMUID& r)
+	{
+	        uid.id = r.uid.id;
+	}
+	PROGRAMUID(GLuint _v, GLuint _p)
+	{
+	        uid.vsid = _v;
+	        uid.psid = _p;
+	}
 
-        int GetNumValues() const
-        {
-                return uid.id;
-        }
+	int GetNumValues() const
+	{
+	        return uid.id;
+	}
 };
 void GetProgramShaderId(PROGRAMUID *uid, GLuint _v, GLuint _p);
 
@@ -69,43 +69,43 @@ extern const char *UniformNames[NUM_UNIFORMS];
 
 struct PROGRAMSHADER
 {
-        PROGRAMSHADER() : glprogid(0), vsid(0), psid(0){}
-        GLuint glprogid; // opengl program id
-        GLuint vsid, psid;
-        GLint attrLoc[3];
-        GLint UniformLocations[NUM_UNIFORMS];
+	PROGRAMSHADER() : glprogid(0), vsid(0), psid(0){}
+	GLuint glprogid; // opengl program id
+	GLuint vsid, psid;
+	GLint attrLoc[3];
+	GLint UniformLocations[NUM_UNIFORMS];
 };
 
 
 class ProgramShaderCache
 {
-        struct PCacheEntry
-        {
-                PROGRAMSHADER program;
-                int frameCount;
-                PCacheEntry() : frameCount(0) {}
-                void Destroy() {
-                        glDeleteProgram(program.glprogid);
-                        program.glprogid = 0;
-                }
-        };
-        typedef std::map<std::pair<u64, u64>, PCacheEntry> PCache;
+	struct PCacheEntry
+	{
+	        PROGRAMSHADER program;
+	        int frameCount;
+	        PCacheEntry() : frameCount(0) {}
+	        void Destroy() {
+	                glDeleteProgram(program.glprogid);
+	                program.glprogid = 0;
+	        }
+	};
+	typedef std::map<std::pair<u64, u64>, PCacheEntry> PCache;
 
-        static PCache pshaders;
-        static GLuint CurrentFShader, CurrentVShader, CurrentProgram;
-        static std::pair<u64, u64> CurrentShaderProgram;
+	static PCache pshaders;
+	static GLuint CurrentFShader, CurrentVShader, CurrentProgram;
+	static std::pair<u64, u64> CurrentShaderProgram;
 
-        // For UBOS
-        static GLuint UBOBuffers[2]; // PS is 0, VS is 1
+	// For UBOS
+	static GLuint UBOBuffers[2]; // PS is 0, VS is 1
 public:
-        static PROGRAMSHADER GetShaderProgram(void);
-        static GLint GetAttr(int num);
-        static void SetBothShaders(GLuint PS, GLuint VS);
-        static GLuint GetCurrentProgram(void);
-        static void SetUniformObjects(int Buffer, unsigned int offset, const float *f, unsigned int count = 1);
-        
-        static void Init(void);
-        static void Shutdown(void);
+	static PROGRAMSHADER GetShaderProgram(void);
+	static GLint GetAttr(int num);
+	static void SetBothShaders(GLuint PS, GLuint VS);
+	static GLuint GetCurrentProgram(void);
+	static void SetUniformObjects(int Buffer, unsigned int offset, const float *f, unsigned int count = 1);
+	
+	static void Init(void);
+	static void Shutdown(void);
 
 };
 
