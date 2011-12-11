@@ -192,15 +192,8 @@ void GLVertexFormat::SetupVertexPointers() {
 	if (vtx_decl.num_normals >= 1) {
 		glNormalPointer(VarToGL(vtx_decl.normal_gl_type), vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.normal_offset[0]));
 		if (vtx_decl.num_normals == 3) {
-			GLint varLocation1 = SHADER_NORM1_ATTRIB, varLocation2 = SHADER_NORM2_ATTRIB;
-			if(g_ActiveConfig.bUseGLSL){
-				varLocation1 = OGL::ProgramShaderCache::GetAttr(0);
-				varLocation2 = OGL::ProgramShaderCache::GetAttr(1);
-			}
-			if(varLocation1 > 0)
-				glVertexAttribPointer(varLocation1, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.normal_offset[1]));
-			if(varLocation2 > 0)
-				glVertexAttribPointer(varLocation2, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.normal_offset[2]));
+			glVertexAttribPointer(SHADER_NORM1_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.normal_offset[1]));
+			glVertexAttribPointer(SHADER_NORM2_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.normal_offset[2]));
 		}
 	}
 
@@ -224,11 +217,7 @@ void GLVertexFormat::SetupVertexPointers() {
 	}
 
 	if (vtx_decl.posmtx_offset != -1) {
-		GLint varLocation = SHADER_POSMTX_ATTRIB;
-		if(g_ActiveConfig.bUseGLSL)
-			varLocation = OGL::ProgramShaderCache::GetAttr(2);
-		if(varLocation > 0)
-			glVertexAttribPointer(varLocation, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.posmtx_offset));
+		glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.posmtx_offset));
 	}
 #endif
 }

@@ -72,7 +72,6 @@ struct PROGRAMSHADER
 	PROGRAMSHADER() : glprogid(0), vsid(0), psid(0){}
 	GLuint glprogid; // opengl program id
 	GLuint vsid, psid;
-	GLint attrLoc[3];
 	GLint UniformLocations[NUM_UNIFORMS];
 };
 
@@ -100,7 +99,6 @@ class ProgramShaderCache
 	
 public:
 	static PROGRAMSHADER GetShaderProgram(void);
-	static GLint GetAttr(int num);
 	static void SetBothShaders(GLuint PS, GLuint VS);
 	static GLuint GetCurrentProgram(void);
 

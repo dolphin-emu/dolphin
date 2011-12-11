@@ -121,18 +121,10 @@ namespace OGL
 		// Need to get some attribute locations
 		if(uid.uid.vsid != 0) // We have no vertex Shader
 		{
-			entry.program.attrLoc[0] = glGetAttribLocation(entry.program.glprogid, "rawnorm1");
-			entry.program.attrLoc[1] = glGetAttribLocation(entry.program.glprogid, "rawnorm2");
-			entry.program.attrLoc[2] = glGetAttribLocation(entry.program.glprogid, "fposmtx");
-			if(entry.program.attrLoc[0] > 0)
-				glEnableVertexAttribArray(entry.program.attrLoc[0]);
-			if(entry.program.attrLoc[1] > 0)
-				glEnableVertexAttribArray(entry.program.attrLoc[1]);
-			if(entry.program.attrLoc[2] > 0)
-				glEnableVertexAttribArray(entry.program.attrLoc[2]);
+			glBindAttribLocation(entry.program.glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
+			glBindAttribLocation(entry.program.glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
+			glBindAttribLocation(entry.program.glprogid, SHADER_POSMTX_ATTRIB, "fposmtx");
 		}
-		else
-			entry.program.attrLoc[0] = entry.program.attrLoc[1] = entry.program.attrLoc[2] = 0;
 
 
 		pshaders[ShaderPair] = entry;
@@ -154,10 +146,6 @@ namespace OGL
 	
 	GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
 
-	GLint ProgramShaderCache::GetAttr(int num)
-	{
-		return pshaders[CurrentShaderProgram].program.attrLoc[num];
-	}
 	PROGRAMSHADER ProgramShaderCache::GetShaderProgram(void)
 	{
 		return pshaders[CurrentShaderProgram].program;
