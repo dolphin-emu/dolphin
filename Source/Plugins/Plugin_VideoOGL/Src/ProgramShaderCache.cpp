@@ -24,7 +24,6 @@ namespace OGL
 	GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
 	ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 	GLuint ProgramShaderCache::s_ps_vs_ubo;
-	float* ProgramShaderCache::s_ps_vs_mapped_data;
 	GLintptr ProgramShaderCache::s_vs_data_offset;
 
 	std::pair<u64, u64> ProgramShaderCache::CurrentShaderProgram;
@@ -141,42 +140,18 @@ namespace OGL
 		CurrentProgram = entry.program.glprogid;
 	}
 
-	void ProgramShaderCache::MapBuffer()
-	{
-		if (!s_ps_vs_mapped_data)
-		{
-			s_ps_vs_mapped_data = reinterpret_cast<float*>(glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY));
-
-			if (!s_ps_vs_mapped_data)
-				PanicAlert("glMapBuffer");
-		}
-	}
-
 	void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
 	{
-		MapBuffer();
-
-		std::copy(f, f + count * 4, s_ps_vs_mapped_data + offset * 4);
+		glBufferSubData(GL_UNIFORM_BUFFER, offset * sizeof(float) * 4,
+			count * sizeof(float) * 4, f);
 	}
 
 	void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
 	{
-		MapBuffer();
-
-		// TODO: division = hax
-		std::copy(f, f + count * 4, s_ps_vs_mapped_data + (s_vs_data_offset / sizeof(float)) + offset * 4);
+		glBufferSubData(GL_UNIFORM_BUFFER, s_vs_data_offset + offset * sizeof(float) * 4,
+			count * sizeof(float) * 4, f);
 	}
-
-	void ProgramShaderCache::FlushConstants()
-	{
-		if (s_ps_vs_mapped_data)
-		{
-			if (!glUnmapBuffer(GL_UNIFORM_BUFFER))
-				PanicAlert("glUnmapBuffer");
-			s_ps_vs_mapped_data = NULL;
-		}
-	}
-
+	
 	GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
 
 	GLint ProgramShaderCache::GetAttr(int num)
@@ -224,10 +199,8 @@ namespace OGL
 		pshaders.clear();
 
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		// "A buffer object's mapped data store is automatically unmapped when the buffer object is deleted"
 		glDeleteBuffers(1, &s_ps_vs_ubo);
 		s_ps_vs_ubo = 0;
-		s_ps_vs_mapped_data = NULL;
 	}
 }
 
