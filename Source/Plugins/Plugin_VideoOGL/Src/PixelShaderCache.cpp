@@ -31,6 +31,8 @@
 #include "ProgramShaderCache.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
+#include "OnScreenDisplay.h"
+#include "StringUtil.h"
 #include "FileUtil.h"
 #include "Debugger.h"
 
@@ -74,25 +76,28 @@ void PixelShaderCache::Init()
 
     if(g_ActiveConfig.bUseGLSL)
     {
-	pSetPSConstant4f = SetGLSLPSConstant4f;
-	pSetPSConstant4fv = SetGLSLPSConstant4fv;
-	pSetMultiPSConstant4fv = SetMultiGLSLPSConstant4fv;
-	pCompilePixelShader = CompileGLSLPixelShader;
-	// Should this be set here?
-	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
+		pSetPSConstant4f = SetGLSLPSConstant4f;
+		pSetPSConstant4fv = SetGLSLPSConstant4fv;
+		pSetMultiPSConstant4fv = SetMultiGLSLPSConstant4fv;
+		pCompilePixelShader = CompileGLSLPixelShader;
+		// Should this be set here?
+		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
 			g_Config.backend_info.bSupportsGLSLBinding = true;
 		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_uniform_buffer_object") != NULL)
 			g_Config.backend_info.bSupportsGLSLUBO = true;
 		
 		UpdateActiveConfig();
+		OSD::AddMessage(StringFromFormat("Using GLSL. Supports Binding: %s UBOs: %s",
+				g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "True" : "False",
+				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False").c_str(), 5000);
     }
     else
     {
-	pSetPSConstant4f = SetCGPSConstant4f;
-	pSetPSConstant4fv = SetCGPSConstant4fv;
-	pSetMultiPSConstant4fv = SetMultiCGPSConstant4fv;
-	pCompilePixelShader = CompileCGPixelShader;
-	glEnable(GL_FRAGMENT_PROGRAM_ARB);
+		pSetPSConstant4f = SetCGPSConstant4f;
+		pSetPSConstant4fv = SetCGPSConstant4fv;
+		pSetMultiPSConstant4fv = SetMultiCGPSConstant4fv;
+		pCompilePixelShader = CompileCGPixelShader;
+		glEnable(GL_FRAGMENT_PROGRAM_ARB);
     }
 
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
