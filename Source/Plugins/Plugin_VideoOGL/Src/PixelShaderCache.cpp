@@ -496,11 +496,11 @@ void PixelShaderCache::SetPSSampler(const char * name, unsigned int Tex)
 	if (!strcmp(name, UniformNames[a]))
 	{
 	    if(tmp.UniformLocations[a] == -1)
-	        return;
+		return;
 	    else
 	    {
-	        glUniform1i(tmp.UniformLocations[a], Tex);
-	        return;
+		glUniform1i(tmp.UniformLocations[a], Tex);
+		return;
 	    }
 	}
 }
@@ -511,11 +511,11 @@ void SetPSConstant4fvByName(const char * name, unsigned int offset, const float 
 	if (!strcmp(name, UniformNames[a]))
 	{
 	    if(tmp.UniformLocations[a] == -1)
-	        return;
+		return;
 	    else
 	    {
-	        glUniform4fv(tmp.UniformLocations[a] + offset, count, f);
-	        return;
+		glUniform4fv(tmp.UniformLocations[a] + offset, count, f);
+		return;
 	    }
 	}
 }
@@ -601,9 +601,9 @@ bool CompileCGPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 	file.close();
 
 	PanicAlert("Failed to compile pixel shader %d!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
-	           num_failures - 1, szTemp,
-	           g_cgfProf,
-	           cgGetLastListing(g_cgcontext));
+		   num_failures - 1, szTemp,
+		   g_cgfProf,
+		   cgGetLastListing(g_cgcontext));
 
 	return false;
     }

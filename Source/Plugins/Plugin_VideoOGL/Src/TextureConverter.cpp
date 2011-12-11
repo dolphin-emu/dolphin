@@ -281,7 +281,7 @@ void Shutdown()
 }
 
 void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
-				            u8* destAddr, int dstWidth, int dstHeight, int readStride,
+					    u8* destAddr, int dstWidth, int dstHeight, int readStride,
 						   	bool toTexture, bool linearFilter)
 {
 

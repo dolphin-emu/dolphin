@@ -69,7 +69,7 @@ u16 GetEncodedSampleCount(u32 format)
 const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 {
 	if(ApiType == API_GLSL)
-	        return ""; // Once we switch to GLSL 1.3 we can do something here
+		return ""; // Once we switch to GLSL 1.3 we can do something here
 	static char result[64];
 	sprintf(result, " : register(%s%d)", prefix, num);
 	return result;
