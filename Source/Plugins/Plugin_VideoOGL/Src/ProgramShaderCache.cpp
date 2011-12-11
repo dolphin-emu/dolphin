@@ -102,9 +102,9 @@ namespace OGL
 		// Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
 		//if(!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 		{
-					glUniformBlockBinding( entry.program.glprogid, 0, 1 );
-					glUniformBlockBinding( entry.program.glprogid, 1, 2 );
-				}
+			glUniformBlockBinding( entry.program.glprogid, 0, 1 );
+			glUniformBlockBinding( entry.program.glprogid, 1, 2 );
+		}
 				
 		// We cache our uniform locations for now
 		// Once we move up to a newer version of GLSL, ~1.30
@@ -114,8 +114,8 @@ namespace OGL
 		//glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
 		//Got to do it this crappy way.
 		if(!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-					for(int a = 0; a < NUM_UNIFORMS; ++a)
-							entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
+			for(int a = 0; a < NUM_UNIFORMS; ++a)
+				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
 
 		// Need to get some attribute locations
 		if(uid.uid.vsid != 0) // We have no vertex Shader
@@ -138,22 +138,22 @@ namespace OGL
 		CurrentShaderProgram = ShaderPair;
 		CurrentProgram = entry.program.glprogid;
 	}
-		void ProgramShaderCache::SetUniformObjects(int Buffer, unsigned int offset, const float *f, unsigned int count)
+	void ProgramShaderCache::SetUniformObjects(int Buffer, unsigned int offset, const float *f, unsigned int count)
+	{
+		assert(Buffer > 1);
+		static int _Buffer = -1;
+		if(_Buffer != Buffer)
 		{
-			assert(Buffer > 1);
-			static int _Buffer = -1;
-			if(_Buffer != Buffer)
-			{
-				_Buffer = Buffer;
-				glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[_Buffer]);
-			}
-			// Query for the offsets of each block variable
-
-			// glBufferSubData expects data in bytes, so multiply count by four
-			// Expects the offset in bytes as well, so multiply by *4 *4 since we are passing in a vec4 location 
-			glBufferSubData(GL_UNIFORM_BUFFER, offset * 4 * 4, count * 4 * 4, f);
-
+			_Buffer = Buffer;
+			glBindBuffer(GL_UNIFORM_BUFFER, UBOBuffers[_Buffer]);
 		}
+		// Query for the offsets of each block variable
+
+		// glBufferSubData expects data in bytes, so multiply count by four
+		// Expects the offset in bytes as well, so multiply by *4 *4 since we are passing in a vec4 location 
+		glBufferSubData(GL_UNIFORM_BUFFER, offset * 4 * 4, count * 4 * 4, f);
+
+	}
 	GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
 
 	GLint ProgramShaderCache::GetAttr(int num)
@@ -164,11 +164,13 @@ namespace OGL
 	{
 		return pshaders[CurrentShaderProgram].program;
 	}
-		void ProgramShaderCache::Init(void)
+	void ProgramShaderCache::Init(void)
+	{
+		// We have to get the UBO alignment here because
+		// if we generate a buffer that isn't aligned
+		// then the UBO will fail.
+		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		{
-			// We have to get the UBO alignment here because
-			// if we generate a buffer that isn't aligned
-			// then the UBO will fail.
 			GLint Align;
 			glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &Align);
 			
@@ -188,13 +190,15 @@ namespace OGL
 			glBufferData(GL_UNIFORM_BUFFER, ROUND_UP(C_VENVCONST_END * 4 * 4, Align), NULL, GL_DYNAMIC_DRAW);
 			glBindBufferBase(GL_UNIFORM_BUFFER, 2, UBOBuffers[1]);
 		}
+	}
 	void ProgramShaderCache::Shutdown(void)
 	{
 		PCache::iterator iter = pshaders.begin();
 		for (; iter != pshaders.end(); iter++)
 			iter->second.Destroy();
 		pshaders.clear();
-		glDeleteBuffers(2, UBOBuffers);
+		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+			glDeleteBuffers(2, UBOBuffers);
 	}
 }
 
