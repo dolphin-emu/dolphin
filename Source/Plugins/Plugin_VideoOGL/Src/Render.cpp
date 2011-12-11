@@ -940,8 +940,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 #ifdef USE_DUAL_SOURCE_BLEND
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
-		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
-	bool useDualSource = useDstAlpha && GLEW_ARB_blend_func_extended;
+		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && g_ActiveConfig.bUseGLSL;
+	bool useDualSource = useDstAlpha;
 #endif
 
 	if (changes & 1)
