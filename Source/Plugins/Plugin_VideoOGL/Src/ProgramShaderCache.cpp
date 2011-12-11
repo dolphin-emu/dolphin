@@ -140,18 +140,18 @@ namespace OGL
 		CurrentProgram = entry.program.glprogid;
 	}
 
-		void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
-		{
-			glBindBuffer(GL_UNIFORM_BUFFER, s_ps_ubo);
-			glBufferSubData(GL_UNIFORM_BUFFER, offset * sizeof(float) * 4, count * sizeof(float) * 4, f);
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		}
-        
-		void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
-		{
-			glBindBuffer(GL_UNIFORM_BUFFER, s_vs_ubo);
-			glBufferSubData(GL_UNIFORM_BUFFER, offset * sizeof(float) * 4, count * sizeof(float) * 4, f);
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
+	{
+		glBindBuffer(GL_UNIFORM_BUFFER, s_ps_ubo);
+		glBufferSubData(GL_UNIFORM_BUFFER, offset * sizeof(float) * 4, count * sizeof(float) * 4, f);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
+
+	void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
+	{
+		glBindBuffer(GL_UNIFORM_BUFFER, s_vs_ubo);
+		glBufferSubData(GL_UNIFORM_BUFFER, offset * sizeof(float) * 4, count * sizeof(float) * 4, f);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
         
 	GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
