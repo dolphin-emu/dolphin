@@ -77,7 +77,10 @@ void FrameUpdate()
 		g_lagCounter++;
 	
 	if (g_bFrameStep)
+	{
 		Core::SetState(Core::CORE_PAUSE);
+		g_bFrameStep = false;
+	}
 	
 	// ("framestop") the only purpose of this is to cause interpreter/jit Run() to return temporarily.
 	// after that we set it back to CPU_RUNNING and continue as normal.
@@ -113,9 +116,19 @@ void SetPolledDevice()
 	g_bPolled = true;
 }
 
-void SetFrameStepping(bool bEnabled)
+void DoFrameStep()
 {
-	g_bFrameStep = bEnabled;
+	if(Core::GetState() == Core::CORE_PAUSE)
+	{
+		// if already paused, frame advance for 1 frame
+		Core::SetState(Core::CORE_RUN);
+		g_bFrameStep = true;
+	}
+	else
+	{
+		// if not paused yet, pause immediately instead
+		Core::SetState(Core::CORE_PAUSE);
+	}
 }
 
 void SetFrameStopping(bool bEnabled)
@@ -125,6 +138,9 @@ void SetFrameStopping(bool bEnabled)
 
 void SetReadOnly(bool bEnabled)
 {
+	if (g_bReadOnly != bEnabled)
+		Core::DisplayMessage(bEnabled ? "Read-only mode." :  "Read+Write mode.", 1000);
+
 	g_bReadOnly = bEnabled;
 }
 

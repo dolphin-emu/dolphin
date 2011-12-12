@@ -145,7 +145,7 @@ void CFrame::CreateMenu()
 	emulationMenu->Check(IDM_RECORDREADONLY, true);
 	emulationMenu->AppendSeparator();
 	
-	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString, wxITEM_CHECK);
+	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
 
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
@@ -704,7 +704,13 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 
 void CFrame::OnFrameStep(wxCommandEvent& event)
 {
-	Movie::SetFrameStepping(event.IsChecked());
+	bool wasPaused = (Core::GetState() == Core::CORE_PAUSE);
+
+	Movie::DoFrameStep();
+
+	bool isPaused = (Core::GetState() == Core::CORE_PAUSE);
+	if(isPaused && !wasPaused) // don't update on unpause, otherwise the status would be wrong when pausing next frame
+		UpdateGUI();
 }
 
 void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
@@ -718,8 +724,11 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 	
 	if (Movie::IsReadOnly())
 	{
-		PanicAlertT("Cannot record movies in read-only mode.");
-		return;
+		//PanicAlertT("Cannot record movies in read-only mode.");
+		//return;
+		// the user just chose to record a movie, so that should take precedence
+		Movie::SetReadOnly(false);
+		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(false);
 	}
 
 	for (int i = 0; i < 4; i++) {

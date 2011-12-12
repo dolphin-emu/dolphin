@@ -111,7 +111,7 @@ bool IsUsingWiimote(int wiimote);
 void ChangePads(bool instantly = false);
 void ChangeWiiPads(bool instantly = false);
 
-void SetFrameStepping(bool bEnabled);
+void DoFrameStep();
 void SetFrameStopping(bool bEnabled);
 void SetReadOnly(bool bEnabled);
 
