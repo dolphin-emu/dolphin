@@ -146,4 +146,15 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -P postprocess_bundle.cmake
 		)
+
+	# Copy data files into application bundle.
+	file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/copy_data_into_bundle.cmake "
+		file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys ${CMAKE_SOURCE_DIR}/Data/User
+			DESTINATION ${BUNDLE_PATH}/Contents/Resources
+			)
+		")
+	add_custom_target(CopyDataIntoBundle ALL
+		COMMAND ${CMAKE_COMMAND} -P copy_data_into_bundle.cmake
+		VERBATIM
+		)
 endif()
