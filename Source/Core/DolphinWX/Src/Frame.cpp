@@ -116,7 +116,7 @@ CPanel::CPanel(
 			wxWindow *parent,
 			wxWindowID id
 			)
-	: wxPanel(parent, id)
+	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, 0) // disables wxTAB_TRAVERSAL because it was breaking hotkeys
 {
 }
 
