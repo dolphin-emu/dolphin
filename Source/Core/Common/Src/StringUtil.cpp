@@ -130,12 +130,13 @@ bool TryParse(const std::string &str, u32 *const output)
 	if (!endptr || *endptr)
 		return false;
 
-	if (value == ULONG_MAX && errno == ERANGE)
+	if (errno == ERANGE)
 		return false;
 
 	if (ULONG_MAX > UINT_MAX) {
-		// Leading bits must be either all 0 or all 1.
-		if ((~value | UINT_MAX) != ULONG_MAX && (value | UINT_MAX) != ULONG_MAX)
+		// Note: The typecasts avoid GCC warnings when long is 32 bits wide.
+		if (value >= static_cast<unsigned long>(0x100000000ull)
+				&& value <= static_cast<unsigned long>(0xFFFFFFFF00000000ull))
 			return false;
 	}
 
