@@ -20,7 +20,7 @@
 
 namespace
 {
-const float INPUT_DETECT_THRESHOLD = 0.65f;
+const float INPUT_DETECT_THRESHOLD = 0.55f;
 }
 
 ControllerInterface g_controller_interface;
