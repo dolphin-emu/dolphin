@@ -85,6 +85,7 @@ void StopTrace();
 
 bool ShouldSkipFrame(int skipped);
 void VideoThrottle();
+void RequestRefreshInfo();
 
 #ifdef RERECORDING
 

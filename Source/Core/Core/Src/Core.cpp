@@ -101,6 +101,7 @@ std::string g_stateFileName;
 std::thread g_EmuThread;
 
 static std::thread g_cpu_thread;
+static bool g_requestRefreshInfo;
 
 SCoreStartupParameter g_CoreStartupParameter;
 
@@ -261,7 +262,7 @@ void Stop()  // - Hammertime!
 		SConfig::GetInstance().m_SYSCONF->Reload();
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
-	Movie::g_InputCounter = 0;
+	Movie::g_currentInputCount = 0;
 	g_bStopping = false;
 }
 
@@ -537,6 +538,11 @@ void SaveScreenShot()
 		SetState(CORE_RUN);
 }
 
+void RequestRefreshInfo()
+{
+	g_requestRefreshInfo = true;
+}
+
 // Apply Frame Limit and Display FPS info
 // This should only be called from VI
 void VideoThrottle()
@@ -561,8 +567,9 @@ void VideoThrottle()
 
 	// Update info per second
 	u32 ElapseTime = (u32)Timer.GetTimeDifference();
-	if ((ElapseTime >= 1000 && DrawnVideo > 0) || Movie::g_bFrameStep)
+	if ((ElapseTime >= 1000 && DrawnVideo > 0) || g_requestRefreshInfo)
 	{
+		g_requestRefreshInfo = false;
 		SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 		u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
@@ -599,8 +606,10 @@ void VideoThrottle()
 
 		#else	// Summary information
 		std::string SFPS;
-		if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
-			SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - SPEED: %u%%", Movie::g_frameCounter, Movie::g_InputCounter, FPS, VPS, Speed);
+		if (Movie::IsPlayingInput())
+			SFPS = StringFromFormat("VI: %u/%u - Frame: %u/%u - FPS: %u - VPS: %u - SPEED: %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
+		else if (Movie::IsRecordingInput())
+			SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - SPEED: %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
 		else
 			SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
 		#endif

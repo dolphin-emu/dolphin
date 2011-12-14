@@ -637,9 +637,9 @@ void Wiimote::Update()
 
 	Movie::SetPolledDevice();
 
-	if (!Movie::IsPlayingInput() || !Movie::PlayWiimote(m_index, data, rptf_size))
+	const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
+	if (!Movie::IsPlayingInput() || !Movie::PlayWiimote(m_index, data, rptf_size, rptf.core?(data+rptf.core):NULL, rptf.accel?(data+rptf.accel):NULL, rptf.ir?(data+rptf.ir):NULL))
 	{
-		const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
 		rptf_size = rptf.size;
 
 		data[0] = 0xA1;
@@ -744,7 +744,7 @@ void Wiimote::Update()
 		}
 		if (Movie::IsRecordingInput())
 		{
-			Movie::RecordWiimote(m_index, data, rptf_size);
+			Movie::RecordWiimote(m_index, data, rptf_size, rptf.core?(data+rptf.core):NULL, rptf.accel?(data+rptf.accel):NULL, rptf.ir?(data+rptf.ir):NULL);
 		}
 	}
 

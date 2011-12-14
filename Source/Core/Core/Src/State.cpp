@@ -74,7 +74,7 @@ static u64 lastCheckedStates[NUM_HOOKS];
 static u8 hook;
 
 // Don't forget to increase this after doing changes on the savestate system 
-static const int STATE_VERSION = 5;
+static const int STATE_VERSION = 6;
 
 struct StateHeader
 {
@@ -98,13 +98,29 @@ void EnableCompression(bool compression)
 
 void DoState(PointerWrap &p)
 {
-	u32 cookie = 0xBAADBABE + STATE_VERSION;
-	p.Do(cookie);
-	if (cookie != 0xBAADBABE + STATE_VERSION)
+	u32 version = STATE_VERSION;
 	{
-		p.SetMode(PointerWrap::MODE_MEASURE);
-		return;
+		u32 cookie = version + 0xBAADBABE;
+		p.Do(cookie);
+		version = cookie - 0xBAADBABE;
 	}
+
+	if (version != STATE_VERSION)
+	{
+		if (version == 5 && STATE_VERSION == 6)
+		{
+			// from version 5 to 6, the only difference was the addition of calling Movie::DoState,
+			// so (because it's easy) let's not break compatibility in this case
+		}
+		else
+		{
+			// if the version doesn't match, fail.
+			// this will trigger a message like "Can't load state from other revisions"
+			p.SetMode(PointerWrap::MODE_MEASURE);
+			return;
+		}
+	}
+
 	// Begin with video backend, so that it gets a chance to clear it's caches and writeback modified things to RAM
 	// Pause the video thread in multi-threaded mode
 	g_video_backend->RunLoop(false);
@@ -116,6 +132,7 @@ void DoState(PointerWrap &p)
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
+	Movie::DoState(p, version<6);
 
 	// Resume the video thread
 	g_video_backend->RunLoop(true);
@@ -253,7 +270,7 @@ void SaveFileStateCallback(u64 userdata, int cyclesLate)
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
 	
-	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsRecordingInputFromSaveState())
+	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
 		Movie::SaveRecording((g_current_filename + ".dtm").c_str());
 	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
 		File::Delete(g_current_filename + ".dtm");
@@ -360,7 +377,7 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 	
 		if (File::Exists(g_current_filename + ".dtm"))
 			Movie::LoadInput((g_current_filename + ".dtm").c_str());
-		else if (!Movie::IsRecordingInputFromSaveState())
+		else if (!Movie::IsJustStartingRecordingInputFromSaveState())
 			Movie::EndPlayInput(false);
 	}
 
