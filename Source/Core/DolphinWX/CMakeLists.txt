@@ -115,7 +115,6 @@ endif()
 
 add_executable(${DOLPHIN_EXE} ${SRCS})
 target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
-install(TARGETS ${DOLPHIN_EXE} RUNTIME DESTINATION ${bindir})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	include(BundleUtilities)
@@ -157,4 +156,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		COMMAND ${CMAKE_COMMAND} -P copy_data_into_bundle.cmake
 		VERBATIM
 		)
+
+	# Install bundle into systemwide /Applications directory.
+	install(DIRECTORY ${BUNDLE_PATH} DESTINATION /Applications
+		USE_SOURCE_PERMISSIONS
+		)
+else()
+	install(TARGETS ${DOLPHIN_EXE} RUNTIME DESTINATION ${bindir})
 endif()
