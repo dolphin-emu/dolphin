@@ -136,6 +136,9 @@ if (APPLE)
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot /Developer/SDKs/MacOSX10.6.sdk")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk")
+	# Do not warn about frameworks that are not available on all architectures.
+	# This avoids a warning when linking with QuickTime.
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
 	# Specify target CPUs.
 	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -msse3")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -march=prescott")
