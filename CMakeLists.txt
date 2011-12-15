@@ -437,6 +437,7 @@ endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	find_library(CL OpenCL)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-weak_framework,OpenCL")
 else()
 	include_directories(Externals/CLRun/include)
 	add_subdirectory(Externals/CLRun)
