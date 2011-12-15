@@ -638,10 +638,9 @@ void Wiimote::Update()
 	Movie::SetPolledDevice();
 
 	const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
-	if (!Movie::IsPlayingInput() || !Movie::PlayWiimote(m_index, data, rptf_size, rptf.core?(data+rptf.core):NULL, rptf.accel?(data+rptf.accel):NULL, rptf.ir?(data+rptf.ir):NULL))
+	rptf_size = rptf.size;
+	if (!Movie::IsPlayingInput() || !Movie::PlayWiimote(m_index, data, rptf, m_reg_ir.mode))
 	{
-		rptf_size = rptf.size;
-
 		data[0] = 0xA1;
 		data[1] = m_reporting_mode;
 	
@@ -661,8 +660,8 @@ void Wiimote::Update()
 		if (rptf.ext)
 			GetExtData(data + rptf.ext);
 	
-		// hybrid wiimote stuff
-		if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index])
+		// hybrid wiimote stuff (for now, it's not supported while recording)
+		if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index] && !Movie::IsRecordingInput())
 		{
 			using namespace WiimoteReal;
 	
@@ -744,7 +743,7 @@ void Wiimote::Update()
 		}
 		if (Movie::IsRecordingInput())
 		{
-			Movie::RecordWiimote(m_index, data, rptf_size, rptf.core?(data+rptf.core):NULL, rptf.accel?(data+rptf.accel):NULL, rptf.ir?(data+rptf.ir):NULL);
+			Movie::RecordWiimote(m_index, data, rptf, m_reg_ir.mode);
 		}
 	}
 

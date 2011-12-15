@@ -457,7 +457,8 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	
 	g_padState.CStickX = PadStatus->substickX;
 	g_padState.CStickY = PadStatus->substickY;
-	
+
+
 	memcpy(&(tmpInput[g_currentByte]), &g_padState, 8);
 	g_currentByte += 8;
 	g_totalBytes = g_currentByte;
@@ -465,12 +466,18 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	SetInputDisplayString(g_padState, controllerID);
 }
 
-void RecordWiimote(int wiimote, u8 *data, s8 size, u8* const coreData, u8* const accelData, u8* const irData)
+void RecordWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int irMode)
 {
 	if(!IsRecordingInput() || !IsUsingWiimote(wiimote))
 		return;
+
+	u8* const coreData = rptf.core?(data+rptf.core):NULL;
+	u8* const accelData = rptf.accel?(data+rptf.accel):NULL;
+	u8* const irData = rptf.ir?(data+rptf.ir):NULL;
+	u8 size = rptf.size;
+
 	InputUpdate();
-	tmpInput[g_currentByte++] = (u8) size;
+	tmpInput[g_currentByte++] = size;
 	memcpy(&(tmpInput[g_currentByte]), data, size);
 	g_currentByte += size;
 	g_totalBytes = g_currentByte;
@@ -525,6 +532,10 @@ bool PlayInput(const char *filename)
 	g_totalFrames = tmpHeader.frameCount;
 	g_totalLagCount = tmpHeader.lagCount;
 	g_totalInputCount = tmpHeader.inputCount;
+
+	g_currentFrame = 0;
+	g_currentLagCount = 0;
+	g_currentInputCount = 0;
 
 	g_playMode = MODE_PLAYING;
 	
@@ -687,7 +698,8 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	signed char e = PadStatus->err;
 	memset(PadStatus, 0, sizeof(SPADStatus));
 	PadStatus->err = e;
-	
+
+
 	memcpy(&g_padState, &(tmpInput[g_currentByte]), 8);
 	g_currentByte += 8;
 	
@@ -740,32 +752,43 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	CheckInputEnd();
 }
 
-bool PlayWiimote(int wiimote, u8 *data, s8 &size, u8* const coreData, u8* const accelData, u8* const irData)
+bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int irMode)
 {
-	s8 count = 0;
-	
 	if(!IsPlayingInput() || !IsUsingWiimote(wiimote) || tmpInput == NULL)
 		return false;
-	
+
 	if (g_currentByte > g_totalBytes)
 	{
 		PanicAlertT("Premature movie end in PlayWiimote. %u > %u", (u32)g_currentByte, (u32)g_totalBytes);
 		EndPlayInput(!g_bReadOnly);
 		return false;
 	}
-	
-	count = (s8) (tmpInput[g_currentByte++]);
 
-	if (g_currentByte + count > g_totalBytes)
+	u8* const coreData = rptf.core?(data+rptf.core):NULL;
+	u8* const accelData = rptf.accel?(data+rptf.accel):NULL;
+	u8* const irData = rptf.ir?(data+rptf.ir):NULL;
+	u8 size = rptf.size;
+
+	u8 sizeInMovie = tmpInput[g_currentByte];
+
+	if (size != sizeInMovie)
 	{
-		PanicAlertT("Premature movie end in PlayWiimote. %u + %d > %u", (u32)g_currentByte, count, (u32)g_totalBytes);
+		PanicAlertT("Error in PlayWiimote. %u != %u, byte %d.\nSorry, Wii recording is temporarily broken.", sizeInMovie, size, g_currentByte);
+		EndPlayInput(!g_bReadOnly);
+		return false;
+	}
+
+	g_currentByte++;
+
+	if (g_currentByte + size > g_totalBytes)
+	{
+		PanicAlertT("Premature movie end in PlayWiimote. %u + %d > %u", (u32)g_currentByte, size, (u32)g_totalBytes);
 		EndPlayInput(!g_bReadOnly);
 		return false;
 	}
 	
-	memcpy(data, &(tmpInput[g_currentByte]), count);
-	g_currentByte += count;
-	size = (count > size) ? size : count;
+	memcpy(data, &(tmpInput[g_currentByte]), size);
+	g_currentByte += size;
 	
 	SetWiiInputDisplayString(wiimote, coreData, accelData, irData);
 

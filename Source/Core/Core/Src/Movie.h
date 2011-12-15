@@ -26,6 +26,11 @@
 
 #include "ChunkFile.h"
 
+namespace WiimoteEmu
+{
+struct ReportFeatures;
+}
+
 // Per-(video )Movie actions
 
 namespace Movie {
@@ -127,12 +132,12 @@ void FrameSkipping();
 
 bool BeginRecordingInput(int controllers);
 void RecordInput(SPADStatus *PadStatus, int controllerID);
-void RecordWiimote(int wiimote, u8* data, s8 size, u8* const coreData, u8* const accelData, u8* const irData);
+void RecordWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 
 bool PlayInput(const char *filename);
 void LoadInput(const char *filename);
 void PlayController(SPADStatus *PadStatus, int controllerID);
-bool PlayWiimote(int wiimote, u8* data, s8 &size, u8* const coreData, u8* const accelData, u8* const irData);
+bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 void EndPlayInput(bool cont);
 void SaveRecording(const char *filename);
 void DoState(PointerWrap &p, bool doNot=false);
