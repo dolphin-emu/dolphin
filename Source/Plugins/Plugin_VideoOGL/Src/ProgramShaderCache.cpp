@@ -114,9 +114,17 @@ namespace OGL
 		//For some reason this fails on my hardware     
 		//glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
 		//Got to do it this crappy way.
-		if(!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 			for(int a = 0; a < NUM_UNIFORMS; ++a)
 				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
+		else if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding) 
+			for(int a = 0; a < 8; ++a)
+			{
+				// Still need to get sampler locations since we aren't binding them statically in the shaders
+				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
+				if(entry.program.UniformLocations[a] != -1)
+					glUniform1i(entry.program.UniformLocations[a], a);
+			}
 
 		// Need to get some attribute locations
 		if(uid.uid.vsid != 0) // We have no vertex Shader

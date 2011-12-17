@@ -298,10 +298,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glViewport(0, 0, virtualW, virtualH);
 
 		if(g_ActiveConfig.bUseGLSL)
-		{
 			ProgramShaderCache::SetBothShaders((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram(), 0);
-			PixelShaderCache::SetPSSampler("samp0", 0);
-		}
 		else
 			PixelShaderCache::SetCurrentShader((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
 		PixelShaderManager::SetColorMatrix(colmat); // set transformation
