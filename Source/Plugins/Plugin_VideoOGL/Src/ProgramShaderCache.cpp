@@ -186,9 +186,12 @@ namespace OGL
 			iter->second.Destroy();
 		pshaders.clear();
 
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		glDeleteBuffers(1, &s_ps_vs_ubo);
-		s_ps_vs_ubo = 0;
+		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		{
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			glDeleteBuffers(1, &s_ps_vs_ubo);
+			s_ps_vs_ubo = 0;
+		}
 	}
 }
 
