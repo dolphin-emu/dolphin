@@ -151,6 +151,24 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys ${CMAKE_SOURCE_DIR}/Data/User
 			DESTINATION ${BUNDLE_PATH}/Contents/Resources
 			)
+		file(GLOB TRANSLATION_FILES RELATIVE ${CMAKE_BINARY_DIR}
+			${CMAKE_BINARY_DIR}/*.gmo
+			)
+		foreach(TRANSLATION_FILE \${TRANSLATION_FILES})
+			string(REPLACE \".gmo\" \".lproj\" TRANSLATION_DIR
+				\${TRANSLATION_FILE}
+				)
+			# It would be better to copy to the new name as a single action,
+			# but I can't figure out a way to let CMake do that.
+			file(COPY ${CMAKE_BINARY_DIR}/\${TRANSLATION_FILE}
+				DESTINATION ${BUNDLE_PATH}/Contents/Resources/\${TRANSLATION_DIR}
+				NO_SOURCE_PERMISSIONS
+				)
+			file(RENAME
+				${BUNDLE_PATH}/Contents/Resources/\${TRANSLATION_DIR}/\${TRANSLATION_FILE}
+				${BUNDLE_PATH}/Contents/Resources/\${TRANSLATION_DIR}/dolphin-emu.mo
+				)
+		endforeach(TRANSLATION_FILE)
 		")
 	add_custom_target(CopyDataIntoBundle ALL
 		COMMAND ${CMAKE_COMMAND} -P copy_data_into_bundle.cmake
