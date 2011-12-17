@@ -144,13 +144,10 @@ if (APPLE)
 	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -march=prescott")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -mssse3")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -march=core2")
-	message("target flags: ${TARGET_FLAGS}")
 	# Target flags apply to both C and C++ compilation.
+	# CMake passes these to the compiler on the link command line as well.
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_FLAGS}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TARGET_FLAGS}")
-	# TODO: It seems that CMake passes compile flags to the linker anyway.
-	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${TARGET_FLAGS}")
-	message("C++ flags: ${CMAKE_CXX_FLAGS}")
 
 	# Linker flags.
 	# Drop unreachable code and data.
