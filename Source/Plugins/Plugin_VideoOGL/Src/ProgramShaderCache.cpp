@@ -104,7 +104,8 @@ namespace OGL
 		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		{
 			glUniformBlockBinding( entry.program.glprogid, 0, 1 );
-			glUniformBlockBinding( entry.program.glprogid, 1, 2 );
+			if(uid.uid.vsid != 0) // Some things have no vertex shader
+				glUniformBlockBinding( entry.program.glprogid, 1, 2 );
 		}
 				
 		// We cache our uniform locations for now
