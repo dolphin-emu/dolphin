@@ -78,8 +78,6 @@ class PixelShaderCache
 public:
 	static void Init();
 	static void Shutdown();
-	// This is a GLSL only function
-    static void SetPSSampler(const char * name, unsigned int Tex);
 
 	static FRAGMENTSHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
 	static bool CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
@@ -87,8 +85,6 @@ public:
 	static GLuint GetColorMatrixProgram();
 
     static GLuint GetDepthMatrixProgram();
-
-    static bool SupportsBinding();
 
 	static void SetCurrentShader(GLuint Shader);
 

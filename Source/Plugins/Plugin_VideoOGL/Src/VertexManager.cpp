@@ -211,16 +211,6 @@ void VertexManager::vFlush()
 	if (g_nativeVertexFmt)
 		g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
-	if(g_ActiveConfig.bUseGLSL)
-		for (int i = 0; i < 8; i++)
-		{
-				if (usedtextures & (1 << i))
-				{
-						char tmp[16];
-						sprintf(tmp, "samp%d", i); // Bake this in to something so we don't have to sprintf?
-						PixelShaderCache::SetPSSampler(tmp, i);
-				}
-		}
 
 	Draw();
 
@@ -235,15 +225,6 @@ void VertexManager::vFlush()
 				PixelShaderManager::SetConstants(); // Need to set these again, if we don't support UBO
 			if (g_nativeVertexFmt)
 				g_nativeVertexFmt->SetupVertexPointers();
-			for (int i = 0; i < 8; i++)
-			{
-					if (usedtextures & (1 << i))
-					{
-							char tmp[16];
-							sprintf(tmp, "samp%d", i); // Bake this in to something so we don't have to sprintf?
-							PixelShaderCache::SetPSSampler(tmp, i);
-					}
-			}
 		}
 		else
 			if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
