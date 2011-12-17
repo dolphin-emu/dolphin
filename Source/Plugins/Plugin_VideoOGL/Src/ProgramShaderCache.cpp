@@ -101,7 +101,7 @@ namespace OGL
 		// points statically set in the shader source
 		// We should only need these two functions when we don't support binding but do support UBO
 		// Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
-		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		{
 			glUniformBlockBinding( entry.program.glprogid, 0, 1 );
 			glUniformBlockBinding( entry.program.glprogid, 1, 2 );

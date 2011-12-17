@@ -115,6 +115,7 @@ wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n
 #endif
 wxString free_look_desc = wxTRANSLATE("This feature allows you to change the game's camera.\nHold the right mouse button and move the mouse to pan the camera around. Hold SHIFT and press one of the WASD keys to move the camera by a certain step distance (SHIFT+0 to move faster and SHIFT+9 to move slower). Press SHIFT+R to reset the camera.\n\nIf unsure, leave this unchecked.");
 wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.\n\nIf unsure, leave this unchecked.");
+wxString GLSL_desc = wxTRANSLATE("Uses GLSL shaders in place of Nvidia CG Shaders\n\nIf unsure, leave this unchecked.");
 wxString opencl_desc = wxTRANSLATE("[EXPERIMENTAL]\nAims to speed up emulation by offloading texture decoding to the GPU using the OpenCL framework.\nHowever, right now it's known to cause texture defects in various games. Also it's slower than regular CPU texture decoding in most cases.\n\nIf unsure, leave this unchecked.");
 wxString dlc_desc = wxTRANSLATE("[EXPERIMENTAL]\nSpeeds up emulation a bit by caching display lists.\nPossibly causes issues though.\n\nIf unsure, leave this unchecked.");
 wxString omp_desc = wxTRANSLATE("Use multiple threads to decode textures.\nMight result in a speedup (especially on CPUs with more than two cores).\n\nIf unsure, leave this unchecked.");
@@ -568,6 +569,17 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive);
 
 	szr_misc->Add(cb_prog_scan);
+	}
+
+	// GLSL Option
+	{
+		if(strstr(choice_backend->GetString(choice_backend->GetSelection()).ToAscii(), "OpenGL") != NULL)
+		{
+			wxCheckBox* const cb_GLSL = CreateCheckBox(page_advanced, _("Use GLSL Shaders"), wxGetTranslation(GLSL_desc), vconfig.bUseGLSL);
+			szr_misc->Add(cb_GLSL);
+			if (Core::GetState() != Core::CORE_UNINITIALIZED)
+				cb_GLSL->Disable();
+		}
 	}
 
 
