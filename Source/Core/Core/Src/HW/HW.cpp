@@ -89,18 +89,30 @@ namespace HW
 	void DoState(PointerWrap &p)
 	{
 		Memory::DoState(p);
+		p.DoMarker("Memory");
 		VideoInterface::DoState(p);
+		p.DoMarker("VideoInterface");
 		SerialInterface::DoState(p);
+		p.DoMarker("SerialInterface");
 		ProcessorInterface::DoState(p);
+		p.DoMarker("ProcessorInterface");
 		DSP::DoState(p);
+		p.DoMarker("DSP");
 		DVDInterface::DoState(p);
+		p.DoMarker("DVDInterface");
 		GPFifo::DoState(p);
+		p.DoMarker("GPFifo");
 		ExpansionInterface::DoState(p);
+		p.DoMarker("ExpansionInterface");
 		AudioInterface::DoState(p);
+		p.DoMarker("AudioInterface");
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
 			WII_IPCInterface::DoState(p);
+			p.DoMarker("WII_IPCInterface");
 			WII_IPC_HLE_Interface::DoState(p);
+			p.DoMarker("WII_IPC_HLE_Interface");
 		}
+		p.DoMarker("WIIHW");
 	}
 }

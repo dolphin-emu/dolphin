@@ -64,6 +64,7 @@ static std::string g_current_filename, g_last_filename;
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
 static std::vector<u8> g_current_buffer;
+static int g_loadDepth = 0;
 
 static std::thread g_save_thread;
 
@@ -74,7 +75,7 @@ static u64 lastCheckedStates[NUM_HOOKS];
 static u8 hook;
 
 // Don't forget to increase this after doing changes on the savestate system 
-static const int STATE_VERSION = 6;
+static const int STATE_VERSION = 7;
 
 struct StateHeader
 {
@@ -121,18 +122,26 @@ void DoState(PointerWrap &p)
 		}
 	}
 
+	p.DoMarker("Version");
+
 	// Begin with video backend, so that it gets a chance to clear it's caches and writeback modified things to RAM
 	// Pause the video thread in multi-threaded mode
 	g_video_backend->RunLoop(false);
 	g_video_backend->DoState(p);
+	p.DoMarker("video_backend");
 
 	if (Core::g_CoreStartupParameter.bWii)
 		Wiimote::DoState(p.GetPPtr(), p.GetMode());
+	p.DoMarker("Wiimote");
 
 	PowerPC::DoState(p);
+	p.DoMarker("PowerPC");
 	HW::DoState(p);
+	p.DoMarker("HW");
 	CoreTiming::DoState(p);
+	p.DoMarker("CoreTiming");
 	Movie::DoState(p, version<6);
+	p.DoMarker("Movie");
 
 	// Resume the video thread
 	g_video_backend->RunLoop(true);
@@ -353,6 +362,8 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 	// Stop the core while we load the state
 	CCPU::EnableStepping(true);
 
+	g_loadDepth++;
+
 	Flush();
 
 	// Save temp buffer for undo load state
@@ -371,19 +382,29 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 		DoState(p);
 
 		if (p.GetMode() == PointerWrap::MODE_READ)
+		{
 			Core::DisplayMessage(StringFromFormat("Loaded state from %s", g_current_filename.c_str()).c_str(), 2000);
+			if (File::Exists(g_current_filename + ".dtm"))
+				Movie::LoadInput((g_current_filename + ".dtm").c_str());
+			else if (!Movie::IsJustStartingRecordingInputFromSaveState())
+				Movie::EndPlayInput(false);
+		}
 		else
+		{
+			// failed to load
 			Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
-	
-		if (File::Exists(g_current_filename + ".dtm"))
-			Movie::LoadInput((g_current_filename + ".dtm").c_str());
-		else if (!Movie::IsJustStartingRecordingInputFromSaveState())
-			Movie::EndPlayInput(false);
+
+			// since we're probably in an inconsistent state now (and might crash or whatever), undo.
+			if(g_loadDepth < 2)
+				UndoLoadState();
+		}
 	}
 
 	ResetCounters();
 
 	g_op_in_progress = false;
+
+	g_loadDepth--;
 
 	// resume dat core
 	CCPU::EnableStepping(false);

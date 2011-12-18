@@ -170,6 +170,17 @@ public:
 		// TODO
 		PanicAlert("Do(linked list<>) does not yet work.");
 	}
+
+	void DoMarker(const char* prevName, u32 arbitraryNumber=0x42)
+	{
+		u32 cookie = arbitraryNumber;
+		Do(cookie);
+		if(mode == PointerWrap::MODE_READ && cookie != arbitraryNumber)
+		{
+			PanicAlertT("Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load...", prevName, cookie, cookie, arbitraryNumber, arbitraryNumber);
+			mode = PointerWrap::MODE_MEASURE;
+		}
+	}
 };
 
 

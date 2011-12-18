@@ -373,10 +373,13 @@ void DoState(PointerWrap &p)
 	p.DoArray(m_pPhysicalRAM, RAM_SIZE);
 //	p.DoArray(m_pVirtualEFB, EFB_SIZE);
 	p.DoArray(m_pVirtualL1Cache, L1_CACHE_SIZE);
+	p.DoMarker("Memory RAM");
 	if (bFakeVMEM)
 		p.DoArray(m_pVirtualFakeVMEM, FAKEVMEM_SIZE);
+	p.DoMarker("Memory FakeVMEM");
 	if (wii)
 		p.DoArray(m_pEXRAM, EXRAM_SIZE);
+	p.DoMarker("Memory EXRAM");
 }
 
 void Shutdown()
