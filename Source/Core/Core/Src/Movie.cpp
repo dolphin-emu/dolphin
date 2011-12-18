@@ -588,51 +588,88 @@ void LoadInput(const char *filename)
 	}
 
 	if (!g_bReadOnly)
+	{
 		tmpHeader.numRerecords++;
-	
-	t_record.Seek(0, SEEK_SET);
-	t_record.WriteArray(&tmpHeader, 1);
+		t_record.Seek(0, SEEK_SET);
+		t_record.WriteArray(&tmpHeader, 1);
+	}
 	
 	g_numPads = tmpHeader.numControllers;
 	ChangePads(true);
 	if (Core::g_CoreStartupParameter.bWii)
 		ChangeWiiPads(true);
 
-	if (!g_bReadOnly)
+	u64 totalSavedBytes = t_record.GetSize() - 256;
+
+	bool afterEnd = false;
+	if (g_currentByte > totalSavedBytes)
+	{
+		//PanicAlertT("Warning: You loaded a save whose movie ends before the current frame in the save (byte %u < %u) (frame %u < %u). You should load another save before continuing.", (u32)totalSavedBytes+256, (u32)g_currentByte+256, (u32)tmpHeader.frameCount, (u32)g_currentFrame);
+		afterEnd = true;
+	}
+
+	if (!g_bReadOnly || tmpInput == NULL)
 	{
 		g_totalFrames = tmpHeader.frameCount;
 		g_totalLagCount = tmpHeader.lagCount;
 		g_totalInputCount = tmpHeader.inputCount;
 
-		g_totalBytes = t_record.GetSize() - 256;
+		g_totalBytes = totalSavedBytes;
 		delete tmpInput;
 		tmpInput = new u8[MAX_DTM_LENGTH];
 		t_record.ReadArray(tmpInput, (size_t)g_totalBytes);
 	}
 	else if (g_currentByte > 0)
 	{
-		// verify identical up to g_currentByte
-		if (g_currentByte > g_totalBytes)
+		if (g_currentByte > totalSavedBytes)
 		{
-			PanicAlertT("Warning: You loaded a save whose movie ends before the current frame (%u < %u). You should load another save before continuing, or load this state with read-only mode off.", (u32)g_totalFrames, (u32)g_currentFrame);
 		}
-		else if(g_currentByte > 0)
+		else if (g_currentByte > g_totalBytes)
 		{
+			PanicAlertT("Warning: You loaded a save that's after the end of the current movie. (byte %u > %u) (frame %u > %u). You should load another save before continuing, or load this state with read-only mode off.", (u32)g_currentByte+256, (u32)g_totalBytes+256, (u32)g_currentFrame, (u32)g_totalFrames);
+		}
+		else if(g_currentByte > 0 && g_totalBytes > 0)
+		{
+			// verify identical from movie start to thee save's current frame
 			u32 len = (u32)g_currentByte;
-			u8* tmpTmpInput = new u8[len];
-			t_record.ReadArray(tmpTmpInput, (size_t)len);
+			u8* movInput = new u8[len];
+			t_record.ReadArray(movInput, (size_t)len);
 			for (u32 i = 0; i < len; ++i)
 			{
-				if (tmpTmpInput[i] != tmpInput[i])
+				if (movInput[i] != tmpInput[i])
 				{
+					// this is a "you did something wrong" alert for the user's benefit.
+					// we'll try to say what's going on in excruciating detail, otherwise the user might not believe us.
 					if(Core::g_CoreStartupParameter.bWii)
-						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i, i);
+					{ 
+						// TODO: more detail
+						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i+256, i+256);
+					}
 					else
-						PanicAlertT("Warning: You loaded a save whose movie mismatches on frame %d. You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i/8);
+					{
+						int frame = i/8;
+						ControllerState curPadState;
+						memcpy(&curPadState, &(tmpInput[frame*8]), 8);
+						ControllerState movPadState;
+						memcpy(&movPadState, &(movInput[frame*8]), 8);
+						PanicAlertT("Warning: You loaded a save whose movie mismatches on frame %d. You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.\n\n"
+							"More information: The current movie is %d frames long and the savestate's movie is %d frames long.\n\n"
+							"On frame %d, the current movie presses:\n"
+							"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
+							"\n\n"
+							"On frame %d, the savestate's movie presses:\n"
+							"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d",
+							(int)frame,
+							(int)g_totalFrames, (int)tmpHeader.frameCount,
+							(int)frame,
+							(int)curPadState.Start, (int)curPadState.A, (int)curPadState.B, (int)curPadState.X, (int)curPadState.Y, (int)curPadState.Z, (int)curPadState.DPadUp, (int)curPadState.DPadDown, (int)curPadState.DPadLeft, (int)curPadState.DPadRight, (int)curPadState.L, (int)curPadState.R, (int)curPadState.TriggerL, (int)curPadState.TriggerR, (int)curPadState.AnalogStickX, (int)curPadState.AnalogStickY, (int)curPadState.CStickX, (int)curPadState.CStickY,
+							(int)frame,
+							(int)movPadState.Start, (int)movPadState.A, (int)movPadState.B, (int)movPadState.X, (int)movPadState.Y, (int)movPadState.Z, (int)movPadState.DPadUp, (int)movPadState.DPadDown, (int)movPadState.DPadLeft, (int)movPadState.DPadRight, (int)movPadState.L, (int)movPadState.R, (int)movPadState.TriggerL, (int)movPadState.TriggerR, (int)movPadState.AnalogStickX, (int)movPadState.AnalogStickY, (int)movPadState.CStickX, (int)movPadState.CStickY);
+					}
 					break;
 				}
 			}
-			delete tmpTmpInput;
+			delete movInput;
 		}
 	}
 	t_record.Close();
@@ -653,21 +690,28 @@ void LoadInput(const char *filename)
 		g_currentInputCount = tmpHeader.inputCount;
 	}
 
-	if (g_bReadOnly)
+	if (!afterEnd)
 	{
-		if(g_playMode != MODE_PLAYING)
+		if (g_bReadOnly)
 		{
-			g_playMode = MODE_PLAYING;
-			Core::DisplayMessage("Switched to playback", 2000);
+			if(g_playMode != MODE_PLAYING)
+			{
+				g_playMode = MODE_PLAYING;
+				Core::DisplayMessage("Switched to playback", 2000);
+			}
+		}
+		else
+		{
+			if(g_playMode != MODE_RECORDING)
+			{
+				g_playMode = MODE_RECORDING;
+				Core::DisplayMessage("Switched to recording", 2000);
+			}
 		}
 	}
 	else
 	{
-		if(g_playMode != MODE_RECORDING)
-		{
-			g_playMode = MODE_RECORDING;
-			Core::DisplayMessage("Switched to recording", 2000);
-		}
+		EndPlayInput(false);
 	}
 }
 
@@ -803,16 +847,18 @@ void EndPlayInput(bool cont)
 	if (cont)
 	{
 		g_playMode = MODE_RECORDING;
-		Core::DisplayMessage("Resuming movie recording", 2000);
+		Core::DisplayMessage("Reached movie end. Resuming recording.", 2000);
 	}
 	else if(g_playMode != MODE_NONE)
 	{
 		g_numPads = g_rerecords = 0;
-		g_totalFrames = g_totalBytes = g_currentByte = 0;
+		g_currentByte = 0;
 		g_playMode = MODE_NONE;
-		delete tmpInput;
-		tmpInput = NULL;
-		Core::DisplayMessage("Movie End", 2000);
+		Core::DisplayMessage("Movie End.", 2000);
+		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
+		//g_totalFrames = g_totalBytes = 0;
+		//delete tmpInput;
+		//tmpInput = NULL;
 	}
 }
 
