@@ -64,12 +64,14 @@ void Shutdown()
 
 void DoState(PointerWrap &p)
 {
-	// TODO: Complete DoState for each IEXIDevice
-	g_Channels[0]->GetDevice(1)->DoState(p);
-	g_Channels[0]->GetDevice(2)->DoState(p);
-	g_Channels[0]->GetDevice(4)->DoState(p);
-	g_Channels[1]->GetDevice(1)->DoState(p);	
-	g_Channels[2]->GetDevice(1)->DoState(p);
+	for (int c = 0; c < NUM_CHANNELS; ++c)
+		g_Channels[c]->DoState(p);
+}
+
+void OnAfterLoad()
+{
+	for (int c = 0; c < NUM_CHANNELS; ++c)
+		g_Channels[c]->OnAfterLoad();
 }
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate)

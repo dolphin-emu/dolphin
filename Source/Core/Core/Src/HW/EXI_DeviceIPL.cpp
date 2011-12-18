@@ -152,7 +152,13 @@ CEXIIPL::~CEXIIPL()
 }
 void CEXIIPL::DoState(PointerWrap &p)
 {
-	p.DoArray(m_RTC, 4);
+	p.Do(m_RTC);
+	p.Do(m_uPosition);
+	p.Do(m_uAddress);
+	p.Do(m_uRWOffset);
+	p.Do(m_szBuffer);
+	p.Do(m_count);
+	p.Do(m_FontsLoaded);
 }
 
 void CEXIIPL::LoadFileToIPL(std::string filename, u32 offset)

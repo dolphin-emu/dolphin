@@ -21,6 +21,19 @@
 #include "Common.h"
 #include "ChunkFile.h"
 
+enum TEXIDevices
+{
+	EXIDEVICE_DUMMY,
+	EXIDEVICE_MEMORYCARD,
+	EXIDEVICE_MASKROM,
+	EXIDEVICE_AD16,
+	EXIDEVICE_MIC,
+	EXIDEVICE_ETH,
+	EXIDEVICE_AM_BASEBOARD,
+	EXIDEVICE_GECKO,
+	EXIDEVICE_NONE = (u8)-1
+};
+
 class IEXIDevice
 {
 private:
@@ -40,27 +53,18 @@ public:
 	virtual bool IsPresent() {return false;}
 	virtual void SetCS(int) {}
 	virtual void DoState(PointerWrap&) {}
+	virtual void OnAfterLoad() {}
 
 	// Update
 	virtual void Update() {}
 
 	// Is generating interrupt ?
 	virtual bool IsInterruptSet() {return false;}
-	virtual ~IEXIDevice() {};
+	virtual ~IEXIDevice() {}
 
-};
-
-enum TEXIDevices
-{
-	EXIDEVICE_DUMMY,
-	EXIDEVICE_MEMORYCARD,
-	EXIDEVICE_MASKROM,
-	EXIDEVICE_AD16,
-	EXIDEVICE_MIC,
-	EXIDEVICE_ETH,
-	EXIDEVICE_AM_BASEBOARD,
-	EXIDEVICE_GECKO,
-	EXIDEVICE_NONE = (u8)-1
+	// for savestates. storing it here seemed cleaner than requiring each implementation to report its type.
+	// I know this class is set up like an interface, but no code requires it to be strictly such.
+	TEXIDevices m_deviceType;
 };
 
 extern IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);

@@ -402,6 +402,8 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 
 	ResetCounters();
 
+	HW::OnAfterLoad();
+
 	g_op_in_progress = false;
 
 	g_loadDepth--;

@@ -22,6 +22,7 @@
 #include "../CoreTiming.h"
 
 #include "../ConfigManager.h"
+#include "../Movie.h"
 #include "EXI.h"
 #include "EXI_Device.h"
 #include "EXI_DeviceMemoryCard.h"
@@ -37,11 +38,10 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-static CEXIMemoryCard *cards[2];
-
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
-	CEXIMemoryCard *ptr = cards[userdata];
+	// casting userdata seems less error-prone than indexing a static (creation order issues, etc.)
+	CEXIMemoryCard *ptr = (CEXIMemoryCard*)userdata;
 	ptr->Flush();
 }
 
@@ -50,7 +50,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	, m_bDirty(false)
 {
 	m_strFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
-	cards[card_index] = this;
+	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
 	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardA" : "memcardB", FlushCallback);
 	reloadOnState = SConfig::GetInstance().b_reloadMCOnState;
  
@@ -158,6 +158,7 @@ void CEXIMemoryCard::Flush(bool exiting)
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
+	CoreTiming::RemoveEvent(et_this_card);
 	Flush(true);
 	delete[] memory_card_content;
 	memory_card_content = NULL;
@@ -237,7 +238,7 @@ void CEXIMemoryCard::SetCS(int cs)
 			// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
 			// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write.
 			CoreTiming::RemoveEvent(et_this_card);
-			CoreTiming::ScheduleEvent(500000000, et_this_card, card_index);
+			CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)this);
 			break;
 		}
 	}
@@ -423,10 +424,41 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 	DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
 }
 
-void CEXIMemoryCard::DoState(PointerWrap &p)
+void CEXIMemoryCard::OnAfterLoad()
 {
-	if (reloadOnState)
+	// hack for memory card switching, so you can load an old savestate and expect your newer memcard data to show up.
+	// it breaks movie sync, so we disable it if a movie is active.
+	// this was moved out of DoState because other things that got loaded later conflicted with it.
+	// note: the reloadOnState flag is almost always true. maybe only a few TASers have it off.
+	if (reloadOnState && !Movie::IsRecordingInput() && !Movie::IsPlayingInput())
 	{
 		ExpansionInterface::ChangeDevice(card_index, EXIDEVICE_MEMORYCARD, 0);
+	}
+}
+
+void CEXIMemoryCard::DoState(PointerWrap &p)
+{
+	// for movie sync, we need to save/load memory card contents (and other data) in savestates.
+	// otherwise, we'll assume the user wants to keep their memcards and saves separate,
+	// unless we're loading (in which case we let the savestate contents decide, in order to stay aligned with them).
+	bool storeContents = (!reloadOnState || Movie::IsRecordingInput() || Movie::IsPlayingInput());
+	p.Do(storeContents);
+
+	if (storeContents)
+	{
+		p.Do(interruptSwitch);
+		p.Do(m_bInterruptSet);
+		p.Do(command);
+		p.Do(status);
+		p.Do(m_uPosition);
+		p.Do(programming_buffer);
+		p.Do(formatDelay);
+		p.Do(m_bDirty);
+		p.Do(address);
+
+		p.Do(nintendo_card_id);
+		p.Do(card_id);
+		p.Do(memory_card_size);
+		p.DoArray(memory_card_content, memory_card_size); 
 	}
 }

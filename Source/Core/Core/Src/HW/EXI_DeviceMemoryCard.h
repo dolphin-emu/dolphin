@@ -39,6 +39,7 @@ public:
 	bool IsInterruptSet();
 	bool IsPresent();
 	void DoState(PointerWrap &p);
+	void OnAfterLoad();
 
 private:
 	// This is scheduled whenever a page write is issued. The this pointer is passed
@@ -82,7 +83,6 @@ private:
 	u8 programming_buffer[128];
 	u32 formatDelay;
 	bool m_bDirty;
-	
 	//! memory card parameters 
 	unsigned int nintendo_card_id, card_id;
 	unsigned int address;	

@@ -90,3 +90,10 @@ void CEXIAD16::TransferByte(u8& _byte)
 
 	m_uPosition++;
 }
+
+void CEXIAD16::DoState(PointerWrap &p)
+{
+	p.Do(m_uPosition);
+	p.Do(m_uCommand);
+	p.Do(m_uAD16Register);
+}
