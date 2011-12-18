@@ -75,13 +75,17 @@ void ExpandCR()
 
 void DoState(PointerWrap &p)
 {
-	rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
-	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
+	// some of this code has been disabled, because
+	// it changes registers even in MODE_MEASURE (which is suspicious and seems like it could cause desyncs)
+	// and because the values it's changing have been added to CoreTiming::DoState, so it might conflict to mess with them here.
+
+//	rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
+//	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
 
 	p.Do(ppcState);
 
-	SystemTimers::DecrementerSet();
-	SystemTimers::TimeBaseSet();
+//	SystemTimers::DecrementerSet();
+//	SystemTimers::TimeBaseSet();
 
 	if (jit && p.GetMode() == PointerWrap::MODE_READ)
 		jit->GetBlockCache()->ClearSafe();
