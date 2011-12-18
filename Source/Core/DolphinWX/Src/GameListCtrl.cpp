@@ -91,6 +91,16 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 		case CGameListCtrl::COLUMN_TITLE:
 			return strcasecmp(iso1->GetName(indexOne).c_str(),
 					iso2->GetName(indexOther).c_str()) * t;
+		case CGameListCtrl::COLUMN_NOTES:
+			{
+				std::string cmp1 =
+					(iso1->GetPlatform() == GameListItem::GAMECUBE_DISC) ?
+					iso1->GetCompany() : iso1->GetDescription(indexOne);
+				std::string cmp2 =
+					(iso2->GetPlatform() == GameListItem::GAMECUBE_DISC) ?
+					iso2->GetCompany() : iso2->GetDescription(indexOther);
+				return strcasecmp(cmp1.c_str(), cmp2.c_str()) * t;
+			}
 		case CGameListCtrl::COLUMN_COUNTRY:
 			if(iso1->GetCountry() > iso2->GetCountry())
 				return  1 * t;
@@ -123,10 +133,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 			else
 				return 0;
 		}
-		case CGameListCtrl::COLUMN_EMULATION_NOTES:
-		return strcasecmp(iso1->GetIssues().c_str(),
-					iso2->GetIssues().c_str()) * t;
-		break;
+			break;
 	}
 
 	return 0;
@@ -287,20 +294,19 @@ void CGameListCtrl::Update()
 		// Instead of showing the notes + the company, which is unknown with
 		// wii titles We show in the same column : company for GC games and
 		// description for wii/wad games
-		InsertColumn(COLUMN_EMULATION_NOTES, _("Emulation Notes"));
+		InsertColumn(COLUMN_NOTES, _("Notes"));
 		InsertColumn(COLUMN_COUNTRY, _T(""));
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
-		
+
 
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_PLATFORM, 35);
 		SetColumnWidth(COLUMN_BANNER, 96);
 		SetColumnWidth(COLUMN_TITLE, 200);
-		SetColumnWidth(COLUMN_EMULATION_NOTES, 200);
+		SetColumnWidth(COLUMN_NOTES, 200);
 		SetColumnWidth(COLUMN_COUNTRY, 32);
 		SetColumnWidth(COLUMN_EMULATION_STATE, 50);
-		
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
@@ -477,12 +483,18 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 				wxString name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
 				m_gameList.append(StringFromFormat("%s (J)\n", (const char *)name.c_str()));
 				SetItem(_Index, COLUMN_TITLE, name, -1);
+				SetItem(_Index, COLUMN_NOTES, wxString(company.size() ?
+							company.c_str() : rISOFile.GetDescription(0).c_str(),
+							SJISConv), -1);
 			}
 			break;
 		case DiscIO::IVolume::COUNTRY_USA:
 			m_gameList.append(StringFromFormat("%s (U)\n", rISOFile.GetName(0).c_str()));
 			SetItem(_Index, COLUMN_TITLE,
 				wxString::From8BitData(rISOFile.GetName(0).c_str()), -1);
+			SetItem(_Index, COLUMN_NOTES,
+				wxString::From8BitData(company.size() ?
+					company.c_str() : rISOFile.GetDescription(0).c_str()), -1);
 			break;
 		default:
 			m_gameList.append(StringFromFormat("%s (E)\n",
@@ -490,6 +502,11 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			SetItem(_Index, COLUMN_TITLE,
 					wxString::From8BitData(
 						rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()),
+					-1);
+			SetItem(_Index, COLUMN_NOTES,
+					wxString::From8BitData(company.size() ?
+						company.c_str() :
+						rISOFile.GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()),
 					-1);
 			break;
 		}
@@ -499,6 +516,8 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		m_gameList.append(StringFromFormat("%s (WAD)\n", rISOFile.GetName(0).c_str()));
 		SetItem(_Index, COLUMN_TITLE,
 				wxString(rISOFile.GetName(0).c_str(), SJISConv), -1);
+		SetItem(_Index, COLUMN_NOTES,
+				wxString(rISOFile.GetDescription(0).c_str(), SJISConv), -1);
 	}
 
 #ifndef _WIN32
@@ -511,10 +530,6 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// File size
 	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
-
-	// Emulation notes
-	SetItem(_Index, COLUMN_EMULATION_NOTES,	wxString::From8BitData(rISOFile.GetIssues().c_str()), -1);
-	SetColumnWidth(COLUMN_SIZE, wxLIST_AUTOSIZE);
 
 	// Background color
 	SetBackgroundColor();
@@ -698,7 +713,7 @@ void CGameListCtrl::ScanForISOs()
 
 void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 {
-	if (event.GetColumn() != COLUMN_TITLE && event.GetColumn() != COLUMN_EMULATION_NOTES)
+	if (event.GetColumn() != COLUMN_TITLE && event.GetColumn() != COLUMN_NOTES)
 		event.Veto();
 }
 
@@ -840,12 +855,14 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 			const GameListItem& rISO = *m_ISOFiles[GetItemData(item)];
 
 			const int emu_state = rISO.GetEmuState();
-			
+			const std::string& issues = rISO.GetIssues();
+
 			// Show a tooltip containing the EmuState and the state description
 			if (emu_state > 0 && emu_state < 6)
 			{
 				char temp[2048];
-				sprintf(temp, "^ %s", emuState[emu_state - 1]);
+				sprintf(temp, "^ %s%s%s", emuState[emu_state - 1],
+						issues.size() > 0 ? " :\n" : "", issues.c_str());
 				toolTip = new wxEmuStateTip(this, wxString(temp, *wxConvCurrent), &toolTip);
 			}
 			else
@@ -1314,13 +1331,13 @@ void CGameListCtrl::AutomaticColumnWidth()
 		// We hide the Notes column if the window is too small
 		if (resizable > 400)
 		{
-			SetColumnWidth(COLUMN_TITLE, resizable * 0.4);
-			SetColumnWidth(COLUMN_EMULATION_NOTES, resizable * 0.6);
+			SetColumnWidth(COLUMN_TITLE, resizable / 2);
+			SetColumnWidth(COLUMN_NOTES, resizable / 2);
 		}
 		else
 		{
 			SetColumnWidth(COLUMN_TITLE, resizable);
-			SetColumnWidth(COLUMN_EMULATION_NOTES, 0);
+			SetColumnWidth(COLUMN_NOTES, 0);
 		}
 	}
 }
