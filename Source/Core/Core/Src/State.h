@@ -56,6 +56,10 @@ void UndoLoadState();
 
 void Flush(); // wait until previously scheduled savestate event (if any) is done
 
+// for calling back into UI code without introducing a dependency on it in core
+typedef void(*CallbackFunc)(void);
+void SetOnAfterLoadCallback(CallbackFunc callback);
+
 }
 
 #endif

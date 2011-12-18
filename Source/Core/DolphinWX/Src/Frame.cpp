@@ -410,6 +410,8 @@ CFrame::CFrame(wxFrame* parent,
 	g_TASInputDlg = new TASInputDlg(this);
 	Movie::SetInputManip(TASManipFunction);
 
+	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
+
 	// Setup perspectives
 	if (g_pCodeWindow)
 	{
@@ -857,6 +859,12 @@ int GetCmdForHotkey(unsigned int key)
 		return IDM_SAVESLOT8;
 
 	return -1;
+}
+
+void OnAfterLoadCallback()
+{
+	if(main_frame)
+		main_frame->UpdateGUI();
 }
 
 void TASManipFunction(SPADStatus *PadStatus, int controllerID)

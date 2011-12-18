@@ -61,6 +61,8 @@ static int ev_FileSave, ev_BufferSave, ev_FileLoad, ev_BufferLoad, ev_FileVerify
 
 static std::string g_current_filename, g_last_filename;
 
+static CallbackFunc g_onAfterLoadCb = NULL;
+
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
 static std::vector<u8> g_current_buffer;
@@ -406,10 +408,18 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 
 	g_op_in_progress = false;
 
+	if (g_onAfterLoadCb)
+		g_onAfterLoadCb();
+
 	g_loadDepth--;
 
 	// resume dat core
 	CCPU::EnableStepping(false);
+}
+
+void SetOnAfterLoadCallback(CallbackFunc callback)
+{
+	g_onAfterLoadCb = callback;
 }
 
 void VerifyFileStateCallback(u64 userdata, int cyclesLate)
