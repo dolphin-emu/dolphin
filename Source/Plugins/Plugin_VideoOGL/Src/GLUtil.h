@@ -121,14 +121,4 @@ extern CGcontext g_cgcontext;
 extern CGprofile g_cgvProf, g_cgfProf;
 #endif
 
-// XXX: Dual-source blending in OpenGL does not work correctly yet. To make it
-// work, we may need to use glBindFragDataLocation. To use that, we need to
-// use GLSL shaders across the whole pipeline. Yikes!
-#define USE_DUAL_SOURCE_BLEND
-
-// Can't get defined on my system for some reason...
-#ifndef GL_ONE_MINUS_SRC1_ALPHA 
-#define GL_ONE_MINUS_SRC1_ALPHA 0x88FB
-#endif
-
 #endif  // _GLINIT_H_
