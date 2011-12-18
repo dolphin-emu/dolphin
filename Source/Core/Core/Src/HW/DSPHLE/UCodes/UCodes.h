@@ -25,8 +25,9 @@
 #include "../DSPHLE.h"
 #include "../../Memmap.h"
 
-#define UCODE_ROM                   0x0000000
-#define UCODE_INIT_AUDIO_SYSTEM     0x0000001
+#define UCODE_ROM                   0x00000000
+#define UCODE_INIT_AUDIO_SYSTEM     0x00000001
+#define UCODE_NULL                  0xFFFFFFFF
 
 class CMailHandler;
 
@@ -73,10 +74,11 @@ inline void* HLEMemory_Get_Pointer(u32 _uAddress)
 class IUCode
 {
 public:
-	IUCode(DSPHLE *dsphle)
+	IUCode(DSPHLE *dsphle, u32 _crc)
 		: m_rMailHandler(dsphle->AccessMailHandler())
 		, m_UploadSetupInProgress(false)
 		, m_DSPHLE(dsphle)
+		, m_CRC(_crc)
 		, m_NextUCode()
 		, m_NextUCode_steps(0)
 		, m_NeedsResumeMail(false)
@@ -92,6 +94,8 @@ public:
 	virtual void MixAdd(short* buffer, int size) {}
 
 	virtual void DoState(PointerWrap &p) {}
+
+	static u32 GetCRC(IUCode* pUCode) { return pUCode ? pUCode->m_CRC : UCODE_NULL; }
 
 protected:
 	void PrepareBootUCode(u32 mail);
@@ -120,6 +124,10 @@ protected:
 
 	// Need a pointer back to DSPHLE to switch ucodes.
 	DSPHLE *m_DSPHLE;
+
+	// used for reconstruction when loading saves,
+	// and for variations within certain ucodes.
+	u32 m_CRC;
 
 private:
 	struct SUCode
