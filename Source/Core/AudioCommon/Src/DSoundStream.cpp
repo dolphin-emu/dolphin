@@ -96,6 +96,8 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 // The audio thread.
 void DSound::SoundLoop()
 {
+	Common::SetCurrentThreadName("Audio thread");
+
 	currentPos = 0;
 	lastPos = 0;
 	dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
