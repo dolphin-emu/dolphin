@@ -935,11 +935,9 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
 
-#ifdef USE_DUAL_SOURCE_BLEND
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && g_ActiveConfig.bUseGLSL;
 	bool useDualSource = useDstAlpha;
-#endif
 
 	if (changes & 1)
 		// blend enable change
@@ -947,19 +945,14 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	if (changes & 4)
 	{
-#ifdef USE_DUAL_SOURCE_BLEND
 		// subtract enable change
 		GLenum equation = newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
 		GLenum equationAlpha = useDualSource ? GL_FUNC_ADD : equation;
 		glBlendEquationSeparate(equation, equationAlpha);
-#else
-		glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
-#endif
 	}
 
 	if (changes & 0x1F8)
 	{
-#ifdef USE_DUAL_SOURCE_BLEND
 		GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
 		GLenum srcFactorAlpha = srcFactor;
 		GLenum dstFactor = glDestFactors[(newval >> 6) & 7];
@@ -982,9 +975,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 		// blend RGB change
 		glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
-#else
-		glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
-#endif
 	}
 
 	s_blendMode = newval;
