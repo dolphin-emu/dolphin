@@ -465,60 +465,61 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
+	
+	std::wstring wname;
+	const std::wstring& wdescription = rISOFile.GetDescription();
+	std::string company;
 
-	if (rISOFile.GetPlatform() != GameListItem::WII_WAD)
+	// We show the company string on Gamecube only
+	// On Wii we show the description instead as the company string is empty
+	if (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC)
+		company = rISOFile.GetCompany().c_str();
+
+	switch (rISOFile.GetCountry())
 	{
-		std::string company;
-
-		// We show the company string on Gamecube only
-		// On Wii we show the description instead as the company string is empty
-		if (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC)
-			company = rISOFile.GetCompany().c_str();
-
-		switch (rISOFile.GetCountry())
+	case DiscIO::IVolume::COUNTRY_TAIWAN:
+	case DiscIO::IVolume::COUNTRY_JAPAN:
 		{
-		case DiscIO::IVolume::COUNTRY_TAIWAN:
-		case DiscIO::IVolume::COUNTRY_JAPAN:
-			{
-				wxString name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
-				m_gameList.append(StringFromFormat("%s (J)\n", (const char *)name.c_str()));
-				SetItem(_Index, COLUMN_TITLE, name, -1);
-				SetItem(_Index, COLUMN_NOTES, wxString(company.size() ?
-							company.c_str() : rISOFile.GetDescription(0).c_str(),
-							SJISConv), -1);
-			}
-			break;
-		case DiscIO::IVolume::COUNTRY_USA:
-			m_gameList.append(StringFromFormat("%s (U)\n", rISOFile.GetName(0).c_str()));
-			SetItem(_Index, COLUMN_TITLE,
-				wxString::From8BitData(rISOFile.GetName(0).c_str()), -1);
-			SetItem(_Index, COLUMN_NOTES,
-				wxString::From8BitData(company.size() ?
-					company.c_str() : rISOFile.GetDescription(0).c_str()), -1);
-			break;
-		default:
-			m_gameList.append(StringFromFormat("%s (E)\n",
-				rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()));
-			SetItem(_Index, COLUMN_TITLE,
-					wxString::From8BitData(
-						rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()),
-					-1);
-			SetItem(_Index, COLUMN_NOTES,
-					wxString::From8BitData(company.size() ?
-						company.c_str() :
-						rISOFile.GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()),
-					-1);
-			break;
+			rISOFile.GetName(wname, -1);
+			wxString name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
+			m_gameList.append(StringFromFormat("%s (J)\n", (const char *)name.c_str()));
+			SetItem(_Index, COLUMN_TITLE, name, -1);
+			SetItem(_Index, COLUMN_NOTES, wxString(company.size() ?
+						company.c_str() : rISOFile.GetDescription(0).c_str(),
+						SJISConv), -1);
 		}
-	}
-	else // It's a Wad file
-	{
-		m_gameList.append(StringFromFormat("%s (WAD)\n", rISOFile.GetName(0).c_str()));
+		break;
+	case DiscIO::IVolume::COUNTRY_USA:
+		rISOFile.GetName(wname);
 		SetItem(_Index, COLUMN_TITLE,
-				wxString(rISOFile.GetName(0).c_str(), SJISConv), -1);
+			wxString::From8BitData(rISOFile.GetName(0).c_str()), -1);
+		m_gameList.append(StringFromFormat("%s (U)\n", rISOFile.GetName(0).c_str()));
 		SetItem(_Index, COLUMN_NOTES,
-				wxString(rISOFile.GetDescription(0).c_str(), SJISConv), -1);
+			wxString::From8BitData(company.size() ?
+				company.c_str() : rISOFile.GetDescription(0).c_str()), -1);
+		break;
+	default:			
+		rISOFile.GetName(wname, SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
+
+		SetItem(_Index, COLUMN_TITLE,
+			wxString::From8BitData(
+				rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()),
+			-1);
+		m_gameList.append(StringFromFormat("%s (E)\n",
+			rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()));
+		SetItem(_Index, COLUMN_NOTES,
+				wxString::From8BitData(company.size() ?
+					company.c_str() :
+					rISOFile.GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()),
+				-1);
+		break;
 	}
+
+	if (wname.length())
+		SetItem(_Index, COLUMN_TITLE, wname, -1);
+	if (wdescription.length())
+		SetItem(_Index, COLUMN_NOTES, wdescription, -1);
+
 
 #ifndef _WIN32
 	// Emulation state

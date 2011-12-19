@@ -154,7 +154,21 @@ public:
 		}
 		(*ptr) += stringLen;
 	}
-	
+
+	void Do(std::wstring &x) 
+	{
+		int stringLen = sizeof(wchar_t)*((int)x.length() + 1);
+		Do(stringLen);
+
+		switch (mode) {
+		case MODE_READ:		x = (wchar_t*)*ptr; break;
+		case MODE_WRITE:	memcpy(*ptr, x.c_str(), stringLen); break;
+		case MODE_MEASURE: break;
+		case MODE_VERIFY: _dbg_assert_msg_(COMMON, x == (wchar_t*)*ptr, "Savestate verification failure: \"%s\" != \"%s\" (at %p).\n", x.c_str(), (wchar_t*)*ptr, ptr); break;
+		}
+		(*ptr) += stringLen;
+	}
+
     template<class T>
 	void DoArray(T *x, int count) {
         DoVoid((void *)x, sizeof(T) * count);
