@@ -721,13 +721,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			// wpos is in w of first 4 texcoords
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			{
-					for (int i = 0; i < 8; ++i)
-							WRITE(p, "   float4 uv%d = gl_TexCoord[%d];\n", i, i);
+				for (int i = 0; i < 8; ++i)
+					WRITE(p, "   float4 uv%d = gl_TexCoord[%d];\n", i, i);
 			}
 			else
 			{
-					for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-							WRITE(p, "   float%d uv%d = gl_TexCoord[%d]%s;\n", i < 4 ? 4 : 3 , i, i, i < 4 ? ".xyz" : "");
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+					WRITE(p, "   float%d uv%d = gl_TexCoord[%d]%s;\n", i < 4 ? 4 : 3 , i, i, i < 4 ? "" : ".xyz");
 			}
 		}
 		WRITE(p, "void main()\n{\n");
