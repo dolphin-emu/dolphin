@@ -107,6 +107,45 @@ bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
 	return true;
 }
 
+bool CVolumeWAD::GetWName(std::vector<std::wstring>& _rwNames) const
+{
+	u32 footer_size;
+
+	if (!Read(0x1C, 4, (u8*)&footer_size))
+	{
+		return false;
+	}
+	//Japanese, English, German, French, Spanish, Italian, Dutch, unknown, unknown, Korean
+
+	// Offset to the english title
+	for (int i = 0; i < 10; i++)
+	{
+		u16 temp[42];
+		std::wstring out_temp;
+
+		if (!Read(0x9C + (i*84) + OpeningBnrOffset, 84, (u8*)&temp) || Common::swap32(footer_size) < 0xF1
+			|| !temp[0])
+		{
+			_rwNames.push_back(L"");
+			continue;
+		}
+		for (int i = 0; i < 42; ++i)
+		{
+			u16 t = Common::swap16(temp[i]);
+			if (t == 0 && i > 0)
+			{
+				if (out_temp.at(out_temp.size()-1) != ' ')
+					out_temp.push_back(' ');			
+			}
+			else
+				out_temp.push_back(t);
+		}
+
+		_rwNames.push_back(out_temp);
+	}
+	return true;
+}
+
 std::string CVolumeWAD::GetName() const
 {
 	u32 footer_size;
@@ -114,9 +153,13 @@ std::string CVolumeWAD::GetName() const
 	if (!Read(0x1C, 4, (u8*)&footer_size))
 		return "";
 
+
+	//Japanese, English, German, French, Spanish, Italian, Dutch, unknown, unknown, Korean
+
 	// Offset to the english title
 	char temp[84];
-	if (!Read(0xF1 + OpeningBnrOffset, 84, (u8*)&temp) || Common::swap32(footer_size) < 0xF1)
+	if (!Read(0xF1 + OpeningBnrOffset, 84, (u8*)&temp) || Common::swap32(footer_size) < 0xF1 ||
+		!Common::swap16(temp[0]))
 		return "";
 
 	// Remove the null bytes due to 16bit char length
