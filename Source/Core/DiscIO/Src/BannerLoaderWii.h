@@ -37,10 +37,13 @@ class CBannerLoaderWii
 
 		virtual bool GetName(std::string* _rName);
 
+		bool GetName(std::vector<std::wstring>&  _rNames);
+
 		virtual bool GetCompany(std::string& _rCompany);
 
 		virtual bool GetDescription(std::string* _rDescription);
 
+		bool GetDescription(std::wstring& _rDescription);
 
 	private:
 		
