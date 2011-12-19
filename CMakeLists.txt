@@ -118,6 +118,7 @@ if (APPLE)
 	# Ignore MacPorts and Fink and any other locally installed packages that
 	# might prevent building a distributable binary.
 	set(CMAKE_SYSTEM_PREFIX_PATH /usr)
+	set(ENV{PATH} /usr/bin:/bin:/usr/sbin:/sbin)
 
 	# Some of our code contains Objective C constructs.
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c")
