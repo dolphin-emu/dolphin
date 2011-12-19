@@ -47,7 +47,7 @@ struct BaseEvent
 
 typedef LinkedListItem<BaseEvent> Event;
 
-// STATE_TO_SAVE (how?)
+// STATE_TO_SAVE
 Event *first;
 Event *tsFirst;
 Event *tsLast;
@@ -153,6 +153,13 @@ void Shutdown()
     }
 }
 
+void EventDoState(PointerWrap &p, BaseEvent* ev)
+{
+	p.Do(ev->time);
+	p.Do(ev->type);
+	p.Do(ev->userdata);			
+}
+
 void DoState(PointerWrap &p)
 {
 	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
@@ -165,53 +172,12 @@ void DoState(PointerWrap &p)
 	p.Do(fakeTBStartValue);
 	p.Do(fakeTBStartTicks);
 	p.DoMarker("CoreTimingData");
-	// OK, here we're gonna need to specialize depending on the mode.
-	// Should do something generic to serialize linked lists.
-	switch (p.GetMode()) {
-	case PointerWrap::MODE_READ:
-		{
-		ClearPendingEvents();
-		if (first)
-			PanicAlertT("Clear failed.");
-		int more_events = 0;
-		Event *prev = 0;
-		while (true) {
-			p.Do(more_events);
-			if (!more_events)
-				break;
-			Event *ev = GetNewEvent();
-			if (!prev)
-				first = ev;
-			else
-				prev->next = ev;
-			p.Do(ev->time);
-			p.Do(ev->type);
-			p.Do(ev->userdata);			
-			ev->next = 0;
-			prev = ev;
-			ev = ev->next;
-		}
-		}
-		break;
-	case PointerWrap::MODE_MEASURE:
-	case PointerWrap::MODE_VERIFY:
-	case PointerWrap::MODE_WRITE:
-		{
-		Event *ev = first;
-		int more_events = 1;
-		while (ev) {
-			p.Do(more_events);
-			p.Do(ev->time);
-			p.Do(ev->type);
-			p.Do(ev->userdata);			
-			ev = ev->next;
-		}
-		more_events = 0;
-		p.Do(more_events);
-		break;
-		}
-	}
+
+	p.DoLinkedList<BaseEvent, GetNewEvent, FreeEvent, EventDoState>(first);
 	p.DoMarker("CoreTimingEvents");
+
+	p.DoLinkedList<BaseEvent, GetNewTsEvent, FreeTsEvent, EventDoState>(tsFirst, &tsLast);
+	p.DoMarker("CoreTimingTsEvents");
 }
 
 u64 GetTicks()
