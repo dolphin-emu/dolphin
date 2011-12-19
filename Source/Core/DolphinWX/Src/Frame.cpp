@@ -863,8 +863,12 @@ int GetCmdForHotkey(unsigned int key)
 
 void OnAfterLoadCallback()
 {
+	// warning: this gets called from the CPU thread, so we should only queue things to do on the proper thread
 	if(main_frame)
-		main_frame->UpdateGUI();
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+	}
 }
 
 void TASManipFunction(SPADStatus *PadStatus, int controllerID)
