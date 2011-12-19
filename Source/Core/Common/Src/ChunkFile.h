@@ -78,12 +78,6 @@ public:
 	template<class T>
 	void Do(std::map<unsigned int, T> &x)
 	{
-		// TODO
-		PanicAlert("Do(map<>) does not yet work.");
-	}
-
-	void Do(std::map<unsigned int, std::string> &x)
-	{
 		unsigned int number = (unsigned int)x.size();
 		Do(number);
 		switch (mode) {
@@ -94,7 +88,7 @@ public:
 				{
 					unsigned int first = 0;
 					Do(first);
-					std::string second;
+					T second;
 					Do(second);
 					x[first] = second;
 					--number;
@@ -105,7 +99,7 @@ public:
 		case MODE_MEASURE:
 		case MODE_VERIFY:
 			{
-				std::map<unsigned int, std::string>::iterator itr = x.begin();
+				std::map<unsigned int, T>::iterator itr = x.begin();
 				while (number > 0)
 				{
 					Do(itr->first);
