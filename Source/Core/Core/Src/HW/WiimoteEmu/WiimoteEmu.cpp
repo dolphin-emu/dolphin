@@ -301,7 +301,7 @@ Wiimote::Wiimote( const unsigned int index )
 	m_options->settings.push_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
 
 	// TODO: This value should probably be re-read if SYSCONF gets changed
-	m_sensor_bar_on_top = (bool)SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR");
+	m_sensor_bar_on_top = SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR") != 0;
 
 	// --- reset eeprom/register/values to default ---
 	Reset();
@@ -318,7 +318,6 @@ std::string Wiimote::GetName() const
 bool Wiimote::Step()
 {
 	const bool has_focus = HAS_FOCUS;
-	const bool is_sideways = m_options->settings[1]->value != 0;
 
 	// TODO: change this a bit
 	m_motion_plus_present = m_extension->settings[0]->value != 0;
@@ -329,13 +328,10 @@ bool Wiimote::Step()
 
 	m_rumble->controls[0]->control_ref->State(m_rumble_on);
 
-	// update buttons in status struct
-	m_status.buttons = 0;
-	if (has_focus)
+	// when a movie is active, this button status update is disabled (moved), because movies only record data reports.
+	if(!(Movie::IsPlayingInput() || Movie::IsRecordingInput()))
 	{
-		m_buttons->GetState(&m_status.buttons, button_bitmasks);
-		m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
-		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
+		UpdateButtonsStatus(has_focus);
 	}
 
 	// check if there is a read data request
@@ -375,8 +371,27 @@ bool Wiimote::Step()
 	return false;
 }
 
+void Wiimote::UpdateButtonsStatus(bool has_focus)
+{
+	// update buttons in status struct
+	m_status.buttons = 0;
+	if (has_focus)
+	{
+		const bool is_sideways = m_options->settings[1]->value != 0;
+		m_buttons->GetState(&m_status.buttons, button_bitmasks);
+		m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
+		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
+	}
+}
+
 void Wiimote::GetCoreData(u8* const data)
 {
+	// when a movie is active, the button update happens here instead of Wiimote::Step, to avoid potential desync issues.
+	if(Movie::IsPlayingInput() || Movie::IsRecordingInput())
+	{
+		UpdateButtonsStatus(HAS_FOCUS);
+	}
+
 	*(wm_core*)data |= m_status.buttons;
 }
 
@@ -639,7 +654,12 @@ void Wiimote::Update()
 
 	const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
 	rptf_size = rptf.size;
-	if (!Movie::IsPlayingInput() || !Movie::PlayWiimote(m_index, data, rptf, m_reg_ir.mode))
+	if (Movie::IsPlayingInput() && Movie::PlayWiimote(m_index, data, rptf, m_reg_ir.mode))
+	{
+		if (rptf.core)
+			m_status.buttons = *(wm_core*)(data + rptf.core);
+	}
+	else
 	{
 		data[0] = 0xA1;
 		data[1] = m_reporting_mode;
@@ -741,10 +761,10 @@ void Wiimote::Update()
 				}
 			}
 		}
-		if (Movie::IsRecordingInput())
-		{
-			Movie::RecordWiimote(m_index, data, rptf, m_reg_ir.mode);
-		}
+	}
+	if (Movie::IsRecordingInput())
+	{
+		Movie::RecordWiimote(m_index, data, rptf, m_reg_ir.mode);
 	}
 
 	// don't send a data report if auto reporting is off
