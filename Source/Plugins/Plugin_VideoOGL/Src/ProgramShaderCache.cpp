@@ -77,6 +77,13 @@ namespace OGL
 		{
 			PCacheEntry &entry = iter->second;
 			glUseProgram(entry.program.glprogid);
+			if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding) 
+				for(int a = 0; a < 8; ++a)
+				{
+					// Why do we need to set this again here when we don't support binding?
+					if(entry.program.UniformLocations[a] != -1)
+						glUniform1i(entry.program.UniformLocations[a], a);
+				}
 			CurrentShaderProgram = ShaderPair;
 			CurrentProgram = entry.program.glprogid;
 			return;
