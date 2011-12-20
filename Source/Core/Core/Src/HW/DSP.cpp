@@ -229,6 +229,7 @@ void DoState(PointerWrap &p)
 	p.Do(g_ARAM_Info);
 	p.Do(g_AR_MODE);
 	p.Do(g_AR_REFRESH);
+	p.Do(dsp_slice);
 
 	dsp_emulator->DoState(p);
 }

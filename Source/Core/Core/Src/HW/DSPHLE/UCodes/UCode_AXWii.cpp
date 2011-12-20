@@ -261,5 +261,6 @@ void CUCode_AXWii::DoState(PointerWrap &p)
 
 	p.Do(m_addressPBs);
 	p.Do(wiisportsHack);
-	p.Do(m_UploadSetupInProgress);
+
+	DoStateShared(p);
 }

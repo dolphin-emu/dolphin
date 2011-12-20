@@ -612,5 +612,5 @@ void CUCode_Zelda::DoState(PointerWrap &p)
 	p.Do(m_PBAddress);
 	p.Do(m_PBAddress2);
 
-	p.Do(m_UploadSetupInProgress);
+	DoStateShared(p);
 }
