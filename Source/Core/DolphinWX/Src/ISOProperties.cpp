@@ -1265,7 +1265,8 @@ void CISOProperties::ChangeBannerDetails(int lang)
 	wxString shortName,
 			 comment,
 			 maker;
-	
+
+	wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
 #ifdef _WIN32
 	wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
 	static bool validCP932 = ::IsValidCodePage(932) != 0;
@@ -1300,19 +1301,19 @@ void CISOProperties::ChangeBannerDetails(int lang)
 		if (OpenGameListItem->GetName(wname))
 			shortName = wname;
 		else
-			shortName = wxString::From8BitData(OpenGameListItem->GetName(0).c_str());
+			shortName = wxString(OpenGameListItem->GetName(0).c_str(), WindowsCP1252);
 		if ((comment = OpenGameListItem->GetDescription()).size() == 0)
-			comment = wxString(OpenGameListItem->GetDescription(0).c_str(), SJISConv);
-		maker = wxString::From8BitData(OpenGameListItem->GetCompany().c_str());
+			comment = wxString(OpenGameListItem->GetDescription(0).c_str(), WindowsCP1252);
+		maker = wxString(OpenGameListItem->GetCompany().c_str(), WindowsCP1252);
 		break;
 	default:
 		if (OpenGameListItem->GetName(wname, lang))
 			shortName = wname;
 		else
-			shortName = wxString::From8BitData(OpenGameListItem->GetName(lang).c_str());
+			shortName = wxString(OpenGameListItem->GetName(lang).c_str(), WindowsCP1252);
 		if ((comment = OpenGameListItem->GetDescription()).size() == 0)
-			comment = wxString(OpenGameListItem->GetDescription(lang).c_str(), SJISConv);
-		maker = wxString::From8BitData(OpenGameListItem->GetCompany().c_str());
+			comment = wxString(OpenGameListItem->GetDescription(lang).c_str(), WindowsCP1252);
+		maker = wxString(OpenGameListItem->GetCompany().c_str(), WindowsCP1252);
 		break;
 		
 		break;

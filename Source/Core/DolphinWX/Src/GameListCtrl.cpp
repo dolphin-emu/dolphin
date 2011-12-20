@@ -434,6 +434,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// company: 0x007030
 	int ImageIndex = -1;
 
+	wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
 #ifdef _WIN32
 		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
 		static bool validCP932 = ::IsValidCodePage(932) != 0;
@@ -494,25 +495,25 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	case DiscIO::IVolume::COUNTRY_USA:
 		rISOFile.GetName(wname);
 		SetItem(_Index, COLUMN_TITLE,
-			wxString::From8BitData(rISOFile.GetName(0).c_str()), -1);
+			wxString(rISOFile.GetName(0).c_str(), WindowsCP1252), -1);
 		m_gameList.append(StringFromFormat("%s (U)\n", rISOFile.GetName(0).c_str()));
 		SetItem(_Index, COLUMN_NOTES,
-			wxString::From8BitData(company.size() ?
-				company.c_str() : rISOFile.GetDescription(0).c_str()), -1);
+			wxString(company.size() ?
+				company.c_str() : rISOFile.GetDescription(0).c_str(), WindowsCP1252), -1);
 		break;
 	default:			
 		rISOFile.GetName(wname, SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
 
 		SetItem(_Index, COLUMN_TITLE,
-			wxString::From8BitData(
-				rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()),
+			wxString(
+				rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str(), WindowsCP1252),
 			-1);
 		m_gameList.append(StringFromFormat("%s (E)\n",
 			rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()));
 		SetItem(_Index, COLUMN_NOTES,
-				wxString::From8BitData(company.size() ?
+				wxString(company.size() ?
 					company.c_str() :
-					rISOFile.GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()),
+					rISOFile.GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str(), WindowsCP1252),
 				-1);
 		break;
 	}
