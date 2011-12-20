@@ -12,8 +12,12 @@ msgstr ""
 "PO-Revision-Date: 2011-12-18 13:41-0600\n"
 =======
 "POT-Creation-Date: 2011-10-11 23:25-0500\n"
+<<<<<<< HEAD
 "PO-Revision-Date: 2011-06-04 14:29+0100\n"
 >>>>>>> Update translation files for recent changes in the code.
+=======
+"PO-Revision-Date: 2011-12-20 17:22-0600\n"
+>>>>>>> Update Hungarian and Turkish translations.
 "Last-Translator: Delirious <delirious@freemail.hu>\n"
 "Language-Team: Delirious <delirious@freemail.hu>\n"
 "Language: Hungarian\n"
@@ -80,10 +84,14 @@ msgstr "%s tisztítása sikertelen. Valószínűleg a képfájl sérült."
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:97
 <<<<<<< HEAD
+<<<<<<< HEAD
 #, c-format
 =======
 #, fuzzy, c-format
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#, c-format
+>>>>>>> Update Hungarian and Turkish translations.
 msgid ""
 "%s failed to load as a memorycard \n"
 " Card file size is invalid (0x%x bytes)"
@@ -93,10 +101,14 @@ msgstr ""
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:112
 <<<<<<< HEAD
+<<<<<<< HEAD
 #, c-format
 =======
 #, fuzzy, c-format
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#, c-format
+>>>>>>> Update Hungarian and Turkish translations.
 msgid ""
 "%s failed to load as a memorycard \n"
 " Card size is invalid (0x%x bytes)"
@@ -443,9 +455,12 @@ msgstr "Pontos VBeam emuláció"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Hungarian and Turkish translations.
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -685,6 +700,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 <<<<<<< HEAD
+<<<<<<< HEAD
 msgid "Alternate Wiimote Timing"
 msgstr "Változtatható Wiimote időzítés"
 =======
@@ -692,6 +708,10 @@ msgstr "Változtatható Wiimote időzítés"
 msgid "Alternate Wiimote Timing"
 msgstr "Emulált Wiimote"
 >>>>>>> Update translation files for recent changes in the code.
+=======
+msgid "Alternate Wiimote Timing"
+msgstr "Változtatható Wiimote időzítés"
+>>>>>>> Update Hungarian and Turkish translations.
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
 msgid "Anisotropic Filtering:"
@@ -1002,11 +1022,22 @@ msgstr "Mégsem"
 msgid "Cannot open %s"
 msgstr "%s nem nyitható meg"
 
+<<<<<<< HEAD
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:721
+msgid "Cannot record movies in read-only mode."
+msgstr "A mozgások rögzítése nem lehetséges írásvédett módban."
+
+>>>>>>> Update Hungarian and Turkish translations.
 #: Source/Core/Core/Src/CoreTiming.cpp:122
 msgid "Cannot unregister events with events pending"
 msgstr "Nem lehet események bejegyzéseket törölni függőben lévő eseményekkel"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1020
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1016
+>>>>>>> Update Hungarian and Turkish translations.
 #, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
@@ -2854,9 +2885,12 @@ msgstr "Nagyobb mint"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Hungarian and Turkish translations.
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -5143,9 +5177,12 @@ msgstr "TAJVAN"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
 #: Source/Core/DolphinWX/Src/TASInputDlg.h:32
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #, fuzzy
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Update Hungarian and Turkish translations.
 msgid "TAS Input"
 msgstr "TAS bemenet"
 
@@ -6261,6 +6298,9 @@ msgstr "| VAGY"
 #~ msgid "Emulator Display Settings"
 #~ msgstr "Emulátor kijelző beállítások"
 
+#~ msgid "Enable Bounding Box Calculation"
+#~ msgstr "Bounding Box kalkuláció használata"
+
 #~ msgid "Enable CPU Access"
 #~ msgstr "Processzor hozzáférés engedélyezése"
 
@@ -6318,6 +6358,13 @@ msgstr "| VAGY"
 #~ msgid "Error allocating buffer"
 #~ msgstr "Puffer kiosztási hiba"
 
+#~ msgid ""
+#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
+#~ "Sorry, Wii recording is temporarily broken."
+#~ msgstr ""
+#~ "PlayWiimote hiba. %u != %u, bájt %d.\n"
+#~ "Sajnos a Wii videó rögzítés egyenlőre nem működik."
+
 #~ msgid "Error loading %s: can't read info"
 #~ msgstr "Hiba a(z) %s betöltése közben: az infó nem olvasható"
 
@@ -6329,6 +6376,13 @@ msgstr "| VAGY"
 
 #~ msgid "Error opening file %s for recording"
 #~ msgstr "Hiba a(z) %s fájl rögzítéshez történő megnyitása közben"
+
+#~ msgid ""
+#~ "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
+#~ "Aborting savestate load..."
+#~ msgstr ""
+#~ "Hiba: \"%s\" után, %d (0x%X) található a mentési jelölő helyett %d (0x"
+#~ "%X). Mentés betöltésének leállítása..."
 
 #~ msgid ""
 #~ "Failed to load DSP ROM:\n"
@@ -6367,6 +6421,9 @@ msgstr "| VAGY"
 #~ "Ez sokkal pontosabb mint az EFB másolás textúrába, és néhány játékhoz "
 #~ "szükséges a megfelelő működéshez, ugyanakkor nagyon lassú is lehet."
 
+#~ msgid "GCMic Configuration"
+#~ msgstr "GCMic beállítások"
+
 #~ msgid "GFX Config"
 #~ msgstr "GFX beállítások"
 
@@ -6389,6 +6446,13 @@ msgstr "| VAGY"
 #~ msgstr ""
 #~ "Ha a játék leáll, csak Interpreter módban működik vagy ha a Dolphin "
 #~ "kifagy, akkor ez a beállítás javíthat a játékon."
+
+#~ msgid ""
+#~ "If checked, the bounding box registers will be updated. Used by the Paper "
+#~ "Mario games."
+#~ msgstr ""
+#~ "Kijelölés esetén a bounding box regiszterek frissítve lesznek. A Paper "
+#~ "Mario játékok használják."
 
 #~ msgid "Input Source"
 #~ msgstr "Bemeneti forrás"
@@ -6478,6 +6542,15 @@ msgstr "| VAGY"
 #~ "A hordozható beállítások nem menthetőek el\n"
 #~ " A Dolphin emulátort csak olvasható eszközről futtatod vagy egy olyan "
 #~ "könyvtárból amely nem tartalmazza az emulátort?"
+
+#~ msgid "Premature movie end in PlayController. %u + 8 > %u"
+#~ msgstr "Túl korai PlayController videó befejezés. %u + 8 > %u"
+
+#~ msgid "Premature movie end in PlayWiimote. %u + %d > %u"
+#~ msgstr "Túl korai PlayWiimote videó befejezés. %u + %d > %u"
+
+#~ msgid "Premature movie end in PlayWiimote. %u > %u"
+#~ msgstr "Túl korai PlayWiimote videó befejezés. %u > %u"
 
 #~ msgid "Projection Stats"
 #~ msgstr "Kivetítési statisztikák"
@@ -6598,6 +6671,9 @@ msgstr "| VAGY"
 #~ msgid "Start the rendering window in fullscreen mode."
 #~ msgstr "A megjelenítési ablak teljes képernyős módban indul."
 
+#~ msgid "TaruKonga (Bongos)"
+#~ msgstr "TaruKonga (Bongos)"
+
 #~ msgid "The file "
 #~ msgstr "A fájl"
 
@@ -6646,6 +6722,60 @@ msgstr "| VAGY"
 #~ msgstr ""
 #~ "Várakozás a függőleges képkioltásra.\n"
 #~ "Csökkenti a képszakadást de egyben a teljesítményt is."
+
+#~ msgid ""
+#~ "Warning: You loaded a save that's after the end of the current movie. "
+#~ "(byte %u > %u) (frame %u > %u). You should load another save before "
+#~ "continuing, or load this state with read-only mode off."
+#~ msgstr ""
+#~ "Figyelem: Olyan mentést töltöttél be, ami a választott videó befejezése "
+#~ "utáni. (%u > %u bájt) (%u > %u képkocka). Folytatás előtt betölthetsz egy "
+#~ "másik mentést, vagy betöltheted ezt a mentést az írásvédett mód "
+#~ "kikapcsolása után."
+
+#~ msgid ""
+#~ "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
+#~ "should load another save before continuing, or load this state with read-"
+#~ "only mode off. Otherwise you'll probably get a desync."
+#~ msgstr ""
+#~ "Figyelem: Olyan mentést töltöttél be, amelyik videójánál %d (0x%X) bájt "
+#~ "eltérés mutatkozik. Folytatás előtt betölthetsz egy másik mentést, vagy "
+#~ "betöltheted ezt a mentést az írásvédett mód kikapcsolása után. Ellenkező "
+#~ "esetben szinkronizációs hibák jelentkezhetnek."
+
+#~ msgid ""
+#~ "Warning: You loaded a save whose movie mismatches on frame %d. You should "
+#~ "load another save before continuing, or load this state with read-only "
+#~ "mode off. Otherwise you'll probably get a desync.\n"
+#~ "\n"
+#~ "More information: The current movie is %d frames long and the savestate's "
+#~ "movie is %d frames long.\n"
+#~ "\n"
+#~ "On frame %d, the current movie presses:\n"
+#~ "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, "
+#~ "DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY="
+#~ "%d\n"
+#~ "\n"
+#~ "On frame %d, the savestate's movie presses:\n"
+#~ "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, "
+#~ "DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
+#~ msgstr ""
+#~ "Figyelem: Olyan mentést töltöttél be, amelyik videójánál %d képkocka "
+#~ "eltérés mutatkozik. Folytatás előtt betölthetsz egy másik mentést, vagy "
+#~ "betöltheted ezt a mentést az írásvédett mód kikapcsolása után. Ellenkező "
+#~ "esetben szinkronizációs hibák jelentkezhetnek.\n"
+#~ "\n"
+#~ "Bővebb információk: A választott videó %d képkocka hosszú, a mentett "
+#~ "állás videója pedig %d képkocka hosszú.\n"
+#~ "\n"
+#~ "%d képkockánál a videó tömörítve lesz:\n"
+#~ "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, "
+#~ "DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY="
+#~ "%d\n"
+#~ "\n"
+#~ "%d képkockánál a mentett állás videója tömörítve lesz:\n"
+#~ "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, "
+#~ "DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 
 #~ msgid ""
 #~ "When using EFB to RAM we very often need to decode RAM data to a VRAM "
