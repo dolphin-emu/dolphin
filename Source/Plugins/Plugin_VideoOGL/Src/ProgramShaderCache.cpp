@@ -116,12 +116,13 @@ namespace OGL
 		//glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
 		//Got to do it this crappy way.
 		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-			for(int a = 0; a < NUM_UNIFORMS; ++a)
+			for(int a = 8; a < NUM_UNIFORMS; ++a)
 				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
 		if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding) 
 			for(int a = 0; a < 8; ++a)
 			{
 				// Still need to get sampler locations since we aren't binding them statically in the shaders
+				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
 				if(entry.program.UniformLocations[a] != -1)
 					glUniform1i(entry.program.UniformLocations[a], a);
 			}
