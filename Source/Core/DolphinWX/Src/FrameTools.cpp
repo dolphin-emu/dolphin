@@ -1632,7 +1632,7 @@ void CFrame::UpdateGUI()
 		}
 	}
  
-	GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Enable(Running);
+	GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Enable(Running || Paused);
 	
 	if (!Initialized && !m_bGameLoading)
 	{
