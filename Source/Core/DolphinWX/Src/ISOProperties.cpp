@@ -1278,8 +1278,10 @@ void CISOProperties::ChangeBannerDetails(int lang)
 		WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
 	}
 #else
-	wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
-#endif	
+		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
+		// it returns CP-932, in order to use iconv we need to use CP932
+		wxCSConv SJISConv(L"CP932");
+#endif
 	switch (OpenGameListItem->GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_TAIWAN:

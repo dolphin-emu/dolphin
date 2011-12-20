@@ -41,7 +41,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	, x(0), y(0), winpos(0)
 	, Parent(parent) , m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
-	, m_SJISConv(wxT(""))
+	, m_SJISConv(*(wxCSConv*)wxConvCurrent)
 {
 #ifdef _WIN32
 		static bool validCP932 = ::IsValidCodePage(932) != 0;
@@ -52,10 +52,11 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 		else
 		{
 			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
-			m_SJISConv = *(wxCSConv*)wxConvCurrent;
 		}
 #else
-		m_SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
+		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
+		// it returns CP-932, in order to use iconv we need to use CP932
+		m_SJISConv = wxCSConv(L"CP932");
 #endif
 
 	m_LogManager = LogManager::GetInstance();
