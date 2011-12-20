@@ -434,7 +434,6 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// company: 0x007030
 	int ImageIndex = -1;
 
-	wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
 #ifdef _WIN32
 		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
 		static bool validCP932 = ::IsValidCodePage(932) != 0;
@@ -477,7 +476,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// On Wii we show the description instead as the company string is empty
 	if (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC)
 		company = rISOFile.GetCompany().c_str();
-
+	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	switch (rISOFile.GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
@@ -493,28 +492,24 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		}
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
-		rISOFile.GetName(wname);
-		SetItem(_Index, COLUMN_TITLE,
-			wxString(rISOFile.GetName(0).c_str(), WindowsCP1252), -1);
-		m_gameList.append(StringFromFormat("%s (U)\n", rISOFile.GetName(0).c_str()));
-		SetItem(_Index, COLUMN_NOTES,
-			wxString(company.size() ?
-				company.c_str() : rISOFile.GetDescription(0).c_str(), WindowsCP1252), -1);
-		break;
-	default:			
-		rISOFile.GetName(wname, SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
+		SelectedLanguage = 0;
+	default:
+		{
+		wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
+		rISOFile.GetName(wname, SelectedLanguage);
 
 		SetItem(_Index, COLUMN_TITLE,
 			wxString(
-				rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str(), WindowsCP1252),
+				rISOFile.GetName(SelectedLanguage).c_str(), WindowsCP1252),
 			-1);
-		m_gameList.append(StringFromFormat("%s (E)\n",
-			rISOFile.GetName(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str()));
+		m_gameList.append(StringFromFormat("%s (%c)\n",
+			rISOFile.GetName(SelectedLanguage).c_str(), (rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA)?'U':'E'));
 		SetItem(_Index, COLUMN_NOTES,
 				wxString(company.size() ?
 					company.c_str() :
-					rISOFile.GetDescription(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage).c_str(), WindowsCP1252),
+					rISOFile.GetDescription(SelectedLanguage).c_str(), WindowsCP1252),
 				-1);
+		}
 		break;
 	}
 

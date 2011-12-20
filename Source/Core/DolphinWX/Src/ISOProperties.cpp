@@ -1266,7 +1266,6 @@ void CISOProperties::ChangeBannerDetails(int lang)
 			 comment,
 			 maker;
 
-	wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
 #ifdef _WIN32
 	wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
 	static bool validCP932 = ::IsValidCodePage(932) != 0;
@@ -1298,15 +1297,10 @@ void CISOProperties::ChangeBannerDetails(int lang)
 		maker = wxString(OpenGameListItem->GetCompany().c_str(), SJISConv);
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
-		if (OpenGameListItem->GetName(wname))
-			shortName = wname;
-		else
-			shortName = wxString(OpenGameListItem->GetName(0).c_str(), WindowsCP1252);
-		if ((comment = OpenGameListItem->GetDescription()).size() == 0)
-			comment = wxString(OpenGameListItem->GetDescription(0).c_str(), WindowsCP1252);
-		maker = wxString(OpenGameListItem->GetCompany().c_str(), WindowsCP1252);
-		break;
+		lang = 0;
 	default:
+		{
+		wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
 		if (OpenGameListItem->GetName(wname, lang))
 			shortName = wname;
 		else
@@ -1314,8 +1308,7 @@ void CISOProperties::ChangeBannerDetails(int lang)
 		if ((comment = OpenGameListItem->GetDescription()).size() == 0)
 			comment = wxString(OpenGameListItem->GetDescription(lang).c_str(), WindowsCP1252);
 		maker = wxString(OpenGameListItem->GetCompany().c_str(), WindowsCP1252);
-		break;
-		
+		}
 		break;
 	}
 	// Updates the informations shown in the window
