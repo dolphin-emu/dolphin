@@ -121,4 +121,9 @@ extern CGcontext g_cgcontext;
 extern CGprofile g_cgvProf, g_cgfProf;
 #endif
 
+// Isn't defined if we aren't using GLEW 1.6
+#ifndef GL_ONE_MINUS_SRC1_ALPHA 
+#define GL_ONE_MINUS_SRC1_ALPHA 0x88FB
+#endif
+
 #endif  // _GLINIT_H_
