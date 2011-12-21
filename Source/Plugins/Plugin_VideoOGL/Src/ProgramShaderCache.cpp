@@ -26,6 +26,9 @@ namespace OGL
 	GLuint ProgramShaderCache::s_ps_vs_ubo;
 	GLintptr ProgramShaderCache::s_vs_data_offset;
 
+	LinearDiskCache<PROGRAMUID, u8> g_program_disk_cache;
+	GLenum ProgramFormat;
+
 	std::pair<u64, u64> ProgramShaderCache::CurrentShaderProgram;
 	const char *UniformNames[NUM_UNIFORMS] = {
 		// SAMPLERS
@@ -53,6 +56,48 @@ namespace OGL
 			I_DEPTHPARAMS,
 		};
 
+	void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry, const PROGRAMUID &uid)
+	{
+		// Dunno why this is needed when I have the binding
+		// points statically set in the shader source
+		// We should only need these two functions when we don't support binding but do support UBO
+		// Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
+		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		{
+			glUniformBlockBinding( entry.program.glprogid, 0, 1 );
+			if(uid.uid.vsid != 0) // Some things have no vertex shader
+				glUniformBlockBinding( entry.program.glprogid, 1, 2 );
+		}
+				
+		// We cache our uniform locations for now
+		// Once we move up to a newer version of GLSL, ~1.30
+		// We can remove this
+		
+		//For some reason this fails on my hardware     
+		//glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
+		//Got to do it this crappy way.
+		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+			for(int a = 8; a < NUM_UNIFORMS; ++a)
+				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
+		if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding) 
+			for(int a = 0; a < 8; ++a)
+			{
+				// Still need to get sampler locations since we aren't binding them statically in the shaders
+				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
+				if(entry.program.UniformLocations[a] != -1)
+					glUniform1i(entry.program.UniformLocations[a], a);
+			}
+
+		// Need to get some attribute locations
+		if(uid.uid.vsid != 0) // We have no vertex Shader
+		{
+			glBindAttribLocation(entry.program.glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
+			glBindAttribLocation(entry.program.glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
+			glBindAttribLocation(entry.program.glprogid, SHADER_POSMTX_ATTRIB, "fposmtx");
+		}
+	}
+
+	
 	void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 	{
 		PROGRAMUID uid;
@@ -92,49 +137,19 @@ namespace OGL
 			glAttachShader(entry.program.glprogid, entry.program.vsid);
 			
 		glAttachShader(entry.program.glprogid, entry.program.psid);
+
+		
+		glProgramParameteri(entry.program.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 		
 		glLinkProgram(entry.program.glprogid);
 		
 		glUseProgram(entry.program.glprogid);
 
-		// Dunno why this is needed when I have the binding
-		// points statically set in the shader source
-		// We should only need these two functions when we don't support binding but do support UBO
-		// Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
-		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		{
-			glUniformBlockBinding( entry.program.glprogid, 0, 1 );
-			if(uid.uid.vsid != 0) // Some things have no vertex shader
-				glUniformBlockBinding( entry.program.glprogid, 1, 2 );
-		}
-				
-		// We cache our uniform locations for now
-		// Once we move up to a newer version of GLSL, ~1.30
-		// We can remove this
-		
-		//For some reason this fails on my hardware     
-		//glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
-		//Got to do it this crappy way.
-		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-			for(int a = 8; a < NUM_UNIFORMS; ++a)
-				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
-		if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding) 
-			for(int a = 0; a < 8; ++a)
-			{
-				// Still need to get sampler locations since we aren't binding them statically in the shaders
-				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
-				if(entry.program.UniformLocations[a] != -1)
-					glUniform1i(entry.program.UniformLocations[a], a);
-			}
+		SetProgramVariables(entry, uid);
 
-		// Need to get some attribute locations
-		if(uid.uid.vsid != 0) // We have no vertex Shader
-		{
-			glBindAttribLocation(entry.program.glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
-			glBindAttribLocation(entry.program.glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
-			glBindAttribLocation(entry.program.glprogid, SHADER_POSMTX_ATTRIB, "fposmtx");
-		}
-
+		// Add it to our cache
+		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
+			g_program_disk_cache.Append(uid, entry.Data(), entry.Size());
 
 		pshaders[ShaderPair] = entry;
 		CurrentShaderProgram = ShaderPair;
@@ -186,10 +201,33 @@ namespace OGL
 			glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_ps_vs_ubo, 0, ps_data_size);
 			glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_vs_data_offset, vs_data_size);
 		}
+		
+		// Read our shader cache, only if supported
+		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
+		{
+			char cache_filename[MAX_PATH];
+			sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+			ProgramShaderCacheInserter inserter;
+			g_program_disk_cache.OpenAndRead(cache_filename, inserter);
+			
+			GLint Supported;
+			glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
+			
+			GLint Formats[Supported];
+			glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, Formats);
+			ProgramFormat = (GLenum)Formats[0]; // We don't really care about format
+		}
 	}
 	
 	void ProgramShaderCache::Shutdown(void)
 	{
+		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
+		{
+			g_program_disk_cache.Sync();
+			g_program_disk_cache.Close();
+		}
+		
 		PCache::iterator iter = pshaders.begin();
 		for (; iter != pshaders.end(); ++iter)
 			iter->second.Destroy();

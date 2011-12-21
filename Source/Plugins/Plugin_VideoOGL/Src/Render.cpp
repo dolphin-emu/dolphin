@@ -312,16 +312,19 @@ Renderer::Renderer()
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 
-
+	// TODO: Switch over to using glew once 1.6/1.7 becomes more mainstream, seems most people are stuck in 1.5
 	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
 		g_Config.backend_info.bSupportsGLSLBinding = true;
 	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_uniform_buffer_object") != NULL)
 		g_Config.backend_info.bSupportsGLSLUBO = true;
+	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_get_program_binary") != NULL)
+		g_Config.backend_info.bSupportsGLSLCache = true;
 	
 	UpdateActiveConfig();
-	OSD::AddMessage(StringFromFormat("Using GLSL. Supports Binding: %s UBOs: %s",
+	OSD::AddMessage(StringFromFormat("Using GLSL. Supports Binding: %s UBOs: %s Cache: %s",
 			g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "True" : "False",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False").c_str(), 5000);
+			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False",
+			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "True" : "False").c_str(), 5000);
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
