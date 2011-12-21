@@ -138,8 +138,8 @@ namespace OGL
 			
 		glAttachShader(entry.program.glprogid, entry.program.psid);
 
-		
-		glProgramParameteri(entry.program.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
+			glProgramParameteri(entry.program.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 		
 		glLinkProgram(entry.program.glprogid);
 		
