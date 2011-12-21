@@ -167,6 +167,7 @@ struct VideoConfig
 		bool bSupportsGLSL;
 		bool bSupportsGLSLBinding;
 		bool bSupportsGLSLUBO;
+		bool bSupportsGLSLATTRBind;
 		bool bSupportsGLSLCache;
 	} backend_info;
 };

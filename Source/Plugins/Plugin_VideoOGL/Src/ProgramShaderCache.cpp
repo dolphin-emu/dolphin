@@ -89,7 +89,7 @@ namespace OGL
 			}
 
 		// Need to get some attribute locations
-		if(uid.uid.vsid != 0) // We have no vertex Shader
+		if(uid.uid.vsid != 0 && !g_ActiveConfig.backend_info.bSupportsGLSLATTRBind) // We have no vertex Shader
 		{
 			glBindAttribLocation(entry.program.glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
 			glBindAttribLocation(entry.program.glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");

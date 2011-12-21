@@ -572,6 +572,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			}
 			else
 				WRITE(p, "#version 120\n");
+
+			if(g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
+				WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
 			// Silly differences
 			WRITE(p, "#define float2 vec2\n");
 			WRITE(p, "#define float3 vec3\n");
@@ -630,7 +633,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	WRITE(p, "\n");
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 1" : "");
+		WRITE(p, "layout(std140) uniform PSBlock {\n");
 		
 		WRITE(p, "%sfloat4 "I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
 		WRITE(p, "%sfloat4 "I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_KCOLORS));
