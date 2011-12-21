@@ -204,6 +204,8 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 				WRITE(p, "#define ATTRIN attribute\n");
 				WRITE(p, "#define ATTROUT attribute\n");
 			}
+			if(g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
+				WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
 			// Silly differences
 			WRITE(p, "#define float2 vec2\n");
 			WRITE(p, "#define float3 vec3\n");
@@ -217,7 +219,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	
 	// uniforms
 	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 2" : "");
+		WRITE(p, "layout(std140) uniform VSBlock {\n");
 		
 		WRITE(p, "%sfloat4 "I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
 		WRITE(p, "%sfloat4 "I_PROJECTION"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PROJECTION));	
@@ -241,21 +243,33 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		if (components & VB_HAS_NRM0)
 				WRITE(p, " float3 rawnorm0 = gl_Normal; // NORMAL0,\n");
 
-		if (components & VB_HAS_POSMTXIDX)
+		if(g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
+		{
+			if (components & VB_HAS_POSMTXIDX)
+				WRITE(p, "layout(location = %d) ATTRIN float fposmtx;\n", SHADER_POSMTX_ATTRIB);
+			if (components & VB_HAS_NRM1)
+				WRITE(p, "layout(location = %d) ATTRIN float3 rawnorm1;\n", SHADER_NORM1_ATTRIB);
+			if (components & VB_HAS_NRM2)
+				WRITE(p, "layout(location = %d) ATTRIN float3 rawnorm2;\n", SHADER_NORM2_ATTRIB);
+		}
+		else
+		{
+			if (components & VB_HAS_POSMTXIDX)
 				WRITE(p, "ATTRIN float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
-		if (components & VB_HAS_NRM1)
+			if (components & VB_HAS_NRM1)
 				WRITE(p, "ATTRIN float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
-		if (components & VB_HAS_NRM2)
+			if (components & VB_HAS_NRM2)
 				WRITE(p, "ATTRIN float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
+		}
 
 		if (components & VB_HAS_COL0)
-				WRITE(p, "  float4 color0 = gl_Color; // COLOR0,\n");
+			WRITE(p, "  float4 color0 = gl_Color; // COLOR0,\n");
 		if (components & VB_HAS_COL1)
-				WRITE(p, "  float4 color1 = gl_SecondaryColor; // COLOR1,\n");
+			WRITE(p, "  float4 color1 = gl_SecondaryColor; // COLOR1,\n");
 		for (int i = 0; i < 8; ++i) {
-				u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
-				if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
-						WRITE(p, "  float%d tex%d = gl_MultiTexCoord%d.xy%s; // TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i, hastexmtx ? "z" : "", i);
+			u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
+			if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
+				WRITE(p, "  float%d tex%d = gl_MultiTexCoord%d.xy%s; // TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i, hastexmtx ? "z" : "", i);
 		}
 		WRITE(p, "  float4 rawpos = gl_Vertex;\n") ;
 
