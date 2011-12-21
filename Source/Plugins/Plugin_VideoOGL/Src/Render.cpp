@@ -316,9 +316,9 @@ Renderer::Renderer()
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 
 
-	if (glewIsSupported("GL_ARB_shading_language_420pack"))
+	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
 		g_Config.backend_info.bSupportsGLSLBinding = true;
-	if (glewIsSupported("GL_ARB_uniform_buffer_object"))
+	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_uniform_buffer_object") != NULL)
 		g_Config.backend_info.bSupportsGLSLUBO = true;
 	
 	UpdateActiveConfig();
