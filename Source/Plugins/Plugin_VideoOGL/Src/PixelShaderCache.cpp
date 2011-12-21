@@ -80,16 +80,6 @@ void PixelShaderCache::Init()
 		pSetPSConstant4fv = SetGLSLPSConstant4fv;
 		pSetMultiPSConstant4fv = SetMultiGLSLPSConstant4fv;
 		pCompilePixelShader = CompileGLSLPixelShader;
-		// Should this be set here?
-		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
-			g_Config.backend_info.bSupportsGLSLBinding = true;
-		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_uniform_buffer_object") != NULL)
-			g_Config.backend_info.bSupportsGLSLUBO = true;
-		
-		UpdateActiveConfig();
-		OSD::AddMessage(StringFromFormat("Using GLSL. Supports Binding: %s UBOs: %s",
-				g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "True" : "False",
-				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False").c_str(), 5000);
     }
     else
     {

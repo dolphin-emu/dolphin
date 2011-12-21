@@ -312,6 +312,17 @@ Renderer::Renderer()
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 
+
+	if (glewIsSupported("GL_ARB_shading_language_420pack"))
+		g_Config.backend_info.bSupportsGLSLBinding = true;
+	if (glewIsSupported("GL_ARB_uniform_buffer_object"))
+		g_Config.backend_info.bSupportsGLSLUBO = true;
+	
+	UpdateActiveConfig();
+	OSD::AddMessage(StringFromFormat("Using GLSL. Supports Binding: %s UBOs: %s",
+			g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "True" : "False",
+			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False").c_str(), 5000);
+			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 	s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
