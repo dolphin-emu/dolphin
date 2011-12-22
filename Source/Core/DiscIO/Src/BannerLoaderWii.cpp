@@ -164,6 +164,25 @@ bool CBannerLoaderWii::GetName(std::string* _rName)
 	return false;
 }
 
+bool CBannerLoaderWii::GetName(std::vector<std::wstring>&  _rNames)
+{
+	if (IsValid())
+	{
+		// find Banner type
+		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
+
+		std::wstring temp;
+		for (int i = 0; i < WII_BANNER_COMMENT_SIZE; ++i)
+		{
+			temp.push_back(Common::swap16(pBanner->m_Comment[0][i]));
+		}
+		_rNames.push_back(temp);
+		return true;
+	}
+
+	return false;
+}
+
 bool CBannerLoaderWii::GetCompany(std::string& _rCompany)
 {
     _rCompany = "N/A";
@@ -186,6 +205,23 @@ bool CBannerLoaderWii::GetDescription(std::string* _rDescription)
 			}
 			return true;
 		}
+	}
+	return false;
+}
+
+bool CBannerLoaderWii::GetDescription(std::wstring& _rDescription)
+{
+	if (IsValid())
+	{
+		// find Banner type
+		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
+
+		std::wstring description;
+		for (int i = 0; i < WII_BANNER_COMMENT_SIZE; ++i)
+			description.push_back(Common::swap16(pBanner->m_Comment[1][i]));
+
+		_rDescription = description;
+		return true;
 	}
 	return false;
 }

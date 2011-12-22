@@ -36,7 +36,7 @@
 #include "ChunkFile.h"
 #include "../resources/no_banner.cpp"
 
-#define CACHE_REVISION 0x10B
+#define CACHE_REVISION 0x10C
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -63,18 +63,26 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			if (!DiscIO::IsVolumeWadFile(pVolume))
 				m_Platform = DiscIO::IsVolumeWiiDisc(pVolume) ? WII_DISC : GAMECUBE_DISC;
 			else
+			{
 				m_Platform = WII_WAD;
+				pVolume->GetWName(m_wNames);
+			}
 
 			m_Company = "N/A";
+
+
+			m_Name[0] = pVolume->GetName();
+							
+			if(m_Name[0] == "") // Couldn't find the name in the WAD...
+			{
+				std::string FileName;
+				SplitPath(m_FileName, NULL, &FileName, NULL);
+				m_Name[0] = FileName; // Then just display the filename... Better than something like "No Name"
+			}
+
 			for (int i = 0; i < 6; i++)
 			{
-				m_Name[i] = pVolume->GetName();
-				if(m_Name[i] == "") // Couldn't find the name in the WAD...
-				{
-					std::string FileName;
-					SplitPath(_rFileName, NULL, &FileName, NULL);
-					m_Name[i] = FileName; // Then just display the filename... Better than something like "No Name"
-				}
+				m_Name[i] = m_Name[0];
 				m_Description[i] = "No Description";
 			}
 			m_Country  = pVolume->GetCountry();
@@ -95,9 +103,13 @@ GameListItem::GameListItem(const std::string& _rFileName)
 				{
 					if (pBannerLoader->IsValid())
 					{
-						pBannerLoader->GetName(m_Name); //m_Country == DiscIO::IVolume::COUNTRY_JAP ? 1 : 0);
+						m_wNames.clear();
+						if (!pBannerLoader->GetName(m_wNames))
+							pBannerLoader->GetName(m_Name);						
 						pBannerLoader->GetCompany(m_Company);
-						pBannerLoader->GetDescription(m_Description);
+						if (!pBannerLoader->GetDescription(m_wDescription))
+							pBannerLoader->GetDescription(m_Description);
+						
 						if (pBannerLoader->GetBanner(g_ImageTemp))
 						{
 							// resize vector to image size
@@ -115,6 +127,25 @@ GameListItem::GameListItem(const std::string& _rFileName)
 				}
 
 				delete pFileSystem;
+			}
+			std::vector<std::wstring>::iterator i, end = m_wNames.end();
+			std::wstring wFileName;
+			for (i = m_wNames.begin(); i != end; ++i)
+			{
+				if (*i == L"")
+				{
+					if (!wFileName.length())
+					{
+						std::string FileName;
+						SplitPath(m_FileName, NULL, &FileName, NULL);
+						int length = FileName.length();
+						wFileName.reserve(length+1);
+						for (int i = 0; i < length; ++i)
+							wFileName.push_back(FileName[i]);
+						wFileName.push_back(0);
+					}
+					*i = wFileName;
+				}
 			}
 
 			delete pVolume;
@@ -172,9 +203,31 @@ void GameListItem::DoState(PointerWrap &p)
 {
 	p.Do(m_Name[0]);	p.Do(m_Name[1]);	p.Do(m_Name[2]);
 	p.Do(m_Name[3]);	p.Do(m_Name[4]);	p.Do(m_Name[5]);
+
+	int wNamesSize = m_wNames.size();
+	p.Do(wNamesSize);
+
+	if (p.mode == p.MODE_READ)
+	{
+		for (int i = 0; i < wNamesSize; ++i)
+		{
+			std::wstring temp;
+			p.Do(temp);
+			m_wNames.push_back(temp);
+		}
+	}
+	else
+	{
+		for (int i = 0; i < wNamesSize; ++i)
+		{
+			p.Do(m_wNames[i]);
+		}
+	}
+
 	p.Do(m_Company);
 	p.Do(m_Description[0]);	p.Do(m_Description[1]);	p.Do(m_Description[2]);
 	p.Do(m_Description[3]);	p.Do(m_Description[4]);	p.Do(m_Description[5]);
+	p.Do(m_wDescription);
 	p.Do(m_UniqueID);
 	p.Do(m_FileSize);
 	p.Do(m_VolumeSize);
@@ -211,6 +264,11 @@ const std::string& GameListItem::GetDescription(int index) const
 	return m_Description[0];
 }
 
+const std::wstring& GameListItem::GetDescription() const
+{
+	return m_wDescription;
+}
+
 const std::string& GameListItem::GetName(int index) const
 {
 	if ((index >=0) && (index < 6))
@@ -218,6 +276,28 @@ const std::string& GameListItem::GetName(int index) const
 		return m_Name[index];
 	} 
 	return m_Name[0];
+}
+
+bool GameListItem::GetName(std::wstring& wName, int index) const
+{
+	// This function will only succeed for wii discs with banners or WADs
+	// utilize the same array as for gc discs (-1= Japanese, 0 = English etc
+	index++; 
+	if ((index >=0) && (index < 10))
+	{
+		if (m_wNames.size() > index)
+		{
+			wName = m_wNames[index];
+			return true;
+		}
+	}
+	if (m_wNames.size() > 0)
+	{
+		wName = m_wNames[0];
+		return true;
+	}
+	return false;
+
 }
 
 const std::string GameListItem::GetWiiFSPath() const

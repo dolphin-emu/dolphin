@@ -154,7 +154,15 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	}
 
 	// Disk header and apploader
-	m_Name->SetValue(wxString(OpenISO->GetName().c_str(), wxConvUTF8));
+
+	std::wstring wname;
+	wxString name;
+	if (OpenGameListItem->GetName(wname))
+		name = wname;
+	else
+		name = wxString(OpenISO->GetName().c_str(), wxConvUTF8);
+	m_Name->SetValue(name);
+
 	m_GameID->SetValue(wxString(OpenISO->GetUniqueID().c_str(), wxConvUTF8));
 	switch (OpenISO->GetCountry())
 	{
@@ -1253,53 +1261,63 @@ void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 
 void CISOProperties::ChangeBannerDetails(int lang)
 {
-	if (OpenGameListItem->GetCountry() == DiscIO::IVolume::COUNTRY_JAPAN
-		|| OpenGameListItem->GetCountry() == DiscIO::IVolume::COUNTRY_TAIWAN
-		|| OpenGameListItem->GetPlatform() == GameListItem::WII_WAD)
-	{
+	std::wstring wname;
+	wxString shortName,
+			 comment,
+			 maker;
+
 #ifdef _WIN32
-		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
-		static bool validCP932 = ::IsValidCodePage(932) != 0;
-		if (validCP932)
-		{
-			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
-		}
-		else
-		{
-			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
-		}
-#else
-		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
-#endif
-
-		wxString name = wxString(OpenGameListItem->GetName(0).c_str(), SJISConv);
-
-		// Updates the informations shown in the window
-		m_ShortName->SetValue(name);
-		m_Comment->SetValue(wxString(OpenGameListItem->GetDescription(0).c_str(), SJISConv));
-		m_Maker->SetValue(wxString(OpenGameListItem->GetCompany().c_str(), SJISConv));//dev too
-
-		std::string filename, extension;
-		SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
-
-		// Also sets the window's title
-		SetTitle(wxString::Format(wxT("%s%s"),
-			wxString(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str(), *wxConvCurrent).c_str(),
-			name.c_str()));
-	}
-	else // Do the same for PAL/US Games (assuming ISO 8859-1)
+	wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
+	static bool validCP932 = ::IsValidCodePage(932) != 0;
+	if (validCP932)
 	{
-		wxString name = wxString::From8BitData(OpenGameListItem->GetName(lang).c_str());
-
-		m_ShortName->SetValue(name);
-		m_Comment->SetValue(wxString::From8BitData(OpenGameListItem->GetDescription(lang).c_str()));
-		m_Maker->SetValue(wxString::From8BitData(OpenGameListItem->GetCompany().c_str()));//dev too
-
-		std::string filename, extension;
-		SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
-
-		SetTitle(wxString::Format(wxT("%s%s"),
-			wxString::From8BitData(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()).c_str(),
-			name.c_str()));
+		SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
 	}
+	else
+	{
+		WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+	}
+#else
+		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
+		// it returns CP-932, in order to use iconv we need to use CP932
+		wxCSConv SJISConv(L"CP932");
+#endif
+	switch (OpenGameListItem->GetCountry())
+	{
+	case DiscIO::IVolume::COUNTRY_TAIWAN:
+	case DiscIO::IVolume::COUNTRY_JAPAN:
+
+		if (OpenGameListItem->GetName(wname, -1))
+			shortName = wname;
+		else
+			shortName = wxString(OpenGameListItem->GetName(0).c_str(), SJISConv);
+
+		if ((comment = OpenGameListItem->GetDescription()).size() == 0)
+			comment = wxString(OpenGameListItem->GetDescription(0).c_str(), SJISConv);
+		maker = wxString(OpenGameListItem->GetCompany().c_str(), SJISConv);
+		break;
+	case DiscIO::IVolume::COUNTRY_USA:
+		lang = 0;
+	default:
+		{
+		wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
+		if (OpenGameListItem->GetName(wname, lang))
+			shortName = wname;
+		else
+			shortName = wxString(OpenGameListItem->GetName(lang).c_str(), WindowsCP1252);
+		if ((comment = OpenGameListItem->GetDescription()).size() == 0)
+			comment = wxString(OpenGameListItem->GetDescription(lang).c_str(), WindowsCP1252);
+		maker = wxString(OpenGameListItem->GetCompany().c_str(), WindowsCP1252);
+		}
+		break;
+	}
+	// Updates the informations shown in the window
+	m_ShortName->SetValue(shortName);
+	m_Comment->SetValue(comment);
+	m_Maker->SetValue(maker);//dev too
+
+	std::string filename, extension;
+	SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
+	// Also sets the window's title
+	SetTitle(wxString(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str(), *wxConvCurrent)+shortName);
 }

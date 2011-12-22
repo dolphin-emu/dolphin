@@ -56,18 +56,18 @@ wxString CRegTable::GetValue(int row, int col)
 		case 2: return wxString::FromAscii(GetFPRName(row));
 		case 3: return wxString::Format(wxT("%016llx"), riPS0(row));
 		case 4: return wxString::Format(wxT("%016llx"), riPS1(row));
-		default: return wxString::FromAscii("");
+		default: return wxEmptyString;
 		}
 	} else {
 		if (row - 32 < NUM_SPECIALS) {
 			switch (col) {
 			case 0:	return wxString::FromAscii(special_reg_names[row - 32]);
 			case 1: return wxString::Format(wxT("%08x"), GetSpecialRegValue(row - 32));
-			default: return wxString::FromAscii("");
+			default: return wxEmptyString;
 		    }
 		}
 	}
-    return wxString::FromAscii("");
+    return wxEmptyString;
 }
 
 static void SetSpecialRegValue(int reg, u32 value) {
