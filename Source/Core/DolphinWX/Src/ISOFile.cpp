@@ -36,7 +36,7 @@
 #include "ChunkFile.h"
 #include "../resources/no_banner.cpp"
 
-#define CACHE_REVISION 0x10C
+#define CACHE_REVISION 0x10D
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -104,11 +104,11 @@ GameListItem::GameListItem(const std::string& _rFileName)
 					if (pBannerLoader->IsValid())
 					{
 						m_wNames.clear();
-						if (!pBannerLoader->GetName(m_wNames))
-							pBannerLoader->GetName(m_Name);						
+						pBannerLoader->GetName(m_wNames);
+						pBannerLoader->GetName(m_Name);						
 						pBannerLoader->GetCompany(m_Company);
-						if (!pBannerLoader->GetDescription(m_wDescription))
-							pBannerLoader->GetDescription(m_Description);
+						pBannerLoader->GetDescription(m_wDescription);
+						pBannerLoader->GetDescription(m_Description);
 						
 						if (pBannerLoader->GetBanner(g_ImageTemp))
 						{
