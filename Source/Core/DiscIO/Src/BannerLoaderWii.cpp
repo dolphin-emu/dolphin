@@ -176,7 +176,6 @@ bool CBannerLoaderWii::GetName(std::vector<std::wstring>&  _rNames)
 		{
 			temp.push_back(Common::swap16(pBanner->m_Comment[0][i]));
 		}
-		temp.push_back('\0');
 		_rNames.push_back(temp);
 		return true;
 	}
@@ -220,8 +219,7 @@ bool CBannerLoaderWii::GetDescription(std::wstring& _rDescription)
 		std::wstring description;
 		for (int i = 0; i < WII_BANNER_COMMENT_SIZE; ++i)
 			description.push_back(Common::swap16(pBanner->m_Comment[1][i]));
-		
-		description.push_back('\0');
+
 		_rDescription = description;
 		return true;
 	}
