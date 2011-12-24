@@ -79,16 +79,24 @@ struct PROGRAMSHADER
 	GLint binaryLength;
 	u8 *Data()
 	{
+		#ifdef GLEW_VERSION_4_0
 		glGetProgramiv(glprogid, GL_PROGRAM_BINARY_LENGTH, &binaryLength);
         u8* binary = (u8*)malloc(binaryLength);
         glGetProgramBinary(glprogid, binaryLength, NULL, &ProgramFormat, binary);
         return binary;
+        #else
+        return NULL;
+        #endif
 	}
 	GLint Size()
 	{
+		#ifdef GLEW_VERSION_4_0
 		if(!binaryLength)
 			glGetProgramiv(glprogid, GL_PROGRAM_BINARY_LENGTH, &binaryLength);
 		return binaryLength;
+		#else
+		return 0;
+		#endif
 	}
 };
 
@@ -119,6 +127,7 @@ class ProgramShaderCache
 		public:
 			void Read(const PROGRAMUID &key, const u8 *value, u32 value_size)
 			{
+				#ifdef GLEW_VERSION_4_0
 				PCacheEntry entry;
 
 				// The two shaders might not even exist anymore
@@ -139,6 +148,7 @@ class ProgramShaderCache
 					glUseProgram(entry.program.glprogid);
 					SetProgramVariables(entry, key);
 				}
+				#endif
 			}
 	};
 	

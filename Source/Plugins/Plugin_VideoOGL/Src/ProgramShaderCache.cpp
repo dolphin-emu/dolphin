@@ -137,9 +137,10 @@ namespace OGL
 			glAttachShader(entry.program.glprogid, entry.program.vsid);
 			
 		glAttachShader(entry.program.glprogid, entry.program.psid);
-
+		#ifdef GLEW_VERSION_4_0
 		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
 			glProgramParameteri(entry.program.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+		#endif
 		
 		glLinkProgram(entry.program.glprogid);
 		
@@ -201,7 +202,7 @@ namespace OGL
 			glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_ps_vs_ubo, 0, ps_data_size);
 			glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_vs_data_offset, vs_data_size);
 		}
-		
+		#ifdef GLEW_VERSION_4_0
 		// Read our shader cache, only if supported
 		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
 		{
@@ -218,6 +219,7 @@ namespace OGL
 			glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, Formats);
 			ProgramFormat = (GLenum)Formats[0]; // We don't really care about format
 		}
+		#endif
 	}
 	
 	void ProgramShaderCache::Shutdown(void)
