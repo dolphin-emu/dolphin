@@ -438,6 +438,11 @@ Renderer::Renderer()
 			cgGLSetOptimalOptions(g_cgfProf);
 		}
 	}
+#else
+	// If we don't have Nvidia CG, we HAVE to use GLSL
+	g_Config.bUseGLSL = true;
+	
+	UpdateActiveConfig();
 #endif	// HAVE_CG
 
 	int nenvvertparams, nenvfragparams, naddrregisters[2];
