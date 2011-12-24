@@ -75,6 +75,7 @@ struct PROGRAMSHADER
 	PROGRAMSHADER() : glprogid(0), vsid(0), psid(0), binaryLength(0){}
 	GLuint glprogid; // opengl program id
 	GLuint vsid, psid;
+	PROGRAMUID uid;
 	GLint UniformLocations[NUM_UNIFORMS];
 	GLint binaryLength;
 	u8 *Data()
@@ -152,11 +153,11 @@ class ProgramShaderCache
 			}
 	};
 	
-	typedef std::map<std::pair<u64, u64>, PCacheEntry> PCache;
+	typedef std::map<std::pair<u32, u32>, PCacheEntry> PCache;
 
 	static PCache pshaders;
 	static GLuint CurrentFShader, CurrentVShader, CurrentProgram;
-	static std::pair<u64, u64> CurrentShaderProgram;
+	static std::pair<u32, u32> CurrentShaderProgram;
 
 	static GLuint s_ps_vs_ubo;
 	static GLintptr s_vs_data_offset;

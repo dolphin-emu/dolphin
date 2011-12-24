@@ -29,7 +29,7 @@ namespace OGL
 	LinearDiskCache<PROGRAMUID, u8> g_program_disk_cache;
 	GLenum ProgramFormat;
 
-	std::pair<u64, u64> ProgramShaderCache::CurrentShaderProgram;
+	std::pair<u32, u32> ProgramShaderCache::CurrentShaderProgram;
 	const char *UniformNames[NUM_UNIFORMS] = {
 		// SAMPLERS
 			"samp0","samp1","samp2","samp3","samp4","samp5","samp6","samp7",
@@ -116,7 +116,7 @@ namespace OGL
 
 		// Fragment shaders can survive without Vertex Shaders
 		// We have a valid fragment shader, let's create our program
-		std::pair<u64, u64> ShaderPair = std::make_pair(uid.uid.psid, uid.uid.vsid);
+		std::pair<u32, u32> ShaderPair = std::make_pair(uid.uid.psid, uid.uid.vsid);
 		PCache::iterator iter = pshaders.find(ShaderPair);
 		if (iter != pshaders.end())
 		{
@@ -129,6 +129,7 @@ namespace OGL
 		PCacheEntry entry;
 		entry.program.vsid = CurrentVShader;
 		entry.program.psid = CurrentFShader;
+		entry.program.uid = uid;
 		entry.program.glprogid = glCreateProgram();
 
 		// Right, the program is created now
@@ -147,10 +148,6 @@ namespace OGL
 		glUseProgram(entry.program.glprogid);
 
 		SetProgramVariables(entry, uid);
-
-		// Add it to our cache
-		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
-			g_program_disk_cache.Append(uid, entry.Data(), entry.Size());
 
 		pshaders[ShaderPair] = entry;
 		CurrentShaderProgram = ShaderPair;
@@ -226,6 +223,10 @@ namespace OGL
 	{
 		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
 		{
+			PCache::iterator iter = pshaders.begin();
+			for (; iter != pshaders.end(); ++iter)
+				g_program_disk_cache.Append(iter->second.program.uid, iter->second.program.Data(), iter->second.program.Size());
+			
 			g_program_disk_cache.Sync();
 			g_program_disk_cache.Close();
 		}
