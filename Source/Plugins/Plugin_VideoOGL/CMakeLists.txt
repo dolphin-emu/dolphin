@@ -23,7 +23,7 @@ if(wxWidgets_FOUND)
 	set(LIBS	${LIBS} ${wxWidgets_LIBRARIES})
 endif(wxWidgets_FOUND)
 
-if(APPLE OR WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(HAVE_CG AND (APPLE OR WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
 	set(LIBS	${LIBS} Cg CgGL)
 endif()
 

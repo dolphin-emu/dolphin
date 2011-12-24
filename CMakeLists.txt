@@ -372,6 +372,12 @@ else()
 
 	check_lib(CG Cg Cg/cg.h)
 	check_lib(CGGL CgGL Cg/cgGL.h)
+	if(NOT CG_FOUND)
+		message("CG not found, Building without")
+		add_definitions(-DHAVE_CG=0)
+	else()
+		add_definitions(-DHAVE_CG=1)
+	endif()
 endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
