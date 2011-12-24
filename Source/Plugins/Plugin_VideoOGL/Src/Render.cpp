@@ -318,10 +318,10 @@ Renderer::Renderer()
 	// TODO: Switch over to using glew once 1.6/1.7 becomes more mainstream, seems most people are stuck in 1.5
 	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
 		g_Config.backend_info.bSupportsGLSLBinding = true;
-	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_explicit_attrib_location") != NULL)
-		g_Config.backend_info.bSupportsGLSLATTRBind = true;
 	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_uniform_buffer_object") != NULL)
 		g_Config.backend_info.bSupportsGLSLUBO = true;
+	if ((g_Config.backend_info.bSupportsGLSLBinding || g_Config.backend_info.bSupportsGLSLUBO) && strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_explicit_attrib_location") != NULL)
+		g_Config.backend_info.bSupportsGLSLATTRBind = true;
 	if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_get_program_binary") != NULL)
 		g_Config.backend_info.bSupportsGLSLCache = true;
 	
