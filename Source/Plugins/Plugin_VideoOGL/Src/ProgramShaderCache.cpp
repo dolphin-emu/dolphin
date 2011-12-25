@@ -212,9 +212,10 @@ namespace OGL
 			GLint Supported;
 			glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
 			
-			GLint Formats[Supported];
+			GLint *Formats = new GLint[Supported];
 			glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, Formats);
 			ProgramFormat = (GLenum)Formats[0]; // We don't really care about format
+			delete[] Formats;
 		}
 		#endif
 	}
