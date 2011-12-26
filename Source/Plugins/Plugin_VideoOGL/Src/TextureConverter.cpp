@@ -61,9 +61,9 @@ static FRAGMENTSHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 void CreateRgbToYuyvProgram()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
-	if(g_ActiveConfig.bUseGLSL)
+	if (g_ActiveConfig.bUseGLSL)
 	{
-		if(g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 		{
 			const char *FProgram =
 			"#version 330 compatibility\n"
@@ -132,9 +132,9 @@ void CreateRgbToYuyvProgram()
 
 void CreateYuyvToRgbProgram()
 {
-	if(g_ActiveConfig.bUseGLSL)
+	if (g_ActiveConfig.bUseGLSL)
 	{
-		if(g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 		{
 			const char *FProgram =
 				"#version 330 compatibility\n"
@@ -390,7 +390,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-	if(g_ActiveConfig.bUseGLSL)
+	if (g_ActiveConfig.bUseGLSL)
 		ProgramShaderCache::SetBothShaders(texconv_shader.glprogid, 0);
 	else
 		PixelShaderCache::SetCurrentShader(texconv_shader.glprogid);
@@ -425,7 +425,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 {
 	g_renderer->ResetAPIState();
 	
-	if(g_ActiveConfig.bUseGLSL)
+	if (g_ActiveConfig.bUseGLSL)
 		ProgramShaderCache::SetBothShaders(s_rgbToYuyvProgram.glprogid, 0);
 	else
 		PixelShaderCache::SetCurrentShader(s_rgbToYuyvProgram.glprogid);
@@ -472,7 +472,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
 
 	// TODO: make this less slow.  (How?)
-	if((GLsizei)s_srcTextureWidth == (GLsizei)srcFmtWidth && (GLsizei)s_srcTextureHeight == (GLsizei)srcHeight)
+	if ((GLsizei)s_srcTextureWidth == (GLsizei)srcFmtWidth && (GLsizei)s_srcTextureHeight == (GLsizei)srcHeight)
 	{
 		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0,0,0,s_srcTextureWidth, s_srcTextureHeight,
 				GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
@@ -486,7 +486,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	}
 
 	glViewport(0, 0, srcWidth, srcHeight);
-	if(g_ActiveConfig.bUseGLSL)
+	if (g_ActiveConfig.bUseGLSL)
 		ProgramShaderCache::SetBothShaders(s_yuyvToRgbProgram.glprogid, 0);
 	else
 		PixelShaderCache::SetCurrentShader(s_yuyvToRgbProgram.glprogid);

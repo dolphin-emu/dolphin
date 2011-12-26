@@ -195,7 +195,7 @@ void VertexManager::vFlush()
 	}
 	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 	
-	if(g_ActiveConfig.bUseGLSL)
+	if (g_ActiveConfig.bUseGLSL)
 		ProgramShaderCache::SetBothShaders(ps->glprogid, vs->glprogid);
 	else
 	{
@@ -218,10 +218,10 @@ void VertexManager::vFlush()
 	if (useDstAlpha && !dualSourcePossible)
 	{
 		ps = PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
-		if(g_ActiveConfig.bUseGLSL)
+		if (g_ActiveConfig.bUseGLSL)
 		{
 			ProgramShaderCache::SetBothShaders(ps->glprogid, 0);
-			if(!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+			if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 				PixelShaderManager::SetConstants(); // Need to set these again, if we don't support UBO
 			if (g_nativeVertexFmt)
 				g_nativeVertexFmt->SetupVertexPointers();

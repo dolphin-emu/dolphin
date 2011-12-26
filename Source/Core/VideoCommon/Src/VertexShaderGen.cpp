@@ -185,65 +185,64 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	char *p = text;
 	WRITE(p, "//Vertex Shader: comp:%x, \n", components);
 	
-	if(ApiType == API_GLSL)
+	if (ApiType == API_GLSL)
 	{
-			// A few required defines and ones that will make our lives a lot easier
-			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-			{
-				WRITE(p, "#version 330 compatibility\n");
-				if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-					WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
-				if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-					WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
-				WRITE(p, "#define ATTRIN in\n");
-				WRITE(p, "#define ATTROUT out\n");
-			}
-			else
-			{
-				WRITE(p, "#version 120\n");
-				WRITE(p, "#define ATTRIN attribute\n");
-				WRITE(p, "#define ATTROUT attribute\n");
-			}
-			if(g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
-				WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
-			// Silly differences
-			WRITE(p, "#define float2 vec2\n");
-			WRITE(p, "#define float3 vec3\n");
-			WRITE(p, "#define float4 vec4\n");
+		// A few required defines and ones that will make our lives a lot easier
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		{
+			WRITE(p, "#version 330 compatibility\n");
+			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+				WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
+			if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+				WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
+			WRITE(p, "#define ATTRIN in\n");
+			WRITE(p, "#define ATTROUT out\n");
+		}
+		else
+		{
+			WRITE(p, "#version 120\n");
+			WRITE(p, "#define ATTRIN attribute\n");
+			WRITE(p, "#define ATTROUT attribute\n");
+		}
+		if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
+			WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
+		// Silly differences
+		WRITE(p, "#define float2 vec2\n");
+		WRITE(p, "#define float3 vec3\n");
+		WRITE(p, "#define float4 vec4\n");
 
-			// cg to glsl function translation
-			WRITE(p, "#define frac(x) fract(x)\n");
-			WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
-			WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
+		// cg to glsl function translation
+		WRITE(p, "#define frac(x) fract(x)\n");
+		WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
+		WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
 	}
 	
 	// uniforms
-	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140) uniform VSBlock {\n");
 		
-		WRITE(p, "%sfloat4 "I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
-		WRITE(p, "%sfloat4 "I_PROJECTION"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PROJECTION));	
-		WRITE(p, "%sfloat4 "I_MATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_MATERIALS));
-		WRITE(p, "%sfloat4 "I_LIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_LIGHTS));
-		WRITE(p, "%sfloat4 "I_TEXMATRICES"[24] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
-		WRITE(p, "%sfloat4 "I_TRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType),WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));
-		WRITE(p, "%sfloat4 "I_NORMALMATRICES"[32] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_NORMALMATRICES));
-		WRITE(p, "%sfloat4 "I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
-		WRITE(p, "%sfloat4 "I_DEPTHPARAMS" %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_DEPTHPARAMS));
+	WRITE(p, "%sfloat4 "I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
+	WRITE(p, "%sfloat4 "I_PROJECTION"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PROJECTION));	
+	WRITE(p, "%sfloat4 "I_MATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_MATERIALS));
+	WRITE(p, "%sfloat4 "I_LIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_LIGHTS));
+	WRITE(p, "%sfloat4 "I_TEXMATRICES"[24] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
+	WRITE(p, "%sfloat4 "I_TRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType),WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));
+	WRITE(p, "%sfloat4 "I_NORMALMATRICES"[32] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_NORMALMATRICES));
+	WRITE(p, "%sfloat4 "I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
+	WRITE(p, "%sfloat4 "I_DEPTHPARAMS" %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_DEPTHPARAMS));
 		
-	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
 	
-		
 
 	p = GenerateVSOutputStruct(p, components, ApiType);
 
-	 if(ApiType == API_GLSL)
+	if(ApiType == API_GLSL)
 	{
 		if (components & VB_HAS_NRM0)
-				WRITE(p, " float3 rawnorm0 = gl_Normal; // NORMAL0,\n");
+			WRITE(p, " float3 rawnorm0 = gl_Normal; // NORMAL0,\n");
 
-		if(g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
+		if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
 		{
 			if (components & VB_HAS_POSMTXIDX)
 				WRITE(p, "layout(location = %d) ATTRIN float fposmtx;\n", SHADER_POSMTX_ATTRIB);
@@ -277,7 +276,6 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	}
 	else
 	{
-
 		WRITE(p, "VS_OUTPUT main(\n");	
 		
 		// inputs
@@ -306,9 +304,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		}
 		if (components & VB_HAS_POSMTXIDX) {
 			if (is_d3d)
-			{
 				WRITE(p, "  float4 blend_indices : BLENDINDICES,\n");
-			}
 			else
 				WRITE(p, "  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 		}
@@ -369,7 +365,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	"float3 ldir, h;\n"
 	"float dist, dist2, attn;\n");
 
-	if(xfregs.numChan.numColorChans == 0)
+	if (xfregs.numChan.numColorChans == 0)
 	{
 		if (components & VB_HAS_COL0)
 			WRITE(p, "o.colors_0 = color0;\n");
@@ -380,7 +376,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	// TODO: This probably isn't necessary if pixel lighting is enabled.
 	p = GenerateLightingShader(p, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
-	if(xfregs.numChan.numColorChans < 2)
+	if (xfregs.numChan.numColorChans < 2)
 	{
 		if (components & VB_HAS_COL1)
 			WRITE(p, "o.colors_1 = color1;\n");
@@ -584,23 +580,23 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		// clipPos/w needs to be done in pixel shader, not here
 
 		if (xfregs.numTexGen.numTexGens < 7) {
-				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-						WRITE(p, " gl_TexCoord[%d].xyz =  o.tex%d;\n", i, i);
-				WRITE(p, "  gl_TexCoord[%d] = o.clipPos;\n", xfregs.numTexGen.numTexGens);
-				if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-						WRITE(p, "  gl_TexCoord[%d] = o.Normal;\n", xfregs.numTexGen.numTexGens + 1);
+			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+				WRITE(p, " gl_TexCoord[%d].xyz =  o.tex%d;\n", i, i);
+			WRITE(p, "  gl_TexCoord[%d] = o.clipPos;\n", xfregs.numTexGen.numTexGens);
+			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+				WRITE(p, "  gl_TexCoord[%d] = o.Normal;\n", xfregs.numTexGen.numTexGens + 1);
 		} else {
-				// clip position is in w of first 4 texcoords
-				if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				{
-						for (int i = 0; i < 8; ++i)
-								WRITE(p, " gl_TexCoord[%d] = o.tex%d;\n", i, i);
-				}
-				else
-				{
-						for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-								WRITE(p, "  gl_TexCoord[%d]%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
-				}
+			// clip position is in w of first 4 texcoords
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				for (int i = 0; i < 8; ++i)
+					WRITE(p, " gl_TexCoord[%d] = o.tex%d;\n", i, i);
+			}
+			else
+			{
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+					WRITE(p, "  gl_TexCoord[%d]%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
+			}
 		}               
 		WRITE(p, "gl_FrontColor = o.colors_0;\n");
 		WRITE(p, "gl_FrontSecondaryColor = o.colors_1;\n");
@@ -608,7 +604,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		WRITE(p, "}\n");
 	}
 	else
-			WRITE(p, "return o;\n}\n");
+		WRITE(p, "return o;\n}\n");
 
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");

@@ -1419,7 +1419,7 @@ void Renderer::ResetAPIState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
 	// image copies with textured quads, etc.
-	if(g_ActiveConfig.bUseGLSL) 
+	if (g_ActiveConfig.bUseGLSL) 
 		ProgramShaderCache::SetBothShaders(0, 0);
 	else
 	{

@@ -511,23 +511,25 @@ static void BuildSwapModeTable()
 
 const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 {
-	if(ApiType == API_GLSL)
+	if (ApiType == API_GLSL)
 		return ""; // Nothing to do here
 	static char result[64];
 	sprintf(result, " : register(%s%d)", prefix, num);
 	return result;
 }
+
 const char* WriteBinding(API_TYPE ApiType, const u32 num)
 {
-	if(ApiType != API_GLSL || !g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+	if (ApiType != API_GLSL || !g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 		return "";
 	static char result[64];
 	sprintf(result, "layout(binding = %d) ", num);
 	return result;
 }
+
 const char *WriteLocation(API_TYPE ApiType)
 {
-	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		return "";
 	static char result[64];
 	sprintf(result, "uniform ");
@@ -559,7 +561,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ;
 
-	if(ApiType == API_GLSL)
+	if (ApiType == API_GLSL)
 	{
 			// A few required defines and ones that will make our lives a lot easier
 			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
@@ -573,7 +575,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			else
 				WRITE(p, "#version 120\n");
 
-			if(g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
+			if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
 				WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
 			// Silly differences
 			WRITE(p, "#define float2 vec2\n");
@@ -602,7 +604,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 		// Declare samplers
 
-		if(ApiType != API_D3D11)
+		if (ApiType != API_D3D11)
 		{
 			WRITE(p, "uniform sampler2D ");
 		}
@@ -618,7 +620,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			bfirst = false;
 		}
 		WRITE(p, ";\n");
-		if(ApiType == API_D3D11)
+		if (ApiType == API_D3D11)
 		{
 			WRITE(p, "Texture2D ");
 			bfirst = true;
@@ -632,7 +634,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 
 	WRITE(p, "\n");
-	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140) uniform PSBlock {\n");
 		
 		WRITE(p, "%sfloat4 "I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
@@ -648,13 +650,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "%sfloat4 "I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
 		WRITE(p, "%sfloat4 "I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PMATERIALS));
 		
-	if(ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
 
-    if(ApiType != API_GLSL)
+    if (ApiType != API_GLSL)
     {
 		WRITE(p, "void main(\n");
-		if(ApiType != API_D3D11)
+		if (ApiType != API_D3D11)
 		{
 			WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
 				dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
@@ -702,7 +704,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	   // Once we switch to GLSL 1.3 we will bind a lot of these.
 	   
 		
-		if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		{
 			// This won't get hit unless we support GL 3.3
 			WRITE(p, "	layout(location = 0) out float4 ocol0;\n");
@@ -712,7 +714,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			WRITE(p, "	float4 ocol0;\n");
 		}
-		if(DepthTextureEnable)
+		if (DepthTextureEnable)
 				WRITE(p, "  float depth;\n"); // TODO: Passed to Vertex Shader right?
 		WRITE(p, "   float4 rawpos = gl_FragCoord;\n");
 
@@ -725,13 +727,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			for (int i = 0; i < numTexgen; ++i)
 					WRITE(p, "  float3 uv%d = gl_TexCoord[%d].xyz;\n", i, i);
 			WRITE(p, "   float4 clipPos = gl_TexCoord[%d];\n", numTexgen);
-			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 					WRITE(p, "   float4 Normal = gl_TexCoord[%d];\n", numTexgen + 1);
 		}
 		else
 		{
 			// wpos is in w of first 4 texcoords
-			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			{
 				for (int i = 0; i < 8; ++i)
 					WRITE(p, "   float4 uv%d = gl_TexCoord[%d];\n", i, i);
@@ -783,7 +785,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			"  float4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
 
-	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
@@ -830,7 +832,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 
 	// indirect texture map lookup
-	for(u32 i = 0; i < bpmem.genMode.numindstages; ++i)
+	for (u32 i = 0; i < bpmem.genMode.numindstages; ++i)
 	{
 		if (nIndirectStagesUsed & (1<<i))
 		{
@@ -860,7 +862,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	for (int i = 0; i < numStages; i++)
 		WriteStage(p, i, ApiType); //build the equation for this stage
 
-	if(numStages)
+	if (numStages)
 	{
 		// The results of the last texenv stage are put onto the screen,
 		// regardless of the used destination register
@@ -889,15 +891,15 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "ocol0 = 0;\n");
 		if(DepthTextureEnable)
 			WRITE(p, "depth = 1.f;\n");
-		if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 				WRITE(p, "ocol1 = vec4(0.0f);\n");
-		if(ApiType == API_GLSL)
+		if (ApiType == API_GLSL)
 		{
 			// Once we switch to GLSL 1.3 and bind variables, we won't need to do this
 			if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
 				WRITE(p, "gl_FragData[0] = ocol0;\n");
-			if(DepthTextureEnable)
-					WRITE(p, "gl_FragDepth = depth;\n");
+			if (DepthTextureEnable)
+				WRITE(p, "gl_FragDepth = depth;\n");
 		}
 		WRITE(p, "discard;\n");
 		if(ApiType != API_D3D11)
@@ -945,9 +947,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		// ...and the alpha from ocol0 will be written to the framebuffer.
 		WRITE(p, "  ocol0.a = " I_ALPHA"[0].a;\n");
 
-		if(ApiType == API_GLSL)
+		if (ApiType == API_GLSL)
 		{
-			if(DepthTextureEnable)
+			if (DepthTextureEnable)
 				WRITE(p, "gl_FragDepth = depth;\n");
 			if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
 				WRITE(p, "gl_FragData[0] = ocol0;\n");
@@ -1109,10 +1111,10 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 
 	if (bpmem.tevorders[n/2].getEnable(n&1))
 	{
-		if(!bHasIndStage)
+		if (!bHasIndStage)
 		{
 			// calc tevcord
-			if(bHasTexCoord)
+			if (bHasTexCoord)
 				WRITE(p, "tevcoord.xy = uv%d.xy;\n", texcoord);
 			else
 				WRITE(p, "tevcoord.xy = float2(0.0f, 0.0f);\n");
@@ -1132,7 +1134,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 		WRITE(p, "konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
-		if(kc > 7 || ka > 7)
+		if (kc > 7 || ka > 7)
 		{
 			WRITE(p, "ckonsttemp = frac(konsttemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 		}
@@ -1231,7 +1233,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		if (cc.shift > TEVSCALE_1)
 			WRITE(p, "%s*(", tevScaleTable[cc.shift]);
 
-		if(!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
+		if (!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
 			WRITE(p, "%s%s", tevCInputTable[cc.d], tevOpTable[cc.op]);
 
 		if (cc.a == cc.b)
@@ -1281,7 +1283,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		if (ac.shift > TEVSCALE_1)
 			WRITE(p, "%s*(", tevScaleTable[ac.shift]);
 
-		if(!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
+		if (!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
 			WRITE(p, "%s.a%s", tevAInputTable[ac.d], tevOpTable[ac.op]);
 
 		if (ac.a == ac.b)
@@ -1297,7 +1299,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 
 		WRITE(p, "%s",tevBiasTable[ac.bias]);
 
-		if (ac.shift>0)
+		if (ac.shift > 0)
 			WRITE(p, ")");
 
 	}
@@ -1386,6 +1388,7 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 		I_ALPHA"[0].g"
 	};	
 
+
 	// using discard then return works the same in cg and dx9 but not in dx11
 	WRITE(p, "if(!( ");
 
@@ -1399,9 +1402,9 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 <<<<<<< HEAD
 	WRITE(p, ")) {\n");
 
-	WRITE(p, "ocol0 = float4(0);\n");
+	WRITE(p, "ocol0 = float4(0.0f);\n");
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-		WRITE(p, "ocol1 = 0;\n");
+		WRITE(p, "ocol1 = float4(0.0f);\n");
 	if (DepthTextureEnable)
 		WRITE(p, "depth = 1.f;\n");
 
@@ -1426,13 +1429,6 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	WRITE(p, "}\n");
 	
-=======
-	WRITE(p, ")){ocol0 = float4(0.0f);%s%s discard;%s}\n",
-			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND	? "ocol1 = vec4(0.0f);"		: "",
-			DepthTextureEnable							? "depth = 1.f;"	: "",
-			(ApiType != API_D3D11)						? "return;"			: "");
-	return true;
->>>>>>> Few compiler errors that got exposed once I got Dual Source Blending working. Seems it isn't working quite 100% either. Good chance I missed something anyway.
 }
 
 static const char *tevFogFuncsTable[] =
@@ -1449,7 +1445,8 @@ static const char *tevFogFuncsTable[] =
 
 static void WriteFog(char *&p)
 {
-	if(bpmem.fog.c_proj_fsel.fsel == 0)return;//no Fog
+	if (bpmem.fog.c_proj_fsel.fsel == 0)
+		return; // no Fog
 
 	if (bpmem.fog.c_proj_fsel.proj == 0)
 	{
@@ -1467,7 +1464,7 @@ static void WriteFog(char *&p)
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
 	// ze *= x_adjust
 	//this is complitly teorical as the real hard seems to use a table intead of calculate the values.
-	if(bpmem.fogRange.Base.Enabled)
+	if (bpmem.fogRange.Base.Enabled)
 	{
 		WRITE (p, "  float x_adjust = (2.0f * (clipPos.x / " I_FOG"[2].y)) - 1.0f - " I_FOG"[2].x;\n");
 		WRITE (p, "  x_adjust = sqrt(x_adjust * x_adjust + " I_FOG"[2].z * " I_FOG"[2].z) / " I_FOG"[2].z;\n");
@@ -1476,17 +1473,15 @@ static void WriteFog(char *&p)
 
 	WRITE (p, "  float fog = saturate(ze - " I_FOG"[1].z);\n");
 
-	if(bpmem.fog.c_proj_fsel.fsel > 3)
+	if (bpmem.fog.c_proj_fsel.fsel > 3)
 	{
 		WRITE(p, "%s", tevFogFuncsTable[bpmem.fog.c_proj_fsel.fsel]);
 	}
 	else
 	{
-		if(bpmem.fog.c_proj_fsel.fsel != 2)
+		if (bpmem.fog.c_proj_fsel.fsel != 2)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 
 	WRITE(p, "  prev.rgb = lerp(prev.rgb," I_FOG"[0].rgb,fog);\n");
-
-
 }
