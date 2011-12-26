@@ -208,7 +208,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	if (pcfmt != PC_TEX_FMT_DXT1)
 	{
 	    if (expanded_width != width)
-	    glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
 
 		if (bHaveMipMaps && autogen_mips)
 		{
@@ -222,7 +222,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 		}
 
 		if (expanded_width != width)
-	    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}
 	else
 	{
@@ -297,7 +297,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		glViewport(0, 0, virtualW, virtualH);
 
-		if(g_ActiveConfig.bUseGLSL)
+		if (g_ActiveConfig.bUseGLSL)
 			ProgramShaderCache::SetBothShaders((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram(), 0);
 		else
 			PixelShaderCache::SetCurrentShader((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
@@ -382,8 +382,8 @@ TextureCache::~TextureCache()
 {
     if (s_TempFramebuffer)
 	{
-	glDeleteFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
-	s_TempFramebuffer = 0;
+		glDeleteFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
+		s_TempFramebuffer = 0;
     }
 }
 

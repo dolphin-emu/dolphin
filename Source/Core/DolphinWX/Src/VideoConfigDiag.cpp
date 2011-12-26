@@ -581,7 +581,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// GLSL Option
 	{
-		if(strstr(choice_backend->GetString(choice_backend->GetSelection()).ToAscii(), "OpenGL") != NULL)
+		if (strstr(choice_backend->GetString(choice_backend->GetSelection()).ToAscii(), "OpenGL") != NULL)
 		{
 			wxCheckBox* const cb_GLSL = CreateCheckBox(page_advanced, _("Use GLSL Shaders"), wxGetTranslation(GLSL_desc), vconfig.bUseGLSL);
 			szr_misc->Add(cb_GLSL);

@@ -18,233 +18,246 @@
 #include "ProgramShaderCache.h"
 #include "MathUtil.h"
 
-#include <assert.h>
 namespace OGL
 {
-	GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
-	ProgramShaderCache::PCache ProgramShaderCache::pshaders;
-	GLuint ProgramShaderCache::s_ps_vs_ubo;
-	GLintptr ProgramShaderCache::s_vs_data_offset;
 
-	LinearDiskCache<PROGRAMUID, u8> g_program_disk_cache;
-	GLenum ProgramFormat;
+GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
+ProgramShaderCache::PCache ProgramShaderCache::pshaders;
+GLuint ProgramShaderCache::s_ps_vs_ubo;
+GLintptr ProgramShaderCache::s_vs_data_offset;
 
-	std::pair<u32, u32> ProgramShaderCache::CurrentShaderProgram;
-	const char *UniformNames[NUM_UNIFORMS] = {
-		// SAMPLERS
-			"samp0","samp1","samp2","samp3","samp4","samp5","samp6","samp7",
-		// PIXEL SHADER UNIFORMS
-			I_COLORS,
-			I_KCOLORS,
-			I_ALPHA,
-			I_TEXDIMS,
-			I_ZBIAS ,
-			I_INDTEXSCALE ,
-			I_INDTEXMTX,
-			I_FOG,
-			I_PLIGHTS,
-			I_PMATERIALS,
-		// VERTEX SHADER UNIFORMS
-			I_POSNORMALMATRIX,
-			I_PROJECTION ,
-			I_MATERIALS,
-			I_LIGHTS,
-			I_TEXMATRICES,
-			I_TRANSFORMMATRICES ,
-			I_NORMALMATRICES ,
-			I_POSTTRANSFORMMATRICES,
-			I_DEPTHPARAMS,
-		};
+LinearDiskCache<PROGRAMUID, u8> g_program_disk_cache;
+GLenum ProgramFormat;
 
-	void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry, const PROGRAMUID &uid)
+std::pair<u32, u32> ProgramShaderCache::CurrentShaderProgram;
+const char *UniformNames[NUM_UNIFORMS] =
+{
+	// SAMPLERS
+	"samp0","samp1","samp2","samp3","samp4","samp5","samp6","samp7",
+	// PIXEL SHADER UNIFORMS
+	I_COLORS,
+	I_KCOLORS,
+	I_ALPHA,
+	I_TEXDIMS,
+	I_ZBIAS ,
+	I_INDTEXSCALE ,
+	I_INDTEXMTX,
+	I_FOG,
+	I_PLIGHTS,
+	I_PMATERIALS,
+	// VERTEX SHADER UNIFORMS
+	I_POSNORMALMATRIX,
+	I_PROJECTION ,
+	I_MATERIALS,
+	I_LIGHTS,
+	I_TEXMATRICES,
+	I_TRANSFORMMATRICES ,
+	I_NORMALMATRICES ,
+	I_POSTTRANSFORMMATRICES,
+	I_DEPTHPARAMS,
+};
+
+void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry, const PROGRAMUID &uid)
+{
+	// Dunno why this is needed when I have the binding
+	// points statically set in the shader source
+	// We should only need these two functions when we don't support binding but do support UBO
+	// Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		// Dunno why this is needed when I have the binding
-		// points statically set in the shader source
-		// We should only need these two functions when we don't support binding but do support UBO
-		// Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
-		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		{
-			glUniformBlockBinding( entry.program.glprogid, 0, 1 );
-			if(uid.uid.vsid != 0) // Some things have no vertex shader
-				glUniformBlockBinding( entry.program.glprogid, 1, 2 );
-		}
-				
-		// We cache our uniform locations for now
-		// Once we move up to a newer version of GLSL, ~1.30
-		// We can remove this
-		
-		//For some reason this fails on my hardware     
-		//glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
-		//Got to do it this crappy way.
-		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-			for(int a = 8; a < NUM_UNIFORMS; ++a)
-				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
-		if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding) 
-			for(int a = 0; a < 8; ++a)
-			{
-				// Still need to get sampler locations since we aren't binding them statically in the shaders
-				entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
-				if(entry.program.UniformLocations[a] != -1)
-					glUniform1i(entry.program.UniformLocations[a], a);
-			}
+		glUniformBlockBinding(entry.program.glprogid, 0, 1);
+		// Some things have no vertex shader
+		if (uid.uid.vsid != 0)
+			glUniformBlockBinding(entry.program.glprogid, 1, 2);
+	}
 
-		// Need to get some attribute locations
-		if(uid.uid.vsid != 0 && !g_ActiveConfig.backend_info.bSupportsGLSLATTRBind) // We have no vertex Shader
+	// We cache our uniform locations for now
+	// Once we move up to a newer version of GLSL, ~1.30
+	// We can remove this
+
+	// (Sonicadvance): For some reason this fails on my hardware
+	//glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
+	// Got to do it this crappy way.
+	if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		for (int a = 8; a < NUM_UNIFORMS; ++a)
+			entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
+
+	if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+	{
+		for (int a = 0; a < 8; ++a)
 		{
-			glBindAttribLocation(entry.program.glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
-			glBindAttribLocation(entry.program.glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
-			glBindAttribLocation(entry.program.glprogid, SHADER_POSMTX_ATTRIB, "fposmtx");
+			// Still need to get sampler locations since we aren't binding them statically in the shaders
+			entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
+			if (entry.program.UniformLocations[a] != -1)
+				glUniform1i(entry.program.UniformLocations[a], a);
 		}
 	}
 
-	
-	void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
+	// Need to get some attribute locations
+	if (uid.uid.vsid != 0 && !g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
 	{
-		PROGRAMUID uid;
-		CurrentFShader = PS;
-		CurrentVShader = VS;
-
-
-		GetProgramShaderId(&uid, CurrentVShader, CurrentFShader);
-
-		if(uid.uid.id == 0)
-		{
-			CurrentProgram = 0;
-			glUseProgram(0);
-			return;
-		}
-
-		// Fragment shaders can survive without Vertex Shaders
-		// We have a valid fragment shader, let's create our program
-		std::pair<u32, u32> ShaderPair = std::make_pair(uid.uid.psid, uid.uid.vsid);
-		PCache::iterator iter = pshaders.find(ShaderPair);
-		if (iter != pshaders.end())
-		{
-			PCacheEntry &entry = iter->second;
-			glUseProgram(entry.program.glprogid);
-			CurrentShaderProgram = ShaderPair;
-			CurrentProgram = entry.program.glprogid;
-			return;
-		}
-		PCacheEntry entry;
-		entry.program.vsid = CurrentVShader;
-		entry.program.psid = CurrentFShader;
-		entry.program.uid = uid;
-		entry.program.glprogid = glCreateProgram();
-
-		// Right, the program is created now
-		// Let's attach everything
-		if(entry.program.vsid != 0) // attaching zero vertex shader makes it freak out
-			glAttachShader(entry.program.glprogid, entry.program.vsid);
-			
-		glAttachShader(entry.program.glprogid, entry.program.psid);
-		#ifdef GLEW_VERSION_4_0
-		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
-			glProgramParameteri(entry.program.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
-		#endif
-		
-		glLinkProgram(entry.program.glprogid);
-		
-		glUseProgram(entry.program.glprogid);
-
-		SetProgramVariables(entry, uid);
-
-		pshaders[ShaderPair] = entry;
-		CurrentShaderProgram = ShaderPair;
-		CurrentProgram = entry.program.glprogid;
-	}
-
-	void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
-	{
-		glBufferSubData(GL_UNIFORM_BUFFER, offset * sizeof(float) * 4,
-			count * sizeof(float) * 4, f);
-	}
-
-	void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
-	{
-		glBufferSubData(GL_UNIFORM_BUFFER, s_vs_data_offset + offset * sizeof(float) * 4,
-			count * sizeof(float) * 4, f);
-	}
-	
-	GLuint ProgramShaderCache::GetCurrentProgram(void) { return CurrentProgram; }
-
-	PROGRAMSHADER ProgramShaderCache::GetShaderProgram(void)
-	{
-		return pshaders[CurrentShaderProgram].program;
-	}
-	void ProgramShaderCache::Init(void)
-	{
-		// We have to get the UBO alignment here because
-		// if we generate a buffer that isn't aligned
-		// then the UBO will fail.
-		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		{
-			GLint Align;
-			glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &Align);
-
-			GLintptr const ps_data_size = ROUND_UP(C_PENVCONST_END * sizeof(float) * 4, Align);
-			GLintptr const vs_data_size = ROUND_UP(C_VENVCONST_END * sizeof(float) * 4, Align);
-			s_vs_data_offset = ps_data_size;
-		
-			// We multiply by *4*4 because we need to get down to basic machine units.
-			// So multiply by four to get how many floats we have from vec4s
-			// Then once more to get bytes
-			glGenBuffers(1, &s_ps_vs_ubo);
-			glBindBuffer(GL_UNIFORM_BUFFER, s_ps_vs_ubo);
-			glBufferData(GL_UNIFORM_BUFFER, ps_data_size + vs_data_size, NULL, GL_DYNAMIC_DRAW);
-			
-			// Now bind the buffer to the index point
-			// We know PS is 0 since we have it statically set in the shader
-			// Repeat for VS shader
-			glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_ps_vs_ubo, 0, ps_data_size);
-			glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_vs_data_offset, vs_data_size);
-		}
-		#ifdef GLEW_VERSION_4_0
-		// Read our shader cache, only if supported
-		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
-		{
-			char cache_filename[MAX_PATH];
-			sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-			ProgramShaderCacheInserter inserter;
-			g_program_disk_cache.OpenAndRead(cache_filename, inserter);
-			
-			GLint Supported;
-			glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
-			
-			GLint *Formats = new GLint[Supported];
-			glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, Formats);
-			ProgramFormat = (GLenum)Formats[0]; // We don't really care about format
-			delete[] Formats;
-		}
-		#endif
-	}
-	
-	void ProgramShaderCache::Shutdown(void)
-	{
-		if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
-		{
-			PCache::iterator iter = pshaders.begin();
-			for (; iter != pshaders.end(); ++iter)
-				g_program_disk_cache.Append(iter->second.program.uid, iter->second.program.Data(), iter->second.program.Size());
-			
-			g_program_disk_cache.Sync();
-			g_program_disk_cache.Close();
-		}
-		
-		PCache::iterator iter = pshaders.begin();
-		for (; iter != pshaders.end(); ++iter)
-			iter->second.Destroy();
-		pshaders.clear();
-
-		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		{
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			glDeleteBuffers(1, &s_ps_vs_ubo);
-			s_ps_vs_ubo = 0;
-		}
+		// We have no vertex Shader
+		glBindAttribLocation(entry.program.glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
+		glBindAttribLocation(entry.program.glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
+		glBindAttribLocation(entry.program.glprogid, SHADER_POSMTX_ATTRIB, "fposmtx");
 	}
 }
+
+void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
+{
+	PROGRAMUID uid;
+	CurrentFShader = PS;
+	CurrentVShader = VS;
+
+	GetProgramShaderId(&uid, CurrentVShader, CurrentFShader);
+
+	if (uid.uid.id == 0)
+	{
+		CurrentProgram = 0;
+		glUseProgram(0);
+		return;
+	}
+
+	// Fragment shaders can survive without Vertex Shaders
+	// We have a valid fragment shader, let's create our program
+	std::pair<u32, u32> ShaderPair = std::make_pair(uid.uid.psid, uid.uid.vsid);
+	PCache::iterator iter = pshaders.find(ShaderPair);
+	if (iter != pshaders.end())
+	{
+		PCacheEntry &entry = iter->second;
+		glUseProgram(entry.program.glprogid);
+		CurrentShaderProgram = ShaderPair;
+		CurrentProgram = entry.program.glprogid;
+		return;
+	}
+
+	PCacheEntry entry;
+	entry.program.vsid = CurrentVShader;
+	entry.program.psid = CurrentFShader;
+	entry.program.uid = uid;
+	entry.program.glprogid = glCreateProgram();
+
+	// Right, the program is created now
+	// Let's attach everything
+	if (entry.program.vsid != 0) // attaching zero vertex shader makes it freak out
+		glAttachShader(entry.program.glprogid, entry.program.vsid);
+
+	glAttachShader(entry.program.glprogid, entry.program.psid);
+
+#ifdef GLEW_VERSION_4_0
+	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
+		glProgramParameteri(entry.program.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+#endif
+
+	glLinkProgram(entry.program.glprogid);
+
+	glUseProgram(entry.program.glprogid);
+
+	SetProgramVariables(entry, uid);
+
+	pshaders[ShaderPair] = entry;
+	CurrentShaderProgram = ShaderPair;
+	CurrentProgram = entry.program.glprogid;
+}
+
+void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
+{
+	glBufferSubData(GL_UNIFORM_BUFFER, offset * sizeof(float) * 4,
+		count * sizeof(float) * 4, f);
+}
+
+void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
+{
+	glBufferSubData(GL_UNIFORM_BUFFER, s_vs_data_offset + offset * sizeof(float) * 4,
+		count * sizeof(float) * 4, f);
+}
+
+GLuint ProgramShaderCache::GetCurrentProgram(void)
+{
+	return CurrentProgram;
+}
+
+PROGRAMSHADER ProgramShaderCache::GetShaderProgram(void)
+{
+	return pshaders[CurrentShaderProgram].program;
+}
+
+void ProgramShaderCache::Init(void)
+{
+	// We have to get the UBO alignment here because
+	// if we generate a buffer that isn't aligned
+	// then the UBO will fail.
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		GLint Align;
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &Align);
+
+		GLintptr const ps_data_size = ROUND_UP(C_PENVCONST_END * sizeof(float) * 4, Align);
+		GLintptr const vs_data_size = ROUND_UP(C_VENVCONST_END * sizeof(float) * 4, Align);
+		s_vs_data_offset = ps_data_size;
+
+		// We multiply by *4*4 because we need to get down to basic machine units.
+		// So multiply by four to get how many floats we have from vec4s
+		// Then once more to get bytes
+		glGenBuffers(1, &s_ps_vs_ubo);
+		glBindBuffer(GL_UNIFORM_BUFFER, s_ps_vs_ubo);
+		glBufferData(GL_UNIFORM_BUFFER, ps_data_size + vs_data_size, NULL, GL_DYNAMIC_DRAW);
+
+		// Now bind the buffer to the index point
+		// We know PS is 0 since we have it statically set in the shader
+		// Repeat for VS shader
+		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_ps_vs_ubo, 0, ps_data_size);
+		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_vs_data_offset, vs_data_size);
+	}
+
+#ifdef GLEW_VERSION_4_0
+	// Read our shader cache, only if supported
+	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
+	{
+		char cache_filename[MAX_PATH];
+		sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+		ProgramShaderCacheInserter inserter;
+		g_program_disk_cache.OpenAndRead(cache_filename, inserter);
+
+		GLint Supported;
+		glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
+
+		GLint *Formats = new GLint[Supported];
+		glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, Formats);
+		// We don't really care about format
+		ProgramFormat = (GLenum)Formats[0];
+		delete[] Formats;
+	}
+#endif
+}
+
+void ProgramShaderCache::Shutdown(void)
+{
+	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
+	{
+		PCache::iterator iter = pshaders.begin();
+		for (; iter != pshaders.end(); ++iter)
+			g_program_disk_cache.Append(iter->second.program.uid, iter->second.program.Data(), iter->second.program.Size());
+
+		g_program_disk_cache.Sync();
+		g_program_disk_cache.Close();
+	}
+
+	PCache::iterator iter = pshaders.begin();
+	for (; iter != pshaders.end(); ++iter)
+		iter->second.Destroy();
+	pshaders.clear();
+
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glDeleteBuffers(1, &s_ps_vs_ubo);
+		s_ps_vs_ubo = 0;
+	}
+}
+
+} // namespace OGL
 
 void GetProgramShaderId(PROGRAMUID *uid, GLuint _v, GLuint _p)
 {

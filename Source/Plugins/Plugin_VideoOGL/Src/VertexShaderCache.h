@@ -32,7 +32,7 @@ struct VERTEXSHADER
 	VERTEXSHADER() : glprogid(0), bGLSL(0) {}
 	void Destroy()
 	{
-		if(bGLSL)
+		if (bGLSL)
 			glDeleteShader(glprogid);
 		else
 			glDeleteProgramsARB(1, &glprogid);
