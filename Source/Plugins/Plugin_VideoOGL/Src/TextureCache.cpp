@@ -124,7 +124,7 @@ bool TextureCache::TCacheEntry::Save(const char filename[])
 	std::string tga_filename(filename);
 	tga_filename.replace(tga_filename.size() - 3, 3, "tga");
 
-	return SaveTexture(tga_filename.c_str(), GL_TEXTURE_2D, texture, realW, realH);
+	return SaveTexture(tga_filename.c_str(), GL_TEXTURE_2D, texture, virtual_width, virtual_height);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
@@ -294,7 +294,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glEnable(GL_TEXTURE_RECTANGLE_ARB);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 
-		glViewport(0, 0, virtualW, virtualH);
+		glViewport(0, 0, virtual_width, virtual_height);
 
 		PixelShaderCache::SetCurrentShader((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
 		PixelShaderManager::SetColorMatrix(colmat); // set transformation
@@ -337,7 +337,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
     {
 		static int count = 0;
 		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-			count++).c_str(), GL_TEXTURE_2D, texture, realW, realH);
+			count++).c_str(), GL_TEXTURE_2D, texture, virtual_width, virtual_height);
     }
 }
 

@@ -16,28 +16,30 @@ class TextureCache
 public:
 	struct TCacheEntryBase
 	{
-		// TODO: organize
+		// common members
 		u32 addr;
 		u32 size_in_bytes;
 		u64 hash;
-		//u32 paletteHash;
-		u32 oldpixel;
+		//u32 pal_hash;
 		u32 format;
-		
-		int frameCount;
 
-		unsigned int realW, realH; // Texture dimensions from the GameCube's point of view
-		unsigned int virtualW, virtualH; // Texture dimensions from OUR point of view
-		// Real and virtual dimensions are usually the same, but may be
-		// different if e.g. we use high-res textures. Then, realW,realH will
-		// be the dimensions of the original GameCube texture and
-		// virtualW,virtualH will be the dimensions of the high-res texture.
+		//bool is_preloaded;
 
-		unsigned int mipLevels;
+		unsigned int num_mipmaps;
+		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
+		unsigned int virtual_width, virtual_height; // Texture dimensions from OUR point of view - for hires textures or scaled EFB copies
 
+
+		// EFB copies
 		bool isRenderTarget; // copied from EFB
 		bool isDynamic; // Used for hybrid EFB copies to enable checks for CPU modifications
+
+		// deprecated members
+		u32 oldpixel;
+		int frameCount;
 		bool isNonPow2;	// doesn't seem to be used anywhere
+
+
 
 		//TCacheEntryBase()
 		//{

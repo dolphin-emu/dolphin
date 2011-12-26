@@ -107,7 +107,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		g_renderer->ResetAPIState();
 
 		// stretch picture with increased internal resolution
-		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtualW, (float)virtualH);
+		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtual_width, (float)virtual_height);
 		D3D::context->RSSetViewports(1, &vp);
 
 		// set transformation

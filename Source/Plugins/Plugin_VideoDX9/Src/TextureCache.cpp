@@ -90,15 +90,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		// Stretch picture with increased internal resolution
 		vp.X = 0;
 		vp.Y = 0;
-		vp.Width  = virtualW;
-		vp.Height = virtualH;
+		vp.Width  = virtual_width;
+		vp.Height = virtual_height;
 		vp.MinZ = 0.0f;
 		vp.MaxZ = 1.0f;
 		D3D::dev->SetViewport(&vp);
 		RECT destrect;
-		destrect.bottom = virtualH;
+		destrect.bottom = virtual_height;
 		destrect.left = 0;
-		destrect.right = virtualW;
+		destrect.right = virtual_width;
 		destrect.top = 0;
 
 		PixelShaderManager::SetColorMatrix(colmat); // set transformation
@@ -133,7 +133,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		D3D::drawShadedTexQuad(read_texture, &sourcerect, 
 			Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-			virtualW, virtualH,
+			virtual_width, virtual_height,
 			// TODO: why is D3DFMT_D24X8 singled out here? why not D3DFMT_D24X4S4/D24S8/D24FS8/D32/D16/D15S1 too, or none of them?
 			PixelShaderCache::GetDepthMatrixProgram(SSAAMode, (srcFormat == PIXELFMT_Z24) && bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8),
 			VertexShaderCache::GetSimpleVertexShader(SSAAMode));

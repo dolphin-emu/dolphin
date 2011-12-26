@@ -266,7 +266,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 
 		if (((entry->isRenderTarget || entry->isDynamic) && hash_value == entry->hash && address == entry->addr) 
-			|| ((address == entry->addr) && (hash_value == entry->hash) && full_format == entry->format && entry->mipLevels == maxlevel))
+			|| ((address == entry->addr) && (hash_value == entry->hash) && full_format == entry->format && entry->num_mipmaps == maxlevel))
 		{
 			entry->isDynamic = false;
 			goto return_entry;
@@ -279,8 +279,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			texture_is_dynamic = (entry->isRenderTarget || entry->isDynamic) && !g_ActiveConfig.bCopyEFBToTexture;
 
 			if (!entry->isRenderTarget &&
-				((!entry->isDynamic && width == entry->realW && height == entry->realH && full_format == entry->format && entry->mipLevels == maxlevel)
-				|| (entry->isDynamic && entry->realW == width && entry->realH == height)))
+				((!entry->isDynamic && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
+				|| (entry->isDynamic && entry->native_width == width && entry->native_height == height)))
 			{
 				// reuse the texture
 			}
@@ -332,7 +332,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// Sometimes, we can get around recreating a texture if only the number of mip levels gets changes
 		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
 		// Thus, we don't update this member for every Load, but just whenever the texture gets recreated
-		entry->mipLevels = maxlevel;
+		entry->num_mipmaps = maxlevel;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
@@ -341,11 +341,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	entry->format = full_format;
 	entry->size_in_bytes = texture_size;
 
-	entry->virtualW = width;
-	entry->virtualH = height;
+	entry->native_width = nativeW;
+	entry->native_height = nativeH;
 
-	entry->realW = nativeW;
-	entry->realH = nativeH;
+	entry->virtual_width = width;
+	entry->virtual_height = height;
 		
 	entry->isRenderTarget = false;
 	entry->isNonPow2 = false;
@@ -633,8 +633,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	TCacheEntryBase *entry = textures[dstAddr];
 	if (entry)
 	{
-		if ((entry->isRenderTarget && entry->virtualW == scaled_tex_w && entry->virtualH == scaled_tex_h) 
-			|| (entry->isDynamic && entry->realW == tex_w && entry->realH == tex_h))
+		if ((entry->isRenderTarget && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
+			|| (entry->isDynamic && entry->native_width == tex_w && entry->native_height == tex_h))
 		{
 			texture_is_dynamic = entry->isDynamic;
 		}
@@ -660,14 +660,14 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		entry->addr = dstAddr;
 		entry->hash = 0;
 
-		entry->realW = tex_w;
-		entry->realH = tex_h;
+		entry->native_width = tex_w;
+		entry->native_height = tex_h;
 
-		entry->virtualW = scaled_tex_w;
-		entry->virtualH = scaled_tex_h;
+		entry->virtual_width = scaled_tex_w;
+		entry->virtual_height = scaled_tex_h;
 
 		entry->format = dstFormat;
-		entry->mipLevels = 0;
+		entry->num_mipmaps = 0;
 
 		entry->isRenderTarget = true;
 		entry->isNonPow2 = true;

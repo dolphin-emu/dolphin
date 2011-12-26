@@ -142,7 +142,7 @@ void VertexManager::vFlush()
 			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
+				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
 			}
 			else
 				ERROR_LOG(VIDEO, "error loading texture");
