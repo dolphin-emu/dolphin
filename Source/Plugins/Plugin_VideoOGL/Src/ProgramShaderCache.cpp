@@ -144,10 +144,8 @@ void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 
 	glAttachShader(entry.program.glprogid, entry.program.psid);
 
-#ifdef GLEW_VERSION_4_0
 	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
 		glProgramParameteri(entry.program.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
-#endif
 
 	glLinkProgram(entry.program.glprogid);
 
@@ -210,7 +208,6 @@ void ProgramShaderCache::Init(void)
 		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_vs_data_offset, vs_data_size);
 	}
 
-#ifdef GLEW_VERSION_4_0
 	// Read our shader cache, only if supported
 	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
 	{
@@ -229,7 +226,6 @@ void ProgramShaderCache::Init(void)
 		ProgramFormat = (GLenum)Formats[0];
 		delete[] Formats;
 	}
-#endif
 }
 
 void ProgramShaderCache::Shutdown(void)
