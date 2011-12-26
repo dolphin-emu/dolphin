@@ -88,9 +88,8 @@ TextureCache::~TextureCache()
 
 void TextureCache::Cleanup()
 {
-	TexCache::iterator
-		iter = textures.begin(),
-		tcend = textures.end();
+	TexCache::iterator iter = textures.begin();
+	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
 		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) // TODO: Deleting EFB copies might not be a good idea here...
@@ -236,33 +235,24 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
-		if (!g_ActiveConfig.bSafeTextureCache)
+		if (g_ActiveConfig.bSafeTextureCache)
 		{
-			if (entry->isRenderTarget || entry->isDynamic)
+			if (g_ActiveConfig.bCopyEFBToTexture && (entry->isRenderTarget || entry->isDynamic))
+				hash_value = TEXHASH_INVALID;
+		}
+		else
+		{
+			if (!(entry->isRenderTarget || entry->isDynamic))
+				hash_value = *(u32*)ptr;
+			else if (g_ActiveConfig.bCopyEFBToTexture)
+				hash_value = TEXHASH_INVALID;
+			else
 			{
-				if (!g_ActiveConfig.bCopyEFBToTexture)
-				{
 					hash_value = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 					if (isPaletteTexture)
-					{
-						hash_value ^= GetHash64(&texMem[tlutaddr], palette_size,
-							g_ActiveConfig.iSafeTextureCache_ColorSamples);
-					}
-				}
-				else
-				{
-					hash_value = TEXHASH_INVALID;
-				}
+						hash_value ^= GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 			}
-			else
-			{
-				hash_value = *(u32*)ptr;
-			}
-		}
-		else if ((entry->isRenderTarget || entry->isDynamic) && g_ActiveConfig.bCopyEFBToTexture)
-		{
-			hash_value = TEXHASH_INVALID;
 		}
 
 		if (((entry->isRenderTarget || entry->isDynamic) && hash_value == entry->hash && address == entry->addr) 
