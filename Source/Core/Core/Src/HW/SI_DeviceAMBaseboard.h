@@ -30,7 +30,7 @@ private:
 
 public:
 	// constructor
-	CSIDevice_AMBaseboard(int _iDeviceNumber);
+	CSIDevice_AMBaseboard(SIDevices device, int _iDeviceNumber);
 
 	// run the SI Buffer
 	virtual int RunBuffer(u8* _pBuffer, int _iLength);
