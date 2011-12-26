@@ -170,7 +170,7 @@ void VertexManager::vFlush()
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
 	// Makes sure we can actually do Dual source blending
-	bool dualSourcePossible = g_ActiveConfig.bUseGLSL && g_ActiveConfig.backend_info.bSupportsGLSLBind;
+	bool dualSourcePossible = g_ActiveConfig.bUseGLSL && g_ActiveConfig.backend_info.bSupportsGLSLBinding;
 
 	// finally bind
 	FRAGMENTSHADER* ps;
