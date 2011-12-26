@@ -235,6 +235,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
+		// 1. Adjust reference hash:
+		// safe texcache: reference hash was calculated above for normal textures. 0 for virtual EFB copies.
+		// unsafe texcache: 0 for virtual EFB copies. Safe hash for dynamic EFB copies. First pixel for normal textures.
 		if (g_ActiveConfig.bSafeTextureCache)
 		{
 			if (g_ActiveConfig.bCopyEFBToTexture && (entry->isRenderTarget || entry->isDynamic))
@@ -255,31 +258,38 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			}
 		}
 
-		if (((entry->isRenderTarget || entry->isDynamic) && hash_value == entry->hash && address == entry->addr) 
-			|| ((address == entry->addr) && (hash_value == entry->hash) && full_format == entry->format && entry->num_mipmaps == maxlevel))
+		// 2. a) For EFB copies, only the hash and the texture address need to match
+		if ((entry->isRenderTarget || entry->isDynamic) && hash_value == entry->hash && address == entry->addr)
 		{
+			// TODO: Print a warning if the format changes! In this case, we could reinterpret the internal texture object data to the new pixel format (similiar to what is already being done in Renderer::ReinterpretPixelFormat())
 			entry->isDynamic = false;
 			goto return_entry;
 		}
+
+		// 2. b) For normal textures, all texture parameters need to match
+		if (address == entry->addr && hash_value == entry->hash && full_format == entry->format &&
+			entry->num_mipmaps == maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
+		{
+			goto return_entry;
+		}
+
+		// 3. If we reach this line, we'll have to upload the new texture data to VRAM.
+		//    If we're lucky, the texture parameters didn't change and we can reuse the internal texture object instead of destroying and recreating it.
+		texture_is_dynamic = (entry->isRenderTarget || entry->isDynamic) && !g_ActiveConfig.bCopyEFBToTexture;
+
+		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
+		// TODO: Actually, it should be enough if the internal texture format matches...
+		if (!entry->isRenderTarget &&
+			((!entry->isDynamic && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
+			|| (entry->isDynamic && entry->native_width == width && entry->native_height == height)))
+		{
+			// reuse the texture
+		}
 		else
 		{
-			// Let's reload the new texture data into the same texture,
-			// instead of destroying it and having to create a new one.
-			// Might speed up movie playback very, very slightly.
-			texture_is_dynamic = (entry->isRenderTarget || entry->isDynamic) && !g_ActiveConfig.bCopyEFBToTexture;
-
-			if (!entry->isRenderTarget &&
-				((!entry->isDynamic && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
-				|| (entry->isDynamic && entry->native_width == width && entry->native_height == height)))
-			{
-				// reuse the texture
-			}
-			else
-			{
-				// delete the texture and make a new one
-				delete entry;
-				entry = NULL;
-			}
+			// delete the texture and make a new one
+			delete entry;
+			entry = NULL;
 		}
 	}
 
