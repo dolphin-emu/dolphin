@@ -77,7 +77,7 @@ public:
 		virtual bool Save(const char filename[]) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int level, bool autogen_mips = false) = 0;
+			unsigned int expanded_width, unsigned int level, bool autogen_mips) = 0;
 		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 			unsigned int srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,

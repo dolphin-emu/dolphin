@@ -367,7 +367,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			expandedHeight = (currentHeight + bsh) & (~bsh);
 
 			TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
-			entry->Load(currentWidth, currentHeight, expandedWidth, level);
+			entry->Load(currentWidth, currentHeight, expandedWidth, level, false);
 
 			ptr += ((std::max(mipWidth, bsw) * std::max(mipHeight, bsh) * bsdepth) >> 1);
 			mipWidth >>= 1;
