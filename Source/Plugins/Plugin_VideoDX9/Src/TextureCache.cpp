@@ -78,7 +78,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		FramebufferManager::GetEFBDepthTexture() :
 		FramebufferManager::GetEFBColorTexture();
 
-	if (!isDynamic || g_ActiveConfig.bCopyEFBToTexture)
+	if (efbcopy_state != EC_VRAM_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		LPDIRECT3DSURFACE9 Rendersurf = NULL;
 		texture->GetSurfaceLevel(0, &Rendersurf);

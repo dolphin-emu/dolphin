@@ -14,6 +14,13 @@
 class TextureCache
 {
 public:
+	enum EFBCopyState
+	{
+		EC_NO_COPY,
+		EC_VRAM_READY,
+		EC_VRAM_DYNAMIC,
+	};
+
 	struct TCacheEntryBase
 	{
 #define TEXHASH_INVALID 0
@@ -32,8 +39,9 @@ public:
 		unsigned int virtual_width, virtual_height; // Texture dimensions from OUR point of view - for hires textures or scaled EFB copies
 
 		// EFB copies
-		bool isRenderTarget; // copied from EFB
-		bool isDynamic; // Used for hybrid EFB copies to enable checks for CPU modifications, see CopyFromRenderTarget for details
+		enum EFBCopyState efbcopy_state;
+
+		bool IsEfbCopy() { return efbcopy_state != EC_NO_COPY; }
 
 		// used to delete textures which haven't been used for TEXTURE_KILL_THRESHOLD frames
 		int frameCount;
@@ -59,12 +67,6 @@ public:
 		{
 			this->hash = hash;
 			//this->pal_hash = pal_hash;
-		}
-
-		void SetEFBCopyParameters(bool is_efb_copy, bool is_dynamic)
-		{
-			isRenderTarget = is_efb_copy;
-			isDynamic = is_dynamic;
 		}
 
 

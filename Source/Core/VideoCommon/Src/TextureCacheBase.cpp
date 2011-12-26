@@ -157,7 +157,7 @@ void TextureCache::ClearRenderTargets()
 		iter = textures.begin(),
 		tcend = textures.end();
 	for (; iter!=tcend; ++iter)
-		iter->second->isRenderTarget = false;
+		iter->second->efbcopy_state = EC_NO_COPY;
 }
 
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
@@ -211,20 +211,18 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		hash_value = texHash ^= tlut_hash;
 	}
 
-	bool texture_is_dynamic = false;
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
 		// 1. Calculate reference hash:
 		// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
-		if (g_ActiveConfig.bCopyEFBToTexture && (entry->isRenderTarget || entry->isDynamic))
+		if (g_ActiveConfig.bCopyEFBToTexture && entry->IsEfbCopy())
 			hash_value = TEXHASH_INVALID;
 
 		// 2. a) For EFB copies, only the hash and the texture address need to match
-		if ((entry->isRenderTarget || entry->isDynamic) && hash_value == entry->hash && address == entry->addr)
+		if (entry->IsEfbCopy() && hash_value == entry->hash && address == entry->addr)
 		{
 			// TODO: Print a warning if the format changes! In this case, we could reinterpret the internal texture object data to the new pixel format (similiar to what is already being done in Renderer::ReinterpretPixelFormat())
-			entry->isDynamic = false;
 			goto return_entry;
 		}
 
@@ -237,13 +235,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 		// 3. If we reach this line, we'll have to upload the new texture data to VRAM.
 		//    If we're lucky, the texture parameters didn't change and we can reuse the internal texture object instead of destroying and recreating it.
-		texture_is_dynamic = (entry->isRenderTarget || entry->isDynamic) && !g_ActiveConfig.bCopyEFBToTexture;
-
+		//
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
-		if (!entry->isRenderTarget &&
-			((!entry->isDynamic && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
-			|| (entry->isDynamic && entry->native_width == width && entry->native_height == height)))
+		if ((entry->efbcopy_state == EC_NO_COPY && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
+			|| (entry->efbcopy_state == EC_VRAM_DYNAMIC && entry->native_width == width && entry->native_height == height))
 		{
 			// reuse the texture
 		}
@@ -297,14 +293,16 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		//
 		// TODO: Won't we end up recreating textures all the time because maxlevel doesn't necessarily equal texLevels?
 		entry->num_mipmaps = maxlevel; // TODO: Does this actually work? We can't really adjust mipmap settings per-stage...
+		entry->efbcopy_state = EC_NO_COPY;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
 
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
-	entry->SetEFBCopyParameters(false, texture_is_dynamic);
 	entry->hash = hash_value;
+	if (g_ActiveConfig.bCopyEFBToTexture) entry->efbcopy_state = EC_NO_COPY;
+	else if (entry->IsEfbCopy()) entry->efbcopy_state = EC_VRAM_DYNAMIC;
 
 	// load texture
 	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));
@@ -608,15 +606,15 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
-	bool texture_is_dynamic = false;
 
 	TCacheEntryBase *entry = textures[dstAddr];
 	if (entry)
 	{
-		if ((entry->isRenderTarget && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
-			|| (entry->isDynamic && entry->native_width == tex_w && entry->native_height == tex_h))
+		if ((entry->efbcopy_state == EC_VRAM_READY && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
+			|| (entry->efbcopy_state == EC_VRAM_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h))
 		{
-			texture_is_dynamic = entry->isDynamic;
+			scaled_tex_w = tex_w;
+			scaled_tex_h = tex_h;
 		}
 		else
 		{
@@ -624,12 +622,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			delete entry;
 			entry = NULL;
 		}
-	}
-
-	if (texture_is_dynamic)
-	{
-		scaled_tex_w = tex_w;
-		scaled_tex_h = tex_h;
 	}
 
 	if (NULL == entry)
@@ -640,8 +632,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		// TODO: Using the wrong dstFormat, dumb...
 		entry->SetGeneralParameters(dstAddr, 0, dstFormat, 0);
 		entry->SetDimensions(tex_w, tex_h, scaled_tex_w, scaled_tex_h);
-		entry->SetEFBCopyParameters(true, false);
 		entry->SetHashes(TEXHASH_INVALID);
+		entry->efbcopy_state = EC_VRAM_READY;
 	}
 
 	entry->frameCount = frameCount;
