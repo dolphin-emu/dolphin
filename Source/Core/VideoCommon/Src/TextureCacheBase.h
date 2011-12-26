@@ -33,7 +33,7 @@ public:
 
 		// EFB copies
 		bool isRenderTarget; // copied from EFB
-		bool isDynamic; // Used for hybrid EFB copies to enable checks for CPU modifications
+		bool isDynamic; // Used for hybrid EFB copies to enable checks for CPU modifications, see CopyFromRenderTarget for details
 
 		// used to delete textures which haven't been used for TEXTURE_KILL_THRESHOLD frames
 		int frameCount;

@@ -189,6 +189,10 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (isPaletteTexture)
 		full_format = texformat | (tlutfmt << 16);
 
+	u8* ptr = Memory::GetPointer(address);
+	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
+
+	hash_value = texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	if (isPaletteTexture)
 	{
 		const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
@@ -204,24 +208,15 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		//
 		// TODO: Because texID isn't always the same as the address now, CopyRenderTargetToTexture might be broken now
 		texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
+		hash_value = texHash ^= tlut_hash;
 	}
 
-
 	bool texture_is_dynamic = false;
-	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
-
-	u8* ptr = Memory::GetPointer(address);
-
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
 		// 1. Calculate reference hash:
 		// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
-		hash_value = texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
-		if (isPaletteTexture)
-			hash_value = texHash ^= tlut_hash;
-
 		if (g_ActiveConfig.bCopyEFBToTexture && (entry->isRenderTarget || entry->isDynamic))
 			hash_value = TEXHASH_INVALID;
 
@@ -378,6 +373,39 @@ return_entry:
 void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
+	// Emulation methods:
+	// - EFB to RAM:
+	//		Encodes the requested EFB data at its native resolution to the emulated RAM using shaders.
+	//		Load() decodes the data from there again (using TextureDecoder) if the EFB copy is being used as a texture again.
+	//		Advantage: CPU can read data from the EFB copy and we don't lose any important updates to the texture
+	//		Disadvantage: Encoding+decoding steps often are redundant because only some games read or modify EFB copies before using them as textures.
+	// - EFB to texture:
+	//		Copies the requested EFB data to a texture object in VRAM, performing any color conversion using shaders.
+	//		Advantage: Works for many games, since in most cases EFB copies aren't read or modified at all before being used as a texture again.
+	//					Since we don't do any further encoding or decoding here, this method is much faster.
+	//					It also allows enhancing the visual quality by doing scaled EFB copies.
+	// - hybrid EFB copies:
+	//		1) Whenever this function gets called, encode the requested EFB data to RAM (like EFB to RAM)
+	//		2a) If we haven't copied to the specified dstAddr yet, copy the requested EFB data to a texture object in VRAM as well (like EFB to texture)
+	//			Create a texture cache entry for the render target (isRenderTarget = true, isDynamic = false)
+	//			Store a hash of the encoded RAM data in the texcache entry.
+	//		2b) If we already have created a texcache entry for dstAddr (i.e. if we copied to dstAddr before) AND isDynamic is false:
+	//			Do the same like above, but reuse the old texcache entry instead of creating a new one.
+	//		2c) If we already have created a texcache entry for dstAddr AND isDynamic is true (isRenderTarget will be false then)
+	//			Only encode the texture to RAM (like EFB to RAM) and store a hash of the encoded data in the existing texcache entry.
+	//			Do NOT copy the requested EFB data to a VRAM object. Reason: the texture is dynamic, i.e. the CPU is modifying it. Storing a VRAM copy is useless, because we'd end up deleting it and reloading the data from RAM again anyway.
+	//		3) If the EFB copy gets used as a texture, compare the source RAM hash with the hash you stored when encoding the EFB data to RAM.
+	//		3a) If the two hashes match AND isDynamic is still false, reuse the VRAM copy you created
+	//		3b) If the two hashes differ AND isDynamic is still false, screw your existing VRAM copy. Set isRenderTarget to false and isDynamic to true.
+	//			Redecode the source RAM data to a VRAM object. The entry basically behaves like a normal texture now.
+	//		3c) If isDynamic is true, treat the EFB copy like a normal texture.
+	//		Advantage: Neither as fast as EFB to texture nor as slow as EFB to RAM, so it's a good compromise.
+	//					Non-dynamic EFB copies can be visually enhanced like with EFB to texture.
+	//					Compatibility ideally is as good as with EFB to RAM.
+	//		Disadvantage: Depends on accurate texture hashing being enabled. However, with accurate hashing you end up being as slow as EFB to RAM anyway.
+	//
+	// Disadvantage of all methods: Calling this function requires the GPU to perform a pipeline flush which stalls any further CPU processing.
+
 	float colmat[28] = {0};
 	float *const fConstAdd = colmat + 16;
 	float *const ColorMask = colmat + 20;
