@@ -173,11 +173,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u32 address, unsigned int width, unsigned int height, int texformat,
 	unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel)
 {
-	// necessary?
 	if (0 == address)
 		return NULL;
-
-	u8* ptr = Memory::GetPointer(address);
 
 	// TexelSizeInNibbles(format)*width*height/16;
 	const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat) - 1;
@@ -187,20 +184,17 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	unsigned int expandedHeight = (height + bsh) & (~bsh);
 	const unsigned int nativeW = width;
 	const unsigned int nativeH = height;
-	bool isPow2;
 
-	u64 hash_value = TEXHASH_INVALID;
-	u64 texHash = TEXHASH_INVALID;
-	u64 tlut_hash = TEXHASH_INVALID;
+	// TODO: Force STC enabled when using custom textures or when dumping textures. There's no need for having two different texture hashes then.
 	u32 texID = address;
+	u64 hash_value = TEXHASH_INVALID; // Hash assigned to texcache entry
+	u64 texHash = TEXHASH_INVALID; // Accurate hash used for texture dumping, hires texture lookup. Equal to hash_value with STC.
+	u64 tlut_hash = TEXHASH_INVALID;
+
 	u32 full_format = texformat;
-	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
-	bool texture_is_dynamic = false;
-	unsigned int texLevels;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
 	const bool isPaletteTexture = (texformat == GX_TF_C4 || texformat == GX_TF_C8 || texformat == GX_TF_C14X2);
-
 	if (isPaletteTexture)
 		full_format = texformat | (tlutfmt << 16);
 
@@ -222,6 +216,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
 	}
 
+
+	bool texture_is_dynamic = false;
+	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
+
+	u8* ptr = Memory::GetPointer(address);
 
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
@@ -318,6 +317,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth,
 					expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 
+	bool isPow2;
+	unsigned int texLevels;
 	UseNativeMips = UseNativeMips && (width == nativeW && height == nativeH); // Only load native mips if their dimensions fit to our virtual texture dimensions
 	isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	texLevels = (isPow2 && UseNativeMips && maxlevel) ?
@@ -333,6 +334,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// Sometimes, we can get around recreating a texture if only the number of mip levels gets changes
 		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
 		// Thus, we don't update this member for every Load, but just whenever the texture gets recreated
+		//
+		// TODO: Won't we end up recreating textures all the time because maxlevel doesn't necessarily equal texLevels?
 		entry->num_mipmaps = maxlevel; // TODO: Does this actually work? We can't really adjust mipmap settings per-stage...
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
