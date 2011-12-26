@@ -16,6 +16,8 @@ class TextureCache
 public:
 	struct TCacheEntryBase
 	{
+#define TEXHASH_INVALID 0
+
 		// common members
 		u32 addr;
 		u32 size_in_bytes;
@@ -29,6 +31,33 @@ public:
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int virtual_width, virtual_height; // Texture dimensions from OUR point of view - for hires textures or scaled EFB copies
 
+		void SetGeneralParameters(u32 addr, u32 size, u32 format, unsigned int num_mipmaps)
+		{
+			this->addr = addr;
+			this->size_in_bytes = size;
+			this->format = format;
+			this->num_mipmaps = num_mipmaps;
+		}
+
+		void SetDimensions(unsigned int native_width, unsigned int native_height, unsigned int virtual_width, unsigned int virtual_height)
+		{
+			this->native_width = native_width;
+			this->native_height = native_height;
+			this->virtual_width = virtual_width;
+			this->virtual_height = virtual_height;
+		}
+
+		void SetHashes(u64 hash/*, u32 pal_hash*/)
+		{
+			this->hash = hash;
+			//this->pal_hash = pal_hash;
+		}
+
+		void SetEFBCopyParameters(bool is_efb_copy, bool is_dynamic)
+		{
+			isRenderTarget = is_efb_copy;
+			isDynamic = is_dynamic;
+		}
 
 		// EFB copies
 		bool isRenderTarget; // copied from EFB

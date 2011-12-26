@@ -135,7 +135,7 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 		const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
 		if (0 == rangePosition)
 		{
-			iter->second->hash = 0;
+			iter->second->SetHashes(TEXHASH_INVALID);
 		}
 	}
 }
@@ -190,8 +190,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	const unsigned int nativeH = height;
 	bool isPow2;
 
-	u64 hash_value = 0;
-	u64 texHash = 0;
+	u64 hash_value = TEXHASH_INVALID;
+	u64 texHash = TEXHASH_INVALID;
 	u32 texID = address;
 	u32 full_format = texformat;
 	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
@@ -252,7 +252,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 				}
 				else
 				{
-					hash_value = 0;
+					hash_value = TEXHASH_INVALID;
 				}
 			}
 			else
@@ -262,7 +262,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 		else if ((entry->isRenderTarget || entry->isDynamic) && g_ActiveConfig.bCopyEFBToTexture)
 		{
-			hash_value = 0;
+			hash_value = TEXHASH_INVALID;
 		}
 
 		if (((entry->isRenderTarget || entry->isDynamic) && hash_value == entry->hash && address == entry->addr) 
@@ -332,24 +332,15 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// Sometimes, we can get around recreating a texture if only the number of mip levels gets changes
 		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
 		// Thus, we don't update this member for every Load, but just whenever the texture gets recreated
-		entry->num_mipmaps = maxlevel;
+		entry->num_mipmaps = maxlevel; // TODO: Does this actually work? We can't really adjust mipmap settings per-stage...
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
 
-	entry->addr = address;
-	entry->format = full_format;
-	entry->size_in_bytes = texture_size;
-
-	entry->native_width = nativeW;
-	entry->native_height = nativeH;
-
-	entry->virtual_width = width;
-	entry->virtual_height = height;
-		
-	entry->isRenderTarget = false;
+	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
+	entry->SetDimensions(nativeW, nativeH, width, height);
+	entry->SetEFBCopyParameters(false, texture_is_dynamic);
 	entry->isNonPow2 = false;
-	entry->isDynamic = texture_is_dynamic;
 
 	entry->oldpixel = *(u32*)ptr;
 
@@ -657,21 +648,12 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		// create the texture
 		textures[dstAddr] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);
 
-		entry->addr = dstAddr;
-		entry->hash = 0;
-
-		entry->native_width = tex_w;
-		entry->native_height = tex_h;
-
-		entry->virtual_width = scaled_tex_w;
-		entry->virtual_height = scaled_tex_h;
-
-		entry->format = dstFormat;
-		entry->num_mipmaps = 0;
-
-		entry->isRenderTarget = true;
+		// TODO: Using the wrong dstFormat, dumb...
+		entry->SetGeneralParameters(dstAddr, 0, dstFormat, 0);
+		entry->SetDimensions(tex_w, tex_h, scaled_tex_w, scaled_tex_h);
+		entry->SetEFBCopyParameters(true, false);
+		entry->SetHashes(TEXHASH_INVALID);
 		entry->isNonPow2 = true;
-		entry->isDynamic = false;
 	}
 
 	entry->frameCount = frameCount;
