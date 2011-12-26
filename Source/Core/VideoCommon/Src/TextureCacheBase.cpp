@@ -282,7 +282,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			}
 		}
 	}
-	
+
 	if (g_ActiveConfig.bHiresTextures)
 	{
 		// Load Custom textures
@@ -298,16 +298,14 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		{
 			expandedWidth = width = newWidth;
 			expandedHeight = height = newHeight;
-
-			// TODO: shouldn't generating mips be forced on now?
-			// native mips with a custom texture wouldn't make sense
 		}
 	}
 
 	if (pcfmt == PC_TEX_FMT_NONE)
 		pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth,
-			expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
+					expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 
+	UseNativeMips = UseNativeMips && (width == nativeW && height == nativeH); // Only load native mips if their dimensions fit to our virtual texture dimensions
 	isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	texLevels = (isPow2 && UseNativeMips && maxlevel) ?
 		GetPow2(std::max(width, height)) : !isPow2;
@@ -330,13 +328,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->SetEFBCopyParameters(false, texture_is_dynamic);
-
 	entry->oldpixel = *(u32*)ptr;
 
 	if (g_ActiveConfig.bSafeTextureCache || entry->isDynamic)
 		entry->hash = hash_value;
 	else
-		// don't like rand() here
 		entry->hash = *(u32*)ptr = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 
 	// load texture
