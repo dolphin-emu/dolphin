@@ -219,7 +219,10 @@ void ProgramShaderCache::Shutdown(void)
 	{
 		PCache::iterator iter = pshaders.begin();
 		for (; iter != pshaders.end(); ++iter)
+		{
 			g_program_disk_cache.Append(iter->second.uid, iter->second.GetProgram(), iter->second.Size());
+			iter->second.FreeProgram();
+		}
 
 		g_program_disk_cache.Sync();
 		g_program_disk_cache.Close();

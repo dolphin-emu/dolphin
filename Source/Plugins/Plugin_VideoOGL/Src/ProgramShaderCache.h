@@ -100,6 +100,7 @@ public:
 		void FreeProgram()
 		{
 			delete [] binary;
+			binary = NULL;
 		}
 
 		GLint Size()
