@@ -93,7 +93,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
 	iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
-	iniFile.Get("Settings", "UseGLSL", &bUseGLSL, 0);
+	iniFile.Get("Settings", "UseGLSL", &bUseGLSL, true);
 	
 	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
 	iniFile.Get("Settings", "OMPDecoder", &bOMPDecoder, false);
