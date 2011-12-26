@@ -23,28 +23,19 @@ enum
 
 TextureCache *g_texture_cache;
 
- GC_ALIGNED16(u8 *TextureCache::temp) = NULL;
+GC_ALIGNED16(u8 *TextureCache::temp) = NULL;
 
 TextureCache::TexCache TextureCache::textures;
 bool TextureCache::DeferredInvalidate;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
-	if (0 == addr)
-		return;
-
-	if (!isRenderTarget && !g_ActiveConfig.bSafeTextureCache)
-	{
-		u32 *const ptr = (u32*)Memory::GetPointer(addr);
-		if (ptr && *ptr == hash)
-			*ptr = oldpixel;
-	}
 }
 
 TextureCache::TextureCache()
 {
 	if (!temp)
-		temp =(u8*) AllocateAlignedMemory(TEMP_SIZE,16);
+		temp = (u8*)AllocateAlignedMemory(TEMP_SIZE,16);
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
     if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
@@ -198,7 +189,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (isPaletteTexture)
 		full_format = texformat | (tlutfmt << 16);
 
-	if (isPaletteTexture && (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures))
+	if (isPaletteTexture)
 	{
 		const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
 		tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
@@ -212,8 +203,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		//		we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
 		//
 		// TODO: Because texID isn't always the same as the address now, CopyRenderTargetToTexture might be broken now
-		if (g_ActiveConfig.bSafeTextureCache)
-			texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
+		texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
 	}
 
 
@@ -225,40 +215,15 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
-		// hires texture loading and texture dumping require accurate hashes
-		if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
-		{
-			texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		// 1. Calculate reference hash:
+		// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
+		hash_value = texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
-			if (isPaletteTexture)
-				texHash ^= tlut_hash;
+		if (isPaletteTexture)
+			hash_value = texHash ^= tlut_hash;
 
-			if (g_ActiveConfig.bSafeTextureCache)
-				hash_value = texHash;
-		}
-
-		// 1. Adjust reference hash:
-		// safe texcache: reference hash was calculated above for normal textures. 0 for virtual EFB copies.
-		// unsafe texcache: 0 for virtual EFB copies. Safe hash for dynamic EFB copies. First pixel for normal textures.
-		if (g_ActiveConfig.bSafeTextureCache)
-		{
-			if (g_ActiveConfig.bCopyEFBToTexture && (entry->isRenderTarget || entry->isDynamic))
-				hash_value = TEXHASH_INVALID;
-		}
-		else
-		{
-			if (!(entry->isRenderTarget || entry->isDynamic))
-				hash_value = *(u32*)ptr;
-			else if (g_ActiveConfig.bCopyEFBToTexture)
-				hash_value = TEXHASH_INVALID;
-			else
-			{
-					hash_value = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
-					if (isPaletteTexture)
-						hash_value ^= tlut_hash; // TODO: Ugly, this is using Safe Texture Cache parameters in nonsafe TC
-			}
-		}
+		if (g_ActiveConfig.bCopyEFBToTexture && (entry->isRenderTarget || entry->isDynamic))
+			hash_value = TEXHASH_INVALID;
 
 		// 2. a) For EFB copies, only the hash and the texture address need to match
 		if ((entry->isRenderTarget || entry->isDynamic) && hash_value == entry->hash && address == entry->addr)
@@ -344,12 +309,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->SetEFBCopyParameters(false, texture_is_dynamic);
-	entry->oldpixel = *(u32*)ptr;
-
-	if (g_ActiveConfig.bSafeTextureCache || entry->isDynamic)
-		entry->hash = hash_value;
-	else
-		entry->hash = *(u32*)ptr = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
+	entry->hash = hash_value;
 
 	// load texture
 	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));

@@ -38,9 +38,6 @@ public:
 		// used to delete textures which haven't been used for TEXTURE_KILL_THRESHOLD frames
 		int frameCount;
 
-		// deprecated members
-		u32 oldpixel;
-
 
 		void SetGeneralParameters(u32 addr, u32 size, u32 format, unsigned int num_mipmaps)
 		{
