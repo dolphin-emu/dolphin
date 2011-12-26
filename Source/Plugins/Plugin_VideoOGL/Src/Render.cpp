@@ -957,8 +957,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
-		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && g_ActiveConfig.bUseGLSL;
-	bool useDualSource = useDstAlpha;
+		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool useDualSource = g_ActiveConfig.bUseGLSL && g_ActiveConfig.backend_info.bSupportsGLSLBind;
 
 	if (changes & 1)
 		// blend enable change

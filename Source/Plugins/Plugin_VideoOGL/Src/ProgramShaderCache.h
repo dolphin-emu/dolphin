@@ -48,7 +48,7 @@ public:
 		ShaderUID uid;
 		GLint UniformLocations[NUM_UNIFORMS];
 
-		PCacheEntry() : prog_id(0), vsid(0), psid(0), binary(NULL), binary_size(0) { }
+		PCacheEntry() : prog_id(0), binary(NULL), binary_size(0), vsid(0), psid(0)  { }
 
 		~PCacheEntry()
 		{
