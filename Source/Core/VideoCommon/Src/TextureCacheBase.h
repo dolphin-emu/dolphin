@@ -31,6 +31,17 @@ public:
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int virtual_width, virtual_height; // Texture dimensions from OUR point of view - for hires textures or scaled EFB copies
 
+		// EFB copies
+		bool isRenderTarget; // copied from EFB
+		bool isDynamic; // Used for hybrid EFB copies to enable checks for CPU modifications
+
+		// used to delete textures which haven't been used for TEXTURE_KILL_THRESHOLD frames
+		int frameCount;
+
+		// deprecated members
+		u32 oldpixel;
+
+
 		void SetGeneralParameters(u32 addr, u32 size, u32 format, unsigned int num_mipmaps)
 		{
 			this->addr = addr;
@@ -59,33 +70,6 @@ public:
 			isDynamic = is_dynamic;
 		}
 
-		// EFB copies
-		bool isRenderTarget; // copied from EFB
-		bool isDynamic; // Used for hybrid EFB copies to enable checks for CPU modifications
-
-		// deprecated members
-		u32 oldpixel;
-		int frameCount;
-		bool isNonPow2;	// doesn't seem to be used anywhere
-
-
-
-		//TCacheEntryBase()
-		//{
-		//	// TODO: remove these
-		//	isRenderTarget = 0;
-		//	hash = 0;
-		//	//paletteHash = 0;
-		//	oldpixel = 0;
-		//	addr = 0;
-		//	size_in_bytes = 0;
-		//	frameCount = 0;
-		//	isNonPow2 = true;
-		//	w = 0;
-		//	h = 0;
-		//	scaledW = 0;
-		//	scaledH = 0;
-		//}
 
 		virtual ~TCacheEntryBase();
 

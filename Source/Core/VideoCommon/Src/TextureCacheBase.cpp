@@ -93,7 +93,7 @@ void TextureCache::Cleanup()
 		tcend = textures.end();
 	while (iter != tcend)
 	{
-		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount)
+		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) // TODO: Deleting EFB copies might not be a good idea here...
 		{
 			delete iter->second;
 			textures.erase(iter++);
@@ -340,7 +340,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->SetEFBCopyParameters(false, texture_is_dynamic);
-	entry->isNonPow2 = false;
 
 	entry->oldpixel = *(u32*)ptr;
 
@@ -653,7 +652,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		entry->SetDimensions(tex_w, tex_h, scaled_tex_w, scaled_tex_h);
 		entry->SetEFBCopyParameters(true, false);
 		entry->SetHashes(TEXHASH_INVALID);
-		entry->isNonPow2 = true;
 	}
 
 	entry->frameCount = frameCount;
