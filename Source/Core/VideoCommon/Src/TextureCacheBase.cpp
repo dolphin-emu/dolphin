@@ -191,10 +191,10 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 	u64 hash_value = TEXHASH_INVALID;
 	u64 texHash = TEXHASH_INVALID;
+	u64 tlut_hash = TEXHASH_INVALID;
 	u32 texID = address;
 	u32 full_format = texformat;
 	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
-	const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
 	bool texture_is_dynamic = false;
 	unsigned int texLevels;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
@@ -204,37 +204,40 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (isPaletteTexture)
 		full_format = texformat | (tlutfmt << 16);
 
-	// hires texture loading and texture dumping require accurate hashes
-	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
+	if (isPaletteTexture && (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures))
 	{
-		texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
+		tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
-		if (isPaletteTexture)
-		{
-			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
-			// tlut size can be up to 32768B (GX_TF_C14X2) but Safer == Slower.
-			// This trick (to change the texID depending on the TLUT addr) is a trick to get around
-			// an issue with metroid prime's fonts, where it has multiple sets of fonts on top of
-			// each other stored in a single texture, and uses the palette to make different characters
-			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
-			// we must make sure that texture with different tluts get different IDs.
-
-			const u64 tlutHash = GetHash64(texMem + tlutaddr, palette_size,
-				g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
-			texHash ^= tlutHash;
-
-			if (g_ActiveConfig.bSafeTextureCache)
-				texID ^= ((u32)tlutHash) ^ (u32)(tlutHash >> 32);
-		}
-
+		// NOTE: For non-paletted textures, texID is equal to the texture address.
+		//		A paletted texture, however, may have multiple texIDs assigned though depending on the currently used tlut.
+		//		This (changing texID depending on the tlut_hash) is a trick to get around
+		//		an issue with Metroid Prime's fonts (it has multiple sets of fonts on each other
+		//		stored in a single texture and uses the palette to make different characters
+		//		visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
+		//		we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
+		//
+		// TODO: Because texID isn't always the same as the address now, CopyRenderTargetToTexture might be broken now
 		if (g_ActiveConfig.bSafeTextureCache)
-			hash_value = texHash;
+			texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
 	}
+
 
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
+		// hires texture loading and texture dumping require accurate hashes
+		if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
+		{
+			texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+			if (isPaletteTexture)
+				texHash ^= tlut_hash;
+
+			if (g_ActiveConfig.bSafeTextureCache)
+				hash_value = texHash;
+		}
+
 		// 1. Adjust reference hash:
 		// safe texcache: reference hash was calculated above for normal textures. 0 for virtual EFB copies.
 		// unsafe texcache: 0 for virtual EFB copies. Safe hash for dynamic EFB copies. First pixel for normal textures.
@@ -254,7 +257,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 					hash_value = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 					if (isPaletteTexture)
-						hash_value ^= GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+						hash_value ^= tlut_hash; // TODO: Ugly, this is using Safe Texture Cache parameters in nonsafe TC
 			}
 		}
 
