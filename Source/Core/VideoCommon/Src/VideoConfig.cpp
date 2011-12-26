@@ -87,7 +87,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
 	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
-	iniFile.Get("Settings", "UseGLSL", &bUseGLSL, 0);
+	iniFile.Get("Settings", "UseGLSL", &bUseGLSL, true);
 	
 	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
 	iniFile.Get("Settings", "OMPDecoder", &bOMPDecoder, false);
