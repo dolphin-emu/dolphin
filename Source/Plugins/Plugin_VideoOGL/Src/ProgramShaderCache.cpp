@@ -26,7 +26,7 @@ ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 GLuint ProgramShaderCache::s_ps_vs_ubo;
 GLintptr ProgramShaderCache::s_vs_data_offset;
 
-LinearDiskCache<PROGRAMUID, u8> g_program_disk_cache;
+LinearDiskCache<ProgramShaderCache::ShaderUID, u8> g_program_disk_cache;
 GLenum ProgramFormat;
 
 std::pair<u32, u32> ProgramShaderCache::CurrentShaderProgram;
@@ -57,7 +57,7 @@ const char *UniformNames[NUM_UNIFORMS] =
 	I_DEPTHPARAMS,
 };
 
-void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry, const PROGRAMUID &uid)
+void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 {
 	// Dunno why this is needed when I have the binding
 	// points statically set in the shader source
@@ -65,10 +65,10 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry, const PROGRAMUI
 	// Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		glUniformBlockBinding(entry.program.glprogid, 0, 1);
+		glUniformBlockBinding(entry.prog_id, 0, 1);
 		// Some things have no vertex shader
-		if (uid.uid.vsid != 0)
-			glUniformBlockBinding(entry.program.glprogid, 1, 2);
+		if (entry.vsid != 0)
+			glUniformBlockBinding(entry.prog_id, 1, 2);
 	}
 
 	// We cache our uniform locations for now
@@ -76,42 +76,39 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry, const PROGRAMUI
 	// We can remove this
 
 	// (Sonicadvance): For some reason this fails on my hardware
-	//glGetUniformIndices(entry.program.glprogid, NUM_UNIFORMS, UniformNames, entry.program.UniformLocations);
+	//glGetUniformIndices(entry.prog_id, NUM_UNIFORMS, UniformNames, entry.UniformLocations);
 	// Got to do it this crappy way.
 	if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		for (int a = 8; a < NUM_UNIFORMS; ++a)
-			entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
+			entry.UniformLocations[a] = glGetUniformLocation(entry.prog_id, UniformNames[a]);
 
 	if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 	{
 		for (int a = 0; a < 8; ++a)
 		{
 			// Still need to get sampler locations since we aren't binding them statically in the shaders
-			entry.program.UniformLocations[a] = glGetUniformLocation(entry.program.glprogid, UniformNames[a]);
-			if (entry.program.UniformLocations[a] != -1)
-				glUniform1i(entry.program.UniformLocations[a], a);
+			entry.UniformLocations[a] = glGetUniformLocation(entry.prog_id, UniformNames[a]);
+			if (entry.UniformLocations[a] != -1)
+				glUniform1i(entry.UniformLocations[a], a);
 		}
 	}
 
 	// Need to get some attribute locations
-	if (uid.uid.vsid != 0 && !g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
+	if (entry.vsid != 0 && !g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
 	{
 		// We have no vertex Shader
-		glBindAttribLocation(entry.program.glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
-		glBindAttribLocation(entry.program.glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
-		glBindAttribLocation(entry.program.glprogid, SHADER_POSMTX_ATTRIB, "fposmtx");
+		glBindAttribLocation(entry.prog_id, SHADER_NORM1_ATTRIB, "rawnorm1");
+		glBindAttribLocation(entry.prog_id, SHADER_NORM2_ATTRIB, "rawnorm2");
+		glBindAttribLocation(entry.prog_id, SHADER_POSMTX_ATTRIB, "fposmtx");
 	}
 }
 
 void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 {
-	PROGRAMUID uid;
 	CurrentFShader = PS;
 	CurrentVShader = VS;
 
-	GetProgramShaderId(&uid, CurrentVShader, CurrentFShader);
-
-	if (uid.uid.id == 0)
+	if (CurrentFShader == 0 && CurrentVShader == 0)
 	{
 		CurrentProgram = 0;
 		glUseProgram(0);
@@ -120,42 +117,39 @@ void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 
 	// Fragment shaders can survive without Vertex Shaders
 	// We have a valid fragment shader, let's create our program
-	std::pair<u32, u32> ShaderPair = std::make_pair(uid.uid.psid, uid.uid.vsid);
+	std::pair<u32, u32> ShaderPair = std::make_pair(CurrentFShader, CurrentVShader);
 	PCache::iterator iter = pshaders.find(ShaderPair);
 	if (iter != pshaders.end())
 	{
 		PCacheEntry &entry = iter->second;
-		glUseProgram(entry.program.glprogid);
+		glUseProgram(entry.prog_id);
 		CurrentShaderProgram = ShaderPair;
-		CurrentProgram = entry.program.glprogid;
+		CurrentProgram = entry.prog_id;
 		return;
 	}
 
 	PCacheEntry entry;
-	entry.program.vsid = CurrentVShader;
-	entry.program.psid = CurrentFShader;
-	entry.program.uid = uid;
-	entry.program.glprogid = glCreateProgram();
+	entry.Create(CurrentFShader, CurrentVShader);
 
 	// Right, the program is created now
 	// Let's attach everything
-	if (entry.program.vsid != 0) // attaching zero vertex shader makes it freak out
-		glAttachShader(entry.program.glprogid, entry.program.vsid);
+	if (entry.vsid != 0) // attaching zero vertex shader makes it freak out
+		glAttachShader(entry.prog_id, entry.vsid);
 
-	glAttachShader(entry.program.glprogid, entry.program.psid);
+	glAttachShader(entry.prog_id, entry.psid);
 
 	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
-		glProgramParameteri(entry.program.glprogid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+		glProgramParameteri(entry.prog_id, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 
-	glLinkProgram(entry.program.glprogid);
+	glLinkProgram(entry.prog_id);
 
-	glUseProgram(entry.program.glprogid);
+	glUseProgram(entry.prog_id);
 
-	SetProgramVariables(entry, uid);
+	SetProgramVariables(entry);
 
 	pshaders[ShaderPair] = entry;
 	CurrentShaderProgram = ShaderPair;
-	CurrentProgram = entry.program.glprogid;
+	CurrentProgram = entry.prog_id;
 }
 
 void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
@@ -175,9 +169,9 @@ GLuint ProgramShaderCache::GetCurrentProgram(void)
 	return CurrentProgram;
 }
 
-PROGRAMSHADER ProgramShaderCache::GetShaderProgram(void)
+ProgramShaderCache::PCacheEntry ProgramShaderCache::GetShaderProgram(void)
 {
-	return pshaders[CurrentShaderProgram].program;
+	return pshaders[CurrentShaderProgram];
 }
 
 void ProgramShaderCache::Init(void)
@@ -216,15 +210,6 @@ void ProgramShaderCache::Init(void)
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 		ProgramShaderCacheInserter inserter;
 		g_program_disk_cache.OpenAndRead(cache_filename, inserter);
-
-		GLint Supported;
-		glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
-
-		GLint *Formats = new GLint[Supported];
-		glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, Formats);
-		// We don't really care about format
-		ProgramFormat = (GLenum)Formats[0];
-		delete[] Formats;
 	}
 }
 
@@ -234,7 +219,7 @@ void ProgramShaderCache::Shutdown(void)
 	{
 		PCache::iterator iter = pshaders.begin();
 		for (; iter != pshaders.end(); ++iter)
-			g_program_disk_cache.Append(iter->second.program.uid, iter->second.program.Data(), iter->second.program.Size());
+			g_program_disk_cache.Append(iter->second.uid, iter->second.GetProgram(), iter->second.Size());
 
 		g_program_disk_cache.Sync();
 		g_program_disk_cache.Close();
@@ -254,9 +239,3 @@ void ProgramShaderCache::Shutdown(void)
 }
 
 } // namespace OGL
-
-void GetProgramShaderId(PROGRAMUID *uid, GLuint _v, GLuint _p)
-{
-	uid->uid.vsid = _v;
-	uid->uid.psid = _p;
-}

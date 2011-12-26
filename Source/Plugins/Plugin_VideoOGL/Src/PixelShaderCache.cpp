@@ -422,7 +422,7 @@ bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 
 void SetPSConstant4fvByName(const char * name, unsigned int offset, const float *f, const unsigned int count = 1)
 {
-	PROGRAMSHADER tmp = ProgramShaderCache::GetShaderProgram();
+	ProgramShaderCache::PCacheEntry tmp = ProgramShaderCache::GetShaderProgram();
 	for (int a = 0; a < NUM_UNIFORMS; ++a)
 	{
 		if (!strcmp(name, UniformNames[a]))

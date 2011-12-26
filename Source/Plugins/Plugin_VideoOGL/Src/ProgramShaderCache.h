@@ -27,143 +27,89 @@
 #include "LinearDiskCache.h"
 #include "ConfigManager.h"
 
-union PID
-{
-	struct
-	{
-		GLuint vsid, psid;
-	};
-	u64 id;
-};
-
-class PROGRAMUID
-{
-public:
-	PID uid;
-
-	PROGRAMUID()
-	{
-		uid.id = 0;
-	}
-
-	PROGRAMUID(const PROGRAMUID& r)
-	{
-		uid.id = r.uid.id;
-	}
-
-	PROGRAMUID(GLuint _v, GLuint _p)
-	{
-		uid.vsid = _v;
-		uid.psid = _p;
-	}
-
-	u64 GetNumValues() const
-	{
-		return uid.id;
-	}
-};
-
-void GetProgramShaderId(PROGRAMUID *uid, GLuint _v, GLuint _p);
-
 namespace OGL
 {
 
 const int NUM_UNIFORMS = 27;
 extern const char *UniformNames[NUM_UNIFORMS];
-extern GLenum ProgramFormat;
-
-struct PROGRAMSHADER
-{
-	PROGRAMSHADER() : glprogid(0), vsid(0), psid(0), binaryLength(0) {}
-	// opengl program id
-	GLuint glprogid;
-	GLuint vsid, psid;
-	PROGRAMUID uid;
-	GLint UniformLocations[NUM_UNIFORMS];
-	GLint binaryLength;
-
-	// TODO at first glance looks bad - malloc/no free/pointer not saved in instance...
-	u8 *Data()
-	{
-		glGetProgramiv(glprogid, GL_PROGRAM_BINARY_LENGTH, &binaryLength);
-		u8* binary = (u8*)malloc(binaryLength);
-		glGetProgramBinary(glprogid, binaryLength, NULL, &ProgramFormat, binary);
-		return binary;
-	}
-
-	GLint Size()
-	{
-		if (!binaryLength)
-			glGetProgramiv(glprogid, GL_PROGRAM_BINARY_LENGTH, &binaryLength);
-		return binaryLength;
-	}
-};
 
 class ProgramShaderCache
 {
+public:
+	typedef std::pair<u32, u32> ShaderUID;
+
 	struct PCacheEntry
 	{
-		PROGRAMSHADER program;
-		int frameCount;
-		PCacheEntry() : frameCount(0) {}
+		GLuint prog_id;
+		GLenum prog_format;
+		u8 *binary;
+		GLint binary_size;
+		GLuint vsid, psid;
+		ShaderUID uid;
+		GLint UniformLocations[NUM_UNIFORMS];
+
+		PCacheEntry() : prog_id(0), vsid(0), psid(0), binary(NULL), binary_size(0) { }
+
+		~PCacheEntry()
+		{
+			FreeProgram();
+		}
+
+		void Create(const GLuint pix_id, const GLuint vert_id)
+		{
+			psid = pix_id;
+			vsid = vert_id;
+			uid = std::make_pair(psid, vsid);
+			prog_id = glCreateProgram();
+		}
 
 		void Destroy()
 		{
-			glDeleteProgram(program.glprogid);
-			program.glprogid = 0;
+			glDeleteProgram(prog_id);
+			prog_id = 0;
 		}
 
-		u8* Data()
+		void UpdateSize()
 		{
-			return program.Data();
+			if (binary_size == 0)
+				glGetProgramiv(prog_id, GL_PROGRAM_BINARY_LENGTH, &binary_size);
+		}
+
+		// No idea how necessary this is
+		void SetProgramFormat()
+		{
+			GLint Supported;
+			glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
+
+			GLint *Formats = new GLint[Supported];
+			glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, Formats);
+			// We don't really care about format
+			prog_format = (GLenum)Formats[0];
+			delete[] Formats;
+		}
+
+		u8 *GetProgram()
+		{
+			UpdateSize();
+			FreeProgram();
+			binary = new u8[binary_size];
+			glGetProgramBinary(prog_id, binary_size, NULL, &prog_format, binary);
+			return binary;
+		}
+
+		void FreeProgram()
+		{
+			delete [] binary;
 		}
 
 		GLint Size()
 		{
-			return program.Size();
+			UpdateSize();
+			return binary_size;
 		}
 	};
 
-	class ProgramShaderCacheInserter : public LinearDiskCacheReader<PROGRAMUID, u8>
-	{
-	public:
-		void Read(const PROGRAMUID &key, const u8 *value, u32 value_size)
-		{
-			PCacheEntry entry;
-
-			// The two shaders might not even exist anymore
-			// But it is fine, no need to worry about that
-			entry.program.vsid = key.uid.vsid;
-			entry.program.psid = key.uid.psid;
-
-			entry.program.glprogid = glCreateProgram();
-
-			glProgramBinary(entry.program.glprogid, ProgramFormat, value, value_size);
-
-			GLint success;
-			glGetProgramiv(entry.program.glprogid, GL_LINK_STATUS, &success);
-
-			if (success)
-			{
-				pshaders[std::make_pair(key.uid.psid, key.uid.vsid)] = entry;
-				glUseProgram(entry.program.glprogid);
-				SetProgramVariables(entry, key);
-			}
-		}
-	};
-
-	typedef std::map<std::pair<u32, u32>, PCacheEntry> PCache;
-
-	static PCache pshaders;
-	static GLuint CurrentFShader, CurrentVShader, CurrentProgram;
-	static std::pair<u32, u32> CurrentShaderProgram;
-
-	static GLuint s_ps_vs_ubo;
-	static GLintptr s_vs_data_offset;
-	static void SetProgramVariables(PCacheEntry &entry, const PROGRAMUID &uid);
-
-public:
-	static PROGRAMSHADER GetShaderProgram(void);
+	static PCacheEntry GetShaderProgram(void);
 	static void SetBothShaders(GLuint PS, GLuint VS);
 	static GLuint GetCurrentProgram(void);
 
@@ -172,6 +118,41 @@ public:
 
 	static void Init(void);
 	static void Shutdown(void);
+
+private:
+	class ProgramShaderCacheInserter : public LinearDiskCacheReader<ShaderUID, u8>
+	{
+	public:
+		void Read(const ShaderUID &key, const u8 *value, u32 value_size)
+		{
+			// The two shaders might not even exist anymore
+			// But it is fine, no need to worry about that
+			PCacheEntry entry;
+			entry.Create(key.first, key.second);
+
+			glProgramBinary(entry.prog_id, entry.prog_format, value, value_size);
+
+			GLint success;
+			glGetProgramiv(entry.prog_id, GL_LINK_STATUS, &success);
+
+			if (success)
+			{
+				pshaders[key] = entry;
+				glUseProgram(entry.prog_id);
+				SetProgramVariables(entry);
+			}
+		}
+	};
+
+	typedef std::map<ShaderUID, PCacheEntry> PCache;
+
+	static PCache pshaders;
+	static GLuint CurrentFShader, CurrentVShader, CurrentProgram;
+	static ShaderUID CurrentShaderProgram;
+
+	static GLuint s_ps_vs_ubo;
+	static GLintptr s_vs_data_offset;
+	static void SetProgramVariables(PCacheEntry &entry);
 };
 
 }  // namespace OGL
