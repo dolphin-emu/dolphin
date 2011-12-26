@@ -220,7 +220,7 @@ bool CompileGLSLVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
 
 void SetVSConstant4fvByName(const char * name, unsigned int offset, const float *f, const unsigned int count = 1)
 {
-	PROGRAMSHADER tmp = ProgramShaderCache::GetShaderProgram();
+	ProgramShaderCache::PCacheEntry tmp = ProgramShaderCache::GetShaderProgram();
 	for (int a = 0; a < NUM_UNIFORMS; ++a)
 	{
 		if (!strcmp(name, UniformNames[a]))
