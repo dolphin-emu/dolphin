@@ -8,6 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 <<<<<<< HEAD
+<<<<<<< HEAD
 "POT-Creation-Date: 2011-12-18 13:39-0600\n"
 =======
 "POT-Creation-Date: 2011-10-11 23:25-0500\n"
@@ -15,6 +16,9 @@ msgstr ""
 >>>>>>> Update translation files for recent changes in the code.
 "PO-Revision-Date: 2011-08-19 08:38-0500\n"
 =======
+=======
+"POT-Creation-Date: 2011-12-18 13:39-0600\n"
+>>>>>>> Clean up Turkish translation file.
 "PO-Revision-Date: 2011-12-20 19:22+0200\n"
 >>>>>>> Update Hungarian and Turkish translations.
 "Last-Translator: nlgzrgn <nlgzrgn@live.com>\n"
@@ -562,6 +566,7 @@ msgid "Add new pane"
 msgstr "Bölme ekle"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
@@ -570,6 +575,11 @@ msgstr "Bölme ekle"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
+>>>>>>> Clean up Turkish translation file.
 msgid "Add..."
 msgstr "Ekle..."
 
@@ -640,12 +650,17 @@ msgid "All Gamecube GCM files (gcm)"
 msgstr "Tüm GameCube GCM Dosyaları (gcm)"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
+>>>>>>> Clean up Turkish translation file.
 msgid "All Save States (sav, s##)"
 msgstr "Tüm Kayıtlı Oyunlar (sav,s##)"
 
@@ -735,10 +750,14 @@ msgstr ""
 "geri döndüremezsiniz!"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:729
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:725
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:729
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:284
 msgid "Aspect Ratio:"
 msgstr "En-boy Oranı:"
@@ -760,10 +779,14 @@ msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: AO sürücüyü açarken hata.\n"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:239
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:238
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:239
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
 msgid "Auto"
 msgstr "Otomatik"
@@ -879,10 +902,14 @@ msgstr "Mavi Sağ"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
+>>>>>>> Clean up Turkish translation file.
 msgid "Bottom"
 msgstr "Alt"
 
@@ -916,10 +943,14 @@ msgid "Buffer:"
 msgstr "Tampon:"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:71
 =======
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:68
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:71
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:89
 msgid "Buttons"
@@ -1166,10 +1197,14 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:213
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:244
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:563
 =======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:559
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:563
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:592
 msgid "Close"
 msgstr "Kapat"
@@ -1279,10 +1314,14 @@ msgid "Connect Wiimote 4"
 msgstr "Wiimote 4'ü Bağla"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:597
 =======
 #: Source/Core/DolphinWX/Src/Main.cpp:598
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:597
+>>>>>>> Clean up Turkish translation file.
 msgid "Connecting..."
 msgstr "Bağlanıyor..."
 
@@ -1476,10 +1515,14 @@ msgstr "Ses Emülatörü Motoru"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
+>>>>>>> Clean up Turkish translation file.
 msgid "DSP HLE emulation (fast)"
 msgstr "DSP HLE Emülasyonu (Hızlı)"
 
@@ -1710,10 +1753,14 @@ msgid "Divide"
 msgstr "Böl"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1068
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1052
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1068
+>>>>>>> Clean up Turkish translation file.
 msgid "Do you want to stop the current emulation?"
 msgstr "Emülasyonu durdurmak istiyor musunuz?"
 
@@ -1743,6 +1790,7 @@ msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1220
 msgid "Dolphin GCPad Configuration"
 msgstr "Dolphin GC Kolu Yapılandırması"
@@ -1757,6 +1805,14 @@ msgstr "Dolphin GC Kolu Yapılandırması"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:742
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1144
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1220
+msgid "Dolphin GCPad Configuration"
+msgstr "Dolphin GC Kolu Yapılandırması"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:751
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1160
+>>>>>>> Clean up Turkish translation file.
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS Filmleri (*.dtm)"
 
@@ -1854,6 +1910,7 @@ msgstr ""
 "Emin değilseniz, işaretsiz bırakın."
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
@@ -1862,6 +1919,11 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+>>>>>>> Clean up Turkish translation file.
 msgid "Dutch"
 msgstr "Flemenkçe"
 
@@ -2005,21 +2067,32 @@ msgid "Enable Block Merging"
 msgstr "Blok Birleşimine İzin Ver"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
 msgid "Enable Bounding Box Calculation"
 msgstr ""
 
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
+msgid "Enable Bounding Box Calculation"
+msgstr "Sınırlayıcı Kutu Hesaplama'yı Etkinleştir"
+
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:440
 msgid "Enable Cache"
 msgstr "Ön Belleğe İzin Ver"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:536
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
+>>>>>>> Clean up Turkish translation file.
 msgid "Enable Cheats"
 msgstr "Hilelere İzin Ver"
 
@@ -2177,6 +2250,7 @@ msgid "End"
 msgstr "Son"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
@@ -2185,6 +2259,11 @@ msgstr "Son"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
+>>>>>>> Clean up Turkish translation file.
 msgid "English"
 msgstr "İngilizce"
 
@@ -2214,6 +2293,7 @@ msgstr "Eşit"
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1175
 msgid "Error"
 msgstr "Hata"
@@ -2231,6 +2311,21 @@ msgid "Error"
 msgstr "Hata"
 
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1175
+msgid "Error"
+msgstr "Hata"
+
+#: Source/Core/Core/Src/Movie.cpp:820
+#, c-format
+msgid ""
+"Error in PlayWiimote. %u != %u, byte %d.\n"
+"Sorry, Wii recording is temporarily broken."
+msgstr ""
+"PlayWiimote'da hata. %u != %u, byte %d.\n"
+"Üzgünüz, Wii kaydında geçici hasar var."
+
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/Main.cpp:346
 msgid "Error loading selected language. Falling back to system default."
 msgstr "Seçili dili yüklerken hata. Sistem varsayılanlarına geri dönülüyor."
@@ -2241,6 +2336,11 @@ msgid ""
 "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
 "Aborting savestate load..."
 msgstr ""
+<<<<<<< HEAD
+=======
+"Hata: \"%s\" 'dan sonra, %d (0x%X) bulundu ( %d (0x%X) yerine). Durum kaydı "
+"yüklemesinden vazgeçiliyor..."
+>>>>>>> Clean up Turkish translation file.
 
 #: Source/Core/Core/Src/HW/EXI_DeviceIPL.cpp:279
 #, c-format
@@ -2686,6 +2786,7 @@ msgid "Free Look"
 msgstr "Serbest Bakış"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
@@ -2694,6 +2795,11 @@ msgstr "Serbest Bakış"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
+>>>>>>> Clean up Turkish translation file.
 msgid "French"
 msgstr "Fransızca"
 
@@ -2719,9 +2825,14 @@ msgid "GCI File(*.gci)"
 msgstr "GCI Dosyası (*.gci)"
 
 #: Source/Core/DolphinWX/Src/GCMicDlg.h:44
+<<<<<<< HEAD
 #, fuzzy
 msgid "GCMic Configuration"
 msgstr "Geçmiş Yapılandırması"
+=======
+msgid "GCMic Configuration"
+msgstr "GCMic Yapılandırması"
+>>>>>>> Clean up Turkish translation file.
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:445
 msgid "GCPad"
@@ -2761,10 +2872,14 @@ msgstr "Gamecube Kolu Ayarları (&P)"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1011
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1011
+>>>>>>> Clean up Turkish translation file.
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "GameCube Hafıza Kartları (*.raw,*.gcp)"
 
@@ -2788,11 +2903,16 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:525
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:204
 msgid "General"
 msgstr "Genel"
@@ -2802,6 +2922,7 @@ msgid "General Settings"
 msgstr "Genel Ayarlar"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
@@ -2810,6 +2931,11 @@ msgstr "Genel Ayarlar"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
+>>>>>>> Clean up Turkish translation file.
 msgid "German"
 msgstr "Almanca"
 
@@ -2939,11 +3065,16 @@ msgstr "Kısayol Tuşu Yapılandırması"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:276
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:574
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:276
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:574
+>>>>>>> Clean up Turkish translation file.
 msgid "Hotkeys"
 msgstr "Tuşlar"
 
@@ -3014,6 +3145,11 @@ msgid ""
 "If checked, the bounding box registers will be updated. Used by the Paper "
 "Mario games."
 msgstr ""
+<<<<<<< HEAD
+=======
+"Eğer işaretlenmişse, sınırlayıcı kutu kayıtları güncellenecektir. Paper "
+"Mario oyunları tarafından kullanılır."
+>>>>>>> Clean up Turkish translation file.
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:315
 msgid ""
@@ -3167,10 +3303,14 @@ msgstr ""
 "desteklemiyor."
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1379
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1363
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1379
+>>>>>>> Clean up Turkish translation file.
 msgid "Installing WAD..."
 msgstr "WAD kuruluyor..."
 
@@ -3253,6 +3393,7 @@ msgid "Invalid state"
 msgstr "Hatalı durum"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
@@ -3261,6 +3402,11 @@ msgstr "Hatalı durum"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
+>>>>>>> Clean up Turkish translation file.
 msgid "Italian"
 msgstr "İtalyanca"
 
@@ -3419,6 +3565,7 @@ msgid "Load State..."
 msgstr "Durumu Yükle..."
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1418
 msgid "Load Wii System Menu"
 msgstr "Wii Sistem Menüsünü Yükle"
@@ -3431,6 +3578,13 @@ msgstr "Wii Sistem Menüsünü Yükle"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1397
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1418
+msgid "Load Wii System Menu"
+msgstr "Wii Sistem Menüsünü Yükle"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1413
+>>>>>>> Clean up Turkish translation file.
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Wii Sistem Menüsünü Yükle %d%c"
@@ -3513,10 +3667,14 @@ msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "MadCatz Gameshark dosyaları(*.gcs)"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:76
 =======
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:76
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:47
 msgid "Main Stick"
 msgstr "Ana Çubuk"
@@ -3548,10 +3706,14 @@ msgstr "Hafıza Baytı"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
+>>>>>>> Clean up Turkish translation file.
 msgid "Memory Card"
 msgstr "Hafıza Kartı"
 
@@ -3750,10 +3912,14 @@ msgid "NP Up"
 msgstr "NP Yukarı"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:455
 =======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:451
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:455
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:58
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:49
 msgid "Name:"
@@ -3841,10 +4007,14 @@ msgid "Not Set"
 msgstr "Ayarlanmamış"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:596
 =======
 #: Source/Core/DolphinWX/Src/Main.cpp:597
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:596
+>>>>>>> Clean up Turkish translation file.
 msgid "Not connected"
 msgstr "Bağlı değil"
 
@@ -3906,9 +4076,13 @@ msgstr "Sadece %d blok kullanılabilir"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:433
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:182
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:182
+>>>>>>> Clean up Turkish translation file.
 msgid "Open"
 msgstr "Aç"
 
@@ -4040,12 +4214,17 @@ msgid "Paths"
 msgstr "Yollar"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1621
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1622
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1605
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1606
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1621
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1622
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
 msgid "Pause"
 msgstr "Duraklat"
@@ -4066,12 +4245,17 @@ msgstr "Perspektif %d"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:437
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1630
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1631
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1614
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1615
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1630
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1631
+>>>>>>> Clean up Turkish translation file.
 msgid "Play"
 msgstr "Oynat"
 
@@ -4098,10 +4282,14 @@ msgid "Players"
 msgstr "Oyuncular"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1069
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1053
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1069
+>>>>>>> Clean up Turkish translation file.
 msgid "Please confirm..."
 msgstr "Lütfen onaylayın..."
 
@@ -4153,17 +4341,29 @@ msgstr "Geç İşleme Etkisi:"
 #: Source/Core/Core/Src/Movie.cpp:735
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
+<<<<<<< HEAD
 msgstr ""
+=======
+msgstr "PlayController'da erken kayıt bitişi. %u + 8 > %u"
+>>>>>>> Clean up Turkish translation file.
 
 #: Source/Core/Core/Src/Movie.cpp:829
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
+<<<<<<< HEAD
 msgstr ""
+=======
+msgstr "PlayWiimote'da erken kayıt bitişi. %u + %d > %u"
+>>>>>>> Clean up Turkish translation file.
 
 #: Source/Core/Core/Src/Movie.cpp:806
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
+<<<<<<< HEAD
 msgstr ""
+=======
+msgstr "PlayWiimote'da erken kayıt bitişi. %u > %u"
+>>>>>>> Clean up Turkish translation file.
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:47
 msgid "Presets: "
@@ -4313,6 +4513,7 @@ msgid "Refresh game list"
 msgstr "Oyun Listesini Yenile"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:438
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
@@ -4323,6 +4524,12 @@ msgstr "Oyun Listesini Yenile"
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:438
+#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
+>>>>>>> Clean up Turkish translation file.
 msgid "Remove"
 msgstr "Kaldır"
 
@@ -4342,9 +4549,13 @@ msgstr "Ana pencerede yorumla"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:188
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:188
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
 msgid "Reset"
 msgstr "Sıfırla"
@@ -4388,10 +4599,14 @@ msgid "Safe"
 msgstr "Güvenli"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:632
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
+>>>>>>> Clean up Turkish translation file.
 msgid "Sample Rate:"
 msgstr "Örnek Oran:"
 
@@ -4476,10 +4691,14 @@ msgid "Scaled EFB Copy"
 msgstr "Boyutlandırılmış EFB Kopyası"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
 =======
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:598
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
+>>>>>>> Clean up Turkish translation file.
 #, c-format
 msgid "Scanning %s"
 msgstr "Taranıyor %s"
@@ -4520,6 +4739,7 @@ msgid "Select"
 msgstr "Seç"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:749
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1158
 msgid "Select The Recording File"
@@ -4534,6 +4754,14 @@ msgstr "Çekim Dosyasını Seç"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1351
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:749
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1158
+msgid "Select The Recording File"
+msgstr "Çekim Dosyasını Seç"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1367
+>>>>>>> Clean up Turkish translation file.
 msgid "Select a Wii WAD file to install"
 msgstr "Kurmak için bir Wii WAD dosyası seçin"
 
@@ -4560,6 +4788,7 @@ msgid "Select the file to load"
 msgstr "Yüklemek için dosyayı seçin"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1324
 msgid "Select the save file"
 msgstr "Kayıt dosyasını seçin"
@@ -4571,15 +4800,22 @@ msgstr "Yüklemek için durum seçin"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1487
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1308
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1324
+>>>>>>> Clean up Turkish translation file.
 msgid "Select the save file"
 msgstr "Kayıt dosyasını seçin"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1457
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
 msgid "Select the state to load"
 msgstr "Yüklemek için durum seçin"
 
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1471
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1487
+>>>>>>> Clean up Turkish translation file.
 msgid "Select the state to save"
 msgstr "Kaydetmek için durum seçin"
 
@@ -4956,6 +5192,7 @@ msgid "Space"
 msgstr "Boşluk"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
@@ -4964,6 +5201,11 @@ msgstr "Boşluk"
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
+>>>>>>> Clean up Turkish translation file.
 msgid "Spanish"
 msgstr "İspanyolca"
 
@@ -5008,10 +5250,14 @@ msgid "Standard Controller"
 msgstr "Varsayılan Denetim Aygıtı"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
 =======
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:309
 msgid "Start"
@@ -5047,9 +5293,13 @@ msgstr "Çubuk"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:438
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:187
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:187
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:187
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:312
 msgid "Stop"
 msgstr "Durdur"
@@ -5127,15 +5377,23 @@ msgstr "Tablo Sağ"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:440
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:197
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:197
+>>>>>>> Clean up Turkish translation file.
 msgid "Take Screenshot"
 msgstr "Ekran Görüntüsü Al"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:81
 msgid "TaruKonga (Bongos)"
+<<<<<<< HEAD
 msgstr ""
+=======
+msgstr "TaruKonga (Bongos)"
+>>>>>>> Clean up Turkish translation file.
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:489
 msgid "Test"
@@ -5374,18 +5632,26 @@ msgstr "Tüm Geçmiş Türlerini Seç"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:439
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:196
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:196
 =======
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:196
+>>>>>>> Clean up Turkish translation file.
 msgid "Toggle Fullscreen"
 msgstr "Tam Ekran Moduna Geç"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
 =======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
+>>>>>>> Clean up Turkish translation file.
 msgid "Top"
 msgstr "Üst"
 
@@ -5495,6 +5761,7 @@ msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr "ID %d ile %d oyuncusundan bilinmeyen mesaj alındı. Oyuncu atılıyor!"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #: Source/Core/Core/Src/HW/Memmap.cpp:633
 #, c-format
@@ -5506,6 +5773,8 @@ msgstr ""
 "Devam?"
 
 >>>>>>> Update translation files for recent changes in the code.
+=======
+>>>>>>> Clean up Turkish translation file.
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
 msgid "Up"
@@ -5667,6 +5936,13 @@ msgid ""
 "%u > %u) (frame %u > %u). You should load another save before continuing, or "
 "load this state with read-only mode off."
 msgstr ""
+<<<<<<< HEAD
+=======
+"Dikkat: Şu anki kaydın bitişinden sonra yer alan bir kayıt yüklediniz. (Bayt "
+"%u > %u) (Çerçeve %u > %u). Devam etmeden önce başka bir kayıt yüklemeniz, "
+"veya bu kaydı Salt Okunur mod kapalıyken yüklemeniz daha iyi olacaktır. Aksi "
+"taktirde, büyük bir ihtimalle, senkronizasyon sorunu yaşayacaksınız."
+>>>>>>> Clean up Turkish translation file.
 
 #: Source/Core/Core/Src/Movie.cpp:646
 #, c-format
@@ -5675,6 +5951,13 @@ msgid ""
 "should load another save before continuing, or load this state with read-"
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
+<<<<<<< HEAD
+=======
+"Dikkat: Bayt %d (0x%X) ile eşleşmeyen bir kayıt yüklediniz. Devam etmeden "
+"önce başka bir kayıt yüklemeniz, veya bu kaydı Salt Okunur mod kapalıyken "
+"yüklemeniz daha iyi olacaktır. Aksi taktirde, büyük bir ihtimalle, "
+"senkronizasyon sorunu yaşayacaksınız."
+>>>>>>> Clean up Turkish translation file.
 
 #: Source/Core/Core/Src/Movie.cpp:655
 #, c-format
@@ -5694,6 +5977,24 @@ msgid ""
 "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
 "%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 msgstr ""
+<<<<<<< HEAD
+=======
+"Dikkat: Çerçeve %d ile eşleşmeyen bir kayıt yüklediniz. Devam etmeden önce "
+"başka bir kayıt yüklemeniz, veya bu kaydı Salt Okunur mod kapalıyken "
+"yüklemeniz daha iyi olacaktır. Aksi taktirde, büyük bir ihtimalle, "
+"senkronizasyon sorunu yaşayacaksınız.\n"
+"\n"
+"Daha fazla bilgi: Şu anki kayıt %d çerçeve uzunluğunda, ama durum kaydı %d "
+"çerçeve uzunluğunda.\n"
+"\n"
+"Çerçeve %d 'de, şu anki kayıt bunları basıyor:\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
+"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
+"\n"
+"Çerçeve %d 'de, durum kaydı bunları basıyor:\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
+"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
+>>>>>>> Clean up Turkish translation file.
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:106
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:120
@@ -5729,10 +6030,14 @@ msgid "Wii Save Import"
 msgstr "Wii Kaydı Al"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
 =======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1310
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
+>>>>>>> Clean up Turkish translation file.
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Wii kayıt dosyaları (*.bin)|*.bin"
 
@@ -5764,10 +6069,14 @@ msgstr ""
 "Tekrar bağlamak istiyor musunuz?"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:598
 =======
 #: Source/Core/DolphinWX/Src/Main.cpp:599
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/Main.cpp:598
+>>>>>>> Clean up Turkish translation file.
 msgid "Wiimote Connected"
 msgstr "Wiimote Bağlandı"
 
@@ -5800,6 +6109,7 @@ msgid "Word Wrap"
 msgstr "Heceleme"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1380
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1282
@@ -5808,6 +6118,11 @@ msgstr "Heceleme"
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1194
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1327
 >>>>>>> Update translation files for recent changes in the code.
+=======
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1380
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1282
+>>>>>>> Clean up Turkish translation file.
 msgid "Working..."
 msgstr "Çalışıyor..."
 
@@ -6113,10 +6428,16 @@ msgstr "| VEYA"
 #~ msgstr "%s açılamıyor, kayıp bir işleve sahip."
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #~ msgid "Cannot record movies in read-only mode."
 #~ msgstr "Salt-okunur modda film çekilemez."
 
 =======
+=======
+#~ msgid "Cannot record movies in read-only mode."
+#~ msgstr "Salt-okunur modda film çekilemez."
+
+>>>>>>> Clean up Turkish translation file.
 #, fuzzy
 >>>>>>> Update Hungarian and Turkish translations.
 #~ msgid "Config..."
@@ -6230,9 +6551,6 @@ msgstr "| VEYA"
 #~ msgid "Emulator Display Settings"
 #~ msgstr "Emülatör Görüntü Ayarları"
 
-#~ msgid "Enable Bounding Box Calculation"
-#~ msgstr "Sınırlayıcı Kutu Hesaplama'yı Etkinleştir"
-
 #, fuzzy
 #~ msgid "Enable CPU Access"
 #~ msgstr "Ön Belleğe İzin Ver"
@@ -6296,13 +6614,6 @@ msgstr "| VEYA"
 #~ msgid "Error allocating buffer"
 #~ msgstr "Tampon ayırma hatası"
 
-#~ msgid ""
-#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
-#~ "Sorry, Wii recording is temporarily broken."
-#~ msgstr ""
-#~ "PlayWiimote'da hata. %u != %u, byte %d.\n"
-#~ "Üzgünüz, Wii kaydında geçici hasar var."
-
 #~ msgid "Error loading %s: can't read info"
 #~ msgstr "%s yüklenirken hata: Bilgi okunamıyor."
 
@@ -6314,13 +6625,6 @@ msgstr "| VEYA"
 
 #~ msgid "Error opening file %s for recording"
 #~ msgstr "Kayıt için %s dosyasını açarken hata."
-
-#~ msgid ""
-#~ "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
-#~ "Aborting savestate load..."
-#~ msgstr ""
-#~ "Hata: \"%s\" 'dan sonra, %d (0x%X) bulundu ( %d (0x%X) yerine). Durum "
-#~ "kaydı yüklemesinden vazgeçiliyor..."
 
 #~ msgid ""
 #~ "Failed to load DSP ROM:\n"
@@ -6360,9 +6664,6 @@ msgstr "| VEYA"
 #~ "Dokuya EFB Kopyalamaktan daha doğrudur, ve bazı oyunlar düzgün çalışmak "
 #~ "için buna ihtiyaç duyar, ama çok yavaş olabilir."
 
-#~ msgid "GCMic Configuration"
-#~ msgstr "GCMic Yapılandırması"
-
 #, fuzzy
 #~ msgid "GFX Config"
 #~ msgstr "Yapılandırma"
@@ -6387,13 +6688,6 @@ msgstr "| VEYA"
 #~ msgstr ""
 #~ "Eğer bir oyun çakılırsa, sadece Interpreter'da çalışıyorsa veya Dolphin "
 #~ "çökerse, bu seçenek oyunu düzeltebilir."
-
-#~ msgid ""
-#~ "If checked, the bounding box registers will be updated. Used by the Paper "
-#~ "Mario games."
-#~ msgstr ""
-#~ "Eğer işaretlenmişse, sınırlayıcı kutu kayıtları güncellenecektir. Paper "
-#~ "Mario oyunları tarafından kullanılır."
 
 #~ msgid "Input Source"
 #~ msgstr "Giriş Kaynağı"
@@ -6488,15 +6782,6 @@ msgstr "| VEYA"
 #~ "Taşınabilirlik ayarı kaydedilemedi\n"
 #~ "Dolphin'i salt okunur bir konumdan veya kurulmadığı yerden mi "
 #~ "çalıştırıyorsunuz?"
-
-#~ msgid "Premature movie end in PlayController. %u + 8 > %u"
-#~ msgstr "PlayController'da erken kayıt bitişi. %u + 8 > %u"
-
-#~ msgid "Premature movie end in PlayWiimote. %u + %d > %u"
-#~ msgstr "PlayWiimote'da erken kayıt bitişi. %u + %d > %u"
-
-#~ msgid "Premature movie end in PlayWiimote. %u > %u"
-#~ msgstr "PlayWiimote'da erken kayıt bitişi. %u > %u"
 
 #, fuzzy
 #~ msgid "Projection Stats"
@@ -6624,9 +6909,6 @@ msgstr "| VEYA"
 #~ msgid "Start the rendering window in fullscreen mode."
 #~ msgstr "Oyununuz tam ekran görüntüyle başlar."
 
-#~ msgid "TaruKonga (Bongos)"
-#~ msgstr "TaruKonga (Bongos)"
-
 #~ msgid "The file "
 #~ msgstr "Dosya"
 
@@ -6677,61 +6959,6 @@ msgstr "| VEYA"
 #~ msgstr ""
 #~ "Dikey boşlukları bekle. \n"
 #~ "Yırtılmayı azaltır ama performansı da azaltır."
-
-#~ msgid ""
-#~ "Warning: You loaded a save that's after the end of the current movie. "
-#~ "(byte %u > %u) (frame %u > %u). You should load another save before "
-#~ "continuing, or load this state with read-only mode off."
-#~ msgstr ""
-#~ "Dikkat: Şu anki kaydın bitişinden sonra yer alan bir kayıt yüklediniz. "
-#~ "(Bayt %u > %u) (Çerçeve %u > %u). Devam etmeden önce başka bir kayıt "
-#~ "yüklemeniz, veya bu kaydı Salt Okunur mod kapalıyken yüklemeniz daha iyi "
-#~ "olacaktır. Aksi taktirde, büyük bir ihtimalle, senkronizasyon sorunu "
-#~ "yaşayacaksınız."
-
-#~ msgid ""
-#~ "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
-#~ "should load another save before continuing, or load this state with read-"
-#~ "only mode off. Otherwise you'll probably get a desync."
-#~ msgstr ""
-#~ "Dikkat: Bayt %d (0x%X) ile eşleşmeyen bir kayıt yüklediniz. Devam etmeden "
-#~ "önce başka bir kayıt yüklemeniz, veya bu kaydı Salt Okunur mod kapalıyken "
-#~ "yüklemeniz daha iyi olacaktır. Aksi taktirde, büyük bir ihtimalle, "
-#~ "senkronizasyon sorunu yaşayacaksınız."
-
-#~ msgid ""
-#~ "Warning: You loaded a save whose movie mismatches on frame %d. You should "
-#~ "load another save before continuing, or load this state with read-only "
-#~ "mode off. Otherwise you'll probably get a desync.\n"
-#~ "\n"
-#~ "More information: The current movie is %d frames long and the savestate's "
-#~ "movie is %d frames long.\n"
-#~ "\n"
-#~ "On frame %d, the current movie presses:\n"
-#~ "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, "
-#~ "DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY="
-#~ "%d\n"
-#~ "\n"
-#~ "On frame %d, the savestate's movie presses:\n"
-#~ "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, "
-#~ "DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
-#~ msgstr ""
-#~ "Dikkat: Çerçeve %d ile eşleşmeyen bir kayıt yüklediniz. Devam etmeden "
-#~ "önce başka bir kayıt yüklemeniz, veya bu kaydı Salt Okunur mod kapalıyken "
-#~ "yüklemeniz daha iyi olacaktır. Aksi taktirde, büyük bir ihtimalle, "
-#~ "senkronizasyon sorunu yaşayacaksınız.\n"
-#~ "\n"
-#~ "Daha fazla bilgi: Şu anki kayıt %d çerçeve uzunluğunda, ama durum kaydı "
-#~ "%d çerçeve uzunluğunda.\n"
-#~ "\n"
-#~ "Çerçeve %d 'de, şu anki kayıt bunları basıyor:\n"
-#~ "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, "
-#~ "DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY="
-#~ "%d\n"
-#~ "\n"
-#~ "Çerçeve %d 'de, durum kaydı bunları basıyor:\n"
-#~ "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, "
-#~ "DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 
 #~ msgid ""
 #~ "When using EFB to RAM we very often need to decode RAM data to a VRAM "
