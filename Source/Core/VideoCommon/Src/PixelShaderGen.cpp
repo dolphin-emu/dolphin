@@ -745,7 +745,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if (!Pretest)
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function
-			WRITE(p, "ocol0 = float4(0);\n");
+			WRITE(p, "ocol0 = float4(0.0f,0.0f,0.0f,0.0f);\n");
 			WRITE(p, "discard;\n");
 			if(ApiType == API_GLSL && dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
 					WRITE(p, "gl_FragData[0] = ocol0;\n");
@@ -851,11 +851,11 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 		// alpha test will always fail, so restart the shader and just make it an empty function
 		p = pmainstart;
-		WRITE(p, "ocol0 = vec4(0.0f);\n");
+		WRITE(p, "ocol0 = float4(0.0f,0.0f,0.0f,0.0f);\n");
 		if (DepthTextureEnable)
 			WRITE(p, "depth = 1.f;\n");
 		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "ocol1 = vec4(0.0f);\n");
+				WRITE(p, "ocol1 = float4(0.0f,0.0f,0.0f,0.0f);\n");
 		if (ApiType == API_GLSL)
 		{
 			// Once we switch to GLSL 1.3 and bind variables, we won't need to do this
@@ -1320,8 +1320,8 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
-	WRITE(p, ")){ocol0 = float4(0.0f);%s%s discard;%s}\n",
-			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND	? "ocol1 = vec4(0.0f);"		: "",
+	WRITE(p, ")){ocol0 = float4(0.0f,0.0f,0.0f,0.0f);%s%s discard;%s}\n",
+			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND	? "ocol1 = float4(0.0f,0.0f,0.0f,0.0f);"		: "",
 			DepthTextureEnable							? "depth = 1.f;"	: "",
 			(ApiType != API_D3D11)						? "return;"			: "");
 	return true;
