@@ -139,7 +139,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID);
 bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 void EndPlayInput(bool cont);
 void SaveRecording(const char *filename);
-void DoState(PointerWrap &p, bool doNot=false);
+void DoState(PointerWrap &p);
 
 std::string GetInputDisplay();
 

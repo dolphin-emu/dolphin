@@ -21,6 +21,7 @@
 #define _STATE_H_
 
 #include <string>
+#include <vector>
 
 namespace State
 {
@@ -46,15 +47,16 @@ void SaveAs(const std::string &filename);
 void LoadAs(const std::string &filename);
 void VerifyAt(const std::string &filename);
 
-void SaveToBuffer(u8 **buffer);
-void LoadFromBuffer(u8 **buffer);
-void VerifyBuffer(u8 **buffer);
+void SaveToBuffer(std::vector<u8>& buffer);
+void LoadFromBuffer(std::vector<u8>& buffer);
+void VerifyBuffer(std::vector<u8>& buffer);
 
 void LoadLastSaved();
 void UndoSaveState();
 void UndoLoadState();
 
-void Flush(); // wait until previously scheduled savestate event (if any) is done
+// wait until previously scheduled savestate event (if any) is done
+void Flush();
 
 // for calling back into UI code without introducing a dependency on it in core
 typedef void(*CallbackFunc)(void);

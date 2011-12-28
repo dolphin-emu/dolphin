@@ -103,25 +103,19 @@ void DoState(PointerWrap &p)
 {
 	u32 version = STATE_VERSION;
 	{
-		u32 cookie = version + 0xBAADBABE;
+ 		static const u32 COOKIE_BASE = 0xBAADBABE;
+		u32 cookie = version + COOKIE_BASE;
 		p.Do(cookie);
-		version = cookie - 0xBAADBABE;
+		version = cookie - COOKIE_BASE;
 	}
 
 	if (version != STATE_VERSION)
 	{
-		if (version == 5 && STATE_VERSION == 6)
-		{
-			// from version 5 to 6, the only difference was the addition of calling Movie::DoState,
-			// so (because it's easy) let's not break compatibility in this case
-		}
-		else
-		{
-			// if the version doesn't match, fail.
-			// this will trigger a message like "Can't load state from other revisions"
-			p.SetMode(PointerWrap::MODE_MEASURE);
-			return;
-		}
+		// if the version doesn't match, fail.
+		// this will trigger a message like "Can't load state from other revisions"
+		// we could use the version numbers to maintain some level of backward compatibility, but currently don't.
+		p.SetMode(PointerWrap::MODE_MEASURE);
+		return;
 	}
 
 	p.DoMarker("Version");
@@ -142,7 +136,7 @@ void DoState(PointerWrap &p)
 	p.DoMarker("HW");
 	CoreTiming::DoState(p);
 	p.DoMarker("CoreTiming");
-	Movie::DoState(p, version<6);
+	Movie::DoState(p);
 	p.DoMarker("Movie");
 
 	// Resume the video thread
@@ -397,7 +391,7 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 			Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
 
 			// since we're probably in an inconsistent state now (and might crash or whatever), undo.
-			if(g_loadDepth < 2)
+			if (g_loadDepth < 2)
 				UndoLoadState();
 		}
 	}
@@ -435,11 +429,13 @@ void VerifyFileStateCallback(u64 userdata, int cyclesLate)
 		PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
 		DoState(p);
 
-		if (p.GetMode() == PointerWrap::MODE_READ)
+		if (p.GetMode() == PointerWrap::MODE_VERIFY)
 			Core::DisplayMessage(StringFromFormat("Verified state at %s", g_current_filename.c_str()).c_str(), 2000);
 		else
 			Core::DisplayMessage("Unable to Verify : Can't verify state from other revisions !", 4000);
 	}
+
+	g_op_in_progress = false;
 }
 
 void Init()
@@ -486,6 +482,8 @@ static std::string MakeStateFilename(int number)
 
 void ScheduleFileEvent(const std::string &filename, int ev, bool immediate)
 {
+	if (g_op_in_progress)
+		Flush();
 	if (g_op_in_progress)
 		return;
 	g_op_in_progress = true;

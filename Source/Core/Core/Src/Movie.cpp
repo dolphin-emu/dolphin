@@ -591,14 +591,8 @@ cleanup:
 	return false;
 }
 
-void DoState(PointerWrap &p, bool doNot)
+void DoState(PointerWrap &p)
 {
-	if(doNot)
-	{
-		if(p.GetMode() == PointerWrap::MODE_READ)
-			g_currentSaveVersion = 0;
-		return;
-	}
 	static const int MOVIE_STATE_VERSION = 1;
 	g_currentSaveVersion = MOVIE_STATE_VERSION;
 	p.Do(g_currentSaveVersion);
