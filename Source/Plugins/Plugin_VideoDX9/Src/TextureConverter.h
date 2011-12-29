@@ -35,9 +35,6 @@ namespace TextureConverter
 void Init();
 void Shutdown();
 
-void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt,
-				 u32 copyfmt, int bScaleByHalf, const EFBRectangle& source);
-
 void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,
 					 u8* destAddr, int dstWidth, int dstHeight,float Gamma);
 
