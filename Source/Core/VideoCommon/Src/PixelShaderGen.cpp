@@ -577,6 +577,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 			if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
 				WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
+			if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
+				WRITE(p, "#extension GL_ARB_blend_func_extended : enable\n");
 			// Silly differences
 			WRITE(p, "#define float2 vec2\n");
 			WRITE(p, "#define float3 vec3\n");
@@ -702,13 +704,20 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 	   // GLSL doesn't do main arguments
 	   // Once we switch to GLSL 1.3 we will bind a lot of these.
-	   
 		
 		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		{
 			// This won't get hit unless we support GL 3.3
-			WRITE(p, "	layout(location = 0) out float4 ocol0;\n");
-			WRITE(p, "	layout(location = 0, index = 1) out float4 ocol1;\n"); // Will be supported later
+			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+			{
+				WRITE(p, "	layout(location = 0) out float4 ocol0;\n");
+				WRITE(p, "	layout(location = 0, index = 1) out float4 ocol1;\n");
+			}
+			else
+			{
+				WRITE(p, "	out float4 ocol0;\n");
+				WRITE(p, "	out float4 ocol1;\n");
+			}
 		}
 		else
 		{
