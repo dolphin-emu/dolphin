@@ -125,6 +125,10 @@ std::string StripQuotes(const std::string& s)
 bool TryParse(const std::string &str, u32 *const output)
 {
 	char *endptr = NULL;
+
+	// Reset errno to a value other than ERANGE
+	errno = 0;
+
 	unsigned long value = strtoul(str.c_str(), &endptr, 0);
 	
 	if (!endptr || *endptr)
