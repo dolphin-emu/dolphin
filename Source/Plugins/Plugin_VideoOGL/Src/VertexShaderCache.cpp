@@ -204,14 +204,12 @@ bool CompileGLSLVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
 			FILE *fp = fopen(szTemp, "wb");
 			fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
 			fclose(fp);
-
 			delete[] infoLog;
 		}
 		// Don't try to use this shader
 		glDeleteShader(result);
 		return false;
 	}
-
 	(void)GL_REPORT_ERROR();
 	vs.glprogid = result;
 	vs.bGLSL = true;

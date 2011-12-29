@@ -316,6 +316,8 @@ Renderer::Renderer()
 		// TODO: Switch over to using glew once 1.6/1.7 becomes more mainstream, seems most people are stuck in 1.5
 		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
 			g_Config.backend_info.bSupportsGLSLBinding = true;
+		if (glewIsSupported("GL_ARB_blend_func_extended"))
+			g_Config.backend_info.bSupportsGLSLBlend = true;
 		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_uniform_buffer_object") != NULL)
 			g_Config.backend_info.bSupportsGLSLUBO = true;
 		if ((g_Config.backend_info.bSupportsGLSLBinding || g_Config.backend_info.bSupportsGLSLUBO) && strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_explicit_attrib_location") != NULL)
@@ -963,7 +965,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
-	bool useDualSource = useDstAlpha && g_ActiveConfig.bUseGLSL && g_ActiveConfig.backend_info.bSupportsGLSLBinding;
+	bool useDualSource = useDstAlpha && g_ActiveConfig.bUseGLSL && g_ActiveConfig.backend_info.bSupportsGLSLBlend;
 
 	if (changes & 1)
 		// blend enable change
@@ -974,33 +976,42 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		// subtract enable change
 		GLenum equation = newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
 		GLenum equationAlpha = useDualSource ? GL_FUNC_ADD : equation;
-		glBlendEquationSeparate(equation, equationAlpha);
+		
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
+			glBlendEquationSeparate(equation, equationAlpha);
+		else
+			glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
 	}
 
 	if (changes & 0x1F8)
 	{
-		GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
-		GLenum srcFactorAlpha = srcFactor;
-		GLenum dstFactor = glDestFactors[(newval >> 6) & 7];
-		GLenum dstFactorAlpha = dstFactor;
-		if (useDualSource)
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
 		{
-			srcFactorAlpha = GL_ONE;
-			dstFactorAlpha = GL_ZERO;
+			GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
+			GLenum srcFactorAlpha = srcFactor;
+			GLenum dstFactor = glDestFactors[(newval >> 6) & 7];
+			GLenum dstFactorAlpha = dstFactor;
+			if (useDualSource)
+			{
+				srcFactorAlpha = GL_ONE;
+				dstFactorAlpha = GL_ZERO;
 
-			if (srcFactor == GL_SRC_ALPHA)
-				srcFactor = GL_SRC1_ALPHA;
-			else if (srcFactor == GL_ONE_MINUS_SRC_ALPHA)
-				srcFactor = GL_ONE_MINUS_SRC1_ALPHA;
+				if (srcFactor == GL_SRC_ALPHA)
+					srcFactor = GL_SRC1_ALPHA;
+				else if (srcFactor == GL_ONE_MINUS_SRC_ALPHA)
+					srcFactor = GL_ONE_MINUS_SRC1_ALPHA;
 
-			if (dstFactor == GL_SRC_ALPHA)
-				dstFactor = GL_SRC1_ALPHA;
-			else if (dstFactor == GL_ONE_MINUS_SRC_ALPHA)
-				dstFactor = GL_ONE_MINUS_SRC1_ALPHA;
+				if (dstFactor == GL_SRC_ALPHA)
+					dstFactor = GL_SRC1_ALPHA;
+				else if (dstFactor == GL_ONE_MINUS_SRC_ALPHA)
+					dstFactor = GL_ONE_MINUS_SRC1_ALPHA;
+			}
+
+			// blend RGB change
+			glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
 		}
-
-		// blend RGB change
-		glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
+		else
+			glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
 	}
 
 	s_blendMode = newval;

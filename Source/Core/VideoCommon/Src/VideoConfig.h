@@ -170,6 +170,7 @@ struct VideoConfig
 		
 		bool bSupportsGLSL;
 		bool bSupportsGLSLBinding;
+		bool bSupportsGLSLBlend;
 		bool bSupportsGLSLUBO;
 		bool bSupportsGLSLATTRBind;
 		bool bSupportsGLSLCache;

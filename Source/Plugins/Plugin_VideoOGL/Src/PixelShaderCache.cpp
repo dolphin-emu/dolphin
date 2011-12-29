@@ -406,7 +406,6 @@ bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 			FILE *fp = fopen(szTemp, "wb");
 			fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
 			fclose(fp);
-
 			delete[] infoLog;
 		}
 		// Don't try to use this shader

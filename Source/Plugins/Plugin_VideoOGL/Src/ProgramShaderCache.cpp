@@ -91,6 +91,14 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 			if (entry.UniformLocations[a] != -1)
 				glUniform1i(entry.UniformLocations[a], a);
 		}
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
+		{
+			// So we don't support binding, but we do support extended blending
+			// So we need to set a few more things here.
+			// Bind our out locations
+			glBindFragDataLocationIndexed(entry.prog_id, 0, 0, "ocol0");
+			glBindFragDataLocationIndexed(entry.prog_id, 0, 1, "ocol1");
+		}
 	}
 
 	// Need to get some attribute locations
