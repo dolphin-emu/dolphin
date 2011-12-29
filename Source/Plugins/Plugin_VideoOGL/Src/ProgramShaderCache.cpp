@@ -25,6 +25,7 @@ GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShade
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 GLuint ProgramShaderCache::s_ps_vs_ubo;
 GLintptr ProgramShaderCache::s_vs_data_offset;
+GLenum ProgramShaderCache::prog_format;
 
 LinearDiskCache<ProgramShaderCache::ShaderUID, u8> g_program_disk_cache;
 GLenum ProgramFormat;
@@ -213,6 +214,16 @@ void ProgramShaderCache::Init(void)
 	// Read our shader cache, only if supported
 	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
 	{
+		GLint Supported;
+		glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
+
+		GLint *Formats = new GLint[Supported];
+		glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, Formats);
+		// We don't really care about format
+		// We just need the correct data type
+		prog_format = (GLenum)Formats[0];
+		delete[] Formats;
+		
 		char cache_filename[MAX_PATH];
 		sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());

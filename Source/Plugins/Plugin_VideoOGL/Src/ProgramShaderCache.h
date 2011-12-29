@@ -41,7 +41,6 @@ public:
 	struct PCacheEntry
 	{
 		GLuint prog_id;
-		GLenum prog_format;
 		u8 *binary;
 		GLint binary_size;
 		GLuint vsid, psid;
@@ -75,25 +74,15 @@ public:
 				glGetProgramiv(prog_id, GL_PROGRAM_BINARY_LENGTH, &binary_size);
 		}
 
-		// No idea how necessary this is
-		void SetProgramFormat()
-		{
-			GLint Supported;
-			glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
-
-			GLint *Formats = new GLint[Supported];
-			glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, Formats);
-			// We don't really care about format
-			prog_format = (GLenum)Formats[0];
-			delete[] Formats;
-		}
-
 		u8 *GetProgram()
 		{
 			UpdateSize();
 			FreeProgram();
 			binary = new u8[binary_size];
-			glGetProgramBinary(prog_id, binary_size, NULL, &prog_format, binary);
+			GLenum _form;
+			glGetProgramBinary(prog_id, binary_size, NULL, &_form, binary);
+			if (_form != prog_format)
+				ERROR_LOG(VIDEO, "Returned format not the same as expected! %d vs %d", _form, prog_format);
 			return binary;
 		}
 
@@ -130,8 +119,7 @@ private:
 			// But it is fine, no need to worry about that
 			PCacheEntry entry;
 			entry.Create(key.first, key.second);
-
-			glProgramBinary(entry.prog_id, entry.prog_format, value, value_size);
+			glProgramBinary(entry.prog_id, prog_format, value, value_size);
 
 			GLint success;
 			glGetProgramiv(entry.prog_id, GL_LINK_STATUS, &success);
@@ -153,6 +141,9 @@ private:
 
 	static GLuint s_ps_vs_ubo;
 	static GLintptr s_vs_data_offset;
+	
+	static GLenum prog_format;
+	
 	static void SetProgramVariables(PCacheEntry &entry);
 };
 
