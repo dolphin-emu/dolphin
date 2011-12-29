@@ -577,8 +577,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 			if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
 				WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
-			if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
-				WRITE(p, "#extension GL_ARB_blend_func_extended : enable\n");
 			// Silly differences
 			WRITE(p, "#define float2 vec2\n");
 			WRITE(p, "#define float3 vec3\n");
