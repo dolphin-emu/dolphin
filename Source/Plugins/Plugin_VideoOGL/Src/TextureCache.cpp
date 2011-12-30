@@ -39,6 +39,7 @@
 #include "Globals.h"
 #include "Hash.h"
 #include "HiresTextures.h"
+#include "HW/Memmap.h"
 #include "ImageWrite.h"
 #include "MemoryUtil.h"
 #include "PixelShaderCache.h"
@@ -317,7 +318,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	if (false == g_ActiveConfig.bCopyEFBToTexture)
 	{
-		hash = TextureConverter::EncodeToRamFromTexture(
+		int encoded_size = TextureConverter::EncodeToRamFromTexture(
 			addr,
 			read_texture,
 			srcFormat == PIXELFMT_Z24, 
@@ -325,6 +326,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			dstFormat, 
 			scaleByHalf, 
 			srcRect);
+
+		u8* dst = Memory::GetPointer(addr);
+		hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
+		if (!g_ActiveConfig.bEFBCopyCacheEnable)
+			TextureCache::MakeRangeDynamic(addr,encoded_size);
+		else if (!TextureCache::Find(addr, hash))
+			TextureCache::MakeRangeDynamic(addr,encoded_size);
 	}
 
     FramebufferManager::SetFramebuffer(0);

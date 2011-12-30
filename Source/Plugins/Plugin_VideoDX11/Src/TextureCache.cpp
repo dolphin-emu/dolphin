@@ -149,17 +149,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	if (!g_ActiveConfig.bCopyEFBToTexture)
 	{
 		u8* dst = Memory::GetPointer(dstAddr);
-		size_t encodeSize = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
-		hash = GetHash64(dst, encodeSize, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-		if (g_ActiveConfig.bEFBCopyCacheEnable)
-		{
-			// If the texture in RAM is already in the texture cache,
-			// do not copy it again as it has not changed.
-			if (TextureCache::Find(dstAddr, hash))
-				return;
-		}
+		size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 
-		TextureCache::MakeRangeDynamic(dstAddr, encodeSize);
+		hash = GetHash64(dst, (int)encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
+		if (!g_ActiveConfig.bEFBCopyCacheEnable)
+			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
+		else if (!TextureCache::Find(addr, hash))
+			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
 	}
 }
 

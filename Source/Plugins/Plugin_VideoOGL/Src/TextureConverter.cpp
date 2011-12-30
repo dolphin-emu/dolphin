@@ -250,7 +250,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 }
 
-u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
+int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
 {
 	u32 format = copyfmt;
 
@@ -308,19 +308,8 @@ u64 EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
 		true, bScaleByHalf > 0 && !bFromZBuffer);
+	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
 
-	u64 hash = GetHash64(dest_ptr, size_in_bytes,
-			g_ActiveConfig.iSafeTextureCache_ColorSamples);
-	if (g_ActiveConfig.bEFBCopyCacheEnable)
-	{
-		// If the texture in RAM is already in the texture cache,
-		// do not copy it again as it has not changed.
-		if (TextureCache::Find(address, hash))
-			return hash;
-	}
-
-	TextureCache::MakeRangeDynamic(address,size_in_bytes);
-	return hash;
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)
