@@ -79,6 +79,24 @@ void DSPLLE::DoState(PointerWrap &p)
 	p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
 	p.Do(cyclesLeft);
 	p.Do(m_cycle_count);
+
+	bool prevInitMixer = m_InitMixer;
+	p.Do(m_InitMixer);
+	if (prevInitMixer != m_InitMixer && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		if (m_InitMixer)
+		{
+			InitMixer();
+			AudioCommon::PauseAndLock(true);
+		}
+		else
+		{
+			AudioCommon::PauseAndLock(false);
+			soundStream->Stop();
+			delete soundStream;
+			soundStream = NULL;
+		}
+	}
 }
 
 // Regular thread
@@ -110,7 +128,9 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 	while (dsp_lle->m_bIsRunning)
 	{
 		int cycles = (int)dsp_lle->m_cycle_count;
-		if (cycles > 0) {
+		if (cycles > 0)
+		{
+			std::lock_guard<std::mutex> lk(dsp_lle->m_csDSPThreadActive);
 			if (dspjit)
 			{
 				DSPCore_RunCycles(cycles);
@@ -179,6 +199,17 @@ void DSPLLE::Shutdown()
 	DSPCore_Shutdown();
 }
 
+void DSPLLE::InitMixer()
+{
+	unsigned int AISampleRate, DACSampleRate;
+	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
+	delete soundStream;
+	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd); 
+	if(!soundStream) PanicAlert("Error starting up sound stream");
+	// Mixer is initialized
+	m_InitMixer = true;
+}
+
 u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 {
 	UDSPControl Temp(_uFlag);
@@ -186,12 +217,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 	{
 		if (!Temp.DSPHalt)
 		{
-			unsigned int AISampleRate, DACSampleRate;
-			AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-			soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd); 
-			if(!soundStream) PanicAlert("Error starting up sound stream");
-			// Mixer is initialized
-			m_InitMixer = true;
+			InitMixer();
 		}
 	}
 	DSPInterpreter::WriteCR(_uFlag);
@@ -334,3 +360,15 @@ void DSPLLE::DSP_ClearAudioBuffer(bool mute)
 	if (soundStream)
 		soundStream->Clear(mute);
 }
+
+void DSPLLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	if (doLock || unpauseOnUnlock)
+		DSP_ClearAudioBuffer(doLock); 
+
+	if (doLock)
+		m_csDSPThreadActive.lock();
+	else
+		m_csDSPThreadActive.unlock();
+}
+

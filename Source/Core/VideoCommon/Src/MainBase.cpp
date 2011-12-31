@@ -169,8 +169,7 @@ u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 
 	return 0;
 }
 
-static volatile u32 s_doStateRequested = false;
- 
+
 void VideoBackendHardware::InitializeShared()
 {
 	VideoCommon_Init();
@@ -183,51 +182,28 @@ void VideoBackendHardware::InitializeShared()
 	s_AccessEFBResult = 0;
 }
 
-static volatile struct
-{
-	unsigned char **ptr;
-	int mode;
-} s_doStateArgs;
-
-// Depending on the threading mode (DC/SC) this can be called 
-// from either the GPU thread or the CPU thread
-void VideoFifo_CheckStateRequest()
-{
-	if (Common::AtomicLoadAcquire(s_doStateRequested))
-	{
-		// Clear all caches that touch RAM
-		TextureCache::Invalidate(false);
-		VertexLoaderManager::MarkAllDirty();
-
-		PointerWrap p(s_doStateArgs.ptr, s_doStateArgs.mode);
-		VideoCommon_DoState(p);
-
-		// Refresh state.
-		if (s_doStateArgs.mode == PointerWrap::MODE_READ)
-		{
-			BPReload();
-			RecomputeCachedArraybases();
-		}
-
-		Common::AtomicStoreRelease(s_doStateRequested, false);
-	}
-}
-
 // Run from the CPU thread
 void VideoBackendHardware::DoState(PointerWrap& p)
 {
-	s_doStateArgs.ptr = p.ptr;
-	s_doStateArgs.mode = p.mode;
-	Common::AtomicStoreRelease(s_doStateRequested, true);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+	// Clear all caches that touch RAM
+	TextureCache::Invalidate(false);
+	VertexLoaderManager::MarkAllDirty();
+
+	VideoCommon_DoState(p);
+
+	// Refresh state.
+	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		while (Common::AtomicLoadAcquire(s_doStateRequested) && !s_FifoShuttingDown)
-			//Common::SleepCurrentThread(1);
-			Common::YieldCPU();
+		BPReload();
+		RecomputeCachedArraybases();
 	}
-	else
-		VideoFifo_CheckStateRequest();
 }
+
+void VideoBackendHardware::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	Fifo_PauseAndLock(doLock, unpauseOnUnlock);
+}
+
 
 void VideoBackendHardware::RunLoop(bool enable)
 {

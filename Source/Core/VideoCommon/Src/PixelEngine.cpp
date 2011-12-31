@@ -367,8 +367,6 @@ void UpdateFinishInterrupt(bool active)
 {
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
 		interruptSetFinish = active;
-		if (active)
-			State::ProcessRequestedStates(0);
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).

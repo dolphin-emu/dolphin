@@ -74,6 +74,13 @@ void OnAfterLoad()
 		g_Channels[c]->OnAfterLoad();
 }
 
+void PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	for (int c = 0; c < NUM_CHANNELS; ++c)
+		g_Channels[c]->PauseAndLock(doLock, unpauseOnUnlock);
+}
+
+
 void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 {
 	u8 channel = (u8)(userdata >> 32);
@@ -89,6 +96,17 @@ void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 devi
 	// Let the hardware see no device for .5b cycles
 	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | ((u64)EXIDEVICE_NONE << 16) | device_num);
 	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | ((u64)device_type << 16) | device_num);
+}
+
+IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
+{
+	for (int i = 0; i < NUM_CHANNELS; ++i)
+	{
+		IEXIDevice* device = g_Channels[i]->FindDevice(device_type, customIndex);
+		if (device)
+			return device;
+	}
+	return NULL;
 }
 
 // Unused (?!)

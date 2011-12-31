@@ -229,8 +229,6 @@ static u8                 g_SIBuffer[128];
 
 void DoState(PointerWrap &p)
 {
-	bool reloadOnState = SConfig::GetInstance().b_reloadMCOnState;
-
 	for(int i = 0; i < NUMBER_OF_CHANNELS; i++)
 	{
 		p.Do(g_Channel[i].m_InHi.Hex);
@@ -247,8 +245,7 @@ void DoState(PointerWrap &p)
 			// if we had to create a temporary device, discard it if we're not loading.
 			// also, if no movie is active, we'll assume the user wants to keep their current devices
 			// instead of the ones they had when the savestate was created.
-			if(p.GetMode() != PointerWrap::MODE_READ ||
-				(reloadOnState && !Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
+			if(p.GetMode() != PointerWrap::MODE_READ)
 			{
 				delete pSaveDevice;
 			}

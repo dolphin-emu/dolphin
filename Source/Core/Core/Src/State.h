@@ -41,8 +41,6 @@ void Save(int slot);
 void Load(int slot);
 void Verify(int slot);
 
-bool ProcessRequestedStates(int priority);
-
 void SaveAs(const std::string &filename);
 void LoadAs(const std::string &filename);
 void VerifyAt(const std::string &filename);

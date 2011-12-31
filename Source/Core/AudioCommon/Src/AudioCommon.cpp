@@ -118,4 +118,23 @@ namespace AudioCommon
 	bool UseJIT() {
 		return ac_Config.m_EnableJIT;
 	}
+
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock)
+	{
+		if (soundStream)
+		{
+			// audio typically doesn't maintain its own "paused" state
+			// (that's already handled by the CPU and whatever else being paused)
+			// so it should be good enough to only lock/unlock here.
+			CMixer* pMixer = soundStream->GetMixer();
+			if (pMixer)
+			{
+				std::mutex& csMixing = pMixer->MixerCritical();
+				if (doLock)
+					csMixing.lock();
+				else
+					csMixing.unlock();
+			}
+		}
+	}
 }

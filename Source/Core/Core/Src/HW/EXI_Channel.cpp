@@ -315,3 +315,19 @@ void CEXIChannel::OnAfterLoad()
 		m_pDevices[d]->OnAfterLoad();
 }
 
+void CEXIChannel::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	for (int d = 0; d < NUM_DEVICES; ++d)
+		m_pDevices[d]->PauseAndLock(doLock, unpauseOnUnlock);
+}
+
+IEXIDevice* CEXIChannel::FindDevice(TEXIDevices device_type, int customIndex)
+{
+	for (int d = 0; d < NUM_DEVICES; ++d)
+	{
+		IEXIDevice* device = m_pDevices[d]->FindDevice(device_type, customIndex);
+		if (device)
+			return device;
+	}
+	return NULL;
+}

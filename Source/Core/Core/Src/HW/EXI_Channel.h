@@ -113,6 +113,7 @@ private:
 public:
 	// get device
 	IEXIDevice* GetDevice(const u8 _CHIP_SELECT);
+	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1);
 
 	CEXIChannel(u32 ChannelId);
 	~CEXIChannel();
@@ -131,6 +132,7 @@ public:
 	void UpdateInterrupts();
 	void DoState(PointerWrap &p);
 	void OnAfterLoad();
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 
 	// This should only be used to transition interrupts from SP1 to Channel 2
 	void SetEXIINT(bool exiint) { m_Status.EXIINT = !!exiint; }

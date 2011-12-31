@@ -30,7 +30,9 @@ extern volatile bool g_bSkipCurrentFrame;
 
 void Fifo_Init();
 void Fifo_Shutdown();
+
 void Fifo_DoState(PointerWrap &f);
+void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock);
 
 void ReadDataFromFifo(u8* _uData, u32 len);
 
@@ -45,6 +47,5 @@ void Fifo_SetRendering(bool bEnabled);
 
 // Implemented by the Video Backend
 void VideoFifo_CheckAsyncRequest();
-void VideoFifo_CheckStateRequest();
 
 #endif // _FIFO_H

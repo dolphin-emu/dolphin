@@ -32,6 +32,7 @@ public:
 	virtual void Shutdown() = 0;
 
 	virtual void DoState(PointerWrap &p) = 0;
+	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) = 0;
 
 	virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) = 0;
 	virtual void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short) = 0;

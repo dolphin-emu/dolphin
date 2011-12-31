@@ -59,6 +59,7 @@ namespace AudioCommon
 	void ShutdownSoundStream();
 	std::vector<std::string> GetSoundBackends();
 	bool UseJIT();
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 }
 
 #endif // _AUDIO_COMMON_H_
