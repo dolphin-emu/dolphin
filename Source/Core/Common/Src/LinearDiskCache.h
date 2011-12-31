@@ -24,7 +24,7 @@
 // Increment this every time you change shader generation code.
 enum
 {
-	LINEAR_DISKCACHE_VER = 6967
+	LINEAR_DISKCACHE_VER = 6969
 };
 
 // On disk format:
@@ -71,36 +71,58 @@ public:
 
 		// close any currently opened file
 		Close();
+		m_num_entries = 0;
 
 		// try opening for reading/writing
-		m_file.open(filename, ios_base::in | ios_base::out | ios_base::binary | ios_base::app);
+		m_file.open(filename, ios_base::in | ios_base::out | ios_base::binary);
+
+		m_file.seekg(0, std::ios::end);
+		std::fstream::pos_type end_pos = m_file.tellg();
+		m_file.seekg(0, std::ios::beg);
+		std::fstream::pos_type start_pos = m_file.tellg();
+		std::streamoff file_size = end_pos - start_pos;
 		
 		if (m_file.is_open() && ValidateHeader())
 		{
 			// good header, read some key/value pairs
-			u32 num_entries = 0;
 			K key;
 
 			V *value = NULL;
 			u32 value_size;
+			u32 entry_number;
+
+			std::fstream::pos_type last_pos = m_file.tellg();
 
 			while (Read(&value_size))
 			{
+				std::streamoff next_extent = (last_pos - start_pos) + sizeof(value_size) + value_size;
+				if (next_extent > file_size)
+					break;
+
 				delete[] value;
 				value = new V[value_size];
 
 				// read key/value and pass to reader
-				if (Read(&key) && Read(value, value_size))
+				if (Read(&key) &&
+					Read(value, value_size) && 
+					Read(&entry_number) &&
+					entry_number == m_num_entries+1)
+ 				{
 					reader.Read(key, value, value_size);
+				}
 				else
+				{
 					break;
+				}
 
-				++num_entries;
+				m_num_entries++;
+				last_pos = m_file.tellg();
 			}
+			m_file.seekp(last_pos);
 			m_file.clear();
 
 			delete[] value;
-			return num_entries;
+			return m_num_entries;
 		}
 
 		// failed to open file for reading or bad header
@@ -127,10 +149,12 @@ public:
 	// Appends a key-value pair to the store.
 	void Append(const K &key, const V *value, u32 value_size)
 	{
-		// TODO: Should do a check that we don't already have "key"?
+		// TODO: Should do a check that we don't already have "key"? (I think each caller does that already.)
 		Write(&value_size);
 		Write(&key);
 		Write(value, value_size);
+		m_num_entries++;
+		Write(&m_num_entries);
 	}
 
 private:
@@ -174,6 +198,7 @@ private:
 	} m_header;
 
 	std::fstream m_file;
+	u32 m_num_entries;
 };
 
 #endif  // _LINEAR_DISKCACHE
