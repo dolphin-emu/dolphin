@@ -126,6 +126,8 @@
 #define WII_USA_SETTING "setting-usa.txt"
 #define WII_JAP_SETTING "setting-jpn.txt"
 
+#define GECKO_CODE_HANDLER "kenobiwii.bin"
+
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"
 #define WII_SYS_DIR "Wii"

@@ -210,13 +210,14 @@ void ApplyPatches(const std::vector<Patch> &patches)
 void ApplyFramePatches() 
 {
 	ApplyPatches(onFrame);
+
+	// Run the Gecko code handler
+	Gecko::RunCodeHandler();
 }
 
 void ApplyARPatches()
 {
 	ActionReplay::RunAllActive();
-	// w/e this can be changed later
-	Gecko::RunActiveCodes();
 }
 
 }  // namespace

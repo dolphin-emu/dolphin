@@ -213,6 +213,11 @@ void Shutdown()
 	state = CPU_POWERDOWN;
 }
 
+CoreMode GetMode()
+{
+	return mode;
+}
+
 void SetMode(CoreMode new_mode)
 {
 	if (new_mode == mode)
@@ -223,7 +228,6 @@ void SetMode(CoreMode new_mode)
 	switch (mode)
 	{
 	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		jit->ClearCache();  // Remove all those nasty JIT patches.
 		cpu_core_base = interpreter;
 		break;
 

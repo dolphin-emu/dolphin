@@ -5,6 +5,8 @@
 #include "ConfigManager.h"
 
 #include "vector"
+#include "PowerPC/PowerPC.h"
+#include "CommonPaths.h"
 
 namespace Gecko
 {
@@ -39,6 +41,9 @@ static struct
 
 // codes execute when counter is 0
 static int	code_execution_counter = 0;
+
+// Track whether the code handler has been installed
+static bool	code_handler_installed = false;
 
 // the currently active codes
 std::vector<GeckoCode>	active_codes;
@@ -93,6 +98,64 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 		}
 
 	inserted_asm_codes.clear();
+
+	code_handler_installed = false;
+}
+
+bool InstallCodeHandler()
+{
+	std::string data;
+	std::string _rCodeHandlerFilename = File::GetSysDirectory() + GECKO_CODE_HANDLER;
+	if (!File::ReadFileToString(false, _rCodeHandlerFilename.c_str(), data))
+		return false;
+
+	// Install code handler
+	Memory::WriteBigEData((const u8*)data.data(), 0x80001800, data.length());
+
+	// Turn off Pause on start
+	Memory::Write_U32(0, 0x80001808);
+
+	// Write the Game ID into the location expected by WiiRD
+	Memory::WriteBigEData(Memory::GetPointer(0x80000000), 0x80001800, 6);
+
+	// Create GCT in memory
+	Memory::Write_U32(0x00d0c0de, 0x800027d0);
+	Memory::Write_U32(0x00d0c0de, 0x800027d4);
+
+	std::lock_guard<std::mutex> lk(active_codes_lock);
+
+	int i = 0;
+	std::vector<GeckoCode>::iterator
+		gcodes_iter = active_codes.begin(),
+		gcodes_end = active_codes.end();
+	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	{
+		if (gcodes_iter->enabled)
+		{
+			current_code = codes_start = &*gcodes_iter->codes.begin();
+			codes_end = &*gcodes_iter->codes.end();
+			for (; current_code < codes_end; ++current_code)
+			{
+				const GeckoCode::Code& code = *current_code;
+				Memory::Write_U32(code.address, 0x800027d8 + i);
+				Memory::Write_U32(code.data, 0x800027d8 + i + 4);
+				i += 8;
+			}
+		}
+	}
+
+	Memory::Write_U32(0xff000000, 0x800027d8 + i);
+	Memory::Write_U32(0x00000000, 0x800027d8 + i + 4);
+
+	// Turn on codes
+	Memory::Write_U8(1, 0x80001807);
+
+	// Invalidate the icache
+	for (int i = 0; i < data.length(); i += 32)
+	{
+		PowerPC::ppcState.iCache.Invalidate(0x80001800 + i);
+	}
+	return true;
 }
 
 bool RunGeckoCode(GeckoCode& gecko_code)
@@ -166,6 +229,41 @@ bool RunActiveCodes()
 	}
 
 	return true;
+}
+
+void RunCodeHandler()
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	{
+		if (!code_handler_installed)
+			code_handler_installed = InstallCodeHandler();
+
+		if (code_handler_installed)
+		{
+			if (PC == LR)
+			{
+				u32 oldLR = LR;
+				PowerPC::CoreMode oldMode = PowerPC::GetMode();
+
+				PC = 0x800018A8;
+				LR = 0;
+
+				// Execute the code handler in interpreter mode to track when it exits
+				PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+
+				while (PC != 0)
+					PowerPC::SingleStep();
+
+				PowerPC::SetMode(oldMode);
+				PC = LR = oldLR;
+			}
+		}
+		else
+		{
+			// Use the emulated code handler
+			Gecko::RunActiveCodes();
+		}
+	}
 }
 
 const std::map<u32, std::vector<u32> >& GetInsertedAsmCodes() {
