@@ -121,6 +121,8 @@ void OpenALStream::Clear(bool mute)
 
 void OpenALStream::SoundLoop()
 {
+	Common::SetCurrentThreadName("Audio thread - openal");
+
 	ALenum err;
 	u32 ulFrequency = m_mixer->GetSampleRate();
 

@@ -25,6 +25,8 @@
 
 void AOSound::SoundLoop()
 {
+	Common::SetCurrentThreadName("Audio thread - ao");
+
 	uint_32 numBytesToRender = 256;
 	ao_initialize();
 	default_driver = ao_default_driver_id();
