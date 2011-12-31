@@ -62,6 +62,7 @@ private:
 	wxFont DefaultFont, MonoSpaceFont;
 	std::vector<wxFont> LogFont;
 	wxTimer *m_LogTimer;
+	bool m_ignoreLogTimer;
 	LogManager *m_LogManager;
 	std::queue<std::pair<u8, wxString> > msgQueue;
 	bool m_writeFile, m_writeConsole, m_writeWindow, m_LogAccess;
