@@ -186,6 +186,14 @@ void VideoBackendHardware::InitializeShared()
 void VideoBackendHardware::DoState(PointerWrap& p)
 {
 	VideoCommon_DoState(p);
+	p.DoMarker("VideoCommon");
+
+	p.Do(s_swapRequested);
+	p.Do(s_efbAccessRequested);
+	p.Do(s_beginFieldArgs);
+	p.Do(s_accessEFBArgs);
+	p.Do(s_AccessEFBResult);
+	p.DoMarker("VideoBackendHardware");
 
 	// Refresh state.
 	if (p.GetMode() == PointerWrap::MODE_READ)

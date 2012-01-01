@@ -31,29 +31,42 @@ static void DoState(PointerWrap &p)
 {
     // BP Memory
     p.Do(bpmem);
-    // CP Memory
+	p.DoMarker("BP Memory");
+
+	// CP Memory
     p.DoArray(arraybases, 16);
     p.DoArray(arraystrides, 16);
     p.Do(MatrixIndexA);
     p.Do(MatrixIndexB);
     p.Do(g_VtxDesc.Hex);
 	p.DoArray(g_VtxAttr, 8);
+	p.DoMarker("CP Memory");
 
     // XF Memory
     p.Do(xfregs);
     p.DoArray(xfmem, XFMEM_SIZE);
-    // Texture decoder
+	p.DoMarker("XF Memory");
+
+	// Texture decoder
     p.DoArray(texMem, TMEM_SIZE);
+	p.DoMarker("texMem");
  
     // FIFO
     Fifo_DoState(p);
+	p.DoMarker("Fifo");
 
     CommandProcessor::DoState(p);
-    PixelEngine::DoState(p);
+	p.DoMarker("CommandProcessor");
+
+	PixelEngine::DoState(p);
+	p.DoMarker("PixelEngine");
 
 	// the old way of replaying current bpmem as writes to push side effects to pixel shader manager doesn't really work.
 	PixelShaderManager::DoState(p);
+	p.DoMarker("PixelShaderManager");
+
 	VertexShaderManager::DoState(p);
+	p.DoMarker("VertexShaderManager");
 
 	// TODO: search for more data that should be saved and add it here
 }
