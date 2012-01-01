@@ -401,7 +401,8 @@ void Interpreter::dcbtst(UGeckoInstruction _inst)
 void Interpreter::dcbz(UGeckoInstruction _inst)
 {	
 	// HACK but works... we think
-	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
+	if (!HID0.DCFA)
+		Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
 }
 
 // eciwx/ecowx technically should access the specified device
