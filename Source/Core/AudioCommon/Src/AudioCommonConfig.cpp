@@ -18,7 +18,7 @@
 #include "AudioCommon.h"
 #include "CommonPaths.h"
 #include "FileUtil.h"
-#include "..\..\Core\Src\ConfigManager.h"
+#include "../../Core/Src/ConfigManager.h"
 
 AudioCommonConfig ac_Config;
 
