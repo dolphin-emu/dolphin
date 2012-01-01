@@ -238,6 +238,7 @@ void CConfigMain::InitializeGUILists()
 	// Framelimit
 	arrayStringFor_Framelimit.Add(_("Off"));
 	arrayStringFor_Framelimit.Add(_("Auto"));
+	arrayStringFor_Framelimit.Add(_("Audio"));
 	for (int i = 10; i <= 120; i += 5)	// from 10 to 120
 		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 
@@ -360,7 +361,6 @@ void CConfigMain::InitializeGUIValues()
 	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), ac_Config.m_Volume));
 	EnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
 	DSPThread->SetValue(startup_params.bDSPThread);
-	EnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
 	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
 	FrequencySelection->SetSelection(
 		FrequencySelection->FindString(wxString::Format(_("%d Hz"), ac_Config.iFrequency)));
@@ -484,7 +484,7 @@ void CConfigMain::InitializeGUITooltips()
 {
 	// General - Basic
 	CPUThread->SetToolTip(_("This splits the Video and CPU threads, so they can be run on separate cores.\nCauses major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."));
-	Framelimit->SetToolTip(_("If you set Framelimit higher than game full speed (NTSC:60, PAL:50), you also have to disable Audio Throttle in DSP to make it effective."));
+	Framelimit->SetToolTip(_("If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use Audio to throttle using the DSP (might fix audio clicks but can also cause constant noise depending on the game)."));
 
 	// General - Advanced
 	_NTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nLeft unchecked, dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
@@ -504,7 +504,6 @@ void CConfigMain::InitializeGUITooltips()
 	// Audio tooltips
 	EnableDTKMusic->SetToolTip(_("This is used to play music tracks, like BGM."));
 	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread (not recommended)."));
-	EnableThrottle->SetToolTip(_("This is used to control game speed by sound throttle.\nDisabling this could cause abnormal game speed, such as too fast.\nBut sometimes enabling this could cause constant noise.\n\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
 	FrequencySelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 
@@ -606,8 +605,6 @@ void CConfigMain::CreateGUIControls()
 	EnableDTKMusic = new wxCheckBox(AudioPage, ID_ENABLE_DTK_MUSIC, _("Enable DTK Music"),
 				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DSPThread = new wxCheckBox(AudioPage, ID_DSPTHREAD, _("DSP LLE on Thread"));
-	EnableThrottle = new wxCheckBox(AudioPage, ID_ENABLE_THROTTLE, _("Enable Audio Throttle"),
-				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DumpAudio = new wxCheckBox(AudioPage, ID_DUMP_AUDIO, _("Dump Audio"),
 				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 1, 100,
@@ -625,7 +622,6 @@ void CConfigMain::CreateGUIControls()
 	sbAudioSettings->Add(DSPEngine, 0, wxALL | wxEXPAND, 5);
 	sbAudioSettings->Add(EnableDTKMusic, 0, wxALL, 5);
 	sbAudioSettings->Add(DSPThread, 0, wxALL, 5);
-	sbAudioSettings->Add(EnableThrottle, 0, wxALL, 5);
 	sbAudioSettings->Add(DumpAudio, 0, wxALL, 5);
 
 	wxStaticBoxSizer *sbVolume = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Volume"));
@@ -841,6 +837,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = Framelimit->GetSelection();
+		ac_Config.Update();
 		break;
 	case ID_FRAMELIMIT_USEFPSFORLIMITING:
 		SConfig::GetInstance().b_UseFPS = UseFPSForLimiting->IsChecked();
@@ -922,7 +919,6 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 
 	default:
 		ac_Config.m_EnableDTKMusic = EnableDTKMusic->GetValue();
-		ac_Config.m_EnableThrottle = EnableThrottle->GetValue();
 		ac_Config.m_DumpAudio = DumpAudio->GetValue();
 
 		long int frequency;

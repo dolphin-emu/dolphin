@@ -157,7 +157,6 @@ private:
 	wxSlider*	VolumeSlider;
 	wxStaticText* VolumeText;    
 	wxCheckBox*	EnableDTKMusic;
-	wxCheckBox*	EnableThrottle;
 	wxCheckBox*	DumpAudio;
 	wxArrayString wxArrayBackends;
 	wxChoice*	BackendSelection;

@@ -547,11 +547,11 @@ void RequestRefreshInfo()
 // This should only be called from VI
 void VideoThrottle()
 {
-	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 1) ?
-		SConfig::GetInstance().m_Framelimit * 5 : VideoInterface::TargetRefreshRate;
+	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 2) ?
+		(SConfig::GetInstance().m_Framelimit - 1) * 5 : VideoInterface::TargetRefreshRate;
 
-	// Disable the frame-limiter when the throttle (Tab) key is held down
-	if (SConfig::GetInstance().m_Framelimit && !Host_GetKeyState('\t'))
+	// Disable the frame-limiter when the throttle (Tab) key is held down. Audio throttle: m_Framelimit = 2
+	if (SConfig::GetInstance().m_Framelimit && SConfig::GetInstance().m_Framelimit != 2 && !Host_GetKeyState('\t'))
 	{
 		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
 
