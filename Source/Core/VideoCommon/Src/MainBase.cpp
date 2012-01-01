@@ -185,10 +185,6 @@ void VideoBackendHardware::InitializeShared()
 // Run from the CPU thread
 void VideoBackendHardware::DoState(PointerWrap& p)
 {
-	// Clear all caches that touch RAM
-	TextureCache::Invalidate(false);
-	VertexLoaderManager::MarkAllDirty();
-
 	VideoCommon_DoState(p);
 
 	// Refresh state.
@@ -196,6 +192,11 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 	{
 		BPReload();
 		RecomputeCachedArraybases();
+
+		// Clear all caches that touch RAM
+		// (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
+		TextureCache::Invalidate(false);
+		VertexLoaderManager::MarkAllDirty();
 	}
 }
 

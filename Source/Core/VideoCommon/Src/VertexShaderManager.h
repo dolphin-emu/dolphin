@@ -20,6 +20,8 @@
 
 #include "VertexShaderGen.h"
 
+class PointerWrap;
+
 struct ProjectionHack
 {
 	float sign;
@@ -38,7 +40,8 @@ public:
 	static void Init();
 	static void Dirty();
 	static void Shutdown();
-
+	static void DoState(PointerWrap &p);
+;
 	// constant management
 	static void SetConstants();
 

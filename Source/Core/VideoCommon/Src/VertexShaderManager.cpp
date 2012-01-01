@@ -616,3 +616,18 @@ void VertexShaderManager::ResetView()
 
 	bProjectionChanged = true;
 }
+
+void VertexShaderManager::DoState(PointerWrap &p)
+{
+	p.Do(g_fProjectionMatrix);
+	p.Do(s_viewportCorrection);
+	p.Do(s_viewRotationMatrix);
+	p.Do(s_viewInvRotationMatrix);
+	p.Do(s_fViewTranslationVector);
+	p.Do(s_fViewRotation);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Dirty();
+	}
+}

@@ -24,6 +24,8 @@
 #include "Fifo.h"
 #include "CommandProcessor.h"
 #include "PixelEngine.h"
+#include "PixelShaderManager.h"
+#include "VertexShaderManager.h"
 
 static void DoState(PointerWrap &p)
 {
@@ -48,12 +50,17 @@ static void DoState(PointerWrap &p)
 
     CommandProcessor::DoState(p);
     PixelEngine::DoState(p);
+
+	// the old way of replaying current bpmem as writes to push side effects to pixel shader manager doesn't really work.
+	PixelShaderManager::DoState(p);
+	VertexShaderManager::DoState(p);
+
+	// TODO: search for more data that should be saved and add it here
 }
 
 void VideoCommon_DoState(PointerWrap &p)
 {
     DoState(p);
-	//TODO: search for more data that should be saved and add it here
 }
 
 void VideoCommon_RunLoop(bool enable)

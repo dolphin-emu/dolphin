@@ -39,7 +39,7 @@ void FlushPipeline()
 	VertexManager::Flush();
 }
 
-void SetGenerationMode(const BPCmd &bp)
+void SetGenerationMode()
 {
 	g_renderer->SetGenerationMode();
 }
@@ -64,30 +64,30 @@ void SetScissor()
 	g_renderer->SetScissorRect(trc);
 }
 
-void SetLineWidth(const BPCmd &bp)
+void SetLineWidth()
 {
 	g_renderer->SetLineWidth();
 }
 
-void SetDepthMode(const BPCmd &bp)
+void SetDepthMode()
 {
 	g_renderer->SetDepthMode();
 }
 
-void SetBlendMode(const BPCmd &bp)
+void SetBlendMode()
 {
 	g_renderer->SetBlendMode(false);
 }
-void SetDitherMode(const BPCmd &bp)
+void SetDitherMode()
 {
 	g_renderer->SetDitherMode();
 }
-void SetLogicOpMode(const BPCmd &bp)
+void SetLogicOpMode()
 {
 	g_renderer->SetLogicOpMode();
 }
 
-void SetColorMask(const BPCmd &bp)
+void SetColorMask()
 {
 	g_renderer->SetColorMask();
 }
@@ -119,7 +119,7 @@ void CopyEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		- convert the RGBA8 color to RGBA6/RGB8/RGB565 and convert it to RGBA8 again
 		- convert the Z24 depth value to Z16 and back to Z24
 */
-void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
+void ClearScreen(const EFBRectangle &rc)
 {
 	bool colorEnable = bpmem.blendmode.colorupdate;
 	bool alphaEnable = bpmem.blendmode.alphaupdate;
@@ -152,7 +152,7 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 	}
 }
 
-void OnPixelFormatChange(const BPCmd &bp)
+void OnPixelFormatChange()
 {
 	int convtype = -1;
 

@@ -160,7 +160,7 @@ void BPWritten(const BPCmd& bp)
 			bpmem.genMode.numtexgens, bpmem.genMode.numcolchans,
 			bpmem.genMode.ms_en, bpmem.genMode.numtevstages+1, bpmem.genMode.cullmode,
 			bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
-			SetGenerationMode(bp);
+			SetGenerationMode();
 			break;
 		}
 	case BPMEM_IND_MTXA: // Index Matrix Changed
@@ -188,12 +188,12 @@ void BPWritten(const BPCmd& bp)
 		SetScissor();
 		break;
 	case BPMEM_LINEPTWIDTH: // Line Width
-		SetLineWidth(bp);
+		SetLineWidth();
 		break;
 	case BPMEM_ZMODE: // Depth Control
 		PRIM_LOG("zmode: test=%d, func=%d, upd=%d", bpmem.zmode.testenable, bpmem.zmode.func,
 		bpmem.zmode.updateenable);
-		SetDepthMode(bp);
+		SetDepthMode();
 		break;
 	case BPMEM_BLENDMODE: // Blending Control
 		{
@@ -204,16 +204,16 @@ void BPWritten(const BPCmd& bp)
 					bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
 				// Set LogicOp Blending Mode
 				if (bp.changes & 2)
-					SetLogicOpMode(bp);
+					SetLogicOpMode();
 				// Set Dithering Mode
 				if (bp.changes & 4)
-					SetDitherMode(bp);
+					SetDitherMode();
 				// Set Blending Mode
 				if (bp.changes & 0xFE1)
-					SetBlendMode(bp);
+					SetBlendMode();
 				// Set Color Mask
 				if (bp.changes & 0x18)
-					SetColorMask(bp);
+					SetColorMask();
 			}
 			break;
 		}
@@ -306,7 +306,7 @@ void BPWritten(const BPCmd& bp)
 			// Clear the rectangular region after copying it.
 			if (PE_copy.clear)
 			{
-				ClearScreen(bp, rc);
+				ClearScreen(rc);
 			}
 
 			break;
@@ -455,7 +455,7 @@ void BPWritten(const BPCmd& bp)
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
 		g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
-		OnPixelFormatChange(bp);
+		OnPixelFormatChange();
 		break;
 
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
@@ -680,3 +680,35 @@ void BPWritten(const BPCmd& bp)
 }
 }
 
+// Called when loading a saved state.
+void BPReload()
+{
+	// restore anything that goes straight to the renderer.
+	// let's not risk actually replaying any writes.
+	// note that PixelShaderManager is already covered since it has its own DoState.
+	SetGenerationMode();
+	SetScissor();
+	SetLineWidth();
+	SetDepthMode();
+	SetLogicOpMode();
+	SetDitherMode();
+	SetBlendMode();
+	SetColorMask();
+	OnPixelFormatChange();
+	{
+		BPCmd bp = {BPMEM_TX_SETMODE0, 0xFFFFFF, ((u32*)&bpmem)[BPMEM_TX_SETMODE0]};
+		SetTextureMode(bp);
+	}
+	{
+		BPCmd bp = {BPMEM_TX_SETMODE0_4, 0xFFFFFF, ((u32*)&bpmem)[BPMEM_TX_SETMODE0_4]};
+		SetTextureMode(bp);
+	}
+	{
+		BPCmd bp = {BPMEM_FIELDMASK, 0xFFFFFF, ((u32*)&bpmem)[BPMEM_FIELDMASK]};
+		SetInterlacingMode(bp);
+	}
+	{
+		BPCmd bp = {BPMEM_FIELDMODE, 0xFFFFFF, ((u32*)&bpmem)[BPMEM_FIELDMODE]};
+		SetInterlacingMode(bp);
+	}
+}
