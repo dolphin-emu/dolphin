@@ -703,7 +703,18 @@ void Jit64::subfcx(UGeckoInstruction inst)
 	MOV(32, gpr.R(d), R(EAX));
 
 	gpr.UnlockAll();
-	if (inst.OE) PanicAlert("OE: subfcx");
+	if (inst.OE)
+	{
+		FixupBranch jno = J_CC(CC_NO);
+		//XER[OV/SO] = 1
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_SO_MASK));
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_OV_MASK));
+		FixupBranch exit = J();
+		SetJumpTarget(jno);
+		//XER[OV] = 0
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_OV_MASK));
+		SetJumpTarget(exit);
+	}
 	if (inst.Rc) {
 		ComputeRC(R(EAX));
 	}
@@ -743,7 +754,18 @@ void Jit64::subfex(UGeckoInstruction inst)
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
-	if (inst.OE) PanicAlert("OE: subfex");
+	if (inst.OE)
+	{
+		FixupBranch jno = J_CC(CC_NO);
+		//XER[OV/SO] = 1
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_SO_MASK));
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_OV_MASK));
+		FixupBranch exit = J();
+		SetJumpTarget(jno);
+		//XER[OV] = 0
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_OV_MASK));
+		SetJumpTarget(exit);
+	}
 	if (inst.Rc) {
 		ComputeRC(R(EAX));
 	}
@@ -843,7 +865,18 @@ void Jit64::subfx(UGeckoInstruction inst)
 		gpr.UnlockAll();
 	}
 
-	if (inst.OE) PanicAlert("OE: subfx");
+	if (inst.OE)
+	{
+		FixupBranch jno = J_CC(CC_NO);
+		//XER[OV/SO] = 1
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_SO_MASK));
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_OV_MASK));
+		FixupBranch exit = J();
+		SetJumpTarget(jno);
+		//XER[OV] = 0
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_OV_MASK));
+		SetJumpTarget(exit);
+	}
 	if (inst.Rc)
 	{
 		ComputeRC(gpr.R(d));
@@ -895,6 +928,18 @@ void Jit64::mullwx(UGeckoInstruction inst)
 		gpr.UnlockAll();
 	}
 	
+	if (inst.OE)
+	{
+		FixupBranch jno = J_CC(CC_NO);
+		//XER[OV/SO] = 1
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_SO_MASK));
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_OV_MASK));
+		FixupBranch exit = J();
+		SetJumpTarget(jno);
+		//XER[OV] = 0
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_OV_MASK));
+		SetJumpTarget(exit);
+	}
 	if (inst.Rc)
 	{
 		ComputeRC(gpr.R(d));
@@ -965,6 +1010,18 @@ void Jit64::divwux(UGeckoInstruction inst)
 		gpr.UnlockAllX();
 	}
 
+	if (inst.OE)
+	{
+		FixupBranch jno = J_CC(CC_NO);
+		//XER[OV/SO] = 1
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_SO_MASK));
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_OV_MASK));
+		FixupBranch exit = J();
+		SetJumpTarget(jno);
+		//XER[OV] = 0
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_OV_MASK));
+		SetJumpTarget(exit);
+	}
 	if (inst.Rc)
 	{
 		ComputeRC(gpr.R(d));
@@ -976,8 +1033,6 @@ void Jit64::addx(UGeckoInstruction inst)
     INSTRUCTION_START
     JITDISABLE(Integer)
     int a = inst.RA, b = inst.RB, d = inst.RD;
-	if (inst.OE)
-		NOTICE_LOG(DYNA_REC, "Add - OE enabled :(");
 	
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
 	{
@@ -1007,6 +1062,19 @@ void Jit64::addx(UGeckoInstruction inst)
 		gpr.UnlockAll();
 	}
 	
+	if (inst.OE)
+	{
+		FixupBranch jno = J_CC(CC_NO);
+		//XER[OV/SO] = 1
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_SO_MASK));
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_OV_MASK));
+		FixupBranch exit = J();
+		SetJumpTarget(jno);
+		//XER[OV] = 0
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_OV_MASK));
+		SetJumpTarget(exit);
+	}
+
 	if (inst.Rc)
 	{
 			ComputeRC(gpr.R(d));
@@ -1053,7 +1121,6 @@ void Jit64::addcx(UGeckoInstruction inst)
     INSTRUCTION_START
     JITDISABLE(Integer)
     int a = inst.RA, b = inst.RB, d = inst.RD;
-    _assert_msg_(DYNA_REC, !inst.OE, "Add - OE enabled :(");
 	
 	if ((d == a) || (d == b))
 	{
@@ -1074,6 +1141,19 @@ void Jit64::addcx(UGeckoInstruction inst)
 		gpr.UnlockAll();
 	}
 	
+	if (inst.OE)
+	{
+		FixupBranch jno = J_CC(CC_NO);
+		//XER[OV/SO] = 1
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_SO_MASK));
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_OV_MASK));
+		FixupBranch exit = J();
+		SetJumpTarget(jno);
+		//XER[OV] = 0
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_OV_MASK));
+		SetJumpTarget(exit);
+	}
+
 	if (inst.Rc)
 	{
 			ComputeRC(gpr.R(d));

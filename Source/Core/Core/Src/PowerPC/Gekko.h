@@ -303,6 +303,8 @@ union UFPR
 };
 
 #define XER_CA_MASK 0x20000000
+#define XER_OV_MASK 0x40000000
+#define XER_SO_MASK 0x80000000
 // XER
 union UReg_XER
 {
