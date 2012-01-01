@@ -186,6 +186,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 				m_WiiMotes.pop_back();
 		p.DoMarker("m_WiiMotes");
 	}
+
+	DoStateShared(p);
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::RemoteDisconnect(u16 _connectionHandle)

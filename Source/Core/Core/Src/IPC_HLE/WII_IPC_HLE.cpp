@@ -575,3 +575,12 @@ void UpdateDevices()
 
 
 } // end of namespace WII_IPC_HLE_Interface
+
+// TODO: create WII_IPC_HLE_Device.cpp ?
+void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
+{
+	p.Do(m_Name);
+	p.Do(m_DeviceID);
+	p.Do(m_Hardware);
+	p.Do(m_Active);
+}

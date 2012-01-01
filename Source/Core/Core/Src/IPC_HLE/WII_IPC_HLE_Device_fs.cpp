@@ -501,6 +501,8 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 {
+	DoStateShared(p);
+
 	// handle /tmp
 
 	std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";

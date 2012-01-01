@@ -62,7 +62,9 @@ public:
 
 	virtual ~IWII_IPC_HLE_Device() { }
 
-	virtual void DoState(PointerWrap&) { }
+	virtual void DoState(PointerWrap& p) { DoStateShared(p); }
+	
+	void DoStateShared(PointerWrap& p);
 
 	const std::string& GetDeviceName() const { return m_Name; }
     u32 GetDeviceID() const { return m_DeviceID; }
