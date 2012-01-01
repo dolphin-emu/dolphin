@@ -68,6 +68,8 @@ u64 fakeDecStartTicks;
 u64 fakeTBStartValue;
 u64 fakeTBStartTicks;
 
+int ev_lost;
+
 static std::recursive_mutex externalEventSection;
 
 void (*advanceCallback)(int cyclesExecuted) = NULL;
@@ -107,11 +109,28 @@ void FreeTsEvent(Event* ev)
 	allocatedTsEvents--;
 }
 
+static void EmptyTimedCallback(u64 userdata, int cyclesLate) {}
+
 int RegisterEvent(const char *name, TimedCallback callback)
 {
 	EventType type;
 	type.name = name;
 	type.callback = callback;
+
+	// check for existing type with same name.
+	// we want event type names to remain unique so that we can use them for serialization.
+	for (int i = 0; i < event_types.size(); ++i)
+	{
+		if (!strcmp(name, event_types[i].name))
+		{
+			WARN_LOG(POWERPC, "Discarded old event type \"%s\" because a new type with the same name was registered.", name);
+			// we don't know if someone might be holding on to the type index,
+			// so we gut the old event type instead of actually removing it.
+			event_types[i].name = "_discarded_event";
+			event_types[i].callback = &EmptyTimedCallback;
+		}
+	}
+
 	event_types.push_back(type);
 	return (int)event_types.size() - 1;
 }
@@ -129,6 +148,8 @@ void Init()
 	slicelength = maxSliceLength;
 	globalTimer = 0;
 	idledCycles = 0;
+	
+	ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
 }
 
 void Shutdown()
@@ -156,8 +177,32 @@ void Shutdown()
 void EventDoState(PointerWrap &p, BaseEvent* ev)
 {
 	p.Do(ev->time);
-	p.Do(ev->type);
-	p.Do(ev->userdata);			
+
+	// this is why we can't have (nice things) pointers as userdata
+	p.Do(ev->userdata);
+
+	// we can't savestate ev->type directly because events might not get registered in the same order (or at all) every time.
+	// so, we savestate the event's type's name, and derive ev->type from that when loading.
+	std::string name = event_types[ev->type].name;
+	p.Do(name);
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		bool foundMatch = false;
+		for (int i = 0; i < event_types.size(); ++i)
+		{
+			if (!strcmp(name.c_str(), event_types[i].name))
+			{
+				ev->type = i;
+				foundMatch = true;
+				break;
+			}
+		}
+		if (!foundMatch)
+		{
+			WARN_LOG(POWERPC, "Lost event from savestate because its type, \"%s\", has not been registered.", name.c_str());
+			ev->type = ev_lost;
+		}
+	}
 }
 
 void DoState(PointerWrap &p)
@@ -434,8 +479,8 @@ void Advance()
 	{
 		if (first->time <= globalTimer)
 		{
-//			LOG(GEKKO, "[Scheduler] %s     (%lld, %lld) ", 
-//				first->name ? first->name : "?", (u64)globalTimer, (u64)first->time);
+//			LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ", 
+//				event_types[first->type].name ? event_types[first->type].name : "?", (u64)globalTimer, (u64)first->time);
 			Event* evt = first;
 			first = first->next;
 			event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
