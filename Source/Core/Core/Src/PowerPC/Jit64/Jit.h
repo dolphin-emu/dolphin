@@ -149,7 +149,7 @@ public:
 
 	void GenerateConstantOverflow(bool overflow);
 	void GenerateOverflow();
-	void GenerateOverflowFinalizeCarry(bool oe, bool inv = false);
+	void FinalizeCarryOverflow(bool oe, bool inv = false);
 	void GenerateCarry();
 	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);
