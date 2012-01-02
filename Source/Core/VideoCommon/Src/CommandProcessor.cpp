@@ -109,6 +109,8 @@ void Init()
 
 	m_CPCtrlReg.Hex = 0;
 
+	m_CPClearReg.Hex = 0;
+
 	m_bboxleft = 0;
 	m_bboxtop  = 0;
 	m_bboxright = 640;
@@ -129,6 +131,11 @@ void Init()
     interruptWaiting = false;
 	interruptFinishWaiting = false;
 	interruptTokenWaiting = false;
+
+	bProcessFifoToLoWatermark = false;
+	bProcessFifoAllDistance = false;
+	isPossibleWaitingSetDrawDone = false;
+	OnOverflow = false;
 
     et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 }

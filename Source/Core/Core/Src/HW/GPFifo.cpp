@@ -54,6 +54,7 @@ void DoState(PointerWrap &p)
 void Init()
 {
 	ResetGatherPipe();
+	memset(m_gatherPipe, 0, sizeof(m_gatherPipe));
 }
 
 bool IsEmpty()

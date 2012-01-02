@@ -105,6 +105,7 @@ struct DTMHeader {
 
 void FrameUpdate();
 void InputUpdate();
+void Init();
 
 void SetPolledDevice();
 

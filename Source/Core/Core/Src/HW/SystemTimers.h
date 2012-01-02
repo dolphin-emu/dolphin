@@ -24,6 +24,7 @@ namespace SystemTimers
 {
 
 u32 GetTicksPerSecond();
+void PreInit();
 void Init();
 void Shutdown();
 

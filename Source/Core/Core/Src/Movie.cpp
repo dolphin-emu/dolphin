@@ -105,6 +105,34 @@ void FrameUpdate()
 	g_bPolled = false;
 }
 
+// called when game is booting up, even if no movie is active,
+// but potentially after BeginRecordingInput or PlayInput has been called.
+void Init()
+{
+	g_bPolled = false;
+	g_bFrameStep = false;
+	g_bFrameStop = false;
+	g_frameSkipCounter = g_framesToSkip;
+	memset(&g_padState, 0, sizeof(g_padState));
+	for (int i = 0; i < 8; ++i)
+		g_InputDisplay[i].clear();
+
+	if (!IsPlayingInput() && !IsRecordingInput())
+	{
+		g_bRecordingFromSaveState = false;
+		g_rerecords = 0;
+		g_numPads = 0;
+		g_currentByte = 0;
+		g_currentFrame = 0;
+		g_currentLagCount = 0;
+		g_currentInputCount = 0;
+		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
+		//g_totalFrames = g_totalBytes = 0;
+		//delete tmpInput;
+		//tmpInput = NULL;
+	}
+}
+
 void InputUpdate()
 {
 	g_currentInputCount++;
@@ -813,7 +841,7 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, 
 
 	if (size != sizeInMovie)
 	{
-		PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %d.)%s", sizeInMovie, size, g_currentByte, (g_numPads & 0xF)?" Try re-creating the recording with all GameCube controllers disabled.":"");
+		PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s", (u32)sizeInMovie, (u32)size, (u32)g_currentByte, (g_numPads & 0xF)?" Try re-creating the recording with all GameCube controllers disabled (in Configure > Gamecube > Device Settings).":"");
 		EndPlayInput(!g_bReadOnly);
 		return false;
 	}
