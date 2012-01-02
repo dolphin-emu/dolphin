@@ -172,6 +172,11 @@ void Jit64::stfd(UGeckoInstruction inst)
 
 	int s = inst.RS;
 	int a = inst.RA;
+	if (!a)
+	{
+		Default(inst);
+		return;
+	}
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 	if (Core::g_CoreStartupParameter.bMMU ||
@@ -219,13 +224,14 @@ void Jit64::stfd(UGeckoInstruction inst)
 
 	// Safe but slow routine
 	MOVAPD(XMM0, fpr.R(s));
-	MOVD_xmm(R(EAX), XMM0);
-	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 4);
-
 	PSRLQ(XMM0, 32);
 	MOVD_xmm(R(EAX), XMM0);
-	LEA(32, ABI_PARAM1, MDisp(gpr.R(a).GetSimpleReg(), offset));
 	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
+
+	MOVAPD(XMM0, fpr.R(s));
+	MOVD_xmm(R(EAX), XMM0);
+	LEA(32, ABI_PARAM1, MDisp(gpr.R(a).GetSimpleReg(), offset));
+	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 4);
 
 	SetJumpTarget(exit);
 
