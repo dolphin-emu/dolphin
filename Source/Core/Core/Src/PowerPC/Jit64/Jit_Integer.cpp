@@ -1006,7 +1006,7 @@ void Jit64::subfx(UGeckoInstruction inst)
 	{
 		s32 i = (s32)gpr.R(b).offset, j = (s32)gpr.R(a).offset;
 		gpr.SetImmediate32(d, i - j);
-		if (inst.RC)
+		if (inst.Rc)
 		{
 			ComputeRC(gpr.R(d));
 		}
