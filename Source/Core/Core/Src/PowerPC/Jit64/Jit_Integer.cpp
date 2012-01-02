@@ -1422,6 +1422,10 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 			result = _rotl(result, inst.SH);
 		result &= Helper_Mask(inst.MB, inst.ME);
 		gpr.SetImmediate32(a, result);
+		if (inst.Rc)
+		{
+			ComputeRC(gpr.R(a));
+		}
 	}
 	else
 	{
@@ -1435,10 +1439,18 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 		if (inst.MB == 0 && inst.ME==31-inst.SH)
 		{
 			SHL(32, gpr.R(a), Imm8(inst.SH));
+			if (inst.Rc)
+			{
+				GenerateRC();
+			}
 		}
 		else if (inst.ME == 31 && inst.MB == 32 - inst.SH)
 		{
 			SHR(32, gpr.R(a), Imm8(inst.MB));
+			if (inst.Rc)
+			{
+				GenerateRC();
+			}
 		}
 		else
 		{
@@ -1452,15 +1464,18 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 			{
 				written = true;
 				AND(32, gpr.R(a), Imm32(Helper_Mask(inst.MB, inst.ME)));
+				if (inst.Rc)
+				{
+					GenerateRC();
+				}
+			}
+			else if (inst.Rc)
+			{
+				ComputeRC(gpr.R(a));
 			}
 			_assert_msg_(DYNA_REC, written, "W T F!!!");
 		}
 		gpr.UnlockAll();
-	}
-
-	if (inst.Rc)
-	{
-		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -1488,7 +1503,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 		u32 mask = Helper_Mask(inst.MB, inst.ME);
 		if (mask == 0 || (a == s && inst.SH == 0))
 		{
-			if (inst.RC)
+			if (inst.Rc)
 			{
 				ComputeRC(gpr.R(a));
 			}
