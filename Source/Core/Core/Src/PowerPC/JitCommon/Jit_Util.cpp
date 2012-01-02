@@ -352,3 +352,11 @@ void EmuCodeBlock::JitSetCA()
 {
 	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
 }
+
+void EmuCodeBlock::JitClearCAOV(bool oe)
+{
+	if (oe)
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK & ~XER_OV_MASK)); //XER.CA, XER.OV = 0
+	else
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
+}
