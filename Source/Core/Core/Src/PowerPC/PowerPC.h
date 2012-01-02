@@ -97,6 +97,7 @@ void Init(int cpu_core);
 void Shutdown();
 void DoState(PointerWrap &p);
 
+CoreMode GetMode();
 void SetMode(CoreMode _coreType);
 
 void SingleStep();	

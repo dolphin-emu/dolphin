@@ -1,3 +1,17 @@
+// Copyright (C) 2003 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
 #include "GeckoCode.h"
 
 #include "Thread.h"
@@ -5,6 +19,8 @@
 #include "ConfigManager.h"
 
 #include "vector"
+#include "PowerPC/PowerPC.h"
+#include "CommonPaths.h"
 
 namespace Gecko
 {
@@ -39,6 +55,9 @@ static struct
 
 // codes execute when counter is 0
 static int	code_execution_counter = 0;
+
+// Track whether the code handler has been installed
+static bool	code_handler_installed = false;
 
 // the currently active codes
 std::vector<GeckoCode>	active_codes;
@@ -93,6 +112,70 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 		}
 
 	inserted_asm_codes.clear();
+
+	code_handler_installed = false;
+}
+
+bool InstallCodeHandler()
+{
+	u32 codelist_location = 0x800028B8; // Debugger on location (0x800022A8 = Debugger off, using codehandleronly.bin)
+	std::string data;
+	std::string _rCodeHandlerFilename = File::GetSysDirectory() + GECKO_CODE_HANDLER;
+	if (!File::ReadFileToString(false, _rCodeHandlerFilename.c_str(), data))
+		return false;
+
+	// Install code handler
+	Memory::WriteBigEData((const u8*)data.data(), 0x80001800, data.length());
+
+	// Turn off Pause on start
+	Memory::Write_U32(0, 0x80002774);
+
+	// Write the Game ID into the location expected by WiiRD
+	Memory::WriteBigEData(Memory::GetPointer(0x80000000), 0x80001800, 6);
+
+	// Create GCT in memory
+	Memory::Write_U32(0x00d0c0de, codelist_location);
+	Memory::Write_U32(0x00d0c0de, codelist_location + 4);
+
+	std::lock_guard<std::mutex> lk(active_codes_lock);
+
+	int i = 0;
+	std::vector<GeckoCode>::iterator
+		gcodes_iter = active_codes.begin(),
+		gcodes_end = active_codes.end();
+	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	{
+		if (gcodes_iter->enabled)
+		{
+			current_code = codes_start = &*gcodes_iter->codes.begin();
+			codes_end = &*gcodes_iter->codes.end();
+			for (; current_code < codes_end; ++current_code)
+			{
+				const GeckoCode::Code& code = *current_code;
+
+				// Make sure we have enough memory to hold the code list
+				if ((codelist_location + 24 + i) < 0x80003000)
+				{
+					Memory::Write_U32(code.address, codelist_location + 8 + i);
+					Memory::Write_U32(code.data, codelist_location + 12 + i);
+					i += 8;
+				}
+			}
+		}
+	}
+
+	Memory::Write_U32(0xff000000, codelist_location + 8 + i);
+	Memory::Write_U32(0x00000000, codelist_location + 12 + i);
+
+	// Turn on codes
+	Memory::Write_U8(1, 0x80001807);
+
+	// Invalidate the icache
+	for (int i = 0; i < data.length(); i += 32)
+	{
+		PowerPC::ppcState.iCache.Invalidate(0x80001800 + i);
+	}
+	return true;
 }
 
 bool RunGeckoCode(GeckoCode& gecko_code)
@@ -137,7 +220,7 @@ bool RunGeckoCode(GeckoCode& gecko_code)
 			gecko_code.enabled = false;
 
 			PanicAlertT("GeckoCode failed to run (CT%i CST%i) (%s)"
-				"\n(either a bad code or the code type is not yet supported.)"
+				"\n(either a bad code or the code type is not yet supported. Try using the native code handler by placing the codehandler.bin file into the Sys directory and restarting Dolphin.)"
 				, code.type, code.subtype, gecko_code.name.c_str());
 			return false;
 		}
@@ -166,6 +249,41 @@ bool RunActiveCodes()
 	}
 
 	return true;
+}
+
+void RunCodeHandler()
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	{
+		if (!code_handler_installed)
+			code_handler_installed = InstallCodeHandler();
+
+		if (code_handler_installed)
+		{
+			if (PC == LR)
+			{
+				u32 oldLR = LR;
+				PowerPC::CoreMode oldMode = PowerPC::GetMode();
+
+				PC = 0x800018A8;
+				LR = 0;
+
+				// Execute the code handler in interpreter mode to track when it exits
+				PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+
+				while (PC != 0)
+					PowerPC::SingleStep();
+
+				PowerPC::SetMode(oldMode);
+				PC = LR = oldLR;
+			}
+		}
+		else
+		{
+			// Use the emulated code handler
+			Gecko::RunActiveCodes();
+		}
+	}
 }
 
 const std::map<u32, std::vector<u32> >& GetInsertedAsmCodes() {
