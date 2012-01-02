@@ -147,7 +147,11 @@ public:
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 
+	void GenerateConstantOverflow(bool overflow);
+	void GenerateOverflow();
+	void GenerateOverflowFinalizeCarry(bool oe, bool inv = false);
 	void GenerateCarry();
+	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);
 
 	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
