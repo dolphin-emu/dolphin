@@ -1476,24 +1476,78 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 	{
 		u32 mask = Helper_Mask(inst.MB,inst.ME);
 		gpr.SetImmediate32(a, ((u32)gpr.R(a).offset & ~mask) | (_rotl((u32)gpr.R(s).offset,inst.SH) & mask));
+		if (inst.Rc)
+		{
+			ComputeRC(gpr.R(a));
+		}
 	}
 	else
 	{
 		gpr.Lock(a, s);
-		gpr.KillImmediate(a, true, true);
+		gpr.BindToRegister(a, true, true);
 		u32 mask = Helper_Mask(inst.MB, inst.ME);
-		MOV(32, R(EAX), gpr.R(s));
-		AND(32, gpr.R(a), Imm32(~mask));
-		if (inst.SH)
-			ROL(32, R(EAX), Imm8(inst.SH));
-		AND(32, R(EAX), Imm32(mask));
-		OR(32, gpr.R(a), R(EAX));
+		if (mask == 0 || (a == s && inst.SH == 0))
+		{
+			if (inst.RC)
+			{
+				ComputeRC(gpr.R(a));
+			}
+		}
+		else if (mask == 0xFFFFFFFF)
+		{
+			if (a != s)
+			{
+				MOV(32, gpr.R(a), gpr.R(s));
+			}
+			if (inst.SH)
+			{
+				ROL(32, gpr.R(a), Imm8(inst.SH));
+			}
+			if (inst.Rc)
+			{
+				ComputeRC(gpr.R(a));
+			}
+		}
+		else if (inst.SH)
+		{
+			if (mask == -(1 << inst.SH))
+			{
+				MOV(32, R(EAX), gpr.R(s));
+				SHL(32, R(EAX), Imm8(inst.SH));
+				AND(32, gpr.R(a), Imm32(~mask));
+				OR(32, gpr.R(a), R(EAX));
+			}
+			else if (mask == (1 << inst.SH) - 1)
+			{
+				MOV(32, R(EAX), gpr.R(s));
+				SHR(32, R(EAX), Imm8(32-inst.SH));
+				AND(32, gpr.R(a), Imm32(~mask));
+				OR(32, gpr.R(a), R(EAX));
+			}
+			else
+			{
+				MOV(32, R(EAX), gpr.R(s));
+				ROL(32, R(EAX), Imm8(inst.SH));
+				XOR(32, R(EAX), gpr.R(a));
+				AND(32, R(EAX), Imm32(mask));
+				XOR(32, gpr.R(a), R(EAX));
+			}
+			if (inst.Rc)
+			{
+				GenerateRC();
+			}
+		}
+		else
+		{
+			XOR(32, gpr.R(a), gpr.R(s));
+			AND(32, gpr.R(a), Imm32(~mask));
+			XOR(32, gpr.R(a), gpr.R(s));
+			if (inst.Rc)
+			{
+				GenerateRC();
+			}
+		}
 		gpr.UnlockAll();
-	}
-
-	if (inst.Rc)
-	{
-		ComputeRC(gpr.R(a));
 	}
 }
 
