@@ -172,80 +172,63 @@ void Jit64::stfd(UGeckoInstruction inst)
 
 	int s = inst.RS;
 	int a = inst.RA;
-	if (!a)
-	{
-		Default(inst);
-		return;
+
+	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+	if (Core::g_CoreStartupParameter.bMMU ||
+		Core::g_CoreStartupParameter.iTLBHack) {
+			mem_mask |= Memory::ADDR_MASK_MEM1;
 	}
-	s32 offset = (s32)(s16)inst.SIMM_16;
+#ifdef ENABLE_MEM_CHECK
+	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	{
+		mem_mask |= Memory::EXRAM_MASK;
+	}
+#endif
+
 	gpr.FlushLockX(ABI_PARAM1);
 	gpr.Lock(a);
 	fpr.Lock(s);
 	gpr.BindToRegister(a, true, false);
+
+	s32 offset = (s32)(s16)inst.SIMM_16;
 	LEA(32, ABI_PARAM1, MDisp(gpr.R(a).GetSimpleReg(), offset));
-	TEST(32, R(ABI_PARAM1), Imm32(0x0c000000));
-	FixupBranch not_ram = J_CC(CC_Z);
-	// Assume that any hardware writes using this instruction will go to the FIFO.
-	// Star Wars - The Force Unleashed uses this trick.
+	TEST(32, R(ABI_PARAM1), Imm32(mem_mask));
+	FixupBranch safe = J_CC(CC_NZ);
+
+	// Fast routine
 	if (cpu_info.bSSSE3) {
 		MOVAPD(XMM0, fpr.R(s));
-		PSHUFB(XMM0, M((void *)bswapShuffle1x8));
-		CALL(asm_routines.fifoDirectWriteXmm64);
-	} else {
-		// This ain't working yet
-		MOVAPD(XMM0, fpr.R(s));
-		MOVQ_xmm(M(&temp64), XMM0);
-		MOV(32, R(EAX), M(&temp64));
-		MOV(32, R(ABI_PARAM1), M((void*)((u8 *)&temp64 + 4)));
-		BSWAP(32, EAX);
-		BSWAP(32, ABI_PARAM1);
-		MOV(32, M(((u8 *)&temp64) + 4), R(EAX));
-		MOV(32, M((u8 *)&temp64), R(ABI_PARAM1));
-		MOVQ_xmm(XMM0, M(&temp64));
-		CALL(asm_routines.fifoDirectWriteXmm64);
-	}
-	FixupBranch quit = J(false);
-	SetJumpTarget(not_ram);
-#ifdef _M_IX86
-	AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
-#endif
-	if (cpu_info.bSSSE3) {
-		MOVAPD(XMM0, fpr.R(s));
-		PSHUFB(XMM0, M((void *)bswapShuffle1x8));
+		PSHUFB(XMM0, M((void*)bswapShuffle1x8));
 #ifdef _M_X64
 		MOVQ_xmm(MComplex(RBX, ABI_PARAM1, SCALE_1, 0), XMM0);
 #else
+		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
 		MOVQ_xmm(MDisp(ABI_PARAM1, (u32)Memory::base), XMM0);
 #endif
 	} else {
-#ifdef _M_X64
-		fpr.BindToRegister(s, true, false);
-		MOVSD(M(&temp64), fpr.RX(s));
+		MOVAPD(XMM0, fpr.R(s));
+		MOVD_xmm(R(EAX), XMM0);
+		UnsafeWriteRegToReg(EAX, ABI_PARAM1, 32, 4);
 
-		MEMCHECK_START
-
-		MOV(64, R(EAX), M(&temp64));
-		BSWAP(64, EAX);
-		MOV(64, MComplex(RBX, ABI_PARAM1, SCALE_1, 0), R(EAX));
-
-		MEMCHECK_END
-#else
-		fpr.BindToRegister(s, true, false);
-		MOVSD(M(&temp64), fpr.RX(s));
-
-		MEMCHECK_START
-
-		MOV(32, R(EAX), M(&temp64));
-		BSWAP(32, EAX);
-		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base + 4), R(EAX));
-		MOV(32, R(EAX), M((void*)((u8 *)&temp64 + 4)));
-		BSWAP(32, EAX);
-		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base), R(EAX));
-
-		MEMCHECK_END
-#endif
+		PSRLQ(XMM0, 32);
+		MOVD_xmm(R(EAX), XMM0);
+		UnsafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
 	}
-	SetJumpTarget(quit);
+	FixupBranch exit = J();
+	SetJumpTarget(safe);
+
+	// Safe but slow routine
+	MOVAPD(XMM0, fpr.R(s));
+	MOVD_xmm(R(EAX), XMM0);
+	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 4);
+
+	PSRLQ(XMM0, 32);
+	MOVD_xmm(R(EAX), XMM0);
+	LEA(32, ABI_PARAM1, MDisp(gpr.R(a).GetSimpleReg(), offset));
+	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
+
+	SetJumpTarget(exit);
+
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
