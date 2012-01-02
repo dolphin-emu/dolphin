@@ -1556,30 +1556,34 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 	int a = inst.RA, b = inst.RB, s = inst.RS;
-	
+
 	u32 mask = Helper_Mask(inst.MB, inst.ME);
 	if (gpr.R(b).IsImm() && gpr.R(s).IsImm())
 	{
 		gpr.SetImmediate32(a, _rotl((u32)gpr.R(s).offset, (u32)gpr.R(b).offset & 0x1F) & mask);
+		if (inst.Rc)
+		{
+			ComputeRC(gpr.R(a));
+		}
 	}
 	else
 	{
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
-		gpr.KillImmediate(a, (a ==  s || a == b), true);
-		MOV(32, R(EAX), gpr.R(s));
+		gpr.BindToRegister(a, true, true);
 		MOV(32, R(ECX), gpr.R(b));
-		AND(32, R(ECX), Imm32(0x1f));
-		ROL(32, R(EAX), R(ECX));
-		AND(32, R(EAX), Imm32(mask));
-		MOV(32, gpr.R(a), R(EAX));
+		if (a != s)
+		{
+			MOV(32, gpr.R(a), gpr.R(s));
+		}
+		ROL(32, gpr.R(a), R(ECX));
+		AND(32, gpr.R(a), Imm32(mask));
+		if (inst.Rc)
+		{
+			GenerateRC();
+		}
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
-	}
-
-	if (inst.Rc)
-	{
-		ComputeRC(gpr.R(a));
 	}
 }
 
