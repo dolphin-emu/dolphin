@@ -1652,27 +1652,32 @@ void Jit64::srwx(UGeckoInstruction inst)
 	{
 		u32 amount = (u32)gpr.R(b).offset;
 		gpr.SetImmediate32(a, (amount & 0x20) ? 0 : ((u32)gpr.R(s).offset >> (amount & 0x1f)));
+		if (inst.Rc) 
+		{
+			ComputeRC(gpr.R(a));
+		}
 	}
 	else
 	{
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
-		gpr.BindToRegister(a, a == s || a == b || s == b, true);
+		gpr.BindToRegister(a, true, true);
 		MOV(32, R(ECX), gpr.R(b));
-		XOR(32, R(EAX), R(EAX));
 		TEST(32, R(ECX), Imm32(32));
-		FixupBranch branch = J_CC(CC_NZ);
-		MOV(32, R(EAX), gpr.R(s));
-		SHR(32, R(EAX), R(ECX));
+		if (a != s)
+		{
+			MOV(32, gpr.R(a), gpr.R(s));
+		}
+		FixupBranch branch = J_CC(CC_Z);
+		XOR(32, gpr.R(a), gpr.R(a));
 		SetJumpTarget(branch);
-		MOV(32, gpr.R(a), R(EAX));
+		SHR(32, gpr.R(a), R(ECX));
+		if (inst.Rc)
+		{
+			GenerateRC();
+		}
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
-	}
-
-	if (inst.Rc) 
-	{
-		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -1688,27 +1693,32 @@ void Jit64::slwx(UGeckoInstruction inst)
 	{
 		u32 amount = (u32)gpr.R(b).offset;
 		gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (u32)gpr.R(s).offset << amount);
+		if (inst.Rc) 
+		{
+			ComputeRC(gpr.R(a));
+		}
 	}
 	else
 	{
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
-		gpr.BindToRegister(a, a == s || a == b || s == b, true);
+		gpr.BindToRegister(a, true, true);
 		MOV(32, R(ECX), gpr.R(b));
-		XOR(32, R(EAX), R(EAX));
 		TEST(32, R(ECX), Imm32(32));
-		FixupBranch branch = J_CC(CC_NZ);
-		MOV(32, R(EAX), gpr.R(s));
-		SHL(32, R(EAX), R(ECX));
+		if (a != s)
+		{
+			MOV(32, gpr.R(a), gpr.R(s));
+		}
+		FixupBranch branch = J_CC(CC_Z);
+		XOR(32, gpr.R(a), gpr.R(a));
 		SetJumpTarget(branch);
-		MOV(32, gpr.R(a), R(EAX));
+		SHL(32, gpr.R(a), R(ECX));
+		if (inst.Rc) 
+		{
+			GenerateRC();
+		}
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
-	}
-
-	if (inst.Rc) 
-	{
-		ComputeRC(gpr.R(a));
 	}
 }
 
