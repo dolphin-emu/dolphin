@@ -455,11 +455,18 @@ void FifoPlayerDlg::OnObjectListSelectionChanged (wxCommandEvent& event)
 					{
 						u32 cmd2 = Common::swap32(objectdata);
 						objectdata += 4;
+
 						u8 streamSize = ((cmd2 >> 16) & 15) + 1;
 
-						newLabel = wxString::Format(wxT("XF  %08X(%02X)  ..."), cmd2, streamSize);
+						const u8* stream_start = objectdata;
+						const u8* stream_end = stream_start + streamSize * 4;
 
-						objectdata += streamSize * 4;
+						newLabel = wxString::Format(wxT("XF  %08X  "), cmd2);
+						while (objectdata < stream_end)
+						{
+							newLabel += wxString::Format(wxT("%02X"), *objectdata++);
+							if (((objectdata - stream_start) % 4) == 0) newLabel += wxT(" ");
+						}
 					}
 					break;
 
