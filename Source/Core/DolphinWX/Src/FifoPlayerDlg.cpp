@@ -21,6 +21,7 @@
 #include "Thread.h"
 #include "FifoPlayer/FifoPlayer.h"
 #include "FifoPlayer/FifoRecorder.h"
+#include "OpcodeDecoding.h"
 #include <wx/spinctrl.h>
 
 DECLARE_EVENT_TYPE(RECORDING_FINISHED_EVENT, -1)
@@ -65,6 +66,10 @@ FifoPlayerDlg::~FifoPlayerDlg()
 	m_FramesToRecordCtrl->Disconnect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(FifoPlayerDlg::OnNumFramesToRecord), NULL, this);
 	m_Close->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnCloseClick), NULL, this);
 
+	m_framesList->Disconnect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FifoPlayerDlg::OnFrameListSelectionChanged), NULL, this);
+	m_objectsList->Disconnect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FifoPlayerDlg::OnObjectListSelectionChanged), NULL, this);
+	m_objectCmdList->Disconnect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FifoPlayerDlg::OnObjectCmdListSelectionChanged), NULL, this);
+
 	FifoPlayer::GetInstance().SetFrameWrittenCallback(NULL);
 
 	sMutex.lock();	
@@ -80,6 +85,8 @@ void FifoPlayerDlg::CreateGUIControls()
 	sMain = new wxBoxSizer(wxVERTICAL);
 	
 	m_Notebook = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+
+	{
 	m_PlayPage = new wxPanel(m_Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 	wxBoxSizer* sPlayPage;
 	sPlayPage = new wxBoxSizer(wxVERTICAL);
@@ -151,6 +158,9 @@ void FifoPlayerDlg::CreateGUIControls()
 	m_PlayPage->Layout();
 	sPlayPage->Fit(m_PlayPage);
 	m_Notebook->AddPage(m_PlayPage, _("Play"), true);
+	}
+
+	{
 	m_RecordPage = new wxPanel(m_Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 	wxBoxSizer* sRecordPage;
 	sRecordPage = new wxBoxSizer(wxVERTICAL);
@@ -199,28 +209,58 @@ void FifoPlayerDlg::CreateGUIControls()
 	m_RecordPage->Layout();
 	sRecordPage->Fit(m_RecordPage);
 	m_Notebook->AddPage(m_RecordPage, _("Record"), false);
+	}
+
+	// Analyze page
+	{
+	m_AnalyzePage = new wxPanel(m_Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	wxBoxSizer* sAnalyzePage;
+	sAnalyzePage = new wxBoxSizer(wxVERTICAL);
+
+	wxStaticBoxSizer* sTestSizer;
+	sTestSizer = new wxStaticBoxSizer(new wxStaticBox(m_AnalyzePage, wxID_ANY, _("Frame info")), wxHORIZONTAL);
+
+	m_framesList = new wxListBox(m_AnalyzePage, wxID_ANY);
+	m_framesList->SetMinSize(wxSize(100, 250));
+	sTestSizer->Add(m_framesList, 0, wxALL, 5);
+
+	m_objectsList = new wxListBox(m_AnalyzePage, wxID_ANY);
+	m_objectsList->SetMinSize(wxSize(110, 250));
+	sTestSizer->Add(m_objectsList, 0, wxALL, 5);
+
+	m_objectCmdList = new wxListBox(m_AnalyzePage, wxID_ANY);
+	m_objectCmdList->SetMinSize(wxSize(175, 250));
+	sTestSizer->Add(m_objectCmdList, 0, wxALL, 5);
+
+	sAnalyzePage->Add(sTestSizer, 0, wxEXPAND, 5);
 	
+	m_AnalyzePage->SetSizer(sAnalyzePage);
+	m_AnalyzePage->Layout();
+	sAnalyzePage->Fit(m_AnalyzePage);
+	m_Notebook->AddPage(m_AnalyzePage, _("Analyze"), false);
+	}
+
 	sMain->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
-	
+
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxHORIZONTAL);
-	
+
 	wxBoxSizer* sCloseButtonExpander;
 	sCloseButtonExpander = new wxBoxSizer(wxHORIZONTAL);
-	
+
 	sButtons->Add(sCloseButtonExpander, 1, wxEXPAND, 5);
-	
+
 	m_Close = new wxButton(this, wxID_ANY, _("Close"), wxDefaultPosition, wxDefaultSize, 0);
 	sButtons->Add(m_Close, 0, wxALL, 5);
-	
+
 	sMain->Add(sButtons, 0, wxEXPAND, 5);
-	
+
 	SetSizer(sMain);
 	Layout();
 	sMain->Fit(this);
-	
+
 	Center(wxBOTH);
-	
+
 	// Connect Events
 	Connect(wxEVT_PAINT, wxPaintEventHandler(FifoPlayerDlg::OnPaint));
 	m_FrameFromCtrl->Connect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(FifoPlayerDlg::OnFrameFrom), NULL, this);
@@ -231,7 +271,11 @@ void FifoPlayerDlg::CreateGUIControls()
 	m_RecordStop->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnRecordStop), NULL, this);
 	m_Save->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnSaveFile), NULL, this);
 	m_FramesToRecordCtrl->Connect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(FifoPlayerDlg::OnNumFramesToRecord), NULL, this);
-	m_Close->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnCloseClick), NULL, this);
+	Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnCloseClick), NULL, this);
+
+	m_framesList->Connect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FifoPlayerDlg::OnFrameListSelectionChanged), NULL, this);
+	m_objectsList->Connect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FifoPlayerDlg::OnObjectListSelectionChanged), NULL, this);
+	m_objectCmdList->Connect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FifoPlayerDlg::OnObjectCmdListSelectionChanged), NULL, this);
 
 	Connect(RECORDING_FINISHED_EVENT, wxCommandEventHandler(FifoPlayerDlg::OnRecordingFinished), NULL, this);
 	Connect(FRAME_WRITTEN_EVENT, wxCommandEventHandler(FifoPlayerDlg::OnFrameWritten), NULL, this);
@@ -243,6 +287,7 @@ void FifoPlayerDlg::OnPaint(wxPaintEvent& event)
 {
 	UpdatePlayGui();
 	UpdateRecorderGui();
+	UpdateAnalyzerGui();
 
 	event.Skip();
 }
@@ -250,10 +295,11 @@ void FifoPlayerDlg::OnPaint(wxPaintEvent& event)
 void FifoPlayerDlg::OnFrameFrom(wxSpinEvent& event)
 {
 	FifoPlayer &player = FifoPlayer::GetInstance();
+
 	player.SetFrameRangeStart(event.GetPosition());
 
 	m_FrameFromCtrl->SetValue(player.GetFrameRangeStart());
-	m_FrameToCtrl->SetValue(player.GetFrameRangeEnd());	
+	m_FrameToCtrl->SetValue(player.GetFrameRangeEnd());
 }
 
 void FifoPlayerDlg::OnFrameTo(wxSpinEvent& event)
@@ -326,6 +372,141 @@ void FifoPlayerDlg::OnNumFramesToRecord(wxSpinEvent& event)
 		m_FramesToRecord = -1;
 }
 
+void FifoPlayerDlg::OnFrameListSelectionChanged(wxCommandEvent& event)
+{
+	FifoPlayer& player = FifoPlayer::GetInstance();
+
+	m_objectsList->Clear();
+	if (event.GetInt() != -1)
+	{
+		int num_objects = player.GetAnalyzedFrameInfo(event.GetInt()).objectStarts.size();
+		for (int i = 0; i < num_objects; ++i)
+			m_objectsList->Append(wxString::Format(wxT("Object %i"), i));
+	}
+
+	// Call OnObjectListSelectionChanged
+	m_objectsList->SetSelection(-1);
+}
+
+void FifoPlayerDlg::OnObjectListSelectionChanged (wxCommandEvent& event)
+{
+	FifoPlayer& player = FifoPlayer::GetInstance();
+
+	int frame_idx = m_framesList->GetSelection();
+	int object_idx = event.GetInt();
+
+	m_objectCmdList->Clear();
+	if (frame_idx != -1 && object_idx != -1)
+	{
+		const AnalyzedFrameInfo& frame = player.GetAnalyzedFrameInfo(frame_idx);
+		const FifoFrameInfo& fifo_frame = player.GetFile()->GetFrame(frame_idx);
+		const u8* objectdata_start = &fifo_frame.fifoData[frame.objectStarts[object_idx]]; 
+		const u8* objectdata_end = &fifo_frame.fifoData[frame.objectEnds[object_idx]]; 
+		u8* objectdata = (u8*)objectdata_start;
+		const int obj_offset = objectdata_start - &fifo_frame.fifoData[frame.objectStarts[0]];
+
+		int cmd = *objectdata++;
+		int stream_size = Common::swap16(objectdata);
+		objectdata += 2;
+		int vertex_size = (objectdata_end - objectdata) / stream_size;
+		wxString newLabel = wxString::Format(wxT("%08X:  %02X %04X  "), obj_offset, cmd, stream_size);
+		if ((objectdata_end - objectdata) % stream_size) newLabel += _("NOTE: Stream size doesn't match actual data length\n");
+		while (objectdata < objectdata_end)
+		{
+			// Group bytes by vertex
+			newLabel += wxString::Format(wxT("%02X"), *objectdata++);
+			if (((objectdata - (objectdata_start+3)) % vertex_size) == 0) newLabel += wxT(" ");
+		}
+		m_objectCmdList->Append(newLabel);
+
+
+		// Between objectdata_end and next_objdata_start, there are register setting commands
+		if (object_idx + 1 < frame.objectStarts.size())
+		{
+			const u8* next_objdata_start = &fifo_frame.fifoData[frame.objectStarts[object_idx+1]]; 
+			while (objectdata < next_objdata_start)
+			{
+				int cmd = *objectdata++;
+				switch (cmd)
+				{
+				case GX_NOP:
+					newLabel = _("NOP");
+					break;
+
+				case 0x44:
+					newLabel = _("0x44");
+					break;
+
+				case GX_CMD_INVL_VC:
+					newLabel = _("GX_CMD_INVL_VC");
+					break;
+
+				case GX_LOAD_CP_REG:
+					{
+						u32 cmd2 = *objectdata++;
+						u32 value = Common::swap32(objectdata);
+						objectdata += 4;
+
+						newLabel = wxString::Format(wxT("CP  %02X  %08X"), cmd2, value);
+					}
+					break;
+
+				case GX_LOAD_XF_REG:
+					{
+						u32 cmd2 = Common::swap32(objectdata);
+						objectdata += 4;
+						u8 streamSize = ((cmd2 >> 16) & 15) + 1;
+
+						newLabel = wxString::Format(wxT("XF  %08X(%02X)  ..."), cmd2, streamSize);
+
+						objectdata += streamSize * 4;
+					}
+					break;
+
+				case GX_LOAD_INDX_A:
+				case GX_LOAD_INDX_B:
+				case GX_LOAD_INDX_C:
+				case GX_LOAD_INDX_D:
+					objectdata += 4;
+					newLabel = wxString::Format(wxT("LOAD INDX %s"), (cmd == GX_LOAD_INDX_A) ? "A" :
+																	(cmd == GX_LOAD_INDX_B) ? "B" :
+																	(cmd == GX_LOAD_INDX_C) ? "C" : "D");
+					break;
+
+				case GX_CMD_CALL_DL:
+					// The recorder should have expanded display lists into the fifo stream and skipped the call to start them
+					// That is done to make it easier to track where memory is updated
+					_assert_(false);
+					objectdata += 8;
+					newLabel = wxString::Format(wxT("CALL DL"));
+					break;
+
+				case GX_LOAD_BP_REG:
+					{
+						u32 cmd2 = Common::swap32(objectdata);
+						objectdata += 4;
+						newLabel = wxString::Format(wxT("BP  %02X %06X"), cmd2 >> 24, cmd2 & 0xFFFFFF);
+					}
+					break;
+
+				default:
+					newLabel = _("Unexpected 0x80 call? Aborting...");
+					objectdata = (u8*)next_objdata_start;
+					break;
+				}
+				m_objectCmdList->Append(newLabel);
+			}
+		}
+	}
+	// Call OnObjectCmdListSelectionChanged
+	m_objectCmdList->SetSelection(-1);
+}
+
+void FifoPlayerDlg::OnObjectCmdListSelectionChanged (wxCommandEvent& event)
+{
+
+}
+
 void FifoPlayerDlg::OnCloseClick(wxCommandEvent& WXUNUSED(event))
 {
 	Hide();
@@ -373,6 +554,23 @@ void FifoPlayerDlg::UpdateRecorderGui()
 	m_RecordingMemSizeLabel->SetLabel(CreateRecordingMemSizeLabel());
 	m_RecordingFramesLabel->SetLabel(CreateRecordingFrameCountLabel());	
 	m_Save->Enable(GetSaveButtonEnabled());
+}
+
+void FifoPlayerDlg::UpdateAnalyzerGui()
+{
+	FifoPlayer &player = FifoPlayer::GetInstance();
+	FifoDataFile* file = player.GetFile();
+
+	int num_frames = (file) ? player.GetFile()->GetFrameCount() : 0;
+	if (m_framesList->GetCount() != num_frames)
+	{
+		m_framesList->Clear();
+		for (int i = 0; i < num_frames; ++i)
+		{
+			m_framesList->Append(wxString::Format(wxT("Frame %i"), i));
+		}
+		m_framesList->SetSelection(-1);
+	}
 }
 
 wxString FifoPlayerDlg::CreateFileFrameCountLabel() const

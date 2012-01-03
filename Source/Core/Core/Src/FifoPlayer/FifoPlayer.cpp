@@ -94,8 +94,9 @@ bool FifoPlayer::Play()
 				if (m_EarlyMemoryUpdates && m_CurrentFrame == m_FrameRangeStart)
 					WriteAllMemoryUpdates();
 
-				WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);			
-				++m_CurrentFrame;				
+				WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);		
+
+				++m_CurrentFrame;
 			}
 		}
 	}

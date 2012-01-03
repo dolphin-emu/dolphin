@@ -47,8 +47,13 @@ private:
 	void OnRecordingFinished(wxCommandEvent& event);
 	void OnFrameWritten(wxCommandEvent& event);
 
+	void OnFrameListSelectionChanged(wxCommandEvent& event);
+	void OnObjectListSelectionChanged(wxCommandEvent& event);
+	void OnObjectCmdListSelectionChanged(wxCommandEvent& event);
+
 	void UpdatePlayGui();
 	void UpdateRecorderGui();
+	void UpdateAnalyzerGui();
 
 	wxString CreateFileFrameCountLabel() const;
 	wxString CreateCurrentFrameLabel() const;
@@ -89,6 +94,12 @@ private:
 	wxButton* m_Save;
 	wxStaticText* m_FramesToRecordLabel;
 	wxSpinCtrl* m_FramesToRecordCtrl;
+
+	wxPanel* m_AnalyzePage;
+	wxListBox* m_framesList;
+	wxListBox* m_objectsList;
+	wxListBox* m_objectCmdList;
+
 	wxButton* m_Close;
 
 	s32 m_FramesToRecord;

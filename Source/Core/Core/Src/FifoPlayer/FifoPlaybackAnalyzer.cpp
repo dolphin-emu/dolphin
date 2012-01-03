@@ -71,10 +71,10 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 
 		u32 cmdStart = 0;
 		u32 nextMemUpdate = 0;
-		
+
 		// Debugging
 		vector<CmdData> prevCmds;
-		
+
 		while (cmdStart < frame.fifoDataSize)
 		{
 			// Add memory updates that have occured before this point in the frame
@@ -83,9 +83,9 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 				AddMemoryUpdate(frame.memoryUpdates[nextMemUpdate], analyzed);
 				++nextMemUpdate;
 			}			
-			
+
 			bool wasDrawing = m_DrawingObject;
-			
+
 			u32 cmdSize = DecodeCommand(&frame.fifoData[cmdStart]);
 
 #if (LOG_FIFO_CMDS)
@@ -95,7 +95,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 			cmdData.size = cmdSize;
 			prevCmds.push_back(cmdData);
 #endif
-			
+
 			// Check for error
 			if (cmdSize == 0)
 			{
