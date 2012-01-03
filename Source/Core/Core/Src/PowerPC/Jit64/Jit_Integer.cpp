@@ -1436,7 +1436,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 			MOV(32, gpr.R(a), gpr.R(s));
 		}
 
-		if (inst.MB == 0 && inst.ME==31-inst.SH)
+		if (inst.SH && inst.MB == 0 && inst.ME==31-inst.SH)
 		{
 			SHL(32, gpr.R(a), Imm8(inst.SH));
 			if (inst.Rc)
@@ -1444,7 +1444,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 				GenerateRC();
 			}
 		}
-		else if (inst.ME == 31 && inst.MB == 32 - inst.SH)
+		else if (inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH)
 		{
 			SHR(32, gpr.R(a), Imm8(inst.MB));
 			if (inst.Rc)
