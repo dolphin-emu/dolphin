@@ -284,8 +284,6 @@ void CEXIChannel::DoState(PointerWrap &p)
 	p.Do(m_Control);
 	p.Do(m_ImmData);
 
-	bool reloadOnState = SConfig::GetInstance().b_reloadMCOnState;
-
 	for (int d = 0; d < NUM_DEVICES; ++d)
 	{
 		IEXIDevice* pDevice = m_pDevices[d];
@@ -299,9 +297,7 @@ void CEXIChannel::DoState(PointerWrap &p)
 			// also, if no movie is active, we'll assume the user wants to keep their current devices
 			// instead of the ones they had when the savestate was created,
 			// unless the device is NONE (since ChangeDevice sets that temporarily).
-			if(p.GetMode() != PointerWrap::MODE_READ ||
-				(pDevice->m_deviceType != EXIDEVICE_NONE &&
-				reloadOnState && !Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
+			if(p.GetMode() != PointerWrap::MODE_READ)
 			{
 				delete pSaveDevice;
 			}
