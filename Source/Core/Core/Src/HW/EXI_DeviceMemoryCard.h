@@ -71,7 +71,6 @@ private:
 	std::string m_strFilename;
 	int card_index;
 	int et_this_card;
-	bool reloadOnState;
 	//! memory card state
 
 	// STATE_TO_SAVE
