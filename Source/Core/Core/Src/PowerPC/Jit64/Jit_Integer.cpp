@@ -1525,14 +1525,14 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 		}
 		else if (inst.SH)
 		{
-			if (mask == -(1 << inst.SH))
+			if (mask == -(1U << inst.SH))
 			{
 				MOV(32, R(EAX), gpr.R(s));
 				SHL(32, R(EAX), Imm8(inst.SH));
 				AND(32, gpr.R(a), Imm32(~mask));
 				OR(32, gpr.R(a), R(EAX));
 			}
-			else if (mask == (1 << inst.SH) - 1)
+			else if (mask == (1U << inst.SH) - 1)
 			{
 				MOV(32, R(EAX), gpr.R(s));
 				SHR(32, R(EAX), Imm8(32-inst.SH));
