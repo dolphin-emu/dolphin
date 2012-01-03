@@ -1652,10 +1652,6 @@ void Jit64::srwx(UGeckoInstruction inst)
 	{
 		u32 amount = (u32)gpr.R(b).offset;
 		gpr.SetImmediate32(a, (amount & 0x20) ? 0 : ((u32)gpr.R(s).offset >> (amount & 0x1f)));
-		if (inst.Rc) 
-		{
-			ComputeRC(gpr.R(a));
-		}
 	}
 	else
 	{
@@ -1672,12 +1668,13 @@ void Jit64::srwx(UGeckoInstruction inst)
 		XOR(32, gpr.R(a), gpr.R(a));
 		SetJumpTarget(branch);
 		SHR(32, gpr.R(a), R(ECX));
-		if (inst.Rc)
-		{
-			GenerateRC();
-		}
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
+	}
+	// Shift of 0 doesn't update flags, so compare manually just in case
+	if (inst.Rc)
+	{
+		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -1693,10 +1690,6 @@ void Jit64::slwx(UGeckoInstruction inst)
 	{
 		u32 amount = (u32)gpr.R(b).offset;
 		gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (u32)gpr.R(s).offset << amount);
-		if (inst.Rc) 
-		{
-			ComputeRC(gpr.R(a));
-		}
 	}
 	else
 	{
@@ -1713,12 +1706,13 @@ void Jit64::slwx(UGeckoInstruction inst)
 		XOR(32, gpr.R(a), gpr.R(a));
 		SetJumpTarget(branch);
 		SHL(32, gpr.R(a), R(ECX));
-		if (inst.Rc) 
-		{
-			GenerateRC();
-		}
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
+	}
+	// Shift of 0 doesn't update flags, so compare manually just in case
+	if (inst.Rc) 
+	{
+		ComputeRC(gpr.R(a));
 	}
 }
 
