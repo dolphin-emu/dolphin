@@ -52,7 +52,6 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	m_strFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
 	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardA" : "memcardB", FlushCallback);
-	reloadOnState = SConfig::GetInstance().b_reloadMCOnState;
  
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -426,14 +425,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 
 void CEXIMemoryCard::OnAfterLoad()
 {
-	// hack for memory card switching, so you can load an old savestate and expect your newer memcard data to show up.
-	// it breaks movie sync, so we disable it if a movie is active.
-	// this was moved out of DoState because other things that got loaded later conflicted with it.
-	// note: the reloadOnState flag is almost always true. maybe only a few TASers have it off.
-	if (reloadOnState && !Movie::IsRecordingInput() && !Movie::IsPlayingInput())
-	{
-		ExpansionInterface::ChangeDevice(card_index, EXIDEVICE_MEMORYCARD, 0);
-	}
+
 }
 
 void CEXIMemoryCard::DoState(PointerWrap &p)
@@ -441,7 +433,7 @@ void CEXIMemoryCard::DoState(PointerWrap &p)
 	// for movie sync, we need to save/load memory card contents (and other data) in savestates.
 	// otherwise, we'll assume the user wants to keep their memcards and saves separate,
 	// unless we're loading (in which case we let the savestate contents decide, in order to stay aligned with them).
-	bool storeContents = (!reloadOnState || Movie::IsRecordingInput() || Movie::IsPlayingInput());
+	bool storeContents = (Movie::IsRecordingInput() || Movie::IsPlayingInput());
 	p.Do(storeContents);
 
 	if (storeContents)
