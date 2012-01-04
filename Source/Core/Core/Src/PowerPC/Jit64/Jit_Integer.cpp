@@ -1454,15 +1454,12 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 		}
 		else
 		{
-			bool written = false;
 			if (inst.SH != 0)
 			{
 				ROL(32, gpr.R(a), Imm8(inst.SH));
-				written = true;
 			}
 			if (!(inst.MB==0 && inst.ME==31)) 
 			{
-				written = true;
 				AND(32, gpr.R(a), Imm32(Helper_Mask(inst.MB, inst.ME)));
 				if (inst.Rc)
 				{
@@ -1473,7 +1470,6 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 			{
 				ComputeRC(gpr.R(a));
 			}
-			_assert_msg_(DYNA_REC, written, "W T F!!!");
 		}
 		gpr.UnlockAll();
 	}
