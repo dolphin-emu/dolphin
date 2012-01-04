@@ -89,7 +89,7 @@ struct DTMHeader {
     u64 frameCount;			// Number of frames in the recording
 	u64 inputCount;			// Number of input frames in recording
     u64 lagCount;			// Number of lag frames in the recording
-    u64 uniqueID;			// A Unique ID comprised of: md5(time + Game ID)
+    u64 uniqueID;			// (not implemented) A Unique ID comprised of: md5(time + Game ID)
     u32 numRerecords;		// Number of rerecords/'cuts' of this TAS
     u8  author[32];			// Author's name (encoded in UTF-8)
     
@@ -97,17 +97,15 @@ struct DTMHeader {
     u8  audioEmulator[16];	// UTF-8 representation of the audio emulator
     u8  padBackend[16];		// UTF-8 representation of the input backend
 
-	// hack, data that was only used for savestates and would more properly be stored in the savestate itself
-	// the hack has been removed, but these remain defined and reserved here for legacy support purposes
-	u64 deprecated_frameStart;         // NOT USED ANYMORE (use g_currentFrame)
-	u64 deprecated_totalFrameCount;    // NOT USED ANYMORE (use g_totalFrames or header.frameCount)
+	u64 recordingStartTime; // seconds since 1970 that recording started (used for RTC)
 
-    u8  reserved[111];		// Make heading 256 bytes, just because we can
+    u8  reserved[119];		// Make heading 256 bytes, just because we can
 };
 #pragma pack(pop)
 
 void FrameUpdate();
 void InputUpdate();
+void Init();
 
 void SetPolledDevice();
 
@@ -117,6 +115,7 @@ bool IsRecordingInputFromSaveState();
 bool IsJustStartingRecordingInputFromSaveState();
 bool IsPlayingInput();
 bool IsReadOnly();
+u64 GetRecordingStartTime();
 
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);

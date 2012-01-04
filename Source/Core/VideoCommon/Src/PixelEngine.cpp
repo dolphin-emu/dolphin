@@ -155,6 +155,16 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate);
 void Init()
 {
 	m_Control.Hex = 0;
+	m_ZConf.Hex = 0;
+	m_AlphaConf.Hex = 0;
+	m_DstAlphaConf.Hex = 0;
+	m_AlphaModeConf.Hex = 0;
+	m_AlphaRead.Hex = 0;
+
+	g_bSignalTokenInterrupt = false;
+	g_bSignalFinishInterrupt = false;
+	interruptSetToken = false;
+	interruptSetFinish = false;
 
 	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
 	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);

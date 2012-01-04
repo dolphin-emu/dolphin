@@ -29,6 +29,7 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "VideoBackendBase.h"
 #include "State.h"
+#include "Timer.h"
 
 // large enough for just over 24 hours of single-player recording
 #define MAX_DTM_LENGTH (40 * 1024 * 1024)
@@ -53,6 +54,7 @@ u64 g_currentByte = 0, g_totalBytes = 0;
 u64 g_currentFrame = 0, g_totalFrames = 0; // VI
 u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
+u64 g_recordingStartTime; // seconds since 1970 that recording started
 
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
@@ -63,6 +65,7 @@ std::string tmpStateFilename = "dtm.sav";
 std::string g_InputDisplay[8];
 
 ManipFunction mfunc = NULL;
+
 
 std::string GetInputDisplay()
 {
@@ -100,6 +103,34 @@ void FrameUpdate()
 		FrameSkipping();
 	
 	g_bPolled = false;
+}
+
+// called when game is booting up, even if no movie is active,
+// but potentially after BeginRecordingInput or PlayInput has been called.
+void Init()
+{
+	g_bPolled = false;
+	g_bFrameStep = false;
+	g_bFrameStop = false;
+	g_frameSkipCounter = g_framesToSkip;
+	memset(&g_padState, 0, sizeof(g_padState));
+	for (int i = 0; i < 8; ++i)
+		g_InputDisplay[i].clear();
+
+	if (!IsPlayingInput() && !IsRecordingInput())
+	{
+		g_bRecordingFromSaveState = false;
+		g_rerecords = 0;
+		g_numPads = 0;
+		g_currentByte = 0;
+		g_currentFrame = 0;
+		g_currentLagCount = 0;
+		g_currentInputCount = 0;
+		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
+		//g_totalFrames = g_totalBytes = 0;
+		//delete tmpInput;
+		//tmpInput = NULL;
+	}
 }
 
 void InputUpdate()
@@ -196,6 +227,11 @@ bool IsReadOnly()
 	return g_bReadOnly;
 }
 
+u64 GetRecordingStartTime()
+{
+	return g_recordingStartTime;
+}
+
 bool IsUsingPad(int controller)
 {
 	return ((g_numPads & (1 << controller)) != 0);
@@ -264,6 +300,7 @@ bool BeginRecordingInput(int controllers)
 	g_currentFrame = g_totalFrames = 0;
 	g_currentLagCount = g_totalLagCount = 0;
 	g_currentInputCount = g_totalInputCount = 0;
+	g_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();
 	g_rerecords = 0;
 	g_playMode = MODE_RECORDING;
 
@@ -532,6 +569,7 @@ bool PlayInput(const char *filename)
 	g_totalFrames = tmpHeader.frameCount;
 	g_totalLagCount = tmpHeader.lagCount;
 	g_totalInputCount = tmpHeader.inputCount;
+	g_recordingStartTime = tmpHeader.recordingStartTime;
 
 	g_currentFrame = 0;
 	g_currentLagCount = 0;
@@ -630,7 +668,7 @@ void LoadInput(const char *filename)
 		}
 		else if(g_currentByte > 0 && g_totalBytes > 0)
 		{
-			// verify identical from movie start to thee save's current frame
+			// verify identical from movie start to the save's current frame
 			u32 len = (u32)g_currentByte;
 			u8* movInput = new u8[len];
 			t_record.ReadArray(movInput, (size_t)len);
@@ -675,20 +713,6 @@ void LoadInput(const char *filename)
 	t_record.Close();
 
 	g_rerecords = tmpHeader.numRerecords;
-
-	if(g_currentSaveVersion == 0)
-	{
-		// attempt support for old savestates with movies but without movie-related data in DoState.
-		// I'm just guessing here and the old logic was kind of broken anyway, so this probably doesn't work well.
-		g_totalFrames = tmpHeader.frameCount;
-		if(g_totalFrames < tmpHeader.deprecated_totalFrameCount)
-			g_totalFrames = tmpHeader.deprecated_totalFrameCount;
-		u64 frameStart = tmpHeader.deprecated_frameStart ? tmpHeader.deprecated_frameStart : tmpHeader.frameCount;
-		g_currentFrame = frameStart;
-		g_currentByte = frameStart * 8;
-		g_currentLagCount = tmpHeader.lagCount;
-		g_currentInputCount = tmpHeader.inputCount;
-	}
 
 	if (!afterEnd)
 	{
@@ -817,7 +841,7 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, 
 
 	if (size != sizeInMovie)
 	{
-		PanicAlertT("Error in PlayWiimote. %u != %u, byte %d.\nSorry, Wii recording is temporarily broken.", sizeInMovie, size, g_currentByte);
+		PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s", (u32)sizeInMovie, (u32)size, (u32)g_currentByte, (g_numPads & 0xF)?" Try re-creating the recording with all GameCube controllers disabled (in Configure > Gamecube > Device Settings).":"");
 		EndPlayInput(!g_bReadOnly);
 		return false;
 	}
@@ -880,6 +904,7 @@ void SaveRecording(const char *filename)
 	header.lagCount = g_totalLagCount;
 	header.inputCount = g_totalInputCount;
 	header.numRerecords = g_rerecords;
+	header.recordingStartTime = g_recordingStartTime;
 	
 	// TODO
 	header.uniqueID = 0; 

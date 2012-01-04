@@ -346,6 +346,8 @@ void EmuThread()
 	DisplayMessage(cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
 
+	Movie::Init();
+
 	HW::Init();	
 
 	if (!g_video_backend->Initialize(g_pWindowHandle))

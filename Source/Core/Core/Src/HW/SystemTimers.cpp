@@ -231,12 +231,19 @@ void PatchEngineCallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_PatchEngine);
 }
 
+// split from Init to break a circular dependency between VideoInterface::Init and SystemTimers::Init
+void PreInit()
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		CPU_CORE_CLOCK = 729000000u;
+	else
+		CPU_CORE_CLOCK = 486000000u;
+}
+
 void Init()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		CPU_CORE_CLOCK = 729000000u;
-
 		if (!DSP::GetDSPEmulator()->IsLLE())
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
@@ -253,8 +260,6 @@ void Init()
 	}
 	else
 	{
-		CPU_CORE_CLOCK = 486000000u;
-
 		if (!DSP::GetDSPEmulator()->IsLLE())
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
 	}

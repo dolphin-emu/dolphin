@@ -133,6 +133,7 @@ void Init()
 
 void Shutdown()
 {
+	MoveEvents();
 	ClearPendingEvents();
 	UnregisterAllEvents();
 

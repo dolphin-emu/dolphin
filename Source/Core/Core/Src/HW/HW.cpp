@@ -43,6 +43,7 @@ namespace HW
 	void Init()
 	{
 		CoreTiming::Init();
+		SystemTimers::PreInit();
 
 		State::Init();
 

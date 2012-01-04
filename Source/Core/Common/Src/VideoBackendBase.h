@@ -140,6 +140,7 @@ class VideoBackendHardware : public VideoBackend
 {
 	void DoState(PointerWrap &p);
 	void RunLoop(bool enable);
+	bool Initialize(void *&) { InitializeShared(); return true; }
 
 	void EmuStateChange(EMUSTATE_CHANGE);
 
@@ -165,6 +166,9 @@ class VideoBackendHardware : public VideoBackend
 	readFn16  Video_PERead16();
 	writeFn16 Video_PEWrite16();
 	writeFn32 Video_PEWrite32();
+
+protected:
+	void InitializeShared();
 };
 
 #endif
