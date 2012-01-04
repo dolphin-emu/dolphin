@@ -182,15 +182,21 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	u32 ReturnValue		= FS_INVALID_ARGUMENT;
 	const s32 SeekPosition	= Memory::Read_U32(_CommandAddress + 0xC);
 	const s32 Mode			= Memory::Read_U32(_CommandAddress + 0x10);  
-	const u64 fileSize		= m_pFileHandle.GetSize();
 
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), fileSize);
-
-	// Set seek mode
-	int seek_mode[3] = {SEEK_SET, SEEK_CUR, SEEK_END};
-
-	if (Mode >= 0 && Mode <= 2)
+	if (m_pFileHandle == NULL)
 	{
+		ERROR_LOG(WII_IPC_FILEIO, "FILEIO: Seek failed because of null file handle - %s", m_Name.c_str());
+		ReturnValue = FS_FILE_NOT_EXIST;
+	}
+	else if (Mode >= 0 && Mode <= 2)
+	{
+		const u64 fileSize		= m_pFileHandle.GetSize();
+
+		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), fileSize);
+
+		// Set seek mode
+		int seek_mode[3] = {SEEK_SET, SEEK_CUR, SEEK_END};
+
 		// POSIX allows seek past EOF, the Wii does not. 
 		// TODO: Can we check this without tell'ing/seek'ing twice?
 		const u64 curPos = m_pFileHandle.Tell();
@@ -335,6 +341,7 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 	{
 		if (have_file_handle)
 		{
+			// TODO: isn't it naive and error-prone to assume that the file hasn't changed since we created the savestate?
 			Open(0, m_Mode);
 			_dbg_assert_msg_(WII_IPC_HLE, m_pFileHandle, "bad filehandle");
 		}
