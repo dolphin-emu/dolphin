@@ -1722,32 +1722,28 @@ void Jit64::srawx(UGeckoInstruction inst)
 	int s = inst.RS;
 	gpr.Lock(a, s, b);
 	gpr.FlushLockX(ECX);
-	gpr.BindToRegister(a, a == s || a == b, true);
+	gpr.BindToRegister(a, true, true);
+	JitClearCA();
 	MOV(32, R(ECX), gpr.R(b));
-	TEST(32, R(ECX), Imm32(32));
-	FixupBranch topBitSet = J_CC(CC_NZ);
 	if (a != s)
 		MOV(32, gpr.R(a), gpr.R(s));
-	MOV(32, R(EAX), Imm32(1));
-	SHL(32, R(EAX), R(ECX));
-	ADD(32, R(EAX), Imm32(0x7FFFFFFF));
-	AND(32, R(EAX), gpr.R(a));
-	ADD(32, R(EAX), Imm32(-1));
-	CMP(32, R(EAX), Imm32(-1));
-	SETcc(CC_L, R(EAX));
+	TEST(32, R(ECX), Imm32(32));
+	FixupBranch topBitSet = J_CC(CC_NZ);
+	LEA(32, EAX, MComplex(gpr.RX(a), gpr.RX(a), 1, 0));
 	SAR(32, gpr.R(a), R(ECX));
-	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(1 << 29)));
-	SHL(32, R(EAX), Imm8(29));
-	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(EAX));
+	NOT(32, R(ECX));
+	SHL(32, R(EAX), R(ECX));
+	TEST(32, R(EAX), gpr.R(a));
+	FixupBranch nocarry1 = J_CC(CC_Z);
+	JitSetCA();
 	FixupBranch end = J();
 	SetJumpTarget(topBitSet);
-	MOV(32, R(EAX), gpr.R(s));
-	SAR(32, R(EAX), Imm8(31));
-	MOV(32, gpr.R(a), R(EAX));
-	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(1 << 29)));
-	AND(32, R(EAX), Imm32(1<<29));
-	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(EAX));
+	SAR(32, gpr.R(a), Imm8(31));
+	FixupBranch nocarry2 = J_CC(CC_Z);
+	JitSetCA();
 	SetJumpTarget(end);
+	SetJumpTarget(nocarry1);
+	SetJumpTarget(nocarry2);
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 
@@ -1767,19 +1763,22 @@ void Jit64::srawix(UGeckoInstruction inst)
 	{
 		gpr.Lock(a, s);
 		gpr.BindToRegister(a, a == s, true);
-		MOV(32, R(EAX), gpr.R(s));
-		MOV(32, gpr.R(a), R(EAX));
-		SAR(32, gpr.R(a), Imm8(amount));
-		CMP(32, R(EAX), Imm8(0));
-		FixupBranch nocarry1 = J_CC(CC_GE);
-		TEST(32, R(EAX), Imm32((u32)0xFFFFFFFF >> (32 - amount))); // were any 1s shifted out?
-		FixupBranch nocarry2 = J_CC(CC_Z);
-		JitSetCA();
-		FixupBranch carry = J(false);
-		SetJumpTarget(nocarry1);
-		SetJumpTarget(nocarry2);
 		JitClearCA();
-		SetJumpTarget(carry);
+		MOV(32, R(EAX), gpr.R(s));
+		if (a != s)
+		{
+			MOV(32, gpr.R(a), R(EAX));
+		}
+		SAR(32, gpr.R(a), Imm8(amount));
+		if (inst.Rc)
+		{
+			GenerateRC();
+		}
+		SHL(32, R(EAX), Imm8(32-amount));
+		TEST(32, R(EAX), gpr.R(a));
+		FixupBranch nocarry = J_CC(CC_Z);
+		JitSetCA();
+		SetJumpTarget(nocarry);
 		gpr.UnlockAll();
 	}
 	else
@@ -1789,12 +1788,13 @@ void Jit64::srawix(UGeckoInstruction inst)
 		JitClearCA();
 		gpr.BindToRegister(a, a == s, true);
 		if (a != s)
+		{
 			MOV(32, gpr.R(a), gpr.R(s));
+		}
+		if (inst.Rc) {
+			ComputeRC(gpr.R(a));
+		}
 		gpr.UnlockAll();
-	}
-
-	if (inst.Rc) {
-		ComputeRC(gpr.R(a));
 	}
 }
 
