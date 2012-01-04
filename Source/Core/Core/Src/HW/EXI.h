@@ -28,7 +28,6 @@ namespace ExpansionInterface
 void Init();
 void Shutdown();
 void DoState(PointerWrap &p);
-void OnAfterLoad();
 void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 
 void Update();

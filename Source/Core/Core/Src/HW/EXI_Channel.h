@@ -131,7 +131,6 @@ public:
 	bool IsCausingInterrupt();
 	void UpdateInterrupts();
 	void DoState(PointerWrap &p);
-	void OnAfterLoad();
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 
 	// This should only be used to transition interrupts from SP1 to Channel 2

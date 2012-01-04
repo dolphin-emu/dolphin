@@ -438,11 +438,6 @@ void CEXIMemoryCard::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	}
 }
 
-void CEXIMemoryCard::OnAfterLoad()
-{
-
-}
-
 void CEXIMemoryCard::DoState(PointerWrap &p)
 {
 	// for movie sync, we need to save/load memory card contents (and other data) in savestates.

@@ -309,12 +309,6 @@ void CEXIChannel::DoState(PointerWrap &p)
 	}
 }
 
-void CEXIChannel::OnAfterLoad()
-{
-	for (int d = 0; d < NUM_DEVICES; ++d)
-		m_pDevices[d]->OnAfterLoad();
-}
-
 void CEXIChannel::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
 	for (int d = 0; d < NUM_DEVICES; ++d)

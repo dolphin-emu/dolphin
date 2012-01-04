@@ -68,12 +68,6 @@ void DoState(PointerWrap &p)
 		g_Channels[c]->DoState(p);
 }
 
-void OnAfterLoad()
-{
-	for (int c = 0; c < NUM_CHANNELS; ++c)
-		g_Channels[c]->OnAfterLoad();
-}
-
 void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
 	for (int c = 0; c < NUM_CHANNELS; ++c)

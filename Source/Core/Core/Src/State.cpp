@@ -427,8 +427,6 @@ void LoadAs(const std::string& filename)
 		}
 	}
 
-	HW::OnAfterLoad();
-
 	if (g_onAfterLoadCb)
 		g_onAfterLoadCb();
 
