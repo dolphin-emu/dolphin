@@ -3,6 +3,7 @@
 #define _VERTEXMANAGERBASE_H
 
 class NativeVertexFormat;
+class PointerWrap;
 
 class VertexManager
 {
@@ -44,6 +45,8 @@ public:
 	static u16* GetPointIndexBuffer() { return PIBuffer; }
 	static u8* GetVertexBuffer() { return LocalVBuffer; }
 
+	static void DoState(PointerWrap& p);
+
 protected:
 	// TODO: make private after Flush() is merged
 	static void ResetBuffer();
@@ -54,6 +57,9 @@ protected:
 	static u16 *PIBuffer;
 
 	static bool Flushed;
+
+	virtual void vDoState(PointerWrap& p) { DoStateShared(p); }
+	void DoStateShared(PointerWrap& p);
 
 private:
 	static void AddIndices(int primitive, int numVertices);

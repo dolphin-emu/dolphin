@@ -26,6 +26,7 @@
 #include "PixelEngine.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
+#include "VertexManagerBase.h"
 
 static void DoState(PointerWrap &p)
 {
@@ -67,6 +68,9 @@ static void DoState(PointerWrap &p)
 
 	VertexShaderManager::DoState(p);
 	p.DoMarker("VertexShaderManager");
+
+	VertexManager::DoState(p);
+	p.DoMarker("VertexManager");
 
 	// TODO: search for more data that should be saved and add it here
 }

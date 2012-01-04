@@ -308,3 +308,20 @@ shader_fail:
 	ResetBuffer();
 }
 #endif
+
+void VertexManager::DoState(PointerWrap& p)
+{
+	g_vertex_manager->vDoState(p);
+}
+
+void VertexManager::DoStateShared(PointerWrap& p)
+{
+	p.DoPointer(s_pCurBufferPointer, LocalVBuffer);
+	p.DoArray(LocalVBuffer, MAXVBUFFERSIZE);
+	p.DoArray(TIBuffer, MAXIBUFFERSIZE);
+	p.DoArray(LIBuffer, MAXIBUFFERSIZE);
+	p.DoArray(PIBuffer, MAXIBUFFERSIZE);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+		Flushed = false;
+}

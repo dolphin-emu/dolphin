@@ -45,13 +45,8 @@ void Fifo_DoState(PointerWrap &p)
 {
     p.DoArray(videoBuffer, FIFO_SIZE);
     p.Do(size);
-	int pos = (int)(g_pVideoData - videoBuffer); // get offset
-	p.Do(pos); // read or write offset (depending on the mode)
-	if (p.GetMode() == PointerWrap::MODE_READ)
-	{
-		g_pVideoData = &videoBuffer[pos];
-		g_bSkipCurrentFrame = false;
-	}
+    p.DoPointer(g_pVideoData, videoBuffer);
+    p.Do(g_bSkipCurrentFrame);
 }
 
 void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
