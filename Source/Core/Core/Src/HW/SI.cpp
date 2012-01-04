@@ -245,7 +245,8 @@ void DoState(PointerWrap &p)
 			// if we had to create a temporary device, discard it if we're not loading.
 			// also, if no movie is active, we'll assume the user wants to keep their current devices
 			// instead of the ones they had when the savestate was created.
-			if(p.GetMode() != PointerWrap::MODE_READ)
+			if(p.GetMode() != PointerWrap::MODE_READ ||
+				(!Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
 			{
 				delete pSaveDevice;
 			}
