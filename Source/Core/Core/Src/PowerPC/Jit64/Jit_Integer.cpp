@@ -1581,7 +1581,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
 	{
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
-		gpr.BindToRegister(a, true, true);
+		gpr.BindToRegister(a, (a == b || a == s), true);
 		MOV(32, R(ECX), gpr.R(b));
 		if (a != s)
 		{
@@ -1653,7 +1653,7 @@ void Jit64::srwx(UGeckoInstruction inst)
 	{
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
-		gpr.BindToRegister(a, true, true);
+		gpr.BindToRegister(a, (a == b || a == s), true);
 		MOV(32, R(ECX), gpr.R(b));
 		TEST(32, R(ECX), Imm32(32));
 		if (a != s)
@@ -1691,7 +1691,7 @@ void Jit64::slwx(UGeckoInstruction inst)
 	{
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
-		gpr.BindToRegister(a, true, true);
+		gpr.BindToRegister(a, (a == b || a == s), true);
 		MOV(32, R(ECX), gpr.R(b));
 		TEST(32, R(ECX), Imm32(32));
 		if (a != s)
@@ -1722,7 +1722,7 @@ void Jit64::srawx(UGeckoInstruction inst)
 	int s = inst.RS;
 	gpr.Lock(a, s, b);
 	gpr.FlushLockX(ECX);
-	gpr.BindToRegister(a, true, true);
+	gpr.BindToRegister(a, (a == s || a == b), true);
 	JitClearCA();
 	MOV(32, R(ECX), gpr.R(b));
 	if (a != s)
