@@ -218,19 +218,26 @@ void FifoPlayerDlg::CreateGUIControls()
 	sAnalyzePage = new wxBoxSizer(wxVERTICAL);
 
 	wxStaticBoxSizer* sTestSizer;
-	sTestSizer = new wxStaticBoxSizer(new wxStaticBox(m_AnalyzePage, wxID_ANY, _("Frame info")), wxHORIZONTAL);
+	sTestSizer = new wxStaticBoxSizer(new wxStaticBox(m_AnalyzePage, wxID_ANY, _("Frame info")), wxVERTICAL);
+
+	wxBoxSizer* sListsSizer = new wxBoxSizer(wxHORIZONTAL);
 
 	m_framesList = new wxListBox(m_AnalyzePage, wxID_ANY);
 	m_framesList->SetMinSize(wxSize(100, 250));
-	sTestSizer->Add(m_framesList, 0, wxALL, 5);
+	sListsSizer->Add(m_framesList, 0, wxALL, 5);
 
 	m_objectsList = new wxListBox(m_AnalyzePage, wxID_ANY);
 	m_objectsList->SetMinSize(wxSize(110, 250));
-	sTestSizer->Add(m_objectsList, 0, wxALL, 5);
+	sListsSizer->Add(m_objectsList, 0, wxALL, 5);
 
 	m_objectCmdList = new wxListBox(m_AnalyzePage, wxID_ANY);
 	m_objectCmdList->SetMinSize(wxSize(175, 250));
-	sTestSizer->Add(m_objectCmdList, 0, wxALL, 5);
+	sListsSizer->Add(m_objectCmdList, 0, wxALL, 5);
+
+	sTestSizer->Add(sListsSizer, 0, wxALL, 5);
+
+	m_objectCmdInfo = new wxStaticText(m_AnalyzePage, wxID_ANY, wxString());
+	sTestSizer->Add(m_objectCmdInfo, 0, wxALL, 5);
 
 	sAnalyzePage->Add(sTestSizer, 0, wxEXPAND, 5);
 	
@@ -388,7 +395,7 @@ void FifoPlayerDlg::OnFrameListSelectionChanged(wxCommandEvent& event)
 	m_objectsList->SetSelection(-1);
 }
 
-void FifoPlayerDlg::OnObjectListSelectionChanged (wxCommandEvent& event)
+void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 {
 	FifoPlayer& player = FifoPlayer::GetInstance();
 
@@ -396,6 +403,7 @@ void FifoPlayerDlg::OnObjectListSelectionChanged (wxCommandEvent& event)
 	int object_idx = event.GetInt();
 
 	m_objectCmdList->Clear();
+	m_objectCmdOffsets.clear();
 	if (frame_idx != -1 && object_idx != -1)
 	{
 		const AnalyzedFrameInfo& frame = player.GetAnalyzedFrameInfo(frame_idx);
@@ -413,11 +421,12 @@ void FifoPlayerDlg::OnObjectListSelectionChanged (wxCommandEvent& event)
 		if ((objectdata_end - objectdata) % stream_size) newLabel += _("NOTE: Stream size doesn't match actual data length\n");
 		while (objectdata < objectdata_end)
 		{
-			// Group bytes by vertex
+			// Group bytes by vertex - TODO: Won't work..
 			newLabel += wxString::Format(wxT("%02X"), *objectdata++);
 			if (((objectdata - (objectdata_start+3)) % vertex_size) == 0) newLabel += wxT(" ");
 		}
 		m_objectCmdList->Append(newLabel);
+		m_objectCmdOffsets.push_back(0);
 
 
 		// Between objectdata_end and next_objdata_start, there are register setting commands
@@ -426,6 +435,7 @@ void FifoPlayerDlg::OnObjectListSelectionChanged (wxCommandEvent& event)
 			const u8* next_objdata_start = &fifo_frame.fifoData[frame.objectStarts[object_idx+1]]; 
 			while (objectdata < next_objdata_start)
 			{
+				m_objectCmdOffsets.push_back(objectdata - objectdata_start);
 				int cmd = *objectdata++;
 				switch (cmd)
 				{
@@ -509,9 +519,46 @@ void FifoPlayerDlg::OnObjectListSelectionChanged (wxCommandEvent& event)
 	m_objectCmdList->SetSelection(-1);
 }
 
-void FifoPlayerDlg::OnObjectCmdListSelectionChanged (wxCommandEvent& event)
+void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
 {
+	const int frame_idx = m_framesList->GetSelection();
+	const int object_idx =  m_objectsList->GetSelection();
 
+	if (event.GetInt() == -1 || frame_idx == -1 || object_idx == -1)
+	{
+		m_objectCmdInfo->SetLabel(wxString());
+		return;
+	}
+
+	FifoPlayer& player = FifoPlayer::GetInstance();
+	const AnalyzedFrameInfo& frame = player.GetAnalyzedFrameInfo(frame_idx);
+	const FifoFrameInfo& fifo_frame = player.GetFile()->GetFrame(frame_idx);
+	const u8* cmddata = &fifo_frame.fifoData[frame.objectStarts[object_idx]] + m_objectCmdOffsets[event.GetInt()];
+
+	// TODO: Not sure whether we should bother translating the descriptions
+	wxString newLabel;
+	if (*cmddata == GX_LOAD_BP_REG)
+	{
+		char name[64]="\0", desc[512]="\0";
+		GetBPRegInfo(cmddata+1, name, sizeof(name), desc, sizeof(desc));
+		newLabel = _("BP register ");
+		newLabel += (name[0] != '\0') ? wxString::From8BitData(name) : wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1));
+		newLabel += wxT(":\n");
+		if (desc[0] != '\0')
+			newLabel += wxString::From8BitData(desc);
+		else
+			newLabel += _("No description available");
+	}
+	else if (*cmddata == GX_LOAD_CP_REG)
+		newLabel = _("CP reg");
+	else if (*cmddata == GX_LOAD_XF_REG)
+		newLabel = _("XF reg");
+	else
+		newLabel = _("No description available");
+
+	m_objectCmdInfo->SetLabel(newLabel);
+	Layout();
+	Fit();
 }
 
 void FifoPlayerDlg::OnCloseClick(wxCommandEvent& WXUNUSED(event))

@@ -18,6 +18,7 @@
 #ifndef __FIFO_PLAYER_DLG_h__
 #define __FIFO_PLAYER_DLG_h__
 
+#include <vector>
 #include <wx/wx.h>
 #include <wx/notebook.h>
 
@@ -99,6 +100,8 @@ private:
 	wxListBox* m_framesList;
 	wxListBox* m_objectsList;
 	wxListBox* m_objectCmdList;
+	std::vector<u32> m_objectCmdOffsets;
+	wxStaticText* m_objectCmdInfo;
 
 	wxButton* m_Close;
 

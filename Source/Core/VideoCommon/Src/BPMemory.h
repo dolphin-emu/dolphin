@@ -978,4 +978,6 @@ extern BPMemory bpmem;
 
 void LoadBPReg(u32 value0);
 
+void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size_t desc_size);
+
 #endif // _BPMEMORY_H
