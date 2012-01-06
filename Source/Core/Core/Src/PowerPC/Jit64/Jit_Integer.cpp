@@ -103,7 +103,7 @@ void Jit64::FinalizeCarryGenerateOverflowEAX(bool oe, bool inv)
 		SetJumpTarget(jno);
 		// Do carry
 		FixupBranch carry2 = J_CC(inv ? CC_C : CC_NC);
-		JitSetCA();
+		OR(32, R(EAX), Imm32(XER_CA_MASK));
 		SetJumpTarget(carry2);
 		//XER[OV] = 0
 		AND(32, R(EAX), Imm32(~XER_OV_MASK));
