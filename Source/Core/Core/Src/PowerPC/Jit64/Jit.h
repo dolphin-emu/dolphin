@@ -150,6 +150,8 @@ public:
 	void GenerateConstantOverflow(bool overflow);
 	void GenerateOverflow();
 	void FinalizeCarryOverflow(bool oe, bool inv = false);
+	void GetCarryEAXAndClear();
+	void FinalizeCarryGenerateOverflowEAX(bool oe, bool inv = false);
 	void GenerateCarry();
 	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);

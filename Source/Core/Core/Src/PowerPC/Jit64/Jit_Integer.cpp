@@ -73,11 +73,51 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 	}
 	else
 	{
-		// Output carry is inverted
+		// Do carry
 		FixupBranch carry1 = J_CC(inv ? CC_C : CC_NC);
 		JitSetCA();
 		SetJumpTarget(carry1);
 	}
+}
+
+void Jit64::GetCarryEAXAndClear()
+{
+	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+	BTR(32, R(EAX), Imm8(29));
+}
+
+// Assumes that XER is in EAX and that the CA bit is clear.
+void Jit64::FinalizeCarryGenerateOverflowEAX(bool oe, bool inv)
+{
+	// USES_XER
+	if (oe)
+	{
+		FixupBranch jno = J_CC(CC_NO);
+		// Do carry
+		FixupBranch carry1 = J_CC(inv ? CC_C : CC_NC);
+		OR(32, R(EAX), Imm32(XER_CA_MASK));
+		SetJumpTarget(carry1);
+		//XER[OV/SO] = 1
+		OR(32, R(EAX), Imm32(XER_SO_MASK | XER_OV_MASK));
+		FixupBranch exit = J();
+		SetJumpTarget(jno);
+		// Do carry
+		FixupBranch carry2 = J_CC(inv ? CC_C : CC_NC);
+		JitSetCA();
+		SetJumpTarget(carry2);
+		//XER[OV] = 0
+		AND(32, R(EAX), Imm32(~XER_OV_MASK));
+		SetJumpTarget(exit);
+	}
+	else
+	{
+		// Do carry
+		FixupBranch carry1 = J_CC(inv ? CC_C : CC_NC);
+		OR(32, R(EAX), Imm32(XER_CA_MASK));
+		SetJumpTarget(carry1);
+	}
+	// Dump EAX back into XER
+	MOV(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(EAX));
 }
 
 // Assumes that the flags were just set through an addition.
@@ -908,10 +948,7 @@ void Jit64::subfex(UGeckoInstruction inst)
 	gpr.Lock(a, b, d);
 	gpr.BindToRegister(d, (d == a || d == b), true);
 
-	// Get CA and clear it (along with OV if applicable)
-	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
-	JitClearCAOV(inst.OE);
-	SHR(32, R(EAX), Imm8(30));
+	GetCarryEAXAndClear();
 	
 	bool invertedCarry = false;
 	if (d == b)
@@ -928,16 +965,14 @@ void Jit64::subfex(UGeckoInstruction inst)
 	}
 	else
 	{
-		// Convert carry to borrow
-		CMC();
-		MOV(32, gpr.R(d), gpr.R(b));
-		SBB(32, gpr.R(d), gpr.R(a));
-		invertedCarry = true;
+		MOV(32, gpr.R(d), gpr.R(a));
+		NOT(32, gpr.R(d));
+		ADC(32, gpr.R(d), gpr.R(b));
 	}
 	if (inst.Rc) {
 		GenerateRC();
 	}
-	FinalizeCarryOverflow(inst.OE, invertedCarry);
+	FinalizeCarryGenerateOverflowEAX(inst.OE, invertedCarry);
 
 	gpr.UnlockAll();
 }
@@ -951,9 +986,7 @@ void Jit64::subfmex(UGeckoInstruction inst)
 	gpr.Lock(a, d);
 	gpr.BindToRegister(d, d == a);
 
-	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
-	JitClearCAOV(inst.OE);
-	SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+	GetCarryEAXAndClear();
 	if (d != a)
 	{
 		MOV(32, gpr.R(d), gpr.R(a));
@@ -964,7 +997,7 @@ void Jit64::subfmex(UGeckoInstruction inst)
 	{
 		GenerateRC();
 	}
-	FinalizeCarryOverflow(inst.OE);
+	FinalizeCarryGenerateOverflowEAX(inst.OE);
 	gpr.UnlockAll();
 }
 
@@ -977,9 +1010,8 @@ void Jit64::subfzex(UGeckoInstruction inst)
 	
 	gpr.Lock(a, d);
 	gpr.BindToRegister(d, d == a);
-	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
-	JitClearCAOV(inst.OE);
-	SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+	
+	GetCarryEAXAndClear();
 	if (d != a)
 	{
 		MOV(32, gpr.R(d), gpr.R(a));
@@ -990,7 +1022,7 @@ void Jit64::subfzex(UGeckoInstruction inst)
 	{
 		GenerateRC();
 	}
-	FinalizeCarryOverflow(inst.OE);
+	FinalizeCarryGenerateOverflowEAX(inst.OE);
 
 	gpr.UnlockAll();
 }
@@ -1267,31 +1299,29 @@ void Jit64::addex(UGeckoInstruction inst)
 	{
 		gpr.Lock(a, b, d);
 		gpr.BindToRegister(d, true);
-		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
-		JitClearCAOV(inst.OE);
-		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		
+		GetCarryEAXAndClear();
 		ADC(32, gpr.R(d), gpr.R((d == a) ? b : a));
 		if (inst.Rc)
 		{
 			GenerateRC();
 		}
-		FinalizeCarryOverflow(inst.OE);
+		FinalizeCarryGenerateOverflowEAX(inst.OE);
 		gpr.UnlockAll();
 	}
 	else
 	{
 		gpr.Lock(a, b, d);
 		gpr.BindToRegister(d, false);
-		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
-		JitClearCAOV(inst.OE);
-		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		
+		GetCarryEAXAndClear();
 		MOV(32, gpr.R(d), gpr.R(a));
 		ADC(32, gpr.R(d), gpr.R(b));
 		if (inst.Rc)
 		{
 			GenerateRC();
 		}
-		FinalizeCarryOverflow(inst.OE);
+		FinalizeCarryGenerateOverflowEAX(inst.OE);
 		gpr.UnlockAll();
 	}
 }
@@ -1343,31 +1373,29 @@ void Jit64::addmex(UGeckoInstruction inst)
 	{
 		gpr.Lock(d);
 		gpr.BindToRegister(d, true);
-		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
-		JitClearCAOV(inst.OE);
-		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		
+		GetCarryEAXAndClear();
 		ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
 		if (inst.Rc)
 		{
 			GenerateRC();
 		}
-		FinalizeCarryOverflow(inst.OE);
+		FinalizeCarryGenerateOverflowEAX(inst.OE);
 		gpr.UnlockAll();
 	}
 	else
 	{
 		gpr.Lock(a, d);
 		gpr.BindToRegister(d, false);
-		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
-		JitClearCAOV(inst.OE);
-		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		
+		GetCarryEAXAndClear();
 		MOV(32, gpr.R(d), gpr.R(a));
 		ADC(32, gpr.R(d), Imm32(0xFFFFFFFF));
 		if (inst.Rc)
 		{
 			GenerateRC();
 		}
-		FinalizeCarryOverflow(inst.OE);
+		FinalizeCarryGenerateOverflowEAX(inst.OE);
 		gpr.UnlockAll();
 	}
 }
@@ -1383,31 +1411,29 @@ void Jit64::addzex(UGeckoInstruction inst)
 	{
 		gpr.Lock(d);
 		gpr.BindToRegister(d, true);
-		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
-		JitClearCAOV(inst.OE);
-		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		
+		GetCarryEAXAndClear();
 		ADC(32, gpr.R(d), Imm8(0));
 		if (inst.Rc)
 		{
 			GenerateRC();
 		}
-		FinalizeCarryOverflow(inst.OE);
+		FinalizeCarryGenerateOverflowEAX(inst.OE);
 		gpr.UnlockAll();
 	}
 	else
 	{
 		gpr.Lock(a, d);
 		gpr.BindToRegister(d, false);
-		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
-		JitClearCAOV(inst.OE);
-		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
+		
+		GetCarryEAXAndClear();
 		MOV(32, gpr.R(d), gpr.R(a));
 		ADC(32, gpr.R(d), Imm8(0));
 		if (inst.Rc)
 		{
 			GenerateRC();
 		}
-		FinalizeCarryOverflow(inst.OE);
+		FinalizeCarryGenerateOverflowEAX(inst.OE);
 		gpr.UnlockAll();
 	}
 }

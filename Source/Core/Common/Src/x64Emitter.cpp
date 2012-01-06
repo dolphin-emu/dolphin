@@ -834,6 +834,39 @@ void XEmitter::SHL(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, sh
 void XEmitter::SHR(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, shift, 5);}
 void XEmitter::SAR(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, shift, 7);}
 
+// index can be either imm8 or register, don't use memory destination because it's slow
+void XEmitter::WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext)
+{
+	if (dest.IsImm())
+	{
+		_assert_msg_(DYNA_REC, 0, "WriteBitTest - can't test imms");
+	}
+	if ((index.IsImm() && index.GetImmBits() != 8))
+	{
+		_assert_msg_(DYNA_REC, 0, "WriteBitTest - illegal argument"); 
+	}
+	if (bits == 16) Write8(0x66);
+	if (index.IsImm())
+	{
+		dest.WriteRex(this, bits, bits);
+		Write8(0x0F); Write8(0xBA);
+		dest.WriteRest(this, 1, (X64Reg)ext);
+		Write8((u8)index.offset);
+	}
+	else
+	{
+		X64Reg operand = index.GetSimpleReg();
+		dest.WriteRex(this, bits, bits, operand);
+		Write8(0x0F); Write8(0x83 + 8*ext);
+		dest.WriteRest(this, 1, operand);
+	}
+}
+
+void XEmitter::BT(int bits, OpArg dest, OpArg index)  {WriteBitTest(bits, dest, index, 4);}
+void XEmitter::BTS(int bits, OpArg dest, OpArg index) {WriteBitTest(bits, dest, index, 5);}
+void XEmitter::BTR(int bits, OpArg dest, OpArg index) {WriteBitTest(bits, dest, index, 6);}
+void XEmitter::BTC(int bits, OpArg dest, OpArg index) {WriteBitTest(bits, dest, index, 7);}
+
 void OpArg::WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg _operandReg, int bits)
 {
 	if (bits == 16)
