@@ -913,28 +913,31 @@ void Jit64::subfex(UGeckoInstruction inst)
 	JitClearCAOV(inst.OE);
 	SHR(32, R(EAX), Imm8(30));
 	
-	// Convert carry to borrow
-	CMC();
-	
+	bool invertedCarry = false;
 	if (d == b)
 	{
+		// Convert carry to borrow
+		CMC();
 		SBB(32, gpr.R(d), gpr.R(a));
+		invertedCarry = true;
 	}
 	else if (d == a)
 	{
-		MOV(32, R(EAX), gpr.R(a));
-		MOV(32, gpr.R(d), gpr.R(b));
-		SBB(32, gpr.R(d), R(EAX));
+		NOT(32, gpr.R(d));
+		ADC(32, gpr.R(d), gpr.R(b));
 	}
 	else
 	{
+		// Convert carry to borrow
+		CMC();
 		MOV(32, gpr.R(d), gpr.R(b));
 		SBB(32, gpr.R(d), gpr.R(a));
+		invertedCarry = true;
 	}
 	if (inst.Rc) {
 		GenerateRC();
 	}
-	FinalizeCarryOverflow(inst.OE, true);
+	FinalizeCarryOverflow(inst.OE, invertedCarry);
 
 	gpr.UnlockAll();
 }
