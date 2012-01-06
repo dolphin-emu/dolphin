@@ -761,7 +761,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	else if (convtype == 2) pixel_shader = PixelShaderCache::ReinterpRGBA6ToRGB8();
 	else
 	{
-		PanicAlert("Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
+		ERROR_LOG(VIDEO, "Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
 		return;
 	}
 
