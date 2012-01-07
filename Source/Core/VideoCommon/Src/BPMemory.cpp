@@ -70,7 +70,7 @@ void BPReload()
 
 void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size_t desc_size)
 {
-	const char* yes_no[2] = { "Yes", "No" };
+	const char* no_yes[2] = { "No", "Yes" };
 
 	u32 cmddata = Common::swap32(*(u32*)data) & 0xFFFFFF;
 	switch (data[0])
@@ -111,7 +111,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 
 	case BPMEM_EFB_ADDR: // 0x4B
 		SetRegName(BPMEM_EFB_ADDR);
-		snprintf(desc, desc_size, "Target address (32 byte aligned): %06x", cmddata << 5);
+		snprintf(desc, desc_size, "Target address (32 byte aligned): 0x%06X", cmddata << 5);
 		break;
 
 	case BPMEM_COPYYSCALE: // 0x4E
@@ -121,17 +121,17 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 
 	case BPMEM_CLEAR_AR: // 0x4F
 		SetRegName(BPMEM_CLEAR_AR);
-		snprintf(desc, desc_size, "Alpha: %02X\nRed: %02x", (cmddata&0xFF00)>>8, cmddata&0xFF);
+		snprintf(desc, desc_size, "Alpha: 0x%02X\nRed: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
 		break;
 
 	case BPMEM_CLEAR_GB: // 0x50
 		SetRegName(BPMEM_CLEAR_GB);
-		snprintf(desc, desc_size, "Green: %02X\nBlue: %02x", (cmddata&0xFF00)>>8, cmddata&0xFF);
+		snprintf(desc, desc_size, "Green: 0x%02X\nBlue: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
 		break;
 
 	case BPMEM_CLEAR_Z: // 0x51
 		SetRegName(BPMEM_CLEAR_Z);
-		snprintf(desc, desc_size, "Z value: %06X", cmddata);
+		snprintf(desc, desc_size, "Z value: 0x%06X", cmddata);
 		break;
 
 	case BPMEM_TRIGGER_EFB_COPY: // 0x52
@@ -150,16 +150,16 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 								"Intensity format: %s\n"
 								"Automatic color conversion: %s\n",
 								(copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ? "Top only" : (copy.clamp1) ? "Bottom only" : "None",
-								yes_no[copy.yuv],
+								no_yes[copy.yuv],
 								copy.tp_realFormat(),
 								(copy.gamma==0)?"1.0":(copy.gamma==1)?"1.7":(copy.gamma==2)?"2.2":"Invalid value 0x3?",
-								yes_no[copy.half_scale],
-								yes_no[copy.scale_invert],
-								yes_no[copy.clear],
+								no_yes[copy.half_scale],
+								no_yes[copy.scale_invert],
+								no_yes[copy.clear],
 								copy.frame_to_field,
-								yes_no[copy.copy_to_xfb],
-								yes_no[copy.intensity_fmt],
-								yes_no[copy.auto_conv]);
+								no_yes[copy.copy_to_xfb],
+								no_yes[copy.intensity_fmt],
+								no_yes[copy.auto_conv]);
 		}
 		break;
 
