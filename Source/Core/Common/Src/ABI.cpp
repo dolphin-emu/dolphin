@@ -189,7 +189,7 @@ unsigned int XEmitter::ABI_GetAlignedFrameSize(unsigned int frameSize) {
 #ifdef __GNUC__
 		(frameSize + 15) & -16;
 #else
-		frameSize;
+		(frameSize + 3) & -4;
 #endif
 	return alignedSize;
 }
@@ -200,16 +200,15 @@ void XEmitter::ABI_AlignStack(unsigned int frameSize) {
 // Linux requires the stack to be 16-byte aligned before calls that put SSE
 // vectors on the stack, but since we do not keep track of which calls do that,
 // it is effectively every call as well.
-// Windows binaries compiled with MSVC do not have such a restriction, but I
+// Windows binaries compiled with MSVC do not have such a restriction*, but I
 // expect that GCC on Windows acts the same as GCC on Linux in this respect.
 // It would be nice if someone could verify this.
-#ifdef __GNUC__
+// *However, the MSVC optimizing compiler assumes a 4-byte-aligned stack at times.
 	unsigned int fillSize =
 		ABI_GetAlignedFrameSize(frameSize) - (frameSize + 4);
 	if (fillSize != 0) {
 		SUB(32, R(ESP), Imm8(fillSize));
 	}
-#endif
 }
 
 void XEmitter::ABI_RestoreStack(unsigned int frameSize) {
