@@ -171,14 +171,22 @@ void RunGpuLoop()
 			CommandProcessor::isPossibleWaitingSetDrawDone = false;
 		}
 		
-		fifo.isGpuReadingData = false;
-		
-
 		if (EmuRunningState)
-			Common::YieldCPU();
+		{
+			if (fifo.isGpuReadingData)
+			{
+				fifo.isGpuReadingData = false;
+				Common::YieldCPU();
+			}
+			else
+			{
+				SLEEP(1);
+			}
+		}
 		else
 		{
 			// While the emu is paused, we still handle async request such as Savestates then sleep.
+			fifo.isGpuReadingData = false;
 			while (!EmuRunningState)
 			{
 				g_video_backend->PeekMessages();
