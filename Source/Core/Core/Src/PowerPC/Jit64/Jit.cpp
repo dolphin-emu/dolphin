@@ -193,7 +193,7 @@ void Jit64::Init()
 	jo.enableFastMem = false;
 #endif
 	jo.assumeFPLoadFromMem = Core::g_CoreStartupParameter.bUseFastMem;
-	jo.fpAccurateFcmp = true; // Fallback to Interpreter
+	jo.fpAccurateFcmp = Core::g_CoreStartupParameter.bEnableFPRF;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = true;
