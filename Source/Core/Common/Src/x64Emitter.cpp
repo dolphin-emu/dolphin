@@ -867,6 +867,69 @@ void XEmitter::BTS(int bits, OpArg dest, OpArg index) {WriteBitTest(bits, dest, 
 void XEmitter::BTR(int bits, OpArg dest, OpArg index) {WriteBitTest(bits, dest, index, 6);}
 void XEmitter::BTC(int bits, OpArg dest, OpArg index) {WriteBitTest(bits, dest, index, 7);}
 
+//shift can be either imm8 or cl
+void XEmitter::SHRD(int bits, OpArg dest, OpArg src, OpArg shift)
+{
+	bool writeImm = false;
+	if (dest.IsImm())
+	{
+		_assert_msg_(DYNA_REC, 0, "SHRD - can't use imms as destination");
+	}
+	if (!src.IsSimpleReg())
+	{
+		_assert_msg_(DYNA_REC, 0, "SHRD - must use simple register as source");
+	}
+	if ((shift.IsSimpleReg() && shift.GetSimpleReg() != ECX) || (shift.IsImm() && shift.GetImmBits() != 8))
+	{
+		_assert_msg_(DYNA_REC, 0, "SHRD - illegal shift"); 
+	}
+	if (bits == 16) Write8(0x66);
+	X64Reg operand = src.GetSimpleReg();
+	dest.WriteRex(this, bits, bits, operand);
+	if (shift.GetImmBits() == 8)
+	{
+		Write8(0x0F); Write8(0xAC);
+		dest.WriteRest(this, 1, operand);
+		Write8((u8)shift.offset);
+	}
+	else
+	{
+		Write8(0x0F); Write8(0xAD);
+		dest.WriteRest(this, 0, operand);
+	}
+}
+
+void XEmitter::SHLD(int bits, OpArg dest, OpArg src, OpArg shift)
+{
+	bool writeImm = false;
+	if (dest.IsImm())
+	{
+		_assert_msg_(DYNA_REC, 0, "SHLD - can't use imms as destination");
+	}
+	if (!src.IsSimpleReg())
+	{
+		_assert_msg_(DYNA_REC, 0, "SHLD - must use simple register as source");
+	}
+	if ((shift.IsSimpleReg() && shift.GetSimpleReg() != ECX) || (shift.IsImm() && shift.GetImmBits() != 8))
+	{
+		_assert_msg_(DYNA_REC, 0, "SHLD - illegal shift"); 
+	}
+	if (bits == 16) Write8(0x66);
+	X64Reg operand = src.GetSimpleReg();
+	dest.WriteRex(this, bits, bits, operand);
+	if (shift.GetImmBits() == 8)
+	{
+		Write8(0x0F); Write8(0xA4);
+		dest.WriteRest(this, 1, operand);
+		Write8((u8)shift.offset);
+	}
+	else
+	{
+		Write8(0x0F); Write8(0xA5);
+		dest.WriteRest(this, 0, operand);
+	}
+}
+
 void OpArg::WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg _operandReg, int bits)
 {
 	if (bits == 16)

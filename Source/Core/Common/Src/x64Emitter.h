@@ -381,6 +381,10 @@ public:
 	void BTR(int bits, OpArg dest, OpArg index);
 	void BTC(int bits, OpArg dest, OpArg index);
 
+	// Double-Precision Shift
+	void SHRD(int bits, OpArg dest, OpArg src, OpArg shift);
+	void SHLD(int bits, OpArg dest, OpArg src, OpArg shift);
+
 	// Extend EAX into EDX in various ways
 	void CWD(int bits = 16);
 	inline void CDQ() {CWD(32);}

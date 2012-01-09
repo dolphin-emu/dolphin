@@ -1758,10 +1758,9 @@ void Jit64::srawx(UGeckoInstruction inst)
 		MOV(32, gpr.R(a), gpr.R(s));
 	TEST(32, R(ECX), Imm32(32));
 	FixupBranch topBitSet = J_CC(CC_NZ);
-	LEA(32, EAX, MComplex(gpr.RX(a), gpr.RX(a), 1, 0));
+	XOR(32, R(EAX), R(EAX));
+	SHRD(32, R(EAX), gpr.R(a), R(ECX));
 	SAR(32, gpr.R(a), R(ECX));
-	NOT(32, R(ECX));
-	SHL(32, R(EAX), R(ECX));
 	TEST(32, R(EAX), gpr.R(a));
 	FixupBranch nocarry1 = J_CC(CC_Z);
 	JitSetCA();
