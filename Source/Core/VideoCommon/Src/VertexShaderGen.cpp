@@ -270,6 +270,30 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 			if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
 				WRITE(p, "  float%d tex%d = gl_MultiTexCoord%d.xy%s; // TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i, hastexmtx ? "z" : "", i);
 		}
+
+		// Let's set up attributes
+		if (xfregs.numTexGen.numTexGens < 7)
+		{
+			for (int i = 0; i < 8; ++i)
+				WRITE(p, "ATTROUT  float3 uv%d_2;\n", i);
+			WRITE(p, "ATTROUT   float4 clipPos_2;\n");
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+				WRITE(p, "ATTROUT   float4 Normal_2;\n");
+		}
+		else
+		{
+			// wpos is in w of first 4 texcoords
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				for (int i = 0; i < 8; ++i)
+					WRITE(p, "ATTROUT   float4 uv%d_2;\n", i);
+			}
+			else
+			{
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+					WRITE(p, "ATTROUT   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
+			}
+		}
 		WRITE(p, "  float4 rawpos = gl_Vertex;\n") ;
 
 		WRITE(p, "void main()\n{\n");
@@ -574,21 +598,21 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 
 		if (xfregs.numTexGen.numTexGens < 7) {
 			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, " gl_TexCoord[%d].xyz =  o.tex%d;\n", i, i);
-			WRITE(p, "  gl_TexCoord[%d] = o.clipPos;\n", xfregs.numTexGen.numTexGens);
+				WRITE(p, " uv%d_2.xyz =  o.tex%d;\n", i, i);
+			WRITE(p, "  clipPos_2 = o.clipPos;\n");
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				WRITE(p, "  gl_TexCoord[%d] = o.Normal;\n", xfregs.numTexGen.numTexGens + 1);
+				WRITE(p, "  Normal_2 = o.Normal;\n");
 		} else {
 			// clip position is in w of first 4 texcoords
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			{
 				for (int i = 0; i < 8; ++i)
-					WRITE(p, " gl_TexCoord[%d] = o.tex%d;\n", i, i);
+					WRITE(p, " uv%d_2 = o.tex%d;\n", i, i);
 			}
 			else
 			{
 				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-					WRITE(p, "  gl_TexCoord[%d]%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
+					WRITE(p, "  uv%d_2%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
 			}
 		}               
 		WRITE(p, "gl_FrontColor = o.colors_0;\n");

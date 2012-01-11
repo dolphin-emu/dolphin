@@ -562,9 +562,15 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 					WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
 				if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 					WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
-			}
-			else
-				WRITE(p, "#version 120\n");
+			WRITE(p, "#define ATTRIN in\n");
+			WRITE(p, "#define ATTROUT out\n");
+		}
+		else
+		{
+			WRITE(p, "#version 120\n");
+			WRITE(p, "#define ATTRIN attribute\n");
+			WRITE(p, "#define ATTROUT attribute\n");
+		}
 
 			if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
 				WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
@@ -720,13 +726,21 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "   float4 colors_1 = gl_SecondaryColor;\n");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
-		if (numTexgen < 7)
+				// Let's set up attributes
+		if (xfregs.numTexGen.numTexGens < 7)
 		{
-			for (int i = 0; i < numTexgen; ++i)
-					WRITE(p, "  float3 uv%d = gl_TexCoord[%d].xyz;\n", i, i);
-			WRITE(p, "   float4 clipPos = gl_TexCoord[%d];\n", numTexgen);
+			for (int i = 0; i < 8; ++i)
+			{
+				WRITE(p, "ATTRIN  float3 uv%d_2;\n", i);
+				WRITE(p, "  float3 uv%d = uv%d_2;\n", i, i);
+			}
+			WRITE(p, "ATTRIN   float4 clipPos_2;\n");
+			WRITE(p, "   float4 clipPos = clipPos_2;\n");
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-					WRITE(p, "   float4 Normal = gl_TexCoord[%d];\n", numTexgen + 1);
+			{
+				WRITE(p, "ATTRIN   float4 Normal_2;\n");
+				WRITE(p, "   float4 Normal = Normal_2;\n");
+			}
 		}
 		else
 		{
@@ -734,12 +748,18 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			{
 				for (int i = 0; i < 8; ++i)
-					WRITE(p, "   float4 uv%d = gl_TexCoord[%d];\n", i, i);
+				{
+					WRITE(p, "ATTRIN   float4 uv%d_2;\n", i);
+					WRITE(p, "   float4 uv%d = uv%d_2;\n", i, i);
+				}
 			}
 			else
 			{
 				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-					WRITE(p, "   float%d uv%d = gl_TexCoord[%d]%s;\n", i < 4 ? 4 : 3 , i, i, i < 4 ? "" : ".xyz");
+				{
+					WRITE(p, "ATTRIN   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
+					WRITE(p, "   float%d uv%d = uv%d_2;\n", i < 4 ? 4 : 3 , i, i);
+				}
 			}
 		}
 		WRITE(p, "void main()\n{\n");
