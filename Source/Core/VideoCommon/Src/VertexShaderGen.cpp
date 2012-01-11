@@ -197,12 +197,16 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 				WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
 			WRITE(p, "#define ATTRIN in\n");
 			WRITE(p, "#define ATTROUT out\n");
+			WRITE(p, "#define VARYIN in\n");
+			WRITE(p, "#define VARYOUT out\n");
 		}
 		else
 		{
 			WRITE(p, "#version 120\n");
 			WRITE(p, "#define ATTRIN attribute\n");
-			WRITE(p, "#define ATTROUT attribute\n");
+			WRITE(p, "#define ATTROUT attribute\n"); // Can't really be used, but provide it anyway
+			WRITE(p, "#define VARYIN varying\n");
+			WRITE(p, "#define VARYOUT varying\n");
 		}
 		if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
 			WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
@@ -275,10 +279,10 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
 			for (int i = 0; i < 8; ++i)
-				WRITE(p, "ATTROUT  float3 uv%d_2;\n", i);
-			WRITE(p, "ATTROUT   float4 clipPos_2;\n");
+				WRITE(p, "VARYOUT  float3 uv%d_2;\n", i);
+			WRITE(p, "VARYOUT   float4 clipPos_2;\n");
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				WRITE(p, "ATTROUT   float4 Normal_2;\n");
+				WRITE(p, "VARYOUT   float4 Normal_2;\n");
 		}
 		else
 		{
@@ -286,17 +290,18 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			{
 				for (int i = 0; i < 8; ++i)
-					WRITE(p, "ATTROUT   float4 uv%d_2;\n", i);
+					WRITE(p, "VARYOUT   float4 uv%d_2;\n", i);
 			}
 			else
 			{
 				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-					WRITE(p, "ATTROUT   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
+					WRITE(p, "VARYOUT   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
 			}
 		}
-		WRITE(p, "  float4 rawpos = gl_Vertex;\n") ;
+		WRITE(p, "VARYOUT  float4 rawpos;\n") ;
 
 		WRITE(p, "void main()\n{\n");
+		WRITE(p, "rawpos = gl_Vertex;\n");
 	}
 	else
 	{
