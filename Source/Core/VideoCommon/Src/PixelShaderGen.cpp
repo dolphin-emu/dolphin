@@ -724,10 +724,12 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 		if (DepthTextureEnable)
 				WRITE(p, "  float depth;\n"); // TODO: Passed to Vertex Shader right?
-		WRITE(p, "VARYIN   float4 rawpos;\n");
+		WRITE(p, "   float4 rawpos = gl_FragCoord;\n");
 
-		WRITE(p, "   float4 colors_0 = gl_Color;\n");
-		WRITE(p, "   float4 colors_1 = gl_SecondaryColor;\n");
+		WRITE(p, "VARYIN   float4 colors_02;\n");
+		WRITE(p, "VARYIN   float4 colors_12;\n");
+		WRITE(p, "   float4 colors_0 = colors_02;\n");
+		WRITE(p, "   float4 colors_1 = colors_12;\n");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 				// Let's set up attributes

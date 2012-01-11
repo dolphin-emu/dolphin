@@ -298,10 +298,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 					WRITE(p, "VARYOUT   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
 			}
 		}
-		WRITE(p, "VARYOUT  float4 rawpos;\n") ;
+		WRITE(p, "  float4 rawpos = gl_Vertex;\n");
+		WRITE(p, "VARYOUT   float4 colors_02;\n");
+		WRITE(p, "VARYOUT   float4 colors_12;\n");
 
 		WRITE(p, "void main()\n{\n");
-		WRITE(p, "rawpos = gl_Vertex;\n");
 	}
 	else
 	{
@@ -620,8 +621,8 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 					WRITE(p, "  uv%d_2%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
 			}
 		}               
-		WRITE(p, "gl_FrontColor = o.colors_0;\n");
-		WRITE(p, "gl_FrontSecondaryColor = o.colors_1;\n");
+		WRITE(p, "colors_02 = o.colors_0;\n");
+		WRITE(p, "colors_12 = o.colors_1;\n");
 		WRITE(p, "gl_Position = o.pos;\n");
 		WRITE(p, "}\n");
 	}
