@@ -564,12 +564,16 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 					WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
 			WRITE(p, "#define ATTRIN in\n");
 			WRITE(p, "#define ATTROUT out\n");
+			WRITE(p, "#define VARYIN in\n");
+			WRITE(p, "#define VARYOUT out\n");
 		}
 		else
 		{
 			WRITE(p, "#version 120\n");
 			WRITE(p, "#define ATTRIN attribute\n");
-			WRITE(p, "#define ATTROUT attribute\n");
+			WRITE(p, "#define ATTROUT attribute\n"); // Can't really be used, but provide it anyway
+			WRITE(p, "#define VARYIN varying\n");
+			WRITE(p, "#define VARYOUT varying\n");
 		}
 
 			if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
@@ -720,7 +724,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 		if (DepthTextureEnable)
 				WRITE(p, "  float depth;\n"); // TODO: Passed to Vertex Shader right?
-		WRITE(p, "   float4 rawpos = gl_FragCoord;\n");
+		WRITE(p, "VARYIN   float4 rawpos;\n");
 
 		WRITE(p, "   float4 colors_0 = gl_Color;\n");
 		WRITE(p, "   float4 colors_1 = gl_SecondaryColor;\n");
@@ -731,14 +735,14 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			for (int i = 0; i < 8; ++i)
 			{
-				WRITE(p, "ATTRIN  float3 uv%d_2;\n", i);
+				WRITE(p, "VARYIN  float3 uv%d_2;\n", i);
 				WRITE(p, "  float3 uv%d = uv%d_2;\n", i, i);
 			}
-			WRITE(p, "ATTRIN   float4 clipPos_2;\n");
+			WRITE(p, "VARYIN   float4 clipPos_2;\n");
 			WRITE(p, "   float4 clipPos = clipPos_2;\n");
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			{
-				WRITE(p, "ATTRIN   float4 Normal_2;\n");
+				WRITE(p, "VARYIN   float4 Normal_2;\n");
 				WRITE(p, "   float4 Normal = Normal_2;\n");
 			}
 		}
@@ -749,7 +753,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			{
 				for (int i = 0; i < 8; ++i)
 				{
-					WRITE(p, "ATTRIN   float4 uv%d_2;\n", i);
+					WRITE(p, "VARYIN   float4 uv%d_2;\n", i);
 					WRITE(p, "   float4 uv%d = uv%d_2;\n", i, i);
 				}
 			}
@@ -757,7 +761,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			{
 				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 				{
-					WRITE(p, "ATTRIN   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
+					WRITE(p, "VARYIN   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
 					WRITE(p, "   float%d uv%d = uv%d_2;\n", i < 4 ? 4 : 3 , i, i);
 				}
 			}
