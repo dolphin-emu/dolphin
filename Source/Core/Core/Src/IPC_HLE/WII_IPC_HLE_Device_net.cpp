@@ -209,7 +209,7 @@ CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(u32 _Devi
 		m_Ifconfig.connection[0].ip[0] = 192;
 		m_Ifconfig.connection[0].ip[1] = 168;
 		m_Ifconfig.connection[0].ip[2] =   1;
-		m_Ifconfig.connection[0].ip[3] =   1;
+		m_Ifconfig.connection[0].ip[3] =   150;
 		m_Ifconfig.connection[0].netmask[0] = 255;
 		m_Ifconfig.connection[0].netmask[1] = 255;
 		m_Ifconfig.connection[0].netmask[2] = 255;
@@ -217,16 +217,16 @@ CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(u32 _Devi
 		m_Ifconfig.connection[0].gateway[0] = 192;
 		m_Ifconfig.connection[0].gateway[1] = 168;
 		m_Ifconfig.connection[0].gateway[2] =   1;
-		m_Ifconfig.connection[0].gateway[3] =   2;
-		m_Ifconfig.connection[0].dns1[0] = 10;
-		m_Ifconfig.connection[0].dns1[1] = 0;
-		m_Ifconfig.connection[0].dns1[2] = 1;
-		m_Ifconfig.connection[0].dns1[3] = 1;
+		m_Ifconfig.connection[0].gateway[3] =   1;
+		m_Ifconfig.connection[0].dns1[0] = 8;
+		m_Ifconfig.connection[0].dns1[1] = 8;
+		m_Ifconfig.connection[0].dns1[2] = 8;
+		m_Ifconfig.connection[0].dns1[3] = 8;
 		m_Ifconfig.connection[1].flags = 167;
 		m_Ifconfig.connection[1].ip[0] = 192;
 		m_Ifconfig.connection[1].ip[1] = 168;
 		m_Ifconfig.connection[1].ip[2] =   1;
-		m_Ifconfig.connection[1].ip[3] =   1;
+		m_Ifconfig.connection[1].ip[3] =   150;
 		m_Ifconfig.connection[1].netmask[0] = 255;
 		m_Ifconfig.connection[1].netmask[1] = 255;
 		m_Ifconfig.connection[1].netmask[2] = 255;
@@ -234,16 +234,16 @@ CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(u32 _Devi
 		m_Ifconfig.connection[1].gateway[0] = 192;
 		m_Ifconfig.connection[1].gateway[1] = 168;
 		m_Ifconfig.connection[1].gateway[2] =   1;
-		m_Ifconfig.connection[1].gateway[3] =   2;
-		m_Ifconfig.connection[1].dns1[0] = 10;
-		m_Ifconfig.connection[1].dns1[1] = 0;
-		m_Ifconfig.connection[1].dns1[2] = 1;
-		m_Ifconfig.connection[1].dns1[3] = 1;
+		m_Ifconfig.connection[1].gateway[3] =   1;
+		m_Ifconfig.connection[1].dns1[0] = 8;
+		m_Ifconfig.connection[1].dns1[1] = 8;
+		m_Ifconfig.connection[1].dns1[2] = 8;
+		m_Ifconfig.connection[1].dns1[3] = 8;
 		m_Ifconfig.connection[2].flags = 167;
 		m_Ifconfig.connection[2].ip[0] = 192;
 		m_Ifconfig.connection[2].ip[1] = 168;
 		m_Ifconfig.connection[2].ip[2] =   1;
-		m_Ifconfig.connection[2].ip[3] =   1;
+		m_Ifconfig.connection[2].ip[3] =   150;
 		m_Ifconfig.connection[2].netmask[0] = 255;
 		m_Ifconfig.connection[2].netmask[1] = 255;
 		m_Ifconfig.connection[2].netmask[2] = 255;
@@ -251,11 +251,11 @@ CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(u32 _Devi
 		m_Ifconfig.connection[2].gateway[0] = 192;
 		m_Ifconfig.connection[2].gateway[1] = 168;
 		m_Ifconfig.connection[2].gateway[2] =   1;
-		m_Ifconfig.connection[2].gateway[3] =   2;
-		m_Ifconfig.connection[2].dns1[0] = 10;
-		m_Ifconfig.connection[2].dns1[1] = 0;
-		m_Ifconfig.connection[2].dns1[2] = 1;
-		m_Ifconfig.connection[2].dns1[3] = 1;
+		m_Ifconfig.connection[2].gateway[3] =   1;
+		m_Ifconfig.connection[2].dns1[0] = 8;
+		m_Ifconfig.connection[2].dns1[1] = 8;
+		m_Ifconfig.connection[2].dns1[2] = 8;
+		m_Ifconfig.connection[2].dns1[3] = 8;
 
 	}
 }
@@ -467,16 +467,18 @@ char *DecodeError(int ErrorCode)
 static int getNetErrorCode(int ret, std::string caller)
 {
 #ifdef _WIN32
-	INFO_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d\n",
-		caller.c_str(), WSAGetLastError(), DecodeError(WSAGetLastError()), ret);
-
+	int errorCode = WSAGetLastError();
 	if (ret>= 0)
 		return ret;
 
-	switch (WSAGetLastError())
+	INFO_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d\n",
+		caller.c_str(), errorCode, DecodeError(errorCode), ret);
+
+	switch (errorCode)
 	{
 	case 10040:
-		return 1;
+		INFO_LOG(WII_IPC_NET, "Find out why this happened, looks like PEEK failure?\n");
+		return -1;
 	case 10054:
 		return -15;
 	case 10035:
@@ -491,6 +493,17 @@ static int getNetErrorCode(int ret, std::string caller)
 		caller.c_str(), 0x1337, "hmm", ret);
 	return ret;
 #endif
+}
+
+static int convertWiiSockOpt(int level, int optname)
+{
+	switch (optname)
+	{
+	case 0x1009:
+		return 0x1007; //SO_ERROR
+	default:
+		return optname;
+	}
 }
 
 static int inet_pton(const char *src, unsigned char *dst)
@@ -566,11 +579,11 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			serverAddr.sin_family = serverAddr.sin_family >> 8;
 
 			int ret = connect(Common::swap32(params.socket), (struct sockaddr *) &serverAddr, sizeof(serverAddr));
-
+			ret = getNetErrorCode(ret, "SO_CONNECT");
 			INFO_LOG(WII_IPC_NET,"/dev/net/ip/top::IOCtl request IOCTL_SO_CONNECT (%08x, %s:%d)",
 				Common::swap32(params.socket), inet_ntoa(serverAddr.sin_addr), Common::swap16(serverAddr.sin_port));
 
-			return getNetErrorCode(ret, "SO_CONNECT");
+			return ret;
 			break;
 		}
 
@@ -667,16 +680,33 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			u32 sock = Memory::Read_U32(_BufferOut);
 			u32 level = Memory::Read_U32(_BufferOut + 4);
 			u32 optname = Memory::Read_U32(_BufferOut + 8);
+
+
+			
+			INFO_LOG(WII_IPC_NET,"/dev/net/ip/top::IOCtl request IOCTL_SO_GETSOCKOPT(%08x, %08x, %08x)"
+				"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+				sock, level, optname,
+				_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
+
+			optname = convertWiiSockOpt(level,optname);
+
 			u8 optval[20];
-			u32 optlen = 8;
+			u32 optlen = 4;
 
-			INFO_LOG(WII_IPC_NET,"/dev/net/ip/top::IOCtl request IOCTL_SO_GETSOCKOPT "
-				"Socket: %08x, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-				sock, _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
+			//for(int i=0; i<BufferOutSize; i++) INFO_LOG(WII_IPC_NET,"%02x ", Memory::Read_U8(_BufferOut + i));
 
-			int ret = getsockopt (sock, level, optname, (char *) optval, (socklen_t*)&optlen);
+			int ret = getsockopt (sock, level, optname, (char *) &optval, (socklen_t*)&optlen);
+			
+			ret = getNetErrorCode(ret, "SO_GETSOCKOPT");
+
+
 			Memory::Write_U32(optlen, _BufferOut + 0xC);
 			Memory::WriteBigEData((u8 *) optval, _BufferOut + 0x10, optlen);
+
+			if(optname == 0x1007){
+				s32 errorcode = Memory::Read_U32(_BufferOut + 0x10);
+				INFO_LOG(WII_IPC_NET,"/dev/net/ip/top::IOCtl request IOCTL_SO_GETSOCKOPT error code = %i", errorcode);
+			}
 			return ret;
 		}
 
@@ -689,11 +719,18 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			u8 optval[20];
 			Memory::ReadBigEData(optval, _BufferIn + 0x10, optlen);
 
-			INFO_LOG(WII_IPC_NET, "/dev/net/ip/top::IOCtl request IOCTL_SO_SETSOCKOPT "
-				"Socket: %08x, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-				S, _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
+			//TODO: bug booto about this, most likely timeout related, default value on wii is 180
+			if (level == 6 && optname == 0x2005){
+				return 0;
+			}
+			INFO_LOG(WII_IPC_NET, "/dev/net/ip/top::IOCtl request IOCTL_SO_SETSOCKOPT(%08x, %08x, %08x, %08x) "
+				"BufferIn: (%08x, %i), BufferOut: (%08x, %i)"
+				"%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx",
+				S, level, optname, optlen, _BufferIn, BufferInSize, _BufferOut, BufferOutSize, optval[0], optval[1], optval[2], optval[3], optval[4], optval[5], optval[6], optval[7], optval[8], optval[9], optval[10], optval[11], optval[12], optval[13], optval[14], optval[15], optval[16], optval[17], optval[18], optval[19]);
 
 			int ret = setsockopt(S, level, optname, (char*)optval, optlen);
+
+			ret = getNetErrorCode(ret, "SO_SETSOCKOPT");
 
 			return ret;
 		}
@@ -799,6 +836,9 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 					_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
 			}
 			int ret = poll(ufds, nfds, timeout);
+			
+			ret = getNetErrorCode(ret, "SO_SETSOCKOPT");
+
 			for (int i = 0; i<nfds; i++)
 			{
 				Memory::Write_U32(ufds[i].fd, _BufferOut + 0xc*i);
@@ -990,8 +1030,8 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffe
 									INFO_LOG(WII_IPC_NET, "DNS: %u.%u.%u.%u",
 										(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2],
 										(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[3],
-										(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[5],
-										(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[6]);
+										(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[4],
+										(unsigned char)AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[5]);
 									address = Common::swap32(*(u32*)(&AdapterList->FirstDnsServerAddress->Address.lpSockaddr->sa_data[2]));
 									break;
 								}
@@ -1090,7 +1130,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffe
 			struct sockaddr_in addr;
 			socklen_t fromlen = 0;
 
-			if (_BufferOut2 != 0)
+			if (BufferOutSize2 != 0)
 			{
 				fromlen = BufferOutSize2 >= sizeof(struct sockaddr) ? BufferOutSize2 : sizeof(struct sockaddr);
 			}
@@ -1100,11 +1140,24 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffe
 			else
 				flags = MSG_PEEK;
 
+			int ret;
+#ifdef _WIN32
+			if(flags & MSG_PEEK){
+				unsigned long totallen = 0;
+				ioctlsocket(sock, FIONREAD, &totallen);
+				return totallen;
+			}else
+#endif
+			if (fromlen){
+				ret = recvfrom(sock, buf, len, flags,
+					fromlen ? (struct sockaddr*) &addr : NULL, fromlen ? &fromlen : 0);
+			}else{
+				ret = recv(sock, buf, len, flags);
+			}
 
-			int ret =  recvfrom(sock, buf, len, flags,
-				fromlen ? (struct sockaddr*) &addr : NULL, fromlen ? &fromlen : NULL); 
-			if (_BufferOut2 != 0)
+			if (BufferOutSize2 != 0)
 			{
+				//something not quite right below, need to verify
 				addr.sin_family = (addr.sin_family << 8) | (BufferOutSize2&0xFF);
 				Memory::WriteBigEData((u8*)&addr, _BufferOut2, BufferOutSize2);
 			}
@@ -1137,7 +1190,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffe
 			if (BufferInSize2 > 0)
 				pServiceName = (char*)Memory::GetPointer(_BufferIn2);
 
-			int ret = getaddrinfo(pNodeName, pServiceName, &hints, &result);
+			int ret = getaddrinfo(pNodeName, pServiceName, BufferInSize3 ? &hints : NULL, &result);
 			u32 addr = _BufferOut;
 			u32 sockoffset = addr + 0x460;
 			if (ret >= 0)
