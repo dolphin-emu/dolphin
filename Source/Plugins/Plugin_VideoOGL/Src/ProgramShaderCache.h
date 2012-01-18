@@ -78,8 +78,6 @@ public:
 		// No idea how necessary this is
 		static GLenum SetProgramFormat()
 		{
-			if(!g_ActiveConfig.backend_info.bSupportsGLSLCache)
-				return 0;
 			GLint Supported;
 			glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
 
