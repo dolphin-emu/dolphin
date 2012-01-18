@@ -29,7 +29,7 @@ GLintptr ProgramShaderCache::s_vs_data_offset;
 LinearDiskCache<ProgramShaderCache::ShaderUID, u8> g_program_disk_cache;
 GLenum ProgramFormat;
 
-GLuint ProgramShaderCache::PCacheEntry::prog_format = ProgramShaderCache::PCacheEntry::SetProgramFormat();
+GLuint ProgramShaderCache::PCacheEntry::prog_format = 0;
 
 std::pair<u32, u32> ProgramShaderCache::CurrentShaderProgram;
 const char *UniformNames[NUM_UNIFORMS] =
@@ -215,9 +215,12 @@ void ProgramShaderCache::Init(void)
 	// Read our shader cache, only if supported
 	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
 	{
+		PCacheEntry::prog_format = PCacheEntry::SetProgramFormat();
+
 		char cache_filename[MAX_PATH];
 		sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+
 		ProgramShaderCacheInserter inserter;
 		g_program_disk_cache.OpenAndRead(cache_filename, inserter);
 	}
