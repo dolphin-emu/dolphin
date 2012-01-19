@@ -1126,7 +1126,7 @@ bool GCMemcard::Format(u8 * card_data, bool sjis, u16 SizeMb)
 	gcp.bat_backup = (BlockAlloc *)(card_data + BLOCK_SIZE*4);
 
 	*(u16*)gcp.hdr->SizeMb = BE16(SizeMb);
-	*(u16*)gcp.hdr->Encoding = BE16(sjis ? 1 : 0);
+	gcp.hdr->Encoding = BE16(sjis ? 1 : 0);
 
 	FormatInternal(gcp);
 	return true;
@@ -1148,7 +1148,7 @@ bool GCMemcard::Format(bool sjis, u16 SizeMb)
 	gcp.bat_backup = &bat_backup;
 	
 	*(u16*)hdr.SizeMb = BE16(SizeMb);
-	*(u16*)hdr.Encoding = BE16(sjis ? 1 : 0);
+	hdr.Encoding = BE16(sjis ? 1 : 0);
 	FormatInternal(gcp);
 
 	m_sizeMb = SizeMb;

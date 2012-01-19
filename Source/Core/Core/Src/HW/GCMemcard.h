@@ -91,7 +91,7 @@ private:
 		// end Serial in libogc
 		u8 deviceID[2];		//0x0020	2		0 if formated in slot A 1 if formated in slot B
 		u8 SizeMb[2];		//0x0022	2		size of memcard in Mbits
-		u8 Encoding[2];		//0x0024	2		encoding (ASCII or japanese)
+		u16 Encoding;		//0x0024	2		encoding (ASCII or japanese)
 		u8 Unused1[468];	//0x0026	468		unused (0xff)
 		u8 UpdateCounter[2];//0x01fa	2		update Counter (?, probably unused)
 		u16 Checksum;		//0x01fc	2		Additive Checksum
