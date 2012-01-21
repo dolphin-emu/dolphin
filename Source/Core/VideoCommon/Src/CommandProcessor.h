@@ -158,6 +158,7 @@ void UpdateInterruptsFromVideoBackend(u64 userdata);
 
 bool AllowIdleSkipping();
 
+void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
 void SetOverflowStatusFromGatherPipe();
