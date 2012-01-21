@@ -148,7 +148,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 								"Frame to field: 0x%01X\n"
 								"Copy to XFB: %s\n"
 								"Intensity format: %s\n"
-								"Automatic color conversion: %s\n",
+								"Automatic color conversion: %s",
 								(copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ? "Top only" : (copy.clamp1) ? "Bottom only" : "None",
 								no_yes[copy.yuv],
 								copy.tp_realFormat(),
