@@ -91,7 +91,7 @@ class TASInputDlg : public wxDialog
 		wxStaticBitmap*	static_bitmap_main, *static_bitmap_c;
 		wxBitmap bitmap;
 		bool A_turbo,B_turbo, X_turbo, Y_turbo, Z_turbo, L_turbo, R_turbo, START_turbo,DL_turbo,DR_turbo,DD_turbo,DU_turbo;
-		bool A_cont,B_cont, X_cont, Y_cont, Z_cont, L_cont, R_cont, START_cont,DL_cont,DR_cont,DD_cont,DU_cont;
+		bool A_cont,B_cont, X_cont, Y_cont, Z_cont, L_cont, R_cont, START_cont,DL_cont,DR_cont,DD_cont,DU_cont,mstickx,msticky,cstickx,csticky;
 		int xaxis,yaxis,c_xaxis,c_yaxis,update,update_axis;
 				
 		DECLARE_EVENT_TABLE();

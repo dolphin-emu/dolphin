@@ -44,7 +44,7 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 {
 	A_turbo,B_turbo, X_turbo, Y_turbo, Z_turbo, L_turbo, R_turbo, START_turbo,DL_turbo,DR_turbo,DD_turbo,DU_turbo = false;
 	xaxis,yaxis,c_xaxis,c_yaxis = 128;
-	bool A_cont,B_cont, X_cont, Y_cont, Z_cont, L_cont, R_cont, START_cont,DL_cont,DR_cont,DD_cont,DU_cont = false;
+	A_cont,B_cont, X_cont, Y_cont, Z_cont, L_cont, R_cont, START_cont,DL_cont,DR_cont,DD_cont,DU_cont,mstickx,msticky,cstickx,csticky = false;
 	
 	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
@@ -234,7 +234,59 @@ void TASInputDlg::ResetValues()
 
 void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 {
+	if(PadStatus->stickX != 128)
+	{
+		mainX = PadStatus->stickX;
+		mstickx = true;
+		wx_mainX_t->SetValue(wxString::Format(wxT("%i"), mainX));
+	}
 	
+	else if(mstickx)
+	{
+		mstickx = false;
+		mainX = 128;
+		wx_mainX_t->SetValue(wxString::Format(wxT("%i"), mainX));
+	}
+
+	if(PadStatus->stickY != 128)
+	{
+		mainY = PadStatus->stickY;
+		msticky = true;
+		wx_mainY_t->SetValue(wxString::Format(wxT("%i"),mainY));
+	}
+	else if(msticky)
+	{
+		msticky = false;
+		mainY = 128;
+		wx_mainY_t->SetValue(wxString::Format(wxT("%i"), mainY));
+	}
+
+	if(PadStatus->substickX != 128)
+	{
+		cX = PadStatus->substickX;
+		cstickx = true;
+		wx_cX_t->SetValue(wxString::Format(wxT("%i"), cX));
+	}
+	else if(cstickx)
+	{
+		cstickx = false;
+		cX = 128;
+		wx_cX_t->SetValue(wxString::Format(wxT("%i"), cX));
+	}
+
+	if(PadStatus->substickY != 128)
+	{
+		cY = PadStatus->substickY;
+		csticky = true;
+		wx_cY_t->SetValue(wxString::Format(wxT("%i"), cY));
+	}
+	else if(csticky)
+	{
+		csticky = false;
+		cY = 128;
+		wx_cY_t->SetValue(wxString::Format(wxT("%i"), cY));
+	}
+
 	if(((PadStatus->button & PAD_BUTTON_UP) != 0))
 	{
 		wx_up_button->SetValue(true);
@@ -373,6 +425,7 @@ void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 	if (!IsShown())
 		return;
 	
+	//TODO:: Make this instant not when polled.
 	GetKeyBoardInput(PadStatus);
 
 	// TODO: implement support for more controllers
