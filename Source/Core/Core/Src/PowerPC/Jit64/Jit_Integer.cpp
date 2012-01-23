@@ -1904,6 +1904,19 @@ void Jit64::srwx(UGeckoInstruction inst)
 	}
 	else
 	{
+#ifdef _M_X64
+		gpr.FlushLockX(ECX);
+		gpr.Lock(a, b, s);
+		gpr.BindToRegister(a, (a == b || a == s), true);
+		MOV(32, R(ECX), gpr.R(b));
+		if (a != s)
+		{
+			MOV(32, gpr.R(a), gpr.R(s));
+		}
+		SHR(64, gpr.R(a), R(ECX));
+		gpr.UnlockAll();
+		gpr.UnlockAllX();
+#else
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
 		gpr.BindToRegister(a, (a == b || a == s), true);
@@ -1919,6 +1932,7 @@ void Jit64::srwx(UGeckoInstruction inst)
 		SHR(32, gpr.R(a), R(ECX));
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
+#endif
 	}
 	// Shift of 0 doesn't update flags, so compare manually just in case
 	if (inst.Rc)
@@ -1939,9 +1953,35 @@ void Jit64::slwx(UGeckoInstruction inst)
 	{
 		u32 amount = (u32)gpr.R(b).offset;
 		gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (u32)gpr.R(s).offset << amount);
+		if (inst.Rc) 
+		{
+			ComputeRC(gpr.R(a));
+		}
 	}
 	else
 	{
+#ifdef _M_X64
+		gpr.FlushLockX(ECX);
+		gpr.Lock(a, b, s);
+		gpr.BindToRegister(a, (a == b || a == s), true);
+		MOV(32, R(ECX), gpr.R(b));
+		if (a != s)
+		{
+			MOV(32, gpr.R(a), gpr.R(s));
+		}
+		SHL(64, gpr.R(a), R(ECX));
+		if (inst.Rc) 
+		{
+			AND(32, gpr.R(a), gpr.R(a));
+			GenerateRC();
+		}
+		else
+		{
+			MOV(32, gpr.R(a), gpr.R(a));
+		}
+		gpr.UnlockAll();
+		gpr.UnlockAllX();
+#else
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
 		gpr.BindToRegister(a, (a == b || a == s), true);
@@ -1957,11 +1997,12 @@ void Jit64::slwx(UGeckoInstruction inst)
 		SHL(32, gpr.R(a), R(ECX));
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
-	}
-	// Shift of 0 doesn't update flags, so compare manually just in case
-	if (inst.Rc) 
-	{
-		ComputeRC(gpr.R(a));
+		// Shift of 0 doesn't update flags, so compare manually just in case
+		if (inst.Rc) 
+		{
+			ComputeRC(gpr.R(a));
+		}
+#endif
 	}
 }
 
@@ -1973,6 +2014,25 @@ void Jit64::srawx(UGeckoInstruction inst)
 	int a = inst.RA;
 	int b = inst.RB;
 	int s = inst.RS;
+#ifdef _M_X64
+	gpr.Lock(a, s, b);
+	gpr.FlushLockX(ECX);
+	gpr.BindToRegister(a, (a == s || a == b), true);
+	JitClearCA();
+	MOV(32, R(ECX), gpr.R(b));
+	if (a != s)
+		MOV(32, gpr.R(a), gpr.R(s));
+	SHL(64, gpr.R(a), Imm8(32));
+	SAR(64, gpr.R(a), R(ECX));
+	MOV(32, R(EAX), gpr.R(a));
+	SHR(64, gpr.R(a), Imm8(32));
+	TEST(32, gpr.R(a), R(EAX));
+	FixupBranch nocarry = J_CC(CC_Z);
+	JitSetCA();
+	SetJumpTarget(nocarry);
+	gpr.UnlockAll();
+	gpr.UnlockAllX();
+#else
 	gpr.Lock(a, s, b);
 	gpr.FlushLockX(ECX);
 	gpr.BindToRegister(a, (a == s || a == b), true);
@@ -1998,7 +2058,7 @@ void Jit64::srawx(UGeckoInstruction inst)
 	SetJumpTarget(nocarry2);
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
-
+#endif
 	if (inst.Rc) {
 		ComputeRC(gpr.R(a));
 	}
