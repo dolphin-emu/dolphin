@@ -179,6 +179,7 @@ public:
 	void mulhwux(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
 	void divwux(UGeckoInstruction inst);
+	void divwx(UGeckoInstruction inst);
 	void srawix(UGeckoInstruction inst);
 	void srawx(UGeckoInstruction inst);
 	void addex(UGeckoInstruction inst);
