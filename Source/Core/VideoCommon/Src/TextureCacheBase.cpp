@@ -176,10 +176,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	const unsigned int nativeW = width;
 	const unsigned int nativeH = height;
 
-	// TODO: Force STC enabled when using custom textures or when dumping textures. There's no need for having two different texture hashes then.
 	u32 texID = address;
-	u64 hash_value = TEXHASH_INVALID; // Hash assigned to texcache entry
-	u64 texHash = TEXHASH_INVALID; // Accurate hash used for texture dumping, hires texture lookup. Equal to hash_value with STC.
+	u64 tex_hash = TEXHASH_INVALID; // Hash assigned to texcache entry (also used to generate filenames used for texture dumping and custom texture lookup)
 	u64 tlut_hash = TEXHASH_INVALID;
 
 	u32 full_format = texformat;
@@ -192,7 +190,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u8* ptr = Memory::GetPointer(address);
 	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
 
-	hash_value = texHash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	tex_hash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	if (isPaletteTexture)
 	{
 		const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
@@ -208,7 +206,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		//
 		// TODO: Because texID isn't always the same as the address now, CopyRenderTargetToTexture might be broken now
 		texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
-		hash_value = texHash ^= tlut_hash;
+		tex_hash ^= tlut_hash;
 	}
 
 	TCacheEntryBase *entry = textures[texID];
@@ -217,17 +215,17 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// 1. Calculate reference hash:
 		// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
 		if (g_ActiveConfig.bCopyEFBToTexture && entry->IsEfbCopy())
-			hash_value = TEXHASH_INVALID;
+			tex_hash = TEXHASH_INVALID;
 
 		// 2. a) For EFB copies, only the hash and the texture address need to match
-		if (entry->IsEfbCopy() && hash_value == entry->hash && address == entry->addr)
+		if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
 		{
 			// TODO: Print a warning if the format changes! In this case, we could reinterpret the internal texture object data to the new pixel format (similiar to what is already being done in Renderer::ReinterpretPixelFormat())
 			goto return_entry;
 		}
 
 		// 2. b) For normal textures, all texture parameters need to match
-		if (address == entry->addr && hash_value == entry->hash && full_format == entry->format &&
+		if (address == entry->addr && tex_hash == entry->hash && full_format == entry->format &&
 			entry->num_mipmaps == maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
 		{
 			goto return_entry;
@@ -259,7 +257,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		unsigned int newWidth = width;
 		unsigned int newHeight = height;
 
-		sprintf(texPathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (texHash & 0x00000000FFFFFFFFLL), texformat);
+		sprintf(texPathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
 		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, texformat, temp);
 
 		if (pcfmt != PC_TEX_FMT_NONE)
@@ -300,7 +298,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
-	entry->hash = hash_value;
+	entry->hash = tex_hash;
 	if (g_ActiveConfig.bCopyEFBToTexture) entry->efbcopy_state = EC_NO_COPY;
 	else if (entry->IsEfbCopy()) entry->efbcopy_state = EC_VRAM_DYNAMIC;
 
@@ -349,7 +347,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir.c_str(),
 				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
-				(u32) (texHash & 0x00000000FFFFFFFFLL), texformat);
+				(u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
 
 		if (false == File::Exists(szTemp))
 			entry->Save(szTemp);
