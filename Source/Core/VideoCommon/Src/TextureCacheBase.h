@@ -16,9 +16,9 @@ class TextureCache
 public:
 	enum EFBCopyState
 	{
-		EC_NO_COPY,
-		EC_VRAM_READY,
-		EC_VRAM_DYNAMIC,
+		EC_NO_COPY,  // regular texture
+		EC_VRAM_READY, // EFB copy sits in VRAM and is ready to use
+		EC_VRAM_DYNAMIC, // EFB copy sits in RAM and needs to be decoded before using it as a texture
 	};
 
 	struct TCacheEntryBase
