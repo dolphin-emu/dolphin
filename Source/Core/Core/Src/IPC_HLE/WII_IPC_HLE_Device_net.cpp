@@ -721,8 +721,8 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			u8 optval[20];
 			Memory::ReadBigEData(optval, _BufferIn + 0x10, optlen);
 
-			//TODO: bug booto about this, most likely timeout related, default value on wii is 180
-			if (level == 6 && optname == 0x2005){
+			//TODO: bug booto about this, 0x2005 most likely timeout related, default value on wii is , 0x2001 is most likely tcpnodelay
+			if (level == 6 && (optname == 0x2005 || optname == 0x2001)){
 				return 0;
 			}
 			INFO_LOG(WII_IPC_NET, "/dev/net/ip/top::IOCtl request IOCTL_SO_SETSOCKOPT(%08x, %08x, %08x, %08x) "
@@ -1060,7 +1060,11 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffe
 			case 0x1004:
 				Memory::WriteBigEData(default_address, _BufferOut, 6);
 				break;
-
+				
+			case 0x1005:
+				Memory::Write_U32(1, _BufferOut);
+				Memory::Write_U32(4, _BufferOut2);
+				break;
 			case 0x4002:
 				Memory::Write_U32(2, _BufferOut);
 				break;
