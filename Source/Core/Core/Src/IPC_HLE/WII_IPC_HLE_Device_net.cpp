@@ -464,7 +464,7 @@ char *DecodeError(int ErrorCode)
 }
 #endif
 
-static int getNetErrorCode(int ret, std::string caller)
+static int getNetErrorCode(int ret, std::string caller, bool isRW)
 {
 #ifdef _WIN32
 	int errorCode = WSAGetLastError();
@@ -484,7 +484,11 @@ static int getNetErrorCode(int ret, std::string caller)
 	case 10056:
 		return -30;
 	case 10035:
-		return -26;
+		if(isRW){
+			return -6;
+		}else{
+			return -26;
+		}
 	case 6:
 		return -26;
 	default:
@@ -581,7 +585,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			serverAddr.sin_family = serverAddr.sin_family >> 8;
 
 			int ret = connect(Common::swap32(params.socket), (struct sockaddr *) &serverAddr, sizeof(serverAddr));
-			ret = getNetErrorCode(ret, "SO_CONNECT");
+			ret = getNetErrorCode(ret, "SO_CONNECT", false);
 			INFO_LOG(WII_IPC_NET,"/dev/net/ip/top::IOCtl request IOCTL_SO_CONNECT (%08x, %s:%d)",
 				Common::swap32(params.socket), inet_ntoa(serverAddr.sin_addr), Common::swap16(serverAddr.sin_port));
 
@@ -598,7 +602,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			u32 sock	= Memory::Read_U32(_BufferIn);
 			u32 how		= Memory::Read_U32(_BufferIn+4);
 			int ret = shutdown(sock, how);
-			return getNetErrorCode(ret, "SO_SHUTDOWN");
+			return getNetErrorCode(ret, "SO_SHUTDOWN", false);
 			break;
 		}
 
@@ -610,7 +614,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 #ifdef _WIN32
 			u32 ret = closesocket(sock);
 
-			return getNetErrorCode(ret, "IOCTL_SO_CLOSE");
+			return getNetErrorCode(ret, "IOCTL_SO_CLOSE", false);
 #else
 			return close(sock);
 #endif
@@ -626,7 +630,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			INFO_LOG(WII_IPC_NET, "/dev/net/ip/top::IOCtl request IOCTL_SO_SOCKET "
 				"Socket: %08x (%d,%d,%d), BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 				s, AF, TYPE, PROT, _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
-			return getNetErrorCode(s, "SO_SOCKET");
+			return getNetErrorCode(s, "SO_SOCKET", false);
 			break;
 		}
 
@@ -646,7 +650,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				inet_ntoa(address.sin_addr), Common::swap16(address.sin_port),
 				Common::swap32(addr->socket), _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
 
-			return getNetErrorCode(ret, "SO_BIND");
+			return getNetErrorCode(ret, "SO_BIND", false);
 			break;
 		}
 
@@ -659,7 +663,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			u32 S = Memory::Read_U32(_BufferIn);
 			u32 BACKLOG = Memory::Read_U32(_BufferIn + 0x04);
 			u32 ret = listen(S, BACKLOG);
-			return getNetErrorCode(ret, "SO_LISTEN");
+			return getNetErrorCode(ret, "SO_LISTEN", false);
 			break;
 		}
 
@@ -674,7 +678,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			socklen_t* addrlen = (socklen_t*) Memory::GetPointer(BufferOutSize);
 			*addrlen = sizeof(struct sockaddr);
 			int ret = accept(S, addr, addrlen);
-			return getNetErrorCode(ret, "SO_ACCEPT");
+			return getNetErrorCode(ret, "SO_ACCEPT", false);
 		}
 
 	case IOCTL_SO_GETSOCKOPT:
@@ -699,7 +703,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 
 			int ret = getsockopt (sock, level, optname, (char *) &optval, (socklen_t*)&optlen);
 
-			ret = getNetErrorCode(ret, "SO_GETSOCKOPT");
+			ret = getNetErrorCode(ret, "SO_GETSOCKOPT", false);
 
 
 			Memory::Write_U32(optlen, _BufferOut + 0xC);
@@ -732,7 +736,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 
 			int ret = setsockopt(S, level, optname, (char*)optval, optlen);
 
-			ret = getNetErrorCode(ret, "SO_SETSOCKOPT");
+			ret = getNetErrorCode(ret, "SO_SETSOCKOPT", false);
 
 			return ret;
 		}
@@ -761,7 +765,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				if (arg & F_NONBLOCK)
 					iMode = 1;
 				int ioctlret = ioctlsocket(sock, FIONBIO, &iMode);
-				return getNetErrorCode(ioctlret, "SO_FCNTL");
+				return getNetErrorCode(ioctlret, "SO_FCNTL", false);
 			}
 			else
 			{
@@ -839,7 +843,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			}
 			int ret = poll(ufds, nfds, timeout);
 
-			ret = getNetErrorCode(ret, "SO_SETSOCKOPT");
+			ret = getNetErrorCode(ret, "SO_SETSOCKOPT", false);
 
 			for (int i = 0; i<nfds; i++)
 			{
@@ -1107,13 +1111,13 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffe
 				addr->sin_family = addr->sin_family >> 8;
 				int ret = sendto(Common::swap32(params.socket), (char*)Memory::GetPointer(_BufferIn),
 					BufferInSize, Common::swap32(params.flags), (struct sockaddr*)addr, len);
-				return getNetErrorCode(ret, "SO_SENDTO");
+				return getNetErrorCode(ret, "SO_SENDTO", true);
 			}
 			else
 			{
 				int ret = send(Common::swap32(params.socket), (char*)Memory::GetPointer(_BufferIn),
 					BufferInSize, Common::swap32(params.flags));
-				return getNetErrorCode(ret, "SO_SEND");
+				return getNetErrorCode(ret, "SO_SEND", true);
 			}
 			break;
 		}
@@ -1162,7 +1166,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffe
 				addr.sin_family = (addr.sin_family << 8) | (BufferOutSize2&0xFF);
 				Memory::WriteBigEData((u8*)&addr, _BufferOut2, BufferOutSize2);
 			}
-			return getNetErrorCode(ret, "SO_RECVFROM");
+			return getNetErrorCode(ret, "SO_RECVFROM", true);
 			break;
 		}
 
