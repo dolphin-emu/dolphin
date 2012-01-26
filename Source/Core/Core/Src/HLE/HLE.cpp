@@ -63,6 +63,15 @@ static const SPatch OSPatches[] =
 	{ "OSPanic",						HLE_OS::HLE_OSPanic				},
 	{ "vprintf",						HLE_OS::HLE_GeneralDebugPrint	},
 	{ "printf",							HLE_OS::HLE_GeneralDebugPrint	},
+	{ "printf1",							HLE_OS::HLE_GeneralDebugPrintWithInt	},
+	{ "printf2",							HLE_OS::HLE_GeneralDebugPrint	},
+	{ "printf3",							HLE_OS::HLE_GeneralDebugPrint	},
+	{ "printf4",							HLE_OS::HLE_GeneralDebugPrint	},
+	{ "printf5",							HLE_OS::HLE_GeneralDebugPrint	},
+	{ "printf6",							HLE_OS::HLE_GeneralDebugPrint	},
+	{ "printf7",							HLE_OS::HLE_GeneralDebugPrint	},
+	{ "printf8",							HLE_OS::HLE_GeneralDebugPrint	},
+	{ "printf9",							HLE_OS::HLE_GeneralDebugPrint	},
 	{ "puts",							HLE_OS::HLE_GeneralDebugPrint	}, // gcc-optimized printf?
 	{ "___blank(char *,...)",			HLE_OS::HLE_GeneralDebugPrint	}, // used for early init things (normally)
 	{ "___blank",						HLE_OS::HLE_GeneralDebugPrint	},

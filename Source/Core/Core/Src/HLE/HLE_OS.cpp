@@ -45,7 +45,22 @@ void HLE_OSPanic()
 void HLE_GeneralDebugPrint()
 {
 	std::string ReportMessage;
-	GetStringVA(ReportMessage);
+	if(*(u32*)Memory::GetPointer(GPR(3)) > 0x80000000){
+		GetStringVA(ReportMessage, 4);
+	}else{
+		GetStringVA(ReportMessage);
+	}
+	NPC = LR;
+
+	//PanicAlert("(%08x->%08x) %s", LR, PC, ReportMessage.c_str());
+	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());	
+}
+
+// Generalized func for just printing string pointed to by r3.
+void HLE_GeneralDebugPrintWithInt()
+{
+	std::string ReportMessage;
+	GetStringVA(ReportMessage, 5);
 	NPC = LR;
 
 	//PanicAlert("(%08x->%08x) %s", LR, PC, ReportMessage.c_str());
@@ -67,7 +82,7 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 {
 	_rOutBuffer = "";
 	char ArgumentBuffer[256];
-	u32 ParameterCounter = 4;    
+	u32 ParameterCounter = strReg+1;    
 	u32 FloatingParameterCounter = 1;
 	char *pString = (char*)Memory::GetPointer(GPR(strReg));
 	if (!pString)
