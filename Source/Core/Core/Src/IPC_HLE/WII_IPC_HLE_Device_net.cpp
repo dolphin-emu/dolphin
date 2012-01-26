@@ -471,18 +471,20 @@ static int getNetErrorCode(int ret, std::string caller, bool isRW)
 	if (ret>= 0)
 		return ret;
 
-	INFO_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d\n",
+	WARN_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d\n",
 		caller.c_str(), errorCode, DecodeError(errorCode), ret);
 
 	switch (errorCode)
 	{
 	case 10040:
-		INFO_LOG(WII_IPC_NET, "Find out why this happened, looks like PEEK failure?\n");
+		WARN_LOG(WII_IPC_NET, "Find out why this happened, looks like PEEK failure?\n");
 		return -1;
 	case 10054:
 		return -15;
 	case 10056:
 		return -30;
+	case 10057:
+		return -6;
 	case 10035:
 		if(isRW){
 			return -6;

@@ -468,7 +468,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				if (returnValue == -1)
 					returnValue = -SSL_get_error(ssl, returnValue);
 				Memory::Write_U32(returnValue, _BufferIn);
-				returnValue = 0;
+				//returnValue = 0;
 			}
 			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_WRITE "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -504,9 +504,20 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 			{
 				SSL* ssl = sslfds[sslID];
 				returnValue = SSL_read(ssl, Memory::GetPointer(_BufferIn2), BufferInSize2);
-				if (returnValue == -1)
+				if (returnValue == -1){
 					returnValue = -SSL_get_error(ssl, returnValue);
-
+					WARN_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ errorVal= %d", returnValue);
+				}
+				if (returnValue == -1)
+					returnValue = -SSL_ERROR_WANT_READ;
+				if (returnValue == -5){
+					int errorCode = WSAGetLastError();
+					if (errorCode == 10057){
+						returnValue = -SSL_ERROR_WANT_READ;
+					}else{
+						WARN_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ ERRORCODE= %d", WSAGetLastError());
+					}
+				}
 				SSL_load_error_strings();
 				FILE *quickDump = fopen("quickdump.txt", "ab");
 				ERR_print_errors_fp(quickDump);
