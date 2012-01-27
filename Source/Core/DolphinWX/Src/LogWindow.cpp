@@ -56,7 +56,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 #else
 		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
 		// it returns CP-932, in order to use iconv we need to use CP932
-		m_SJISConv = wxCSConv(L"CP932");
+		m_SJISConv = wxCSConv(wxT("CP932"));
 #endif
 
 	m_LogManager = LogManager::GetInstance();

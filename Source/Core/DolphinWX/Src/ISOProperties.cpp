@@ -158,7 +158,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	std::wstring wname;
 	wxString name;
 	if (OpenGameListItem->GetName(wname))
-		name = wname;
+		name = wname.c_str();
 	else
 		name = wxString(OpenISO->GetName().c_str(), wxConvUTF8);
 	m_Name->SetValue(name);
@@ -1280,7 +1280,7 @@ void CISOProperties::ChangeBannerDetails(int lang)
 #else
 		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
 		// it returns CP-932, in order to use iconv we need to use CP932
-		wxCSConv SJISConv(L"CP932");
+		wxCSConv SJISConv(wxT("CP932"));
 #endif
 	switch (OpenGameListItem->GetCountry())
 	{
@@ -1288,11 +1288,11 @@ void CISOProperties::ChangeBannerDetails(int lang)
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 
 		if (OpenGameListItem->GetName(wname, -1))
-			shortName = wname;
+			shortName = wname.c_str();
 		else
 			shortName = wxString(OpenGameListItem->GetName(0).c_str(), SJISConv);
 
-		if ((comment = OpenGameListItem->GetDescription()).size() == 0)
+		if ((comment = OpenGameListItem->GetDescription().c_str()).size() == 0)
 			comment = wxString(OpenGameListItem->GetDescription(0).c_str(), SJISConv);
 		maker = wxString(OpenGameListItem->GetCompany().c_str(), SJISConv);
 		break;
@@ -1302,10 +1302,10 @@ void CISOProperties::ChangeBannerDetails(int lang)
 		{
 		wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
 		if (OpenGameListItem->GetName(wname, lang))
-			shortName = wname;
+			shortName = wname.c_str();
 		else
 			shortName = wxString(OpenGameListItem->GetName(lang).c_str(), WindowsCP1252);
-		if ((comment = OpenGameListItem->GetDescription()).size() == 0)
+		if ((comment = OpenGameListItem->GetDescription().c_str()).size() == 0)
 			comment = wxString(OpenGameListItem->GetDescription(lang).c_str(), WindowsCP1252);
 		maker = wxString(OpenGameListItem->GetCompany().c_str(), WindowsCP1252);
 		}
