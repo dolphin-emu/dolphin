@@ -36,6 +36,7 @@
 #include "VolumeCreator.h"
 #include "Boot.h"
 #include "HLE/HLE.h"
+#include "SettingsGenerator.h"
 
 void CBoot::RunFunction(u32 _iAddr)
 {
@@ -181,8 +182,9 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	// \title\00000001\00000002\data\setting.txt directly after the read the
 	// SYSCONF file. The games also read it to 0x3800, what is a little strange
 	// however is that it only reads the first 100 bytes of it.
-	std::string region_filename,
-				settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
+	std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
+	std::string area, model, code, video, game;
+	
 
 	switch((DiscIO::IVolume::ECountry)_CountryCode)
 	{
@@ -190,38 +192,57 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	case DiscIO::IVolume::COUNTRY_TAIWAN: 
 		// TODO: Determine if Korea / Taiwan have their own specific settings.
 	case DiscIO::IVolume::COUNTRY_JAPAN:
-		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_JAP_SETTING;
+		area = "JPN";
+		video = "NTSC";
 		break;
 
 	case DiscIO::IVolume::COUNTRY_USA:
-		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_USA_SETTING;
+		area = "USA";
+		video = "NTSC";
 		break;
 
 	case DiscIO::IVolume::COUNTRY_EUROPE:
-		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
+		area = "EUR";
+		video = "PAL";
 		break;
 
 	default:
 		// PanicAlertT("SetupWiiMem: Unknown country. Wii boot process will be switched to European settings.");
-		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
+		area = "EUR";
+		video = "PAL";
 		break;
 	}
 
-	{
+	model = "RVL-001(" + area + ")";
+	code = "L" + area.substr(0,1);
+	game = area.substr(0,2);
+
+	SettingsGenerator gen;
+	gen.AddSetting("AREA", area.c_str());
+	gen.AddSetting("MODEL", model.c_str());
+	gen.AddSetting("DVD", "0");
+	gen.AddSetting("MPCH", "0x7FFE");
+	gen.AddSetting("CODE", code.c_str());
+	gen.AddSetting("SERNO", "000000000");
+	gen.AddSetting("VIDEO", video.c_str());
+	gen.AddSetting("GAME", game.c_str());
+
+	
 	if (File::Exists(settings_Filename))
 	{
 		File::Delete(settings_Filename);
 	}
 	File::CreateFullPath(settings_Filename);
-	File::Copy(region_filename, settings_Filename);
-	File::IOFile settingsFile(settings_Filename, "rb");
-	if (!settingsFile)
+
 	{
-		PanicAlertT("SetupWiiMem: Cant find setting file");	
+	File::IOFile settingsFileHandle(settings_Filename, "wb");
+	
+	if (!settingsFileHandle.WriteBytes(gen.GetData(), SETTINGS_SIZE))
+	{
+		PanicAlertT("SetupWiiMem: Cant create setting file");	
 		return false;
 	}
-
-	settingsFile.ReadBytes(Memory::GetPointer(0x3800), 256);
+	Memory::WriteBigEData(gen.GetData(), 0x3800, SETTINGS_SIZE);
 	}
 
 	/*

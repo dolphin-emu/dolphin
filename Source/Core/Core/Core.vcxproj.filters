@@ -559,6 +559,9 @@
     <ClCompile Include="Src\HW\GCMemcard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Boot\SettingsGenerator.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ConfigManager.h" />
@@ -1033,14 +1036,17 @@
       <Filter>FifoPlayer</Filter>
     </ClInclude>
     <ClInclude Include="Src\Movie.h" />
-	<ClInclude Include="Src\HW\GCMemcard.h">
-	  <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
-	</ClInclude>
+    <ClInclude Include="Src\HW\GCMemcard.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_net_ssl.h">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
     <ClInclude Include="Src\IPC_HLE\fakepoll.h">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Boot\SettingsGenerator.h">
+      <Filter>Boot</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

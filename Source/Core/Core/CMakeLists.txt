@@ -26,6 +26,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/Boot/Boot_ELF.cpp
 			Src/Boot/Boot_WiiWAD.cpp
 			Src/Boot/ElfReader.cpp
+			Src/Boot/SettingsGenerator.cpp
 			Src/Debugger/Debugger_SymbolMap.cpp
 			Src/Debugger/Dump.cpp
 			Src/Debugger/PPCDebugInterface.cpp
