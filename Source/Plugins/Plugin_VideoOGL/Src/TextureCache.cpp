@@ -279,7 +279,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
     GL_REPORT_ERRORD();
 
-	if (efbcopy_state != EC_VRAM_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
+	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		if (s_TempFramebuffer == 0)
 			glGenFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);

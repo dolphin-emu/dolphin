@@ -157,7 +157,7 @@ void TextureCache::ClearRenderTargets()
 		iter = textures.begin(),
 		tcend = textures.end();
 	for (; iter!=tcend; ++iter)
-		iter->second->efbcopy_state = EC_NO_COPY;
+		iter->second->type = TCET_AUTOFETCH;
 }
 
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
@@ -236,8 +236,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		//
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
-		if ((entry->efbcopy_state == EC_NO_COPY && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
-			|| (entry->efbcopy_state == EC_VRAM_DYNAMIC && entry->native_width == width && entry->native_height == height))
+		if ((entry->type == TCET_AUTOFETCH && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
+			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == width && entry->native_height == height))
 		{
 			// reuse the texture
 		}
@@ -291,7 +291,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		//
 		// TODO: Won't we end up recreating textures all the time because maxlevel doesn't necessarily equal texLevels?
 		entry->num_mipmaps = maxlevel; // TODO: Does this actually work? We can't really adjust mipmap settings per-stage...
-		entry->efbcopy_state = EC_NO_COPY;
+		entry->type = TCET_AUTOFETCH;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
@@ -299,8 +299,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
-	if (g_ActiveConfig.bCopyEFBToTexture) entry->efbcopy_state = EC_NO_COPY;
-	else if (entry->IsEfbCopy()) entry->efbcopy_state = EC_VRAM_DYNAMIC;
+	if (g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_AUTOFETCH;
+	else if (entry->IsEfbCopy()) entry->type = TCET_EC_DYNAMIC;
 
 	// load texture
 	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));
@@ -382,23 +382,23 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	//					It also allows enhancing the visual quality by doing scaled EFB copies.
 	// - hybrid EFB copies:
 	//		1a) Whenever this function gets called, encode the requested EFB data to RAM (like EFB to RAM)
-	//		1b) Set efbcopy_state to EC_VRAM_DYNAMIC for all texture cache entries in the destination address range.
+	//		1b) Set type to TCET_EC_DYNAMIC for all texture cache entries in the destination address range.
 	//			If EFB copy caching is enabled, further checks will (try to) prevent redundant EFB copies.
 	//		2) Check if a texture cache entry for the specified dstAddr already exists (i.e. if an EFB copy was triggered to that address before):
 	//		2a) Entry doesn't exist:
 	//			- Also copy the requested EFB data to a texture object in VRAM (like EFB to texture)
-	//			- Create a texture cache entry for the target (efbcopy_state = EC_VRAM_READY)
+	//			- Create a texture cache entry for the target (type = TCET_EC_VRAM)
 	//			- Store a hash of the encoded RAM data in the texcache entry.
-	//		2b) Entry exists AND efbcopy_state is EC_VRAM_READY:
+	//		2b) Entry exists AND type is TCET_EC_VRAM:
 	//			- Like case 2a, but reuse the old texcache entry instead of creating a new one.
-	//		2c) Entry exists AND efbcopy_state is EC_VRAM_DYNAMIC:
+	//		2c) Entry exists AND type is TCET_EC_DYNAMIC:
 	//			- Only encode the texture to RAM (like EFB to RAM) and store a hash of the encoded data in the existing texcache entry.
 	//			- Do NOT copy the requested EFB data to a VRAM object. Reason: the texture is dynamic, i.e. the CPU is modifying it. Storing a VRAM copy is useless, because we'd always end up deleting it and reloading the data from RAM anyway.
 	//		3) If the EFB copy gets used as a texture, compare the source RAM hash with the hash you stored when encoding the EFB data to RAM.
-	//		3a) If the two hashes match AND efbcopy_state is EC_VRAM_READY, reuse the VRAM copy you created
-	//		3b) If the two hashes differ AND efbcopy_state is EC_VRAM_READY, screw your existing VRAM copy. Set efbcopy_state to EC_VRAM_DYNAMIC.
+	//		3a) If the two hashes match AND type is TCET_EC_VRAM, reuse the VRAM copy you created
+	//		3b) If the two hashes differ AND type is TCET_EC_VRAM, screw your existing VRAM copy. Set type to TCET_EC_DYNAMIC.
 	//			Redecode the source RAM data to a VRAM object. The entry basically behaves like a normal texture now.
-	//		3c) If efbcopy_state is EC_VRAM_DYNAMIC, treat the EFB copy like a normal texture.
+	//		3c) If type is TCET_EC_DYNAMIC, treat the EFB copy like a normal texture.
 	//		Advantage: 	Non-dynamic EFB copies can be visually enhanced like with EFB to texture.
 	//					Compatibility is as good as EFB to RAM.
 	//		Disadvantage:	Slower than EFB to texture and often even slower than EFB to RAM.
@@ -614,8 +614,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	TCacheEntryBase *entry = textures[dstAddr];
 	if (entry)
 	{
-		if ((entry->efbcopy_state == EC_VRAM_READY && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
-			|| (entry->efbcopy_state == EC_VRAM_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h))
+		if ((entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
+			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h))
 		{
 			scaled_tex_w = tex_w;
 			scaled_tex_h = tex_h;
@@ -637,7 +637,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		entry->SetGeneralParameters(dstAddr, 0, dstFormat, 0);
 		entry->SetDimensions(tex_w, tex_h, scaled_tex_w, scaled_tex_h);
 		entry->SetHashes(TEXHASH_INVALID);
-		entry->efbcopy_state = EC_VRAM_READY;
+		entry->type = TCET_EC_VRAM;
 	}
 
 	entry->frameCount = frameCount;

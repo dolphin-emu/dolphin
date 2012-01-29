@@ -14,11 +14,12 @@
 class TextureCache
 {
 public:
-	enum EFBCopyState
+	enum TexCacheEntryType
 	{
-		EC_NO_COPY,  // regular texture
-		EC_VRAM_READY, // EFB copy sits in VRAM and is ready to use
-		EC_VRAM_DYNAMIC, // EFB copy sits in RAM and needs to be decoded before using it as a texture
+		TCET_AUTOFETCH,		// Most textures, automatically fetched whenever they change
+//		TCET_PRELOADED,		// Textures which reside in TMEM areas which are manually managed by the game
+		TCET_EC_VRAM,		// EFB copy which sits in VRAM and is ready to be used
+		TCET_EC_DYNAMIC,	// EFB copy which sits in RAM and needs to be decoded before being used
 	};
 
 	struct TCacheEntryBase
@@ -32,16 +33,11 @@ public:
 		//u32 pal_hash;
 		u32 format;
 
-		//bool is_preloaded;
+		enum TexCacheEntryType type;
 
 		unsigned int num_mipmaps;
 		unsigned int native_width, native_height; // Texture dimensions from the GameCube's point of view
 		unsigned int virtual_width, virtual_height; // Texture dimensions from OUR point of view - for hires textures or scaled EFB copies
-
-		// EFB copies
-		enum EFBCopyState efbcopy_state;
-
-		bool IsEfbCopy() { return efbcopy_state != EC_NO_COPY; }
 
 		// used to delete textures which haven't been used for TEXTURE_KILL_THRESHOLD frames
 		int frameCount;
@@ -83,6 +79,8 @@ public:
 			const float *colmat) = 0;
 
 		int IntersectsMemoryRange(u32 range_address, u32 range_size) const;
+
+		bool IsEfbCopy() { return (type == TCET_EC_VRAM || type == TCET_EC_DYNAMIC); }
 	};
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor

@@ -102,7 +102,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
 {
-	if (efbcopy_state != EC_VRAM_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
+	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		g_renderer->ResetAPIState();
 
