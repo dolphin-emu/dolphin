@@ -36,7 +36,7 @@
 #include "VolumeCreator.h"
 #include "Boot.h"
 #include "HLE/HLE.h"
-#include "SettingsGenerator.h"
+#include "SettingsHandler.h"
 
 void CBoot::RunFunction(u32 _iAddr)
 {
@@ -217,21 +217,37 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	code = "L" + area.substr(0,1);
 	game = area.substr(0,2);
 
-	SettingsGenerator gen;
+	
+	SettingsHandler gen;
+	std::string serno = "";
+	if (File::Exists(settings_Filename))
+	{
+		File::IOFile settingsFileHandle(settings_Filename, "rb");
+		if(settingsFileHandle.ReadBytes((void*)gen.GetData(), SETTINGS_SIZE)){
+			gen.Decrypt();
+			serno = gen.GetValue("SERNO");
+			gen.Reset();
+		}
+		File::Delete(settings_Filename);
+	}
+	
+	if(serno.empty() || serno == "000000000"){
+		serno = gen.generateSerialNumber();
+		INFO_LOG(BOOT, "No previous serial number found, generated one instead: %s", serno.c_str());
+	}else{
+		INFO_LOG(BOOT, "Using serial number: %s", serno.c_str());
+	}
+
 	gen.AddSetting("AREA", area.c_str());
 	gen.AddSetting("MODEL", model.c_str());
 	gen.AddSetting("DVD", "0");
 	gen.AddSetting("MPCH", "0x7FFE");
 	gen.AddSetting("CODE", code.c_str());
-	gen.AddSetting("SERNO", "000000000");
+	gen.AddSetting("SERNO", serno.c_str());
 	gen.AddSetting("VIDEO", video.c_str());
 	gen.AddSetting("GAME", game.c_str());
 
-	
-	if (File::Exists(settings_Filename))
-	{
-		File::Delete(settings_Filename);
-	}
+
 	File::CreateFullPath(settings_Filename);
 
 	{
