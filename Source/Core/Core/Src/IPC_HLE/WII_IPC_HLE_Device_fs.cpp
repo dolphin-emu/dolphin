@@ -348,7 +348,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 				_BufferOutSize);
 
 			u32 OwnerID = 0;
-			u16 GroupID = 0x3031;
+			u16 GroupID = 0x3031; // this is also known as makercd, 01 (0x3031) for nintendo and 08 (0x3038) for MH3 etc
 			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn), 64);
 			u8 OwnerPerm = 0x3;		// read/write
 			u8 GroupPerm = 0x3;		// read/write

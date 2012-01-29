@@ -459,11 +459,11 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 			{
 				SSL* ssl = sslfds[sslID];
 				
-				/*FILE *ssl_write = fopen("ssl_write.txt", "ab");
+				FILE *ssl_write = fopen("ssl_write.txt", "ab");
 				fwrite(Memory::GetPointer(_BufferOut2), 1, BufferOutSize2, ssl_write);
-				fprintf(ssl_write, "----(%d)----\n", BufferOutSize2);
+				//fprintf(ssl_write, "----(%d)----\n", BufferOutSize2);
 				fclose(ssl_write);
-				*/
+				
 				returnValue = SSL_write(ssl, Memory::GetPointer(_BufferOut2), BufferOutSize2);
 				if (returnValue == -1)
 					returnValue = -SSL_get_error(ssl, returnValue);
@@ -525,15 +525,15 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				Memory::Write_U32(returnValue, _BufferIn);
 				//returnValue = 0;
 			}
-			/*memcpy(in2, (char*)Memory::GetPointer(_BufferIn2), BufferInSize2);
+			memcpy(in2, (char*)Memory::GetPointer(_BufferIn2), BufferInSize2);
 
 
 			FILE *ssl_read = fopen("ssl_read.txt", "ab");
 			if((s32)returnValue >0)
 				fwrite(in2, 1, returnValue, ssl_read);
-			fprintf(ssl_read, "%s", "--------\n");
+//fprintf(ssl_read, "%s", "--------\n");
 			fclose(ssl_read);
-			*/
+			
 			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ(%d) %s "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "

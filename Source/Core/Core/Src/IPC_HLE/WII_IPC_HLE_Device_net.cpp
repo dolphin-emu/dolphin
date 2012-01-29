@@ -80,7 +80,7 @@ it failed)
 
 extern std::queue<std::pair<u32,std::string> > g_ReplyQueueLater;
 const u8 default_address[] = { 0x00, 0x17, 0xAB, 0x99, 0x99, 0x99 };
-int status = 3;
+int status = 5;
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName) 
@@ -155,11 +155,11 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_NWC24_REQUEST_GENERATED_USER_ID: // (Input: none, Output: 32 bytes)
 		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
-		Memory::Write_U32(0xFFFFFFDC, BufferOut);
-		Memory::Write_U32(0x00050495, BufferOut + 4);
-		Memory::Write_U32(0x90CFBF35, BufferOut + 8);
-		Memory::Write_U32(0x00000002, BufferOut + 0xC);
-		//Memory::WriteBigEData((u8*)m_UserID.c_str(), BufferOut, m_UserID.length() + 1);
+		//Memory::Write_U32(0xFFFFFFDC, BufferOut);
+		//Memory::Write_U32(0x00050495, BufferOut + 4);
+		//Memory::Write_U32(0x90CFBF35, BufferOut + 8);
+		//Memory::Write_U32(0x00000002, BufferOut + 0xC);
+		Memory::WriteBigEData((u8*)m_UserID.c_str(), BufferOut, m_UserID.length() + 1);
 		break;
 
 	case IOCTL_NWC24_GET_SCHEDULAR_STAT:
