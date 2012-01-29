@@ -32,8 +32,7 @@ class TextureCache
 public:
 	enum TexCacheEntryType
 	{
-		TCET_AUTOFETCH,		// Most textures, automatically fetched whenever they change
-//		TCET_PRELOADED,		// Textures which reside in TMEM areas which are manually managed by the game
+		TCET_NORMAL,
 		TCET_EC_VRAM,		// EFB copy which sits in VRAM and is ready to be used
 		TCET_EC_DYNAMIC,	// EFB copy which sits in RAM and needs to be decoded before being used
 	};
@@ -115,7 +114,7 @@ public:
 	virtual TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) = 0;
 
 	static TCacheEntryBase* Load(unsigned int stage, u32 address, unsigned int width, unsigned int height,
-		int format, unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel);
+		int format, unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem);
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 

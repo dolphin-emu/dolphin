@@ -173,12 +173,12 @@ void TextureCache::ClearRenderTargets()
 		iter = textures.begin(),
 		tcend = textures.end();
 	for (; iter!=tcend; ++iter)
-		iter->second->type = TCET_AUTOFETCH;
+		iter->second->type = TCET_NORMAL;
 }
 
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u32 address, unsigned int width, unsigned int height, int texformat,
-	unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel)
+	unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem)
 {
 	if (0 == address)
 		return NULL;
@@ -203,10 +203,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (isPaletteTexture)
 		full_format = texformat | (tlutfmt << 16);
 
-	u8* ptr = Memory::GetPointer(address);
 	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
+	u8* src_data;
+	if (from_tmem) src_data = &texMem[bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE];
+	else src_data = Memory::GetPointer(address);
 
-	tex_hash = GetHash64(ptr, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	tex_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	if (isPaletteTexture)
 	{
 		const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
@@ -225,7 +227,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		tex_hash ^= tlut_hash;
 	}
 
-	TCacheEntryBase *entry = textures[texID];
+	TCacheEntryBase *entry = textures[texID]; // TODO: Should use a different texID for preloaded textures!
 	if (entry)
 	{
 		// 1. Calculate reference hash:
@@ -252,7 +254,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		//
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
-		if ((entry->type == TCET_AUTOFETCH && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
+		if ((entry->type == TCET_NORMAL && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
 			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == width && entry->native_height == height))
 		{
 			// reuse the texture
@@ -283,8 +285,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 	}
 
+	// TODO: RGBA8 textures are stored non-continuously in tmem, that might cause problems when preloading is enabled
 	if (pcfmt == PC_TEX_FMT_NONE)
-		pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth,
+		pcfmt = TexDecoder_Decode(temp, src_data, expandedWidth,
 					expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 
 	bool isPow2;
@@ -301,13 +304,13 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (NULL == entry) {
 		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, expandedWidth, texLevels, pcfmt);
 
-		// Sometimes, we can get around recreating a texture if only the number of mip levels gets changes
+		// Sometimes, we can get around recreating a texture if only the number of mip levels changes
 		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
 		// Thus, we don't update this member for every Load, but just whenever the texture gets recreated
 		//
 		// TODO: Won't we end up recreating textures all the time because maxlevel doesn't necessarily equal texLevels?
 		entry->num_mipmaps = maxlevel; // TODO: Does this actually work? We can't really adjust mipmap settings per-stage...
-		entry->type = TCET_AUTOFETCH;
+		entry->type = TCET_NORMAL;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
@@ -315,13 +318,13 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
-	if (g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_AUTOFETCH;
+	if (g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_NORMAL;
 	else if (entry->IsEfbCopy()) entry->type = TCET_EC_DYNAMIC;
 
 	// load texture
 	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));
 
-	// load mips
+	// load mips - TODO: Loading mipmaps from tmem is untested!
 	if (texLevels > 1 && pcfmt != PC_TEX_FMT_NONE)
 	{
 		const unsigned int bsdepth = TexDecoder_GetTexelSizeInNibbles(texformat);
@@ -329,20 +332,31 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		unsigned int level = 1;
 		unsigned int mipWidth = (width + 1) >> 1;
 		unsigned int mipHeight = (height + 1) >> 1;
-		ptr += texture_size;
+
+		u8* ptr_even = NULL, *ptr_odd = NULL;
+		if (from_tmem)
+		{
+			ptr_even = &texMem[bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE + texture_size];
+			ptr_odd = &texMem[bpmem.tex[stage/4].texImage2[stage%4].tmem_odd * TMEM_LINE_SIZE];
+		}
+		src_data += texture_size;
 
 		while ((mipHeight || mipWidth) && (level < texLevels))
 		{
+			u8** ptr;
+			if (from_tmem) ptr = (level % 2) ? &ptr_odd : &ptr_even;
+			else ptr = &src_data;
+
 			const unsigned int currentWidth = (mipWidth > 0) ? mipWidth : 1;
 			const unsigned int currentHeight = (mipHeight > 0) ? mipHeight : 1;
 
 			expandedWidth  = (currentWidth + bsw)  & (~bsw);
 			expandedHeight = (currentHeight + bsh) & (~bsh);
 
-			TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
+			TexDecoder_Decode(temp, *ptr, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 			entry->Load(currentWidth, currentHeight, expandedWidth, level, false);
 
-			ptr += ((std::max(mipWidth, bsw) * std::max(mipHeight, bsh) * bsdepth) >> 1);
+			*ptr += ((std::max(mipWidth, bsw) * std::max(mipHeight, bsh) * bsdepth) >> 1);
 			mipWidth >>= 1;
 			mipHeight >>= 1;
 			++level;
