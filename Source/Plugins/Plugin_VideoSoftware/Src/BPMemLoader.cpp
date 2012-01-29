@@ -101,14 +101,14 @@ void SWBPWritten(int address, int newvalue)
 
             // TODO - figure out a cleaner way.
 			if (Core::g_CoreStartupParameter.bWii)
-				ptr = Memory::GetPointer(bpmem.tlutXferSrc << 5);
+				ptr = Memory::GetPointer(bpmem.tmem_config.tlut_src << 5);
 			else
-				ptr = Memory::GetPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
+				ptr = Memory::GetPointer((bpmem.tmem_config.tlut_src & 0xFFFFF) << 5);
 
 			if (ptr)
 				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
 			else
-				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
+				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tmem_config.tlut_src, bpmem.tmem_config.tlut_src << 5, (bpmem.tmem_config.tlut_src & 0xFFFFF)<< 5);
 			break;
         }
 	
