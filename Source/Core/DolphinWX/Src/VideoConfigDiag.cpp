@@ -455,18 +455,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxStaticBoxSizer* const szr_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_hacks, _("Texture Cache"));
 
 	// TODO: Use wxSL_MIN_MAX_LABELS or wxSL_VALUE_LABEL with wx 2.9.1
-	wxSlider* const stc_slider = new wxSlider(page_hacks, wxID_ANY, 0, 0, 3, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL|wxSL_BOTTOM);
+	wxSlider* const stc_slider = new wxSlider(page_hacks, wxID_ANY, 0, 0, 2, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL|wxSL_BOTTOM);
 	_connect_macro_(stc_slider, VideoConfigDiag::Event_Stc, wxEVT_COMMAND_SLIDER_UPDATED, this);
 	RegisterControl(stc_slider, wxGetTranslation(stc_desc));
 
-	if (vconfig.bSafeTextureCache)
-	{
-		if (vconfig.iSafeTextureCache_ColorSamples == 0) stc_slider->SetValue(0);
-		else if (vconfig.iSafeTextureCache_ColorSamples == 512) stc_slider->SetValue(1);
-		else if (vconfig.iSafeTextureCache_ColorSamples == 128) stc_slider->SetValue(2);
-		else stc_slider->Disable(); // Using custom number of samples; TODO: Inform the user why this is disabled..
-	}
-	else stc_slider->SetValue(3);
+	if (vconfig.iSafeTextureCache_ColorSamples == 0) stc_slider->SetValue(0);
+	else if (vconfig.iSafeTextureCache_ColorSamples == 512) stc_slider->SetValue(1);
+	else if (vconfig.iSafeTextureCache_ColorSamples == 128) stc_slider->SetValue(2);
+	else stc_slider->Disable(); // Using custom number of samples; TODO: Inform the user why this is disabled..
 
 	szr_safetex->Add(new wxStaticText(page_hacks, wxID_ANY, _("Accuracy:")), 0, wxALL, 5);
 	szr_safetex->AddStretchSpacer(1);

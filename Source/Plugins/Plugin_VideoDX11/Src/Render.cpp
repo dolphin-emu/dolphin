@@ -1106,12 +1106,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 
-	// reload textures if these settings changed
-	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
-		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+	// Reload textures if this settings changes
+	if (g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
 		TextureCache::Invalidate(false);
 
-	// Enable any configuration changes
+	// Enable configuration changes
 	UpdateActiveConfig();
 
 	SetWindowSize(fbWidth, fbHeight);
