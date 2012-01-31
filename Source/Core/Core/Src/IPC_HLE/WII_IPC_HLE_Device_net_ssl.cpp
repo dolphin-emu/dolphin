@@ -383,12 +383,15 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				if (returnValue == -1)
 					returnValue = -SSL_ERROR_WANT_READ;
 				if (returnValue == -5){
+					
+#ifdef _WIN32
 					int errorCode = WSAGetLastError();
 					if (errorCode == 10057){
 						returnValue = -SSL_ERROR_WANT_READ;
 					}else{
-						WARN_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ ERRORCODE= %d", WSAGetLastError());
+						WARN_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ ERRORCODE= %d", errorCode);
 					}
+#endif
 				}
 				Memory::Write_U32(returnValue, _BufferIn);
 			}
