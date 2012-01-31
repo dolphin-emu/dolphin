@@ -289,7 +289,7 @@ void ExecuteCommand(u32 _Address)
             // check if a device with this name has been created already
             if (DeviceName.find("/dev/") == std::string::npos || DeviceID == -1)				
             {
-				if (DeviceName.find("/dev/") != std::string::npos)
+				if (DeviceName.find("/dev/") == 0)
 				{
 					WARN_LOG(WII_IPC_HLE, "Unimplemented device: %s", DeviceName.c_str());
 
