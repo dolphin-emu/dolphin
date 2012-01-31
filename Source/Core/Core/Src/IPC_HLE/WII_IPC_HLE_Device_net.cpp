@@ -80,7 +80,7 @@ it failed)
 
 extern std::queue<std::pair<u32,std::string> > g_ReplyQueueLater;
 const u8 default_address[] = { 0x00, 0x17, 0xAB, 0x99, 0x99, 0x99 };
-int status = 5;
+int status = 3;
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName) 

@@ -287,7 +287,7 @@ void ExecuteCommand(u32 _Address)
             DeviceID = GetDeviceIDByName(DeviceName);
 
             // check if a device with this name has been created already
-            if (DeviceID == -1)				
+            if (DeviceName.find("/dev/") == std::string::npos || DeviceID == -1)				
             {
 				if (DeviceName.find("/dev/") != std::string::npos)
 				{
