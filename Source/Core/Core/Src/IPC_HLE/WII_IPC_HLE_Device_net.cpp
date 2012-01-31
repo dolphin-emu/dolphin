@@ -297,15 +297,11 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		// TODO: What's the second output buffer for?
 		{
 			INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETCONFIG");
-			u8 params1[0x1b5c];
-			u8 params2[0x20];
 
 			// fill output buffer, taking care of endianness
 			u32 addr = CommandBuffer.PayloadBuffer.at(0).m_Address;
 			u32 _BufferOut2 = CommandBuffer.PayloadBuffer.at(1).m_Address;
 
-			Memory::ReadBigEData((u8*)params1, addr, 0x1b5c);
-			Memory::ReadBigEData((u8*)params2, CommandBuffer.PayloadBuffer.at(1).m_Address, 0x20);
 
 			Memory::WriteBigEData((const u8*)&m_Ifconfig, addr, 8);
 			addr += 8;
@@ -335,8 +331,6 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		}
 
 	case IOCTLV_NCD_SETCONFIG: // 7004 In, 32 Out. 4th
-		u8 param1[7004];
-		Memory::ReadBigEData(param1,CommandBuffer.InBuffer[0].m_Address, 100);
 		/*if (param1[4] == 2)
 		status = 3;
 		if (param1[4] == 1)
@@ -689,8 +683,6 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			u32 level = Memory::Read_U32(_BufferOut + 4);
 			u32 optname = Memory::Read_U32(_BufferOut + 8);
 
-
-
 			INFO_LOG(WII_IPC_NET,"/dev/net/ip/top::IOCtl request IOCTL_SO_GETSOCKOPT(%08x, %08x, %08x)"
 				"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 				sock, level, optname,
@@ -700,8 +692,6 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 
 			u8 optval[20];
 			u32 optlen = 4;
-
-			//for(int i=0; i<BufferOutSize; i++) INFO_LOG(WII_IPC_NET,"%02x ", Memory::Read_U8(_BufferOut + i));
 
 			int ret = getsockopt (sock, level, optname, (char *) &optval, (socklen_t*)&optlen);
 
@@ -1164,7 +1154,6 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffe
 				fromlen ? (struct sockaddr*) &addr : NULL, fromlen ? &fromlen : 0);
 			if (BufferOutSize2 != 0)
 			{
-				//something not quite right below, need to verify
 				addr.sin_family = (addr.sin_family << 8) | (BufferOutSize2&0xFF);
 				Memory::WriteBigEData((u8*)&addr, _BufferOut2, BufferOutSize2);
 			}

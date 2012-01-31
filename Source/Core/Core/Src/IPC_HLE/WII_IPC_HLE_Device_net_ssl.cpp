@@ -133,14 +133,6 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 	{
 		case IOCTLV_NET_SSL_NEW:
 		{
-			char in1[32];
-			char out1[32];
-			char out2[256];
-
-			Memory::ReadBigEData((u8*)in1, _BufferIn, 32);
-			Memory::ReadBigEData((u8*)out1, _BufferOut, 32);
-			Memory::ReadBigEData((u8*)out2, _BufferOut2, 256);
-			
 			int freeSSL = this->getSSLFreeID();
 			if (freeSSL)
 			{
@@ -167,10 +159,6 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 
 		case IOCTLV_NET_SSL_SHUTDOWN:
 		{
-			char in1[32];
-			char out1[32];
-			Memory::ReadBigEData((u8*)in1, _BufferIn, 32);
-			Memory::ReadBigEData((u8*)out1, _BufferOut, 32);
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
 			if (sslID >= 0 && sslID < NET_SSL_MAXINSTANCES && sslfds[sslID] != NULL)
 			{
@@ -190,7 +178,6 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				_BufferOut2, BufferOutSize2, _BufferOut3, BufferOutSize3);
 			break;
 		}
-		// a BufferIn: (007ad6a0, 32), BufferIn2: (00000000, 0), BufferIn3: (00000000, 0), BufferOut: (007ad680, 32), BufferOut2: (00765920, 924), BufferOut3: (00000000, 0)
 		case IOCTLV_NET_SSL_SETROOTCA:
 		{
 			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_SETROOTCA "
@@ -201,7 +188,6 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				_BufferIn3, BufferInSize3, _BufferOut, BufferOutSize,
 				_BufferOut2, BufferOutSize2, _BufferOut3, BufferOutSize3);
 			
-//Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_NET, LogTypes::LINFO);
 
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
 			void* certca = malloc(BufferOutSize2);
@@ -258,12 +244,6 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				_BufferIn3, BufferInSize3, _BufferOut, BufferOutSize,
 				_BufferOut2, BufferOutSize2, _BufferOut3, BufferOutSize3);
 
-			char in1[32];
-			char out1[32];
-			char out2[32];
-			Memory::ReadBigEData((u8*)in1, _BufferIn, 32);
-			Memory::ReadBigEData((u8*)out1, _BufferOut, 32);
-			Memory::ReadBigEData((u8*)out2, _BufferOut2, 32);
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
 			if (sslID >= 0 && sslID < NET_SSL_MAXINSTANCES && sslfds[sslID] != NULL)
 			{
@@ -298,54 +278,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 					X509_free(cert);
 				if (key)
 					EVP_PKEY_free(key);
-				
-				/*PKCS12 *p12;
 
-				FILE* f = fopen("c:\\wii_retail.p12", "rb");
-
-				if (!f)
-					break;
-
-				
-				p12 = d2i_PKCS12_fp(f, NULL);
-				fclose(f);
-				if (!p12)
-					break;
-				EVP_PKEY *pkey = NULL;
-				X509 *cert = NULL;
-				STACK_OF(X509) *ca = sk_X509_new_null();
-				
-				PKCS12_PBE_add();
-
-				if (!PKCS12_parse(p12, "", &pkey, &cert, &ca))
-					break;
-
-				if (cert) {
-					SSL_CTX_use_certificate(ssl->ctx, cert);
-					X509_free(cert);
-				}
-				if (pkey)
-{
-					SSL_CTX_use_PrivateKey(ssl->ctx, pkey);
-					EVP_PKEY_free(pkey);
-				}
-				
-				
-				for (int i = 0; i < sk_X509_num(ca); i++) {
-					X509 *cert2 = sk_X509_value(ca, i);
-					  
-					char buf[200];
-
-					X509_NAME_oneline(X509_get_subject_name(cert2), buf, sizeof(buf));
-					SSL_CTX_add_extra_chain_cert(ssl->ctx, cert2);
-					  
-				}
-				sk_X509_free(ca);
-				
-				PKCS12_free(p12);
-				*/
-
-				//SSL_CTX_use_certificate_chain_file(ssl->ctx, (char*)ssl->cert);
 				Memory::Write_U32(0, _BufferIn);				
 			}
 			break;
@@ -353,15 +286,8 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 
 		case IOCTLV_NET_SSL_SETBUILTINROOTCA:
 		{
-			char in1[32];
-			char out1[32];
-			char out2[32];
-			Memory::ReadBigEData((u8*)in1, _BufferIn, 32);
-			Memory::ReadBigEData((u8*)out1, _BufferOut, 32);
-			Memory::ReadBigEData((u8*)out2, _BufferOut2, 32);
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
-			if (sslID >= 0 && sslID < NET_SSL_MAXINSTANCES && sslfds[sslID] != NULL)
-{
+			if (sslID >= 0 && sslID < NET_SSL_MAXINSTANCES && sslfds[sslID] != NULL){
 				
 				Memory::Write_U32(0, _BufferIn);
 			}
@@ -377,27 +303,12 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 
 		case IOCTLV_NET_SSL_CONNECT:
 		{
-			char in1[32];
-			char out1[32];
-			char out2[32];
-			Memory::ReadBigEData((u8*)in1, _BufferIn, 32);
-			Memory::ReadBigEData((u8*)out1, _BufferOut, 32);
-			Memory::ReadBigEData((u8*)out2, _BufferOut2, 32);
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
 			if (sslID >= 0 && sslID < NET_SSL_MAXINSTANCES && sslfds[sslID] != NULL)
 			{
 				int sock = Memory::Read_U32(_BufferOut2);
 				SSL* ssl = sslfds[sslID];
 				SSL_set_fd(ssl,sock);
-
-				FILE *ssl_write = fopen("ssl_write.txt", "ab");
-				fprintf(ssl_write, "%s", "###############\n");
-				fclose(ssl_write);
-
-				FILE *ssl_read = fopen("ssl_read.txt", "ab");
-				fprintf(ssl_read, "%s", "###############\n");
-				fclose(ssl_read);
-
 
 				returnValue = SSL_connect(ssl);
 				Memory::Write_U32(0, _BufferIn);
@@ -414,21 +325,13 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 
 		case IOCTLV_NET_SSL_DOHANDSHAKE:
 		{
-			char in1[32];
-			char out1[32];
-			Memory::ReadBigEData((u8*)in1, _BufferIn, 32);
-			Memory::ReadBigEData((u8*)out1, _BufferOut, 32);
-
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
 			if (sslID >= 0 && sslID < NET_SSL_MAXINSTANCES && sslfds[sslID] != NULL)
 			{
 				SSL* ssl = sslfds[sslID];
 				SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
 				returnValue = SSL_do_handshake(ssl);
-				SSL_load_error_strings();
-				FILE *quickDump = fopen("quickdump.txt", "wb");
-				ERR_print_errors_fp(quickDump);
-				fclose(quickDump);
+				
 //				if (returnValue == 1)
 					Memory::Write_U32(0, _BufferIn);
 			}
@@ -444,31 +347,16 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 		
 		case IOCTLV_NET_SSL_WRITE:
 		{
-			char in1[32];
-			char out1[32];
-			char out2[256];
-			
-			//Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_NET, LogTypes::LINFO);
-
-			Memory::ReadBigEData((u8*)in1, _BufferIn, 32);
-			Memory::ReadBigEData((u8*)out1, _BufferOut, 32);
-			Memory::ReadBigEData((u8*)out2, _BufferOut2, BufferOutSize2);
 			
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
 			if (sslID >= 0 && sslID < NET_SSL_MAXINSTANCES && sslfds[sslID] != NULL)
 			{
 				SSL* ssl = sslfds[sslID];
-				
-				FILE *ssl_write = fopen("ssl_write.txt", "ab");
-				fwrite(Memory::GetPointer(_BufferOut2), 1, BufferOutSize2, ssl_write);
-				//fprintf(ssl_write, "----(%d)----\n", BufferOutSize2);
-				fclose(ssl_write);
-				
+								
 				returnValue = SSL_write(ssl, Memory::GetPointer(_BufferOut2), BufferOutSize2);
 				if (returnValue == -1)
 					returnValue = -SSL_get_error(ssl, returnValue);
 				Memory::Write_U32(returnValue, _BufferIn);
-				//returnValue = 0;
 			}
 			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_WRITE "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -483,22 +371,6 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 
 		case IOCTLV_NET_SSL_READ:
 		{
-			u32 in1[32];
-			u32 in2[256];
-			u32 out1[32];
-			memset(in2, 0, 256);
-			Memory::ReadBigEData((u8*)in1, _BufferIn, 32);
-			//Memory::ReadBigEData((u8*)in2, _BufferIn2, BufferInSize2);
-			Memory::ReadBigEData((u8*)out1, _BufferOut, 32);
-			
-			
-			/*DumpCommands(_BufferIn,4,LogTypes::WII_IPC_NET,LogTypes::LDEBUG);
-			
-			DumpCommands(_BufferIn2,2,LogTypes::WII_IPC_NET,LogTypes::LDEBUG);
-			DumpCommands(_BufferOut,4,LogTypes::WII_IPC_NET,LogTypes::LDEBUG);
-			*/
-
-
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
 			if (sslID >= 0 && sslID < NET_SSL_MAXINSTANCES && sslfds[sslID] != NULL)
 			{
@@ -518,27 +390,14 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 						WARN_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ ERRORCODE= %d", WSAGetLastError());
 					}
 				}
-				SSL_load_error_strings();
-				FILE *quickDump = fopen("quickdump.txt", "ab");
-				ERR_print_errors_fp(quickDump);
-				fclose(quickDump);
 				Memory::Write_U32(returnValue, _BufferIn);
-				//returnValue = 0;
 			}
-			memcpy(in2, (char*)Memory::GetPointer(_BufferIn2), BufferInSize2);
-
-
-			FILE *ssl_read = fopen("ssl_read.txt", "ab");
-			if((s32)returnValue >0)
-				fwrite(in2, 1, returnValue, ssl_read);
-//fprintf(ssl_read, "%s", "--------\n");
-			fclose(ssl_read);
 			
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ(%d) %s "
+			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ(%d)"
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-				returnValue, in2,
+				returnValue,
 				_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
 				_BufferIn3, BufferInSize3, _BufferOut, BufferOutSize,
 				_BufferOut2, BufferOutSize2, _BufferOut3, BufferOutSize3);
