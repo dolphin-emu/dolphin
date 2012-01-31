@@ -168,7 +168,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	else if (ReturnValue == 0)
 	{
 		ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open: %s (%s) - I/O Error", m_Filename.c_str(), Modes[_Mode]);
-		ReturnValue = FS_INVALID_ARGUMENT;
+		ReturnValue = FS_RESULT_FATAL;
 	}
 
 	if (_CommandAddress)
@@ -179,7 +179,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
 {
-	u32 ReturnValue		= FS_INVALID_ARGUMENT;
+	u32 ReturnValue		= FS_RESULT_FATAL;
 	const s32 SeekPosition	= Memory::Read_U32(_CommandAddress + 0xC);
 	const s32 Mode			= Memory::Read_U32(_CommandAddress + 0x10);  
 
