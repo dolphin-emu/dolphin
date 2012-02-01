@@ -151,9 +151,18 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 
 	std::string gameid = m_gameid;
 
-	// WiiWare are identified by their first four characters
-	if (m_gameid[0] == 'W')
+	
+	switch (m_gameid[0])
+	{
+	case 'R':
+	case 'S':
+	case 'G':
+		break;
+	default:
+	// All channels (WiiWare, VirtualConsole, etc) are identified by their first four characters
 		gameid = m_gameid.substr(0, 4);
+		break;
+	}
 
 	sf::Http::Request req;
 	req.SetURI("/txt.php?txt=" + gameid);
