@@ -678,11 +678,8 @@ void CFrame::DoOpen(bool Boot)
 		File::SetCurrentDir(currentDir);
 	}
 
-	if (path.IsEmpty())
-		return;
-
 	// Should we boot a new game or just change the disc?
-	if (Boot)
+	if (Boot && !path.IsEmpty())
 		BootGame(std::string(path.mb_str()));
 	else
 	{
