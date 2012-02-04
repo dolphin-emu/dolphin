@@ -227,7 +227,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		tex_hash ^= tlut_hash;
 	}
 
-	TCacheEntryBase *entry = textures[texID]; // TODO: Should use a different texID for preloaded textures!
+	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
 		// 1. Calculate reference hash:
