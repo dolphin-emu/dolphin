@@ -295,11 +295,10 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 	{
 	case IOCTLV_NCD_GETCONFIG: // 7004 out, 32 out
 			WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETCONFIG");
-			ReturnValue = -1;
-		break;
 	case IOCTLV_NCD_READCONFIG: // 7004 Out, 32 Out. 2nd, 3rd
-		WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
-		//break;
+		
+		if(CommandBuffer.Parameter == IOCTLV_NCD_READCONFIG)
+			WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
 
 		// first out buffer gets filled with contents of /shared2/sys/net/02/config.dat
 		// TODO: What's the second output buffer for?
