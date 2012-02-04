@@ -31,15 +31,15 @@
 
 typedef struct pollfd {
     int fd;                         /* file desc to poll */
-    short events;                   /* events of interest on fd */
-    short revents;                  /* events that occurred on fd */
+    int events;                   /* events of interest on fd */
+    int revents;                  /* events that occurred on fd */
 } pollfd_t;
 
 #define EINVAL 22
 // poll flags
 #define POLLIN  0x0001
 #define POLLOUT 0x0008
-#define POLLERR 0x0040
+#define POLLERR 0x0020
 
 // synonyms
 #define POLLNORM POLLIN
@@ -50,8 +50,8 @@ typedef struct pollfd {
 #define POLLWRBAND POLLOUT
 
 // ignored
-#define POLLHUP 0x0010
-#define POLLNVAL 0x0020
+#define POLLHUP 0x0040
+#define POLLNVAL 0x0080
 
 inline int poll(struct pollfd *pollSet, int pollCount, int pollTimeout)
 {

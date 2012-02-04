@@ -134,7 +134,7 @@ private:
         IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR      = 0x02,
         IOCTL_NWC24_EXEC_RESUME_SCHEDULAR           = 0x03,
         IOCTL_NWC24_KD_GET_TIME_TRIGGERS            = 0x04,
-        IOCTL_NWC24_UNK_5                           = 0x05,
+        IOCTL_NWC24_SET_SCHEDULE_SPAN               = 0x05,
         IOCTL_NWC24_STARTUP_SOCKET                  = 0x06,
         IOCTL_NWC24_CLEANUP_SOCKET                  = 0x07,
         IOCTL_NWC24_LOCK_SOCKET                     = 0x08,
@@ -333,7 +333,7 @@ private:
 		IOCTLV_NCD_GETLINKSTATUS			= 0x7,  // NCDGetLinkStatus
 		IOCTLV_NCD_GETWIRELESSMACADDRESS	= 0x8,  // NCDGetWirelessMacAddress
 	};
-
+	bool isSet;
 	network_config_t m_Ifconfig;
 };
 
