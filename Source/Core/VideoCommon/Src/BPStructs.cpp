@@ -30,6 +30,7 @@
 #include "VertexLoader.h"
 #include "VertexShaderManager.h"
 #include "Thread.h"
+#include "HW/Memmap.h"
 
 using namespace BPFunctions;
 
@@ -301,14 +302,14 @@ void BPWritten(const BPCmd& bp)
 
 			// TODO - figure out a cleaner way.
 			if (GetConfig(CONFIG_ISWII))
-				ptr = GetPointer(bpmem.tlutXferSrc << 5);
+				ptr = GetPointer(bpmem.tmem_config.tlut_src << 5);
 			else
-				ptr = GetPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
+				ptr = GetPointer((bpmem.tmem_config.tlut_src & 0xFFFFF) << 5);
 
 			if (ptr)
 				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
 			else
-				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
+				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tmem_config.tlut_src, bpmem.tmem_config.tlut_src << 5, (bpmem.tmem_config.tlut_src & 0xFFFFF)<< 5);
 
 			// TODO(ector) : kill all textures that use this palette
 			// Not sure if it's a good idea, though. For now, we hash texture palettes
@@ -466,14 +467,22 @@ void BPWritten(const BPCmd& bp)
 		DEBUG_LOG(VIDEO, "Uknown BP Reg 0x57: %08x", bp.newvalue);
 		break;
 
-	case BPMEM_UNKNOWN_60:
-	case BPMEM_UNKNOWN_61:
-	case BPMEM_UNKNOWN_62:
-		// Cases added due to: http://code.google.com/p/dolphin-emu/issues/detail?id=360#c90
-		// Are these related to BBox?
+	case BPMEM_PRELOAD_ADDR:
+	case BPMEM_PRELOAD_TMEMEVEN:
+	case BPMEM_PRELOAD_TMEMODD: // Used when PRELOAD_MODE is set
 		break;
 
-	case BPMEM_TEXMODESYNC: // Always set to 0 when GX_TexModeSync() is called.
+	case BPMEM_PRELOAD_MODE: // Set to 0 when GX_TexModeSync() is called.
+		// if this is different from 0, manual TMEM management is used.
+		if (bp.newvalue != 0)
+		{
+			// NOTE(neobrain): Apparently tmemodd doesn't affect hardware behavior at all (libogc uses it just as a buffer and switches its contents with tmemeven whenever this is called)
+			BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
+			u8* ram_ptr = Memory::GetPointer(tmem_cfg.preload_addr << 5);
+			u32 tmem_addr = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
+			u32 size = tmem_cfg.preload_tile_info.count * 32;
+			memcpy(texMem + tmem_addr, ram_ptr, size);
+		}
 		break;
 
 		// ------------------------------------------------

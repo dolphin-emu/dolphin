@@ -20,8 +20,8 @@
 #include "Hash.h"
 enum 
 {
-    TMEM_SIZE = 1024*1024,
-    HALFTMEM_SIZE = 512*1024
+	TMEM_SIZE = 1024*1024,
+	TMEM_LINE_SIZE = 32,
 };
 extern  GC_ALIGNED16(u8 texMem[TMEM_SIZE]);
 
