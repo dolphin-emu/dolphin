@@ -254,24 +254,27 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
-    case IOCTL_ES_OPENCONTENT:
-        {
-            _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
-            _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
+	case IOCTL_ES_OPENCONTENT:
+		{
+			_dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
+			_dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
 
-            u32 CFD = AccessIdentID++;
-            u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+			u32 CFD = AccessIdentID++;
+			u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
-            m_ContentAccessMap[CFD].m_Position = 0;
-            m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(m_TitleID).GetContentByIndex(Index);
-            _dbg_assert_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL);
+			m_ContentAccessMap[CFD].m_Position = 0;
+			m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(m_TitleID).GetContentByIndex(Index);
+			_dbg_assert_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL);
 
-            Memory::Write_U32(CFD, _CommandAddress + 0x4);
+			if (m_ContentAccessMap[CFD].m_pContent == NULL)
+				CFD = 0xffffffff; //TODO: what is the correct error value here?
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
-            return true;
-        }
-        break;
+			Memory::Write_U32(CFD, _CommandAddress + 0x4);
+
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
+			return true;
+		}
+		break;
 
     case IOCTL_ES_READCONTENT:
         {
