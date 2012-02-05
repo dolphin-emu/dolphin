@@ -49,6 +49,9 @@ DSPLLE::DSPLLE() {
 	m_cycle_count = 0;
 }
 
+Common::Event dspEvent;
+Common::Event ppcEvent;
+
 void DSPLLE::DoState(PointerWrap &p)
 {
 	p.Do(g_dsp.r);
@@ -96,7 +99,10 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 			Common::AtomicStore(dsp_lle->m_cycle_count, 0);
 		}
 		else
-			Common::YieldCPU();
+		{
+			ppcEvent.Set();
+			dspEvent.Wait();
+		}
 	}
 }
 
@@ -138,6 +144,8 @@ void DSPLLE::DSP_StopSoundStream()
 	m_bIsRunning = false;
 	if (m_bDSPThread)
 	{
+		ppcEvent.Set();
+		dspEvent.Set();
 		m_hDSPThread.join();
 	}
 }
@@ -274,9 +282,10 @@ void DSPLLE::DSP_Update(int cycles)
 	else
 	{
 		// Wait for dsp thread to complete its cycle. Note: this logic should be thought through.
-		while (m_cycle_count != 0)
-			;
+		ppcEvent.Wait();
 		Common::AtomicStore(m_cycle_count, dsp_cycles);
+		dspEvent.Set();
+
 	}
 }
 
