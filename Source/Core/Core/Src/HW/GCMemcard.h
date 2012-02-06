@@ -55,6 +55,7 @@ enum
 	DENTRY_STRLEN  = 0x20,
 	DENTRY_SIZE    = 0x40,
 	BLOCK_SIZE     = 0x2000,
+	BAT_SIZE       = 0xFFB,
 
 	MemCard59Mb   = 0x04,
 	MemCard123Mb  = 0x08,
@@ -162,7 +163,7 @@ private:
 		u8 UpdateCounter[2];//0x0004	2	update Counter
 		u8 FreeBlocks[2];	//0x0006	2	free Blocks
 		u8 LastAllocated[2];//0x0008	2	last allocated Block
-		u16 Map[0xFFB];		//0x000a	0x1ff8	Map of allocated Blocks
+		u16 Map[BAT_SIZE];		//0x000a	0x1ff8	Map of allocated Blocks
 	} bat,bat_backup;
 	struct GCMC_Header
 	{
@@ -218,6 +219,9 @@ public:
 	std::string GetSaveComment2(u8 index) const;
 	// Copies a DEntry from u8 index to DEntry& data
 	bool GetDEntry(u8 index, DEntry &dest) const;
+	u16 GetNextBlock(u16 Block) const;
+	u16 NextFreeBlock(u16 StartingBlock=MC_FST_BLOCKS) const;
+	bool ClearBlocks(u16 StartingBlock, u16 Length);
 
 	// assumes there's enough space in buffer
 	// old determines if function uses old or new method of copying data

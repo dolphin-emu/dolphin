@@ -543,24 +543,61 @@ bool GCMemcard::GetDEntry(u8 index, DEntry &dest) const
 	return true;
 }
 
+u16 GCMemcard::GetNextBlock(u16 Block) const
+{
+	if ((Block < MC_FST_BLOCKS) || (Block > maxBlock))
+		return 0;
+	return Common::swap16(bat.Map[Block-MC_FST_BLOCKS]);
+}
+
+u16 GCMemcard::NextFreeBlock(u16 StartingBlock) const
+{
+	for (u16 i = StartingBlock; i < BAT_SIZE; ++i)
+		if (bat.Map[i-MC_FST_BLOCKS] == 0)
+			return i;
+}
+
+bool GCMemcard::ClearBlocks(u16 FirstBlock, u16 BlockCount)
+{
+	std::vector<u16> blocks;
+	while (FirstBlock != 0xFF && FirstBlock != 0)
+	{
+		blocks.push_back(FirstBlock);
+		FirstBlock = GetNextBlock(FirstBlock);
+	}
+
+	if (FirstBlock > 0)
+	{
+		size_t length = blocks.size();
+		if (length != BlockCount)
+			return false;
+		for (int i = 0; i < length; ++i)
+			bat.Map[blocks.at(i)-MC_FST_BLOCKS] = 0;
+		*(u16*)&bat.FreeBlocks = BE16(BE16(bat.FreeBlocks) - BlockCount);
+	}
+	return true;
+}
 u32 GCMemcard::GetSaveData(u8 index,  std::vector<GCMBlock> & Blocks) const
 {
 	if (!m_valid)
 		return NOMEMCARD;
 
 	u16 block = DEntry_FirstBlock(index);
-	u16 saveLength = DEntry_BlockCount(index);
+	u16 BlockCount = DEntry_BlockCount(index);
 	u16 memcardSize = BE16(hdr.SizeMb) * MBIT_TO_BLOCKS;
 
-	if ((block == 0xFFFF) || (saveLength == 0xFFFF)
-		|| (block + saveLength > memcardSize))
+	if ((block == 0xFFFF) || (BlockCount == 0xFFFF))
 	{
 		return FAIL;
 	}
 
-	for (int i = 0; i < saveLength; ++i)
+	u16 nextBlock = block;
+	for (int i = 0; i < BlockCount; ++i)
 	{
-		Blocks.push_back(mc_data_blocks[i + block-MC_FST_BLOCKS]);
+		if ((!nextBlock) || (nextBlock == 0xFFFF))
+			return FAIL;
+		Blocks.push_back(mc_data_blocks[nextBlock-MC_FST_BLOCKS]);
+		nextBlock = GetNextBlock(nextBlock);
 	}
 	return SUCCESS;
 }
@@ -585,10 +622,12 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, i
 	}
 
 	// find first free data block -- assume no freespace fragmentation
-	int totalspace = (((u32)BE16(hdr.SizeMb) * MBIT_TO_BLOCKS) - MC_FST_BLOCKS);
-	int firstFree1 = BE16(bat.LastAllocated) + 1;
-	int firstFree2 = 0;
-	for (int i = 0; i < DIRLEN; i++)
+	//int totalspace = (((u32)BE16(hdr.SizeMb) * MBIT_TO_BLOCKS) - MC_FST_BLOCKS);
+	//int firstFree1 = BE16(bat.LastAllocated) + 1;
+
+
+	
+/*	for (int i = 0; i < DIRLEN; i++)
 	{
 		if (BE32(dir.Dir[i].Gamecode) == 0xFFFFFFFF)
 		{
@@ -601,7 +640,8 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, i
 		}
 	}
 	firstFree1 = max<int>(firstFree1, firstFree2);
-
+	*/
+	u16 firstBlock = NextFreeBlock();
 	// find first free dir entry
 	int index = -1;
 	for (int i=0; i < DIRLEN; i++)
@@ -610,7 +650,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, i
 		{
 			index = i;
 			dir.Dir[i] = direntry;
-			*(u16*)&dir.Dir[i].FirstBlock = BE16(firstFree1);
+			*(u16*)&dir.Dir[i].FirstBlock = BE16(firstBlock);
 			if (!remove)
 			{
 				dir.Dir[i].CopyCounter = dir.Dir[i].CopyCounter+1;
@@ -622,15 +662,22 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, i
 
 
 	int fileBlocks = BE16(direntry.BlockCount);
-	firstFree1 -= MC_FST_BLOCKS;
+
+	u16 nextBlock;
 	// keep assuming no freespace fragmentation, and copy over all the data
 	for (int i = 0; i < fileBlocks; ++i)
-	{
-		mc_data_blocks[i + firstFree1] = saveBlocks[i];
+	{ 
+		mc_data_blocks[firstBlock - MC_FST_BLOCKS] = saveBlocks[i];
+		if (i == fileBlocks-1)
+			nextBlock = 0xFFFF;
+		else
+			nextBlock = NextFreeBlock(firstBlock+1);		
+		bat.Map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
+		firstBlock = nextBlock;
 	}
 
 	bat_backup = bat;
-	u16 last = BE16(bat_backup.LastAllocated);
+/*	u16 last = BE16(bat_backup.LastAllocated);
 	u16 i = (last - 4);
 	int j = 2;
 	while(j < BE16(direntry.BlockCount) + 1)
@@ -645,11 +692,12 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, i
 	{
 		bat_backup.Map[i++] = 0x0000;
 	}
-
+	*/
 	//update last allocated block
-	*(u16*)&bat_backup.LastAllocated = BE16(BE16(bat_backup.LastAllocated) + j - 1);
+/*	*(u16*)&bat_backup.LastAllocated = BE16(BE16(bat_backup.LastAllocated) + j - 1);
+*/
 	//update freespace counter
-	*(u16*)&bat_backup.FreeBlocks = BE16(totalspace - firstFree1 - fileBlocks + MC_FST_BLOCKS);
+	*(u16*)&bat_backup.FreeBlocks = BE16(BE16(bat_backup.FreeBlocks)  - fileBlocks);
 
 	
 	if (!remove)
@@ -666,7 +714,25 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 {
 	if (!m_valid)
 		return NOMEMCARD;
+	if (index >= DIRLEN)
+		return DELETE_FAIL;
+	
+	dir_backup = dir;
+	bat_backup = bat;
 
+	u16 startingblock = BE16(dir.Dir[index].FirstBlock);
+	u16 numberofblocks = BE16(dir.Dir[index].BlockCount);
+	if (!ClearBlocks(startingblock, numberofblocks))
+		return DELETE_FAIL;
+
+	
+	memset(&(dir.Dir[index]), 0xFF, DENTRY_SIZE);
+	
+	*(u16*)&dir.UpdateCounter = BE16(BE16(dir.UpdateCounter) + 1);
+	*(u16*)&bat.UpdateCounter = BE16(BE16(bat.UpdateCounter) + 1);
+	
+	return SUCCESS;
+	/*
 	//error checking
 	u16 startingblock = 0;
 	for (int i = 0; i < DIRLEN; i++)
@@ -730,8 +796,7 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 	}
 	// increment update counter
 	*(u16*)&dir.UpdateCounter = BE16(BE16(dir.UpdateCounter) + 1);
-
-	return SUCCESS;
+	*/
 }
 
 u32 GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
