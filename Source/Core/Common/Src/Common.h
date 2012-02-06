@@ -139,14 +139,18 @@ private:
 // wxWidgets does not have a true dummy macro for this.
 #define _trans(a) a
 
-#if defined __APPLE__ && defined __i386__
-#define _M_SSE 0x300
-#elif defined __APPLE__ && defined __x86_64__
-#define _M_SSE 0x301
-#elif __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-#define _M_SSE 0x301
+#if defined __GNUC__
+# if defined __SSE4_2__
+#  define _M_SSE 0x402
+# elif defined __SSE4_1__
+#  define _M_SSE 0x401
+# elif defined __SSSE3__
+#  define _M_SSE 0x301
+# elif defined __SSE3__
+#  define _M_SSE 0x300
+# endif
 #elif (_MSC_VER >= 1500) || __INTEL_COMPILER // Visual Studio 2008
-#define _M_SSE 0x402
+# define _M_SSE 0x402
 #endif
 
 // Host communication.
