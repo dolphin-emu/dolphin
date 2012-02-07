@@ -740,6 +740,9 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 	}
 
 	Directory UpdatedDir = *CurrentDir;
+	/*
+	// TODO: determine when this is used, even on the same memory card I have seen
+	// both update to broken file, and not updated
 	*(u32*)&UpdatedDir.Dir[index].Gamecode = 0;
 	*(u16*)&UpdatedDir.Dir[index].Makercode = 0;
 	memset(UpdatedDir.Dir[index].Filename, 0, 0x20);
@@ -757,6 +760,7 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 		CurrentDir = &dir_backup;
 		PreviousDir = &dir;
 	}
+	*/
 	memset(&(UpdatedDir.Dir[index]), 0xFF, DENTRY_SIZE);
 	*(u16*)&UpdatedDir.UpdateCounter = BE16(BE16(UpdatedDir.UpdateCounter) + 1);
 	*PreviousDir = UpdatedDir;
