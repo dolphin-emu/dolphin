@@ -595,7 +595,7 @@ bool GCMemcard::BlockAlloc::ClearBlocks(u16 FirstBlock, u16 BlockCount)
 		}
 		for (int i = 0; i < length; ++i)
 			Map[blocks.at(i)-MC_FST_BLOCKS] = 0;
-		*(u16*)&FreeBlocks = BE16(BE16(FreeBlocks) + BlockCount);
+		FreeBlocks = BE16(BE16(FreeBlocks) + BlockCount);
 
 		return true;
 	}
@@ -646,10 +646,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 		return TITLEPRESENT;
 	}
 
-	// find first free data block -- assume no freespace fragmentation
-	//int totalspace = (((u32)BE16(hdr.SizeMb) * MBIT_TO_BLOCKS) - MC_FST_BLOCKS);
-	//int firstFree1 = BE16(bat.LastAllocated) + 1;
-
+	// find first free data block
 	u16 firstBlock = CurrentBat->NextFreeBlock();
 
 	Directory UpdatedDir = *CurrentDir;
@@ -696,7 +693,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 		UpdatedBat.Map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
 		firstBlock = nextBlock;
 	}
-	*(u16*)&UpdatedBat.FreeBlocks = BE16(BE16(UpdatedBat.FreeBlocks)  - fileBlocks);
+	UpdatedBat.FreeBlocks = BE16(BE16(UpdatedBat.FreeBlocks)  - fileBlocks);
 	UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
 	*PreviousBat = UpdatedBat;
 	if (PreviousBat == &bat )
@@ -1235,8 +1232,8 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);	
 		rand &= (u64)0x0000000000007fffULL;
 	}
-	*(u32*)&p_hdr->SramBias = g_SRAM.counter_bias;
-	*(u32*)&p_hdr->SramLang = g_SRAM.lang;
+	p_hdr->SramBias = g_SRAM.counter_bias;
+	p_hdr->SramLang = g_SRAM.lang;
 	// TODO: determine the purpose of Unk2 1 works for slot A, 0 works for both slot A and slot B
 	*(u32*)&p_hdr->Unk2 = 0;		// = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
 	*(u16*)&p_hdr->deviceID = 0;
@@ -1252,8 +1249,8 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 	BlockAlloc *p_bat = GCP.bat,
 		*p_bat_backup = GCP.bat_backup;
 	p_bat_backup->UpdateCounter = BE16(1);
-	*(u16*)&p_bat->FreeBlocks = *(u16*)&p_bat_backup->FreeBlocks = BE16(( BE16(p_hdr->SizeMb) * MBIT_TO_BLOCKS) - MC_FST_BLOCKS);
-	*(u16*)&p_bat->LastAllocated = *(u16*)&p_bat_backup->LastAllocated = BE16(4);
+	p_bat->FreeBlocks = *(u16*)&p_bat_backup->FreeBlocks = BE16(( BE16(p_hdr->SizeMb) * MBIT_TO_BLOCKS) - MC_FST_BLOCKS);
+	p_bat->LastAllocated = p_bat_backup->LastAllocated = BE16(4);
 	calc_checksumsBE((u16*)p_bat+2, 0xFFE, &p_bat->Checksum, &p_bat->Checksum_Inv);
 	calc_checksumsBE((u16*)p_bat_backup+2, 0xFFE, &p_bat_backup->Checksum, &p_bat_backup->Checksum_Inv);
 }
