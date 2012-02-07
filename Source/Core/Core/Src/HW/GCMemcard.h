@@ -27,7 +27,6 @@
 #define BE32(x) (Common::swap32(x))
 #define BE16(x) (Common::swap16(x))
 #define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
-
 enum
 {
 	SLOT_A = 0,
@@ -98,7 +97,7 @@ private:
 		u8 SizeMb[2];		//0x0022	2		size of memcard in Mbits
 		u16 Encoding;		//0x0024	2		encoding (ASCII or japanese)
 		u8 Unused1[468];	//0x0026	468		unused (0xff)
-		u8 UpdateCounter[2];//0x01fa	2		update Counter (?, probably unused)
+		u16 UpdateCounter;//0x01fa	2		update Counter (?, probably unused)
 		u16 Checksum;		//0x01fc	2		Additive Checksum
 		u16 Checksum_Inv;	//0x01fe	2		Inverse Checksum
 		u8 Unused2[7680];	//0x0200	0x1e00	unused (0xff)
@@ -152,7 +151,7 @@ private:
 	struct Directory {
 		DEntry Dir[DIRLEN];	//0x0000	 	Directory Entries (max 127)
 		u8 Padding[0x3a];
-		u8 UpdateCounter[2];//0x1ffa	2	update Counter
+		u16 UpdateCounter;	//0x1ffa	2	update Counter
 		u16 Checksum;		//0x1ffc	2	Additive Checksum
 		u16 Checksum_Inv;	//0x1ffe	2	Inverse Checksum
 	} dir, dir_backup;
@@ -161,7 +160,7 @@ private:
 	struct BlockAlloc {
 		u16 Checksum;		//0x0000	2	Additive Checksum
 		u16 Checksum_Inv;	//0x0002	2	Inverse Checksum
-		u8 UpdateCounter[2];//0x0004	2	update Counter
+		u16 UpdateCounter;	//0x0004	2	update Counter
 		u8 FreeBlocks[2];	//0x0006	2	free Blocks
 		u8 LastAllocated[2];//0x0008	2	last allocated Block
 		u16 Map[BAT_SIZE];		//0x000a	0x1ff8	Map of allocated Blocks

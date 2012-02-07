@@ -240,7 +240,6 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	}
 	if (BE16(bat.UpdateCounter) > BE16(bat_backup.UpdateCounter))
 	{
-		PanicAlert("jere, %x, %x",BE16(bat.UpdateCounter) , BE16(bat_backup.UpdateCounter));
 		CurrentBat = &bat;
 		PreviousBat = &bat_backup;
 	}
@@ -564,6 +563,7 @@ bool GCMemcard::GetDEntry(u8 index, DEntry &dest) const
 	dest = CurrentDir->Dir[index];
 	return true;
 }
+
 u16 GCMemcard::BlockAlloc::GetNextBlock(u16 Block) const
 {
 	if ((Block < MC_FST_BLOCKS) || (Block > 4091))
@@ -667,7 +667,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 			break;
 		}
 	}
-	*(u16*)&UpdatedDir.UpdateCounter = BE16(BE16(UpdatedDir.UpdateCounter) + 1);
+	UpdatedDir.UpdateCounter = BE16(BE16(UpdatedDir.UpdateCounter) + 1);
 	*PreviousDir = UpdatedDir;
 	if (PreviousDir == &dir )
 	{
@@ -697,7 +697,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 		firstBlock = nextBlock;
 	}
 	*(u16*)&UpdatedBat.FreeBlocks = BE16(BE16(UpdatedBat.FreeBlocks)  - fileBlocks);
-	*(u16*)&UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
+	UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
 	*PreviousBat = UpdatedBat;
 	if (PreviousBat == &bat )
 	{
@@ -726,7 +726,7 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 	BlockAlloc UpdatedBat = *CurrentBat;
 	if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))
 		return DELETE_FAIL;
-	*(u16*)&UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
+	UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
 	*PreviousBat = UpdatedBat;
 	if (PreviousBat == &bat )
 	{
@@ -762,7 +762,7 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 	}
 	*/
 	memset(&(UpdatedDir.Dir[index]), 0xFF, DENTRY_SIZE);
-	*(u16*)&UpdatedDir.UpdateCounter = BE16(BE16(UpdatedDir.UpdateCounter) + 1);
+	UpdatedDir.UpdateCounter = BE16(BE16(UpdatedDir.UpdateCounter) + 1);
 	*PreviousDir = UpdatedDir;
 	if (PreviousDir == &dir )
 	{
@@ -1245,13 +1245,13 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 	Directory *p_dir = GCP.dir,
 		*p_dir_backup = GCP.dir_backup;
 	*(u16*)&p_dir->UpdateCounter = 0;
-	*(u16*)&p_dir_backup->UpdateCounter = BE16(1);
+	p_dir_backup->UpdateCounter = BE16(1);
 	calc_checksumsBE((u16*)p_dir, 0xFFE, &p_dir->Checksum, &p_dir->Checksum_Inv);
 	calc_checksumsBE((u16*)p_dir_backup, 0xFFE, &p_dir_backup->Checksum, &p_dir_backup->Checksum_Inv);
 	
 	BlockAlloc *p_bat = GCP.bat,
 		*p_bat_backup = GCP.bat_backup;
-	*(u16*)&p_bat_backup->UpdateCounter = BE16(1);
+	p_bat_backup->UpdateCounter = BE16(1);
 	*(u16*)&p_bat->FreeBlocks = *(u16*)&p_bat_backup->FreeBlocks = BE16(( BE16(p_hdr->SizeMb) * MBIT_TO_BLOCKS) - MC_FST_BLOCKS);
 	*(u16*)&p_bat->LastAllocated = *(u16*)&p_bat_backup->LastAllocated = BE16(4);
 	calc_checksumsBE((u16*)p_bat+2, 0xFFE, &p_bat->Checksum, &p_bat->Checksum_Inv);
