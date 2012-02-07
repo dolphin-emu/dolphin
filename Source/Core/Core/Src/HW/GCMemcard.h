@@ -157,6 +157,7 @@ private:
 		u16 Checksum_Inv;	//0x1ffe	2	Inverse Checksum
 	} dir, dir_backup;
 
+	Directory *CurrentDir, *PreviousDir;
 	struct BlockAlloc {
 		u16 Checksum;		//0x0000	2	Additive Checksum
 		u16 Checksum_Inv;	//0x0002	2	Inverse Checksum
@@ -164,7 +165,12 @@ private:
 		u8 FreeBlocks[2];	//0x0006	2	free Blocks
 		u8 LastAllocated[2];//0x0008	2	last allocated Block
 		u16 Map[BAT_SIZE];		//0x000a	0x1ff8	Map of allocated Blocks
+		u16 GetNextBlock(u16 Block) const;
+		u16 NextFreeBlock(u16 StartingBlock=MC_FST_BLOCKS) const;
+		bool ClearBlocks(u16 StartingBlock, u16 Length);
 	} bat,bat_backup;
+
+	BlockAlloc *CurrentBat, *PreviousBat;
 	struct GCMC_Header
 	{
 		Header *hdr;
@@ -219,9 +225,6 @@ public:
 	std::string GetSaveComment2(u8 index) const;
 	// Copies a DEntry from u8 index to DEntry& data
 	bool GetDEntry(u8 index, DEntry &dest) const;
-	u16 GetNextBlock(u16 Block) const;
-	u16 NextFreeBlock(u16 StartingBlock=MC_FST_BLOCKS) const;
-	bool ClearBlocks(u16 StartingBlock, u16 Length);
 
 	// assumes there's enough space in buffer
 	// old determines if function uses old or new method of copying data
@@ -230,8 +233,7 @@ public:
 	u32 GetSaveData(u8 index, std::vector<GCMBlock> &saveBlocks) const;
 
 	// adds the file to the directory and copies its contents
-	// if remove > 0 it will pad bat.map with 0's sizeof remove
-	u32 ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, int remove);
+	u32 ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks);
 
 	// delete a file from the directory
 	u32 RemoveFile(u8 index);

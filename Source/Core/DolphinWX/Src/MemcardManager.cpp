@@ -730,8 +730,8 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		wxBlock.Printf(wxT("%10d"), blocks);
 		m_MemcardList[card]->SetItem(index,COLUMN_BLOCKS, wxBlock);
 		firstblock = memoryCard[card]->DEntry_FirstBlock(fileIndex);
-		if (firstblock == 0xFFFF) firstblock = 3;	// to make firstblock -1
-		wxFirstBlock.Printf(wxT("%15d"), firstblock-4);
+		//if (firstblock == 0xFFFF) firstblock = 3;	// to make firstblock -1
+		wxFirstBlock.Printf(wxT("%15d"), firstblock);
 		m_MemcardList[card]->SetItem(index, COLUMN_FIRSTBLOCK, wxFirstBlock);
 		m_MemcardList[card]->SetItem(index, COLUMN_ICON, wxEmptyString);
 

@@ -227,6 +227,28 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	}
 
 	mcdFile.Close();
+
+	if (BE16(dir.UpdateCounter) > (BE16(dir_backup.UpdateCounter)))
+	{
+		CurrentDir = &dir;
+		PreviousDir = &dir_backup;
+	}
+	else
+	{
+		CurrentDir = &dir_backup;
+		PreviousDir = &dir;
+	}
+	if (BE16(bat.UpdateCounter) > BE16(bat_backup.UpdateCounter))
+	{
+		PanicAlert("jere, %x, %x",BE16(bat.UpdateCounter) , BE16(bat_backup.UpdateCounter));
+		CurrentBat = &bat;
+		PreviousBat = &bat_backup;
+	}
+	else
+	{
+		CurrentBat = &bat_backup;
+		PreviousBat = &bat;
+	}
 }
 
 bool GCMemcard::IsAsciiEncoding() const
@@ -321,7 +343,7 @@ u8 GCMemcard::GetNumFiles() const
 	u8 j = 0;
 	for (int i = 0; i < DIRLEN; i++)
 	{
-		if (BE32(dir.Dir[i].Gamecode)!= 0xFFFFFFFF)
+		if (BE32(CurrentDir->Dir[i].Gamecode)!= 0xFFFFFFFF)
 			 j++;
 	}
 	return j;
@@ -335,7 +357,7 @@ u8 GCMemcard::GetFileIndex(u8 fileNumber) const
 		u8 j = 0;
 		for (u8 i = 0; i < DIRLEN; i++)
 		{
-			if (BE32(dir.Dir[i].Gamecode)!= 0xFFFFFFFF)
+			if (BE32(CurrentDir->Dir[i].Gamecode)!= 0xFFFFFFFF)
 			{
 				if (j == fileNumber)
 				{
@@ -353,7 +375,7 @@ u16 GCMemcard::GetFreeBlocks() const
 	if (!m_valid)
 		return 0;
 
-	return BE16(bat.FreeBlocks);
+	return BE16(CurrentBat->FreeBlocks);
 }
 
 u8 GCMemcard::TitlePresent(DEntry d) const
@@ -364,8 +386,8 @@ u8 GCMemcard::TitlePresent(DEntry d) const
 	u8 i = 0;
 	while(i < DIRLEN)
 	{
-		if ((BE32(dir.Dir[i].Gamecode) == BE32(d.Gamecode)) &&
-			(!memcmp(dir.Dir[i].Filename, d.Filename, 32)))
+		if ((BE32(CurrentDir->Dir[i].Gamecode) == BE32(d.Gamecode)) &&
+			(!memcmp(CurrentDir->Dir[i].Filename, d.Filename, 32)))
 		{
 			break;
 		}
@@ -376,9 +398,9 @@ u8 GCMemcard::TitlePresent(DEntry d) const
 
 bool GCMemcard::GCI_FileName(u8 index, std::string &filename) const
 {
-	if (!m_valid || index > DIRLEN || (BE32(dir.Dir[index].Gamecode) == 0xFFFFFFFF))
+	if (!m_valid || index > DIRLEN || (BE32(CurrentDir->Dir[index].Gamecode) == 0xFFFFFFFF))
 		return false;
-	filename = std::string((char*)dir.Dir[index].Gamecode, 4) + '_' + (char*)dir.Dir[index].Filename + ".gci";
+	filename = std::string((char*)CurrentDir->Dir[index].Gamecode, 4) + '_' + (char*)CurrentDir->Dir[index].Filename + ".gci";
 	return true;
 }
 
@@ -389,14 +411,14 @@ std::string GCMemcard::DEntry_GameCode(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
 		return "";
-	return std::string((const char*)dir.Dir[index].Gamecode, 4);
+	return std::string((const char*)CurrentDir->Dir[index].Gamecode, 4);
 }
 
 std::string GCMemcard::DEntry_Makercode(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
 		return "";
-	return std::string((const char*)dir.Dir[index].Makercode, 2);
+	return std::string((const char*)CurrentDir->Dir[index].Makercode, 2);
 }
 
 std::string GCMemcard::DEntry_BIFlags(u8 index) const
@@ -405,7 +427,7 @@ std::string GCMemcard::DEntry_BIFlags(u8 index) const
 		return "";
 
 	std::string flags;
-	int x = dir.Dir[index].BIFlags;
+	int x = CurrentDir->Dir[index].BIFlags;
 	for (int i = 0; i < 8; i++)
 	{
 		flags.push_back((x & 0x80) ? '1' : '0');
@@ -419,32 +441,32 @@ std::string GCMemcard::DEntry_FileName(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
 		return "";
-	return std::string((const char*)dir.Dir[index].Filename, DENTRY_STRLEN);
+	return std::string((const char*)CurrentDir->Dir[index].Filename, DENTRY_STRLEN);
 }
 
 u32 GCMemcard::DEntry_ModTime(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
 		return 0xFFFFFFFF;
-	return BE32(dir.Dir[index].ModTime);
+	return BE32(CurrentDir->Dir[index].ModTime);
 }
 
 u32 GCMemcard::DEntry_ImageOffset(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
 		return 0xFFFFFFFF;
-	return BE32(dir.Dir[index].ImageOffset);
+	return BE32(CurrentDir->Dir[index].ImageOffset);
 }
 
 std::string GCMemcard::DEntry_IconFmt(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
 		return "";
-	int x = dir.Dir[index].IconFmt[0];
+	int x = CurrentDir->Dir[index].IconFmt[0];
 	std::string format;
 	for(int i = 0; i < 16; i++)
 	{
-		if (i == 8) x = dir.Dir[index].IconFmt[1];
+		if (i == 8) x = CurrentDir->Dir[index].IconFmt[1];
 		format.push_back((x & 0x80) ? '1' : '0');
 		x = x << 1;
 	}
@@ -456,14 +478,14 @@ u16 GCMemcard::DEntry_AnimSpeed(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
 		return 0xFF;
-	return BE16(dir.Dir[index].AnimSpeed);
+	return BE16(CurrentDir->Dir[index].AnimSpeed);
 }
 
 std::string GCMemcard::DEntry_Permissions(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
 		return "";
-	u8 Permissions = dir.Dir[index].Permissions;
+	u8 Permissions = CurrentDir->Dir[index].Permissions;
 	std::string permissionsString;
 	permissionsString.push_back((Permissions & 16) ? 'x' : 'M');
 	permissionsString.push_back((Permissions &  8) ? 'x' : 'C');
@@ -476,7 +498,7 @@ u8 GCMemcard::DEntry_CopyCounter(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
 		return 0xFF;
-	return dir.Dir[index].CopyCounter;
+	return CurrentDir->Dir[index].CopyCounter;
 }
 
 u16 GCMemcard::DEntry_FirstBlock(u8 index) const
@@ -484,7 +506,7 @@ u16 GCMemcard::DEntry_FirstBlock(u8 index) const
 	if (!m_valid || index > DIRLEN)
 		return 0xFFFF;
 
-	u16 block = BE16(dir.Dir[index].FirstBlock);
+	u16 block = BE16(CurrentDir->Dir[index].FirstBlock);
 	if (block > (u16) maxBlock) return 0xFFFF;
 	return block;
 }
@@ -494,7 +516,7 @@ u16 GCMemcard::DEntry_BlockCount(u8 index) const
 	if (!m_valid || index > DIRLEN)
 		return 0xFFFF;
 
-	u16 blocks = BE16(dir.Dir[index].BlockCount);
+	u16 blocks = BE16(CurrentDir->Dir[index].BlockCount);
 	if (blocks > (u16) maxBlock) return 0xFFFF;
 	return blocks;
 }
@@ -503,7 +525,7 @@ u32 GCMemcard::DEntry_CommentsAddress(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
 		return 0xFFFF;
-	return BE32(dir.Dir[index].CommentsAddr);
+	return BE32(CurrentDir->Dir[index].CommentsAddr);
 }
 
 std::string GCMemcard::GetSaveComment1(u8 index) const
@@ -511,8 +533,8 @@ std::string GCMemcard::GetSaveComment1(u8 index) const
 	if (!m_valid || index > DIRLEN)
 		return "";
 
-	u32 Comment1 = BE32(dir.Dir[index].CommentsAddr);
-	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - MC_FST_BLOCKS;
+	u32 Comment1 = BE32(CurrentDir->Dir[index].CommentsAddr);
+	u32 DataBlock = BE16(CurrentDir->Dir[index].FirstBlock) - MC_FST_BLOCKS;
 	if ((DataBlock > maxBlock) || (Comment1 == 0xFFFFFFFF))
 	{
 		return "";
@@ -525,9 +547,9 @@ std::string GCMemcard::GetSaveComment2(u8 index) const
 	if (!m_valid || index > DIRLEN)
 		return "";
 
-	u32 Comment1 = BE32(dir.Dir[index].CommentsAddr);
+	u32 Comment1 = BE32(CurrentDir->Dir[index].CommentsAddr);
 	u32 Comment2 = Comment1 + DENTRY_STRLEN;
-	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - MC_FST_BLOCKS;
+	u32 DataBlock = BE16(CurrentDir->Dir[index].FirstBlock) - MC_FST_BLOCKS;
 	if ((DataBlock > maxBlock) || (Comment1 == 0xFFFFFFFF))
 	{
 		return "";
@@ -539,44 +561,47 @@ bool GCMemcard::GetDEntry(u8 index, DEntry &dest) const
 {
 	if (!m_valid || index > DIRLEN)
 		return false;
-	dest = dir.Dir[index];
+	dest = CurrentDir->Dir[index];
 	return true;
 }
-
-u16 GCMemcard::GetNextBlock(u16 Block) const
+u16 GCMemcard::BlockAlloc::GetNextBlock(u16 Block) const
 {
-	if ((Block < MC_FST_BLOCKS) || (Block > maxBlock))
+	if ((Block < MC_FST_BLOCKS) || (Block > 4091))
 		return 0;
-	return Common::swap16(bat.Map[Block-MC_FST_BLOCKS]);
+	return Common::swap16(Map[Block-MC_FST_BLOCKS]);
 }
 
-u16 GCMemcard::NextFreeBlock(u16 StartingBlock) const
+u16 GCMemcard::BlockAlloc::NextFreeBlock(u16 StartingBlock) const
 {
 	for (u16 i = StartingBlock; i < BAT_SIZE; ++i)
-		if (bat.Map[i-MC_FST_BLOCKS] == 0)
+		if (Map[i-MC_FST_BLOCKS] == 0)
 			return i;
 }
 
-bool GCMemcard::ClearBlocks(u16 FirstBlock, u16 BlockCount)
+bool GCMemcard::BlockAlloc::ClearBlocks(u16 FirstBlock, u16 BlockCount)
 {
 	std::vector<u16> blocks;
-	while (FirstBlock != 0xFF && FirstBlock != 0)
+	while (FirstBlock != 0xFFFF && FirstBlock != 0)
 	{
 		blocks.push_back(FirstBlock);
 		FirstBlock = GetNextBlock(FirstBlock);
 	}
-
 	if (FirstBlock > 0)
 	{
 		size_t length = blocks.size();
 		if (length != BlockCount)
+		{
 			return false;
+		}
 		for (int i = 0; i < length; ++i)
-			bat.Map[blocks.at(i)-MC_FST_BLOCKS] = 0;
-		*(u16*)&bat.FreeBlocks = BE16(BE16(bat.FreeBlocks) - BlockCount);
+			Map[blocks.at(i)-MC_FST_BLOCKS] = 0;
+		*(u16*)&FreeBlocks = BE16(BE16(FreeBlocks) + BlockCount);
+
+		return true;
 	}
-	return true;
+	return false;
 }
+
 u32 GCMemcard::GetSaveData(u8 index,  std::vector<GCMBlock> & Blocks) const
 {
 	if (!m_valid)
@@ -597,13 +622,13 @@ u32 GCMemcard::GetSaveData(u8 index,  std::vector<GCMBlock> & Blocks) const
 		if ((!nextBlock) || (nextBlock == 0xFFFF))
 			return FAIL;
 		Blocks.push_back(mc_data_blocks[nextBlock-MC_FST_BLOCKS]);
-		nextBlock = GetNextBlock(nextBlock);
+		nextBlock = CurrentBat->GetNextBlock(nextBlock);
 	}
 	return SUCCESS;
 }
 // End DEntry functions
 
-u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, int remove)
+u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 {
 	if (!m_valid)
 		return NOMEMCARD;
@@ -612,11 +637,11 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, i
 	{
 		return OUTOFDIRENTRIES;
 	}
-	if (BE16(bat.FreeBlocks) < BE16(direntry.BlockCount))
+	if (BE16(CurrentBat->FreeBlocks) < BE16(direntry.BlockCount))
 	{
 		return OUTOFBLOCKS;
 	}
-	if (!remove && (TitlePresent(direntry) != DIRLEN))
+	if (TitlePresent(direntry) != DIRLEN)
 	{
 		return TITLEPRESENT;
 	}
@@ -625,44 +650,40 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, i
 	//int totalspace = (((u32)BE16(hdr.SizeMb) * MBIT_TO_BLOCKS) - MC_FST_BLOCKS);
 	//int firstFree1 = BE16(bat.LastAllocated) + 1;
 
+	u16 firstBlock = CurrentBat->NextFreeBlock();
 
+	Directory UpdatedDir = *CurrentDir;
 	
-/*	for (int i = 0; i < DIRLEN; i++)
-	{
-		if (BE32(dir.Dir[i].Gamecode) == 0xFFFFFFFF)
-		{
-			break;
-		}
-		else
-		{
-			firstFree2 = max<int>(firstFree2,
-				(int)(BE16(dir.Dir[i].FirstBlock) + BE16(dir.Dir[i].BlockCount)));
-		}
-	}
-	firstFree1 = max<int>(firstFree1, firstFree2);
-	*/
-	u16 firstBlock = NextFreeBlock();
 	// find first free dir entry
 	int index = -1;
 	for (int i=0; i < DIRLEN; i++)
 	{
-		if (BE32(dir.Dir[i].Gamecode) == 0xFFFFFFFF)
+		if (BE32(UpdatedDir.Dir[i].Gamecode) == 0xFFFFFFFF)
 		{
 			index = i;
-			dir.Dir[i] = direntry;
-			*(u16*)&dir.Dir[i].FirstBlock = BE16(firstBlock);
-			if (!remove)
-			{
-				dir.Dir[i].CopyCounter = dir.Dir[i].CopyCounter+1;
-			}
-			dir_backup = dir;
+			UpdatedDir.Dir[i] = direntry;
+			*(u16*)&UpdatedDir.Dir[i].FirstBlock = BE16(firstBlock);
+			UpdatedDir.Dir[i].CopyCounter = UpdatedDir.Dir[i].CopyCounter+1;
 			break;
 		}
 	}
-
+	*(u16*)&UpdatedDir.UpdateCounter = BE16(BE16(UpdatedDir.UpdateCounter) + 1);
+	*PreviousDir = UpdatedDir;
+	if (PreviousDir == &dir )
+	{
+		CurrentDir = &dir;
+		PreviousDir = &dir_backup;
+	}
+	else
+	{
+		CurrentDir = &dir_backup;
+		PreviousDir = &dir;
+	}
 
 	int fileBlocks = BE16(direntry.BlockCount);
 
+
+	BlockAlloc UpdatedBat = *CurrentBat;
 	u16 nextBlock;
 	// keep assuming no freespace fragmentation, and copy over all the data
 	for (int i = 0; i < fileBlocks; ++i)
@@ -671,42 +692,24 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks, i
 		if (i == fileBlocks-1)
 			nextBlock = 0xFFFF;
 		else
-			nextBlock = NextFreeBlock(firstBlock+1);		
-		bat.Map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
+			nextBlock = UpdatedBat.NextFreeBlock(firstBlock+1);		
+		UpdatedBat.Map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
 		firstBlock = nextBlock;
 	}
-
-	bat_backup = bat;
-/*	u16 last = BE16(bat_backup.LastAllocated);
-	u16 i = (last - 4);
-	int j = 2;
-	while(j < BE16(direntry.BlockCount) + 1)
+	*(u16*)&UpdatedBat.FreeBlocks = BE16(BE16(UpdatedBat.FreeBlocks)  - fileBlocks);
+	*(u16*)&UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
+	*PreviousBat = UpdatedBat;
+	if (PreviousBat == &bat )
 	{
-		bat_backup.Map[i] = BE16(last + (u16)j);
-		i++;
-		j++;
+		CurrentBat = &bat;
+		PreviousBat = &bat_backup;
 	}
-	bat_backup.Map[i++] = 0xFFFF;
-	//Set bat.map to 0 for each block that was removed
-	for (int k = 0; k < remove; k++)
+	else
 	{
-		bat_backup.Map[i++] = 0x0000;
+		CurrentBat = &bat_backup;
+		PreviousBat = &bat;
 	}
-	*/
-	//update last allocated block
-/*	*(u16*)&bat_backup.LastAllocated = BE16(BE16(bat_backup.LastAllocated) + j - 1);
-*/
-	//update freespace counter
-	*(u16*)&bat_backup.FreeBlocks = BE16(BE16(bat_backup.FreeBlocks)  - fileBlocks);
 
-	
-	if (!remove)
-	{	// ... and dir update counter
-		*(u16*)&dir_backup.UpdateCounter = BE16(BE16(dir_backup.UpdateCounter) + 1);
-		// ... and bat update counter
-		*(u16*)&bat_backup.UpdateCounter = BE16(BE16(bat_backup.UpdateCounter) + 1);
-	}
-	bat = bat_backup;
 	return SUCCESS;
 }
 
@@ -716,87 +719,59 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 		return NOMEMCARD;
 	if (index >= DIRLEN)
 		return DELETE_FAIL;
-	
-	dir_backup = dir;
-	bat_backup = bat;
 
 	u16 startingblock = BE16(dir.Dir[index].FirstBlock);
 	u16 numberofblocks = BE16(dir.Dir[index].BlockCount);
-	if (!ClearBlocks(startingblock, numberofblocks))
+
+	BlockAlloc UpdatedBat = *CurrentBat;
+	if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))
 		return DELETE_FAIL;
+	*(u16*)&UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
+	*PreviousBat = UpdatedBat;
+	if (PreviousBat == &bat )
+	{
+		CurrentBat = &bat;
+		PreviousBat = &bat_backup;
+	}
+	else
+	{
+		CurrentBat = &bat_backup;
+		PreviousBat = &bat;
+	}
 
-	
-	memset(&(dir.Dir[index]), 0xFF, DENTRY_SIZE);
-	
-	*(u16*)&dir.UpdateCounter = BE16(BE16(dir.UpdateCounter) + 1);
-	*(u16*)&bat.UpdateCounter = BE16(BE16(bat.UpdateCounter) + 1);
-	
+	Directory UpdatedDir = *CurrentDir;
+	*(u32*)&UpdatedDir.Dir[index].Gamecode = 0;
+	*(u16*)&UpdatedDir.Dir[index].Makercode = 0;
+	memset(UpdatedDir.Dir[index].Filename, 0, 0x20);
+	strcpy((char*)UpdatedDir.Dir[index].Filename, "Broken File000");
+	*(u16*)&UpdatedDir.UpdateCounter = BE16(BE16(UpdatedDir.UpdateCounter) + 1);
+
+	*PreviousDir = UpdatedDir;
+	if (PreviousDir == &dir )
+	{
+		CurrentDir = &dir;
+		PreviousDir = &dir_backup;
+	}
+	else
+	{
+		CurrentDir = &dir_backup;
+		PreviousDir = &dir;
+	}
+	memset(&(UpdatedDir.Dir[index]), 0xFF, DENTRY_SIZE);
+	*(u16*)&UpdatedDir.UpdateCounter = BE16(BE16(UpdatedDir.UpdateCounter) + 1);
+	*PreviousDir = UpdatedDir;
+	if (PreviousDir == &dir )
+	{
+		CurrentDir = &dir;
+		PreviousDir = &dir_backup;
+	}
+	else
+	{
+		CurrentDir = &dir_backup;
+		PreviousDir = &dir;
+	}
+
 	return SUCCESS;
-	/*
-	//error checking
-	u16 startingblock = 0;
-	for (int i = 0; i < DIRLEN; i++)
-	{
-		if (startingblock > BE16(dir.Dir[i].FirstBlock))
-			return DELETE_FAIL;
-		startingblock = BE16(dir.Dir[i].FirstBlock);
-	}
-
-	//backup the directory and bat (not really needed here but meh :P
-	dir_backup = dir;
-	bat_backup = bat;
-
-	//free the blocks
-	int blocks_left = BE16(dir.Dir[index].BlockCount);
-	*(u16*)&bat.LastAllocated = BE16(BE16(dir.Dir[index].FirstBlock) - 1);
-
-	u8 nextIndex = index + 1;
-	memset(&(dir.Dir[index]), 0xFF, DENTRY_SIZE);
-
-	while (nextIndex < DIRLEN)
-	{
-		DEntry tempDEntry;
-		GetDEntry(nextIndex, tempDEntry);
-		std::vector<GCMBlock> saveData;
-		u16 size = 0;
-		//Only get file data if it is a valid dir entry
-		if (BE16(tempDEntry.FirstBlock) != 0xFFFF)
-		{
-			*(u16*)&bat.FreeBlocks = BE16(BE16(bat.FreeBlocks) - BE16(tempDEntry.BlockCount));
-
-			size = DEntry_BlockCount(nextIndex);
-			if (size != 0xFFFF)
-			{
-				saveData.reserve(size);
-				switch (GetSaveData(nextIndex, saveData))
-				{
-				case NOMEMCARD:
-					break;
-				case FAIL:
-					return FAIL;
-				}
-			}
-		}
-		memset(&(dir.Dir[nextIndex]), 0xFF, DENTRY_SIZE);
-		//Only call import file if GetSaveData returns SUCCESS
-		if (saveData.size() == size)
-		{
-			ImportFile(tempDEntry, saveData, blocks_left);
-		}
-		nextIndex++;
-
-	}
-	//Added to clean up if removing last file
-	if (BE16(bat.LastAllocated) == (u16)4)
-	{
-		for (int j = 0; j < blocks_left; j++)
-		{
-			bat.Map[j] = 0x0000;
-		}
-	}
-	// increment update counter
-	*(u16*)&dir.UpdateCounter = BE16(BE16(dir.UpdateCounter) + 1);
-	*/
 }
 
 u32 GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
@@ -820,7 +795,7 @@ u32 GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
 	case NOMEMCARD:
 		return NOMEMCARD;
 	default:
-		return ImportFile(tempDEntry, saveData, 0);
+		return ImportFile(tempDEntry, saveData);
 	}
 }
 
@@ -922,7 +897,7 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::s
 			ret = WRITEFAIL;
 	}
 	else 
-		ret = ImportFile(tempDEntry, saveData, 0);
+		ret = ImportFile(tempDEntry, saveData);
 
 	return ret;
 }
@@ -1053,7 +1028,7 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 	if (!m_valid)
 		return false;
 
-	int flags = dir.Dir[index].BIFlags;
+	int flags = CurrentDir->Dir[index].BIFlags;
 	// Timesplitters 2 is the only game that I see this in
 	// May be a hack
 	if (flags == 0xFB) flags = ~flags;
@@ -1063,8 +1038,8 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 	if (bnrFormat == 0)
 		return false;
 
-	u32 DataOffset = BE32(dir.Dir[index].ImageOffset);
-	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - MC_FST_BLOCKS;
+	u32 DataOffset = BE32(CurrentDir->Dir[index].ImageOffset);
+	u32 DataBlock = BE16(CurrentDir->Dir[index].FirstBlock) - MC_FST_BLOCKS;
 
 	if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
 	{
@@ -1098,17 +1073,17 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 	// Sonic Heroes it the only game I have seen that tries to use a CI8 and RGB5A3 icon
 	int fmtCheck = 0; 
 
-	int formats = BE16(dir.Dir[index].IconFmt);
-	int fdelays  = BE16(dir.Dir[index].AnimSpeed);
+	int formats = BE16(CurrentDir->Dir[index].IconFmt);
+	int fdelays  = BE16(CurrentDir->Dir[index].AnimSpeed);
 
-	int flags = dir.Dir[index].BIFlags;
+	int flags = CurrentDir->Dir[index].BIFlags;
 	// Timesplitters 2 is the only game that I see this in
 	// May be a hack
 	if (flags == 0xFB) flags = ~flags;
 	int bnrFormat = (flags&3);
 
-	u32 DataOffset = BE32(dir.Dir[index].ImageOffset);
-	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - MC_FST_BLOCKS;
+	u32 DataOffset = BE32(CurrentDir->Dir[index].ImageOffset);
+	u32 DataBlock = BE16(CurrentDir->Dir[index].FirstBlock) - MC_FST_BLOCKS;
 
 	if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
 	{
