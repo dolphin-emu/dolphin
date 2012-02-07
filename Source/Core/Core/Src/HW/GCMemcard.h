@@ -24,6 +24,7 @@
 #include "StringUtil.h"
 #include "EXI_DeviceIPL.h"
 
+#define BE64(x) (Common::swap64(x))
 #define BE32(x) (Common::swap32(x))
 #define BE16(x) (Common::swap16(x))
 #define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));

@@ -573,9 +573,16 @@ u16 GCMemcard::BlockAlloc::GetNextBlock(u16 Block) const
 
 u16 GCMemcard::BlockAlloc::NextFreeBlock(u16 StartingBlock) const
 {
-	for (u16 i = StartingBlock; i < BAT_SIZE; ++i)
-		if (Map[i-MC_FST_BLOCKS] == 0)
-			return i;
+	if (FreeBlocks)
+	{
+		for (u16 i = StartingBlock; i < BAT_SIZE; ++i)
+			if (Map[i-MC_FST_BLOCKS] == 0)
+				return i;
+		for (u16 i = 0; i < StartingBlock; ++i)
+			if (Map[i-MC_FST_BLOCKS] == 0)
+				return i;
+	}
+	return 0xFFFF;
 }
 
 bool GCMemcard::BlockAlloc::ClearBlocks(u16 FirstBlock, u16 BlockCount)
@@ -647,8 +654,9 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 	}
 
 	// find first free data block
-	u16 firstBlock = CurrentBat->NextFreeBlock();
-
+	u16 firstBlock = CurrentBat->NextFreeBlock(BE16(CurrentBat->LastAllocated));
+	if (firstBlock == 0xFFFF)
+		return OUTOFBLOCKS;
 	Directory UpdatedDir = *CurrentDir;
 	
 	// find first free dir entry
@@ -685,14 +693,18 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 	// keep assuming no freespace fragmentation, and copy over all the data
 	for (int i = 0; i < fileBlocks; ++i)
 	{ 
+		if (firstBlock == 0xFFFF)
+			PanicAlert("Fatal Error");
 		mc_data_blocks[firstBlock - MC_FST_BLOCKS] = saveBlocks[i];
 		if (i == fileBlocks-1)
 			nextBlock = 0xFFFF;
 		else
 			nextBlock = UpdatedBat.NextFreeBlock(firstBlock+1);		
 		UpdatedBat.Map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
+		UpdatedBat.LastAllocated = BE16(firstBlock);
 		firstBlock = nextBlock;
 	}
+	
 	UpdatedBat.FreeBlocks = BE16(BE16(UpdatedBat.FreeBlocks)  - fileBlocks);
 	UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
 	*PreviousBat = UpdatedBat;
