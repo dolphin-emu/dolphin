@@ -28,6 +28,7 @@
 #ifdef _WIN32
 #include <ws2tcpip.h>
 #endif
+#include "Timer.h"
 
 
 // data layout of the network configuration file (/shared2/sys/net/02/config.dat)
@@ -161,12 +162,12 @@ private:
 //////////////////////////////////////////////////////////////////////////
 class CWII_IPC_HLE_Device_net_kd_time : public IWII_IPC_HLE_Device
 {
-	u64 timediff;
 public:
 	CWII_IPC_HLE_Device_net_kd_time(u32 _DeviceID, const std::string& _rDeviceName)
 		: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+		, rtc()
+		, utcdiff()
 	{
-		timediff = 1337; // this must be stored somewhere?
 	}
 
 	virtual ~CWII_IPC_HLE_Device_net_kd_time()
@@ -192,59 +193,81 @@ public:
         u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
         u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
         u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-        u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-        u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);		
+		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+		u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+
+		u32 result = 0;
+		u32 common_result = 0;
+		// TODO Writes stuff to /shared2/nwc24/misc.bin
+		u32 update_misc = 0;
+
+		static bool init = false;
 
         switch (Parameter)
         {
-        case IOCTL_NW24_SET_RTC_COUNTER: // NWC24iSetRtcCounter (but prolly just the first 4 bytes are intresting...)
-		{
-            _dbg_assert_msg_(WII_IPC_NET, BufferInSize==0x20, "NET_KD_TIME: Set RTC Counter BufferIn to small");
-            _dbg_assert_msg_(WII_IPC_NET, BufferOutSize==0x20, "NET_KD_TIME: Set RTC Counter BufferOut to small");            
-			u64 rtctime = Memory::Read_U64(BufferIn+4);
-			Memory::Write_U32(0, BufferOut);
-			Memory::Write_U64(rtctime + timediff, BufferOut+4);
-           
-            INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Set RTC Counter");
+		case IOCTL_NW24_GET_UNIVERSAL_TIME:
+			Memory::Write_U64(GetAdjustedUTC(), BufferOut + 4);
+			break;
 
-            Memory::Write_U32(0, _CommandAddress + 0x4);
-            return true;
-		}
+		case IOCTL_NW24_SET_UNIVERSAL_TIME:
+			SetAdjustedUTC(Memory::Read_U64(BufferIn));
+			update_misc = Memory::Read_U32(BufferIn + 8);
+			break;
+
+        case IOCTL_NW24_SET_RTC_COUNTER:
+			rtc = Memory::Read_U32(BufferIn);
+			update_misc = Memory::Read_U32(BufferIn + 4);
+			break;
 
 		case IOCTL_NW24_GET_TIME_DIFF:
-		{
-            Memory::Write_U32(0, BufferOut);
-            Memory::Write_U64(timediff, BufferOut+4);
-            INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Get time diff");
+			Memory::Write_U64(GetAdjustedUTC() - rtc, BufferOut + 4);
+			break;
 
-			Memory::Write_U32(0, _CommandAddress + 0x4);
-            return true;
-		}
+		case IOCTL_NW24_UNIMPLEMENTED:
+			result = -9;
+			break;
 
         default:
-            ERROR_LOG(WII_IPC_NET, "%s - IOCtl:\n"
-                "    Parameter: 0x%x   (0x17 NWC24iSetRtcCounter) \n"
-                "    BufferIn: 0x%08x\n"
-                "    BufferInSize: 0x%08x\n"
-                "    BufferOut: 0x%08x\n"
-                "    BufferOutSize: 0x%08x\n",
-                GetDeviceName().c_str(), Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+			ERROR_LOG(WII_IPC_NET, "%s - unknown IOCtl: %x\n",
+				GetDeviceName().c_str(), Parameter);
             break;
         }
 
-		// write return value
-		Memory::Write_U32(0, _CommandAddress + 0x4);
+		// write return values
+		Memory::Write_U32(common_result, BufferOut);
+		Memory::Write_U32(result, _CommandAddress + 4);
 		return true;
 	}
 
 private:
     enum
     {
-        IOCTL_NW24_SET_RTC_COUNTER      = 0x17,
-        IOCTL_NW24_GET_TIME_DIFF        = 0x18,
+		IOCTL_NW24_GET_UNIVERSAL_TIME	= 0x14,
+		IOCTL_NW24_SET_UNIVERSAL_TIME	= 0x15,
+		IOCTL_NW24_UNIMPLEMENTED		= 0x16,
+		IOCTL_NW24_SET_RTC_COUNTER		= 0x17,
+		IOCTL_NW24_GET_TIME_DIFF		= 0x18,
     };
 
-    u8 m_RtcCounter[0x20];
+	u64 rtc;
+	s64 utcdiff;
+
+	// Seconds between 1.1.1970 and 4.1.2008 16:00:38
+	static const u64 wii_bias = 0x477E5826;
+
+	// Returns seconds since wii epoch
+	// +/- any bias set from IOCTL_NW24_SET_UNIVERSAL_TIME
+	u64 GetAdjustedUTC() const
+	{
+		return Common::Timer::GetTimeSinceJan1970() - wii_bias + utcdiff;
+	}
+
+	// Store the difference between what the wii thinks is UTC and
+	// what the host OS thinks
+	void SetAdjustedUTC(u64 wii_utc)
+	{
+		utcdiff = Common::Timer::GetTimeSinceJan1970() - wii_bias - wii_utc;
+	}
 };
 
 //////////////////////////////////////////////////////////////////////////
