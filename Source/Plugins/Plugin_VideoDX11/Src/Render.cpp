@@ -695,15 +695,18 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	int Ht = intendedHt;
 	if (Y + Ht > GetTargetHeight())
 		Ht = GetTargetHeight() - Y;
-
+	
 	// If GX viewport is off the render target, we must clamp our viewport
 	// within the bounds. Use the correction matrix to compensate.
 	ViewportCorrectionMatrix(vpCorrection,
-		intendedX, intendedY, intendedWd, intendedHt,
-		X, Y, Wd, Ht);
+		(float)intendedX, (float)intendedY,
+		(float)intendedWd, (float)intendedHt,
+		(float)X, (float)Y,
+		(float)Wd, (float)Ht);
 
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y,
+										(float)Wd, (float)Ht,
 										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
 										1.f);   //  xfregs.viewport.farZ / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);
