@@ -69,7 +69,7 @@ struct netcfg_connection_t
 		WPA_AES		= 6
 	};
 
-	enum
+	enum status
 	{
 		LINK_BUSY = 1,
 		LINK_NONE,
@@ -520,6 +520,17 @@ private:
 		u16 CF_max_duration;
 		u16 element_info_length;
 		u16 element_info[1];
+	};
+
+	struct Info
+	{
+		u8 mac[6];
+		u16 ntr_allowed_channels;
+		u16 unk8;
+		char country[2];
+		u32 unkc;
+		char wlversion[0x50];
+		u8 unk[0x30];
 	};
 	#pragma pack(pop)
 };
