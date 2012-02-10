@@ -315,13 +315,36 @@ bool CWII_IPC_HLE_Device_net_wd_command::Close(u32 CommandAddress, bool Force)
 bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 {
 	u32 return_value = 0;
-	u32 common_result = 0;
-	u32 common_vector = 0;
 
 	SIOCtlVBuffer CommandBuffer(CommandAddress);
 
 	switch (CommandBuffer.Parameter)
 	{
+	case IOCTLV_WD_SCAN:
+		{
+		// Gives parameters detailing type of scan and what to match
+		ScanInfo *scan = (ScanInfo *)Memory::GetPointer(CommandBuffer.InBuffer.at(0).m_Address);
+
+		u16 *results = (u16 *)Memory::GetPointer(CommandBuffer.PayloadBuffer.at(0).m_Address);
+		// first u16 indicates number of BSSInfo following
+		results[0] = Common::swap16(1);
+
+		BSSInfo *bss = (BSSInfo *)&results[1];
+		memset(bss, 0, sizeof(BSSInfo));
+
+		bss->length = Common::swap16(sizeof(BSSInfo));
+		bss->rssi = Common::swap16(0xffff);
+
+		for (int i = 0; i < BSSID_SIZE; ++i)
+			bss->bssid[i] = i;
+
+		const char *ssid = "dolphin-emu";
+		strcpy((char *)bss->ssid, ssid);
+		bss->ssid_length = Common::swap16(strlen(ssid));
+		}
+		break;
+
+	case IOCTLV_WD_GET_INFO:
 	case IOCTLV_WD_GET_MODE:
 	case IOCTLV_WD_SET_LINKSTATE:
 	case IOCTLV_WD_GET_LINKSTATE:
@@ -331,11 +354,9 @@ bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 	case IOCTLV_WD_DISASSOC:
 	case IOCTLV_WD_MP_SEND_FRAME:
 	case IOCTLV_WD_SEND_FRAME:
-	case IOCTLV_WD_SCAN:
 	case IOCTLV_WD_CALL_WL:
 	case IOCTLV_WD_MEASURE_CHANNEL:
 	case IOCTLV_WD_GET_LASTERROR:
-	case IOCTLV_WD_GET_INFO:
 	case IOCTLV_WD_CHANGE_GAMEINFO:
 	case IOCTLV_WD_CHANGE_VTSF:
 	case IOCTLV_WD_RECV_FRAME:
@@ -361,8 +382,6 @@ bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 		break;
 	}
 
-	Memory::Write_U32(common_result,
-		CommandBuffer.PayloadBuffer.at(common_vector).m_Address);
 	Memory::Write_U32(return_value, CommandAddress + 4);
 	return true;
 }

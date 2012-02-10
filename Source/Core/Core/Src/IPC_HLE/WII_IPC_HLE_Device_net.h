@@ -441,6 +441,7 @@ private:
 	WiiNetConfig config;
 };
 
+//////////////////////////////////////////////////////////////////////////
 class CWII_IPC_HLE_Device_net_wd_command : public IWII_IPC_HLE_Device
 {
 public:
@@ -474,6 +475,53 @@ private:
 		IOCTLV_WD_RECV_FRAME		= 0x8000, // WD_ReceiveFrame
 		IOCTLV_WD_RECV_NOTIFICATION	= 0x8001  // WD_ReceiveNotification
 	};
+
+	enum
+	{
+		BSSID_SIZE = 6,
+		SSID_SIZE = 32
+	};
+
+	enum
+	{
+		SCAN_ACTIVE,
+		SCAN_PASSIVE
+	};
+
+	#pragma pack(push, 1)
+	struct ScanInfo
+	{
+		u16 channel_bitmap;
+		u16 max_channel_time;
+		u8 bssid[BSSID_SIZE];
+		u16 scan_type;
+		u16 ssid_length;
+		u8 ssid[SSID_SIZE];
+		u8 ssid_match_mask[SSID_SIZE];
+	};
+
+	struct BSSInfo
+	{
+		u16 length;
+		u16 rssi;
+		u8 bssid[BSSID_SIZE];
+		u16 ssid_length;
+		u8 ssid[SSID_SIZE];
+		u16 capabilities;
+		struct rate
+		{
+			u16 basic;
+			u16 support;
+		};
+		u16 beacon_period;
+		u16 DTIM_period;
+		u16 channel;
+		u16 CF_period;
+		u16 CF_max_duration;
+		u16 element_info_length;
+		u16 element_info[1];
+	};
+	#pragma pack(pop)
 };
 
 #ifdef _MSC_VER
