@@ -96,7 +96,7 @@ CWII_IPC_HLE_Device_net_kd_request::~CWII_IPC_HLE_Device_net_kd_request()
 
 bool CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
 {
-	WARN_LOG(WII_IPC_NET, "NET_KD_REQ: Open");
+	INFO_LOG(WII_IPC_NET, "NET_KD_REQ: Open");
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 	m_Active = true;
 	return true;
@@ -104,7 +104,7 @@ bool CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_net_kd_request::Close(u32 _CommandAddress, bool _bForce)
 {
-	WARN_LOG(WII_IPC_NET, "NET_KD_REQ: Close");
+	INFO_LOG(WII_IPC_NET, "NET_KD_REQ: Close");
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
@@ -300,7 +300,7 @@ CWII_IPC_HLE_Device_net_wd_command::~CWII_IPC_HLE_Device_net_wd_command()
 
 bool CWII_IPC_HLE_Device_net_wd_command::Open(u32 CommandAddress, u32 Mode)
 {
-	WARN_LOG(WII_IPC_NET, "NET_WD_COMMAND: Open");
+	INFO_LOG(WII_IPC_NET, "NET_WD_COMMAND: Open");
 	Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
 	m_Active = true;
 	return true;
@@ -308,7 +308,7 @@ bool CWII_IPC_HLE_Device_net_wd_command::Open(u32 CommandAddress, u32 Mode)
 
 bool CWII_IPC_HLE_Device_net_wd_command::Close(u32 CommandAddress, bool Force)
 {
-	WARN_LOG(WII_IPC_NET, "NET_WD_COMMAND: Close");
+	INFO_LOG(WII_IPC_NET, "NET_WD_COMMAND: Close");
 	if (!Force)
 		Memory::Write_U32(0, CommandAddress + 4);
 	m_Active = false;
@@ -348,10 +348,22 @@ bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 		const char *ssid = "dolphin-emu";
 		strcpy((char *)bss->ssid, ssid);
 		bss->ssid_length = Common::swap16(strlen(ssid));
+
+		bss->channel = Common::swap16(2);
 		}
 		break;
 
 	case IOCTLV_WD_GET_INFO:
+		{
+		Info *info = (Info *)Memory::GetPointer(CommandBuffer.PayloadBuffer.at(0).m_Address);
+		memset(info, 0, sizeof(Info));
+		// Probably used to disallow certain channels?
+		strcpy(info->country, "US");
+		info->ntr_allowed_channels = Common::swap16(0xfffe);
+		memcpy(info->mac, default_address, 6);
+		}
+		break;
+
 	case IOCTLV_WD_GET_MODE:
 	case IOCTLV_WD_SET_LINKSTATE:
 	case IOCTLV_WD_GET_LINKSTATE:
@@ -400,7 +412,7 @@ CWII_IPC_HLE_Device_net_ip_top::CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID, co
 {
 #ifdef _WIN32
 	int ret = WSAStartup(MAKEWORD(2,2), &InitData);
-	WARN_LOG(WII_IPC_NET, "WSAStartup: %d", ret);
+	INFO_LOG(WII_IPC_NET, "WSAStartup: %d", ret);
 #endif
 }
 
@@ -413,7 +425,7 @@ CWII_IPC_HLE_Device_net_ip_top::~CWII_IPC_HLE_Device_net_ip_top()
 
 bool CWII_IPC_HLE_Device_net_ip_top::Open(u32 _CommandAddress, u32 _Mode)
 {
-	WARN_LOG(WII_IPC_NET, "NET_IP_TOP: Open");
+	INFO_LOG(WII_IPC_NET, "NET_IP_TOP: Open");
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	m_Active = true;
 	return true;
@@ -421,7 +433,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_net_ip_top::Close(u32 _CommandAddress, bool _bForce)
 {
-	WARN_LOG(WII_IPC_NET, "NET_IP_TOP: Close");
+	INFO_LOG(WII_IPC_NET, "NET_IP_TOP: Close");
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
