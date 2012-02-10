@@ -201,7 +201,7 @@ CWII_IPC_HLE_Device_net_ncd_manage::~CWII_IPC_HLE_Device_net_ncd_manage()
 
 bool CWII_IPC_HLE_Device_net_ncd_manage::Open(u32 _CommandAddress, u32 _Mode)
 {
-	WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Open");
+	INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Open");
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	m_Active = true;
 	return true;
@@ -209,7 +209,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_net_ncd_manage::Close(u32 _CommandAddress, bool _bForce)
 {
-	WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Close");
+	INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Close");
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
@@ -226,6 +226,12 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 
 	switch (CommandBuffer.Parameter)
 	{
+	case IOCTLV_NCD_LOCKWIRELESSDRIVER:
+		break;
+	case IOCTLV_NCD_UNLOCKWIRELESSDRIVER:
+		//Memory::Read_U32(CommandBuffer.InBuffer.at(0).m_Address);
+		break;
+
 	case IOCTLV_NCD_GETCONFIG:
 		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETCONFIG");
 		config.WriteToMem(CommandBuffer.PayloadBuffer.at(0).m_Address);
@@ -271,6 +277,93 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 	Memory::Write_U32(common_result,
 		CommandBuffer.PayloadBuffer.at(common_vector).m_Address);
 	Memory::Write_U32(return_value, _CommandAddress + 4);
+	return true;
+}
+
+// **********************************************************************************
+// Handle /dev/net/wd/command requests
+CWII_IPC_HLE_Device_net_wd_command::CWII_IPC_HLE_Device_net_wd_command(u32 DeviceID, const std::string& DeviceName) 
+	: IWII_IPC_HLE_Device(DeviceID, DeviceName)
+{
+}
+
+CWII_IPC_HLE_Device_net_wd_command::~CWII_IPC_HLE_Device_net_wd_command() 
+{
+}
+
+bool CWII_IPC_HLE_Device_net_wd_command::Open(u32 CommandAddress, u32 Mode)
+{
+	WARN_LOG(WII_IPC_NET, "NET_WD_COMMAND: Open");
+	Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
+	m_Active = true;
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_net_wd_command::Close(u32 CommandAddress, bool Force)
+{
+	WARN_LOG(WII_IPC_NET, "NET_WD_COMMAND: Close");
+	if (!Force)
+		Memory::Write_U32(0, CommandAddress + 4);
+	m_Active = false;
+	return true;
+}
+
+// This is just for debugging / playing around.
+// There really is no reason to implement wd unless we can bend it such that
+// we can talk to the DS.
+#include "StringUtil.h"
+bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
+{
+	u32 return_value = 0;
+	u32 common_result = 0;
+	u32 common_vector = 0;
+
+	SIOCtlVBuffer CommandBuffer(CommandAddress);
+
+	switch (CommandBuffer.Parameter)
+	{
+	case IOCTLV_WD_GET_MODE:
+	case IOCTLV_WD_SET_LINKSTATE:
+	case IOCTLV_WD_GET_LINKSTATE:
+	case IOCTLV_WD_SET_CONFIG:
+	case IOCTLV_WD_GET_CONFIG:
+	case IOCTLV_WD_CHANGE_BEACON:
+	case IOCTLV_WD_DISASSOC:
+	case IOCTLV_WD_MP_SEND_FRAME:
+	case IOCTLV_WD_SEND_FRAME:
+	case IOCTLV_WD_SCAN:
+	case IOCTLV_WD_CALL_WL:
+	case IOCTLV_WD_MEASURE_CHANNEL:
+	case IOCTLV_WD_GET_LASTERROR:
+	case IOCTLV_WD_GET_INFO:
+	case IOCTLV_WD_CHANGE_GAMEINFO:
+	case IOCTLV_WD_CHANGE_VTSF:
+	case IOCTLV_WD_RECV_FRAME:
+	case IOCTLV_WD_RECV_NOTIFICATION:
+	default:
+		WARN_LOG(WII_IPC_NET, "NET_WD_COMMAND IOCtlV %#x in %i out %i",
+			CommandBuffer.Parameter, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
+		for (int i = 0; i < CommandBuffer.NumberInBuffer; ++i)
+		{
+			WARN_LOG(WII_IPC_NET, "in %i addr %x size %i", i,
+				CommandBuffer.InBuffer.at(i).m_Address, CommandBuffer.InBuffer.at(i).m_Size);
+			WARN_LOG(WII_IPC_NET, "%s", 
+				ArrayToString(
+					Memory::GetPointer(CommandBuffer.InBuffer.at(i).m_Address),
+					CommandBuffer.InBuffer.at(i).m_Size).c_str()
+				);
+		}
+		for (int i = 0; i < CommandBuffer.NumberPayloadBuffer; ++i)
+		{
+			WARN_LOG(WII_IPC_NET, "out %i addr %x size %i", i,
+				CommandBuffer.PayloadBuffer.at(i).m_Address, CommandBuffer.PayloadBuffer.at(i).m_Size);
+		}
+		break;
+	}
+
+	Memory::Write_U32(common_result,
+		CommandBuffer.PayloadBuffer.at(common_vector).m_Address);
+	Memory::Write_U32(return_value, CommandAddress + 4);
 	return true;
 }
 
