@@ -29,19 +29,19 @@
 #include <ws2tcpip.h>
 #endif
 #include "Timer.h"
-
+#include "FileUtil.h"
 
 // data layout of the network configuration file (/shared2/sys/net/02/config.dat)
 // needed for /dev/net/ncd/manage
-#pragma pack(1)
+#pragma pack(push, 1)
 struct netcfg_proxy_t
 {
-	u8 use_proxy;             // 0x00 -> no proxy;  0x01 -> proxy
-	u8 use_proxy_userandpass; // 0x00 -> don't use username and password;  0x01 -> use username and password
+	u8 use_proxy;
+	u8 use_proxy_userandpass;
 	u8 padding_1[2];
 	u8 proxy_name[255];
 	u8 padding_2;
-	u16 proxy_port;           // 0-34463
+	u16 proxy_port;			// 0-34463
 	u8 proxy_username[32];
 	u8 padding_3;
 	u8 proxy_password[32];
@@ -49,68 +49,151 @@ struct netcfg_proxy_t
 
 struct netcfg_connection_t
 {
+	enum
+	{
+		WIRED_IF			=   1, // 0: wifi 1: wired
+		DNS_DHCP			=   2, // 0: manual 1: DHCP
+		IP_DHCP				=   4, // 0: manual 1: DHCP
+		USE_PROXY			=  16,
+		CONNECTION_TEST_OK	=  32,
+		CONNECTION_SELECTED	= 128
+	};
+
+	enum
+	{
+		OPEN		= 0,
+		WEP64		= 1,
+		WEP128		= 2,
+		WPA_TKIP	= 4,
+		WPA2_AES	= 5,
+		WPA_AES		= 6
+	};
+
+	enum
+	{
+		LINK_BUSY = 1,
+		LINK_NONE,
+		LINK_WIRED,
+		LINK_WIFI_DOWN,
+		LINK_WIFI_UP
+	};
+
+	enum
+	{
+		PERM_NONE		= 0,
+		PERM_SEND_MAIL	= 1,
+		PERM_RECV_MAIL	= 2,
+		PERM_DOWNLOAD	= 4,
+		PERM_ALL		= PERM_SEND_MAIL | PERM_RECV_MAIL | PERM_DOWNLOAD
+	};
+
 	// settings common to both wired and wireless connections
-	u8 flags; //  Connection selected
-	          //  | ?
-	          //  | | Internet test passed
-	          //  | | | Use Proxy (1 -> on; 0 -> off)
-	          //  | | | |
-	          //  1 0 1 0  0 1 1 0
-	          //           | | | |
-	          //           | | | Interface (0 -> Internal wireless; 1 -> Wired LAN adapter)
-	          //           | | DNS source (0 -> Manual; 1 -> DHCP)
-	          //           | IP source (0 -> Manual; 1 -> DHCP)
-	          //           ?
-
+	u8 flags;
 	u8 padding_1[3];
-
 	u8 ip[4];
 	u8 netmask[4];
 	u8 gateway[4];
 	u8 dns1[4];
 	u8 dns2[4];
 	u8 padding_2[2];
-
-	u16 mtu;         // 0 or 576-1500
+	u16 mtu;
 	u8 padding_3[8];
-
 	netcfg_proxy_t proxy_settings;
 	u8 padding_4;
-
-	netcfg_proxy_t proxy_settings_copy; // seems to be a duplicate of proxy_settings
+	netcfg_proxy_t proxy_settings_copy;
 	u8 padding_5[1297];
 
 	// wireless specific settings
-	u8 ssid[32];        // access Point name.
-
+	u8 ssid[32];
 	u8 padding_6;
 	u8 ssid_length;     // length of ssid in bytes.
-	u8 padding_7[2];
-
-	u8 padding_8;
-	u8 encryption;      // (probably) encryption.  OPN: 0x00, WEP64: 0x01, WEP128: 0x02 WPA-PSK (TKIP): 0x04, WPA2-PSK (AES): 0x05, WPA-PSK (AES): 0x06
-	u8 padding_9[2];
-
-	u8 padding_10;
-	u8 key_length;      // length of key in bytes.  0x00 for WEP64 and WEP128.
-	u8 unknown;         // 0x00 or 0x01 toogled with a WPA-PSK (TKIP) and with a WEP entered with hex instead of ascii.
-	u8 padding_11;
-
+	u8 padding_7[3];
+	u8 encryption;
+	u8 padding_8[3];
+	u8 key_length;		// length of key in bytes.  0x00 for WEP64 and WEP128.
+	u8 unknown;			// 0x00 or 0x01 toggled with a WPA-PSK (TKIP) and with a WEP entered with hex instead of ascii.
+	u8 padding_9;
 	u8 key[64];         // encryption key; for WEP, key is stored 4 times (20 bytes for WEP64 and 52 bytes for WEP128) then padded with 0x00
-	u8 padding_12[236];
+	u8 padding_10[236];
 };
 
 struct network_config_t
 {
+	enum
+	{
+		IF_NONE,
+		IF_WIFI,
+		IF_WIRED
+	};
+
 	u32 version;
-	u8 connType;    // 0x01 if there's at least one valid connection to the Internet.
-	u8 nwc24Permission;    // 0x00
-	u8 linkTimeout;    // always 0x07?
-	u8 padding;    // 0x00
+	u8 connType;
+	u8 linkTimeout;
+	u8 nwc24Permission;
+	u8 padding;
 
 	netcfg_connection_t connection[3];
 };
-#pragma pack()
+#pragma pack(pop)
+
+class WiiNetConfig
+{
+	std::string path;
+	network_config_t config;
+
+public:
+	WiiNetConfig()
+	{
+		path = File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/config.dat";
+
+		ReadConfig();
+	}
+
+	void ResetConfig()
+	{
+		if (File::Exists(path))
+			File::Delete(path);
+
+		memset(&config, 0, sizeof(config));
+		config.connType = network_config_t::IF_WIRED;
+		config.connection[0].flags =
+			netcfg_connection_t::WIRED_IF |
+			netcfg_connection_t::DNS_DHCP |
+			netcfg_connection_t::IP_DHCP |
+			netcfg_connection_t::CONNECTION_TEST_OK |
+			netcfg_connection_t::CONNECTION_SELECTED;
+
+		WriteConfig();
+	}
+
+	void WriteConfig()
+	{
+		File::IOFile(path, "wb").WriteBytes((void*)&config, sizeof(config));
+	}
+
+	void WriteToMem(const u32 address)
+	{
+		Memory::WriteBigEData((const u8 *)&config, address, sizeof(config));
+	}
+
+	void ReadFromMem(const u32 address)
+	{
+		Memory::ReadBigEData((u8 *)&config, address, sizeof(config));
+	}
+
+	void ReadConfig()
+	{
+		if (File::Exists(path))
+		{
+			if (!File::IOFile(path, "rb").ReadBytes((void *)&config, sizeof(config)))
+				ResetConfig();
+		}
+		else
+		{
+			ResetConfig();
+		}
+	}
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -354,8 +437,8 @@ private:
 		IOCTLV_NCD_GETLINKSTATUS			= 0x7,  // NCDGetLinkStatus
 		IOCTLV_NCD_GETWIRELESSMACADDRESS	= 0x8,  // NCDGetWirelessMacAddress
 	};
-	bool isSet;
-	network_config_t m_Ifconfig;
+
+	WiiNetConfig config;
 };
 
 #ifdef _MSC_VER

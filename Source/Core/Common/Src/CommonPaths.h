@@ -122,9 +122,6 @@
 #define GC_MEMCARDB	"MemoryCardB"
 
 #define WII_SETTING 	"setting.txt"
-#define WII_EUR_SETTING "setting-eur.txt"
-#define WII_USA_SETTING "setting-usa.txt"
-#define WII_JAP_SETTING "setting-jpn.txt"
 
 #define GECKO_CODE_HANDLER "codehandler.bin"
 

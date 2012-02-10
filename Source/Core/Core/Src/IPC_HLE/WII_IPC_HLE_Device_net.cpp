@@ -80,7 +80,7 @@ it failed)
 
 extern std::queue<std::pair<u32,std::string> > g_ReplyQueueLater;
 const u8 default_address[] = { 0x00, 0x17, 0xAB, 0x99, 0x99, 0x99 };
-int status = 3;
+
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName) 
@@ -193,76 +193,6 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(u32 _DeviceID, const std::string& _rDeviceName) 
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
-	// store network configuration
-	const std::string filename(File::GetUserPath(D_WIIUSER_IDX) + "shared2/sys/net/02/config.dat");
-
-	isSet = false;
-
-	File::IOFile file(filename, "rb");
-	if (!file.ReadBytes(&m_Ifconfig, 1))
-	{
-		WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Failed to load /shared2/sys/net/02/config.dat, using dummy configuration");
-
-		// wired connection on IP 192.168.1.1 using gateway 192.168.1.2
-		memset(&m_Ifconfig, 0, sizeof(m_Ifconfig));
-		m_Ifconfig.connType = 1;
-		m_Ifconfig.linkTimeout = 7;
-		m_Ifconfig.connection[0].flags = 167;
-		m_Ifconfig.connection[0].ip[0] = 192;
-		m_Ifconfig.connection[0].ip[1] = 168;
-		m_Ifconfig.connection[0].ip[2] =   1;
-		m_Ifconfig.connection[0].ip[3] =   150;
-		m_Ifconfig.connection[0].netmask[0] = 255;
-		m_Ifconfig.connection[0].netmask[1] = 255;
-		m_Ifconfig.connection[0].netmask[2] = 255;
-		m_Ifconfig.connection[0].netmask[3] = 0;
-		m_Ifconfig.connection[0].gateway[0] = 192;
-		m_Ifconfig.connection[0].gateway[1] = 168;
-		m_Ifconfig.connection[0].gateway[2] =   1;
-		m_Ifconfig.connection[0].gateway[3] =   1;
-		m_Ifconfig.connection[0].dns1[0] = 8;
-		m_Ifconfig.connection[0].dns1[1] = 8;
-		m_Ifconfig.connection[0].dns1[2] = 8;
-		m_Ifconfig.connection[0].dns1[3] = 8;
-		m_Ifconfig.connection[1].flags = 167;
-		m_Ifconfig.connection[1].ip[0] = 192;
-		m_Ifconfig.connection[1].ip[1] = 168;
-		m_Ifconfig.connection[1].ip[2] =   1;
-		m_Ifconfig.connection[1].ip[3] =   150;
-		m_Ifconfig.connection[1].netmask[0] = 255;
-		m_Ifconfig.connection[1].netmask[1] = 255;
-		m_Ifconfig.connection[1].netmask[2] = 255;
-		m_Ifconfig.connection[1].netmask[3] = 0;
-		m_Ifconfig.connection[1].gateway[0] = 192;
-		m_Ifconfig.connection[1].gateway[1] = 168;
-		m_Ifconfig.connection[1].gateway[2] =   1;
-		m_Ifconfig.connection[1].gateway[3] =   1;
-		m_Ifconfig.connection[1].dns1[0] = 8;
-		m_Ifconfig.connection[1].dns1[1] = 8;
-		m_Ifconfig.connection[1].dns1[2] = 8;
-		m_Ifconfig.connection[1].dns1[3] = 8;
-		m_Ifconfig.connection[2].flags = 167;
-		m_Ifconfig.connection[2].ip[0] = 192;
-		m_Ifconfig.connection[2].ip[1] = 168;
-		m_Ifconfig.connection[2].ip[2] =   1;
-		m_Ifconfig.connection[2].ip[3] =   150;
-		m_Ifconfig.connection[2].netmask[0] = 255;
-		m_Ifconfig.connection[2].netmask[1] = 255;
-		m_Ifconfig.connection[2].netmask[2] = 255;
-		m_Ifconfig.connection[2].netmask[3] = 0;
-		m_Ifconfig.connection[2].gateway[0] = 192;
-		m_Ifconfig.connection[2].gateway[1] = 168;
-		m_Ifconfig.connection[2].gateway[2] =   1;
-		m_Ifconfig.connection[2].gateway[3] =   1;
-		m_Ifconfig.connection[2].dns1[0] = 8;
-		m_Ifconfig.connection[2].dns1[1] = 8;
-		m_Ifconfig.connection[2].dns1[2] = 8;
-		m_Ifconfig.connection[2].dns1[3] = 8;
-
-		
-		File::IOFile outConfig(filename, "wb");
-		outConfig.WriteBytes(&m_Ifconfig, sizeof(m_Ifconfig));
-	}
 }
 
 CWII_IPC_HLE_Device_net_ncd_manage::~CWII_IPC_HLE_Device_net_ncd_manage() 
@@ -288,86 +218,59 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::Close(u32 _CommandAddress, bool _bForce
 
 bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 {
-	u32 ReturnValue = 0;
+	u32 return_value = 0;
+	u32 common_result = 0;
+	u32 common_vector = 0;
+
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
 	switch (CommandBuffer.Parameter)
 	{
-	case IOCTLV_NCD_GETCONFIG: // 7004 out, 32 out
-			WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETCONFIG");
-	case IOCTLV_NCD_READCONFIG: // 7004 Out, 32 Out. 2nd, 3rd
-		
-		if(CommandBuffer.Parameter == IOCTLV_NCD_READCONFIG)
-			WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
-
-		// first out buffer gets filled with contents of /shared2/sys/net/02/config.dat
-		// TODO: What's the second output buffer for?
-		{
-
-			// fill output buffer, taking care of endianness, every day, every way
-			u32 addr = CommandBuffer.PayloadBuffer.at(0).m_Address;
-			u32 _BufferOut2 = CommandBuffer.PayloadBuffer.at(1).m_Address;
-
-
-			Memory::WriteBigEData((const u8*)&m_Ifconfig, addr, 8);
-			addr += 8;
-			for (unsigned int i = 0; i < 3; i++)
-			{
-				netcfg_connection_t *conn = &m_Ifconfig.connection[i];
-
-				Memory::WriteBigEData((const u8*)conn, addr, 26);
-				Memory::Write_U16(Common::swap16(conn->mtu), addr+26);
-				Memory::WriteBigEData((const u8*)conn->padding_3, addr+28, 8);
-
-				Memory::WriteBigEData((const u8*)&conn->proxy_settings, addr+36, 260);
-				Memory::Write_U16(Common::swap16(conn->proxy_settings.proxy_port), addr+296);
-				Memory::WriteBigEData((const u8*)&conn->proxy_settings.proxy_username, addr+298, 65);
-				Memory::Write_U8(conn->padding_4, addr+363);
-
-				Memory::WriteBigEData((const u8*)&conn->proxy_settings_copy, addr+364, 260);
-				Memory::Write_U16(Common::swap16(conn->proxy_settings_copy.proxy_port), addr+624);
-				Memory::WriteBigEData((const u8*)&conn->proxy_settings_copy.proxy_username, addr+626, 65);
-				Memory::WriteBigEData((const u8*)conn->padding_5, addr+691, 1641);
-				addr += sizeof(netcfg_connection_t);
-			}
-			Memory::Write_U32(0, _BufferOut2);
-			Memory::Write_U32(0, _BufferOut2+4);
-			ReturnValue = 0;
-			break;
-		}
-
-	case IOCTLV_NCD_SETCONFIG: // 7004 In, 32 Out. 4th
-		/*if (param1[4] == 2)
-		status = 3;
-		if (param1[4] == 1)
-		status = 5;
-		if (param1[4] == 0)
-		status = 2;*/
-		WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_SETCONFIG");
+	case IOCTLV_NCD_GETCONFIG:
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETCONFIG");
+		config.WriteToMem(CommandBuffer.PayloadBuffer.at(0).m_Address);
+		common_vector = 1;
 		break;
 
-	case IOCTLV_NCD_GETLINKSTATUS: // 32 Out. 5th
-		{
-			WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETLINKSTATUS");
-			Memory::Write_U32(0x00000000, CommandBuffer.PayloadBuffer[0].m_Address);
-			Memory::Write_U32(status, CommandBuffer.PayloadBuffer[0].m_Address+4);
-			break;
-		}
+	case IOCTLV_NCD_SETCONFIG:
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_SETCONFIG");
+		config.ReadFromMem(CommandBuffer.InBuffer.at(0).m_Address);
+		break;
 
-	case IOCTLV_NCD_GETWIRELESSMACADDRESS: // 32 Out, 6 Out. 1st
-		{
-			WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
-			Memory::Write_U32(0, CommandBuffer.PayloadBuffer.at(0).m_Address);
-			Memory::WriteBigEData(default_address, CommandBuffer.PayloadBuffer.at(1).m_Address, 6);
-			break;
-		}
+	case IOCTLV_NCD_READCONFIG:
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
+		config.ReadConfig();
+		config.WriteToMem(CommandBuffer.PayloadBuffer.at(0).m_Address);
+		common_vector = 1;
+		break;
+
+	case IOCTLV_NCD_WRITECONFIG:
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_WRITECONFIG");
+		config.ReadFromMem(CommandBuffer.InBuffer.at(0).m_Address);
+		config.WriteConfig();
+		break;
+
+	case IOCTLV_NCD_GETLINKSTATUS:
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETLINKSTATUS");
+		// Always connected
+		Memory::Write_U32(netcfg_connection_t::LINK_WIRED,
+			CommandBuffer.PayloadBuffer.at(0).m_Address + 4);
+		break;
+
+	case IOCTLV_NCD_GETWIRELESSMACADDRESS:
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
+		Memory::WriteBigEData(default_address,
+			CommandBuffer.PayloadBuffer.at(1).m_Address, sizeof(default_address));
+		break;
 
 	default:
 		WARN_LOG(WII_IPC_NET, "NET_NCD_MANAGE IOCtlV: %#x", CommandBuffer.Parameter);
 		break;
 	}
 
-	Memory::Write_U32(ReturnValue, _CommandAddress+4);
+	Memory::Write_U32(common_result,
+		CommandBuffer.PayloadBuffer.at(common_vector).m_Address);
+	Memory::Write_U32(return_value, _CommandAddress + 4);
 	return true;
 }
 
