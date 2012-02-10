@@ -203,7 +203,6 @@
     <ClCompile Include="Src\Boot\Boot_ELF.cpp" />
     <ClCompile Include="Src\Boot\Boot_WiiWAD.cpp" />
     <ClCompile Include="Src\Boot\ElfReader.cpp" />
-    <ClCompile Include="Src\Boot\SettingsHandler.cpp" />
     <ClCompile Include="Src\ConfigManager.cpp" />
     <ClCompile Include="Src\Console.cpp" />
     <ClCompile Include="Src\Core.cpp" />
@@ -408,7 +407,6 @@
     <ClInclude Include="Src\Boot\Boot_ELF.h" />
     <ClInclude Include="Src\Boot\ElfReader.h" />
     <ClInclude Include="Src\Boot\ElfTypes.h" />
-    <ClInclude Include="Src\Boot\SettingsHandler.h" />
     <ClInclude Include="Src\ConfigManager.h" />
     <ClInclude Include="Src\Console.h" />
     <ClInclude Include="Src\Core.h" />

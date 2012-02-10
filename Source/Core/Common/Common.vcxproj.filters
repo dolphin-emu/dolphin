@@ -53,6 +53,7 @@
     <ClCompile Include="Src\Crypto\sha1.cpp">
       <Filter>Crypto</Filter>
     </ClCompile>
+    <ClCompile Include="Src\SettingsHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ABI.h" />
@@ -121,6 +122,7 @@
     </ClInclude>
     <ClInclude Include="Src\StdMutex.h" />
     <ClInclude Include="Src\StdConditionVariable.h" />
+    <ClInclude Include="Src\SettingsHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

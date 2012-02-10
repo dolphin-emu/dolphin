@@ -42,42 +42,46 @@ const u8* SettingsHandler::GetData() const
 	return m_buffer;
 }
 
-const std::string SettingsHandler::GetValue(std::string key)
+const std::string SettingsHandler::GetValue(const std::string key)
 {
 	std::string delim = std::string("\r\n");
 	std::string toFind = delim + key + "=";
 	size_t found = decoded.find(toFind);
-	if (found!=std::string::npos){
-		size_t delimFound = decoded.find(delim, found+toFind.length());
-		if (delimFound == std::string::npos)
-			delimFound = decoded.length()-1;
-		return decoded.substr(found+toFind.length(), delimFound - (found+toFind.length()));
-	}else{
+
+	if (found != decoded.npos)
+	{
+		size_t delimFound = decoded.find(delim, found + toFind.length());
+		if (delimFound == decoded.npos)
+			delimFound = decoded.length() - 1;
+		return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
+	}
+	else
+	{
 		toFind = key + "=";
 		size_t found = decoded.find(toFind);
-		if (found==0){
-			size_t delimFound = decoded.find(delim, found+toFind.length());
-			if (delimFound == std::string::npos)
-				delimFound = decoded.length()-1;
-			return decoded.substr(found+toFind.length(), delimFound - (found+toFind.length()));
+		if (found == 0)
+		{
+			size_t delimFound = decoded.find(delim, found + toFind.length());
+			if (delimFound == decoded.npos)
+				delimFound = decoded.length() - 1;
+			return decoded.substr(found + toFind.length(), delimFound - (found + toFind.length()));
 		}
 	}
 
 	return "";
 }
 
-
 void SettingsHandler::Decrypt()
 {
 	const u8 *str = m_buffer;
-	while(*str != 0){
-		
+	while (*str != 0)
+	{	
 		if (m_position >= SETTINGS_SIZE)
 			return;
 		decoded.push_back((u8)(m_buffer[m_position] ^ m_key));
 		m_position++;
 		str++;
-		m_key = ((m_key >> 31) | (m_key << 1));
+		m_key = (m_key >> 31) | (m_key << 1);
 	}
 }
 
@@ -116,21 +120,21 @@ void SettingsHandler::WriteByte(u8 b)
 
 	m_buffer[m_position] = b ^ m_key;
 	m_position++;
-	m_key = ((m_key >> 31) | (m_key << 1));
+	m_key = (m_key >> 31) | (m_key << 1);
 }
 
-std::string SettingsHandler::generateSerialNumber()
+const std::string SettingsHandler::generateSerialNumber()
 {
 	time_t rawtime;
-	struct tm * timeinfo;
-	char buffer [12];
-	char serialNumber [12];
+	tm *timeinfo;
+	char buffer[12];
+	char serialNumber[12];
 
-	time ( &rawtime );
-	timeinfo = localtime ( &rawtime );
-	strftime (buffer,11,"%j%H%M%S",timeinfo);
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(buffer, 11, "%j%H%M%S", timeinfo);
 
-	snprintf(serialNumber,11, "%s%i", buffer, (Common::Timer::GetTimeMs()>>1)&0xF);
+	snprintf(serialNumber, 11, "%s%i", buffer, (Common::Timer::GetTimeMs() >> 1) & 0xF);
 	serialNumber[10] = 0;
 	return std::string(serialNumber);
 }

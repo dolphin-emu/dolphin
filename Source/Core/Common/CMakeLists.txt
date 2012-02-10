@@ -15,6 +15,7 @@ set(SRCS	Src/ABI.cpp
 			Src/Misc.cpp
 			Src/MsgHandler.cpp
 			Src/NandPaths.cpp
+			Src/SettingsHandler.cpp
 			Src/SDCardUtil.cpp
 			Src/StringUtil.cpp
 			Src/SymbolDB.cpp

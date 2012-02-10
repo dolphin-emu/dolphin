@@ -201,8 +201,6 @@ public:
 		// TODO Writes stuff to /shared2/nwc24/misc.bin
 		u32 update_misc = 0;
 
-		static bool init = false;
-
         switch (Parameter)
         {
 		case IOCTL_NW24_GET_UNIVERSAL_TIME:

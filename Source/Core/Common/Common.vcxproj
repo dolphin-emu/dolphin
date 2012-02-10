@@ -195,6 +195,7 @@
     <ClCompile Include="Src\MsgHandler.cpp" />
     <ClCompile Include="Src\NandPaths.cpp" />
     <ClCompile Include="Src\SDCardUtil.cpp" />
+    <ClCompile Include="Src\SettingsHandler.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -251,6 +252,7 @@
     <ClInclude Include="Src\MsgHandler.h" />
     <ClInclude Include="Src\NandPaths.h" />
     <ClInclude Include="Src\SDCardUtil.h" />
+    <ClInclude Include="Src\SettingsHandler.h" />
     <ClInclude Include="Src\Setup.h" />
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\StdConditionVariable.h" />

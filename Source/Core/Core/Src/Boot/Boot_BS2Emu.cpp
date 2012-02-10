@@ -177,11 +177,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 {
 	INFO_LOG(BOOT, "Setup Wii Memory...");
 
-	// Write the 256 byte setting.txt to memory. This may not be needed as
-	// most or all games read the setting.txt file from
-	// \title\00000001\00000002\data\setting.txt directly after the read the
-	// SYSCONF file. The games also read it to 0x3800, what is a little strange
-	// however is that it only reads the first 100 bytes of it.
+	// Write the 256 byte setting.txt to memory.
 	std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
 	std::string area, model, code, video, game;
 	
@@ -217,13 +213,13 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	code = "L" + area.substr(0,1);
 	game = area.substr(0,2);
 
-	
 	SettingsHandler gen;
 	std::string serno = "";
 	if (File::Exists(settings_Filename))
 	{
 		File::IOFile settingsFileHandle(settings_Filename, "rb");
-		if(settingsFileHandle.ReadBytes((void*)gen.GetData(), SETTINGS_SIZE)){
+		if (settingsFileHandle.ReadBytes((void*)gen.GetData(), SettingsHandler::SETTINGS_SIZE))
+		{
 			gen.Decrypt();
 			serno = gen.GetValue("SERNO");
 			gen.Reset();
@@ -231,10 +227,13 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 		File::Delete(settings_Filename);
 	}
 	
-	if(serno.empty() || serno == "000000000"){
+	if (serno.empty() || serno == "000000000")
+	{
 		serno = gen.generateSerialNumber();
 		INFO_LOG(BOOT, "No previous serial number found, generated one instead: %s", serno.c_str());
-	}else{
+	}
+	else
+	{
 		INFO_LOG(BOOT, "Using serial number: %s", serno.c_str());
 	}
 
@@ -253,12 +252,12 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	{
 	File::IOFile settingsFileHandle(settings_Filename, "wb");
 	
-	if (!settingsFileHandle.WriteBytes(gen.GetData(), SETTINGS_SIZE))
+	if (!settingsFileHandle.WriteBytes(gen.GetData(), SettingsHandler::SETTINGS_SIZE))
 	{
 		PanicAlertT("SetupWiiMem: Cant create setting file");	
 		return false;
 	}
-	Memory::WriteBigEData(gen.GetData(), 0x3800, SETTINGS_SIZE);
+	Memory::WriteBigEData(gen.GetData(), 0x3800, SettingsHandler::SETTINGS_SIZE);
 	}
 
 	/*
