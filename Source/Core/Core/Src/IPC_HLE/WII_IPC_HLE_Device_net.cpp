@@ -894,33 +894,73 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 
 	case IOCTL_SO_GETHOSTBYNAME:
 		{
-			int i;
-			struct hostent *remoteHost = gethostbyname((char*)Memory::GetPointer(_BufferIn));
+			hostent *remoteHost = gethostbyname((char*)Memory::GetPointer(_BufferIn));
 
-			WARN_LOG(WII_IPC_NET, "/dev/net/ip/top::IOCtl request IOCTL_SO_GETHOSTBYNAME "
+			WARN_LOG(WII_IPC_NET, "IOCTL_SO_GETHOSTBYNAME "
 				"Address: %s, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 				(char*)Memory::GetPointer(_BufferIn), _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
 
-			if (remoteHost != NULL)
+			if (remoteHost)
 			{
-				Memory::Write_U32(_BufferOut + 0x10, _BufferOut);
-
-				//strnlen?! huh, u mean you DONT want an overflow?
-				int hnamelen = strnlen(remoteHost->h_name, 255);
-				Memory::WriteBigEData((u8*)remoteHost->h_name, _BufferOut + 0x10, hnamelen);
-
-				Memory::Write_U16(remoteHost->h_addrtype, _BufferOut + 0x8);
-				Memory::Write_U16(remoteHost->h_length, _BufferOut + 0xA);
-				Memory::Write_U32(_BufferOut + 0x340, _BufferOut + 0xC);
-
-				for (i = 0; remoteHost->h_addr_list[i] != 0; i++)
+				for (int i = 0; remoteHost->h_aliases[i]; ++i)
 				{
-					u32 ip = *(u_long *)remoteHost->h_addr_list[i];
-					Memory::Write_U32(_BufferOut + 0x110 + i*4 ,_BufferOut + 0x340 + i*4);
-					Memory::Write_U32(Common::swap32(ip), _BufferOut + 0x110 + i*4);
+					WARN_LOG(WII_IPC_NET, "alias%i:%s", i, remoteHost->h_aliases[i]);
 				}
-				i++;
-				Memory::Write_U32(_BufferOut + 0x340 + i*4, _BufferOut + 0x4);
+
+				for (int i = 0; remoteHost->h_addr_list[i]; ++i)
+				{
+					u32 ip = Common::swap32(*(u32*)(remoteHost->h_addr_list[i]));
+					char ip_s[16];
+					sprintf(ip_s, "%i.%i.%i.%i",
+						ip >> 24, (ip >> 16) & 0xff, (ip >> 8) & 0xff, ip & 0xff);
+					DEBUG_LOG(WII_IPC_NET, "addr%i:%s", i, ip_s);
+				}
+
+				Memory::Memset(_BufferOut, 0, BufferOutSize);
+				hostent *output = (hostent *)Memory::GetPointer(_BufferOut);
+				u32 wii_addr = _BufferOut + 4 * 3 + 2 * 2;
+
+				u32 name_length = strlen(remoteHost->h_name) + 1;
+				Memory::WriteBigEData((const u8 *)remoteHost->h_name, wii_addr, name_length);
+				Memory::Write_U32(wii_addr, _BufferOut);
+				wii_addr += (name_length + 4) & ~3;
+
+				// aliases - empty
+				Memory::Write_U32(wii_addr, _BufferOut + 4);
+				Memory::Write_U32(wii_addr + sizeof(u32), wii_addr);
+				wii_addr += sizeof(u32);
+				Memory::Write_U32(NULL, wii_addr);
+				wii_addr += sizeof(u32);
+
+				// hardcode to ipv4
+				_dbg_assert_msg_(WII_IPC_NET,
+					remoteHost->h_addrtype == AF_INET && remoteHost->h_length == sizeof(u32),
+					"returned host info is not IPv4");
+				Memory::Write_U16(AF_INET, _BufferOut + 8);
+				Memory::Write_U16(sizeof(u32), _BufferOut + 10);
+
+				// addrlist - probably only really need to return 1 anyways...
+				Memory::Write_U32(wii_addr, _BufferOut + 12);
+				u32 num_addr = 0;
+				while (remoteHost->h_addr_list[num_addr])
+					num_addr++;
+				for (int i = 0; i < num_addr; ++i)
+				{
+					Memory::Write_U32(wii_addr + sizeof(u32) * (num_addr + 1), wii_addr);
+					wii_addr += sizeof(u32);
+				}
+				// NULL terminated list
+				Memory::Write_U32(NULL, wii_addr);
+				wii_addr += sizeof(u32);
+				// The actual IPs
+				for (int i = 0; remoteHost->h_addr_list[i]; i++)
+				{
+					Memory::Write_U32(Common::swap32(*(u32*)(remoteHost->h_addr_list[i])), wii_addr);
+					wii_addr += sizeof(u32);
+				}
+
+				//ERROR_LOG(WII_IPC_NET, "\n%s",
+				//	ArrayToString(Memory::GetPointer(_BufferOut), BufferOutSize, 16).c_str());
 				return 0;
 			}
 			else
