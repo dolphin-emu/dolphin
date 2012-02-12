@@ -606,7 +606,6 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				u32 has_addr;
 				u8 addr[28];
 			} params;
-			connect_params params;
 			sockaddr_in serverAddr;
 
 			Memory::ReadBigEData((u8*)&params, _BufferIn, sizeof(connect_params));
@@ -917,7 +916,6 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				}
 
 				Memory::Memset(_BufferOut, 0, BufferOutSize);
-				hostent *output = (hostent *)Memory::GetPointer(_BufferOut);
 				u32 wii_addr = _BufferOut + 4 * 3 + 2 * 2;
 
 				u32 name_length = strlen(remoteHost->h_name) + 1;
@@ -955,7 +953,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				// The actual IPs
 				for (int i = 0; remoteHost->h_addr_list[i]; i++)
 				{
-					Memory::Write_U32(Common::swap32(*(u32*)(remoteHost->h_addr_list[i])), wii_addr);
+					Memory::Write_U32_Swap(*(u32*)(remoteHost->h_addr_list[i]), wii_addr);
 					wii_addr += sizeof(u32);
 				}
 
