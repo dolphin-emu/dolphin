@@ -559,6 +559,9 @@
     <ClCompile Include="Src\HW\GCMemcard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
+    <ClCompile Include="Src\IPC_HLE\ICMPWin.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ConfigManager.h" />
@@ -1040,6 +1043,9 @@
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
     <ClInclude Include="Src\IPC_HLE\fakepoll.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\IPC_HLE\ICMP.h">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
   </ItemGroup>

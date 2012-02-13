@@ -50,6 +50,7 @@ it failed)
 #include "FileUtil.h"
 #include <stdio.h>
 #include <string>
+#include "ICMP.h"
 
 #ifdef _WIN32
 #include <ws2tcpip.h>
@@ -969,10 +970,39 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			break;
 		}
 
+	case IOCTL_SO_ICMPSOCKET:
+		{
+			// AF type?
+			u32 arg = Memory::Read_U32(_BufferIn);
+			u32 sock = (u32)socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+			ERROR_LOG(WII_IPC_NET, "IOCTL_SO_ICMPSOCKET(%x) %x", arg, sock);
+			return getNetErrorCode(sock, "IOCTL_SO_ICMPSOCKET", false);
+		}
+
+	case IOCTL_SO_ICMPCANCEL:
+		ERROR_LOG(WII_IPC_NET, "IOCTL_SO_ICMPCANCEL");
+		goto default_;
+
+	case IOCTL_SO_ICMPCLOSE:
+		{
+			u32 sock = Memory::Read_U32(_BufferIn);
+			u32 ret = closesocket(sock);
+			ERROR_LOG(WII_IPC_NET, "IOCTL_SO_ICMPCLOSE(%x) %x", sock, ret);
+			return getNetErrorCode(ret, "IOCTL_SO_ICMPCLOSE", false);
+		}
+
 	default:
 		WARN_LOG(WII_IPC_NET,"0x%x "
 			"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			_Command, _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
+	default_:
+		if (BufferInSize)
+		{
+			ERROR_LOG(WII_IPC_NET, "in addr %x size %x", _BufferIn, BufferInSize);
+			ERROR_LOG(WII_IPC_NET, "\n%s", 
+				ArrayToString(Memory::GetPointer(_BufferIn), BufferInSize, 4).c_str()
+				);
+		}
 		break;
 	}
 
@@ -980,7 +1010,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 	return 0;
 }
 
-u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer CommandBuffer)
+u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer)
 {
 	u32 _BufferIn = 0, _BufferIn2 = 0, _BufferIn3 = 0;
 	u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
@@ -1036,7 +1066,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffe
 
 	u32 param = 0, param2 = 0, param3, param4, param5 = 0;
 
-	switch (_Parameter)
+	switch (CommandBuffer.Parameter)
 	{
 	case IOCTLV_SO_GETINTERFACEOPT:
 		{
@@ -1342,32 +1372,83 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffe
 			return ret;
 		}
 
+	case IOCTLV_SO_ICMPPING:
+		{
+			struct
+			{
+				u8 length;
+				u8 addr_family;
+				u16 port;
+				u32 ip;
+			} ip_info;
+
+			u32 sock	= Memory::Read_U32(_BufferIn);
+			u32 num_ip	= Memory::Read_U32(_BufferIn + 4);
+			u64 timeout	= Memory::Read_U64(_BufferIn + 8);
+
+			if (num_ip != 1)
+			{
+				WARN_LOG(WII_IPC_NET, "IOCTLV_SO_ICMPPING %i IPs", num_ip);
+			}
+
+			ip_info.length		= Memory::Read_U8(_BufferIn + 16);
+			ip_info.addr_family	= Memory::Read_U8(_BufferIn + 17);
+			ip_info.port		= Memory::Read_U16(_BufferIn + 18);
+			ip_info.ip			= Memory::Read_U32(_BufferIn + 20);
+
+			if (ip_info.length != 8 || ip_info.addr_family != AF_INET || ip_info.port != 0)
+			{
+				WARN_LOG(WII_IPC_NET, "IOCTLV_SO_ICMPPING strange IPInfo:\n"
+					"length %x addr_family %x port %x",
+					ip_info.length, ip_info.addr_family, ip_info.port);
+			}
+
+			DEBUG_LOG(WII_IPC_NET, "IOCTLV_SO_ICMPPING %x", ip_info.ip);
+			
+			sockaddr_in addr;
+			addr.sin_family = AF_INET;
+			addr.sin_addr.S_un.S_addr = Common::swap32(ip_info.ip);
+			memset(addr.sin_zero, 0, 8);
+			u8 *data = Memory::GetPointer(_BufferIn2);
+			
+			int ret = icmp_echo_req(sock, &addr, data, BufferInSize2);
+			if (ret >= 0)
+			{
+				icmp_echo_rep(sock, &addr, data, BufferInSize2);
+			}
+			// TODO proper error codes
+			return 0;
+		}
+
 	default:
 		WARN_LOG(WII_IPC_NET,"0x%x (BufferIn: (%08x, %i), BufferIn2: (%08x, %i)",
-			_Parameter, _BufferIn, BufferInSize, _BufferIn2, BufferInSize2);
+			CommandBuffer.Parameter, _BufferIn, BufferInSize, _BufferIn2, BufferInSize2);
+	default_:
+		for (int i = 0; i < CommandBuffer.NumberInBuffer; ++i)
+		{
+			ERROR_LOG(WII_IPC_NET, "in %i addr %x size %x", i,
+				CommandBuffer.InBuffer.at(i).m_Address, CommandBuffer.InBuffer.at(i).m_Size);
+			ERROR_LOG(WII_IPC_NET, "\n%s", 
+				ArrayToString(
+				Memory::GetPointer(CommandBuffer.InBuffer.at(i).m_Address),
+				CommandBuffer.InBuffer.at(i).m_Size, 4).c_str()
+				);
+		}
+		for (int i = 0; i < CommandBuffer.NumberPayloadBuffer; ++i)
+		{
+			ERROR_LOG(WII_IPC_NET, "out %i addr %x size %x", i,
+				CommandBuffer.PayloadBuffer.at(i).m_Address, CommandBuffer.PayloadBuffer.at(i).m_Size, 4);
+		}
 		break;
 	}
+
 	return 0;
 }
 
-bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress) 
 { 
-	u32 ReturnValue = 0;
-	SIOCtlVBuffer CommandBuffer(_CommandAddress);
-	switch (CommandBuffer.Parameter)
-	{
-	case IOCTLV_SO_SENDTO:
-	case IOCTL_SO_BIND:
-	case IOCTLV_SO_RECVFROM:
-	case IOCTL_SO_SOCKET:
-	case IOCTL_SO_GETHOSTID:
-	case IOCTL_SO_STARTUP:
-	default:
-		ReturnValue = ExecuteCommandV(CommandBuffer.Parameter, CommandBuffer);
-		break;
-	}
-
-	Memory::Write_U32(ReturnValue, _CommandAddress+4);
+	u32 return_value = ExecuteCommandV(SIOCtlVBuffer(CommandAddress));
+	Memory::Write_U32(return_value, CommandAddress + 4);
 	return true; 
 }
 

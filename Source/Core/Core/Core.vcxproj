@@ -320,6 +320,7 @@
     <ClCompile Include="Src\HW\WiimoteReal\WiimoteReal.cpp" />
     <ClCompile Include="Src\HW\WII_IOB.cpp" />
     <ClCompile Include="Src\HW\WII_IPC.cpp" />
+    <ClCompile Include="Src\IPC_HLE\ICMPWin.cpp" />
     <ClCompile Include="Src\IPC_HLE\WiiMote_HID_Attr.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_DI.cpp" />
@@ -520,6 +521,7 @@
     <ClInclude Include="Src\HW\WII_IPC.h" />
     <ClInclude Include="Src\IPC_HLE\hci.h" />
     <ClInclude Include="Src\IPC_HLE\fakepoll.h" />
+    <ClInclude Include="Src\IPC_HLE\ICMP.h" />
     <ClInclude Include="Src\IPC_HLE\l2cap.h" />
     <ClInclude Include="Src\IPC_HLE\WiiMote_HID_Attr.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE.h" />

@@ -409,7 +409,7 @@ private:
     };
 
 	u32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
-	u32 ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer CommandBuffer);
+	u32 ExecuteCommandV(SIOCtlVBuffer& CommandBuffer);
 };
 
 // **********************************************************************************
