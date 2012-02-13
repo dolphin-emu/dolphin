@@ -147,7 +147,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 
 			}
 
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_NEW "
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_NEW "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -169,7 +169,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				sslfds[sslID] = NULL;
 				Memory::Write_U32(0, _BufferIn);
 			}
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_SHUTDOWN "
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_SHUTDOWN "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -180,7 +180,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 		}
 		case IOCTLV_NET_SSL_SETROOTCA:
 		{
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_SETROOTCA "
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_SETROOTCA "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -236,7 +236,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 
 		case IOCTLV_NET_SSL_SETBUILTINCLIENTCERT:
 		{
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_SETBUILTINCLIENTCERT "
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -291,7 +291,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				
 				Memory::Write_U32(0, _BufferIn);
 			}
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_SETBUILTINROOTCA "
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_SETBUILTINROOTCA "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -313,7 +313,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				returnValue = SSL_connect(ssl);
 				Memory::Write_U32(0, _BufferIn);
 			}
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_CONNECT "
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_CONNECT "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -335,7 +335,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 //				if (returnValue == 1)
 					Memory::Write_U32(0, _BufferIn);
 			}
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_DOHANDSHAKE "
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_DOHANDSHAKE "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -358,7 +358,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 					returnValue = -SSL_get_error(ssl, returnValue);
 				Memory::Write_U32(returnValue, _BufferIn);
 			}
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_WRITE "
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_WRITE "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -378,7 +378,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				returnValue = SSL_read(ssl, Memory::GetPointer(_BufferIn2), BufferInSize2);
 				if (returnValue == -1){
 					returnValue = -SSL_get_error(ssl, returnValue);
-					WARN_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ errorVal= %d", returnValue);
+					INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_READ errorVal= %d", returnValue);
 				}
 				if (returnValue == -1)
 					returnValue = -SSL_ERROR_WANT_READ;
@@ -389,14 +389,14 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 					if (errorCode == 10057){
 						returnValue = -SSL_ERROR_WANT_READ;
 					}else{
-						WARN_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ ERRORCODE= %d", errorCode);
+						INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_READ ERRORCODE= %d", errorCode);
 					}
 #endif
 				}
 				Memory::Write_U32(returnValue, _BufferIn);
 			}
 			
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request IOCTLV_NET_SSL_READ(%d)"
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_READ(%d)"
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -409,7 +409,7 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 
 		default:
 		{
-			ERROR_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtlV request %i "
+			ERROR_LOG(WII_IPC_NET, "%i "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -431,9 +431,9 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommand(u32 _Command,
 	{
 		default:
 		{
-			INFO_LOG(WII_IPC_NET, "/dev/net/ssl::IOCtl request unknown %i "
+			INFO_LOG(WII_IPC_NET, "%s unknown %i "
 				"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-				_Command,
+				GetDeviceName().c_str(), _Command,
 				_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
 			break;
 		}
