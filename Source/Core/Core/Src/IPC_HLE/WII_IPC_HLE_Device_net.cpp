@@ -842,7 +842,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			WARN_LOG(WII_IPC_NET, "IOCTL_SO_INETATON = %d "
 				"%s, BufferIn: (%08x, %i), BufferOut: (%08x, %i), IP Found: %08X",remoteHost->h_addr_list[0] == 0 ? -1 : 0,
 				(char*)Memory::GetPointer(_BufferIn), _BufferIn, BufferInSize, _BufferOut, BufferOutSize, Common::swap32(*(u32 *)remoteHost->h_addr_list[0]));
-			return remoteHost->h_addr_list[0] == 0 ? -1 : 4;
+			return remoteHost->h_addr_list[0] == 0 ? 0 : 1;
 		}
 
 	case IOCTL_SO_INETPTON:
