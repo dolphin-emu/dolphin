@@ -1414,7 +1414,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 			int ret = icmp_echo_req(sock, &addr, data, BufferInSize2);
 			if (ret >= 0)
 			{
-				icmp_echo_rep(sock, &addr, data, BufferInSize2);
+				//icmp_echo_rep(sock, &addr, data, BufferInSize2);
 			}
 			// TODO proper error codes
 			return 0;
