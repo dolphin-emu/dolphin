@@ -827,13 +827,31 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			Memory::WriteBigEData((u8*)&sa.sa_data, _BufferOut+2, BufferOutSize-2);
 			return ret;
 		}
+	case IOCTL_SO_GETPEERNAME:
+		{
+			u32 sock = Memory::Read_U32(_BufferIn);
 
+			WARN_LOG(WII_IPC_NET, "IOCTL_SO_GETPEERNAME "
+				"Socket: %08X, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+				sock, _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
+
+			struct sockaddr sa;
+			socklen_t sa_len;
+			sa_len = sizeof(sa);                           
+			int ret = getpeername(sock, &sa, &sa_len);
+
+			Memory::Write_U8(BufferOutSize, _BufferOut);
+			Memory::Write_U8(sa.sa_family & 0xFF, _BufferOut+1);
+			Memory::WriteBigEData((u8*)&sa.sa_data, _BufferOut+2, BufferOutSize-2);
+			return ret;
+		}
 	case IOCTL_SO_GETHOSTID:
-		WARN_LOG(WII_IPC_NET, "IOCTL_SO_GETHOSTID "
-			"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
-		return 192 << 24 | 168 << 16 | 1 << 8 | 150;
-
+		{
+			WARN_LOG(WII_IPC_NET, "IOCTL_SO_GETHOSTID "
+				"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+				_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
+			return 192 << 24 | 168 << 16 | 1 << 8 | 150;
+		}
 	case IOCTL_SO_INETATON:
 		{
 			struct hostent *remoteHost = gethostbyname((char*)Memory::GetPointer(_BufferIn));
