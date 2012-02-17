@@ -68,7 +68,8 @@ private:
 		IOCTL_DELETE_FILE	= 0x07,
 		IOCTL_RENAME_FILE	= 0x08,
 		IOCTL_CREATE_FILE	= 0x09,
-		IOCTLV_GETUSAGE		= 0x0C
+		IOCTLV_GETUSAGE		= 0x0C,
+		IOCTL_SHUTDOWN		= 0x0D
 	};
 
 	s32 ExecuteCommand(u32 Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);

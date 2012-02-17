@@ -489,7 +489,12 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			return FS_RESULT_OK;
 		}
 		break;
-
+	case IOCTL_SHUTDOWN:
+		{
+			INFO_LOG(WII_IPC_FILEIO, "Wii called Shutdown()");
+			// TODO: stop emulation
+		}
+		break;
 	default:
 		ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", _Parameter);
 		PanicAlert("CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", _Parameter);
