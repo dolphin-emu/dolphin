@@ -154,6 +154,12 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_UNLOCK_SOCKET - NI");
 		break;
 
+	case IOCTL_NWC24_REQUEST_REGISTER_USER_ID:
+		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID");
+		Memory::Write_U32(0, BufferOut);
+		Memory::Write_U32(0, BufferOut+4);
+		break;
+
 	case IOCTL_NWC24_REQUEST_GENERATED_USER_ID: // (Input: none, Output: 32 bytes)
 		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
 		//Memory::Write_U32(0xFFFFFFDC, BufferOut);
@@ -817,34 +823,35 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				"Socket: %08X, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 				sock, _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
 
-			struct sockaddr sa;
+			sockaddr sa;
 			socklen_t sa_len;
-			sa_len = sizeof(sa);                           
+			sa_len = sizeof(sa);
 			int ret = getsockname(sock, &sa, &sa_len);
 
 			Memory::Write_U8(BufferOutSize, _BufferOut);
-			Memory::Write_U8(sa.sa_family & 0xFF, _BufferOut+1);
-			Memory::WriteBigEData((u8*)&sa.sa_data, _BufferOut+2, BufferOutSize-2);
+			Memory::Write_U8(sa.sa_family & 0xFF, _BufferOut + 1);
+			Memory::WriteBigEData((u8*)&sa.sa_data, _BufferOut + 2, BufferOutSize - 2);
 			return ret;
 		}
 	case IOCTL_SO_GETPEERNAME:
 		{
 			u32 sock = Memory::Read_U32(_BufferIn);
 
-			WARN_LOG(WII_IPC_NET, "IOCTL_SO_GETPEERNAME "
-				"Socket: %08X, BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-				sock, _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
-
-			struct sockaddr sa;
+			sockaddr sa;
 			socklen_t sa_len;
-			sa_len = sizeof(sa);                           
+			sa_len = sizeof(sa);
+
 			int ret = getpeername(sock, &sa, &sa_len);
 
 			Memory::Write_U8(BufferOutSize, _BufferOut);
-			Memory::Write_U8(sa.sa_family & 0xFF, _BufferOut+1);
-			Memory::WriteBigEData((u8*)&sa.sa_data, _BufferOut+2, BufferOutSize-2);
+			Memory::Write_U8(AF_INET, _BufferOut + 1);
+			Memory::WriteBigEData((u8*)&sa.sa_data, _BufferOut + 2, BufferOutSize - 2);
+			
+			WARN_LOG(WII_IPC_NET, "IOCTL_SO_GETPEERNAME(%x)", sock);
+
 			return ret;
 		}
+
 	case IOCTL_SO_GETHOSTID:
 		{
 			WARN_LOG(WII_IPC_NET, "IOCTL_SO_GETHOSTID "
@@ -993,7 +1000,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			// AF type?
 			u32 arg = Memory::Read_U32(_BufferIn);
 			u32 sock = (u32)socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-			ERROR_LOG(WII_IPC_NET, "IOCTL_SO_ICMPSOCKET(%x) %x", arg, sock);
+			DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_ICMPSOCKET(%x) %x", arg, sock);
 			return getNetErrorCode(sock, "IOCTL_SO_ICMPSOCKET", false);
 		}
 
@@ -1005,7 +1012,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 		{
 			u32 sock = Memory::Read_U32(_BufferIn);
 			u32 ret = closesocket(sock);
-			ERROR_LOG(WII_IPC_NET, "IOCTL_SO_ICMPCLOSE(%x) %x", sock, ret);
+			DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_ICMPCLOSE(%x) %x", sock, ret);
 			return getNetErrorCode(ret, "IOCTL_SO_ICMPCLOSE", false);
 		}
 
@@ -1396,7 +1403,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 			{
 				u8 length;
 				u8 addr_family;
-				u16 port;
+				u16 icmp_id;
 				u32 ip;
 			} ip_info;
 
@@ -1411,14 +1418,14 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 
 			ip_info.length		= Memory::Read_U8(_BufferIn + 16);
 			ip_info.addr_family	= Memory::Read_U8(_BufferIn + 17);
-			ip_info.port		= Memory::Read_U16(_BufferIn + 18);
+			ip_info.icmp_id		= Memory::Read_U16(_BufferIn + 18);
 			ip_info.ip			= Memory::Read_U32(_BufferIn + 20);
 
-			if (ip_info.length != 8 || ip_info.addr_family != AF_INET || ip_info.port != 0)
+			if (ip_info.length != 8 || ip_info.addr_family != AF_INET)
 			{
 				WARN_LOG(WII_IPC_NET, "IOCTLV_SO_ICMPPING strange IPInfo:\n"
-					"length %x addr_family %x port %x",
-					ip_info.length, ip_info.addr_family, ip_info.port);
+					"length %x addr_family %x",
+					ip_info.length, ip_info.addr_family);
 			}
 
 			DEBUG_LOG(WII_IPC_NET, "IOCTLV_SO_ICMPPING %x", ip_info.ip);
@@ -1427,13 +1434,28 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 			addr.sin_family = AF_INET;
 			addr.sin_addr.S_un.S_addr = Common::swap32(ip_info.ip);
 			memset(addr.sin_zero, 0, 8);
-			u8 *data = Memory::GetPointer(_BufferIn2);
-			
-			int ret = icmp_echo_req(sock, &addr, data, BufferInSize2);
-			if (ret >= 0)
+
+			u8 data[0x20];
+			memset(data, 0, sizeof(data));
+			u32 icmp_length = sizeof(data);
+
+			if (BufferInSize2 == sizeof(data))
+				memcpy(data, Memory::GetPointer(_BufferIn2), BufferInSize2);
+			else
 			{
-				//icmp_echo_rep(sock, &addr, data, BufferInSize2);
+				// TODO sequence number is incremented either statically, by
+				// port, or by socket. Doesn't seem to matter, so we just leave
+				// it 0
+				((u16 *)data)[0] = Common::swap16(ip_info.icmp_id);
+				icmp_length = 22;
 			}
+			
+			int ret = icmp_echo_req(sock, &addr, data, icmp_length);
+			if (ret == icmp_length)
+			{
+				ret = icmp_echo_rep(sock, &addr, timeout, icmp_length);
+			}
+
 			// TODO proper error codes
 			return 0;
 		}
