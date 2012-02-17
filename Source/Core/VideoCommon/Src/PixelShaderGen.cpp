@@ -1099,9 +1099,15 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
 	if (ApiType == API_D3D11)
-		WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
+		WRITE(p, "%s=Tex%d.Sample(samp%d, %s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
+	else if (ApiType & API_D3D9)
+	{
+		// D3D9 uses different pixel to texel mapping, so we need to offset our base address by half a pixel.
+		// Read the MSDN article "Directly Mapping Texels to Pixels (Direct3D 9)" for further info.
+		WRITE(p, "%s=tex2D(samp%d, (%s.xy + float2(0.5f,0.5f)) * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
+	}
 	else
-		WRITE(p, "%s=tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
+		WRITE(p, "%s=tex2D(samp%d, %s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
