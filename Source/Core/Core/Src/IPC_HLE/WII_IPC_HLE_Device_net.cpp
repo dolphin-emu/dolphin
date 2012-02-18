@@ -72,6 +72,7 @@ it failed)
 #include <net/if.h>
 #include <errno.h>
 #include <poll.h>
+#include <string.h>
 
 typedef struct pollfd pollfd_t;
 #else
@@ -493,11 +494,11 @@ struct GC_sockaddr_in
 	s8 sin_zero[8];
 };
 
-#ifdef _WIN32
-char *DecodeError(int ErrorCode)
+char* DecodeError(int ErrorCode)
 {
 	static char Message[1024];
 
+#ifdef _WIN32
 	// If this program was multi-threaded, we'd want to use FORMAT_MESSAGE_ALLOCATE_BUFFER
 	// instead of a static buffer here.
 	// (And of course, free the buffer when we were done with it)
@@ -505,49 +506,59 @@ char *DecodeError(int ErrorCode)
 		FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, ErrorCode,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)Message, 1024, NULL);
 	return Message;
-}
+#else
+	return strerror(ErrorCode);
 #endif
+}
 
 static int getNetErrorCode(int ret, std::string caller, bool isRW)
 {
 #ifdef _WIN32
 	int errorCode = WSAGetLastError();
-	if (ret>= 0)
+#else
+	int errorCode = errno;
+#endif
+
+	if (ret >= 0)
 		return ret;
 
 	WARN_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d",
 		caller.c_str(), errorCode, DecodeError(errorCode), ret);
 
+#ifdef _WIN32
+#define ERRORCODE(name) WSA ## name
+#define EITHER(win32, posix) win32
+#else
+#define ERRORCODE(name) name
+#define EITHER(win32, posix) posix
+#endif
+
 	switch (errorCode)
 	{
-	case 10040:
+	case ERRORCODE(EMSGSIZE):
 		WARN_LOG(WII_IPC_NET, "Find out why this happened, looks like PEEK failure?");
 		return -1;
-	case 10054:
+	case ERRORCODE(ECONNRESET):
 		return -15;
-	case 10056:
+	case ERRORCODE(EISCONN):
 		return -30;
-	case 10057:
+	case ERRORCODE(ENOTCONN):
 		return -6;
-	case 10035:
+	case ERRORCODE(EWOULDBLOCK):
+	case ERRORCODE(EINPROGRESS):
 		if(isRW){
 			return -6;
 		}else{
 			return -26;
 		}
-	case 6:
+	case EITHER(WSA_INVALID_HANDLE, EBADF):
 		return -26;
 	default:
 		return -1;
 	}
-#else
-	if (ret >= 0)
-		return ret;
 
-	WARN_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d",
-		caller.c_str(), errno, "hmm", ret);
-	return ret;
-#endif
+#undef ERRORCODE
+#undef EITHER
 }
 
 static int convertWiiSockOpt(int level, int optname)
