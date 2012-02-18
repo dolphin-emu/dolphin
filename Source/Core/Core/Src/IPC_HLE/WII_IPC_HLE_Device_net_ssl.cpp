@@ -376,22 +376,37 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 			{
 				SSL* ssl = sslfds[sslID];
 				returnValue = SSL_read(ssl, Memory::GetPointer(_BufferIn2), BufferInSize2);
-				if (returnValue == -1){
+				if (returnValue == -1)
+				{
 					returnValue = -SSL_get_error(ssl, returnValue);
 					INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_READ errorVal= %d", returnValue);
 				}
-				if (returnValue == -1)
+
+				// According to OpenSSL docs, all TLS calls (including reads) can cause
+				// writing on a socket, so we need to handle SSL_ERROR_WANT_WRITE too
+				// (which happens when OpenSSL writes on a nonblocking busy socket). The
+				// Wii does not like -SSL_ERROR_WANT_WRITE though, so we convert it to
+				// a read error.
+				if (returnValue == -SSL_ERROR_WANT_WRITE)
 					returnValue = -SSL_ERROR_WANT_READ;
-				if (returnValue == -5){
-					
+
+				if (returnValue == -SSL_ERROR_SYSCALL)
+				{
 #ifdef _WIN32
 					int errorCode = WSAGetLastError();
-					if (errorCode == 10057){
+					bool notConnected = (errorCode == WSAENOTCONN);
+#else
+					int errorCode = errno;
+					bool notConnected = (errorCode == ENOTCONN);
+#endif
+					if (notConnected)
+					{
 						returnValue = -SSL_ERROR_WANT_READ;
-					}else{
+					}
+					else
+					{
 						INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_READ ERRORCODE= %d", errorCode);
 					}
-#endif
 				}
 				Memory::Write_U32(returnValue, _BufferIn);
 			}
