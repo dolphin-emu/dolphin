@@ -545,7 +545,7 @@ static int getNetErrorCode(int ret, std::string caller, bool isRW)
 		return ret;
 
 	WARN_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d",
-		caller.c_str(), 0x1337, "hmm", ret);
+		caller.c_str(), errno, "hmm", ret);
 	return ret;
 #endif
 }
