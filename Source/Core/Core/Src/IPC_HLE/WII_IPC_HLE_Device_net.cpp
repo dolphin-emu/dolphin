@@ -71,6 +71,9 @@ it failed)
 #include <netinet/in.h>
 #include <net/if.h>
 #include <errno.h>
+#include <poll.h>
+
+typedef struct pollfd pollfd_t;
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -881,7 +884,6 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 
 	case IOCTL_SO_POLL:
 		{
-#ifdef _WIN32
 			u32 unknown = Memory::Read_U32(_BufferIn);
 			u32 timeout = Memory::Read_U32(_BufferIn + 4);
 
@@ -914,10 +916,6 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			}
 			free(ufds);
 			return ret;
-#else
-#pragma warning /dev/net/ip/top::IOCtl IOCTL_SO_POLL unimplemented
-#endif
-			break;
 		}
 
 	case IOCTL_SO_GETHOSTBYNAME:
