@@ -406,6 +406,72 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				_BufferOut2, BufferOutSize2, _BufferOut3, BufferOutSize3);
 			break;
 		}
+		case IOCTLV_NET_SSL_SETROOTCADEFAULT:
+		{
+			int sslID = Memory::Read_U32(_BufferOut) - 1;
+			if (sslID >= 0 && sslID < NET_SSL_MAXINSTANCES && sslfds[sslID] != NULL){
+				
+				Memory::Write_U32(0, _BufferIn);
+			}
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_SETROOTCADEFAULT "
+				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+				_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
+				_BufferIn3, BufferInSize3, _BufferOut, BufferOutSize,
+				_BufferOut2, BufferOutSize2, _BufferOut3, BufferOutSize3);
+			break;
+		}
+		
+		case IOCTLV_NET_SSL_SETCLIENTCERTDEFAULT:
+		{
+			INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_SETCLIENTCERTDEFAULT "
+				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+				_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
+				_BufferIn3, BufferInSize3, _BufferOut, BufferOutSize,
+				_BufferOut2, BufferOutSize2, _BufferOut3, BufferOutSize3);
+
+			int sslID = Memory::Read_U32(_BufferOut) - 1;
+			if (sslID >= 0 && sslID < NET_SSL_MAXINSTANCES && sslfds[sslID] != NULL)
+			{
+				SSL* ssl = sslfds[sslID];
+
+				std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
+				FILE * clientca = fopen((cert_base_path + "clientca.cer").c_str(), "rb");
+				if (clientca == NULL)
+					break;
+
+				X509 *cert = d2i_X509_fp(clientca, NULL);
+				fclose(clientca);
+
+				FILE * clientcakey = fopen((cert_base_path + "clientcakey.der").c_str(), "rb");
+				if (clientcakey == NULL)
+					break;
+
+
+				EVP_PKEY * key = d2i_PrivateKey_fp(clientcakey, NULL);
+
+				
+				if (SSL_use_certificate(ssl,cert) <= 0)
+					break;
+				if (SSL_use_PrivateKey(ssl,key) <= 0)
+					break;
+
+		
+				if (!SSL_check_private_key(ssl))
+					break;
+
+				if (cert)
+					X509_free(cert);
+				if (key)
+					EVP_PKEY_free(key);
+
+				Memory::Write_U32(0, _BufferIn);				
+			}
+			break;
+		}
 
 		default:
 		{
