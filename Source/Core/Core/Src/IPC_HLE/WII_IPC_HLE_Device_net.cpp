@@ -773,6 +773,18 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 
 	case IOCTL_SO_SETSOCKOPT:
 		{
+			// Maps level from native to Wii
+			int level_mapping[][2] = {
+				{ SOL_SOCKET, 0xFFFF }
+			};
+
+			// Maps optname from native to Wii
+			int optname_mapping[][2] = {
+				{ SO_REUSEADDR, 0x4 },
+				{ SO_SNDBUF, 0x1001 },
+				{ SO_RCVBUF, 0x1002 },
+			};
+
 			u32 S = Memory::Read_U32(_BufferIn);
 			u32 level = Memory::Read_U32(_BufferIn + 4);
 			u32 optname = Memory::Read_U32(_BufferIn + 8);
@@ -789,7 +801,27 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				"%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx",
 				S, level, optname, optlen, _BufferIn, BufferInSize, _BufferOut, BufferOutSize, optval[0], optval[1], optval[2], optval[3], optval[4], optval[5], optval[6], optval[7], optval[8], optval[9], optval[10], optval[11], optval[12], optval[13], optval[14], optval[15], optval[16], optval[17], optval[18], optval[19]);
 
-			int ret = setsockopt(S, level, optname, (char*)optval, optlen);
+			// Do the level/optname translation
+			int nat_level = -1, nat_optname = -1;
+
+			for (int i = 0; i < sizeof (level_mapping) / sizeof (level_mapping[0]); ++i)
+				if (level == level_mapping[i][1])
+					nat_level = level_mapping[i][0];
+
+			for (int i = 0; i < sizeof (optname_mapping) / sizeof (optname_mapping[0]); ++i)
+				if (optname == optname_mapping[i][1])
+					nat_optname = optname_mapping[i][0];
+
+			if (nat_level == -1 || nat_optname == -1)
+			{
+				WARN_LOG(WII_IPC_NET, "SO_SETSOCKOPT: unknown level %d or optname %d", level, optname);
+
+				// Default to the given level/optname. They match on Windows...
+				nat_level = level;
+				nat_optname = optname;
+			}
+
+			int ret = setsockopt(S, nat_level, nat_optname, (char*)optval, optlen);
 
 			ret = getNetErrorCode(ret, "SO_SETSOCKOPT", false);
 
