@@ -813,11 +813,50 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			}
 			else
 			{
-				WARN_LOG(WII_IPC_NET, "UNKNOWN WTF?");
+				WARN_LOG(WII_IPC_NET, "SO_FCNTL unknown command");
 			}
 			return 0;
 #else
-			return fcntl(sock, cmd, arg);
+			// Map POSIX <-> Wii socket flags
+			// First one is POSIX, second one is Wii
+			static int mapping[][2] = {
+				{ O_NONBLOCK, 0x4 },
+			};
+
+			if (cmd == F_GETFL)
+			{
+				int flags = fcntl(sock, F_GETFL, 0);
+				int ret = 0;
+
+				for (int i = 0; i < sizeof (mapping) / sizeof (mapping[0]); ++i)
+					if (flags & mapping[i][0])
+						ret |= mapping[i][1];
+				return ret;
+			}
+			else if (cmd == F_SETFL)
+			{
+				int posix_flags = 0;
+
+				for (int i = 0; i < sizeof (mapping) / sizeof (mapping[0]); ++i)
+				{
+					if (arg & mapping[i][1])
+					{
+						posix_flags |= mapping[i][0];
+						arg &= ~mapping[i][1];
+					}
+				}
+
+				if (arg)
+					WARN_LOG(WII_IPC_NET, "SO_FCNTL F_SETFL unhandled flags: %08x", arg);
+
+				int ret = fcntl(sock, F_SETFL, posix_flags);
+				return getNetErrorCode(ret, "SO_FCNTL", false);
+			}
+			else
+			{
+				WARN_LOG(WII_IPC_NET, "SO_FCNTL unknown command");
+			}
+			return 0;
 #endif
 		}
 
