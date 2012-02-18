@@ -26,7 +26,6 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/Boot/Boot_ELF.cpp
 			Src/Boot/Boot_WiiWAD.cpp
 			Src/Boot/ElfReader.cpp
-			Src/Boot/SettingsHandler.cpp
 			Src/Debugger/Debugger_SymbolMap.cpp
 			Src/Debugger/Dump.cpp
 			Src/Debugger/PPCDebugInterface.cpp
@@ -134,6 +133,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/WiimoteEmu/Encryption.cpp
 			Src/HW/WiimoteEmu/Speaker.cpp
 			Src/HW/WiimoteReal/WiimoteReal.cpp
+			Src/IPC_HLE/ICMPLin.cpp
 			Src/IPC_HLE/WII_IPC_HLE.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp
@@ -194,7 +194,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/JitCommon/JitCache.cpp
 			Src/PowerPC/JitCommon/Jit_Util.cpp)
 
-set(LIBS bdisasm inputcommon videoogl videosoftware sfml-network ssl)
+set(LIBS bdisasm inputcommon videoogl videosoftware sfml-network ${OPENSSL_LIBRARIES})
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp

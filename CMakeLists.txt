@@ -331,6 +331,8 @@ if(OPROFILING)
 	endif()
 endif()
 
+include(FindOpenSSL REQUIRED)
+
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
 #

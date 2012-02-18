@@ -1011,7 +1011,11 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 	case IOCTL_SO_ICMPCLOSE:
 		{
 			u32 sock = Memory::Read_U32(_BufferIn);
+#ifdef _WIN32
 			u32 ret = closesocket(sock);
+#else
+			u32 ret = close(sock);
+#endif
 			DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_ICMPCLOSE(%x) %x", sock, ret);
 			return getNetErrorCode(ret, "IOCTL_SO_ICMPCLOSE", false);
 		}
@@ -1242,10 +1246,17 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 					"IOCTLV_SO_SENDTO = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
 					ret, Common::swap32(params.socket), _BufferIn, BufferInSize,
 					_BufferIn2, BufferInSize2,
+#ifdef _WIN32
 					addr->sin_addr.S_un.S_un_b.s_b1,
 					addr->sin_addr.S_un.S_un_b.s_b2,
 					addr->sin_addr.S_un.S_un_b.s_b3,
 					addr->sin_addr.S_un.S_un_b.s_b4
+#else
+					addr->sin_addr.s_addr & 0xFF,
+					(addr->sin_addr.s_addr >> 8) & 0xFF,
+					(addr->sin_addr.s_addr >> 16) & 0xFF,
+					(addr->sin_addr.s_addr >> 24) & 0xFF
+#endif
 					);
 
 				return getNetErrorCode(ret, "SO_SENDTO", true);
@@ -1432,7 +1443,11 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 			
 			sockaddr_in addr;
 			addr.sin_family = AF_INET;
+#ifdef _WIN32
 			addr.sin_addr.S_un.S_addr = Common::swap32(ip_info.ip);
+#else
+			addr.sin_addr.s_addr = Common::swap32(ip_info.ip);
+#endif
 			memset(addr.sin_zero, 0, 8);
 
 			u8 data[0x20];
@@ -1487,7 +1502,9 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 
 bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress) 
 { 
-	u32 return_value = ExecuteCommandV(SIOCtlVBuffer(CommandAddress));
+	SIOCtlVBuffer buf(CommandAddress);
+
+	u32 return_value = ExecuteCommandV(buf);
 	Memory::Write_U32(return_value, CommandAddress + 4);
 	return true; 
 }
