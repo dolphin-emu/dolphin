@@ -544,7 +544,7 @@ static int getNetErrorCode(int ret, std::string caller, bool isRW)
 		return -30; // EISCONN
 	case ERRORCODE(ENOTCONN):
 		return -6; // EAGAIN
-	case ERRORCODE(EWOULDBLOCK):
+	case EITHER(WSAEWOULDBLOCK, EAGAIN):
 	case ERRORCODE(EINPROGRESS):
 		if(isRW){
 			return -6; // EAGAIN
