@@ -394,7 +394,7 @@ bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 	default:
 		WARN_LOG(WII_IPC_NET, "NET_WD_COMMAND IOCtlV %#x in %i out %i",
 			CommandBuffer.Parameter, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
-		for (int i = 0; i < CommandBuffer.NumberInBuffer; ++i)
+		for (u32 i = 0; i < CommandBuffer.NumberInBuffer; ++i)
 		{
 			WARN_LOG(WII_IPC_NET, "in %i addr %x size %i", i,
 				CommandBuffer.InBuffer.at(i).m_Address, CommandBuffer.InBuffer.at(i).m_Size);
@@ -404,7 +404,7 @@ bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 					CommandBuffer.InBuffer.at(i).m_Size).c_str()
 				);
 		}
-		for (int i = 0; i < CommandBuffer.NumberPayloadBuffer; ++i)
+		for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; ++i)
 		{
 			WARN_LOG(WII_IPC_NET, "out %i addr %x size %i", i,
 				CommandBuffer.PayloadBuffer.at(i).m_Address, CommandBuffer.PayloadBuffer.at(i).m_Size);
@@ -1051,7 +1051,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				u32 num_addr = 0;
 				while (remoteHost->h_addr_list[num_addr])
 					num_addr++;
-				for (int i = 0; i < num_addr; ++i)
+				for (u32 i = 0; i < num_addr; ++i)
 				{
 					Memory::Write_U32(wii_addr + sizeof(u32) * (num_addr + 1), wii_addr);
 					wii_addr += sizeof(u32);
@@ -1329,17 +1329,10 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 					"IOCTLV_SO_SENDTO = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
 					ret, Common::swap32(params.socket), _BufferIn, BufferInSize,
 					_BufferIn2, BufferInSize2,
-#ifdef _WIN32
-					addr->sin_addr.S_un.S_un_b.s_b1,
-					addr->sin_addr.S_un.S_un_b.s_b2,
-					addr->sin_addr.S_un.S_un_b.s_b3,
-					addr->sin_addr.S_un.S_un_b.s_b4
-#else
 					addr->sin_addr.s_addr & 0xFF,
 					(addr->sin_addr.s_addr >> 8) & 0xFF,
 					(addr->sin_addr.s_addr >> 16) & 0xFF,
 					(addr->sin_addr.s_addr >> 24) & 0xFF
-#endif
 					);
 
 				return getNetErrorCode(ret, "SO_SENDTO", true);
@@ -1526,11 +1519,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 			
 			sockaddr_in addr;
 			addr.sin_family = AF_INET;
-#ifdef _WIN32
-			addr.sin_addr.S_un.S_addr = Common::swap32(ip_info.ip);
-#else
 			addr.sin_addr.s_addr = Common::swap32(ip_info.ip);
-#endif
 			memset(addr.sin_zero, 0, 8);
 
 			u8 data[0x20];
@@ -1551,7 +1540,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 			int ret = icmp_echo_req(sock, &addr, data, icmp_length);
 			if (ret == icmp_length)
 			{
-				ret = icmp_echo_rep(sock, &addr, timeout, icmp_length);
+				ret = icmp_echo_rep(sock, &addr, (u32)timeout, icmp_length);
 			}
 
 			// TODO proper error codes
@@ -1562,7 +1551,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 		WARN_LOG(WII_IPC_NET,"0x%x (BufferIn: (%08x, %i), BufferIn2: (%08x, %i)",
 			CommandBuffer.Parameter, _BufferIn, BufferInSize, _BufferIn2, BufferInSize2);
 	default_:
-		for (int i = 0; i < CommandBuffer.NumberInBuffer; ++i)
+		for (u32 i = 0; i < CommandBuffer.NumberInBuffer; ++i)
 		{
 			ERROR_LOG(WII_IPC_NET, "in %i addr %x size %x", i,
 				CommandBuffer.InBuffer.at(i).m_Address, CommandBuffer.InBuffer.at(i).m_Size);
@@ -1572,7 +1561,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 				CommandBuffer.InBuffer.at(i).m_Size, 4).c_str()
 				);
 		}
-		for (int i = 0; i < CommandBuffer.NumberPayloadBuffer; ++i)
+		for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; ++i)
 		{
 			ERROR_LOG(WII_IPC_NET, "out %i addr %x size %x", i,
 				CommandBuffer.PayloadBuffer.at(i).m_Address, CommandBuffer.PayloadBuffer.at(i).m_Size, 4);
