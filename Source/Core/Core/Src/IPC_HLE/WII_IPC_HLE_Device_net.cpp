@@ -966,35 +966,69 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 		}
 	case IOCTL_SO_POLL:
 		{
+			// Map Wii/native poll events types
+			int mapping[][2] = {
+				{ POLLIN, 0x0001 },
+				{ POLLOUT, 0x0008 },
+				{ POLLHUP, 0x0040 },
+			};
+
 			u32 unknown = Memory::Read_U32(_BufferIn);
 			u32 timeout = Memory::Read_U32(_BufferIn + 4);
 
 			int nfds = BufferOutSize / 0xc;
 			if (nfds == 0)
 				ERROR_LOG(WII_IPC_NET,"Hidden POLL");
+
 			pollfd_t* ufds = (pollfd_t *)malloc(sizeof(pollfd_t) * nfds);
 			if (ufds == NULL)
 				return -1;
+
 			for (int i = 0; i < nfds; i++)
 			{
 				ufds[i].fd = Memory::Read_U32(_BufferOut + 0xc*i);
-				ufds[i].events = Memory::Read_U32(_BufferOut + 0xc*i + 4);
+				int events = Memory::Read_U32(_BufferOut + 0xc*i + 4);
 				ufds[i].revents = Memory::Read_U32(_BufferOut + 0xc*i + 8);
-				//WARN_LOG(WII_IPC_NET, "IOCTL_SO_POLL(%d) "
-				//	"Sock: %08x, Unknown: %08x, Events: %08x, "
-				//	"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-				//	i, ufds[i].fd, unknown, ufds[i].events,
-				//	_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
+
+				// Translate Wii to native events
+				int unhandled_events = events;
+				ufds[i].events = 0;
+				for (int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
+				{
+					if (events & mapping[j][1])
+						ufds[i].events |= mapping[j][0];
+					unhandled_events &= ~mapping[j][1];
+				}
+
+				WARN_LOG(WII_IPC_NET, "IOCTL_SO_POLL(%d) "
+					"Sock: %08x, Unknown: %08x, Events: %08x, "
+					"NativeEvents: %08x",
+					i, ufds[i].fd, unknown, events, ufds[i].events
+				);
+
+				if (unhandled_events)
+					ERROR_LOG(WII_IPC_NET, "SO_POLL: unhandled Wii event types: %04x", unhandled_events);
 			}
+
 			int ret = poll(ufds, nfds, timeout);
 
-			ret = getNetErrorCode(ret, "SO_SETSOCKOPT", false);
+			ret = getNetErrorCode(ret, "SO_POLL", false);
 
 			for (int i = 0; i<nfds; i++)
 			{
 				Memory::Write_U32(ufds[i].fd, _BufferOut + 0xc*i);
 				Memory::Write_U32(ufds[i].events, _BufferOut + 0xc*i + 4);
-				Memory::Write_U32(ufds[i].revents|0x10, _BufferOut + 0xc*i + 8);
+
+				// Translate native to Wii events
+				int revents = 0;
+				for (int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
+				{
+					if (ufds[i].revents & mapping[j][0])
+						revents |= mapping[j][1];
+				}
+				WARN_LOG(WII_IPC_NET, "IOCTL_SO_POLL socket %d revents %08X", i, revents);
+
+				Memory::Write_U32(revents, _BufferOut + 0xc*i + 8);
 			}
 			free(ufds);
 			return ret;
