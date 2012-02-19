@@ -539,20 +539,20 @@ static int getNetErrorCode(int ret, std::string caller, bool isRW)
 		WARN_LOG(WII_IPC_NET, "Find out why this happened, looks like PEEK failure?");
 		return -1;
 	case ERRORCODE(ECONNRESET):
-		return -15;
+		return -15; // ECONNRESET
 	case ERRORCODE(EISCONN):
-		return -30;
+		return -30; // EISCONN
 	case ERRORCODE(ENOTCONN):
-		return -6;
+		return -6; // EAGAIN
 	case ERRORCODE(EWOULDBLOCK):
 	case ERRORCODE(EINPROGRESS):
 		if(isRW){
-			return -6;
+			return -6; // EAGAIN
 		}else{
-			return -26;
+			return -26; // EINPROGRESS
 		}
 	case EITHER(WSA_INVALID_HANDLE, EBADF):
-		return -26;
+		return -26; // EINPROGRESS
 	default:
 		return -1;
 	}
@@ -959,11 +959,12 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 		}
 
 	case IOCTL_SO_INETPTON:
-		WARN_LOG(WII_IPC_NET, "IOCTL_SO_INETPTON "
-			"(Translating: %s)", Memory::GetPointer(_BufferIn));
-		return inet_pton((char*)Memory::GetPointer(_BufferIn), Memory::GetPointer(_BufferOut+4));
-		break;
-
+		{
+			WARN_LOG(WII_IPC_NET, "IOCTL_SO_INETPTON "
+				"(Translating: %s)", Memory::GetPointer(_BufferIn));
+			return inet_pton((char*)Memory::GetPointer(_BufferIn), Memory::GetPointer(_BufferOut+4));
+			break;
+		}
 	case IOCTL_SO_POLL:
 		{
 			u32 unknown = Memory::Read_U32(_BufferIn);
@@ -1381,8 +1382,8 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 				return totallen;
 			}
 #endif
-				ret = recvfrom(sock, buf, len, flags,
-				fromlen ? (struct sockaddr*) &addr : NULL, fromlen ? &fromlen : 0);
+			ret = recvfrom(sock, buf, len, flags,
+			fromlen ? (struct sockaddr*) &addr : NULL, fromlen ? &fromlen : 0);
 			if (BufferOutSize2 != 0)
 			{
 				addr.sin_family = (addr.sin_family << 8) | (BufferOutSize2&0xFF);
