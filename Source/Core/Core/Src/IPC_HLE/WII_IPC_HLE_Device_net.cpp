@@ -561,17 +561,6 @@ static int getNetErrorCode(int ret, std::string caller, bool isRW)
 #undef EITHER
 }
 
-static int convertWiiSockOpt(int level, int optname)
-{
-	switch (optname)
-	{
-	case 0x1009:
-		return 0x1007; //SO_ERROR
-	default:
-		return optname;
-	}
-}
-
 static int inet_pton(const char *src, unsigned char *dst)
 {
 	static const char digits[] = "0123456789";
@@ -764,12 +753,21 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				sock, level, optname,
 				_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
 
-			optname = convertWiiSockOpt(level,optname);
+			// Do the level/optname translation
+			int nat_level = -1, nat_optname = -1;
+
+			for (int i = 0; i < sizeof (opt_level_mapping) / sizeof (opt_level_mapping[0]); ++i)
+				if (level == opt_level_mapping[i][1])
+					nat_level = opt_level_mapping[i][0];
+
+			for (int i = 0; i < sizeof (opt_name_mapping) / sizeof (opt_name_mapping[0]); ++i)
+				if (optname == opt_name_mapping[i][1])
+					nat_optname = opt_name_mapping[i][0];
 
 			u8 optval[20];
 			u32 optlen = 4;
 
-			int ret = getsockopt (sock, level, optname, (char *) &optval, (socklen_t*)&optlen);
+			int ret = getsockopt (sock, nat_level, nat_optname, (char *) &optval, (socklen_t*)&optlen);
 
 			ret = getNetErrorCode(ret, "SO_GETSOCKOPT", false);
 
