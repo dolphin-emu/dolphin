@@ -1354,7 +1354,6 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 		{
 			u32 sock	= Memory::Read_U32(_BufferIn);
 			u32 flags	= Memory::Read_U32(_BufferIn + 4);
-			
 
 			char *buf	= (char *)Memory::GetPointer(_BufferOut);
 			int len		= BufferOutSize;
@@ -1366,7 +1365,26 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 				fromlen = BufferOutSize2 >= sizeof(struct sockaddr) ? BufferOutSize2 : sizeof(struct sockaddr);
 			}
 
-			
+			if (fromlen)
+			{
+				WARN_LOG(WII_IPC_NET, "IOCTLV_SO_RECVFROM "
+				"Socket: %08X, Flags: %08X, "
+				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+				"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
+				sock, flags,
+				_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
+				_BufferOut, BufferOutSize, _BufferOut2, BufferOutSize2);
+			}
+			else
+			{
+				WARN_LOG(WII_IPC_NET, "IOCTLV_SO_RECV "
+				"Socket: %08X, Flags: %08X, "
+				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+				"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
+				sock, flags,
+				_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
+				_BufferOut, BufferOutSize, _BufferOut2, BufferOutSize2);
+			}
 
 			if (flags != 2)
 				flags = 0;
@@ -1382,33 +1400,18 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 			}
 #endif
 			ret = recvfrom(sock, buf, len, flags,
-			fromlen ? (struct sockaddr*) &addr : NULL, fromlen ? &fromlen : 0);
+			               fromlen ? (struct sockaddr*) &addr : NULL,
+			               fromlen ? &fromlen : 0);
+
+			int err = getNetErrorCode(ret, fromlen ? "SO_RECVFROM" : "SO_RECV", true);
+
 			if (BufferOutSize2 != 0)
 			{
 				addr.sin_family = (addr.sin_family << 8) | (BufferOutSize2&0xFF);
 				Memory::WriteBigEData((u8*)&addr, _BufferOut2, BufferOutSize2);
 			}
 
-			if(fromlen){
-				WARN_LOG(WII_IPC_NET, "IOCTLV_SO_RECVFROM = %d "
-				"Socket: %08X, Flags: %08X, "
-				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-				"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
-				ret, sock, flags,
-				_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-				_BufferOut, BufferOutSize, _BufferOut2, BufferOutSize2);
-			}else{
-				WARN_LOG(WII_IPC_NET, "IOCTLV_SO_RECV = %d "
-				"Socket: %08X, Flags: %08X, "
-				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-				"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
-				ret, sock, flags,
-				_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-				_BufferOut, BufferOutSize, _BufferOut2, BufferOutSize2);
-			}
-
-			return getNetErrorCode(ret, fromlen ?  "SO_RECVFROM" : "SO_RECV", true);
-			break;
+			return err;
 		}
 
 	case IOCTLV_SO_GETADDRINFO:
