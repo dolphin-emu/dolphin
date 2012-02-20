@@ -196,7 +196,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 		area = "JPN";
 		video = "NTSC";
     game = "JP";
-    code = "LU";
+    code = "LJ";
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
 		area = "USA";
