@@ -161,7 +161,7 @@ void VertexManager::vFlush()
 			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
+				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, tentry->virtual_width, tentry->virtual_height, 0, 0, API_OPENGL);
 
 				if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
 				{
@@ -179,7 +179,7 @@ void VertexManager::vFlush()
 
 	// set global constants
 	VertexShaderManager::SetConstants();
-	PixelShaderManager::SetConstants();
+	PixelShaderManager::SetConstants(API_OPENGL);
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
