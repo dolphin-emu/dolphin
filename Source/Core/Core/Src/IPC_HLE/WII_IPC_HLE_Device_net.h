@@ -168,6 +168,15 @@ public:
 
 	void WriteConfig()
 	{
+		if (!File::Exists(path))
+		{
+			if (!File::CreateFullPath(
+				std::string(File::GetUserPath(D_WIISYSCONF_IDX) + "net/02/")))
+			{
+				ERROR_LOG(WII_IPC_NET, "Failed to create directory for network config file");
+			}
+		}
+
 		File::IOFile(path, "wb").WriteBytes((void*)&config, sizeof(config));
 	}
 
