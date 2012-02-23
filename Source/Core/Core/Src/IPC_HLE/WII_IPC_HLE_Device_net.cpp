@@ -946,6 +946,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
 			return 192 << 24 | 168 << 16 | 1 << 8 | 150;
 		}
+
 	case IOCTL_SO_INETATON:
 		{
 			struct hostent *remoteHost = gethostbyname((char*)Memory::GetPointer(_BufferIn));
@@ -964,6 +965,28 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			return inet_pton((char*)Memory::GetPointer(_BufferIn), Memory::GetPointer(_BufferOut+4));
 			break;
 		}
+
+	case IOCTL_SO_INETNTOP:
+		{
+			u32 af = Memory::Read_U32(_BufferIn);
+			//u32 af = Memory::Read_U32(_BufferIn + 4);
+			u32 src = Memory::Read_U32(_BufferIn + 8);
+			//u32 af = Memory::Read_U32(_BufferIn + 12);
+			//u32 af = Memory::Read_U32(_BufferIn + 16);
+			//u32 af = Memory::Read_U32(_BufferIn + 20);
+			char ip_s[16];
+			sprintf(ip_s, "%i.%i.%i.%i",
+				Memory::Read_U8(_BufferIn + 8),
+				Memory::Read_U8(_BufferIn + 8 + 1),
+				Memory::Read_U8(_BufferIn + 8 + 2),
+				Memory::Read_U8(_BufferIn + 8 + 3)
+				);
+			WARN_LOG(WII_IPC_NET, "IOCTL_SO_INETNTOP %s", ip_s);
+			memset(Memory::GetPointer(_BufferOut), 0, BufferOutSize);
+			memcpy(Memory::GetPointer(_BufferOut), ip_s, strlen(ip_s));
+			return 0;
+		}
+
 	case IOCTL_SO_POLL:
 		{
 			// Map Wii/native poll events types
@@ -1148,6 +1171,11 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			ERROR_LOG(WII_IPC_NET, "\n%s", 
 				ArrayToString(Memory::GetPointer(_BufferIn), BufferInSize, 4).c_str()
 				);
+		}
+
+		if (BufferOutSize)
+		{
+			ERROR_LOG(WII_IPC_NET, "out addr %x size %x", _BufferOut, BufferOutSize);
 		}
 		break;
 	}
