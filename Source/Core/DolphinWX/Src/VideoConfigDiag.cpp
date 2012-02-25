@@ -97,7 +97,6 @@ wxString efb_copy_texture_desc = wxTRANSLATE("Store EFB copies in GPU texture ob
 wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nSome games depend on this for certain graphical effects or gameplay functionality.\n\nIf unsure, check EFB to Texture instead.");
 wxString stc_desc = wxTRANSLATE("The safer you adjust this, the less likely the emulator will be missing any texture updates from RAM.\n\nIf unsure, use the rightmost value.");
 wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
-wxString disable_lighting_desc = wxTRANSLATE("Improves performance but causes lighting to disappear in most games.\n\nIf unsure, leave this unchecked.");
 wxString disable_textures_desc = wxTRANSLATE("Disable texturing.\n\nIf unsure, leave this unchecked.");
 wxString disable_fog_desc = wxTRANSLATE("Improves performance but causes glitches in most games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
 wxString disable_alphapass_desc = wxTRANSLATE("Skip the destination alpha pass used in many games for various graphical effects.\n\nIf unsure, leave this unchecked.");
@@ -121,7 +120,7 @@ wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 
 wxString opencl_desc = wxTRANSLATE("[EXPERIMENTAL]\nAims to speed up emulation by offloading texture decoding to the GPU using the OpenCL framework.\nHowever, right now it's known to cause texture defects in various games. Also it's slower than regular CPU texture decoding in most cases.\n\nIf unsure, leave this unchecked.");
 wxString dlc_desc = wxTRANSLATE("[EXPERIMENTAL]\nSpeeds up emulation a bit by caching display lists.\nPossibly causes issues though.\n\nIf unsure, leave this unchecked.");
 wxString omp_desc = wxTRANSLATE("Use multiple threads to decode textures.\nMight result in a speedup (especially on CPUs with more than two cores).\n\nIf unsure, leave this unchecked.");
-wxString hotkeys_desc = wxTRANSLATE("Allows toggling certain options via the hotkeys 3, 4, 5, 6 and 7 within the emulation window.\n\nIf unsure, leave this unchecked.");
+wxString hotkeys_desc = wxTRANSLATE("Allows toggling certain options via the hotkeys 3, 4, 5 and 6 within the emulation window.\n\nIf unsure, leave this unchecked.");
 wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
 wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nSometimes also increases visual quality.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
 wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, an error message is displayed.\nHowever, one may skip the popups to allow interruption free gameplay by checking this option.\n\nIf unsure, leave this unchecked.");
@@ -493,7 +492,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxGridSizer* const szr_other = new wxGridSizer(2, 5, 5);
 
 	szr_other->Add(CreateCheckBox(page_hacks, _("Cache Display Lists"), wxGetTranslation(dlc_desc), vconfig.bDlistCachingEnable));
-	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Lighting"), wxGetTranslation(disable_lighting_desc), vconfig.bDisableLighting));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Per-Pixel Depth"), wxGetTranslation(pixel_depth_desc), vconfig.bEnablePerPixelDepth, true));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Skip Dest. Alpha Pass"), wxGetTranslation(disable_alphapass_desc), vconfig.bDstAlphaPass));

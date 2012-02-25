@@ -84,7 +84,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
 	iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
 	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
-	iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
 	iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
 	
@@ -139,7 +138,6 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
 	iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale); // integral
 	iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass);
-	iniFile.GetIfExists("Video_Settings", "DisableLighting", &bDisableLighting);
 	iniFile.GetIfExists("Video_Settings", "DisableTexturing", &bDisableTexturing);
 	iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog);
 	iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL);
@@ -214,7 +212,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
 	iniFile.Set("Settings", "Wireframe", bWireFrame);
-	iniFile.Set("Settings", "DisableLighting", bDisableLighting);
 	iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
 	iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
 	iniFile.Set("Settings", "DisableFog", bDisableFog);
@@ -277,7 +274,6 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "MSAA", iMultisampleMode);
 	SET_IF_DIFFERS("Video_Settings", "EFBScale", iEFBScale); // integral
 	SET_IF_DIFFERS("Video_Settings", "DstAlphaPass", bDstAlphaPass);
-	SET_IF_DIFFERS("Video_Settings", "DisableLighting", bDisableLighting);
 	SET_IF_DIFFERS("Video_Settings", "DisableTexturing", bDisableTexturing);
 	SET_IF_DIFFERS("Video_Settings", "DisableFog", bDisableFog);
 	SET_IF_DIFFERS("Video_Settings", "EnableOpenCL", bEnableOpenCL);

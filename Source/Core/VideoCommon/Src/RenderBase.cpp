@@ -276,7 +276,6 @@ void Renderer::DrawDebugText()
 				std::string("4: Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
 				std::string("5: Copy EFB: ") + efbcopy_text,
 				std::string("6: Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
-				std::string("7: Material Lighting: ") + (g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"),
 			};
 
 			enum { lines_count = sizeof(lines)/sizeof(*lines) };
