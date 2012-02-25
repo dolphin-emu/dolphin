@@ -459,7 +459,7 @@ bool IniFile::Save(const char* filename)
 		return false;
 	}
 
-	for (std::vector<Section>::const_iterator iter = sections.begin(); iter != sections.end(); ++iter)
+	for (auto iter = sections.begin(); iter != sections.end(); ++iter)
 	{
 		const Section& section = *iter;
 
