@@ -100,7 +100,6 @@ struct VideoConfig
 	
 	// Render
 	bool bWireFrame;
-	bool bDisableTexturing;
 	bool bDstAlphaPass;
 	bool bDisableFog;
 	
