@@ -105,7 +105,7 @@ private:
     {
        ES_INVALID_TMD                       = -106,   // or access denied
        ES_READ_LESS_DATA_THAN_EXPECTED      = -1009, 
-       ES_UNK_1                             = -1010,
+       ES_WRITE_FAILURE                     = -1010,
        ES_PARAMTER_SIZE_OR_ALIGNMENT        = -1017,
        ES_HASH_DOESNT_MATCH                 = -1022,
        ES_MEM_ALLOC_FAILED                  = -1024,
@@ -137,11 +137,27 @@ private:
 	// This should only be cleared on power reset
 	std::string m_ContentFile;
 
+	static u8 *keyTable[11];
+
     u64 GetCurrentTitleID() const;
 
     const DiscIO::INANDContentLoader& AccessContentDevice(u64 _TitleID);
 
     bool IsValid(u64 _TitleID) const;
+
+
+	typedef struct ecc_cert_t
+	{
+		u32 sig_type			;
+		 u8 sig			[0x3c]	;
+		 u8 pad			[0x40]	;
+		 u8 issuer		[0x40]	;
+		u32 key_type			;
+		 u8 key_name	[0x40]	;
+		u32 ng_key_id			;
+		 u8 ecc_pubkey	[0x3c]	;
+		 u8 padding		[0x3c]	;
+	} ecc_cert_t;
 };
 
 #endif

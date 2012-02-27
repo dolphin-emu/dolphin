@@ -58,13 +58,40 @@
 #include "CommonPaths.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
+#include <openssl/bn.h>
+#include <openssl/ec.h>
+#include <openssl/ecdsa.h>
+#include <openssl/sha.h>
+#include <openssl/objects.h>
+
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pContentLoader(NULL)
     , m_TitleID(-1)
     , AccessIdentID(0x6000000)
 	, m_ContentFile()
-{}
+{
+}
+
+static u8 key_sd   [0x10]	= {0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08, 0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d};
+static u8 key_ecc  [0x1e]	= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+static u8 key_empty[0x10]	= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static u8 key_ecc_r[0x1e]	= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+
+// default key table
+u8* CWII_IPC_HLE_Device_es::keyTable[11] = {
+	key_ecc,	// ECC Private Key
+	key_empty,	// Console ID
+	key_empty,	// NAND AES Key
+	key_empty,	// NAND HMAC
+	key_empty,	// Common Key
+	key_empty,	// PRNG seed
+	key_sd,		// SD Key
+	key_empty,	// Unknown
+	key_empty,	// Unknown
+	key_empty,	// Unknown
+	key_empty,	// Unknown
+};
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
 {}
@@ -141,21 +168,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             Buffer.PayloadBuffer[i].m_Size);
     }
 
-	// Uhh just put this here for now
-	u8 keyTable[11][16] = {
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // ECC Private Key
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Console ID
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // NAND AES Key
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // NAND HMAC
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Common Key
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // PRNG seed
-		{0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08, 0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d,}, // SD Key
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
-	};
-
 	switch (Buffer.Parameter)
     {
 	case IOCTL_ES_GETDEVICEID:
@@ -164,7 +176,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID");
 			// Return arbitrary device ID - TODO allow user to set value?
-			Memory::Write_U32(0x31337f11, Buffer.PayloadBuffer[0].m_Address);
+			Memory::Write_U32(0x21FFFFF, Buffer.PayloadBuffer[0].m_Address);
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 			return true;
 		}
@@ -390,7 +402,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     case IOCTL_ES_SETUID:
         {
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_SETUID no in buffer");
-            _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
+            _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0, "IOCTL_ES_SETUID has a payload, it shouldn't");
 			// TODO: fs permissions based on this
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID>>32), (u32)TitleID);
@@ -820,17 +832,152 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT , _CommandAddress + 0x4);
 		return true;
 
+    case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
+	{
+        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
+        _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
+		
+		std::string path = File::GetUserPath(D_WIIUSER_IDX) + "clientcert.bin";
+		
+		u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+		u32 size = Buffer.PayloadBuffer[0].m_Size;
+		
+		if (File::Exists(path))
+		{
+			File::IOFile(path, "rb").ReadBytes(destination, size);
+		}
+		
+		Memory::Write_U32(0, _CommandAddress + 0x4);
+        break;
+	}
+	case IOCTL_ES_SIGN:
+	{
+		
+        WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
+		
+		ecc_cert_t device_cert;
+		memset(&device_cert, 0, sizeof(ecc_cert_t));
+
+		std::string path = File::GetUserPath(D_WIIUSER_IDX) + "clientcert.bin";
+		if (File::Exists(path))
+		{
+			File::IOFile(path, "rb").ReadBytes((u8*)&device_cert, 0x180);
+		}else{
+			WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN: clientcert.bin not found.");
+			break;
+		}
+
+		ecc_cert_t * ap_cert = (ecc_cert_t *)Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+		
+		ap_cert->sig_type	= Common::swap32(0x00010002);
+		ap_cert->key_type	= Common::swap32(0x00000002);
+		ap_cert->ng_key_id	= 0;
+
+		snprintf((char*)ap_cert->issuer,
+			0x40,
+			"%s-%s",
+			device_cert.issuer,
+			device_cert.key_name);
+		
+		snprintf((char*)ap_cert->key_name,
+			0x40,
+			"AP%08x%08x",
+			(u32)(m_TitleID>>32),
+			(u32)(m_TitleID & 0xFFFFFFFF));
+
+
+		u8 hash[SHA_DIGEST_LENGTH];
+		SHA1(Memory::GetPointer(Buffer.InBuffer[0].m_Address), Buffer.InBuffer[0].m_Size, hash);
+
+		BIGNUM *bn = BN_bin2bn(key_ecc_r, 0x1e, NULL);
+		EC_KEY *rand_key = EC_KEY_new_by_curve_name(NID_sect233r1);
+		EC_KEY_set_private_key(rand_key, bn);
+
+		const EC_GROUP *group = EC_KEY_get0_group(rand_key);
+
+		EC_POINT *pubkey = EC_POINT_new(group);
+		EC_POINT_mul(group, pubkey, bn, NULL, NULL, NULL);
+		
+		BIGNUM *x = BN_new();
+		BIGNUM *y = BN_new();
+		EC_POINT_get_affine_coordinates_GF2m(group, pubkey, x, y, NULL);
+
+		int len = BN_num_bits(x);
+		BN_bn2bin(x, &ap_cert->ecc_pubkey[(240-len)/8]);
+		len = BN_num_bits(y);
+		BN_bn2bin(y, &ap_cert->ecc_pubkey[0x1e + (240-len)/8]);
+
+		//BN_clear_free(x);
+		//BN_clear_free(y);
+
+		EC_KEY_set_public_key(rand_key, pubkey);
+
+		//EC_POINT_free(pubkey);
+		//BN_clear_free(bn);
+		
+		unsigned int buf_len = ECDSA_size(rand_key);
+
+		unsigned char * sign_me = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+
+		ECDSA_SIG *rand_sig = ECDSA_do_sign(hash, SHA_DIGEST_LENGTH, rand_key);
+		
+		len = BN_num_bits(rand_sig->r);
+		BN_bn2bin(rand_sig->r, &sign_me[(240-len)/8]);
+		len = BN_num_bits(rand_sig->s);
+		BN_bn2bin(rand_sig->s, &sign_me[0x1e + (240-len)/8]);
+
+		
+		SHA1(&ap_cert->issuer[0], 0x180 - 0x80, hash);
+		
+		bn = BN_bin2bn(key_ecc, 0x1e, NULL);
+		EC_KEY *ecc_key = EC_KEY_new_by_curve_name(NID_sect233r1);
+		EC_KEY_set_private_key(ecc_key, bn);
+
+		group = EC_KEY_get0_group(ecc_key);
+		pubkey = EC_POINT_new(group);
+		
+		EC_POINT_mul(group, pubkey, bn, NULL, NULL, NULL);
+
+		EC_KEY_set_public_key(ecc_key, pubkey);
+		
+		//BN_clear_free(bn);
+		//EC_POINT_free(pubkey);
+		
+
+		ECDSA_SIG *ecc_sig = ECDSA_do_sign(hash, SHA_DIGEST_LENGTH, ecc_key);
+		
+		len = BN_num_bits(ecc_sig->r);
+		BN_bn2bin(ecc_sig->r, &ap_cert->sig[(240-len)/8]);
+		len = BN_num_bits(ecc_sig->s);
+		BN_bn2bin(ecc_sig->s, &ap_cert->sig[0x1e + (240-len)/8]);
+
+		//ECDSA_SIG_free(ecc_sig);
+
+		//OPENSSL_free(r);
+		//OPENSSL_free(s);
+		
+		//EC_KEY_free(ecc_key);
+
+		break;
+	}
+	case IOCTL_ES_GETBOOT2VERSION:
+	{
+        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETBOOT2VERSION");
+		
+		Memory::Write_U32(4, Buffer.PayloadBuffer[0].m_Address); // as of 26/02/2012, this was latest bootmii version
+		break;
+	}
     // ===============================================================================================
     // unsupported functions 
     // ===============================================================================================
-     case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes) bug crediar :D
-        WARN_LOG(WII_IPC_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
-        break;
-
-    case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
-        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT: this looks really wrong...");
-        break;
-
+	case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes) bug crediar :D
+		WARN_LOG(WII_IPC_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
+		break;
+	case IOCTL_ES_GETOWNEDTITLECNT:
+        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETOWNEDTITLECNT");
+		
+		Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
+		break;
     default:
         WARN_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
 
