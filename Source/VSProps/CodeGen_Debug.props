@@ -10,9 +10,7 @@
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
-	<Link>
-      <AdditionalDependencies>libeay32d.lib;ssleay32d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
+    <Link />
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

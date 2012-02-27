@@ -26,20 +26,8 @@
 #ifndef OPENSSL_NO_DES
 # define OPENSSL_NO_DES
 #endif
-#ifndef OPENSSL_NO_EC
-# define OPENSSL_NO_EC
-#endif
-#ifndef OPENSSL_NO_ECDH
-# define OPENSSL_NO_ECDH
-#endif
-#ifndef OPENSSL_NO_ECDSA
-# define OPENSSL_NO_ECDSA
-#endif
 #ifndef OPENSSL_NO_GMP
 # define OPENSSL_NO_GMP
-#endif
-#ifndef OPENSSL_NO_GOST
-# define OPENSSL_NO_GOST
 #endif
 #ifndef OPENSSL_NO_IDEA
 # define OPENSSL_NO_IDEA
@@ -86,9 +74,6 @@
 #ifndef OPENSSL_THREADS
 # define OPENSSL_THREADS
 #endif
-#ifndef OPENSSL_NO_ERR
-# define OPENSSL_NO_ERR
-#endif
 
 /* The OPENSSL_NO_* macros are also defined as NO_* if the application
    asks for it.  This is a transient feature that is provided for those
@@ -113,20 +98,8 @@
 # if defined(OPENSSL_NO_DES) && !defined(NO_DES)
 #  define NO_DES
 # endif
-# if defined(OPENSSL_NO_EC) && !defined(NO_EC)
-#  define NO_EC
-# endif
-# if defined(OPENSSL_NO_ECDH) && !defined(NO_ECDH)
-#  define NO_ECDH
-# endif
-# if defined(OPENSSL_NO_ECDSA) && !defined(NO_ECDSA)
-#  define NO_ECDSA
-# endif
 # if defined(OPENSSL_NO_GMP) && !defined(NO_GMP)
 #  define NO_GMP
-# endif
-# if defined(OPENSSL_NO_GOST) && !defined(NO_GOST)
-#  define NO_GOST
 # endif
 # if defined(OPENSSL_NO_IDEA) && !defined(NO_IDEA)
 #  define NO_IDEA
