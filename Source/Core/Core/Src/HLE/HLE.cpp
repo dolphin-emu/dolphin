@@ -61,7 +61,7 @@ static const SPatch OSPatches[] =
 	{ "DEBUGPrint",						HLE_OS::HLE_GeneralDebugPrint	},
 	{ "WUD_DEBUGPrint",					HLE_OS::HLE_GeneralDebugPrint	},
 	{ "OSPanic",						HLE_OS::HLE_OSPanic				},
-	{ "vprintf",						HLE_OS::HLE_GeneralDebugPrint	},
+	{ "vprintf",						HLE_OS::HLE_VPrintf	},
 	{ "printf",							HLE_OS::HLE_GeneralDebugPrint	},
 	{ "printf1",							HLE_OS::HLE_GeneralDebugPrintWithInt	},
 	{ "printf2",							HLE_OS::HLE_GeneralDebugPrint	},

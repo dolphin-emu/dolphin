@@ -26,6 +26,7 @@ namespace HLE_OS
     void HLE_GeneralDebugPrintWithInt();
 	void HLE_write_console();
     void HLE_OSPanic();
+	void HLE_VPrintf();
 }
 
 #endif
