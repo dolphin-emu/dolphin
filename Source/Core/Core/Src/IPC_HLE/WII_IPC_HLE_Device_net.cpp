@@ -649,7 +649,6 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			ret = getNetErrorCode(ret, "SO_CONNECT", false);
 			WARN_LOG(WII_IPC_NET,"IOCTL_SO_CONNECT (%08x, %s:%d)",
 				Common::swap32(params.socket), inet_ntoa(serverAddr.sin_addr), Common::swap16(serverAddr.sin_port));
-
 			return ret;
 			break;
 		}
@@ -691,7 +690,14 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			WARN_LOG(WII_IPC_NET, "IOCTL_SO_SOCKET "
 				"Socket: %08x (%d,%d,%d), BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 				s, AF, TYPE, PROT, _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
-			return getNetErrorCode(s, "SO_SOCKET", false);
+			
+			int ret = getNetErrorCode(s, "SO_SOCKET", false);
+			if(ret>0){
+				u32 millis = 3000;
+
+				setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,(char *)&millis,4);
+			}
+			return ret;
 			break;
 		}
 
@@ -1420,6 +1426,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 			char *buf	= (char *)Memory::GetPointer(_BufferOut);
 			int len		= BufferOutSize;
 			struct sockaddr_in addr;
+			memset(&addr, 0, sizeof(sockaddr_in));
 			socklen_t fromlen = 0;
 
 			if (BufferOutSize2 != 0)
@@ -1427,33 +1434,15 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 				fromlen = BufferOutSize2 >= sizeof(struct sockaddr) ? BufferOutSize2 : sizeof(struct sockaddr);
 			}
 
-			if (fromlen)
-			{
-				WARN_LOG(WII_IPC_NET, "IOCTLV_SO_RECVFROM "
-				"Socket: %08X, Flags: %08X, "
-				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-				"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
-				sock, flags,
-				_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-				_BufferOut, BufferOutSize, _BufferOut2, BufferOutSize2);
-			}
-			else
-			{
-				WARN_LOG(WII_IPC_NET, "IOCTLV_SO_RECV "
-				"Socket: %08X, Flags: %08X, "
-				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-				"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
-				sock, flags,
-				_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
-				_BufferOut, BufferOutSize, _BufferOut2, BufferOutSize2);
-			}
+			
+			
 
 			if (flags != 2)
 				flags = 0;
 			else
 				flags = MSG_PEEK;
 
-			int ret;
+			static int ret;
 #ifdef _WIN32
 			if(flags & MSG_PEEK){
 				unsigned long totallen = 0;
@@ -1461,11 +1450,20 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 				return totallen;
 			}
 #endif
+
 			ret = recvfrom(sock, buf, len, flags,
 			               fromlen ? (struct sockaddr*) &addr : NULL,
 			               fromlen ? &fromlen : 0);
 
 			int err = getNetErrorCode(ret, fromlen ? "SO_RECVFROM" : "SO_RECV", true);
+
+			
+			WARN_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
+			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+			"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",fromlen ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ",
+			ret, buf, sock, flags,
+			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
+			_BufferOut, BufferOutSize, _BufferOut2, BufferOutSize2);
 
 			if (BufferOutSize2 != 0)
 			{
@@ -1647,5 +1645,5 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 }
 
 #ifdef _MSC_VER
-#pragma optimize("",on)
+#pragma optimize("",off)
 #endif
