@@ -354,6 +354,9 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				SSL* ssl = sslfds[sslID];
 								
 				returnValue = SSL_write(ssl, Memory::GetPointer(_BufferOut2), BufferOutSize2);
+				
+				File::IOFile("ssl_write.bin", "ab").WriteBytes(Memory::GetPointer(_BufferOut2), BufferOutSize2);
+
 				if (returnValue == -1)
 					returnValue = -SSL_get_error(ssl, returnValue);
 				Memory::Write_U32(returnValue, _BufferIn);
@@ -380,6 +383,8 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				{
 					returnValue = -SSL_get_error(ssl, returnValue);
 					INFO_LOG(WII_IPC_NET, "IOCTLV_NET_SSL_READ errorVal= %d", returnValue);
+				}else{
+					File::IOFile("ssl_read.bin", "ab").WriteBytes(Memory::GetPointer(_BufferIn2), returnValue);
 				}
 
 				// According to OpenSSL docs, all TLS calls (including reads) can cause
