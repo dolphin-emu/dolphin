@@ -62,6 +62,14 @@ void LogConfigWindow::CreateGUIControls()
 	_connect_macro_(m_writeConsoleCB, LogConfigWindow::OnWriteConsoleChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	m_writeWindowCB = new wxCheckBox(this, wxID_ANY, _("Write to Window"));
 	_connect_macro_(m_writeWindowCB, LogConfigWindow::OnWriteWindowChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	m_writeDebuggerCB = NULL;
+#ifdef _MSC_VER
+	if (IsDebuggerPresent())
+	{
+		m_writeDebuggerCB = new wxCheckBox(this, wxID_ANY, _("Write to Debugger"));
+		_connect_macro_(m_writeDebuggerCB, LogConfigWindow::OnWriteDebuggerChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	}
+#endif
 
 	wxButton *btn_toggle_all = new wxButton(this, wxID_ANY, _("Toggle All Log Types"),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
@@ -75,7 +83,17 @@ void LogConfigWindow::CreateGUIControls()
 	wxStaticBoxSizer* sbOutputs = new wxStaticBoxSizer(wxVERTICAL, this, _("Logger Outputs"));
 	sbOutputs->Add(m_writeFileCB, 0, wxDOWN, 1);
 	sbOutputs->Add(m_writeConsoleCB, 0, wxDOWN, 1);
-	sbOutputs->Add(m_writeWindowCB, 0);
+#ifdef _MSC_VER
+	if (m_writeDebuggerCB)
+	{
+		sbOutputs->Add(m_writeWindowCB, 0, wxDOWN, 1);
+		sbOutputs->Add(m_writeDebuggerCB, 0);
+	}
+	else
+#endif
+	{
+		sbOutputs->Add(m_writeWindowCB, 0);
+	}
 
 	wxStaticBoxSizer* sbLogTypes = new wxStaticBoxSizer(wxVERTICAL, this, _("Log Types"));
 	sbLogTypes->Add(m_checks, 1, wxEXPAND);
@@ -107,6 +125,17 @@ void LogConfigWindow::LoadSettings()
 	m_writeConsoleCB->SetValue(m_writeConsole);
 	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
 	m_writeWindowCB->SetValue(m_writeWindow);
+#ifdef _MSC_VER
+	if (IsDebuggerPresent())
+	{
+		ini.Get("Options", "WriteToDebugger", &m_writeDebugger, true);
+		m_writeDebuggerCB->SetValue(m_writeDebugger);
+	}
+	else
+#endif
+	{
+		m_writeDebugger = false;
+	}
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool log_enabled;
@@ -125,6 +154,10 @@ void LogConfigWindow::SaveSettings()
 	ini.Set("Options", "WriteToFile", m_writeFile);
 	ini.Set("Options", "WriteToConsole", m_writeConsole);
 	ini.Set("Options", "WriteToWindow", m_writeWindow);
+#ifdef _MSC_VER
+	if (IsDebuggerPresent())
+		ini.Set("Options", "WriteToDebugger", m_writeDebugger);
+#endif
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		ini.Set("Logs", m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
 	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
@@ -183,6 +216,21 @@ void LogConfigWindow::OnWriteWindowChecked(wxCommandEvent& event)
 	}
 }
 
+void LogConfigWindow::OnWriteDebuggerChecked(wxCommandEvent& event)
+{
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+	{
+		m_writeDebugger = event.IsChecked();
+		if (m_checks->IsChecked(i))
+		{
+			if (m_writeDebugger)
+				m_LogManager->AddListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogManager->GetDebuggerListener());
+			else
+				m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, (LogListener *)m_LogManager->GetDebuggerListener());
+		}
+	}
+}
+
 void LogConfigWindow::OnToggleAll(wxCommandEvent& WXUNUSED(event))
 {
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
@@ -207,12 +255,15 @@ void LogConfigWindow::ToggleLog(int _logType, bool enable)
 			m_LogManager->AddListener(logType, m_LogManager->GetFileListener());
 		if (m_writeConsole)
 			m_LogManager->AddListener(logType, m_LogManager->GetConsoleListener());
+		if (m_writeDebugger)
+			m_LogManager->AddListener(logType, m_LogManager->GetDebuggerListener());
 	}
 	else
 	{
 		m_LogManager->RemoveListener(logType, (LogListener *)m_LogWindow);
 		m_LogManager->RemoveListener(logType, m_LogManager->GetFileListener());
 		m_LogManager->RemoveListener(logType, m_LogManager->GetConsoleListener());
+		m_LogManager->RemoveListener(logType, m_LogManager->GetDebuggerListener());
 	}
 }
 

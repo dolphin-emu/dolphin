@@ -311,6 +311,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			UCPClearReg tmpCtrl(_Value);
 			m_CPClearReg.Hex = tmpCtrl.Hex;					
 			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x", _Value);
+			SetCpClearRegister();
 		}
 		break;
 
@@ -677,13 +678,15 @@ void SetCpControlRegister()
 
 }
 
+// NOTE: The implementation of this function should be correct, but we intentionally aren't using it at the moment.
+// We don't emulate proper GP timing anyway at the moment, so this code would just slow down emulation.
 void SetCpClearRegister()
 {
-	if (IsOnThread())
-	{
-		if (!m_CPClearReg.ClearFifoUnderflow && m_CPClearReg.ClearFifoOverflow)
-			bProcessFifoToLoWatermark = true;
-	}
+//	if (IsOnThread())
+//	{
+//		if (!m_CPClearReg.ClearFifoUnderflow && m_CPClearReg.ClearFifoOverflow)
+//			bProcessFifoToLoWatermark = true;
+//	}
 }
 
 } // end of namespace CommandProcessor

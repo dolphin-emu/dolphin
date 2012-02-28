@@ -448,7 +448,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 #else
 		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
 		// it returns CP-932, in order to use iconv we need to use CP932
-		wxCSConv SJISConv(L"CP932");
+		wxCSConv SJISConv(wxT("CP932"));
 #endif
 
 	GameListItem& rISOFile = *m_ISOFiles[_Index];
@@ -468,9 +468,12 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 	
-	std::wstring wname;
-	const std::wstring& wdescription = rISOFile.GetDescription();
+	std::wstring wstring_name;
+	const std::wstring& wstring_description = rISOFile.GetDescription();
 	std::string company;
+
+	wxString name;
+	wxString description;
 
 	// We show the company string on Gamecube only
 	// On Wii we show the description instead as the company string is empty
@@ -482,13 +485,11 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		{
-			rISOFile.GetName(wname, -1);
-			wxString name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
+			rISOFile.GetName(wstring_name, -1);
+			name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
 			m_gameList.append(StringFromFormat("%s (J)\n", (const char *)name.c_str()));
-			SetItem(_Index, COLUMN_TITLE, name, -1);
-			SetItem(_Index, COLUMN_NOTES, wxString(company.size() ?
-						company.c_str() : rISOFile.GetDescription(0).c_str(),
-						SJISConv), -1);
+			description = wxString(company.size() ?	company.c_str() :
+								rISOFile.GetDescription(0).c_str(),	SJISConv);
 		}
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
@@ -496,28 +497,24 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	default:
 		{
 		wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
-		rISOFile.GetName(wname, SelectedLanguage);
+		rISOFile.GetName(wstring_name, SelectedLanguage);
 
-		SetItem(_Index, COLUMN_TITLE,
-			wxString(
-				rISOFile.GetName(SelectedLanguage).c_str(), WindowsCP1252),
-			-1);
+		name = wxString(rISOFile.GetName(SelectedLanguage).c_str(), WindowsCP1252);
 		m_gameList.append(StringFromFormat("%s (%c)\n",
 			rISOFile.GetName(SelectedLanguage).c_str(), (rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA)?'U':'E'));
-		SetItem(_Index, COLUMN_NOTES,
-				wxString(company.size() ?
-					company.c_str() :
-					rISOFile.GetDescription(SelectedLanguage).c_str(), WindowsCP1252),
-				-1);
+		description = wxString(company.size() ?	company.c_str() :
+							rISOFile.GetDescription(SelectedLanguage).c_str(), WindowsCP1252);
 		}
 		break;
 	}
 
-	if (wname.length())
-		SetItem(_Index, COLUMN_TITLE, wname, -1);
-	if (wdescription.length())
-		SetItem(_Index, COLUMN_NOTES, wdescription, -1);
-
+	if (wstring_name.length())
+		name = wstring_name.c_str();
+	if (wstring_description.length())
+		description = wstring_description.c_str();
+		
+	SetItem(_Index, COLUMN_TITLE, name, -1);
+	SetItem(_Index, COLUMN_NOTES, description, -1);
 
 #ifndef _WIN32
 	// Emulation state

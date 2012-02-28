@@ -85,14 +85,14 @@ void LoadBPReg(const BPCmd &bp, BPMemory &bpMem)
 
 void GetTlutLoadData(u32 &tlutAddr, u32 &memAddr, u32 &tlutXferCount, BPMemory &bpMem)
 {
-	tlutAddr = (bpMem.tlutXferDest & 0x3FF) << 9;
-    tlutXferCount = (bpMem.tlutXferDest & 0x1FFC00) >> 5;
+	tlutAddr = (bpMem.tmem_config.tlut_dest & 0x3FF) << 9;
+	tlutXferCount = (bpMem.tmem_config.tlut_dest & 0x1FFC00) >> 5;
 
 	// TODO - figure out a cleaner way.
 	if (Core::g_CoreStartupParameter.bWii)
-		memAddr = bpmem.tlutXferSrc << 5;
+		memAddr = bpmem.tmem_config.tlut_src << 5;
 	else
-		memAddr = (bpmem.tlutXferSrc & 0xFFFFF) << 5;
+		memAddr = (bpmem.tmem_config.tlut_src & 0xFFFFF) << 5;
 }
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory &cpMem)

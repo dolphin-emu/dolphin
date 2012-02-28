@@ -56,7 +56,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 #else
 		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
 		// it returns CP-932, in order to use iconv we need to use CP932
-		m_SJISConv = wxCSConv(L"CP932");
+		m_SJISConv = wxCSConv(wxT("CP932"));
 #endif
 
 	m_LogManager = LogManager::GetInstance();
@@ -85,6 +85,16 @@ void CLogWindow::CreateGUIControls()
 	ini.Get("Options", "WriteToFile", &m_writeFile, false);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
 	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
+#ifdef _MSC_VER
+	if (IsDebuggerPresent())
+	{
+		ini.Get("Options", "WriteToDebugger", &m_writeDebugger, true);
+	}
+	else
+#endif
+	{
+		m_writeDebugger = false;
+	}
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
@@ -104,6 +114,12 @@ void CLogWindow::CreateGUIControls()
 			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
 		else
 			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
+
+		if (m_writeDebugger && enable)
+			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetDebuggerListener());
+		else
+			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetDebuggerListener());
+
 		m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
 	}
 

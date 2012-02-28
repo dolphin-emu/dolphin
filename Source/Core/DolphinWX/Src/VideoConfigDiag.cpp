@@ -95,7 +95,7 @@ wxString efb_emulate_format_changes_desc = wxTRANSLATE("Ignore any changes to th
 wxString efb_copy_desc = wxTRANSLATE("Disable emulation of EFB copies.\nThese are often used for post-processing or render-to-texture effects, so while checking this setting gives a great speedup it almost always also causes issues.\n\nIf unsure, leave this unchecked.");
 wxString efb_copy_texture_desc = wxTRANSLATE("Store EFB copies in GPU texture objects.\nThis is not so accurate, but it works well enough for most games and gives a great speedup over EFB to RAM.\n\nIf unsure, leave this checked.");
 wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nSome games depend on this for certain graphical effects or gameplay functionality.\n\nIf unsure, check EFB to Texture instead.");
-wxString stc_desc = wxTRANSLATE("The safer you adjust this, the less likely the emulator will be missing any texture updates from RAM.\n\nIf unsure, use the second-fastest value from the right.");
+wxString stc_desc = wxTRANSLATE("The safer you adjust this, the less likely the emulator will be missing any texture updates from RAM.\n\nIf unsure, use the rightmost value.");
 wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
 wxString disable_lighting_desc = wxTRANSLATE("Improves performance but causes lighting to disappear in most games.\n\nIf unsure, leave this unchecked.");
 wxString disable_textures_desc = wxTRANSLATE("Disable texturing.\n\nIf unsure, leave this unchecked.");
@@ -455,18 +455,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxStaticBoxSizer* const szr_safetex = new wxStaticBoxSizer(wxHORIZONTAL, page_hacks, _("Texture Cache"));
 
 	// TODO: Use wxSL_MIN_MAX_LABELS or wxSL_VALUE_LABEL with wx 2.9.1
-	wxSlider* const stc_slider = new wxSlider(page_hacks, wxID_ANY, 0, 0, 3, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL|wxSL_BOTTOM);
+	wxSlider* const stc_slider = new wxSlider(page_hacks, wxID_ANY, 0, 0, 2, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL|wxSL_BOTTOM);
 	_connect_macro_(stc_slider, VideoConfigDiag::Event_Stc, wxEVT_COMMAND_SLIDER_UPDATED, this);
 	RegisterControl(stc_slider, wxGetTranslation(stc_desc));
 
-	if (vconfig.bSafeTextureCache)
-	{
-		if (vconfig.iSafeTextureCache_ColorSamples == 0) stc_slider->SetValue(0);
-		else if (vconfig.iSafeTextureCache_ColorSamples == 512) stc_slider->SetValue(1);
-		else if (vconfig.iSafeTextureCache_ColorSamples == 128) stc_slider->SetValue(2);
-		else stc_slider->Disable(); // Using custom number of samples; TODO: Inform the user why this is disabled..
-	}
-	else stc_slider->SetValue(3);
+	if (vconfig.iSafeTextureCache_ColorSamples == 0) stc_slider->SetValue(0);
+	else if (vconfig.iSafeTextureCache_ColorSamples == 512) stc_slider->SetValue(1);
+	else if (vconfig.iSafeTextureCache_ColorSamples == 128) stc_slider->SetValue(2);
+	else stc_slider->Disable(); // Using custom number of samples; TODO: Inform the user why this is disabled..
 
 	szr_safetex->Add(new wxStaticText(page_hacks, wxID_ANY, _("Accuracy:")), 0, wxALL, 5);
 	szr_safetex->AddStretchSpacer(1);

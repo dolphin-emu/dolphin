@@ -155,12 +155,13 @@ void VertexManager::vFlush()
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
 				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
-				(tex.texMode1[i&3].max_lod >> 4));
+				tex.texMode1[i&3].max_lod >> 4,
+				tex.texImage1[i&3].image_type);
 
 			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
+				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, tentry->virtual_width, tentry->virtual_height, 0, 0, API_OPENGL);
 
 				if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
 				{
@@ -178,7 +179,7 @@ void VertexManager::vFlush()
 
 	// set global constants
 	VertexShaderManager::SetConstants();
-	PixelShaderManager::SetConstants();
+	PixelShaderManager::SetConstants(API_OPENGL);
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;

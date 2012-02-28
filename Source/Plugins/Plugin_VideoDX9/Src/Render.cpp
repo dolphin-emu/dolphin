@@ -622,7 +622,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	{
 		// TODO: Speed this up by batching pokes?
 		ResetAPIState();
-		D3D::drawColorQuad(GetTargetWidth(), GetTargetHeight(), poke_data,
+		D3D::drawColorQuad(poke_data,
 							  (float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
 							- (float)RectToLock.top    * 2.f / (float)Renderer::GetTargetHeight() + 1.f,
 							  (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
@@ -747,7 +747,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	vp.MinZ = 0.0;
 	vp.MaxZ = 1.0;
 	D3D::dev->SetViewport(&vp);
-	D3D::drawClearQuad(GetTargetWidth(), GetTargetHeight(), color, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+	D3D::drawClearQuad(color, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
 	RestoreAPIState();
 }
 
@@ -761,7 +761,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	else if (convtype == 2) pixel_shader = PixelShaderCache::ReinterpRGBA6ToRGB8();
 	else
 	{
-		PanicAlert("Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
+		ERROR_LOG(VIDEO, "Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
 		return;
 	}
 
@@ -896,7 +896,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		vp.MinZ = 0.0f;
 		vp.MaxZ = 1.0f;
 		D3D::dev->SetViewport(&vp);
-		D3D::drawClearQuad(GetTargetWidth(), GetTargetHeight(), 0, 1.0, PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
+		D3D::drawClearQuad(0, 1.0, PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader());
 	}
 	else
 	{
@@ -1114,12 +1114,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 
-	// reload textures if these settings changed
-	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
-		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+	// Reload textures if these settings changed
+	if (g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
 		TextureCache::Invalidate(false);
 
-	// Enable any configuration changes
+	// Enable configuration changes
 	UpdateActiveConfig();
 
 	SetWindowSize(fbWidth, fbHeight);
