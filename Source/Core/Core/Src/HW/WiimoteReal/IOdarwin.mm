@@ -129,7 +129,7 @@ int FindWiimotes(Wiimote **wm, int max_wiimotes)
 	[bti setInquiryLength: 5];
 	[bti setSearchCriteria: kBluetoothServiceClassMajorAny
 		majorDeviceClass: kBluetoothDeviceClassMajorPeripheral
-		minorDeviceClass: kBluetoothDeviceClassMinorAny
+		minorDeviceClass: kBluetoothDeviceClassMinorPeripheral2Joystick
 		];
 	[bti setUpdateNewDeviceNames: NO];
 
@@ -176,10 +176,6 @@ bool Wiimote::Connect()
 
 	if (IsConnected())
 		return false;
-
-	if ([btd remoteNameRequest:nil] == kIOReturnSuccess)
-		m_motion_plus_inside =
-			static_cast<bool>([[btd getName] hasSuffix:@"-TR"]);
 
 	[btd openL2CAPChannelSync: &cchan
 		withPSM: kBluetoothL2CAPPSMHIDControl delegate: cbt];
@@ -248,7 +244,7 @@ int Wiimote::IOWrite(unsigned char *buf, int len)
 	if (!IsConnected())
 		return 0;
 
-	ret = [ichan writeAsync: buf length: len refcon: nil];
+	ret = [cchan writeAsync: buf length: len refcon: nil];
 
 	if (ret == kIOReturnSuccess)
 		return len;
