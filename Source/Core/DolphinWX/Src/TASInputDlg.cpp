@@ -42,9 +42,9 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 		const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	A_turbo,B_turbo, X_turbo, Y_turbo, Z_turbo, L_turbo, R_turbo, START_turbo,DL_turbo,DR_turbo,DD_turbo,DU_turbo = false;
-	xaxis,yaxis,c_xaxis,c_yaxis = 128;
-	A_cont,B_cont, X_cont, Y_cont, Z_cont, L_cont, R_cont, START_cont,DL_cont,DR_cont,DD_cont,DU_cont,mstickx,msticky,cstickx,csticky = false;
+	A_turbo = B_turbo = X_turbo = Y_turbo = Z_turbo = L_turbo = R_turbo = START_turbo = DL_turbo = DR_turbo = DD_turbo = DU_turbo = false;
+	xaxis = yaxis = c_xaxis = c_yaxis = 128;
+	A_cont = B_cont = X_cont = Y_cont = Z_cont = L_cont = R_cont = START_cont = DL_cont = DR_cont = DD_cont = DU_cont = mstickx = msticky = cstickx = csticky = false;
 	
 	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
@@ -583,7 +583,8 @@ void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 {
 	wxSlider *slider;
 	u8 *v;
-	update,update_axis = 0;
+	update = 0;
+	update_axis = 0;
 	
 	switch(event.GetId())
 	{
