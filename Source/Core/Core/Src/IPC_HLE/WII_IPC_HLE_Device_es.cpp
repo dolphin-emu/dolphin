@@ -905,13 +905,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		len = BN_num_bits(y);
 		BN_bn2bin(y, &ap_cert->ecc_pubkey[0x1e + (240-len)/8]);
 
-		//BN_clear_free(x);
-		//BN_clear_free(y);
-
 		EC_KEY_set_public_key(rand_key, pubkey);
 
-		//EC_POINT_free(pubkey);
-		//BN_clear_free(bn);
 		
 		unsigned int buf_len = ECDSA_size(rand_key);
 
@@ -923,8 +918,15 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		BN_bn2bin(rand_sig->r, &sign_me[(240-len)/8]);
 		len = BN_num_bits(rand_sig->s);
 		BN_bn2bin(rand_sig->s, &sign_me[0x1e + (240-len)/8]);
-
 		
+		EC_POINT_free(pubkey);
+		BN_clear_free(bn);
+		BN_clear_free(x);
+		BN_clear_free(y);
+		ECDSA_SIG_free(rand_sig);
+		EC_KEY_free(rand_key);
+
+
 		SHA1(&ap_cert->issuer[0], 0x180 - 0x80, hash);
 		
 		bn = BN_bin2bn(key_ecc, 0x1e, NULL);
@@ -938,10 +940,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 		EC_KEY_set_public_key(ecc_key, pubkey);
 		
-		//BN_clear_free(bn);
-		//EC_POINT_free(pubkey);
-		
-
 		ECDSA_SIG *ecc_sig = ECDSA_do_sign(hash, SHA_DIGEST_LENGTH, ecc_key);
 		
 		len = BN_num_bits(ecc_sig->r);
@@ -949,12 +947,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		len = BN_num_bits(ecc_sig->s);
 		BN_bn2bin(ecc_sig->s, &ap_cert->sig[0x1e + (240-len)/8]);
 
-		//ECDSA_SIG_free(ecc_sig);
-
-		//OPENSSL_free(r);
-		//OPENSSL_free(s);
 		
-		//EC_KEY_free(ecc_key);
+		EC_POINT_free(pubkey);
+		ECDSA_SIG_free(ecc_sig);
+		BN_clear_free(bn);
+		EC_KEY_free(ecc_key);
 
 		break;
 	}
