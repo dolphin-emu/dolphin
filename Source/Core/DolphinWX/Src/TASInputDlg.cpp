@@ -635,24 +635,22 @@ void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 	{
 		*v = (u8) (value > 255 ? 255 : value);
 		slider->SetValue(*v);
-		
-	}
-
-	if(update == 1)
-		{
-			if(update_axis == 1)
+	
+		if(update == 1)
 			{
-				xaxis = *v;
-				static_bitmap_main->SetBitmap(TASInputDlg::CreateStickBitmap(xaxis,yaxis));
-			}
+				if(update_axis == 1)
+				{
+					xaxis = *v;
+					static_bitmap_main->SetBitmap(TASInputDlg::CreateStickBitmap(xaxis,yaxis));
+				}
 			
-			if(update_axis == 2)
-			{
-				yaxis =256 - *v;
-				static_bitmap_main->SetBitmap(TASInputDlg::CreateStickBitmap(xaxis,yaxis));
-			}
+				if(update_axis == 2)
+				{
+					yaxis =256 - *v;
+					static_bitmap_main->SetBitmap(TASInputDlg::CreateStickBitmap(xaxis,yaxis));
+				}
 			
-		}
+			}
 
 		if(update == 2)
 		{
@@ -669,7 +667,7 @@ void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 			}
 	
 		}
-
+	}
 }
 
 void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
