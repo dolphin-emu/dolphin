@@ -50,6 +50,7 @@ The register allocation is linear scan allocation.
 #include "../../../../Common/Src/CPUDetect.h"
 #include "MathUtil.h"
 #include "../../Core.h"
+#include "HW/ProcessorInterface.h"
 
 static ThunkManager thunks;
 
@@ -761,6 +762,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case FPExceptionCheckStart:
 		case FPExceptionCheckEnd:
 		case ISIException:
+		case ExtExceptionCheck:
 		case Int3:
 		case Tramp:
 			// No liveness effects
@@ -1918,6 +1920,21 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->MOV(32, MatR(RAX), Imm32(JIT_ICACHE_INVALID_WORD));
 #endif
 			Jit->WriteExceptionExit();
+			break;
+		}
+		case ExtExceptionCheck: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+			FixupBranch noExtException = Jit->J_CC(CC_Z);
+			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP));
+			FixupBranch noCPInt = Jit->J_CC(CC_Z);
+
+			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->WriteExceptionExit();
+
+			Jit->SetJumpTarget(noCPInt);
+			Jit->SetJumpTarget(noExtException);
 			break;
 		}
 		case Int3: {

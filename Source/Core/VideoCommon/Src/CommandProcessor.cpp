@@ -60,7 +60,6 @@ volatile bool interruptSet= false;
 volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
 volatile bool interruptFinishWaiting = false;
-volatile bool OnOverflow = false;
 
 bool IsOnThread()
 {
@@ -92,7 +91,6 @@ void DoState(PointerWrap &p)
 	p.Do(interruptWaiting);
 	p.Do(interruptTokenWaiting);
 	p.Do(interruptFinishWaiting);
-	p.Do(OnOverflow);
 }
 
 inline void WriteLow (volatile u32& _reg, u16 lowbits)  {Common::AtomicStore(_reg,(_reg & 0xFFFF0000) | lowbits);}
@@ -135,7 +133,6 @@ void Init()
 	bProcessFifoToLoWatermark = false;
 	bProcessFifoAllDistance = false;
 	isPossibleWaitingSetDrawDone = false;
-	OnOverflow = false;
 
     et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 }
@@ -449,26 +446,7 @@ void STACKALIGN GatherPipeBursted()
 	Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
 
 	if (!IsOnThread())
-	{
 		RunGpu();
-	}
-	else
-	{
-		if(fifo.CPReadWriteDistance	== fifo.CPEnd - fifo.CPBase - 32)
-		{
-			if(!OnOverflow)
-				NOTICE_LOG(COMMANDPROCESSOR,"FIFO is almost in overflown, BreakPoint: %i", fifo.bFF_Breakpoint);
-			OnOverflow = true;
-			while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable &&
-			fifo.CPReadWriteDistance > fifo.CPEnd - fifo.CPBase - 64)
-			Common::YieldCPU();														
-		}
-		else
-		{
-			OnOverflow = false;
-		}
-	}
-	
 
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance	<= fifo.CPEnd - fifo.CPBase,
 	"FIFO is overflown by GatherPipe !\nCPU thread is too fast!");

@@ -41,6 +41,7 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 #include "Jit64_Tables.h"
+#include "HW/ProcessorInterface.h"
 
 using namespace Gen;
 using namespace PowerPC;
@@ -567,6 +568,24 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 				JMP(asm_routines.fpException, true);
 				SetJumpTarget(b1);
+			}
+
+			// Add an external exception check if the instruction writes to the FIFO.
+			if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
+			{
+				gpr.Flush(FLUSH_ALL);
+				fpr.Flush(FLUSH_ALL);
+
+				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+				FixupBranch noExtException = J_CC(CC_Z);
+				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP));
+				FixupBranch noCPInt = J_CC(CC_Z);
+
+				MOV(32, M(&PC), Imm32(js.compilerPC));
+				WriteExceptionExit();
+
+				SetJumpTarget(noCPInt);
+				SetJumpTarget(noExtException);
 			}
 
 			Jit64Tables::CompileInstruction(ops[i]);

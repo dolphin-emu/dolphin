@@ -19,9 +19,9 @@
 #include "ChunkFile.h"
 #include "ProcessorInterface.h"
 #include "Memmap.h"
-#include "../PowerPC/PowerPC.h"
-
 #include "VideoBackendBase.h"
+#include "../PowerPC/JitCommon/JitBase.h"
+#include "../PowerPC/PowerPC.h"
 
 #include "GPFifo.h"
 
@@ -96,6 +96,16 @@ void STACKALIGN CheckGatherPipe()
 		
 		// move back the spill bytes
 		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
+
+		// Profile where the FIFO writes are occurring.
+		const u32 addr = PC - 4;
+		if (jit && (jit->js.fifoWriteAddresses.find(addr)) == (jit->js.fifoWriteAddresses.end()))
+		{
+			jit->js.fifoWriteAddresses.insert(addr);
+
+			// Invalidate the JIT block so that it gets recompiled with the external exception check included.
+			jit->GetBlockCache()->InvalidateICache(addr, 8);
+		}
 	}
 }
 

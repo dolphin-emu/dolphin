@@ -390,13 +390,12 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	}
 
 
-	void JitBlockCache::InvalidateICache(u32 address)
+	void JitBlockCache::InvalidateICache(u32 address, const u32 length)
 	{
-		address &= ~0x1f;
 		// destroy JIT blocks
 		// !! this works correctly under assumption that any two overlapping blocks end at the same address
 		std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(address, 0)), it2 = it1, it;
-		while (it2 != block_map.end() && it2->first.second < address + 0x20)
+		while (it2 != block_map.end() && it2->first.second < address + length)
 		{
 			DestroyBlock(it2->second, true);
 			it2++;
@@ -418,17 +417,17 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		if (address & JIT_ICACHE_VMEM_BIT)
 		{
 			u32 cacheaddr = address & JIT_ICACHE_MASK;
-			memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
+			memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
 		}
 		else if (address & JIT_ICACHE_EXRAM_BIT)
 		{
 			u32 cacheaddr = address & JIT_ICACHEEX_MASK;
-			memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
+			memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
 		}
 		else
 		{
 			u32 cacheaddr = address & JIT_ICACHE_MASK;
-			memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
+			memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
 		}
 #endif
 	}

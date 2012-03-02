@@ -137,8 +137,7 @@ void RunGpuLoop()
 				
 		CommandProcessor::SetCpStatus();
 		// check if we are able to run this buffer	
-		while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable &&
-			fifo.CPReadWriteDistance && (!AtBreakpoint() || CommandProcessor::OnOverflow))
+		while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 		{
 			if (!GpuRunningState) break;
 

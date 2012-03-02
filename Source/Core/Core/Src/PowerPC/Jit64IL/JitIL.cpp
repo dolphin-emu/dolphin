@@ -648,6 +648,11 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			{
 				ibuild.EmitFPExceptionCheckStart(ibuild.EmitIntConst(ops[i].address));
 			}
+
+			if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
+			{
+				ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
+			}
 			
 			JitILTables::CompileInstruction(ops[i]);
 

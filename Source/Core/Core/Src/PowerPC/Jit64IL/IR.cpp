@@ -1260,8 +1260,8 @@ static const std::string opcodeNames[] = {
 	"FResult_End", "StorePaired", "StoreSingle", "StoreDouble", "StoreFReg", 
 	"FDCmpCR", "CInt16", "CInt32", "SystemCall", "RFIExit", 
 	"InterpreterBranch", "IdleBranch", "ShortIdleLoop", 
-	"FPExceptionCheckStart", "FPExceptionCheckEnd", "ISIException", "Tramp", 
-	"BlockStart", "BlockEnd", "Int3", 
+	"FPExceptionCheckStart", "FPExceptionCheckEnd", "ISIException", "ExtExceptionCheck",
+	"Tramp", "BlockStart", "BlockEnd", "Int3",
 };
 static const unsigned alwaysUsedList[] = {
 	InterpreterFallback, StoreGReg, StoreCR, StoreLink, StoreCTR, StoreMSR,
@@ -1269,7 +1269,7 @@ static const unsigned alwaysUsedList[] = {
 	Store16, Store32, StoreSingle, StoreDouble, StorePaired, StoreFReg, FDCmpCR,
 	BlockStart, BlockEnd, IdleBranch, BranchCond, BranchUncond, ShortIdleLoop,
 	SystemCall, InterpreterBranch, RFIExit, FPExceptionCheckStart,
-	FPExceptionCheckEnd, ISIException, Int3, Tramp, Nop
+	FPExceptionCheckEnd, ISIException, ExtExceptionCheck, Int3, Tramp, Nop
 };
 static const unsigned extra8RegList[] = {
 	LoadGReg, LoadCR, LoadGQR, LoadFReg, LoadFRegDENToZero,

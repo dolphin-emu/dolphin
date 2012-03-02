@@ -31,6 +31,8 @@
 #include "PowerPCDisasm.h"
 #include "disasm.h"
 
+#include <set>
+
 #define JIT_OPCODE 0
 
 class JitBase : public CPUCoreBase, public EmuCodeBlock
@@ -75,6 +77,8 @@ protected:
 		u8* rewriteStart;
 
 		JitBlock *curBlock;
+
+		std::set<u32> fifoWriteAddresses;
 	};
 
 public:
