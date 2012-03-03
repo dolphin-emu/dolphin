@@ -1929,10 +1929,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			FixupBranch noExtException = Jit->J_CC(CC_Z);
 			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP));
 			FixupBranch noCPInt = Jit->J_CC(CC_Z);
+			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_DSP));
+			FixupBranch clearInt = Jit->J_CC(CC_NZ);
 
 			Jit->MOV(32, M(&PC), Imm32(InstLoc));
 			Jit->WriteExceptionExit();
 
+			Jit->SetJumpTarget(clearInt);
 			Jit->SetJumpTarget(noCPInt);
 			Jit->SetJumpTarget(noExtException);
 			break;

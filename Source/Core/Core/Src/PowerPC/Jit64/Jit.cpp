@@ -580,16 +580,13 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				FixupBranch noExtException = J_CC(CC_Z);
 				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP));
 				FixupBranch noCPInt = J_CC(CC_Z);
-				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause),
-					Imm32(ProcessorInterface::INT_CAUSE_PE_TOKEN |
-					ProcessorInterface::INT_CAUSE_PE_FINISH |
-					ProcessorInterface::INT_CAUSE_DSP));
-				FixupBranch ClearInt = J_CC(CC_NZ);
+				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_DSP));
+				FixupBranch clearInt = J_CC(CC_NZ);
 
 				MOV(32, M(&PC), Imm32(ops[i].address));
 				WriteExceptionExit();
 
-				SetJumpTarget(ClearInt);
+				SetJumpTarget(clearInt);
 				SetJumpTarget(noCPInt);
 				SetJumpTarget(noExtException);
 			}
