@@ -98,13 +98,12 @@ void STACKALIGN CheckGatherPipe()
 		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
 
 		// Profile where the FIFO writes are occurring.
-		const u32 addr = PC - 4;
-		if (jit && (jit->js.fifoWriteAddresses.find(addr)) == (jit->js.fifoWriteAddresses.end()))
+		if (jit && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
 		{
-			jit->js.fifoWriteAddresses.insert(addr);
+			jit->js.fifoWriteAddresses.insert(PC);
 
 			// Invalidate the JIT block so that it gets recompiled with the external exception check included.
-			jit->GetBlockCache()->InvalidateICache(addr, 8);
+			jit->GetBlockCache()->InvalidateICache(PC, 4);
 		}
 	}
 }
