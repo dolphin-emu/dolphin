@@ -383,7 +383,7 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 	float v2=((float)rSource->bottom) * sh;
 	float g = 1.0f/Gamma;
 
-	struct Q2DVertex { float x,y,z,rhw,u,v,w,h,G; } coords[4] = {
+	const struct Q2DVertex { float x,y,z,rhw,u,v,w,h,G; } coords[4] = {
 		{-1.0f - dw,-1.0f + dh, 0.0f,1.0f, u1, v2, sw, sh, g},
 		{-1.0f - dw, 1.0f + dh, 0.0f,1.0f, u1, v1, sw, sh, g},
 		{ 1.0f - dw,-1.0f + dh, 0.0f,1.0f, u2, v2, sw, sh, g},

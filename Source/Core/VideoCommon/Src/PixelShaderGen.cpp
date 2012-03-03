@@ -158,7 +158,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	}
 
 	u32* ptr = &uid->values[2];
-	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
+	for (unsigned int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
 	{
 		StageHash(i, ptr);
 		ptr += 4; // max: ptr = &uid->values[66]

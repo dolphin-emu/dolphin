@@ -109,7 +109,7 @@ CEXIIPL::CEXIIPL() :
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2)
 	{
 		// Copy header
-		memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, sizeof(m_bNTSC ? iplverNTSC : iplverPAL));
+		memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, m_bNTSC ? sizeof(iplverNTSC) : sizeof(iplverPAL));
 
 		// Load fonts
 		LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SJIS), 0x1aff00);

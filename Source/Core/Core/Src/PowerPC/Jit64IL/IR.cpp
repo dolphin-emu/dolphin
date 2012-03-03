@@ -1212,7 +1212,7 @@ void IRBuilder::simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2)
 }
 
 bool IRBuilder::maskedValueIsZero(InstLoc Op1, InstLoc Op2) const {
-	return (~ComputeKnownZeroBits(Op1) & ~ComputeKnownZeroBits(Op1)) == 0;
+	return (~ComputeKnownZeroBits(Op1) & ~ComputeKnownZeroBits(Op2)) == 0;
 }
 
 // Returns I' if I == (0 - I')
