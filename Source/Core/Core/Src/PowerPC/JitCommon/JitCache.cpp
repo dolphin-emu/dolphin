@@ -353,6 +353,24 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		}
 	}
 
+	void JitBlockCache::UnlinkBlock(int i)
+	{
+		JitBlock &b = blocks[i];
+		std::map<u32, int>::iterator iter;
+		pair<multimap<u32, int>::iterator, multimap<u32, int>::iterator> ppp;
+		ppp = links_to.equal_range(b.originalAddress);
+		if (ppp.first == ppp.second)
+			return;
+		for (multimap<u32, int>::iterator iter2 = ppp.first; iter2 != ppp.second; ++iter2) {
+			JitBlock &sourceBlock = blocks[iter2->second];
+			for (int e = 0; e < 2; e++)
+			{
+				if (sourceBlock.exitAddress[e] == b.originalAddress)
+					sourceBlock.linkStatus[e] = false;
+			}
+		}
+	}
+
 	void JitBlockCache::DestroyBlock(int block_num, bool invalidate)
 	{
 		if (block_num < 0 || block_num >= num_blocks)
@@ -375,7 +393,9 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			Memory::WriteUnchecked_U32(b.originalFirstOpcode, b.originalAddress);
 #endif
 
-		// We don't unlink blocks, we just send anyone who tries to run them back to the dispatcher.
+		UnlinkBlock(block_num);
+
+		// Send anyone who tries to run this block back to the dispatcher.
 		// Not entirely ideal, but .. pretty good.
 		// Spurious entrances from previously linked blocks can only come through checkedEntry
 		XEmitter emit((u8 *)b.checkedEntry);

@@ -98,7 +98,7 @@ void STACKALIGN CheckGatherPipe()
 		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
 
 		// Profile where the FIFO writes are occurring.
-		if (jit && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
+		if (m_gatherPipeCount == 0 && jit && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
 		{
 			jit->js.fifoWriteAddresses.insert(PC);
 
