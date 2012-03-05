@@ -96,9 +96,10 @@ void STACKALIGN CheckGatherPipe()
 		
 		// move back the spill bytes
 		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
-
+		
 		// Profile where the FIFO writes are occurring.
-		if (m_gatherPipeCount == 0 && jit && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
+		
+		if (g_video_backend->Video_IsHiWatermarkActive() && jit && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
 		{
 			jit->js.fifoWriteAddresses.insert(PC);
 

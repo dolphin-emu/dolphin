@@ -56,6 +56,7 @@ static bool bProcessFifoToLoWatermark = false;
 static bool bProcessFifoAllDistance = false;
 
 volatile bool isPossibleWaitingSetDrawDone = false;
+volatile bool isHiWatermarkActive = false;
 volatile bool interruptSet= false;
 volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
@@ -85,7 +86,7 @@ void DoState(PointerWrap &p)
 
 	p.Do(bProcessFifoToLoWatermark);
 	p.Do(bProcessFifoAllDistance);
-
+	p.Do(isHiWatermarkActive);
 	p.Do(isPossibleWaitingSetDrawDone);
 	p.Do(interruptSet);
 	p.Do(interruptWaiting);
@@ -133,6 +134,7 @@ void Init()
 	bProcessFifoToLoWatermark = false;
 	bProcessFifoAllDistance = false;
 	isPossibleWaitingSetDrawDone = false;
+	isHiWatermarkActive = false;
 
     et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 }
@@ -141,7 +143,6 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 {
 
 	INFO_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
-	ProcessFifoEvents();
 	switch (_Address & 0xFFF)
 	{
 	case STATUS_REGISTER:		
@@ -409,7 +410,6 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	if (!IsOnThread())
 		RunGpu();
-	ProcessFifoEvents();
 }
 
 void Read32(u32& _rReturnValue, const u32 _Address)
@@ -425,7 +425,6 @@ void Write32(const u32 _Data, const u32 _Address)
 
 void STACKALIGN GatherPipeBursted()
 {
-	ProcessFifoEvents();
 	// if we aren't linked, we don't care about gather pipe data
 	if (!m_CPCtrlReg.GPLinkEnable)
 	{
@@ -487,17 +486,18 @@ void AbortFrame()
 
 void SetOverflowStatusFromGatherPipe()
 {
-	if (!fifo.bFF_HiWatermarkInt) return;
+	
 
 	fifo.bFF_HiWatermark = (fifo.CPReadWriteDistance > fifo.CPHiWatermark);
-    fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
+	isHiWatermarkActive = fifo.bFF_HiWatermark && fifo.bFF_HiWatermarkInt && m_CPCtrlReg.GPReadEnable;
 	
-	bool interrupt = fifo.bFF_HiWatermark && fifo.bFF_HiWatermarkInt &&
-		m_CPCtrlReg.GPLinkEnable && m_CPCtrlReg.GPReadEnable;
-
-    if (interrupt != interruptSet && interrupt)
-            CommandProcessor::UpdateInterrupts(true);
-    
+    if (isHiWatermarkActive)
+	{
+		interruptSet = true;
+        INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
+        ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);    
+	}
+			   
 }
 
 void SetCpStatus()
@@ -505,7 +505,7 @@ void SetCpStatus()
     // overflow & underflow check
 	fifo.bFF_HiWatermark = (fifo.CPReadWriteDistance > fifo.CPHiWatermark);
     fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
-
+	
     // breakpoint     
 	
 	if (fifo.bFF_BPEnable)
@@ -540,13 +540,18 @@ void SetCpStatus()
 	
 	bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable;
 
+	isHiWatermarkActive = ovfInt  && m_CPCtrlReg.GPReadEnable;
+
     if (interrupt != interruptSet && !interruptWaiting)
     {
         u64 userdata = interrupt?1:0;
         if (IsOnThread())
         {
-            interruptWaiting = true;
-            CommandProcessor::UpdateInterruptsFromVideoBackend(userdata);
+            if(!interrupt || bpInt || undfInt)
+			{
+				interruptWaiting = true;
+				CommandProcessor::UpdateInterruptsFromVideoBackend(userdata);
+			}
         }
         else
             CommandProcessor::UpdateInterrupts(userdata);
@@ -631,8 +636,8 @@ void SetCpControlRegister()
 		ProcessorInterface::Fifo_CPUEnd = fifo.CPEnd;
 	}
 	// If overflown happens process the fifo to LoWatemark
-	if (bProcessFifoToLoWatermark)
-		ProcessFifoToLoWatermark();
+	//if (bProcessFifoToLoWatermark)
+	//	ProcessFifoToLoWatermark();
 			
 	if(fifo.bFF_GPReadEnable && !m_CPCtrlReg.GPReadEnable)
 	{

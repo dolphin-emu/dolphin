@@ -180,7 +180,6 @@ void Init()
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
 	DEBUG_LOG(PIXELENGINE, "(r16) 0x%08x", _iAddress);
-	CommandProcessor::ProcessFifoEvents();
 	switch (_iAddress & 0xFFF)
 	{
 		// CPU Direct Access EFB Raster State Config
@@ -334,7 +333,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 	}
 
-	CommandProcessor::ProcessFifoEvents();
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
