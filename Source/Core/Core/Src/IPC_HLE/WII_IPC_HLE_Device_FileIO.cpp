@@ -85,7 +85,6 @@ void HLE_IPC_CreateVirtualFATFilesystem()
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName) 
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)	// not a real hardware
 	, m_pFileHandle(NULL)
-	, m_FileLength(0)
 	, m_Mode(0)
 	, m_SeekPos(0)
 {
@@ -99,10 +98,6 @@ CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
 bool CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
 {
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_Name.c_str(), m_DeviceID);	
-
-	//m_pFileHandle.Close();
-
-	m_FileLength = 0;
 	m_Mode = 0;
 
 	// Close always return 0 for success
@@ -339,7 +334,7 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 		{
 			if(OpenFile())
 			{
-				m_FileLength = (u32)m_pFileHandle.GetSize();
+				u32 m_FileLength = (u32)m_pFileHandle.GetSize();
 
 				const u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 				INFO_LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
@@ -371,25 +366,7 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 
 void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 {
-	bool have_file_handle = m_pFileHandle;
-	s32 seek = (have_file_handle) ? (s32)m_pFileHandle.Tell() : 0;
-
-	p.Do(have_file_handle);
 	p.Do(m_Mode);
-	p.Do(seek);
-
-	if (p.GetMode() == PointerWrap::MODE_READ)
-	{
-		if (have_file_handle)
-		{
-			// TODO: isn't it naive and error-prone to assume that the file hasn't changed since we created the savestate?
-			Open(0, m_Mode);
-			_dbg_assert_msg_(WII_IPC_HLE, m_pFileHandle, "bad filehandle");
-		}
-		else
-			Close(0, true);
-	}
-
-	if (have_file_handle)
-		m_pFileHandle.Seek(seek, SEEK_SET);
+	p.Do(m_SeekPos);
+	p.Do(m_Filename);
 }

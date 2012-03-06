@@ -77,7 +77,6 @@ private:
     };
 
     File::IOFile m_pFileHandle;
-    u32 m_FileLength;
 	u32 m_Mode;
 
 	u32 m_SeekPos;
