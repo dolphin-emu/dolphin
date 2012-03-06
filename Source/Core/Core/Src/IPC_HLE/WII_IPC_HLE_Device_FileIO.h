@@ -39,6 +39,9 @@ public:
     bool IOCtl(u32 _CommandAddress);
 	void DoState(PointerWrap &p);
 
+	bool OpenFile();
+	void CloseFile();
+
 private:
 	enum
 	{
@@ -76,6 +79,8 @@ private:
     File::IOFile m_pFileHandle;
     u32 m_FileLength;
 	u32 m_Mode;
+
+	u32 m_SeekPos;
 
 	std::string m_Filename;
 };
