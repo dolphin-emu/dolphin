@@ -269,6 +269,10 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	case PE_PERF_5L:
 	case PE_PERF_5H:
 		INFO_LOG(PIXELENGINE, "(r16) perf counter @ %08x", _iAddress);
+		// git r90a2096a24f4 (svn r3663) added the PE_PERF cases, without setting
+		// _uReturnValue to anything, this reverts to the previous behaviour which allows
+		// The timer in SMS:Scrubbing Serena Beach to countdown correctly
+		_uReturnValue = 1;
 		break;
 
 	default:
