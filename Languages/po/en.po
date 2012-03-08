@@ -4588,7 +4588,7 @@ msgid ""
 "The safer you adjust this, the less likely the emulator will be missing any "
 "texture updates from RAM.\n"
 "\n"
-"If unsure, use the rightmost value."
+"If unsure, use the second-fastest value from the right."
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:447
