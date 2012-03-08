@@ -552,7 +552,7 @@ option(UNITTESTS "Build unitests" OFF)
 ########################################
 # Start compiling our code
 #
-add_definitions(-std=c++0x)
+add_definitions(-std=gnu++0x)
 add_subdirectory(Source)
 
 
