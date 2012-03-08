@@ -468,4 +468,9 @@ void ResetSetToken()
 	}
 	CommandProcessor::interruptTokenWaiting = false;
 }
+
+bool WaitingForPEInterrupt()
+{
+	return CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || interruptSetFinish || interruptSetToken;
+}
 } // end of namespace PixelEngine

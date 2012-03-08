@@ -596,8 +596,8 @@ void SetCpStatusRegister()
 	// Here always there is one fifo attached to the GPU
 		
 	m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
-	m_CPStatusReg.ReadIdle = (fifo.CPReadPointer == fifo.CPWritePointer) || (fifo.CPReadPointer == fifo.CPBreakpoint);
-	m_CPStatusReg.CommandIdle = !fifo.CPReadWriteDistance;
+	m_CPStatusReg.ReadIdle = (fifo.CPReadPointer == fifo.CPWritePointer) || (fifo.CPReadPointer == fifo.CPBreakpoint) ;
+	m_CPStatusReg.CommandIdle = !fifo.CPReadWriteDistance || (IsOnThread() && PixelEngine::WaitingForPEInterrupt());
 	m_CPStatusReg.UnderflowLoWatermark = fifo.bFF_LoWatermark;
 	m_CPStatusReg.OverflowHiWatermark = fifo.bFF_HiWatermark;
 
@@ -620,6 +620,7 @@ void SetCpControlRegister()
 
 	if (!fifo.bFF_GPReadEnable && m_CPCtrlReg.GPReadEnable && !m_CPCtrlReg.BPEnable)
 	{
+		ProcessFifoEvents();
 		PixelEngine::ResetSetFinish();			
 	}
 
