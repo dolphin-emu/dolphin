@@ -388,10 +388,6 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	case FIFO_RW_DISTANCE_HI:
 		WriteHigh((u32 &)fifo.CPReadWriteDistance, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_HI : %04x", _Value);
-		break;
-	case FIFO_RW_DISTANCE_LO:
-		WriteLow((u32 &)fifo.CPReadWriteDistance, _Value & 0xFFE0);
 		if (fifo.CPReadWriteDistance == 0)
 		{
 			GPFifo::ResetGatherPipe();
@@ -401,6 +397,10 @@ void Write16(const u16 _Value, const u32 _Address)
 			ResetVideoBuffer();		
 		}
 		IncrementCheckContextId();
+		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_HI : %04x", _Value);
+		break;
+	case FIFO_RW_DISTANCE_LO:
+		WriteLow((u32 &)fifo.CPReadWriteDistance, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_LO : %04x", _Value);
 		break;
 
