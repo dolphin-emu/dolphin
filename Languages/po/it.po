@@ -7,19 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-"POT-Creation-Date: 2011-12-18 13:39-0600\n"
-=======
-"POT-Creation-Date: 2011-10-11 23:25-0500\n"
->>>>>>> Update translation files for recent changes in the code.
-=======
-"POT-Creation-Date: 2011-12-18 13:39-0600\n"
->>>>>>> Update from master branch.
-=======
 "POT-Creation-Date: 2012-03-09 16:54-0600\n"
->>>>>>> Update the pot file to reflect recent changes in the code.
 "PO-Revision-Date: 2011-04-08 20:40+0100\n"
 "Last-Translator: RebuMan, Dolphin Team\n"
 "Language-Team: \n"
@@ -564,27 +552,9 @@ msgstr "Aggiungi Patch"
 msgid "Add new pane"
 msgstr "Aggiungi nuovo riquadro"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:411
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:423
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:445
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:749
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Add..."
 msgstr "Aggiungi..."
 
@@ -656,23 +626,8 @@ msgstr "Tutti i file di immagine GC/Wii (gcm, iso, ciso, gcz)"
 msgid "All Gamecube GCM files (gcm)"
 msgstr "Tutti i file GCM GameCube (gcm)"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1472
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1486
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "All Save States (sav, s##)"
 msgstr "Tutti gli Stati di Gioco Salvati (sav, s##)"
 
@@ -756,19 +711,7 @@ msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr ""
 "Sei sicuro di voler eliminare questo file? Sarà cancellato definitivamente!"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:729
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:725
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:729
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:727
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:284
 msgid "Aspect Ratio:"
 msgstr "Aspetto:"
@@ -790,19 +733,7 @@ msgstr "Interfaccia Audio:"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "Audiocommon: Errore nell'apertura della periferica AO.\n"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:239
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:238
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:239
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:240
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
 msgid "Auto"
 msgstr "Auto"
@@ -915,19 +846,7 @@ msgid "Blue Right"
 msgstr "Blu Destro"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:275
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Bottom"
 msgstr "Sotto"
 
@@ -960,15 +879,7 @@ msgstr "Cerca una directory di destinazione"
 msgid "Buffer:"
 msgstr "Buffer:"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:71
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:68
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:71
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:89
 msgid "Buttons"
@@ -1204,21 +1115,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:213
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:244
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:563
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:559
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:563
->>>>>>> Update from master branch.
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:592
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:571
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:588
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Close"
 msgstr "Chiudi"
 
@@ -1327,15 +1225,7 @@ msgstr "Collega Wiimote 3"
 msgid "Connect Wiimote 4"
 msgstr "Collega Wiimote 4"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:597
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:598
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:597
->>>>>>> Update from master branch.
 msgid "Connecting..."
 msgstr "Connessione in corso..."
 
@@ -1523,21 +1413,8 @@ msgstr "DSP"
 msgid "DSP Emulator Engine"
 msgstr "Motore di Emulazione DSP"
 
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:251
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "DSP HLE emulation (fast)"
 msgstr "Emulazione DSP HLE (veloce)"
 
@@ -1765,19 +1642,7 @@ msgstr "Visualizza i tasti di input letti dall'emulatore."
 msgid "Divide"
 msgstr "/"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1068
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1052
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1068
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1065
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Do you want to stop the current emulation?"
 msgstr "Vuoi interrompere l'emulazione in corso?"
 
@@ -1806,39 +1671,12 @@ msgstr "Dolphin - Configurazione Wiimote Emulato"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1220
-msgid "Dolphin GCPad Configuration"
-msgstr "Dolphin - Configurazione Controlli GC"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:751
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1160
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1204
-msgid "Dolphin GCPad Configuration"
-msgstr "Dolphin - Configurazione Controlli GC"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:742
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1144
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1220
-msgid "Dolphin GCPad Configuration"
-msgstr "Dolphin - Configurazione Controlli GC"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:751
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1160
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1217
 msgid "Dolphin GCPad Configuration"
 msgstr "Dolphin - Configurazione Controlli GC"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:748
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1157
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Filmati TAS Dolphin (*.dtm)"
 
@@ -1927,27 +1765,9 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:493
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Dutch"
 msgstr "Olandese"
 
@@ -2072,41 +1892,16 @@ msgstr "Attiva BAT"
 msgid "Enable Block Merging"
 msgstr "Attiva Unione Blocchi"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> Update from master branch.
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:336
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Enable Bounding Box Calculation"
 msgstr ""
 
-<<<<<<< HEAD
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:440
 #, fuzzy
 msgid "Enable Cache"
 msgstr "Attiva Cache"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:536
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:541
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Enable Cheats"
 msgstr "Abilita Trucchi"
 
@@ -2247,27 +2042,9 @@ msgstr ""
 msgid "End"
 msgstr "Fine"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:488
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "English"
 msgstr "Inglese"
 
@@ -2296,45 +2073,10 @@ msgstr "Uguale"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1175
-msgid "Error"
-msgstr "Errore/i"
-
-#: Source/Core/Core/Src/Movie.cpp:820
-#, c-format
-msgid ""
-"Error in PlayWiimote. %u != %u, byte %d.\n"
-"Sorry, Wii recording is temporarily broken."
-msgstr ""
-
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1169
-msgid "Error"
-msgstr "Errore/i"
-
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1175
-msgid "Error"
-msgstr "Errore/i"
-
-#: Source/Core/Core/Src/Movie.cpp:820
-#, c-format
-msgid ""
-"Error in PlayWiimote. %u != %u, byte %d.\n"
-"Sorry, Wii recording is temporarily broken."
-msgstr ""
-
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1173
 msgid "Error"
 msgstr "Errore/i"
 
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/Main.cpp:346
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
@@ -2809,27 +2551,9 @@ msgstr "Fotogrammi da Registrare:"
 msgid "Free Look"
 msgstr "Visuale Libera"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:478
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:490
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "French"
 msgstr "Francese"
 
@@ -2897,19 +2621,7 @@ msgid "Gamecube &Pad Settings"
 msgstr "Impostazioni &Controlli GameCube"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1011
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1011
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1009
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "Schede di Memoria GameCube (*.raw,*.gcp)"
 
@@ -2934,21 +2646,8 @@ msgstr ""
 "(codice corrotto oppure tipo di codice non ancora supportato.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:525
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:530
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:204
 msgid "General"
 msgstr "Generale"
@@ -2958,27 +2657,9 @@ msgstr "Generale"
 msgid "General Settings"
 msgstr "Impostazioni Interfaccia"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:477
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:489
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "German"
 msgstr "Tedesco"
 
@@ -3103,21 +2784,8 @@ msgid "Hotkey Configuration"
 msgstr "Configurazione Tasti di Scelta Rapida"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:276
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:574
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:276
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:574
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:575
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Hotkeys"
 msgstr "Tasti di Scelta Rapida"
 
@@ -3333,19 +3001,7 @@ msgstr ""
 "E' stata sollevata un'Eccezione all'Installazione, tuttavia questa "
 "piattaforma non la supporta ancora."
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1379
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1363
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1379
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1376
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Installing WAD..."
 msgstr "Installazione WAD..."
 
@@ -3429,27 +3085,9 @@ msgstr "File di registrazione non valido"
 msgid "Invalid state"
 msgstr "Stato non valido"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:492
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:269
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Italian"
 msgstr "Italiano"
 
@@ -3608,36 +3246,12 @@ msgstr "Carica Stato di Gioco dall'Ingresso 8"
 msgid "Load State..."
 msgstr "Carica Stato di Gioco..."
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1418
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1402
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1418
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1415
->>>>>>> Update the pot file to reflect recent changes in the code.
 #, fuzzy
 msgid "Load Wii System Menu"
 msgstr "Carica il Menu di Sistema Wii %d%c"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1413
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1397
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1413
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1410
->>>>>>> Update the pot file to reflect recent changes in the code.
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Carica il Menu di Sistema Wii %d%c"
@@ -3720,15 +3334,7 @@ msgstr "Hack Velocità MMU"
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "File MadCatz Gameshark(*.gcs)"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:76
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:76
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:47
 msgid "Main Stick"
 msgstr "Levetta Principale"
@@ -3759,19 +3365,7 @@ msgid "Memory Byte"
 msgstr "Byte"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:86
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Memory Card"
 msgstr "Scheda di Memoria"
 
@@ -3957,19 +3551,7 @@ msgstr "TN Tab"
 msgid "NP Up"
 msgstr "TN Su"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:455
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:451
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:455
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:463
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:58
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:49
 msgid "Name:"
@@ -4056,15 +3638,7 @@ msgstr "Diverso"
 msgid "Not Set"
 msgstr "Non Impostato"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:596
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:597
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:596
->>>>>>> Update from master branch.
 msgid "Not connected"
 msgstr "Non collegato"
 
@@ -4125,14 +3699,7 @@ msgstr "Solo %d blocchi disponibili"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:433
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:182
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:182
->>>>>>> Update from master branch.
 msgid "Open"
 msgstr "Apri"
 
@@ -4266,23 +3833,8 @@ msgstr "Patches"
 msgid "Paths"
 msgstr "Percorsi"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1621
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1622
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1605
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1606
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1621
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1622
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1618
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1619
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
 msgid "Pause"
 msgstr "Pausa"
@@ -4303,23 +3855,8 @@ msgstr "Prospettiva %d"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:437
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1630
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1631
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1614
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1615
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1630
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1631
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1627
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1628
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Play"
 msgstr "Gioca"
 
@@ -4345,19 +3882,7 @@ msgstr "Opzioni di Riproduzione"
 msgid "Players"
 msgstr "Giocatori"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1069
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1053
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1069
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1066
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Please confirm..."
 msgstr "Per favore confermare..."
 
@@ -4571,31 +4096,10 @@ msgstr "Aggiorna Elenco"
 msgid "Refresh game list"
 msgstr "Aggiorna elenco giochi"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:438
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:438
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:424
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:446
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:750
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Remove"
 msgstr "Rimuovi"
 
@@ -4614,14 +4118,7 @@ msgid "Render to Main Window"
 msgstr "Rendering nella finestra Principale"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:188
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:188
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
 msgid "Reset"
 msgstr "Resetta"
@@ -4664,19 +4161,7 @@ msgstr "Sa&lva Stato di Gioco"
 msgid "Safe"
 msgstr "Accurata"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:632
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:634
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Sample Rate:"
 msgstr "Frequenza di Campionamento:"
 
@@ -4761,19 +4246,7 @@ msgstr "Il salvataggio del filmato %s è corrotto, arresto registrazione..."
 msgid "Scaled EFB Copy"
 msgstr "Scala Copie EFB"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
-=======
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:598
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:630
->>>>>>> Update the pot file to reflect recent changes in the code.
 #, fuzzy, c-format
 msgid "Scanning %s"
 msgstr "Ricerca..."
@@ -4813,39 +4286,12 @@ msgstr "Sezione %s non trovata in SYSCONF"
 msgid "Select"
 msgstr "Seleziona"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:749
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1158
-msgid "Select The Recording File"
-msgstr "Seleziona il File di Registrazione"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1367
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:740
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1142
-msgid "Select The Recording File"
-msgstr "Seleziona il File di Registrazione"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1351
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:749
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1158
-msgid "Select The Recording File"
-msgstr "Seleziona il File di Registrazione"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1367
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:746
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1155
 msgid "Select The Recording File"
 msgstr "Seleziona il File di Registrazione"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1364
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Select a Wii WAD file to install"
 msgstr "Seleziona un file WAD Wii da installare"
 
@@ -4871,13 +4317,7 @@ msgstr "Seleziona finestre libere/mobili"
 msgid "Select the file to load"
 msgstr "Seleziona il file da caricare"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1324
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1321
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Select the save file"
 msgstr "Seleziona il file di salvataggio"
 
@@ -4885,29 +4325,7 @@ msgstr "Seleziona il file di salvataggio"
 msgid "Select the state to load"
 msgstr "Seleziona lo stato di gioco da caricare"
 
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1487
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1308
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1324
->>>>>>> Update from master branch.
-msgid "Select the save file"
-msgstr "Seleziona il file di salvataggio"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
-msgid "Select the state to load"
-msgstr "Seleziona lo stato di gioco da caricare"
-
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1471
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1487
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1484
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Select the state to save"
 msgstr "Seleziona lo stato di gioco da salvare"
 
@@ -5262,27 +4680,9 @@ msgstr "Creazione buffer audio non riuscita: %s"
 msgid "Space"
 msgstr "Spazio"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:491
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Spanish"
 msgstr "Spagnolo"
 
@@ -5318,15 +4718,7 @@ msgstr "Levetta Quadrata"
 msgid "Standard Controller"
 msgstr "Controller Standard"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:309
 msgid "Start"
@@ -5361,14 +4753,7 @@ msgstr "Levetta"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:315
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:438
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:187
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:187
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:187
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:312
 msgid "Stop"
 msgstr "Arresta"
@@ -5441,14 +4826,7 @@ msgstr "Semipiano destro"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:368
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:440
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:197
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:197
->>>>>>> Update from master branch.
 msgid "Take Screenshot"
 msgstr "Genera un'Istantanea di Gioco"
 
@@ -5675,31 +5053,12 @@ msgstr "Seleziona/Deseleziona tutti i Tipi di Log"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:439
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:196
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:196
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:196
->>>>>>> Update from master branch.
 msgid "Toggle Fullscreen"
 msgstr "Commuta a Schermo Intero"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:276
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Top"
 msgstr "Sopra"
 
@@ -5805,21 +5164,6 @@ msgstr ""
 "Messaggio sconosciuto avente id:%d ricevuto dal giocatore:%d Giocatore "
 "espluso!!"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-#: Source/Core/Core/Src/HW/Memmap.cpp:633
-#, c-format
-msgid ""
-"Unknown pointer %#08x\n"
-"Continue?"
-msgstr ""
-"Puntatore %#08x sconosciuto\n"
-"Continuare?"
-
->>>>>>> Update translation files for recent changes in the code.
-=======
->>>>>>> Update from master branch.
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
 msgid "Up"
@@ -6036,19 +5380,7 @@ msgstr "Origine DVD:"
 msgid "Wii Save Import"
 msgstr "Importa Salvataggi Wii"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1310
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1323
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Salva i file Wii (*.bin)|*.bin"
 
@@ -6079,15 +5411,7 @@ msgstr ""
 " o forse è dovuto ad altri motivi. \n"
 "Vuoi riconnettersi immediatamente?"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:598
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:599
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:598
->>>>>>> Update from master branch.
 msgid "Wiimote Connected"
 msgstr "Wiimote Collegato"
 
@@ -6120,27 +5444,9 @@ msgstr "Windows Destro"
 msgid "Word Wrap"
 msgstr "Adatta Testo"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1380
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1282
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1364
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1194
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1327
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1380
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1282
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1377
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1145
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1278
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Working..."
 msgstr "Attività in corso..."
 

@@ -7,35 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-"POT-Creation-Date: 2011-12-18 13:39-0600\n"
-<<<<<<< HEAD
-"PO-Revision-Date: 2011-10-15 14:50+0100\n"
-=======
-"POT-Creation-Date: 2011-10-11 23:25-0500\n"
-"PO-Revision-Date: 2011-08-10 20:37+0100\n"
->>>>>>> Update translation files for recent changes in the code.
-=======
-"POT-Creation-Date: 2011-08-10 08:30-0500\n"
-=======
-"POT-Creation-Date: 2011-10-11 23:25-0500\n"
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-"PO-Revision-Date: 2011-10-15 14:50+0100\n"
->>>>>>> Update Greek and Czech translations
-=======
-=======
 "POT-Creation-Date: 2012-03-09 16:54-0600\n"
->>>>>>> Update the pot file to reflect recent changes in the code.
 "PO-Revision-Date: 2011-12-19 07:39+0100\n"
->>>>>>> Update Czeck translation.
-=======
-"POT-Creation-Date: 2011-12-18 13:39-0600\n"
-"PO-Revision-Date: 2011-12-19 07:39+0100\n"
->>>>>>> Update from master branch.
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
 "Language-Team: \n"
 "Language: Czech\n"
@@ -453,19 +426,7 @@ msgstr "Přesnost:"
 msgid "Accurate VBeam emulation"
 msgstr "Precizní emulace VBeam"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
-<<<<<<< HEAD
-=======
-=======
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
->>>>>>> Update Greek and Czech translations
-#, fuzzy
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:97
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -591,39 +552,9 @@ msgstr "Přidat Záplatu"
 msgid "Add new pane"
 msgstr "Přidat nový panel"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:411
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:411
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:411
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:433
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:747
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:423
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:445
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:749
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Add..."
 msgstr "Přidat..."
 
@@ -691,33 +622,8 @@ msgstr "Všechny obrazy GC/Wii (gcm, iso, ciso, gcz)"
 msgid "All Gamecube GCM files (gcm)"
 msgstr "Všechny soubory Gamecube GCM )gcm)"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1457
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1471
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1459
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1472
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1486
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "All Save States (sav, s##)"
 msgstr "Všechny Uložené Stavy (sav, s##)"
 
@@ -745,33 +651,11 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
-<<<<<<< HEAD
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:332
->>>>>>> Update the pot file to reflect recent changes in the code.
-msgid "Alternate Wiimote Timing"
-msgstr "Střídat časování Wiimote"
-=======
-#, fuzzy
-msgid "Alternate Wiimote Timing"
-msgstr "Emulovaný Wiimote"
->>>>>>> Update translation files for recent changes in the code.
-
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
-=======
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:368
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 msgid "Alternate Wiimote Timing"
 msgstr "Střídat časování Wiimote"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:372
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Anisotropic Filtering:"
 msgstr "Anizotropní Filtrování:"
 
@@ -826,28 +710,8 @@ msgstr ""
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "Opravdu chcete smazat tento soubor? Bude navždy ztracen!"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:729
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:725
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> Update translation files for recent changes in the code.
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:284
-=======
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:280
->>>>>>> Update Greek and Czech translations
-=======
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:729
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:727
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:284
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Aspect Ratio:"
 msgstr "Poměr Stran:"
 
@@ -868,28 +732,8 @@ msgstr "Backend Zvuku:"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: Chyba při otevírání zařízení zvukového výstupu.\n"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:239
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:238
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> Update translation files for recent changes in the code.
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
-=======
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:278
->>>>>>> Update Greek and Czech translations
-=======
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:239
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:240
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Auto"
 msgstr "Auto"
 
@@ -1002,30 +846,8 @@ msgstr "Modrá vlevo"
 msgid "Blue Right"
 msgstr "Modrá vpravo"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:275
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Bottom"
 msgstr "Dole"
 
@@ -1058,25 +880,7 @@ msgstr "Procházet pro výstupní adresář"
 msgid "Buffer:"
 msgstr "Vyrovnávací paměť:"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:71
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:68
->>>>>>> Update translation files for recent changes in the code.
-#: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
-=======
->>>>>>> Update Greek and Czech translations
-#: Source/Core/DolphinWX/Src/TASInputDlg.cpp:89
-#: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:68
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:71
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/UDPConfigDiag.cpp:23
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:89
 msgid "Buttons"
@@ -1317,29 +1121,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:213
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:244
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:563
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:559
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> Update translation files for recent changes in the code.
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:592
-=======
-#: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:213
->>>>>>> Update Greek and Czech translations
-=======
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:563
->>>>>>> Update from master branch.
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:592
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:571
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:588
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Close"
 msgstr "Zavřít"
 
@@ -1447,23 +1230,7 @@ msgstr "Připojit Wiimote 3"
 msgid "Connect Wiimote 4"
 msgstr "Připojit Wiimote 4"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:597
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:598
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:608
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:598
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:597
->>>>>>> Update from master branch.
 msgid "Connecting..."
 msgstr "Připojuji..."
 
@@ -1652,31 +1419,8 @@ msgstr "DSP"
 msgid "DSP Emulator Engine"
 msgstr "Jádro Emulátoru DSP"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:251
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "DSP HLE emulation (fast)"
 msgstr "DSP HLE emulace (rychlé)"
 
@@ -1915,27 +1659,7 @@ msgstr ""
 msgid "Divide"
 msgstr "Rozdělit"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1068
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1052
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1051
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1052
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1068
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1065
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Do you want to stop the current emulation?"
 msgstr "Chcete současnou emulaci zastavit?"
 
@@ -1964,55 +1688,12 @@ msgstr "Nastavení Emulovaného Dolphin Wiimote"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1220
-msgid "Dolphin GCPad Configuration"
-msgstr "Dolphin GCPad Nastavení"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:751
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1160
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1204
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1202
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1204
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-msgid "Dolphin GCPad Configuration"
-msgstr "Dolphin GCPad Nastavení"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:742
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1144
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1142
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1144
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1220
-msgid "Dolphin GCPad Configuration"
-msgstr "Dolphin GCPad Nastavení"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:751
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1160
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1217
 msgid "Dolphin GCPad Configuration"
 msgstr "Dolphin GCPad Nastavení"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:748
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1157
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Doplhin Filmy TAS (*.dtm)"
 
@@ -2108,39 +1789,9 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:493
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Dutch"
 msgstr "Nizozemština"
 
@@ -2279,49 +1930,15 @@ msgstr "Zapnout BAT"
 msgid "Enable Block Merging"
 msgstr "Zapnout Slučování Bloků"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> Update from master branch.
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:336
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Enable Bounding Box Calculation"
 msgstr "Povolit výpočet ohraničujícího rámečku"
 
-<<<<<<< HEAD
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:440
 msgid "Enable Cache"
 msgstr "Povolit vyrovnávací paměť"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
-=======
-=======
->>>>>>> Update Greek and Czech translations
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:536
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:541
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Enable Cheats"
 msgstr "Povolit Cheaty"
 
@@ -2477,39 +2094,9 @@ msgstr ""
 msgid "End"
 msgstr "End"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:488
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "English"
 msgstr "Angličtina"
 
@@ -2536,66 +2123,13 @@ msgstr "Záznam 1/%d"
 msgid "Equal"
 msgstr "Rovná se"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1175
-msgid "Error"
-msgstr "Chyba"
-
-#: Source/Core/Core/Src/Movie.cpp:820
-#, c-format
-msgid ""
-"Error in PlayWiimote. %u != %u, byte %d.\n"
-"Sorry, Wii recording is temporarily broken."
-msgstr ""
-"Chyba v PlayWiimote. %u != %u, bajt %d.\n"
-"Je nám líto, nahrávání Wii je dočasně nefunkční."
-
-=======
-=======
->>>>>>> Update Greek and Czech translations
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1169
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-#: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1175
-msgid "Error"
-msgstr "Chyba"
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/Core/Src/Movie.cpp:820
-#, c-format
-msgid ""
-"Error in PlayWiimote. %u != %u, byte %d.\n"
-"Sorry, Wii recording is temporarily broken."
-msgstr ""
-"Chyba v PlayWiimote. %u != %u, bajt %d.\n"
-"Je nám líto, nahrávání Wii je dočasně nefunkční."
-
->>>>>>> Update from master branch.
-#: Source/Core/DolphinWX/Src/Main.cpp:346
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:356
->>>>>>> Update Greek and Czech translations
-=======
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1173
 msgid "Error"
 msgstr "Chyba"
 
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/Main.cpp:346
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "Chyba při nahrávání zvoleného jazyka. Vracím se na výchozí jazyk systému."
@@ -3063,39 +2597,9 @@ msgstr "Snímky k Nahrání"
 msgid "Free Look"
 msgstr "Rozhlížení pomocí myši"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:478
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:478
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:478
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:490
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "French"
 msgstr "Francouzština"
 
@@ -3160,30 +2664,8 @@ msgstr "Gamecube"
 msgid "Gamecube &Pad Settings"
 msgstr "Nastavení Gamecube &Pad"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1011
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
-<<<<<<< HEAD
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1011
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1009
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "Paměťové karty Gamecube (*.raw,*.gcp)"
 
@@ -3207,31 +2689,10 @@ msgstr ""
 "Nelze spustit GeckoKód (CT%i CST%i) (%s)\n"
 "(buď špatný kód, nebo typ kódu není ještě podporován.)"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:525
->>>>>>> Update translation files for recent changes in the code.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:530
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:204
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:525
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:200
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:204
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid "General"
 msgstr "Obecné"
 
@@ -3239,39 +2700,9 @@ msgstr "Obecné"
 msgid "General Settings"
 msgstr "Obecná Nastavení"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:477
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:477
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:477
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:489
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "German"
 msgstr "Němčina"
 
@@ -3292,19 +2723,7 @@ msgstr "Grafická nastavení"
 msgid "Greater Than"
 msgstr "Větší než"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
-<<<<<<< HEAD
-=======
-=======
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
->>>>>>> Update Greek and Czech translations
-#, fuzzy
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -3412,32 +2831,9 @@ msgstr "Hostovat"
 msgid "Hotkey Configuration"
 msgstr "Nastavení klávesových zkratek"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:276
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:574
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:570
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:276
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:574
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:575
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Hotkeys"
 msgstr "Klávesové zkratky"
 
@@ -3662,27 +3058,7 @@ msgstr ""
 "Byl zavolán InstallExceptionHandler, ale tato platforma toto ještě "
 "nepodporuje."
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1379
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1363
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1361
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1363
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1379
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1376
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Installing WAD..."
 msgstr "Instaluji WAD..."
 
@@ -3764,39 +3140,9 @@ msgstr "Neplatný soubor s nahrávkou"
 msgid "Invalid state"
 msgstr "Neplatný stav"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:492
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:269
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Italian"
 msgstr "Italština"
 
@@ -3954,51 +3300,11 @@ msgstr "Nahrát Slot Stavu 8"
 msgid "Load State..."
 msgstr "Nahrát Stav..."
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1418
-msgid "Load Wii System Menu"
-msgstr "Nahrát Systémové Menu Wii"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1413
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1402
-msgid "Load Wii System Menu"
-msgstr "Nahrát Systémové Menu Wii"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1397
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1400
-msgid "Load Wii System Menu"
-msgstr "Nahrát Systémové Menu Wii"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1395
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1402
-msgid "Load Wii System Menu"
-msgstr "Nahrát Systémové Menu Wii"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1397
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1418
-msgid "Load Wii System Menu"
-msgstr "Nahrát Systémové Menu Wii"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1413
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1415
 msgid "Load Wii System Menu"
 msgstr "Nahrát Systémové Menu Wii"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1410
->>>>>>> Update the pot file to reflect recent changes in the code.
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Nahrát Systémové Menu Wii %d%c"
@@ -4080,23 +3386,7 @@ msgstr "MMU Hack Rychlosti"
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "Soubory MadCatz Gameshark (*.gcs)"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:76
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
->>>>>>> Update translation files for recent changes in the code.
-=======
->>>>>>> Update Greek and Czech translations
-#: Source/Core/DolphinWX/Src/TASInputDlg.cpp:47
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:73
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:76
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:47
 msgid "Main Stick"
 msgstr "Hlavní Stick"
@@ -4126,30 +3416,8 @@ msgstr "Pam. karta již otevřena"
 msgid "Memory Byte"
 msgstr "Bajt Paměti"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:86
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Memory Card"
 msgstr "Paměťová karta"
 
@@ -4347,26 +3615,7 @@ msgstr "NK Tab"
 msgid "NP Up"
 msgstr "NK Nahoru"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:455
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:451
->>>>>>> Update translation files for recent changes in the code.
-=======
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:451
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:455
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:463
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:58
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:49
 msgid "Name:"
@@ -4453,23 +3702,7 @@ msgstr "Nerovná se"
 msgid "Not Set"
 msgstr "Nenastaven"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:596
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:597
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:607
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:597
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:596
->>>>>>> Update from master branch.
 msgid "Not connected"
 msgstr "Nepřipojen"
 
@@ -4528,24 +3761,9 @@ msgstr "Logická Adresa:"
 msgid "Only %d blocks available"
 msgstr "Pouze bloky %d jsou dostupné"
 
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:182
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:433
->>>>>>> Update Greek and Czech translations
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:433
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
-<<<<<<< HEAD
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:182
->>>>>>> Update from master branch.
 msgid "Open"
 msgstr "Otevřít"
 
@@ -4675,31 +3893,8 @@ msgstr "Záplaty"
 msgid "Paths"
 msgstr "Cesty"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1621
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1622
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1605
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1606
->>>>>>> Update translation files for recent changes in the code.
-=======
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1605
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1606
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1621
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1622
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1618
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1619
->>>>>>> Update the pot file to reflect recent changes in the code.
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
 msgid "Pause"
 msgstr "Pozastavit"
@@ -4717,37 +3912,10 @@ msgstr "Dokonalá"
 msgid "Perspective %d"
 msgstr "Perspektiva %d"
 
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:437
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1630
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1631
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1614
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1615
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1612
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1613
-#: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
->>>>>>> Update Greek and Czech translations
-=======
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:437
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1614
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1615
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1630
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1631
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1627
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1628
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Play"
 msgstr "Spustit"
 
@@ -4773,27 +3941,7 @@ msgstr "Možnosti Přehrávání"
 msgid "Players"
 msgstr "Hráči"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1069
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1053
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1052
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1053
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1069
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1066
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Please confirm..."
 msgstr "Prosím potvrďte..."
 
@@ -5004,45 +4152,10 @@ msgstr "Obnovit Seznam"
 msgid "Refresh game list"
 msgstr "Obnovit seznam her"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:438
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:412
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:434
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:438
-#: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:424
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:446
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:750
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Remove"
 msgstr "Odstranit"
 
@@ -5060,18 +4173,6 @@ msgstr ""
 msgid "Render to Main Window"
 msgstr "Vykreslit do Hlavního okna"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:188
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
->>>>>>> Update Greek and Czech translations
-#: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:188
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:919
@@ -5112,36 +4213,11 @@ msgstr "Ruština"
 msgid "Sa&ve State"
 msgstr "Uložit Sta&v"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:473
-msgid "Safe"
-msgstr "Bezpečná"
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
-=======
-=======
->>>>>>> Update Greek and Czech translations
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:632
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:469
 msgid "Safe"
 msgstr "Bezpečná"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:634
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Sample Rate:"
 msgstr "Vzorkovací frekvence:"
 
@@ -5221,32 +4297,11 @@ msgstr "Uložit dekomprimované GCM/ISO"
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Uložený stav filmu %s je poškozen, nahrávání filmu je zastaveno..."
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Scaled EFB Copy"
 msgstr "EFB Kopie Změněné Velikosti"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
-=======
-=======
->>>>>>> Update Greek and Czech translations
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:598
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:630
->>>>>>> Update the pot file to reflect recent changes in the code.
 #, c-format
 msgid "Scanning %s"
 msgstr "Skenuji %s"
@@ -5286,47 +4341,12 @@ msgstr "Sekce %s nebyla v SYSCONF nalezena"
 msgid "Select"
 msgstr "Vybrat"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:749
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1158
-msgid "Select The Recording File"
-msgstr "Vyberte Soubor s Nahrávkou"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1367
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:740
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1142
-msgid "Select The Recording File"
-msgstr "Vyberte Soubor s Nahrávkou"
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1351
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1349
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1351
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:749
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1158
-msgid "Select The Recording File"
-msgstr "Vyberte Soubor s Nahrávkou"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1367
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:746
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1155
 msgid "Select The Recording File"
 msgstr "Vyberte Soubor s Nahrávkou"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1364
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Select a Wii WAD file to install"
 msgstr "Vyberte soubor Wii WAD k instalování"
 
@@ -5352,34 +4372,7 @@ msgstr "Vybrat plovoucí okna"
 msgid "Select the file to load"
 msgstr "Vyberte soubor k nahrání"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1324
-msgid "Select the save file"
-msgstr "Vyberte soubor s uloženou hrou"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
-msgid "Select the state to load"
-msgstr "Vyberte stav k nahrání"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1487
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1308
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1306
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1308
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1324
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1321
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Select the save file"
 msgstr "Vyberte soubor s uloženou hrou"
 
@@ -5387,24 +4380,7 @@ msgstr "Vyberte soubor s uloženou hrou"
 msgid "Select the state to load"
 msgstr "Vyberte stav k nahrání"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1471
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1469
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1471
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1487
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1484
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Select the state to save"
 msgstr "Vyberte stav k uložení"
 
@@ -5783,39 +4759,9 @@ msgstr "Vytvoření vyrovnávací paměti zvuku selhalo: %s"
 msgid "Space"
 msgstr "Mezerník"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:491
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Spanish"
 msgstr "Španělština"
 
@@ -5859,22 +4805,7 @@ msgstr "Čtvercový Stick"
 msgid "Standard Controller"
 msgstr "Standardní Ovladač"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
->>>>>>> Update translation files for recent changes in the code.
-=======
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:49
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:309
 msgid "Start"
@@ -5906,26 +4837,10 @@ msgstr "Ukládání stavu"
 msgid "Stick"
 msgstr "Stick"
 
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:187
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:187
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:438
-#: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:315
->>>>>>> Update Greek and Czech translations
-=======
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:315
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:438
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:187
-<<<<<<< HEAD
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:187
->>>>>>> Update from master branch.
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:312
 msgid "Stop"
 msgstr "Zastavit"
@@ -6001,22 +4916,8 @@ msgstr "Deska vpravo"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:368
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:440
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:197
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
-<<<<<<< HEAD
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:197
->>>>>>> Update from master branch.
 msgid "Take Screenshot"
 msgstr "Vytvořit Snímek Obrazovky"
 
@@ -6245,25 +5146,6 @@ msgstr "Do"
 msgid "Toggle All Log Types"
 msgstr "Zapnout Všechny Typy Záznamů"
 
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:196
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/GCMicDlg.cpp:196
-=======
->>>>>>> Update translation files for recent changes in the code.
-msgid "Toggle Fullscreen"
-msgstr "Přepnout na Celou Obrazovku"
-
-#: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
->>>>>>> Update translation files for recent changes in the code.
-=======
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:439
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:196
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:196
@@ -6271,19 +5153,7 @@ msgid "Toggle Fullscreen"
 msgstr "Přepnout na Celou Obrazovku"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:276
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Top"
 msgstr "Nahoře"
 
@@ -6392,29 +5262,6 @@ msgstr "Přijata neznámá zpráva s id : %d"
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr "Neznámá zpráva s id:%d přijata od hráče:%d Vyhazuji hráče!"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-#: Source/Core/Core/Src/HW/Memmap.cpp:633
-#, c-format
-msgid ""
-"Unknown pointer %#08x\n"
-"Continue?"
-msgstr ""
-"Neznámý ukazatel %#08x\n"
-"Pokračovat?"
-
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> Update translation files for recent changes in the code.
-#: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
-=======
->>>>>>> Update Greek and Czech translations
-#: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
->>>>>>> Update from master branch.
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:53
 msgid "Up"
@@ -6663,27 +5510,7 @@ msgstr "Wii Kořen NAND:"
 msgid "Wii Save Import"
 msgstr "Import uložených pozic Wii"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1310
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1308
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1310
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1323
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Wii soubory s uložením (*.bin)|*.bin"
 
@@ -6714,23 +5541,7 @@ msgstr ""
 "nebo je to vypršení limitu neaktivity, nebo z jiného důvodu.\n"
 "Chcete ho hned znovu připojit?"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 #: Source/Core/DolphinWX/Src/Main.cpp:598
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:599
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:609
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:599
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
-#: Source/Core/DolphinWX/Src/Main.cpp:598
->>>>>>> Update from master branch.
 msgid "Wiimote Connected"
 msgstr "Wiimote Připojen"
 
@@ -6762,35 +5573,9 @@ msgstr "Klávesa Windows Vpravo"
 msgid "Word Wrap"
 msgstr "Zalamování textu"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1380
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1282
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1364
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1362
->>>>>>> Update Greek and Czech translations
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1364
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1194
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1327
->>>>>>> Update translation files for recent changes in the code.
-=======
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1380
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1282
->>>>>>> Update from master branch.
-=======
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1377
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1145
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1278
->>>>>>> Update the pot file to reflect recent changes in the code.
 msgid "Working..."
 msgstr "Pracuji..."
 
@@ -7419,12 +6204,6 @@ msgstr "| NEBO"
 #~ msgid "Start the rendering window in fullscreen mode."
 #~ msgstr "Spustí vykreslovací okno v režimu celé obrazovky."
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> Update from master branch.
 #~ msgid ""
 #~ "This is used to control game speed by sound throttle.\n"
 #~ "Disabling this could cause abnormal game speed, such as too fast.\n"
@@ -7446,45 +6225,6 @@ msgstr "| NEBO"
 #~ "Neznámý ukazatel %#08x\n"
 #~ "Pokračovat?"
 
-<<<<<<< HEAD
-=======
->>>>>>> Update translation files for recent changes in the code.
-=======
-#~ msgid ""
-#~ "Store EFB copies in GPU texture objects.\n"
-#~ "This is not so accurate, but it works well enough for most games and "
-#~ "gives a great speedup over EFB to RAM.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Ukládat EFB kopie do objektů textury grafického procesoru.\n"
-#~ "Toto není přesné, ale pro většinu her funguje dostatečně dobře a dává "
-#~ "větší zrychlení než EFB do RAM.\n"
-#~ "\n"
-#~ "Pokud si nejste jisti, nechejte toto odškrtnuté."
-
-#~ msgid "Texture"
-#~ msgstr "Textura"
-
-#~ msgid "Texture Cache"
-#~ msgstr "Vyrovnávací Paměť Textur"
-
-#~ msgid ""
-#~ "The safer you adjust this, the less likely the emulator will be missing "
-#~ "any texture updates from RAM.\n"
-#~ "\n"
-#~ "If unsure, use the second-fastest value from the right."
-#~ msgstr ""
-#~ "Čím bezpečnější toto bude, tím bude méně pravděpodobné, že emulátoru "
-#~ "budou chybět jakékoliv aktualizace textur z RAM.\n"
-#~ "\n"
-#~ "Pokud si nejste jisti, použijte druhou nejrychlejší hodnotu zprava."
-
->>>>>>> Update Greek and Czech translations
-=======
->>>>>>> The actual update of the Greek and Czech translations.  The last commit
-=======
->>>>>>> Update from master branch.
 #~ msgid "Use FPS For Limiting"
 #~ msgstr "Použít SzS pro Omezení"
 
