@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-18 13:39-0600\n"
-"PO-Revision-Date: 2011-12-18 13:41-0600\n"
+"POT-Creation-Date: 2012-03-09 16:54-0600\n"
+"PO-Revision-Date: 2011-12-28 09:44+0100\n"
 "Last-Translator: Delirious <delirious@freemail.hu>\n"
 "Language-Team: Delirious <delirious@freemail.hu>\n"
 "Language: Hungarian\n"
@@ -50,9 +50,9 @@ msgstr "\"%s\" egy érvénytelen GCM/ISO fájl, vagy nem GC/Wii ISO."
 msgid "%1$sCopy%1$s"
 msgstr "%1$sMásolás%1$s"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:364
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:366
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:617
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:618
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:619
 #, c-format
 msgid "%d Hz"
 msgstr "%d Hz"
@@ -147,7 +147,7 @@ msgstr "%sGCI exportálás%s"
 msgid "%sImport GCI%s"
 msgstr "%sGCI importálás%s"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:762
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:774
 #, c-format
 msgid "%u Free Blocks; %u Free Dir Entries"
 msgstr "%u szabad blokk; %u szabad könyvtár bejegyzés"
@@ -180,11 +180,11 @@ msgstr "&Csalás kezelő"
 msgid "&DSP Settings"
 msgstr "&Hang beállítások"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:950
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:946
 msgid "&Delete ISO..."
 msgstr "&ISO törlése..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:967
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:963
 msgid "&Delete selected ISOs..."
 msgstr "&A kiválasztott ISO fájlok törlése..."
 
@@ -234,7 +234,7 @@ msgstr "&Memória"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:326
 msgid "&Open..."
-msgstr "&Megnyitás"
+msgstr "&Megnyitás..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:199
 msgid "&Options"
@@ -248,7 +248,7 @@ msgstr "&Szünet"
 msgid "&Play"
 msgstr "&Indítás"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:932
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:928
 msgid "&Properties"
 msgstr "&Tulajdonságok"
 
@@ -292,7 +292,7 @@ msgstr "&Nézet"
 msgid "&Wiimote Settings"
 msgstr "&Wiimote beállítások"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:933
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:929
 msgid "&Wiki"
 msgstr "&Wiki"
 
@@ -336,7 +336,7 @@ msgstr "<Név beszúrása ide>"
 msgid "<No resolutions found>"
 msgstr "<Nem található felbontás>"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:77
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:78
 msgid "<Nothing>"
 msgstr "<Semmi>"
 
@@ -345,7 +345,7 @@ msgstr "<Semmi>"
 msgid "<Press Key>"
 msgstr "<Nyomj egy gombot>"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:289
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:291
 msgid "<System>"
 msgstr "<Rendszer>"
 
@@ -365,7 +365,7 @@ msgid ""
 "(Only the Microsoft bluetooth stack is supported.)"
 msgstr ""
 "Nem található támogatott bluetooth eszköz!\n"
-"(Csak a Microsoft bluetooth eszközök támogatottak.)"
+"(Csak Microsoft rangsorolású bluetooth eszköz támogatott.)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:93
 msgid ""
@@ -402,13 +402,13 @@ msgstr ""
 "\n"
 "Továbbítani kell a TCP portot a host számára!!"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:83
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:88
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:84
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:89
 msgid "AM-Baseboard"
 msgstr "AM alaplap"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:128
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:296
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:304
 msgid "AR Codes"
 msgstr "AR kódok"
 
@@ -420,11 +420,11 @@ msgstr "A Dolphin névjegye"
 msgid "Acceleration"
 msgstr "Gyorsítás"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:471
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:467
 msgid "Accuracy:"
 msgstr "Pontosság:"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:314
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:322
 msgid "Accurate VBeam emulation"
 msgstr "Pontos VBeam emuláció"
 
@@ -542,11 +542,11 @@ msgstr "Adapter:"
 msgid "Add"
 msgstr "Hozzáadás"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1227
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1235
 msgid "Add ActionReplay Code"
 msgstr "ActionReplay kód hozzáadása"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1156
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1164
 msgid "Add Patch"
 msgstr "Patch hozzáadása"
 
@@ -554,9 +554,9 @@ msgstr "Patch hozzáadása"
 msgid "Add new pane"
 msgstr "Új mező hozzáadása"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:751
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:423
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:445
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:749
 msgid "Add..."
 msgstr "Hozzáadás..."
 
@@ -606,11 +606,11 @@ msgstr ""
 "Az analóg irányító gombok aktiválásához szükséges lenyomás érzékenységének "
 "beállítása."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:520
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:516
 msgid "Advanced"
 msgstr "Haladó"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:560
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:561
 msgid "Advanced Settings"
 msgstr "Haladó beállítások"
 
@@ -618,28 +618,28 @@ msgstr "Haladó beállítások"
 msgid "All GC/Wii files (elf, dol, gcm, iso, ciso, gcz, wad)"
 msgstr "Minden GC/Wii fájl (elf, dol, gcm, iso, ciso, gcz, wad)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:756
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:754
 msgid "All GC/Wii images (gcm, iso, ciso, gcz)"
 msgstr "Minden GC/Wii képfájl (gcm, iso, ciso, gcz)"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1249
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1245
 msgid "All Gamecube GCM files (gcm)"
 msgstr "Minden Gamecube GCM fájl (gcm)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1472
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1486
 msgid "All Save States (sav, s##)"
 msgstr "Minden állásmentés (sav, s##)"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1247
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1243
 msgid "All Wii ISO files (iso)"
 msgstr "Minden Wii ISO fájl (iso)"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1267
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1263
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "Minden tömörített GC/Wii ISO fájl (gcz)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:97
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:98
 msgid "All files (*.*)|*.*"
 msgstr "Minden fájl (*.*)|*.*"
 
@@ -655,7 +655,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:332
 msgid "Alternate Wiimote Timing"
 msgstr "Változtatható Wiimote időzítés"
 
@@ -676,13 +676,13 @@ msgstr ""
 msgid "Apploader unable to load from file"
 msgstr "A betöltő program nem képes fájlból betölteni"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:781
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:779
 msgid "Apploader:"
 msgstr "Betöltő program:"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:135
 msgid "Apply"
-msgstr "Elfogadás"
+msgstr "Alkalmaz"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:125
 msgid ""
@@ -690,11 +690,11 @@ msgid ""
 "\n"
 "If unsure, select (off)."
 msgstr ""
-"Egy képkocka elkészültét követően egy utófeldolgozási effektus alkalmazása.\n"
+"Képkocka létrehozását követően utófeldolgozási effektus alkalmazása.\n"
 "\n"
 "Ha bizonytalan vagy, válaszd ezt: (ki)."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:290
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 msgid "Arabic"
 msgstr "Arab"
 
@@ -703,7 +703,7 @@ msgstr "Arab"
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Biztos törlöd ezt: \"%s\"?"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1076
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1072
 msgid ""
 "Are you sure you want to delete these files?\n"
 "They will be gone forever!"
@@ -711,11 +711,11 @@ msgstr ""
 "Biztos törlöd ezeket a fájlokat?\n"
 "Végleg el fognak veszni!"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1067
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1063
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "Biztos törlöd ezt a fájlt? Végleg el fog veszni!"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:729
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:727
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:284
 msgid "Aspect Ratio:"
 msgstr "Képarány:"
@@ -724,19 +724,20 @@ msgstr "Képarány:"
 msgid "At least one pane must remain open."
 msgstr "Legalább egy mezőnek megnyitva kell maradnia."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:531
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:241
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:532
 msgid "Audio"
 msgstr "Hang"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:634
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:632
 msgid "Audio Backend:"
 msgstr "Hang feldolgozó:"
 
-#: Source/Core/AudioCommon/Src/AOSoundStream.cpp:39
+#: Source/Core/AudioCommon/Src/AOSoundStream.cpp:41
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: Hiba az AO eszköz megnyitásakor.\n"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:239
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:240
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
 msgid "Auto"
 msgstr "Automatikus"
@@ -781,7 +782,7 @@ msgstr ""
 msgid "Back"
 msgstr "Hátra"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:638
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
 msgid "Backend Settings"
 msgstr "Hang feldolgozó beállításai"
 
@@ -808,11 +809,11 @@ msgstr "Rossz fájl fejléc"
 msgid "Banner"
 msgstr "Játék kép"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:530
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:538
 msgid "Banner Details"
 msgstr "Játék kép részletek"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:494
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:502
 msgid "Banner:"
 msgstr "Játék kép:"
 
@@ -824,7 +825,7 @@ msgstr "Vevő"
 msgid "Basic"
 msgstr "Alap"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:554
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:555
 msgid "Basic Settings"
 msgstr "Alap beállítások"
 
@@ -853,16 +854,16 @@ msgid "Blue Right"
 msgstr "Kék jobbra"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:275
 msgid "Bottom"
-msgstr "Lent"
+msgstr "Gomb"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:242
 #, c-format
 msgid "Bound Controls: %lu"
 msgstr "Összekötött irányítások: %lu"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:353
 msgid "Broken"
 msgstr "Hibás"
 
@@ -878,7 +879,7 @@ msgstr "Hozzáadandó könyvtár tallózása"
 msgid "Browse for an ISO directory..."
 msgstr "Egy ISO könyvtár tallózása..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1142
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1138
 msgid "Browse for output directory"
 msgstr "Kimeneti könyvtár tallózása"
 
@@ -900,11 +901,11 @@ msgstr "C kar"
 msgid "C-Stick"
 msgstr "C-kar"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:545
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:546
 msgid "CPU Emulator Engine"
 msgstr "Processzor emulátor motor"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:499
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:495
 msgid "Cache Display Lists"
 msgstr "Kijelző listák gyorsítótárazása"
 
@@ -943,7 +944,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:137
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:41
 msgid "Cancel"
-msgstr "Mégsem"
+msgstr "Mégse"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:91
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:178
@@ -954,9 +955,9 @@ msgstr "%s nem nyitható meg"
 
 #: Source/Core/Core/Src/CoreTiming.cpp:122
 msgid "Cannot unregister events with events pending"
-msgstr "Nem lehet események bejegyzéseket törölni függőben lévő eseményekkel"
+msgstr "Nem lehet esemény bejegyzéseket törölni függőben lévő eseményekkel"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1020
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1018
 #, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
@@ -967,7 +968,7 @@ msgstr ""
 "%s\n"
 "fájl nem megfelelő GameCube memóriakártya fájl"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1043
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1041
 msgid ""
 "Cannot use that file as a memory card.\n"
 "Are you trying to use the same file in both slots?"
@@ -985,8 +986,6 @@ msgstr "Nem található WiiMote bd szerint: %02x:%02x:%02x:%02x:%02x:%02x"
 msgid "Cant find WiiMote by connection handle %02x"
 msgstr "Nem található WiiMote %02x csatlakozás kezelő szerint"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:236
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:331
 #: Source/Core/Core/Src/HW/DVDInterface.cpp:643
 #: Source/Core/Core/Src/HW/DVDInterface.cpp:653
 msgid "Cant read from DVD_Plugin - DVD-Interface: Fatal Error"
@@ -996,7 +995,7 @@ msgstr "Sikertelen beolvasás a DVD_Plugin - DVD-felületből: végzetes hiba"
 msgid "Caps Lock"
 msgstr "Caps Lock"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:291
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
 msgid "Catalan"
 msgstr "Katalán"
 
@@ -1021,7 +1020,7 @@ msgstr "Lemez váltás"
 msgid "Change Game"
 msgstr "Játék váltás"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:500
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:502
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -1037,8 +1036,8 @@ msgstr "Megváltoztatja a zFar paraméterhez tartozó jegyet (javítás után)"
 msgid "Changes sign to zNear Parameter (after correction)"
 msgstr "Megváltoztatja a zNear paraméterhez tartozó jegyet (javítás után)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:506
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:507
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:508
 msgid "Changing this will have no effect while the emulator is running!"
 msgstr "A változtatások nem érvényesülnek ameddig fut az emulátor!"
 
@@ -1058,31 +1057,31 @@ msgstr "Csalás keresés"
 msgid "Cheats Manager"
 msgstr "Csalás kezelő"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
 msgid "Chinese (Simplified)"
 msgstr "Kínai (egyszerűsített)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
 msgid "Chinese (Traditional)"
 msgstr "Kínai (hagyományos)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:758
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:756
 msgid "Choose a DVD root directory:"
 msgstr "Válassz DVD gyökér könyvtárat:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:762
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:760
 msgid "Choose a NAND root directory:"
 msgstr "Válassz NAND gyökér könyvtárat:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:755
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:753
 msgid "Choose a default ISO:"
 msgstr "Válassz alapértelmezett ISO fájlt:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1169
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1167
 msgid "Choose a directory to add"
 msgstr "Válassz hozzáadandó könyvtárat"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1007
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1005
 msgid "Choose a file to open"
 msgstr "Válasz megnyitandó fájl"
 
@@ -1090,7 +1089,7 @@ msgstr "Válasz megnyitandó fájl"
 msgid "Choose a memory card:"
 msgstr "Válassz memóriakártyát:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:759
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:757
 msgid ""
 "Choose file to use as apploader: (applies to discs constructed from "
 "directories only)"
@@ -1098,8 +1097,8 @@ msgstr ""
 "Válassz betöltő programnak használandó fájlt: (csak könyvtárakból "
 "létrehozott lemezekre érvényesíthető)"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:768
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:807
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:776
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:815
 msgid "Choose the folder to extract to"
 msgstr "Válassz mappát a kitömörítéshez"
 
@@ -1111,14 +1110,14 @@ msgstr "Körös kar"
 msgid "Classic"
 msgstr "Klasszikus"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:142
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:159
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:43
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:491
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:917
 msgid "Clear"
 msgstr "Törlés"
 
-#: Source/Core/Core/Src/CoreTiming.cpp:174
+#: Source/Core/Core/Src/CoreTiming.cpp:175
 msgid "Clear failed."
 msgstr "Törlés sikertelen."
 
@@ -1132,8 +1131,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:213
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:244
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:563
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:592
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:571
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:588
 msgid "Close"
 msgstr "Bezárás"
 
@@ -1157,20 +1156,20 @@ msgstr "Parancs"
 msgid "Comment"
 msgstr "Megjegyzés"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:492
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:500
 msgid "Comment:"
 msgstr "Megjegyzés:"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:957
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:953
 msgid "Compress ISO..."
 msgstr "ISO tömörítése..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:969
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:965
 msgid "Compress selected ISOs..."
 msgstr "Kiválasztott ISO tömörítése..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1148
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1281
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1144
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1277
 msgid "Compressing ISO"
 msgstr "ISO tömörítése"
 
@@ -1197,13 +1196,13 @@ msgstr "Irányítók beállítása"
 msgid "Configure..."
 msgstr "Beállítások..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1184
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1212
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1277
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1180
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1208
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1273
 msgid "Confirm File Overwrite"
 msgstr "Fájl felülírás jóváhagyása"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:580
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:581
 msgid "Confirm on Stop"
 msgstr "Kilépéskor megerősítés"
 
@@ -1212,7 +1211,7 @@ msgstr "Kilépéskor megerősítés"
 msgid "Connect"
 msgstr "Csatlakozás"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:723
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:721
 msgid "Connect USB Keyboard"
 msgstr "USB billentyűzet csatlakoztatása"
 
@@ -1261,12 +1260,12 @@ msgstr "Konvertálás: GCI"
 msgid "Copy failed"
 msgstr "Másolás sikertelen"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:785
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:797
 #, c-format
 msgid "Copy to Memcard %c"
 msgstr "%c. memóriakártyára másolás"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:356
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:364
 msgid "Core"
 msgstr "Mag"
 
@@ -1296,7 +1295,7 @@ msgstr ""
 msgid "Could not recognize ISO file %s"
 msgstr "%s ISO fájl nem ismerhető fel"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:580
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:588
 #, c-format
 msgid "Could not save %s"
 msgstr "%s nem menthető el"
@@ -1309,7 +1308,7 @@ msgstr ""
 "Irányítók beállítása nem sikerült. A játékos kilépett vagy a játék épp fut!\n"
 "(irányítók beállítása még nem támogatott miközben a játék fut)"
 
-#: Source/Core/Core/Src/HW/EXI_DeviceMemoryCard.cpp:119
+#: Source/Core/Core/Src/HW/EXI_DeviceMemoryCard.cpp:118
 #, c-format
 msgid ""
 "Could not write memory card file %s.\n"
@@ -1321,7 +1320,7 @@ msgstr ""
 "\n"
 "CD/DVD lemezről futtatod a Dolphin emulátort, vagy a mentési fájl írásvédett?"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1059
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1067
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "Az 'ini' kiterjesztéshez nem található nyitott parancs!"
 
@@ -1338,7 +1337,7 @@ msgstr ""
 msgid "Count:"
 msgstr "Számláló:"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:463
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:471
 msgid "Country:"
 msgstr "Ország:"
 
@@ -1352,26 +1351,26 @@ msgstr "AR kód létrehozása"
 msgid "Create new perspective"
 msgstr "Új perspektíva készítése"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:500
 msgid "Created by KDE-Look.org"
 msgstr "Készítette: KDE-Look.org"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:497
 msgid ""
 "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
 msgstr ""
 "Készítette: Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:496
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
 msgid "Created by VistaIcons.com"
 msgstr "Készítette: VistaIcons.com"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:497
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:499
 msgid "Created by black_rider and published on ForumW.org > Web Developments"
 msgstr ""
 "Készítette: black_rider és közzétette ForumW.org > Web Developments oldalon"
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:15
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:28
 msgid "Creator: "
 msgstr "Készítő:"
 
@@ -1379,7 +1378,7 @@ msgstr "Készítő:"
 msgid "Critical"
 msgstr "Kritikus"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:561
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:557
 msgid "Crop"
 msgstr "Levágás"
 
@@ -1402,7 +1401,7 @@ msgstr "Kereszthalkítás"
 msgid "Current dir changed from %s to %s after wxFileSelector!"
 msgstr "Ez a könyvtár megváltozott erről: %s erre: %s a wxFileSelector után!"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:336
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:344
 msgid "Custom Projection Hack"
 msgstr "Egyedi megjelenítési hack"
 
@@ -1410,11 +1409,11 @@ msgstr "Egyedi megjelenítési hack"
 msgid "Custom Projection Hack Settings"
 msgstr "Egyedi megjelenítési hack beállítások"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:339
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
 msgid "Customize some Orthographic Projection parameters."
 msgstr "Néhány ortografikus megjelenítési paraméter egyedi beállítása."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
 msgid "Czech"
 msgstr "Cseh"
 
@@ -1426,24 +1425,24 @@ msgstr "Digitális irányok"
 msgid "DSP"
 msgstr "Hang"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:602
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:603
 msgid "DSP Emulator Engine"
 msgstr "DSP emulátor motor"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:249
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:251
 msgid "DSP HLE emulation (fast)"
 msgstr "DSP HLE emuláció (gyors)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:251
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:253
 msgid "DSP LLE interpreter (slow)"
 msgstr "DSP LLE interpreter (lassú)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:606
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
 msgid "DSP LLE on Thread"
 msgstr "DSP LLE folyamatágon"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:250
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:252
 msgid "DSP LLE recompiler"
 msgstr "DSP LLE recompiler"
 
@@ -1451,15 +1450,23 @@ msgstr "DSP LLE recompiler"
 msgid "DSP settings"
 msgstr "Hang (DSP) beállítások"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:778
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:776
 msgid "DVD Root:"
 msgstr "DVD gyökér könyvtár:"
+
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:238
+msgid "DVDLowRead - Fatal Error: failed to read from volume"
+msgstr ""
+
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:332
+msgid "DVDLowUnencryptedRead - Fatal Error: failed to read from volume"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:176
 msgid "Data Size"
 msgstr "Adatok mérete"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:471
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
 msgid "Date:"
 msgstr "Dátum:"
 
@@ -1480,7 +1487,7 @@ msgstr "Holtsáv"
 msgid "Debug"
 msgstr "Hibakereső"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:533
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:529
 msgid "Debugging"
 msgstr "Hibakeresés"
 
@@ -1488,16 +1495,16 @@ msgstr "Hibakeresés"
 msgid "Decimal"
 msgstr "Decimális"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:955
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:951
 msgid "Decompress ISO..."
 msgstr "ISO kitömörítése..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:970
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:966
 msgid "Decompress selected ISOs..."
 msgstr "A kiválasztott ISO fájlok kitömörítése..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1148
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1281
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1144
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1277
 msgid "Decompressing ISO"
 msgstr "ISO kitömörítés"
 
@@ -1505,11 +1512,11 @@ msgstr "ISO kitömörítés"
 msgid "Default"
 msgstr "Alap"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:775
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:773
 msgid "Default ISO:"
 msgstr "Alapértelmezett ISO:"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:112
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:129
 msgid "Default font"
 msgstr "Alap betűtípus"
 
@@ -1518,7 +1525,7 @@ msgstr "Alap betűtípus"
 msgid "Delete"
 msgstr "Törlés"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:786
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:798
 msgid "Delete Save"
 msgstr "Mentés törlése"
 
@@ -1527,7 +1534,7 @@ msgstr "Mentés törlése"
 msgid "Delete the existing file '%s'?"
 msgstr "Törlöd a meglévő '%s' fájlt?"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:685
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:681
 msgid "Description"
 msgstr "Leírás"
 
@@ -1535,8 +1542,8 @@ msgstr "Leírás"
 msgid "Detect"
 msgstr "Észlelés"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:230
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:325
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:232
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:327
 msgid ""
 "Detected attempt to read more data from the DVD than fit inside the out "
 "buffer. Clamp."
@@ -1549,8 +1556,8 @@ msgstr ""
 msgid "Device"
 msgstr "Eszköz"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:690
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:688
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
 msgid "Device Settings"
 msgstr "Eszköz beállítások"
 
@@ -1575,23 +1582,23 @@ msgstr ""
 " és a könyvtár biztonsági mentés ellenőrző összeg hibás"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:437
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:483
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:479
 msgid "Disable"
 msgstr "Kikapcsolás"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:501
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:497
 msgid "Disable Fog"
 msgstr "Köd kikapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:500
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:496
 msgid "Disable Lighting"
 msgstr "Fényhatások kikapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:502
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:498
 msgid "Disable Per-Pixel Depth"
 msgstr "Képpont mélység kikapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:531
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:527
 msgid "Disable Textures"
 msgstr "Textúrák kikapcsolása"
 
@@ -1637,7 +1644,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:554
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:562
 msgid "Disc"
 msgstr "Lemez"
 
@@ -1664,11 +1671,11 @@ msgstr ""
 msgid "Divide"
 msgstr "Megosztás"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1068
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1065
 msgid "Do you want to stop the current emulation?"
 msgstr "Le akarod állítani az éppen működő emulációt?"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:935
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:932
 msgid "Dolphin"
 msgstr "Dolphin"
 
@@ -1693,12 +1700,12 @@ msgstr "Dolphin emulált Wiimote beállítások"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1220
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1217
 msgid "Dolphin GCPad Configuration"
 msgstr "Dolphin GCPad beállítások"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:751
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1160
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:748
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1157
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS videók (*.dtm)"
 
@@ -1731,11 +1738,11 @@ msgstr ""
 msgid "Down"
 msgstr "Le"
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:42
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:55
 msgid "Download Codes (WiiRD Database)"
 msgstr "Kódok letöltése (WiiRD adatbázis)"
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:276
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:298
 #, c-format
 msgid "Downloaded %lu codes. (added %lu)"
 msgstr "Letöltve %lu kód. (hozzáadva %lu)"
@@ -1744,23 +1751,23 @@ msgstr "Letöltve %lu kód. (hozzáadva %lu)"
 msgid "Drums"
 msgstr "Dobok"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:78
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:79
 msgid "Dummy"
 msgstr "Utánzat"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:609
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:608
 msgid "Dump Audio"
 msgstr "Hang mentése"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:544
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:540
 msgid "Dump EFB Target"
 msgstr "EFB cél letárolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:545
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:541
 msgid "Dump Frames"
 msgstr "Képkockák letárolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:542
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:538
 msgid "Dump Textures"
 msgstr "Textúrák letárolása"
 
@@ -1795,9 +1802,9 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:493
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:270
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
 msgid "Dutch"
 msgstr "Holland"
 
@@ -1822,7 +1829,7 @@ msgstr ""
 "valószínűleg újra kell indítanod a számítógépet, hogy a Windows felismerje "
 "az új illesztőprogramot."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:162
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:170
 msgid "EUROPE"
 msgstr "EURÓPA"
 
@@ -1838,7 +1845,7 @@ msgstr "Szerkesztés"
 msgid "Edit ActionReplay Code"
 msgstr "ActionReplay kód szerkesztése"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:282
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:290
 msgid "Edit Config"
 msgstr "Beállítások szerkesztése"
 
@@ -1850,8 +1857,8 @@ msgstr "Patch szerkesztése"
 msgid "Edit current perspective"
 msgstr "Jelenlegi perspektíva szerkesztése"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:414
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:436
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:422
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:444
 msgid "Edit..."
 msgstr "Szerkesztés..."
 
@@ -1901,7 +1908,7 @@ msgstr ""
 msgid "Emulated Wiimote"
 msgstr "Emulált Wiimote"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:343
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:351
 msgid "Emulation State: "
 msgstr "Emuláció állapota:"
 
@@ -1929,72 +1936,68 @@ msgstr ""
 msgid "Enable AR Logging"
 msgstr "AR naplózás bekapcsolása"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:607
-msgid "Enable Audio Throttle"
-msgstr "Hang szabályozás használata"
-
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:310
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:318
 msgid "Enable BAT"
 msgstr "BAT használata"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:318
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
 msgid "Enable Block Merging"
 msgstr "Blokk csatlakozás használata"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:336
 msgid "Enable Bounding Box Calculation"
-msgstr ""
+msgstr "Bounding Box kalkuláció használata"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:440
 msgid "Enable Cache"
 msgstr "Gyorsítótár használata"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:541
 msgid "Enable Cheats"
 msgstr "Csalások használata"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:604
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:605
 msgid "Enable DTK Music"
 msgstr "DTK zene bekapcsolása"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:306
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:314
 msgid "Enable Dual Core"
 msgstr "Dual Core használata"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:538
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:539
 msgid "Enable Dual Core (speedup)"
 msgstr "Dual Core használata (gyorsítás)"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:562
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:558
 msgid "Enable Hotkeys"
 msgstr "Gyorsbillentyűk használata"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:307
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:315
 msgid "Enable Idle Skipping"
 msgstr "Tétlen állapot mellőzése"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:539
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
 msgid "Enable Idle Skipping (speedup)"
 msgstr "Tétlen állapot mellőzése (gyorsítás)"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:308
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:316
 msgid "Enable MMU"
 msgstr "MMU használata"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:322
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:568
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:330
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:564
 msgid "Enable Progressive Scan"
 msgstr "Progresszív pásztázás használata"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:716
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:714
 msgid "Enable Screen Saver"
 msgstr "Képernyővédő bekapcsolása"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "Enable WideScreen"
 msgstr "Széleskijelző bekapcsolása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:527
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:523
 msgid "Enable Wireframe"
 msgstr "Vonalháló bekapcsolása"
 
@@ -2012,7 +2015,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, válaszd ezt: 1x."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:317
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:325
 msgid ""
 "Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = "
 "Compatible)"
@@ -2020,7 +2023,7 @@ msgstr ""
 "Gyors lemez hozzáférés használata. Szükséges néhány játékhoz. (BE = gyors, "
 "KI = kompatibilis)"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:799
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:811
 msgid "Enable pages"
 msgstr "Oldalak bekapcsolása"
 
@@ -2048,7 +2051,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:332
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:340
 msgid ""
 "Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for "
 "ANY other game."
@@ -2056,7 +2059,7 @@ msgstr ""
 "Használatával The Legend of Zelda: Twilight Princess játék sebessége "
 "növekedik. A TÖBBI játéknál legyen kikapcsolva."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:311
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
 msgid ""
 "Enables Block Address Translation (BAT); a function of the Memory Management "
 "Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = "
@@ -2066,7 +2069,7 @@ msgstr ""
 "funkcióját. A hardverhez viszonyítva pontos, de az emulációhoz lassú. (BE = "
 "kompatibilis, KI = gyors)"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:337
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
 msgid "Enables Custom Projection Hack"
 msgstr "Egyedi megjelenítési hack használata"
 
@@ -2083,7 +2086,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:309
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:317
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)"
@@ -2105,9 +2108,9 @@ msgstr ""
 msgid "End"
 msgstr "Vége"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:488
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
 msgid "English"
 msgstr "Angol"
 
@@ -2136,16 +2139,9 @@ msgstr "Egyenlő"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:47
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:153
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1175
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1173
 msgid "Error"
 msgstr "Hiba"
-
-#: Source/Core/Core/Src/Movie.cpp:820
-#, c-format
-msgid ""
-"Error in PlayWiimote. %u != %u, byte %d.\n"
-"Sorry, Wii recording is temporarily broken."
-msgstr ""
 
 #: Source/Core/DolphinWX/Src/Main.cpp:346
 msgid "Error loading selected language. Falling back to system default."
@@ -2153,14 +2149,16 @@ msgstr ""
 "Hiba a kiválasztott nyelv betöltése közben. Rendszer alapértelmezett "
 "visszaállítva."
 
-#: Source/Core/Common/Src/ChunkFile.h:180
+#: Source/Core/Common/Src/ChunkFile.h:194
 #, c-format
 msgid ""
 "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
 "Aborting savestate load..."
 msgstr ""
+"Hiba: \"%s\" után, %d (0x%X) található a mentési jelölő helyett %d (0x%X). "
+"Mentés betöltésének leállítása..."
 
-#: Source/Core/Core/Src/HW/EXI_DeviceIPL.cpp:279
+#: Source/Core/Core/Src/HW/EXI_DeviceIPL.cpp:281
 #, c-format
 msgid ""
 "Error: Trying to access %s fonts but they are not loaded. Games may not show "
@@ -2195,7 +2193,7 @@ msgstr "Kilépés a Dolphin emulátorból"
 msgid "Export Failed"
 msgstr "Exportálás sikertelen"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:643
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:651
 msgid "Export File"
 msgstr "Fájl exportálása"
 
@@ -2208,15 +2206,15 @@ msgstr "Felvétel exportálása"
 msgid "Export Recording..."
 msgstr "Felvétel exportálása..."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:788
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:800
 msgid "Export Save"
 msgstr "Mentés exportálása"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:939
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:935
 msgid "Export Wii save (Experimental)"
 msgstr "Wii mentés exportálása (kísérleti)"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:789
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:801
 msgid "Export all saves"
 msgstr "Minden mentés exportálása"
 
@@ -2232,7 +2230,7 @@ msgstr "Exportálás mentése másként..."
 msgid "Extension"
 msgstr "Kiegészítő"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:481
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:477
 msgid "External Frame Buffer"
 msgstr "Külső képkocka puffer"
 
@@ -2244,44 +2242,44 @@ msgstr "Extra paraméter"
 msgid "Extra Parameter useful in ''Metroid: Other M'' only."
 msgstr "Az extra paraméter csak a ''Metroid: Other M'' játékban hasznos."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:625
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:633
 msgid "Extract All Files..."
 msgstr "Minden fájl kitömörítése..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:627
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:635
 msgid "Extract Apploader..."
 msgstr "Betöltő program kitömörítése..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:628
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:636
 msgid "Extract DOL..."
 msgstr "DOL kitömörítése..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:621
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:629
 msgid "Extract Directory..."
 msgstr "Könyvtár kitömörítése..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:623
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:631
 msgid "Extract File..."
 msgstr "Fájl kitömörítése..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:619
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:627
 msgid "Extract Partition..."
 msgstr "Partíció kitömörítése..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:728
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:736
 #, c-format
 msgid "Extracting %s"
 msgstr "%s kitömörítése"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:712
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:720
 msgid "Extracting All Files"
 msgstr "Minden fájl kitömörítése"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:712
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:720
 msgid "Extracting Directory"
 msgstr "Könyvtár kitömörítése"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:714
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:722
 msgid "Extracting..."
 msgstr "Kitömörítés..."
 
@@ -2293,11 +2291,11 @@ msgstr "FIFO bájt"
 msgid "FIFO Player"
 msgstr "FIFO lejátszó"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:165
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:173
 msgid "FRANCE"
 msgstr "FRANCIAORSZÁG"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:475
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
 msgid "FST Size:"
 msgstr "FST méret:"
 
@@ -2309,11 +2307,11 @@ msgstr "Csatlakozás sikertelen!"
 msgid "Failed to Listen!!"
 msgstr "Meghallgatás sikertelen!"
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:286
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:308
 msgid "Failed to download codes."
 msgstr "Kódok letöltése sikertelen."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:828
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:836
 #, c-format
 msgid "Failed to extract to %s!"
 msgstr "Kitömörítés nem sikerült ide: %s!"
@@ -2431,17 +2429,27 @@ msgstr "Fejléc írása sikertelen a(z) %s számára"
 msgid "Failed to write header for file %d"
 msgstr "Fejléc írása sikertelen a(z) %d fájl számára"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:475
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
+msgid "Farsi"
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:471
 msgid "Fast"
 msgstr "Gyors"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:498
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:494
 msgid "Fast Mipmaps"
 msgstr "Gyors mipmapek"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:321
 msgid "Fast version of the MMU.  Does not work for every game."
 msgstr "MMU gyors verziója. Nem működik minden játéknál."
+
+#: Source/Core/Core/Src/Movie.cpp:844
+#, c-format
+msgid ""
+"Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:212
 msgid "Fifo Player"
@@ -2451,7 +2459,7 @@ msgstr "Fifo lejátszó"
 msgid "File Info"
 msgstr "Fájl infó"
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:283
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:305
 msgid "File contained no codes."
 msgstr "A fájl nem tartalmazott kódokat."
 
@@ -2484,16 +2492,16 @@ msgstr "A fájl nem ismerhető fel memóriakártyaként"
 msgid "File not compressed"
 msgstr "A fájl nincs tömörítve"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp:153
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp:168
 #, c-format
 msgid "FileIO: Unknown open mode : 0x%02x"
 msgstr "FileIO: Ismeretlen megnyitási mód : 0x%02x"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:542
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:550
 msgid "Filesystem"
 msgstr "Fájlrendszer"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1052
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1060
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "Az 'ini' fájltípus ismeretlen! Nem lesz megnyitva!"
 
@@ -2501,7 +2509,7 @@ msgstr "Az 'ini' fájltípus ismeretlen! Nem lesz megnyitva!"
 msgid "First Block"
 msgstr "Első blokk"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:795
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:807
 msgid "Fix Checksums"
 msgstr "Állandó ellenőrzőösszeg"
 
@@ -2513,7 +2521,7 @@ msgstr "Kényszerített 16:9"
 msgid "Force 4:3"
 msgstr "Kényszerített 4:3"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:547
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
 msgid "Force Console as NTSC-J"
 msgstr "Konzol kényszerítése NTSC-J típusra"
 
@@ -2541,12 +2549,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"A játék kiemeneti grafikája kényszerített szélesvásznú felbontású lesz.\n"
+"A játék kimeneti grafikája kényszerített szélesvásznú felbontású lesz.\n"
 "Grafikai hibákat okozhat néhány játékban.\n"
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:488
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:490
 msgid ""
 "Forces NTSC-J mode for using the Japanese ROM font.\n"
 "Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
@@ -2582,7 +2590,7 @@ msgstr "Képkocka"
 msgid "Frame Advance"
 msgstr "Képkocka léptetés"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:548
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:544
 msgid "Frame Dumps use FFV1"
 msgstr "Képkocka mentések FFV1 használatával"
 
@@ -2594,7 +2602,7 @@ msgstr "Képkocka rendezés"
 msgid "Frame S&kipping"
 msgstr "Képkocka k&ihagyás"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:551
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:552
 msgid "Framelimit:"
 msgstr "Képkocka korlát:"
 
@@ -2602,13 +2610,13 @@ msgstr "Képkocka korlát:"
 msgid "Frames To Record"
 msgstr "Rögzítendő képkockák"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:546
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:542
 msgid "Free Look"
 msgstr "Szabad nézet"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:490
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
 msgid "French"
 msgstr "Francia"
 
@@ -2634,15 +2642,14 @@ msgid "GCI File(*.gci)"
 msgstr "GCI fájl(*.gci)"
 
 #: Source/Core/DolphinWX/Src/GCMicDlg.h:44
-#, fuzzy
 msgid "GCMic Configuration"
-msgstr "Napló beállítások"
+msgstr "GCMic beállítások"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:445
 msgid "GCPad"
 msgstr "GC irányító"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:459
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:467
 msgid "Game ID:"
 msgstr "Játék azonosító:"
 
@@ -2658,15 +2665,15 @@ msgstr "A játék nem fut!"
 msgid "Game not found!!"
 msgstr "A játék nem található!"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:396
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:404
 msgid "Game-Specific Settings"
 msgstr "A játék sajátos beállításai"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:290
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:298
 msgid "GameConfig"
 msgstr "Játék konfig"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:532
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
 msgid "Gamecube"
 msgstr "Gamecube"
 
@@ -2675,7 +2682,7 @@ msgid "Gamecube &Pad Settings"
 msgstr "Gamecube &irányító beállítások"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:215
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1011
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1009
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "Gamecube memóriakártyák (*.raw,*.gcp)"
 
@@ -2684,22 +2691,24 @@ msgid "Gamecube Pad settings"
 msgstr "Gamecube irányító beállítások"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:130
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:298
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:306
 msgid "Gecko Codes"
 msgstr "Gecko kódok"
 
-#: Source/Core/Core/Src/GeckoCode.cpp:139
-#, c-format
+#: Source/Core/Core/Src/GeckoCode.cpp:222
+#, fuzzy, c-format
 msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
-"(either a bad code or the code type is not yet supported.)"
+"(either a bad code or the code type is not yet supported. Try using the "
+"native code handler by placing the codehandler.bin file into the Sys "
+"directory and restarting Dolphin.)"
 msgstr ""
 "GeckoCode futtatása sikertelen (CT%i CST%i) (%s)\n"
 "(vagy rossz a kód vagy a kód típus még nem támogatott.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:529
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:530
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:204
 msgid "General"
 msgstr "Általános"
@@ -2708,9 +2717,9 @@ msgstr "Általános"
 msgid "General Settings"
 msgstr "Általános beállítások"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:489
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
 msgid "German"
 msgstr "Német"
 
@@ -2749,7 +2758,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd kijelölve."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
 msgid "Greek"
 msgstr "Görög"
 
@@ -2781,7 +2790,7 @@ msgstr "Hackek"
 msgid "Header checksum failed"
 msgstr "A fejléc ellenőrző összege hibás"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:303
 msgid "Hebrew"
 msgstr "Héber"
 
@@ -2843,11 +2852,11 @@ msgstr "Gyorsbillentyű beállítások"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:276
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:276
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:574
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:575
 msgid "Hotkeys"
 msgstr "Gyorsbill."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:304
 msgid "Hungarian"
 msgstr "Magyar"
 
@@ -2855,14 +2864,14 @@ msgstr "Magyar"
 msgid "Hybrid Wiimote"
 msgstr "Hibrid Wiimote"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:523
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:526
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 "IOCTL_ES_GETVIEWS: Adatok kinyerése megkísérelve egy ismeretlen jegyből: "
 "%08x/%08x"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:795
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:793
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available "
@@ -2875,11 +2884,11 @@ msgstr ""
 "TitleID %016llx.\n"
 " A Dolphin valószínűleg kifagy most"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:304
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:307
 msgid "IOCTL_ES_READCONTENT - bad destination"
 msgstr "IOCTL_ES_READCONTENT - rossz cél"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:688
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:686
 msgid "IPL Settings"
 msgstr "IPL beállítások"
 
@@ -2895,15 +2904,15 @@ msgstr "IR mutató"
 msgid "IR Sensitivity:"
 msgstr "IR érzékenysége:"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:513
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:521
 msgid "ISO Details"
 msgstr "ISO részletek"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:770
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:768
 msgid "ISO Directories"
 msgstr "ISO könyvtárak"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:168
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:176
 msgid "ITALY"
 msgstr "OLASZORSZÁG"
 
@@ -2911,23 +2920,27 @@ msgstr "OLASZORSZÁG"
 msgid "Icon"
 msgstr "Ikon"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:329
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:337
 msgid ""
 "If checked, the bounding box registers will be updated. Used by the Paper "
 "Mario games."
 msgstr ""
+"Kijelölés esetén a bounding box regiszterek frissítve lesznek. A Paper Mario "
+"játékok használják."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:315
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid ""
 "If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
 msgstr ""
 "Ha az FPS értéke szabálytalan, akkor ez a beállítás segíthet. (BE = "
 "kompatibilis, KI = gyors)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:485
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:487
+#, fuzzy
 msgid ""
-"If you set Framelimit higher than game full speed (NTSC:60, PAL:50), you "
-"also have to disable Audio Throttle in DSP to make it effective."
+"If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use "
+"Audio to throttle using the DSP (might fix audio clicks but can also cause "
+"constant noise depending on the game)."
 msgstr ""
 "Ha a képkocka korlát értéke magasabb a játék teljes sebességénél (NTSC:60, "
 "PAL:50), akkor a hatékonyság eléréséhez ki kell kapcsolni a hang "
@@ -2966,7 +2979,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:787
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:799
 msgid "Import Save"
 msgstr "Mentés importálása"
 
@@ -3017,7 +3030,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:355
 msgid "In Game"
 msgstr "Elindul"
 
@@ -3026,7 +3039,7 @@ msgid "In-Game"
 msgstr "Elindul"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:49
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:301
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:309
 msgid "Info"
 msgstr "Infó"
 
@@ -3044,9 +3057,9 @@ msgstr "Insert"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:175
 msgid "Insert Encrypted or Decrypted code here..."
-msgstr "Lekódolt vagy kódolatlan kódok beszúrása ide..."
+msgstr "Lekódolt vagy kódolatlan kód beszúrása ide..."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:722
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:720
 msgid "Insert SD Card"
 msgstr "SD kártya behelyezése"
 
@@ -3058,7 +3071,7 @@ msgstr "Írj be ide nevet..."
 msgid "Install WAD"
 msgstr "WAD telepítése"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:959
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:955
 msgid "Install to Wii Menu"
 msgstr "Telepítés a Wii menübe"
 
@@ -3068,15 +3081,15 @@ msgid ""
 msgstr ""
 "InstallExceptionHandler előidézve, de ez a platform még nem támogatja azt."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1379
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1376
 msgid "Installing WAD..."
 msgstr "WAD telepítése..."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:530
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:531
 msgid "Interface"
 msgstr "Felhasználói felület"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:590
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:591
 msgid "Interface Settings"
 msgstr "Felület beállítások"
 
@@ -3101,11 +3114,11 @@ msgstr "Belső LZO hiba - lzo_init() sikertelen"
 msgid "Internal Resolution:"
 msgstr "Belső felbontás:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:244
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:246
 msgid "Interpreter (VERY slow)"
 msgstr "Interpreter (NAGYON lassú)"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:346
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:354
 msgid "Intro"
 msgstr "Intró"
 
@@ -3122,7 +3135,7 @@ msgstr "Érvénytelen érték!"
 msgid "Invalid bat.map or dir entry"
 msgstr "Érvénytelen bat.map vagy könyvtár bejegyzés"
 
-#: Source/Core/Core/Src/CoreTiming.cpp:536
+#: Source/Core/Core/Src/CoreTiming.cpp:537
 #, c-format
 msgid "Invalid event type %i"
 msgstr "Érvénytelen esemény fajta %i"
@@ -3142,38 +3155,38 @@ msgstr ""
 "%s\n"
 " Valószínűleg újra le kell mentened a játékot."
 
-#: Source/Core/Core/Src/Movie.cpp:503
+#: Source/Core/Core/Src/Movie.cpp:540
 msgid "Invalid recording file"
 msgstr "Nem megfelelő rögzített fájl"
 
-#: Source/Core/Core/Src/Core.cpp:489
+#: Source/Core/Core/Src/Core.cpp:491
 msgid "Invalid state"
 msgstr "Nem megfelelő mentés"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:492
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:269
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
 msgid "Italian"
 msgstr "Olasz"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:179
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:187
 msgid "JAPAN"
 msgstr "JAPÁN"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:245
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:247
 msgid "JIT Recompiler (recommended)"
 msgstr "JIT Recompiler (ajánlott)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:246
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
 msgid "JITIL experimental recompiler"
 msgstr "JITIL Recompiler (kísérleti)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:282
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:303
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:284
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:306
 msgid "Japanese"
 msgstr "Japán"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:184
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:192
 msgid "KOREA"
 msgstr "KOREA"
 
@@ -3182,8 +3195,8 @@ msgstr "KOREA"
 msgid "Key"
 msgstr "Bill."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:285
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:304
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:287
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:307
 msgid "Korean"
 msgstr "Koreai"
 
@@ -3201,7 +3214,7 @@ msgstr "L gomb"
 msgid "L-Analog"
 msgstr "Bal analóg"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:586
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:587
 msgid "Language:"
 msgstr "Nyelv:"
 
@@ -3254,7 +3267,7 @@ msgstr ""
 msgid "Less Than"
 msgstr "Kevesebb mint"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:543
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:544
 msgid "Limit by FPS"
 msgstr "FPS alapú korlátozás"
 
@@ -3262,7 +3275,7 @@ msgstr "FPS alapú korlátozás"
 msgid "Load"
 msgstr "Betöltés"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:543
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:539
 msgid "Load Custom Textures"
 msgstr "Egyedi textúrák betöltése"
 
@@ -3310,11 +3323,11 @@ msgstr "Állás betöltése a 8. helyről"
 msgid "Load State..."
 msgstr "Állás betöltése..."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1418
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1415
 msgid "Load Wii System Menu"
 msgstr "Wii rendszer menü betöltése"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1413
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1410
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Wii rendszer menü betöltése %d%c"
@@ -3341,7 +3354,7 @@ msgstr "Meghatározott fájlt tölt be (DOL,ELF,GCM,ISO,WAD)"
 msgid "Local"
 msgstr "Helyi"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:546
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:547
 msgid "Lock Threads to Cores"
 msgstr "Folyamatágak magokhoz zárolása"
 
@@ -3353,11 +3366,11 @@ msgstr "Napló"
 msgid "Log Configuration"
 msgstr "Napló beállítások"
 
-#: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:80
+#: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:98
 msgid "Log Types"
 msgstr "Napló típus"
 
-#: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:75
+#: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:83
 msgid "Logger Outputs"
 msgstr "Napló kimenetek"
 
@@ -3387,7 +3400,7 @@ msgstr ""
 "MD5 eltérés\n"
 " %016llx%016llx != %016llx%016llx"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:312
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid "MMU Speed Hack"
 msgstr "MMU sebesség növelő hack"
 
@@ -3401,11 +3414,11 @@ msgstr "MadCatz Gameshark fájlok (*.gcs)"
 msgid "Main Stick"
 msgstr "Főkar"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:467
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:475
 msgid "Maker ID:"
 msgstr "Gyártó azonosító:"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:490
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:498
 msgid "Maker:"
 msgstr "Gyártó:"
 
@@ -3427,7 +3440,7 @@ msgid "Memory Byte"
 msgstr "Memória bájt"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:222
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:86
 msgid "Memory Card"
 msgstr "Memóriakártya"
 
@@ -3464,7 +3477,7 @@ msgstr "A memóriakártya fájlmérete nem egyezik a fejléc méretével"
 msgid "Menu"
 msgstr "Menü"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:86
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:87
 msgid "Mic"
 msgstr "Mikrofon"
 
@@ -3473,11 +3486,11 @@ msgstr "Mikrofon"
 msgid "Min"
 msgstr "Min"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:582
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:578
 msgid "Misc"
 msgstr "Egyebek"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:735
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:733
 msgid "Misc Settings"
 msgstr "Egyéb beállítások"
 
@@ -3498,7 +3511,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:113
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:130
 msgid "Monospaced font"
 msgstr "Azonos szélességű betűtípus"
 
@@ -3511,7 +3524,7 @@ msgstr "Motion Plus"
 msgid "Motor"
 msgstr "Motor"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:668
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:664
 msgid ""
 "Move the mouse pointer over an option to display a detailed description.\n"
 "\n"
@@ -3533,7 +3546,7 @@ msgstr ""
 msgid "Multiply"
 msgstr "Multiply"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:325
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:333
 msgid ""
 "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No "
 "effect on emulated wiimotes."
@@ -3625,7 +3638,7 @@ msgstr "NP Tab"
 msgid "NP Up"
 msgstr "NP Up"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:455
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:463
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:58
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:49
 msgid "Name:"
@@ -3634,7 +3647,7 @@ msgstr "Cím:"
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:85
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:295
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:564
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:13
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:26
 msgid "Name: "
 msgstr "Név:"
 
@@ -3648,7 +3661,7 @@ msgid "New Scan"
 msgstr "Új keresés"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:203
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:797
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:809
 msgid "Next Page"
 msgstr "Következő lap"
 
@@ -3660,7 +3673,7 @@ msgstr "Következő keresés"
 msgid "Nickname :"
 msgstr "Becenév:"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:192
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:200
 msgid "No Country (SDK)"
 msgstr "Nincs ország (SDK)"
 
@@ -3699,7 +3712,7 @@ msgstr "%s játékhoz nem található mentési mappa"
 msgid "None"
 msgstr "Nincs"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:308
 msgid "Norwegian Bokmaal"
 msgstr "Norvég"
 
@@ -3707,8 +3720,8 @@ msgstr "Norvég"
 msgid "Not Equal"
 msgstr "Nem egyenlő"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:344
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:869
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:352
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:865
 msgid "Not Set"
 msgstr "Nincs beállítva"
 
@@ -3720,7 +3733,7 @@ msgstr "Nincs csatlakoztatva"
 msgid "Notes"
 msgstr "Megjegyzés"
 
-#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:14
+#: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:27
 msgid "Notes: "
 msgstr "Megjegyzések:"
 
@@ -3758,7 +3771,7 @@ msgstr "Elem"
 msgid "Object Range"
 msgstr "Elem hatótáv"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:238
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:239
 msgid "Off"
 msgstr "Ki"
 
@@ -3777,11 +3790,11 @@ msgstr "Csak %d blokk szabad"
 msgid "Open"
 msgstr "Megnyitás"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:941
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:937
 msgid "Open &containing folder"
 msgstr "A játékot &tartalmazó mappa megnyitása"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:938
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:934
 msgid "Open Wii &save folder"
 msgstr "Wii &mentések mappa megnyitása"
 
@@ -3803,11 +3816,11 @@ msgstr "OpenAL: nem található hang eszköz"
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: %s eszköz nem nyitható meg"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:504
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:500
 msgid "OpenCL Texture Decoder"
 msgstr "OpenCL textúra dekódoló"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:505
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:501
 msgid "OpenMP Texture Decoder"
 msgstr "OpenMP textúra dekódoló"
 
@@ -3839,7 +3852,7 @@ msgstr ""
 "és az állásmentések importálásához az új memóriakártyára\n"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:321
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:507
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:503
 msgid "Other"
 msgstr "Egyéb"
 
@@ -3891,21 +3904,21 @@ msgstr "Paragraph"
 msgid "Parameters"
 msgstr "Paraméterek"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:219
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:227
 #, c-format
 msgid "Partition %i"
 msgstr "%i partíció"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:293
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:301
 msgid "Patches"
 msgstr "Javítások"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:534
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:535
 msgid "Paths"
 msgstr "Mappák"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1621
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1622
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1618
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1619
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:48
 msgid "Pause"
 msgstr "Szünet"
@@ -3914,7 +3927,7 @@ msgstr "Szünet"
 msgid "Per-Pixel Lighting"
 msgstr "Képpont alapú fényhatások"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:349
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:357
 msgid "Perfect"
 msgstr "Tökéletes"
 
@@ -3925,8 +3938,8 @@ msgstr "%d perspektíva"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:437
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1630
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1631
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1627
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1628
 msgid "Play"
 msgstr "Indítás"
 
@@ -3940,7 +3953,7 @@ msgstr "Felvétel visszajátszása"
 msgid "Play/Pause"
 msgstr "Indítás/Szünet"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:356
 msgid "Playable"
 msgstr "Játszható"
 
@@ -3952,7 +3965,7 @@ msgstr "Visszajátszási lehetőségek"
 msgid "Players"
 msgstr "Játékosok"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1069
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1066
 msgid "Please confirm..."
 msgstr "Változtatás jóváhagyása..."
 
@@ -3964,23 +3977,23 @@ msgstr "Hozz először létre egy perspektívát mielőtt mentenél"
 msgid "Plus-Minus"
 msgstr "Plusz - minusz"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:306
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:309
 msgid "Polish"
 msgstr "Lengyel"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:672
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:670
 msgid "Port 1"
 msgstr "1. port"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:673
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:671
 msgid "Port 2"
 msgstr "2. port"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:674
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:672
 msgid "Port 3"
 msgstr "3. port"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:675
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:673
 msgid "Port 4"
 msgstr "4. port"
 
@@ -3989,32 +4002,32 @@ msgstr "4. port"
 msgid "Port :"
 msgstr "Port:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:307
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
 msgid "Portuguese"
 msgstr "Portugál"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:308
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
 msgid "Portuguese (Brazilian)"
-msgstr "Portugál (brazíliai)"
+msgstr "Portugál (brazil)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:396
 msgid "Post-Processing Effect:"
 msgstr "Utófeldolgozási effektus:"
 
-#: Source/Core/Core/Src/Movie.cpp:735
+#: Source/Core/Core/Src/Movie.cpp:759
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
-msgstr ""
+msgstr "Túl korai PlayController videó befejezés. %u + 8 > %u"
 
-#: Source/Core/Core/Src/Movie.cpp:829
+#: Source/Core/Core/Src/Movie.cpp:853
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
-msgstr ""
+msgstr "Túl korai PlayWiimote videó befejezés. %u + %d > %u"
 
-#: Source/Core/Core/Src/Movie.cpp:806
+#: Source/Core/Core/Src/Movie.cpp:830
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
-msgstr ""
+msgstr "Túl korai PlayWiimote videó befejezés. %u > %u"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:47
 msgid "Presets: "
@@ -4024,7 +4037,7 @@ msgstr "Gombkiosztás:"
 msgid "Prev Page"
 msgstr "Előző lap"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:796
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:808
 msgid "Previous Page"
 msgstr "Előző lap"
 
@@ -4075,7 +4088,7 @@ msgstr "Jobb analóg"
 msgid "RAM"
 msgstr "RAM"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:171
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:179
 msgid "RUSSIA"
 msgstr "OROSZORSZÁG"
 
@@ -4088,7 +4101,7 @@ msgstr "Hatótáv"
 msgid "Read-only mode"
 msgstr "Írásvédett mód"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:485
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:481
 msgid "Real"
 msgstr "Valódi"
 
@@ -4163,10 +4176,10 @@ msgstr "A lista frissítése"
 msgid "Refresh game list"
 msgstr "Játéklista frissítése"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:438
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:424
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:446
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:76
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:752
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:750
 msgid "Remove"
 msgstr "Törlés"
 
@@ -4212,11 +4225,11 @@ msgstr "Jobb kar"
 msgid "Rumble"
 msgstr "Rumble funkció"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:504
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:506
 msgid "Run DSP LLE on a dedicated thread (not recommended)."
 msgstr "DSP LLE futtatása egy dedikált folyamatágon (nem ajánlott)."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:309
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:312
 msgid "Russian"
 msgstr "Orosz"
 
@@ -4224,11 +4237,11 @@ msgstr "Orosz"
 msgid "Sa&ve State"
 msgstr "Ál&lás mentése"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:473
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:469
 msgid "Safe"
 msgstr "Biztonságos"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:636
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:634
 msgid "Sample Rate:"
 msgstr "Mintavételezési frekvencia:"
 
@@ -4286,12 +4299,12 @@ msgstr "Állás mentés a 8. helyre"
 msgid "Save State..."
 msgstr "Állás mentése..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:593
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:603
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:601
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:611
 msgid "Save as..."
 msgstr "Mentés másként..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1263
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1259
 msgid "Save compressed GCM/ISO"
 msgstr "Tömörített GCM/ISO mentése"
 
@@ -4299,11 +4312,11 @@ msgstr "Tömörített GCM/ISO mentése"
 msgid "Save current perspective"
 msgstr "Jelenlegi perspektíva mentése"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1252
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1248
 msgid "Save decompressed GCM/ISO"
 msgstr "Kitömörített GCM/ISO mentése"
 
-#: Source/Core/Core/Src/Movie.cpp:585
+#: Source/Core/Core/Src/Movie.cpp:623
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "%s állásmentés videója sérült, videó rögzítése leáll..."
@@ -4312,16 +4325,16 @@ msgstr "%s állásmentés videója sérült, videó rögzítése leáll..."
 msgid "Scaled EFB Copy"
 msgstr "Méretezett EFB másolat"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:634
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:630
 #, c-format
 msgid "Scanning %s"
 msgstr "Keresés %s"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:615
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:611
 msgid "Scanning for ISOs"
 msgstr "ISO fájlok keresése"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:616
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:612
 msgid "Scanning..."
 msgstr "Keresés..."
 
@@ -4337,12 +4350,12 @@ msgstr "Scroll Lock"
 msgid "Search Filter"
 msgstr "Keresési szűrő"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:750
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
 msgid "Search Subfolders"
 msgstr "Keresés az almappákban"
 
-#: Source/Core/Common/Src/SysConf.h:104 Source/Core/Common/Src/SysConf.h:127
-#: Source/Core/Common/Src/SysConf.h:147 Source/Core/Common/Src/SysConf.h:168
+#: Source/Core/Common/Src/SysConf.h:103 Source/Core/Common/Src/SysConf.h:126
+#: Source/Core/Common/Src/SysConf.h:146 Source/Core/Common/Src/SysConf.h:167
 #, c-format
 msgid "Section %s not found in SYSCONF"
 msgstr "%s rész nem található a SYSCONF fájlban"
@@ -4352,12 +4365,12 @@ msgstr "%s rész nem található a SYSCONF fájlban"
 msgid "Select"
 msgstr "Választás"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:749
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1158
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:746
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1155
 msgid "Select The Recording File"
 msgstr "Válassz rögzítendő fájlt"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1367
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1364
 msgid "Select a Wii WAD file to install"
 msgstr "Válassz telepítendő Wii WAD fájlt"
 
@@ -4383,15 +4396,15 @@ msgstr "Válassz lebegő ablakokat"
 msgid "Select the file to load"
 msgstr "Betöltendő fájl kiválasztása"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1324
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1321
 msgid "Select the save file"
 msgstr "Válassz mentési fájlt"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1470
 msgid "Select the state to load"
 msgstr "Válassz betöltendő állásmentést"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1487
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1484
 msgid "Select the state to save"
 msgstr "Válassz mentendő állást"
 
@@ -4413,7 +4426,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, válaszd ezt: Automatikus."
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:114
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:131
 msgid "Selected font"
 msgstr "Kiválasztott betűtípus"
 
@@ -4460,13 +4473,13 @@ msgstr "Érzékelő helyzete:"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:74
 msgid "Separator"
-msgstr "Separator"
+msgstr "Elválasztó"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:313
 msgid "Serbian"
 msgstr "Szerb"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:510
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:511
 msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use"
 msgstr ""
@@ -4476,11 +4489,11 @@ msgstr ""
 msgid "Set"
 msgstr "Beáll."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:942
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:938
 msgid "Set as &default ISO"
 msgstr "Beállítás &alapértelmezett ISO fájlként"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:798
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:810
 #, c-format
 msgid "Set as default Memcard %c"
 msgstr "Beállítás alapértelmezett %c. memóriakártyaként"
@@ -4491,7 +4504,7 @@ msgid "SetARCode_IsActive: Index is greater than ar code list size %lu"
 msgstr ""
 "SetARCode_IsActive: A jelzőszám nagyobb mint az ar kód lista mérete %lu"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:338
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:346
 msgid "Settings..."
 msgstr "Beállítások..."
 
@@ -4503,7 +4516,7 @@ msgstr "SetupWiiMem: Nem található a beállítási fájl"
 msgid "Shake"
 msgstr "Rázás"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:488
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:496
 msgid "Short Name:"
 msgstr "Rövid cím:"
 
@@ -4531,7 +4544,7 @@ msgstr "Eszközsor &mutatása"
 msgid "Show Drives"
 msgstr "Meghajtók mutatása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:528
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:524
 msgid "Show EFB Copy Regions"
 msgstr "EFB másolat régiók megjelenítése"
 
@@ -4547,7 +4560,7 @@ msgstr "Franciaország mutatása"
 msgid "Show GameCube"
 msgstr "GameCube mutatása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:560
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:556
 msgid "Show Input Display"
 msgstr "Bemeneti kijelző megjelenítése"
 
@@ -4563,7 +4576,7 @@ msgstr "JAP mutatása"
 msgid "Show Korea"
 msgstr "Korea mutatása"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:487
 msgid "Show Language:"
 msgstr "A játék nyelve:"
 
@@ -4583,7 +4596,7 @@ msgstr "Platformok mutatása"
 msgid "Show Regions"
 msgstr "Régiók mutatása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:529
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:525
 msgid "Show Statistics"
 msgstr "Statisztikák megjelenítése"
 
@@ -4603,11 +4616,11 @@ msgstr "Wad mutatása"
 msgid "Show Wii"
 msgstr "Wii mutatása"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:491
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:493
 msgid "Show a confirmation box before stopping a game."
 msgstr "A játék leállítása előtt megjelenik egy megerősítő ablak."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:492
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:494
 msgid ""
 "Show a message box when a potentially serious error has occured.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may also "
@@ -4618,23 +4631,23 @@ msgstr ""
 "Kikapcsolásával megszűntethetők a kellemetlen és nem végzetes üzenetek, de "
 "ezáltal a Dolphin hirtelen kifagyhat bármilyen magyarázat nélkül."
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:812
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:824
 msgid "Show first block"
 msgstr "Az első blokk megjelenítése"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:811
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:823
 msgid "Show save blocks"
 msgstr "Mentendő blokkok megjelenítése"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:809
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:821
 msgid "Show save comment"
 msgstr "Mentendő megjegyzések megjelenítése"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:810
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:822
 msgid "Show save icon"
 msgstr "Mentendő ikonok megjelenítése"
 
-#: Source/Core/DolphinWX/Src/MemcardManager.cpp:808
+#: Source/Core/DolphinWX/Src/MemcardManager.cpp:820
 msgid "Show save title"
 msgstr "Mentendő címek megjelenítése"
 
@@ -4672,7 +4685,7 @@ msgstr ""
 msgid "Sideways Wiimote"
 msgstr "Oldalt tartott Wiimote"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:283
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:285
 msgid "Simplified Chinese"
 msgstr "Egyszerűsített kínai"
 
@@ -4680,11 +4693,11 @@ msgstr "Egyszerűsített kínai"
 msgid "Size"
 msgstr "Méret"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:655
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:653
 msgid "Skip BIOS"
 msgstr "BIOS kihagyása"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:503
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:499
 msgid "Skip Dest. Alpha Pass"
 msgstr "Dest. Alpha Pass kihagyása"
 
@@ -4726,11 +4739,11 @@ msgstr ""
 msgid "Slot %i"
 msgstr "%i hely"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:659
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:657
 msgid "Slot A"
 msgstr "A hely"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:660
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:658
 msgid "Slot B"
 msgstr "B hely"
 
@@ -4749,13 +4762,13 @@ msgid ""
 "It's only useful for debugging purposes.\n"
 "Do you really want to enable software rendering? If unsure, select 'No'."
 msgstr ""
-"A szoftveres képleképezés egy fontosságbeli sorrenden alapul és lassabb a "
+"A szoftveres képalkotó egy fontosságbeli sorrenden alapul és lassabb a "
 "feldolgozók használatánál.\n"
 "Csak hibakeresési célra hasznos.\n"
-"Biztosan be kívánod kapcsolni a szoftveres képleképezést? Ha bizonytalan "
-"vagy, válaszd ezt: 'Nem'."
+"Biztosan be kívánod kapcsolni a szoftveres képalkotót? Ha bizonytalan vagy, "
+"válaszd ezt: 'Nem'."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:622
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:621
 msgid "Sound Settings"
 msgstr "Hang beállítások"
 
@@ -4773,9 +4786,9 @@ msgstr "Hang puffer létrehozása sikertelen: %s"
 msgid "Space"
 msgstr "Szóköz"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:483
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:491
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
 msgid "Spanish"
 msgstr "Spanyol"
 
@@ -4807,15 +4820,15 @@ msgstr ""
 msgid "Specify a video backend"
 msgstr "Válassz videó feldolgozót"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:316
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 msgid "Speed up Disc Transfer Rate"
 msgstr "A lemez adatátviteli arány gyorsítása"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:243
 msgid "Square Stick"
-msgstr "Negyzetes kar"
+msgstr "Négyzetes kar"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:80
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:81
 msgid "Standard Controller"
 msgstr "Normál irányító"
 
@@ -4899,12 +4912,12 @@ msgstr "Mentés fájlok sikeresen importálva"
 msgid "Swing"
 msgstr "Lengetés"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:684
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:732
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:682
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:730
 msgid "System Language:"
 msgstr "Rendszer nyelv:"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:187
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:195
 msgid "TAIWAN"
 msgstr "TAJVAN"
 
@@ -4936,9 +4949,9 @@ msgstr "Tábla jobbra"
 msgid "Take Screenshot"
 msgstr "Pillanatkép készítése"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:81
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:82
 msgid "TaruKonga (Bongos)"
-msgstr ""
+msgstr "TaruKonga (Bongos)"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:489
 msgid "Test"
@@ -4952,7 +4965,7 @@ msgstr "Textúra"
 msgid "Texture Cache"
 msgstr "Textúra gyorsítótár"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:530
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:526
 msgid "Texture Format Overlay"
 msgstr "Textúra formátum átfedés"
 
@@ -4968,13 +4981,13 @@ msgstr "A cím érvénytelen"
 msgid "The checksum was successfully fixed"
 msgstr "Az ellenőrző összeg sikeresen javítva"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1175
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1173
 msgid "The chosen directory is already in the list"
 msgstr "A választott könyvtár már szerepel a listán"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1182
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1210
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1276
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1178
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1206
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1272
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -4997,7 +5010,7 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "%s fáj már meg van nyitva, a fájl fejléce nem írható."
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:313
+#: Source/Core/Core/Src/Boot/Boot.cpp:316
 #, c-format
 msgid "The file you specified (%s) does not exist"
 msgstr "Az általad megadott (%s) fájl nem létezik"
@@ -5015,11 +5028,12 @@ msgid "The resulting decrypted AR code doesn't contain any lines."
 msgstr "A kapott kódolatlan AR kód nem tartalmaz sorokat."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
+#, fuzzy
 msgid ""
 "The safer you adjust this, the less likely the emulator will be missing any "
 "texture updates from RAM.\n"
 "\n"
-"If unsure, use the second-fastest value from the right."
+"If unsure, use the rightmost value."
 msgstr ""
 "Minél biztonságosabb a beállítás, annál kevésbé valószínű, hogy az emulátor "
 "textúra frissítést fog a RAM-ból hiányolni.\n"
@@ -5063,7 +5077,7 @@ msgstr "A megadott \"%s\" fájl nem létezik"
 msgid "The value is invalid"
 msgstr "Az érték érvénytelen"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:577
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:578
 msgid "Theme"
 msgstr "Kinézet"
 
@@ -5071,7 +5085,7 @@ msgstr "Kinézet"
 msgid "Theme selection went wrong"
 msgstr "Kinézet választáskor hiba történt"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:467
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:470
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -5079,7 +5093,7 @@ msgstr ""
 "Kell lennie egy jegynek itt: 00000001/00000002. A NAND mentésed valószínűleg "
 "befejezetlen."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:304
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:312
 msgid ""
 "These settings override core Dolphin settings.\n"
 "Undetermined means the game uses Dolphin's setting."
@@ -5095,7 +5109,7 @@ msgstr ""
 "Az action replay szimulátor nem támogat olyan kódokat, amelyek módosítját "
 "magát az Action Replay-t."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:513
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:514
 msgid "This could cause slow down in Wii Menu and some games."
 msgstr "Ez lassulást okozhat a Wii menüben és néhány játékban."
 
@@ -5119,25 +5133,10 @@ msgstr ""
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:505
-msgid ""
-"This is used to control game speed by sound throttle.\n"
-"Disabling this could cause abnormal game speed, such as too fast.\n"
-"But sometimes enabling this could cause constant noise.\n"
-"\n"
-"Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-msgstr ""
-"Ez a játék sebességének szabályozására szolgál a hang szabályozás által.\n"
-"Kikapcsolása rendellenes sebességet okozhat, többnyire túl gyorsat.\n"
-"Viszont néha a bekapcsolása folyamatos zajt eredményezhet.\n"
-"\n"
-"Gyorsbillentyű <TAB>:  Tartsd lenyomva a szabályozás azonnali "
-"kikapcsolásához."
-
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:503
 msgid "This is used to play music tracks, like BGM."
 msgstr "Ez a zenei sávok, mint BGM lejátszásra szolgál."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:484
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:486
 msgid ""
 "This splits the Video and CPU threads, so they can be run on separate "
 "cores.\n"
@@ -5149,7 +5148,7 @@ msgstr ""
 "Számottevő sebességnövekedés érhető el egynél több magos számítógépeken, "
 "ugyanakkor véletlenszerű fagyásokat/hibákat is okozhat."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:283
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:291
 msgid "This will let you Manually Edit the INI config file"
 msgstr "Ez által kézileg szerkesztheted az INI konfigurációs fájlt"
 
@@ -5172,7 +5171,7 @@ msgstr "Cím"
 msgid "To"
 msgstr "eddig:"
 
-#: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:66
+#: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:74
 msgid "Toggle All Log Types"
 msgstr "Minden napló típus kijelölése"
 
@@ -5183,15 +5182,15 @@ msgid "Toggle Fullscreen"
 msgstr "Váltás teljes nézetre"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:92
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:276
 msgid "Top"
 msgstr "Fent"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:284
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:286
 msgid "Traditional Chinese"
 msgstr "Hagyományos kínai"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:407
+#: Source/Core/Core/Src/Boot/Boot.cpp:410
 msgid "Tried to load an unknown file type."
 msgstr "Próbálkozás egy ismeretlen fájltípus betöltésével. "
 
@@ -5199,7 +5198,7 @@ msgstr "Próbálkozás egy ismeretlen fájltípus betöltésével. "
 msgid "Triggers"
 msgstr "Kioldó gombok"
 
-#: Source/Core/Common/Src/SysConf.h:92 Source/Core/Common/Src/SysConf.h:115
+#: Source/Core/Common/Src/SysConf.h:91 Source/Core/Common/Src/SysConf.h:114
 msgid "Trying to read from invalid SYSCONF"
 msgstr "Olvasási próbálkozás az érvénytelen SYSCONF fájlból"
 
@@ -5211,7 +5210,7 @@ msgstr ""
 "Olvasási próbálkozás az érvénytelen SYSCONF fájlból\n"
 "Nem találhatóak Wiimote bt azonosítók "
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:312
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:315
 msgid "Turkish"
 msgstr "Török"
 
@@ -5232,11 +5231,11 @@ msgstr "UDP port:"
 msgid "UDP Wiimote"
 msgstr "UDP Wiimote"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:195
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:203
 msgid "UNKNOWN"
 msgstr "ISMERETLEN"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:174
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:182
 msgid "USA"
 msgstr "USA"
 
@@ -5308,7 +5307,7 @@ msgstr "Frissítés"
 msgid "Upright Wiimote"
 msgstr "Előre tartott Wiimote"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:717
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:715
 msgid "Use EuRGB60 Mode (PAL60)"
 msgstr "EuRGB60 mód (PAL60) használata"
 
@@ -5320,9 +5319,9 @@ msgstr "Teljes nézet használata"
 msgid "Use Hex"
 msgstr "Hexa használat"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:583
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:584
 msgid "Use Panic Handlers"
-msgstr "Hibaüzenetek megjelenítése"
+msgstr "Hibakezelők használata"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:123
 msgid ""
@@ -5352,13 +5351,13 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:551
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:547
 msgid "Utility"
 msgstr "Kellékek"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:292
 msgid "V-Sync"
-msgstr "Várakozás a képfrissítésre"
+msgstr "V-Sync"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:209
 msgid "Value"
@@ -5376,24 +5375,28 @@ msgstr "Érték:"
 msgid "Verbosity"
 msgstr "Verbosity"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:396
 msgid "Video"
 msgstr "Kép"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:484
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:480
 msgid "Virtual"
 msgstr "Virtuális"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:629
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:627
 msgid "Volume"
 msgstr "Hangerő"
 
-#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:496
-#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:525
-#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:546
+#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:498
+#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:527
 #, c-format
 msgid "WAD installation failed: error creating %s"
-msgstr "WAD telepítési hiba: hiba naplózása %s"
+msgstr "WAD telepítési hiba: hiba a(z) %s létrehozása közben"
+
+#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:547
+#, fuzzy
+msgid "WAD installation failed: error creating ticket"
+msgstr "WAD telepítési hiba: hiba a(z) %s létrehozása közben"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:83
 msgid ""
@@ -5413,15 +5416,15 @@ msgstr ""
 msgid "Warning"
 msgstr "Figyelem"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:272
+#: Source/Core/Core/Src/Boot/Boot.cpp:275
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "Figyelem - DOL indítása nem megfelelő konzol módban!"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:322
+#: Source/Core/Core/Src/Boot/Boot.cpp:325
 msgid "Warning - starting ELF in wrong console mode!"
 msgstr "Figyelem - ELF indítása nem megfelelő konzol módban!"
 
-#: Source/Core/Core/Src/Boot/Boot.cpp:217
+#: Source/Core/Core/Src/Boot/Boot.cpp:220
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Figyelem - ISO indítása nem megfelelő konzol módban!"
 
@@ -5449,23 +5452,31 @@ msgstr ""
 "és azonos néven fog szerepelni a memóriakártyán lévőkkel\n"
 "Folytatod?"
 
-#: Source/Core/Core/Src/Movie.cpp:629
+#: Source/Core/Core/Src/Movie.cpp:667
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
 "%u > %u) (frame %u > %u). You should load another save before continuing, or "
 "load this state with read-only mode off."
 msgstr ""
+"Figyelem: Olyan mentést töltöttél be, ami a választott videó befejezése "
+"utáni. (%u > %u bájt) (%u > %u képkocka). Folytatás előtt betölthetsz egy "
+"másik mentést, vagy betöltheted ezt a mentést az írásvédett mód kikapcsolása "
+"után."
 
-#: Source/Core/Core/Src/Movie.cpp:646
+#: Source/Core/Core/Src/Movie.cpp:684
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
 "should load another save before continuing, or load this state with read-"
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
+"Figyelem: Olyan mentést töltöttél be, amelyik videójánál %d (0x%X) bájt "
+"eltérés mutatkozik. Folytatás előtt betölthetsz egy másik mentést, vagy "
+"betöltheted ezt a mentést az írásvédett mód kikapcsolása után. Ellenkező "
+"esetben szinkronizációs hibák jelentkezhetnek."
 
-#: Source/Core/Core/Src/Movie.cpp:655
+#: Source/Core/Core/Src/Movie.cpp:693
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -5483,6 +5494,21 @@ msgid ""
 "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
 "%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 msgstr ""
+"Figyelem: Olyan mentést töltöttél be, amelyik videójánál %d képkocka eltérés "
+"mutatkozik. Folytatás előtt betölthetsz egy másik mentést, vagy betöltheted "
+"ezt a mentést az írásvédett mód kikapcsolása után. Ellenkező esetben "
+"szinkronizációs hibák jelentkezhetnek.\n"
+"\n"
+"Bővebb információk: A választott videó %d képkocka hosszú, a mentett állás "
+"videója pedig %d képkocka hosszú.\n"
+"\n"
+"%d képkockánál a videó tömörítve lesz:\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
+"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
+"\n"
+"%d képkockánál a mentett állás videója tömörítve lesz:\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
+"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:106
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:120
@@ -5493,7 +5519,7 @@ msgstr "WaveFileWriter - fájl nincs megnyitva."
 msgid "Whammy"
 msgstr "Whammy"
 
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:564
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:560
 msgid "Widescreen Hack"
 msgstr "Szélesvásznú hack"
 
@@ -5501,15 +5527,15 @@ msgstr "Szélesvásznú hack"
 msgid "Width"
 msgstr "Szélesség"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:534
 msgid "Wii"
 msgstr "Wii"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:368
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:376
 msgid "Wii Console"
 msgstr "Wii konzol"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:784
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:782
 msgid "Wii NAND Root:"
 msgstr "Wii NAND gyökér könyvtár:"
 
@@ -5517,7 +5543,7 @@ msgstr "Wii NAND gyökér könyvtár:"
 msgid "Wii Save Import"
 msgstr "Wii mentés importálása"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1326
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1323
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "Wii mentés fájlok (*.bin)|*.bin"
 
@@ -5576,19 +5602,24 @@ msgstr "Windows menü"
 msgid "Windows Right"
 msgstr "Jobb Windows"
 
-#: Source/Core/DolphinWX/Src/LogWindow.cpp:129
+#: Source/Core/DolphinWX/Src/LogWindow.cpp:146
 msgid "Word Wrap"
 msgstr "Word Wrap"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1380
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1282
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1377
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1145
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1278
 msgid "Working..."
 msgstr "Folyamatban..."
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:61
 msgid "Write to Console"
 msgstr "Írás a konzolba"
+
+#: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:69
+#, fuzzy
+msgid "Write to Debugger"
+msgstr "Írás fájlba"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:59
 msgid "Write to File"
@@ -5646,7 +5677,7 @@ msgstr ""
 msgid "You must enter a valid profile name."
 msgstr "Meg kell adnod egy érvényes profil nevet."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:881
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:880
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr ""
 "Újra kell indítanod a Dolphin emulátort a változtatások érvényesítéséhez."
@@ -5670,7 +5701,7 @@ msgstr ""
 "0x%04x méretűnek kellene lennie (azonban 0x%04llx méretű)\n"
 "Akarsz újat létrehozni?"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:339
 msgid "ZTP hack"
 msgstr "ZTP hack"
 
@@ -5741,7 +5772,7 @@ msgstr ""
 msgid "^ ADD"
 msgstr "^ HOZZÁADÁS"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:760
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:758
 msgid "apploader (.img)"
 msgstr "betöltő program (.img)"
 
@@ -5772,12 +5803,12 @@ msgstr "nem Wii mentés vagy a fájl fejléc méretének kiolvasása sikertelen 
 msgid "s"
 msgstr "s"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:443
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:446
 #, c-format
 msgid "unknown cmd 0x%08x"
 msgstr "ismeretlen parancs 0x%08x"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1062
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1070
 msgid "wxExecute returned -1 on application run!"
 msgstr "wxExecute visszatért -1 alkalmazás fut!"
 
@@ -5989,6 +6020,9 @@ msgstr "| VAGY"
 #~ msgid "Emulator Display Settings"
 #~ msgstr "Emulátor kijelző beállítások"
 
+#~ msgid "Enable Audio Throttle"
+#~ msgstr "Hang szabályozás használata"
+
 #~ msgid "Enable CPU Access"
 #~ msgstr "Processzor hozzáférés engedélyezése"
 
@@ -6045,6 +6079,13 @@ msgstr "| VAGY"
 
 #~ msgid "Error allocating buffer"
 #~ msgstr "Puffer kiosztási hiba"
+
+#~ msgid ""
+#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
+#~ "Sorry, Wii recording is temporarily broken."
+#~ msgstr ""
+#~ "PlayWiimote hiba. %u != %u, bájt %d.\n"
+#~ "Sajnos a Wii videó rögzítés egyenlőre nem működik."
 
 #~ msgid "Error loading %s: can't read info"
 #~ msgstr "Hiba a(z) %s betöltése közben: az infó nem olvasható"
@@ -6328,6 +6369,20 @@ msgstr "| VAGY"
 
 #~ msgid "The file "
 #~ msgstr "A fájl"
+
+#~ msgid ""
+#~ "This is used to control game speed by sound throttle.\n"
+#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
+#~ "But sometimes enabling this could cause constant noise.\n"
+#~ "\n"
+#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
+#~ msgstr ""
+#~ "Ez a játék sebességének szabályozására szolgál a hang szabályozás által.\n"
+#~ "Kikapcsolása rendellenes sebességet okozhat, többnyire túl gyorsat.\n"
+#~ "Viszont néha a bekapcsolása folyamatos zajt eredményezhet.\n"
+#~ "\n"
+#~ "Gyorsbillentyű <TAB>:  Tartsd lenyomva a szabályozás azonnali "
+#~ "kikapcsolásához."
 
 #~ msgid "This is usually used to play voice and sound effects."
 #~ msgstr "Ez a játék hangok és hang effektusok lejátszásra szolgál."
