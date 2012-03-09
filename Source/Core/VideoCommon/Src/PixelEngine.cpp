@@ -356,22 +356,16 @@ void UpdateInterrupts()
 
 void UpdateTokenInterrupt(bool active)
 {
-	if(interruptSetToken != active)
-	{
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
 		interruptSetToken = active;
-	}
 }
 
 void UpdateFinishInterrupt(bool active)
 {
-	if(interruptSetFinish != active)
-	{
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
 		interruptSetFinish = active;
 		if (active)
 			State::ProcessRequestedStates(0);
-	}
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
@@ -472,5 +466,13 @@ void ResetSetToken()
 bool WaitingForPEInterrupt()
 {
 	return CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || interruptSetFinish || interruptSetToken;
+}
+
+void ResumeWaitingForPEInterrupt()
+{
+	interruptSetFinish = false;
+	interruptSetToken = false;
+	CommandProcessor::interruptFinishWaiting = false;
+	CommandProcessor::interruptTokenWaiting = false;
 }
 } // end of namespace PixelEngine

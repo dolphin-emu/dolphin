@@ -574,7 +574,7 @@ void ProcessFifoAllDistance()
 	if (IsOnThread())
 	{
 		while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable &&
-			fifo.CPReadWriteDistance && !AtBreakpoint())
+			fifo.CPReadWriteDistance && !AtBreakpoint() && !PixelEngine::WaitingForPEInterrupt())
 			Common::YieldCPU();
 	}
 	bProcessFifoAllDistance = false;
@@ -597,10 +597,12 @@ void SetCpStatusRegister()
 		
 	m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
 	m_CPStatusReg.ReadIdle = (fifo.CPReadPointer == fifo.CPWritePointer) || (fifo.CPReadPointer == fifo.CPBreakpoint) ;
-	m_CPStatusReg.CommandIdle = !fifo.CPReadWriteDistance || (IsOnThread() && PixelEngine::WaitingForPEInterrupt());
+	m_CPStatusReg.CommandIdle = !fifo.CPReadWriteDistance;
 	m_CPStatusReg.UnderflowLoWatermark = fifo.bFF_LoWatermark;
 	m_CPStatusReg.OverflowHiWatermark = fifo.bFF_HiWatermark;
-
+	
+	PixelEngine::ResumeWaitingForPEInterrupt();
+	
 	INFO_LOG(COMMANDPROCESSOR,"\t Read from STATUS_REGISTER : %04x", m_CPStatusReg.Hex);
 	DEBUG_LOG(COMMANDPROCESSOR, "(r) status: iBP %s | fReadIdle %s | fCmdIdle %s | iOvF %s | iUndF %s"
 		, m_CPStatusReg.Breakpoint ?			"ON" : "OFF"
@@ -609,6 +611,8 @@ void SetCpStatusRegister()
 		, m_CPStatusReg.OverflowHiWatermark ?	"ON" : "OFF"
 		, m_CPStatusReg.UnderflowLoWatermark ?	"ON" : "OFF"
 			);
+
+	
 }
 
 void SetCpControlRegister()
