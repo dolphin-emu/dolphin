@@ -524,8 +524,11 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
-		blockSize = 1;
-		Trace();
+		if (!Profiler::g_ProfileBlocks)
+		{
+			blockSize = 1;
+			Trace();
+		}
 	}
 
 	if (em_address == 0)
