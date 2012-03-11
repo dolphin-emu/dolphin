@@ -171,11 +171,23 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 	case FIFO_LO_WATERMARK_HI:	_rReturnValue = ReadHigh(fifo.CPLoWatermark); return;
 
 	case FIFO_RW_DISTANCE_LO:
+		if (IsOnThread())
+			if(fifo.CPWritePointer >= fifo.SafeCPReadPointer)
+				_rReturnValue = ReadLow (fifo.CPWritePointer - fifo.SafeCPReadPointer);
+			else
+				_rReturnValue = ReadLow (fifo.CPEnd - fifo.CPWritePointer + fifo.SafeCPReadPointer);
+		else
 		_rReturnValue = ReadLow (fifo.CPReadWriteDistance);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_RW_DISTANCE_HI:
-		_rReturnValue = ReadHigh(fifo.CPReadWriteDistance);
+		if (IsOnThread())
+			if(fifo.CPWritePointer >= fifo.SafeCPReadPointer)
+				_rReturnValue = ReadHigh (fifo.CPWritePointer - fifo.SafeCPReadPointer);
+			else
+				_rReturnValue = ReadHigh (fifo.CPEnd - fifo.CPWritePointer + fifo.SafeCPReadPointer);
+		else
+ 		_rReturnValue = ReadHigh(fifo.CPReadWriteDistance);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
 		return;
 	case FIFO_WRITE_POINTER_LO:
@@ -356,6 +368,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 	case FIFO_READ_POINTER_HI:
 		WriteHigh((u32 &)fifo.CPReadPointer, _Value);
+		fifo.SafeCPReadPointer = fifo.CPReadPointer;
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_HI : %04x", _Value);
 		break;
 
@@ -596,7 +609,7 @@ void SetCpStatusRegister()
 	// Here always there is one fifo attached to the GPU
 		
 	m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
-	m_CPStatusReg.ReadIdle = (fifo.CPReadPointer == fifo.CPWritePointer) || (fifo.CPReadPointer == fifo.CPBreakpoint) ;
+	m_CPStatusReg.ReadIdle = !fifo.CPReadWriteDistance || (fifo.CPReadPointer == fifo.CPWritePointer) || (fifo.CPReadPointer == fifo.CPBreakpoint) ;
 	m_CPStatusReg.CommandIdle = !fifo.CPReadWriteDistance;
 	m_CPStatusReg.UnderflowLoWatermark = fifo.bFF_LoWatermark;
 	m_CPStatusReg.OverflowHiWatermark = fifo.bFF_HiWatermark;
