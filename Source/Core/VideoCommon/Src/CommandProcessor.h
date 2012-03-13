@@ -25,7 +25,6 @@ class PointerWrap;
 
 extern bool MT;
 
-
 namespace CommandProcessor
 {
 

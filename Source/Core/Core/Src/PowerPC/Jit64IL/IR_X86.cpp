@@ -1925,17 +1925,22 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case ExtExceptionCheck: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT | EXCEPTION_DECREMENTER));
+			FixupBranch clearInt = Jit->J_CC(CC_NZ);
 			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
 			FixupBranch noExtException = Jit->J_CC(CC_Z);
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
+			FixupBranch noExtIntEnable = Jit->J_CC(CC_Z);
 			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP));
 			FixupBranch noCPInt = Jit->J_CC(CC_Z);
 
 			Jit->MOV(32, M(&PC), Imm32(InstLoc));
 			Jit->WriteExceptionExit();
 
-			
 			Jit->SetJumpTarget(noCPInt);
+			Jit->SetJumpTarget(noExtIntEnable);
 			Jit->SetJumpTarget(noExtException);
+			Jit->SetJumpTarget(clearInt);
 			break;
 		}
 		case Int3: {

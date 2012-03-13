@@ -322,7 +322,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	case PE_TOKEN_REG:
-		//LOG(PIXELENGINE,"WEIRD: program wrote token: %i",_iValue);
 		PanicAlert("(w16) WTF? PowerPC program wrote token: %i", _iValue);
 		//only the gx pipeline is supposed to be able to write here
 		//g_token = _iValue;
@@ -384,8 +383,6 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 		CommandProcessor::interruptTokenWaiting = false;
 		IncrementCheckContextId();
 	//}
-	//else
-	//	LOGV(PIXELENGINE, 1, "VIDEO Backend wrote token: %i", CommandProcessor::fifo.PEToken);
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)

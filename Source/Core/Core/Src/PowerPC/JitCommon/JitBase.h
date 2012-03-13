@@ -28,9 +28,6 @@
 #include "JitBackpatch.h"  // for EmuCodeBlock
 #include "JitAsmCommon.h"
 
-#include "PowerPCDisasm.h"
-#include "disasm.h"
-
 #include <set>
 
 #define JIT_OPCODE 0

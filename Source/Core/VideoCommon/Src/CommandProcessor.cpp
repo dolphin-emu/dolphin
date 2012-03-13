@@ -141,7 +141,6 @@ void Init()
 
 void Read16(u16& _rReturnValue, const u32 _Address)
 {
-
 	INFO_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
 	switch (_Address & 0xFFF)
 	{
@@ -177,7 +176,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 			else
 				_rReturnValue = ReadLow (fifo.CPEnd - fifo.CPWritePointer + fifo.SafeCPReadPointer);
 		else
-		_rReturnValue = ReadLow (fifo.CPReadWriteDistance);
+			_rReturnValue = ReadLow (fifo.CPReadWriteDistance);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_RW_DISTANCE_HI:
@@ -187,7 +186,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 			else
 				_rReturnValue = ReadHigh (fifo.CPEnd - fifo.CPWritePointer + fifo.SafeCPReadPointer);
 		else
- 		_rReturnValue = ReadHigh(fifo.CPReadWriteDistance);
+			_rReturnValue = ReadHigh(fifo.CPReadWriteDistance);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
 		return;
 	case FIFO_WRITE_POINTER_LO:
@@ -499,18 +498,15 @@ void AbortFrame()
 
 void SetOverflowStatusFromGatherPipe()
 {
-	
-
 	fifo.bFF_HiWatermark = (fifo.CPReadWriteDistance > fifo.CPHiWatermark);
 	isHiWatermarkActive = fifo.bFF_HiWatermark && fifo.bFF_HiWatermarkInt && m_CPCtrlReg.GPReadEnable;
-	
+
     if (isHiWatermarkActive)
 	{
 		interruptSet = true;
         INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
-        ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);    
+        ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);
 	}
-			   
 }
 
 void SetCpStatus()
@@ -520,12 +516,10 @@ void SetCpStatus()
     fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
 	
     // breakpoint     
-	
 	if (fifo.bFF_BPEnable)
     {
 		if (fifo.CPBreakpoint == fifo.CPReadPointer)
-        {        
-			
+        {
             if (!fifo.bFF_Breakpoint)
 			{
 				INFO_LOG(COMMANDPROCESSOR, "Hit breakpoint at %i", fifo.CPReadPointer);
@@ -607,15 +601,16 @@ void Shutdown()
 void SetCpStatusRegister()
 {
 	// Here always there is one fifo attached to the GPU
-		
 	m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
 	m_CPStatusReg.ReadIdle = !fifo.CPReadWriteDistance || (fifo.CPReadPointer == fifo.CPWritePointer) || (fifo.CPReadPointer == fifo.CPBreakpoint) ;
 	m_CPStatusReg.CommandIdle = !fifo.CPReadWriteDistance;
 	m_CPStatusReg.UnderflowLoWatermark = fifo.bFF_LoWatermark;
 	m_CPStatusReg.OverflowHiWatermark = fifo.bFF_HiWatermark;
-	
-	PixelEngine::ResumeWaitingForPEInterrupt();
-	
+
+	// HACK to compensate for slow response to PE interrupts in Time Splitters: Future Perfect
+	if (IsOnThread())
+		PixelEngine::ResumeWaitingForPEInterrupt();
+
 	INFO_LOG(COMMANDPROCESSOR,"\t Read from STATUS_REGISTER : %04x", m_CPStatusReg.Hex);
 	DEBUG_LOG(COMMANDPROCESSOR, "(r) status: iBP %s | fReadIdle %s | fCmdIdle %s | iOvF %s | iUndF %s"
 		, m_CPStatusReg.Breakpoint ?			"ON" : "OFF"
@@ -624,13 +619,10 @@ void SetCpStatusRegister()
 		, m_CPStatusReg.OverflowHiWatermark ?	"ON" : "OFF"
 		, m_CPStatusReg.UnderflowLoWatermark ?	"ON" : "OFF"
 			);
-
-	
 }
 
 void SetCpControlRegister()
 {
-
 	// If the new fifo is being attached We make sure there wont be SetFinish event pending.
 	// This protection fix eternal darkness booting, because the second SetFinish event when it is booting
 	// seems invalid or has a bug and hang the game.
@@ -638,7 +630,7 @@ void SetCpControlRegister()
 	if (!fifo.bFF_GPReadEnable && m_CPCtrlReg.GPReadEnable && !m_CPCtrlReg.BPEnable)
 	{
 		ProcessFifoEvents();
-		PixelEngine::ResetSetFinish();			
+		PixelEngine::ResetSetFinish();
 	}
 
 	fifo.bFF_BPInt = m_CPCtrlReg.BPInt;
@@ -653,9 +645,6 @@ void SetCpControlRegister()
 		ProcessorInterface::Fifo_CPUBase = fifo.CPBase;
 		ProcessorInterface::Fifo_CPUEnd = fifo.CPEnd;
 	}
-	// If overflown happens process the fifo to LoWatemark
-	//if (bProcessFifoToLoWatermark)
-	//	ProcessFifoToLoWatermark();
 			
 	if(fifo.bFF_GPReadEnable && !m_CPCtrlReg.GPReadEnable)
 	{
@@ -667,7 +656,6 @@ void SetCpControlRegister()
 		fifo.bFF_GPReadEnable = m_CPCtrlReg.GPReadEnable;
 	}
 
-			
 	DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | BP %s | Int %s | OvF %s | UndF %s | LINK %s"
 		, fifo.bFF_GPReadEnable ?				"ON" : "OFF"
 		, fifo.bFF_BPEnable ?					"ON" : "OFF"

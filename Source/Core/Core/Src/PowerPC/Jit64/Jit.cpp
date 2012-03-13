@@ -42,6 +42,9 @@
 #include "JitRegCache.h"
 #include "Jit64_Tables.h"
 #include "HW/ProcessorInterface.h"
+#if defined(_DEBUG) || defined(DEBUGFAST)
+#include "PowerPCDisasm.h"
+#endif
 
 using namespace Gen;
 using namespace PowerPC;
@@ -576,23 +579,22 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				gpr.Flush(FLUSH_ALL);
 				fpr.Flush(FLUSH_ALL);
 
-
 				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT | EXCEPTION_DECREMENTER));
 				FixupBranch clearInt = J_CC(CC_NZ);
 				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
 				FixupBranch noExtException = J_CC(CC_Z);
 				TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
-				FixupBranch noCPInt = J_CC(CC_Z);
+				FixupBranch noExtIntEnable = J_CC(CC_Z);
 				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP));
-				FixupBranch noCPInt2 = J_CC(CC_Z);
-				
+				FixupBranch noCPInt = J_CC(CC_Z);
+
 				MOV(32, M(&PC), Imm32(ops[i].address));
 				WriteExceptionExit();
 
-				SetJumpTarget(clearInt);
-				SetJumpTarget(noCPInt2);
 				SetJumpTarget(noCPInt);
+				SetJumpTarget(noExtIntEnable);
 				SetJumpTarget(noExtException);
+				SetJumpTarget(clearInt);
 			}
 
 			Jit64Tables::CompileInstruction(ops[i]);
@@ -619,7 +621,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			char ppcInst[256];
 			DisassembleGekko(ops[i].inst.hex, em_address, ppcInst, 256);
-			NOTICE_LOG(DYNA_REC, "Unflushed reg: %s", ppcInst);
+			DEBUG_LOG(DYNA_REC, "Unflushed reg: %s", ppcInst);
 		}
 #endif
 
