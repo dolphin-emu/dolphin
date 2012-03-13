@@ -99,7 +99,7 @@ void STACKALIGN CheckGatherPipe()
 		
 		// Profile where the FIFO writes are occurring.
 		
-		if (g_video_backend->Video_IsHiWatermarkActive() && jit && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
+		if (jit && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
 		{
 			jit->js.fifoWriteAddresses.insert(PC);
 
