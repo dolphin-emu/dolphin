@@ -240,7 +240,14 @@ void Jit64::stfd(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-
+// In Release on 32bit build, 
+// this seemed to cause a problem with PokePark2
+// at start after talking to first pokemon,
+// you run and smash a box, then he goes on about
+// following him and then you cant do anything.
+// I have enabled interpreter for this function
+// in the mean time.
+// Parlane
 void Jit64::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
