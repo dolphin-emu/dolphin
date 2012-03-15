@@ -1269,7 +1269,8 @@ static const unsigned alwaysUsedList[] = {
 	Store16, Store32, StoreSingle, StoreDouble, StorePaired, StoreFReg, FDCmpCR,
 	BlockStart, BlockEnd, IdleBranch, BranchCond, BranchUncond, ShortIdleLoop,
 	SystemCall, InterpreterBranch, RFIExit, FPExceptionCheckStart,
-	FPExceptionCheckEnd, ISIException, ExtExceptionCheck, Int3, Tramp, Nop
+	FPExceptionCheckEnd, ISIException, ExtExceptionCheck, BreakPointCheck,
+	Int3, Tramp, Nop
 };
 static const unsigned extra8RegList[] = {
 	LoadGReg, LoadCR, LoadGQR, LoadFReg, LoadFRegDENToZero,

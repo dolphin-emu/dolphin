@@ -19,6 +19,7 @@
 #include "DebugInterface.h"
 #include "BreakPoints.h"
 #include <sstream>
+#include "..\..\Core\Src\PowerPC\JitCommon\JitBase.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {
@@ -70,7 +71,11 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bps)
 void BreakPoints::Add(const TBreakPoint& bp)
 {
 	if (!IsAddressBreakPoint(bp.iAddress))
+	{
 		m_BreakPoints.push_back(bp);
+		if (jit)
+			jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4);
+	}
 }
 
 void BreakPoints::Add(u32 em_address, bool temp)
@@ -83,21 +88,35 @@ void BreakPoints::Add(u32 em_address, bool temp)
 		pt.iAddress = em_address;
 
 		m_BreakPoints.push_back(pt);
+
+		if (jit)
+			jit->GetBlockCache()->InvalidateICache(em_address, 4);
 	}
 }
 
-void BreakPoints::Remove(u32 _iAddress)
+void BreakPoints::Remove(u32 em_address)
 {
 	for (TBreakPoints::iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
 	{
-		if (i->iAddress == _iAddress)
+		if (i->iAddress == em_address)
 		{
 			m_BreakPoints.erase(i);
+			if (jit)
+				jit->GetBlockCache()->InvalidateICache(em_address, 4);
 			return;
 		}
 	}
 }
 
+void BreakPoints::Clear()
+{
+	for (TBreakPoints::iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
+	{
+		if (jit)
+			jit->GetBlockCache()->InvalidateICache(i->iAddress, 4);
+		m_BreakPoints.erase(i);
+	}
+}
 
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {

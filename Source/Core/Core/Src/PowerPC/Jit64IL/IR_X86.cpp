@@ -763,6 +763,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case FPExceptionCheckEnd:
 		case ISIException:
 		case ExtExceptionCheck:
+		case BreakPointCheck:
 		case Int3:
 		case Tramp:
 			// No liveness effects
@@ -1941,6 +1942,17 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->SetJumpTarget(noExtIntEnable);
 			Jit->SetJumpTarget(noExtException);
 			Jit->SetJumpTarget(clearInt);
+			break;
+		}
+		case BreakPointCheck: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+
+			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+			Jit->TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+			FixupBranch noBreakpoint = Jit->J_CC(CC_Z);
+			Jit->WriteExit(InstLoc, 0);
+			Jit->SetJumpTarget(noBreakpoint);
 			break;
 		}
 		case Int3: {

@@ -415,9 +415,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
-		// Comment out the following to disable breakpoints (speed-up)
-		blockSize = 1;
-		broken_block = true;
+		if (GetState() == CPU_STEPPING)
+			blockSize = 1;
 		Trace();
 	}
 
@@ -595,6 +594,20 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SetJumpTarget(noExtIntEnable);
 				SetJumpTarget(noExtException);
 				SetJumpTarget(clearInt);
+			}
+
+			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			{
+				MOV(32, M(&PC), Imm32(ops[i].address));
+				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+
+				FixupBranch noBreakpoint = J_CC(CC_Z);
+				gpr.Flush(FLUSH_ALL);
+				fpr.Flush(FLUSH_ALL);
+
+				WriteExit(ops[i].address, 0);
+				SetJumpTarget(noBreakpoint);
 			}
 
 			Jit64Tables::CompileInstruction(ops[i]);

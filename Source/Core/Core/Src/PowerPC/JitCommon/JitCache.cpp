@@ -417,6 +417,24 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(address, 0)), it2 = it1, it;
 		while (it2 != block_map.end() && it2->first.second < address + length)
 		{
+#ifdef JIT_UNLIMITED_ICACHE
+			JitBlock &b = blocks[it2->second];
+			if (b.originalAddress & JIT_ICACHE_VMEM_BIT)
+			{
+				u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
+				memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
+			}
+			else if (b.originalAddress & JIT_ICACHE_EXRAM_BIT)
+			{
+				u32 cacheaddr = b.originalAddress & JIT_ICACHEEX_MASK;
+				memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
+			}
+			else
+			{
+				u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
+				memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
+			}
+#endif
 			DestroyBlock(it2->second, true);
 			it2++;
 		}
