@@ -601,8 +601,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				MOV(32, M(&PC), Imm32(ops[i].address));
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-
 				FixupBranch noBreakpoint = J_CC(CC_Z);
+
 				gpr.Flush(FLUSH_ALL);
 				fpr.Flush(FLUSH_ALL);
 
