@@ -41,7 +41,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	, x(0), y(0), winpos(0)
 	, Parent(parent), m_ignoreLogTimer(false), m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
-	, m_SJISConv(*(wxCSConv*)wxConvCurrent)
+	, m_SJISConv(wxT(""))
 {
 #ifdef _WIN32
 		static bool validCP932 = ::IsValidCodePage(932) != 0;
@@ -52,6 +52,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 		else
 		{
 			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+			m_SJISConv = *(wxCSConv*)wxConvCurrent;
 		}
 #else
 		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
