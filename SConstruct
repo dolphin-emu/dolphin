@@ -109,9 +109,7 @@ if sys.platform == 'darwin':
     env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
     env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
     env['CC'] = 'clang'
-    env['CC'] = 'llvm-gcc'
     env['CXX'] = 'clang++'
-    env['CXX'] = 'llvm-g++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-dead_strip,-dead_strip_dylibs']
