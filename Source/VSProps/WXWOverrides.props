@@ -13,7 +13,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <PreprocessorDefinitions>_LIB;__WXMSW__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\include;..\..\include\msvc;..\..\..\zlib;..\..\src\png;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\;..\..\include;..\..\..\zlib;..\..\..\libpng</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup />

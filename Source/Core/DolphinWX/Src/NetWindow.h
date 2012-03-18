@@ -24,6 +24,7 @@
 #include <string>
 
 #include <wx/wx.h>
+#include <wx/event.h>
 #include <wx/sizer.h>
 #include <wx/dialog.h>
 #include <wx/notebook.h>
