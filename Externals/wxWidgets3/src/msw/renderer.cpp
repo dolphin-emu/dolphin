@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.07.2003
-// RCS-ID:      $Id: renderer.cpp 65947 2010-10-30 15:57:32Z VS $
+// RCS-ID:      $Id: renderer.cpp 68951 2011-08-29 16:06:32Z DS $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -31,6 +31,7 @@
     #include "wx/settings.h"
 #endif //WX_PRECOMP
 
+#include "wx/dcgraph.h"
 #include "wx/scopeguard.h"
 #include "wx/splitter.h"
 #include "wx/renderer.h"
@@ -394,8 +395,12 @@ wxRendererMSW::DrawComboBoxDropButton(wxWindow * WXUNUSED(win),
                                       const wxRect& rect,
                                       int flags)
 {
+    wxCHECK_RET( dc.GetImpl(), wxT("Invalid wxDC") );
+
+    wxRect adjustedRect = dc.GetImpl()->MSWApplyGDIPlusTransform(rect);
+    
     RECT r;
-    wxCopyRectToRECT(rect, r);
+    wxCopyRectToRECT(adjustedRect, r);
 
     int style = DFCS_SCROLLCOMBOBOX;
     if ( flags & wxCONTROL_DISABLED )
@@ -414,8 +419,12 @@ wxRendererMSW::DoDrawFrameControl(UINT type,
                                   const wxRect& rect,
                                   int flags)
 {
+    wxCHECK_RET( dc.GetImpl(), wxT("Invalid wxDC") );
+
+    wxRect adjustedRect = dc.GetImpl()->MSWApplyGDIPlusTransform(rect);
+
     RECT r;
-    wxCopyRectToRECT(rect, r);
+    wxCopyRectToRECT(adjustedRect, r);
 
     int style = kind;
     if ( flags & wxCONTROL_CHECKED )
@@ -428,6 +437,11 @@ wxRendererMSW::DoDrawFrameControl(UINT type,
         style |= DFCS_PUSHED;
     if ( flags & wxCONTROL_CURRENT )
         style |= DFCS_HOT;
+    if ( flags & wxCONTROL_UNDETERMINED )
+        // Using DFCS_BUTTON3STATE here doesn't work (as might be expected),
+        // use the following two styles to get the same look of a check box
+        // in the undetermined state.
+        style |= DFCS_INACTIVE | DFCS_CHECKED;
 
     ::DrawFrameControl(GetHdcOf(dc.GetTempHDC()), &r, type, style);
 }
@@ -615,8 +629,12 @@ wxRendererXP::DrawComboBoxDropButton(wxWindow * win,
         return;
     }
 
+    wxCHECK_RET( dc.GetImpl(), wxT("Invalid wxDC") );
+
+    wxRect adjustedRect = dc.GetImpl()->MSWApplyGDIPlusTransform(rect);
+
     RECT r;
-    wxCopyRectToRECT(rect, r);
+    wxCopyRectToRECT(adjustedRect, r);
 
     int state;
     if ( flags & wxCONTROL_PRESSED )
@@ -654,8 +672,12 @@ wxRendererXP::DrawHeaderButton(wxWindow *win,
         return m_rendererNative.DrawHeaderButton(win, dc, rect, flags, sortArrow, params);
     }
 
+    wxCHECK_MSG( dc.GetImpl(), -1, wxT("Invalid wxDC") );
+
+    wxRect adjustedRect = dc.GetImpl()->MSWApplyGDIPlusTransform(rect);
+
     RECT r;
-    wxCopyRectToRECT(rect, r);
+    wxCopyRectToRECT(adjustedRect, r);
 
     int state;
     if ( flags & wxCONTROL_PRESSED )
@@ -696,8 +718,12 @@ wxRendererXP::DrawTreeItemButton(wxWindow *win,
         return;
     }
 
+    wxCHECK_RET( dc.GetImpl(), wxT("Invalid wxDC") );
+
+    wxRect adjustedRect = dc.GetImpl()->MSWApplyGDIPlusTransform(rect);
+
     RECT r;
-    wxCopyRectToRECT(rect, r);
+    wxCopyRectToRECT(adjustedRect, r);
 
     int state = flags & wxCONTROL_EXPANDED ? GLPS_OPENED : GLPS_CLOSED;
     wxUxThemeEngine::Get()->DrawThemeBackground
@@ -734,8 +760,12 @@ wxRendererXP::DoDrawButtonLike(HTHEME htheme,
                                const wxRect& rect,
                                int flags)
 {
+    wxCHECK_RET( dc.GetImpl(), wxT("Invalid wxDC") );
+
+    wxRect adjustedRect = dc.GetImpl()->MSWApplyGDIPlusTransform(rect);
+
     RECT r;
-    wxCopyRectToRECT(rect, r);
+    wxCopyRectToRECT(adjustedRect, r);
 
     // the base state is always 1, whether it is PBS_NORMAL,
     // {CBS,RBS}_UNCHECKEDNORMAL or CBS_NORMAL

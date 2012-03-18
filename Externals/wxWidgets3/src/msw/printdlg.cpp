@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: printdlg.cpp 62823 2009-12-08 16:35:47Z VZ $
+// RCS-ID:      $Id: printdlg.cpp 70516 2012-02-05 15:45:03Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -192,6 +192,9 @@ bool wxWindowsPrintNativeData::IsOk() const
 
 bool wxWindowsPrintNativeData::TransferTo( wxPrintData &data )
 {
+    if ( !m_devMode )
+        InitializeDevMode();
+
     if ( !m_devMode )
         return false;
 
@@ -383,27 +386,28 @@ bool wxWindowsPrintNativeData::TransferTo( wxPrintData &data )
     return true;
 }
 
-bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
+void wxWindowsPrintNativeData::InitializeDevMode(const wxString& printerName, WinPrinter* printer)
 {
-    HGLOBAL hDevMode = static_cast<HGLOBAL>(m_devMode);
-    WinPrinter printer;
-    LPTSTR szPrinterName = (LPTSTR)data.GetPrinterName().wx_str();
+    if (m_devMode)
+        return;
+
+    LPTSTR szPrinterName = (LPTSTR)printerName.wx_str();
 
     // From MSDN: How To Modify Printer Settings with the DocumentProperties() Function
     // The purpose of this is to fill the DEVMODE with privdata from printer driver.
     // If we have a printer name and OpenPrinter sucessfully returns
     // this replaces the PrintDlg function which creates the DEVMODE filled only with data from default printer.
-    if ( !m_devMode && !data.GetPrinterName().IsEmpty() )
+    if ( !m_devMode && !printerName.IsEmpty() )
     {
         // Open printer
-        if ( printer.Open( data.GetPrinterName() ) == TRUE )
+        if ( printer && printer->Open( printerName ) == TRUE )
         {
             DWORD dwNeeded, dwRet;
 
             // Step 1:
             // Allocate a buffer of the correct size.
             dwNeeded = DocumentProperties( NULL,
-                printer,         // Handle to our printer.
+                *printer,        // Handle to our printer.
                 szPrinterName,   // Name of the printer.
                 NULL,            // Asking for size, so
                 NULL,            // these are not used.
@@ -414,7 +418,7 @@ bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
             // Step 2:
             // Get the default DevMode for the printer
             dwRet = DocumentProperties( NULL,
-                printer,
+                *printer,
                 szPrinterName,
                 tempDevMode,     // The address of the buffer to fill.
                 NULL,            // Not using the input buffer.
@@ -424,12 +428,11 @@ bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
             {
                 // If failure, cleanup
                 GlobalFree( tempDevMode );
-                printer.Close();
+                printer->Close();
             }
             else
             {
-                hDevMode = tempDevMode;
-                m_devMode = hDevMode;
+                m_devMode = tempDevMode;
                 tempDevMode = NULL;
             }
         }
@@ -471,8 +474,7 @@ bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
         }
         else
         {
-            hDevMode = pd.hDevMode;
-            m_devMode = hDevMode;
+            m_devMode = pd.hDevMode;
             pd.hDevMode = NULL;
 
             // We'll create a new DEVNAMEs structure below.
@@ -486,6 +488,18 @@ bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
 
         }
     }
+
+}
+
+bool wxWindowsPrintNativeData::TransferFrom( const wxPrintData &data )
+{
+    WinPrinter printer;
+    LPTSTR szPrinterName = (LPTSTR)data.GetPrinterName().wx_str();
+
+    if (!m_devMode)
+        InitializeDevMode(data.GetPrinterName(), &printer);
+
+    HGLOBAL hDevMode = static_cast<HGLOBAL>(m_devMode);
 
     if ( hDevMode )
     {
@@ -976,38 +990,34 @@ bool wxWindowsPageSetupDialog::ConvertToNative( wxPageSetupDialogData &data )
         return false;
 
     pd = new PAGESETUPDLG;
-    pd->hDevMode = NULL;
-    pd->hDevNames = NULL;
     m_pageDlg = (void *)pd;
 
-    // Pass the devmode data (created in m_printData.ConvertToNative)
-    // to the PRINTDLG structure, since it'll
-    // be needed when PrintDlg is called.
-
-    if (pd->hDevMode)
+    // We must not set hDevMode and hDevNames when using PSD_RETURNDEFAULT,
+    // otherwise the call to PageSetupDlg() would fail.
+    if ( data.GetDefaultInfo() )
     {
-        GlobalFree(pd->hDevMode);
         pd->hDevMode = NULL;
-    }
-    pd->hDevMode = (HGLOBAL) native_data->GetDevMode();
-    native_data->SetDevMode(NULL);
-
-    // Shouldn't assert; we should be able to test Ok-ness at a higher level
-    //wxASSERT_MSG( (pd->hDevMode), wxT("hDevMode must be non-NULL in ConvertToNative!"));
-
-    // Pass the devnames data (created in m_printData.ConvertToNative)
-    // to the PRINTDLG structure, since it'll
-    // be needed when PrintDlg is called.
-
-    if (pd->hDevNames)
-    {
-        GlobalFree(pd->hDevNames);
         pd->hDevNames = NULL;
     }
-    pd->hDevNames = (HGLOBAL) native_data->GetDevNames();
-    native_data->SetDevNames(NULL);
+    else
+    {
+        // Pass the devmode data (created in m_printData.ConvertToNative)
+        // to the PRINTDLG structure, since it'll
+        // be needed when PrintDlg is called.
 
-//        pd->hDevMode = GlobalAlloc(GMEM_MOVEABLE, sizeof(DEVMODE));
+        pd->hDevMode = (HGLOBAL) native_data->GetDevMode();
+        native_data->SetDevMode(NULL);
+
+        // Shouldn't assert; we should be able to test Ok-ness at a higher level
+        //wxASSERT_MSG( (pd->hDevMode), wxT("hDevMode must be non-NULL in ConvertToNative!"));
+
+        // Pass the devnames data (created in m_printData.ConvertToNative)
+        // to the PRINTDLG structure, since it'll
+        // be needed when PrintDlg is called.
+
+        pd->hDevNames = (HGLOBAL) native_data->GetDevNames();
+        native_data->SetDevNames(NULL);
+    }
 
     pd->Flags = PSD_MARGINS|PSD_MINMARGINS;
 
@@ -1052,17 +1062,6 @@ bool wxWindowsPageSetupDialog::ConvertToNative( wxPageSetupDialogData &data )
     pd->hPageSetupTemplate = NULL;
     pd->lpPageSetupTemplateName = NULL;
 
-/*
-    if ( pd->hDevMode )
-    {
-        DEVMODE *devMode = (DEVMODE*) GlobalLock(pd->hDevMode);
-        memset(devMode, 0, sizeof(DEVMODE));
-        devMode->dmSize = sizeof(DEVMODE);
-        devMode->dmOrientation = m_orientation;
-        devMode->dmFields = DM_ORIENTATION;
-        GlobalUnlock(pd->hDevMode);
-    }
-*/
     return true;
 }
 

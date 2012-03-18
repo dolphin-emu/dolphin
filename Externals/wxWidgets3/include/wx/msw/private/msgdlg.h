@@ -3,7 +3,7 @@
 // Purpose:     helper functions used with native message dialog
 // Author:      Rickard Westerlund
 // Created:     2010-07-12
-// RCS-ID:      $Id: msgdlg.h 65348 2010-08-18 22:48:28Z VZ $
+// RCS-ID:      $Id: msgdlg.h 68537 2011-08-04 22:53:42Z VZ $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,8 +30,10 @@ namespace wxMSWMessageDialog
     class wxMSWTaskDialogConfig
     {
     public:
+        enum { MAX_BUTTONS = 4  };
+
         wxMSWTaskDialogConfig()
-            : buttons(new TASKDIALOG_BUTTON[3]),
+            : buttons(new TASKDIALOG_BUTTON[MAX_BUTTONS]),
               parent(NULL),
               iconId(0),
               style(0),
@@ -53,6 +55,7 @@ namespace wxMSWMessageDialog
         wxString btnNoLabel;
         wxString btnOKLabel;
         wxString btnCancelLabel;
+        wxString btnHelpLabel;
 
         // Will create a task dialog with it's paremeters for it's creation
         // stored in the provided TASKDIALOGCONFIG parameter.

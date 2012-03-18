@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Agron Selimaj
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h 64532 2010-06-09 13:55:48Z FM $
+// RCS-ID:      $Id: listctrl.h 70282 2012-01-07 15:09:43Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,6 @@
 #include "wx/dynarray.h"
 #include "wx/vector.h"
 
-class WXDLLIMPEXP_FWD_CORE wxImageList;
 class wxMSWListItemData;
 
 // define this symbol to indicate the availability of SetColumnsOrder() and
@@ -77,7 +76,7 @@ class wxMSWListItemData;
 
  */
 
-class WXDLLIMPEXP_CORE wxListCtrl: public wxControl
+class WXDLLIMPEXP_CORE wxListCtrl: public wxListCtrlBase
 {
 public:
     /*
@@ -256,12 +255,6 @@ public:
     void SetImageList(wxImageList *imageList, int which);
     void AssignImageList(wxImageList *imageList, int which);
 
-    // are we in report mode?
-    bool InReportView() const { return HasFlag(wxLC_REPORT); }
-
-    // are we in virtual report mode?
-    bool IsVirtual() const { return HasFlag(wxLC_VIRTUAL); }
-
     // refresh items selectively (only useful for virtual list controls)
     void RefreshItem(long item);
     void RefreshItems(long itemFrom, long itemTo);
@@ -325,14 +318,6 @@ public:
 
     // Insert an image/string item
     long InsertItem(long index, const wxString& label, int imageIndex);
-
-    // For list view mode (only), inserts a column.
-    long InsertColumn(long col, const wxListItem& info);
-
-    long InsertColumn(long col,
-                      const wxString& heading,
-                      int format = wxLIST_FORMAT_LEFT,
-                      int width = -1);
 
     // set the number of items in a virtual list control
     void SetItemCount(long count);
@@ -398,6 +383,9 @@ public:
 protected:
     // common part of all ctors
     void Init();
+
+    // Implement base class pure virtual methods.
+    long DoInsertColumn(long col, const wxListItem& info);
 
     // free memory taken by all internal data
     void FreeAllInternalData();
@@ -465,6 +453,10 @@ private:
 
     // destroy m_textCtrl if it's currently valid and reset it to NULL
     void DeleteEditControl();
+
+    // Intercept Escape and Enter keys to avoid them being stolen from our
+    // in-place editor control.
+    void OnCharHook(wxKeyEvent& event);
 
 
     DECLARE_DYNAMIC_CLASS(wxListCtrl)

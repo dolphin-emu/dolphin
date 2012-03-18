@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.06.98
-// RCS-ID:      $Id: notebook.cpp 67250 2011-03-20 00:00:29Z VZ $
+// RCS-ID:      $Id: notebook.cpp 69793 2011-11-22 13:18:45Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -138,14 +138,13 @@ END_EVENT_TABLE()
 // common part of all ctors
 void wxNotebook::Init()
 {
-    m_imageList = NULL;
-
 #if wxUSE_UXTHEME
     m_hbrBackground = NULL;
 #endif // wxUSE_UXTHEME
 
 #if USE_NOTEBOOK_ANTIFLICKER
     m_hasSubclassedUpdown = false;
+    m_doneUpdateHack = false;
 #endif // USE_NOTEBOOK_ANTIFLICKER
 }
 
@@ -980,6 +979,21 @@ void wxNotebook::OnSize(wxSizeEvent& event)
             }
         }
     }
+
+    // Probably because of the games we play above to avoid flicker sometimes
+    // the text controls inside notebook pages are not shown correctly (they
+    // don't have their borders) when the notebook is shown for the first time.
+    // It's not really clear why does this happen and maybe the bug is in
+    // wxTextCtrl itself and not here but updating the page when it's about to
+    // be shown doesn't cost much and works around the problem so do it here
+    // for now.
+    if ( !m_doneUpdateHack && IsShownOnScreen() )
+    {
+        m_doneUpdateHack = true;
+        wxWindow* const page = GetCurrentPage();
+        if ( page )
+            page->Update();
+    }
 #endif // USE_NOTEBOOK_ANTIFLICKER
 
     event.Skip();
@@ -1314,10 +1328,12 @@ bool wxNotebook::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM* result)
   event.SetEventObject(this);
   event.SetInt(idCtrl);
 
-  bool processed = HandleWindowEvent(event);
+  // Change the selection before generating the event as its handler should
+  // already see the new page selected.
   if ( hdr->code == TCN_SELCHANGE )
       UpdateSelection(event.GetSelection());
 
+  bool processed = HandleWindowEvent(event);
   *result = !event.IsAllowed();
   return processed;
 }

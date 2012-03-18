@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.11.97
-// RCS-ID:      $Id: menuitem.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: menuitem.h 70801 2012-03-04 00:29:55Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,11 +60,6 @@ public:
     // notice that it also returns the id as an unsigned int, as required by
     // Win32 API
     WXWPARAM GetMSWId() const;
-
-    // mark item as belonging to the given radio group
-    void SetAsRadioGroupStart();
-    void SetRadioGroupStart(int start);
-    void SetRadioGroupEnd(int end);
 
 #if WXWIN_COMPATIBILITY_2_8
     // compatibility only, don't use in new code
@@ -124,24 +119,21 @@ private:
     // helper function for draw std menu check mark
     void DrawStdCheckMark(WXHDC hdc, const tagRECT* rc, wxODStatus stat);
 
-#endif // wxUSE_OWNER_DRAWN
+#else // !wxUSE_OWNER_DRAWN
+    // Provide stubs for the public functions above to ensure that the code
+    // still compiles without wxUSE_OWNER_DRAWN -- it makes sense to just drop
+    // the bitmaps then instead of failing compilation.
+    void SetBitmaps(const wxBitmap& WXUNUSED(bmpChecked),
+                    const wxBitmap& WXUNUSED(bmpUnchecked) = wxNullBitmap) { }
+    void SetBitmap(const wxBitmap& WXUNUSED(bmp),
+                   bool WXUNUSED(bChecked) = true) { }
+    const wxBitmap& GetBitmap() const { return wxNullBitmap; }
+#endif // wxUSE_OWNER_DRAWN/!wxUSE_OWNER_DRAWN
 
 private:
     // common part of all ctors
     void Init();
 
-    // the positions of the first and last items of the radio group this item
-    // belongs to or -1: start is the radio group start and is valid for all
-    // but first radio group items (m_isRadioGroupStart == false), end is valid
-    // only for the first one
-    union
-    {
-        int start;
-        int end;
-    } m_radioGroup;
-
-    // does this item start a radio group?
-    bool m_isRadioGroupStart;
 
 #if wxUSE_OWNER_DRAWN
     // item bitmaps

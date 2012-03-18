@@ -4,7 +4,7 @@
 // Author:      Karsten Ballueder
 // Modified by:
 // Created:     09.05.1999
-// RCS-ID:      $Id: progdlgg.cpp 67134 2011-03-06 15:24:26Z SC $
+// RCS-ID:      $Id: progdlgg.cpp 70512 2012-02-05 14:18:25Z VZ $
 // Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ wxIMPLEMENT_CLASS(wxProgressDialog, wxDialog)
 // wxGenericProgressDialog creation
 // ----------------------------------------------------------------------------
 
-void wxGenericProgressDialog::Init(wxWindow *parent, int style)
+void wxGenericProgressDialog::Init()
 {
     // we may disappear at any moment, let the others know about it
     SetExtraStyle(GetExtraStyle() | wxWS_EX_TRANSIENT);
@@ -95,9 +95,8 @@ void wxGenericProgressDialog::Init(wxWindow *parent, int style)
     // Initialize all our members that we always use (even when we don't
     // create a valid window in this class).
 
-    m_pdStyle = style;
-
-    m_parentTop = wxGetTopLevelParent(parent);
+    m_pdStyle = 0;
+    m_parentTop = NULL;
 
     m_gauge = NULL;
     m_msg = NULL;
@@ -129,10 +128,10 @@ void wxGenericProgressDialog::Init(wxWindow *parent, int style)
     m_tempEventLoop = NULL;
 }
 
-wxGenericProgressDialog::wxGenericProgressDialog(wxWindow *parent, int style)
+wxGenericProgressDialog::wxGenericProgressDialog()
                        : wxDialog()
 {
-    Init(parent, style);
+    Init();
 }
 
 wxGenericProgressDialog::wxGenericProgressDialog(const wxString& title,
@@ -142,21 +141,32 @@ wxGenericProgressDialog::wxGenericProgressDialog(const wxString& title,
                                                  int style)
                        : wxDialog()
 {
-    Init(parent, style);
+    Init();
 
     Create( title, message, maximum, parent, style );
 }
 
-void wxGenericProgressDialog::Create( const wxString& title,
+void wxGenericProgressDialog::SetTopParent(wxWindow* parent)
+{
+    m_parentTop = GetParentForModalDialog(parent, GetWindowStyle());
+}
+
+bool wxGenericProgressDialog::Create( const wxString& title,
                                       const wxString& message,
                                       int maximum,
                                       wxWindow *parent,
                                       int style )
 {
-    wxDialog::Create(GetParentForModalDialog(parent, style), wxID_ANY, title);
+    SetTopParent(parent);
 
-    SetParent( GetParentForModalDialog(parent, style) );
-    SetTitle( title );
+    m_parentTop = wxGetTopLevelParent(parent);
+    m_pdStyle = style;
+
+    wxWindow* const
+        realParent = GetParentForModalDialog(parent, GetWindowStyle());
+
+    if (!wxDialog::Create(realParent, wxID_ANY, title))
+        return false;
 
     SetMaximum(maximum);
 
@@ -306,6 +316,7 @@ void wxGenericProgressDialog::Create( const wxString& title,
     }
 
     Update();
+    return true;
 }
 
 void wxGenericProgressDialog::UpdateTimeEstimates(int value,

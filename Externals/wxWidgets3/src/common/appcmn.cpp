@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     18.10.99
-// RCS-ID:      $Id: appcmn.cpp 66648 2011-01-08 06:42:41Z PC $
+// RCS-ID:      $Id: appcmn.cpp 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -196,10 +196,10 @@ void wxAppBase::OnInitCmdLine(wxCmdLineParser& parser)
         },
 #endif // __WXUNIVERSAL__
 
-#if defined(__WXMGL__)
-        // VS: this is not specific to wxMGL, all fullscreen (framebuffer) ports
+#if defined(__WXDFB__)
+        // VS: this is not specific to wxDFB, all fullscreen (framebuffer) ports
         //     should provide this option. That's why it is in common/appcmn.cpp
-        //     and not mgl/app.cpp
+        //     and not dfb/app.cpp
         {
             wxCMD_LINE_OPTION,
             NULL,
@@ -208,7 +208,7 @@ void wxAppBase::OnInitCmdLine(wxCmdLineParser& parser)
             wxCMD_LINE_VAL_STRING,
             0x0
         },
-#endif // __WXMGL__
+#endif // __WXDFB__
 
         // terminator
         wxCMD_LINE_DESC_END
@@ -236,7 +236,7 @@ bool wxAppBase::OnCmdLineParsed(wxCmdLineParser& parser)
     }
 #endif // __WXUNIVERSAL__
 
-#if defined(__WXMGL__)
+#if defined(__WXDFB__)
     wxString modeDesc;
     if ( parser.Found(OPTION_MODE, &modeDesc) )
     {
@@ -250,7 +250,7 @@ bool wxAppBase::OnCmdLineParsed(wxCmdLineParser& parser)
         if ( !SetDisplayMode(wxVideoMode(w, h, bpp)) )
             return false;
     }
-#endif // __WXMGL__
+#endif // __WXDFB__
 
     return wxAppConsole::OnCmdLineParsed(parser);
 }
@@ -349,7 +349,10 @@ bool wxAppBase::ProcessIdle()
     while (node)
     {
         wxWindow* win = node->GetData();
-        if (win->SendIdleEvents(event))
+
+        // Don't send idle events to the windows that are about to be destroyed
+        // anyhow, this is wasteful and unexpected.
+        if ( !wxPendingDelete.Member(win) && win->SendIdleEvents(event) )
             needMore = true;
         node = node->GetNext();
     }

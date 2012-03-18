@@ -5,7 +5,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: app.h 66648 2011-01-08 06:42:41Z PC $
+// RCS-ID:      $Id: app.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 #include "wx/event.h"       // for the base class
+#include "wx/eventfilter.h" // (and another one)
 #include "wx/build.h"
 #include "wx/cmdargs.h"     // for wxCmdLineArgsArray used by wxApp::argv
 #include "wx/init.h"        // we must declare wxEntry()
@@ -70,7 +71,8 @@ extern WXDLLIMPEXP_DATA_BASE(wxList) wxPendingDelete;
 // wxAppConsoleBase: wxApp for non-GUI applications
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_BASE wxAppConsoleBase : public wxEvtHandler
+class WXDLLIMPEXP_BASE wxAppConsoleBase : public wxEvtHandler,
+                                          public wxEventFilter
 {
 public:
     // ctor and dtor
@@ -238,13 +240,8 @@ public:
     // event processing functions
     // --------------------------
 
-    // this method allows to filter all the events processed by the program, so
-    // you should try to return quickly from it to avoid slowing down the
-    // program to the crawl
-    //
-    // return value should be -1 to continue with the normal event processing,
-    // or TRUE or FALSE to stop further processing and pretend that the event
-    // had been already processed or won't be processed at all, respectively
+    // Implement the inherited wxEventFilter method but just return -1 from it
+    // to indicate that default processing should take place.
     virtual int FilterEvent(wxEvent& event);
 
     // return true if we're running event loop, i.e. if the events can
@@ -595,10 +592,10 @@ public:
     // ------------------------------------------------------------------------
 
         // Get display mode that is used use. This is only used in framebuffer
-        // wxWin ports (such as wxMGL or wxDFB).
+        // wxWin ports such as wxDFB.
     virtual wxVideoMode GetDisplayMode() const;
         // Set display mode to use. This is only used in framebuffer wxWin
-        // ports (such as wxMGL or wxDFB). This method should be called from
+        // ports such as wxDFB. This method should be called from
         // wxApp::OnInitGui
     virtual bool SetDisplayMode(const wxVideoMode& WXUNUSED(info)) { return true; }
 
@@ -684,14 +681,10 @@ protected:
 // now include the declaration of the real class
 // ----------------------------------------------------------------------------
 
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/app.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
     #include "wx/msw/app.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/app.h"
-#elif defined(__WXMGL__)
-    #include "wx/mgl/app.h"
 #elif defined(__WXDFB__)
     #include "wx/dfb/app.h"
 #elif defined(__WXGTK20__)

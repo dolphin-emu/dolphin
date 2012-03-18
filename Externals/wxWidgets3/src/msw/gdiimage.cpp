@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.11.99
-// RCS-ID:      $Id: gdiimage.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: gdiimage.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -325,7 +325,7 @@ bool wxBMPResourceHandler::LoadFile(wxBitmap *bitmap,
     // TODO: load colourmap.
     bitmap->SetHBITMAP((WXHBITMAP)::LoadBitmap(wxGetInstance(), name.wx_str()));
 
-    if ( !bitmap->Ok() )
+    if ( !bitmap->IsOk() )
     {
         // it's probably not found
         wxLogError(wxT("Can't load bitmap '%s' from resources! Check .rc file."),
@@ -494,7 +494,7 @@ bool wxICOFileHandler::LoadIcon(wxIcon *icon,
     icon->SetHICON((WXHICON)hicon);
     icon->SetSize(size.x, size.y);
 
-    return icon->Ok();
+    return icon->IsOk();
 }
 
 bool wxICOResourceHandler::LoadIcon(wxIcon *icon,
@@ -559,7 +559,7 @@ bool wxICOResourceHandler::LoadIcon(wxIcon *icon,
 
     icon->SetHICON((WXHICON)hicon);
 
-    return icon->Ok();
+    return icon->IsOk();
 }
 
 // ----------------------------------------------------------------------------

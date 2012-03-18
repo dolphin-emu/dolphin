@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.10.99
-// RCS-ID:      $Id: init.cpp 64656 2010-06-20 18:18:23Z VZ $
+// RCS-ID:      $Id: init.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,7 +37,7 @@
 #include "wx/scopedptr.h"
 #include "wx/except.h"
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
     #include "wx/msw/private.h"
     #include "wx/msw/msvcrt.h"
 
@@ -53,7 +53,7 @@
             }
         } gs_enableLeakChecks;
     #endif // wxCrtSetDbgFlag
-#endif // __WXMSW__
+#endif // __WINDOWS__
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -238,7 +238,7 @@ static bool DoCommonPreInit()
     wxLog::GetActiveTarget();
 #endif // wxUSE_LOG
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     // GUI applications obtain HINSTANCE in their WinMain() but we also need to
     // initialize the global wxhInstance variable for the console programs as
     // they may need it too, so set it here if it wasn't done yet
@@ -246,7 +246,7 @@ static bool DoCommonPreInit()
     {
         wxSetInstance(::GetModuleHandle(NULL));
     }
-#endif // __WXMSW__
+#endif // __WINDOWS__
 
     return true;
 }
@@ -432,9 +432,9 @@ void wxEntryCleanup()
 // ----------------------------------------------------------------------------
 
 // for MSW the real wxEntry is defined in msw/main.cpp
-#ifndef __WXMSW__
+#ifndef __WINDOWS__
     #define wxEntryReal wxEntry
-#endif // !__WXMSW__
+#endif // !__WINDOWS__
 
 int wxEntryReal(int& argc, wxChar **argv)
 {

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Agron Selimaj
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl_mac.cpp 67243 2011-03-19 08:36:23Z SC $
+// RCS-ID:      $Id: listctrl_mac.cpp 70294 2012-01-08 10:54:28Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -775,7 +775,7 @@ void wxListCtrl::SetWindowStyleFlag(long flag)
 
 void wxListCtrl::DoSetSize( int x, int y, int width, int height, int sizeFlags )
 {
-    wxControl::DoSetSize(x, y, width, height, sizeFlags);
+    wxListCtrlBase::DoSetSize(x, y, width, height, sizeFlags);
 
     if (m_genericImpl)
         m_genericImpl->SetSize(0, 0, width, height, sizeFlags);
@@ -801,15 +801,10 @@ void wxListCtrl::DoSetSize( int x, int y, int width, int height, int sizeFlags )
     }
 }
 
-wxSize wxListCtrl::DoGetBestSize() const
-{
-    return wxWindow::DoGetBestSize();
-}
-
 bool wxListCtrl::SetFont(const wxFont& font)
 {
     bool rv = true;
-    rv = wxControl::SetFont(font);
+    rv = wxListCtrlBase::SetFont(font);
     if (m_genericImpl)
         rv = m_genericImpl->SetFont(font);
     return rv;
@@ -849,21 +844,21 @@ void wxListCtrl::Freeze ()
 {
     if (m_genericImpl)
         m_genericImpl->Freeze();
-    wxControl::Freeze();
+    wxListCtrlBase::Freeze();
 }
 
 void wxListCtrl::Thaw ()
 {
     if (m_genericImpl)
         m_genericImpl->Thaw();
-    wxControl::Thaw();
+    wxListCtrlBase::Thaw();
 }
 
 void wxListCtrl::Update ()
 {
     if (m_genericImpl)
         m_genericImpl->Update();
-    wxControl::Update();
+    wxListCtrlBase::Update();
 }
 
 // ----------------------------------------------------------------------------
@@ -903,7 +898,7 @@ bool wxListCtrl::GetColumn(int col, wxListItem& item) const
 }
 
 // Sets information about this column
-bool wxListCtrl::SetColumn(int col, wxListItem& item)
+bool wxListCtrl::SetColumn(int col, const wxListItem& item)
 {
     if (m_genericImpl)
         return m_genericImpl->SetColumn(col, item);
@@ -943,7 +938,7 @@ bool wxListCtrl::SetColumn(int col, wxListItem& item)
         if (item.GetMask() & wxLIST_MASK_TEXT)
         {
             wxFontEncoding enc;
-            if ( m_font.Ok() )
+            if ( m_font.IsOk() )
                 enc = GetFont().GetEncoding();
             else
                 enc = wxLocale::GetSystemEncoding();
@@ -2161,7 +2156,7 @@ long wxListCtrl::InsertItem(long index, const wxString& label, int imageIndex)
 }
 
 // For list view mode (only), inserts a column.
-long wxListCtrl::InsertColumn(long col, wxListItem& item)
+long wxListCtrl::DoInsertColumn(long col, const wxListItem& item)
 {
     if (m_genericImpl)
         return m_genericImpl->InsertColumn(col, item);
@@ -2177,7 +2172,7 @@ long wxListCtrl::InsertColumn(long col, wxListItem& item)
         if (imageList && imageList->GetImageCount() > 0)
         {
             wxBitmap bmp = imageList->GetBitmap(0);
-            //if (bmp.Ok())
+            //if (bmp.IsOk())
             //    type = kDataBrowserIconAndTextType;
         }
 
@@ -2212,27 +2207,6 @@ long wxListCtrl::InsertColumn(long col, wxListItem& item)
     }
 
     return col;
-}
-
-long wxListCtrl::InsertColumn(long col,
-                              const wxString& heading,
-                              int format,
-                              int width)
-{
-    if (m_genericImpl)
-        return m_genericImpl->InsertColumn(col, heading, format, width);
-
-    wxListItem item;
-    item.m_mask = wxLIST_MASK_TEXT | wxLIST_MASK_FORMAT;
-    item.m_text = heading;
-    if ( width > -1 )
-    {
-        item.m_mask |= wxLIST_MASK_WIDTH;
-        item.m_width = width;
-    }
-    item.m_format = format;
-
-    return InsertColumn(col, item);
 }
 
 // scroll the control by the given number of pixels (exception: in list view,
@@ -2786,7 +2760,7 @@ void wxMacDataBrowserListCtrlControl::DrawItem(
     if (bgColor == wxNullColour)
         bgColor = listBgColor;
 
-    if (!font.Ok())
+    if (!font.IsOk())
         font = list->GetFont();
 
     wxCFStringRef cfString( text, wxLocale::GetSystemEncoding() );
@@ -2850,12 +2824,12 @@ void wxMacDataBrowserListCtrlControl::DrawItem(
     else
     {
 
-        if (color.Ok())
+        if (color.IsOk())
             color.GetRGBColor(&labelColor);
-        else if (list->GetTextColour().Ok())
+        else if (list->GetTextColour().IsOk())
             list->GetTextColour().GetRGBColor(&labelColor);
 
-        if (bgColor.Ok())
+        if (bgColor.IsOk())
         {
             bgColor.GetRGBColor(&backgroundColor);
             CGContextSaveGState(context);
@@ -2897,7 +2871,7 @@ void wxMacDataBrowserListCtrlControl::DrawItem(
     {
         info.version = kHIThemeTextInfoVersionOne;
         info.fontID = kThemeViewsFont;
-        if (font.Ok())
+        if (font.IsOk())
         {
             info.fontID = kThemeSpecifiedFont;
             info.font = (CTFontRef) font.OSXGetCTFont();
@@ -2911,7 +2885,7 @@ void wxMacDataBrowserListCtrlControl::DrawItem(
         info.version = kHIThemeTextInfoVersionZero;
         info.fontID = kThemeViewsFont;
 
-        if (font.Ok())
+        if (font.IsOk())
         {
             info.fontID = font.MacGetThemeFontID();
 

@@ -3,7 +3,7 @@
 // Purpose:     wxRichMessageDialogBase
 // Author:      Rickard Westerlund
 // Created:     2010-07-03
-// RCS-ID:      $Id: richmsgdlg.h 65349 2010-08-18 22:48:41Z VZ $
+// RCS-ID:      $Id: richmsgdlg.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ public:
 
     wxString GetDetailedText() const { return m_detailedText; }
 
-    virtual bool IsCheckBoxChecked() const { return m_checkBoxValue; };
+    virtual bool IsCheckBoxChecked() const { return m_checkBoxValue; }
 
 protected:
     const wxString m_detailsExpanderCollapsedLabel;

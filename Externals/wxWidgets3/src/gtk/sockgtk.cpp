@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxGTK-specific socket event handling
 // Author:      Guilhem Lavaux, Vadim Zeitlin
 // Created:     1999
-// RCS-ID:      $Id: sockgtk.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: sockgtk.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) 1999, 2007 wxWidgets dev team
 //              (c) 2009 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -17,17 +17,14 @@
 #include "wx/apptrait.h"
 #include "wx/private/fdiomanager.h"
 
-#include <gdk/gdk.h>
+#include <glib.h>
 
 extern "C" {
-static
-void wxSocket_GDK_Input(gpointer data,
-                        gint WXUNUSED(source),
-                        GdkInputCondition condition)
+static gboolean wxSocket_Input(GIOChannel*, GIOCondition condition, gpointer data)
 {
     wxFDIOHandler * const handler = static_cast<wxFDIOHandler *>(data);
 
-    if ( condition & GDK_INPUT_READ )
+    if (condition & G_IO_IN)
     {
         handler->OnReadWaiting();
 
@@ -35,11 +32,13 @@ void wxSocket_GDK_Input(gpointer data,
         // shouldn't call OnWriteWaiting() as the socket is now closed and it
         // would assert
         if ( !handler->IsOk() )
-            return;
+            return true;
     }
 
-    if ( condition & GDK_INPUT_WRITE )
+    if (condition & G_IO_OUT)
         handler->OnWriteWaiting();
+
+    return true;
 }
 }
 
@@ -48,19 +47,17 @@ class GTKFDIOManager : public wxFDIOManager
 public:
     virtual int AddInput(wxFDIOHandler *handler, int fd, Direction d)
     {
-        return gdk_input_add
-               (
-                    fd,
-                    d == OUTPUT ? GDK_INPUT_WRITE : GDK_INPUT_READ,
-                    wxSocket_GDK_Input,
-                    handler
-               );
+        return g_io_add_watch(
+            g_io_channel_unix_new(fd),
+            d == OUTPUT ? G_IO_OUT : G_IO_IN,
+            wxSocket_Input,
+            handler);
     }
 
     virtual void
     RemoveInput(wxFDIOHandler* WXUNUSED(handler), int fd, Direction WXUNUSED(d))
     {
-        gdk_input_remove(fd);
+        g_source_remove(fd);
     }
 };
 

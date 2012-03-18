@@ -105,19 +105,17 @@ if sys.platform == 'darwin':
     #ccld += ['-arch', 'i386', '-msse3']
     ccld = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5.4']
     env['CCFLAGS'] += ccld
-    env['CCFLAGS'] += ['-isysroot', '/Developer/SDKs/MacOSX10.6.sdk']
     env['CCFLAGS'] += ['-Xarch_i386', '-msse3', '-Xarch_x86_64', '-mssse3']
     env['CCFLAGS'] += ['-march=core2', '-mdynamic-no-pic']
     env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
-    env['CC'] = '/Developer/usr/bin/clang'
-    env['CC'] = '/Developer/usr/bin/llvm-gcc'
-    env['CXX'] = '/Developer/usr/bin/clang++'
-    env['CXX'] = '/Developer/usr/bin/llvm-g++'
+    env['CC'] = 'clang'
+    env['CC'] = 'llvm-gcc'
+    env['CXX'] = 'clang++'
+    env['CXX'] = 'llvm-g++'
     env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['LINKFLAGS'] += ccld
     env['LINKFLAGS'] += ['-Wl,-dead_strip,-dead_strip_dylibs']
     env['LINKFLAGS'] += ['-Wl,-pagezero_size,0x1000']
-    env['LINKFLAGS'] += ['-Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk']
     env['LINKFLAGS'] += ['-Xarch_i386', '-Wl,-read_only_relocs,suppress']
 
     if not env['nowx']:

@@ -43,7 +43,7 @@ const wxString WXKeyToString(int keycode)
 		case WXK_CLEAR:				return _("Clear");
 		case WXK_SHIFT:				return wxT("Shift");
 		case WXK_ALT:				return wxT("Alt");
-		case WXK_CONTROL:			return _("Control");
+		case WXK_RAW_CONTROL:		return _("Control");
 		case WXK_MENU:				return _("Menu");
 		case WXK_PAUSE:				return _("Pause");
 		case WXK_CAPITAL:			return _("Caps Lock");

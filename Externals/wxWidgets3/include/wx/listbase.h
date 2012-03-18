@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.12.99
-// RCS-ID:      $Id: listbase.h 60732 2009-05-24 18:04:37Z VZ $
+// RCS-ID:      $Id: listbase.h 70286 2012-01-07 16:11:10Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,6 +16,9 @@
 #include "wx/font.h"
 #include "wx/gdicmn.h"
 #include "wx/event.h"
+#include "wx/control.h"
+
+class WXDLLIMPEXP_FWD_CORE wxImageList;
 
 // ----------------------------------------------------------------------------
 // types
@@ -23,7 +26,7 @@
 
 // type of compare function for wxListCtrl sort operation
 typedef
-int (wxCALLBACK *wxListCtrlCompare)(long item1, long item2, wxIntPtr sortData);
+int (wxCALLBACK *wxListCtrlCompare)(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData);
 
 // ----------------------------------------------------------------------------
 // wxListCtrl constants
@@ -183,9 +186,9 @@ public:
     void SetFont(const wxFont& font) { m_font = font; }
 
     // accessors
-    bool HasTextColour() const { return m_colText.Ok(); }
-    bool HasBackgroundColour() const { return m_colBack.Ok(); }
-    bool HasFont() const { return m_font.Ok(); }
+    bool HasTextColour() const { return m_colText.IsOk(); }
+    bool HasBackgroundColour() const { return m_colBack.IsOk(); }
+    bool HasFont() const { return m_font.IsOk(); }
 
     const wxColour& GetTextColour() const { return m_colText; }
     const wxColour& GetBackgroundColour() const { return m_colBack; }
@@ -354,7 +357,7 @@ protected:
     void Init()
     {
         m_mask = 0;
-        m_itemId = 0;
+        m_itemId = -1;
         m_col = 0;
         m_state = 0;
         m_stateMask = 0;
@@ -369,6 +372,94 @@ protected:
 
 private:
     DECLARE_DYNAMIC_CLASS(wxListItem)
+};
+
+// ----------------------------------------------------------------------------
+// wxListCtrlBase: the base class for the main control itself.
+// ----------------------------------------------------------------------------
+
+// Unlike other base classes, this class doesn't currently define the API of
+// the real control class but is just used for implementation convenience. We
+// should define the public class functions as pure virtual here in the future
+// however.
+class WXDLLIMPEXP_CORE wxListCtrlBase : public wxControl
+{
+public:
+    wxListCtrlBase() { }
+
+    // Image list methods.
+    // -------------------
+
+    // Associate the given (possibly NULL to indicate that no images will be
+    // used) image list with the control. The ownership of the image list
+    // passes to the control, i.e. it will be deleted when the control itself
+    // is destroyed.
+    //
+    // The value of "which" must be one of wxIMAGE_LIST_{NORMAL,SMALL,STATE}.
+    virtual void AssignImageList(wxImageList* imageList, int which) = 0;
+
+    // Same as AssignImageList() but the control does not delete the image list
+    // so it can be shared among several controls.
+    virtual void SetImageList(wxImageList* imageList, int which) = 0;
+
+    // Return the currently used image list, may be NULL.
+    virtual wxImageList* GetImageList(int which) const = 0;
+
+
+    // Column-related methods.
+    // -----------------------
+
+    // All these methods can only be used in report view mode.
+
+    // Appends a new column.
+    //
+    // Returns the index of the newly inserted column or -1 on error.
+    long AppendColumn(const wxString& heading,
+                      int format = wxLIST_FORMAT_LEFT,
+                      int width = -1);
+
+    // Add a new column to the control at the position "col".
+    //
+    // Returns the index of the newly inserted column or -1 on error.
+    long InsertColumn(long col, const wxListItem& info);
+    long InsertColumn(long col,
+                      const wxString& heading,
+                      int format = wxLIST_FORMAT_LEFT,
+                      int width = wxLIST_AUTOSIZE);
+
+    // Delete the given or all columns.
+    virtual bool DeleteColumn(int col) = 0;
+    virtual bool DeleteAllColumns() = 0;
+
+    // Return the current number of columns.
+    virtual int GetColumnCount() const = 0;
+
+    // Get or update information about the given column. Set item mask to
+    // indicate the fields to retrieve or change.
+    //
+    // Returns false on error, e.g. if the column index is invalid.
+    virtual bool GetColumn(int col, wxListItem& item) const = 0;
+    virtual bool SetColumn(int col, const wxListItem& item) = 0;
+
+    // Convenient wrappers for the above methods which get or update just the
+    // column width.
+    virtual int GetColumnWidth(int col) const = 0;
+    virtual bool SetColumnWidth(int col, int width) = 0;
+
+
+    // Other miscellaneous accessors.
+    // ------------------------------
+
+    // Convenient functions for testing the list control mode:
+    bool InReportView() const { return HasFlag(wxLC_REPORT); }
+    bool IsVirtual() const { return HasFlag(wxLC_VIRTUAL); }
+
+protected:
+    // Real implementations methods to which our public forwards.
+    virtual long DoInsertColumn(long col, const wxListItem& info) = 0;
+
+    // Overridden methods of the base class.
+    virtual wxSize DoGetBestClientSize() const;
 };
 
 // ----------------------------------------------------------------------------

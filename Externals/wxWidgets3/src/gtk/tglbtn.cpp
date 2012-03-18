@@ -5,7 +5,7 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.cpp 64940 2010-07-13 13:29:13Z VZ $
+// RCS-ID:      $Id: tglbtn.cpp 69830 2011-11-27 19:49:54Z VZ $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,155 +45,28 @@ wxDEFINE_EVENT( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEvent );
 // wxBitmapToggleButton
 // ------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxBitmapToggleButton, wxControl)
+IMPLEMENT_DYNAMIC_CLASS(wxBitmapToggleButton, wxToggleButton)
 
 bool wxBitmapToggleButton::Create(wxWindow *parent, wxWindowID id,
-                            const wxBitmap &label, const wxPoint &pos,
+                            const wxBitmap &bitmap, const wxPoint &pos,
                             const wxSize &size, long style,
                             const wxValidator& validator,
                             const wxString &name)
 {
-    if (!PreCreation(parent, pos, size) ||
-       !CreateBase(parent, id, pos, size, style, validator, name ))
-    {
-        wxFAIL_MSG(wxT("wxBitmapToggleButton creation failed"));
-        return false;
-    }
-
-    // Create the gtk widget.
-    m_widget = gtk_toggle_button_new();
-    g_object_ref(m_widget);
-
-    if (style & wxNO_BORDER)
-        gtk_button_set_relief( GTK_BUTTON(m_widget), GTK_RELIEF_NONE );
-
-    m_bitmap = label;
-    OnSetBitmap();
-
-    g_signal_connect (m_widget, "clicked",
-                      G_CALLBACK (gtk_togglebutton_clicked_callback),
-                      this);
-
-    m_parent->DoAddChild(this);
-
-    PostCreation(size);
-
-    return true;
-}
-
-void wxBitmapToggleButton::GTKDisableEvents()
-{
-    g_signal_handlers_block_by_func(m_widget,
-                                (gpointer) gtk_togglebutton_clicked_callback, this);
-}
-
-void wxBitmapToggleButton::GTKEnableEvents()
-{
-    g_signal_handlers_unblock_by_func(m_widget,
-                                (gpointer) gtk_togglebutton_clicked_callback, this);
-}
-
-// void SetValue(bool state)
-// Set the value of the toggle button.
-void wxBitmapToggleButton::SetValue(bool state)
-{
-    wxCHECK_RET(m_widget != NULL, wxT("invalid toggle button"));
-
-    if (state == GetValue())
-        return;
-
-    GTKDisableEvents();
-
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(m_widget), state);
-
-    GTKEnableEvents();
-}
-
-// bool GetValue() const
-// Get the value of the toggle button.
-bool wxBitmapToggleButton::GetValue() const
-{
-    wxCHECK_MSG(m_widget != NULL, false, wxT("invalid toggle button"));
-
-    return gtk_toggle_button_get_active((GtkToggleButton*)m_widget);
-}
-
-void wxBitmapToggleButton::SetLabel(const wxBitmap& label)
-{
-    wxCHECK_RET(m_widget != NULL, wxT("invalid toggle button"));
-
-    m_bitmap = label;
-    InvalidateBestSize();
-
-    OnSetBitmap();
-}
-
-void wxBitmapToggleButton::OnSetBitmap()
-{
-    if (!m_bitmap.Ok()) return;
-
-    GtkWidget* image = ((GtkBin*)m_widget)->child;
-    if (image == NULL)
-    {
-        image = gtk_image_new();
-        gtk_widget_show(image);
-        gtk_container_add((GtkContainer*)m_widget, image);
-    }
-    // always use pixbuf, because pixmap mask does not
-    // work with disabled images in some themes
-    gtk_image_set_from_pixbuf((GtkImage*)image, m_bitmap.GetPixbuf());
-}
-
-bool wxBitmapToggleButton::Enable(bool enable /*=true*/)
-{
-    bool isEnabled = IsEnabled();
-
-    if (!wxControl::Enable(enable))
+    if ( !wxToggleButton::Create(parent, id, wxEmptyString, pos, size, style | wxBU_NOTEXT | wxBU_EXACTFIT,
+                                 validator, name) )
         return false;
 
-    gtk_widget_set_sensitive(GTK_BIN(m_widget)->child, enable);
-
-    if (!isEnabled && enable)
+    if ( bitmap.IsOk() )
     {
-        GTKFixSensitivity();
+        SetBitmapLabel(bitmap);
+
+        // we need to adjust the size after setting the bitmap as it may be too
+        // big for the default button size
+        SetInitialSize(size);
     }
 
     return true;
-}
-
-void wxBitmapToggleButton::DoApplyWidgetStyle(GtkRcStyle *style)
-{
-    gtk_widget_modify_style(m_widget, style);
-    gtk_widget_modify_style(GTK_BIN(m_widget)->child, style);
-}
-
-GdkWindow *
-wxBitmapToggleButton::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
-{
-    return GTK_BUTTON(m_widget)->event_window;
-}
-
-// Get the "best" size for this control.
-wxSize wxBitmapToggleButton::DoGetBestSize() const
-{
-    wxSize best;
-
-    if (m_bitmap.Ok())
-    {
-        int border = HasFlag(wxNO_BORDER) ? 4 : 10;
-        best.x = m_bitmap.GetWidth()+border;
-        best.y = m_bitmap.GetHeight()+border;
-    }
-    CacheBestSize(best);
-    return best;
-}
-
-
-// static
-wxVisualAttributes
-wxBitmapToggleButton::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
-{
-    return GetDefaultAttributesFromGTKWidget(gtk_toggle_button_new);
 }
 
 
@@ -216,11 +89,28 @@ bool wxToggleButton::Create(wxWindow *parent, wxWindowID id,
         return false;
     }
 
-    // Create the gtk widget.
-    m_widget = gtk_toggle_button_new_with_mnemonic("");
+    // create either a standard toggle button with text label (which may still contain
+    // an image under GTK+ 2.6+) or a bitmap-only toggle button if we don't have any
+    // label
+    const bool
+        useLabel = !(style & wxBU_NOTEXT) && !label.empty();
+    if ( useLabel )
+    {
+        m_widget = gtk_toggle_button_new_with_mnemonic("");
+    }
+    else // no label, suppose we will have a bitmap
+    {
+        m_widget = gtk_toggle_button_new();
+
+        GtkWidget *image = gtk_image_new();
+        gtk_widget_show(image);
+        gtk_container_add(GTK_CONTAINER(m_widget), image);
+    }
+
     g_object_ref(m_widget);
 
-    SetLabel(label);
+    if ( useLabel )
+        SetLabel(label);
 
     g_signal_connect (m_widget, "clicked",
                       G_CALLBACK (gtk_togglebutton_clicked_callback),
@@ -267,14 +157,22 @@ bool wxToggleButton::GetValue() const
 {
     wxCHECK_MSG(m_widget != NULL, false, wxT("invalid toggle button"));
 
-    return GTK_TOGGLE_BUTTON(m_widget)->active;
+    return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(m_widget)) != 0;
 }
 
 void wxToggleButton::SetLabel(const wxString& label)
 {
     wxCHECK_RET(m_widget != NULL, wxT("invalid toggle button"));
 
-    wxControl::SetLabel(label);
+    wxAnyButton::SetLabel(label);
+
+    if ( HasFlag(wxBU_NOTEXT) )
+    {
+        // Don't try to update the label for a button not showing it, this is
+        // unnecessary and can also actually replace the image we show with the
+        // label entirely breaking the button code, see #13693.
+        return;
+    }
 
     const wxString labelGTK = GTKConvertMnemonics(label);
 
@@ -283,35 +181,45 @@ void wxToggleButton::SetLabel(const wxString& label)
     GTKApplyWidgetStyle( false );
 }
 
-bool wxToggleButton::Enable(bool enable /*=true*/)
+#if wxUSE_MARKUP
+bool wxToggleButton::DoSetLabelMarkup(const wxString& markup)
 {
-    if (!base_type::Enable(enable))
+    wxCHECK_MSG( m_widget != NULL, false, "invalid toggle button" );
+
+    const wxString stripped = RemoveMarkup(markup);
+    if ( stripped.empty() && !markup.empty() )
         return false;
 
-    gtk_widget_set_sensitive(GTK_BIN(m_widget)->child, enable);
+    wxControl::SetLabel(stripped);
 
-    if (enable)
-        GTKFixSensitivity();
+    if ( !HasFlag(wxBU_NOTEXT) )
+    {
+        GtkLabel * const label = GTKGetLabel();
+        wxCHECK_MSG( label, false, "no label in this toggle button?" );
+
+        GTKSetLabelWithMarkupForLabel(label, markup);
+    }
 
     return true;
+}
+#endif // wxUSE_MARKUP
+
+GtkLabel *wxToggleButton::GTKGetLabel() const
+{
+    GtkWidget* child = gtk_bin_get_child(GTK_BIN(m_widget));
+    return GTK_LABEL(child);
 }
 
 void wxToggleButton::DoApplyWidgetStyle(GtkRcStyle *style)
 {
     gtk_widget_modify_style(m_widget, style);
-    gtk_widget_modify_style(GTK_BIN(m_widget)->child, style);
-}
-
-GdkWindow *
-wxToggleButton::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
-{
-    return GTK_BUTTON(m_widget)->event_window;
+    gtk_widget_modify_style(gtk_bin_get_child(GTK_BIN(m_widget)), style);
 }
 
 // Get the "best" size for this control.
 wxSize wxToggleButton::DoGetBestSize() const
 {
-    wxSize ret(wxControl::DoGetBestSize());
+    wxSize ret(wxAnyButton::DoGetBestSize());
 
     if (!HasFlag(wxBU_EXACTFIT))
     {

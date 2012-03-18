@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: dde.h 47254 2007-07-09 10:09:52Z VS $
+// RCS-ID:      $Id: dde.h 70808 2012-03-04 20:31:42Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -22,10 +22,10 @@ WX_DECLARE_USER_EXPORTED_LIST(wxDDEClient, wxDDEClientList, WXDLLIMPEXP_BASE);
 WX_DECLARE_USER_EXPORTED_LIST(wxDDEServer, wxDDEServerList, WXDLLIMPEXP_BASE);
 WX_DECLARE_USER_EXPORTED_LIST(wxDDEConnection, wxDDEConnectionList, WXDLLIMPEXP_BASE);
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
     #include "wx/msw/dde.h"
 #else
-    #error DDE is only supported on MSW
+    #error DDE is only supported under Windows
 #endif
 
 #endif

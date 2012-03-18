@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2008-06-20
-// RCS-ID:      $Id: nonownedwnd.mm 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: nonownedwnd.mm 69526 2011-10-25 11:52:02Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ wxPoint wxFromNSPoint( UIView* parent, const CGPoint& p )
 
 @end
 
-@interface wxUIContentView : wxUIView
+@interface wxUIContentView : UIView
 {
     wxUIContentViewController* _controller;
 }
@@ -372,6 +372,16 @@ wxWidgetImpl* wxWidgetImpl::CreateContentView( wxNonOwnedWindow* now )
     return _controller;
 }
 
++ (void)initialize
+{
+    static BOOL initialized = NO;
+    if (!initialized)
+    {
+        initialized = YES;
+        wxOSXIPhoneClassAddWXMethods( self );
+    }
+}
+ 
 @end
 
 @implementation wxUIContentViewController

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: helpwin.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: helpwin.h 67882 2011-06-07 16:48:36Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@
 
 class WXDLLIMPEXP_CORE wxWinHelpController: public wxHelpControllerBase
 {
-    DECLARE_CLASS(wxWinHelpController)
+    DECLARE_DYNAMIC_CLASS(wxWinHelpController)
 
 public:
     wxWinHelpController(wxWindow* parentWindow = NULL): wxHelpControllerBase(parentWindow) {}

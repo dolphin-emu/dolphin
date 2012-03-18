@@ -5,7 +5,7 @@
 // Modified by: Mark Johnson, wxWindows@mj10777.de
 //              20000917 : RmDir, GetLastResult, GetList
 // Created:     07/07/1997
-// RCS-ID:      $Id: ftp.h 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: ftp.h 67384 2011-04-03 20:31:32Z DS $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -139,7 +139,7 @@ protected:
     wxString GetPortCmdArgument(const wxIPV4address& Local, const wxIPV4address& New);
 
     // accept connection from server in active mode, returns the same socket as
-    // passed in in passive mode
+    // passed in passive mode
     wxSocketBase *AcceptIfActive(wxSocketBase *sock);
 
 

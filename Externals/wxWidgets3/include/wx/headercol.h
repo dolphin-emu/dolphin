@@ -3,7 +3,7 @@
 // Purpose:     declaration of wxHeaderColumn class
 // Author:      Vadim Zeitlin
 // Created:     2008-12-02
-// RCS-ID:      $Id: headercol.h 65948 2010-10-30 15:57:41Z VS $
+// RCS-ID:      $Id: headercol.h 69174 2011-09-21 15:07:46Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ public:
     // unspecified/default
     virtual int GetWidth() const = 0;
 
-    // minimal width can be set for resizeable columns to forbid resizing them
+    // minimal width can be set for resizable columns to forbid resizing them
     // below the specified size (set to 0 to remove)
     virtual int GetMinWidth() const = 0;
 
@@ -177,8 +177,8 @@ public:
     void ClearFlag(int flag);
     void ToggleFlag(int flag);
 
-    virtual void SetResizeable(bool resizeable)
-        { ChangeFlag(wxCOL_RESIZABLE, resizeable); }
+    virtual void SetResizeable(bool resizable)
+        { ChangeFlag(wxCOL_RESIZABLE, resizable); }
     virtual void SetSortable(bool sortable)
         { ChangeFlag(wxCOL_SORTABLE, sortable); }
     virtual void SetReorderable(bool reorderable)
@@ -186,8 +186,12 @@ public:
     virtual void SetHidden(bool hidden)
         { ChangeFlag(wxCOL_HIDDEN, hidden); }
 
-    virtual void SetAsSortKey(bool sort = true) = 0;
-    void UnsetAsSortKey() { SetAsSortKey(false); }
+    // This function can be called to indicate that this column is not used for
+    // sorting any more. Under some platforms it's not necessary to do anything
+    // in this case as just setting another column as a sort key takes care of
+    // everything but under MSW we currently need to call this explicitly to
+    // reset the sort indicator displayed on the column.
+    virtual void UnsetAsSortKey() { }
 
     virtual void SetSortOrder(bool ascending) = 0;
     void ToggleSortOrder() { SetSortOrder(!IsSortOrderAscending()); }
@@ -249,10 +253,15 @@ public:
     virtual void SetFlags(int flags) { m_flags = flags; }
     virtual int GetFlags() const { return m_flags; }
 
-    virtual void SetAsSortKey(bool sort = true) { m_sort = sort; }
     virtual bool IsSortKey() const { return m_sort; }
+    virtual void UnsetAsSortKey() { m_sort = false; }
 
-    virtual void SetSortOrder(bool ascending) { m_sortAscending = ascending; }
+    virtual void SetSortOrder(bool ascending)
+    {
+        m_sort = true;
+        m_sortAscending = ascending;
+    }
+
     virtual bool IsSortOrderAscending() const { return m_sortAscending; }
 
 private:

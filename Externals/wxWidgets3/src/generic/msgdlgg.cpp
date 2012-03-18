@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: msgdlgg.cpp 65450 2010-08-30 21:48:25Z VZ $
+// RCS-ID:      $Id: msgdlgg.cpp 68537 2011-08-04 22:53:42Z VZ $
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -74,6 +74,7 @@ protected:
 BEGIN_EVENT_TABLE(wxGenericMessageDialog, wxDialog)
         EVT_BUTTON(wxID_YES, wxGenericMessageDialog::OnYes)
         EVT_BUTTON(wxID_NO, wxGenericMessageDialog::OnNo)
+        EVT_BUTTON(wxID_HELP, wxGenericMessageDialog::OnHelp)
         EVT_BUTTON(wxID_CANCEL, wxGenericMessageDialog::OnCancel)
 END_EVENT_TABLE()
 
@@ -133,6 +134,13 @@ wxSizer *wxGenericMessageDialog::CreateMsgDlgButtonSizer()
                 btnDef = yes;
         }
 
+        if ( m_dialogStyle & wxHELP )
+        {
+            wxButton * const
+                help = new wxButton(this, wxID_HELP, GetCustomHelpLabel());
+            sizerStd->AddButton(help);
+        }
+
         if ( btnDef )
         {
             btnDef->SetDefault();
@@ -148,7 +156,7 @@ wxSizer *wxGenericMessageDialog::CreateMsgDlgButtonSizer()
     // Use standard labels for all buttons
     return CreateSeparatedButtonSizer
            (
-                m_dialogStyle & (wxOK | wxCANCEL | wxYES_NO |
+                m_dialogStyle & (wxOK | wxCANCEL | wxHELP | wxYES_NO |
                                  wxNO_DEFAULT | wxCANCEL_DEFAULT)
            );
 }
@@ -240,6 +248,11 @@ void wxGenericMessageDialog::OnYes(wxCommandEvent& WXUNUSED(event))
 void wxGenericMessageDialog::OnNo(wxCommandEvent& WXUNUSED(event))
 {
     EndModal( wxID_NO );
+}
+
+void wxGenericMessageDialog::OnHelp(wxCommandEvent& WXUNUSED(event))
+{
+    EndModal( wxID_HELP );
 }
 
 void wxGenericMessageDialog::OnCancel(wxCommandEvent& WXUNUSED(event))

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: listbox.mm 67888 2011-06-08 22:50:28Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -161,7 +161,7 @@ protected :
 
 - (id) init
 {
-    [super init];
+    self = [super init];
     column = nil;
     return self;
 }
@@ -224,7 +224,7 @@ protected:
 
 - (id) init
 {
-    [super init];
+    self = [super init];
     impl = nil;
     return self;
 }

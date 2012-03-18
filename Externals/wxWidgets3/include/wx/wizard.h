@@ -9,7 +9,7 @@
 //              Added wxWIZARD_HELP event
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: wizard.h 70630 2012-02-20 11:38:52Z JS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -291,6 +291,7 @@ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_CANCEL, wxWizardEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_HELP, wxWizardEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_FINISHED, wxWizardEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_PAGE_SHOWN, wxWizardEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_BEFORE_PAGE_CHANGED, wxWizardEvent );
 
 typedef void (wxEvtHandler::*wxWizardEventFunction)(wxWizardEvent&);
 
@@ -306,6 +307,10 @@ typedef void (wxEvtHandler::*wxWizardEventFunction)(wxWizardEvent&);
 // the user pressed "<Back" or "Next>" button and the page is going to be
 // changed - unless the event handler vetoes the event
 #define EVT_WIZARD_PAGE_CHANGING(id, fn) wx__DECLARE_WIZARDEVT(PAGE_CHANGING, id, fn)
+
+// Called before GetNext/GetPrev is called, so that the handler can change state that will be
+// used when GetNext/GetPrev is called. PAGE_CHANGING is called too late to influence GetNext/GetPrev.
+#define EVT_WIZARD_BEFORE_PAGE_CHANGED(id, fn) wx__DECLARE_WIZARDEVT(BEFORE_PAGE_CHANGED, id, fn)
 
 // the user pressed "Cancel" button and the wizard is going to be dismissed -
 // unless the event handler vetoes the event

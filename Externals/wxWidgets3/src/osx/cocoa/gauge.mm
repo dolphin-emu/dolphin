@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: gauge.mm 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: gauge.mm 69931 2011-12-05 00:00:58Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,6 +37,13 @@
 
 @end
 
+@interface NSView(PossibleSizeMethods)
+- (NSControlSize)controlSize;
+@end
+
+namespace
+{
+
 class wxOSXGaugeCocoaImpl : public wxWidgetCocoaImpl
 {
 public :
@@ -64,6 +71,27 @@ public :
             [(wxNSProgressIndicator*)m_osxView startAnimation:nil];
         }
     }
+
+    void GetLayoutInset(int &left , int &top , int &right, int &bottom) const
+    {
+        left = top = right = bottom = 0;
+        NSControlSize size = [(wxNSProgressIndicator*)m_osxView controlSize];
+
+        switch( size )
+        {
+            case NSRegularControlSize:
+                left = right = 2;
+                top = 0;
+                bottom = 4;
+                break;
+            case NSMiniControlSize:
+            case NSSmallControlSize:
+                left = right = 1;
+                top = 0;
+                bottom = 2;
+                break;
+        }
+    }
 protected:
     void SetDeterminateMode()
     {
@@ -75,7 +103,8 @@ protected:
         }
     }
 };
-
+    
+} // anonymous namespace
 
 wxWidgetImplType* wxWidgetImpl::CreateGauge( wxWindowMac* wxpeer,
                                     wxWindowMac* WXUNUSED(parent),

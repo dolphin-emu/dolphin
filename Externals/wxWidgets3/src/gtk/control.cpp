@@ -2,7 +2,7 @@
 // Name:        src/gtk/control.cpp
 // Purpose:     wxControl implementation for wxGTK
 // Author:      Robert Roebling
-// Id:          $Id: control.cpp 67062 2011-02-27 12:48:07Z VZ $
+// Id:          $Id: control.cpp 70714 2012-02-27 17:49:33Z PC $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart and Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -229,9 +229,6 @@ wxControl::GetDefaultAttributesFromGTKWidget(GtkWidget* widget,
         return wxWindow::GetClassDefaultAttributes(wxWINDOW_VARIANT_NORMAL);
     }
 
-    if (state == -1)
-        state = GTK_STATE_NORMAL;
-
     // get the style's colours
     attr.colFg = wxColour(style->fg[state]);
     if (useBase)
@@ -245,8 +242,9 @@ wxControl::GetDefaultAttributesFromGTKWidget(GtkWidget* widget,
     if ( style && style->font_desc )
     {
         wxNativeFontInfo info;
-        info.description = pango_font_description_copy(style->font_desc);
+        info.description = style->font_desc;
         attr.font = wxFont(info);
+        info.description = NULL;
     }
     else
     {

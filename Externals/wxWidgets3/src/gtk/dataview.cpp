@@ -2,7 +2,7 @@
 // Name:        src/gtk/dataview.cpp
 // Purpose:     wxDataViewCtrl GTK+2 implementation
 // Author:      Robert Roebling
-// Id:          $Id: dataview.cpp 67120 2011-03-03 17:51:52Z PC $
+// Id:          $Id: dataview.cpp 70457 2012-01-25 00:05:03Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,6 @@
 #endif
 
 #include "wx/stockitem.h"
-#include "wx/calctrl.h"
 #include "wx/popupwin.h"
 #include "wx/listimpl.cpp"
 
@@ -34,6 +33,8 @@
 #include "wx/gtk/dcclient.h"
 
 #include "wx/gtk/private/gdkconv.h"
+#include "wx/gtk/private/list.h"
+#include "wx/gtk/private/event.h"
 using namespace wxGTKImpl;
 
 class wxGtkDataViewModelNotifier;
@@ -96,6 +97,26 @@ private:
     GtkTreePath *m_path;
 
     wxDECLARE_NO_COPY_CLASS(wxGtkTreePath);
+};
+
+// ----------------------------------------------------------------------------
+// wxGtkTreePathList: self-destroying list of GtkTreePath objects.
+// ----------------------------------------------------------------------------
+
+class wxGtkTreePathList : public wxGtkList
+{
+public:
+    // Ctor takes ownership of the list.
+    explicit wxGtkTreePathList(GList* list)
+        : wxGtkList(list)
+    {
+    }
+
+    ~wxGtkTreePathList()
+    {
+        // Delete the list contents, wxGtkList will delete the list itself.
+        g_list_foreach(m_list, (GFunc)gtk_tree_path_free, NULL);
+    }
 };
 
 // ----------------------------------------------------------------------------
@@ -258,7 +279,7 @@ public:
     // item can be deleted already in the model
     int GetIndexOf( const wxDataViewItem &parent, const wxDataViewItem &item );
 
-    virtual void OnInternalIdle();
+    void OnInternalIdle();
 
 protected:
     void InitTree();
@@ -300,7 +321,7 @@ private:
 static
 int LINKAGEMODE wxGtkTreeModelChildCmp( void** id1, void** id2 )
 {
-    int ret = gs_internal->GetDataViewModel()->Compare( *id1, *id2,
+    int ret = gs_internal->GetDataViewModel()->Compare( wxDataViewItem(*id1), wxDataViewItem(*id2),
         gs_internal->GetSortColumn(), (gs_internal->GetSortOrder() == GTK_SORT_ASCENDING) );
 
     return ret;
@@ -331,7 +352,7 @@ public:
         }
     }
 
-    unsigned int AddNode( wxGtkTreeModelNode* child )
+    void AddNode( wxGtkTreeModelNode* child )
         {
             m_nodes.Add( child );
 
@@ -343,24 +364,54 @@ public:
             {
                 gs_internal = m_internal;
                 m_children.Sort( &wxGtkTreeModelChildCmp );
-                return m_children.Index( id );
             }
-
-            return m_children.GetCount()-1;
         }
 
-    unsigned int AddLeave( void* id )
+    void InsertNode( wxGtkTreeModelNode* child, unsigned pos )
         {
-            m_children.Add( id );
+            if (m_internal->IsSorted() || m_internal->GetDataViewModel()->HasDefaultCompare())
+            {
+                AddNode(child);
+                return;
+            }
+
+            void *id = child->GetItem().GetID();
+
+            // Insert into m_nodes so that the order of nodes in m_nodes is the
+            // same as the order of their corresponding IDs in m_children:
+            const unsigned int count = m_nodes.GetCount();
+            bool inserted = false;
+            for (unsigned i = 0; i < count; i++)
+            {
+                wxGtkTreeModelNode *node = m_nodes[i];
+                int posInChildren = m_children.Index(node->GetItem().GetID());
+                if ( (unsigned)posInChildren >= pos )
+                {
+                    m_nodes.Insert(child, i);
+                    inserted = true;
+                    break;
+                }
+            }
+            if ( !inserted )
+                m_nodes.Add(child);
+
+            m_children.Insert( id, pos );
+        }
+
+    void AddLeaf( void* id )
+        {
+            InsertLeaf(id, m_children.size());
+        }
+
+    void InsertLeaf( void* id, unsigned pos )
+        {
+            m_children.Insert( id, pos );
 
             if (m_internal->IsSorted() || m_internal->GetDataViewModel()->HasDefaultCompare())
             {
                 gs_internal = m_internal;
                 m_children.Sort( &wxGtkTreeModelChildCmp );
-                return m_children.Index( id );
             }
-
-            return m_children.GetCount()-1;
         }
 
     void DeleteChild( void* id )
@@ -380,6 +431,20 @@ public:
                 }
             }
         }
+
+    // returns position of child node for given item in children list or wxNOT_FOUND
+    int FindChildByItem(const wxDataViewItem& item) const
+    {
+        const void* itemId = item.GetID();
+        const wxGtkTreeModelChildren& nodes = m_children;
+        const int len = nodes.size();
+        for ( int i = 0; i < len; i++ )
+        {
+            if ( nodes[i] == itemId )
+                return i;
+        }
+        return wxNOT_FOUND;
+    }
 
     wxGtkTreeModelNode* GetParent()
         { return m_parent; }
@@ -419,14 +484,10 @@ extern "C" {
 
 #define GTK_TYPE_WX_TREE_MODEL               (gtk_wx_tree_model_get_type ())
 #define GTK_WX_TREE_MODEL(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_WX_TREE_MODEL, GtkWxTreeModel))
-#define GTK_WX_TREE_MODEL_CLASS(klass)       (G_TYPE_CHECK_CLASS_CAST ((klass), GTK_TYPE_WX_TREE_MODEL, GtkWxTreeModelClass))
 #define GTK_IS_WX_TREE_MODEL(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_WX_TREE_MODEL))
 #define GTK_IS_WX_TREE_MODEL_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_WX_TREE_MODEL))
-#define GTK_WX_TREE_MODEL_GET_CLASS(obj)     (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_WX_TREE_MODEL, GtkWxTreeModelClass))
 
 GType         gtk_wx_tree_model_get_type         (void);
-
-typedef struct _GtkWxTreeModelClass  GtkWxTreeModelClass;
 
 struct _GtkWxTreeModel
 {
@@ -437,21 +498,14 @@ struct _GtkWxTreeModel
   wxDataViewCtrlInternal *internal;
 };
 
-struct _GtkWxTreeModelClass
-{
-  GObjectClass list_parent_class;
-};
-
 static GtkWxTreeModel *wxgtk_tree_model_new          (void);
-static void         wxgtk_tree_model_init            (GtkWxTreeModel       *tree_model);
-static void         wxgtk_tree_model_class_init      (GtkWxTreeModelClass  *klass);
+static void         wxgtk_tree_model_init            (GTypeInstance* instance, void*);
 
-static void         wxgtk_tree_model_tree_model_init (GtkTreeModelIface       *iface);
-static void         wxgtk_tree_model_sortable_init   (GtkTreeSortableIface    *iface);
-static void         wxgtk_tree_model_drag_source_init(GtkTreeDragSourceIface  *iface);
-static void         wxgtk_tree_model_drag_dest_init  (GtkTreeDragDestIface    *iface);
+static void         wxgtk_tree_model_tree_model_init (void* g_iface, void*);
+static void         wxgtk_tree_model_sortable_init   (void* g_iface, void*);
+static void         wxgtk_tree_model_drag_source_init(void* g_iface, void*);
+static void         wxgtk_tree_model_drag_dest_init  (void* g_iface, void*);
 
-static void         wxgtk_tree_model_finalize        (GObject           *object);
 static GtkTreeModelFlags wxgtk_tree_model_get_flags  (GtkTreeModel      *tree_model);
 static gint         wxgtk_tree_model_get_n_columns   (GtkTreeModel      *tree_model);
 static GType        wxgtk_tree_model_get_column_type (GtkTreeModel      *tree_model,
@@ -493,11 +547,11 @@ static void     wxgtk_tree_model_set_sort_func         (GtkTreeSortable       *s
                                                         gint                   sort_column_id,
                                                         GtkTreeIterCompareFunc func,
                                                         gpointer               data,
-                                                        GtkDestroyNotify       destroy);
+                                                        GDestroyNotify       destroy);
 static void     wxgtk_tree_model_set_default_sort_func (GtkTreeSortable       *sortable,
                                                         GtkTreeIterCompareFunc func,
                                                         gpointer               data,
-                                                        GtkDestroyNotify       destroy);
+                                                        GDestroyNotify       destroy);
 static gboolean wxgtk_tree_model_has_default_sort_func (GtkTreeSortable       *sortable);
 
 /* drag'n'drop */
@@ -515,9 +569,6 @@ static gboolean wxgtk_tree_model_row_drop_possible     (GtkTreeDragDest       *d
                                                         GtkTreePath           *dest_path,
                                                         GtkSelectionData      *selection_data);
 
-
-static GObjectClass *list_parent_class = NULL;
-
 GType
 gtk_wx_tree_model_get_type (void)
 {
@@ -527,41 +578,41 @@ gtk_wx_tree_model_get_type (void)
     {
         const GTypeInfo tree_model_info =
         {
-            sizeof (GtkWxTreeModelClass),
+            sizeof (GObjectClass),
             NULL,   /* base_init */
             NULL,   /* base_finalize */
-            (GClassInitFunc) wxgtk_tree_model_class_init,
+            NULL,
             NULL,   /* class_finalize */
             NULL,   /* class_data */
             sizeof (GtkWxTreeModel),
             0,
-            (GInstanceInitFunc) wxgtk_tree_model_init,
+            wxgtk_tree_model_init,
         };
 
         static const GInterfaceInfo tree_model_iface_info =
         {
-            (GInterfaceInitFunc) wxgtk_tree_model_tree_model_init,
+            wxgtk_tree_model_tree_model_init,
             NULL,
             NULL
         };
 
         static const GInterfaceInfo sortable_iface_info =
         {
-            (GInterfaceInitFunc) wxgtk_tree_model_sortable_init,
+            wxgtk_tree_model_sortable_init,
             NULL,
             NULL
         };
 
         static const GInterfaceInfo drag_source_iface_info =
         {
-            (GInterfaceInitFunc) wxgtk_tree_model_drag_source_init,
+            wxgtk_tree_model_drag_source_init,
             NULL,
             NULL
         };
 
         static const GInterfaceInfo drag_dest_iface_info =
         {
-            (GInterfaceInitFunc) wxgtk_tree_model_drag_dest_init,
+            wxgtk_tree_model_drag_dest_init,
             NULL,
             NULL
         };
@@ -594,16 +645,9 @@ wxgtk_tree_model_new(void)
 }
 
 static void
-wxgtk_tree_model_class_init (GtkWxTreeModelClass *klass)
+wxgtk_tree_model_tree_model_init(void* g_iface, void*)
 {
-    list_parent_class = (GObjectClass*) g_type_class_peek_parent (klass);
-    GObjectClass *object_class = (GObjectClass*) klass;
-    object_class->finalize = wxgtk_tree_model_finalize;
-}
-
-static void
-wxgtk_tree_model_tree_model_init (GtkTreeModelIface *iface)
-{
+    GtkTreeModelIface* iface = static_cast<GtkTreeModelIface*>(g_iface);
     iface->get_flags = wxgtk_tree_model_get_flags;
     iface->get_n_columns = wxgtk_tree_model_get_n_columns;
     iface->get_column_type = wxgtk_tree_model_get_column_type;
@@ -619,8 +663,9 @@ wxgtk_tree_model_tree_model_init (GtkTreeModelIface *iface)
 }
 
 static void
-wxgtk_tree_model_sortable_init (GtkTreeSortableIface *iface)
+wxgtk_tree_model_sortable_init(void* g_iface, void*)
 {
+    GtkTreeSortableIface* iface = static_cast<GtkTreeSortableIface*>(g_iface);
     iface->get_sort_column_id = wxgtk_tree_model_get_sort_column_id;
     iface->set_sort_column_id = wxgtk_tree_model_set_sort_column_id;
     iface->set_sort_func = wxgtk_tree_model_set_sort_func;
@@ -629,32 +674,28 @@ wxgtk_tree_model_sortable_init (GtkTreeSortableIface *iface)
 }
 
 static void
-wxgtk_tree_model_drag_source_init(GtkTreeDragSourceIface  *iface)
+wxgtk_tree_model_drag_source_init(void* g_iface, void*)
 {
+    GtkTreeDragSourceIface* iface = static_cast<GtkTreeDragSourceIface*>(g_iface);
     iface->row_draggable = wxgtk_tree_model_row_draggable;
     iface->drag_data_delete = wxgtk_tree_model_drag_data_delete;
     iface->drag_data_get = wxgtk_tree_model_drag_data_get;
 }
 
 static void
-wxgtk_tree_model_drag_dest_init  (GtkTreeDragDestIface    *iface)
+wxgtk_tree_model_drag_dest_init(void* g_iface, void*)
 {
+    GtkTreeDragDestIface* iface = static_cast<GtkTreeDragDestIface*>(g_iface);
     iface->drag_data_received = wxgtk_tree_model_drag_data_received;
     iface->row_drop_possible = wxgtk_tree_model_row_drop_possible;
 }
 
 static void
-wxgtk_tree_model_init (GtkWxTreeModel *tree_model)
+wxgtk_tree_model_init(GTypeInstance* instance, void*)
 {
+    GtkWxTreeModel* tree_model = GTK_WX_TREE_MODEL(instance);
     tree_model->internal = NULL;
     tree_model->stamp = g_random_int();
-}
-
-static void
-wxgtk_tree_model_finalize (GObject *object)
-{
-    /* must chain up */
-    (* list_parent_class->finalize) (object);
 }
 
 } // extern "C"
@@ -966,7 +1007,7 @@ wxgtk_tree_model_set_sort_func (GtkTreeSortable        *sortable,
                                 gint                    WXUNUSED(sort_column_id),
                                 GtkTreeIterCompareFunc  func,
                                 gpointer                WXUNUSED(data),
-                                GtkDestroyNotify        WXUNUSED(destroy))
+                                GDestroyNotify        WXUNUSED(destroy))
 {
     g_return_if_fail (GTK_IS_WX_TREE_MODEL (sortable) );
     g_return_if_fail (func != NULL);
@@ -976,7 +1017,7 @@ static void
 wxgtk_tree_model_set_default_sort_func (GtkTreeSortable          *sortable,
                                         GtkTreeIterCompareFunc    func,
                                         gpointer                  WXUNUSED(data),
-                                        GtkDestroyNotify          WXUNUSED(destroy))
+                                        GDestroyNotify          WXUNUSED(destroy))
 {
     g_return_if_fail (GTK_IS_WX_TREE_MODEL (sortable) );
     g_return_if_fail (func != NULL);
@@ -1001,15 +1042,12 @@ extern "C" {
 
 #define GTK_TYPE_WX_CELL_RENDERER_TEXT               (gtk_wx_cell_renderer_text_get_type ())
 #define GTK_WX_CELL_RENDERER_TEXT(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_WX_CELL_RENDERER_TEXT, GtkWxCellRendererText))
-#define GTK_WX_CELL_RENDERER_TEXT_CLASS(klass)       (G_TYPE_CHECK_CLASS_CAST ((klass), GTK_TYPE_WX_CELL_RENDERER_TEXT, GtkWxCellRendererTextClass))
 #define GTK_IS_WX_CELL_RENDERER_TEXT(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_WX_CELL_RENDERER_TEXT))
 #define GTK_IS_WX_CELL_RENDERER_TEXT_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_WX_CELL_RENDERER_TEXT))
-#define GTK_WX_CELL_RENDERER_TEXT_GET_CLASS(obj)     (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_WX_CELL_RENDERER_TEXT, GtkWxCellRendererTextClass))
 
 GType            gtk_wx_cell_renderer_text_get_type (void);
 
 typedef struct _GtkWxCellRendererText GtkWxCellRendererText;
-typedef struct _GtkWxCellRendererTextClass GtkWxCellRendererTextClass;
 
 struct _GtkWxCellRendererText
 {
@@ -1018,19 +1056,11 @@ struct _GtkWxCellRendererText
   wxDataViewRenderer *wx_renderer;
 };
 
-struct _GtkWxCellRendererTextClass
-{
-  GtkCellRendererTextClass cell_parent_class;
-};
-
-
 static GtkWxCellRendererText *gtk_wx_cell_renderer_text_new   (void);
 static void gtk_wx_cell_renderer_text_init (
-                        GtkWxCellRendererText      *cell );
+                        GTypeInstance* instance, void*);
 static void gtk_wx_cell_renderer_text_class_init(
-                        GtkWxCellRendererTextClass *klass );
-static void gtk_wx_cell_renderer_text_finalize (
-                        GObject                *object );
+                        void* klass, void*);
 static GtkCellEditable *gtk_wx_cell_renderer_text_start_editing(
                         GtkCellRenderer         *cell,
                         GdkEvent                *event,
@@ -1054,15 +1084,15 @@ gtk_wx_cell_renderer_text_get_type (void)
     {
         const GTypeInfo cell_wx_info =
         {
-            sizeof (GtkWxCellRendererTextClass),
+            sizeof (GtkCellRendererTextClass),
             NULL, /* base_init */
             NULL, /* base_finalize */
-            (GClassInitFunc) gtk_wx_cell_renderer_text_class_init,
+            gtk_wx_cell_renderer_text_class_init,
             NULL, /* class_finalize */
             NULL, /* class_data */
             sizeof (GtkWxCellRendererText),
             0,          /* n_preallocs */
-            (GInstanceInitFunc) gtk_wx_cell_renderer_text_init,
+            gtk_wx_cell_renderer_text_init,
         };
 
         cell_wx_type = g_type_register_static( GTK_TYPE_CELL_RENDERER_TEXT,
@@ -1073,29 +1103,20 @@ gtk_wx_cell_renderer_text_get_type (void)
 }
 
 static void
-gtk_wx_cell_renderer_text_init (GtkWxCellRendererText *cell)
+gtk_wx_cell_renderer_text_init(GTypeInstance* instance, void*)
 {
+    GtkWxCellRendererText* cell = GTK_WX_CELL_RENDERER_TEXT(instance);
     cell->wx_renderer = NULL;
 }
 
 static void
-gtk_wx_cell_renderer_text_class_init (GtkWxCellRendererTextClass *klass)
+gtk_wx_cell_renderer_text_class_init(void* klass, void*)
 {
-    GObjectClass *object_class = G_OBJECT_CLASS (klass);
     GtkCellRendererClass *cell_class = GTK_CELL_RENDERER_CLASS (klass);
 
     text_cell_parent_class = (GObjectClass*) g_type_class_peek_parent (klass);
 
-    object_class->finalize = gtk_wx_cell_renderer_text_finalize;
-
     cell_class->start_editing = gtk_wx_cell_renderer_text_start_editing;
-}
-
-static void
-gtk_wx_cell_renderer_text_finalize (GObject *object)
-{
-    /* must chain up */
-    (* G_OBJECT_CLASS (text_cell_parent_class)->finalize) (object);
 }
 
 GtkWxCellRendererText*
@@ -1143,15 +1164,12 @@ extern "C" {
 
 #define GTK_TYPE_WX_CELL_RENDERER               (gtk_wx_cell_renderer_get_type ())
 #define GTK_WX_CELL_RENDERER(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_WX_CELL_RENDERER, GtkWxCellRenderer))
-#define GTK_WX_CELL_RENDERER_CLASS(klass)       (G_TYPE_CHECK_CLASS_CAST ((klass), GTK_TYPE_WX_CELL_RENDERER, GtkWxCellRendererClass))
 #define GTK_IS_WX_CELL_RENDERER(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_WX_CELL_RENDERER))
 #define GTK_IS_WX_CELL_RENDERER_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_WX_CELL_RENDERER))
-#define GTK_WX_CELL_RENDERER_GET_CLASS(obj)     (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_WX_CELL_RENDERER, GtkWxCellRendererClass))
 
 GType            gtk_wx_cell_renderer_get_type (void);
 
 typedef struct _GtkWxCellRenderer GtkWxCellRenderer;
-typedef struct _GtkWxCellRendererClass GtkWxCellRendererClass;
 
 struct _GtkWxCellRenderer
 {
@@ -1159,22 +1177,13 @@ struct _GtkWxCellRenderer
 
   /*< private >*/
   wxDataViewCustomRenderer *cell;
-  guint32 last_click;
 };
-
-struct _GtkWxCellRendererClass
-{
-  GtkCellRendererClass cell_parent_class;
-};
-
 
 static GtkCellRenderer *gtk_wx_cell_renderer_new   (void);
 static void gtk_wx_cell_renderer_init (
-                        GtkWxCellRenderer      *cell );
+                        GTypeInstance* instance, void*);
 static void gtk_wx_cell_renderer_class_init(
-                        GtkWxCellRendererClass *klass );
-static void gtk_wx_cell_renderer_finalize (
-                        GObject                *object );
+                        void* klass, void*);
 static void gtk_wx_cell_renderer_get_size (
                         GtkCellRenderer         *cell,
                         GtkWidget               *widget,
@@ -1208,9 +1217,6 @@ static GtkCellEditable *gtk_wx_cell_renderer_start_editing(
                         GdkRectangle            *cell_area,
                         GtkCellRendererState     flags );
 
-
-static GObjectClass *cell_parent_class = NULL;
-
 }  // extern "C"
 
 GType
@@ -1222,15 +1228,15 @@ gtk_wx_cell_renderer_get_type (void)
     {
         const GTypeInfo cell_wx_info =
         {
-            sizeof (GtkWxCellRendererClass),
+            sizeof (GtkCellRendererClass),
             NULL, /* base_init */
             NULL, /* base_finalize */
-            (GClassInitFunc) gtk_wx_cell_renderer_class_init,
+            gtk_wx_cell_renderer_class_init,
             NULL, /* class_finalize */
             NULL, /* class_data */
             sizeof (GtkWxCellRenderer),
             0,          /* n_preallocs */
-            (GInstanceInitFunc) gtk_wx_cell_renderer_init,
+            gtk_wx_cell_renderer_init,
         };
 
         cell_wx_type = g_type_register_static( GTK_TYPE_CELL_RENDERER,
@@ -1241,33 +1247,21 @@ gtk_wx_cell_renderer_get_type (void)
 }
 
 static void
-gtk_wx_cell_renderer_init (GtkWxCellRenderer *cell)
+gtk_wx_cell_renderer_init(GTypeInstance* instance, void*)
 {
+    GtkWxCellRenderer* cell = GTK_WX_CELL_RENDERER(instance);
     cell->cell = NULL;
-    cell->last_click = 0;
 }
 
 static void
-gtk_wx_cell_renderer_class_init (GtkWxCellRendererClass *klass)
+gtk_wx_cell_renderer_class_init(void* klass, void*)
 {
-    GObjectClass *object_class = G_OBJECT_CLASS (klass);
     GtkCellRendererClass *cell_class = GTK_CELL_RENDERER_CLASS (klass);
-
-    cell_parent_class = (GObjectClass*) g_type_class_peek_parent (klass);
-
-    object_class->finalize = gtk_wx_cell_renderer_finalize;
 
     cell_class->get_size = gtk_wx_cell_renderer_get_size;
     cell_class->render = gtk_wx_cell_renderer_render;
     cell_class->activate = gtk_wx_cell_renderer_activate;
     cell_class->start_editing = gtk_wx_cell_renderer_start_editing;
-}
-
-static void
-gtk_wx_cell_renderer_finalize (GObject *object)
-{
-    /* must chain up */
-    (* G_OBJECT_CLASS (cell_parent_class)->finalize) (object);
 }
 
 GtkCellRenderer*
@@ -1333,8 +1327,21 @@ gtk_wx_cell_renderer_get_size (GtkCellRenderer *renderer,
 
     wxSize size = cell->GetSize();
 
-    gint calc_width  = (gint) renderer->xpad * 2 + size.x;
-    gint calc_height = (gint) renderer->ypad * 2 + size.y;
+    wxDataViewCtrl * const ctrl = cell->GetOwner()->GetOwner();
+
+    // Uniform row height, if specified, overrides the value returned by the
+    // renderer.
+    if ( !ctrl->HasFlag(wxDV_VARIABLE_LINE_HEIGHT) )
+    {
+        const int uniformHeight = ctrl->GTKGetUniformRowHeight();
+        if ( uniformHeight > 0 )
+            size.y = uniformHeight;
+    }
+
+    int xpad, ypad;
+    gtk_cell_renderer_get_padding(renderer, &xpad, &ypad);
+    int calc_width  = xpad * 2 + size.x;
+    int calc_height = ypad * 2 + size.y;
 
     if (x_offset)
         *x_offset = 0;
@@ -1343,17 +1350,17 @@ gtk_wx_cell_renderer_get_size (GtkCellRenderer *renderer,
 
     if (cell_area && size.x > 0 && size.y > 0)
     {
+        float xalign, yalign;
+        gtk_cell_renderer_get_alignment(renderer, &xalign, &yalign);
         if (x_offset)
         {
-            *x_offset = (gint)((renderer->xalign *
-                               (cell_area->width - calc_width - 2 * renderer->xpad)));
-            *x_offset = MAX (*x_offset, 0) + renderer->xpad;
+            *x_offset = int(xalign * (cell_area->width - calc_width - 2 * xpad));
+            *x_offset = MAX(*x_offset, 0) + xpad;
         }
         if (y_offset)
         {
-            *y_offset = (gint)((renderer->yalign *
-                               (cell_area->height - calc_height - 2 * renderer->ypad)));
-            *y_offset = MAX (*y_offset, 0) + renderer->ypad;
+            *y_offset = int(yalign * (cell_area->height - calc_height - 2 * ypad));
+            *y_offset = MAX(*y_offset, 0) + ypad;
         }
     }
 
@@ -1363,6 +1370,15 @@ gtk_wx_cell_renderer_get_size (GtkCellRenderer *renderer,
     if (height)
         *height = calc_height;
 }
+
+struct wxDataViewCustomRenderer::GTKRenderParams
+{
+    GdkWindow* window;
+    GdkRectangle* expose_area;
+    GtkWidget* widget;
+    GdkRectangle* background_area;
+    int flags;
+};
 
 static void
 gtk_wx_cell_renderer_render (GtkCellRenderer      *renderer,
@@ -1377,11 +1393,18 @@ gtk_wx_cell_renderer_render (GtkCellRenderer      *renderer,
     GtkWxCellRenderer *wxrenderer = (GtkWxCellRenderer *) renderer;
     wxDataViewCustomRenderer *cell = wxrenderer->cell;
 
-    cell->GTKStashRenderParams(window, widget,
-                               background_area, expose_area, flags);
+    wxDataViewCustomRenderer::GTKRenderParams renderParams;
+    renderParams.window = window;
+    renderParams.expose_area = expose_area;
+    renderParams.widget = widget;
+    renderParams.background_area = background_area;
+    renderParams.flags = flags;
+    cell->GTKSetRenderParams(&renderParams);
 
     wxRect rect(wxRectFromGDKRect(cell_area));
-    rect = rect.Deflate(renderer->xpad, renderer->ypad);
+    int xpad, ypad;
+    gtk_cell_renderer_get_padding(renderer, &xpad, &ypad);
+    rect = rect.Deflate(xpad, ypad);
 
     wxWindowDC* dc = (wxWindowDC*) cell->GetDC();
     wxWindowDCImpl *impl = (wxWindowDCImpl *) dc->GetImpl();
@@ -1407,6 +1430,8 @@ gtk_wx_cell_renderer_render (GtkCellRenderer      *renderer,
     if (flags & GTK_CELL_RENDERER_FOCUSED)
         state |= wxDATAVIEW_CELL_FOCUSED;
     cell->WXCallRender( rect, dc, state );
+
+    cell->GTKSetRenderParams(NULL);
 }
 
 static gboolean
@@ -1431,8 +1456,10 @@ gtk_wx_cell_renderer_activate(
 
     rect.x += cell_area->x;
     rect.y += cell_area->y;
-    rect.width  -= renderer->xpad * 2;
-    rect.height -= renderer->ypad * 2;
+    int xpad, ypad;
+    gtk_cell_renderer_get_padding(renderer, &xpad, &ypad);
+    rect.width  -= xpad * 2;
+    rect.height -= ypad * 2;
 
     wxRect renderrect(wxRectFromGDKRect(&rect));
 
@@ -1443,37 +1470,27 @@ gtk_wx_cell_renderer_activate(
 
     unsigned int model_col = cell->GetOwner()->GetModelColumn();
 
-    if (!event)
+    if ( !event )
     {
-        bool ret = false;
-
         // activated by <ENTER>
-        if (cell->Activate( renderrect, model, item, model_col ))
-                    ret = true;
-
-        return ret;
+        return cell->ActivateCell(renderrect, model, item, model_col, NULL);
     }
-    else if (event->type == GDK_BUTTON_PRESS)
+    else if ( event->type == GDK_BUTTON_PRESS )
     {
-        GdkEventButton *button_event = (GdkEventButton*) event;
-        wxPoint pt( ((int) button_event->x) - renderrect.x,
-                    ((int) button_event->y) - renderrect.y );
-
-        bool ret = false;
-        if (button_event->button == 1)
+        GdkEventButton *button_event = (GdkEventButton*)event;
+        if ( button_event->button == 1 )
         {
-            if (cell->LeftClick( pt, renderrect, model, item, model_col ))
-                ret = true;
-            // TODO: query system double-click time
-            if (button_event->time - wxrenderer->last_click < 400)
-                if (cell->Activate( renderrect, model, item, model_col ))
-                    ret = true;
-        }
-        wxrenderer->last_click = button_event->time;
+            wxMouseEvent mouse_event(wxEVT_LEFT_DOWN);
+            InitMouseEvent(ctrl, mouse_event, button_event);
 
-        return ret;
+            mouse_event.m_x -= renderrect.x;
+            mouse_event.m_y -= renderrect.y;
+
+            return cell->ActivateCell(renderrect, model, item, model_col, &mouse_event);
+        }
     }
 
+    wxLogDebug("unexpected event type in gtk_wx_cell_renderer_activate()");
     return false;
 }
 
@@ -1550,12 +1567,14 @@ bool wxGtkDataViewModelNotifier::ItemDeleted( const wxDataViewItem &parent, cons
         GTK_TREE_MODEL(wxgtk_model), &iter ));
 #else
     // so get the path from the parent
-    GtkTreeIter iter;
-    iter.stamp = wxgtk_model->stamp;
-    iter.user_data = (gpointer) parent.GetID();
-    wxGtkTreePath path(wxgtk_tree_model_get_path(
-        GTK_TREE_MODEL(wxgtk_model), &iter ));
+    GtkTreeIter parentIter;
+    parentIter.stamp = wxgtk_model->stamp;
+    parentIter.user_data = (gpointer) parent.GetID();
+    wxGtkTreePath parentPath(wxgtk_tree_model_get_path(
+        GTK_TREE_MODEL(wxgtk_model), &parentIter ));
+
     // and add the final index ourselves
+    wxGtkTreePath path(gtk_tree_path_copy(parentPath));
     int index = m_internal->GetIndexOf( parent, item );
     gtk_tree_path_append_index( path, index );
 #endif
@@ -1564,6 +1583,17 @@ bool wxGtkDataViewModelNotifier::ItemDeleted( const wxDataViewItem &parent, cons
         GTK_TREE_MODEL(wxgtk_model), path );
 
     m_internal->ItemDeleted( parent, item );
+
+    // Did we remove the last child, causing 'parent' to become a leaf?
+    if ( !m_wx_model->IsContainer(parent) )
+    {
+        gtk_tree_model_row_has_child_toggled
+        (
+            GTK_TREE_MODEL(wxgtk_model),
+            parentPath,
+            &parentIter
+        );
+    }
 
     return true;
 }
@@ -1606,23 +1636,28 @@ bool wxGtkDataViewModelNotifier::ValueChanged( const wxDataViewItem &item, unsig
             GtkTreeView *widget = GTK_TREE_VIEW(ctrl->GtkGetTreeView());
             GtkTreeViewColumn *gcolumn = GTK_TREE_VIEW_COLUMN(column->GetGtkHandle());
 
-            // Get cell area
-            GtkTreeIter iter;
-            iter.stamp = wxgtk_model->stamp;
-            iter.user_data = (gpointer) item.GetID();
-            wxGtkTreePath path(wxgtk_tree_model_get_path(
-                GTK_TREE_MODEL(wxgtk_model), &iter ));
-            GdkRectangle cell_area;
-            gtk_tree_view_get_cell_area( widget, path, gcolumn, &cell_area );
+            // Don't attempt to refresh not yet realized tree, it is useless
+            // and results in GTK errors.
+            if ( gtk_widget_get_realized(ctrl->GtkGetTreeView()) )
+            {
+                // Get cell area
+                GtkTreeIter iter;
+                iter.stamp = wxgtk_model->stamp;
+                iter.user_data = (gpointer) item.GetID();
+                wxGtkTreePath path(wxgtk_tree_model_get_path(
+                    GTK_TREE_MODEL(wxgtk_model), &iter ));
+                GdkRectangle cell_area;
+                gtk_tree_view_get_cell_area( widget, path, gcolumn, &cell_area );
 
-            GtkAdjustment* hadjust = gtk_tree_view_get_hadjustment( widget );
-            double d = gtk_adjustment_get_value( hadjust );
-            int xdiff = (int) d;
+                GtkAdjustment* hadjust = gtk_tree_view_get_hadjustment( widget );
+                double d = gtk_adjustment_get_value( hadjust );
+                int xdiff = (int) d;
 
-            int ydiff = gcolumn->button->allocation.height;
-            // Redraw
-            gtk_widget_queue_draw_area( GTK_WIDGET(widget),
-                cell_area.x - xdiff, ydiff + cell_area.y, cell_area.width, cell_area.height );
+                int ydiff = gcolumn->button->allocation.height;
+                // Redraw
+                gtk_widget_queue_draw_area( GTK_WIDGET(widget),
+                    cell_area.x - xdiff, ydiff + cell_area.y, cell_area.width, cell_area.height );
+            }
 
             m_internal->ValueChanged( item, model_column );
 
@@ -1818,7 +1853,7 @@ wxDataViewCellMode wxDataViewRenderer::GetMode() const
     return ret;
 }
 
-void wxDataViewRenderer::GtkUpdateAlignment()
+void wxDataViewRenderer::GtkApplyAlignment(GtkCellRenderer *renderer)
 {
     int align = m_alignment;
 
@@ -1844,7 +1879,7 @@ void wxDataViewRenderer::GtkUpdateAlignment()
     GValue gvalue = { 0, };
     g_value_init( &gvalue, G_TYPE_FLOAT );
     g_value_set_float( &gvalue, xalign );
-    g_object_set_property( G_OBJECT(m_renderer), "xalign", &gvalue );
+    g_object_set_property( G_OBJECT(renderer), "xalign", &gvalue );
     g_value_unset( &gvalue );
 
     // vertical alignment:
@@ -1858,7 +1893,7 @@ void wxDataViewRenderer::GtkUpdateAlignment()
     GValue gvalue2 = { 0, };
     g_value_init( &gvalue2, G_TYPE_FLOAT );
     g_value_set_float( &gvalue2, yalign );
-    g_object_set_property( G_OBJECT(m_renderer), "yalign", &gvalue2 );
+    g_object_set_property( G_OBJECT(renderer), "yalign", &gvalue2 );
     g_value_unset( &gvalue2 );
 }
 
@@ -1919,7 +1954,7 @@ wxEllipsizeMode wxDataViewRenderer::GetEllipsizeMode() const
 }
 
 void
-wxDataViewRenderer::GtkOnTextEdited(const gchar *itempath, const wxString& str)
+wxDataViewRenderer::GtkOnTextEdited(const char *itempath, const wxString& str)
 {
     wxVariant value(str);
     if (!Validate( value ))
@@ -2303,7 +2338,7 @@ public:
 
         m_context = window->GTKGetPangoDefaultContext();
         m_layout = pango_layout_new( m_context );
-        m_fontdesc = pango_font_description_copy( widget->style->font_desc );
+        m_fontdesc = pango_font_description_copy(gtk_widget_get_style(widget)->font_desc);
 
         m_cmap = gtk_widget_get_colormap( widget ? widget : window->m_widget );
 
@@ -2335,6 +2370,7 @@ wxDataViewCustomRenderer::wxDataViewCustomRenderer( const wxString &varianttype,
 {
     m_dc = NULL;
     m_text_renderer = NULL;
+    m_renderParams = NULL;
 
     if (no_init)
         m_renderer = NULL;
@@ -2342,13 +2378,20 @@ wxDataViewCustomRenderer::wxDataViewCustomRenderer( const wxString &varianttype,
         Init(mode, align);
 }
 
+void wxDataViewCustomRenderer::GtkInitTextRenderer()
+{
+    m_text_renderer = GTK_CELL_RENDERER_TEXT(gtk_cell_renderer_text_new());
+    g_object_ref_sink(m_text_renderer);
+
+    GtkApplyAlignment(GTK_CELL_RENDERER(m_text_renderer));
+}
+
 GtkCellRendererText *wxDataViewCustomRenderer::GtkGetTextRenderer() const
 {
     if ( !m_text_renderer )
     {
         // we create it on demand so need to do it even from a const function
-        const_cast<wxDataViewCustomRenderer *>(this)->
-        m_text_renderer = GTK_CELL_RENDERER_TEXT(gtk_cell_renderer_text_new());
+        const_cast<wxDataViewCustomRenderer *>(this)->GtkInitTextRenderer();
     }
 
     return m_text_renderer;
@@ -2377,12 +2420,12 @@ void wxDataViewCustomRenderer::RenderText( const wxString &text,
     cell_area.width -= xoffset;
 
     gtk_cell_renderer_render( GTK_CELL_RENDERER(textRenderer),
-        m_renderParams.window,
-        m_renderParams.widget,
-        m_renderParams.background_area,
+        m_renderParams->window,
+        m_renderParams->widget,
+        m_renderParams->background_area,
         &cell_area,
-        m_renderParams.expose_area,
-        (GtkCellRendererState) m_renderParams.flags );
+        m_renderParams->expose_area,
+        GtkCellRendererState(m_renderParams->flags));
 }
 
 bool wxDataViewCustomRenderer::Init(wxDataViewCellMode mode, int align)
@@ -2406,7 +2449,7 @@ wxDataViewCustomRenderer::~wxDataViewCustomRenderer()
         delete m_dc;
 
     if (m_text_renderer)
-        gtk_object_sink( GTK_OBJECT(m_text_renderer) );
+        g_object_unref(m_text_renderer);
 }
 
 wxDC *wxDataViewCustomRenderer::GetDC()
@@ -2441,15 +2484,20 @@ wxDataViewProgressRenderer::wxDataViewProgressRenderer( const wxString &label,
     {
         m_renderer = (GtkCellRenderer*) gtk_cell_renderer_progress_new();
 
-        GValue gvalue = { 0, };
-        g_value_init( &gvalue, G_TYPE_STRING );
-
-        g_value_set_string( &gvalue, wxGTK_CONV_FONT( m_label, GetOwner()->GetOwner()->GetFont() ) );
-        g_object_set_property( G_OBJECT(m_renderer), "text", &gvalue );
-        g_value_unset( &gvalue );
-
         SetMode(mode);
         SetAlignment(align);
+
+#if !wxUSE_UNICODE
+        // We can't initialize the renderer just yet because we don't have the
+        // pointer to the column that uses this renderer yet and so attempt to
+        // dereference GetOwner() to get the font that is used as a source of
+        // encoding in multibyte-to-Unicode conversion in GTKSetLabel() in
+        // non-Unicode builds would crash. So simply remember to do it later.
+        if ( !m_label.empty() )
+            m_needsToSetLabel = true;
+        else
+#endif // !wxUSE_UNICODE
+            GTKSetLabel();
     }
     else
 #endif
@@ -2463,11 +2511,38 @@ wxDataViewProgressRenderer::~wxDataViewProgressRenderer()
 {
 }
 
+void wxDataViewProgressRenderer::GTKSetLabel()
+{
+    GValue gvalue = { 0, };
+    g_value_init( &gvalue, G_TYPE_STRING );
+
+    // Take care to not use GetOwner() here if the label is empty, we can be
+    // called from ctor when GetOwner() is still NULL in this case.
+    wxScopedCharBuffer buf;
+    if ( m_label.empty() )
+        buf = wxScopedCharBuffer::CreateNonOwned("");
+    else
+        buf = wxGTK_CONV_FONT(m_label, GetOwner()->GetOwner()->GetFont());
+
+    g_value_set_string( &gvalue, buf);
+    g_object_set_property( G_OBJECT(m_renderer), "text", &gvalue );
+    g_value_unset( &gvalue );
+
+#if !wxUSE_UNICODE
+    m_needsToSetLabel = false;
+#endif // !wxUSE_UNICODE
+}
+
 bool wxDataViewProgressRenderer::SetValue( const wxVariant &value )
 {
 #ifdef __WXGTK26__
     if (!gtk_check_version(2,6,0))
     {
+#if !wxUSE_UNICODE
+        if ( m_needsToSetLabel )
+            GTKSetLabel();
+#endif // !wxUSE_UNICODE
+
         gint tmp = (long) value;
         GValue gvalue = { 0, };
         g_value_init( &gvalue, G_TYPE_INT );
@@ -2645,7 +2720,7 @@ wxDataViewChoiceByIndexRenderer::wxDataViewChoiceByIndexRenderer( const wxArrayS
 {
 }
 
-void wxDataViewChoiceByIndexRenderer::GtkOnTextEdited(const gchar *itempath, const wxString& str)
+void wxDataViewChoiceByIndexRenderer::GtkOnTextEdited(const char *itempath, const wxString& str)
 {
     wxVariant value( (long) GetChoices().Index( str ) );
 
@@ -2673,108 +2748,6 @@ bool wxDataViewChoiceByIndexRenderer::GetValue( wxVariant &value ) const
     value = (long) GetChoices().Index( string_value.GetString() );
     return true;
 }
-
-// ---------------------------------------------------------
-// wxDataViewDateRenderer
-// ---------------------------------------------------------
-
-class wxDataViewDateRendererPopupTransient: public wxPopupTransientWindow
-{
-public:
-    wxDataViewDateRendererPopupTransient( wxWindow* parent, wxDateTime *value,
-        wxDataViewModel *model, const wxDataViewItem &item, unsigned int col ) :
-        wxPopupTransientWindow( parent, wxBORDER_SIMPLE )
-    {
-        m_model = model;
-        m_item = item;
-        m_col = col;
-        m_cal = new wxCalendarCtrl( this, -1, *value );
-        wxBoxSizer *sizer = new wxBoxSizer( wxHORIZONTAL );
-        sizer->Add( m_cal, 1, wxGROW );
-        SetSizer( sizer );
-        sizer->Fit( this );
-    }
-
-    virtual void OnDismiss()
-    {
-    }
-
-    void OnCalendar( wxCalendarEvent &event );
-
-    wxCalendarCtrl   *m_cal;
-    wxDataViewModel  *m_model;
-    wxDataViewItem    m_item;
-    unsigned int      m_col;
-
-private:
-    DECLARE_EVENT_TABLE()
-};
-
-BEGIN_EVENT_TABLE(wxDataViewDateRendererPopupTransient,wxPopupTransientWindow)
-    EVT_CALENDAR( -1, wxDataViewDateRendererPopupTransient::OnCalendar )
-END_EVENT_TABLE()
-
-void wxDataViewDateRendererPopupTransient::OnCalendar( wxCalendarEvent &event )
-{
-    m_model->ChangeValue( event.GetDate(), m_item, m_col );
-    DismissAndNotify();
-}
-
-IMPLEMENT_CLASS(wxDataViewDateRenderer, wxDataViewCustomRenderer)
-
-wxDataViewDateRenderer::wxDataViewDateRenderer( const wxString &varianttype,
-                        wxDataViewCellMode mode, int align ) :
-    wxDataViewCustomRenderer( varianttype, mode, align )
-{
-    SetMode(mode);
-    SetAlignment(align);
-}
-
-bool wxDataViewDateRenderer::SetValue( const wxVariant &value )
-{
-    m_date = value.GetDateTime();
-
-    return true;
-}
-
-bool wxDataViewDateRenderer::GetValue( wxVariant &WXUNUSED(value) ) const
-{
-    return false;
-}
-
-bool wxDataViewDateRenderer::Render( wxRect cell, wxDC *dc, int state )
-{
-    dc->SetFont( GetOwner()->GetOwner()->GetFont() );
-    wxString tmp = m_date.FormatDate();
-    RenderText( tmp, 0, cell, dc, state );
-    return true;
-}
-
-wxSize wxDataViewDateRenderer::GetSize() const
-{
-    wxString tmp = m_date.FormatDate();
-    wxCoord x,y,d;
-    GetView()->GetTextExtent( tmp, &x, &y, &d );
-    return wxSize(x,y+d);
-}
-
-bool wxDataViewDateRenderer::Activate( const wxRect& WXUNUSED(cell), wxDataViewModel *model,
-                                       const wxDataViewItem &item, unsigned int col )
-{
-    wxVariant variant;
-    model->GetValue( variant, item, col );
-    wxDateTime value = variant.GetDateTime();
-
-    wxDataViewDateRendererPopupTransient *popup = new wxDataViewDateRendererPopupTransient(
-        GetOwner()->GetOwner()->GetParent(), &value, model, item, col );
-    wxPoint pos = wxGetMousePosition();
-    popup->Move( pos );
-    popup->Layout();
-    popup->Popup( popup->m_cal );
-
-    return true;
-}
-
 
 // ---------------------------------------------------------
 // wxDataViewIconTextRenderer
@@ -3028,7 +3001,7 @@ void wxDataViewColumn::OnInternalIdle()
     if (m_isConnected)
         return;
 
-    if (GTK_WIDGET_REALIZED(GetOwner()->m_treeview))
+    if (gtk_widget_get_realized(GetOwner()->m_treeview))
     {
         GtkTreeViewColumn *column = GTK_TREE_VIEW_COLUMN(m_column);
         if (column->button)
@@ -3076,7 +3049,7 @@ void wxDataViewColumn::SetBitmap( const wxBitmap &bitmap )
 {
     wxDataViewColumnBase::SetBitmap( bitmap );
 
-    if (bitmap.Ok())
+    if (bitmap.IsOk())
     {
         GtkImage *gtk_image = GTK_IMAGE(m_image);
 
@@ -3107,9 +3080,9 @@ void wxDataViewColumn::SetHidden( bool hidden )
     gtk_tree_view_column_set_visible( GTK_TREE_VIEW_COLUMN(m_column), !hidden );
 }
 
-void wxDataViewColumn::SetResizeable( bool resizeable )
+void wxDataViewColumn::SetResizeable( bool resizable )
 {
-    gtk_tree_view_column_set_resizable( GTK_TREE_VIEW_COLUMN(m_column), resizeable );
+    gtk_tree_view_column_set_resizable( GTK_TREE_VIEW_COLUMN(m_column), resizable );
 }
 
 void wxDataViewColumn::SetAlignment( wxAlignment align )
@@ -3161,14 +3134,6 @@ bool wxDataViewColumn::IsSortable() const
 {
     GtkTreeViewColumn *column = GTK_TREE_VIEW_COLUMN(m_column);
     return gtk_tree_view_column_get_clickable( column );
-}
-
-void wxDataViewColumn::SetAsSortKey( bool WXUNUSED(sort) )
-{
-    // it might not make sense to have this function in wxHeaderColumn at
-    // all in fact, changing of the sort order should only be done using the
-    // associated control API
-    wxFAIL_MSG( "not implemented" );
 }
 
 bool wxDataViewColumn::IsSortKey() const
@@ -3280,7 +3245,7 @@ int wxGtkTreeModelChildWithPosCmp( const void* data1, const void* data2, const v
 static
 int LINKAGEMODE wxGtkTreeModelChildPtrCmp( void*** data1, void*** data2 )
 {
-    return gs_internal->GetDataViewModel()->Compare( **data1, **data2,
+    return gs_internal->GetDataViewModel()->Compare( wxDataViewItem(**data1), wxDataViewItem(**data2),
         gs_internal->GetSortColumn(), (gs_internal->GetSortOrder() == GTK_SORT_ASCENDING) );
 }
 
@@ -3481,7 +3446,7 @@ void wxDataViewCtrlInternal::BuildBranch( wxGtkTreeModelNode *node )
             if (m_wx_model->IsContainer( child ))
                 node->AddNode( new wxGtkTreeModelNode( node, child, this ) );
             else
-                node->AddLeave( child.GetID() );
+                node->AddLeaf( child.GetID() );
 
             // Don't send any events here
         }
@@ -3524,6 +3489,7 @@ gboolean wxDataViewCtrlInternal::row_draggable( GtkTreeDragSource *WXUNUSED(drag
     GtkTreePath *path )
 {
     delete m_dragDataObject;
+    m_dragDataObject = NULL;
 
     wxDataViewItem item(GetOwner()->GTKPathToItem(path));
     if ( !item )
@@ -3565,21 +3531,22 @@ gboolean wxDataViewCtrlInternal::drag_data_get( GtkTreeDragSource *WXUNUSED(drag
     if ( !item )
         return FALSE;
 
-    if (!m_dragDataObject->IsSupported( selection_data->target ))
+    GdkAtom target = gtk_selection_data_get_target(selection_data);
+    if (!m_dragDataObject->IsSupported(target))
         return FALSE;
 
-    size_t size = m_dragDataObject->GetDataSize( selection_data->target );
+    size_t size = m_dragDataObject->GetDataSize(target);
     if (size == 0)
         return FALSE;
 
     void *buf = malloc( size );
 
     gboolean res = FALSE;
-    if (m_dragDataObject->GetDataHere( selection_data->target, buf ))
+    if (m_dragDataObject->GetDataHere(target, buf))
     {
         res = TRUE;
 
-        gtk_selection_data_set( selection_data, selection_data->target,
+        gtk_selection_data_set(selection_data, target,
             8, (const guchar*) buf, size );
     }
 
@@ -3601,9 +3568,9 @@ wxDataViewCtrlInternal::drag_data_received(GtkTreeDragDest *WXUNUSED(drag_dest),
     event.SetEventObject( m_owner );
     event.SetItem( item );
     event.SetModel( m_wx_model );
-    event.SetDataFormat( selection_data->target );
-    event.SetDataSize( selection_data->length );
-    event.SetDataBuffer( selection_data->data );
+    event.SetDataFormat(gtk_selection_data_get_target(selection_data));
+    event.SetDataSize(gtk_selection_data_get_length(selection_data));
+    event.SetDataBuffer(const_cast<guchar*>(gtk_selection_data_get_data(selection_data)));
     if (!m_owner->HandleWindowEvent( event ))
         return FALSE;
 
@@ -3626,7 +3593,7 @@ wxDataViewCtrlInternal::row_drop_possible(GtkTreeDragDest *WXUNUSED(drag_dest),
     event.SetEventObject( m_owner );
     event.SetItem( item );
     event.SetModel( m_wx_model );
-    event.SetDataFormat( selection_data->target );
+    event.SetDataFormat(gtk_selection_data_get_target(selection_data));
     if (!m_owner->HandleWindowEvent( event ))
         return FALSE;
 
@@ -3666,13 +3633,59 @@ bool wxDataViewCtrlInternal::ItemAdded( const wxDataViewItem &parent, const wxDa
     if (!m_wx_model->IsVirtualListModel())
     {
         wxGtkTreeModelNode *parent_node = FindNode( parent );
-        wxASSERT_MSG(parent_node,
+        wxCHECK_MSG(parent_node, false,
             "Did you forget a call to ItemAdded()? The parent node is unknown to the wxGtkTreeModel");
 
-        if (m_wx_model->IsContainer( item ))
-            parent_node->AddNode( new wxGtkTreeModelNode( parent_node, item, this ) );
+        wxDataViewItemArray modelSiblings;
+        m_wx_model->GetChildren(parent, modelSiblings);
+        const int modelSiblingsSize = modelSiblings.size();
+
+        int posInModel = modelSiblings.Index(item, /*fromEnd=*/true);
+        wxCHECK_MSG( posInModel != wxNOT_FOUND, false, "adding non-existent item?" );
+
+        const wxGtkTreeModelChildren& nodeSiblings = parent_node->GetChildren();
+        const int nodeSiblingsSize = nodeSiblings.size();
+
+        int nodePos = 0;
+
+        if ( posInModel == modelSiblingsSize - 1 )
+        {
+            nodePos = nodeSiblingsSize;
+        }
+        else if ( modelSiblingsSize == nodeSiblingsSize + 1 )
+        {
+            // This is the simple case when our node tree already matches the
+            // model and only this one item is missing.
+            nodePos = posInModel;
+        }
         else
-            parent_node->AddLeave( item.GetID() );
+        {
+            // It's possible that a larger discrepancy between the model and
+            // our realization exists. This can happen e.g. when adding a bunch
+            // of items to the model and then calling ItemsAdded() just once
+            // afterwards. In this case, we must find the right position by
+            // looking at sibling items.
+
+            // append to the end if we won't find a better position:
+            nodePos = nodeSiblingsSize;
+
+            for ( int nextItemPos = posInModel + 1;
+                  nextItemPos < modelSiblingsSize;
+                  nextItemPos++ )
+            {
+                int nextNodePos = parent_node->FindChildByItem(modelSiblings[nextItemPos]);
+                if ( nextNodePos != wxNOT_FOUND )
+                {
+                    nodePos = nextNodePos;
+                    break;
+                }
+            }
+        }
+
+        if (m_wx_model->IsContainer( item ))
+            parent_node->InsertNode( new wxGtkTreeModelNode( parent_node, item, this ), nodePos );
+        else
+            parent_node->InsertLeaf( item.GetID(), nodePos );
     }
 
     ScheduleRefresh();
@@ -3749,7 +3762,7 @@ gboolean wxDataViewCtrlInternal::get_iter( GtkTreeIter *iter, GtkTreePath *path 
 
         iter->stamp = m_gtk_model->stamp;
         // user_data is just the index +1
-        iter->user_data = (gpointer) (i+1);
+        iter->user_data = wxUIntToPtr(i+1);
 
         return TRUE;
     }
@@ -3852,7 +3865,7 @@ gboolean wxDataViewCtrlInternal::iter_next( GtkTreeIter *iter )
         }
 
         // user_data is just the index +1 (+2 because we need the next)
-        iter->user_data = (gpointer) (n+2);
+        iter->user_data = wxUIntToPtr(n+2);
     }
     else
     {
@@ -4006,7 +4019,7 @@ gboolean wxDataViewCtrlInternal::iter_nth_child( GtkTreeIter *iter, GtkTreeIter 
 
         iter->stamp = m_gtk_model->stamp;
         // user_data is just the index +1
-        iter->user_data = (gpointer) (n+1);
+        iter->user_data = wxUIntToPtr(n+1);
 
         return TRUE;
     }
@@ -4244,7 +4257,7 @@ wxGtkTreeModelNode *wxDataViewCtrlInternal::FindParentNode( const wxDataViewItem
 static void
 wxdataview_selection_changed_callback( GtkTreeSelection* WXUNUSED(selection), wxDataViewCtrl *dv )
 {
-    if (!GTK_WIDGET_REALIZED(dv->m_widget))
+    if (!gtk_widget_get_realized(dv->m_widget))
         return;
 
     wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_SELECTION_CHANGED, dv->GetId() );
@@ -4326,7 +4339,7 @@ void wxDataViewCtrl::AddChildGTK(wxWindowGTK* child)
     GtkWidget* treeview = GtkGetTreeView();
 
     // Insert widget in GtkTreeView
-    if (GTK_WIDGET_REALIZED(treeview))
+    if (gtk_widget_get_realized(treeview))
         gtk_widget_set_parent_window( child->m_widget,
           gtk_tree_view_get_bin_window( GTK_TREE_VIEW(treeview) ) );
     gtk_widget_set_parent( child->m_widget, treeview );
@@ -4414,22 +4427,21 @@ gtk_dataview_button_press_callback( GtkWidget *WXUNUSED(widget),
         GtkTreeViewColumn *column = NULL;
         gint cell_x = 0;
         gint cell_y = 0;
-        if (gtk_tree_view_get_path_at_pos(
+        gtk_tree_view_get_path_at_pos
+        (
             GTK_TREE_VIEW(dv->GtkGetTreeView()),
             (int) gdk_event->x, (int) gdk_event->y,
             path.ByRef(),
             &column,
             &cell_x,
-            &cell_y))
-        {
-            if (path)
-            {
-                wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU, dv->GetId() );
-                event.SetItem(dv->GTKPathToItem(path));
-                event.SetModel( dv->GetModel() );
-                return dv->HandleWindowEvent( event );
-             }
-        }
+            &cell_y
+        );
+
+        wxDataViewEvent event( wxEVT_COMMAND_DATAVIEW_ITEM_CONTEXT_MENU, dv->GetId() );
+        if (path)
+            event.SetItem(dv->GTKPathToItem(path));
+        event.SetModel( dv->GetModel() );
+        return dv->HandleWindowEvent( event );
     }
 
     return FALSE;
@@ -4439,6 +4451,22 @@ IMPLEMENT_DYNAMIC_CLASS(wxDataViewCtrl, wxDataViewCtrlBase)
 
 wxDataViewCtrl::~wxDataViewCtrl()
 {
+    // Stop editing before destroying the control to remove any event handlers
+    // which are added when editing started: if we didn't do this, the base
+    // class dtor would assert as it checks for any leftover handlers.
+    if ( m_treeview )
+    {
+        GtkTreeViewColumn *col;
+        gtk_tree_view_get_cursor(GTK_TREE_VIEW(m_treeview), NULL, &col);
+
+        wxDataViewColumn * const wxcol = FromGTKColumn(col);
+        if ( wxcol )
+        {
+            // This won't do anything if we're not editing it
+            wxcol->GetRenderer()->CancelEditing();
+        }
+    }
+
     m_cols.Clear();
 
     delete m_internal;
@@ -4449,6 +4477,8 @@ void wxDataViewCtrl::Init()
     m_internal = NULL;
 
     m_cols.DeleteContents( true );
+
+    m_uniformRowHeight = -1;
 }
 
 bool wxDataViewCtrl::Create(wxWindow *parent,
@@ -4473,6 +4503,8 @@ bool wxDataViewCtrl::Create(wxWindow *parent,
 
     m_treeview = gtk_tree_view_new();
     gtk_container_add (GTK_CONTAINER (m_widget), m_treeview);
+
+    m_focusWidget = GTK_WIDGET(m_treeview);
 
     g_signal_connect (m_treeview, "size_allocate",
                      G_CALLBACK (gtk_dataviewctrl_size_callback), this);
@@ -4681,10 +4713,9 @@ unsigned int wxDataViewCtrl::GetColumnCount() const
     return m_cols.GetCount();
 }
 
-wxDataViewColumn* wxDataViewCtrl::GetColumn( unsigned int pos ) const
+wxDataViewColumn* wxDataViewCtrl::FromGTKColumn(GtkTreeViewColumn *gtk_col) const
 {
-    GtkTreeViewColumn *gtk_col = gtk_tree_view_get_column( GTK_TREE_VIEW(m_treeview), pos );
-    if (!gtk_col)
+    if ( !gtk_col )
         return NULL;
 
     wxDataViewColumnList::const_iterator iter;
@@ -4697,7 +4728,16 @@ wxDataViewColumn* wxDataViewCtrl::GetColumn( unsigned int pos ) const
         }
     }
 
+    wxFAIL_MSG( "No matching column?" );
+
     return NULL;
+}
+
+wxDataViewColumn* wxDataViewCtrl::GetColumn( unsigned int pos ) const
+{
+    GtkTreeViewColumn *gtk_col = gtk_tree_view_get_column( GTK_TREE_VIEW(m_treeview), pos );
+
+    return FromGTKColumn(gtk_col);
 }
 
 bool wxDataViewCtrl::DeleteColumn( wxDataViewColumn *column )
@@ -4727,15 +4767,11 @@ bool wxDataViewCtrl::ClearColumns()
 
 int wxDataViewCtrl::GetColumnPosition( const wxDataViewColumn *column ) const
 {
-    GtkTreeViewColumn *gtk_column = GTK_TREE_VIEW_COLUMN(column->GetConstGtkHandle());
+    GtkTreeViewColumn *gtk_column = GTK_TREE_VIEW_COLUMN(column->GetGtkHandle());
 
-    GList *list = gtk_tree_view_get_columns( GTK_TREE_VIEW(m_treeview) );
+    wxGtkList list(gtk_tree_view_get_columns(GTK_TREE_VIEW(m_treeview)));
 
-    gint pos = g_list_index( list, (gconstpointer)  gtk_column );
-
-    g_list_free( list );
-
-    return pos;
+    return g_list_index( list, (gconstpointer)  gtk_column );
 }
 
 wxDataViewColumn *wxDataViewCtrl::GetSortingColumn() const
@@ -4804,39 +4840,51 @@ void wxDataViewCtrl::DoSetCurrentItem(const wxDataViewItem& item)
     gtk_tree_view_set_cursor(GTK_TREE_VIEW(m_treeview), path, NULL, FALSE);
 }
 
-wxDataViewItem wxDataViewCtrl::GetSelection() const
+wxDataViewColumn *wxDataViewCtrl::GetCurrentColumn() const
+{
+    // The tree doesn't have any current item if it hadn't been created yet but
+    // it's arguably not an error to call this function in this case so just
+    // return NULL without asserting.
+    if ( !m_treeview )
+        return NULL;
+
+    GtkTreeViewColumn *col;
+    gtk_tree_view_get_cursor(GTK_TREE_VIEW(m_treeview), NULL, &col);
+    return FromGTKColumn(col);
+}
+
+void wxDataViewCtrl::EditItem(const wxDataViewItem& item, const wxDataViewColumn *column)
+{
+    wxCHECK_RET( m_treeview,
+                 "Current item can't be set before creating the control." );
+    wxCHECK_RET( item.IsOk(), "invalid item" );
+    wxCHECK_RET( column, "no column provided" );
+
+    // We need to make sure the model knows about this item or the path would
+    // be invalid and gtk_tree_view_set_cursor() would silently do nothing.
+    ExpandAncestors(item);
+
+    GtkTreeViewColumn *gcolumn = GTK_TREE_VIEW_COLUMN(column->GetGtkHandle());
+
+    // We also need to preserve the existing selection from changing.
+    // Unfortunately the only way to do it seems to use our own selection
+    // function and forbid any selection changes during set cursor call.
+    wxGtkTreeSelectionLock
+        lock(gtk_tree_view_get_selection(GTK_TREE_VIEW(m_treeview)));
+
+    // Do move the cursor now.
+    GtkTreeIter iter;
+    iter.user_data = item.GetID();
+    wxGtkTreePath path(m_internal->get_path( &iter ));
+
+    gtk_tree_view_set_cursor(GTK_TREE_VIEW(m_treeview), path, gcolumn, TRUE);
+}
+
+int wxDataViewCtrl::GetSelectedItemsCount() const
 {
     GtkTreeSelection *selection = gtk_tree_view_get_selection( GTK_TREE_VIEW(m_treeview) );
 
-    if (m_windowStyle & wxDV_MULTIPLE)
-    {
-        // Report the first one
-        GtkTreeModel *model;
-        GList *list = gtk_tree_selection_get_selected_rows( selection, &model );
-
-        if (list)
-        {
-            GtkTreePath *path = (GtkTreePath*) list->data;
-            wxDataViewItem item(GTKPathToItem(path));
-
-            // delete list
-            g_list_foreach( list, (GFunc) gtk_tree_path_free, NULL );
-            g_list_free( list );
-
-            return item;
-        }
-    }
-    else
-    {
-        GtkTreeIter iter;
-        if (gtk_tree_selection_get_selected( selection, NULL, &iter ))
-        {
-            wxDataViewItem item( iter.user_data );
-            return item;
-        }
-    }
-
-    return wxDataViewItem(0);
+    return gtk_tree_selection_count_selected_rows(selection);
 }
 
 int wxDataViewCtrl::GetSelections( wxDataViewItemArray & sel ) const
@@ -4847,38 +4895,25 @@ int wxDataViewCtrl::GetSelections( wxDataViewItemArray & sel ) const
     if (HasFlag(wxDV_MULTIPLE))
     {
         GtkTreeModel *model;
-        GList *list = gtk_tree_selection_get_selected_rows( selection, &model );
+        wxGtkTreePathList list(gtk_tree_selection_get_selected_rows(selection, &model));
 
-        int count = 0;
-        while (list)
+        for ( GList* current = list; current; current = g_list_next(current) )
         {
-            GtkTreePath *path = (GtkTreePath*) list->data;
+            GtkTreePath *path = (GtkTreePath*) current->data;
 
             sel.Add(GTKPathToItem(path));
-
-            list = g_list_next( list );
-            count++;
         }
-
-        // delete list
-        g_list_foreach( list, (GFunc) gtk_tree_path_free, NULL );
-        g_list_free( list );
-
-        return count;
     }
     else
     {
-        GtkTreeModel *model;
         GtkTreeIter iter;
-        gboolean has_selection = gtk_tree_selection_get_selected( selection, &model, &iter );
-        if (has_selection)
+        if (gtk_tree_selection_get_selected( selection, NULL, &iter ))
         {
-            sel.Add( wxDataViewItem( (void*) iter.user_data) );
-            return 1;
+            sel.Add( wxDataViewItem(iter.user_data) );
         }
     }
 
-    return 0;
+    return sel.size();
 }
 
 void wxDataViewCtrl::SetSelections( const wxDataViewItemArray & sel )
@@ -4995,7 +5030,8 @@ void wxDataViewCtrl::HitTest(const wxPoint& point,
     // gtk_tree_view_get_path_at_pos() is the wrong function. It doesn't mind the header but returns column.
     // See http://mail.gnome.org/archives/gtkmm-list/2005-January/msg00080.html
     // So we have to use both of them.
-    // Friedrich Haase 2010-9-20
+    item = wxDataViewItem(0);
+    column = NULL;
     wxGtkTreePath path, pathScratch;
     GtkTreeViewColumn* GtkColumn = NULL;
     GtkTreeViewDropPosition pos = GTK_TREE_VIEW_DROP_INTO_OR_AFTER;
@@ -5003,8 +5039,8 @@ void wxDataViewCtrl::HitTest(const wxPoint& point,
     gint cell_y = 0;
     
     // cannot directly call GtkGetTreeView(), HitTest is const and so is this pointer
-    wxDataViewCtrl* ctrl = (wxDataViewCtrl*)this; // ugly workaround, ctrl is NOT const
-    GtkTreeView* treeView = GTK_TREE_VIEW(ctrl->GtkGetTreeView());
+    wxDataViewCtrl* self = const_cast<wxDataViewCtrl *>(this); // ugly workaround, self is NOT const
+    GtkTreeView* treeView = GTK_TREE_VIEW(self->GtkGetTreeView());
     
     // is there possibly a better suited function to get the column?
     gtk_tree_view_get_path_at_pos(                // and this is the wrong call but it delivers the column
@@ -5042,6 +5078,12 @@ wxDataViewCtrl::GetItemRect(const wxDataViewItem& WXUNUSED(item),
                             const wxDataViewColumn *WXUNUSED(column)) const
 {
     return wxRect();
+}
+
+bool wxDataViewCtrl::SetRowHeight(int rowHeight)
+{
+    m_uniformRowHeight = rowHeight;
+    return true;
 }
 
 void wxDataViewCtrl::DoSetExpanderColumn()

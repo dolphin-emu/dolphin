@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-08 (extracted from crashrpt.cpp)
-// RCS-ID:      $Id: debughlp.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: debughlp.cpp 69845 2011-11-27 19:52:13Z VZ $
 // Copyright:   (c) 2003-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,8 @@ static wxString gs_errMsg;
 // static members
 // ----------------------------------------------------------------------------
 
-#define DEFINE_SYM_FUNCTION(func) wxDbgHelpDLL::func ## _t wxDbgHelpDLL::func = 0
+#define DEFINE_SYM_FUNCTION(func, name) \
+    wxDbgHelpDLL::func ## _t wxDbgHelpDLL::func = 0
 
 wxDO_FOR_ALL_SYM_FUNCS(DEFINE_SYM_FUNCTION);
 
@@ -64,12 +65,12 @@ wxDO_FOR_ALL_SYM_FUNCS(DEFINE_SYM_FUNCTION);
 
 static bool BindDbgHelpFunctions(const wxDynamicLibrary& dllDbgHelp)
 {
-    #define LOAD_SYM_FUNCTION(name)                                           \
-        wxDbgHelpDLL::name = (wxDbgHelpDLL::name ## _t)                       \
-                                dllDbgHelp.GetSymbol(wxT(#name));              \
-        if ( !wxDbgHelpDLL::name )                                            \
+    #define LOAD_SYM_FUNCTION(func, name)                                     \
+        wxDbgHelpDLL::func = (wxDbgHelpDLL::func ## _t)                       \
+            dllDbgHelp.GetSymbol(wxT(#name));                                 \
+        if ( !wxDbgHelpDLL::func )                                            \
         {                                                                     \
-            gs_errMsg += wxT("Function ") wxT(#name) wxT("() not found.\n");     \
+            gs_errMsg += wxT("Function ") wxT(#name) wxT("() not found.\n");  \
             return false;                                                     \
         }
 
@@ -281,7 +282,7 @@ wxDbgHelpDLL::DumpBaseType(BasicType bt, DWORD64 length, PVOID pAddress)
         }
         else // opaque 64 bit value
         {
-            s.Printf("%#" wxLongLongFmtSpec "x", *(PDWORD *)pAddress);
+            s.Printf("%#" wxLongLongFmtSpec "x", *(wxLongLong_t *)pAddress);
         }
     }
 
@@ -359,6 +360,10 @@ wxDbgHelpDLL::DumpField(PSYMBOL_INFO pSym, void *pVariable, unsigned level)
                     case SYMBOL_TAG_BASE_CLASS:
                         s = DumpUDT(&sym, pVariable, level);
                         break;
+
+                    default:
+                        // Suppress gcc warnings about unhandled enum values.
+                        break;
                 }
             }
 
@@ -366,6 +371,11 @@ wxDbgHelpDLL::DumpField(PSYMBOL_INFO pSym, void *pVariable, unsigned level)
             {
                 s = GetSymbolName(pSym) + wxT(" = ") + s;
             }
+            break;
+
+        default:
+            // Suppress gcc warnings about unhandled enum values, don't assert
+            // to avoid problems during fatal crash generation.
             break;
     }
 
@@ -520,6 +530,11 @@ wxDbgHelpDLL::DumpSymbol(PSYMBOL_INFO pSym, void *pVariable)
     SYMBOL_INFO symDeref = *pSym;
     switch ( DereferenceSymbol(&symDeref, &pVariable) )
     {
+        default:
+            // Suppress gcc warnings about unhandled enum values, don't assert
+            // to avoid problems during fatal crash generation.
+            break;
+
         case SYMBOL_TAG_UDT:
             // show UDT recursively
             s = DumpUDT(&symDeref, pVariable);

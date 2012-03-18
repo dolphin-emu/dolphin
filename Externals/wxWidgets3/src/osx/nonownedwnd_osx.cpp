@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxNonOwnedWindow
 // Author:      Stefan Csomor
 // Created:     2008-03-24
-// RCS-ID:      $Id: nonownedwnd_osx.cpp 67230 2011-03-18 14:20:12Z SC $
+// RCS-ID:      $Id: nonownedwnd_osx.cpp 70765 2012-03-01 15:04:42Z JS $
 // Copyright:   (c) Stefan Csomor 2008
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,6 +13,7 @@
 
 #ifndef WX_PRECOMP
     #include "wx/app.h"
+    #include "wx/dcmemory.h"
     #include "wx/log.h"
 #endif // WX_PRECOMP
 
@@ -37,6 +38,8 @@
 #define TRACE_ACTIVATE "activation"
 
 wxWindow* g_MacLastWindow = NULL ;
+
+clock_t wxNonOwnedWindow::s_lastFlush = 0;
 
 // unified title and toolbar constant - not in Tiger headers, so we duplicate it here
 #define kWindowUnifiedTitleAndToolbarAttribute (1 << 7)
@@ -246,6 +249,7 @@ bool wxNonOwnedWindow::OSXShowWithEffect(bool show,
     {
         // as apps expect a size event to occur when the window is shown,
         // generate one when it is shown with effect too
+        MacOnInternalSize();
         wxSizeEvent event(GetSize(), m_windowId);
         event.SetEventObject(this);
         HandleWindowEvent(event);
@@ -308,6 +312,7 @@ void wxNonOwnedWindow::HandleActivated( double timestampsec, bool didActivate )
 
 void wxNonOwnedWindow::HandleResized( double timestampsec )
 {
+    MacOnInternalSize();
     wxSizeEvent wxevent( GetSize() , GetId());
     wxevent.SetTimestamp( (int) (timestampsec * 1000) );
     wxevent.SetEventObject( this );
@@ -382,6 +387,7 @@ bool wxNonOwnedWindow::Show(bool show)
     if ( show )
     {
         // because apps expect a size event to occur at this moment
+        MacOnInternalSize();
         wxSizeEvent event(GetSize() , m_windowId);
         event.SetEventObject(this);
         HandleWindowEvent(event);
@@ -482,10 +488,18 @@ void wxNonOwnedWindow::DoGetClientSize( int *width, int *height ) const
        *height = h ;
 }
 
+void wxNonOwnedWindow::WindowWasPainted()
+{
+    s_lastFlush = clock();
+}
 
 void wxNonOwnedWindow::Update()
 {
-    m_nowpeer->Update();
+    if ( clock() - s_lastFlush > CLOCKS_PER_SEC / 30 )
+    {
+        s_lastFlush = clock();
+        m_nowpeer->Update();
+    }
 }
 
 WXWindow wxNonOwnedWindow::GetWXWindow() const
@@ -497,25 +511,49 @@ WXWindow wxNonOwnedWindow::GetWXWindow() const
 // Shape implementation
 // ---------------------------------------------------------------------------
 
-
-bool wxNonOwnedWindow::DoSetShape(const wxRegion& region)
+bool wxNonOwnedWindow::DoClearShape()
 {
-    wxCHECK_MSG( HasFlag(wxFRAME_SHAPED), false,
-                 wxT("Shaped windows must be created with the wxFRAME_SHAPED style."));
+    m_shape.Clear();
 
-    m_shape = region;
-
-    // The empty region signifies that the shape
-    // should be removed from the window.
-    if ( region.IsEmpty() )
-    {
-        wxSize sz = GetClientSize();
-        wxRegion rgn(0, 0, sz.x, sz.y);
-        if ( rgn.IsEmpty() )
-            return false ;
-        else
-            return DoSetShape(rgn);
-    }
+    wxSize sz = GetClientSize();
+    wxRegion region(0, 0, sz.x, sz.y);
 
     return m_nowpeer->SetShape(region);
 }
+
+bool wxNonOwnedWindow::DoSetRegionShape(const wxRegion& region)
+{
+    m_shape = region;
+
+    return m_nowpeer->SetShape(region);
+}
+
+#if wxUSE_GRAPHICS_CONTEXT
+
+#include "wx/scopedptr.h"
+
+bool wxNonOwnedWindow::DoSetPathShape(const wxGraphicsPath& path)
+{
+    m_shapePath = path;
+
+    // Convert the path to wxRegion by rendering the path on a window-sized
+    // bitmap, creating a mask from it and finally creating the region from
+    // this mask.
+    wxBitmap bmp(GetSize());
+
+    {
+        wxMemoryDC dc(bmp);
+        dc.SetBackground(*wxBLACK);
+        dc.Clear();
+
+        wxScopedPtr<wxGraphicsContext> context(wxGraphicsContext::Create(dc));
+        context->SetBrush(*wxWHITE);
+        context->FillPath(m_shapePath);
+    }
+
+    bmp.SetMask(new wxMask(bmp, *wxBLACK));
+
+    return DoSetRegionShape(wxRegion(bmp));
+}
+
+#endif // wxUSE_GRAPHICS_CONTEXT

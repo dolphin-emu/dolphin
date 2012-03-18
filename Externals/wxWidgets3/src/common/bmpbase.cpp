@@ -3,7 +3,7 @@
 // Purpose:     wxBitmapBase
 // Author:      VaclavSlavik
 // Created:     2001/04/11
-// RCS-ID:      $Id: bmpbase.cpp 66630 2011-01-07 17:49:18Z SC $
+// RCS-ID:      $Id: bmpbase.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2001, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -156,7 +156,7 @@ wxBitmap::wxBitmap(const char* const* bits)
 
 #if wxUSE_IMAGE && wxUSE_XPM
     wxImage image(bits);
-    wxCHECK2_MSG(image.Ok(), return, wxT("invalid bitmap data"));
+    wxCHECK2_MSG(image.IsOk(), return, wxT("invalid bitmap data"));
 
     *this = wxBitmap(image);
 #else

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Francesco Montorsi
 // Created:     27/07/03
-// RCS-ID:      $Id: xtiprop.h 66651 2011-01-08 10:22:30Z SC $
+// RCS-ID:      $Id: xtiprop.h 70398 2012-01-19 09:50:46Z SC $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
@@ -20,9 +20,11 @@
 #include "wx/xti.h"
 #include "wx/any.h"
 
+/*
 class WXDLLIMPEXP_BASE wxObject;
 class WXDLLIMPEXP_BASE wxClassInfo;
 class WXDLLIMPEXP_BASE wxDynamicClassInfo;
+*/
 class WXDLLIMPEXP_BASE wxHashTable;
 class WXDLLIMPEXP_BASE wxHashTable_Node;
 class WXDLLIMPEXP_BASE wxEvent;
@@ -302,7 +304,7 @@ enum
 
 class WXDLLIMPEXP_BASE wxPropertyInfo
 {
-    friend class WXDLLIMPEXP_BASE wxDynamicClassInfo;
+    friend class /* WXDLLIMPEXP_BASE */ wxDynamicClassInfo;
 
 public:
     wxPropertyInfo(wxPropertyInfo* &iter,
@@ -443,8 +445,19 @@ private:
     // when the component is dropped on the container.
 };
 
-WX_DECLARE_STRING_HASH_MAP_WITH_DECL( wxPropertyInfo*, wxPropertyInfoMap, 
+// stl is giving problems when forwarding declarations, therefore we define it as a subclass
+
+WX_DECLARE_STRING_HASH_MAP_WITH_DECL( wxPropertyInfo*, wxPropertyInfoMapBase, 
                                       class WXDLLIMPEXP_BASE );
+
+class WXDLLIMPEXP_BASE wxPropertyInfoMap : public wxPropertyInfoMapBase {
+};
+
+WX_DECLARE_STRING_HASH_MAP_WITH_DECL( wxAny, wxStringToAnyHashMapBase,
+                                     class WXDLLIMPEXP_BASE );
+
+class WXDLLIMPEXP_FWD_BASE wxStringToAnyHashMap : public wxStringToAnyHashMapBase {
+};
 
 #define wxBEGIN_PROPERTIES_TABLE(theClass)                      \
     wxPropertyInfo *theClass::GetPropertiesStatic()             \
@@ -543,9 +556,6 @@ private:                                                \
 public:                                                 \
   void  Set##name( type const & p) { m_##name = p; }    \
   type const & Get##name() const  { return m_##name; }
-
-WX_DECLARE_STRING_HASH_MAP_WITH_DECL( wxAny, wxStringToAnyHashMap,
-    class WXDLLIMPEXP_BASE );
 
 #endif      // wxUSE_EXTENDED_RTTI
 #endif      // _XTIPROP_H_

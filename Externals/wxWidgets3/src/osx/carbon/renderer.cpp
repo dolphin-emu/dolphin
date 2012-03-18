@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.07.2003
-// RCS-ID:      $Id: renderer.cpp 65947 2010-10-30 15:57:32Z VS $
+// RCS-ID:      $Id: renderer.cpp 68148 2011-07-04 14:05:14Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,12 +39,17 @@
 #endif // wxHAS_DRAW_TITLE_BAR_BITMAP
 
 
-// check if we're currently in a paint event
-inline bool wxInPaintEvent(wxWindow* win, wxDC& dc)
+// check if we're having a CGContext we can draw into
+inline bool wxHasCGContext(wxWindow* WXUNUSED(win), wxDC& dc)
 {
-    return win->MacGetCGContextRef() != NULL ||
-           // wxMemoryDC's also have a valid CGContext.
-           dc.IsKindOf( CLASSINFO(wxMemoryDC) );
+    wxGCDCImpl* gcdc = wxDynamicCast( dc.GetImpl() , wxGCDCImpl);
+    
+    if ( gcdc )
+    {
+        if ( gcdc->GetGraphicsContext()->GetNativeContext() )
+            return true;
+    }
+    return false;
 }
 
 
@@ -158,7 +163,7 @@ int wxRendererMac::DrawHeaderButton( wxWindow *win,
     dc.SetBrush( *wxTRANSPARENT_BRUSH );
 
     HIRect headerRect = CGRectMake( x, y, w, h );
-    if ( !wxInPaintEvent(win, dc) )
+    if ( !wxHasCGContext(win, dc) )
     {
         win->Refresh( &rect );
     }
@@ -247,7 +252,7 @@ void wxRendererMac::DrawTreeItemButton( wxWindow *win,
     dc.SetBrush( *wxTRANSPARENT_BRUSH );
 
     HIRect headerRect = CGRectMake( x, y, w, h );
-    if ( !wxInPaintEvent(win, dc) )
+    if ( !wxHasCGContext(win, dc) )
     {
         win->Refresh( &rect );
     }
@@ -293,7 +298,7 @@ void wxRendererMac::DrawSplitterSash( wxWindow *win,
     // under compositing we should only draw when called by the OS, otherwise just issue a redraw command
     // strange redraw errors occur if we don't do this
 
-    if ( !wxInPaintEvent(win, dc) )
+    if ( !wxHasCGContext(win, dc) )
     {
         wxRect rect( (int) splitterRect.origin.x, (int) splitterRect.origin.y, (int) splitterRect.size.width,
                      (int) splitterRect.size.height );
@@ -363,7 +368,7 @@ wxRendererMac::DrawMacThemeButton(wxWindow *win,
     dc.SetBrush( *wxTRANSPARENT_BRUSH );
 
     HIRect headerRect = CGRectMake( x, y, w, h );
-    if ( !wxInPaintEvent(win, dc) )
+    if ( !wxHasCGContext(win, dc) )
     {
         win->Refresh( &rect );
     }
@@ -571,7 +576,7 @@ void wxRendererMac::DrawTextCtrl(wxWindow* win, wxDC& dc,
     dc.SetBrush( *wxTRANSPARENT_BRUSH );
 
     HIRect hiRect = CGRectMake( x, y, w, h );
-    if ( !wxInPaintEvent(win, dc) )
+    if ( !wxHasCGContext(win, dc) )
     {
         win->Refresh( &rect );
     }

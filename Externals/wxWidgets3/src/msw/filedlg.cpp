@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: filedlg.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: filedlg.cpp 69908 2011-12-02 10:15:16Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "wx/dynlib.h"
 #include "wx/filename.h"
+#include "wx/scopeguard.h"
 #include "wx/tokenzr.h"
 
 // ----------------------------------------------------------------------------
@@ -65,7 +67,7 @@
 // ----------------------------------------------------------------------------
 
 // standard dialog size for the old Windows systems where the dialog wasn't
-// resizeable
+// resizable
 static wxRect gs_rectDialog(0, 0, 428, 266);
 
 // ============================================================================
@@ -73,6 +75,78 @@ static wxRect gs_rectDialog(0, 0, 428, 266);
 // ============================================================================
 
 IMPLEMENT_CLASS(wxFileDialog, wxFileDialogBase)
+
+// ----------------------------------------------------------------------------
+
+namespace
+{
+
+#if wxUSE_DYNLIB_CLASS
+
+typedef BOOL (WINAPI *GetProcessUserModeExceptionPolicy_t)(LPDWORD);
+typedef BOOL (WINAPI *SetProcessUserModeExceptionPolicy_t)(DWORD);
+
+GetProcessUserModeExceptionPolicy_t gs_pfnGetProcessUserModeExceptionPolicy
+    = (GetProcessUserModeExceptionPolicy_t) -1;
+
+SetProcessUserModeExceptionPolicy_t gs_pfnSetProcessUserModeExceptionPolicy
+    = (SetProcessUserModeExceptionPolicy_t) -1;
+
+DWORD gs_oldExceptionPolicyFlags = 0;
+
+bool gs_changedPolicy = false;
+
+#endif // #if wxUSE_DYNLIB_CLASS
+
+/*
+Since Windows 7 by default (callback) exceptions aren't swallowed anymore
+with native x64 applications. Exceptions can occur in a file dialog when
+using the hook procedure in combination with third-party utilities.
+Since Windows 7 SP1 the swallowing of exceptions can be enabled again
+by using SetProcessUserModeExceptionPolicy.
+*/
+void ChangeExceptionPolicy()
+{
+#if wxUSE_DYNLIB_CLASS
+    gs_changedPolicy = false;
+
+    wxLoadedDLL dllKernel32(wxT("kernel32.dll"));
+
+    if ( gs_pfnGetProcessUserModeExceptionPolicy
+        == (GetProcessUserModeExceptionPolicy_t) -1)
+    {
+        wxDL_INIT_FUNC(gs_pfn, GetProcessUserModeExceptionPolicy, dllKernel32);
+        wxDL_INIT_FUNC(gs_pfn, SetProcessUserModeExceptionPolicy, dllKernel32);
+    }
+
+    if ( !gs_pfnGetProcessUserModeExceptionPolicy
+        || !gs_pfnSetProcessUserModeExceptionPolicy
+        || !gs_pfnGetProcessUserModeExceptionPolicy(&gs_oldExceptionPolicyFlags) )
+    {
+        return;
+    }
+
+    if ( gs_pfnSetProcessUserModeExceptionPolicy(gs_oldExceptionPolicyFlags
+        | 0x1 /* PROCESS_CALLBACK_FILTER_ENABLED */ ) )
+    {
+        gs_changedPolicy = true;
+    }
+
+#endif // wxUSE_DYNLIB_CLASS
+}
+
+void RestoreExceptionPolicy()
+{
+#if wxUSE_DYNLIB_CLASS
+    if (gs_changedPolicy)
+    {
+        gs_changedPolicy = false;
+        (void) gs_pfnSetProcessUserModeExceptionPolicy(gs_oldExceptionPolicyFlags);
+    }
+#endif // wxUSE_DYNLIB_CLASS
+}
+
+} // unnamed namespace
 
 // ----------------------------------------------------------------------------
 // hook function for moving the dialog
@@ -156,7 +230,7 @@ void wxFileDialog::GetPaths(wxArrayString& paths) const
     paths.Empty();
 
     wxString dir(m_dir);
-    if ( m_dir.Last() != wxT('\\') )
+    if ( m_dir.empty() || m_dir.Last() != wxT('\\') )
         dir += wxT('\\');
 
     size_t count = m_fileNames.GetCount();
@@ -400,11 +474,14 @@ int wxFileDialog::ShowModal()
     */
     if (m_bMovedWindow || HasExtraControlCreator()) // we need these flags.
     {
+        ChangeExceptionPolicy();
         msw_flags |= OFN_EXPLORER|OFN_ENABLEHOOK;
 #ifndef __WXWINCE__
         msw_flags |= OFN_ENABLESIZING;
 #endif
     }
+
+    wxON_BLOCK_EXIT0(RestoreExceptionPolicy);
 
     if ( HasFdFlag(wxFD_MULTIPLE) )
     {

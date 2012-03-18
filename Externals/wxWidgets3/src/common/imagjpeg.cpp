@@ -2,7 +2,7 @@
 // Name:        src/common/imagjpeg.cpp
 // Purpose:     wxImage JPEG handler
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: imagjpeg.cpp 66259 2010-11-25 00:53:44Z VZ $
+// RCS-ID:      $Id: imagjpeg.cpp 69759 2011-11-14 13:35:48Z VZ $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -257,7 +257,7 @@ bool wxJPEGHandler::LoadFile( wxImage *image, wxInputStream& stream, bool verbos
       }
       (cinfo.src->term_source)(&cinfo);
       jpeg_destroy_decompress(&cinfo);
-      if (image->Ok()) image->Destroy();
+      if (image->IsOk()) image->Destroy();
       return false;
     }
 
@@ -291,7 +291,7 @@ bool wxJPEGHandler::LoadFile( wxImage *image, wxInputStream& stream, bool verbos
     jpeg_start_decompress( &cinfo );
 
     image->Create( cinfo.output_width, cinfo.output_height );
-    if (!image->Ok()) {
+    if (!image->IsOk()) {
         jpeg_finish_decompress( &cinfo );
         jpeg_destroy_decompress( &cinfo );
         return false;
@@ -332,6 +332,13 @@ bool wxJPEGHandler::LoadFile( wxImage *image, wxInputStream& stream, bool verbos
         // we use the same values for this option as libjpeg so we don't need
         // any conversion here
         image->SetOption(wxIMAGE_OPTION_RESOLUTIONUNIT, cinfo.density_unit);
+    }
+
+    if ( cinfo.image_width != cinfo.output_width || cinfo.image_height != cinfo.output_height )
+    {
+        // save the original image size
+        image->SetOption(wxIMAGE_OPTION_ORIGINAL_WIDTH, cinfo.image_width);
+        image->SetOption(wxIMAGE_OPTION_ORIGINAL_HEIGHT, cinfo.image_height);
     }
 
     jpeg_finish_decompress( &cinfo );

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dnd_osx.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: dnd_osx.cpp 69677 2011-11-05 11:23:48Z VZ $
 // Copyright:   (c) 1998 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ bool wxDropTarget::CurrentDragHasSupportedFormat()
             for (size_t i = 0; !supported && i < formatcount; i++)
             {
                 wxDataFormat format = array[i];
-                if ( m_dataObject->IsSupported( format ) )
+                if ( m_dataObject->IsSupported( format, wxDataObject::Set ) )
                 {
                     supported = true;
                     break;
@@ -119,7 +119,7 @@ bool wxDropTarget::GetData()
             for (size_t i = 0; !transferred && i < formatcount; i++)
             {
                 wxDataFormat format = array[i];
-                if ( m_dataObject->IsSupported( format ) )
+                if ( m_dataObject->IsSupported( format, wxDataObject::Set ) )
                 {
                     int size = data->GetDataSize( format );
                     transferred = true;
@@ -164,7 +164,7 @@ wxDropSource::~wxDropSource()
 bool wxDropSource::MacInstallDefaultCursor(wxDragResult effect)
 {
     const wxCursor& cursor = GetCursor(effect);
-    bool result = cursor.Ok();
+    bool result = cursor.IsOk();
 
     if ( result )
         cursor.MacInstall();

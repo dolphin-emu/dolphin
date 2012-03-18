@@ -3,7 +3,7 @@
 // Purpose:     MSW/GTK compatible notebook (a.k.a. property sheet)
 // Author:      Robert Roebling
 // Modified by: Vadim Zeitlin for Windows version
-// RCS-ID:      $Id: notebook.h 67250 2011-03-20 00:00:29Z VZ $
+// RCS-ID:      $Id: notebook.h 69793 2011-11-22 13:18:45Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ public:
                   wxNotebookPage *pPage,
                   const wxString& strText,
                   bool bSelect = false,
-                  int imageId = -1);
+                  int imageId = NO_IMAGE);
 
     // Windows-only at present. Also, you must use the wxNB_FIXEDWIDTH
     // style.
@@ -194,6 +194,9 @@ protected:
 
   // true if we have already subclassed our updown control
   bool m_hasSubclassedUpdown;
+
+  // true if we already refreshed the current page after showing the window
+  bool m_doneUpdateHack;
 #endif // __WXWINCE__
 
 #if wxUSE_UXTHEME

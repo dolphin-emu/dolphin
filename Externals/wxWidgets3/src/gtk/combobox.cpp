@@ -2,7 +2,7 @@
 // Name:        src/gtk/combobox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: combobox.cpp 66555 2011-01-04 08:31:53Z SC $
+// Id:          $Id: combobox.cpp 70880 2012-03-11 23:55:19Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -134,7 +134,7 @@ bool wxComboBox::Create( wxWindow *parent, wxWindowID id, const wxString& value,
         gtk_entry_set_activates_default( entry,
                                          !HasFlag(wxTE_PROCESS_ENTER) );
 
-        gtk_entry_set_editable( entry, TRUE );
+        gtk_editable_set_editable(GTK_EDITABLE(entry), true);
     }
 
     Append(n, choices);
@@ -155,7 +155,7 @@ bool wxComboBox::Create( wxWindow *parent, wxWindowID id, const wxString& value,
             // wxMSW and also because it doesn't make sense to have a string
             // which is not a possible choice in a read-only combobox)
             SetStringSelection(value);
-            gtk_entry_set_editable( entry, FALSE );
+            gtk_editable_set_editable(GTK_EDITABLE(entry), false);
         }
         else // editable combobox
         {
@@ -186,12 +186,12 @@ void wxComboBox::GTKCreateComboBoxWidget()
     m_widget = gtk_combo_box_entry_new_text();
     g_object_ref(m_widget);
 
-    m_entry = GTK_ENTRY(GTK_BIN(m_widget)->child);
+    m_entry = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(m_widget)));
 }
 
 GtkEditable *wxComboBox::GetEditable() const
 {
-    return GTK_EDITABLE( GTK_BIN(m_widget)->child );
+    return GTK_EDITABLE(gtk_bin_get_child(GTK_BIN(m_widget)));
 }
 
 void wxComboBox::OnChar( wxKeyEvent &event )
@@ -227,12 +227,12 @@ void wxComboBox::EnableTextChangedEvents(bool enable)
 
     if ( enable )
     {
-        g_signal_handlers_unblock_by_func(GTK_BIN(m_widget)->child,
+        g_signal_handlers_unblock_by_func(gtk_bin_get_child(GTK_BIN(m_widget)),
             (gpointer)gtkcombobox_text_changed_callback, this);
     }
     else // disable
     {
-        g_signal_handlers_block_by_func(GTK_BIN(m_widget)->child,
+        g_signal_handlers_block_by_func(gtk_bin_get_child(GTK_BIN(m_widget)),
             (gpointer)gtkcombobox_text_changed_callback, this);
     }
 }
@@ -264,7 +264,7 @@ GtkWidget* wxComboBox::GetConnectWidget()
 
 GdkWindow* wxComboBox::GTKGetWindow(wxArrayGdkWindows& /* windows */) const
 {
-    return GetEntry()->text_area;
+    return gtk_entry_get_text_window(GetEntry());
 }
 
 // static
@@ -280,6 +280,19 @@ void wxComboBox::SetValue(const wxString& value)
         SetStringSelection(value);
     else
         wxTextEntry::SetValue(value);
+}
+
+void wxComboBox::SetString(unsigned int n, const wxString& text)
+{
+    wxChoice::SetString(n, text);
+
+    if ( static_cast<int>(n) == GetSelection() )
+    {
+        // We also need to update the currently shown text, for consistency
+        // with wxMSW and also because it makes sense as leaving the old string
+        // in the text but not in the list would be confusing to the user.
+        SetValue(text);
+    }
 }
 
 // ----------------------------------------------------------------------------
