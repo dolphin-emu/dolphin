@@ -18,8 +18,8 @@
 #include "Common.h"
 #include "DebugInterface.h"
 #include "BreakPoints.h"
+#include "../../Core/Src/PowerPC/JitCommon/JitBase.h"
 #include <sstream>
-#include "..\..\Core\Src\PowerPC\JitCommon\JitBase.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {
