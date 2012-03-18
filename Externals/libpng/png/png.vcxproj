@@ -28,7 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CMakeLists.txt" />
-    <None Include="..\SConscript" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\png.c" />

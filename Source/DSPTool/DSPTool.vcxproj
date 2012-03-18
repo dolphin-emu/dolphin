@@ -192,7 +192,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="SConscript" />
     <None Include="Testdata\dsp_test.bin" />
     <None Include="Testdata\dsp_test.S" />
     <None Include="Testdata\hermes.bin" />

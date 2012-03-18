@@ -330,7 +330,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
   <ItemGroup>
     <None Include="..\..\..\Installer\Dolphin.ico" />
     <None Include="CMakeLists.txt" />
-    <None Include="Src\SConscript" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Externals\Bochs_disasm\Bochs_disasm.vcxproj">

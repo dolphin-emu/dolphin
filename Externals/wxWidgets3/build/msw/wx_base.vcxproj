@@ -1534,7 +1534,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\CMakeLists.txt" />
-    <None Include="..\..\SConscript" />
     <None Include="..\..\src\common\unictabl.inc" />
   </ItemGroup>
   <ItemGroup>

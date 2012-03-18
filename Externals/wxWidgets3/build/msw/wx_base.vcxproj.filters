@@ -3416,7 +3416,6 @@
       <Filter>Common</Filter>
     </None>
     <None Include="..\..\CMakeLists.txt" />
-    <None Include="..\..\SConscript" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\src\msw\version.rc">

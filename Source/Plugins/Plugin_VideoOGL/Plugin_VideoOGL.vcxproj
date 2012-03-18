@@ -235,7 +235,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
-    <None Include="Src\SConscript" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Externals\zlib\zlib.vcxproj">
