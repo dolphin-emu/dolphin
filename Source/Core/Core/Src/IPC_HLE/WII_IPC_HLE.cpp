@@ -85,7 +85,8 @@ void Init()
     _dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isnt empty on init");
 	
 	u32 i;
-	for(i=0; i<IPC_MAX_FDS; i++){
+	for (i=0; i<IPC_MAX_FDS; i++)
+	{
 		g_FdMap[i] = NULL;
 	}
 
@@ -121,7 +122,8 @@ void Reset(bool _bHard)
 {
 
 	u32 i;
-	for (i=0; i<IPC_MAX_FDS; i++){
+	for (i=0; i<IPC_MAX_FDS; i++)
+	{
 		if (g_FdMap[i] != NULL && !g_FdMap[i]->IsHardware())
 		{
 			// close all files and delete their resources
@@ -160,7 +162,7 @@ void Shutdown()
 void SetDefaultContentFile(const std::string& _rFilename)
 {
 	TDeviceMap::const_iterator itr = g_DeviceMap.begin();
-    while(itr != g_DeviceMap.end())
+    while (itr != g_DeviceMap.end())
     {
         if (itr->second && itr->second->GetDeviceName().find(std::string("/dev/es")) == 0)
 		{
@@ -185,7 +187,8 @@ void SDIO_EventNotify()
 int getFreeDeviceId()
 {
 	u32 i;
-	for(i=0; i<IPC_MAX_FDS; i++){
+	for (i=0; i<IPC_MAX_FDS; i++)
+	{
 		if (g_FdMap[i] == NULL)
 		{
 			return i;
@@ -248,10 +251,12 @@ void DoState(PointerWrap &p)
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		u32 i;
-		for (i=0; i<IPC_MAX_FDS; i++){
+		for (i=0; i<IPC_MAX_FDS; i++)
+		{
 			u32 exists;
 			p.Do(exists);
-			if (exists){
+			if (exists)
+			{
 				u32 isHw;
 				p.Do(isHw);
 				if (isHw)
@@ -283,10 +288,12 @@ void DoState(PointerWrap &p)
 	else
 	{
 		u32 i;
-		for (i=0; i<IPC_MAX_FDS; i++){
+		for (i=0; i<IPC_MAX_FDS; i++)
+		{
 			u32 exists = g_FdMap[i] ? 1 : 0;
 			p.Do(exists);
-			if (exists){
+			if (exists)
+			{
 				u32 isHw = g_FdMap[i]->IsHardware() ? 1 : 0;
 				p.Do(isHw);
 				if (isHw)
@@ -348,7 +355,7 @@ void ExecuteCommand(u32 _Address)
 						break;
 					}
 				}
-				if(j == ES_MAX_COUNT)
+				if (j == ES_MAX_COUNT)
 				{
 					Memory::Write_U32(FS_EESEXHAUSTED, _Address + 4);
 					CmdSuccess = true;
@@ -382,7 +389,7 @@ void ExecuteCommand(u32 _Address)
 
 				INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
 						pDevice->GetDeviceName().c_str(), DeviceID, Mode);
-				if(Memory::Read_U32(_Address + 4) == DeviceID)
+				if (Memory::Read_U32(_Address + 4) == DeviceID)
 					g_FdMap[DeviceID] = pDevice;
 			}
 
@@ -553,8 +560,10 @@ void Update()
 void UpdateDevices()
 {
 	// Check if a hardware device must be updated
-	for (TDeviceMap::const_iterator itr = g_DeviceMap.begin(); itr != g_DeviceMap.end(); ++itr) {
-		if (itr->second->IsOpened() && itr->second->Update()) {
+	for (TDeviceMap::const_iterator itr = g_DeviceMap.begin(); itr != g_DeviceMap.end(); ++itr)
+	{
+		if (itr->second->IsOpened() && itr->second->Update())
+		{
 			break;
 		}
 	}
