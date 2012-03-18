@@ -41,7 +41,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	, x(0), y(0), winpos(0)
 	, Parent(parent), m_ignoreLogTimer(false), m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
-	, m_SJISConv(*(wxCSConv*)wxConvCurrent)
+	, m_SJISConv(wxConvLocal)
 {
 #ifdef _WIN32
 		static bool validCP932 = ::IsValidCodePage(932) != 0;
