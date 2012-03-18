@@ -12,7 +12,7 @@
       <PrecompiledHeaderFile>wx/wxprec.h</PrecompiledHeaderFile>
       <ExceptionHandling>Async</ExceptionHandling>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
-      <PreprocessorDefinitions>_LIB;__WXMSW__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_LIB;__WXMSW__;WXBUILDING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\;..\..\include;..\..\..\zlib;..\..\..\libpng</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
