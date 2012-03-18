@@ -37,7 +37,7 @@ public:
     virtual bool Close(u32 _CommandAddress, bool _bForce);
 
     virtual bool IOCtlV(u32 _CommandAddress);
-	u32 ES_DIVerify(u8 *_pTMD, u32 _sz);
+	static u32 ES_DIVerify(u8 *_pTMD, u32 _sz);
 private:
 
     enum

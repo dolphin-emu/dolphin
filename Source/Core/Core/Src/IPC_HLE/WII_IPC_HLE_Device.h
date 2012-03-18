@@ -39,7 +39,7 @@ class PointerWrap;
 #define	FS_ENOENT2		(u32)-106	// File not found 
 #define	FS_ENFILE		(u32)-107	// Too many fds open 
 #define	FS_EFBIG		(u32)-108	// max block count reached? 
-#define	FS_ENFILE2 		(u32)-109	// Too many fds open 
+#define	FS_EFDEXHAUSTED	(u32)-109	// Too many fds open 
 #define	FS_ENAMELEN		(u32)-110	// pathname is too long 
 #define	FS_EFDOPEN		(u32)-111	// FD is already open 
 #define	FS_EIO2			(u32)-114	// returned on ECC error 
@@ -47,6 +47,7 @@ class PointerWrap;
 #define	FS_EDIRDEPTH	(u32)-116	// max directory depth exceeded 
 #define	FS_EBUSY2		(u32)-118	// Resource busy 
 //#define	FS_EFATAL		(u32)-119		// fatal error not used by IOS as fatal ERROR
+#define	FS_EESEXHAUSTED	(u32)-1016	// Max of 2 ES handles at a time
 
 class IWII_IPC_HLE_Device
 {
