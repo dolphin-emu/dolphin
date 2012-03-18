@@ -149,9 +149,6 @@ BEGIN_EVENT_TABLE(wxEmuStateTip, wxTipWindow)
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
-#ifdef _WIN32
-	EVT_PAINT(CGameListCtrl::OnPaintDrawImages)
-#endif
 	EVT_SIZE(CGameListCtrl::OnSize)
 	EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
 	EVT_LEFT_DOWN(CGameListCtrl::OnLeftClick)
@@ -384,48 +381,6 @@ std::string CGameListCtrl::GetGameNames() const
 	return m_gameList;
 }
 
-#ifdef _WIN32
-// This draws our icons on top of the gamelist, it's only used on Windows
-void CGameListCtrl::OnPaintDrawImages(wxPaintEvent& event)
-{
-	wxPaintDC dc(this);
-
-	// Calls the default drawing code
-	wxControl::OnPaint(event);
-
-	// Draw the flags, platform icons and emustate icons on top if there's games to show
-	if (m_ISOFiles.empty())
-		return;
-
-	// Retrieve the topmost shown item and get drawing offsets
-	const long
-		top_item = GetTopItem(),
-		bottom_item = std::min(top_item + GetCountPerPage() + 2, (long)GetItemCount());
-
-	int flagOffset = GetColumnWidth(0) + GetColumnWidth(1) +
-		GetColumnWidth(2) + GetColumnWidth(3);
-	int stateOffset = flagOffset + GetColumnWidth(4) + GetColumnWidth(5);
-
-	// Only redraw shown lines
-	for (long i = top_item; i != bottom_item; ++i)
-	{
-		wxRect itemRect;
-		if (GetItemRect(i, itemRect))
-		{
-			const int itemY = itemRect.GetTop();
-			const GameListItem& rISOFile = *m_ISOFiles[GetItemData(i)];
-
-			m_imageListSmall->Draw(m_PlatformImageIndex[rISOFile.GetPlatform()],
-					dc, itemRect.GetX()+3, itemY);
-			m_imageListSmall->Draw(m_FlagImageIndex[rISOFile.GetCountry()],
-					dc, flagOffset, itemY);
-			m_imageListSmall->Draw(m_EmuStateImageIndex[rISOFile.GetEmuState()],
-					dc, stateOffset, itemY);
-		}
-	}
-}
-#endif
-
 void CGameListCtrl::InsertItemInReportView(long _Index)
 {
 	// When using wxListCtrl, there is no hope of per-column text colors.
@@ -455,12 +410,8 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	m_gamePath.append(rISOFile.GetFileName() + '\n');
 
 	// Insert a first row with the platform image, that will be used as the Index
-#ifndef _WIN32
 	long ItemIndex = InsertItem(_Index, wxEmptyString,
 			m_PlatformImageIndex[rISOFile.GetPlatform()]);
-#else
-	long ItemIndex = InsertItem(_Index, wxEmptyString, -1);
-#endif
 
 	if (rISOFile.GetImage().IsOk())
 		ImageIndex = m_imageListSmall->Add(rISOFile.GetImage());
@@ -516,13 +467,11 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	SetItem(_Index, COLUMN_TITLE, name, -1);
 	SetItem(_Index, COLUMN_NOTES, description, -1);
 
-#ifndef _WIN32
 	// Emulation state
 	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[rISOFile.GetEmuState()]);
 
 	// Country
 	SetItemColumnImage(_Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
-#endif
 
 	// File size
 	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
