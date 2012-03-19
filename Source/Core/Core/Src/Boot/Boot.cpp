@@ -228,7 +228,7 @@ bool CBoot::BootUp()
 		VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
 
 		std::string unique_id = VolumeHandler::GetVolume()->GetUniqueID();
-		if (unique_id.size() >= 3)
+		if (unique_id.size() >= 4)
 			VideoInterface::SetRegionReg(unique_id.at(3));
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
