@@ -847,12 +847,28 @@ set(SRCS
 	${SRCS_GENERIC})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	add_definitions(-D__WXOSX_COCOA__)
 	set(SRCS
 		${SRCS}
 		${SRCS_GENERICOSX}
 		${SRCS_OSX}
 		${SRCS_UNIX})
+	include_directories(../libpng)
+	add_subdirectory(../libpng ../libpng)
+	set(LIBS
+		png
+		iconv
+		${APPKIT_LIBRARY}
+		${APPSERV_LIBRARY}
+		${ATB_LIBRARY}
+		${CARBON_LIBRARY}
+		${COCOA_LIBRARY}
+		${COREFUND_LIBRARY}
+		${CORESERV_LIBRARY}
+		${IOK_LIBRARY}
+		${QUICKTIME_LIBRARY})
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	add_definitions(-D__WXGTK__)
 	set(SRCS
 		${SRCS}
 		${SRCS_GENERICGTK}
@@ -860,31 +876,16 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		${SRCS_UNIX}
 		${SRCS_UNIXGTK})
 else()
+	add_definitions(-D__WXMSW__)
 	set(SRCS
 		${SRCS}
 		${SRCS_MSW})
 endif()
 
-add_definitions(-D__WXOSX_COCOA__)
 add_definitions(-DWXBUILDING)
 add_definitions(-Wno-deprecated-declarations)
 add_definitions(-Wno-shadow)
-set(LIBS
-	iconv
-	${APPKIT_LIBRARY}
-	${APPSERV_LIBRARY}
-	${ATB_LIBRARY}
-	${CARBON_LIBRARY}
-	${COCOA_LIBRARY}
-	${COREFUND_LIBRARY}
-	${CORESERV_LIBRARY}
-	${IOK_LIBRARY}
-	${QUICKTIME_LIBRARY}
-	)
 
-include_directories(../libpng)
-add_subdirectory(../libpng ../libpng)
-list(APPEND LIBS png)
-
-add_library(wx STATIC ${SRCS})
+enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
+add_library(wx STATIC ${PNG_SRCS} ${SRCS})
 target_link_libraries(wx ${LIBS})

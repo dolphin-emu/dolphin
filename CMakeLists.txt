@@ -476,48 +476,52 @@ if(NOT DISABLE_WX)
 			unset(wxWidgets_FOUND)
 		endif()
 	endif(wxWidgets_FOUND)
-		
-	if(wxWidgets_FOUND)
-		include(${wxWidgets_USE_FILE})
 
-		if(UNIX AND NOT APPLE)
-			# There is a bug in the FindGTK module in cmake version 2.8.2 that
-			# does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
-			# users have complained that pkg-config does not find
-			# gdk-pixbuf-2.0.  On yet another hand, cmake version 2.8.3 in
-			# Ubuntu Natty does not find the glib libraries correctly.
-			# Ugly!!!
-			execute_process(COMMAND lsb_release -c -s
-				OUTPUT_VARIABLE DIST_NAME
-				ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-			if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}
-					VERSION_EQUAL 2.8.2 OR "${DIST_NAME}" STREQUAL "natty")
-				check_lib(GTK2 gtk+-2.0 gtk.h REQUIRED)
-			else()
-				include(FindGTK2)
-				if(GTK2_FOUND)
-					include_directories(${GTK2_INCLUDE_DIRS})
-				endif()
+	if(UNIX AND NOT APPLE)
+		# There is a bug in the FindGTK module in cmake version 2.8.2 that
+		# does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
+		# users have complained that pkg-config does not find
+		# gdk-pixbuf-2.0.  On yet another hand, cmake version 2.8.3 in
+		# Ubuntu Natty does not find the glib libraries correctly.
+		# Ugly!!!
+		execute_process(COMMAND lsb_release -c -s
+			OUTPUT_VARIABLE DIST_NAME
+			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+		if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}
+				VERSION_EQUAL 2.8.2 OR "${DIST_NAME}" STREQUAL "natty")
+			check_lib(GTK2 gtk+-2.0 gtk.h REQUIRED)
+		else()
+			include(FindGTK2)
+			if(GTK2_FOUND)
+				include_directories(${GTK2_INCLUDE_DIRS})
 			endif()
 		endif()
+	endif()
 
+	if(wxWidgets_FOUND)
+		include(${wxWidgets_USE_FILE})
 		message("wxWidgets found, enabling GUI build")
 	else(wxWidgets_FOUND)
-		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-			message(FATAL_ERROR "wxWidgets not found.  It is required to build the GUI")
-		endif()
 		message("Using static wxWidgets from Externals")
+
+		# These definitions and includes are used when building dolphin against wx,
+		# not when building wx itself (see wxw3 CMakeLists.txt for that)
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			add_definitions(-D__WXOSX_COCOA__)
-			include_directories(Externals/wxWidgets3)
-			include_directories(Externals/wxWidgets3/include)
-			add_subdirectory(Externals/wxWidgets3)
-			set(wxWidgets_LIBRARIES "wx")
+		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+			add_definitions(-D__WXGTK__)
+		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+			add_definitions(-D__WXMSW__)
 		else()
-			include_directories(Externals/wxWidgets/include)
-			add_subdirectory(Externals/wxWidgets)
+			message(FATAL_ERROR "wxWidgets in Externals is not compatible with your platform")
 		endif()
+		
+		include_directories(
+			Externals/wxWidgets3
+			Externals/wxWidgets3/include)
+		add_subdirectory(Externals/wxWidgets3)
 		set(wxWidgets_FOUND TRUE)
+		set(wxWidgets_LIBRARIES "wx")
 	endif(wxWidgets_FOUND)
 	add_definitions(-DHAVE_WX=1)
 endif(NOT DISABLE_WX)
