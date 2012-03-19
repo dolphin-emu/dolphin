@@ -508,15 +508,16 @@ void CFrame::OnActive(wxActivateEvent& event)
 #ifdef __WXGTK__
 			wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
 				cursor_data, wxWHITE, wxBLACK);
-
-			m_RenderParent->SetFocus();
 #else
 			wxBitmap cursor_bitmap(cursor_data, 32, 32);
 			cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
 			wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
+#endif
+
 #ifdef __WXMSW__
 			::SetFocus((HWND)m_RenderParent->GetHandle());
-#endif
+#else
+			m_RenderParent->SetFocus();
 #endif
 			
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
