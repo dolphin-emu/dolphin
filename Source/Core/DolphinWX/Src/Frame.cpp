@@ -500,19 +500,32 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-#ifdef _WIN32
+			// 32x32, 8bpp b/w image
+			// We want all transparent, so we can just use the same buffer for
+			// the "image" as for the transparency mask
+			static const char cursor_data[32 * 32] = { 0 };
+
+#ifdef __WXMSW__
+			wxBitmap cursor_bitmap(cursor_data, 32, 32);
+			cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
+			wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
+
 			::SetFocus((HWND)m_RenderParent->GetHandle());
 #else
+			wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
+				cursor_data, wxWHITE, wxBLACK);
+
 			m_RenderParent->SetFocus();
 #endif
+
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
-				m_RenderParent->SetCursor(wxCURSOR_BLANK);
+				m_RenderParent->SetCursor(cursor_transparent);
 		}
 		else
 		{
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-				m_RenderParent->SetCursor(wxCURSOR_ARROW);
+				m_RenderParent->SetCursor(wxNullCursor);
 		}
 	}
 	event.Skip();
@@ -627,11 +640,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case IDM_UPDATETITLE:
 		if (m_RenderFrame != NULL)
 			m_RenderFrame->SetTitle(event.GetString());
-		break;
-
-	case WM_USER_CREATE:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
 
 	case IDM_WINDOWSIZEREQUEST:
