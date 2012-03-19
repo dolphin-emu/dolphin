@@ -390,7 +390,13 @@ void ExecuteCommand(u32 _Address)
 				INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
 						pDevice->GetDeviceName().c_str(), DeviceID, Mode);
 				if (Memory::Read_U32(_Address + 4) == DeviceID)
+				{
 					g_FdMap[DeviceID] = pDevice;
+				}
+				else
+				{
+					delete pDevice;
+				}
 			}
 
 		}

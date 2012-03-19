@@ -157,17 +157,20 @@ bool CWII_IPC_HLE_Device_FileIO::OpenFile()
 		break;
 	}
 	case ISFS_OPEN_WRITE:
+	{
 		m_pFileHandle.Open(m_Filename, "r+b");
 		break;
-
+	}
 	case ISFS_OPEN_RW:
 	{
 		m_pFileHandle.Open(m_Filename, "r+b");
 		break;
 	}
 	default:
+	{
 		PanicAlertT("FileIO: Unknown open mode : 0x%02x", m_Mode);
 		break;
+	}
 	}
 	return m_pFileHandle.IsOpen();
 }
