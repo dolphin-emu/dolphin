@@ -61,6 +61,7 @@ volatile bool interruptSet= false;
 volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
 volatile bool interruptFinishWaiting = false;
+volatile bool waitingForPEInterruptDisable = false;
 
 bool IsOnThread()
 {
@@ -174,7 +175,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 			if(fifo.CPWritePointer >= fifo.SafeCPReadPointer)
 				_rReturnValue = ReadLow (fifo.CPWritePointer - fifo.SafeCPReadPointer);
 			else
-				_rReturnValue = ReadLow (fifo.CPEnd - fifo.CPWritePointer + fifo.SafeCPReadPointer);
+				_rReturnValue = ReadLow (fifo.CPEnd - fifo.SafeCPReadPointer + fifo.CPWritePointer - fifo.CPBase + 32);
 		else
 			_rReturnValue = ReadLow (fifo.CPReadWriteDistance);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
@@ -184,7 +185,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 			if(fifo.CPWritePointer >= fifo.SafeCPReadPointer)
 				_rReturnValue = ReadHigh (fifo.CPWritePointer - fifo.SafeCPReadPointer);
 			else
-				_rReturnValue = ReadHigh (fifo.CPEnd - fifo.CPWritePointer + fifo.SafeCPReadPointer);
+				_rReturnValue = ReadHigh (fifo.CPEnd - fifo.SafeCPReadPointer + fifo.CPWritePointer - fifo.CPBase + 32);
 		else
 			_rReturnValue = ReadHigh(fifo.CPReadWriteDistance);
 		DEBUG_LOG(COMMANDPROCESSOR, "read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
@@ -437,11 +438,25 @@ void Write32(const u32 _Data, const u32 _Address)
 
 void STACKALIGN GatherPipeBursted()
 {
+	ProcessFifoEvents();
 	// if we aren't linked, we don't care about gather pipe data
 	if (!m_CPCtrlReg.GPLinkEnable)
 	{
 		if (!IsOnThread())
 			RunGpu();
+		else
+		{
+			// In multibuffer mode is not allowed write in the same fifo attached to the GPU.
+			// Fix Pokemon XD in DC mode.
+			if((ProcessorInterface::Fifo_CPUEnd == fifo.CPEnd) && (ProcessorInterface::Fifo_CPUBase == fifo.CPBase)
+				 && fifo.CPReadWriteDistance > 0)
+			{
+				waitingForPEInterruptDisable = true;
+				ProcessFifoAllDistance();
+				waitingForPEInterruptDisable = false;
+			}
+		
+		}
 		return;
 	}
 

@@ -462,7 +462,7 @@ void ResetSetToken()
 
 bool WaitingForPEInterrupt()
 {
-	return CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || interruptSetFinish || interruptSetToken;
+	return !CommandProcessor::waitingForPEInterruptDisable && (CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || interruptSetFinish || interruptSetToken);
 }
 
 void ResumeWaitingForPEInterrupt()
