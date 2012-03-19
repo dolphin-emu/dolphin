@@ -16,7 +16,7 @@
 #endif /* __cplusplus */
 
 /* fill in with the string wxGetOsDescription() will return */
-#define WXWIN_OS_DESCRIPTION "Linux 2.6.32-5-686 i686"
+#define WXWIN_OS_DESCRIPTION "FreeBSD 7.4-PRERELEASE i386"
 
 /* the installation location prefix from configure */
 #define wxINSTALL_PREFIX "/usr/local"
@@ -44,7 +44,7 @@
 
 /* Define this to get extra features from GNU libc. */
 #ifndef _GNU_SOURCE
-#define _GNU_SOURCE 1
+/* #undef _GNU_SOURCE */
 #endif
 
 /* Define to `int' if <sys/types.h> doesn't define.  */
@@ -53,6 +53,9 @@
 /* Define if your processor stores words with the most significant
    byte first (like Motorola and SPARC, unlike Intel and VAX).  */
 /* #undef WORDS_BIGENDIAN */
+
+/* Define this if your version of GTK+ is greater than 1.2 */
+#define __WXGTK12__ 1
 
 /* Define this if your version of GTK+ is greater than 1.2.7 */
 /* #undef __WXGTK127__ */
@@ -86,12 +89,12 @@
 #define __UNIX__ 1
 
 /* #undef __AIX__ */
-/* #undef __BSD__ */
+#define __BSD__ 1
 /* #undef __DARWIN__ */
 /* #undef __EMX__ */
-/* #undef __FREEBSD__ */
+#define __FREEBSD__ 1
 /* #undef __HPUX__ */
-#define __LINUX__ 1
+/* #undef __LINUX__ */
 /* #undef __NETBSD__ */
 /* #undef __OPENBSD__ */
 /* #undef __OSF__ */
@@ -160,7 +163,7 @@
 
 #define wxUSE_ON_FATAL_EXCEPTION 1
 
-#define wxUSE_STACKWALKER 1
+#define wxUSE_STACKWALKER 0
 
 #define wxUSE_DEBUGREPORT 1
 
@@ -183,9 +186,11 @@
 #define wxUSE_WCHAR_T 1
 
 
-#define wxUSE_EXCEPTIONS    0
+#define wxUSE_EXCEPTIONS 0
 
 #define wxUSE_EXTENDED_RTTI 0
+
+#define wxUSE_STL 0
 
 #define wxUSE_LOG 1
 
@@ -201,12 +206,6 @@
 
 #define wxUSE_STREAMS 1
 
-#define wxUSE_PRINTF_POS_PARAMS 1
-
-
-
-#define wxUSE_STL 0
-
 #if defined(__DMC__) || defined(__WATCOMC__) \
         || (defined(_MSC_VER) && _MSC_VER < 1200)
     #define wxUSE_STD_DEFAULT  0
@@ -214,16 +213,11 @@
     #define wxUSE_STD_DEFAULT  0
 #endif
 
-#define wxUSE_STD_CONTAINERS 0
-
 #define wxUSE_STD_IOSTREAM 1
 
 #define wxUSE_STD_STRING 1
 
-#define wxUSE_STD_STRING_CONV_IN_WXSTRING wxUSE_STL
-
-#define wxUSE_IOSTREAMH     0
-
+#define wxUSE_PRINTF_POS_PARAMS 1
 
 
 #define wxUSE_LONGLONG 1
@@ -253,7 +247,7 @@
 
 #define wxUSE_STOPWATCH 1
 
-#define wxUSE_FSWATCHER     0
+#define wxUSE_FSWATCHER 0
 
 #define wxUSE_CONFIG 1
 
@@ -287,7 +281,7 @@
 
 #define wxUSE_APPLE_IEEE 1
 
-#define wxUSE_JOYSTICK 1
+#define wxUSE_JOYSTICK            0
 
 #define wxUSE_FONTENUM 1
 
@@ -309,39 +303,26 @@
 
 #define wxUSE_ANY 1
 
-#define wxUSE_REGEX       0
+#define wxUSE_REGEX 0
 
 #define wxUSE_SYSTEM_OPTIONS 1
 
 #define wxUSE_SOUND 1
 
-#define wxUSE_MEDIACTRL     0
+#define wxUSE_MEDIACTRL 1
 
-#define wxUSE_XRC       0
+#define wxUSE_XRC 0
 
-#define wxUSE_XML       wxUSE_XRC
+#define wxUSE_XML 0
 
 #define wxUSE_AUI 1
 
-#define wxUSE_RIBBON    0
+#define wxUSE_RIBBON 0
 
-#define wxUSE_PROPGRID  0
+#define wxUSE_PROPGRID 0
 
 #define wxUSE_STC 0
 
-#define wxUSE_WEBVIEW 0
-
-#ifdef __WXMSW__
-#define wxUSE_WEBVIEW_IE 0
-#else
-#define wxUSE_WEBVIEW_IE 0
-#endif
-
-#if defined(__WXGTK__) || defined(__WXOSX__)
-#define wxUSE_WEBVIEW_WEBKIT 0
-#else
-#define wxUSE_WEBVIEW_WEBKIT 0
-#endif
 
 
 #ifdef _MSC_VER
@@ -369,14 +350,11 @@
 
 #define wxUSE_CONTROLS 1
 
-#define wxUSE_MARKUP       0
-
 #define wxUSE_POPUPWIN 1
 
 #define wxUSE_TIPWINDOW 1
 
 #define wxUSE_ANIMATIONCTRL 1
-#define wxUSE_BANNERWINDOW 1
 #define wxUSE_BUTTON 1
 #define wxUSE_BMPBUTTON 1
 #define wxUSE_CALENDARCTRL 1
@@ -412,10 +390,8 @@
 #define wxUSE_STATTEXT 1
 #define wxUSE_STATBMP 1
 #define wxUSE_TEXTCTRL 1
-#define wxUSE_TIMEPICKCTRL 1
 #define wxUSE_TOGGLEBTN 1
 #define wxUSE_TREECTRL 1
-#define wxUSE_TREELISTCTRL 1
 
 #define wxUSE_STATUSBAR 1
 
@@ -470,8 +446,6 @@
 #define wxUSE_MENUS 1
 
 #define wxUSE_NOTIFICATION_MESSAGE 1
-
-#define wxUSE_RICHTOOLTIP 1
 
 #define wxUSE_SASH 1
 
@@ -537,11 +511,11 @@
 
 #define wxUSE_PRINTING_ARCHITECTURE 1
 
-#define wxUSE_HTML          0
+#define wxUSE_HTML 0
 
 #define wxUSE_GLCANVAS 1
 
-#define wxUSE_RICHTEXT       0
+#define wxUSE_RICHTEXT 0
 
 
 #define wxUSE_CLIPBOARD 1
@@ -585,7 +559,10 @@
 
 #define wxUSE_SVG 1
 
-#define wxUSE_DC_TRANSFORM_MATRIX 1
+
+#define REMOVE_UNUSED_ARG   0
+
+#define wxUSE_IOSTREAMH     0
 
 
 
@@ -593,9 +570,9 @@
 
 #define wxUSE_LIBPNG 1
 
-#define wxUSE_LIBJPEG       0
+#define wxUSE_LIBJPEG 0
 
-#define wxUSE_LIBTIFF       0
+#define wxUSE_LIBTIFF 0
 
 #define wxUSE_TGA 1
 
@@ -628,7 +605,7 @@
  * Unix-specific options
  */
 #define wxUSE_SELECT_DISPATCHER 1
-#define wxUSE_EPOLL_DISPATCHER 1
+#define wxUSE_EPOLL_DISPATCHER 0
 
 #define wxUSE_UNICODE_UTF8 1
 #define wxUSE_UTF8_LOCALE_ONLY 0
@@ -681,8 +658,6 @@
 
 
 #define wxUSE_DATEPICKCTRL_GENERIC 0
-
-#define wxUSE_TIMEPICKCTRL_GENERIC 0
 
 
 #define wxUSE_CRASHREPORT 0
@@ -802,7 +777,7 @@
 /*
  * Use GTK print for printing under GTK+ 2.0
  */
-#define wxUSE_GTKPRINT 1
+#define wxUSE_GTKPRINT 0
 /*
  * Use GNOME print for printing under GTK+ 2.0
  */
@@ -819,6 +794,10 @@
  * Use the Hildon 2.0 framework
  */
 #define wxUSE_LIBHILDON2 0
+/*
+ * Have glibc2
+ */
+#define wxHAVE_GLIBC2 0
 /*
  * Use libXpm
  */
@@ -875,20 +854,17 @@
 /*
  * use the session manager to detect KDE/GNOME
  */
-#define wxUSE_DETECT_SM 1
+#define wxUSE_DETECT_SM 0
 
 
 /* define with the name of timezone variable */
-#define WX_TIMEZONE timezone
+/* #undef WX_TIMEZONE */
 
 /* The type of 3rd argument to getsockname() - usually size_t or int */
 #define WX_SOCKLEN_T socklen_t
 
 /* The type of 5th argument to getsockopt() - usually size_t or int */
 #define SOCKOPTLEN_T socklen_t
-
-/* The type of statvfs(2) argument */
-#define WX_STATFS_T struct statfs
 
 /* The signal handler prototype */
 #define wxTYPE_SA_HANDLER int
@@ -961,15 +937,6 @@
    (defined in the unix98 standard) */
 #define HAVE_UNIX98_PRINTF 1
 
-/* define if you have statfs function */
-#define HAVE_STATFS 1
-
-/* define if you have statfs prototype */
-#define HAVE_STATFS_DECL 1
-
-/* define if you have statvfs function */
-/* #undef HAVE_STATVFS */
-
 /* Define if you have strtoull() and strtoll() */
 #define HAVE_STRTOULL 1
 
@@ -996,10 +963,10 @@
 /* #undef HAVE_USLEEP */
 
 /* Define if you have wcscasecmp() function  */
-#define HAVE_WCSCASECMP 1
+/* #undef HAVE_WCSCASECMP */
 
 /* Define if you have wcsncasecmp() function  */
-#define HAVE_WCSNCASECMP 1
+/* #undef HAVE_WCSNCASECMP */
 
 /* Define if you have wcslen function  */
 #define HAVE_WCSLEN 1
@@ -1011,10 +978,10 @@
 #define HAVE_WCSFTIME 1
 
 /* Define if you have strnlen() function */
-#define HAVE_STRNLEN 1
+/* #undef HAVE_STRNLEN */
 
 /* Define if you have wcsnlen() function */
-#define HAVE_WCSNLEN 1
+/* #undef HAVE_WCSNLEN */
 
 /* Define if you have wcstoull() and wcstoll() */
 /* #undef HAVE_WCSTOULL */
@@ -1037,14 +1004,11 @@
 /* The number of bytes in a short.  */
 #define SIZEOF_SHORT 2
 
-/* The number of bytes in a size_t.  */
-#define SIZEOF_SIZE_T 4
-
-/* Define if size_t on your machine is the same type as unsigned int. */
+#ifdef __LP64__
+#define wxSIZE_T_IS_ULONG 1
+#else
 #define wxSIZE_T_IS_UINT 1
-
-/* Define if size_t on your machine is the same type as unsigned long. */
-/* #undef wxSIZE_T_IS_ULONG */
+#endif
 
 /* Define if wchar_t is distinct type in your compiler. */
 #define wxWCHAR_T_IS_REAL_TYPE 1
@@ -1125,7 +1089,7 @@
 #define HAVE_UNSETENV 1
 
 /* Define if you have the <X11/XKBlib.h> header file.  */
-#define HAVE_X11_XKBLIB_H 1
+/* #undef HAVE_X11_XKBLIB_H */
 
 /* Define if you have the <X11/extensions/xf86vmode.h> header file.  */
 /* #undef HAVE_X11_EXTENSIONS_XF86VMODE_H */
@@ -1152,7 +1116,11 @@
 #define HAVE_ICONV 1
 
 /* Define as "const" if the declaration of iconv() needs const.  */
-#define ICONV_CONST 
+#if defined __FreeBSD__ || __NetBSD__
+#define ICONV_CONST const
+#else
+#define ICONV_CONST
+#endif
 
 /* Define if you have the <langinfo.h> header file.  */
 #define HAVE_LANGINFO_H 1
@@ -1224,13 +1192,7 @@
 #define HAVE_GETGRGID_R 1
 
 /* Define if locale_t is available */
-#define HAVE_LOCALE_T 1
-
-/* Define if you have inotify_xxx() functions. */
-/* #undef wxHAS_INOTIFY */
-
-/* Define if you have kqueu_xxx() functions. */
-/* #undef wxHAS_KQUEUE */
+/* #undef HAVE_LOCALE_T */
 
 /* -------------------------------------------------------------------------
    Win32 adjustments section
