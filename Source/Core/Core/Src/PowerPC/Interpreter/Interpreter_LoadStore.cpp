@@ -367,7 +367,7 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 	if (jit)
 	{
 		u32 address = Helper_Get_EA_X(_inst);
-		jit->GetBlockCache()->InvalidateICache(address & ~0x1f);
+		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
 	}
 }
 
@@ -378,7 +378,7 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
 	if (jit)
 	{
 		u32 address = Helper_Get_EA_X(_inst);
-		jit->GetBlockCache()->InvalidateICache(address & ~0x1f);
+		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
 	}
 }
 

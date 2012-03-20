@@ -119,6 +119,7 @@ public:
 	virtual void Video_GatherPipeBursted() = 0;
 
 	virtual bool Video_IsPossibleWaitingSetDrawDone() = 0;
+	virtual bool Video_IsHiWatermarkActive() = 0;
 	virtual void Video_AbortFrame() = 0;
 
 	virtual readFn16  Video_CPRead16() = 0;
@@ -159,6 +160,7 @@ class VideoBackendHardware : public VideoBackend
 	void Video_GatherPipeBursted();
 
 	bool Video_IsPossibleWaitingSetDrawDone();
+	bool Video_IsHiWatermarkActive();
 	void Video_AbortFrame();
 
 	readFn16  Video_CPRead16();

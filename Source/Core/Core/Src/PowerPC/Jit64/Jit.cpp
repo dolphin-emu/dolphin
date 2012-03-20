@@ -414,8 +414,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		// Comment out the following to disable breakpoints (speed-up)
 		if (!Profiler::g_ProfileBlocks)
 		{
-			blockSize = 1;
-			broken_block = true;
+			if (GetState() == CPU_STEPPING)
+				blockSize = 1;
 			Trace();
 		}
 	}
