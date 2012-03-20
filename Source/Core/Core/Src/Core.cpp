@@ -73,8 +73,6 @@
 #include "State.h"
 #include "Movie.h"
 
-#include <ctype.h>
-
 // TODO: ugly, remove
 bool g_aspect_wide;
 
@@ -132,8 +130,9 @@ void DisplayMessage(const char *message, int time_in_ms)
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	// Actually displaying non-ASCII could cause things to go pear-shaped
-	if (!isascii(message))
-		return;
+	for (const char *c = message; *c != '\0'; ++c)
+		if (*c < ' ')
+			return;
 
 	g_video_backend->Video_AddMessage(message, time_in_ms);
 	

@@ -457,10 +457,8 @@ endif()
 
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 if(NOT DISABLE_WX)
-	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		include(FindwxWidgets OPTIONAL)
-		FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
-	endif()
+	include(FindwxWidgets OPTIONAL)
+	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
 
 	if(wxWidgets_FOUND)
 		EXECUTE_PROCESS(
@@ -471,8 +469,8 @@ if(NOT DISABLE_WX)
 			ERROR_QUIET
 			)
 		message("Found wxWidgets version ${wxWidgets_VERSION}")
-		if(${wxWidgets_VERSION} VERSION_LESS "2.8.9")
-			message("At least 2.8.9 is required; ignoring found version")
+		if(${wxWidgets_VERSION} VERSION_LESS "2.9.4")
+			message("At least 2.9.4 is required; ignoring found version")
 			unset(wxWidgets_FOUND)
 		endif()
 	endif(wxWidgets_FOUND)
