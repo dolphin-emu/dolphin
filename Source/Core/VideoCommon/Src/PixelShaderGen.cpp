@@ -1147,7 +1147,7 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 		WRITE(p, "ocol1 = 0;\n");
 	if (DepthTextureEnable)
 		WRITE(p, "depth = 1.f;\n");
-	if (!bpmem.zcontrol.zcomploc)
+	if (!(bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable))
 	{
 		WRITE(p, "discard;\n");
 		if (ApiType != API_D3D11)
