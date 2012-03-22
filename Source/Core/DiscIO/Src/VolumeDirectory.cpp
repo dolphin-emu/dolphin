@@ -389,8 +389,8 @@ void CVolumeDirectory::BuildFST()
 	// write FST size and location
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
 	Write32((u32)(FST_ADDRESS >> m_addressShift), 0x0424, m_diskHeader);
-	Write32((u32)m_fstSize, 0x0428, m_diskHeader);
-	Write32((u32)m_fstSize, 0x042c, m_diskHeader);
+	Write32((u32)(m_fstSize >> m_addressShift), 0x0428, m_diskHeader);
+	Write32((u32)(m_fstSize >> m_addressShift), 0x042c, m_diskHeader);
 }
 
 void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, u8* _Src,
