@@ -1198,6 +1198,16 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 		WRITE(p, "ocol1 = 0;\n");
 	if (DepthTextureEnable)
 		WRITE(p, "depth = 1.f;\n");
+
+	// HAXX: zcomploc is a way to control whether depth test is done before
+	// or after texturing and alpha test. PC GPU have no way to support this
+	// feature properly as of 2012: depth buffer and depth test are not
+	// programmable and the depth test is always done after texturing.
+	//
+	// We implement "depth test before texturing" by discarding the fragment
+	// when the alpha test fail. This is not a correct implementation because
+	// even if the depth test fails the fragment could be alpha blended, but
+	// we don't have a choice.
 	if (!(bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable))
 	{
 		WRITE(p, "discard;\n");
