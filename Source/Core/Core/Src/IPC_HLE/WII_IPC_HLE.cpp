@@ -376,10 +376,8 @@ void ExecuteCommand(u32 _Address)
 				else
 				{
 					WARN_LOG(WII_IPC_HLE, "Unimplemented device: %s", DeviceName.c_str());
-					pDevice = GetDeviceByName(std::string("_Unimplemented_Device_"));
-					CmdSuccess = pDevice->Open(_Address, Mode);
-					g_FdMap[DeviceID] = pDevice;
-					Memory::Write_U32(DeviceID, _Address+4);
+					Memory::Write_U32(FS_ENOENT, _Address+4);
+					CmdSuccess = true;
 				}
 			}
 			else
