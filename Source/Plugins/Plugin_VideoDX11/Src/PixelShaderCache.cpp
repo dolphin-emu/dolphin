@@ -41,6 +41,7 @@ namespace DX11
 
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
+PIXELSHADERUID PixelShaderCache::last_uid;
 
 LinearDiskCache<PIXELSHADERUID, u8> g_ps_disk_cache;
 
@@ -412,6 +413,11 @@ void PixelShaderCache::Init()
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	PixelShaderCacheInserter inserter;
 	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
+
+	if (g_Config.bEnableShaderDebugging)
+		Clear();
+
+	last_entry = NULL;
 }
 
 // ONLY to be used during shutdown.
@@ -420,6 +426,8 @@ void PixelShaderCache::Clear()
 	for (PSCache::iterator iter = PixelShaders.begin(); iter != PixelShaders.end(); iter++)
 		iter->second.Destroy();
 	PixelShaders.clear(); 
+
+	last_entry = NULL;
 }
 
 // Used in Swap() when AA mode has changed
@@ -454,28 +462,31 @@ void PixelShaderCache::Shutdown()
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlphaMode);
+	GetPixelShaderId(&uid, dstAlphaMode, components);
 
 	// Check if the shader is already set
-	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
+	if (last_entry)
 	{
-		PSCache::const_iterator iter = PixelShaders.find(uid);
-		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
-		return (iter != PixelShaders.end() && iter->second.shader);
+		if (uid == last_uid)
+		{
+			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
+			ValidatePixelShaderIDs(API_D3D11, last_entry->safe_uid, last_entry->code, dstAlphaMode, components);
+			return (last_entry->shader != NULL);
+		}
 	}
 
-	memcpy(&last_pixel_shader_uid, &uid, sizeof(PIXELSHADERUID));
+	last_uid = uid;
 
 	// Check if the shader is already in the cache
 	PSCache::iterator iter;
 	iter = PixelShaders.find(uid);
 	if (iter != PixelShaders.end())
 	{
-		iter->second.frameCount = frameCount;
 		const PSCacheEntry &entry = iter->second;
 		last_entry = &entry;
 		
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
+		ValidatePixelShaderIDs(API_D3D11, entry.safe_uid, entry.code, dstAlphaMode, components);
 		return (entry.shader != NULL);
 	}
 
@@ -485,36 +496,38 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	D3DBlob* pbytecode;
 	if (!D3D::CompilePixelShader(code, (unsigned int)strlen(code), &pbytecode))
 	{
-		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return false;
 	}
 
 	// Insert the bytecode into the caches
 	g_ps_disk_cache.Append(uid, pbytecode->Data(), pbytecode->Size());
-	g_ps_disk_cache.Sync();
 
-	bool result = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
+	bool success = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
 	pbytecode->Release();
+
+	if (g_ActiveConfig.bEnableShaderDebugging && success)
+	{
+		PixelShaders[uid].code = code;
+		GetSafePixelShaderId(&PixelShaders[uid].safe_uid, dstAlphaMode, components);
+	}
+
 	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-	return result;
+	return success;
 }
 
 bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const void* bytecode, unsigned int bytecodelen)
 {
 	ID3D11PixelShader* shader = D3D::CreatePixelShaderFromByteCode(bytecode, bytecodelen);
 	if (shader == NULL)
-	{
-		PanicAlert("Failed to create pixel shader at %s %d\n", __FILE__, __LINE__);
 		return false;
-	}
+
 	// TODO: Somehow make the debug name a bit more specific
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a pixel shader of PixelShaderCache");
 
 	// Make an entry in the table
 	PSCacheEntry newentry;
 	newentry.shader = shader;
-	newentry.frameCount = frameCount;
 	PixelShaders[uid] = newentry;
 	last_entry = &PixelShaders[uid];
 
@@ -539,20 +552,22 @@ static const unsigned int ps_constant_offset_table[] = {
 	16, 20, 24, 28,					// C_KCOLORS, 16
 	32,								// C_ALPHA, 4
 	36, 40, 44, 48, 52, 56, 60, 64,	// C_TEXDIMS, 32
-	68, 72,							// C_ZBIAS, 8
-	76, 80,							// C_INDTEXSCALE, 8
-	84, 88, 92, 96, 100, 104,		// C_INDTEXMTX, 24
-	108, 112, 116,					// C_FOG, 12
-	120, 124, 128, 132, 136,		// C_PLIGHTS0, 20
-	140, 144, 148, 152, 156,		// C_PLIGHTS1, 20
-	160, 164, 168, 172,	176,		// C_PLIGHTS2, 20
-	180, 184, 188, 192, 196,		// C_PLIGHTS3, 20		
-	200, 204, 208, 212, 216,		// C_PLIGHTS4, 20
-	220, 224, 228, 232, 236,		// C_PLIGHTS5, 20
-	240, 244, 248, 252,	256,		// C_PLIGHTS6, 20
-	260, 264, 268, 272, 276,		// C_PLIGHTS7, 20
-	280, 284, 288, 292				// C_PMATERIALS, 16	
+	68, 72, 76, 80,					// C_VTEXSCALE, 16 (unused)
+	84, 88,							// C_ZBIAS, 8
+	92, 96,							// C_INDTEXSCALE, 8
+	100, 104, 108, 112, 116, 120,	// C_INDTEXMTX, 24
+	124, 128, 132,					// C_FOG, 12
+	136, 140, 144, 148, 152,		// C_PLIGHTS0, 20
+	156, 160, 164, 168, 172,		// C_PLIGHTS1, 20
+	176, 180, 184, 188,	192,		// C_PLIGHTS2, 20
+	196, 200, 204, 208, 212,		// C_PLIGHTS3, 20
+	216, 220, 224, 228, 232,		// C_PLIGHTS4, 20
+	236, 240, 244, 248, 252,		// C_PLIGHTS5, 20
+	256, 260, 264, 268,	272,		// C_PLIGHTS6, 20
+	276, 280, 284, 288, 292,		// C_PLIGHTS7, 20
+	296, 300, 304, 308,				// C_PMATERIALS, 16
 };
+
 void Renderer::SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	psconstants[ps_constant_offset_table[const_number]  ] = f1;

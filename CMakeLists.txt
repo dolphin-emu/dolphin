@@ -2,16 +2,33 @@
 # General setup
 #
 cmake_minimum_required(VERSION 2.6)
+
+# Update compiler before calling project()
+if (APPLE)
+	# Use clang compiler
+	set(CMAKE_C_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang")
+	set(CMAKE_CXX_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++")
+	if (NOT EXISTS "${CMAKE_CXX_COMPILER}")
+		set(CMAKE_C_COMPILER "clang")
+		set(CMAKE_CXX_COMPILER "clang++")
+	endif()
+endif()
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 set(DOLPHIN_IS_STABLE FALSE)
 
 # Set up paths
-set(bindir		${CMAKE_INSTALL_PREFIX}/bin					CACHE PATH "bindir")
-set(datadir		${CMAKE_INSTALL_PREFIX}/share/dolphin-emu	CACHE PATH "datadir")
+if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+	# The gettext module will install the translations unconditionally.
+	# Redirect the installation to a build directory where it does no harm.
+	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install-dummy)
+else()
+	set(bindir  ${CMAKE_INSTALL_PREFIX}/bin               CACHE PATH "bindir")
+	set(datadir ${CMAKE_INSTALL_PREFIX}/share/dolphin-emu CACHE PATH "datadir")
+	add_definitions(-DDATA_DIR="${datadir}/")
+endif()
 set(userdir ".dolphin-emu" CACHE STRING "User directory")
 add_definitions(-DUSER_DIR="${userdir}")
-add_definitions(-DDATA_DIR="${datadir}/")
 
 # Set where the binary files will be built.  The program will not execute from
 # here.  You must run "make install" to install these to the proper location
@@ -67,6 +84,15 @@ if(GIT_FOUND AND NOT DOLPHIN_WC_REVISION)
 	OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
+# version number
+set(DOLPHIN_VERSION_MAJOR "3")
+set(DOLPHIN_VERSION_MINOR "0")
+if(DOLPHIN_IS_STABLE)
+	set(DOLPHIN_VERSION_PATCH "0")
+else()
+	set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_REVISION})
+endif()
+
 # Various compile flags
 add_definitions(-msse2)
 
@@ -100,25 +126,68 @@ if(UNIX AND NOT APPLE)
 endif()
 
 if (APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
+	# Ignore MacPorts and Fink and any other locally installed packages that
+	# might prevent building a distributable binary.
+	set(CMAKE_SYSTEM_PREFIX_PATH /usr)
+	set(ENV{PATH} /usr/bin:/bin:/usr/sbin:/sbin)
+
+	# Some of our code contains Objective C constructs.
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c")
-	FIND_LIBRARY(ATB_LIBRARY AudioToolbox)
-	FIND_LIBRARY(AU_LIBRARY AudioUnit)		
-	FIND_LIBRARY(CARBON_LIBRARY Carbon)
-	FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-	FIND_LIBRARY(COREAUDIO_LIBRARY CoreAudio)
-	FIND_LIBRARY(COREFUND_LIBRARY CoreFoundation)
-	FIND_LIBRARY(CORESERV_LIBRARY CoreServices)
-	FIND_LIBRARY(IOB_LIBRARY IOBluetooth)
-	FIND_LIBRARY(IOK_LIBRARY IOKit)		
-	FIND_LIBRARY(OGL_LIBRARY OpenGL)
-	FIND_LIBRARY(WEBKIT_LIBRARY WebKit)		
-	SET(EXTRA_LIBS ${ATB_LIBRARY} ${AU_LIBRARY} ${CARBON_LIBRARY}
-		${COCOA_LIBRARY} ${COREAUDIO_LIBRARY} ${COREFUND_LIBRARY}
-		${CORESERV_LIBRARY} ${IOB_LIBRARY} ${IOK_LIBRARY} ${OGL_LIBRARY}
-		${WEBKIT_LIBRARY})
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
+	# Avoid mistaking an object file for a source file on the link command line.
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -x none")
+
+	# Identify the target system:
+	# Ask for 32/64-bit fat binary.
+	set(TARGET_FLAGS "-arch x86_64 -arch i386")
+	# Minimum OS X version.
+	# This is inserted into the Info.plist as well.
+	# Note that the SDK determines the maximum version of which optional
+	# features can be used, not the minimum required version to run.
+	set(OSX_MIN_VERSION "10.5.4")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
+	set(TARGET_SYSROOT "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk")
+	if (NOT EXISTS "${TARGET_SYSROOT}/")
+		set(TARGET_SYSROOT "/Developer/SDKs/MacOSX10.6.sdk")
+	endif()
+	set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${TARGET_SYSROOT}")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk")
+	# Do not warn about frameworks that are not available on all architectures.
+	# This avoids a warning when linking with QuickTime.
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
+	# Specify target CPUs.
+	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -msse3")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -march=prescott")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -mssse3")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -march=core2")
+	# Target flags apply to both C and C++ compilation.
+	# CMake passes these to the compiler on the link command line as well.
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TARGET_FLAGS}")
+
+	# Linker flags.
+	# Drop unreachable code and data.
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip,-dead_strip_dylibs")
+	# Reserve the minimum size for the zero page.
+	# Our JIT requires virtual memory space below 2GB, while the default zero
+	# page on x86_64 is 4GB in size.
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-pagezero_size,0x1000")
+
+	find_library(APPKIT_LIBRARY AppKit)
+	find_library(APPSERV_LIBRARY ApplicationServices)
+	find_library(ATB_LIBRARY AudioToolbox)
+	find_library(AU_LIBRARY AudioUnit)
+	find_library(CARBON_LIBRARY Carbon)
+	find_library(COCOA_LIBRARY Cocoa)
+	find_library(COREAUDIO_LIBRARY CoreAudio)
+	find_library(COREFUND_LIBRARY CoreFoundation)
+	find_library(CORESERV_LIBRARY CoreServices)
+	find_library(IOB_LIBRARY IOBluetooth)
+	find_library(IOK_LIBRARY IOKit)
+	find_library(QUICKTIME_LIBRARY QuickTime)
+	find_library(WEBKIT_LIBRARY WebKit)
 endif()
- 
+
 if(WIN32)
 	add_definitions(-D_SECURE_SCL=0)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -234,7 +303,9 @@ else()
 	add_definitions(-DHAVE_X11=0)
 endif()
 
-check_lib(XRANDR Xrandr)
+if(X11_FOUND)
+	check_lib(XRANDR Xrandr)
+endif()
 if(XRANDR_FOUND)
 	add_definitions(-DHAVE_XRANDR=1)
 else()
@@ -303,22 +374,27 @@ include_directories(Source/Core/VideoUICommon/Src)
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
 
-check_lib(LZO lzo2 lzo/lzo1x.h QUIET)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	check_lib(LZO lzo2 lzo/lzo1x.h QUIET)
+endif()
 if(LZO_FOUND)
 	message("Using shared lzo")
 else()
-	message("Shared lzo not found, falling back to the static library")
+	message("Using static lzo from Externals")
 	add_subdirectory(Externals/LZO)
 	include_directories(Externals/LZO)
+	set(LZO lzo2)
 endif()
 
-include(FindSDL OPTIONAL)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	include(FindSDL OPTIONAL)
+endif()
 if(SDL_FOUND)
 	message("Using shared SDL")
 	include_directories(${SDL_INCLUDE_DIR})
 else(SDL_FOUND)
 	# TODO: Use the prebuilt one on Windows
-	message("Shared SDL not found, falling back to the static library")
+	message("Using static SDL from Externals")
 	include_directories(Externals/SDL Externals/SDL/include)
 	add_subdirectory(Externals/SDL)
 endif(SDL_FOUND)
@@ -326,20 +402,24 @@ endif(SDL_FOUND)
 set(SFML_FIND_VERSION TRUE)
 set(SFML_FIND_VERSION_MAJOR 1)
 set(SFML_FIND_VERSION_MINOR 5)
-include(FindSFML OPTIONAL)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	include(FindSFML OPTIONAL)
+endif()
 if(SFML_FOUND AND NOT SFML_VERSION_MAJOR) # SFML 1.x doesn't define SFML_VERSION_MAJOR
        message("Using shared SFML")
 else()
-       message("Shared SFML < 2.0 not found, falling back to the static library")
+       message("Using static SFML ${SFML_FIND_VERSION_MAJOR}.${SFML_FIND_VERSION_MINOR} from Externals")
        add_subdirectory(Externals/SFML)
        include_directories(Externals/SFML/include)
 endif()
 
-check_lib(SOIL SOIL SOIL/SOIL.h QUIET)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	check_lib(SOIL SOIL SOIL/SOIL.h QUIET)
+endif()
 if(SOIL_FOUND)
 	message("Using shared SOIL")
 else()
-	message("Shared SOIL not found, falling back to the static library")
+	message("Using static SOIL from Externals")
 	add_subdirectory(Externals/SOIL)
 	include_directories(Externals/SOIL)
 endif()
@@ -363,27 +443,55 @@ if(WIN32)
 	find_library(GLEW glew32s PATHS Externals/GLew)
 	include_directories(Externals/GLew/include)
 else()
-	check_lib(GLEW GLEW GL/glew.h)
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		check_lib(GLEW GLEW GL/glew.h)
+	endif()
 	if(NOT GLEW_FOUND)
-		message("Shared GLEW not found, falling back to the static library")
+		message("Using static GLEW from Externals")
 		add_subdirectory(Externals/GLew)
 		include_directories(Externals/GLew/include)
 	endif(NOT GLEW_FOUND)
 
-	check_lib(CG Cg Cg/cg.h)
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		check_lib(CG Cg Cg/cg.h)
+	endif()
+	if(NOT CG_FOUND)
+		message("Using static Cg from Externals")
+		include_directories(Externals)
+	endif(NOT CG_FOUND)
 	check_lib(CGGL CgGL Cg/cgGL.h)
 endif()
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	find_library(CL OpenCL)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-weak_framework,OpenCL")
+else()
 	include_directories(Externals/CLRun/include)
 	add_subdirectory(Externals/CLRun)
 endif()
 
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 if(NOT DISABLE_WX)
-	include(FindwxWidgets OPTIONAL)
-	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		include(FindwxWidgets OPTIONAL)
+		FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
+	endif()
 
+	if(wxWidgets_FOUND)
+		EXECUTE_PROCESS(
+			COMMAND sh "${wxWidgets_CONFIG_EXECUTABLE}"
+				${wxWidgets_CONFIG_OPTIONS} --version
+			OUTPUT_VARIABLE wxWidgets_VERSION
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+			ERROR_QUIET
+			)
+		message("Found wxWidgets version ${wxWidgets_VERSION}")
+		if(${wxWidgets_VERSION} VERSION_LESS "2.8.9")
+			message("At least 2.8.9 is required; ignoring found version")
+			unset(wxWidgets_FOUND)
+		endif()
+	endif(wxWidgets_FOUND)
+		
 	if(wxWidgets_FOUND)
 		include(${wxWidgets_USE_FILE})
 
@@ -413,9 +521,18 @@ if(NOT DISABLE_WX)
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 			message(FATAL_ERROR "wxWidgets not found.  It is required to build the GUI")
 		endif()
-		message("Shared wxWidgets not found, falling back to the static library")
-		include_directories(Externals/wxWidgets/include)
-		add_subdirectory(Externals/wxWidgets)
+		message("Using static wxWidgets from Externals")
+		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+			add_definitions(-D__WXOSX_COCOA__)
+			include_directories(Externals/wxWidgets3)
+			include_directories(Externals/wxWidgets3/include)
+			add_subdirectory(Externals/wxWidgets3)
+			set(wxWidgets_LIBRARIES "wx")
+		else()
+			include_directories(Externals/wxWidgets/include)
+			add_subdirectory(Externals/wxWidgets)
+		endif()
+		set(wxWidgets_FOUND TRUE)
 	endif(wxWidgets_FOUND)
 	add_definitions(-DHAVE_WX=1)
 endif(NOT DISABLE_WX)
@@ -450,34 +567,32 @@ option(UNITTESTS "Build unitests" OFF)
 ########################################
 # Start compiling our code
 #
+add_definitions(-std=gnu++0x)
 add_subdirectory(Source)
 
 
 ########################################
 # Install shared data files
 #
-install(DIRECTORY Data/User/ DESTINATION ${datadir}/user PATTERN .svn EXCLUDE)
-install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN .svn EXCLUDE)
+if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+	install(DIRECTORY Data/User/ DESTINATION ${datadir}/user PATTERN)
+	install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
+endif()
 include(FindGettext)
 if(GETTEXT_FOUND AND NOT DISABLE_WX)
 	file(GLOB LINGUAS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Languages/po/*.po) 
 	GETTEXT_CREATE_TRANSLATIONS(Languages/po/dolphin-emu.pot ALL ${LINGUAS})
 endif()
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin"))
 	install(FILES Data/license.txt DESTINATION ${datadir})
 endif()
 
 # packaging information
 set(CPACK_PACKAGE_NAME "dolphin-emu")
 set(CPACK_PACKAGE_VENDOR "Dolphin Team")
-set(CPACK_PACKAGE_VERSION_MAJOR "3")
-set(CPACK_PACKAGE_VERSION_MINOR "0")
-
-if(DOLPHIN_IS_STABLE)
-	set(CPACK_PACKAGE_VERSION_PATCH "0")
-else()
-	set(CPACK_PACKAGE_VERSION_PATCH ${DOLPHIN_WC_REVISION})
-endif()
+set(CPACK_PACKAGE_VERSION_MAJOR ${DOLPHIN_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${DOLPHIN_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${DOLPHIN_VERSION_PATCH})
 
 # TODO: CPACK_PACKAGE_DESCRIPTION_FILE
 # TODO: CPACK_PACKAGE_DESCRIPTION_SUMMARY

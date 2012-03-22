@@ -522,7 +522,7 @@ void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
 void ExecuteCommand(UDICR& _DICR)
 {
 //	_dbg_assert_(DVDINTERFACE, _DICR.RW == 0); // only DVD to Memory
-	int GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SI_AM_BASEBOARD)
+	int GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_AM_BASEBOARD)
 		&& (SConfig::GetInstance().m_EXIDevice[2] == EXIDEVICE_AM_BASEBOARD))
 		? 1 : 0;
 

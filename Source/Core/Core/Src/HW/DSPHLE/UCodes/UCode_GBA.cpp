@@ -20,8 +20,8 @@
 
 #include "../../DSP.h"
 
-CUCode_GBA::CUCode_GBA(DSPHLE *dsp_hle)
-: IUCode(dsp_hle)
+CUCode_GBA::CUCode_GBA(DSPHLE *dsp_hle, u32 crc)
+: IUCode(dsp_hle, crc)
 {
 	m_rMailHandler.PushMail(DSP_INIT);
 }

@@ -553,6 +553,9 @@
       <Filter>FifoPlayer</Filter>
     </ClCompile>
     <ClCompile Include="Src\Movie.cpp" />
+    <ClCompile Include="Src\HW\GCMemcard.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ConfigManager.h" />
@@ -1027,6 +1030,9 @@
       <Filter>FifoPlayer</Filter>
     </ClInclude>
     <ClInclude Include="Src\Movie.h" />
+    <ClInclude Include="Src\HW\GCMemcard.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
@@ -1164,6 +1170,9 @@
     </Filter>
     <Filter Include="FifoPlayer">
       <UniqueIdentifier>{ca7d56f7-4e84-4d15-9aea-7ae6fa7d6586}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW %28Flipper/Hollywood%29\GCMemcard">
+      <UniqueIdentifier>{3e9e6e83-c1bf-45f9-aeff-231f98f60d29}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

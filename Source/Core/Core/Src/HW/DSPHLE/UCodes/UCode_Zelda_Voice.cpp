@@ -426,18 +426,15 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 
 	PB.Unk36[0] = (u16)(ACC0 >> 16);
 
-	// This subtract does really not make much sense at all. 
 	ACC0 -= AX0 << 16;
 
 	if ((s64)ACC0 < 0)
 	{
-		// There's something wrong with this looping code.
-
-		ERROR_LOG(DSPHLE, "Raw loop: ReadAudio size = %04x 34:%04x %08x", PB.Unk36[0], PB.raw[0x34 ^ 1], (int)ACC0);
+		// ERROR_LOG(DSPHLE, "Raw loop: ReadAudio size = %04x 34:%04x %08x", PB.Unk36[0], PB.raw[0x34 ^ 1], (int)ACC0);
 		Decoder21_ReadAudio(PB, PB.Unk36[0], _Buffer);
 
-		ACC0 = _Size << 16;
-		ACC0 -= PB.Unk36[0] << 16;
+		ACC0 = -(s64)ACC0;
+		_Buffer += PB.Unk36[0];
 
 		PB.raw[0x34 ^ 1] = 0;
 

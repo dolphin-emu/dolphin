@@ -56,12 +56,6 @@ enum
 	MAX_XFB_HEIGHT = 574
 };
 
-// If this is enabled, bounding boxes will be computed for everything drawn.
-// This can theoretically have a big speed hit in some geom heavy games. Needs more work.
-// Helps some effects in Paper Mario (but they aren't quite right yet).
-// Do testing to figure out if the speed hit is bad?
-// #define BBOX_SUPPORT
-
 // Logging
 // ----------
 void HandleGLError();
@@ -70,8 +64,7 @@ void HandleGLError();
 // This structure should only be used to represent a rectangle in EFB
 // coordinates, where the origin is at the upper left and the frame dimensions
 // are 640 x 528.
-struct EFBRectangle : public MathUtil::Rectangle<int>
-{};
+typedef MathUtil::Rectangle<int> EFBRectangle;
 
 // This structure should only be used to represent a rectangle in standard target
 // coordinates, where the origin is at the lower left and the frame dimensions

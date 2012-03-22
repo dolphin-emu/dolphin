@@ -27,28 +27,65 @@
 #include <stdio.h>
 #endif
 
+#if !defined(_WIN32) && defined(__x86_64__) && !defined(MAP_32BIT)
+#include <unistd.h>
+#define PAGE_MASK     (getpagesize() - 1)
+#define round_page(x) ((((unsigned long)(x)) + PAGE_MASK) & ~(PAGE_MASK))
+#endif
+
 // This is purposely not a full wrapper for virtualalloc/mmap, but it
 // provides exactly the primitive operations that Dolphin needs.
 
 void* AllocateExecutableMemory(size_t size, bool low)
 {
-#ifdef _WIN32
+#if defined(_WIN32)
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
-	void* ptr = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
+	static char *map_hint = 0;
+#if defined(__x86_64__) && !defined(MAP_32BIT)
+	// This OS has no flag to enforce allocation below the 4 GB boundary,
+	// but if we hint that we want a low address it is very likely we will
+	// get one.
+	// An older version of this code used MAP_FIXED, but that has the side
+	// effect of discarding already mapped pages that happen to be in the
+	// requested virtual memory range (such as the emulated RAM, sometimes).
+	if (low && (!map_hint))
+		map_hint = (char*)round_page(512*1024*1024); /* 0.5 GB rounded up to the next page */
+#endif
+	void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 		MAP_ANON | MAP_PRIVATE
-#if defined __linux__ && defined __x86_64__
+#if defined(__x86_64__) && defined(MAP_32BIT)
 		| (low ? MAP_32BIT : 0)
 #endif
 		, -1, 0);
-#endif
+#endif /* defined(_WIN32) */
 
 	// printf("Mapped executable memory at %p (size %ld)\n", ptr,
 	//	(unsigned long)size);
 	
+#if defined(__FreeBSD__)
+	if (ptr == MAP_FAILED)
+	{
+		ptr = NULL;
+#else
 	if (ptr == NULL)
+	{
+#endif	
 		PanicAlert("Failed to allocate executable memory");
-#ifdef _M_X64
+	}
+#if !defined(_WIN32) && defined(__x86_64__) && !defined(MAP_32BIT)
+	else
+	{
+		if (low)
+		{
+			map_hint += size;
+			map_hint = (char*)round_page(map_hint); /* round up to the next page */
+			// printf("Next map will (hopefully) be at %p\n", map_hint);
+		}
+	}
+#endif
+
+#if defined(_M_X64)
 	if ((u64)ptr >= 0x80000000 && low == true)
 		PanicAlert("Executable memory ended up above 2GB!");
 #endif

@@ -595,7 +595,7 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 
 	// only upload the data to VRAM if it changed
 	if (stsq_observer ||
-		memcmp(rDest, &tex_sub_quad_data.rdest, sizeof(rDest)) != 0 ||
+		memcmp(rDest, &tex_sub_quad_data.rdest, sizeof(*rDest)) != 0 ||
 		tex_sub_quad_data.u1 != u1 || tex_sub_quad_data.v1 != v1 ||
 		tex_sub_quad_data.u2 != u2 || tex_sub_quad_data.v2 != v2 || tex_sub_quad_data.G != G)
 	{

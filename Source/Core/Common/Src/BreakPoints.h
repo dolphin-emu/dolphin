@@ -78,7 +78,7 @@ public:
 
 	// Remove Breakpoint
 	void Remove(u32 _iAddress);
-	void Clear() { m_BreakPoints.clear(); };
+	void Clear();
 
     void DeleteByAddress(u32 _Address);
 

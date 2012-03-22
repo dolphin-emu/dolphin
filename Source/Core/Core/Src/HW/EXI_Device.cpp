@@ -102,49 +102,52 @@ public:
 
 
 // F A C T O R Y 
-IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
+IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 {
-	switch(_EXIDevice)
+	IEXIDevice* result = NULL;
+
+	switch (device_type)
 	{
 	case EXIDEVICE_DUMMY:
-		return new CEXIDummy("Dummy");
+		result = new CEXIDummy("Dummy");
 		break;
 
-	case EXIDEVICE_MEMORYCARD_A:
-        return new CEXIMemoryCard("MemoryCardA", SConfig::GetInstance().m_strMemoryCardA, 0);
-		break;
-
-	case EXIDEVICE_MEMORYCARD_B:
-		return new CEXIMemoryCard("MemoryCardB", SConfig::GetInstance().m_strMemoryCardB, 1);
+	case EXIDEVICE_MEMORYCARD:
+		result = new CEXIMemoryCard(channel_num);
 		break;
 
 	case EXIDEVICE_MASKROM:
-		return new CEXIIPL();
+		result = new CEXIIPL();
 		break;
 
 	case EXIDEVICE_AD16:
-		return new CEXIAD16();
+		result = new CEXIAD16();
 		break;
 
 	case EXIDEVICE_MIC:
-		return new CEXIMic(1);
+		result = new CEXIMic(channel_num);
 		break;
 
 	case EXIDEVICE_ETH:
-		return new CEXIETHERNET(SConfig::GetInstance().m_bba_mac);
+		result = new CEXIETHERNET(SConfig::GetInstance().m_bba_mac);
 		break;
 
 	case EXIDEVICE_AM_BASEBOARD:
-		return new CEXIAMBaseboard();
+		result = new CEXIAMBaseboard();
 		break;
 
 	case EXIDEVICE_GECKO:
-		return new CEXIGecko();
+		result = new CEXIGecko();
 		break;
 
 	case EXIDEVICE_NONE:
 	default:
-		return new IEXIDevice();
+		result = new IEXIDevice();
 		break;
 	}
+
+	if (result != NULL)
+		result->m_deviceType = device_type;
+
+	return result;
 }

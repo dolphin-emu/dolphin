@@ -40,9 +40,11 @@ private:
 	{
 		LPDIRECT3DPIXELSHADER9 shader;
 		bool owns_shader;
-		int frameCount;
 
-		PSCacheEntry() : shader(NULL), owns_shader(true), frameCount(0) {}
+		PIXELSHADERUIDSAFE safe_uid;
+		std::string code;
+
+		PSCacheEntry() : shader(NULL), owns_shader(true) {}
 		void Destroy()
 		{
 			if (shader && owns_shader)
@@ -55,6 +57,7 @@ private:
 
 	static PSCache PixelShaders;
 	static const PSCacheEntry *last_entry;
+	static PIXELSHADERUID last_uid;
 	static void Clear();
 
 public:

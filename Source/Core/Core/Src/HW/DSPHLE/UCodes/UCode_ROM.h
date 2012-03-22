@@ -23,11 +23,13 @@
 class CUCode_Rom : public IUCode
 {
 public:
-	CUCode_Rom(DSPHLE *dsp_hle);
+	CUCode_Rom(DSPHLE *dsp_hle, u32 _crc);
 	virtual ~CUCode_Rom();
 
 	void HandleMail(u32 _uMail);
 	void Update(int cycles);
+
+	void DoState(PointerWrap &p);
 
 private:
 	struct SUCode

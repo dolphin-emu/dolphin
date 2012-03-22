@@ -158,7 +158,7 @@ int Interpreter::SingleStepInner(void)
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (PowerPC::ppcState.gpr[1] == 0)
 	{
-		printf("%i Corrupt stack", PowerPC::ppcState.DebugCount);
+		WARN_LOG(POWERPC, "%i Corrupt stack", PowerPC::ppcState.DebugCount);
 	}
 	PowerPC::ppcState.DebugCount++;
 #endif
@@ -284,7 +284,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 	{
 		char disasm[256];
 		DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc, disasm, 256);
-		printf("Last PC = %08x : %s\n", last_pc, disasm);
+		NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm);
 		Dolphin_Debugger::PrintCallstack();
 		_dbg_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instr %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
 	}

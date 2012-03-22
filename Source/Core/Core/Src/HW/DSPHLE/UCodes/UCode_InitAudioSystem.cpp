@@ -18,8 +18,8 @@
 #include "UCodes.h"
 #include "UCode_InitAudioSystem.h"
 
-CUCode_InitAudioSystem::CUCode_InitAudioSystem(DSPHLE *dsp_hle)
-	: IUCode(dsp_hle)
+CUCode_InitAudioSystem::CUCode_InitAudioSystem(DSPHLE *dsp_hle, u32 crc)
+	: IUCode(dsp_hle, crc)
 {
 	DEBUG_LOG(DSPHLE, "CUCode_InitAudioSystem - initialized");
 }

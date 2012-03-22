@@ -129,7 +129,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 		// Reset the connection of all connected wiimotes
         for (unsigned int i = 0; i < 4; i++)
 	    {
-        	if (m_WiiMotes[i].IsConnected())
+        	if (!m_WiiMotes[i].IsInactive())
             {
                     m_WiiMotes[i].Activate(false);
                     m_WiiMotes[i].Activate(true);

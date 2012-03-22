@@ -60,3 +60,14 @@ void VideoCommon_RunLoop(bool enable)
 {
 	EmulatorState(enable);
 }
+
+void VideoCommon_Init()
+{
+	memset(arraybases, 0, sizeof(arraybases));
+	memset(arraystrides, 0, sizeof(arraystrides));
+	memset(&MatrixIndexA, 0, sizeof(MatrixIndexA));
+	memset(&MatrixIndexB, 0, sizeof(MatrixIndexB));
+	memset(&g_VtxDesc, 0, sizeof(g_VtxDesc));
+	memset(g_VtxAttr, 0, sizeof(g_VtxAttr));
+	memset(texMem, 0, TMEM_SIZE);
+}

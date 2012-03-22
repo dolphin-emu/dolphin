@@ -363,12 +363,23 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 	{
 		NPC = PC + 12;
 	}*/
+	// Invalidate the icache on dcbf
+	if (jit)
+	{
+		u32 address = Helper_Get_EA_X(_inst);
+		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
+	}
 }
 
 void Interpreter::dcbi(UGeckoInstruction _inst)
 {
-	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything.
-	// Seen used during initialization.
+	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything to the data cache
+	// However, we invalidate the icache on dcbi
+	if (jit)
+	{
+		u32 address = Helper_Get_EA_X(_inst);
+		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
+	}
 }
 
 void Interpreter::dcbst(UGeckoInstruction _inst)
@@ -390,7 +401,8 @@ void Interpreter::dcbtst(UGeckoInstruction _inst)
 void Interpreter::dcbz(UGeckoInstruction _inst)
 {	
 	// HACK but works... we think
-	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
+	if (HID2.WPE || !HID0.DCFA)
+		Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
 }
 
 // eciwx/ecowx technically should access the specified device

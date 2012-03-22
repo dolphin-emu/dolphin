@@ -68,25 +68,29 @@ public:
 
 
 // F A C T O R Y 
-ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber)
+ISIDevice* SIDevice_Create(const SIDevices device, const int port_number)
 {
-	switch(_SIDevice)
+	switch (device)
 	{
-	case SI_GC_CONTROLLER:
-		return new CSIDevice_GCController(_iDeviceNumber);
+	case SIDEVICE_GC_CONTROLLER:
+		return new CSIDevice_GCController(port_number);
 		break;
 
-	case SI_GBA:
-		return new CSIDevice_GBA(_iDeviceNumber);
+	case SIDEVICE_GC_TARUKONGA:
+		return new CSIDevice_TaruKonga(port_number);
 		break;
 
-	case SI_AM_BASEBOARD:
-		return new CSIDevice_AMBaseboard(_iDeviceNumber);
+	case SIDEVICE_GC_GBA:
+		return new CSIDevice_GBA(port_number);
 		break;
 
-	case SI_NONE:
+	case SIDEVICE_AM_BASEBOARD:
+		return new CSIDevice_AMBaseboard(port_number);
+		break;
+
+	case SIDEVICE_NONE:
 	default:
-		return new CSIDevice_Null(_iDeviceNumber);
+		return new CSIDevice_Null(port_number);
 		break;
 	}
 }

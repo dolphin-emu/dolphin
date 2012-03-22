@@ -37,6 +37,7 @@ namespace DX11 {
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
+VERTEXSHADERUID VertexShaderCache::last_uid;
 
 static ID3D11VertexShader* SimpleVertexShader = NULL;
 static ID3D11VertexShader* ClearVertexShader = NULL;
@@ -174,6 +175,11 @@ void VertexShaderCache::Init()
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	VertexShaderCacheInserter inserter;
 	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
+
+	if (g_Config.bEnableShaderDebugging)
+		Clear();
+
+	last_entry = NULL;
 }
 
 void VertexShaderCache::Clear()
@@ -181,6 +187,8 @@ void VertexShaderCache::Clear()
 	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
 		iter->second.Destroy();
 	vshaders.clear();
+
+	last_entry = NULL;
 }
 
 void VertexShaderCache::Shutdown()
@@ -202,22 +210,26 @@ bool VertexShaderCache::SetShader(u32 components)
 {
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(&uid, components);
-	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
+	if (last_entry)
 	{
-		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-		return (vshaders[uid].shader != NULL);
+		if (uid == last_uid)
+		{
+			GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+			ValidateVertexShaderIDs(API_D3D11, last_entry->safe_uid, last_entry->code, components);
+			return (last_entry->shader != NULL);
+		}
 	}
 
-	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
+	last_uid = uid;
 
 	VSCache::iterator iter = vshaders.find(uid);
 	if (iter != vshaders.end())
 	{
-		iter->second.frameCount = frameCount;
 		const VSCacheEntry &entry = iter->second;
 		last_entry = &entry;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+		ValidateVertexShaderIDs(API_D3D11, entry.safe_uid, entry.code, components);
 		return (entry.shader != NULL);
 	}
 
@@ -228,34 +240,36 @@ bool VertexShaderCache::SetShader(u32 components)
 
 	if (pbytecode == NULL)
 	{
-		PanicAlert("Failed to compile Vertex Shader %s %d:\n\n%s", __FILE__, __LINE__, code);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return false;
 	}
 	g_vs_disk_cache.Append(uid, pbytecode->Data(), pbytecode->Size());
-	g_vs_disk_cache.Sync();
 
-	bool result = InsertByteCode(uid, pbytecode);
+	bool success = InsertByteCode(uid, pbytecode);
 	pbytecode->Release();
+
+	if (g_ActiveConfig.bEnableShaderDebugging && success)
+	{
+		vshaders[uid].code = code;
+		GetSafeVertexShaderId(&vshaders[uid].safe_uid, components);
+	}
+
 	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-	return result;
+	return success;
 }
 
 bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, D3DBlob* bcodeblob)
 {
 	ID3D11VertexShader* shader = D3D::CreateVertexShaderFromByteCode(bcodeblob);
 	if (shader == NULL)
-	{
-		PanicAlert("Failed to create vertex shader from %p size %d at %s %d\n", bcodeblob->Data(), bcodeblob->Size(), __FILE__, __LINE__);
 		return false;
-	}
+
 	// TODO: Somehow make the debug name a bit more specific
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a vertex shader of VertexShaderCache");
 
 	// Make an entry in the table
 	VSCacheEntry entry;
 	entry.shader = shader;
-	entry.frameCount = frameCount;
 	entry.SetByteCode(bcodeblob);
 
 	vshaders[uid] = entry;

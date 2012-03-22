@@ -415,4 +415,26 @@ void CEXIETHERNET::DMARead(u32 addr, u32 size)
 	
 	ERROR_LOG(SP1, "Unhandled BBA DMA read: %i, %08x", size, addr);
 }
+
+void CEXIETHERNET::DoState(PointerWrap &p)
+{
+	p.Do(m_uPosition);
+	p.Do(m_uCommand);
+	p.Do(m_bInterruptSet);
+	p.Do(mWriteP);
+	p.Do(mReadP);
+	p.Do(mExpectSpecialImmRead);
+	p.Do(mSpecialImmData);
+	p.Do(Activated);
+	p.Do(mRBRPP);
+	p.Do(mRBEmpty);
+	p.Do(mBbaMem);
+	p.Do(mExpectVariableLengthImmWrite);
+	p.Do(mReadyToSend);
+	p.Do(RegisterBlock);
+	// TODO?
+	//mWriteBuffer.DoState(p);
+	//mCbw.DoState(p);
+}
+
 //#pragma optimize("",on)

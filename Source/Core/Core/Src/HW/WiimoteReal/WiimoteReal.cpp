@@ -50,6 +50,7 @@ Wiimote::Wiimote(const unsigned int _index)
 #endif
 	, leds(0), m_last_data_report(Report((u8 *)NULL, 0))
 	, m_channel(0), m_connected(false)
+	, m_motion_plus_inside(false)
 {
 #if defined(__linux__) && HAVE_BLUEZ
 	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
@@ -142,24 +143,16 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 	rpt.second = (u8)size;
 	memcpy(rpt.first, (u8*)data, size);
 
-	// some hax, since we just send the last data report to Dolphin on each Update() call
-	// , make the wiimote only send updated data reports when data changes
-	// == less bt traffic, eliminates some unneeded packets
-	//if (WM_REPORT_MODE == ((u8*)data)[1])
-	//{
-	//	// also delete the last data report
-	//	if (m_last_data_report.first)
-	//	{
-	//		delete[] m_last_data_report.first;
-	//		m_last_data_report.first = NULL;
-	//	}
+	// Convert output DATA packets to SET_REPORT packets for non-TR
+	// Wiimotes. Nintendo Wiimotes work without this translation, but 3rd
+	// party ones don't.
+	u8 head = m_motion_plus_inside ? 0xa2 : 0x52;
+ 	if (rpt.first[0] == 0xa2)
+	{
+		rpt.first[0] = head;
+ 	}
 
-	//	// nice var names :p, this seems to be this one
-	//	((wm_report_mode*)(rpt.first + 2))->all_the_time = false;
-	//	//((wm_report_mode*)(data + 2))->continuous = false;
-	//}
-
- 	if (rpt.first[0] == 0xa2 && rpt.first[1] == 0x18 && rpt.second == 23)
+ 	if (rpt.first[0] == head && rpt.first[1] == 0x18 && rpt.second == 23)
 	{
 		m_audio_reports.Push(rpt);
  		return;

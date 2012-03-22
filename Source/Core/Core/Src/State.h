@@ -26,6 +26,7 @@ namespace State
 {
 
 void Init();
+
 void Shutdown();
 
 void EnableCompression(bool compression);
@@ -38,6 +39,8 @@ void EnableCompression(bool compression);
 void Save(int slot);
 void Load(int slot);
 void Verify(int slot);
+
+bool ProcessRequestedStates(int priority);
 
 void SaveAs(const std::string &filename);
 void LoadAs(const std::string &filename);
@@ -52,6 +55,10 @@ void UndoSaveState();
 void UndoLoadState();
 
 void Flush(); // wait until previously scheduled savestate event (if any) is done
+
+// for calling back into UI code without introducing a dependency on it in core
+typedef void(*CallbackFunc)(void);
+void SetOnAfterLoadCallback(CallbackFunc callback);
 
 }
 

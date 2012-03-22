@@ -39,7 +39,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	   	const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, pos, size, style, name)
 	, x(0), y(0), winpos(0)
-	, Parent(parent) , m_LogAccess(true)
+	, Parent(parent), m_ignoreLogTimer(false), m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
 	, m_SJISConv(wxT(""))
 {
@@ -55,7 +55,9 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 			m_SJISConv = *(wxCSConv*)wxConvCurrent;
 		}
 #else
-		m_SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
+		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
+		// it returns CP-932, in order to use iconv we need to use CP932
+		m_SJISConv = wxCSConv(wxT("CP932"));
 #endif
 
 	m_LogManager = LogManager::GetInstance();
@@ -84,6 +86,16 @@ void CLogWindow::CreateGUIControls()
 	ini.Get("Options", "WriteToFile", &m_writeFile, false);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
 	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
+#ifdef _MSC_VER
+	if (IsDebuggerPresent())
+	{
+		ini.Get("Options", "WriteToDebugger", &m_writeDebugger, true);
+	}
+	else
+#endif
+	{
+		m_writeDebugger = false;
+	}
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
@@ -103,6 +115,12 @@ void CLogWindow::CreateGUIControls()
 			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
 		else
 			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
+
+		if (m_writeDebugger && enable)
+			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetDebuggerListener());
+		else
+			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetDebuggerListener());
+
 		m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
 	}
 
@@ -278,6 +296,7 @@ void CLogWindow::OnWrapLineCheck(wxCommandEvent& event)
 void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 {
 	if (!m_LogAccess) return;
+	if (m_ignoreLogTimer) return;
 
 	UpdateLog();
 	// Scroll to the last line
@@ -293,52 +312,56 @@ void CLogWindow::UpdateLog()
 	if (!m_LogAccess) return;
 	if (!m_Log) return;
 
-	m_LogTimer->Stop();
+	// m_LogTimer->Stop();
+	// instead of stopping the timer, let's simply ignore its calls during UpdateLog,
+	// because repeatedly stopping and starting a timer churns memory (and potentially leaks it).
+	m_ignoreLogTimer = true;
 
+	if (!msgQueue.empty())
 	{
-	std::lock_guard<std::mutex> lk(m_LogSection);
-	int msgQueueSize = (int)msgQueue.size();
-	for (int i = 0; i < msgQueueSize; i++)
-	{
-		switch (msgQueue.front().first)
+		std::lock_guard<std::mutex> lk(m_LogSection);
+		int msgQueueSize = (int)msgQueue.size();
+		for (int i = 0; i < msgQueueSize; i++)
 		{
-			
-			case ERROR_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
-				break;
+			switch (msgQueue.front().first)
+			{
+				case ERROR_LEVEL:
+					m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
+					break;
 				
-			case WARNING_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0))); // YELLOW
-				break;
+				case WARNING_LEVEL:
+					m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0))); // YELLOW
+					break;
 				
-			case NOTICE_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
-				break;
+				case NOTICE_LEVEL:
+					m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
+					break;
 				
-			case INFO_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
-				break;
+				case INFO_LEVEL:
+					m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
+					break;
 				
-			case DEBUG_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxLIGHT_GREY));
-				break;
+				case DEBUG_LEVEL:
+					m_Log->SetDefaultStyle(wxTextAttr(*wxLIGHT_GREY));
+					break;
 				
-			default:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
-				break;
+				default:
+					m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
+					break;
+			}
+			if (msgQueue.front().second.size())
+			{
+				int j = m_Log->GetLastPosition();
+				m_Log->AppendText(msgQueue.front().second);
+				// White timestamp
+				m_Log->SetStyle(j, j + 9, wxTextAttr(*wxWHITE));
+			}
+			msgQueue.pop();
 		}
-		if (msgQueue.front().second.size())
-		{
-			int j = m_Log->GetLastPosition();
-			m_Log->AppendText(msgQueue.front().second);
-			// White timestamp
-			m_Log->SetStyle(j, j + 9, wxTextAttr(*wxWHITE));
-		}
-		msgQueue.pop();
-	}
 	}	// unlock log
 
-	m_LogTimer->Start(UPDATETIME);
+	// m_LogTimer->Start(UPDATETIME);
+	m_ignoreLogTimer = false;
 }
 
 void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)

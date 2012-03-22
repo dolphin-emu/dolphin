@@ -41,6 +41,10 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 #include "Jit64_Tables.h"
+#include "HW/ProcessorInterface.h"
+#if defined(_DEBUG) || defined(DEBUGFAST)
+#include "PowerPCDisasm.h"
+#endif
 
 using namespace Gen;
 using namespace PowerPC;
@@ -393,6 +397,7 @@ void STACKALIGN Jit64::Jit(u32 em_address)
 	{
 		ClearCache();
 	}
+
 	int block_num = blocks.AllocateBlock(em_address);
 	JitBlock *b = blocks.GetBlock(block_num);
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
@@ -411,13 +416,19 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
-		blockSize = 1;
-		broken_block = true;
-		Trace();
+		if (!Profiler::g_ProfileBlocks)
+		{
+			if (GetState() == CPU_STEPPING)
+				blockSize = 1;
+			Trace();
+		}
 	}
 
 	if (em_address == 0)
-		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
+	{
+		Core::SetState(Core::CORE_PAUSE);
+		PanicAlert("ERROR: Compiling at 0. LR=%08x CTR=%08x", LR, CTR);
+	}
 
 	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
 	{
@@ -565,6 +576,44 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SetJumpTarget(b1);
 			}
 
+			// Add an external exception check if the instruction writes to the FIFO.
+			if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end())
+			{
+				gpr.Flush(FLUSH_ALL);
+				fpr.Flush(FLUSH_ALL);
+
+				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT | EXCEPTION_DECREMENTER));
+				FixupBranch clearInt = J_CC(CC_NZ);
+				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+				FixupBranch noExtException = J_CC(CC_Z);
+				TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
+				FixupBranch noExtIntEnable = J_CC(CC_Z);
+				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
+				FixupBranch noCPInt = J_CC(CC_Z);
+
+				MOV(32, M(&PC), Imm32(ops[i].address));
+				WriteExceptionExit();
+
+				SetJumpTarget(noCPInt);
+				SetJumpTarget(noExtIntEnable);
+				SetJumpTarget(noExtException);
+				SetJumpTarget(clearInt);
+			}
+
+			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			{
+				MOV(32, M(&PC), Imm32(ops[i].address));
+				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+				FixupBranch noBreakpoint = J_CC(CC_Z);
+
+				gpr.Flush(FLUSH_ALL);
+				fpr.Flush(FLUSH_ALL);
+
+				WriteExit(ops[i].address, 0);
+				SetJumpTarget(noBreakpoint);
+			}
+
 			Jit64Tables::CompileInstruction(ops[i]);
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
@@ -612,14 +661,14 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 #ifdef _M_IX86
 		if (js.compilerPC & JIT_ICACHE_VMEM_BIT)
 			MOV(32, M((jit->GetBlockCache()->GetICacheVMEM() + (js.compilerPC & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
-		else if (js.blockStart & JIT_ICACHE_EXRAM_BIT)
+		else if (js.compilerPC & JIT_ICACHE_EXRAM_BIT)
 			MOV(32, M((jit->GetBlockCache()->GetICacheEx() + (js.compilerPC & JIT_ICACHEEX_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
 		else
 			MOV(32, M((jit->GetBlockCache()->GetICache() + (js.compilerPC & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
 #else
 		if (js.compilerPC & JIT_ICACHE_VMEM_BIT)
 			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICacheVMEM() + (js.compilerPC & JIT_ICACHE_MASK)));
-		else if (js.blockStart & JIT_ICACHE_EXRAM_BIT)
+		else if (js.compilerPC & JIT_ICACHE_EXRAM_BIT)
 			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICacheEx() + (js.compilerPC & JIT_ICACHEEX_MASK)));
 		else
 			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICache() + (js.compilerPC & JIT_ICACHE_MASK)));

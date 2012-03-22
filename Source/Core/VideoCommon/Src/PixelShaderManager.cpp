@@ -36,9 +36,11 @@ static bool s_bFogRangeAdjustChanged;
 static int nLightsChanged[2]; // min,max
 static float lastRGBAfull[2][4][4];
 static u8 s_nTexDimsChanged;
+static u8 s_nVirtualTexScalesChanged;
 static u8 s_nIndTexScaleChanged;
 static u32 lastAlpha;
 static u32 lastTexDims[8]; // width | height << 16 | wrap_s << 28 | wrap_t << 30
+static float lastVirtualTexScales[16]; // even fields: width ratio;   odd fields: height ratio
 static u32 lastZBias;
 static int nMaterialsChanged;
 
@@ -61,6 +63,7 @@ void PixelShaderManager::Init()
 {
 	lastAlpha = 0;
 	memset(lastTexDims, 0, sizeof(lastTexDims));
+	memset(lastVirtualTexScales, 0, sizeof(lastVirtualTexScales));
 	lastZBias = 0;
 	memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
 	Dirty();
@@ -70,6 +73,7 @@ void PixelShaderManager::Dirty()
 {
 	s_nColorsChanged[0] = s_nColorsChanged[1] = 15;
 	s_nTexDimsChanged = 0xFF;
+	s_nVirtualTexScalesChanged = 0xFF;
 	s_nIndTexScaleChanged = 0xFF;
 	s_nIndTexMtxChanged = 15;
 	s_bAlphaChanged = s_bZBiasChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
@@ -83,7 +87,7 @@ void PixelShaderManager::Shutdown()
 
 }
 
-void PixelShaderManager::SetConstants()
+void PixelShaderManager::SetConstants(API_TYPE api_type)
 {
     for (int i = 0; i < 2; ++i)
 	{
@@ -108,6 +112,16 @@ void PixelShaderManager::SetConstants()
         }
         s_nTexDimsChanged = 0;
     }
+
+	if ((api_type & API_D3D9) && s_nVirtualTexScalesChanged)
+	{
+		for (int i = 0; i < 8; i += 2)
+		{
+			if (s_nVirtualTexScalesChanged & (3<<i))
+				SetPSVirtualTexScalePair(i/2);
+		}
+		s_nVirtualTexScalesChanged = 0;
+	}
 
     if (s_bAlphaChanged)
 	{
@@ -338,6 +352,13 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 	SetPSConstant4fv(C_TEXDIMS + texid, fdims);
 }
 
+void PixelShaderManager::SetPSVirtualTexScalePair(int texpairid)
+{
+	PRIM_LOG("vtexscale%d: %f %f %f %f\n", texpairid, lastVirtualTexScales[texpairid*4], lastVirtualTexScales[texpairid*4+1],
+														lastVirtualTexScales[texpairid*4+2], lastVirtualTexScales[texpairid*4+3]);
+	SetPSConstant4fv(C_VTEXSCALE + texpairid, &lastVirtualTexScales[texpairid*4]);
+}
+
 // This one is high in profiles (0.5%). TODO: Move conversion out, only store the raw color value
 // and update it when the shader constant is set, only.
 void PixelShaderManager::SetColorChanged(int type, int num, bool high)
@@ -376,14 +397,25 @@ void PixelShaderManager::SetDestAlpha(const ConstantAlpha& alpha)
     }
 }
 
-void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt)
+void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 virtual_width, u32 virtual_height, u32 wraps, u32 wrapt, API_TYPE api_type)
 {
     u32 wh = width | (height << 16) | (wraps << 28) | (wrapt << 30);
-    if (lastTexDims[texmapid] != wh)
+
+	bool refresh = lastTexDims[texmapid] != wh;
+	if (api_type & API_D3D9)
 	{
-        lastTexDims[texmapid] = wh;
+		refresh |= (lastVirtualTexScales[texmapid*2] != (float)width / (float)virtual_width);
+		refresh |= (lastVirtualTexScales[texmapid*2+1] != (float)height / (float)virtual_height);
+	}
+
+	if (refresh)
+	{
+		lastTexDims[texmapid] = wh;
+		lastVirtualTexScales[texmapid*2] = (float)width / (float)virtual_width;
+		lastVirtualTexScales[texmapid*2+1] = (float)height / (float)virtual_height;
 		s_nTexDimsChanged |= 1 << texmapid;
-    }
+		s_nVirtualTexScalesChanged |= 1 << texmapid;
+	}
 }
 
 void PixelShaderManager::SetZTextureBias(u32 bias)

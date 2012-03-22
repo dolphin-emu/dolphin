@@ -20,8 +20,8 @@
 #include "Hash.h"
 #include "../../Memmap.h"
 
-CUCode_Rom::CUCode_Rom(DSPHLE *dsp_hle)
-	: IUCode(dsp_hle)
+CUCode_Rom::CUCode_Rom(DSPHLE *dsp_hle, u32 crc)
+	: IUCode(dsp_hle, crc)
 	, m_CurrentUCode()
 	, m_BootTask_numSteps(0)
 	, m_NextParameter(0)
@@ -117,4 +117,10 @@ void CUCode_Rom::BootUCode()
 	m_DSPHLE->SetUCode(ector_crc);
 }
 
+void CUCode_Rom::DoState(PointerWrap &p)
+{
+	p.Do(m_CurrentUCode);
+	p.Do(m_BootTask_numSteps);
+	p.Do(m_NextParameter);
+}
 

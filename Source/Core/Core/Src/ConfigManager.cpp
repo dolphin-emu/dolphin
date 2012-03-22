@@ -223,7 +223,6 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "SelectedLanguage",	m_LocalCoreStartupParameter.SelectedLanguage);
 	ini.Set("Core", "MemcardA",			m_strMemoryCardA);
 	ini.Set("Core", "MemcardB",			m_strMemoryCardB);
-	ini.Set("Core", "ReloadMemcardOnState",	b_reloadMCOnState);
 	ini.Set("Core", "SlotA",			m_EXIDevice[0]);
 	ini.Set("Core", "SlotB",			m_EXIDevice[1]);
 	ini.Set("Core", "SerialPort1",		m_EXIDevice[2]);
@@ -354,8 +353,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage,		0);
 		ini.Get("Core", "MemcardA",		&m_strMemoryCardA);
 		ini.Get("Core", "MemcardB",		&m_strMemoryCardB);
-		ini.Get("Core", "ReloadMemcardOnState",	&b_reloadMCOnState, true);
-		ini.Get("Core", "SlotA",		(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD_A);
+		ini.Get("Core", "SlotA",		(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
 		ini.Get("Core", "SlotB",		(int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 		ini.Get("Core", "SerialPort1",	(int*)&m_EXIDevice[2], EXIDEVICE_NONE);
 		ini.Get("Core", "BBA_MAC",		&m_bba_mac);
@@ -366,7 +364,7 @@ void SConfig::LoadSettings()
 		for (int i = 0; i < 4; ++i)
 		{
 			sprintf(sidevicenum, "SIDevice%i", i);
-			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], i==0 ? SI_GC_CONTROLLER:SI_NONE);
+			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
 		}
 
 		ini.Get("Core", "WiiSDCard",		&m_WiiSDCard,									false);

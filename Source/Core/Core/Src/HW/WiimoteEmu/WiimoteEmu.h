@@ -113,6 +113,7 @@ protected:
 	bool Step();
 	void HidOutputReport(const wm_report* const sr, const bool send_ack = true);
 	void HandleExtensionSwap();
+	void UpdateButtonsStatus(bool has_focus);
 
 	void GetCoreData(u8* const data);
 	void GetAccelData(u8* const data, u8* const buttons);

@@ -26,18 +26,20 @@
 class PixelShaderManager
 {
 	static void SetPSTextureDims(int texid);
+	static void SetPSVirtualTexScalePair(int texpairid);
+
 public:
 	static void Init();
 	static void Dirty();
 	static void Shutdown();
 
-	static void SetConstants(); // sets pixel shader constants
+	static void SetConstants(API_TYPE api_type); // sets pixel shader constants
 
 	// constant management, should be called after memory is committed
 	static void SetColorChanged(int type, int index, bool high);
 	static void SetAlpha(const AlphaFunc& alpha);
 	static void SetDestAlpha(const ConstantAlpha& alpha);
-	static void SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt);
+	static void SetTexDims(int texmapid, u32 width, u32 height, u32 virtual_width, u32 virtual_height, u32 wraps, u32 wrapt, API_TYPE api_type);
 	static void SetZTextureBias(u32 bias);
 	static void SetViewportChanged();
 	static void SetIndMatrixChanged(int matrixidx);

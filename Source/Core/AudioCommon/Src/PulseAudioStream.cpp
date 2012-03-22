@@ -58,6 +58,8 @@ void PulseAudio::Update()
 // Called on audio thread.
 void PulseAudio::SoundLoop()
 {
+	Common::SetCurrentThreadName("Audio thread - pulse");
+
 	thread_running = PulseInit();
 
 	while (thread_running)

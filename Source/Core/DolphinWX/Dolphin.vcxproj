@@ -45,7 +45,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -56,7 +56,6 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -237,6 +236,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile Include="Src\FrameAui.cpp" />
     <ClCompile Include="Src\FrameTools.cpp" />
     <ClCompile Include="Src\GameListCtrl.cpp" />
+    <ClCompile Include="Src\GCMicDlg.cpp" />
     <ClCompile Include="Src\GeckoCodeDiag.cpp" />
     <ClCompile Include="Src\HotkeyDlg.cpp" />
     <ClCompile Include="Src\InputConfigDiag.cpp" />
@@ -256,7 +256,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Src\MemcardManager.cpp" />
-    <ClCompile Include="Src\MemoryCards\GCMemcard.cpp" />
     <ClCompile Include="Src\MemoryCards\WiiSaveCrypted.cpp" />
     <ClCompile Include="Src\Debugger\MemoryCheckDlg.cpp" />
     <ClCompile Include="Src\Debugger\MemoryView.cpp" />
@@ -299,6 +298,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="Src\FifoPlayerDlg.h" />
     <ClInclude Include="Src\Frame.h" />
     <ClInclude Include="Src\GameListCtrl.h" />
+    <ClInclude Include="Src\GCMicDlg.h" />
     <ClInclude Include="Src\GeckoCodeDiag.h" />
     <ClInclude Include="Src\Globals.h" />
     <ClInclude Include="Src\HotkeyDlg.h" />
@@ -310,7 +310,6 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClInclude Include="Src\LogWindow.h" />
     <ClInclude Include="Src\Main.h" />
     <ClInclude Include="Src\MemcardManager.h" />
-    <ClInclude Include="Src\MemoryCards\GCMemcard.h" />
     <ClInclude Include="Src\MemoryCards\WiiSaveCrypted.h" />
     <ClInclude Include="Src\Debugger\MemoryCheckDlg.h" />
     <ClInclude Include="Src\Debugger\MemoryView.h" />

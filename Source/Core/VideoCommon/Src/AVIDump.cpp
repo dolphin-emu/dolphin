@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#if defined(__FreeBSD__)
+#define __STDC_CONSTANT_MACROS 1
+#endif 
+
 #include "AVIDump.h"
 #include "HW/VideoInterface.h" //for TargetRefreshRate
 #include "VideoConfig.h"
@@ -259,11 +263,9 @@ bool AVIDump::CreateFile()
 	s_Stream->codec->bit_rate = 400000;
 	s_Stream->codec->width = s_width;
 	s_Stream->codec->height = s_height;
-	s_Stream->codec->time_base = (AVRational){1, VideoInterface::TargetRefreshRate};
+	s_Stream->codec->time_base = (AVRational){1, static_cast<int>(VideoInterface::TargetRefreshRate)};
 	s_Stream->codec->gop_size = 12;
 	s_Stream->codec->pix_fmt = g_Config.bUseFFV1 ? PIX_FMT_BGRA : PIX_FMT_YUV420P;
-
-	av_set_parameters(s_FormatContext, NULL);
 
 	if (!(codec = avcodec_find_encoder(s_Stream->codec->codec_id)) ||
 			(avcodec_open(s_Stream->codec, codec) < 0))
@@ -283,14 +285,14 @@ bool AVIDump::CreateFile()
 	s_OutBuffer = new uint8_t[s_size];
 
 	NOTICE_LOG(VIDEO, "Opening file %s for dumping", s_FormatContext->filename);
-	if (url_fopen(&s_FormatContext->pb, s_FormatContext->filename, URL_WRONLY) < 0)
+	if (avio_open(&s_FormatContext->pb, s_FormatContext->filename, AVIO_FLAG_WRITE) < 0)
 	{
 		WARN_LOG(VIDEO, "Could not open %s", s_FormatContext->filename);
 		CloseFile();
 		return false;
 	}
 
-	av_write_header(s_FormatContext);
+	avformat_write_header(s_FormatContext, NULL);
 
 	return true;
 }
@@ -370,7 +372,7 @@ void AVIDump::CloseFile()
 	if (s_FormatContext)
 	{
 		if (s_FormatContext->pb)
-			url_fclose(s_FormatContext->pb);
+			avio_close(s_FormatContext->pb);
 		av_free(s_FormatContext);
 		s_FormatContext = NULL;
 	}

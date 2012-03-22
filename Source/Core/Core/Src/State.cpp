@@ -31,6 +31,9 @@
 #include "VideoBackendBase.h"
 
 #include <lzo/lzo1x.h>
+#include "HW/Memmap.h"
+#include "HW/VideoInterface.h"
+#include "HW/SystemTimers.h"
 
 namespace State
 {
@@ -58,19 +61,35 @@ static int ev_FileSave, ev_BufferSave, ev_FileLoad, ev_BufferLoad, ev_FileVerify
 
 static std::string g_current_filename, g_last_filename;
 
+static CallbackFunc g_onAfterLoadCb = NULL;
+
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
 static std::vector<u8> g_current_buffer;
+static int g_loadDepth = 0;
 
 static std::thread g_save_thread;
 
+static const u8 NUM_HOOKS = 2;
+static u8 waiting;
+static u8 waitingslot;
+static u64 lastCheckedStates[NUM_HOOKS];
+static u8 hook;
+
 // Don't forget to increase this after doing changes on the savestate system 
-static const int STATE_VERSION = 5;
+static const int STATE_VERSION = 7;
 
 struct StateHeader
 {
 	u8 gameID[6];
 	size_t size;
+};
+
+enum
+{
+	STATE_NONE = 0,
+	STATE_SAVE = 1,
+	STATE_LOAD = 2,
 };
 
 static bool g_use_compression = true;
@@ -82,27 +101,58 @@ void EnableCompression(bool compression)
 
 void DoState(PointerWrap &p)
 {
-	u32 cookie = 0xBAADBABE + STATE_VERSION;
-	p.Do(cookie);
-	if (cookie != 0xBAADBABE + STATE_VERSION)
+	u32 version = STATE_VERSION;
 	{
-		p.SetMode(PointerWrap::MODE_MEASURE);
-		return;
+		u32 cookie = version + 0xBAADBABE;
+		p.Do(cookie);
+		version = cookie - 0xBAADBABE;
 	}
+
+	if (version != STATE_VERSION)
+	{
+		if (version == 5 && STATE_VERSION == 6)
+		{
+			// from version 5 to 6, the only difference was the addition of calling Movie::DoState,
+			// so (because it's easy) let's not break compatibility in this case
+		}
+		else
+		{
+			// if the version doesn't match, fail.
+			// this will trigger a message like "Can't load state from other revisions"
+			p.SetMode(PointerWrap::MODE_MEASURE);
+			return;
+		}
+	}
+
+	p.DoMarker("Version");
+
 	// Begin with video backend, so that it gets a chance to clear it's caches and writeback modified things to RAM
 	// Pause the video thread in multi-threaded mode
 	g_video_backend->RunLoop(false);
 	g_video_backend->DoState(p);
+	p.DoMarker("video_backend");
 
 	if (Core::g_CoreStartupParameter.bWii)
 		Wiimote::DoState(p.GetPPtr(), p.GetMode());
+	p.DoMarker("Wiimote");
 
 	PowerPC::DoState(p);
+	p.DoMarker("PowerPC");
 	HW::DoState(p);
+	p.DoMarker("HW");
 	CoreTiming::DoState(p);
+	p.DoMarker("CoreTiming");
+	Movie::DoState(p, version<6);
+	p.DoMarker("Movie");
 
 	// Resume the video thread
 	g_video_backend->RunLoop(true);
+}
+
+void ResetCounters()
+{
+	for (int i = 0; i < NUM_HOOKS; ++i)
+		lastCheckedStates[i] = CoreTiming::GetTicks();
 }
 
 void LoadBufferStateCallback(u64 userdata, int cyclesLate)
@@ -217,10 +267,6 @@ void SaveFileStateCallback(u64 userdata, int cyclesLate)
 	// Pause the core while we save the state
 	CCPU::EnableStepping(true);
 
-	// Wait for the other threaded sub-systems to stop too
-	// TODO: this is ugly
-	SLEEP(100);
-
 	Flush();
 
 	// Measure the size of the buffer.
@@ -235,7 +281,7 @@ void SaveFileStateCallback(u64 userdata, int cyclesLate)
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
 	
-	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsRecordingInputFromSaveState())
+	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
 		Movie::SaveRecording((g_current_filename + ".dtm").c_str());
 	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
 		File::Delete(g_current_filename + ".dtm");
@@ -318,9 +364,7 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 	// Stop the core while we load the state
 	CCPU::EnableStepping(true);
 
-	// Wait for the other threaded sub-systems to stop too
-	// TODO: uglyyy
-	SLEEP(100);
+	g_loadDepth++;
 
 	Flush();
 
@@ -340,20 +384,42 @@ void LoadFileStateCallback(u64 userdata, int cyclesLate)
 		DoState(p);
 
 		if (p.GetMode() == PointerWrap::MODE_READ)
+		{
 			Core::DisplayMessage(StringFromFormat("Loaded state from %s", g_current_filename.c_str()).c_str(), 2000);
+			if (File::Exists(g_current_filename + ".dtm"))
+				Movie::LoadInput((g_current_filename + ".dtm").c_str());
+			else if (!Movie::IsJustStartingRecordingInputFromSaveState())
+				Movie::EndPlayInput(false);
+		}
 		else
+		{
+			// failed to load
 			Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
-	
-		if (File::Exists(g_current_filename + ".dtm"))
-			Movie::LoadInput((g_current_filename + ".dtm").c_str());
-		else if (!Movie::IsRecordingInputFromSaveState())
-			Movie::EndPlayInput(false);
+
+			// since we're probably in an inconsistent state now (and might crash or whatever), undo.
+			if(g_loadDepth < 2)
+				UndoLoadState();
+		}
 	}
+
+	ResetCounters();
+
+	HW::OnAfterLoad();
 
 	g_op_in_progress = false;
 
+	if (g_onAfterLoadCb)
+		g_onAfterLoadCb();
+
+	g_loadDepth--;
+
 	// resume dat core
 	CCPU::EnableStepping(false);
+}
+
+void SetOnAfterLoadCallback(CallbackFunc callback)
+{
+	g_onAfterLoadCb = callback;
 }
 
 void VerifyFileStateCallback(u64 userdata, int cyclesLate)
@@ -386,6 +452,11 @@ void Init()
 	ev_BufferSave = CoreTiming::RegisterEvent("SaveBufferState", &SaveBufferStateCallback);
 	ev_BufferVerify = CoreTiming::RegisterEvent("VerifyBufferState", &VerifyBufferStateCallback);
 
+	waiting = STATE_NONE;
+	waitingslot = 0;
+	hook = 0;
+	ResetCounters();
+
 	if (lzo_init() != LZO_E_OK)
 		PanicAlertT("Internal LZO Error - lzo_init() failed");
 }
@@ -413,40 +484,100 @@ static std::string MakeStateFilename(int number)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), number);
 }
 
-void ScheduleFileEvent(const std::string &filename, int ev)
+void ScheduleFileEvent(const std::string &filename, int ev, bool immediate)
 {
 	if (g_op_in_progress)
 		return;
 	g_op_in_progress = true;
 
 	g_current_filename = filename;
-	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev);
+
+	if (immediate)
+		CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev);
+	else
+		CoreTiming::ScheduleEvent_Threadsafe(0, ev);
+}
+
+void SaveAs(const std::string &filename, bool immediate)
+{
+	g_last_filename = filename;
+	ScheduleFileEvent(filename, ev_FileSave, immediate);
 }
 
 void SaveAs(const std::string &filename)
 {
-	g_last_filename = filename;
-	ScheduleFileEvent(filename, ev_FileSave);
+	SaveAs(filename, true);
+}
+
+void LoadAs(const std::string &filename, bool immediate)
+{
+	ScheduleFileEvent(filename, ev_FileLoad, immediate);
 }
 
 void LoadAs(const std::string &filename)
 {
-	ScheduleFileEvent(filename, ev_FileLoad);
+	LoadAs(filename, true);
 }
 
 void VerifyAt(const std::string &filename)
 {
-	ScheduleFileEvent(filename, ev_FileVerify);
+	ScheduleFileEvent(filename, ev_FileVerify, true);
+}
+
+bool ProcessRequestedStates(int priority)
+{
+	bool save = true;
+
+	if (hook == priority)
+	{
+		if (waiting == STATE_SAVE)
+		{
+			SaveAs(MakeStateFilename(waitingslot), false);
+			waitingslot = 0;
+			waiting = STATE_NONE;
+		}
+		else if (waiting == STATE_LOAD)
+		{
+			LoadAs(MakeStateFilename(waitingslot), false);
+			waitingslot = 0;
+			waiting = STATE_NONE;
+			save = false;
+		}
+	}
+
+	// Change hooks if the new hook gets called frequently (at least once a frame) and if the old
+	// hook has not been called for the last 5 seconds
+	if ((CoreTiming::GetTicks() - lastCheckedStates[priority]) < (VideoInterface::GetTicksPerFrame()))
+	{
+		lastCheckedStates[priority] = CoreTiming::GetTicks();
+		if (hook < NUM_HOOKS && priority >= (hook + 1) &&
+			(lastCheckedStates[priority] - lastCheckedStates[hook]) > (SystemTimers::GetTicksPerSecond() * 5))
+		{
+			hook++;
+		}
+	}
+	else
+		lastCheckedStates[priority] = CoreTiming::GetTicks();
+
+	return save;
 }
 
 void Save(int slot)
 {
-	SaveAs(MakeStateFilename(slot));
+	if (waiting == STATE_NONE)
+	{
+		waiting = STATE_SAVE;
+		waitingslot = slot;
+	}
 }
 
 void Load(int slot)
 {
-	LoadAs(MakeStateFilename(slot));
+	if (waiting == STATE_NONE)
+	{
+		waiting = STATE_LOAD;
+		waitingslot = slot;
+	}
 }
 
 void Verify(int slot)

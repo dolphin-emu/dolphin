@@ -27,6 +27,7 @@
 #include "HW/SI.h"
 #include "HW/DSPHLE/DSPHLE.h"
 #include "HW/DSPLLE/DSPLLE.h"
+#include "HW/GCMemcard.h"
 #include "IPC_HLE/WII_IPC_HLE.h"
 #include "NANDContentLoader.h"
 
@@ -37,7 +38,6 @@
 #include "Frame.h"
 #include "HotkeyDlg.h"
 #include "Main.h"
-#include "MemoryCards/GCMemcard.h"
 #include "VideoBackendBase.h"
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
@@ -55,6 +55,7 @@ static const wxLanguage langIds[] =
 	wxLANGUAGE_CZECH,
 	wxLANGUAGE_DUTCH,
 	wxLANGUAGE_ENGLISH,
+	wxLANGUAGE_FARSI,
 	wxLANGUAGE_FRENCH,
 	wxLANGUAGE_GERMAN,
 	wxLANGUAGE_GREEK,
@@ -78,6 +79,7 @@ static const wxLanguage langIds[] =
 #define DEV_DUMMY_STR		_trans("Dummy")
 
 #define SIDEV_STDCONT_STR	_trans("Standard Controller")
+#define SIDEV_BONGO_STR		_trans("TaruKonga (Bongos)")
 #define SIDEV_GBA_STR		"GBA"
 #define SIDEV_AM_BB_STR		_trans("AM-Baseboard")
 
@@ -236,6 +238,7 @@ void CConfigMain::InitializeGUILists()
 	// Framelimit
 	arrayStringFor_Framelimit.Add(_("Off"));
 	arrayStringFor_Framelimit.Add(_("Auto"));
+	arrayStringFor_Framelimit.Add(_("Audio"));
 	for (int i = 10; i <= 120; i += 5)	// from 10 to 120
 		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 
@@ -293,6 +296,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_InterfaceLang.Add(_("Czech"));
 	arrayStringFor_InterfaceLang.Add(_("Dutch"));
 	arrayStringFor_InterfaceLang.Add(_("English"));
+	arrayStringFor_InterfaceLang.Add(_("Farsi"));
 	arrayStringFor_InterfaceLang.Add(_("French"));
 	arrayStringFor_InterfaceLang.Add(_("German"));
 	arrayStringFor_InterfaceLang.Add(_("Greek"));
@@ -357,7 +361,6 @@ void CConfigMain::InitializeGUIValues()
 	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), ac_Config.m_Volume));
 	EnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
 	DSPThread->SetValue(startup_params.bDSPThread);
-	EnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
 	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
 	FrequencySelection->SetSelection(
 		FrequencySelection->FindString(wxString::Format(_("%d Hz"), ac_Config.iFrequency)));
@@ -388,6 +391,7 @@ void CConfigMain::InitializeGUIValues()
 	wxArrayString SIDevices;
 		SIDevices.Add(_(DEV_NONE_STR));
 		SIDevices.Add(_(SIDEV_STDCONT_STR));
+		SIDevices.Add(_(SIDEV_BONGO_STR));
 		SIDevices.Add(_(SIDEV_GBA_STR));
 		SIDevices.Add(_(SIDEV_AM_BB_STR));
 
@@ -406,8 +410,7 @@ void CConfigMain::InitializeGUIValues()
 		case EXIDEVICE_NONE:
 			GCEXIDevice[i]->SetStringSelection(SlotDevices[0]);
 			break;
-		case EXIDEVICE_MEMORYCARD_A:
-		case EXIDEVICE_MEMORYCARD_B:
+		case EXIDEVICE_MEMORYCARD:
 			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
 			break;
 		case EXIDEVICE_MIC:
@@ -437,14 +440,17 @@ void CConfigMain::InitializeGUIValues()
 
 		switch (SConfig::GetInstance().m_SIDevice[i])
 		{
-		case SI_GC_CONTROLLER:
+		case SIDEVICE_GC_CONTROLLER:
 			GCSIDevice[i]->SetStringSelection(SIDevices[1]);
 			break;
-		case SI_GBA:
+		case SIDEVICE_GC_TARUKONGA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[2]);
 			break;
-		case SI_AM_BASEBOARD:
+		case SIDEVICE_GC_GBA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[3]);
+			break;
+		case SIDEVICE_AM_BASEBOARD:
+			GCSIDevice[i]->SetStringSelection(SIDevices[4]);
 			break;
 		default:
 			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
@@ -478,7 +484,7 @@ void CConfigMain::InitializeGUITooltips()
 {
 	// General - Basic
 	CPUThread->SetToolTip(_("This splits the Video and CPU threads, so they can be run on separate cores.\nCauses major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."));
-	Framelimit->SetToolTip(_("If you set Framelimit higher than game full speed (NTSC:60, PAL:50), you also have to disable Audio Throttle in DSP to make it effective."));
+	Framelimit->SetToolTip(_("If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use Audio to throttle using the DSP (might fix audio clicks but can also cause constant noise depending on the game)."));
 
 	// General - Advanced
 	_NTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nLeft unchecked, dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
@@ -498,7 +504,6 @@ void CConfigMain::InitializeGUITooltips()
 	// Audio tooltips
 	EnableDTKMusic->SetToolTip(_("This is used to play music tracks, like BGM."));
 	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread (not recommended)."));
-	EnableThrottle->SetToolTip(_("This is used to control game speed by sound throttle.\nDisabling this could cause abnormal game speed, such as too fast.\nBut sometimes enabling this could cause constant noise.\n\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
 	FrequencySelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 
@@ -600,8 +605,6 @@ void CConfigMain::CreateGUIControls()
 	EnableDTKMusic = new wxCheckBox(AudioPage, ID_ENABLE_DTK_MUSIC, _("Enable DTK Music"),
 				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DSPThread = new wxCheckBox(AudioPage, ID_DSPTHREAD, _("DSP LLE on Thread"));
-	EnableThrottle = new wxCheckBox(AudioPage, ID_ENABLE_THROTTLE, _("Enable Audio Throttle"),
-				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DumpAudio = new wxCheckBox(AudioPage, ID_DUMP_AUDIO, _("Dump Audio"),
 				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 1, 100,
@@ -619,7 +622,6 @@ void CConfigMain::CreateGUIControls()
 	sbAudioSettings->Add(DSPEngine, 0, wxALL | wxEXPAND, 5);
 	sbAudioSettings->Add(EnableDTKMusic, 0, wxALL, 5);
 	sbAudioSettings->Add(DSPThread, 0, wxALL, 5);
-	sbAudioSettings->Add(EnableThrottle, 0, wxALL, 5);
 	sbAudioSettings->Add(DumpAudio, 0, wxALL, 5);
 
 	wxStaticBoxSizer *sbVolume = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Volume"));
@@ -835,6 +837,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = Framelimit->GetSelection();
+		ac_Config.Update();
 		break;
 	case ID_FRAMELIMIT_USEFPSFORLIMITING:
 		SConfig::GetInstance().b_UseFPS = UseFPSForLimiting->IsChecked();
@@ -916,7 +919,6 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 
 	default:
 		ac_Config.m_EnableDTKMusic = EnableDTKMusic->GetValue();
-		ac_Config.m_EnableThrottle = EnableThrottle->GetValue();
 		ac_Config.m_DumpAudio = DumpAudio->GetValue();
 
 		long int frequency;
@@ -1030,7 +1032,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 				// Change memcard to the new file
 				ExpansionInterface::ChangeDevice(
 					isSlotA ? 0 : 1, // SlotA: channel 0, SlotB channel 1
-					isSlotA ? EXIDEVICE_MEMORYCARD_A : EXIDEVICE_MEMORYCARD_B,
+					EXIDEVICE_MEMORYCARD,
 					0);	// SP1 is device 2, slots are device 0
 			}
 		}
@@ -1044,15 +1046,17 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 
 void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
 {
-	TSIDevices tempType;
+	SIDevices tempType;
 	if (!deviceName.compare(CSTR_TRANS(SIDEV_STDCONT_STR)))
-		tempType = SI_GC_CONTROLLER;
+		tempType = SIDEVICE_GC_CONTROLLER;
+	else if (!deviceName.compare(CSTR_TRANS(SIDEV_BONGO_STR)))
+		tempType = SIDEVICE_GC_TARUKONGA;
 	else if (!deviceName.compare(SIDEV_GBA_STR))
-		tempType = SI_GBA;
+		tempType = SIDEVICE_GC_GBA;
 	else if (!deviceName.compare(CSTR_TRANS(SIDEV_AM_BB_STR)))
-		tempType = SI_AM_BASEBOARD;
+		tempType = SIDEVICE_AM_BASEBOARD;
 	else
-		tempType = SI_NONE;
+		tempType = SIDEVICE_NONE;
 
 	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
 
@@ -1068,7 +1072,7 @@ void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)
 	TEXIDevices tempType;
 
 	if (!deviceName.compare(CSTR_TRANS(EXIDEV_MEMCARD_STR)))
-		tempType = deviceNum ? EXIDEVICE_MEMORYCARD_B : EXIDEVICE_MEMORYCARD_A;
+		tempType = EXIDEVICE_MEMORYCARD;
 	else if (!deviceName.compare(CSTR_TRANS(EXIDEV_MIC_STR)))
 		tempType = EXIDEVICE_MIC;
 	else if (!deviceName.compare(EXIDEV_BBA_STR))
@@ -1083,7 +1087,7 @@ void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)
 		tempType = EXIDEVICE_DUMMY;
 
 	// Gray out the memcard path button if we're not on a memcard
-	if (tempType == EXIDEVICE_MEMORYCARD_A || tempType == EXIDEVICE_MEMORYCARD_B)
+	if (tempType == EXIDEVICE_MEMORYCARD)
 		GCMemcardPath[deviceNum]->Enable();
 	else if (deviceNum == 0 || deviceNum == 1)
 		GCMemcardPath[deviceNum]->Disable();

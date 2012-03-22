@@ -116,7 +116,7 @@ CPanel::CPanel(
 			wxWindow *parent,
 			wxWindowID id
 			)
-	: wxPanel(parent, id)
+	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, 0) // disables wxTAB_TRAVERSAL because it was breaking hotkeys
 {
 }
 
@@ -409,6 +409,8 @@ CFrame::CFrame(wxFrame* parent,
 
 	g_TASInputDlg = new TASInputDlg(this);
 	Movie::SetInputManip(TASManipFunction);
+
+	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
 
 	// Setup perspectives
 	if (g_pCodeWindow)
@@ -857,6 +859,16 @@ int GetCmdForHotkey(unsigned int key)
 		return IDM_SAVESLOT8;
 
 	return -1;
+}
+
+void OnAfterLoadCallback()
+{
+	// warning: this gets called from the CPU thread, so we should only queue things to do on the proper thread
+	if(main_frame)
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+	}
 }
 
 void TASManipFunction(SPADStatus *PadStatus, int controllerID)

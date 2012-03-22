@@ -95,6 +95,7 @@ private:
 	void ThreadFunc();
 
 	bool				m_connected;
+	bool				m_motion_plus_inside;
 	std::thread			m_wiimote_thread;
 	Common::FifoQueue<Report>	m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;

@@ -25,6 +25,8 @@
 #include "MemoryUtil.h"
 #include "FileUtil.h"
 #include "../Movie.h"
+#include "../CoreTiming.h"
+#include "SystemTimers.h"
 
 // We should provide an option to choose from the above, or figure out the checksum (the algo in yagcd seems wrong)
 // so that people can change default language.
@@ -107,7 +109,7 @@ CEXIIPL::CEXIIPL() :
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2)
 	{
 		// Copy header
-		memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, sizeof(m_bNTSC ? iplverNTSC : iplverPAL));
+		memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, m_bNTSC ? sizeof(iplverNTSC) : sizeof(iplverPAL));
 
 		// Load fonts
 		LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SJIS), 0x1aff00);
@@ -152,7 +154,13 @@ CEXIIPL::~CEXIIPL()
 }
 void CEXIIPL::DoState(PointerWrap &p)
 {
-	p.DoArray(m_RTC, 4);
+	p.Do(m_RTC);
+	p.Do(m_uPosition);
+	p.Do(m_uAddress);
+	p.Do(m_uRWOffset);
+	p.Do(m_szBuffer);
+	p.Do(m_count);
+	p.Do(m_FontsLoaded);
 }
 
 void CEXIIPL::LoadFileToIPL(std::string filename, u32 offset)
@@ -336,14 +344,23 @@ void CEXIIPL::TransferByte(u8& _uByte)
 u32 CEXIIPL::GetGCTime()
 {
 	u64 ltime = 0;
-	const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
+	static const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
 
-	// hack in some netplay stuff
-	ltime = NetPlay_GetGCTime();
 	if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-		ltime = 1234567890; // TODO: Should you be able to set a custom time in movies?
-	else if (0 == ltime)
-		ltime = Common::Timer::GetLocalTimeSinceJan1970();
+	{
+		ltime = Movie::GetRecordingStartTime();
+
+		// let's keep time moving forward, regardless of what it starts at
+		ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
+	}
+	else
+	{
+		// hack in some netplay stuff
+		ltime = NetPlay_GetGCTime();
+
+		if (0 == ltime)
+			ltime = Common::Timer::GetLocalTimeSinceJan1970();
+	}
 
 	return ((u32)ltime - cJanuary2000);
 

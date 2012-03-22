@@ -124,11 +124,6 @@ inline void init_lib()
 	}
 }
 
-// VID = Nintendo, PID = Wiimote
-static int VIDLength = 3;
-static int VID[3] = {0x057E, 0x0001, 0x0002};
-static int PID[3] = {0x0306, 0x0002, 0x00F7};
-
 namespace WiimoteReal
 {
 
@@ -210,39 +205,23 @@ int FindWiimotes(Wiimote** wm, int max_wiimotes)
 		attr.Size = sizeof(attr);
 		HidD_GetAttributes(dev, &attr);
 
-		bool foundWiimote = false;
-		for (int i = 0; i < VIDLength; i++)
-		{
-			if (attr.VendorID == VID[i] && attr.ProductID == PID[i])
-			{
-				foundWiimote = true;
-				break;
-			}
-		}
+		// Find an unused slot
+		unsigned int k = 0;
+		for (; k < MAX_WIIMOTES && !(WIIMOTE_SRC_REAL & g_wiimote_sources[k] && !wm[k]); ++k);
+		wm[k] = new Wiimote(k);
+		wm[k]->dev_handle = dev;
+		memcpy(wm[k]->devicepath, detail_data->DevicePath, 197);
 
-		if (foundWiimote)
+		if (!wm[k]->Connect())
 		{
-			// This is a wiimote
-			// Find an unused slot
-			unsigned int k = 0;
-			for (; k < MAX_WIIMOTES && !(WIIMOTE_SRC_REAL & g_wiimote_sources[k] && !wm[k]); ++k);
-			wm[k] = new Wiimote(k);
-			wm[k]->dev_handle = dev;
-			memcpy(wm[k]->devicepath, detail_data->DevicePath, 197);
-
-			if (!wm[k]->Connect())
-			{
-				ERROR_LOG(WIIMOTE, "Unable to connect to wiimote %i.", wm[k]->index + 1);
-				delete wm[k];
-				wm[k] = NULL;
-			}
-			else
-				++found_wiimotes;
+			ERROR_LOG(WIIMOTE, "Unable to connect to wiimote %i.", wm[k]->index + 1);
+			delete wm[k];
+			wm[k] = NULL;
+			CloseHandle(dev);
 		}
 		else
 		{
-			// Not a wiimote 
-			CloseHandle(dev);
+			++found_wiimotes;
 		}
 	}
 
@@ -399,28 +378,16 @@ int Wiimote::IOWrite(unsigned char* buf, int len)
 					return i;
 				}
 
-#if 0
 				dw = GetLastError();
 				// Checking for 121 = timeout on semaphore/device off/disconnected to
 				// avoid trouble with other stacks toshiba/widcomm 
-				// 995 = The I/O operation has been aborted because of a thread exit or
-				// an application request.
-
-				if ( (dw == 121) || (dw == 995) )
+				if (dw == 121)
 				{
-					NOTICE_LOG(WIIMOTE, "IOWrite[MSBT_STACK_UNKNOWN]");
+					NOTICE_LOG(WIIMOTE, "IOWrite[MSBT_STACK_UNKNOWN]: Timeout");
 					RealDisconnect();
 				}
 				else ERROR_LOG(WIIMOTE,
 						"IOWrite[MSBT_STACK_UNKNOWN]: ERROR: %08x", dw); 
-#endif
-
-
-				// If the part below causes trouble on WIDCOMM/TOSHIBA stack uncomment
-				// the lines above, and comment out the 3 lines below instead.
-
-				NOTICE_LOG(WIIMOTE, "IOWrite[MSBT_STACK_UNKNOWN]");
-				RealDisconnect();
 				return 0;
 			}
 
@@ -456,8 +423,8 @@ int PairUp(bool unpair)
 {
 	init_lib();
 
-	// match strings like "Nintendo RVL-WBC-01", "Nintendo RVL-CNT-01"
-	const std::wregex wiimote_device_name(L"Nintendo RVL-\\w{3}-\\d{2}");
+	// match strings like "Nintendo RVL-WBC-01", "Nintendo RVL-CNT-01", "Nintendo RVL-CNT-01-TR"
+	const std::wregex wiimote_device_name(L"Nintendo RVL-\\w{3}-\\d{2}(-\\w{2})?");
 
 	int nPaired = 0;
 

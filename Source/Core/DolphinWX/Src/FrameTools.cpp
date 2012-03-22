@@ -145,7 +145,7 @@ void CFrame::CreateMenu()
 	emulationMenu->Check(IDM_RECORDREADONLY, true);
 	emulationMenu->AppendSeparator();
 	
-	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString, wxITEM_CHECK);
+	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
 
 	wxMenu *skippingMenu = new wxMenu;
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
@@ -678,11 +678,8 @@ void CFrame::DoOpen(bool Boot)
 		File::SetCurrentDir(currentDir);
 	}
 
-	if (path.IsEmpty())
-		return;
-
 	// Should we boot a new game or just change the disc?
-	if (Boot)
+	if (Boot && !path.IsEmpty())
 		BootGame(std::string(path.mb_str()));
 	else
 	{
@@ -704,7 +701,13 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 
 void CFrame::OnFrameStep(wxCommandEvent& event)
 {
-	Movie::SetFrameStepping(event.IsChecked());
+	bool wasPaused = (Core::GetState() == Core::CORE_PAUSE);
+
+	Movie::DoFrameStep();
+
+	bool isPaused = (Core::GetState() == Core::CORE_PAUSE);
+	if(isPaused && !wasPaused) // don't update on unpause, otherwise the status would be wrong when pausing next frame
+		UpdateGUI();
 }
 
 void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
@@ -718,12 +721,15 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 	
 	if (Movie::IsReadOnly())
 	{
-		PanicAlertT("Cannot record movies in read-only mode.");
-		return;
+		//PanicAlertT("Cannot record movies in read-only mode.");
+		//return;
+		// the user just chose to record a movie, so that should take precedence
+		Movie::SetReadOnly(false);
+		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(false);
 	}
 
 	for (int i = 0; i < 4; i++) {
-		if (SConfig::GetInstance().m_SIDevice[i] == SI_GC_CONTROLLER)
+		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
 			controllers |= (1 << i);
 
 		if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
@@ -746,6 +752,13 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 
 	if(path.IsEmpty())
 		return;
+
+	if (!Movie::IsReadOnly())
+	{
+		// let's make the read-only flag consistent at the start of a movie.
+		Movie::SetReadOnly(true);
+		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
+	}
 
 	if(Movie::PlayInput(path.mb_str()))
 		BootGame(std::string(""));
@@ -1561,7 +1574,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_RESET)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Movie::IsRecordingInput());
 	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!Initialized);
-	GetMenuBar()->FindItem(IDM_RECORDEXPORT)->Enable(Movie::IsRecordingInput());
+	GetMenuBar()->FindItem(IDM_RECORDEXPORT)->Enable(Movie::IsPlayingInput() || Movie::IsRecordingInput());
 	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->Enable(Running || Paused);
@@ -1615,6 +1628,8 @@ void CFrame::UpdateGUI()
 			m_ToolBar->SetToolLabel(IDM_PLAY, _("Play"));
 		}
 	}
+ 
+	GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Enable(Running || Paused);
 	
 	if (!Initialized && !m_bGameLoading)
 	{

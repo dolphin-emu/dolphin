@@ -60,6 +60,7 @@
 #include "Core.h"
 #include "Movie.h"
 #include "Host.h"
+#include "BPFunctions.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -109,12 +110,6 @@ int s_fps=0;
 
 RasterFont* s_pfont = NULL;
 
-#if defined _WIN32 || defined HAVE_LIBAV
-static bool s_bAVIDumping = false;
-#else
-static File::IOFile f_pFrameDump;
-#endif
-
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
 static int s_MSAACoverageSamples = 0;
@@ -128,6 +123,12 @@ static u32 s_blendMode;
 static std::thread scrshotThread;
 #endif
 
+// EFB cache related
+const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
+const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
+const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
+static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
+static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
 static const GLenum glSrcFactors[8] =
 {
@@ -249,9 +250,6 @@ Renderer::Renderer()
 
 	s_fps=0;
 	s_blendMode = 0;
-#if defined _WIN32 || defined HAVE_LIBAV
-	s_bAVIDumping = false;
-#endif
 
 #if defined HAVE_CG && HAVE_CG
 	g_cgcontext = cgCreateContext();
@@ -515,19 +513,6 @@ Renderer::~Renderer()
 #endif
 
 	delete g_framebuffer_manager;
-
-#if defined _WIN32 || defined HAVE_LIBAV
-	if(s_bAVIDumping)
-	{
-		AVIDump::Stop();
-		s_bLastFrameDumped = false;
-		s_bAVIDumping = false;
-	}
-#else
-	if (f_pFrameDump.IsOpen())
-		f_pFrameDump.Close();
-	s_bLastFrameDumped = false;
-#endif
 }
 
 // Create On-Screen-Messages
@@ -610,7 +595,7 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
 	const int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
 	const int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
-	
+
 	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
 		((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
 
@@ -642,49 +627,9 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
-bool Renderer::SetScissorRect()
+void Renderer::SetScissorRect(const TargetRectangle& rc)
 {
-	MathUtil::Rectangle<float> rc;
-	GetScissorRect(rc);
-
-	if (rc.left < 0) rc.left = 0;
-	if (rc.top < 0) rc.top = 0;
-	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
-	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
-
-	if (rc.left > rc.right)
-	{
-		int temp = rc.right;
-		rc.right = rc.left;
-		rc.left = temp;
-	}
-	if (rc.top > rc.bottom)
-	{
-		int temp = rc.bottom;
-		rc.bottom = rc.top;
-		rc.top = temp;
-	}
-
-	// Check that the coordinates are good
-	if (rc.right != rc.left && rc.bottom != rc.top)
-	{
-		glScissor(
-			EFBToScaledX(rc.left), // x = 0 for example
-			EFBToScaledY(EFB_HEIGHT - rc.bottom), // y = 0 for example
-			EFBToScaledX(rc.right - rc.left), // width = 640 for example
-			EFBToScaledY(rc.bottom - rc.top)); // height = 480 for example
-		return true;
-	}
-	else
-	{
-		glScissor(
-			0,
-			0,
-			Renderer::GetTargetWidth(),
-			Renderer::GetTargetHeight()
-			);
-	}
-	return false;
+	glScissor(rc.left, rc.bottom, rc.GetWidth(), rc.GetHeight());
 }
 
 void Renderer::SetColorMask()
@@ -696,6 +641,42 @@ void Renderer::SetColorMask()
 	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
 		AlphaMask = GL_TRUE;
 	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
+}
+
+void ClearEFBCache()
+{
+	for (u32 i = 0; i < EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT; ++i)
+		s_efbCacheValid[0][i] = false;
+
+	for (u32 i = 0; i < EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT; ++i)
+		s_efbCacheValid[1][i] = false;
+}
+
+void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data)
+{
+	u32 cacheType = (type == PEEK_Z ? 0 : 1);
+
+	if (!s_efbCache[cacheType][cacheRectIdx].size())
+		s_efbCache[cacheType][cacheRectIdx].resize(EFB_CACHE_RECT_SIZE * EFB_CACHE_RECT_SIZE);
+
+	u32 targetPixelRcWidth = targetPixelRc.right - targetPixelRc.left;
+
+	for (u32 yCache = 0; yCache < EFB_CACHE_RECT_SIZE; ++yCache)
+	{
+		u32 yEFB = efbPixelRc.top + yCache;
+		u32 yPixel = (EFBToScaledY(EFB_HEIGHT - yEFB) + EFBToScaledY(EFB_HEIGHT - yEFB - 1)) / 2;
+		u32 yData = yPixel - targetPixelRc.bottom;
+
+		for (u32 xCache = 0; xCache < EFB_CACHE_RECT_SIZE; ++xCache)
+		{
+			u32 xEFB = efbPixelRc.left + xCache;
+			u32 xPixel = (EFBToScaledX(xEFB) + EFBToScaledX(xEFB + 1)) / 2;
+			u32 xData = xPixel - targetPixelRc.left;
+			s_efbCache[cacheType][cacheRectIdx][yCache * EFB_CACHE_RECT_SIZE + xCache] = data[yData * targetPixelRcWidth + xData];
+		}
+	}
+
+	s_efbCacheValid[cacheType][cacheRectIdx] = true;
 }
 
 // This function allows the CPU to directly access the EFB.
@@ -717,34 +698,50 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	if (!g_ActiveConfig.bEFBAccessEnable)
 		return 0;
 
-	// Get the rectangular target region covered by the EFB pixel
+	u32 cacheRectIdx = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_WIDTH
+	                 + (x / EFB_CACHE_RECT_SIZE);
+
+	// Get the rectangular target region containing the EFB pixel
 	EFBRectangle efbPixelRc;
-	efbPixelRc.left = x;
-	efbPixelRc.top = y;
-	efbPixelRc.right = x + 1;
-	efbPixelRc.bottom = y + 1;
+	efbPixelRc.left = (x / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
+	efbPixelRc.top = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
+	efbPixelRc.right = efbPixelRc.left + EFB_CACHE_RECT_SIZE;
+	efbPixelRc.bottom = efbPixelRc.top + EFB_CACHE_RECT_SIZE;
 
 	TargetRectangle targetPixelRc = ConvertEFBRectangle(efbPixelRc);
+	u32 targetPixelRcWidth = targetPixelRc.right - targetPixelRc.left;
+	u32 targetPixelRcHeight = targetPixelRc.top - targetPixelRc.bottom;
 
 	// TODO (FIX) : currently, AA path is broken/offset and doesn't return the correct pixel
 	switch (type)
 	{
 	case PEEK_Z:
 		{
-			if (s_MSAASamples > 1)
+			u32 z;
+
+			if (!s_efbCacheValid[0][cacheRectIdx])
 			{
-				// Resolve our rectangle.
-				FramebufferManager::GetEFBDepthTexture(efbPixelRc);
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, FramebufferManager::GetResolvedFramebuffer());
+				if (s_MSAASamples > 1)
+				{
+					// Resolve our rectangle.
+					FramebufferManager::GetEFBDepthTexture(efbPixelRc);
+					glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, FramebufferManager::GetResolvedFramebuffer());
+				}
+
+				u32* depthMap = new u32[targetPixelRcWidth * targetPixelRcHeight];
+
+				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
+				             GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depthMap);
+				GL_REPORT_ERRORD();
+
+				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, depthMap);
+
+				delete[] depthMap;
 			}
 
-			// Sample from the center of the target region.
-			int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
-			int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
-
-			u32 z = 0;
-			glReadPixels(srcX, srcY, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
-			GL_REPORT_ERRORD();
+			u32 xRect = x % EFB_CACHE_RECT_SIZE;
+			u32 yRect = y % EFB_CACHE_RECT_SIZE;
+			z = s_efbCache[0][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect];
 
 			// Scale the 32-bit value returned by glReadPixels to a 24-bit
 			// value (GC uses a 24-bit Z-buffer).
@@ -769,21 +766,31 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			// determine if we're aiming at an enemy (0x80 / 0x88) or not (0x70)
 			// Wind Waker is also using it for the pictograph to determine the color of each pixel
 
-			if (s_MSAASamples > 1)
+			u32 color;
+
+			if (!s_efbCacheValid[1][cacheRectIdx])
 			{
-				// Resolve our rectangle.
-				FramebufferManager::GetEFBColorTexture(efbPixelRc);
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, FramebufferManager::GetResolvedFramebuffer());
+				if (s_MSAASamples > 1)
+				{
+					// Resolve our rectangle.
+					FramebufferManager::GetEFBColorTexture(efbPixelRc);
+					glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, FramebufferManager::GetResolvedFramebuffer());
+				}
+
+				u32* colorMap = new u32[targetPixelRcWidth * targetPixelRcHeight];
+
+				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
+				             GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap);
+				GL_REPORT_ERRORD();
+
+				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, colorMap);
+
+				delete[] colorMap;
 			}
 
-			// Sample from the center of the target region.
-			int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
-			int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
-
-			// Read back pixel in BGRA format, then byteswap to get GameCube's ARGB Format.
-			u32 color = 0;
-			glReadPixels(srcX, srcY, 1, 1, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, &color);
-			GL_REPORT_ERRORD();
+			u32 xRect = x % EFB_CACHE_RECT_SIZE;
+			u32 yRect = y % EFB_CACHE_RECT_SIZE;
+			color = s_efbCache[1][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect];
 
 			// check what to do with the alpha channel (GX_PokeAlphaRead)
 			PixelEngine::UPEAlphaReadReg alpha_read_mode;
@@ -865,41 +872,35 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {
 	ResetAPIState();
 
-	GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
-	if (colorEnable) ColorMask = GL_TRUE;
-	if (alphaEnable) AlphaMask = GL_TRUE;
-	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
+	// color
+	GLboolean const
+		color_mask = colorEnable ? GL_TRUE : GL_FALSE,
+		alpha_mask = alphaEnable ? GL_TRUE : GL_FALSE;
+	glColorMask(color_mask,  color_mask,  color_mask,  alpha_mask);
 
-	if (zEnable)
-	{
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
-		glDepthFunc(GL_ALWAYS);
-	}
-	else
-	{
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
-		glDepthFunc(GL_NEVER);
-	}
+	glClearColor(
+		float((color >> 16) & 0xFF) / 255.0f,
+		float((color >> 8) & 0xFF) / 255.0f,
+		float((color >> 0) & 0xFF) / 255.0f,
+		float((color >> 24) & 0xFF) / 255.0f);
 
-	// Update viewport for clearing the picture
-	TargetRectangle targetRc = ConvertEFBRectangle(rc);
-	glViewport(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
-	glDepthRange(0.0, (float)(z & 0xFFFFFF) / float(0xFFFFFF));
+	// depth
+	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-	glColor4f((float)((color >> 16) & 0xFF) / 255.0f,
-				(float)((color >> 8) & 0xFF) / 255.0f,
-				(float)(color & 0xFF) / 255.0f,
-				(float)((color >> 24) & 0xFF) / 255.0f);
-	glBegin(GL_QUADS);
-	glVertex3f(-1.f, -1.f, 1.f);
-	glVertex3f(-1.f,  1.f, 1.f);
-	glVertex3f( 1.f,  1.f, 1.f);
-	glVertex3f( 1.f, -1.f, 1.f);
-	glEnd();
+	glClearDepth(float(z & 0xFFFFFF) / float(0xFFFFFF));
+
+	// Update rect for clearing the picture
+	glEnable(GL_SCISSOR_TEST);
+
+	TargetRectangle const targetRc = ConvertEFBRectangle(rc);
+	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+
+	// glColorMask/glDepthMask/glScissor affect glClear (glViewport does not)
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	RestoreAPIState();
+
+	ClearEFBCache();
 }
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
@@ -986,15 +987,14 @@ void Renderer::SetBlendMode(bool forceUpdate)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
-	static u8 *data = NULL;
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
-		if (g_ActiveConfig.bDumpFrames && data)
+		if (g_ActiveConfig.bDumpFrames && frame_data)
 		#ifdef _WIN32
-			AVIDump::AddFrame((char *) data);
+			AVIDump::AddFrame(frame_data);
 		#elif defined HAVE_LIBAV
-			AVIDump::AddFrame(data, w, h);
+			AVIDump::AddFrame((u8*)frame_data, w, h);
 		#endif
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -1008,12 +1008,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
-		if (g_ActiveConfig.bDumpFrames && data)
-		#ifdef _WIN32
-			AVIDump::AddFrame((char *) data);
-		#elif defined HAVE_LIBAV
-			AVIDump::AddFrame(data, w, h);
-		#endif
+		if (g_ActiveConfig.bDumpFrames && frame_data)
+		{
+#ifdef _WIN32
+			AVIDump::AddFrame(frame_data);
+#elif defined HAVE_LIBAV
+			AVIDump::AddFrame((u8*)frame_data, w, h);
+#endif
+		}
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -1172,26 +1174,26 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		if (!data || w != dst_rect.GetWidth() ||
+		if (!frame_data || w != dst_rect.GetWidth() ||
 		             h != dst_rect.GetHeight())
 		{
-			if (data) delete[] data;
+			if (frame_data) delete[] frame_data;
 			w = dst_rect.GetWidth();
 			h = dst_rect.GetHeight();
-			data = new u8[3 * w * h];
+			frame_data = new char[3 * w * h];
 		}
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
 		{
-			if (!s_bLastFrameDumped)
+			if (!bLastFrameDumped)
 			{
 				#ifdef _WIN32
-					s_bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
+					bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
 				#else
-					s_bAVIDumping = AVIDump::Start(w, h);
+					bAVIDumping = AVIDump::Start(w, h);
 				#endif
-				if (!s_bAVIDumping)
+				if (!bAVIDumping)
 					OSD::AddMessage("AVIDump Start failed", 2000);
 				else
 				{
@@ -1200,36 +1202,36 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 								File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h).c_str(), 2000);
 				}
 			}
-			if (s_bAVIDumping)
+			if (bAVIDumping)
 			{
 				#ifdef _WIN32
-					AVIDump::AddFrame((char *) data);
+					AVIDump::AddFrame(frame_data);
 				#else
-					FlipImageData(data, w, h);
-					AVIDump::AddFrame(data, w, h);
+					FlipImageData((u8*)frame_data, w, h);
+					AVIDump::AddFrame((u8*)frame_data, w, h);
 				#endif
 			}
 
-			s_bLastFrameDumped = true;
+			bLastFrameDumped = true;
 		}
 		else
 			NOTICE_LOG(VIDEO, "Error reading framebuffer");
 	}
 	else
 	{
-		if (s_bLastFrameDumped && s_bAVIDumping)
+		if (bLastFrameDumped && bAVIDumping)
 		{
-			if (data)
+			if (frame_data)
 			{
-				delete[] data;
-				data = NULL;
+				delete[] frame_data;
+				frame_data = NULL;
 				w = h = 0;
 			}
 			AVIDump::Stop();
-			s_bAVIDumping = false;
+			bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames", 2000);
 		}
-		s_bLastFrameDumped = false;
+		bLastFrameDumped = false;
 	}
 #else
 	if (g_ActiveConfig.bDumpFrames)
@@ -1238,16 +1240,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		std::string movie_file_name;
 		w = dst_rect.GetWidth();
 		h = dst_rect.GetHeight();
-		data = new u8[3 * w * h];
+		frame_data = new char[3 * w * h];
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR)
 		{
-			if (!s_bLastFrameDumped)
+			if (!bLastFrameDumped)
 			{
 				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
-				f_pFrameDump.Open(movie_file_name, "wb");
-				if (!f_pFrameDump)
+				pFrameDump.Open(movie_file_name, "wb");
+				if (!pFrameDump)
 					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 				else
 				{
@@ -1256,22 +1258,22 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 					OSD::AddMessage(msg, 2000);
 				}
 			}
-			if (f_pFrameDump)
+			if (pFrameDump)
 			{
-				FlipImageData(data, w, h);
-				f_pFrameDump.WriteBytes(data, w * 3 * h);
-				f_pFrameDump.Flush();
+				FlipImageData((u8*)frame_data, w, h);
+				pFrameDump.WriteBytes(frame_data, w * 3 * h);
+				pFrameDump.Flush();
 			}
-			s_bLastFrameDumped = true;
+			bLastFrameDumped = true;
 		}
 
-		delete[] data;
+		delete[] frame_data;
 	}
 	else
 	{
-		if (s_bLastFrameDumped)
-			f_pFrameDump.Close();
-		s_bLastFrameDumped = false;
+		if (bLastFrameDumped)
+			pFrameDump.Close();
+		bLastFrameDumped = false;
 	}
 #endif
 
@@ -1392,8 +1394,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	g_Config.iSaveTargetId = 0;
 
 	// reload textures if these settings changed
-	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
-		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+	if (g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
 		TextureCache::Invalidate(false);
 
 	if (g_Config.bCopyEFBToTexture != g_ActiveConfig.bCopyEFBToTexture)
@@ -1407,6 +1408,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	//	      GetTargetWidth(), GetTargetHeight());
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
+
+	// Invalidate EFB cache
+	ClearEFBCache();
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
@@ -1422,9 +1426,6 @@ void Renderer::ResetAPIState()
 	glDisable(GL_BLEND);
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-	// make sure to disable wireframe when drawing the clear quad
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void Renderer::RestoreAPIState()
@@ -1432,14 +1433,13 @@ void Renderer::RestoreAPIState()
 	// Gets us back into a more game-like state.
 	glEnable(GL_SCISSOR_TEST);
 	SetGenerationMode();
-	SetScissorRect();
+	BPFunctions::SetScissor();
 	SetColorMask();
 	SetDepthMode();
 	SetBlendMode(true);
 	VertexShaderManager::SetViewportChanged();
 
-	if (g_ActiveConfig.bWireFrame)
- 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
 
 	VertexShaderCache::SetCurrentShader(0);
 	PixelShaderCache::SetCurrentShader(0);

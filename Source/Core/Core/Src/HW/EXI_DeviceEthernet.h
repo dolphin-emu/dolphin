@@ -246,6 +246,7 @@ public:
 	u32  ImmRead(u32 size);
 	void DMAWrite(u32 addr, u32 size);
 	void DMARead(u32 addr, u32 size);
+	void DoState(PointerWrap &p);
 
 //private:
 	// STATE_TO_SAVE

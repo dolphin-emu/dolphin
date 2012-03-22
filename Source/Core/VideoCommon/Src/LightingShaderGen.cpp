@@ -21,6 +21,21 @@
 
 #define WRITE p+=sprintf
 
+int GetLightingShaderId(u32* out)
+{
+	for (int i = 0; i < xfregs.numChan.numColorChans; ++i)
+	{
+		out[i] = xfregs.color[i].enablelighting ?
+			(u32)xfregs.color[i].hex :
+			(u32)xfregs.color[i].matsource;
+		out[i] |= (xfregs.alpha[i].enablelighting ?
+			(u32)xfregs.alpha[i].hex :
+			(u32)xfregs.alpha[i].matsource) << 15;
+	}
+	_assert_(xfregs.numChan.numColorChans <= 2);
+	return xfregs.numChan.numColorChans;
+}
+
 // coloralpha - 1 if color, 2 if alpha
 char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char* lightsName, int coloralpha)
 {

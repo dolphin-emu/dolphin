@@ -66,10 +66,9 @@ struct SSysConfEntry
 	}
 	bool SetArrayData(u8* buffer, u16 bufferSize)
 	{
-
-		if (buffer && bufferSize <= dataLength)
+		if (buffer)
 		{
-			memcpy(data, buffer, bufferSize);
+			memcpy(data, buffer, min<u16>(bufferSize, dataLength));
 			return true;
 		}
 		return false;

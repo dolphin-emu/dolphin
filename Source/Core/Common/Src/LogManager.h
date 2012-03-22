@@ -58,6 +58,12 @@ private:
 	bool m_enable;
 };
 
+class DebuggerLogListener : public LogListener
+{
+public:
+	void Log(LogTypes::LOG_LEVELS, const char *msg);
+};
+
 class LogContainer
 {
 public:
@@ -97,6 +103,7 @@ private:
 	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_consoleLog;
+	DebuggerLogListener *m_debuggerLog;
 	static LogManager *m_logManager;  // Singleton. Ugh.
 
 	LogManager();
@@ -151,6 +158,11 @@ public:
 	ConsoleListener *GetConsoleListener() const
 	{
 		return m_consoleLog;
+	}
+
+	DebuggerLogListener *GetDebuggerListener() const
+	{
+		return m_debuggerLog;
 	}
 
 	static LogManager* GetInstance()

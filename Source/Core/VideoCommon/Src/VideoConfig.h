@@ -129,12 +129,12 @@ struct VideoConfig
 	bool bOSDHotKey;
 	bool bCopyEFBToTexture;	
 	bool bCopyEFBScaled;
-	bool bSafeTextureCache;
 	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[4];
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
+	bool bUseBBox;
 	bool bEnablePixelLighting;
 	bool bEnablePerPixelDepth;
 
@@ -146,6 +146,9 @@ struct VideoConfig
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
+
+	// Debugging
+	bool bEnableShaderDebugging;
 
 	// Static config per API
 	// TODO: Move this out of VideoConfig

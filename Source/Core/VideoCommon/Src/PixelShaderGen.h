@@ -24,64 +24,63 @@
 #define I_KCOLORS     "k"
 #define I_ALPHA       "alphaRef"
 #define I_TEXDIMS     "texdim"
+#define I_VTEXSCALE   "vtexscale"
 #define I_ZBIAS       "czbias"
 #define I_INDTEXSCALE "cindscale"
 #define I_INDTEXMTX   "cindmtx"
 #define I_FOG         "cfog"
 #define I_PLIGHTS	  "cLights"
-#define I_PMATERIALS   "cmtrl"
+#define I_PMATERIALS  "cmtrl"
 
 #define C_COLORMATRIX	0						// 0
 #define C_COLORS		0						// 0
 #define C_KCOLORS		(C_COLORS + 4)			// 4
 #define C_ALPHA			(C_KCOLORS + 4)			// 8
 #define C_TEXDIMS		(C_ALPHA + 1)			// 9
-#define C_ZBIAS			(C_TEXDIMS + 8)			//17
-#define C_INDTEXSCALE	(C_ZBIAS + 2)			//19
-#define C_INDTEXMTX		(C_INDTEXSCALE + 2)		//21
-#define C_FOG			(C_INDTEXMTX + 6)		//27
-
-#define C_PLIGHTS		(C_FOG + 3)
-#define C_PMATERIALS	(C_PLIGHTS + 40)
-#define C_PENVCONST_END (C_PMATERIALS + 4)
-#define PIXELSHADERUID_MAX_VALUES (5 + 32 + 6 + 11 + 2)
+#define C_VTEXSCALE		(C_TEXDIMS + 8)			//17 - virtual texture scaling factor (e.g. custom textures, scaled EFB copies)
+#define C_ZBIAS			(C_VTEXSCALE + 4)		//21
+#define C_INDTEXSCALE	(C_ZBIAS + 2)			//23
+#define C_INDTEXMTX		(C_INDTEXSCALE + 2)		//25
+#define C_FOG			(C_INDTEXMTX + 6)		//31
+#define C_PLIGHTS		(C_FOG + 3)				//34
+#define C_PMATERIALS	(C_PLIGHTS + 40)		//74
+#define C_PENVCONST_END (C_PMATERIALS + 4)		//78
+#define PIXELSHADERUID_MAX_VALUES 70
+#define PIXELSHADERUID_MAX_VALUES_SAFE 120
 
 // DO NOT make anything in this class virtual.
-class PIXELSHADERUID
+template<bool safe>
+class _PIXELSHADERUID
 {
 public:
-	u32 values[PIXELSHADERUID_MAX_VALUES];
-	u16 tevstages, indstages;
+	u32 values[safe ? PIXELSHADERUID_MAX_VALUES_SAFE : PIXELSHADERUID_MAX_VALUES];
+	int num_values;
 
-	PIXELSHADERUID()
+	_PIXELSHADERUID()
 	{
-		memset(values, 0, PIXELSHADERUID_MAX_VALUES * 4);
-		tevstages = indstages = 0;
 	}
 
-	PIXELSHADERUID(const PIXELSHADERUID& r)
+	_PIXELSHADERUID(const _PIXELSHADERUID& r)
 	{
-		tevstages = r.tevstages;
-		indstages = r.indstages;
-		int N = GetNumValues();
-		_assert_(N <= PIXELSHADERUID_MAX_VALUES);
-		for (int i = 0; i < N; ++i)
-			values[i] = r.values[i];
+		num_values = r.num_values;
+		if (safe) memcpy(values, r.values, PIXELSHADERUID_MAX_VALUES_SAFE);
+		else memcpy(values, r.values, r.GetNumValues() * sizeof(values[0]));
 	}
 
 	int GetNumValues() const
 	{
-		return tevstages + indstages + 4;
+		if (safe) return (sizeof(values) / sizeof(u32));
+		else return num_values;
 	}
 
-	bool operator <(const PIXELSHADERUID& _Right) const
+	bool operator <(const _PIXELSHADERUID& _Right) const
 	{
-		if (values[0] < _Right.values[0])
-			return true;
-		else if (values[0] > _Right.values[0])
-			return false;
 		int N = GetNumValues();
-		for (int i = 1; i < N; ++i)
+		if (N < _Right.GetNumValues())
+			return true;
+		else if (N > _Right.GetNumValues())
+			return false;
+		for (int i = 0; i < N; ++i)
 		{
 			if (values[i] < _Right.values[i])
 				return true;
@@ -91,12 +90,12 @@ public:
 		return false;
 	}
 
-	bool operator ==(const PIXELSHADERUID& _Right) const
+	bool operator ==(const _PIXELSHADERUID& _Right) const
 	{
-		if (values[0] != _Right.values[0])
-			return false;
 		int N = GetNumValues();
-		for (int i = 1; i < N; ++i)
+		if (N != _Right.GetNumValues())
+			return false;
+		for (int i = 0; i < N; ++i)
 		{
 			if (values[i] != _Right.values[i])
 				return false;
@@ -104,6 +103,8 @@ public:
 		return true;
 	}
 };
+typedef _PIXELSHADERUID<false> PIXELSHADERUID;
+typedef _PIXELSHADERUID<true> PIXELSHADERUIDSAFE;
 
 // Different ways to achieve rendering with destination alpha
 enum DSTALPHA_MODE
@@ -114,8 +115,11 @@ enum DSTALPHA_MODE
 };
 
 const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
-void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode);
 
-extern PIXELSHADERUID last_pixel_shader_uid;
+void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
+void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
+
+// Used to make sure that our optimized pixel shader IDs don't lose any possible shader code changes
+void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::string& old_code, DSTALPHA_MODE dstAlphaMode, u32 components);
 
 #endif // GCOGL_PIXELSHADER_H
