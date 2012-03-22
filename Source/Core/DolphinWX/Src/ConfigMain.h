@@ -253,8 +253,8 @@ private:
 
 	void GCSettingsChanged(wxCommandEvent& event);
 	void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);
-	void ChooseSIDevice(std::string deviceName, int deviceNum);
-	void ChooseEXIDevice(std::string deviceName, int deviceNum);
+	void ChooseSIDevice(wxString deviceName, int deviceNum);
+	void ChooseEXIDevice(wxString deviceName, int deviceNum);
 
 	void WiiSettingsChanged(wxCommandEvent& event);
 	// Change from IPL.LNG value to country code
