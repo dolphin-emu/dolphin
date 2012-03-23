@@ -296,14 +296,19 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
 
-
+#ifdef __WXMSW__
+		const int platform_padding = 0;
+#else
+		const int platform_padding = 8;
+#endif
+		
 		// set initial sizes for columns
-		SetColumnWidth(COLUMN_PLATFORM, 35);
-		SetColumnWidth(COLUMN_BANNER, 96);
-		SetColumnWidth(COLUMN_TITLE, 200);
-		SetColumnWidth(COLUMN_NOTES, 200);
-		SetColumnWidth(COLUMN_COUNTRY, 32);
-		SetColumnWidth(COLUMN_EMULATION_STATE, 50);
+		SetColumnWidth(COLUMN_PLATFORM, 35 + platform_padding);
+		SetColumnWidth(COLUMN_BANNER, 96 + platform_padding);
+		SetColumnWidth(COLUMN_TITLE, 200 + platform_padding);
+		SetColumnWidth(COLUMN_NOTES, 200 + platform_padding);
+		SetColumnWidth(COLUMN_COUNTRY, 32 + platform_padding);
+		SetColumnWidth(COLUMN_EMULATION_STATE, 50 + platform_padding);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
