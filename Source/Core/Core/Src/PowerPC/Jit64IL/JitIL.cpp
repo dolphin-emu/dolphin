@@ -526,7 +526,8 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		// Comment out the following to disable breakpoints (speed-up)
 		if (!Profiler::g_ProfileBlocks)
 		{
-			blockSize = 1;
+			if (GetState() == CPU_STEPPING)
+				blockSize = 1;
 			Trace();
 		}
 	}
@@ -650,6 +651,16 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 			{
 				ibuild.EmitFPExceptionCheckStart(ibuild.EmitIntConst(ops[i].address));
+			}
+
+			if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
+			{
+				ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
+			}
+
+			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			{
+				ibuild.EmitBreakPointCheck(ibuild.EmitIntConst(ops[i].address));
 			}
 			
 			JitILTables::CompileInstruction(ops[i]);

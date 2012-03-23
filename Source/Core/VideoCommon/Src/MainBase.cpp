@@ -250,6 +250,11 @@ bool VideoBackendHardware::Video_IsPossibleWaitingSetDrawDone()
 	return CommandProcessor::isPossibleWaitingSetDrawDone;
 }
 
+bool VideoBackendHardware::Video_IsHiWatermarkActive()
+{
+	return CommandProcessor::isHiWatermarkActive;
+}
+
 void VideoBackendHardware::Video_AbortFrame()
 {
 	CommandProcessor::AbortFrame();

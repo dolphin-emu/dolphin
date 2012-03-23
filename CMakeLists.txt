@@ -2,6 +2,17 @@
 # General setup
 #
 cmake_minimum_required(VERSION 2.6)
+
+# Update compiler before calling project()
+if (APPLE)
+	# Use clang compiler
+	set(CMAKE_C_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang")
+	set(CMAKE_CXX_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++")
+	if (NOT EXISTS "${CMAKE_CXX_COMPILER}")
+		set(CMAKE_C_COMPILER "clang")
+		set(CMAKE_CXX_COMPILER "clang++")
+	endif()
+endif()
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 set(DOLPHIN_IS_STABLE FALSE)
@@ -135,7 +146,11 @@ if (APPLE)
 	# features can be used, not the minimum required version to run.
 	set(OSX_MIN_VERSION "10.5.4")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot /Developer/SDKs/MacOSX10.6.sdk")
+	set(TARGET_SYSROOT "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk")
+	if (NOT EXISTS "${TARGET_SYSROOT}/")
+		set(TARGET_SYSROOT "/Developer/SDKs/MacOSX10.6.sdk")
+	endif()
+	set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${TARGET_SYSROOT}")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk")
 	# Do not warn about frameworks that are not available on all architectures.
 	# This avoids a warning when linking with QuickTime.

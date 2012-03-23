@@ -36,7 +36,7 @@ class VideoSoftware : public VideoBackend
 	void Video_SetRendering(bool bEnabled);
 
 	void Video_GatherPipeBursted();
-
+	bool Video_IsHiWatermarkActive();
 	bool Video_IsPossibleWaitingSetDrawDone();
 	void Video_AbortFrame();
 

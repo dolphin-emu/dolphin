@@ -90,7 +90,7 @@ static const wxLanguage langIds[] =
 #define EXIDEV_GECKO_STR	"USBGecko"
 
 #define CSTR_TRANS(a)		wxString(wxGetTranslation(wxT(a))).mb_str()
-
+#define WXSTR_TRANS(a)		wxString(wxGetTranslation(wxT(a)))
 #ifdef WIN32
 //only used with xgettext to be picked up as translatable string.
 //win32 does not have wx on its path, the provided wxALL_FILES 
@@ -979,7 +979,7 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 	case ID_GC_EXIDEVICE_SLOTB:
 		exidevice++;
 	case ID_GC_EXIDEVICE_SLOTA:
-		ChooseEXIDevice(std::string(event.GetString().mb_str()), exidevice);
+		ChooseEXIDevice(event.GetString(), exidevice);
 		break;
 	case ID_GC_EXIDEVICE_SLOTA_PATH:
 		ChooseMemcardPath(SConfig::GetInstance().m_strMemoryCardA, true);
@@ -994,7 +994,7 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 	case ID_GC_SIDEVICE1:
 		sidevice++;
 	case ID_GC_SIDEVICE0:
-		ChooseSIDevice(std::string(event.GetString().mb_str()), sidevice);
+		ChooseSIDevice(event.GetString(), sidevice);
 		break;
 	}
 }
@@ -1044,16 +1044,16 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 	}
 }
 
-void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
+void CConfigMain::ChooseSIDevice(wxString deviceName, int deviceNum)
 {
 	SIDevices tempType;
-	if (!deviceName.compare(CSTR_TRANS(SIDEV_STDCONT_STR)))
+	if (!deviceName.compare(WXSTR_TRANS(SIDEV_STDCONT_STR)))
 		tempType = SIDEVICE_GC_CONTROLLER;
-	else if (!deviceName.compare(CSTR_TRANS(SIDEV_BONGO_STR)))
+	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_BONGO_STR)))
 		tempType = SIDEVICE_GC_TARUKONGA;
-	else if (!deviceName.compare(SIDEV_GBA_STR))
+	else if (!deviceName.compare(wxT(SIDEV_GBA_STR)))
 		tempType = SIDEVICE_GC_GBA;
-	else if (!deviceName.compare(CSTR_TRANS(SIDEV_AM_BB_STR)))
+	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_AM_BB_STR)))
 		tempType = SIDEVICE_AM_BASEBOARD;
 	else
 		tempType = SIDEVICE_NONE;
@@ -1067,21 +1067,21 @@ void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
 	}
 }
 
-void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)
+void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 {
 	TEXIDevices tempType;
 
-	if (!deviceName.compare(CSTR_TRANS(EXIDEV_MEMCARD_STR)))
+	if (!deviceName.compare(WXSTR_TRANS(EXIDEV_MEMCARD_STR)))
 		tempType = EXIDEVICE_MEMORYCARD;
-	else if (!deviceName.compare(CSTR_TRANS(EXIDEV_MIC_STR)))
+	else if (!deviceName.compare(WXSTR_TRANS(EXIDEV_MIC_STR)))
 		tempType = EXIDEVICE_MIC;
-	else if (!deviceName.compare(EXIDEV_BBA_STR))
+	else if (!deviceName.compare(wxT(EXIDEV_BBA_STR)))
 		tempType = EXIDEVICE_ETH;
-	else if (!deviceName.compare(CSTR_TRANS(EXIDEV_AM_BB_STR)))
+	else if (!deviceName.compare(WXSTR_TRANS(EXIDEV_AM_BB_STR)))
 		tempType = EXIDEVICE_AM_BASEBOARD;
-	else if (!deviceName.compare(EXIDEV_GECKO_STR))
+	else if (!deviceName.compare(wxT(EXIDEV_GECKO_STR)))
 		tempType = EXIDEVICE_GECKO;
-	else if (!deviceName.compare(CSTR_TRANS(DEV_NONE_STR)))
+	else if (!deviceName.compare(WXSTR_TRANS(DEV_NONE_STR)))
 		tempType = EXIDEVICE_NONE;
 	else
 		tempType = EXIDEVICE_DUMMY;

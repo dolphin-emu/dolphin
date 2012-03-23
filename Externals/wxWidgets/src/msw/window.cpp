@@ -2234,9 +2234,9 @@ bool wxWindowMSW::DoPopupMenu(wxMenu *menu, int x, int y)
 // pre/post message processing
 // ===========================================================================
 
-WXLRESULT wxWindowMSW::MSWDefWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+WXLRESULT wxWindowMSW::MSWDefWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam, bool callDefWindowProc /* = false */)
 {
-    if ( m_oldWndProc )
+	if (!callDefWindowProc && m_oldWndProc)
         return ::CallWindowProc(CASTWNDPROC m_oldWndProc, GetHwnd(), (UINT) nMsg, (WPARAM) wParam, (LPARAM) lParam);
     else
         return ::DefWindowProc(GetHwnd(), nMsg, wParam, lParam);
@@ -2653,11 +2653,12 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
             break;
 
         case WM_DESTROY:
-            // never set processed to true and *always* pass WM_DESTROY to
-            // DefWindowProc() as Windows may do some internal cleanup when
-            // processing it and failing to pass the message along may cause
-            // memory and resource leaks!
+            // *always* pass WM_DESTROY to DefWindowProc() as Windows may do
+            // some internal cleanup when processing it and failing to pass
+            // the message along may cause memory and resource leaks!
             (void)HandleDestroy();
+            rc.result = MSWDefWindowProc(message, wParam, lParam, true);
+            processed = true;
             break;
 
         case WM_SIZE:

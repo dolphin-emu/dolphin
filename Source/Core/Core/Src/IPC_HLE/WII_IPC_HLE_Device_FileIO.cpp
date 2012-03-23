@@ -28,7 +28,7 @@
 
 static Common::replace_v replacements;
 
-// This is used by several of the FileIO and /dev/fs/ functions 
+// This is used by several of the FileIO and /dev/fs functions 
 std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 {
 	std::string path_full = File::GetUserPath(D_WIIROOT_IDX);
@@ -128,7 +128,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	
 	// The file must exist before we can open it
 	// It should be created by ISFS_CreateFile, not here
-	if(File::Exists(m_Filename))
+	if (File::Exists(m_Filename))
 	{
 		INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s == %08X)", m_Name.c_str(), Modes[_Mode], _Mode);
 		ReturnValue = m_DeviceID;
@@ -149,24 +149,28 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_FileIO::OpenFile()
 {
-	switch(m_Mode)
+	switch (m_Mode)
 	{
 	case ISFS_OPEN_READ:
+	{
 		m_pFileHandle.Open(m_Filename, "rb");
 		break;
-
-	// "r+b" is technically wrong, but OPEN_WRITE should not truncate the file as "wb" does.
+	}
 	case ISFS_OPEN_WRITE:
+	{
 		m_pFileHandle.Open(m_Filename, "r+b");
 		break;
-
+	}
 	case ISFS_OPEN_RW:
+	{
 		m_pFileHandle.Open(m_Filename, "r+b");
 		break;
-
+	}
 	default:
+	{
 		PanicAlertT("FileIO: Unknown open mode : 0x%02x", m_Mode);
 		break;
+	}
 	}
 	return m_pFileHandle.IsOpen();
 }
@@ -178,21 +182,21 @@ void CWII_IPC_HLE_Device_FileIO::CloseFile()
 
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
 {
-	u32 ReturnValue		= FS_RESULT_FATAL;
-	const s32 SeekPosition	= Memory::Read_U32(_CommandAddress + 0xC);
-	const s32 Mode			= Memory::Read_U32(_CommandAddress + 0x10);  
+	u32 ReturnValue	= FS_RESULT_FATAL;
+	const s32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
+	const s32 Mode = Memory::Read_U32(_CommandAddress + 0x10);  
 
 	
-	if(OpenFile())
+	if (OpenFile())
 	{
 		ReturnValue = FS_RESULT_FATAL;
 
-		const u64 fileSize		= m_pFileHandle.GetSize();
+		const u64 fileSize = m_pFileHandle.GetSize();
 		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), fileSize);
-		switch(Mode){
+		switch (Mode){
 			case 0:
 			{
-				if(SeekPosition >=0 && SeekPosition <= fileSize)
+				if (SeekPosition >=0 && SeekPosition <= fileSize)
 				{
 					m_SeekPos = SeekPosition;
 					ReturnValue = m_SeekPos;
@@ -202,7 +206,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 			case 1:
 			{
 				s32 wantedPos = SeekPosition+m_SeekPos;
-				if(wantedPos >=0 && wantedPos <= fileSize)
+				if (wantedPos >=0 && wantedPos <= fileSize)
 				{
 					m_SeekPos = wantedPos;
 					ReturnValue = m_SeekPos;
@@ -212,7 +216,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 			case 2:
 			{
 				s32 wantedPos = fileSize+m_SeekPos;
-				if(wantedPos >=0 && wantedPos <= fileSize)
+				if (wantedPos >=0 && wantedPos <= fileSize)
 				{
 					m_SeekPos = wantedPos;
 					ReturnValue = m_SeekPos;
@@ -244,7 +248,7 @@ bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 	const u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
 
 
-	if(OpenFile())
+	if (OpenFile())
 	{
 		if (m_Mode == ISFS_OPEN_WRITE) 
 		{
@@ -284,7 +288,7 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 	const u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
 
 
-	if(OpenFile())
+	if (OpenFile())
 	{
 		if (m_Mode == ISFS_OPEN_READ) 
 		{
@@ -318,21 +322,14 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	DumpCommands(_CommandAddress);
 #endif
-	const u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
+	const u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);	
+	u32 ReturnValue = 0;
 
-	//u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-	//u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-	//u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-	//u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
-	
-	// Return Value
-	u32 ReturnValue = 0;  // no error
-
-	switch(Parameter)
+	switch (Parameter)
 	{
 	case ISFS_IOCTL_GETFILESTATS:
 		{
-			if(OpenFile())
+			if (OpenFile())
 			{
 				u32 m_FileLength = (u32)m_pFileHandle.GetSize();
 

@@ -172,8 +172,10 @@ void TextureCache::ClearRenderTargets()
 	TexCache::iterator
 		iter = textures.begin(),
 		tcend = textures.end();
+
 	for (; iter!=tcend; ++iter)
-		iter->second->type = TCET_NORMAL;
+		if (iter->second->type != TCET_EC_DYNAMIC)
+			iter->second->type = TCET_NORMAL;
 }
 
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
@@ -238,6 +240,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// 2. a) For EFB copies, only the hash and the texture address need to match
 		if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
 		{
+			if (entry->type != TCET_EC_VRAM)
+				entry->type = TCET_NORMAL;
+
 			// TODO: Print a warning if the format changes! In this case, we could reinterpret the internal texture object data to the new pixel format (similiar to what is already being done in Renderer::ReinterpretPixelFormat())
 			goto return_entry;
 		}
@@ -318,8 +323,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
-	if (g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_NORMAL;
-	else if (entry->IsEfbCopy()) entry->type = TCET_EC_DYNAMIC;
+	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_EC_DYNAMIC;
+	else entry->type = TCET_NORMAL;
 
 	// load texture
 	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));
@@ -647,8 +652,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		if ((entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
 			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h))
 		{
-			scaled_tex_w = tex_w;
-			scaled_tex_h = tex_h;
+			if (entry->type == TCET_EC_DYNAMIC)
+			{
+				scaled_tex_w = tex_w;
+				scaled_tex_h = tex_h;
+			}
 		}
 		else
 		{
