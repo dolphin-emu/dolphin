@@ -147,10 +147,11 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 	// party ones don't.
  	if (rpt.first[0] == 0xa2)
 	{
-		rpt.first[0] = 0x52;
+		rpt.first[0] = WM_SET_REPORT | WM_BT_OUTPUT;
  	}
 
- 	if (rpt.first[0] == 0x52 && rpt.first[1] == 0x18 && rpt.second == 23)
+	if (rpt.first[0] == (WM_SET_REPORT | WM_BT_OUTPUT) &&
+		rpt.first[1] == 0x18 && rpt.second == 23)
 	{
 		m_audio_reports.Push(rpt);
  		return;

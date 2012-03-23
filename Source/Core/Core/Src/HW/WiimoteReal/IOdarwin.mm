@@ -244,7 +244,7 @@ int Wiimote::IOWrite(unsigned char *buf, int len)
 	if (!IsConnected())
 		return 0;
 
-	ret = [cchan writeAsync: buf length: len refcon: nil];
+	ret = [ichan writeAsync: buf length: len refcon: nil];
 
 	if (ret == kIOReturnSuccess)
 		return len;
