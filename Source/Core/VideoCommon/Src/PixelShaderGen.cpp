@@ -1106,9 +1106,9 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 		WRITE(p, "%s=Tex%d.Sample(samp%d, %s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
 	else if (ApiType & API_D3D9)
 	{
-		// D3D9 uses different pixel to texel mapping, so we need to offset our sampling address by half a pixel (assuming native and virtual texture dimensions match each other, otherwise some math is involved).
+		// D3D9 uses different pixel to texel mapping, so we need to offset our sampling address.
 		// Read the MSDN article "Directly Mapping Texels to Pixels (Direct3D 9)" for further info.
-		WRITE(p, "%s=tex2D(samp%d, (%s.xy + 0.5f*"I_VTEXSCALE"[%d].%s) * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap/2, (texmap&1)?"zw":"xy", texmap, texswap);
+		WRITE(p, "%s=tex2D(samp%d, (%s.xy + 0.0005f*"I_VTEXSCALE"[%d].%s) * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap/2, (texmap&1)?"zw":"xy", texmap, texswap);
 	}
 	else
 		WRITE(p, "%s=tex2D(samp%d, %s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
