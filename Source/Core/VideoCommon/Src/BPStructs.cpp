@@ -476,10 +476,15 @@ void BPWritten(const BPCmd& bp)
 		// if this is different from 0, manual TMEM management is used.
 		if (bp.newvalue != 0)
 		{
-			// NOTE(neobrain): Apparently tmemodd doesn't affect hardware behavior at all (libogc uses it just as a buffer and switches its contents with tmemeven whenever this is called)
 			BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
 			u8* ram_ptr = Memory::GetPointer(tmem_cfg.preload_addr << 5);
-			u32 tmem_addr = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
+			u32 tmem_addr = 0;
+
+			if (bp.newvalue >> 16)
+				tmem_addr = tmem_cfg.preload_tmem_odd * TMEM_LINE_SIZE;
+			else
+				tmem_addr = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
+
 			u32 size = tmem_cfg.preload_tile_info.count * 32;
 			memcpy(texMem + tmem_addr, ram_ptr, size);
 		}
