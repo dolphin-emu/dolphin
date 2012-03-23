@@ -428,6 +428,16 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		break;
 
 	case DVDLowAudioBufferConfig:
+		/*
+			For more information: http://www.crazynation.org/GC/GC_DD_TECH/GCTech.htm
+		
+			Upon Power up or reset , 2 commands must be issued for proper use of audio streaming:
+			DVDReadDiskID A8000040,00000000,00000020
+			DVDLowAudioBufferConfig E4xx00yy,00000000,00000020
+
+			xx=byte 8 [0 or 1] from the disk header retrieved from DVDReadDiskID
+			yy=0 (if xx=0) or 0xA (if xx=1)
+		*/
 		ERROR_LOG(WII_IPC_DVD, "DVDLowAudioBufferConfig");
 		break;
 
