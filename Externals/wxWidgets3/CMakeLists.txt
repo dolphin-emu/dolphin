@@ -875,6 +875,11 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		${SRCS_GTK}
 		${SRCS_UNIX}
 		${SRCS_UNIXGTK})
+	set(LIBS
+		png
+		${GTHREAD2_LIBRARIES}
+		${PANGOCAIRO_LIBRARIES}
+		${GTK2_LIBRARIES})
 else()
 	add_definitions(-D__WXMSW__)
 	set(SRCS

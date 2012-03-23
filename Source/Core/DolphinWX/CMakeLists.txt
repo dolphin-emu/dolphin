@@ -63,8 +63,7 @@ if(wxWidgets_FOUND)
 				Src/WiimoteConfigDiag.cpp
 				Src/WxUtils.cpp)
 
-	set(WXLIBS ${wxWidgets_LIBRARIES}
-				${GTK2_LIBRARIES})
+	set(WXLIBS ${wxWidgets_LIBRARIES})
 else()
 	set(SRCS	Src/MainNoGUI.cpp)
 endif()

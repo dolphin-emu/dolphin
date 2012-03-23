@@ -508,6 +508,10 @@ if(NOT DISABLE_WX)
 			add_definitions(-D__WXOSX_COCOA__)
 		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 			add_definitions(-D__WXGTK__)
+
+			# Check for required libs
+			check_lib(GTHREAD2 gthread-2.0 glib/gthread.h REQUIRED)
+			check_lib(PANGOCAIRO pangocairo pango/pangocairo.h REQUIRED)
 		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 			add_definitions(-D__WXMSW__)
 		else()
