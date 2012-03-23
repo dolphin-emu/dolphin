@@ -103,6 +103,8 @@ private:
 		//CrtDebugBreak breakAt(614);
 	#endif // end DEBUG/FAST
 
+#endif
+
 // Windows compatibility
 #ifndef _WIN32
 #include <limits.h>
