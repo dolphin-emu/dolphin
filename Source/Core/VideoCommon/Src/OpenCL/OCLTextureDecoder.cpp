@@ -143,8 +143,8 @@ void TexDecoder_OpenCL_Initialize()
 					}
 				}
 			}
-			delete header;
-			delete binary;
+			delete [] header;
+			delete [] binary;
 		}
 
 		// If an error occurred using the kernel binary, recompile the kernels
