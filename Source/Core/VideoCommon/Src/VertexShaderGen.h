@@ -35,7 +35,7 @@
 #define I_TRANSFORMMATRICES     "ctrmtx"
 #define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
-#define I_DEPTHPARAMS           "cDepth"
+#define I_DEPTHPARAMS           "cDepth" // farZ, zRange, scaled viewport width, scaled viewport height
 
 #define C_POSNORMALMATRIX        0
 #define C_PROJECTION            (C_POSNORMALMATRIX + 6)

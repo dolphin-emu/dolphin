@@ -1420,9 +1420,10 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	gx_state.sampdc[stage].AddressU = d3dClamps[tm0.wrap_s];
 	gx_state.sampdc[stage].AddressV = d3dClamps[tm0.wrap_t];
 
-	gx_state.sampdc[stage].MipLODBias = (float)tm0.lod_bias/32.0f;
-	gx_state.sampdc[stage].MaxLOD = (float)tm1.max_lod/16.f;
+	// When mipfilter is set to "none", just disable mipmapping altogether
+	gx_state.sampdc[stage].MaxLOD = (mip == TEXF_NONE) ? 0.0f : (float)tm1.max_lod/16.f;
 	gx_state.sampdc[stage].MinLOD = (float)tm1.min_lod/16.f;
+	gx_state.sampdc[stage].MipLODBias = (float)tm0.lod_bias/32.0f;
 }
 
 void Renderer::SetInterlacingMode()

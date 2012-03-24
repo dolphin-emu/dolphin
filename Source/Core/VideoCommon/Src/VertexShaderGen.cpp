@@ -493,6 +493,13 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	    //seems to get rather complicated
 	}
 
+	if (api_type & API_D3D9)
+	{
+		// D3D9 is addressing pixel centers instead of pixel boundaries in clip space.
+		// Thus we need to offset the final position by half a pixel
+		WRITE(p, "o.pos = o.pos + float4("I_DEPTHPARAMS".z, "I_DEPTHPARAMS".w, 0.f, 0.f);\n");
+	}
+
 	WRITE(p, "return o;\n}\n");
 
 

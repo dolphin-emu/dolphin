@@ -560,10 +560,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "uniform float4 "I_KCOLORS"[4] : register(c%d);\n", C_KCOLORS);
 	WRITE(p, "uniform float4 "I_ALPHA"[1] : register(c%d);\n", C_ALPHA);
 	WRITE(p, "uniform float4 "I_TEXDIMS"[8] : register(c%d);\n", C_TEXDIMS);
-	if (ApiType & API_D3D9)
-	{
-		WRITE(p, "uniform float4 "I_VTEXSCALE"[4] : register(c%d);\n", C_VTEXSCALE);
-	}
 	WRITE(p, "uniform float4 "I_ZBIAS"[2] : register(c%d);\n", C_ZBIAS);
 	WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] : register(c%d);\n", C_INDTEXSCALE);
 	WRITE(p, "uniform float4 "I_INDTEXMTX"[6] : register(c%d);\n", C_INDTEXMTX);
@@ -1103,15 +1099,9 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
 	if (ApiType == API_D3D11)
-		WRITE(p, "%s=Tex%d.Sample(samp%d, %s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
-	else if (ApiType & API_D3D9)
-	{
-		// D3D9 uses different pixel to texel mapping, so we need to offset our sampling address by half a pixel (assuming native and virtual texture dimensions match each other, otherwise some math is involved).
-		// Read the MSDN article "Directly Mapping Texels to Pixels (Direct3D 9)" for further info.
-		WRITE(p, "%s=tex2D(samp%d, (%s.xy + 0.5f*"I_VTEXSCALE"[%d].%s) * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap/2, (texmap&1)?"zw":"xy", texmap, texswap);
-	}
+		WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
 	else
-		WRITE(p, "%s=tex2D(samp%d, %s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
+		WRITE(p, "%s=tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
