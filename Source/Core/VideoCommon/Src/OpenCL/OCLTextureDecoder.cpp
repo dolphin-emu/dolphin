@@ -114,7 +114,7 @@ void TexDecoder_OpenCL_Initialize()
 		else
 		{
 			binary_size = input.GetSize();
-			header = new char[HEADER_SIZE];	// TODO: memleak possible
+			header = new char[HEADER_SIZE];
 			binary = new char[binary_size];
 			input.ReadBytes(header, HEADER_SIZE);
 			input.ReadBytes(binary, binary_size);

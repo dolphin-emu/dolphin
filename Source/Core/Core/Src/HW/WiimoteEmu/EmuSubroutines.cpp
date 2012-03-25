@@ -427,7 +427,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 				if (address + size > WIIMOTE_EEPROM_SIZE) 
 				{
 					PanicAlert("ReadData: address + size out of bounds");
-                    delete [] block;
+					delete [] block;
 					return;
 				}
 				// generate a read error
