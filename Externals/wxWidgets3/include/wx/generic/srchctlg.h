@@ -3,7 +3,7 @@
 // Purpose:     generic wxSearchCtrl class
 // Author:      Vince Harron
 // Created:     2006-02-19
-// RCS-ID:      $Id: srchctlg.h 59269 2009-03-02 14:49:55Z VZ $
+// RCS-ID:      $Id: srchctlg.h 68911 2011-08-27 12:13:23Z VZ $
 // Copyright:   Vince Harron
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -191,6 +191,7 @@ public:
 
     // wxWindow overrides
     virtual bool SetFont(const wxFont& font);
+    virtual bool SetBackgroundColour(const wxColour& colour);
 
     // search control generic only
     void SetSearchBitmap( const wxBitmap& bitmap );
@@ -234,6 +235,9 @@ protected:
 
 private:
     friend class wxSearchButton;
+
+    // Implement pure virtual function inherited from wxCompositeWindow.
+    virtual wxWindowList GetCompositeWindowParts() const;
 
 #if wxUSE_MENUS
     void PopupSearchMenu();

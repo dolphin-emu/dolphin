@@ -3,7 +3,7 @@
 // Purpose:     wxGenericFileCtrl Implementation
 // Author:      Diaa M. Sami
 // Created:     2007-07-07
-// RCS-ID:      $Id: filectrlg.cpp 67214 2011-03-16 07:22:56Z SC $
+// RCS-ID:      $Id: filectrlg.cpp 70808 2012-03-04 20:31:42Z VZ $
 // Copyright:   (c) Diaa M. Sami
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@
 #include "wx/tokenzr.h"
 #include "wx/imaglist.h"
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     #include "wx/msw/wrapwin.h"
 #endif
 
@@ -53,7 +53,7 @@
 // ----------------------------------------------------------------------------
 
 static
-int wxCALLBACK wxFileDataNameCompare( long data1, long data2, wxIntPtr sortOrder)
+int wxCALLBACK wxFileDataNameCompare( wxIntPtr data1, wxIntPtr data2, wxIntPtr sortOrder)
 {
      wxFileData *fd1 = (wxFileData *)wxUIntToPtr(data1);
      wxFileData *fd2 = (wxFileData *)wxUIntToPtr(data2);
@@ -71,7 +71,7 @@ int wxCALLBACK wxFileDataNameCompare( long data1, long data2, wxIntPtr sortOrder
 }
 
 static
-int wxCALLBACK wxFileDataSizeCompare(long data1, long data2, wxIntPtr sortOrder)
+int wxCALLBACK wxFileDataSizeCompare(wxIntPtr data1, wxIntPtr data2, wxIntPtr sortOrder)
 {
      wxFileData *fd1 = (wxFileData *)wxUIntToPtr(data1);
      wxFileData *fd2 = (wxFileData *)wxUIntToPtr(data2);
@@ -93,7 +93,7 @@ int wxCALLBACK wxFileDataSizeCompare(long data1, long data2, wxIntPtr sortOrder)
 }
 
 static
-int wxCALLBACK wxFileDataTypeCompare(long data1, long data2, wxIntPtr sortOrder)
+int wxCALLBACK wxFileDataTypeCompare(wxIntPtr data1, wxIntPtr data2, wxIntPtr sortOrder)
 {
      wxFileData *fd1 = (wxFileData *)wxUIntToPtr(data1);
      wxFileData *fd2 = (wxFileData *)wxUIntToPtr(data2);
@@ -115,7 +115,7 @@ int wxCALLBACK wxFileDataTypeCompare(long data1, long data2, wxIntPtr sortOrder)
 }
 
 static
-int wxCALLBACK wxFileDataTimeCompare(long data1, long data2, wxIntPtr sortOrder)
+int wxCALLBACK wxFileDataTimeCompare(wxIntPtr data1, wxIntPtr data2, wxIntPtr sortOrder)
 {
      wxFileData *fd1 = (wxFileData *)wxUIntToPtr(data1);
      wxFileData *fd2 = (wxFileData *)wxUIntToPtr(data2);
@@ -377,7 +377,7 @@ void wxFileData::MakeItem( wxListItem &item )
     if (IsLink())
     {
         wxColour dg = wxTheColourDatabase->Find( wxT("MEDIUM GREY") );
-        if ( dg.Ok() )
+        if ( dg.IsOk() )
             item.SetTextColour(dg);
     }
     item.m_data = wxPtrToUInt(this);

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.h 66993 2011-02-22 13:25:38Z VZ $
+// RCS-ID:      $Id: combobox.h 69956 2011-12-08 14:47:37Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,14 @@ class wxComboBoxChoice;
 class wxComboWidgetImpl;
 
 // Combobox item
-class WXDLLIMPEXP_CORE wxComboBox : public wxControl, public wxComboBoxBase
+class WXDLLIMPEXP_CORE wxComboBox :
+    public wxWindowWithItems<
+#if wxOSX_USE_CARBON
+                wxNavigationEnabled<wxControl>,
+#else
+                wxControl,
+#endif
+                wxComboBoxBase>
 {
     DECLARE_DYNAMIC_CLASS(wxComboBox)
 
@@ -42,7 +49,7 @@ class WXDLLIMPEXP_CORE wxComboBox : public wxControl, public wxComboBoxBase
     virtual void DelegateTextChanged( const wxString& value );
     virtual void DelegateChoice( const wxString& value );
 
-    wxComboBox() { Init(); }
+    wxComboBox() { }
 
     wxComboBox(wxWindow *parent, wxWindowID id,
            const wxString& value = wxEmptyString,
@@ -53,7 +60,6 @@ class WXDLLIMPEXP_CORE wxComboBox : public wxControl, public wxComboBoxBase
            const wxValidator& validator = wxDefaultValidator,
            const wxString& name = wxComboBoxNameStr)
     {
-        Init();
         Create(parent, id, value, pos, size, n, choices, style, validator, name);
     }
 
@@ -66,7 +72,6 @@ class WXDLLIMPEXP_CORE wxComboBox : public wxControl, public wxComboBoxBase
            const wxValidator& validator = wxDefaultValidator,
            const wxString& name = wxComboBoxNameStr)
     {
-        Init();
         Create(parent, id, value, pos, size, choices, style, validator, name);
     }
 
@@ -134,25 +139,20 @@ class WXDLLIMPEXP_CORE wxComboBox : public wxControl, public wxComboBoxBase
     virtual wxTextWidgetImpl* GetTextPeer() const;
 #endif // wxOSX_USE_CARBON
 
+#if wxOSX_USE_COCOA
+    virtual void Popup();
+    virtual void Dismiss();
+#endif // wxOSX_USE_COCOA
 
 
     // osx specific event handling common for all osx-ports
 
     virtual bool        OSXHandleClicked( double timestampsec );
 
-#if wxOSX_USE_CARBON
-    wxCONTROL_ITEMCONTAINER_CLIENTDATAOBJECT_RECAST
-
-    WX_DECLARE_CONTROL_CONTAINER();
-#endif
-
 #if wxOSX_USE_COCOA
     wxComboWidgetImpl* GetComboPeer() const;
 #endif
 protected:
-    // common part of all ctors
-    void Init();
-
     // List functions
     virtual void DoDeleteOneItem(unsigned int n);
     virtual void DoClear();
@@ -187,10 +187,6 @@ protected:
     wxComboBoxChoice*   m_choice;
 
     wxComboBoxDataArray m_datas;
-
-#if wxOSX_USE_CARBON
-    DECLARE_EVENT_TABLE()
-#endif
 };
 
 #endif // _WX_COMBOBOX_H_

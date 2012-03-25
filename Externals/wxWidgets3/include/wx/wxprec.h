@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: wxprec.h 61724 2009-08-21 10:41:26Z VZ $
+// RCS-ID:      $Id: wxprec.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,19 +49,9 @@
     #include "wx/msw/missing.h"
 #endif
 
-// include all PalmOS headers at once
-#ifdef __WXPALMOS__
-#   include <PalmOS.h>
-#endif
-
 // include <os2.h>
 #ifdef __OS2__
 #   include "wx/os2/private.h"
-#endif
-
-// include mgl headers
-#ifdef __WXMGL__
-#   include "wx/mgl/private.h"
 #endif
 
 // include the most common wx headers

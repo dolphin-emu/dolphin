@@ -2,7 +2,7 @@
 // Name:        src/gtk/radiobut.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobut.cpp 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: radiobut.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@ void gtk_radiobutton_clicked_callback( GtkToggleButton *button, wxRadioButton *r
 
     if (g_blockEventsOnDrag) return;
 
-    if (!button->active) return;
+    if (!gtk_toggle_button_get_active(button)) return;
 
     wxCommandEvent event( wxEVT_COMMAND_RADIOBUTTON_SELECTED, rb->GetId());
     event.SetInt( rb->GetValue() );
@@ -102,7 +102,7 @@ void wxRadioButton::SetLabel( const wxString& label )
     // save the original label
     wxControlBase::SetLabel(label);
 
-    GTKSetLabelForLabel(GTK_LABEL(GTK_BIN(m_widget)->child), label);
+    GTKSetLabelForLabel(GTK_LABEL(gtk_bin_get_child(GTK_BIN(m_widget))), label);
 }
 
 void wxRadioButton::SetValue( bool val )
@@ -134,7 +134,7 @@ bool wxRadioButton::GetValue() const
 {
     wxCHECK_MSG( m_widget != NULL, false, wxT("invalid radiobutton") );
 
-    return GTK_TOGGLE_BUTTON(m_widget)->active;
+    return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(m_widget)) != 0;
 }
 
 bool wxRadioButton::Enable( bool enable )
@@ -142,7 +142,7 @@ bool wxRadioButton::Enable( bool enable )
     if (!base_type::Enable(enable))
         return false;
 
-    gtk_widget_set_sensitive(GTK_BIN(m_widget)->child, enable);
+    gtk_widget_set_sensitive(gtk_bin_get_child(GTK_BIN(m_widget)), enable);
 
     if (enable)
         GTKFixSensitivity();
@@ -153,7 +153,7 @@ bool wxRadioButton::Enable( bool enable )
 void wxRadioButton::DoApplyWidgetStyle(GtkRcStyle *style)
 {
     gtk_widget_modify_style(m_widget, style);
-    gtk_widget_modify_style(GTK_BIN(m_widget)->child, style);
+    gtk_widget_modify_style(gtk_bin_get_child(GTK_BIN(m_widget)), style);
 }
 
 GdkWindow *

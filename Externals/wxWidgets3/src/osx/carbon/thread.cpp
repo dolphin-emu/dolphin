@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux/Vadim Zeitlin
 // Modified by: Aj Lavin, Stefan Csomor
 // Created:     04/22/98
-// RCS-ID:      $Id: thread.cpp 67185 2011-03-14 11:54:32Z VZ $
+// RCS-ID:      $Id: thread.cpp 69883 2011-12-01 14:22:15Z VZ $
 // Copyright:   (c) Wolfram Gloger (1996, 1997); Guilhem Lavaux (1998),
 //                  Vadim Zeitlin (1999), Stefan Csomor (2000)
 // Licence:     wxWindows licence
@@ -119,6 +119,11 @@ wxCriticalSection::~wxCriticalSection()
 void wxCriticalSection::Enter()
 {
     MPEnterCriticalRegion( (MPCriticalRegionID) m_critRegion, kDurationForever );
+}
+
+bool wxCriticalSection::TryEnter()
+{
+    return MPEnterCriticalRegion( (MPCriticalRegionID) m_critRegion, kDurationImmediate ) == noErr;
 }
 
 void wxCriticalSection::Leave()

@@ -3,7 +3,7 @@
 // Purpose:     All generic wxDataViewCtrl renderer classes
 // Author:      Robert Roebling, Vadim Zeitlin
 // Created:     2009-11-07 (extracted from wx/generic/dataview.h)
-// RCS-ID:      $Id: dvrenderers.h 67099 2011-03-01 12:16:49Z VS $
+// RCS-ID:      $Id: dvrenderers.h 69473 2011-10-19 16:20:17Z VS $
 // Copyright:   (c) 2006 Robert Roebling
 //              (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -26,21 +26,13 @@ public:
 
     // see the explanation of the following WXOnXXX() methods in wx/generic/dvrenderer.h
 
-    virtual bool WXOnActivate(const wxRect& cell,
-                              wxDataViewModel *model,
-                              const wxDataViewItem& item,
-                              unsigned int col)
+    virtual bool WXActivateCell(const wxRect& cell,
+                                wxDataViewModel *model,
+                                const wxDataViewItem& item,
+                                unsigned int col,
+                                const wxMouseEvent *mouseEvent)
     {
-        return Activate(cell, model, item, col);
-    }
-
-    virtual bool WXOnLeftClick(const wxPoint& cursor,
-                               const wxRect& cell,
-                               wxDataViewModel *model,
-                               const wxDataViewItem &item,
-                               unsigned int col)
-    {
-        return LeftClick(cursor, cell, model, item, col);
+        return ActivateCell(cell, model, item, col, mouseEvent);
     }
 
 private:
@@ -67,9 +59,9 @@ public:
 
     // in-place editing
     virtual bool HasEditorCtrl() const;
-    virtual wxControl* CreateEditorCtrl( wxWindow *parent, wxRect labelRect,
-                                         const wxVariant &value );
-    virtual bool GetValueFromEditorCtrl( wxControl* editor, wxVariant &value );
+    virtual wxWindow* CreateEditorCtrl( wxWindow *parent, wxRect labelRect,
+                                        const wxVariant &value );
+    virtual bool GetValueFromEditorCtrl( wxWindow* editor, wxVariant &value );
 
 protected:
     wxString   m_text;
@@ -121,11 +113,11 @@ public:
     wxSize GetSize() const;
 
     // Implementation only, don't use nor override
-    virtual bool WXOnLeftClick(const wxPoint& cursor,
-                               const wxRect& cell,
-                               wxDataViewModel *model,
-                               const wxDataViewItem& item,
-                               unsigned int col);
+    virtual bool WXActivateCell(const wxRect& cell,
+                                wxDataViewModel *model,
+                                const wxDataViewItem& item,
+                                unsigned int col,
+                                const wxMouseEvent *mouseEvent);
 private:
     bool    m_toggle;
 
@@ -177,9 +169,9 @@ public:
     virtual wxSize GetSize() const;
 
     virtual bool HasEditorCtrl() const { return true; }
-    virtual wxControl* CreateEditorCtrl( wxWindow *parent, wxRect labelRect,
-                                         const wxVariant &value );
-    virtual bool GetValueFromEditorCtrl( wxControl* editor, wxVariant &value );
+    virtual wxWindow* CreateEditorCtrl( wxWindow *parent, wxRect labelRect,
+                                        const wxVariant &value );
+    virtual bool GetValueFromEditorCtrl( wxWindow* editor, wxVariant &value );
 
 private:
     wxDataViewIconText   m_value;
@@ -187,37 +179,6 @@ private:
 protected:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewIconTextRenderer)
 };
-
-// ---------------------------------------------------------
-// wxDataViewDateRenderer
-// ---------------------------------------------------------
-
-class WXDLLIMPEXP_ADV wxDataViewDateRenderer: public wxDataViewRenderer
-{
-public:
-    wxDataViewDateRenderer( const wxString &varianttype = wxT("datetime"),
-                            wxDataViewCellMode mode = wxDATAVIEW_CELL_ACTIVATABLE,
-                            int align = wxDVR_DEFAULT_ALIGNMENT );
-
-    bool SetValue( const wxVariant &value );
-    bool GetValue( wxVariant& value ) const;
-
-    virtual bool Render( wxRect cell, wxDC *dc, int state );
-    virtual wxSize GetSize() const;
-
-    // Implementation only, don't use nor override
-    virtual bool WXOnActivate(const wxRect& cell,
-                              wxDataViewModel *model,
-                              const wxDataViewItem& item,
-                              unsigned int col);
-
-private:
-    wxDateTime    m_date;
-
-protected:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewDateRenderer)
-};
-
 
 #endif // _WX_GENERIC_DVRENDERERS_H_
 

@@ -4,7 +4,7 @@
 // Author:      Harm van der Heijden, Robert Roebling, Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirctrlg.cpp 67206 2011-03-16 06:36:43Z SC $
+// RCS-ID:      $Id: dirctrlg.cpp 70808 2012-03-04 20:31:42Z VZ $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@
     #include  "wx/osx/private.h"  // includes mac headers
 #endif
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
 #include <windows.h>
 #include "wx/msw/winundef.h"
 #include "wx/volume.h"
@@ -71,7 +71,7 @@
     #include <ctype.h>
 #endif
 
-#endif
+#endif // __WINDOWS__
 
 #if defined(__OS2__) || defined(__DOS__)
     #ifdef __OS2__
@@ -250,7 +250,7 @@ size_t wxGetAvailableDrives(wxArrayString &paths, wxArrayString &names, wxArrayI
         }
     }
 
-#elif defined(__UNIX__) || defined(__WXPALMOS__)
+#elif defined(__UNIX__)
     paths.Add(wxT("/"));
     names.Add(wxT("/"));
     icon_ids.Add(wxFileIconsTable::computer);
@@ -270,7 +270,7 @@ size_t wxGetAvailableDrives(wxArrayString &paths, wxArrayString &names, wxArrayI
 
 bool wxIsDriveAvailable(const wxString& dirName)
 {
-    // FIXME_MGL - this method leads to hang up under Watcom for some reason
+    // FIXME: this method leads to hang up under Watcom for some reason
 #ifdef __WATCOMC__
     wxUnusedVar(dirName);
 #else
@@ -310,7 +310,7 @@ int setdrive(int WXUNUSED_IN_WINCE(drive))
 #else
     newdrive[2] = wxT('\0');
 #endif
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
     if (::SetCurrentDirectory(newdrive))
 #else
     // VA doesn't know what LPSTR is and has its own set
@@ -1170,7 +1170,7 @@ void wxGenericDirCtrl::FindChildFiles(wxTreeItemId treeid, int dirFlags, wxArray
 
     wxString dirName(data->m_path);
 
-#if defined(__WXMSW__) || defined(__OS2__)
+#if defined(__WINDOWS__) || defined(__OS2__)
     if (dirName.Last() == ':')
         dirName += wxString(wxFILE_SEP_PATH);
 #endif
@@ -1572,7 +1572,7 @@ wxImageList *wxFileIconsTable::GetSmallImageList()
     return m_smallImageList;
 }
 
-#if wxUSE_MIMETYPE && wxUSE_IMAGE && (!defined(__WXMSW__) || wxUSE_WXDIB)
+#if wxUSE_MIMETYPE && wxUSE_IMAGE && (!defined(__WINDOWS__) || wxUSE_WXDIB)
 // VS: we don't need this function w/o wxMimeTypesManager because we'll only have
 //     one icon and we won't resize it
 
@@ -1708,7 +1708,7 @@ int wxFileIconsTable::GetIconID(const wxString& extension, const wxString& mime)
 
     delete ft;
 
-    if ( !ic.Ok() )
+    if ( !ic.IsOk() )
     {
         int newid = file;
         m_HashTable->Put(extension, new wxFileIconEntry(newid));
@@ -1718,7 +1718,7 @@ int wxFileIconsTable::GetIconID(const wxString& extension, const wxString& mime)
     wxBitmap bmp;
     bmp.CopyFromIcon(ic);
 
-    if ( !bmp.Ok() )
+    if ( !bmp.IsOk() )
     {
         int newid = file;
         m_HashTable->Put(extension, new wxFileIconEntry(newid));
@@ -1732,7 +1732,7 @@ int wxFileIconsTable::GetIconID(const wxString& extension, const wxString& mime)
     {
         m_smallImageList->Add(bmp);
     }
-#if wxUSE_IMAGE && (!defined(__WXMSW__) || wxUSE_WXDIB)
+#if wxUSE_IMAGE && (!defined(__WINDOWS__) || wxUSE_WXDIB)
     else
     {
         wxImage img = bmp.ConvertToImage();

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.07.2003
-// RCS-ID:      $Id: renderer.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: renderer.cpp 69741 2011-11-12 16:50:37Z PC $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -205,7 +205,7 @@ wxRendererGTK::DrawHeaderButton(wxWindow *win,
 
     gtk_paint_box
     (
-        button->style,
+        gtk_widget_get_style(button),
         gdk_window,
         state,
         GTK_SHADOW_OUT,
@@ -256,18 +256,17 @@ wxRendererGTK::DrawTreeItemButton(wxWindow* win,
     if (win->GetLayoutDirection() == wxLayout_RightToLeft)
         x_diff = rect.width;
 
-    // VZ: I don't know how to get the size of the expander so as to centre it
-    //     in the given rectangle, +2/3 below is just what looks good here...
+    // x and y parameters specify the center of the expander
     gtk_paint_expander
     (
-        tree->style,
+        gtk_widget_get_style(tree),
         gdk_window,
         state,
         NULL,
         tree,
         "treeview",
-        dc.LogicalToDeviceX(rect.x) + 6 - x_diff,
-        dc.LogicalToDeviceY(rect.y) + 3,
+        dc.LogicalToDeviceX(rect.x) + rect.width / 2 - x_diff,
+        dc.LogicalToDeviceY(rect.y) + rect.height / 2,
         flags & wxCONTROL_EXPANDED ? GTK_EXPANDER_EXPANDED
                                    : GTK_EXPANDER_COLLAPSED
     );
@@ -315,7 +314,7 @@ wxRendererGTK::DrawSplitterSash(wxWindow* win,
                                 wxOrientation orient,
                                 int flags)
 {
-    if ( !win->m_wxwindow->window )
+    if (gtk_widget_get_window(win->m_wxwindow) == NULL)
     {
         // window not realized yet
         return;
@@ -353,7 +352,7 @@ wxRendererGTK::DrawSplitterSash(wxWindow* win,
 
     gtk_paint_handle
     (
-        win->m_wxwindow->style,
+        gtk_widget_get_style(win->m_wxwindow),
         gdk_window,
         flags & wxCONTROL_CURRENT ? GTK_STATE_PRELIGHT : GTK_STATE_NORMAL,
         GTK_SHADOW_NONE,
@@ -409,7 +408,7 @@ wxRendererGTK::DrawDropArrow(wxWindow* win,
     // draw arrow on button
     gtk_paint_arrow
     (
-        button->style,
+        gtk_widget_get_style(button),
         gdk_window,
         state,
         flags & wxCONTROL_PRESSED ? GTK_SHADOW_IN : GTK_SHADOW_OUT,
@@ -488,7 +487,7 @@ wxRendererGTK::DrawCheckBox(wxWindow* win,
 
     gtk_paint_check
     (
-        button->style,
+        gtk_widget_get_style(button),
         gdk_window,
         state,
         shadow_type,
@@ -527,7 +526,7 @@ wxRendererGTK::DrawPushButton(wxWindow* win,
 
     gtk_paint_box
     (
-        button->style,
+        gtk_widget_get_style(button),
         gdk_window,
         state,
         flags & wxCONTROL_PRESSED ? GTK_SHADOW_IN : GTK_SHADOW_OUT,
@@ -559,7 +558,7 @@ wxRendererGTK::DrawItemSelectionRect(wxWindow* win,
 
         // the wxCONTROL_FOCUSED state is deduced
         // directly from the m_wxwindow by GTK+
-        gtk_paint_flat_box(wxGTKPrivate::GetTreeWidget()->style,
+        gtk_paint_flat_box(gtk_widget_get_style(wxGTKPrivate::GetTreeWidget()),
                         gdk_window,
                         GTK_STATE_SELECTED,
                         GTK_SHADOW_NONE,
@@ -588,7 +587,7 @@ void wxRendererGTK::DrawFocusRect(wxWindow* win, wxDC& dc, const wxRect& rect, i
     else
         state = GTK_STATE_NORMAL;
 
-    gtk_paint_focus( win->m_widget->style,
+    gtk_paint_focus( gtk_widget_get_style(win->m_widget),
                      gdk_window,
                      state,
                      NULL,
@@ -611,14 +610,11 @@ void wxRendererGTK::DrawTextCtrl(wxWindow* win, wxDC& dc, const wxRect& rect, in
     if ( flags & wxCONTROL_DISABLED )
         state = GTK_STATE_INSENSITIVE;
 
-    if (flags & wxCONTROL_CURRENT )
-        GTK_WIDGET_SET_FLAGS( entry, GTK_HAS_FOCUS );
-    else
-        GTK_WIDGET_UNSET_FLAGS( entry, GTK_HAS_FOCUS );
+    gtk_widget_set_can_focus(entry, (flags & wxCONTROL_CURRENT) != 0);
 
     gtk_paint_shadow
     (
-        entry->style,
+        gtk_widget_get_style(entry),
         gdk_window,
         state,
         GTK_SHADOW_OUT,
@@ -643,14 +639,11 @@ void wxRendererGTK::DrawComboBox(wxWindow* win, wxDC& dc, const wxRect& rect, in
     if ( flags & wxCONTROL_DISABLED )
        state = GTK_STATE_INSENSITIVE;
 
-    if (flags & wxCONTROL_CURRENT )
-        GTK_WIDGET_SET_FLAGS( combo, GTK_HAS_FOCUS );
-    else
-        GTK_WIDGET_UNSET_FLAGS( combo, GTK_HAS_FOCUS );
+    gtk_widget_set_can_focus(combo, (flags & wxCONTROL_CURRENT) != 0);
 
     gtk_paint_shadow
     (
-        combo->style,
+        gtk_widget_get_style(combo),
         gdk_window,
         state,
         GTK_SHADOW_OUT,
@@ -672,7 +665,7 @@ void wxRendererGTK::DrawComboBox(wxWindow* win, wxDC& dc, const wxRect& rect, in
 
     gtk_paint_arrow
     (
-        combo->style,
+        gtk_widget_get_style(combo),
         gdk_window,
         state,
         GTK_SHADOW_OUT,
@@ -693,7 +686,7 @@ void wxRendererGTK::DrawComboBox(wxWindow* win, wxDC& dc, const wxRect& rect, in
 
     gtk_paint_box
     (
-        combo->style,
+        gtk_widget_get_style(combo),
         gdk_window,
         state,
         GTK_SHADOW_ETCHED_OUT,
@@ -740,7 +733,7 @@ void wxRendererGTK::DrawRadioBitmap(wxWindow* win, wxDC& dc, const wxRect& rect,
 
     gtk_paint_option
     (
-        button->style,
+        gtk_widget_get_style(button),
         gdk_window,
         state,
         shadow_type,

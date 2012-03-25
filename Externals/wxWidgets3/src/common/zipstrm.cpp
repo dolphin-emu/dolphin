@@ -2,7 +2,7 @@
 // Name:        src/common/zipstrm.cpp
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: zipstrm.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: zipstrm.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1341,7 +1341,7 @@ void wxZipInputStream::Init(const wxString& file)
     ffile = static_cast<wxFFileInputStream*>(m_parent_i_stream);
     wxZipEntryPtr_ entry;
 
-    if (ffile->Ok()) {
+    if (ffile->IsOk()) {
         do {
             entry.reset(GetNextEntry());
         }

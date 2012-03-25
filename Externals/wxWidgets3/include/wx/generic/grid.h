@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Santiago Palacios
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.h 65451 2010-08-30 22:18:52Z VZ $
+// RCS-ID:      $Id: grid.h 70825 2012-03-06 10:23:44Z SC $
 // Copyright:   (c) Michael Bedward
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -432,9 +432,9 @@ public:
     void SetKind(wxAttrKind kind) { m_attrkind = kind; }
 
     // accessors
-    bool HasTextColour() const { return m_colText.Ok(); }
-    bool HasBackgroundColour() const { return m_colBack.Ok(); }
-    bool HasFont() const { return m_font.Ok(); }
+    bool HasTextColour() const { return m_colText.IsOk(); }
+    bool HasBackgroundColour() const { return m_colBack.IsOk(); }
+    bool HasFont() const { return m_font.IsOk(); }
     bool HasAlignment() const
     {
         return m_hAlign != wxALIGN_INVALID || m_vAlign != wxALIGN_INVALID;
@@ -1637,7 +1637,7 @@ public:
     // unset any existing sorting column
     void UnsetSortingColumn() { SetSortingColumn(wxNOT_FOUND); }
 
-#ifdef WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_2_8
     // ------ For compatibility with previous wxGrid only...
     //
     //  ************************************************
@@ -2160,7 +2160,7 @@ private:
     // --------------------------------
 
     // process mouse drag event in WXGRID_CURSOR_SELECT_CELL mode
-    void DoGridCellDrag(wxMouseEvent& event,
+    bool DoGridCellDrag(wxMouseEvent& event,
                         const wxGridCellCoords& coords,
                         bool isFirstDrag);
 

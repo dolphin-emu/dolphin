@@ -129,11 +129,19 @@ void DisplayMessage(const char *message, int time_in_ms)
 	SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
+	// Actually displaying non-ASCII could cause things to go pear-shaped
+	for (const char *c = message; *c != '\0'; ++c)
+		if (*c < ' ')
+			return;
+
 	g_video_backend->Video_AddMessage(message, time_in_ms);
+	
 	if (_CoreParameter.bRenderToMain &&
-		SConfig::GetInstance().m_InterfaceStatusbar) {
-			Host_UpdateStatusBar(message);
-	} else
+		SConfig::GetInstance().m_InterfaceStatusbar)
+	{
+		Host_UpdateStatusBar(message);
+	}
+	else
 		Host_UpdateTitle(message);
 }
 

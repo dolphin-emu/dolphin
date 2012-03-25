@@ -2,7 +2,7 @@
 // Name:        wx/gtk/region.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: region.h 61724 2009-08-21 10:41:26Z VZ $
+// Id:          $Id: region.h 69815 2011-11-25 00:52:24Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -122,13 +122,11 @@ private:
     void Init();
     void CreateRects( const wxRegion& r );
 
-    size_t   m_current;
     wxRegion m_region;
-
     wxRect *m_rects;
-    size_t  m_numRects;
+    int m_numRects;
+    int m_current;
 
-private:
     DECLARE_DYNAMIC_CLASS(wxRegionIterator)
 };
 

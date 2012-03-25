@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     15/04/2006
-// Id:          $Id: clrpicker.cpp 55288 2008-08-26 16:19:23Z PC $
+// Id:          $Id: clrpicker.cpp 70756 2012-02-29 18:29:31Z PC $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,6 @@ bool wxColourButton::Create( wxWindow *parent, wxWindowID id,
     m_colour = col;
     m_widget = gtk_color_button_new_with_color( m_colour.GetColor() );
     g_object_ref(m_widget);
-    gtk_widget_show(m_widget);
 
     // GtkColourButton signals
     g_signal_connect(m_widget, "color-set",

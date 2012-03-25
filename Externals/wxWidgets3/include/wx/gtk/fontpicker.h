@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Francesco Montorsi
-// RCS-ID:      $Id: fontpicker.h 49668 2007-11-06 00:32:34Z MR $
+// RCS-ID:      $Id: fontpicker.h 69020 2011-09-07 16:56:50Z PC $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -52,7 +52,7 @@ protected:
 
 public:     // used by the GTK callback only
 
-    void SetNativeFontInfo(const gchar *gtkdescription)
+    void SetNativeFontInfo(const char *gtkdescription)
         { m_selectedFont.SetNativeFontInfo(wxString::FromAscii(gtkdescription)); }
 
 private:

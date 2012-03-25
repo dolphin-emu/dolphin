@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     21.06.2003 (extracted from msw/utils.cpp)
-// RCS-ID:      $Id: utilsgui.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: utilsgui.cpp 69758 2011-11-14 12:51:53Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -113,7 +113,7 @@ bool wxCheckForInterrupt(wxWindow *wnd)
 void wxGetMousePosition( int* x, int* y )
 {
     POINT pt;
-    GetCursorPos( & pt );
+    wxGetCursorPosMSW( & pt );
     if ( x ) *x = pt.x;
     if ( y ) *y = pt.y;
 }

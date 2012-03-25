@@ -632,12 +632,12 @@ void CFrame::BootGame(const std::string& filename)
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
 		else if (!StartUp.m_strDefaultGCM.empty()
-				&&	wxFileExists(wxString(StartUp.m_strDefaultGCM.c_str(), wxConvUTF8)))
+				&&	wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
 			bootfile = StartUp.m_strDefaultGCM;
 		else
 		{
 			if (!SConfig::GetInstance().m_LastFilename.empty()
-					&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
+					&& wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
 				bootfile = SConfig::GetInstance().m_LastFilename;
 			else
 			{
@@ -1375,16 +1375,12 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 
 	wxProgressDialog dialog(_("Installing WAD..."),
 		_("Working..."),
-		1000, // range
-		this, // parent
+		1000,
+		this,
 		wxPD_APP_MODAL |
-		wxPD_ELAPSED_TIME |
-		wxPD_ESTIMATED_TIME |
-		wxPD_REMAINING_TIME |
-		wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+		wxPD_SMOOTH
 		);
-
-	dialog.CenterOnParent();
 
 	u64 titleID = DiscIO::CNANDContentManager::Access().Install_WiiWAD(fileName);
 	if (titleID == TITLEID_SYSMENU)
@@ -1551,16 +1547,21 @@ void CFrame::UpdateGUI()
 	bool Initialized = Core::IsRunning();
 	bool Running = Core::GetState() == Core::CORE_RUN;
 	bool Paused = Core::GetState() == Core::CORE_PAUSE;
+	bool RunningWii = Initialized && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	bool RunningGamecube = Initialized && !SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 
 	// Make sure that we have a toolbar
 	if (m_ToolBar)
 	{
 		// Enable/disable the Config and Stop buttons
 		m_ToolBar->EnableTool(wxID_OPEN, !Initialized);
-		m_ToolBar->EnableTool(wxID_REFRESH, !Initialized); // Don't allow refresh when we don't show the list
+		// Don't allow refresh when we don't show the list
+		m_ToolBar->EnableTool(wxID_REFRESH, !Initialized);
 		m_ToolBar->EnableTool(IDM_STOP, Running || Paused);
 		m_ToolBar->EnableTool(IDM_TOGGLE_FULLSCREEN, Running || Paused);
 		m_ToolBar->EnableTool(IDM_SCREENSHOT, Running || Paused);
+		// Don't allow wiimote config while in Gamecube mode
+		m_ToolBar->EnableTool(IDM_CONFIG_WIIMOTE_PLUGIN, !RunningGamecube);
 	}
 
 	// File
@@ -1590,15 +1591,12 @@ void CFrame::UpdateGUI()
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid())
 		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 
-	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->
-		Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
-	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->
-		Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
-	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->
-		Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
-	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->
-		Enable(Initialized  && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii);
-	if (Initialized && SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(RunningWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(RunningWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(RunningWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Enable(RunningWii);
+	GetMenuBar()->FindItem(IDM_CONFIG_WIIMOTE_PLUGIN)->Enable(!RunningGamecube);
+	if (RunningWii)
 	{
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(GetUsbPointer()->
 				AccessWiiMote(0x0100)->IsConnected());
@@ -1644,7 +1642,7 @@ void CFrame::UpdateGUI()
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty()
-					&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
+					&& wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);

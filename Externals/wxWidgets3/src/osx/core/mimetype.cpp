@@ -4,7 +4,7 @@
 // Author:      Neil Perkins
 // Modified by:
 // Created:     2010-05-15
-// RCS-ID:      $Id: mimetype.cpp 66728 2011-01-22 14:38:36Z DS $
+// RCS-ID:      $Id: mimetype.cpp 68563 2011-08-05 19:02:26Z VZ $
 // Copyright:   (C) 2010 Neil Perkins
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -447,7 +447,11 @@ void wxMimeTypesManagerImpl::LoadDisplayDataForUti(const wxString& uti)
     if( !bundle )
         return;
 
-    // Get a all the document type data in this bundle
+    // Also get the open command while we have the bundle
+    wxCFStringRef cfsAppPath(CFURLCopyFileSystemPath(appUrl, kCFURLPOSIXPathStyle));
+    m_utiMap[ uti ].application = cfsAppPath.AsString();
+
+    // Get all the document type data in this bundle
     CFTypeRef docTypeData;
     docTypeData = CFBundleGetValueForInfoDictionaryKey( bundle, docTypesKey );
 
@@ -587,6 +591,19 @@ bool wxMimeTypesManagerImpl::GetDescription(const wxString& uti, wxString *desc)
     return true;
 }
 
+bool wxMimeTypesManagerImpl::GetApplication(const wxString& uti, wxString *command)
+{
+    const UtiMap::const_iterator itr = m_utiMap.find( uti );
+
+    if( itr == m_utiMap.end() )
+    {
+        command->clear();
+        return false;
+    }
+
+    *command = itr->second.application;
+    return true;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // The remaining functionality has not yet been implemented for OS X
@@ -626,9 +643,36 @@ bool wxFileTypeImpl::GetDescription(wxString *desc) const
     return m_manager->GetDescription( m_uti, desc );
 }
 
-bool wxFileTypeImpl::GetOpenCommand(wxString *WXUNUSED(openCmd), const wxFileType::MessageParameters& WXUNUSED(params)) const
+namespace
 {
-    return false;
+
+// Helper function for GetOpenCommand(): returns the string surrounded by
+// (singly) quotes if it contains spaces.
+wxString QuoteIfNecessary(const wxString& path)
+{
+    wxString result(path);
+
+    if ( path.find(' ') != wxString::npos )
+    {
+        result.insert(0, "'");
+        result.append("'");
+    }
+
+    return result;
+}
+
+} // anonymous namespace
+
+bool wxFileTypeImpl::GetOpenCommand(wxString *openCmd, const wxFileType::MessageParameters& params) const
+{
+    wxString application;
+    if ( !m_manager->GetApplication(m_uti, &application) )
+        return false;
+
+    *openCmd << QuoteIfNecessary(application)
+             << ' ' << QuoteIfNecessary(params.GetFileName());
+
+    return true;
 }
 
 bool wxFileTypeImpl::GetPrintCommand(wxString *WXUNUSED(printCmd), const wxFileType::MessageParameters& WXUNUSED(params)) const

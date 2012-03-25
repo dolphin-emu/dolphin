@@ -16,7 +16,7 @@
 #endif /* __cplusplus */
 
 /* fill in with the string wxGetOsDescription() will return */
-#define WXWIN_OS_DESCRIPTION "Darwin 10.6.0 i386"
+#define WXWIN_OS_DESCRIPTION "Darwin 11.3.0 i386"
 
 /* the installation location prefix from configure */
 #define wxINSTALL_PREFIX "/usr/local"
@@ -53,9 +53,6 @@
 /* Define if your processor stores words with the most significant
    byte first (like Motorola and SPARC, unlike Intel and VAX).  */
 /* #undef WORDS_BIGENDIAN */
-
-/* Define this if your version of GTK+ is greater than 1.2 */
-/* #undef __WXGTK12__ */
 
 /* Define this if your version of GTK+ is greater than 1.2.7 */
 /* #undef __WXGTK127__ */
@@ -186,11 +183,9 @@
 #define wxUSE_WCHAR_T 1
 
 
-#define wxUSE_EXCEPTIONS 0
+#define wxUSE_EXCEPTIONS    0
 
 #define wxUSE_EXTENDED_RTTI 0
-
-#define wxUSE_STL 0
 
 #define wxUSE_LOG 1
 
@@ -206,6 +201,12 @@
 
 #define wxUSE_STREAMS 1
 
+#define wxUSE_PRINTF_POS_PARAMS 1
+
+
+
+#define wxUSE_STL 0
+
 #if defined(__DMC__) || defined(__WATCOMC__) \
         || (defined(_MSC_VER) && _MSC_VER < 1200)
     #define wxUSE_STD_DEFAULT  0
@@ -213,11 +214,16 @@
     #define wxUSE_STD_DEFAULT  0
 #endif
 
+#define wxUSE_STD_CONTAINERS 0
+
 #define wxUSE_STD_IOSTREAM 1
 
 #define wxUSE_STD_STRING 1
 
-#define wxUSE_PRINTF_POS_PARAMS 1
+#define wxUSE_STD_STRING_CONV_IN_WXSTRING wxUSE_STL
+
+#define wxUSE_IOSTREAMH     0
+
 
 
 #define wxUSE_LONGLONG 1
@@ -247,7 +253,7 @@
 
 #define wxUSE_STOPWATCH 1
 
-#define wxUSE_FSWATCHER 0
+#define wxUSE_FSWATCHER     0
 
 #define wxUSE_CONFIG 1
 
@@ -303,7 +309,7 @@
 
 #define wxUSE_ANY 1
 
-#define wxUSE_REGEX 0
+#define wxUSE_REGEX       0
 
 #define wxUSE_SYSTEM_OPTIONS 1
 
@@ -311,18 +317,31 @@
 
 #define wxUSE_MEDIACTRL 1
 
-#define wxUSE_XRC 0
+#define wxUSE_XRC       0
 
-#define wxUSE_XML 0
+#define wxUSE_XML       wxUSE_XRC
 
 #define wxUSE_AUI 1
 
-#define wxUSE_RIBBON 0
+#define wxUSE_RIBBON    0
 
-#define wxUSE_PROPGRID 0
+#define wxUSE_PROPGRID  0
 
 #define wxUSE_STC 0
 
+#define wxUSE_WEBVIEW 0
+
+#ifdef __WXMSW__
+#define wxUSE_WEBVIEW_IE 0
+#else
+#define wxUSE_WEBVIEW_IE 0
+#endif
+
+#if defined(__WXGTK__) || defined(__WXOSX__)
+#define wxUSE_WEBVIEW_WEBKIT 0
+#else
+#define wxUSE_WEBVIEW_WEBKIT 0
+#endif
 
 
 #ifdef _MSC_VER
@@ -350,11 +369,14 @@
 
 #define wxUSE_CONTROLS 1
 
+#define wxUSE_MARKUP       0
+
 #define wxUSE_POPUPWIN 1
 
 #define wxUSE_TIPWINDOW 1
 
 #define wxUSE_ANIMATIONCTRL 1
+#define wxUSE_BANNERWINDOW 1
 #define wxUSE_BUTTON 1
 #define wxUSE_BMPBUTTON 1
 #define wxUSE_CALENDARCTRL 1
@@ -390,8 +412,10 @@
 #define wxUSE_STATTEXT 1
 #define wxUSE_STATBMP 1
 #define wxUSE_TEXTCTRL 1
+#define wxUSE_TIMEPICKCTRL 1
 #define wxUSE_TOGGLEBTN 1
 #define wxUSE_TREECTRL 1
+#define wxUSE_TREELISTCTRL 1
 
 #define wxUSE_STATUSBAR 1
 
@@ -431,7 +455,7 @@
 
 #define wxUSE_ARTPROVIDER_TANGO 1
 
-#define wxUSE_HOTKEY 0
+#define wxUSE_HOTKEY 1
 
 #define wxUSE_CARET 1
 
@@ -446,6 +470,8 @@
 #define wxUSE_MENUS 1
 
 #define wxUSE_NOTIFICATION_MESSAGE 1
+
+#define wxUSE_RICHTOOLTIP 1
 
 #define wxUSE_SASH 1
 
@@ -511,11 +537,11 @@
 
 #define wxUSE_PRINTING_ARCHITECTURE 1
 
-#define wxUSE_HTML 0
+#define wxUSE_HTML          0
 
 #define wxUSE_GLCANVAS 1
 
-#define wxUSE_RICHTEXT 0
+#define wxUSE_RICHTEXT       0
 
 
 #define wxUSE_CLIPBOARD 1
@@ -559,10 +585,7 @@
 
 #define wxUSE_SVG 1
 
-
-#define REMOVE_UNUSED_ARG   0
-
-#define wxUSE_IOSTREAMH     0
+#define wxUSE_DC_TRANSFORM_MATRIX 1
 
 
 
@@ -570,9 +593,9 @@
 
 #define wxUSE_LIBPNG 1
 
-#define wxUSE_LIBJPEG 0
+#define wxUSE_LIBJPEG       0
 
-#define wxUSE_LIBTIFF 0
+#define wxUSE_LIBTIFF       0
 
 #define wxUSE_TGA 1
 
@@ -658,6 +681,8 @@
 
 
 #define wxUSE_DATEPICKCTRL_GENERIC 0
+
+#define wxUSE_TIMEPICKCTRL_GENERIC 0
 
 
 #define wxUSE_CRASHREPORT 0
@@ -794,10 +819,6 @@
  * Use the Hildon 2.0 framework
  */
 #define wxUSE_LIBHILDON2 0
-/*
- * Have glibc2
- */
-#define wxHAVE_GLIBC2 0
 /*
  * Use libXpm
  */
@@ -975,25 +996,25 @@
 #define HAVE_USLEEP 1
 
 /* Define if you have wcscasecmp() function  */
-/* #undef HAVE_WCSCASECMP */
+#define HAVE_WCSCASECMP 1
 
 /* Define if you have wcsncasecmp() function  */
-/* #undef HAVE_WCSNCASECMP */
+#define HAVE_WCSNCASECMP 1
 
 /* Define if you have wcslen function  */
 #define HAVE_WCSLEN 1
 
 /* Define if you have wcsdup function  */
-/* #undef HAVE_WCSDUP */
+#define HAVE_WCSDUP 1
 
 /* Define if you have wcsftime() function  */
 #define HAVE_WCSFTIME 1
 
 /* Define if you have strnlen() function */
-/* #undef HAVE_STRNLEN */
+#define HAVE_STRNLEN 1
 
 /* Define if you have wcsnlen() function */
-/* #undef HAVE_WCSNLEN */
+#define HAVE_WCSNLEN 1
 
 /* Define if you have wcstoull() and wcstoll() */
 /* #undef HAVE_WCSTOULL */
@@ -1209,7 +1230,7 @@
 /* #undef wxHAS_INOTIFY */
 
 /* Define if you have kqueu_xxx() functions. */
-#define wxHAS_KQUEUE 1
+/* #undef wxHAS_KQUEUE */
 
 /* -------------------------------------------------------------------------
    Win32 adjustments section

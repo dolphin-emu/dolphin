@@ -56,7 +56,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
-    <None Include="Src\SConscript" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Win32">

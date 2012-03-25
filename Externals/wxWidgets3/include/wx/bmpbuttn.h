@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.08.00
-// RCS-ID:      $Id: bmpbuttn.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: bmpbuttn.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 2000 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -130,8 +130,6 @@ protected:
     #include "wx/cocoa/bmpbuttn.h"
 #elif defined(__WXPM__)
     #include "wx/os2/bmpbuttn.h"
-#elif defined(__WXPALMOS__)
-    #include "wx/palmos/bmpbuttn.h"
 #endif
 
 #endif // wxUSE_BMPBUTTON

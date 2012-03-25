@@ -4,7 +4,7 @@
 // Author:      Ove Kaven
 // Modified by: Ron Lee, Francesco Montorsi
 // Created:     09/04/99
-// RCS-ID:      $Id: wxcrt.cpp 65691 2010-09-30 14:30:41Z VZ $
+// RCS-ID:      $Id: wxcrt.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) wxWidgets copyright
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,14 +40,12 @@
     extern "C" int vswscanf(const wchar_t *, const wchar_t *, va_list);
 #endif
 
-#ifndef __WXPALMOS5__
 #ifndef __WXWINCE__
     #include <time.h>
     #include <locale.h>
 #else
     #include "wx/msw/wince/time.h"
 #endif
-#endif // !__WXPALMOS5__
 
 #ifndef WX_PRECOMP
     #include "wx/string.h"

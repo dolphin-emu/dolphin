@@ -3,7 +3,7 @@
 // Purpose:     wxHeaderCtrlBase class: interface of wxHeaderCtrl
 // Author:      Vadim Zeitlin
 // Created:     2008-12-01
-// RCS-ID:      $Id: headerctrl.h 58757 2009-02-08 11:45:59Z VZ $
+// RCS-ID:      $Id: headerctrl.h 70338 2012-01-14 16:51:57Z VS $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -154,6 +154,8 @@ public:
     // specified) and if the control has wxHD_ALLOW_REORDER style as well
     bool ShowCustomizeDialog();
 
+    // compute column title width
+    int GetColumnTitleWidth(const wxHeaderColumn& col);
 
     // implementation only from now on
     // -------------------------------

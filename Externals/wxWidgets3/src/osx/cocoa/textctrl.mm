@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: textctrl.mm 70667 2012-02-22 08:24:09Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,6 +45,7 @@
 #include "wx/filefn.h"
 #include "wx/sysopt.h"
 #include "wx/thread.h"
+#include "wx/textcompleter.h"
 
 #include "wx/osx/private.h"
 #include "wx/osx/cocoa/private/textimpl.h"
@@ -56,11 +57,18 @@
 - (void)setSelectable:(BOOL)flag;
 @end
 
+// An object of this class is created before the text is modified
+// programmatically and destroyed as soon as this is done. It does several
+// things, like ensuring that the control is editable to allow setting its text
+// at all and eating any unwanted focus loss events from textDidEndEditing:
+// which don't really correspond to focus change.
 class wxMacEditHelper
 {
 public :
     wxMacEditHelper( NSView* textView )
     {
+        m_viewPreviouslyEdited = ms_viewCurrentlyEdited;
+        ms_viewCurrentlyEdited =
         m_textView = textView;
         m_formerEditable = YES;
         if ( textView )
@@ -78,13 +86,75 @@ public :
             [m_textView setEditable:m_formerEditable];
             [m_textView setSelectable:m_formerSelectable];
         }
+
+        ms_viewCurrentlyEdited = m_viewPreviouslyEdited;
     }
+
+    // Returns the last view we were instantiated for or NULL.
+    static NSView *GetCurrentlyEditedView() { return ms_viewCurrentlyEdited; }
 
 protected :
     BOOL m_formerEditable ;
     BOOL m_formerSelectable;
     NSView* m_textView;
+
+    // The original value of ms_viewCurrentlyEdited when this object was
+    // created.
+    NSView* m_viewPreviouslyEdited;
+
+    static NSView* ms_viewCurrentlyEdited;
 } ;
+
+NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
+
+// a minimal NSFormatter that just avoids getting too long entries
+@interface wxMaximumLengthFormatter : NSFormatter
+{
+    int maxLength;
+}
+
+@end
+
+@implementation wxMaximumLengthFormatter
+
+- (id)init 
+{
+    [super init];
+    maxLength = 0;
+    return self;
+}
+
+- (void) setMaxLength:(int) maxlen 
+{
+    maxLength = maxlen;
+}
+
+- (NSString *)stringForObjectValue:(id)anObject 
+{
+    if(![anObject isKindOfClass:[NSString class]])
+        return nil;
+    return [NSString stringWithString:anObject];
+}
+
+- (BOOL)getObjectValue:(id *)obj forString:(NSString *)string errorDescription:(NSString  **)error 
+{
+    *obj = [NSString stringWithString:string];
+    return YES;
+}
+
+- (BOOL)isPartialStringValid:(NSString **)partialStringPtr proposedSelectedRange:(NSRangePointer)proposedSelRangePtr 
+              originalString:(NSString *)origString originalSelectedRange:(NSRange)origSelRange errorDescription:(NSString **)error
+{
+    int len = [*partialStringPtr length];
+    if ( maxLength > 0 && len > maxLength )
+    {
+        // TODO wxEVT_COMMAND_TEXT_MAXLEN
+        return NO;
+    }
+    return YES;
+}
+
+@end
 
 @implementation wxNSSecureTextField
 
@@ -114,6 +184,39 @@ protected :
     {
         impl->DoNotifyFocusEvent( false, NULL );
     }
+}
+
+- (BOOL)control:(NSControl*)control textView:(NSTextView*)textView doCommandBySelector:(SEL)commandSelector
+{
+    wxUnusedVar(textView);
+    
+    BOOL handled = NO;
+    
+    wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( control );
+    if ( impl  )
+    {
+        wxWindow* wxpeer = (wxWindow*) impl->GetWXPeer();
+        if ( wxpeer )
+        {
+            if (commandSelector == @selector(insertNewline:))
+            {
+                wxTopLevelWindow *tlw = wxDynamicCast(wxGetTopLevelParent(wxpeer), wxTopLevelWindow);
+                if ( tlw && tlw->GetDefaultItem() )
+                {
+                    wxButton *def = wxDynamicCast(tlw->GetDefaultItem(), wxButton);
+                    if ( def && def->IsEnabled() )
+                    {
+                        wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, def->GetId() );
+                        event.SetEventObject(def);
+                        def->Command(event);
+                        handled = YES;
+                    }
+                }
+            }
+        }
+    }
+    
+    return handled;
 }
 
 @end
@@ -221,6 +324,15 @@ protected :
 - (void)textDidEndEditing:(NSNotification *)aNotification
 {
     wxUnusedVar(aNotification);
+
+    if ( self == wxMacEditHelper::GetCurrentlyEditedView() )
+    {
+        // This notification is generated as the result of calling our own
+        // wxTextCtrl method (e.g. WriteText()) and doesn't correspond to any
+        // real focus loss event so skip generating it.
+        return;
+    }
+
     wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( self );
     if ( impl )
     {
@@ -257,7 +369,12 @@ protected :
 
 - (void) setFieldEditor:(wxNSTextFieldEditor*) editor
 {
-    fieldEditor = editor;
+    if ( editor != fieldEditor )
+    {
+        [editor retain];
+        [fieldEditor release];
+        fieldEditor = editor;
+    }
 }
 
 - (wxNSTextFieldEditor*) fieldEditor
@@ -287,6 +404,57 @@ protected :
     wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( self );
     if ( impl )
         impl->controlTextDidChange();
+}
+
+- (NSArray *)control:(NSControl *)control textView:(NSTextView *)textView completions:(NSArray *)words
+ forPartialWordRange:(NSRange)charRange indexOfSelectedItem:(NSInteger*)index
+{
+    NSMutableArray* matches = NULL;
+
+    wxTextWidgetImpl* impl = (wxNSTextFieldControl * ) wxWidgetImpl::FindFromWXWidget( self );
+    wxTextEntry * const entry = impl->GetTextEntry();
+    wxTextCompleter * const completer = entry->OSXGetCompleter();
+    if ( completer )
+    {
+        const wxString prefix = entry->GetValue();
+        if ( completer->Start(prefix) )
+        {
+            const wxString
+                wordStart = wxCFStringRef::AsString(
+                              [[textView string] substringWithRange:charRange]
+                            );
+
+            matches = [NSMutableArray array];
+            for ( ;; )
+            {
+                const wxString s = completer->GetNext();
+                if ( s.empty() )
+                    break;
+
+                // Normally the completer should return only the strings
+                // starting with the prefix, but there could be exceptions
+                // and, for compatibility with MSW which simply ignores all
+                // entries that don't match the current text control contents,
+                // we ignore them as well. Besides, our own wxTextCompleterFixed
+                // doesn't respect this rule and, moreover, we need to extract
+                // just the rest of the string anyhow.
+                wxString completion;
+                if ( s.StartsWith(prefix, &completion) )
+                {
+                    // We discarded the entire prefix above but actually we
+                    // should include the part of it that consists of the
+                    // beginning of the current word, otherwise it would be
+                    // lost when completion is accepted as OS X supposes that
+                    // our matches do start with the "partial word range"
+                    // passed to us.
+                    const wxCFStringRef fullWord(wordStart + completion);
+                    [matches addObject: fullWord.AsNSString()];
+                }
+            }
+        }
+    }
+
+    return matches;
 }
 
 - (BOOL)control:(NSControl*)control textView:(NSTextView*)textView doCommandBySelector:(SEL)commandSelector
@@ -578,7 +746,7 @@ wxNSTextFieldControl::wxNSTextFieldControl(wxWindow *wxPeer,
 
 void wxNSTextFieldControl::Init(WXWidget w)
 {
-    NSTextField wxOSX_10_6_AND_LATER(<NSTextFieldDelegate>) *tf = (NSTextField*) w;
+    NSTextField wxOSX_10_6_AND_LATER(<NSTextFieldDelegate>) *tf = (NSTextField wxOSX_10_6_AND_LATER(<NSTextFieldDelegate>)*) w;
     m_textField = tf;
     [m_textField setDelegate: tf];
     m_selStart = m_selEnd = 0;
@@ -600,6 +768,13 @@ void wxNSTextFieldControl::SetStringValue( const wxString &str)
 {
     wxMacEditHelper helper(m_textField);
     [m_textField setStringValue: wxCFStringRef( str , m_wxPeer->GetFont().GetEncoding() ).AsNSString()];
+}
+
+void wxNSTextFieldControl::SetMaxLength(unsigned long len)
+{
+    wxMaximumLengthFormatter* formatter = [[[wxMaximumLengthFormatter alloc] init] autorelease];
+    [formatter setMaxLength:len];
+    [m_textField setFormatter:formatter];
 }
 
 void wxNSTextFieldControl::Copy()

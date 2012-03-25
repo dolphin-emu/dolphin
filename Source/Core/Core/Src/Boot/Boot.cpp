@@ -227,7 +227,9 @@ bool CBoot::BootUp()
 		// setup the map from ISOFile ID
 		VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
 
-		VideoInterface::SetRegionReg((char)VolumeHandler::GetVolume()->GetUniqueID().at(3));
+		std::string unique_id = VolumeHandler::GetVolume()->GetUniqueID();
+		if (unique_id.size() >= 4)
+			VideoInterface::SetRegionReg(unique_id.at(3));
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 

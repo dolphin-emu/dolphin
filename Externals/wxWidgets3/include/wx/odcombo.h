@@ -4,7 +4,7 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: odcombo.h 66412 2010-12-20 14:54:04Z JMS $
+// RCS-ID:      $Id: odcombo.h 68460 2011-07-30 11:30:08Z VZ $
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -233,15 +233,15 @@ private:
 // the wxComboCtrl.
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_ADV wxOwnerDrawnComboBox : public wxComboCtrl,
-                                             public wxItemContainer
+class WXDLLIMPEXP_ADV wxOwnerDrawnComboBox :
+    public wxWindowWithItems<wxComboCtrl, wxItemContainer>
 {
     //friend class wxComboPopupWindow;
     friend class wxVListBoxComboPopup;
 public:
 
     // ctors and such
-    wxOwnerDrawnComboBox() : wxComboCtrl() { Init(); }
+    wxOwnerDrawnComboBox() { Init(); }
 
     wxOwnerDrawnComboBox(wxWindow *parent,
                          wxWindowID id,
@@ -253,7 +253,6 @@ public:
                          long style = 0,
                          const wxValidator& validator = wxDefaultValidator,
                          const wxString& name = wxComboBoxNameStr)
-        : wxComboCtrl()
     {
         Init();
 
@@ -338,8 +337,6 @@ public:
     virtual int GetWidestItem() { EnsurePopupControl(); return GetVListBoxComboPopup()->GetWidestItem(); }
 
     virtual bool IsSorted() const { return HasFlag(wxCB_SORT); }
-
-    wxCONTROL_ITEMCONTAINER_CLIENTDATAOBJECT_RECAST
 
 protected:
     virtual void DoClear();

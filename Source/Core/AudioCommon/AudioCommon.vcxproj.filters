@@ -46,7 +46,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Src\SConscript" />
     <None Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,7 @@
 // Purpose:     wxGIFDecoder, GIF reader for wxImage and wxAnimation
 // Author:      Guillermo Rodriguez Garcia <guille@iies.es>
 // Version:     3.04
-// RCS-ID:      $Id: gifdecod.cpp 66828 2011-02-02 11:19:30Z DS $
+// RCS-ID:      $Id: gifdecod.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -138,7 +138,7 @@ bool wxGIFDecoder::ConvertToImage(unsigned int frame, wxImage *image) const
     image->Create(sz.GetWidth(), sz.GetHeight());
     image->SetType(wxBITMAP_TYPE_GIF);
 
-    if (!image->Ok())
+    if (!image->IsOk())
         return false;
 
     pal = GetPalette(frame);

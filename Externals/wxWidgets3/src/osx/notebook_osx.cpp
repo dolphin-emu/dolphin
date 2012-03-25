@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: notebook_osx.cpp 67243 2011-03-19 08:36:23Z SC $
+// RCS-ID:      $Id: notebook_osx.cpp 70340 2012-01-14 17:57:08Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -145,7 +145,7 @@ bool wxNotebook::SetPageImage(size_t nPage, int nImage)
 {
     wxCHECK_MSG( IS_VALID_PAGE(nPage), false,
         wxT("SetPageImage: invalid notebook page") );
-    wxCHECK_MSG( m_imageList && nImage < m_imageList->GetImageCount(), false,
+    wxCHECK_MSG( HasImageList() && nImage < GetImageList()->GetImageCount(), false,
         wxT("SetPageImage: invalid image index") );
 
     if ( nImage != m_images[nPage] )
@@ -245,10 +245,10 @@ bool wxNotebook::InsertPage(size_t nPage,
     return true;
 }
 
-int wxNotebook::HitTest(const wxPoint& WXUNUSED(pt), long * WXUNUSED(flags)) const
+int wxNotebook::HitTest(const wxPoint& pt, long *flags) const
 {
     int resultV = wxNOT_FOUND;
-#if 0
+#ifdef __WXOSX_CARBON__
     const int countPages = GetPageCount();
 
     // we have to convert from Client to Window relative coordinates
@@ -300,6 +300,9 @@ int wxNotebook::HitTest(const wxPoint& WXUNUSED(pt), long * WXUNUSED(flags)) con
         else
             *flags |= wxBK_HITTEST_NOWHERE;
     }
+#else
+    wxUnusedVar(pt);
+    wxUnusedVar(flags);
 #endif
     return resultV;
 }
@@ -517,6 +520,8 @@ bool wxNotebook::OSXHandleClicked( double WXUNUSED(timestampsec) )
                 newSel, m_selection );
             event.SetEventObject( this );
             HandleWindowEvent( event );
+
+            m_selection = newSel;
         }
         else
         {

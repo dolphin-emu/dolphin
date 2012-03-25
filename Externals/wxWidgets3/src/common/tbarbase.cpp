@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 11.12.99 (wxScrollableToolBar split off)
 // Created:     04/01/98
-// RCS-ID:      $Id: tbarbase.cpp 67206 2011-03-16 06:36:43Z SC $
+// RCS-ID:      $Id: tbarbase.cpp 70179 2011-12-29 22:05:31Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -701,12 +701,6 @@ void wxToolBarBase::UpdateWindowUI(long flags)
     if ( !IsShown() )
         return;
 
-    // There is no sense in updating the toolbar UI
-    // if the parent window is about to get destroyed
-    wxWindow *tlw = wxGetTopLevelParent( this );
-    if (tlw && wxPendingDelete.Member( tlw ))
-        return;
-
     wxEvtHandler* evtHandler = GetEventHandler() ;
 
     for ( wxToolBarToolsList::compatibility_iterator node = m_tools.GetFirst();
@@ -757,7 +751,7 @@ bool wxCreateGreyedImage(const wxImage& in, wxImage& out)
 {
 #if wxUSE_IMAGE
     out = in.ConvertToGreyscale();
-    if ( out.Ok() )
+    if ( out.IsOk() )
         return true;
 #endif // wxUSE_IMAGE
     return false;

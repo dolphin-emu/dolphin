@@ -7,5 +7,3 @@
 #else
 #include "wx/wxgtk.h"
 #endif
-
-#define wxUSE_MARKUP 0

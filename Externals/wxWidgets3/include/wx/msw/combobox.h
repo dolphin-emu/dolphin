@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: combobox.h 63242 2010-01-24 01:00:45Z VZ $
+// RCS-ID:      $Id: combobox.h 68808 2011-08-21 12:06:16Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -74,6 +74,10 @@ public:
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxComboBoxNameStr);
+
+    // See wxComboBoxBase discussion of IsEmpty().
+    bool IsListEmpty() const { return wxItemContainer::IsEmpty(); }
+    bool IsTextEmpty() const { return wxTextEntry::IsEmpty(); }
 
     // resolve ambiguities among virtual functions inherited from both base
     // classes

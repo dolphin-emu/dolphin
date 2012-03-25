@@ -2,7 +2,7 @@
 // Name:        src/gtk/checkbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: checkbox.cpp 66555 2011-01-04 08:31:53Z SC $
+// Id:          $Id: checkbox.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,7 @@ bool wxCheckBox::Create(wxWindow *parent,
     else
     {
         m_widgetCheckbox = gtk_check_button_new_with_label("");
-        m_widgetLabel = GTK_BIN(m_widgetCheckbox)->child;
+        m_widgetLabel = gtk_bin_get_child(GTK_BIN(m_widgetCheckbox));
         m_widget = m_widgetCheckbox;
     }
     g_object_ref(m_widget);

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Francesco Montorsi
-// RCS-ID:      $Id: filepicker.h 63690 2010-03-16 00:23:57Z VZ $
+// RCS-ID:      $Id: filepicker.h 70043 2011-12-18 12:34:47Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -101,6 +101,7 @@ public:     // overrides
     void OnDialogOK(wxCommandEvent &);
 
     virtual void SetPath(const wxString &str);
+    virtual void SetInitialDirectory(const wxString& dir);
 
     // see macro defined above
     FILEDIRBTN_OVERRIDES
@@ -171,6 +172,7 @@ public:     // overrides
     }
 
     virtual void SetPath(const wxString &str);
+    virtual void SetInitialDirectory(const wxString& dir);
 
     // see macro defined above
     FILEDIRBTN_OVERRIDES

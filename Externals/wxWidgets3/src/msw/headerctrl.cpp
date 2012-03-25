@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxHeaderCtrl for wxMSW
 // Author:      Vadim Zeitlin
 // Created:     2008-12-01
-// RCS-ID:      $Id: headerctrl.cpp 62442 2009-10-17 16:13:37Z VZ $
+// RCS-ID:      $Id: headerctrl.cpp 67384 2011-04-03 20:31:32Z DS $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -561,7 +561,7 @@ bool wxHeaderCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
         // ASCII and Unicode versions of this message
         case HDN_BEGINTRACKA:
         case HDN_BEGINTRACKW:
-            // non-resizeable columns can't be resized no matter what, don't
+            // non-resizable columns can't be resized no matter what, don't
             // even generate any events for them
             if ( !GetColumn(idx).IsResizeable() )
             {

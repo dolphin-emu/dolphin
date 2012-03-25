@@ -406,6 +406,8 @@ public:
  //
   virtual wxDataViewItem GetCurrentItem() const;
   virtual void SetCurrentItem(const wxDataViewItem& item);
+  virtual wxDataViewColumn *GetCurrentColumn() const;
+  virtual int  GetSelectedItemsCount() const;
   virtual int  GetSelections(wxDataViewItemArray& sel)   const;
   virtual bool IsSelected   (wxDataViewItem const& item) const;
   virtual void Select       (wxDataViewItem const& item);
@@ -426,6 +428,8 @@ public:
   virtual void HitTest     (wxPoint const& point, wxDataViewItem& item, wxDataViewColumn*& columnPtr) const;
   virtual void SetRowHeight(wxDataViewItem const& item, unsigned int height);
   virtual void OnSize      ();
+
+  virtual void StartEditor( const wxDataViewItem & item, unsigned int column );
 
  //
  // other methods

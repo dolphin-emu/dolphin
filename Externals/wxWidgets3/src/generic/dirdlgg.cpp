@@ -4,7 +4,7 @@
 // Author:      Harm van der Heijden, Robert Roebling & Julian Smart
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: dirdlgg.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: dirdlgg.cpp 67384 2011-04-03 20:31:32Z DS $
 // Copyright:   (c) Harm van der Heijden, Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -166,7 +166,7 @@ bool wxGenericDirDialog::Create(wxWindow* parent,
     topsizer->Add(m_dirCtrl, wxSizerFlags(flagsBorder2).Proportion(1).Expand());
 
 #ifndef __SMARTPHONE__
-    // Make the an option depending on a flag?
+    // TODO: Make this an option depending on a flag?
     wxCheckBox *
         check = new wxCheckBox(this, ID_SHOW_HIDDEN, _("Show &hidden directories"));
     topsizer->Add(check, wxSizerFlags(flagsBorder2).Right());

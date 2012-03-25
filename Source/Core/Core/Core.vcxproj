@@ -571,7 +571,6 @@
   <ItemGroup>
     <None Include="CMakeLists.txt" />
     <None Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_Obsolete.txt" />
-    <None Include="Src\SConscript" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Externals\Bochs_disasm\Bochs_disasm.vcxproj">

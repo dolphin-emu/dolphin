@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.10.99
-// RCS-ID:      $Id: spinctlg.h 67199 2011-03-15 11:10:38Z VZ $
+// RCS-ID:      $Id: spinctlg.h 70432 2012-01-21 17:03:52Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,6 @@ public:
     // forward these functions to all subcontrols
     virtual bool Enable(bool enable = true);
     virtual bool Show(bool show = true);
-    virtual bool Reparent(wxWindowBase *newParent);
 #if wxUSE_TOOLTIPS
     virtual void DoSetToolTip(wxToolTip *tip);
 #endif // wxUSE_TOOLTIPS
@@ -92,7 +91,7 @@ public:
 
     // forwarded events from children windows
     void OnSpinButton(wxSpinEvent& event);
-    void OnTextLostFocus();
+    void OnTextLostFocus(wxFocusEvent& event);
     void OnTextChar(wxKeyEvent& event);
 
     // this window itself is used only as a container for its sub windows so it
@@ -107,6 +106,11 @@ protected:
     // override the base class virtuals involved into geometry calculations
     virtual wxSize DoGetBestSize() const;
     virtual void DoMoveWindow(int x, int y, int width, int height);
+
+#ifdef __WXMSW__
+    // and, for MSW, enabling this window itself
+    virtual void DoEnable(bool enable);
+#endif // __WXMSW__
 
     // generic double valued functions
     double DoGetValue() const { return m_value; }
@@ -148,6 +152,8 @@ protected:
 private:
     // common part of all ctors
     void Init();
+
+    DECLARE_EVENT_TABLE()
 };
 
 #else // !wxUSE_SPINBTN

@@ -3,7 +3,7 @@
 // Purpose:     wxSearchCtrlBase class
 // Author:      Vince Harron
 // Created:     2006-02-18
-// RCS-ID:      $Id: srchctrl.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: srchctrl.h 68911 2011-08-27 12:13:23Z VZ $
 // Copyright:   (c) Vince Harron
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,8 +26,12 @@
     // no native version, use the generic one
     #define wxUSE_NATIVE_SEARCH_CONTROL 0
 
-    class WXDLLIMPEXP_CORE wxSearchCtrlBaseBaseClass : public wxControl,
-                                                       public wxTextCtrlIface
+    #include "wx/compositewin.h"
+    #include "wx/containr.h"
+
+    class WXDLLIMPEXP_CORE wxSearchCtrlBaseBaseClass
+        : public wxCompositeWindow< wxNavigationEnabled<wxControl> >,
+          public wxTextCtrlIface
     {
     };
 #endif

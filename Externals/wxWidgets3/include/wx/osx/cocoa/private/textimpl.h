@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     03/02/99
-// RCS-ID:      $Id: textimpl.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: textimpl.h 70354 2012-01-15 15:53:56Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,6 +28,9 @@ public :
     wxNSTextFieldControl( wxWindow *wxPeer, wxTextEntry *entry, WXWidget w );
     virtual ~wxNSTextFieldControl();
 
+    virtual bool CanClipMaxLength() const { return true; }
+    virtual void SetMaxLength(unsigned long len);
+        
     virtual wxString GetStringValue() const ;
     virtual void SetStringValue( const wxString &str) ;
     virtual void Copy() ;
@@ -105,6 +108,9 @@ public :
     virtual wxString GetStringAtIndex(int pos) const;
 
     virtual int FindString(const wxString& text) const;
+    virtual void Popup();
+    virtual void Dismiss();
+
 private:
     NSComboBox* m_comboBox;
 };

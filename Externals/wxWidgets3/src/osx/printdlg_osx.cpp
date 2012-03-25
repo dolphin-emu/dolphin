@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: printdlg_osx.cpp 65561 2010-09-17 11:17:55Z DS $
+// RCS-ID:      $Id: printdlg_osx.cpp 70636 2012-02-20 21:55:55Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,13 +80,13 @@ wxDC *wxMacPrintDialog::GetPrintDC()
 
 IMPLEMENT_CLASS(wxMacPageSetupDialog, wxPageSetupDialogBase)
 
-wxMacPageSetupDialog::wxMacPageSetupDialog( wxWindow *p, wxPageSetupData *data )
+wxMacPageSetupDialog::wxMacPageSetupDialog( wxWindow *p, wxPageSetupDialogData *data )
     : wxPageSetupDialogBase()
 {
     Create( p, data );
 }
 
-bool wxMacPageSetupDialog::Create( wxWindow *p, wxPageSetupData *data )
+bool wxMacPageSetupDialog::Create( wxWindow *p, wxPageSetupDialogData *data )
 {
     m_dialogParent = p;
 
@@ -100,14 +100,14 @@ wxMacPageSetupDialog::~wxMacPageSetupDialog()
 {
 }
 
-wxPageSetupData& wxMacPageSetupDialog::GetPageSetupDialogData()
+wxPageSetupDialogData& wxMacPageSetupDialog::GetPageSetupDialogData()
 {
     return m_pageSetupData;
 }
 
 IMPLEMENT_CLASS(wxMacPageMarginsDialog, wxDialog)
 
-wxMacPageMarginsDialog::wxMacPageMarginsDialog(wxFrame *parent, wxPageSetupData *data) :
+wxMacPageMarginsDialog::wxMacPageMarginsDialog(wxFrame *parent, wxPageSetupDialogData *data) :
   wxDialog(parent, wxID_ANY, wxString(wxT("Page Margins"))),
   m_pageSetupDialogData(data)
   {

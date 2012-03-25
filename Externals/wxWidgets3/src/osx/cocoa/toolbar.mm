@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.mm 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: toolbar.mm 70851 2012-03-09 12:49:59Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,12 +13,11 @@
 
 #if wxUSE_TOOLBAR
 
-#include "wx/toolbar.h"
-
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
 
+#include "wx/toolbar.h"
 #include "wx/app.h"
 #include "wx/osx/private.h"
 #include "wx/geometry.h"
@@ -192,6 +191,10 @@ public:
         if ( IsButton() )
             [(NSButton*)m_controlHandle setTitle:l.AsNSString()];
 
+        if ( m_controlHandle )
+        {
+            [m_controlHandle setToolTip:sh.AsNSString()];
+        }
     }
 
     void Action()
@@ -324,7 +327,7 @@ private:
 
 - (id)initWithItemIdentifier: (NSString*) identifier
 {
-    [super initWithItemIdentifier:identifier];
+    self = [super initWithItemIdentifier:identifier];
     impl = NULL;
     [self setTarget: self];
     [self setAction: @selector(clickedAction:)];
@@ -413,7 +416,7 @@ private:
 
 - (id)initWithFrame:(NSRect)frame
 {
-    [super initWithFrame:frame];
+    self = [super initWithFrame:frame];
     impl = NULL;
     [self setTarget: self];
     [self setAction: @selector(clickedAction:)];
@@ -755,6 +758,41 @@ void wxToolBar::DoGetSize( int *width, int *height ) const
 
 #else
     wxToolBarBase::DoGetSize( width, height );
+#endif
+}
+
+void wxToolBar::DoGetPosition(int*x, int *y) const
+{
+#if wxOSX_USE_NATIVE_TOOLBAR
+    bool    ownToolbarInstalled;
+    
+    MacTopLevelHasNativeToolbar( &ownToolbarInstalled );
+    if ( ownToolbarInstalled )
+    {
+        WXWindow tlw = MacGetTopLevelWindowRef();
+        float toolbarHeight = 0.0;
+        NSRect windowFrame = NSMakeRect(0, 0, 0, 0);
+        
+        if(m_macToolbar && [(NSToolbar*)m_macToolbar isVisible])
+        {
+            windowFrame = [NSWindow contentRectForFrameRect:[tlw frame]
+                                                  styleMask:[tlw styleMask]];
+            toolbarHeight = NSHeight(windowFrame)
+            - NSHeight([[tlw contentView] frame]);
+        }
+        
+        // it is extending to the north of the content area
+        
+        if ( x != NULL )
+            *x = 0;
+        if ( y != NULL )
+            *y = -toolbarHeight;
+    }
+    else
+        wxToolBarBase::DoGetPosition( x, y );
+    
+#else
+    wxToolBarBase::DoGetPosition( x, y );
 #endif
 }
 
@@ -1100,8 +1138,15 @@ bool wxToolBar::Realize()
                     NSString *nsItemId;
                     if (tool->GetStyle() == wxTOOL_STYLE_SEPARATOR)
                     {
-                        nsItemId = tool->IsStretchable() ? NSToolbarFlexibleSpaceItemIdentifier
-                        : NSToolbarSeparatorItemIdentifier;
+                        if ( tool->IsStretchable() )
+                            nsItemId = NSToolbarFlexibleSpaceItemIdentifier;
+                        else 
+                        {
+                            if ( UMAGetSystemVersion() < 0x1070 )
+                                nsItemId = NSToolbarSeparatorItemIdentifier;
+                            else
+                                nsItemId = NSToolbarSpaceItemIdentifier;
+                        }
                     }
                     else
                     {
@@ -1183,6 +1228,9 @@ bool wxToolBar::Realize()
     SetInitialSize( wxSize(m_minWidth, m_minHeight));
 
     SendSizeEventToParent();
+    wxWindow * const parent = GetParent();
+    if ( parent && !parent->IsBeingDeleted() )
+        parent->MacOnInternalSize();
     
     return true;
 }
@@ -1350,8 +1398,18 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
 #if wxOSX_USE_NATIVE_TOOLBAR
                 if (m_macToolbar != NULL)
                 {
-                    NSString * nsItemId = tool->IsStretchable() ? NSToolbarFlexibleSpaceItemIdentifier
-                                                         : NSToolbarSeparatorItemIdentifier;
+                    NSString * nsItemId = nil;
+                    
+                    if ( tool->IsStretchable() )
+                        nsItemId = NSToolbarFlexibleSpaceItemIdentifier;
+                    else 
+                    {
+                        if ( UMAGetSystemVersion() < 0x1070 )
+                            nsItemId = NSToolbarSeparatorItemIdentifier;
+                        else
+                            nsItemId = NSToolbarSpaceItemIdentifier;
+                    }
+
                     NSToolbarItem* item = [[NSToolbarItem alloc] initWithItemIdentifier:nsItemId];
                     tool->SetToolbarItemRef( item );
                 }
@@ -1375,14 +1433,6 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
                 [v setButtonType: ( tool->CanBeToggled() ? NSToggleButton : NSMomentaryPushInButton )];
                 [v setImplementation:tool];
                 
-                if ( style & wxTB_NOICONS )
-                    [v setImagePosition:NSNoImage];
-                else if ( style & wxTB_TEXT )
-                    [v setImagePosition:NSImageAbove];
-                else
-                    [v setImagePosition:NSImageOnly];
-
-
                 controlHandle = v;
 
 #if wxOSX_USE_NATIVE_TOOLBAR
@@ -1399,6 +1449,13 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
                 tool->SetControlHandle( controlHandle );
                 tool->UpdateImages();
                 tool->UpdateLabel();
+
+                if ( style & wxTB_NOICONS )
+                    [v setImagePosition:NSNoImage];
+                else if ( style & wxTB_TEXT )
+                    [v setImagePosition:NSImageAbove];
+                else
+                    [v setImagePosition:NSImageOnly];
                 [v sizeToFit];
                 
 #if 0

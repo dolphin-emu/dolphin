@@ -1036,7 +1036,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
-    <None Include="Src\SConscript" />
     <None Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_Obsolete.txt">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </None>

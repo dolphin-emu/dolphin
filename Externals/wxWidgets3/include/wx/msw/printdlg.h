@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: printdlg.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: printdlg.h 70636 2012-02-20 21:55:55Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,6 +20,7 @@
 #include "wx/printdlg.h"
 
 class WXDLLIMPEXP_FWD_CORE wxDC;
+class WinPrinter;
 
 //----------------------------------------------------------------------------
 // wxWindowsPrintNativeData
@@ -37,6 +38,7 @@ public:
     virtual bool Ok() const { return IsOk(); }
     virtual bool IsOk() const;
 
+    void InitializeDevMode(const wxString &printerName = wxEmptyString, WinPrinter* printer = NULL);
     void* GetDevMode() const { return m_devMode; }
     void SetDevMode(void* data) { m_devMode = data; }
     void* GetDevNames() const { return m_devNames; }
@@ -105,7 +107,7 @@ public:
     bool ConvertToNative( wxPageSetupDialogData &data );
     bool ConvertFromNative( wxPageSetupDialogData &data );
 
-    virtual wxPageSetupData& GetPageSetupDialogData() { return m_pageSetupData; }
+    virtual wxPageSetupDialogData& GetPageSetupDialogData() { return m_pageSetupData; }
 
 private:
     wxPageSetupDialogData   m_pageSetupData;

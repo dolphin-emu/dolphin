@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcmemory.cpp 64656 2010-06-20 18:18:23Z VZ $
+// RCS-ID:      $Id: dcmemory.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ void wxMemoryDCImpl::Init()
 
 wxMemoryDCImpl::~wxMemoryDCImpl()
 {
-    if ( m_selected.Ok() )
+    if ( m_selected.IsOk() )
     {
         m_selected.EndRawAccess() ;
         wxDELETE(m_graphicContext);
@@ -64,14 +64,14 @@ wxMemoryDCImpl::~wxMemoryDCImpl()
 
 void wxMemoryDCImpl::DoSelect( const wxBitmap& bitmap )
 {
-    if ( m_selected.Ok() )
+    if ( m_selected.IsOk() )
     {
         m_selected.EndRawAccess() ;
         wxDELETE(m_graphicContext);
     }
 
     m_selected = bitmap;
-    if (m_selected.Ok())
+    if (m_selected.IsOk())
     {
         if ( m_selected.GetDepth() != 1 )
             m_selected.UseAlpha() ;
@@ -97,7 +97,7 @@ void wxMemoryDCImpl::DoSelect( const wxBitmap& bitmap )
 
 void wxMemoryDCImpl::DoGetSize( int *width, int *height ) const
 {
-    if (m_selected.Ok())
+    if (m_selected.IsOk())
     {
         if (width)
             (*width) = m_selected.GetWidth();

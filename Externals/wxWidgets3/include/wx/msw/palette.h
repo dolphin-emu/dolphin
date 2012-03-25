@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: palette.h 52834 2008-03-26 15:06:00Z FM $
+// RCS-ID:      $Id: palette.h 70040 2011-12-17 23:52:47Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,13 +19,13 @@ class WXDLLIMPEXP_CORE wxPalette : public wxPaletteBase
 public:
     wxPalette() { }
     wxPalette(int n,
-              unsigned char *red, unsigned char *green, unsigned char *blue)
+              const unsigned char *red, const unsigned char *green, const unsigned char *blue)
     {
         Create(n, red, green, blue);
     }
 
     bool Create(int n,
-                unsigned char *red, unsigned char *green, unsigned char *blue);
+                const unsigned char *red, const unsigned char *green, const unsigned char *blue);
 
     virtual int GetColoursCount() const;
 

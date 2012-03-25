@@ -3,7 +3,7 @@
 // Purpose:     MSW-specific setup.h options
 // Author:      Vadim Zeitlin
 // Created:     2007-07-21 (extracted from wx/msw/setup0.h)
-// RCS-ID:      $Id: setup_inc.h 50586 2007-12-08 20:51:21Z VZ $
+// RCS-ID:      $Id: setup_inc.h 69224 2011-09-29 13:43:15Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@
 // Recommended setting: 1, required by wxMediaCtrl
 #define wxUSE_ACTIVEX 1
 
-// wxDC cacheing implementation
+// wxDC caching implementation
 #define wxUSE_DC_CACHEING 1
 
 // Set this to 1 to enable wxDIB class used internally for manipulating
@@ -143,6 +143,14 @@
 //
 // Recommended setting: 0, this is mainly used for testing
 #define wxUSE_DATEPICKCTRL_GENERIC 0
+
+// Set this to 1 to be able to use wxTimePickerCtrlGeneric in addition to the
+// native wxTimePickerCtrl for the platforms that have the latter (MSW).
+//
+// Default is 0.
+//
+// Recommended setting: 0, this is mainly used for testing
+#define wxUSE_TIMEPICKCTRL_GENERIC 0
 
 // ----------------------------------------------------------------------------
 // Crash debugging helpers

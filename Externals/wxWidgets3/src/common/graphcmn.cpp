@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:
-// RCS-ID:      $Id: graphcmn.cpp 66514 2011-01-01 11:10:35Z SC $
+// RCS-ID:      $Id: graphcmn.cpp 69360 2011-10-09 22:07:29Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -534,7 +534,8 @@ IMPLEMENT_ABSTRACT_CLASS(wxGraphicsContext, wxObject)
 wxGraphicsContext::wxGraphicsContext(wxGraphicsRenderer* renderer) :
     wxGraphicsObject(renderer),
       m_antialias(wxANTIALIAS_DEFAULT),
-      m_composition(wxCOMPOSITION_OVER)
+      m_composition(wxCOMPOSITION_OVER),
+      m_enableOffset(false)
 {
 }
 
@@ -564,6 +565,11 @@ void wxGraphicsContext::Flush()
 {
 }
 
+void wxGraphicsContext::EnableOffset(bool enable) 
+{ 
+    m_enableOffset = enable; 
+}
+
 #if 0
 void wxGraphicsContext::SetAlpha( wxDouble WXUNUSED(alpha) )
 {
@@ -574,12 +580,6 @@ wxDouble wxGraphicsContext::GetAlpha() const
     return 1.0;
 }
 #endif
-
-void wxGraphicsContext::GetSize( wxDouble* width, wxDouble* height)
-{
-    *width = 10000.0;
-    *height = 10000.0;
-}
 
 void wxGraphicsContext::GetDPI( wxDouble* dpiX, wxDouble* dpiY)
 {
@@ -595,7 +595,7 @@ void wxGraphicsContext::SetPen( const wxGraphicsPen& pen )
 
 void wxGraphicsContext::SetPen( const wxPen& pen )
 {
-    if ( !pen.Ok() || pen.GetStyle() == wxPENSTYLE_TRANSPARENT )
+    if ( !pen.IsOk() || pen.GetStyle() == wxPENSTYLE_TRANSPARENT )
         SetPen( wxNullGraphicsPen );
     else
         SetPen( CreatePen( pen ) );
@@ -609,7 +609,7 @@ void wxGraphicsContext::SetBrush( const wxGraphicsBrush& brush )
 
 void wxGraphicsContext::SetBrush( const wxBrush& brush )
 {
-    if ( !brush.Ok() || brush.GetStyle() == wxBRUSHSTYLE_TRANSPARENT )
+    if ( !brush.IsOk() || brush.GetStyle() == wxBRUSHSTYLE_TRANSPARENT )
         SetBrush( wxNullGraphicsBrush );
     else
         SetBrush( CreateBrush( brush ) );
@@ -623,7 +623,7 @@ void wxGraphicsContext::SetFont( const wxGraphicsFont& font )
 
 void wxGraphicsContext::SetFont( const wxFont& font, const wxColour& colour )
 {
-    if ( font.Ok() )
+    if ( font.IsOk() )
         SetFont( CreateFont( font, colour ) );
     else
         SetFont( wxNullGraphicsFont );
@@ -665,9 +665,7 @@ wxGraphicsContext::DoDrawFilledText(const wxString &str,
     // to make sure our 'OffsetToPixelBoundaries' doesn't move the fill shape
     SetPen( wxNullGraphicsPen );
 
-    wxGraphicsPath path = CreatePath();
-    path.AddRectangle( x , y, width, height );
-    FillPath( path );
+    DrawRectangle(x , y, width, height);
 
     DrawText( str, x ,y);
     SetBrush( formerBrush );
@@ -839,16 +837,31 @@ wxGraphicsContext::CreateRadialGradientBrush(
                           );
 }
 
-// sets the font
 wxGraphicsFont wxGraphicsContext::CreateFont( const wxFont &font , const wxColour &col ) const
 {
     return GetRenderer()->CreateFont(font,col);
+}
+
+wxGraphicsFont
+wxGraphicsContext::CreateFont(double size,
+                              const wxString& facename,
+                              int flags,
+                              const wxColour& col) const
+{
+    return GetRenderer()->CreateFont(size, facename, flags, col);
 }
 
 wxGraphicsBitmap wxGraphicsContext::CreateBitmap( const wxBitmap& bmp ) const
 {
     return GetRenderer()->CreateBitmap(bmp);
 }
+
+#if wxUSE_IMAGE
+wxGraphicsBitmap wxGraphicsContext::CreateBitmapFromImage(const wxImage& image) const
+{
+    return GetRenderer()->CreateBitmapFromImage(image);
+}
+#endif // wxUSE_IMAGE
 
 wxGraphicsBitmap wxGraphicsContext::CreateSubBitmap( const wxGraphicsBitmap &bmp, wxDouble x, wxDouble y, wxDouble w, wxDouble h   ) const
 {
@@ -895,6 +908,13 @@ wxGraphicsContext* wxGraphicsContext::Create( wxWindow* window )
 {
     return wxGraphicsRenderer::GetDefaultRenderer()->CreateContext(window);
 }
+
+#if wxUSE_IMAGE
+/* static */ wxGraphicsContext* wxGraphicsContext::Create(wxImage& image)
+{
+    return wxGraphicsRenderer::GetDefaultRenderer()->CreateContextFromImage(image);
+}
+#endif // wxUSE_IMAGE
 
 wxGraphicsContext* wxGraphicsContext::Create()
 {

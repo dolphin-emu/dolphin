@@ -2,7 +2,7 @@
 // Name:        src/osx/dataview_osx.cpp
 // Purpose:     wxDataViewCtrl native mac implementation
 // Author:
-// Id:          $Id: dataview_osx.cpp 67243 2011-03-19 08:36:23Z SC $
+// Id:          $Id: dataview_osx.cpp 70377 2012-01-17 14:05:17Z VS $
 // Copyright:   (c) 2009
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,6 +19,9 @@
     #include "wx/settings.h"
     #include "wx/dcclient.h"
     #include "wx/icon.h"
+#endif
+#if wxOSX_USE_CARBON
+#include "wx/osx/carbon/dataview.h"
 #endif
 
 #include "wx/osx/core/dataview.h"
@@ -527,6 +530,11 @@ void wxDataViewCtrl::DoSetCurrentItem(const wxDataViewItem& item)
     GetDataViewPeer()->SetCurrentItem(item);
 }
 
+wxDataViewColumn *wxDataViewCtrl::GetCurrentColumn() const
+{
+    return GetDataViewPeer()->GetCurrentColumn();
+}
+
 wxRect wxDataViewCtrl::GetItemRect(wxDataViewItem const& item, wxDataViewColumn const* columnPtr) const
 {
   if (item.IsOk() && (columnPtr != NULL))
@@ -535,15 +543,9 @@ wxRect wxDataViewCtrl::GetItemRect(wxDataViewItem const& item, wxDataViewColumn 
     return wxRect();
 }
 
-wxDataViewItem wxDataViewCtrl::GetSelection() const
+int wxDataViewCtrl::GetSelectedItemsCount() const
 {
-  wxDataViewItemArray itemIDs;
-
-
-  if (GetDataViewPeer()->GetSelections(itemIDs) > 0)
-    return itemIDs[0];
-  else
-    return wxDataViewItem();
+  return GetDataViewPeer()->GetSelectedItemsCount();
 }
 
 int wxDataViewCtrl::GetSelections(wxDataViewItemArray& sel) const
@@ -633,6 +635,11 @@ void wxDataViewCtrl::AddChildren(wxDataViewItem const& parentItem)
   (void) GetModel()->ItemsAdded(parentItem,items);
 }
 
+void wxDataViewCtrl::EditItem(const wxDataViewItem& item, const wxDataViewColumn *column)
+{
+    GetDataViewPeer()->StartEditor(item, GetColumnPosition(column));
+}
+
 void wxDataViewCtrl::FinishCustomItemEditing()
 {
   if (GetCustomRendererItem().IsOk())
@@ -707,12 +714,11 @@ void wxDataViewCtrl::OnMouse(wxMouseEvent& event)
 {
     event.Skip();
 
+#if wxOSX_USE_CARBON
     if (GetModel() == NULL)
         return;
 
-#if 0
-    // Doesn't compile anymore
-    wxMacDataViewDataBrowserListViewControlPointer MacDataViewListCtrlPtr(dynamic_cast<wxMacDataViewDataBrowserListViewControlPointer>(m_peer));
+    wxMacDataViewDataBrowserListViewControlPointer MacDataViewListCtrlPtr(dynamic_cast<wxMacDataViewDataBrowserListViewControlPointer>(GetPeer()));
 
     int NoOfChildren;
     wxDataViewItemArray items;
@@ -737,7 +743,7 @@ void wxDataViewCtrl::OnMouse(wxMouseEvent& event)
 
            Rect itemrect;
            ::GetDataBrowserItemPartBounds( MacDataViewListCtrlPtr->GetControlRef(),
-              reinterpret_cast<DataBrowserItemID>(firstChild.GetID()), column->GetPropertyID(),
+              reinterpret_cast<DataBrowserItemID>(firstChild.GetID()), column->GetNativeData()->GetPropertyID(),
               kDataBrowserPropertyEnclosingPart, &itemrect );
 
            if (abs( event.GetX() - itemrect.right) < 3)
@@ -751,7 +757,6 @@ void wxDataViewCtrl::OnMouse(wxMouseEvent& event)
        }
 
     }
-
     SetCursor( *wxSTANDARD_CURSOR );
 #endif
 }

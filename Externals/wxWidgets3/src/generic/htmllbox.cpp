@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.05.03
-// RCS-ID:      $Id: htmllbox.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: htmllbox.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -308,7 +308,7 @@ void wxHtmlListBox::CacheItem(size_t n) const
             m_htmlParser->SetDC(new wxClientDC(self));
             m_htmlParser->SetFS(&self->m_filesystem);
 #if !wxUSE_UNICODE
-            if (GetFont().Ok())
+            if (GetFont().IsOk())
                 m_htmlParser->SetInputEncoding(GetFont().GetEncoding());
 #endif
             // use system's default GUI font by default:

@@ -1,28 +1,18 @@
 /* ///////////////////////////////////////////////////////////////////////////
-// Name:        src/gtk/assertdlg_gtk.c
+// Name:        src/gtk/assertdlg_gtk.cpp
 // Purpose:     GtkAssertDialog
 // Author:      Francesco Montorsi
-// Id:          $Id: assertdlg_gtk.c 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: assertdlg_gtk.cpp 69697 2011-11-08 11:02:02Z VZ $
 // Copyright:   (c) 2006 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////// */
 
-#ifdef VMS
-#define XCheckIfEvent XCHECKIFEVENT
-#endif
-
 #include "wx/platform.h"
-#include "wx/gtk/assertdlg_gtk.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
 #include <gtk/gtk.h>
+#include "wx/gtk/assertdlg_gtk.h"
+#include "wx/gtk/private/gtk2-compat.h"
 
-/* For FILE */
 #include <stdio.h>
-
 
 /* ----------------------------------------------------------------------------
    Constants
@@ -46,19 +36,16 @@ extern "C" {
  ---------------------------------------------------------------------------- */
 
 GtkWidget *gtk_assert_dialog_add_button_to (GtkBox *box, const gchar *label,
-                                            const gchar *stock, gint response_id)
+                                            const gchar *stock)
 {
     /* create the button */
     GtkWidget *button = gtk_button_new_with_mnemonic (label);
-    GTK_WIDGET_SET_FLAGS (button, GTK_CAN_DEFAULT);
+    gtk_widget_set_can_default(button, true);
 
+    /* add a stock icon inside it */
+    GtkWidget *image = gtk_image_new_from_stock (stock, GTK_ICON_SIZE_BUTTON);
 #if GTK_CHECK_VERSION(2,6,0)
-    if (!gtk_check_version (2, 6, 0))
-    {
-        /* add a stock icon inside it */
-        GtkWidget *image = gtk_image_new_from_stock (stock, GTK_ICON_SIZE_BUTTON);
-        gtk_button_set_image (GTK_BUTTON (button), image);
-    }
+    gtk_button_set_image (GTK_BUTTON (button), image);
 #endif
 
     /* add to the given (container) widget */
@@ -72,7 +59,7 @@ GtkWidget *gtk_assert_dialog_add_button (GtkAssertDialog *dlg, const gchar *labe
                                          const gchar *stock, gint response_id)
 {
     /* create the button */
-    GtkWidget *button = gtk_assert_dialog_add_button_to (NULL, label, stock, response_id);
+    GtkWidget* button = gtk_assert_dialog_add_button_to(NULL, label, stock);
 
     /* add the button to the dialog's action area */
     gtk_dialog_add_action_widget (GTK_DIALOG (dlg), button, response_id);
@@ -124,7 +111,7 @@ GtkWidget *gtk_assert_dialog_create_backtrace_list_model ()
 void gtk_assert_dialog_process_backtrace (GtkAssertDialog *dlg)
 {
     /* set busy cursor */
-    GdkWindow *parent = GTK_WIDGET(dlg)->window;
+    GdkWindow *parent = gtk_widget_get_window(GTK_WIDGET(dlg));
     GdkCursor *cur = gdk_cursor_new (GDK_WATCH);
     gdk_window_set_cursor (parent, cur);
     gdk_flush ();
@@ -138,11 +125,12 @@ void gtk_assert_dialog_process_backtrace (GtkAssertDialog *dlg)
 
 
 
+extern "C" {
 /* ----------------------------------------------------------------------------
    GtkAssertDialog signal handlers
  ---------------------------------------------------------------------------- */
 
-void gtk_assert_dialog_expander_callback (GtkWidget *widget, GtkAssertDialog *dlg)
+static void gtk_assert_dialog_expander_callback(GtkWidget*, GtkAssertDialog* dlg)
 {
     /* status is not yet updated so we need to invert it to get the new one */
     gboolean expanded = !gtk_expander_get_expanded (GTK_EXPANDER(dlg->expander));
@@ -157,7 +145,7 @@ void gtk_assert_dialog_expander_callback (GtkWidget *widget, GtkAssertDialog *dl
     dlg->callback = NULL;
 }
 
-void gtk_assert_dialog_save_backtrace_callback (GtkWidget *widget, GtkAssertDialog *dlg)
+static void gtk_assert_dialog_save_backtrace_callback(GtkWidget*, GtkAssertDialog* dlg)
 {
     GtkWidget *dialog;
 
@@ -195,7 +183,7 @@ void gtk_assert_dialog_save_backtrace_callback (GtkWidget *widget, GtkAssertDial
     gtk_widget_destroy (dialog);
 }
 
-void gtk_assert_dialog_copy_callback (GtkWidget *widget, GtkAssertDialog *dlg)
+static void gtk_assert_dialog_copy_callback(GtkWidget*, GtkAssertDialog* dlg)
 {
     char *msg, *backtrace;
     GtkClipboard *clipboard;
@@ -221,7 +209,7 @@ void gtk_assert_dialog_copy_callback (GtkWidget *widget, GtkAssertDialog *dlg)
     g_string_free (str, TRUE);
 }
 
-void gtk_assert_dialog_continue_callback (GtkWidget *widget, GtkAssertDialog *dlg)
+static void gtk_assert_dialog_continue_callback(GtkWidget*, GtkAssertDialog* dlg)
 {
     gint response =
         gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(dlg->shownexttime)) ?
@@ -229,7 +217,7 @@ void gtk_assert_dialog_continue_callback (GtkWidget *widget, GtkAssertDialog *dl
 
     gtk_dialog_response (GTK_DIALOG(dlg), response);
 }
-
+} // extern "C"
 
 /* ----------------------------------------------------------------------------
    GtkAssertDialogClass implementation
@@ -239,9 +227,9 @@ static void     gtk_assert_dialog_init              (GtkAssertDialog        *sel
 static void     gtk_assert_dialog_class_init        (GtkAssertDialogClass *klass);
 
 
-GtkType gtk_assert_dialog_get_type (void)
+GType gtk_assert_dialog_get_type()
 {
-    static GtkType assert_dialog_type = 0;
+    static GType assert_dialog_type;
 
     if (!assert_dialog_type)
     {
@@ -264,12 +252,12 @@ GtkType gtk_assert_dialog_get_type (void)
     return assert_dialog_type;
 }
 
-void gtk_assert_dialog_class_init(GtkAssertDialogClass *klass)
+static void gtk_assert_dialog_class_init(GtkAssertDialogClass*)
 {
     /* no special initializations required */
 }
 
-void gtk_assert_dialog_init(GtkAssertDialog *dlg)
+static void gtk_assert_dialog_init(GtkAssertDialog* dlg)
 {
     GtkWidget *continuebtn;
 
@@ -280,7 +268,7 @@ void gtk_assert_dialog_init(GtkAssertDialog *dlg)
         gtk_widget_push_composite_child ();
         vbox = gtk_vbox_new (FALSE, 8);
         gtk_container_set_border_width (GTK_CONTAINER(vbox), 8);
-        gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dlg)->vbox), vbox, TRUE, TRUE, 5);
+        gtk_box_pack_start(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dlg))), vbox, true, true, 5);
 
 
         /* add the icon+message hbox */
@@ -343,19 +331,19 @@ void gtk_assert_dialog_init(GtkAssertDialog *dlg)
 
         /* add the buttons */
         button = gtk_assert_dialog_add_button_to (GTK_BOX(hbox), "Save to _file",
-                                                GTK_STOCK_SAVE, GTK_RESPONSE_NONE);
+                                                GTK_STOCK_SAVE);
         g_signal_connect (button, "clicked",
                             G_CALLBACK(gtk_assert_dialog_save_backtrace_callback), dlg);
 
         button = gtk_assert_dialog_add_button_to (GTK_BOX(hbox), "Copy to clip_board",
-                                                  GTK_STOCK_COPY, GTK_RESPONSE_NONE);
+                                                  GTK_STOCK_COPY);
         g_signal_connect (button, "clicked", G_CALLBACK(gtk_assert_dialog_copy_callback), dlg);
     }
 
     /* add the checkbutton */
     dlg->shownexttime = gtk_check_button_new_with_mnemonic("Show this _dialog the next time");
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(dlg->shownexttime), TRUE);
-    gtk_box_pack_end (GTK_BOX(GTK_DIALOG(dlg)->action_area), dlg->shownexttime, FALSE, TRUE, 8);
+    gtk_box_pack_end(GTK_BOX(gtk_dialog_get_action_area(GTK_DIALOG(dlg))), dlg->shownexttime, false, true, 8);
 
     /* add the stop button */
     gtk_assert_dialog_add_button (dlg, "_Stop", GTK_STOCK_QUIT, GTK_ASSERT_DIALOG_STOP);
@@ -369,8 +357,8 @@ void gtk_assert_dialog_init(GtkAssertDialog *dlg)
     dlg->callback = NULL;
     dlg->userdata = NULL;
 
-    /* the resizeable property of this window is modified by the expander:
-       when it's collapsed, the window must be non-resizeable! */
+    /* the resizable property of this window is modified by the expander:
+       when it's collapsed, the window must be non-resizable! */
     gtk_window_set_resizable (GTK_WINDOW (dlg), FALSE);
     gtk_widget_pop_composite_child ();
     gtk_widget_show_all (GTK_WIDGET(dlg));
@@ -497,11 +485,7 @@ void gtk_assert_dialog_append_stack_frame(GtkAssertDialog *dlg,
 
 GtkWidget *gtk_assert_dialog_new(void)
 {
-    GtkAssertDialog *dialog = g_object_new (GTK_TYPE_ASSERT_DIALOG, NULL);
+    void* dialog = g_object_new(GTK_TYPE_ASSERT_DIALOG, NULL);
 
     return GTK_WIDGET (dialog);
 }
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */

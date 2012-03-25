@@ -718,22 +718,26 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	}
 
 	wxString dialogTitle = index[0] ? _("Extracting Directory") : _("Extracting All Files");
-	wxProgressDialog dialog(dialogTitle,
-					_("Extracting..."),
-					index[1], // range
-					this, // parent
-					wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
-					wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
-					wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-					);
-	dialog.CenterOnParent();
+	wxProgressDialog dialog(
+		dialogTitle,
+		_("Extracting..."),
+		index[1] - 1,
+		this,
+		wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
+		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+		wxPD_SMOOTH
+		);
 
 	// Extraction
 	for (u32 i = index[0]; i < index[1]; i++)
 	{
 		dialog.SetTitle(wxString::Format(wxT("%s : %d%%"), dialogTitle.c_str(),
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
-		if (!dialog.Update(i, wxString::Format(_("Extracting %s"), wxString(fst[i]->m_FullPath, *wxConvCurrent).c_str())))
+		
+		dialog.Update(i, wxString::Format(_("Extracting %s"),
+			wxString(fst[i]->m_FullPath, *wxConvCurrent).c_str()));
+
+		if (dialog.WasCancelled())
 			break;
 
 		if (fst[i]->IsDirectory())

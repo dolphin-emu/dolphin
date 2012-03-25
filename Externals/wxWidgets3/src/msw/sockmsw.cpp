@@ -6,7 +6,7 @@
 // Copyright:  (C) 1999-1997, Guilhem Lavaux
 //             (C) 1999-2000, Guillermo Rodriguez Garcia
 //             (C) 2008 Vadim Zeitlin
-// RCS_ID:     $Id: sockmsw.cpp 64940 2010-07-13 13:29:13Z VZ $
+// RCS_ID:     $Id: sockmsw.cpp 69170 2011-09-21 15:07:32Z VZ $
 // Licence:    wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -59,11 +59,9 @@ WX_DECLARE_HASH_MAP(int,bool,wxIntegerHash,wxIntegerEqual,SocketHash);
 #  pragma warning(default:4115) /* named type definition in parentheses */
 #endif
 
-#define CLASSNAME  TEXT("_wxSocket_Internal_Window_Class")
+#include "wx/msw/private/hiddenwin.h"
 
-/* implemented in utils.cpp */
-extern "C" WXDLLIMPEXP_BASE HWND
-wxCreateHiddenWindow(LPCTSTR *pclassname, LPCTSTR classname, WNDPROC wndproc);
+#define CLASSNAME  TEXT("_wxSocket_Internal_Window_Class")
 
 /* Maximum number of different wxSocket objects at a given time.
  * This value can be modified at will, but it CANNOT be greater
@@ -347,7 +345,7 @@ LRESULT CALLBACK wxSocket_Internal_WinProc(HWND hWnd,
                 // only then). Ignore such dummy notifications.
                 {
                     fd_set fds;
-                    timeval tv = { 0 };
+                    timeval tv = { 0, 0 };
 
                     wxFD_ZERO(&fds);
                     wxFD_SET(socket->m_fd, &fds);

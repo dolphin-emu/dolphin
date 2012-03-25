@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: accel.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: accel.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -148,7 +148,7 @@ WXHACCEL wxAcceleratorTable::GetHACCEL() const
 bool wxAcceleratorTable::Translate(wxWindow *window, WXMSG *wxmsg) const
 {
     MSG *msg = (MSG *)wxmsg;
-    return Ok() && ::TranslateAccelerator(GetHwndOf(window), GetHaccel(), msg);
+    return IsOk() && ::TranslateAccelerator(GetHwndOf(window), GetHaccel(), msg);
 }
 
 #endif // wxUSE_ACCEL

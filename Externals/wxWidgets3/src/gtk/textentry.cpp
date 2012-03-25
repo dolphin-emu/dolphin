@@ -3,7 +3,7 @@
 // Purpose:     wxTextEntry implementation for wxGTK
 // Author:      Vadim Zeitlin
 // Created:     2007-09-24
-// RCS-ID:      $Id: textentry.cpp 61836 2009-09-05 13:23:03Z JMS $
+// RCS-ID:      $Id: textentry.cpp 67509 2011-04-16 17:27:04Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,13 +52,19 @@ wx_gtk_insert_text_callback(GtkEditable *editable,
     // we should only be called if we have a max len limit at all
     GtkEntry *entry = GTK_ENTRY (editable);
 
-    wxCHECK_RET( entry->text_max_length, wxT("shouldn't be called") );
+    const int text_length = gtk_entry_get_text_length(entry);
+#if GTK_CHECK_VERSION(3,0,0) || defined(GSEAL_ENABLE)
+    const int text_max_length = gtk_entry_buffer_get_max_length(gtk_entry_get_buffer(entry));
+#else
+    const int text_max_length = entry->text_max_length;
+#endif
+    wxCHECK_RET(text_max_length, "shouldn't be called");
 
     // check that we don't overflow the max length limit
     //
     // FIXME: this doesn't work when we paste a string which is going to be
     //        truncated
-    if ( entry->text_length == entry->text_max_length )
+    if (text_length == text_max_length)
     {
         // we don't need to run the base class version at all
         g_signal_stop_emission_by_name (editable, "insert_text");
@@ -179,7 +185,7 @@ long wxTextEntry::GetLastPosition() const
     // GtkEntries
     GtkEntry * const entry = GTK_ENTRY(GetEditable());
 
-    return entry ? entry->text_length : - 1;
+    return entry ? gtk_entry_get_text_length(entry) : -1;
 }
 
 // ----------------------------------------------------------------------------
@@ -231,7 +237,7 @@ void wxTextEntry::GetSelection(long *from, long *to) const
 // auto completion
 // ----------------------------------------------------------------------------
 
-bool wxTextEntry::AutoComplete(const wxArrayString& choices)
+bool wxTextEntry::DoAutoCompleteStrings(const wxArrayString& choices)
 {
     GtkEntry * const entry = GTK_ENTRY(GetEditable());
     wxCHECK_MSG(entry, false, "auto completion doesn't work with this control");

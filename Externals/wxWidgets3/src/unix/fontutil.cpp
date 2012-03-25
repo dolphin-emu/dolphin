@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.11.99
-// RCS-ID:      $Id: fontutil.cpp 65861 2010-10-22 14:17:30Z VZ $
+// RCS-ID:      $Id: fontutil.cpp 70740 2012-02-28 18:06:22Z PC $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -133,6 +133,11 @@ bool wxNativeFontInfo::GetUnderlined() const
     return false;
 }
 
+bool wxNativeFontInfo::GetStrikethrough() const
+{
+    return false;
+}
+
 wxString wxNativeFontInfo::GetFaceName() const
 {
     // the Pango "family" is the wx "face name"
@@ -154,15 +159,12 @@ wxFontFamily wxNativeFontInfo::GetFamily() const
 
     // Check for some common fonts, to salvage what we can from the current
     // win32 centric wxFont API:
-    if (strncasecmp( family_text, "monospace", 9 ) == 0)
+    if (wxStrnicmp( family_text, "monospace", 9 ) == 0)
         ret = wxFONTFAMILY_TELETYPE;    // begins with "Monospace"
-    else if (strncasecmp( family_text, "courier", 7 ) == 0)
+    else if (wxStrnicmp( family_text, "courier", 7 ) == 0)
         ret = wxFONTFAMILY_TELETYPE;    // begins with "Courier"
 #if defined(__WXGTK20__) || defined(HAVE_PANGO_FONT_FAMILY_IS_MONOSPACE)
     else
-#ifdef __WXGTK20__
-    if (!gtk_check_version(2,4,0))
-#endif
     {
         PangoFontFamily **families;
         PangoFontFamily  *family = NULL;
@@ -204,9 +206,9 @@ wxFontFamily wxNativeFontInfo::GetFamily() const
             ret = wxFONTFAMILY_SWISS;       // contains "Sans"
         else if (strstr( family_text, "serif" ) != NULL || strstr( family_text, "Serif" ) != NULL)
             ret = wxFONTFAMILY_ROMAN;       // contains "Serif"
-        else if (strncasecmp( family_text, "times", 5 ) == 0)
+        else if (wxStrnicmp( family_text, "times", 5 ) == 0)
             ret = wxFONTFAMILY_ROMAN;       // begins with "Times"
-        else if (strncasecmp( family_text, "old", 3 ) == 0)
+        else if (wxStrnicmp( family_text, "old", 3 ) == 0)
             ret = wxFONTFAMILY_DECORATIVE;  // begins with "Old" - "Old English", "Old Town"
     }
 
@@ -264,6 +266,11 @@ void wxNativeFontInfo::SetUnderlined(bool WXUNUSED(underlined))
 {
     // wxWindowDCImpl::DoDrawText will take care of rendering font with
     // the underline attribute!
+    wxFAIL_MSG( "not implemented" );
+}
+
+void wxNativeFontInfo::SetStrikethrough(bool WXUNUSED(strikethrough))
+{
     wxFAIL_MSG( "not implemented" );
 }
 
@@ -813,6 +820,11 @@ void wxNativeFontInfo::SetWeight(wxFontWeight weight)
 void wxNativeFontInfo::SetUnderlined(bool WXUNUSED(underlined))
 {
     // can't do this under X
+}
+
+void wxNativeFontInfo::SetStrikethrough(bool WXUNUSED(strikethrough))
+{
+    // this is not supported by Pango fonts neither
 }
 
 bool wxNativeFontInfo::SetFaceName(const wxString& facename)

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.10.99
-// RCS-ID:      $Id: clipbrd.h 61485 2009-07-20 23:54:08Z VZ $
+// RCS-ID:      $Id: clipbrd.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -160,8 +160,6 @@ typedef void (wxEvtHandler::*wxClipboardEventFunction)(wxClipboardEvent&);
     #include "wx/gtk1/clipbrd.h"
 #elif defined(__WXX11__)
     #include "wx/x11/clipbrd.h"
-#elif defined(__WXMGL__)
-    #include "wx/mgl/clipbrd.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/clipbrd.h"
 #elif defined(__WXCOCOA__)

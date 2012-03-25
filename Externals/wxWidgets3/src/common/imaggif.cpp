@@ -2,7 +2,7 @@
 // Name:        src/common/imaggif.cpp
 // Purpose:     wxGIFHandler
 // Author:      Vaclav Slavik, Guillermo Rodriguez Garcia, Gershon Elber, Troels K
-// RCS-ID:      $Id: imaggif.cpp 66803 2011-01-28 08:36:34Z DS $
+// RCS-ID:      $Id: imaggif.cpp 67802 2011-05-27 12:25:25Z DS $
 // Copyright:   (c) 1999-2011 Vaclav Slavik, Guillermo Rodriguez Garcia, Gershon Elber, Troels K
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -643,7 +643,7 @@ bool wxGIFHandler_WriteWord(wxOutputStream *stream, wxUint16 word)
 
     buf[0] = word & 0xff;
     buf[1] = (word >> 8) & 0xff;
-    return wxGIFHandler_Write(stream, &word, sizeof(word));
+    return wxGIFHandler_Write(stream, &buf, sizeof(buf));
 }
 
 bool wxGIFHandler_WriteHeader(wxOutputStream *stream, int width, int height,

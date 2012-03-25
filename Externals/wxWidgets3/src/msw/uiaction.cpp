@@ -4,7 +4,7 @@
 // Author:      Kevin Ollivier, Steven Lamerton, Vadim Zeitlin
 // Modified by:
 // Created:     2010-03-06
-// RCS-ID:      $Id: uiaction.cpp 65523 2010-09-11 10:18:53Z VZ $
+// RCS-ID:      $Id: uiaction.cpp 70811 2012-03-05 13:00:51Z VZ $
 // Copyright:   (c) Kevin Ollivier
 //              (c) 2010 Steven Lamerton
 //              (c) 2010 Vadim Zeitlin
@@ -15,10 +15,16 @@
 
 #if wxUSE_UIACTIONSIMULATOR
 
+#ifndef WX_PRECOMP
+    #include "wx/msw/private.h"             // For wxGetCursorPosMSW()
+#endif
+
 #include "wx/uiaction.h"
 #include "wx/msw/wrapwin.h"
 
 #include "wx/msw/private/keyboard.h"
+
+#include "wx/math.h"
 
 namespace
 {
@@ -47,7 +53,7 @@ DWORD EventTypeForMouseButton(int button, bool isDown)
 bool wxUIActionSimulator::MouseDown(int button)
 {
     POINT p;
-    GetCursorPos(&p);
+    wxGetCursorPosMSW(&p);
     mouse_event(EventTypeForMouseButton(button, true), p.x, p.y, 0, 0);
     return true;
 }
@@ -56,18 +62,20 @@ bool wxUIActionSimulator::MouseMove(long x, long y)
 {
     // Because MOUSEEVENTF_ABSOLUTE takes measurements scaled between 0 & 65535
     // we need to scale our input too
-    int displayx, displayy, scaledx, scaledy;
+    int displayx, displayy;
     wxDisplaySize(&displayx, &displayy);
-    scaledx = ((float)x / displayx) * 65535;
-    scaledy = ((float)y / displayy) * 65535;
+
+    int scaledx = ceil((float)x * 65535.0 / (displayx-1));
+    int scaledy = ceil((float)y * 65535.0 / (displayy-1));
     mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, scaledx, scaledy, 0, 0);
+
     return true;
 }
 
 bool wxUIActionSimulator::MouseUp(int button)
 {
     POINT p;
-    GetCursorPos(&p);
+    wxGetCursorPosMSW(&p);
     mouse_event(EventTypeForMouseButton(button, false), p.x, p.y, 0, 0);
     return true;
 }

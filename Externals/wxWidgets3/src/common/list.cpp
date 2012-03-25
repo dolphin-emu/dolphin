@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     04/01/98
-// RCS-ID:      $Id: list.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: list.cpp 67769 2011-05-20 14:29:07Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
     #include "wx/crt.h"
 #endif
 
-#if !wxUSE_STL
+#if !wxUSE_STD_CONTAINERS
 
 // =============================================================================
 // implementation
@@ -171,22 +171,18 @@ void wxListBase::DoCopy(const wxListBase& list)
     {
         case wxKEY_INTEGER:
             {
-                long key;
                 for ( wxNodeBase *node = list.GetFirst(); node; node = node->GetNext() )
                 {
-                    key = node->GetKeyInteger();
-                    Append(key, node->GetData());
+                    Append(node->GetKeyInteger(), node->GetData());
                 }
                 break;
             }
 
         case wxKEY_STRING:
             {
-                const wxChar *key;
                 for ( wxNodeBase *node = list.GetFirst(); node; node = node->GetNext() )
                 {
-                    key = node->GetKeyString();
-                    Append(key, node->GetData());
+                    Append(node->GetKeyString(), node->GetData());
                 }
                 break;
             }
@@ -756,16 +752,16 @@ wxNode *wxStringList::Prepend(const wxChar *s)
 
 #endif // wxLIST_COMPATIBILITY
 
-#else // wxUSE_STL = 1
+#else // wxUSE_STD_CONTAINERS = 1
 
     #include "wx/listimpl.cpp"
     WX_DEFINE_LIST(wxObjectList)
 
-// with wxUSE_STL wxStringList contains wxString objects, not pointers
+// with wxUSE_STD_CONTAINERS wxStringList contains wxString objects, not pointers
 void _WX_LIST_HELPER_wxStringListBase::DeleteFunction( wxString WXUNUSED(X) )
 {
 }
 
 wxStringListBase::BaseListType wxStringListBase::EmptyList;
 
-#endif // !wxUSE_STL
+#endif // !wxUSE_STD_CONTAINERS

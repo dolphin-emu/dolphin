@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-10
-// RCS-ID:      $Id: dateevt.h 58718 2009-02-07 18:59:25Z VZ $
+// RCS-ID:      $Id: dateevt.h 69224 2011-09-29 13:43:15Z VZ $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@
 #include "wx/window.h"
 
 // ----------------------------------------------------------------------------
-// wxDateEvent: used by wxCalendarCtrl and wxDatePickerCtrl
+// wxDateEvent: used by wxCalendarCtrl, wxDatePickerCtrl and wxTimePickerCtrl.
 // ----------------------------------------------------------------------------
 
 class WXDLLIMPEXP_ADV wxDateEvent : public wxCommandEvent
@@ -48,6 +48,7 @@ private:
 // ----------------------------------------------------------------------------
 
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_ADV, wxEVT_DATE_CHANGED, wxDateEvent);
+wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_ADV, wxEVT_TIME_CHANGED, wxDateEvent);
 
 typedef void (wxEvtHandler::*wxDateEventFunction)(wxDateEvent&);
 
@@ -56,6 +57,9 @@ typedef void (wxEvtHandler::*wxDateEventFunction)(wxDateEvent&);
 
 #define EVT_DATE_CHANGED(id, fn) \
     wx__DECLARE_EVT1(wxEVT_DATE_CHANGED, id, wxDateEventHandler(fn))
+
+#define EVT_TIME_CHANGED(id, fn) \
+    wx__DECLARE_EVT1(wxEVT_TIME_CHANGED, id, wxDateEventHandler(fn))
 
 #endif // _WX_DATEEVT_H_
 

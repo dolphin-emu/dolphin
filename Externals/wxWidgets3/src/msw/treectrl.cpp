@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to be less MSW-specific on 10.10.98
 // Created:     1997
-// RCS-ID:      $Id: treectrl.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: treectrl.cpp 70660 2012-02-21 09:24:52Z JS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -130,6 +130,32 @@ private:
 // ----------------------------------------------------------------------------
 // private functions
 // ----------------------------------------------------------------------------
+
+namespace
+{
+
+// Work around a problem with TreeView_GetItemRect() when using MinGW/Cygwin:
+// it results in warnings about breaking strict aliasing rules because HITEM is
+// passed via a RECT pointer, so use a union to avoid them and define our own
+// version of the standard macro using it.
+union TVGetItemRectParam
+{
+    RECT rect;
+    HTREEITEM hItem;
+};
+
+inline bool
+wxTreeView_GetItemRect(HWND hwnd,
+                       HTREEITEM hItem,
+                       TVGetItemRectParam& param,
+                       BOOL fItemRect)
+{
+    param.hItem = hItem;
+    return ::SendMessage(hwnd, TVM_GETITEMRECT, fItemRect,
+                        (LPARAM)&param) == TRUE;
+}
+
+} // anonymous namespace
 
 // wrappers for TreeView_GetItem/TreeView_SetItem
 static bool IsItemSelected(HWND hwndTV, HTREEITEM hItem)
@@ -413,14 +439,18 @@ public:
             switch ( which )
             {
                 case wxTreeItemIcon_SelectedExpanded:
-                    image = GetImage(wxTreeItemIcon_Expanded);
+                    // We consider that expanded icon is more important than
+                    // selected so test for it first.
+                    image = m_images[wxTreeItemIcon_Expanded];
+                    if ( image == -1 )
+                        image = m_images[wxTreeItemIcon_Selected];
                     if ( image != -1 )
                         break;
                     //else: fall through
 
                 case wxTreeItemIcon_Selected:
                 case wxTreeItemIcon_Expanded:
-                    image = GetImage(wxTreeItemIcon_Normal);
+                    image = m_images[wxTreeItemIcon_Normal];
                     break;
 
                 case wxTreeItemIcon_Normal:
@@ -761,6 +791,8 @@ bool wxTreeCtrl::Create(wxWindow *parent,
 
 wxTreeCtrl::~wxTreeCtrl()
 {
+    m_isBeingDeleted = true;
+
     // delete any attributes
     if ( m_hasAnyAttr )
     {
@@ -1198,14 +1230,10 @@ bool wxTreeCtrl::IsVisible(const wxTreeItemId& item) const
     }
 
     // Bug in Gnu-Win32 headers, so don't use the macro TreeView_GetItemRect
-    RECT rect;
-
-    // this ugliness comes directly from MSDN - it *is* the correct way to pass
-    // the HTREEITEM with TVM_GETITEMRECT
-    *(HTREEITEM *)&rect = HITEM(item);
+    TVGetItemRectParam param;
 
     // true means to get rect for just the text, not the whole line
-    if ( !::SendMessage(GetHwnd(), TVM_GETITEMRECT, true, (LPARAM)&rect) )
+    if ( !wxTreeView_GetItemRect(GetHwnd(), HITEM(item), param, TRUE) )
     {
         // if TVM_GETITEMRECT returned false, then the item is definitely not
         // visible (because its parent is not expanded)
@@ -1215,7 +1243,7 @@ bool wxTreeCtrl::IsVisible(const wxTreeItemId& item) const
     // however if it returned true, the item might still be outside the
     // currently visible part of the tree, test for it (notice that partly
     // visible means visible here)
-    return rect.bottom > 0 && rect.top < GetClientSize().y;
+    return param.rect.bottom > 0 && param.rect.top < GetClientSize().y;
 }
 
 bool wxTreeCtrl::ItemHasChildren(const wxTreeItemId& item) const
@@ -1488,9 +1516,10 @@ wxTreeItemId wxTreeCtrl::DoInsertAfter(const wxTreeItemId& parent,
     // need this to make the "[+]" appear
     if ( firstChild )
     {
-        RECT rect;
-        TreeView_GetItemRect(GetHwnd(), HITEM(parent), &rect, FALSE);
-        ::InvalidateRect(GetHwnd(), &rect, FALSE);
+        TVGetItemRectParam param;
+
+        wxTreeView_GetItemRect(GetHwnd(), HITEM(parent), param, FALSE);
+        ::InvalidateRect(GetHwnd(), &param.rect, FALSE);
     }
 
     // associate the application tree item with Win32 tree item handle
@@ -2030,18 +2059,18 @@ bool wxTreeCtrl::GetBoundingRect(const wxTreeItemId& item,
                                  wxRect& rect,
                                  bool textOnly) const
 {
-    RECT rc;
-
     // Virtual root items have no bounding rectangle
     if ( IS_VIRTUAL_ROOT(item) )
     {
         return false;
     }
 
-    if ( TreeView_GetItemRect(GetHwnd(), HITEM(item),
-                              &rc, textOnly) )
+    TVGetItemRectParam param;
+
+    if ( wxTreeView_GetItemRect(GetHwnd(), HITEM(item), param, textOnly) )
     {
-        rect = wxRect(wxPoint(rc.left, rc.top), wxPoint(rc.right, rc.bottom));
+        rect = wxRect(wxPoint(param.rect.left, param.rect.top),
+                      wxPoint(param.rect.right, param.rect.bottom));
 
         return true;
     }
@@ -3093,16 +3122,16 @@ wxTreeCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
             // do it for the other items itself - help it
             wxArrayTreeItemIds selections;
             size_t count = GetSelections(selections);
-            RECT rect;
+            TVGetItemRectParam param;
 
             for ( size_t n = 0; n < count; n++ )
             {
                 // TreeView_GetItemRect() will return false if item is not
                 // visible, which may happen perfectly well
-                if ( TreeView_GetItemRect(GetHwnd(), HITEM(selections[n]),
-                                          &rect, TRUE) )
+                if ( wxTreeView_GetItemRect(GetHwnd(), HITEM(selections[n]),
+                                            param, TRUE) )
                 {
-                    ::InvalidateRect(GetHwnd(), &rect, FALSE);
+                    ::InvalidateRect(GetHwnd(), &param.rect, FALSE);
                 }
             }
         }
@@ -3441,7 +3470,7 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
             //
             // to avoid such surprises, we force the generation of focus events
             // now, before we generate the selection change ones
-            if ( !m_changingSelection )
+            if ( !m_changingSelection && !m_isBeingDeleted )
                 SetFocus();
             break;
 
@@ -3618,7 +3647,7 @@ bool wxTreeCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
         case NM_RCLICK:
             {
                 TV_HITTESTINFO tvhti;
-                ::GetCursorPos(&tvhti.pt);
+                wxGetCursorPosMSW(&tvhti.pt);
                 ::ScreenToClient(GetHwnd(), &tvhti.pt);
                 if ( TreeView_HitTest(GetHwnd(), &tvhti) )
                 {

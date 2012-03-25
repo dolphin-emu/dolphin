@@ -4,17 +4,18 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: button.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: button.mm 70402 2012-01-19 15:01:01Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
 
-#include "wx/button.h"
-
 #ifndef WX_PRECOMP
+#include "wx/object.h"
 #endif
+
+#include "wx/button.h"
 
 #include "wx/osx/private.h"
 
@@ -22,36 +23,6 @@
     #include "wx/osx/cocoa/private/markuptoattr.h"
 #endif // wxUSE_MARKUP
 
-
-wxSize wxButton::DoGetBestSize() const
-{
-    // We only use help button bezel if we don't have any (non standard) label
-    // to display in the button. Otherwise even wxID_HELP buttons look like
-    // normal push buttons.
-    if ( GetId() == wxID_HELP && GetLabel().empty() )
-        return wxSize( 23 , 23 ) ;
-
-    wxRect r ;
-    GetPeer()->GetBestRect(&r);
-
-    wxSize sz = r.GetSize();
-    sz.x  = sz.x  + MacGetLeftBorderSize() +
-    MacGetRightBorderSize();
-    sz.y = sz.y + MacGetTopBorderSize() +
-    MacGetBottomBorderSize();
-    
-    const int wBtnStd = GetDefaultSize().x;
-
-    if ( (sz.x < wBtnStd) && !HasFlag(wxBU_EXACTFIT) )
-        sz.x = wBtnStd;
-
-    return sz ;
-}
-
-wxSize wxButton::GetDefaultSize()
-{
-    return wxSize(84, 20);
-}
 
 @implementation wxNSButton
 
@@ -119,14 +90,22 @@ public:
     wxButtonCocoaImpl(wxWindowMac *wxpeer, wxNSButton *v)
         : wxWidgetCocoaImpl(wxpeer, v)
     {
+        SetNeedsFrame(false);
     }
 
     virtual void SetBitmap(const wxBitmap& bitmap)
     {
         // switch bezel style for plain pushbuttons
-        if ( bitmap.IsOk() && [GetNSButton() bezelStyle] == NSRoundedBezelStyle )
-            [GetNSButton() setBezelStyle:NSRegularSquareBezelStyle ];
-
+        if ( bitmap.IsOk() )
+        {
+            if ([GetNSButton() bezelStyle] == NSRoundedBezelStyle)
+                [GetNSButton() setBezelStyle:NSRegularSquareBezelStyle];
+        }
+        else
+        {
+            [GetNSButton() setBezelStyle:NSRoundedBezelStyle];
+        }
+        
         wxWidgetCocoaImpl::SetBitmap(bitmap);
     }
 
@@ -221,8 +200,10 @@ void SetBezelStyleFromBorderFlags(NSButton *v, long style)
             [v setBezelStyle:NSRegularSquareBezelStyle];
         else if ( (style & wxBORDER_MASK) == wxBORDER_SUNKEN )
             [v setBezelStyle:NSSmallSquareBezelStyle];
-        else
+        else if ( (style & wxBORDER_MASK) == wxBORDER_SIMPLE )
             [v setBezelStyle:NSShadowlessSquareBezelStyle];
+        else
+            [v setBezelStyle:NSRegularSquareBezelStyle];
     }
 }
 
@@ -233,7 +214,7 @@ wxWidgetImplType* wxWidgetImpl::CreateButton( wxWindowMac* wxpeer,
                                     const wxString& label,
                                     const wxPoint& pos,
                                     const wxSize& size,
-                                    long WXUNUSED(style),
+                                    long style,
                                     long WXUNUSED(extraStyle))
 {
     NSRect r = wxOSXGetFrameForControl( wxpeer, pos , size ) ;
@@ -249,9 +230,41 @@ wxWidgetImplType* wxWidgetImpl::CreateButton( wxWindowMac* wxpeer,
     }
     else
     {
-        [v setBezelStyle:NSRoundedBezelStyle];
-    }
+        if ( style & wxBORDER_NONE )
+        {
+            [v setBezelStyle:NSShadowlessSquareBezelStyle];
+            [v setBordered:NO];
+        }
+        else 
+        {
+            // the following styles only exist for certain sizes, so avoid them for
+            // multi-line
+            if ( label.Find('\n' ) == wxNOT_FOUND && label.Find('\r' ) == wxNOT_FOUND)
+            {
+                if ( (style & wxBORDER_MASK) == wxBORDER_RAISED )
+                    [v setBezelStyle:NSRoundedBezelStyle];
+                else if ( (style & wxBORDER_MASK) == wxBORDER_SUNKEN )
+                    [v setBezelStyle:NSTexturedRoundedBezelStyle];
+                else if ( (style & wxBORDER_MASK) == wxBORDER_SIMPLE )
+                    [v setBezelStyle:NSShadowlessSquareBezelStyle];
+                else
+                    [v setBezelStyle:NSRoundedBezelStyle];
+            }
+            else 
+            {
+                if ( (style & wxBORDER_MASK) == wxBORDER_RAISED )
+                    [v setBezelStyle:NSRegularSquareBezelStyle];
+                else if ( (style & wxBORDER_MASK) == wxBORDER_SUNKEN )
+                    [v setBezelStyle:NSSmallSquareBezelStyle];
+                else if ( (style & wxBORDER_MASK) == wxBORDER_SIMPLE )
+                    [v setBezelStyle:NSShadowlessSquareBezelStyle];
+                else
+                    [v setBezelStyle:NSRegularSquareBezelStyle];
+            }
 
+        }
+    }
+    
     [v setButtonType:NSMomentaryPushInButton];
     return new wxButtonCocoaImpl( wxpeer, v );
 }
@@ -289,7 +302,7 @@ wxWidgetImplType* wxWidgetImpl::CreateBitmapButton( wxWindowMac* wxpeer,
 
     SetBezelStyleFromBorderFlags(v, style);
 
-    if (bitmap.Ok())
+    if (bitmap.IsOk())
         [v setImage:bitmap.GetNSImage() ];
 
     [v setButtonType:NSMomentaryPushInButton];
@@ -379,7 +392,7 @@ wxCFRef<NSImage*> downArray ;
     static wxBitmap trianglebm(disc_triangle_xpm);
     if ( downArray.get() == NULL )
     {
-        downArray.reset( [wxDisclosureNSButton rotateImage:trianglebm.GetNSImage()] );
+        downArray.reset( [[wxDisclosureNSButton rotateImage:trianglebm.GetNSImage()] retain] );
     }
 
     if ( isOpen )
@@ -407,7 +420,7 @@ wxCFRef<NSImage*> downArray ;
         fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
 
     [newImage unlockFocus];
-    return newImage;
+    return [newImage autorelease];
 }
 
 @end

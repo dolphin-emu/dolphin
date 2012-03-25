@@ -4,7 +4,7 @@
 // Author:      Kevin Smith
 // Modified by:
 // Created:     Jan 22 1999
-// RCS-ID:      $Id: valgen.cpp 66533 2011-01-03 11:23:49Z VZ $
+// RCS-ID:      $Id: valgen.cpp 68225 2011-07-11 14:51:32Z VZ $
 // Copyright:   (c) 1999 Kevin Smith
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -46,6 +46,7 @@
 #if wxUSE_TOGGLEBTN
     #include "wx/tglbtn.h"
 #endif
+#include "wx/filename.h"
 
 #include "wx/valgen.h"
 
@@ -83,6 +84,24 @@ wxGenericValidator::wxGenericValidator(wxDateTime *val)
     m_pDateTime = val;
 }
 
+wxGenericValidator::wxGenericValidator(wxFileName *val)
+{
+    Initialize();
+    m_pFileName = val;
+}
+
+wxGenericValidator::wxGenericValidator(float *val)
+{
+    Initialize();
+    m_pFloat = val;
+}
+
+wxGenericValidator::wxGenericValidator(double *val)
+{
+    Initialize();
+    m_pDouble = val;
+}
+
 #endif // wxUSE_DATETIME
 
 wxGenericValidator::wxGenericValidator(const wxGenericValidator& val)
@@ -102,6 +121,9 @@ bool wxGenericValidator::Copy(const wxGenericValidator& val)
 #if wxUSE_DATETIME
     m_pDateTime = val.m_pDateTime;
 #endif // wxUSE_DATETIME
+    m_pFileName = val.m_pFileName;
+    m_pFloat = val.m_pFloat;
+    m_pDouble = val.m_pDouble;
 
     return true;
 }
@@ -319,6 +341,21 @@ bool wxGenericValidator::TransferToWindow(void)
             wxString str;
             str.Printf(wxT("%d"), *m_pInt);
             pControl->SetValue(str);
+            return true;
+        }
+        else if (m_pFileName)
+        {
+            pControl->SetValue(m_pFileName->GetFullPath());
+            return true;
+        }
+        else if (m_pFloat)
+        {
+            pControl->SetValue(wxString::Format(wxT("%g"), *m_pFloat));
+            return true;
+        }
+        else if (m_pDouble)
+        {
+            pControl->SetValue(wxString::Format(wxT("%g"), *m_pDouble));
             return true;
         }
     } else
@@ -582,6 +619,21 @@ bool wxGenericValidator::TransferFromWindow(void)
             *m_pInt = wxAtoi(pControl->GetValue());
             return true;
         }
+        else if (m_pFileName)
+        {
+            m_pFileName->Assign(pControl->GetValue());
+            return true;
+        }
+        else if (m_pFloat)
+        {
+            *m_pFloat = (float)wxAtof(pControl->GetValue());
+            return true;
+        }
+        else if (m_pDouble)
+        {
+            *m_pDouble = wxAtof(pControl->GetValue());
+            return true;
+        }
     } else
 #endif
 
@@ -645,13 +697,16 @@ bool wxGenericValidator::TransferFromWindow(void)
 */
 void wxGenericValidator::Initialize()
 {
-    m_pBool = 0;
-    m_pInt = 0;
-    m_pString = 0;
-    m_pArrayInt = 0;
+    m_pBool = NULL;
+    m_pInt = NULL;
+    m_pString = NULL;
+    m_pArrayInt = NULL;
 #if wxUSE_DATETIME
-    m_pDateTime = 0;
+    m_pDateTime = NULL;
 #endif // wxUSE_DATETIME
+    m_pFileName = NULL;
+    m_pFloat = NULL;
+    m_pDouble = NULL;
 }
 
 #endif // wxUSE_VALIDATORS

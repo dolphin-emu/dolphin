@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.07.2003
-// RCS-ID:      $Id: scopeguard.h 63473 2010-02-12 22:47:21Z VZ $
+// RCS-ID:      $Id: scopeguard.h 67592 2011-04-24 13:14:47Z VS $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -390,7 +390,7 @@ namespace wxPrivate
 {
 
 // empty class just to be able to define a reference to it
-class VariableSetterBase { };
+class VariableSetterBase : public wxScopeGuardImplBase { };
 
 typedef const VariableSetterBase& VariableSetter;
 
@@ -404,10 +404,9 @@ public:
     {
     }
 
-    ~VariableSetterImpl()
-    {
-        m_var = m_value;
-    }
+    ~VariableSetterImpl() { wxPrivateOnScopeExit(*this); }
+
+    void Execute() { m_var = m_value; }
 
 private:
     T& m_var;
@@ -426,10 +425,9 @@ public:
     {
     }
 
-    ~VariableNullerImpl()
-    {
-        m_var = NULL;
-    }
+    ~VariableNullerImpl() { wxPrivateOnScopeExit(*this); }
+
+    void Execute() { m_var = NULL; }
 
 private:
     T& m_var;
