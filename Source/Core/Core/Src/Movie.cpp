@@ -304,7 +304,7 @@ bool BeginRecordingInput(int controllers)
 	g_rerecords = 0;
 	g_playMode = MODE_RECORDING;
 
-	delete tmpInput;
+	delete [] tmpInput;
 	tmpInput = new u8[MAX_DTM_LENGTH];
 	g_currentByte = g_totalBytes = 0;
 		
@@ -653,7 +653,7 @@ void LoadInput(const char *filename)
 		g_totalInputCount = tmpHeader.inputCount;
 
 		g_totalBytes = totalSavedBytes;
-		delete tmpInput;
+		delete [] tmpInput;
 		tmpInput = new u8[MAX_DTM_LENGTH];
 		t_record.ReadArray(tmpInput, (size_t)g_totalBytes);
 	}
@@ -707,7 +707,7 @@ void LoadInput(const char *filename)
 					break;
 				}
 			}
-			delete movInput;
+			delete [] movInput;
 		}
 	}
 	t_record.Close();
