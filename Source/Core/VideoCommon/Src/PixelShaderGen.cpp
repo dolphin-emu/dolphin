@@ -299,7 +299,7 @@ void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::
 static void WriteStage(char *&p, int n, API_TYPE ApiType);
 static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
-static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode);
+static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode);
 static void WriteFog(char *&p);
 
 static const char *tevKSelTableC[] = // KCSEL
@@ -619,22 +619,29 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	char* pmainstart = p;
 	int Pretest = AlphaPreTest();
-	if (dstAlphaMode == DSTALPHA_ALPHA_PASS && !DepthTextureEnable && Pretest >= 0)
+	if(Pretest >= 0 && !DepthTextureEnable)
 	{
 		if (!Pretest)
 		{
-			// alpha test will always fail, so restart the shader and just make it an empty function
+			// alpha test will always fail, so restart the shader and just make it an empty function		
 			WRITE(p, "ocol0 = 0;\n");
+			if(DepthTextureEnable)
+				WRITE(p, "depth = 1.f;\n");
+			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+					WRITE(p, "ocol1 = 0;\n");
 			WRITE(p, "discard;\n");
 			if(ApiType != API_D3D11)
 				WRITE(p, "return;\n");
 		}
-		else
+		else if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 		{
 			WRITE(p, "  ocol0 = "I_ALPHA"[0].aaaa;\n");
 		}
-		WRITE(p, "}\n");
-		return text;
+		if(!Pretest || dstAlphaMode == DSTALPHA_ALPHA_PASS)
+		{
+			WRITE(p, "}\n");
+			return text;
+		}
 	}
 
 	WRITE(p, "  float4 c0 = "I_COLORS"[1], c1 = "I_COLORS"[2], c2 = "I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
@@ -723,65 +730,53 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	// emulation of unsigned 8 overflow when casting
 	WRITE(p, "prev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
-	// TODO: Why are we doing a second alpha pretest here?
-	if (!WriteAlphaTest(p, ApiType, dstAlphaMode))
+	if(Pretest ==  -1)
 	{
-		// alpha test will always fail, so restart the shader and just make it an empty function
-		p = pmainstart;
-		WRITE(p, "ocol0 = 0;\n");
-		if(DepthTextureEnable)
-			WRITE(p, "depth = 1.f;\n");
-		if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "ocol1 = 0;\n");
-		WRITE(p, "discard;\n");
-		if(ApiType != API_D3D11)
-			WRITE(p, "return;\n");
+		WriteAlphaTest(p, ApiType, dstAlphaMode);
 	}
+
+	if((bpmem.fog.c_proj_fsel.fsel != 0) || DepthTextureEnable)
+	{
+		// the screen space depth value = far z + (clip z / clip w) * z range
+		WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
+	}
+
+	if (DepthTextureEnable)
+	{
+		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
+		if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
+		{
+			if (bpmem.ztex2.op == ZTEXTURE_ADD)
+				WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord;\n");
+			else
+				WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w;\n");
+
+			// scale to make result from frac correct
+			WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
+			WRITE(p, "zCoord = frac(zCoord);\n");
+			WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
+		}
+		WRITE(p, "depth = zCoord;\n");
+	}
+
+	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
+		WRITE(p, "  ocol0 = float4(prev.rgb, "I_ALPHA"[0].a);\n");
 	else
 	{
-		if((bpmem.fog.c_proj_fsel.fsel != 0) || DepthTextureEnable)
-		{
-
-			// the screen space depth value = far z + (clip z / clip w) * z range
-			WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
-		}
-
-		if (DepthTextureEnable)
-		{
-			// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-			if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
-			{
-				if (bpmem.ztex2.op == ZTEXTURE_ADD)
-					WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord;\n");
-				else
-					WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w;\n");
-
-				// scale to make result from frac correct
-				WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
-				WRITE(p, "zCoord = frac(zCoord);\n");
-				WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
-			}
-			WRITE(p, "depth = zCoord;\n");
-		}
-
-		if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
-			WRITE(p, "  ocol0 = float4(prev.rgb, "I_ALPHA"[0].a);\n");
-		else
-		{
-			WriteFog(p);
-			WRITE(p, "  ocol0 = prev;\n");
-		}
-
-		// On D3D11, use dual-source color blending to perform dst alpha in a
-		// single pass
-		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-		{
-			// Colors will be blended against the alpha from ocol1...
-			WRITE(p, "  ocol1 = ocol0;\n");
-			// ...and the alpha from ocol0 will be written to the framebuffer.
-			WRITE(p, "  ocol0.a = "I_ALPHA"[0].a;\n");
-		}
+		WriteFog(p);
+		WRITE(p, "  ocol0 = prev;\n");
 	}
+
+	// On D3D11, use dual-source color blending to perform dst alpha in a
+	// single pass
+	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+	{
+		// Colors will be blended against the alpha from ocol1...
+		WRITE(p, "  ocol1 = ocol0;\n");
+		// ...and the alpha from ocol0 will be written to the framebuffer.
+		WRITE(p, "  ocol0.a = "I_ALPHA"[0].a;\n");
+	}
+	
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
@@ -1157,19 +1152,13 @@ static int AlphaPreTest()
 }
 
 
-static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode)
+static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode)
 {
 	static const char *alphaRef[2] =
 	{
 		I_ALPHA"[0].r",
 		I_ALPHA"[0].g"
-	};
-
-	int Pretest = AlphaPreTest();
-	if(Pretest >= 0)
-	{
-		return Pretest != 0;
-	}
+	};	
 
 	// using discard then return works the same in cg and dx9 but not in dx11
 	WRITE(p, "if(!( ");
@@ -1190,14 +1179,17 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 		WRITE(p, "depth = 1.f;\n");
 
 	// HAXX: zcomploc is a way to control whether depth test is done before
-	// or after texturing and alpha test. PC GPU have no way to support this
-	// feature properly as of 2012: depth buffer and depth test are not
-	// programmable and the depth test is always done after texturing.
-	//
+	// or after texturing and alpha test. PC GPU does depth test before texturing ONLY if depth value is
+	// not updated during shader execution.
 	// We implement "depth test before texturing" by discarding the fragment
 	// when the alpha test fail. This is not a correct implementation because
-	// even if the depth test fails the fragment could be alpha blended, but
-	// we don't have a choice.
+	// even if the depth test fails the fragment could be alpha blended.
+	// this implemnetation is a trick to  keep speed.
+	// the correct, but slow, way to implement a correct zComploc is :
+	// 1 - if zcomplock is enebled make a first pass, with color channel write disabled updating only 
+	// depth channel.
+	// 2 - in the next pass disable depth chanel update, but proccess the color data normally
+	// this way is the only CORRECT way to emulate perfectly the zcomplock behaviour
 	if (!(bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable))
 	{
 		WRITE(p, "discard;\n");
@@ -1206,7 +1198,7 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	}
 
 	WRITE(p, "}\n");
-	return true;
+	
 }
 
 static const char *tevFogFuncsTable[] =
