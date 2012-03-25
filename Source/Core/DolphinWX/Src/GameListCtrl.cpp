@@ -557,17 +557,17 @@ void CGameListCtrl::ScanForISOs()
 
 	if (rFilenames.size() > 0)
 	{
-		wxProgressDialog dialog(_("Scanning for ISOs"),
-					_("Scanning..."),
-					(int)rFilenames.size(), // range
-					this, // parent
-					wxPD_APP_MODAL |
-					wxPD_ELAPSED_TIME |
-					wxPD_ESTIMATED_TIME |
-					wxPD_REMAINING_TIME |
-					wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-					);
-		dialog.CenterOnParent();
+		wxProgressDialog dialog(
+			_("Scanning for ISOs"),
+			_("Scanning..."),
+			(int)rFilenames.size() - 1,
+			this,
+			wxPD_APP_MODAL |
+			wxPD_AUTO_HIDE |
+			wxPD_CAN_ABORT |
+			wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+			wxPD_SMOOTH // - makes updates as small as possible (down to 1px)
+			);
 
 		for (u32 i = 0; i < rFilenames.size(); i++)
 		{
@@ -575,9 +575,9 @@ void CGameListCtrl::ScanForISOs()
 			SplitPath(rFilenames[i], NULL, &FileName, NULL);
 
 			// Update with the progress (i) and the message
-			bool Cont = dialog.Update(i,
-					wxString::Format(_("Scanning %s"), wxString(FileName.c_str(), *wxConvCurrent).c_str()));
-			if (!Cont)
+			dialog.Update(i, wxString::Format(_("Scanning %s"),
+				wxString(FileName.c_str(), *wxConvCurrent).c_str()));
+			if (dialog.WasCancelled())
 				break;
 
 			std::auto_ptr<GameListItem> iso_file(new GameListItem(rFilenames[i]));
@@ -1089,20 +1089,15 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	if (browseDialog.ShowModal() != wxID_OK)
 		return;
 
-	wxProgressDialog progressDialog(_compress ?
-			_("Compressing ISO") : _("Decompressing ISO"),
-			_("Working..."),
-			1000, // range
-			this, // parent
-			wxPD_APP_MODAL |
-			wxPD_ELAPSED_TIME |
-			wxPD_ESTIMATED_TIME |
-			wxPD_REMAINING_TIME |
-			wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-			);
-
-	progressDialog.SetSize(wxSize(340, 180));
-	progressDialog.CenterOnParent();
+	wxProgressDialog progressDialog(
+		_compress ? _("Compressing ISO") : _("Decompressing ISO"),
+		_("Working..."),
+		1000,
+		this,
+		wxPD_APP_MODAL |
+		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+		wxPD_SMOOTH
+		);
 
 	m_currentItem = 0;
 	m_numberItem = GetSelectedItemCount();
@@ -1222,20 +1217,15 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 				_("Confirm File Overwrite"),
 				wxYES_NO) == wxNO);
 
-	wxProgressDialog dialog(iso->IsCompressed() ?
-			_("Decompressing ISO") : _("Compressing ISO"),
-			_("Working..."),
-			1000, // range
-			this, // parent
-			wxPD_APP_MODAL |
-			wxPD_ELAPSED_TIME |
-			wxPD_ESTIMATED_TIME |
-			wxPD_REMAINING_TIME |
-			wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-			);
-
-	dialog.SetSize(wxSize(340, 180));
-	dialog.CenterOnParent();
+	wxProgressDialog dialog(
+		iso->IsCompressed() ? _("Decompressing ISO") : _("Compressing ISO"),
+		_("Working..."),
+		1000,
+		this,
+		wxPD_APP_MODAL |
+		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+		wxPD_SMOOTH
+		);
 
 	if (iso->IsCompressed())
 		DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),

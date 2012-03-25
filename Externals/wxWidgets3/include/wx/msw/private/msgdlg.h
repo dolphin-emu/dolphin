@@ -19,7 +19,10 @@
 // by the task dialogs only. Also notice that task dialogs are available for
 // Unicode applications only.
 #if defined(TD_WARNING_ICON) && wxUSE_UNICODE
-    #define wxHAS_MSW_TASKDIALOG
+// (shuffle2) This is turned off because as of wxW svn r70933,
+//  there is a bug with the wxPD_AUTO_HIDE style which can cause a non-dolphin
+//  window to come to the foreground after auto-closing of the TaskDialog.
+//    #define wxHAS_MSW_TASKDIALOG
 #endif
 
 // Provides methods for creating a task dialog.

@@ -1375,16 +1375,12 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 
 	wxProgressDialog dialog(_("Installing WAD..."),
 		_("Working..."),
-		1000, // range
-		this, // parent
+		1000,
+		this,
 		wxPD_APP_MODAL |
-		wxPD_ELAPSED_TIME |
-		wxPD_ESTIMATED_TIME |
-		wxPD_REMAINING_TIME |
-		wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+		wxPD_SMOOTH
 		);
-
-	dialog.CenterOnParent();
 
 	u64 titleID = DiscIO::CNANDContentManager::Access().Install_WiiWAD(fileName);
 	if (titleID == TITLEID_SYSMENU)
