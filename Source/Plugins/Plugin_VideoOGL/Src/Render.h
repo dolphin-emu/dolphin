@@ -27,8 +27,8 @@ public:
 	void SetInterlacingMode();
 
 	// TODO: Implement and use these
-	void ApplyState(bool bUseDstAlpha) {}
-	void RestoreState() {}
+	void ApplyState(RenderStateMode mode){}
+	void RestoreState(RenderStateMode mode){}
 
 	void RenderText(const char* pstr, int left, int top, u32 color);
 	void DrawDebugInfo();

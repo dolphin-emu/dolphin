@@ -154,11 +154,6 @@ void VertexManager::vFlush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
-	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
-	{
-		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
-		goto shader_fail;
-	}
 	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set vertex shader\n");});
@@ -168,6 +163,25 @@ void VertexManager::vFlush()
 
 	int stride = g_nativeVertexFmt->GetVertexStride();
 	g_nativeVertexFmt->SetupVertexPointers();
+	bool UseZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && g_ActiveConfig.bAcurateZcomploc;
+	if (UseZcomploc)
+	{
+		if (!PixelShaderCache::SetShader(DSTALPHA_ZCOMPLOC,g_nativeVertexFmt->m_components))
+		{
+			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
+			goto shader_fail;
+		}	
+		g_renderer->ApplyState(RSM_Zcomploc);
+		Draw(stride);
+		g_renderer->RestoreState(RSM_Zcomploc);
+		g_renderer->ApplyState(RSM_Multipass);
+	}
+
+	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
+	{
+		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
+		goto shader_fail;
+	}
 
 	Draw(stride);
 
@@ -175,16 +189,22 @@ void VertexManager::vFlush()
 						bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 	if (useDstAlpha)
 	{
-		DWORD write = 0;
 		if (!PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS, g_nativeVertexFmt->m_components))
 		{
 			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 			goto shader_fail;
 		}
 		// update alpha only
-		g_renderer->ApplyState(true);
+		g_renderer->ApplyState(RSM_UseDstAlpha);
+		if(!UseZcomploc && bpmem.zmode.updateenable)
+			g_renderer->ApplyState(RSM_Multipass);
 		Draw(stride);
-		g_renderer->RestoreState();
+		g_renderer->RestoreState(RSM_UseDstAlpha);
+	}
+	
+	if (UseZcomploc || (useDstAlpha && bpmem.zmode.updateenable))
+	{
+		g_renderer->RestoreState(RSM_Multipass);		
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 

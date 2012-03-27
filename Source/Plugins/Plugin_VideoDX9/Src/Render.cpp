@@ -1204,19 +1204,42 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	XFBWrited = false;
 }
 
-void Renderer::ApplyState(bool bUseDstAlpha)
+void Renderer::ApplyState(RenderStateMode mode)
 {
-	if (bUseDstAlpha)
+	if(mode == RSM_Zcomploc)
+	{
+		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, 0);
+	}
+	else if(mode == RSM_Multipass)
+	{
+		D3D::ChangeRenderState(D3DRS_ZENABLE, TRUE);
+		D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);		
+		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_EQUAL);
+	}
+	else if (mode == RSM_UseDstAlpha)
 	{
 		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
 	}
 }
 
-void Renderer::RestoreState()
+void Renderer::RestoreState(RenderStateMode mode)
 {
-	D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
-	D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
+	if(mode == RSM_Zcomploc)
+	{
+		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
+	}
+	else if(mode == RSM_Multipass)
+	{
+		D3D::RefreshRenderState(D3DRS_ZENABLE);
+		D3D::RefreshRenderState(D3DRS_ZWRITEENABLE);
+		D3D::RefreshRenderState(D3DRS_ZFUNC);
+	}
+	else if(mode == RSM_UseDstAlpha)
+	{
+		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
+		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);		
+	}
 
 	// TODO: Enable this code. Caused glitches for me however (neobrain)
 //	for (unsigned int i = 0; i < 8; ++i)

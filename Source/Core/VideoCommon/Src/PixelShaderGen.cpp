@@ -109,7 +109,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	uid->values[0] |= bpmem.genMode.numtexgens << 4; // 4
 	uid->values[0] |= dstAlphaMode << 8; // 2
 
-	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth;
+	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable) || g_ActiveConfig.bEnablePerPixelDepth;
 
 	uid->values[0] |= DepthTextureEnable << 10; // 1
 
@@ -121,7 +121,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 
 	uid->values[0] |= alphaPreTest << 16; // 2
 
-	if (alphaPreTest == 1 || (alphaPreTest && !DepthTextureEnable && dstAlphaMode == DSTALPHA_ALPHA_PASS))
+	if (alphaPreTest == 1 || (alphaPreTest == 2 && !DepthTextureEnable && dstAlphaMode == DSTALPHA_ALPHA_PASS) || dstAlphaMode == DSTALPHA_ZCOMPLOC)
 	{
 		// Courtesy of PreAlphaTest, we're done already ;)
 		// NOTE: The comment header of generated shaders depends on the value of bpmem.genmode.numindstages.. shouldnt really bother about that though.
@@ -177,6 +177,8 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 			ptr[0] |= bpmem.zcontrol.zcomploc << 13; // 1
 			ptr[0] |= bpmem.zmode.testenable << 14; // 1
 			ptr[0] |= bpmem.zmode.updateenable << 15; // 1
+			ptr[0] |= g_ActiveConfig.bAcurateZcomploc << 16; // 1
+			
 		}
 	}
 
@@ -184,8 +186,8 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	{
 		if (bpmem.fog.c_proj_fsel.fsel != 0)
 		{
-			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 16; // 1
-			ptr[0] |= bpmem.fogRange.Base.Enabled << 17; // 1
+			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 17; // 1
+			ptr[0] |= bpmem.fogRange.Base.Enabled << 18; // 1
 		}
 	}
 
@@ -523,7 +525,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
 		}
 	}
-	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ;
+	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable) || g_ActiveConfig.bEnablePerPixelDepth ;
 	// Declare samplers
 
 	if(ApiType != API_D3D11)
@@ -619,9 +621,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	char* pmainstart = p;
 	int Pretest = AlphaPreTest();
-	if(Pretest >= 0 && !DepthTextureEnable)
+	if(Pretest >= 0 || dstAlphaMode == DSTALPHA_ZCOMPLOC)
 	{
-		if (!Pretest)
+		if (!Pretest || dstAlphaMode == DSTALPHA_ZCOMPLOC)
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function		
 			WRITE(p, "ocol0 = 0;\n");
@@ -629,15 +631,18 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				WRITE(p, "depth = 1.f;\n");
 			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 					WRITE(p, "ocol1 = 0;\n");
-			WRITE(p, "discard;\n");
-			if(ApiType != API_D3D11)
-				WRITE(p, "return;\n");
+			if(dstAlphaMode != DSTALPHA_ZCOMPLOC)
+			{
+				WRITE(p, "discard;\n");
+				if(ApiType != API_D3D11)
+					WRITE(p, "return;\n");
+			}
 		}
-		else if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
+		else if (dstAlphaMode == DSTALPHA_ALPHA_PASS && !DepthTextureEnable)
 		{
 			WRITE(p, "  ocol0 = "I_ALPHA"[0].aaaa;\n");
 		}
-		if(!Pretest || dstAlphaMode == DSTALPHA_ALPHA_PASS)
+		if(!Pretest || (dstAlphaMode == DSTALPHA_ALPHA_PASS && !DepthTextureEnable) || dstAlphaMode == DSTALPHA_ZCOMPLOC)
 		{
 			WRITE(p, "}\n");
 			return text;
@@ -744,7 +749,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if (DepthTextureEnable)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-		if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
+		if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable)
 		{
 			if (bpmem.ztex2.op == ZTEXTURE_ADD)
 				WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord;\n");
@@ -1180,17 +1185,18 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 	// HAXX: zcomploc is a way to control whether depth test is done before
 	// or after texturing and alpha test. PC GPU does depth test before texturing ONLY if depth value is
-	// not updated during shader execution.
+	// not updated during shader execution. but GC hardware acts different:
+	// if zcomlock is enabled, depth value is updated even if alpha test fails
 	// We implement "depth test before texturing" by discarding the fragment
 	// when the alpha test fail. This is not a correct implementation because
-	// even if the depth test fails the fragment could be alpha blended.
-	// this implemnetation is a trick to  keep speed.
-	// the correct, but slow, way to implement a correct zComploc is :
+	// even if the depth test fails the fragment could be alpha blended.	
+	// the more correct, but slow, way is:
 	// 1 - if zcomplock is enebled make a first pass, with color channel write disabled updating only 
 	// depth channel.
-	// 2 - in the next pass disable depth chanel update, but proccess the color data normally
-	// this way is the only CORRECT way to emulate perfectly the zcomplock behaviour
-	if (!(bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable))
+	// 2 - in the next pass disable depth chanel update, but proccess the color data normally an update only the pixels 
+	// updated by the depth pass
+	
+	if (!(bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable) || g_ActiveConfig.bAcurateZcomploc)
 	{
 		WRITE(p, "discard;\n");
 		if (ApiType != API_D3D11)

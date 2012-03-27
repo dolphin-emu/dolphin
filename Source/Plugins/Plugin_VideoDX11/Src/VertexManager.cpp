@@ -264,13 +264,13 @@ void VertexManager::vFlush()
 	unsigned int stride = g_nativeVertexFmt->GetVertexStride();
 	g_nativeVertexFmt->SetupVertexPointers();
 
-	g_renderer->ApplyState(useDstAlpha);
+	g_renderer->ApplyState(useDstAlpha ? RSM_UseDstAlpha : RSM_None);
 	LoadBuffers();
 	Draw(stride);
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
-	g_renderer->RestoreState();
+	g_renderer->RestoreState(useDstAlpha ? RSM_UseDstAlpha : RSM_None);
 
 shader_fail:
 	ResetBuffer();

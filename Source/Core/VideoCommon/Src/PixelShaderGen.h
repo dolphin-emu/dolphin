@@ -109,6 +109,7 @@ typedef _PIXELSHADERUID<true> PIXELSHADERUIDSAFE;
 enum DSTALPHA_MODE
 {
 	DSTALPHA_NONE, // Render normally, without destination alpha
+	DSTALPHA_ZCOMPLOC,
 	DSTALPHA_ALPHA_PASS, // Render normally first, then render again for alpha
 	DSTALPHA_DUAL_SOURCE_BLEND // Use dual-source blending
 };

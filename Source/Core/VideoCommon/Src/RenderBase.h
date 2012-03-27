@@ -43,12 +43,21 @@ extern int OSDChoice, OSDTime;
 
 extern bool bLastFrameDumped;
 
+
+enum RenderStateMode
+	{
+		RSM_None,
+		RSM_Multipass,
+		RSM_Zcomploc,
+		RSM_UseDstAlpha
+	};
 // Renderer really isn't a very good name for this class - it's more like "Misc".
 // The long term goal is to get rid of this class and replace it with others that make
 // more sense.
 class Renderer
 {
 public:
+	
 	Renderer();
 	virtual ~Renderer();
 
@@ -63,8 +72,8 @@ public:
 	virtual void SetSamplerState(int stage,int texindex) = 0;
 	virtual void SetInterlacingMode() = 0;
 
-	virtual void ApplyState(bool bUseDstAlpha) = 0;
-	virtual void RestoreState() = 0;
+	virtual void ApplyState(RenderStateMode mode) = 0;
+	virtual void RestoreState(RenderStateMode mode) = 0;
 
 	// Ideal internal resolution - determined by display resolution (automatic scaling) and/or a multiple of the native EFB resolution
 	static int GetTargetWidth() { return s_target_width; }
