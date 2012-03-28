@@ -1,6 +1,6 @@
 #include <QtGui>
 #include "LogWindow.h"
-#include "Util.h"
+#include "Util/Util.h"
 
 #include "LogManager.h"
 

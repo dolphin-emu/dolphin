@@ -3,7 +3,7 @@
 #include <QMainWindow>
 #include "Config/ConfigMain.h"
 #include "RenderWindow.h"
-#include "Util.h"
+#include "Util/Util.h"
 
 #include <Core.h>
 class DLogWindow;

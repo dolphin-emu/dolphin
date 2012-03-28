@@ -12,7 +12,7 @@
 #include <QVariant>
 
 #include "IssueReporter.h"
-#include "Util.h"
+#include "Util/Util.h"
 
 // Initial page
 DIssueInitialPage::DIssueInitialPage(QWidget* parent) : QWizardPage(parent)

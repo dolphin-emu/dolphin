@@ -15,8 +15,8 @@
 #include "ConfigGfx.h"
 #include "ConfigPad.h"
 #include "ConfigWiimote.h"
-#include "Util.h"
-#include "Resources.h"
+#include "../Util/Util.h"
+#include "../Util/Resources.h"
 
 
 DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* parent) : QDialog(parent)

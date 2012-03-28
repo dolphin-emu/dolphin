@@ -8,7 +8,7 @@
 #include <QRadioButton>
 
 #include "ConfigGeneral.h"
-#include "Util.h"
+#include "../Util/Util.h"
 
 #include "ConfigManager.h"
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_PropertySheetDisplayName>DolphinQt.Win32</_PropertySheetDisplayName>
+    <OutDir>..\..\..\Binary\$(PlatformName)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalLibraryDirectories>..\..\..\Externals\SDL\$(PlatformName);..\..\..\Externals\GLew;..\..\..\Externals\Cg</AdditionalLibraryDirectories>
+      <AdditionalDependencies>QtCore4.lib;QtGui4.lib;dsound.lib;dxerr.lib;iphlpapi.lib;winmm.lib;setupapi.lib;xinput.lib;vfw32.lib;cg.lib;cgGL.lib;opengl32.lib;glew32s.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>

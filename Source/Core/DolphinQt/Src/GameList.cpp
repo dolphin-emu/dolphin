@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <QtGui>
 #include "GameList.h"
-#include "Resources.h"
+#include "Util/Resources.h"
 
 #include "FileSearch.h"
 #include "ConfigManager.h"

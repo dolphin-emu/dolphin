@@ -4,7 +4,7 @@
 #include <QLabel>
 #include <QTabBar>
 #include "ConfigGfx.h"
-#include "Util.h"
+#include "../Util/Util.h"
 
 #include "ConfigManager.h"
 #include "VideoBackendBase.h"

@@ -1,5 +1,3 @@
-include_directories(BEFORE Src/Util Src/Config)
-
 set(SRCS	Src/Config/ConfigAudio.cpp
 			Src/Config/ConfigGeneral.cpp
 			Src/Config/ConfigGfx.cpp

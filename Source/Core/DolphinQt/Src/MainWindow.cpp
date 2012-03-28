@@ -2,8 +2,8 @@
 #include "GameList.h"
 #include "MainWindow.h"
 #include "LogWindow.h"
-#include "Resources.h"
-#include "Util.h"
+#include "Util/Resources.h"
+#include "Util/Util.h"
 
 #include "BootManager.h"
 #include "Common.h"
