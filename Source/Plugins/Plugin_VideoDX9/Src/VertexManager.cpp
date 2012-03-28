@@ -154,27 +154,14 @@ void VertexManager::vFlush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
+	int stride = g_nativeVertexFmt->GetVertexStride();
+	g_nativeVertexFmt->SetupVertexPointers();
+
 	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set vertex shader\n");});
 		goto shader_fail;
 
-	}
-
-	int stride = g_nativeVertexFmt->GetVertexStride();
-	g_nativeVertexFmt->SetupVertexPointers();
-	bool UseZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && g_ActiveConfig.bAcurateZcomploc;
-	if (UseZcomploc)
-	{
-		if (!PixelShaderCache::SetShader(DSTALPHA_ZCOMPLOC,g_nativeVertexFmt->m_components))
-		{
-			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
-			goto shader_fail;
-		}	
-		g_renderer->ApplyState(RSM_Zcomploc);
-		Draw(stride);
-		g_renderer->RestoreState(RSM_Zcomploc);
-		g_renderer->ApplyState(RSM_Multipass);
 	}
 
 	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
@@ -196,16 +183,28 @@ void VertexManager::vFlush()
 		}
 		// update alpha only
 		g_renderer->ApplyState(RSM_UseDstAlpha);
-		if(!UseZcomploc && bpmem.zmode.updateenable)
+		if (bpmem.zmode.updateenable)
 			g_renderer->ApplyState(RSM_Multipass);
 		Draw(stride);
 		g_renderer->RestoreState(RSM_UseDstAlpha);
+		if (bpmem.zmode.updateenable)
+			g_renderer->RestoreState(RSM_Multipass);
 	}
-	
-	if (UseZcomploc || (useDstAlpha && bpmem.zmode.updateenable))
+
+	bool UseZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && g_ActiveConfig.bAcurateZcomploc;
+
+	if (UseZcomploc)
 	{
-		g_renderer->RestoreState(RSM_Multipass);		
+		if (!PixelShaderCache::SetShader(DSTALPHA_ZCOMPLOC,g_nativeVertexFmt->m_components))
+		{
+			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
+			goto shader_fail;
+		}	
+		g_renderer->ApplyState(RSM_Zcomploc);
+		Draw(stride);
+		g_renderer->RestoreState(RSM_Zcomploc);	
 	}
+
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 shader_fail:
