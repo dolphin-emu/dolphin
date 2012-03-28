@@ -103,8 +103,6 @@ private:
 		//CrtDebugBreak breakAt(614);
 	#endif // end DEBUG/FAST
 
-#elif defined HAVE_CONFIG_H
-#include "config.h"	// SCons autoconfiguration defines
 #endif
 
 // Windows compatibility
