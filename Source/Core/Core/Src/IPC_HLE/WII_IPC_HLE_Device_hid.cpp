@@ -1,0 +1,416 @@
+// Copyright (C) 2003 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+#include "../Core.h"
+#include "../Debugger/Debugger_SymbolMap.h"
+#include "../HW/WII_IPC.h"
+#include "WII_IPC_HLE.h"
+#include "WII_IPC_HLE_Device_hid.h"
+#include "lusb0_usb.h"
+#include "hidapi.h"
+
+CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName)
+	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+{
+	
+    usb_init(); /* initialize the library */
+  
+}
+
+CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
+{
+
+}
+
+bool CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
+{
+	Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HID, LogTypes::LWARNING);
+	DEBUG_LOG(WII_IPC_HID, "HID::Open");
+	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForce)
+{
+	DEBUG_LOG(WII_IPC_HID, "HID::Close");
+	if (!_bForce)
+		Memory::Write_U32(0, _CommandAddress + 4);
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
+{
+	static u32  replyAddress = 0;
+	static bool hasRun = false;
+	u32 Parameter		= Memory::Read_U32(_CommandAddress + 0xC);
+	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
+	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);    
+
+	u32 ReturnValue = 0;
+	switch (Parameter)
+	{
+	case IOCTL_HID_GET_ATTACHED:
+	{
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Get Attached) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		if(!hasRun)
+		{
+			FillOutDevices(BufferOut, BufferOutSize);
+			hasRun = true;
+		}
+		else
+		{
+			replyAddress = _CommandAddress;
+			return false;
+		}
+		break;
+	}
+	case IOCTL_HID_OPEN:
+	{
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Open) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			BufferIn, BufferInSize, BufferOut, BufferOutSize);
+
+		//hid version, apparently
+		ReturnValue = 0x40001;
+		break;
+	}
+	case IOCTL_HID_SET_SUSPEND:
+	{
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Set Suspend) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		// not actually implemented in IOS
+		ReturnValue = 0;
+		
+		if (replyAddress != 0){
+			FillOutDevices(Memory::Read_U32(replyAddress + 0x18), Memory::Read_U32(replyAddress + 0x1C));
+			WII_IPC_HLE_Interface::EnqReply(replyAddress);
+			replyAddress = 0;
+			hasRun = false;
+		}
+
+		break;
+	}
+	case IOCTL_HID_CANCEL_INTERRUPT:
+	{
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Cancel Interrupt) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			BufferIn, BufferInSize, BufferOut, BufferOutSize);
+
+		if (replyAddress != 0){
+			FillOutDevices(Memory::Read_U32(replyAddress + 0x18), Memory::Read_U32(replyAddress + 0x1C));
+			WII_IPC_HLE_Interface::EnqReply(replyAddress);
+			replyAddress = 0;
+			hasRun = false;
+		}
+
+		ReturnValue = 0;
+		break;
+	}
+	case IOCTL_HID_CONTROL:
+	{
+		/*
+			ERROR CODES:
+			-4 Cant find device specified
+		*/
+		u32 dev_num  = Memory::Read_U32(BufferIn+0x10);
+		u8 requesttype = Memory::Read_U8(BufferIn+0x14);
+		u8 request = Memory::Read_U8(BufferIn+0x15);
+		u16 value = Memory::Read_U16(BufferIn+0x16);
+		u16 index = Memory::Read_U16(BufferIn+0x18);
+		u16 size = Memory::Read_U16(BufferIn+0x1A);
+		u32 data = Memory::Read_U32(BufferIn+0x1C);
+		
+		static int upto = 0;
+		int i;
+		usb_find_busses(); /* find all busses */
+		usb_find_devices(); /* find all connected devices */
+		
+		struct usb_dev_handle * dev_handle = GetDeviceByDevNum(dev_num);
+		
+		if (dev_handle == NULL)
+		{
+			ReturnValue = -4;
+			break;
+		}
+		
+		ReturnValue = usb_control_msg(dev_handle, requesttype, request,
+                        value, index, (char*)Memory::GetPointer(data), size,
+                        0);
+
+		if(ReturnValue>=0)
+		{
+			ReturnValue += sizeof(usb_ctrl_setup);
+		}
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d",
+			requesttype, request, ReturnValue);
+		
+		usb_close(dev_handle);
+		
+		u8 test_out[0x20];
+		Memory::ReadBigEData(test_out, BufferIn, BufferInSize);
+		char file[0x50];
+		snprintf(file, 0x50, "ctrl_ctrlprotocol_%d.bin", upto);
+ 		FILE* test = fopen (file, "wb");
+		for(i=0;i<0x20;i++)
+			fwrite(&test_out[i], 1, 1, test);
+		if (size > 0)
+			fwrite((char*)Memory::GetPointer(data), 1, size, test);
+		fclose(test);
+		upto++;
+		break;
+	}
+	case IOCTL_HID_INTERRUPT_IN:
+	{
+		
+		
+		u32 dev_num  = Memory::Read_U32(BufferIn+0x10);
+		u32 end_point = Memory::Read_U32(BufferIn+0x14);
+		u32 length = Memory::Read_U32(BufferIn+0x18);
+
+		u32 data = Memory::Read_U32(BufferIn+0x1C);
+		
+		struct usb_dev_handle * dev_handle = GetDeviceByDevNum(dev_num);
+		
+		if (dev_handle == NULL)
+		{
+			ReturnValue = -4;
+			break;
+		}
+		
+		usb_claim_interface(dev_handle,0);
+		ReturnValue = usb_interrupt_read(dev_handle, end_point, (char*)Memory::GetPointer(data), length, 1000);
+		
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt In)(%d,%d,%p) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			end_point, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+
+		usb_close(dev_handle);
+		break;
+	}
+	case IOCTL_HID_INTERRUPT_OUT:
+	{
+		
+		
+		u32 dev_num  = Memory::Read_U32(BufferIn+0x10);
+		u32 end_point = Memory::Read_U32(BufferIn+0x14);
+		u32 length = Memory::Read_U32(BufferIn+0x18);
+
+		u32 data = Memory::Read_U32(BufferIn+0x1C);
+		
+		struct usb_dev_handle * dev_handle = GetDeviceByDevNum(dev_num);
+		
+		if (dev_handle == NULL)
+		{
+			ReturnValue = -4;
+			break;
+		}
+		
+		usb_claim_interface(dev_handle,0);
+		ReturnValue = usb_interrupt_write(dev_handle, end_point, (char*)Memory::GetPointer(data), length, 0);
+		
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt Out) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+
+		usb_close(dev_handle);
+		break;
+	}
+	default:
+	{
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(0x%x) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		break;
+	}
+	}
+
+	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
+
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_hid::IOCtlV(u32 _CommandAddress)
+{
+	
+	Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HID, LogTypes::LWARNING);
+	u32 ReturnValue = 0;
+	SIOCtlVBuffer CommandBuffer(_CommandAddress);
+
+	switch (CommandBuffer.Parameter)
+	{
+	
+	default:
+		{
+			DEBUG_LOG(WII_IPC_HID, "%s - IOCtlV:", GetDeviceName().c_str());
+			DEBUG_LOG(WII_IPC_HID, "    Parameter: 0x%x", CommandBuffer.Parameter);
+			DEBUG_LOG(WII_IPC_HID, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
+			DEBUG_LOG(WII_IPC_HID, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
+			DEBUG_LOG(WII_IPC_HID, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
+			DEBUG_LOG(WII_IPC_HID, "    PayloadAddr: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Address);
+			DEBUG_LOG(WII_IPC_HID, "    PayloadSize: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Size);
+			#if defined(_DEBUG) || defined(DEBUGFAST)
+			DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
+			#endif
+		}
+		break;
+	}
+
+	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
+	return true;
+}
+
+
+	
+void CWII_IPC_HLE_Device_hid::ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, struct usb_device_descriptor *src)
+{
+	memcpy(dest,src,sizeof(WiiHIDDeviceDescriptor));
+	dest->bcdUSB = Common::swap16(dest->bcdUSB);
+	dest->idVendor = Common::swap16(dest->idVendor);
+	dest->idProduct = Common::swap16(dest->idProduct);
+	dest->bcdDevice = Common::swap16(dest->bcdDevice);
+}
+
+void CWII_IPC_HLE_Device_hid::ConvertConfigToWii(WiiHIDConfigDescriptor *dest, struct usb_config_descriptor *src)
+{
+	memcpy(dest,src,sizeof(WiiHIDConfigDescriptor));
+	dest->wTotalLength = Common::swap16(dest->wTotalLength);
+}
+
+void CWII_IPC_HLE_Device_hid::ConvertInterfaceToWii(WiiHIDInterfaceDescriptor *dest, struct usb_interface_descriptor *src)
+{
+	memcpy(dest,src,sizeof(WiiHIDInterfaceDescriptor));
+}
+
+void CWII_IPC_HLE_Device_hid::ConvertEndpointToWii(WiiHIDEndpointDescriptor *dest, struct usb_endpoint_descriptor *src)
+{
+	memcpy(dest,src,sizeof(WiiHIDEndpointDescriptor));
+	dest->wMaxPacketSize = Common::swap16(dest->wMaxPacketSize);
+}
+/*
+// hidapi version
+void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
+{
+	// Enumerate and print the HID devices on the system
+	struct hid_device_info *devs, *cur_dev;
+	
+	devs = hid_enumerate(0x0, 0x0);
+	cur_dev = devs;	
+	while (cur_dev) {
+		printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls",
+			cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
+		printf("\n");
+		printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
+		printf("  Product:      %ls\n", cur_dev->product_string);
+		printf("\n");
+		cur_dev = cur_dev->next;
+	}
+	hid_free_enumeration(devs);
+}
+*/
+
+// libusb version
+void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
+{
+	usb_find_busses(); // find all busses
+	usb_find_devices(); // find all connected devices
+	struct usb_bus *bus;
+	struct usb_device *dev;
+	int OffsetBuffer = BufferOut;
+	int OffsetStart = 0;
+	int c,ic,i,e; // config, interface container, interface, endpoint
+	for (bus = usb_get_busses(); bus; bus = bus->next)
+	{
+		for (dev = bus->devices; dev; dev = dev->next)
+		{
+			struct usb_device_descriptor *device = &dev->descriptor;
+			DEBUG_LOG(WII_IPC_HID, "Found device with Vendor: %d Product: %d Devnum: %d",device->idVendor, device->idProduct, dev->devnum);
+
+			OffsetStart = OffsetBuffer;
+			OffsetBuffer += 4; // skip length for now, fill at end
+
+			Memory::Write_U32(dev->devnum, OffsetBuffer); //write device num
+			OffsetBuffer += 4;
+
+			WiiHIDDeviceDescriptor wii_device;
+			ConvertDeviceToWii(&wii_device, device);
+			Memory::WriteBigEData((const u8*)&wii_device, OffsetBuffer, Align(wii_device.bLength, 4));
+			OffsetBuffer += Align(wii_device.bLength, 4);
+
+    		for (c = 0; c < device->bNumConfigurations; c++)
+			{
+				struct usb_config_descriptor *config = &dev->config[c];
+
+				WiiHIDConfigDescriptor wii_config;
+				ConvertConfigToWii(&wii_config, config);
+				Memory::WriteBigEData((const u8*)&wii_config, OffsetBuffer, Align(wii_config.bLength, 4));
+				OffsetBuffer += Align(wii_config.bLength, 4);
+
+    			for (ic = 0; ic < config->bNumInterfaces; ic++)
+				{
+					struct usb_interface *interfaceContainer = &config->interface[ic];
+					for (i = 0; i < interfaceContainer->num_altsetting; i++)
+					{
+						struct usb_interface_descriptor *interface = &interfaceContainer->altsetting[i];
+
+						WiiHIDInterfaceDescriptor wii_interface;
+						ConvertInterfaceToWii(&wii_interface, interface);
+						Memory::WriteBigEData((const u8*)&wii_interface, OffsetBuffer, Align(wii_interface.bLength, 4));
+						OffsetBuffer += Align(wii_interface.bLength, 4);
+
+						for (e = 0; e < interface->bNumEndpoints; e++)
+						{
+							struct usb_endpoint_descriptor *endpoint = &interface->endpoint[e];
+
+							WiiHIDEndpointDescriptor wii_endpoint;
+							ConvertEndpointToWii(&wii_endpoint, endpoint);
+							Memory::WriteBigEData((const u8*)&wii_endpoint, OffsetBuffer, Align(wii_endpoint.bLength, 4));
+							OffsetBuffer += Align(wii_endpoint.bLength, 4);
+								
+						} //endpoints
+					} // interfaces
+				} // interface containters
+			} // configs
+
+			Memory::Write_U32(OffsetBuffer-OffsetStart, OffsetStart); // fill in length
+
+		} // devices
+	} // buses
+	
+	Memory::Write_U32(0xFFFFFFFF, OffsetBuffer); // no more devices
+	
+	
+}
+
+
+
+int CWII_IPC_HLE_Device_hid::Align(int num, int alignment)
+{
+	return (num + (alignment-1)) & ~(alignment-1);
+}
+
+
+struct usb_dev_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
+{
+	for (struct usb_bus *bus = usb_get_busses(); bus; bus = bus->next)
+	{
+		for (struct usb_device *dev = bus->devices; dev; dev = dev->next)
+		{
+			if(dev->devnum == devNum){
+				return usb_open(dev);
+			}
+		}
+	}
+	return NULL;
+}
