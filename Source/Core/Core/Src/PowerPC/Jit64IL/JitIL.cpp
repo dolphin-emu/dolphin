@@ -276,12 +276,6 @@ void JitIL::Init()
 			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
 	}
 
-#ifdef _M_X64
-	jo.enableFastMem = false;
-#else
-	jo.enableFastMem = false;
-#endif
-	jo.assumeFPLoadFromMem = Core::g_CoreStartupParameter.bUseFastMem;
 	jo.fpAccurateFcmp = false;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;

@@ -118,16 +118,18 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 
 void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend)
 {
+#if defined(_WIN32) && defined(_M_X64)
 #ifdef ENABLE_MEM_CHECK
-	if (Core::g_CoreStartupParameter.bUseFastMem && (accessSize == 32) && !Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
+	if (accessSize == 32 && !Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
 #else
-	if (Core::g_CoreStartupParameter.bUseFastMem && (accessSize == 32) && !Core::g_CoreStartupParameter.bMMU)
+	if (accessSize == 32 && !Core::g_CoreStartupParameter.bMMU)
 #endif
 	{
 		// BackPatch only supports 32-bits accesses
 		UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
 	}
 	else
+#endif
 	{
 		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)

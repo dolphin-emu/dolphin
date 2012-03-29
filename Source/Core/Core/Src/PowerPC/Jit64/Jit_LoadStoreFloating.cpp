@@ -62,14 +62,11 @@ void Jit64::lfs(UGeckoInstruction inst)
 		return;
 	}
 	s32 offset = (s32)(s16)inst.SIMM_16;
-	if (jo.assumeFPLoadFromMem)
-	{
-		UnsafeLoadToEAX(gpr.R(a), 32, offset, false);
-	}
-	else
-	{
-		SafeLoadToEAX(gpr.R(a), 32, offset, false);
-	}
+#if defined(_WIN32) && defined(_M_X64)
+	UnsafeLoadToEAX(gpr.R(a), 32, offset, false);
+#else
+	SafeLoadToEAX(gpr.R(a), 32, offset, false);
+#endif
 
 	MEMCHECK_START
 	

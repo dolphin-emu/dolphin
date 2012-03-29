@@ -191,12 +191,7 @@ void Jit64::Init()
 		else
 			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
 	}
-#ifdef _M_X64
-	jo.enableFastMem = Core::g_CoreStartupParameter.bUseFastMem;
-#else
-	jo.enableFastMem = false;
-#endif
-	jo.assumeFPLoadFromMem = Core::g_CoreStartupParameter.bUseFastMem;
+
 	jo.fpAccurateFcmp = true; // Fallback to Interpreter
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;

@@ -74,9 +74,6 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.bRunCompareServer = false;
 
 	StartUp.hInstance = Host_GetInstance();
-	#if defined(_WIN32) && defined(_M_X64)
-		StartUp.bUseFastMem = true;
-	#endif
 
 	// If for example the ISO file is bad we return here
 	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT)) return false;

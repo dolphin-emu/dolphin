@@ -41,10 +41,8 @@ protected:
 	struct JitOptions
 	{
 		bool optimizeStack;
-		bool assumeFPLoadFromMem;
 		bool enableBlocklink;
 		bool fpAccurateFcmp;
-		bool enableFastMem;
 		bool optimizeGatherPipe;
 		bool fastInterrupts;
 		bool accurateSinglePrecision;
