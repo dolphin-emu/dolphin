@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDialog>
+#include "ConfigGeneral.h"
 
 class QButtonGroup;
 class QCheckBox;
@@ -27,9 +28,11 @@ public:
 		ICI_Wiimote = 4,
 	};
 
-	DConfigDialog(InitialConfigItem initialConfigItem, QWidget* parent = NULL);
+	DConfigDialog(QWidget* parent = NULL);
+	DConfigMainGeneralTab* generalWidget;
 
 public slots:
+	void showPage(InitialConfigItem initialConfigItem);
 	void switchPage(QListWidgetItem*,QListWidgetItem*);
 	void OnReset();
 	void OnApply();

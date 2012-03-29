@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QSettings>
 #include "Config/ConfigMain.h"
 #include "RenderWindow.h"
 #include "Util/Util.h"
@@ -21,6 +22,7 @@ public:
 
 private slots:
 	void OnLoadIso();
+	void OnBrowseIso();
 	void OnRefreshList();
 
 	void OnStartPause();
@@ -35,7 +37,7 @@ private slots:
 
 	void OnShowLogMan(bool show);
 	void OnShowLogSettings(bool show);
-	void OnHideMenu(bool hide);
+	void OnShowToolbar(bool show);
 	void OnSwitchToGameList();
 	void OnSwitchToGameGrid();
 
@@ -70,6 +72,9 @@ private:
 	DLogSettingsDock* logSettings;
 
 	QWidget* renderWindow;
+	QToolBar* toolBar;
+
+	DConfigDialog* dialog;
 
 	// Actions
 	QAction* openAction;

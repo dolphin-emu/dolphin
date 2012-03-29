@@ -199,7 +199,7 @@ void AbstractGameBrowser::Rescan()
 	std::sort(items.begin(), items.end());
 }
 
-DGameList::DGameList(const AbstractGameBrowser& gameBrowser) : abstrGameBrowser(gameBrowser)
+DGameList::DGameList(const AbstractGameBrowser& gameBrowser, DGameBrowser* p) : abstrGameBrowser(gameBrowser)
 {
 	// TODO: Make this configurable
 	currentColumn = AbstractGameBrowser::COLUMN_TITLE;
@@ -210,6 +210,7 @@ DGameList::DGameList(const AbstractGameBrowser& gameBrowser) : abstrGameBrowser(
 	setAlternatingRowColors(true);
 	setEditTriggers(QAbstractItemView::NoEditTriggers);
 	setUniformRowHeights(true);
+	parent = p;
 
 	// TODO: Is activated the correct signal?
 	connect(this, SIGNAL(activated(const QModelIndex&)), this, SLOT(OnItemActivated(const QModelIndex&)));
@@ -222,23 +223,17 @@ DGameList::~DGameList()
 
 QString NiceSizeFormat(s64 _size)
 {
-    const char* sizes[] = {"b", "KB", "MB", "GB", "TB", "PB", "EB"};
-    int s = 0;
-    int frac = 0;
-
-    while (_size > (s64)1024)
-    {
-        s++;
-        frac   = (int)_size & 1023;
-        _size /= (s64)1024;
-    }
-
-    float f = (float)_size + ((float)frac / 1024.0f);
-
-    char tempstr[32];
-    sprintf(tempstr,"%3.1f %s", f, sizes[s]);
-    QString NiceString(tempstr);
-    return NiceString;
+	QStringList list;
+	list << "KB" << "MB" << "GB" << "TB" << "PB" << "EB";
+	QStringListIterator i(list);
+	QString unit("b");
+	double num = _size;
+	while(num >= 1024.0 && i.hasNext())
+	{
+		unit = i.next();
+		num /= 1024.0;
+	}
+        return QString().setNum(num,'f', 1)+" "+unit;
 }
 
 void DGameList::RefreshView()
@@ -289,6 +284,10 @@ void DGameList::RefreshView()
 
 	for (int i = 0; i < sourceModel->columnCount(); ++i)
 		resizeColumnToContents(i);
+	if (items.empty())
+		parent->text->setVisible(true);
+	else
+		parent->text->setVisible(false);
 }
 
 GameListItem const* DGameList::GetSelectedISO() const
@@ -313,7 +312,7 @@ void DGameList::OnItemActivated(const QModelIndex& index)
 }
 
 
-DGameTable::DGameTable(const AbstractGameBrowser& gameBrowser) : abstrGameBrowser(gameBrowser), num_columns(5)
+DGameTable::DGameTable(const AbstractGameBrowser& gameBrowser, DGameBrowser* p) : abstrGameBrowser(gameBrowser), num_columns(5)
 {
 	// TODO: Make this configurable
 	currentColumn = AbstractGameBrowser::COLUMN_TITLE;
@@ -326,6 +325,7 @@ DGameTable::DGameTable(const AbstractGameBrowser& gameBrowser) : abstrGameBrowse
 	verticalHeader()->setVisible(false);
 	setSelectionMode(QAbstractItemView::SingleSelection);
 	setGridStyle(Qt::NoPen);
+	parent = p;
 
 	// TODO: Is activated the correct signal?
 	connect(this, SIGNAL(activated(QModelIndex)), this, SLOT(OnItemActivated(QModelIndex)));
@@ -376,6 +376,10 @@ void DGameTable::RebuildGrid()
 		item->setSizeHint(QSize(146, 50));
 		sourceModel->setItem(i / num_columns, i % num_columns, item);
 	}
+	if (items.empty())
+		parent->text->setVisible(true);
+	else
+		parent->text->setVisible(false);
 	// TODO: Set the background colors of the remaining cells to the background color
 
 	resizeColumnsToContents();
@@ -425,13 +429,16 @@ public:
 	void SetVisible(bool visible) { setVisible(visible); }
 };
 
-DGameBrowser::DGameBrowser(Style initialStyle, QWidget* parent) : QWidget(parent), progBar(new DGameListProgressBar), abstrGameBrowser(progBar), gameBrowser(NULL), style(initialStyle)
+DGameBrowser::DGameBrowser(Style initialStyle, QWidget* parent) : progBar(new DGameListProgressBar), text(new QLabel), abstrGameBrowser(progBar), gameBrowser(NULL), style(initialStyle)
 {
 	progBar->SetVisible(false);
 
 	mainLayout = new QGridLayout;
-	mainLayout->addWidget(progBar, 1, 0);
-
+	mainLayout->addWidget(progBar, 2, 0);
+	text->setText("<i>Could not find any GC/Wii ISOs. <a href='#'>Click here</a> to browse...</i>");
+	connect(text, SIGNAL(linkActivated(const QString &)), parent, SLOT(OnBrowseIso()));
+	text->setVisible(false);
+	mainLayout->addWidget(text, 0, 0);
 	SetStyle(style);
 
 	setLayout(mainLayout);
@@ -461,13 +468,13 @@ void DGameBrowser::SetStyle(Style layout)
 	style = layout;
 
 	if (gameBrowser) dynamic_cast<QWidget*>(gameBrowser)->close();
-	if (layout == Style_List) gameBrowser = new DGameList(abstrGameBrowser);
-	else if (layout == Style_Grid) gameBrowser = new DGameTable(abstrGameBrowser);
+	if (layout == Style_List) gameBrowser = new DGameList(abstrGameBrowser, this);
+	else if (layout == Style_Grid) gameBrowser = new DGameTable(abstrGameBrowser, this);
 
 	gameBrowser->RefreshView();
 	connect(dynamic_cast<QObject*>(gameBrowser), SIGNAL(StartGame()), this, SIGNAL(StartGame()));
 
-	mainLayout->addWidget(dynamic_cast<QWidget*>(gameBrowser), 0, 0);
+	mainLayout->addWidget(dynamic_cast<QWidget*>(gameBrowser), 1, 0);
 }
 
 DGameBrowser::Style DGameBrowser::GetStyle()

@@ -653,25 +653,25 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 #endif
 		INFO_LOG(COMMON, "GetUserPath: Setting user directory to %s:", paths[D_USER_IDX].c_str());
 
-		paths[D_GCUSER_IDX]			= paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
+		paths[D_GCUSER_IDX]		= paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
 		paths[D_WIIROOT_IDX]		= paths[D_USER_IDX] + WII_USER_DIR;
 		paths[D_WIIUSER_IDX]		= paths[D_WIIROOT_IDX] + DIR_SEP;
-		paths[D_CONFIG_IDX]			= paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
+		paths[D_CONFIG_IDX]		= paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
 		paths[D_GAMECONFIG_IDX]		= paths[D_USER_IDX] + GAMECONFIG_DIR DIR_SEP;
-		paths[D_MAPS_IDX]			= paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
-		paths[D_CACHE_IDX]			= paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
+		paths[D_MAPS_IDX]		= paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
+		paths[D_CACHE_IDX]		= paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
 		paths[D_SHADERCACHE_IDX]	= paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP;
 		paths[D_SHADERS_IDX]		= paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
 		paths[D_STATESAVES_IDX]		= paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
 		paths[D_SCREENSHOTS_IDX]	= paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
-		paths[D_OPENCL_IDX]			= paths[D_USER_IDX] + OPENCL_DIR DIR_SEP;
+		paths[D_OPENCL_IDX]		= paths[D_USER_IDX] + OPENCL_DIR DIR_SEP;
 		paths[D_HIRESTEXTURES_IDX]	= paths[D_USER_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
-		paths[D_DUMP_IDX]			= paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
+		paths[D_DUMP_IDX]		= paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
 		paths[D_DUMPFRAMES_IDX]		= paths[D_USER_IDX] + DUMP_FRAMES_DIR DIR_SEP;
 		paths[D_DUMPAUDIO_IDX]		= paths[D_USER_IDX] + DUMP_AUDIO_DIR DIR_SEP;
 		paths[D_DUMPTEXTURES_IDX]	= paths[D_USER_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
 		paths[D_DUMPDSP_IDX]		= paths[D_USER_IDX] + DUMP_DSP_DIR DIR_SEP;
-		paths[D_LOGS_IDX]			= paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
+		paths[D_LOGS_IDX]		= paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
 		paths[D_MAILLOGS_IDX]		= paths[D_USER_IDX] + MAIL_LOGS_DIR DIR_SEP;
 		paths[D_WIISYSCONF_IDX]		= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
 		paths[F_DOLPHINCONFIG_IDX]	= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
@@ -682,7 +682,7 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 		paths[F_WIISYSCONF_IDX]		= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
 		paths[F_RAMDUMP_IDX]		= paths[D_DUMP_IDX] + RAM_DUMP;
 		paths[F_ARAMDUMP_IDX]		= paths[D_DUMP_IDX] + ARAM_DUMP;
-		paths[F_GCSRAM_IDX]			= paths[D_GCUSER_IDX] + GC_SRAM;
+		paths[F_GCSRAM_IDX]		= paths[D_GCUSER_IDX] + GC_SRAM;
 	}
 
 	if (!newPath.empty())

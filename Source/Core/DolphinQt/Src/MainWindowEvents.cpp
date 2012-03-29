@@ -15,7 +15,6 @@
 void DMainWindow::StartGame(const std::string& filename)
 {
 	// TODO: Disable play toolbar action, replace with pause
-
 	renderWindow = new DRenderWindow;
 	renderWindow->setWindowTitle(tr("Dolphin")); // TODO: Other window title..
 
@@ -71,7 +70,7 @@ std::string DMainWindow::RequestBootFilename()
 	if (!SConfig::GetInstance().m_LastFilename.empty() && File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
 		return SConfig::GetInstance().m_LastFilename;
 
-	QString selection = QFileDialog::getOpenFileName(this, tr("Open File"), QString(), tr("All GC/Wii Files (elf, dol, gcm, iso, ciso, gcz, wad)(*.elf, *.dol, *.gcm, *.iso, *.ciso, *.gcz, *.wad);;All Files (*)"));
+	QString selection = QFileDialog::getOpenFileName(this, tr("Open File"), QString(), tr("GC/Wii Files [elf, dol, gcm, iso, ciso, gcz, wad] (*.elf *.dol *.gcm *.iso *.ciso *.gcz *.wad);;All Files (*)"));
 	if(selection.length()) return selection.toStdString();
 
 	return std::string();
@@ -216,8 +215,13 @@ void DMainWindow::OnCoreStateChanged(Core::EState state)
 
 void DMainWindow::OnLoadIso()
 {
-	QString selection = QFileDialog::getOpenFileName(this, tr("Open File"), QString(), tr("All GC/Wii Files (elf, dol, gcm, iso, ciso, gcz, wad)(*.elf, *.dol, *.gcm, *.iso, *.ciso, *.gcz, *.wad);;All Files (*)"));
+	QString selection = QFileDialog::getOpenFileName(this, tr("Open File"), QString(), tr("GC/Wii Files [elf, dol, gcm, iso, ciso, gcz, wad] (*.elf *.dol *.gcm *.iso *.ciso *.gcz *.wad);;All Files (*)"));
 	if(selection.length()) StartGame(selection.toStdString());
+}
+
+void DMainWindow::OnBrowseIso()
+{
+	dialog->generalWidget->OnAddIsoPath();
 }
 
 void DMainWindow::OnRefreshList()
@@ -263,9 +267,9 @@ void DMainWindow::OnShowLogSettings(bool show)
 	}
 }
 
-void DMainWindow::OnHideMenu(bool hide)
+void DMainWindow::OnShowToolbar(bool show)
 {
-	menuBar()->setVisible(!hide);
+	toolBar->setVisible(show);
 }
 
 void DMainWindow::OnSwitchToGameList()
@@ -325,8 +329,7 @@ void DMainWindow::OnLogSettingsWindowClosed()
 
 void DMainWindow::OpenConfigDialog(DConfigDialog::InitialConfigItem initialConfigItem)
 {
-	DConfigDialog* dialog = new DConfigDialog(initialConfigItem, this);
-	connect(dialog, SIGNAL(IsoPathsChanged()), this, SLOT(OnRefreshList()));
+	dialog->showPage(initialConfigItem);
 	dialog->show();
 }
 

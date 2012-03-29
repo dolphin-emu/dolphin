@@ -4,6 +4,7 @@
 #include "LogWindow.h"
 #include "Util/Resources.h"
 #include "Util/Util.h"
+#include "Config/ConfigMain.h"
 
 #include "BootManager.h"
 #include "Common.h"
@@ -16,8 +17,8 @@ DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(fa
 
 	QSettings ui_settings("Dolphin Team", "Dolphin");
 	centralLayout = new DLayoutWidgetV;
-	DGameBrowser::Style gameBrowserStyle = (DGameBrowser::Style)ui_settings.value("gameList/layout", DGameBrowser::Style_Grid).toInt();
-	centralLayout->addWidget(gameBrowser = new DGameBrowser(gameBrowserStyle));
+	DGameBrowser::Style gameBrowserStyle = (DGameBrowser::Style)ui_settings.value("gameList/layout", DGameBrowser::Style_List).toInt();
+	centralLayout->addWidget(gameBrowser = new DGameBrowser(gameBrowserStyle, this));
 	setCentralWidget(centralLayout);
 
 	CreateMenus();
@@ -47,6 +48,8 @@ DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(fa
 	show();
 
 	// idea: On first start, show a configuration wizard? ;)
+	dialog = new DConfigDialog(this);
+	connect(dialog, SIGNAL(IsoPathsChanged()), this, SLOT(OnRefreshList()));
 
 	connect(gameBrowser, SIGNAL(StartGame()), this, SLOT(OnStartPause()));
 	connect(this, SIGNAL(StartIsoScanning()), this, SLOT(OnRefreshList()));
@@ -83,10 +86,11 @@ void DMainWindow::closeEvent(QCloseEvent* ev)
 
 void DMainWindow::CreateMenus()
 {
+	QSettings settings( QSTRING_STR(File::GetUserPath(F_DOLPHINCONFIG_IDX)), QSettings::IniFormat );
 	// File
 	QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
-	QAction* loadIsoAct = fileMenu->addAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Load ISO ..."));
-	QAction* browseAct = fileMenu->addAction(tr("&Browse for ISOs ..."));
+	QAction* loadIsoAct = fileMenu->addAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Open ..."));
+	QAction* browseAct = fileMenu->addAction(tr("&Add Folder ..."));
 	fileMenu->addSeparator();
 	QAction* refreshListAct = fileMenu->addAction(style()->standardIcon(QStyle::SP_BrowserReload), tr("&Refresh list"));
 	fileMenu->addSeparator();
@@ -132,9 +136,9 @@ void DMainWindow::CreateMenus()
 	showLogSettingsAct->setCheckable(true);
 	showLogSettingsAct->setChecked(SConfig::GetInstance().m_InterfaceLogConfigWindow);
 	viewMenu->addSeparator();
-	QAction* hideMenuAct = viewMenu->addAction(tr("Hide Menu"));
-	hideMenuAct->setCheckable(true);
-	hideMenuAct->setChecked(false); // TODO: Read this from config
+	QAction* showToolbarAct = viewMenu->addAction(tr("Show Toolbar"));
+	showToolbarAct->setCheckable(true);
+	showToolbarAct->setChecked(settings.value("Interface/ShowToolbar",true).toBool());
 	viewMenu->addSeparator();
 
 	QMenu* gameBrowserStyleMenu = viewMenu->addMenu(tr("Game Browser Style"));
@@ -167,6 +171,7 @@ void DMainWindow::CreateMenus()
 
 	// Events
 	connect(loadIsoAct, SIGNAL(triggered()), this, SLOT(OnLoadIso()));
+	connect(browseAct, SIGNAL(triggered()), this, SLOT(OnBrowseIso()));
 	connect(refreshListAct, SIGNAL(triggered()), this, SLOT(OnRefreshList()));
 	connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
@@ -175,7 +180,7 @@ void DMainWindow::CreateMenus()
 
 	connect(showLogManAct, SIGNAL(toggled(bool)), this, SLOT(OnShowLogMan(bool)));
 	connect(showLogSettingsAct, SIGNAL(toggled(bool)), this, SLOT(OnShowLogSettings(bool)));
-	connect(hideMenuAct, SIGNAL(toggled(bool)), this, SLOT(OnHideMenu(bool)));
+	connect(showToolbarAct, SIGNAL(toggled(bool)), this, SLOT(OnShowToolbar(bool)));
 	connect(gameBrowserAsListAct, SIGNAL(triggered()), this, SLOT(OnSwitchToGameList()));
 	connect(gameBrowserAsGridAct, SIGNAL(triggered()), this, SLOT(OnSwitchToGameGrid()));
 
@@ -195,10 +200,9 @@ void DMainWindow::CreateMenus()
 
 void DMainWindow::CreateToolBars()
 {
-	QToolBar* toolBar = addToolBar(tr("Main Toolbar"));
-	toolBar->setIconSize(QSize(24, 24));
+	toolBar = addToolBar(tr("Main Toolbar"));
+	toolBar->setIconSize(style()->standardIcon(QStyle::SP_DialogOpenButton).actualSize(QSize(99,99)));
 	toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-
 	openAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("Open"));
 	refreshAction = toolBar->addAction(style()->standardIcon(QStyle::SP_BrowserReload), tr("Refresh"));
 	toolBar->addSeparator();
@@ -212,7 +216,6 @@ void DMainWindow::CreateToolBars()
 	QAction* soundAction = toolBar->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_DSP), tr("Sound"));
 	QAction* padAction = toolBar->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_GCPAD), tr("GC Pad"));
 	QAction* wiimoteAction = toolBar->addAction(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_WIIMOTE), tr("Wiimote"));
-
 
 	connect(openAction, SIGNAL(triggered()), this, SLOT(OnLoadIso()));
 	connect(refreshAction, SIGNAL(triggered()), this, SLOT(OnRefreshList()));

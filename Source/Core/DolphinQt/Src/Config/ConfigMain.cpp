@@ -11,7 +11,6 @@
 
 #include "ConfigMain.h"
 #include "ConfigAudio.h"
-#include "ConfigGeneral.h"
 #include "ConfigGfx.h"
 #include "ConfigPad.h"
 #include "ConfigWiimote.h"
@@ -19,7 +18,7 @@
 #include "../Util/Resources.h"
 
 
-DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* parent) : QDialog(parent)
+DConfigDialog::DConfigDialog(QWidget* parent) : QDialog(parent)
 {
 	setModal(true);
 	setWindowTitle(tr("Dolphin Configuration"));
@@ -35,7 +34,7 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 
 	QListWidgetItem* soundConfigButton = new QListWidgetItem;
 	soundConfigButton->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_DSP));
-	soundConfigButton->setText(tr("Audio"));
+	soundConfigButton->setText(tr("DSP"));
 
 	QListWidgetItem* padConfigButton = new QListWidgetItem;
 	padConfigButton->setIcon(Resources::GetIcon(Resources::TOOLBAR_PLUGIN_GCPAD));
@@ -58,13 +57,12 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 	menusView->addItem(soundConfigButton);
 	menusView->addItem(padConfigButton);
 	menusView->addItem(wiimoteConfigButton);
-	menusView->setCurrentRow(initialConfigItem);
 	for (int i = 0; i < menusView->count(); ++i)
 		menusView->item(i)->setSizeHint(QSize(72,72));
 
 
 	// Configuration widgets
-	DConfigMainGeneralTab* generalWidget = new DConfigMainGeneralTab;
+	generalWidget = new DConfigMainGeneralTab;
 	DConfigGfx* gfxWidget = new DConfigGfx;
 	DConfigAudio* audioWidget = new DConfigAudio;
 	DConfigPadWidget* padWidget = new DConfigPadWidget;
@@ -89,7 +87,6 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 	stackWidget->addWidget(audioWidget);
 	stackWidget->addWidget(padWidget);
 	stackWidget->addWidget(wiimoteWidget);
-	stackWidget->setCurrentIndex(initialConfigItem);
 
 	connect(menusView, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)),
 			this, SLOT(switchPage(QListWidgetItem*,QListWidgetItem*)));
@@ -111,6 +108,12 @@ DConfigDialog::DConfigDialog(InitialConfigItem initialConfigItem, QWidget* paren
 	mainLayout->addWidget(buttons);
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 	setLayout(mainLayout);
+}
+
+void DConfigDialog::showPage(InitialConfigItem initialConfigItem)
+{
+	menusView->setCurrentRow(initialConfigItem);
+	stackWidget->setCurrentIndex(initialConfigItem);
 }
 
 void DConfigDialog::switchPage(QListWidgetItem* cur, QListWidgetItem* prev)

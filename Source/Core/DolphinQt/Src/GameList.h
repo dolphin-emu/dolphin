@@ -3,6 +3,7 @@
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QTreeView>
+#include <QLabel>
 #include "ISOFile.h"
 
 class QGridLayout;
@@ -56,6 +57,7 @@ public:
 	void SetStyle(Style layout);
 	void ScanForIsos();
 	GameListItem const* GetSelectedISO() const;
+	QLabel* text;
 
 private:
 	DGameListProgressBar* progBar;
@@ -75,7 +77,7 @@ class DGameList : public QTreeView, public GameBrowserImpl
 	Q_OBJECT
 
 public:
-	DGameList(const AbstractGameBrowser& abstrGameList);
+	DGameList(const AbstractGameBrowser& abstrGameList, DGameBrowser* p);
 	virtual ~DGameList();
 
 	GameListItem const* GetSelectedISO() const;
@@ -87,6 +89,7 @@ private slots:
 private:
 	QStandardItemModel* sourceModel;
 	const AbstractGameBrowser& abstrGameBrowser;
+	DGameBrowser* parent;
 
 signals:
 	void StartGame();
@@ -97,7 +100,7 @@ class DGameTable : public QTableView, public GameBrowserImpl
 	Q_OBJECT
 
 public:
-	DGameTable(const AbstractGameBrowser& abstrGameList);
+	DGameTable(const AbstractGameBrowser& abstrGameList, DGameBrowser* p);
 	virtual ~DGameTable();
 
 	void ScanForIsos();
@@ -113,6 +116,7 @@ protected:
 
 private:
 	const AbstractGameBrowser& abstrGameBrowser;
+	DGameBrowser* parent;
 
 	QStandardItemModel* sourceModel;
 	unsigned int num_columns;

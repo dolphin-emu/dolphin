@@ -12,6 +12,9 @@ class QString;
 class QRadioButton;
 class QVBoxLayout;
 
+// Macro for std::string to QString as it's unsightly and most Qt code needs it.
+#define QSTRING_STR(str) QString::fromUtf8(str.data(), str.size())
+
 template<class Layout>
 class DGroupBox : public QGroupBox
 {
