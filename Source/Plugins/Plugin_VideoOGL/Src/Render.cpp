@@ -632,6 +632,43 @@ void Renderer::SetScissorRect(const TargetRectangle& rc)
 	glScissor(rc.left, rc.bottom, rc.GetWidth(), rc.GetHeight());
 }
 
+void Renderer::ApplyState(RenderStateMode mode)
+{
+	if(mode == RSM_Zcomploc)
+	{
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	}
+	else if(mode == RSM_Multipass)
+	{
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);		
+		glDepthFunc(GL_EQUAL);
+	}
+	else if (mode == RSM_UseDstAlpha)
+	{
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+		glDisable(GL_BLEND);
+	}
+}
+
+void Renderer::RestoreState(RenderStateMode mode)
+{
+	if(mode == RSM_Zcomploc)
+	{
+		SetColorMask();
+	}
+	else if(mode == RSM_Multipass)
+	{
+		SetDepthMode();
+	}
+	else if (mode == RSM_UseDstAlpha)
+	{
+		SetColorMask();
+		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
+			glEnable(GL_BLEND);
+	}
+}
+
 void Renderer::SetColorMask()
 {
 	// Only enable alpha channel if it's supported by the current EFB format

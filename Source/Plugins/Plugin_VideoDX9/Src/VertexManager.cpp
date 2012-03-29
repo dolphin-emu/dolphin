@@ -191,7 +191,7 @@ void VertexManager::vFlush()
 			g_renderer->RestoreState(RSM_Multipass);
 	}
 
-	bool UseZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && g_ActiveConfig.bAcurateZcomploc;
+	bool UseZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && !g_ActiveConfig.bEnableFastZcomploc;
 
 	if (UseZcomploc)
 	{

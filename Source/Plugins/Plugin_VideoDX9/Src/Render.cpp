@@ -1211,7 +1211,7 @@ void Renderer::ApplyState(RenderStateMode mode)
 		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, 0);
 	}
 	else if(mode == RSM_Multipass)
-	{
+	{		
 		D3D::ChangeRenderState(D3DRS_ZENABLE, TRUE);
 		D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);		
 		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_EQUAL);
@@ -1231,6 +1231,7 @@ void Renderer::RestoreState(RenderStateMode mode)
 	}
 	else if(mode == RSM_Multipass)
 	{
+		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
 		D3D::RefreshRenderState(D3DRS_ZENABLE);
 		D3D::RefreshRenderState(D3DRS_ZWRITEENABLE);
 		D3D::RefreshRenderState(D3DRS_ZFUNC);

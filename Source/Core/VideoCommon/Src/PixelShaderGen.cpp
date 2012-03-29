@@ -177,7 +177,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 			ptr[0] |= bpmem.zcontrol.zcomploc << 13; // 1
 			ptr[0] |= bpmem.zmode.testenable << 14; // 1
 			ptr[0] |= bpmem.zmode.updateenable << 15; // 1
-			ptr[0] |= g_ActiveConfig.bAcurateZcomploc << 16; // 1
+			ptr[0] |= g_ActiveConfig.bEnableFastZcomploc << 16; // 1
 			
 		}
 	}
@@ -212,7 +212,8 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 	*ptr++ = bpmem.zmode.hex; // 4
 	*ptr++ = g_ActiveConfig.bEnablePerPixelDepth; // 5
 	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting; // 6
-	*ptr++ = xfregs.numTexGen.hex; // 7
+	*ptr++ = g_ActiveConfig.bEnableFastZcomploc ; // 7
+	*ptr++ = xfregs.numTexGen.hex; // 8
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -224,28 +225,28 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 	}
 
 	for (unsigned int i = 0; i < 8; ++i)
-		*ptr++ = xfregs.texMtxInfo[i].hex; // 8-15
+		*ptr++ = xfregs.texMtxInfo[i].hex; // 9-16
 
 	for (unsigned int i = 0; i < 16; ++i)
-		*ptr++ = bpmem.tevind[i].hex; // 16-31
+		*ptr++ = bpmem.tevind[i].hex; // 17-32
 
-	*ptr++ = bpmem.tevindref.hex; // 32
+	*ptr++ = bpmem.tevindref.hex; // 33
 
 	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i) // up to 16 times
 	{
-		*ptr++ = bpmem.combiners[i].colorC.hex; // 33+5*i
-		*ptr++ = bpmem.combiners[i].alphaC.hex; // 34+5*i
-		*ptr++ = bpmem.tevind[i].hex; // 35+5*i
-		*ptr++ = bpmem.tevksel[i/2].hex; // 36+5*i
-		*ptr++ = bpmem.tevorders[i/2].hex; // 37+5*i
+		*ptr++ = bpmem.combiners[i].colorC.hex; // 34+5*i
+		*ptr++ = bpmem.combiners[i].alphaC.hex; // 35+5*i
+		*ptr++ = bpmem.tevind[i].hex; // 36+5*i
+		*ptr++ = bpmem.tevksel[i/2].hex; // 37+5*i
+		*ptr++ = bpmem.tevorders[i/2].hex; // 38+5*i
 	}
 
-	ptr = &uid->values[113];
+	ptr = &uid->values[114];
 
-	*ptr++ = bpmem.alphaFunc.hex; // 113
+	*ptr++ = bpmem.alphaFunc.hex; // 114
 
-	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 114
-	*ptr++ = bpmem.fogRange.Base.hex; // 115
+	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 115
+	*ptr++ = bpmem.fogRange.Base.hex; // 116
 
 	_assert_((ptr - uid->values) == uid->GetNumValues());
 }
@@ -1191,12 +1192,9 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	// when the alpha test fail. This is not a correct implementation because
 	// even if the depth test fails the fragment could be alpha blended.	
 	// the more correct, but slow, way is:
-	// 1 - if zcomplock is enebled make a first pass, with color channel write disabled updating only 
-	// depth channel.
-	// 2 - in the next pass disable depth chanel update, but proccess the color data normally an update only the pixels 
-	// updated by the depth pass
-	
-	if (!(bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable) || g_ActiveConfig.bAcurateZcomploc)
+	// 1 - if zcomplock is enabled make a last pass, with color channel write disabled updating only 
+	// depth channel.	
+	if (!(g_ActiveConfig.bEnableFastZcomploc && bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable))
 	{
 		WRITE(p, "discard;\n");
 		if (ApiType != API_D3D11)

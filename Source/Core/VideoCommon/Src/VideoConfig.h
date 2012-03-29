@@ -137,7 +137,7 @@ struct VideoConfig
 	bool bUseBBox;
 	bool bEnablePixelLighting;
 	bool bEnablePerPixelDepth;
-	bool bAcurateZcomploc;
+	bool bEnableFastZcomploc;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId;
