@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: bitmap.cpp 65962 2010-10-30 23:51:09Z VZ $
+// RCS-ID:      $Id: bitmap.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -387,7 +387,7 @@ bool wxBitmap::CopyFromCursor(const wxCursor& cursor, wxBitmapTransparency trans
 {
     UnRef();
 
-    if ( !cursor.Ok() )
+    if ( !cursor.IsOk() )
         return false;
 
     return CopyFromIconOrCursor(cursor, transp);
@@ -397,7 +397,7 @@ bool wxBitmap::CopyFromIcon(const wxIcon& icon, wxBitmapTransparency transp)
 {
     UnRef();
 
-    if ( !icon.Ok() )
+    if ( !icon.IsOk() )
         return false;
 
     return CopyFromIconOrCursor(icon, transp);
@@ -605,7 +605,7 @@ bool wxBitmap::DoCreate(int w, int h, int d, WXHDC hdc)
 
     SetHBITMAP((WXHBITMAP)hbmp);
 
-    return Ok();
+    return IsOk();
 }
 
 #if wxUSE_IMAGE
@@ -739,7 +739,7 @@ wxImage wxBitmap::ConvertToImage() const
     // so the 'depth' argument is ignored.
     // TODO: transparency (create a mask image)
 
-    if (!Ok())
+    if (!IsOk())
     {
         wxFAIL_MSG( wxT("bitmap is invalid") );
         return wxNullImage;
@@ -747,7 +747,7 @@ wxImage wxBitmap::ConvertToImage() const
 
     wxImage image;
 
-    wxCHECK_MSG( Ok(), wxNullImage, wxT("invalid bitmap") );
+    wxCHECK_MSG( IsOk(), wxNullImage, wxT("invalid bitmap") );
 
     // create an wxImage object
     int width = GetWidth();
@@ -823,7 +823,7 @@ bool wxBitmap::CreateFromImage(const wxImage& image, const wxDC& dc)
 
 bool wxBitmap::CreateFromImage(const wxImage& image, int depth, WXHDC hdc)
 {
-    wxCHECK_MSG( image.Ok(), false, wxT("invalid image") );
+    wxCHECK_MSG( image.IsOk(), false, wxT("invalid image") );
 
     UnRef();
 
@@ -929,7 +929,7 @@ wxImage wxBitmap::ConvertToImage() const
 
     // and then DIB to our wxImage
     wxImage image = dib.ConvertToImage();
-    if ( !image.Ok() )
+    if ( !image.IsOk() )
     {
         return wxNullImage;
     }
@@ -1039,7 +1039,7 @@ bool wxBitmap::LoadFile(const wxString& filename, wxBitmapType type)
     else // no bitmap handler found
     {
         wxImage image;
-        if ( image.LoadFile( filename, type ) && image.Ok() )
+        if ( image.LoadFile( filename, type ) && image.IsOk() )
         {
             *this = wxBitmap(image);
 
@@ -1084,7 +1084,7 @@ bool wxBitmap::SaveFile(const wxString& filename,
     {
         // FIXME what about palette? shouldn't we use it?
         wxImage image = ConvertToImage();
-        if ( image.Ok() )
+        if ( image.IsOk() )
         {
             return image.SaveFile(filename, type);
         }
@@ -1106,14 +1106,14 @@ wxBitmap wxBitmap::GetSubBitmap( const wxRect& rect ) const
 
 wxBitmap wxBitmap::GetSubBitmapOfHDC( const wxRect& rect, WXHDC hdc ) const
 {
-    wxCHECK_MSG( Ok() &&
+    wxCHECK_MSG( IsOk() &&
                  (rect.x >= 0) && (rect.y >= 0) &&
                  (rect.x+rect.width <= GetWidth()) &&
                  (rect.y+rect.height <= GetHeight()),
                  wxNullBitmap, wxT("Invalid bitmap or bitmap region") );
 
     wxBitmap ret( rect.width, rect.height, GetDepth() );
-    wxASSERT_MSG( ret.Ok(), wxT("GetSubBitmap error") );
+    wxASSERT_MSG( ret.IsOk(), wxT("GetSubBitmap error") );
 
 #ifndef __WXMICROWIN__
     // handle alpha channel, if any
@@ -1248,7 +1248,7 @@ void wxBitmap::SetMask(wxMask *mask)
 void *wxBitmap::GetRawData(wxPixelDataBase& data, int bpp)
 {
 #if wxUSE_WXDIB
-    if ( !Ok() )
+    if ( !IsOk() )
     {
         // no bitmap, no data (raw or otherwise)
         return NULL;
@@ -1326,7 +1326,7 @@ void *wxBitmap::GetRawData(wxPixelDataBase& data, int bpp)
 void wxBitmap::UngetRawData(wxPixelDataBase& dataBase)
 {
 #if wxUSE_WXDIB
-    if ( !Ok() )
+    if ( !IsOk() )
         return;
 
     if ( !&dataBase )
@@ -1427,7 +1427,7 @@ wxMask::~wxMask()
 bool wxMask::Create(const wxBitmap& bitmap)
 {
 #ifndef __WXMICROWIN__
-    wxCHECK_MSG( bitmap.Ok() && bitmap.GetDepth() == 1, false,
+    wxCHECK_MSG( bitmap.IsOk() && bitmap.GetDepth() == 1, false,
                  wxT("can't create mask from invalid or not monochrome bitmap") );
 
     if ( m_maskBitmap )
@@ -1468,7 +1468,7 @@ bool wxMask::Create(const wxBitmap& bitmap, int paletteIndex)
     }
 
 #if wxUSE_PALETTE
-    if (bitmap.Ok() && bitmap.GetPalette()->Ok())
+    if (bitmap.IsOk() && bitmap.GetPalette()->IsOk())
     {
         unsigned char red, green, blue;
         if (bitmap.GetPalette()->GetRGB(paletteIndex, &red, &green, &blue))
@@ -1487,7 +1487,7 @@ bool wxMask::Create(const wxBitmap& bitmap, int paletteIndex)
 bool wxMask::Create(const wxBitmap& bitmap, const wxColour& colour)
 {
 #ifndef __WXMICROWIN__
-    wxCHECK_MSG( bitmap.Ok(), false, wxT("invalid bitmap in wxMask::Create") );
+    wxCHECK_MSG( bitmap.IsOk(), false, wxT("invalid bitmap in wxMask::Create") );
 
     if ( m_maskBitmap )
     {
@@ -1625,7 +1625,7 @@ HICON wxBitmapToIconOrCursor(const wxBitmap& bmp,
                              int hotSpotX,
                              int hotSpotY)
 {
-    if ( !bmp.Ok() )
+    if ( !bmp.IsOk() )
     {
         // we can't create an icon/cursor form nothing
         return 0;

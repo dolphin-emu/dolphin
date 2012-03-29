@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.03.03 (replaces the old file with the same name)
-// RCS-ID:      $Id: dib.cpp 67287 2011-03-22 17:15:49Z VZ $
+// RCS-ID:      $Id: dib.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -660,7 +660,7 @@ wxPalette *wxDIB::CreatePalette() const
 
 bool wxDIB::Create(const wxImage& image, PixelFormat pf)
 {
-    wxCHECK_MSG( image.Ok(), false, wxT("invalid wxImage in wxDIB ctor") );
+    wxCHECK_MSG( image.IsOk(), false, wxT("invalid wxImage in wxDIB ctor") );
 
     const int h = image.GetHeight();
     const int w = image.GetWidth();
@@ -753,7 +753,7 @@ wxImage wxDIB::ConvertToImage() const
     const int w = GetWidth();
     const int h = GetHeight();
     wxImage image(w, h, false /* don't bother clearing memory */);
-    if ( !image.Ok() )
+    if ( !image.IsOk() )
     {
         wxFAIL_MSG( wxT("could not allocate data for image") );
         return wxNullImage;

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Karsten Ballueder
-// RCS-ID:      $Id: treectrl.h 64532 2010-06-09 13:55:48Z FM $
+// RCS-ID:      $Id: treectrl.h 70345 2012-01-15 01:05:28Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -33,20 +33,7 @@ class WXDLLIMPEXP_FWD_CORE wxImageList;
 class WXDLLIMPEXP_CORE wxTreeCtrlBase : public wxControl
 {
 public:
-    wxTreeCtrlBase()
-    {
-        m_imageListNormal =
-        m_imageListState = NULL;
-        m_ownsImageListNormal =
-        m_ownsImageListState = false;
-
-        // arbitrary default
-        m_spacing = 18;
-
-        // quick DoGetBestSize calculation
-        m_quickBestSize = true;
-    }
-
+    wxTreeCtrlBase();
     virtual ~wxTreeCtrlBase();
 
     // accessors
@@ -452,6 +439,13 @@ protected:
     bool        m_quickBestSize;
 
 
+private:
+    // Intercept Escape and Return keys to ensure that our in-place edit
+    // control always gets them before they're used for dialog navigation or
+    // anything else.
+    void OnCharHook(wxKeyEvent& event);
+
+
     wxDECLARE_NO_COPY_CLASS(wxTreeCtrlBase);
 };
 
@@ -460,8 +454,6 @@ protected:
 // ----------------------------------------------------------------------------
 
 #if defined(__WXUNIVERSAL__)
-    #include "wx/generic/treectlg.h"
-#elif defined(__WXPALMOS__)
     #include "wx/generic/treectlg.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/treectrl.h"

@@ -3,7 +3,7 @@
 // Purpose:     wxCalendarCtrl implementation
 // Author:      Vadim Zeitlin
 // Created:     2008-04-04
-// RCS-ID:      $Id: calctrl.cpp 66558 2011-01-04 09:14:40Z SC $
+// RCS-ID:      $Id: calctrl.cpp 70568 2012-02-11 16:26:47Z VZ $
 // Copyright:   (C) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -120,8 +120,8 @@ wxCalendarCtrl::Create(wxWindow *parent,
 
     SetDate(dt.IsValid() ? dt : wxDateTime::Today());
 
-    if ( SetHolidayAttrs() )
-        UpdateMarks();
+    SetHolidayAttrs();
+    UpdateMarks();
 
     Connect(wxEVT_LEFT_DOWN,
             wxMouseEventHandler(wxCalendarCtrl::MSWOnClick));
@@ -396,10 +396,12 @@ void wxCalendarCtrl::SetHoliday(size_t day)
 
 void wxCalendarCtrl::UpdateMarks()
 {
-    // we show only one full month but there can be some days from the month
-    // before it and from the one after it so days from 3 different months can
-    // be partially shown
-    MONTHDAYSTATE states[3] = { 0 };
+    // Currently the native control may show more than one month if its size is
+    // big enough. Ideal would be to prevent this from happening but there
+    // doesn't seem to be any obvious way to do it, so for now just handle the
+    // possibility that we can display several of them: one before the current
+    // one and up to 12 after it.
+    MONTHDAYSTATE states[14] = { 0 };
     const DWORD nMonths = MonthCal_GetMonthRange(GetHwnd(), GMR_DAYSTATE, NULL);
 
     // although in principle the calendar might not show any days from the
@@ -412,13 +414,9 @@ void wxCalendarCtrl::UpdateMarks()
     // in its window if you "zoom out" of it by double clicking on free areas
     // so the return value can be (much, in case of decades view) greater than
     // 3 but in this case marks are not visible anyhow so simply ignore it
-    if ( nMonths < WXSIZEOF(states) )
+    if ( nMonths >= 2 && nMonths <= WXSIZEOF(states) )
     {
-        wxFAIL_MSG("unexpectedly few months shown in the control");
-    }
-    else if ( nMonths == WXSIZEOF(states) )
-    {
-        // the fully visible month is the one in the middle
+        // The current, fully visible month is always the second one.
         states[1] = m_marks | m_holidays;
 
         if ( !MonthCal_SetDayState(GetHwnd(), nMonths, states) )
@@ -462,8 +460,8 @@ bool wxCalendarCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                     {
                         // month changed, need to update the holidays if we use
                         // them
-                        if ( SetHolidayAttrs() )
-                            UpdateMarks();
+                        SetHolidayAttrs();
+                        UpdateMarks();
                     }
                 }
             }
@@ -472,9 +470,24 @@ bool wxCalendarCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
         case MCN_GETDAYSTATE:
             {
                 const NMDAYSTATE * const ds = (NMDAYSTATE *)lParam;
+
+                wxDateTime startDate;
+                startDate.SetFromMSWSysDate(ds->stStart);
+
+                wxDateTime currentDate = m_date;
+                // Set to the start of month for comparison with startDate to
+                // work correctly.
+                currentDate.SetDay(1);
+
                 for ( int i = 0; i < ds->cDayState; i++ )
                 {
-                    ds->prgDayState[i] = m_marks | m_holidays;
+                    // set holiday/marks only for the "current" month
+                    if ( startDate == currentDate )
+                        ds->prgDayState[i] = m_marks | m_holidays;
+                    else
+                        ds->prgDayState[i] = 0;
+
+                    startDate += wxDateSpan::Month();
                 }
             }
             break;

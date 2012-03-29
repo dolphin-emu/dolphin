@@ -137,12 +137,13 @@ void VertexManager::vFlush()
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
 				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
-				(tex.texMode1[i&3].max_lod >> 4));
+				tex.texMode1[i&3].max_lod >> 4,
+				tex.texImage1[i&3].image_type);
 
 			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
+				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
 			}
 			else
 				ERROR_LOG(VIDEO, "error loading texture");
@@ -153,11 +154,9 @@ void VertexManager::vFlush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
-	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
-	{
-		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
-		goto shader_fail;
-	}
+	int stride = g_nativeVertexFmt->GetVertexStride();
+	g_nativeVertexFmt->SetupVertexPointers();
+
 	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set vertex shader\n");});
@@ -165,8 +164,11 @@ void VertexManager::vFlush()
 
 	}
 
-	int stride = g_nativeVertexFmt->GetVertexStride();
-	g_nativeVertexFmt->SetupVertexPointers();
+	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
+	{
+		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
+		goto shader_fail;
+	}
 
 	Draw(stride);
 
@@ -174,17 +176,35 @@ void VertexManager::vFlush()
 						bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 	if (useDstAlpha)
 	{
-		DWORD write = 0;
 		if (!PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS, g_nativeVertexFmt->m_components))
 		{
 			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 			goto shader_fail;
 		}
 		// update alpha only
-		g_renderer->ApplyState(true);
+		g_renderer->ApplyState(RSM_UseDstAlpha);
+		if (bpmem.zmode.updateenable)
+			g_renderer->ApplyState(RSM_Multipass);
 		Draw(stride);
-		g_renderer->RestoreState();
+		g_renderer->RestoreState(RSM_UseDstAlpha);
+		if (bpmem.zmode.updateenable)
+			g_renderer->RestoreState(RSM_Multipass);
 	}
+
+	bool UseZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && g_ActiveConfig.bAcurateZcomploc;
+
+	if (UseZcomploc)
+	{
+		if (!PixelShaderCache::SetShader(DSTALPHA_ZCOMPLOC,g_nativeVertexFmt->m_components))
+		{
+			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
+			goto shader_fail;
+		}	
+		g_renderer->ApplyState(RSM_Zcomploc);
+		Draw(stride);
+		g_renderer->RestoreState(RSM_Zcomploc);	
+	}
+
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 shader_fail:

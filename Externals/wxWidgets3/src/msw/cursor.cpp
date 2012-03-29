@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: cursor.cpp 65057 2010-07-23 23:32:46Z VZ $
+// RCS-ID:      $Id: cursor.cpp 70802 2012-03-04 00:29:58Z VZ $
 // Copyright:   (c) 1997-2003 Julian Smart and Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -293,15 +293,8 @@ void wxCursor::InitFromStock(wxStockCursor idCursor)
         { false, wxT("WXCURSOR_RIGHT_ARROW")  }, // wxCURSOR_RIGHT_ARROW
         { false, wxT("WXCURSOR_BULLSEYE")     }, // wxCURSOR_BULLSEYE
         {  true, IDC_ARROW                   }, // WXCURSOR_CHAR
-
-        // Displays as an I-beam on XP, so use a cursor file
-//        {  true, IDC_CROSS                   }, // WXCURSOR_CROSS
-        {  false, wxT("WXCURSOR_CROSS")       }, // WXCURSOR_CROSS
-
-        // See special handling below for wxCURSOR_HAND
-//        { false, wxT("WXCURSOR_HAND")         }, // wxCURSOR_HAND
+        {  true, IDC_CROSS                   }, // WXCURSOR_CROSS
         {  true, IDC_HAND                    }, // wxCURSOR_HAND
-
         {  true, IDC_IBEAM                   }, // WXCURSOR_IBEAM
         {  true, IDC_ARROW                   }, // WXCURSOR_LEFT_BUTTON
         { false, wxT("WXCURSOR_MAGNIFIER")    }, // wxCURSOR_MAGNIFIER
@@ -391,7 +384,7 @@ const wxCursor *wxGetGlobalCursor()
 
 void wxSetCursor(const wxCursor& cursor)
 {
-    if ( cursor.Ok() )
+    if ( cursor.IsOk() )
     {
         ::SetCursor(GetHcursorOf(cursor));
 

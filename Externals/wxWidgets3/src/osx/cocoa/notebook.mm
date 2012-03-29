@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: notebook.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: notebook.mm 67887 2011-06-08 22:48:29Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@
 
 - (id) init
 {
-    [super init];
+    self = [super init];
     return self;
 }
 
@@ -175,7 +175,7 @@ public:
             if ( notebook.GetImageList() && notebook.GetPageImage(i) >= 0 )
             {
                 const wxBitmap bmap = notebook.GetImageList()->GetBitmap( notebook.GetPageImage( i ) ) ;
-                if ( bmap.Ok() )
+                if ( bmap.IsOk() )
                 {
                     // TODO how to set an image on a tab
                 }

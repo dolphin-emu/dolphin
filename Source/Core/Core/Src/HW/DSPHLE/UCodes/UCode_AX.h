@@ -41,7 +41,6 @@ public:
 	u8 numPBaddr;
 	u32 PBaddr[8]; //2 needed for MP2
 	u32 m_addressPBs;
-	u32 _CRC;
 
 private:
 	enum

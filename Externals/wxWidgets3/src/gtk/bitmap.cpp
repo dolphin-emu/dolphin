@@ -2,7 +2,7 @@
 // Name:        src/gtk/bitmap.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: bitmap.cpp 66372 2010-12-14 18:43:32Z VZ $
+// RCS-ID:      $Id: bitmap.cpp 69617 2011-10-31 16:09:47Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -207,7 +207,7 @@ bool wxMask::InitFromMonoBitmap(const wxBitmap& bitmap)
     return true;
 }
 
-GdkBitmap *wxMask::GetBitmap() const
+GdkPixmap* wxMask::GetBitmap() const
 {
     return m_bitmap;
 }
@@ -324,13 +324,11 @@ bool wxBitmap::CreateFromImage(const wxImage& image, int depth)
     UnRef();
 
     wxCHECK_MSG( image.IsOk(), false, wxT("invalid image") );
-    wxCHECK_MSG( depth == -1 || depth == 1, false, wxT("invalid bitmap depth") );
 
     if (image.GetWidth() <= 0 || image.GetHeight() <= 0)
         return false;
 
-    // create pixbuf if image has alpha and requested depth is compatible
-    if (image.HasAlpha() && (depth == -1 || depth == 32))
+    if (depth == 32 || (depth == -1 && image.HasAlpha()))
         return CreateFromImageAsPixbuf(image);
 
     // otherwise create pixmap, if alpha is present it will be converted to mask
@@ -422,8 +420,6 @@ bool wxBitmap::CreateFromImageAsPixmap(const wxImage& image, int depth)
 
 bool wxBitmap::CreateFromImageAsPixbuf(const wxImage& image)
 {
-    wxASSERT(image.HasAlpha());
-
     int width = image.GetWidth();
     int height = image.GetHeight();
 
@@ -441,12 +437,13 @@ bool wxBitmap::CreateFromImageAsPixbuf(const wxImage& image)
 
     for (int y = 0; y < height; y++, out += rowpad)
     {
-        for (int x = 0; x < width; x++, alpha++, out += 4, in += 3)
+        for (int x = 0; x < width; x++, out += 4, in += 3)
         {
             out[0] = in[0];
             out[1] = in[1];
             out[2] = in[2];
-            out[3] = *alpha;
+            if (alpha)
+                out[3] = *alpha++;
         }
     }
 

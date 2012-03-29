@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux
 // Modified by: Vadim Zeitlin to make it work :-)
 // Created:     04/22/98
-// RCS-ID:      $Id: thread.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: thread.cpp 69883 2011-12-01 14:22:15Z VZ $
 // Copyright:   (c) Wolfram Gloger (1996, 1997), Guilhem Lavaux (1998);
 //                  Vadim Zeitlin (1999-2002)
 // Licence:     wxWindows licence
@@ -39,6 +39,8 @@
 #include "wx/msw/seh.h"
 
 #include "wx/except.h"
+
+#include "wx/dynlib.h"
 
 // must have this symbol defined to get _beginthread/_endthread declarations
 #ifndef _MT
@@ -161,6 +163,25 @@ wxCriticalSection::~wxCriticalSection()
 void wxCriticalSection::Enter()
 {
     ::EnterCriticalSection((CRITICAL_SECTION *)m_buffer);
+}
+
+bool wxCriticalSection::TryEnter()
+{
+#if wxUSE_DYNLIB_CLASS
+    typedef BOOL
+      (WINAPI *TryEnterCriticalSection_t)(LPCRITICAL_SECTION lpCriticalSection);
+
+    static TryEnterCriticalSection_t
+        pfnTryEnterCriticalSection = (TryEnterCriticalSection_t)
+            wxDynamicLibrary(wxT("kernel32.dll")).
+                GetSymbol(wxT("TryEnterCriticalSection"));
+
+    return pfnTryEnterCriticalSection
+            ? (*pfnTryEnterCriticalSection)((CRITICAL_SECTION *)m_buffer) != 0
+            : false;
+#else
+    return false;
+#endif
 }
 
 void wxCriticalSection::Leave()

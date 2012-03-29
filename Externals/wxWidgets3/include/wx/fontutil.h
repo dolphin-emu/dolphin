@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.11.99
-// RCS-ID:      $Id: fontutil.h 63918 2010-04-08 21:39:14Z SC $
+// RCS-ID:      $Id: fontutil.h 70446 2012-01-23 11:28:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -172,6 +172,7 @@ public:
     wxFontStyle   m_style;
     wxFontWeight  m_weight;
     bool          m_underlined;
+    bool          m_strikethrough;
     wxString      m_faceName;
     wxFontEncoding m_encoding;
 public :
@@ -187,6 +188,7 @@ public :
     wxFontStyle   style;
     wxFontWeight  weight;
     bool          underlined;
+    bool          strikethrough;
     wxString      faceName;
     wxFontEncoding encoding;
 #endif // platforms
@@ -224,6 +226,7 @@ public:
         SetStyle((wxFontStyle)font.GetStyle());
         SetWeight((wxFontWeight)font.GetWeight());
         SetUnderlined(font.GetUnderlined());
+        SetStrikethrough(font.GetStrikethrough());
 #if defined(__WXMSW__)
         if ( font.IsUsingSizeInPixels() )
             SetPixelSize(font.GetPixelSize());
@@ -252,6 +255,7 @@ public:
     wxFontStyle GetStyle() const;
     wxFontWeight GetWeight() const;
     bool GetUnderlined() const;
+    bool GetStrikethrough() const;
     wxString GetFaceName() const;
     wxFontFamily GetFamily() const;
     wxFontEncoding GetEncoding() const;
@@ -261,6 +265,7 @@ public:
     void SetStyle(wxFontStyle style);
     void SetWeight(wxFontWeight weight);
     void SetUnderlined(bool underlined);
+    void SetStrikethrough(bool strikethrough);
     bool SetFaceName(const wxString& facename);
     void SetFamily(wxFontFamily family);
     void SetEncoding(wxFontEncoding encoding);

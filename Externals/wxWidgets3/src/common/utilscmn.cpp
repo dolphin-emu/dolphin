@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utilscmn.cpp 67129 2011-03-05 12:21:20Z SC $
+// RCS-ID:      $Id: utilscmn.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,26 +76,22 @@
     #include "wx/statusbr.h"
 #endif // wxUSE_GUI
 
-#ifndef __WXPALMOS5__
 #ifndef __WXWINCE__
     #include <time.h>
 #else
     #include "wx/msw/wince/time.h"
 #endif
-#endif // ! __WXPALMOS5__
 
 #ifdef __WXMAC__
     #include "wx/osx/private.h"
 #endif
 
-#ifndef __WXPALMOS5__
 #if !defined(__MWERKS__) && !defined(__WXWINCE__)
     #include <sys/types.h>
     #include <sys/stat.h>
 #endif
-#endif // ! __WXPALMOS5__
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
     #include "wx/msw/private.h"
     #include "wx/filesys.h"
 #endif
@@ -354,7 +350,7 @@ void wxPlatform::ClearPlatforms()
 
 bool wxPlatform::Is(int platform)
 {
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     if (platform == wxOS_WINDOWS)
         return true;
 #endif
@@ -392,10 +388,6 @@ bool wxPlatform::Is(int platform)
 #endif
 #ifdef __UNIX__
     if (platform == wxOS_UNIX)
-        return true;
-#endif
-#ifdef __WXMGL__
-    if (platform == wxPORT_MGL)
         return true;
 #endif
 #ifdef __OS2__
@@ -580,10 +572,21 @@ bool wxGetEnvMap(wxEnvVariableHashMap *map)
 #else // non-MSVC non-Mac
     // Not sure if other compilers have _tenviron so use the (more standard)
     // ANSI version only for them.
-#ifdef __BSD__
-    // POSIX, but not in an include file
+
+    // Both POSIX and Single UNIX Specification say that this variable must
+    // exist but not that it must be declared anywhere and, indeed, it's not
+    // declared in several common systems (some BSDs, Solaris with native CC)
+    // so we (re)declare it ourselves to deal with these cases. However we do
+    // not do this under MSW where there can be DLL-related complications, i.e.
+    // the variable might be DLL-imported or not. Luckily we don't have to
+    // worry about this as all MSW compilers do seem to define it in their
+    // standard headers anyhow so we can just rely on already having the
+    // correct declaration. And if this turns out to be wrong, we can always
+    // add a configure test checking whether it is declared later.
+#ifndef __WINDOWS__
     extern char **environ;
-#endif
+#endif // !__WINDOWS__
+
     char **env = environ;
 #endif
 
@@ -812,8 +815,8 @@ typedef struct
       smaller partition.  This *guarantees* no more than log (n)
       stack size is needed (actually O(1) in this case)!  */
 
-void wxQsort(void *const pbase, size_t total_elems,
-                             size_t size, CMPFUNCDATA cmp, const void* user_data)
+void wxQsort(void* pbase, size_t total_elems,
+             size_t size, wxSortCallback cmp, const void* user_data)
 {
   register char *base_ptr = (char *) pbase;
   const size_t max_thresh = MAX_THRESH * size;
@@ -995,7 +998,7 @@ bool wxSetDetectableAutoRepeat( bool WXUNUSED(flag) )
 // Launch default browser
 // ----------------------------------------------------------------------------
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
 
 // implemented in a port-specific utils source file:
 bool wxDoLaunchDefaultBrowser(const wxString& url, const wxString& scheme, int flags);
@@ -1061,7 +1064,7 @@ static bool DoLaunchDefaultBrowserHelper(const wxString& urlOrig, int flags)
     // (e.g. "C:\\test.txt" when parsed by wxURI reports a scheme == "C")
     bool hasValidScheme = uri.HasScheme() && uri.GetScheme().length() > 1;
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
 
     // NOTE: when testing wxMSW's wxLaunchDefaultBrowser all possible forms
     //       of the URL/flags should be tested; e.g.:
@@ -1361,6 +1364,8 @@ int wxMessageBox(const wxString& message, const wxString& caption, long style,
             return wxNO;
         case wxID_CANCEL:
             return wxCANCEL;
+        case wxID_HELP:
+            return wxHELP;
     }
 
     wxFAIL_MSG( wxT("unexpected return code from wxMessageDialog") );
@@ -1406,7 +1411,7 @@ wxVersionInfo wxGetLibraryVersionInfo()
                          wxMINOR_VERSION,
                          wxRELEASE_NUMBER,
                          msg,
-                         wxS("Copyright (c) 1995-2010 wxWidgets team"));
+                         wxS("Copyright (c) 1995-2011 wxWidgets team"));
 }
 
 void wxInfoMessageBox(wxWindow* parent)
@@ -1536,7 +1541,7 @@ wxColour wxGetColourFromUser(wxWindow *parent,
 wxFont wxGetFontFromUser(wxWindow *parent, const wxFont& fontInit, const wxString& caption)
 {
     wxFontData data;
-    if ( fontInit.Ok() )
+    if ( fontInit.IsOk() )
     {
         data.SetInitialFont(fontInit);
     }

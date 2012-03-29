@@ -276,12 +276,6 @@ void JitIL::Init()
 			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
 	}
 
-#ifdef _M_X64
-	jo.enableFastMem = false;
-#else
-	jo.enableFastMem = false;
-#endif
-	jo.assumeFPLoadFromMem = Core::g_CoreStartupParameter.bUseFastMem;
 	jo.fpAccurateFcmp = false;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
@@ -494,7 +488,7 @@ void JitIL::Trace()
 	}
 #endif	
 
-	NOTICE_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
+	DEBUG_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
 		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], 
 		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, 
 		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
@@ -524,8 +518,12 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
-		blockSize = 1;
-		Trace();
+		if (!Profiler::g_ProfileBlocks)
+		{
+			if (GetState() == CPU_STEPPING)
+				blockSize = 1;
+			Trace();
+		}
 	}
 
 	if (em_address == 0)
@@ -647,6 +645,16 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 			{
 				ibuild.EmitFPExceptionCheckStart(ibuild.EmitIntConst(ops[i].address));
+			}
+
+			if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
+			{
+				ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
+			}
+
+			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			{
+				ibuild.EmitBreakPointCheck(ibuild.EmitIntConst(ops[i].address));
 			}
 			
 			JitILTables::CompileInstruction(ops[i]);

@@ -119,6 +119,7 @@ public:
 	virtual void Video_GatherPipeBursted() = 0;
 
 	virtual bool Video_IsPossibleWaitingSetDrawDone() = 0;
+	virtual bool Video_IsHiWatermarkActive() = 0;
 	virtual void Video_AbortFrame() = 0;
 
 	virtual readFn16  Video_CPRead16() = 0;
@@ -140,6 +141,7 @@ class VideoBackendHardware : public VideoBackend
 {
 	void DoState(PointerWrap &p);
 	void RunLoop(bool enable);
+	bool Initialize(void *&) { InitializeShared(); return true; }
 
 	void EmuStateChange(EMUSTATE_CHANGE);
 
@@ -158,6 +160,7 @@ class VideoBackendHardware : public VideoBackend
 	void Video_GatherPipeBursted();
 
 	bool Video_IsPossibleWaitingSetDrawDone();
+	bool Video_IsHiWatermarkActive();
 	void Video_AbortFrame();
 
 	readFn16  Video_CPRead16();
@@ -165,6 +168,9 @@ class VideoBackendHardware : public VideoBackend
 	readFn16  Video_PERead16();
 	writeFn16 Video_PEWrite16();
 	writeFn32 Video_PEWrite32();
+
+protected:
+	void InitializeShared();
 };
 
 #endif

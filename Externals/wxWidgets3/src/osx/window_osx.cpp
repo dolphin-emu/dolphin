@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window_osx.cpp 67282 2011-03-22 16:39:26Z SC $
+// RCS-ID:      $Id: window_osx.cpp 70765 2012-03-01 15:04:42Z JS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -58,15 +58,15 @@
 #endif
 
 #if wxUSE_DRAG_AND_DROP
-#include "wx/dnd.h"
+    #include "wx/dnd.h"
 #endif
 
 #include "wx/graphics.h"
 
 #if wxOSX_USE_CARBON
-#include "wx/osx/uma.h"
+    #include "wx/osx/uma.h"
 #else
-#include "wx/osx/private.h"
+    #include "wx/osx/private.h"
 #endif
 
 #define MAC_SCROLLBAR_SIZE 15
@@ -88,6 +88,18 @@ END_EVENT_TABLE()
 #endif
 
 wxWidgetImplType* kOSXNoWidgetImpl = (wxWidgetImplType*) -1L;
+
+#if wxUSE_HOTKEY && wxOSX_USE_COCOA_OR_CARBON
+
+typedef struct  {
+    EventHotKeyRef ref;
+    int keyId;
+    wxWindow* window;
+} wxHotKeyRec;
+
+wxVector<wxHotKeyRec> s_hotkeys;
+
+#endif
 
 // ===========================================================================
 // implementation
@@ -212,6 +224,21 @@ void wxWindowMac::Init()
 wxWindowMac::~wxWindowMac()
 {
     SendDestroyEvent();
+    
+#if wxUSE_HOTKEY && wxOSX_USE_COCOA_OR_CARBON
+    for ( int i = s_hotkeys.size()-1; i>=0; -- i )
+    {
+        if ( s_hotkeys[i].window == this )
+        {
+            EventHotKeyRef ref = s_hotkeys[i].ref;
+            s_hotkeys.erase(s_hotkeys.begin() + i);
+            if ( UnregisterEventHotKey(ref) != noErr )
+            {
+                wxLogLastError(wxT("UnregisterHotKey"));
+            }
+        }
+    }    
+#endif
 
     MacInvalidateBorders() ;
 
@@ -417,7 +444,8 @@ void wxWindowMac::MacChildAdded()
 #endif
 }
 
-void wxWindowMac::MacPostControlCreate(const wxPoint& WXUNUSED(pos), const wxSize& size)
+void wxWindowMac::MacPostControlCreate(const wxPoint& WXUNUSED(pos),
+                                       const wxSize& WXUNUSED(size))
 {
     // todo remove if refactoring works correctly
 #if 0
@@ -448,7 +476,7 @@ void wxWindowMac::DoSetWindowVariant( wxWindowVariant variant )
 {
     // Don't assert, in case we set the window variant before
     // the window is created
-    // wxASSERT( GetPeer()->Ok() ) ;
+    // wxASSERT( GetPeer()->IsOk() ) ;
 
     m_windowVariant = variant ;
 
@@ -561,7 +589,7 @@ bool wxWindowMac::SetBackgroundColour(const wxColour& col )
 {
     if (m_growBox)
     {
-        if ( m_backgroundColour.Ok() )
+        if ( m_backgroundColour.IsOk() )
             m_growBox->SetBackgroundColour(m_backgroundColour);
         else
             m_growBox->SetBackgroundColour(*wxWHITE);
@@ -870,7 +898,7 @@ bool wxWindowMac::SetCursor(const wxCursor& cursor)
             return false ;
     }
 
-    wxASSERT_MSG( m_cursor.Ok(),
+    wxASSERT_MSG( m_cursor.IsOk(),
         wxT("cursor must be valid after call to the base version"));
 
     if ( GetPeer() != NULL )
@@ -1037,6 +1065,7 @@ void wxWindowMac::DoMoveWindow(int x, int y, int width, int height)
         if ( doResize )
         {
             MacRepositionScrollBars() ;
+            MacOnInternalSize();
             wxSize size(actualWidth, actualHeight);
             wxSizeEvent event(size, m_windowId);
             event.SetEventObject(this);
@@ -1120,6 +1149,7 @@ void wxWindowMac::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 
         if (sizeFlags & wxSIZE_FORCE_EVENT)
         {
+            MacOnInternalSize();
             wxSizeEvent event( wxSize(width,height), GetId() );
             event.SetEventObject( this );
             HandleWindowEvent( event );
@@ -1224,11 +1254,17 @@ wxString wxWindowMac::GetLabel() const
 
 bool wxWindowMac::Show(bool show)
 {
+    if ( !show )
+        MacInvalidateBorders();
+    
     if ( !wxWindowBase::Show(show) )
         return false;
 
     if ( GetPeer() )
         GetPeer()->SetVisibility( show ) ;
+
+    if ( show )
+        MacInvalidateBorders();
 
 #ifdef __WXOSX_IPHONE__
     // only when there's no native event support
@@ -1533,7 +1569,7 @@ void  wxWindowMac::MacPaintGrowBox()
         CGRect cgrect = CGRectMake( rect.right - size , rect.bottom - size , size , size ) ;
         CGContextSaveGState( cgContext );
 
-        if ( m_backgroundColour.Ok() )
+        if ( m_backgroundColour.IsOk() )
         {
             CGContextSetFillColorWithColor( cgContext, m_backgroundColour.GetCGColor() );
         }
@@ -1546,7 +1582,7 @@ void  wxWindowMac::MacPaintGrowBox()
 #else
         if (m_growBox)
         {
-             if ( m_backgroundColour.Ok() )
+             if ( m_backgroundColour.IsOk() )
                  m_growBox->SetBackgroundColour(m_backgroundColour);
              else
                  m_growBox->SetBackgroundColour(*wxWHITE);
@@ -1570,15 +1606,11 @@ void wxWindowMac::MacPaintBorders( int WXUNUSED(leftOrigin) , int WXUNUSED(right
     GetPeer()->GetSize( tw, th );
     GetPeer()->GetPosition( tx, ty );
 
-    Rect rect  = { ty,tx, ty+th, tx+tw };
-
 #if wxOSX_USE_COCOA_OR_CARBON
 
-    InsetRect( &rect, -1 , -1 ) ;
-
     {
-        CGRect cgrect = CGRectMake( rect.left , rect.top , rect.right - rect.left ,
-            rect.bottom - rect.top ) ;
+        CGRect cgrect = CGRectMake( tx-1 , ty-1 , tw+2 ,
+            th+2 ) ;
 
         CGContextRef cgContext = (CGContextRef) GetParent()->MacGetCGContextRef() ;
         wxASSERT( cgContext ) ;
@@ -1656,6 +1688,7 @@ void wxWindowMac::DoUpdateScrollbarVisibility()
     MacRepositionScrollBars() ;
     if ( triggerSizeEvent )
     {
+        MacOnInternalSize();
         wxSizeEvent event(GetSize(), m_windowId);
         event.SetEventObject(this);
         HandleWindowEvent(event);
@@ -1804,18 +1837,18 @@ bool wxWindowMac::MacSetupCursor( const wxPoint& pt )
             // if the user code caught EVT_SET_CURSOR() and returned nothing from
             // it - this is a way to say that our cursor shouldn't be used for this
             // point
-            if ( !processedEvtSetCursor && m_cursor.Ok() )
+            if ( !processedEvtSetCursor && m_cursor.IsOk() )
                 cursor = m_cursor ;
 
             if ( !wxIsBusy() && !GetParent() )
                 cursor = *wxSTANDARD_CURSOR ;
         }
 
-        if ( cursor.Ok() )
+        if ( cursor.IsOk() )
             cursor.MacInstall() ;
     }
 
-    return cursor.Ok() ;
+    return cursor.IsOk() ;
 }
 
 wxString wxWindowMac::MacGetToolTipString( wxPoint &WXUNUSED(pt) )
@@ -2075,6 +2108,11 @@ bool wxWindowMac::MacDoRedraw( long time )
     }
 
     m_updateRegion = formerUpdateRgn;
+
+    wxNonOwnedWindow* top = MacGetTopLevelWindow();
+    if (top)
+        top->WindowWasPainted() ;
+    
     return handled;
 }
 
@@ -2573,6 +2611,129 @@ bool wxWindowMac::IsShownOnScreen() const
     }
     return wxWindowBase::IsShownOnScreen();
 }
+
+#if wxUSE_HOTKEY && wxOSX_USE_COCOA_OR_CARBON
+
+OSStatus
+wxHotKeyHandler(EventHandlerCallRef WXUNUSED(nextHandler),
+                EventRef event,
+                void* WXUNUSED(userData))
+{
+    EventHotKeyID hotKeyId;
+
+    GetEventParameter( event, kEventParamDirectObject, typeEventHotKeyID, NULL, sizeof(hotKeyId), NULL, &hotKeyId);
+
+    for ( unsigned i = 0; i < s_hotkeys.size(); ++i )
+    {
+        if ( s_hotkeys[i].keyId == static_cast<int>(hotKeyId.id) )
+        {
+            unsigned char charCode ;
+            UInt32 keyCode ;
+            UInt32 modifiers ;
+            Point where ;
+            UInt32 when = EventTimeToTicks( GetEventTime( event ) ) ;
+
+            GetEventParameter( event, kEventParamKeyMacCharCodes, typeChar, NULL, sizeof(char), NULL, &charCode );
+            GetEventParameter( event, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode );
+            GetEventParameter( event, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers );
+            GetEventParameter( event, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Point), NULL, &where );
+            
+            UInt32 keymessage = (keyCode << 8) + charCode;
+            
+            wxKeyEvent wxevent(wxEVT_HOTKEY);
+            wxevent.SetId(hotKeyId.id);
+            wxTheApp->MacCreateKeyEvent( wxevent, s_hotkeys[i].window , keymessage , 
+                                        modifiers , when , where.h , where.v , 0 ) ;
+            
+            s_hotkeys[i].window->HandleWindowEvent(wxevent);
+        }
+    }
+    
+    return noErr;
+}
+
+bool wxWindowMac::RegisterHotKey(int hotkeyId, int modifiers, int keycode)
+{
+    for ( unsigned i = 0; i < s_hotkeys.size(); ++i )
+    {
+        if ( s_hotkeys[i].keyId == hotkeyId )
+        {
+            wxLogLastError(wxT("hotkeyId already registered"));
+                
+            return false;
+        }
+    }
+    
+    static bool installed = false;
+    if ( !installed )
+    {
+        EventTypeSpec eventType;
+        eventType.eventClass=kEventClassKeyboard;
+        eventType.eventKind=kEventHotKeyPressed;
+
+        InstallApplicationEventHandler(&wxHotKeyHandler, 1, &eventType, NULL, NULL);
+        installed = true;
+    }
+    
+    UInt32 mac_modifiers=0;
+    if ( modifiers & wxMOD_ALT )
+        mac_modifiers |= optionKey;
+    if ( modifiers & wxMOD_SHIFT )
+        mac_modifiers |= shiftKey;
+    if ( modifiers & wxMOD_RAW_CONTROL )
+        mac_modifiers |= controlKey;
+    if ( modifiers & wxMOD_CONTROL )
+        mac_modifiers |= cmdKey;
+    
+    EventHotKeyRef hotKeyRef;
+    EventHotKeyID hotKeyIDmac;
+    
+    hotKeyIDmac.signature = 'WXMC';
+    hotKeyIDmac.id = hotkeyId;
+    
+    if ( RegisterEventHotKey(wxCharCodeWXToOSX((wxKeyCode)keycode), mac_modifiers, hotKeyIDmac,
+                        GetApplicationEventTarget(), 0, &hotKeyRef) != noErr )
+    {
+        wxLogLastError(wxT("RegisterHotKey"));
+        
+        return false;
+    }
+    else
+    {
+        wxHotKeyRec v;
+        v.ref = hotKeyRef;
+        v.keyId = hotkeyId;
+        v.window = this;
+        
+        s_hotkeys.push_back(v);
+    }
+    
+    return true;
+}
+
+bool wxWindowMac::UnregisterHotKey(int hotkeyId)
+{
+    for ( unsigned i = s_hotkeys.size()-1; i>=0; -- i )
+    {
+        if ( s_hotkeys[i].keyId == hotkeyId )
+        {
+            EventHotKeyRef ref = s_hotkeys[i].ref;
+            s_hotkeys.erase(s_hotkeys.begin() + i);
+            if ( UnregisterEventHotKey(ref) != noErr )
+            {
+                wxLogLastError(wxT("UnregisterHotKey"));
+                
+                return false;
+            }
+            else 
+                return true;
+        }
+    }
+    
+    return false;
+}
+
+#endif // wxUSE_HOTKEY
 
 bool wxWindowMac::OSXHandleKeyEvent( wxKeyEvent& event )
 {

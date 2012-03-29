@@ -2,7 +2,7 @@
 // Name:        src/common/imagbmp.cpp
 // Purpose:     wxImage BMP,ICO and CUR handlers
 // Author:      Robert Roebling, Chris Elliott
-// RCS-ID:      $Id: imagbmp.cpp 66491 2010-12-29 12:31:37Z DS $
+// RCS-ID:      $Id: imagbmp.cpp 68766 2011-08-17 21:01:09Z DS $
 // Copyright:   (c) Robert Roebling, Chris Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -91,7 +91,7 @@ bool wxBMPHandler::SaveDib(wxImage *image,
 {
     wxCHECK_MSG( image, false, wxT("invalid pointer in wxBMPHandler::SaveFile") );
 
-    if ( !image->Ok() )
+    if ( !image->IsOk() )
     {
         if ( verbose )
         {
@@ -146,8 +146,8 @@ bool wxBMPHandler::SaveDib(wxImage *image,
     }
 
     unsigned width = image->GetWidth();
-    unsigned row_padding = (4 - int(width*bpp/8.0) % 4) % 4; // # bytes to pad to dword
-    unsigned row_width = int(width * bpp/8.0) + row_padding; // # of bytes per row
+    unsigned row_padding = (4 - ((width * bpp + 7) / 8) % 4) % 4; // # bytes to pad to dword
+    unsigned row_width = (width * bpp + 7) / 8 + row_padding; // # of bytes per row
 
     struct
     {
@@ -351,7 +351,7 @@ bool wxBMPHandler::SaveDib(wxImage *image,
 
     // pointer to the image data, use quantized if available
     wxUint8 *data = (wxUint8*) image->GetData();
-    if (q_image) if (q_image->Ok()) data = (wxUint8*) q_image->GetData();
+    if (q_image) if (q_image->IsOk()) data = (wxUint8*) q_image->GetData();
 
     wxUint8 *buffer = new wxUint8[row_width];
     memset(buffer, 0, row_width);
@@ -533,6 +533,14 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
 
     wxON_BLOCK_EXIT1(&BMPPalette::Free, cmap);
 
+    bool isUpsideDown = true;
+
+    if (height < 0)
+    {
+        isUpsideDown = false;
+        height = -height;
+    }
+
     // destroy existing here instead of:
     image->Destroy();
     image->Create(width, height);
@@ -702,9 +710,10 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
     // this case (see #10915)
     bool hasValidAlpha = false;
 
-    /* BMPs are stored upside down */
-    for ( int line = (height - 1); line >= 0; line-- )
+    for ( int row = 0; row < height; row++ )
     {
+        int line = isUpsideDown ? height - 1 - row : row;
+
         int linepos = 0;
         for ( int column = 0; column < width ; )
         {
@@ -734,21 +743,24 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
                         {
                             if ( aByte == 0 )
                             {
-                                if ( column > 0 )
-                                    column = width;
+                                // end of scanline marker
+                                column = width;
+                                row--;
                             }
                             else if ( aByte == 1 )
                             {
+                                // end of RLE data marker, stop decoding
                                 column = width;
-                                line = -1;
+                                row = height;
                             }
                             else if ( aByte == 2 )
                             {
+                                // delta marker, move in image
                                 aByte = stream.GetC();
                                 column += aByte;
                                 linepos = column * bpp / 4;
                                 aByte = stream.GetC();
-                                line -= aByte; // upside down
+                                row += aByte; // upside down
                             }
                             else
                             {
@@ -817,20 +829,24 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
                         {
                             if ( aByte == 0 )
                             {
-                                /* column = width; */
+                                // end of scanline marker
+                                column = width;
+                                row--;
                             }
                             else if ( aByte == 1 )
                             {
+                                // end of RLE data marker, stop decoding
                                 column = width;
-                                line = -1;
+                                row = height;
                             }
                             else if ( aByte == 2 )
                             {
+                                // delta marker, move in image
                                 aByte = stream.GetC();
                                 column += aByte;
                                 linepos = column * bpp / 8;
                                 aByte = stream.GetC();
-                                line += aByte;
+                                row -= aByte;
                             }
                             else
                             {
@@ -1249,7 +1265,7 @@ bool wxICOHandler::SaveFile(wxImage *image,
         // wxCountingOutputStream::IsOk() always returns true for now and this
         // "if" provokes VC++ warnings in optimized build
 #if 0
-        if ( !cStream.Ok() )
+        if ( !cStream.IsOk() )
         {
             if ( verbose )
             {
@@ -1335,6 +1351,11 @@ bool wxICOHandler::SaveFile(wxImage *image,
 bool wxICOHandler::LoadFile(wxImage *image, wxInputStream& stream,
                             bool verbose, int index)
 {
+    if ( stream.IsSeekable() && stream.SeekI(0) == wxInvalidOffset )
+    {
+        return false;
+    }
+
     return DoLoadFile(image, stream, verbose, index);
 }
 
@@ -1423,10 +1444,16 @@ bool wxICOHandler::DoLoadFile(wxImage *image, wxInputStream& stream,
 
 int wxICOHandler::DoGetImageCount(wxInputStream& stream)
 {
+    // It's ok to modify the stream position in this function.
+
+    if ( stream.IsSeekable() && stream.SeekI(0) == wxInvalidOffset )
+    {
+        return 0;
+    }
+
     ICONDIR IconDir;
 
     if (stream.Read(&IconDir, sizeof(IconDir)).LastRead() != sizeof(IconDir))
-             // it's ok to modify the stream position here
         return 0;
 
     return (int)wxUINT16_SWAP_ON_BE(IconDir.idCount);
@@ -1492,8 +1519,15 @@ int wxANIHandler::DoGetImageCount(wxInputStream& stream)
 
 static bool CanReadICOOrCUR(wxInputStream *stream, wxUint16 resourceType)
 {
+    // It's ok to modify the stream position in this function.
+
+    if ( stream->IsSeekable() && stream->SeekI(0) == wxInvalidOffset )
+    {
+        return false;
+    }
+
     ICONDIR iconDir;
-    if ( !stream->Read(&iconDir, sizeof(iconDir)) )     // it's ok to modify the stream position here
+    if ( !stream->Read(&iconDir, sizeof(iconDir)) )
     {
         return false;
     }

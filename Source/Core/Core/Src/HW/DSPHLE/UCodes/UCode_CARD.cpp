@@ -21,8 +21,8 @@
 #include "../../DSP.h"
 
 
-CUCode_CARD::CUCode_CARD(DSPHLE *dsp_hle)
-	: IUCode(dsp_hle)
+CUCode_CARD::CUCode_CARD(DSPHLE *dsp_hle, u32 crc)
+	: IUCode(dsp_hle, crc)
 {
 	DEBUG_LOG(DSPHLE, "CUCode_CARD - initialized");
 	m_rMailHandler.PushMail(DSP_INIT);

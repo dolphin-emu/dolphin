@@ -171,6 +171,18 @@ u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 
 
 static volatile u32 s_doStateRequested = false;
  
+void VideoBackendHardware::InitializeShared()
+{
+	VideoCommon_Init();
+
+	s_swapRequested = 0;
+	s_efbAccessRequested = 0;
+	s_FifoShuttingDown = 0;
+	memset((void*)&s_beginFieldArgs, 0, sizeof(s_beginFieldArgs));
+	memset(&s_accessEFBArgs, 0, sizeof(s_accessEFBArgs));
+	s_AccessEFBResult = 0;
+}
+
 static volatile struct
 {
 	unsigned char **ptr;
@@ -236,6 +248,11 @@ void VideoBackendHardware::Video_GatherPipeBursted()
 bool VideoBackendHardware::Video_IsPossibleWaitingSetDrawDone()
 {
 	return CommandProcessor::isPossibleWaitingSetDrawDone;
+}
+
+bool VideoBackendHardware::Video_IsHiWatermarkActive()
+{
+	return CommandProcessor::isHiWatermarkActive;
 }
 
 void VideoBackendHardware::Video_AbortFrame()

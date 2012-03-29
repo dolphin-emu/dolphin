@@ -41,7 +41,9 @@ VertexShaderCache::VSCache VertexShaderCache::vshaders;
 GLuint VertexShaderCache::CurrentShader;
 bool VertexShaderCache::ShaderEnabled;
 
-static VERTEXSHADER *pShaderLast = NULL;
+VertexShaderCache::VSCacheEntry* VertexShaderCache::last_entry = NULL;
+VERTEXSHADERUID VertexShaderCache::last_uid;
+
 static int s_nMaxVertexInstructions;
 
 
@@ -50,7 +52,7 @@ void VertexShaderCache::Init()
 	glEnable(GL_VERTEX_PROGRAM_ARB);
 	ShaderEnabled = true;
 	CurrentShader = 0;
-	memset(&last_vertex_shader_uid, 0xFF, sizeof(last_vertex_shader_uid));
+	last_entry = NULL;
 
 	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);		
 	if (strstr((const char*)glGetString(GL_VENDOR), "Humper") != NULL) s_nMaxVertexInstructions = 4096;
@@ -74,31 +76,34 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 {
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(&uid, components);
-	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
+	if (last_entry)
 	{
-		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-		return pShaderLast;
+		if (uid == last_uid)
+		{
+			GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
+			ValidateVertexShaderIDs(API_OPENGL, vshaders[uid].safe_uid, vshaders[uid].shader.strprog, components);
+			return &last_entry->shader;
+		}
 	}
-	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
+
+	last_uid = uid;
 
 	VSCache::iterator iter = vshaders.find(uid);
 	if (iter != vshaders.end())
 	{
-		iter->second.frameCount = frameCount;
 		VSCacheEntry &entry = iter->second;
-		if (&entry.shader != pShaderLast) {
-			pShaderLast = &entry.shader;
-		}
+		last_entry = &entry;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-		return pShaderLast;
+		ValidateVertexShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, components);
+		return &last_entry->shader;
 	}
 
 	// Make an entry in the table
 	VSCacheEntry& entry = vshaders[uid];
-	entry.frameCount = frameCount;
-	pShaderLast = &entry.shader;
+	last_entry = &entry;
 	const char *code = GenerateVertexShaderCode(components, API_OPENGL);
+	GetSafeVertexShaderId(&entry.safe_uid, components);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
@@ -118,7 +123,7 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 	INCSTAT(stats.numVertexShadersCreated);
 	SETSTAT(stats.numVertexShadersAlive, vshaders.size());
 	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-	return pShaderLast;
+	return &last_entry->shader;
 }
 
 bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
@@ -182,9 +187,8 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	cgDestroyProgram(tempprog);
 #endif
 
-#if defined(_DEBUG) || defined(DEBUGFAST) 
-	vs.strprog = pstrprogram;
-#endif
+	if (g_ActiveConfig.bEnableShaderDebugging)
+		vs.strprog = pstrprogram;
 
 	return true;
 }

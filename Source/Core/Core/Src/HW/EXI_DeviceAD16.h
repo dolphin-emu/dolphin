@@ -24,6 +24,7 @@ public:
 	CEXIAD16();
 	virtual void SetCS(int _iCS);
 	virtual bool IsPresent();
+	virtual void DoState(PointerWrap &p);
 
 private:
 	enum 

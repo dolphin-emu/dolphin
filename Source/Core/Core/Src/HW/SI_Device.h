@@ -57,7 +57,7 @@ public:
 	virtual void SendCommand(u32 _Cmd, u8 _Poll) = 0;
 };
 
-// SI Device IDs
+// SI Device IDs for emulator use
 enum TSIDevices
 {
 	SI_NONE				= SI_ERROR_NO_RESPONSE,
@@ -72,6 +72,22 @@ enum TSIDevices
 	SI_AM_BASEBOARD		= 0x10110800 // gets ORd with dipswitch state
 };
 
-extern ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber);
+// For configuration use, since some devices can have the same SI Device ID
+enum SIDevices
+{
+	SIDEVICE_NONE,
+	SIDEVICE_N64_MIC,
+	SIDEVICE_N64_KEYBOARD,
+	SIDEVICE_N64_MOUSE,
+	SIDEVICE_N64_CONTROLLER,
+	SIDEVICE_GC_GBA,
+	SIDEVICE_GC_CONTROLLER,
+	SIDEVICE_GC_KEYBOARD,
+	SIDEVICE_GC_STEERING,
+	SIDEVICE_GC_TARUKONGA,
+	SIDEVICE_AM_BASEBOARD
+};
+
+extern ISIDevice* SIDevice_Create(const SIDevices device, const int port_number);
 
 #endif

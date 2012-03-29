@@ -37,16 +37,28 @@ class CBannerLoaderWii
 
 		virtual bool GetName(std::string* _rName);
 
+		bool GetName(std::vector<std::wstring>&  _rNames);
+
 		virtual bool GetCompany(std::string& _rCompany);
 
 		virtual bool GetDescription(std::string* _rDescription);
 
+		bool GetDescription(std::wstring& _rDescription);
 
 	private:
 		
-		#define WII_BANNER_TEXTURE_SIZE (192 * 64 * 2)
-		#define WII_BANNER_ICON_SIZE    ( 48 * 48 * 2)
-		#define WII_BANNER_COMMENT_SIZE 32
+		enum
+		{
+			TEXTURE_SIZE = 192 * 64 * 2,
+			ICON_SIZE = 48 * 48 * 2,
+			COMMENT_SIZE = 32
+		};
+
+		enum CommentIndex
+		{
+			NAME_IDX,
+			DESC_IDX
+		};
 
 		struct SWiiBanner
 		{
@@ -56,9 +68,10 @@ class CBannerLoaderWii
 			u16 m_Speed;
 			u8  m_Unknown[22];
 
-			u16 m_Comment[2][WII_BANNER_COMMENT_SIZE]; 
-			u8  m_BannerTexture[WII_BANNER_TEXTURE_SIZE]; 
-			u8  m_IconTexture[8][WII_BANNER_ICON_SIZE]; 
+			// Not null terminated!
+			u16 m_Comment[2][COMMENT_SIZE];
+			u8  m_BannerTexture[TEXTURE_SIZE];
+			u8  m_IconTexture[8][ICON_SIZE];
 		} ;
 
 		u8* m_pBannerFile;
@@ -66,6 +79,9 @@ class CBannerLoaderWii
 		bool m_IsValid;
 
 		void decode5A3image(u32* dst, u16* src, int width, int height);
+
+		bool GetStringFromComments(const CommentIndex index, std::string& s);
+		bool GetStringFromComments(const CommentIndex index, std::wstring& s);
 };
 } // namespace
 

@@ -62,13 +62,13 @@
 #define BPMEM_COPYFILTER1      0x54
 #define BPMEM_CLEARBBOX1       0x55 
 #define BPMEM_CLEARBBOX2       0x56
-#define BPMEM_UNKOWN_57        0x57
+#define BPMEM_UNKNOWN_57       0x57
 #define BPMEM_REVBITS          0x58
 #define BPMEM_SCISSOROFFSET    0x59
-#define BPMEM_UNKNOWN_60       0x60
-#define BPMEM_UNKNOWN_61       0x61
-#define BPMEM_UNKNOWN_62       0x62
-#define BPMEM_TEXMODESYNC      0x63
+#define BPMEM_PRELOAD_ADDR     0x60
+#define BPMEM_PRELOAD_TMEMEVEN 0x61
+#define BPMEM_PRELOAD_TMEMODD  0x62
+#define BPMEM_PRELOAD_MODE     0x63
 #define BPMEM_LOADTLUT0        0x64
 #define BPMEM_LOADTLUT1        0x65
 #define BPMEM_TEXINVALIDATE    0x66
@@ -487,10 +487,10 @@ union TexImage1
 {
     struct 
     {
-        u32 tmem_offset : 15; // we ignore texture caching for now, we do it ourselves
-        u32 cache_width : 3; 
+        u32 tmem_even : 15; // tmem line index for even LODs
+        u32 cache_width : 3;
         u32 cache_height : 3;
-        u32 image_type : 1;
+        u32 image_type : 1; // 1 if this texture is managed manually (0 means we'll autofetch the texture data whenever it changes)
     };
     u32 hex;
 };
@@ -499,7 +499,7 @@ union TexImage2
 {
     struct 
     {
-        u32 tmem_offset : 15; // we ignore texture caching for now, we do it ourselves
+        u32 tmem_odd : 15; // tmem line index for odd LODs
         u32 cache_width : 3; 
         u32 cache_height : 3;
     };
@@ -893,6 +893,25 @@ union UPE_Copy
 	}
 };
 
+union BPU_PreloadTileInfo
+{
+	u32 hex;
+	struct {
+		u32 count : 15;
+		u32 type : 2;
+	};
+};
+
+struct BPS_TmemConfig
+{
+	u32 preload_addr;
+	u32 preload_tmem_even;
+	u32 preload_tmem_odd;
+	BPU_PreloadTileInfo preload_tile_info;
+	u32 tlut_src;
+	u32 tlut_dest;
+	u32 texinvalidate;
+};
 
 // All of BP memory
 
@@ -951,10 +970,8 @@ struct BPMemory
     u32 boundbox1;//56
     u32 unknown7[2];//57,58
     X10Y10 scissorOffset; //59
-    u32 unknown8[10]; //5a,5b,5c,5d, 5e,5f,60,61, 62,   63 (GXTexModeSync), 0x60-0x63 have to do with preloaded textures?
-    u32 tlutXferSrc; //64
-    u32 tlutXferDest; //65
-    u32 texinvalidate;//66
+    u32 unknown8[6]; //5a,5b,5c,5d, 5e,5f
+    BPS_TmemConfig tmem_config; // 60-66
     u32 metric; //67
     FieldMode fieldmode;//68
     u32 unknown10[7];//69-6F

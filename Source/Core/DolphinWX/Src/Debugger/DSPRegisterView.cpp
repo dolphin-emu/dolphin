@@ -27,10 +27,10 @@ wxString CDSPRegTable::GetValue(int row, int col)
 		{
 		case 0: return wxString::FromAscii(pdregname(row));
 		case 1: return wxString::Format(wxT("0x%04x"), DSPCore_ReadRegister(row));
-		default: return wxString::FromAscii("");
+		default: return wxEmptyString;
 		}
 	}
-	return wxString::FromAscii("");
+	return wxEmptyString;
 }
 
 void CDSPRegTable::SetValue(int, int, const wxString &)

@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxTextBuffer class
 // Created:     14.11.01
 // Author:      Morten Hanssen, Vadim Zeitlin
-// RCS-ID:      $Id: textbuf.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: textbuf.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 1998-2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@
 //   - Mac when compiling with CodeWarrior (__WXMAC__)
 
 const wxTextFileType wxTextBuffer::typeDefault =
-#if defined(__WINDOWS__) || defined(__DOS__) || defined(__PALMOS__)
+#if defined(__WINDOWS__) || defined(__DOS__)
   wxTextFileType_Dos;
 #elif defined(__UNIX__)
   wxTextFileType_Unix;

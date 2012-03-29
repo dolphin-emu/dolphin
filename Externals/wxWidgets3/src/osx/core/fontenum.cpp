@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: fontenum.cpp 61961 2009-09-18 16:16:12Z VZ $
+// RCS-ID:      $Id: fontenum.cpp 70712 2012-02-27 15:41:35Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,19 +65,6 @@ bool wxFontEnumerator::EnumerateFacenames(wxFontEncoding encoding,
         status = ATSFontFamilyIteratorNext( theFontFamilyIterator, &theATSFontFamilyRef );
         if(status == noErr)
         {
- #ifndef __LP64__
-            // TODO CS : Find replacement
-            // added CS : avoid showing fonts that won't be displayable
-            FMFontStyle intrinsicStyle = 0 ;
-            FMFont fontInstance ;
-            FMFontFamily fmFamily = FMGetFontFamilyFromATSFontFamilyRef( theATSFontFamilyRef );
-            status = FMGetFontFromFontFamilyInstance( fmFamily , 0 , &fontInstance , &intrinsicStyle);
-            if ( status != noErr )
-            {
-                status = noErr;
-                continue ;
-            }
-#endif
             if ( encoding != wxFONTENCODING_SYSTEM )
             {
                 TextEncoding fontFamiliyEncoding = ATSFontFamilyGetEncoding(theATSFontFamilyRef) ;

@@ -3,7 +3,7 @@
 // Purpose:     wxTextEntryBase implementation
 // Author:      Vadim Zeitlin
 // Created:     2007-09-26
-// RCS-ID:      $Id: textentrycmn.cpp 65552 2010-09-15 22:10:20Z VZ $
+// RCS-ID:      $Id: textentrycmn.cpp 67515 2011-04-16 17:27:34Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -31,6 +31,7 @@
 #endif //WX_PRECOMP
 
 #include "wx/textentry.h"
+#include "wx/textcompleter.h"
 #include "wx/clipbrd.h"
 
 // ----------------------------------------------------------------------------
@@ -366,6 +367,41 @@ bool wxTextEntryBase::SendTextUpdatedEvent(wxWindow *win)
 
     event.SetEventObject(win);
     return win->HandleWindowEvent(event);
+}
+
+// ----------------------------------------------------------------------------
+// auto-completion stubs
+// ----------------------------------------------------------------------------
+
+wxTextCompleter::~wxTextCompleter()
+{
+}
+
+bool wxTextCompleterSimple::Start(const wxString& prefix)
+{
+    m_index = 0;
+    m_completions.clear();
+    GetCompletions(prefix, m_completions);
+
+    return !m_completions.empty();
+}
+
+wxString wxTextCompleterSimple::GetNext()
+{
+    if ( m_index == m_completions.size() )
+        return wxString();
+
+    return m_completions[m_index++];
+}
+
+bool wxTextEntryBase::DoAutoCompleteCustom(wxTextCompleter *completer)
+{
+    // We don't do anything here but we still need to delete the completer for
+    // consistency with the ports that do implement this method and take
+    // ownership of the pointer.
+    delete completer;
+
+    return false;
 }
 
 #endif // wxUSE_TEXTCTRL || wxUSE_COMBOBOX

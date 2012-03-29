@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: printmac.cpp 65680 2010-09-30 11:44:45Z VZ $
+// RCS-ID:      $Id: printmac.cpp 70884 2012-03-12 17:47:18Z SC $
 // Copyright:   (c) Julian Smart, Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -61,27 +61,7 @@ static PMResolution *GetSupportedResolutions(PMPrinter printer, UInt32 *count)
 {
     PMResolution res, *resolutions = NULL;
     OSStatus status = PMPrinterGetPrinterResolutionCount(printer, count);
-    if (status == kPMNotImplemented)
-    {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-        resolutions = (PMResolution *)malloc(sizeof(PMResolution) * 4);
-        *count = 0;
-        if (PMPrinterGetPrinterResolution(printer, kPMMinRange, &res) == noErr)
-            resolutions[(*count)++] = res;
-        if (PMPrinterGetPrinterResolution(printer, kPMMinSquareResolution, &res) == noErr)
-            resolutions[(*count)++] = res;
-        if (PMPrinterGetPrinterResolution(printer, kPMMaxSquareResolution, &res) == noErr)
-            resolutions[(*count)++] = res;
-        if (PMPrinterGetPrinterResolution(printer, kPMMaxRange, &res) == noErr)
-            resolutions[(*count)++] = res;
-        if (*count == 0)
-        {
-            if (PMPrinterGetPrinterResolution(printer, kPMDefaultResolution, &res) == noErr)
-                resolutions[(*count)++] = res;
-        }
-#endif
-    }
-    else if (status == noErr)
+    if (status == noErr)
     {
         resolutions = (PMResolution *)malloc(sizeof(PMResolution) * (*count));
         UInt32 realCount = 0;
@@ -219,20 +199,8 @@ void wxOSXPrintData::TransferPaperInfoFrom( const wxPrintData &data )
                     wxString id, name(wxT("Custom paper"));
                     id.Printf(wxT("wxPaperCustom%dx%d"), papersize.x, papersize.y);
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-                    if ( PMPaperCreateCustom != NULL)
-                    {
-                        PMPaperCreateCustom(printer, wxCFStringRef( id, wxFont::GetDefaultEncoding() ), wxCFStringRef( name, wxFont::GetDefaultEncoding() ),
+                    PMPaperCreateCustom(printer, wxCFStringRef( id, wxFont::GetDefaultEncoding() ), wxCFStringRef( name, wxFont::GetDefaultEncoding() ),
                                             papersize.x, papersize.y, &margins, &paper);
-                    }
-#endif
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-                    if ( paper == kPMNoData )
-                    {
-                        PMPaperCreate(printer, wxCFStringRef( id, wxFont::GetDefaultEncoding() ), wxCFStringRef( name, wxFont::GetDefaultEncoding() ),
-                                      papersize.x, papersize.y, &margins, &paper);
-                    }
-#endif
                 }
                 if ( bestPaper != kPMNoData )
                 {
@@ -295,16 +263,7 @@ void wxOSXPrintData::TransferResolutionFrom( const wxPrintData &data )
             quality = wxPRINT_QUALITY_HIGH;
 
         PMResolution res = resolutions[((quality - wxPRINT_QUALITY_DRAFT) * (resCount - 1)) / 3];
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-        if ( PMPrinterSetOutputResolution != NULL )
-            PMPrinterSetOutputResolution(printer, m_macPrintSettings, &res);
-        else
-#endif
-        {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-            PMSetResolution( m_macPageFormat, &res);
-#endif
-        }
+        PMPrinterSetOutputResolution(printer, m_macPrintSettings, &res);
 
         free(resolutions);
     }
@@ -348,6 +307,8 @@ void wxOSXPrintData::TransferPrinterNameTo( wxPrintData &data )
 
 void wxOSXPrintData::TransferPaperInfoTo( wxPrintData &data )
 {
+    PMGetPageFormatPaper(m_macPageFormat, &m_macPaper);
+
     PMPrinter printer ;
     PMSessionGetCurrentPrinter( m_macPrintSession, &printer );
     OSStatus err = noErr ;
@@ -422,17 +383,9 @@ void wxOSXPrintData::TransferResolutionTo( wxPrintData &data )
     {
         bool valid = false;
         PMResolution res;
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-        if ( PMPrinterGetOutputResolution != NULL )
-        {
-            if ( PMPrinterGetOutputResolution(printer, m_macPrintSettings, &res) == noErr )
-                valid = true;
-        }
-#endif
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-        if (PMPrinterGetPrinterResolution(printer, kPMCurrentValue, &res) == noErr)
+        if ( PMPrinterGetOutputResolution(printer, m_macPrintSettings, &res) == noErr )
             valid = true;
-#endif
+
         if ( valid )
         {
             UInt32 i;
@@ -460,14 +413,14 @@ bool wxOSXPrintData::TransferTo( wxPrintData &data )
     return true ;
 }
 
-void wxOSXPrintData::TransferFrom( wxPageSetupData *WXUNUSED(data) )
+void wxOSXPrintData::TransferFrom( wxPageSetupDialogData *WXUNUSED(data) )
 {
     // should we setup the page rect here ?
     // since MacOS sometimes has two same paper rects with different
     // page rects we could make it roundtrip safe perhaps
 }
 
-void wxOSXPrintData::TransferTo( wxPageSetupData* data )
+void wxOSXPrintData::TransferTo( wxPageSetupDialogData* data )
 {
 #if wxOSX_USE_COCOA
     UpdateToPMState();
@@ -635,21 +588,15 @@ bool wxMacPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt)
 
     if (PMSessionGetCurrentPrinter(nativeData->GetPrintSession(), &printer) == noErr)
     {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-        if ( PMPrinterGetOutputResolution != NULL )
+        if (PMPrinterGetOutputResolution( printer, nativeData->GetPrintSettings(), &res) == -9589 /* kPMKeyNotFound */ )
         {
-            if (PMPrinterGetOutputResolution( printer, nativeData->GetPrintSettings(), &res) == -9589 /* kPMKeyNotFound */ )
-            {
-                res.hRes = res.vRes = 300;
-            }
+            res.hRes = res.vRes = 300;
         }
-        else
-#endif
-        {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-            PMPrinterGetPrinterResolution(printer, kPMCurrentValue, &res);
-#endif
-        }
+    }
+    else
+    {
+        // fallback
+        res.hRes = res.vRes = 300;
     }
     printout->SetPPIPrinter(int(res.hRes), int(res.vRes));
 

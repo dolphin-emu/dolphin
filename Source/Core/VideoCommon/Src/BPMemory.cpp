@@ -61,7 +61,7 @@ void BPReload()
 			// Cases in which we DON'T want to reload the BP
 			continue;
 		default:
-			BPCmd bp = {i, 0xFFFFFF, ((u32*)&bpmem)[i]};
+			BPCmd bp = {i, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[i])};
 			BPWritten(bp);
 		}
 	}

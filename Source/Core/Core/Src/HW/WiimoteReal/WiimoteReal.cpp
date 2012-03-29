@@ -142,24 +142,16 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 	rpt.second = (u8)size;
 	memcpy(rpt.first, (u8*)data, size);
 
-	// some hax, since we just send the last data report to Dolphin on each Update() call
-	// , make the wiimote only send updated data reports when data changes
-	// == less bt traffic, eliminates some unneeded packets
-	//if (WM_REPORT_MODE == ((u8*)data)[1])
-	//{
-	//	// also delete the last data report
-	//	if (m_last_data_report.first)
-	//	{
-	//		delete[] m_last_data_report.first;
-	//		m_last_data_report.first = NULL;
-	//	}
+	// Convert output DATA packets to SET_REPORT packets.
+	// Nintendo Wiimotes work without this translation, but 3rd
+	// party ones don't.
+ 	if (rpt.first[0] == 0xa2)
+	{
+		rpt.first[0] = WM_SET_REPORT | WM_BT_OUTPUT;
+ 	}
 
-	//	// nice var names :p, this seems to be this one
-	//	((wm_report_mode*)(rpt.first + 2))->all_the_time = false;
-	//	//((wm_report_mode*)(data + 2))->continuous = false;
-	//}
-
- 	if (rpt.first[0] == 0xa2 && rpt.first[1] == 0x18 && rpt.second == 23)
+	if (rpt.first[0] == (WM_SET_REPORT | WM_BT_OUTPUT) &&
+		rpt.first[1] == 0x18 && rpt.second == 23)
 	{
 		m_audio_reports.Push(rpt);
  		return;
@@ -519,5 +511,20 @@ void StateChange(EMUSTATE_CHANGE newState)
 
 	// TODO: disable/enable auto reporting, maybe
 }
+
+#define ARRAYSIZE(_arr) (sizeof(_arr)/(sizeof(_arr[0])))
+
+bool IsValidBluetoothName(const char* name) {
+	static const char* kValidWiiRemoteBluetoothNames[] = {
+		"Nintendo RVL-CNT-01",
+		"Nintendo RVL-CNT-01-TR",
+		"Nintendo RVL-WBC-01",
+	};
+	for (size_t i = 0; i < ARRAYSIZE(kValidWiiRemoteBluetoothNames); i++)
+		if (strcmp(name, kValidWiiRemoteBluetoothNames[i]) == 0)
+			return true;
+	return false;
+}
+
 
 }; // end of namespace

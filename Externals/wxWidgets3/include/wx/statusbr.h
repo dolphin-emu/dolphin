@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05.02.00
-// RCS-ID:      $Id: statusbr.h 66226 2010-11-22 01:22:36Z VZ $
+// RCS-ID:      $Id: statusbr.h 70808 2012-03-04 20:31:42Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -234,10 +234,7 @@ protected:
 #if defined(__WXUNIVERSAL__)
     #define wxStatusBarUniv wxStatusBar
     #include "wx/univ/statusbr.h"
-#elif defined(__WXPALMOS__)
-    #define wxStatusBarPalm wxStatusBar
-    #include "wx/palmos/statusbr.h"
-#elif defined(__WIN32__) && wxUSE_NATIVE_STATUSBAR
+#elif defined(__WXMSW__) && wxUSE_NATIVE_STATUSBAR
     #include "wx/msw/statusbar.h"
 #elif defined(__WXMAC__)
     #define wxStatusBarMac wxStatusBar

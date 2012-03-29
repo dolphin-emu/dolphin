@@ -116,7 +116,7 @@ CPanel::CPanel(
 			wxWindow *parent,
 			wxWindowID id
 			)
-	: wxPanel(parent, id)
+	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, 0) // disables wxTAB_TRAVERSAL because it was breaking hotkeys
 {
 }
 
@@ -410,6 +410,8 @@ CFrame::CFrame(wxFrame* parent,
 	g_TASInputDlg = new TASInputDlg(this);
 	Movie::SetInputManip(TASManipFunction);
 
+	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
+
 	// Setup perspectives
 	if (g_pCodeWindow)
 	{
@@ -498,19 +500,34 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-#ifdef _WIN32
+			// 32x32, 8bpp b/w image
+			// We want all transparent, so we can just use the same buffer for
+			// the "image" as for the transparency mask
+			static const char cursor_data[32 * 32] = { 0 };
+			
+#ifdef __WXGTK__
+			wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
+				cursor_data, wxWHITE, wxBLACK);
+#else
+			wxBitmap cursor_bitmap(cursor_data, 32, 32);
+			cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
+			wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
+#endif
+
+#ifdef __WXMSW__
 			::SetFocus((HWND)m_RenderParent->GetHandle());
 #else
 			m_RenderParent->SetFocus();
 #endif
+			
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
-				m_RenderParent->SetCursor(wxCURSOR_BLANK);
+				m_RenderParent->SetCursor(cursor_transparent);
 		}
 		else
 		{
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-				m_RenderParent->SetCursor(wxCURSOR_ARROW);
+				m_RenderParent->SetCursor(wxNullCursor);
 		}
 	}
 	event.Skip();
@@ -625,11 +642,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case IDM_UPDATETITLE:
 		if (m_RenderFrame != NULL)
 			m_RenderFrame->SetTitle(event.GetString());
-		break;
-
-	case WM_USER_CREATE:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
 
 	case IDM_WINDOWSIZEREQUEST:
@@ -856,6 +868,16 @@ int GetCmdForHotkey(unsigned int key)
 		return IDM_SAVESLOT8;
 
 	return -1;
+}
+
+void OnAfterLoadCallback()
+{
+	// warning: this gets called from the CPU thread, so we should only queue things to do on the proper thread
+	if(main_frame)
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+	}
 }
 
 void TASManipFunction(SPADStatus *PadStatus, int controllerID)

@@ -2,7 +2,7 @@
 // Name:        wx/gtk/calctrl.h
 // Purpose:     wxGtkCalendarCtrl control
 // Author:      Marcin Wojdyr
-// RCS-ID:      $Id: calctrl.h 58757 2009-02-08 11:45:59Z VZ $
+// RCS-ID:      $Id: calctrl.h 67987 2011-06-19 22:46:36Z VZ $
 // Copyright:   (C) 2008 Marcin Wojdyr
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,15 +38,31 @@ public:
     virtual bool SetDate(const wxDateTime& date);
     virtual wxDateTime GetDate() const;
 
+    virtual bool SetDateRange(const wxDateTime& lowerdate = wxDefaultDateTime,
+                              const wxDateTime& upperdate = wxDefaultDateTime);
+    virtual bool GetDateRange(wxDateTime *lowerdate, wxDateTime *upperdate) const;
+
     virtual bool EnableMonthChange(bool enable = true);
 
     virtual void Mark(size_t day, bool mark);
 
     // implementation
     // --------------
-    wxDateTime m_selectedDate;
+
+    void GTKGenerateEvent(wxEventType type);
 
 private:
+    bool IsInValidRange(const wxDateTime& dt) const;
+
+    // Range of the dates that can be selected by user, either or both may be
+    // invalid to indicate that no corresponding restriction is set.
+    wxDateTime m_validStart,
+               m_validEnd;
+
+    // Last known selected date, may be different from the real selection in
+    // the control while a handler for day-selected is running.
+    wxDateTime m_selectedDate;
+
     DECLARE_DYNAMIC_CLASS(wxGtkCalendarCtrl)
     wxDECLARE_NO_COPY_CLASS(wxGtkCalendarCtrl);
 };

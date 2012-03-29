@@ -3,7 +3,7 @@
 // Purpose:     Misc debug functions and macros
 // Author:      Vadim Zeitlin
 // Created:     29/01/98
-// RCS-ID:      $Id: debug.h 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: debug.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 1998-2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -11,7 +11,7 @@
 #ifndef _WX_DEBUG_H_
 #define _WX_DEBUG_H_
 
-#if !defined(__WXPALMOS5__) && !defined(__WXWINCE__)
+#if !defined(__WXWINCE__)
     #include  <assert.h>
 #endif // systems without assert.h
 
@@ -162,7 +162,7 @@ inline void wxDisableAsserts() { wxSetAssertHandler(NULL); }
 
 /*
     wxOnAssert() is used by the debugging macros defined below. Different
-    overloads are needed because these macros can be used with or without _T().
+    overloads are needed because these macros can be used with or without wxT().
 
     All of them are implemented in src/common/appcmn.cpp and unconditionally
     call wxTheAssertHandler so the caller must check that it is non-NULL
@@ -172,7 +172,7 @@ inline void wxDisableAsserts() { wxSetAssertHandler(NULL); }
 #if wxUSE_UNICODE
 
 // these overloads are the ones typically used by debugging macros: we have to
-// provide wxChar* msg version because it's common to use _T() in the macros
+// provide wxChar* msg version because it's common to use wxT() in the macros
 // and finally, we can't use const wx(char)* msg = NULL, because that would
 // be ambiguous
 //
@@ -299,6 +299,13 @@ extern void WXDLLIMPEXP_BASE wxOnAssert(const char *file,
     #define wxASSERT_LEVEL_2(cond)
 #endif
 
+// This is simply a wrapper for the standard abort() which is not available
+// under all platforms.
+//
+// It isn't really debug-related but there doesn't seem to be any better place
+// for it, so declare it here and define it in appbase.cpp, together with
+// wxTrap().
+extern void WXDLLIMPEXP_BASE wxAbort();
 
 /*
     wxCHECK macros always check their conditions, setting debug level to 0 only

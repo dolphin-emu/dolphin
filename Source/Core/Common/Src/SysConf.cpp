@@ -387,7 +387,7 @@ bool SysConf::SaveToFile(const char *filename)
 		}
 		else if (i->type == Type_SmallArray)
 		{
-			const u8 len = i->dataLength;
+			const u8 len = (u8)(i->dataLength);
 			f.WriteArray(&len, 1);
 		}
 

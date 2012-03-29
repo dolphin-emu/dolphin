@@ -3,7 +3,7 @@
 // Purpose:     wxSpinCtrl
 // Author:      Robert
 // Modified by:
-// RCS-ID:      $Id: spinctrl.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: spinctrl.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -152,12 +152,14 @@ double wxSpinCtrlGTKBase::DoGetValue() const
     g_signal_emit(m_widget, sig_id, 0, &value, &handled);
     if (!handled)
         value = g_strtod(gtk_entry_get_text(GTK_ENTRY(m_widget)), NULL);
-    const GtkAdjustment* adj =
+    GtkAdjustment* adj =
         gtk_spin_button_get_adjustment(GTK_SPIN_BUTTON(m_widget));
-    if (value < adj->lower)
-        value = adj->lower;
-    else if (value > adj->upper)
-        value = adj->upper;
+    const double lower = gtk_adjustment_get_lower(adj);
+    const double upper = gtk_adjustment_get_upper(adj);
+    if (value < lower)
+        value = lower;
+    else if (value > upper)
+        value = upper;
 
     return value;
 }
@@ -297,7 +299,7 @@ void wxSpinCtrlGTKBase::OnChar( wxKeyEvent &event )
             GtkWindow *window = GTK_WINDOW(top_frame->m_widget);
             if ( window )
             {
-                GtkWidget *widgetDef = window->default_widget;
+                GtkWidget* widgetDef = gtk_window_get_default_widget(window);
 
                 if ( widgetDef )
                 {

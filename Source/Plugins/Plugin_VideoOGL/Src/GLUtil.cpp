@@ -73,8 +73,9 @@ void OpenGL_SetWindowText(const char *text)
 #elif defined(__APPLE__)
 	[GLWin.cocoaWin setTitle: [NSString stringWithUTF8String: text]];
 #elif defined(_WIN32)
-	// TODO convert text to unicode and change SetWindowTextA to SetWindowText
-	SetWindowTextA(EmuWindow::GetWnd(), text);
+	TCHAR temp[512];
+	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs"), text);
+	EmuWindow::SetWindowText(temp);
 #elif defined(HAVE_X11) && HAVE_X11
 	// Tell X to ask the window manager to set the window title.
 	// (X itself doesn't provide window title functionality.)

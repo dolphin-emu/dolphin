@@ -2,7 +2,7 @@
 // Name:        src/gtk/dcclient.cpp
 // Purpose:     wxWindowDCImpl implementation
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcclient.cpp 65846 2010-10-18 23:43:20Z VZ $
+// RCS-ID:      $Id: dcclient.cpp 70824 2012-03-06 04:51:40Z PC $
 // Copyright:   (c) 1998 Robert Roebling, Chris Breeze
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -129,7 +129,11 @@ enum wxPoolGCType
    wxTEXT_SCREEN,
    wxBG_SCREEN,
    wxPEN_SCREEN,
-   wxBRUSH_SCREEN
+   wxBRUSH_SCREEN,
+   wxTEXT_COLOUR_ALPHA,
+   wxBG_COLOUR_ALPHA,
+   wxPEN_COLOUR_ALPHA,
+   wxBRUSH_COLOUR_ALPHA
 };
 
 struct wxGC
@@ -295,7 +299,7 @@ wxWindowDCImpl::wxWindowDCImpl( wxDC *owner, wxWindow *window ) :
         wxCHECK_RET(widget, "DC needs a widget");
 
         m_gdkwindow = widget->window;
-        if (GTK_WIDGET_NO_WINDOW(widget))
+        if (!gtk_widget_get_has_window(widget))
             SetDeviceLocalOrigin(widget->allocation.x, widget->allocation.y);
     }
 
@@ -374,6 +378,13 @@ void wxWindowDCImpl::SetUpDC( bool isMemDC )
             m_brushGC = wxGetPoolGC( m_gdkwindow, wxBRUSH_SCREEN );
             m_textGC = wxGetPoolGC( m_gdkwindow, wxTEXT_SCREEN );
             m_bgGC = wxGetPoolGC( m_gdkwindow, wxBG_SCREEN );
+        }
+        else if (m_cmap == gdk_screen_get_rgba_colormap(gdk_colormap_get_screen(m_cmap)))
+        {
+            m_penGC = wxGetPoolGC( m_gdkwindow, wxPEN_COLOUR_ALPHA );
+            m_brushGC = wxGetPoolGC( m_gdkwindow, wxBRUSH_COLOUR_ALPHA );
+            m_textGC = wxGetPoolGC( m_gdkwindow, wxTEXT_COLOUR_ALPHA );
+            m_bgGC = wxGetPoolGC( m_gdkwindow, wxBG_COLOUR_ALPHA );
         }
         else
         {
@@ -947,7 +958,7 @@ void wxWindowDCImpl::DoDrawEllipse( wxCoord x, wxCoord y, wxCoord width, wxCoord
 
             // If the pen is transparent pen we increase the size
             // for better compatibility with other platforms.
-            if ( m_pen.IsNonTransparent() )
+            if (m_pen.IsTransparent())
             {
                 ++ww;
                 ++hh;
@@ -1372,69 +1383,12 @@ void wxWindowDCImpl::DoDrawText(const wxString& text,
 
     gdk_pango_context_set_colormap( m_context, m_cmap );  // not needed in gtk+ >= 2.6
 
-    bool underlined = m_font.IsOk() && m_font.GetUnderlined();
-
     wxCharBuffer data = wxGTK_CONV(text);
     if ( !data )
         return;
-    size_t datalen = strlen(data);
 
-    // in Pango >= 1.16 the "underline of leading/trailing spaces" bug
-    // has been fixed and thus the hack implemented below should never be used
-    static bool pangoOk = !wx_pango_version_check(1, 16, 0);
-
-    bool needshack = underlined && !pangoOk;
-
-    if (needshack)
-    {
-        // a PangoLayout which has leading/trailing spaces with underlined font
-        // is not correctly drawn by this pango version: Pango won't underline the spaces.
-        // This can be a problem; e.g. wxHTML rendering of underlined text relies on
-        // this behaviour. To workaround this problem, we use a special hack here
-        // suggested by pango maintainer Behdad Esfahbod: we prepend and append two
-        // empty space characters and give them a dummy colour attribute.
-        // This will force Pango to underline the leading/trailing spaces, too.
-
-        wxCharBuffer data_tmp(datalen + 6);
-        // copy the leading U+200C ZERO WIDTH NON-JOINER encoded in UTF8 format
-        memcpy(data_tmp.data(), "\342\200\214", 3);
-        // copy the user string
-        memcpy(data_tmp.data() + 3, data, datalen);
-        // copy the trailing U+200C ZERO WIDTH NON-JOINER encoded in UTF8 format
-        memcpy(data_tmp.data() + 3 + datalen, "\342\200\214", 3);
-
-        data = data_tmp;
-        datalen += 6;
-    }
-
-    pango_layout_set_text(m_layout, data, datalen);
-
-    if (underlined)
-    {
-        PangoAttrList *attrs = pango_attr_list_new();
-        PangoAttribute *a = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
-        a->start_index = 0;
-        a->end_index = datalen;
-        pango_attr_list_insert(attrs, a);
-
-        if (needshack)
-        {
-            // dummy colour for the leading space
-            a = pango_attr_foreground_new (0x0057, 0x52A9, 0xD614);
-            a->start_index = 0;
-            a->end_index = 1;
-            pango_attr_list_insert(attrs, a);
-
-            // dummy colour for the trailing space
-            a = pango_attr_foreground_new (0x0057, 0x52A9, 0xD614);
-            a->start_index = datalen - 1;
-            a->end_index = datalen;
-            pango_attr_list_insert(attrs, a);
-        }
-
-        pango_layout_set_attributes(m_layout, attrs);
-        pango_attr_list_unref(attrs);
-    }
+    pango_layout_set_text(m_layout, data, data.length());
+    const bool setAttrs = m_font.GTKSetPangoAttrs(m_layout);
 
     int oldSize = 0;
     const bool isScaled = fabs(m_scaleY - 1.0) > 0.00001;
@@ -1473,7 +1427,7 @@ void wxWindowDCImpl::DoDrawText(const wxString& text,
          // actually apply unscaled font
          pango_layout_set_font_description( m_layout, m_fontdesc );
     }
-    if (underlined)
+    if (setAttrs)
     {
         // undo underline attributes setting:
         pango_layout_set_attributes(m_layout, NULL);
@@ -1492,23 +1446,14 @@ void wxWindowDCImpl::DoDrawRotatedText( const wxString &text, wxCoord x, wxCoord
 
     wxCHECK_RET( IsOk(), wxT("invalid window dc") );
 
-#if __WXGTK26__
+#ifdef __WXGTK26__
     if (!gtk_check_version(2,6,0))
     {
         x = XLOG2DEV(x);
         y = YLOG2DEV(y);
 
         pango_layout_set_text(m_layout, wxGTK_CONV(text), -1);
-
-        if (m_font.GetUnderlined())
-        {
-            PangoAttrList *attrs = pango_attr_list_new();
-            PangoAttribute *a = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
-            pango_attr_list_insert(attrs, a);
-            pango_layout_set_attributes(m_layout, attrs);
-            pango_attr_list_unref(attrs);
-        }
-
+        const bool setAttrs = m_font.GTKSetPangoAttrs(m_layout);
         int oldSize = 0;
         const bool isScaled = fabs(m_scaleY - 1.0) > 0.00001;
         if (isScaled)
@@ -1561,7 +1506,7 @@ void wxWindowDCImpl::DoDrawRotatedText( const wxString &text, wxCoord x, wxCoord
         gdk_draw_layout_with_colors(m_gdkwindow, m_textGC, x+minX, y+minY,
                                     m_layout, NULL, bg_col);
 
-        if (m_font.GetUnderlined())
+        if (setAttrs)
             pango_layout_set_attributes(m_layout, NULL);
 
         // clean up the transformation matrix
@@ -2303,7 +2248,6 @@ int wxWindowDCImpl::GetDepth() const
 {
     return gdk_drawable_get_depth(m_gdkwindow);
 }
-
 
 //-----------------------------------------------------------------------------
 // wxClientDCImpl

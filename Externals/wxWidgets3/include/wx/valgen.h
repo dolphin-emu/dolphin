@@ -3,7 +3,7 @@
 // Purpose:     wxGenericValidator class
 // Author:      Kevin Smith
 // Created:     Jan 22 1999
-// RCS-ID:      $Id: valgen.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: valgen.h 68217 2011-07-09 23:37:28Z VZ $
 // Copyright:   (c) 1999 Julian Smart (assigned from Kevin)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,6 +16,7 @@
 #if wxUSE_VALIDATORS
 
 class WXDLLIMPEXP_FWD_BASE wxDateTime;
+class WXDLLIMPEXP_FWD_BASE wxFileName;
 
 // ----------------------------------------------------------------------------
 // wxGenericValidator performs data transfer between many standard controls and
@@ -42,6 +43,13 @@ public:
         // wxDatePickerCtrl
     wxGenericValidator(wxDateTime* val);
 #endif // wxUSE_DATETIME
+        // wxTextCtrl
+    wxGenericValidator(wxFileName* val);
+        // wxTextCtrl
+    wxGenericValidator(float* val);
+        // wxTextCtrl
+    wxGenericValidator(double* val);
+
     wxGenericValidator(const wxGenericValidator& copyFrom);
 
     virtual ~wxGenericValidator(){}
@@ -73,6 +81,9 @@ protected:
 #if wxUSE_DATETIME
     wxDateTime* m_pDateTime;
 #endif // wxUSE_DATETIME
+    wxFileName* m_pFileName;
+    float*      m_pFloat;
+    double*     m_pDouble;
 
 private:
     DECLARE_CLASS(wxGenericValidator)

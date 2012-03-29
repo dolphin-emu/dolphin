@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Vadim Zeitlin, Francesco Montorsi
-// RCS-ID:      $Id: pickerbase.h 52834 2008-03-26 15:06:00Z FM $
+// RCS-ID:      $Id: pickerbase.h 68921 2011-08-27 14:11:25Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -31,13 +31,14 @@ extern WXDLLIMPEXP_DATA_CORE(const char) wxButtonNameStr[];
 // ----------------------------------------------------------------------------
 
 #define wxPB_USE_TEXTCTRL           0x0002
+#define wxPB_SMALL                  0x8000
 
-class WXDLLIMPEXP_CORE wxPickerBase : public wxControl
+class WXDLLIMPEXP_CORE wxPickerBase : public wxNavigationEnabled<wxControl>
 {
 public:
     // ctor: text is the associated text control
     wxPickerBase() : m_text(NULL), m_picker(NULL), m_sizer(NULL)
-        { WX_INIT_CONTROL_CONTAINER(); }
+        { }
     virtual ~wxPickerBase() {}
 
 
@@ -121,8 +122,6 @@ protected:
     void OnTextCtrlUpdate(wxCommandEvent &);
     void OnTextCtrlKillFocus(wxFocusEvent &);
 
-    void OnSize(wxSizeEvent &);
-
     // returns the set of styles for the attached wxTextCtrl
     // from given wxPickerBase's styles
     virtual long GetTextCtrlStyle(long style) const
@@ -178,10 +177,6 @@ protected:
 
 private:
     DECLARE_ABSTRACT_CLASS(wxPickerBase)
-    DECLARE_EVENT_TABLE()
-
-    // This class must be something just like a panel...
-    WX_DECLARE_CONTROL_CONTAINER();
 };
 
 

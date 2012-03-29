@@ -1,3 +1,16 @@
+// Copyright (C) 2003 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
 
 #include "GeckoCodeDiag.h"
 
@@ -65,7 +78,7 @@ void CodeConfigPanel::UpdateCodeList()
 		gcodes_end = m_gcodes.end();
 	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
 	{
-		m_listbox_gcodes->Append(wxString::FromAscii(gcodes_iter->name.c_str()));
+		m_listbox_gcodes->Append(wxString(gcodes_iter->name.c_str(), *wxConvCurrent));
 		if (gcodes_iter->enabled)
 			m_listbox_gcodes->Check(m_listbox_gcodes->GetCount()-1, true);
 	}
@@ -98,7 +111,7 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 
 	if (sel > -1)
 	{
-		m_infobox.label_name->SetLabel(wxGetTranslation(wxstr_name) + wxString::FromAscii(m_gcodes[sel].name.c_str()));
+		m_infobox.label_name->SetLabel(wxGetTranslation(wxstr_name) + wxString(m_gcodes[sel].name.c_str(),  *wxConvCurrent));
 
 		// notes textctrl
 		m_infobox.textctrl_notes->Clear();
@@ -106,10 +119,10 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 			notes_iter = m_gcodes[sel].notes.begin(),
 			notes_end = m_gcodes[sel].notes.end();
 		for (; notes_iter!=notes_end; ++notes_iter)
-			m_infobox.textctrl_notes->AppendText(wxString::FromAscii(notes_iter->c_str()));
+			m_infobox.textctrl_notes->AppendText(wxString(notes_iter->c_str(),  *wxConvCurrent));
 		m_infobox.textctrl_notes->ScrollLines(-99);	// silly
 
-		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator) + wxString::FromAscii(m_gcodes[sel].creator.c_str()));
+		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator) + wxString(m_gcodes[sel].creator.c_str(),  *wxConvCurrent));
 
 		// add codes to info listbox
 		std::vector<GeckoCode::Code>::const_iterator
@@ -138,9 +151,18 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 
 	std::string gameid = m_gameid;
 
-	// WiiWare are identified by their first four characters
-	if (m_gameid[0] == 'W')
+	
+	switch (m_gameid[0])
+	{
+	case 'R':
+	case 'S':
+	case 'G':
+		break;
+	default:
+	// All channels (WiiWare, VirtualConsole, etc) are identified by their first four characters
 		gameid = m_gameid.substr(0, 4);
+		break;
+	}
 
 	sf::Http::Request req;
 	req.SetURI("/txt.php?txt=" + gameid);

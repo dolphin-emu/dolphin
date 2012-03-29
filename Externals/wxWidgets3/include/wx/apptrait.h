@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.06.2003
-// RCS-ID:      $Id: apptrait.h 61488 2009-07-21 14:16:44Z VZ $
+// RCS-ID:      $Id: apptrait.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,9 +177,7 @@ private:
 // NB:  test for __UNIX__ before __WXMAC__ as under Darwin we want to use the
 //      Unix code (and otherwise __UNIX__ wouldn't be defined)
 // ABX: check __WIN32__ instead of __WXMSW__ for the same MSWBase in any Win32 port
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/apptbase.h"
-#elif defined(__WIN32__)
+#if defined(__WIN32__)
     #include "wx/msw/apptbase.h"
 #elif defined(__UNIX__) && !defined(__EMX__)
     #include "wx/unix/apptbase.h"
@@ -274,9 +272,7 @@ public:
 // ----------------------------------------------------------------------------
 
 // ABX: check __WIN32__ instead of __WXMSW__ for the same MSWBase in any Win32 port
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/apptrait.h"
-#elif defined(__WIN32__)
+#if defined(__WIN32__)
     #include "wx/msw/apptrait.h"
 #elif defined(__OS2__)
     #include "wx/os2/apptrait.h"

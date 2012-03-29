@@ -246,10 +246,8 @@ void Init()
 		g_Channel[i].m_InHi.Hex = 0;
 		g_Channel[i].m_InLo.Hex = 0;
 
-		if (Movie::IsUsingPad(i))
-			AddDevice(SI_GC_CONTROLLER, i);
-		else if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-			AddDevice(SI_NONE, i);
+		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+			AddDevice(Movie::IsUsingPad(i) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
 		else
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
 	}
@@ -538,7 +536,7 @@ void RemoveDevice(int _iDeviceNumber)
 	g_Channel[_iDeviceNumber].m_pDevice = NULL;
 }
 
-void AddDevice(const TSIDevices _device, int _iDeviceNumber)
+void AddDevice(const SIDevices _device, int _iDeviceNumber)
 {
 	//_dbg_assert_(SERIALINTERFACE, _iDeviceNumber < NUMBER_OF_CHANNELS);
 
@@ -572,14 +570,14 @@ void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 
 	SetNoResponse(channel);
 
-	AddDevice((TSIDevices)(u32)userdata, channel);
+	AddDevice((SIDevices)(u32)userdata, channel);
 }
 
-void ChangeDevice(TSIDevices device, int channel)
+void ChangeDevice(SIDevices device, int channel)
 {
 	// Called from GUI, so we need to make it thread safe.
 	// Let the hardware see no device for .5b cycles
-	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SI_NONE);
+	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
 	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | device);
 }
 

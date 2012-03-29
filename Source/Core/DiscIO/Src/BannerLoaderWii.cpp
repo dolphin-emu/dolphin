@@ -144,24 +144,57 @@ bool CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 	return true;
 }
 
-bool CBannerLoaderWii::GetName(std::string* _rName)
+bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::string& s)
+{
+	bool ret = false;
+
+	if (IsValid())
+	{
+		// find Banner type
+		SWiiBanner *pBanner = (SWiiBanner*)m_pBannerFile;
+
+		// Ensure the string is null-terminating, since the banner format
+		// doesn't require it
+		u16 *src = new u16[COMMENT_SIZE + 1];
+		memcpy(src, &pBanner->m_Comment[index], COMMENT_SIZE * sizeof(u16));
+		src[COMMENT_SIZE] = 0;
+
+		ret = CopyBeUnicodeToString(s, src, COMMENT_SIZE + 1);
+
+		delete [] src;
+	}
+
+	return ret;
+}
+
+bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::wstring& s)
 {
 	if (IsValid())
 	{
 		// find Banner type
 		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
 
-		std::string name;
-		if (CopyBeUnicodeToString(name, pBanner->m_Comment[0], WII_BANNER_COMMENT_SIZE))
-		{
-			for (int i = 0; i < 6; i++)
-			{
-				_rName[i] = name;
-			}
-			return true;
-		}	
+		std::wstring description;
+		for (int i = 0; i < COMMENT_SIZE; ++i)
+			description.push_back(Common::swap16(pBanner->m_Comment[index][i]));
+
+		s = description;
+		return true;
 	}
 	return false;
+}
+
+bool CBannerLoaderWii::GetName(std::string* _rName)
+{
+	return GetStringFromComments(NAME_IDX, *_rName);
+}
+
+bool CBannerLoaderWii::GetName(std::vector<std::wstring>&  _rNames)
+{
+	std::wstring temp;
+	bool ret = GetStringFromComments(NAME_IDX, temp);
+	_rNames.push_back(temp);
+	return ret;
 }
 
 bool CBannerLoaderWii::GetCompany(std::string& _rCompany)
@@ -172,22 +205,12 @@ bool CBannerLoaderWii::GetCompany(std::string& _rCompany)
 
 bool CBannerLoaderWii::GetDescription(std::string* _rDescription)
 {
-	if (IsValid())
-	{
-		// find Banner type
-		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
+	return GetStringFromComments(DESC_IDX, *_rDescription);
+}
 
-		std::string description;
-		if (CopyBeUnicodeToString(description, pBanner->m_Comment[1], WII_BANNER_COMMENT_SIZE))
-		{
-			for (int i = 0; i< 6; i++)
-			{
-				_rDescription[i] = description;
-			}
-			return true;
-		}
-	}
-	return false;
+bool CBannerLoaderWii::GetDescription(std::wstring& _rDescription)
+{
+	return GetStringFromComments(DESC_IDX, _rDescription);
 }
 
 void CBannerLoaderWii::decode5A3image(u32* dst, u16* src, int width, int height)

@@ -147,7 +147,13 @@ public:
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 
+	void GenerateConstantOverflow(bool overflow);
+	void GenerateOverflow();
+	void FinalizeCarryOverflow(bool oe, bool inv = false);
+	void GetCarryEAXAndClear();
+	void FinalizeCarryGenerateOverflowEAX(bool oe, bool inv = false);
 	void GenerateCarry();
+	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);
 
 	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
@@ -173,6 +179,7 @@ public:
 	void mulhwux(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
 	void divwux(UGeckoInstruction inst);
+	void divwx(UGeckoInstruction inst);
 	void srawix(UGeckoInstruction inst);
 	void srawx(UGeckoInstruction inst);
 	void addex(UGeckoInstruction inst);

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99
-// RCS-ID:      $Id: font.h 67052 2011-02-27 12:47:05Z VZ $
+// RCS-ID:      $Id: font.h 70446 2012-01-23 11:28:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -227,6 +227,7 @@ public:
     virtual wxFontStyle GetStyle() const = 0;
     virtual wxFontWeight GetWeight() const = 0;
     virtual bool GetUnderlined() const = 0;
+    virtual bool GetStrikethrough() const { return false; }
     virtual wxString GetFaceName() const = 0;
     virtual wxFontEncoding GetEncoding() const = 0;
     virtual const wxNativeFontInfo *GetNativeFontInfo() const = 0;
@@ -244,6 +245,7 @@ public:
     virtual void SetWeight( wxFontWeight weight ) = 0;
 
     virtual void SetUnderlined( bool underlined ) = 0;
+    virtual void SetStrikethrough( bool WXUNUSED(strikethrough) ) {}
     virtual void SetEncoding(wxFontEncoding encoding) = 0;
     virtual bool SetFaceName( const wxString& faceName );
     void SetNativeFontInfo(const wxNativeFontInfo& info)
@@ -277,7 +279,7 @@ public:
     static void SetDefaultEncoding(wxFontEncoding encoding);
 
     // this doesn't do anything and is kept for compatibility only
-#ifdef WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_2_8
     wxDEPRECATED_INLINE(void SetNoAntiAliasing(bool no = true), wxUnusedVar(no););
     wxDEPRECATED_INLINE(bool GetNoAntiAliasing() const, return false;)
 #endif // WXWIN_COMPATIBILITY_2_8
@@ -289,6 +291,33 @@ protected:
     // The function called by public GetFamily(): it can return
     // wxFONTFAMILY_UNKNOWN unlike the public method (see comment there).
     virtual wxFontFamily DoGetFamily() const = 0;
+
+
+    // Helper functions to recover wxFONTSTYLE/wxFONTWEIGHT and underlined flg
+    // values from flags containing a combination of wxFONTFLAG_XXX.
+    static wxFontStyle GetStyleFromFlags(int flags)
+    {
+        return flags & wxFONTFLAG_ITALIC
+                        ? wxFONTSTYLE_ITALIC
+                        : flags & wxFONTFLAG_SLANT
+                            ? wxFONTSTYLE_SLANT
+                            : wxFONTSTYLE_NORMAL;
+    }
+
+    static wxFontWeight GetWeightFromFlags(int flags)
+    {
+        return flags & wxFONTFLAG_LIGHT
+                        ? wxFONTWEIGHT_LIGHT
+                        : flags & wxFONTFLAG_BOLD
+                            ? wxFONTWEIGHT_BOLD
+                            : wxFONTWEIGHT_NORMAL;
+    }
+
+    static bool GetUnderlinedFromFlags(int flags)
+    {
+        return (flags & wxFONTFLAG_UNDERLINED) != 0;
+    }
+
 
 private:
     // the currently default encoding: by default, it's the default system
@@ -329,6 +358,7 @@ WXDLLIMPEXP_CORE bool wxFromString(const wxString& str, wxFontBase* font);
     wxFont& MakeBold(); \
     wxFont& MakeItalic(); \
     wxFont& MakeUnderlined(); \
+    wxFont& MakeStrikethrough(); \
     wxFont& MakeLarger() { return Scale(1.2f); } \
     wxFont& MakeSmaller() { return Scale(1/1.2f); } \
     wxFont& Scale(float x); \
@@ -336,14 +366,13 @@ WXDLLIMPEXP_CORE bool wxFromString(const wxString& str, wxFontBase* font);
     wxFont Bold() const; \
     wxFont Italic() const; \
     wxFont Underlined() const; \
+    wxFont Strikethrough() const; \
     wxFont Larger() const { return Scaled(1.2f); } \
     wxFont Smaller() const { return Scaled(1/1.2f); } \
     wxFont Scaled(float x) const
 
 // include the real class declaration
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/font.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
     #include "wx/msw/font.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/font.h"
@@ -353,8 +382,6 @@ WXDLLIMPEXP_CORE bool wxFromString(const wxString& str, wxFontBase* font);
     #include "wx/gtk1/font.h"
 #elif defined(__WXX11__)
     #include "wx/x11/font.h"
-#elif defined(__WXMGL__)
-    #include "wx/mgl/font.h"
 #elif defined(__WXDFB__)
     #include "wx/dfb/font.h"
 #elif defined(__WXMAC__)

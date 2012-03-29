@@ -24,6 +24,13 @@
 
 #include <string>
 
+#include "ChunkFile.h"
+
+namespace WiimoteEmu
+{
+struct ReportFeatures;
+}
+
 // Per-(video )Movie actions
 
 namespace Movie {
@@ -62,7 +69,10 @@ extern ControllerState *g_padStates;
 extern char g_playingFile[256];
 extern std::string g_recordFile;
 
-extern u64 g_frameCounter, g_lagCounter, g_InputCounter;
+extern u64 g_currentByte, g_totalBytes;
+extern u64 g_currentFrame, g_totalFrames;
+extern u64 g_currentLagCount, g_totalLagCount;
+extern u64 g_currentInputCount, g_totalInputCount;
 
 extern u32 g_rerecords;
 
@@ -77,9 +87,9 @@ struct DTMHeader {
 
     bool bFromSaveState;	// false indicates that the recording started from bootup, true for savestate
     u64 frameCount;			// Number of frames in the recording
-	u64 InputCount;			// Number of input frames in recording
+	u64 inputCount;			// Number of input frames in recording
     u64 lagCount;			// Number of lag frames in the recording
-    u64 uniqueID;			// A Unique ID comprised of: md5(time + Game ID)
+    u64 uniqueID;			// (not implemented) A Unique ID comprised of: md5(time + Game ID)
     u32 numRerecords;		// Number of rerecords/'cuts' of this TAS
     u8  author[32];			// Author's name (encoded in UTF-8)
     
@@ -87,31 +97,32 @@ struct DTMHeader {
     u8  audioEmulator[16];	// UTF-8 representation of the audio emulator
     u8  padBackend[16];		// UTF-8 representation of the input backend
 
-	// only used in read-only savestates
-	u64 frameStart;         // Offset to resume playback on
-	u64 totalFrameCount;    // Total frames, same as normal dtm's frameCount
+	u64 recordingStartTime; // seconds since 1970 that recording started (used for RTC)
 
-    u8  reserved[111];		// Make heading 256 bytes, just because we can
+    u8  reserved[119];		// Make heading 256 bytes, just because we can
 };
 #pragma pack(pop)
 
 void FrameUpdate();
 void InputUpdate();
+void Init();
 
 void SetPolledDevice();
 
 bool IsAutoFiring();
 bool IsRecordingInput();
 bool IsRecordingInputFromSaveState();
+bool IsJustStartingRecordingInputFromSaveState();
 bool IsPlayingInput();
 bool IsReadOnly();
+u64 GetRecordingStartTime();
 
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
 void ChangePads(bool instantly = false);
 void ChangeWiiPads(bool instantly = false);
 
-void SetFrameStepping(bool bEnabled);
+void DoFrameStep();
 void SetFrameStopping(bool bEnabled);
 void SetReadOnly(bool bEnabled);
 
@@ -120,14 +131,15 @@ void FrameSkipping();
 
 bool BeginRecordingInput(int controllers);
 void RecordInput(SPADStatus *PadStatus, int controllerID);
-void RecordWiimote(int wiimote, u8* data, s8 size);
+void RecordWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 
 bool PlayInput(const char *filename);
 void LoadInput(const char *filename);
 void PlayController(SPADStatus *PadStatus, int controllerID);
-bool PlayWiimote(int wiimote, u8* data, s8 &size);
+bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 void EndPlayInput(bool cont);
 void SaveRecording(const char *filename);
+void DoState(PointerWrap &p, bool doNot=false);
 
 std::string GetInputDisplay();
 

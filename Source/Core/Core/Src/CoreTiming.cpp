@@ -133,6 +133,7 @@ void Init()
 
 void Shutdown()
 {
+	MoveEvents();
 	ClearPendingEvents();
 	UnregisterAllEvents();
 
@@ -163,6 +164,7 @@ void DoState(PointerWrap &p)
 	p.Do(fakeDecStartTicks);
 	p.Do(fakeTBStartValue);
 	p.Do(fakeTBStartTicks);
+	p.DoMarker("CoreTimingData");
 	// OK, here we're gonna need to specialize depending on the mode.
 	// Should do something generic to serialize linked lists.
 	switch (p.GetMode()) {
@@ -209,6 +211,7 @@ void DoState(PointerWrap &p)
 		break;
 		}
 	}
+	p.DoMarker("CoreTimingEvents");
 }
 
 u64 GetTicks()

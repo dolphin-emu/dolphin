@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>ciso</string>
+				<string>dol</string>
+				<string>elf</string>
+				<string>gcm</string>
+				<string>gcz</string>
+				<string>iso</string>
+				<string>wad</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>Dolphin.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Nintendo GC/Wii file</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+		</dict>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>Dolphin</string>
+	<key>CFBundleIconFile</key>
+	<string>Dolphin.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.dolphin-emulator.dolphin</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>ar</string>
+		<string>el</string>
+		<string>en</string>
+		<string>es</string>
+		<string>fr</string>
+		<string>hu</string>
+		<string>pt</string>
+		<string>pt_BR</string>
+		<string>tr</string>
+	</array>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>${DOLPHIN_WC_DESCRIBE}</string>
+	<key>CFBundleLongVersionString</key>
+	<string>${DOLPHIN_WC_REVISION}</string>
+	<key>CFBundleVersion</key>
+	<string>${DOLPHIN_VERSION_MAJOR}.${DOLPHIN_VERSION_MINOR}</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Licensed under GPL version 2</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>${OSX_MIN_VERSION}</string>
+	<key>LSRequiresCarbon</key>
+	<true/>
+	<key>CSResourcesFileMapped</key>
+	<true/>
+</dict>
+</plist>

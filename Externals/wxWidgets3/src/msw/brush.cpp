@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: brush.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: brush.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -277,28 +277,28 @@ wxGDIRefData *wxBrush::CloneGDIRefData(const wxGDIRefData *data) const
 
 wxColour wxBrush::GetColour() const
 {
-    wxCHECK_MSG( Ok(), wxNullColour, wxT("invalid brush") );
+    wxCHECK_MSG( IsOk(), wxNullColour, wxT("invalid brush") );
 
     return M_BRUSHDATA->GetColour();
 }
 
 wxBrushStyle wxBrush::GetStyle() const
 {
-    wxCHECK_MSG( Ok(), wxBRUSHSTYLE_INVALID, wxT("invalid brush") );
+    wxCHECK_MSG( IsOk(), wxBRUSHSTYLE_INVALID, wxT("invalid brush") );
 
     return M_BRUSHDATA->GetStyle();
 }
 
 wxBitmap *wxBrush::GetStipple() const
 {
-    wxCHECK_MSG( Ok(), NULL, wxT("invalid brush") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid brush") );
 
     return M_BRUSHDATA->GetStipple();
 }
 
 WXHANDLE wxBrush::GetResourceHandle() const
 {
-    wxCHECK_MSG( Ok(), FALSE, wxT("invalid brush") );
+    wxCHECK_MSG( IsOk(), FALSE, wxT("invalid brush") );
 
     return (WXHANDLE)M_BRUSHDATA->GetHBRUSH();
 }

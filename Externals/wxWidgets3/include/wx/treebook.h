@@ -4,7 +4,7 @@
 // Author:      Evgeniy Tarassov, Vadim Zeitlin
 // Modified by:
 // Created:     2005-09-15
-// RCS-ID:      $Id: treebook.h 65931 2010-10-27 16:54:36Z VZ $
+// RCS-ID:      $Id: treebook.h 68810 2011-08-21 14:08:49Z VZ $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,27 +74,27 @@ public:
                             wxWindow *page,
                             const wxString& text,
                             bool bSelect = false,
-                            int imageId = wxNOT_FOUND);
+                            int imageId = NO_IMAGE);
 
     // Inserts a new sub-page to the end of children of the page at given pos.
     virtual bool InsertSubPage(size_t pos,
                                wxWindow *page,
                                const wxString& text,
                                bool bSelect = false,
-                               int imageId = wxNOT_FOUND);
+                               int imageId = NO_IMAGE);
 
     // Adds a new page at top level after all other pages.
     virtual bool AddPage(wxWindow *page,
                          const wxString& text,
                          bool bSelect = false,
-                         int imageId = wxNOT_FOUND);
+                         int imageId = NO_IMAGE);
 
     // Adds a new child-page to the last top-level page inserted.
     // Useful when constructing 1 level tree structure.
     virtual bool AddSubPage(wxWindow *page,
                             const wxString& text,
                             bool bSelect = false,
-                            int imageId = wxNOT_FOUND);
+                            int imageId = NO_IMAGE);
 
     // Deletes the page and ALL its children. Could trigger page selection
     // change in a case when selected page is removed. In that case its parent
@@ -169,16 +169,16 @@ private:
                       wxWindow *page,
                       const wxString& text,
                       bool bSelect = false,
-                      int imageId = wxNOT_FOUND);
+                      int imageId = NO_IMAGE);
     bool DoInsertSubPage(size_t pos,
                          wxWindow *page,
                          const wxString& text,
                          bool bSelect = false,
-                         int imageId = wxNOT_FOUND);
+                         int imageId = NO_IMAGE);
     bool DoAddSubPage(wxWindow *page,
                          const wxString& text,
                          bool bSelect = false,
-                         int imageId = wxNOT_FOUND);
+                         int imageId = NO_IMAGE);
 
     // Sets selection in the tree control and updates the page being shown.
     int DoSetSelection(size_t pos, int flags = 0);

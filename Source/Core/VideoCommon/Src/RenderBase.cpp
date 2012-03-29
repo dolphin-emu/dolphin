@@ -44,6 +44,7 @@
 #include "XFMemory.h"
 #include "FifoPlayer/FifoRecorder.h"
 #include "AVIDump.h"
+#include "VertexShaderManager.h"
 
 #include <cmath>
 #include <string>
@@ -194,6 +195,7 @@ bool Renderer::CalculateTargetSize(int multiplier)
 	{
 		s_target_width  = newEFBWidth;
 		s_target_height = newEFBHeight;
+		VertexShaderManager::SetViewportChanged();
 		return true;
 	}
 	return false;

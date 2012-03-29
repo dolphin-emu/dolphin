@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     07.07.2006 (based on wxToolkitInfo)
-// RCS-ID:      $Id: platinfo.cpp 64940 2010-07-13 13:29:13Z VZ $
+// RCS-ID:      $Id: platinfo.cpp 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) 2006 Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,9 +67,6 @@ static const wxChar* const wxOperatingSystemIdNames[] =
 
     wxT("DOS"),
     wxT("OS/2"),
-
-    wxT("PalmOS"),
-    wxT("PalmOS(Over Linux)"),
 };
 
 static const wxChar* const wxPortIdNames[] =
@@ -78,14 +75,12 @@ static const wxChar* const wxPortIdNames[] =
     wxT("wxMSW"),
     wxT("wxMotif"),
     wxT("wxGTK"),
-    wxT("wxMGL"),
+    wxT("wxDFB"),
     wxT("wxX11"),
     wxT("wxOS2"),
     wxT("wxMac"),
     wxT("wxCocoa"),
     wxT("wxWinCE"),
-    wxT("wxPalmOS"),
-    wxT("wxDFB")
 };
 
 static const wxChar* const wxArchitectureNames[] =

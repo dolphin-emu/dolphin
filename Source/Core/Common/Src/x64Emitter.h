@@ -249,6 +249,7 @@ private:
 	void WriteMulDivType(int bits, OpArg src, int ext);
 	void WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2);
 	void WriteShift(int bits, OpArg dest, OpArg &shift, int ext);
+	void WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext);
 	void WriteMXCSR(OpArg arg, int ext);
 	void WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
@@ -373,6 +374,16 @@ public:
 	void SHL(int bits, OpArg dest, OpArg shift);
 	void SHR(int bits, OpArg dest, OpArg shift);
 	void SAR(int bits, OpArg dest, OpArg shift);
+
+	// Bit Test
+	void BT(int bits, OpArg dest, OpArg index);
+	void BTS(int bits, OpArg dest, OpArg index);
+	void BTR(int bits, OpArg dest, OpArg index);
+	void BTC(int bits, OpArg dest, OpArg index);
+
+	// Double-Precision Shift
+	void SHRD(int bits, OpArg dest, OpArg src, OpArg shift);
+	void SHLD(int bits, OpArg dest, OpArg src, OpArg shift);
 
 	// Extend EAX into EDX in various ways
 	void CWD(int bits = 16);

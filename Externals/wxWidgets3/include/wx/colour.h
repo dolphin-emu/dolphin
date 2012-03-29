@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Francesco Montorsi
 // Created:
-// RCS-ID:      $Id: colour.h 66966 2011-02-19 12:32:59Z VZ $
+// RCS-ID:      $Id: colour.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -213,9 +213,7 @@ WXDLLIMPEXP_CORE bool wxFromString(const wxString& str, wxColourBase* col);
 
 
 
-#if defined(__WXPALMOS__)
-    #include "wx/generic/colour.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
     #include "wx/msw/colour.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/colour.h"
@@ -223,8 +221,6 @@ WXDLLIMPEXP_CORE bool wxFromString(const wxString& str, wxColourBase* col);
     #include "wx/gtk/colour.h"
 #elif defined(__WXGTK__)
     #include "wx/gtk1/colour.h"
-#elif defined(__WXMGL__)
-    #include "wx/generic/colour.h"
 #elif defined(__WXDFB__)
     #include "wx/generic/colour.h"
 #elif defined(__WXX11__)

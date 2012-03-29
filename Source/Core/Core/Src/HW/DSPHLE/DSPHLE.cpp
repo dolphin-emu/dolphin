@@ -131,7 +131,51 @@ void DSPHLE::SwapUCode(u32 _crc)
 void DSPHLE::DoState(PointerWrap &p)
 {
 	p.Do(m_InitMixer);
-	GetUCode()->DoState(p);
+	p.Do(m_DSPControl);
+	p.Do(m_dspState);
+
+	int ucode_crc = IUCode::GetCRC(m_pUCode);
+	int ucode_crc_beforeLoad = ucode_crc;
+	int lastucode_crc = IUCode::GetCRC(m_lastUCode);
+	int lastucode_crc_beforeLoad = lastucode_crc;
+
+	p.Do(ucode_crc);
+	p.Do(lastucode_crc);
+
+	// if a different type of ucode was being used when the savestate was created,
+	// we have to reconstruct the old type of ucode so that we have a valid thing to call DoState on.
+	IUCode*     ucode =     (ucode_crc ==     ucode_crc_beforeLoad) ?    m_pUCode : UCodeFactory(    ucode_crc, this, m_bWii);
+	IUCode* lastucode = (lastucode_crc != lastucode_crc_beforeLoad) ? m_lastUCode : UCodeFactory(lastucode_crc, this, m_bWii);
+
+	if (ucode)
+		ucode->DoState(p);
+	if (lastucode)
+		lastucode->DoState(p);
+
+	// if a different type of ucode was being used when the savestate was created,
+	// discard it if we're not loading, otherwise discard the old one and keep the new one.
+	if (ucode != m_pUCode)
+	{
+		if (p.GetMode() != PointerWrap::MODE_READ)
+			delete ucode;
+		else
+		{
+			delete m_pUCode;
+			m_pUCode = ucode;
+		}
+	}
+	if (lastucode != m_lastUCode)
+	{
+		if (p.GetMode() != PointerWrap::MODE_READ)
+			delete lastucode;
+		else
+		{
+			delete m_lastUCode;
+			m_lastUCode = lastucode;
+		}
+	}
+
+	m_MailHandler.DoState(p);
 }
 
 // Mailbox fuctions

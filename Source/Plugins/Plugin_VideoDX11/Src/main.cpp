@@ -68,9 +68,9 @@ unsigned int VideoBackend::PeekMessages()
 
 void VideoBackend::UpdateFPSDisplay(const char *text)
 {
-	char temp[512];
-	sprintf_s(temp, sizeof temp, "%s | DX11 | %s", scm_rev_str, text);
-	SetWindowTextA(EmuWindow::GetWnd(), temp);
+	TCHAR temp[512];
+	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs | DX11 | %hs"), scm_rev_str, text);
+	EmuWindow::SetWindowText(temp);
 }
 
 std::string VideoBackend::GetName() const
@@ -150,6 +150,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 
 bool VideoBackend::Initialize(void *&window_handle)
 {
+	InitializeShared();
 	InitBackendInfo();
 
 	frameCount = 0;

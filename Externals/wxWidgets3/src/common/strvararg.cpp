@@ -3,7 +3,7 @@
 // Purpose:     macros for implementing type-safe vararg passing of strings
 // Author:      Vaclav Slavik
 // Created:     2007-02-19
-// RCS-ID:      $Id: strvararg.cpp 65057 2010-07-23 23:32:46Z VZ $
+// RCS-ID:      $Id: strvararg.cpp 70523 2012-02-06 13:28:34Z VZ $
 // Copyright:   (c) 2007 REA Elektronik GmbH
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -161,6 +161,19 @@ public:
         {
             if ( CopyFmtChar(*format++) == wxT('%') )
             {
+#if wxUSE_PRINTF_POS_PARAMS
+                if ( *format >= '0' && *format <= '9' )
+                {
+                    SkipDigits(&format);
+                    if ( *format == '$' )
+                    {
+                        // It was a positional argument specification.
+                        CopyFmtChar(*format++);
+                    }
+                    //else: it was a width specification, nothing else to do.
+                }
+#endif // wxUSE_PRINTF_POS_PARAMS
+
                 // skip any flags
                 while ( IsFlagChar(*format) )
                     CopyFmtChar(*format++);

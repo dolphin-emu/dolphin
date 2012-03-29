@@ -154,7 +154,15 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	}
 
 	// Disk header and apploader
-	m_Name->SetValue(wxString(OpenISO->GetName().c_str(), wxConvUTF8));
+
+	std::wstring wname;
+	wxString name;
+	if (OpenGameListItem->GetName(wname))
+		name = wname.c_str();
+	else
+		name = wxString(OpenISO->GetName().c_str(), wxConvUTF8);
+	m_Name->SetValue(name);
+
 	m_GameID->SetValue(wxString(OpenISO->GetUniqueID().c_str(), wxConvUTF8));
 	switch (OpenISO->GetCountry())
 	{
@@ -321,10 +329,13 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	// Wii Console
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	DisableWiimoteSpeaker = new wxCheckBox(m_GameConfig, ID_DISABLEWIIMOTESPEAKER, _("Disable Wiimote Speaker"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	DisableWiimoteSpeaker = new wxCheckBox(m_GameConfig, ID_DISABLEWIIMOTESPEAKER, _("Alternate Wiimote Timing"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DisableWiimoteSpeaker->SetToolTip(_("Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No effect on emulated wiimotes."));
 
 	// Video
+	UseBBox = new wxCheckBox(m_GameConfig, ID_USE_BBOX, _("Enable Bounding Box Calculation"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER);
+	UseBBox->SetToolTip(_("If checked, the bounding box registers will be updated. Used by the Paper Mario games."));
+
 	UseZTPSpeedupHack = new wxCheckBox(m_GameConfig, ID_ZTP_SPEEDUP, _("ZTP hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER);
 	UseZTPSpeedupHack->SetToolTip(_("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
 	
@@ -383,6 +394,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	wxStaticBoxSizer * const sbVideoOverrides =
 		new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
+	sbVideoOverrides->Add(UseBBox, 0, wxLEFT, 5);
 	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxLEFT, 5);
 	szrPHackSettings->Add(PHackEnable, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
 	szrPHackSettings->Add(PHSettings, 0, wxLEFT, 5);
@@ -706,22 +718,26 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	}
 
 	wxString dialogTitle = index[0] ? _("Extracting Directory") : _("Extracting All Files");
-	wxProgressDialog dialog(dialogTitle,
-					_("Extracting..."),
-					index[1], // range
-					this, // parent
-					wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
-					wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
-					wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-					);
-	dialog.CenterOnParent();
+	wxProgressDialog dialog(
+		dialogTitle,
+		_("Extracting..."),
+		index[1] - 1,
+		this,
+		wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
+		wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+		wxPD_SMOOTH
+		);
 
 	// Extraction
 	for (u32 i = index[0]; i < index[1]; i++)
 	{
 		dialog.SetTitle(wxString::Format(wxT("%s : %d%%"), dialogTitle.c_str(),
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
-		if (!dialog.Update(i, wxString::Format(_("Extracting %s"), wxString(fst[i]->m_FullPath, *wxConvCurrent).c_str())))
+		
+		dialog.Update(i, wxString::Format(_("Extracting %s"),
+			wxString(fst[i]->m_FullPath, *wxConvCurrent).c_str()));
+
+		if (dialog.WasCancelled())
 			break;
 
 		if (fst[i]->IsDirectory())
@@ -898,7 +914,13 @@ void CISOProperties::LoadGameConfig()
 		DisableWiimoteSpeaker->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		DisableWiimoteSpeaker->Set3StateValue(wxCHK_UNDETERMINED);
-	
+
+	if (GameIni.Get("Video", "UseBBox", &bTemp))
+		UseBBox->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		UseBBox->Set3StateValue(wxCHK_UNDETERMINED);
+
+
 	if (GameIni.Get("Video", "ZTPSpeedupHack", &bTemp))
 		UseZTPSpeedupHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -991,6 +1013,11 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Wii", "DisableWiimoteSpeaker");
 	else
 		GameIni.Set("Wii", "DisableWiimoteSpeaker", DisableWiimoteSpeaker->Get3StateValue());
+
+	if (UseBBox->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Video", "UseBBox");
+	else
+		GameIni.Set("Video", "UseBBox", UseBBox->Get3StateValue());
 
 	if (UseZTPSpeedupHack->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "ZTPSpeedupHack");
@@ -1238,53 +1265,63 @@ void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 
 void CISOProperties::ChangeBannerDetails(int lang)
 {
-	if (OpenGameListItem->GetCountry() == DiscIO::IVolume::COUNTRY_JAPAN
-		|| OpenGameListItem->GetCountry() == DiscIO::IVolume::COUNTRY_TAIWAN
-		|| OpenGameListItem->GetPlatform() == GameListItem::WII_WAD)
-	{
+	std::wstring wname;
+	wxString shortName,
+			 comment,
+			 maker;
+
 #ifdef _WIN32
-		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
-		static bool validCP932 = ::IsValidCodePage(932) != 0;
-		if (validCP932)
-		{
-			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
-		}
-		else
-		{
-			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
-		}
-#else
-		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
-#endif
-
-		wxString name = wxString(OpenGameListItem->GetName(0).c_str(), SJISConv);
-
-		// Updates the informations shown in the window
-		m_ShortName->SetValue(name);
-		m_Comment->SetValue(wxString(OpenGameListItem->GetDescription(0).c_str(), SJISConv));
-		m_Maker->SetValue(wxString(OpenGameListItem->GetCompany().c_str(), SJISConv));//dev too
-
-		std::string filename, extension;
-		SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
-
-		// Also sets the window's title
-		SetTitle(wxString::Format(wxT("%s%s"),
-			wxString(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str(), *wxConvCurrent).c_str(),
-			name.c_str()));
-	}
-	else // Do the same for PAL/US Games (assuming ISO 8859-1)
+	wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
+	static bool validCP932 = ::IsValidCodePage(932) != 0;
+	if (validCP932)
 	{
-		wxString name = wxString::From8BitData(OpenGameListItem->GetName(lang).c_str());
-
-		m_ShortName->SetValue(name);
-		m_Comment->SetValue(wxString::From8BitData(OpenGameListItem->GetDescription(lang).c_str()));
-		m_Maker->SetValue(wxString::From8BitData(OpenGameListItem->GetCompany().c_str()));//dev too
-
-		std::string filename, extension;
-		SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
-
-		SetTitle(wxString::Format(wxT("%s%s"),
-			wxString::From8BitData(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()).c_str(),
-			name.c_str()));
+		SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
 	}
+	else
+	{
+		WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+	}
+#else
+		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
+		// it returns CP-932, in order to use iconv we need to use CP932
+		wxCSConv SJISConv(wxT("CP932"));
+#endif
+	switch (OpenGameListItem->GetCountry())
+	{
+	case DiscIO::IVolume::COUNTRY_TAIWAN:
+	case DiscIO::IVolume::COUNTRY_JAPAN:
+
+		if (OpenGameListItem->GetName(wname, -1))
+			shortName = wname.c_str();
+		else
+			shortName = wxString(OpenGameListItem->GetName(0).c_str(), SJISConv);
+
+		if ((comment = OpenGameListItem->GetDescription().c_str()).size() == 0)
+			comment = wxString(OpenGameListItem->GetDescription(0).c_str(), SJISConv);
+		maker = wxString(OpenGameListItem->GetCompany().c_str(), SJISConv);
+		break;
+	case DiscIO::IVolume::COUNTRY_USA:
+		lang = 0;
+	default:
+		{
+		wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
+		if (OpenGameListItem->GetName(wname, lang))
+			shortName = wname.c_str();
+		else
+			shortName = wxString(OpenGameListItem->GetName(lang).c_str(), WindowsCP1252);
+		if ((comment = OpenGameListItem->GetDescription().c_str()).size() == 0)
+			comment = wxString(OpenGameListItem->GetDescription(lang).c_str(), WindowsCP1252);
+		maker = wxString(OpenGameListItem->GetCompany().c_str(), WindowsCP1252);
+		}
+		break;
+	}
+	// Updates the informations shown in the window
+	m_ShortName->SetValue(shortName);
+	m_Comment->SetValue(comment);
+	m_Maker->SetValue(maker);//dev too
+
+	std::string filename, extension;
+	SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
+	// Also sets the window's title
+	SetTitle(wxString(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str(), *wxConvCurrent)+shortName);
 }

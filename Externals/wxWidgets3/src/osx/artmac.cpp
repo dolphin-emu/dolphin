@@ -3,7 +3,7 @@
 // Purpose:     wxArtProvider instance with native Mac stock icons
 // Author:      Alan Shouls
 // Created:     2006-10-30
-// RCS-ID:      $Id: artmac.cpp 66775 2011-01-26 16:15:39Z SC $
+// RCS-ID:      $Id: artmac.cpp 70154 2011-12-28 13:51:29Z VZ $
 // Copyright:   (c) wxWindows team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ protected:
 
 /* static */ void wxArtProvider::InitNativeProvider()
 {
-    wxArtProvider::Push(new wxMacArtProvider);
+    PushBack(new wxMacArtProvider);
 }
 
 #if wxOSX_USE_COCOA_OR_CARBON

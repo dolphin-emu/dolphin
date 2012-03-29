@@ -212,8 +212,6 @@ private:
 		}
 	}
 
-	u32 m_CRC;
-
 	// These are the only dynamically allocated things allowed in the ucode.
 	s32* m_VoiceBuffer;
 	s16* m_ResampleBuffer;

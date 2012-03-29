@@ -2,7 +2,7 @@
 // Name:        src/gtk/calctrl.cpp
 // Purpose:     implementation of the wxGtkCalendarCtrl
 // Author:      Marcin Wojdyr
-// RCS-ID:      $Id: calctrl.cpp 66568 2011-01-04 11:48:14Z VZ $
+// RCS-ID:      $Id: calctrl.cpp 70755 2012-02-29 18:13:06Z PC $
 // Copyright:   (c) 2008 Marcin Wojdyr
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -13,42 +13,33 @@
     #pragma hdrstop
 #endif
 
+#if wxUSE_CALENDARCTRL
+
 #ifndef WX_PRECOMP
 #endif //WX_PRECOMP
 
-#if wxUSE_CALENDARCTRL
-
-#include "wx/gtk/private.h"
 #include "wx/calctrl.h"
-#include "wx/gtk/calctrl.h"
 
+#include <gtk/gtk.h>
 
 extern "C" {
 
 static void gtk_day_selected_callback(GtkWidget *WXUNUSED(widget),
                                       wxGtkCalendarCtrl *cal)
 {
-    wxDateTime date = cal->GetDate();
-    if (cal->m_selectedDate == date)
-        return;
-
-    cal->m_selectedDate = date;
-
-    cal->GenerateEvent(wxEVT_CALENDAR_SEL_CHANGED);
-    // send deprecated event
-    cal->GenerateEvent(wxEVT_CALENDAR_DAY_CHANGED);
+    cal->GTKGenerateEvent(wxEVT_CALENDAR_SEL_CHANGED);
 }
 
 static void gtk_day_selected_double_click_callback(GtkWidget *WXUNUSED(widget),
                                                    wxGtkCalendarCtrl *cal)
 {
-    cal->GenerateEvent(wxEVT_CALENDAR_DOUBLECLICKED);
+    cal->GTKGenerateEvent(wxEVT_CALENDAR_DOUBLECLICKED);
 }
 
 static void gtk_month_changed_callback(GtkWidget *WXUNUSED(widget),
                                        wxGtkCalendarCtrl *cal)
 {
-    cal->GenerateEvent(wxEVT_CALENDAR_PAGE_CHANGED);
+    cal->GTKGenerateEvent(wxEVT_CALENDAR_PAGE_CHANGED);
 }
 
 // callbacks that send deprecated events
@@ -56,13 +47,13 @@ static void gtk_month_changed_callback(GtkWidget *WXUNUSED(widget),
 static void gtk_prev_month_callback(GtkWidget *WXUNUSED(widget),
                                     wxGtkCalendarCtrl *cal)
 {
-    cal->GenerateEvent(wxEVT_CALENDAR_MONTH_CHANGED);
+    cal->GTKGenerateEvent(wxEVT_CALENDAR_MONTH_CHANGED);
 }
 
 static void gtk_prev_year_callback(GtkWidget *WXUNUSED(widget),
                                     wxGtkCalendarCtrl *cal)
 {
-    cal->GenerateEvent(wxEVT_CALENDAR_YEAR_CHANGED);
+    cal->GTKGenerateEvent(wxEVT_CALENDAR_YEAR_CHANGED);
 }
 
 }
@@ -127,6 +118,74 @@ bool wxGtkCalendarCtrl::Create(wxWindow *parent,
     return true;
 }
 
+void wxGtkCalendarCtrl::GTKGenerateEvent(wxEventType type)
+{
+    // First check if the new date is in the specified range.
+    wxDateTime dt = GetDate();
+    if ( !IsInValidRange(dt) )
+    {
+        if ( m_validStart.IsValid() && dt < m_validStart )
+            dt = m_validStart;
+        else
+            dt = m_validEnd;
+
+        SetDate(dt);
+
+        return;
+    }
+
+    if ( type == wxEVT_CALENDAR_SEL_CHANGED )
+    {
+        // Don't generate this event if the new date is the same as the old
+        // one.
+        if ( m_selectedDate == dt )
+            return;
+
+        m_selectedDate = dt;
+
+        GenerateEvent(type);
+
+        // Also send the deprecated event together with the new one.
+        GenerateEvent(wxEVT_CALENDAR_DAY_CHANGED);
+    }
+    else
+    {
+        GenerateEvent(type);
+    }
+}
+
+bool wxGtkCalendarCtrl::IsInValidRange(const wxDateTime& dt) const
+{
+    return (!m_validStart.IsValid() || m_validStart <= dt) &&
+                (!m_validEnd.IsValid() || dt <= m_validEnd);
+}
+
+bool
+wxGtkCalendarCtrl::SetDateRange(const wxDateTime& lowerdate,
+                                const wxDateTime& upperdate)
+{
+    if ( lowerdate.IsValid() && upperdate.IsValid() && lowerdate >= upperdate )
+        return false;
+
+    m_validStart = lowerdate;
+    m_validEnd = upperdate;
+
+    return true;
+}
+
+bool
+wxGtkCalendarCtrl::GetDateRange(wxDateTime *lowerdate,
+                                wxDateTime *upperdate) const
+{
+    if ( lowerdate )
+        *lowerdate = m_validStart;
+    if ( upperdate )
+        *upperdate = m_validEnd;
+
+    return m_validStart.IsValid() || m_validEnd.IsValid();
+}
+
+
 bool wxGtkCalendarCtrl::EnableMonthChange(bool enable)
 {
     if ( !wxCalendarCtrlBase::EnableMonthChange(enable) )
@@ -140,8 +199,13 @@ bool wxGtkCalendarCtrl::EnableMonthChange(bool enable)
 
 bool wxGtkCalendarCtrl::SetDate(const wxDateTime& date)
 {
+    if ( date.IsValid() && !IsInValidRange(date) )
+        return false;
+
     g_signal_handlers_block_by_func(m_widget,
         (gpointer) gtk_day_selected_callback, this);
+    g_signal_handlers_block_by_func(m_widget,
+        (gpointer) gtk_month_changed_callback, this);
 
     m_selectedDate = date;
     int year = date.GetYear();
@@ -151,6 +215,8 @@ bool wxGtkCalendarCtrl::SetDate(const wxDateTime& date)
     gtk_calendar_select_day(GTK_CALENDAR(m_widget), day);
 
     g_signal_handlers_unblock_by_func( m_widget,
+        (gpointer) gtk_month_changed_callback, this);
+    g_signal_handlers_unblock_by_func( m_widget,
         (gpointer) gtk_day_selected_callback, this);
 
     return true;
@@ -158,9 +224,22 @@ bool wxGtkCalendarCtrl::SetDate(const wxDateTime& date)
 
 wxDateTime wxGtkCalendarCtrl::GetDate() const
 {
-    guint year, month, day;
-    gtk_calendar_get_date(GTK_CALENDAR(m_widget), &year, &month, &day);
-    return wxDateTime(day, (wxDateTime::Month) month, year);
+    guint year, monthGTK, day;
+    gtk_calendar_get_date(GTK_CALENDAR(m_widget), &year, &monthGTK, &day);
+
+    // GTK may return an invalid date, this happens at least when switching the
+    // month (or the year in case of February in a leap year) and the new month
+    // has fewer days than the currently selected one making the currently
+    // selected day invalid, e.g. just choosing May 31 and going back a month
+    // results in the date being (non existent) April 31 when we're called from
+    // gtk_prev_month_callback(). We need to manually work around this to avoid
+    // asserts from wxDateTime ctor.
+    const wxDateTime::Month month = static_cast<wxDateTime::Month>(monthGTK);
+    const guint dayMax = wxDateTime::GetNumberOfDays(month, year);
+    if ( day > dayMax )
+        day = dayMax;
+
+    return wxDateTime(day, month, year);
 }
 
 void wxGtkCalendarCtrl::Mark(size_t day, bool mark)

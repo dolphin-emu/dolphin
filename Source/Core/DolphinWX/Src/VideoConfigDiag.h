@@ -120,12 +120,7 @@ protected:
 	void Event_Stc(wxCommandEvent &ev)
 	{
 		int samples[] = { 0, 512, 128 };
-		if (ev.GetInt() < 3)
-		{
-			vconfig.iSafeTextureCache_ColorSamples = samples[ev.GetInt()];
-			vconfig.bSafeTextureCache = true;
-		}
-		else vconfig.bSafeTextureCache = false;
+		vconfig.iSafeTextureCache_ColorSamples = samples[ev.GetInt()];
 
 		ev.Skip();
 	}

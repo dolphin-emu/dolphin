@@ -695,15 +695,18 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	int Ht = intendedHt;
 	if (Y + Ht > GetTargetHeight())
 		Ht = GetTargetHeight() - Y;
-
+	
 	// If GX viewport is off the render target, we must clamp our viewport
 	// within the bounds. Use the correction matrix to compensate.
 	ViewportCorrectionMatrix(vpCorrection,
-		intendedX, intendedY, intendedWd, intendedHt,
-		X, Y, Wd, Ht);
+		(float)intendedX, (float)intendedY,
+		(float)intendedWd, (float)intendedHt,
+		(float)X, (float)Y,
+		(float)Wd, (float)Ht);
 
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y,
+										(float)Wd, (float)Ht,
 										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
 										1.f);   //  xfregs.viewport.farZ / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);
@@ -748,7 +751,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	else if (convtype == 2) pixel_shader = PixelShaderCache::ReinterpRGBA6ToRGB8(true);
 	else
 	{
-		PanicAlert("Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
+		ERROR_LOG(VIDEO, "Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
 		return;
 	}
 
@@ -1106,12 +1109,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 
-	// reload textures if these settings changed
-	if (g_Config.bSafeTextureCache != g_ActiveConfig.bSafeTextureCache ||
-		g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
+	// Reload textures if this settings changes
+	if (g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
 		TextureCache::Invalidate(false);
 
-	// Enable any configuration changes
+	// Enable configuration changes
 	UpdateActiveConfig();
 
 	SetWindowSize(fbWidth, fbHeight);
@@ -1209,11 +1211,11 @@ void Renderer::RestoreAPIState()
 	BPFunctions::SetScissor();
 }
 
-void Renderer::ApplyState(bool bUseDstAlpha)
+void Renderer::ApplyState(RenderStateMode mode)
 {
 	HRESULT hr;
 
-	if (bUseDstAlpha)
+	if (mode == RSM_UseDstAlpha)
 	{
 		// Colors should blend against SRC1_ALPHA
 		if (gx_state.blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_SRC_ALPHA)
@@ -1273,7 +1275,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 
 	D3D::stateman->Apply();
 
-	if (bUseDstAlpha)
+	if (mode == RSM_UseDstAlpha)
 	{
 		// restore actual state
 		SetBlendMode(false);
@@ -1287,7 +1289,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), NULL, 0);
 }
 
-void Renderer::RestoreState()
+void Renderer::RestoreState(RenderStateMode mode)
 {
 	ID3D11ShaderResourceView* shader_resources[8] = { NULL };
 	D3D::context->PSSetShaderResources(0, 8, shader_resources);
@@ -1418,9 +1420,10 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	gx_state.sampdc[stage].AddressU = d3dClamps[tm0.wrap_s];
 	gx_state.sampdc[stage].AddressV = d3dClamps[tm0.wrap_t];
 
-	gx_state.sampdc[stage].MipLODBias = (float)tm0.lod_bias/32.0f;
-	gx_state.sampdc[stage].MaxLOD = (float)tm1.max_lod/16.f;
+	// When mipfilter is set to "none", just disable mipmapping altogether
+	gx_state.sampdc[stage].MaxLOD = (mip == TEXF_NONE) ? 0.0f : (float)tm1.max_lod/16.f;
 	gx_state.sampdc[stage].MinLOD = (float)tm1.min_lod/16.f;
+	gx_state.sampdc[stage].MipLODBias = (float)tm0.lod_bias/32.0f;
 }
 
 void Renderer::SetInterlacingMode()

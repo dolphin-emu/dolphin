@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.09.00
-// RCS-ID:      $Id: tipwin.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: tipwin.cpp 70843 2012-03-08 16:45:17Z PC $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -167,7 +167,7 @@ wxTipWindow::~wxTipWindow()
     {
         *m_windowPtr = NULL;
     }
-    #ifdef wxUSE_POPUPWIN
+    #if wxUSE_POPUPWIN
         #ifdef __WXGTK__
             if ( m_view->HasCapture() )
                 m_view->ReleaseMouse();

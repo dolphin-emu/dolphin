@@ -701,10 +701,22 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		if (!memoryCard[card]->DEntry_Comment2(j, comment)) comment[0]=0;
 
 		bool ascii = memoryCard[card]->IsAsciiEncoding();
+
 #ifdef _WIN32
-		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
+		static bool validCP932 = ::IsValidCodePage(932) != 0;
+		if (validCP932)
+		{
+			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+		}
+		else
+		{
+			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+		}
 #else
-		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
+		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
+		// it returns CP-932, in order to use iconv we need to use CP932
+		wxCSConv SJISConv(wxT("CP932"));
 #endif
 		wxTitle  =  wxString(title, ascii ? *wxConvCurrent : SJISConv);
 		wxComment = wxString(comment, ascii ? *wxConvCurrent : SJISConv);

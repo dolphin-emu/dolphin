@@ -352,8 +352,8 @@ void Jit64::stX(UGeckoInstruction inst)
 		}
 
 		/* // TODO - figure out why Beyond Good and Evil hates this
-		#ifdef _M_X64
-		if (accessSize == 32 && !update && jo.enableFastMem)
+		#if defined(_WIN32) && defined(_M_X64)
+		if (accessSize == 32 && !update)
 		{
 		// Fast and daring - requires 64-bit
 		MOV(32, R(EAX), gpr.R(s));

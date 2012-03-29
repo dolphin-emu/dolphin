@@ -154,6 +154,8 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETTEXMTXINFO+5:
 		case XFMEM_SETTEXMTXINFO+6:
 		case XFMEM_SETTEXMTXINFO+7:
+			VertexManager::Flush();
+
 			nextAddress = XFMEM_SETTEXMTXINFO + 8;
 			break;
 
@@ -165,6 +167,8 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETPOSMTXINFO+5:
 		case XFMEM_SETPOSMTXINFO+6:
 		case XFMEM_SETPOSMTXINFO+7:
+			VertexManager::Flush();
+
 			nextAddress = XFMEM_SETPOSMTXINFO + 8;
 			break;
 

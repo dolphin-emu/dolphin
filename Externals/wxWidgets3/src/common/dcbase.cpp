@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05/25/99
-// RCS-ID:      $Id: dcbase.cpp 67063 2011-02-27 12:48:13Z VZ $
+// RCS-ID:      $Id: dcbase.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,6 +35,7 @@
 #ifndef WX_PRECOMP
     #include "wx/math.h"
     #include "wx/module.h"
+    #include "wx/window.h"
 #endif
 
 #ifdef __WXMSW__
@@ -87,12 +88,6 @@
     #include "wx/dfb/dcclient.h"
     #include "wx/dfb/dcmemory.h"
     #include "wx/dfb/dcscreen.h"
-#endif
-
-#ifdef __WXPALMOS__
-    #include "wx/palmos/dcclient.h"
-    #include "wx/palmos/dcmemory.h"
-    #include "wx/palmos/dcscreen.h"
 #endif
 
 //----------------------------------------------------------------------------
@@ -927,9 +922,9 @@ void wxDCImpl::DoDrawSpline( const wxPointList *points )
     wx_spline_add_point(x1, y1);
 
     while ((node = node->GetNext())
-#if !wxUSE_STL
+#if !wxUSE_STD_CONTAINERS
            != NULL
-#endif // !wxUSE_STL
+#endif // !wxUSE_STD_CONTAINERS
           )
     {
         p = node->GetData();
@@ -1182,7 +1177,7 @@ void wxDC::DrawLabel(const wxString& text,
     GetMultiLineTextExtent(text, &widthText, &heightText, &heightLine);
 
     wxCoord width, height;
-    if ( bitmap.Ok() )
+    if ( bitmap.IsOk() )
     {
         width = widthText + bitmap.GetWidth();
         height = bitmap.GetHeight();
@@ -1224,7 +1219,7 @@ void wxDC::DrawLabel(const wxString& text,
     wxCoord x0 = x,
             y0 = y,
             width0 = width;
-    if ( bitmap.Ok() )
+    if ( bitmap.IsOk() )
     {
         DrawBitmap(bitmap, x, y, true /* use mask */);
 
@@ -1602,7 +1597,7 @@ void wxDCImpl::CalculateEllipticPoints( wxPointList* points,
             y2 = y2-y-y+1;
             --y;
         }
-        // old y now to big: set point with old y, old x
+        // old y now too big: set point with old y, old x
         if( bNewPoint && x>1)
         {
             int x1 = x - 1;

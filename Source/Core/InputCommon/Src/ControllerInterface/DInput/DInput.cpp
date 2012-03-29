@@ -51,9 +51,9 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
 
 	if (SUCCEEDED(device->GetProperty(DIPROP_PRODUCTNAME, &str.diph)))
 	{
-		const int size = WideCharToMultiByte(CP_ACP, 0, str.wsz, -1, NULL, 0, NULL, NULL);
+		const int size = WideCharToMultiByte(CP_UTF8, 0, str.wsz, -1, NULL, 0, NULL, NULL);
 		char* const data = new char[size];
-		if (size == WideCharToMultiByte(CP_ACP, 0, str.wsz, -1, data, size, NULL, NULL))
+		if (size == WideCharToMultiByte(CP_UTF8, 0, str.wsz, -1, data, size, NULL, NULL))
 			out.assign(data);
 		delete[] data;
 	}

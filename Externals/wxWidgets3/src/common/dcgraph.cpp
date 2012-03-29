@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:
-// RCS-ID:      $Id: dcgraph.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: dcgraph.cpp 70844 2012-03-08 17:06:06Z PC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -53,27 +53,26 @@ static inline double DegToRad(double deg)
     return (deg * M_PI) / 180.0;
 }
 
-static bool TranslateRasterOp(wxRasterOperationMode function, wxCompositionMode *op)
+static wxCompositionMode TranslateRasterOp(wxRasterOperationMode function)
 {
     switch ( function )
     {
         case wxCOPY: // src
             // since we are supporting alpha, _OVER is closer to the intention than _SOURCE
-            // since the latter would overwrite even when alpha is is not set to opaque
-            *op = wxCOMPOSITION_OVER; 
-            break;
+            // since the latter would overwrite even when alpha is not set to opaque
+            return wxCOMPOSITION_OVER;
+
         case wxOR:         // src OR dst
-            *op = wxCOMPOSITION_ADD;
-            break;
+            return wxCOMPOSITION_ADD;
+
         case wxNO_OP:      // dst
-            *op = wxCOMPOSITION_DEST; // ignore the source
-            break;
+            return wxCOMPOSITION_DEST; // ignore the source
+
         case wxCLEAR:      // 0
-            *op = wxCOMPOSITION_CLEAR;// clear dst
-            break;
+            return wxCOMPOSITION_CLEAR;// clear dst
+
         case wxXOR:        // src XOR dst
-            *op = wxCOMPOSITION_XOR;
-            break;
+            return wxCOMPOSITION_XOR;
 
         case wxAND:        // src AND dst
         case wxAND_INVERT: // (NOT src) AND dst
@@ -86,10 +85,10 @@ static bool TranslateRasterOp(wxRasterOperationMode function, wxCompositionMode 
         case wxOR_REVERSE: // src OR (NOT dst)
         case wxSET:        // 1
         case wxSRC_INVERT: // NOT src
-        default:
-            return false;
+            break;
     }
-    return true;
+
+    return wxCOMPOSITION_INVALID;
 }
 
 //-----------------------------------------------------------------------------
@@ -115,6 +114,19 @@ wxGCDC::wxGCDC( const wxPrinterDC& dc) :
 }
 #endif
 
+#if defined(__WXMSW__) && wxUSE_ENH_METAFILE
+wxGCDC::wxGCDC(const wxEnhMetaFileDC& dc)
+   : wxDC(new wxGCDCImpl(this, dc))
+{
+}
+#endif
+
+wxGCDC::wxGCDC(wxGraphicsContext* context) :
+    wxDC( new wxGCDCImpl( this ) )
+{
+    SetGraphicsContext(context);
+}
+
 wxGCDC::wxGCDC() :
   wxDC( new wxGCDCImpl( this ) )
 {
@@ -124,7 +136,7 @@ wxGCDC::~wxGCDC()
 {
 }
 
-wxGraphicsContext* wxGCDC::GetGraphicsContext()
+wxGraphicsContext* wxGCDC::GetGraphicsContext() const
 {
     if (!m_pimpl) return NULL;
     wxGCDCImpl *gc_impl = (wxGCDCImpl*) m_pimpl;
@@ -175,13 +187,7 @@ wxGCDCImpl::wxGCDCImpl( wxDC *owner, const wxMemoryDC& dc ) :
 {
     Init();
     wxGraphicsContext* context;
-#if wxUSE_CAIRO
-    wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetCairoRenderer();
-    context = renderer->CreateContext(dc);
-#else
     context = wxGraphicsContext::Create(dc);
-#endif
-
     SetGraphicsContext( context );
 }
 
@@ -191,6 +197,15 @@ wxGCDCImpl::wxGCDCImpl( wxDC *owner, const wxPrinterDC& dc ) :
 {
     Init();
     SetGraphicsContext( wxGraphicsContext::Create(dc) );
+}
+#endif
+
+#if defined(__WXMSW__) && wxUSE_ENH_METAFILE
+wxGCDCImpl::wxGCDCImpl(wxDC *owner, const wxEnhMetaFileDC& dc)
+   : wxDCImpl(owner)
+{
+    Init();
+    SetGraphicsContext(wxGraphicsContext::Create(dc));
 }
 #endif
 
@@ -367,7 +382,10 @@ void wxGCDCImpl::SetTextForeground( const wxColour &col )
 {
     wxCHECK_RET( IsOk(), wxT("wxGCDC(cg)::SetTextForeground - invalid DC") );
 
-    if ( col != m_textForegroundColour )
+    // don't set m_textForegroundColour to an invalid colour as we'd crash
+    // later then (we use m_textForegroundColour.GetColor() without checking
+    // in a few places)
+    if ( col.IsOk() && col != m_textForegroundColour )
     {
         m_textForegroundColour = col;
         m_graphicContext->SetFont( m_font, m_textForegroundColour );
@@ -502,8 +520,8 @@ void wxGCDCImpl::SetLogicalFunction( wxRasterOperationMode function )
 
     m_logicalFunction = function;
 
-    wxCompositionMode mode;
-    m_logicalFunctionSupported = TranslateRasterOp( function, &mode);
+    wxCompositionMode mode = TranslateRasterOp( function );
+    m_logicalFunctionSupported = mode != wxCOMPOSITION_INVALID;
     if (m_logicalFunctionSupported)
         m_logicalFunctionSupported = m_graphicContext->SetCompositionMode(mode);
 
@@ -696,13 +714,13 @@ void wxGCDCImpl::DoDrawSpline(const wxPointList *points)
 
     path.MoveToPoint( x1 , y1 );
     path.AddLineToPoint( cx1 , cy1 );
-#if !wxUSE_STL
+#if !wxUSE_STD_CONTAINERS
 
     while ((node = node->GetNext()) != NULL)
 #else
 
     while ((node = node->GetNext()))
-#endif // !wxUSE_STL
+#endif // !wxUSE_STD_CONTAINERS
 
     {
         p = node->GetData();
@@ -874,12 +892,24 @@ bool wxGCDCImpl::DoStretchBlit(
     if ( logical_func == wxNO_OP )
         return true;
 
-    wxCompositionMode mode;
-    if ( !TranslateRasterOp(logical_func, &mode) )
+    wxCompositionMode mode = TranslateRasterOp(logical_func);
+    if ( mode == wxCOMPOSITION_INVALID )
     {
         wxFAIL_MSG( wxT("Blitting is not supported with this logical operation.") );
         return false;
     }
+
+    wxRect subrect(source->LogicalToDeviceX(xsrc),
+                   source->LogicalToDeviceY(ysrc),
+                   source->LogicalToDeviceXRel(srcWidth),
+                   source->LogicalToDeviceYRel(srcHeight));
+    const wxRect subrectOrig = subrect;
+    // clip the subrect down to the size of the source DC
+    wxRect clip;
+    source->GetSize(&clip.width, &clip.height);
+    subrect.Intersect(clip);
+    if (subrect.width == 0)
+        return true;
 
     bool retval = true;
 
@@ -898,21 +928,6 @@ bool wxGCDCImpl::DoStretchBlit(
             ysrcMask = ysrc;
         }
 
-        wxRect subrect(source->LogicalToDeviceX(xsrc),
-                       source->LogicalToDeviceY(ysrc),
-                       source->LogicalToDeviceXRel(srcWidth),
-                       source->LogicalToDeviceYRel(srcHeight));
-
-        // if needed clip the subrect down to the size of the source DC
-        wxCoord sw, sh;
-        source->GetSize(&sw, &sh);
-        sw = source->LogicalToDeviceXRel(sw);
-        sh = source->LogicalToDeviceYRel(sh);
-        if (subrect.x + subrect.width > sw)
-            subrect.width = sw - subrect.x;
-        if (subrect.y + subrect.height > sh)
-            subrect.height = sh - subrect.y;
-
         wxBitmap blit = source->GetAsBitmap( &subrect );
 
         if ( blit.IsOk() )
@@ -920,8 +935,19 @@ bool wxGCDCImpl::DoStretchBlit(
             if ( !useMask && blit.GetMask() )
                 blit.SetMask(NULL);
 
-            m_graphicContext->DrawBitmap( blit, xdest, ydest,
-                                          dstWidth, dstHeight);
+            double x = xdest;
+            double y = ydest;
+            double w = dstWidth;
+            double h = dstHeight;
+            // adjust dest rect if source rect is clipped
+            if (subrect.width != subrectOrig.width || subrect.height != subrectOrig.height)
+            {
+                x += (subrect.x - subrectOrig.x) / double(subrectOrig.width) * dstWidth;
+                y += (subrect.y - subrectOrig.y) / double(subrectOrig.height) * dstHeight;
+                w *= double(subrect.width) / subrectOrig.width;
+                h *= double(subrect.height) / subrectOrig.height;
+            }
+            m_graphicContext->DrawBitmap(blit, x, y, w, h);
         }
         else
         {
@@ -958,6 +984,18 @@ void wxGCDCImpl::DoDrawRotatedText(const wxString& str, wxCoord x, wxCoord y,
 
 void wxGCDCImpl::DoDrawText(const wxString& str, wxCoord x, wxCoord y)
 {
+    // For compatibility with other ports (notably wxGTK) and because it's
+    // genuinely useful, we allow passing multiline strings to DrawText().
+    // However there is no native OSX function to draw them directly so we
+    // instead reuse the generic DrawLabel() method to render them. Of course,
+    // DrawLabel() itself will call back to us but with single line strings
+    // only so there won't be any infinite recursion here.
+    if ( str.find('\n') != wxString::npos )
+    {
+        GetOwner()->DrawLabel(str, wxRect(x, y, 0, 0));
+        return;
+    }
+
     wxCHECK_RET( IsOk(), wxT("wxGCDC(cg)::DoDrawText - invalid DC") );
 
     if ( str.empty() )
@@ -1144,5 +1182,22 @@ void wxGCDCImpl::DoDrawCheckMark(wxCoord x, wxCoord y,
 {
     wxDCImpl::DoDrawCheckMark(x,y,width,height);
 }
+
+#ifdef __WXMSW__
+wxRect wxGCDCImpl::MSWApplyGDIPlusTransform(const wxRect& r) const
+{
+    wxGraphicsContext* const gc = GetGraphicsContext();
+    wxCHECK_MSG( gc, r, wxT("Invalid wxGCDC") );
+
+    double x = 0,
+           y = 0;
+    gc->GetTransform().TransformPoint(&x, &y);
+
+    wxRect rect(r);
+    rect.Offset(x, y);
+
+    return rect;
+}
+#endif // __WXMSW__
 
 #endif // wxUSE_GRAPHICS_CONTEXT

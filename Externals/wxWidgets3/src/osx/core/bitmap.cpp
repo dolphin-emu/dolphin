@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: bitmap.cpp 67216 2011-03-16 10:56:41Z SC $
+// RCS-ID:      $Id: bitmap.cpp 70737 2012-02-28 16:30:58Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -149,7 +149,7 @@ static int GetBestBytesPerRow( int rawBytes )
 void wxMacCreateBitmapButton( ControlButtonContentInfo*info , const wxBitmap& bitmap , int forceType )
 {
     memset( info , 0 , sizeof(ControlButtonContentInfo) ) ;
-    if ( bitmap.Ok() )
+    if ( bitmap.IsOk() )
     {
         wxBitmapRefData * bmap = bitmap.GetBitmapData() ;
         if ( bmap == NULL )
@@ -431,59 +431,19 @@ IconRef wxBitmapRefData::GetIconRef()
         switch (sz)
         {
             case 128:
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-                if ( UMAGetSystemVersion() >= 0x1050 )
-                {
-                    dataType = kIconServices128PixelDataARGB ;
-                }
-                else
-#endif
-                {
-                    dataType = kThumbnail32BitData ;
-                    maskType = kThumbnail8BitMask ;
-                }
+                dataType = kIconServices128PixelDataARGB ;
                 break;
 
             case 48:
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-                if ( UMAGetSystemVersion() >= 0x1050 )
-                {
-                    dataType = kIconServices48PixelDataARGB ;
-                }
-                else
-#endif
-                {
-                    dataType = kHuge32BitData ;
-                    maskType = kHuge8BitMask ;
-                }
+                dataType = kIconServices48PixelDataARGB ;
                 break;
 
             case 32:
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-                if ( UMAGetSystemVersion() >= 0x1050 )
-                {
-                    dataType = kIconServices32PixelDataARGB ;
-                }
-                else
-#endif
-                {
-                    dataType = kLarge32BitData ;
-                    maskType = kLarge8BitMask ;
-                }
+                dataType = kIconServices32PixelDataARGB ;
                 break;
 
             case 16:
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-                if ( UMAGetSystemVersion() >= 0x1050 )
-                {
-                    dataType = kIconServices16PixelDataARGB ;
-                }
-                else
-#endif
-                {
-                    dataType = kSmall32BitData ;
-                    maskType = kSmall8BitMask ;
-                }
+                dataType = kIconServices16PixelDataARGB ;
                 break;
 
             default:
@@ -492,8 +452,7 @@ IconRef wxBitmapRefData::GetIconRef()
 
         if ( dataType != 0 )
         {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-            if (  maskType == 0 && UMAGetSystemVersion() >= 0x1050 )
+            if (  maskType == 0 )
             {
                 size_t datasize = sz * sz * 4 ;
                 Handle data = NewHandle( datasize ) ;
@@ -555,7 +514,6 @@ IconRef wxBitmapRefData::GetIconRef()
                 DisposeHandle( data );
             }
             else
-#endif
             {
                 // setup the header properly
 
@@ -644,37 +602,6 @@ IconRef wxBitmapRefData::GetIconRef()
 
 PicHandle wxBitmapRefData::GetPictHandle()
 {
-    if ( m_pictHandle == NULL )
-    {
-#ifndef __LP64__
-        GraphicsExportComponent exporter = 0;
-        OSStatus err = OpenADefaultComponent(GraphicsExporterComponentType, kQTFileTypePicture, &exporter);
-        if (noErr == err)
-        {
-            m_pictHandle = (PicHandle) NewHandle(0);
-            if ( m_pictHandle )
-            {
-                // QT does not correctly export the mask
-                // TODO if we get around to it create a synthetic PICT with the CopyBits and Mask commands
-                CGImageRef imageRef = CreateCGImage();
-                err = GraphicsExportSetInputCGImage( exporter, imageRef );
-                err = GraphicsExportSetOutputHandle(exporter, (Handle)m_pictHandle);
-                err = GraphicsExportDoExport(exporter, NULL);
-                CGImageRelease( imageRef );
-
-                size_t handleSize = GetHandleSize( (Handle) m_pictHandle );
-                // the 512 bytes header is only needed for pict files, but not in memory
-                if ( handleSize >= 512 )
-                {
-                    memmove( *m_pictHandle , (char*)(*m_pictHandle)+512, handleSize - 512 );
-                    SetHandleSize( (Handle) m_pictHandle, handleSize - 512 );
-                }
-            }
-            CloseComponent( exporter );
-        }
-#endif
-    }
-
     return m_pictHandle ;
 }
 #endif
@@ -820,7 +747,6 @@ void wxBitmapRefData::Free()
 #ifndef __LP64__
     if ( m_pictHandle )
     {
-        KillPicture( m_pictHandle ) ;
         m_pictHandle = NULL ;
     }
 #endif
@@ -1031,28 +957,28 @@ wxGDIRefData* wxBitmap::CloneGDIRefData(const wxGDIRefData* data) const
 
 void * wxBitmap::GetRawAccess() const
 {
-    wxCHECK_MSG( Ok() , NULL , wxT("invalid bitmap") ) ;
+    wxCHECK_MSG( IsOk() , NULL , wxT("invalid bitmap") ) ;
 
     return M_BITMAPDATA->GetRawAccess() ;
 }
 
 void * wxBitmap::BeginRawAccess()
 {
-    wxCHECK_MSG( Ok() , NULL , wxT("invalid bitmap") ) ;
+    wxCHECK_MSG( IsOk() , NULL , wxT("invalid bitmap") ) ;
 
     return M_BITMAPDATA->BeginRawAccess() ;
 }
 
 void wxBitmap::EndRawAccess()
 {
-    wxCHECK_RET( Ok() , wxT("invalid bitmap") ) ;
+    wxCHECK_RET( IsOk() , wxT("invalid bitmap") ) ;
 
     M_BITMAPDATA->EndRawAccess() ;
 }
 
 CGImageRef wxBitmap::CreateCGImage() const
 {
-    wxCHECK_MSG( Ok(), NULL , wxT("invalid bitmap") ) ;
+    wxCHECK_MSG( IsOk(), NULL , wxT("invalid bitmap") ) ;
 
     return M_BITMAPDATA->CreateCGImage() ;
 }
@@ -1060,7 +986,7 @@ CGImageRef wxBitmap::CreateCGImage() const
 #ifndef  __WXOSX_IPHONE__
 IconRef wxBitmap::GetIconRef() const
 {
-    wxCHECK_MSG( Ok(), NULL , wxT("invalid bitmap") ) ;
+    wxCHECK_MSG( IsOk(), NULL , wxT("invalid bitmap") ) ;
 
     return M_BITMAPDATA->GetIconRef() ;
 }
@@ -1094,14 +1020,14 @@ WX_UIImage wxBitmap::GetUIImage() const
 #endif
 wxBitmap wxBitmap::GetSubBitmap(const wxRect &rect) const
 {
-    wxCHECK_MSG( Ok() &&
+    wxCHECK_MSG( IsOk() &&
                 (rect.x >= 0) && (rect.y >= 0) &&
                 (rect.x+rect.width <= GetWidth()) &&
                 (rect.y+rect.height <= GetHeight()),
                 wxNullBitmap, wxT("invalid bitmap or bitmap region") );
 
     wxBitmap ret( rect.width, rect.height, GetDepth() );
-    wxASSERT_MSG( ret.Ok(), wxT("GetSubBitmap error") );
+    wxASSERT_MSG( ret.IsOk(), wxT("GetSubBitmap error") );
 
     int destwidth = rect.width ;
     int destheight = rect.height ;
@@ -1192,7 +1118,7 @@ bool wxBitmap::LoadFile(const wxString& filename, wxBitmapType type)
     {
 #if wxUSE_IMAGE
         wxImage loadimage(filename, type);
-        if (loadimage.Ok())
+        if (loadimage.IsOk())
         {
             *this = loadimage;
 
@@ -1228,7 +1154,7 @@ bool wxBitmap::Create(const void* data, wxBitmapType type, int width, int height
 
 wxBitmap::wxBitmap(const wxImage& image, int depth)
 {
-    wxCHECK_RET( image.Ok(), wxT("invalid image") );
+    wxCHECK_RET( image.IsOk(), wxT("invalid image") );
 
     // width and height of the device-dependent bitmap
     int width = image.GetWidth();
@@ -1302,7 +1228,7 @@ wxImage wxBitmap::ConvertToImage() const
 {
     wxImage image;
 
-    wxCHECK_MSG( Ok(), wxNullImage, wxT("invalid bitmap") );
+    wxCHECK_MSG( IsOk(), wxNullImage, wxT("invalid bitmap") );
 
     // create an wxImage object
     int width = GetWidth();
@@ -1434,35 +1360,35 @@ bool wxBitmap::SaveFile( const wxString& filename,
 
 int wxBitmap::GetHeight() const
 {
-   wxCHECK_MSG( Ok(), -1, wxT("invalid bitmap") );
+   wxCHECK_MSG( IsOk(), -1, wxT("invalid bitmap") );
 
    return M_BITMAPDATA->GetHeight();
 }
 
 int wxBitmap::GetWidth() const
 {
-   wxCHECK_MSG( Ok(), -1, wxT("invalid bitmap") );
+   wxCHECK_MSG( IsOk(), -1, wxT("invalid bitmap") );
 
    return M_BITMAPDATA->GetWidth() ;
 }
 
 int wxBitmap::GetDepth() const
 {
-   wxCHECK_MSG( Ok(), -1, wxT("invalid bitmap") );
+   wxCHECK_MSG( IsOk(), -1, wxT("invalid bitmap") );
 
    return M_BITMAPDATA->GetDepth();
 }
 
 wxMask *wxBitmap::GetMask() const
 {
-   wxCHECK_MSG( Ok(), NULL, wxT("invalid bitmap") );
+   wxCHECK_MSG( IsOk(), NULL, wxT("invalid bitmap") );
 
    return M_BITMAPDATA->m_bitmapMask;
 }
 
 bool wxBitmap::HasAlpha() const
 {
-   wxCHECK_MSG( Ok(), false , wxT("invalid bitmap") );
+   wxCHECK_MSG( IsOk(), false , wxT("invalid bitmap") );
 
    return M_BITMAPDATA->HasAlpha() ;
 }
@@ -1494,7 +1420,7 @@ void wxBitmap::SetOk(bool isOk)
 #if wxUSE_PALETTE
 wxPalette *wxBitmap::GetPalette() const
 {
-   wxCHECK_MSG( Ok(), NULL, wxT("Invalid bitmap  GetPalette()") );
+   wxCHECK_MSG( IsOk(), NULL, wxT("Invalid bitmap  GetPalette()") );
 
    return &M_BITMAPDATA->m_bitmapPalette;
 }
@@ -1638,26 +1564,29 @@ bool wxMask::Create(const wxBitmap& bitmap)
     size_t size = m_bytesPerRow * m_height ;
     unsigned char * destdatabase = (unsigned char*) m_memBuf.GetWriteBuf( size ) ;
     wxASSERT( destdatabase != NULL ) ;
-
-    memset( destdatabase , 0 , size ) ;
-    unsigned char * srcdata = (unsigned char*) bitmap.GetRawAccess() ;
-
-    for ( int y = 0 ; y < m_height ; ++y , destdatabase += m_bytesPerRow )
+    
+    if ( destdatabase )
     {
-        unsigned char *destdata = destdatabase ;
-        unsigned char r, g, b;
+        memset( destdatabase , 0 , size ) ;
+        unsigned char * srcdata = (unsigned char*) bitmap.GetRawAccess() ;
 
-        for ( int x = 0 ; x < m_width ; ++x )
+        for ( int y = 0 ; y < m_height ; ++y , destdatabase += m_bytesPerRow )
         {
-            srcdata++ ;
-            r = *srcdata++ ;
-            g = *srcdata++ ;
-            b = *srcdata++ ;
+            unsigned char *destdata = destdatabase ;
+            unsigned char r, g, b;
 
-            if ( ( r + g + b ) > 0x10 )
-                *destdata++ = 0xFF ;
-            else
-                *destdata++ = 0x00 ;
+            for ( int x = 0 ; x < m_width ; ++x )
+            {
+                srcdata++ ;
+                r = *srcdata++ ;
+                g = *srcdata++ ;
+                b = *srcdata++ ;
+
+                if ( ( r + g + b ) > 0x10 )
+                    *destdata++ = 0xFF ;
+                else
+                    *destdata++ = 0x00 ;
+            }
         }
     }
 
@@ -1720,7 +1649,7 @@ WXHBITMAP wxMask::GetHBITMAP() const
 
 class WXDLLEXPORT wxBundleResourceHandler: public wxBitmapHandler
 {
-    DECLARE_ABSTRACT_CLASS(wxPNGResourceHandler)
+    DECLARE_ABSTRACT_CLASS(wxBundleResourceHandler)
     
 public:
     inline wxBundleResourceHandler()
@@ -1800,65 +1729,8 @@ bool wxBundleResourceHandler::LoadFile(wxBitmap *bitmap,
     return false ;
 }
 
-#if !defined( __LP64__ ) && !defined(__WXOSX_IPHONE__)
-
-class WXDLLEXPORT wxPICTResourceHandler: public wxBitmapHandler
-{
-    DECLARE_DYNAMIC_CLASS(wxPICTResourceHandler)
-
-public:
-    inline wxPICTResourceHandler()
-    {
-        SetName(wxT("Macintosh Pict resource"));
-        SetExtension(wxEmptyString);
-        SetType(wxBITMAP_TYPE_PICT_RESOURCE);
-    };
-
-    virtual bool LoadFile(wxBitmap *bitmap,
-                          const wxString& name,
-                          wxBitmapType type,
-                          int desiredWidth,
-                          int desiredHeight);
-};
-
-IMPLEMENT_DYNAMIC_CLASS(wxPICTResourceHandler, wxBitmapHandler)
-
-
-bool wxPICTResourceHandler::LoadFile(wxBitmap *bitmap,
-                                     const wxString& name,
-                                     wxBitmapType WXUNUSED(type),
-                                     int WXUNUSED(desiredWidth),
-                                     int WXUNUSED(desiredHeight))
-{
-#if wxUSE_METAFILE
-    Str255 theName ;
-    wxMacStringToPascal( name , theName ) ;
-
-    PicHandle thePict = (PicHandle ) GetNamedResource( 'PICT' , theName ) ;
-    if ( thePict )
-    {
-        wxMetafile mf ;
-
-        mf.SetPICT( thePict ) ;
-        bitmap->Create( mf.GetWidth() , mf.GetHeight() ) ;
-        wxMemoryDC dc ;
-        dc.SelectObject( *bitmap ) ;
-        mf.Play( &dc ) ;
-        dc.SelectObject( wxNullBitmap ) ;
-
-        return true ;
-    }
-#endif
-
-    return false ;
-}
-#endif
-
 void wxBitmap::InitStandardHandlers()
 {
-#if !defined( __LP64__ ) && !defined(__WXOSX_IPHONE__)
-    AddHandler( new wxPICTResourceHandler ) ;
-#endif
 #if wxOSX_USE_COCOA_OR_CARBON
     AddHandler( new wxICONResourceHandler ) ;
 #endif
@@ -1872,7 +1744,7 @@ void wxBitmap::InitStandardHandlers()
 
 void *wxBitmap::GetRawData(wxPixelDataBase& data, int WXUNUSED(bpp))
 {
-    if ( !Ok() )
+    if ( !IsOk() )
         // no bitmap, no data (raw or otherwise)
         return NULL;
 

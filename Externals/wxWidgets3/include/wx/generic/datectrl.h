@@ -4,7 +4,7 @@
 // Author:      Andreas Pflug
 // Modified by:
 // Created:     2005-01-19
-// RCS-ID:      $Id: datectrl.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: datectrl.h 70736 2012-02-28 14:41:30Z VZ $
 // Copyright:   (c) 2005 Andreas Pflug <pgadmin@pse-consulting.de>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,6 +81,10 @@ private:
     void OnText(wxCommandEvent &event);
     void OnSize(wxSizeEvent& event);
     void OnFocus(wxFocusEvent& event);
+
+#ifdef __WXOSX_COCOA__
+    virtual void OSXGenerateEvent(const wxDateTime& WXUNUSED(dt)) { }
+#endif
 
     wxComboCtrl* m_combo;
     wxCalendarComboPopup* m_popup;

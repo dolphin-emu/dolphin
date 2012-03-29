@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Mike Wetherell
 // Created:     11/07/98
-// RCS-ID:      $Id: zstream.cpp 66259 2010-11-25 00:53:44Z VZ $
+// RCS-ID:      $Id: zstream.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@
 // apparently not the case for all MSW makefiles and so, unless we use
 // configure (which defines __WX_SETUP_H__) or it is explicitly overridden by
 // the user (who can define wxUSE_ZLIB_H_IN_PATH), we hardcode the path here
-#if defined(__WXMSW__) && !defined(__WX_SETUP_H__) && !defined(wxUSE_ZLIB_H_IN_PATH)
+#if defined(__WINDOWS__) && !defined(__WX_SETUP_H__) && !defined(wxUSE_ZLIB_H_IN_PATH)
     #include "../zlib/zlib.h"
 #else
     #include "zlib.h"

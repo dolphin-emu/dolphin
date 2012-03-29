@@ -36,6 +36,9 @@ WNDCLASSEX wndClass;
 const TCHAR m_szClassName[] = _T("DolphinEmuWnd");
 int g_winstyle;
 static volatile bool s_sizing;
+static const int TITLE_TEXT_BUF_SIZE = 1024;
+TCHAR m_titleTextBuffer[TITLE_TEXT_BUF_SIZE];
+static const int WM_SETTEXT_CUSTOM = WM_USER + WM_SETTEXT;
 
 bool IsSizing()
 {
@@ -225,6 +228,10 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		PostMessage(m_hParent, WM_USER, WM_USER_SETCURSOR, 0);
 		return true;
 
+	case WM_SETTEXT_CUSTOM:
+		SendMessage(hWnd, WM_SETTEXT, wParam, lParam);
+		break;
+
 	default:
 		return DefWindowProc(hWnd, iMsg, wParam, lParam);
 	}
@@ -355,6 +362,29 @@ void SetSize(int width, int height)
 	rc.top = (1024 - h)/2;
 	rc.bottom = rc.top + h;
 	MoveWindow(m_hWnd, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, TRUE);
+}
+
+void SetWindowText(const TCHAR* text)
+{
+	// the simple way.
+	// we don't do this because it's a blocking call and the GUI thread might be waiting for us.
+	//::SetWindowText(m_hWnd, text);
+
+	// copy to m_titleTextBuffer in such a way that
+	// it remains null-terminated and without garbage data at every point in time,
+	// in case another thread reads it while we're doing this.
+	for (int i = 0; i < TITLE_TEXT_BUF_SIZE-1; ++i)
+	{
+		m_titleTextBuffer[i+1] = 0;
+		TCHAR c = text[i];
+		m_titleTextBuffer[i] = c;
+		if (!c)
+			break;
+	}
+
+	// the OS doesn't allow posting WM_SETTEXT,
+	// so we post our own message and convert it to that in WndProc
+	PostMessage(m_hWnd, WM_SETTEXT_CUSTOM, 0, (LPARAM)m_titleTextBuffer);
 }
 
 }

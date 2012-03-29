@@ -177,7 +177,7 @@ public:
 
 class InputConfigDialog;
 
-class GamepadPage : public wxNotebookPage
+class GamepadPage : public wxPanel
 {
 	friend class InputConfigDialog;
 	friend class ControlDialog;

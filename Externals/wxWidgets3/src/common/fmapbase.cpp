@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     21.06.2003 (extracted from common/fontmap.cpp)
-// RCS-ID:      $Id: fmapbase.cpp 65062 2010-07-23 23:33:16Z VZ $
+// RCS-ID:      $Id: fmapbase.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1999-2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@
     #include "wx/wxcrtvararg.h"
 #endif //WX_PRECOMP
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
     #include  "wx/msw/private.h"  // includes windows.h for LOGFONT
     #include  "wx/msw/winundef.h"
 #endif
@@ -97,9 +97,6 @@ static const wxFontEncoding gs_encodings[] =
     wxFONTENCODING_UTF32LE,
     wxFONTENCODING_EUC_JP,
     wxFONTENCODING_DEFAULT,
-    wxFONTENCODING_BIG5,
-    wxFONTENCODING_SHIFT_JIS,
-    wxFONTENCODING_GB2312,
     wxFONTENCODING_ISO2022_JP,
 
     wxFONTENCODING_MACROMAN,
@@ -166,10 +163,10 @@ static const char* const gs_encodingDescs[] =
     wxTRANSLATE( "KOI8-U" ),
     wxTRANSLATE( "Windows/DOS OEM Cyrillic (CP 866)" ),
     wxTRANSLATE( "Windows Thai (CP 874)" ),
-    wxTRANSLATE( "Windows Japanese (CP 932)" ),
-    wxTRANSLATE( "Windows Chinese Simplified (CP 936)" ),
+    wxTRANSLATE( "Windows Japanese (CP 932) or Shift-JIS" ),
+    wxTRANSLATE( "Windows Chinese Simplified (CP 936) or GB-2312" ),
     wxTRANSLATE( "Windows Korean (CP 949)" ),
-    wxTRANSLATE( "Windows Chinese Traditional (CP 950)" ),
+    wxTRANSLATE( "Windows Chinese Traditional (CP 950) or Big-5" ),
     wxTRANSLATE( "Windows Central European (CP 1250)" ),
     wxTRANSLATE( "Windows Cyrillic (CP 1251)" ),
     wxTRANSLATE( "Windows Western European (CP 1252)" ),
@@ -194,9 +191,6 @@ static const char* const gs_encodingDescs[] =
 #endif // WORDS_BIGENDIAN
     wxTRANSLATE( "Extended Unix Codepage for Japanese (EUC-JP)" ),
     wxTRANSLATE( "US-ASCII" ),
-    wxTRANSLATE( "BIG5" ),
-    wxTRANSLATE( "SHIFT-JIS" ),
-    wxTRANSLATE( "GB-2312" ),
     wxTRANSLATE( "ISO-2022-JP" ),
 
     wxTRANSLATE( "MacRoman" ),
@@ -242,7 +236,7 @@ static const char* const gs_encodingDescs[] =
 };
 
 // and the internal names (these are not translated on purpose!)
-static const wxChar* const gs_encodingNames[WXSIZEOF(gs_encodingDescs)][9] =
+static const wxChar* const gs_encodingNames[][9] =
 {
     // names from the columns correspond to these OS:
     //      Linux        Solaris and IRIX       HP-UX             AIX
@@ -271,10 +265,10 @@ static const wxChar* const gs_encodingNames[WXSIZEOF(gs_encodingDescs)][9] =
     { wxT( "WINDOWS-866" ), wxT( "CP866" ), NULL },
 
     { wxT( "WINDOWS-874" ), wxT( "CP874" ), wxT( "MS874" ), wxT( "IBM-874" ), NULL },
-    { wxT( "WINDOWS-932" ), wxT( "CP932" ), wxT( "MS932" ), wxT( "IBM-932" ), NULL },
-    { wxT( "WINDOWS-936" ), wxT( "CP936" ), wxT( "MS936" ), wxT( "IBM-936" ), NULL },
+    { wxT( "WINDOWS-932" ), wxT( "CP932" ), wxT( "MS932" ), wxT( "IBM-932" ), wxT( "SJIS" ), wxT( "SHIFT-JIS" ), wxT( "SHIFT_JIS" ), NULL },
+    { wxT( "WINDOWS-936" ), wxT( "CP936" ), wxT( "MS936" ), wxT( "IBM-936" ), wxT( "GB2312" ), NULL },
     { wxT( "WINDOWS-949" ), wxT( "CP949" ), wxT( "MS949" ), wxT( "IBM-949" ), wxT( "EUC-KR" ), wxT( "eucKR" ), wxT( "euc_kr" ), NULL },
-    { wxT( "WINDOWS-950" ), wxT( "CP950" ), wxT( "MS950" ), wxT( "IBM-950" ), NULL },
+    { wxT( "WINDOWS-950" ), wxT( "CP950" ), wxT( "MS950" ), wxT( "IBM-950" ), wxT( "BIG5" ), wxT( "BIG-5" ), wxT( "BIG-FIVE" ), NULL },
     { wxT( "WINDOWS-1250" ),wxT( "CP1250" ),wxT( "MS1250" ),wxT( "IBM-1250" ),NULL },
     { wxT( "WINDOWS-1251" ),wxT( "CP1251" ),wxT( "MS1251" ),wxT( "IBM-1251" ),NULL },
     { wxT( "WINDOWS-1252" ),wxT( "CP1252" ),wxT( "MS1252" ),wxT( "IBM-1252" ),NULL },
@@ -305,9 +299,6 @@ static const wxChar* const gs_encodingNames[WXSIZEOF(gs_encodingDescs)][9] =
     { wxT( "US-ASCII" ), wxT( "ASCII" ), wxT("C"), wxT("POSIX"), wxT("ANSI_X3.4-1968"),
       wxT("646"), wxT("roman8"), wxT( "" ), NULL },
 
-    { wxT( "BIG5" ), wxT("big5"), NULL },
-    { wxT( "SJIS" ), wxT( "SHIFT-JIS" ), wxT( "SHIFT_JIS" ), NULL },
-    { wxT( "GB2312" ), NULL },
     { wxT( "ISO-2022-JP" ), NULL },
 
 

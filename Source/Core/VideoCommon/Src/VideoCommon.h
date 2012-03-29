@@ -56,12 +56,6 @@ enum
 	MAX_XFB_HEIGHT = 574
 };
 
-// If this is enabled, bounding boxes will be computed for everything drawn.
-// This can theoretically have a big speed hit in some geom heavy games. Needs more work.
-// Helps some effects in Paper Mario (but they aren't quite right yet).
-// Do testing to figure out if the speed hit is bad?
-// #define BBOX_SUPPORT
-
 // Logging
 // ----------
 void HandleGLError();

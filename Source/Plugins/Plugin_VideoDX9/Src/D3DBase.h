@@ -47,6 +47,7 @@ namespace D3D
 #define FOURCC_NULL ((D3DFORMAT)(MAKEFOURCC('N','U','L','L')))
 
 bool IsATIDevice();
+bool IsIntelDevice();
 HRESULT Init();
 HRESULT Create(int adapter, HWND wnd, int resolution, int aa_mode, bool auto_depth);
 void Close();

@@ -109,17 +109,16 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if (!File::Exists(DirName))
 			{
 				WARN_LOG(WII_IPC_FILEIO, "FS: Search not found: %s", DirName.c_str());
-				ReturnValue = FS_DIRFILE_NOT_FOUND;
+				ReturnValue = FS_FILE_NOT_EXIST;
 				break;
 			}
-
-			// AyuanX: what if we return "found one successfully" if it is a file?
 			else if (!File::IsDirectory(DirName))
 			{
 				// It's not a directory, so error.
-				// Games don't usually seem to care WHICH error they get, as long as it's <0
-				WARN_LOG(WII_IPC_FILEIO, "\tNot a directory - return FS_INVALID_ARGUMENT");
-				ReturnValue = FS_INVALID_ARGUMENT;
+				// Games don't usually seem to care WHICH error they get, as long as it's <
+				// Well the system menu CARES!
+				WARN_LOG(WII_IPC_FILEIO, "\tNot a directory - return FS_RESULT_FATAL");
+				ReturnValue = FS_RESULT_FATAL;
 				break;
 			}
 

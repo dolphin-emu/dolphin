@@ -4,13 +4,13 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     14/2/2007
-// RCS-ID:      $Id: hyperlink.h 44647 2007-03-07 22:12:47Z VZ $
+// RCS-ID:      $Id: hyperlink.h 67378 2011-04-02 20:43:29Z PC $
 // Copyright:   (c) 2007 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#ifndef __GTKHYPERLINKCTRLH__
-#define __GTKHYPERLINKCTRLH__
+#ifndef _WX_GTKHYPERLINKCTRL_H_
+#define _WX_GTKHYPERLINKCTRL_H_
 
 #include "wx/generic/hyperlink.h"
 
@@ -62,16 +62,12 @@ public:
     virtual void SetLabel(const wxString &label);
 
 protected:
-    // overridden base class virtuals
-
-    // Returns the best size for the window, which is the size needed
-    // to display the text label.
     virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestClientSize() const;
 
     virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
 
-private:
     DECLARE_DYNAMIC_CLASS(wxHyperlinkCtrl)
 };
 
-#endif // __GTKHYPERLINKCTRLH__
+#endif // _WX_GTKHYPERLINKCTRL_H_

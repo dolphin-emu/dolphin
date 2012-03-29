@@ -78,7 +78,7 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 {
 	TCHAR temp[512];
 	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs | DX9 | %hs"), scm_rev_str, text);
-	SetWindowText(EmuWindow::GetWnd(), temp);
+	EmuWindow::SetWindowText(temp);
 }
 
 std::string VideoBackend::GetName() const
@@ -132,6 +132,7 @@ void VideoBackend::ShowConfig(void* parent)
 
 bool VideoBackend::Initialize(void *&window_handle)
 {
+	InitializeShared();
 	InitBackendInfo();
 
 	frameCount = 0;

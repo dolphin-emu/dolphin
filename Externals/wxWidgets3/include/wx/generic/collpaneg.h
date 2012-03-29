@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     8/10/2006
-// RCS-ID:      $Id: collpaneg.h 58606 2009-02-01 20:59:03Z FM $
+// RCS-ID:      $Id: collpaneg.h 68366 2011-07-24 22:19:33Z VZ $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,8 @@ class WXDLLIMPEXP_FWD_CORE wxDisclosureTriangle;
 // wxGenericCollapsiblePane
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_CORE wxGenericCollapsiblePane : public wxCollapsiblePaneBase
+class WXDLLIMPEXP_CORE wxGenericCollapsiblePane :
+    public wxNavigationEnabled<wxCollapsiblePaneBase>
 {
 public:
     wxGenericCollapsiblePane() { Init(); }
@@ -103,7 +104,6 @@ private:
     void OnButton(wxCommandEvent &ev);
     void OnSize(wxSizeEvent &ev);
 
-    WX_DECLARE_CONTROL_CONTAINER();
     DECLARE_DYNAMIC_CLASS(wxGenericCollapsiblePane)
     DECLARE_EVENT_TABLE()
 };

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.06.2003 (extracted from common/appcmn.cpp)
-// RCS-ID:      $Id: appbase.cpp 66229 2010-11-22 01:22:56Z VZ $
+// RCS-ID:      $Id: appbase.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@
 #endif
 
 #ifndef WX_PRECOMP
-    #ifdef __WXMSW__
+    #ifdef __WINDOWS__
         #include  "wx/msw/wrapwin.h"  // includes windows.h for MessageBox()
     #endif
     #include "wx/list.h"
@@ -52,13 +52,11 @@
     #include <typeinfo>
 #endif
 
-#ifndef __WXPALMOS5__
-#if !defined(__WXMSW__) || defined(__WXMICROWIN__)
+#if !defined(__WINDOWS__) || defined(__WXMICROWIN__)
   #include  <signal.h>      // for SIGTRAP used by wxTrap()
 #endif  //Win/Unix
 
 #include <locale.h>
-#endif // ! __WXPALMOS5__
 
 #if wxUSE_FONTMAP
     #include "wx/fontmap.h"
@@ -67,7 +65,7 @@
 #if wxDEBUG_LEVEL
     #if wxUSE_STACKWALKER
         #include "wx/stackwalk.h"
-        #ifdef __WXMSW__
+        #ifdef __WINDOWS__
             #include "wx/msw/debughlp.h"
         #endif
     #endif // wxUSE_STACKWALKER
@@ -150,10 +148,14 @@ wxAppConsoleBase::wxAppConsoleBase()
     wxDELETE(m_traits);
 #endif
 #endif
+
+    wxEvtHandler::AddFilter(this);
 }
 
 wxAppConsoleBase::~wxAppConsoleBase()
 {
+    wxEvtHandler::RemoveFilter(this);
+
     // we're being destroyed and using this object from now on may not work or
     // even crash so don't leave dangling pointers to it
     ms_appInstance = NULL;
@@ -177,7 +179,6 @@ bool wxAppConsoleBase::Initialize(int& WXUNUSED(argc), wxChar **WXUNUSED(argv))
 wxString wxAppConsoleBase::GetAppName() const
 {
     wxString name = m_appName;
-#ifndef __WXPALMOS__
     if ( name.empty() )
     {
         if ( argv )
@@ -186,7 +187,6 @@ wxString wxAppConsoleBase::GetAppName() const
             wxFileName::SplitPath(argv[0], NULL, &name, NULL);
         }
     }
-#endif // !__WXPALMOS__
     return name;
 }
 
@@ -345,8 +345,11 @@ bool wxAppConsoleBase::Dispatch()
 bool wxAppConsoleBase::Yield(bool onlyIfNeeded)
 {
     wxEventLoopBase * const loop = wxEventLoopBase::GetActive();
+    if ( loop )
+       return loop->Yield(onlyIfNeeded);
 
-    return loop && loop->Yield(onlyIfNeeded);
+    wxScopedPtr<wxEventLoopBase> tmpLoop(CreateMainLoop());
+    return tmpLoop->Yield(onlyIfNeeded);
 }
 
 void wxAppConsoleBase::WakeUpIdle()
@@ -398,7 +401,7 @@ bool wxAppConsoleBase::IsMainLoopRunning()
 int wxAppConsoleBase::FilterEvent(wxEvent& WXUNUSED(event))
 {
     // process the events normally by default
-    return -1;
+    return Event_Skip;
 }
 
 void wxAppConsoleBase::DelayPendingEventHandler(wxEvtHandler* toDelay)
@@ -893,12 +896,12 @@ wxString wxAppTraitsBase::GetAssertStackTrace()
 {
 #if wxDEBUG_LEVEL
 
-#if !defined(__WXMSW__)
+#if !defined(__WINDOWS__)
     // on Unix stack frame generation may take some time, depending on the
     // size of the executable mainly... warn the user that we are working
     wxFprintf(stderr, "Collecting stack trace information, please wait...");
     fflush(stderr);
-#endif // !__WXMSW__
+#endif // !__WINDOWS__
 
 
     wxString stackTrace;
@@ -999,12 +1002,21 @@ bool wxAssertIsEqual(int x, int y)
     return x == y;
 }
 
+void wxAbort()
+{
+#ifdef __WXWINCE__
+    ExitThread(3);
+#else
+    abort();
+#endif
+}
+
 #if wxDEBUG_LEVEL
 
 // break into the debugger
 void wxTrap()
 {
-#if defined(__WXMSW__) && !defined(__WXMICROWIN__)
+#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
     DebugBreak();
 #elif defined(_MSL_USING_MW_C_HEADERS) && _MSL_USING_MW_C_HEADERS
     Debugger();
@@ -1025,7 +1037,7 @@ wxDefaultAssertHandler(const wxString& file,
 {
     // If this option is set, we should abort immediately when assert happens.
     if ( wxSystemOptions::GetOptionInt("exit-on-assert") )
-        abort();
+        wxAbort();
 
     // FIXME MT-unsafe
     static int s_bInAssert = 0;
@@ -1167,8 +1179,8 @@ static void LINKAGEMODE SetTraceMasks()
 static
 bool DoShowAssertDialog(const wxString& msg)
 {
-    // under MSW we can show the dialog even in the console mode
-#if defined(__WXMSW__) && !defined(__WXMICROWIN__)
+    // under Windows we can show the dialog even in the console mode
+#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
     wxString msgDlg(msg);
 
     // this message is intentionally not translated -- it is for developers
@@ -1191,9 +1203,9 @@ bool DoShowAssertDialog(const wxString& msg)
 
         //case IDNO: nothing to do
     }
-#else // !__WXMSW__
+#else // !__WINDOWS__
     wxUnusedVar(msg);
-#endif // __WXMSW__/!__WXMSW__
+#endif // __WINDOWS__/!__WINDOWS__
 
     // continue with the asserts by default
     return false;

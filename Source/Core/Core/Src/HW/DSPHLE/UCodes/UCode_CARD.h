@@ -23,7 +23,7 @@
 class CUCode_CARD : public IUCode
 {
 public:
-	CUCode_CARD(DSPHLE *dsp_hle);
+	CUCode_CARD(DSPHLE *dsp_hle, u32 crc);
 	virtual ~CUCode_CARD();
 
 	void HandleMail(u32 _uMail);

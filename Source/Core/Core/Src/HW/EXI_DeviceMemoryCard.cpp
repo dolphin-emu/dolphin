@@ -22,10 +22,12 @@
 #include "../CoreTiming.h"
 
 #include "../ConfigManager.h"
+#include "../Movie.h"
 #include "EXI.h"
 #include "EXI_Device.h"
 #include "EXI_DeviceMemoryCard.h"
 #include "Sram.h"
+#include "GCMemcard.h"
 
 #define MC_STATUS_BUSY					0x80   
 #define MC_STATUS_UNLOCKED				0x40
@@ -34,23 +36,22 @@
 #define MC_STATUS_PROGRAMEERROR			0x08
 #define MC_STATUS_READY					0x01
 #define SIZE_TO_Mb (1024 * 8 * 16)
-
-static CEXIMemoryCard *cards[2];
+#define MC_HDR_SIZE 0xA000
 
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
-	CEXIMemoryCard *ptr = cards[userdata];
+	// casting userdata seems less error-prone than indexing a static (creation order issues, etc.)
+	CEXIMemoryCard *ptr = (CEXIMemoryCard*)userdata;
 	ptr->Flush();
 }
 
-CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int _card_index) :
-	m_strFilename(_rFilename),
-	card_index(_card_index),
-	m_bDirty(false)
+CEXIMemoryCard::CEXIMemoryCard(const int index)
+	: card_index(index)
+	, m_bDirty(false)
 {
-	cards[_card_index] = this;
-	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
-	reloadOnState = SConfig::GetInstance().b_reloadMCOnState;
+	m_strFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
+	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
+	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardA" : "memcardB", FlushCallback);
  
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -84,7 +85,6 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
  
 		INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
 		pFile.ReadBytes(memory_card_content, memory_card_size);
-		SetCardFlashID(memory_card_content, card_index);
 
 	}
 	else
@@ -94,11 +94,11 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 		memory_card_size = nintendo_card_id * SIZE_TO_Mb;
 
 		memory_card_content = new u8[memory_card_size];
-		memset(memory_card_content, 0xFF, memory_card_size);
- 
+		GCMemcard::Format(memory_card_content, m_strFilename.find(".JAP.raw") != std::string::npos, nintendo_card_id);
+		memset(memory_card_content+MC_HDR_SIZE, 0xFF, memory_card_size-MC_HDR_SIZE); 
 		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
-		Flush();
 	}
+	SetCardFlashID(memory_card_content, card_index);
 }
 
 void innerFlush(FlushData* data)
@@ -157,6 +157,7 @@ void CEXIMemoryCard::Flush(bool exiting)
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
+	CoreTiming::RemoveEvent(et_this_card);
 	Flush(true);
 	delete[] memory_card_content;
 	memory_card_content = NULL;
@@ -236,7 +237,7 @@ void CEXIMemoryCard::SetCS(int cs)
 			// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
 			// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write.
 			CoreTiming::RemoveEvent(et_this_card);
-			CoreTiming::ScheduleEvent(500000000, et_this_card, card_index);
+			CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)this);
 			break;
 		}
 	}
@@ -422,13 +423,34 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 	DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
 }
 
+void CEXIMemoryCard::OnAfterLoad()
+{
+
+}
+
 void CEXIMemoryCard::DoState(PointerWrap &p)
 {
-	if (reloadOnState)
+	// for movie sync, we need to save/load memory card contents (and other data) in savestates.
+	// otherwise, we'll assume the user wants to keep their memcards and saves separate,
+	// unless we're loading (in which case we let the savestate contents decide, in order to stay aligned with them).
+	bool storeContents = (Movie::IsRecordingInput() || Movie::IsPlayingInput());
+	p.Do(storeContents);
+
+	if (storeContents)
 	{
-		int slot = 0;
-		if (GetFileName() == SConfig::GetInstance().m_strMemoryCardA)
-			slot = 1;
-		ExpansionInterface::ChangeDevice(slot, slot ? EXIDEVICE_MEMORYCARD_B : EXIDEVICE_MEMORYCARD_A, 0);
+		p.Do(interruptSwitch);
+		p.Do(m_bInterruptSet);
+		p.Do(command);
+		p.Do(status);
+		p.Do(m_uPosition);
+		p.Do(programming_buffer);
+		p.Do(formatDelay);
+		p.Do(m_bDirty);
+		p.Do(address);
+
+		p.Do(nintendo_card_id);
+		p.Do(card_id);
+		p.Do(memory_card_size);
+		p.DoArray(memory_card_content, memory_card_size); 
 	}
 }

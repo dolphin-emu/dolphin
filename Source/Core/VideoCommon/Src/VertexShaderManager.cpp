@@ -150,6 +150,12 @@ void VertexShaderManager::Init()
 	memset(&xfregs, 0, sizeof(xfregs));
 	memset(xfmem, 0, sizeof(xfmem));
 	ResetView();
+
+	// TODO: should these go inside ResetView()?
+	Matrix44::LoadIdentity(s_viewportCorrection);
+	memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
+	for (int i = 0; i < 4; ++i)
+		g_fProjectionMatrix[i*5] = 1.0f;
 }
 
 void VertexShaderManager::Shutdown()
@@ -300,7 +306,11 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
-		SetVSConstant4f(C_DEPTHPARAMS,xfregs.viewport.farZ / 16777216.0f,xfregs.viewport.zRange / 16777216.0f,0.0f,0.0f);
+		SetVSConstant4f(C_DEPTHPARAMS,
+						xfregs.viewport.farZ / 16777216.0f,
+						xfregs.viewport.zRange / 16777216.0f,
+						-1.f / (float)g_renderer->EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd)),
+						1.f / (float)g_renderer->EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht)));
 		// This is so implementation-dependent that we can't have it here.
 		UpdateViewport(s_viewportCorrection);
 		bProjectionChanged = true;

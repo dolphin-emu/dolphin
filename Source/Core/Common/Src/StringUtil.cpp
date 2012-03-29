@@ -125,15 +125,26 @@ std::string StripQuotes(const std::string& s)
 bool TryParse(const std::string &str, u32 *const output)
 {
 	char *endptr = NULL;
-	u32 value = strtoul(str.c_str(), &endptr, 0);
+
+	// Reset errno to a value other than ERANGE
+	errno = 0;
+
+	unsigned long value = strtoul(str.c_str(), &endptr, 0);
 	
 	if (!endptr || *endptr)
 		return false;
 
-	if (value == ULONG_MAX && errno == ERANGE)
+	if (errno == ERANGE)
 		return false;
 
-	*output = value;
+	if (ULONG_MAX > UINT_MAX) {
+		// Note: The typecasts avoid GCC warnings when long is 32 bits wide.
+		if (value >= static_cast<unsigned long>(0x100000000ull)
+				&& value <= static_cast<unsigned long>(0xFFFFFFFF00000000ull))
+			return false;
+	}
+
+	*output = static_cast<u32>(value);
 	return true;
 }
 

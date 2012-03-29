@@ -153,6 +153,12 @@ void Init()
 	m_Volume.hex = 0;
 	m_SampleCounter	= 0;
 	m_InterruptTiming = 0;
+
+	g_LastCPUTime = 0;
+	g_CPUCyclesPerSample = 0xFFFFFFFFFFFULL;
+
+	g_AISSampleRate = 48000;
+	g_AIDSampleRate = 32000;
 }
 
 void Shutdown()

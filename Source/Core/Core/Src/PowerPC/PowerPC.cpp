@@ -37,6 +37,7 @@
 #include "CPUCoreBase.h"
 
 #include "../Host.h"
+#include "HW/EXI.h"
 
 CPUCoreBase *cpu_core_base;
 
@@ -74,13 +75,20 @@ void ExpandCR()
 
 void DoState(PointerWrap &p)
 {
-	rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
-	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
+	// some of this code has been disabled, because
+	// it changes registers even in MODE_MEASURE (which is suspicious and seems like it could cause desyncs)
+	// and because the values it's changing have been added to CoreTiming::DoState, so it might conflict to mess with them here.
+
+//	rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
+//	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
 
 	p.Do(ppcState);
 
-	SystemTimers::DecrementerSet();
-	SystemTimers::TimeBaseSet();
+//	SystemTimers::DecrementerSet();
+//	SystemTimers::TimeBaseSet();
+
+	if (jit && p.GetMode() == PointerWrap::MODE_READ)
+		jit->GetBlockCache()->ClearSafe();
 }
 
 void ResetRegisters()
@@ -146,6 +154,17 @@ void Init(int cpu_core)
 	//but still - set any useful sse options here
 #endif
 
+	memset(ppcState.mojs, 0, sizeof(ppcState.mojs));
+	memset(ppcState.sr, 0, sizeof(ppcState.sr));
+	ppcState.DebugCount = 0;
+	ppcState.dtlb_last = 0;
+	ppcState.dtlb_last = 0;
+	memset(ppcState.dtlb_va, 0, sizeof(ppcState.dtlb_va));
+	memset(ppcState.dtlb_pa, 0, sizeof(ppcState.dtlb_pa));
+	ppcState.itlb_last = 0;
+	memset(ppcState.itlb_va, 0, sizeof(ppcState.itlb_va));
+	memset(ppcState.itlb_pa, 0, sizeof(ppcState.itlb_pa));
+
 	ResetRegisters();
 	PPCTables::InitTables(cpu_core);
 
@@ -189,7 +208,7 @@ void Init(int cpu_core)
 	}
 	state = CPU_STEPPING;
 
-	ppcState.iCache.Reset();
+	ppcState.iCache.Init();
 }
 
 void Shutdown()
@@ -205,6 +224,11 @@ void Shutdown()
 	state = CPU_POWERDOWN;
 }
 
+CoreMode GetMode()
+{
+	return mode;
+}
+
 void SetMode(CoreMode new_mode)
 {
 	if (new_mode == mode)
@@ -215,7 +239,6 @@ void SetMode(CoreMode new_mode)
 	switch (mode)
 	{
 	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		jit->ClearCache();  // Remove all those nasty JIT patches.
 		cpu_core_base = interpreter;
 		break;
 
@@ -268,10 +291,13 @@ void Stop()
 
 void CheckExceptions()
 {
+	// Make sure we are checking against the latest EXI status. This is required
+	// for devices which interrupt frequently, such as the gc mic
+	ExpansionInterface::UpdateInterrupts();
+
 	// Read volatile data once
 	u32 exceptions = ppcState.Exceptions;
 
-	// This check is unnecessary in JIT mode. However, it probably doesn't really hurt.
 	if (!exceptions)
 		return;
 
@@ -303,7 +329,7 @@ void CheckExceptions()
 	{
 		SRR0 = PC;
 		// say that it's a trap exception
-		SRR1 = (MSR & 0x87C0FFFF) | 0x40000;
+		SRR1 = (MSR & 0x87C0FFFF) | 0x20000;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
 		NPC = 0x80000700;

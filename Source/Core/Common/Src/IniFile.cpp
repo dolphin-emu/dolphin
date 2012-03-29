@@ -459,7 +459,11 @@ bool IniFile::Save(const char* filename)
 		return false;
 	}
 
-	for (std::vector<Section>::const_iterator iter = sections.begin(); iter != sections.end(); ++iter)
+	// Currently testing if dolphin community can handle the requirements of C++11 compilation
+	// If you get a compiler error on this line, your compiler is probably old.
+	// Update to g++ 4.4 or a recent version of clang (XCode 4.2 on OS X).
+	// If you don't want to update, complain in a google code issue, the dolphin forums or #dolphin-emu.
+	for (auto iter = sections.begin(); iter != sections.end(); ++iter)
 	{
 		const Section& section = *iter;
 

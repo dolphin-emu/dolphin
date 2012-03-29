@@ -22,6 +22,7 @@
 #include "Atomic.h"
 #include "OpcodeDecoding.h"
 #include "CommandProcessor.h"
+#include "PixelEngine.h"
 #include "ChunkFile.h"
 #include "Fifo.h"
 #include "HW/Memmap.h"
@@ -137,8 +138,7 @@ void RunGpuLoop()
 				
 		CommandProcessor::SetCpStatus();
 		// check if we are able to run this buffer	
-		while (!CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable &&
-			fifo.CPReadWriteDistance && (!AtBreakpoint() || CommandProcessor::OnOverflow))
+		while (GpuRunningState && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() && !PixelEngine::WaitingForPEInterrupt())
 		{
 			if (!GpuRunningState) break;
 

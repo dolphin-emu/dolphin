@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Stefan Csomor
-// RCS-ID:      $Id: dcgraph.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: dcgraph.h 68935 2011-08-27 23:26:53Z RD $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -29,10 +29,15 @@ public:
 #if wxUSE_PRINTING_ARCHITECTURE
     wxGCDC( const wxPrinterDC& dc );
 #endif
+#if defined(__WXMSW__) && wxUSE_ENH_METAFILE
+    wxGCDC( const wxEnhMetaFileDC& dc );
+#endif
+    wxGCDC(wxGraphicsContext* context);
+    
     wxGCDC();
     virtual ~wxGCDC();
 
-    wxGraphicsContext* GetGraphicsContext();
+    wxGraphicsContext* GetGraphicsContext() const;
     void SetGraphicsContext( wxGraphicsContext* ctx );
 
 #ifdef __WXMSW__
@@ -55,6 +60,9 @@ public:
     wxGCDCImpl( wxDC *owner, const wxMemoryDC& dc );
 #if wxUSE_PRINTING_ARCHITECTURE
     wxGCDCImpl( wxDC *owner, const wxPrinterDC& dc );
+#endif
+#if defined(__WXMSW__) && wxUSE_ENH_METAFILE
+    wxGCDCImpl( wxDC *owner, const wxEnhMetaFileDC& dc );
 #endif
     wxGCDCImpl( wxDC *owner );
 
@@ -103,7 +111,7 @@ public:
 
     virtual void ComputeScaleAndOrigin();
 
-    wxGraphicsContext* GetGraphicsContext() { return m_graphicContext; }
+    wxGraphicsContext* GetGraphicsContext() const { return m_graphicContext; }
     virtual void SetGraphicsContext( wxGraphicsContext* ctx );
 
     // the true implementations
@@ -192,6 +200,10 @@ public:
         const wxFont *theFont = NULL) const;
 
     virtual bool DoGetPartialTextExtents(const wxString& text, wxArrayInt& widths) const;
+
+#ifdef __WXMSW__
+    virtual wxRect MSWApplyGDIPlusTransform(const wxRect& r) const;
+#endif // __WXMSW__
 
 protected:
     // scaling variables

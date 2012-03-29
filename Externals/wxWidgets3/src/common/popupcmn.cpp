@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.01.01
-// RCS-ID:      $Id: popupcmn.cpp 64940 2010-07-13 13:29:13Z VZ $
+// RCS-ID:      $Id: popupcmn.cpp 69966 2011-12-09 15:20:55Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,6 +44,11 @@
 
 #ifdef __WXGTK__
     #include <gtk/gtk.h>
+    #if GTK_CHECK_VERSION(2,0,0)
+        #include "wx/gtk/private/gtk2-compat.h"
+    #else
+        #define gtk_widget_get_window(x) x->window
+    #endif
 #elif defined(__WXMSW__)
     #include "wx/msw/private.h"
 #elif defined(__WXX11__)
@@ -71,6 +76,7 @@ public:
 protected:
     // event handlers
     void OnLeftDown(wxMouseEvent& event);
+    void OnCaptureLost(wxMouseCaptureLostEvent& event);
 
 private:
     wxPopupTransientWindow *m_popup;
@@ -101,6 +107,7 @@ private:
 
 BEGIN_EVENT_TABLE(wxPopupWindowHandler, wxEvtHandler)
     EVT_LEFT_DOWN(wxPopupWindowHandler::OnLeftDown)
+    EVT_MOUSE_CAPTURE_LOST(wxPopupWindowHandler::OnCaptureLost)
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(wxPopupFocusHandler, wxEvtHandler)
@@ -109,7 +116,7 @@ BEGIN_EVENT_TABLE(wxPopupFocusHandler, wxEvtHandler)
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(wxPopupTransientWindow, wxPopupWindow)
-#if defined( __WXMSW__ ) || ( defined( __WXMAC__ ) && wxOSX_USE_CARBON )
+#if defined(__WXMSW__) ||(defined(__WXMAC__) && wxOSX_USE_CARBON)
     EVT_IDLE(wxPopupTransientWindow::OnIdle)
 #endif
 END_EVENT_TABLE()
@@ -343,7 +350,7 @@ bool wxPopupTransientWindow::Show( bool show )
     {
         gtk_grab_add( m_widget );
 
-        gdk_pointer_grab( m_widget->window, TRUE,
+        gdk_pointer_grab( gtk_widget_get_window(m_widget), true,
                           (GdkEventMask)
                             (GDK_BUTTON_PRESS_MASK |
                              GDK_BUTTON_RELEASE_MASK |
@@ -382,6 +389,20 @@ bool wxPopupTransientWindow::Show( bool show )
     return ret;
 }
 
+bool wxPopupTransientWindow::Destroy()
+{
+    // The popup window can be deleted at any moment, even while some events
+    // are still being processed for it, so delay its real destruction until
+    // the next idle time when we're sure that it's safe to really destroy it.
+
+    wxCHECK_MSG( !wxPendingDelete.Member(this), false,
+                 wxS("Shouldn't destroy the popup twice.") );
+
+    wxPendingDelete.Append(this);
+
+    return true;
+}
+
 void wxPopupTransientWindow::Dismiss()
 {
     Hide();
@@ -405,7 +426,7 @@ bool wxPopupTransientWindow::ProcessLeftDown(wxMouseEvent& WXUNUSED(event))
     return false;
 }
 
-#if defined( __WXMSW__ ) || ( defined( __WXMAC__ ) && wxOSX_USE_CARBON )
+#if defined(__WXMSW__) ||(defined(__WXMAC__) && wxOSX_USE_CARBON)
 void wxPopupTransientWindow::OnIdle(wxIdleEvent& event)
 {
     event.Skip();
@@ -431,7 +452,7 @@ void wxPopupTransientWindow::OnIdle(wxIdleEvent& event)
         }
     }
 }
-#endif // __WXMSW__
+#endif // wxOSX/Carbon
 
 
 #if wxUSE_COMBOBOX && defined(__WXUNIVERSAL__)
@@ -579,6 +600,15 @@ void wxPopupWindowHandler::OnLeftDown(wxMouseEvent& event)
         (void)sbar->GetEventHandler()->ProcessEvent(event2);
     }
 #endif // __WXUNIVERSAL__ && wxUSE_SCROLLBAR
+}
+
+void
+wxPopupWindowHandler::OnCaptureLost(wxMouseCaptureLostEvent& WXUNUSED(event))
+{
+    m_popup->DismissAndNotify();
+
+    // There is no need to skip the event here, normally we've already dealt
+    // with the focus loss.
 }
 
 // ----------------------------------------------------------------------------

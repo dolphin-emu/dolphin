@@ -3,7 +3,7 @@
 // Purpose:     Implementation of wxMSW-specific wxPanel class.
 // Author:      Vadim Zeitlin
 // Created:     2011-03-18
-// RCS-ID:      $Id: panel.cpp 67269 2011-03-21 11:00:03Z VZ $
+// RCS-ID:      $Id: panel.cpp 69378 2011-10-11 17:07:43Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,8 +24,6 @@
 #endif
 
 #ifndef WX_PRECOMP
-    #include "wx/bitmap.h"
-    #include "wx/brush.h"
     #include "wx/panel.h"
 #endif // WX_PRECOMP
 
@@ -47,16 +45,3 @@ bool wxPanel::HasTransparentBackground()
     return false;
 }
 
-void wxPanel::DoSetBackgroundBitmap(const wxBitmap& bmp)
-{
-    delete m_backgroundBrush;
-    m_backgroundBrush = bmp.IsOk() ? new wxBrush(bmp) : NULL;
-}
-
-WXHBRUSH wxPanel::MSWGetCustomBgBrush()
-{
-    if ( m_backgroundBrush )
-        return (WXHBRUSH)m_backgroundBrush->GetResourceHandle();
-
-    return wxPanelBase::MSWGetCustomBgBrush();
-}

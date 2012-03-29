@@ -31,8 +31,7 @@
 
 CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
 	: 
-	IUCode(dsp_hle),
-	m_CRC(_CRC),
+	IUCode(dsp_hle, _CRC),
 
 	m_bSyncInProgress(false),
 	m_MaxVoice(0),
@@ -572,8 +571,6 @@ void CUCode_Zelda::DoState(PointerWrap &p)
 	// It's bad if we try to save during Mix()
 	std::lock_guard<std::mutex> lk(m_csMix);
 
-	p.Do(m_CRC);
-
 	p.Do(m_AFCCoefTable);
 	p.Do(m_MiscTable);
 
@@ -616,6 +613,4 @@ void CUCode_Zelda::DoState(PointerWrap &p)
 	p.Do(m_PBAddress2);
 
 	p.Do(m_UploadSetupInProgress);
-
-	m_rMailHandler.DoState(p);
 }

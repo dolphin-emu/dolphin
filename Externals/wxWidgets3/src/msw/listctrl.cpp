@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Agron Selimaj
 // Created:     04/01/98
-// RCS-ID:      $Id: listctrl.cpp 67227 2011-03-18 09:16:06Z VZ $
+// RCS-ID:      $Id: listctrl.cpp 70284 2012-01-07 15:09:51Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -226,8 +226,9 @@ public:
     wxDECLARE_NO_COPY_CLASS(wxMSWListItemData);
 };
 
-BEGIN_EVENT_TABLE(wxListCtrl, wxControl)
+BEGIN_EVENT_TABLE(wxListCtrl, wxListCtrlBase)
     EVT_PAINT(wxListCtrl::OnPaint)
+    EVT_CHAR_HOOK(wxListCtrl::OnCharHook)
 END_EVENT_TABLE()
 
 // ============================================================================
@@ -308,7 +309,7 @@ void wxListCtrl::MSWSetExListStyles()
 
 WXDWORD wxListCtrl::MSWGetStyle(long style, WXDWORD *exstyle) const
 {
-    WXDWORD wstyle = wxControl::MSWGetStyle(style, exstyle);
+    WXDWORD wstyle = wxListCtrlBase::MSWGetStyle(style, exstyle);
 
     wstyle |= LVS_SHAREIMAGELISTS | LVS_SHOWSELALWAYS;
 
@@ -477,7 +478,7 @@ void wxListCtrl::SetWindowStyleFlag(long flag)
 {
     if ( flag != m_windowStyle )
     {
-        wxControl::SetWindowStyleFlag(flag);
+        wxListCtrlBase::SetWindowStyleFlag(flag);
 
         UpdateStyle();
 
@@ -1442,7 +1443,7 @@ void wxListCtrl::InitEditControl(WXHWND hWnd)
     m_textCtrl->SubclassWin(hWnd);
     m_textCtrl->SetParent(this);
 
-    // we must disallow TABbing away from the control while the edit contol is
+    // we must disallow TABbing away from the control while the edit control is
     // shown because this leaves it in some strange state (just try removing
     // this line and then pressing TAB while editing an item in  listctrl
     // inside a panel)
@@ -1490,21 +1491,15 @@ bool wxListCtrl::EndEditLabel(bool cancel)
     if ( !hwnd )
         return false;
 
-    // Newer versions of Windows have a special message for cancelling editing,
-    // use it if available.
-#ifdef ListView_CancelEditLabel
-    if ( cancel && (wxApp::GetComCtl32Version() >= 600) )
-    {
-        ListView_CancelEditLabel(GetHwnd());
-    }
-    else
-#endif // ListView_CancelEditLabel
-    {
-        // We shouldn't destroy the control ourselves according to MSDN, which
-        // proposes WM_CANCELMODE to do this, but it doesn't seem to work so
-        // emulate the corresponding user action instead.
-        ::SendMessage(hwnd, WM_KEYDOWN, cancel ? VK_ESCAPE : VK_RETURN, 0);
-    }
+    // Newer versions of Windows have a special ListView_CancelEditLabel()
+    // message for cancelling editing but it, rather counter-intuitively, keeps
+    // the last text entered in the dialog while cancelling as we do it below
+    // restores the original text which is the more expected behaviour.
+
+    // We shouldn't destroy the control ourselves according to MSDN, which
+    // proposes WM_CANCELMODE to do this, but it doesn't seem to work so
+    // emulate the corresponding user action instead.
+    ::SendMessage(hwnd, WM_KEYDOWN, cancel ? VK_ESCAPE : VK_RETURN, 0);
 
     return true;
 }
@@ -1727,18 +1722,27 @@ long wxListCtrl::InsertItem(long index, const wxString& label, int imageIndex)
     wxListItem info;
     info.m_image = imageIndex;
     info.m_text = label;
-    info.m_mask = wxLIST_MASK_IMAGE | wxLIST_MASK_TEXT;
+    info.m_mask = wxLIST_MASK_TEXT;
+    if (imageIndex > -1)
+        info.m_mask |= wxLIST_MASK_IMAGE;
     info.m_itemId = index;
     return InsertItem(info);
 }
 
 // For list view mode (only), inserts a column.
-long wxListCtrl::InsertColumn(long col, const wxListItem& item)
+long wxListCtrl::DoInsertColumn(long col, const wxListItem& item)
 {
     LV_COLUMN lvCol;
     wxConvertToMSWListCol(GetHwnd(), col, item, lvCol);
 
-    if ( !(lvCol.mask & LVCF_WIDTH) )
+    // LVSCW_AUTOSIZE_USEHEADER is not supported when inserting new column,
+    // we'll deal with it below instead. Plain LVSCW_AUTOSIZE is not supported
+    // neither but it doesn't need any special handling as we use fixed value
+    // for it here, both because we can't do anything else (there are no items
+    // with values in this column to compute the size from yet) and for
+    // compatibility as wxLIST_AUTOSIZE == -1 and -1 as InsertColumn() width
+    // parameter used to mean "arbitrary fixed width".
+    if ( !(lvCol.mask & LVCF_WIDTH) || lvCol.cx < 0 )
     {
         // always give some width to the new column: this one is compatible
         // with the generic version
@@ -1747,35 +1751,23 @@ long wxListCtrl::InsertColumn(long col, const wxListItem& item)
     }
 
     long n = ListView_InsertColumn(GetHwnd(), col, &lvCol);
-    if ( n != -1 )
-    {
-        m_colCount++;
-    }
-    else // failed to insert?
+    if ( n == -1 )
     {
         wxLogDebug(wxT("Failed to insert the column '%s' into listview!"),
                    lvCol.pszText);
+        return -1;
+    }
+
+    m_colCount++;
+
+    // Now adjust the new column size.
+    if ( (item.GetMask() & wxLIST_MASK_WIDTH) &&
+            (item.GetWidth() == wxLIST_AUTOSIZE_USEHEADER) )
+    {
+        SetColumnWidth(n, wxLIST_AUTOSIZE_USEHEADER);
     }
 
     return n;
-}
-
-long wxListCtrl::InsertColumn(long col,
-                              const wxString& heading,
-                              int format,
-                              int width)
-{
-    wxListItem item;
-    item.m_mask = wxLIST_MASK_TEXT | wxLIST_MASK_FORMAT;
-    item.m_text = heading;
-    if ( width > -1 )
-    {
-        item.m_mask |= wxLIST_MASK_WIDTH;
-        item.m_width = width;
-    }
-    item.m_format = format;
-
-    return InsertColumn(col, item);
 }
 
 // scroll the control by the given number of pixels (exception: in list view,
@@ -1821,8 +1813,8 @@ int CALLBACK wxInternalDataCompareFunc(LPARAM lParam1, LPARAM lParam2,  LPARAM l
     wxMSWListItemData *data1 = (wxMSWListItemData *) lParam1;
     wxMSWListItemData *data2 = (wxMSWListItemData *) lParam2;
 
-    long d1 = (data1 == NULL ? 0 : data1->lParam);
-    long d2 = (data2 == NULL ? 0 : data2->lParam);
+    wxIntPtr d1 = (data1 == NULL ? 0 : data1->lParam);
+    wxIntPtr d2 = (data2 == NULL ? 0 : data2->lParam);
 
     return internalData->user_fn(d1, d2, internalData->data);
 
@@ -1865,7 +1857,7 @@ bool wxListCtrl::MSWShouldPreProcessMessage(WXMSG* msg)
             return false;
         }
     }
-    return wxControl::MSWShouldPreProcessMessage(msg);
+    return wxListCtrlBase::MSWShouldPreProcessMessage(msg);
 }
 
 bool wxListCtrl::MSWCommand(WXUINT cmd, WXWORD id_)
@@ -1903,9 +1895,8 @@ int WXDLLIMPEXP_CORE wxMSWGetColumnClicked(NMHDR *nmhdr, POINT *ptClick)
     }
     else
 #endif //__WXWINCE__
-    if ( !::GetCursorPos(ptClick) )
     {
-        wxLogLastError(wxT("GetCursorPos"));
+       wxGetCursorPosMSW(ptClick);
     }
 
     // we need to use listctrl coordinates for the event point so this is what
@@ -2051,7 +2042,7 @@ bool wxListCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
         }
 
         if ( ignore )
-            return wxControl::MSWOnNotify(idCtrl, lParam, result);
+            return wxListCtrlBase::MSWOnNotify(idCtrl, lParam, result);
     }
     else
 #endif // defined(HDN_BEGINTRACKA)
@@ -2279,7 +2270,7 @@ bool wxListCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
             case NM_DBLCLK:
                 // if the user processes it in wxEVT_COMMAND_LEFT_CLICK(), don't do
                 // anything else
-                if ( wxControl::MSWOnNotify(idCtrl, lParam, result) )
+                if ( wxListCtrlBase::MSWOnNotify(idCtrl, lParam, result) )
                 {
                     return true;
                 }
@@ -2304,7 +2295,7 @@ bool wxListCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
             case NM_RCLICK:
                 // if the user processes it in wxEVT_COMMAND_RIGHT_CLICK(),
                 // don't do anything else
-                if ( wxControl::MSWOnNotify(idCtrl, lParam, result) )
+                if ( wxListCtrlBase::MSWOnNotify(idCtrl, lParam, result) )
                 {
                     return true;
                 }
@@ -2321,7 +2312,7 @@ bool wxListCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
                 else
 #endif //__WXWINCE__
                 {
-                    ::GetCursorPos(&(lvhti.pt));
+                    wxGetCursorPosMSW(&(lvhti.pt));
                 }
 
                 ::ScreenToClient(GetHwnd(), &lvhti.pt);
@@ -2517,7 +2508,7 @@ bool wxListCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
         }
 
         if ( !processed )
-            return wxControl::MSWOnNotify(idCtrl, lParam, result);
+            return wxListCtrlBase::MSWOnNotify(idCtrl, lParam, result);
     }
     else
     {
@@ -2532,7 +2523,11 @@ bool wxListCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
 
     // fill in the item before passing it to the event handler if we do have a
     // valid item index and haven't filled it yet (e.g. for LVN_ITEMCHANGED)
-    if ( event.m_itemIndex != -1 && !event.m_item.GetMask() )
+    // and we're not using a virtual control as in this case the program
+    // already has the data anyhow and we don't want to call GetItem() for
+    // potentially many items
+    if ( event.m_itemIndex != -1 && !event.m_item.GetMask()
+            && !IsVirtual() )
     {
         wxListItem& item = event.m_item;
 
@@ -2903,7 +2898,7 @@ void wxListCtrl::OnPaint(wxPaintEvent& event)
 
     wxPaintDC dc(this);
 
-    wxControl::OnPaint(event);
+    wxListCtrlBase::OnPaint(event);
 
     // Reset the device origin since it may have been set
     dc.SetDeviceOrigin(0, 0);
@@ -2978,6 +2973,27 @@ void wxListCtrl::OnPaint(wxPaintEvent& event)
     }
 }
 
+void wxListCtrl::OnCharHook(wxKeyEvent& event)
+{
+    if ( GetEditControl() )
+    {
+        // We need to ensure that Escape is not stolen from the in-place editor
+        // by the containing dialog.
+        //
+        // Notice that we don't have to care about Enter key here as we return
+        // false from MSWShouldPreProcessMessage() for it.
+        if ( event.GetKeyCode() == WXK_ESCAPE )
+        {
+            EndEditLabel(true /* cancel */);
+
+            // Don't call Skip() below.
+            return;
+        }
+    }
+
+    event.Skip();
+}
+
 WXLRESULT
 wxListCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
@@ -3001,7 +3017,7 @@ wxListCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
             //else: break
     }
 
-    return wxControl::MSWWindowProc(nMsg, wParam, lParam);
+    return wxListCtrlBase::MSWWindowProc(nMsg, wParam, lParam);
 }
 
 // ----------------------------------------------------------------------------

@@ -6,9 +6,6 @@
     <ClCompile Include="Src\stdafx.cpp" />
     <ClCompile Include="Src\WXInputBase.cpp" />
     <ClCompile Include="Src\WxUtils.cpp" />
-    <ClCompile Include="Src\MemoryCards\GCMemcard.cpp">
-      <Filter>GUI\Saves</Filter>
-    </ClCompile>
     <ClCompile Include="Src\MemoryCards\WiiSaveCrypted.cpp">
       <Filter>GUI\Saves</Filter>
     </ClCompile>
@@ -135,15 +132,15 @@
     <ClCompile Include="Src\TASInputDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Src\GCMicDlg.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Main.h" />
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\WXInputBase.h" />
     <ClInclude Include="Src\WxUtils.h" />
-    <ClInclude Include="Src\MemoryCards\GCMemcard.h">
-      <Filter>GUI\Saves</Filter>
-    </ClInclude>
     <ClInclude Include="Src\MemoryCards\WiiSaveCrypted.h">
       <Filter>GUI\Saves</Filter>
     </ClInclude>
@@ -264,9 +261,11 @@
     <ClInclude Include="Src\TASInputDlg.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GCMicDlg.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Src\SConscript" />
     <None Include="CMakeLists.txt" />
     <None Include="..\..\..\Installer\Dolphin.ico">
       <Filter>Resources</Filter>

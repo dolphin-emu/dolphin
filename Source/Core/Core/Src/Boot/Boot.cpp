@@ -195,10 +195,13 @@ bool CBoot::BootUp()
 
 	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
 
-	// HLE jump to loader (homebrew)
-	HLE::Patch(0x80001800, "HBReload");
-	const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };
-	Memory::WriteBigEData(stubstr, 0x80001804, 8);
+	// HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code handler
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	{
+		HLE::Patch(0x80001800, "HBReload");
+		const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };
+		Memory::WriteBigEData(stubstr, 0x80001804, 8);
+	}
 
 	g_symbolDB.Clear();
 	VideoInterface::Preset(_StartupPara.bNTSC);
@@ -224,7 +227,9 @@ bool CBoot::BootUp()
 		// setup the map from ISOFile ID
 		VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
 
-		VideoInterface::SetRegionReg((char)VolumeHandler::GetVolume()->GetUniqueID().at(3));
+		std::string unique_id = VolumeHandler::GetVolume()->GetUniqueID();
+		if (unique_id.size() >= 4)
+			VideoInterface::SetRegionReg(unique_id.at(3));
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 

@@ -5,7 +5,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-11-16
-// RCS-ID:      $Id: colordlgosx.mm 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: colordlgosx.mm 67901 2011-06-09 01:07:39Z SC $
 // Copyright:   (c) Ryan Norton
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxColourDialog, wxDialog)
 
 - (id)init
 {
-    [super init];
+    self = [super init];
     m_bIsClosed = false;
 
     return self;
