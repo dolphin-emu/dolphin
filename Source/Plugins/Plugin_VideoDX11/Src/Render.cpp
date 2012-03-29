@@ -1211,11 +1211,11 @@ void Renderer::RestoreAPIState()
 	BPFunctions::SetScissor();
 }
 
-void Renderer::ApplyState(RenderStateMode mode)
+void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	HRESULT hr;
 
-	if (mode == RSM_UseDstAlpha)
+	if (bUseDstAlpha)
 	{
 		// Colors should blend against SRC1_ALPHA
 		if (gx_state.blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_SRC_ALPHA)
@@ -1275,7 +1275,7 @@ void Renderer::ApplyState(RenderStateMode mode)
 
 	D3D::stateman->Apply();
 
-	if (mode == RSM_UseDstAlpha)
+	if (bUseDstAlpha)
 	{
 		// restore actual state
 		SetBlendMode(false);
@@ -1289,7 +1289,7 @@ void Renderer::ApplyState(RenderStateMode mode)
 	D3D::context->VSSetShader(VertexShaderCache::GetActiveShader(), NULL, 0);
 }
 
-void Renderer::RestoreState(RenderStateMode mode)
+void Renderer::RestoreState()
 {
 	ID3D11ShaderResourceView* shader_resources[8] = { NULL };
 	D3D::context->PSSetShaderResources(0, 8, shader_resources);

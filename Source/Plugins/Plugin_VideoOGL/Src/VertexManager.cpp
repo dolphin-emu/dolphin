@@ -224,26 +224,17 @@ void VertexManager::vFlush()
 		ps = PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
 		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
 
-		g_renderer->ApplyState(RSM_UseDstAlpha);
-		if (bpmem.zmode.updateenable)
-			g_renderer->ApplyState(RSM_Multipass);
+		// only update alpha
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+
+		glDisable(GL_BLEND);
 
 		Draw();
-		
-		g_renderer->RestoreState(RSM_UseDstAlpha);
-		if (bpmem.zmode.updateenable)
-			g_renderer->RestoreState(RSM_Multipass);
-	}
+		// restore color mask
+		g_renderer->SetColorMask();
 
-	bool UseZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && !g_ActiveConfig.bEnableFastZcomploc;
-
-	if (UseZcomploc)
-	{
-		FRAGMENTSHADER* ps = PixelShaderCache::SetShader(DSTALPHA_ZCOMPLOC,g_nativeVertexFmt->m_components);
-		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
-		g_renderer->ApplyState(RSM_Zcomploc);
-		Draw();
-		g_renderer->RestoreState(RSM_Zcomploc);	
+		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
+			glEnable(GL_BLEND);
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 

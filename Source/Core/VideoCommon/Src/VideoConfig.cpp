@@ -76,7 +76,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
 	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
 	iniFile.Get("Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth, 0);
-	iniFile.Get("Settings", "EnableFastZcomploc", &bEnableFastZcomploc, 0);
 	
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
 	iniFile.Get("Settings", "EFBScale", &iEFBScale, 2); // native
@@ -139,7 +138,6 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle);
 	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
 	iniFile.GetIfExists("Video_Settings", "EnablePerPixelDepth", &bEnablePerPixelDepth);
-	iniFile.GetIfExists("Video_Settings", "EnableFastZcomploc", &bEnableFastZcomploc);
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
 	iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale); // integral
 	iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass);
@@ -211,7 +209,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	iniFile.Set("Settings", "EnablePixelLighting", bEnablePixelLighting);
 	iniFile.Set("Settings", "EnablePerPixelDepth", bEnablePerPixelDepth);
-	iniFile.Set("Settings", "EnableFastZcomploc", bEnableFastZcomploc);
 	
 
 	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
@@ -281,7 +278,6 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	SET_IF_DIFFERS("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	SET_IF_DIFFERS("Video_Settings", "EnablePerPixelDepth", bEnablePerPixelDepth);
-	SET_IF_DIFFERS("Video_Settings", "EnableFastZcomploc", bEnableFastZcomploc);
 	SET_IF_DIFFERS("Video_Settings", "MSAA", iMultisampleMode);
 	SET_IF_DIFFERS("Video_Settings", "EFBScale", iEFBScale); // integral
 	SET_IF_DIFFERS("Video_Settings", "DstAlphaPass", bDstAlphaPass);
