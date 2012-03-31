@@ -892,7 +892,6 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 		if (w != x || h != y || d != 32)
 			continue;;
 
-		CGDisplayCapture(CGMainDisplayID());
 		CGDisplaySwitchToMode(CGMainDisplayID(), mode);
 	}
 
