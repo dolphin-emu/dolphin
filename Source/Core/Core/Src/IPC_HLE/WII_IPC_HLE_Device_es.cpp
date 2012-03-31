@@ -58,12 +58,14 @@
 #include "CommonPaths.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
+
+std::string CWII_IPC_HLE_Device_es::m_ContentFile;
+
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pContentLoader(NULL)
     , m_TitleID(-1)
     , AccessIdentID(0x6000000)
-	, m_ContentFile()
 {}
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
@@ -763,21 +765,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 						PC = DolLoader.GetEntryPoint() | 0x80000000;
 						IOSv = ContentLoader.GetIosVersion();
 						bSuccess = true;
-						// Reset the connection of all connected wiimotes
-						// ugly haxx
-						static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
-						for (unsigned int i = 0; i < 4; i++)
-						{
-							if (s_Usb->m_WiiMotes[i].IsConnected())
-							{
-								s_Usb->m_WiiMotes[i].Activate(false);
-								s_Usb->m_WiiMotes[i].Activate(true);
-							}
-							else
-							{
-								s_Usb->m_WiiMotes[i].Activate(false);
-							}
-						}
+						
 					}
 				}
 			}
@@ -790,8 +778,30 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				IOSv = TitleID & 0xffff;
 			}
 			if (!bSuccess)
+			{
 				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
 					"TitleID %016llx.\n Dolphin will likely hang now", TitleID);
+			}
+			else
+			{
+				WII_IPC_HLE_Interface::Reset(true);
+				WII_IPC_HLE_Interface::Init();
+
+				static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
+				for (unsigned int i = 0; i < 4; i++)
+				{
+					if (s_Usb->m_WiiMotes[i] && s_Usb->m_WiiMotes[i].IsConnected())
+					{
+						s_Usb->m_WiiMotes[i].Activate(false);
+						s_Usb->m_WiiMotes[i].Activate(true);
+					}
+					else if (s_Usb->m_WiiMotes[i])
+					{
+						s_Usb->m_WiiMotes[i].Activate(false);
+					}
+				}
+
+			}
 			// Pass the "#002 check"
 			// Apploader should write the IOS version and revision to 0x3140, and compare it
 			// to 0x3188 to pass the check, but we don't do it, and i don't know where to read the IOS rev...

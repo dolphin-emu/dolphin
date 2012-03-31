@@ -135,7 +135,7 @@ private:
     u64 m_TitleID;
     u32 AccessIdentID;
 	// This should only be cleared on power reset
-	std::string m_ContentFile;
+	static std::string m_ContentFile;
 
     u64 GetCurrentTitleID() const;
 
