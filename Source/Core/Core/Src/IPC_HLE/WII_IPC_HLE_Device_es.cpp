@@ -788,14 +788,14 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				WII_IPC_HLE_Interface::Init();
 
 				static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
-				for (unsigned int i = 0; i < 4; i++)
+				for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
 				{
-					if (s_Usb->m_WiiMotes[i] && s_Usb->m_WiiMotes[i].IsConnected())
+					if (s_Usb->m_WiiMotes[i].IsConnected())
 					{
 						s_Usb->m_WiiMotes[i].Activate(false);
 						s_Usb->m_WiiMotes[i].Activate(true);
 					}
-					else if (s_Usb->m_WiiMotes[i])
+					else
 					{
 						s_Usb->m_WiiMotes[i].Activate(false);
 					}
