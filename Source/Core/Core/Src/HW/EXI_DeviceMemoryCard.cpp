@@ -103,14 +103,14 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 
 void innerFlush(FlushData* data)
 {
-	File::IOFile pFile(data->filename, "wb");
+	File::IOFile pFile(data->filename, "r+b");
 	if (!pFile)
 	{
 		std::string dir;
 		SplitPath(data->filename, &dir, 0, 0);
 		if (!File::IsDirectory(dir))
 			File::CreateFullPath(dir);
-		pFile.Open(data->filename, "wb");
+		pFile.Open(data->filename, "r+b");
 	}
 
 	if (!pFile) // Note - pFile changed inside above if
