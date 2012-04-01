@@ -48,7 +48,6 @@ DConfigDialog::DConfigDialog(QWidget* parent) : QDialog(parent)
 	menusView->setViewMode(QListView::IconMode);
 	menusView->setIconSize(QSize(48,48)); // TODO: Need better/bigger icons
 	menusView->setMovement(QListView::Static);
-	menusView->setMaximumWidth(78); // TODO: Rather, set this to the widest widget width
 	menusView->setMinimumHeight(72*5+26); // TODO: Don't hardcode this
 	menusView->setFlow(QListView::TopToBottom);
 
@@ -59,7 +58,7 @@ DConfigDialog::DConfigDialog(QWidget* parent) : QDialog(parent)
 	menusView->addItem(wiimoteConfigButton);
 	for (int i = 0; i < menusView->count(); ++i)
 		menusView->item(i)->setSizeHint(QSize(72,72));
-
+	menusView->setMaximumWidth(menusView->minimumSizeHint().width());
 
 	// Configuration widgets
 	generalWidget = new DConfigMainGeneralTab;

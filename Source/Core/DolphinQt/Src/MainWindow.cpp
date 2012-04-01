@@ -11,6 +11,10 @@
 #include "ConfigManager.h"
 #include "Core.h"
 
+// TODO: Investigate a cleaner Qt frontend with QtQuick UI and minimal subclassing.
+// Will be much easier to add features.
+// TODO: Consider integrating Qt in to entire project through the use of Common features.
+
 DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(false)
 {
 	Resources::Init();
@@ -32,7 +36,6 @@ DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(fa
 
 	if (false == restoreGeometry(ui_settings.value("main/geometry").toByteArray()))
 	{
-		// TODO: Test this on multi-monitor setups
 		// 55% of the window contents are in the upper screen half, 45% in the lower half
 		QDesktopWidget* desktop = ((QApplication*)QApplication::instance())->desktop();
 		QRect screenRect = desktop->screenGeometry(this);
