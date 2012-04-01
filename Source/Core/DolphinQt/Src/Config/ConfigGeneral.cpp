@@ -18,12 +18,13 @@ QWidget* DConfigMainGeneralTab::CreateCoreTabWidget(QWidget* parent)
 
 	// Widgets
 	chFramelimit = new QComboBox;
-	chFramelimit->addItem(tr("Rendered Frames"));
-	chFramelimit->addItem(tr("Video Interrupts"));
+	chFramelimit->addItem(tr("None"));
+	chFramelimit->addItem(tr("Auto"));
 	chFramelimit->addItem(tr("Audio"));
 	for (int i = 10; i <= 120; i += 5)      // from 10 to 120
                 chFramelimit->addItem(QString::number(i));
-
+	chFramelimit->setMaximumWidth(chFramelimit->minimumSizeHint().width());
+	cbFPSLimit = new QCheckBox(tr("Limit by FPS"));
 
 	rbCPUEngine = new QButtonGroup(tab);
 	rbCPUEngine->addButton(new QRadioButton(tr("Interpreter")), 0);
@@ -36,11 +37,11 @@ QWidget* DConfigMainGeneralTab::CreateCoreTabWidget(QWidget* parent)
 	coreSettingsBox->addWidget(cbDualCore = new QCheckBox(tr("Enable Dual Core")));
 	coreSettingsBox->addWidget(cbIdleSkipping = new QCheckBox(tr("Enable Idle Skipping")));
 	coreSettingsBox->addWidget(cbCheats = new QCheckBox(tr("Enable Cheats")));
-//	coreSettingsBox->addWidget(chFramelimit);
 
 	QHBoxLayout* framelimitLayout = new QHBoxLayout;
-	framelimitLayout->addWidget(new QLabel(tr("Limit by:")));
+	framelimitLayout->addWidget(new QLabel(tr("Framelimit:")));
 	framelimitLayout->addWidget(chFramelimit);
+	framelimitLayout->addWidget(cbFPSLimit);
 
 	coreSettingsBox->addLayout(framelimitLayout);
 
@@ -70,6 +71,7 @@ QWidget* DConfigMainGeneralTab::CreateCoreTabWidget(QWidget* parent)
 	ctrlManager->RegisterControl(cbCheats, Startup.bEnableCheats);
 
 	ctrlManager->RegisterControl(chFramelimit, SConfig::GetInstance().m_Framelimit);
+	ctrlManager->RegisterControl(cbFPSLimit, SConfig::GetInstance().b_UseFPS);
 
 	ctrlManager->RegisterControl(reinterpret_cast<QRadioButton*>(rbCPUEngine->button(0)), (Startup.iCPUCore == 0));
 	ctrlManager->RegisterControl(reinterpret_cast<QRadioButton*>(rbCPUEngine->button(1)), (Startup.iCPUCore == 1));
@@ -90,7 +92,7 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 
 	cbRecurse = new QCheckBox(tr("Search subfolders"));
 
-	QPushButton* addPath = new QPushButton(tr("Add")); // TODO: Icon
+	addPath = new QPushButton(tr("Add")); // TODO: Icon
 	removePath = new QPushButton(tr("Remove")); // TODO: Icon
 	clearPathList = new QPushButton(tr("Clear"));
 
@@ -129,8 +131,6 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 		clearPathList->setDisabled(true);
 	removePath->setDisabled(true);
 
-	// TODO: Need to register path widget..
-
 	return tab;
 }
 
@@ -151,7 +151,9 @@ void DConfigMainGeneralTab::Apply()
 	Startup.bCPUThread = cbDualCore->isChecked();
 	Startup.bSkipIdle = cbIdleSkipping->isChecked();
 	Startup.bEnableCheats = cbCheats->isChecked();
+
 	SConfig::GetInstance().m_Framelimit = chFramelimit->currentIndex();
+	SConfig::GetInstance().b_UseFPS = cbFPSLimit->isChecked();
 
 	Startup.iCPUCore = rbCPUEngine->checkedId();
 

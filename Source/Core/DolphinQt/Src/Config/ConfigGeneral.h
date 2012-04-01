@@ -38,7 +38,7 @@ private:
 	QComboBox* chFramelimit;
 	QButtonGroup* rbCPUEngine;
 
-	QCheckBox* cbConfirmOnStop,* cbRenderToMain;
+	QCheckBox* cbFPSLimit,* cbConfirmOnStop,* cbRenderToMain;
 
 	// Paths
 	QListWidget* pathList;
