@@ -21,6 +21,9 @@ QWidget* DConfigMainGeneralTab::CreateCoreTabWidget(QWidget* parent)
 	chFramelimit->addItem(tr("Rendered Frames"));
 	chFramelimit->addItem(tr("Video Interrupts"));
 	chFramelimit->addItem(tr("Audio"));
+	for (int i = 10; i <= 120; i += 5)      // from 10 to 120
+                chFramelimit->addItem(QString::number(i));
+
 
 	rbCPUEngine = new QButtonGroup(tab);
 	rbCPUEngine->addButton(new QRadioButton(tr("Interpreter")), 0);
@@ -33,12 +36,12 @@ QWidget* DConfigMainGeneralTab::CreateCoreTabWidget(QWidget* parent)
 	coreSettingsBox->addWidget(cbDualCore = new QCheckBox(tr("Enable Dual Core")));
 	coreSettingsBox->addWidget(cbIdleSkipping = new QCheckBox(tr("Enable Idle Skipping")));
 	coreSettingsBox->addWidget(cbCheats = new QCheckBox(tr("Enable Cheats")));
-	coreSettingsBox->addWidget(chFramelimit);
+//	coreSettingsBox->addWidget(chFramelimit);
 
 	QHBoxLayout* framelimitLayout = new QHBoxLayout;
 	framelimitLayout->addWidget(new QLabel(tr("Limit by:")));
 	framelimitLayout->addWidget(chFramelimit);
-	// TODO: Add frame count combo box, add a custom event to hide it eventually
+
 	coreSettingsBox->addLayout(framelimitLayout);
 
 	DGroupBoxV* CPUEngineBox = new DGroupBoxV(tr("CPU Engine"));
@@ -66,7 +69,7 @@ QWidget* DConfigMainGeneralTab::CreateCoreTabWidget(QWidget* parent)
 	ctrlManager->RegisterControl(cbIdleSkipping, Startup.bSkipIdle);
 	ctrlManager->RegisterControl(cbCheats, Startup.bEnableCheats);
 
-	ctrlManager->RegisterControl(chFramelimit, 0); // TODO: Correct value..
+	ctrlManager->RegisterControl(chFramelimit, SConfig::GetInstance().m_Framelimit);
 
 	ctrlManager->RegisterControl(reinterpret_cast<QRadioButton*>(rbCPUEngine->button(0)), (Startup.iCPUCore == 0));
 	ctrlManager->RegisterControl(reinterpret_cast<QRadioButton*>(rbCPUEngine->button(1)), (Startup.iCPUCore == 1));
@@ -84,6 +87,8 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 
 	// Widgets
 	pathList = new QListWidget;
+
+	cbRecurse = new QCheckBox(tr("Search subfolders"));
 
 	QPushButton* addPath = new QPushButton(tr("Add")); // TODO: Icon
 	removePath = new QPushButton(tr("Remove")); // TODO: Icon
@@ -110,10 +115,14 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 
 	QBoxLayout* mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(pathList);
+	mainLayout->addWidget(cbRecurse);
 	mainLayout->addLayout(pathListButtonLayout);
 	tab->setLayout(mainLayout);
 
 	// Initial values
+	ctrlManager = new DControlStateManager(this);
+	ctrlManager->RegisterControl(cbRecurse, SConfig::GetInstance().m_RecursiveISOFolder);
+
 	for (std::vector<std::string>::iterator it = SConfig::GetInstance().m_ISOFolder.begin(); it != SConfig::GetInstance().m_ISOFolder.end(); ++it)
 		pathList->addItem(new QListWidgetItem(QString::fromStdString(*it)));
 	if (!pathList->count())
@@ -142,12 +151,14 @@ void DConfigMainGeneralTab::Apply()
 	Startup.bCPUThread = cbDualCore->isChecked();
 	Startup.bSkipIdle = cbIdleSkipping->isChecked();
 	Startup.bEnableCheats = cbCheats->isChecked();
-	// TODO: Apply framelimit
+	SConfig::GetInstance().m_Framelimit = chFramelimit->currentIndex();
 
 	Startup.iCPUCore = rbCPUEngine->checkedId();
 
 	Startup.bConfirmStop = cbConfirmOnStop->isChecked();
 	Startup.bRenderToMain = cbRenderToMain->isChecked();
+
+	SConfig::GetInstance().m_RecursiveISOFolder = cbRecurse->isChecked();
 
 	if (paths_changed)
 	{

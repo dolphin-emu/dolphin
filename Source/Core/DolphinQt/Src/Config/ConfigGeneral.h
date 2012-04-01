@@ -33,19 +33,17 @@ private:
 	QWidget* CreatePathsTabWidget(QWidget* parent);
 
 	// Core
-	QCheckBox* cbDualCore;
-	QCheckBox* cbIdleSkipping;
-	QCheckBox* cbCheats;
+	QCheckBox* cbDualCore,* cbIdleSkipping,* cbCheats;
 
 	QComboBox* chFramelimit;
 	QButtonGroup* rbCPUEngine;
 
-	QCheckBox* cbConfirmOnStop;
-	QCheckBox* cbRenderToMain;
+	QCheckBox* cbConfirmOnStop,* cbRenderToMain;
 
 	// Paths
 	QListWidget* pathList;
-	QPushButton* clearPathList,* removePath;
+	QCheckBox* cbRecurse;
+	QPushButton* addPath,* removePath, *clearPathList;
 	bool paths_changed;
 
 	DControlStateManager* ctrlManager;
