@@ -290,12 +290,12 @@ void DMainWindow::OnAbout()
 	// TODO: Improve SCM information
 	QMessageBox::about(this, tr("About Dolphin"),
 						tr(	"Dolphin SCM revision %1\n"
-							"Copyright (c) 2003-2010+ Dolphin Team\n"
+							"Copyright (c) 2003-2012 Dolphin Team\n"
 							"\n"
 							"Dolphin is a Gamecube/Wii emulator, which was\n"
 							"originally written by F|RES and ector.\n"
-							"Today Dolphin is an open source project with many\n"
-							"contributors, too many to list.\n"
+							"Today Dolphin is an open source project with too\n"
+							"many contributors to list.\n"
 							"If interested, just go check out the project page at\n"
 							"http://code.google.com/p/dolphin-emu/ .\n"
 							"\n"

@@ -1,4 +1,5 @@
 #include <QTabWidget>
+#include <QPushButton>
 
 class QButtonGroup;
 class QCheckBox;
@@ -25,6 +26,7 @@ public slots:
 	void OnClearIsoPathList();
 
 	void OnPathListChanged();
+	void OnSelectionChanged();
 
 private:
 	QWidget* CreateCoreTabWidget(QWidget* parent);
@@ -43,6 +45,7 @@ private:
 
 	// Paths
 	QListWidget* pathList;
+	QPushButton* clearPathList,* removePath;
 	bool paths_changed;
 
 	DControlStateManager* ctrlManager;

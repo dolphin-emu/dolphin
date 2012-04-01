@@ -4,7 +4,6 @@
 #include <QFileDialog>
 #include <QLabel>
 #include <QListWidget>
-#include <QPushButton>
 #include <QRadioButton>
 
 #include "ConfigGeneral.h"
@@ -87,20 +86,20 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 	pathList = new QListWidget;
 
 	QPushButton* addPath = new QPushButton(tr("Add")); // TODO: Icon
-	QPushButton* removePath = new QPushButton(tr("Remove")); // TODO: Icon
-	QPushButton* clearPathList = new QPushButton(tr("Clear"));
+	removePath = new QPushButton(tr("Remove")); // TODO: Icon
+	clearPathList = new QPushButton(tr("Clear"));
 
 
 	// Signals
 	connect(addPath, SIGNAL(clicked()), this, SLOT(OnAddIsoPath()));
 	connect(removePath, SIGNAL(clicked()), this, SLOT(OnRemoveIsoPath()));
 	connect(clearPathList, SIGNAL(clicked()), this, SLOT(OnClearIsoPathList()));
-	// TODO: "Remove" button should be disabled if no item is selected in the path list
-	// TODO: "Clear" button should be disabled if no items are in the path list
 
 	connect(addPath, SIGNAL(clicked()), this, SLOT(OnPathListChanged()));
 	connect(removePath, SIGNAL(clicked()), this, SLOT(OnPathListChanged()));
 	connect(clearPathList, SIGNAL(clicked()), this, SLOT(OnPathListChanged()));
+
+	connect(pathList, SIGNAL(itemSelectionChanged()), this, SLOT(OnSelectionChanged()));
 
 	// Layouts
 	QBoxLayout* pathListButtonLayout = new QHBoxLayout;
@@ -117,6 +116,9 @@ QWidget* DConfigMainGeneralTab::CreatePathsTabWidget(QWidget* parent)
 	// Initial values
 	for (std::vector<std::string>::iterator it = SConfig::GetInstance().m_ISOFolder.begin(); it != SConfig::GetInstance().m_ISOFolder.end(); ++it)
 		pathList->addItem(new QListWidgetItem(QString::fromStdString(*it)));
+	if (!pathList->count())
+		clearPathList->setDisabled(true);
+	removePath->setDisabled(true);
 
 	// TODO: Need to register path widget..
 
@@ -164,6 +166,7 @@ void DConfigMainGeneralTab::OnAddIsoPath()
 	if(selection.length() == 0) return;
 
 	pathList->addItem(selection);
+	clearPathList->setDisabled(false);
 }
 
 void DConfigMainGeneralTab::OnRemoveIsoPath()
@@ -174,9 +177,16 @@ void DConfigMainGeneralTab::OnRemoveIsoPath()
 void DConfigMainGeneralTab::OnClearIsoPathList()
 {
 	pathList->clear();
+	clearPathList->setDisabled(true);
 }
 
 void DConfigMainGeneralTab::OnPathListChanged()
 {
 	paths_changed = true;
+}
+
+void DConfigMainGeneralTab::OnSelectionChanged()
+{
+	removePath->setDisabled(!pathList->currentItem());
+
 }
