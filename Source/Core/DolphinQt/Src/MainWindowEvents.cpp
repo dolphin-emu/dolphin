@@ -222,6 +222,9 @@ void DMainWindow::OnLoadIso()
 void DMainWindow::OnBrowseIso()
 {
 	dialog->generalWidget->OnAddIsoPath();
+	dialog->generalWidget->OnPathListChanged();
+	dialog->generalWidget->Apply();
+
 }
 
 void DMainWindow::OnRefreshList()
