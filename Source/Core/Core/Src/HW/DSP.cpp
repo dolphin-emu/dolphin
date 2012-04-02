@@ -354,7 +354,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 		// AI
 	case AUDIO_DMA_BLOCKS_LEFT:
-		_uReturnValue = g_audioDMA.BlocksLeft;
+		_uReturnValue = g_audioDMA.BlocksLeft - 1; // AUDIO_DMA_BLOCKS_LEFT is zero based
 		break;
 
 	case AUDIO_DMA_START_LO:
