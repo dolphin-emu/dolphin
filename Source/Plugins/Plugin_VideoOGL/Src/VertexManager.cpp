@@ -224,17 +224,9 @@ void VertexManager::vFlush()
 		ps = PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
 		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
 
-		// only update alpha
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-
-		glDisable(GL_BLEND);
-
-		Draw();
-		// restore color mask
-		g_renderer->SetColorMask();
-
-		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
-			glEnable(GL_BLEND);
+		g_renderer->ApplyState(RSM_UseDstAlpha | (bpmem.zmode.updateenable ? RSM_Multipass : RSM_None));
+		Draw();		
+		g_renderer->RestoreState();
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 

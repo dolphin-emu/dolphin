@@ -245,6 +245,7 @@ int GetNumMSAACoverageSamples(int MSAAMode)
 // Init functions
 Renderer::Renderer()
 {
+	Renderer::LastMode = RSM_None;
 	OSDInternalW = 0;
 	OSDInternalH = 0;
 
@@ -513,6 +514,49 @@ Renderer::~Renderer()
 #endif
 
 	delete g_framebuffer_manager;
+}
+
+void Renderer::ApplyState(u32 mode)
+{
+	if(mode & RSM_Zcomploc)
+	{
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	}
+	
+	if(mode & RSM_Multipass)
+	{
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);		
+		glDepthFunc(GL_EQUAL);
+	}
+	
+	if (mode & RSM_UseDstAlpha)
+	{
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+		glDisable(GL_BLEND);
+	}
+	Renderer::LastMode |= mode;
+}
+
+void Renderer::RestoreState()
+{
+	if(Renderer::LastMode & RSM_Zcomploc)
+	{
+		SetColorMask();
+	}
+	
+	if(Renderer::LastMode & RSM_Multipass)
+	{
+		SetDepthMode();
+	}
+	
+	if (Renderer::LastMode & RSM_UseDstAlpha)
+	{
+		SetColorMask();
+		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
+			glEnable(GL_BLEND);
+	}
+	Renderer::LastMode = RSM_None;
 }
 
 // Create On-Screen-Messages

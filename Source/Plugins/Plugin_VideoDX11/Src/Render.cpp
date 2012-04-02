@@ -1211,11 +1211,11 @@ void Renderer::RestoreAPIState()
 	BPFunctions::SetScissor();
 }
 
-void Renderer::ApplyState(bool bUseDstAlpha)
+void Renderer::ApplyState(u32 mode)
 {
 	HRESULT hr;
 
-	if (bUseDstAlpha)
+	if (mode & RSM_UseDstAlpha)
 	{
 		// Colors should blend against SRC1_ALPHA
 		if (gx_state.blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_SRC_ALPHA)
@@ -1275,7 +1275,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 
 	D3D::stateman->Apply();
 
-	if (bUseDstAlpha)
+	if (mode & RSM_UseDstAlpha)
 	{
 		// restore actual state
 		SetBlendMode(false);

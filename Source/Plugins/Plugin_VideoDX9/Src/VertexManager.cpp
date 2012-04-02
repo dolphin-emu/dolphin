@@ -182,7 +182,7 @@ void VertexManager::vFlush()
 			goto shader_fail;
 		}
 		// update alpha only
-		g_renderer->ApplyState(true);
+		g_renderer->ApplyState(RSM_UseDstAlpha | (bpmem.zmode.updateenable ? RSM_Multipass : RSM_None));
 		Draw(stride);
 		g_renderer->RestoreState();
 	}
