@@ -854,15 +854,33 @@ void DSPJitRegCache::writeReg(int dreg, OpArg arg)
 {
 	OpArg reg;
 	getReg(dreg, reg, false);
-	switch(regs[dreg].size) {
-	case 2: emitter.MOV(16, reg, arg); break;
-	case 4: emitter.MOV(32, reg, arg); break;
+	if (arg.IsImm()) {
+		switch(regs[dreg].size) {
+		case 2: emitter.MOV(16, reg, Imm16(arg.offset)); break;
+		case 4: emitter.MOV(32, reg, Imm32(arg.offset)); break;
 #ifdef _M_X64
-	case 8: emitter.MOV(64, reg, arg); break;
+		case 8:
+			if ((s32)arg.offset == (s64)arg.offset)
+				emitter.MOV(64, reg, Imm32(arg.offset));
+			else
+				emitter.MOV(64, reg, Imm64(arg.offset));
+			break;
 #endif
-	default:
-		_assert_msg_(DSPLLE, 0, "unsupported memory size");
-		break;
+		default:
+			_assert_msg_(DSPLLE, 0, "unsupported memory size");
+			break;
+		}
+	} else {
+		switch(regs[dreg].size) {
+		case 2: emitter.MOV(16, reg, arg); break;
+		case 4: emitter.MOV(32, reg, arg); break;
+#ifdef _M_X64
+		case 8: emitter.MOV(64, reg, arg); break;
+#endif
+		default:
+			_assert_msg_(DSPLLE, 0, "unsupported memory size");
+			break;
+		}
 	}
 	putReg(dreg, true);
 }
