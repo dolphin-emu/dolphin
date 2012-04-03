@@ -249,7 +249,7 @@ void VertexManager::vFlush()
 		bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
 	if (!PixelShaderCache::SetShader(
-		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE,
+		useDstAlpha ? PSGRENDER_DSTALPHA_DUAL_SOURCE_BLEND : PSGRENDER_NORMAL,
 		g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});

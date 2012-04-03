@@ -154,7 +154,7 @@ void VertexManager::vFlush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
-	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
+	if (!PixelShaderCache::SetShader(PSGRENDER_NORMAL,g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		goto shader_fail;
@@ -175,14 +175,27 @@ void VertexManager::vFlush()
 						bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 	if (useDstAlpha)
 	{
-		DWORD write = 0;
-		if (!PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS, g_nativeVertexFmt->m_components))
+		if (!PixelShaderCache::SetShader(PSGRENDER_DSTALPHA_ALPHA_PASS, g_nativeVertexFmt->m_components))
 		{
 			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 			goto shader_fail;
 		}
 		// update alpha only
 		g_renderer->ApplyState(RSM_UseDstAlpha | (bpmem.zmode.updateenable ? RSM_Multipass : RSM_None));
+		Draw(stride);
+		g_renderer->RestoreState();
+	}
+
+	bool useZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable;
+	if(useZcomploc)
+	{
+		if (!PixelShaderCache::SetShader(PSGRENDER_ZCOMPLOCK, g_nativeVertexFmt->m_components))
+		{
+			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
+			goto shader_fail;
+		}
+		// update Depth only
+		g_renderer->ApplyState(RSM_Zcomploc);
 		Draw(stride);
 		g_renderer->RestoreState();
 	}
