@@ -609,7 +609,7 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 		for (int i = 0; i < numTexgen; ++i)
 			WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
 		WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		if(PixelLigthingEnabled)
 			WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
 	}
 	else
@@ -617,12 +617,12 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 		// wpos is in w of first 4 texcoords
 		if(PixelLigthingEnabled)
 		{
-			for (int i = 0; i < 8; ++i)
+			for (int i = 0; i < numTexgen; ++i)
 				WRITE(p, ",\n  in float4 uv%d : TEXCOORD%d", i, i);
 		}
 		else
 		{
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+			for (unsigned int i = 0; i < numTexgen; ++i)
 				WRITE(p, ",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
 		}
 	}
@@ -630,7 +630,10 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 	if((bpmem.fog.c_proj_fsel.fsel != 0) || MustWriteToDepth)
 	{
 		// the screen space depth value = far z + (clip z / clip w) * z range
-		WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
+		if (numTexgen < 7)
+			WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
+		else
+			WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (uv2.w / uv3.w) * "I_ZBIAS"[1].y;\n");
 	}
 	char* pmainstart = p;
 	if(PSGRenderMode == PSGRENDER_ZCOMPLOCK && !DepthTextureEnable)
@@ -691,7 +694,7 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 
 	if(PixelLigthingEnabled)
 	{
-		if (xfregs.numTexGen.numTexGens < 7)
+		if (numTexgen < 7)
 		{
 			WRITE(p,"float3 _norm0 = normalize(Normal.xyz);\n\n");
 			WRITE(p,"float3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
