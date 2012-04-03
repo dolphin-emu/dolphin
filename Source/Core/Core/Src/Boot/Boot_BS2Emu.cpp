@@ -253,6 +253,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	Memory::Write_U32(0x00000000, 0x000030c4);		// EXI
 	Memory::Write_U32(0x00000000, 0x000030dc);		// Time
 	Memory::Write_U32(0x00000000, 0x000030d8);		// Time
+	Memory::Write_U16(0x8201,     0x000030e6);		// Dev console / debug capable
 	Memory::Write_U32(0x00000000, 0x000030f0);		// Apploader
 	Memory::Write_U32(0x01800000, 0x00003100);		// BAT
 	Memory::Write_U32(0x01800000, 0x00003104);		// BAT
@@ -265,7 +266,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	Memory::Write_U32(0x93ae0000, 0x00003128);		// Init - MEM2 high
 	Memory::Write_U32(0x93ae0000, 0x00003130);		// IOS MEM2 low
 	Memory::Write_U32(0x93b00000, 0x00003134);		// IOS MEM2 high
-	Memory::Write_U32(0x00000011, 0x00003138);		// Console type
+	Memory::Write_U32(0x00000012, 0x00003138);		// Console type
 	// 40 is copied from 88 after running apploader
 	Memory::Write_U32(0x00090204, 0x00003140);		// IOS revision (IOS9, v2.4)
 	Memory::Write_U32(0x00062507, 0x00003144);		// IOS date in USA format (June 25, 2007)
