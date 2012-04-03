@@ -111,7 +111,10 @@ private:
 	} WiiHIDEndpointDescriptor;
 
 	
-	void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize);
+	u32 GetAvailableID(char* path);
+
+	void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
+	void FillOutDevicesHidApi(u32 BufferOut, u32 BufferOutSize);
 
 	void ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, struct usb_device_descriptor *src);
 	void ConvertConfigToWii(WiiHIDConfigDescriptor *dest, struct usb_config_descriptor *src);

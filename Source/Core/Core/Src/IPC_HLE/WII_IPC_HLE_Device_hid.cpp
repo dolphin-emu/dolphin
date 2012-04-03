@@ -248,24 +248,16 @@ bool CWII_IPC_HLE_Device_hid::IOCtlV(u32 _CommandAddress)
 	u32 ReturnValue = 0;
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
-	switch (CommandBuffer.Parameter)
-	{
-	
-	default:
-		{
-			DEBUG_LOG(WII_IPC_HID, "%s - IOCtlV:", GetDeviceName().c_str());
-			DEBUG_LOG(WII_IPC_HID, "    Parameter: 0x%x", CommandBuffer.Parameter);
-			DEBUG_LOG(WII_IPC_HID, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
-			DEBUG_LOG(WII_IPC_HID, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
-			DEBUG_LOG(WII_IPC_HID, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
-			DEBUG_LOG(WII_IPC_HID, "    PayloadAddr: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Address);
-			DEBUG_LOG(WII_IPC_HID, "    PayloadSize: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Size);
-			#if defined(_DEBUG) || defined(DEBUGFAST)
-			DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
-			#endif
-		}
-		break;
-	}
+	DEBUG_LOG(WII_IPC_HID, "%s - IOCtlV:", GetDeviceName().c_str());
+	DEBUG_LOG(WII_IPC_HID, "    Parameter: 0x%x", CommandBuffer.Parameter);
+	DEBUG_LOG(WII_IPC_HID, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
+	DEBUG_LOG(WII_IPC_HID, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
+	DEBUG_LOG(WII_IPC_HID, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
+	DEBUG_LOG(WII_IPC_HID, "    PayloadAddr: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Address);
+	DEBUG_LOG(WII_IPC_HID, "    PayloadSize: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Size);
+	#if defined(_DEBUG) || defined(DEBUGFAST)
+	DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
+	#endif
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
 	return true;
@@ -298,31 +290,130 @@ void CWII_IPC_HLE_Device_hid::ConvertEndpointToWii(WiiHIDEndpointDescriptor *des
 	memcpy(dest,src,sizeof(WiiHIDEndpointDescriptor));
 	dest->wMaxPacketSize = Common::swap16(dest->wMaxPacketSize);
 }
-/*
+
+u32 CWII_IPC_HLE_Device_hid::GetAvailableID(char* path)
+{
+	return 0;
+}
+
 // hidapi version
-void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
+void CWII_IPC_HLE_Device_hid::FillOutDevicesHidApi(u32 BufferOut, u32 BufferOutSize)
 {
 	// Enumerate and print the HID devices on the system
 	struct hid_device_info *devs, *cur_dev;
 	
+	int OffsetBuffer = BufferOut;
+	int OffsetStart = 0;
+	int c,ic,i,e; // config, interface container, interface, endpoint
+
 	devs = hid_enumerate(0x0, 0x0);
 	cur_dev = devs;	
 	while (cur_dev) {
-		printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls",
+
+		OffsetStart = OffsetBuffer;
+		OffsetBuffer += 4; // skip length for now, fill at end
+
+		Memory::Write_U32(GetAvailableID(cur_dev->path), OffsetBuffer); //write device num
+		OffsetBuffer += 4;
+
+		WiiHIDDeviceDescriptor wii_device;
+			/*
+			 u8 bDescriptorType;
+		u16 bcdUSB;
+		 u8 bDeviceClass;
+		 u8 bDeviceSubClass;
+		 u8 bDeviceProtocol;
+		 u8 bMaxPacketSize0;
+		u16 idVendor;
+		u16 idProduct;
+		u16 bcdDevice;
+		 u8 iManufacturer;
+		 u8 iProduct;
+		 u8 iSerialNumber;
+		 u8 bNumConfigurations;
+		 u8 pad[2];
+
+		 */
+
+		wii_device.bLength = Common::swap8(0x12);
+		wii_device.bcdUSB = Common::swap16(0x0002);
+		wii_device.bDeviceClass = Common::swap8(0);
+		wii_device.bDeviceSubClass = Common::swap8(0);
+		wii_device.bDeviceProtocol = Common::swap8(0);
+		wii_device.bMaxPacketSize0 = Common::swap8(0x20);
+		wii_device.idVendor = Common::swap16(cur_dev->vendor_id);
+		wii_device.idProduct = Common::swap16(cur_dev->product_id);
+		wii_device.bcdDevice = Common::swap16(0x100);
+		wii_device.iManufacturer  = Common::swap8(0x1);
+		wii_device.iProduct = Common::swap8(0x2);
+		wii_device.iSerialNumber = Common::swap8(0);
+		wii_device.bNumConfigurations = Common::swap8(0x1);
+
+		Memory::WriteBigEData((const u8*)&wii_device, OffsetBuffer, Align(wii_device.bLength, 4));
+
+		OffsetBuffer += Align(wii_device.bLength, 4);
+
+
+		for (c = 0; c < Common::swap8(wii_device.bNumConfigurations); c++)
+		{
+
+			WiiHIDConfigDescriptor wii_config;
+			wii_config.bLength = Common::swap8(0x9);
+			wii_config.bDescriptorType = Common::swap8(0x2);
+			wii_config.wTotalLength = Common::swap16(0x29);
+			wii_config.bNumInterfaces = Common::swap8(0x1);
+			wii_config.bConfigurationValue = Common::swap8(0x1);
+			wii_config.iConfiguration = Common::swap8(0);
+			wii_config.bmAttributes = Common::swap8(0x80);
+			wii_config.MaxPower = Common::swap8(0x96);
+			
+			Memory::WriteBigEData((const u8*)&wii_config, OffsetBuffer, Align(wii_config.bLength, 4));
+			OffsetBuffer += Align(wii_config.bLength, 4);
+
+    		for (ic = 0; ic < wii_config.bNumInterfaces; ic++)
+			{
+/*				struct usb_interface *interfaceContainer = &config->interface[ic];
+				for (i = 0; i < interfaceContainer->num_altsetting; i++)
+				{
+					struct usb_interface_descriptor *interface = &interfaceContainer->altsetting[i];
+
+					WiiHIDInterfaceDescriptor wii_interface;
+					ConvertInterfaceToWii(&wii_interface, interface);
+					Memory::WriteBigEData((const u8*)&wii_interface, OffsetBuffer, Align(wii_interface.bLength, 4));
+					OffsetBuffer += Align(wii_interface.bLength, 4);
+
+					for (e = 0; e < interface->bNumEndpoints; e++)
+					{
+						struct usb_endpoint_descriptor *endpoint = &interface->endpoint[e];
+
+						WiiHIDEndpointDescriptor wii_endpoint;
+						ConvertEndpointToWii(&wii_endpoint, endpoint);
+						Memory::WriteBigEData((const u8*)&wii_endpoint, OffsetBuffer, Align(wii_endpoint.bLength, 4));
+						OffsetBuffer += Align(wii_endpoint.bLength, 4);
+								
+					} //endpoints
+				} // interfaces
+			*/
+			} // interface containters
+		} // configs
+
+
+		NOTICE_LOG(WII_IPC_HID, "Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls",
 			cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
-		printf("\n");
-		printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
-		printf("  Product:      %ls\n", cur_dev->product_string);
-		printf("\n");
+		NOTICE_LOG(WII_IPC_HID, "\n");
+		NOTICE_LOG(WII_IPC_HID, "  Manufacturer: %ls\n", cur_dev->manufacturer_string);
+		NOTICE_LOG(WII_IPC_HID, "  Product:      %ls\n", cur_dev->product_string);
+		NOTICE_LOG(WII_IPC_HID, "\n");
 		cur_dev = cur_dev->next;
 	}
 	hid_free_enumeration(devs);
 }
-*/
+
 
 // libusb version
 void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 {
+	//FillOutDevicesHidApi(BufferOut, BufferOutSize);
 	usb_find_busses(); // find all busses
 	usb_find_devices(); // find all connected devices
 	struct usb_bus *bus;
