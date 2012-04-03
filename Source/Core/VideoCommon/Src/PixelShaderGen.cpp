@@ -769,11 +769,6 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 	// emulation of unsigned 8 overflow when casting
 	WRITE(p, "prev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
-	if(Pretest == ALPHAPT_UNDEFINED)
-	{
-		WriteAlphaTest(p, ApiType, PSGRenderMode);
-	}
-
 	if (MustWriteToDepth)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
@@ -790,7 +785,7 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 			WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
 		}
 		WRITE(p, "depth = zCoord;\n");
-	}
+	}	
 
 	if (PSGRenderMode == PSGRENDER_DSTALPHA_ALPHA_PASS)
 		WRITE(p, "  ocol0 = float4(prev.rgb, "I_ALPHA"[0].a);\n");
@@ -808,6 +803,21 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 		WRITE(p, "  ocol1 = ocol0;\n");
 		// ...and the alpha from ocol0 will be written to the framebuffer.
 		WRITE(p, "  ocol0.a = "I_ALPHA"[0].a;\n");
+	}
+
+	// Alpha test could fail here if depth texture is enabled
+	if (Pretest == ALPHAPT_ALWAYSFAIL)
+	{
+		if(!FastZcomploc)
+		{
+			WRITE(p, "discard;\n");
+			if(ApiType != API_D3D11)
+				WRITE(p, "return;\n");
+		}
+	}
+	else if(Pretest == ALPHAPT_UNDEFINED)
+	{
+		WriteAlphaTest(p, ApiType, PSGRenderMode);
 	}
 	
 	WRITE(p, "}\n");
@@ -1204,12 +1214,6 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,PSGRENDER_MODE PSGRenderMo
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
 	WRITE(p, ")) {\n");
-
-	WRITE(p, "ocol0 = 0;\n");
-	if (PSGRenderMode == PSGRENDER_DSTALPHA_DUAL_SOURCE_BLEND)
-		WRITE(p, "ocol1 = 0;\n");
-	if (MustWriteToDepth)
-		WRITE(p, "depth = zCoord;\n");
 
 	// HAXX: zcomploc is a way to control whether depth test is done before
 	// or after texturing and alpha test. PC GPU does depth test before texturing ONLY if depth value is
