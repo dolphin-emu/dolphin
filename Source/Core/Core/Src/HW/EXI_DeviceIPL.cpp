@@ -234,6 +234,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 				device_name = "UART";
 				break;
 			case REGION_EUART:
+			case REGION_EUART_UNK:
 				device_name = "EUART";
 				break;
 			case REGION_UART_UNK:
@@ -303,6 +304,11 @@ void CEXIIPL::TransferByte(u8& _uByte)
 				// "Queue Length"... return 0 cause we're instant
 				_uByte = 0;
 			}
+			break;
+
+		case REGION_EUART_UNK:
+			// Writes 0xf2 then 0xf3 on EUART init. Just need to return non-zero
+			// so we can leave the byte untouched.
 			break;
 
 		case REGION_UART_UNK:
