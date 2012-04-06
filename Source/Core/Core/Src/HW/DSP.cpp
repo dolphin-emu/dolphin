@@ -438,7 +438,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			// g_ARAM
 			g_dspState.DSPControl.DMAState = 0;	// keep g_ARAM DMA State zero
 
-			// unknown					
+			// unknown
 			g_dspState.DSPControl.unk3	= tmpControl.unk3;
 			g_dspState.DSPControl.pad   = tmpControl.pad;
 			if (g_dspState.DSPControl.pad != 0)
@@ -458,8 +458,9 @@ void Write16(const u16 _Value, const u32 _Address)
 		// __OSInitAudioSystem sets to 0x43 -> expects 16bit adressing and mapping to dsp iram?
 		// __OSCheckSize sets = 0x20 | 3 (keeps upper bits)
 		// 0x23 -> Zelda standard mode (standard ARAM access ??)
-		// 0x43 -> Set by Eternal Darkness and SSBB
+		// 0x43 -> Set by __OSInitAudioSystem
 		// 0x63 -> ARCheckSize Mode (access AR-registers ??) or no exception ??
+		// 0x64 -> Transworld Surf, Cel Damage, SSBM
 		break;
 
 	case AR_MODE:
@@ -672,7 +673,7 @@ void UpdateAudioDMA()
 	{
 		// Send silence. Yeah, it's a bit of a waste to sample rate convert
 		// silence.  or hm. Maybe we shouldn't do this :)
-		// dsp->DSP_SendAIBuffer(0, AudioInterface::GetDSPSampleRate());
+		//dsp_emulator->DSP_SendAIBuffer(0, AudioInterface::GetAIDSampleRate());
 	}
 }
 
@@ -686,39 +687,72 @@ void Do_ARAM_DMA()
 	if (g_arDMA.Cnt.dir)
 	{
 		// ARAM -> MRAM
-		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x",
-			g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
+		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x PC: %08x",
+			g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
 
-		while (g_arDMA.Cnt.count)
+		// Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
+		g_arDMA.ARAddr &= 0x3ffffff;
+		g_arDMA.MMAddr &= 0x3ffffff;
+
+		// Transworld Surf (GTVE70) needs this
+		if (g_arDMA.ARAddr > g_ARAM.size)
+			g_arDMA.ARAddr -= g_ARAM.size;
+
+		if (g_arDMA.ARAddr < g_ARAM.size)
 		{
-			if (g_arDMA.ARAddr < g_ARAM.size)
+			while (g_arDMA.Cnt.count)
 			{
-				Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr], g_arDMA.MMAddr);
+				Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & ARAM_MASK], g_arDMA.MMAddr);
 				g_arDMA.MMAddr += 8;
 				g_arDMA.ARAddr += 8;
+				g_arDMA.Cnt.count -= 8;
 			}
-			g_arDMA.Cnt.count -= 8;
+		}
+		else
+		{
+			// Returns zeroes on out of bounds reads (verified on real HW)
+			while (g_arDMA.Cnt.count)
+			{
+				Memory::Write_U64(0, g_arDMA.MMAddr);
+				g_arDMA.MMAddr += 8;
+				g_arDMA.ARAddr += 8;
+				g_arDMA.Cnt.count -= 8;
+			}
 		}
 	}
 	else
 	{
 		// MRAM -> ARAM
-		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x",
-			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr);
+		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x",
+			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr, PC);
 
-		while (g_arDMA.Cnt.count)
+		// Incoming data into ARAM is mirrored every 64MB (verified on real HW)
+		g_arDMA.ARAddr &= 0x3ffffff;
+		g_arDMA.MMAddr &= 0x3ffffff;
+
+		// Transworld Surf (GTVE70) needs this
+		if (g_arDMA.ARAddr > g_ARAM.size)
+			g_arDMA.ARAddr -= g_ARAM.size;
+
+		if (g_arDMA.ARAddr < g_ARAM.size)
 		{
-			if (g_arDMA.ARAddr < g_ARAM.size)
+			while (g_arDMA.Cnt.count)
 			{
-				*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
+				*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & ARAM_MASK] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
 				g_arDMA.MMAddr += 8;
 				g_arDMA.ARAddr += 8;
+				g_arDMA.Cnt.count -= 8;
 			}
-			g_arDMA.Cnt.count -= 8;
+		}
+		else
+		{
+			// Writes nothing to ARAM when out of bounds (verified on real HW)
+			g_arDMA.MMAddr += g_arDMA.Cnt.count;
+			g_arDMA.ARAddr += g_arDMA.Cnt.count;
+			g_arDMA.Cnt.count = 0;
 		}
 	}
 }
-
 
 // (shuffle2) I still don't believe that this hack is actually needed... :(
 // Maybe the wii sports ucode is processed incorrectly?
