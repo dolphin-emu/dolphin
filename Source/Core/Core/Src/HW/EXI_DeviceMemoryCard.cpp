@@ -110,7 +110,7 @@ void innerFlush(FlushData* data)
 		SplitPath(data->filename, &dir, 0, 0);
 		if (!File::IsDirectory(dir))
 			File::CreateFullPath(dir);
-		pFile.Open(data->filename, "r+b");
+		pFile.Open(data->filename, "wb");
 	}
 
 	if (!pFile) // Note - pFile changed inside above if
