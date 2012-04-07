@@ -178,31 +178,31 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 
 	char *p = text;
 	WRITE(p, "//Vertex Shader: comp:%x, \n", components);
-	WRITE(p, "typedef struct { float4 T0, T1, T2; float4 N0, N1, N2; } s_"I_POSNORMALMATRIX";\n"
+	WRITE(p, "typedef struct { float4 T0, T1, T2; float4 N0, N1, N2; } s_" I_POSNORMALMATRIX";\n"
 		"typedef struct { float4 t; } FLT4;\n"
-		"typedef struct { FLT4 T[24]; } s_"I_TEXMATRICES";\n"
-		"typedef struct { FLT4 T[64]; } s_"I_TRANSFORMMATRICES";\n"
-		"typedef struct { FLT4 T[32]; } s_"I_NORMALMATRICES";\n"
-		"typedef struct { FLT4 T[64]; } s_"I_POSTTRANSFORMMATRICES";\n"
+		"typedef struct { FLT4 T[24]; } s_" I_TEXMATRICES";\n"
+		"typedef struct { FLT4 T[64]; } s_" I_TRANSFORMMATRICES";\n"
+		"typedef struct { FLT4 T[32]; } s_" I_NORMALMATRICES";\n"
+		"typedef struct { FLT4 T[64]; } s_" I_POSTTRANSFORMMATRICES";\n"
 		"typedef struct { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; } Light;\n"
-		"typedef struct { Light lights[8]; } s_"I_LIGHTS";\n"
-		"typedef struct { float4 C0, C1, C2, C3; } s_"I_MATERIALS";\n"
-		"typedef struct { float4 T0, T1, T2, T3; } s_"I_PROJECTION";\n"
+		"typedef struct { Light lights[8]; } s_" I_LIGHTS";\n"
+		"typedef struct { float4 C0, C1, C2, C3; } s_" I_MATERIALS";\n"
+		"typedef struct { float4 T0, T1, T2, T3; } s_" I_PROJECTION";\n"
 		);
 
 	p = GenerateVSOutputStruct(p, components, api_type);
 
 	// uniforms
 
-	WRITE(p, "uniform s_"I_TRANSFORMMATRICES" "I_TRANSFORMMATRICES" : register(c%d);\n", C_TRANSFORMMATRICES);
-	WRITE(p, "uniform s_"I_TEXMATRICES" "I_TEXMATRICES" : register(c%d);\n", C_TEXMATRICES); // also using tex matrices
-	WRITE(p, "uniform s_"I_NORMALMATRICES" "I_NORMALMATRICES" : register(c%d);\n", C_NORMALMATRICES);
-	WRITE(p, "uniform s_"I_POSNORMALMATRIX" "I_POSNORMALMATRIX" : register(c%d);\n", C_POSNORMALMATRIX);
-	WRITE(p, "uniform s_"I_POSTTRANSFORMMATRICES" "I_POSTTRANSFORMMATRICES" : register(c%d);\n", C_POSTTRANSFORMMATRICES);
-	WRITE(p, "uniform s_"I_LIGHTS" "I_LIGHTS" : register(c%d);\n", C_LIGHTS);
-	WRITE(p, "uniform s_"I_MATERIALS" "I_MATERIALS" : register(c%d);\n", C_MATERIALS);
-	WRITE(p, "uniform s_"I_PROJECTION" "I_PROJECTION" : register(c%d);\n", C_PROJECTION);
-	WRITE(p, "uniform float4 "I_DEPTHPARAMS" : register(c%d);\n", C_DEPTHPARAMS);
+	WRITE(p, "uniform s_" I_TRANSFORMMATRICES" " I_TRANSFORMMATRICES" : register(c%d);\n", C_TRANSFORMMATRICES);
+	WRITE(p, "uniform s_" I_TEXMATRICES" " I_TEXMATRICES" : register(c%d);\n", C_TEXMATRICES); // also using tex matrices
+	WRITE(p, "uniform s_" I_NORMALMATRICES" " I_NORMALMATRICES" : register(c%d);\n", C_NORMALMATRICES);
+	WRITE(p, "uniform s_" I_POSNORMALMATRIX" " I_POSNORMALMATRIX" : register(c%d);\n", C_POSNORMALMATRIX);
+	WRITE(p, "uniform s_" I_POSTTRANSFORMMATRICES" " I_POSTTRANSFORMMATRICES" : register(c%d);\n", C_POSTTRANSFORMMATRICES);
+	WRITE(p, "uniform s_" I_LIGHTS" " I_LIGHTS" : register(c%d);\n", C_LIGHTS);
+	WRITE(p, "uniform s_" I_MATERIALS" " I_MATERIALS" : register(c%d);\n", C_MATERIALS);
+	WRITE(p, "uniform s_" I_PROJECTION" " I_PROJECTION" : register(c%d);\n", C_PROJECTION);
+	WRITE(p, "uniform float4 " I_DEPTHPARAMS" : register(c%d);\n", C_DEPTHPARAMS);
 
 	WRITE(p, "VS_OUTPUT main(\n");	
 	
@@ -258,11 +258,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 			WRITE(p, "int posmtx = fposmtx;\n");
 		}
 
-		WRITE(p, "float4 pos = float4(dot("I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos), 1);\n");		
+		WRITE(p, "float4 pos = float4(dot(" I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot(" I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot(" I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos), 1);\n");		
 
 		if (components & VB_HAS_NRMALL) {
 			WRITE(p, "int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
-			WRITE(p, "float3 N0 = "I_NORMALMATRICES".T[normidx].t.xyz, N1 = "I_NORMALMATRICES".T[normidx+1].t.xyz, N2 = "I_NORMALMATRICES".T[normidx+2].t.xyz;\n");
+			WRITE(p, "float3 N0 = " I_NORMALMATRICES".T[normidx].t.xyz, N1 = " I_NORMALMATRICES".T[normidx+1].t.xyz, N2 = " I_NORMALMATRICES".T[normidx+2].t.xyz;\n");
 		}
 
 		if (components & VB_HAS_NRM0)
@@ -274,13 +274,13 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	}
 	else
 	{
-		WRITE(p, "float4 pos = float4(dot("I_POSNORMALMATRIX".T0, rawpos), dot("I_POSNORMALMATRIX".T1, rawpos), dot("I_POSNORMALMATRIX".T2, rawpos), 1.0f);\n");
+		WRITE(p, "float4 pos = float4(dot(" I_POSNORMALMATRIX".T0, rawpos), dot(" I_POSNORMALMATRIX".T1, rawpos), dot(" I_POSNORMALMATRIX".T2, rawpos), 1.0f);\n");
 		if (components & VB_HAS_NRM0)
-			WRITE(p, "float3 _norm0 = normalize(float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm0)));\n");
+			WRITE(p, "float3 _norm0 = normalize(float3(dot(" I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot(" I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot(" I_POSNORMALMATRIX".N2.xyz, rawnorm0)));\n");
 		if (components & VB_HAS_NRM1)
-			WRITE(p, "float3 _norm1 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");
+			WRITE(p, "float3 _norm1 = float3(dot(" I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot(" I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot(" I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");
 		if (components & VB_HAS_NRM2)
-			WRITE(p, "float3 _norm2 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm2));\n");
+			WRITE(p, "float3 _norm2 = float3(dot(" I_POSNORMALMATRIX".N0.xyz, rawnorm2), dot(" I_POSNORMALMATRIX".N1.xyz, rawnorm2), dot(" I_POSNORMALMATRIX".N2.xyz, rawnorm2));\n");
 	}
 
 	if (!(components & VB_HAS_NRM0))
@@ -288,7 +288,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 
 	
 
-	WRITE(p, "o.pos = float4(dot("I_PROJECTION".T0, pos), dot("I_PROJECTION".T1, pos), dot("I_PROJECTION".T2, pos), dot("I_PROJECTION".T3, pos));\n");
+	WRITE(p, "o.pos = float4(dot(" I_PROJECTION".T0, pos), dot(" I_PROJECTION".T1, pos), dot(" I_PROJECTION".T2, pos), dot(" I_PROJECTION".T3, pos));\n");
 
 	WRITE(p, "float4 mat, lacc;\n"
 	"float3 ldir, h;\n"
@@ -367,7 +367,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 
 				if (components & (VB_HAS_NRM1|VB_HAS_NRM2)) {
 					// transform the light dir into tangent space
-					WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift);
+					WRITE(p, "ldir = normalize(" I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift);
 					WRITE(p, "o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
 				}
 				else
@@ -389,16 +389,16 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 			default:
 				if (components & (VB_HAS_TEXMTXIDX0<<i)) {
 					if (texinfo.projection == XF_TEXPROJ_STQ)
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z+1].t), dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z+2].t));\n", i, i, i, i);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+1].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+2].t));\n", i, i, i, i);
 					else {
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z+1].t), 1);\n", i, i, i);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+1].t), 1);\n", i, i, i);
 					}
 				}
 				else {
 					if (texinfo.projection == XF_TEXPROJ_STQ)
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TEXMATRICES".T[%d].t), dot(coord, "I_TEXMATRICES".T[%d].t), dot(coord, "I_TEXMATRICES".T[%d].t));\n", i, 3*i, 3*i+1, 3*i+2);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES".T[%d].t), dot(coord, " I_TEXMATRICES".T[%d].t), dot(coord, " I_TEXMATRICES".T[%d].t));\n", i, 3*i, 3*i+1, 3*i+2);
 					else
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TEXMATRICES".T[%d].t), dot(coord, "I_TEXMATRICES".T[%d].t), 1);\n", i, 3*i, 3*i+1);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES".T[%d].t), dot(coord, " I_TEXMATRICES".T[%d].t), 1);\n", i, 3*i, 3*i+1);
 				}
 				break;
 		}
@@ -407,9 +407,9 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 			const PostMtxInfo& postInfo = xfregs.postMtxInfo[i];
 
 			int postidx = postInfo.index;
-			WRITE(p, "float4 P0 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n"
-				"float4 P1 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n"
-				"float4 P2 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n",
+			WRITE(p, "float4 P0 = " I_POSTTRANSFORMMATRICES".T[%d].t;\n"
+				"float4 P1 = " I_POSTTRANSFORMMATRICES".T[%d].t;\n"
+				"float4 P2 = " I_POSTTRANSFORMMATRICES".T[%d].t;\n",
 				postidx&0x3f, (postidx+1)&0x3f, (postidx+2)&0x3f);
 
 			if (texGenSpecialCase) {
@@ -467,7 +467,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	//if not early z culling will improve speed
 	if (is_d3d)
 	{
-		WRITE(p, "o.pos.z = "I_DEPTHPARAMS".x * o.pos.w + o.pos.z * "I_DEPTHPARAMS".y;\n");
+		WRITE(p, "o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
 	}
 	else
 	{
@@ -497,7 +497,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	{
 		// D3D9 is addressing pixel centers instead of pixel boundaries in clip space.
 		// Thus we need to offset the final position by half a pixel
-		WRITE(p, "o.pos = o.pos + float4("I_DEPTHPARAMS".z, "I_DEPTHPARAMS".w, 0.f, 0.f);\n");
+		WRITE(p, "o.pos = o.pos + float4(" I_DEPTHPARAMS".z, " I_DEPTHPARAMS".w, 0.f, 0.f);\n");
 	}
 
 	WRITE(p, "return o;\n}\n");
