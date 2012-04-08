@@ -915,6 +915,10 @@ void CFrame::StartGame(const std::string& filename)
 
 		m_RenderParent = m_Panel;
 		m_RenderFrame = this;
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
+			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
+		else
+			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 	}
 	else
 	{
@@ -929,6 +933,11 @@ void CFrame::StartGame(const std::string& filename)
 #endif
 
 		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position);
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
+			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
+		else
+			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
+
 		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 		m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
