@@ -627,6 +627,10 @@ void LoadInput(const char *filename)
 
 	if (!g_bReadOnly)
 	{
+		if (g_rerecords > tmpHeader.numRerecords)
+		{
+			tmpHeader.numRerecords = g_rerecords;
+		}
 		tmpHeader.numRerecords++;
 		t_record.Seek(0, SEEK_SET);
 		t_record.WriteArray(&tmpHeader, 1);
