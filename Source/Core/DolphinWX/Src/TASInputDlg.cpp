@@ -371,5 +371,11 @@ void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
 
 bool TASInputDlg::HasFocus()
 {
-	return (wxWindow::FindFocus() == this || wxWindow::FindFocus()->GetParent() == this);
+    if (wxWindow::FindFocus() == this)
+        return true;
+    else if (wxWindow::FindFocus() != NULL &&
+             wxWindow::FindFocus()->GetParent() == this)
+        return true;
+    else
+        return false;
 }
