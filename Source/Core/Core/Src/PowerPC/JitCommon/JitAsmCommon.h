@@ -40,12 +40,14 @@ public:
 
 	const u8 *enterCode;
 
+	const u8 *outerLoop;
 	const u8 *dispatcher;
 	const u8 *dispatcherNoCheck;
 	const u8 *dispatcherPcInEAX;
 
 	const u8 *fpException;
 	const u8 *testExceptions;
+	const u8 *testExternalExceptions;
 	const u8 *dispatchPcInEAX;
 	const u8 *doTiming;
 

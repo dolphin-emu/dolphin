@@ -102,6 +102,7 @@ void SetMode(CoreMode _coreType);
 
 void SingleStep();	
 void CheckExceptions();
+void CheckExternalExceptions();
 void CheckBreakPoints();
 void RunLoop();
 void Start();
