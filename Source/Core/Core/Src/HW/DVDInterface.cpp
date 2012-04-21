@@ -203,7 +203,9 @@ static UDICFG		m_DICFG;
 
 static u32			AudioStart;
 static u32			AudioPos;
+static u32			CurrentStart;
 static u32			AudioLength;
+static u32			CurrentLength;
 
 u32	 g_ErrorCode = 0;
 bool g_bDiscInside = false;
@@ -351,33 +353,46 @@ bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
 
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
 {
+	_iNumSamples &= ~31;
+
 	if (AudioPos == 0)
 	{
-		//MessageBox(0,"DVD: Trying to stream from 0", "bah", 0);
 		memset(_pDestBuffer, 0, _iNumSamples); // probably __AI_SRC_INIT :P
-		return false;
 	}
-	_iNumSamples &= ~31;
+	else
 	{
-	std::lock_guard<std::mutex> lk(dvdread_section);
-	VolumeHandler::ReadToPtr(_pDestBuffer, AudioPos, _iNumSamples);
+		std::lock_guard<std::mutex> lk(dvdread_section);
+		VolumeHandler::ReadToPtr(_pDestBuffer, AudioPos, _iNumSamples);
 	}
 
-	//
-	// FIX THIS
-	//
 	// loop check
-	//
-	AudioPos += _iNumSamples;
-	if (AudioPos >= AudioStart + AudioLength)
+	if (g_bStream)
 	{
-		g_bStream = false; // Starfox Adventures
-		AudioPos = AudioStart;
-		NGCADPCM::InitFilter();
-	}
+		AudioPos += _iNumSamples;
 
-	//WARN_LOG(DVDINTERFACE,"ReadADPCM");
-	return true;
+		if (AudioPos >= CurrentStart + CurrentLength)
+		{
+			if (AudioStart == 0 || AudioLength == 0)
+			{
+				AudioPos = 0;
+				CurrentStart = 0;
+				CurrentLength = 0;
+				g_bStream = false; // Starfox Adventures
+			}
+			else
+			{
+				AudioPos = AudioStart;
+				CurrentStart = AudioStart;
+				CurrentLength = AudioLength;
+				NGCADPCM::InitFilter();
+			}
+		}
+
+		//WARN_LOG(DVDINTERFACE,"ReadADPCM");
+		return true;
+	}
+	else
+		return false;
 }
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
@@ -813,21 +828,20 @@ void ExecuteCommand(UDICR& _DICR)
 	//	m_DICMDBUF[2].Hex			= Length of the stream
 	case 0xE1:
 		{
-			// ugly hack to catch the disable command
-			if (m_DICMDBUF[1].Hex != 0)
+			if (!g_bStream)
 			{
-				AudioPos	= m_DICMDBUF[1].Hex << 2;
-				AudioStart	= AudioPos;
-				AudioLength	= m_DICMDBUF[2].Hex;
-				NGCADPCM::InitFilter();			
-
+				AudioPos = m_DICMDBUF[1].Hex << 2;
+				CurrentStart = AudioPos;
+				CurrentLength = m_DICMDBUF[2].Hex;
+				NGCADPCM::InitFilter();
 				g_bStream = true;
-
-				WARN_LOG(DVDINTERFACE, "(Audio) Stream subcmd = %02x offset = %08x length=%08x",
-					m_DICMDBUF[0].CMDBYTE1, AudioPos, AudioLength);
 			}
-			else
-				WARN_LOG(DVDINTERFACE, "(Audio) Off?");
+
+			AudioStart	= m_DICMDBUF[1].Hex << 2;
+			AudioLength	= m_DICMDBUF[2].Hex;
+
+			WARN_LOG(DVDINTERFACE, "(Audio) Stream subcmd = %02x offset = %08x length=%08x",
+				m_DICMDBUF[0].CMDBYTE1, AudioPos, AudioLength);
 		}
 		break;
 
