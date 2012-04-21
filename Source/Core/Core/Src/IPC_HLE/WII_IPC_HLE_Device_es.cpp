@@ -266,8 +266,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			m_ContentAccessMap[CFD].m_Position = 0;
 			m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(m_TitleID).GetContentByIndex(Index);
-			_dbg_assert_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL);
-
+			
 			if (m_ContentAccessMap[CFD].m_pContent == NULL)
 				CFD = 0xffffffff; //TODO: what is the correct error value here?
 
@@ -740,6 +739,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         {
             _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 2);
 			bool bSuccess = false;
+			bool reloadIOS = false;
 			u16 IOSv = 0xffff;
 
             u64 TitleID		= Memory::Read_U64(Buffer.InBuffer[0].m_Address);
@@ -776,14 +776,16 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				// Lie to mem about loading a different ios
 				// someone with an affected game should test
 				IOSv = TitleID & 0xffff;
+				reloadIOS = true;
 			}
 			if (!bSuccess)
 			{
 				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
 					"TitleID %016llx.\n Dolphin will likely hang now", TitleID);
 			}
-			else
+			else if (reloadIOS)
 			{
+				std::string tContentFile(m_ContentFile.c_str());
 				WII_IPC_HLE_Interface::Reset(true);
 				WII_IPC_HLE_Interface::Init();
 
@@ -800,7 +802,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 						s_Usb->m_WiiMotes[i].Activate(false);
 					}
 				}
-
+				
+				WII_IPC_HLE_Interface::SetDefaultContentFile(tContentFile);
 			}
 			// Pass the "#002 check"
 			// Apploader should write the IOS version and revision to 0x3140, and compare it
