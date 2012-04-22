@@ -28,6 +28,7 @@
 #include "Thread.h"
 #include "Memmap.h"
 #include "../VolumeHandler.h"
+#include "AudioInterface.h"
 
 // Disc transfer rate measured in bytes per second
 static const u32 DISC_TRANSFER_RATE_GC = 3125 * 1024;
@@ -201,10 +202,10 @@ static UDICR		m_DICR;
 static UDIIMMBUF	m_DIIMMBUF;
 static UDICFG		m_DICFG;
 
-static u32			AudioStart;
+static u32			LoopStart;
 static u32			AudioPos;
 static u32			CurrentStart;
-static u32			AudioLength;
+static u32			LoopLength;
 static u32			CurrentLength;
 
 u32	 g_ErrorCode = 0;
@@ -240,12 +241,15 @@ void DoState(PointerWrap &p)
 	p.Do(m_DIIMMBUF);
 	p.Do(m_DICFG);
 
-	p.Do(AudioStart);
+	p.Do(LoopStart);
 	p.Do(AudioPos);
-	p.Do(AudioLength);
+	p.Do(LoopLength);
 
 	p.Do(g_ErrorCode);
 	p.Do(g_bDiscInside);
+
+	p.Do(CurrentStart);
+	p.Do(CurrentLength);
 }
 
 void TransferComplete(u64 userdata, int cyclesLate)
@@ -268,9 +272,11 @@ void Init()
 	m_DICFG.Hex		= 0;
 	m_DICFG.CONFIG	= 1; // Disable bootrom descrambler
 
-	AudioStart		= 0;
-	AudioPos		= 0;
-	AudioLength		= 0;
+	AudioPos = 0;
+	LoopStart = 0;
+	LoopLength = 0;
+	CurrentStart = 0;
+	CurrentLength = 0;
 
 	ejectDisc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
@@ -372,20 +378,20 @@ bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
 
 		if (AudioPos >= CurrentStart + CurrentLength)
 		{
-			if (AudioStart == 0 || AudioLength == 0)
+			if (LoopStart == 0)
 			{
 				AudioPos = 0;
 				CurrentStart = 0;
 				CurrentLength = 0;
-				g_bStream = false; // Starfox Adventures
 			}
 			else
 			{
-				AudioPos = AudioStart;
-				CurrentStart = AudioStart;
-				CurrentLength = AudioLength;
-				NGCADPCM::InitFilter();
+				AudioPos = LoopStart;
+				CurrentStart = LoopStart;
+				CurrentLength = LoopLength;
 			}
+			NGCADPCM::InitFilter();
+			AudioInterface::GenerateAISInterrupt();
 		}
 
 		//WARN_LOG(DVDINTERFACE,"ReadADPCM");
@@ -828,27 +834,69 @@ void ExecuteCommand(UDICR& _DICR)
 	//	m_DICMDBUF[2].Hex			= Length of the stream
 	case 0xE1:
 		{
-			if (!g_bStream)
+			u32 pos = m_DICMDBUF[1].Hex << 2;
+			u32 length = m_DICMDBUF[2].Hex;
+
+			// Start playing
+			if (!g_bStream && m_DICMDBUF[0].CMDBYTE1 == 0 && pos != 0 && length != 0)
 			{
-				AudioPos = m_DICMDBUF[1].Hex << 2;
-				CurrentStart = AudioPos;
-				CurrentLength = m_DICMDBUF[2].Hex;
+				AudioPos = pos;
+				CurrentStart = pos;
+				CurrentLength = length;
 				NGCADPCM::InitFilter();
 				g_bStream = true;
 			}
 
-			AudioStart	= m_DICMDBUF[1].Hex << 2;
-			AudioLength	= m_DICMDBUF[2].Hex;
+			LoopStart = pos;
+			LoopLength = length;
+			g_bStream = (m_DICMDBUF[0].CMDBYTE1 == 0); // This command can start/stop the stream
 
-			WARN_LOG(DVDINTERFACE, "(Audio) Stream subcmd = %02x offset = %08x length=%08x",
-				m_DICMDBUF[0].CMDBYTE1, AudioPos, AudioLength);
+			// Stop stream
+			if (m_DICMDBUF[0].CMDBYTE1 == 1)
+			{
+				AudioPos = 0;
+				LoopStart = 0;
+				LoopLength = 0;
+				CurrentStart = 0;
+				CurrentLength = 0;
+			}
+
+			WARN_LOG(DVDINTERFACE, "(Audio) Stream subcmd = %08x offset = %08x length=%08x",
+				m_DICMDBUF[0].Hex, m_DICMDBUF[1].Hex << 2, m_DICMDBUF[2].Hex);
 		}
 		break;
 
 	// Request Audio Status (Immediate)
 	case 0xE2:
-		m_DIIMMBUF.Hex = g_bStream ? 1 : 0;
-		//WARN_LOG(DVDINTERFACE, "(Audio): Request Audio status %s", g_bStream? "on":"off");
+		{
+			switch (m_DICMDBUF[0].CMDBYTE1)
+			{
+			case 0x00: // Returns streaming status
+				m_DIIMMBUF.Hex = (AudioPos == 0) ? 0 : 1;
+				break;
+			case 0x01: // Returns the current offset
+				if (g_bStream)
+					m_DIIMMBUF.Hex = (AudioPos - CurrentStart) >> 2;
+				else
+					m_DIIMMBUF.Hex = 0;
+				break;
+			case 0x02: // Returns the start offset
+				if (g_bStream)
+					m_DIIMMBUF.Hex = CurrentStart >> 2;
+				else
+					m_DIIMMBUF.Hex = 0;
+				break;
+			case 0x03: // Returns the total length
+				if (g_bStream)
+					m_DIIMMBUF.Hex = CurrentLength;
+				else
+					m_DIIMMBUF.Hex = 0;
+				break;
+			default:
+				WARN_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s", m_DICMDBUF[0].CMDBYTE1, g_bStream? "on":"off");
+				break;
+			}
+		}
 		break;
 
 	case DVDLowStopMotor:
