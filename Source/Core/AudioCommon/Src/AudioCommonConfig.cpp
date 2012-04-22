@@ -31,7 +31,6 @@ void AudioCommonConfig::Load()
 	IniFile file;
 	file.Load(File::GetUserPath(F_DSPCONFIG_IDX));
 
-	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
 	file.Get("Config", "EnableJIT", &m_EnableJIT, true);
 	file.Get("Config", "DumpAudio", &m_DumpAudio, false);
 #if defined __linux__ && HAVE_ALSA
@@ -53,7 +52,6 @@ void AudioCommonConfig::SaveSettings()
 	IniFile file;
 	file.Load(File::GetUserPath(F_DSPCONFIG_IDX));
 
-	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
 	file.Set("Config", "EnableJIT", m_EnableJIT);
 	file.Set("Config", "DumpAudio", m_DumpAudio);
 	file.Set("Config", "Backend", sBackend);
@@ -67,7 +65,6 @@ void AudioCommonConfig::SaveSettings()
 void AudioCommonConfig::Update() {
 	if (soundStream) {
 		soundStream->GetMixer()->SetThrottle(SConfig::GetInstance().m_Framelimit == 2);
-		soundStream->GetMixer()->SetDTKMusic(m_EnableDTKMusic);
 		soundStream->SetVolume(m_Volume);
 	}
 }
