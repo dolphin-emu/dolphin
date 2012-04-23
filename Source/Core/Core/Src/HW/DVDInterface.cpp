@@ -247,6 +247,7 @@ void DoState(PointerWrap &p)
 
 	p.Do(g_ErrorCode);
 	p.Do(g_bDiscInside);
+	p.Do(g_bStream);
 
 	p.Do(CurrentStart);
 	p.Do(CurrentLength);
@@ -277,6 +278,8 @@ void Init()
 	LoopLength = 0;
 	CurrentStart = 0;
 	CurrentLength = 0;
+
+	g_bStream = false;
 
 	ejectDisc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
