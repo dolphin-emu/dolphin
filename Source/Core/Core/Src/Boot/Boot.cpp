@@ -19,6 +19,7 @@
 #include "Common.h" // Common
 #include "StringUtil.h"
 #include "FileUtil.h"
+#include "MathUtil.h"
 
 #include "../HLE/HLE.h" // Core
 #include "../PowerPC/PowerPC.h"
@@ -68,13 +69,13 @@ void CBoot::Load_FST(bool _bIsWii)
 	u32 fstSize    = VolumeHandler::Read32(0x0428) << shift;
 	u32 maxFstSize = VolumeHandler::Read32(0x042c) << shift;
 
-	u32 arenaHigh = 0x817FFFF4 - maxFstSize;
+	u32 arenaHigh = ROUND_DOWN(0x817FFFFF - maxFstSize, 0x20);
 	Memory::Write_U32(arenaHigh, 0x00000034);
 
 	// load FST
 	VolumeHandler::ReadToPtr(Memory::GetPointer(arenaHigh), fstOffset, fstSize);
 	Memory::Write_U32(arenaHigh, 0x00000038);
-	Memory::Write_U32(maxFstSize, 0x0000003c);		
+	Memory::Write_U32(maxFstSize, 0x0000003c);
 }
 
 void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
