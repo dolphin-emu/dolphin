@@ -33,7 +33,6 @@
 
 struct AudioCommonConfig 
 {
-	bool m_EnableDTKMusic;
 	bool m_EnableJIT;
 	bool m_DumpAudio;
 	int m_Volume;

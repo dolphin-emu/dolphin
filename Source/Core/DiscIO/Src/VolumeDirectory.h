@@ -141,6 +141,16 @@ private:
 
 	u64 m_DOLSize;
 	u8* m_DOL;
+
+	static const u8 ENTRY_SIZE = 0x0c;
+	static const u8 FILE_ENTRY = 0;
+	static const u8 DIRECTORY_ENTRY = 1;
+	static const u64 DISKHEADER_ADDRESS = 0;
+	static const u64 DISKHEADERINFO_ADDRESS = 0x440;
+	static const u64 APPLOADER_ADDRESS = 0x2440;
+	static const u32 MAX_NAME_LENGTH = 0x3df;
+	u64 FST_ADDRESS;
+	u64 DOL_ADDRESS;
 };
 
 } // namespace
