@@ -391,10 +391,9 @@ void JitIL::Cleanup()
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
 
-	CMP(32, M(&MMCR0), Imm32(0));
-	FixupBranch mmcr0 = J_CC(CC_Z);
-	ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
-	SetJumpTarget(mmcr0);
+	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
+	if (MMCR0.Hex || MMCR1.Hex)
+		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
 void JitIL::WriteExit(u32 destination, int exit_num)
