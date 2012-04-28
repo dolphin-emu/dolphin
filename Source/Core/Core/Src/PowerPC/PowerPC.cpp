@@ -289,6 +289,68 @@ void Stop()
 	Host_UpdateDisasmDialog();
 }
 
+void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
+{
+	switch (MMCR0.PMC1SELECT)
+	{
+	case 0: // No change
+		break;
+	case 1: // Processor cycles
+		PowerPC::ppcState.spr[SPR_PMC1] += cycles;
+		break;
+	default:
+		break;
+	}
+
+	switch (MMCR0.PMC2SELECT)
+	{
+	case 0: // No change
+		break;
+	case 1: // Processor cycles
+		PowerPC::ppcState.spr[SPR_PMC2] += cycles;
+		break;
+	case 11: // Number of loads and stores completed
+		PowerPC::ppcState.spr[SPR_PMC2] += num_load_stores;
+		break;
+	default:
+		break;
+	}
+
+	switch (MMCR1.PMC3SELECT)
+	{
+	case 0: // No change
+		break;
+	case 1: // Processor cycles
+		PowerPC::ppcState.spr[SPR_PMC3] += cycles;
+		break;
+	case 11: // Number of FPU instructions completed
+		PowerPC::ppcState.spr[SPR_PMC3] += num_fp_inst;
+		break;
+	default:
+		break;
+	}
+
+	switch (MMCR1.PMC4SELECT)
+	{
+	case 0: // No change
+		break;
+	case 1: // Processor cycles
+		PowerPC::ppcState.spr[SPR_PMC4] += cycles;
+		break;
+	default:
+		break;
+	}
+
+	if (MMCR0.PMC1INTCONTROL && (PowerPC::ppcState.spr[SPR_PMC1] & 80000000) != 0)
+		PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
+	if (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC2] & 80000000) != 0)
+		PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
+	if (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC3] & 80000000) != 0)
+		PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
+	if (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC4] & 80000000) != 0)
+		PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
+}
+
 void CheckExceptions()
 {
 	// Make sure we are checking against the latest EXI status. This is required
@@ -404,6 +466,17 @@ void CheckExceptions()
 			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
 
 			_dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
+		}
+		else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
+		{
+			SRR0 = NPC;
+			SRR1 = MSR & 0x87C0FFFF;
+			MSR |= (MSR >> 16) & 1;
+			MSR &= ~0x04EF36;
+			NPC = 0x80000F00;
+
+			INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
+			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_PERFORMANCE_MONITOR);
 		}
 		else if (exceptions & EXCEPTION_DECREMENTER)
 		{
