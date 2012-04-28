@@ -93,6 +93,10 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	case SPR_DEC:
 	case SPR_TL:
 	case SPR_TU:
+	case SPR_PMC1:
+	case SPR_PMC2:
+	case SPR_PMC3:
+	case SPR_PMC4:
 		Default(inst);
 		return;
 	default:

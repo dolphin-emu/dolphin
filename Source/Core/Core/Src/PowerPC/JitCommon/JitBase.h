@@ -57,6 +57,8 @@ protected:
 		int blockSize;
 		int instructionNumber;
 		int downcountAmount;
+		u32 numLoadStoreInst;
+		u32 numFloatingPointInst;
 
 		bool firstFPInstructionFound;
 		bool isLastInstruction;

@@ -390,6 +390,11 @@ void JitIL::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+
+	CMP(32, M(&MMCR0), Imm32(0));
+	FixupBranch mmcr0 = J_CC(CC_Z);
+	ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
+	SetJumpTarget(mmcr0);
 }
 
 void JitIL::WriteExit(u32 destination, int exit_num)
@@ -666,6 +671,12 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			{
 				ibuild.EmitDSIExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
+
+			if (opinfo->flags & FL_LOADSTORE)
+				++jit->js.numLoadStoreInst;
+
+			if (opinfo->flags & FL_USE_FPU)
+				++jit->js.numFloatingPointInst;
 		}
 	}
 
