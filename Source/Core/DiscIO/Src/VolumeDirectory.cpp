@@ -447,7 +447,7 @@ void CVolumeDirectory::WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset,
 	m_FSTData[entryOffset++] = (nameOffset >> 8) & 0xff;
 	m_FSTData[entryOffset++] = (nameOffset) & 0xff;
 
-	Write32((u32)(dataOffset >> m_addressShift), entryOffset, m_FSTData);
+	Write32((u32)(dataOffset), entryOffset, m_FSTData);
 	entryOffset += 4;
 
 	Write32((u32)length, entryOffset, m_FSTData);
