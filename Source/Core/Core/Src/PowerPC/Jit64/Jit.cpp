@@ -445,6 +445,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.curBlock = b;
 	js.block_flags = 0;
 	js.cancel = false;
+	jit->js.numLoadStoreInst = 0;
+	jit->js.numFloatingPointInst = 0;
 
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
