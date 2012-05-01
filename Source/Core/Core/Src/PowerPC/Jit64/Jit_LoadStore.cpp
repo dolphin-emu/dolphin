@@ -151,7 +151,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 		// ! we must continue executing of the loop after exception handling, maybe there is still 0 in r0
 		//MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC));
-		JMP(asm_routines.testExceptions, true);
+		WriteExceptionExit();
 
 		SetJumpTarget(noIdle);
 

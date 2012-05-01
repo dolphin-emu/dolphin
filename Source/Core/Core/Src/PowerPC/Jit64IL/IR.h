@@ -167,7 +167,7 @@ enum Opcode {
 
 	// used for exception checking, at least until someone
 	// has a better idea of integrating it
-	FPExceptionCheckStart, FPExceptionCheckEnd,
+	FPExceptionCheck, DSIExceptionCheck,
 	ISIException, ExtExceptionCheck, BreakPointCheck,
 	// "Opcode" representing a register too far away to
 	// reference directly; this is a size optimization
@@ -402,11 +402,11 @@ public:
 	InstLoc EmitSystemCall(InstLoc pc) {
 		return FoldUOp(SystemCall, pc);
 	}
-	InstLoc EmitFPExceptionCheckStart(InstLoc pc) {
-		return EmitUOp(FPExceptionCheckStart, pc);
+	InstLoc EmitFPExceptionCheck(InstLoc pc) {
+		return EmitUOp(FPExceptionCheck, pc);
 	}
-	InstLoc EmitFPExceptionCheckEnd(InstLoc pc) {
-		return EmitUOp(FPExceptionCheckEnd, pc);
+	InstLoc EmitDSIExceptionCheck(InstLoc pc) {
+		return EmitUOp(DSIExceptionCheck, pc);
 	}
 	InstLoc EmitISIException(InstLoc dest) {
 		return EmitUOp(ISIException, dest);

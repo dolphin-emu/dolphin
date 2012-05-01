@@ -759,8 +759,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case RFIExit:
 		case InterpreterBranch:		
 		case ShortIdleLoop:
-		case FPExceptionCheckStart:
-		case FPExceptionCheckEnd:
+		case FPExceptionCheck:
+		case DSIExceptionCheck:
 		case ISIException:
 		case ExtExceptionCheck:
 		case BreakPointCheck:
@@ -1869,7 +1869,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->WriteRfiExitDestInOpArg(R(EAX));
 			break;
 		}
-		case FPExceptionCheckStart: {
+		case FPExceptionCheck: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			//This instruction uses FPU - needs to add FP exception bailout
 			Jit->TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
@@ -1883,7 +1883,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->SetJumpTarget(b1);
 			break;
 		}
-		case FPExceptionCheckEnd: {
+		case DSIExceptionCheck: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
 			FixupBranch noMemException = Jit->J_CC(CC_Z);
@@ -1926,13 +1926,13 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case ExtExceptionCheck: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 
-			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT | EXCEPTION_DECREMENTER));
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
 			FixupBranch clearInt = Jit->J_CC(CC_NZ);
 			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
 			FixupBranch noExtException = Jit->J_CC(CC_Z);
 			Jit->TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
 			FixupBranch noExtIntEnable = Jit->J_CC(CC_Z);
-			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP || ProcessorInterface::INT_CAUSE_PE_TOKEN || ProcessorInterface::INT_CAUSE_PE_FINISH));
+			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
 			FixupBranch noCPInt = Jit->J_CC(CC_Z);
 
 			Jit->MOV(32, M(&PC), Imm32(InstLoc));

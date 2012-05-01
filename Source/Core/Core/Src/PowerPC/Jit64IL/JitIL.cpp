@@ -527,7 +527,10 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	}
 
 	if (em_address == 0)
-		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
+	{
+		// Memory exception occurred during instruction fetch
+		memory_exception = true;
+	}
 
 	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
 	{
@@ -644,7 +647,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 			{
-				ibuild.EmitFPExceptionCheckStart(ibuild.EmitIntConst(ops[i].address));
+				ibuild.EmitFPExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
 
 			if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
@@ -661,7 +664,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
-				ibuild.EmitFPExceptionCheckEnd(ibuild.EmitIntConst(ops[i].address));
+				ibuild.EmitDSIExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
 		}
 	}

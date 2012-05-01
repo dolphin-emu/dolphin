@@ -119,6 +119,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
 	WriteExit(js.compilerPC + 4, 0);
+	js.firstFPInstructionFound = false;
 }
 
 void Jit64::mfmsr(UGeckoInstruction inst)
