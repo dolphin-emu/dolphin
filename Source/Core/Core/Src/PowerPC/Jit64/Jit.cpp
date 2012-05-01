@@ -336,12 +336,9 @@ void Jit64::WriteRfiExitDestInEAX()
 	MOV(32, M(&NPC), R(EAX));
 
 	Cleanup();
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	MOV(32, R(EAX), M(&NPC));
-	MOV(32, M(&PC), R(EAX));
-
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 	J_CC(CC_Z, asm_routines.outerLoop, true);
 
@@ -352,14 +349,11 @@ void Jit64::WriteRfiExitDestInEAX()
 void Jit64::WriteExceptionExit()
 {
 	Cleanup();
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 
 	MOV(32, R(EAX), M(&PC));
 	MOV(32, M(&NPC), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	MOV(32, R(EAX), M(&NPC));
-	MOV(32, M(&PC), R(EAX));
-
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 	J_CC(CC_Z, asm_routines.outerLoop, true);
 
@@ -370,13 +364,10 @@ void Jit64::WriteExceptionExit()
 void Jit64::WriteExternalExceptionExit()
 {
 	Cleanup();
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	MOV(32, R(EAX), M(&PC));
 	MOV(32, M(&NPC), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-	MOV(32, R(EAX), M(&NPC));
-	MOV(32, M(&PC), R(EAX));
-
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 	J_CC(CC_Z, asm_routines.outerLoop, true);
 
@@ -600,9 +591,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				// If a FPU exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
 				MOV(32, M(&PC), Imm32(ops[i].address));
-				SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
-
-				LOCK();
 				OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
 				WriteExceptionExit();
 
@@ -690,8 +678,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		// Address of instruction could not be translated
 		MOV(32, M(&NPC), Imm32(js.compilerPC));
 
-		SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
-		LOCK();
 		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 		// Remove the invalid instruction from the icache, forcing a recompile

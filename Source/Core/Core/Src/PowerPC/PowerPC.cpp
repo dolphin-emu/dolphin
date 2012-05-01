@@ -308,7 +308,7 @@ void CheckExceptions()
 	// clear MSR as specified
 	//MSR &= ~0x04EF36; // 0x04FF36 also clears ME (only for machine check exception)
 	// set to exception type entry point
-	//NPC = 0x80000x00;
+	//NPC = 0x00000x00;
 
 	if (exceptions & EXCEPTION_ISI)
 	{
@@ -317,7 +317,7 @@ void CheckExceptions()
 		SRR1 = (MSR & 0x87C0FFFF) | (1 << 30);
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x00000400;
+		PC = NPC = 0x00000400;
 
 		INFO_LOG(POWERPC, "EXCEPTION_ISI");
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_ISI);
@@ -329,7 +329,7 @@ void CheckExceptions()
 		SRR1 = (MSR & 0x87C0FFFF) | 0x20000;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x00000700;
+		PC = NPC = 0x00000700;
 
 		INFO_LOG(POWERPC, "EXCEPTION_PROGRAM");
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_PROGRAM);
@@ -340,7 +340,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x00000C00;
+		PC = NPC = 0x00000C00;
 
 		INFO_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_SYSCALL);
@@ -352,7 +352,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x00000800;
+		PC = NPC = 0x00000800;
 
 		INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_FPU_UNAVAILABLE);
@@ -363,7 +363,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x00000300;
+		PC = NPC = 0x00000300;
 		//DSISR and DAR regs are changed in GenerateDSIException()
 
 		INFO_LOG(POWERPC, "EXCEPTION_DSI");
@@ -377,7 +377,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x00000600;
+		PC = NPC = 0x00000600;
 
 		//TODO crazy amount of DSISR options to check out
 
@@ -395,7 +395,7 @@ void CheckExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
-			NPC = 0x00000500;
+			PC = NPC = 0x00000500;
 
 			INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
 			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
@@ -408,7 +408,7 @@ void CheckExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
-			NPC = 0x00000900;
+			PC = NPC = 0x00000900;
 
 			INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
 			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_DECREMENTER);
@@ -446,7 +446,7 @@ void CheckExternalExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
-			NPC = 0x00000500;
+			PC = NPC = 0x00000500;
 
 			INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
 			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
@@ -459,7 +459,7 @@ void CheckExternalExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
-			NPC = 0x00000900;
+			PC = NPC = 0x00000900;
 
 			INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
 			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_DECREMENTER);
