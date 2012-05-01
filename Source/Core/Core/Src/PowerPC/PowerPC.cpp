@@ -504,7 +504,7 @@ void CheckExternalExceptions()
 	// clear MSR as specified
 	//MSR &= ~0x04EF36; // 0x04FF36 also clears ME (only for machine check exception)
 	// set to exception type entry point
-	//NPC = 0x80000x00;
+	//NPC = 0x00000x00;
 
 	// EXTERNAL INTERRUPT
 	if (MSR & 0x0008000) //hacky...the exception shouldn't be generated if EE isn't set...
