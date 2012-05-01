@@ -461,6 +461,17 @@ void CheckExceptions()
 
 			_dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
 		}
+		else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
+		{
+			SRR0 = NPC;
+			SRR1 = MSR & 0x87C0FFFF;
+			MSR |= (MSR >> 16) & 1;
+			MSR &= ~0x04EF36;
+			PC = NPC = 0x00000F00;
+
+			INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
+			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_PERFORMANCE_MONITOR);
+		}
 		else if (exceptions & EXCEPTION_DECREMENTER)
 		{
 			SRR0 = NPC;
@@ -518,7 +529,7 @@ void CheckExternalExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
-			NPC = 0x80000F00;
+			PC = NPC = 0x00000F00;
 
 			INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
 			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_PERFORMANCE_MONITOR);
