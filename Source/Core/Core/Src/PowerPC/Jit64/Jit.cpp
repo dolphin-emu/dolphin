@@ -592,7 +592,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 				//This instruction uses FPU - needs to add FP exception bailout
 				TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
-				FixupBranch b1 = J_CC(CC_NZ);
+				FixupBranch b1 = J_CC(CC_NZ, true);
 
 				// If a FPU exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
@@ -612,13 +612,13 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				fpr.Flush(FLUSH_ALL);
 
 				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
-				FixupBranch clearInt = J_CC(CC_NZ);
+				FixupBranch clearInt = J_CC(CC_NZ, true);
 				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
-				FixupBranch noExtException = J_CC(CC_Z);
+				FixupBranch noExtException = J_CC(CC_Z, true);
 				TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
-				FixupBranch noExtIntEnable = J_CC(CC_Z);
+				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
 				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
-				FixupBranch noCPInt = J_CC(CC_Z);
+				FixupBranch noCPInt = J_CC(CC_Z, true);
 
 				MOV(32, M(&PC), Imm32(ops[i].address));
 				WriteExternalExceptionExit();
@@ -652,7 +652,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				fpr.Flush(FLUSH_ALL);
 
 				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
-				FixupBranch noMemException = J_CC(CC_Z);
+				FixupBranch noMemException = J_CC(CC_Z, true);
 
 				// If a memory exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.

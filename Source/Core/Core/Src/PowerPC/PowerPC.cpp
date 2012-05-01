@@ -341,13 +341,10 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
 		break;
 	}
 
-	if (MMCR0.PMC1INTCONTROL && (PowerPC::ppcState.spr[SPR_PMC1] & 80000000) != 0)
-		PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
-	if (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC2] & 80000000) != 0)
-		PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
-	if (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC3] & 80000000) != 0)
-		PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
-	if (MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC4] & 80000000) != 0)
+	if ((MMCR0.PMC1INTCONTROL && (PowerPC::ppcState.spr[SPR_PMC1] & 0x80000000) != 0) ||
+		(MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC2] & 0x80000000) != 0) ||
+		(MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC3] & 0x80000000) != 0) ||
+		(MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC4] & 0x80000000) != 0))
 		PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
 }
 
