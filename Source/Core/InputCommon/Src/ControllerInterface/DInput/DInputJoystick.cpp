@@ -241,7 +241,7 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	{
 		// each hat gets 4 input instances associated with it, (up down left right)
 		for (u8 d = 0; d != 4; ++d)
-			AddInput(new Hat(i, m_state_in.rgdwPOV[m_index], d));
+			AddInput(new Hat(i, m_state_in.rgdwPOV[i], d));
 	}
 
 	// get up to 6 axes and 2 sliders
