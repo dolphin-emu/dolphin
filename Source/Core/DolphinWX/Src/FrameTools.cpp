@@ -1043,10 +1043,23 @@ void CFrame::DoPause()
 	}
 	else
 	{
+		// 32x32, 8bpp b/w image
+		// We want all transparent, so we can just use the same buffer for
+		// the "image" as for the transparency mask
+		static const char cursor_data[32 * 32] = { 0 };
+#ifdef __WXGTK__
+		wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
+			cursor_data, wxWHITE, wxBLACK);
+#else
+		wxBitmap cursor_bitmap(cursor_data, 32, 32);
+		cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
+		wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
+#endif
+
 		Core::SetState(Core::CORE_RUN);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 				RendererHasFocus())
-			m_RenderParent->SetCursor(wxCURSOR_BLANK);
+			m_RenderParent->SetCursor(cursor_transparent);
 	}
 	UpdateGUI();
 }
