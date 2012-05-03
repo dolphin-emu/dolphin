@@ -739,7 +739,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         {
             _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 2);
 			bool bSuccess = false;
-			bool reloadIOS = false;
 			u16 IOSv = 0xffff;
 
             u64 TitleID		= Memory::Read_U64(Buffer.InBuffer[0].m_Address);
@@ -776,14 +775,13 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				// Lie to mem about loading a different ios
 				// someone with an affected game should test
 				IOSv = TitleID & 0xffff;
-				reloadIOS = true;
 			}
 			if (!bSuccess)
 			{
 				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
 					"TitleID %016llx.\n Dolphin will likely hang now", TitleID);
 			}
-			else if (reloadIOS)
+			else
 			{
 				std::string tContentFile(m_ContentFile.c_str());
 				WII_IPC_HLE_Interface::Reset(true);
