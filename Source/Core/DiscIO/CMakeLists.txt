@@ -3,6 +3,7 @@ set(SRCS	Src/BannerLoader.cpp
 			Src/BannerLoaderWii.cpp
 			Src/Blob.cpp
 			Src/CISOBlob.cpp
+			Src/WbfsBlob.cpp
 			Src/CompressedBlob.cpp
 			Src/DiscScrubber.cpp
 			Src/DriveBlob.cpp

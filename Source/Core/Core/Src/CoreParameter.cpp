@@ -126,6 +126,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 			SplitPath(m_strFilename, NULL, NULL, &Extension);
 			if (!strcasecmp(Extension.c_str(), ".gcm") || 
 				!strcasecmp(Extension.c_str(), ".iso") ||
+				!strcasecmp(Extension.c_str(), ".wbfs") ||
 				!strcasecmp(Extension.c_str(), ".ciso") ||
 				!strcasecmp(Extension.c_str(), ".gcz") ||
 				bootDrive)
