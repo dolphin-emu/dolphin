@@ -198,11 +198,12 @@ void Jit64AsmRoutineManager::Generate()
 		doTiming = GetCodePtr();
 
 		testExternalExceptions = GetCodePtr();
+		TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
+		FixupBranch noExtException = J_CC(CC_Z);
 		MOV(32, R(EAX), M(&PC));
 		MOV(32, M(&NPC), R(EAX));
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-		MOV(32, R(EAX), M(&NPC));
-		MOV(32, M(&PC), R(EAX));
+		SetJumpTarget(noExtException);
 
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop, true);

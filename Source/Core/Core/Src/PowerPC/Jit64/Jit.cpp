@@ -338,31 +338,20 @@ void Jit64::WriteRfiExitDestInEAX()
 {
 	MOV(32, M(&PC), R(EAX));
 	MOV(32, M(&NPC), R(EAX));
-
 	Cleanup();
-
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
-	TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-	J_CC(CC_Z, asm_routines.outerLoop, true);
-
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	RET();
+	JMP(asm_routines.dispatcher, true);
 }
 
 void Jit64::WriteExceptionExit()
 {
 	Cleanup();
-
 	MOV(32, R(EAX), M(&PC));
 	MOV(32, M(&NPC), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
-	TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-	J_CC(CC_Z, asm_routines.outerLoop, true);
-
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	RET();
+	JMP(asm_routines.dispatcher, true);
 }
 
 void Jit64::WriteExternalExceptionExit()
@@ -372,12 +361,7 @@ void Jit64::WriteExternalExceptionExit()
 	MOV(32, M(&NPC), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
-	TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-	J_CC(CC_Z, asm_routines.outerLoop, true);
-
-	//Landing pad for drec space
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	RET();
+	JMP(asm_routines.dispatcher, true);
 }
 
 void STACKALIGN Jit64::Run()
