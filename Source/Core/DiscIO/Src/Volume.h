@@ -38,9 +38,11 @@ public:
 	virtual std::string GetUniqueID() const = 0;
 	virtual std::string GetMakerID() const = 0;
 	virtual std::string GetName() const = 0;
-	virtual bool GetWName(std::vector<std::wstring>& _rwNames) const {return false;};
+	virtual bool GetWName(std::vector<std::wstring>& _rwNames) const { return false; }
 	virtual u32 GetFSTSize() const = 0;
 	virtual std::string GetApploaderDate() const = 0;
+	virtual bool SupportsIntegrityCheck() const { return false; }
+	virtual bool CheckIntegrity() const { return false; }
 
 	enum ECountry
 	{
