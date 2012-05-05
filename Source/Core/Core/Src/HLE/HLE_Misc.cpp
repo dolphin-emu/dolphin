@@ -301,6 +301,12 @@ void HBReload()
 
 void ExecuteDOL(u8* dolFile, u32 fileSize)
 {
+	// Clear memory before loading the dol
+	for (int i = 0x80004000; i < Memory::Read_U32(0x00000034); i += 4)
+	{
+		// TODO: Should not write over the "save region"
+		Memory::Write_U32(0x00000000, i);
+	}
 	CDolLoader dolLoader(dolFile, fileSize);
 	dolLoader.Load();
 
