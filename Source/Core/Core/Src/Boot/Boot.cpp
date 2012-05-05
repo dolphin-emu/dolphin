@@ -260,13 +260,15 @@ bool CBoot::BootUp()
 		// Scan for common HLE functions
 		if (!_StartupPara.bEnableDebugging)
 		{
-			PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+			PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
 			SignatureDB db;
 			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
 			{
 				db.Apply(&g_symbolDB);
+				HLE::PatchFunctions();
+				db.Clear();
+				g_symbolDB.Clear();
 			}
-			HLE::PatchFunctions();
 		}
 
 		/* Try to load the symbol map if there is one, and then scan it for

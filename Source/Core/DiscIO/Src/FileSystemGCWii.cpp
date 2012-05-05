@@ -159,7 +159,7 @@ bool CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
 	return false;
 }
 
-bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
+u32 CFileSystemGCWii::GetBootDOLSize() const
 {
 	u32 DolOffset = Read32(0x420) << m_OffsetShift;
 	u32 DolSize = 0, offset = 0, size = 0;
@@ -181,9 +181,22 @@ bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
 		if (offset + size > DolSize)
 			DolSize = offset + size;
 	}
+	return DolSize;
+}
 
+bool CFileSystemGCWii::GetBootDOL(u8* &buffer, u32 DolSize) const
+{
+	u32 DolOffset = Read32(0x420) << m_OffsetShift;
+	return m_rVolume->Read(DolOffset, DolSize, buffer);
+}
+
+bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
+{
+	u32 DolOffset = Read32(0x420) << m_OffsetShift;
+	u32 DolSize = GetBootDOLSize();
 	u8* buffer = new u8[DolSize];
-	if (m_rVolume->Read(DolOffset, DolSize, buffer))
+
+	if (GetBootDOL(buffer, DolSize))
 	{
 		char exportName[512];
 		sprintf(exportName, "%s/boot.dol", _rExportFolder);

@@ -29,6 +29,10 @@
 #include "../Boot/Boot_DOL.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "HLE.h"
+#include "PowerPC/PPCAnalyst.h"
+#include "PowerPC/SignatureDB.h"
+#include "PowerPC/PPCSymbolDB.h"
+#include "CommonPaths.h"
 
 namespace HLE_Misc
 {
@@ -295,7 +299,61 @@ void HBReload()
 	Host_Message(WM_USER_STOP);
 }
 
-void BootDOLFromDisc()
+void ExecuteDOL(u8* dolFile, u32 fileSize)
+{
+	CDolLoader dolLoader(dolFile, fileSize);
+	dolLoader.Load();
+
+	// Scan for common HLE functions
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	{
+		PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
+		SignatureDB db;
+		if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+		{
+			db.Apply(&g_symbolDB);
+			HLE::PatchFunctions();
+			db.Clear();
+			g_symbolDB.Clear();
+		}
+	}
+
+	PowerPC::ppcState.iCache.Reset();
+
+	static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
+	for (unsigned int i = 0; i < 4; i++)
+	{
+		if (s_Usb->m_WiiMotes[i].IsConnected())
+		{
+			s_Usb->m_WiiMotes[i].Activate(false);
+			s_Usb->m_WiiMotes[i].Activate(true);
+		}
+		else
+		{
+			s_Usb->m_WiiMotes[i].Activate(false);
+		}
+	}
+
+	if (argsPtr)
+	{
+		u32 args_base = Memory::Read_U32(0x800000f4);
+		u32 ptr_to_num_args = 0xc;
+		u32 num_args = 1;
+		u32 hi_ptr = args_base + ptr_to_num_args + 4;
+		u32 new_args_ptr = args_base + ptr_to_num_args + 8;
+
+		Memory::Write_U32(ptr_to_num_args, args_base + 8);
+		Memory::Write_U32(num_args, args_base + ptr_to_num_args);
+		Memory::Write_U32(0x14, hi_ptr);
+
+		for (int i = 0; i < args.length(); i++)
+			Memory::WriteUnchecked_U8(args[i], new_args_ptr+i);
+	}
+
+	NPC = dolLoader.GetEntryPoint() | 0x80000000;
+}
+
+void LoadDOLFromDisc()
 {
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
 	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
@@ -308,42 +366,23 @@ void BootDOLFromDisc()
 	if (fileSize > 0)
 	{
 		pFileSystem->ReadFile(dol.c_str(), dolFile, fileSize);
-		CDolLoader dolLoader(dolFile, fileSize);
-		dolLoader.Load();
-		PowerPC::ppcState.iCache.Reset();
-
-		static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
-		for (unsigned int i = 0; i < 4; i++)
-		{
-			if (s_Usb->m_WiiMotes[i].IsConnected())
-			{
-				s_Usb->m_WiiMotes[i].Activate(false);
-				s_Usb->m_WiiMotes[i].Activate(true);
-			}
-			else
-			{
-				s_Usb->m_WiiMotes[i].Activate(false);
-			}
-		}
-
-		if (argsPtr)
-		{
-			u32 args_base = Memory::Read_U32(0x800000f4);
-			u32 ptr_to_num_args = 0xc;
-			u32 num_args = 1;
-			u32 hi_ptr = args_base + ptr_to_num_args + 4;
-			u32 new_args_ptr = args_base + ptr_to_num_args + 8;
-
-			Memory::Write_U32(ptr_to_num_args, args_base + 8);
-			Memory::Write_U32(num_args, args_base + ptr_to_num_args);
-			Memory::Write_U32(0x14, hi_ptr);
-
-			for (int i = 0; i < args.length(); i++)
-				Memory::WriteUnchecked_U8(args[i], new_args_ptr+i);
-		}
-
-		NPC = dolLoader.GetEntryPoint() | 0x80000000;
+		ExecuteDOL(dolFile, fileSize);
 	}
+	delete[] dolFile;
+}
+
+void LoadBootDOLFromDisc()
+{
+	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
+	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
+	u32 fileSize = pFileSystem->GetBootDOLSize();
+	u8* dolFile = new u8[fileSize];
+	if (fileSize > 0)
+	{
+		pFileSystem->GetBootDOL(dolFile, fileSize);
+		ExecuteDOL(dolFile, fileSize);
+	}
+	delete[] dolFile;
 }
 
 u32 GetDolFileSize()
@@ -369,8 +408,13 @@ void OSBootDol()
 
 		if ((GPR(4) >> 28) == 0x8)
 		{
-			// Reset from menu
-			PanicAlert("Reset from menu");
+			u32 resetCode = GPR(30);
+
+			// Reset game
+			Memory::Write_U32(resetCode << 3, 0xCC003024);
+			//Memory::Write_U32((resetCode << 3) | 0x80000000, 0x800030f0); // Warm reset
+			LoadBootDOLFromDisc();
+			return;
 		}
 		else if ((GPR(4) >> 28) == 0xA)
 		{
@@ -398,7 +442,7 @@ void OSBootDol()
 
 			argsPtr = Memory::Read_U32(GPR(5));
 			Memory::GetString(args, argsPtr);
-			BootDOLFromDisc();
+			LoadDOLFromDisc();
 			return;
 		}
 		else

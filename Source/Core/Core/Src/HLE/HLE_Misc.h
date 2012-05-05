@@ -40,6 +40,7 @@ namespace HLE_Misc
 	void FZ_rsqrt_internal();
 	void HBReload();
 	void OSBootDol();
+	void ExecuteDOL(u8* dolFile, u32 fileSize);
 }
 
 #endif

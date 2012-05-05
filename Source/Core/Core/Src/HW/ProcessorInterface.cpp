@@ -199,6 +199,7 @@ void Write32(const u32 _uValue, const u32 _iAddress)
 
 	case PI_RESET_CODE:
 		DEBUG_LOG(PROCESSORINTERFACE, "Write %08x to PI_RESET_CODE", _uValue);
+		m_ResetCode = _uValue;
 		break;
 
 	case PI_FLIPPER_UNK:
