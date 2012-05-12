@@ -208,7 +208,25 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		JitBlock &b = blocks[block_num];
 		b.originalFirstOpcode = Memory::Read_Opcode_JIT(b.originalAddress);
 		Memory::Write_Opcode_JIT(b.originalAddress, (JIT_OPCODE << 26) | block_num);
-		block_map[std::make_pair(b.originalAddress + 4 * b.originalSize - 1, b.originalAddress)] = block_num;
+		u32 pAddr = 0;
+
+		// Convert the logical address to a physical address for the block map
+		switch ((b.originalAddress >> 24) & 0xFC)
+		{
+		case 0x00:
+		case 0x80:
+		case 0xC0:
+			pAddr = b.originalAddress & 0x0FFFFFFF;
+		case 0x10:
+		case 0x90:
+		case 0xD0:
+			pAddr = b.originalAddress & 0x1FFFFFFF;
+		default:
+			// Translate address?
+			pAddr = b.originalAddress & 0x0FFFFFFF;
+		}
+
+		block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
 		if (block_link)
 		{
 			for (int i = 0; i < 2; i++)
@@ -409,33 +427,52 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		*/
 	}
 
-
 	void JitBlockCache::InvalidateICache(u32 address, const u32 length)
 	{
+		// Convert the logical address to a physical address for the block map
+		u32 pAddr = 0;
+		switch ((address >> 24) & 0xFC)
+		{
+		case 0x00:
+		case 0x80:
+		case 0xC0:
+			pAddr = address & 0x0FFFFFFF;
+		case 0x10:
+		case 0x90:
+		case 0xD0:
+			pAddr = address & 0x1FFFFFFF;
+		default:
+			// Translate address?
+			pAddr = address & 0x0FFFFFFF;
+		}
+
 		// destroy JIT blocks
 		// !! this works correctly under assumption that any two overlapping blocks end at the same address
-		std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(address, 0)), it2 = it1, it;
-		while (it2 != block_map.end() && it2->first.second < address + length)
+		std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(pAddr, 0)), it2 = it1, it;
+		while (it2 != block_map.end() && it2->first.second < pAddr + length)
 		{
 #ifdef JIT_UNLIMITED_ICACHE
 			JitBlock &b = blocks[it2->second];
-			if (b.originalAddress & JIT_ICACHE_VMEM_BIT)
+			if (b.originalFirstOpcode != Memory::ReadUnchecked_U32(b.originalAddress))
 			{
-				u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
-				memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-			}
-			else if (b.originalAddress & JIT_ICACHE_EXRAM_BIT)
-			{
-				u32 cacheaddr = b.originalAddress & JIT_ICACHEEX_MASK;
-				memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-			}
-			else
-			{
-				u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
-				memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-			}
+				if (b.originalAddress & JIT_ICACHE_VMEM_BIT)
+				{
+					u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
+					memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
+				}
+				else if (b.originalAddress & JIT_ICACHE_EXRAM_BIT)
+				{
+					u32 cacheaddr = b.originalAddress & JIT_ICACHEEX_MASK;
+					memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
+				}
+				else
+				{
+					u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
+					memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
+				}
 #endif
-			DestroyBlock(it2->second, true);
+				DestroyBlock(it2->second, true);
+			}
 			it2++;
 		}
 		if (it1 != it2)
