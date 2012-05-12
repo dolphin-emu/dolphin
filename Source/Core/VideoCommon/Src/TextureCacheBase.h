@@ -126,7 +126,8 @@ protected:
 	static  GC_ALIGNED16(u8 *temp);
 
 private:
-	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int& width, unsigned int& height, u8* dest);
+	static bool CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels);
+	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height, u8* dest);
 	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
 
 

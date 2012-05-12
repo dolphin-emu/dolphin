@@ -90,7 +90,13 @@ void Init(const char *gameCode)
 	}
 }
 
-PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned int *pHeight, int texformat, u8 *data)
+bool HiresTexExists(const char* filename)
+{
+	std::string key(filename);
+	return textureMap.find(key) != textureMap.end();
+}
+
+PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned int *pHeight, unsigned int *required_size, int texformat, unsigned int data_size, u8 *data)
 {
 	std::string key(fileName);
 
