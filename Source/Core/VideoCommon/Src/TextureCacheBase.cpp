@@ -178,6 +178,23 @@ void TextureCache::ClearRenderTargets()
 			iter->second->type = TCET_NORMAL;
 }
 
+PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsigned int& width, unsigned int& height, u8* dest)
+{
+	char texPathTemp[MAX_PATH];
+	unsigned int newWidth = 0;
+	unsigned int newHeight = 0;
+
+	sprintf(texPathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
+	PC_TexFormat ret = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, texformat, dest);
+
+	if (ret != PC_TEX_FMT_NONE)
+	{
+		width = newWidth;
+		height = newHeight;
+	}
+	return ret;
+}
+
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u32 address, unsigned int width, unsigned int height, int texformat,
 	unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem)
@@ -272,21 +289,14 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 	}
 
+
 	if (g_ActiveConfig.bHiresTextures)
 	{
-		// Load Custom textures
-		char texPathTemp[MAX_PATH];
-
-		unsigned int newWidth = width;
-		unsigned int newHeight = height;
-
-		sprintf(texPathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
-		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, texformat, temp);
-
+		pcfmt = LoadCustomTexture(tex_hash, texformat, width, height, temp);
 		if (pcfmt != PC_TEX_FMT_NONE)
 		{
-			expandedWidth = width = newWidth;
-			expandedHeight = height = newHeight;
+			expandedWidth = width;
+			expandedHeight = height;
 		}
 	}
 
