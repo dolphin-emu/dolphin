@@ -128,6 +128,7 @@ protected:
 
 private:
 	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int& width, unsigned int& height, u8* dest);
+	static void DumpTexture(TCacheEntryBase* entry);
 
 
 	typedef std::map<u32, TCacheEntryBase*> TexCache;

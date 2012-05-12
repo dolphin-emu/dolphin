@@ -195,6 +195,24 @@ PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsign
 	return ret;
 }
 
+void TextureCache::DumpTexture(TCacheEntryBase* entry)
+{
+	char szTemp[MAX_PATH];
+	std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
+
+	// make sure that the directory exists
+	if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
+		File::CreateDir(szDir.c_str());
+
+	sprintf(szTemp, "%s/%s_%08x_%i.png", szDir.c_str(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
+			(u32) (entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF); // TODO: TLUT format should actually be here as well? :/
+
+	if (false == File::Exists(szTemp))
+		entry->Save(szTemp);
+}
+
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u32 address, unsigned int width, unsigned int height, int texformat,
 	unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem)
@@ -379,24 +397,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	}
 
 	// TODO: won't this cause loaded hires textures to be dumped as well?
-	// dump texture to file
 	if (g_ActiveConfig.bDumpTextures)
-	{
-		char szTemp[MAX_PATH];
-		std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
-
-		// make sure that the directory exists
-		if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
-			File::CreateDir(szDir.c_str());
-
-		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir.c_str(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
-				(u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
-
-		if (false == File::Exists(szTemp))
-			entry->Save(szTemp);
-	}
+		DumpTexture(entry);
 
 	INCSTAT(stats.numTexturesCreated);
 	SETSTAT(stats.numTexturesAlive, textures.size());
