@@ -45,8 +45,16 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
 }
 
-bool TextureCache::TCacheEntry::Save(const char filename[])
+bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 {
+	// TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
+	static bool warn_once = true;
+	if (level && warn_once)
+	{
+		WARN_LOG(VIDEO, "Dumping individual LOD not supported by D3D11 backend!");
+		warn_once = false;
+		return false;
+	}
 	return SUCCEEDED(PD3DX11SaveTextureToFileA(D3D::context, texture->GetTex(), D3DX11_IFF_PNG, filename));
 }
 

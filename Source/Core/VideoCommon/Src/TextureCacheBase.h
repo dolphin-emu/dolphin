@@ -84,7 +84,7 @@ public:
 		virtual ~TCacheEntryBase();
 
 		virtual void Bind(unsigned int stage) = 0;
-		virtual bool Save(const char filename[]) = 0;
+		virtual bool Save(const char filename[], unsigned int level) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level, bool autogen_mips) = 0;
@@ -113,7 +113,6 @@ public:
 		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt) = 0;
 	virtual TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) = 0;
 
-
 	static TCacheEntryBase* Load(unsigned int stage, u32 address, unsigned int width, unsigned int height,
 		int format, unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem);
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
@@ -128,7 +127,7 @@ protected:
 
 private:
 	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int& width, unsigned int& height, u8* dest);
-	static void DumpTexture(TCacheEntryBase* entry);
+	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
 
 
 	typedef std::map<u32, TCacheEntryBase*> TexCache;

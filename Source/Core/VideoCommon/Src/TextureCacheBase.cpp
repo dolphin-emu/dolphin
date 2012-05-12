@@ -195,7 +195,7 @@ PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsign
 	return ret;
 }
 
-void TextureCache::DumpTexture(TCacheEntryBase* entry)
+void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
 {
 	char szTemp[MAX_PATH];
 	std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
@@ -205,12 +205,23 @@ void TextureCache::DumpTexture(TCacheEntryBase* entry)
 	if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
 		File::CreateDir(szDir.c_str());
 
-	sprintf(szTemp, "%s/%s_%08x_%i.png", szDir.c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
-			(u32) (entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF); // TODO: TLUT format should actually be here as well? :/
+	// For compatibility with old texture packs, don't print the LOD index for level 0.
+	 // TODO: TLUT format should actually be stored in filename? :/
+	if (level == 0)
+	{
+		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir.c_str(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
+				(u32) (entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF);
+	}
+	else
+	{
+		sprintf(szTemp, "%s/%s_%08x_%i_mip%d.png", szDir.c_str(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
+				(u32) (entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF, level);
+	}
 
 	if (false == File::Exists(szTemp))
-		entry->Save(szTemp);
+		entry->Save(szTemp, level);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
@@ -357,6 +368,10 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	// load texture
 	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));
 
+	// TODO: won't this cause loaded hires textures to be dumped as well?
+	if (g_ActiveConfig.bDumpTextures)
+		DumpTexture(entry, 0);
+
 	// load mips - TODO: Loading mipmaps from tmem is untested!
 	if (texLevels > 1 && pcfmt != PC_TEX_FMT_NONE)
 	{
@@ -389,16 +404,16 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			TexDecoder_Decode(temp, *ptr, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 			entry->Load(currentWidth, currentHeight, expandedWidth, level, false);
 
+			// TODO: won't this cause loaded hires textures to be dumped as well?
+			if (g_ActiveConfig.bDumpTextures)
+				DumpTexture(entry, level);
+
 			*ptr += ((std::max(mipWidth, bsw) * std::max(mipHeight, bsh) * bsdepth) >> 1);
 			mipWidth >>= 1;
 			mipHeight >>= 1;
 			++level;
 		}
 	}
-
-	// TODO: won't this cause loaded hires textures to be dumped as well?
-	if (g_ActiveConfig.bDumpTextures)
-		DumpTexture(entry);
 
 	INCSTAT(stats.numTexturesCreated);
 	SETSTAT(stats.numTexturesAlive, textures.size());

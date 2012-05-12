@@ -62,7 +62,7 @@ private:
 			const float *colmat);
 
 		void Bind(unsigned int stage);
-		bool Save(const char filename[]);
+		bool Save(const char filename[], unsigned int level);
 
 	private:
 		void SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1);
@@ -76,7 +76,7 @@ private:
 	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
 };
 
-bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
+bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level);
 
 }
 
