@@ -243,15 +243,6 @@ void VertexManager::Flush()
 			{
 				// 0s are probably for no manual wrapping needed.
 				PixelShaderManager::SetTexDims(i, tentry->nativeW, tentry->nativeH, 0, 0);
-
-				// TODO:
-				//if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
-				//{
-				//	// save the textures
-				//	char strfile[255];
-				//	sprintf(strfile, "%stex%.3d_%d.tga", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_Config.iSaveTargetId, i);
-				//	SaveTexture(strfile, GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
-				//}
 			}
 			else
 				ERROR_LOG(VIDEO, "error loading texture");

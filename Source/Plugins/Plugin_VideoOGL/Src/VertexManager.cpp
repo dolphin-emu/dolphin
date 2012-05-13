@@ -162,16 +162,6 @@ void VertexManager::vFlush()
 			{
 				// 0s are probably for no manual wrapping needed.
 				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
-
-				// TODO: Dump this code, it's redundant.
-				if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
-				{
-					// save the textures
-					char strfile[255];
-					sprintf(strfile, "%stex%.3d_%d.tga",
-							File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_Config.iSaveTargetId, i);
-					tentry->Save(strfile, 0);
-				}
 			}
 			else
 				ERROR_LOG(VIDEO, "error loading texture");
