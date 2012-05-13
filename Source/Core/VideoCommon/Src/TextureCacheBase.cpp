@@ -33,13 +33,13 @@ extern int frameCount;
 
 enum
 {
-	TEMP_SIZE = (2048 * 2048 * 4),
 	TEXTURE_KILL_THRESHOLD = 200,
 };
 
 TextureCache *g_texture_cache;
 
 GC_ALIGNED16(u8 *TextureCache::temp) = NULL;
+unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
 bool TextureCache::DeferredInvalidate;
@@ -50,8 +50,9 @@ TextureCache::TCacheEntryBase::~TCacheEntryBase()
 
 TextureCache::TextureCache()
 {
+	temp_size = 2048 * 2048 * 4;
 	if (!temp)
-		temp = (u8*)AllocateAlignedMemory(TEMP_SIZE,16);
+		temp = (u8*)AllocateAlignedMemory(temp_size, 16);
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
     if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
@@ -200,7 +201,7 @@ bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsign
 	return true;
 }
 
-PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height, u8* dest)
+PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height)
 {
 	char texPathTemp[MAX_PATH];
 	unsigned int newWidth = 0;
@@ -211,7 +212,17 @@ PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsign
 	else
 		sprintf(texPathTemp, "%s_%08x_%i_mip%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat, level);
 
-	PC_TexFormat ret = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, texformat, dest);
+	unsigned int required_size = 0;
+	PC_TexFormat ret = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, &required_size, texformat, temp_size, temp);
+	if (ret == PC_TEX_FMT_NONE && temp_size < required_size)
+	{
+		// Allocate more memory and try again
+		// TODO: Should probably check if newWidth and newHeight are texture dimensions which are actually supported by the current video backend
+		temp_size = required_size;
+		FreeAlignedMemory(temp);
+		temp = (u8*)AllocateAlignedMemory(temp_size, 16);
+		ret = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, &required_size, texformat, temp_size, temp);
+	}
 
 	if (ret != PC_TEX_FMT_NONE)
 	{
@@ -350,7 +361,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 	if (g_ActiveConfig.bHiresTextures)
 	{
-		pcfmt = LoadCustomTexture(tex_hash, texformat, 0, width, height, temp);
+		pcfmt = LoadCustomTexture(tex_hash, texformat, 0, width, height);
 		if (pcfmt != PC_TEX_FMT_NONE)
 		{
 			expandedWidth = width;
@@ -452,7 +463,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			unsigned int currentWidth = (mipWidth > 0) ? mipWidth : 1;
 			unsigned int currentHeight = (mipHeight > 0) ? mipHeight : 1;
 
-			LoadCustomTexture(tex_hash, texformat, level, currentWidth, currentHeight, temp);
+			LoadCustomTexture(tex_hash, texformat, level, currentWidth, currentHeight);
 			entry->Load(currentWidth, currentHeight, currentWidth, level, false);
 
 			mipWidth >>= 1;
