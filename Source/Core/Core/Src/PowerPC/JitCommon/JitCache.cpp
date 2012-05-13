@@ -208,23 +208,9 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		JitBlock &b = blocks[block_num];
 		b.originalFirstOpcode = Memory::Read_Opcode_JIT(b.originalAddress);
 		Memory::Write_Opcode_JIT(b.originalAddress, (JIT_OPCODE << 26) | block_num);
-		u32 pAddr = 0;
 
 		// Convert the logical address to a physical address for the block map
-		switch ((b.originalAddress >> 24) & 0xFC)
-		{
-		case 0x00:
-		case 0x80:
-		case 0xC0:
-			pAddr = b.originalAddress & 0x0FFFFFFF;
-		case 0x10:
-		case 0x90:
-		case 0xD0:
-			pAddr = b.originalAddress & 0x1FFFFFFF;
-		default:
-			// Translate address?
-			pAddr = b.originalAddress & 0x0FFFFFFF;
-		}
+		u32 pAddr = b.originalAddress & 0x1FFFFFFF;
 
 		block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
 		if (block_link)
@@ -430,21 +416,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	void JitBlockCache::InvalidateICache(u32 address, const u32 length)
 	{
 		// Convert the logical address to a physical address for the block map
-		u32 pAddr = 0;
-		switch ((address >> 24) & 0xFC)
-		{
-		case 0x00:
-		case 0x80:
-		case 0xC0:
-			pAddr = address & 0x0FFFFFFF;
-		case 0x10:
-		case 0x90:
-		case 0xD0:
-			pAddr = address & 0x1FFFFFFF;
-		default:
-			// Translate address?
-			pAddr = address & 0x0FFFFFFF;
-		}
+		u32 pAddr = address & 0x1FFFFFFF;
 
 		// destroy JIT blocks
 		// !! this works correctly under assumption that any two overlapping blocks end at the same address

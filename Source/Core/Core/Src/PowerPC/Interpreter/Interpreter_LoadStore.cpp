@@ -363,7 +363,7 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 	{
 		NPC = PC + 12;
 	}*/
-	// Invalidate the icache on dcbf
+	// Invalidate the jit block cache on dcbf
 	if (jit)
 	{
 		u32 address = Helper_Get_EA_X(_inst);
@@ -374,7 +374,7 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 void Interpreter::dcbi(UGeckoInstruction _inst)
 {
 	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything to the data cache
-	// However, we invalidate the icache on dcbi
+	// However, we invalidate the jit block cache on dcbi
 	if (jit)
 	{
 		u32 address = Helper_Get_EA_X(_inst);
@@ -385,6 +385,12 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
 void Interpreter::dcbst(UGeckoInstruction _inst)
 {
 	// Cache line flush. Since we don't emulate the data cache, we don't need to do anything.
+	// Invalidate the jit block cache on dcbst in case new code has been loaded via the data cache
+	if (jit)
+	{
+		u32 address = Helper_Get_EA_X(_inst);
+		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
+	}
 }
 
 void Interpreter::dcbt(UGeckoInstruction _inst)
