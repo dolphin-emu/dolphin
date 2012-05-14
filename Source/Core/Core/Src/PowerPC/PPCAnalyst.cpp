@@ -559,9 +559,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 		}
 		else
 		{
-			// Critical memory exception occurred (game over)
-			address = LR;
-			broken_block = true;
+			// ISI exception or other critical memory exception occurred (game over)
 			break;
 		}
 	}

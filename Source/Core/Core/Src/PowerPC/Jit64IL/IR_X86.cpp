@@ -1388,7 +1388,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 					RI.Jit->UnsafeWriteRegToReg(EAX, ECX, 32, 0);
 				}
-			FixupBranch exit = Jit->J();
+			FixupBranch exit = Jit->J(true);
 			Jit->SetJumpTarget(safe);
 				// Safe but slow routine
 				OpArg value = fregLocForInst(RI, getOp1(I));
