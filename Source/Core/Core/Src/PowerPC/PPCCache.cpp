@@ -110,7 +110,7 @@ namespace PowerPC
 #endif
 		valid[set] = 0;
 		if (jit)
-			jit->GetBlockCache()->InvalidateICache(addr);
+			jit->GetBlockCache()->InvalidateICache(addr & ~0x1f, 32);
 	}
 
 	u32 InstructionCache::ReadInstruction(u32 addr)

@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi (readapted code written by Vadim Zeitlin)
 // Modified by:
 // Created:     15/04/2006
-// RCS-ID:      $Id: clrpickercmn.cpp 58718 2009-02-07 18:59:25Z VZ $
+// RCS-ID:      $Id: clrpickercmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Vadim Zeitlin, Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ void wxColourPickerCtrl::SetColour(const wxColour &col)
 bool wxColourPickerCtrl::SetColour(const wxString &text)
 {
     wxColour col(text);     // smart wxString->wxColour conversion
-    if ( !col.Ok() )
+    if ( !col.IsOk() )
         return false;
     M_PICKER->SetColour(col);
     UpdateTextCtrlFromPicker();
@@ -105,7 +105,7 @@ void wxColourPickerCtrl::UpdatePickerFromTextCtrl()
 
     // wxString -> wxColour conversion
     wxColour col(m_text->GetValue());
-    if ( !col.Ok() )
+    if ( !col.IsOk() )
         return;     // invalid user input
 
     if (M_PICKER->GetColour() != col)

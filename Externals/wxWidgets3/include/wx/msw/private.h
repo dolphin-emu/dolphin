@@ -6,7 +6,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: private.h 65958 2010-10-30 23:50:45Z VZ $
+// RCS-ID:      $Id: private.h 69758 2011-11-14 12:51:53Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -454,7 +454,7 @@ private:
     void DoInit(HGDIOBJ hgdiobj) { m_hgdiobj = ::SelectObject(m_hdc, hgdiobj); }
 
 public:
-    SelectInHDC() : m_hdc(NULL) { }
+    SelectInHDC() : m_hdc(NULL), m_hgdiobj(NULL) { }
     SelectInHDC(HDC hdc, HGDIOBJ hgdiobj) : m_hdc(hdc) { DoInit(hgdiobj); }
 
     void Init(HDC hdc, HGDIOBJ hgdiobj)
@@ -922,6 +922,9 @@ WXDLLIMPEXP_BASE wxWinVersion wxGetWinVersion();
 // cursor stuff
 extern HCURSOR wxGetCurrentBusyCursor();    // from msw/utils.cpp
 extern const wxCursor *wxGetGlobalCursor(); // from msw/cursor.cpp
+
+// GetCursorPos can fail without populating the POINT. This falls back to GetMessagePos.
+WXDLLIMPEXP_CORE void wxGetCursorPosMSW(POINT* pt);
 
 WXDLLIMPEXP_CORE void wxGetCharSize(WXHWND wnd, int *x, int *y, const wxFont& the_font);
 WXDLLIMPEXP_CORE void wxFillLogFont(LOGFONT *logFont, const wxFont *font);

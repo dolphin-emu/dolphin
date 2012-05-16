@@ -306,7 +306,11 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
-		SetVSConstant4f(C_DEPTHPARAMS,xfregs.viewport.farZ / 16777216.0f,xfregs.viewport.zRange / 16777216.0f,0.0f,0.0f);
+		SetVSConstant4f(C_DEPTHPARAMS,
+						xfregs.viewport.farZ / 16777216.0f,
+						xfregs.viewport.zRange / 16777216.0f,
+						-1.f / (float)g_renderer->EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd)),
+						1.f / (float)g_renderer->EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht)));
 		// This is so implementation-dependent that we can't have it here.
 		UpdateViewport(s_viewportCorrection);
 		bProjectionChanged = true;

@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     01/29/05
-// RCS-ID:      $Id: mediactrl_am.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: mediactrl_am.cpp 68152 2011-07-04 16:43:37Z VZ $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2020,7 +2020,15 @@ wxLongLong wxAMMediaBackend::GetDuration()
 
         case S_OK:
             // outDuration is in seconds, we need milliseconds
-            return outDuration * 1000;
+#ifdef wxLongLong_t
+            return static_cast<wxLongLong_t>(outDuration * 1000);
+#else
+            // In principle it's possible to have video of duration greater
+            // than ~1193 hours which corresponds LONG_MAX in milliseconds so
+            // cast to wxLongLong first and multiply by 1000 only then to avoid
+            // the overflow (resulting in maximal duration of ~136 years).
+            return wxLongLong(static_cast<long>(outDuration)) * 1000;
+#endif
     }
 }
 

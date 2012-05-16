@@ -45,8 +45,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bEnableFPRF(false), 
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bNTSC(false), bForceNTSCJ(false),
-  bHLE_BS2(true), bUseFastMem(false),
-  bLockThreads(false),
+  bHLE_BS2(true), bLockThreads(false),
   bEnableCheats(false),
   bMergeBlocks(false),
   bRunCompareServer(false), bRunCompareClient(false),
@@ -57,7 +56,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bAutoHideCursor(false), bUsePanicHandlers(true),
   iRenderWindowXPos(-1), iRenderWindowYPos(-1),
   iRenderWindowWidth(640), iRenderWindowHeight(480),
-  bRenderWindowAutoSize(false),
+  bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
   bFullscreen(false), bRenderToMain(false),
   bProgressive(false), bDisableScreenSaver(false),
   iTheme(0),
@@ -127,6 +126,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 			SplitPath(m_strFilename, NULL, NULL, &Extension);
 			if (!strcasecmp(Extension.c_str(), ".gcm") || 
 				!strcasecmp(Extension.c_str(), ".iso") ||
+				!strcasecmp(Extension.c_str(), ".wbfs") ||
 				!strcasecmp(Extension.c_str(), ".ciso") ||
 				!strcasecmp(Extension.c_str(), ".gcz") ||
 				bootDrive)

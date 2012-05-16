@@ -56,18 +56,21 @@ void WriteProfileResults(const char *filename)
 	for (int i = 0; i < jit->GetBlockCache()->GetNumBlocks(); i++)
 	{
 		const JitBlock *block = jit->GetBlockCache()->GetBlock(i);
-		// Rough heuristic.  Mem instructions should cost more.
-		u64 cost = block->originalSize * (block->runCount / 4);
+		if (block && !block->invalid)
+		{
+			// Rough heuristic.  Mem instructions should cost more.
+			u64 cost = block->originalSize * (block->runCount / 4);
 #ifdef _WIN32
-		u64 timecost = block->ticCounter;
+			u64 timecost = block->ticCounter;
 #endif
-		// Todo: tweak.
-		if (block->runCount >= 1)
-			stats.push_back(BlockStat(i, cost));
-		cost_sum += cost;
+			// Todo: tweak.
+			if (block->runCount >= 1)
+				stats.push_back(BlockStat(i, cost));
+			cost_sum += cost;
 #ifdef _WIN32
-		timecost_sum += timecost;
+			timecost_sum += timecost;
 #endif
+		}
 	}
 
 	sort(stats.begin(), stats.end());
@@ -77,18 +80,18 @@ void WriteProfileResults(const char *filename)
 		PanicAlert("failed to open %s", filename);
 		return;
 	}
-	fprintf(f.GetHandle(), "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
+	fprintf(f.GetHandle(), "origAddr\tblkName\tcost\trunCount\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
 	for (unsigned int i = 0; i < stats.size(); i++)
 	{
 		const JitBlock *block = jit->GetBlockCache()->GetBlock(stats[i].blockNum);
-		if (block)
+		if (block && !block->invalid)
 		{
 			std::string name = g_symbolDB.GetDescription(block->originalAddress);
 			double percent = 100.0 * (double)stats[i].cost / (double)cost_sum;
 #ifdef _WIN32 
 			double timePercent = 100.0 * (double)block->ticCounter / (double)timecost_sum;
-			fprintf(f.GetHandle(), "%08x\t%s\t%llu\t%llu\t%.2lf\t%llf\t%lf\t%i\n", 
-					block->originalAddress, name.c_str(), stats[i].cost,
+			fprintf(f.GetHandle(), "%08x\t%s\t%llu\t%llu\t%llu\t%.2lf\t%llf\t%lf\t%i\n",
+					block->originalAddress, name.c_str(), stats[i].cost, block->runCount,
 					block->ticCounter, percent, timePercent,
 					(double)block->ticCounter*1000.0/(double)countsPerSec, block->codeSize);
 #else

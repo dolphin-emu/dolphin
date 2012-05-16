@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxAcceleratorTable class
 // Author:      Robert Roebling
 // Modified:    VZ pn 31.05.01: use typed lists, Unicode cleanup, Add/Remove
-// Id:          $Id: accel.cpp 63165 2010-01-18 00:28:11Z VZ $
+// Id:          $Id: accel.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -162,7 +162,7 @@ void wxAcceleratorTable::Remove(const wxAcceleratorEntry& entry)
 const wxAcceleratorEntry *
 wxAcceleratorTable::GetEntry(const wxKeyEvent& event) const
 {
-    if ( !Ok() )
+    if ( !IsOk() )
     {
         // not an error, the accel table is just empty
         return NULL;

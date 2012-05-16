@@ -3,7 +3,7 @@
 // Purpose:     declares wxTextEntry interface defining a simple text entry
 // Author:      Vadim Zeitlin
 // Created:     2007-09-24
-// RCS-ID:      $Id: textentry.h 65552 2010-09-15 22:10:20Z VZ $
+// RCS-ID:      $Id: textentry.h 68918 2011-08-27 14:11:13Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,9 +16,11 @@
 typedef long wxTextPos;
 
 class WXDLLIMPEXP_FWD_BASE wxArrayString;
+class WXDLLIMPEXP_FWD_CORE wxTextCompleter;
 class WXDLLIMPEXP_FWD_CORE wxTextEntryHintData;
 class WXDLLIMPEXP_FWD_CORE wxWindow;
 
+#include "wx/filefn.h"              // for wxFILE and wxDIR only
 #include "wx/gdicmn.h"              // for wxPoint
 
 // ----------------------------------------------------------------------------
@@ -106,18 +108,26 @@ public:
 
     // these functions allow to auto-complete the text already entered into the
     // control using either the given fixed list of strings, the paths from the
-    // file system or, in the future, an arbitrary user-defined completer
+    // file system or an arbitrary user-defined completer
     //
     // they all return true if completion was enabled or false on error (most
     // commonly meaning that this functionality is not available under the
     // current platform)
 
-    virtual bool AutoComplete(const wxArrayString& WXUNUSED(choices))
-    {
-        return false;
-    }
+    bool AutoComplete(const wxArrayString& choices)
+        { return DoAutoCompleteStrings(choices); }
 
-    virtual bool AutoCompleteFileNames() { return false; }
+    bool AutoCompleteFileNames()
+        { return DoAutoCompleteFileNames(wxFILE); }
+
+    bool AutoCompleteDirectories()
+        { return DoAutoCompleteFileNames(wxDIR); }
+
+    // notice that we take ownership of the pointer and will delete it
+    //
+    // if the pointer is NULL auto-completion is disabled
+    bool AutoComplete(wxTextCompleter *completer)
+        { return DoAutoCompleteCustom(completer); }
 
 
     // status
@@ -217,6 +227,16 @@ protected:
     // margins functions
     virtual bool DoSetMargins(const wxPoint& pt);
     virtual wxPoint DoGetMargins() const;
+
+    // the derived classes should override these virtual methods to implement
+    // auto-completion, they do the same thing as their public counterparts but
+    // have different names to allow overriding just one of them without hiding
+    // the other one(s)
+    virtual bool DoAutoCompleteStrings(const wxArrayString& WXUNUSED(choices))
+        { return false; }
+    virtual bool DoAutoCompleteFileNames(int WXUNUSED(flags)) // wxFILE | wxDIR
+        { return false; }
+    virtual bool DoAutoCompleteCustom(wxTextCompleter *completer);
 
 
     // class which should be used to temporarily disable text change events

@@ -24,6 +24,8 @@
 #include "Thread.h"
 #include "ChunkFile.h"
 #include "IniFile.h"
+#include "ConfigManager.h"
+#include "CPUDetect.h"
 
 #include "DSPLLEGlobals.h" // Local
 #include "DSP/DSPInterpreter.h"
@@ -83,6 +85,27 @@ void DSPLLE::DoState(PointerWrap &p)
 void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 {
 	Common::SetCurrentThreadName("DSP thread");
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads)
+	{
+		if (cpu_info.num_cores > 3)
+		{
+			// HACK (delroth): there is no way to know where hyperthreads are in
+			// the current Dolphin version.
+			bool windows = false;
+#ifdef _WIN32
+			windows = true;
+#endif
+
+			u8 core_id;
+			if (windows && cpu_info.num_cores > 4) // Probably HT
+				core_id = 5; // 3rd non HT core
+			else
+				core_id = 3; // 3rd core
+
+			Common::SetCurrentThreadAffinity(1 << core_id);
+		}
+	}
 
 	while (dsp_lle->m_bIsRunning)
 	{

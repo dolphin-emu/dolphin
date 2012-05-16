@@ -129,11 +129,19 @@ void DisplayMessage(const char *message, int time_in_ms)
 	SCoreStartupParameter& _CoreParameter =
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
+	// Actually displaying non-ASCII could cause things to go pear-shaped
+	for (const char *c = message; *c != '\0'; ++c)
+		if (*c < ' ')
+			return;
+
 	g_video_backend->Video_AddMessage(message, time_in_ms);
+	
 	if (_CoreParameter.bRenderToMain &&
-		SConfig::GetInstance().m_InterfaceStatusbar) {
-			Host_UpdateStatusBar(message);
-	} else
+		SConfig::GetInstance().m_InterfaceStatusbar)
+	{
+		Host_UpdateStatusBar(message);
+	}
+	else
 		Host_UpdateTitle(message);
 }
 
@@ -285,8 +293,9 @@ void CpuThread()
 	if (_CoreParameter.bLockThreads)
 		Common::SetCurrentThreadAffinity(1);  // Force to first core
 
-	if (_CoreParameter.bUseFastMem)
+	#if defined(_WIN32) && defined(_M_X64)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
+	#endif
 
 	if (!g_stateFileName.empty())
 		State::LoadAs(g_stateFileName);

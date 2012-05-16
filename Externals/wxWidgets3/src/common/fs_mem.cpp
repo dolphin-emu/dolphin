@@ -2,7 +2,7 @@
 // Name:        src/common/fs_mem.cpp
 // Purpose:     in-memory file system
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: fs_mem.cpp 60774 2009-05-28 09:59:32Z SC $
+// RCS-ID:      $Id: fs_mem.cpp 70392 2012-01-18 19:42:58Z VZ $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -186,13 +186,9 @@ void wxMemoryFSHandlerBase::AddFileWithMimeType(const wxString& filename,
                                                 const wxString& textdata,
                                                 const wxString& mimetype)
 {
-    AddFileWithMimeType
-    (
-        filename,
-        static_cast<const char *>(textdata.To8BitData()),
-        wxStrlen(static_cast<const char *>(textdata.To8BitData())),
-        mimetype
-    );
+    const wxCharBuffer buf(textdata.To8BitData());
+
+    AddFileWithMimeType(filename, buf.data(), buf.length(), mimetype);
 }
 
 
@@ -253,7 +249,7 @@ wxMemoryFSHandler::AddFile(const wxString& filename,
         return;
 
     wxMemoryOutputStream mems;
-    if ( image.Ok() && image.SaveFile(mems, type) )
+    if ( image.IsOk() && image.SaveFile(mems, type) )
     {
         m_Hash[filename] = new wxMemoryFSFile
                                (

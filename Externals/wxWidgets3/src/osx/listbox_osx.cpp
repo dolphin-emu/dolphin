@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listbox_osx.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: listbox_osx.cpp 70685 2012-02-25 22:29:25Z JS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,6 +73,9 @@ bool wxListBox::Create(
 {
     DontCreatePeer();
     m_blockEvents = false;
+
+    if ( ! (style & wxNO_BORDER) )
+        style = (style & ~wxBORDER_MASK) | wxSUNKEN_BORDER ;
 
     wxASSERT_MSG( !(style & wxLB_MULTIPLE) || !(style & wxLB_EXTENDED),
                   wxT("only a single listbox selection mode can be specified") );

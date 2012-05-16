@@ -103,7 +103,6 @@ struct SCoreStartupParameter
 	bool bNTSC;
 	bool bForceNTSCJ;
 	bool bHLE_BS2;
-	bool bUseFastMem;
 	bool bLockThreads;
 	bool bEnableCheats;
 	bool bMergeBlocks;
@@ -133,7 +132,7 @@ struct SCoreStartupParameter
 	std::string strFullscreenResolution;
 	int iRenderWindowXPos, iRenderWindowYPos;
 	int iRenderWindowWidth, iRenderWindowHeight;
-	bool bRenderWindowAutoSize;
+	bool bRenderWindowAutoSize, bKeepWindowOnTop;
 	bool bFullscreen, bRenderToMain;
 	bool bProgressive, bDisableScreenSaver;
 

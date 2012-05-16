@@ -887,7 +887,7 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 }
 
 GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned int pad_num, InputConfigDialog* const config_dialog)
-	: wxNotebookPage(parent, -1 , wxDefaultPosition, wxDefaultSize)
+	: wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 	,controller(plugin.controllers[pad_num])
 	, m_config_dialog(config_dialog)
 	, m_plugin(plugin)

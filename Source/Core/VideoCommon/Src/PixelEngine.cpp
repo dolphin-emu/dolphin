@@ -180,7 +180,6 @@ void Init()
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
 	DEBUG_LOG(PIXELENGINE, "(r16) 0x%08x", _iAddress);
-	CommandProcessor::ProcessFifoEvents();
 	switch (_iAddress & 0xFFF)
 	{
 		// CPU Direct Access EFB Raster State Config
@@ -269,6 +268,10 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	case PE_PERF_5L:
 	case PE_PERF_5H:
 		INFO_LOG(PIXELENGINE, "(r16) perf counter @ %08x", _iAddress);
+		// git r90a2096a24f4 (svn r3663) added the PE_PERF cases, without setting
+		// _uReturnValue to anything, this reverts to the previous behaviour which allows
+		// The timer in SMS:Scrubbing Serena Beach to countdown correctly
+		_uReturnValue = 1;
 		break;
 
 	default:
@@ -323,7 +326,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	case PE_TOKEN_REG:
-		//LOG(PIXELENGINE,"WEIRD: program wrote token: %i",_iValue);
 		PanicAlert("(w16) WTF? PowerPC program wrote token: %i", _iValue);
 		//only the gx pipeline is supposed to be able to write here
 		//g_token = _iValue;
@@ -334,7 +336,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 	}
 
-	CommandProcessor::ProcessFifoEvents();
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
@@ -358,22 +359,16 @@ void UpdateInterrupts()
 
 void UpdateTokenInterrupt(bool active)
 {
-	if(interruptSetToken != active)
-	{
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
 		interruptSetToken = active;
-	}
 }
 
 void UpdateFinishInterrupt(bool active)
 {
-	if(interruptSetFinish != active)
-	{
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
 		interruptSetFinish = active;
 		if (active)
 			State::ProcessRequestedStates(0);
-	}
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
@@ -392,8 +387,6 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 		CommandProcessor::interruptTokenWaiting = false;
 		IncrementCheckContextId();
 	//}
-	//else
-	//	LOGV(PIXELENGINE, 1, "VIDEO Backend wrote token: %i", CommandProcessor::fifo.PEToken);
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
@@ -468,6 +461,19 @@ void ResetSetToken()
 	{
 		CoreTiming::RemoveEvent(et_SetTokenOnMainThread);
 	}
+	CommandProcessor::interruptTokenWaiting = false;
+}
+
+bool WaitingForPEInterrupt()
+{
+	return !CommandProcessor::waitingForPEInterruptDisable && (CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || interruptSetFinish || interruptSetToken);
+}
+
+void ResumeWaitingForPEInterrupt()
+{
+	interruptSetFinish = false;
+	interruptSetToken = false;
+	CommandProcessor::interruptFinishWaiting = false;
 	CommandProcessor::interruptTokenWaiting = false;
 }
 } // end of namespace PixelEngine

@@ -44,6 +44,8 @@ public:
 	u32 GetFrameObjectCount();
 	u32 GetCurrentFrameNum() { return m_CurrentFrame; }
 
+	const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) { return m_FrameInfo[frame]; }
+
 	// Frame range
 	u32 GetFrameRangeStart() { return m_FrameRangeStart; }
 	void SetFrameRangeStart(u32 start);

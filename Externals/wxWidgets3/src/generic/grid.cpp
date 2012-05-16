@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin, Santiago Palacios
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: grid.cpp 70826 2012-03-06 13:18:22Z SC $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -72,8 +72,8 @@ const char wxGridNameStr[] = "grid";
 // Required for wxIs... functions
 #include <ctype.h>
 
-WX_DECLARE_HASH_SET_WITH_DECL(int, wxIntegerHash, wxIntegerEqual,
-                              wxGridFixedIndicesSet, class WXDLLIMPEXP_ADV);
+WX_DECLARE_HASH_SET_WITH_DECL_PTR(int, ::wxIntegerHash, ::wxIntegerEqual,
+                                  wxGridFixedIndicesSet, class WXDLLIMPEXP_ADV);
 
 
 // ----------------------------------------------------------------------------
@@ -419,7 +419,7 @@ void wxGridCellAttr::SetSize(int num_rows, int num_cols)
     wxASSERT_MSG( (!((num_rows > 0) && (num_cols <= 0)) ||
                   !((num_rows <= 0) && (num_cols > 0)) ||
                   !((num_rows == 0) && (num_cols == 0))),
-                  wxT("wxGridCellAttr::SetSize only takes two postive values or negative/zero values"));
+                  wxT("wxGridCellAttr::SetSize only takes two positive values or negative/zero values"));
 
     m_sizeRows = num_rows;
     m_sizeCols = num_cols;
@@ -1534,9 +1534,8 @@ bool wxGridStringTable::DeleteCols( size_t pos, size_t numCols )
         // m_colLabels stores just as many elements as it needs, e.g. if only
         // the label of the first column had been set it would have only one
         // element and not numCols, so account for it
-        int nToRm = m_colLabels.size() - colID;
-        if ( nToRm > 0 )
-            m_colLabels.RemoveAt( colID, nToRm );
+        int numRemaining = m_colLabels.size() - colID;
+        m_colLabels.RemoveAt( colID, wxMin(numCols, numRemaining) );
     }
 
     if ( numCols >= curNumCols )
@@ -3069,7 +3068,7 @@ void wxGrid::ProcessRowLabelMouseEvent( wxMouseEvent& event )
             ChangeCursorMode(WXGRID_CURSOR_SELECT_CELL, GetColLabelWindow());
             m_dragLastPos = -1;
         }
-        else // not on row separator or it's not resizeable
+        else // not on row separator or it's not resizable
         {
             row = YToRow(y);
             if ( row >=0 &&
@@ -3648,13 +3647,15 @@ void wxGrid::ChangeCursorMode(CursorMode mode,
 // grid mouse event processing
 // ----------------------------------------------------------------------------
 
-void
+bool
 wxGrid::DoGridCellDrag(wxMouseEvent& event,
                        const wxGridCellCoords& coords,
                        bool isFirstDrag)
 {
+    bool performDefault = true ;
+    
     if ( coords == wxGridNoCellCoords )
-        return; // we're outside any valid cell
+        return performDefault; // we're outside any valid cell
 
     // Hide the edit control, so it won't interfere with drag-shrinking.
     if ( IsCellEditControlShown() )
@@ -3665,7 +3666,7 @@ wxGrid::DoGridCellDrag(wxMouseEvent& event,
 
     switch ( event.GetModifiers() )
     {
-        case wxMOD_CMD:
+        case wxMOD_CONTROL:
             if ( m_selectedBlockCorner == wxGridNoCellCoords)
                 m_selectedBlockCorner = coords;
             UpdateBlockBeingSelected(m_selectedBlockCorner, coords);
@@ -3679,8 +3680,11 @@ wxGrid::DoGridCellDrag(wxMouseEvent& event,
                     if ( m_selectedBlockCorner == wxGridNoCellCoords)
                         m_selectedBlockCorner = coords;
 
-                    SendEvent(wxEVT_GRID_CELL_BEGIN_DRAG, coords, event);
-                    return;
+                    // if event is handled by user code, no further processing
+                    if ( SendEvent(wxEVT_GRID_CELL_BEGIN_DRAG, coords, event) != 0 )
+                        performDefault = false;
+                    
+                    return performDefault;
                 }
             }
 
@@ -3691,6 +3695,8 @@ wxGrid::DoGridCellDrag(wxMouseEvent& event,
             // we don't handle the other key modifiers
             event.Skip();
     }
+    
+    return performDefault;
 }
 
 void wxGrid::DoGridLineDrag(wxMouseEvent& event, const wxGridOperations& oper)
@@ -3743,7 +3749,9 @@ void wxGrid::DoGridDragEvent(wxMouseEvent& event, const wxGridCellCoords& coords
     switch ( m_cursorMode )
     {
         case WXGRID_CURSOR_SELECT_CELL:
-            DoGridCellDrag(event, coords, isFirstDrag);
+            // no further handling if handled by user
+            if ( DoGridCellDrag(event, coords, isFirstDrag) == false )
+                return;
             break;
 
         case WXGRID_CURSOR_RESIZE_ROW:
@@ -4397,6 +4405,14 @@ wxGrid::SendEvent(const wxEventType type,
                mouseEv.GetY() + GetColLabelSize(),
                false,
                mouseEv);
+
+       if ( type == wxEVT_GRID_CELL_BEGIN_DRAG )
+       {
+           // by default the dragging is not supported, the user code must
+           // explicitly allow the event for it to take place
+           gridEvt.Veto();
+       }
+              
        claimed = GetEventHandler()->ProcessEvent(gridEvt);
        vetoed = !gridEvt.IsAllowed();
    }
@@ -8152,10 +8168,12 @@ void wxGrid::Fit()
     AutoSize();
 }
 
+#if WXWIN_COMPATIBILITY_2_8
 wxPen& wxGrid::GetDividerPen() const
 {
     return wxNullPen;
 }
+#endif // WXWIN_COMPATIBILITY_2_8
 
 // ----------------------------------------------------------------------------
 // cell value accessor functions

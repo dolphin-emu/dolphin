@@ -13,7 +13,7 @@
 #include "wx/defs.h"
 #include "wx/utils.h"
 
-#if wxUSE_STL
+#if wxUSE_STD_CONTAINERS
 
 #include "wx/beforestd.h"
 #include <algorithm>
@@ -199,7 +199,7 @@ public:
     }
 };
 
-#else  // STL
+#else  // !wxUSE_STD_CONTAINERS
 
 template <typename T>
 class wxDList
@@ -845,6 +845,6 @@ public:
     } */
 };
 
-#endif // wxUSE_STL/!wxUSE_STL
+#endif // wxUSE_STD_CONTAINERS/!wxUSE_STD_CONTAINERS
 
 #endif // _WX_DLIST_H_

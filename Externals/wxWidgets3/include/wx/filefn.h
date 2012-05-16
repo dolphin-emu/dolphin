@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: filefn.h 65057 2010-07-23 23:32:46Z VZ $
+// RCS-ID:      $Id: filefn.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,6 @@
 #include "wx/list.h"
 #include "wx/arrstr.h"
 
-#ifndef __WXPALMOS5__
 #ifdef __WXWINCE__
     #include "wx/msw/wince/time.h"
     #include "wx/msw/private.h"
@@ -40,7 +39,6 @@
         #include <unix.h>
     #endif
 #endif
-#endif // !__WXPALMOS5__
 
 #ifdef __OS2__
 // need to check for __OS2__ first since currently both
@@ -85,11 +83,10 @@
     #include <dir.h>
 #endif
 
-#ifndef __WXPALMOS5__
 #ifndef __WXWINCE__
     #include  <fcntl.h>       // O_RDONLY &c
 #endif
-#endif // !__WXPALMOS5__
+
 // ----------------------------------------------------------------------------
 // constants
 // ----------------------------------------------------------------------------
@@ -114,8 +111,6 @@
 #elif defined(__SYMANTEC__)
     typedef long off_t;
 #elif defined(__MWERKS__) && !defined(__INTEL__) && !defined(__MACH__)
-    typedef long off_t;
-#elif defined(__WXPALMOS5__)
     typedef long off_t;
 #endif
 
@@ -205,7 +200,7 @@ enum wxPosixPermissions
     #define   wxCRT_RmDir      _wrmdir
     #define   wxCRT_Stat       _wstat
     #define   wxStructStat struct _stat
-#elif (defined(__WXMSW__) || defined(__OS2__)) && !defined(__WXPALMOS__) && \
+#elif (defined(__WINDOWS__) || defined(__OS2__)) && \
       ( \
         defined(__VISUALC__) || \
         defined(__MINGW64__) || \
@@ -368,7 +363,13 @@ enum wxPosixPermissions
     #define   wxCRT_MkDirA      wxPOSIX_IDENT(mkdir)
     #define   wxCRT_RmDirA      wxPOSIX_IDENT(rmdir)
     #ifdef wxHAS_HUGE_FILES
-        #define   wxCRT_StatA       wxPOSIX_IDENT(stati64)
+        // MinGW-64 provides underscore-less versions of all file functions
+        // except for this one.
+        #ifdef __MINGW64__
+            #define   wxCRT_StatA       _stati64
+        #else
+            #define   wxCRT_StatA       wxPOSIX_IDENT(stati64)
+        #endif
     #else
         // Unfortunately Watcom is not consistent
         #if defined(__OS2__) && defined(__WATCOMC__)
@@ -468,43 +469,6 @@ enum wxPosixPermissions
     // private defines, undefine so that nobody gets tempted to use
     #undef wxHAS_HUGE_FILES
     #undef wxHAS_HUGE_STDIO_FILES
-#elif defined (__WXPALMOS__)
-    typedef off_t wxFileOffset;
-#ifdef _LARGE_FILES
-    #define wxFileOffsetFmtSpec wxLongLongFmtSpec
-    wxCOMPILE_TIME_ASSERT( sizeof(off_t) == sizeof(wxLongLong_t), BadFileSizeType );
-    // wxFile is present and supports large files
-    #ifdef wxUSE_FILE
-        #define wxHAS_LARGE_FILES
-    #endif
-    // wxFFile is present and supports large files
-    #if SIZEOF_LONG == 8 || defined HAVE_FSEEKO
-        #define wxHAS_LARGE_FFILES
-    #endif
-#else
-    #define wxFileOffsetFmtSpec wxT("")
-#endif
-    #define   wxClose      close
-    #define   wxRead       ::read
-    #define   wxWrite      ::write
-    #define   wxLseek      lseek
-    #define   wxSeek       lseek
-    #define   wxFsync      fsync
-    #define   wxEof        eof
-
-    #define   wxCRT_MkDir      mkdir
-    #define   wxCRT_RmDir      rmdir
-
-    #define   wxTell(fd)   lseek(fd, 0, SEEK_CUR)
-
-    #define   wxStructStat struct stat
-
-    #define   wxCRT_Open       open
-    #define   wxCRT_Stat       svfs_stat
-    #define   wxCRT_Lstat      lstat
-    #define   wxCRT_Access     access
-
-    #define wxHAS_NATIVE_LSTAT
 #else // Unix or Windows using unknown compiler, assume POSIX supported
     typedef off_t wxFileOffset;
     #ifdef HAVE_LARGEFILE_SUPPORT
@@ -762,9 +726,6 @@ WXDLLIMPEXP_BASE bool wxIsExecutable(const wxString &path);
 // platform independent versions
 #if defined(__UNIX__) && !defined(__OS2__)
   // CYGWIN also uses UNIX settings
-  #define wxFILE_SEP_PATH     wxFILE_SEP_PATH_UNIX
-  #define wxPATH_SEP          wxPATH_SEP_UNIX
-#elif defined(__WXPALMOS__)
   #define wxFILE_SEP_PATH     wxFILE_SEP_PATH_UNIX
   #define wxPATH_SEP          wxPATH_SEP_UNIX
 #elif defined(__MAC__)

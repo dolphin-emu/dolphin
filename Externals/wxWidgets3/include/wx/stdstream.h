@@ -4,7 +4,7 @@
 //              wxInputStream and wxOutputStream
 // Author:      Jonathan Liu <net147@gmail.com>
 // Created:     2009-05-02
-// RCS-ID:      $Id: stdstream.h 64924 2010-07-12 22:50:51Z VZ $
+// RCS-ID:      $Id: stdstream.h 70515 2012-02-05 14:18:37Z VZ $
 // Copyright:   (c) 2009 Jonathan Liu
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -46,6 +46,18 @@ protected:
     virtual int underflow();
     virtual int uflow();
     virtual int pbackfail(int c = EOF);
+
+    // Special work around for VC8/9 (this bug was fixed in VC10 and later):
+    // these versions have non-standard _Xsgetn_s() that it being called from
+    // the stream code instead of xsgetn() and so our overridden implementation
+    // never actually gets used. To work around this, forward to it explicitly.
+#if defined(__VISUALC8__) || defined(__VISUALC9__)
+    virtual std::streamsize
+    _Xsgetn_s(char *s, size_t WXUNUSED(size), std::streamsize n)
+    {
+        return xsgetn(s, n);
+    }
+#endif // VC8 or VC9
 
     wxInputStream& m_stream;
     int m_lastChar;

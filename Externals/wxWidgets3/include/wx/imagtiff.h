@@ -2,7 +2,7 @@
 // Name:        wx/imagtiff.h
 // Purpose:     wxImage TIFF handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagtiff.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: imagtiff.h 68785 2011-08-19 03:47:40Z DS $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,10 +22,17 @@
 #include "wx/versioninfo.h"
 
 // defines for wxImage::SetOption
-#define wxIMAGE_OPTION_BITSPERSAMPLE               wxString(wxT("BitsPerSample"))
-#define wxIMAGE_OPTION_SAMPLESPERPIXEL             wxString(wxT("SamplesPerPixel"))
-#define wxIMAGE_OPTION_COMPRESSION                 wxString(wxT("Compression"))
-#define wxIMAGE_OPTION_IMAGEDESCRIPTOR             wxString(wxT("ImageDescriptor"))
+#define wxIMAGE_OPTION_TIFF_BITSPERSAMPLE               wxString(wxT("BitsPerSample"))
+#define wxIMAGE_OPTION_TIFF_SAMPLESPERPIXEL             wxString(wxT("SamplesPerPixel"))
+#define wxIMAGE_OPTION_TIFF_COMPRESSION                 wxString(wxT("Compression"))
+#define wxIMAGE_OPTION_TIFF_PHOTOMETRIC                 wxString(wxT("Photometric"))
+#define wxIMAGE_OPTION_TIFF_IMAGEDESCRIPTOR             wxString(wxT("ImageDescriptor"))
+
+// for backwards compatibility
+#define wxIMAGE_OPTION_BITSPERSAMPLE               wxIMAGE_OPTION_TIFF_BITSPERSAMPLE
+#define wxIMAGE_OPTION_SAMPLESPERPIXEL             wxIMAGE_OPTION_TIFF_SAMPLESPERPIXEL
+#define wxIMAGE_OPTION_COMPRESSION                 wxIMAGE_OPTION_TIFF_COMPRESSION
+#define wxIMAGE_OPTION_IMAGEDESCRIPTOR             wxIMAGE_OPTION_TIFF_IMAGEDESCRIPTOR
 
 class WXDLLIMPEXP_CORE wxTIFFHandler: public wxImageHandler
 {

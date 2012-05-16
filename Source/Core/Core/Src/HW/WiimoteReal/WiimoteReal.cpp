@@ -50,7 +50,6 @@ Wiimote::Wiimote(const unsigned int _index)
 #endif
 	, leds(0), m_last_data_report(Report((u8 *)NULL, 0))
 	, m_channel(0), m_connected(false)
-	, m_motion_plus_inside(false)
 {
 #if defined(__linux__) && HAVE_BLUEZ
 	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
@@ -143,16 +142,16 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 	rpt.second = (u8)size;
 	memcpy(rpt.first, (u8*)data, size);
 
-	// Convert output DATA packets to SET_REPORT packets for non-TR
-	// Wiimotes. Nintendo Wiimotes work without this translation, but 3rd
+	// Convert output DATA packets to SET_REPORT packets.
+	// Nintendo Wiimotes work without this translation, but 3rd
 	// party ones don't.
-	u8 head = m_motion_plus_inside ? 0xa2 : 0x52;
  	if (rpt.first[0] == 0xa2)
 	{
-		rpt.first[0] = head;
+		rpt.first[0] = WM_SET_REPORT | WM_BT_OUTPUT;
  	}
 
- 	if (rpt.first[0] == head && rpt.first[1] == 0x18 && rpt.second == 23)
+	if (rpt.first[0] == (WM_SET_REPORT | WM_BT_OUTPUT) &&
+		rpt.first[1] == 0x18 && rpt.second == 23)
 	{
 		m_audio_reports.Push(rpt);
  		return;
@@ -512,5 +511,20 @@ void StateChange(EMUSTATE_CHANGE newState)
 
 	// TODO: disable/enable auto reporting, maybe
 }
+
+#define ARRAYSIZE(_arr) (sizeof(_arr)/(sizeof(_arr[0])))
+
+bool IsValidBluetoothName(const char* name) {
+	static const char* kValidWiiRemoteBluetoothNames[] = {
+		"Nintendo RVL-CNT-01",
+		"Nintendo RVL-CNT-01-TR",
+		"Nintendo RVL-WBC-01",
+	};
+	for (size_t i = 0; i < ARRAYSIZE(kValidWiiRemoteBluetoothNames); i++)
+		if (strcmp(name, kValidWiiRemoteBluetoothNames[i]) == 0)
+			return true;
+	return false;
+}
+
 
 }; // end of namespace

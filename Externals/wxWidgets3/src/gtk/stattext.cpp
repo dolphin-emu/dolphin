@@ -2,7 +2,7 @@
 // Name:        src/gtk/stattext.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: stattext.cpp 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: stattext.cpp 70446 2012-01-23 11:28:28Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -153,31 +153,48 @@ bool wxStaticText::DoSetLabelMarkup(const wxString& markup)
 bool wxStaticText::SetFont( const wxFont &font )
 {
     const bool wasUnderlined = GetFont().GetUnderlined();
+    const bool wasStrickenThrough = GetFont().GetStrikethrough();
 
     bool ret = wxControl::SetFont(font);
 
-    if ( font.GetUnderlined() != wasUnderlined )
-    {
-        // the underlines for mnemonics are incompatible with using attributes
-        // so turn them off when setting underlined font and restore them when
-        // unsetting it
-        gtk_label_set_use_underline(GTK_LABEL(m_widget), wasUnderlined);
+    const bool isUnderlined = GetFont().GetUnderlined();
+    const bool isStrickenThrough = GetFont().GetStrikethrough();
 
-        if ( wasUnderlined )
+    if ( (isUnderlined != wasUnderlined) ||
+            (isStrickenThrough != wasStrickenThrough) )
+    {
+        // We need to update the Pango attributes used for the text.
+        if ( isUnderlined || isStrickenThrough )
         {
-            // it's not underlined any more, remove the attributes we set
-            gtk_label_set_attributes(GTK_LABEL(m_widget), NULL);
-        }
-        else // the text is underlined now
-        {
-            PangoAttrList *attrs = pango_attr_list_new();
-            PangoAttribute *a = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
-            a->start_index = 0;
-            a->end_index = (guint)-1;
-            pango_attr_list_insert(attrs, a);
+            PangoAttrList* const attrs = pango_attr_list_new();
+            if ( isUnderlined )
+            {
+                PangoAttribute *a = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
+                a->start_index = 0;
+                a->end_index = (guint)-1;
+                pango_attr_list_insert(attrs, a);
+            }
+
+            if ( isStrickenThrough )
+            {
+                PangoAttribute *a = pango_attr_strikethrough_new( TRUE );
+                a->start_index = 0;
+                a->end_index = (guint) -1;
+                pango_attr_list_insert(attrs, a);
+            }
+
             gtk_label_set_attributes(GTK_LABEL(m_widget), attrs);
             pango_attr_list_unref(attrs);
         }
+        else // No special attributes any more.
+        {
+            // Just remove any attributes we had set.
+            gtk_label_set_attributes(GTK_LABEL(m_widget), NULL);
+        }
+
+        // The underlines for mnemonics are incompatible with using attributes
+        // so turn them off when setting underlined font.
+        gtk_label_set_use_underline(GTK_LABEL(m_widget), !isUnderlined);
     }
 
     // adjust the label size to the new label unless disabled

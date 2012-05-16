@@ -136,8 +136,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		if (m_AIplaying) {
 			Premix(samples, numLeft);
 
-			if (m_EnableDTKMusic)
-				AudioInterface::Callback_GetStreaming(samples, numLeft, m_sampleRate);
+			AudioInterface::Callback_GetStreaming(samples, numLeft, m_sampleRate);
 
 			g_wave_writer.AddStereoSamples(samples, numLeft);
 		}
@@ -147,11 +146,8 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		Premix(samples, numSamples);
 
 		// Add the DTK Music
-		if (m_EnableDTKMusic)
-		{
-			// Re-sampling is done inside
-			AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
-		}
+		// Re-sampling is done inside
+		AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
 	}
 
 

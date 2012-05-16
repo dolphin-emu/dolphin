@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vaclav Slavik
 // Modified by:
 // Created:     25/10/98
-// RCS-ID:      $Id: sound.h 47254 2007-07-09 10:09:52Z VS $
+// RCS-ID:      $Id: sound.h 69178 2011-09-21 15:08:02Z VZ $
 // Copyright:   (c) Julian Smart, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -60,13 +60,13 @@ class WXDLLIMPEXP_ADV wxSound : public wxSoundBase
 public:
     wxSound();
     wxSound(const wxString& fileName, bool isResource = false);
-    wxSound(int size, const wxByte* data);
+    wxSound(size_t size, const void* data);
     virtual ~wxSound();
 
     // Create from resource or file
     bool Create(const wxString& fileName, bool isResource = false);
     // Create from data
-    bool Create(int size, const wxByte* data);
+    bool Create(size_t size, const void* data);
 
     bool IsOk() const { return m_data != NULL; }
 
@@ -84,7 +84,7 @@ protected:
 
     static void EnsureBackend();
     void Free();
-    bool LoadWAV(const wxUint8 *data, size_t length, bool copyData);
+    bool LoadWAV(const void* data, size_t length, bool copyData);
 
     static wxSoundBackend *ms_backend;
 #if wxUSE_LIBSDL && wxUSE_PLUGINS

@@ -2,7 +2,7 @@
 // Name:        src/gtk/dirdlg.cpp
 // Purpose:     native implementation of wxDirDialog
 // Author:      Robert Roebling, Zbigniew Zagorski, Mart Raudsepp, Francesco Montorsi
-// Id:          $Id: dirdlg.cpp 64019 2010-04-18 00:05:37Z VZ $
+// Id:          $Id: dirdlg.cpp 70898 2012-03-14 12:32:27Z VZ $
 // Copyright:   (c) 1998 Robert Roebling, 2004 Zbigniew Zagorski, 2005 Mart Raudsepp
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,9 @@
 
 #include "wx/gtk/private.h"
 
+#ifdef __UNIX__
 #include <unistd.h> // chdir
+#endif
 
 //-----------------------------------------------------------------------------
 // "clicked" for OK-button
@@ -97,6 +99,17 @@ wxDirDialog::wxDirDialog(wxWindow* parent,
                          const wxSize& WXUNUSED(sz),
                          const wxString& WXUNUSED(name))
 {
+    Create(parent, title, defaultPath, style, pos);
+}
+
+bool wxDirDialog::Create(wxWindow* parent,
+                         const wxString& title,
+                         const wxString& defaultPath,
+                         long style,
+                         const wxPoint& pos,
+                         const wxSize& WXUNUSED(sz),
+                         const wxString& WXUNUSED(name))
+{
     m_message = title;
 
     parent = GetParentForModalDialog(parent, style);
@@ -106,7 +119,7 @@ wxDirDialog::wxDirDialog(wxWindow* parent,
                 wxDefaultValidator, wxT("dirdialog")))
     {
         wxFAIL_MSG( wxT("wxDirDialog creation failed") );
-        return;
+        return false;
     }
 
     GtkWindow* gtk_parent = NULL;
@@ -135,7 +148,7 @@ wxDirDialog::wxDirDialog(wxWindow* parent,
     // local-only property could be set to false to allow non-local files to be loaded.
     // In that case get/set_uri(s) should be used instead of get/set_filename(s) everywhere
     // and the GtkFileChooserDialog should probably also be created with a backend,
-    // e.g "gnome-vfs", "default", ... (gtk_file_chooser_dialog_new_with_backend).
+    // e.g. "gnome-vfs", "default", ... (gtk_file_chooser_dialog_new_with_backend).
     // Currently local-only is kept as the default - true:
     // gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(m_widget), true);
 
@@ -145,6 +158,7 @@ wxDirDialog::wxDirDialog(wxWindow* parent,
     if ( !defaultPath.empty() )
         gtk_file_chooser_set_current_folder( GTK_FILE_CHOOSER(m_widget),
                 defaultPath.fn_str() );
+    return true;
 }
 
 void wxDirDialog::OnFakeOk(wxCommandEvent& WXUNUSED(event))

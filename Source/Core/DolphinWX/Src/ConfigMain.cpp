@@ -90,7 +90,7 @@ static const wxLanguage langIds[] =
 #define EXIDEV_GECKO_STR	"USBGecko"
 
 #define CSTR_TRANS(a)		wxString(wxGetTranslation(wxT(a))).mb_str()
-
+#define WXSTR_TRANS(a)		wxString(wxGetTranslation(wxT(a)))
 #ifdef WIN32
 //only used with xgettext to be picked up as translatable string.
 //win32 does not have wx on its path, the provided wxALL_FILES 
@@ -116,7 +116,6 @@ EVT_CHECKBOX(ID_NTSCJ, CConfigMain::CoreSettingsChanged)
 
 
 EVT_RADIOBOX(ID_DSPENGINE, CConfigMain::AudioSettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DUMP_AUDIO, CConfigMain::AudioSettingsChanged)
@@ -359,7 +358,6 @@ void CConfigMain::InitializeGUIValues()
 	VolumeSlider->Enable(SupportsVolumeChanges(ac_Config.sBackend));
 	VolumeSlider->SetValue(ac_Config.m_Volume);
 	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), ac_Config.m_Volume));
-	EnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
 	DSPThread->SetValue(startup_params.bDSPThread);
 	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
 	FrequencySelection->SetSelection(
@@ -502,7 +500,6 @@ void CConfigMain::InitializeGUITooltips()
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
 	// Audio tooltips
-	EnableDTKMusic->SetToolTip(_("This is used to play music tracks, like BGM."));
 	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread (not recommended)."));
 	FrequencySelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
@@ -602,8 +599,6 @@ void CConfigMain::CreateGUIControls()
 	// Audio page
 	DSPEngine = new wxRadioBox(AudioPage, ID_DSPENGINE, _("DSP Emulator Engine"),
 				wxDefaultPosition, wxDefaultSize, arrayStringFor_DSPEngine, 0, wxRA_SPECIFY_ROWS);
-	EnableDTKMusic = new wxCheckBox(AudioPage, ID_ENABLE_DTK_MUSIC, _("Enable DTK Music"),
-				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DSPThread = new wxCheckBox(AudioPage, ID_DSPTHREAD, _("DSP LLE on Thread"));
 	DumpAudio = new wxCheckBox(AudioPage, ID_DUMP_AUDIO, _("Dump Audio"),
 				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -620,7 +615,6 @@ void CConfigMain::CreateGUIControls()
 	// Create sizer and add items to dialog
 	wxStaticBoxSizer *sbAudioSettings = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Sound Settings"));
 	sbAudioSettings->Add(DSPEngine, 0, wxALL | wxEXPAND, 5);
-	sbAudioSettings->Add(EnableDTKMusic, 0, wxALL, 5);
 	sbAudioSettings->Add(DSPThread, 0, wxALL, 5);
 	sbAudioSettings->Add(DumpAudio, 0, wxALL, 5);
 
@@ -751,7 +745,7 @@ void CConfigMain::CreateGUIControls()
 	RemoveISOPath->Enable(false);
 
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, _("Choose a default ISO:"),
-		_("All GC/Wii images (gcm, iso, ciso, gcz)") + wxString::Format(wxT("|*.gcm;*.iso;*.ciso;*.gcz|%s"), wxGetTranslation(wxALL_FILES)),
+		_("All GC/Wii images (gcm, iso, wbfs, ciso, gcz)") + wxString::Format(wxT("|*.gcm;*.iso;*.wbfs;*.ciso;*.gcz|%s"), wxGetTranslation(wxALL_FILES)),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 	DVDRoot = new wxDirPickerCtrl(PathsPage, ID_DVDROOT, wxEmptyString, _("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 	ApploaderPath = new wxFilePickerCtrl(PathsPage, ID_APPLOADERPATH, wxEmptyString, _("Choose file to use as apploader: (applies to discs constructed from directories only)"),
@@ -918,7 +912,6 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		break;
 
 	default:
-		ac_Config.m_EnableDTKMusic = EnableDTKMusic->GetValue();
 		ac_Config.m_DumpAudio = DumpAudio->GetValue();
 
 		long int frequency;
@@ -979,7 +972,7 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 	case ID_GC_EXIDEVICE_SLOTB:
 		exidevice++;
 	case ID_GC_EXIDEVICE_SLOTA:
-		ChooseEXIDevice(std::string(event.GetString().mb_str()), exidevice);
+		ChooseEXIDevice(event.GetString(), exidevice);
 		break;
 	case ID_GC_EXIDEVICE_SLOTA_PATH:
 		ChooseMemcardPath(SConfig::GetInstance().m_strMemoryCardA, true);
@@ -994,7 +987,7 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 	case ID_GC_SIDEVICE1:
 		sidevice++;
 	case ID_GC_SIDEVICE0:
-		ChooseSIDevice(std::string(event.GetString().mb_str()), sidevice);
+		ChooseSIDevice(event.GetString(), sidevice);
 		break;
 	}
 }
@@ -1044,16 +1037,16 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 	}
 }
 
-void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
+void CConfigMain::ChooseSIDevice(wxString deviceName, int deviceNum)
 {
 	SIDevices tempType;
-	if (!deviceName.compare(CSTR_TRANS(SIDEV_STDCONT_STR)))
+	if (!deviceName.compare(WXSTR_TRANS(SIDEV_STDCONT_STR)))
 		tempType = SIDEVICE_GC_CONTROLLER;
-	else if (!deviceName.compare(CSTR_TRANS(SIDEV_BONGO_STR)))
+	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_BONGO_STR)))
 		tempType = SIDEVICE_GC_TARUKONGA;
-	else if (!deviceName.compare(SIDEV_GBA_STR))
+	else if (!deviceName.compare(wxT(SIDEV_GBA_STR)))
 		tempType = SIDEVICE_GC_GBA;
-	else if (!deviceName.compare(CSTR_TRANS(SIDEV_AM_BB_STR)))
+	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_AM_BB_STR)))
 		tempType = SIDEVICE_AM_BASEBOARD;
 	else
 		tempType = SIDEVICE_NONE;
@@ -1067,21 +1060,21 @@ void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
 	}
 }
 
-void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)
+void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 {
 	TEXIDevices tempType;
 
-	if (!deviceName.compare(CSTR_TRANS(EXIDEV_MEMCARD_STR)))
+	if (!deviceName.compare(WXSTR_TRANS(EXIDEV_MEMCARD_STR)))
 		tempType = EXIDEVICE_MEMORYCARD;
-	else if (!deviceName.compare(CSTR_TRANS(EXIDEV_MIC_STR)))
+	else if (!deviceName.compare(WXSTR_TRANS(EXIDEV_MIC_STR)))
 		tempType = EXIDEVICE_MIC;
-	else if (!deviceName.compare(EXIDEV_BBA_STR))
+	else if (!deviceName.compare(wxT(EXIDEV_BBA_STR)))
 		tempType = EXIDEVICE_ETH;
-	else if (!deviceName.compare(CSTR_TRANS(EXIDEV_AM_BB_STR)))
+	else if (!deviceName.compare(WXSTR_TRANS(EXIDEV_AM_BB_STR)))
 		tempType = EXIDEVICE_AM_BASEBOARD;
-	else if (!deviceName.compare(EXIDEV_GECKO_STR))
+	else if (!deviceName.compare(wxT(EXIDEV_GECKO_STR)))
 		tempType = EXIDEVICE_GECKO;
-	else if (!deviceName.compare(CSTR_TRANS(DEV_NONE_STR)))
+	else if (!deviceName.compare(WXSTR_TRANS(DEV_NONE_STR)))
 		tempType = EXIDEVICE_NONE;
 	else
 		tempType = EXIDEVICE_DUMMY;

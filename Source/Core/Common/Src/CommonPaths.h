@@ -121,6 +121,8 @@
 #define GC_MEMCARDA	"MemoryCardA"
 #define GC_MEMCARDB	"MemoryCardB"
 
+#define WII_STATE 	"state.dat"
+
 #define WII_SETTING 	"setting.txt"
 
 #define GECKO_CODE_HANDLER "codehandler.bin"

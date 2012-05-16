@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: pnghand.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: pnghand.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ public:
     SetName(wxT("PNG bitmap file"));
     SetExtension(wxT("bmp"));
     SetType(wxBITMAP_TYPE_PNG);
-  };
+  }
 
   virtual bool LoadFile(wxBitmap *bitmap, const wxString& name, long flags,
       int desiredWidth, int desiredHeight);

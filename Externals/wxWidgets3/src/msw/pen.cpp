@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin: refactored wxPen code to wxPenRefData
 // Created:     04/01/98
-// RCS-ID:      $Id: pen.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: pen.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -540,42 +540,42 @@ void wxPen::SetCap(wxPenCap cap)
 
 wxColour wxPen::GetColour() const
 {
-    wxCHECK_MSG( Ok(), wxNullColour, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), wxNullColour, wxT("invalid pen") );
 
     return M_PENDATA->GetColour();
 }
 
 int wxPen::GetWidth() const
 {
-    wxCHECK_MSG( Ok(), -1, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), -1, wxT("invalid pen") );
 
     return M_PENDATA->GetWidth();
 }
 
 wxPenStyle wxPen::GetStyle() const
 {
-    wxCHECK_MSG( Ok(), wxPENSTYLE_INVALID, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), wxPENSTYLE_INVALID, wxT("invalid pen") );
 
     return M_PENDATA->GetStyle();
 }
 
 wxPenJoin wxPen::GetJoin() const
 {
-    wxCHECK_MSG( Ok(), wxJOIN_INVALID, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), wxJOIN_INVALID, wxT("invalid pen") );
 
     return M_PENDATA->GetJoin();
 }
 
 wxPenCap wxPen::GetCap() const
 {
-    wxCHECK_MSG( Ok(), wxCAP_INVALID, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), wxCAP_INVALID, wxT("invalid pen") );
 
     return M_PENDATA->GetCap();
 }
 
 int wxPen::GetDashes(wxDash** ptr) const
 {
-    wxCHECK_MSG( Ok(), -1, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), -1, wxT("invalid pen") );
 
     *ptr = M_PENDATA->GetDash();
     return M_PENDATA->GetDashCount();
@@ -583,21 +583,21 @@ int wxPen::GetDashes(wxDash** ptr) const
 
 wxDash* wxPen::GetDash() const
 {
-    wxCHECK_MSG( Ok(), NULL, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid pen") );
 
     return m_refData ? M_PENDATA->GetDash() : NULL;
 }
 
 int wxPen::GetDashCount() const
 {
-    wxCHECK_MSG( Ok(), -1, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), -1, wxT("invalid pen") );
 
     return m_refData ? M_PENDATA->GetDashCount() : 0;
 }
 
 wxBitmap* wxPen::GetStipple() const
 {
-    wxCHECK_MSG( Ok(), NULL, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid pen") );
 
     return m_refData ? M_PENDATA->GetStipple() : NULL;
 }

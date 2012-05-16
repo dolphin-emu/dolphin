@@ -187,35 +187,40 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 
 void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 {
-	if (Core::GetState() == Core::CORE_RUN) {
-		event.Skip();
-		return;
-	}
 	switch (event.GetId())
 	{
 	case IDM_PROFILEBLOCKS:
-		if (jit != NULL) jit->ClearCache();
+		Core::SetState(Core::CORE_PAUSE);
+		if (jit != NULL)
+			jit->ClearCache();
 		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
+		Core::SetState(Core::CORE_RUN);
 		break;
 	case IDM_WRITEPROFILE:
-		if (jit != NULL)
-		{
-			std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
-			File::CreateFullPath(filename);
-			Profiler::WriteProfileResults(filename.c_str());
+		if (Core::GetState() == Core::CORE_RUN)
+			Core::SetState(Core::CORE_PAUSE);
 
-			wxFileType* filetype = NULL;
-			if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
+		if (Core::GetState() == Core::CORE_PAUSE && PowerPC::GetMode() == PowerPC::MODE_JIT)
+		{
+			if (jit != NULL)
 			{
-				// From extension failed, trying with MIME type now
-				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"))))
-					// MIME type failed, aborting mission
-					break;
+				std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
+				File::CreateFullPath(filename);
+				Profiler::WriteProfileResults(filename.c_str());
+
+				wxFileType* filetype = NULL;
+				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
+				{
+					// From extension failed, trying with MIME type now
+					if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"))))
+						// MIME type failed, aborting mission
+						break;
+				}
+				wxString OpenCommand;
+				OpenCommand = filetype->GetOpenCommand(wxString::From8BitData(filename.c_str()));
+				if(!OpenCommand.IsEmpty())
+					wxExecute(OpenCommand, wxEXEC_SYNC);
 			}
-			wxString OpenCommand;
-			OpenCommand = filetype->GetOpenCommand(wxString::From8BitData(filename.c_str()));
-			if(!OpenCommand.IsEmpty())
-				wxExecute(OpenCommand, wxEXEC_SYNC);
 		}
 		break;
 	}

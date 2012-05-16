@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: textctrl.h 64404 2010-05-26 17:37:55Z RR $
+// Id:          $Id: textctrl.h 68450 2011-07-29 15:11:54Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -167,6 +167,8 @@ protected:
 
     virtual void DoSetValue(const wxString &value, int flags = 0);
 
+    virtual wxPoint DoPositionToCoords(long pos) const;
+
     // wrappers hiding the differences between functions doing the same thing
     // for GtkTextView and GtkEntry (all of them use current window style to
     // set the given characteristic)
@@ -214,6 +216,7 @@ private:
     GtkTextBuffer *m_buffer;
 
     GtkTextMark* m_showPositionOnThaw;
+    GSList* m_anonymousMarkList;
 
     // For wxTE_AUTO_URL
     void OnUrlMouseEvent(wxMouseEvent&);

@@ -29,7 +29,6 @@
 
 #define NETPLAY_TITLEBAR	"Dolphin NetPlay"
 
-DEFINE_EVENT_TYPE(wxEVT_THREAD)
 BEGIN_EVENT_TABLE(NetPlayDiag, wxFrame)
 	EVT_COMMAND(wxID_ANY, wxEVT_THREAD, NetPlayDiag::OnThread)
 END_EVENT_TABLE()

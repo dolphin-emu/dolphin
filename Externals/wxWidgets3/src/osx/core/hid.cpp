@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     11/11/2003
-// RCS-ID:      $Id: hid.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: hid.cpp 70251 2012-01-03 10:34:14Z SC $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -421,7 +421,7 @@ enum
     WXK_RSHIFT = 400,
     WXK_RALT,
     WXK_RCONTROL,
-    WXK_RMENU
+    WXK_RAW_RCONTROL,
 };
 
 // ----------------------------------------------------------------------------
@@ -601,7 +601,7 @@ void wxHIDKeyboard::DoBuildCookies(CFArrayRef Array)
 
             //Menu keys, Shift, other specials
             case kHIDUsage_KeyboardLeftControl:
-                AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_CONTROL);
+                AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_RAW_CONTROL);
                 break;
             case kHIDUsage_KeyboardLeftShift:
                 AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_SHIFT);
@@ -610,10 +610,10 @@ void wxHIDKeyboard::DoBuildCookies(CFArrayRef Array)
                 AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_ALT);
                 break;
             case kHIDUsage_KeyboardLeftGUI:
-                AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_MENU);
+                AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_CONTROL);
                 break;
             case kHIDUsage_KeyboardRightControl:
-                AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_RCONTROL);
+                AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_RAW_RCONTROL);
                 break;
             case kHIDUsage_KeyboardRightShift:
                 AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_RSHIFT);
@@ -622,7 +622,7 @@ void wxHIDKeyboard::DoBuildCookies(CFArrayRef Array)
                 AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_RALT);
                 break;
             case kHIDUsage_KeyboardRightGUI:
-                AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_RMENU);
+                AddCookie(CFArrayGetValueAtIndex(Array, i),WXK_RCONTROL);
                 break;
 
             //Default
@@ -723,9 +723,9 @@ bool wxGetKeyState (wxKeyCode key)
                 return true;
             }
         break;
-    case WXK_MENU:
-            if( keyboard->IsActive(WXK_MENU) ||
-                   keyboard->IsActive(WXK_RMENU) )
+    case WXK_RAW_CONTROL:
+            if( keyboard->IsActive(WXK_RAW_CONTROL) ||
+                   keyboard->IsActive(WXK_RAW_RCONTROL) )
             {
                 return true;
             }

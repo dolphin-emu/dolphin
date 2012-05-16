@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin
 // Created:     01/02/97
-// RCS-ID:      $Id: docview.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: docview.cpp 70790 2012-03-04 00:29:03Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -122,8 +122,12 @@ wxString FindExtension(const wxString& path)
 wxDocument::wxDocument(wxDocument *parent)
 {
     m_documentModified = false;
-    m_documentParent = parent;
     m_documentTemplate = NULL;
+
+    m_documentParent = parent;
+    if ( parent )
+        parent->m_childDocuments.push_back(this);
+
     m_commandProcessor = NULL;
     m_savedYet = false;
 }
@@ -140,6 +144,9 @@ wxDocument::~wxDocument()
     if (GetDocumentManager())
         GetDocumentManager()->RemoveDocument(this);
 
+    if ( m_documentParent )
+        m_documentParent->m_childDocuments.remove(this);
+
     // Not safe to do here, since it'll invoke virtual view functions
     // expecting to see valid derived objects: and by the time we get here,
     // we've called destructors higher up.
@@ -150,6 +157,40 @@ bool wxDocument::Close()
 {
     if ( !OnSaveModified() )
         return false;
+
+    // When the parent document closes, its children must be closed as well as
+    // they can't exist without the parent.
+
+    // As usual, first check if all children can be closed.
+    DocsList::const_iterator it = m_childDocuments.begin();
+    for ( DocsList::const_iterator end = m_childDocuments.end(); it != end; ++it )
+    {
+        if ( !(*it)->OnSaveModified() )
+        {
+            // Leave the parent document opened if a child can't close.
+            return false;
+        }
+    }
+
+    // Now that they all did, do close them: as m_childDocuments is modified as
+    // we iterate over it, don't use the usual for-style iteration here.
+    while ( !m_childDocuments.empty() )
+    {
+        wxDocument * const childDoc = m_childDocuments.front();
+
+        // This will call OnSaveModified() once again but it shouldn't do
+        // anything as the document was just saved or marked as not needing to
+        // be saved by the call to OnSaveModified() that returned true above.
+        if ( !childDoc->Close() )
+        {
+            wxFAIL_MSG( "Closing the child document unexpectedly failed "
+                        "after its OnSaveModified() returned true" );
+        }
+
+        // Delete the child document by deleting all its views.
+        childDoc->DeleteAllViews();
+    }
+
 
     return OnCloseDocument();
 }
@@ -231,6 +272,12 @@ void wxDocument::Modify(bool mod)
 
 wxDocManager *wxDocument::GetDocumentManager() const
 {
+    // For child documents we use the same document manager as the parent, even
+    // though we don't have our own template (as children are not opened/saved
+    // directly).
+    if ( m_documentParent )
+        return m_documentParent->GetDocumentManager();
+
     return m_documentTemplate ? m_documentTemplate->GetDocumentManager() : NULL;
 }
 
@@ -349,6 +396,9 @@ bool wxDocument::OnSaveDocument(const wxString& file)
 
     if ( !DoSaveDocument(file) )
         return false;
+
+    if ( m_commandProcessor )
+        m_commandProcessor->MarkAsSaved();
 
     Modify(false);
     SetFilename(file);
@@ -895,7 +945,7 @@ BEGIN_EVENT_TABLE(wxDocManager, wxEvtHandler)
     EVT_UPDATE_UI(wxID_REVERT, wxDocManager::OnUpdateFileRevert)
     EVT_UPDATE_UI(wxID_NEW, wxDocManager::OnUpdateFileNew)
     EVT_UPDATE_UI(wxID_SAVE, wxDocManager::OnUpdateFileSave)
-    EVT_UPDATE_UI(wxID_SAVEAS, wxDocManager::OnUpdateDisableIfNoDoc)
+    EVT_UPDATE_UI(wxID_SAVEAS, wxDocManager::OnUpdateFileSaveAs)
     EVT_UPDATE_UI(wxID_UNDO, wxDocManager::OnUpdateUndo)
     EVT_UPDATE_UI(wxID_REDO, wxDocManager::OnUpdateRedo)
 
@@ -1106,26 +1156,27 @@ void wxDocManager::DoOpenMRUFile(unsigned n)
     wxString errMsg; // must contain exactly one "%s" if non-empty
     if ( wxFile::Exists(filename) )
     {
-        // try to open it
-        if ( CreateDocument(filename, wxDOC_SILENT) )
-            return;
-
-        errMsg = _("The file '%s' couldn't be opened.");
+        // Try to open it but don't give an error if it failed: this could be
+        // normal, e.g. because the user cancelled opening it, and we don't
+        // have any useful information to put in the error message anyhow, so
+        // we assume that in case of an error the appropriate message had been
+        // already logged.
+        (void)CreateDocument(filename, wxDOC_SILENT);
     }
     else // file doesn't exist
     {
-        errMsg = _("The file '%s' doesn't exist and couldn't be opened.");
+        OnMRUFileNotExist(n, filename);
     }
+}
 
-
-    wxASSERT_MSG( !errMsg.empty(), "should have an error message" );
-
+void wxDocManager::OnMRUFileNotExist(unsigned n, const wxString& filename)
+{
     // remove the file which we can't open from the MRU list
     RemoveFileFromHistory(n);
 
     // and tell the user about it
-    wxLogError(errMsg + '\n' +
-               _("It has been removed from the most recently used files list."),
+    wxLogError(_("The file '%s' doesn't exist and couldn't be opened.\n"
+                 "It has been removed from the most recently used files list."),
                filename);
 }
 
@@ -1181,7 +1232,7 @@ void wxDocManager::OnPreview(wxCommandEvent& WXUNUSED(event))
             preview = new wxPrintPreview(printout,
                                          view->OnCreatePrintout(),
                                          &printDialogData);
-        if ( !preview->Ok() )
+        if ( !preview->IsOk() )
         {
             delete preview;
             wxLogError(_("Print preview creation failed."));
@@ -1254,7 +1305,13 @@ void wxDocManager::OnUpdateFileNew(wxUpdateUIEvent& event)
 void wxDocManager::OnUpdateFileSave(wxUpdateUIEvent& event)
 {
     wxDocument * const doc = GetCurrentDocument();
-    event.Enable( doc && !doc->AlreadySaved() );
+    event.Enable( doc && !doc->IsChildDocument() && !doc->AlreadySaved() );
+}
+
+void wxDocManager::OnUpdateFileSaveAs(wxUpdateUIEvent& event)
+{
+    wxDocument * const doc = GetCurrentDocument();
+    event.Enable( doc && !doc->IsChildDocument() );
 }
 
 void wxDocManager::OnUpdateUndo(wxUpdateUIEvent& event)
@@ -1262,10 +1319,14 @@ void wxDocManager::OnUpdateUndo(wxUpdateUIEvent& event)
     wxCommandProcessor * const cmdproc = GetCurrentCommandProcessor();
     if ( !cmdproc )
     {
-        event.Enable(false);
+        // If we don't have any document at all, the menu item should really be
+        // disabled.
+        if ( !GetCurrentDocument() )
+            event.Enable(false);
+        else // But if we do have it, it might handle wxID_UNDO on its own
+            event.Skip();
         return;
     }
-
     event.Enable(cmdproc->CanUndo());
     cmdproc->SetMenuStrings();
 }
@@ -1275,10 +1336,13 @@ void wxDocManager::OnUpdateRedo(wxUpdateUIEvent& event)
     wxCommandProcessor * const cmdproc = GetCurrentCommandProcessor();
     if ( !cmdproc )
     {
-        event.Enable(false);
+        // Use same logic as in OnUpdateUndo() above.
+        if ( !GetCurrentDocument() )
+            event.Enable(false);
+        else
+            event.Skip();
         return;
     }
-
     event.Enable(cmdproc->CanRedo());
     cmdproc->SetMenuStrings();
 }
@@ -1350,7 +1414,7 @@ void wxDocManager::ActivateDocument(wxDocument *doc)
 
     view->Activate(true);
     if ( wxWindow *win = view->GetFrame() )
-        win->SetFocus();
+        win->Raise();
 }
 
 wxDocument *wxDocManager::CreateDocument(const wxString& pathOrig, long flags)

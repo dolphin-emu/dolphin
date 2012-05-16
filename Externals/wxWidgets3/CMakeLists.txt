@@ -1,4 +1,4 @@
-# gtk, msw, osx and shared files as of r67291
+# gtk, msw, osx and shared files as of r70933
 
 set(SRCS_AUI
 	"src/aui/auibar.cpp"
@@ -11,6 +11,7 @@ set(SRCS_AUI
 set(SRCS_COMMON
 	"src/common/accelcmn.cpp"
 	#"src/common/accesscmn.cpp"
+	"src/common/affinematrix2d.cpp"
 	"src/common/anidecod.cpp"
 	"src/common/animatecmn.cpp"
 	"src/common/any.cpp"
@@ -215,6 +216,7 @@ set(SRCS_COMMON
 	"src/common/textcmn.cpp"
 	"src/common/textentrycmn.cpp"
 	"src/common/textfile.cpp"
+	"src/common/time.cpp"
 	"src/common/timercmn.cpp"
 	"src/common/timerimpl.cpp"
 	"src/common/tokenzr.cpp"
@@ -233,6 +235,7 @@ set(SRCS_COMMON
 	"src/common/valnum.cpp"
 	"src/common/valtext.cpp"
 	"src/common/variant.cpp"
+	#"src/common/webview.cpp"
 	"src/common/wfstream.cpp"
 	"src/common/wincmn.cpp"
 	"src/common/windowid.cpp"
@@ -247,25 +250,9 @@ set(SRCS_COMMON
 	"src/common/zipstrm.cpp"
 	"src/common/zstream.cpp")
 
-set(SRCS_EXPAT
-	#"src/expat/lib/xmlparse.c"
-	#"src/expat/lib/xmlrole.c"
-	#"src/expat/lib/xmltok.c"
-	#"src/expat/lib/xmltok_impl.c"
-	#"src/expat/lib/xmltok_ns.c"
-	#"src/expat/xmlwf/codepage.c"
-	#"src/expat/xmlwf/ct.c"
-	#"src/expat/xmlwf/readfilemap.c"
-	#"src/expat/xmlwf/unixfilemap.c"
-	#"src/expat/xmlwf/win32filemap.c"
-	#"src/expat/xmlwf/xmlfile.c"
-	#"src/expat/xmlwf/xmlmime.c"
-	#"src/expat/xmlwf/xmlwf.c"
-	#"src/expat/xmlwf/xmlwin32url.cxx"
-)
-
 set(SRCS_GENERIC
 	"src/generic/aboutdlgg.cpp"
+	"src/generic/bannerwindow.cpp"
 	"src/generic/bmpcboxg.cpp"
 	"src/generic/busyinfo.cpp"
 	"src/generic/buttonbar.cpp"
@@ -310,7 +297,6 @@ set(SRCS_GENERIC
 	"src/generic/notifmsgg.cpp"
 	"src/generic/numdlgg.cpp"
 	"src/generic/odcombo.cpp"
-	"src/generic/panelg.cpp"
 	"src/generic/printps.cpp"
 	"src/generic/prntdlgg.cpp"
 	"src/generic/progdlgg.cpp"
@@ -331,12 +317,14 @@ set(SRCS_GENERIC
 	"src/generic/statusbr.cpp"
 	"src/generic/tabg.cpp"
 	"src/generic/textdlgg.cpp"
+	"src/generic/timectrlg.cpp"
 	#"src/generic/timer.cpp"
 	"src/generic/tipdlg.cpp"
 	"src/generic/tipwin.cpp"
 	"src/generic/toolbkg.cpp"
 	"src/generic/treebkg.cpp"
 	"src/generic/treectlg.cpp"
+	"src/generic/treelist.cpp"
 	"src/generic/vlbox.cpp"
 	"src/generic/vscroll.cpp"
 	"src/generic/wizard.cpp")
@@ -359,9 +347,10 @@ set(SRCS_GENERICOSX
 set(SRCS_GTK
 	"src/gtk/aboutdlg.cpp"
 	"src/gtk/animate.cpp"
+	"src/gtk/anybutton.cpp"
 	"src/gtk/app.cpp"
 	"src/gtk/artgtk.cpp"
-	"src/gtk/assertdlg_gtk.c"
+	"src/gtk/assertdlg_gtk.cpp"
 	"src/gtk/bitmap.cpp"
 	"src/gtk/bmpbuttn.cpp"
 	"src/gtk/bmpcbox.cpp"
@@ -412,6 +401,7 @@ set(SRCS_GTK
 	"src/gtk/mnemonics.cpp"
 	"src/gtk/msgdlg.cpp"
 	"src/gtk/nativewin.cpp"
+	"src/gtk/nonownedwnd.cpp"
 	"src/gtk/notebook.cpp"
 	"src/gtk/pen.cpp"
 	"src/gtk/popupwin.cpp"
@@ -442,90 +432,14 @@ set(SRCS_GTK
 	"src/gtk/toplevel.cpp"
 	"src/gtk/treeentry_gtk.c"
 	"src/gtk/utilsgtk.cpp"
+	#"src/gtk/webview_webkit.cpp"
 	"src/gtk/win_gtk.cpp"
 	"src/gtk/window.cpp")
-
-set(SRCS_HTML
-	"src/html/chm.cpp"
-	"src/html/helpctrl.cpp"
-	"src/html/helpdata.cpp"
-	"src/html/helpdlg.cpp"
-	"src/html/helpfrm.cpp"
-	"src/html/helpwnd.cpp"
-	"src/html/htmlcell.cpp"
-	#"src/html/htmlctrl/webkit/webkit.mm"
-	"src/html/htmlfilt.cpp"
-	"src/html/htmlpars.cpp"
-	"src/html/htmltag.cpp"
-	"src/html/htmlwin.cpp"
-	"src/html/htmprint.cpp"
-	"src/html/m_dflist.cpp"
-	"src/html/m_fonts.cpp"
-	"src/html/m_hline.cpp"
-	"src/html/m_image.cpp"
-	"src/html/m_layout.cpp"
-	"src/html/m_links.cpp"
-	"src/html/m_list.cpp"
-	"src/html/m_pre.cpp"
-	"src/html/m_span.cpp"
-	"src/html/m_style.cpp"
-	"src/html/m_tables.cpp"
-	"src/html/styleparams.cpp"
-	"src/html/winpars.cpp")
-
-set(SRCS_JPEG
-	"src/jpeg/jcapimin.c"
-	"src/jpeg/jcapistd.c"
-	"src/jpeg/jccoefct.c"
-	"src/jpeg/jccolor.c"
-	"src/jpeg/jcdctmgr.c"
-	"src/jpeg/jchuff.c"
-	"src/jpeg/jcinit.c"
-	"src/jpeg/jcmainct.c"
-	"src/jpeg/jcmarker.c"
-	"src/jpeg/jcmaster.c"
-	"src/jpeg/jcomapi.c"
-	"src/jpeg/jcparam.c"
-	"src/jpeg/jcphuff.c"
-	"src/jpeg/jcprepct.c"
-	"src/jpeg/jcsample.c"
-	"src/jpeg/jctrans.c"
-	"src/jpeg/jdapimin.c"
-	"src/jpeg/jdapistd.c"
-	"src/jpeg/jdatadst.c"
-	"src/jpeg/jdatasrc.c"
-	"src/jpeg/jdcoefct.c"
-	"src/jpeg/jdcolor.c"
-	"src/jpeg/jddctmgr.c"
-	"src/jpeg/jdhuff.c"
-	"src/jpeg/jdinput.c"
-	"src/jpeg/jdmainct.c"
-	"src/jpeg/jdmarker.c"
-	"src/jpeg/jdmaster.c"
-	"src/jpeg/jdmerge.c"
-	"src/jpeg/jdphuff.c"
-	"src/jpeg/jdpostct.c"
-	"src/jpeg/jdsample.c"
-	"src/jpeg/jdtrans.c"
-	"src/jpeg/jerror.c"
-	"src/jpeg/jfdctflt.c"
-	"src/jpeg/jfdctfst.c"
-	"src/jpeg/jfdctint.c"
-	"src/jpeg/jidctflt.c"
-	"src/jpeg/jidctfst.c"
-	"src/jpeg/jidctint.c"
-	"src/jpeg/jidctred.c"
-	"src/jpeg/jmemansi.c"
-	"src/jpeg/jmemmgr.c"
-	"src/jpeg/jmemname.c"
-	"src/jpeg/jmemnobs.c"
-	"src/jpeg/jquant1.c"
-	"src/jpeg/jquant2.c"
-	"src/jpeg/jutils.c")
 
 set(SRCS_MSW
 	"src/msw/aboutdlg.cpp"
 	"src/msw/accel.cpp"
+	"src/msw/anybutton.cpp"
 	"src/msw/app.cpp"
 	"src/msw/artmsw.cpp"
 	"src/msw/basemsw.cpp"
@@ -551,6 +465,7 @@ set(SRCS_MSW
 	"src/msw/data.cpp"
 	"src/msw/datecontrols.cpp"
 	"src/msw/datectrl.cpp"
+	"src/msw/datetimectrl.cpp"
 	"src/msw/dc.cpp"
 	"src/msw/dcclient.cpp"
 	"src/msw/dcmemory.cpp"
@@ -608,6 +523,7 @@ set(SRCS_MSW
 	"src/msw/mslu.cpp"
 	"src/msw/nativdlg.cpp"
 	"src/msw/nativewin.cpp"
+	"src/msw/nonownedwnd.cpp"
 	"src/msw/notebook.cpp"
 	"src/msw/notifmsg.cpp"
 	"src/msw/ole/access.cpp"
@@ -655,6 +571,7 @@ set(SRCS_MSW
 	"src/msw/textentry.cpp"
 	"src/msw/tglbtn.cpp"
 	"src/msw/thread.cpp"
+	"src/msw/timectrl.cpp"
 	"src/msw/timer.cpp"
 	"src/msw/toolbar.cpp"
 	"src/msw/tooltip.cpp"
@@ -668,6 +585,7 @@ set(SRCS_MSW
 	"src/msw/uxtheme.cpp"
 	"src/msw/version.rc"
 	"src/msw/volume.cpp"
+	#"src/msw/webview_ie.cpp"
 	"src/msw/wince/checklst.cpp"
 	"src/msw/wince/choicece.cpp"
 	"src/msw/wince/crt.cpp"
@@ -684,6 +602,7 @@ set(SRCS_MSW
 
 set(SRCS_OSX
 	"src/osx/accel.cpp"
+	"src/osx/anybutton_osx.cpp"
 	"src/osx/artmac.cpp"
 	"src/osx/bmpbuttn_osx.cpp"
 	"src/osx/brush.cpp"
@@ -693,6 +612,8 @@ set(SRCS_OSX
 	"src/osx/choice_osx.cpp"
 	"src/osx/combobox_osx.cpp"
 	"src/osx/dataview_osx.cpp"
+	"src/osx/datectrl_osx.cpp"
+	"src/osx/datetimectrl_osx.cpp"
 	"src/osx/dialog_osx.cpp"
 	"src/osx/dnd_osx.cpp"
 	"src/osx/fontutil.cpp"
@@ -722,12 +643,15 @@ set(SRCS_OSX
 	"src/osx/textctrl_osx.cpp"
 	"src/osx/textentry_osx.cpp"
 	"src/osx/tglbtn_osx.cpp"
+	"src/osx/timectrl_osx.cpp"
 	"src/osx/toolbar_osx.cpp"
 	"src/osx/toplevel_osx.cpp"
 	"src/osx/uiaction_osx.cpp"
 	"src/osx/utils_osx.cpp"
+	#"src/osx/webview_webkit.mm"
 	"src/osx/window_osx.cpp"
 	#"src/osx/carbon/aboutdlg.cpp"
+	"src/osx/carbon/anybutton.cpp"
 	"src/osx/carbon/app.cpp"
 	#"src/osx/carbon/bmpbuttn.cpp"
 	#"src/osx/carbon/button.cpp"
@@ -805,12 +729,14 @@ set(SRCS_OSX
 	"src/osx/carbon/utilscocoa.mm"
 	#"src/osx/carbon/window.cpp"
 	"src/osx/cocoa/aboutdlg.mm"
+	"src/osx/cocoa/anybutton.mm"
 	"src/osx/cocoa/button.mm"
 	"src/osx/cocoa/checkbox.mm"
 	"src/osx/cocoa/choice.mm"
 	"src/osx/cocoa/colour.mm"
 	"src/osx/cocoa/combobox.mm"
 	"src/osx/cocoa/dataview.mm"
+	"src/osx/cocoa/datetimectrl.mm"
 	"src/osx/cocoa/dialog.mm"
 	"src/osx/cocoa/dirdlg.mm"
 	"src/osx/cocoa/dnd.mm"
@@ -878,221 +804,6 @@ set(SRCS_OSX
 	#"src/osx/iphone/window.mm"
 )
 
-set(SRCS_PNG
-	"src/png/png.c"
-	"src/png/pngerror.c"
-	"src/png/pngget.c"
-	"src/png/pngmem.c"
-	"src/png/pngpread.c"
-	"src/png/pngread.c"
-	"src/png/pngrio.c"
-	"src/png/pngrtran.c"
-	"src/png/pngrutil.c"
-	"src/png/pngset.c"
-	"src/png/pngtrans.c"
-	"src/png/pngwio.c"
-	"src/png/pngwrite.c"
-	"src/png/pngwtran.c"
-	"src/png/pngwutil.c")
-
-set(SRCS_PROPGRID
-	"src/propgrid/advprops.cpp"
-	"src/propgrid/editors.cpp"
-	"src/propgrid/manager.cpp"
-	"src/propgrid/property.cpp"
-	"src/propgrid/propgrid.cpp"
-	"src/propgrid/propgridiface.cpp"
-	"src/propgrid/propgridpagestate.cpp"
-	"src/propgrid/props.cpp")
-
-set(SRCS_REGEX
-	"src/regex/regcomp.c"
-	"src/regex/regerror.c"
-	"src/regex/regexec.c"
-	"src/regex/regfree.c")
-
-set(SRCS_RIBBON
-	"src/ribbon/art_aui.cpp"
-	"src/ribbon/art_internal.cpp"
-	"src/ribbon/art_msw.cpp"
-	"src/ribbon/bar.cpp"
-	"src/ribbon/buttonbar.cpp"
-	"src/ribbon/control.cpp"
-	"src/ribbon/gallery.cpp"
-	"src/ribbon/page.cpp"
-	"src/ribbon/panel.cpp"
-	"src/ribbon/toolbar.cpp")
-
-set(SRCS_RICHTEXT
-	#"src/richtext/richtextbackgroundpage.cpp"
-	#"src/richtext/richtextborderspage.cpp"
-	"src/richtext/richtextbuffer.cpp"
-	#"src/richtext/richtextbulletspage.cpp"
-	"src/richtext/richtextctrl.cpp"
-	#"src/richtext/richtextfontpage.cpp"
-	"src/richtext/richtextformatdlg.cpp"
-	"src/richtext/richtexthtml.cpp"
-	"src/richtext/richtextimagedlg.cpp"
-	#"src/richtext/richtextindentspage.cpp"
-	#"src/richtext/richtextliststylepage.cpp"
-	#"src/richtext/richtextmarginspage.cpp"
-	"src/richtext/richtextprint.cpp"
-	#"src/richtext/richtextsizepage.cpp"
-	"src/richtext/richtextstyledlg.cpp"
-	#"src/richtext/richtextstylepage.cpp"
-	"src/richtext/richtextstyles.cpp"
-	"src/richtext/richtextsymboldlg.cpp"
-	#"src/richtext/richtexttabspage.cpp"
-	"src/richtext/richtextxml.cpp")
-
-set(SRCS_STC
-	"src/stc/PlatWX.cpp"
-	"src/stc/ScintillaWX.cpp"
-	"src/stc/scintilla/src/AutoComplete.cxx"
-	"src/stc/scintilla/src/CallTip.cxx"
-	"src/stc/scintilla/src/CellBuffer.cxx"
-	"src/stc/scintilla/src/CharClassify.cxx"
-	"src/stc/scintilla/src/ContractionState.cxx"
-	"src/stc/scintilla/src/Decoration.cxx"
-	"src/stc/scintilla/src/Document.cxx"
-	"src/stc/scintilla/src/DocumentAccessor.cxx"
-	"src/stc/scintilla/src/Editor.cxx"
-	"src/stc/scintilla/src/ExternalLexer.cxx"
-	"src/stc/scintilla/src/Indicator.cxx"
-	"src/stc/scintilla/src/KeyMap.cxx"
-	"src/stc/scintilla/src/KeyWords.cxx"
-	"src/stc/scintilla/src/LexAPDL.cxx"
-	"src/stc/scintilla/src/LexASY.cxx"
-	"src/stc/scintilla/src/LexAU3.cxx"
-	"src/stc/scintilla/src/LexAVE.cxx"
-	"src/stc/scintilla/src/LexAbaqus.cxx"
-	"src/stc/scintilla/src/LexAda.cxx"
-	"src/stc/scintilla/src/LexAsm.cxx"
-	"src/stc/scintilla/src/LexAsn1.cxx"
-	"src/stc/scintilla/src/LexBaan.cxx"
-	"src/stc/scintilla/src/LexBash.cxx"
-	"src/stc/scintilla/src/LexBasic.cxx"
-	"src/stc/scintilla/src/LexBullant.cxx"
-	"src/stc/scintilla/src/LexCLW.cxx"
-	"src/stc/scintilla/src/LexCOBOL.cxx"
-	"src/stc/scintilla/src/LexCPP.cxx"
-	"src/stc/scintilla/src/LexCSS.cxx"
-	"src/stc/scintilla/src/LexCaml.cxx"
-	"src/stc/scintilla/src/LexCmake.cxx"
-	"src/stc/scintilla/src/LexConf.cxx"
-	"src/stc/scintilla/src/LexCrontab.cxx"
-	"src/stc/scintilla/src/LexCsound.cxx"
-	"src/stc/scintilla/src/LexD.cxx"
-	"src/stc/scintilla/src/LexEScript.cxx"
-	"src/stc/scintilla/src/LexEiffel.cxx"
-	"src/stc/scintilla/src/LexErlang.cxx"
-	"src/stc/scintilla/src/LexFlagship.cxx"
-	"src/stc/scintilla/src/LexForth.cxx"
-	"src/stc/scintilla/src/LexFortran.cxx"
-	"src/stc/scintilla/src/LexGAP.cxx"
-	"src/stc/scintilla/src/LexGui4Cli.cxx"
-	"src/stc/scintilla/src/LexHTML.cxx"
-	"src/stc/scintilla/src/LexHaskell.cxx"
-	"src/stc/scintilla/src/LexInno.cxx"
-	"src/stc/scintilla/src/LexKix.cxx"
-	"src/stc/scintilla/src/LexLisp.cxx"
-	"src/stc/scintilla/src/LexLout.cxx"
-	"src/stc/scintilla/src/LexLua.cxx"
-	"src/stc/scintilla/src/LexMMIXAL.cxx"
-	"src/stc/scintilla/src/LexMPT.cxx"
-	"src/stc/scintilla/src/LexMSSQL.cxx"
-	"src/stc/scintilla/src/LexMagik.cxx"
-	"src/stc/scintilla/src/LexMarkdown.cxx"
-	"src/stc/scintilla/src/LexMatlab.cxx"
-	"src/stc/scintilla/src/LexMetapost.cxx"
-	"src/stc/scintilla/src/LexMySQL.cxx"
-	"src/stc/scintilla/src/LexNimrod.cxx"
-	"src/stc/scintilla/src/LexNsis.cxx"
-	"src/stc/scintilla/src/LexOpal.cxx"
-	"src/stc/scintilla/src/LexOthers.cxx"
-	"src/stc/scintilla/src/LexPB.cxx"
-	"src/stc/scintilla/src/LexPLM.cxx"
-	"src/stc/scintilla/src/LexPOV.cxx"
-	"src/stc/scintilla/src/LexPS.cxx"
-	"src/stc/scintilla/src/LexPascal.cxx"
-	"src/stc/scintilla/src/LexPerl.cxx"
-	"src/stc/scintilla/src/LexPowerPro.cxx"
-	"src/stc/scintilla/src/LexPowerShell.cxx"
-	"src/stc/scintilla/src/LexProgress.cxx"
-	"src/stc/scintilla/src/LexPython.cxx"
-	"src/stc/scintilla/src/LexR.cxx"
-	"src/stc/scintilla/src/LexRebol.cxx"
-	"src/stc/scintilla/src/LexRuby.cxx"
-	"src/stc/scintilla/src/LexSML.cxx"
-	"src/stc/scintilla/src/LexSQL.cxx"
-	"src/stc/scintilla/src/LexScriptol.cxx"
-	"src/stc/scintilla/src/LexSmalltalk.cxx"
-	"src/stc/scintilla/src/LexSorcus.cxx"
-	"src/stc/scintilla/src/LexSpecman.cxx"
-	"src/stc/scintilla/src/LexSpice.cxx"
-	"src/stc/scintilla/src/LexTACL.cxx"
-	"src/stc/scintilla/src/LexTADS3.cxx"
-	"src/stc/scintilla/src/LexTAL.cxx"
-	"src/stc/scintilla/src/LexTCL.cxx"
-	"src/stc/scintilla/src/LexTeX.cxx"
-	"src/stc/scintilla/src/LexVB.cxx"
-	"src/stc/scintilla/src/LexVHDL.cxx"
-	"src/stc/scintilla/src/LexVerilog.cxx"
-	"src/stc/scintilla/src/LexYAML.cxx"
-	"src/stc/scintilla/src/LineMarker.cxx"
-	"src/stc/scintilla/src/PerLine.cxx"
-	"src/stc/scintilla/src/PositionCache.cxx"
-	"src/stc/scintilla/src/PropSet.cxx"
-	"src/stc/scintilla/src/RESearch.cxx"
-	"src/stc/scintilla/src/RunStyles.cxx"
-	"src/stc/scintilla/src/ScintillaBase.cxx"
-	"src/stc/scintilla/src/Selection.cxx"
-	"src/stc/scintilla/src/Style.cxx"
-	"src/stc/scintilla/src/StyleContext.cxx"
-	"src/stc/scintilla/src/UniConversion.cxx"
-	"src/stc/scintilla/src/ViewStyle.cxx"
-	"src/stc/scintilla/src/WindowAccessor.cxx"
-	"src/stc/scintilla/src/XPM.cxx"
-	"src/stc/stc.cpp")
-
-set(SRCS_TIFF
-	"src/tiff/libtiff/tif_aux.c"
-	"src/tiff/libtiff/tif_close.c"
-	"src/tiff/libtiff/tif_codec.c"
-	"src/tiff/libtiff/tif_color.c"
-	"src/tiff/libtiff/tif_compress.c"
-	"src/tiff/libtiff/tif_dir.c"
-	"src/tiff/libtiff/tif_dirinfo.c"
-	"src/tiff/libtiff/tif_dirread.c"
-	"src/tiff/libtiff/tif_dirwrite.c"
-	"src/tiff/libtiff/tif_dumpmode.c"
-	"src/tiff/libtiff/tif_error.c"
-	"src/tiff/libtiff/tif_extension.c"
-	"src/tiff/libtiff/tif_fax3.c"
-	"src/tiff/libtiff/tif_fax3sm.c"
-	"src/tiff/libtiff/tif_flush.c"
-	"src/tiff/libtiff/tif_getimage.c"
-	"src/tiff/libtiff/tif_jpeg.c"
-	"src/tiff/libtiff/tif_luv.c"
-	"src/tiff/libtiff/tif_lzw.c"
-	"src/tiff/libtiff/tif_next.c"
-	"src/tiff/libtiff/tif_ojpeg.c"
-	"src/tiff/libtiff/tif_open.c"
-	"src/tiff/libtiff/tif_packbits.c"
-	"src/tiff/libtiff/tif_pixarlog.c"
-	"src/tiff/libtiff/tif_predict.c"
-	"src/tiff/libtiff/tif_print.c"
-	"src/tiff/libtiff/tif_read.c"
-	"src/tiff/libtiff/tif_strip.c"
-	"src/tiff/libtiff/tif_swab.c"
-	"src/tiff/libtiff/tif_thunder.c"
-	"src/tiff/libtiff/tif_tile.c"
-	"src/tiff/libtiff/tif_unix.c"
-	"src/tiff/libtiff/tif_version.c"
-	"src/tiff/libtiff/tif_warning.c"
-	"src/tiff/libtiff/tif_write.c"
-	"src/tiff/libtiff/tif_zip.c")
-
 set(SRCS_UNIX
 	"src/unix/apptraits.cpp"
 	"src/unix/appunix.cpp"
@@ -1127,87 +838,6 @@ set(SRCS_UNIXGTK
 	"src/unix/uiactionx11.cpp"
 	"src/unix/utilsx11.cpp")
 
-set(SRCS_XRC
-	"src/xml/xml.cpp"
-	"src/xrc/xh_animatctrl.cpp"
-	"src/xrc/xh_bmp.cpp"
-	"src/xrc/xh_bmpbt.cpp"
-	"src/xrc/xh_bmpcbox.cpp"
-	"src/xrc/xh_bttn.cpp"
-	"src/xrc/xh_cald.cpp"
-	"src/xrc/xh_chckb.cpp"
-	"src/xrc/xh_chckl.cpp"
-	"src/xrc/xh_choic.cpp"
-	"src/xrc/xh_choicbk.cpp"
-	"src/xrc/xh_clrpicker.cpp"
-	"src/xrc/xh_cmdlinkbn.cpp"
-	"src/xrc/xh_collpane.cpp"
-	"src/xrc/xh_combo.cpp"
-	"src/xrc/xh_comboctrl.cpp"
-	"src/xrc/xh_datectrl.cpp"
-	"src/xrc/xh_dirpicker.cpp"
-	"src/xrc/xh_dlg.cpp"
-	"src/xrc/xh_editlbox.cpp"
-	"src/xrc/xh_filectrl.cpp"
-	"src/xrc/xh_filepicker.cpp"
-	"src/xrc/xh_fontpicker.cpp"
-	"src/xrc/xh_frame.cpp"
-	"src/xrc/xh_gauge.cpp"
-	"src/xrc/xh_gdctl.cpp"
-	"src/xrc/xh_grid.cpp"
-	"src/xrc/xh_html.cpp"
-	"src/xrc/xh_htmllbox.cpp"
-	"src/xrc/xh_hyperlink.cpp"
-	"src/xrc/xh_listb.cpp"
-	"src/xrc/xh_listbk.cpp"
-	"src/xrc/xh_listc.cpp"
-	"src/xrc/xh_mdi.cpp"
-	"src/xrc/xh_menu.cpp"
-	"src/xrc/xh_notbk.cpp"
-	"src/xrc/xh_odcombo.cpp"
-	"src/xrc/xh_panel.cpp"
-	"src/xrc/xh_propdlg.cpp"
-	"src/xrc/xh_radbt.cpp"
-	"src/xrc/xh_radbx.cpp"
-	"src/xrc/xh_richtext.cpp"
-	"src/xrc/xh_scrol.cpp"
-	"src/xrc/xh_scwin.cpp"
-	"src/xrc/xh_sizer.cpp"
-	"src/xrc/xh_slidr.cpp"
-	"src/xrc/xh_spin.cpp"
-	"src/xrc/xh_split.cpp"
-	"src/xrc/xh_srchctrl.cpp"
-	"src/xrc/xh_statbar.cpp"
-	"src/xrc/xh_stbmp.cpp"
-	"src/xrc/xh_stbox.cpp"
-	"src/xrc/xh_stlin.cpp"
-	"src/xrc/xh_sttxt.cpp"
-	"src/xrc/xh_text.cpp"
-	"src/xrc/xh_tglbtn.cpp"
-	"src/xrc/xh_toolb.cpp"
-	"src/xrc/xh_toolbk.cpp"
-	"src/xrc/xh_tree.cpp"
-	"src/xrc/xh_treebk.cpp"
-	"src/xrc/xh_unkwn.cpp"
-	"src/xrc/xh_wizrd.cpp"
-	"src/xrc/xmladv.cpp"
-	"src/xrc/xmlres.cpp"
-	"src/xrc/xmlrsall.cpp")
-
-set(SRCS_ZLIB
-	"src/zlib/adler32.c"
-	"src/zlib/compress.c"
-	"src/zlib/crc32.c"
-	"src/zlib/deflate.c"
-	"src/zlib/gzio.c"
-	"src/zlib/infback.c"
-	"src/zlib/inffast.c"
-	"src/zlib/inflate.c"
-	"src/zlib/inftrees.c"
-	"src/zlib/trees.c"
-	"src/zlib/uncompr.c"
-	"src/zlib/zutil.c")
-
 include_directories(.)
 include_directories(include)
 
@@ -1217,44 +847,50 @@ set(SRCS
 	${SRCS_GENERIC})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	add_definitions(-D__WXOSX_COCOA__)
 	set(SRCS
 		${SRCS}
 		${SRCS_GENERICOSX}
 		${SRCS_OSX}
 		${SRCS_UNIX})
+	include_directories(../libpng)
+	add_subdirectory(../libpng ../libpng)
+	set(LIBS
+		png
+		iconv
+		${APPKIT_LIBRARY}
+		${APPSERV_LIBRARY}
+		${ATB_LIBRARY}
+		${CARBON_LIBRARY}
+		${COCOA_LIBRARY}
+		${COREFUND_LIBRARY}
+		${CORESERV_LIBRARY}
+		${IOK_LIBRARY}
+		${QUICKTIME_LIBRARY})
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	add_definitions(-D__WXGTK__)
 	set(SRCS
 		${SRCS}
 		${SRCS_GENERICGTK}
 		${SRCS_GTK}
 		${SRCS_UNIX}
 		${SRCS_UNIXGTK})
+	set(LIBS
+		png
+		${GTHREAD2_LIBRARIES}
+		${PANGOCAIRO_LIBRARIES}
+		${GTK2_LIBRARIES})
 else()
+	add_definitions(-D__WXMSW__)
 	set(SRCS
 		${SRCS}
 		${SRCS_MSW})
 endif()
 
-add_definitions(-D__WXOSX_COCOA__)
 add_definitions(-DWXBUILDING)
 add_definitions(-Wno-deprecated-declarations)
 add_definitions(-Wno-shadow)
-set(LIBS
-	iconv
-	${APPKIT_LIBRARY}
-	${APPSERV_LIBRARY}
-	${ATB_LIBRARY}
-	${CARBON_LIBRARY}
-	${COCOA_LIBRARY}
-	${COREFUND_LIBRARY}
-	${CORESERV_LIBRARY}
-	${IOK_LIBRARY}
-	${QUICKTIME_LIBRARY}
-	)
 
-include_directories(../libpng)
-add_subdirectory(../libpng ../libpng)
-list(APPEND LIBS png)
-
-add_library(wx STATIC ${SRCS})
+enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
+add_library(wx STATIC ${PNG_SRCS} ${SRCS})
 target_link_libraries(wx ${LIBS})

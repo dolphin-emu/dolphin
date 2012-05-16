@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin (use hash map instead of list, global rewrite)
 // Created:     04/01/98
-// RCS-ID:      $Id: timer.cpp 66228 2010-11-22 01:22:47Z VZ $
+// RCS-ID:      $Id: timer.cpp 69170 2011-09-21 15:07:32Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,6 +31,7 @@
 #endif
 
 #include "wx/msw/private.h"
+#include "wx/msw/private/hiddenwin.h"
 
 // ----------------------------------------------------------------------------
 // private globals
@@ -75,11 +76,6 @@ UINT_PTR GetNewTimerId(wxMSWTimerImpl *t)
 
 LRESULT APIENTRY _EXPORT wxTimerWndProc(HWND hWnd, UINT message,
                                         WPARAM wParam, LPARAM lParam);
-
-// implemented in utils.cpp
-extern "C" WXDLLIMPEXP_BASE HWND
-wxCreateHiddenWindow(LPCTSTR *pclassname, LPCTSTR classname, WNDPROC wndproc);
-
 
 // ----------------------------------------------------------------------------
 // wxTimerHiddenWindowModule: used to manage the hidden window used for

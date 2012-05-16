@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: 03.11.00: VZ to add wxArrayString and multiple sel functions
 // Created:     01/02/97
-// RCS-ID:      $Id: choicdgg.h 63731 2010-03-21 11:06:31Z VZ $
+// RCS-ID:      $Id: choicdgg.h 70642 2012-02-20 21:56:18Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -106,39 +106,112 @@ public:
                          const wxString& caption,
                          int n,
                          const wxString *choices,
-                         char **clientData = (char **)NULL,
+                         void **clientData = NULL,
                          long style = wxCHOICEDLG_STYLE,
-                         const wxPoint& pos = wxDefaultPosition);
+                         const wxPoint& pos = wxDefaultPosition)
+    {
+        Create(parent, message, caption, n, choices, clientData, style, pos);
+    }
+
     wxSingleChoiceDialog(wxWindow *parent,
                          const wxString& message,
                          const wxString& caption,
                          const wxArrayString& choices,
-                         char **clientData = (char **)NULL,
+                         void **clientData = NULL,
                          long style = wxCHOICEDLG_STYLE,
-                         const wxPoint& pos = wxDefaultPosition);
+                         const wxPoint& pos = wxDefaultPosition)
+    {
+        Create(parent, message, caption, choices, clientData, style, pos);
+    }
 
     bool Create(wxWindow *parent,
                 const wxString& message,
                 const wxString& caption,
                 int n,
                 const wxString *choices,
-                char **clientData = (char **)NULL,
+                void **clientData = NULL,
                 long style = wxCHOICEDLG_STYLE,
                 const wxPoint& pos = wxDefaultPosition);
     bool Create(wxWindow *parent,
                 const wxString& message,
                 const wxString& caption,
                 const wxArrayString& choices,
-                char **clientData = (char **)NULL,
+                void **clientData = NULL,
                 long style = wxCHOICEDLG_STYLE,
                 const wxPoint& pos = wxDefaultPosition);
 
     void SetSelection(int sel);
     int GetSelection() const { return m_selection; }
     wxString GetStringSelection() const { return m_stringSelection; }
+    void* GetSelectionData() const { return m_clientData; }
 
-    // obsolete function (NB: no need to make it return wxChar, it's untyped)
-    char *GetSelectionClientData() const { return (char *)m_clientData; }
+#if WXWIN_COMPATIBILITY_2_8
+    // Deprecated overloads taking "char**" client data.
+    wxDEPRECATED_CONSTRUCTOR
+    (
+        wxSingleChoiceDialog(wxWindow *parent,
+                             const wxString& message,
+                             const wxString& caption,
+                             int n,
+                             const wxString *choices,
+                             char **clientData,
+                             long style = wxCHOICEDLG_STYLE,
+                             const wxPoint& pos = wxDefaultPosition)
+    )
+    {
+        Create(parent, message, caption, n, choices,
+               (void**)clientData, style, pos);
+    }
+
+    wxDEPRECATED_CONSTRUCTOR
+    (
+        wxSingleChoiceDialog(wxWindow *parent,
+                             const wxString& message,
+                             const wxString& caption,
+                             const wxArrayString& choices,
+                             char **clientData,
+                             long style = wxCHOICEDLG_STYLE,
+                             const wxPoint& pos = wxDefaultPosition)
+    )
+    {
+        Create(parent, message, caption, choices,
+               (void**)clientData, style, pos);
+    }
+
+    wxDEPRECATED_INLINE
+    (
+        bool Create(wxWindow *parent,
+                    const wxString& message,
+                    const wxString& caption,
+                    int n,
+                    const wxString *choices,
+                    char **clientData,
+                    long style = wxCHOICEDLG_STYLE,
+                    const wxPoint& pos = wxDefaultPosition),
+        return Create(parent, message, caption, n, choices,
+                      (void**)clientData, style, pos);
+    )
+
+    wxDEPRECATED_INLINE
+    (
+        bool Create(wxWindow *parent,
+                    const wxString& message,
+                    const wxString& caption,
+                    const wxArrayString& choices,
+                    char **clientData,
+                    long style = wxCHOICEDLG_STYLE,
+                    const wxPoint& pos = wxDefaultPosition),
+        return Create(parent, message, caption, choices,
+                      (void**)clientData, style, pos);
+    )
+
+    // NB: no need to make it return wxChar, it's untyped
+    wxDEPRECATED_ACCESSOR
+    (
+        char* GetSelectionClientData() const,
+        (char*)GetSelectionData()
+    )
+#endif // WXWIN_COMPATIBILITY_2_8
 
     // implementation from now on
     void OnOK(wxCommandEvent& event);

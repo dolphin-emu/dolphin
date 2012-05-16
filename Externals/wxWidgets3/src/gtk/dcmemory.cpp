@@ -2,7 +2,7 @@
 // Name:        src/gtk/dcmemory.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS-ID:      $Id: dcmemory.cpp 61724 2009-08-21 10:41:26Z VZ $
+// RCS-ID:      $Id: dcmemory.cpp 70809 2012-03-04 23:50:35Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -10,10 +10,8 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#include "wx/dcmemory.h"
 #include "wx/gtk/dcmemory.h"
 
-#include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
 //-----------------------------------------------------------------------------
@@ -65,7 +63,7 @@ void wxMemoryDCImpl::DoSelect( const wxBitmap& bitmap )
     Destroy();
 
     m_selected = bitmap;
-    if (m_selected.Ok())
+    if (m_selected.IsOk())
     {
         m_gdkwindow = m_selected.GetPixmap();
 
@@ -83,7 +81,7 @@ void wxMemoryDCImpl::DoSelect( const wxBitmap& bitmap )
 void wxMemoryDCImpl::SetPen( const wxPen& penOrig )
 {
     wxPen pen( penOrig );
-    if ( m_selected.Ok() &&
+    if ( m_selected.IsOk() &&
             m_selected.GetDepth() == 1 &&
                 (pen != *wxTRANSPARENT_PEN) )
     {
@@ -96,7 +94,7 @@ void wxMemoryDCImpl::SetPen( const wxPen& penOrig )
 void wxMemoryDCImpl::SetBrush( const wxBrush& brushOrig )
 {
     wxBrush brush( brushOrig );
-    if ( m_selected.Ok() &&
+    if ( m_selected.IsOk() &&
             m_selected.GetDepth() == 1 &&
                 (brush != *wxTRANSPARENT_BRUSH) )
     {
@@ -110,7 +108,7 @@ void wxMemoryDCImpl::SetBackground( const wxBrush& brushOrig )
 {
     wxBrush brush(brushOrig);
 
-    if ( m_selected.Ok() &&
+    if ( m_selected.IsOk() &&
             m_selected.GetDepth() == 1 &&
                 (brush != *wxTRANSPARENT_BRUSH) )
     {
@@ -122,7 +120,7 @@ void wxMemoryDCImpl::SetBackground( const wxBrush& brushOrig )
 
 void wxMemoryDCImpl::SetTextForeground( const wxColour& col )
 {
-    if ( m_selected.Ok() && m_selected.GetDepth() == 1 )
+    if ( m_selected.IsOk() && m_selected.GetDepth() == 1 )
         wxWindowDCImpl::SetTextForeground( col == *wxWHITE ? *wxBLACK : *wxWHITE);
     else
         wxWindowDCImpl::SetTextForeground( col );
@@ -130,7 +128,7 @@ void wxMemoryDCImpl::SetTextForeground( const wxColour& col )
 
 void wxMemoryDCImpl::SetTextBackground( const wxColour &col )
 {
-    if (m_selected.Ok() && m_selected.GetDepth() == 1)
+    if (m_selected.IsOk() && m_selected.GetDepth() == 1)
         wxWindowDCImpl::SetTextBackground( col == *wxWHITE ? *wxBLACK : *wxWHITE );
     else
         wxWindowDCImpl::SetTextBackground( col );
@@ -138,7 +136,7 @@ void wxMemoryDCImpl::SetTextBackground( const wxColour &col )
 
 void wxMemoryDCImpl::DoGetSize( int *width, int *height ) const
 {
-    if (m_selected.Ok())
+    if (m_selected.IsOk())
     {
         if (width) (*width) = m_selected.GetWidth();
         if (height) (*height) = m_selected.GetHeight();

@@ -4,7 +4,7 @@
 // Author:      David Elliott, Stefan Csomor
 // Modified by:
 // Created:     2004/01/24
-// RCS-ID:      $Id: taskbar.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: taskbar.mm 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2004 David Elliott, Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ public:
     virtual bool SetIcon(const wxIcon& icon, const wxString& tooltip = wxEmptyString) = 0;
     virtual bool RemoveIcon() = 0;
     
-    bool IsIconInstalled() const { return m_icon.Ok(); }
+    bool IsIconInstalled() const { return m_icon.IsOk(); }
         
     virtual bool PopupMenu(wxMenu *menu) = 0;
     virtual ~wxTaskBarIconImpl();

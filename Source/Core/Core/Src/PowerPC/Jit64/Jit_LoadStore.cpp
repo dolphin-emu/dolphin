@@ -151,7 +151,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 		// ! we must continue executing of the loop after exception handling, maybe there is still 0 in r0
 		//MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC));
-		JMP(asm_routines.testExceptions, true);			
+		WriteExceptionExit();
 
 		SetJumpTarget(noIdle);
 
@@ -352,8 +352,8 @@ void Jit64::stX(UGeckoInstruction inst)
 		}
 
 		/* // TODO - figure out why Beyond Good and Evil hates this
-		#ifdef _M_X64
-		if (accessSize == 32 && !update && jo.enableFastMem)
+		#if defined(_WIN32) && defined(_M_X64)
+		if (accessSize == 32 && !update)
 		{
 		// Fast and daring - requires 64-bit
 		MOV(32, R(EAX), gpr.R(s));
@@ -405,10 +405,13 @@ void Jit64::stXx(UGeckoInstruction inst)
 	gpr.Lock(a, b, s);
 	gpr.FlushLockX(ECX, EDX);
 
-	if (inst.SUBOP10 & 32) {
+	if (inst.SUBOP10 & 32)
+	{
+		MEMCHECK_START
 		gpr.BindToRegister(a, true, true);
 		ADD(32, gpr.R(a), gpr.R(b));
 		MOV(32, R(EDX), gpr.R(a));
+		MEMCHECK_END
 	} else {
 		MOV(32, R(EDX), gpr.R(a));
 		ADD(32, R(EDX), gpr.R(b));
@@ -425,12 +428,6 @@ void Jit64::stXx(UGeckoInstruction inst)
 	MOV(32, R(ECX), gpr.R(s));
 	SafeWriteRegToReg(ECX, EDX, accessSize, 0);
 
-	//MEMCHECK_START
-
-	// TODO: Insert rA update code here
-
-	//MEMCHECK_END
-
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
@@ -438,6 +435,9 @@ void Jit64::stXx(UGeckoInstruction inst)
 // A few games use these heavily in video codecs.
 void Jit64::lmw(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
 #ifdef _M_X64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
@@ -458,6 +458,9 @@ void Jit64::lmw(UGeckoInstruction inst)
 
 void Jit64::stmw(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
 #ifdef _M_X64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));

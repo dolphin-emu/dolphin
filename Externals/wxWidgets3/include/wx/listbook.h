@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: listbook.h 65931 2010-10-27 16:54:36Z VZ $
+// RCS-ID:      $Id: listbook.h 68810 2011-08-21 14:08:49Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ public:
                             wxWindow *page,
                             const wxString& text,
                             bool bSelect = false,
-                            int imageId = -1);
+                            int imageId = NO_IMAGE);
     virtual int SetSelection(size_t n) { return DoSetSelection(n, SetSelection_SendEvent); }
     virtual int ChangeSelection(size_t n) { return DoSetSelection(n); }
     virtual int HitTest(const wxPoint& pt, long *flags = NULL) const;

@@ -4,7 +4,7 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux
 // Modified by: K. S. Sreeram (2002): POSIXified wxCondition, added wxSemaphore
 // Created:     04/22/98
-// RCS-ID:      $Id: threadpsx.cpp 67185 2011-03-14 11:54:32Z VZ $
+// RCS-ID:      $Id: threadpsx.cpp 69881 2011-12-01 14:22:07Z VZ $
 // Copyright:   (c) Wolfram Gloger (1996, 1997)
 //                  Guilhem Lavaux (1998)
 //                  Vadim Zeitlin (1999-2002)
@@ -475,7 +475,7 @@ wxCondError wxConditionInternal::Wait()
 
 wxCondError wxConditionInternal::WaitTimeout(unsigned long milliseconds)
 {
-    wxLongLong curtime = wxGetLocalTimeMillis();
+    wxLongLong curtime = wxGetUTCTimeMillis();
     curtime += milliseconds;
     wxLongLong temp = curtime / 1000;
     int sec = temp.GetLo();
@@ -815,7 +815,7 @@ void *wxThreadInternal::PthreadStart(wxThread *thread)
     int rc = pthread_setspecific(gs_keySelf, thread);
     if ( rc != 0 )
     {
-        wxLogSysError(rc, _("Cannot start thread: error writing TLS"));
+        wxLogSysError(rc, _("Cannot start thread: error writing TLS."));
 
         return (void *)-1;
     }

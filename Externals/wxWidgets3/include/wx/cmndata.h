@@ -4,7 +4,7 @@
 // Author:      Julian Smart and others
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: cmndata.h 66615 2011-01-07 05:26:57Z PC $
+// RCS-ID:      $Id: cmndata.h 70636 2012-02-20 21:55:55Z VZ $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -189,7 +189,7 @@ public:
 
     // Is this data OK for showing the print dialog?
     bool Ok() const { return IsOk(); }
-    bool IsOk() const { return m_printData.Ok() ; }
+    bool IsOk() const { return m_printData.IsOk() ; }
 
     wxPrintData& GetPrintData() { return m_printData; }
     void SetPrintData(const wxPrintData& printData) { m_printData = printData; }
@@ -249,7 +249,7 @@ public:
 
     // Is this data OK for showing the page setup dialog?
     bool Ok() const { return IsOk(); }
-    bool IsOk() const { return m_printData.Ok() ; }
+    bool IsOk() const { return m_printData.IsOk() ; }
 
     // If a corresponding paper type is found in the paper database, will set the m_printData
     // paper size id member as well.
@@ -280,7 +280,7 @@ public:
     // Use paper id in wxPrintData to set this object's paper size
     void CalculatePaperSizeFromId();
 
-    wxPageSetupDialogData& operator=(const wxPageSetupData& data);
+    wxPageSetupDialogData& operator=(const wxPageSetupDialogData& data);
     wxPageSetupDialogData& operator=(const wxPrintData& data);
 
     wxPrintData& GetPrintData() { return m_printData; }

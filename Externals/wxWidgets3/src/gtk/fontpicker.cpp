@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     15/04/2006
-// Id:          $Id: fontpicker.cpp 61724 2009-08-21 10:41:26Z VZ $
+// Id:          $Id: fontpicker.cpp 70756 2012-02-29 18:29:31Z PC $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,8 +80,6 @@ bool wxFontButton::Create( wxWindow *parent, wxWindowID id,
 
     gtk_font_button_set_use_size(GTK_FONT_BUTTON(m_widget), usefont);
     gtk_font_button_set_use_font(GTK_FONT_BUTTON(m_widget), usefont);
-
-    gtk_widget_show(m_widget);
 
     // GtkFontButton signals
     g_signal_connect(m_widget, "font-set",

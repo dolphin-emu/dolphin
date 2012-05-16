@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: containr.cpp 64940 2010-07-13 13:29:13Z VZ $
+// RCS-ID:      $Id: containr.cpp 68502 2011-08-03 00:45:42Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -472,18 +472,21 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
                 // looping inside this panel (normally, the focus will go to
                 // the next/previous item after this panel in the parent
                 // panel).
-                wxWindow *focussed_child_of_parent = m_winParent;
+                wxWindow *focusedParent = m_winParent;
                 while ( parent )
                 {
-                    // we don't want to tab into a different dialog or frame
-                    if ( focussed_child_of_parent->IsTopLevel() )
+                    // We don't want to tab into a different dialog or frame or
+                    // even an MDI child frame, so test for this explicitly
+                    // (and in particular don't just use IsTopLevel() which
+                    // would return false in the latter case).
+                    if ( focusedParent->IsTopNavigationDomain() )
                         break;
 
-                    event.SetCurrentFocus( focussed_child_of_parent );
+                    event.SetCurrentFocus( focusedParent );
                     if ( parent->GetEventHandler()->ProcessEvent( event ) )
                         return;
 
-                    focussed_child_of_parent = parent;
+                    focusedParent = parent;
 
                     parent = parent->GetParent();
                 }
@@ -650,14 +653,26 @@ bool wxSetFocusToChild(wxWindow *win, wxWindow **childLastFocused)
         // It might happen that the window got reparented
         if ( (*childLastFocused)->GetParent() == win )
         {
-            wxLogTrace(TRACE_FOCUS,
-                       wxT("SetFocusToChild() => last child (0x%p)."),
-                       (*childLastFocused)->GetHandle());
+            // And it also could have become hidden in the meanwhile, in this
+            // case focus its parent instead.
+            while ( !(*childLastFocused)->IsShown() )
+            {
+                *childLastFocused = (*childLastFocused)->GetParent();
+                if ( !*childLastFocused )
+                    break;
+            }
 
-            // not SetFocusFromKbd(): we're restoring focus back to the old
-            // window and not setting it as the result of a kbd action
-            (*childLastFocused)->SetFocus();
-            return true;
+            if ( *childLastFocused )
+            {
+                wxLogTrace(TRACE_FOCUS,
+                           wxT("SetFocusToChild() => last child (0x%p)."),
+                           (*childLastFocused)->GetHandle());
+
+                // not SetFocusFromKbd(): we're restoring focus back to the old
+                // window and not setting it as the result of a kbd action
+                (*childLastFocused)->SetFocus();
+                return true;
+            }
         }
         else
         {

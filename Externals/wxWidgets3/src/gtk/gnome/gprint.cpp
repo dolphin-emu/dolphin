@@ -3,7 +3,7 @@
 // Author:      Robert Roebling
 // Purpose:     Implement GNOME printing support
 // Created:     09/20/04
-// RCS-ID:      $Id: gprint.cpp 65820 2010-10-15 23:46:46Z VZ $
+// RCS-ID:      $Id: gprint.cpp 70478 2012-01-29 08:49:01Z PC $
 // Copyright:   Robert Roebling
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1534,7 +1534,7 @@ wxGnomePrinterDCImpl::DoDrawBitmap(const wxBitmap& bitmap,
                              wxCoord x, wxCoord y,
                              bool WXUNUSED(useMask))
 {
-    if (!bitmap.Ok()) return;
+    if (!bitmap.IsOk()) return;
 
     if (bitmap.HasPixbuf())
     {
@@ -1565,7 +1565,7 @@ wxGnomePrinterDCImpl::DoDrawBitmap(const wxBitmap& bitmap,
     {
         wxImage image = bitmap.ConvertToImage();
 
-        if (!image.Ok()) return;
+        if (!image.IsOk()) return;
 
         gs_libGnomePrint->gnome_print_gsave( m_gpc );
         double matrix[6];
@@ -1592,25 +1592,12 @@ void wxGnomePrinterDCImpl::DoDrawRotatedText(const wxString& text, wxCoord x, wx
     double xx = XLOG2DEV(x);
     double yy = YLOG2DEV(y);
 
-    bool underlined = m_font.Ok() && m_font.GetUnderlined();
-
     const wxScopedCharBuffer data(text.utf8_str());
 
-    size_t datalen = strlen(data);
-    pango_layout_set_text( m_layout, data, datalen);
+    pango_layout_set_text(m_layout, data, data.length());
+    const bool setAttrs = m_font.GTKSetPangoAttrs(m_layout);
 
-    if (underlined)
-    {
-        PangoAttrList *attrs = pango_attr_list_new();
-        PangoAttribute *a = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
-        a->start_index = 0;
-        a->end_index = datalen;
-        pango_attr_list_insert(attrs, a);
-        pango_layout_set_attributes(m_layout, attrs);
-        pango_attr_list_unref(attrs);
-    }
-
-    if (m_textForegroundColour.Ok())
+    if (m_textForegroundColour.IsOk())
     {
         unsigned char red = m_textForegroundColour.Red();
         unsigned char blue = m_textForegroundColour.Blue();
@@ -1656,7 +1643,7 @@ void wxGnomePrinterDCImpl::DoDrawRotatedText(const wxString& text, wxCoord x, wx
 
     gs_libGnomePrint->gnome_print_grestore( m_gpc );
 
-    if (underlined)
+    if (setAttrs)
     {
         // undo underline attributes setting:
         pango_layout_set_attributes(m_layout, NULL);
@@ -1674,7 +1661,7 @@ void wxGnomePrinterDCImpl::SetFont( const wxFont& font )
 {
     m_font = font;
 
-    if (m_font.Ok())
+    if (m_font.IsOk())
     {
         if (m_fontdesc)
             pango_font_description_free( m_fontdesc );
@@ -1691,7 +1678,7 @@ void wxGnomePrinterDCImpl::SetFont( const wxFont& font )
 
 void wxGnomePrinterDCImpl::SetPen( const wxPen& pen )
 {
-    if (!pen.Ok()) return;
+    if (!pen.IsOk()) return;
 
     m_pen = pen;
 
@@ -1757,7 +1744,7 @@ void wxGnomePrinterDCImpl::SetPen( const wxPen& pen )
 
 void wxGnomePrinterDCImpl::SetBrush( const wxBrush& brush )
 {
-    if (!brush.Ok()) return;
+    if (!brush.IsOk()) return;
 
     m_brush = brush;
 

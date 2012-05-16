@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: clipbrd.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: clipbrd.cpp 70440 2012-01-23 11:28:01Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -214,7 +214,7 @@ bool wxSetClipboardData(wxDataFormat dataFormat,
             {
                 wxBitmap *bitmap = (wxBitmap *)data;
 
-                if ( bitmap && bitmap->Ok() )
+                if ( bitmap && bitmap->IsOk() )
                 {
                     wxDIB dib(*bitmap);
                     if ( dib.IsOk() )
@@ -332,19 +332,19 @@ bool wxSetClipboardData(wxDataFormat dataFormat,
                 // string when you overwrite it so you follow up with code to replace
                 // the 0 appended at the end with a '\r'...
                 char *ptr = strstr(buf, "StartHTML");
-                sprintf(ptr+10, "%08u", strstr(buf, "<html>") - buf);
+                sprintf(ptr+10, "%08u", (unsigned)(strstr(buf, "<html>") - buf));
                 *(ptr+10+8) = '\r';
 
                 ptr = strstr(buf, "EndHTML");
-                sprintf(ptr+8, "%08u", strlen(buf));
+                sprintf(ptr+8, "%08u", (unsigned)strlen(buf));
                 *(ptr+8+8) = '\r';
 
                 ptr = strstr(buf, "StartFragment");
-                sprintf(ptr+14, "%08u", strstr(buf, "<!--StartFrag") - buf);
+                sprintf(ptr+14, "%08u", (unsigned)(strstr(buf, "<!--StartFrag") - buf));
                 *(ptr+14+8) = '\r';
 
                 ptr = strstr(buf, "EndFragment");
-                sprintf(ptr+12, "%08u", strstr(buf, "<!--EndFrag") - buf);
+                sprintf(ptr+12, "%08u", (unsigned)(strstr(buf, "<!--EndFrag") - buf));
                 *(ptr+12+8) = '\r';
 
                 // Now you have everything in place ready to put on the

@@ -77,7 +77,6 @@ private:
 		// Audio Settings
 		ID_DSPENGINE,
 		ID_ENABLE_HLE_AUDIO,
-		ID_ENABLE_DTK_MUSIC,
 		ID_ENABLE_THROTTLE,
 		ID_DUMP_AUDIO,
 		ID_FREQUENCY,
@@ -156,7 +155,6 @@ private:
 	wxRadioBox* DSPEngine;
 	wxSlider*	VolumeSlider;
 	wxStaticText* VolumeText;    
-	wxCheckBox*	EnableDTKMusic;
 	wxCheckBox*	DumpAudio;
 	wxArrayString wxArrayBackends;
 	wxChoice*	BackendSelection;
@@ -253,8 +251,8 @@ private:
 
 	void GCSettingsChanged(wxCommandEvent& event);
 	void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);
-	void ChooseSIDevice(std::string deviceName, int deviceNum);
-	void ChooseEXIDevice(std::string deviceName, int deviceNum);
+	void ChooseSIDevice(wxString deviceName, int deviceNum);
+	void ChooseEXIDevice(wxString deviceName, int deviceNum);
 
 	void WiiSettingsChanged(wxCommandEvent& event);
 	// Change from IPL.LNG value to country code

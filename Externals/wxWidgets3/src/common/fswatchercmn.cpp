@@ -3,7 +3,7 @@
 // Purpose:     wxMswFileSystemWatcher
 // Author:      Bartosz Bekier
 // Created:     2009-05-26
-// RCS-ID:      $Id: fswatchercmn.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: fswatchercmn.cpp 67693 2011-05-03 23:31:39Z VZ $
 // Copyright:   (c) 2009 Bartosz Bekier <bartosz.bekier@gmail.com>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -79,10 +79,30 @@ wxFileSystemWatcherBase::~wxFileSystemWatcherBase()
 
 bool wxFileSystemWatcherBase::Add(const wxFileName& path, int events)
 {
-    // args validation & consistency checks
-    if (!path.FileExists() && !path.DirExists())
+    wxFSWPathType type = wxFSWPath_None;
+    if ( path.FileExists() )
+    {
+        type = wxFSWPath_File;
+    }
+    else if ( path.DirExists() )
+    {
+        type = wxFSWPath_Dir;
+    }
+    else
+    {
+        wxLogError(_("Can't monitor non-existent path \"%s\" for changes."),
+                   path.GetFullPath());
         return false;
+    }
 
+    return DoAdd(path, events, type);
+}
+
+bool
+wxFileSystemWatcherBase::DoAdd(const wxFileName& path,
+                               int events,
+                               wxFSWPathType type)
+{
     wxString canonical = GetCanonicalPath(path);
     if (canonical.IsEmpty())
         return false;
@@ -91,7 +111,7 @@ bool wxFileSystemWatcherBase::Add(const wxFileName& path, int events)
                 wxString::Format("Path '%s' is already watched", canonical));
 
     // adding a path in a platform specific way
-    wxFSWatchInfo watch(canonical, events);
+    wxFSWatchInfo watch(canonical, events, type);
     if ( !m_service->Add(watch) )
         return false;
 

@@ -2,7 +2,7 @@
 // Name:        src/gtk/cursor.cpp
 // Purpose:     wxCursor implementation
 // Author:      Robert Roebling
-// Id:          $Id: cursor.cpp 66371 2010-12-14 18:43:25Z VZ $
+// Id:          $Id: cursor.cpp 68685 2011-08-13 16:17:59Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,6 +22,7 @@
 
 #include <gtk/gtk.h>
 #include "wx/gtk/private/object.h"
+#include "wx/gtk/private/gtk2-compat.h"
 
 //-----------------------------------------------------------------------------
 // wxCursorRefData
@@ -109,8 +110,10 @@ wxCursor::wxCursor(const char bits[], int width, int height,
     if (hotSpotY < 0 || hotSpotY >= height)
         hotSpotY = 0;
 
-    GdkBitmap *data = gdk_bitmap_create_from_data( wxGetRootWindow()->window, (gchar *) bits, width, height );
-    GdkBitmap *mask = gdk_bitmap_create_from_data( wxGetRootWindow()->window, (gchar *) maskBits, width, height);
+    GdkBitmap* data = gdk_bitmap_create_from_data(
+        gtk_widget_get_window(wxGetRootWindow()), const_cast<char*>(bits), width, height);
+    GdkBitmap* mask = gdk_bitmap_create_from_data(
+        gtk_widget_get_window(wxGetRootWindow()), const_cast<char*>(maskBits), width, height);
 
     m_refData = new wxCursorRefData;
     M_CURSORDATA->m_cursor = gdk_cursor_new_from_pixmap(
@@ -221,7 +224,7 @@ void wxCursor::InitFromImage( const wxImage & image )
     m_refData = new wxCursorRefData;
     wxImage image_copy(image);
 
-    GdkDisplay* display = gdk_drawable_get_display(wxGetRootWindow()->window);
+    GdkDisplay* display = gdk_drawable_get_display(gtk_widget_get_window(wxGetRootWindow()));
     if (gdk_display_supports_cursor_color(display))
     {
         if (!image.HasAlpha())
@@ -257,7 +260,7 @@ void wxCursor::InitFromImage( const wxImage & image )
             char* bits = new char[size];
             memset(bits, 0xff, size);
             maskRaw = gdk_bitmap_create_from_data(
-                wxGetRootWindow()->window, bits, w, h);
+                gtk_widget_get_window(wxGetRootWindow()), bits, w, h);
             delete[] bits;
         }
 
@@ -387,16 +390,15 @@ const wxCursor wxBusyCursor::GetBusyCursor()
     return wxCursor(wxCURSOR_WATCH);
 }
 
-static void UpdateCursors(const wxWindowList& list, GdkDisplay*& display)
+static void UpdateCursors(GdkDisplay** display)
 {
-    wxWindowList::const_iterator i = list.begin();
-    for (size_t n = list.size(); n--; ++i)
+    wxWindowList::const_iterator i = wxTopLevelWindows.begin();
+    for (size_t n = wxTopLevelWindows.size(); n--; ++i)
     {
         wxWindow* win = *i;
-        if (display == NULL && win->m_widget && win->m_widget->window)
-            display = gdk_drawable_get_display(win->m_widget->window);
-        win->GTKUpdateCursor(true, false);
-        UpdateCursors(win->GetChildren(), display);
+        win->GTKUpdateCursor();
+        if (display && *display == NULL && win->m_widget)
+            *display = gtk_widget_get_display(win->m_widget);
     }
 }
 
@@ -407,8 +409,7 @@ void wxEndBusyCursor()
 
     g_globalCursor = gs_savedCursor;
     gs_savedCursor = wxNullCursor;
-    GdkDisplay* unused = NULL;
-    UpdateCursors(wxTopLevelWindows, unused);
+    UpdateCursors(NULL);
 }
 
 void wxBeginBusyCursor(const wxCursor* cursor)
@@ -416,13 +417,13 @@ void wxBeginBusyCursor(const wxCursor* cursor)
     if (gs_busyCount++ > 0)
         return;
 
-    wxASSERT_MSG( !gs_savedCursor.Ok(),
+    wxASSERT_MSG( !gs_savedCursor.IsOk(),
                   wxT("forgot to call wxEndBusyCursor, will leak memory") );
 
     gs_savedCursor = g_globalCursor;
     g_globalCursor = *cursor;
     GdkDisplay* display = NULL;
-    UpdateCursors(wxTopLevelWindows, display);
+    UpdateCursors(&display);
     if (display)
         gdk_display_flush(display);
 }
@@ -435,6 +436,5 @@ bool wxIsBusy()
 void wxSetCursor( const wxCursor& cursor )
 {
     g_globalCursor = cursor;
-    GdkDisplay* unused = NULL;
-    UpdateCursors(wxTopLevelWindows, unused);
+    UpdateCursors(NULL);
 }

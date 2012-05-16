@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h 67233 2011-03-18 15:45:51Z SC $
+// RCS-ID:      $Id: private.h 70863 2012-03-10 13:13:51Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -145,13 +145,13 @@ public :
     virtual unsigned int        draggingUpdated(void* sender, WXWidget slf, void* _cmd);
     virtual bool                performDragOperation(void* sender, WXWidget slf, void* _cmd);
     virtual void                mouseEvent(WX_NSEvent event, WXWidget slf, void* _cmd);
+    virtual void                cursorUpdate(WX_NSEvent event, WXWidget slf, void* _cmd);
     virtual void                keyEvent(WX_NSEvent event, WXWidget slf, void* _cmd);
     virtual void                insertText(NSString* text, WXWidget slf, void* _cmd);
     virtual bool                performKeyEquivalent(WX_NSEvent event, WXWidget slf, void* _cmd);
     virtual bool                acceptsFirstResponder(WXWidget slf, void* _cmd);
     virtual bool                becomeFirstResponder(WXWidget slf, void* _cmd);
     virtual bool                resignFirstResponder(WXWidget slf, void* _cmd);
-    virtual void                resetCursorRects(WXWidget slf, void* _cmd);
     virtual bool                isFlipped(WXWidget slf, void* _cmd);
     virtual void                drawRect(void* rect, WXWidget slf, void* _cmd);
 
@@ -238,6 +238,8 @@ public :
 
     virtual void SetModified(bool modified);
     virtual bool IsModified() const;
+
+    virtual void SetRepresentedFilename(const wxString& filename);
 
     wxNonOwnedWindow*   GetWXPeer() { return m_wxPeer; }
     
@@ -352,6 +354,21 @@ protected :
     - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
     @end
 
+    // This interface must be exported in shared 64 bit multilib build but
+    // using WXEXPORT with Objective C interfaces doesn't work with old (4.0.1)
+    // gcc when using 10.4 SDK. It does work with newer gcc even in 32 bit
+    // builds but seems to be unnecessary there so to avoid the expense of a
+    // configure check verifying if this does work or not with the current
+    // compiler we just only use it for 64 bit builds where this is always
+    // supported.
+    //
+    // NB: Currently this is the only place where we need to export an
+    //     interface but if we need to do it elsewhere we should define a
+    //     WXEXPORT_OBJC macro once and reuse it in all places it's needed
+    //     instead of duplicating this preprocessor check.
+#ifdef __LP64__
+    WXEXPORT
+#endif // 64 bit builds
     @interface wxNSAppController : NSObject wxOSX_10_6_AND_LATER(<NSApplicationDelegate>)
     {
     }

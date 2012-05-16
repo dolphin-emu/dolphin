@@ -16,23 +16,13 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "MathUtil.h"
 #include "CommonPaths.h"
 #include "VolumeDirectory.h"
 #include "FileBlob.h"
 
 namespace DiscIO
 {
-
-static const u8 ENTRY_SIZE = 0x0c;
-static const u8 FILE_ENTRY = 0;
-static const u8 DIRECTORY_ENTRY = 1;
-static const u64 DISKHEADER_ADDRESS = 0;
-static const u64 DISKHEADERINFO_ADDRESS = 0x440;
-static const u64 APPLOADER_ADDRESS = 0x2440;
-static const u32 MAX_NAME_LENGTH = 0x3df;
-// relocatable
-static u64 FST_ADDRESS = 0x440;
-static u64 DOL_ADDRESS = 0;
 
 CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 								   const std::string& _rApploader, const std::string& _rDOL)
@@ -44,6 +34,8 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	, m_apploader(NULL)
 	, m_DOLSize(0)
 	, m_DOL(NULL)
+	, FST_ADDRESS(0)
+	, DOL_ADDRESS(0)
 {
 	m_rootDirectory = ExtractDirectoryName(_rDirectory);	
 
@@ -321,7 +313,7 @@ bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
 		copy(data.begin(), data.end(), m_apploader);
 
 		// 32byte aligned (plus 0x20 padding)
-		DOL_ADDRESS = (APPLOADER_ADDRESS + m_apploaderSize + 0x20 + 31) & ~31ULL;
+		DOL_ADDRESS = ROUND_UP(APPLOADER_ADDRESS + m_apploaderSize + 0x20, 0x20ull);
 		return true;
 	}
 	else
@@ -347,7 +339,7 @@ void CVolumeDirectory::SetDOL(const std::string& _rDOL)
 		Write32((u32)(DOL_ADDRESS >> m_addressShift), 0x0420, m_diskHeader);
 
 		// 32byte aligned (plus 0x20 padding)
-		FST_ADDRESS = (DOL_ADDRESS + m_DOLSize + 0x20 + 31) & ~31ULL;
+		FST_ADDRESS = ROUND_UP(DOL_ADDRESS + m_DOLSize + 0x20, 0x20ull);
 	}
 }
 
@@ -367,8 +359,12 @@ void CVolumeDirectory::BuildFST()
 	m_fstSize = m_fstNameOffset + m_totalNameSize;
 	m_FSTData = new u8[(u32)m_fstSize];
 
+	// if FST hasn't been assigned (ie no apploader/dol setup), set to default
+	if (FST_ADDRESS == 0)
+		FST_ADDRESS = APPLOADER_ADDRESS + 0x2000;
+
 	// 4 byte aligned start of data on disk
-	m_dataStartAddress = (FST_ADDRESS + m_fstSize + 3) & ~3;
+	m_dataStartAddress = ROUND_UP(FST_ADDRESS + m_fstSize, 0x8000ull);
 	u64 curDataAddress = m_dataStartAddress;
 
 	u32 fstOffset = 0;		// offset within FST data
@@ -389,8 +385,8 @@ void CVolumeDirectory::BuildFST()
 	// write FST size and location
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
 	Write32((u32)(FST_ADDRESS >> m_addressShift), 0x0424, m_diskHeader);
-	Write32((u32)m_fstSize, 0x0428, m_diskHeader);
-	Write32((u32)m_fstSize, 0x042c, m_diskHeader);
+	Write32((u32)(m_fstSize >> m_addressShift), 0x0428, m_diskHeader);
+	Write32((u32)(m_fstSize >> m_addressShift), 0x042c, m_diskHeader);
 }
 
 void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, u8* _Src,
@@ -490,7 +486,7 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 		m_virtualDisk.insert(make_pair(dataOffset, entry.physicalName));
 
 		// 4 byte aligned
-		dataOffset = (dataOffset + entry.size + 3) & ~3ULL;
+		dataOffset = ROUND_UP(dataOffset + entry.size, 0x8000ull);
 	}
 }
 

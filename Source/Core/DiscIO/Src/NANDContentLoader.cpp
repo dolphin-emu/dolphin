@@ -462,7 +462,7 @@ void cUIDsys::AddTitle(u64 _TitleID)
 	File::CreateFullPath(uidSys);
 	File::IOFile pFile(uidSys, "ab");
 
-	if (pFile.WriteArray(&Element, 1))
+	if (!pFile.WriteArray(&Element, 1))
 		ERROR_LOG(DISCIO, "fwrite failed");
 }
 

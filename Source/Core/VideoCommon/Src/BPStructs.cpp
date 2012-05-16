@@ -463,8 +463,8 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_REVBITS: // Always set to 0x0F when GX_InitRevBits() is called.
 		break;
 
-	case BPMEM_UNKOWN_57: // Sunshine alternates this register between values 0x000 and 0xAAA
-		DEBUG_LOG(VIDEO, "Uknown BP Reg 0x57: %08x", bp.newvalue);
+	case BPMEM_UNKNOWN_57: // Sunshine alternates this register between values 0x000 and 0xAAA
+		DEBUG_LOG(VIDEO, "Unknown BP Reg 0x57: %08x", bp.newvalue);
 		break;
 
 	case BPMEM_PRELOAD_ADDR:
@@ -481,6 +481,13 @@ void BPWritten(const BPCmd& bp)
 			u8* ram_ptr = Memory::GetPointer(tmem_cfg.preload_addr << 5);
 			u32 tmem_addr = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
 			u32 size = tmem_cfg.preload_tile_info.count * 32;
+
+			// Check if the game has overflowed TMEM, and copy up to the limit.
+			// Paper Mario does this when entering the Great Boogly Tree (Chap 2)
+			// TODO: Does this wrap?
+			if ((tmem_addr + size) > TMEM_SIZE)
+				size = TMEM_SIZE - tmem_addr;
+
 			memcpy(texMem + tmem_addr, ram_ptr, size);
 		}
 		break;

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.97
-// RCS-ID:      $Id: dynarray.cpp 61279 2009-07-02 09:08:50Z VZ $
+// RCS-ID:      $Id: dynarray.cpp 68470 2011-07-31 12:19:51Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <string.h> // for memmove
 
-#if !wxUSE_STL
+#if !wxUSE_STD_CONTAINERS
 
 // we cast the value to long from which we cast it to void * in IndexForInsert:
 // this can't work if the pointers are not big enough
@@ -358,6 +358,9 @@ void name::insert(iterator it, const_iterator first, const_iterator last)   \
       return;                                                               \
   Grow(nInsert);                                                            \
                                                                             \
+  /* old iterator could have been invalidated by Grow(). */                 \
+  it = begin() + nIndex;                                                    \
+                                                                            \
   memmove(&m_pItems[nIndex + nInsert], &m_pItems[nIndex],                   \
           (m_nCount - nIndex)*sizeof(T));                                   \
   for (size_t i = 0; i < nInsert; ++i, ++it, ++first)                       \
@@ -383,7 +386,7 @@ _WX_DEFINE_BASEARRAY(double,       wxBaseArrayDouble)
     #pragma warning(pop)
 #endif
 
-#else // wxUSE_STL
+#else // wxUSE_STD_CONTAINERS
 
 #include "wx/arrstr.h"
 
@@ -491,4 +494,4 @@ int wxSortedArrayString::Index(const wxString& str,
     return it - begin();
 }
 
-#endif // !wxUSE_STL/wxUSE_STL
+#endif // !wxUSE_STD_CONTAINERS/wxUSE_STD_CONTAINERS

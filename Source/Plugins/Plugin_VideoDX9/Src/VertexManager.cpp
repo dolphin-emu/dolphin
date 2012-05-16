@@ -143,7 +143,7 @@ void VertexManager::vFlush()
 			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, tentry->virtual_width, tentry->virtual_height, 0, 0, API_D3D9);
+				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
 			}
 			else
 				ERROR_LOG(VIDEO, "error loading texture");
@@ -152,7 +152,7 @@ void VertexManager::vFlush()
 
 	// set global constants
 	VertexShaderManager::SetConstants();
-	PixelShaderManager::SetConstants(API_D3D9);
+	PixelShaderManager::SetConstants();
 
 	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
 	{

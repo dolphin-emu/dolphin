@@ -62,14 +62,11 @@ void Jit64::lfs(UGeckoInstruction inst)
 		return;
 	}
 	s32 offset = (s32)(s16)inst.SIMM_16;
-	if (jo.assumeFPLoadFromMem)
-	{
-		UnsafeLoadToEAX(gpr.R(a), 32, offset, false);
-	}
-	else
-	{
-		SafeLoadToEAX(gpr.R(a), 32, offset, false);
-	}
+#if defined(_WIN32) && defined(_M_X64)
+	UnsafeLoadToEAX(gpr.R(a), 32, offset, false);
+#else
+	SafeLoadToEAX(gpr.R(a), 32, offset, false);
+#endif
 
 	MEMCHECK_START
 	
@@ -219,7 +216,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 		MOVD_xmm(R(EAX), XMM0);
 		UnsafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
 	}
-	FixupBranch exit = J();
+	FixupBranch exit = J(true);
 	SetJumpTarget(safe);
 
 	// Safe but slow routine
@@ -240,7 +237,14 @@ void Jit64::stfd(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-
+// In Release on 32bit build, 
+// this seemed to cause a problem with PokePark2
+// at start after talking to first pokemon,
+// you run and smash a box, then he goes on about
+// following him and then you cant do anything.
+// I have enabled interpreter for this function
+// in the mean time.
+// Parlane
 void Jit64::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

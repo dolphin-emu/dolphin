@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2006-05-27
-// RCS-ID:      $Id: power.h 58718 2009-02-07 18:59:25Z VZ $
+// RCS-ID:      $Id: power.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ enum wxBatteryState
 // compiling in the code for handling them which is never going to be invoked
 // under the other platforms, we define wxHAS_POWER_EVENTS symbol if this event
 // is available, it should be used to guard all code using wxPowerEvent
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
 
 #define wxHAS_POWER_EVENTS
 

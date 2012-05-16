@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: file.cpp 66150 2010-11-14 12:09:59Z VZ $
+// RCS-ID:      $Id: file.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@
 #if wxUSE_FILE
 
 // standard
-#if defined(__WXMSW__) && !defined(__GNUWIN32__) && !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
+#if defined(__WINDOWS__) && !defined(__GNUWIN32__) && !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
 
 #define   WIN32_LEAN_AND_MEAN
 #define   NOSERVICE
@@ -47,7 +47,7 @@
 #define   NOCRYPT
 #define   NOMCX
 
-#elif defined(__WXMSW__) && defined(__WXWINCE__)
+#elif defined(__WINDOWS__) && defined(__WXWINCE__)
     #include  "wx/msw/missing.h"
 #elif (defined(__OS2__))
     #include <io.h>
@@ -80,8 +80,6 @@
     char* mktemp( char * path ) { return path ;}
     #include <stat.h>
     #include <unistd.h>
-#elif defined(__WXPALMOS__)
-    #include "wx/palmos/missing.h"
 #else
     #error  "Please specify the header with file functions declarations."
 #endif  //Win/UNIX
@@ -121,7 +119,7 @@
     #define   O_BINARY    (0)
 #endif  //__UNIX__
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     #include "wx/msw/mslu.h"
 #endif
 

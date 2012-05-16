@@ -24,6 +24,7 @@
 #include <string>
 
 #include <wx/wx.h>
+#include <wx/event.h>
 #include <wx/sizer.h>
 #include <wx/dialog.h>
 #include <wx/notebook.h>
@@ -113,8 +114,6 @@ private:
 
 	static NetPlayDiag* npd;
 };
-
-DECLARE_EVENT_TYPE(wxEVT_THREAD, -1)
 
 class ChangeGameDiag : public wxDialog
 {

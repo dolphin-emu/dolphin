@@ -3,7 +3,7 @@
 // Purpose:     All GTK wxDataViewCtrl renderer classes
 // Author:      Robert Roebling, Vadim Zeitlin
 // Created:     2009-11-07 (extracted from wx/gtk/dataview.h)
-// RCS-ID:      $Id: dvrenderers.h 67120 2011-03-03 17:51:52Z PC $
+// RCS-ID:      $Id: dvrenderers.h 70300 2012-01-09 06:31:07Z PC $
 // Copyright:   (c) 2006 Robert Roebling
 //              (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -117,18 +117,12 @@ public:
                             wxDC *dc,
                             int state);
 
+    struct GTKRenderParams;
+
     // store GTK render call parameters for possible later use
-    void GTKStashRenderParams(GdkWindow *window,
-                              GtkWidget *widget,
-                              GdkRectangle *background_area,
-                              GdkRectangle *expose_area,
-                              int flags)
+    void GTKSetRenderParams(GTKRenderParams* renderParams)
     {
-        m_renderParams.window = window;
-        m_renderParams.widget = widget;
-        m_renderParams.background_area = background_area;
-        m_renderParams.expose_area = expose_area;
-        m_renderParams.flags = flags;
+        m_renderParams = renderParams;
     }
 
     // we may or not support attributes, as we don't know it, return true to
@@ -147,20 +141,17 @@ protected:
     bool Init(wxDataViewCellMode mode, int align);
 
 private:
+    // Called from GtkGetTextRenderer() to really create the renderer if
+    // necessary.
+    void GtkInitTextRenderer();
+
     wxDC        *m_dc;
 
     GtkCellRendererText      *m_text_renderer;
 
     // parameters of the original render() call stored so that we could pass
     // them forward to m_text_renderer if our RenderText() is called
-    struct GTKRenderParams
-    {
-        GdkWindow            *window;
-        GtkWidget            *widget;
-        GdkRectangle         *background_area;
-        GdkRectangle         *expose_area;
-        int                   flags;
-    } m_renderParams;
+    GTKRenderParams* m_renderParams;
 
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewCustomRenderer)
 };
@@ -185,8 +176,16 @@ public:
     virtual wxSize GetSize() const;
 
 private:
+    void GTKSetLabel();
+
     wxString    m_label;
     int         m_value;
+
+#if !wxUSE_UNICODE
+    // Flag used to indicate that we need to set the label because we were
+    // unable to do it in the ctor (see comments there).
+    bool m_needsToSetLabel;
+#endif // !wxUSE_UNICODE
 
 protected:
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewProgressRenderer)
@@ -221,34 +220,6 @@ private:
     GtkCellRenderer *m_rendererIcon;
 
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewIconTextRenderer)
-};
-
-// ---------------------------------------------------------
-// wxDataViewDateRenderer
-// ---------------------------------------------------------
-
-class WXDLLIMPEXP_ADV wxDataViewDateRenderer: public wxDataViewCustomRenderer
-{
-public:
-    wxDataViewDateRenderer( const wxString &varianttype = "datetime",
-                            wxDataViewCellMode mode = wxDATAVIEW_CELL_ACTIVATABLE,
-                            int align = wxDVR_DEFAULT_ALIGNMENT );
-
-    bool SetValue( const wxVariant &value );
-    bool GetValue( wxVariant &value ) const;
-
-    virtual bool Render( wxRect cell, wxDC *dc, int state );
-    virtual wxSize GetSize() const;
-    virtual bool Activate( const wxRect& cell,
-                           wxDataViewModel *model,
-                           const wxDataViewItem &item,
-                           unsigned int col );
-
-private:
-    wxDateTime    m_date;
-
-protected:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewDateRenderer)
 };
 
 // -------------------------------------
@@ -291,7 +262,7 @@ public:
     virtual bool GetValue( wxVariant &value ) const;
 
 private:
-    virtual void GtkOnTextEdited(const gchar *itempath, const wxString& str);
+    virtual void GtkOnTextEdited(const char *itempath, const wxString& str);
 };
 
 

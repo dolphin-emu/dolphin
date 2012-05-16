@@ -4,7 +4,7 @@
 // Author:      Mattia barbon
 // Modified by:
 // Created:     23.03.02
-// RCS-ID:      $Id: iconbndl.h 63942 2010-04-12 00:36:31Z VZ $
+// RCS-ID:      $Id: iconbndl.h 70455 2012-01-24 22:17:47Z VZ $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,6 +28,23 @@ WX_DECLARE_EXPORTED_OBJARRAY(wxIcon, wxIconArray);
 class WXDLLIMPEXP_CORE wxIconBundle : public wxGDIObject
 {
 public:
+    // Flags that determine what happens if GetIcon() doesn't find the icon of
+    // exactly the requested size.
+    enum
+    {
+        // Return invalid icon if exact size is not found.
+        FALLBACK_NONE = 0,
+
+        // Return the icon of the system icon size if exact size is not found.
+        // May be combined with other non-NONE enum elements to determine what
+        // happens if the system icon size is not found neither.
+        FALLBACK_SYSTEM = 1,
+
+        // Return the icon of closest larger size or, if there is no icon of
+        // larger size in the bundle, the closest icon of smaller size.
+        FALLBACK_NEAREST_LARGER = 2
+    };
+
     // default constructor
     wxIconBundle();
 
@@ -60,13 +77,13 @@ public:
     void AddIcon(const wxIcon& icon);
 
     // returns the icon with the given size; if no such icon exists,
-    // returns the icon with size wxSYS_ICON_[XY]; if no such icon exists,
-    // returns the first icon in the bundle
-    wxIcon GetIcon(const wxSize& size) const;
+    // behavior is specified by the flags.
+    wxIcon GetIcon(const wxSize& size, int flags = FALLBACK_SYSTEM) const;
 
     // equivalent to GetIcon(wxSize(size, size))
-    wxIcon GetIcon(wxCoord size = wxDefaultCoord) const
-        { return GetIcon(wxSize(size, size)); }
+    wxIcon GetIcon(wxCoord size = wxDefaultCoord,
+                   int flags = FALLBACK_SYSTEM) const
+        { return GetIcon(wxSize(size, size), flags); }
 
     // returns the icon exactly of the specified size or wxNullIcon if no icon
     // of exactly given size are available

@@ -175,6 +175,7 @@
     <ClInclude Include="Src\BannerLoaderWii.h" />
     <ClInclude Include="Src\Blob.h" />
     <ClInclude Include="Src\CISOBlob.h" />
+    <ClInclude Include="Src\WbfsBlob.h" />
     <ClInclude Include="Src\CompressedBlob.h" />
     <ClInclude Include="Src\DiscScrubber.h" />
     <ClInclude Include="Src\DriveBlob.h" />
@@ -199,6 +200,7 @@
     <ClCompile Include="Src\BannerLoaderWii.cpp" />
     <ClCompile Include="Src\Blob.cpp" />
     <ClCompile Include="Src\CISOBlob.cpp" />
+    <ClCompile Include="Src\WbfsBlob.cpp" />
     <ClCompile Include="Src\CompressedBlob.cpp" />
     <ClCompile Include="Src\DiscScrubber.cpp" />
     <ClCompile Include="Src\DriveBlob.cpp" />
@@ -226,7 +228,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
-    <None Include="Src\SConscript" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

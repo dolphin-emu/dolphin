@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: frame.cpp 67243 2011-03-19 08:36:23Z SC $
+// RCS-ID:      $Id: frame.cpp 70765 2012-03-01 15:04:42Z JS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,7 +29,6 @@
 BEGIN_EVENT_TABLE(wxFrame, wxFrameBase)
   EVT_ACTIVATE(wxFrame::OnActivate)
   EVT_SYS_COLOUR_CHANGED(wxFrame::OnSysColourChanged)
-  EVT_SIZE(wxFrame::OnSize)
 END_EVENT_TABLE()
 
 #define WX_MAC_STATUSBAR_HEIGHT 18
@@ -214,14 +213,6 @@ void wxFrame::OnActivate(wxActivateEvent& event)
         }
 #endif
     }
-}
-
-
-void wxFrame::OnSize(wxSizeEvent& event)
-{
-    PositionBars();
-    
-    event.Skip();
 }
 
 #if wxUSE_MENUS

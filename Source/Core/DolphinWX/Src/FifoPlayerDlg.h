@@ -18,6 +18,7 @@
 #ifndef __FIFO_PLAYER_DLG_h__
 #define __FIFO_PLAYER_DLG_h__
 
+#include <vector>
 #include <wx/wx.h>
 #include <wx/notebook.h>
 
@@ -44,11 +45,22 @@ private:
 	void OnNumFramesToRecord( wxSpinEvent& event );
 	void OnCloseClick( wxCommandEvent& event );
 
+	void OnBeginSearch(wxCommandEvent& event);
+	void OnFindNextClick(wxCommandEvent& event);
+	void OnFindPreviousClick(wxCommandEvent& event);
+	void OnSearchFieldTextChanged(wxCommandEvent& event);
+	void ChangeSearchResult(unsigned int result_idx);
+
 	void OnRecordingFinished(wxCommandEvent& event);
 	void OnFrameWritten(wxCommandEvent& event);
 
+	void OnFrameListSelectionChanged(wxCommandEvent& event);
+	void OnObjectListSelectionChanged(wxCommandEvent& event);
+	void OnObjectCmdListSelectionChanged(wxCommandEvent& event);
+
 	void UpdatePlayGui();
 	void UpdateRecorderGui();
+	void UpdateAnalyzerGui();
 
 	wxString CreateFileFrameCountLabel() const;
 	wxString CreateCurrentFrameLabel() const;
@@ -89,6 +101,28 @@ private:
 	wxButton* m_Save;
 	wxStaticText* m_FramesToRecordLabel;
 	wxSpinCtrl* m_FramesToRecordCtrl;
+
+	wxPanel* m_AnalyzePage;
+	wxListBox* m_framesList;
+	wxListBox* m_objectsList;
+	wxListBox* m_objectCmdList;
+	std::vector<u32> m_objectCmdOffsets;
+	wxStaticText* m_objectCmdInfo;
+
+	wxTextCtrl* m_searchField;
+	wxButton* m_beginSearch;
+	wxButton* m_findNext;
+	wxButton* m_findPrevious;
+	wxStaticText* m_numResultsText;
+
+	struct SearchResult {
+		int frame_idx;
+		int obj_idx;
+		int cmd_idx;
+	};
+	std::vector<SearchResult> search_results;
+	unsigned int m_search_result_idx;
+
 	wxButton* m_Close;
 
 	s32 m_FramesToRecord;

@@ -4,7 +4,7 @@
  * Author:      Stefan Csomor
  * Modified by:
  * Created:     2008-07-30
- * RCS-ID:      $Id: chkconf.h 67232 2011-03-18 15:10:15Z DS $
+ * RCS-ID:      $Id: chkconf.h 69818 2011-11-25 14:37:03Z SC $
  * Copyright:   (c) Stefan Csomor
  * Licence:     wxWindows licence
  */
@@ -64,6 +64,11 @@
 #if wxUSE_DATAVIEWCTRL
 #undef wxUSE_DATAVIEWCTRL
 #define wxUSE_DATAVIEWCTRL 0
+#endif
+
+#if wxUSE_TREELISTCTRL
+#undef wxUSE_TREELISTCTRL
+#define wxUSE_TREELISTCTRL 0
 #endif
 
 #if wxUSE_DRAG_AND_DROP
@@ -346,6 +351,16 @@
 #if wxUSE_RICHTEXT
 #undef wxUSE_RICHTEXT
 #define wxUSE_RICHTEXT 0
+#endif
+
+#if wxUSE_TIMEPICKCTRL
+#undef wxUSE_TIMEPICKCTRL
+#define wxUSE_TIMEPICKCTRL 0
+#endif
+
+#if wxUSE_RICHTOOLTIP
+#undef wxUSE_RICHTOOLTIP
+#define wxUSE_RICHTOOLTIP 0
 #endif
 
 #endif

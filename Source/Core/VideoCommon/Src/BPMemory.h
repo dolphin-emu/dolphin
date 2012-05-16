@@ -62,7 +62,7 @@
 #define BPMEM_COPYFILTER1      0x54
 #define BPMEM_CLEARBBOX1       0x55 
 #define BPMEM_CLEARBBOX2       0x56
-#define BPMEM_UNKOWN_57        0x57
+#define BPMEM_UNKNOWN_57       0x57
 #define BPMEM_REVBITS          0x58
 #define BPMEM_SCISSOROFFSET    0x59
 #define BPMEM_PRELOAD_ADDR     0x60
@@ -994,5 +994,7 @@ struct BPMemory
 extern BPMemory bpmem;
 
 void LoadBPReg(u32 value0);
+
+void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size_t desc_size);
 
 #endif // _BPMEMORY_H

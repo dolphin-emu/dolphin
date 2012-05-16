@@ -248,7 +248,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Src\SConscript" />
     <None Include="CMakeLists.txt" />
     <None Include="..\..\..\Data\User\OpenCL\TextureDecoder.cl">
       <Filter>Decoding\OpenCL</Filter>

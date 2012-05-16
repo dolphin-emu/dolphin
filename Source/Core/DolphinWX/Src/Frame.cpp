@@ -500,19 +500,34 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-#ifdef _WIN32
+			// 32x32, 8bpp b/w image
+			// We want all transparent, so we can just use the same buffer for
+			// the "image" as for the transparency mask
+			static const char cursor_data[32 * 32] = { 0 };
+			
+#ifdef __WXGTK__
+			wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
+				cursor_data, wxWHITE, wxBLACK);
+#else
+			wxBitmap cursor_bitmap(cursor_data, 32, 32);
+			cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
+			wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
+#endif
+
+#ifdef __WXMSW__
 			::SetFocus((HWND)m_RenderParent->GetHandle());
 #else
 			m_RenderParent->SetFocus();
 #endif
+			
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
-				m_RenderParent->SetCursor(wxCURSOR_BLANK);
+				m_RenderParent->SetCursor(cursor_transparent);
 		}
 		else
 		{
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-				m_RenderParent->SetCursor(wxCURSOR_ARROW);
+				m_RenderParent->SetCursor(wxNullCursor);
 		}
 	}
 	event.Skip();
@@ -629,11 +644,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 			m_RenderFrame->SetTitle(event.GetString());
 		break;
 
-	case WM_USER_CREATE:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxCURSOR_BLANK);
-		break;
-
 	case IDM_WINDOWSIZEREQUEST:
 		{
 			std::pair<int, int> *win_size = (std::pair<int, int> *)(event.GetClientData());
@@ -643,6 +653,11 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 #ifdef __WXGTK__
+	case WM_USER_CREATE:
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			m_RenderParent->SetCursor(wxCURSOR_BLANK);
+		break;
+
 	case IDM_PANIC:
 		{
 			wxString caption = event.GetString().BeforeFirst(':');
@@ -666,8 +681,11 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 	if (!wxIsMainThread())
 		wxMutexGuiEnter();
 #endif
-	m_RenderParent->GetClientSize(&width, &height);
-	m_RenderParent->GetPosition(&x, &y);
+	wxRect client_rect = m_RenderParent->GetClientRect();
+	width = client_rect.width;
+	height = client_rect.height;
+	x = client_rect.x;
+	y = client_rect.y;
 #ifdef __WXGTK__
 	if (!wxIsMainThread())
 		wxMutexGuiLeave();

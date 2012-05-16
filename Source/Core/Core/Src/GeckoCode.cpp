@@ -253,9 +253,12 @@ bool RunActiveCodes()
 
 void RunCodeHandler()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats && active_codes.size() > 0)
 	{
-		if (!code_handler_installed)
+		u8 *gameId = Memory::GetPointer(0x80000000);
+		u8 *wiirdId = Memory::GetPointer(0x80001800);
+
+		if (!code_handler_installed || memcmp(gameId, wiirdId, 6))
 			code_handler_installed = InstallCodeHandler();
 
 		if (code_handler_installed)

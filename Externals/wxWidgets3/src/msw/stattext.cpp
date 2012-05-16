@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: stattext.cpp 67055 2011-02-27 12:47:26Z VZ $
+// RCS-ID:      $Id: stattext.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,7 @@ wxSize wxStaticText::DoGetBestClientSize() const
 {
     wxClientDC dc(const_cast<wxStaticText *>(this));
     wxFont font(GetFont());
-    if (!font.Ok())
+    if (!font.IsOk())
         font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 
     dc.SetFont(font);

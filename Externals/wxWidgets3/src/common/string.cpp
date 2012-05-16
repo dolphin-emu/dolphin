@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Ryan Norton
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: string.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              (c) 2004 Ryan Norton <wxprojects@comcast.net>
 // Licence:     wxWindows licence
@@ -41,9 +41,9 @@
 #include "wx/vector.h"
 #include "wx/xlocale.h"
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     #include "wx/msw/wrapwin.h"
-#endif // __WXMSW__
+#endif // __WINDOWS__
 
 #if wxUSE_STD_IOSTREAM
     #include <sstream>

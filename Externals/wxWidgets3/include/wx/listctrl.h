@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.12.99
-// RCS-ID:      $Id: listctrl.h 58182 2009-01-17 13:38:04Z SC $
+// RCS-ID:      $Id: listctrl.h 70808 2012-03-04 20:31:42Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ extern WXDLLIMPEXP_DATA_CORE(const char) wxListCtrlNameStr[];
 // include the wxListCtrl class declaration
 // ----------------------------------------------------------------------------
 
-#if defined(__WIN32__) && !defined(__WXUNIVERSAL__)
+#if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
     #include "wx/msw/listctrl.h"
 #elif defined(__WXMAC__) && !defined(__WXUNIVERSAL__) && wxOSX_USE_CARBON
     #include "wx/osx/listctrl.h"

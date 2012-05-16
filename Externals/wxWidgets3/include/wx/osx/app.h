@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: app.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: app.h 68617 2011-08-09 22:17:12Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,10 @@ public:
     virtual short         MacHandleAEQuit(const WXAPPLEEVENTREF event , WXAPPLEEVENTREF reply) ;
     virtual short         MacHandleAERApp(const WXAPPLEEVENTREF event , WXAPPLEEVENTREF reply) ;
 #endif
-    // in response of an open-document apple event
+    // in response of an openFiles message with Cocoa and an
+    // open-document apple event with Carbon
+    virtual void         MacOpenFiles(const wxArrayString &fileNames) ;
+    // called by MacOpenFiles for each file.
     virtual void         MacOpenFile(const wxString &fileName) ;
     // in response of a get-url apple event
     virtual void         MacOpenURL(const wxString &url) ;

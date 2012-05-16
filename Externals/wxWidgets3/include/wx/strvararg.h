@@ -3,7 +3,7 @@
 // Purpose:     macros for implementing type-safe vararg passing of strings
 // Author:      Vaclav Slavik
 // Created:     2007-02-19
-// RCS-ID:      $Id: strvararg.h 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: strvararg.h 67760 2011-05-17 22:12:39Z VZ $
 // Copyright:   (c) 2007 REA Elektronik GmbH
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -825,7 +825,7 @@ WX_ARG_NORMALIZER_FORWARD(const signed char&, signed char);
 #undef WX_ARG_NORMALIZER_FORWARD
 #undef _WX_ARG_NORMALIZER_FORWARD_IMPL
 
-#undef wxASSERT_ARG_TYPE
+// NB: Don't #undef wxASSERT_ARG_TYPE here as it's also used in wx/longlong.h.
 
 // ----------------------------------------------------------------------------
 // WX_VA_ARG_STRING

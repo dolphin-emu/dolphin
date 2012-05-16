@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.05.98
-// RCS-ID:      $Id: dropsrc.cpp 58757 2009-02-08 11:45:59Z VZ $
+// RCS-ID:      $Id: dropsrc.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -233,7 +233,7 @@ wxDragResult wxDropSource::DoDragDrop(int flags)
 bool wxDropSource::GiveFeedback(wxDragResult effect)
 {
     const wxCursor& cursor = GetCursor(effect);
-    if ( cursor.Ok() )
+    if ( cursor.IsOk() )
     {
         ::SetCursor((HCURSOR)cursor.GetHCURSOR());
 

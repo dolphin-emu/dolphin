@@ -4,7 +4,7 @@
 // Author:      Benjamin I. Williams
 // Modified by:
 // Created:     2005-05-17
-// RCS-ID:      $Id: framemanager.h 66673 2011-01-12 18:04:39Z PC $
+// RCS-ID:      $Id: framemanager.h 70807 2012-03-04 20:31:34Z VZ $
 // Copyright:   (C) Copyright 2005, Kirix Corporation, All Rights Reserved.
 // Licence:     wxWindows Library Licence, Version 3.1
 ///////////////////////////////////////////////////////////////////////////////
@@ -458,7 +458,7 @@ class WXDLLIMPEXP_AUI wxAuiManager : public wxEvtHandler
 
 public:
 
-    wxAuiManager(wxWindow* managed_wnd = NULL,
+    wxAuiManager(wxWindow* managedWnd = NULL,
                    unsigned int flags = wxAUI_MGR_DEFAULT);
     virtual ~wxAuiManager();
     void UnInit();
@@ -466,12 +466,12 @@ public:
     void SetFlags(unsigned int flags);
     unsigned int GetFlags() const;
 
-    void SetManagedWindow(wxWindow* managed_wnd);
+    void SetManagedWindow(wxWindow* managedWnd);
     wxWindow* GetManagedWindow() const;
 
     static wxAuiManager* GetManager(wxWindow* window);
 
-    void SetArtProvider(wxAuiDockArt* art_provider);
+    void SetArtProvider(wxAuiDockArt* artProvider);
     wxAuiDockArt* GetArtProvider() const;
 
     wxAuiPaneInfo& GetPane(wxWindow* window);
@@ -479,35 +479,35 @@ public:
     wxAuiPaneInfoArray& GetAllPanes();
 
     bool AddPane(wxWindow* window,
-                 const wxAuiPaneInfo& pane_info);
+                 const wxAuiPaneInfo& paneInfo);
 
     bool AddPane(wxWindow* window,
-                 const wxAuiPaneInfo& pane_info,
-                 const wxPoint& drop_pos);
+                 const wxAuiPaneInfo& paneInfo,
+                 const wxPoint& dropPos);
 
     bool AddPane(wxWindow* window,
                  int direction = wxLEFT,
                  const wxString& caption = wxEmptyString);
 
     bool InsertPane(wxWindow* window,
-                 const wxAuiPaneInfo& insert_location,
-                 int insert_level = wxAUI_INSERT_PANE);
+                 const wxAuiPaneInfo& insertLocation,
+                 int insertLevel = wxAUI_INSERT_PANE);
 
     bool DetachPane(wxWindow* window);
 
     void Update();
 
     wxString SavePaneInfo(wxAuiPaneInfo& pane);
-    void LoadPaneInfo(wxString pane_part, wxAuiPaneInfo &pane);
+    void LoadPaneInfo(wxString panePart, wxAuiPaneInfo &pane);
     wxString SavePerspective();
     bool LoadPerspective(const wxString& perspective, bool update = true);
 
-    void SetDockSizeConstraint(double width_pct, double height_pct);
-    void GetDockSizeConstraint(double* width_pct, double* height_pct) const;
+    void SetDockSizeConstraint(double widthPct, double heightPct);
+    void GetDockSizeConstraint(double* widthPct, double* heightPct) const;
 
-    void ClosePane(wxAuiPaneInfo& pane_info);
-    void MaximizePane(wxAuiPaneInfo& pane_info);
-    void RestorePane(wxAuiPaneInfo& pane_info);
+    void ClosePane(wxAuiPaneInfo& paneInfo);
+    void MaximizePane(wxAuiPaneInfo& paneInfo);
+    void RestorePane(wxAuiPaneInfo& paneInfo);
     void RestoreMaximizedPane();
 
 public:
@@ -516,16 +516,16 @@ public:
     virtual bool CanDockPanel(const wxAuiPaneInfo & p);
 
     void StartPaneDrag(
-                 wxWindow* pane_window,
+                 wxWindow* paneWindow,
                  const wxPoint& offset);
 
     wxRect CalculateHintRect(
-                 wxWindow* pane_window,
+                 wxWindow* paneWindow,
                  const wxPoint& pt,
                  const wxPoint& offset);
 
     void DrawHintRect(
-                 wxWindow* pane_window,
+                 wxWindow* paneWindow,
                  const wxPoint& pt,
                  const wxPoint& offset);
 
@@ -552,26 +552,26 @@ protected:
                        wxAuiDockInfo& dock,
                        wxAuiPaneInfo& pane,
                        wxAuiDockUIPartArray& uiparts,
-                       bool spacer_only);
+                       bool spacerOnly);
 
     void LayoutAddDock(wxSizer* container,
                        wxAuiDockInfo& dock,
-                       wxAuiDockUIPartArray& uiparts,
-                       bool spacer_only);
+                       wxAuiDockUIPartArray& uiParts,
+                       bool spacerOnly);
 
     wxSizer* LayoutAll(wxAuiPaneInfoArray& panes,
                        wxAuiDockInfoArray& docks,
-                       wxAuiDockUIPartArray& uiparts,
-                       bool spacer_only = false);
+                          wxAuiDockUIPartArray & uiParts,
+                       bool spacerOnly = false);
 
     virtual bool ProcessDockResult(wxAuiPaneInfo& target,
-                                   const wxAuiPaneInfo& new_pos);
+                                   const wxAuiPaneInfo& newPos);
 
     bool DoDrop(wxAuiDockInfoArray& docks,
                 wxAuiPaneInfoArray& panes,
                 wxAuiPaneInfo& drop,
                 const wxPoint& pt,
-                const wxPoint& action_offset = wxPoint(0,0));
+                const wxPoint& actionOffset = wxPoint(0,0));
 
     wxAuiDockUIPart* HitTest(int x, int y);
     wxAuiDockUIPart* GetPanePart(wxWindow* pane);
@@ -585,7 +585,7 @@ protected:
     void Render(wxDC* dc);
     void Repaint(wxDC* dc = NULL);
     void ProcessMgrEvent(wxAuiManagerEvent& event);
-    void UpdateButtonOnScreen(wxAuiDockUIPart* button_ui_part,
+    void UpdateButtonOnScreen(wxAuiDockUIPart* buttonUiPart,
                               const wxMouseEvent& event);
     void GetPanePositionsAndSizes(wxAuiDockInfo& dock,
                               wxArrayInt& positions,
@@ -593,6 +593,8 @@ protected:
 
     /// Ends a resize action, or for live update, resizes the sash
     bool DoEndResizeAction(wxMouseEvent& event);
+
+    void SetActivePane(wxWindow* active_pane);
 
 public:
 
@@ -636,29 +638,29 @@ protected:
 
     wxAuiPaneInfoArray m_panes;     // array of panes structures
     wxAuiDockInfoArray m_docks;     // array of docks structures
-    wxAuiDockUIPartArray m_uiparts; // array of UI parts (captions, buttons, etc)
+    wxAuiDockUIPartArray m_uiParts; // array of UI parts (captions, buttons, etc)
 
     int m_action;                // current mouse action
-    wxPoint m_action_start;      // position where the action click started
-    wxPoint m_action_offset;     // offset from upper left of the item clicked
-    wxAuiDockUIPart* m_action_part; // ptr to the part the action happened to
-    wxWindow* m_action_window;   // action frame or window (NULL if none)
-    wxRect m_action_hintrect;    // hint rectangle for the action
-    wxRect m_last_rect;
-    wxAuiDockUIPart* m_hover_button;// button uipart being hovered over
-    wxRect m_last_hint;          // last hint rectangle
-    wxPoint m_last_mouse_move;   // last mouse move position (see OnMotion)
+    wxPoint m_actionStart;      // position where the action click started
+    wxPoint m_actionOffset;     // offset from upper left of the item clicked
+    wxAuiDockUIPart* m_actionPart; // ptr to the part the action happened to
+    wxWindow* m_actionWindow;   // action frame or window (NULL if none)
+    wxRect m_actionHintRect;    // hint rectangle for the action
+    wxRect m_lastRect;
+    wxAuiDockUIPart* m_hoverButton;// button uipart being hovered over
+    wxRect m_lastHint;          // last hint rectangle
+    wxPoint m_lastMouseMove;   // last mouse move position (see OnMotion)
     int  m_currentDragItem;
     bool m_skipping;
-    bool m_has_maximized;
+    bool m_hasMaximized;
 
-    double m_dock_constraint_x;  // 0.0 .. 1.0; max pct of window width a dock can consume
-    double m_dock_constraint_y;  // 0.0 .. 1.0; max pct of window height a dock can consume
+    double m_dockConstraintX;  // 0.0 .. 1.0; max pct of window width a dock can consume
+    double m_dockConstraintY;  // 0.0 .. 1.0; max pct of window height a dock can consume
 
-    wxFrame* m_hint_wnd;         // transparent hint window, if supported by platform
-    wxTimer m_hint_fadetimer;    // transparent fade timer
-    wxByte m_hint_fadeamt;       // transparent fade amount
-    wxByte m_hint_fademax;       // maximum value of hint fade
+    wxFrame* m_hintWnd;         // transparent hint window, if supported by platform
+    wxTimer m_hintFadeTimer;    // transparent fade timer
+    wxByte m_hintFadeAmt;       // transparent fade amount
+    wxByte m_hintFadeMax;       // maximum value of hint fade
 
     void* m_reserved;
 
@@ -839,6 +841,7 @@ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_BUTTON, wxAuiManagerEv
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_CLOSE, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_MAXIMIZE, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_RESTORE, wxAuiManagerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_RENDER, wxAuiManagerEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUI_FIND_MANAGER, wxAuiManagerEvent );
 
@@ -855,6 +858,8 @@ typedef void (wxEvtHandler::*wxAuiManagerEventFunction)(wxAuiManagerEvent&);
    wx__DECLARE_EVT0(wxEVT_AUI_PANE_MAXIMIZE, wxAuiManagerEventHandler(func))
 #define EVT_AUI_PANE_RESTORE(func) \
    wx__DECLARE_EVT0(wxEVT_AUI_PANE_RESTORE, wxAuiManagerEventHandler(func))
+#define EVT_AUI_PANE_ACTIVATED(func) \
+   wx__DECLARE_EVT0(wxEVT_AUI_PANE_ACTIVATED, wxAuiManagerEventHandler(func))
 #define EVT_AUI_RENDER(func) \
    wx__DECLARE_EVT0(wxEVT_AUI_RENDER, wxAuiManagerEventHandler(func))
 #define EVT_AUI_FIND_MANAGER(func) \
@@ -866,6 +871,7 @@ typedef void (wxEvtHandler::*wxAuiManagerEventFunction)(wxAuiManagerEvent&);
 %constant wxEventType wxEVT_AUI_PANE_CLOSE;
 %constant wxEventType wxEVT_AUI_PANE_MAXIMIZE;
 %constant wxEventType wxEVT_AUI_PANE_RESTORE;
+%constant wxEventType wxEVT_AUI_PANE_ACTIVATED;
 %constant wxEventType wxEVT_AUI_RENDER;
 %constant wxEventType wxEVT_AUI_FIND_MANAGER;
 
@@ -874,6 +880,7 @@ typedef void (wxEvtHandler::*wxAuiManagerEventFunction)(wxAuiManagerEvent&);
     EVT_AUI_PANE_CLOSE = wx.PyEventBinder( wxEVT_AUI_PANE_CLOSE )
     EVT_AUI_PANE_MAXIMIZE = wx.PyEventBinder( wxEVT_AUI_PANE_MAXIMIZE )
     EVT_AUI_PANE_RESTORE = wx.PyEventBinder( wxEVT_AUI_PANE_RESTORE )
+    EVT_AUI_PANE_ACTIVATED = wx.PyEventBinder( wxEVT_AUI_PANE_ACTIVATED )
     EVT_AUI_RENDER = wx.PyEventBinder( wxEVT_AUI_RENDER )
     EVT_AUI_FIND_MANAGER = wx.PyEventBinder( wxEVT_AUI_FIND_MANAGER )
 }

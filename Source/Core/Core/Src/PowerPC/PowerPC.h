@@ -102,6 +102,7 @@ void SetMode(CoreMode _coreType);
 
 void SingleStep();	
 void CheckExceptions();
+void CheckExternalExceptions();
 void CheckBreakPoints();
 void RunLoop();
 void Start();
@@ -116,12 +117,16 @@ void ExpandCR();
 void OnIdle(u32 _uThreadAddr);
 void OnIdleIL();
 
+void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
+
 	// Easy register access macros.
 #define HID0 ((UReg_HID0&)PowerPC::ppcState.spr[SPR_HID0])
 #define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
 #define HID4 ((UReg_HID4&)PowerPC::ppcState.spr[SPR_HID4])
 #define DMAU  (*(UReg_DMAU*)&PowerPC::ppcState.spr[SPR_DMAU])
 #define DMAL  (*(UReg_DMAL*)&PowerPC::ppcState.spr[SPR_DMAL])
+#define MMCR0 ((UReg_MMCR0&)PowerPC::ppcState.spr[SPR_MMCR0])
+#define MMCR1 ((UReg_MMCR1&)PowerPC::ppcState.spr[SPR_MMCR1])
 #define PC     PowerPC::ppcState.pc
 #define NPC    PowerPC::ppcState.npc
 #define FPSCR  ((UReg_FPSCR&)PowerPC::ppcState.fpscr)

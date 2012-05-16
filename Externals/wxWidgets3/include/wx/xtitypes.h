@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Francesco Montorsi
 // Created:     27/07/03
-// RCS-ID:      $Id: xtitypes.h 66651 2011-01-08 10:22:30Z SC $
+// RCS-ID:      $Id: xtitypes.h 70384 2012-01-18 14:05:39Z SC $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
@@ -88,7 +88,7 @@ private:
     wxEnumData s_enumData##e( s_enumDataMembers##e );                   \
     wxEnumData *wxGetEnumData(e) { return &s_enumData##e; }             \
     template<> void wxStringReadValue(const wxString& s, e &data )     \
-        { data = (e) s_enumData##e.GetEnumMemberValue(s); }             \
+        { data = (e) s_enumData##e.GetEnumMemberValue(s.c_str()); }     \
     template<> void wxStringWriteValue(wxString &s, const e &data )    \
         { s = s_enumData##e.GetEnumMemberName((int)data); }             \
     void FromLong##e( long data, wxAny& result )                  \
@@ -147,7 +147,7 @@ void wxSetFromString(const wxString &s, wxBitset<e> &data )
     {
         flag = array[i];
         int ivalue;
-        if ( edata->HasEnumMemberValue( flag, &ivalue ) )
+        if ( edata->HasEnumMemberValue( flag.c_str(), &ivalue ) )
         {
             data.set( (e) ivalue );
         }
@@ -202,7 +202,7 @@ void wxFlagsFromString(const wxString &s, e &data )
     {
         flag = array[i];
         int ivalue;
-        if ( edata->HasEnumMemberValue( flag, &ivalue ) )
+        if ( edata->HasEnumMemberValue( flag.c_str(), &ivalue ) )
         {
             data.m_data |= ivalue;
         }
@@ -355,7 +355,7 @@ public:
         if ( m_toString ) 
             (*m_toString)( data, result ); 
         else 
-            wxLogError( wxGetTranslation(_T("String conversions not supported")) ); 
+            wxLogError( wxGetTranslation(wxT("String conversions not supported")) ); 
     }
 
     // convert a string into a wxAny holding the corresponding data in this type
@@ -364,7 +364,7 @@ public:
         if( m_fromString ) 
             (*m_fromString)( data, result ); 
         else 
-            wxLogError( wxGetTranslation(_T("String conversions not supported")) ); 
+            wxLogError( wxGetTranslation(wxT("String conversions not supported")) ); 
     }
 
     // statics:
@@ -428,7 +428,7 @@ public:
         if( m_toLong ) 
             (*m_toLong)( data, result ); 
         else 
-            wxLogError( wxGetTranslation(_T("Long Conversions not supported")) ); 
+            wxLogError( wxGetTranslation(wxT("Long Conversions not supported")) ); 
     }
 
     // convert a long into a wxAny holding the corresponding data in this type
@@ -437,7 +437,7 @@ public:
         if( m_fromLong ) 
             (*m_fromLong)( data, result ); 
         else 
-            wxLogError( wxGetTranslation(_T("Long Conversions not supported")) ); 
+            wxLogError( wxGetTranslation(wxT("Long Conversions not supported")) ); 
     }
 
 private:

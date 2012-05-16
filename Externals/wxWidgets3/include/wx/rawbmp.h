@@ -4,7 +4,7 @@
 // Author:      Eric Kidd, Vadim Zeitlin
 // Modified by:
 // Created:     10.03.03
-// RCS-ID:      $Id: rawbmp.h 66054 2010-11-07 13:16:20Z VZ $
+// RCS-ID:      $Id: rawbmp.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -170,6 +170,11 @@ typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxImagePixelFormat;
     #define wxPIXEL_FORMAT_ALPHA 3
 #elif defined(__WXGTK__)
     // Under GTK+ 2.X we use GdkPixbuf, which is standard RGB or RGBA
+    typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxNativePixelFormat;
+
+    #define wxPIXEL_FORMAT_ALPHA 3
+#elif defined(__WXPM__)
+    // Under PM, we can use standard RGB or RGBA
     typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxNativePixelFormat;
 
     #define wxPIXEL_FORMAT_ALPHA 3
@@ -596,7 +601,7 @@ struct wxPixelDataOut<wxBitmap>
             // data access
             // -----------
 
-            // access to invidividual colour components
+            // access to individual colour components
             ChannelType& Red() { return m_ptr[PixelFormat::RED]; }
             ChannelType& Green() { return m_ptr[PixelFormat::GREEN]; }
             ChannelType& Blue() { return m_ptr[PixelFormat::BLUE]; }

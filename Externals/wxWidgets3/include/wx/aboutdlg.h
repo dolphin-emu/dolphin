@@ -3,7 +3,7 @@
 // Purpose:     declaration of wxAboutDialog class
 // Author:      Vadim Zeitlin
 // Created:     2006-10-07
-// RCS-ID:      $Id: aboutdlg.h 61534 2009-07-25 22:53:23Z VZ $
+// RCS-ID:      $Id: aboutdlg.h 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ public:
 
     // icon to be shown in the dialog, defaults to the main frame icon
     void SetIcon(const wxIcon& icon) { m_icon = icon; }
-    bool HasIcon() const { return m_icon.Ok(); }
+    bool HasIcon() const { return m_icon.IsOk(); }
     wxIcon GetIcon() const;
 
     // web site for the program and its description (defaults to URL itself if

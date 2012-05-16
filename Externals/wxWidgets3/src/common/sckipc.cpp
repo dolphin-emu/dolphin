@@ -8,7 +8,7 @@
 //              Vadim Zeitlin (added support for Unix sockets) Apr 2002
 //                            (use buffering, many fixes/cleanup) Oct 2008
 // Created:     1993
-// RCS-ID:      $Id: sckipc.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: sckipc.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart 1993
 //              (c) Guilhem Lavaux 1997, 1998
 //              (c) 2000 Guillermo Rodriguez <guille@iies.es>
@@ -498,7 +498,7 @@ bool wxTCPServer::Create(const wxString& serverName)
 
     delete addr;
 
-    if (!m_server->Ok())
+    if (!m_server->IsOk())
     {
         m_server->Destroy();
         m_server = NULL;
@@ -877,7 +877,7 @@ void wxTCPEventHandler::Server_OnRequest(wxSocketEvent &event)
     wxSocketBase *sock = server->Accept();
     if (!sock)
         return;
-    if (!sock->Ok())
+    if (!sock->IsOk())
     {
         sock->Destroy();
         return;

@@ -83,12 +83,15 @@ void JitILAsmRoutineManager::Generate()
 
 			if (Core::g_CoreStartupParameter.bEnableDebugging)
 			{
+				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
+				FixupBranch notStepping = J_CC(CC_Z);
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
 				ABI_PopAllCalleeSavedRegsAndAdjustStack();
 				RET();
 				SetJumpTarget(noBreakpoint);
+				SetJumpTarget(notStepping);
 			}
 
 			SetJumpTarget(skipToRealDispatch);
@@ -208,14 +211,14 @@ void JitILAsmRoutineManager::Generate()
 		doTiming = GetCodePtr();
 
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
-		
+
 		testExceptions = GetCodePtr();
 		MOV(32, R(EAX), M(&PC));
 		MOV(32, M(&NPC), R(EAX));
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 		MOV(32, R(EAX), M(&NPC));
 		MOV(32, M(&PC), R(EAX));
-		
+
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop, true);
 	//Landing pad for drec space

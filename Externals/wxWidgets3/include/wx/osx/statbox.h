@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: statbox.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: statbox.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,8 +38,8 @@ class WXDLLIMPEXP_CORE wxStaticBox: public wxControl
            long style = 0,
            const wxString& name = wxStaticBoxNameStr);
 
-    virtual void Command(wxCommandEvent& WXUNUSED(event)) {};
-    virtual void ProcessCommand(wxCommandEvent& WXUNUSED(event)) {};
+    virtual void Command(wxCommandEvent& WXUNUSED(event)) {}
+    virtual void ProcessCommand(wxCommandEvent& WXUNUSED(event)) {}
 
     virtual void GetBordersForSizer(int *borderTop, int *borderOther) const;
 

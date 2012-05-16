@@ -2,7 +2,7 @@
 // Name:        src/common/imagpng.cpp
 // Purpose:     wxImage PNG handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagpng.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: imagpng.cpp 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -116,11 +116,9 @@ IMPLEMENT_DYNAMIC_CLASS(wxPNGHandler,wxImageHandler)
 //     First, let me describe what's the problem: libpng uses jmp_buf in
 //     its png_struct structure. Unfortunately, this structure is
 //     compiler-specific and may vary in size, so if you use libpng compiled
-//     as DLL with another compiler than the main executable, it may not work
-//     (this is for example the case with wxMGL port and SciTech MGL library
-//     that provides custom runtime-loadable libpng implementation with jmpbuf
-//     disabled altogether). Luckily, it is still possible to use setjmp() &
-//     longjmp() as long as the structure is not part of png_struct.
+//     as DLL with another compiler than the main executable, it may not work.
+//     Luckily, it is still possible to use setjmp() & longjmp() as long as the
+//     structure is not part of png_struct.
 //
 //     Sadly, there's no clean way to attach user-defined data to png_struct.
 //     There is only one customizable place, png_struct.io_ptr, which is meant
@@ -558,7 +556,7 @@ wxPNGHandler::LoadFile(wxImage *image,
 
     image->Create((int)width, (int)height, (bool) false /* no need to init pixels */);
 
-    if (!image->Ok())
+    if (!image->IsOk())
         goto error;
 
     // initialize all line pointers to NULL to ensure that they can be safely
@@ -660,7 +658,7 @@ error:
        wxLogError(_("Couldn't load a PNG image - file is corrupted or not enough memory."));
     }
 
-    if ( image->Ok() )
+    if ( image->IsOk() )
     {
         image->Destroy();
     }
@@ -795,15 +793,13 @@ bool wxPNGHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbos
 #endif
     ;
 
-    png_color_8 mask;
+    png_color_8 mask = { 0, 0, 0, 0, 0 };
 
     if (bHasMask)
     {
         mask.red   = image->GetMaskRed();
         mask.green = image->GetMaskGreen();
         mask.blue  = image->GetMaskBlue();
-        mask.alpha = 0;
-        mask.gray  = 0;
     }
 
     PaletteMap palette;

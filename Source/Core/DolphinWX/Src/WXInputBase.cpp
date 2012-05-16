@@ -43,7 +43,10 @@ const wxString WXKeyToString(int keycode)
 		case WXK_CLEAR:				return _("Clear");
 		case WXK_SHIFT:				return wxT("Shift");
 		case WXK_ALT:				return wxT("Alt");
-		case WXK_CONTROL:			return _("Control");
+		case WXK_RAW_CONTROL:		return _("Control");
+#ifdef __WXOSX__
+		case WXK_COMMAND:			return _("Command");
+#endif
 		case WXK_MENU:				return _("Menu");
 		case WXK_PAUSE:				return _("Pause");
 		case WXK_CAPITAL:			return _("Caps Lock");
@@ -131,7 +134,6 @@ const wxString WXKeyToString(int keycode)
 		case WXK_WINDOWS_LEFT:			return _("Windows Left");
 		case WXK_WINDOWS_RIGHT:			return _("Windows Right");
 		case WXK_WINDOWS_MENU:			return _("Windows Menu");
-		case WXK_COMMAND:			return _("Command");
 	}
 
 	if (keycode > WXK_SPACE && keycode < WXK_DELETE) {

@@ -3,7 +3,7 @@
 // Purpose:     scoped smart pointer class
 // Author:      Vadim Zeitlin
 // Created:     2009-02-03
-// RCS-ID:      $Id: scopedarray.h 58634 2009-02-03 12:01:46Z VZ $
+// RCS-ID:      $Id: scopedarray.h 70109 2011-12-24 15:43:14Z VZ $
 // Copyright:   (c) Jesse Lovelace and original Boost authors (see below)
 //              (c) 2009 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -41,7 +41,7 @@ public:
     {
         if ( array != m_array )
         {
-            delete m_array;
+            delete [] m_array;
             m_array = array;
         }
     }

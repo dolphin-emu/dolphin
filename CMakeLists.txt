@@ -2,6 +2,17 @@
 # General setup
 #
 cmake_minimum_required(VERSION 2.6)
+
+# Update compiler before calling project()
+if (APPLE)
+	# Use clang compiler
+	set(CMAKE_C_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang")
+	set(CMAKE_CXX_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++")
+	if (NOT EXISTS "${CMAKE_CXX_COMPILER}")
+		set(CMAKE_C_COMPILER "clang")
+		set(CMAKE_CXX_COMPILER "clang++")
+	endif()
+endif()
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 set(DOLPHIN_IS_STABLE FALSE)
@@ -114,7 +125,7 @@ if(UNIX AND NOT APPLE)
 	endif(VISIBILITY_HIDDEN)
 endif()
 
-if (APPLE)
+if(APPLE)
 	# Ignore MacPorts and Fink and any other locally installed packages that
 	# might prevent building a distributable binary.
 	set(CMAKE_SYSTEM_PREFIX_PATH /usr)
@@ -135,8 +146,17 @@ if (APPLE)
 	# features can be used, not the minimum required version to run.
 	set(OSX_MIN_VERSION "10.5.4")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot /Developer/SDKs/MacOSX10.6.sdk")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk")
+	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.6.sdk")
+	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk")
+	if(EXISTS "${SYSROOT_PATH}/")
+        set(TARGET_SYSROOT ${SYSROOT_PATH})
+	elseif(EXISTS "${SYSROOT_LEGACY_PATH}/")
+        set(TARGET_SYSROOT ${SYSROOT_LEGACY_PATH})
+	endif()
+	if(${TARGET_SYSROOT})
+        set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${TARGET_SYSROOT}")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,${TARGET_SYSROOT}")
+	endif()
 	# Do not warn about frameworks that are not available on all architectures.
 	# This avoids a warning when linking with QuickTime.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
@@ -459,10 +479,8 @@ endif()
 
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 if(NOT DISABLE_WX)
-	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		include(FindwxWidgets OPTIONAL)
-		FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
-	endif()
+	include(FindwxWidgets OPTIONAL)
+	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
 
 	if(wxWidgets_FOUND)
 		EXECUTE_PROCESS(
@@ -473,53 +491,66 @@ if(NOT DISABLE_WX)
 			ERROR_QUIET
 			)
 		message("Found wxWidgets version ${wxWidgets_VERSION}")
-		if(${wxWidgets_VERSION} VERSION_LESS "2.8.9")
-			message("At least 2.8.9 is required; ignoring found version")
+		if(UNIX AND NOT APPLE)
+			set(wxMIN_VERSION "2.9.3")
+		else()
+			set(wxMIN_VERSION "2.9.4")
+		endif()
+		if(${wxWidgets_VERSION} VERSION_LESS ${wxMIN_VERSION})
+			message("At least ${wxMIN_VERSION} is required; ignoring found version")
 			unset(wxWidgets_FOUND)
 		endif()
 	endif(wxWidgets_FOUND)
-		
-	if(wxWidgets_FOUND)
-		include(${wxWidgets_USE_FILE})
 
-		if(UNIX AND NOT APPLE)
-			# There is a bug in the FindGTK module in cmake version 2.8.2 that
-			# does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
-			# users have complained that pkg-config does not find
-			# gdk-pixbuf-2.0.  On yet another hand, cmake version 2.8.3 in
-			# Ubuntu Natty does not find the glib libraries correctly.
-			# Ugly!!!
-			execute_process(COMMAND lsb_release -c -s
-				OUTPUT_VARIABLE DIST_NAME
-				ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-			if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}
-					VERSION_EQUAL 2.8.2 OR "${DIST_NAME}" STREQUAL "natty")
-				check_lib(GTK2 gtk+-2.0 gtk.h REQUIRED)
-			else()
-				include(FindGTK2)
-				if(GTK2_FOUND)
-					include_directories(${GTK2_INCLUDE_DIRS})
-				endif()
+	if(UNIX AND NOT APPLE)
+		# There is a bug in the FindGTK module in cmake version 2.8.2 that
+		# does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
+		# users have complained that pkg-config does not find
+		# gdk-pixbuf-2.0.  On yet another hand, cmake version 2.8.3 in
+		# Ubuntu Natty does not find the glib libraries correctly.
+		# Ugly!!!
+		execute_process(COMMAND lsb_release -c -s
+			OUTPUT_VARIABLE DIST_NAME
+			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+		if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}
+				VERSION_EQUAL 2.8.2 OR "${DIST_NAME}" STREQUAL "natty")
+			check_lib(GTK2 gtk+-2.0 gtk.h REQUIRED)
+		else()
+			include(FindGTK2)
+			if(GTK2_FOUND)
+				include_directories(${GTK2_INCLUDE_DIRS})
 			endif()
 		endif()
+	endif()
 
+	if(wxWidgets_FOUND)
+		include(${wxWidgets_USE_FILE})
 		message("wxWidgets found, enabling GUI build")
 	else(wxWidgets_FOUND)
-		if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-			message(FATAL_ERROR "wxWidgets not found.  It is required to build the GUI")
-		endif()
 		message("Using static wxWidgets from Externals")
+
+		# These definitions and includes are used when building dolphin against wx,
+		# not when building wx itself (see wxw3 CMakeLists.txt for that)
 		if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			add_definitions(-D__WXOSX_COCOA__)
-			include_directories(Externals/wxWidgets3)
-			include_directories(Externals/wxWidgets3/include)
-			add_subdirectory(Externals/wxWidgets3)
-			set(wxWidgets_LIBRARIES "wx")
+		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+			add_definitions(-D__WXGTK__)
+
+			# Check for required libs
+			check_lib(GTHREAD2 gthread-2.0 glib/gthread.h REQUIRED)
+			check_lib(PANGOCAIRO pangocairo pango/pangocairo.h REQUIRED)
+		elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+			add_definitions(-D__WXMSW__)
 		else()
-			include_directories(Externals/wxWidgets/include)
-			add_subdirectory(Externals/wxWidgets)
+			message(FATAL_ERROR "wxWidgets in Externals is not compatible with your platform")
 		endif()
+		
+		include_directories(
+			Externals/wxWidgets3
+			Externals/wxWidgets3/include)
+		add_subdirectory(Externals/wxWidgets3)
 		set(wxWidgets_FOUND TRUE)
+		set(wxWidgets_LIBRARIES "wx")
 	endif(wxWidgets_FOUND)
 	add_definitions(-DHAVE_WX=1)
 endif(NOT DISABLE_WX)
@@ -554,7 +585,7 @@ option(UNITTESTS "Build unitests" OFF)
 ########################################
 # Start compiling our code
 #
-add_definitions(-std=c++0x)
+add_definitions(-std=gnu++0x)
 add_subdirectory(Source)
 
 

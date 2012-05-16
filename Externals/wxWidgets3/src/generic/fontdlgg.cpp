@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: fontdlgg.cpp 66728 2011-01-22 14:38:36Z DS $
+// RCS-ID:      $Id: fontdlgg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ void wxFontPreviewer::OnPaint(wxPaintEvent& WXUNUSED(event))
     dc.SetBrush(*wxWHITE_BRUSH);
     dc.DrawRectangle(0, 0, size.x, size.y);
 
-    if ( font.Ok() )
+    if ( font.IsOk() )
     {
         dc.SetFont(font);
         dc.SetTextForeground(GetForegroundColour());
@@ -550,7 +550,7 @@ void wxGenericFontDialog::InitializeFont()
     int fontSize = 12;
     bool fontUnderline = false;
 
-    if (m_fontData.m_initialFont.Ok())
+    if (m_fontData.m_initialFont.IsOk())
     {
         fontFamily = m_fontData.m_initialFont.GetFamily();
         fontWeight = m_fontData.m_initialFont.GetWeight();
@@ -602,7 +602,7 @@ void wxGenericFontDialog::DoChangeFont()
         if ( !m_colourChoice->GetStringSelection().empty() )
         {
             wxColour col = wxTheColourDatabase->Find(m_colourChoice->GetStringSelection());
-            if (col.Ok())
+            if (col.IsOk())
             {
                 m_fontData.m_fontColour = col;
             }
@@ -610,7 +610,7 @@ void wxGenericFontDialog::DoChangeFont()
     }
     // Update color here so that we can also use the color originally passed in
     // (EnableEffects may be false)
-    if (m_fontData.m_fontColour.Ok())
+    if (m_fontData.m_fontColour.IsOk())
         m_previewer->SetForegroundColour(m_fontData.m_fontColour);
 
     m_previewer->Refresh();

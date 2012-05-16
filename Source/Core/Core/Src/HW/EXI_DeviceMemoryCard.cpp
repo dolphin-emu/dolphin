@@ -103,7 +103,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 
 void innerFlush(FlushData* data)
 {
-	File::IOFile pFile(data->filename, "wb");
+	File::IOFile pFile(data->filename, "r+b");
 	if (!pFile)
 	{
 		std::string dir;

@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: toplevel.h 65680 2010-09-30 11:44:45Z VZ $
+// RCS-ID:      $Id: toplevel.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //                       Vaclav Slavik <vaclav@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -33,7 +33,7 @@ class WXDLLIMPEXP_FWD_CORE wxTopLevelWindowBase;
 // ----------------------------------------------------------------------------
 
 /*
-    Summary of the bits used (some of them are defined in wx/frame.g and
+    Summary of the bits used (some of them are defined in wx/frame.h and
     wx/dialog.h and not here):
 
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -45,10 +45,10 @@ class WXDLLIMPEXP_FWD_CORE wxTopLevelWindowBase;
       |  |  |  |  |  |  |  |  |  |  |  |  |  \_______ wxFRAME_TOOL_WINDOW
       |  |  |  |  |  |  |  |  |  |  |  |  \__________ wxFRAME_FLOAT_ON_PARENT
       |  |  |  |  |  |  |  |  |  |  |  \_____________ wxFRAME_SHAPED
-      |  |  |  |  |  |  |  |  |  |  \________________
+      |  |  |  |  |  |  |  |  |  |  \________________ wxDIALOG_NO_PARENT
       |  |  |  |  |  |  |  |  |  \___________________ wxRESIZE_BORDER
       |  |  |  |  |  |  |  |  \______________________ wxTINY_CAPTION_VERT
-      |  |  |  |  |  |  |  \_________________________ wxDIALOG_NO_PARENT
+      |  |  |  |  |  |  |  \_________________________
       |  |  |  |  |  |  \____________________________ wxMAXIMIZE_BOX
       |  |  |  |  |  \_______________________________ wxMINIMIZE_BOX
       |  |  |  |  \__________________________________ wxSYSTEM_MENU
@@ -70,14 +70,14 @@ class WXDLLIMPEXP_FWD_CORE wxTopLevelWindowBase;
 #define wxICONIZE               0x4000
 #define wxMINIMIZE              wxICONIZE
 #define wxMAXIMIZE              0x2000
-#define wxCLOSE_BOX             0x1000
+#define wxCLOSE_BOX             0x1000  // == wxHELP so can't be used with it
 
 #define wxSYSTEM_MENU           0x0800
 #define wxMINIMIZE_BOX          0x0400
 #define wxMAXIMIZE_BOX          0x0200
 
 #define wxTINY_CAPTION          0x0080  // clashes with wxNO_DEFAULT
-#define wxRESIZE_BORDER         0x0040
+#define wxRESIZE_BORDER         0x0040  // == wxCLOSE
 
 #if WXWIN_COMPATIBILITY_2_8
     // HORIZ and VERT styles are equivalent anyhow so don't use different names
@@ -157,7 +157,8 @@ enum
 // wxTopLevelWindow: a top level (as opposed to child) window
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_CORE wxTopLevelWindowBase : public wxNonOwnedWindow
+class WXDLLIMPEXP_CORE wxTopLevelWindowBase :
+    public wxNavigationEnabled<wxNonOwnedWindow>
 {
 public:
     // construction
@@ -218,11 +219,6 @@ public:
     // enable/disable close button [x]
     virtual bool EnableCloseButton(bool WXUNUSED(enable) ) { return false; }
 
-    // Set the shape of the window to the given region.
-    // Returns true if the platform supports this feature (and the
-    // operation is successful.)
-    virtual bool SetShape(const wxRegion& WXUNUSED(region)) { return false; }
-
     // Attracts the users attention to this window if the application is
     // inactive (should be called when a background event occurs)
     virtual void RequestUserAttention(int flags = wxUSER_ATTENTION_INFO);
@@ -281,6 +277,7 @@ public:
     // override some base class virtuals
     virtual bool Destroy();
     virtual bool IsTopLevel() const { return true; }
+    virtual bool IsTopNavigationDomain() const { return true; }
     virtual bool IsVisible() const { return IsShown(); }
 
     // event handlers
@@ -303,6 +300,8 @@ public:
 
     virtual void OSXSetModified(bool modified) { m_modified = modified; }
     virtual bool OSXIsModified() const { return m_modified; }
+
+    virtual void SetRepresentedFilename(const wxString& WXUNUSED(filename)) { }
 
 protected:
     // the frame client to screen translation should take account of the
@@ -352,15 +351,11 @@ protected:
 
     wxDECLARE_NO_COPY_CLASS(wxTopLevelWindowBase);
     DECLARE_EVENT_TABLE()
-    WX_DECLARE_CONTROL_CONTAINER();
 };
 
 
 // include the real class declaration
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/toplevel.h"
-    #define wxTopLevelWindowNative wxTopLevelWindowPalm
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
     #include "wx/msw/toplevel.h"
     #define wxTopLevelWindowNative wxTopLevelWindowMSW
 #elif defined(__WXGTK20__)
@@ -372,9 +367,6 @@ protected:
 #elif defined(__WXX11__)
     #include "wx/x11/toplevel.h"
     #define wxTopLevelWindowNative wxTopLevelWindowX11
-#elif defined(__WXMGL__)
-    #include "wx/mgl/toplevel.h"
-    #define wxTopLevelWindowNative wxTopLevelWindowMGL
 #elif defined(__WXDFB__)
     #include "wx/dfb/toplevel.h"
     #define wxTopLevelWindowNative wxTopLevelWindowDFB
