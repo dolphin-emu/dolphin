@@ -71,7 +71,6 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
     , m_pContentLoader(NULL)
     , m_TitleID(-1)
     , AccessIdentID(0x6000000)
-	, m_ContentFile()
 {
 }
 
@@ -406,7 +405,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     case IOCTL_ES_SETUID:
         {
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_SETUID no in buffer");
-            _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0, "IOCTL_ES_SETUID has a payload, it shouldn't");
+            _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0, "IOCTL_ES_SETUID has a payload, it shouldn't");
 			// TODO: fs permissions based on this
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID>>32), (u32)TitleID);
