@@ -218,6 +218,7 @@ if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
+add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 ########################################
 # Dependency checking
@@ -571,8 +572,6 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/scmrev.h
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
-
-add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 ########################################
 # Optional Targets
