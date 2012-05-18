@@ -83,7 +83,7 @@ static ipc_msg_queue reply_queue;	// arm -> ppc
 void Init()
 {
     _dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isnt empty on init");
-	
+	CWII_IPC_HLE_Device_es::m_ContentFile = "";
 	u32 i;
 	for (i=0; i<IPC_MAX_FDS; i++)
 	{
