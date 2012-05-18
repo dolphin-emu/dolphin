@@ -128,7 +128,17 @@ void BPWritten(const BPCmd& bp)
 			FlushPipeline();
 		}
 	}  // END ZTP SPEEDUP HACK
-	else FlushPipeline();
+	else 
+	{
+		if (((s32*)&bpmem)[bp.address] != bp.newvalue)
+		{
+			FlushPipeline();
+		}
+		else if (bp.address == BPMEM_TRIGGER_EFB_COPY
+				|| bp.address == BPMEM_CLEARBBOX1
+				|| bp.address == BPMEM_CLEARBBOX2)
+			FlushPipeline();
+	}
 
 	((u32*)&bpmem)[bp.address] = bp.newvalue;
 	
