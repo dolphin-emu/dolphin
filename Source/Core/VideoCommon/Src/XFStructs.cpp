@@ -122,7 +122,7 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETVIEWPORT+4:
 		case XFMEM_SETVIEWPORT+5:
 			{
-				u8 size = std::min(transferSize, 6 * 4);
+				u8 size = std::min(transferSize * 4, 6 * 4);
 				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
 				{
 					VertexManager::Flush();
@@ -142,7 +142,7 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETPROJECTION+5:
 		case XFMEM_SETPROJECTION+6:
 			{
-				u8 size = std::min(transferSize, 7 * 4);
+				u8 size = std::min(transferSize * 4, 7 * 4);
 				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
 				{
 					VertexManager::Flush();
@@ -167,7 +167,7 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETTEXMTXINFO+6:
 		case XFMEM_SETTEXMTXINFO+7:
 			{
-				u8 size = std::min(transferSize, 8 * 4);
+				u8 size = std::min(transferSize * 4, 8 * 4);
 				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
 				{
 					VertexManager::Flush();
@@ -186,7 +186,7 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETPOSMTXINFO+6:
 		case XFMEM_SETPOSMTXINFO+7:
 			{
-				u8 size = std::min(transferSize, 8 * 4);
+				u8 size = std::min(transferSize * 4, 8 * 4);
 				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
 				{
 					VertexManager::Flush();
