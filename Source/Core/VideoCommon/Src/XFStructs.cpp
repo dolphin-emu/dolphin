@@ -288,13 +288,15 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 // TODO - verify that it is correct. Seems to work, though.
 void LoadIndexedXF(u32 val, int refarray)
 {
-    int index = val >> 16;
-    int address = val & 0xFFF; // check mask
-    int size = ((val >> 12) & 0xF) + 1;
-    //load stuff from array to address in xf mem
+	int index = val >> 16;
+	int address = val & 0xFFF; // check mask
+	int size = ((val >> 12) & 0xF) + 1;
+	//load stuff from array to address in xf mem
 
-	XFMemWritten(size, address);
-
-    for (int i = 0; i < size; i++)
-		xfmem[address + i] = Memory::Read_U32(arraybases[refarray] + arraystrides[refarray] * index + i * 4);
+	u32* newData = (u32*)Memory::GetPointer(arraybases[refarray] + arraystrides[refarray] * index);
+	if (memcmp(xfmem + address, newData, size * 4))
+	{
+		XFMemWritten(size, address);
+		memcpy_gc(xfmem + address, newData, size * 4);
+	}
 }
