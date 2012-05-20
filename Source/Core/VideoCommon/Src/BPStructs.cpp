@@ -130,14 +130,24 @@ void BPWritten(const BPCmd& bp)
 	}  // END ZTP SPEEDUP HACK
 	else 
 	{
-		if (((s32*)&bpmem)[bp.address] != bp.newvalue)
+		if (((s32*)&bpmem)[bp.address] == bp.newvalue)
 		{
-			FlushPipeline();
+			if (!(bp.address == BPMEM_TRIGGER_EFB_COPY
+					|| bp.address == BPMEM_CLEARBBOX1
+					|| bp.address == BPMEM_CLEARBBOX2
+					|| bp.address == BPMEM_SETDRAWDONE
+					|| bp.address == BPMEM_PE_TOKEN_ID
+					|| bp.address == BPMEM_PE_TOKEN_INT_ID
+					|| bp.address == BPMEM_LOADTLUT0
+					|| bp.address == BPMEM_LOADTLUT1
+					|| bp.address == BPMEM_TEXINVALIDATE
+					|| bp.address == BPMEM_PRELOAD_MODE))
+			{
+				return;
+			}
 		}
-		else if (bp.address == BPMEM_TRIGGER_EFB_COPY
-				|| bp.address == BPMEM_CLEARBBOX1
-				|| bp.address == BPMEM_CLEARBBOX2)
-			FlushPipeline();
+
+		FlushPipeline();
 	}
 
 	((u32*)&bpmem)[bp.address] = bp.newvalue;
