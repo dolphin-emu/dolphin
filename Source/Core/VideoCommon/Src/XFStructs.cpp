@@ -293,10 +293,21 @@ void LoadIndexedXF(u32 val, int refarray)
 	int size = ((val >> 12) & 0xF) + 1;
 	//load stuff from array to address in xf mem
 
+	u32* currData = (u32*)(xfmem + address);
 	u32* newData = (u32*)Memory::GetPointer(arraybases[refarray] + arraystrides[refarray] * index);
-	if (memcmp(xfmem + address, newData, size * 4))
+	bool changed = false;
+	for (int i = 0; i < size; ++i)
 	{
-		XFMemWritten(size, address);
-		memcpy_gc(xfmem + address, newData, size * 4);
+		if (currData[i] != Common::swap32(newData[i]))
+		{
+			changed = true;
+			XFMemWritten(size, address);
+			break;
+		}
+	}
+	if (changed)
+	{
+		for (int i = 0; i < size; ++i)
+			currData[i] = Common::swap32(newData[i]);
 	}
 }
