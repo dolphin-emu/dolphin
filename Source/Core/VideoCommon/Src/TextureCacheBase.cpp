@@ -33,13 +33,13 @@ extern int frameCount;
 
 enum
 {
-	TEMP_SIZE = (2048 * 2048 * 4),
 	TEXTURE_KILL_THRESHOLD = 200,
 };
 
 TextureCache *g_texture_cache;
 
 GC_ALIGNED16(u8 *TextureCache::temp) = NULL;
+unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
 bool TextureCache::DeferredInvalidate;
@@ -50,8 +50,9 @@ TextureCache::TCacheEntryBase::~TCacheEntryBase()
 
 TextureCache::TextureCache()
 {
+	temp_size = 2048 * 2048 * 4;
 	if (!temp)
-		temp = (u8*)AllocateAlignedMemory(TEMP_SIZE,16);
+		temp = (u8*)AllocateAlignedMemory(temp_size, 16);
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
     if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
@@ -178,6 +179,88 @@ void TextureCache::ClearRenderTargets()
 			iter->second->type = TCET_NORMAL;
 }
 
+bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels)
+{
+	// Just checking if the necessary files exist, if they can't be loaded or have incorrect dimensions LODs will be black
+	char texBasePathTemp[MAX_PATH];
+	char texPathTemp[MAX_PATH];
+
+	sprintf(texBasePathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
+
+	for (unsigned int level = 1; level < levels; ++level)
+	{
+		sprintf(texPathTemp, "%s_mip%i", texBasePathTemp, level);
+		if (!HiresTextures::HiresTexExists(texPathTemp))
+		{
+			if (level > 1)
+				WARN_LOG(VIDEO, "Couldn't find custom texture LOD with index %i (filename: %s), disabling custom LODs for this texture", level, texPathTemp);
+
+			return false;
+		}
+	}
+	return true;
+}
+
+PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height)
+{
+	char texPathTemp[MAX_PATH];
+	unsigned int newWidth = 0;
+	unsigned int newHeight = 0;
+
+	if (level == 0)
+		sprintf(texPathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
+	else
+		sprintf(texPathTemp, "%s_%08x_%i_mip%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat, level);
+
+	unsigned int required_size = 0;
+	PC_TexFormat ret = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, &required_size, texformat, temp_size, temp);
+	if (ret == PC_TEX_FMT_NONE && temp_size < required_size)
+	{
+		// Allocate more memory and try again
+		// TODO: Should probably check if newWidth and newHeight are texture dimensions which are actually supported by the current video backend
+		temp_size = required_size;
+		FreeAlignedMemory(temp);
+		temp = (u8*)AllocateAlignedMemory(temp_size, 16);
+		ret = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, &required_size, texformat, temp_size, temp);
+	}
+
+	if (ret != PC_TEX_FMT_NONE)
+	{
+		width = newWidth;
+		height = newHeight;
+	}
+	return ret;
+}
+
+void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
+{
+	char szTemp[MAX_PATH];
+	std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
+
+	// make sure that the directory exists
+	if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
+		File::CreateDir(szDir.c_str());
+
+	// For compatibility with old texture packs, don't print the LOD index for level 0.
+	 // TODO: TLUT format should actually be stored in filename? :/
+	if (level == 0)
+	{
+		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir.c_str(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
+				(u32) (entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF);
+	}
+	else
+	{
+		sprintf(szTemp, "%s/%s_%08x_%i_mip%i.png", szDir.c_str(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
+				(u32) (entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF, level);
+	}
+
+	if (false == File::Exists(szTemp))
+		entry->Save(szTemp, level);
+}
+
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u32 address, unsigned int width, unsigned int height, int texformat,
 	unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem)
@@ -193,6 +276,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	unsigned int expandedHeight = (height + bsh) & (~bsh);
 	const unsigned int nativeW = width;
 	const unsigned int nativeH = height;
+
+	bool using_custom_texture = false;
+	bool using_custom_lods = false;
 
 	u32 texID = address;
 	u64 tex_hash = TEXHASH_INVALID; // Hash assigned to texcache entry (also used to generate filenames used for texture dumping and custom texture lookup)
@@ -272,21 +358,15 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 	}
 
+
 	if (g_ActiveConfig.bHiresTextures)
 	{
-		// Load Custom textures
-		char texPathTemp[MAX_PATH];
-
-		unsigned int newWidth = width;
-		unsigned int newHeight = height;
-
-		sprintf(texPathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), (u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
-		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, texformat, temp);
-
+		pcfmt = LoadCustomTexture(tex_hash, texformat, 0, width, height);
 		if (pcfmt != PC_TEX_FMT_NONE)
 		{
-			expandedWidth = width = newWidth;
-			expandedHeight = height = newHeight;
+			expandedWidth = width;
+			expandedHeight = height;
+			using_custom_texture = true;
 		}
 	}
 
@@ -297,13 +377,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 	bool isPow2;
 	unsigned int texLevels;
-	UseNativeMips = UseNativeMips && (width == nativeW && height == nativeH); // Only load native mips if their dimensions fit to our virtual texture dimensions
 	isPow2 = !((width & (width - 1)) || (height & (height - 1)));
-	texLevels = (isPow2 && UseNativeMips && maxlevel) ?
-		GetPow2(std::max(width, height)) : !isPow2;
-
-	if ((texLevels > (maxlevel + 1)) && maxlevel)
-		texLevels = maxlevel + 1;
+	texLevels = (isPow2 && maxlevel) ? GetPow2(std::max(width, height)) : !isPow2;
+	texLevels = maxlevel ? std::min(texLevels, maxlevel + 1) : texLevels;
+	using_custom_lods = using_custom_texture && CheckForCustomTextureLODs(tex_hash, texformat, texLevels);
+	UseNativeMips = UseNativeMips && !using_custom_lods && (width == nativeW && height == nativeH); // Only load native mips if their dimensions fit to our virtual texture dimensions
+	texLevels = (UseNativeMips || using_custom_lods) ? texLevels : !isPow2;
 
 	// create the entry/texture
 	if (NULL == entry) {
@@ -329,8 +408,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	// load texture
 	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));
 
+	if (g_ActiveConfig.bDumpTextures && !using_custom_texture)
+		DumpTexture(entry, 0);
+
 	// load mips - TODO: Loading mipmaps from tmem is untested!
-	if (texLevels > 1 && pcfmt != PC_TEX_FMT_NONE)
+	if (texLevels > 1 && pcfmt != PC_TEX_FMT_NONE && UseNativeMips)
 	{
 		const unsigned int bsdepth = TexDecoder_GetTexelSizeInNibbles(texformat);
 
@@ -361,31 +443,33 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			TexDecoder_Decode(temp, *ptr, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 			entry->Load(currentWidth, currentHeight, expandedWidth, level, false);
 
+			if (g_ActiveConfig.bDumpTextures)
+				DumpTexture(entry, level);
+
 			*ptr += ((std::max(mipWidth, bsw) * std::max(mipHeight, bsh) * bsdepth) >> 1);
 			mipWidth >>= 1;
 			mipHeight >>= 1;
 			++level;
 		}
 	}
-
-	// TODO: won't this cause loaded hires textures to be dumped as well?
-	// dump texture to file
-	if (g_ActiveConfig.bDumpTextures)
+	else if (texLevels > 1 && pcfmt != PC_TEX_FMT_NONE && using_custom_lods)
 	{
-		char szTemp[MAX_PATH];
-		std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
+		unsigned int level = 1;
+		unsigned int mipWidth = (width + 1) >> 1;
+		unsigned int mipHeight = (height + 1) >> 1;
 
-		// make sure that the directory exists
-		if (false == File::Exists(szDir) || false == File::IsDirectory(szDir))
-			File::CreateDir(szDir.c_str());
+		while ((mipHeight || mipWidth) && (level < texLevels))
+		{
+			unsigned int currentWidth = (mipWidth > 0) ? mipWidth : 1;
+			unsigned int currentHeight = (mipHeight > 0) ? mipHeight : 1;
 
-		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir.c_str(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
-				(u32) (tex_hash & 0x00000000FFFFFFFFLL), texformat);
+			LoadCustomTexture(tex_hash, texformat, level, currentWidth, currentHeight);
+			entry->Load(currentWidth, currentHeight, currentWidth, level, false);
 
-		if (false == File::Exists(szTemp))
-			entry->Save(szTemp);
+			mipWidth >>= 1;
+			mipHeight >>= 1;
+			++level;
+		}
 	}
 
 	INCSTAT(stats.numTexturesCreated);

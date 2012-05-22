@@ -84,7 +84,7 @@ public:
 		virtual ~TCacheEntryBase();
 
 		virtual void Bind(unsigned int stage) = 0;
-		virtual bool Save(const char filename[]) = 0;
+		virtual bool Save(const char filename[], unsigned int level) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level, bool autogen_mips) = 0;
@@ -124,8 +124,14 @@ protected:
 	TextureCache();
 
 	static  GC_ALIGNED16(u8 *temp);
+	static unsigned int temp_size;
 
 private:
+	static bool CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels);
+	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height);
+	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
+
+
 	typedef std::map<u32, TCacheEntryBase*> TexCache;
 
 	static TexCache textures;
