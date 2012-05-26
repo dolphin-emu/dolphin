@@ -585,7 +585,7 @@ void VideoThrottle()
 
 		u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
 		u32 VPS = DrawnVideo * 1000 / ElapseTime;
-		u32 Speed = VPS * 100 / VideoInterface::TargetRefreshRate;
+		u32 Speed = DrawnVideo * (100 * 1000) / (VideoInterface::TargetRefreshRate * ElapseTime);
 		
 		// Settings are shown the same for both extended and summary info
 		std::string SSettings = StringFromFormat("%s %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC");
