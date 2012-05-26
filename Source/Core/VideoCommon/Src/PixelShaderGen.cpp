@@ -631,9 +631,9 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 	{
 		// the screen space depth value = far z + (clip z / clip w) * z range
 		if (numTexgen < 7)
-			WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
+			WRITE(p, "float zCoord = " I_ZBIAS "[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS "[1].y;\n");
 		else
-			WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (uv2.w / uv3.w) * "I_ZBIAS"[1].y;\n");
+			WRITE(p, "float zCoord = " I_ZBIAS "[1].x + (uv2.w / uv3.w) * " I_ZBIAS "[1].y;\n");
 	}
 	char* pmainstart = p;
 	if(PSGRenderMode == PSGRENDER_ZCOMPLOCK && !DepthTextureEnable)

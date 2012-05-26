@@ -41,11 +41,11 @@ class TASInputDlg : public wxDialog
 		void OnMouseUpR(wxMouseEvent& event);
 		void ResetValues();
 		void GetValues(SPADStatus *PadStatus, int controllerID);
-		void TASInputDlg::SetTurbo(wxMouseEvent& event);
-		void TASInputDlg::SetTurboFalse(wxMouseEvent& event);
-		void TASInputDlg::ButtonTurbo();
-		void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus);
-		bool TASInputDlg::TextBoxHasFocus();
+		void SetTurbo(wxMouseEvent& event);
+		void SetTurboFalse(wxMouseEvent& event);
+		void ButtonTurbo();
+		void GetKeyBoardInput(SPADStatus *PadStatus);
+		bool TextBoxHasFocus();
 		bool HasFocus();
 
 		wxBitmap CreateStickBitmap(int x, int y);

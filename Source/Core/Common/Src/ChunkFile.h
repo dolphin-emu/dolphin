@@ -99,7 +99,7 @@ public:
 		case MODE_MEASURE:
 		case MODE_VERIFY:
 			{
-				std::map<unsigned int, T>::iterator itr = x.begin();
+				typename std::map<unsigned int, T>::iterator itr = x.begin();
 				while (number > 0)
 				{
 					Do(itr->first);
