@@ -48,6 +48,7 @@ public:
 		u32 size_in_bytes;
 		u64 hash;
 		//u32 pal_hash;
+		bool from_tmem;
 		u32 format;
 
 		enum TexCacheEntryType type;
@@ -105,11 +106,10 @@ public:
 	static void OnConfigChanged(VideoConfig& config);
 	static void Cleanup();
 
-	static void Invalidate();
+	static void InvalidateAll();
 	static void InvalidateRange(u32 start_address, u32 size);
-	static void MakeRangeDynamic(u32 start_address, u32 size);
+
 	static void ClearRenderTargets();	// currently only used by OGL
-	static bool Find(u32 start_address, u64 hash);
 
 	virtual TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
 		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt) = 0;
@@ -117,6 +117,9 @@ public:
 
 	static TCacheEntryBase* Load(unsigned int stage, u32 address, unsigned int width, unsigned int height,
 		int format, unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem);
+
+	static void Commit(TCacheEntryBase *tex, bool clear = false);
+
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
@@ -132,7 +135,7 @@ private:
 	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
 
 
-	typedef std::map<u32, TCacheEntryBase*> TexCache;
+	typedef std::map<u64, TCacheEntryBase*> TexCache;
 
 	static TexCache textures;
 

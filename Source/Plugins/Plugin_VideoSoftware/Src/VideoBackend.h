@@ -39,6 +39,8 @@ class VideoSoftware : public VideoBackend
 	bool Video_IsPossibleWaitingSetDrawDone();
 	void Video_AbortFrame();
 
+	void Video_InvalidateRange(u32 em_address, u32 size);
+
 	readFn16  Video_CPRead16();
 	writeFn16 Video_CPWrite16();
 	readFn16  Video_PERead16();

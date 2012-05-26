@@ -247,6 +247,10 @@ void VideoSoftware::Video_AbortFrame(void)
 {
 }
 
+void VideoSoftware::Video_InvalidateRange(u32 em_address, u32 size)
+{
+}
+
 readFn16 VideoSoftware::Video_CPRead16()
 {
 	return SWCommandProcessor::Read16;

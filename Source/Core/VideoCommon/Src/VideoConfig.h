@@ -120,12 +120,10 @@ struct VideoConfig
 	bool bDlistCachingEnable;
 
 	bool bEFBCopyEnable;
-	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;
 	bool bOSDHotKey;
 	bool bCopyEFBToTexture;	
 	bool bCopyEFBScaled;
-	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[4];
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;

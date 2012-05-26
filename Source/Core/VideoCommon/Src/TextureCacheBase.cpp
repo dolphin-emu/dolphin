@@ -27,6 +27,7 @@
 #include "Debugger.h"
 #include "ConfigManager.h"
 #include "HW/Memmap.h"
+#include "PowerPC/PowerPC.h"
 
 // ugly
 extern int frameCount;
@@ -61,20 +62,24 @@ TextureCache::TextureCache()
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 }
 
-void TextureCache::Invalidate()
+void TextureCache::InvalidateAll()
 {
 	TexCache::iterator
 		iter = textures.begin(),
 		tcend = textures.end();
 	for (; iter != tcend; ++iter)
-		delete iter->second;
+	{
+		if (iter->second)
+		{
+			delete iter->second;
+		}
 
 	textures.clear();
 }
 
 TextureCache::~TextureCache()
 {
-	Invalidate();
+	InvalidateAll();
 	if (temp)
 	{
 		FreeAlignedMemory(temp);
@@ -130,10 +135,17 @@ void TextureCache::Cleanup()
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
-		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) // TODO: Deleting EFB copies might not be a good idea here...
+		if (iter->second && iter->second->hash == TEXHASH_INVALID)
 		{
-			delete iter->second;
-			textures.erase(iter++);
+			if ((frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) || (Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_TEXTURE && !iter->second->from_tmem))
+			{
+				Commit(iter->second, true);
+				delete iter->second;
+				iter->second = 0;
+				textures.erase(iter++);
+			}
+			else
+				++iter;
 		}
 		else
 			++iter;
@@ -142,24 +154,11 @@ void TextureCache::Cleanup()
 
 void TextureCache::InvalidateRange(u32 start_address, u32 size)
 {
-	TexCache::iterator
-		iter = textures.begin(),
-		tcend = textures.end();
-	while (iter != tcend)
-	{
-		const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
-		if (0 == rangePosition)
-		{
-			delete iter->second;
-			textures.erase(iter++);
-		}
-		else
-			++iter;
-	}
-}
+	bool found = false;
+	start_address &= 0x1fffffe0;
+	size &= ~31;
 
-void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
-{
+	// Invalidate normal textures
 	TexCache::iterator
 		iter = textures.lower_bound(start_address),
 		tcend = textures.upper_bound(start_address + size);
@@ -169,22 +168,40 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 
 	for (; iter != tcend; ++iter)
 	{
-		const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
-		if (0 == rangePosition)
+		if (iter->second && iter->second->hash != TEXHASH_INVALID)
 		{
-			iter->second->SetHashes(TEXHASH_INVALID);
+			const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
+			if (0 == rangePosition)
+			{
+				Commit(iter->second, true);
+				iter->second->SetHashes(TEXHASH_INVALID);
+				found = true;
+			}
 		}
 	}
-}
 
-bool TextureCache::Find(u32 start_address, u64 hash)
-{
-	TexCache::iterator iter = textures.lower_bound(start_address);
+	// Invalidate paletted textures
+	if (!found)
+	{
+		iter = textures.lower_bound((u64)start_address << 32),
+		tcend = textures.upper_bound((u64)(start_address + size) << 32 | 0xffffffff);
 
-	if (iter->second->hash == hash)
-		return true;
+		if (iter != textures.begin())
+			iter--;
 
-	return false;
+		for (; iter != tcend; ++iter)
+		{
+			if (iter->second && iter->second->hash != TEXHASH_INVALID)
+			{
+				const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
+				if (0 == rangePosition)
+				{
+					Commit(iter->second, true);
+					iter->second->SetHashes(TEXHASH_INVALID);
+				}
+			}
+		}
+	}
 }
 
 int TextureCache::TCacheEntryBase::IntersectsMemoryRange(u32 range_address, u32 range_size) const
@@ -310,7 +327,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	bool using_custom_texture = false;
 	bool using_custom_lods = false;
 
-	u32 texID = address;
+	u64 texID = from_tmem ? (bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE) + 0x20000000 : (address & 0x1fffffe0);
 	u64 tex_hash = TEXHASH_INVALID; // Hash assigned to texcache entry (also used to generate filenames used for texture dumping and custom texture lookup)
 	u64 tlut_hash = TEXHASH_INVALID;
 
@@ -326,23 +343,34 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (from_tmem) src_data = &texMem[bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE];
 	else src_data = Memory::GetPointer(address);
 
-	tex_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	if (g_ActiveConfig.bHiresTextures || from_tmem)
+		tex_hash = GetHash64(src_data, texture_size, 128);
+	else
+		tex_hash = address & 0x1fffffe0;
+
 	if (isPaletteTexture)
 	{
-		const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
-		tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		if (g_ActiveConfig.bHiresTextures)
+		{
+			const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
+			tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, 128);
+			texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
+			tex_hash ^= tlut_hash;
+		}
+		else
+		{
+			const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
+			tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, 32);
 
-		// NOTE: For non-paletted textures, texID is equal to the texture address.
-		//		A paletted texture, however, may have multiple texIDs assigned though depending on the currently used tlut.
-		//		This (changing texID depending on the tlut_hash) is a trick to get around
-		//		an issue with Metroid Prime's fonts (it has multiple sets of fonts on each other
-		//		stored in a single texture and uses the palette to make different characters
-		//		visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
-		//		we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
-		//
-		// TODO: Because texID isn't always the same as the address now, CopyRenderTargetToTexture might be broken now
-		texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
-		tex_hash ^= tlut_hash;
+			// NOTE: For non-paletted textures, texID is equal to the texture address.
+			//		A paletted texture, however, may have multiple texIDs assigned though depending on the currently used tlut.
+			//		This (changing texID depending on the tlut_hash) is a trick to get around
+			//		an issue with Metroid Prime's fonts (it has multiple sets of fonts on each other
+			//		stored in a single texture and uses the palette to make different characters
+			//		visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
+			//		we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
+			texID = ((u64)(address & 0x1fffffe0) << 32) | tlut_hash;
+		}
 	}
 
 	TCacheEntryBase *entry = textures[texID];
@@ -351,14 +379,16 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// 1. Calculate reference hash:
 		// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
 		if (g_ActiveConfig.bCopyEFBToTexture && entry->IsEfbCopy())
+		{
+			Commit(entry, true);
 			tex_hash = TEXHASH_INVALID;
+		}
 
-		// 2. a) For EFB copies, only the hash and the texture address need to match
-		if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
+		// 2. a) For EFB copies, only the format and the texture address need to match
+		if (entry->IsEfbCopy() && full_format == entry->format && entry->hash != TEXHASH_INVALID)
 		{
 			entry->type = TCET_EC_VRAM;
 
-			// TODO: Print a warning if the format changes! In this case, we could reinterpret the internal texture object data to the new pixel format (similiar to what is already being done in Renderer::ReinterpretPixelFormat())
 			goto return_entry;
 		}
 
@@ -415,7 +445,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	texLevels = (UseNativeMips || using_custom_lods) ? texLevels : !isPow2;
 
 	// create the entry/texture
-	if (NULL == entry) {
+	if (NULL == entry)
+	{
 		textures[texID] = entry = g_texture_cache->CreateTexture(width, height, expandedWidth, texLevels, pcfmt);
 
 		// Sometimes, we can get around recreating a texture if only the number of mip levels changes
@@ -429,11 +460,15 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
 
-	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
+	entry->SetGeneralParameters(address & 0x1fffffe0, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
+	entry->from_tmem = from_tmem;
 	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_EC_DYNAMIC;
 	else entry->type = TCET_NORMAL;
+
+	// Commit the texture to the map
+	Commit(entry);
 
 	// load texture
 	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));
@@ -786,6 +821,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		entry->SetDimensions(tex_w, tex_h, scaled_tex_w, scaled_tex_h);
 		entry->SetHashes(TEXHASH_INVALID);
 		entry->type = TCET_EC_VRAM;
+		Commit(entry, true);
 	}
 
 	entry->frameCount = frameCount;
@@ -795,4 +831,15 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
 	g_renderer->RestoreAPIState();
+}
+
+void TextureCache::Commit(TCacheEntryBase *tex, bool clear)
+{
+	if (!tex->from_tmem)
+	{
+		u32 address = tex->addr;
+		u32 size = tex->size_in_bytes;
+		memset((u8*)(Memory::game_map + ((address & 0x1fffffe0) >> 5)), clear ? Memory::GMAP_CLEAR : Memory::GMAP_TEXTURE, (size & ~31) >> 5);
+	}
+
 }

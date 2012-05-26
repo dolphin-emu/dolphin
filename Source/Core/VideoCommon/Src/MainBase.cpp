@@ -203,7 +203,7 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 
 		// Clear all caches that touch RAM
 		// (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
-		TextureCache::Invalidate();
+		TextureCache::InvalidateAll();
 		VertexLoaderManager::MarkAllDirty();
 	}
 }
@@ -243,6 +243,11 @@ bool VideoBackendHardware::Video_IsHiWatermarkActive()
 void VideoBackendHardware::Video_AbortFrame()
 {
 	CommandProcessor::AbortFrame();
+}
+
+void VideoBackendHardware::Video_InvalidateRange(u32 em_address, u32 size)
+{
+	TextureCache::InvalidateRange(em_address, size);
 }
 
 readFn16 VideoBackendHardware::Video_CPRead16()

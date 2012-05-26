@@ -45,6 +45,7 @@ static const unsigned short FPU_ROUND_MASK = 3 << 10;
 #include "Interpreter.h"
 
 #include "Interpreter_FPUtils.h"
+#include "VideoBackendBase.h"
 
 /*
 
@@ -408,14 +409,25 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 			u32 dwCacheAddress = DMAL.LC_ADDR << 5;
 			u32 iLength = ((DMAU.DMA_LEN_U << 2) | DMAL.DMA_LEN_L);
 			// INFO_LOG(POWERPC, "DMA: mem = %x, cache = %x, len = %u, LD = %d, PC=%x", dwMemAddress, dwCacheAddress, iLength, (int)DMAL.DMA_LD, PC);
-			if (iLength == 0) 
+			if (iLength == 0)
+			{
 				iLength = 128;
-			if (DMAL.DMA_LD)
+			}
+			if (DMAL.DMA_LD && HID2.LCE)
+			{
 				Memory::DMA_MemoryToLC(dwCacheAddress, dwMemAddress, iLength);
+			}
 			else
+			{
 				Memory::DMA_LCToMemory(dwMemAddress, dwCacheAddress, iLength);
+
+				// The THP Player uses the locked cache to store textures.
+				// Invalidate the DMA range in case there are textures stored there.
+				g_video_backend->Video_InvalidateRange(dwMemAddress, iLength << 5);
+			}
 		}
 		DMAL.DMA_T = 0;
+		DMAL.DMA_F = 0;
 		break;
 
 	case SPR_L2CR:

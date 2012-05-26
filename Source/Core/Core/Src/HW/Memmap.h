@@ -51,6 +51,8 @@ namespace Memory
 // so be sure to load it into a 64-bit register.
 extern u8 *base; 
 
+extern u8* game_map;
+
 // These are guaranteed to point to "low memory" addresses (sub-32-bit).
 extern u8 *m_pRAM;
 extern u8 *m_pEXRAM;
@@ -82,6 +84,13 @@ enum
 #ifdef _M_IX86
 	MEMVIEW32_MASK  = 0x3FFFFFFF,
 #endif
+};
+
+// Flags to mark memory regions of the game
+enum
+{
+	GMAP_CLEAR,
+	GMAP_TEXTURE,
 };
 
 // Init and Shutdown

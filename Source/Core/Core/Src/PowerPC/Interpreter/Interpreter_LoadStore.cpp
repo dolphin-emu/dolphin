@@ -28,6 +28,7 @@
 #include "../JitCommon/JitCache.h"
 
 #include "Interpreter_FPUtils.h"
+#include "VideoBackendBase.h"
 
 bool Interpreter::g_bReserve;
 u32  Interpreter::g_reserveAddr;
@@ -353,7 +354,6 @@ void Interpreter::dcba(UGeckoInstruction _inst)
 
 void Interpreter::dcbf(UGeckoInstruction _inst)
 {
-	//This should tell GFX backend to throw out any cached data here
 	// !!! SPEEDUP HACK for OSProtectRange !!!
 /*	u32 tmp1 = Memory::Read_U32(PC+4);
 	u32 tmp2 = Memory::Read_U32(PC+8);
@@ -363,33 +363,45 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 	{
 		NPC = PC + 12;
 	}*/
+
+	u32 address = Helper_Get_EA_X(_inst);
+
 	// Invalidate the jit block cache on dcbf
 	if (jit)
-	{
-		u32 address = Helper_Get_EA_X(_inst);
 		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
+
+	// Tell GFX backend to throw out any cached textures
+	if ((address & 0x0c000000) == 0)
+	{
+		if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE)
+			g_video_backend->Video_InvalidateRange(address, 32);
 	}
 }
 
 void Interpreter::dcbi(UGeckoInstruction _inst)
 {
+	u32 address = Helper_Get_EA_X(_inst);
+
 	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything to the data cache
 	// However, we invalidate the jit block cache on dcbi
 	if (jit)
-	{
-		u32 address = Helper_Get_EA_X(_inst);
 		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
-	}
 }
 
 void Interpreter::dcbst(UGeckoInstruction _inst)
 {
+	u32 address = Helper_Get_EA_X(_inst);
+
 	// Cache line flush. Since we don't emulate the data cache, we don't need to do anything.
 	// Invalidate the jit block cache on dcbst in case new code has been loaded via the data cache
 	if (jit)
-	{
-		u32 address = Helper_Get_EA_X(_inst);
 		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
+
+	// Tell GFX backend to throw out any cached textures
+	if ((address & 0x0c000000) == 0)
+	{
+		if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE)
+			g_video_backend->Video_InvalidateRange(address, 32);
 	}
 }
 
@@ -406,11 +418,13 @@ void Interpreter::dcbtst(UGeckoInstruction _inst)
 
 void Interpreter::dcbz(UGeckoInstruction _inst)
 {	
+	u32 address = Helper_Get_EA_X(_inst);
+
 	// HACK but works... we think
 	if (HID2.WPE || !HID0.DCFA)
-		Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
-	if (!jit)
-		PowerPC::CheckExceptions();
+	{
+		Memory::Memset(address & ~31, 0, 32);
+	}
 }
 
 // eciwx/ecowx technically should access the specified device
@@ -469,7 +483,7 @@ void Interpreter::eieio(UGeckoInstruction _inst)
 
 void Interpreter::icbi(UGeckoInstruction _inst)
 {	
-	u32 address = Helper_Get_EA_X(_inst);	
+	u32 address = Helper_Get_EA_X(_inst);
 	PowerPC::ppcState.iCache.Invalidate(address);
 }
 

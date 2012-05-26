@@ -66,6 +66,7 @@ bool bMMU = false;
 // ----------------
 // Store the MemArena here
 u8*	base = NULL;
+u8*	game_map = NULL;
 
 // The MemArena class
 MemArena g_arena;
@@ -357,6 +358,9 @@ void Init()
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	base = MemoryMap_Setup(views, num_views, flags, &g_arena);
 
+	game_map = (u8*)AllocateMemoryPages(0x1d802000 >> 5);
+	memset(game_map, GMAP_CLEAR, 0x1d802000 >> 5);
+
 	if (wii)
 		InitHWMemFuncsWii();
 	else
@@ -391,6 +395,7 @@ void Shutdown()
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSpace();
 	base = NULL;
+	game_map = NULL;
 	INFO_LOG(MEMMAP, "Memory system shut down.");
 }
 
