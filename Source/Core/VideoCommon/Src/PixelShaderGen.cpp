@@ -27,7 +27,7 @@
 #include "VideoConfig.h"
 #include "NativeVertexFormat.h"
 
-static int AlphaPreTest();
+static ALPHA_PRETEST_RESULT AlphaPreTest();
 
 static void StageHash(int stage, u32* out)
 {
@@ -102,26 +102,25 @@ static void StageHash(int stage, u32* out)
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 // It would likely be a lot more efficient to build this incrementally as the attributes
 // are set...
-void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components)
+void GetPixelShaderId(PIXELSHADERUID *uid, PSGRENDER_MODE PSGRenderMode, u32 components)
 {
 	memset(uid->values, 0, sizeof(uid->values));
 	uid->values[0] |= bpmem.genMode.numtevstages; // 4
 	uid->values[0] |= bpmem.genMode.numtexgens << 4; // 4
-	uid->values[0] |= dstAlphaMode << 8; // 2
-
-	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth;
+	uid->values[0] |= ((u32)PSGRenderMode) << 8; // 2
+	bool PixelLigthingEnabled = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && (bpmem.zmode.testenable || bpmem.zmode.updateenable));
+	bool MustWriteToDepth = DepthTextureEnable  || g_ActiveConfig.bEnablePerPixelDepth;
+	bool FastZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && false;	
 
 	uid->values[0] |= DepthTextureEnable << 10; // 1
-
-	bool enablePL = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
-	uid->values[0] |= enablePL << 11; // 1
-
-	if (!enablePL) uid->values[0] |= xfregs.numTexGen.numTexGens << 12; // 4
-	u32 alphaPreTest = AlphaPreTest()+1;
-
-	uid->values[0] |= alphaPreTest << 16; // 2
-
-	if (alphaPreTest == 1 || (alphaPreTest && !DepthTextureEnable && dstAlphaMode == DSTALPHA_ALPHA_PASS))
+	uid->values[0] |= MustWriteToDepth << 11; // 1
+	uid->values[0] |= PixelLigthingEnabled << 12; // 1	
+	if (!PixelLigthingEnabled) uid->values[0] |= xfregs.numTexGen.numTexGens << 13; // 4
+	ALPHA_PRETEST_RESULT alphaPreTest = AlphaPreTest();
+	uid->values[0] |= ((u32)alphaPreTest) << 17; // 2
+	uid->values[0] |= FastZcomploc << 18; // 2
+	if (((alphaPreTest == ALPHAPT_ALWAYSFAIL) || (alphaPreTest == ALPHAPT_ALWAYSPASS && PSGRenderMode == PSGRENDER_DSTALPHA_ALPHA_PASS)) && !DepthTextureEnable)
 	{
 		// Courtesy of PreAlphaTest, we're done already ;)
 		// NOTE: The comment header of generated shaders depends on the value of bpmem.genmode.numindstages.. shouldnt really bother about that though.
@@ -131,13 +130,13 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 
 	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
 	{
-		if (18+i < 32)
-			uid->values[0] |= xfregs.texMtxInfo[i].projection << (18+i); // 1
+		if (19+i < 32)
+			uid->values[0] |= xfregs.texMtxInfo[i].projection << (19+i); // 1
 		else
-			uid->values[1] |= xfregs.texMtxInfo[i].projection << (i - 14); // 1
+			uid->values[1] |= xfregs.texMtxInfo[i].projection << (i - 13); // 1
 	}
 
-	uid->values[1] = bpmem.genMode.numindstages << 2; // 3
+	uid->values[1] = bpmem.genMode.numindstages << 3; // 3
 	u32 indirectStagesUsed = 0;
 	for (unsigned int i = 0; i < bpmem.genMode.numindstages; ++i)
 		if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
@@ -145,13 +144,13 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 
 	assert(indirectStagesUsed == (indirectStagesUsed & 0xF));
 
-	uid->values[1] |= indirectStagesUsed << 5; // 4;
+	uid->values[1] |= indirectStagesUsed << 6; // 4;
 
 	for (unsigned int i = 0; i < bpmem.genMode.numindstages; ++i)
 	{
 		if (indirectStagesUsed & (1 << i))
 		{
-			uid->values[1] |= (bpmem.tevindref.getTexCoord(i) < bpmem.genMode.numtexgens) << (9 + 3*i); // 1
+			uid->values[1] |= (bpmem.tevindref.getTexCoord(i) < bpmem.genMode.numtexgens) << (10 + 3*i); // 1
 			if (bpmem.tevindref.getTexCoord(i) < bpmem.genMode.numtexgens)
 				uid->values[1] |= bpmem.tevindref.getTexCoord(i) << (10 + 3*i); // 2
 		}
@@ -180,7 +179,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 		}
 	}
 
-	if (dstAlphaMode != DSTALPHA_ALPHA_PASS)
+	if (PSGRenderMode != PSGRENDER_DSTALPHA_ALPHA_PASS)
 	{
 		if (bpmem.fog.c_proj_fsel.fsel != 0)
 		{
@@ -190,7 +189,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	}
 
 	++ptr;
-	if (enablePL)
+	if (PixelLigthingEnabled)
 	{
 		ptr += GetLightingShaderId(ptr);
 		*ptr++ = components;
@@ -199,20 +198,26 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	uid->num_values = ptr - uid->values;
 }
 
-void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u32 components)
+void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, PSGRENDER_MODE PSGRenderMode, u32 components)
 {
 	memset(uid->values, 0, sizeof(uid->values));
+	bool PixelLigthingEnabled = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && (bpmem.zmode.testenable || bpmem.zmode.updateenable));
+	bool MustWriteToDepth = DepthTextureEnable  || g_ActiveConfig.bEnablePerPixelDepth;
+	bool FastZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && false;	
 	u32* ptr = uid->values;
-	*ptr++ = dstAlphaMode; // 0
+	*ptr++ = ((u32)PSGRenderMode); // 0
 	*ptr++ = bpmem.genMode.hex; // 1
 	*ptr++ = bpmem.ztex2.hex; // 2
 	*ptr++ = bpmem.zcontrol.hex; // 3
 	*ptr++ = bpmem.zmode.hex; // 4
-	*ptr++ = g_ActiveConfig.bEnablePerPixelDepth; // 5
-	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting; // 6
+	*ptr++ = MustWriteToDepth; // 5
+	*ptr++ = PixelLigthingEnabled; // 6
 	*ptr++ = xfregs.numTexGen.hex; // 7
+	*ptr++ = DepthTextureEnable; // 8
+	*ptr++ = FastZcomploc; // 9
 
-	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if (PixelLigthingEnabled)
 	{
 		*ptr++ = xfregs.color[0].hex;
 		*ptr++ = xfregs.alpha[0].hex;
@@ -222,43 +227,43 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 	}
 
 	for (unsigned int i = 0; i < 8; ++i)
-		*ptr++ = xfregs.texMtxInfo[i].hex; // 8-15
+		*ptr++ = xfregs.texMtxInfo[i].hex; // 9-17
 
 	for (unsigned int i = 0; i < 16; ++i)
-		*ptr++ = bpmem.tevind[i].hex; // 16-31
+		*ptr++ = bpmem.tevind[i].hex; // 18-33
 
-	*ptr++ = bpmem.tevindref.hex; // 32
+	*ptr++ = bpmem.tevindref.hex; // 34
 
 	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i) // up to 16 times
 	{
-		*ptr++ = bpmem.combiners[i].colorC.hex; // 33+5*i
-		*ptr++ = bpmem.combiners[i].alphaC.hex; // 34+5*i
-		*ptr++ = bpmem.tevind[i].hex; // 35+5*i
-		*ptr++ = bpmem.tevksel[i/2].hex; // 36+5*i
-		*ptr++ = bpmem.tevorders[i/2].hex; // 37+5*i
+		*ptr++ = bpmem.combiners[i].colorC.hex; // 35+5*i
+		*ptr++ = bpmem.combiners[i].alphaC.hex; // 36+5*i
+		*ptr++ = bpmem.tevind[i].hex; // 37+5*i
+		*ptr++ = bpmem.tevksel[i/2].hex; // 38+5*i
+		*ptr++ = bpmem.tevorders[i/2].hex; // 39+5*i
 	}
 
-	ptr = &uid->values[113];
+	ptr = &uid->values[115];
 
-	*ptr++ = bpmem.alphaFunc.hex; // 113
+	*ptr++ = bpmem.alphaFunc.hex; // 116
 
-	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 114
-	*ptr++ = bpmem.fogRange.Base.hex; // 115
+	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 117
+	*ptr++ = bpmem.fogRange.Base.hex; // 118
 
 	_assert_((ptr - uid->values) == uid->GetNumValues());
 }
 
-void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::string& old_code, DSTALPHA_MODE dstAlphaMode, u32 components)
+void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::string& old_code, PSGRENDER_MODE PSGRenderMode, u32 components)
 {
 	if (!g_ActiveConfig.bEnableShaderDebugging)
 		return;
 
 	PIXELSHADERUIDSAFE new_id;
-	GetSafePixelShaderId(&new_id, dstAlphaMode, components);
+	GetSafePixelShaderId(&new_id, PSGRenderMode, components);
 
 	if (!(old_id == new_id))
 	{
-		std::string new_code(GeneratePixelShaderCode(dstAlphaMode, api, components));
+		std::string new_code(GeneratePixelShaderCode(PSGRenderMode, api, components));
 		if (old_code != new_code)
 		{
 			_assert_(old_id.GetNumValues() == new_id.GetNumValues());
@@ -299,7 +304,7 @@ void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::
 static void WriteStage(char *&p, int n, API_TYPE ApiType);
 static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
-static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode);
+static void WriteAlphaTest(char *&p, API_TYPE ApiType,PSGRENDER_MODE PSGRenderMode);
 static void WriteFog(char *&p);
 
 static const char *tevKSelTableC[] = // KCSEL
@@ -485,7 +490,10 @@ static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "7.0f" };
 static char swapModeTable[4][5];
 
 static char text[16384];
+static bool PixelLigthingEnabled;
 static bool DepthTextureEnable;
+static bool MustWriteToDepth;
+static bool FastZcomploc;
 
 static void BuildSwapModeTable()
 {
@@ -500,7 +508,7 @@ static void BuildSwapModeTable()
 	}
 }
 
-const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiType, u32 components)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
@@ -523,7 +531,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
 		}
 	}
-	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ;
+	PixelLigthingEnabled = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && (bpmem.zmode.testenable || bpmem.zmode.updateenable));
+	MustWriteToDepth = DepthTextureEnable  || g_ActiveConfig.bEnablePerPixelDepth;
+	FastZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && false;
 	// Declare samplers
 
 	if(ApiType != API_D3D11)
@@ -565,7 +576,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "uniform float4 " I_INDTEXMTX"[6] : register(c%d);\n", C_INDTEXMTX);
 	WRITE(p, "uniform float4 " I_FOG"[3] : register(c%d);\n", C_FOG);
 
-	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if(PixelLigthingEnabled)
 	{
 		WRITE(p,"typedef struct { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; } Light;\n");
 		WRITE(p,"typedef struct { Light lights[8]; } s_" I_PLIGHTS";\n");
@@ -578,15 +589,15 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if(ApiType != API_D3D11)
 	{
 		WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
-			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
-			DepthTextureEnable ? "\n  out float depth : DEPTH," : "",
+			PSGRenderMode == PSGRENDER_DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
+			MustWriteToDepth ? "\n  out float depth : DEPTH," : "",
 			ApiType & API_OPENGL ? "WPOS" : ApiType & API_D3D9_SM20 ? "POSITION" : "VPOS");
 	}
 	else
 	{
 		WRITE(p, "  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
-			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
-			DepthTextureEnable ? "\n  out float depth : SV_Depth," : "");
+			PSGRenderMode == PSGRENDER_DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
+			MustWriteToDepth ? "\n  out float depth : SV_Depth," : "");
 	}
 
 	WRITE(p, "  in float4 colors_0 : COLOR0,\n");
@@ -598,51 +609,79 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		for (int i = 0; i < numTexgen; ++i)
 			WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
 		WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		if(PixelLigthingEnabled)
 			WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
 	}
 	else
 	{
 		// wpos is in w of first 4 texcoords
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		if(PixelLigthingEnabled)
 		{
-			for (int i = 0; i < 8; ++i)
+			for (int i = 0; i < numTexgen; ++i)
 				WRITE(p, ",\n  in float4 uv%d : TEXCOORD%d", i, i);
 		}
 		else
 		{
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+			for (unsigned int i = 0; i < numTexgen; ++i)
 				WRITE(p, ",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
 		}
 	}
 	WRITE(p, "        ) {\n");
-
-	char* pmainstart = p;
-	int Pretest = AlphaPreTest();
-	if(Pretest >= 0 && !DepthTextureEnable)
+	if((bpmem.fog.c_proj_fsel.fsel != 0) || MustWriteToDepth)
 	{
-		if (!Pretest)
+		// the screen space depth value = far z + (clip z / clip w) * z range
+		if (numTexgen < 7)
+			WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
+		else
+			WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (uv2.w / uv3.w) * "I_ZBIAS"[1].y;\n");
+	}
+	char* pmainstart = p;
+	if(PSGRenderMode == PSGRENDER_ZCOMPLOCK && !DepthTextureEnable)
+	{
+		//we are in zcomlock pass, so just make this an empty function		
+		WRITE(p, "ocol0 = 0;\n");
+		// only write to depth if shader Mode requeires it
+		if(MustWriteToDepth)
+			WRITE(p, "depth = zCoord;\n");		
+		WRITE(p, "}\n");
+			return text;		
+	}
+	ALPHA_PRETEST_RESULT Pretest = AlphaPreTest();
+	//Test if we can predict the alpha test result or if we are in depth only mode
+	if((Pretest != ALPHAPT_UNDEFINED) && !DepthTextureEnable)
+	{
+		if (Pretest == ALPHAPT_ALWAYSFAIL)
 		{
-			// alpha test will always fail, so restart the shader and just make it an empty function		
+			// alpha test will always fail, just make this an empty function		
 			WRITE(p, "ocol0 = 0;\n");
-			if(DepthTextureEnable)
-				WRITE(p, "depth = 1.f;\n");
-			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+			// only write to depth if the shader mode requires it
+			if(MustWriteToDepth)
+				WRITE(p, "depth = zCoord;\n");
+			// if we are in dual source blend mode initialize  the secondary color o the shader will fail
+			if(PSGRenderMode == PSGRENDER_DSTALPHA_DUAL_SOURCE_BLEND)
 					WRITE(p, "ocol1 = 0;\n");
-			WRITE(p, "discard;\n");
-			if(ApiType != API_D3D11)
-				WRITE(p, "return;\n");
+			//No discard if zcomlock is enebled and we are using fast zcomploc
+			if(!FastZcomploc)
+			{
+				WRITE(p, "discard;\n");
+				if(ApiType != API_D3D11)
+					WRITE(p, "return;\n");
+			}
 		}
-		else if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
+		else if (PSGRenderMode == PSGRENDER_DSTALPHA_ALPHA_PASS)
 		{
+			//write constant alpha value
 			WRITE(p, "  ocol0 = " I_ALPHA"[0].aaaa;\n");
+			// only write to depth if the shader mode requires it
+			if(MustWriteToDepth)
+				WRITE(p, "depth = zCoord;\n");
 		}
-		if(!Pretest || dstAlphaMode == DSTALPHA_ALPHA_PASS)
+		if((Pretest == ALPHAPT_ALWAYSFAIL) || (PSGRenderMode == PSGRENDER_DSTALPHA_ALPHA_PASS))
 		{
 			WRITE(p, "}\n");
 			return text;
 		}
-	}
+	}	
 
 	WRITE(p, "  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
 			"  float3 comp16 = float3(1.0f, 255.0f, 0.0f), comp24 = float3(1.0f, 255.0f, 255.0f*255.0f);\n"
@@ -653,9 +692,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			"  float4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
 
-	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if(PixelLigthingEnabled)
 	{
-		if (xfregs.numTexGen.numTexGens < 7)
+		if (numTexgen < 7)
 		{
 			WRITE(p,"float3 _norm0 = normalize(Normal.xyz);\n\n");
 			WRITE(p,"float3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
@@ -730,21 +769,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	// emulation of unsigned 8 overflow when casting
 	WRITE(p, "prev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
-	if(Pretest ==  -1)
-	{
-		WriteAlphaTest(p, ApiType, dstAlphaMode);
-	}
-
-	if((bpmem.fog.c_proj_fsel.fsel != 0) || DepthTextureEnable)
-	{
-		// the screen space depth value = far z + (clip z / clip w) * z range
-		WRITE(p, "float zCoord = " I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS"[1].y;\n");
-	}
-
-	if (DepthTextureEnable)
+	if (MustWriteToDepth)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-		if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
+		if (DepthTextureEnable)
 		{
 			if (bpmem.ztex2.op == ZTEXTURE_ADD)
 				WRITE(p, "zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w + zCoord;\n");
@@ -757,9 +785,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
 		}
 		WRITE(p, "depth = zCoord;\n");
-	}
+	}	
 
-	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
+	if (PSGRenderMode == PSGRENDER_DSTALPHA_ALPHA_PASS)
 		WRITE(p, "  ocol0 = float4(prev.rgb, " I_ALPHA"[0].a);\n");
 	else
 	{
@@ -769,12 +797,27 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	// On D3D11, use dual-source color blending to perform dst alpha in a
 	// single pass
-	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+	if (PSGRenderMode == PSGRENDER_DSTALPHA_DUAL_SOURCE_BLEND)
 	{
 		// Colors will be blended against the alpha from ocol1...
 		WRITE(p, "  ocol1 = ocol0;\n");
 		// ...and the alpha from ocol0 will be written to the framebuffer.
 		WRITE(p, "  ocol0.a = " I_ALPHA"[0].a;\n");
+	}
+
+	// Alpha test could fail here if depth texture is enabled
+	if (Pretest == ALPHAPT_ALWAYSFAIL)
+	{
+		if(!FastZcomploc)
+		{
+			WRITE(p, "discard;\n");
+			if(ApiType != API_D3D11)
+				WRITE(p, "return;\n");
+		}
+	}
+	else if(Pretest == ALPHAPT_UNDEFINED)
+	{
+		WriteAlphaTest(p, ApiType, PSGRenderMode);
 	}
 	
 	WRITE(p, "}\n");
@@ -1118,7 +1161,7 @@ static const char *tevAlphaFunclogicTable[] =
 	" != ", // xor
 	" == "  // xnor
 };
-static int AlphaPreTest()
+static ALPHA_PRETEST_RESULT AlphaPreTest()
 {
 	u32 op = bpmem.alphaFunc.logic;
 	u32 comp[2] = {bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1};
@@ -1127,32 +1170,32 @@ static int AlphaPreTest()
 	switch(op)
 	{
 	case 0: // AND
-		if (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) return true;
-		if (comp[0] == ALPHACMP_NEVER || comp[1] == ALPHACMP_NEVER) return false;
+		if (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) return ALPHAPT_ALWAYSPASS;
+		if (comp[0] == ALPHACMP_NEVER || comp[1] == ALPHACMP_NEVER) return ALPHAPT_ALWAYSFAIL;
 		break;
 	case 1: // OR
-		if (comp[0] == ALPHACMP_ALWAYS || comp[1] == ALPHACMP_ALWAYS) return true;
-		if (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)return false;
+		if (comp[0] == ALPHACMP_ALWAYS || comp[1] == ALPHACMP_ALWAYS) return ALPHAPT_ALWAYSPASS;
+		if (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)return ALPHAPT_ALWAYSFAIL;
 		break;
 	case 2: // XOR
 		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS))
-			return true;
+			return ALPHAPT_ALWAYSPASS;
 		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
-			return false;
+			return ALPHAPT_ALWAYSFAIL;
 		break;
 	case 3: // XNOR
 		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS))
-			return false;
+			return ALPHAPT_ALWAYSFAIL;
 		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
-			return true;
+			return ALPHAPT_ALWAYSPASS;
 		break;
 	default: PanicAlert("bad logic for alpha test? %08x", op);
 	}
-	return -1;
+	return ALPHAPT_UNDEFINED;
 }
 
 
-static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode)
+static void WriteAlphaTest(char *&p, API_TYPE ApiType,PSGRENDER_MODE PSGRenderMode)
 {
 	static const char *alphaRef[2] =
 	{
@@ -1172,12 +1215,6 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
 	WRITE(p, ")) {\n");
 
-	WRITE(p, "ocol0 = 0;\n");
-	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-		WRITE(p, "ocol1 = 0;\n");
-	if (DepthTextureEnable)
-		WRITE(p, "depth = 1.f;\n");
-
 	// HAXX: zcomploc is a way to control whether depth test is done before
 	// or after texturing and alpha test. PC GPU does depth test before texturing ONLY if depth value is
 	// not updated during shader execution.
@@ -1190,7 +1227,7 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	// depth channel.
 	// 2 - in the next pass disable depth chanel update, but proccess the color data normally
 	// this way is the only CORRECT way to emulate perfectly the zcomplock behaviour
-	if (!(bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable))
+	if (!FastZcomploc)
 	{
 		WRITE(p, "discard;\n");
 		if (ApiType != API_D3D11)

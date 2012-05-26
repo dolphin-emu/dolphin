@@ -43,6 +43,11 @@ extern int OSDChoice, OSDTime;
 
 extern bool bLastFrameDumped;
 
+#define	RSM_None 0
+#define RSM_Multipass 1
+#define	RSM_Zcomploc 2
+#define RSM_UseDstAlpha 4
+
 // Renderer really isn't a very good name for this class - it's more like "Misc".
 // The long term goal is to get rid of this class and replace it with others that make
 // more sense.
@@ -63,7 +68,7 @@ public:
 	virtual void SetSamplerState(int stage,int texindex) = 0;
 	virtual void SetInterlacingMode() = 0;
 
-	virtual void ApplyState(bool bUseDstAlpha) = 0;
+	virtual void ApplyState(u32 mode) = 0;
 	virtual void RestoreState() = 0;
 
 	// Ideal internal resolution - determined by display resolution (automatic scaling) and/or a multiple of the native EFB resolution

@@ -11,6 +11,8 @@ void ClearEFBCache();
 
 class Renderer : public ::Renderer
 {
+private:
+	u32 LastMode;
 public:
 	Renderer();
 	~Renderer();
@@ -27,8 +29,8 @@ public:
 	void SetInterlacingMode();
 
 	// TODO: Implement and use these
-	void ApplyState(bool bUseDstAlpha) {}
-	void RestoreState() {}
+	void ApplyState(u32 mode);
+	void RestoreState();
 
 	void RenderText(const char* pstr, int left, int top, u32 color);
 	void DrawDebugInfo();

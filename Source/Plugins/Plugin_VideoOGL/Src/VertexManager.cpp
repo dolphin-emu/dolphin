@@ -187,21 +187,21 @@ void VertexManager::vFlush()
 			// If host supports GL_ARB_blend_func_extended, we can do dst alpha in
 			// the same pass as regular rendering.
 			g_renderer->SetBlendMode(true);
-			ps = PixelShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
+			ps = PixelShaderCache::SetShader(PSGRENDER_DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
 		}
 		else
 		{
 			g_renderer->SetBlendMode(true);
-			ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
+			ps = PixelShaderCache::SetShader(PSGRENDER_NORMAL,g_nativeVertexFmt->m_components);
 		}
 	}
 	else
 	{
-		ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
+		ps = PixelShaderCache::SetShader(PSGRENDER_NORMAL,g_nativeVertexFmt->m_components);
 	}
 #else
 	bool dualSourcePossible = false;
-	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
+	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(PSGRENDER_NORMAL,g_nativeVertexFmt->m_components);
 #endif
 	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
@@ -212,20 +212,22 @@ void VertexManager::vFlush()
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
 	{
-		ps = PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
+		ps = PixelShaderCache::SetShader(PSGRENDER_DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
 		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
 
-		// only update alpha
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+		g_renderer->ApplyState(RSM_UseDstAlpha | (bpmem.zmode.updateenable ? RSM_Multipass : RSM_None));
+		Draw();		
+		g_renderer->RestoreState();
+	}
+	bool useZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable;
+	if (useZcomploc)
+	{
+		ps = PixelShaderCache::SetShader(PSGRENDER_ZCOMPLOCK,g_nativeVertexFmt->m_components);
+		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
 
-		glDisable(GL_BLEND);
-
-		Draw();
-		// restore color mask
-		g_renderer->SetColorMask();
-
-		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
-			glEnable(GL_BLEND);
+		g_renderer->ApplyState(RSM_Zcomploc);
+		Draw();		
+		g_renderer->RestoreState();
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
