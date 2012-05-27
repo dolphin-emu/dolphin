@@ -45,6 +45,7 @@ public:
 
 		// common members
 		u32 addr;
+		u32 tlut_addr;
 		u32 size_in_bytes;
 		u64 hash;
 		//u32 pal_hash;
@@ -117,6 +118,10 @@ public:
 
 	static TCacheEntryBase* Load(unsigned int stage, u32 address, unsigned int width, unsigned int height,
 		int format, unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem);
+
+	static u64 GetPaletteHash(TCacheEntryBase *tex);
+	static u64 GetPaletteHash(u32 texformat, u32 tlut_addr);
+	static void InvalidatePalette(u32 tlut_addr);
 
 	static void Commit(TCacheEntryBase *tex, bool clear = false);
 

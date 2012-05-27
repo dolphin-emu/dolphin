@@ -91,12 +91,12 @@ public:
 	virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
-	static unsigned int EFBToScaledX(int x) { return x * GetTargetWidth() / EFB_WIDTH; }
-	static unsigned int EFBToScaledY(int y) { return y * GetTargetHeight() / EFB_HEIGHT; }
+	static unsigned int EFBToScaledX(int x) { return floorf(x * s_target_xscale + 0.5f); }
+	static unsigned int EFBToScaledY(int y) { return floorf(y * s_target_yscale + 0.5f); }
 
 	// Floating point versions of the above - only use them if really necessary
-	static float EFBToScaledXf(float x) { return x * ((float)GetTargetWidth() / (float)EFB_WIDTH); }
-	static float EFBToScaledYf(float y) { return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT); }
+	static float EFBToScaledXf(float x) { return x * s_target_xscale; }
+	static float EFBToScaledYf(float y) { return y * s_target_yscale; }
 
 	// Random utilities
 	static void SetScreenshot(const char *filename);
@@ -137,7 +137,7 @@ public:
 
 protected:
 
-	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);
+	static void CalculateTargetScale(float &scaleX, float &scaleY);
 	static bool CalculateTargetSize(int multiplier = 1);
 	static void CalculateXYScale(const TargetRectangle& dst_rect);
 
@@ -159,6 +159,9 @@ protected:
 	// The framebuffer size
 	static int s_target_width;
 	static int s_target_height;
+
+	static float s_target_xscale;
+	static float s_target_yscale;
 
 	// TODO: Add functionality to reinit all the render targets when the window is resized.
 	static int s_backbuffer_width;

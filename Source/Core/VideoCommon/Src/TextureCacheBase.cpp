@@ -51,6 +51,17 @@ TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
 }
 
+int TextureCache::TCacheEntryBase::IntersectsMemoryRange(u32 range_address, u32 range_size) const
+{
+	if (addr + size_in_bytes < range_address)
+		return -1;
+
+	if (addr >= range_address + range_size)
+		return 1;
+
+	return 0;
+}
+
 TextureCache::TextureCache()
 {
 	temp_size = 2048 * 2048 * 4;
@@ -62,7 +73,31 @@ TextureCache::TextureCache()
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 }
 
+<<<<<<< .mine
 void TextureCache::InvalidateAll()
+
+
+
+
+
+
+
+
+
+
+=======
+TextureCache::~TextureCache()
+{
+	InvalidateAll(true);
+	if (temp)
+	{
+		FreeAlignedMemory(temp);
+		temp = NULL;
+	}
+}
+
+void TextureCache::InvalidateAll(bool shutdown)
+>>>>>>> .theirs
 {
 	TexCache::iterator
 		iter = textures.begin(),
@@ -77,6 +112,26 @@ void TextureCache::InvalidateAll()
 	textures.clear();
 }
 
+<<<<<<< .mine
+
+
+
+
+
+
+
+
+=======
+// ZTP uses this when updating the mini-map
+void TextureCache::InvalidatePalette(u32 tlut_addr)
+{
+	TexCache::iterator
+		//iter = textures.lower_bound(0x100000000 | tlut_addr), // Start from the paletted textures (proper)
+		iter = textures.lower_bound(0x1000000000000000 | tlut_addr), // Start from the paletted textures in ExRAM (speed hack)
+		tcend = textures.end();
+
+>>>>>>> .theirs
+<<<<<<< .mine
 TextureCache::~TextureCache()
 {
 	InvalidateAll();
@@ -86,7 +141,19 @@ TextureCache::~TextureCache()
 		temp = NULL;
 	}
 }
+=======
+	// In case the tail end of the first texture was found
+	if (iter != textures.begin())
+		iter--;
 
+
+
+
+
+
+>>>>>>> .theirs
+
+<<<<<<< .mine
 void TextureCache::OnConfigChanged(VideoConfig& config)
 {
 	if (!g_texture_cache)
@@ -134,24 +201,66 @@ void TextureCache::Cleanup()
 	TexCache::iterator iter = textures.begin();
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
+=======
+	for (; iter != tcend; ++iter)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> .theirs
 	{
-		if (iter->second && iter->second->hash == TEXHASH_INVALID)
+		if (iter->second && iter->second->hash != TEXHASH_INVALID && iter->second->tlut_addr == tlut_addr)
 		{
-			if ((frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) || (Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_TEXTURE && !iter->second->from_tmem))
+			if (iter->second->size_in_bytes < 32 * 1024) // Speed hack for DKCR
 			{
-				Commit(iter->second, true);
-				delete iter->second;
-				iter->second = 0;
-				textures.erase(iter++);
+				iter->second->SetHashes(TEXHASH_INVALID);
+				iter->second->tlut_addr = 0;
 			}
-			else
-				++iter;
 		}
-		else
-			++iter;
 	}
 }
-
 void TextureCache::InvalidateRange(u32 start_address, u32 size)
 {
 	bool found = false;
@@ -163,6 +272,7 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 		iter = textures.lower_bound(start_address),
 		tcend = textures.upper_bound(start_address + size);
 
+	// In case the tail end of the first texture was found
 	if (iter != textures.begin())
 		iter--;
 
@@ -184,7 +294,7 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 	if (!found)
 	{
 		iter = textures.lower_bound((u64)start_address << 32),
-		tcend = textures.upper_bound((u64)(start_address + size) << 32 | 0xffffffff);
+			tcend = textures.upper_bound((u64)(start_address + size) << 32 | 0xffffffff);
 
 		if (iter != textures.begin())
 			iter--;
@@ -204,15 +314,41 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 	}
 }
 
-int TextureCache::TCacheEntryBase::IntersectsMemoryRange(u32 range_address, u32 range_size) const
+void TextureCache::InvalidateDefer()
 {
-	if (addr + size_in_bytes < range_address)
-		return -1;
+	DeferredInvalidate = true;
+}
 
-	if (addr >= range_address + range_size)
-		return 1;
-
-	return 0;
+void TextureCache::Cleanup()
+{
+	TexCache::iterator iter = textures.begin();
+	TexCache::iterator tcend = textures.end();
+	while (iter != tcend)
+	{
+		if (iter->second && iter->second->hash == TEXHASH_INVALID)
+		{
+			// Kill textures that have not been used for a while and clean up any that have been marked invalid
+			if ((frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) || (Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_TEXTURE && !iter->second->from_tmem))
+			{
+				Commit(iter->second, true);
+				delete iter->second;
+				iter->second = 0;
+				textures.erase(iter++);
+			}
+			else
+				++iter;
+		}
+		// Clean up any textures that have been wiped via the game_map (Needed for Pandora's Tower intro cutscene).
+		else if (iter->second && (Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_CLEAR && !iter->second->from_tmem))
+		{
+			Commit(iter->second, true);
+			delete iter->second;
+			iter->second = 0;
+			textures.erase(iter++);
+		}
+		else
+			++iter;
+	}
 }
 
 void TextureCache::ClearRenderTargets()
@@ -359,8 +495,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 		else
 		{
-			const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
-			tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, 32);
+			tlut_hash = GetPaletteHash(texformat, tlutaddr);
 
 			// NOTE: For non-paletted textures, texID is equal to the texture address.
 			//		A paletted texture, however, may have multiple texIDs assigned though depending on the currently used tlut.
@@ -464,6 +599,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
 	entry->from_tmem = from_tmem;
+	entry->tlut_addr = tlutaddr;
 	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_EC_DYNAMIC;
 	else entry->type = TCET_NORMAL;
 
@@ -841,5 +977,15 @@ void TextureCache::Commit(TCacheEntryBase *tex, bool clear)
 		u32 size = tex->size_in_bytes;
 		memset((u8*)(Memory::game_map + ((address & 0x1fffffe0) >> 5)), clear ? Memory::GMAP_CLEAR : Memory::GMAP_TEXTURE, (size & ~31) >> 5);
 	}
+}
 
+u64 TextureCache::GetPaletteHash(u32 texformat, u32 tlut_addr)
+{
+	const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
+	return GetHash64(&texMem[tlut_addr], palette_size, 32);
+}
+
+u64 TextureCache::GetPaletteHash(TCacheEntryBase *tex)
+{
+	return GetPaletteHash(tex->format >> 16, tex->tlut_addr);
 }

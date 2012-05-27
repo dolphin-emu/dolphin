@@ -62,6 +62,8 @@ volatile bool Renderer::s_bScreenshot;
 // The framebuffer size
 int Renderer::s_target_width;
 int Renderer::s_target_height;
+float Renderer::s_target_xscale;
+float Renderer::s_target_yscale;
 
 // TODO: Add functionality to reinit all the render targets when the window is resized.
 int Renderer::s_backbuffer_width;
@@ -134,33 +136,33 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	}
 }
 
-void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
+void Renderer::CalculateTargetScale(float &scaleX, float &scaleY)
 {
 	switch (g_ActiveConfig.iEFBScale)
 	{
 		case 3: // 1.5x
-			scaledX = (x / 2) * 3;
-			scaledY = (y / 2) * 3;
+			scaleX = 1.5f;
+			scaleY = 1.5f;
 			break;
 		case 4: // 2x
-			scaledX = x * 2;
-			scaledY = y * 2;
+			scaleX = 2;
+			scaleY = 2;
 			break;
 		case 5: // 2.5x
-			scaledX = (x / 2) * 5;
-			scaledY = (y / 2) * 5;
+			scaleX = 2.5f;
+			scaleY = 2.5f;
 			break;
 		case 6: // 3x
-			scaledX = x * 3;
-			scaledY = y * 3;
+			scaleX = 3;
+			scaleY = 3;
 			break;
 		case 7: // 4x
-			scaledX = x * 4;
-			scaledY = y * 4;
+			scaleX = 4;
+			scaleY = 4;
 			break;
 		default:
-			scaledX = x;
-			scaledY = y;
+			scaleX = 1;
+			scaleY = 1;
 			break;
 	};
 }
@@ -168,29 +170,32 @@ void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
 // return true if target size changed
 bool Renderer::CalculateTargetSize(int multiplier)
 {
-	int newEFBWidth, newEFBHeight;
+	float newEFBWidth, newEFBHeight;
+	float newEFBXScale, newEFBYScale;
 	switch (s_LastEFBScale)
 	{
 		case 0: // fractional
-			newEFBWidth = (int)(EFB_WIDTH * xScale);
-			newEFBHeight = (int)(EFB_HEIGHT * yScale);
+			newEFBXScale = xScale;
+			newEFBYScale = yScale;
 			break;
 		case 1: // integral
-			newEFBWidth = EFB_WIDTH * (int)ceilf(xScale);
-			newEFBHeight = EFB_HEIGHT * (int)ceilf(yScale);
+			newEFBXScale = ceilf(xScale);
+			newEFBYScale = ceilf(yScale);
 			break;
 		default:
-			CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, newEFBWidth, newEFBHeight);
+			CalculateTargetScale(newEFBXScale, newEFBYScale);
 			break;
 	}
 
-	newEFBWidth *= multiplier;
-	newEFBHeight *= multiplier;
+	newEFBXScale *= multiplier;
+	newEFBYScale *= multiplier;
 
-	if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
+	if (newEFBXScale != s_target_xscale || newEFBYScale != s_target_yscale)
 	{
-		s_target_width  = newEFBWidth;
-		s_target_height = newEFBHeight;
+		s_target_xscale = newEFBXScale;
+		s_target_yscale = newEFBYScale;
+		s_target_width  = ceilf(EFB_WIDTH * s_target_xscale);
+		s_target_height = ceilf(EFB_HEIGHT * s_target_yscale);
 		VertexShaderManager::SetViewportChanged();
 		return true;
 	}
@@ -323,13 +328,13 @@ void Renderer::CalculateXYScale(const TargetRectangle& dst_rect)
 		if (g_ActiveConfig.b3DVision)
 		{
 			// This works, yet the version in the else doesn't. No idea why.
-			xScale = (float)(s_backbuffer_width-1) / (float)(s_XFB_width-1);
-			yScale = (float)(s_backbuffer_height-1) / (float)(s_XFB_height-1);
+			xScale = (float)(s_backbuffer_width) / (float)(s_XFB_width);
+			yScale = (float)(s_backbuffer_height) / (float)(s_XFB_height);
 		}
 		else
 		{
-			xScale = (float)(dst_rect.right - dst_rect.left - 1) / (float)(s_XFB_width-1);
-			yScale = (float)(dst_rect.bottom - dst_rect.top - 1) / (float)(s_XFB_height-1);
+			xScale = (float)(dst_rect.right - dst_rect.left) / (float)(s_XFB_width);
+			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)(s_XFB_height);
 		}
 	}
 }
@@ -341,8 +346,13 @@ void Renderer::SetWindowSize(int width, int height)
 	if (height < 1)
 		height = 1;
 
+	float xscale;
+	float yscale;
+
 	// Scale the window size by the EFB scale.
-	CalculateTargetScale(width, height, width, height);
+	CalculateTargetScale(xscale, yscale);
+	width = ceilf(width * xscale);
+	height = ceilf(height * yscale);
 
 	Host_RequestRenderWindowSize(width, height);
 }
