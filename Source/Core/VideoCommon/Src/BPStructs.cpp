@@ -31,6 +31,7 @@
 #include "VertexShaderManager.h"
 #include "Thread.h"
 #include "HW/Memmap.h"
+#include "TextureCacheBase.h"
 
 using namespace BPFunctions;
 

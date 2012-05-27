@@ -35,6 +35,7 @@
 #include "FramebufferManagerBase.h"
 #include "BPMemory.h"
 
+#include <cmath>
 #include <string>
 
 // TODO: Move these out of here.
