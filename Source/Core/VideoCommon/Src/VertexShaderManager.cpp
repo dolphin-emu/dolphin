@@ -51,6 +51,11 @@ static float s_fViewRotation[2];
 
 void UpdateViewport(Matrix44& vpCorrection);
 
+void UpdateViewportWithCorrection()
+{
+	UpdateViewport(s_viewportCorrection);
+}
+
 inline void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	g_renderer->SetVSConstant4f(const_number, f1, f2, f3, f4);
