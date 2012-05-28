@@ -237,7 +237,7 @@ void TeardownDeviceObjects()
 	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 	delete g_framebuffer_manager;
 	D3D::font.Shutdown();
-	TextureCache::Invalidate(false);
+	TextureCache::Invalidate();
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Shutdown();
 	PixelShaderCache::Shutdown();

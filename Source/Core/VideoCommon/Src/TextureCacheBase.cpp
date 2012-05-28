@@ -61,28 +61,19 @@ TextureCache::TextureCache()
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 }
 
-// TODO: Kill shutdown parameter...
-void TextureCache::Invalidate(bool shutdown)
+void TextureCache::Invalidate()
 {
 	TexCache::iterator
 		iter = textures.begin(),
 		tcend = textures.end();
 	for (; iter != tcend; ++iter)
-	{
-		if (shutdown)
-			iter->second->addr = 0;
 		delete iter->second;
-	}
 
 	textures.clear();
-	if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
-		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 }
 
 TextureCache::~TextureCache()
 {
-	Invalidate(true);
 	if (temp)
 	{
 		FreeAlignedMemory(temp);
@@ -100,7 +91,14 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 		config.bTexFmtOverlayEnable != backup_config.s_texfmt_overlay ||
 		config.bTexFmtOverlayCenter != backup_config.s_texfmt_overlay_center ||
 		config.bHiresTextures != backup_config.s_hires_textures)
-		g_texture_cache->Invalidate(false);
+	{
+		g_texture_cache->Invalidate();
+
+		if(g_ActiveConfig.bHiresTextures)
+			HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+
+		SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
+	}
 
 	// TODO: Probably shouldn't clear all render targets here, just mark them dirty or something.
 	if (config.bEFBCopyCacheEnable != backup_config.s_copy_cache_enable || // TODO: not sure if this is needed?
