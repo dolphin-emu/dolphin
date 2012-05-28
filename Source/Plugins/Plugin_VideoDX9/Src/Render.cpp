@@ -1117,6 +1117,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Enable configuration changes
 	UpdateActiveConfig();
+	TextureCache::OnConfigChanged(g_ActiveConfig);
 
 	SetWindowSize(fbWidth, fbHeight);
 

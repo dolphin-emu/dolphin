@@ -1437,11 +1437,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 	g_Config.iSaveTargetId = 0;
 
-	// reload textures if these settings changed
-	if (g_Config.bCopyEFBToTexture != g_ActiveConfig.bCopyEFBToTexture)
-		TextureCache::ClearRenderTargets();
-
 	UpdateActiveConfig();
+	TextureCache::OnConfigChanged(g_ActiveConfig);
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();

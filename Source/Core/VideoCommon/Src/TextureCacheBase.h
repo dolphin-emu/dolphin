@@ -27,6 +27,8 @@
 
 #include "CommonTypes.h"
 
+struct VideoConfig;
+
 class TextureCache
 {
 public:
@@ -100,10 +102,10 @@ public:
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
 
+	static void OnConfigChanged(VideoConfig& config);
 	static void Cleanup();
 
 	static void Invalidate(bool shutdown);
-	static void InvalidateDefer();
 	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
 	static void ClearRenderTargets();	// currently only used by OGL
@@ -117,8 +119,6 @@ public:
 		int format, unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem);
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
-
-	static bool DeferredInvalidate;
 
 protected:
 	TextureCache();
@@ -135,6 +135,19 @@ private:
 	typedef std::map<u32, TCacheEntryBase*> TexCache;
 
 	static TexCache textures;
+
+	// Backup configuration values
+	static struct BackupConfig {
+		int s_colorsamples;
+		bool s_copy_efb_to_texture;
+		bool s_copy_efb_scaled;
+		bool s_copy_efb;
+		int s_efb_scale;
+		bool s_texfmt_overlay;
+		bool s_texfmt_overlay_center;
+		bool s_hires_textures;
+		bool s_copy_cache_enable;
+	} backup_config;
 };
 
 extern TextureCache *g_texture_cache;

@@ -42,7 +42,9 @@ GC_ALIGNED16(u8 *TextureCache::temp) = NULL;
 unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
-bool TextureCache::DeferredInvalidate;
+
+TextureCache::BackupConfig TextureCache::backup_config;
+
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -59,6 +61,7 @@ TextureCache::TextureCache()
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 }
 
+// TODO: Kill shutdown parameter...
 void TextureCache::Invalidate(bool shutdown)
 {
 	TexCache::iterator
@@ -75,13 +78,6 @@ void TextureCache::Invalidate(bool shutdown)
 	if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
-	
-	DeferredInvalidate = false;
-}
-
-void TextureCache::InvalidateDefer()
-{
-	DeferredInvalidate = true;
 }
 
 TextureCache::~TextureCache()
@@ -92,6 +88,40 @@ TextureCache::~TextureCache()
 		FreeAlignedMemory(temp);
 		temp = NULL;
 	}
+}
+
+void TextureCache::OnConfigChanged(VideoConfig& config)
+{
+	if (!g_texture_cache)
+		goto skip_checks;
+
+	// TODO: Invalidating texcache is really stupid in some of these cases
+	if (config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
+		config.bTexFmtOverlayEnable != backup_config.s_texfmt_overlay ||
+		config.bTexFmtOverlayCenter != backup_config.s_texfmt_overlay_center ||
+		config.bHiresTextures != backup_config.s_hires_textures)
+		g_texture_cache->Invalidate(false);
+
+	// TODO: Probably shouldn't clear all render targets here, just mark them dirty or something.
+	if (config.bEFBCopyCacheEnable != backup_config.s_copy_cache_enable || // TODO: not sure if this is needed?
+		config.bCopyEFBToTexture != backup_config.s_copy_efb_to_texture ||
+		config.bCopyEFBScaled != backup_config.s_copy_efb_scaled ||
+		config.bEFBCopyEnable != backup_config.s_copy_efb ||
+		config.iEFBScale != backup_config.s_efb_scale)
+	{
+		g_texture_cache->ClearRenderTargets();
+	}
+
+skip_checks:
+	backup_config.s_colorsamples = config.iSafeTextureCache_ColorSamples;
+	backup_config.s_copy_efb_to_texture = config.bCopyEFBToTexture;
+	backup_config.s_copy_efb_scaled = config.bCopyEFBScaled;
+	backup_config.s_copy_efb = config.bEFBCopyEnable;
+	backup_config.s_efb_scale = config.iEFBScale;
+	backup_config.s_texfmt_overlay = config.bTexFmtOverlayEnable;
+	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
+	backup_config.s_hires_textures = config.bHiresTextures;
+	backup_config.s_copy_cache_enable = config.bEFBCopyCacheEnable;
 }
 
 void TextureCache::Cleanup()

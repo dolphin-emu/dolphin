@@ -135,8 +135,8 @@ struct VideoConfig
 	bool bEnablePerPixelDepth;
 
 	int iLog; // CONF_ bits
-	int iSaveTargetId;
-	
+	int iSaveTargetId; // TODO: Should be dropped
+
 	//currently unused:
 	int iCompileDLsLevel;
 
