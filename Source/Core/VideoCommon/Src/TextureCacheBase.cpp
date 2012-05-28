@@ -126,8 +126,7 @@ void TextureCache::InvalidateAll(bool shutdown)
 void TextureCache::InvalidatePalette(u32 tlut_addr)
 {
 	TexCache::iterator
-		//iter = textures.lower_bound(0x100000000 | tlut_addr), // Start from the paletted textures (proper)
-		iter = textures.lower_bound(0x1000000000000000 | tlut_addr), // Start from the paletted textures in ExRAM (speed hack)
+		iter = textures.lower_bound(0x100000000 | tlut_addr), // Start from the paletted textures
 		tcend = textures.end();
 
 >>>>>>> .theirs
@@ -253,7 +252,7 @@ void TextureCache::Cleanup()
 	{
 		if (iter->second && iter->second->hash != TEXHASH_INVALID && iter->second->tlut_addr == tlut_addr)
 		{
-			if (iter->second->size_in_bytes < 32 * 1024) // Speed hack for DKCR
+			if (iter->second->size_in_bytes < 64 * 1024) // Speed hack for DKCR
 			{
 				iter->second->SetHashes(TEXHASH_INVALID);
 				iter->second->tlut_addr = 0;
@@ -512,19 +511,22 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (entry)
 	{
 		// 1. Calculate reference hash:
-		// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
-		if (g_ActiveConfig.bCopyEFBToTexture && entry->IsEfbCopy())
-		{
-			Commit(entry, true);
-			tex_hash = TEXHASH_INVALID;
-		}
-
-		// 2. a) For EFB copies, only the format and the texture address need to match
-		if (entry->IsEfbCopy() && full_format == entry->format && entry->hash != TEXHASH_INVALID)
+		// calculated from RAM texture data for normal textures. 0 for virtual EFB copies.
+		// 2. a) For EFB copies, only the format and the texture address need to match (EFB to RAM)
+		if (entry->IsEfbCopy())
 		{
 			entry->type = TCET_EC_VRAM;
 
-			goto return_entry;
+			if (g_ActiveConfig.bCopyEFBToTexture)
+			{
+				tex_hash = TEXHASH_INVALID;
+				goto return_entry;
+			}
+			// Xenoblade Chronicles (SX4P01) changes the texture format in the intro
+			else if (full_format == entry->format && entry->hash != TEXHASH_INVALID)
+			{
+				goto return_entry;
+			}
 		}
 
 		// 2. b) For normal textures, all texture parameters need to match
