@@ -251,7 +251,7 @@ void OSDMenu(WPARAM wParam)
 		OSDChoice = 1;
 		// Toggle native resolution
 		g_Config.iEFBScale = g_Config.iEFBScale + 1;
-		if (g_Config.iEFBScale > 4) g_Config.iEFBScale = 0;
+		if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
 		break;
 	case '4':
 		OSDChoice = 2;
