@@ -198,7 +198,6 @@ void VertexManager::Draw(UINT stride)
 	if (IndexGenerator::GetNumLines() > 0 || IndexGenerator::GetNumPoints() > 0)
 		((DX11::Renderer*)g_renderer)->RestoreCull();
 }
-
 void VertexManager::vFlush()
 {
 	if (LocalVBuffer == s_pCurBufferPointer) return;
@@ -266,7 +265,9 @@ void VertexManager::vFlush()
 
 	g_renderer->ApplyState(useDstAlpha);
 	LoadBuffers();
+	g_renderer->ResumePixelPerf(false);
 	Draw(stride);
+	g_renderer->PausePixelPerf(false);
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 

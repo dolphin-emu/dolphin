@@ -133,6 +133,7 @@ struct VideoConfig
 	bool bUseBBox;
 	bool bEnablePixelLighting;
 	bool bEnablePerPixelDepth;
+	bool bDisablePixelPerf;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
@@ -161,6 +162,7 @@ struct VideoConfig
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
+		bool bSupportsPixelPerfQuery;
 	} backend_info;
 };
 

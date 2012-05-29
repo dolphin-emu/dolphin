@@ -62,7 +62,6 @@ void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xf
 {
 	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, rc, gamma);
 }
-
 void BPWritten(const BPCmd& bp)
 {
 	/*
@@ -141,7 +140,8 @@ void BPWritten(const BPCmd& bp)
 					|| bp.address == BPMEM_LOADTLUT0
 					|| bp.address == BPMEM_LOADTLUT1
 					|| bp.address == BPMEM_TEXINVALIDATE
-					|| bp.address == BPMEM_PRELOAD_MODE))
+					|| bp.address == BPMEM_PRELOAD_MODE
+					|| bp.address == BPMEM_CLEAR_PIXEL_PERF))
 			{
 				return;
 			}
@@ -265,6 +265,8 @@ void BPWritten(const BPCmd& bp)
 
 			UPE_Copy PE_copy = bpmem.triggerEFBCopy;
 
+			g_renderer->ResumePixelPerf(true);
+
 			// Check if we are to copy from the EFB or draw to the XFB
 			if (PE_copy.copy_to_xfb == 0)
 			{
@@ -302,6 +304,8 @@ void BPWritten(const BPCmd& bp)
 									 (u32)xfbLines,
 									 s_gammaLUT[PE_copy.gamma]);
 			}
+
+			g_renderer->PausePixelPerf(true);
 
 			// Clear the rectangular region after copying it.
 			if (PE_copy.clear)
@@ -481,8 +485,9 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_REVBITS: // Always set to 0x0F when GX_InitRevBits() is called.
 		break;
 
-	case BPMEM_UNKNOWN_57: // Sunshine alternates this register between values 0x000 and 0xAAA
-		DEBUG_LOG(VIDEO, "Unknown BP Reg 0x57: %08x", bp.newvalue);
+	case BPMEM_CLEAR_PIXEL_PERF:
+		// GXClearPixMetric writes 0xAAA here, Sunshine alternates this register between values 0x000 and 0xAAA
+		g_renderer->ResetPixelPerf();
 		break;
 
 	case BPMEM_PRELOAD_ADDR:

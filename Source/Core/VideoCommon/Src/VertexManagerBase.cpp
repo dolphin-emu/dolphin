@@ -253,7 +253,9 @@ void VertexManager::Flush()
 	//if (g_nativeVertexFmt)
 		g_nativeVertexFmt->SetupVertexPointers();
 
+	g_renderer->ResumePixelPerf(false);
 	g_vertex_manager->Draw(stride, false);
+	g_renderer->PausePixelPerf(false);
 
 	// run through vertex groups again to set alpha
 	if (false == g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)

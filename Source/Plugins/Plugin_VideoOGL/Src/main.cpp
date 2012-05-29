@@ -135,6 +135,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsDualSourceBlend = false; // supported, but broken
 	g_Config.backend_info.bSupportsFormatReinterpretation = false;
 	g_Config.backend_info.bSupportsPixelLighting = true;
+	g_Config.backend_info.bSupportsPixelPerfQuery = false;
 
 	// aamodes
 	const char* caamodes[] = {"None", "2x", "4x", "8x", "8x CSAA", "8xQ CSAA", "16x CSAA", "16xQ CSAA"};

@@ -104,6 +104,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
 	iniFile.Get("Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
 	iniFile.Get("Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
+	iniFile.Get("Hacks", "DisablePixelPerf", &bDisablePixelPerf, true);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 
@@ -153,6 +154,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Hacks", "EFBScaledCopy", &bCopyEFBScaled);
 	iniFile.GetIfExists("Video_Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable);
 	iniFile.GetIfExists("Video_Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges);
+	iniFile.GetIfExists("Video_Hacks", "DisablePixelPerf", &bDisablePixelPerf);
 
 	iniFile.GetIfExists("Video", "ProjectionHack", &iPhackvalue[0]);
 	iniFile.GetIfExists("Video", "PH_SZNear", &iPhackvalue[1]);
@@ -172,6 +174,7 @@ void VideoConfig::VerifyValidity()
 	if (!backend_info.bSupports3DVision) b3DVision = false;
 	if (!backend_info.bSupportsFormatReinterpretation) bEFBEmulateFormatChanges = false;
 	if (!backend_info.bSupportsPixelLighting) bEnablePixelLighting = false;
+	if (!backend_info.bSupportsPixelPerfQuery) bDisablePixelPerf = true;
 }
 
 void VideoConfig::Save(const char *ini_file)
@@ -231,6 +234,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	iniFile.Set("Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	iniFile.Set("Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
+	iniFile.Set("Hacks", "DisablePixelPerf", bDisablePixelPerf);
 
 	iniFile.Set("Hardware", "Adapter", iAdapter);
 	
@@ -287,6 +291,7 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	SET_IF_DIFFERS("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	SET_IF_DIFFERS("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
+	SET_IF_DIFFERS("Video_Hacks", "DisablePixelPerf", bDisablePixelPerf);
 
 	iniFile.Save(game_ini);
 }

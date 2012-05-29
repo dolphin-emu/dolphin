@@ -28,6 +28,7 @@
 #include "ConfigManager.h"
 
 #include "PixelEngine.h"
+#include "RenderBase.h"
 #include "CommandProcessor.h"
 #include "HW/ProcessorInterface.h"
 #include "DLCache.h"
@@ -255,23 +256,59 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 	}
 
-	case PE_PERF_0L:
-	case PE_PERF_0H:
-	case PE_PERF_1L:
-	case PE_PERF_1H:
-	case PE_PERF_2L:
-	case PE_PERF_2H:
-	case PE_PERF_3L:
-	case PE_PERF_3H:
-	case PE_PERF_4L:
-	case PE_PERF_4H:
-	case PE_PERF_5L:
-	case PE_PERF_5H:
-		INFO_LOG(PIXELENGINE, "(r16) perf counter @ %08x", _iAddress);
-		// git r90a2096a24f4 (svn r3663) added the PE_PERF cases, without setting
-		// _uReturnValue to anything, this reverts to the previous behaviour which allows
-		// The timer in SMS:Scrubbing Serena Beach to countdown correctly
-		_uReturnValue = 1;
+	// NOTE(neobrain): only PE_PERF_ZCOMP_OUTPUT is implemented in D3D11, but the other values shouldn't be contradictionary to the value of that register (i.e. INPUT registers should always be greater or equal to their corresponding OUTPUT registers).
+	case PE_PERF_ZCOMP_INPUT_ZCOMPLOC_L:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_ZCOMP_INPUT_ZCOMPLOC) & 0xFFFF;
+		break;
+
+	case PE_PERF_ZCOMP_INPUT_ZCOMPLOC_H:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_ZCOMP_INPUT_ZCOMPLOC) >> 16;
+		break;
+
+	case PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_L:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_ZCOMP_OUTPUT_ZCOMPLOC) & 0xFFFF;
+		break;
+
+	case PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_H:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_ZCOMP_OUTPUT_ZCOMPLOC) >> 16;
+		break;
+
+	case PE_PERF_ZCOMP_INPUT_L:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_ZCOMP_INPUT) & 0xFFFF;
+		break;
+
+	case PE_PERF_ZCOMP_INPUT_H:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_ZCOMP_INPUT) >> 16;
+		break;
+
+	case PE_PERF_ZCOMP_OUTPUT_L:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_ZCOMP_OUTPUT) & 0xFFFF;
+		break;
+
+	case PE_PERF_ZCOMP_OUTPUT_H:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_ZCOMP_OUTPUT) >> 16;
+		break;
+
+	case PE_PERF_BLEND_INPUT_L:
+		// Super Mario Sunshine uses this register in episode 6 of Sirena Beach:
+		// The amount of remaining goop is determined by checking how many pixels reach the blending stage.
+		// Once this register falls below a particular value (around 0x90), the game regards the challenge finished.
+		// In very old builds, Dolphin only returned 0. That caused the challenge to be immediately finished without any goop being cleaned (the timer just didn't even start counting from 3:00:00).
+		// Later builds returned 1 for the high register. That caused the timer to actually count down, but made the challenge unbeatable because the game always thought you didn't clear any goop at all.
+		// Note that currently this functionality is only implemented in the D3D11 backend.
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_BLEND_INPUT) & 0xFFFF;
+		break;
+
+	case PE_PERF_BLEND_INPUT_H:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_BLEND_INPUT) >> 16;
+		break;
+
+	case PE_PERF_EFB_COPY_CLOCKS_L:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_EFB_COPY_CLOCKS) & 0xFFFF;
+		break;
+
+	case PE_PERF_EFB_COPY_CLOCKS_H:
+		_uReturnValue = g_renderer->GetPixelPerfResult(Renderer::PP_EFB_COPY_CLOCKS) >> 16;
 		break;
 
 	default:

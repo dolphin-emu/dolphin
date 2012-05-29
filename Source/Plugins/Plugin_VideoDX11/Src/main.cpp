@@ -94,6 +94,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
+	g_Config.backend_info.bSupportsPixelPerfQuery = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;

@@ -96,6 +96,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
+	g_Config.backend_info.bSupportsPixelPerfQuery = false;
 	
 	
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;

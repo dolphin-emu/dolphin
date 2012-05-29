@@ -46,6 +46,12 @@ public:
 
 	void ReinterpretPixelData(unsigned int convtype);
 
+	void ResetPixelPerf();
+	void ResumePixelPerf(bool efb_copies);
+	void PausePixelPerf(bool efb_copies);
+	u32 GetPixelPerfResult(PixelPerfQuery type);
+	void StorePixelPerfResult(PixelPerfQuery type); // internal
+
 	void UpdateViewport(Matrix44& vpCorrection);
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
