@@ -32,6 +32,8 @@
 // ugly
 extern int frameCount;
 
+#define TEXTURE_CACHE_SIZE_WATERMARK 500
+
 enum
 {
 	TEXTURE_KILL_THRESHOLD = 200,
@@ -43,9 +45,7 @@ GC_ALIGNED16(u8 *TextureCache::temp) = NULL;
 unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
-
-TextureCache::BackupConfig TextureCache::backup_config;
-
+bool TextureCache::DeferredInvalidate;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -73,19 +73,6 @@ TextureCache::TextureCache()
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 }
 
-<<<<<<< .mine
-void TextureCache::InvalidateAll()
-
-
-
-
-
-
-
-
-
-
-=======
 TextureCache::~TextureCache()
 {
 	InvalidateAll(true);
@@ -97,7 +84,6 @@ TextureCache::~TextureCache()
 }
 
 void TextureCache::InvalidateAll(bool shutdown)
->>>>>>> .theirs
 {
 	TexCache::iterator
 		iter = textures.begin(),
@@ -106,160 +92,20 @@ void TextureCache::InvalidateAll(bool shutdown)
 	{
 		if (iter->second)
 		{
+			if (shutdown)
+				iter->second->addr = 0;
 			delete iter->second;
 		}
+	}
 
 	textures.clear();
+
+	if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
+		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
+	DeferredInvalidate = false;
 }
 
-<<<<<<< .mine
-
-
-
-
-
-
-
-
-=======
-// ZTP uses this when updating the mini-map
-void TextureCache::InvalidatePalette(u32 tlut_addr)
-{
-	TexCache::iterator
-		iter = textures.lower_bound(0x100000000 | tlut_addr), // Start from the paletted textures
-		tcend = textures.end();
-
->>>>>>> .theirs
-<<<<<<< .mine
-TextureCache::~TextureCache()
-{
-	InvalidateAll();
-	if (temp)
-	{
-		FreeAlignedMemory(temp);
-		temp = NULL;
-	}
-}
-=======
-	// In case the tail end of the first texture was found
-	if (iter != textures.begin())
-		iter--;
-
-
-
-
-
-
->>>>>>> .theirs
-
-<<<<<<< .mine
-void TextureCache::OnConfigChanged(VideoConfig& config)
-{
-	if (!g_texture_cache)
-		goto skip_checks;
-
-	// TODO: Invalidating texcache is really stupid in some of these cases
-	if (config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
-		config.bTexFmtOverlayEnable != backup_config.s_texfmt_overlay ||
-		config.bTexFmtOverlayCenter != backup_config.s_texfmt_overlay_center ||
-		config.bHiresTextures != backup_config.s_hires_textures)
-	{
-		g_texture_cache->Invalidate();
-
-		if(g_ActiveConfig.bHiresTextures)
-			HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-
-		SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
-		TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
-	}
-
-	// TODO: Probably shouldn't clear all render targets here, just mark them dirty or something.
-	if (config.bEFBCopyCacheEnable != backup_config.s_copy_cache_enable || // TODO: not sure if this is needed?
-		config.bCopyEFBToTexture != backup_config.s_copy_efb_to_texture ||
-		config.bCopyEFBScaled != backup_config.s_copy_efb_scaled ||
-		config.bEFBCopyEnable != backup_config.s_copy_efb ||
-		config.iEFBScale != backup_config.s_efb_scale)
-	{
-		g_texture_cache->ClearRenderTargets();
-	}
-
-skip_checks:
-	backup_config.s_colorsamples = config.iSafeTextureCache_ColorSamples;
-	backup_config.s_copy_efb_to_texture = config.bCopyEFBToTexture;
-	backup_config.s_copy_efb_scaled = config.bCopyEFBScaled;
-	backup_config.s_copy_efb = config.bEFBCopyEnable;
-	backup_config.s_efb_scale = config.iEFBScale;
-	backup_config.s_texfmt_overlay = config.bTexFmtOverlayEnable;
-	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
-	backup_config.s_hires_textures = config.bHiresTextures;
-	backup_config.s_copy_cache_enable = config.bEFBCopyCacheEnable;
-}
-
-void TextureCache::Cleanup()
-{
-	TexCache::iterator iter = textures.begin();
-	TexCache::iterator tcend = textures.end();
-	while (iter != tcend)
-=======
-	for (; iter != tcend; ++iter)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> .theirs
-	{
-		if (iter->second && iter->second->hash != TEXHASH_INVALID && iter->second->tlut_addr == tlut_addr)
-		{
-			if (iter->second->size_in_bytes < 64 * 1024) // Speed hack for DKCR
-			{
-				iter->second->SetHashes(TEXHASH_INVALID);
-				iter->second->tlut_addr = 0;
-			}
-		}
-	}
-}
 void TextureCache::InvalidateRange(u32 start_address, u32 size)
 {
 	bool found = false;
@@ -327,7 +173,8 @@ void TextureCache::Cleanup()
 		if (iter->second && iter->second->hash == TEXHASH_INVALID)
 		{
 			// Kill textures that have not been used for a while and clean up any that have been marked invalid
-			if ((frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) || (Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_TEXTURE && !iter->second->from_tmem))
+			if ((textures.size() > TEXTURE_CACHE_SIZE_WATERMARK && frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) ||
+				(Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_TEXTURE && !iter->second->from_tmem))
 			{
 				Commit(iter->second, true);
 				delete iter->second;
@@ -515,15 +362,15 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// 2. a) For EFB copies, only the format and the texture address need to match (EFB to RAM)
 		if (entry->IsEfbCopy())
 		{
-			entry->type = TCET_EC_VRAM;
+			if (entry->type != TCET_EC_VRAM)
+				entry->type = TCET_NORMAL;
 
 			if (g_ActiveConfig.bCopyEFBToTexture)
 			{
 				tex_hash = TEXHASH_INVALID;
 				goto return_entry;
 			}
-			// Xenoblade Chronicles (SX4P01) changes the texture format in the intro
-			else if (full_format == entry->format && entry->hash != TEXHASH_INVALID)
+			else if (entry->hash != TEXHASH_INVALID && entry->native_width == nativeW && entry->native_height == nativeH)
 			{
 				goto return_entry;
 			}
@@ -571,7 +418,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		pcfmt = TexDecoder_Decode(temp, src_data, expandedWidth,
 					expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 
-	// TODO: Cleanup. Plus, we still autogenerate mipmaps in certain cases (we shouldn't do that)
 	bool isPow2;
 	unsigned int texLevels;
 	isPow2 = !((width & (width - 1)) || (height & (height - 1)));
@@ -936,12 +782,16 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	TCacheEntryBase *entry = textures[dstAddr];
 	if (entry)
 	{
-		if (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h)
+		if ((entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
+			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h))
 		{
-			scaled_tex_w = tex_w;
-			scaled_tex_h = tex_h;
+			if (entry->type == TCET_EC_DYNAMIC)
+			{
+				scaled_tex_w = tex_w;
+				scaled_tex_h = tex_h;
+			}
 		}
-		else if (!(entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h))
+		else
 		{
 			// remove it and recreate it as a render target
 			delete entry;

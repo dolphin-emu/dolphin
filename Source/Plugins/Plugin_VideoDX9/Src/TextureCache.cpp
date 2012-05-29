@@ -163,14 +163,19 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 					scaleByHalf, 
 					srcRect);
 
-		u8* dst = Memory::GetPointer(addr);
-		u64 hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		// The game has overwritten the texture without invalidating it first.  We'll invalidate our
+		// texture cache.  ZTP does this when updating the mini-map.
+		if (Memory::game_map[(addr & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE)
+		{
+			TextureCache::InvalidateRange(addr, 32);
+		}
+
 		// Invalidate texture entries overwritten by the destination address range
-		TextureCache::InvalidateRange(addr, encoded_size);
+		if (encoded_size > 32)
+			TextureCache::InvalidateRange(addr + 32, encoded_size - 32);
 
+		TextureCache::Commit(this);
 		hash = addr & 0x1fffffe0;
-
-		this->hash = hash;
 	}
 
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
