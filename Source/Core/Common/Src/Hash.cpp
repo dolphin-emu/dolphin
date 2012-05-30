@@ -21,13 +21,14 @@
 #include <nmmintrin.h>
 #endif
 
-static u64 (*ptrHashFunction)(const u8 *src, int len, u32 samples) = &GetMurmurHash3;
+static u64 (*ptrHashFunction)(const u8 *src, int len, u32 samples) = &HashFletcher;
 
 // uint32_t
 // WARNING - may read one more byte!
 // Implementation from Wikipedia.
-u32 HashFletcher(const u8* data_u8, size_t length)
+u64 HashFletcher(const u8 *data_u8, int length, u32 samples)
 {
+	if (length == 0) return 0;
 	const u16* data = (const u16*)data_u8; /* Pointer to the data to be summed */
 	size_t len = (length + 1) / 2; /* Length in 16-bit words */
 	u32 sum1 = 0xffff, sum2 = 0xffff;
@@ -55,7 +56,7 @@ u32 HashFletcher(const u8* data_u8, size_t length)
 
 
 // Implementation from Wikipedia
-// Slightly slower than Fletcher above, but slighly more reliable.
+// Slightly slower than Fletcher above, but slightly more reliable.
 #define MOD_ADLER 65521
 // data: Pointer to the data to be summed; len is in bytes
 u32 HashAdler32(const u8* data, size_t len)
@@ -113,6 +114,31 @@ u32 HashEctor(const u8* ptr, int length)
 
 #ifdef _M_X64
 
+// CRC32 hash using the SSE4.2 instruction
+u64 GetCRC32(const u8 *src, int len, u32 samples)
+{
+#if _M_SSE >= 0x402
+	u64 h = len;
+	u32 Step = (len / 8);
+	const u64 *data = (const u64 *)src;
+	const u64 *end = data + Step;
+	if(samples == 0) samples = max(Step, 1u);
+	Step = Step / samples;
+	if(Step < 1) Step = 1;
+	while(data < end)
+	{
+		h = _mm_crc32_u64(h, data[0]);
+		data += Step;
+	}
+
+	const u8 *data2 = (const u8*)end;
+	return _mm_crc32_u64(h, u64(data2[0]));
+#else
+	return 0;
+#endif
+}
+
+
 //-----------------------------------------------------------------------------
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
@@ -120,6 +146,20 @@ u32 HashEctor(const u8* ptr, int length)
 inline u64 getblock(const u64 * p, int i)
 {
         return p[i];
+}
+
+//----------
+// Finalization mix - avalanches all bits to within 0.05% bias
+
+inline u64 fmix64(u64 k)
+{
+	k ^= k >> 33;
+	k *= 0xff51afd7ed558ccd;
+	k ^= k >> 33;
+	k *= 0xc4ceb9fe1a85ec53;
+	k ^= k >> 33;
+
+	return k;
 }
 
 //----------
@@ -146,20 +186,6 @@ inline void bmix64(u64 & h1, u64 & h2, u64 & k1, u64 & k2, u64 & c1, u64 & c2)
 
     c1 = c1*5+0x7b7d159c;
     c2 = c2*5+0x6bce6396;
-}
-
-//----------
-// Finalization mix - avalanches all bits to within 0.05% bias
-
-inline u64 fmix64(u64 k)
-{
-    k ^= k >> 33;
-    k *= 0xff51afd7ed558ccd;
-    k ^= k >> 33;
-    k *= 0xc4ceb9fe1a85ec53;
-    k ^= k >> 33;
-
-    return k;
 }
 
 u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
@@ -234,31 +260,6 @@ u64 GetMurmurHash3(const u8 *src, int len, u32 samples)
     h1 += h2;
 
     return h1;
-}
-
-
-// CRC32 hash using the SSE4.2 instruction
-u64 GetCRC32(const u8 *src, int len, u32 samples)
-{
-#if _M_SSE >= 0x402
-	u64 h = len;
-	u32 Step = (len / 8);
-	const u64 *data = (const u64 *)src;
-	const u64 *end = data + Step;
-	if(samples == 0) samples = max(Step, 1u);
-	Step = Step / samples;
-	if(Step < 1) Step = 1;
-	while(data < end)
-	{
-		h = _mm_crc32_u64(h, data[0]);
-		data += Step;
-	}
-
-	const u8 *data2 = (const u8*)end;
-	return _mm_crc32_u64(h, u64(data2[0]));
-#else
-	return 0;
-#endif
 }
 
 
@@ -520,7 +521,7 @@ void SetHash64Function(bool useHiresTextures)
 #endif
 	else
 	{
-		ptrHashFunction = &GetMurmurHash3;
+		ptrHashFunction = &HashFletcher;
 	}
 }
 
