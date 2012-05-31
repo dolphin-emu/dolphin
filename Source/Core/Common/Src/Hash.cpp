@@ -21,12 +21,11 @@
 #include <nmmintrin.h>
 #endif
 
-static u64 (*ptrHashFunction)(const u8 *src, int len, u32 samples) = &HashFletcher;
+static u64 (*ptrHashFunction)(const u8 *src, int len, u32 samples) = &MurmurHash3_x86_32;
 
-// uint32_t
 // WARNING - may read one more byte!
 // Implementation from Wikipedia.
-u64 HashFletcher(const u8 *data_u8, int length, u32 samples)
+u32 HashFletcher(const u8* data_u8, size_t length)
 {
 	if (length == 0) return 0;
 	const u16* data = (const u16*)data_u8; /* Pointer to the data to be summed */
@@ -54,6 +53,24 @@ u64 HashFletcher(const u8 *data_u8, int length, u32 samples)
 	return(sum2 << 16 | sum1);
 }
 
+
+#define	ROTL32(x,y)	rotl32(x,y)
+
+inline u32 rotl32 ( u32 x, u8 r )
+{
+	return (x << r) | (x >> (32 - r));
+}
+
+inline u32 fmix ( u32 h )
+{
+	h ^= h >> 16;
+	h *= 0x85ebca6b;
+	h ^= h >> 13;
+	h *= 0xc2b2ae35;
+	h ^= h >> 16;
+
+	return h;
+}
 
 // Implementation from Wikipedia
 // Slightly slower than Fletcher above, but slightly more reliable.
@@ -110,6 +127,62 @@ u32 HashEctor(const u8* ptr, int length)
 
 	return(crc);
 }
+
+// MurmurHash3 was written by Austin Appleby, and is placed in the public
+// domain. The author hereby disclaims copyright to this source code.
+// This has returns a u32 casted to u64
+u64 MurmurHash3_x86_32(const u8* src, int len, u32 samples)
+{
+	const u8 * data = (const u8*)src;
+	const int nblocks = len / 4;
+
+	u32 h1 = 0x971e137b;
+
+	const u32 c1 = 0xcc9e2d51;
+	const u32 c2 = 0x1b873593;
+
+	//----------
+	// body
+
+	const u32 * blocks = (const u32 *)(data + nblocks*4);
+
+	for(int i = -nblocks; i; i++)
+	{
+		u32 k1 = blocks[i];
+
+		k1 *= c1;
+		k1 = ROTL32(k1,15);
+		k1 *= c2;
+
+		h1 ^= k1;
+		h1 = ROTL32(h1,13); 
+		h1 = h1*5+0xe6546b64;
+	}
+
+	//----------
+	// tail
+
+	const u8 * tail = (const u8*)(data + nblocks*4);
+
+	u32 k1 = 0;
+
+	switch(len & 3)
+	{
+	case 3: k1 ^= tail[2] << 16;
+	case 2: k1 ^= tail[1] << 8;
+	case 1: k1 ^= tail[0];
+		k1 *= c1; k1 = ROTL32(k1,15); k1 *= c2; h1 ^= k1;
+	};
+
+	//----------
+	// finalization
+
+	h1 ^= len;
+
+	h1 = fmix(h1);
+
+	return (u64)h1;
+} 
 
 
 #ifdef _M_X64
@@ -521,7 +594,7 @@ void SetHash64Function(bool useHiresTextures)
 #endif
 	else
 	{
-		ptrHashFunction = &HashFletcher;
+		ptrHashFunction = &MurmurHash3_x86_32;
 	}
 }
 

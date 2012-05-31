@@ -46,7 +46,6 @@ unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
 bool TextureCache::DeferredInvalidate;
-bool invalidated_textures;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -72,7 +71,6 @@ TextureCache::TextureCache()
     if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
-	invalidated_textures = false;
 }
 
 TextureCache::~TextureCache()
@@ -133,7 +131,6 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 				Commit(iter->second, true);
 				iter->second->SetHashes(TEXHASH_INVALID);
 				found = true;
-				invalidated_textures = true;
 			}
 		}
 	}
@@ -156,7 +153,6 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 				{
 					Commit(iter->second, true);
 					iter->second->SetHashes(TEXHASH_INVALID);
-					invalidated_textures = true;
 				}
 			}
 		}
@@ -170,7 +166,6 @@ void TextureCache::InvalidateDefer()
 
 void TextureCache::Cleanup()
 {
-	invalidated_textures = false;
 	TexCache::iterator iter = textures.begin();
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
@@ -359,9 +354,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 	}
 
-	if (invalidated_textures)
-		Cleanup();
-
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
@@ -376,7 +368,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			if (g_ActiveConfig.bCopyEFBToTexture)
 			{
 				tex_hash = TEXHASH_INVALID;
-				invalidated_textures = true;
 				goto return_entry;
 			}
 			else if (entry->hash != TEXHASH_INVALID && entry->native_width == nativeW && entry->native_height == nativeH)
@@ -819,7 +810,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		entry->SetHashes(TEXHASH_INVALID);
 		entry->type = TCET_EC_VRAM;
 		Commit(entry, true);
-		invalidated_textures = true;
 	}
 
 	entry->frameCount = frameCount;
@@ -844,7 +834,7 @@ void TextureCache::Commit(TCacheEntryBase *tex, bool clear)
 u64 TextureCache::GetPaletteHash(u32 texformat, u32 tlut_addr)
 {
 	const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
-	return GetHash64(&texMem[tlut_addr], palette_size, 32);
+	return GetHash64(&texMem[tlut_addr], palette_size, (texformat - 7) * 32);
 }
 
 u64 TextureCache::GetPaletteHash(TCacheEntryBase *tex)
