@@ -696,19 +696,19 @@ void BPReload()
 	SetColorMask();
 	OnPixelFormatChange();
 	{
-		BPCmd bp = {BPMEM_TX_SETMODE0, 0xFFFFFF, ((u32*)&bpmem)[BPMEM_TX_SETMODE0]};
+		BPCmd bp = {BPMEM_TX_SETMODE0, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_TX_SETMODE0])};
 		SetTextureMode(bp);
 	}
 	{
-		BPCmd bp = {BPMEM_TX_SETMODE0_4, 0xFFFFFF, ((u32*)&bpmem)[BPMEM_TX_SETMODE0_4]};
+		BPCmd bp = {BPMEM_TX_SETMODE0_4, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_TX_SETMODE0_4])};
 		SetTextureMode(bp);
 	}
 	{
-		BPCmd bp = {BPMEM_FIELDMASK, 0xFFFFFF, ((u32*)&bpmem)[BPMEM_FIELDMASK]};
+		BPCmd bp = {BPMEM_FIELDMASK, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMASK])};
 		SetInterlacingMode(bp);
 	}
 	{
-		BPCmd bp = {BPMEM_FIELDMODE, 0xFFFFFF, ((u32*)&bpmem)[BPMEM_FIELDMODE]};
+		BPCmd bp = {BPMEM_FIELDMODE, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMODE])};
 		SetInterlacingMode(bp);
 	}
 }
