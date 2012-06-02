@@ -331,8 +331,6 @@ void BPWritten(const BPCmd& bp)
 			else
 				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tmem_config.tlut_src, bpmem.tmem_config.tlut_src << 5, (bpmem.tmem_config.tlut_src & 0xFFFFF)<< 5);
 
-			// TODO(ector) : kill all textures that use this palette
-			// Not sure if it's a good idea, though. For now, we hash texture palettes
 			break;
 		}
 	case BPMEM_FOGRANGE: // Fog Settings Control
@@ -504,7 +502,6 @@ void BPWritten(const BPCmd& bp)
 
 			// Check if the game has overflowed TMEM, and copy up to the limit.
 			// Paper Mario does this when entering the Great Boogly Tree (Chap 2)
-			// TODO: Does this wrap?
 			if ((tmem_addr + size) > TMEM_SIZE)
 				size = TMEM_SIZE - tmem_addr;
 
