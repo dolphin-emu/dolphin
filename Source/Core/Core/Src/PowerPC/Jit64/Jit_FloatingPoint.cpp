@@ -24,6 +24,7 @@
 
 #include "Jit.h"
 #include "JitRegCache.h"
+#include "CPUDetect.h"
 
 const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
@@ -64,9 +65,19 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEm
 		(this->*op)(XMM0, Gen::R(XMM1));
 		MOVSD(fpr.RX(d), Gen::R(XMM0));
 	}
-	if (dupe) {
+	if (dupe)
+	{
 		ForceSinglePrecisionS(fpr.RX(d));
-		MOVDDUP(fpr.RX(d), fpr.R(d));
+		if (cpu_info.bSSE3)
+		{
+			MOVDDUP(fpr.RX(d), fpr.R(d));
+		}
+		else
+		{
+			if (!fpr.R(d).IsSimpleReg(fpr.RX(d)))
+				MOVQ_xmm(fpr.RX(d), fpr.R(d));
+			UNPCKLPD(fpr.RX(d), R(fpr.RX(d)));
+		}
 	}
 	fpr.UnlockAll();
 }

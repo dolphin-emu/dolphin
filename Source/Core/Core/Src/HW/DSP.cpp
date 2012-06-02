@@ -436,8 +436,9 @@ void Write16(const u16 _Value, const u32 _Address)
 			if (tmpControl.ARAM) g_dspState.DSPControl.ARAM = 0;
 			if (tmpControl.DSP)  g_dspState.DSPControl.DSP  = 0;
 
-			// g_ARAM (line below should be commented out to emulate the DMA wait time)
-			g_dspState.DSPControl.DMAState = 0;	// keep g_ARAM DMA State zero
+			// Tracking DMAState fixes Knockout Kings 2003 in DSP HLE mode
+			if (GetDSPEmulator()->IsLLE())
+				g_dspState.DSPControl.DMAState = 0;	// keep g_ARAM DMA State zero
 
 			// unknown
 			g_dspState.DSPControl.unk3	= tmpControl.unk3;
@@ -700,8 +701,9 @@ void Do_ARAM_DMA()
 	// seems like a good estimate
 	CoreTiming::ScheduleEvent_Threadsafe(g_arDMA.Cnt.count >> 1, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
 
-	// Uncomment the line below to emulate the DMA wait time.
-	//g_dspState.DSPControl.DMAState = 1;
+	// Emulating the DMA wait time fixes Knockout Kings 2003 in DSP HLE mode
+	if (!GetDSPEmulator()->IsLLE())
+		g_dspState.DSPControl.DMAState = 1;
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
