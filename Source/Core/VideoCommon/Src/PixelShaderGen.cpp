@@ -490,7 +490,7 @@ static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "7.0f" };
 static char swapModeTable[4][5];
 
 static char text[16384];
-static bool PixelLigthingEnabled;
+static bool PixelLightingEnabled;
 static bool DepthTextureEnable;
 static bool MustWriteToDepth;
 static bool FastZcomploc;
@@ -531,7 +531,7 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
 		}
 	}
-	PixelLigthingEnabled = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	PixelLightingEnabled = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
 	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && (bpmem.zmode.testenable || bpmem.zmode.updateenable));
 	MustWriteToDepth = DepthTextureEnable  || g_ActiveConfig.bEnablePerPixelDepth;
 	FastZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && false;
@@ -576,7 +576,7 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 	WRITE(p, "uniform float4 " I_INDTEXMTX"[6] : register(c%d);\n", C_INDTEXMTX);
 	WRITE(p, "uniform float4 " I_FOG"[3] : register(c%d);\n", C_FOG);
 
-	if(PixelLigthingEnabled)
+	if(PixelLightingEnabled)
 	{
 		WRITE(p,"typedef struct { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; } Light;\n");
 		WRITE(p,"typedef struct { Light lights[8]; } s_" I_PLIGHTS";\n");
@@ -609,15 +609,15 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 		for (int i = 0; i < numTexgen; ++i)
 			WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
 		WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
-		if(PixelLigthingEnabled)
+		if(PixelLightingEnabled)
 			WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
 	}
 	else
 	{
 		// wpos is in w of first 4 texcoords
-		if(PixelLigthingEnabled)
+		if(PixelLightingEnabled)
 		{
-			for (int i = 0; i < numTexgen; ++i)
+			for (int i = 0; i < (numTexgen + 1); ++i)
 				WRITE(p, ",\n  in float4 uv%d : TEXCOORD%d", i, i);
 		}
 		else
@@ -692,7 +692,7 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 			"  float4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
 
-	if(PixelLigthingEnabled)
+	if(PixelLightingEnabled)
 	{
 		if (numTexgen < 7)
 		{
