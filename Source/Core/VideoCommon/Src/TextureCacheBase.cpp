@@ -355,8 +355,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// 2. a) For EFB copies, only the hash and the texture address need to match
 		if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
 		{
-			if (entry->type != TCET_EC_VRAM)
-				entry->type = TCET_NORMAL;
+			entry->type = TCET_EC_VRAM;
 
 			// TODO: Print a warning if the format changes! In this case, we could reinterpret the internal texture object data to the new pixel format (similiar to what is already being done in Renderer::ReinterpretPixelFormat())
 			goto return_entry;
