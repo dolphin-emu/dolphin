@@ -152,6 +152,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	
 		g_renderer->RestoreAPIState();
+
+		hash = addr & 0x1fffffe0;
 	}
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)

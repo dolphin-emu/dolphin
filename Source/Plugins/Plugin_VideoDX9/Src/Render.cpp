@@ -1113,7 +1113,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
 	DLCache::ProgressiveCleanup();
-	TextureCache::Cleanup();
 
 	// Enable configuration changes
 	UpdateActiveConfig();

@@ -424,6 +424,14 @@ void Interpreter::dcbz(UGeckoInstruction _inst)
 	if (HID2.WPE || !HID0.DCFA)
 	{
 		Memory::Memset(address & ~31, 0, 32);
+
+		// Tell GFX backend to throw out any cached textures
+		// Starfox Assault intro videos use dcbz to invalidate.
+		if ((address & 0x0c000000) == 0)
+		{
+			if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE)
+				g_video_backend->Video_InvalidateRange(address, 32);
+		}
 	}
 }
 

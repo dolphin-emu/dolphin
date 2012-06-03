@@ -148,6 +148,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			VertexShaderCache::GetSimpleVertexShader(SSAAMode));
 
 		Rendersurf->Release();
+
+		hash = addr & 0x1fffffe0;
 	}
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)

@@ -46,6 +46,7 @@ unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
 bool TextureCache::DeferredInvalidate;
+bool invalidated_textures;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -71,6 +72,7 @@ TextureCache::TextureCache()
     if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
+	invalidated_textures = false;
 }
 
 TextureCache::~TextureCache()
@@ -131,6 +133,7 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 				Commit(iter->second, true);
 				iter->second->SetHashes(TEXHASH_INVALID);
 				found = true;
+				invalidated_textures = true;
 			}
 		}
 	}
@@ -153,6 +156,7 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 				{
 					Commit(iter->second, true);
 					iter->second->SetHashes(TEXHASH_INVALID);
+					invalidated_textures = true;
 				}
 			}
 		}
@@ -166,6 +170,7 @@ void TextureCache::InvalidateDefer()
 
 void TextureCache::Cleanup()
 {
+	invalidated_textures = false;
 	TexCache::iterator iter = textures.begin();
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
@@ -174,7 +179,7 @@ void TextureCache::Cleanup()
 		{
 			// Kill textures that have not been used for a while and clean up any that have been marked invalid
 			if ((textures.size() > TEXTURE_CACHE_SIZE_WATERMARK && frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) ||
-				(Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_TEXTURE && !iter->second->from_tmem))
+				(Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_TEXTURE))
 			{
 				Commit(iter->second, true);
 				delete iter->second;
@@ -184,10 +189,9 @@ void TextureCache::Cleanup()
 			else
 				++iter;
 		}
-		// Clean up any textures that have been wiped via the game_map (Needed for Pandora's Tower intro cutscene).
-		else if (iter->second && (Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_CLEAR && !iter->second->from_tmem))
+		// Clean up any textures that have been wiped via the game_map (Needed for the mipmaps in GoldenEye 007 and Pandora's Tower intro cutscene).
+		else if (iter->second && (Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_CLEAR && !iter->second->from_tmem && iter->second->num_mipmaps == 0))
 		{
-			Commit(iter->second, true);
 			delete iter->second;
 			iter->second = 0;
 			textures.erase(iter++);
@@ -354,6 +358,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 	}
 
+	if (invalidated_textures)
+		Cleanup();
+
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
@@ -368,6 +375,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			if (g_ActiveConfig.bCopyEFBToTexture)
 			{
 				tex_hash = TEXHASH_INVALID;
+				invalidated_textures = true;
 				goto return_entry;
 			}
 			else if (entry->hash != TEXHASH_INVALID && entry->native_width == nativeW && entry->native_height == nativeH)
@@ -809,7 +817,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		entry->SetDimensions(tex_w, tex_h, scaled_tex_w, scaled_tex_h);
 		entry->SetHashes(TEXHASH_INVALID);
 		entry->type = TCET_EC_VRAM;
-		Commit(entry, true);
+		//Commit(entry, true); // Not needed if size = 0
+		invalidated_textures = true;
 	}
 
 	entry->frameCount = frameCount;
@@ -827,6 +836,13 @@ void TextureCache::Commit(TCacheEntryBase *tex, bool clear)
 	{
 		u32 address = tex->addr;
 		u32 size = tex->size_in_bytes;
+
+		// Clean up any textures that have been overwritten via the game_map (Needed for SX4P01 intro cutscene).
+		if (!clear && Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE && TexDecoder_GetPaletteSize(tex->format & 0xffff) == 0)
+		{
+			TextureCache::InvalidateRange(address, size);
+		}
+
 		memset((u8*)(Memory::game_map + ((address & 0x1fffffe0) >> 5)), clear ? Memory::GMAP_CLEAR : Memory::GMAP_TEXTURE, (size & ~31) >> 5);
 	}
 }
