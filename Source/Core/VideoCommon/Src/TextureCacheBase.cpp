@@ -763,16 +763,12 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	TCacheEntryBase *entry = textures[dstAddr];
 	if (entry)
 	{
-		if ((entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
-			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h))
+		if (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h)
 		{
-			if (entry->type == TCET_EC_DYNAMIC)
-			{
-				scaled_tex_w = tex_w;
-				scaled_tex_h = tex_h;
-			}
+			scaled_tex_w = tex_w;
+			scaled_tex_h = tex_h;
 		}
-		else
+		else if (!(entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h))
 		{
 			// remove it and recreate it as a render target
 			delete entry;
