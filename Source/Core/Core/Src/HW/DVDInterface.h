@@ -18,11 +18,23 @@
 #ifndef _DVDINTERFACE_H
 #define _DVDINTERFACE_H
 
+#include <functional>
+
 #include "Common.h"
 class PointerWrap;
 
 namespace DVDInterface
 {
+
+// Represents a DVD read request
+typedef std::function<void(bool)> ReadRequestCallback;
+struct ReadRequest
+{
+	u32 DVDOffset;
+	u32 RamAddress;
+	u32 Length;
+	ReadRequestCallback Callback;
+};
 
 void Init();
 void Shutdown();
@@ -41,7 +53,8 @@ bool IsLidOpen();
 void ClearCoverInterrupt();
 
 // DVD Access Functions
-bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool _bRaiseInterrupt=false);
+bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength);
+void DVDReadAsync(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength, ReadRequestCallback _fCallback);
 // For AudioInterface
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples);
 extern bool g_bStream;

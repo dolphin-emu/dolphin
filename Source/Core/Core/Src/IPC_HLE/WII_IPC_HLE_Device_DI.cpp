@@ -144,13 +144,15 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 
 void PerformAsyncRead(u32 _CommandAddress, u32 _DVDAddress, u32 _BufferOut, u32 _Size, IWII_IPC_HLE_Device::ReplyFunc _ReplyFunc)
 {
-	if (!DVDInterface::DVDRead(_DVDAddress, _BufferOut, _Size))
-	{
-		PanicAlertT("DVDLowRead - Fatal Error: failed to read from volume");
-	}
+	DVDInterface::DVDReadAsync(_DVDAddress, _BufferOut, _Size, [=](bool _Success)
+		{
+			if (!_Success)
+				PanicAlertT("DVDLowRead - Fatal Error: failed to read from volume");
 
-	Memory::Write_U32(1, _CommandAddress + 0x4);
-	_ReplyFunc(true);
+			Memory::Write_U32(_Success, _CommandAddress + 0x4);
+			_ReplyFunc(_Success);
+		}
+	);
 }
 
 void CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _CommandAddress, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize, ReplyFunc _ReplyFunc)
@@ -244,8 +246,7 @@ void CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _CommandAddress, u32 _BufferIn, 
 			}
 
 			// Launch the async read
-			std::thread AsyncReadThread(PerformAsyncRead, _CommandAddress, DVDAddress, _BufferOut, Size, _ReplyFunc);
-			AsyncReadThread.detach();
+			PerformAsyncRead(_CommandAddress, DVDAddress, _BufferOut, Size, _ReplyFunc);
 			return; // We call the reply func ourselves, no need to go through the normal flow
 		}
 		break;

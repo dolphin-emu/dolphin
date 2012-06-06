@@ -223,12 +223,21 @@ static std::mutex dvdread_section;
 static int ejectDisc;
 static int insertDisc;
 
+// Thread handling async DVD read requests, and associated command queue and
+// condition variable/mutex.
+static std::thread asyncReadThread;
+static Common::FifoQueue<ReadRequest> asyncRequests;
+static std::mutex mutexAsyncRead;
+static std::condition_variable cvAsyncRead;
+
 void EjectDiscCallback(u64 userdata, int cyclesLate);
 void InsertDiscCallback(u64 userdata, int cyclesLate);
 
 void UpdateInterrupts();
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt);
 void ExecuteCommand(UDICR& _DICR);
+
+void AsyncReadThread();
 
 void DoState(PointerWrap &p)
 {
@@ -285,10 +294,44 @@ void Init()
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
 	tc = CoreTiming::RegisterEvent("TransferComplete", TransferComplete);
+
+	asyncReadThread = std::thread(AsyncReadThread);
 }
 
 void Shutdown()
 {
+	// Send a sentinel read request that the read thread will recognize as the
+	// stop signal.
+	DVDReadAsync(-1, -1, -1, [](bool){});
+	asyncReadThread.join();
+	asyncRequests.Clear();
+}
+
+void AsyncReadThread()
+{
+	bool quit = false;
+
+	while (!quit)
+	{
+		std::unique_lock<std::mutex> lk(mutexAsyncRead);
+		cvAsyncRead.wait(lk, []{ return asyncRequests.Size() != 0; });
+
+		while (asyncRequests.Size() != 0)
+		{
+			ReadRequest req;
+			asyncRequests.Pop(req);
+
+			// Check for stop signal
+			if (req.DVDOffset == (u32)-1 && req.RamAddress == (u32)-1 && req.Length == (u32)-1)
+			{
+				quit = true;
+				break;
+			}
+
+			bool success = DVDRead(req.DVDOffset, req.RamAddress, req.Length);
+			req.Callback(success);
+		}
+	}
 }
 
 void SetDiscInside(bool _DiscInside)
@@ -353,20 +396,24 @@ void ClearCoverInterrupt()
 	m_DICVR.CVRINT = 0;
 }
 
-bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool _bRaiseInterrupt)
+bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
 {
 	// We won't need the crit sec when DTK streaming has been rewritten correctly.
 	std::lock_guard<std::mutex> lk(dvdread_section);
-	bool b = VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
-	if (_bRaiseInterrupt)
-		GenerateDIInterrupt(INT_TCINT);
-	return b;
+	return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
 }
 
-void DVDReadAsync(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
+void DVDReadAsync(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength, ReadRequestCallback _fCallback)
 {
-	std::thread thAsyncRead(DVDRead, _iDVDOffset, _iRamAddress, _iLength, true);
-	thAsyncRead.detach();
+	ReadRequest req;
+	req.DVDOffset = _iDVDOffset;
+	req.RamAddress = _iRamAddress;
+	req.Length = _iLength;
+	req.Callback = _fCallback;
+
+	std::lock_guard<std::mutex> lk(mutexAsyncRead);
+	asyncRequests.Push(req);
+	cvAsyncRead.notify_one();
 }
 
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
@@ -671,7 +718,8 @@ void ExecuteCommand(UDICR& _DICR)
 						}
 					}
 
-					DVDReadAsync(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length);
+					DVDReadAsync(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length,
+								 [](bool) { GenerateDIInterrupt(INT_TCINT); });
 					bAsyncCommand = true;
 				}
 				break;
