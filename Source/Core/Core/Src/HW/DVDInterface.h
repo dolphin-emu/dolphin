@@ -41,7 +41,7 @@ bool IsLidOpen();
 void ClearCoverInterrupt();
 
 // DVD Access Functions
-bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength);
+bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool _bRaiseInterrupt=false);
 // For AudioInterface
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples);
 extern bool g_bStream;

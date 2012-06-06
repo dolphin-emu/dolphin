@@ -353,11 +353,20 @@ void ClearCoverInterrupt()
 	m_DICVR.CVRINT = 0;
 }
 
-bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
+bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength, bool _bRaiseInterrupt)
 {
 	// We won't need the crit sec when DTK streaming has been rewritten correctly.
 	std::lock_guard<std::mutex> lk(dvdread_section);
-	return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
+	bool b = VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
+	if (_bRaiseInterrupt)
+		GenerateDIInterrupt(INT_TCINT);
+	return b;
+}
+
+void DVDReadAsync(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
+{
+	std::thread thAsyncRead(DVDRead, _iDVDOffset, _iRamAddress, _iLength, true);
+	thAsyncRead.detach();
 }
 
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
@@ -549,6 +558,7 @@ void ExecuteCommand(UDICR& _DICR)
 	int GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_AM_BASEBOARD)
 		&& (SConfig::GetInstance().m_EXIDevice[2] == EXIDEVICE_AM_BASEBOARD))
 		? 1 : 0;
+	bool bAsyncCommand = false;
 
 	if (GCAM)
 	{
@@ -661,11 +671,8 @@ void ExecuteCommand(UDICR& _DICR)
 						}
 					}
 
-					// Here is the actual Disk Reading
-					if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
-					{
-						PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
-					}
+					DVDReadAsync(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length);
+					bAsyncCommand = true;
 				}
 				break;
 
@@ -964,7 +971,8 @@ void ExecuteCommand(UDICR& _DICR)
 	// transfer is done
 	_DICR.TSTART = 0;
 	m_DILENGTH.Length = 0;
-	GenerateDIInterrupt(INT_TCINT);
+	if (!bAsyncCommand)
+		GenerateDIInterrupt(INT_TCINT);
 	g_ErrorCode = 0;
 }
 
