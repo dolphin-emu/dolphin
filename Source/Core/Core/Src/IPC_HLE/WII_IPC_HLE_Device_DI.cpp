@@ -233,7 +233,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				Size = _BufferOutSize;
 			}
 
-			if (!VolumeHandler::ReadToPtr(Memory::GetPointer(_BufferOut), DVDAddress, Size))
+			if (!DVDInterface::DVDRead(DVDAddress, _BufferOut, Size))
 			{
 				PanicAlertT("DVDLowRead - Fatal Error: failed to read from volume");
 			}

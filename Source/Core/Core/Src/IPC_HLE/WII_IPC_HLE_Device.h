@@ -17,6 +17,7 @@
 #ifndef _WII_IPC_HLE_DEVICE_H_
 #define _WII_IPC_HLE_DEVICE_H_
 
+#include <functional>
 #include <string>
 #include <queue>
 #include "../HW/Memmap.h"
@@ -91,6 +92,16 @@ public:
 	virtual bool IOCtl	(u32) { UNIMPLEMENTED_CMD(IOCtl) }
 	virtual bool IOCtlV	(u32) { UNIMPLEMENTED_CMD(IOCtlV) }
 #undef UNIMPLEMENTED_CMD
+
+	// Versions of the above system calls taking a continuation that has to be
+	// called when the IPC request is done being handled. If you do not need to
+	// perform work asynchonously, override the methods defined above instead.
+	typedef std::function<void(bool)> ReplyFunc;
+	virtual void Seek	(u32 u, ReplyFunc f) { f(Seek(u)); }
+	virtual void Read	(u32 u, ReplyFunc f) { f(Read(u)); }
+	virtual void Write	(u32 u, ReplyFunc f) { f(Write(u)); }
+	virtual void IOCtl	(u32 u, ReplyFunc f) { f(IOCtl(u)); }
+	virtual void IOCtlV	(u32 u, ReplyFunc f) { f(IOCtlV(u)); }
 
 	virtual u32 Update() { return 0; }
 

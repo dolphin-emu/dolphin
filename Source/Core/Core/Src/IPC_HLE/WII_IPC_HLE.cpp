@@ -316,20 +316,52 @@ void DoState(PointerWrap &p)
 	}
 }
 
+void EndExecuteCommand(IWII_IPC_HLE_Device* _pDevice, u32 _Address, u32 _Command, bool _Success)
+{
+	// It seems that the original hardware overwrites the command after it has been
+	// executed. We write 8 which is not any valid command, and what IOS does 
+	Memory::Write_U32(8, _Address);
+	// IOS seems to write back the command that was responded to
+	Memory::Write_U32(_Command, _Address + 8);
+
+	if (_Success)
+	{
+		// Generate a reply to the IPC command
+		EnqReply(_Address);
+	}
+	else
+	{
+		if (_pDevice)
+		{
+			INFO_LOG(WII_IPC_HLE, "<<-- Reply Failed to %s IPC Request %i @ 0x%08x ", _pDevice->GetDeviceName().c_str(), _Command, _Address);
+		}
+		else
+		{
+			INFO_LOG(WII_IPC_HLE, "<<-- Reply Failed to Unknown IPC Request %i @ 0x%08x ", _Command, _Address);
+		}
+	}
+}
+
 void ExecuteCommand(u32 _Address)
 {
-    bool CmdSuccess = false;
+	bool CmdSuccess = false;
 
-    ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
+	ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
 	volatile int DeviceID = Memory::Read_U32(_Address + 8);
 
 	IWII_IPC_HLE_Device* pDevice = (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : NULL;
 
 	INFO_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) %p", _Address, Command, DeviceID, pDevice);
 
-    switch (Command)
-    {
-    case COMMAND_OPEN_DEVICE:
+	// Called when a command is done running.
+	std::function<void(bool)> funcReply = [pDevice, _Address, Command](bool _Success)
+	{
+		EndExecuteCommand(pDevice, _Address, Command, _Success);
+	};
+
+	switch (Command)
+	{
+		case COMMAND_OPEN_DEVICE:
 	{		
 		u32 Mode = Memory::Read_U32(_Address + 0x10);
 		DeviceID = getFreeDeviceId();
@@ -403,13 +435,15 @@ void ExecuteCommand(u32 _Address)
 			Memory::Write_U32(FS_EFDEXHAUSTED, _Address + 4);
 			CmdSuccess = true;
 		}
-        break;
-    }
-    case COMMAND_CLOSE_DEVICE:
+
+		funcReply(CmdSuccess);
+		break;
+	}
+	case COMMAND_CLOSE_DEVICE:
 	{
 		if (pDevice)
 		{
-            CmdSuccess = pDevice->Close(_Address);
+			CmdSuccess = pDevice->Close(_Address);
 
 			u32 j;
 			for (j=0; j<ES_MAX_COUNT; j++)
@@ -431,91 +465,70 @@ void ExecuteCommand(u32 _Address)
 			Memory::Write_U32(FS_EINVAL, _Address + 4);
 			CmdSuccess = true;
 		}
-        break;
-	}
-    case COMMAND_READ:
-	{
-		if (pDevice)
-		{
-			CmdSuccess = pDevice->Read(_Address);
-		}
-		else
-		{
-			Memory::Write_U32(FS_EINVAL, _Address + 4);
-			CmdSuccess = true;
-		}
-        break;
-	}
-    case COMMAND_WRITE:
-	{
-		if (pDevice)
-		{
-			CmdSuccess = pDevice->Write(_Address);
-		}
-		else
-		{
-			Memory::Write_U32(FS_EINVAL, _Address + 4);
-			CmdSuccess = true;
-		}
-        break;
-	}
-    case COMMAND_SEEK:
-	{
-		if (pDevice)
-		{
-			CmdSuccess = pDevice->Seek(_Address);
-		}
-		else
-		{
-			Memory::Write_U32(FS_EINVAL, _Address + 4);
-			CmdSuccess = true;
-		}
-        break;
-	}
-    case COMMAND_IOCTL:
-	{
-		if (pDevice)
-		{
-			CmdSuccess = pDevice->IOCtl(_Address);
-		}
-        break;
-	}
-    case COMMAND_IOCTLV:
-	{
-		if (pDevice)
-		{
-			CmdSuccess = pDevice->IOCtlV(_Address);
-		}
-        break;
-	}
-    default:
-	{
-        _dbg_assert_msg_(WII_IPC_HLE, 0, "Unknown IPC Command %i (0x%08x)", Command, _Address);
-        break;
-	}
-    }
 
-    // It seems that the original hardware overwrites the command after it has been
-	// executed. We write 8 which is not any valid command, and what IOS does 
-	Memory::Write_U32(8, _Address);
-	// IOS seems to write back the command that was responded to
-	Memory::Write_U32(Command, _Address + 8);
-
-    if (CmdSuccess)
-    {
-		// Generate a reply to the IPC command
-		EnqReply(_Address);
-    }
-	else
+		funcReply(CmdSuccess);
+		break;
+	}
+	case COMMAND_READ:
 	{
 		if (pDevice)
 		{
-			INFO_LOG(WII_IPC_HLE, "<<-- Reply Failed to %s IPC Request %i @ 0x%08x ", pDevice->GetDeviceName().c_str(), Command, _Address);
+			pDevice->Read(_Address, funcReply);
 		}
 		else
 		{
-			INFO_LOG(WII_IPC_HLE, "<<-- Reply Failed to Unknown (%08x) IPC Request %i @ 0x%08x ", DeviceID, Command, _Address);
+			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			funcReply(true);
 		}
+		break;
+	}
+	case COMMAND_WRITE:
+	{
+		if (pDevice)
+		{
+			pDevice->Write(_Address, funcReply);
+		}
+		else
+		{
+			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			funcReply(true);
+		}
+		break;
+	}
+	case COMMAND_SEEK:
+	{
+		if (pDevice)
+		{
+			pDevice->Seek(_Address, funcReply);
+		}
+		else
+		{
+			Memory::Write_U32(FS_EINVAL, _Address + 4);
+			funcReply(true);
+		}
+		break;
+	}
+	case COMMAND_IOCTL:
+	{
+		if (pDevice)
+		{
+			pDevice->IOCtl(_Address, funcReply);
+		}
+		break;
+	}
+	case COMMAND_IOCTLV:
+	{
+		if (pDevice)
+		{
+			pDevice->IOCtlV(_Address, funcReply);
+		}
+		break;
+	}
+	default:
+	{
+		_dbg_assert_msg_(WII_IPC_HLE, 0, "Unknown IPC Command %i (0x%08x)", Command, _Address);
+		break;
+	}
 	}
 }
 
