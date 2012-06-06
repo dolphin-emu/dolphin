@@ -142,7 +142,7 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 	return true;
 }
 
-void PerformAsyncRead(u32 _CommandAddress, u32 _DVDAddress, u32 _BufferOut, u32 _Size, IWII_IPC_HLE_Device::ReplyFunc _ReplyFunc)
+void PerformAsyncRead(u32 _CommandAddress, u64 _DVDAddress, u32 _BufferOut, u32 _Size, IWII_IPC_HLE_Device::ReplyFunc _ReplyFunc)
 {
 	DVDInterface::DVDReadAsync(_DVDAddress, _BufferOut, _Size, [=](bool _Success)
 		{

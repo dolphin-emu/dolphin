@@ -322,7 +322,7 @@ void AsyncReadThread()
 			asyncRequests.Pop(req);
 
 			// Check for stop signal
-			if (req.DVDOffset == (u32)-1 && req.RamAddress == (u32)-1 && req.Length == (u32)-1)
+			if (req.DVDOffset == (u64)-1 && req.RamAddress == (u32)-1 && req.Length == (u32)-1)
 			{
 				quit = true;
 				break;
@@ -396,14 +396,14 @@ void ClearCoverInterrupt()
 	m_DICVR.CVRINT = 0;
 }
 
-bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
+bool DVDRead(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
 {
 	// We won't need the crit sec when DTK streaming has been rewritten correctly.
 	std::lock_guard<std::mutex> lk(dvdread_section);
 	return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
 }
 
-void DVDReadAsync(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength, ReadRequestCallback _fCallback)
+void DVDReadAsync(u64 _iDVDOffset, u32 _iRamAddress, u32 _iLength, ReadRequestCallback _fCallback)
 {
 	ReadRequest req;
 	req.DVDOffset = _iDVDOffset;
