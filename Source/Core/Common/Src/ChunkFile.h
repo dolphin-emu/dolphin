@@ -34,6 +34,7 @@
 
 #include "Common.h"
 #include "FileUtil.h"
+#include "FifoQueue.h"
 
 template <class T>
 struct LinkedListItem : public T
@@ -132,6 +133,33 @@ public:
 		u32 i;
 		for(i = 0; i < deq_size; i++)
 			DoVoid(&x[i],sizeof(T));
+	}
+
+	// Store FifoQueues. Only works if T has a default constructor.
+	template<class T>
+	void Do(Common::FifoQueue<T> &x)
+	{
+		u32 qsize = x.Size();
+		Do(qsize);
+		if (mode == MODE_READ)
+		{
+			x.Clear();
+			for (u32 i = 0; i < qsize; ++i)
+			{
+				T t;
+				Do(t);
+				x.Push(t);
+			}
+		}
+		else if (mode == MODE_WRITE)
+		{
+			typename Common::FifoQueue<T>::ElementPtr* eptr = x.m_read_ptr;
+			for (u32 i = 0; i < qsize; ++i)
+			{
+				Do(*eptr->current);
+				eptr = eptr->next;
+			}
+		}
 	}
 	
 	// Store strings.

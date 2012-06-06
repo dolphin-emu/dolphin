@@ -62,8 +62,8 @@ bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 		m_CoverStatus &= ~DI_COVER_REG_NO_DISC;
 	}
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
-    m_Active = true;
-    return true;
+	m_Active = true;
+	return true;
 }
 
 bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
@@ -76,25 +76,22 @@ bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 	m_ErrorStatus = 0;
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
-    m_Active = false;
-    return true;
+	m_Active = false;
+	return true;
 }
 
-bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress) 
+void CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress, ReplyFunc _ReplyFunc) 
 {
 	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-    u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-    u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 	u32 Command			= Memory::Read_U32(BufferIn) >> 24;
 
-    DEBUG_LOG(WII_IPC_DVD, "IOCtl Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
+	DEBUG_LOG(WII_IPC_DVD, "IOCtl Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
 		Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
-	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);
-    Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-
-    return true;
+	ExecuteCommand(_CommandAddress, BufferIn, BufferInSize, BufferOut, BufferOutSize, _ReplyFunc);
 }
 
 bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress) 
@@ -142,12 +139,24 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-    return true;
+	return true;
 }
 
-u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
+void PerformAsyncRead(u32 _CommandAddress, u32 _DVDAddress, u32 _BufferOut, u32 _Size, IWII_IPC_HLE_Device::ReplyFunc _ReplyFunc)
+{
+	if (!DVDInterface::DVDRead(_DVDAddress, _BufferOut, _Size))
+	{
+		PanicAlertT("DVDLowRead - Fatal Error: failed to read from volume");
+	}
+
+	Memory::Write_U32(1, _CommandAddress + 0x4);
+	_ReplyFunc(true);
+}
+
+void CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _CommandAddress, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize, ReplyFunc _ReplyFunc)
 {    
-    u32 Command = Memory::Read_U32(_BufferIn) >> 24;
+	u32 Command = Memory::Read_U32(_BufferIn) >> 24;
+	u32 ReturnValue = 1;
 
 	// TATSUNOKO VS CAPCOM: Gets here with _BufferOut == 0!!!
 	if (_BufferOut != 0)
@@ -203,7 +212,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			if (_BufferOut == 0)
 			{
 				PanicAlert("DVDLowRead : _BufferOut == 0");
-				return 0;
+				ReturnValue = 0;
+				break;
 			}
 			u32 Size = Memory::Read_U32(_BufferIn + 0x04);
 			u64 DVDAddress = (u64)Memory::Read_U32(_BufferIn + 0x08) << 2;
@@ -233,20 +243,20 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				Size = _BufferOutSize;
 			}
 
-			if (!DVDInterface::DVDRead(DVDAddress, _BufferOut, Size))
-			{
-				PanicAlertT("DVDLowRead - Fatal Error: failed to read from volume");
-			}
+			// Launch the async read
+			std::thread AsyncReadThread(PerformAsyncRead, _CommandAddress, DVDAddress, _BufferOut, Size, _ReplyFunc);
+			AsyncReadThread.detach();
+			return; // We call the reply func ourselves, no need to go through the normal flow
 		}
 		break;
 
-    case DVDLowWaitForCoverClose:
-        {
+	case DVDLowWaitForCoverClose:
+		{
 			INFO_LOG(WII_IPC_DVD, "DVDLowWaitForCoverClose (Buffer 0x%08x, 0x%x)",
 				_BufferOut, _BufferOutSize);
-			return 4; // ???
-        }
-        break;
+			ReturnValue = 4;
+		}
+		break;
 
 	case DVDLowGetCoverReg:
 		Memory::Write_U32(m_CoverStatus, _BufferOut);
@@ -294,7 +304,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			if (_BufferOut == 0)
 			{
 				PanicAlert("DVDLowRead : _BufferOut == 0");
-				return 0;
+				ReturnValue = 0;
+				break;
 			}
 
 			u32 Size = Memory::Read_U32(_BufferIn + 0x04);
@@ -315,7 +326,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				WARN_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: trying to read out of bounds @ %x", DVDAddress32);
 				m_ErrorStatus = ERROR_READY | ERROR_BLOCK_OOB;
 				// Should cause software to call DVDLowRequestError
-				return 2;
+				ReturnValue = 2;
+				break;
 			}
 
 			u64 DVDAddress = (u64)DVDAddress32 << 2;
@@ -343,7 +355,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		// Does not work on retail discs/drives
 		// Retail games send this command to see if they are running on real retail hw
 		m_ErrorStatus = ERROR_READY | ERROR_INV_CMD;
-		return 2;
+		ReturnValue = 2;
 		break;
 
     case DVDLowSeek:
@@ -453,10 +465,11 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		ERROR_LOG(WII_IPC_DVD, "unknown cmd 0x%08x (Buffer 0x%08x, 0x%x)",
 			Command, _BufferOut, _BufferOutSize);
 
-        PanicAlertT("unknown cmd 0x%08x", Command);
+		PanicAlertT("unknown cmd 0x%08x", Command);
 		break;
 	}
 
-    // i dunno but prolly 1 is okay all the time :)
-    return 1;
+	// Return value
+	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+	_ReplyFunc(ReturnValue != 0);
 }

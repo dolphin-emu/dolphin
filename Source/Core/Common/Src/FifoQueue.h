@@ -7,12 +7,16 @@
 
 #include "Atomic.h"
 
+class PointerWrap;
+
 namespace Common
 {
 
 template <typename T>
 class FifoQueue
 {
+	friend class ::PointerWrap;
+
 public:
 	FifoQueue() : m_size(0)
 	{

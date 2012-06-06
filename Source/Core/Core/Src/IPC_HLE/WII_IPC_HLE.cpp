@@ -52,6 +52,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "WII_IPC_HLE_Device_sdio_slot0.h"
 
 #include "FileUtil.h" // For Copy
+#include "FifoQueue.h"
 #include "../ConfigManager.h"
 #include "../HW/CPU.h"
 #include "../HW/Memmap.h"
@@ -76,7 +77,7 @@ bool es_inuse[ES_MAX_COUNT];
 IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
 
 
-typedef std::deque<u32> ipc_msg_queue;
+typedef Common::FifoQueue<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue;	// ppc -> arm
 static ipc_msg_queue reply_queue;	// arm -> ppc
 
@@ -150,8 +151,8 @@ void Reset(bool _bHard)
 	{
 		g_DeviceMap.erase(g_DeviceMap.begin(), g_DeviceMap.end());
 	}
-	request_queue.clear();
-	reply_queue.clear();
+	request_queue.Clear();
+	reply_queue.Clear();
 }
 
 void Shutdown()
@@ -535,13 +536,13 @@ void ExecuteCommand(u32 _Address)
 // Happens AS SOON AS IPC gets a new pointer!
 void EnqRequest(u32 _Address)
 {
-	request_queue.push_back(_Address);
+	request_queue.Push(_Address);
 }
 
 // Called when IOS module has some reply
 void EnqReply(u32 _Address)
 {
-	reply_queue.push_back(_Address);
+	reply_queue.Push(_Address);
 }
 
 // This is called every IPC_HLE_PERIOD from SystemTimers.cpp
@@ -553,24 +554,26 @@ void Update()
 
 	UpdateDevices();
 
-	if (request_queue.size())
+	if (request_queue.Size())
 	{
-		WII_IPCInterface::GenerateAck(request_queue.front());
-		INFO_LOG(WII_IPC_HLE, "||-- Acknowledge IPC Request @ 0x%08x", request_queue.front());
+		u32 Address = request_queue.Front();
+		request_queue.Pop();
+		WII_IPCInterface::GenerateAck(Address);
+		INFO_LOG(WII_IPC_HLE, "||-- Acknowledge IPC Request @ 0x%08x", Address);
 
-		ExecuteCommand(request_queue.front());
-		request_queue.pop_front();
+		ExecuteCommand(Address);
 
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 		Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
 #endif
 	}
 
-	if (reply_queue.size())
+	if (reply_queue.Size())
 	{
-		WII_IPCInterface::GenerateReply(reply_queue.front());
-		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
-		reply_queue.pop_front();
+		u32 Address = reply_queue.Front();
+		reply_queue.Pop();
+		WII_IPCInterface::GenerateReply(Address);
+		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", Address);
 	}
 }
 

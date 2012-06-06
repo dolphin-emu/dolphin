@@ -36,12 +36,12 @@ public:
     bool Open(u32 _CommandAddress, u32 _Mode);
 	bool Close(u32 _CommandAddress, bool _bForce);
 
-	bool IOCtl(u32 _CommandAddress); 
+	void IOCtl(u32 _CommandAddress, ReplyFunc _ReplyFunc); 
 	bool IOCtlV(u32 _CommandAddress);
 
 private:
 
-	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
+	void ExecuteCommand(u32 _CommandAddress, u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize, ReplyFunc _ReplyFunc);
 
     DiscIO::IFileSystem* m_pFileSystem;
 	u32 m_ErrorStatus;
