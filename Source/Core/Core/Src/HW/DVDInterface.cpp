@@ -719,7 +719,7 @@ void ExecuteCommand(UDICR& _DICR)
 					}
 
 					DVDReadAsync(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length,
-								 [](bool) { GenerateDIInterrupt(INT_TCINT); });
+								 [&](bool) { _DICR.TSTART = 0; m_DILENGTH.Length = 0; GenerateDIInterrupt(INT_TCINT); });
 					bAsyncCommand = true;
 				}
 				break;
@@ -1017,10 +1017,12 @@ void ExecuteCommand(UDICR& _DICR)
 	}
 
 	// transfer is done
-	_DICR.TSTART = 0;
-	m_DILENGTH.Length = 0;
 	if (!bAsyncCommand)
+	{
+		_DICR.TSTART = 0;
+		m_DILENGTH.Length = 0;
 		GenerateDIInterrupt(INT_TCINT);
+	}
 	g_ErrorCode = 0;
 }
 
