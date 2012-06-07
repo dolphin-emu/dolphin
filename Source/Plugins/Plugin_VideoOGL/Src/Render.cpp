@@ -1438,9 +1438,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	g_Config.iSaveTargetId = 0;
 
 	// reload textures if these settings changed
-	if (g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
-		TextureCache::Invalidate(false);
-
 	if (g_Config.bCopyEFBToTexture != g_ActiveConfig.bCopyEFBToTexture)
 		TextureCache::ClearRenderTargets();
 

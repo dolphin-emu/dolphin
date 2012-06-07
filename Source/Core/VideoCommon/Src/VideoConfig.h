@@ -77,7 +77,6 @@ struct VideoConfig
 	bool bCrop;   // Aspect ratio controls.
 	bool bUseXFB;
 	bool bUseRealXFB;
-	bool bUseNativeMips;
 
 	// OpenCL/OpenMP
 	bool bEnableOpenCL;

@@ -84,7 +84,6 @@ wxString ws_hack_desc = wxTRANSLATE("Force the game to output graphics for wides
 wxString vsync_desc = wxTRANSLATE("Wait for vertical blanks in order to reduce tearing.\nDecreases performance if emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
 wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique viewing angles.\nMight cause issues in a small number of games.\n\nIf unsure, select 1x.");
 wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis makes the rendered picture look less blocky.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select None.");
-wxString fast_mipmaps_desc = wxTRANSLATE("Automatically generate mipmaps rather than decoding them from memory.\nIncreases performance a bit but might cause minor texture defects.\n\nIf unsure, leave this checked.");
 wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render to texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly decreases performance and possibly causes issues (although unlikely).\n\nIf unsure, leave this checked.");
 wxString pixel_lighting_desc = wxTRANSLATE("Calculate lighting of 3D graphics per-pixel rather than per vertex.\nDecreases emulation speed by some percent (depending on your GPU).\nThis usually is a safe enhancement, but might cause issues sometimes.\n\nIf unsure, leave this unchecked.");
 wxString pixel_depth_desc = wxTRANSLATE("Calculate depth values of 3D graphics per-pixel rather than per vertex.\nIn contrast to pixel lighting (which is merely an enhancement), per-pixel depth calculations are necessary to properly emulate a small number of games.\n\nIf unsure, leave this checked.");
@@ -493,7 +492,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxGridSizer* const szr_other = new wxGridSizer(2, 5, 5);
 
-	szr_other->Add(CreateCheckBox(page_hacks, _("Fast Mipmaps"), wxGetTranslation(fast_mipmaps_desc), vconfig.bUseNativeMips, true));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Cache Display Lists"), wxGetTranslation(dlc_desc), vconfig.bDlistCachingEnable));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Lighting"), wxGetTranslation(disable_lighting_desc), vconfig.bDisableLighting));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));

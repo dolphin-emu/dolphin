@@ -57,7 +57,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "Crop", &bCrop, false);
 	iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
 	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, 0);
-	iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, false);	
 	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,128);
 	iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
 	iniFile.Get("Settings", "ShowInputDisplay", &bShowInputDisplay, false);
@@ -129,7 +128,6 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "Crop", &bCrop);
 	iniFile.GetIfExists("Video_Settings", "UseXFB", &bUseXFB);
 	iniFile.GetIfExists("Video_Settings", "UseRealXFB", &bUseRealXFB);
-	iniFile.GetIfExists("Video_Settings", "UseNativeMips", &bUseNativeMips);
 	iniFile.GetIfExists("Video_Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples);
 	iniFile.GetIfExists("Video_Settings", "DLOptimize", &iCompileDLsLevel);
 	iniFile.GetIfExists("Video_Settings", "HiresTextures", &bHiresTextures);
@@ -190,7 +188,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "wideScreenHack", bWidescreenHack);
 	iniFile.Set("Settings", "UseXFB", bUseXFB);
 	iniFile.Set("Settings", "UseRealXFB", bUseRealXFB);
-	iniFile.Set("Settings", "UseNativeMips", bUseNativeMips);
 	iniFile.Set("Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	iniFile.Set("Settings", "ShowFPS", bShowFPS);
 	iniFile.Set("Settings", "ShowInputDisplay", bShowInputDisplay);
@@ -269,7 +266,6 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "Crop", bCrop);
 	SET_IF_DIFFERS("Video_Settings", "UseXFB", bUseXFB);
 	SET_IF_DIFFERS("Video_Settings", "UseRealXFB", bUseRealXFB);
-	SET_IF_DIFFERS("Video_Settings", "UseNativeMips", bUseNativeMips);
 	SET_IF_DIFFERS("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	SET_IF_DIFFERS("Video_Settings", "DLOptimize", iCompileDLsLevel);
 	SET_IF_DIFFERS("Video_Settings", "HiresTextures", bHiresTextures);

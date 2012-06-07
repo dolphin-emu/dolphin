@@ -375,6 +375,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		pcfmt = TexDecoder_Decode(temp, src_data, expandedWidth,
 					expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 
+	// TODO: Cleanup. Plus, we still autogenerate mipmaps in certain cases (we shouldn't do that)
 	bool isPow2;
 	unsigned int texLevels;
 	isPow2 = !((width & (width - 1)) || (height & (height - 1)));
