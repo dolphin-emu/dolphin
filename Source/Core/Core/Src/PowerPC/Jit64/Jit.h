@@ -112,7 +112,7 @@ public:
 
 	// Utilities for use by opcodes
 
-	void WriteExit(u32 destination, int exit_num);
+	void WriteExit(u32 destination, int exit_num, bool force_ee_check = false);
 	void WriteExitDestInEAX();
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();

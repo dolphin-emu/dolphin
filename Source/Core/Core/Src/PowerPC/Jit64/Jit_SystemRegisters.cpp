@@ -122,7 +122,10 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	gpr.UnlockAll();
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
-	WriteExit(js.compilerPC + 4, 0);
+
+	// Force an external exception when going out of mtmsr in order to check
+	// immediately for interrupts that were delayed because of MSR.EE=0.
+	WriteExit(js.compilerPC + 4, 0, true);
 	js.firstFPInstructionFound = false;
 }
 
