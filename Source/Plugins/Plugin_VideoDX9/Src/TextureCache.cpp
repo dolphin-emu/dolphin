@@ -149,7 +149,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		Rendersurf->Release();
 
-		hash = addr & 0x1fffffe0;
+		if (g_ActiveConfig.bCopyEFBToTexture)
+		{
+			hash = addr & 0x1fffffe0;
+		}
 	}
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)

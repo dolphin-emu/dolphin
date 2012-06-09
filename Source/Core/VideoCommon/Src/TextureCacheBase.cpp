@@ -170,12 +170,17 @@ void TextureCache::InvalidateDefer()
 
 void TextureCache::Cleanup()
 {
+	if (!invalidated_textures)
+		return;
+
 	invalidated_textures = false;
 	TexCache::iterator iter = textures.begin();
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
-		if (iter->second && iter->second->hash == TEXHASH_INVALID)
+		bool invalidHash = iter->second->hash == TEXHASH_INVALID || g_ActiveConfig.bHiresTextures;
+
+		if (iter->second && invalidHash)
 		{
 			// Kill textures that have not been used for a while and clean up any that have been marked invalid
 			if ((textures.size() > TEXTURE_CACHE_SIZE_WATERMARK && frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) ||
@@ -188,13 +193,6 @@ void TextureCache::Cleanup()
 			}
 			else
 				++iter;
-		}
-		// Clean up any textures that have been wiped via the game_map (Needed for the mipmaps in GoldenEye 007 and Pandora's Tower intro cutscene).
-		else if (iter->second && (Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_CLEAR && !iter->second->from_tmem && iter->second->num_mipmaps == 0))
-		{
-			delete iter->second;
-			iter->second = 0;
-			textures.erase(iter++);
 		}
 		else
 			++iter;
@@ -334,6 +332,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	else
 		tex_hash = address & 0x1fffffe0;
 
+	if (g_ActiveConfig.bHiresTextures)
+		texID = tex_hash;
+
 	if (isPaletteTexture)
 	{
 		if (g_ActiveConfig.bHiresTextures)
@@ -358,37 +359,66 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 	}
 
-	if (invalidated_textures)
-		Cleanup();
-
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
-		// 1. Calculate reference hash:
-		// calculated from RAM texture data for normal textures. 0 for virtual EFB copies.
-		// 2. a) For EFB copies, only the format and the texture address need to match (EFB to RAM)
-		if (entry->IsEfbCopy())
+		if (g_ActiveConfig.bHiresTextures)
 		{
-			if (entry->type != TCET_EC_VRAM)
-				entry->type = TCET_NORMAL;
-
-			if (g_ActiveConfig.bCopyEFBToTexture)
-			{
+			// 1. Calculate reference hash:
+			// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
+			if (g_ActiveConfig.bCopyEFBToTexture && entry->IsEfbCopy())
 				tex_hash = TEXHASH_INVALID;
-				invalidated_textures = true;
+
+			// 2. a) For EFB copies, only the hash and the texture address need to match
+			if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
+			{
+				if (entry->type != TCET_EC_VRAM)
+					entry->type = TCET_NORMAL;
+
+				// TODO: Print a warning if the format changes! In this case, we could reinterpret the internal texture object data to the new pixel format (similiar to what is already being done in Renderer::ReinterpretPixelFormat())
 				goto return_entry;
 			}
-			else if (entry->hash != TEXHASH_INVALID && entry->native_width == nativeW && entry->native_height == nativeH)
+
+			// 2. b) For normal textures, all texture parameters need to match
+			if (address == entry->addr && tex_hash == entry->hash && full_format == entry->format &&
+				entry->num_mipmaps == maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
 			{
 				goto return_entry;
 			}
 		}
-
-		// 2. b) For normal textures, all texture parameters need to match
-		if (address == entry->addr && tex_hash == entry->hash && full_format == entry->format &&
-			entry->num_mipmaps == maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
+		else
 		{
-			goto return_entry;
+			if (entry->IsEfbCopy())
+			{
+				if (g_ActiveConfig.bCopyEFBToTexture)
+				{
+					if (entry->type != TCET_EC_VRAM)
+						entry->type = TCET_NORMAL;
+
+					tex_hash = TEXHASH_INVALID;
+					invalidated_textures = true;
+					goto return_entry;
+				}
+				else if (entry->native_width == nativeW && entry->native_height == nativeH)
+				{
+					if (entry->type != TCET_EC_VRAM)
+					{
+						entry->type = TCET_NORMAL;
+						goto return_entry;
+					}
+					else
+					{
+						goto return_entry;
+					}
+				}
+			}
+			else if (entry->hash != TEXHASH_INVALID && Memory::game_map[entry->addr >> 5] == Memory::GMAP_TEXTURE)
+			{
+				// Pokemon Battle Revolution repeatedly reuses and invalidates paletted textures.
+				// Caching them for one frame fixes this in dual core mode.
+				if (entry->tlut_addr == 0 || frameCount <= (1 + entry->frameCount))
+					goto return_entry;
+			}
 		}
 
 		// 3. If we reach this line, we'll have to upload the new texture data to VRAM.
@@ -408,7 +438,6 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			entry = NULL;
 		}
 	}
-
 
 	if (g_ActiveConfig.bHiresTextures)
 	{
@@ -787,7 +816,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
 
-	TCacheEntryBase *entry = textures[dstAddr];
+	TCacheEntryBase *entry = textures[dstAddr & 0x1fffffe0];
 	if (entry)
 	{
 		if ((entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
@@ -810,10 +839,10 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	if (NULL == entry)
 	{
 		// create the texture
-		textures[dstAddr] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);
+		textures[dstAddr & 0x1fffffe0] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);
 
 		// TODO: Using the wrong dstFormat, dumb...
-		entry->SetGeneralParameters(dstAddr, 0, dstFormat, 0);
+		entry->SetGeneralParameters(dstAddr, 32, dstFormat, 0);
 		entry->SetDimensions(tex_w, tex_h, scaled_tex_w, scaled_tex_h);
 		entry->SetHashes(TEXHASH_INVALID);
 		entry->type = TCET_EC_VRAM;
@@ -836,12 +865,6 @@ void TextureCache::Commit(TCacheEntryBase *tex, bool clear)
 	{
 		u32 address = tex->addr;
 		u32 size = tex->size_in_bytes;
-
-		// Clean up any textures that have been overwritten via the game_map (Needed for SX4P01 intro cutscene).
-		if (!clear && Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE && TexDecoder_GetPaletteSize(tex->format & 0xffff) == 0)
-		{
-			TextureCache::InvalidateRange(address, size);
-		}
 
 		memset((u8*)(Memory::game_map + ((address & 0x1fffffe0) >> 5)), clear ? Memory::GMAP_CLEAR : Memory::GMAP_TEXTURE, (size & ~31) >> 5);
 	}

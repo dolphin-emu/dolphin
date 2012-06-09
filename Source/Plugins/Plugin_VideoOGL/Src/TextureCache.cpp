@@ -317,7 +317,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		// Unbind texture from temporary framebuffer
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 0, 0);
 
-		hash = addr & 0x1fffffe0;
+		if (g_ActiveConfig.bCopyEFBToTexture)
+		{
+			hash = addr & 0x1fffffe0;
+		}
 	}
 
 	if (false == g_ActiveConfig.bCopyEFBToTexture)
