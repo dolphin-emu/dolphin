@@ -334,17 +334,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			scaleByHalf, 
 			srcRect);
 
-		// The game has overwritten the texture without invalidating it first.  We'll invalidate our
-		// texture cache.  ZTP does this when updating the mini-map.
-		if (Memory::game_map[(addr & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE)
-		{
-			TextureCache::InvalidateRange(addr, 32);
-		}
-
-		// Invalidate texture entries overwritten by the destination address range
-		if (encoded_size > 32)
-			TextureCache::InvalidateRange(addr + 32, encoded_size - 32);
-
+		size_in_bytes = encoded_size;
+		TextureCache::InvalidateRange(addr, 32);
 		TextureCache::Commit(this);
 		hash = addr & 0x1fffffe0;
 	}

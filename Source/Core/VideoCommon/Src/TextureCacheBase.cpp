@@ -355,7 +355,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			//		stored in a single texture and uses the palette to make different characters
 			//		visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
 			//		we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
-			texID = ((u64)(address & 0x1fffffe0) << 32) | tlut_hash;
+			texID = (texID << 32) | tlut_hash;
 		}
 	}
 
@@ -399,25 +399,33 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 					invalidated_textures = true;
 					goto return_entry;
 				}
-				else if (entry->native_width == nativeW && entry->native_height == nativeH)
+				else if (entry->hash != TEXHASH_INVALID && entry->native_width == nativeW && entry->native_height == nativeH)
 				{
-					if (entry->type != TCET_EC_VRAM)
+					if (entry->type == TCET_EC_DYNAMIC)
 					{
 						entry->type = TCET_NORMAL;
-						goto return_entry;
 					}
-					else
-					{
-						goto return_entry;
-					}
+
+					goto return_entry;
 				}
 			}
-			else if (entry->hash != TEXHASH_INVALID && Memory::game_map[entry->addr >> 5] == Memory::GMAP_TEXTURE)
+			else if (entry->hash != TEXHASH_INVALID && from_tmem ? true : Memory::game_map[entry->addr >> 5] == Memory::GMAP_TEXTURE)
 			{
 				// Pokemon Battle Revolution repeatedly reuses and invalidates paletted textures.
 				// Caching them for one frame fixes this in dual core mode.
 				if (entry->tlut_addr == 0 || frameCount <= (1 + entry->frameCount))
-					goto return_entry;
+				{
+					// Non-paletted texture with matching dimensions
+					if (entry->tlut_addr == 0 && (width == entry->native_width && height == entry->native_height))
+					{
+						goto return_entry;
+					}
+					// Paletted texture or loaded from tMem
+					else if (entry->tlut_addr != 0 || from_tmem)
+					{
+						goto return_entry;
+					}
+				}
 			}
 		}
 
