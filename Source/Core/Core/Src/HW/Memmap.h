@@ -91,6 +91,7 @@ enum
 {
 	GMAP_CLEAR,
 	GMAP_TEXTURE,
+	GMAP_EFB,
 };
 
 // Init and Shutdown

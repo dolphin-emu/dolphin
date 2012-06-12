@@ -157,21 +157,24 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)
 	{
-		int encoded_size = TextureConverter::EncodeToRamFromTexture(
-					addr,
-					read_texture,
-					Renderer::GetTargetWidth(), 
-					Renderer::GetTargetHeight(),
-					srcFormat == PIXELFMT_Z24, 
-					isIntensity, 
-					dstFormat, 
-					scaleByHalf, 
-					srcRect);
+		if (Memory::game_map[(addr & 0x1fffffe0) >> 5] != Memory::GMAP_EFB)
+		{
+			int encoded_size = TextureConverter::EncodeToRamFromTexture(
+				addr,
+				read_texture,
+				Renderer::GetTargetWidth(),
+				Renderer::GetTargetHeight(),
+				srcFormat == PIXELFMT_Z24,
+				isIntensity,
+				dstFormat,
+				scaleByHalf,
+				srcRect);
 
-		size_in_bytes = encoded_size;
-		TextureCache::InvalidateRange(addr, 32);
-		TextureCache::Commit(this);
-		hash = addr & 0x1fffffe0;
+			size_in_bytes = encoded_size;
+			TextureCache::InvalidateRange(addr, 32);
+			memset((u8*)(Memory::game_map + ((addr & 0x1fffffe0) >> 5)), Memory::GMAP_EFB, (32 & ~31) >> 5);
+			hash = addr & 0x1fffffe0;
+		}
 	}
 
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);

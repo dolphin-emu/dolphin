@@ -161,13 +161,16 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)
 	{
-		u8* dst = Memory::GetPointer(dstAddr);
-		size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+		if (Memory::game_map[(addr & 0x1fffffe0) >> 5] != Memory::GMAP_EFB)
+		{
+			u8* dst = Memory::GetPointer(dstAddr);
+			size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 
-		size_in_bytes = encoded_size;
-		TextureCache::InvalidateRange(addr, 32);
-		TextureCache::Commit(this);
-		hash = addr & 0x1fffffe0;
+			size_in_bytes = encoded_size;
+			TextureCache::InvalidateRange(addr, 32);
+			memset((u8*)(Memory::game_map + ((addr & 0x1fffffe0) >> 5)), Memory::GMAP_EFB, (32 & ~31) >> 5);
+			hash = addr & 0x1fffffe0;
+		}
 	}
 }
 

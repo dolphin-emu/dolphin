@@ -184,7 +184,8 @@ void TextureCache::Cleanup()
 		{
 			// Kill textures that have not been used for a while and clean up any that have been marked invalid
 			if ((textures.size() > TEXTURE_CACHE_SIZE_WATERMARK && frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) ||
-				(Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_TEXTURE))
+				(Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_TEXTURE) ||
+				(Memory::game_map[(iter->second->addr) >> 5] == Memory::GMAP_EFB))
 			{
 				Commit(iter->second, true);
 				delete iter->second;
@@ -405,25 +406,34 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 					{
 						entry->type = TCET_NORMAL;
 					}
+					else if (!from_tmem && (address & 0x0c000000) == 0)
+					{
+						if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
+							memset((u8*)(Memory::game_map + ((address & 0x1fffffe0) >> 5)), Memory::GMAP_CLEAR, (32 & ~31) >> 5);
+					}
 
 					goto return_entry;
 				}
 			}
-			else if (entry->hash != TEXHASH_INVALID && from_tmem ? true : Memory::game_map[entry->addr >> 5] == Memory::GMAP_TEXTURE)
+			else if (entry->hash != TEXHASH_INVALID)
 			{
-				// Pokemon Battle Revolution repeatedly reuses and invalidates paletted textures.
-				// Caching them for one frame fixes this in dual core mode.
-				if (entry->tlut_addr == 0 || frameCount <= (1 + entry->frameCount))
+				if (from_tmem || Memory::game_map[entry->addr >> 5] == Memory::GMAP_TEXTURE ||
+					Memory::game_map[entry->addr >> 5] == Memory::GMAP_EFB)
 				{
-					// Non-paletted texture with matching dimensions
-					if (entry->tlut_addr == 0 && (width == entry->native_width && height == entry->native_height))
+					// Pokemon Battle Revolution repeatedly reuses and invalidates paletted textures.
+					// Caching them for one frame fixes this in dual core mode.
+					if (entry->tlut_addr == 0 || frameCount <= (1 + entry->frameCount))
 					{
-						goto return_entry;
-					}
-					// Paletted texture or loaded from tMem
-					else if (entry->tlut_addr != 0 || from_tmem)
-					{
-						goto return_entry;
+						// Non-paletted texture with matching dimensions
+						if (entry->tlut_addr == 0 && (width == entry->native_width && height == entry->native_height))
+						{
+							goto return_entry;
+						}
+						// Paletted texture or loaded from tMem
+						else if (entry->tlut_addr != 0 || from_tmem)
+						{
+							goto return_entry;
+						}
 					}
 				}
 			}
@@ -823,7 +833,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
-
 	TCacheEntryBase *entry = textures[dstAddr & 0x1fffffe0];
 	if (entry)
 	{
@@ -846,6 +855,12 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 	if (NULL == entry)
 	{
+		if ((dstAddr & 0x0c000000) == 0)
+		{
+			if (Memory::game_map[(dstAddr & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
+				memset((u8*)(Memory::game_map + ((dstAddr & 0x1fffffe0) >> 5)), Memory::GMAP_CLEAR, (32 & ~31) >> 5);
+		}
+
 		// create the texture
 		textures[dstAddr & 0x1fffffe0] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);
 
