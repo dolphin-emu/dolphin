@@ -375,8 +375,6 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 	{
 		if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE)
 			g_video_backend->Video_InvalidateRange(address, 32);
-		else if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
-			g_video_backend->Video_InvalidateRange(address, 32);
 	}
 }
 
@@ -395,8 +393,6 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
 	{
 		if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE)
 			g_video_backend->Video_InvalidateRange(address, 32);
-		else if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
-			g_video_backend->Video_InvalidateRange(address, 32);
 	}
 }
 
@@ -413,8 +409,6 @@ void Interpreter::dcbst(UGeckoInstruction _inst)
 	if ((address & 0x0c000000) == 0)
 	{
 		if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE)
-			g_video_backend->Video_InvalidateRange(address, 32);
-		else if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
 			g_video_backend->Video_InvalidateRange(address, 32);
 	}
 }
@@ -444,8 +438,6 @@ void Interpreter::dcbz(UGeckoInstruction _inst)
 		if ((address & 0x0c000000) == 0)
 		{
 			if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE)
-				g_video_backend->Video_InvalidateRange(address, 32);
-			else if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
 				g_video_backend->Video_InvalidateRange(address, 32);
 		}
 	}

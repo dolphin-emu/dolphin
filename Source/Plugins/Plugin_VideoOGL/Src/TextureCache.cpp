@@ -319,6 +319,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		if (g_ActiveConfig.bCopyEFBToTexture)
 		{
+			TextureCache::InvalidateRange(addr, 32);
 			hash = addr & 0x1fffffe0;
 		}
 	}
@@ -339,7 +340,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			size_in_bytes = encoded_size;
 			TextureCache::InvalidateRange(addr, 32);
 			memset((u8*)(Memory::game_map + ((addr & 0x1fffffe0) >> 5)), Memory::GMAP_EFB, (32 & ~31) >> 5);
-			hash = addr & 0x1fffffe0;
+			hash = GetHash64(Memory::GetPointer(addr), size_in_bytes, 32);
 		}
 	}
 

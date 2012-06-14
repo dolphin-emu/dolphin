@@ -131,7 +131,17 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 			if (0 == rangePosition)
 			{
 				Commit(iter->second, true);
-				iter->second->SetHashes(TEXHASH_INVALID);
+				if (!iter->second->IsEfbCopy() || g_ActiveConfig.bCopyEFBToTexture)
+				{
+					iter->second->SetHashes(TEXHASH_INVALID);
+				}
+				else
+				{
+					// Hash EFB textures to check if the game has really updated them
+					u32 tex_hash = GetHash64(Memory::GetPointer(iter->second->addr), iter->second->size_in_bytes, 32);
+					if (tex_hash != iter->second->hash)
+						iter->second->SetHashes(TEXHASH_INVALID);
+				}
 				found = true;
 				invalidated_textures = true;
 			}
@@ -408,6 +418,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 					}
 					else if (!from_tmem && (address & 0x0c000000) == 0)
 					{
+						// The game has copied the EFB into a texture, so we mark it as read.
+						// Needed for Super Mario Sunshine goo detection.
 						if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
 							memset((u8*)(Memory::game_map + ((address & 0x1fffffe0) >> 5)), Memory::GMAP_CLEAR, (32 & ~31) >> 5);
 					}
