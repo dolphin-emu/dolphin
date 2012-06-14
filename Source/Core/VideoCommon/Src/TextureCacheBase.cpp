@@ -47,6 +47,7 @@ unsigned int TextureCache::temp_size;
 TextureCache::TexCache TextureCache::textures;
 bool TextureCache::DeferredInvalidate;
 bool invalidated_textures;
+u32 efb_read_texture_id;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -73,6 +74,7 @@ TextureCache::TextureCache()
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 	invalidated_textures = false;
+	efb_read_texture_id = 0;
 }
 
 TextureCache::~TextureCache()
@@ -329,6 +331,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u32 full_format = texformat;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
+	// The game has actually read from the EFB texture so mark the texture in the game map,
+	// allowing the EFB copy to be updated at this address.
+	if (efb_read_texture_id == texID)
+		memset((u8*)(Memory::game_map + ((address & 0x1fffffe0) >> 5)), Memory::GMAP_CLEAR, (32 & ~31) >> 5);
+
 	const bool isPaletteTexture = (texformat == GX_TF_C4 || texformat == GX_TF_C8 || texformat == GX_TF_C14X2);
 	if (isPaletteTexture)
 		full_format = texformat | (tlutfmt << 16);
@@ -418,10 +425,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 					}
 					else if (!from_tmem && (address & 0x0c000000) == 0)
 					{
-						// The game has copied the EFB into a texture, so we mark it as read.
+						// The game has copied the EFB into a texture, remember which texID it was.
 						// Needed for Super Mario Sunshine goo detection.
 						if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
-							memset((u8*)(Memory::game_map + ((address & 0x1fffffe0) >> 5)), Memory::GMAP_CLEAR, (32 & ~31) >> 5);
+						{
+							efb_read_texture_id = texID;
+						}
 					}
 
 					goto return_entry;
