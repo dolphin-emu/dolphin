@@ -148,12 +148,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			VertexShaderCache::GetSimpleVertexShader(SSAAMode));
 
 		Rendersurf->Release();
-
-		if (g_ActiveConfig.bCopyEFBToTexture)
-		{
-			TextureCache::InvalidateRange(addr, 32);
-			hash = addr & 0x1fffffe0;
-		}
 	}
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)
@@ -171,9 +165,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 				scaleByHalf,
 				srcRect);
 
+			if (!TextureCache::HashTextures())
+				addr &= 0x1fffffe0;
+
 			size_in_bytes = encoded_size;
-			TextureCache::InvalidateRange(addr, 32);
-			memset((u8*)(Memory::game_map + ((addr & 0x1fffffe0) >> 5)), Memory::GMAP_EFB, (32 & ~31) >> 5);
+			TextureCache::InvalidateRange(addr, size_in_bytes);
+			memset((u8*)(Memory::game_map + (addr >> 5)), Memory::GMAP_EFB, (32 & ~31) >> 5);
 			hash = GetHash64(Memory::GetPointer(addr), size_in_bytes, 32);
 		}
 	}

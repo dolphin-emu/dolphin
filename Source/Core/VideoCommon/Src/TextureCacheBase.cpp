@@ -47,7 +47,6 @@ unsigned int TextureCache::temp_size;
 TextureCache::TexCache TextureCache::textures;
 bool TextureCache::DeferredInvalidate;
 bool invalidated_textures;
-u32 efb_read_texture_id;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -74,7 +73,6 @@ TextureCache::TextureCache()
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 	invalidated_textures = false;
-	efb_read_texture_id = 0;
 }
 
 TextureCache::~TextureCache()
@@ -112,8 +110,14 @@ void TextureCache::InvalidateAll(bool shutdown)
 
 void TextureCache::InvalidateRange(u32 start_address, u32 size)
 {
+	// If EFB to Texture is enabled, ignore the data cache notifications to invalidate textures.
+	// The system will use the texture hash to determine when to invalidate.
+	if (g_ActiveConfig.bCopyEFBToTexture)
+		return;
+
 	bool found = false;
-	start_address &= 0x1fffffe0;
+	if (!HashTextures())
+		start_address &= 0x1fffffe0;
 	size &= ~31;
 
 	// Invalidate normal textures
@@ -167,7 +171,17 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 				if (0 == rangePosition)
 				{
 					Commit(iter->second, true);
-					iter->second->SetHashes(TEXHASH_INVALID);
+					if (!iter->second->IsEfbCopy() || g_ActiveConfig.bCopyEFBToTexture)
+					{
+						iter->second->SetHashes(TEXHASH_INVALID);
+					}
+					else
+					{
+						// Hash EFB textures to check if the game has really updated them
+						u32 tex_hash = GetHash64(Memory::GetPointer(iter->second->addr), iter->second->size_in_bytes, 32);
+						if (tex_hash != iter->second->hash)
+							iter->second->SetHashes(TEXHASH_INVALID);
+					}
 					invalidated_textures = true;
 				}
 			}
@@ -182,7 +196,7 @@ void TextureCache::InvalidateDefer()
 
 void TextureCache::Cleanup()
 {
-	if (!invalidated_textures)
+	if (!invalidated_textures && !HashTextures())
 		return;
 
 	invalidated_textures = false;
@@ -190,7 +204,7 @@ void TextureCache::Cleanup()
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
-		bool invalidHash = iter->second->hash == TEXHASH_INVALID || g_ActiveConfig.bHiresTextures;
+		bool invalidHash = iter->second->hash == TEXHASH_INVALID || HashTextures();
 
 		if (iter->second && invalidHash)
 		{
@@ -210,6 +224,10 @@ void TextureCache::Cleanup()
 		else
 			++iter;
 	}
+
+	// Reset the game_map if EFB to Texture has been switched into.
+	if (g_Config.bCopyEFBToTexture && !g_ActiveConfig.bCopyEFBToTexture)
+		memset(Memory::game_map, Memory::GMAP_CLEAR, 0x1d802000 >> 5);
 }
 
 void TextureCache::ClearRenderTargets()
@@ -312,6 +330,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (0 == address)
 		return NULL;
 
+	if (!HashTextures())
+		address &= 0x1fffffe0;
+
 	// TexelSizeInNibbles(format)*width*height/16;
 	const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat) - 1;
 	const unsigned int bsh = TexDecoder_GetBlockHeightInTexels(texformat) - 1;
@@ -324,17 +345,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	bool using_custom_texture = false;
 	bool using_custom_lods = false;
 
-	u64 texID = from_tmem ? (bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE) + 0x20000000 : (address & 0x1fffffe0);
+	u64 texID = from_tmem ? (bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE) + 0x20000000 : address;
 	u64 tex_hash = TEXHASH_INVALID; // Hash assigned to texcache entry (also used to generate filenames used for texture dumping and custom texture lookup)
 	u64 tlut_hash = TEXHASH_INVALID;
 
 	u32 full_format = texformat;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
-
-	// The game has actually read from the EFB texture so mark the texture in the game map,
-	// allowing the EFB copy to be updated at this address.
-	if (efb_read_texture_id == texID)
-		memset((u8*)(Memory::game_map + ((address & 0x1fffffe0) >> 5)), Memory::GMAP_CLEAR, (32 & ~31) >> 5);
 
 	const bool isPaletteTexture = (texformat == GX_TF_C4 || texformat == GX_TF_C8 || texformat == GX_TF_C14X2);
 	if (isPaletteTexture)
@@ -345,17 +361,18 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (from_tmem) src_data = &texMem[bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE];
 	else src_data = Memory::GetPointer(address);
 
-	if (g_ActiveConfig.bHiresTextures || from_tmem)
+	if (HashTextures() || from_tmem)
+	{
 		tex_hash = GetHash64(src_data, texture_size, 128);
+		if (HashTextures())
+			texID = address;
+	}
 	else
-		tex_hash = address & 0x1fffffe0;
-
-	if (g_ActiveConfig.bHiresTextures)
-		texID = tex_hash;
+		tex_hash = address;
 
 	if (isPaletteTexture)
 	{
-		if (g_ActiveConfig.bHiresTextures)
+		if (HashTextures())
 		{
 			const u32 palette_size = TexDecoder_GetPaletteSize(texformat);
 			tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, 128);
@@ -380,7 +397,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
 	{
-		if (g_ActiveConfig.bHiresTextures)
+		if (HashTextures())
 		{
 			// 1. Calculate reference hash:
 			// calculated from RAM texture data for normal textures. Hashes for paletted textures are modified by tlut_hash. 0 for virtual EFB copies.
@@ -408,16 +425,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		{
 			if (entry->IsEfbCopy())
 			{
-				if (g_ActiveConfig.bCopyEFBToTexture)
-				{
-					if (entry->type != TCET_EC_VRAM)
-						entry->type = TCET_NORMAL;
-
-					tex_hash = TEXHASH_INVALID;
-					invalidated_textures = true;
-					goto return_entry;
-				}
-				else if (entry->hash != TEXHASH_INVALID && entry->native_width == nativeW && entry->native_height == nativeH)
+				// EFB to RAM, without custom textures
+				if (entry->hash != TEXHASH_INVALID && entry->native_width == nativeW && entry->native_height == nativeH)
 				{
 					if (entry->type == TCET_EC_DYNAMIC)
 					{
@@ -425,11 +434,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 					}
 					else if (!from_tmem && (address & 0x0c000000) == 0)
 					{
-						// The game has copied the EFB into a texture, remember which texID it was.
+						// The game has copied the EFB into a texture, mark it as EFB updateable.
 						// Needed for Super Mario Sunshine goo detection.
-						if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
+						if (Memory::game_map[address >> 5] == Memory::GMAP_EFB)
 						{
-							efb_read_texture_id = texID;
+							memset((u8*)(Memory::game_map + (address >> 5)), Memory::GMAP_TEXTURE, (32 & ~31) >> 5);
 						}
 					}
 
@@ -519,7 +528,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
 
-	entry->SetGeneralParameters(address & 0x1fffffe0, texture_size, full_format, entry->num_mipmaps);
+	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
 	entry->from_tmem = from_tmem;
@@ -854,7 +863,10 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
-	TCacheEntryBase *entry = textures[dstAddr & 0x1fffffe0];
+	if (!HashTextures())
+		dstAddr &= 0x1fffffe0;
+
+	TCacheEntryBase *entry = textures[dstAddr];
 	if (entry)
 	{
 		if ((entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
@@ -878,12 +890,12 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	{
 		if ((dstAddr & 0x0c000000) == 0)
 		{
-			if (Memory::game_map[(dstAddr & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
-				memset((u8*)(Memory::game_map + ((dstAddr & 0x1fffffe0) >> 5)), Memory::GMAP_CLEAR, (32 & ~31) >> 5);
+			if (Memory::game_map[dstAddr >> 5] == Memory::GMAP_EFB)
+				memset((u8*)(Memory::game_map + (dstAddr >> 5)), Memory::GMAP_CLEAR, (32 & ~31) >> 5);
 		}
 
 		// create the texture
-		textures[dstAddr & 0x1fffffe0] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);
+		textures[dstAddr] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);
 
 		// TODO: Using the wrong dstFormat, dumb...
 		entry->SetGeneralParameters(dstAddr, 32, dstFormat, 0);
@@ -891,7 +903,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		entry->SetHashes(TEXHASH_INVALID);
 		entry->type = TCET_EC_VRAM;
 		//Commit(entry, true); // Not needed if size = 0
-		invalidated_textures = true;
+		if (!HashTextures())
+			invalidated_textures = true;
 	}
 
 	entry->frameCount = frameCount;
@@ -905,7 +918,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 void TextureCache::Commit(TCacheEntryBase *tex, bool clear)
 {
-	if (!tex->from_tmem)
+	if (!tex->from_tmem && !HashTextures())
 	{
 		u32 address = tex->addr;
 		u32 size = tex->size_in_bytes;
@@ -923,4 +936,9 @@ u64 TextureCache::GetPaletteHash(u32 texformat, u32 tlut_addr)
 u64 TextureCache::GetPaletteHash(TCacheEntryBase *tex)
 {
 	return GetPaletteHash(tex->format >> 16, tex->tlut_addr);
+}
+
+bool TextureCache::HashTextures()
+{
+	return (g_ActiveConfig.bHiresTextures || g_ActiveConfig.bCopyEFBToTexture);
 }
