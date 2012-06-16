@@ -304,8 +304,6 @@ void Jit64::WriteExit(u32 destination, int exit_num)
 {
 	Cleanup();
 
-	// External exceptions are checked when the following instruction sets the <= 0 flag.
-	// If we need to force the check, execute a useless SUB EAX, EAX
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
