@@ -125,7 +125,8 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 
 	// Force an external exception when going out of mtmsr in order to check
 	// immediately for interrupts that were delayed because of MSR.EE=0.
-	WriteExit(js.compilerPC + 4, 0, true);
+	MOV(32, M(&PC), Imm32(js.compilerPC + 4));
+	WriteExceptionExit();
 	js.firstFPInstructionFound = false;
 }
 

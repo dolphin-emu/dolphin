@@ -994,8 +994,11 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			break;
 		}
 		case StoreMSR: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
 			regStoreInstToConstLoc(RI, 32, getOp1(I), &MSR);
 			regNormalRegClear(RI, I);
+			Jit->MOV(32, M(&PC), Imm32(InstLoc + 4));
+			Jit->WriteExceptionExit();
 			break;
 		}
 		case StoreGQR: {

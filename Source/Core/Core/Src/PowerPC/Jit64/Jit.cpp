@@ -300,15 +300,13 @@ void Jit64::Cleanup()
 		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
-void Jit64::WriteExit(u32 destination, int exit_num, bool force_ee_check)
+void Jit64::WriteExit(u32 destination, int exit_num)
 {
 	Cleanup();
 
 	// External exceptions are checked when the following instruction sets the <= 0 flag.
 	// If we need to force the check, execute a useless SUB EAX, EAX
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
-	if (force_ee_check)
-		SUB(32, R(EAX), R(EAX));
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
@@ -317,7 +315,7 @@ void Jit64::WriteExit(u32 destination, int exit_num, bool force_ee_check)
 	
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);
-	if (!force_ee_check && block >= 0 && jo.enableBlocklink) 
+	if (block >= 0 && jo.enableBlocklink) 
 	{
 		// It exists! Joy of joy!
 		JMP(blocks.GetBlock(block)->checkedEntry, true);
