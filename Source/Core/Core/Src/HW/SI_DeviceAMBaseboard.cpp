@@ -94,6 +94,9 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(SIDevices device, int _iDeviceNumbe
 {
 }
 
+u32 coin = 0;
+u32 mcoin = 9;
+
 int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 {
 	// for debug logging only
@@ -160,11 +163,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							res[resp++] = d10_1;
 							break;
 						}
-					case 0x12:
-						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 12, %02x %02x", ptr(1), ptr(2));
-						res[resp++] = 0x12;
-						res[resp++] = 0x00;
-						break;
 					case 0x11:
 						{
 							ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 11, %02x (READ SERIAL NR)", ptr(1));
@@ -175,6 +173,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							resp += 0x10;
 							break;
 						}
+					case 0x12:
+						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 12, %02x %02x", ptr(1), ptr(2));
+						res[resp++] = 0x12;
+						res[resp++] = 0x00;
+						break;
 					case 0x15:
 						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 15, %02x (READ FIRM VERSION)", ptr(1));
 						res[resp++] = 0x15;
@@ -283,16 +286,18 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									break;
 								case 0x12: // jvs revision
 									msg.addData(1);
-									msg.addData(0x12);
+									msg.addData(0x20);
 									break;
 								case 0x13: // com revision
 									msg.addData(1);
-									msg.addData(0x13);
+									msg.addData(0x10);
 									break;
 								case 0x14: // get features
 									msg.addData(1);
 									msg.addData((void *)"\x01\x02\x0a\x00", 4);  // 2 player, 10 bit
 									msg.addData((void *)"\x02\x02\x00\x00", 4);  // 2 coin slots
+									msg.addData((void *)"\x03\x08\x00\x00", 4);  // 2 coin slots
+									msg.addData((void *)"\x12\x08\x00\x00", 4);  // 2 coin slots
 									//msg.addData((void *)"\x03\x02\x08\x00", 4); 
 									msg.addData((void *)"\x00\x00\x00\x00", 4); 
 									break;
@@ -344,22 +349,68 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 										break;
 									}
 								case 0x21: // coin	
+								{
+									int slots = *jvs_io++;
+
+									//dbgprintf("JVS-IO:Get Coins Slots:%u Unk:%u\n", slots, unk );
+
+									if( mcoin )
+										coin = !coin;
+
+									msg.addData(1);
+									while (slots--)
 									{
-										int slots = *jvs_io++;
-										msg.addData(1);
-										SPADStatus PadStatus;
-										Pad::GetStatus(0, &PadStatus);
-										while (slots--)
-										{
-											msg.addData(0);
-											msg.addData((PadStatus.button & PAD_BUTTON_START) ? 1 : 0);
-										}
-										break;
+										msg.addData(0);
+										msg.addData(coin);
 									}
-								case 0x22: // analog
+								} break;
+								case 0x22:
+								{
+									msg.addData(1);	// status
+									int players = *jvs_io++;
+
+									for( i=0; i < players; ++i )
 									{
-										break;
+										int val = 0;
+										if (i < 4)
+											val = 0x7FFF;
+										else if (i < 6)
+											val = 42 * 0x101;
+										else
+											val = 0;
+
+										unsigned char player_data[2] = {val >> 8, val};
+
+										msg.addData( player_data[0] );
+										msg.addData( player_data[1] );
 									}
+								} break;
+								case 0x30:
+								{
+									u8 a = *jvs_io++;
+									u8 b = *jvs_io++;
+									u8 c = *jvs_io++;
+
+									//dbgprintf("%u,%u,%u\n", a, b, c );
+
+									if (a == 1)
+										mcoin = 0;
+
+									msg.addData(1);
+
+								} break;
+								case 0x32:
+								{
+									u8 a = *jvs_io++;
+									u8 b = *jvs_io++;
+
+									msg.addData(1);
+								} break;
+								case 0x70:
+								{
+									///dbgprintf("JVS-IO:Unknown\n");
+									jvs_io+=5;
+								} break;
 								case 0xf0:
 									if (*jvs_io++ == 0xD9)
 									{

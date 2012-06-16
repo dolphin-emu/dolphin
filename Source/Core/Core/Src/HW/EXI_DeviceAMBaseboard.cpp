@@ -35,7 +35,7 @@ void CEXIAMBaseboard::SetCS(int cs)
 
 bool CEXIAMBaseboard::IsPresent()
 {
-	return true;
+	return false;
 }
 
 void CEXIAMBaseboard::TransferByte(u8& _byte)
@@ -93,7 +93,7 @@ void CEXIAMBaseboard::TransferByte(u8& _byte)
 			_byte = 4;
 			ERROR_LOG(SP1, "AM-BB COMMAND: %02x %02x %02x", m_command[0], m_command[1], m_command[2]);
 			if ((m_command[0] == 0xFF) && (m_command[1] == 0) && (m_command[2] == 0))
-				m_have_irq = true;
+				m_have_irq = false;
 			else if (m_command[0] == 0x82)
 				m_have_irq = false;
 		}

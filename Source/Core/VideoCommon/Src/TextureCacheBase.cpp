@@ -265,7 +265,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u32 address, unsigned int width, unsigned int height, int texformat,
 	unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem)
 {
-	if (0 == address)
+	if (0 == address || 0x1fffffe0 == address)
 		return NULL;
 
 	// TexelSizeInNibbles(format)*width*height/16;
