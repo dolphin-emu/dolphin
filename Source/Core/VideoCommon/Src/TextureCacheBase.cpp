@@ -47,6 +47,8 @@ unsigned int TextureCache::temp_size;
 TextureCache::TexCache TextureCache::textures;
 bool TextureCache::DeferredInvalidate;
 bool invalidated_textures;
+u32 efb_read_texture_id;
+bool invalidates_efb;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -73,6 +75,8 @@ TextureCache::TextureCache()
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 	invalidated_textures = false;
+	efb_read_texture_id = 0;
+	invalidates_efb = false;
 }
 
 TextureCache::~TextureCache()
@@ -146,7 +150,15 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 					// Hash EFB textures to check if the game has really updated them
 					u32 tex_hash = GetHash64(Memory::GetPointer(iter->second->addr), iter->second->size_in_bytes, 32);
 					if (tex_hash != iter->second->hash)
+					{
 						iter->second->SetHashes(TEXHASH_INVALID);
+
+						if (efb_read_texture_id == (iter->second->addr & 0x1fffffe0))
+						{
+							efb_read_texture_id = 0;
+							invalidates_efb = true;
+						}
+					}
 				}
 				found = true;
 				invalidated_textures = true;
@@ -352,6 +364,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u32 full_format = texformat;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
+	if (efb_read_texture_id == texID)
+	{
+		memset((u8*)(Memory::game_map + ((address & 0x1fffffe0) >> 5)), Memory::GMAP_TEXTURE, (32 & ~31) >> 5);
+		efb_read_texture_id = 0;
+	}
+
 	const bool isPaletteTexture = (texformat == GX_TF_C4 || texformat == GX_TF_C8 || texformat == GX_TF_C14X2);
 	if (isPaletteTexture)
 		full_format = texformat | (tlutfmt << 16);
@@ -438,11 +456,20 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 						// Needed for Super Mario Sunshine goo detection.
 						if (Memory::game_map[address >> 5] == Memory::GMAP_EFB)
 						{
-							memset((u8*)(Memory::game_map + (address >> 5)), Memory::GMAP_TEXTURE, (32 & ~31) >> 5);
+							// If the game invalidated the EFB copy, immediately allow the game to update this texture.
+							if (invalidates_efb)
+							{
+								memset((u8*)(Memory::game_map + (address >> 5)), Memory::GMAP_TEXTURE, (32 & ~31) >> 5);
+								invalidates_efb = false;
+							}
+							else
+								efb_read_texture_id = texID;
 						}
 					}
 
-					goto return_entry;
+					// Spider-Man Shattered Dimensions changes the EFB texture format from GX_TF_C14X2
+					if (full_format == entry->format || ((entry->format & 0xffff) != GX_TF_C14X2))
+						goto return_entry;
 				}
 			}
 			else if (entry->hash != TEXHASH_INVALID)
@@ -891,7 +918,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		if ((dstAddr & 0x0c000000) == 0)
 		{
 			if (Memory::game_map[dstAddr >> 5] == Memory::GMAP_EFB)
-				memset((u8*)(Memory::game_map + (dstAddr >> 5)), Memory::GMAP_CLEAR, (32 & ~31) >> 5);
+				memset((u8*)(Memory::game_map + (dstAddr >> 5)), Memory::GMAP_TEXTURE, (32 & ~31) >> 5);
 		}
 
 		// create the texture
