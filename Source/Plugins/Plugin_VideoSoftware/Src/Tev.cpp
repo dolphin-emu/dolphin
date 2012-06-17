@@ -20,6 +20,7 @@
 #include "Tev.h"
 #include "EfbInterface.h"
 #include "TextureSampler.h"
+#include "SWPixelEngine.h"
 #include "SWStatistics.h"
 #include "SWVideoConfig.h"
 #include "DebugUtil.h"
@@ -784,11 +785,16 @@ void Tev::Draw()
 		output[BLU_C] = (output[BLU_C] * invFog + fogInt * bpmem.fog.color.b) >> 8;
 	}
 
-    if (!bpmem.zcontrol.zcomploc && bpmem.zmode.testenable)
-    {
-        if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
-            return;
-    }
+    if (!bpmem.zcontrol.zcomploc)
+	{
+        SWPixelEngine::pereg.perfZcompInput++;
+		if (bpmem.zmode.testenable)
+	    {
+	        if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
+	            return;
+	    }
+        SWPixelEngine::pereg.perfZcompOutput++;
+	}
 
 #if ALLOW_TEV_DUMPS
 	if (g_SWVideoConfig.bDumpTevStages)
@@ -811,6 +817,8 @@ void Tev::Draw()
 #endif
 
     INCSTAT(swstats.thisFrame.tevPixelsOut);
+
+	SWPixelEngine::pereg.perfBlendInput++;
 
     EfbInterface::BlendTev(Position[0], Position[1], output);
 }

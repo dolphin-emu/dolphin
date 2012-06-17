@@ -38,6 +38,21 @@ namespace SWPixelEngine
 	    PE_BBOX_RIGHT	 = 0x012, // Flip Right
 	    PE_BBOX_TOP		 = 0x014, // Flip Top
 	    PE_BBOX_BOTTOM	 = 0x016, // Flip Bottom
+
+		// NOTE: Order not verified
+		// These indicate the number of quads that are being used as input/output for each particular stage
+		PE_PERF_ZCOMP_INPUT_ZCOMPLOC_L  = 0x18,
+		PE_PERF_ZCOMP_INPUT_ZCOMPLOC_H  = 0x1a,
+		PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_L = 0x1c,
+		PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_H = 0x1e,
+		PE_PERF_ZCOMP_INPUT_L           = 0x20,
+		PE_PERF_ZCOMP_INPUT_H           = 0x22,
+		PE_PERF_ZCOMP_OUTPUT_L          = 0x24,
+		PE_PERF_ZCOMP_OUTPUT_H          = 0x26,
+		PE_PERF_BLEND_INPUT_L           = 0x28,
+		PE_PERF_BLEND_INPUT_H           = 0x2a,
+		PE_PERF_EFB_COPY_CLOCKS_L       = 0x2c,
+		PE_PERF_EFB_COPY_CLOCKS_H       = 0x2e,
     };
 
     union UPEZConfReg
@@ -125,10 +140,18 @@ namespace SWPixelEngine
         UPECtrlReg ctrl;
         u16 unk0;
         u16 token;
+
         u16 boxLeft;
         u16 boxRight;
         u16 boxTop;
         u16 boxBottom;
+
+		u16 perfZcompInputZcomploc;
+		u16 perfZcompOutputZcomploc;
+		u16 perfZcompInput;
+		u16 perfZcompOutput;
+		u16 perfBlendInput;
+		u16 perfEfbCopyClocks;
     };
 
     extern PEReg pereg;

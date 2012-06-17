@@ -23,6 +23,7 @@
 #include "BPMemLoader.h"
 #include "XFMemLoader.h"
 #include "Tev.h"
+#include "SWPixelEngine.h"
 #include "SWStatistics.h"
 #include "SWVideoConfig.h"
 
@@ -125,11 +126,17 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	if (z < 0 || z > 0x00ffffff)
 		return;
 
-	if (bpmem.zcontrol.zcomploc && bpmem.zmode.testenable)
+	if (bpmem.zcontrol.zcomploc)
 	{
-		// early z
-		if (!EfbInterface::ZCompare(x, y, z))
-			return;
+		// TODO: Verify that perf regs are being incremented even if test is disabled
+		SWPixelEngine::pereg.perfZcompInputZcomploc++;
+		if (bpmem.zmode.testenable)
+		{
+			// early z
+			if (!EfbInterface::ZCompare(x, y, z))
+				return;
+		}
+		SWPixelEngine::pereg.perfZcompOutputZcomploc++;
 	}
 
 	RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];

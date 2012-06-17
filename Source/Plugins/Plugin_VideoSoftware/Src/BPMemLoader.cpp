@@ -90,6 +90,15 @@ void SWBPWritten(int address, int newvalue)
         SWPixelEngine::pereg.boxBottom = newvalue >> 10;
         SWPixelEngine::pereg.boxTop = newvalue & 0x3ff;
         break;
+	case BPMEM_CLEAR_PIXEL_PERF:
+		// TODO: Parameter?
+		SWPixelEngine::pereg.perfZcompInputZcomploc = 0;
+		SWPixelEngine::pereg.perfZcompOutputZcomploc = 0;
+		SWPixelEngine::pereg.perfZcompInput = 0;
+		SWPixelEngine::pereg.perfZcompOutput = 0;
+		SWPixelEngine::pereg.perfBlendInput = 0;
+		SWPixelEngine::pereg.perfEfbCopyClocks = 0;
+		break;
     case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.
 		break;
 	case BPMEM_LOADTLUT1: // Load a Texture Look Up Table
