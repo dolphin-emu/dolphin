@@ -31,6 +31,7 @@
 #include "VertexShaderManager.h"
 #include "Thread.h"
 #include "HW/Memmap.h"
+#include "PerfQueryBase.h"
 
 using namespace BPFunctions;
 
@@ -487,7 +488,7 @@ void BPWritten(const BPCmd& bp)
 
 	case BPMEM_CLEAR_PIXEL_PERF:
 		// GXClearPixMetric writes 0xAAA here, Sunshine alternates this register between values 0x000 and 0xAAA
-		g_renderer->ResetPixelPerf();
+		g_perf_query->ResetQuery();
 		break;
 
 	case BPMEM_PRELOAD_ADDR:

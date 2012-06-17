@@ -40,6 +40,7 @@
 #include "OpcodeDecoding.h"
 #include "FileUtil.h"
 #include "Debugger.h"
+#include "PerfQueryBase.h"
 
 #include "main.h"
 
@@ -207,7 +208,10 @@ void VertexManager::vFlush()
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
 
+	g_perf_query->EnableQuery(bpmem.zcontrol.zcomploc ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw();
+	g_perf_query->DisableQuery(bpmem.zcontrol.zcomploc ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+	ERROR_LOG(VIDEO, "PerfQuery result: %d", g_perf_query->GetQueryResult(bpmem.zcontrol.zcomploc ? PQ_ZCOMP_OUTPUT_ZCOMPLOC : PQ_ZCOMP_OUTPUT));
 
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
