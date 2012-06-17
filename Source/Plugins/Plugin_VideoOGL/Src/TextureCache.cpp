@@ -318,9 +318,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 0, 0);
 	}
 
-	if (false == g_ActiveConfig.bCopyEFBToTexture)
+	if (!g_ActiveConfig.bCopyEFBToTexture)
 	{
-		if (Memory::game_map[(addr & 0x1fffffe0) >> 5] != Memory::GMAP_EFB)
+		if (g_ActiveConfig.bHiresTextures)
 		{
 			int encoded_size = TextureConverter::EncodeToRamFromTexture(
 				addr,
@@ -331,13 +331,33 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 				scaleByHalf,
 				srcRect);
 
-			if (!TextureCache::HashTextures())
-				addr &= 0x1fffffe0;
+			u8* dst = Memory::GetPointer(addr);
+			hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
-			size_in_bytes = encoded_size;
-			TextureCache::InvalidateRange(addr, size_in_bytes);
-			memset((u8*)(Memory::game_map + (addr >> 5)), Memory::GMAP_EFB, (32 & ~31) >> 5);
-			hash = GetHash64(Memory::GetPointer(addr), size_in_bytes, 32);
+			// Mark texture entries in destination address range dynamic
+			TextureCache::InvalidateRange(addr,encoded_size);
+		}
+		else
+		{
+			if (Memory::game_map[(addr & 0x1fffffe0) >> 5] != Memory::GMAP_EFB)
+			{
+				int encoded_size = TextureConverter::EncodeToRamFromTexture(
+					addr,
+					read_texture,
+					srcFormat == PIXELFMT_Z24,
+					isIntensity,
+					dstFormat,
+					scaleByHalf,
+					srcRect);
+
+				if (!TextureCache::HashTextures())
+					addr &= 0x1fffffe0;
+
+				size_in_bytes = encoded_size;
+				TextureCache::InvalidateRange(addr, size_in_bytes);
+				memset((u8*)(Memory::game_map + (addr >> 5)), Memory::GMAP_EFB, (32 & ~31) >> 5);
+				hash = GetHash64(Memory::GetPointer(addr), size_in_bytes, 32);
+			}
 		}
 	}
 

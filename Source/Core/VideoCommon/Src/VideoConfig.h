@@ -124,6 +124,7 @@ struct VideoConfig
 	bool bOSDHotKey;
 	bool bCopyEFBToTexture;	
 	bool bCopyEFBScaled;
+	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[4];
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;

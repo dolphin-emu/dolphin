@@ -156,18 +156,31 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)
 	{
-		if (Memory::game_map[(addr & 0x1fffffe0) >> 5] != Memory::GMAP_EFB)
+		if (g_ActiveConfig.bHiresTextures)
 		{
 			u8* dst = Memory::GetPointer(dstAddr);
 			size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 
-			if (!TextureCache::HashTextures())
-				addr &= 0x1fffffe0;
+			hash = GetHash64(dst, (int)encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
-			size_in_bytes = encoded_size;
-			TextureCache::InvalidateRange(addr, size_in_bytes);
-			memset((u8*)(Memory::game_map + (addr >> 5)), Memory::GMAP_EFB, (32 & ~31) >> 5);
-			hash = GetHash64(Memory::GetPointer(addr), size_in_bytes, 32);
+			// Mark texture entries in destination address range dynamic
+			TextureCache::InvalidateRange(addr, (u32)encoded_size);
+		}
+		else
+		{
+			if (Memory::game_map[(addr & 0x1fffffe0) >> 5] != Memory::GMAP_EFB)
+			{
+				u8* dst = Memory::GetPointer(dstAddr);
+				size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
+
+				if (!TextureCache::HashTextures())
+					addr &= 0x1fffffe0;
+
+				size_in_bytes = encoded_size;
+				TextureCache::InvalidateRange(addr, size_in_bytes);
+				memset((u8*)(Memory::game_map + (addr >> 5)), Memory::GMAP_EFB, (32 & ~31) >> 5);
+				hash = GetHash64(Memory::GetPointer(addr), size_in_bytes, 32);
+			}
 		}
 	}
 }
