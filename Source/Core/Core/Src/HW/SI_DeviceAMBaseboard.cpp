@@ -317,7 +317,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 										{
 											SPADStatus PadStatus;
 											Pad::GetStatus(i, &PadStatus);
+
 											unsigned char player_data[2] = {0,0};
+
 											if (PadStatus.button & PAD_BUTTON_START)
 												player_data[0] |= 0x80;
 											if (PadStatus.button & PAD_BUTTON_UP)
@@ -328,11 +330,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 												player_data[0] |= 0x08;
 											if (PadStatus.button & PAD_BUTTON_RIGHT)
 												player_data[0] |= 0x04;
-
-											if (PadStatus.button & PAD_BUTTON_A)
-												player_data[0] |= 0x02;
-											if (PadStatus.button & PAD_BUTTON_B)
-												player_data[0] |= 0x01;
 
 											if (PadStatus.button & PAD_BUTTON_X)
 												player_data[1] |= 0x80;
@@ -372,12 +369,30 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									for( i=0; i < players; ++i )
 									{
 										int val = 0;
-										if (i < 4)
-											val = 0x7FFF;
-										else if (i < 6)
-											val = 42 * 0x101;
-										else
+
+										SPADStatus PadStatus;
+										Pad::GetStatus(0, &PadStatus);
+
+										switch(i)
+										{
+										case 0:	// Steer
+											val = PadStatus.stickX << 8;
+											break;
+
+										case 1:	// Gas
+											if (PadStatus.button & PAD_BUTTON_A)
+												val = 0x7FFF;
+											break;
+
+										case 2:	// Breaks
+											if (PadStatus.button & PAD_BUTTON_B)
+												val = 0x7FFF;
+											break;
+
+										default:
 											val = 0;
+											break;
+										}
 
 										unsigned char player_data[2] = {val >> 8, val};
 
