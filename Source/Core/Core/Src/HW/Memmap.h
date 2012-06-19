@@ -102,7 +102,7 @@ void WriteUnchecked_U32(const u32 _Data, const u32 _Address);
 void InitHWMemFuncs();
 void InitHWMemFuncsWii();
 
-bool IsRAMAddress(const u32 addr, bool allow_locked_cache = false);
+bool IsRAMAddress(const u32 addr, bool allow_locked_cache = false, bool allow_fake_vmem = false);
 writeFn32 GetHWWriteFun32(const u32 _Address);
 
 inline u8* GetCachePtr() {return m_pL1Cache;}

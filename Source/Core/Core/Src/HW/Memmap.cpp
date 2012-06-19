@@ -675,7 +675,7 @@ u8 *GetPointer(const u32 _Address)
 }
 
 
-bool IsRAMAddress(const u32 addr, bool allow_locked_cache) 
+bool IsRAMAddress(const u32 addr, bool allow_locked_cache, bool allow_fake_vmem)
 {
 	switch ((addr >> 24) & 0xFC)
 	{
@@ -695,6 +695,11 @@ bool IsRAMAddress(const u32 addr, bool allow_locked_cache)
 			return false;
 	case 0xE0:
 		if (allow_locked_cache && addr - 0xE0000000 < L1_CACHE_SIZE)
+			return true;
+		else
+			return false;
+	case 0x7C:
+		if (allow_fake_vmem && bFakeVMEM && addr >= 0x7E000000)
 			return true;
 		else
 			return false;
