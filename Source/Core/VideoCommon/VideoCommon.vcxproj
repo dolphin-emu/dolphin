@@ -194,6 +194,7 @@
     <ClCompile Include="Src\OpcodeDecoding.cpp" />
     <ClCompile Include="Src\OpenCL.cpp" />
     <ClCompile Include="Src\OpenCL\OCLTextureDecoder.cpp" />
+    <ClCompile Include="Src\PerfQueryBase.cpp" />
     <ClCompile Include="Src\PixelEngine.cpp" />
     <ClCompile Include="Src\PixelShaderGen.cpp" />
     <ClCompile Include="Src\PixelShaderManager.cpp" />
@@ -240,6 +241,7 @@
     <ClInclude Include="Src\OpcodeDecoding.h" />
     <ClInclude Include="Src\OpenCL.h" />
     <ClInclude Include="Src\OpenCL\OCLTextureDecoder.h" />
+    <ClInclude Include="Src\PerfQueryBase.h" />
     <ClInclude Include="Src\PixelEngine.h" />
     <ClInclude Include="Src\PixelShaderGen.h" />
     <ClInclude Include="Src\PixelShaderManager.h" />
