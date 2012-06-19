@@ -48,6 +48,7 @@ private:
 	HWND GetHwnd(void);
 	HANDLE hConsole;
 #endif
+	bool bUseColor;
 };
 
 #endif  // _CONSOLELISTENER_H
