@@ -106,6 +106,7 @@
 // Files in the directory returned by GetUserPath(D_DUMP_IDX)
 #define RAM_DUMP	"ram.raw"
 #define ARAM_DUMP	"aram.raw"
+#define FAKEVMEM_DUMP	"fakevmem.raw"
 
 // Sys files
 #define TOTALDB		"totaldb.dsy"
