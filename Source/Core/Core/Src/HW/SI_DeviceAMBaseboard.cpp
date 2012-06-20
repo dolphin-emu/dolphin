@@ -94,9 +94,17 @@ CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(SIDevices device, int _iDeviceNumbe
 {
 }
 
-u32 coin = 0;
-u32 mcoin = 9;
-
+unsigned short coin[2];
+int coin_pressed[2];
+/*	Current controls mapping:
+	stickX	- steering
+	stickY	- gas / brake
+	A		- Item button
+	B		- Cancel button
+	Z		- Coin
+	X		- Test mode (not working)
+	Y		- Service
+*/
 int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 {
 	// for debug logging only
@@ -154,10 +162,12 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							res[resp++] = 0x2;
 							int d10_0 = 0xdf;
 
-							if (PadStatus.triggerLeft)
+							/* baseboard test/service switches ???, disabled for a while
+							if (PadStatus.button & PAD_BUTTON_X)	// Test
 								d10_0 &= ~0x80;
-							if (PadStatus.triggerRight)
+							if (PadStatus.button & PAD_BUTTON_Y)	// Service
 								d10_0 &= ~0x40;
+							*/
 
 							res[resp++] = d10_0;
 							res[resp++] = d10_1;
@@ -272,12 +282,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 								{
 								case 0x10: // get ID
 									msg.addData(1);
-									{
-										char buffer[12];
-										sprintf(buffer, "JVS-node %02x", node);
-										//msg.addData(buffer);
-										msg.addData("JAMMA I/O CONTROLLER");
-									}
+									msg.addData("namco ltd.;FCA-1;Ver1.01;JPN,Multipurpose + Rotary Encoder");
 									msg.addData(0);
 									break;
 								case 0x11: // cmd revision
@@ -294,34 +299,39 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									break;
 								case 0x14: // get features
 									msg.addData(1);
-									msg.addData((void *)"\x01\x02\x0a\x00", 4);  // 2 player, 10 bit
+									msg.addData((void *)"\x01\x01\x13\x00", 4);  // 1 player, 19 bit
 									msg.addData((void *)"\x02\x02\x00\x00", 4);  // 2 coin slots
-									msg.addData((void *)"\x03\x08\x00\x00", 4);  // 2 coin slots
-									msg.addData((void *)"\x12\x08\x00\x00", 4);  // 2 coin slots
-									//msg.addData((void *)"\x03\x02\x08\x00", 4); 
+									msg.addData((void *)"\x03\x08\x00\x00", 4);  // 8 analogs
+									msg.addData((void *)"\x12\x0c\x00\x00", 4);  // 12bit out
 									msg.addData((void *)"\x00\x00\x00\x00", 4); 
 									break;
-								case 0x15:
+								case 0x15: // baseboard id
 									while (*jvs_io++) {};
 									msg.addData(1);
 									break;
-								case 0x20:
+								case 0x20: // buttons
 									{
 										int nr_players = *jvs_io++;
-										int bytes_per_player = *jvs_io++; /* ??? */
+										int bytes_per_player = *jvs_io++;
 										int j;
 										msg.addData(1);
 
-										msg.addData(0); // tilt
+										SPADStatus PadStatus;
+										Pad::GetStatus(0, &PadStatus);
+											if (PadStatus.button & PAD_BUTTON_X)	// Test button
+												msg.addData(0x80);
+											else
+												msg.addData(0x00);
 										for (i=0; i<nr_players; ++i)
 										{
 											SPADStatus PadStatus;
 											Pad::GetStatus(i, &PadStatus);
-
-											unsigned char player_data[2] = {0,0};
-
-											if (PadStatus.button & PAD_BUTTON_START)
+											unsigned char player_data[3] = {0,0,0};
+											if (PadStatus.button & PAD_BUTTON_START)	// Not used in MKGP
 												player_data[0] |= 0x80;
+											if (PadStatus.button & PAD_BUTTON_Y)	// Service button
+												player_data[0] |= 0x40;
+											// Not used in MKGP
 											if (PadStatus.button & PAD_BUTTON_UP)
 												player_data[0] |= 0x20;
 											if (PadStatus.button & PAD_BUTTON_DOWN)
@@ -331,13 +341,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 											if (PadStatus.button & PAD_BUTTON_RIGHT)
 												player_data[0] |= 0x04;
 
-											if (PadStatus.button & PAD_BUTTON_X)
-												player_data[1] |= 0x80;
-											if (PadStatus.button & PAD_BUTTON_Y)
-												player_data[1] |= 0x40;
-											if (PadStatus.button & PAD_TRIGGER_L)
+											if (PadStatus.button & PAD_BUTTON_A)	// Item button
 												player_data[1] |= 0x20;
-											if (PadStatus.button & PAD_TRIGGER_R)
+											if (PadStatus.button & PAD_BUTTON_B)	// Cancel button
 												player_data[1] |= 0x10;
 
 											for (j=0; j<bytes_per_player; ++j)
@@ -345,86 +351,71 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 										}
 										break;
 									}
-								case 0x21: // coin	
+								case 0x21: // coins
 								{
+									SPADStatus PadStatus;
 									int slots = *jvs_io++;
-
-									//dbgprintf("JVS-IO:Get Coins Slots:%u Unk:%u\n", slots, unk );
-
-									if( mcoin )
-										coin = !coin;
-
 									msg.addData(1);
-									while (slots--)
-									{
-										msg.addData(0);
-										msg.addData(coin);
+									for (i = 0; i < slots; i++)	{
+										Pad::GetStatus(i, &PadStatus);
+										if ((PadStatus.button & PAD_TRIGGER_Z) && !coin_pressed[i])	{
+											coin[i]++;
+										}
+										coin_pressed[i]=PadStatus.button & PAD_TRIGGER_Z;
+										msg.addData((coin[i]>>8)&0x3f);
+										msg.addData(coin[i]&0xff);
 									}
+									//dbgprintf("JVS-IO:Get Coins Slots:%u Unk:%u\n", slots, unk );
 								} break;
-								case 0x22:
+								case 0x22: // analogs
 								{
 									msg.addData(1);	// status
-									int players = *jvs_io++;
+									int analogs = *jvs_io++;
+									SPADStatus PadStatus;
+									Pad::GetStatus(0, &PadStatus);
+									msg.addData(PadStatus.stickX);	// steering
+									msg.addData(0);
 
-									for( i=0; i < players; ++i )
-									{
-										int val = 0;
+									msg.addData(PadStatus.stickY>127?PadStatus.stickY-127:0);	// gas
+									msg.addData(0);
 
-										SPADStatus PadStatus;
-										Pad::GetStatus(0, &PadStatus);
+									msg.addData(PadStatus.stickY<128?PadStatus.stickY:0);		// brake
+									msg.addData(0);
 
-										switch(i)
-										{
-										case 0:	// Steer
-											val = PadStatus.stickX << 8;
-											break;
-
-										case 1:	// Gas
-											if (PadStatus.button & PAD_BUTTON_A)
-												val = 0x7FFF;
-											break;
-
-										case 2:	// Breaks
-											if (PadStatus.button & PAD_BUTTON_B)
-												val = 0x7FFF;
-											break;
-
-										default:
-											val = 0;
-											break;
-										}
-
-										unsigned char player_data[2] = {val >> 8, val};
-
-										msg.addData( player_data[0] );
-										msg.addData( player_data[1] );
+									for( i=0; i < (analogs - 3); i++ ) {
+										msg.addData( 0 );
+										msg.addData( 0 );
 									}
 								} break;
-								case 0x30:
+								case 0x30:	// sub coins
 								{
-									u8 a = *jvs_io++;
-									u8 b = *jvs_io++;
-									u8 c = *jvs_io++;
-
-									//dbgprintf("%u,%u,%u\n", a, b, c );
-
-									if (a == 1)
-										mcoin = 0;
-
-									msg.addData(1);
-
-								} break;
-								case 0x32:
-								{
-									u8 a = *jvs_io++;
-									u8 b = *jvs_io++;
-
+									int slot = *jvs_io++;
+									coin[slot]-= (*jvs_io++<<8)|*jvs_io++;
 									msg.addData(1);
 								} break;
-								case 0x70:
+								case 0x32:	// General out
 								{
-									///dbgprintf("JVS-IO:Unknown\n");
-									jvs_io+=5;
+									int bytes = *jvs_io++;
+									while (bytes--) {*jvs_io++;}
+									msg.addData(1);
+								} break;
+								case 0x35: // add coins
+								{
+									int slot = *jvs_io++;
+									coin[slot]+= (*jvs_io++<<8)|*jvs_io++;
+									msg.addData(1);
+								} break;
+								case 0x70: // custom namco's command subset
+								{
+									int cmd = *jvs_io++;
+									if (cmd == 0x18) { // id check
+										jvs_io+=4;
+										msg.addData(1);
+										msg.addData(0xff);
+									} else {
+										msg.addData(1);
+										///dbgprintf("JVS-IO:Unknown\n");
+									}
 								} break;
 								case 0xf0:
 									if (*jvs_io++ == 0xD9)

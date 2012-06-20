@@ -265,6 +265,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u32 address, unsigned int width, unsigned int height, int texformat,
 	unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem)
 {
+	// Check for memory locations that are out of bounds.  0x1fffffe0 accessed by MKGP2.
+	// Maybe replace this check with a call to Memory::IsRAMAddress
 	if (0 == address || 0x1fffffe0 == address)
 		return NULL;
 
