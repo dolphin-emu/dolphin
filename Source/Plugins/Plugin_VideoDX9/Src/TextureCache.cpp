@@ -164,13 +164,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 					srcRect);
 
 		u8* dst = Memory::GetPointer(addr);
-		hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		u64 hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
 		if (!g_ActiveConfig.bEFBCopyCacheEnable)
 			TextureCache::MakeRangeDynamic(addr,encoded_size);
 		else if (!TextureCache::Find(addr, hash))
 			TextureCache::MakeRangeDynamic(addr,encoded_size);
+
+		this->hash = hash;
 	}
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
