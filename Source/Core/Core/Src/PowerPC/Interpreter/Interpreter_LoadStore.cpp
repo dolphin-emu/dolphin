@@ -409,6 +409,7 @@ void Interpreter::dcbz(UGeckoInstruction _inst)
 	// HACK but works... we think
 	if (HID2.WPE || !HID0.DCFA)
 		Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
+	PowerPC::CheckExceptions();
 }
 
 // eciwx/ecowx technically should access the specified device
