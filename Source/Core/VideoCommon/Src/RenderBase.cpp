@@ -82,9 +82,11 @@ bool Renderer::s_EnableDLCachingAfterRecording;
 
 unsigned int Renderer::prev_efb_format = (unsigned int)-1;
 
+
 Renderer::Renderer() : frame_data(NULL), bLastFrameDumped(false)
 {
 	UpdateActiveConfig();
+	TextureCache::OnConfigChanged(g_ActiveConfig);
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	bAVIDumping = false;
@@ -129,11 +131,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	{
 		g_renderer->Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc,Gamma);
 		Common::AtomicStoreRelease(s_swapRequested, false);
-	}
-	
-	if (TextureCache::DeferredInvalidate)
-	{
-		TextureCache::Invalidate(false);
 	}
 }
 

@@ -66,8 +66,6 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
 	EndModal(wxID_OK);
-
-	TextureCache::InvalidateDefer(); // For settings like hi-res textures/texture format/etc.
 }
 
 wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nDirect3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\nNote that the Direct3D backends are only available on Windows.\n\nIf unsure, use Direct3D 9.");
