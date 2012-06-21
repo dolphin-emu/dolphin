@@ -373,14 +373,18 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									int analogs = *jvs_io++;
 									SPADStatus PadStatus;
 									Pad::GetStatus(0, &PadStatus);
+
+									// 8 bit to 16 bit conversion
 									msg.addData(PadStatus.stickX);	// steering
-									msg.addData(0);
+									msg.addData(PadStatus.stickX);
 
-									msg.addData(PadStatus.stickY>127?PadStatus.stickY-127:0);	// gas
-									msg.addData(0);
+									// 8 bit to 16 bit conversion
+									msg.addData(PadStatus.triggerRight);	// gas
+									msg.addData(PadStatus.triggerRight);
 
-									msg.addData(PadStatus.stickY<128?PadStatus.stickY:0);		// brake
-									msg.addData(0);
+									// 8 bit to 16 bit conversion
+									msg.addData(PadStatus.triggerLeft);	// brake
+									msg.addData(PadStatus.triggerLeft);
 
 									for( i=0; i < (analogs - 3); i++ ) {
 										msg.addData( 0 );
