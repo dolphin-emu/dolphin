@@ -339,7 +339,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		}
 		else
 		{
-			if (Memory::game_map[(addr & 0x1fffffe0) >> 5] != Memory::GMAP_EFB)
+			if (Memory::game_map[(addr & 0x1fffffe0) >> 5] != Memory::GMAP_EFB || TextureCache::ReadsEFBCopyUsingCPU())
 			{
 				int encoded_size = TextureConverter::EncodeToRamFromTexture(
 					addr,

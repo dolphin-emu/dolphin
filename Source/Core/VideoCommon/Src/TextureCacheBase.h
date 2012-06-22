@@ -125,6 +125,7 @@ public:
 
 	static void Commit(TCacheEntryBase *tex, bool clear = false);
 	static bool HashTextures();
+	static bool ReadsEFBCopyUsingCPU();
 
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);

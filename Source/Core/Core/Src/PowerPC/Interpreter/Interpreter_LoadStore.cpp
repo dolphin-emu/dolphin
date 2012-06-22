@@ -389,9 +389,12 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
 
 	// Tell GFX backend to throw out any cached textures
 	// Metroid Prime uses dcbi to invalidate textures.
+	// Metroid Prime 2 uses dcbi to invalidate EFB copies
 	if ((address & 0x0c000000) == 0)
 	{
 		if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_TEXTURE)
+			g_video_backend->Video_InvalidateRange(address, 32);
+		else if (Memory::game_map[(address & 0x1fffffe0) >> 5] == Memory::GMAP_EFB)
 			g_video_backend->Video_InvalidateRange(address, 32);
 	}
 }

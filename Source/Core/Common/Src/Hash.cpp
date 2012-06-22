@@ -21,7 +21,7 @@
 #include <nmmintrin.h>
 #endif
 
-static u64 (*ptrHashFunction)(const u8 *src, int len, u32 samples) = &MurmurHash3_x86_32;
+static u64 (*ptrHashFunction)(const u8 *src, int len, u32 samples) = &GetMurmurHash3;
 
 // WARNING - may read one more byte!
 // Implementation from Wikipedia.
@@ -594,7 +594,7 @@ void SetHash64Function(bool useHiresTextures)
 #endif
 	else
 	{
-		ptrHashFunction = &MurmurHash3_x86_32;
+		ptrHashFunction = &GetMurmurHash3;
 	}
 }
 

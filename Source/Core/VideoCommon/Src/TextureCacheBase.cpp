@@ -44,8 +44,9 @@ unsigned int TextureCache::temp_size;
 TextureCache::TexCache TextureCache::textures;
 bool TextureCache::DeferredInvalidate;
 bool invalidated_textures;
-u32 efb_read_texture_id;
-bool invalidates_efb;
+u32 efb_read_texture_id; // contains the latest texID where the EFB was copied into
+bool invalidates_efb; // used to track if the game overwrites the EFB copy with another EFB copy
+bool reads_efb_copy; // used to track if the game reads from the EFB copy using the CPU
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -120,6 +121,9 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 		start_address &= 0x1fffffe0;
 	size &= ~31;
 
+	// Reset the flag
+	reads_efb_copy = false;
+
 	// Invalidate normal textures
 	TexCache::iterator
 		iter = textures.lower_bound(start_address),
@@ -136,7 +140,6 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 			const int rangePosition = iter->second->IntersectsMemoryRange(start_address, size);
 			if (0 == rangePosition)
 			{
-				Commit(iter->second, true);
 				if (!iter->second->IsEfbCopy() || g_ActiveConfig.bCopyEFBToTexture)
 				{
 					iter->second->SetHashes(TEXHASH_INVALID);
@@ -156,7 +159,14 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 							invalidates_efb = true;
 						}
 					}
+					else if (Memory::game_map[start_address >> 5] == Memory::GMAP_EFB)
+					{
+						// The game uses the CPU to read from the address where it copied the EFB into.  Flag it.
+						// Metroid Prime 2 does this.
+						reads_efb_copy = true;
+					}
 				}
+				Commit(iter->second, true);
 				invalidated_textures = true;
 			}
 		}
@@ -967,4 +977,9 @@ u64 TextureCache::GetPaletteHash(TCacheEntryBase *tex)
 bool TextureCache::HashTextures()
 {
 	return (g_ActiveConfig.bHiresTextures || g_ActiveConfig.bCopyEFBToTexture);
+}
+
+bool TextureCache::ReadsEFBCopyUsingCPU()
+{
+	return reads_efb_copy;
 }
