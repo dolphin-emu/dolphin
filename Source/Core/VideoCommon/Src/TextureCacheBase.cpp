@@ -74,6 +74,7 @@ void TextureCache::Invalidate()
 
 TextureCache::~TextureCache()
 {
+	Invalidate();
 	if (temp)
 	{
 		FreeAlignedMemory(temp);
