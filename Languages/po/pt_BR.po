@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-06-06 06:27-0500\n"
-"PO-Revision-Date: 2011-12-18 13:38-0600\n"
+"PO-Revision-Date: 2012-06-07 19:13-0300\n"
 "Last-Translator: Runo <i.am.runo@hotmail.com>\n"
 "Language-Team: Portuguese (BR) <dolphinbrtrans@gmail.com>\n"
 "Language: \n"
@@ -48,7 +48,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:713
 #, c-format
 msgid "%08X:  "
-msgstr ""
+msgstr "%08X:  "
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:194
 #, c-format
@@ -271,7 +271,7 @@ msgstr "&Registradores"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:345
 msgid "&Reset"
-msgstr "&Resetar"
+msgstr "&Reset"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:247
 msgid "&Sound"
@@ -303,7 +303,7 @@ msgstr "&Wiki"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:497
 msgid "'"
-msgstr ""
+msgstr "'"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:58
 msgid "(-)+zFar"
@@ -323,7 +323,7 @@ msgstr "(desligado)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:646
 msgid "0x44"
-msgstr ""
+msgstr "0x44"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:171
 msgid "16 bit"
@@ -343,7 +343,7 @@ msgstr "8 bit"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:42
 msgid "<Insert name here>"
-msgstr "<Insira nome aqui>"
+msgstr "<Insira o nome aqui>"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:263
 msgid "<No resolutions found>"
@@ -364,7 +364,7 @@ msgstr "<Sistema>"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:687
 msgid "A"
-msgstr ""
+msgstr "A"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:187
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:221
@@ -444,10 +444,9 @@ msgstr "Precisão:"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid "Accurate VBeam emulation"
-msgstr "Emulção precisa de VBeam"
+msgstr "Emulação correta do VBeam"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -459,7 +458,7 @@ msgstr ""
 "Alguns jogos dependem disso para certos efeitos visuais ou funções de "
 "jogabilidade.\n"
 "\n"
-"Se estiver em dúvida, deixe isto ativado."
+"Se estiver em dúvida, mude o EFB para Textura."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:243
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:243
@@ -565,7 +564,7 @@ msgstr "Adicionar"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1312
 msgid "Add ActionReplay Code"
-msgstr "Adicionar Código ActionReplay"
+msgstr "Adicionar Código de ActionReplay"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1241
 msgid "Add Patch"
@@ -573,7 +572,7 @@ msgstr "Adicionar Patch"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:506
 msgid "Add new pane"
-msgstr "Adicionar novo painél"
+msgstr "Adicionar novo painel"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:424
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:446
@@ -636,12 +635,12 @@ msgstr "Configurações Avançadas"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:666
 #, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
-msgstr "Todos os arquivos de GC/WII (elf, dol, gcm, iso, ciso, gcz, wad)"
+msgstr "Todos os arquivos de GC/WII (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:748
 #, fuzzy
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
-msgstr "Todas as imagens CG/Wii (gcm, iso, ciso, gcz)"
+msgstr "Todas as imagens CG/Wii (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1195
 msgid "All Gamecube GCM files (gcm)"
@@ -677,13 +676,12 @@ msgstr ""
 "Se estiver em dúvida, deixe isto desativado."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:333
-#, fuzzy
 msgid "Alternate Wiimote Timing"
-msgstr "Emular Wiimote"
+msgstr "Tempo Alternativo de Wiimote"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:279
 msgid "Analyze"
-msgstr ""
+msgstr "Analizar"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:374
 msgid "Anisotropic Filtering:"
@@ -806,12 +804,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:688
 msgid "B"
-msgstr ""
+msgstr "B"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:746
-#, fuzzy
 msgid "BP register "
-msgstr "&Registradores"
+msgstr "Registrador BP"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -912,11 +909,11 @@ msgstr "Procurar por um diretório para adicionar"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:435
 msgid "Browse for an ISO directory..."
-msgstr "Procurar por um diretório ISO..."
+msgstr "Procurar por um diretório de ISO..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1093
 msgid "Browse for output directory"
-msgstr "Procurar por um diretório de saída"
+msgstr "Procurar por um diretório de output"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:314
 msgid "Buffer:"
@@ -930,7 +927,7 @@ msgstr "Botões"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:689
 msgid "C"
-msgstr ""
+msgstr "C"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:77
 msgid "C Stick"
@@ -942,7 +939,7 @@ msgstr "C-Stick"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:755
 msgid "CP reg"
-msgstr ""
+msgstr "CP reg"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:543
 msgid "CPU Emulator Engine"
@@ -1095,7 +1092,7 @@ msgstr "Códigos de Cheat"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:131
 msgid "Cheat Search"
-msgstr "Procura de Cheat"
+msgstr "Busca de Cheats"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:39
 msgid "Cheats Manager"
@@ -1103,11 +1100,11 @@ msgstr "Gerenciador de Cheat"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:643
 msgid "Check Partition Integrity"
-msgstr ""
+msgstr "Checar Integridade da Partição"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:885
 msgid "Checking integrity..."
-msgstr ""
+msgstr "Checando Integridade..."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
 msgid "Chinese (Simplified)"
@@ -1190,7 +1187,7 @@ msgstr "Co&nfigurar..."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:86
 msgid "Code Info"
-msgstr "Informação de Código"
+msgstr "Informação do Código"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:568
 msgid "Code: "
@@ -1202,11 +1199,11 @@ msgstr "Comandos"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:626
 msgid "Comment"
-msgstr "Comentar"
+msgstr "Comentário"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:501
 msgid "Comment:"
-msgstr "Comentar:"
+msgstr "Comentário:"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:908
 msgid "Compress ISO..."
@@ -1468,7 +1465,7 @@ msgstr "Tcheco"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:689
 msgid "D"
-msgstr ""
+msgstr "D"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:89
 msgid "D-Pad"
@@ -1509,11 +1506,11 @@ msgstr "Raiz do DVD:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:238
 msgid "DVDLowRead - Fatal Error: failed to read from volume"
-msgstr ""
+msgstr "DVDLowRead - Erro Fatal: falha ao ler do volume"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:332
 msgid "DVDLowUnencryptedRead - Fatal Error: failed to read from volume"
-msgstr ""
+msgstr "DVDLowUnencryptedRead - Erro Fatal: falha ao ler do volume"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:176
 msgid "Data Size"
@@ -1580,7 +1577,7 @@ msgstr "Excluir"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:799
 msgid "Delete Save"
-msgstr "Deletar Save"
+msgstr "Excluir Save"
 
 #: Source/Core/VideoCommon/Src/AVIDump.cpp:77
 #, c-format
@@ -1996,7 +1993,7 @@ msgstr "Ativar Block Merging"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:337
 msgid "Enable Bounding Box Calculation"
-msgstr ""
+msgstr "Ativar Cálculo de Caixas Limitadoras"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:442
 msgid "Enable Cache"
@@ -2008,11 +2005,11 @@ msgstr "Ativar Cheats"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:315
 msgid "Enable Dual Core"
-msgstr "Ativar Núcleo Duplo"
+msgstr "Ativar Modo de Dois Núcleos"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:536
 msgid "Enable Dual Core (speedup)"
-msgstr "Ativar Núcleo Duplo (Aumento na velocidade)"
+msgstr "Ativar Modo de Dois Núcleos (Aumento na velocidade)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:560
 msgid "Enable Hotkeys"
@@ -2199,6 +2196,8 @@ msgid ""
 "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
 "Aborting savestate load..."
 msgstr ""
+"Erro: Depois de \"%s\", foi encontrado %d (0x%X) ao invés do marcador de "
+"save %d (0x%X). Abortando carregamento de instante salvo..."
 
 #: Source/Core/Core/Src/HW/EXI_DeviceIPL.cpp:342
 #, c-format
@@ -2400,9 +2399,9 @@ msgid ""
 "Memcard may be truncated\n"
 "FilePosition:%llx"
 msgstr ""
-"Falha ao ler os dados do salva\n"
-"(0xA000-)\n"
-"O Memory Card pode estar truncado"
+"Falha ao ler o bloco %d do salva\n"
+"O Memory Card pode estar truncado\n"
+"Posição no Arquivo:%llx"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:148
 msgid ""
@@ -2473,7 +2472,7 @@ msgstr "Falha ao escrever o header para o arquivo %d"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
 msgid "Farsi"
-msgstr ""
+msgstr "Persa"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:473
 msgid "Fast"
@@ -2492,6 +2491,8 @@ msgstr "Rápida versão do MMU. Não funciona para todos os jogos."
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
 msgstr ""
+"Desincronização fatal. Abortando reprodução. (Erro em PlayWiimote: %u != %u, "
+"byte %u.)%s"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:212
 msgid "Fifo Player"
@@ -2549,11 +2550,11 @@ msgstr "Tipo do arquivo 'ini' desconhecido! Não vai abrir!"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:259
 msgid "Find next"
-msgstr ""
+msgstr "Achar Próximo"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:260
 msgid "Find previous"
-msgstr ""
+msgstr "Achar Anterior"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:629
 msgid "First Block"
@@ -2629,7 +2630,7 @@ msgstr "Para frente"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:497
 #, c-format
 msgid "Found %d results for '"
-msgstr ""
+msgstr "%d resultados encontrados para '"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:839
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:907
@@ -2650,9 +2651,8 @@ msgid "Frame Dumps use FFV1"
 msgstr "Extração de Quadros usam FFV1"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:221
-#, fuzzy
 msgid "Frame Info"
-msgstr "Quadro"
+msgstr "Informação do Frame"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:110
 msgid "Frame Range"
@@ -2702,9 +2702,8 @@ msgid "GCI File(*.gci)"
 msgstr "Arquivo GCI(*.gci)"
 
 #: Source/Core/DolphinWX/Src/GCMicDlg.h:44
-#, fuzzy
 msgid "GCMic Configuration"
-msgstr "Configuração do Log"
+msgstr "Configuração do GCMic"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:445
 msgid "GCPad"
@@ -2712,7 +2711,7 @@ msgstr "GCPad"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:650
 msgid "GX_CMD_INVL_VC"
-msgstr ""
+msgstr "GX_CMD_INVL_VC"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:468
 msgid "Game ID:"
@@ -2761,7 +2760,7 @@ msgid "Gecko Codes"
 msgstr "Códigos Gecko"
 
 #: Source/Core/Core/Src/GeckoCode.cpp:222
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
 "(either a bad code or the code type is not yet supported. Try using the "
@@ -2769,7 +2768,9 @@ msgid ""
 "directory and restarting Dolphin.)"
 msgstr ""
 "Falha ao rodar o GeckoCode (CT%i CST%i) (%s)\n"
-"(É um código ruim ou um tipo de código não suportado.)"
+"(É um código ruim ou um tipo de código não suportado. Tente usar o "
+"processador de código nativo colocando o arquivo codehandler.bin no "
+"diretório Sys e reiniciando o Dolphin.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
@@ -2806,7 +2807,6 @@ msgid "Greater Than"
 msgstr "Maior do que"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:88
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -2817,8 +2817,10 @@ msgid ""
 "If unsure, leave this checked."
 msgstr ""
 "Aumenta muito a qualidade das texturas geradas usando efeitos de "
-"renderização.\n"
+"renderização para textura.\n"
 "Aumentar a Resolução Interna vai melhorar o efeito desta opção.\n"
+"Diminui um pouco a performance e pode causar problemas (embora seja "
+"improvável).\n"
 "\n"
 "Se estiver em dúvida, deixe isto ativado."
 
@@ -2988,6 +2990,8 @@ msgid ""
 "If checked, the bounding box registers will be updated. Used by the Paper "
 "Mario games."
 msgstr ""
+"Se isto for ativado, os registradores das caixas de limite serão "
+"atualizados. Usado pelos jogos do Paper Mario."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 msgid ""
@@ -2997,15 +3001,15 @@ msgstr ""
 "OFF = Rápido)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:485
-#, fuzzy
 msgid ""
 "If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use "
 "Audio to throttle using the DSP (might fix audio clicks but can also cause "
 "constant noise depending on the game)."
 msgstr ""
 "Se você colocar o Limitador de FPS em um valor maior que a velocidade máxima "
-"do jogo (NTSC:60, PAL:50), você também vai precisar desativar o Throttle de "
-"Áudio no DSP para que funcione."
+"do jogo (NTSC:60, PAL:50). Use Áudio para acelerar através do DSP (deve "
+"consertar cortes no áudio mas pode causar ruído constante dependendo do "
+"jogo)."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:434
 msgid "Ignore Format Changes"
@@ -3148,15 +3152,15 @@ msgstr "Instalando WAD..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:906
 msgid "Integrity Check Error"
-msgstr ""
+msgstr "Erro na Checagem de Integridade"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:912
 msgid "Integrity check completed"
-msgstr ""
+msgstr "Checagem de Integridade completa"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:911
 msgid "Integrity check completed. No errors have been found."
-msgstr ""
+msgstr "Checagem de Integridade completa. Nenhum erro foi encontrado."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:903
 #, c-format
@@ -3164,6 +3168,8 @@ msgid ""
 "Integrity check for partition %d failed. Your dump is most likely corrupted "
 "or has been patched incorrectly."
 msgstr ""
+"Checagem de Integridade para a partição %d falhou. Sua cópia deve estar "
+"corrompida ou foi incorretamente corrigido (patch)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:528
 msgid "Interface"
@@ -3241,15 +3247,17 @@ msgstr "Arquivo de gravação inválido"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:464
 msgid "Invalid search parameters (no object selected)"
-msgstr ""
+msgstr "Parâmetros de busca inválidos (nenhum objeto selecionado)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:443
 msgid "Invalid search string (couldn't convert to number)"
-msgstr ""
+msgstr "String de busca inválida (não foi possível converter para número)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:431
 msgid "Invalid search string (only even string lengths supported)"
 msgstr ""
+"String de busca inválida (apenas comprimentos correspondentes de string são "
+"suportados)"
 
 #: Source/Core/Core/Src/Core.cpp:531
 msgid "Invalid state"
@@ -3283,19 +3291,18 @@ msgid "KOREA"
 msgstr "CORÉIA"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:78
-#, fuzzy
 msgid ""
 "Keep the game window on top of all other windows.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Oculta o cursor do mouse quando ele está em cima da janela de emulação.\n"
+"Mantém a janela do jogo na frente de todas as outras janelas.\n"
 "\n"
-"Se estiver em dúvida, deixe isto ativado."
+"Se estiver em dúvida, deixe isto desativado."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:305
 msgid "Keep window on top"
-msgstr ""
+msgstr "Manter Janela no Topo"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:245
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:245
@@ -3665,11 +3672,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:642
 msgid "NOP"
-msgstr ""
+msgstr "NOP"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:621
 msgid "NOTE: Stream size doesn't match actual data length\n"
-msgstr ""
+msgstr "NOTA: O tamanho do stream não corresponde ao comprimento dos dados\n"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:129
 msgid "NP Add"
@@ -3806,7 +3813,7 @@ msgstr "Nenhum arquivo de banner encontrado para o título  %s"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:752
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:759
 msgid "No description available"
-msgstr ""
+msgstr "Descrição indisponível"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:513
 msgid "No docking"
@@ -4139,17 +4146,17 @@ msgstr "Efeito Pós-Processamento"
 #: Source/Core/Core/Src/Movie.cpp:757
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
-msgstr ""
+msgstr "Fim prematuro do vídeo no PlayController. %u + 8 > %u"
 
 #: Source/Core/Core/Src/Movie.cpp:851
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
-msgstr ""
+msgstr "Fim prematuro do vídeo no PlayWiimote. %u + %d > %u"
 
 #: Source/Core/Core/Src/Movie.cpp:828
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
-msgstr ""
+msgstr "Fim prematuro do vídeo no PlayWiimote. %u > %u"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:47
 msgid "Presets: "
@@ -4357,7 +4364,7 @@ msgstr "Russo"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:162
 msgid "Sa&ve State"
-msgstr "Sal&var estado atual"
+msgstr "Sal&var Instante Atual"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:471
 msgid "Safe"
@@ -4380,46 +4387,46 @@ msgstr "Salvar GCI como..."
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:213
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:213
 msgid "Save State Slot 1"
-msgstr "Salvar Estado Atual no Slot 1"
+msgstr "Salvar Instante Atual no Slot 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:214
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:214
 msgid "Save State Slot 2"
-msgstr "Salvar Estado Atual no Slot 2"
+msgstr "Salvar Instante Atual no Slot 2"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:215
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:215
 msgid "Save State Slot 3"
-msgstr "Salvar Estado Atual no Slot 3"
+msgstr "Salvar Instante Atual no Slot 3"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:216
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:216
 msgid "Save State Slot 4"
-msgstr "Salvar Estado Atual no Slot 4"
+msgstr "Salvar Instante Atual no Slot 4"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:217
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:217
 msgid "Save State Slot 5"
-msgstr "Salvar Estado Atual no Slot 5"
+msgstr "Salvar Instante Atual no Slot 5"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:218
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:218
 msgid "Save State Slot 6"
-msgstr "Salvar Estado Atual no Slot 6"
+msgstr "Salvar Instante Atual no Slot 6"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:219
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:219
 msgid "Save State Slot 7"
-msgstr "Salvar Estado Atual no Slot 7"
+msgstr "Salvar Instante Atual no Slot 7"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:220
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:220
 msgid "Save State Slot 8"
-msgstr "Salvar Estado Atual no Slot 8"
+msgstr "Salvar Instante Atual no Slot 8"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:164
 msgid "Save State..."
-msgstr "Salvar estado atual"
+msgstr "Salvar Instante Atual..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:602
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:612
@@ -4469,9 +4476,8 @@ msgid "Scroll Lock"
 msgstr "Scroll Lock"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:258
-#, fuzzy
 msgid "Search"
-msgstr "Procura de Cheat"
+msgstr "Busca"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:227
 msgid "Search Filter"
@@ -4482,13 +4488,12 @@ msgid "Search Subfolders"
 msgstr "Procurar em sub-pastas"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:244
-#, fuzzy
 msgid "Search current Object"
-msgstr "Salvar perspectiva atual"
+msgstr "Pesquisar Objeto atual"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:248
 msgid "Search for hex Value:"
-msgstr ""
+msgstr "Buscar valor hexadecimal:"
 
 #: Source/Core/Common/Src/SysConf.h:103 Source/Core/Common/Src/SysConf.h:126
 #: Source/Core/Common/Src/SysConf.h:146 Source/Core/Common/Src/SysConf.h:167
@@ -4521,7 +4526,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:518
 msgid "Select a save file to import"
-msgstr "Selecione um arquivo de salva para importar"
+msgstr "Selecione um arquivo de jogo salvo para importar"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:362
 msgid "Select floating windows"
@@ -4537,11 +4542,11 @@ msgstr "Selecione o arquivo de salva"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1485
 msgid "Select the state to load"
-msgstr "Selecione um estado para carregar"
+msgstr "Selecione um instante para carregar"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1499
 msgid "Select the state to save"
-msgstr "Selecione um estado para salvar"
+msgstr "Selecione um instante para salvar"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:82
 msgid ""
@@ -5084,7 +5089,7 @@ msgstr "Capturar Tela"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:82
 msgid "TaruKonga (Bongos)"
-msgstr ""
+msgstr "TaruKonga (Bongos)"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:489
 msgid "Test"
@@ -5161,17 +5166,16 @@ msgid "The resulting decrypted AR code doesn't contain any lines."
 msgstr "O código AR resultante da derciptação não contém nenhuma linha."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:99
-#, fuzzy
 msgid ""
 "The safer you adjust this, the less likely the emulator will be missing any "
 "texture updates from RAM.\n"
 "\n"
 "If unsure, use the rightmost value."
 msgstr ""
-"Quanto mais Seguro, menor será a probabilidade do emulador perder alguma "
-"atualização de textura da RAM.\n"
+"Quanto mais segura for a opção selecionada, menor será a probabilidade do "
+"emulador perder alguma atualização de textura da RAM.\n"
 "\n"
-"Se estiver em dúvida, use o segundo valor da direita para a esquerda."
+"Se estiver em dúvida, use o o valor mais à direita."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:444
 msgid "The save you are trying to copy has an invalid file size"
@@ -5188,7 +5192,7 @@ msgstr ""
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:43
 msgid "The server and client's NetPlay versions are incompatible!"
-msgstr "As versões do NetPlay do Client e do Servidor são incompatíveis!"
+msgstr "As versões de NetPlay do Client e do Servidor são incompatíveis!"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:40
 msgid "The server is full!"
@@ -5367,9 +5371,9 @@ msgid "UNKNOWN"
 msgstr "DESCONHECIDO"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:747
-#, fuzzy, c-format
+#, c-format
 msgid "UNKNOWN_%02X"
-msgstr "DESCONHECIDO"
+msgstr "DESCONHECIDO_%02X"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:183
 msgid "USA"
@@ -5406,7 +5410,7 @@ msgstr "Desfazer carregamento de estado"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:709
 msgid "Unexpected 0x80 call? Aborting..."
-msgstr ""
+msgstr "Chamada 0x80 inesperada? Abortando..."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:215
 msgid "Unknown"
@@ -5534,9 +5538,8 @@ msgid "WAD installation failed: error creating %s"
 msgstr "Falha na instalação da WAD: Erro na criação de %s"
 
 #: Source/Core/DiscIO/Src/NANDContentLoader.cpp:547
-#, fuzzy
 msgid "WAD installation failed: error creating ticket"
-msgstr "Falha na instalação da WAD: Erro na criação de %s"
+msgstr "Falha na instalação da WAD: Erro na criação do ticket"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:84
 msgid ""
@@ -5588,8 +5591,7 @@ msgid ""
 "and have the same name as a file on your memcard\n"
 "Continue?"
 msgstr ""
-"Aviso: Isso vai substituir quaisquer arquivos de salva existentes na "
-"pasta :\n"
+"Aviso: Isso vai substituir quaisquer arquivos de save existentes na pasta :\n"
 "%s\n"
 "que tenham o mesmo nome de um arquivo do Memory Card\n"
 "Continuar?"
@@ -5601,6 +5603,9 @@ msgid ""
 "%u > %u) (frame %u > %u). You should load another save before continuing, or "
 "load this state with read-only mode off."
 msgstr ""
+"Atenção: Você carregou um jogo salvo que está depois do fim do vídeo atual. "
+"(byte %u > %u) (frame %u > %u). Você deveria carregar outro instante salvo, "
+"ou carregar este instante com o modo somente-leitura desligado."
 
 #: Source/Core/Core/Src/Movie.cpp:682
 #, c-format
@@ -5609,6 +5614,10 @@ msgid ""
 "should load another save before continuing, or load this state with read-"
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
+"Atenção: Você carregou um jogo salvo cuja cena não bate com a atual no byte "
+"%d (0x%X).Você deveria carregar outro save antes de continuar, ou carregar "
+"este instante com o modo somente-leitura desligado. Caso contrário você "
+"provavelmente terá uma desincronização."
 
 #: Source/Core/Core/Src/Movie.cpp:691
 #, c-format
@@ -5628,6 +5637,21 @@ msgid ""
 "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
 "%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 msgstr ""
+"Atenção: Você carregou um jogo salvo cuja cena não bate com a atual no "
+"quadro %d.Você deveria carregar outro save antes de continuar, ou carregar "
+"este instante com o modo somente-leitura desligado. Caso contrário você "
+"provavelmente terá uma desincronização.\n"
+"\n"
+"Mais informações: A cena atual tem %d quadros e a cena do instante carregado "
+"tem %d quadros.\n"
+"\n"
+"No quadro %d, a cena atual pressiona:\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
+"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
+"\n"
+"No quadro %d, a cena do instante carregado pressiona:\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
+"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:106
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:120
@@ -5737,9 +5761,8 @@ msgid "Write to Console"
 msgstr "Escrever no Console"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:69
-#, fuzzy
 msgid "Write to Debugger"
-msgstr "Escrever para o Arquivo"
+msgstr "Escrever no Debugger"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:59
 msgid "Write to File"
@@ -5766,7 +5789,7 @@ msgstr "XAudio2 Criação de Master Voice falhou: %#X"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:757
 msgid "XF reg"
-msgstr ""
+msgstr "XF reg"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Yellow"
@@ -5922,7 +5945,7 @@ msgstr "iCacheJIT: Lendo Opcode de %x. Favor reportar."
 #, c-format
 msgid "not a wii save or read failure for file header size %x"
 msgstr ""
-"Não é um salva de Wii ou houve erro de leitura no tamanho do header do "
+"Não é um save de Wii ou houve erro de leitura no tamanho do header do "
 "arquivo %x"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:917
@@ -5936,7 +5959,7 @@ msgstr "Cmd 0x%08x desconhecido"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1147
 msgid "wxExecute returned -1 on application run!"
-msgstr "wxExecute devolveu -1 ao rodar o aplicativo!"
+msgstr "wxExecute retornou -1 ao rodar o aplicativo!"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:55
 msgid "zFar Correction: "
