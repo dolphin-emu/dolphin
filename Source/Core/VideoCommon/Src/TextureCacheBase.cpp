@@ -42,7 +42,7 @@ GC_ALIGNED16(u8 *TextureCache::temp) = NULL;
 unsigned int TextureCache::temp_size;
 
 TextureCache::TexCache TextureCache::textures;
-bool TextureCache::DeferredInvalidate;
+TextureCache::BackupConfig TextureCache::backup_config;
 bool invalidated_textures;
 u32 efb_read_texture_id; // contains the latest texID where the EFB was copied into
 bool invalidates_efb; // used to track if the game overwrites the EFB copy with another EFB copy
@@ -79,7 +79,7 @@ TextureCache::TextureCache()
 
 TextureCache::~TextureCache()
 {
-	InvalidateAll(true);
+	InvalidateAll();
 	if (temp)
 	{
 		FreeAlignedMemory(temp);
@@ -87,7 +87,7 @@ TextureCache::~TextureCache()
 	}
 }
 
-void TextureCache::InvalidateAll(bool shutdown)
+void TextureCache::InvalidateAll()
 {
 	TexCache::iterator
 		iter = textures.begin(),
@@ -96,18 +96,11 @@ void TextureCache::InvalidateAll(bool shutdown)
 	{
 		if (iter->second)
 		{
-			if (shutdown)
-				iter->second->addr = 0;
 			delete iter->second;
 		}
 	}
 
 	textures.clear();
-
-	if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
-		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
-	DeferredInvalidate = false;
 }
 
 void TextureCache::InvalidateRange(u32 start_address, u32 size)
@@ -204,9 +197,44 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 	}
 }
 
-void TextureCache::InvalidateDefer()
+void TextureCache::OnConfigChanged(VideoConfig& config)
 {
-	DeferredInvalidate = true;
+	if (!g_texture_cache)
+		goto skip_checks;
+
+	// TODO: Invalidating texcache is really stupid in some of these cases
+	if (config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
+		config.bTexFmtOverlayEnable != backup_config.s_texfmt_overlay ||
+		config.bTexFmtOverlayCenter != backup_config.s_texfmt_overlay_center ||
+		config.bHiresTextures != backup_config.s_hires_textures)
+	{
+		g_texture_cache->InvalidateAll();
+
+		if(g_ActiveConfig.bHiresTextures)
+			HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+
+		SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
+		TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
+	}
+
+	// TODO: Probably shouldn't clear all render targets here, just mark them dirty or something.
+	if (config.bCopyEFBToTexture != backup_config.s_copy_efb_to_texture ||
+		config.bCopyEFBScaled != backup_config.s_copy_efb_scaled ||
+		config.bEFBCopyEnable != backup_config.s_copy_efb ||
+		config.iEFBScale != backup_config.s_efb_scale)
+	{
+		g_texture_cache->ClearRenderTargets();
+	}
+
+skip_checks:
+	backup_config.s_colorsamples = config.iSafeTextureCache_ColorSamples;
+	backup_config.s_copy_efb_to_texture = config.bCopyEFBToTexture;
+	backup_config.s_copy_efb_scaled = config.bCopyEFBScaled;
+	backup_config.s_copy_efb = config.bEFBCopyEnable;
+	backup_config.s_efb_scale = config.iEFBScale;
+	backup_config.s_texfmt_overlay = config.bTexFmtOverlayEnable;
+	backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
+	backup_config.s_hires_textures = config.bHiresTextures;
 }
 
 void TextureCache::Cleanup()
@@ -435,8 +463,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			// 2. a) For EFB copies, only the hash and the texture address need to match
 			if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
 			{
-				if (entry->type != TCET_EC_VRAM)
-					entry->type = TCET_NORMAL;
+				entry->type = TCET_EC_VRAM;
 
 				// TODO: Print a warning if the format changes! In this case, we could reinterpret the internal texture object data to the new pixel format (similiar to what is already being done in Renderer::ReinterpretPixelFormat())
 				goto return_entry;
@@ -456,11 +483,9 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 				// EFB to RAM, without custom textures
 				if (entry->hash != TEXHASH_INVALID && entry->native_width == nativeW && entry->native_height == nativeH)
 				{
-					if (entry->type == TCET_EC_DYNAMIC)
-					{
-						entry->type = TCET_NORMAL;
-					}
-					else if (!from_tmem && (address & 0x0c000000) == 0)
+					entry->type = TCET_EC_VRAM;
+
+					if (!from_tmem && (address & 0x0c000000) == 0)
 					{
 						// The game has copied the EFB into a texture, remember which texID we copied it into.
 						// Needed for Super Mario Sunshine goo detection.
@@ -906,16 +931,12 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	TCacheEntryBase *entry = textures[dstAddr];
 	if (entry)
 	{
-		if ((entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h) 
-			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h))
+		if (entry->type == TCET_EC_DYNAMIC && entry->native_width == tex_w && entry->native_height == tex_h)
 		{
-			if (entry->type == TCET_EC_DYNAMIC)
-			{
-				scaled_tex_w = tex_w;
-				scaled_tex_h = tex_h;
-			}
+			scaled_tex_w = tex_w;
+			scaled_tex_h = tex_h;
 		}
-		else
+		else if (!(entry->type == TCET_EC_VRAM && entry->virtual_width == scaled_tex_w && entry->virtual_height == scaled_tex_h))
 		{
 			// remove it and recreate it as a render target
 			delete entry;
