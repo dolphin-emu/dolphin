@@ -136,6 +136,7 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 				if (!iter->second->IsEfbCopy() || g_ActiveConfig.bCopyEFBToTexture)
 				{
 					iter->second->SetHashes(TEXHASH_INVALID);
+					Commit(iter->second, true);
 				}
 				else
 				{
@@ -159,7 +160,6 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 						reads_efb_copy = true;
 					}
 				}
-				Commit(iter->second, true);
 				invalidated_textures = true;
 			}
 		}
@@ -186,6 +186,9 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 				}
 				else
 				{
+					// Convert this to a normal texture (Fixes F-Zero GX shadows).
+					iter->second->type = TCET_NORMAL;
+
 					// Hash EFB textures to check if the game has really updated them
 					u32 tex_hash = GetHash64(Memory::GetPointer(iter->second->addr), iter->second->size_in_bytes, 32);
 					if (tex_hash != iter->second->hash)
@@ -478,10 +481,10 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 		else
 		{
-			if (entry->IsEfbCopy())
+			if (entry->IsEfbCopy() && Memory::game_map[address >> 5] == Memory::GMAP_EFB)
 			{
 				// EFB to RAM, without custom textures
-				if (entry->hash != TEXHASH_INVALID && entry->native_width == nativeW && entry->native_height == nativeH)
+				if (entry->native_width == nativeW && entry->native_height == nativeH)
 				{
 					entry->type = TCET_EC_VRAM;
 
@@ -489,17 +492,14 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 					{
 						// The game has copied the EFB into a texture, remember which texID we copied it into.
 						// Needed for Super Mario Sunshine goo detection.
-						if (Memory::game_map[address >> 5] == Memory::GMAP_EFB)
+						// If the game invalidated the EFB copy, immediately allow the game to update this texture.
+						if (invalidates_efb)
 						{
-							// If the game invalidated the EFB copy, immediately allow the game to update this texture.
-							if (invalidates_efb)
-							{
-								memset((u8*)(Memory::game_map + (address >> 5)), Memory::GMAP_TEXTURE, (32 & ~31) >> 5);
-								invalidates_efb = false;
-							}
-							else
-								efb_read_texture_id = texID;
+							memset((u8*)(Memory::game_map + (address >> 5)), Memory::GMAP_TEXTURE, (32 & ~31) >> 5);
+							invalidates_efb = false;
 						}
+						else
+							efb_read_texture_id = texID;
 					}
 
 					// Spider-Man Shattered Dimensions changes the EFB texture format from GX_TF_C14X2
