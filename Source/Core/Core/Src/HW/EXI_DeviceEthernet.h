@@ -20,107 +20,16 @@
 
 #include "Thread.h"
 
-inline u8 makemaskb(int start, int end) {
-	return (u8)_rotl((2 << (end - start)) - 1, 7 - end);
-}
-inline u32 makemaskh(int start, int end) {
-	return (u32)_rotl((2 << (end - start)) - 1, 15 - end);
-}
-inline u32 makemaskw(int start, int end) {
-	return _rotl((2 << (end - start)) - 1, 31 - end);
-}
-inline u8 getbitsb(u8 byte, int start, int end) {
-	return (byte & makemaskb(start, end)) >> u8(7 - end);
-}
-inline u32 getbitsh(u32 hword, int start, int end) {
-	return (hword & makemaskh(start, end)) >> u32(15 - end);
-}
-inline u32 getbitsw(u32 dword, int start, int end) {
-	return (dword & makemaskw(start, end)) >> (31 - end);
-}
-
-class WriteBuffer
-{
-public:
-	WriteBuffer(u32 s) : _size(0)
-	{
-		_buffer = (u8*)malloc(s*sizeof(u8));
-		ucapacity = s;
-	}
-	~WriteBuffer() { free(_buffer); }
-	u32 size() const { return _size; }
-	u32 capacity() const { return ucapacity; }
-	void write(u32 s, const void *src)
-	{
-		if (_size + s >= ucapacity)
-		{
-			INFO_LOG(SP1, "Write too large!");
-			exit(0);
-		}
-
-		memcpy(_buffer + _size, src, s);
-		_size = _size + s;
-	}
-	void clear() { _size = 0; }
-	u8* p() { return _buffer; }
-
-private:
-	u8* _buffer;
-	u32 ucapacity;
-	u32 _size;
-};
-
-// Doesn't contain error checks for wraparound writes
-class CyclicBufferWriter 
-{
-public:
-	CyclicBufferWriter(u8 *buffer, size_t cap) {
-		_buffer = buffer; _capacity = cap; _write = 0;
-	}
-
-	size_t p_write() const { return _write; }
-	void reset() { _write = 0; }
-
-	void write(void *src, size_t size) {
-		_dbg_assert_(SP1, size < _capacity);
-		u8* bsrc = (u8*) src;
-		if (_write + size >= _capacity)
-		{
-			// wraparound
-			memcpy(_buffer + _write, src, _capacity - _write);
-			memcpy(_buffer, bsrc + (_capacity - _write), size - (_capacity - _write));
-			_write = size - (_capacity - _write);
-		} else {
-			memcpy(_buffer + _write, src, size);
-			_write += size;
-		}
-		//DEBUG_LOG(SP1, "CBWrote %i bytes", size);
-	}
-	// Aligns the write pointer to steps of 0x100, like the real BBA
-	void align() {
-		_write = (_write + 0xff) & ~0xff;
-		if(_write >= _capacity)
-			_write -= _capacity;
-	}
-
-private:
-	size_t _write;
-	size_t _capacity;
-	u8 *_buffer;
-};
-
-#define INVALID_P 0xFFFF
-
-// Network Control Register A, RW
+// Network Control Register A
 enum NCRA
 {
 	NCRA_RESET		= 0x01, // RESET
 	NCRA_ST0		= 0x02, // Start transmit command/status
 	NCRA_ST1		= 0x04, // "
-	NCRA_SR			= 0x08, // Start Receive
+	NCRA_SR			= 0x08  // Start Receive
 };
 
-// Network Control Register B, RW
+// Network Control Register B
 enum NCRB
 {
 	NCRB_PR			= 0x01, // Promiscuous Mode
@@ -129,11 +38,11 @@ enum NCRB
 	NCRB_PB			= 0x08, // Pass Bad Frame
 	NCRB_AB			= 0x10, // Accept Broadcast
 	NCRB_HBD		= 0x20, // reserved
-	NCRB_RXINTC		= 0xC0, // Receive Interrupt Counter (mask)
+	NCRB_RXINTC		= 0xC0  // Receive Interrupt Counter (mask)
 };
 
-// Interrupt Mask Register, RW, 00h
-// Interrupt Register, RW, 00h
+// Interrupt Mask Register
+// Interrupt Register
 enum Interrupts
 {
 	INT_FRAG		= 0x01, // Fragment Counter
@@ -143,17 +52,20 @@ enum Interrupts
 	INT_T_ERR		= 0x10, // Transmit Error
 	INT_FIFO_ERR	= 0x20, // FIFO Error
 	INT_BUS_ERR		= 0x40, // BUS Error
-	INT_RBF			= 0x80, // RX Buffer Full
+	INT_RBF			= 0x80  // RX Buffer Full
 };
 
-// NWAY Configuration Register, RW, 84h
+// NWAY Configuration Register
 enum NWAYC
 {
 	NWAYC_FD		= 0x01, // Full Duplex Mode
-	NWAYC_PS100		= 0x02, // Port Select 100/10
-	NWAYC_ANE		= 0x03, // Autonegotiation Enable
-	NWAYC_ANS_RA	= 0x04, // Restart Autonegotiation
-	NWAYC_LTE		= 0x08, // Link Test Enable
+	NWAYC_PS100_10	= 0x02, // Port Select 100/10
+	NWAYC_ANE		= 0x04, // Autonegotiate enable
+	
+	// Autonegotiation status bits...
+
+	NWAYC_NTTEST	= 0x40, // Reserved
+	NWAYC_LTE		= 0x80  // Link Test Enable
 };
 
 enum NWAYS
@@ -166,6 +78,18 @@ enum NWAYS
 	NWAYS_100TXH	= 0x20,
 	NWAYS_10TXF		= 0x40,
 	NWAYS_10TXH		= 0x80
+};
+
+enum MISC1
+{
+	MISC1_BURSTDMA = 0x01,
+	MISC1_DISLDMA = 0x02,
+	MISC1_TPF = 0x04,
+	MISC1_TPH = 0x08,
+	MISC1_TXF = 0x10,
+	MISC1_TXH = 0x20,
+	MISC1_TXFIFORST = 0x40,
+	MISC1_RXFIFORST = 0x80
 };
 
 enum
@@ -182,6 +106,7 @@ enum
 	BBA_BP			= 0x0a,
 	BBA_TLBP		= 0x0c,
 	BBA_TWP			= 0x0e,
+	BBA_IOB			= 0x10,
 	BBA_TRP			= 0x12,
 	BBA_RWP			= 0x16,
 	BBA_RRP			= 0x18,
@@ -195,6 +120,14 @@ enum
 	BBA_NAFR_PAR3	= 0x23,
 	BBA_NAFR_PAR4	= 0x24,
 	BBA_NAFR_PAR5	= 0x25,
+	BBA_NAFR_MAR0	= 0x26,
+	BBA_NAFR_MAR1	= 0x27,
+	BBA_NAFR_MAR2	= 0x28,
+	BBA_NAFR_MAR3	= 0x29,
+	BBA_NAFR_MAR4	= 0x2a,
+	BBA_NAFR_MAR5	= 0x2b,
+	BBA_NAFR_MAR6	= 0x2c,
+	BBA_NAFR_MAR7	= 0x2d,
 
 	BBA_NWAYC		= 0x30,
 	BBA_NWAYS		= 0x31,
@@ -210,37 +143,48 @@ enum
 
 	BBA_SI_ACTRL	= 0x5c,
 	BBA_SI_STATUS	= 0x5d,
-	BBA_SI_ACTRL2	= 0x60,
+	BBA_SI_ACTRL2	= 0x60
 };
 
 enum
 {
 	BBA_RECV_SIZE	= 0x800,
-	BBA_MEM_SIZE	= 0x1000,
-
-	CB_OFFSET	= 0x100,
-	CB_SIZE		= (BBA_MEM_SIZE - CB_OFFSET),
-	SIZEOF_ETH_HEADER		= 0xe,
-	SIZEOF_RECV_DESCRIPTOR	= 4,
-
-	EXI_DEVTYPE_ETHER	= 0x04020200,
+	BBA_MEM_SIZE	= 0x1000
 };
 
-enum
+enum { EXI_DEVTYPE_ETHER = 0x04020200 };
+
+enum SendStatus
 {
-	EXPECT_NONE = 0,
-	EXPECT_ID
+	DESC_CC0	= 0x01,
+	DESC_CC1	= 0x02,
+	DESC_CC2	= 0x04,
+	DESC_CC3	= 0x08,
+	DESC_CRSLOST= 0x10,
+	DESC_UF		= 0x20,
+	DESC_OWC	= 0x40,
+	DESC_OWN	= 0x80
+};
+
+enum RecvStatus
+{
+	DESC_BF		= 0x01,
+	DESC_CRC	= 0x02,
+	DESC_FAE	= 0x04,
+	DESC_FO		= 0x08,
+	DESC_RW		= 0x10,
+	DESC_MF		= 0x20,
+	DESC_RF		= 0x40,
+	DESC_RERR	= 0x80
 };
 
 class CEXIETHERNET : public IEXIDevice
 {
 public:
 	CEXIETHERNET(const std::string& mac_addr);
-	~CEXIETHERNET();
-	void SetMAC(u8 *new_addr);
-	void SetCS(int _iCS);
+	virtual ~CEXIETHERNET();
+	void SetCS(int cs);
 	bool IsPresent();
-	void Update();
 	bool IsInterruptSet();
 	void ImmWrite(u32 data,  u32 size);
 	u32  ImmRead(u32 size);
@@ -249,52 +193,116 @@ public:
 	void DoState(PointerWrap &p);
 
 //private:
-	// STATE_TO_SAVE
-	u32 m_uPosition;
-	u32 m_uCommand;
+	struct
+	{
+		enum
+		{
+			READ,
+			WRITE
+		} direction;
 
-	bool m_bInterruptSet;
-	u16 mWriteP, mReadP;
+		enum
+		{
+			EXI,
+			MX
+		} region;
 
-	bool mExpectSpecialImmRead;	//reset to false on deselect
-	u32 mSpecialImmData;
-	bool Activated;
+		u16 address;
+		bool valid;
+	} transfer;
 
-	u16 mRBRPP;  //RRP - Receive Buffer Read Page Pointer
-	bool mRBEmpty;
-
-	u8 mBbaMem[BBA_MEM_SIZE];
-
-	WriteBuffer mWriteBuffer;
-	CyclicBufferWriter mCbw;
-
-	bool mExpectVariableLengthImmWrite;
-	bool mReadyToSend;
-	u8 RegisterBlock[0x1000];
 	enum
 	{
-		CMD_ID = 0x00,
-		CMD_READ_REG = 0x01,
+		EXI_ID,
+		REVISION_ID,
+		INTERRUPT_MASK,
+		INTERRUPT,
+		DEVICE_ID,
+		ACSTART,
+		HASH_READ = 8,
+		HASH_WRITE,
+		HASH_STATUS = 0xb,
+		RESET = 0xf
 	};
 
-	void recordSendComplete();
-	bool sendPacket(u8 *etherpckt, int size);
-	bool checkRecvBuffer();
-	bool handleRecvdPacket();
+	// exi regs
+	struct EXIStatus
+	{
+		enum
+		{
+			TRANSFER = 0x80
+		};
 
-	//TAP interface
-	bool activate();
-	bool CheckRecieved();
-	bool deactivate();
-	bool isActivated();
-	bool resume();
-	bool startRecv();
-	bool cbwriteDescriptor(u32 size);
+		u8 revision_id;
+		u8 interrupt_mask;
+		u8 interrupt;
+		u16 device_id;
+		u8 acstart;
+		u32 hash_challenge;
+		u32 hash_response;
+		u8 hash_status;
 
+		EXIStatus()
+		{
+			device_id = 0xd107;
+			revision_id = 0;//0xf0;
+			acstart = 0x4e;
 
-	volatile bool mWaiting;
-	u8 mac_address[6];
-	u8 mRecvBuffer[BBA_RECV_SIZE];
+			interrupt_mask = 0;
+			interrupt = 0;
+			hash_challenge = 0;
+			hash_response = 0;
+			hash_status = 0;
+		}
+
+	} exi_status;
+
+	struct Descriptor
+	{
+		u32 word;
+
+		void set(u32 const next_page, u32 const packet_length, u32 const status)
+		{
+			word = 0;
+			word |= (status & 0xff) << 24;
+			word |= (packet_length & 0xfff) << 12;
+			word |= next_page & 0xfff;
+		}
+
+		u8 get_status() const
+		{
+			return (word >> 24) & 0xff;
+		}
+	};
+
+	bool IsMXCommand(u32 const data);
+	bool IsWriteCommand(u32 const data);
+	char const * const GetRegisterName() const;
+	void MXHardReset();
+	void MXCommandHandler(u32 data, u32 size);
+	void DirectFIFOWrite(u8 *data, u32 size);
+	void SendFromDirectFIFO();
+	void SendFromPacketBuffer();
+	void SendComplete();
+	u8 HashIndex(u8 *dest_eth_addr);
+	bool RecvMACFilter();
+	void inc_rwp();
+	bool RecvHandlePacket();
+
+	u8 *tx_fifo;
+	u8 *mBbaMem;
+
+	// TAP interface
+	bool Activate();
+	void Deactivate();
+	bool IsActivated();
+	bool SendFrame(u8 *frame, u32 size);
+	bool RecvInit();
+	bool RecvStart();
+	void RecvStop();
+
+	u8 *mRecvBuffer;
+
 #ifdef _WIN32
 	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
 	DWORD mMtu;
