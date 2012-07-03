@@ -71,7 +71,7 @@ TextureCache::TextureCache()
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
     if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
+	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures, !g_ActiveConfig.bCopyEFBToTexture);
 	invalidated_textures = false;
 	efb_read_texture_id = 0;
 	invalidates_efb = false;
@@ -216,7 +216,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 		if(g_ActiveConfig.bHiresTextures)
 			HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 
-		SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
+		SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures, !g_ActiveConfig.bCopyEFBToTexture);
 		TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 	}
 
@@ -597,7 +597,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
-	entry->hash = (tlutaddr != 0) ? GetHash64(Memory::GetPointer(address), texture_size, 32) : tex_hash;
+	entry->hash = (tlutaddr != 0 && !g_ActiveConfig.bCopyEFBToTexture) ? GetHash64(Memory::GetPointer(address), texture_size, 32) : tex_hash;
 	entry->from_tmem = from_tmem;
 	entry->tlut_addr = tlutaddr;
 	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_EC_DYNAMIC;

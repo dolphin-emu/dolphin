@@ -580,7 +580,7 @@ u64 GetHash64(const u8 *src, int len, u32 samples)
 }
 
 // sets the hash function used for the texture cache
-void SetHash64Function(bool useHiresTextures)
+void SetHash64Function(bool useHiresTextures, bool bit32)
 {
 	if (useHiresTextures)
 	{
@@ -592,9 +592,13 @@ void SetHash64Function(bool useHiresTextures)
 		ptrHashFunction = &GetCRC32;
 	}
 #endif
-	else
+	else if (!bit32)
 	{
 		ptrHashFunction = &GetMurmurHash3;
+	}
+	else
+	{
+		ptrHashFunction = &MurmurHash3_x86_32;
 	}
 }
 
