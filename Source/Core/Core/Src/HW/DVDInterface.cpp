@@ -569,7 +569,7 @@ void ExecuteCommand(UDICR& _DICR)
 		{
 			// 0x29484100...
 			// was 21 i'm not entirely sure about this, but it works well.
-			m_DIIMMBUF.Hex = 0x21000000;
+			m_DIIMMBUF.Hex = 0x29484100;
 		}
 		else
 		{

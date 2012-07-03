@@ -22,6 +22,7 @@
 
 #include "GCPadStatus.h"
 #include "GCPad.h"
+#include "..\ConfigManager.h"
 
 // where to put baseboard debug
 #define AMBASEBOARDDEBUG OSREPORT
@@ -92,18 +93,27 @@ public:
 CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(SIDevices device, int _iDeviceNumber)
 	: ISIDevice(device, _iDeviceNumber)
 {
+	memset(coin, 0, sizeof(coin));
 }
 
-unsigned short coin[2];
-int coin_pressed[2];
-/*	Current controls mapping:
+/*	MKGP controls mapping:
 	stickX	- steering
-	stickY	- gas / brake
+	triggerRight - gas
+	triggerLeft - brake
 	A		- Item button
 	B		- Cancel button
 	Z		- Coin
-	X		- Test mode (not working)
-	Y		- Service
+	Y		- Test mode (not working)
+	X		- Service
+
+	VS2002 controls mapping:
+	D-pad	- movement
+	B		- Short pass
+	A		- Long pass
+	X		- Shoot
+	Z		- Coin
+	Y		- Test mode
+	triggerRight - Service
 */
 int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 {
@@ -163,9 +173,9 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							int d10_0 = 0xdf;
 
 							/* baseboard test/service switches ???, disabled for a while
-							if (PadStatus.button & PAD_BUTTON_X)	// Test
+							if (PadStatus.button & PAD_BUTTON_Y)	// Test
 								d10_0 &= ~0x80;
-							if (PadStatus.button & PAD_BUTTON_Y)	// Service
+							if (PadStatus.button & PAD_BUTTON_X)	// Service
 								d10_0 &= ~0x40;
 							*/
 
@@ -282,7 +292,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 								{
 								case 0x10: // get ID
 									msg.addData(1);
-									msg.addData("namco ltd.;FCA-1;Ver1.01;JPN,Multipurpose + Rotary Encoder");
+									if (!memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), "RELSAB", 6))
+										msg.addData("namco ltd.;FCA-1;Ver1.01;JPN,Multipurpose + Rotary Encoder");
+									else
+										msg.addData("SEGA ENTERPRISES,LTD.;I/O BD JVS;837-13551;Ver1.00");
 									msg.addData(0);
 									break;
 								case 0x11: // cmd revision
@@ -299,11 +312,19 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									break;
 								case 0x14: // get features
 									msg.addData(1);
-									msg.addData((void *)"\x01\x01\x13\x00", 4);  // 1 player, 19 bit
-									msg.addData((void *)"\x02\x02\x00\x00", 4);  // 2 coin slots
-									msg.addData((void *)"\x03\x08\x00\x00", 4);  // 8 analogs
-									msg.addData((void *)"\x12\x0c\x00\x00", 4);  // 12bit out
-									msg.addData((void *)"\x00\x00\x00\x00", 4); 
+									if (!memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), "RELSAB", 6)) {
+										msg.addData((void *)"\x01\x01\x13\x00", 4);  // 1 player, 19 bit
+										msg.addData((void *)"\x02\x02\x00\x00", 4);  // 2 coin slots
+										msg.addData((void *)"\x03\x08\x00\x00", 4);  // 8 analogs
+										msg.addData((void *)"\x12\x0c\x00\x00", 4);  // 12bit out
+										msg.addData((void *)"\x00\x00\x00\x00", 4);
+									} else {
+										msg.addData((void *)"\x01\x02\x0d\x00", 4);  // 2 players, 13 bit
+										msg.addData((void *)"\x02\x02\x00\x00", 4);  // 2 coin slots
+										msg.addData((void *)"\x03\x08\x00\x00", 4);  // 8 analogs
+										msg.addData((void *)"\x12\x06\x00\x00", 4);  // 6bit out
+										msg.addData((void *)"\x00\x00\x00\x00", 4);
+									}
 									break;
 								case 0x15: // baseboard id
 									while (*jvs_io++) {};
@@ -318,7 +339,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 
 										SPADStatus PadStatus;
 										Pad::GetStatus(0, &PadStatus);
-											if (PadStatus.button & PAD_BUTTON_X)	// Test button
+											if (PadStatus.button & PAD_BUTTON_Y)	// Test button
 												msg.addData(0x80);
 											else
 												msg.addData(0x00);
@@ -327,27 +348,48 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 											SPADStatus PadStatus;
 											Pad::GetStatus(i, &PadStatus);
 											unsigned char player_data[3] = {0,0,0};
-											if (PadStatus.button & PAD_BUTTON_START)	// Not used in MKGP
-												player_data[0] |= 0x80;
-											if (PadStatus.button & PAD_BUTTON_Y)	// Service button
-												player_data[0] |= 0x40;
-											// Not used in MKGP
-											if (PadStatus.button & PAD_BUTTON_UP)
-												player_data[0] |= 0x20;
-											if (PadStatus.button & PAD_BUTTON_DOWN)
-												player_data[0] |= 0x10;
-											if (PadStatus.button & PAD_BUTTON_LEFT)
-												player_data[0] |= 0x08;
-											if (PadStatus.button & PAD_BUTTON_RIGHT)
-												player_data[0] |= 0x04;
+											if (!memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), "RELSAB", 6)) {
+												if (PadStatus.button & PAD_BUTTON_START)	// Not used in MKGP
+													player_data[0] |= 0x80;
+												if (PadStatus.button & PAD_BUTTON_X)	// Service button
+													player_data[0] |= 0x40;
+												// Not used in MKGP
+												if (PadStatus.button & PAD_BUTTON_UP)
+													player_data[0] |= 0x20;
+												if (PadStatus.button & PAD_BUTTON_DOWN)
+													player_data[0] |= 0x10;
+												if (PadStatus.button & PAD_BUTTON_LEFT)
+													player_data[0] |= 0x08;
+												if (PadStatus.button & PAD_BUTTON_RIGHT)
+													player_data[0] |= 0x04;
 
-											if (PadStatus.button & PAD_BUTTON_A)	// Item button
-												player_data[1] |= 0x20;
-											if (PadStatus.button & PAD_BUTTON_B)	// Cancel button
-												player_data[1] |= 0x10;
+												if (PadStatus.button & PAD_BUTTON_A)	// Item button
+													player_data[1] |= 0x20;
+												if (PadStatus.button & PAD_BUTTON_B)	// Cancel button
+													player_data[1] |= 0x10;
+											} else {
+												if (PadStatus.button & PAD_BUTTON_START)
+													player_data[0] |= 0x80;
+												if (PadStatus.button & PAD_TRIGGER_R)	// Service button
+													player_data[0] |= 0x40;
+												if (PadStatus.button & PAD_BUTTON_UP)
+													player_data[0] |= 0x20;
+												if (PadStatus.button & PAD_BUTTON_DOWN)
+													player_data[0] |= 0x10;
+												if (PadStatus.button & PAD_BUTTON_LEFT)
+													player_data[0] |= 0x08;
+												if (PadStatus.button & PAD_BUTTON_RIGHT)
+													player_data[0] |= 0x04;
+												if (PadStatus.button & PAD_BUTTON_A)
+													player_data[0] |= 0x02;
+												if (PadStatus.button & PAD_BUTTON_X)
+													player_data[0] |= 0x01;
 
+												if (PadStatus.button & PAD_BUTTON_B)
+													player_data[1] |= 0x80;
+											}
 											for (j=0; j<bytes_per_player; ++j)
-												msg.addData(player_data[j&1]);
+												msg.addData(player_data[j]);
 										}
 										break;
 									}
@@ -435,6 +477,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									node = *jvs_io++;
 									ERROR_LOG(AMBASEBOARDDEBUG, "JVS SET ADDRESS, node=%d", node);
 									msg.addData(node == 1);
+									d10_1 &= ~1;
 									break;
 								default:
 									break;
