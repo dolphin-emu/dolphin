@@ -17,7 +17,6 @@
 
 #include "StringUtil.h"
 #include "../Memmap.h"
-//#pragma optimize("",off)
 // GROSS CODE ALERT: headers need to be included in the following order
 #include "TAP_Win32.h"
 #include "../EXI_Device.h"
@@ -314,7 +313,7 @@ bool CEXIETHERNET::RecvInit()
 	ZeroMemory(&mReadOverlapped, sizeof(mReadOverlapped));
 
 	RegisterWaitForSingleObject(&mHReadWait, mHRecvEvent, ReadWaitCallback,
-		this, INFINITE, WT_EXECUTEDEFAULT);//WT_EXECUTEINWAITTHREAD
+		this, INFINITE, WT_EXECUTEDEFAULT);
 
 	mReadOverlapped.hEvent = mHRecvEvent;
 
@@ -340,7 +339,7 @@ bool CEXIETHERNET::RecvStart()
 
 	if (res)
 	{
-		ERROR_LOG(SP1, "RECV COMPLETED IMMEDIATELY");
+		// Completed immediately
 		RecvHandlePacket();
 	}
 
@@ -352,7 +351,5 @@ void CEXIETHERNET::RecvStop()
 	if (!IsActivated())
 		return;
 
-	CancelIo(mHAdapter);
+	UnregisterWaitEx(mHReadWait, INVALID_HANDLE_VALUE);
 }
-
-//#pragma optimize("",on)

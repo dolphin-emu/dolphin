@@ -478,12 +478,11 @@ inline bool CEXIETHERNET::RecvMACFilter()
 	}
 }
 
-void CEXIETHERNET::inc_rwp()
+inline void CEXIETHERNET::inc_rwp()
 {
 	u16 *rwp = (u16 *)&mBbaMem[BBA_RWP];
 
 	if (*rwp + 1 == page_ptr(BBA_RHBP))
-		// TODO check if BP is used as well
 		*rwp = page_ptr(BBA_BP);
 	else
 		(*rwp)++;
@@ -497,6 +496,8 @@ bool CEXIETHERNET::RecvHandlePacket()
 	u8 *end_ptr;
 	u8 *read_ptr;
 	Descriptor *descriptor;
+	u32 status = 0;
+	u16 rwp_initial = page_ptr(BBA_RWP);
 
 	if (!RecvMACFilter())
 		goto wait_for_next;
@@ -530,12 +531,24 @@ bool CEXIETHERNET::RecvHandlePacket()
 		}
 
 		if (write_ptr == end_ptr)
-			// TODO check if BP is used as well
 			write_ptr = ptr_from_page_ptr(BBA_BP);
 
 		if (write_ptr == read_ptr)
 		{
-			ERROR_LOG(SP1, "recv buffer full error - not implemented");
+			/*
+			halt copy
+			if (cur_packet_size >= PAGE_SIZE)
+				desc.status |= FO | BF
+			if (RBFIM)
+				raise RBFI
+			if (AUTORCVR)
+				discard bad packet
+			else
+				inc MPC instad of recving packets
+			*/
+			status |= DESC_FO | DESC_BF;
+			mBbaMem[BBA_IR] |= mBbaMem[BBA_IMR] & INT_RBF;
+			break;
 		}
 	}
 
@@ -551,10 +564,25 @@ bool CEXIETHERNET::RecvHandlePacket()
 		page_ptr(BBA_RHBP));
 #endif
 
-	// Update descriptor
-	descriptor->set(*(u16 *)&mBbaMem[BBA_RWP], 4 + mRecvBufferLength, 0);
+	// Is the current frame multicast?
+	if (mRecvBuffer[0] & 0x01)
+		status |= DESC_MF;
 
-	mBbaMem[BBA_LRPS] = descriptor->get_status();
+	if (status & DESC_BF)
+	{
+		if (mBbaMem[BBA_MISC2] & MISC2_AUTORCVR)
+		{
+			*(u16 *)&mBbaMem[BBA_RWP] = rwp_initial;
+		}
+		else
+		{
+			ERROR_LOG(SP1, "RBF while AUTORCVR == 0!");
+		}
+	}
+
+	descriptor->set(*(u16 *)&mBbaMem[BBA_RWP], 4 + mRecvBufferLength, status);
+
+	mBbaMem[BBA_LRPS] = status;
 
 	// Raise interrupt
 	if (mBbaMem[BBA_IMR] & INT_R)

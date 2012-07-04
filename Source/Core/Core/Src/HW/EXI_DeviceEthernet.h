@@ -82,14 +82,26 @@ enum NWAYS
 
 enum MISC1
 {
-	MISC1_BURSTDMA = 0x01,
-	MISC1_DISLDMA = 0x02,
-	MISC1_TPF = 0x04,
-	MISC1_TPH = 0x08,
-	MISC1_TXF = 0x10,
-	MISC1_TXH = 0x20,
-	MISC1_TXFIFORST = 0x40,
-	MISC1_RXFIFORST = 0x80
+	MISC1_BURSTDMA	= 0x01,
+	MISC1_DISLDMA	= 0x02,
+	MISC1_TPF		= 0x04,
+	MISC1_TPH		= 0x08,
+	MISC1_TXF		= 0x10,
+	MISC1_TXH		= 0x20,
+	MISC1_TXFIFORST	= 0x40,
+	MISC1_RXFIFORST	= 0x80
+};
+
+enum MISC2
+{
+	MISC2_HBRLEN0	= 0x01,
+	MISC2_HBRLEN1	= 0x02,
+	MISC2_RUNTSIZE	= 0x04,
+	MISC2_DREQBCTRL	= 0x08,
+	MISC2_RINTSEL	= 0x10,
+	MISC2_ITPSEL	= 0x20,
+	MISC2_A11A8EN	= 0x40,
+	MISC2_AUTORCVR	= 0x80
 };
 
 enum
@@ -148,8 +160,9 @@ enum
 
 enum
 {
-	BBA_RECV_SIZE	= 0x800,
-	BBA_MEM_SIZE	= 0x1000
+	BBA_NUM_PAGES	= 0x10,
+	BBA_PAGE_SIZE	= 0x100,
+	BBA_MEM_SIZE	= BBA_NUM_PAGES * BBA_PAGE_SIZE
 };
 
 enum { EXI_DEVTYPE_ETHER = 0x04020200 };
@@ -177,6 +190,8 @@ enum RecvStatus
 	DESC_RF		= 0x40,
 	DESC_RERR	= 0x80
 };
+
+#define BBA_RECV_SIZE 0x800
 
 class CEXIETHERNET : public IEXIDevice
 {
@@ -261,17 +276,12 @@ public:
 	{
 		u32 word;
 
-		void set(u32 const next_page, u32 const packet_length, u32 const status)
+		inline void set(u32 const next_page, u32 const packet_length, u32 const status)
 		{
 			word = 0;
 			word |= (status & 0xff) << 24;
 			word |= (packet_length & 0xfff) << 12;
 			word |= next_page & 0xfff;
-		}
-
-		u8 get_status() const
-		{
-			return (word >> 24) & 0xff;
 		}
 	};
 
