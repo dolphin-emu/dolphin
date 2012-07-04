@@ -25,6 +25,7 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #include <sys/ioctl.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #endif
 
@@ -78,8 +79,6 @@ void CEXIETHERNET::Deactivate()
 	close(fd);
 	fd = -1;
 
-	// TODO: find a way to interrupt the read(2) in the readThread. Kill the
-	// thread maybe?
 	readEnabled = false;
 	if (readThread.joinable())
 		readThread.join();
@@ -127,6 +126,16 @@ void ReadThreadHandler(CEXIETHERNET* self)
 		if (self->fd < 0)
 			return;
 
+		fd_set rfds;
+		FD_ZERO(&rfds);
+		FD_SET(self->fd, &rfds);
+
+		struct timeval timeout;
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 50000;
+		if (select(self->fd + 1, &rfds, NULL, NULL, &timeout) <= 0)
+			continue;
+
 		int readBytes = read(self->fd, self->mRecvBuffer, BBA_RECV_SIZE);
 		if (readBytes < 0)
 		{
@@ -134,9 +143,6 @@ void ReadThreadHandler(CEXIETHERNET* self)
 		}
 		else if (self->readEnabled)
 		{
-			// HACK: This usleep is there to avoid BBA buffer overflow. Has to
-			// be replaced by a better throttling support at some point.
-			usleep(1000);
 			WARN_LOG(SP1, "Read data: %s", ArrayToString(self->mRecvBuffer, readBytes, 0x10).c_str());
 			self->mRecvBufferLength = readBytes;
 			self->RecvHandlePacket();
