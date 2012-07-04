@@ -192,28 +192,26 @@ bool CEXIETHERNET::Activate()
 	if (IsActivated())
 		return true;
 
-	INFO_LOG(SP1, "Activating BBA...");
-
 	DWORD len;
 	std::vector<std::string> device_guids;
 
 	if (!Win32TAPHelper::GetGUIDs(device_guids))
 	{
-		INFO_LOG(SP1, "Failed to find a TAP GUID");
+		ERROR_LOG(SP1, "Failed to find a TAP GUID");
 		return false;
 	}
 
-	for (int i = 0; i < device_guids.size(); i++)
+	for (size_t i = 0; i < device_guids.size(); i++)
 	{
 		if (Win32TAPHelper::OpenTAP(mHAdapter, device_guids.at(i)))
 		{
-			ERROR_LOG(SP1, "OPENED %s", device_guids.at(i).c_str());
+			INFO_LOG(SP1, "OPENED %s", device_guids.at(i).c_str());
 			i = device_guids.size();
 		}
 	}
 	if (mHAdapter == INVALID_HANDLE_VALUE)
 	{
-		INFO_LOG(SP1, "Failed to open any TAP");
+		ERROR_LOG(SP1, "Failed to open any TAP");
 		return false;
 	}
 
@@ -240,14 +238,11 @@ bool CEXIETHERNET::Activate()
 	if (!DeviceIoControl(mHAdapter, TAP_IOCTL_SET_MEDIA_STATUS,
 		&status, sizeof(status), &status, sizeof(status), &len, NULL))
 	{
-		INFO_LOG(SP1, "WARNING: The TAP-Win32 driver rejected a"
+		ERROR_LOG(SP1, "WARNING: The TAP-Win32 driver rejected a"
 			"TAP_IOCTL_SET_MEDIA_STATUS DeviceIoControl call.");
 		return false;
 	}
 
-	//RecvInit();
-
-	INFO_LOG(SP1, "Success!");
 	return true;
 }
 
@@ -270,50 +265,27 @@ bool CEXIETHERNET::IsActivated()
 	return mHAdapter != INVALID_HANDLE_VALUE;
 }
 
-// TODO check if still needed
-// Required for lwip...not sure why
-void fixup_ip_checksum(u16 *dataptr, u16 len)
-{
-	u32 acc = 0;
-	u16 *data = dataptr;
-	u16 *chksum = &dataptr[5];
-
-	*chksum = 0;
-
-	while (len > 1) {
-		u16 s = *data++;
-		acc += Common::swap16(s);
-		len -= 2;
-	}
-	acc = (acc >> 16) + (acc & 0xffff);
-	acc += (acc >> 16);
-	*chksum = Common::swap16(~acc);
-}
-
 bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 {
-	//fixup_ip_checksum((u16*)frame +	7, 20);
-
-	DEBUG_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
+	DEBUG_LOG(SP1, "SendFrame %x\n%s",
+		size, ArrayToString(frame, size, 0x10).c_str());
 
 	DWORD numBytesWrit;
 	OVERLAPPED overlap;
 	ZeroMemory(&overlap, sizeof(overlap));
-	//overlap.hEvent = mHRecvEvent;
 
 	if (!WriteFile(mHAdapter, frame, size, &numBytesWrit, &overlap))
 	{
-		// Fail Boat
 		DWORD res = GetLastError();
-		WARN_LOG(SP1, "Failed to send packet with error 0x%X", res);
+		ERROR_LOG(SP1, "Failed to send packet with error 0x%X", res);
 	}
 
 	if (numBytesWrit != size)
 	{
-		WARN_LOG(SP1, "BBA SendFrame %i only got %i bytes sent!", size, numBytesWrit);
-		return false;
+		ERROR_LOG(SP1, "BBA SendFrame %i only got %i bytes sent!", size, numBytesWrit);
 	}
 
+	// Always report the packet as being sent successfully, even though it might be a lie
 	SendComplete();
 	
 	return true;
@@ -324,7 +296,7 @@ VOID CALLBACK CEXIETHERNET::ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFir
 	CEXIETHERNET* self = (CEXIETHERNET*)lpParameter;
 	
 	GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped,
-		&self->mRecvBufferLength, false);
+		(LPDWORD)&self->mRecvBufferLength, false);
 
 	self->RecvHandlePacket();
 }
@@ -335,7 +307,7 @@ bool CEXIETHERNET::RecvInit()
 
 	if ((mHRecvEvent = CreateEvent(NULL, false, false, NULL)) == NULL)
 	{
-		INFO_LOG(SP1, "Failed to create recv event:%x", GetLastError());
+		ERROR_LOG(SP1, "Failed to create recv event:%x", GetLastError());
 		return false;
 	}
 
@@ -358,7 +330,7 @@ bool CEXIETHERNET::RecvStart()
 		RecvInit();
 
 	DWORD res = ReadFile(mHAdapter, mRecvBuffer, BBA_RECV_SIZE,
-		&mRecvBufferLength, &mReadOverlapped);
+		(LPDWORD)&mRecvBufferLength, &mReadOverlapped);
 
 	if (!res && (GetLastError() != ERROR_IO_PENDING))
 	{

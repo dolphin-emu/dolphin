@@ -16,16 +16,21 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Memmap.h"
-//#pragma optimize("",off)
 #include "EXI_Device.h"
 #include "EXI_DeviceEthernet.h"
 #include "StringUtil.h"
+
+// XXX: The BBA stores multi-byte elements as little endian.
+// Multiple parts of this implementation depend on dolphin
+// being compiled for a little endian host.
 
 CEXIETHERNET::CEXIETHERNET(const std::string& mac_addr)
 {
 	tx_fifo = new u8[1518];
 	mBbaMem = new u8[BBA_MEM_SIZE];
+
 	mRecvBuffer = new u8 [BBA_RECV_SIZE];
+	mRecvBufferLength = 0;
 
 	MXHardReset();
 	
@@ -34,7 +39,7 @@ CEXIETHERNET::CEXIETHERNET(const std::string& mac_addr)
 	
 	int x = 0;
 	u8 new_addr[6] = { 0 };
-	for (int i = 0; i < (int)mac_addr.size() && x < 12; i++)
+	for (size_t i = 0; i < mac_addr.size() && x < 12; i++)
 	{
 		char c = mac_addr.at(i);
 		if (c >= '0' && c <= '9') {
@@ -61,8 +66,6 @@ CEXIETHERNET::CEXIETHERNET(const std::string& mac_addr)
 #elif defined(__linux__)
 	fd = -1;
 #endif
-
-	mRecvBufferLength = 0;
 }
 
 CEXIETHERNET::~CEXIETHERNET()
@@ -76,8 +79,6 @@ CEXIETHERNET::~CEXIETHERNET()
 
 void CEXIETHERNET::SetCS(int cs)
 {
-	DEBUG_LOG(SP1, "chip select: %s", cs ? "true" : "false");
-
 	if (cs)
 	{
 		// Invalidate the previous transfer
@@ -109,14 +110,17 @@ void CEXIETHERNET::ImmWrite(u32 data,  u32 size)
 			transfer.address = (data >> 8) & 0xffff;
 		transfer.direction = IsWriteCommand(data) ? transfer.WRITE : transfer.READ;
 
-		WARN_LOG(SP1, "%s %s %s %x",
+		DEBUG_LOG(SP1, "%s %s %s %x",
 			IsMXCommand(data) ? "mx " : "exi",
 			IsWriteCommand(data) ? "write" : "read ",
 			GetRegisterName(),
 			transfer.address);
 
 		if (transfer.address == BBA_IOB && transfer.region == transfer.MX)
+		{
+			ERROR_LOG(SP1, "Usage of BBA_IOB indicates that the rx packet descriptor has been corrupted, killing dolphin...");
 			exit(0);
+		}
 
 		// transfer has been setup
 		return;
@@ -124,7 +128,7 @@ void CEXIETHERNET::ImmWrite(u32 data,  u32 size)
 
 	// Reach here if we're actually writing data to the EXI or MX region.
 
-	WARN_LOG(SP1, "%s write %0*x",
+	DEBUG_LOG(SP1, "%s write %0*x",
 		transfer.region == transfer.MX ? "mx " : "exi", size * 2, data);
 
 	if (transfer.region == transfer.EXI)
@@ -178,7 +182,7 @@ u32 CEXIETHERNET::ImmRead(u32 size)
 			ret |= mBbaMem[transfer.address++] << (i * 8);
 	}
 
-	WARN_LOG(SP1, "imm r%i: %0*x", size, size * 2, ret);
+	DEBUG_LOG(SP1, "imm r%i: %0*x", size, size * 2, ret);
 
 	ret <<= (4 - size) * 8;
 
@@ -187,7 +191,7 @@ u32 CEXIETHERNET::ImmRead(u32 size)
 
 void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
 {
-	WARN_LOG(SP1, "dma w: %08x %x", addr, size);
+	DEBUG_LOG(SP1, "dma w: %08x %x", addr, size);
 
 	if (transfer.region == transfer.MX &&
 		transfer.direction == transfer.WRITE &&
@@ -205,7 +209,7 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
 
 void CEXIETHERNET::DMARead(u32 addr, u32 size)
 {
-	ERROR_LOG(SP1, "dma r: %08x %x", addr, size);
+	DEBUG_LOG(SP1, "dma r: %08x %x", addr, size);
 	
 	memcpy(Memory::GetPointer(addr), &mBbaMem[transfer.address], size);
 
@@ -216,6 +220,7 @@ void CEXIETHERNET::DoState(PointerWrap &p)
 {
 	p.Do(mBbaMem);
 	// TODO ... the rest...
+	ERROR_LOG(SP1, "CEXIETHERNET::DoState not implemented!");
 }
 
 bool CEXIETHERNET::IsMXCommand(u32 const data)
@@ -236,16 +241,16 @@ char const * const CEXIETHERNET::GetRegisterName() const
 	{
 		switch (transfer.address)
 		{
-			STR_RETURN(EXI_ID)
-				STR_RETURN(REVISION_ID)
-				STR_RETURN(INTERRUPT)
-				STR_RETURN(INTERRUPT_MASK)
-				STR_RETURN(DEVICE_ID)
-				STR_RETURN(ACSTART)
-				STR_RETURN(HASH_READ)
-				STR_RETURN(HASH_WRITE)
-				STR_RETURN(HASH_STATUS)
-				STR_RETURN(RESET)
+		STR_RETURN(EXI_ID)
+		STR_RETURN(REVISION_ID)
+		STR_RETURN(INTERRUPT)
+		STR_RETURN(INTERRUPT_MASK)
+		STR_RETURN(DEVICE_ID)
+		STR_RETURN(ACSTART)
+		STR_RETURN(HASH_READ)
+		STR_RETURN(HASH_WRITE)
+		STR_RETURN(HASH_STATUS)
+		STR_RETURN(RESET)
 		default: return "unknown";
 		}
 	}
@@ -253,45 +258,45 @@ char const * const CEXIETHERNET::GetRegisterName() const
 	{
 		switch (transfer.address)
 		{
-			STR_RETURN(BBA_NCRA)
-				STR_RETURN(BBA_NCRB)
-				STR_RETURN(BBA_LTPS)
-				STR_RETURN(BBA_LRPS)
-				STR_RETURN(BBA_IMR)
-				STR_RETURN(BBA_IR)
-				STR_RETURN(BBA_BP)
-				STR_RETURN(BBA_TLBP)
-				STR_RETURN(BBA_TWP)
-				STR_RETURN(BBA_IOB)
-				STR_RETURN(BBA_TRP)
-				STR_RETURN(BBA_RWP)
-				STR_RETURN(BBA_RRP)
-				STR_RETURN(BBA_RHBP)
-				STR_RETURN(BBA_RXINTT)
-				STR_RETURN(BBA_NAFR_PAR0)
-				STR_RETURN(BBA_NAFR_PAR1)
-				STR_RETURN(BBA_NAFR_PAR2)
-				STR_RETURN(BBA_NAFR_PAR3)
-				STR_RETURN(BBA_NAFR_PAR4)
-				STR_RETURN(BBA_NAFR_PAR5)
-				STR_RETURN(BBA_NAFR_MAR0)
-				STR_RETURN(BBA_NAFR_MAR1)
-				STR_RETURN(BBA_NAFR_MAR2)
-				STR_RETURN(BBA_NAFR_MAR3)
-				STR_RETURN(BBA_NAFR_MAR4)
-				STR_RETURN(BBA_NAFR_MAR5)
-				STR_RETURN(BBA_NAFR_MAR6)
-				STR_RETURN(BBA_NAFR_MAR7)
-				STR_RETURN(BBA_NWAYC)
-				STR_RETURN(BBA_NWAYS)
-				STR_RETURN(BBA_GCA)
-				STR_RETURN(BBA_MISC)
-				STR_RETURN(BBA_TXFIFOCNT)
-				STR_RETURN(BBA_WRTXFIFOD)
-				STR_RETURN(BBA_MISC2)
-				STR_RETURN(BBA_SI_ACTRL)
-				STR_RETURN(BBA_SI_STATUS)
-				STR_RETURN(BBA_SI_ACTRL2)
+		STR_RETURN(BBA_NCRA)
+		STR_RETURN(BBA_NCRB)
+		STR_RETURN(BBA_LTPS)
+		STR_RETURN(BBA_LRPS)
+		STR_RETURN(BBA_IMR)
+		STR_RETURN(BBA_IR)
+		STR_RETURN(BBA_BP)
+		STR_RETURN(BBA_TLBP)
+		STR_RETURN(BBA_TWP)
+		STR_RETURN(BBA_IOB)
+		STR_RETURN(BBA_TRP)
+		STR_RETURN(BBA_RWP)
+		STR_RETURN(BBA_RRP)
+		STR_RETURN(BBA_RHBP)
+		STR_RETURN(BBA_RXINTT)
+		STR_RETURN(BBA_NAFR_PAR0)
+		STR_RETURN(BBA_NAFR_PAR1)
+		STR_RETURN(BBA_NAFR_PAR2)
+		STR_RETURN(BBA_NAFR_PAR3)
+		STR_RETURN(BBA_NAFR_PAR4)
+		STR_RETURN(BBA_NAFR_PAR5)
+		STR_RETURN(BBA_NAFR_MAR0)
+		STR_RETURN(BBA_NAFR_MAR1)
+		STR_RETURN(BBA_NAFR_MAR2)
+		STR_RETURN(BBA_NAFR_MAR3)
+		STR_RETURN(BBA_NAFR_MAR4)
+		STR_RETURN(BBA_NAFR_MAR5)
+		STR_RETURN(BBA_NAFR_MAR6)
+		STR_RETURN(BBA_NAFR_MAR7)
+		STR_RETURN(BBA_NWAYC)
+		STR_RETURN(BBA_NWAYS)
+		STR_RETURN(BBA_GCA)
+		STR_RETURN(BBA_MISC)
+		STR_RETURN(BBA_TXFIFOCNT)
+		STR_RETURN(BBA_WRTXFIFOD)
+		STR_RETURN(BBA_MISC2)
+		STR_RETURN(BBA_SI_ACTRL)
+		STR_RETURN(BBA_SI_STATUS)
+		STR_RETURN(BBA_SI_ACTRL2)
 		default:
 			if (transfer.address >= 0x100 &&
 				transfer.address <= 0xfff)
@@ -320,14 +325,14 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 	case BBA_NCRA:
 		if (data & NCRA_RESET)
 		{
-			WARN_LOG(SP1, "software reset");
+			DEBUG_LOG(SP1, "software reset");
 			//MXSoftReset();
 			Activate();
 		}
 
 		if ((mBbaMem[BBA_NCRA] & NCRA_SR) ^ (data & NCRA_SR))
 		{
-			WARN_LOG(SP1, "%s rx", (data & NCRA_SR) ? "start" : "stop");
+			DEBUG_LOG(SP1, "%s rx", (data & NCRA_SR) ? "start" : "stop");
 
 			if (data & NCRA_SR)
 				RecvStart();
@@ -338,7 +343,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 		// Only start transfer if there isn't one currently running
 		if (!(mBbaMem[BBA_NCRA] & (NCRA_ST0 | NCRA_ST1)))
 		{
-			// TODO Might have to check TXDMA status as well?
+			// Technically transfer dma status is kept in TXDMA - not implemented
 
 			if (data & NCRA_ST0)
 			{
@@ -347,7 +352,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 			}
 			else if (data & NCRA_ST1)
 			{
-				WARN_LOG(SP1, "start tx - direct fifo");
+				DEBUG_LOG(SP1, "start tx - direct fifo");
 				SendFromDirectFIFO();
 				// Kind of a hack: send completes instantly, so we don't
 				// actually write the "send in status" bit to the register
@@ -371,12 +376,11 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 
 write_to_register:
 	default:
+		for (int i = size - 1; i >= 0; i--)
 		{
-			for (int i = size - 1; i >= 0; i--)
-			{
-				mBbaMem[transfer.address++] = (data >> (i * 8)) & 0xff;
-			}
+			mBbaMem[transfer.address++] = (data >> (i * 8)) & 0xff;
 		}
+		return;
 	}
 }
 
@@ -390,6 +394,9 @@ void CEXIETHERNET::DirectFIFOWrite(u8 *data, u32 size)
 	memcpy(tx_fifo + *tx_fifo_count, data, size);
 
 	*tx_fifo_count += size;
+	// TODO not sure this mask is correct.
+	// However, BBA_TXFIFOCNT should never get even close to this amount,
+	// so it shouldn't matter
 	*tx_fifo_count &= (1 << 12) - 1;
 }
 
@@ -418,7 +425,7 @@ void CEXIETHERNET::SendComplete()
 	mBbaMem[BBA_LTPS] = 0;
 }
 
-u8 CEXIETHERNET::HashIndex(u8 *dest_eth_addr)
+inline u8 CEXIETHERNET::HashIndex(u8 *dest_eth_addr)
 {
 	// Calculate crc
 	u32 crc = 0xffffffff;
@@ -440,7 +447,7 @@ u8 CEXIETHERNET::HashIndex(u8 *dest_eth_addr)
 	return crc >> 26;
 }
 
-bool CEXIETHERNET::RecvMACFilter()
+inline bool CEXIETHERNET::RecvMACFilter()
 {
 	static u8 const broadcast[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
@@ -471,19 +478,19 @@ bool CEXIETHERNET::RecvMACFilter()
 	}
 }
 
-#define PAGE_PTR(x) ((mBbaMem[x + 1] << 8) | mBbaMem[x])
-
 void CEXIETHERNET::inc_rwp()
 {
 	u16 *rwp = (u16 *)&mBbaMem[BBA_RWP];
 
-	if (*rwp + 1 == PAGE_PTR(BBA_RHBP))
+	if (*rwp + 1 == page_ptr(BBA_RHBP))
 		// TODO check if BP is used as well
-		*rwp = PAGE_PTR(BBA_BP);
+		*rwp = page_ptr(BBA_BP);
 	else
 		(*rwp)++;
 }
 
+// This function is on the critical path for recving data.
+// Be very careful about calling into the logger and other slow things
 bool CEXIETHERNET::RecvHandlePacket()
 {
 	u8 *write_ptr;
@@ -493,24 +500,23 @@ bool CEXIETHERNET::RecvHandlePacket()
 
 	if (!RecvMACFilter())
 		goto wait_for_next;
-
+	
+#ifdef BBA_TACK_PAGE_PTRS
 	WARN_LOG(SP1, "RecvHandlePacket %x\n%s", mRecvBufferLength,
 		ArrayToString(mRecvBuffer, mRecvBufferLength, 0x100).c_str());
 
-#define PTR_FROM_PAGE_PTR(x) &mBbaMem[PAGE_PTR(x) << 8]
+	WARN_LOG(SP1, "%x %x %x %x",
+		page_ptr(BBA_BP),
+		page_ptr(BBA_RRP),
+		page_ptr(BBA_RWP),
+		page_ptr(BBA_RHBP));
+#endif
 
-	ERROR_LOG(SP1, "%x %x %x %x",
-		PAGE_PTR(BBA_BP),
-		PAGE_PTR(BBA_RRP),
-		PAGE_PTR(BBA_RWP),
-		PAGE_PTR(BBA_RHBP));
-
-	write_ptr = PTR_FROM_PAGE_PTR(BBA_RWP);
-	end_ptr = PTR_FROM_PAGE_PTR(BBA_RHBP);
-	read_ptr = PTR_FROM_PAGE_PTR(BBA_RRP);
+	write_ptr	= ptr_from_page_ptr(BBA_RWP);
+	end_ptr		= ptr_from_page_ptr(BBA_RHBP);
+	read_ptr	= ptr_from_page_ptr(BBA_RRP);
 
 	descriptor = (Descriptor *)write_ptr;
-	//u8 *descriptor = write_ptr;
 	write_ptr += 4;
 
 	for (u32 i = 0, off = 4; i < mRecvBufferLength; ++i, ++off)
@@ -525,7 +531,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
 		if (write_ptr == end_ptr)
 			// TODO check if BP is used as well
-			write_ptr = PTR_FROM_PAGE_PTR(BBA_BP);
+			write_ptr = ptr_from_page_ptr(BBA_BP);
 
 		if (write_ptr == read_ptr)
 		{
@@ -537,11 +543,13 @@ bool CEXIETHERNET::RecvHandlePacket()
 	if ((mRecvBufferLength + 4) % 256)
 		inc_rwp();
 
-	ERROR_LOG(SP1, "%x %x %x %x",
-		PAGE_PTR(BBA_BP),
-		PAGE_PTR(BBA_RRP),
-		PAGE_PTR(BBA_RWP),
-		PAGE_PTR(BBA_RHBP));
+#ifdef BBA_TACK_PAGE_PTRS
+	WARN_LOG(SP1, "%x %x %x %x",
+		page_ptr(BBA_BP),
+		page_ptr(BBA_RRP),
+		page_ptr(BBA_RWP),
+		page_ptr(BBA_RHBP));
+#endif
 
 	// Update descriptor
 	descriptor->set(*(u16 *)&mBbaMem[BBA_RWP], 4 + mRecvBufferLength, 0);
@@ -557,15 +565,13 @@ bool CEXIETHERNET::RecvHandlePacket()
 	}
 	else
 	{
-		ERROR_LOG(SP1, "NOT raising recv interrupt");
+		// This occurs if software is still processing the last raised recv interrupt
+		WARN_LOG(SP1, "NOT raising recv interrupt");
 	}
 
 wait_for_next:
 	if (mBbaMem[BBA_NCRA] & NCRA_SR)
 		RecvStart();
 
-#undef PTR_FROM_PAGE_PTR
 	return true;
 }
-
-//#pragma optimize("",on)

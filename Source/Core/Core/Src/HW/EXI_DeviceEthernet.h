@@ -275,6 +275,16 @@ public:
 		}
 	};
 
+	inline u16 page_ptr(int const index) const
+	{
+		return ((u16)mBbaMem[index + 1] << 8) | mBbaMem[index];
+	}
+
+	inline u8 *ptr_from_page_ptr(int const index) const
+	{
+		return &mBbaMem[page_ptr(index) << 8];
+	}
+
 	bool IsMXCommand(u32 const data);
 	bool IsWriteCommand(u32 const data);
 	char const * const GetRegisterName() const;
@@ -302,6 +312,7 @@ public:
 	void RecvStop();
 
 	u8 *mRecvBuffer;
+	u32 mRecvBufferLength;
 
 #if defined(_WIN32)
 	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
@@ -314,7 +325,6 @@ public:
 	volatile bool readEnabled;
 #endif
 
-	u32 mRecvBufferLength;
 };
 
 #endif
