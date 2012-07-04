@@ -252,10 +252,7 @@ void CEXIETHERNET::Deactivate()
 
 	RecvStop();
 
-	CloseHandle(mHRecvEvent);
 	CloseHandle(mHAdapter);
-
-	mHRecvEvent = INVALID_HANDLE_VALUE;
 	mHAdapter = INVALID_HANDLE_VALUE;
 }
 
@@ -352,4 +349,7 @@ void CEXIETHERNET::RecvStop()
 		return;
 
 	UnregisterWaitEx(mHReadWait, INVALID_HANDLE_VALUE);
+	
+	CloseHandle(mHRecvEvent);
+	mHRecvEvent = INVALID_HANDLE_VALUE;
 }
