@@ -54,10 +54,12 @@ CEXIETHERNET::CEXIETHERNET(const std::string& mac_addr)
 	// hax .. fully established 100BASE-T link
 	mBbaMem[BBA_NWAYS] = NWAYS_LS100 | NWAYS_LPNWAY | NWAYS_100TXF | NWAYS_ANCLPT;
 
-#ifdef _WIN32
+#if defined(_WIN32)
 	mHAdapter = INVALID_HANDLE_VALUE;
 	mHRecvEvent = INVALID_HANDLE_VALUE;
 	mHReadWait = INVALID_HANDLE_VALUE;
+#elif defined(__linux__)
+	fd = -1;
 #endif
 
 	mRecvBufferLength = 0;
@@ -484,6 +486,11 @@ void CEXIETHERNET::inc_rwp()
 
 bool CEXIETHERNET::RecvHandlePacket()
 {
+	u8 *write_ptr;
+	u8 *end_ptr;
+	u8 *read_ptr;
+	Descriptor *descriptor;
+
 	if (!RecvMACFilter())
 		goto wait_for_next;
 
@@ -498,11 +505,11 @@ bool CEXIETHERNET::RecvHandlePacket()
 		PAGE_PTR(BBA_RWP),
 		PAGE_PTR(BBA_RHBP));
 
-	u8 *write_ptr = PTR_FROM_PAGE_PTR(BBA_RWP);
-	u8 *end_ptr = PTR_FROM_PAGE_PTR(BBA_RHBP);
-	u8 *read_ptr = PTR_FROM_PAGE_PTR(BBA_RRP);
+	write_ptr = PTR_FROM_PAGE_PTR(BBA_RWP);
+	end_ptr = PTR_FROM_PAGE_PTR(BBA_RHBP);
+	read_ptr = PTR_FROM_PAGE_PTR(BBA_RRP);
 
-	Descriptor *descriptor = (Descriptor *)write_ptr;
+	descriptor = (Descriptor *)write_ptr;
 	//u8 *descriptor = write_ptr;
 	write_ptr += 4;
 

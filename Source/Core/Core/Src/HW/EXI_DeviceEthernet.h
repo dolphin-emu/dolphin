@@ -303,15 +303,18 @@ public:
 
 	u8 *mRecvBuffer;
 
-#ifdef _WIN32
+#if defined(_WIN32)
 	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
 	DWORD mMtu;
 	OVERLAPPED mReadOverlapped;
-	DWORD mRecvBufferLength;
 	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
-#else
-	u32 mRecvBufferLength;
+#elif defined(__linux__)
+	int fd;
+	std::thread readThread;
+	volatile bool readEnabled;
 #endif
+
+	u32 mRecvBufferLength;
 };
 
 #endif
