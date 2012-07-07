@@ -19,12 +19,51 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceEthernet.h"
 #include "StringUtil.h"
+#include "../ConfigManager.h"
 
 // XXX: The BBA stores multi-byte elements as little endian.
 // Multiple parts of this implementation depend on dolphin
 // being compiled for a little endian host.
 
-CEXIETHERNET::CEXIETHERNET(const std::string& mac_addr)
+
+// TODO move this code into Common or something, for IOS to use
+
+enum MACConsumer
+{
+	BBA,
+	IOS
+};
+
+void GenerateMAC(MACConsumer type, u8 (&mac)[6])
+{
+	memset(mac, 0, 6);
+
+	u8 const oui_bba[] = { 0x00, 0x09, 0xbf };
+	u8 const oui_ios[] = { 0x00, 0x17, 0xab };
+
+	switch (type)
+	{
+	case BBA:
+		memcpy(mac, oui_bba, 3);
+		break;
+	case IOS:
+		memcpy(mac, oui_ios, 3);
+		break;
+	}
+
+	srand((unsigned int)time(nullptr));
+
+	u8 id[3] =
+	{
+		rand() & 0xff,
+		rand() & 0xff,
+		rand() & 0xff
+	};
+
+	memcpy(&mac[3], id, 3);
+}
+
+CEXIETHERNET::CEXIETHERNET()
 {
 	tx_fifo = new u8[1518];
 	mBbaMem = new u8[BBA_MEM_SIZE];
@@ -33,28 +72,46 @@ CEXIETHERNET::CEXIETHERNET(const std::string& mac_addr)
 	mRecvBufferLength = 0;
 
 	MXHardReset();
-	
-	const u8 mac_address_default[6] =
-		{ 0x00, 0x09, 0xbf, 0x01, 0x00, 0xc1 };
-	
-	int x = 0;
-	u8 new_addr[6] = { 0 };
-	for (size_t i = 0; i < mac_addr.size() && x < 12; i++)
+
+	// Parse MAC address from config, and generate a new one if it doesn't
+	// exist or can't be parsed.
+
+	auto &mac_addr_setting = SConfig::GetInstance().m_bba_mac;	
+	bool mac_addr_valid = false;
+	u8 mac_addr[6] = { 0 };
+
+	if (!mac_addr_setting.empty())
 	{
-		char c = mac_addr.at(i);
-		if (c >= '0' && c <= '9') {
-			new_addr[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4); x++;
-		} else if (c >= 'A' && c <= 'F') {
-			new_addr[x / 2] |= (c - 'A' + 10) << ((x & 1) ? 0 : 4); x++;
-		} else if (c >= 'a' && c <= 'f') {
-			new_addr[x / 2] |= (c - 'a' + 10) << ((x & 1) ? 0 : 4); x++;
+		int x = 0;
+
+		for (size_t i = 0; i < mac_addr_setting.size() && x < 12; i++)
+		{
+			char c = mac_addr_setting.at(i);
+			if (c >= '0' && c <= '9') {
+				mac_addr[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4); x++;
+			} else if (c >= 'A' && c <= 'F') {
+				mac_addr[x / 2] |= (c - 'A' + 10) << ((x & 1) ? 0 : 4); x++;
+			} else if (c >= 'a' && c <= 'f') {
+				mac_addr[x / 2] |= (c - 'a' + 10) << ((x & 1) ? 0 : 4); x++;
+			}
+		}
+	
+		if (x / 2 == 6)
+		{
+			memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_addr, 6);
+			mac_addr_valid = true;
 		}
 	}
-	
-	if (x / 2 == 6)
-		memcpy(&mBbaMem[BBA_NAFR_PAR0], new_addr, 6);
-	else
-		memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_address_default, 6);
+
+	if (!mac_addr_valid)
+	{
+		GenerateMAC(BBA, mac_addr);
+
+		mac_addr_setting = ArrayToString(mac_addr, 6, 10, false);
+		SConfig::GetInstance().SaveSettings();
+
+		memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_addr, 6);
+	}
 
 	// hax .. fully established 100BASE-T link
 	mBbaMem[BBA_NWAYS] = NWAYS_LS100 | NWAYS_LPNWAY | NWAYS_100TXF | NWAYS_ANCLPT;

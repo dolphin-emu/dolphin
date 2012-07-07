@@ -196,7 +196,7 @@ enum RecvStatus
 class CEXIETHERNET : public IEXIDevice
 {
 public:
-	CEXIETHERNET(const std::string& mac_addr);
+	CEXIETHERNET();
 	virtual ~CEXIETHERNET();
 	void SetCS(int cs);
 	bool IsPresent();
