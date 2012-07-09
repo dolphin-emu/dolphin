@@ -35,6 +35,7 @@ extern int frameCount;
 #define TEXTURE_CACHE_SIZE_WATERMARK 500
 #define TEXTURE_KILL_THRESHOLD 200
 #define EFB_TO_TEXTURE_SAMPLES 32
+#define PALETTED_TEXTURE_SAMPLES 512 // Required to fix the invisible landscape in Worms: Battle Island
 
 TextureCache *g_texture_cache;
 
@@ -524,7 +525,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 						// Paletted texture or loaded from tMem
 						else if (entry->tlut_addr != 0)
 						{
-							if (entry->hash == GetHash64(Memory::GetPointer(entry->addr), entry->size_in_bytes, 32))
+							if (entry->hash == GetHash64(Memory::GetPointer(entry->addr), entry->size_in_bytes, PALETTED_TEXTURE_SAMPLES))
 								goto return_entry;
 						}
 						else if (from_tmem)
@@ -597,7 +598,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
-	entry->hash = (tlutaddr != 0 && !g_ActiveConfig.bCopyEFBToTexture) ? GetHash64(Memory::GetPointer(address), texture_size, 32) : tex_hash;
+	entry->hash = (tlutaddr != 0 && !g_ActiveConfig.bCopyEFBToTexture) ? GetHash64(Memory::GetPointer(address), texture_size, PALETTED_TEXTURE_SAMPLES) : tex_hash;
 	entry->from_tmem = from_tmem;
 	entry->tlut_addr = tlutaddr;
 	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_EC_DYNAMIC;
