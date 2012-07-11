@@ -95,6 +95,36 @@ private:
 	private:
 		EffectIDState& m_effect;
 	};
+
+	class SineEffect : public Output
+	{
+	public:
+		std::string GetName() const;
+		SineEffect(EffectIDState& effect) : m_effect(effect) {}
+		void SetState(const ControlState state);
+	private:
+		EffectIDState& m_effect;
+	};
+
+	class SquareEffect : public Output
+	{
+	public:
+		std::string GetName() const;
+		SquareEffect(EffectIDState& effect) : m_effect(effect) {}
+		void SetState(const ControlState state);
+	private:
+		EffectIDState& m_effect;
+	};
+
+	class TriangleEffect : public Output
+	{
+	public:
+		std::string GetName() const;
+		TriangleEffect(EffectIDState& effect) : m_effect(effect) {}
+		void SetState(const ControlState state);
+	private:
+		EffectIDState& m_effect;
+	};
 #endif
 
 public:
