@@ -682,6 +682,7 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 		paths[F_WIISYSCONF_IDX]		= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
 		paths[F_RAMDUMP_IDX]		= paths[D_DUMP_IDX] + RAM_DUMP;
 		paths[F_ARAMDUMP_IDX]		= paths[D_DUMP_IDX] + ARAM_DUMP;
+		paths[F_FAKEVMEMDUMP_IDX]	= paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
 		paths[F_GCSRAM_IDX]			= paths[D_GCUSER_IDX] + GC_SRAM;
 	}
 

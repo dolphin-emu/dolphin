@@ -108,18 +108,18 @@ void GetPixelShaderId(PIXELSHADERUID *uid, PSGRENDER_MODE PSGRenderMode, u32 com
 	uid->values[0] |= bpmem.genMode.numtevstages; // 4
 	uid->values[0] |= bpmem.genMode.numtexgens << 4; // 4
 	uid->values[0] |= ((u32)PSGRenderMode) << 8; // 2
-	bool PixelLigthingEnabled = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	bool PixelLightingEnabled = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
 	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && (bpmem.zmode.testenable || bpmem.zmode.updateenable));
 	bool MustWriteToDepth = DepthTextureEnable  || g_ActiveConfig.bEnablePerPixelDepth;
-	bool FastZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && false;	
+	bool ZCompLocEnabled = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable;
 
 	uid->values[0] |= DepthTextureEnable << 10; // 1
 	uid->values[0] |= MustWriteToDepth << 11; // 1
-	uid->values[0] |= PixelLigthingEnabled << 12; // 1	
-	if (!PixelLigthingEnabled) uid->values[0] |= xfregs.numTexGen.numTexGens << 13; // 4
+	uid->values[0] |= PixelLightingEnabled << 12; // 1
+	if (!PixelLightingEnabled) uid->values[0] |= xfregs.numTexGen.numTexGens << 13; // 4
 	ALPHA_PRETEST_RESULT alphaPreTest = AlphaPreTest();
 	uid->values[0] |= ((u32)alphaPreTest) << 17; // 2
-	uid->values[0] |= FastZcomploc << 18; // 2
+	uid->values[0] |= ZCompLocEnabled << 18; // 2
 	if (((alphaPreTest == ALPHAPT_ALWAYSFAIL) || (alphaPreTest == ALPHAPT_ALWAYSPASS && PSGRenderMode == PSGRENDER_DSTALPHA_ALPHA_PASS)) && !DepthTextureEnable)
 	{
 		// Courtesy of PreAlphaTest, we're done already ;)
@@ -189,7 +189,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, PSGRENDER_MODE PSGRenderMode, u32 com
 	}
 
 	++ptr;
-	if (PixelLigthingEnabled)
+	if (PixelLightingEnabled)
 	{
 		ptr += GetLightingShaderId(ptr);
 		*ptr++ = components;
@@ -201,10 +201,10 @@ void GetPixelShaderId(PIXELSHADERUID *uid, PSGRENDER_MODE PSGRenderMode, u32 com
 void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, PSGRENDER_MODE PSGRenderMode, u32 components)
 {
 	memset(uid->values, 0, sizeof(uid->values));
-	bool PixelLigthingEnabled = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	bool PixelLightingEnabled = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
 	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && (bpmem.zmode.testenable || bpmem.zmode.updateenable));
 	bool MustWriteToDepth = DepthTextureEnable  || g_ActiveConfig.bEnablePerPixelDepth;
-	bool FastZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && false;	
+	bool ZCompLocEnabled = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable;
 	u32* ptr = uid->values;
 	*ptr++ = ((u32)PSGRenderMode); // 0
 	*ptr++ = bpmem.genMode.hex; // 1
@@ -212,12 +212,12 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, PSGRENDER_MODE PSGRenderMode,
 	*ptr++ = bpmem.zcontrol.hex; // 3
 	*ptr++ = bpmem.zmode.hex; // 4
 	*ptr++ = MustWriteToDepth; // 5
-	*ptr++ = PixelLigthingEnabled; // 6
+	*ptr++ = PixelLightingEnabled; // 6
 	*ptr++ = xfregs.numTexGen.hex; // 7
 	*ptr++ = DepthTextureEnable; // 8
-	*ptr++ = FastZcomploc; // 9
+	*ptr++ = ZCompLocEnabled; // 9
 
-	if (PixelLigthingEnabled)
+	if (PixelLightingEnabled)
 	{
 		*ptr++ = xfregs.color[0].hex;
 		*ptr++ = xfregs.alpha[0].hex;
@@ -493,7 +493,7 @@ static char text[16384];
 static bool PixelLightingEnabled;
 static bool DepthTextureEnable;
 static bool MustWriteToDepth;
-static bool FastZcomploc;
+static bool ZCompLocEnabled;
 
 static void BuildSwapModeTable()
 {
@@ -534,7 +534,7 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 	PixelLightingEnabled = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
 	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && (bpmem.zmode.testenable || bpmem.zmode.updateenable));
 	MustWriteToDepth = DepthTextureEnable  || g_ActiveConfig.bEnablePerPixelDepth;
-	FastZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable && false;
+	ZCompLocEnabled = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable;
 	// Declare samplers
 
 	if(ApiType != API_D3D11)
@@ -638,16 +638,16 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 	char* pmainstart = p;
 	if(PSGRenderMode == PSGRENDER_ZCOMPLOCK && !DepthTextureEnable)
 	{
-		//we are in zcomlock pass, so just make this an empty function		
+		// Within ZCompLoc pass, make this an empty function
 		WRITE(p, "ocol0 = 0;\n");
-		// only write to depth if shader Mode requeires it
+		// only write to depth if shader Mode requires it
 		if(MustWriteToDepth)
 			WRITE(p, "depth = zCoord;\n");		
 		WRITE(p, "}\n");
 			return text;		
 	}
 	ALPHA_PRETEST_RESULT Pretest = AlphaPreTest();
-	//Test if we can predict the alpha test result or if we are in depth only mode
+	// Test if we can predict the alpha test result or if we are in depth only mode
 	if((Pretest != ALPHAPT_UNDEFINED) && !DepthTextureEnable)
 	{
 		if (Pretest == ALPHAPT_ALWAYSFAIL)
@@ -660,13 +660,9 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 			// if we are in dual source blend mode initialize  the secondary color o the shader will fail
 			if(PSGRenderMode == PSGRENDER_DSTALPHA_DUAL_SOURCE_BLEND)
 					WRITE(p, "ocol1 = 0;\n");
-			//No discard if zcomlock is enebled and we are using fast zcomploc
-			if(!FastZcomploc)
-			{
-				WRITE(p, "discard;\n");
-				if(ApiType != API_D3D11)
-					WRITE(p, "return;\n");
-			}
+			WRITE(p, "discard;\n");
+			if(ApiType != API_D3D11)
+				WRITE(p, "return;\n");
 		}
 		else if (PSGRenderMode == PSGRENDER_DSTALPHA_ALPHA_PASS)
 		{
@@ -808,12 +804,9 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 	// Alpha test could fail here if depth texture is enabled
 	if (Pretest == ALPHAPT_ALWAYSFAIL)
 	{
-		if(!FastZcomploc)
-		{
-			WRITE(p, "discard;\n");
-			if(ApiType != API_D3D11)
-				WRITE(p, "return;\n");
-		}
+		WRITE(p, "discard;\n");
+		if(ApiType != API_D3D11)
+			WRITE(p, "return;\n");
 	}
 	else if(Pretest == ALPHAPT_UNDEFINED)
 	{
@@ -1154,6 +1147,21 @@ static const char *tevAlphaFuncsTable[] =
 	"(true)"									//ALPHACMP_ALWAYS 7
 };
 
+// THPS3 does not calculate ZCompLoc correctly if there is a margin
+// of error included.  This table removes that margin for ALPHACMP_LESS
+// and ALPHACMP_GREATER.  The other functions are to be confirmed.
+static const char *tevAlphaFuncsTableZCompLoc[] =
+{
+	"(false)",									//ALPHACMP_NEVER 0
+	"(prev.a <= %s)",							//ALPHACMP_LESS 1
+	"(abs( prev.a - %s ) < (0.5f/255.0f))",		//ALPHACMP_EQUAL 2
+	"(prev.a < %s + (0.25f/255.0f))",			//ALPHACMP_LEQUAL 3
+	"(prev.a >= %s)",							//ALPHACMP_GREATER 4
+	"(abs( prev.a - %s ) >= (0.5f/255.0f))",	//ALPHACMP_NEQUAL 5
+	"(prev.a > %s - (0.25f/255.0f))",			//ALPHACMP_GEQUAL 6
+	"(true)"									//ALPHACMP_ALWAYS 7
+};
+
 static const char *tevAlphaFunclogicTable[] =
 {
 	" && ", // and
@@ -1207,32 +1215,28 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,PSGRENDER_MODE PSGRenderMo
 	WRITE(p, "if(!( ");
 
 	int compindex = bpmem.alphaFunc.comp0 % 8;
-	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0]);//lookup the first component from the alpha function table
+
+	// Lookup the first component from the alpha function table
+	WRITE(p, ZCompLocEnabled ? tevAlphaFuncsTableZCompLoc[compindex] : tevAlphaFuncsTable[compindex], alphaRef[0]);
 
 	WRITE(p, "%s", tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);//lookup the logic op
 
 	compindex = bpmem.alphaFunc.comp1 % 8;
-	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
+
+	// Lookup the second component from the alpha function table
+	WRITE(p, ZCompLocEnabled ? tevAlphaFuncsTableZCompLoc[compindex] : tevAlphaFuncsTable[compindex], alphaRef[1]);
 	WRITE(p, ")) {\n");
 
-	// HAXX: zcomploc is a way to control whether depth test is done before
+	// ZCompLoc is a way to control whether depth test is done before
 	// or after texturing and alpha test. PC GPU does depth test before texturing ONLY if depth value is
 	// not updated during shader execution.
-	// We implement "depth test before texturing" by discarding the fragment
-	// when the alpha test fail. This is not a correct implementation because
-	// even if the depth test fails the fragment could be alpha blended.
-	// this implemnetation is a trick to  keep speed.
-	// the correct, but slow, way to implement a correct zComploc is :
-	// 1 - if zcomplock is enebled make a first pass, with color channel write disabled updating only 
+	// 1 - if ZCompLoc is enabled make a first pass, with color channel write disabled updating only
 	// depth channel.
 	// 2 - in the next pass disable depth chanel update, but proccess the color data normally
-	// this way is the only CORRECT way to emulate perfectly the zcomplock behaviour
-	if (!FastZcomploc)
-	{
-		WRITE(p, "discard;\n");
-		if (ApiType != API_D3D11)
-			WRITE(p, "return;\n");
-	}
+	// this way is the only CORRECT way to emulate perfectly the ZCompLoc behaviour
+	WRITE(p, "discard;\n");
+	if (ApiType != API_D3D11)
+		WRITE(p, "return;\n");
 
 	WRITE(p, "}\n");
 	

@@ -198,10 +198,6 @@ void XEventThread()
 							OSDChoice = 4;
 							g_Config.bDisableFog = !g_Config.bDisableFog;
 							break;
-						case XK_7:
-							OSDChoice = 5;
-							g_Config.bDisableLighting = !g_Config.bDisableLighting;
-							break;
 						default:
 							break;
 					}

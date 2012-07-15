@@ -425,26 +425,23 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		{
 #ifdef JIT_UNLIMITED_ICACHE
 			JitBlock &b = blocks[it2->second];
-			if (b.originalFirstOpcode != Memory::ReadUnchecked_U32(b.originalAddress))
+			if (b.originalAddress & JIT_ICACHE_VMEM_BIT)
 			{
-				if (b.originalAddress & JIT_ICACHE_VMEM_BIT)
-				{
-					u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
-					memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-				}
-				else if (b.originalAddress & JIT_ICACHE_EXRAM_BIT)
-				{
-					u32 cacheaddr = b.originalAddress & JIT_ICACHEEX_MASK;
-					memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-				}
-				else
-				{
-					u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
-					memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-				}
-#endif
-				DestroyBlock(it2->second, true);
+				u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
+				memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
 			}
+			else if (b.originalAddress & JIT_ICACHE_EXRAM_BIT)
+			{
+				u32 cacheaddr = b.originalAddress & JIT_ICACHEEX_MASK;
+				memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
+			}
+			else
+			{
+				u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
+				memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
+			}
+#endif
+			DestroyBlock(it2->second, true);
 			it2++;
 		}
 		if (it1 != it2)

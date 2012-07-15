@@ -35,6 +35,9 @@ ConsoleListener::ConsoleListener()
 {
 #ifdef _WIN32
 	hConsole = NULL;
+	bUseColor = true;
+#else
+	bUseColor = isatty(fileno(stdout));
 #endif
 }
 
@@ -299,7 +302,28 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 	SetConsoleTextAttribute(hConsole, Color);
 	WriteConsole(hConsole, Text, (DWORD)strlen(Text), &cCharsWritten, NULL);
 #else
-	fprintf(stderr, "%s", Text);
+	char ColorAttr[16] = "";
+	char ResetAttr[16] = "";
+
+	if (bUseColor)
+	{
+		strcpy(ResetAttr, "\033[0m");
+		switch (Level)
+		{
+		case NOTICE_LEVEL: // light green
+			strcpy(ColorAttr, "\033[92m");
+			break;
+		case ERROR_LEVEL: // light red
+			strcpy(ColorAttr, "\033[91m");
+			break;
+		case WARNING_LEVEL: // light yellow
+			strcpy(ColorAttr, "\033[93m");
+			break;
+		default:
+			break;
+		}
+	}
+	fprintf(stderr, "%s%s%s", ColorAttr, Text, ResetAttr);
 #endif
 }
 // Clear console screen

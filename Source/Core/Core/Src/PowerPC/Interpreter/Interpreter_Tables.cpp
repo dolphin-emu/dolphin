@@ -203,7 +203,7 @@ static GekkoOPTemplate table31[] =
 	{278,  Interpreter::dcbt,       {"dcbt",   OPTYPE_DCACHE, 0, 1, 0, 0, 0}},
 	{470,  Interpreter::dcbi,       {"dcbi",   OPTYPE_DCACHE, 0, 4, 0, 0, 0}},
 	{758,  Interpreter::dcba,       {"dcba",   OPTYPE_DCACHE, 0, 4, 0, 0, 0}},
-	{1014, Interpreter::dcbz,       {"dcbz",   OPTYPE_DCACHE, 0, 4, 0, 0, 0}},
+	{1014, Interpreter::dcbz,       {"dcbz",   OPTYPE_DCACHE, FL_LOADSTORE, 4, 0, 0, 0}},
 	
 	//load word
 	{23,  Interpreter::lwzx,        {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B | FL_LOADSTORE, 0, 0, 0, 0}},

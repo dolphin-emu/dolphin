@@ -7,10 +7,17 @@ set(LIBS	core
 			audiocommon
 			z
 			sfml-network
-			SDL
 			${OPENGL_LIBRARIES}
 			${XRANDR_LIBRARIES}
 			${X11_LIBRARIES})
+
+if(SDL2_FOUND)
+	set(LIBS	${LIBS} SDL2)
+endif()
+
+if(SDL_FOUND)
+	set(LIBS	${LIBS} SDL)
+endif()
 
 if(LIBAV_FOUND)
 	set(LIBS	${LIBS} ${LIBAV_LIBRARIES})

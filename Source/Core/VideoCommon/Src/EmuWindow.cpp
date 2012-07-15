@@ -280,11 +280,6 @@ void OSDMenu(WPARAM wParam)
 		OSDChoice = 4;
 		g_Config.bDisableFog = !g_Config.bDisableFog;
 		break;
-	case '7':
-		// TODO: Not implemented in the D3D backends, yet
-		OSDChoice = 5;
-		g_Config.bDisableLighting = !g_Config.bDisableLighting;
-		break;
 	}
 }
 

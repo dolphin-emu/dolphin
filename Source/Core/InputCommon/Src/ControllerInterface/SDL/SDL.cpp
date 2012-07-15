@@ -113,6 +113,27 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 			m_state_out.push_back(EffectIDState());
 			AddOutput(new RampEffect(m_state_out.back()));
 		}
+
+		// sine effect
+		if (supported_effects & SDL_HAPTIC_SINE)
+		{
+			m_state_out.push_back(EffectIDState());
+			AddOutput(new SineEffect(m_state_out.back()));
+		}
+
+		// square effect
+		if (supported_effects & SDL_HAPTIC_SQUARE)
+		{
+			m_state_out.push_back(EffectIDState());
+			AddOutput(new SquareEffect(m_state_out.back()));
+		}
+
+		// triangle effect
+		if (supported_effects & SDL_HAPTIC_TRIANGLE)
+		{
+			m_state_out.push_back(EffectIDState());
+			AddOutput(new TriangleEffect(m_state_out.back()));
+		}
 	}
 #endif
 
@@ -151,6 +172,21 @@ std::string Joystick::RampEffect::GetName() const
 	return "Ramp";
 }
 
+std::string Joystick::SineEffect::GetName() const
+{
+	return "Sine";
+}
+
+std::string Joystick::SquareEffect::GetName() const
+{
+	return "Square";
+}
+
+std::string Joystick::TriangleEffect::GetName() const
+{
+	return "Triangle";
+}
+
 void Joystick::ConstantEffect::SetState(const ControlState state)
 {
 	if (state)
@@ -176,10 +212,70 @@ void Joystick::RampEffect::SetState(const ControlState state)
 	}
 	else
 		m_effect.effect.type = 0;
-	
+
 	const Sint16 old = m_effect.effect.ramp.start;
 	m_effect.effect.ramp.start = state * 0x7FFF;
 	if (old != m_effect.effect.ramp.start)
+		m_effect.changed = true;
+}
+
+void Joystick::SineEffect::SetState(const ControlState state)
+{
+	if (state)
+	{
+		m_effect.effect.type = SDL_HAPTIC_SINE;
+		m_effect.effect.periodic.length = 250;
+	}
+	else {
+		m_effect.effect.type = 0;
+	}
+
+	const Sint16 old = m_effect.effect.periodic.magnitude;
+        m_effect.effect.periodic.period = 5;
+	m_effect.effect.periodic.magnitude = state * 0x5000;
+        m_effect.effect.periodic.attack_length = 0;
+        m_effect.effect.periodic.fade_length = 500;
+	if (old != m_effect.effect.periodic.magnitude)
+		m_effect.changed = true;
+}
+
+void Joystick::SquareEffect::SetState(const ControlState state)
+{
+	if (state)
+	{
+		m_effect.effect.type = SDL_HAPTIC_SQUARE;
+		m_effect.effect.periodic.length = 250;
+	}
+	else {
+		m_effect.effect.type = 0;
+	}
+
+	const Sint16 old = m_effect.effect.periodic.magnitude;
+        m_effect.effect.periodic.period = 5;
+	m_effect.effect.periodic.magnitude = state * 0x5000;
+        m_effect.effect.periodic.attack_length = 0;
+        m_effect.effect.periodic.fade_length = 100;
+	if (old != m_effect.effect.periodic.magnitude)
+		m_effect.changed = true;
+}
+
+void Joystick::TriangleEffect::SetState(const ControlState state)
+{
+	if (state)
+	{
+		m_effect.effect.type = SDL_HAPTIC_TRIANGLE;
+		m_effect.effect.periodic.length = 250;
+	}
+	else {
+		m_effect.effect.type = 0;
+	}
+
+	const Sint16 old = m_effect.effect.periodic.magnitude;
+        m_effect.effect.periodic.period = 5;
+	m_effect.effect.periodic.magnitude = state * 0x5000;
+        m_effect.effect.periodic.attack_length = 0;
+        m_effect.effect.periodic.fade_length = 100;
+	if (old != m_effect.effect.periodic.magnitude)
 		m_effect.changed = true;
 }
 #endif

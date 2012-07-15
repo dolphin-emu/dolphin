@@ -159,16 +159,6 @@ void VertexManager::AddVertices(int primitive, int numVertices)
 
 void VertexManager::Flush()
 {
-	// Disable Lighting	
-	// TODO - Is this a good spot for this code?
-	if (g_ActiveConfig.bDisableLighting) 
-	{
-		for (u32 i = 0; i < xfregs.numChan.numColorChans; i++)
-		{
-			xfregs.alpha[i].enablelighting = false;
-			xfregs.color[i].enablelighting = false;
-		}
-	}
 	g_vertex_manager->vFlush();
 }
 
@@ -236,7 +226,7 @@ void VertexManager::Flush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
+				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8),
 				(tex.texMode1[i&3].max_lod >> 4));
 
 			if (tentry)

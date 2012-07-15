@@ -77,7 +77,6 @@ struct VideoConfig
 	bool bCrop;   // Aspect ratio controls.
 	bool bUseXFB;
 	bool bUseRealXFB;
-	bool bUseNativeMips;
 
 	// OpenCL/OpenMP
 	bool bEnableOpenCL;
@@ -101,8 +100,6 @@ struct VideoConfig
 	
 	// Render
 	bool bWireFrame;
-	bool bDisableLighting;
-	bool bDisableTexturing;
 	bool bDstAlphaPass;
 	bool bDisableFog;
 	
@@ -138,8 +135,8 @@ struct VideoConfig
 	bool bEnablePerPixelDepth;
 
 	int iLog; // CONF_ bits
-	int iSaveTargetId;
-	
+	int iSaveTargetId; // TODO: Should be dropped
+
 	//currently unused:
 	int iCompileDLsLevel;
 
