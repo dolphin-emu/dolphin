@@ -15,33 +15,38 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "../Memmap.h"
 #include "../EXI_Device.h"
 #include "../EXI_DeviceEthernet.h"
-bool CEXIETHERNET::deactivate() {
-	return true;
-}
-bool CEXIETHERNET::isActivated() {
+
+bool CEXIETHERNET::Activate()
+{
 	return false;
 }
-bool CEXIETHERNET::activate() {
+
+void CEXIETHERNET::Deactivate()
+{
+}
+
+bool CEXIETHERNET::IsActivated()
+{
 	return false;
 }
-bool CEXIETHERNET::CheckRecieved() {
+
+bool CEXIETHERNET::SendFrame(u8 *, u32)
+{
 	return false;
 }
-bool CEXIETHERNET::resume() {
+
+bool CEXIETHERNET::RecvInit()
+{
 	return false;
 }
-bool CEXIETHERNET::startRecv() {
+
+bool CEXIETHERNET::RecvStart()
+{
 	return false;
 }
-bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) {
-	return false;
-}
-bool CEXIETHERNET::handleRecvdPacket() {
-	return false;
-}
-bool CEXIETHERNET::cbwriteDescriptor(u32 size) {
-	return false;
+
+void CEXIETHERNET::RecvStop()
+{
 }
