@@ -55,9 +55,9 @@ void GenerateMAC(MACConsumer type, u8 (&mac)[6])
 
 	u8 id[3] =
 	{
-		rand() & 0xff,
-		rand() & 0xff,
-		rand() & 0xff
+		(u8)rand(),
+		(u8)rand(),
+		(u8)rand()
 	};
 
 	memcpy(&mac[3], id, 3);
