@@ -559,7 +559,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 	if (!RecvMACFilter())
 		goto wait_for_next;
 	
-#ifdef BBA_TACK_PAGE_PTRS
+#ifdef BBA_TRACK_PAGE_PTRS
 	WARN_LOG(SP1, "RecvHandlePacket %x\n%s", mRecvBufferLength,
 		ArrayToString(mRecvBuffer, mRecvBufferLength, 0x100).c_str());
 
@@ -613,7 +613,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 	if ((mRecvBufferLength + 4) % 256)
 		inc_rwp();
 
-#ifdef BBA_TACK_PAGE_PTRS
+#ifdef BBA_TRACK_PAGE_PTRS
 	WARN_LOG(SP1, "%x %x %x %x",
 		page_ptr(BBA_BP),
 		page_ptr(BBA_RRP),
