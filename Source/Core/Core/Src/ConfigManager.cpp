@@ -32,12 +32,12 @@ static const struct {
 	const int	DefaultModifier;
 } g_HKData[] = {
 #ifdef __APPLE__
-	{ "Open",		79 /* 'O' */,		8 /* wxMOD_CMD */ },
+	{ "Open",		79 /* 'O' */,		2 /* wxMOD_CMD */ },
 	{ "ChangeDisc",		0,			0 /* wxMOD_NONE */ },
 	{ "RefreshList",	0,			0 /* wxMOD_NONE */ },
 
-	{ "PlayPause",		80 /* 'P' */,		8 /* wxMOD_CMD */ },
-	{ "Stop",		87 /* 'W' */,		8 /* wxMOD_CMD */ },
+	{ "PlayPause",		80 /* 'P' */,		2 /* wxMOD_CMD */ },
+	{ "Stop",		87 /* 'W' */,		2 /* wxMOD_CMD */ },
 	{ "Reset",		0,			0 /* wxMOD_NONE */ },
 	{ "FrameAdvance",	0,			0 /* wxMOD_NONE */ },
 
@@ -46,13 +46,13 @@ static const struct {
 	{ "ExportRecording",	0,			0 /* wxMOD_NONE */ },
 	{ "Readonlymode",	0,			0 /* wxMOD_NONE */ },
 
-	{ "ToggleFullscreen",	70 /* 'F' */,		8 /* wxMOD_CMD */ },
-	{ "Screenshot",		83 /* 'S' */,		8 /* wxMOD_CMD */ },
+	{ "ToggleFullscreen",	70 /* 'F' */,		2 /* wxMOD_CMD */ },
+	{ "Screenshot",		83 /* 'S' */,		2 /* wxMOD_CMD */ },
 
-	{ "Wiimote1Connect",	49 /* '1' */,		8 /* wxMOD_CMD */ },
-	{ "Wiimote2Connect",	50 /* '2' */,		8 /* wxMOD_CMD */ },
-	{ "Wiimote3Connect",	51 /* '3' */,		8 /* wxMOD_CMD */ },
-	{ "Wiimote4Connect",	52 /* '4' */,		8 /* wxMOD_CMD */ },
+	{ "Wiimote1Connect",	49 /* '1' */,		2 /* wxMOD_CMD */ },
+	{ "Wiimote2Connect",	50 /* '2' */,		2 /* wxMOD_CMD */ },
+	{ "Wiimote3Connect",	51 /* '3' */,		2 /* wxMOD_CMD */ },
+	{ "Wiimote4Connect",	52 /* '4' */,		2 /* wxMOD_CMD */ },
 #else
 	{ "Open",		79 /* 'O' */,		2 /* wxMOD_CONTROL */},
 	{ "ChangeDisc",		0,			0 /* wxMOD_NONE */ },
