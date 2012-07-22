@@ -251,6 +251,18 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 		regs[i].last_use_ctr = cache.regs[i].last_use_ctr;
 	}
 
+	//sync the freely used xregs
+	if (!emit) {
+		for(i = 0; i < NUMXREGS; i++) {
+			if (cache.xregs[i].guest_reg == DSP_REG_USED &&
+			    xregs[i].guest_reg == DSP_REG_NONE)
+				xregs[i].guest_reg = DSP_REG_USED;
+			if (cache.xregs[i].guest_reg == DSP_REG_NONE &&
+			    xregs[i].guest_reg == DSP_REG_USED)
+				xregs[i].guest_reg = DSP_REG_NONE;
+		}
+	}
+
 	//consistency checks
 	for(i = 0; i < NUMXREGS; i++) {
 		_assert_msg_(DSPLLE,
