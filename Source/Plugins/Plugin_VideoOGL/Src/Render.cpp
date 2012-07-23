@@ -704,14 +704,16 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 		s_efbCache[cacheType][cacheRectIdx].resize(EFB_CACHE_RECT_SIZE * EFB_CACHE_RECT_SIZE);
 
 	u32 targetPixelRcWidth = targetPixelRc.right - targetPixelRc.left;
+	u32 efbPixelRcHeight = efbPixelRc.bottom - efbPixelRc.top;
+	u32 efbPixelRcWidth = efbPixelRc.right - efbPixelRc.left;
 
-	for (u32 yCache = 0; yCache < EFB_CACHE_RECT_SIZE; ++yCache)
+	for (u32 yCache = 0; yCache < efbPixelRcHeight; ++yCache)
 	{
 		u32 yEFB = efbPixelRc.top + yCache;
 		u32 yPixel = (EFBToScaledY(EFB_HEIGHT - yEFB) + EFBToScaledY(EFB_HEIGHT - yEFB - 1)) / 2;
 		u32 yData = yPixel - targetPixelRc.bottom;
 
-		for (u32 xCache = 0; xCache < EFB_CACHE_RECT_SIZE; ++xCache)
+		for (u32 xCache = 0; xCache < efbPixelRcWidth; ++xCache)
 		{
 			u32 xEFB = efbPixelRc.left + xCache;
 			u32 xPixel = (EFBToScaledX(xEFB) + EFBToScaledX(xEFB + 1)) / 2;
@@ -749,8 +751,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = (x / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
 	efbPixelRc.top = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
-	efbPixelRc.right = efbPixelRc.left + EFB_CACHE_RECT_SIZE;
-	efbPixelRc.bottom = efbPixelRc.top + EFB_CACHE_RECT_SIZE;
+	efbPixelRc.right = std::min(efbPixelRc.left + EFB_CACHE_RECT_SIZE, (u32)EFB_WIDTH);
+	efbPixelRc.bottom = std::min(efbPixelRc.top + EFB_CACHE_RECT_SIZE, (u32)EFB_HEIGHT);
 
 	TargetRectangle targetPixelRc = ConvertEFBRectangle(efbPixelRc);
 	u32 targetPixelRcWidth = targetPixelRc.right - targetPixelRc.left;
