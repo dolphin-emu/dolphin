@@ -39,12 +39,13 @@
 #define JIT_ICACHE_INVALID_BYTE 0x14
 #define JIT_ICACHE_INVALID_WORD 0x14141414
 
-// TODO(ector) - optimize this struct for size
 struct JitBlock
 {
+	const u8 *checkedEntry;
+	const u8 *normalEntry;
+
+	u8 *exitPtrs[2];     // to be able to rewrite the exit jum
 	u32 exitAddress[2];  // 0xFFFFFFFF == unknown
-	u8 *exitPtrs[2];     // to be able to rewrite the exit jump
-	bool linkStatus[2];
 
 	u32 originalAddress;
 	u32 originalFirstOpcode; //to be able to restore
@@ -52,6 +53,11 @@ struct JitBlock
 	u32 originalSize;
 	int runCount;  // for profiling.
 	int blockNum;
+	int flags;
+
+	bool invalid;
+	bool linkStatus[2];
+	bool ContainsAddress(u32 em_address);
 
 #ifdef _WIN32
 	// we don't really need to save start and stop
@@ -60,12 +66,6 @@ struct JitBlock
 	u64 ticStop;		// for profiling - time.
 	u64 ticCounter;	// for profiling - time.
 #endif
-	const u8 *checkedEntry;
-	const u8 *normalEntry;
-	bool invalid;
-	int flags;
-
-	bool ContainsAddress(u32 em_address);
 };
 
 typedef void (*CompiledCode)();
