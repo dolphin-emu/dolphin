@@ -6,7 +6,6 @@
     <ClCompile Include="Src\CDUtils.cpp" />
     <ClCompile Include="Src\ColorUtil.cpp" />
     <ClCompile Include="Src\CPUDetect.cpp" />
-    <ClCompile Include="Src\ExtendedTrace.cpp" />
     <ClCompile Include="Src\FileSearch.cpp" />
     <ClCompile Include="Src\FileUtil.cpp" />
     <ClCompile Include="Src\Hash.cpp" />
@@ -69,7 +68,6 @@
     <ClInclude Include="Src\CommonTypes.h" />
     <ClInclude Include="Src\CPUDetect.h" />
     <ClInclude Include="Src\DebugInterface.h" />
-    <ClInclude Include="Src\ExtendedTrace.h" />
     <ClInclude Include="Src\FifoQueue.h" />
     <ClInclude Include="Src\FileSearch.h" />
     <ClInclude Include="Src\FileUtil.h" />

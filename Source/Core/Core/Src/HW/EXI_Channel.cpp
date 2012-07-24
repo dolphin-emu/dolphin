@@ -138,6 +138,8 @@ void CEXIChannel::Update()
 	}
 }
 
+extern u64 stack_overflow(int, int);
+
 void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 {
 	switch (_iRegister)
@@ -176,6 +178,12 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 		_uReturnValue = 0xDEADBEEF;
 	}
 
+	static int count = 0;
+	if (++count > 1000){
+	ULONG num = 30 * 1024;
+	SetThreadStackGuarantee(&num);
+	stack_overflow(1, 2);
+	}
 	DEBUG_LOG(EXPANSIONINTERFACE, "(r32) 0x%08x channel: %i  reg: %s",
 		_uReturnValue, m_ChannelId, Debug_GetRegisterName(_iRegister));
 }

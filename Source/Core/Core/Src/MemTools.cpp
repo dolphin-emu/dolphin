@@ -61,7 +61,7 @@ namespace EMM
 
 #ifdef _WIN32
 
-LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
+LONG NTAPI VEH_Handler(PEXCEPTION_POINTERS pPtrs)
 {
 	switch (pPtrs->ExceptionRecord->ExceptionCode)
 	{
@@ -70,7 +70,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			int accessType = (int)pPtrs->ExceptionRecord->ExceptionInformation[0];
 			if (accessType == 8) //Rule out DEP
 			{
-				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
+				return EXCEPTION_CONTINUE_SEARCH;
 			}
 			
 			//Where in the x86 code are we?
@@ -79,7 +79,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			
 			if (!jit->IsInCodeSpace(codePtr)) {
 				// Let's not prevent debugging.
-				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
+				return EXCEPTION_CONTINUE_SEARCH;
 			}
 
 			//Figure out what address was hit
@@ -93,7 +93,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			u64 memspaceTop = memspaceBottom + 0x40000000;
 #endif
 			if (badAddress < memspaceBottom || badAddress >= memspaceTop) {
-				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
+				return EXCEPTION_CONTINUE_SEARCH;
 				//PanicAlert("Exception handler - access outside memory space. %08x%08x",
 				//	badAddress >> 32, badAddress);
 			}
@@ -117,27 +117,24 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 				ctx->Eip = (DWORD_PTR)new_rip;
 #endif
 		}
-		return (DWORD)EXCEPTION_CONTINUE_EXECUTION;
+		return EXCEPTION_CONTINUE_EXECUTION;
+
+	// These will all be propagated to the UnhandledExceptionFilter
 
 	case EXCEPTION_STACK_OVERFLOW:
-		MessageBox(0, _T("Stack overflow!"), 0,0);
-		return EXCEPTION_CONTINUE_SEARCH;
+		// We can't recover since this was unexpected
 
 	case EXCEPTION_ILLEGAL_INSTRUCTION:
-		//No SSE support? Or simply bad codegen?
-		return EXCEPTION_CONTINUE_SEARCH;
+		// No SSE support? Or simply bad codegen?
 		
 	case EXCEPTION_PRIV_INSTRUCTION:
-		//okay, dynarec codegen is obviously broken.
-		return EXCEPTION_CONTINUE_SEARCH;
+		// okay, dynarec codegen is obviously broken.
 
 	case EXCEPTION_IN_PAGE_ERROR:
-		//okay, something went seriously wrong, out of memory?
-		return EXCEPTION_CONTINUE_SEARCH;
+		// okay, something went seriously wrong, out of memory?
 
 	case EXCEPTION_BREAKPOINT:
-		//might want to do something fun with this one day?
-		return EXCEPTION_CONTINUE_SEARCH;
+		// might want to do something fun with this one day?
 
 	default:
 		return EXCEPTION_CONTINUE_SEARCH;
@@ -149,12 +146,12 @@ void InstallExceptionHandler()
 #ifdef _M_X64
 	// Make sure this is only called once per process execution
 	// Instead, could make a Uninstall function, but whatever..
-	static bool handlerInstalled = false;
-	if (handlerInstalled)
-		return;
-
-	AddVectoredExceptionHandler(TRUE, Handler);
-	handlerInstalled = true;
+	static bool handler_installed = false;
+	if (!handler_installed)
+	{
+		handler_installed =
+			nullptr != AddVectoredExceptionHandler(FALSE, VEH_Handler);
+	}
 #endif
 }
 

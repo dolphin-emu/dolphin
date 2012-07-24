@@ -62,30 +62,114 @@ std::string wxStringTranslator(const char *);
 CFrame* main_frame = NULL;
 
 #ifdef WIN32
-//Has no error handling.
-//I think that if an error occurs here there's no way to handle it anyway.
-LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
-	//EnterCriticalSection(&g_uefcs);
 
-	File::IOFile file("exceptioninfo.txt", "a");
-	file.Seek(0, SEEK_END);
-	etfprint(file.GetHandle(), "\n");
-	//etfprint(file, g_buildtime);
-	//etfprint(file, "\n");
-	//dumpCurrentDate(file);
-	etfprintf(file.GetHandle(), "Unhandled Exception\n  Code: 0x%08X\n",
-		e->ExceptionRecord->ExceptionCode);
-#ifndef _M_X64
-	STACKTRACE2(file.GetHandle(), e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
-#else
-	STACKTRACE2(file.GetHandle(), e->ContextRecord->Rip, e->ContextRecord->Rsp, e->ContextRecord->Rbp);
+#ifdef _M_IX86
+#define CREG(x) ContextRecord->E##x
+#elif defined _M_X64
+#define CREG(x) ContextRecord->R##x
 #endif
-	file.Close();
-	_flushall();
 
-	//LeaveCriticalSection(&g_uefcs);
-	return EXCEPTION_CONTINUE_SEARCH;
+// TODO
+// bind some crashing cases to buttons or something
+// implement streams
+// implement compression
+// filter dumping
+// progress of dumping / compression
+// use stack guarantee for each thread
+
+#pragma optimize("",off)
+u64 stack_overflow(int x, int y)
+{
+	u32 filler[0x10000] = { 0xdeadbeef };
+	return stack_overflow(x, x + y);
 }
+#pragma optimize("",on)
+
+#include <imagehlp.h>
+#pragma comment(lib, "DbgHelp.lib")
+
+bool WriteDump(LPTSTR path, PMINIDUMP_EXCEPTION_INFORMATION exception_context)
+{
+	auto success = FALSE;
+	auto dump_file_handle = CreateFile(
+		path,
+		GENERIC_WRITE,
+		0,
+		nullptr,
+		CREATE_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH,
+		nullptr
+		);
+
+	if (dump_file_handle != INVALID_HANDLE_VALUE)
+	{
+		MINIDUMP_TYPE type = (MINIDUMP_TYPE)(
+			MiniDumpNormal |
+			MiniDumpWithFullMemory |
+			MiniDumpIgnoreInaccessibleMemory |
+			// so we can see files / devices in use
+			MiniDumpWithHandleData |
+			// times, entry point, affinity
+			MiniDumpWithThreadInfo
+			);
+		success = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(),
+			dump_file_handle, type, exception_context, nullptr, nullptr);
+
+		CloseHandle(dump_file_handle);
+	}
+
+	return success == TRUE;
+}
+
+int __stdcall monitor_thread(PMINIDUMP_EXCEPTION_INFORMATION ei)
+{
+	// doesn't appear to be needed
+	//SuspendThreads();
+
+	printf("the app has caused a stack overflow.\nbp: %#p sp: %#p\n",
+		ei->ExceptionPointers->CREG(bp), ei->ExceptionPointers->CREG(sp));
+
+	if (!WriteDump(L"mini.dmp", ei))
+	{
+		MessageBox(nullptr, L"failed to write the dump file", L"error", 0);
+	}
+
+	// Here it's mostly safe to display some info to the user / upload dump file
+
+	// by default, std::terminate() has some funky behavior on msvc which
+	// allows you to break in with a debugger or shows the typical
+	// "the application has stopped working" dialog. If we want to show any gui,
+	// we'll do it ourselves. This is why we call TerminateProcess directly.
+
+	HANDLE this_process = GetCurrentProcess();
+	TerminateProcess(this_process, 0xc0ffee);
+	WaitForSingleObject(this_process, INFINITE);
+
+	return 0;
+}
+
+LONG NTAPI LastChanceExceptionFilter(PEXCEPTION_POINTERS e)
+{
+	switch (e->ExceptionRecord->ExceptionCode)
+	{
+	case EXCEPTION_STACK_OVERFLOW:
+		{
+		MINIDUMP_EXCEPTION_INFORMATION ei = { GetCurrentThreadId(), e, TRUE };
+
+		std::thread monitor(monitor_thread, &ei);
+		monitor.join();
+
+		// should never hit the idle loop
+		for (;;)
+			YieldProcessor();
+		}
+		return EXCEPTION_CONTINUE_SEARCH;
+
+	default:
+		return EXCEPTION_CONTINUE_SEARCH;
+	}
+}
+
 #endif
 
 bool DolphinApp::Initialize(int& c, wxChar **v)
@@ -182,10 +266,8 @@ bool DolphinApp::OnInit()
 	RegisterMsgAlertHandler(&wxMsgAlert);
 	RegisterStringTranslator(&wxStringTranslator);
 
-	// "ExtendedTrace" looks freakin dangerous!!!
 #ifdef _WIN32
-	EXTENDEDTRACEINITIALIZE(".");
-	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
+	AddVectoredExceptionHandler(TRUE, LastChanceExceptionFilter);
 #elif wxUSE_ON_FATAL_EXCEPTION
 	wxHandleFatalExceptions(true);
 #endif
