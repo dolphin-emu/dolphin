@@ -38,7 +38,6 @@
 #include "ConfigManager.h"
 #include "Debugger/CodeWindow.h"
 #include "Debugger/JitWindow.h"
-#include "ExtendedTrace.h"
 #include "BootManager.h"
 #include "Frame.h"
 
@@ -69,13 +68,12 @@ CFrame* main_frame = NULL;
 #define CREG(x) ContextRecord->R##x
 #endif
 
-// TODO
-// bind some crashing cases to buttons or something
-// implement streams
-// implement compression
-// filter dumping
-// progress of dumping / compression
-// use stack guarantee for each thread
+// bind some crashing cases to buttons or something			done (good enough)
+// implement streams										done
+// implement compression									done
+// filter dumping											TODO
+// progress of dumping / compression						TODO
+// use stack guarantee for each thread						done (by hacking up std::thread impl)
 
 #pragma optimize("",off)
 u64 stack_overflow(int x, int y)
@@ -83,12 +81,14 @@ u64 stack_overflow(int x, int y)
 	u32 filler[0x10000] = { 0xdeadbeef };
 	return stack_overflow(x, x + y);
 }
-#pragma optimize("",on)
+
 
 #include <imagehlp.h>
 #pragma comment(lib, "DbgHelp.lib")
 
-bool WriteDump(LPTSTR path, PMINIDUMP_EXCEPTION_INFORMATION exception_context)
+bool WriteDump(LPTSTR path,
+	PMINIDUMP_EXCEPTION_INFORMATION exception_context,
+	PMINIDUMP_USER_STREAM_INFORMATION user_streams)
 {
 	auto success = FALSE;
 	auto dump_file_handle = CreateFile(
@@ -105,15 +105,17 @@ bool WriteDump(LPTSTR path, PMINIDUMP_EXCEPTION_INFORMATION exception_context)
 	{
 		MINIDUMP_TYPE type = (MINIDUMP_TYPE)(
 			MiniDumpNormal |
+			/*
 			MiniDumpWithFullMemory |
 			MiniDumpIgnoreInaccessibleMemory |
+			//*/
 			// so we can see files / devices in use
 			MiniDumpWithHandleData |
 			// times, entry point, affinity
 			MiniDumpWithThreadInfo
 			);
 		success = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(),
-			dump_file_handle, type, exception_context, nullptr, nullptr);
+			dump_file_handle, type, exception_context, user_streams, nullptr);
 
 		CloseHandle(dump_file_handle);
 	}
@@ -121,17 +123,494 @@ bool WriteDump(LPTSTR path, PMINIDUMP_EXCEPTION_INFORMATION exception_context)
 	return success == TRUE;
 }
 
+#include "../../../Externals/zlib/zlib.h"
+
+#define CHUNK 16384
+
+/* Compress from file source to file dest until EOF on source.
+   def() returns Z_OK on success, Z_MEM_ERROR if memory could not be
+   allocated for processing, Z_STREAM_ERROR if an invalid compression
+   level is supplied, Z_VERSION_ERROR if the version of zlib.h and the
+   version of the library linked do not match, or Z_ERRNO if there is
+   an error reading or writing the files. */
+int def(FILE *source, FILE *dest, int level)
+{
+    int ret, flush;
+    unsigned have;
+    z_stream strm;
+    unsigned char in[CHUNK];
+    unsigned char out[CHUNK];
+
+    /* allocate deflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    ret = deflateInit(&strm, level);
+    if (ret != Z_OK)
+        return ret;
+
+    /* compress until end of file */
+    do {
+        strm.avail_in = fread(in, 1, CHUNK, source);
+        if (ferror(source)) {
+            (void)deflateEnd(&strm);
+            return Z_ERRNO;
+        }
+        flush = feof(source) ? Z_FINISH : Z_NO_FLUSH;
+        strm.next_in = in;
+
+        /* run deflate() on input until output buffer not full, finish
+           compression if all of source has been read in */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = out;
+            ret = deflate(&strm, flush);    /* no bad return value */
+            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+            have = CHUNK - strm.avail_out;
+            if (fwrite(out, 1, have, dest) != have || ferror(dest)) {
+                (void)deflateEnd(&strm);
+                return Z_ERRNO;
+            }
+        } while (strm.avail_out == 0);
+        assert(strm.avail_in == 0);     /* all input will be used */
+
+        /* done when last data in file processed */
+    } while (flush != Z_FINISH);
+    assert(ret == Z_STREAM_END);        /* stream will be complete */
+
+    /* clean up and return */
+    (void)deflateEnd(&strm);
+    return Z_OK;
+}
+
+// Compresses the input path to a file with a unique name in a temp dir
+bool CompressDump(std::string const &path, std::wstring &compressed_path)
+{
+	File::IOFile dump(path, "rb");
+
+	TCHAR temp_dir[MAX_PATH];
+	TCHAR temp_path[MAX_PATH];
+	GetTempPath(MAX_PATH, temp_dir);
+	GetTempFileName(temp_dir, TEXT("dol"), 0, temp_path);
+	compressed_path = temp_path;
+	char *compressed_path_c = new char[compressed_path.size() * 2 + 2];
+	wcstombs(compressed_path_c, temp_path, MAX_PATH);
+	File::IOFile dump_compressed(compressed_path_c, "wb");
+	delete [] compressed_path_c;
+
+	auto result = def(dump.GetHandle(), dump_compressed.GetHandle(), Z_BEST_COMPRESSION);
+
+	return result == Z_OK;
+}
+
+#include <algorithm>
+class DumpStreams
+{
+	MINIDUMP_USER_STREAM_INFORMATION si;
+	std::vector<MINIDUMP_USER_STREAM> v_us;
+	std::vector<void *> caches;
+
+	enum BufferType
+	{
+		NamedFile = LastReservedStream + 1
+	};
+
+	void AddStream(BufferType const type, void const *buffer, u64 const size)
+	{
+		MINIDUMP_USER_STREAM s;
+
+		s.Type = type;
+		s.Buffer = (PVOID)buffer;
+		s.BufferSize = size;
+
+		v_us.push_back(s);
+	}
+
+	void const *AddToCaches(
+		void const *buffer, u64 const size,
+		void const *extra_buffer = nullptr, u64 const extra_size = 0)
+	{
+		u8 *cache = new u8[extra_size + size];
+
+		if (extra_buffer)
+			std::copy((u8 const *)extra_buffer, (u8 const *)extra_buffer + extra_size, cache);
+
+		std::copy((u8 const *)buffer, (u8 const *)buffer + size, cache + extra_size);
+
+		caches.push_back(cache);
+
+		return cache;
+	}
+
+	void UpdateStreamInfo()
+	{
+		si.UserStreamCount = v_us.size();
+		si.UserStreamArray = v_us.data();
+	}
+
+public:
+
+	~DumpStreams()
+	{
+		for (auto it = caches.begin(); it != caches.end(); it++)
+			delete [] *it;
+	}
+
+	void AddFileStream(std::string const &name, void const *buffer, u64 const size)
+	{
+		auto const name_size = name.size() + 1;
+		AddStream(NamedFile,
+			AddToCaches(buffer, size, name.c_str(), name_size),
+			name_size + size);
+	}
+
+	void AddFileStream(std::string const &name, std::string const &path)
+	{
+		auto const name_size = name.size() + 1;
+		File::IOFile file(path, "rb");
+
+		u64 file_size = file.GetSize();
+		u8 *cache = new u8[name_size + file_size];
+		std::copy(name.begin(), name.end(), cache);
+		file.ReadBytes(cache + name_size, file_size);
+
+		caches.push_back(cache);
+
+		AddStream(NamedFile,
+			cache,
+			name_size + file_size);
+	}
+
+	PMINIDUMP_USER_STREAM_INFORMATION GetStreams()
+	{
+		UpdateStreamInfo();
+
+		return &si;
+	}
+};
+
+#ifdef _M_IX86
+#define DOLPHIN_ARCH_STR "x86"
+#elif defined _M_X64
+#define DOLPHIN_ARCH_STR "x64"
+#endif
+
+#include <sstream>
+#include "scmrev.h"
+#include "FileSearch.h"
+#include "../../../Plugins/Plugin_VideoDX9/Src/D3DBase.h"
+
+void CreateCompressedDump(PMINIDUMP_EXCEPTION_INFORMATION ei, std::wstring &output_path)
+{
+	DumpStreams ds;
+	std::string temp_str;
+
+	// Add information about the dolphin build
+
+	ds.AddFileStream("dolphin.arch", DOLPHIN_ARCH_STR, sizeof(DOLPHIN_ARCH_STR));
+	ds.AddFileStream("dolphin.desc", SCM_DESC_STR, sizeof(SCM_DESC_STR));
+	ds.AddFileStream("dolphin.branch", SCM_BRANCH_STR, sizeof(SCM_BRANCH_STR));
+	ds.AddFileStream("dolphin.revision", SCM_REV_STR, sizeof(SCM_REV_STR));
+
+	// TODO add module / offset
+
+	// Add information about the hardware
+
+	temp_str = cpu_info.Summarize();
+	ds.AddFileStream("info.cpu", temp_str.c_str(), temp_str.size());
+
+	int num_adapters = DX9::D3D::GetNumAdapters();
+	for (int i = 0; i < num_adapters; i++)
+	{
+		auto adapter = DX9::D3D::GetAdapter(i);
+		std::stringstream adapter_num;
+		adapter_num << i;
+		ds.AddFileStream("info.gpu" + adapter_num.str(), &adapter.ident, sizeof(adapter.ident));
+	}
+
+	// Add game id
+
+	temp_str = SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
+	ds.AddFileStream("info.game_id", temp_str.c_str(), temp_str.size());
+
+	// Add all ini files in User/Config/
+
+	CFileSearch::XStringVector Directories;
+	Directories.push_back(File::GetUserPath(D_CONFIG_IDX));
+	CFileSearch::XStringVector Extensions;
+	Extensions.push_back("*.ini");
+	CFileSearch FileSearch(Extensions, Directories);
+	for (auto it = FileSearch.GetFileNames().cbegin(); it != FileSearch.GetFileNames().cend(); it++)
+	{
+		auto const basename_start = it->rfind(DIR_SEP_CHR) + 1;
+		std::string const basename = it->substr(basename_start, it->size() - basename_start - strlen(".ini"));
+		ds.AddFileStream("config." + basename, *it);
+	}
+
+	// Add current game's ini
+
+	auto const gameini_path = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni;
+	auto const basename_start = gameini_path.rfind(DIR_SEP_CHR) + 1;
+	std::string const basename = gameini_path.substr(basename_start, gameini_path.size() - basename_start - strlen(".ini"));
+	ds.AddFileStream("config." + basename, gameini_path);
+
+
+	if (!WriteDump(L"mini.dmp", ei, ds.GetStreams()))
+	{
+		MessageBox(nullptr, L"failed to write the dump file", L"error", 0);
+	}
+	
+	if (!CompressDump("mini.dmp", output_path))
+	{
+		MessageBox(nullptr, L"failed to compress the dump file", L"error", 0);
+	}
+}
+
+#include <Bits.h>
+#include <functional>
+
+struct BITSWrapper
+{
+	IBackgroundCopyManager *manager;
+	HRESULT hr;
+	bool is_valid;
+
+	static std::wstring const dolphin_job_name;
+
+	BITSWrapper()
+	{
+		is_valid = false;
+
+		hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+		if (SUCCEEDED(hr))
+		{
+			hr = CoCreateInstance(
+				__uuidof(BackgroundCopyManager), nullptr, CLSCTX_LOCAL_SERVER,
+				__uuidof(IBackgroundCopyManager), (LPVOID *)&manager);
+			if (SUCCEEDED(hr))
+			{
+				is_valid = true;
+			}
+		}
+	}
+
+	~BITSWrapper()
+	{
+		if (is_valid)
+		{
+			manager->Release();
+		}
+		CoUninitialize();
+	}
+
+	// Enumerates all of the current user's BITS jobs.
+	void for_each_job(
+		std::wstring const &job_name,
+		std::function<void(IBackgroundCopyJob *)> f)
+	{
+		if (is_valid)
+		{
+			IEnumBackgroundCopyJobs *pJobs = nullptr;
+
+			hr = manager->EnumJobs(0, &pJobs);
+			if (SUCCEEDED(hr))
+			{
+				ULONG job_count;
+				pJobs->GetCount(&job_count);
+
+				for (ULONG i = 0; i < job_count; ++i)
+				{
+					IBackgroundCopyJob *pJob = nullptr;
+					hr = pJobs->Next(1, &pJob, nullptr);
+					if (hr == S_OK)
+					{
+						wchar_t *name = nullptr;
+						hr = pJob->GetDisplayName(&name);
+						if (SUCCEEDED(hr))
+						{
+							if (job_name.empty() || name == job_name)
+							{
+								f(pJob);
+							}
+							CoTaskMemFree(name);
+						}
+
+						pJob->Release();
+					}
+					else
+					{
+						// Bail out on error
+						break;
+					}
+				}
+
+				pJobs->Release();
+			}
+		}
+	}
+
+	void for_each_file(
+		IBackgroundCopyJob *pJob,
+		std::function<void(IBackgroundCopyFile *)> f)
+	{
+		if (is_valid)
+		{
+			IEnumBackgroundCopyFiles *pFiles = nullptr;
+
+			hr = pJob->EnumFiles(&pFiles);
+			if (SUCCEEDED(hr))
+			{
+				ULONG count;
+				pFiles->GetCount(&count);
+
+				for (ULONG i = 0; i < count; ++i)
+				{
+					IBackgroundCopyFile *pFile = nullptr;
+					hr = pFiles->Next(1, &pFile, nullptr);
+					if (hr == S_OK)
+					{
+						f(pFile);
+
+						pFile->Release();
+					}
+					else
+					{
+						// Bail out on error
+						break;
+					}
+				}
+
+				pFiles->Release();
+			}
+		}
+	}
+
+	void DeleteTempFile(IBackgroundCopyJob *pJob)
+	{
+		for_each_file(pJob, [&](IBackgroundCopyFile *pFile)
+		{
+			TCHAR *temp_path = nullptr;
+			hr = pFile->GetLocalName(&temp_path);
+			if (SUCCEEDED(hr))
+			{
+				DeleteFile(temp_path);
+				CoTaskMemFree(temp_path);
+			}
+		});
+	}
+
+	// Marks any completed dolphin transfers as being completed.
+	void TryPurge()
+	{
+		for_each_job(dolphin_job_name, [&](IBackgroundCopyJob *pJob)
+		{
+			BG_JOB_STATE state;
+			hr = pJob->GetState(&state);
+
+			if (hr == S_OK)
+			{
+				switch (state)
+				{
+				case BG_JOB_STATE_TRANSFERRED:
+					pJob->Complete();
+					DeleteTempFile(pJob);
+					break;
+
+				case BG_JOB_STATE_ERROR:
+					IBackgroundCopyError *pError = nullptr;
+					pJob->GetError(&pError);
+					if (SUCCEEDED(hr))
+					{
+						BG_ERROR_CONTEXT context;
+						HRESULT code;
+						pError->GetError(&context, &code);
+						TCHAR *description = nullptr;
+						hr = pError->GetErrorDescription(LANGIDFROMLCID(GetThreadLocale()), &description);
+						if (SUCCEEDED(hr))
+						{
+							// TODO in what cases should we try to resume?
+							CoTaskMemFree(description);
+						}
+						pError->Release();
+					}
+
+					pJob->Cancel();
+					DeleteTempFile(pJob);
+					break;
+				}
+			}
+		});
+	}
+
+	void Upload(std::wstring const &local, std::wstring const &remote)
+	{
+		if (is_valid)
+		{
+			GUID JobId;
+			IBackgroundCopyJob *pJob = nullptr;
+
+			hr = manager->CreateJob(dolphin_job_name.c_str(), BG_JOB_TYPE_UPLOAD, &JobId, &pJob);
+			if (SUCCEEDED(hr))
+			{
+				hr = pJob->AddFile(remote.c_str(), local.c_str());
+				if (SUCCEEDED(hr))
+				{
+					hr = pJob->Resume();
+				}
+			}
+
+			pJob->Release();
+		}
+	}
+};
+std::wstring const BITSWrapper::dolphin_job_name = L"dolphin-emu crash report";
+
+#include <SFML/Network.hpp>
 int __stdcall monitor_thread(PMINIDUMP_EXCEPTION_INFORMATION ei)
 {
 	// doesn't appear to be needed
 	//SuspendThreads();
 
-	printf("the app has caused a stack overflow.\nbp: %#p sp: %#p\n",
-		ei->ExceptionPointers->CREG(bp), ei->ExceptionPointers->CREG(sp));
+	sf::Http Http("goliath", 8000);
 
-	if (!WriteDump(L"mini.dmp", ei))
+	sf::Http::Request Request;
+	Request.SetMethod(sf::Http::Request::Get);
+	Request.SetURI("/dumps/upload/small");
+	Request.SetField("X-Dolphin-Version", SCM_REV_STR);
+	Request.SetField("X-Dolphin-Architecture", DOLPHIN_ARCH_STR);
+	Request.SetField("X-Crash-Module", "module"); // TODO
+	Request.SetField("X-Crash-EIP-Offset", "offset");
+
+	// Send it and get the response returned by the server
+	// TODO set timeout?
+	sf::Http::Response Response = Http.SendRequest(Request);
+
+	//if (Response.GetStatus() == Response.Ok)
 	{
-		MessageBox(nullptr, L"failed to write the dump file", L"error", 0);
+		auto issue_link = Response.GetField("X-Issue-Link");
+		auto possible_fix = Response.GetField("X-Possible-Fix");
+		auto upload_token = Response.GetField("X-Upload-Token");
+
+		if (upload_token.empty())
+		{
+			// Sent report ok, but we weren't asked for dump
+			//return true;
+		}
+
+		// Send dump - mini.dmp.zl to /dumps/upload/full/<token>
+		std::wstring dump_file;
+		CreateCompressedDump(ei, dump_file);
+		BITSWrapper bits;
+		bits.TryPurge(); // TODO this should be called at dolphin startup instead
+		bits.Upload(dump_file,
+			L"http://goliath:8000/dumps/upload/full/d15ea5e/mini.dmp.zl");
+
+		//return true;
+	}
+	//else
+	{
+		// Failed to send dump
+		//return false;
 	}
 
 	// Here it's mostly safe to display some info to the user / upload dump file
@@ -158,10 +637,6 @@ LONG NTAPI LastChanceExceptionFilter(PEXCEPTION_POINTERS e)
 
 		std::thread monitor(monitor_thread, &ei);
 		monitor.join();
-
-		// should never hit the idle loop
-		for (;;)
-			YieldProcessor();
 		}
 		return EXCEPTION_CONTINUE_SEARCH;
 
@@ -169,7 +644,7 @@ LONG NTAPI LastChanceExceptionFilter(PEXCEPTION_POINTERS e)
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
 }
-
+#pragma optimize("",on)
 #endif
 
 bool DolphinApp::Initialize(int& c, wxChar **v)
