@@ -119,7 +119,7 @@ LONG NTAPI VEH_Handler(PEXCEPTION_POINTERS pPtrs)
 		}
 		return EXCEPTION_CONTINUE_EXECUTION;
 
-	// These will all be propagated to the UnhandledExceptionFilter
+	// These will all be propagated to the LastChanceExceptionFilter
 
 	case EXCEPTION_STACK_OVERFLOW:
 		// We can't recover since this was unexpected

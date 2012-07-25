@@ -266,6 +266,15 @@ private:
 #ifdef __APPLE__
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 #endif
+#ifdef _WIN32
+		// Ensure 20KB stack is available when a stack overflow exception
+		// handler is called. This space is used for will only be creating
+		// a small struct and calling std::thread() to launch the exception
+		// handling thread.
+		enum { OneKB = 1024 };
+		ULONG StackSizeInBytes = 20 * OneKB;
+		SetThreadStackGuarantee(&StackSizeInBytes);
+#endif
 		static_cast<F*>(param)->Run();
 		delete static_cast<F*>(param);
 #ifdef __APPLE__
