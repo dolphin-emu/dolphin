@@ -517,6 +517,9 @@ struct BITSWrapper
 					break;
 
 				case BG_JOB_STATE_ERROR:
+					// Inspecting the error context is just for debugging,
+					// we'll decide what to do with the faulty job based on
+					// it's age (see below)
 					IBackgroundCopyError *pError = nullptr;
 					pJob->GetError(&pError);
 					if (SUCCEEDED(hr))
@@ -528,14 +531,34 @@ struct BITSWrapper
 						hr = pError->GetErrorDescription(LANGIDFROMLCID(GetThreadLocale()), &description);
 						if (SUCCEEDED(hr))
 						{
-							// TODO in what cases should we try to resume?
 							CoTaskMemFree(description);
 						}
 						pError->Release();
 					}
 
-					pJob->Cancel();
-					DeleteTempFile(pJob);
+					// If job was created less than 30 days ago and might be recoverable,
+					// try resuming it else, cancel it. 
+
+					BG_JOB_TIMES times;
+					hr = pJob->GetTimes(&times);
+					if (SUCCEEDED(hr))
+					{
+						FILETIME now_filetime;
+						GetSystemTimeAsFileTime(&now_filetime);
+						u64 const now = (u64)now_filetime.dwHighDateTime << 32 | now_filetime.dwLowDateTime;
+						u64 const job = (u64)times.CreationTime.dwHighDateTime << 32 | times.CreationTime.dwLowDateTime;
+						u64 const thirty_days = 30 * 24 * 60 * 60 * 10000000;
+
+						if (now - job < thirty_days)
+						{
+							pJob->Resume();
+						}
+						else
+						{
+							pJob->Cancel();
+							DeleteTempFile(pJob);
+						}
+					}
 					break;
 				}
 			}
