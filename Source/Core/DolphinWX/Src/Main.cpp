@@ -547,7 +547,7 @@ struct BITSWrapper
 						GetSystemTimeAsFileTime(&now_filetime);
 						u64 const now = (u64)now_filetime.dwHighDateTime << 32 | now_filetime.dwLowDateTime;
 						u64 const job = (u64)times.CreationTime.dwHighDateTime << 32 | times.CreationTime.dwLowDateTime;
-						u64 const thirty_days = 30 * 24 * 60 * 60 * 10000000;
+						u64 const thirty_days = 30ull * 24ull * 60ull * 60ull * 10000000ull;
 
 						if (now - job < thirty_days)
 						{
