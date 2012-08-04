@@ -439,7 +439,8 @@ void OpcodeDecoder_Init()
 #if _M_SSE >= 0x301
 	if (cpu_info.bSSSE3)
 	{
-		*DataReadU32xFuncs = *DataReadU32xFuncs_SSSE3;
+		for (int i = 0; i < 16; ++i)
+			DataReadU32xFuncs[i] = DataReadU32xFuncs_SSSE3[i];
 	}
 #endif
 
