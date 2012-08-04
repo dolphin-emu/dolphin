@@ -440,7 +440,7 @@ void CommonAsmRoutines::GenQuantizedLoads() {
 		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
 		MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
 		BSWAP(32, EAX);
-		MOVD_xmm(XMM0, M(&psTemp[0]));
+		MOVD_xmm(XMM0, R(EAX));
 		UNPCKLPS(XMM0, M((void*)m_one));
 #endif
 	}
