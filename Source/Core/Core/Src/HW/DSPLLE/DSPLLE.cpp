@@ -121,7 +121,7 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 			else
 				core_id = 3; // 3rd core
 
-			Common::SetCurrentThreadAffinity(1 << core_id);
+			Common::SetCurrentThreadAffinity(1 << (core_id - 1));
 		}
 	}
 
