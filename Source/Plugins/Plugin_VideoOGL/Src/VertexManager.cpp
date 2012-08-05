@@ -220,9 +220,9 @@ void VertexManager::vFlush()
 		g_renderer->RestoreState();
 	}
 	bool useZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable;
-	if (useZcomploc)
+	if (useZcomploc && PixelShaderManager::AlphaPreTest() == ALPHAPT_UNDEFINED)
 	{
-		ps = PixelShaderCache::SetShader(PSGRENDER_ZCOMPLOCK,g_nativeVertexFmt->m_components);
+		ps = PixelShaderCache::SetShader(PSGRENDER_ZCOMPLOC,g_nativeVertexFmt->m_components);
 		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
 
 		g_renderer->ApplyState(RSM_Zcomploc);

@@ -26,8 +26,7 @@
 #include "BPMemory.h"
 #include "VideoConfig.h"
 #include "NativeVertexFormat.h"
-
-static ALPHA_PRETEST_RESULT AlphaPreTest();
+#include "PixelShaderManager.h"
 
 static void StageHash(int stage, u32* out)
 {
@@ -117,7 +116,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, PSGRENDER_MODE PSGRenderMode, u32 com
 	uid->values[0] |= MustWriteToDepth << 11; // 1
 	uid->values[0] |= PixelLightingEnabled << 12; // 1
 	if (!PixelLightingEnabled) uid->values[0] |= xfregs.numTexGen.numTexGens << 13; // 4
-	ALPHA_PRETEST_RESULT alphaPreTest = AlphaPreTest();
+	ALPHA_PRETEST_RESULT alphaPreTest = PixelShaderManager::AlphaPreTest();
 	uid->values[0] |= ((u32)alphaPreTest) << 17; // 2
 	uid->values[0] |= ZCompLocEnabled << 18; // 2
 	if (((alphaPreTest == ALPHAPT_ALWAYSFAIL) || (alphaPreTest == ALPHAPT_ALWAYSPASS && PSGRenderMode == PSGRENDER_DSTALPHA_ALPHA_PASS)) && !DepthTextureEnable)
@@ -636,7 +635,7 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 			WRITE(p, "float zCoord = " I_ZBIAS "[1].x + (uv2.w / uv3.w) * " I_ZBIAS "[1].y;\n");
 	}
 	char* pmainstart = p;
-	if(PSGRenderMode == PSGRENDER_ZCOMPLOCK && !DepthTextureEnable)
+	if(PSGRenderMode == PSGRENDER_ZCOMPLOC && !DepthTextureEnable)
 	{
 		// Within ZCompLoc pass, make this an empty function
 		WRITE(p, "ocol0 = 0;\n");
@@ -646,7 +645,7 @@ const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiTy
 		WRITE(p, "}\n");
 			return text;		
 	}
-	ALPHA_PRETEST_RESULT Pretest = AlphaPreTest();
+	ALPHA_PRETEST_RESULT Pretest = PixelShaderManager::AlphaPreTest();
 	// Test if we can predict the alpha test result or if we are in depth only mode
 	if((Pretest != ALPHAPT_UNDEFINED) && !DepthTextureEnable)
 	{
@@ -1169,39 +1168,6 @@ static const char *tevAlphaFunclogicTable[] =
 	" != ", // xor
 	" == "  // xnor
 };
-static ALPHA_PRETEST_RESULT AlphaPreTest()
-{
-	u32 op = bpmem.alphaFunc.logic;
-	u32 comp[2] = {bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1};
-
-	// First kill all the simple cases
-	switch(op)
-	{
-	case 0: // AND
-		if (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) return ALPHAPT_ALWAYSPASS;
-		if (comp[0] == ALPHACMP_NEVER || comp[1] == ALPHACMP_NEVER) return ALPHAPT_ALWAYSFAIL;
-		break;
-	case 1: // OR
-		if (comp[0] == ALPHACMP_ALWAYS || comp[1] == ALPHACMP_ALWAYS) return ALPHAPT_ALWAYSPASS;
-		if (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)return ALPHAPT_ALWAYSFAIL;
-		break;
-	case 2: // XOR
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS))
-			return ALPHAPT_ALWAYSPASS;
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
-			return ALPHAPT_ALWAYSFAIL;
-		break;
-	case 3: // XNOR
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS))
-			return ALPHAPT_ALWAYSFAIL;
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
-			return ALPHAPT_ALWAYSPASS;
-		break;
-	default: PanicAlert("bad logic for alpha test? %08x", op);
-	}
-	return ALPHAPT_UNDEFINED;
-}
-
 
 static void WriteAlphaTest(char *&p, API_TYPE ApiType,PSGRENDER_MODE PSGRenderMode)
 {

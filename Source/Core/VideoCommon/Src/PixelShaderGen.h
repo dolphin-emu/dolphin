@@ -111,7 +111,7 @@ enum PSGRENDER_MODE
 	PSGRENDER_NORMAL, // Render normally, without destination alpha
 	PSGRENDER_DSTALPHA_ALPHA_PASS, // Render normally first, then render again for alpha
 	PSGRENDER_DSTALPHA_DUAL_SOURCE_BLEND, // Use dual-source blending
-	PSGRENDER_ZCOMPLOCK //Render to Depth Channel only with no depth dextures enabled
+	PSGRENDER_ZCOMPLOC //Render to Depth Channel only with no depth dextures enabled
 };
 
 enum ALPHA_PRETEST_RESULT

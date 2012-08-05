@@ -466,6 +466,39 @@ void PixelShaderManager::SetMaterialColorChanged(int index)
 	nMaterialsChanged  |= (1 << index);
 }
 
+ALPHA_PRETEST_RESULT PixelShaderManager::AlphaPreTest()
+{
+	u32 op = bpmem.alphaFunc.logic;
+	u32 comp[2] = {bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1};
+
+	// First kill all the simple cases
+	switch(op)
+	{
+	case 0: // AND
+		if (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) return ALPHAPT_ALWAYSPASS;
+		if (comp[0] == ALPHACMP_NEVER || comp[1] == ALPHACMP_NEVER) return ALPHAPT_ALWAYSFAIL;
+		break;
+	case 1: // OR
+		if (comp[0] == ALPHACMP_ALWAYS || comp[1] == ALPHACMP_ALWAYS) return ALPHAPT_ALWAYSPASS;
+		if (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)return ALPHAPT_ALWAYSFAIL;
+		break;
+	case 2: // XOR
+		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS))
+			return ALPHAPT_ALWAYSPASS;
+		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
+			return ALPHAPT_ALWAYSFAIL;
+		break;
+	case 3: // XNOR
+		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS))
+			return ALPHAPT_ALWAYSFAIL;
+		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
+			return ALPHAPT_ALWAYSPASS;
+		break;
+	default: PanicAlert("bad logic for alpha test? %08x", op);
+	}
+	return ALPHAPT_UNDEFINED;
+}
+
 void PixelShaderManager::DoState(PointerWrap &p)
 {
 	p.Do(lastRGBAfull);

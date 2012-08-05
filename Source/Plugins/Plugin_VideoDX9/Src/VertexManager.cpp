@@ -187,9 +187,9 @@ void VertexManager::vFlush()
 	}
 
 	bool useZcomploc = bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable;
-	if(useZcomploc)
+	if (useZcomploc && PixelShaderManager::AlphaPreTest() == ALPHAPT_UNDEFINED)
 	{
-		if (!PixelShaderCache::SetShader(PSGRENDER_ZCOMPLOCK, g_nativeVertexFmt->m_components))
+		if (!PixelShaderCache::SetShader(PSGRENDER_ZCOMPLOC, g_nativeVertexFmt->m_components))
 		{
 			GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 			goto shader_fail;
