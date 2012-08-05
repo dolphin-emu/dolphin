@@ -7,6 +7,7 @@ set(LIBS	core
 			audiocommon
 			z
 			sfml-network
+			${GTK2_LIBRARIES}
 			${OPENGL_LIBRARIES}
 			${XRANDR_LIBRARIES}
 			${X11_LIBRARIES})
