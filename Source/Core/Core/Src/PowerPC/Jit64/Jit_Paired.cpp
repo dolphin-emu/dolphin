@@ -59,31 +59,24 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Paired)
 
-	Default(inst); return;
-
 	if (inst.Rc) {
 		Default(inst); return;
 	}
-	// GRR can't get this to work 100%. Getting artifacts in D.O.N. intro.
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
 	int c = inst.FC;
-	fpr.FlushLockX(XMM7);
-	fpr.FlushLockX(XMM6);
 	fpr.Lock(a, b, c, d);
-	fpr.BindToRegister(a, true, false);
-	fpr.BindToRegister(d, false, true);
-	// BLENDPD would have been nice...
-	MOVAPD(XMM7, fpr.R(a));
-	CMPPD(XMM7, M((void*)psZeroZero), 1); //less-than = 111111
-	MOVAPD(XMM6, R(XMM7));
-	ANDPD(XMM7, fpr.R(d));
-	ANDNPD(XMM6, fpr.R(c));
-	MOVAPD(fpr.RX(d), R(XMM7));
-	ORPD(fpr.RX(d), R(XMM6));
+	fpr.BindToRegister(d, d == b || d == c || d == a, true);
+	MOVAPD(XMM1, fpr.R(a));
+	XORPD(XMM0, R(XMM0));
+	CMPPD(XMM1, R(XMM0), 1); //less-than = 111111
+	MOVAPD(XMM0, R(XMM1));
+	ANDPD(XMM1, fpr.R(b));
+	ANDNPD(XMM0, fpr.R(c));
+	ORPD(XMM0, R(XMM1));
+	MOVAPD(fpr.RX(d), R(XMM0));
 	fpr.UnlockAll();
-	fpr.UnlockAllX();
 }
 
 void Jit64::ps_sign(UGeckoInstruction inst)
