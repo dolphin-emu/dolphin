@@ -24,6 +24,9 @@
 #include "../Gekko.h"
 #include "../PPCAnalyst.h"
 
+// Define this in order to get VTune profile support for the Jit generated code.
+// Add the VTune include/lib directories to the project directories to get this to build.
+// #define USE_VTUNE
 
 // emulate CPU with unlimited instruction cache
 // the only way to invalidate a region is the "icbi" instruction
@@ -65,6 +68,10 @@ struct JitBlock
 	u64 ticStart;		// for profiling - time.
 	u64 ticStop;		// for profiling - time.
 	u64 ticCounter;	// for profiling - time.
+#endif
+
+#ifdef USE_VTUNE
+	char blockName[32];
 #endif
 };
 
