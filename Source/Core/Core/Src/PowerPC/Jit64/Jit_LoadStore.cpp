@@ -138,8 +138,6 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		gpr.KillImmediate(d, false, true);
 		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
-		
-		gpr.Flush(FLUSH_ALL); 
 
 		// if it's still 0, we can wait until the next event
 		TEST(32, R(EAX), R(EAX));
