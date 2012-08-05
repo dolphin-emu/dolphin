@@ -241,8 +241,32 @@ void Matrix44::Translate(Matrix44 &mtx, const float vec[3])
     mtx.data[11] = vec[2];
 }
 
+inline void MatrixMul4(const float *a, const float *b, float *result)
+{
+	const __m128 b0 = _mm_load_ps(b + 0);
+	const __m128 b1 = _mm_load_ps(b + 4);
+	const __m128 b2 = _mm_load_ps(b + 8);
+	const __m128 b3 = _mm_load_ps(b + 12);
+
+	for (int i = 0; i < 4; ++i) {
+		__m128 a_ = _mm_load_ps(a + i*4);
+
+		__m128 a0 = _mm_shuffle_ps(a_, a_, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 a1 = _mm_shuffle_ps(a_, a_, _MM_SHUFFLE(1, 1, 1, 1));
+		__m128 a2 = _mm_shuffle_ps(a_, a_, _MM_SHUFFLE(2, 2, 2, 2));
+		__m128 a3 = _mm_shuffle_ps(a_, a_, _MM_SHUFFLE(3, 3, 3, 3));
+
+		a0 = _mm_mul_ps(a0, b0);
+		a1 = _mm_mul_ps(a1, b1);
+		a2 = _mm_mul_ps(a2, b2);
+		a3 = _mm_mul_ps(a3, b3);
+
+		_mm_store_ps(result + i*4, _mm_add_ps(_mm_add_ps(a0, a1), _mm_add_ps(a2, a3)));
+	}
+}
+
 void Matrix44::Multiply(const Matrix44 &a, const Matrix44 &b, Matrix44 &result)
 {
-    MatrixMul(4, a.data, b.data, result.data);
+	MatrixMul4(a.data, b.data, result.data);
 }
 

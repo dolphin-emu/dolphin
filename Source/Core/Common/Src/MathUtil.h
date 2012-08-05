@@ -195,7 +195,7 @@ public:
 
     static void Multiply(const Matrix44 &a, const Matrix44 &b, Matrix44 &result);
 
-    float data[16];
+    float GC_ALIGNED16(data[16]);
 };
 
 #endif // _MATH_UTIL_H_
