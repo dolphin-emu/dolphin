@@ -590,7 +590,6 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
 	//if not early z culling will improve speed
-	// TODO: Can probably be dropped?
 	if (is_d3d)
 	{
 		out.Write("o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
@@ -637,10 +636,10 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type)
 {
-	GenerateVertexShader<VertexShaderUid, GO_ShaderUid>(object, components, api_type);
+	GenerateVertexShader<ShaderUid, GO_ShaderUid>(object, components, api_type);
 }
 
 void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type)
 {
-	GenerateVertexShader<VertexShaderCode, GO_ShaderCode>(object, components, api_type);
+	GenerateVertexShader<ShaderCode, GO_ShaderCode>(object, components, api_type);
 }

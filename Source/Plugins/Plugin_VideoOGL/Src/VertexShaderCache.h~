@@ -49,12 +49,12 @@ class VertexShaderCache
 		}
 	};
 
-	typedef std::map<VertexShaderUid, VSCacheEntry> VSCache;
+	typedef std::map<ShaderUid, VSCacheEntry> VSCache;
 
 	static VSCache vshaders;
 
 	static VSCacheEntry* last_entry;
-	static VertexShaderUid last_uid; // TODO: Use reference instead..
+	static ShaderUid last_uid; // TODO: Use reference instead..
 
 	static GLuint CurrentShader;
 	static bool ShaderEnabled;

@@ -82,7 +82,7 @@ struct uid_data
 	} lit_chans[4];
 };
 
-typedef ShaderUid<uid_data> VertexShaderUid;
+typedef ShaderUid<uid_data, 24> VertexShaderUid;
 typedef ShaderCode<uid_data> VertexShaderCode;
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type);

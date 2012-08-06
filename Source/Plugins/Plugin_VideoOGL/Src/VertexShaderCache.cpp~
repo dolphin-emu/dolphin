@@ -101,8 +101,8 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 	// Make an entry in the table
 	VSCacheEntry& entry = vshaders[uid];
 	last_entry = &entry;
-	VertexShaderCode code;
-	GenerateVertexShaderCode(code, components, API_OPENGL);
+	ShaderCode code;
+	GenerateShaderCode(code, components, API_OPENGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
