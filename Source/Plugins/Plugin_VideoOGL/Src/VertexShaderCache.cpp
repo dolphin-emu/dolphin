@@ -42,7 +42,7 @@ GLuint VertexShaderCache::CurrentShader;
 bool VertexShaderCache::ShaderEnabled;
 
 VertexShaderCache::VSCacheEntry* VertexShaderCache::last_entry = NULL;
-VERTEXSHADERUID VertexShaderCache::last_uid;
+ShaderUid VertexShaderCache::last_uid;
 
 static int s_nMaxVertexInstructions;
 
@@ -74,14 +74,14 @@ void VertexShaderCache::Shutdown()
 
 VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 {
-	VERTEXSHADERUID uid;
-	GetVertexShaderId(&uid, components);
+	// Possible optimization: Don't always generate the shader uid, but keep track of changes in BPStructs instead
+	ShaderUid uid;
+	GenerateShaderUid(uid, components, API_OPENGL);
 	if (last_entry)
 	{
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-			ValidateVertexShaderIDs(API_OPENGL, vshaders[uid].safe_uid, vshaders[uid].shader.strprog, components);
 			return &last_entry->shader;
 		}
 	}
@@ -95,15 +95,14 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 		last_entry = &entry;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-		ValidateVertexShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, components);
 		return &last_entry->shader;
 	}
 
 	// Make an entry in the table
 	VSCacheEntry& entry = vshaders[uid];
 	last_entry = &entry;
-	const char *code = GenerateVertexShaderCode(components, API_OPENGL);
-	GetSafeVertexShaderId(&entry.safe_uid, components);
+	ShaderCode code;
+	GenerateShaderCode(code, components, API_OPENGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
@@ -111,11 +110,11 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 
-		SaveData(szTemp, code);
+		SaveData(szTemp, code.GetBuffer());
 	}
 #endif
 
-	if (!code || !VertexShaderCache::CompileVertexShader(entry.shader, code)) {
+	if (!code.GetBuffer() || !VertexShaderCache::CompileVertexShader(entry.shader, code.GetBuffer())) {
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return NULL;
 	}

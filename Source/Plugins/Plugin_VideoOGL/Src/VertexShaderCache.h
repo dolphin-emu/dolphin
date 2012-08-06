@@ -40,7 +40,7 @@ class VertexShaderCache
 	struct VSCacheEntry
 	{ 
 		VERTEXSHADER shader;
-		VERTEXSHADERUIDSAFE safe_uid;
+		ShaderUid safe_uid;
 		VSCacheEntry() {}
 		void Destroy() {
 			// printf("Destroying vs %i\n", shader.glprogid);
@@ -49,12 +49,12 @@ class VertexShaderCache
 		}
 	};
 
-	typedef std::map<VERTEXSHADERUID, VSCacheEntry> VSCache;
+	typedef std::map<ShaderUid, VSCacheEntry> VSCache;
 
 	static VSCache vshaders;
 
 	static VSCacheEntry* last_entry;
-	static VERTEXSHADERUID last_uid;
+	static ShaderUid last_uid; // TODO: Use reference instead..
 
 	static GLuint CurrentShader;
 	static bool ShaderEnabled;

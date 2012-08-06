@@ -18,6 +18,7 @@
 #ifndef GCOGL_VERTEXSHADER_H
 #define GCOGL_VERTEXSHADER_H
 
+#include <stdarg.h>
 #include "XFMemory.h"
 #include "VideoCommon.h"
 
@@ -48,71 +49,106 @@
 #define C_DEPTHPARAMS           (C_POSTTRANSFORMMATRICES + 64)
 #define C_VENVCONST_END			(C_DEPTHPARAMS + 4)
 
-template<bool safe>
-class _VERTEXSHADERUID
+// TODO: Need packing?
+struct uid_data
 {
-#define NUM_VSUID_VALUES_SAFE 25
+	u32 components;
+	u32 numColorChans : 2;
+	u32 numTexGens : 4;
+
+	struct {
+		u32 projection : 1; // XF_TEXPROJ_X
+		u32 inputform : 2; // XF_TEXINPUT_X
+		u32 texgentype : 3; // XF_TEXGEN_X
+		u32 sourcerow : 5; // XF_SRCGEOM_X
+		u32 embosssourceshift : 3; // what generated texcoord to use
+		u32 embosslightshift : 3; // light index that is used
+	} texMtxInfo[8];
+	struct {
+		u32 index : 6; // base row of dual transform matrix
+		u32 normalize : 1; // normalize before send operation
+	} postMtxInfo[8];
+	struct {
+		u32 enabled : 1;
+	} dualTexTrans;
+	struct {
+		u32 matsource : 1;
+		u32 enablelighting : 1;
+		u32 ambsource : 1;
+        u32 diffusefunc : 2;
+        u32 attnfunc : 2;
+		u32 light_mask : 8;
+	} lit_chans[4];
+};
+
+
+class ShaderUid
+{
 public:
-	u32 values[safe ? NUM_VSUID_VALUES_SAFE : 9];
-
-	_VERTEXSHADERUID()
+	ShaderUid()
 	{
+		memset(values, 0, sizeof(values));
 	}
 
-	_VERTEXSHADERUID(const _VERTEXSHADERUID& r)
+	void Write(const char* fmt, ...) {}
+	const char* GetBuffer() { return NULL; }
+	void SetBuffer(char* buffer) { }
+
+	bool operator == (const ShaderUid& obj) const
 	{
-		for (size_t i = 0; i < sizeof(values) / sizeof(u32); ++i) 
-			values[i] = r.values[i]; 
+		return memcmp(this->values, obj.values, sizeof(values)) == 0;
 	}
 
-	int GetNumValues() const 
+	// TODO: Store last frame used and order by that? makes much more sense anyway...
+	bool operator < (const ShaderUid& obj) const
 	{
-		if (safe) return NUM_VSUID_VALUES_SAFE;
-		else return (((values[0] >> 23) & 0xf) * 3 + 3) / 4 + 3; // numTexGens*3/4+1
-	}
-
-	bool operator <(const _VERTEXSHADERUID& _Right) const
-	{
-		if (values[0] < _Right.values[0])
-			return true;
-		else if (values[0] > _Right.values[0])
-			return false;
-		int N = GetNumValues();
-		for (int i = 1; i < N; ++i) 
+		for (int i = 0; i < 24; ++i)
 		{
-			if (values[i] < _Right.values[i])
+			if (this->values[i] < obj.values[i])
 				return true;
-			else if (values[i] > _Right.values[i])
+			else if (this->values[i] > obj.values[i])
 				return false;
 		}
 		return false;
 	}
 
-	bool operator ==(const _VERTEXSHADERUID& _Right) const
+	uid_data& GetUidData() { return data; }
+
+private:
+	union
 	{
-		if (values[0] != _Right.values[0])
-			return false;
-		int N = GetNumValues();
-		for (int i = 1; i < N; ++i)
-		{
-			if (values[i] != _Right.values[i])
-				return false;
-		}
-		return true;
-	}
+		uid_data data;
+		u32 values[24]; // TODO: Length?
+	};
 };
-typedef _VERTEXSHADERUID<false> VERTEXSHADERUID;
-typedef _VERTEXSHADERUID<true> VERTEXSHADERUIDSAFE;
 
+class ShaderCode
+{
+public:
+	ShaderCode() : buf(NULL), write_ptr(NULL)
+	{
 
-// components is included in the uid.
-char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE api_type);
-const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type);
+	}
 
-void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components);
-void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components);
+	void Write(const char* fmt, ...)
+	{
+		va_list arglist;
+		va_start(arglist, fmt);
+		write_ptr += vsprintf(write_ptr, fmt, arglist);
+		va_end(arglist);
+	}
 
-// Used to make sure that our optimized vertex shader IDs don't lose any possible shader code changes
-void ValidateVertexShaderIDs(API_TYPE api, VERTEXSHADERUIDSAFE old_id, const std::string& old_code, u32 components);
+	const char* GetBuffer() { return buf; }
+	void SetBuffer(char* buffer) { buf = buffer; write_ptr = buffer; }
+	uid_data& GetUidData() { return *(uid_data*)NULL; }
+
+private:
+	const char* buf;
+	char* write_ptr;
+};
+
+void GenerateShaderUid(ShaderUid& object, u32 components, API_TYPE api_type);
+void GenerateShaderCode(ShaderCode& object, u32 components, API_TYPE api_type);
+
 
 #endif // GCOGL_VERTEXSHADER_H
