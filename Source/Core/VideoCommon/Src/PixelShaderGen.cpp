@@ -440,8 +440,8 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	{
 		if (nIndirectStagesUsed & (1<<i))
 		{
-			int texcoord = bpmem.tevindref.getTexCoord(i);
-			int texmap = bpmem.tevindref.getTexMap(i);
+			unsigned int texcoord = bpmem.tevindref.getTexCoord(i);
+			unsigned int texmap = bpmem.tevindref.getTexMap(i);
 
 			if (i == 0)
 			{
