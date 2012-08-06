@@ -39,13 +39,13 @@ static int s_nMaxPixelInstructions;
 static GLuint s_ColorMatrixProgram = 0;
 static GLuint s_DepthMatrixProgram = 0;
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
-PIXELSHADERUID PixelShaderCache::s_curuid;
+PixelShaderUid PixelShaderCache::s_curuid;
 bool PixelShaderCache::s_displayCompileAlert;
 GLuint PixelShaderCache::CurrentShader;
 bool PixelShaderCache::ShaderEnabled;
 
 PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry = NULL;
-PIXELSHADERUID PixelShaderCache::last_uid;
+PixelShaderUid PixelShaderCache::last_uid;
 
 GLuint PixelShaderCache::GetDepthMatrixProgram()
 {
@@ -183,16 +183,15 @@ void PixelShaderCache::Shutdown()
 
 FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
-	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlphaMode, components);
-	
+	PixelShaderUid uid;
+	GetPixelShaderId(uid, dstAlphaMode, API_OPENGL, components);
+
 	// Check if the shader is already set
 	if (last_entry)
 	{
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-			ValidatePixelShaderIDs(API_OPENGL, last_entry->safe_uid, last_entry->shader.strprog, dstAlphaMode, components);
 			return &last_entry->shader;
 		}
 	}
@@ -206,19 +205,18 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 		last_entry = &entry;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		ValidatePixelShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, dstAlphaMode, components);
 		return &last_entry->shader;
 	}
 
 	// Make an entry in the table
 	PSCacheEntry& newentry = PixelShaders[uid];
 	last_entry = &newentry;
-	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
+	PixelShaderCode code;
+	GeneratePixelShaderCode(code, dstAlphaMode, API_OPENGL, components);
 
-	if (g_ActiveConfig.bEnableShaderDebugging && code)
+	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
-		GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode, components);
-		newentry.shader.strprog = code;
+		newentry.shader.strprog = code.GetBuffer();
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -227,11 +225,11 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
 		
-		SaveData(szTemp, code);
+		SaveData(szTemp, code.GetBuffer()); /// XXX
 	}
 #endif
 
-	if (!code || !CompilePixelShader(newentry.shader, code)) {
+	if (!code.GetBuffer() || !CompilePixelShader(newentry.shader, code.GetBuffer())) {
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return NULL;
 	}

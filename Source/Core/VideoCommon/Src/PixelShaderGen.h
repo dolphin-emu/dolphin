@@ -19,6 +19,7 @@
 #define GCOGL_PIXELSHADER_H
 
 #include "VideoCommon.h"
+#include "ShaderGenCommon.h"
 
 #define I_COLORS      "color"
 #define I_KCOLORS     "k"
@@ -44,66 +45,6 @@
 #define C_PLIGHTS		(C_FOG + 3)
 #define C_PMATERIALS	(C_PLIGHTS + 40)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
-#define PIXELSHADERUID_MAX_VALUES 70
-#define PIXELSHADERUID_MAX_VALUES_SAFE 115
-
-// DO NOT make anything in this class virtual.
-template<bool safe>
-class _PIXELSHADERUID
-{
-public:
-	u32 values[safe ? PIXELSHADERUID_MAX_VALUES_SAFE : PIXELSHADERUID_MAX_VALUES];
-	int num_values;
-
-	_PIXELSHADERUID()
-	{
-	}
-
-	_PIXELSHADERUID(const _PIXELSHADERUID& r)
-	{
-		num_values = r.num_values;
-		if (safe) memcpy(values, r.values, PIXELSHADERUID_MAX_VALUES_SAFE);
-		else memcpy(values, r.values, r.GetNumValues() * sizeof(values[0]));
-	}
-
-	int GetNumValues() const
-	{
-		if (safe) return (sizeof(values) / sizeof(u32));
-		else return num_values;
-	}
-
-	bool operator <(const _PIXELSHADERUID& _Right) const
-	{
-		int N = GetNumValues();
-		if (N < _Right.GetNumValues())
-			return true;
-		else if (N > _Right.GetNumValues())
-			return false;
-		for (int i = 0; i < N; ++i)
-		{
-			if (values[i] < _Right.values[i])
-				return true;
-			else if (values[i] > _Right.values[i])
-				return false;
-		}
-		return false;
-	}
-
-	bool operator ==(const _PIXELSHADERUID& _Right) const
-	{
-		int N = GetNumValues();
-		if (N != _Right.GetNumValues())
-			return false;
-		for (int i = 0; i < N; ++i)
-		{
-			if (values[i] != _Right.values[i])
-				return false;
-		}
-		return true;
-	}
-};
-typedef _PIXELSHADERUID<false> PIXELSHADERUID;
-typedef _PIXELSHADERUID<true> PIXELSHADERUIDSAFE;
 
 // Different ways to achieve rendering with destination alpha
 enum DSTALPHA_MODE
@@ -113,12 +54,53 @@ enum DSTALPHA_MODE
 	DSTALPHA_DUAL_SOURCE_BLEND // Use dual-source blending
 };
 
-const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
+enum ALPHA_PRETEST_RESULT
+{
+	ALPHAPT_UNDEFINED, // AlphaTest Result is not defined
+	ALPHAPT_ALWAYSFAIL, // Alpha test alway Fail
+	ALPHAPT_ALWAYSPASS // Alpha test alway Pass
+};
 
-void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
-void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
+struct pixel_shader_uid_data
+{
+	u32 components;
+	DSTALPHA_MODE dstAlphaMode; // TODO: as u32 :2
+	ALPHA_PRETEST_RESULT Pretest; // TODO: As :2
+	u32 nIndirectStagesUsed : 8;
+	struct {
+        u32 numtexgens : 4;
+        u32 numtevstages : 4;
+		u32 numindstages : 3;
+	} genMode;
+	u32 fogc_proj_fselfsel : 3;
+	struct
+	{
+		u32 unknown : 1;
+		u32 projection : 1; // XF_TEXPROJ_X
+		u32 inputform : 2; // XF_TEXINPUT_X
+		u32 texgentype : 3; // XF_TEXGEN_X
+		u32 sourcerow : 5; // XF_SRCGEOM_X
+		u32 embosssourceshift : 3; // what generated texcoord to use
+		u32 embosslightshift : 3; // light index that is used
+	} texMtxInfo[8];
+	struct
+	{
+        u32 bi0 : 3; // indirect tex stage 0 ntexmap
+        u32 bc0 : 3; // indirect tex stage 0 ntexcoord
+        u32 bi1 : 3;
+        u32 bc1 : 3;
+        u32 bi2 : 3;
+        u32 bc3 : 3;
+        u32 bi4 : 3;
+        u32 bc4 : 3;
+	} tevindref;
+};
 
-// Used to make sure that our optimized pixel shader IDs don't lose any possible shader code changes
-void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::string& old_code, DSTALPHA_MODE dstAlphaMode, u32 components);
+typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
+typedef ShaderCode<pixel_shader_uid_data> PixelShaderCode;
+
+
+void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
+void GetPixelShaderId(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 
 #endif // GCOGL_PIXELSHADER_H

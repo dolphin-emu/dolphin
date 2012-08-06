@@ -51,7 +51,7 @@
 #define C_VENVCONST_END			(C_DEPTHPARAMS + 4)
 
 // TODO: Need packing?
-struct uid_data
+struct vertex_shader_uid_data
 {
 	u32 components;
 	u32 numColorChans : 2;
@@ -82,8 +82,8 @@ struct uid_data
 	} lit_chans[4];
 };
 
-typedef ShaderUid<uid_data> VertexShaderUid;
-typedef ShaderCode<uid_data> VertexShaderCode;
+typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
+typedef ShaderCode<vertex_shader_uid_data> VertexShaderCode;
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type);
 void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type);

@@ -28,11 +28,6 @@
 
 static char text[16768];
 
-enum GenOutput
-{
-	GO_ShaderCode,
-	GO_ShaderUid,
-};
 // TODO: Check if something goes wrong if the cached shaders used pixel lighting but it's disabled later??
 template<class T>
 void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)

@@ -53,20 +53,19 @@ class PixelShaderCache
 		{
 			shader.Destroy();
 		}
-		PIXELSHADERUIDSAFE safe_uid;
 	};
 
-	typedef std::map<PIXELSHADERUID, PSCacheEntry> PSCache;
+	typedef std::map<PixelShaderUid, PSCacheEntry> PSCache;
 
 	static PSCache PixelShaders;
 
-	static PIXELSHADERUID s_curuid; // the current pixel shader uid (progressively changed as memory is written)
+	static PixelShaderUid s_curuid; // the current pixel shader uid (progressively changed as memory is written)
 
     static bool s_displayCompileAlert;
 
 	static GLuint CurrentShader;
 	static PSCacheEntry* last_entry;
-	static PIXELSHADERUID last_uid;
+	static PixelShaderUid last_uid;
 
 	static bool ShaderEnabled;
 

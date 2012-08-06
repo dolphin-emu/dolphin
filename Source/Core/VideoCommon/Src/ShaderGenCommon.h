@@ -44,7 +44,7 @@ public:
 	// TODO: Store last frame used and order by that? makes much more sense anyway...
 	bool operator < (const ShaderUid& obj) const
 	{
-		for (int i = 0; i < sizeof(uid_data) / sizeof(u32); ++i)
+		for (unsigned int i = 0; i < sizeof(uid_data) / sizeof(u32); ++i)
 		{
 			if (this->values[i] < obj.values[i])
 				return true;
@@ -89,6 +89,12 @@ public:
 private:
 	const char* buf;
 	char* write_ptr;
+};
+
+enum GenOutput
+{
+	GO_ShaderCode,
+	GO_ShaderUid,
 };
 
 #endif // _SHADERGENCOMMON_H
