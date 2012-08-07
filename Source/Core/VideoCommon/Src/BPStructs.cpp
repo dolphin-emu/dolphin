@@ -447,8 +447,8 @@ void BPWritten(const BPCmd& bp)
 		}
 		}
 		break;
-	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
-		DEBUG_LOG(VIDEO, "BP Texture Invalid: %08x", bp.newvalue);
+	case BPMEM_TEXINVALIDATE:
+		// TODO: Needs some restructuring in TextureCacheBase.
 		break;
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
@@ -491,7 +491,7 @@ void BPWritten(const BPCmd& bp)
 		break;
 
 	case BPMEM_PRELOAD_MODE: // Set to 0 when GX_TexModeSync() is called.
-		// if this is different from 0, manual TMEM management is used.
+		// if this is different from 0, manual TMEM management is used (GX_PreloadEntireTexture).
 		if (bp.newvalue != 0)
 		{
 			// NOTE(neobrain): Apparently tmemodd doesn't affect hardware behavior at all (libogc uses it just as a buffer and switches its contents with tmemeven whenever this is called)
