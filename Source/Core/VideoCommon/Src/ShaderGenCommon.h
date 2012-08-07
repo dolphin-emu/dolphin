@@ -29,6 +29,7 @@ class ShaderUid
 public:
 	ShaderUid()
 	{
+		// TODO: Move to Shadergen => can be optimized out
 		memset(values, 0, sizeof(values));
 	}
 

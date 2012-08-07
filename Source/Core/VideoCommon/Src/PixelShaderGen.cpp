@@ -243,7 +243,7 @@ static void BuildSwapModeTable()
 		swapModeTable[i][1] = swapColors[bpmem.tevksel[i*2].swap2];
 		swapModeTable[i][2] = swapColors[bpmem.tevksel[i*2+1].swap1];
 		swapModeTable[i][3] = swapColors[bpmem.tevksel[i*2+1].swap2];
-		swapModeTable[i][4] = 0;
+		swapModeTable[i][4] = '\0';
 	}
 }
 
@@ -251,6 +251,7 @@ template<class T, GenOutput type>
 void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
 #define SetUidField(name, value) if (type == GO_ShaderUid) {out.GetUidData().name = value; };
+#define OR_UidField(name, value) if (type == GO_ShaderUid) {out.GetUidData().name |= value; };
 	if (type == GO_ShaderCode)
 	{
 		setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
@@ -258,12 +259,9 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	}
 ///	text[sizeof(text) - 1] = 0x7C;  // canary
 
-	/// TODO: Uids!
-	BuildSwapModeTable(); // Needed for WriteStage
 	unsigned int numStages = bpmem.genMode.numtevstages + 1;
 	unsigned int numTexgen = bpmem.genMode.numtexgens;
 
-	char *p = text;
 	out.Write("//Pixel Shader for TEV stages\n");
 	out.Write("//%i TEV stages, %i texgens, XXX IND stages\n",
 		numStages, numTexgen/*, bpmem.genMode.numindstages*/);
@@ -276,31 +274,17 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	SetUidField(genMode.numtexgens, bpmem.genMode.numtexgens);
 
 	// Declare samplers
-	if(ApiType != API_D3D11)
-	{
-		out.Write("uniform sampler2D ");
-	}
-	else
-	{
-		out.Write("sampler ");
-	}
-
-	bool bfirst = true;
+	out.Write((ApiType != API_D3D11) ? "uniform sampler2D " : "sampler ");
 	for (int i = 0; i < 8; ++i)
-	{
-		out.Write("%s samp%d : register(s%d)", bfirst?"":",", i, i);
-		bfirst = false;
-	}
+		out.Write("%s samp%d : register(s%d)", (i==0)?"":",", i, i);
+
 	out.Write(";\n");
 	if(ApiType == API_D3D11)
 	{
 		out.Write("Texture2D ");
-		bfirst = true;
 		for (int i = 0; i < 8; ++i)
-		{
-			out.Write("%s Tex%d : register(t%d)", bfirst?"":",", i, i);
-			bfirst = false;
-		}
+			out.Write("%s Tex%d : register(t%d)", (i==0)?"":",", i, i);
+
 		out.Write(";\n");
 	}
 
@@ -484,6 +468,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		RegisterStates[i].AuxStored = false;
 	}
 
+	BuildSwapModeTable(); // Uids set in WriteStage
 	for (unsigned int i = 0; i < numStages; i++)
 		WriteStage<T, type>(out, i, ApiType); //build the equation for this stage
 
@@ -491,6 +476,8 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	{
 		// The results of the last texenv stage are put onto the screen,
 		// regardless of the used destination register
+		SetUidField(combiners[numStages-1].colorC.dest, bpmem.combiners[numStages-1].colorC.dest);
+		SetUidField(combiners[numStages-1].alphaC.dest, bpmem.combiners[numStages-1].alphaC.dest);
 		if(bpmem.combiners[numStages - 1].colorC.dest != 0)
 		{
 ///			SetUidField(combiners[numStages-1].colorC.dest, bpmem.combiners[numStages-1].colorC.dest);
@@ -614,8 +601,15 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 
 	out.Write("// TEV stage %d\n", n);
 
+	OR_UidField(bHasIndStage, bHasIndStage << n);
+	if (n < 8) { OR_UidField(tevorders_n_texcoord1, texcoord << (3 * n)); }
+	else OR_UidField(tevorders_n_texcoord2, texcoord << (3 * n - 24));
 	if (bHasIndStage)
 	{
+		OR_UidField(tevind_n_bs, bpmem.tevind[n].bs << (2*n));
+		OR_UidField(tevind_n_bt, bpmem.tevind[n].bt << (2*n));
+		OR_UidField(tevind_n_fmt, bpmem.tevind[n].fmt << (2*n));
+
 		out.Write("// indirect op\n");
 		// perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
 		if (bpmem.tevind[n].bs != ITBA_OFF)
@@ -629,17 +623,21 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 		out.Write("float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
 
 		// bias
+		if (n < 8) { OR_UidField(tevind_n_bias1, bpmem.tevind[n].bias << (3*n)); } /// XXX: brackets?
+		else OR_UidField(tevind_n_bias2, bpmem.tevind[n].bias << (3*n - 24));
 		if (bpmem.tevind[n].bias != ITB_NONE )
 			out.Write("indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 
 		// multiply by offset matrix and scale
+		if (n < 8) { OR_UidField(tevind_n_mid1, bpmem.tevind[n].mid << (4*n)); } /// XXX: brackets?
+		else OR_UidField(tevind_n_mid2, bpmem.tevind[n].mid << (4*n - 32));
 		if (bpmem.tevind[n].mid != 0)
 		{
 			if (bpmem.tevind[n].mid <= 3)
 			{
 				int mtxidx = 2*(bpmem.tevind[n].mid-1);
 				out.Write("float2 indtevtrans%d = float2(dot(" I_INDTEXMTX"[%d].xyz, indtevcrd%d), dot(" I_INDTEXMTX"[%d].xyz, indtevcrd%d));\n",
-					n, mtxidx, n, mtxidx+1, n);
+							n, mtxidx, n, mtxidx+1, n);
 			}
 			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord)
 			{ // s matrix
@@ -662,6 +660,11 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 		// ---------
 		// Wrapping
 		// ---------
+
+		if (n < 8) { OR_UidField(tevorders_n_sw1, bpmem.tevind[n].sw << (3 * n)); }
+		else OR_UidField(tevorders_n_sw2, bpmem.tevind[n].sw << (3 * n - 24));
+		if (n < 8) { OR_UidField(tevorders_n_tw1, bpmem.tevind[n].tw << (3 * n)); }
+		else OR_UidField(tevorders_n_tw2, bpmem.tevind[n].tw << (3 * n - 24));
 
 		// wrap S
 		if (bpmem.tevind[n].sw == ITW_OFF)
@@ -695,6 +698,12 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 		|| ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA
 		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
 	{
+		const int i = bpmem.combiners[n].alphaC.rswap;
+		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2  ].swap1 << (i*2));
+		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2+1].swap1 << (i*2 + 1));
+		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2  ].swap2 << (i*2 + 16));
+		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2+1].swap2 << (i*2 + 17));
+
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		out.Write("rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
 		out.Write("crastemp = frac(rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
@@ -711,6 +720,12 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 			else
 				out.Write("tevcoord.xy = float2(0.0f, 0.0f);\n");
 		}
+
+		const int i = bpmem.combiners[n].alphaC.tswap;
+		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2  ].swap1 << (i*2));
+		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2+1].swap1 << (i*2 + 1));
+		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2  ].swap2 << (i*2 + 16));
+		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2+1].swap2 << (i*2 + 17));
 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
@@ -950,13 +965,19 @@ static void WriteAlphaTest(T& out, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode)
 	// using discard then return works the same in cg and dx9 but not in dx11
 	out.Write("if(!( ");
 
+	SetUidField(alpha_test.comp0, bpmem.alpha_test.comp0);
+	SetUidField(alpha_test.logic, bpmem.alpha_test.comp1);
+	SetUidField(alpha_test.logic, bpmem.alpha_test.logic);
+
+	// Lookup the first component from the alpha function table
 	int compindex = bpmem.alpha_test.comp0;
-	out.Write(tevAlphaFuncsTable[compindex],alphaRef[0]);//lookup the first component from the alpha function table
+	out.Write(tevAlphaFuncsTable[compindex], alphaRef[0]);
 
 	out.Write("%s", tevAlphaFunclogicTable[bpmem.alpha_test.logic]);//lookup the logic op
 
+	// Lookup the second component from the alpha function table
 	compindex = bpmem.alpha_test.comp1;
-	out.Write(tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
+	out.Write(tevAlphaFuncsTable[compindex], alphaRef[1]);
 	out.Write(")) {\n");
 
 	out.Write("ocol0 = 0;\n");

@@ -94,6 +94,65 @@ struct pixel_shader_uid_data
         u32 bi4 : 3;
         u32 bc4 : 3;
 	} tevindref;
+
+	u32 tevorders_n_texcoord1 : 24; // 8 x 3 bit
+	u32 tevorders_n_texcoord2 : 24; // 8 x 3 bit
+	u32 tevorders_n_sw1 : 24; // 8 x 3 bit
+	u32 tevorders_n_sw2 : 24; // 8 x 3 bit
+	u32 tevorders_n_tw1 : 24; // 8 x 3 bit
+	u32 tevorders_n_tw2 : 24; // 8 x 3 bit
+
+	u32 tevind_n_bs : 32; // 16 x 2 bit
+	u32 tevind_n_fmt : 32; // 16 x 2 bit
+	u32 tevind_n_bt : 32; // 16 x 2 bit
+	u32 tevind_n_bias1 : 24; // 8 x 3 bit
+	u32 tevind_n_bias2 : 24; // 8 x 3 bit
+	u32 tevind_n_mid1 : 32; // 8 x 4 bit
+	u32 tevind_n_mid2 : 32; // 8 x 4 bit
+
+	u32 tevksel_n_swap : 32; // 8 x 2 bit (swap1) + 8 x 2 bit (swap2)
+	struct
+	{
+		struct  //abc=8bit,d=10bit
+		{
+			u32 d : 4; // TEVSELCC_X
+			u32 c : 4; // TEVSELCC_X
+			u32 b : 4; // TEVSELCC_X
+			u32 a : 4; // TEVSELCC_X
+
+			u32 bias : 2;
+			u32 op : 1;
+			u32 clamp : 1;
+
+			u32 shift : 2;
+			u32 dest : 2;  //1,2,3
+		} colorC;
+		struct
+		{
+			u32 rswap : 2;
+			u32 tswap : 2;
+			u32 d : 3; // TEVSELCA_
+			u32 c : 3; // TEVSELCA_
+			u32 b : 3; // TEVSELCA_
+			u32 a : 3; // TEVSELCA_
+
+			u32 bias : 2; //GXTevBias
+			u32 op : 1;
+			u32 clamp : 1;
+
+			u32 shift : 2;
+			u32 dest : 2;  //1,2,3
+		} alphaC;
+	} combiners[16];
+	struct
+	{
+		u32 comp0 : 3;
+		u32 comp1 : 3;
+		u32 logic : 2;
+		// TODO: ref???
+	} alpha_test;
+
+	u32 bHasIndStage : 16;
 };
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
