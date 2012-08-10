@@ -363,8 +363,10 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 
 		// 2. b) For normal textures, all texture parameters need to match
+		// NOTE: maxlevel is specified via render states, so it doesn't need to match exactly
+		// TODO: D3D9 doesn't support min_lod, so we should check for this here
 		if (address == entry->addr && tex_hash == entry->hash && full_format == entry->format &&
-			entry->num_mipmaps == maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
+			entry->num_mipmaps > maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
 		{
 			goto return_entry;
 		}
@@ -374,7 +376,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		//
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
-		if ((entry->type == TCET_NORMAL && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
+		if ((entry->type == TCET_NORMAL && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps > maxlevel)
 			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == width && entry->native_height == height))
 		{
 			// reuse the texture
@@ -421,9 +423,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// Sometimes, we can get around recreating a texture if only the number of mip levels changes
 		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
 		// Thus, we don't update this member for every Load, but just whenever the texture gets recreated
-		//
-		// TODO: Won't we end up recreating textures all the time because maxlevel doesn't necessarily equal texLevels?
-		entry->num_mipmaps = maxlevel; // TODO: Does this actually work? We can't really adjust mipmap settings per-stage...
+		// TODO: D3D9 doesn't support min_lod. We should add a workaround for that here!
+		entry->num_mipmaps = maxlevel + 1; // TODO: Does this actually work? We can't really adjust mipmap settings per-stage...
 		entry->type = TCET_NORMAL;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
