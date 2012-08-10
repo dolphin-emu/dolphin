@@ -1382,14 +1382,10 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	const TexMode0 &tm0 = tex.texMode0[stage];
 	const TexMode1 &tm1 = tex.texMode1[stage];
 	
-	unsigned int mip;
-	mip = (tm0.min_filter == 8) ? TEXF_NONE:d3dMipFilters[tm0.min_filter & 3];
-	if ((tm0.min_filter & 3) && (tm0.min_filter != 8) && ((tm1.max_lod >> 4) == 0)) mip = TEXF_NONE;
+	unsigned int mip = d3dMipFilters[tm0.min_filter & 3];
 
 	if (texindex) stage += 4;
 
-	// TODO: Clarify whether these values are correct
-	// NOTE: since there's no "no filter" in DX11 we're using point filters in these cases
 	if (g_ActiveConfig.bForceFiltering)
 	{
 		gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;

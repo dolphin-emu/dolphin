@@ -348,35 +348,24 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1)
 {
-	// TODO: not used anywhere
-	TexMode0 mode = newmode;
-	//mode1 = newmode1;
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-		(newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
+					(newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
 
-	if (bHaveMipMaps) 
-	{
-		// TODO: not used anywhere
-		if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
-			mode.min_filter += 4; // take equivalent forced linear
+	int filt = newmode.min_filter;
+	if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
+		filt += 4; // take equivalent forced linear
 
-		int filt = newmode.min_filter;            
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 4);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 4);
-		glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias / 32.0f));
-	}
-	else
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-			(g_ActiveConfig.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod / 16.f);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod / 16.f);
+	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, newmode.lod_bias / 32.0f);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
 
 	if (g_Config.iMaxAnisotropy >= 1)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-			(float)(1 << g_ActiveConfig.iMaxAnisotropy));
+						(float)(1 << g_ActiveConfig.iMaxAnisotropy));
 }
 
 TextureCache::~TextureCache()
