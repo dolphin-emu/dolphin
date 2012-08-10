@@ -201,7 +201,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-	unsigned int expanded_width, unsigned int level, bool autogen_mips)
+	unsigned int expanded_width, unsigned int level)
 {
 	//glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -212,16 +212,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	    if (expanded_width != width)
             glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
 
-		if (bHaveMipMaps && autogen_mips)
-		{
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-			glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-		}
-		else
-		{
-			glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
-		}
+		glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
 
 		if (expanded_width != width)
             glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
