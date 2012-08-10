@@ -358,7 +358,7 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod / 16.f);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod / 16.f);
-	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, newmode.lod_bias / 32.0f);
+	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (s32)newmode.lod_bias / 32.0f);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);

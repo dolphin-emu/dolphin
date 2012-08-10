@@ -1427,7 +1427,7 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	// When mipfilter is set to "none", just disable mipmapping altogether
 	gx_state.sampdc[stage].MaxLOD = (mip == TEXF_NONE) ? 0.0f : (float)tm1.max_lod/16.f;
 	gx_state.sampdc[stage].MinLOD = (float)tm1.min_lod/16.f;
-	gx_state.sampdc[stage].MipLODBias = (float)tm0.lod_bias/32.0f;
+	gx_state.sampdc[stage].MipLODBias = (s32)tm0.lod_bias/32.0f;
 }
 
 void Renderer::SetInterlacingMode()
