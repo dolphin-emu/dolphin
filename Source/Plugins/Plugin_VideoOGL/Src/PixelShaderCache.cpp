@@ -181,10 +181,10 @@ void PixelShaderCache::Shutdown()
 	PixelShaders.clear();
 }
 
-FRAGMENTSHADER* PixelShaderCache::SetShader(PSGRENDER_MODE PSGRenderMode, u32 components)
+FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, PSGRenderMode, components);
+	GetPixelShaderId(&uid, dstAlphaMode, components);
 	
 	// Check if the shader is already set
 	if (last_entry)
@@ -192,7 +192,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(PSGRENDER_MODE PSGRenderMode, u32 co
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-			ValidatePixelShaderIDs(API_OPENGL, last_entry->safe_uid, last_entry->shader.strprog, PSGRenderMode, components);
+			ValidatePixelShaderIDs(API_OPENGL, last_entry->safe_uid, last_entry->shader.strprog, dstAlphaMode, components);
 			return &last_entry->shader;
 		}
 	}
@@ -206,18 +206,18 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(PSGRENDER_MODE PSGRenderMode, u32 co
 		last_entry = &entry;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		ValidatePixelShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, PSGRenderMode, components);
+		ValidatePixelShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, dstAlphaMode, components);
 		return &last_entry->shader;
 	}
 
 	// Make an entry in the table
 	PSCacheEntry& newentry = PixelShaders[uid];
 	last_entry = &newentry;
-	const char *code = GeneratePixelShaderCode(PSGRenderMode, API_OPENGL, components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
 
 	if (g_ActiveConfig.bEnableShaderDebugging && code)
 	{
-		GetSafePixelShaderId(&newentry.safe_uid, PSGRenderMode, components);
+		GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode, components);
 		newentry.shader.strprog = code;
 	}
 

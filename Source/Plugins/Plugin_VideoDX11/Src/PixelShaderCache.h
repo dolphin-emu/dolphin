@@ -23,7 +23,7 @@
 
 #include <map>
 
-enum PSGRENDER_MODE;
+enum DSTALPHA_MODE;
 
 namespace DX11
 {
@@ -34,7 +34,7 @@ public:
 	static void Init();
 	static void Clear();
 	static void Shutdown();
-	static bool SetShader(PSGRENDER_MODE PSGRenderMode, u32 components); // TODO: Should be renamed to LoadShader
+	static bool SetShader(DSTALPHA_MODE dstAlphaMode, u32 components); // TODO: Should be renamed to LoadShader
 	static bool InsertByteCode(const PIXELSHADERUID &uid, const void* bytecode, unsigned int bytecodelen);
 
 	static ID3D11PixelShader* GetActiveShader() { return last_entry->shader; }
