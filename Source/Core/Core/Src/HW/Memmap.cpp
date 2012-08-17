@@ -635,7 +635,8 @@ u8 *GetPointer(const u32 _Address)
 	{
 	case 0x0:
 	case 0x8:
-		return m_pPhysicalRAM + (_Address & RAM_MASK);
+		if ((_Address & 0xfffffff) < REALRAM_SIZE)
+			return m_pPhysicalRAM + (_Address & RAM_MASK);
 	case 0xc:
 		switch (_Address >> 24)
 		{
@@ -647,14 +648,16 @@ u8 *GetPointer(const u32 _Address)
 			break;
 
 		default:
-			return m_pPhysicalRAM + (_Address & RAM_MASK);
+			if ((_Address & 0xfffffff) < REALRAM_SIZE)
+				return m_pPhysicalRAM + (_Address & RAM_MASK);
 		}
 
 	case 0x1:
 	case 0x9:
 	case 0xd:
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-			return m_pPhysicalEXRAM + (_Address & EXRAM_MASK);
+			if ((_Address & 0xfffffff) < EXRAM_SIZE)
+				return m_pPhysicalEXRAM + (_Address & EXRAM_MASK);
 		else
 			break;
 
