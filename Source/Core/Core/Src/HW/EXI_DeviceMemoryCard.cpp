@@ -47,13 +47,22 @@ void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 		pThis->Flush();
 }
 
+void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
+{
+	int card_index = (int)userdata;
+	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+	if (pThis)
+		pThis->CmdDone();
+}
+
 CEXIMemoryCard::CEXIMemoryCard(const int index)
 	: card_index(index)
 	, m_bDirty(false)
 {
 	m_strFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
-	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardA" : "memcardB", FlushCallback);
+	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
+	et_cmd_done = CoreTiming::RegisterEvent((card_index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
  
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -175,6 +184,21 @@ bool CEXIMemoryCard::IsPresent()
 	return true;
 }
 
+void CEXIMemoryCard::CmdDone()
+{
+	status |= MC_STATUS_READY;
+	status &= ~MC_STATUS_BUSY;
+
+	m_bInterruptSet = 1;
+	m_bDirty = true;
+}
+
+void CEXIMemoryCard::CmdDoneLater(u64 cycles)
+{
+	CoreTiming::RemoveEvent(et_cmd_done);
+	CoreTiming::ScheduleEvent(cycles, et_cmd_done, (u64)card_index);
+}
+
 void CEXIMemoryCard::SetCS(int cs)
 {
 	// So that memory card won't be invalidated during flushing
@@ -198,11 +222,7 @@ void CEXIMemoryCard::SetCS(int cs)
 
 				//???
 
-				status |= MC_STATUS_READY;
-				status &= ~MC_STATUS_BUSY;
-
-				m_bInterruptSet = 1;
-				m_bDirty = true;
+				CmdDoneLater(5000);
 			}
 			break;
 
@@ -229,11 +249,7 @@ void CEXIMemoryCard::SetCS(int cs)
 					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
 				}
 
-				status |= MC_STATUS_READY;
-				status &= ~MC_STATUS_BUSY;
-
-				m_bInterruptSet = 1;
-				m_bDirty = true;
+				CmdDoneLater(5000);
 			}
 			
 			// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
