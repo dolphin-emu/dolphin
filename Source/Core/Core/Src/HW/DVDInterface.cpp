@@ -675,7 +675,7 @@ void ExecuteCommand(UDICR& _DICR)
 				_dbg_assert_(DVDINTERFACE, m_DILENGTH.Length == 0x20);
 				if (!DVDRead(m_DICMDBUF[1].Hex, m_DIMAR.Address, m_DILENGTH.Length))
 					PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
-				WARN_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(m_DIMAR.Address))
+				WARN_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(m_DIMAR.Address));
 				break;
 
 			default:
