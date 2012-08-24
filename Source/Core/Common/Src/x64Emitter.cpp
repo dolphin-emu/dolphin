@@ -768,6 +768,10 @@ void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
 		Write8(0x0F);
 		Write8(0xB7);
 	}
+	else if (sbits == 32 && dbits == 64)
+	{
+		Write8(0x8B);
+	}
 	else
 	{
 		Crash();
