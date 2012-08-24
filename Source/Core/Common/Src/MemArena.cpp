@@ -30,7 +30,7 @@
 #endif
 
 #ifndef _WIN32
-static const char* ram_temp_file = "/tmp/gc_mem.tmp";
+static const char* ram_temp_file = "/dev/shm/gc_mem.tmp";
 #endif
 
 void MemArena::GrabLowMemSpace(size_t size)
@@ -40,6 +40,7 @@ void MemArena::GrabLowMemSpace(size_t size)
 #else
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 	fd = open(ram_temp_file, O_RDWR | O_CREAT, mode);
+	unlink(ram_temp_file);
 	ftruncate(fd, size);
 	return;
 #endif
@@ -53,7 +54,6 @@ void MemArena::ReleaseSpace()
 	hMemoryMapping = 0;
 #else
 	close(fd);
-	unlink(ram_temp_file);
 #endif
 }
 

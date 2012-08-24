@@ -105,28 +105,20 @@ public:
 typedef _PIXELSHADERUID<false> PIXELSHADERUID;
 typedef _PIXELSHADERUID<true> PIXELSHADERUIDSAFE;
 
-// Different ways to achieve rendering
-enum PSGRENDER_MODE
+// Different ways to achieve rendering with destination alpha
+enum DSTALPHA_MODE
 {
-	PSGRENDER_NORMAL, // Render normally, without destination alpha
-	PSGRENDER_DSTALPHA_ALPHA_PASS, // Render normally first, then render again for alpha
-	PSGRENDER_DSTALPHA_DUAL_SOURCE_BLEND, // Use dual-source blending
-	PSGRENDER_ZCOMPLOCK //Render to Depth Channel only with no depth dextures enabled
+	DSTALPHA_NONE, // Render normally, without destination alpha
+	DSTALPHA_ALPHA_PASS, // Render normally first, then render again for alpha
+	DSTALPHA_DUAL_SOURCE_BLEND // Use dual-source blending
 };
 
-enum ALPHA_PRETEST_RESULT
-{
-	ALPHAPT_UNDEFINED, // AlphaTest Result is not defined
-	ALPHAPT_ALWAYSFAIL, // Alpha test alway Fail
-	ALPHAPT_ALWAYSPASS // Alpha test alway Pass	
-};
+const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 
-const char *GeneratePixelShaderCode(PSGRENDER_MODE PSGRenderMode, API_TYPE ApiType, u32 components);
-
-void GetPixelShaderId(PIXELSHADERUID *uid, PSGRENDER_MODE PSGRenderMode, u32 components);
-void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, PSGRENDER_MODE PSGRenderMode, u32 components);
+void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
+void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
 
 // Used to make sure that our optimized pixel shader IDs don't lose any possible shader code changes
-void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::string& old_code, PSGRENDER_MODE PSGRenderMode, u32 components);
+void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::string& old_code, DSTALPHA_MODE dstAlphaMode, u32 components);
 
 #endif // GCOGL_PIXELSHADER_H

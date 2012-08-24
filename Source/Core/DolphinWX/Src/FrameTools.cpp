@@ -669,6 +669,9 @@ void CFrame::DoOpen(bool Boot)
 			wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 			this);
 
+	if (path.IsEmpty())
+		return;
+
 	std::string currentDir2 = File::GetCurrentDir();
 
 	if (currentDir != currentDir2)

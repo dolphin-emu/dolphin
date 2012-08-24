@@ -48,10 +48,14 @@
 
 #if defined USE_OPROFILE && USE_OPROFILE
 #include <opagent.h>
+
+op_agent_t agent;
 #endif
 
-#if defined USE_OPROFILE && USE_OPROFILE
-	op_agent_t agent;
+#if defined USE_VTUNE
+#include <jitprofiling.h>
+#pragma comment(lib, "libittnotify.lib")
+#pragma comment(lib, "jitprofiling.lib")
 #endif
 
 using namespace Gen;
@@ -120,6 +124,10 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		num_blocks = 0;
 #if defined USE_OPROFILE && USE_OPROFILE
 		op_close_agent(agent);
+#endif
+
+#ifdef USE_VTUNE
+		iJIT_NotifyEvent(iJVM_EVENT_TYPE_SHUTDOWN, NULL);
 #endif
 	}
 	
@@ -231,6 +239,20 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		const u8* blockStart = blockCodePointers[block_num];
 		op_write_native_code(agent, buf, (uint64_t)blockStart,
 		                     blockStart, b.codeSize);
+#endif
+
+#ifdef USE_VTUNE
+		sprintf(b.blockName, "EmuCode_0x%08x", b.originalAddress);
+
+		iJIT_Method_Load jmethod = {0};
+		jmethod.method_id = iJIT_GetNewMethodID();
+		jmethod.class_file_name = "";
+		jmethod.source_file_name = __FILE__;
+		jmethod.method_load_address = (void*)blockCodePointers[block_num];
+		jmethod.method_size = b.codeSize;
+		jmethod.line_number_size = 0;
+		jmethod.method_name = b.blockName;
+		iJIT_NotifyEvent(iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void*)&jmethod);
 #endif
 	}
 

@@ -9,8 +9,6 @@ namespace DX9
 
 class Renderer : public ::Renderer
 {
-private:
-	u32 LastMode;
 public:
 	Renderer();
 	~Renderer();
@@ -26,7 +24,7 @@ public:
 	void SetSamplerState(int stage,int texindex);
 	void SetInterlacingMode();
 
-	void ApplyState(u32 mode);
+	void ApplyState(bool bUseDstAlpha);
 	void RestoreState();
 
 	void RenderText(const char* pstr, int left, int top, u32 color);

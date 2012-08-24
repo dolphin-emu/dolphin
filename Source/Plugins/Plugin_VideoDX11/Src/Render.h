@@ -25,7 +25,7 @@ public:
 	void SetInterlacingMode();
 
 	// TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
-	void ApplyState(u32 mode);
+	void ApplyState(bool bUseDstAlpha);
 	void RestoreState();
 
 	void ApplyCullDisable();

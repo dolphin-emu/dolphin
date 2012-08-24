@@ -330,11 +330,11 @@ void PixelShaderCache::Shutdown()
 	unique_shaders.clear();
 }
 
-bool PixelShaderCache::SetShader(PSGRENDER_MODE PSGRenderMode, u32 components)
+bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	const API_TYPE api = ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF) < 3 ? API_D3D9_SM20 : API_D3D9_SM30;
 	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, PSGRenderMode, components);
+	GetPixelShaderId(&uid, dstAlphaMode, components);
 
 	// Check if the shader is already set
 	if (last_entry)
@@ -342,7 +342,7 @@ bool PixelShaderCache::SetShader(PSGRENDER_MODE PSGRenderMode, u32 components)
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-			ValidatePixelShaderIDs(api, last_entry->safe_uid, last_entry->code, PSGRenderMode, components);
+			ValidatePixelShaderIDs(api, last_entry->safe_uid, last_entry->code, dstAlphaMode, components);
 			return last_entry->shader != NULL;
 		}
 	}
@@ -359,13 +359,13 @@ bool PixelShaderCache::SetShader(PSGRENDER_MODE PSGRenderMode, u32 components)
 
 		if (entry.shader) D3D::SetPixelShader(entry.shader);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		ValidatePixelShaderIDs(api, entry.safe_uid, entry.code, PSGRenderMode, components);
+		ValidatePixelShaderIDs(api, entry.safe_uid, entry.code, dstAlphaMode, components);
 		return (entry.shader != NULL);
 	}
 
 
 	// Need to compile a new shader
-	const char *code = GeneratePixelShaderCode(PSGRenderMode, api, components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, api, components);
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
@@ -401,7 +401,7 @@ bool PixelShaderCache::SetShader(PSGRENDER_MODE PSGRenderMode, u32 components)
 	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
 		PixelShaders[uid].code = code;
-		GetSafePixelShaderId(&PixelShaders[uid].safe_uid, PSGRenderMode, components);
+		GetSafePixelShaderId(&PixelShaders[uid].safe_uid, dstAlphaMode, components);
 	}
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);

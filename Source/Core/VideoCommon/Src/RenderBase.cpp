@@ -386,5 +386,6 @@ void Renderer::RecordVideoMemory()
 
 void UpdateViewport(Matrix44& vpCorrection)
 {
-	g_renderer->UpdateViewport(vpCorrection);
+	if (xfregs.viewport.wd != 0 && xfregs.viewport.ht != 0)
+		g_renderer->UpdateViewport(vpCorrection);
 }

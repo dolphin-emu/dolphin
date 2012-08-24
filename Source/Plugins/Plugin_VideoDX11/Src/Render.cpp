@@ -219,6 +219,7 @@ static const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] =
 	D3D11_TEXTURE_ADDRESS_WRAP //reserved
 };
 
+
 void SetupDeviceObjects()
 {
 	s_television.Init();
@@ -300,10 +301,7 @@ void SetupDeviceObjects()
 	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
 
-	D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
-	hr = D3D::device->CreateTexture2D(&scrtex_desc, NULL, &s_screenshot_texture);
-	CHECK(hr==S_OK, "Create screenshot staging texture");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
+	s_screenshot_texture = NULL;
 }
 
 // Kill off all device objects
@@ -325,6 +323,14 @@ void TeardownDeviceObjects()
 	SAFE_RELEASE(s_screenshot_texture);
 
 	s_television.Shutdown();
+}
+
+void CreateScreenshotTexture()
+{
+	D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
+	HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, NULL, &s_screenshot_texture);
+	CHECK(hr==S_OK, "Create screenshot staging texture");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
 }
 
 Renderer::Renderer()
@@ -847,6 +853,9 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &rc)
 {
+	if (!s_screenshot_texture)
+		CreateScreenshotTexture();
+
 	// copy back buffer to system memory
 	D3D::context->CopyResource(s_screenshot_texture, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
 
@@ -1020,6 +1029,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		static int s_recordWidth;
 		static int s_recordHeight;
 
+		if (!s_screenshot_texture)
+			CreateScreenshotTexture();
+
 		D3D::context->CopyResource(s_screenshot_texture, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
 		if (!bLastFrameDumped)
 		{
@@ -1159,10 +1171,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_LastAA = g_ActiveConfig.iMultisampleMode;
 		PixelShaderCache::InvalidateMSAAShaders();
 
-		// TODO: Aren't we still holding a reference to the back buffer right now?
-		D3D::Reset();
-		s_backbuffer_width = D3D::GetBackBufferWidth();
-		s_backbuffer_height = D3D::GetBackBufferHeight();
+		if (windowResized)
+		{
+			// TODO: Aren't we still holding a reference to the back buffer right now?
+			D3D::Reset();
+			SAFE_RELEASE(s_screenshot_texture);
+			s_backbuffer_width = D3D::GetBackBufferWidth();
+			s_backbuffer_height = D3D::GetBackBufferHeight();
+		}
 
 		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 
@@ -1172,7 +1188,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		CalculateTargetSize();
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
-		
+
 		delete g_framebuffer_manager;
 		g_framebuffer_manager = new FramebufferManager;
 		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
@@ -1208,11 +1224,11 @@ void Renderer::RestoreAPIState()
 	BPFunctions::SetScissor();
 }
 
-void Renderer::ApplyState(u32 mode)
+void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	HRESULT hr;
 
-	if (mode & RSM_UseDstAlpha)
+	if (bUseDstAlpha)
 	{
 		// Colors should blend against SRC1_ALPHA
 		if (gx_state.blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_SRC_ALPHA)
@@ -1272,7 +1288,7 @@ void Renderer::ApplyState(u32 mode)
 
 	D3D::stateman->Apply();
 
-	if (mode & RSM_UseDstAlpha)
+	if (bUseDstAlpha)
 	{
 		// restore actual state
 		SetBlendMode(false);
