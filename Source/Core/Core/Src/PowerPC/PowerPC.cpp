@@ -46,6 +46,7 @@ namespace PowerPC
 
 // STATE_TO_SAVE
 PowerPCState GC_ALIGNED16(ppcState);
+double lastFPResult;
 volatile CPUState state = CPU_STEPPING;
 
 Interpreter * const interpreter = Interpreter::getInstance();
@@ -83,6 +84,7 @@ void DoState(PointerWrap &p)
 //	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
 
 	p.Do(ppcState);
+	p.Do(lastFPResult);
 
 //	SystemTimers::DecrementerSet();
 //	SystemTimers::TimeBaseSet();
@@ -566,9 +568,14 @@ void OnIdleIL()
 
 // FPSCR update functions
 
-void UpdateFPRF(double dvalue)
+void SetLastFPResult(double dvalue)
 {
-	FPSCR.FPRF = MathUtil::ClassifyDouble(dvalue);
+    PowerPC::lastFPResult = dvalue;
+}
+
+void UpdateFPRF()
+{
+	FPSCR.FPRF = MathUtil::ClassifyDouble(PowerPC::lastFPResult);
 	//if (FPSCR.FPRF == 0x11)
 	//	PanicAlert("QNAN alert");
 }

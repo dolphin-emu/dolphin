@@ -77,6 +77,7 @@ inline void SetFI(int FI)
 
 inline void UpdateFPSCR()
 {
+	UpdateFPRF();
 	FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
 	FPSCR.FEX = 0; // we assume that "?E" bits are always 0
 }

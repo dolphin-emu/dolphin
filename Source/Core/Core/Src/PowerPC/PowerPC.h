@@ -215,6 +215,7 @@ inline void SetXER_SO(int value) {
 	((UReg_XER&)PowerPC::ppcState.spr[SPR_XER]).SO = value;
 }
 
-void UpdateFPRF(double dvalue);
+void SetLastFPResult(double dvalue); // used to compute FPRF lazily
+void UpdateFPRF();
 
 #endif

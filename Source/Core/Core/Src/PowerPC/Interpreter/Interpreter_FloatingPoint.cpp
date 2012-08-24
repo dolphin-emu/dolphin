@@ -256,7 +256,7 @@ void Interpreter::frspx(UGeckoInstruction _inst)  // round to single
 	double rounded = ForceSingle(b);
 	SetFI(b != rounded);
 	FPSCR.FR = fabs(rounded) > fabs(b);
-	UpdateFPRF(rounded);
+	SetLastFPResult(rounded);
 	rPS0(_inst.FD) = rPS1(_inst.FD) = rounded;
 	return;
 }
@@ -267,7 +267,7 @@ void Interpreter::fmulx(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = ForceDouble(NI_mul(rPS0(_inst.FA), rPS0(_inst.FC)));
 	FPSCR.FI = 0; // are these flags important?
 	FPSCR.FR = 0;
-	UpdateFPRF(rPS0(_inst.FD));
+	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 void Interpreter::fmulsx(UGeckoInstruction _inst)
@@ -277,7 +277,7 @@ void Interpreter::fmulsx(UGeckoInstruction _inst)
 	//FPSCR.FI = d_value != rPS0(_inst.FD);
 	FPSCR.FI = 0;
 	FPSCR.FR = 0;
-	UpdateFPRF(rPS0(_inst.FD));
+	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
@@ -285,7 +285,7 @@ void Interpreter::fmaddx(UGeckoInstruction _inst)
 {
 	double result = ForceDouble(NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
 	rPS0(_inst.FD) = result;
-	UpdateFPRF(result);
+	SetLastFPResult(result);
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
@@ -295,7 +295,7 @@ void Interpreter::fmaddsx(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(d_value);
 	FPSCR.FI = d_value != rPS0(_inst.FD);
 	FPSCR.FR = 0;
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
@@ -303,13 +303,13 @@ void Interpreter::fmaddsx(UGeckoInstruction _inst)
 void Interpreter::faddx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(NI_add(rPS0(_inst.FA), rPS0(_inst.FB)));
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 void Interpreter::faddsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(NI_add(rPS0(_inst.FA), rPS0(_inst.FB)));
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
@@ -340,7 +340,7 @@ void Interpreter::fdivx(UGeckoInstruction _inst)
 			}
 		}
 	}
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	// FR,FI,OX,UX???
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
@@ -373,7 +373,7 @@ void Interpreter::fdivsx(UGeckoInstruction _inst)
 		}
 	}
 	rPS0(_inst.FD) = rPS1(_inst.FD) = res;
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
@@ -398,7 +398,7 @@ void Interpreter::fresx(UGeckoInstruction _inst)
 	{
 		SetFPException(FPSCR_ZX);
 	}
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
@@ -440,14 +440,14 @@ void Interpreter::frsqrtex(UGeckoInstruction _inst)
 		rPS0(_inst.FD) = ForceDouble(1.0 / sqrt(b));
 #endif
 	}
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void Interpreter::fmsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(NI_msub( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
@@ -455,28 +455,28 @@ void Interpreter::fmsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) =
 		ForceSingle( NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
 void Interpreter::fnmaddx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 void Interpreter::fnmaddsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = 
 		ForceSingle(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
 void Interpreter::fnmsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
@@ -485,21 +485,21 @@ void Interpreter::fnmsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) =
 		ForceSingle(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
 void Interpreter::fsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void Interpreter::fsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
@@ -512,6 +512,6 @@ void Interpreter::fsqrtx(UGeckoInstruction _inst)
 		FPSCR.VXSQRT = 1;
 	}
 	rPS0(_inst.FD) = sqrt(b);
- 	UpdateFPRF(rPS0(_inst.FD));
+ 	SetLastFPResult(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
