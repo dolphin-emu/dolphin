@@ -28,7 +28,7 @@
 #include "JitBackpatch.h"  // for EmuCodeBlock
 #include "JitAsmCommon.h"
 
-#include <set>
+#include <unordered_set>
 
 #define JIT_OPCODE 0
 
@@ -78,7 +78,7 @@ protected:
 
 		JitBlock *curBlock;
 
-		std::set<u32> fifoWriteAddresses;
+		std::unordered_set<u32> fifoWriteAddresses;
 	};
 
 public:
