@@ -29,7 +29,9 @@
 #include <cstring>
 #endif
 
-#ifndef _WIN32
+#if defined(__APPLE__)
+static const char* ram_temp_file = "/tmp/gc_mem.tmp";
+#elif !defined(_WIN32) // non OSX unixes
 static const char* ram_temp_file = "/dev/shm/gc_mem.tmp";
 #endif
 
