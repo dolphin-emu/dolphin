@@ -25,7 +25,7 @@
 #include "../../HW/GPFifo.h"
 #include "../../HW/Memmap.h"
 
-#include <set>
+#include <unordered_set>
 
 class JitBase : public CPUCoreBase
 {
@@ -70,7 +70,7 @@ protected:
 
 		JitBlock *curBlock;
 
-		std::set<u32> fifoWriteAddresses;
+		std::unordered_set<u32> fifoWriteAddresses;
 	};
 
 public:
