@@ -79,6 +79,11 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
     if (address <= 0x2e)
         _uReturnValue = ((u16*)&pereg)[address >> 1];
+
+	if (address > 0x16)
+	{
+		ERROR_LOG(PIXELENGINE, "Read from address %#08x, returning %#08x\n", address, _uReturnValue);
+	}
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
