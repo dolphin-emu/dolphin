@@ -77,7 +77,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
     u16 address = _iAddress & 0xFFF;
 
-    if (address <= 0x16)
+    if (address <= 0x2e)
         _uReturnValue = ((u16*)&pereg)[address >> 1];
 }
 
@@ -109,7 +109,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		}
 		break;
 	default:
-		if (address <= 0x16)
+		if (address <= 0x2e)
             ((u16*)&pereg)[address >> 1] = _iValue;    
 		break;
 	}
