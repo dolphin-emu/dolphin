@@ -146,12 +146,18 @@ namespace SWPixelEngine
         u16 boxTop;
         u16 boxBottom;
 
-		u16 perfZcompInputZcomploc;
-		u16 perfZcompOutputZcomploc;
-		u16 perfZcompInput;
-		u16 perfZcompOutput;
-		u16 perfBlendInput;
-		u16 perfEfbCopyClocks;
+		u16 perfZcompInputZcomplocLo;
+		u16 perfZcompInputZcomplocHi;
+		u16 perfZcompOutputZcomplocLo;
+		u16 perfZcompOutputZcomplocHi;
+		u16 perfZcompInputLo;
+		u16 perfZcompInputHi;
+		u16 perfZcompOutputLo;
+		u16 perfZcompOutputHi;
+		u16 perfBlendInputLo;
+		u16 perfBlendInputHi;
+		u16 perfEfbCopyClocksLo;
+		u16 perfEfbCopyClocksHi;
     };
 
     extern PEReg pereg;

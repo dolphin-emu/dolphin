@@ -92,12 +92,18 @@ void SWBPWritten(int address, int newvalue)
         break;
 	case BPMEM_CLEAR_PIXEL_PERF:
 		// TODO: Parameter?
-		SWPixelEngine::pereg.perfZcompInputZcomploc = 0;
-		SWPixelEngine::pereg.perfZcompOutputZcomploc = 0;
-		SWPixelEngine::pereg.perfZcompInput = 0;
-		SWPixelEngine::pereg.perfZcompOutput = 0;
-		SWPixelEngine::pereg.perfBlendInput = 0;
-		SWPixelEngine::pereg.perfEfbCopyClocks = 0;
+		SWPixelEngine::pereg.perfZcompInputZcomplocLo = 0;
+		SWPixelEngine::pereg.perfZcompInputZcomplocHi = 0;
+		SWPixelEngine::pereg.perfZcompOutputZcomplocLo = 0;
+		SWPixelEngine::pereg.perfZcompOutputZcomplocHi = 0;
+		SWPixelEngine::pereg.perfZcompInputLo = 0;
+		SWPixelEngine::pereg.perfZcompInputHi = 0;
+		SWPixelEngine::pereg.perfZcompOutputLo = 0;
+		SWPixelEngine::pereg.perfZcompOutputHi = 0;
+		SWPixelEngine::pereg.perfBlendInputLo = 0;
+		SWPixelEngine::pereg.perfBlendInputHi = 0;
+		SWPixelEngine::pereg.perfEfbCopyClocksLo = 0;
+		SWPixelEngine::pereg.perfEfbCopyClocksHi = 0;
 		break;
     case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.
 		break;

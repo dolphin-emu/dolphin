@@ -129,14 +129,17 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	if (bpmem.zcontrol.zcomploc)
 	{
 		// TODO: Verify that perf regs are being incremented even if test is disabled
-		SWPixelEngine::pereg.perfZcompInputZcomploc++;
+		if (++SWPixelEngine::pereg.perfZcompInputZcomplocLo == 0)
+			SWPixelEngine::pereg.perfZcompInputZcomplocHi++;
+
 		if (bpmem.zmode.testenable)
 		{
 			// early z
 			if (!EfbInterface::ZCompare(x, y, z))
 				return;
 		}
-		SWPixelEngine::pereg.perfZcompOutputZcomploc++;
+		if (++SWPixelEngine::pereg.perfZcompOutputZcomplocLo == 0)
+			SWPixelEngine::pereg.perfZcompOutputZcomplocHi++;
 	}
 
 	RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];

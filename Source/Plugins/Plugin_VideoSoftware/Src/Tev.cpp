@@ -787,13 +787,15 @@ void Tev::Draw()
 
     if (!bpmem.zcontrol.zcomploc)
 	{
-        SWPixelEngine::pereg.perfZcompInput++;
+        if (++SWPixelEngine::pereg.perfZcompInputLo == 0)
+			SWPixelEngine::pereg.perfZcompInputHi++;
 		if (bpmem.zmode.testenable)
 	    {
 	        if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
 	            return;
 	    }
-        SWPixelEngine::pereg.perfZcompOutput++;
+        if (++SWPixelEngine::pereg.perfZcompOutputLo == 0)
+			SWPixelEngine::pereg.perfZcompOutputHi++;
 	}
 
 #if ALLOW_TEV_DUMPS
@@ -818,7 +820,8 @@ void Tev::Draw()
 
     INCSTAT(swstats.thisFrame.tevPixelsOut);
 
-	SWPixelEngine::pereg.perfBlendInput++;
+	if (++SWPixelEngine::pereg.perfBlendInputLo)
+		SWPixelEngine::pereg.perfBlendInputHi++;
 
     EfbInterface::BlendTev(Position[0], Position[1], output);
 }
