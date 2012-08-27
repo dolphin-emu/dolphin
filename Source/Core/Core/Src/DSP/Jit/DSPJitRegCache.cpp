@@ -982,7 +982,7 @@ void DSPJitRegCache::getXReg(X64Reg reg)
 	}
 	if (xregs[reg].guest_reg != DSP_REG_NONE)
 		spillXReg(reg);
-	_assert_msg_(DSPLLE, xregs[reg].guest_reg != DSP_REG_NONE, "register already in use");
+	_assert_msg_(DSPLLE, xregs[reg].guest_reg == DSP_REG_NONE, "register already in use");
 	xregs[reg].guest_reg = DSP_REG_USED;
 }
 
