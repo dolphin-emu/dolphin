@@ -13,11 +13,11 @@ set(LIBS	core
 			${X11_LIBRARIES})
 
 if(SDL2_FOUND)
-	set(LIBS	${LIBS} SDL2)
+	set(LIBS	${LIBS} ${SDL2_LIBRARY})
 endif()
 
 if(SDL_FOUND)
-	set(LIBS	${LIBS} SDL)
+	set(LIBS	${LIBS} ${SDL_LIBRARY})
 endif()
 
 if(LIBAV_FOUND)
