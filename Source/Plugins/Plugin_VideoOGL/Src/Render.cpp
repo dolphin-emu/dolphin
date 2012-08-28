@@ -993,11 +993,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
 	{
 		if (g_ActiveConfig.bDumpFrames && frame_data)
-		#ifdef _WIN32
+		{
+#ifdef _WIN32
 			AVIDump::AddFrame(frame_data);
-		#elif defined HAVE_LIBAV
+#elif defined HAVE_LIBAV
 			AVIDump::AddFrame((u8*)frame_data, w, h);
-		#endif
+#endif
+		}
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
