@@ -820,7 +820,7 @@ void Tev::Draw()
 
     INCSTAT(swstats.thisFrame.tevPixelsOut);
 
-	if (++SWPixelEngine::pereg.perfBlendInputLo)
+	if (++SWPixelEngine::pereg.perfBlendInputLo == 0)
 		SWPixelEngine::pereg.perfBlendInputHi++;
 
     EfbInterface::BlendTev(Position[0], Position[1], output);
