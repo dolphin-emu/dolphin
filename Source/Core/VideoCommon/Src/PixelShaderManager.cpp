@@ -42,19 +42,45 @@ static u32 lastTexDims[8]; // width | height << 16 | wrap_s << 28 | wrap_t << 30
 static u32 lastZBias;
 static int nMaterialsChanged;
 
+static float s_constant_cache[C_PENVCONST_END*4];
+
 inline void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
+	if (s_constant_cache[const_number*4] == f1 && s_constant_cache[const_number*4+1] == f2 &&
+	    s_constant_cache[const_number*4+2] == f3 && s_constant_cache[const_number*4+3] == f4)
+		return;
+
 	g_renderer->SetPSConstant4f(const_number, f1, f2, f3, f4);
+	s_constant_cache[const_number*4] = f1;
+	s_constant_cache[const_number*4+1] = f2;
+	s_constant_cache[const_number*4+2] = f3;
+	s_constant_cache[const_number*4+3] = f4;
 }
 
 inline void SetPSConstant4fv(unsigned int const_number, const float *f)
 {
+	if (s_constant_cache[const_number*4] == f[0] && s_constant_cache[const_number*4+1] == f[1] &&
+	    s_constant_cache[const_number*4+2] == f[2] && s_constant_cache[const_number*4+3] == f[3])
+		return;
+
 	g_renderer->SetPSConstant4fv(const_number, f);
+	s_constant_cache[const_number*4] = f[0];
+	s_constant_cache[const_number*4+1] = f[1];
+	s_constant_cache[const_number*4+2] = f[2];
+	s_constant_cache[const_number*4+3] == f[3];
 }
 
 inline void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
+	for (unsigned int i = 0; i < 4*count; ++i)
+		if (s_constant_cache[const_number*4+i] != f[i])
+			break;
+		else if (i == 4*count-1)
+			return;
+
 	g_renderer->SetMultiPSConstant4fv(const_number, count, f);
+	for (unsigned int i = 0; i < 4*count; ++i)
+		s_constant_cache[const_number*4+i] = f[i];
 }
 
 void PixelShaderManager::Init()
@@ -63,6 +89,7 @@ void PixelShaderManager::Init()
 	memset(lastTexDims, 0, sizeof(lastTexDims));
 	lastZBias = 0;
 	memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
+	memset(s_constant_cache, 0, sizeof(s_constant_cache)); // TODO: Should reflect that on the GPU side....
 	Dirty();
 }
 
@@ -95,7 +122,7 @@ void PixelShaderManager::SetConstants(u32 components)
 
 #define IncStuff() { \
 	saved_updates++; \
-	printf("Saved a constant update at line %d! Saved %d against %d now!\n", __LINE__, saved_updates, necessary_updates); }
+	/*printf("Saved a constant update at line %d! Saved %d against %d now!\n", __LINE__, saved_updates, necessary_updates);*/ }
 
 	for (int i = 0; i < 2; ++i)
 	{
