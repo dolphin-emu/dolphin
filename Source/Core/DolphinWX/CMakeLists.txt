@@ -13,12 +13,18 @@ set(LIBS	core
 			${X11_LIBRARIES})
 
 if(SDL2_FOUND)
+	# Using shared SDL2
 	set(LIBS	${LIBS} ${SDL2_LIBRARY})
+else(SDL2_FOUND)
+	if(SDL_FOUND)
+		# Using shared SDL
+		set(LIBS	${LIBS} ${SDL_LIBRARY})
+	else(SDL_FOUND)
+		# Using static SDL from Externals
+		set(LIBS	${LIBS} SDL)
+	endif()
 endif()
 
-if(SDL_FOUND)
-	set(LIBS	${LIBS} ${SDL_LIBRARY})
-endif()
 
 if(LIBAV_FOUND)
 	set(LIBS	${LIBS} ${LIBAV_LIBRARIES})
