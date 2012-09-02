@@ -39,7 +39,6 @@
 
 template<class T, GenOutput type> static void WriteStage(char *&p, int n, API_TYPE ApiType);
 template<class T, GenOutput type> static void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
-// static void WriteAlphaCompare(char *&p, int num, int comp);
 template<class T, GenOutput type> static void WriteAlphaTest(T& out, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode);
 template<class T, GenOutput type> static void WriteFog(T& out);
 
@@ -250,6 +249,7 @@ static void BuildSwapModeTable()
 template<class T, GenOutput type>
 void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
+	// TODO: Can be optimized if using alpha pass
 #define SetUidField(name, value) if (type == GO_ShaderUid) {out.GetUidData().name = value; };
 #define OR_UidField(name, value) if (type == GO_ShaderUid) {out.GetUidData().name |= value; };
 	if (type == GO_ShaderCode)
@@ -664,10 +664,12 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 		// Wrapping
 		// ---------
 
-		if (n < 8) { OR_UidField(tevorders_n_sw1, bpmem.tevind[n].sw << (3 * n)); }
-		else OR_UidField(tevorders_n_sw2, bpmem.tevind[n].sw << (3 * n - 24));
-		if (n < 8) { OR_UidField(tevorders_n_tw1, bpmem.tevind[n].tw << (3 * n)); }
-		else OR_UidField(tevorders_n_tw2, bpmem.tevind[n].tw << (3 * n - 24));
+		if (n < 8) { OR_UidField(tevind_n_sw1, bpmem.tevind[n].sw << (3 * n)); }
+		else OR_UidField(tevind_n_sw2, bpmem.tevind[n].sw << (3 * n - 24));
+		if (n < 8) { OR_UidField(tevind_n_tw1, bpmem.tevind[n].tw << (3 * n)); }
+		else OR_UidField(tevind_n_tw2, bpmem.tevind[n].tw << (3 * n - 24));
+
+		OR_UidField(tevind_n_fb_addprev, bpmem.tevind[n].fb_addprev << n);
 
 		// wrap S
 		if (bpmem.tevind[n].sw == ITW_OFF)
@@ -693,6 +695,9 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
+
+	SetUidField(combiners[n].colorC.hex, cc.hex&0xFFFFFF);
+	SetUidField(combiners[n].alphaC.hex, ac.hex&0xFFFFFF);
 
 	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
 		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
@@ -1023,8 +1028,11 @@ static const char *tevFogFuncsTable[] =
 template<class T, GenOutput type>
 static void WriteFog(T& out)
 {
+	SetUidField(fog.fsel, bpmem.fog.c_proj_fsel.fsel);
 	if(bpmem.fog.c_proj_fsel.fsel == 0)
 		return; //no Fog
+
+	SetUidField(fog.proj, bpmem.fog.c_proj_fsel.proj);
 
 	if (bpmem.fog.c_proj_fsel.proj == 0)
 	{
@@ -1042,6 +1050,7 @@ static void WriteFog(T& out)
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
 	// ze *= x_adjust
 	// this is completely theoretical as the real hardware seems to use a table intead of calculating the values.
+	SetUidField(fog.RangeBaseEnabled, bpmem.fogRange.Base.Enabled);
 	if(bpmem.fogRange.Base.Enabled)
 	{
 		out.Write("  float x_adjust = (2.0f * (clipPos.x / " I_FOG"[2].y)) - 1.0f - " I_FOG"[2].x;\n");

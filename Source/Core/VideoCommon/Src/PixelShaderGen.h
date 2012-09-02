@@ -97,10 +97,11 @@ struct pixel_shader_uid_data
 
 	u32 tevorders_n_texcoord1 : 24; // 8 x 3 bit
 	u32 tevorders_n_texcoord2 : 24; // 8 x 3 bit
-	u32 tevorders_n_sw1 : 24; // 8 x 3 bit
-	u32 tevorders_n_sw2 : 24; // 8 x 3 bit
-	u32 tevorders_n_tw1 : 24; // 8 x 3 bit
-	u32 tevorders_n_tw2 : 24; // 8 x 3 bit
+	u32 tevind_n_sw1 : 24; // 8 x 3 bit
+	u32 tevind_n_sw2 : 24; // 8 x 3 bit
+	u32 tevind_n_tw1 : 24; // 8 x 3 bit
+	u32 tevind_n_tw2 : 24; // 8 x 3 bit
+	u32 tevind_n_fb_addprev : 16; // 16 x 1 bit
 
 	u32 tevind_n_bs : 32; // 16 x 2 bit
 	u32 tevind_n_fmt : 32; // 16 x 2 bit
@@ -113,35 +114,41 @@ struct pixel_shader_uid_data
 	u32 tevksel_n_swap : 32; // 8 x 2 bit (swap1) + 8 x 2 bit (swap2)
 	struct
 	{
-		struct  //abc=8bit,d=10bit
-		{
-			u32 d : 4; // TEVSELCC_X
-			u32 c : 4; // TEVSELCC_X
-			u32 b : 4; // TEVSELCC_X
-			u32 a : 4; // TEVSELCC_X
+		union {
+			struct  //abc=8bit,d=10bit
+			{
+				u32 d : 4; // TEVSELCC_X
+				u32 c : 4; // TEVSELCC_X
+				u32 b : 4; // TEVSELCC_X
+				u32 a : 4; // TEVSELCC_X
 
-			u32 bias : 2;
-			u32 op : 1;
-			u32 clamp : 1;
+				u32 bias : 2;
+				u32 op : 1;
+				u32 clamp : 1;
 
-			u32 shift : 2;
-			u32 dest : 2;  //1,2,3
+				u32 shift : 2;
+				u32 dest : 2;  //1,2,3
+			};
+			u32 hex : 24;
 		} colorC;
-		struct
-		{
-			u32 rswap : 2;
-			u32 tswap : 2;
-			u32 d : 3; // TEVSELCA_
-			u32 c : 3; // TEVSELCA_
-			u32 b : 3; // TEVSELCA_
-			u32 a : 3; // TEVSELCA_
+		union {
+			struct
+			{
+				u32 rswap : 2;
+				u32 tswap : 2;
+				u32 d : 3; // TEVSELCA_
+				u32 c : 3; // TEVSELCA_
+				u32 b : 3; // TEVSELCA_
+				u32 a : 3; // TEVSELCA_
 
-			u32 bias : 2; //GXTevBias
-			u32 op : 1;
-			u32 clamp : 1;
+				u32 bias : 2; //GXTevBias
+				u32 op : 1;
+				u32 clamp : 1;
 
-			u32 shift : 2;
-			u32 dest : 2;  //1,2,3
+				u32 shift : 2;
+				u32 dest : 2;  //1,2,3
+			};
+			u32 hex : 24;
 		} alphaC;
 	} combiners[16];
 	struct
@@ -152,6 +159,17 @@ struct pixel_shader_uid_data
 		// TODO: ref???
 	} alpha_test;
 
+	union {
+		struct
+		{
+			u32 proj : 1; // 0 - perspective, 1 - orthographic
+			u32 fsel : 3; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
+			u32 RangeBaseEnabled : 1;
+		};
+		u32 hex : 4;
+	} fog;
+
+
 	u32 bHasIndStage : 16;
 
 	u32 xfregs_numTexGen_numTexGens : 4;
@@ -159,9 +177,11 @@ struct pixel_shader_uid_data
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 typedef ShaderCode<pixel_shader_uid_data> PixelShaderCode;
+//typedef ShaderConstantProfile<pixel_shader_uid_data> PixelShaderConstantProfile;
 
 
 void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
+//void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 
 #endif // GCOGL_PIXELSHADER_H
