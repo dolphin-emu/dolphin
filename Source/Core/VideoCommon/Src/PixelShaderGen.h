@@ -72,7 +72,6 @@ struct pixel_shader_uid_data
         u32 numtevstages : 4;
 		u32 numindstages : 3;
 	} genMode;
-	u32 fogc_proj_fselfsel : 3;
 	struct
 	{
 		u32 unknown : 1;
@@ -177,11 +176,11 @@ struct pixel_shader_uid_data
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 typedef ShaderCode<pixel_shader_uid_data> PixelShaderCode;
-//typedef ShaderConstantProfile<pixel_shader_uid_data> PixelShaderConstantProfile;
+typedef ShaderConstantProfile<pixel_shader_uid_data> PixelShaderConstantProfile;
 
 
 void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
-//void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
+void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 
 #endif // GCOGL_PIXELSHADER_H

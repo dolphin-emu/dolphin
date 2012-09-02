@@ -180,7 +180,7 @@ void VertexManager::vFlush()
 
 	// set global constants
 	VertexShaderManager::SetConstants();
-	PixelShaderManager::SetConstants();
+	PixelShaderManager::SetConstants(g_nativeVertexFmt->m_components);
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;

@@ -299,9 +299,9 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	}
 	out.Write("\n");
 
-	out.Write("uniform float4 " I_COLORS"[4] : register(c%d);\n", C_COLORS);
+	out.Write("uniform float4 " I_COLORS"[4] : register(c%d);\n", C_COLORS); // TODO: first element not used??
 	out.Write("uniform float4 " I_KCOLORS"[4] : register(c%d);\n", C_KCOLORS);
-	out.Write("uniform float4 " I_ALPHA"[1] : register(c%d);\n", C_ALPHA);
+	out.Write("uniform float4 " I_ALPHA"[1] : register(c%d);\n", C_ALPHA); // TODO: Why is this an array...-.-
 	out.Write("uniform float4 " I_TEXDIMS"[8] : register(c%d);\n", C_TEXDIMS);
 	out.Write("uniform float4 " I_ZBIAS"[2] : register(c%d);\n", C_ZBIAS);
 	out.Write("uniform float4 " I_INDTEXSCALE"[2] : register(c%d);\n", C_INDTEXSCALE);
@@ -390,6 +390,8 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		"float3 ldir, h;\n"
 		"float dist, dist2, attn;\n");
 /// TODO
+		out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+39); // TODO: Can be optimized further
+		out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
 ///		p = GenerateLightingShader(p, components, I_PMATERIALS, I_PLIGHTS, "colors_", "colors_");
 	}
 
@@ -405,6 +407,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	}
 	else
 	{
+		out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS+numTexgen-1);
 		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
 			// optional perspective divides
@@ -450,7 +453,10 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 				SetUidField(tevindref.bi4, texmap);
 			}
 			if (texcoord < numTexgen)
+			{
+				out.SetConstantsUsed(C_INDTEXSCALE+i/2,C_INDTEXSCALE+i/2);
 				out.Write("tempcoord = uv%d.xy * " I_INDTEXSCALE"[%d].%s;\n", texcoord, i/2, (i&1)?"zw":"xy");
+			}
 			else
 				out.Write("tempcoord = float2(0.0f, 0.0f);\n");
 
@@ -504,12 +510,14 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		WriteAlphaTest<T, type>(out, ApiType, dstAlphaMode);
 
 	// the screen space depth value = far z + (clip z / clip w) * z range
+	out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
 	out.Write("float zCoord = " I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS"[1].y;\n");
 
 	// Note: depth textures are disabled if early depth test is enabled
 	if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
+		out.SetConstantsUsed(C_ZBIAS, C_ZBIAS+1);
 		out.Write("zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
 									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
 
@@ -521,7 +529,10 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	out.Write("depth = zCoord;\n");
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
+	{
+		out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 		out.Write("  ocol0 = float4(prev.rgb, " I_ALPHA"[0].a);\n");
+	}
 	else
 	{
 		WriteFog<T, type>(out);
@@ -532,6 +543,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	// single pass
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 	{
+		out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 		// Colors will be blended against the alpha from ocol1...
 		out.Write("  ocol1 = ocol0;\n");
 		// ...and the alpha from ocol0 will be written to the framebuffer.
@@ -639,6 +651,7 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 			if (bpmem.tevind[n].mid <= 3)
 			{
 				int mtxidx = 2*(bpmem.tevind[n].mid-1);
+				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
 				out.Write("float2 indtevtrans%d = float2(dot(" I_INDTEXMTX"[%d].xyz, indtevcrd%d), dot(" I_INDTEXMTX"[%d].xyz, indtevcrd%d));\n",
 							n, mtxidx, n, mtxidx+1, n);
 			}
@@ -646,12 +659,14 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 			{ // s matrix
 				_assert_(bpmem.tevind[n].mid >= 5);
 				int mtxidx = 2*(bpmem.tevind[n].mid-5);
+				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
 				out.Write("float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
 			}
 			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord)
 			{ // t matrix
 				_assert_(bpmem.tevind[n].mid >= 9);
 				int mtxidx = 2*(bpmem.tevind[n].mid-9);
+				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
 				out.Write("float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}
 			else
@@ -757,6 +772,10 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 		{
 			out.Write("ckonsttemp = konsttemp;\n");
 		}
+		if (kc > 7)
+			out.SetConstantsUsed(C_KCOLORS+((kc-0xc)%4),C_KCOLORS+((kc-0xc)%4));
+		if (ka > 7)
+			out.SetConstantsUsed(C_KCOLORS+((ka-0xc)%4),C_KCOLORS+((ka-0xc)%4));
 	}
 
 	if(cc.a == TEVCOLORARG_CPREV || cc.a == TEVCOLORARG_APREV
@@ -782,6 +801,8 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 	|| cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0
 	|| ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 || ac.c == TEVALPHAARG_A0)
 	{
+		// TODO: WTF?
+		out.SetConstantsUsed(C_COLORS+1,C_COLORS+1);
 		if(RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
 		{
 			out.Write("cc0 = frac(c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
@@ -800,6 +821,7 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 	|| cc.c == TEVCOLORARG_C1 || cc.c == TEVCOLORARG_A1
 	|| ac.a == TEVALPHAARG_A1 || ac.b == TEVALPHAARG_A1 || ac.c == TEVALPHAARG_A1)
 	{
+		out.SetConstantsUsed(C_COLORS+2,C_COLORS+2);
 		if(RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
 		{
 			out.Write("cc1 = frac(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
@@ -818,6 +840,7 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 	|| cc.c == TEVCOLORARG_C2 || cc.c == TEVCOLORARG_A2
 	|| ac.a == TEVALPHAARG_A2 || ac.b == TEVALPHAARG_A2 || ac.c == TEVALPHAARG_A2)
 	{
+		out.SetConstantsUsed(C_COLORS+3,C_COLORS+3);
 		if(RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
 		{
 			out.Write("cc2 = frac(c2 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
@@ -833,6 +856,28 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 
 	RegisterStates[cc.dest].ColorNeedOverflowControl = (cc.clamp == 0);
 	RegisterStates[cc.dest].AuxStored = false;
+
+/*	if (cc.d == TEVCOLORARG_C0 || cc.d == TEVCOLORARG_A0 || ac.d == TEVALPHAARG_A0)
+	{
+		out.SetConstantsUsed(C_COLORS+1,C_COLORS+1);
+		// TODO: 11 bit signed overflow..
+	}
+	if (cc.d == TEVCOLORARG_C1 || cc.d == TEVCOLORARG_A1 || ac.d == TEVALPHAARG_A1)
+	{
+		out.SetConstantsUsed(C_COLORS+2,C_COLORS+2);
+		// TODO: 11 bit signed overflow..
+	}
+	if (cc.d == TEVCOLORARG_C2 || cc.d == TEVCOLORARG_A2 || ac.d == TEVALPHAARG_A2)
+	{
+		out.SetConstantsUsed(C_COLORS+3,C_COLORS+3);
+		// TODO: 11 bit signed overflow..
+	}*/
+
+	// TODO: Are there enums for this?
+	if (cc.dest >= 1 && cc.dest <= 3)
+		out.SetConstantsUsed(C_COLORS+cc.dest, C_COLORS+cc.dest);
+	if (ac.dest >= 1 && ac.dest <= 3)
+		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
 	out.Write("// color combine\n");
 	if (cc.clamp)
@@ -935,6 +980,7 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 template<class T, GenOutput type>
 void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
+	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 	if (ApiType == API_D3D11)
 		out.Write("%s=Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
 	else
@@ -968,7 +1014,9 @@ static void WriteAlphaTest(T& out, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode)
 	{
 		I_ALPHA"[0].r",
 		I_ALPHA"[0].g"
-	};	
+	};
+
+	out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 
 	// using discard then return works the same in cg and dx9 but not in dx11
 	out.Write("if(!( ");
@@ -1034,6 +1082,7 @@ static void WriteFog(T& out)
 
 	SetUidField(fog.proj, bpmem.fog.c_proj_fsel.proj);
 
+	out.SetConstantsUsed(C_FOG, C_FOG+1);
 	if (bpmem.fog.c_proj_fsel.proj == 0)
 	{
 		// perspective
@@ -1053,6 +1102,7 @@ static void WriteFog(T& out)
 	SetUidField(fog.RangeBaseEnabled, bpmem.fogRange.Base.Enabled);
 	if(bpmem.fogRange.Base.Enabled)
 	{
+		out.SetConstantsUsed(C_FOG+2, C_FOG+2);
 		out.Write("  float x_adjust = (2.0f * (clipPos.x / " I_FOG"[2].y)) - 1.0f - " I_FOG"[2].x;\n");
 		out.Write("  x_adjust = sqrt(x_adjust * x_adjust + " I_FOG"[2].z * " I_FOG"[2].z) / " I_FOG"[2].z;\n");
 		out.Write("  ze *= x_adjust;\n");
@@ -1082,3 +1132,9 @@ void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode
 {
 	GeneratePixelShader<PixelShaderCode, GO_ShaderCode>(object, dstAlphaMode, ApiType, components);
 }
+
+void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+{
+	GeneratePixelShader<PixelShaderConstantProfile, GO_ShaderCode>(object, dstAlphaMode, ApiType, components);
+}
+

@@ -23,6 +23,8 @@
 #include <string.h>
 #include "CommonTypes.h"
 
+#include <vector>
+
 template<class uid_data>
 class ShaderUid
 {
@@ -36,6 +38,7 @@ public:
 	void Write(const char* fmt, ...) {}
 	const char* GetBuffer() { return NULL; }
 	void SetBuffer(char* buffer) { }
+	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
 
 	bool operator == (const ShaderUid& obj) const
 	{
@@ -55,7 +58,7 @@ public:
 		return false;
 	}
 
-	uid_data& GetUidData() { return data; }
+	inline uid_data& GetUidData() { return data; }
 
 private:
 	union
@@ -86,16 +89,46 @@ public:
 	const char* GetBuffer() { return buf; }
 	void SetBuffer(char* buffer) { buf = buffer; write_ptr = buffer; }
 	uid_data& GetUidData() { return *(uid_data*)NULL; }
+	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
 
 private:
 	const char* buf;
 	char* write_ptr;
 };
 
+template<class uid_data>
+class ShaderConstantProfile
+{
+public:
+	ShaderConstantProfile(int num_constants) { constant_usage.resize(num_constants); }
+
+	void Write(const char* fmt, ...) {}
+	const char* GetBuffer() { return NULL; }
+	void SetBuffer(char* buffer) { }
+	uid_data& GetUidData() { return *(uid_data*)NULL; }
+
+	// has room for optimization (if it matters at all...)
+	void NumConstants() { return constant_usage.size(); }
+
+	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index)
+	{
+		for (unsigned int i = first_index; i < last_index+1; ++i)
+			constant_usage[i] = true;
+	}
+
+	inline bool ConstantIsUsed(unsigned int index)
+	{
+		return constant_usage[index];
+	}
+private:
+	std::vector<bool> constant_usage; // TODO: Is vector<bool> appropriate here?
+};
+
 enum GenOutput
 {
 	GO_ShaderCode,
 	GO_ShaderUid,
+	GO_ShaderConstantProfile,
 };
 
 #endif // _SHADERGENCOMMON_H
