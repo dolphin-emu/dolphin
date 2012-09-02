@@ -184,7 +184,7 @@ void PixelShaderCache::Shutdown()
 FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	PixelShaderUid uid;
-	GetPixelShaderId(uid, dstAlphaMode, API_OPENGL, components);
+	GetPixelShaderUid(uid, dstAlphaMode, API_OPENGL, components);
 
 	// Check if the shader is already set
 	if (last_entry)

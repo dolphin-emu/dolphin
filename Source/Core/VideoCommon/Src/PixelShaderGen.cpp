@@ -40,8 +40,8 @@
 template<class T, GenOutput type> static void WriteStage(char *&p, int n, API_TYPE ApiType);
 template<class T, GenOutput type> static void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
-template<class T, GenOutput type> static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode);
-template<class T, GenOutput type> static void WriteFog(char *&p);
+template<class T, GenOutput type> static void WriteAlphaTest(T& out, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode);
+template<class T, GenOutput type> static void WriteFog(T& out);
 
 static const char *tevKSelTableC[] = // KCSEL
 {
@@ -273,6 +273,16 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	SetUidField(genMode.numtevstages, bpmem.genMode.numtevstages);
 	SetUidField(genMode.numtexgens, bpmem.genMode.numtexgens);
 
+	int nIndirectStagesUsed = 0;
+	if (bpmem.genMode.numindstages > 0)
+	{
+		for (unsigned int i = 0; i < numStages; ++i)
+		{
+			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
+				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
+		}
+	}
+
 	// Declare samplers
 	out.Write((ApiType != API_D3D11) ? "uniform sampler2D " : "sampler ");
 	for (int i = 0; i < 8; ++i)
@@ -287,7 +297,6 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 
 		out.Write(";\n");
 	}
-
 	out.Write("\n");
 
 	out.Write("uniform float4 " I_COLORS"[4] : register(c%d);\n", C_COLORS);
@@ -326,6 +335,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	out.Write("  in float4 colors_0 : COLOR0,\n");
 	out.Write("  in float4 colors_1 : COLOR1");
 
+	// TODO: ... this looks like an incredibly ugly hack - is it still needed?
 	// compute window position if needed because binding semantic WPOS is not widely supported
 	if (numTexgen < 7)
 	{
@@ -345,7 +355,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		}
 		else
 		{
-			/// TODO: Set numTexGen used
+			SetUidField(xfregs_numTexGen_numTexGens, xfregs.numTexGen.numTexGens);
 			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 				out.Write(",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
 		}
@@ -363,6 +373,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
+		SetUidField(xfregs_numTexGen_numTexGens, xfregs.numTexGen.numTexGens);
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
 			out.Write("float3 _norm0 = normalize(Normal.xyz);\n\n");
@@ -378,7 +389,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		out.Write("float4 mat, lacc;\n"
 		"float3 ldir, h;\n"
 		"float dist, dist2, attn;\n");
-
+/// TODO
 ///		p = GenerateLightingShader(p, components, I_PMATERIALS, I_PLIGHTS, "colors_", "colors_");
 	}
 
@@ -409,16 +420,6 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	}
 
 	// indirect texture map lookup
-	int nIndirectStagesUsed = 0;
-	if (bpmem.genMode.numindstages > 0)
-	{
-		for (unsigned int i = 0; i < numStages; ++i)
-		{
-			/// Ignoring this for now, handled in WriteStage.
-			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
-				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
-		}
-	}
 	SetUidField(nIndirectStagesUsed, nIndirectStagesUsed);
 	for(u32 i = 0; i < bpmem.genMode.numindstages; ++i)
 	{
@@ -427,6 +428,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 			unsigned int texcoord = bpmem.tevindref.getTexCoord(i);
 			unsigned int texmap = bpmem.tevindref.getTexMap(i);
 
+			/// TODO: Cleanup...
 			if (i == 0)
 			{
 				SetUidField(tevindref.bc0, texcoord);
@@ -468,15 +470,16 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		RegisterStates[i].AuxStored = false;
 	}
 
-	BuildSwapModeTable(); // Uids set in WriteStage
+	// Uid fields for BuildSwapModeTable are set in WriteStage
+	BuildSwapModeTable();
 	for (unsigned int i = 0; i < numStages; i++)
-		WriteStage<T, type>(out, i, ApiType); //build the equation for this stage
+		WriteStage<T, type>(out, i, ApiType); // build the equation for this stage
 
 	if(numStages)
 	{
 		// The results of the last texenv stage are put onto the screen,
 		// regardless of the used destination register
-		SetUidField(combiners[numStages-1].colorC.dest, bpmem.combiners[numStages-1].colorC.dest);
+		SetUidField(combiners[numStages-1].colorC.dest, bpmem.combiners[numStages-1].colorC.dest); // TODO: These probably don't need to be set anymore here...
 		SetUidField(combiners[numStages-1].alphaC.dest, bpmem.combiners[numStages-1].alphaC.dest);
 		if(bpmem.combiners[numStages - 1].colorC.dest != 0)
 		{
@@ -1061,12 +1064,12 @@ static void WriteFog(T& out)
 	out.Write("  prev.rgb = lerp(prev.rgb," I_FOG"[0].rgb,fog);\n");
 }
 
-void GetPixelShaderId(PixelShaderUid& object, DSTALPHA_MODE dst_alpha_mode, API_TYPE ApiType, u32 components)
+void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	GeneratePixelShader<PixelShaderUid, GO_ShaderUid>(object, dst_alpha_mode, ApiType, components);
+	GeneratePixelShader<PixelShaderUid, GO_ShaderUid>(object, dstAlphaMode, ApiType, components);
 }
 
-void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dst_alpha_mode, API_TYPE ApiType, u32 components)
+void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	GeneratePixelShader<PixelShaderCode, GO_ShaderCode>(object, dst_alpha_mode, ApiType, components);
+	GeneratePixelShader<PixelShaderCode, GO_ShaderCode>(object, dstAlphaMode, ApiType, components);
 }

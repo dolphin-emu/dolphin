@@ -153,6 +153,8 @@ struct pixel_shader_uid_data
 	} alpha_test;
 
 	u32 bHasIndStage : 16;
+
+	u32 xfregs_numTexGen_numTexGens : 4;
 };
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
@@ -160,6 +162,6 @@ typedef ShaderCode<pixel_shader_uid_data> PixelShaderCode;
 
 
 void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
-void GetPixelShaderId(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
+void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 
 #endif // GCOGL_PIXELSHADER_H
