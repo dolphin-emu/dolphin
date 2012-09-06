@@ -47,17 +47,8 @@ private:
 	// through the userdata parameter, so that it can then call Flush on the right card.
 	static void FlushCallback(u64 userdata, int cyclesLate);
 
-	// Scheduled when a command that required delayed end signaling is done.
-	static void CmdDoneCallback(u64 userdata, int cyclesLate);
-
 	// Flushes the memory card contents to disk.
 	void Flush(bool exiting = false);
-
-	// Signals that the command that was previously executed is now done.
-	void CmdDone();
-
-	// Variant of CmdDone which schedules an event later in the future to complete the command.
-	void CmdDoneLater(u64 cycles);
 
 	enum 
 	{
@@ -80,7 +71,7 @@ private:
 
 	std::string m_strFilename;
 	int card_index;
-	int et_this_card, et_cmd_done;
+	int et_this_card;
 	//! memory card state
 
 	// STATE_TO_SAVE

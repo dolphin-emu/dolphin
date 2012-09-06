@@ -276,8 +276,8 @@ public:
 	InstLoc EmitLoadMSR() {
 		return FoldZeroOp(LoadMSR, 0);
 	}
-	InstLoc EmitStoreMSR(InstLoc val, InstLoc pc) {
-		return FoldBiOp(StoreMSR, val, pc);
+	InstLoc EmitStoreMSR(InstLoc val) {
+		return FoldUOp(StoreMSR, val);
 	}
 	InstLoc EmitStoreFPRF(InstLoc value) {
 		return FoldUOp(StoreFPRF, value);

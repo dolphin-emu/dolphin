@@ -106,7 +106,7 @@ void JitIL::mfspr(UGeckoInstruction inst)
 // --------------
 void JitIL::mtmsr(UGeckoInstruction inst)
 {
-	ibuild.EmitStoreMSR(ibuild.EmitLoadGReg(inst.RS), ibuild.EmitIntConst(js.compilerPC));
+	ibuild.EmitStoreMSR(ibuild.EmitLoadGReg(inst.RS));
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
 }
 // ==============
