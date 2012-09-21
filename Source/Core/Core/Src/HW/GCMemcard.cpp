@@ -687,6 +687,8 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 
 	int fileBlocks = BE16(direntry.BlockCount);
 
+	FZEROGX_MakeSaveGameValid(direntry, saveBlocks);
+	PSO_MakeSaveGameValid(direntry, saveBlocks);
 
 	BlockAlloc UpdatedBat = *CurrentBat;
 	u16 nextBlock;
@@ -1265,4 +1267,131 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 	p_bat->LastAllocated = p_bat_backup->LastAllocated = BE16(4);
 	calc_checksumsBE((u16*)p_bat+2, 0xFFE, &p_bat->Checksum, &p_bat->Checksum_Inv);
 	calc_checksumsBE((u16*)p_bat_backup+2, 0xFFE, &p_bat_backup->Checksum, &p_bat_backup->Checksum_Inv);
+}
+
+
+void GCMemcard::CARD_GetSerialNo(u32 *serial1,u32 *serial2)
+{
+	u32 serial[8];
+	int i;
+	for (i = 0; i < 8; i++)
+	{
+		memcpy(&serial[i], (u8 *) &hdr+(i*4), 4);
+	}
+
+	*serial1 = serial[0]^serial[2]^serial[4]^serial[6];
+	*serial2 = serial[1]^serial[3]^serial[5]^serial[7];
+}
+
+
+/*************************************************************/
+/* FZEROGX_MakeSaveGameValid                                 */
+/* (use just before writing a F-Zero GX system .gci file)    */
+/*                                                           */
+/* chn: Destination memory card port                         */
+/* ret: Error code                                           */
+/*************************************************************/
+
+s32 GCMemcard::FZEROGX_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &FileBuffer)
+{
+	u32 i,j;
+	u32 serial1,serial2;
+	u16 chksum = 0xFFFF;
+	int block = 0;
+
+	// check for F-Zero GX system file
+	if (strcmp((char*)direntry.Filename,"f_zero.dat")!=0) return 0;
+
+	// get encrypted destination memory card serial numbers
+	CARD_GetSerialNo(&serial1,&serial2);
+
+	// set new serial numbers
+	*(u16*)&FileBuffer[1].block[0x0066] = BE16(BE32(serial1) >> 16);			
+	*(u16*)&FileBuffer[3].block[0x1580] = BE16(BE32(serial2) >> 16);
+	*(u16*)&FileBuffer[1].block[0x0060] = BE16(BE32(serial1) & 0xFFFF);
+	*(u16*)&FileBuffer[1].block[0x0200] = BE16(BE32(serial2) & 0xFFFF);
+
+	// calc 16-bit checksum
+	for (i=0x02;i<0x8000;i++)
+	{				
+		chksum ^= (FileBuffer[block].block[i-(block*0x2000)]&0xFF);
+		for (j=8; j > 0; j--)
+		{
+			if (chksum&1) chksum = (chksum>>1)^0x8408;
+			else chksum >>= 1;
+		}
+		if (!(i%0x2000)) block ++;
+	}
+
+	// set new checksum
+	*(u16*)&FileBuffer[0].block[0x00] = BE16(~chksum);				
+
+	return 1;
+}
+
+/***********************************************************/
+/* PSO_MakeSaveGameValid	                           */
+/* (use just before writing a PSO system .gci file)        */
+/*                                                         */
+/* chn: Destination memory card port                       */
+/* ret: Error code                                         */
+/***********************************************************/
+
+s32 GCMemcard::PSO_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &FileBuffer)
+{
+	u32 i,j;
+	u32 chksum;
+	u32 crc32LUT[256];
+	u32 serial1,serial2;
+	u32 pso3offset = 0x00;
+
+	// check for PSO1&2 system file
+	if (strcmp((char*)direntry.Filename,"PSO_SYSTEM")!=0)
+	{
+		// check for PSO3 system file
+		if (strcmp((char*)&FileBuffer[0].block[0x08],"PSO3_SYSTEM")==0)
+		{
+			// PSO3 data block size adjustment				
+			pso3offset = 0x10;
+		}
+		else
+		{
+			// nothing to do
+			return 0;							
+		}
+	}
+
+	// get encrypted destination memory card serial numbers
+	CARD_GetSerialNo(&serial1,&serial2);
+
+	// set new serial numbers
+	*(u32*)&FileBuffer[1].block[0x0158] = serial1;
+	*(u32*)&FileBuffer[1].block[0x015C] = serial2;
+
+	// generate crc32 LUT
+	for (i=0; i < 256; i++)
+	{								
+		chksum = i;
+       		for (j=8; j > 0; j--)
+			{
+				if (chksum&1) chksum = (chksum>>1)^0xEDB88320;
+       			else chksum >>= 1;
+			}
+
+       		crc32LUT[i] = chksum;
+	}
+
+	// PSO initial crc32 value
+	chksum = 0xDEBB20E3;								
+
+	// calc 32-bit checksum
+	for (i=0x004C; i < 0x0164+pso3offset; i++)
+	{		
+		chksum = ((chksum>>8)&0xFFFFFF)^crc32LUT[(chksum^FileBuffer[1].block[i])&0xFF];
+	}
+
+	// set new checksum
+	*(u32*)&FileBuffer[1].block[0x0048] = BE32(chksum^0xFFFFFFFF);			
+
+	return 1;
 }

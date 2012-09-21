@@ -256,6 +256,10 @@ public:
 
 	// reads the animation frames
 	u32 ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const;
+
+	void CARD_GetSerialNo(u32 *serial1,u32 *serial2);
+	s32 FZEROGX_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &FileBuffer);
+	s32 PSO_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &FileBuffer);
 };
 #endif
 
