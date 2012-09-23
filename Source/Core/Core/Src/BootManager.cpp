@@ -56,6 +56,7 @@ struct ConfigCache
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bMMUBAT,
 		bVBeam, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bDisableWiimoteSpeaker;
 	int iTLBHack;
+	std::string strBackend;
 };
 static ConfigCache config_cache;
 
@@ -96,6 +97,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
 		config_cache.bDSPHLE = StartUp.bDSPHLE;
 		config_cache.bDisableWiimoteSpeaker = StartUp.bDisableWiimoteSpeaker;
+		config_cache.strBackend = StartUp.m_strVideoBackend;
 
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
@@ -109,7 +111,7 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "BlockMerging",		&StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		game_ini.Get("Core", "DSPHLE",				&StartUp.bDSPHLE, StartUp.bDSPHLE);
 		game_ini.Get("Wii", "DisableWiimoteSpeaker",&StartUp.bDisableWiimoteSpeaker, StartUp.bDisableWiimoteSpeaker);
-
+		game_ini.Get("Core", "GFXBackend", &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend.c_str());
 		// Wii settings
 		if (StartUp.bWii)
 		{
@@ -149,6 +151,7 @@ void Stop()
 		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
 		StartUp.bDisableWiimoteSpeaker = config_cache.bDisableWiimoteSpeaker;
+		StartUp.m_strVideoBackend = config_cache.strBackend;
 	}
 }
 
