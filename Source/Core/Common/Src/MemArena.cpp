@@ -118,8 +118,7 @@ u8* MemArena::Find4GBBase()
 	}
 	return base;
 #else
-	void* base = mmap(0, 0x31000000, PROT_READ | PROT_WRITE,
-		MAP_ANON | MAP_SHARED, -1, 0);
+	void* base = mmap(0, 0x31000000, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
 	if (base == MAP_FAILED) {
 		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
 		return 0;
