@@ -44,6 +44,7 @@
 #include "SysConf.h"
 #include "Core.h"
 #include "Host.h"
+#include "VideoBackendBase.h"
 
 
 namespace BootManager
@@ -112,6 +113,8 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "DSPHLE",				&StartUp.bDSPHLE, StartUp.bDSPHLE);
 		game_ini.Get("Wii", "DisableWiimoteSpeaker",&StartUp.bDisableWiimoteSpeaker, StartUp.bDisableWiimoteSpeaker);
 		game_ini.Get("Core", "GFXBackend", &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend.c_str());
+		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
+
 		// Wii settings
 		if (StartUp.bWii)
 		{
