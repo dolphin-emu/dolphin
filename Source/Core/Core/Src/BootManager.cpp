@@ -155,6 +155,7 @@ void Stop()
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
 		StartUp.bDisableWiimoteSpeaker = config_cache.bDisableWiimoteSpeaker;
 		StartUp.m_strVideoBackend = config_cache.strBackend;
+		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 	}
 }
 
