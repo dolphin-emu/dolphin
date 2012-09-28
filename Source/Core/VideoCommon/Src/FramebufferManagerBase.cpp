@@ -229,3 +229,31 @@ void FramebufferManagerBase::ReplaceVirtualXFB()
 		}
 	}
 }
+
+unsigned int FramebufferManagerBase::ScaleToVirtualXfbWidth(unsigned int width, unsigned int backbuffer_width)
+{
+	if (g_ActiveConfig.RealXFBEnabled())
+		return width;
+
+	if (g_ActiveConfig.b3DVision)
+	{
+		// This works, yet the version in the else doesn't. No idea why.
+		return width * (backbuffer_width-1) / (FramebufferManagerBase::LastXfbWidth()-1);
+	}
+	else
+		return width * (Renderer::GetTargetRectangle().GetWidth() - 1) / (float)(FramebufferManagerBase::LastXfbWidth()-1);
+}
+
+unsigned int FramebufferManagerBase::ScaleToVirtualXfbHeight(unsigned int height, unsigned int backbuffer_height)
+{
+	if (g_ActiveConfig.RealXFBEnabled())
+		return height;
+
+	if (g_ActiveConfig.b3DVision)
+	{
+		// This works, yet the version in the else doesn't. No idea why.
+		return height * (backbuffer_height-1) / (FramebufferManagerBase::LastXfbHeight()-1);
+	}
+	else
+		return height * (Renderer::GetTargetRectangle().GetHeight() - 1) / (float)(FramebufferManagerBase::LastXfbHeight()-1);
+}

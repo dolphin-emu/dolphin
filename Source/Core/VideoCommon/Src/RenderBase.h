@@ -74,10 +74,6 @@ public:
 	static int GetBackbufferWidth() { return s_backbuffer_width; }
 	static int GetBackbufferHeight() { return s_backbuffer_height; }
 
-	// XFB scale - TODO: Remove this and add two XFBToScaled functions instead
-	static float GetXFBScaleX() { return xScale; }
-	static float GetXFBScaleY() { return yScale; }
-
 	static void SetWindowSize(int width, int height);
 
 	// EFB coordinate conversion functions
@@ -137,8 +133,7 @@ public:
 protected:
 
 	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);
-	static bool CalculateTargetSize(int multiplier = 1);
-	static void CalculateXYScale(const TargetRectangle& dst_rect);
+	static bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, int multiplier = 1);
 
 	static void CheckFifoRecording();
 	static void RecordVideoMemory();
@@ -162,10 +157,6 @@ protected:
 	// TODO: Add functionality to reinit all the render targets when the window is resized.
 	static int s_backbuffer_width;
 	static int s_backbuffer_height;
-
-	// ratio of backbuffer size and render area size - TODO: Remove these!
-	static float xScale;
-	static float yScale;
 
 	static TargetRectangle target_rc;
 

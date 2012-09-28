@@ -67,10 +67,6 @@ int Renderer::s_target_height;
 int Renderer::s_backbuffer_width;
 int Renderer::s_backbuffer_height;
 
-// ratio of backbuffer size and render area size
-float Renderer::xScale;
-float Renderer::yScale;
-
 TargetRectangle Renderer::target_rc;
 
 int Renderer::s_LastEFBScale;
@@ -165,19 +161,23 @@ void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
 }
 
 // return true if target size changed
-bool Renderer::CalculateTargetSize(int multiplier)
+bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, int multiplier)
 {
 	int newEFBWidth, newEFBHeight;
 	switch (s_LastEFBScale)
 	{
 		case 0: // fractional
-			newEFBWidth = (int)(EFB_WIDTH * xScale);
-			newEFBHeight = (int)(EFB_HEIGHT * yScale);
-			break;
 		case 1: // integral
-			newEFBWidth = EFB_WIDTH * (int)ceilf(xScale);
-			newEFBHeight = EFB_HEIGHT * (int)ceilf(yScale);
+			newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, framebuffer_width);
+			newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, framebuffer_height);
+
+			if (s_LastEFBScale)
+			{
+				newEFBWidth = ((newEFBWidth-1) / EFB_WIDTH + 1) * EFB_WIDTH;
+				newEFBHeight = ((newEFBHeight-1) / EFB_HEIGHT + 1) * EFB_HEIGHT;
+			}
 			break;
+
 		default:
 			CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, newEFBWidth, newEFBHeight);
 			break;
@@ -306,29 +306,6 @@ void Renderer::DrawDebugText()
 			//and then the text
 			g_renderer->RenderText(final_cyan.c_str(), 20, 20, 0xFF00FFFF);
 			g_renderer->RenderText(final_yellow.c_str(), 20, 20, 0xFFFFFF00);
-		}
-	}
-}
-
-void Renderer::CalculateXYScale(const TargetRectangle& dst_rect)
-{
-	if (g_ActiveConfig.RealXFBEnabled())
-	{
-		xScale = 1.0f;
-		yScale = 1.0f;
-	}
-	else
-	{
-		if (g_ActiveConfig.b3DVision)
-		{
-			// This works, yet the version in the else doesn't. No idea why.
-			xScale = (float)(s_backbuffer_width-1) / (float)(FramebufferManagerBase::LastXfbWidth()-1);
-			yScale = (float)(s_backbuffer_height-1) / (float)(FramebufferManagerBase::LastXfbHeight()-1);
-		}
-		else
-		{
-			xScale = (float)(dst_rect.right - dst_rect.left - 1) / (float)(FramebufferManagerBase::LastXfbWidth()-1);
-			yScale = (float)(dst_rect.bottom - dst_rect.top - 1) / (float)(FramebufferManagerBase::LastXfbHeight()-1);
 		}
 	}
 }

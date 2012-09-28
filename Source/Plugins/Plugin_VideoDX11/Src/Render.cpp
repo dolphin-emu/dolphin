@@ -349,11 +349,10 @@ Renderer::Renderer()
 	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-	CalculateXYScale(GetTargetRectangle());
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	CalculateTargetSize();
+	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	SetupDeviceObjects();
 
@@ -1176,10 +1175,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-		CalculateXYScale(GetTargetRectangle());
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
-		CalculateTargetSize();
+		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
 

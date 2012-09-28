@@ -149,15 +149,12 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 
 void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc)
 {
-	const float scaleX = Renderer::GetXFBScaleX();
-	const float scaleY = Renderer::GetXFBScaleY();
-
 	TargetRectangle targetSource;
 
-	targetSource.top = (int)(sourceRc.top *scaleY);
-	targetSource.bottom = (int)(sourceRc.bottom *scaleY);
-	targetSource.left = (int)(sourceRc.left *scaleX);
-	targetSource.right = (int)(sourceRc.right * scaleX);
+	targetSource.top = ScaleToVirtualXfbHeight(sourceRc.top, Renderer::GetBackbufferHeight());
+	targetSource.bottom = ScaleToVirtualXfbHeight(sourceRc.bottom, Renderer::GetBackbufferHeight());
+	targetSource.left = ScaleToVirtualXfbWidth(sourceRc.left, Renderer::GetBackbufferWidth());
+	targetSource.right = ScaleToVirtualXfbWidth(sourceRc.right, Renderer::GetBackbufferWidth());
 
 	*width = targetSource.right - targetSource.left;
 	*height = targetSource.bottom - targetSource.top;

@@ -364,10 +364,9 @@ Renderer::Renderer()
 	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-	CalculateXYScale(GetTargetRectangle());
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	CalculateTargetSize();
+	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	// Because of the fixed framebuffer size we need to disable the resolution
 	// options while running
@@ -1316,9 +1315,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		CalculateXYScale(GetTargetRectangle());
-
-		if (CalculateTargetSize() || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
+		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode)
 		{
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
