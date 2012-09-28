@@ -162,6 +162,12 @@ struct VideoConfig
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
 	} backend_info;
+
+    // Utility
+    bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
+    bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
+    bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
+    bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
 };
 
 extern VideoConfig g_Config;

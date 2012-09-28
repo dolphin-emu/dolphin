@@ -313,7 +313,7 @@ void Renderer::DrawDebugText()
 
 void Renderer::CalculateXYScale(const TargetRectangle& dst_rect)
 {
-	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
+	if (g_ActiveConfig.RealXFBEnabled())
 	{
 		xScale = 1.0f;
 		yScale = 1.0f;
