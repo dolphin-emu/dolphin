@@ -363,10 +363,8 @@ Renderer::Renderer()
 	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
 	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-	CalculateXYScale(dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+	CalculateXYScale(GetTargetRectangle());
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	CalculateTargetSize();
@@ -1027,8 +1025,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	ResetAPIState();
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, true, &dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+	TargetRectangle flipped_trc = GetTargetRectangle();
+
+	// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+	int tmp = flipped_trc.top;
+	flipped_trc.top = flipped_trc.bottom;
+	flipped_trc.bottom = tmp;
 
 	// Textured triangles are necessary because of post-processing shaders
 
@@ -1037,7 +1040,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		OGL::TextureCache::DisableStage(i);
 
 	// Update GLViewPort
-	glViewport(dst_rect.left, dst_rect.bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
+	glViewport(flipped_trc.left, flipped_trc.bottom, flipped_trc.GetWidth(), flipped_trc.GetHeight());
 
 	GL_REPORT_ERRORD();
 
@@ -1089,8 +1092,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 				// The following code disables auto stretch.  Kept for reference.
 				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				//float vScale = (float)fbHeight / (float)dst_rect.GetHeight();
-				//float hScale = (float)fbWidth / (float)dst_rect.GetWidth();
+				//float vScale = (float)fbHeight / (float)flipped_trc.GetHeight();
+				//float hScale = (float)fbWidth / (float)flipped_trc.GetWidth();
 				//drawRc.top *= vScale;
 				//drawRc.bottom *= vScale;
 				//drawRc.left *= hScale;
@@ -1167,7 +1170,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (s_bScreenshot)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		SaveScreenshot(s_sScreenshotName, dst_rect);
+		SaveScreenshot(s_sScreenshotName, flipped_trc);
 		// Reset settings
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;
@@ -1178,16 +1181,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		if (!frame_data || w != dst_rect.GetWidth() ||
-		             h != dst_rect.GetHeight())
+		if (!frame_data || w != flipped_trc.GetWidth() ||
+		             h != flipped_trc.GetHeight())
 		{
 			if (frame_data) delete[] frame_data;
-			w = dst_rect.GetWidth();
-			h = dst_rect.GetHeight();
+			w = flipped_trc.GetWidth();
+			h = flipped_trc.GetHeight();
 			frame_data = new char[3 * w * h];
 		}
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
+		glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
 		{
 			if (!bLastFrameDumped)
@@ -1242,11 +1245,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		std::string movie_file_name;
-		w = dst_rect.GetWidth();
-		h = dst_rect.GetHeight();
+		w = GetTargetRectangle().GetWidth();
+		h = GetTargetRectangle().GetHeight();
 		frame_data = new char[3 * w * h];
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
+		glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR)
 		{
 			if (!bLastFrameDumped)
@@ -1311,9 +1314,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
 	{
-		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		CalculateXYScale(dst_rect);
+		CalculateXYScale(GetTargetRectangle());
 
 		if (CalculateTargetSize() || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
 		{

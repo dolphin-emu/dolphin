@@ -85,6 +85,10 @@ public:
 	// Use this to convert a whole native EFB rect to backbuffer coordinates
 	virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
+	static const TargetRectangle& GetTargetRectangle() { return target_rc; }
+	static void UpdateDrawRectangle(int backbuffer_width, int backbuffer_height);
+
+
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
 	static unsigned int EFBToScaledX(int x) { return x * GetTargetWidth() / EFB_WIDTH; }
 	static unsigned int EFBToScaledY(int y) { return y * GetTargetHeight() / EFB_HEIGHT; }
@@ -162,6 +166,8 @@ protected:
 	// ratio of backbuffer size and render area size - TODO: Remove these!
 	static float xScale;
 	static float yScale;
+
+	static TargetRectangle target_rc;
 
 	// can probably eliminate this static var
 	static int s_LastEFBScale;

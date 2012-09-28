@@ -71,6 +71,8 @@ int Renderer::s_backbuffer_height;
 float Renderer::xScale;
 float Renderer::yScale;
 
+TargetRectangle Renderer::target_rc;
+
 int Renderer::s_LastEFBScale;
 
 bool Renderer::s_skipSwap;
@@ -329,6 +331,127 @@ void Renderer::CalculateXYScale(const TargetRectangle& dst_rect)
 			yScale = (float)(dst_rect.bottom - dst_rect.top - 1) / (float)(FramebufferManagerBase::LastXfbHeight()-1);
 		}
 	}
+}
+
+// TODO: remove
+extern bool g_aspect_wide;
+
+void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
+{
+	float FloatGLWidth = (float)backbuffer_width;
+	float FloatGLHeight = (float)backbuffer_height;
+	float FloatXOffset = 0;
+	float FloatYOffset = 0;
+
+	// The rendering window size
+	const float WinWidth = FloatGLWidth;
+	const float WinHeight = FloatGLHeight;
+
+	// Handle aspect ratio.
+	// Default to auto.
+	bool use16_9 = g_aspect_wide;
+
+	// Update aspect ratio hack values
+	// Won't take effect until next frame
+	// Don't know if there is a better place for this code so there isn't a 1 frame delay
+	if ( g_ActiveConfig.bWidescreenHack )
+	{
+		float source_aspect = use16_9 ? (16.0f / 9.0f) : (4.0f / 3.0f);
+		float target_aspect;
+
+		switch ( g_ActiveConfig.iAspectRatio )
+		{
+		case ASPECT_FORCE_16_9 :
+			target_aspect = 16.0f / 9.0f;
+			break;
+		case ASPECT_FORCE_4_3 :
+			target_aspect = 4.0f / 3.0f;
+			break;
+		case ASPECT_STRETCH :
+			target_aspect = WinWidth / WinHeight;
+			break;
+		default :
+			// ASPECT_AUTO == no hacking
+			target_aspect = source_aspect;
+			break;
+		}
+
+		float adjust = source_aspect / target_aspect;
+		if ( adjust > 1 )
+		{
+			// Vert+
+			g_Config.fAspectRatioHackW = 1;
+			g_Config.fAspectRatioHackH = 1/adjust;
+		}
+		else
+		{
+			// Hor+
+			g_Config.fAspectRatioHackW = adjust;
+			g_Config.fAspectRatioHackH = 1;
+		}
+	}
+	else
+	{
+		// Hack is disabled
+		g_Config.fAspectRatioHackW = 1;
+		g_Config.fAspectRatioHackH = 1;
+	}
+
+	// Check for force-settings and override.
+	if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)
+		use16_9 = true;
+	else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
+		use16_9 = false;
+
+	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
+	{
+		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
+		float Ratio = (WinWidth / WinHeight) / (!use16_9 ? (4.0f / 3.0f) : (16.0f / 9.0f));
+		// Check if height or width is the limiting factor. If ratio > 1 the picture is too wide and have to limit the width.
+		if (Ratio > 1.0f)
+		{
+			// Scale down and center in the X direction.
+			FloatGLWidth /= Ratio;
+			FloatXOffset = (WinWidth - FloatGLWidth) / 2.0f;
+		}
+		// The window is too high, we have to limit the height
+		else
+		{
+			// Scale down and center in the Y direction.
+			FloatGLHeight *= Ratio;
+			FloatYOffset = FloatYOffset + (WinHeight - FloatGLHeight) / 2.0f;
+		}
+	}
+
+	// -----------------------------------------------------------------------
+	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
+	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
+	// ------------------
+	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH && g_ActiveConfig.bCrop)
+	{
+		float Ratio = !use16_9 ? ((4.0f / 3.0f) / (5.0f / 4.0f)) : (((16.0f / 9.0f) / (16.0f / 10.0f)));
+		// The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is adjusted)
+		float IncreasedWidth = (Ratio - 1.0f) * FloatGLWidth;
+		float IncreasedHeight = (Ratio - 1.0f) * FloatGLHeight;
+		// The new width and height
+		FloatGLWidth = FloatGLWidth * Ratio;
+		FloatGLHeight = FloatGLHeight * Ratio;
+		// Adjust the X and Y offset
+		FloatXOffset = FloatXOffset - (IncreasedWidth * 0.5f);
+		FloatYOffset = FloatYOffset - (IncreasedHeight * 0.5f);
+	}
+
+	int XOffset = (int)(FloatXOffset + 0.5f);
+	int YOffset = (int)(FloatYOffset + 0.5f);
+	int iWhidth = (int)ceil(FloatGLWidth);
+	int iHeight = (int)ceil(FloatGLHeight);
+	iWhidth -= iWhidth % 4; // ensure divisibility by 4 to make it compatible with all the video encoders
+	iHeight -= iHeight % 4;
+
+	target_rc.left = XOffset;
+	target_rc.top = YOffset;
+	target_rc.right = XOffset + iWhidth;
+	target_rc.bottom = YOffset + iHeight;
 }
 
 void Renderer::SetWindowSize(int width, int height)

@@ -348,10 +348,8 @@ Renderer::Renderer()
 	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
 	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-	CalculateXYScale(dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+	CalculateXYScale(GetTargetRectangle());
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
@@ -924,13 +922,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	ResetAPIState();
 
 	// Prepare to copy the XFBs to our backbuffer
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-	int X = dst_rect.left;
-	int Y = dst_rect.top;
-	int Width  = dst_rect.right - dst_rect.left;
-	int Height = dst_rect.bottom - dst_rect.top;
+	int X = GetTargetRectangle().left;
+	int Y = GetTargetRectangle().top;
+	int Width  = GetTargetRectangle().right - GetTargetRectangle().left;
+	int Height = GetTargetRectangle().bottom - GetTargetRectangle().top;
 
 	// TODO: Redundant checks...
 	if (X < 0) X = 0;
@@ -1018,7 +1015,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// done with drawing the game stuff, good moment to save a screenshot
 	if (s_bScreenshot)
 	{
-		SaveScreenshot(s_sScreenshotName, dst_rect);
+		SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
 		s_bScreenshot = false;
 	}
 
@@ -1035,8 +1032,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::context->CopyResource(s_screenshot_texture, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
 		if (!bLastFrameDumped)
 		{
-			s_recordWidth = dst_rect.GetWidth();
-			s_recordHeight = dst_rect.GetHeight();
+			s_recordWidth = GetTargetRectangle().GetWidth();
+			s_recordHeight = GetTargetRectangle().GetHeight();
 			bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
 			if (!bAVIDumping)
 			{
@@ -1062,7 +1059,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				w = s_recordWidth;
 				h = s_recordHeight;
 			}
-			char* source_ptr = (char*)map.pData + dst_rect.left*4 + dst_rect.top*map.RowPitch;
+			char* source_ptr = (char*)map.pData + GetTargetRectangle().left*4 + GetTargetRectangle().top*map.RowPitch;
 			formatBufferDump(source_ptr, frame_data, s_recordWidth, s_recordHeight, map.RowPitch);
 			AVIDump::AddFrame(frame_data);
 			D3D::context->Unmap(s_screenshot_texture, 0);
@@ -1178,9 +1175,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			s_backbuffer_height = D3D::GetBackBufferHeight();
 		}
 
-		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-		CalculateXYScale(dst_rect);
+		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+		CalculateXYScale(GetTargetRectangle());
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
 		CalculateTargetSize();

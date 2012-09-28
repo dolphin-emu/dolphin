@@ -176,6 +176,4 @@ extern VideoConfig g_ActiveConfig;
 // Called every frame.
 void UpdateActiveConfig();
 
-void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip, TargetRectangle *rc);
-
 #endif  // _VIDEO_CONFIG_H_
