@@ -10,6 +10,9 @@ XFBSourceBase *FramebufferManagerBase::m_realXFBSource; // Only used in Real XFB
 FramebufferManagerBase::VirtualXFBListType FramebufferManagerBase::m_virtualXFBList; // Only used in Virtual XFB mode
 const XFBSourceBase* FramebufferManagerBase::m_overlappingXFBArray[MAX_VIRTUAL_XFB];
 
+unsigned int FramebufferManagerBase::s_last_xfb_width;
+unsigned int FramebufferManagerBase::s_last_xfb_height;
+
 FramebufferManagerBase::FramebufferManagerBase()
 {
 	m_realXFBSource = NULL;

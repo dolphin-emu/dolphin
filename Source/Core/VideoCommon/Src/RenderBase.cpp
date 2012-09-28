@@ -71,9 +71,6 @@ int Renderer::s_backbuffer_height;
 float Renderer::xScale;
 float Renderer::yScale;
 
-unsigned int Renderer::s_XFB_width;
-unsigned int Renderer::s_XFB_height;
-
 int Renderer::s_LastEFBScale;
 
 bool Renderer::s_skipSwap;
@@ -121,14 +118,14 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 	XFBWrited = true;
 
-	// XXX: Without the VI, how would we know what kind of field this is? So
-	// just use progressive.
 	if (g_ActiveConfig.bUseXFB)
 	{
 		FramebufferManagerBase::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
 	}
 	else
 	{
+		// XXX: Without the VI, how would we know what kind of field this is? So
+		// just use progressive.
 		g_renderer->Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc,Gamma);
 		Common::AtomicStoreRelease(s_swapRequested, false);
 	}
@@ -323,13 +320,13 @@ void Renderer::CalculateXYScale(const TargetRectangle& dst_rect)
 		if (g_ActiveConfig.b3DVision)
 		{
 			// This works, yet the version in the else doesn't. No idea why.
-			xScale = (float)(s_backbuffer_width-1) / (float)(s_XFB_width-1);
-			yScale = (float)(s_backbuffer_height-1) / (float)(s_XFB_height-1);
+			xScale = (float)(s_backbuffer_width-1) / (float)(FramebufferManagerBase::LastXfbWidth()-1);
+			yScale = (float)(s_backbuffer_height-1) / (float)(FramebufferManagerBase::LastXfbHeight()-1);
 		}
 		else
 		{
-			xScale = (float)(dst_rect.right - dst_rect.left - 1) / (float)(s_XFB_width-1);
-			yScale = (float)(dst_rect.bottom - dst_rect.top - 1) / (float)(s_XFB_height-1);
+			xScale = (float)(dst_rect.right - dst_rect.left - 1) / (float)(FramebufferManagerBase::LastXfbWidth()-1);
+			yScale = (float)(dst_rect.bottom - dst_rect.top - 1) / (float)(FramebufferManagerBase::LastXfbHeight()-1);
 		}
 	}
 }

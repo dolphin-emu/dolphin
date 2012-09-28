@@ -359,8 +359,9 @@ Renderer::Renderer()
 	if (!GLEW_ARB_texture_non_power_of_two)
 		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
 
-	s_XFB_width = MAX_XFB_WIDTH;
-	s_XFB_height = MAX_XFB_HEIGHT;
+	// TODO: Move these somewhere else?
+	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
+	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
 	TargetRectangle dst_rect;
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
@@ -1288,15 +1289,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	bool xfbchanged = false;
 
-	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
+	if (FramebufferManagerBase::LastXfbWidth() != fbWidth || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		s_XFB_width = fbWidth;
-		s_XFB_height = fbHeight;
-		if (s_XFB_width < 1) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_width > MAX_XFB_WIDTH) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_height < 1) s_XFB_height = MAX_XFB_HEIGHT;
-		if (s_XFB_height > MAX_XFB_HEIGHT) s_XFB_height = MAX_XFB_HEIGHT;
+		unsigned int w = (fbWidth < 1 || fbWidth > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbWidth;
+		unsigned int h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+		FramebufferManagerBase::SetLastXfbWidth(w);
+		FramebufferManagerBase::SetLastXfbHeight(h);
 	}
 
 	bool WindowResized = false;

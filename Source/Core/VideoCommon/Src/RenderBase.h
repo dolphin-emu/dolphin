@@ -163,9 +163,6 @@ protected:
 	static float xScale;
 	static float yScale;
 
-	static unsigned int s_XFB_width;
-	static unsigned int s_XFB_height;
-
 	// can probably eliminate this static var
 	static int s_LastEFBScale;
 
