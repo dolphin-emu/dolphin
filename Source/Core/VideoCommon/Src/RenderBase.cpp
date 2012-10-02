@@ -76,6 +76,11 @@ bool Renderer::XFBWrited;
 bool Renderer::s_EnableDLCachingAfterRecording;
 
 unsigned int Renderer::prev_efb_format = (unsigned int)-1;
+unsigned int Renderer::efb_scale_numeratorX = 1;
+unsigned int Renderer::efb_scale_numeratorY = 1;
+unsigned int Renderer::efb_scale_denominatorX = 1;
+unsigned int Renderer::efb_scale_denominatorY = 1;
+unsigned int Renderer::ssaa_multiplier = 1;
 
 
 Renderer::Renderer() : frame_data(NULL), bLastFrameDumped(false)
@@ -92,6 +97,8 @@ Renderer::~Renderer()
 {
 	// invalidate previous efb format
 	prev_efb_format = (unsigned int)-1;
+
+	efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = ssaa_multiplier = 1;
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	if (g_ActiveConfig.bDumpFrames && bLastFrameDumped && bAVIDumping)
@@ -129,41 +136,86 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	}
 }
 
-void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
+int Renderer::EFBToScaledX(int x)
 {
 	switch (g_ActiveConfig.iEFBScale)
 	{
-		case 3: // 1.5x
-			scaledX = (x / 2) * 3;
-			scaledY = (y / 2) * 3;
-			break;
-		case 4: // 2x
-			scaledX = x * 2;
-			scaledY = y * 2;
-			break;
-		case 5: // 2.5x
-			scaledX = (x / 2) * 5;
-			scaledY = (y / 2) * 5;
-			break;
-		case 6: // 3x
-			scaledX = x * 3;
-			scaledY = y * 3;
-			break;
-		case 7: // 4x
-			scaledX = x * 4;
-			scaledY = y * 4;
-			break;
+		case 0: // fractional
+			return (int)ssaa_multiplier * FramebufferManagerBase::ScaleToVirtualXfbWidth(x, s_backbuffer_width);
+
 		default:
-			scaledX = x;
-			scaledY = y;
-			break;
+			return x * (int)ssaa_multiplier * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
 	};
+}
+
+int Renderer::EFBToScaledY(int y)
+{
+	switch (g_ActiveConfig.iEFBScale)
+	{
+		case 0: // fractional
+			return (int)ssaa_multiplier * FramebufferManagerBase::ScaleToVirtualXfbHeight(y, s_backbuffer_height);
+
+		default:
+			return y * (int)ssaa_multiplier * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
+	};
+}
+
+void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
+{
+	if (g_ActiveConfig.iEFBScale == 0 || g_ActiveConfig.iEFBScale == 1)
+	{
+		scaledX = x;
+		scaledY = y;
+	}
+	else
+	{
+		scaledX = x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
+		scaledY = y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
+	}
 }
 
 // return true if target size changed
 bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, int multiplier)
 {
 	int newEFBWidth, newEFBHeight;
+
+	// TODO: Ugly. Clean up
+	switch (s_LastEFBScale)
+	{
+		case 2: // 1x
+			efb_scale_numeratorX = efb_scale_numeratorY = 1;
+			efb_scale_denominatorX = efb_scale_denominatorY = 1;
+			break;
+
+		case 3: // 1.5x
+			efb_scale_numeratorX = efb_scale_numeratorY = 3;
+			efb_scale_denominatorX = efb_scale_denominatorY = 2;
+			break;
+
+		case 4: // 2x
+			efb_scale_numeratorX = efb_scale_numeratorY = 2;
+			efb_scale_denominatorX = efb_scale_denominatorY = 1;
+			break;
+
+		case 5: // 2.5x
+			efb_scale_numeratorX = efb_scale_numeratorY = 5;
+			efb_scale_denominatorX = efb_scale_denominatorY = 2;
+			break;
+
+		case 6: // 3x
+			efb_scale_numeratorX = efb_scale_numeratorY = 3;
+			efb_scale_denominatorX = efb_scale_denominatorY = 1;
+			break;
+
+		case 7: // 4x
+			efb_scale_numeratorX = efb_scale_numeratorY = 4;
+			efb_scale_denominatorX = efb_scale_denominatorY = 1;
+			break;
+
+		default: // fractional & integral handled later
+			break;
+	}
+
 	switch (s_LastEFBScale)
 	{
 		case 0: // fractional
@@ -171,13 +223,18 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 			newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, framebuffer_width);
 			newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, framebuffer_height);
 
-			if (s_LastEFBScale)
+			if (s_LastEFBScale == 1)
 			{
 				newEFBWidth = ((newEFBWidth-1) / EFB_WIDTH + 1) * EFB_WIDTH;
 				newEFBHeight = ((newEFBHeight-1) / EFB_HEIGHT + 1) * EFB_HEIGHT;
 			}
+			efb_scale_numeratorX = newEFBWidth;
+			efb_scale_denominatorX = EFB_WIDTH;
+			efb_scale_numeratorY = newEFBHeight;
+			efb_scale_denominatorY = EFB_HEIGHT;
 			break;
 
+			
 		default:
 			CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, newEFBWidth, newEFBHeight);
 			break;
@@ -185,6 +242,7 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 
 	newEFBWidth *= multiplier;
 	newEFBHeight *= multiplier;
+	ssaa_multiplier = multiplier;
 
 	if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
 	{

@@ -86,8 +86,8 @@ public:
 
 
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
-	static unsigned int EFBToScaledX(int x) { return x * GetTargetWidth() / EFB_WIDTH; }
-	static unsigned int EFBToScaledY(int y) { return y * GetTargetHeight() / EFB_HEIGHT; }
+	static int EFBToScaledX(int x);
+	static int EFBToScaledY(int y);
 
 	// Floating point versions of the above - only use them if really necessary
 	static float EFBToScaledXf(float x) { return x * ((float)GetTargetWidth() / (float)EFB_WIDTH); }
@@ -170,6 +170,11 @@ protected:
 
 private:
 	static unsigned int prev_efb_format;
+	static unsigned int efb_scale_numeratorX;
+	static unsigned int efb_scale_numeratorY;
+	static unsigned int efb_scale_denominatorX;
+	static unsigned int efb_scale_denominatorY;
+	static unsigned int ssaa_multiplier;
 };
 
 extern Renderer *g_renderer;

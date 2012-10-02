@@ -55,8 +55,8 @@ public:
 	static unsigned int LastXfbWidth() { return s_last_xfb_width; }
 	static unsigned int LastXfbHeight() { return s_last_xfb_height; }
 
-	static unsigned int ScaleToVirtualXfbWidth(unsigned int width, unsigned int backbuffer_width);
-	static unsigned int ScaleToVirtualXfbHeight(unsigned int height, unsigned int backbuffer_height);
+	static int ScaleToVirtualXfbWidth(int x, unsigned int backbuffer_width);
+	static int ScaleToVirtualXfbHeight(int y, unsigned int backbuffer_height);
 
 protected:
 	struct VirtualXFB
