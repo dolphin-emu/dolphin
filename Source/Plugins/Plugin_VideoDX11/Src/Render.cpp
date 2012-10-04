@@ -44,6 +44,7 @@
 #include "Host.h"
 #include "BPFunctions.h"
 #include "AVIDump.h"
+#include "FPSCounter.h"
 
 namespace DX11
 {
@@ -337,6 +338,8 @@ Renderer::Renderer()
 {
 	int x, y, w_temp, h_temp;
 	s_blendMode = 0;
+
+	InitFPSCounter();
 
 	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
 
@@ -1143,16 +1146,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	// update FPS counter
-	static int fpscount = 0;
-	static unsigned long lasttime = 0;
-	if (Common::Timer::GetTimeMs() - lasttime >= 1000)
-	{
-		lasttime = Common::Timer::GetTimeMs();
-		s_fps = fpscount;
-		fpscount = 0;
-	}
 	if (XFBWrited)
-		++fpscount;
+		s_fps = UpdateFPSCounter();
 
 	// Begin new frame
 	// Set default viewport and scissor, for the clear to work correctly

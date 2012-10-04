@@ -61,6 +61,7 @@
 #include "Movie.h"
 #include "Host.h"
 #include "BPFunctions.h"
+#include "FPSCounter.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -250,6 +251,8 @@ Renderer::Renderer()
 
 	s_fps=0;
 	s_blendMode = 0;
+
+	InitFPSCounter();
 
 #if defined HAVE_CG && HAVE_CG
 	g_cgcontext = cgCreateContext();
@@ -1330,20 +1333,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 	}
 
-	// Place messages on the picture, then copy it to the screen
-	// ---------------------------------------------------------------------
-	// Count FPS.
-	// -------------
-	static int fpscount = 0;
-	static unsigned long lasttime = 0;
-	if (Common::Timer::GetTimeMs() - lasttime >= 1000)
-	{
-		lasttime = Common::Timer::GetTimeMs();
-		s_fps = fpscount;
-		fpscount = 0;
-	}
 	if (XFBWrited)
-		++fpscount;
+		s_fps = UpdateFPSCounter();
 	// ---------------------------------------------------------------------
 	GL_REPORT_ERRORD();
 

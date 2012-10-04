@@ -97,6 +97,7 @@ struct VideoConfig
 	bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
 	bool bShowEFBCopyRegions;
+	bool bLogFPSToFile;
 	
 	// Render
 	bool bWireFrame;

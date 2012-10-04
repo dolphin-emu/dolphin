@@ -54,6 +54,7 @@
 #include "Core.h"
 #include "Movie.h"
 #include "BPFunctions.h"
+#include "FPSCounter.h"
 
 namespace DX9
 {
@@ -247,6 +248,8 @@ void TeardownDeviceObjects()
 // Init functions
 Renderer::Renderer()
 {
+	InitFPSCounter();
+
 	st = new char[32768];
 
 	int fullScreenRes, x, y, w_temp, h_temp;
@@ -1107,7 +1110,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	OSD::DrawMessages();
 	D3D::EndFrame();
-	frameCount++;
+	++frameCount;
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
@@ -1168,20 +1171,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0,0,0), 1.0f, 0);
 	}
 
-	// Place messages on the picture, then copy it to the screen
-	// ---------------------------------------------------------------------
-	// Count FPS.
-	// -------------
-	static int fpscount = 0;
-	static unsigned long lasttime = 0;
-	if (Common::Timer::GetTimeMs() - lasttime >= 1000)
-	{
-		lasttime = Common::Timer::GetTimeMs();
-		s_fps = fpscount;
-		fpscount = 0;
-	}
 	if (XFBWrited)
-		++fpscount;
+		s_fps = UpdateFPSCounter();
 
 	// Begin new frame
 	// Set default viewport and scissor, for the clear to work correctly

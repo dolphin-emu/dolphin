@@ -59,6 +59,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, 0);
 	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,128);
 	iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
+	iniFile.Get("Settings", "LogFPSToFile", &bLogFPSToFile, false);
 	iniFile.Get("Settings", "ShowInputDisplay", &bShowInputDisplay, false);
 	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
 	iniFile.Get("Settings", "OverlayProjStats", &bOverlayProjStats, false);
@@ -186,6 +187,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "UseRealXFB", bUseRealXFB);
 	iniFile.Set("Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	iniFile.Set("Settings", "ShowFPS", bShowFPS);
+	iniFile.Set("Settings", "LogFPSToFile", bLogFPSToFile);
 	iniFile.Set("Settings", "ShowInputDisplay", bShowInputDisplay);
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
 	iniFile.Set("Settings", "OverlayProjStats", bOverlayProjStats);
