@@ -142,6 +142,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		}
 		links_to.clear();
 		block_map.clear();
+		valid_block.reset();
 		num_blocks = 0;
 		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
 	}
@@ -219,6 +220,9 @@ bool JitBlock::ContainsAddress(u32 em_address)
 
 		// Convert the logical address to a physical address for the block map
 		u32 pAddr = b.originalAddress & 0x1FFFFFFF;
+
+		for (u32 i = 0; i < (b.originalSize + 7) / 8; ++i)
+			valid_block[pAddr / 32 + i] = true;
 
 		block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
 		if (block_link)
@@ -440,35 +444,48 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		// Convert the logical address to a physical address for the block map
 		u32 pAddr = address & 0x1FFFFFFF;
 
+		// Optimize the common case of length == 32 which is used by Interpreter::dcb*
+		bool destroy_block = true;
+		if (length == 32)
+		{
+			if (!valid_block[pAddr / 32])
+				destroy_block = false;
+			else
+				valid_block[pAddr / 32] = false;
+		}
+
 		// destroy JIT blocks
 		// !! this works correctly under assumption that any two overlapping blocks end at the same address
-		std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(pAddr, 0)), it2 = it1, it;
-		while (it2 != block_map.end() && it2->first.second < pAddr + length)
+		if (destroy_block)
 		{
+			std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(pAddr, 0)), it2 = it1, it;
+			while (it2 != block_map.end() && it2->first.second < pAddr + length)
+			{
 #ifdef JIT_UNLIMITED_ICACHE
-			JitBlock &b = blocks[it2->second];
-			if (b.originalAddress & JIT_ICACHE_VMEM_BIT)
-			{
-				u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
-				memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-			}
-			else if (b.originalAddress & JIT_ICACHE_EXRAM_BIT)
-			{
-				u32 cacheaddr = b.originalAddress & JIT_ICACHEEX_MASK;
-				memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-			}
-			else
-			{
-				u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
-				memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-			}
+				JitBlock &b = blocks[it2->second];
+				if (b.originalAddress & JIT_ICACHE_VMEM_BIT)
+				{
+					u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
+					memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
+				}
+				else if (b.originalAddress & JIT_ICACHE_EXRAM_BIT)
+				{
+					u32 cacheaddr = b.originalAddress & JIT_ICACHEEX_MASK;
+					memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
+				}
+				else
+				{
+					u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
+					memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
+				}
 #endif
-			DestroyBlock(it2->second, true);
-			it2++;
-		}
-		if (it1 != it2)
-		{
-			block_map.erase(it1, it2);
+				DestroyBlock(it2->second, true);
+				it2++;
+			}
+			if (it1 != it2)
+			{
+				block_map.erase(it1, it2);
+			}
 		}
 
 #ifdef JIT_UNLIMITED_ICACHE
