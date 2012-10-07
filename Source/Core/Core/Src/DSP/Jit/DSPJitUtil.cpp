@@ -469,13 +469,14 @@ void DSPEmitter::increase_addr_reg(int reg, int _ix_reg)
 	//eax = dar
 	XOR(32, R(EAX), R(ECX));
 	XOR(32, R(EAX), R(tmp1));
-	LEA(32, ECX, MRegSum(EDX, EDX));
-	OR(32, R(ECX), Imm8(2));
-	AND(32, R(EAX), R(ECX));
 
 	//if (ix >= 0)
 	TEST(32, R(ECX), R(ECX));
 	FixupBranch negative = J_CC(CC_S);
+		LEA(32, ECX, MRegSum(EDX, EDX));
+		OR(32, R(ECX), Imm8(2));
+		AND(32, R(EAX), R(ECX));
+
 		//if (dar > wr)
 		CMP(32, R(EAX), R(EDX));
 		FixupBranch done = J_CC(CC_BE);
@@ -486,6 +487,10 @@ void DSPEmitter::increase_addr_reg(int reg, int _ix_reg)
 
 	//else
 	SetJumpTarget(negative);
+		LEA(32, ECX, MRegSum(EDX, EDX));
+		OR(32, R(ECX), Imm8(2));
+		AND(32, R(EAX), R(ECX));
+
 		//if ((((nar + wr + 1) ^ nar) & dar) <= wr)
 		LEA(32, ECX, MComplex(tmp1, EDX, 1, 1));
 		XOR(32, R(ECX), R(tmp1));
@@ -534,13 +539,14 @@ void DSPEmitter::decrease_addr_reg(int reg)
 	//eax = dar
 	XOR(32, R(EAX), R(ECX));
 	XOR(32, R(EAX), R(tmp1));
-	LEA(32, ECX, MRegSum(EDX, EDX));
-	OR(32, R(ECX), Imm8(2));
-	AND(32, R(EAX), R(ECX));
 
 	//if ((u32)ix > 0xFFFF8000)  ==> (~ix < 0x00007FFF)
 	CMP(32, R(ECX), Imm32(0x00007FFF));
 	FixupBranch positive = J_CC(CC_AE);
+		LEA(32, ECX, MRegSum(EDX, EDX));
+		OR(32, R(ECX), Imm8(2));
+		AND(32, R(EAX), R(ECX));
+
 		//if (dar > wr)
 		CMP(32, R(EAX), R(EDX));
 		FixupBranch done = J_CC(CC_BE);
@@ -551,6 +557,10 @@ void DSPEmitter::decrease_addr_reg(int reg)
 
 	//else
 	SetJumpTarget(positive);
+		LEA(32, ECX, MRegSum(EDX, EDX));
+		OR(32, R(ECX), Imm8(2));
+		AND(32, R(EAX), R(ECX));
+
 		//if ((((nar + wr + 1) ^ nar) & dar) <= wr)
 		LEA(32, ECX, MComplex(tmp1, EDX, 1, 1));
 		XOR(32, R(ECX), R(tmp1));
