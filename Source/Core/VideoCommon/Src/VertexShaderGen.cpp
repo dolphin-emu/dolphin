@@ -596,7 +596,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	    //seems to get rather complicated
 	}
 
-	if (api_type & API_D3D9)
+	if (ApiType & API_D3D9)
 	{
 		// D3D9 is addressing pixel centers instead of pixel boundaries in clip space.
 		// Thus we need to offset the final position by half a pixel

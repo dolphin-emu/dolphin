@@ -978,16 +978,15 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		// Colors will be blended against the alpha from ocol1...
 		WRITE(p, "  ocol1 = ocol0;\n");
 		// ...and the alpha from ocol0 will be written to the framebuffer.
-		WRITE(p, "  ocol0.a = " I_ALPHA"[0].a;\n");
-
-		if (ApiType == API_GLSL)
+		WRITE(p, "  ocol0.a = " I_ALPHA"[0].a;\n");	
+	}
+	if (ApiType == API_GLSL)
 		{
 			if (DepthTextureEnable)
 				WRITE(p, "gl_FragDepth = depth;\n");
 			if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
 				WRITE(p, "gl_FragData[0] = ocol0;\n");
 		}
-	}
 	
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
