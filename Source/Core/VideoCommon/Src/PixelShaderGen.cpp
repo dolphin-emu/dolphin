@@ -788,7 +788,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function		
 			
-			WRITE(p, "ocol0 = float(0.0);\n");
+			WRITE(p, "ocol0 = float4(0.0);\n");
 			if(DepthTextureEnable)
 				WRITE(p, "depth = 1.f;\n");
 			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
@@ -987,7 +987,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
 				WRITE(p, "gl_FragData[0] = ocol0;\n");
 		}
-	
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");

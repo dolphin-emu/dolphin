@@ -349,7 +349,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 
 bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 {
-		return pCompilePixelShader(ps, pstrprogram);
+	return pCompilePixelShader(ps, pstrprogram);
 }
 
 // Disable Fragment programs and reset the selected Program
