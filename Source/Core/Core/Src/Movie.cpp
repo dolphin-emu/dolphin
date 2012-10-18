@@ -30,6 +30,10 @@
 #include "VideoBackendBase.h"
 #include "State.h"
 #include "Timer.h"
+#include "VideoConfig.h"
+#include "HW/EXI.h"
+#include "HW/EXI_Device.h"
+#include "HW/EXI_Channel.h"
 
 // large enough for just over 24 hours of single-player recording
 #define MAX_DTM_LENGTH (40 * 1024 * 1024)
@@ -55,6 +59,16 @@ u64 g_currentFrame = 0, g_totalFrames = 0; // VI
 u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
+bool g_bSaveConfig = false;
+bool g_bSkipIdle = false;
+bool g_bDualCore = false;
+bool g_bProgressive = false;
+bool g_bDSPHLE = false;
+bool g_bFastDiscSpeed = false;
+std::string g_videoBackend = "opengl";
+int g_CPUCore = 1;
+bool g_bMemcard;
+bool g_bBlankMC = false;
 
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
@@ -112,6 +126,30 @@ void Init()
 	g_bPolled = false;
 	g_bFrameStep = false;
 	g_bFrameStop = false;
+	g_bSaveConfig = false;
+	g_CPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+	g_bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
+	if (IsRecordingInput() || (!tmpHeader.bSaveConfig && IsPlayingInput()))
+	{
+		g_bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
+		g_bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+		g_bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+		g_bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
+		g_bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
+		g_videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+		g_bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
+	}
+	else if (IsPlayingInput() && tmpHeader.bSaveConfig)
+	{
+		g_bSaveConfig = tmpHeader.bSaveConfig;
+		g_bSkipIdle = tmpHeader.bSkipIdle;
+		g_bDualCore = tmpHeader.bDualCore;
+		g_bProgressive = tmpHeader.bProgressive;
+		g_bDSPHLE = tmpHeader.bDSPHLE;
+		g_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
+		g_CPUCore = tmpHeader.CPUCore;
+		g_bBlankMC = tmpHeader.bBlankMC;
+	}
 	g_frameSkipCounter = g_framesToSkip;
 	memset(&g_padState, 0, sizeof(g_padState));
 	if (!tmpHeader.bFromSaveState)
@@ -249,6 +287,40 @@ bool IsUsingWiimote(int wiimote)
 	return ((g_numPads & (1 << (wiimote + 4))) != 0);
 }
 
+bool IsConfigSaved()
+{
+	return g_bSaveConfig;
+}
+bool IsDualCore()
+{
+	return g_bDualCore;
+}
+
+bool IsProgressive()
+{
+	return g_bProgressive;
+}
+
+bool IsSkipIdle()
+{
+	return g_bSkipIdle;
+}
+
+bool IsDSPHLE()
+{
+	return g_bDSPHLE;
+}
+
+bool IsFastDiscSpeed()
+{
+	return g_bFastDiscSpeed;
+}
+
+int GetCPUMode()
+{
+	return g_CPUCore;
+}
+
 void ChangePads(bool instantly)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
@@ -311,10 +383,18 @@ bool BeginRecordingInput(int controllers)
 	}
 	g_playMode = MODE_RECORDING;
 
+	g_bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
+	g_bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+	g_bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+	g_bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
+	g_bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
+	g_videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+	g_CPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+
 	delete [] tmpInput;
 	tmpInput = new u8[MAX_DTM_LENGTH];
 	g_currentByte = g_totalBytes = 0;
-		
+
 	Core::DisplayMessage("Starting movie recording", 2000);
 	return true;
 }
@@ -580,6 +660,14 @@ bool PlayInput(const char *filename)
 	g_totalInputCount = tmpHeader.inputCount;
 	g_recordingStartTime = tmpHeader.recordingStartTime;
 
+	g_bSaveConfig = tmpHeader.bSaveConfig;
+	g_bSkipIdle = tmpHeader.bSkipIdle;
+	g_bDualCore = tmpHeader.bDualCore;
+	g_bProgressive = tmpHeader.bProgressive;
+	g_bDSPHLE = tmpHeader.bDSPHLE;
+	g_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
+	g_CPUCore = tmpHeader.CPUCore;
+
 	g_currentFrame = 0;
 	g_currentLagCount = 0;
 	g_currentInputCount = 0;
@@ -720,6 +808,7 @@ void LoadInput(const char *filename)
 	t_record.Close();
 
 	g_rerecords = tmpHeader.numRerecords;
+	g_bSaveConfig = tmpHeader.bSaveConfig;
 
 	if (!afterEnd)
 	{
@@ -756,6 +845,21 @@ static void CheckInputEnd()
 
 void PlayController(SPADStatus *PadStatus, int controllerID)
 {
+	if (IsPlayingInput() && IsConfigSaved())
+	{
+		SetGraphicsConfig();
+	}
+	if (g_currentFrame == 1)
+	{
+		if (tmpHeader.bMemcard)
+		{
+			ExpansionInterface::ChangeDevice(0, EXIDEVICE_MEMORYCARD, 0);
+		}
+		else if (!tmpHeader.bMemcard)
+		{
+			ExpansionInterface::ChangeDevice(0, EXIDEVICE_NONE, 0);
+		}
+	}
 	// Correct playback is entirely dependent on the emulator polling the controllers
 	// in the same order done during recording
 	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == NULL)
@@ -913,11 +1017,28 @@ void SaveRecording(const char *filename)
 	header.inputCount = g_totalInputCount;
 	header.numRerecords = g_rerecords;
 	header.recordingStartTime = g_recordingStartTime;
-	
+
+	header.bSaveConfig = true;
+	header.bSkipIdle = g_bSkipIdle;
+	header.bDualCore = g_bDualCore;
+	header.bProgressive = g_bProgressive;
+	header.bDSPHLE = g_bDSPHLE;
+	header.bFastDiscSpeed = g_bFastDiscSpeed;
+	strncpy((char *)header.videoBackend, g_videoBackend.c_str(),ARRAYSIZE(header.videoBackend));
+	header.CPUCore = g_CPUCore;
+	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
+	header.bEFBCopyEnable = g_ActiveConfig.bEFBCopyEnable;
+	header.bCopyEFBToTexture = g_ActiveConfig.bCopyEFBToTexture;
+	header.bEFBCopyCacheEnable = g_ActiveConfig.bEFBCopyCacheEnable;
+	header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
+	header.bUseXFB = g_ActiveConfig.bUseXFB;
+	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
+	header.bMemcard = g_bMemcard;
+	header.bBlankMC = g_bBlankMC;
+
 	// TODO
 	header.uniqueID = 0; 
 	// header.author;
-	// header.videoBackend; 
 	// header.audioEmulator;
 	
 	save_record.WriteArray(&header, 1);
@@ -946,5 +1067,16 @@ void CallInputManip(SPADStatus *PadStatus, int controllerID)
 {
 	if (mfunc)
 		(*mfunc)(PadStatus, controllerID);
+}
+
+void SetGraphicsConfig()
+{
+	g_Config.bEFBAccessEnable = tmpHeader.bEFBAccessEnable;
+	g_Config.bEFBCopyEnable = tmpHeader.bEFBCopyEnable;
+	g_Config.bCopyEFBToTexture = tmpHeader.bCopyEFBToTexture;
+	g_Config.bEFBCopyCacheEnable = tmpHeader.bEFBCopyCacheEnable;
+	g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
+	g_Config.bUseXFB = tmpHeader.bUseXFB;
+	g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;
 }
 };

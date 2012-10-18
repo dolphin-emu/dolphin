@@ -45,6 +45,7 @@
 #include "Core.h"
 #include "Host.h"
 #include "VideoBackendBase.h"
+#include "Movie.h"
 
 
 namespace BootManager
@@ -115,6 +116,20 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "GFXBackend", &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend.c_str());
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 
+		if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+		{
+			Movie::Init();
+			StartUp.bCPUThread = Movie::IsDualCore();
+			StartUp.bSkipIdle = Movie::IsSkipIdle();
+			StartUp.bDSPHLE = Movie::IsDSPHLE();
+			StartUp.bProgressive = Movie::IsProgressive();
+			StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
+			if (Movie::g_bMemcard && Movie::g_bBlankMC)
+			{
+				if (File::Exists("Movie.raw"))
+					File::Delete("Movie.raw");
+			}
+		}
 		// Wii settings
 		if (StartUp.bWii)
 		{

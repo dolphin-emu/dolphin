@@ -60,6 +60,8 @@ struct ControllerState {
 
 // Global declarations
 extern bool g_bFrameStep, g_bPolled, g_bReadOnly;
+extern bool g_bSaveConfig, g_bSkipIdle, g_bDualCore, g_bProgressive, g_bDSPHLE, g_bFastDiscSpeed, g_bMemcard, g_bBlankMC;
+extern bool g_bEFBAccessEnable, g_bEFBCopyEnable;
 extern PlayMode g_playMode;
 
 extern u32 g_framesToSkip, g_frameSkipCounter;
@@ -73,6 +75,8 @@ extern u64 g_currentByte, g_totalBytes;
 extern u64 g_currentFrame, g_totalFrames;
 extern u64 g_currentLagCount, g_totalLagCount;
 extern u64 g_currentInputCount, g_totalInputCount;
+extern std::string g_videoBackend;
+extern int g_CPUCore;
 
 extern u32 g_rerecords;
 
@@ -99,7 +103,23 @@ struct DTMHeader {
 
 	u64 recordingStartTime; // seconds since 1970 that recording started (used for RTC)
 
-    u8  reserved[119];		// Make heading 256 bytes, just because we can
+	bool bSaveConfig;
+	bool bSkipIdle;
+	bool bDualCore;
+	bool bProgressive;
+	bool bDSPHLE;
+	bool bFastDiscSpeed;
+	u8  CPUCore;
+	bool bEFBAccessEnable;
+	bool bEFBCopyEnable;
+	bool bCopyEFBToTexture;
+	bool bEFBCopyCacheEnable;
+	bool bEFBEmulateFormatChanges;
+	bool bUseXFB;
+	bool bUseRealXFB;
+	bool bMemcard;
+	bool bBlankMC;
+    u8  reserved[103];		// Make heading 256 bytes, just because we can
 };
 #pragma pack(pop)
 
@@ -117,6 +137,15 @@ bool IsJustStartingPlayingInputFromSaveState();
 bool IsPlayingInput();
 bool IsReadOnly();
 u64 GetRecordingStartTime();
+
+bool IsConfigSaved();
+bool IsDualCore();
+bool IsProgressive();
+bool IsSkipIdle();
+bool IsDSPHLE();
+bool IsFastDiscSpeed();
+int GetCPUMode();
+void SetGraphicsConfig();
 
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
