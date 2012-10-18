@@ -389,7 +389,10 @@ void LoadAs(const std::string& filename)
 	{
 		std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 		SaveToBuffer(g_undo_load_buffer);
-		Movie::SaveRecording("undo.dtm");
+		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+			Movie::SaveRecording("undo.dtm");
+		else if (File::Exists("undo.dtm"))
+			File::Delete("undo.dtm");
 	}
 
 	bool loaded = false;
