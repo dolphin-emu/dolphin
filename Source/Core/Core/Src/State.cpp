@@ -413,7 +413,7 @@ void LoadAs(const std::string& filename)
 			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()).c_str(), 2000);
 			if (File::Exists(filename + ".dtm"))
 				Movie::LoadInput((filename + ".dtm").c_str());
-			else if (!Movie::IsJustStartingRecordingInputFromSaveState())
+			else if (!Movie::IsJustStartingRecordingInputFromSaveState() && !Movie::IsJustStartingPlayingInputFromSaveState())
 				Movie::EndPlayInput(false);
 		}
 		else

@@ -217,6 +217,11 @@ bool IsJustStartingRecordingInputFromSaveState()
 	return IsRecordingInputFromSaveState() && g_currentFrame == 0;
 }
 
+bool IsJustStartingPlayingInputFromSaveState()
+{
+	return tmpHeader.bFromSaveState && g_currentFrame == 1;
+}
+
 bool IsPlayingInput()
 {
 	return (g_playMode == MODE_PLAYING);
@@ -287,6 +292,13 @@ bool BeginRecordingInput(int controllers)
 	if(g_playMode != MODE_NONE || controllers == 0)
 		return false;
 
+	g_numPads = controllers;
+	g_currentFrame = g_totalFrames = 0;
+	g_currentLagCount = g_totalLagCount = 0;
+	g_currentInputCount = g_totalInputCount = 0;
+	g_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();
+	g_rerecords = 0;
+
 	if (Core::IsRunning())
 	{
 		if(File::Exists(tmpStateFilename))
@@ -295,13 +307,6 @@ bool BeginRecordingInput(int controllers)
 		State::SaveAs(tmpStateFilename.c_str());
 		g_bRecordingFromSaveState = true;
 	}
-	
-	g_numPads = controllers;
-	g_currentFrame = g_totalFrames = 0;
-	g_currentLagCount = g_totalLagCount = 0;
-	g_currentInputCount = g_totalInputCount = 0;
-	g_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();
-	g_rerecords = 0;
 	g_playMode = MODE_RECORDING;
 
 	delete [] tmpInput;
@@ -548,6 +553,8 @@ bool PlayInput(const char *filename)
 		if(File::Exists(stateFilename))
 			Core::SetStateFileName(stateFilename);
 		g_bRecordingFromSaveState = true;
+		Movie::LoadInput(filename);
+		g_currentFrame = 0;
 	}
 	
 	/* TODO: Put this verification somewhere we have the gameID of the played game
@@ -877,6 +884,7 @@ void EndPlayInput(bool cont)
 		g_currentByte = 0;
 		g_playMode = MODE_NONE;
 		Core::DisplayMessage("Movie End.", 2000);
+		tmpHeader.bFromSaveState = 0;
 		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
 		//g_totalFrames = g_totalBytes = 0;
 		//delete tmpInput;

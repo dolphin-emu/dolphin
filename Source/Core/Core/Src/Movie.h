@@ -113,6 +113,7 @@ bool IsAutoFiring();
 bool IsRecordingInput();
 bool IsRecordingInputFromSaveState();
 bool IsJustStartingRecordingInputFromSaveState();
+bool IsJustStartingPlayingInputFromSaveState();
 bool IsPlayingInput();
 bool IsReadOnly();
 u64 GetRecordingStartTime();
