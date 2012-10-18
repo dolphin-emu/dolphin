@@ -473,11 +473,20 @@ std::string GCMemcard::DEntry_IconFmt(u8 index) const
 	return format;
 }
 
-u16 GCMemcard::DEntry_AnimSpeed(u8 index) const
+std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
 {
 	if (!m_valid || index > DIRLEN)
-		return 0xFF;
-	return BE16(CurrentDir->Dir[index].AnimSpeed);
+		return "";
+	int x = CurrentDir->Dir[index].AnimSpeed[0];
+	std::string speed;
+	for(int i = 0; i < 16; i++)
+	{
+		if (i == 8) x = CurrentDir->Dir[index].AnimSpeed[1];
+		speed.push_back((x & 0x80) ? '1' : '0');
+		x = x << 1;
+	}
+	speed.push_back(0);
+	return speed;
 }
 
 std::string GCMemcard::DEntry_Permissions(u8 index) const
@@ -1086,15 +1095,18 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 
 	// To ensure only one type of icon is used
 	// Sonic Heroes it the only game I have seen that tries to use a CI8 and RGB5A3 icon
-	int fmtCheck = 0; 
+	//int fmtCheck = 0; 
 
 	int formats = BE16(CurrentDir->Dir[index].IconFmt);
 	int fdelays  = BE16(CurrentDir->Dir[index].AnimSpeed);
 
 	int flags = CurrentDir->Dir[index].BIFlags;
-	// Timesplitters 2 is the only game that I see this in
+	// Timesplitters 2 and 3 is the only game that I see this in
 	// May be a hack
-	if (flags == 0xFB) flags = ~flags;
+	//if (flags == 0xFB) flags = ~flags;
+	// Batten Kaitos has 0x65 as flag too. Everything but the first 3 bytes seems irrelevant.
+	// Something similar happens with Wario Ware Inc. AnimSpeed
+
 	int bnrFormat = (flags&3);
 
 	u32 DataOffset = BE32(CurrentDir->Dir[index].ImageOffset);
@@ -1110,7 +1122,6 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 	switch (bnrFormat)
 	{
 	case 1:
-	case 3:
 		animData += 96*32 + 2*256; // image+palette
 		break;
 	case 2:
@@ -1122,40 +1133,48 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 	u8* data[8];
 	int frames = 0;
 
-
 	for (int i = 0; i < 8; i++)
 	{
 		fmts[i] = (formats >> (2*i))&3;
-		delays[i] = ((fdelays >> (2*i))&3) << 2;
+		delays[i] = ((fdelays >> (2*i))&3);
 		data[i] = animData;
 
-		if (!fmtCheck) fmtCheck = fmts[i];
-		if (fmtCheck == fmts[i])
+		if (!delays[i])
+		{
+			//First icon_speed = 0 indicates there aren't any more icons
+			break;
+		}
+		//If speed is set there is an icon (it can be a "blank frame")
+		frames++;
+		if (fmts[i] != 0)
 		{
 			switch (fmts[i])
 			{
 			case CI8SHARED: // CI8 with shared palette
 				animData += 32*32;
-				frames++;
 				break;
 			case RGB5A3: // RGB5A3
 				animData += 32*32*2;
-				frames++;
 				break;
 			case CI8: // CI8 with own palette
 				animData += 32*32 + 2*256;
-				frames++;
 				break;
 			}
 		}
 	}
 
 	u16* sharedPal = (u16*)(animData);
+	int j = 0;
 
 	for (int i = 0; i < 8; i++)
 	{
 
-		if (fmtCheck == fmts[i])
+		if (!delays[i])
+		{
+			//First icon_speed = 0 indicates there aren't any more icons
+			break;
+		}
+		if (fmts[i] != 0)
 		{
 			switch (fmts[i])
 			{
@@ -1165,12 +1184,40 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 				break;
 			case RGB5A3: // RGB5A3
 				decode5A3image(buffer, (u16*)(data[i]), 32, 32);
+				buffer += 32*32;
 				break;
 			case CI8: // CI8 with own palette
 				u16 *paldata = (u16*)(data[i] + 32*32);
 				decodeCI8image(buffer, data[i], paldata, 32, 32);
 				buffer += 32*32;
 				break;
+			}
+		}
+		else
+		{
+			//Speed is set but there's no actual icon
+			//This is used to reduce animation speed in Pikmin and Luigi's Mansion for example
+			//These "blank frames" show the next icon
+			for(j=i; j<8;++j)
+			{
+				if (fmts[j] != 0)
+				{
+					switch (fmts[j])
+					{
+					case CI8SHARED: // CI8 with shared palette
+						decodeCI8image(buffer,data[j],sharedPal,32,32);
+						break;
+					case RGB5A3: // RGB5A3
+						decode5A3image(buffer, (u16*)(data[j]), 32, 32);
+						buffer += 32*32;
+						break;
+					case CI8: // CI8 with own palette
+						u16 *paldata = (u16*)(data[j] + 32*32);
+						decodeCI8image(buffer, data[j], paldata, 32, 32);
+						buffer += 32*32;
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -1269,7 +1316,6 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 	calc_checksumsBE((u16*)p_bat_backup+2, 0xFFE, &p_bat_backup->Checksum, &p_bat_backup->Checksum_Inv);
 }
 
-
 void GCMemcard::CARD_GetSerialNo(u32 *serial1,u32 *serial2)
 {
 	u32 serial[8];
@@ -1349,7 +1395,7 @@ s32 GCMemcard::PSO_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &Fi
 	if (strcmp((char*)direntry.Filename,"PSO_SYSTEM")!=0)
 	{
 		// check for PSO3 system file
-		if (strcmp((char*)&FileBuffer[0].block[0x08],"PSO3_SYSTEM")==0)
+		if (strcmp((char*)direntry.Filename,"PSO3_SYSTEM")==0)
 		{
 			// PSO3 data block size adjustment				
 			pso3offset = 0x10;

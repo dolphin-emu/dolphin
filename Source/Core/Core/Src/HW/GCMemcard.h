@@ -116,8 +116,8 @@ private:
 							//      bits 0 and 1: image format
 							//		00 no banner
 							//		01 CI8 banner
-							//		01 RGB5A3 banner
-							//		11 ? maybe ==01? haven't seen it
+							//		10 RGB5A3 banner
+							//		11 ? maybe ==00? Time Splitters 2 and 3 have it and don't have banner
 							// 	 	
 		u8 Filename[DENTRY_STRLEN];	//0x08		0x20	filename
 		u8 ModTime[4];		//0x28		0x04	Time of file's last modification in seconds since 12am, January 1st, 2000
@@ -213,7 +213,7 @@ public:
 	u32 DEntry_ModTime(u8 index) const;
 	u32 DEntry_ImageOffset(u8 index) const;
 	std::string DEntry_IconFmt(u8 index) const;
-	u16 DEntry_AnimSpeed(u8 index) const;
+	std::string DEntry_AnimSpeed(u8 index) const;
 	std::string DEntry_Permissions(u8 index) const;
 	u8 DEntry_CopyCounter(u8 index) const;
 	// get first block for file
