@@ -114,6 +114,8 @@ void Init()
 	g_bFrameStop = false;
 	g_frameSkipCounter = g_framesToSkip;
 	memset(&g_padState, 0, sizeof(g_padState));
+	if (!tmpHeader.bFromSaveState)
+		Core::SetStateFileName("");
 	for (int i = 0; i < 8; ++i)
 		g_InputDisplay[i].clear();
 
