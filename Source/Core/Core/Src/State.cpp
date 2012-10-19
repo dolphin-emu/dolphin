@@ -201,12 +201,11 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 		if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav") || !File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"))
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
-
-		if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
-			Movie::SaveRecording((filename + ".dtm").c_str());
-		else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
-			File::Delete(filename + ".dtm");
 	}
+	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
+		Movie::SaveRecording((filename + ".dtm").c_str());
+	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
+		File::Delete(filename + ".dtm");
 
 	File::IOFile f(filename, "wb");
 	if (!f)
