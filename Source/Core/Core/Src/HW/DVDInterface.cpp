@@ -29,6 +29,7 @@
 #include "Memmap.h"
 #include "../VolumeHandler.h"
 #include "AudioInterface.h"
+#include "../Movie.h"
 
 // Disc transfer rate measured in bytes per second
 static const u32 DISC_TRANSFER_RATE_GC = 3125 * 1024;
@@ -334,6 +335,17 @@ void ChangeDisc(const char* _newFileName)
 	std::string* _FileName = new std::string(_newFileName);
 	CoreTiming::ScheduleEvent_Threadsafe(0, ejectDisc);
 	CoreTiming::ScheduleEvent_Threadsafe(500000000, insertDisc, (u64)_FileName);
+	if (Movie::IsRecordingInput())
+	{
+		Movie::g_bDiscChange = true;
+		std::string fileName = _newFileName;
+		int sizeofpath = fileName.find_last_of("/\\") + 1;
+		if (fileName.substr(sizeofpath).length() > 40)
+		{
+			PanicAlert("Saving iso filename to .dtm failed; max file name length is 40 characters.");
+		}
+		Movie::g_discChange = fileName.substr(sizeofpath);
+	}
 }
 
 void SetLidOpen(bool _bOpen)

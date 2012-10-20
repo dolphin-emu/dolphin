@@ -49,7 +49,8 @@ struct ControllerState {
 	bool DPadUp:1, DPadDown:1,					// Binary D-Pad buttons, 4 bits
 		DPadLeft:1, DPadRight:1;
 	bool L:1, R:1;								// Binary triggers, 2 bits
-	bool reserved:4;							// Reserved bits used for padding, 4 bits
+	bool disc:1;								// Checks for disc being changed
+	bool reserved:3;							// Reserved bits used for padding, 4 bits
 
 	u8   TriggerL, TriggerR;					// Triggers, 16 bits
 	u8   AnalogStickX, AnalogStickY;			// Main Stick, 16 bits
@@ -59,7 +60,7 @@ struct ControllerState {
 #pragma pack(pop)
 
 // Global declarations
-extern bool g_bFrameStep, g_bPolled, g_bReadOnly;
+extern bool g_bFrameStep, g_bPolled, g_bReadOnly, g_bDiscChange;
 extern bool g_bSaveConfig, g_bSkipIdle, g_bDualCore, g_bProgressive, g_bDSPHLE, g_bFastDiscSpeed, g_bMemcard, g_bBlankMC;
 extern bool g_bEFBAccessEnable, g_bEFBCopyEnable;
 extern PlayMode g_playMode;
@@ -77,6 +78,7 @@ extern u64 g_currentLagCount, g_totalLagCount;
 extern u64 g_currentInputCount, g_totalInputCount;
 extern std::string g_videoBackend;
 extern int g_CPUCore;
+extern std::string g_discChange;
 
 extern u32 g_rerecords;
 
@@ -96,7 +98,7 @@ struct DTMHeader {
     u64 uniqueID;			// (not implemented) A Unique ID comprised of: md5(time + Game ID)
     u32 numRerecords;		// Number of rerecords/'cuts' of this TAS
     u8  author[32];			// Author's name (encoded in UTF-8)
-    
+
     u8  videoBackend[16];	// UTF-8 representation of the video backend
     u8  audioEmulator[16];	// UTF-8 representation of the audio emulator
     u8  padBackend[16];		// UTF-8 representation of the input backend
@@ -109,7 +111,7 @@ struct DTMHeader {
 	bool bProgressive;
 	bool bDSPHLE;
 	bool bFastDiscSpeed;
-	u8  CPUCore;
+	u8  CPUCore;			// 0 = interpreter, 1 = JIT, 2 = JITIL
 	bool bEFBAccessEnable;
 	bool bEFBCopyEnable;
 	bool bCopyEFBToTexture;
@@ -118,8 +120,11 @@ struct DTMHeader {
 	bool bUseXFB;
 	bool bUseRealXFB;
 	bool bMemcard;
-	bool bBlankMC;
-    u8  reserved[103];		// Make heading 256 bytes, just because we can
+	bool bBlankMC;			// Create a new memory card when playing back a movie if true
+	u8 reserved[16];
+	u8 discChange[40];		// Name of iso file to switch to, for two disc games.
+	u8 reserved2[60];		// Make heading 256 bytes, just because we can
+
 };
 #pragma pack(pop)
 
@@ -165,6 +170,7 @@ void RecordWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeature
 
 bool PlayInput(const char *filename);
 void LoadInput(const char *filename);
+void ReadHeader();
 void PlayController(SPADStatus *PadStatus, int controllerID);
 bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 void EndPlayInput(bool cont);

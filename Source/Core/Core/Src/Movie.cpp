@@ -34,6 +34,7 @@
 #include "HW/EXI.h"
 #include "HW/EXI_Device.h"
 #include "HW/EXI_Channel.h"
+#include "HW/DVDInterface.h"
 
 // large enough for just over 24 hours of single-player recording
 #define MAX_DTM_LENGTH (40 * 1024 * 1024)
@@ -69,6 +70,9 @@ std::string g_videoBackend = "opengl";
 int g_CPUCore = 1;
 bool g_bMemcard;
 bool g_bBlankMC = false;
+bool g_bDiscChange = false;
+std::string g_discChange = "";
+std::string author = "";
 
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
@@ -575,7 +579,8 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	g_padState.R = ((PadStatus->button & PAD_TRIGGER_R) != 0);
 	g_padState.TriggerL = PadStatus->triggerLeft;
 	g_padState.TriggerR = PadStatus->triggerRight;
-	
+	g_padState.disc = g_bDiscChange;
+
 	g_padState.AnalogStickX = PadStatus->stickX;
 	g_padState.AnalogStickY = PadStatus->stickY;
 	
@@ -588,6 +593,11 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	g_totalBytes = g_currentByte;
 
 	SetInputDisplayString(g_padState, controllerID);
+
+	if (g_bDiscChange)
+	{
+		g_bDiscChange = false;
+	}
 }
 
 void RecordWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int irMode)
@@ -606,6 +616,36 @@ void RecordWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf
 	g_currentByte += size;
 	g_totalBytes = g_currentByte;
 	SetWiiInputDisplayString(wiimote, coreData, accelData, irData);
+}
+
+void ReadHeader()
+{
+	g_numPads = tmpHeader.numControllers;
+	g_rerecords = tmpHeader.numRerecords;
+
+	g_recordingStartTime = tmpHeader.recordingStartTime;
+
+	g_bSaveConfig = tmpHeader.bSaveConfig;
+	g_bSkipIdle = tmpHeader.bSkipIdle;
+	g_bDualCore = tmpHeader.bDualCore;
+	g_bProgressive = tmpHeader.bProgressive;
+	g_bDSPHLE = tmpHeader.bDSPHLE;
+	g_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
+	g_CPUCore = tmpHeader.CPUCore;
+
+	for (int i = 0; i < ARRAYSIZE(tmpHeader.videoBackend);i++)
+	{
+		g_videoBackend[i] = tmpHeader.videoBackend[i];
+	}
+
+	for (int i = 0; i < ARRAYSIZE(tmpHeader.discChange);i++)
+	{
+		g_discChange[i] = tmpHeader.discChange[i];
+	}
+	for (int i = 0; i < ARRAYSIZE(tmpHeader.author);i++)
+	{
+		author[i] = tmpHeader.author[i];
+	}
 }
 
 bool PlayInput(const char *filename)
@@ -651,23 +691,11 @@ bool PlayInput(const char *filename)
 		goto cleanup;
 	}
 	*/
-	
-	g_numPads = tmpHeader.numControllers;
-	g_rerecords = tmpHeader.numRerecords;
 
+	ReadHeader();
 	g_totalFrames = tmpHeader.frameCount;
 	g_totalLagCount = tmpHeader.lagCount;
 	g_totalInputCount = tmpHeader.inputCount;
-	g_recordingStartTime = tmpHeader.recordingStartTime;
-
-	g_bSaveConfig = tmpHeader.bSaveConfig;
-	g_bSkipIdle = tmpHeader.bSkipIdle;
-	g_bDualCore = tmpHeader.bDualCore;
-	g_bProgressive = tmpHeader.bProgressive;
-	g_bDSPHLE = tmpHeader.bDSPHLE;
-	g_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
-	g_CPUCore = tmpHeader.CPUCore;
-
 	g_currentFrame = 0;
 	g_currentLagCount = 0;
 	g_currentInputCount = 0;
@@ -706,7 +734,7 @@ void DoState(PointerWrap &p)
 void LoadInput(const char *filename)
 {
 	File::IOFile t_record(filename, "r+b");
-	
+
 	t_record.ReadArray(&tmpHeader, 1);
 	
 	if(tmpHeader.filetype[0] != 'D' || tmpHeader.filetype[1] != 'T' || tmpHeader.filetype[2] != 'M' || tmpHeader.filetype[3] != 0x1A)
@@ -715,7 +743,7 @@ void LoadInput(const char *filename)
 		EndPlayInput(false);
 		return;
 	}
-
+	ReadHeader();
 	if (!g_bReadOnly)
 	{
 		if (g_rerecords > tmpHeader.numRerecords)
@@ -726,8 +754,7 @@ void LoadInput(const char *filename)
 		t_record.Seek(0, SEEK_SET);
 		t_record.WriteArray(&tmpHeader, 1);
 	}
-	
-	g_numPads = tmpHeader.numControllers;
+
 	ChangePads(true);
 	if (Core::g_CoreStartupParameter.bWii)
 		ChangeWiiPads(true);
@@ -925,6 +952,34 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 		PadStatus->button |= PAD_TRIGGER_L;
 	if(g_padState.R)
 		PadStatus->button |= PAD_TRIGGER_R;
+	if (g_padState.disc)
+	{
+		// This implementation assumes the disc change will only happen once. Trying to change more than that will cause
+		// it to load the last disc every time. As far as i know though, there are no 3+ disc games, so this should be fine.
+		Core::SetState(Core::CORE_PAUSE);
+		int numPaths = (int)SConfig::GetInstance().m_ISOFolder.size();
+		bool found = false;
+		std::string path;
+		for (int i = 0; i < numPaths; i++)
+		{
+			path = SConfig::GetInstance().m_ISOFolder[i];
+			if (File::Exists((path + '/' + g_discChange.c_str()).c_str()))
+			{
+				found = true;
+				break;
+			}
+		}
+		if (found)
+		{
+			DVDInterface::ChangeDisc((path + '/' + g_discChange.c_str()).c_str());
+			Core::SetState(Core::CORE_RUN);
+		}
+		else
+		{
+			Core::SetState(Core::CORE_PAUSE);
+			PanicAlert("Change the disc to %s", g_discChange.c_str());
+		}
+	}
 
 	SetInputDisplayString(g_padState, controllerID);
 
@@ -1001,7 +1056,6 @@ void EndPlayInput(bool cont)
 void SaveRecording(const char *filename)
 {
 	File::IOFile save_record(filename, "wb");
-	
 	// Create the real header now and write it
 	DTMHeader header;
 	memset(&header, 0, sizeof(DTMHeader));
@@ -1035,10 +1089,11 @@ void SaveRecording(const char *filename)
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
 	header.bMemcard = g_bMemcard;
 	header.bBlankMC = g_bBlankMC;
+	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
+	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 
 	// TODO
 	header.uniqueID = 0; 
-	// header.author;
 	// header.audioEmulator;
 	
 	save_record.WriteArray(&header, 1);
