@@ -60,12 +60,12 @@ u64 g_currentFrame = 0, g_totalFrames = 0; // VI
 u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
-bool g_bSaveConfig = false;
-bool g_bSkipIdle = false;
-bool g_bDualCore = false;
-bool g_bProgressive = false;
-bool g_bDSPHLE = false;
-bool g_bFastDiscSpeed = false;
+bool bSaveConfig = false;
+bool bSkipIdle = false;
+bool bDualCore = false;
+bool bProgressive = false;
+bool bDSPHLE = false;
+bool bFastDiscSpeed = false;
 std::string g_videoBackend = "opengl";
 int g_CPUCore = 1;
 bool g_bMemcard;
@@ -130,29 +130,11 @@ void Init()
 	g_bPolled = false;
 	g_bFrameStep = false;
 	g_bFrameStop = false;
-	g_bSaveConfig = false;
-	g_CPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
-	g_bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
-	if (IsRecordingInput() || (!tmpHeader.bSaveConfig && IsPlayingInput()))
+	bSaveConfig = false;
+
+	if (IsPlayingInput())
 	{
-		g_bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
-		g_bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
-		g_bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
-		g_bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
-		g_bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
-		g_videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
-		g_bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
-	}
-	else if (IsPlayingInput() && tmpHeader.bSaveConfig)
-	{
-		g_bSaveConfig = tmpHeader.bSaveConfig;
-		g_bSkipIdle = tmpHeader.bSkipIdle;
-		g_bDualCore = tmpHeader.bDualCore;
-		g_bProgressive = tmpHeader.bProgressive;
-		g_bDSPHLE = tmpHeader.bDSPHLE;
-		g_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
-		g_CPUCore = tmpHeader.CPUCore;
-		g_bBlankMC = tmpHeader.bBlankMC;
+		ReadHeader();
 	}
 	g_frameSkipCounter = g_framesToSkip;
 	memset(&g_padState, 0, sizeof(g_padState));
@@ -241,7 +223,7 @@ void FrameSkipping()
 		g_frameSkipCounter++;
 		if (g_frameSkipCounter > g_framesToSkip || Core::ShouldSkipFrame(g_frameSkipCounter) == false)
 			g_frameSkipCounter = 0;
-		
+
 		g_video_backend->Video_SetRendering(!g_frameSkipCounter);
 	}
 }
@@ -293,31 +275,31 @@ bool IsUsingWiimote(int wiimote)
 
 bool IsConfigSaved()
 {
-	return g_bSaveConfig;
+	return bSaveConfig;
 }
 bool IsDualCore()
 {
-	return g_bDualCore;
+	return bDualCore;
 }
 
 bool IsProgressive()
 {
-	return g_bProgressive;
+	return bProgressive;
 }
 
 bool IsSkipIdle()
 {
-	return g_bSkipIdle;
+	return bSkipIdle;
 }
 
 bool IsDSPHLE()
 {
-	return g_bDSPHLE;
+	return bDSPHLE;
 }
 
 bool IsFastDiscSpeed()
 {
-	return g_bFastDiscSpeed;
+	return bFastDiscSpeed;
 }
 
 int GetCPUMode()
@@ -387,11 +369,11 @@ bool BeginRecordingInput(int controllers)
 	}
 	g_playMode = MODE_RECORDING;
 
-	g_bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
-	g_bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
-	g_bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
-	g_bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
-	g_bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
+	bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
+	bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
+	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
 	g_videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
 	g_CPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
 
@@ -621,27 +603,45 @@ void RecordWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf
 void ReadHeader()
 {
 	g_numPads = tmpHeader.numControllers;
-	g_rerecords = tmpHeader.numRerecords;
-
 	g_recordingStartTime = tmpHeader.recordingStartTime;
+	if (g_rerecords < tmpHeader.numRerecords);
+		g_rerecords = tmpHeader.numRerecords;
 
-	g_bSaveConfig = tmpHeader.bSaveConfig;
-	g_bSkipIdle = tmpHeader.bSkipIdle;
-	g_bDualCore = tmpHeader.bDualCore;
-	g_bProgressive = tmpHeader.bProgressive;
-	g_bDSPHLE = tmpHeader.bDSPHLE;
-	g_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
-	g_CPUCore = tmpHeader.CPUCore;
+	if (tmpHeader.bSaveConfig)
+	{
+		bSaveConfig = true;
+		bSkipIdle = tmpHeader.bSkipIdle;
+		bDualCore = tmpHeader.bDualCore;
+		bProgressive = tmpHeader.bProgressive;
+		bDSPHLE = tmpHeader.bDSPHLE;
+		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
+		g_CPUCore = tmpHeader.CPUCore;
+	}
+	else
+	{
+		bSaveConfig = true;
+		bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
+		bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+		bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+		bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
+		bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
+		g_videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+	}
 
+
+	g_videoBackend.resize(ARRAYSIZE(tmpHeader.videoBackend));
 	for (int i = 0; i < ARRAYSIZE(tmpHeader.videoBackend);i++)
 	{
 		g_videoBackend[i] = tmpHeader.videoBackend[i];
 	}
 
+	g_discChange.resize(ARRAYSIZE(tmpHeader.discChange));
 	for (int i = 0; i < ARRAYSIZE(tmpHeader.discChange);i++)
 	{
 		g_discChange[i] = tmpHeader.discChange[i];
 	}
+
+	author.resize(ARRAYSIZE(tmpHeader.author));
 	for (int i = 0; i < ARRAYSIZE(tmpHeader.author);i++)
 	{
 		author[i] = tmpHeader.author[i];
@@ -834,8 +834,7 @@ void LoadInput(const char *filename)
 	}
 	t_record.Close();
 
-	g_rerecords = tmpHeader.numRerecords;
-	g_bSaveConfig = tmpHeader.bSaveConfig;
+	bSaveConfig = tmpHeader.bSaveConfig;
 
 	if (!afterEnd)
 	{
@@ -1073,11 +1072,11 @@ void SaveRecording(const char *filename)
 	header.recordingStartTime = g_recordingStartTime;
 
 	header.bSaveConfig = true;
-	header.bSkipIdle = g_bSkipIdle;
-	header.bDualCore = g_bDualCore;
-	header.bProgressive = g_bProgressive;
-	header.bDSPHLE = g_bDSPHLE;
-	header.bFastDiscSpeed = g_bFastDiscSpeed;
+	header.bSkipIdle = bSkipIdle;
+	header.bDualCore = bDualCore;
+	header.bProgressive = bProgressive;
+	header.bDSPHLE = bDSPHLE;
+	header.bFastDiscSpeed = bFastDiscSpeed;
 	strncpy((char *)header.videoBackend, g_videoBackend.c_str(),ARRAYSIZE(header.videoBackend));
 	header.CPUCore = g_CPUCore;
 	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
@@ -1095,7 +1094,7 @@ void SaveRecording(const char *filename)
 	// TODO
 	header.uniqueID = 0; 
 	// header.audioEmulator;
-	
+
 	save_record.WriteArray(&header, 1);
 
 	bool success = save_record.WriteArray(tmpInput, (size_t)g_totalBytes);

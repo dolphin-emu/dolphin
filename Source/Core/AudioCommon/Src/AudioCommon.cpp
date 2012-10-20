@@ -26,6 +26,7 @@
 #include "CoreAudioSoundStream.h"
 #include "OpenALStream.h"
 #include "PulseAudioStream.h"
+#include "../../Core/Src/Movie.h"
 
 namespace AudioCommon 
 {	
@@ -115,7 +116,12 @@ namespace AudioCommon
 		return backends;
 	}
 
-	bool UseJIT() {
+	bool UseJIT() 
+	{
+		if (!Movie::IsDSPHLE() && Movie::IsPlayingInput() && Movie::IsConfigSaved())
+		{
+			return true;
+		}
 		return ac_Config.m_EnableJIT;
 	}
 

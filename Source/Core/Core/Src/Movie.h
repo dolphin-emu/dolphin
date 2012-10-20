@@ -61,8 +61,7 @@ struct ControllerState {
 
 // Global declarations
 extern bool g_bFrameStep, g_bPolled, g_bReadOnly, g_bDiscChange;
-extern bool g_bSaveConfig, g_bSkipIdle, g_bDualCore, g_bProgressive, g_bDSPHLE, g_bFastDiscSpeed, g_bMemcard, g_bBlankMC;
-extern bool g_bEFBAccessEnable, g_bEFBCopyEnable;
+extern bool g_bMemcard, g_bBlankMC;
 extern PlayMode g_playMode;
 
 extern u32 g_framesToSkip, g_frameSkipCounter;
@@ -124,8 +123,9 @@ struct DTMHeader {
 	u8 reserved[16];
 	u8 discChange[40];		// Name of iso file to switch to, for two disc games.
 	u8 reserved2[47];		// Make heading 256 bytes, just because we can
-
 };
+static_assert(sizeof(DTMHeader) == 256, "DTMHeader should be 256 bytes");
+
 #pragma pack(pop)
 
 void FrameUpdate();
