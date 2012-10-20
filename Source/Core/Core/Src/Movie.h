@@ -123,7 +123,7 @@ struct DTMHeader {
 	bool bBlankMC;			// Create a new memory card when playing back a movie if true
 	u8 reserved[16];
 	u8 discChange[40];		// Name of iso file to switch to, for two disc games.
-	u8 reserved2[60];		// Make heading 256 bytes, just because we can
+	u8 reserved2[47];		// Make heading 256 bytes, just because we can
 
 };
 #pragma pack(pop)
