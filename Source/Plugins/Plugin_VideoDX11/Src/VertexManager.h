@@ -32,10 +32,11 @@ public:
 	~VertexManager();
 
 	NativeVertexFormat* CreateNativeVertexFormat();
-
-private:
 	void CreateDeviceObjects();
 	void DestroyDeviceObjects();
+
+private:
+	
 	void LoadBuffers();
 	void Draw(UINT stride);
 	// temp
@@ -46,9 +47,14 @@ private:
 	UINT m_vertexDrawOffset;
 	UINT m_triangleDrawIndex;
 	UINT m_lineDrawIndex;
-	UINT m_pointDrawIndex;
-	ID3D11Buffer* m_indexBuffer;
-	ID3D11Buffer* m_vertexBuffer;
+	UINT m_pointDrawIndex;	
+	UINT m_activeVertexBuffer;
+	UINT m_activeIndexBuffer;
+	UINT m_LastVertexBuffer;
+	UINT m_LastIndexBuffer;
+	typedef ID3D11Buffer* PID3D11Buffer;
+	PID3D11Buffer* m_indexBuffers;
+	PID3D11Buffer* m_vertexBuffers;
 
 	LineGeometryShader m_lineShader;
 	PointGeometryShader m_pointShader;

@@ -69,6 +69,16 @@ VertexManager::VertexManager()
 	GL_REPORT_ERRORD();
 }
 
+void VertexManager::CreateDeviceObjects()
+{
+	
+
+}
+void VertexManager::DestroyDeviceObjects()
+{
+	
+}
+
 void VertexManager::Draw()
 {
 	if (IndexGenerator::GetNumTriangles() > 0)

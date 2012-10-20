@@ -39,7 +39,6 @@
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
-
 namespace DX9
 {
 
@@ -62,49 +61,259 @@ inline void DumpBadShaders()
 #endif
 }
 
+void VertexManager::CreateDeviceObjects()
+{
+	NumVBuffers = 0;
+	CurrentIBufferIndex = 0;
+	CurrentVBufferIndex = 0;
+	CurrentVBufferSize = 8 * MAXVBUFFERSIZE;
+	CurrentIBufferSize = 12 * MAXIBUFFERSIZE;
+	D3DCAPS9 DeviceCaps = D3D::GetCaps();
+	int maxdevicevbuffersize =  DeviceCaps.MaxPrimitiveCount * 3 * DeviceCaps.MaxStreamStride;
+	if (CurrentVBufferSize > maxdevicevbuffersize)
+	{
+		CurrentVBufferSize = maxdevicevbuffersize;
+	}	
+	if (CurrentIBufferSize > DeviceCaps.MaxVertexIndex)
+	{
+		CurrentIBufferSize = DeviceCaps.MaxVertexIndex;
+	}
+	if (CurrentIBufferSize < MAXIBUFFERSIZE)
+	{
+		return;
+	}
+	if (CurrentVBufferSize < MAXVBUFFERSIZE)
+	{
+		return;
+	}
+	VBuffers = new LPDIRECT3DVERTEXBUFFER9[MAX_VBufferCount];
+	IBuffers = new LPDIRECT3DINDEXBUFFER9[MAX_VBufferCount];
+	bool Fail = false;
+	for (CurrentVBuffer = 0; CurrentVBuffer < MAX_VBufferCount; CurrentVBuffer++)
+	{
+		VBuffers[CurrentVBuffer] = NULL;
+		IBuffers[CurrentVBuffer] = NULL;
+	}
+	for (CurrentVBuffer = 0; CurrentVBuffer < MAX_VBufferCount; CurrentVBuffer++)
+	{
+		if(FAILED( D3D::dev->CreateVertexBuffer( CurrentVBufferSize,  D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, 0, D3DPOOL_DEFAULT, &VBuffers[CurrentVBuffer], NULL ) ) )
+		{
+			Fail = true;
+			break;
+		}
+		if( FAILED( D3D::dev->CreateIndexBuffer( CurrentIBufferSize * sizeof(u16),  D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &IBuffers[CurrentVBuffer], NULL ) ) )
+		{
+			Fail = true;
+			return;
+		}
+	}
+	NumVBuffers = CurrentVBuffer;
+	CurrentVBuffer = 0;
+	CurrentIBuffer = 0;
+	LastVBuffer = NumVBuffers;
+	LastIBuffer = NumVBuffers;
+	if (Fail)
+	{
+		NumVBuffers--;
+		if (NumVBuffers < 2)
+		{
+			NumVBuffers = MAX_VBufferCount;
+			DestroyDeviceObjects();
+		}		
+	}
+	
+}
+void VertexManager::DestroyDeviceObjects()
+{
+	D3D::dev->SetStreamSource( 0, NULL, 0, 0);
+	D3D::dev->SetIndices(NULL);
+	for (int i = 0; i < MAX_VBufferCount; i++)
+	{
+		if(VBuffers)
+		{
+			if (VBuffers[i])
+			{
+				VBuffers[i]->Release();
+				VBuffers[i] = NULL;
+			}
+		}
+
+		if (IBuffers[i])
+		{
+			IBuffers[i]->Release();
+			IBuffers[i] = NULL;
+		}
+	}
+	if(VBuffers)
+		delete [] VBuffers;
+	if(IBuffers)
+		delete [] IBuffers;
+	VBuffers = NULL;
+	IBuffers = NULL;
+}
+
+VertexManager::VertexManager()
+{
+	//CreateDeviceObjects();
+}
+
+VertexManager::~VertexManager()
+{
+	//DestroyDeviceObjects();
+}
+
+void VertexManager::PrepareVBuffers(int stride)
+{
+	if (!NumVBuffers)
+	{
+		return;
+	}
+	u8* pVertices;
+	u16* pIndices;
+	int datasize = IndexGenerator::GetNumVerts() * stride;
+	int TdataSize = IndexGenerator::GetTriangleindexLen();
+	int LDataSize = IndexGenerator::GetLineindexLen();
+	int PDataSize = IndexGenerator::GetPointindexLen();
+	int IndexDataSize = TdataSize + LDataSize + PDataSize;
+	DWORD LockMode = D3DLOCK_NOOVERWRITE;
+
+	if (CurrentVBufferIndex > CurrentVBufferSize - datasize || LastVBuffer != CurrentVBuffer)
+	{
+		LockMode = D3DLOCK_DISCARD;
+		CurrentVBufferIndex = 0;
+		CurrentVBuffer = (CurrentVBuffer + 1) % NumVBuffers;
+	}
+
+	if(FAILED(VBuffers[CurrentVBuffer]->Lock(CurrentVBufferIndex, datasize,(VOID**)(&pVertices), LockMode))) 
+	{
+		DestroyDeviceObjects();
+		return;
+	}
+	memcpy(pVertices, LocalVBuffer, datasize);
+	VBuffers[CurrentVBuffer]->Unlock();
+
+	LockMode = D3DLOCK_NOOVERWRITE;
+
+	if (CurrentIBufferIndex > CurrentIBufferSize - IndexDataSize || LastIBuffer != CurrentIBuffer)
+	{
+		LockMode = D3DLOCK_DISCARD;
+		CurrentIBufferIndex = 0;
+		CurrentIBuffer = (CurrentIBuffer + 1) % NumVBuffers;
+	}
+	
+	if(FAILED(IBuffers[CurrentIBuffer]->Lock(CurrentIBufferIndex * sizeof(u16), IndexDataSize * sizeof(u16), (VOID**)(&pIndices), LockMode ))) 
+	{
+		DestroyDeviceObjects();
+		return;
+	}
+	if(TdataSize)
+	{		
+		memcpy(pIndices, TIBuffer, TdataSize * sizeof(u16));
+		pIndices += TdataSize;
+	}
+	if(LDataSize)
+	{		
+		memcpy(pIndices, LIBuffer, LDataSize * sizeof(u16));
+		pIndices += LDataSize;
+	}
+	if(PDataSize)
+	{		
+		memcpy(pIndices, PIBuffer, PDataSize * sizeof(u16));
+	}
+	IBuffers[CurrentIBuffer]->Unlock();
+}
+
 void VertexManager::Draw(int stride)
 {
-	if (IndexGenerator::GetNumTriangles() > 0)
+	if(NumVBuffers)
 	{
-		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
-			D3DPT_TRIANGLELIST, 
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(), 
-			TIBuffer, 
-			D3DFMT_INDEX16, 
-			LocalVBuffer, 
-			stride)))
+		if (IndexGenerator::GetNumTriangles() > 0)
 		{
-			DumpBadShaders();
+			if (FAILED(D3D::dev->DrawIndexedPrimitive(
+				D3DPT_TRIANGLELIST, 
+				0,
+				0, 
+				IndexGenerator::GetNumVerts(),
+				CurrentIBufferIndex, 
+				IndexGenerator::GetNumTriangles())))
+			{
+				DumpBadShaders();
+			}
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		if (IndexGenerator::GetNumLines() > 0)
+		{
+			if (FAILED(D3D::dev->DrawIndexedPrimitive(
+				D3DPT_LINELIST, 
+				0,
+				0, 
+				IndexGenerator::GetNumVerts(),
+				CurrentIBufferIndex + IndexGenerator::GetTriangleindexLen(), 
+				IndexGenerator::GetNumLines())))
+			{
+				DumpBadShaders();
+			}
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+		if (IndexGenerator::GetNumPoints() > 0)
+		{
+			if (FAILED(D3D::dev->DrawIndexedPrimitive(
+				D3DPT_POINTLIST, 
+				0,
+				0, 
+				IndexGenerator::GetNumVerts(),
+				CurrentIBufferIndex + IndexGenerator::GetTriangleindexLen() + IndexGenerator::GetLineindexLen(), 
+				IndexGenerator::GetNumPoints())))
+			{
+				DumpBadShaders();
+			}
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
 	}
-	if (IndexGenerator::GetNumLines() > 0)
+	else
 	{
-		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
-			D3DPT_LINELIST, 
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(), 
-			LIBuffer, 
-			D3DFMT_INDEX16, 
-			LocalVBuffer, 
-			stride)))
+		if (IndexGenerator::GetNumTriangles() > 0)
 		{
-			DumpBadShaders();
+			if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
+				D3DPT_TRIANGLELIST, 
+				0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(), 
+				TIBuffer, 
+				D3DFMT_INDEX16, 
+				LocalVBuffer, 
+				stride)))
+			{
+				DumpBadShaders();
+			}
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-	}
-	if (IndexGenerator::GetNumPoints() > 0)
-	{
-		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
-			D3DPT_POINTLIST, 
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(), 
-			PIBuffer, 
-			D3DFMT_INDEX16, 
-			LocalVBuffer, 
-			stride)))
+		if (IndexGenerator::GetNumLines() > 0)
 		{
-			DumpBadShaders();
+			if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
+				D3DPT_LINELIST, 
+				0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(), 
+				LIBuffer, 
+				D3DFMT_INDEX16, 
+				LocalVBuffer, 
+				stride)))
+			{
+				DumpBadShaders();
+			}
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		if (IndexGenerator::GetNumPoints() > 0)
+		{
+			if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
+				D3DPT_POINTLIST, 
+				0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(), 
+				PIBuffer, 
+				D3DFMT_INDEX16, 
+				LocalVBuffer, 
+				stride)))
+			{
+				DumpBadShaders();
+			}
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
 	}
 }
 
@@ -153,7 +362,7 @@ void VertexManager::vFlush()
 	// set global constants
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
-
+	int stride = g_nativeVertexFmt->GetVertexStride();
 	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
@@ -165,10 +374,18 @@ void VertexManager::vFlush()
 		goto shader_fail;
 
 	}
-
-	int stride = g_nativeVertexFmt->GetVertexStride();
-	g_nativeVertexFmt->SetupVertexPointers();
-
+	PrepareVBuffers(stride);
+	if (NumVBuffers)
+	{
+		D3D::dev->SetStreamSource( 0, VBuffers[CurrentVBuffer], CurrentVBufferIndex, stride);
+		if(LastIBuffer != CurrentIBuffer)
+		{
+			LastIBuffer = CurrentIBuffer;
+			D3D::dev->SetIndices(IBuffers[CurrentIBuffer]);
+		}
+		LastVBuffer = CurrentVBuffer;
+	}
+	g_nativeVertexFmt->SetupVertexPointers();	
 	Draw(stride);
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
@@ -189,6 +406,11 @@ void VertexManager::vFlush()
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 shader_fail:
+	if(NumVBuffers)
+	{
+		CurrentIBufferIndex += IndexGenerator::GetTriangleindexLen() + IndexGenerator::GetLineindexLen() + IndexGenerator::GetPointindexLen();
+		CurrentVBufferIndex += IndexGenerator::GetNumVerts() * stride;
+	}
 	ResetBuffer();
 }
 

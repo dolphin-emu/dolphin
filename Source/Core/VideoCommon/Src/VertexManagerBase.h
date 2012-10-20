@@ -21,7 +21,7 @@ public:
 
 		// values from DX11 backend
 		MAXVBUFFERSIZE = 0x50000,
-		MAXIBUFFERSIZE = 0x10000,
+		MAXIBUFFERSIZE = 0xFFFF,
 	};
 
 	VertexManager();
@@ -46,7 +46,8 @@ public:
 	static u8* GetVertexBuffer() { return LocalVBuffer; }
 
 	static void DoState(PointerWrap& p);
-
+	virtual void CreateDeviceObjects(){};
+	virtual void DestroyDeviceObjects(){};
 protected:
 	// TODO: make private after Flush() is merged
 	static void ResetBuffer();

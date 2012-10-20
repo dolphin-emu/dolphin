@@ -225,6 +225,7 @@ void SetupDeviceObjects()
 	// To avoid shader compilation stutters, read back all shaders from cache.
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
+	g_vertex_manager->CreateDeviceObjects();
 	// Texture cache will recreate themselves over time.
 }
 
@@ -243,6 +244,7 @@ void TeardownDeviceObjects()
 	VertexShaderCache::Shutdown();
 	PixelShaderCache::Shutdown();
 	TextureConverter::Shutdown();
+	g_vertex_manager->DestroyDeviceObjects();
 }
 
 // Init functions
@@ -1198,6 +1200,12 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	{
 		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
+		if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
+		{
+			D3D::ChangeRenderState(D3DRS_ZENABLE, TRUE);
+			D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);
+			D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_EQUAL);
+		}
 	}
 }
 
@@ -1205,7 +1213,12 @@ void Renderer::RestoreState()
 {
 	D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
 	D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
-
+	if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
+	{
+		D3D::RefreshRenderState(D3DRS_ZENABLE);
+		D3D::RefreshRenderState(D3DRS_ZWRITEENABLE);
+		D3D::RefreshRenderState(D3DRS_ZFUNC);
+	}
 	// TODO: Enable this code. Caused glitches for me however (neobrain)
 //	for (unsigned int i = 0; i < 8; ++i)
 //		D3D::dev->SetTexture(i, NULL);

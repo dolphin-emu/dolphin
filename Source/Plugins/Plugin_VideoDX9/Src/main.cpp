@@ -168,9 +168,9 @@ void VideoBackend::Video_Prepare()
 	s_swapRequested = FALSE;
 
 	// internal interfaces
-	g_renderer = new Renderer;
-	g_texture_cache = new TextureCache;
 	g_vertex_manager = new VertexManager;
+	g_renderer = new Renderer;
+	g_texture_cache = new TextureCache;		
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
@@ -208,9 +208,9 @@ void VideoBackend::Shutdown()
 		// internal interfaces
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
-		delete g_vertex_manager;
 		delete g_texture_cache;
 		delete g_renderer;
+		delete g_vertex_manager;
 		g_renderer = NULL;
 		g_texture_cache = NULL;
 	}
