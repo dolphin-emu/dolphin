@@ -124,7 +124,7 @@ bool BootCore(const std::string& _rFilename)
 			StartUp.bDSPHLE = Movie::IsDSPHLE();
 			StartUp.bProgressive = Movie::IsProgressive();
 			StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
-			if (Movie::g_bMemcard && Movie::g_bBlankMC)
+			if (Movie::IsUsingMemcard() && Movie::IsBlankMemcard())
 			{
 				if (File::Exists("Movie.raw"))
 					File::Delete("Movie.raw");

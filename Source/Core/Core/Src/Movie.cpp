@@ -66,10 +66,10 @@ bool bDualCore = false;
 bool bProgressive = false;
 bool bDSPHLE = false;
 bool bFastDiscSpeed = false;
-std::string g_videoBackend = "opengl";
-int g_CPUCore = 1;
-bool g_bMemcard;
-bool g_bBlankMC = false;
+std::string videoBackend = "opengl";
+int iCPUCore = 1;
+bool bMemcard;
+bool bBlankMC = false;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
 std::string author = "";
@@ -138,7 +138,7 @@ void Init()
 	}
 	g_frameSkipCounter = g_framesToSkip;
 	memset(&g_padState, 0, sizeof(g_padState));
-	if (!tmpHeader.bFromSaveState)
+	if (!tmpHeader.bFromSaveState || !IsPlayingInput())
 		Core::SetStateFileName("");
 	for (int i = 0; i < 8; ++i)
 		g_InputDisplay[i].clear();
@@ -245,7 +245,7 @@ bool IsJustStartingRecordingInputFromSaveState()
 
 bool IsJustStartingPlayingInputFromSaveState()
 {
-	return tmpHeader.bFromSaveState && g_currentFrame == 1;
+	return IsRecordingInputFromSaveState() && g_currentFrame == 1 && IsPlayingInput();
 }
 
 bool IsPlayingInput()
@@ -304,7 +304,17 @@ bool IsFastDiscSpeed()
 
 int GetCPUMode()
 {
-	return g_CPUCore;
+	return iCPUCore;
+}
+
+bool IsBlankMemcard()
+{
+	return bBlankMC;
+}
+
+bool IsUsingMemcard()
+{
+	return bMemcard;
 }
 
 void ChangePads(bool instantly)
@@ -374,8 +384,9 @@ bool BeginRecordingInput(int controllers)
 	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
 	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
 	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
-	g_videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
-	g_CPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+	videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+	bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 
 	delete [] tmpInput;
 	tmpInput = new u8[MAX_DTM_LENGTH];
@@ -604,7 +615,7 @@ void ReadHeader()
 {
 	g_numPads = tmpHeader.numControllers;
 	g_recordingStartTime = tmpHeader.recordingStartTime;
-	if (g_rerecords < tmpHeader.numRerecords);
+	if (g_rerecords < tmpHeader.numRerecords)
 		g_rerecords = tmpHeader.numRerecords;
 
 	if (tmpHeader.bSaveConfig)
@@ -615,24 +626,26 @@ void ReadHeader()
 		bProgressive = tmpHeader.bProgressive;
 		bDSPHLE = tmpHeader.bDSPHLE;
 		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
-		g_CPUCore = tmpHeader.CPUCore;
+		iCPUCore = tmpHeader.CPUCore;
+		bBlankMC = tmpHeader.bBlankMC;
 	}
 	else
 	{
-		bSaveConfig = true;
+		bSaveConfig = false;
 		bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
 		bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
 		bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
 		bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
 		bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
-		g_videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+		videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+		bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	}
 
 
-	g_videoBackend.resize(ARRAYSIZE(tmpHeader.videoBackend));
+	videoBackend.resize(ARRAYSIZE(tmpHeader.videoBackend));
 	for (int i = 0; i < ARRAYSIZE(tmpHeader.videoBackend);i++)
 	{
-		g_videoBackend[i] = tmpHeader.videoBackend[i];
+		videoBackend[i] = tmpHeader.videoBackend[i];
 	}
 
 	g_discChange.resize(ARRAYSIZE(tmpHeader.discChange));
@@ -655,19 +668,19 @@ bool PlayInput(const char *filename)
 
 	if(!File::Exists(filename))
 		return false;
-	
+
 	File::IOFile g_recordfd;
-	
+
 	if (!g_recordfd.Open(filename, "rb"))
 		return false;
-	
+
 	g_recordfd.ReadArray(&tmpHeader, 1);
 	
 	if(tmpHeader.filetype[0] != 'D' || tmpHeader.filetype[1] != 'T' || tmpHeader.filetype[2] != 'M' || tmpHeader.filetype[3] != 0x1A) {
 		PanicAlertT("Invalid recording file");
 		goto cleanup;
 	}
-	
+
 	// Load savestate (and skip to frame data)
 	if(tmpHeader.bFromSaveState)
 	{
@@ -676,16 +689,15 @@ bool PlayInput(const char *filename)
 			Core::SetStateFileName(stateFilename);
 		g_bRecordingFromSaveState = true;
 		Movie::LoadInput(filename);
-		g_currentFrame = 0;
 	}
-	
+
 	/* TODO: Put this verification somewhere we have the gameID of the played game
 	// TODO: Replace with Unique ID
 	if(tmpHeader.uniqueID != 0) {
 		PanicAlert("Recording Unique ID Verification Failed");
 		goto cleanup;
 	}
-	
+
 	if(strncmp((char *)tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)) {
 		PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
 		goto cleanup;
@@ -708,9 +720,9 @@ bool PlayInput(const char *filename)
 	g_recordfd.ReadArray(tmpInput, (size_t)g_totalBytes);
 	g_currentByte = 0;
 	g_recordfd.Close();
-	
+
 	return true;
-	
+
 cleanup:
 	g_recordfd.Close();
 	return false;
@@ -736,7 +748,7 @@ void LoadInput(const char *filename)
 	File::IOFile t_record(filename, "r+b");
 
 	t_record.ReadArray(&tmpHeader, 1);
-	
+
 	if(tmpHeader.filetype[0] != 'D' || tmpHeader.filetype[1] != 'T' || tmpHeader.filetype[2] != 'M' || tmpHeader.filetype[3] != 0x1A)
 	{
 		PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename);
@@ -871,7 +883,12 @@ static void CheckInputEnd()
 
 void PlayController(SPADStatus *PadStatus, int controllerID)
 {
-	if (IsPlayingInput() && IsConfigSaved())
+	// Correct playback is entirely dependent on the emulator polling the controllers
+	// in the same order done during recording
+	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == NULL)
+		return;
+
+	if (IsConfigSaved())
 	{
 		SetGraphicsConfig();
 	}
@@ -886,10 +903,6 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 			ExpansionInterface::ChangeDevice(0, EXIDEVICE_NONE, 0);
 		}
 	}
-	// Correct playback is entirely dependent on the emulator polling the controllers
-	// in the same order done during recording
-	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == NULL)
-		return;
 
 	if (g_currentByte + 8 > g_totalBytes)
 	{
@@ -1044,7 +1057,7 @@ void EndPlayInput(bool cont)
 		g_currentByte = 0;
 		g_playMode = MODE_NONE;
 		Core::DisplayMessage("Movie End.", 2000);
-		tmpHeader.bFromSaveState = 0;
+		g_bRecordingFromSaveState = 0;
 		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
 		//g_totalFrames = g_totalBytes = 0;
 		//delete tmpInput;
@@ -1077,8 +1090,8 @@ void SaveRecording(const char *filename)
 	header.bProgressive = bProgressive;
 	header.bDSPHLE = bDSPHLE;
 	header.bFastDiscSpeed = bFastDiscSpeed;
-	strncpy((char *)header.videoBackend, g_videoBackend.c_str(),ARRAYSIZE(header.videoBackend));
-	header.CPUCore = g_CPUCore;
+	strncpy((char *)header.videoBackend, videoBackend.c_str(),ARRAYSIZE(header.videoBackend));
+	header.CPUCore = iCPUCore;
 	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
 	header.bEFBCopyEnable = g_ActiveConfig.bEFBCopyEnable;
 	header.bCopyEFBToTexture = g_ActiveConfig.bCopyEFBToTexture;
@@ -1086,8 +1099,8 @@ void SaveRecording(const char *filename)
 	header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
 	header.bUseXFB = g_ActiveConfig.bUseXFB;
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
-	header.bMemcard = g_bMemcard;
-	header.bBlankMC = g_bBlankMC;
+	header.bMemcard = bMemcard;
+	header.bBlankMC = bBlankMC;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 

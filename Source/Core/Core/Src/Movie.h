@@ -57,11 +57,11 @@ struct ControllerState {
 	u8   CStickX, CStickY;						// Sub-Stick, 16 bits
 	
 }; // Total: 60 + 4 = 64 bits per frame
+static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes");
 #pragma pack(pop)
 
 // Global declarations
 extern bool g_bFrameStep, g_bPolled, g_bReadOnly, g_bDiscChange;
-extern bool g_bMemcard, g_bBlankMC;
 extern PlayMode g_playMode;
 
 extern u32 g_framesToSkip, g_frameSkipCounter;
@@ -75,8 +75,6 @@ extern u64 g_currentByte, g_totalBytes;
 extern u64 g_currentFrame, g_totalFrames;
 extern u64 g_currentLagCount, g_totalLagCount;
 extern u64 g_currentInputCount, g_totalInputCount;
-extern std::string g_videoBackend;
-extern int g_CPUCore;
 extern std::string g_discChange;
 
 extern u32 g_rerecords;
@@ -120,7 +118,7 @@ struct DTMHeader {
 	bool bUseRealXFB;
 	bool bMemcard;
 	bool bBlankMC;			// Create a new memory card when playing back a movie if true
-	u8 reserved[16];
+	u8 reserved[16];		// Padding for any new config options
 	u8 discChange[40];		// Name of iso file to switch to, for two disc games.
 	u8 reserved2[47];		// Make heading 256 bytes, just because we can
 };
@@ -150,6 +148,8 @@ bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
 int GetCPUMode();
+bool IsBlankMemcard();
+bool IsUsingMemcard();
 void SetGraphicsConfig();
 
 bool IsUsingPad(int controller);
