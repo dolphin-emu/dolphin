@@ -232,12 +232,12 @@ inline void MixAddVoice(ParamBlockType &pb,
 			temprbuffer[s] += right;
 
 			// Control the behavior when we reach the end of the sample
-			if ((pb.audio_addr.sample_format != AUDIOFORMAT_ADPCM && samplePos >= sampleEnd) ||
-				(pb.audio_addr.sample_format == AUDIOFORMAT_ADPCM && samplePos == sampleEnd))
+			if (samplePos >= sampleEnd)
 			{
 				if (pb.audio_addr.looping == 1)
 				{
-					samplePos = loopPos;
+					if (samplePos == sampleEnd || (pb.audio_addr.sample_format != AUDIOFORMAT_ADPCM))
+						samplePos = loopPos;
 					if ((!pb.is_stream) && (pb.audio_addr.sample_format == AUDIOFORMAT_ADPCM))
 					{
 						pb.adpcm.yn1 = pb.adpcm_loop_info.yn1;
