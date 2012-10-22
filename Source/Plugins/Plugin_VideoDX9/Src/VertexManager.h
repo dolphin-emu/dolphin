@@ -23,7 +23,6 @@
 
 #include "VertexManagerBase.h"
 
-#define MAX_VBufferCount 4
 namespace DX9
 {
 
@@ -34,23 +33,19 @@ public:
 	void GetElements(NativeVertexFormat* format, D3DVERTEXELEMENT9** elems, int* num);
 	void CreateDeviceObjects();
 	void DestroyDeviceObjects();
-	VertexManager();
-	~VertexManager();
-
 private:
 	u32 CurrentVBufferIndex;
 	u32 CurrentVBufferSize;
 	u32 CurrentIBufferIndex;
-	u32 CurrentIBufferSize;	
+	u32 CurrentIBufferSize;
 	u32 NumVBuffers;
 	u32 CurrentVBuffer;
 	u32 CurrentIBuffer;
-	u32 LastVBuffer;
-	u32 LastIBuffer;
 	LPDIRECT3DVERTEXBUFFER9 *VBuffers;
 	LPDIRECT3DINDEXBUFFER9 *IBuffers; 
 	void PrepareVBuffers(int stride);
-	void Draw(int stride);
+	void DrawVB(int stride);
+	void DrawVA(int stride);
 	// temp
 	void vFlush();
 };

@@ -1202,7 +1202,9 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
 		if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
 		{
-			D3D::ChangeRenderState(D3DRS_ZENABLE, TRUE);
+			//This is needed to draw to the correct pixels in multi-pass algorithms
+			//this avoid z-figthing and grants that you write to the same pixels
+			//affected by the last pass
 			D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);
 			D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_EQUAL);
 		}
@@ -1215,7 +1217,6 @@ void Renderer::RestoreState()
 	D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
 	if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
 	{
-		D3D::RefreshRenderState(D3DRS_ZENABLE);
 		D3D::RefreshRenderState(D3DRS_ZWRITEENABLE);
 		D3D::RefreshRenderState(D3DRS_ZFUNC);
 	}

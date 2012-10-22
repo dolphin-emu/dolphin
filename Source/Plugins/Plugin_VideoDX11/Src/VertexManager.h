@@ -50,8 +50,6 @@ private:
 	UINT m_pointDrawIndex;	
 	UINT m_activeVertexBuffer;
 	UINT m_activeIndexBuffer;
-	UINT m_LastVertexBuffer;
-	UINT m_LastIndexBuffer;
 	typedef ID3D11Buffer* PID3D11Buffer;
 	PID3D11Buffer* m_indexBuffers;
 	PID3D11Buffer* m_vertexBuffers;
