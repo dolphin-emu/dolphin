@@ -62,7 +62,11 @@ public:
 
 	virtual ~IWII_IPC_HLE_Device() { }
 
-	virtual void DoState(PointerWrap& p) { DoStateShared(p); }
+	virtual void DoState(PointerWrap& p) 
+	{
+		DoStateShared(p);
+		p.Do(m_Active);
+	}
 	
 	void DoStateShared(PointerWrap& p);
 

@@ -193,7 +193,8 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	    case 0x0004: 
 			// PBs are here now
 			m_addressPBs = HLEMemory_Read_U32(uAddress);
-			soundStream->GetMixer()->SetHLEReady(true);
+			if (soundStream)
+				soundStream->GetMixer()->SetHLEReady(true);
 //			soundStream->Update();
 			uAddress += 4;
 		    break;
