@@ -151,6 +151,7 @@ int GetCPUMode();
 bool IsBlankMemcard();
 bool IsUsingMemcard();
 void SetGraphicsConfig();
+void GetSettings();
 
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);

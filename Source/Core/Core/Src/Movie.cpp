@@ -136,6 +136,10 @@ void Init()
 	{
 		ReadHeader();
 	}
+	if (IsRecordingInput())
+	{
+		GetSettings();
+	}
 	g_frameSkipCounter = g_framesToSkip;
 	memset(&g_padState, 0, sizeof(g_padState));
 	if (!tmpHeader.bFromSaveState || !IsPlayingInput())
@@ -378,16 +382,7 @@ bool BeginRecordingInput(int controllers)
 		g_bRecordingFromSaveState = true;
 	}
 	g_playMode = MODE_RECORDING;
-
-	bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
-	bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
-	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
-	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
-	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
-	videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
-	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
-	bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
-	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
+	GetSettings();
 
 	delete [] tmpInput;
 	tmpInput = new u8[MAX_DTM_LENGTH];
@@ -635,14 +630,7 @@ void ReadHeader()
 	else
 	{
 		bSaveConfig = false;
-		bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
-		bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
-		bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
-		bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
-		bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
-		videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
-		bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
-		bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
+		GetSettings();
 	}
 
 
@@ -1149,5 +1137,18 @@ void SetGraphicsConfig()
 	g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
 	g_Config.bUseXFB = tmpHeader.bUseXFB;
 	g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;
+}
+
+void GetSettings()
+{
+	bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
+	bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
+	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
+	videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+	bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
+	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 }
 };
