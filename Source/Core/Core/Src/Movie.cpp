@@ -135,6 +135,11 @@ void Init()
 	if (IsPlayingInput())
 	{
 		ReadHeader();
+		if ((strncmp((char *)tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)))
+		{
+			PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
+			EndPlayInput(false);
+		}
 	}
 	if (IsRecordingInput())
 	{
@@ -683,19 +688,6 @@ bool PlayInput(const char *filename)
 		Movie::LoadInput(filename);
 	}
 
-	/* TODO: Put this verification somewhere we have the gameID of the played game
-	// TODO: Replace with Unique ID
-	if(tmpHeader.uniqueID != 0) {
-		PanicAlert("Recording Unique ID Verification Failed");
-		goto cleanup;
-	}
-
-	if(strncmp((char *)tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)) {
-		PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
-		goto cleanup;
-	}
-	*/
-
 	ReadHeader();
 	g_totalFrames = tmpHeader.frameCount;
 	g_totalLagCount = tmpHeader.lagCount;
@@ -1094,6 +1086,7 @@ void SaveRecording(const char *filename)
 	header.bMemcard = bMemcard;
 	header.bBlankMC = bBlankMC;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
+	// TODO: prompt the user for author name. It's currently always blank, unless the user manually edits the .dtm file.
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 
 	// TODO
@@ -1141,6 +1134,7 @@ void SetGraphicsConfig()
 
 void GetSettings()
 {
+	bSaveConfig = true;
 	bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
 	bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
 	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;

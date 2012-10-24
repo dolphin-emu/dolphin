@@ -118,7 +118,6 @@ bool BootCore(const std::string& _rFilename)
 
 		if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
 		{
-			Movie::Init();
 			StartUp.bCPUThread = Movie::IsDualCore();
 			StartUp.bSkipIdle = Movie::IsSkipIdle();
 			StartUp.bDSPHLE = Movie::IsDSPHLE();
