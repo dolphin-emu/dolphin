@@ -387,6 +387,7 @@ bool BeginRecordingInput(int controllers)
 	videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
 	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
 	bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
+	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 
 	delete [] tmpInput;
 	tmpInput = new u8[MAX_DTM_LENGTH];
@@ -628,6 +629,8 @@ void ReadHeader()
 		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
 		iCPUCore = tmpHeader.CPUCore;
 		bBlankMC = tmpHeader.bBlankMC;
+		bMemcard = tmpHeader.bMemcard;
+
 	}
 	else
 	{
@@ -639,6 +642,7 @@ void ReadHeader()
 		bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
 		videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
 		bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
+		g_bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 	}
 
 
