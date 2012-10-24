@@ -642,7 +642,7 @@ void ReadHeader()
 		bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
 		videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
 		bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
-		g_bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
+		bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 	}
 
 
