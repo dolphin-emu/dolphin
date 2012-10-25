@@ -35,6 +35,7 @@
 #include "HW/EXI_Device.h"
 #include "HW/EXI_Channel.h"
 #include "HW/DVDInterface.h"
+#include "../../Common/Src/NandPaths.h"
 
 // large enough for just over 24 hours of single-player recording
 #define MAX_DTM_LENGTH (40 * 1024 * 1024)
@@ -60,19 +61,14 @@ u64 g_currentFrame = 0, g_totalFrames = 0; // VI
 u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
-bool bSaveConfig = false;
-bool bSkipIdle = false;
-bool bDualCore = false;
-bool bProgressive = false;
-bool bDSPHLE = false;
-bool bFastDiscSpeed = false;
+bool bSaveConfig, bSkipIdle, bDualCore, bProgressive, bDSPHLE, bFastDiscSpeed = false;
+bool bMemcard, g_bClearSave = false;
 std::string videoBackend = "opengl";
 int iCPUCore = 1;
-bool bMemcard;
-bool bBlankMC = false;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
 std::string author = "";
+u64 g_titleID = 0;
 
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
@@ -324,9 +320,9 @@ int GetCPUMode()
 	return iCPUCore;
 }
 
-bool IsBlankMemcard()
+bool IsStartingFromClearSave()
 {
-	return bBlankMC;
+	return g_bClearSave;
 }
 
 bool IsUsingMemcard()
@@ -393,6 +389,14 @@ bool BeginRecordingInput(int controllers)
 
 		State::SaveAs(tmpStateFilename.c_str());
 		g_bRecordingFromSaveState = true;
+
+		// This is only done here if starting from save state because otherwise we won't have the titleid. 
+		// If not starting from save state, it's set in WII_IPC_HLE_Device_es.cpp. There's probably a way to get this in Movie::Init, but i can't find one.
+		// TODO: find a way to GetTitleDataPath() from Movie::Init()
+		if (File::Exists((Common::GetTitleDataPath(g_titleID) + "banner.bin").c_str()))
+			Movie::g_bClearSave = false;
+		else
+			Movie::g_bClearSave = true;
 	}
 	g_playMode = MODE_RECORDING;
 	GetSettings();
@@ -626,7 +630,7 @@ void ReadHeader()
 		bDSPHLE = tmpHeader.bDSPHLE;
 		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
 		iCPUCore = tmpHeader.CPUCore;
-		bBlankMC = tmpHeader.bBlankMC;
+		g_bClearSave = tmpHeader.bClearSave;
 		bMemcard = tmpHeader.bMemcard;
 
 	}
@@ -1078,7 +1082,7 @@ void SaveRecording(const char *filename)
 	header.bUseXFB = g_ActiveConfig.bUseXFB;
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
 	header.bMemcard = bMemcard;
-	header.bBlankMC = bBlankMC;
+	header.bClearSave = g_bClearSave;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
 	// TODO: prompt the user for author name. It's currently always blank, unless the user manually edits the .dtm file.
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
@@ -1136,7 +1140,8 @@ void GetSettings()
 	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
 	videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
 	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
-	bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
+	if (!Core::g_CoreStartupParameter.bWii)
+		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 }
 };

@@ -61,8 +61,9 @@ static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes")
 #pragma pack(pop)
 
 // Global declarations
-extern bool g_bFrameStep, g_bPolled, g_bReadOnly, g_bDiscChange;
+extern bool g_bFrameStep, g_bPolled, g_bReadOnly, g_bDiscChange, g_bClearSave;
 extern PlayMode g_playMode;
+extern u64 g_titleID;
 
 extern u32 g_framesToSkip, g_frameSkipCounter;
 
@@ -117,7 +118,7 @@ struct DTMHeader {
 	bool bUseXFB;
 	bool bUseRealXFB;
 	bool bMemcard;
-	bool bBlankMC;			// Create a new memory card when playing back a movie if true
+	bool bClearSave;		// Create a new memory card when playing back a movie if true
 	u8 reserved[16];		// Padding for any new config options
 	u8 discChange[40];		// Name of iso file to switch to, for two disc games.
 	u8 reserved2[47];		// Make heading 256 bytes, just because we can
@@ -148,7 +149,7 @@ bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
 int GetCPUMode();
-bool IsBlankMemcard();
+bool IsStartingFromClearSave();
 bool IsUsingMemcard();
 void SetGraphicsConfig();
 void GetSettings();

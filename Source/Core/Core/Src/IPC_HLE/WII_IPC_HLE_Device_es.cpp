@@ -57,6 +57,7 @@
 #include "NandPaths.h"
 #include "CommonPaths.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "../Movie.h"
 
 
 std::string CWII_IPC_HLE_Device_es::m_ContentFile;
@@ -891,6 +892,16 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 
 	File::CreateFullPath(tmdPath);
 	File::CreateFullPath(Common::GetTitleDataPath(tmdTitleID));
+	
+	Movie::g_titleID = tmdTitleID;
+	if (Movie::IsRecordingInput())
+	{
+		// TODO: Check for the actual save data
+		if (File::Exists((Common::GetTitleDataPath(tmdTitleID) + "banner.bin").c_str()))
+			Movie::g_bClearSave = false;
+		else
+			Movie::g_bClearSave = true;
+	}
 	if(!File::Exists(tmdPath))
 	{
 		File::IOFile _pTMDFile(tmdPath, "wb");
