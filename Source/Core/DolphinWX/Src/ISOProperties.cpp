@@ -75,6 +75,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_MENU(IDM_EXTRACTALL, CISOProperties::OnExtractDir)
 	EVT_MENU(IDM_EXTRACTAPPLOADER, CISOProperties::OnExtractDataFromHeader)
 	EVT_MENU(IDM_EXTRACTDOL, CISOProperties::OnExtractDataFromHeader)
+	EVT_MENU(IDM_CHECKINTEGRITY, CISOProperties::CheckPartitionIntegrity)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 END_EVENT_TABLE()
 
@@ -635,6 +636,13 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 	popupMenu->Append(IDM_EXTRACTAPPLOADER, _("Extract Apploader..."));
 	popupMenu->Append(IDM_EXTRACTDOL, _("Extract DOL..."));
 
+	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0
+		&& m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
+	{
+		popupMenu->AppendSeparator();
+		popupMenu->Append(IDM_CHECKINTEGRITY, _("Check Partition Integrity"));
+	}
+
 	PopupMenu(popupMenu);
 
 	event.Skip();
@@ -838,6 +846,71 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 
 	if (!ret)
 		PanicAlertT("Failed to extract to %s!", (const char *)Path.mb_str());
+}
+
+class IntegrityCheckThread : public wxThread
+{
+public:
+	IntegrityCheckThread(const WiiPartition& Partition)
+		: wxThread(wxTHREAD_JOINABLE), m_Partition(Partition)
+	{
+		Create();
+	}
+
+	virtual ExitCode Entry()
+	{
+		return (ExitCode)m_Partition.Partition->CheckIntegrity();
+	}
+
+private:
+	const WiiPartition& m_Partition;
+};
+
+void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
+{
+	// Normally we can't enter this function if we aren't analyzing a Wii disc
+	// anyway, but let's still check to be sure.
+	if (!DiscIO::IsVolumeWiiDisc(OpenISO))
+		return;
+
+	wxString PartitionName = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
+	if (!PartitionName)
+		return;
+
+	// Get the partition number from the item text ("Partition N")
+	int PartitionNum = wxAtoi(PartitionName.SubString(10, 11));
+	const WiiPartition& Partition = WiiDisc[PartitionNum];
+
+	wxProgressDialog* dialog = new wxProgressDialog(
+		_("Checking integrity..."), _("Working..."), 1000, this,
+		wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH
+	);
+
+	IntegrityCheckThread thread(Partition);
+	thread.Run();
+
+	while (thread.IsAlive())
+	{
+		dialog->Pulse();
+		wxThread::Sleep(50);
+	}
+
+	delete dialog;
+
+	if (!thread.Wait())
+	{
+		wxMessageBox(
+			wxString::Format(_("Integrity check for partition %d failed. "
+							   "Your dump is most likely corrupted or has been "
+							   "patched incorrectly."), PartitionNum),
+			_("Integrity Check Error"), wxOK | wxICON_ERROR, this
+		);
+	}
+	else
+	{
+		wxMessageBox(_("Integrity check completed. No errors have been found."),
+					 _("Integrity check completed"), wxOK | wxICON_INFORMATION, this);
+	}
 }
 
 void CISOProperties::SetRefresh(wxCommandEvent& event)

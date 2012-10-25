@@ -51,6 +51,11 @@ static float s_fViewRotation[2];
 
 void UpdateViewport(Matrix44& vpCorrection);
 
+void UpdateViewportWithCorrection()
+{
+	UpdateViewport(s_viewportCorrection);
+}
+
 inline void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	g_renderer->SetVSConstant4f(const_number, f1, f2, f3, f4);
@@ -615,4 +620,19 @@ void VertexShaderManager::ResetView()
 	s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
 
 	bProjectionChanged = true;
+}
+
+void VertexShaderManager::DoState(PointerWrap &p)
+{
+	p.Do(g_fProjectionMatrix);
+	p.Do(s_viewportCorrection);
+	p.Do(s_viewRotationMatrix);
+	p.Do(s_viewInvRotationMatrix);
+	p.Do(s_fViewTranslationVector);
+	p.Do(s_fViewRotation);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Dirty();
+	}
 }

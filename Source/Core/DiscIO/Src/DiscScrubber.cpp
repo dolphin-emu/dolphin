@@ -284,7 +284,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 
 	if (!FileSystem)
 	{
-		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", _rPartition.GroupNumber, _rPartition.Number)
+		ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u", _rPartition.GroupNumber, _rPartition.Number);
 		ParsedOK = false;
 	}
 	else

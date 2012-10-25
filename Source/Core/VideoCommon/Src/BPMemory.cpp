@@ -43,26 +43,111 @@ void LoadBPReg(u32 value0)
 	BPWritten(bp);
 }
 
-// Called when loading a saved state.
-// Needs more testing though.
-void BPReload()
+void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size_t desc_size)
 {
-	for (int i = 0; i < 254; i++)
+	const char* no_yes[2] = { "No", "Yes" };
+
+	u32 cmddata = Common::swap32(*(u32*)data) & 0xFFFFFF;
+	switch (data[0])
 	{
-		switch (i) 
+	 // Macro to set the register name and make sure it was written correctly via compile time assertion
+	#define SetRegName(reg) \
+		snprintf(name, name_size, #reg); \
+		(void)(reg);
+
+	case BPMEM_DISPLAYCOPYFILER: // 0x01
+		// TODO: This is actually the sample pattern used for copies from an antialiased EFB
+		SetRegName(BPMEM_DISPLAYCOPYFILER);
+		// TODO: Description
+		break;
+
+	case 0x02: // 0x02
+	case 0x03: // 0x03
+	case 0x04: // 0x04
+		// TODO: same as BPMEM_DISPLAYCOPYFILER
+		break;
+
+	case BPMEM_EFB_TL: // 0x49
 		{
-		case BPMEM_BLENDMODE:
-		case BPMEM_SETDRAWDONE:
-		case BPMEM_TRIGGER_EFB_COPY:
-		case BPMEM_LOADTLUT1:
-		case BPMEM_PERF1:
-		case BPMEM_PE_TOKEN_ID:
-		case BPMEM_PE_TOKEN_INT_ID:
-			// Cases in which we DON'T want to reload the BP
-			continue;
-		default:
-			BPCmd bp = {i, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[i])};
-			BPWritten(bp);
+			SetRegName(BPMEM_EFB_TL);
+			X10Y10 left_top; left_top.hex = cmddata;
+			snprintf(desc, desc_size, "Left: %d\nTop: %d", left_top.x, left_top.y);
 		}
+		break;
+
+	case BPMEM_EFB_BR: // 0x4A
+		{
+			// TODO: Misleading name, should be BPMEM_EFB_WH instead
+			SetRegName(BPMEM_EFB_BR);
+			X10Y10 width_height; width_height.hex = cmddata;
+			snprintf(desc, desc_size, "Width: %d\nHeight: %d", width_height.x+1, width_height.y+1);
+		}
+		break;
+
+	case BPMEM_EFB_ADDR: // 0x4B
+		SetRegName(BPMEM_EFB_ADDR);
+		snprintf(desc, desc_size, "Target address (32 byte aligned): 0x%06X", cmddata << 5);
+		break;
+
+	case BPMEM_COPYYSCALE: // 0x4E
+		SetRegName(BPMEM_COPYYSCALE);
+		snprintf(desc, desc_size, "Scaling factor (XFB copy only): 0x%X (%f or inverted %f)", cmddata, (float)cmddata/256.f, 256.f/(float)cmddata);
+		break;
+
+	case BPMEM_CLEAR_AR: // 0x4F
+		SetRegName(BPMEM_CLEAR_AR);
+		snprintf(desc, desc_size, "Alpha: 0x%02X\nRed: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
+		break;
+
+	case BPMEM_CLEAR_GB: // 0x50
+		SetRegName(BPMEM_CLEAR_GB);
+		snprintf(desc, desc_size, "Green: 0x%02X\nBlue: 0x%02X", (cmddata&0xFF00)>>8, cmddata&0xFF);
+		break;
+
+	case BPMEM_CLEAR_Z: // 0x51
+		SetRegName(BPMEM_CLEAR_Z);
+		snprintf(desc, desc_size, "Z value: 0x%06X", cmddata);
+		break;
+
+	case BPMEM_TRIGGER_EFB_COPY: // 0x52
+		{
+			SetRegName(BPMEM_TRIGGER_EFB_COPY);
+			UPE_Copy copy; copy.Hex = cmddata;
+			snprintf(desc, desc_size, "Clamping: %s\n"
+								"Converting from RGB to YUV: %s\n"
+								"Target pixel format: 0x%X\n"
+								"Gamma correction: %s\n"
+								"Mipmap filter: %s\n"
+								"Vertical scaling: %s\n"
+								"Clear: %s\n"
+								"Frame to field: 0x%01X\n"
+								"Copy to XFB: %s\n"
+								"Intensity format: %s\n"
+								"Automatic color conversion: %s",
+								(copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ? "Top only" : (copy.clamp1) ? "Bottom only" : "None",
+								no_yes[copy.yuv],
+								copy.tp_realFormat(),
+								(copy.gamma==0)?"1.0":(copy.gamma==1)?"1.7":(copy.gamma==2)?"2.2":"Invalid value 0x3?",
+								no_yes[copy.half_scale],
+								no_yes[copy.scale_invert],
+								no_yes[copy.clear],
+								copy.frame_to_field,
+								no_yes[copy.copy_to_xfb],
+								no_yes[copy.intensity_fmt],
+								no_yes[copy.auto_conv]);
+		}
+		break;
+
+	case BPMEM_COPYFILTER0: // 0x53
+		SetRegName(BPMEM_COPYFILTER0);
+		// TODO: Description
+		break;
+
+	case BPMEM_COPYFILTER1: // 0x54
+		SetRegName(BPMEM_COPYFILTER1);
+		// TODO: Description
+		break;
+
+#undef SET_REG_NAME
 	}
 }

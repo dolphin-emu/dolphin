@@ -27,9 +27,7 @@ obj/
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*
-Binary/Win32
-Binary/x64
-Binary/Darwin*
+Binary
 Source/Core/Common/Src/scmrev.h
 *.opensdf
 *.sdf

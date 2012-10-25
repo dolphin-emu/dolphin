@@ -101,6 +101,7 @@ CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString
 	memoryCard[SLOT_A]=NULL;
 	memoryCard[SLOT_B]=NULL;
 
+	mcmSettings.twoCardsLoaded = false;
 	if (!LoadSettings())
 	{
 		itemsPerPage = 16;
@@ -283,7 +284,7 @@ void CMemcardManager::ChangePath(int slot)
 		m_PrevPage[slot]->Disable();
 		m_MemcardList[slot]->prevPage = false;
 	}
-	if (!strcasecmp(m_MemcardPath[slot2]->GetPath().mb_str(), m_MemcardPath[slot]->GetPath().mb_str()))
+	if (!m_MemcardPath[SLOT_A]->GetPath().CmpNoCase(m_MemcardPath[SLOT_B]->GetPath()))
 	{
 		if(m_MemcardPath[slot]->GetPath().length())
 			PanicAlertT("Memcard already opened");
@@ -292,7 +293,10 @@ void CMemcardManager::ChangePath(int slot)
 	{
 		if (m_MemcardPath[slot]->GetPath().length() && ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot))
 		{
-			mcmSettings.twoCardsLoaded = true;
+			if (memoryCard[slot2])
+			{
+				mcmSettings.twoCardsLoaded = true;
+			}
 			m_SaveImport[slot]->Enable();
 			m_SaveExport[slot]->Enable();
 			m_Delete[slot]->Enable();
@@ -318,16 +322,9 @@ void CMemcardManager::ChangePath(int slot)
 			}
 		}
 	}
-	if (m_Delete[SLOT_A]->IsEnabled() && m_Delete[SLOT_B]->IsEnabled())
-	{
-		m_CopyFrom[SLOT_A]->Enable();
-		m_CopyFrom[SLOT_B]->Enable();
-	}
-	else
-	{
-		m_CopyFrom[SLOT_A]->Disable();
-		m_CopyFrom[SLOT_B]->Disable();
-	}
+
+	m_CopyFrom[SLOT_A]->Enable(mcmSettings.twoCardsLoaded);
+	m_CopyFrom[SLOT_B]->Enable(mcmSettings.twoCardsLoaded);
 }
 
 void CMemcardManager::OnPageChange(wxCommandEvent& event)
@@ -483,12 +480,12 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	int index_B = m_MemcardList[SLOT_B]->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	int slot = SLOT_B;
 	int slot2 = SLOT_A;
-	int index = index_B;
 	std::string fileName2("");
 
 	if (index_A != wxNOT_FOUND && page[SLOT_A]) index_A += itemsPerPage * page[SLOT_A];
 	if (index_B != wxNOT_FOUND && page[SLOT_B]) index_B += itemsPerPage * page[SLOT_B];
 
+	int index = index_B;
 	switch (event.GetId())
 	{
 	case ID_COPYFROM_B:
@@ -496,6 +493,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		slot2 = SLOT_B;
 	case ID_COPYFROM_A:
 		index = slot2 ? index_B : index_A;
+		index = memoryCard[slot2]->GetFileIndex(index);
 		if ((index != wxNOT_FOUND))
 		{
 			CopyDeleteSwitch(memoryCard[slot]->CopyFrom(*memoryCard[slot2], index), slot);
@@ -545,17 +543,19 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		slot=SLOT_A;
 		index = index_A;
 	case ID_SAVEEXPORT_B:
+		index = memoryCard[slot]->GetFileIndex(index);
 		if (index != wxNOT_FOUND)
 		{
-			char tempC[10 + DENTRY_STRLEN],
-				 tempC2[DENTRY_STRLEN];
-			memoryCard[slot]->DEntry_GameCode(index,tempC);
-			memoryCard[slot]->DEntry_FileName(index,tempC2);
-			sprintf(tempC, "%s_%s.gci", tempC, tempC2);
+			std::string gciFilename;
+			if (!memoryCard[slot]->GCI_FileName(index, gciFilename))
+			{
+				PanicAlert("invalid index");
+				return;
+			}
 			wxString fileName = wxFileSelector(
 				_("Export save as..."),
 				wxString::From8BitData(DefaultIOPath.c_str()),
-				wxString::From8BitData(tempC), wxT(".gci"),
+				wxString::From8BitData(gciFilename.c_str()), wxT(".gci"),
 				_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
 				_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
 				_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),
@@ -563,7 +563,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 
 			if (fileName.length() > 0)
 			{
-				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, fileName.mb_str(), NULL), -1))
+				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, fileName.mb_str(), ""), -1))
 				{
 					File::Delete(std::string(fileName.mb_str()));
 				}
@@ -583,7 +583,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					"%s\nand have the same name as a file on your memcard\nContinue?", path1.c_str()))
 		for (int i = 0; i < DIRLEN; i++)
 		{
-			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, ".", &path1), -1);
+			CopyDeleteSwitch(memoryCard[slot]->ExportGci(i, NULL, path1), -1);
 		}
 		break;
 	}
@@ -591,6 +591,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		slot = SLOT_A;
 		index = index_A;
 	case ID_DELETE_B:
+		index = memoryCard[slot]->GetFileIndex(index);
 		if (index != wxNOT_FOUND)
 		{
 			CopyDeleteSwitch(memoryCard[slot]->RemoveFile(index), slot);
@@ -614,8 +615,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 			 wxComment,
 			 wxBlock,
 			 wxFirstBlock,
-			 wxLabel,
-			 tString;
+			 wxLabel;
 
 
 	m_MemcardList[card]->Hide();
@@ -631,18 +631,19 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	wxImageList *list = m_MemcardList[card]->GetImageList(wxIMAGE_LIST_SMALL);
 	list->RemoveAll();
 
-	int nFiles = memoryCard[card]->GetNumFiles();
+	u8 nFiles = memoryCard[card]->GetNumFiles();
 	int *images = new int[nFiles*2];
 
-	for (int i = 0;i < nFiles;i++)
+	for (u8 i = 0;i < nFiles;i++)
 	{
 		static u32 pxdata[96*32];
 		static u8  animDelay[8];
 		static u32 animData[32*32*8];
 
-		int numFrames = memoryCard[card]->ReadAnimRGBA8(i,animData,animDelay);
+		u8 fileIndex = memoryCard[card]->GetFileIndex(i);
+		int numFrames = memoryCard[card]->ReadAnimRGBA8(fileIndex, animData, animDelay);
 
-		if (!memoryCard[card]->ReadBannerRGBA8(i,pxdata))
+		if (!memoryCard[card]->ReadBannerRGBA8(fileIndex, pxdata))
 		{
 			memset(pxdata,0,96*32*4);
 
@@ -688,17 +689,17 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 	for (j = page[card] * itemsPerPage; (j < nFiles) && (j < pagesMax); j++)
 	{
-		char title[DENTRY_STRLEN];
-		char comment[DENTRY_STRLEN];
 		u16 blocks;
 		u16 firstblock;
+		u8 fileIndex = memoryCard[card]->GetFileIndex(j);
+
 
 		int index = m_MemcardList[card]->InsertItem(j, wxEmptyString);
 
 		m_MemcardList[card]->SetItem(index, COLUMN_BANNER, wxEmptyString);
 
-		if (!memoryCard[card]->DEntry_Comment1(j, title)) title[0]=0;
-		if (!memoryCard[card]->DEntry_Comment2(j, comment)) comment[0]=0;
+		std::string title = memoryCard[card]->GetSaveComment1(fileIndex);
+		std::string comment = memoryCard[card]->GetSaveComment2(fileIndex);
 
 		bool ascii = memoryCard[card]->IsAsciiEncoding();
 
@@ -718,20 +719,20 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		// it returns CP-932, in order to use iconv we need to use CP932
 		wxCSConv SJISConv(wxT("CP932"));
 #endif
-		wxTitle  =  wxString(title, ascii ? *wxConvCurrent : SJISConv);
-		wxComment = wxString(comment, ascii ? *wxConvCurrent : SJISConv);
+		wxTitle  =  wxString(title.c_str(), ascii ? *wxConvCurrent : SJISConv);
+		wxComment = wxString(comment.c_str(), ascii ? *wxConvCurrent : SJISConv);
 
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxTitle);
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxComment);
 
-		blocks = memoryCard[card]->DEntry_BlockCount(j);
+		blocks = memoryCard[card]->DEntry_BlockCount(fileIndex);
 		if (blocks == 0xFFFF) blocks = 0;
 		wxBlock.Printf(wxT("%10d"), blocks);
 		m_MemcardList[card]->SetItem(index,COLUMN_BLOCKS, wxBlock);
-		firstblock = memoryCard[card]->DEntry_FirstBlock(j);
-		if (firstblock == 0xFFFF) firstblock = 3;	// to make firstblock -1
-		wxFirstBlock.Printf(wxT("%15d"), firstblock-4);
-		m_MemcardList[card]->SetItem(index,COLUMN_FIRSTBLOCK, wxFirstBlock);
+		firstblock = memoryCard[card]->DEntry_FirstBlock(fileIndex);
+		//if (firstblock == 0xFFFF) firstblock = 3;	// to make firstblock -1
+		wxFirstBlock.Printf(wxT("%15d"), firstblock);
+		m_MemcardList[card]->SetItem(index, COLUMN_FIRSTBLOCK, wxFirstBlock);
 		m_MemcardList[card]->SetItem(index, COLUMN_ICON, wxEmptyString);
 
 		if (images[j] >= 0)

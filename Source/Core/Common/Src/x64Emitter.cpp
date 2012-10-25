@@ -1321,7 +1321,7 @@ void XEmitter::MOVDDUP(X64Reg regOp, OpArg arg)
 	{
 		// Simulate this instruction with SSE2 instructions
 		if (!arg.IsSimpleReg(regOp))
-			MOVQ_xmm(regOp, arg);   // MOVSD better?
+			MOVSD(regOp, arg);
 		UNPCKLPD(regOp, R(regOp));
 	}
 }

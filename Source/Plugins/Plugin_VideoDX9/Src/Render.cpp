@@ -54,6 +54,7 @@
 #include "Core.h"
 #include "Movie.h"
 #include "BPFunctions.h"
+#include "FPSCounter.h"
 
 namespace DX9
 {
@@ -224,6 +225,7 @@ void SetupDeviceObjects()
 	// To avoid shader compilation stutters, read back all shaders from cache.
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
+	g_vertex_manager->CreateDeviceObjects();
 	// Texture cache will recreate themselves over time.
 }
 
@@ -237,16 +239,19 @@ void TeardownDeviceObjects()
 	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 	delete g_framebuffer_manager;
 	D3D::font.Shutdown();
-	TextureCache::Invalidate(false);
+	TextureCache::Invalidate();
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Shutdown();
 	PixelShaderCache::Shutdown();
 	TextureConverter::Shutdown();
+	g_vertex_manager->DestroyDeviceObjects();
 }
 
 // Init functions
 Renderer::Renderer()
 {
+	InitFPSCounter();
+
 	st = new char[32768];
 
 	int fullScreenRes, x, y, w_temp, h_temp;
@@ -1107,19 +1112,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	OSD::DrawMessages();
 	D3D::EndFrame();
-	frameCount++;
+	++frameCount;
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
 	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 
-	// Reload textures if these settings changed
-	if (g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
-		TextureCache::Invalidate(false);
-
 	// Enable configuration changes
 	UpdateActiveConfig();
+	TextureCache::OnConfigChanged(g_ActiveConfig);
 
 	SetWindowSize(fbWidth, fbHeight);
 
@@ -1171,20 +1173,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0,0,0), 1.0f, 0);
 	}
 
-	// Place messages on the picture, then copy it to the screen
-	// ---------------------------------------------------------------------
-	// Count FPS.
-	// -------------
-	static int fpscount = 0;
-	static unsigned long lasttime = 0;
-	if (Common::Timer::GetTimeMs() - lasttime >= 1000)
-	{
-		lasttime = Common::Timer::GetTimeMs();
-		s_fps = fpscount;
-		fpscount = 0;
-	}
 	if (XFBWrited)
-		++fpscount;
+		s_fps = UpdateFPSCounter();
 
 	// Begin new frame
 	// Set default viewport and scissor, for the clear to work correctly
@@ -1204,43 +1194,32 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	XFBWrited = false;
 }
 
-void Renderer::ApplyState(RenderStateMode mode)
+void Renderer::ApplyState(bool bUseDstAlpha)
 {
-	if(mode == RSM_Zcomploc)
-	{
-		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, 0);
-	}
-	else if(mode == RSM_Multipass)
-	{
-		D3D::ChangeRenderState(D3DRS_ZENABLE, TRUE);
-		D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);		
-		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_EQUAL);
-	}
-	else if (mode == RSM_UseDstAlpha)
+	if (bUseDstAlpha)
 	{
 		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
+		if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
+		{
+			//This is needed to draw to the correct pixels in multi-pass algorithms
+			//this avoid z-figthing and grants that you write to the same pixels
+			//affected by the last pass
+			D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);
+			D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_EQUAL);
+		}
 	}
 }
 
-void Renderer::RestoreState(RenderStateMode mode)
+void Renderer::RestoreState()
 {
-	if(mode == RSM_Zcomploc)
+	D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
+	D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
+	if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
 	{
-		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
-	}
-	else if(mode == RSM_Multipass)
-	{
-		D3D::RefreshRenderState(D3DRS_ZENABLE);
 		D3D::RefreshRenderState(D3DRS_ZWRITEENABLE);
 		D3D::RefreshRenderState(D3DRS_ZFUNC);
 	}
-	else if(mode == RSM_UseDstAlpha)
-	{
-		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
-		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);		
-	}
-
 	// TODO: Enable this code. Caused glitches for me however (neobrain)
 //	for (unsigned int i = 0; i < 8; ++i)
 //		D3D::dev->SetTexture(i, NULL);

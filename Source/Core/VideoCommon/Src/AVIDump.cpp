@@ -211,6 +211,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
+#include <libavutil/mathematics.h>
 }
 
 AVFormatContext *s_FormatContext = NULL;
@@ -251,7 +252,7 @@ bool AVIDump::CreateFile()
 	File::CreateFullPath(s_FormatContext->filename);
 
 	if (!(s_FormatContext->oformat = av_guess_format("avi", NULL, NULL)) ||
-			!(s_Stream = av_new_stream(s_FormatContext, 0)))
+			!(s_Stream = avformat_new_stream(s_FormatContext, codec)))
 	{
 		CloseFile();
 		return false;
@@ -268,7 +269,7 @@ bool AVIDump::CreateFile()
 	s_Stream->codec->pix_fmt = g_Config.bUseFFV1 ? PIX_FMT_BGRA : PIX_FMT_YUV420P;
 
 	if (!(codec = avcodec_find_encoder(s_Stream->codec->codec_id)) ||
-			(avcodec_open(s_Stream->codec, codec) < 0))
+			(avcodec_open2(s_Stream->codec, codec, NULL) < 0))
 	{
 		CloseFile();
 		return false;

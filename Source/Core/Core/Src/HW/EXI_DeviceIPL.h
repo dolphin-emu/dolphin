@@ -43,6 +43,20 @@ private:
 		ROM_MASK = (ROM_SIZE - 1)
 	};
 
+	enum
+	{
+		REGION_RTC		= 0x200000,
+		REGION_SRAM		= 0x200001,
+		REGION_UART		= 0x200100,
+		REGION_UART_UNK	= 0x200103,
+		REGION_BARNACLE	= 0x200113,
+		REGION_WRTC0	= 0x210000,
+		REGION_WRTC1	= 0x210001,
+		REGION_WRTC2	= 0x210008,
+		REGION_EUART_UNK= 0x300000,
+		REGION_EUART	= 0x300001
+	};
+
 	// Region
 	bool m_bNTSC;
 
@@ -63,6 +77,8 @@ private:
 	bool m_FontsLoaded;
 
 	virtual void TransferByte(u8 &_uByte);
+	bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
+	u32 const CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
 
 	void LoadFileToIPL(std::string filename, u32 offset);
 };

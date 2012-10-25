@@ -234,8 +234,8 @@ void Write32(const u32 _Value, const u32 _Address)
                 m_Control.PSTAT	= tmpAICtrl.PSTAT;
                 g_LastCPUTime = CoreTiming::GetTicks();
 
-				// Tell Drive Interface to stop streaming
-				if (!tmpAICtrl.PSTAT) DVDInterface::g_bStream = false;
+				// Tell Drive Interface to start/stop streaming
+				DVDInterface::g_bStream = tmpAICtrl.PSTAT;
             }
 
             // AI Interrupt
@@ -291,6 +291,11 @@ static void GenerateAudioInterrupt()
 {		
 	m_Control.AIINT = 1;
 	UpdateInterrupts();
+}
+
+void GenerateAISInterrupt()
+{
+	GenerateAudioInterrupt();
 }
 
 void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DACSampleRate)

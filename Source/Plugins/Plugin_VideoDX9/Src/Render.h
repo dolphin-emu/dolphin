@@ -24,8 +24,8 @@ public:
 	void SetSamplerState(int stage,int texindex);
 	void SetInterlacingMode();
 
-	void ApplyState(RenderStateMode mode);
-	void RestoreState(RenderStateMode mode);
+	void ApplyState(bool bUseDstAlpha);
+	void RestoreState();
 
 	void RenderText(const char* pstr, int left, int top, u32 color);
 

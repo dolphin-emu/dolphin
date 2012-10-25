@@ -45,6 +45,7 @@ namespace SW
 
 static volatile bool fifoStateRun = false;
 static volatile bool emuRunningState = false;
+static std::mutex m_csSWVidOccupied;
 
 
 std::string VideoSoftware::GetName() const
@@ -91,6 +92,24 @@ bool VideoSoftware::Initialize(void *&window_handle)
 
 void VideoSoftware::DoState(PointerWrap&)
 {
+	// NYI
+}
+
+void VideoSoftware::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	if (doLock)
+	{
+		EmuStateChange(EMUSTATE_CHANGE_PAUSE);
+		if (!Core::IsGPUThread())
+			m_csSWVidOccupied.lock();
+	}
+	else
+	{
+		if (unpauseOnUnlock)
+			EmuStateChange(EMUSTATE_CHANGE_PLAY);
+		if (!Core::IsGPUThread())
+			m_csSWVidOccupied.unlock();
+	}
 }
 
 void VideoSoftware::RunLoop(bool enable)
@@ -167,6 +186,7 @@ bool VideoSoftware::Video_Screenshot(const char *_szFilename)
 // -------------------------------
 void VideoSoftware::Video_EnterLoop()
 {
+	std::lock_guard<std::mutex> lk(m_csSWVidOccupied);
     fifoStateRun = true;
 
 	while (fifoStateRun)
@@ -181,7 +201,9 @@ void VideoSoftware::Video_EnterLoop()
 		while (!emuRunningState && fifoStateRun)
 		{
 			g_video_backend->PeekMessages();
+			m_csSWVidOccupied.unlock();
 			Common::SleepCurrentThread(1);
+			m_csSWVidOccupied.lock();
 		}
 	}	
 }

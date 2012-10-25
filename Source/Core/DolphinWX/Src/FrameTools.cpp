@@ -162,7 +162,7 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_SAVESTATE, _("Sa&ve State"), saveMenu);
 
 	saveMenu->Append(IDM_SAVESTATEFILE, _("Save State..."));
-	loadMenu->Append(IDM_UNDOSAVESTATE, _("Last Overwritten State") + wxString(wxT("\tShift+F12")));
+	loadMenu->Append(IDM_UNDOSAVESTATE, _("Last Overwritten State") + wxString(wxT("\tF12")));
 	saveMenu->AppendSeparator();
 
 	loadMenu->Append(IDM_LOADSTATEFILE, _("Load State..."));
@@ -173,7 +173,7 @@ void CFrame::CreateMenu()
 	else
 		loadMenu->Append(IDM_LOADLASTSTATE, _("Last Saved State") + wxString(wxT("\tF11")));
 	
-	loadMenu->Append(IDM_UNDOLOADSTATE, _("Undo Load State") + wxString(wxT("\tF12")));
+	loadMenu->Append(IDM_UNDOLOADSTATE, _("Undo Load State") + wxString(wxT("\tShift+F12")));
 	loadMenu->AppendSeparator();
 
 	for (int i = 1; i <= 8; i++) {
@@ -663,11 +663,14 @@ void CFrame::DoOpen(bool Boot)
 	wxString path = wxFileSelector(
 			_("Select the file to load"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
-			_("All GC/Wii files (elf, dol, gcm, iso, ciso, gcz, wad)") +
-			wxString::Format(wxT("|*.elf;*.dol;*.gcm;*.iso;*.ciso;*.gcz;*.wad;*.dff;*.tmd|%s"),
+			_("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") +
+			wxString::Format(wxT("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad;*.dff;*.tmd|%s"),
 				wxGetTranslation(wxALL_FILES)),
 			wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 			this);
+
+	if (path.IsEmpty())
+		return;
 
 	std::string currentDir2 = File::GetCurrentDir();
 
@@ -826,11 +829,9 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
 		}
 #if defined(HAVE_X11) && HAVE_X11
-		int x, y;
-		m_RenderParent->GetClientSize(&width, &height);
-		m_RenderParent->GetPosition(&x, &y);
+		wxRect client_rect = m_RenderParent->GetClientRect();
 		X11Utils::SendClientEvent(X11Utils::XDisplayFromHandle(GetHandle()),
-				"RESIZE", x, y, width, height);
+				"RESIZE", client_rect.x, client_rect.y, client_rect.width, client_rect.height);
 #endif
 		m_LogWindow->Refresh();
 		m_LogWindow->Update();
@@ -892,7 +893,6 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 		if (w != x || h != y || d != 32)
 			continue;;
 
-		CGDisplayCapture(CGMainDisplayID());
 		CGDisplaySwitchToMode(CGMainDisplayID(), mode);
 	}
 
@@ -916,6 +916,10 @@ void CFrame::StartGame(const std::string& filename)
 
 		m_RenderParent = m_Panel;
 		m_RenderFrame = this;
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
+			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
+		else
+			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 	}
 	else
 	{
@@ -930,6 +934,11 @@ void CFrame::StartGame(const std::string& filename)
 #endif
 
 		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position);
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
+			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
+		else
+			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
+
 		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 		m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
@@ -1037,10 +1046,23 @@ void CFrame::DoPause()
 	}
 	else
 	{
+		// 32x32, 8bpp b/w image
+		// We want all transparent, so we can just use the same buffer for
+		// the "image" as for the transparency mask
+		static const char cursor_data[32 * 32] = { 0 };
+#ifdef __WXGTK__
+		wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
+			cursor_data, wxWHITE, wxBLACK);
+#else
+		wxBitmap cursor_bitmap(cursor_data, 32, 32);
+		cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
+		wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
+#endif
+
 		Core::SetState(Core::CORE_RUN);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 				RendererHasFocus())
-			m_RenderParent->SetCursor(wxCURSOR_BLANK);
+			m_RenderParent->SetCursor(cursor_transparent);
 	}
 	UpdateGUI();
 }
@@ -1490,26 +1512,26 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadLastState(wxCommandEvent& WXUNUSED (event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 		State::LoadLastSaved();
 }
 
 void CFrame::OnUndoLoadState(wxCommandEvent& WXUNUSED (event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 		State::UndoLoadState();
 }
 
 void CFrame::OnUndoSaveState(wxCommandEvent& WXUNUSED (event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 		State::UndoSaveState();
 }
 
 
 void CFrame::OnLoadState(wxCommandEvent& event)
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 	{
 		int id = event.GetId();
 		int slot = id - IDM_LOADSLOT1 + 1;
@@ -1519,7 +1541,7 @@ void CFrame::OnLoadState(wxCommandEvent& event)
 
 void CFrame::OnSaveState(wxCommandEvent& event)
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 	{
 		int id = event.GetId();
 		int slot = id - IDM_SAVESLOT1 + 1;

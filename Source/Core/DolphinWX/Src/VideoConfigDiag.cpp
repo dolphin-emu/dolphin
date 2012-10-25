@@ -66,8 +66,6 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	g_Config.Save((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
 	EndModal(wxID_OK);
-
-	TextureCache::InvalidateDefer(); // For settings like hi-res textures/texture format/etc.
 }
 
 wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nDirect3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\nNote that the Direct3D backends are only available on Windows.\n\nIf unsure, use Direct3D 9.");
@@ -75,6 +73,7 @@ wxString adapter_desc = wxTRANSLATE("Select a hardware adapter to use.\n\nIf uns
 wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, use your desktop resolution.\nIf still unsure, use the highest resolution which works for you.");
 wxString use_fullscreen_desc = wxTRANSLATE("Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a render window will be created instead.\n\nIf unsure, leave this unchecked.");
 wxString auto_window_size_desc = wxTRANSLATE("Automatically adjusts the window size to your internal resolution.\n\nIf unsure, leave this unchecked.");
+wxString keep_window_on_top_desc = wxTRANSLATE("Keep the game window on top of all other windows.\n\nIf unsure, leave this unchecked.");
 wxString hide_mouse_cursor_desc = wxTRANSLATE("Hides the mouse cursor if it's on top of the emulation window.\n\nIf unsure, leave this checked.");
 wxString render_to_main_win_desc = wxTRANSLATE("Enable this if you want to use the main Dolphin window for rendering rather than a separate render window.\n\nIf unsure, leave this unchecked.");
 wxString prog_scan_desc = wxTRANSLATE("Enables progressive scan if supported by the emulated software.\nMost games don't care about this.\n\nIf unsure, leave this unchecked.");
@@ -83,11 +82,9 @@ wxString ws_hack_desc = wxTRANSLATE("Force the game to output graphics for wides
 wxString vsync_desc = wxTRANSLATE("Wait for vertical blanks in order to reduce tearing.\nDecreases performance if emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
 wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique viewing angles.\nMight cause issues in a small number of games.\n\nIf unsure, select 1x.");
 wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis makes the rendered picture look less blocky.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select None.");
-wxString fast_mipmaps_desc = wxTRANSLATE("Automatically generate mipmaps rather than decoding them from memory.\nIncreases performance a bit but might cause minor texture defects.\n\nIf unsure, leave this checked.");
 wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render to texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly decreases performance and possibly causes issues (although unlikely).\n\nIf unsure, leave this checked.");
 wxString pixel_lighting_desc = wxTRANSLATE("Calculate lighting of 3D graphics per-pixel rather than per vertex.\nDecreases emulation speed by some percent (depending on your GPU).\nThis usually is a safe enhancement, but might cause issues sometimes.\n\nIf unsure, leave this unchecked.");
 wxString pixel_depth_desc = wxTRANSLATE("Calculate depth values of 3D graphics per-pixel rather than per vertex.\nIn contrast to pixel lighting (which is merely an enhancement), per-pixel depth calculations are necessary to properly emulate a small number of games.\n\nIf unsure, leave this checked.");
-wxString acurate_zcomploc_desc = wxTRANSLATE("Emulate zcomplock witha multi-pass approach. Slower.");
 wxString force_filtering_desc = wxTRANSLATE("Force texture filtering even if the emulated game explicitly disabled it.\nImproves texture quality slightly but causes glitches in some games.\n\nIf unsure, leave this unchecked.");
 wxString _3d_vision_desc = wxTRANSLATE("Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's supported by your GPU.\nPossibly causes issues.\nRequires fullscreen to work.\n\nIf unsure, leave this unchecked.");
 wxString internal_res_desc = wxTRANSLATE("Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.\n\"Multiple of 640x528\" is a bit slower than \"Window Size\" but yields less issues. Generally speaking, the lower the internal resolution is, the better your performance will be.\n\nIf unsure, select 640x528.");
@@ -98,11 +95,10 @@ wxString efb_copy_texture_desc = wxTRANSLATE("Store EFB copies in GPU texture ob
 wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nSome games depend on this for certain graphical effects or gameplay functionality.\n\nIf unsure, check EFB to Texture instead.");
 wxString stc_desc = wxTRANSLATE("The safer you adjust this, the less likely the emulator will be missing any texture updates from RAM.\n\nIf unsure, use the rightmost value.");
 wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
-wxString disable_lighting_desc = wxTRANSLATE("Improves performance but causes lighting to disappear in most games.\n\nIf unsure, leave this unchecked.");
-wxString disable_textures_desc = wxTRANSLATE("Disable texturing.\n\nIf unsure, leave this unchecked.");
 wxString disable_fog_desc = wxTRANSLATE("Improves performance but causes glitches in most games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
 wxString disable_alphapass_desc = wxTRANSLATE("Skip the destination alpha pass used in many games for various graphical effects.\n\nIf unsure, leave this unchecked.");
 wxString show_fps_desc = wxTRANSLATE("Show the number of frames rendered per second as a measure of emulation speed.\n\nIf unsure, leave this unchecked.");
+wxString log_fps_to_file_desc = wxTRANSLATE("Log the number of frames rendered per second to User/Logs/fps.txt. Use this feature when you want to measure the performance of Dolphin.\n\nIf unsure, leave this unchecked."); 
 wxString show_input_display_desc = wxTRANSLATE("Display the inputs read by the emulator.\n\nIf unsure, leave this unchecked.");
 wxString show_stats_desc = wxTRANSLATE("Show various statistics.\n\nIf unsure, leave this unchecked.");
 wxString texfmt_desc = wxTRANSLATE("Modify textures to show the format they're encoded in. Needs an emulation reset in most cases.\n\nIf unsure, leave this unchecked.");
@@ -122,7 +118,7 @@ wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 
 wxString opencl_desc = wxTRANSLATE("[EXPERIMENTAL]\nAims to speed up emulation by offloading texture decoding to the GPU using the OpenCL framework.\nHowever, right now it's known to cause texture defects in various games. Also it's slower than regular CPU texture decoding in most cases.\n\nIf unsure, leave this unchecked.");
 wxString dlc_desc = wxTRANSLATE("[EXPERIMENTAL]\nSpeeds up emulation a bit by caching display lists.\nPossibly causes issues though.\n\nIf unsure, leave this unchecked.");
 wxString omp_desc = wxTRANSLATE("Use multiple threads to decode textures.\nMight result in a speedup (especially on CPUs with more than two cores).\n\nIf unsure, leave this unchecked.");
-wxString hotkeys_desc = wxTRANSLATE("Allows toggling certain options via the hotkeys 3, 4, 5, 6 and 7 within the emulation window.\n\nIf unsure, leave this unchecked.");
+wxString hotkeys_desc = wxTRANSLATE("Allows toggling certain options via the hotkeys 3, 4, 5 and 6 within the emulation window.\n\nIf unsure, leave this unchecked.");
 wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
 wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nSometimes also increases visual quality.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
 wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, an error message is displayed.\nHowever, one may skip the popups to allow interruption free gameplay by checking this option.\n\nIf unsure, leave this unchecked.");
@@ -301,7 +297,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	SettingCheckBox* render_to_main_cb;
 	szr_other->Add(CreateCheckBox(page_general, _("Show FPS"), wxGetTranslation(show_fps_desc), vconfig.bShowFPS));
+	szr_other->Add(CreateCheckBox(page_general, _("Log FPS to file"), wxGetTranslation(log_fps_to_file_desc), vconfig.bLogFPSToFile));
 	szr_other->Add(CreateCheckBox(page_general, _("Auto adjust Window Size"), wxGetTranslation(auto_window_size_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize));
+	szr_other->Add(CreateCheckBox(page_general, _("Keep window on top"), wxGetTranslation(keep_window_on_top_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop));
 	szr_other->Add(CreateCheckBox(page_general, _("Hide Mouse Cursor"), wxGetTranslation(hide_mouse_cursor_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor));
 	szr_other->Add(render_to_main_cb = CreateCheckBox(page_general, _("Render to Main Window"), wxGetTranslation(render_to_main_win_desc), SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain));
 
@@ -492,12 +490,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxGridSizer* const szr_other = new wxGridSizer(2, 5, 5);
 
-	szr_other->Add(CreateCheckBox(page_hacks, _("Fast Mipmaps"), wxGetTranslation(fast_mipmaps_desc), vconfig.bUseNativeMips, true));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Cache Display Lists"), wxGetTranslation(dlc_desc), vconfig.bDlistCachingEnable));
-	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Lighting"), wxGetTranslation(disable_lighting_desc), vconfig.bDisableLighting));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Per-Pixel Depth"), wxGetTranslation(pixel_depth_desc), vconfig.bEnablePerPixelDepth, true));
-	szr_other->Add(CreateCheckBox(page_hacks, _("Acurate Zcomploc emulation"), wxGetTranslation(acurate_zcomploc_desc), vconfig.bAcurateZcomploc, true));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Skip Dest. Alpha Pass"), wxGetTranslation(disable_alphapass_desc), vconfig.bDstAlphaPass));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenCL Texture Decoder"), wxGetTranslation(opencl_desc), vconfig.bEnableOpenCL));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_desc), vconfig.bOMPDecoder));
@@ -526,7 +521,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_debug->Add(CreateCheckBox(page_advanced, _("Show EFB Copy Regions"), wxGetTranslation(efb_copy_regions_desc), vconfig.bShowEFBCopyRegions));
 	szr_debug->Add(CreateCheckBox(page_advanced, _("Show Statistics"), wxGetTranslation(show_stats_desc), vconfig.bOverlayStats));
 	szr_debug->Add(CreateCheckBox(page_advanced, _("Texture Format Overlay"), wxGetTranslation(texfmt_desc), vconfig.bTexFmtOverlayEnable));
-	szr_debug->Add(CreateCheckBox(page_advanced, _("Disable Textures"), wxGetTranslation(disable_textures_desc), vconfig.bDisableTexturing));
 
 	wxStaticBoxSizer* const group_debug = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Debugging"));
 	szr_advanced->Add(group_debug, 0, wxEXPAND | wxALL, 5);

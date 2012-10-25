@@ -20,6 +20,7 @@
 
 #include "Common.h"
 #include "CoreTiming.h"
+#include "Thread.h"
 
 #include "HW/GPFifo.h"
 #include "HW/Memmap.h"
@@ -27,6 +28,7 @@
 #include "PowerPC/PowerPC.h"
 
 #include "BPMemory.h"
+#include "CommandProcessor.h"
 
 FifoPlayer::~FifoPlayer()
 {
@@ -94,8 +96,42 @@ bool FifoPlayer::Play()
 				if (m_EarlyMemoryUpdates && m_CurrentFrame == m_FrameRangeStart)
 					WriteAllMemoryUpdates();
 
-				WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);			
-				++m_CurrentFrame;				
+				// Stop Fifo processing until we've written the new frame
+				WriteCP(CommandProcessor::CTRL_REGISTER, 0x10);  // disable read & breakpoints, enable GP link
+
+				// Write frame data
+				WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);
+
+				// Enable frame processing and break when done
+				u16 write_ptr_lo = ReadCP(CommandProcessor::FIFO_WRITE_POINTER_LO);
+				u16 write_ptr_hi = ReadCP(CommandProcessor::FIFO_WRITE_POINTER_HI);
+				WriteCP(CommandProcessor::FIFO_BP_LO, write_ptr_lo);
+				WriteCP(CommandProcessor::FIFO_BP_HI, write_ptr_hi);
+				WriteCP(CommandProcessor::CTRL_REGISTER, 0x13);  // enable read, breakpoints & GP link
+
+				// If necessary, wait until GP has reached the breakpoint to prevent fifo overflows
+				// TODO: Can this be done any better? Dual core mode is slower than single core mode even with these conditions..
+				if (m_CurrentFrame < m_FrameRangeEnd)
+				{
+					// Check if FIFO would be overflown when writing the next frame
+					u32 CPRWDistance = (ReadCP(CommandProcessor::FIFO_RW_DISTANCE_HI)<<16) | ReadCP(CommandProcessor::FIFO_RW_DISTANCE_LO);
+					CPRWDistance += m_File->GetFrame(m_CurrentFrame+1).fifoDataSize + CommandProcessor::GATHER_PIPE_SIZE;
+					u32 CPFifoBase = (ReadCP(CommandProcessor::FIFO_BASE_HI)<<16) | ReadCP(CommandProcessor::FIFO_BASE_LO);
+					u32 CPFifoEnd = (ReadCP(CommandProcessor::FIFO_END_HI)<<16) | ReadCP(CommandProcessor::FIFO_END_LO);
+
+					bool bWait = (CPRWDistance > CPFifoEnd - CPFifoBase);
+					while (bWait && (ReadCP(CommandProcessor::FIFO_READ_POINTER_LO) != write_ptr_lo ||
+									ReadCP(CommandProcessor::FIFO_READ_POINTER_HI) != write_ptr_hi))
+					{
+						Common::YieldCPU();
+						CoreTiming::Advance(); // Process scheduled events (esp. PixelEngine::SetFinish!)
+
+						if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
+							break;
+					}
+				}
+
+				++m_CurrentFrame;
 			}
 		}
 	}
@@ -384,6 +420,11 @@ void FifoPlayer::LoadMemory()
 		LoadXFReg(i, regs[i]);
 
 	FlushWGP();
+}
+
+u16 FifoPlayer::ReadCP(u32 address)
+{
+    return Memory::Read_U16(0xCC000000 | address);
 }
 
 void FifoPlayer::WriteCP(u32 address, u16 value)

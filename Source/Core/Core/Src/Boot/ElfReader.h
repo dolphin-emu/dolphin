@@ -59,7 +59,6 @@ public:
 	bool LoadInto(u32 vaddr);
 	bool LoadSymbols();
 
-private:
 	int GetNumSegments() const { return (int)(header->e_phnum); }
 	int GetNumSections() const { return (int)(header->e_shnum); }
 	const u8 *GetPtr(int offset) const { return (u8*)base + offset; }
@@ -72,6 +71,10 @@ private:
 			return GetPtr(sections[section].sh_offset);
 		else
 			return 0;
+	}
+	bool IsCodeSection(int section) const
+	{
+		return sections[section].sh_type == SHT_PROGBITS;
 	}
 	const u8 *GetSegmentPtr(int segment)
 	{

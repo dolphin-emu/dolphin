@@ -19,6 +19,7 @@
 #define _MIXER_H_
 
 #include "WaveFile.h"
+#include "StdMutex.h"
 
 // 16 bit Stereo
 #define MAX_SAMPLES			(1024 * 8)
@@ -61,7 +62,6 @@ public:
 	unsigned int GetSampleRate() {return m_sampleRate;}
 
 	void SetThrottle(bool use) { m_throttle = use;}
-	void SetDTKMusic(bool use) { m_EnableDTKMusic = use;}
 
 	// TODO: do we need this
 	bool IsHLEReady() { return m_HLEready;}
@@ -90,6 +90,7 @@ public:
 		}
 	}
 
+	std::mutex& MixerCritical() { return m_csMixing; }
 
 protected:
 	unsigned int m_sampleRate;
@@ -103,7 +104,6 @@ protected:
 	bool m_HLEready;
 	bool m_logAudio;
 
-	bool m_EnableDTKMusic;
 	bool m_throttle;
 
 	short m_buffer[MAX_SAMPLES * 2];
@@ -112,7 +112,7 @@ protected:
 	u32 m_indexR;
 
 	bool m_AIplaying;
-
+	std::mutex m_csMixing;
 private:
 
 };

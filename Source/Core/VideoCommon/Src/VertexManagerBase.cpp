@@ -159,16 +159,6 @@ void VertexManager::AddVertices(int primitive, int numVertices)
 
 void VertexManager::Flush()
 {
-	// Disable Lighting	
-	// TODO - Is this a good spot for this code?
-	if (g_ActiveConfig.bDisableLighting) 
-	{
-		for (u32 i = 0; i < xfregs.numChan.numColorChans; i++)
-		{
-			xfregs.alpha[i].enablelighting = false;
-			xfregs.color[i].enablelighting = false;
-		}
-	}
 	g_vertex_manager->vFlush();
 }
 
@@ -236,22 +226,13 @@ void VertexManager::Flush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
+				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8),
 				(tex.texMode1[i&3].max_lod >> 4));
 
 			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
 				PixelShaderManager::SetTexDims(i, tentry->nativeW, tentry->nativeH, 0, 0);
-
-				// TODO:
-				//if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
-				//{
-				//	// save the textures
-				//	char strfile[255];
-				//	sprintf(strfile, "%stex%.3d_%d.tga", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_Config.iSaveTargetId, i);
-				//	SaveTexture(strfile, GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
-				//}
 			}
 			else
 				ERROR_LOG(VIDEO, "error loading texture");
@@ -317,3 +298,20 @@ shader_fail:
 	ResetBuffer();
 }
 #endif
+
+void VertexManager::DoState(PointerWrap& p)
+{
+	g_vertex_manager->vDoState(p);
+}
+
+void VertexManager::DoStateShared(PointerWrap& p)
+{
+	p.DoPointer(s_pCurBufferPointer, LocalVBuffer);
+	p.DoArray(LocalVBuffer, MAXVBUFFERSIZE);
+	p.DoArray(TIBuffer, MAXIBUFFERSIZE);
+	p.DoArray(LIBuffer, MAXIBUFFERSIZE);
+	p.DoArray(PIBuffer, MAXIBUFFERSIZE);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+		Flushed = false;
+}

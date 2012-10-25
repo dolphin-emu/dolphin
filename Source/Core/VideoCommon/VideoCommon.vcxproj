@@ -183,6 +183,7 @@
     <ClCompile Include="Src\DLCache.cpp" />
     <ClCompile Include="Src\EmuWindow.cpp" />
     <ClCompile Include="Src\Fifo.cpp" />
+    <ClCompile Include="Src\FPSCounter.cpp" />
     <ClCompile Include="Src\FramebufferManagerBase.cpp" />
     <ClCompile Include="Src\HiresTextures.cpp" />
     <ClCompile Include="Src\ImageWrite.cpp" />
@@ -228,6 +229,7 @@
     <ClInclude Include="Src\DLCache.h" />
     <ClInclude Include="Src\EmuWindow.h" />
     <ClInclude Include="Src\Fifo.h" />
+    <ClInclude Include="Src\FPSCounter.h" />
     <ClInclude Include="Src\FramebufferManagerBase.h" />
     <ClInclude Include="Src\HiresTextures.h" />
     <ClInclude Include="Src\ImageWrite.h" />

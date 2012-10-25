@@ -48,7 +48,7 @@ private:
 class CSIDevice_GBA : public ISIDevice, private GBASockServer
 {
 public:
-	CSIDevice_GBA(int _iDeviceNumber);
+	CSIDevice_GBA(SIDevices device, int _iDeviceNumber);
 	~CSIDevice_GBA() {}
 
 	// Run the SI Buffer

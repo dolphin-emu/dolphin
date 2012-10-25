@@ -16,7 +16,6 @@ class VideoSoftware : public VideoBackend
 
 	void EmuStateChange(EMUSTATE_CHANGE newState);
 
-	void DoState(PointerWrap &p);
 	void RunLoop(bool enable);
 
 	void ShowConfig(void* parent);
@@ -48,6 +47,9 @@ class VideoSoftware : public VideoBackend
 
 	void UpdateFPSDisplay(const char*);
 	unsigned int PeekMessages();
+
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
+	void DoState(PointerWrap &p);
 };
 
 }

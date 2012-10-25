@@ -114,6 +114,21 @@ void JitIL::lXzx(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
+void JitIL::dcbst(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
+	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
+	// memory location.  Do not invalidate the JIT cache in this case as the memory
+	// will be the same.
+	// dcbt = 0x7c00022c
+	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
+	{
+		Default(inst); return;
+	}
+}
+
 // Zero cache line.
 void JitIL::dcbz(UGeckoInstruction inst)
 {

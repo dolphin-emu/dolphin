@@ -174,7 +174,7 @@ void XEventThread()
 							OSDChoice = 1;
 							// Toggle native resolution
 							g_Config.iEFBScale = g_Config.iEFBScale + 1;
-							if (g_Config.iEFBScale > 4) g_Config.iEFBScale = 0;
+							if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
 							break;
 						case XK_4:
 							OSDChoice = 2;
@@ -197,10 +197,6 @@ void XEventThread()
 						case XK_6:
 							OSDChoice = 4;
 							g_Config.bDisableFog = !g_Config.bDisableFog;
-							break;
-						case XK_7:
-							OSDChoice = 5;
-							g_Config.bDisableLighting = !g_Config.bDisableLighting;
 							break;
 						default:
 							break;

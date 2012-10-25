@@ -93,7 +93,7 @@ public:
 	virtual void Update(int cycles) = 0;
 	virtual void MixAdd(short* buffer, int size) {}
 
-	virtual void DoState(PointerWrap &p) {}
+	virtual void DoState(PointerWrap &p) { DoStateShared(p); }
 
 	static u32 GetCRC(IUCode* pUCode) { return pUCode ? pUCode->m_CRC : UCODE_NULL; }
 
@@ -104,6 +104,8 @@ protected:
 	// sent if they are be started via PrepareBootUCode.
 	// The HLE can use this to 
 	bool NeedsResumeMail();
+
+	void DoStateShared(PointerWrap &p);
 
 	CMailHandler& m_rMailHandler;
 	std::mutex m_csMix;

@@ -40,9 +40,11 @@
 
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
-	// casting userdata seems less error-prone than indexing a static (creation order issues, etc.)
-	CEXIMemoryCard *ptr = (CEXIMemoryCard*)userdata;
-	ptr->Flush();
+	// note that userdata is forbidden to be a pointer, due to the implemenation of EventDoState
+	int card_index = (int)userdata;
+	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+	if (pThis)
+		pThis->Flush();
 }
 
 CEXIMemoryCard::CEXIMemoryCard(const int index)
@@ -50,6 +52,9 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	, m_bDirty(false)
 {
 	m_strFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
+	if (Movie::IsUsingMemcard() && Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsBlankMemcard())
+		m_strFilename = "Movie.raw";
+
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
 	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardA" : "memcardB", FlushCallback);
  
@@ -103,7 +108,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 
 void innerFlush(FlushData* data)
 {
-	File::IOFile pFile(data->filename, "wb");
+	File::IOFile pFile(data->filename, "r+b");
 	if (!pFile)
 	{
 		std::string dir;
@@ -237,7 +242,7 @@ void CEXIMemoryCard::SetCS(int cs)
 			// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
 			// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write.
 			CoreTiming::RemoveEvent(et_this_card);
-			CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)this);
+			CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)card_index);
 			break;
 		}
 	}
@@ -423,9 +428,17 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 	DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
 }
 
-void CEXIMemoryCard::OnAfterLoad()
+void CEXIMemoryCard::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
-
+	if (doLock)
+	{
+		// we don't exactly have anything to pause,
+		// but let's make sure the flush thread isn't running.
+		if (flushThread.joinable())
+		{
+			flushThread.join();
+		}
+	}
 }
 
 void CEXIMemoryCard::DoState(PointerWrap &p)
@@ -452,5 +465,15 @@ void CEXIMemoryCard::DoState(PointerWrap &p)
 		p.Do(card_id);
 		p.Do(memory_card_size);
 		p.DoArray(memory_card_content, memory_card_size); 
+		p.Do(card_index);
 	}
+}
+
+IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
+{
+	if (device_type != m_deviceType)
+		return NULL;
+	if (customIndex != card_index)
+		return NULL;
+	return this;
 }

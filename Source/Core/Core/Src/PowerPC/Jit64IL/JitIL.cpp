@@ -390,6 +390,10 @@ void JitIL::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+
+	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
+	if (MMCR0.Hex || MMCR1.Hex)
+		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
 void JitIL::WriteExit(u32 destination, int exit_num)
@@ -527,7 +531,10 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	}
 
 	if (em_address == 0)
-		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
+	{
+		// Memory exception occurred during instruction fetch
+		memory_exception = true;
+	}
 
 	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
 	{
@@ -544,6 +551,8 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
 	js.cancel = false;
+	jit->js.numLoadStoreInst = 0;
+	jit->js.numFloatingPointInst = 0;
 
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
@@ -644,7 +653,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 			{
-				ibuild.EmitFPExceptionCheckStart(ibuild.EmitIntConst(ops[i].address));
+				ibuild.EmitFPExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
 
 			if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
@@ -661,8 +670,14 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
-				ibuild.EmitFPExceptionCheckEnd(ibuild.EmitIntConst(ops[i].address));
+				ibuild.EmitDSIExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
+
+			if (opinfo->flags & FL_LOADSTORE)
+				++jit->js.numLoadStoreInst;
+
+			if (opinfo->flags & FL_USE_FPU)
+				++jit->js.numFloatingPointInst;
 		}
 	}
 

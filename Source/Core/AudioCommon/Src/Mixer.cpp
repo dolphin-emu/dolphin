@@ -37,7 +37,9 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	if (!samples)
 		return 0;
 
-	if (PowerPC::GetState() != 0)
+	std::lock_guard<std::mutex> lk(m_csMixing);
+
+	if (PowerPC::GetState() != PowerPC::CPU_RUNNING)
 	{
 		// Silence
 		memset(samples, 0, numSamples * 4);
@@ -136,8 +138,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		if (m_AIplaying) {
 			Premix(samples, numLeft);
 
-			if (m_EnableDTKMusic)
-				AudioInterface::Callback_GetStreaming(samples, numLeft, m_sampleRate);
+			AudioInterface::Callback_GetStreaming(samples, numLeft, m_sampleRate);
 
 			g_wave_writer.AddStereoSamples(samples, numLeft);
 		}
@@ -147,11 +148,8 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		Premix(samples, numSamples);
 
 		// Add the DTK Music
-		if (m_EnableDTKMusic)
-		{
-			// Re-sampling is done inside
-			AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
-		}
+		// Re-sampling is done inside
+		AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
 	}
 
 
@@ -168,7 +166,7 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
 		while (num_samples + Common::AtomicLoad(m_numSamples) > MAX_SAMPLES)
 		{
-			if (*PowerPC::GetStatePtr() != 0) 
+			if (*PowerPC::GetStatePtr() != PowerPC::CPU_RUNNING || soundStream->IsMuted()) 
 				break;
 			// Shortcut key for Throttle Skipping
 			if (Host_GetKeyState('\t'))
