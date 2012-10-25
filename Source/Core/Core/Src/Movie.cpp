@@ -105,6 +105,13 @@ void FrameUpdate()
 		g_totalFrames = g_currentFrame;
 		g_totalLagCount = g_currentLagCount;
 	}
+	if (IsPlayingInput() && IsConfigSaved())
+	{
+		if (IsConfigSaved())
+		{
+			SetGraphicsConfig();
+		}
+	}
 
 	if (g_bFrameStep)
 	{
@@ -149,6 +156,7 @@ void Init()
 	memset(&g_padState, 0, sizeof(g_padState));
 	if (!tmpHeader.bFromSaveState || !IsPlayingInput())
 		Core::SetStateFileName("");
+
 	for (int i = 0; i < 8; ++i)
 		g_InputDisplay[i].clear();
 
@@ -388,6 +396,7 @@ bool BeginRecordingInput(int controllers)
 	}
 	g_playMode = MODE_RECORDING;
 	GetSettings();
+	bSaveConfig = true;
 
 	delete [] tmpInput;
 	tmpInput = new u8[MAX_DTM_LENGTH];
@@ -475,15 +484,6 @@ void SetInputDisplayString(ControllerState padState, int controllerID)
 	if(g_padState.DPadRight)
 		g_InputDisplay[controllerID].append(" RIGHT");
 
-	//if(g_padState.L)
-	//{
-	//	g_InputDisplay[controllerID].append(" L");
-	//}
-	//if(g_padState.R)
-	//{
-	//	g_InputDisplay[controllerID].append(" R");
-	//}
-
 	Analog1DToString(g_padState.TriggerL, " L", inp);
 	g_InputDisplay[controllerID].append(inp);
 
@@ -549,8 +549,6 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 
 	g_InputDisplay[controllerID].append("\n");
 }
-
-
 
 void RecordInput(SPADStatus *PadStatus, int controllerID)
 {
@@ -872,10 +870,6 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == NULL)
 		return;
 
-	if (IsConfigSaved())
-	{
-		SetGraphicsConfig();
-	}
 	if (g_currentFrame == 1)
 	{
 		if (tmpHeader.bMemcard)
