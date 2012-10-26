@@ -103,10 +103,7 @@ void FrameUpdate()
 	}
 	if (IsPlayingInput() && IsConfigSaved())
 	{
-		if (IsConfigSaved())
-		{
-			SetGraphicsConfig();
-		}
+		SetGraphicsConfig();
 	}
 
 	if (g_bFrameStep)
@@ -390,8 +387,7 @@ bool BeginRecordingInput(int controllers)
 		State::SaveAs(tmpStateFilename.c_str());
 		g_bRecordingFromSaveState = true;
 
-		// This is only done here if starting from save state because otherwise we won't have the titleid. 
-		// If not starting from save state, it's set in WII_IPC_HLE_Device_es.cpp. There's probably a way to get this in Movie::Init, but i can't find one.
+		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
 		// TODO: find a way to GetTitleDataPath() from Movie::Init()
 		if (File::Exists((Common::GetTitleDataPath(g_titleID) + "banner.bin").c_str()))
 			Movie::g_bClearSave = false;
@@ -400,7 +396,6 @@ bool BeginRecordingInput(int controllers)
 	}
 	g_playMode = MODE_RECORDING;
 	GetSettings();
-	bSaveConfig = true;
 
 	delete [] tmpInput;
 	tmpInput = new u8[MAX_DTM_LENGTH];
@@ -636,8 +631,8 @@ void ReadHeader()
 	}
 	else
 	{
-		bSaveConfig = false;
 		GetSettings();
+		bSaveConfig = false;
 	}
 
 
@@ -893,8 +888,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 		return;
 	}
 
-	// dtm files don't save the mic button or error bit. not sure if they're actually
-	// used, but better safe than sorry
+	// dtm files don't save the mic button or error bit. not sure if they're actually used, but better safe than sorry
 	signed char e = PadStatus->err;
 	memset(PadStatus, 0, sizeof(SPADStatus));
 	PadStatus->err = e;
@@ -1028,6 +1022,17 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, 
 
 void EndPlayInput(bool cont) 
 {
+	if (IsPlayingInput() && IsConfigSaved() && IsStartingFromClearSave() && Core::g_CoreStartupParameter.bWii)
+	{
+		std::string savePath = Common::GetTitleDataPath(g_titleID);
+		File::DeleteDirRecursively(savePath.c_str());
+		#ifdef _WIN32
+			MoveFile((savePath + "../backup/").c_str(), savePath.c_str());
+		#else
+			File::CopyDir((savePath + "../backup/").c_str(), savePath.c_str());
+			File::DeleteDirRecursively((savePath + "../backup/").c_str());
+		#endif
+	}
 	if (cont)
 	{
 		g_playMode = MODE_RECORDING;

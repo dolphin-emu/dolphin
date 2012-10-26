@@ -59,6 +59,9 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "../Movie.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 std::string CWII_IPC_HLE_Device_es::m_ContentFile;
 
@@ -892,16 +895,50 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 
 	File::CreateFullPath(tmdPath);
 	File::CreateFullPath(Common::GetTitleDataPath(tmdTitleID));
-	
+
 	Movie::g_titleID = tmdTitleID;
+	std::string savePath = Common::GetTitleDataPath(tmdTitleID);
 	if (Movie::IsRecordingInput())
 	{
 		// TODO: Check for the actual save data
-		if (File::Exists((Common::GetTitleDataPath(tmdTitleID) + "banner.bin").c_str()))
+		if (File::Exists((savePath + "banner.bin").c_str()))
 			Movie::g_bClearSave = false;
 		else
 			Movie::g_bClearSave = true;
 	}
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsStartingFromClearSave())
+	{		
+		if (File::Exists((savePath + "banner.bin").c_str()))
+		{
+			if (File::Exists((savePath + "../backup/").c_str()))
+			{
+				// Dolphin must have crashed while playing back a movie previously, so we'll keep the backup, and just delete the current save
+				File::DeleteDirRecursively(savePath.c_str());
+			}
+			else
+			{
+				#ifdef _WIN32
+					MoveFile(savePath.c_str(), (savePath + "../backup/").c_str());
+				#else
+					File::CopyDir(savePath.c_str(),(savePath + "../backup/").c_str());
+					File::DeleteDirRecursively(savePath.c_str());
+				#endif
+			}
+		}		
+	}
+	else if (File::Exists((savePath + "../backup/").c_str()))
+	{
+		// Dolphin must have crashed while playing back a movie previously. Since we're not playing a movie now, we'll delete the save, and use the backup
+		if (File::Exists((savePath + "banner.bin").c_str()))
+			File::DeleteDirRecursively(savePath);
+		#ifdef _WIN32
+			MoveFile((savePath + "../backup/").c_str(), savePath.c_str());
+		#else
+			File::CopyDir((savePath + "../backup/").c_str(), savePath.c_str());
+			File::DeleteDirRecursively((savePath + "../backup/").c_str());
+		#endif
+	}
+
 	if(!File::Exists(tmdPath))
 	{
 		File::IOFile _pTMDFile(tmdPath, "wb");
