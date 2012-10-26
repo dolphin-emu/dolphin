@@ -24,6 +24,20 @@
 
 namespace OGL
 {
+	class GLVertexFormat : public NativeVertexFormat
+	{
+		u8 *m_compiledCode;
+		PortableVertexDeclaration vtx_decl;
+
+	public:
+		GLVertexFormat();
+		~GLVertexFormat();
+
+		virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
+		virtual void SetupVertexPointers();
+		virtual void SetupVertexPointersOffset(u32 offset);
+		virtual void EnableComponents(u32 components);
+	};
 
 // Handles the OpenGL details of drawing lots of vertices quickly.
 // Other functionality is moving out.
@@ -31,14 +45,24 @@ class VertexManager : public ::VertexManager
 {
 public:
 	VertexManager();
-
+	~VertexManager();
 	NativeVertexFormat* CreateNativeVertexFormat();
 	void CreateDeviceObjects();
 	void DestroyDeviceObjects();
 private:
-	void Draw();
-	// temp
+	void DrawVertexArray();
+	void DrawVertexBufferObject();
 	void vFlush();
+	void PrepareDrawBuffers(u32 stride);
+	u32 m_vertex_buffer_cursor;
+	u32 m_vertex_buffer_size;
+	u32 m_index_buffer_cursor;
+	u32 m_index_buffer_size;
+	u32 m_buffers_count;
+	u32 m_current_vertex_buffer;
+	u32 m_current_index_buffer;
+	GLuint* m_vertex_buffers;
+	GLuint* m_index_buffers; 
 };
 
 }

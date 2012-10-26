@@ -34,18 +34,18 @@ public:
 	void CreateDeviceObjects();
 	void DestroyDeviceObjects();
 private:
-	u32 CurrentVBufferIndex;
-	u32 CurrentVBufferSize;
-	u32 CurrentIBufferIndex;
-	u32 CurrentIBufferSize;
-	u32 NumVBuffers;
-	u32 CurrentVBuffer;
-	u32 CurrentIBuffer;
-	LPDIRECT3DVERTEXBUFFER9 *VBuffers;
-	LPDIRECT3DINDEXBUFFER9 *IBuffers; 
-	void PrepareVBuffers(int stride);
-	void DrawVB(int stride);
-	void DrawVA(int stride);
+	u32 m_vertex_buffer_cursor;
+	u32 m_vertex_buffer_size;
+	u32 m_index_buffer_cursor;
+	u32 m_index_buffer_size;
+	u32 m_buffers_count;
+	u32 m_current_vertex_buffer;
+	u32 m_current_index_buffer;
+	LPDIRECT3DVERTEXBUFFER9 *m_vertex_buffers;
+	LPDIRECT3DINDEXBUFFER9 *m_index_buffers; 
+	void PrepareDrawBuffers(u32 stride);
+	void DrawVertexBuffer(int stride);
+	void DrawVertexArray(int stride);
 	// temp
 	void vFlush();
 };

@@ -53,28 +53,12 @@ DECLARE_IMPORT(glColorPointer);
 DECLARE_IMPORT(glTexCoordPointer);
 #endif
 
-class GLVertexFormat : public NativeVertexFormat
-{
-	u8 *m_compiledCode;
-	PortableVertexDeclaration vtx_decl;
-
-public:
-	GLVertexFormat();
-	~GLVertexFormat();
-
-	virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
-	virtual void SetupVertexPointers();
-	virtual void EnableComponents(u32 components);
-};
-
 namespace OGL
 {
 
 NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
 {
 	return new GLVertexFormat();
-}
-
 }
 
 GLVertexFormat::GLVertexFormat()
@@ -221,6 +205,46 @@ void GLVertexFormat::SetupVertexPointers() {
 #endif
 }
 
+void GLVertexFormat::SetupVertexPointersOffset(u32 offset) {
+	// Cast a pointer to compiled code to a pointer to a function taking no parameters, through a (void *) cast first to
+	// get around type checking errors, and call it.
+#ifdef USE_JIT
+	((void (*)())(void*)m_compiledCode)();
+#else
+	glVertexPointer(3, GL_FLOAT, vtx_decl.stride, (GLvoid*)offset);
+	if (vtx_decl.num_normals >= 1) {
+		glNormalPointer(VarToGL(vtx_decl.normal_gl_type), vtx_decl.stride, (GLvoid*)(offset + vtx_decl.normal_offset[0]));
+		if (vtx_decl.num_normals == 3) {
+			glVertexAttribPointer(SHADER_NORM1_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (GLvoid*)(offset + vtx_decl.normal_offset[1]));
+			glVertexAttribPointer(SHADER_NORM2_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (GLvoid*)(offset + vtx_decl.normal_offset[2]));
+		}
+	}
+
+	for (int i = 0; i < 2; i++) {
+		if (vtx_decl.color_offset[i] != -1) {
+			if (i == 0)
+				glColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (GLvoid*)(offset + vtx_decl.color_offset[i]));
+			else {
+				glSecondaryColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (GLvoid*)(offset + vtx_decl.color_offset[i])); 
+			}
+		}
+	}
+
+	for (int i = 0; i < 8; i++) {
+		if (vtx_decl.texcoord_offset[i] != -1) {
+			int id = GL_TEXTURE0 + i;
+			glClientActiveTexture(id);
+			glTexCoordPointer(vtx_decl.texcoord_size[i], VarToGL(vtx_decl.texcoord_gl_type[i]),
+				vtx_decl.stride, (GLvoid*)(offset + vtx_decl.texcoord_offset[i]));
+		}
+	}
+
+	if (vtx_decl.posmtx_offset != -1) {
+		glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (GLvoid*)(offset + vtx_decl.posmtx_offset));
+	}
+#endif
+}
+
 void GLVertexFormat::EnableComponents(u32 components)
 {
 	if (s_prevcomponents != components) 
@@ -284,3 +308,7 @@ void GLVertexFormat::EnableComponents(u32 components)
 		s_prevcomponents = components;
 	}
 }
+
+
+}
+
