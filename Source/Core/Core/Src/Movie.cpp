@@ -1022,17 +1022,6 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, 
 
 void EndPlayInput(bool cont) 
 {
-	if (IsPlayingInput() && IsConfigSaved() && IsStartingFromClearSave() && Core::g_CoreStartupParameter.bWii)
-	{
-		std::string savePath = Common::GetTitleDataPath(g_titleID);
-		File::DeleteDirRecursively(savePath.c_str());
-		#ifdef _WIN32
-			MoveFile((savePath + "../backup/").c_str(), savePath.c_str());
-		#else
-			File::CopyDir((savePath + "../backup/").c_str(), savePath.c_str());
-			File::DeleteDirRecursively((savePath + "../backup/").c_str());
-		#endif
-	}
 	if (cont)
 	{
 		g_playMode = MODE_RECORDING;

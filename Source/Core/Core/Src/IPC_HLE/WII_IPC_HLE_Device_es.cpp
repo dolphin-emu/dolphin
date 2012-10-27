@@ -912,7 +912,7 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 		{
 			if (File::Exists((savePath + "../backup/").c_str()))
 			{
-				// Dolphin must have crashed while playing back a movie previously, so we'll keep the backup, and just delete the current save
+				// The last run of this game must have been to play back a movie, so their save is already backed up. 
 				File::DeleteDirRecursively(savePath.c_str());
 			}
 			else
@@ -928,7 +928,7 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	}
 	else if (File::Exists((savePath + "../backup/").c_str()))
 	{
-		// Dolphin must have crashed while playing back a movie previously. Since we're not playing a movie now, we'll delete the save, and use the backup
+		// Delete the save made by a previous movie, and copy back the user's save.
 		if (File::Exists((savePath + "banner.bin").c_str()))
 			File::DeleteDirRecursively(savePath);
 		#ifdef _WIN32
