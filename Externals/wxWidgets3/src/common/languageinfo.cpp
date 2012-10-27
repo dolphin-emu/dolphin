@@ -3,7 +3,7 @@
 // Purpose:     wxLocale::InitLanguagesDB()
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Created:     2010-04-23
-// RCS-ID:      $Id: languageinfo.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: languageinfo.cpp 67426 2011-04-10 15:35:56Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -663,7 +663,7 @@ void wxLocale::InitLanguagesDB()
    LNG(wxLANGUAGE_ITALIAN,                    "it_IT", LANG_ITALIAN   , SUBLANG_ITALIAN                   , wxLayout_LeftToRight, "Italian")
    LNG(wxLANGUAGE_ITALIAN_SWISS,              "it_CH", LANG_ITALIAN   , SUBLANG_ITALIAN_SWISS             , wxLayout_LeftToRight, "Italian (Swiss)")
    LNG(wxLANGUAGE_JAPANESE,                   "ja_JP", LANG_JAPANESE  , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Japanese")
-   LNG(wxLANGUAGE_JAVANESE,                   "jw"   , 0              , 0                                 , wxLayout_LeftToRight, "Javanese")
+   LNG(wxLANGUAGE_JAVANESE,                   "jv"   , 0              , 0                                 , wxLayout_LeftToRight, "Javanese")
    LNG(wxLANGUAGE_KANNADA,                    "kn"   , LANG_KANNADA   , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Kannada")
    LNG(wxLANGUAGE_KASHMIRI,                   "ks"   , LANG_KASHMIRI  , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Kashmiri")
    LNG(wxLANGUAGE_KASHMIRI_INDIA,             "ks_IN", LANG_KASHMIRI  , SUBLANG_KASHMIRI_INDIA            , wxLayout_LeftToRight, "Kashmiri (India)")

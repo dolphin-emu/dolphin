@@ -3,7 +3,7 @@
 // Purpose:     wxSocketImpl and related declarations
 // Authors:     Guilhem Lavaux, Vadim Zeitlin
 // Created:     April 1997
-// RCS-ID:      $Id: socket.h 61675 2009-08-16 23:13:45Z VZ $
+// RCS-ID:      $Id: socket.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1997 Guilhem Lavaux
 //              (c) 2008 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -61,7 +61,7 @@
 
 // include the header defining timeval: under Windows this struct is used only
 // with sockets so we need to include winsock.h which we do via windows.h
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     #include "wx/msw/wrapwin.h"
 #else
     #include <sys/time.h>   // for timeval
@@ -79,7 +79,7 @@
 
 // define some symbols which winsock.h defines but traditional BSD headers
 // don't
-#ifndef __WXMSW__
+#ifndef __WINDOWS__
     #define SOCKET int
 #endif
 
@@ -367,7 +367,7 @@ private:
     wxDECLARE_NO_COPY_CLASS(wxSocketImpl);
 };
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
     #include "wx/msw/private/sockmsw.h"
 #else
     #include "wx/unix/private/sockunix.h"

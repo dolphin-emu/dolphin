@@ -29,7 +29,7 @@
 
 namespace DiscIO
 {
-
+	bool Add_Ticket(u64 TitleID, const u8 *p_tik, u32 tikSize);
 struct SNANDContent
 {
     u32 m_ContentID;	

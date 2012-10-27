@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: listctrl.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: listctrl.h 70290 2012-01-08 00:55:22Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@ class wxListCtrlRenameTimer;
 
 WX_DECLARE_EXPORTED_LIST(wxListItem, wxColumnList);
 
-class WXDLLIMPEXP_CORE wxListCtrl: public wxControl
+class WXDLLIMPEXP_CORE wxListCtrl: public wxListCtrlBase
 {
   DECLARE_DYNAMIC_CLASS(wxListCtrl)
  public:
@@ -63,8 +63,7 @@ class WXDLLIMPEXP_CORE wxListCtrl: public wxControl
   bool GetColumn(int col, wxListItem& item) const;
 
   // Sets information about this column
-  // TODO: NOT const to be compatible with wxGenericListCtrl API
-  bool SetColumn(int col, wxListItem& item) ;
+  bool SetColumn(int col, const wxListItem& item) ;
 
   // Gets the column width
   int GetColumnWidth(int col) const;
@@ -160,11 +159,6 @@ class WXDLLIMPEXP_CORE wxListCtrl: public wxControl
   // list or report view
   long GetTopItem() const ;
 
-  // are we in report mode?
-  bool InReportView() const { return HasFlag(wxLC_REPORT); }
-
-  bool IsVirtual() const { return HasFlag(wxLC_VIRTUAL); }
-
   // Add or remove a single window style
   void SetSingleStyle(long style, bool add = true) ;
 
@@ -257,12 +251,6 @@ class WXDLLIMPEXP_CORE wxListCtrl: public wxControl
   // Insert an image/string item
   long InsertItem(long index, const wxString& label, int imageIndex);
 
-  // For list view mode (only), inserts a column.
-  long InsertColumn(long col, wxListItem& info);
-
-  long InsertColumn(long col, const wxString& heading, int format = wxLIST_FORMAT_LEFT,
-    int width = -1);
-
   // Scrolls the list control. If in icon, small icon or report view mode,
   // x specifies the number of pixels to scroll. If in list view mode, x
   // specifies the number of columns to scroll.
@@ -314,10 +302,10 @@ class WXDLLIMPEXP_CORE wxListCtrl: public wxControl
   bool Update(long item);
 */
 
-  void Command(wxCommandEvent& event) { ProcessCommand(event); };
+  void Command(wxCommandEvent& event) { ProcessCommand(event); }
 
-  wxListCtrlCompare GetCompareFunc() { return m_compareFunc; };
-  wxIntPtr GetCompareFuncData() { return m_compareFuncData; };
+  wxListCtrlCompare GetCompareFunc() { return m_compareFunc; }
+  wxIntPtr GetCompareFuncData() { return m_compareFuncData; }
 
 
   // public overrides needed for pimpl approach
@@ -376,13 +364,13 @@ class WXDLLIMPEXP_CORE wxListCtrl: public wxControl
   GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
 protected:
+  // Implement base class pure virtual methods.
+  long DoInsertColumn(long col, const wxListItem& info);
 
   // protected overrides needed for pimpl approach
   virtual void DoSetSize(int x, int y,
                          int width, int height,
                          int sizeFlags = wxSIZE_AUTO);
-
-  virtual wxSize DoGetBestSize() const;
 
   long               m_current;
   wxListCtrlTextCtrlWrapper *m_textctrlWrapper;

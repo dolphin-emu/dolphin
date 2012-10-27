@@ -25,6 +25,8 @@
 #include "MemoryUtil.h"
 #include "FileUtil.h"
 #include "../Movie.h"
+#include "../CoreTiming.h"
+#include "SystemTimers.h"
 
 // We should provide an option to choose from the above, or figure out the checksum (the algo in yagcd seems wrong)
 // so that people can change default language.
@@ -107,7 +109,7 @@ CEXIIPL::CEXIIPL() :
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2)
 	{
 		// Copy header
-		memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, sizeof(m_bNTSC ? iplverNTSC : iplverPAL));
+		memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, m_bNTSC ? sizeof(iplverNTSC) : sizeof(iplverPAL));
 
 		// Load fonts
 		LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SJIS), 0x1aff00);
@@ -152,7 +154,13 @@ CEXIIPL::~CEXIIPL()
 }
 void CEXIIPL::DoState(PointerWrap &p)
 {
-	p.DoArray(m_RTC, 4);
+	p.Do(m_RTC);
+	p.Do(m_uPosition);
+	p.Do(m_uAddress);
+	p.Do(m_uRWOffset);
+	p.Do(m_szBuffer);
+	p.Do(m_count);
+	p.Do(m_FontsLoaded);
 }
 
 void CEXIIPL::LoadFileToIPL(std::string filename, u32 offset)
@@ -189,7 +197,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 
 	// The first 4 bytes must be the address
 	// If we haven't read it, do it now
-	if (m_uPosition < 4)
+	if (m_uPosition <= 3)
 	{
 		m_uAddress <<= 8;
 		m_uAddress |= _uByte;
@@ -199,151 +207,179 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		// Check if the command is complete
 		if (m_uPosition == 3)
 		{
-			// Get the time ... 
+			// Get the time ...
+			u32 &rtc = *((u32 *)&m_RTC);
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-				*((u32 *)&m_RTC) = Common::swap32(CEXIIPL::GetGCTime() - cWiiBias); // Subtract Wii bias
+			{
+				// Subtract Wii bias
+				rtc = Common::swap32(CEXIIPL::GetGCTime() - cWiiBias);
+			}
 			else
-				*((u32 *)&m_RTC) = Common::swap32(CEXIIPL::GetGCTime());
+			{
+				rtc = Common::swap32(CEXIIPL::GetGCTime());
+			}
 
-#if MAX_LOGLEVEL >= INFO_LEVEL
-			
-			if ((m_uAddress & 0xF0000000) == 0xb0000000) 
+			// Log the command
+			std::string device_name;
+
+			switch (CommandRegion())
 			{
-				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: WII something");
+			case REGION_RTC:
+				device_name = "RTC";
+				break;
+			case REGION_SRAM:
+				device_name = "SRAM";
+				break;
+			case REGION_UART:
+				device_name = "UART";
+				break;
+			case REGION_EUART:
+			case REGION_EUART_UNK:
+				device_name = "EUART";
+				break;
+			case REGION_UART_UNK:
+				device_name = "UART Other?";
+				break;
+			case REGION_BARNACLE:
+				device_name = "UART Barnacle";
+				break;
+			case REGION_WRTC0:
+			case REGION_WRTC1:
+			case REGION_WRTC2:
+				device_name = "Wii RTC flags - not implemented";
+				break;
+			default:
+				if ((m_uAddress >> 6) < ROM_SIZE)
+				{
+					device_name = "ROM";
+				}
+				else
+				{
+					device_name = "illegal address";
+					_dbg_assert_msg_(EXPANSIONINTERFACE, 0,
+						"EXI IPL-DEV: %s %08x", device_name.c_str(), m_uAddress);
+				}
+				break;
 			}
-			else if ((m_uAddress & 0xF0000000) == 0x30000000) 
-			{
-				// wii stuff perhaps wii SRAM?
-				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: WII something (perhaps SRAM?)");
-			}
-			else if ((m_uAddress & 0x60000000) == 0)
-			{
-				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: IPL access");
-			}
-			else if ((m_uAddress & 0x7FFFFF00) == 0x20000000)
-			{
-				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: RTC access");
-			}
-			else if ((m_uAddress & 0x7FFFFF00) == 0x20000100)
-			{
-				INFO_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: SRAM access");
-			}
-			else if ((m_uAddress & 0x7FFFFF00) == 0x20010000)
-			{
-				DEBUG_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: UART");
-			}
-			else if ((m_uAddress & 0x7FFFFF00) == 0x20011300)
-			{
-				DEBUG_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: UART Barnacle");
-			}
-			else if ((m_uAddress & 0x7FFFFF00) == 0x20010300)
-			{
-				DEBUG_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: UART Other?");
-			}
-            else if (((m_uAddress & 0x7FFFFF00) == 0x21000000) ||
-                    ((m_uAddress & 0x7FFFFF00) == 0x21000100) ||
-                    ((m_uAddress & 0x7FFFFF00) == 0x21000800))
-            {
-                ERROR_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: RTC flags (WII only) - not implemented");
-            }
-			else
-			{
-				//_dbg_assert_(EXPANSIONINTERFACE, 0);
-				_dbg_assert_msg_(EXPANSIONINTERFACE, 0, "EXI IPL-DEV: illegal access address %08x", m_uAddress);
-				ERROR_LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: illegal address %08x", m_uAddress);
-			}
-#endif
+
+			DEBUG_LOG(EXPANSIONINTERFACE, "%s %s %08x", device_name.c_str(),
+				IsWriteCommand() ? "write" : "read", m_uAddress);
 		}
 	} 
 	else
 	{
-		// --- Encrypted ROM ---
-		// atm we pre-decrypt the whole thing, see CEXIIPL ctor
-		if ((m_uAddress & 0x60000000) == 0)
+		// Actually read or write a byte
+		switch (CommandRegion())
 		{
-			if ((m_uAddress & 0x80000000) == 0)
-			{
-				u32 position = ((m_uAddress >> 6) & ROM_MASK) + m_uRWOffset;
-
-				// Technically we should apply descrambling here, if it's currently enabled.
-				_uByte = m_pIPL[position];
-
-				if ((position >= 0x001AFF00) && (position <= 0x001FF474) && !m_FontsLoaded)
-				{
-					PanicAlertT("Error: Trying to access %s fonts but they are not loaded. Games may not show fonts correctly, or crash.",
-						(position >= 0x001FCF00)?"ANSI":"SJIS");
-					m_FontsLoaded = true; // Don't be a nag :p
-				}
-			}
-		} 
-		// --- Real Time Clock (RTC) ---
-		else if ((m_uAddress & 0x7FFFFF00) == 0x20000000)
-		{
-			if (m_uAddress & 0x80000000)
+		case REGION_RTC:
+			if (IsWriteCommand())
 				m_RTC[(m_uAddress & 0x03) + m_uRWOffset] = _uByte;
 			else
 				_uByte = m_RTC[(m_uAddress & 0x03) + m_uRWOffset];
-		}
-		// --- SRAM ---
-		else if ((m_uAddress & 0x7FFFFF00) == 0x20000100)
-		{
-			if (m_uAddress & 0x80000000)
+			break;
+
+		case REGION_SRAM:
+			if (IsWriteCommand())
 				g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
 			else
 				_uByte = g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
-		}
-		// --- UART ---
-		else if ((m_uAddress & 0x7FFFFF00) == 0x20010000)
-		{
-			if (m_uAddress & 0x80000000)
+			break;
+
+		case REGION_UART:
+		case REGION_EUART:
+			if (IsWriteCommand())
 			{
-				m_szBuffer[m_count++] = _uByte;
+				if (_uByte != '\0')
+					m_szBuffer[m_count++] = _uByte;
 				if ((m_count >= 256) || (_uByte == 0xD))
 				{					
 					m_szBuffer[m_count] = 0x00;
-					INFO_LOG(OSREPORT, "%s", m_szBuffer);
+					NOTICE_LOG(OSREPORT, "%s", m_szBuffer);
 					memset(m_szBuffer, 0, sizeof(m_szBuffer));
 					m_count = 0;
 				}
 			}
 			else
-				_uByte = 0x01; // dunno
-		}
-		else if ((m_uAddress & 0x7FFFFF00) == 0x20011300)
-		{
-			INFO_LOG(OSREPORT, "UART Barnacle %x", _uByte);
-		}
-		else if ((m_uAddress & 0x7FFFFF00) == 0x20010300)
-		{
-			INFO_LOG(OSREPORT, "UART? %x", _uByte);
+			{
+				// "Queue Length"... return 0 cause we're instant
+				_uByte = 0;
+			}
+			break;
+
+		case REGION_EUART_UNK:
+			// Writes 0xf2 then 0xf3 on EUART init. Just need to return non-zero
+			// so we can leave the byte untouched.
+			break;
+
+		case REGION_UART_UNK:
+			DEBUG_LOG(OSREPORT, "UART? %x", _uByte);
 			_uByte = 0xff;
+			break;
+
+		case REGION_BARNACLE:
+			DEBUG_LOG(OSREPORT, "UART Barnacle %x", _uByte);
+			break;
+
+		case REGION_WRTC0:
+		case REGION_WRTC1:
+		case REGION_WRTC2:
+			// WII only RTC flags... afaik just the wii menu initialize it
+		default:
+			if ((m_uAddress >> 6) < ROM_SIZE)
+			{
+				if (!IsWriteCommand())
+				{
+					u32 position = ((m_uAddress >> 6) & ROM_MASK) + m_uRWOffset;
+
+					// Technically we should descramble here iff descrambling logic is enabled.
+					// At the moment, we pre-decrypt the whole thing and
+					// ignore the "enabled" bit - see CEXIIPL::CEXIIPL
+					_uByte = m_pIPL[position];
+
+					if ((position >= 0x001AFF00) && (position <= 0x001FF474) && !m_FontsLoaded)
+					{
+						PanicAlertT(
+							"Error: Trying to access %s fonts but they are not loaded. "
+							"Games may not show fonts correctly, or crash.",
+							(position >= 0x001FCF00) ? "ANSI" : "SJIS");
+						m_FontsLoaded = true; // Don't be a nag :p
+					}
+				}
+			}
+			else
+			{
+				NOTICE_LOG(OSREPORT, "EXI IPL-DEV: %s %x at %08x",
+					IsWriteCommand() ? "write" : "read", _uByte, m_uAddress);
+			}
+			break;
 		}
-        else if (((m_uAddress & 0x7FFFFF00) == 0x21000000) ||
-                ((m_uAddress & 0x7FFFFF00) == 0x21000100) ||
-                ((m_uAddress & 0x7FFFFF00) == 0x21000800))
-        {
-            // WII only RTC flags... afaik just the wii menu initialize it
-// 			if (m_uAddress & 0x80000000)
-// 				g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset] = _uByte;
-// 			else
-// 				_uByte = g_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
-        }
+
 		m_uRWOffset++;
 	}
+
 	m_uPosition++;
 }
 
 u32 CEXIIPL::GetGCTime()
 {
 	u64 ltime = 0;
-	const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
+	static const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
 
-	// hack in some netplay stuff
-	ltime = NetPlay_GetGCTime();
 	if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-		ltime = 1234567890; // TODO: Should you be able to set a custom time in movies?
-	else if (0 == ltime)
-		ltime = Common::Timer::GetLocalTimeSinceJan1970();
+	{
+		ltime = Movie::GetRecordingStartTime();
+
+		// let's keep time moving forward, regardless of what it starts at
+		ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
+	}
+	else
+	{
+		// hack in some netplay stuff
+		ltime = NetPlay_GetGCTime();
+
+		if (0 == ltime)
+			ltime = Common::Timer::GetLocalTimeSinceJan1970();
+	}
 
 	return ((u32)ltime - cJanuary2000);
 

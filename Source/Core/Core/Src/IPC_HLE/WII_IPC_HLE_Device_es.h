@@ -37,7 +37,10 @@ public:
     virtual bool Close(u32 _CommandAddress, bool _bForce);
 
     virtual bool IOCtlV(u32 _CommandAddress);
-	u32 ES_DIVerify(u8 *_pTMD, u32 _sz);
+	static u32 ES_DIVerify(u8 *_pTMD, u32 _sz);
+	
+	// This should only be cleared on power reset
+	static std::string m_ContentFile;
 private:
 
     enum
@@ -134,8 +137,6 @@ private:
     std::vector<u64> m_TitleIDs;
     u64 m_TitleID;
     u32 AccessIdentID;
-	// This should only be cleared on power reset
-	std::string m_ContentFile;
 
     u64 GetCurrentTitleID() const;
 

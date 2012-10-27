@@ -465,3 +465,16 @@ void PixelShaderManager::SetMaterialColorChanged(int index)
 {
 	nMaterialsChanged  |= (1 << index);
 }
+
+void PixelShaderManager::DoState(PointerWrap &p)
+{
+	p.Do(lastRGBAfull);
+	p.Do(lastAlpha);
+	p.Do(lastTexDims);
+	p.Do(lastZBias);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Dirty();
+	}
+}

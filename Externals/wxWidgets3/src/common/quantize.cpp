@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     22/6/2000
-// RCS-ID:      $Id: quantize.cpp 50694 2007-12-14 22:35:23Z VZ $
+// RCS-ID:      $Id: quantize.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Thomas G. Lane, Vaclav Slavik, Julian Smart
 // Licence:     wxWindows licence + JPEG library licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1546,7 +1546,7 @@ bool wxQuantize::Quantize(const wxImage& src, wxImage& dest,
 
     if (flags & wxQUANTIZE_FILL_DESTINATION_IMAGE)
     {
-        if (!dest.Ok())
+        if (!dest.IsOk())
             dest.Create(w, h);
 
         imgdt = dest.GetData();

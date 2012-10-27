@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     13.01.00
-// RCS-ID:      $Id: enhmeta.h 60843 2009-05-31 19:11:15Z VS $
+// RCS-ID:      $Id: enhmeta.h 68317 2011-07-21 13:49:59Z VZ $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -89,6 +89,7 @@ public:
 
     // as above, but takes reference DC as first argument to take resolution,
     // size, font metrics etc. from
+    wxEXPLICIT
     wxEnhMetaFileDC(const wxDC& referenceDC,
                     const wxString& filename = wxEmptyString,
                     int width = 0, int height = 0,

@@ -28,8 +28,7 @@
 #include "JitBackpatch.h"  // for EmuCodeBlock
 #include "JitAsmCommon.h"
 
-#include "PowerPCDisasm.h"
-#include "disasm.h"
+#include <set>
 
 #define JIT_OPCODE 0
 
@@ -42,10 +41,8 @@ protected:
 	struct JitOptions
 	{
 		bool optimizeStack;
-		bool assumeFPLoadFromMem;
 		bool enableBlocklink;
 		bool fpAccurateFcmp;
-		bool enableFastMem;
 		bool optimizeGatherPipe;
 		bool fastInterrupts;
 		bool accurateSinglePrecision;
@@ -60,11 +57,16 @@ protected:
 		int blockSize;
 		int instructionNumber;
 		int downcountAmount;
+		u32 numLoadStoreInst;
+		u32 numFloatingPointInst;
 
+		bool firstFPInstructionFound;
 		bool isLastInstruction;
 		bool forceUnsafeLoad;
 		bool memcheck;
+		bool skipnext;
 		bool broken_block;
+		int block_flags;
 
 		int fifoBytesThisBlock;
 
@@ -75,6 +77,8 @@ protected:
 		u8* rewriteStart;
 
 		JitBlock *curBlock;
+
+		std::set<u32> fifoWriteAddresses;
 	};
 
 public:

@@ -24,6 +24,7 @@
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device_usb.h"
 #include "../ConfigManager.h"
+#include "../Movie.h"
 #include "CoreTiming.h"
 
 // The device class
@@ -104,7 +105,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 {
 /*
-  //things that do not get saved:
+  //things that do not get saved: (why not?)
 
 	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
 
@@ -120,26 +121,73 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_ScanEnable);
 	m_acl_pool.DoState(p);
 
-	if (p.GetMode() == PointerWrap::MODE_READ) {
-	    m_EventQueue.clear();
-	}
-	if (p.GetMode() == PointerWrap::MODE_READ &&
-		SConfig::GetInstance().m_WiimoteReconnectOnLoad)
+	bool storeFullData = (Movie::IsRecordingInput() || Movie::IsPlayingInput());
+	p.Do(storeFullData);
+	p.DoMarker("storeFullData in CWII_IPC_HLE_Device_usb_oh1_57e_305");
+
+	if (!storeFullData)
 	{
-		// Reset the connection of all connected wiimotes
-        for (unsigned int i = 0; i < 4; i++)
-	    {
-        	if (m_WiiMotes[i].IsConnected())
-            {
-                    m_WiiMotes[i].Activate(false);
-                    m_WiiMotes[i].Activate(true);
-	        }
-        	else
-            {
-                    m_WiiMotes[i].Activate(false);
-	        }
-        }
+		if (p.GetMode() == PointerWrap::MODE_READ)
+		{
+			m_EventQueue.clear();
+			
+			if (SConfig::GetInstance().m_WiimoteReconnectOnLoad)
+			{
+				// Reset the connection of all connected wiimotes
+				for (unsigned int i = 0; i < 4; i++)
+				{
+					if (!m_WiiMotes[i].IsInactive())
+					{
+						m_WiiMotes[i].Activate(false);
+						m_WiiMotes[i].Activate(true);
+					}
+					else
+					{
+						m_WiiMotes[i].Activate(false);
+					}
+				}
+			}
+		}
 	}
+	else
+	{
+		// I'm not sure why these things aren't normally saved, but I think they can affect the emulation state,
+		// so if sync matters (e.g. if a movie is active), we really should save them.
+		// also, it's definitely not safe to do the above auto-reconnect hack either.
+		// (unless we can do it without changing anything that affects emulation state, which is not currently the case)
+
+		p.Do(m_EventQueue);
+		p.DoMarker("m_EventQueue");
+
+		// m_WiiMotes is kind of annoying to save. maybe this could be done in a more general way.
+		u32 vec_size = (u32)m_WiiMotes.size();
+		p.Do(vec_size);
+		for (u32 i = 0; i < vec_size; ++i)
+		{
+			if (i < m_WiiMotes.size())
+			{
+				CWII_IPC_HLE_WiiMote& wiimote = m_WiiMotes[i];
+				wiimote.DoState(p);
+			}
+			else
+			{
+				bdaddr_t tmpBD = BDADDR_ANY;
+				CWII_IPC_HLE_WiiMote wiimote = CWII_IPC_HLE_WiiMote(this, i, tmpBD, false);
+				wiimote.DoState(p);
+				if (p.GetMode() == PointerWrap::MODE_READ)
+				{
+					m_WiiMotes.push_back(wiimote);
+					_dbg_assert_(WII_IPC_WIIMOTE, m_WiiMotes.size() == i);
+				}
+			}
+		}
+		if (p.GetMode() == PointerWrap::MODE_READ)
+			while ((u32)m_WiiMotes.size() > vec_size)
+				m_WiiMotes.pop_back();
+		p.DoMarker("m_WiiMotes");
+	}
+
+	DoStateShared(p);
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::RemoteDisconnect(u16 _connectionHandle)

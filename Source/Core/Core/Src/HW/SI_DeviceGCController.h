@@ -30,7 +30,6 @@ private:
 	// Commands
 	enum EBufferCommands
 	{
-		CMD_INVALID		= 0xFFFFFFFF,
 		CMD_RESET		= 0x00,
 		CMD_ORIGIN		= 0x41,
 		CMD_RECALIBRATE	= 0x42,
@@ -96,7 +95,7 @@ private:
 public:
 
 	// Constructor
-	CSIDevice_GCController(int _iDeviceNumber);
+	CSIDevice_GCController(SIDevices device, int _iDeviceNumber);
 
 	// Run the SI Buffer
 	virtual int RunBuffer(u8* _pBuffer, int _iLength);
@@ -110,5 +109,24 @@ public:
 
 	// Send a command directly
 	virtual void SendCommand(u32 _Cmd, u8 _Poll);
+
+	// Savestate support
+	virtual void DoState(PointerWrap& p);
 };
+
+
+// "TaruKonga", the DK Bongo controller
+class CSIDevice_TaruKonga : public CSIDevice_GCController
+{
+public:
+	CSIDevice_TaruKonga(SIDevices device, int _iDeviceNumber) : CSIDevice_GCController(device, _iDeviceNumber) { }
+
+	virtual bool GetData(u32& _Hi, u32& _Low)
+	{
+		CSIDevice_GCController::GetData(_Hi, _Low);
+		_Hi &= ~PAD_USE_ORIGIN << 16;
+		return true;
+	}
+};
+
 #endif

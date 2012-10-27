@@ -2,7 +2,7 @@
 // Name:        wx/gtk/statbox.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statbox.h 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: statbox.h 70738 2012-02-28 17:06:56Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@ public:
 
     // implementation
 
-    virtual bool IsTransparentForMouse() const { return true; }
+    virtual bool GTKIsTransparentForMouse() const { return true; }
 
     virtual void GetBordersForSizer(int *borderTop, int *borderOther) const;
 

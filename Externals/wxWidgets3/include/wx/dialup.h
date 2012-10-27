@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.07.99
-// RCS-ID:      $Id: dialup.h 58757 2009-02-08 11:45:59Z VZ $
+// RCS-ID:      $Id: dialup.h 67384 2011-04-03 20:31:32Z DS $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -171,7 +171,7 @@ public:
     bool IsConnectedEvent() const
         { return GetEventType() == wxEVT_DIALUP_CONNECTED; }
 
-    // does this event come from wxDialUpManager::Dial() or from some extrenal
+    // does this event come from wxDialUpManager::Dial() or from some external
     // process (i.e. does it result from our own attempt to establish the
     // connection)?
     bool IsOwnEvent() const { return m_id != 0; }

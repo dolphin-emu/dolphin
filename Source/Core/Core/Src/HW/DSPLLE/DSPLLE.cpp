@@ -24,6 +24,8 @@
 #include "Thread.h"
 #include "ChunkFile.h"
 #include "IniFile.h"
+#include "ConfigManager.h"
+#include "CPUDetect.h"
 
 #include "DSPLLEGlobals.h" // Local
 #include "DSP/DSPInterpreter.h"
@@ -48,6 +50,9 @@ DSPLLE::DSPLLE() {
 	m_bIsRunning = false;
 	m_cycle_count = 0;
 }
+
+Common::Event dspEvent;
+Common::Event ppcEvent;
 
 void DSPLLE::DoState(PointerWrap &p)
 {
@@ -74,6 +79,24 @@ void DSPLLE::DoState(PointerWrap &p)
 	p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
 	p.Do(cyclesLeft);
 	p.Do(m_cycle_count);
+
+	bool prevInitMixer = m_InitMixer;
+	p.Do(m_InitMixer);
+	if (prevInitMixer != m_InitMixer && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		if (m_InitMixer)
+		{
+			InitMixer();
+			AudioCommon::PauseAndLock(true);
+		}
+		else
+		{
+			AudioCommon::PauseAndLock(false);
+			soundStream->Stop();
+			delete soundStream;
+			soundStream = NULL;
+		}
+	}
 }
 
 // Regular thread
@@ -81,10 +104,33 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 {
 	Common::SetCurrentThreadName("DSP thread");
 
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads)
+	{
+		if (cpu_info.num_cores > 3)
+		{
+			// HACK (delroth): there is no way to know where hyperthreads are in
+			// the current Dolphin version.
+			bool windows = false;
+#ifdef _WIN32
+			windows = true;
+#endif
+
+			u8 core_id;
+			if (windows && cpu_info.num_cores > 4) // Probably HT
+				core_id = 5; // 3rd non HT core
+			else
+				core_id = 3; // 3rd core
+
+			Common::SetCurrentThreadAffinity(1 << (core_id - 1));
+		}
+	}
+
 	while (dsp_lle->m_bIsRunning)
 	{
 		int cycles = (int)dsp_lle->m_cycle_count;
-		if (cycles > 0) {
+		if (cycles > 0)
+		{
+			std::lock_guard<std::mutex> lk(dsp_lle->m_csDSPThreadActive);
 			if (dspjit)
 			{
 				DSPCore_RunCycles(cycles);
@@ -96,7 +142,10 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 			Common::AtomicStore(dsp_lle->m_cycle_count, 0);
 		}
 		else
-			Common::YieldCPU();
+		{
+			ppcEvent.Set();
+			dspEvent.Wait();
+		}
 	}
 }
 
@@ -138,6 +187,8 @@ void DSPLLE::DSP_StopSoundStream()
 	m_bIsRunning = false;
 	if (m_bDSPThread)
 	{
+		ppcEvent.Set();
+		dspEvent.Set();
 		m_hDSPThread.join();
 	}
 }
@@ -148,6 +199,17 @@ void DSPLLE::Shutdown()
 	DSPCore_Shutdown();
 }
 
+void DSPLLE::InitMixer()
+{
+	unsigned int AISampleRate, DACSampleRate;
+	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
+	delete soundStream;
+	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd); 
+	if(!soundStream) PanicAlert("Error starting up sound stream");
+	// Mixer is initialized
+	m_InitMixer = true;
+}
+
 u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 {
 	UDSPControl Temp(_uFlag);
@@ -155,12 +217,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 	{
 		if (!Temp.DSPHalt)
 		{
-			unsigned int AISampleRate, DACSampleRate;
-			AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-			soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd); 
-			if(!soundStream) PanicAlert("Error starting up sound stream");
-			// Mixer is initialized
-			m_InitMixer = true;
+			InitMixer();
 		}
 	}
 	DSPInterpreter::WriteCR(_uFlag);
@@ -274,9 +331,10 @@ void DSPLLE::DSP_Update(int cycles)
 	else
 	{
 		// Wait for dsp thread to complete its cycle. Note: this logic should be thought through.
-		while (m_cycle_count != 0)
-			;
+		ppcEvent.Wait();
 		Common::AtomicStore(m_cycle_count, dsp_cycles);
+		dspEvent.Set();
+
 	}
 }
 
@@ -302,3 +360,15 @@ void DSPLLE::DSP_ClearAudioBuffer(bool mute)
 	if (soundStream)
 		soundStream->Clear(mute);
 }
+
+void DSPLLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	if (doLock || unpauseOnUnlock)
+		DSP_ClearAudioBuffer(doLock); 
+
+	if (doLock)
+		m_csDSPThreadActive.lock();
+	else
+		m_csDSPThreadActive.unlock();
+}
+

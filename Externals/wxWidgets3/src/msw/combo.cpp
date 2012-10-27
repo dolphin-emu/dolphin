@@ -4,7 +4,7 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: combo.cpp 67276 2011-03-22 09:56:40Z JMS $
+// RCS-ID:      $Id: combo.cpp 70870 2012-03-11 05:31:06Z JS $
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -117,9 +117,6 @@
 #define NATIVE_TEXT_INDENT_XP       4
 #define NATIVE_TEXT_INDENT_CLASSIC  2
 
-#define TEXTCTRLYADJUST_XP          3
-#define TEXTCTRLYADJUST_CLASSIC     3
-
 #define COMBOBOX_ANIMATION_RESOLUTION   10
 
 #define COMBOBOX_ANIMATION_DURATION     200  // In milliseconds
@@ -229,26 +226,13 @@ void wxComboCtrl::OnResize()
     //
     // Recalculates button and textctrl areas
 
-    int textCtrlYAdjust;
-
-#if wxUSE_UXTHEME
-    if ( wxUxThemeEngine::GetIfActive() )
-    {
-        textCtrlYAdjust = TEXTCTRLYADJUST_XP;
-    }
-    else
-#endif
-    {
-        textCtrlYAdjust = TEXTCTRLYADJUST_CLASSIC;
-    }
-
     // Technically Classic Windows style combo has more narrow button,
     // but the native renderer doesn't paint it well like that.
     int btnWidth = 17;
     CalculateAreas(btnWidth);
 
     // Position textctrl using standard routine
-    PositionTextCtrl(0, textCtrlYAdjust);
+    PositionTextCtrl();
 }
 
 // Draws non-XP GUI dotted line around the focus area
@@ -310,7 +294,7 @@ wxComboCtrl::PrepareBackground( wxDC& dc, const wxRect& rect, int flags ) const
     if ( !(flags & wxCONTROL_ISSUBMENU) )
     {
         // Drawing control
-        isEnabled = IsEnabled();
+        isEnabled = IsThisEnabled();
         doDrawFocusRect = ShouldDrawFocus();
 
 #if wxUSE_UXTHEME
@@ -445,7 +429,7 @@ void wxComboCtrl::OnPaintEvent( wxPaintEvent& WXUNUSED(event) )
     wxColour bgCol = GetBackgroundColour();
 
 #if wxUSE_UXTHEME
-    const bool isEnabled = IsEnabled();
+    const bool isEnabled = IsThisEnabled();
 
     wxMSWDCImpl *impl = (wxMSWDCImpl*) dc.GetImpl();
     HDC hDc = GetHdcOf(*impl);

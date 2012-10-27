@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified:    VZ at 05.10.00: use AllocExclusive(), comparison fixed
-// Id:          $Id: region.cpp 61724 2009-08-21 10:41:26Z VZ $
+// Id:          $Id: region.cpp 69817 2011-11-25 01:01:26Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -179,26 +179,24 @@ bool wxRegion::DoUnionWithRect(const wxRect& r)
 
 bool wxRegion::DoUnionWithRegion( const wxRegion& region )
 {
-    wxCHECK_MSG( region.Ok(), false, wxT("invalid region") );
+    wxCHECK_MSG( region.IsOk(), false, wxT("invalid region") );
 
     if (!m_refData)
     {
-        m_refData = new wxRegionRefData();
-        M_REGIONDATA->m_region = gdk_region_new();
+        m_refData = new wxRegionRefData(*M_REGIONDATA_OF(region));
     }
     else
     {
         AllocExclusive();
+        gdk_region_union( M_REGIONDATA->m_region, region.GetRegion() );
     }
-
-    gdk_region_union( M_REGIONDATA->m_region, region.GetRegion() );
 
     return true;
 }
 
 bool wxRegion::DoIntersect( const wxRegion& region )
 {
-    wxCHECK_MSG( region.Ok(), false, wxT("invalid region") );
+    wxCHECK_MSG( region.IsOk(), false, wxT("invalid region") );
 
     if (!m_refData)
     {
@@ -215,7 +213,7 @@ bool wxRegion::DoIntersect( const wxRegion& region )
 
 bool wxRegion::DoSubtract( const wxRegion& region )
 {
-    wxCHECK_MSG( region.Ok(), false, wxT("invalid region") );
+    wxCHECK_MSG( region.IsOk(), false, wxT("invalid region") );
 
     if (!m_refData)
     {
@@ -232,24 +230,27 @@ bool wxRegion::DoSubtract( const wxRegion& region )
 
 bool wxRegion::DoXor( const wxRegion& region )
 {
-    wxCHECK_MSG( region.Ok(), false, wxT("invalid region") );
+    wxCHECK_MSG( region.IsOk(), false, wxT("invalid region") );
 
     if (!m_refData)
     {
-        return false;
+        // XOR-ing with an invalid region is the same as XOR-ing with an empty
+        // one, i.e. it is simply a copy.
+        m_refData = new wxRegionRefData(*M_REGIONDATA_OF(region));
     }
+    else
+    {
+        AllocExclusive();
 
-    AllocExclusive();
-
-    gdk_region_xor( M_REGIONDATA->m_region, region.GetRegion() );
+        gdk_region_xor( M_REGIONDATA->m_region, region.GetRegion() );
+    }
 
     return true;
 }
 
 bool wxRegion::DoOffset( wxCoord x, wxCoord y )
 {
-    if (!m_refData)
-        return false;
+    wxCHECK_MSG( m_refData, false, wxS("invalid region") );
 
     AllocExclusive();
 
@@ -369,15 +370,13 @@ void wxRegionIterator::CreateRects( const wxRegion& region )
     if (!gdkregion)
         return;
 
-    GdkRectangle *gdkrects = NULL;
-    gint numRects = 0;
-    gdk_region_get_rectangles( gdkregion, &gdkrects, &numRects );
+    GdkRectangle* gdkrects;
+    gdk_region_get_rectangles(gdkregion, &gdkrects, &m_numRects);
 
-    m_numRects = numRects;
-    if (numRects)
+    if (m_numRects)
     {
         m_rects = new wxRect[m_numRects];
-        for (size_t i=0; i < m_numRects; ++i)
+        for (int i = 0; i < m_numRects; ++i)
         {
             GdkRectangle &gr = gdkrects[i];
             wxRect &wr = m_rects[i];
@@ -459,20 +458,17 @@ wxRect wxRegionIterator::GetRect() const
 
 wxRegionIterator& wxRegionIterator::operator=(const wxRegionIterator& ri)
 {
-    wxDELETEA(m_rects);
-
-    m_current = ri.m_current;
-    m_numRects = ri.m_numRects;
-    if ( m_numRects )
+    if (this != &ri)
     {
-        m_rects = new wxRect[m_numRects];
-        for ( unsigned int n = 0; n < m_numRects; n++ )
-            m_rects[n] = ri.m_rects[n];
-    }
-    else
-    {
-        m_rects = NULL;
-    }
+        wxDELETEA(m_rects);
 
+        m_current = ri.m_current;
+        m_numRects = ri.m_numRects;
+        if ( m_numRects )
+        {
+            m_rects = new wxRect[m_numRects];
+            memcpy(m_rects, ri.m_rects, m_numRects * sizeof m_rects[0]);
+        }
+    }
     return *this;
 }

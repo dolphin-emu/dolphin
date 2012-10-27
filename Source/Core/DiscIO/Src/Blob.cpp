@@ -23,6 +23,7 @@
 #include "FileBlob.h"
 #include "CISOBlob.h"
 #include "DriveBlob.h"
+#include "WbfsBlob.h"
 
 namespace DiscIO
 {
@@ -127,6 +128,9 @@ IBlobReader* CreateBlobReader(const char* filename)
 
 	if (!File::Exists(filename))
 		return 0;
+
+	if (IsWbfsBlob(filename))
+		return WbfsFileReader::Create(filename);
 
 	if (IsCompressedBlob(filename))
 		return CompressedBlobReader::Create(filename);

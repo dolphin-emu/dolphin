@@ -3,7 +3,7 @@
 // Purpose:     declaration of wxEventLoopSource class
 // Author:      Vadim Zeitlin
 // Created:     2009-10-21
-// RCS-ID:      $Id: evtloopsrc.h 64140 2010-04-25 21:33:16Z FM $
+// RCS-ID:      $Id: evtloopsrc.h 69559 2011-10-27 21:10:30Z VZ $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ enum
     wxEVENT_SOURCE_EXCEPTION = 0x04,
     wxEVENT_SOURCE_ALL = wxEVENT_SOURCE_INPUT |
                          wxEVENT_SOURCE_OUTPUT |
-                         wxEVENT_SOURCE_EXCEPTION,
+                         wxEVENT_SOURCE_EXCEPTION
 };
 
 // wxEventLoopSource itself is an ABC and can't be created directly, currently

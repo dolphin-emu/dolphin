@@ -80,10 +80,18 @@ namespace PowerPC
 			jit->GetBlockCache()->ClearSafe();
 	}
 
+	void InstructionCache::Init()
+	{
+		memset(data, 0, sizeof(data));
+		memset(tags, 0, sizeof(tags));
+		memset(way_from_valid, 0, sizeof(way_from_valid));
+		memset(way_from_plru, 0, sizeof(way_from_plru));
+		
+		Reset();
+	}
+
 	void InstructionCache::Invalidate(u32 addr)
 	{
-		if (jit)
-			jit->GetBlockCache()->InvalidateICache(addr);
 		if (!HID0.ICE)
 			return;
 		// invalidates the whole set
@@ -101,6 +109,8 @@ namespace PowerPC
 			}
 #endif
 		valid[set] = 0;
+		if (jit)
+			jit->GetBlockCache()->InvalidateICache(addr & ~0x1f, 32);
 	}
 
 	u32 InstructionCache::ReadInstruction(u32 addr)

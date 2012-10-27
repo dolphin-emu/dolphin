@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2006-01-29
-// RCS-ID:      $Id: toolbook.h 65931 2010-10-27 16:54:36Z VZ $
+// RCS-ID:      $Id: toolbook.h 68810 2011-08-21 14:08:49Z VZ $
 // Copyright:   (c) 2006 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -78,7 +78,7 @@ public:
                             wxWindow *page,
                             const wxString& text,
                             bool bSelect = false,
-                            int imageId = -1);
+                            int imageId = NO_IMAGE);
     virtual int SetSelection(size_t n) { return DoSetSelection(n, SetSelection_SendEvent); }
     virtual int ChangeSelection(size_t n) { return DoSetSelection(n); }
     virtual void SetImageList(wxImageList *imageList);

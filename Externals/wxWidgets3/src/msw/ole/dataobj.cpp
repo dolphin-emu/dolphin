@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.05.98
-// RCS-ID:      $Id: dataobj.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: dataobj.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -852,7 +852,7 @@ bool wxBitmapDataObject2::SetData(size_t WXUNUSED(len), const void *pBuf)
     wxBitmap bitmap(bmp.bmWidth, bmp.bmHeight, bmp.bmPlanes);
     bitmap.SetHBITMAP((WXHBITMAP)hbmp);
 
-    if ( !bitmap.Ok() ) {
+    if ( !bitmap.IsOk() ) {
         wxFAIL_MSG(wxT("pasting/dropping invalid bitmap"));
 
         return false;
@@ -898,7 +898,7 @@ size_t wxBitmapDataObject::GetDataSize(const wxDataFormat& format) const
 bool wxBitmapDataObject::GetDataHere(const wxDataFormat& format,
                                      void *pBuf) const
 {
-    wxASSERT_MSG( m_bitmap.Ok(), wxT("copying invalid bitmap") );
+    wxASSERT_MSG( m_bitmap.IsOk(), wxT("copying invalid bitmap") );
 
     HBITMAP hbmp = (HBITMAP)m_bitmap.GetHBITMAP();
     if ( format.GetFormatId() == CF_DIB )
@@ -977,7 +977,7 @@ bool wxBitmapDataObject::SetData(const wxDataFormat& format,
 
     m_bitmap.SetHBITMAP((WXHBITMAP)hbmp);
 
-    wxASSERT_MSG( m_bitmap.Ok(), wxT("pasting invalid bitmap") );
+    wxASSERT_MSG( m_bitmap.IsOk(), wxT("pasting invalid bitmap") );
 
     return true;
 }

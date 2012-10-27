@@ -4,7 +4,7 @@
 // Author:      Julian Smart and Guillermo Rodriguez Garcia
 // Modified by: Francesco Montorsi
 // Created:     13/8/99
-// RCS-ID:      $Id: animateg.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: animateg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart and Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -308,7 +308,7 @@ wxAnimationCtrl::~wxAnimationCtrl()
 bool wxAnimationCtrl::LoadFile(const wxString& filename, wxAnimationType type)
 {
     wxFileInputStream fis(filename);
-    if (!fis.Ok())
+    if (!fis.IsOk())
         return false;
     return Load(fis, type);
 }

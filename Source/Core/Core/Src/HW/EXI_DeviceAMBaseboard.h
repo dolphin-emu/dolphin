@@ -26,6 +26,7 @@ public:
 	virtual void SetCS(int _iCS);
 	virtual bool IsPresent();
 	virtual bool IsInterruptSet();
+	virtual void DoState(PointerWrap &p);
 
 private:
 	virtual void TransferByte(u8& _uByte);

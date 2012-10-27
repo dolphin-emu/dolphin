@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: xtistrm.cpp 66630 2011-01-07 17:49:18Z SC $
+// RCS-ID:      $Id: xtistrm.cpp 70306 2012-01-09 18:48:39Z VZ $
 // Copyright:   (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -289,8 +289,8 @@ void wxObjectWriter::WriteOneProperty( const wxObject *obj, const wxClassInfo* c
                         }
                         else
                         {
-                            wxLogError( _T("Streaming delegates for not already ")
-                                        _T("streamed objects not yet supported") );
+                            wxLogError( wxT("Streaming delegates for not already ")
+                                        wxT("streamed objects not yet supported") );
                         }
                     }
                 }
@@ -577,7 +577,7 @@ void wxObjectRuntimeReaderCallback::SetProperty(int objectID,
 {
     wxObject *o;
     o = m_data->GetObject(objectID);
-    classInfo->SetProperty( o, propertyInfo->GetName(), value );
+    classInfo->SetProperty( o, propertyInfo->GetName().c_str(), value );
 }
 
 void wxObjectRuntimeReaderCallback::SetPropertyAsObject(int objectID,
@@ -599,7 +599,7 @@ void wxObjectRuntimeReaderCallback::SetPropertyAsObject(int objectID,
         valo = dynvalo->GetSuperClassInstance();
     }
 
-    classInfo->SetProperty( o, propertyInfo->GetName(), 
+    classInfo->SetProperty( o, propertyInfo->GetName().c_str(),
                             valClassInfo->ObjectPtrToAny(valo) );
 }
 
@@ -650,7 +650,7 @@ void wxObjectRuntimeReaderCallback::AddToPropertyCollection( int objectID,
 {
     wxObject *o;
     o = m_data->GetObject(objectID);
-    classInfo->AddToPropertyCollection( o, propertyInfo->GetName(), value );
+    classInfo->AddToPropertyCollection( o, propertyInfo->GetName().c_str(), value );
 }
 
 void wxObjectRuntimeReaderCallback::AddToPropertyCollectionAsObject(int objectID,
@@ -674,7 +674,7 @@ void wxObjectRuntimeReaderCallback::AddToPropertyCollectionAsObject(int objectID
         valo = dynvalo->GetSuperClassInstance();
     }
 
-    classInfo->AddToPropertyCollection( o, propertyInfo->GetName(), 
+    classInfo->AddToPropertyCollection( o, propertyInfo->GetName().c_str(),
                                         valClassInfo->ObjectPtrToAny(valo) );
 }
 

@@ -4,7 +4,7 @@
 // Author:      Hans Van Leemputten
 // Modified by: Benjamin I. Williams / Kirix Corporation
 // Created:     29/07/2002
-// RCS-ID:      $Id: tabmdi.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: tabmdi.h 70909 2012-03-15 13:49:54Z VZ $
 // Copyright:   (c) Hans Van Leemputten
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -101,6 +101,7 @@ protected:
     void AddWindowMenu(wxMenuBar *pMenuBar);
 
     void DoHandleMenu(wxCommandEvent &event);
+    void DoHandleUpdateUI(wxUpdateUIEvent &event);
 #endif // wxUSE_MENUS
 
     virtual bool ProcessEvent(wxEvent& event);
@@ -138,7 +139,7 @@ public:
                 const wxString& name = wxFrameNameStr);
 
 #if wxUSE_MENUS
-    virtual void SetMenuBar(wxMenuBar *menu_bar);
+    virtual void SetMenuBar(wxMenuBar *menuBar);
     virtual wxMenuBar *GetMenuBar() const;
 #endif // wxUSE_MENUS
 
@@ -199,7 +200,7 @@ public:
 
 protected:
     void Init();
-    virtual void DoSetSize(int x, int y, int width, int height, int size_flags);
+    virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags);
     virtual void DoMoveWindow(int x, int y, int width, int height);
 
     // no size hints
@@ -215,12 +216,12 @@ public:
 
 protected:
     wxAuiMDIParentFrame* m_pMDIParentFrame;
-    wxRect m_mdi_newrect;
-    wxRect m_mdi_currect;
+    wxRect m_mdiNewRect;
+    wxRect m_mdiCurRect;
     wxString m_title;
     wxIcon m_icon;
-    wxIconBundle m_icon_bundle;
-    bool m_activate_on_create;
+    wxIconBundle m_iconBundle;
+    bool m_activateOnCreate;
 
 #if wxUSE_MENUS
     wxMenuBar* m_pMenuBar;
@@ -244,7 +245,6 @@ class WXDLLIMPEXP_AUI wxAuiMDIClientWindow : public wxAuiNotebook
 public:
     wxAuiMDIClientWindow();
     wxAuiMDIClientWindow(wxAuiMDIParentFrame *parent, long style = 0);
-    ~wxAuiMDIClientWindow();
 
     virtual bool CreateClient(wxAuiMDIParentFrame *parent,
                               long style = wxVSCROLL | wxHSCROLL);
@@ -253,7 +253,7 @@ public:
 
 protected:
 
-    void PageChanged(int old_selection, int new_selection);
+    void PageChanged(int oldSelection, int newSelection);
     void OnPageClose(wxAuiNotebookEvent& evt);
     void OnPageChanged(wxAuiNotebookEvent& evt);
     void OnSize(wxSizeEvent& evt);

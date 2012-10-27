@@ -28,6 +28,7 @@
 #include "StringUtil.h"
 
 #include "VideoBackendBase.h"
+#include "State.h"
 
 namespace VideoInterface
 {
@@ -157,12 +158,38 @@ void Preset(bool _bNTSC)
 
 void Init()
 {
+	m_VerticalTimingRegister.Hex = 0;
+	m_DisplayControlRegister.Hex = 0;
+	m_HTiming0.Hex = 0;
+	m_HTiming1.Hex = 0;
+	m_VBlankTimingOdd.Hex = 0;
+	m_VBlankTimingEven.Hex = 0;
+	m_BurstBlankingOdd.Hex = 0;
+	m_BurstBlankingEven.Hex = 0;
+	m_XFBInfoTop.Hex = 0;
+	m_XFBInfoBottom.Hex = 0;
+	m_3DFBInfoTop.Hex = 0;
+	m_3DFBInfoBottom.Hex = 0;
+	m_VBeamPos = 0;
+	m_HBeamPos = 0;
+	m_HorizontalStepping.Hex = 0;
+	m_HorizontalScaling.Hex = 0;
+	m_UnkAARegister = 0;
+	m_Clock = 0;
+	m_DTVStatus.Hex = 0;
+	m_FBWidth = 0;
+	m_BorderHBlank.Hex = 0;
+	memset(&m_FilterCoefTables, 0, sizeof(m_FilterCoefTables));
+
 	fields = Core::g_CoreStartupParameter.bVBeam ? 1 : 2;
 
 	m_DTVStatus.ntsc_j = Core::g_CoreStartupParameter.bForceNTSCJ;
 
 	for (int i = 0; i < 4; i++)
 		m_InterruptRegister[i].Hex = 0;
+
+	for (int i = 0; i < 2; i++)
+		m_LatchRegister[i].Hex = 0;
 
 	m_DisplayControlRegister.Hex = 0;
 	UpdateParameters();
@@ -755,7 +782,7 @@ void UpdateParameters()
     }
 }
 
-int GetTicksPerLine()
+unsigned int GetTicksPerLine()
 {
 	if (s_lineCount == 0)
 	{
@@ -767,7 +794,7 @@ int GetTicksPerLine()
 	}
 }
 
-int GetTicksPerFrame()
+unsigned int GetTicksPerFrame()
 {
 	return TicksPerFrame;
 }

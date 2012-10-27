@@ -18,6 +18,8 @@
 #include "EXI_Channel.h"
 #include "EXI_Device.h"
 #include "EXI.h"
+#include "../ConfigManager.h"
+#include "../Movie.h"
 
 #define EXI_READ		0
 #define EXI_WRITE		1
@@ -42,7 +44,7 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 		m_Status.CHIP_SELECT = 1;
 
 	for (int i = 0; i < NUM_DEVICES; i++)
-		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_NONE);
+		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -59,26 +61,35 @@ void CEXIChannel::RemoveDevices()
 	}
 }
 
-void CEXIChannel::AddDevice(const TEXIDevices _device, const unsigned int _iSlot)
+void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 {
-	_dbg_assert_(EXPANSIONINTERFACE, _iSlot < NUM_DEVICES);
+	IEXIDevice* pNewDevice = EXIDevice_Create(device_type, m_ChannelId);
+	AddDevice(pNewDevice, device_num);
+}
+
+void CEXIChannel::AddDevice(IEXIDevice* pDevice, const int device_num, bool notifyPresenceChanged)
+{
+	_dbg_assert_(EXPANSIONINTERFACE, device_num < NUM_DEVICES);
 
 	// delete the old device
-	if (m_pDevices[_iSlot] != NULL)
+	if (m_pDevices[device_num] != NULL)
 	{
-		delete m_pDevices[_iSlot];
-		m_pDevices[_iSlot] = NULL;
+		delete m_pDevices[device_num];
+		m_pDevices[device_num] = NULL;
 	}
 
-	// create the new one
-	m_pDevices[_iSlot] = EXIDevice_Create(_device);
+	// replace it with the new one
+	m_pDevices[device_num] = pDevice;
 
-	// This means "device presence changed", software has to check
-	// m_Status.EXT to see if it is now present or not
-	if (m_ChannelId != 2)
+	if(notifyPresenceChanged)
 	{
-		m_Status.EXTINT = 1;
-		UpdateInterrupts();
+		// This means "device presence changed", software has to check
+		// m_Status.EXT to see if it is now present or not
+		if (m_ChannelId != 2)
+		{
+			m_Status.EXTINT = 1;
+			UpdateInterrupts();
+		}
 	}
 }
 
@@ -107,9 +118,9 @@ bool CEXIChannel::IsCausingInterrupt()
 	}
 }
 
-IEXIDevice* CEXIChannel::GetDevice(u8 _CHIP_SELECT)
+IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
 {
-	switch(_CHIP_SELECT)
+	switch (chip_select)
 	{
 	case 1: return m_pDevices[0];
 	case 2: return m_pDevices[1];
@@ -263,4 +274,54 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 		m_ImmData = _iValue;
 		break;
 	}
+}
+
+void CEXIChannel::DoState(PointerWrap &p)
+{
+	p.Do(m_Status);
+	p.Do(m_DMAMemoryAddress);
+	p.Do(m_DMALength);
+	p.Do(m_Control);
+	p.Do(m_ImmData);
+
+	for (int d = 0; d < NUM_DEVICES; ++d)
+	{
+		IEXIDevice* pDevice = m_pDevices[d];
+		TEXIDevices type = pDevice->m_deviceType;
+		p.Do(type);
+		IEXIDevice* pSaveDevice = (type == pDevice->m_deviceType) ? pDevice : EXIDevice_Create(type, m_ChannelId);
+		pSaveDevice->DoState(p);
+		if(pSaveDevice != pDevice)
+		{
+			// if we had to create a temporary device, discard it if we're not loading.
+			// also, if no movie is active, we'll assume the user wants to keep their current devices
+			// instead of the ones they had when the savestate was created,
+			// unless the device is NONE (since ChangeDevice sets that temporarily).
+			if(p.GetMode() != PointerWrap::MODE_READ)
+			{
+				delete pSaveDevice;
+			}
+			else
+			{
+				AddDevice(pSaveDevice, d, false);
+			}
+		}
+	}
+}
+
+void CEXIChannel::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	for (int d = 0; d < NUM_DEVICES; ++d)
+		m_pDevices[d]->PauseAndLock(doLock, unpauseOnUnlock);
+}
+
+IEXIDevice* CEXIChannel::FindDevice(TEXIDevices device_type, int customIndex)
+{
+	for (int d = 0; d < NUM_DEVICES; ++d)
+	{
+		IEXIDevice* device = m_pDevices[d]->FindDevice(device_type, customIndex);
+		if (device)
+			return device;
+	}
+	return NULL;
 }

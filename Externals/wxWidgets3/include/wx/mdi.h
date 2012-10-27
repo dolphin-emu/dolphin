@@ -5,7 +5,7 @@
 //              Vadim Zeitlin (base MDI classes refactoring)
 // Copyright:   (c) 1998 Julian Smart
 //              (c) 2008 Vadim Zeitlin
-// RCS-ID:      $Id: mdi.h 58457 2009-01-27 14:48:20Z VZ $
+// RCS-ID:      $Id: mdi.h 70790 2012-03-04 00:29:03Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -81,7 +81,7 @@ public:
 #if wxUSE_MENUS
     // return the pointer to the current window menu or NULL if we don't have
     // because of wxFRAME_NO_WINDOW_MENU style
-    wxMenu* GetWindowMenu() const { return m_windowMenu; };
+    wxMenu* GetWindowMenu() const { return m_windowMenu; }
 
     // use the given menu instead of the default window menu
     //
@@ -175,6 +175,16 @@ public:
     // exception are the Mac ports in which MDI children are just normal top
     // level windows too
     virtual bool IsTopLevel() const { return false; }
+
+    // In all ports keyboard navigation must stop at MDI child frame level and
+    // can't cross its boundary. Indicate this by overriding this function to
+    // return true.
+    virtual bool IsTopNavigationDomain() const { return true; }
+
+    // Raising any frame is supposed to show it but wxFrame Raise()
+    // implementation doesn't work for MDI child frames in most forms so
+    // forward this to Activate() which serves the same purpose by default.
+    virtual void Raise() { Activate(); }
 
 protected:
     wxMDIParentFrame *m_mdiParent;

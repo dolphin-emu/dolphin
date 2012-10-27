@@ -37,18 +37,18 @@ enum
 };
 
 void FlushPipeline();
-void SetGenerationMode(const BPCmd &bp);
-void SetScissor(const BPCmd &bp);
-void SetLineWidth(const BPCmd &bp);
-void SetDepthMode(const BPCmd &bp);
-void SetBlendMode(const BPCmd &bp);
-void SetDitherMode(const BPCmd &bp);
-void SetLogicOpMode(const BPCmd &bp);
-void SetColorMask(const BPCmd &bp);
+void SetGenerationMode();
+void SetScissor();
+void SetLineWidth();
+void SetDepthMode();
+void SetBlendMode();
+void SetDitherMode();
+void SetLogicOpMode();
+void SetColorMask();
 void CopyEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
-void ClearScreen(const BPCmd &bp, const EFBRectangle &rc);
-void OnPixelFormatChange(const BPCmd &bp);
+void ClearScreen(const EFBRectangle &rc);
+void OnPixelFormatChange();
 u8 *GetPointer(const u32 &address);
 bool GetConfig(const int &type);
 void SetTextureMode(const BPCmd &bp);

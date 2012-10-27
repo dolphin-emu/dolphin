@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     31.05.01 (extracted from other files)
-// RCS-ID:      $Id: accel.h 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: accel.h 68718 2011-08-16 11:55:39Z SC $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,10 +34,11 @@ enum wxAcceleratorEntryFlags
     wxACCEL_CTRL    = 0x0002,   // hold Ctrl key down
     wxACCEL_SHIFT   = 0x0004,   // hold Shift key down
 #if defined(__WXMAC__) || defined(__WXCOCOA__)
-    wxACCEL_CMD      = 0x0008   // Command key on OS X
+    wxACCEL_RAW_CTRL= 0x0008,   // 
 #else
-    wxACCEL_CMD      = wxACCEL_CTRL
+    wxACCEL_RAW_CTRL= wxACCEL_CTRL,
 #endif
+    wxACCEL_CMD     = wxACCEL_CTRL
 };
 
 // ----------------------------------------------------------------------------

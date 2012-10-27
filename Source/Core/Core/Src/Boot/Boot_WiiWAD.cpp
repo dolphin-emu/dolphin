@@ -32,8 +32,57 @@
 #include "VolumeCreator.h"
 #include "CommonPaths.h"
 
+static u32 state_checksum(u32 *buf, int len)
+{
+	u32 checksum = 0;
+	len = len>>2;
+
+	for(int i=0; i<len; i++)
+	{
+		checksum += buf[i];
+	}
+
+	return checksum;
+}
+
+typedef struct {
+	u32 checksum;
+	u8 flags;
+	u8 type;
+	u8 discstate;
+	u8 returnto;
+	u32 unknown[6];
+} StateFlags;
+
 bool CBoot::Boot_WiiWAD(const char* _pFilename)
 {
+	
+	std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_STATE);
+
+	if (File::Exists(state_filename))
+	{
+		File::IOFile state_file(state_filename, "r+b");
+		StateFlags state;
+		state_file.ReadBytes(&state, sizeof(StateFlags));
+		
+		state.type = 0x03; // TYPE_RETURN
+		state.checksum = state_checksum((u32*)&state.flags, sizeof(StateFlags)-4);
+
+		state_file.Seek(0, SEEK_SET);
+		state_file.WriteBytes(&state, sizeof(StateFlags));
+	}
+	else
+	{
+		File::CreateFullPath(state_filename);
+		File::IOFile state_file(state_filename, "a+b");
+		StateFlags state;
+		memset(&state,0,sizeof(StateFlags));
+		state.type = 0x03; // TYPE_RETURN
+		state.discstate = 0x01; // DISCSTATE_WII
+		state.checksum = state_checksum((u32*)&state.flags, sizeof(StateFlags)-4);
+		state_file.WriteBytes(&state, sizeof(StateFlags));
+	}
+
 	const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
 	if (!ContentLoader.IsValid())
 		return false;

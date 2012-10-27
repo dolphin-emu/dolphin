@@ -64,7 +64,12 @@ RasterBlock rasterBlock;
 
 void Init()
 {
-     tev.Init();
+	tev.Init();
+
+	// Set initial z reference plane in the unlikely case that zfreeze is enabled when drawing the first primitive.
+	// TODO: This is just a guess!
+	ZSlope.dfdx = ZSlope.dfdy = 0.f;
+	ZSlope.f0 = 1.f;
 }
 
 inline int iround(float x)
@@ -364,7 +369,8 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
     float w[3] = { 1.0f / v0->projectedPosition.w, 1.0f / v1->projectedPosition.w, 1.0f / v2->projectedPosition.w };
     InitSlope(&WSlope, w[0], w[1], w[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
-    InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
+	if (!bpmem.genMode.zfreeze)
+	    InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
     for(unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
     {

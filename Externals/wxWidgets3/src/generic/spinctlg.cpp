@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.01.01
-// RCS-ID:      $Id: spinctlg.cpp 67199 2011-03-15 11:10:38Z VZ $
+// RCS-ID:      $Id: spinctlg.cpp 70432 2012-01-21 17:03:52Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -85,13 +85,13 @@ public:
     void OnChar( wxKeyEvent &event )
     {
         if (m_spin)
-            m_spin->OnTextChar(event);
+            m_spin->ProcessWindowEvent(event);
     }
 
     void OnKillFocus(wxFocusEvent& event)
     {
         if (m_spin)
-            m_spin->OnTextLostFocus();
+            m_spin->ProcessWindowEvent(event);
 
         event.Skip();
     }
@@ -283,15 +283,23 @@ void wxSpinCtrlGenericBase::SetFocus()
         m_textCtrl->SetFocus();
 }
 
+#ifdef __WXMSW__
+
+void wxSpinCtrlGenericBase::DoEnable(bool enable)
+{
+    // We never enable this control itself, it must stay disabled to avoid
+    // interfering with the siblings event handling (see e.g. #12045 for the
+    // kind of problems which arise otherwise).
+    if ( !enable )
+        wxSpinCtrlBase::DoEnable(enable);
+}
+
+#endif // __WXMSW__
+
 bool wxSpinCtrlGenericBase::Enable(bool enable)
 {
-    // Notice that we never enable this control itself, it must stay disabled
-    // to avoid interfering with the siblings event handling (see e.g. #12045
-    // for the kind of problems which arise otherwise).
-    if ( enable == m_isEnabled )
+    if ( !wxSpinCtrlBase::Enable(enable) )
         return false;
-
-    m_isEnabled = enable;
 
     m_spinButton->Enable(enable);
     m_textCtrl->Enable(enable);
@@ -310,17 +318,6 @@ bool wxSpinCtrlGenericBase::Show(bool show)
     {
         m_spinButton->Show(show);
         m_textCtrl->Show(show);
-    }
-
-    return true;
-}
-
-bool wxSpinCtrlGenericBase::Reparent(wxWindowBase *newParent)
-{
-    if ( m_spinButton )
-    {
-        m_spinButton->Reparent(newParent);
-        m_textCtrl->Reparent(newParent);
     }
 
     return true;
@@ -357,6 +354,11 @@ void wxSpinCtrlGenericBase::DoSetToolTip(wxToolTip *tip)
 // Handle sub controls events
 // ----------------------------------------------------------------------------
 
+BEGIN_EVENT_TABLE(wxSpinCtrlGenericBase, wxSpinCtrlBase)
+    EVT_CHAR(wxSpinCtrlGenericBase::OnTextChar)
+    EVT_KILL_FOCUS(wxSpinCtrlGenericBase::OnTextLostFocus)
+END_EVENT_TABLE()
+
 void wxSpinCtrlGenericBase::OnSpinButton(wxSpinEvent& event)
 {
     event.Skip();
@@ -388,10 +390,12 @@ void wxSpinCtrlGenericBase::OnSpinButton(wxSpinEvent& event)
         DoSendEvent();
 }
 
-void wxSpinCtrlGenericBase::OnTextLostFocus()
+void wxSpinCtrlGenericBase::OnTextLostFocus(wxFocusEvent& event)
 {
     SyncSpinToText();
     DoSendEvent();
+
+    event.Skip();
 }
 
 void wxSpinCtrlGenericBase::OnTextChar(wxKeyEvent& event)

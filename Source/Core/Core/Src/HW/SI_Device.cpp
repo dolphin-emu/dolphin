@@ -52,7 +52,7 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 class CSIDevice_Null : public ISIDevice
 {
 public:
-	CSIDevice_Null(int _iDeviceNumber) : ISIDevice(_iDeviceNumber) {}
+	CSIDevice_Null(SIDevices device, int _iDeviceNumber) : ISIDevice(device, _iDeviceNumber) {}
 	virtual ~CSIDevice_Null() {}
 
 	int RunBuffer(u8* _pBuffer, int _iLength) {
@@ -68,25 +68,29 @@ public:
 
 
 // F A C T O R Y 
-ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber)
+ISIDevice* SIDevice_Create(const SIDevices device, const int port_number)
 {
-	switch(_SIDevice)
+	switch (device)
 	{
-	case SI_GC_CONTROLLER:
-		return new CSIDevice_GCController(_iDeviceNumber);
+	case SIDEVICE_GC_CONTROLLER:
+		return new CSIDevice_GCController(device, port_number);
 		break;
 
-	case SI_GBA:
-		return new CSIDevice_GBA(_iDeviceNumber);
+	case SIDEVICE_GC_TARUKONGA:
+		return new CSIDevice_TaruKonga(device, port_number);
 		break;
 
-	case SI_AM_BASEBOARD:
-		return new CSIDevice_AMBaseboard(_iDeviceNumber);
+	case SIDEVICE_GC_GBA:
+		return new CSIDevice_GBA(device, port_number);
 		break;
 
-	case SI_NONE:
+	case SIDEVICE_AM_BASEBOARD:
+		return new CSIDevice_AMBaseboard(device, port_number);
+		break;
+
+	case SIDEVICE_NONE:
 	default:
-		return new CSIDevice_Null(_iDeviceNumber);
+		return new CSIDevice_Null(device, port_number);
 		break;
 	}
 }

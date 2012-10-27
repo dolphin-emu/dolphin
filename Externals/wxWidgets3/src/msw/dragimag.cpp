@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     08/04/99
-// RCS-ID:      $Id: dragimag.cpp 64415 2010-05-27 17:07:40Z VZ $
+// RCS-ID:      $Id: dragimag.cpp 70584 2012-02-15 00:35:25Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -95,6 +95,44 @@ void wxDragImage::Init()
     m_window = NULL;
     m_fullScreen = false;
 }
+
+#if WXWIN_COMPATIBILITY_2_8
+wxDragImage::wxDragImage(const wxBitmap& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    Init();
+
+    Create(image, cursor);
+}
+
+wxDragImage::wxDragImage(const wxIcon& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    Init();
+
+    Create(image, cursor);
+}
+
+wxDragImage::wxDragImage(const wxString& str, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    Init();
+
+    Create(str, cursor);
+}
+
+bool wxDragImage::Create(const wxBitmap& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    return Create(image, cursor);
+}
+
+bool wxDragImage::Create(const wxIcon& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    return Create(image, cursor);
+}
+
+bool wxDragImage::Create(const wxString& str, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    return Create(str, cursor);
+}
+#endif // WXWIN_COMPATIBILITY_2_8
 
 // Attributes
 ////////////////////////////////////////////////////////////////////////////
@@ -301,7 +339,7 @@ bool wxDragImage::BeginDrag(const wxPoint& hotspot, wxWindow* window, bool fullS
         return false;
     }
 
-    if (m_cursor.Ok())
+    if (m_cursor.IsOk())
     {
 #if wxUSE_SIMPLER_DRAGIMAGE
         m_oldCursor = window->GetCursor();
@@ -352,7 +390,7 @@ bool wxDragImage::BeginDrag(const wxPoint& hotspot, wxWindow* window, bool fullS
     }
 
 #if !wxUSE_SIMPLER_DRAGIMAGE
-    if (m_cursor.Ok())
+    if (m_cursor.IsOk())
         ::ShowCursor(FALSE);
 #endif
 
@@ -397,7 +435,7 @@ bool wxDragImage::EndDrag()
     }
 
 #if wxUSE_SIMPLER_DRAGIMAGE
-    if (m_cursor.Ok() && m_oldCursor.Ok())
+    if (m_cursor.IsOk() && m_oldCursor.IsOk())
         m_window->SetCursor(m_oldCursor);
 #else
     ::ShowCursor(TRUE);

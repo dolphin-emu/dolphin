@@ -31,6 +31,9 @@
 #include "VideoBackendBase.h"
 
 #include <lzo/lzo1x.h>
+#include "HW/Memmap.h"
+#include "HW/VideoInterface.h"
+#include "HW/SystemTimers.h"
 
 namespace State
 {
@@ -52,25 +55,35 @@ static unsigned char __LZO_MMODEL out[OUT_LEN];
 
 static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 
-static volatile bool g_op_in_progress = false;
+static std::string g_last_filename;
 
-static int ev_FileSave, ev_BufferSave, ev_FileLoad, ev_BufferLoad, ev_FileVerify, ev_BufferVerify;
-
-static std::string g_current_filename, g_last_filename;
+static CallbackFunc g_onAfterLoadCb = NULL;
 
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
 static std::vector<u8> g_current_buffer;
+static int g_loadDepth = 0;
+
+static std::mutex g_cs_undo_load_buffer;
+static std::mutex g_cs_current_buffer;
+static Common::Event g_compressAndDumpStateSyncEvent;
 
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system 
-static const int STATE_VERSION = 5;
+static const int STATE_VERSION = 8;
 
 struct StateHeader
 {
 	u8 gameID[6];
 	size_t size;
+};
+
+enum
+{
+	STATE_NONE = 0,
+	STATE_SAVE = 1,
+	STATE_LOAD = 2,
 };
 
 static bool g_use_compression = true;
@@ -82,86 +95,119 @@ void EnableCompression(bool compression)
 
 void DoState(PointerWrap &p)
 {
-	u32 cookie = 0xBAADBABE + STATE_VERSION;
-	p.Do(cookie);
-	if (cookie != 0xBAADBABE + STATE_VERSION)
+	u32 version = STATE_VERSION;
 	{
+ 		static const u32 COOKIE_BASE = 0xBAADBABE;
+		u32 cookie = version + COOKIE_BASE;
+		p.Do(cookie);
+		version = cookie - COOKIE_BASE;
+	}
+
+	if (version != STATE_VERSION)
+	{
+		// if the version doesn't match, fail.
+		// this will trigger a message like "Can't load state from other revisions"
+		// we could use the version numbers to maintain some level of backward compatibility, but currently don't.
 		p.SetMode(PointerWrap::MODE_MEASURE);
 		return;
 	}
+
+	p.DoMarker("Version");
+
 	// Begin with video backend, so that it gets a chance to clear it's caches and writeback modified things to RAM
-	// Pause the video thread in multi-threaded mode
-	g_video_backend->RunLoop(false);
 	g_video_backend->DoState(p);
+	p.DoMarker("video_backend");
 
 	if (Core::g_CoreStartupParameter.bWii)
 		Wiimote::DoState(p.GetPPtr(), p.GetMode());
+	p.DoMarker("Wiimote");
 
 	PowerPC::DoState(p);
+	p.DoMarker("PowerPC");
 	HW::DoState(p);
+	p.DoMarker("HW");
 	CoreTiming::DoState(p);
-
-	// Resume the video thread
-	g_video_backend->RunLoop(true);
+	p.DoMarker("CoreTiming");
+	Movie::DoState(p);
+	p.DoMarker("Movie");
 }
 
-void LoadBufferStateCallback(u64 userdata, int cyclesLate)
+void LoadFromBuffer(std::vector<u8>& buffer)
 {
-	u8* ptr = &g_current_buffer[0];
+	bool wasUnpaused = Core::PauseAndLock(true);
+
+	u8* ptr = &buffer[0];
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
 	DoState(p);
 
-	Core::DisplayMessage("Loaded state", 2000);
-
-	g_op_in_progress = false;
+	Core::PauseAndLock(false, wasUnpaused);
 }
 
-void SaveBufferStateCallback(u64 userdata, int cyclesLate)
+void SaveToBuffer(std::vector<u8>& buffer)
 {
+	bool wasUnpaused = Core::PauseAndLock(true);
+
 	u8* ptr = NULL;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 
 	DoState(p);
 	const size_t buffer_size = reinterpret_cast<size_t>(ptr);
-	g_current_buffer.resize(buffer_size);
-
-	ptr = &g_current_buffer[0];
+	buffer.resize(buffer_size);
+	
+	ptr = &buffer[0];
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
 
-	g_op_in_progress = false;
+	Core::PauseAndLock(false, wasUnpaused);
 }
 
-void VerifyBufferStateCallback(u64 userdata, int cyclesLate)
+void VerifyBuffer(std::vector<u8>& buffer)
 {
-	u8* ptr = &g_current_buffer[0];
+	bool wasUnpaused = Core::PauseAndLock(true);
+
+	u8* ptr = &buffer[0];
 	PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
 	DoState(p);
 
-	Core::DisplayMessage("Verified state", 2000);
-
-	g_op_in_progress = false;
+	Core::PauseAndLock(false, wasUnpaused);
 }
 
-void CompressAndDumpState(const std::vector<u8>* save_arg)
+struct CompressAndDumpState_args
 {
-	const u8* const buffer_data = &(*save_arg)[0];
-	const size_t buffer_size = save_arg->size();
+	std::vector<u8>* buffer_vector;
+	std::mutex* buffer_mutex;
+	std::string filename;
+};
+
+void CompressAndDumpState(CompressAndDumpState_args save_args)
+{
+	std::lock_guard<std::mutex> lk(*save_args.buffer_mutex);
+	g_compressAndDumpStateSyncEvent.Set();
+
+	const u8* const buffer_data = &(*(save_args.buffer_vector))[0];
+	const size_t buffer_size = (save_args.buffer_vector)->size();
+	std::string& filename = save_args.filename;
 
 	// For easy debugging
 	Common::SetCurrentThreadName("SaveState thread");
 
 	// Moving to last overwritten save-state
-	if (File::Exists(g_current_filename))
+	if (File::Exists(filename))
 	{
 		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
 			File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"));
+		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"))
+			File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"));
 
-		if (!File::Rename(g_current_filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
+		if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav") || !File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"))
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
 	}
+	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
+		Movie::SaveRecording((filename + ".dtm").c_str());
+	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
+		File::Delete(filename + ".dtm");
 
-	File::IOFile f(g_current_filename, "wb");
+	File::IOFile f(filename, "wb");
 	if (!f)
 	{
 		Core::DisplayMessage("Could not save state", 2000);
@@ -207,21 +253,13 @@ void CompressAndDumpState(const std::vector<u8>* save_arg)
 	}
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s",
-		g_current_filename.c_str()).c_str(), 2000);
-
-	g_op_in_progress = false;
+		filename.c_str()).c_str(), 2000);
 }
 
-void SaveFileStateCallback(u64 userdata, int cyclesLate)
+void SaveAs(const std::string& filename)
 {
 	// Pause the core while we save the state
-	CCPU::EnableStepping(true);
-
-	// Wait for the other threaded sub-systems to stop too
-	// TODO: this is ugly
-	SLEEP(100);
-
-	Flush();
+	bool wasUnpaused = Core::PauseAndLock(true);
 
 	// Measure the size of the buffer.
 	u8 *ptr = NULL;
@@ -230,26 +268,42 @@ void SaveFileStateCallback(u64 userdata, int cyclesLate)
 	const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 
 	// Then actually do the write.
-	g_current_buffer.resize(buffer_size);
-	ptr = &g_current_buffer[0];
-	p.SetMode(PointerWrap::MODE_WRITE);
-	DoState(p);
-	
-	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsRecordingInputFromSaveState())
-		Movie::SaveRecording((g_current_filename + ".dtm").c_str());
-	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
-		File::Delete(g_current_filename + ".dtm");
+	{
+		std::lock_guard<std::mutex> lk(g_cs_current_buffer);
+		g_current_buffer.resize(buffer_size);
+		ptr = &g_current_buffer[0];
+		p.SetMode(PointerWrap::MODE_WRITE);
+		DoState(p);
+	}
 
-	Core::DisplayMessage("Saving State...", 1000);
+	if (p.GetMode() == PointerWrap::MODE_WRITE)
+	{
+		Core::DisplayMessage("Saving State...", 1000);
 
-	g_save_thread = std::thread(CompressAndDumpState, &g_current_buffer);
+		CompressAndDumpState_args save_args;
+		save_args.buffer_vector = &g_current_buffer;
+		save_args.buffer_mutex = &g_cs_current_buffer;
+		save_args.filename = filename;
+
+		Flush();
+		g_save_thread = std::thread(CompressAndDumpState, save_args);
+		g_compressAndDumpStateSyncEvent.Wait();
+
+		g_last_filename = filename;
+	}
+	else
+	{
+		// someone aborted the save by changing the mode?
+		Core::DisplayMessage("Unable to Save : Internal DoState Error", 4000);
+	}
 
 	// Resume the core and disable stepping
-	CCPU::EnableStepping(false);
+	Core::PauseAndLock(false, wasUnpaused);
 }
 
-void LoadFileStateData(std::string& filename, std::vector<u8>& ret_data)
+void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 {
+	Flush();
 	File::IOFile f(filename, "rb");
 	if (!f)
 	{
@@ -313,55 +367,98 @@ void LoadFileStateData(std::string& filename, std::vector<u8>& ret_data)
 	ret_data.swap(buffer);
 }
 
-void LoadFileStateCallback(u64 userdata, int cyclesLate)
+void LoadAs(const std::string& filename)
 {
 	// Stop the core while we load the state
-	CCPU::EnableStepping(true);
+	bool wasUnpaused = Core::PauseAndLock(true);
 
-	// Wait for the other threaded sub-systems to stop too
-	// TODO: uglyyy
-	SLEEP(100);
+#if defined _DEBUG && defined _WIN32
+	// we use _CRTDBG_DELAY_FREE_MEM_DF (as a speed hack?),
+	// but it was causing us to leak gigantic amounts of memory here,
+	// enough that only a few savestates could be loaded before crashing,
+	// so let's disable it temporarily.
+	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+	if (g_loadDepth == 0)
+		_CrtSetDbgFlag(tmpflag & ~_CRTDBG_DELAY_FREE_MEM_DF);
+#endif
 
-	Flush();
+	g_loadDepth++;
 
 	// Save temp buffer for undo load state
-	// TODO: this should be controlled by a user option,
-	// because it slows down every savestate load to provide an often-unused feature.
-	SaveBufferStateCallback(userdata, cyclesLate);
-	g_undo_load_buffer.swap(g_current_buffer);
-
-	std::vector<u8> buffer;
-	LoadFileStateData(g_current_filename, buffer);
-
-	if (!buffer.empty())
 	{
-		u8 *ptr = &buffer[0];
-		PointerWrap p(&ptr, PointerWrap::MODE_READ);
-		DoState(p);
-
-		if (p.GetMode() == PointerWrap::MODE_READ)
-			Core::DisplayMessage(StringFromFormat("Loaded state from %s", g_current_filename.c_str()).c_str(), 2000);
-		else
-			Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
-	
-		if (File::Exists(g_current_filename + ".dtm"))
-			Movie::LoadInput((g_current_filename + ".dtm").c_str());
-		else if (!Movie::IsRecordingInputFromSaveState())
-			Movie::EndPlayInput(false);
+		std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+		SaveToBuffer(g_undo_load_buffer);
+		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+			Movie::SaveRecording("undo.dtm");
+		else if (File::Exists("undo.dtm"))
+			File::Delete("undo.dtm");
 	}
 
-	g_op_in_progress = false;
+	bool loaded = false;
+	bool loadedSuccessfully = false;
+
+	// brackets here are so buffer gets freed ASAP
+	{
+		std::vector<u8> buffer;
+		LoadFileStateData(filename, buffer);
+
+		if (!buffer.empty())
+		{
+			u8 *ptr = &buffer[0];
+			PointerWrap p(&ptr, PointerWrap::MODE_READ);
+			DoState(p);
+			loaded = true;
+			loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
+		}
+	}
+
+	if (loaded)
+	{
+		if (loadedSuccessfully)
+		{
+			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()).c_str(), 2000);
+			if (File::Exists(filename + ".dtm"))
+				Movie::LoadInput((filename + ".dtm").c_str());
+			else if (!Movie::IsJustStartingRecordingInputFromSaveState() && !Movie::IsJustStartingPlayingInputFromSaveState())
+				Movie::EndPlayInput(false);
+		}
+		else
+		{
+			// failed to load
+			Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
+
+			// since we could be in an inconsistent state now (and might crash or whatever), undo.
+			if (g_loadDepth < 2)
+				UndoLoadState();
+		}
+	}
+
+	if (g_onAfterLoadCb)
+		g_onAfterLoadCb();
+
+	g_loadDepth--;
+
+#if defined _DEBUG && defined _WIN32
+	// restore _CRTDBG_DELAY_FREE_MEM_DF
+	if (g_loadDepth == 0)
+		_CrtSetDbgFlag(tmpflag);
+#endif
 
 	// resume dat core
-	CCPU::EnableStepping(false);
+	Core::PauseAndLock(false, wasUnpaused);
 }
 
-void VerifyFileStateCallback(u64 userdata, int cyclesLate)
+void SetOnAfterLoadCallback(CallbackFunc callback)
 {
-	Flush();
+	g_onAfterLoadCb = callback;
+}
+
+void VerifyAt(const std::string& filename)
+{
+	bool wasUnpaused = Core::PauseAndLock(true);
 
 	std::vector<u8> buffer;
-	LoadFileStateData(g_current_filename, buffer);
+	LoadFileStateData(filename, buffer);
 
 	if (!buffer.empty())
 	{
@@ -369,23 +466,18 @@ void VerifyFileStateCallback(u64 userdata, int cyclesLate)
 		PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
 		DoState(p);
 
-		if (p.GetMode() == PointerWrap::MODE_READ)
-			Core::DisplayMessage(StringFromFormat("Verified state at %s", g_current_filename.c_str()).c_str(), 2000);
+		if (p.GetMode() == PointerWrap::MODE_VERIFY)
+			Core::DisplayMessage(StringFromFormat("Verified state at %s", filename.c_str()).c_str(), 2000);
 		else
 			Core::DisplayMessage("Unable to Verify : Can't verify state from other revisions !", 4000);
 	}
+
+	Core::PauseAndLock(false, wasUnpaused);
 }
+
 
 void Init()
 {
-	ev_FileLoad = CoreTiming::RegisterEvent("LoadState", &LoadFileStateCallback);
-	ev_FileSave = CoreTiming::RegisterEvent("SaveState", &SaveFileStateCallback);
-	ev_FileVerify = CoreTiming::RegisterEvent("VerifyState", &VerifyFileStateCallback);
-
-	ev_BufferLoad = CoreTiming::RegisterEvent("LoadBufferState", &LoadBufferStateCallback);
-	ev_BufferSave = CoreTiming::RegisterEvent("SaveBufferState", &SaveBufferStateCallback);
-	ev_BufferVerify = CoreTiming::RegisterEvent("VerifyBufferState", &VerifyBufferStateCallback);
-
 	if (lzo_init() != LZO_E_OK)
 		PanicAlertT("Internal LZO Error - lzo_init() failed");
 }
@@ -395,15 +487,15 @@ void Shutdown()
 	Flush();
 
 	// swapping with an empty vector, rather than clear()ing
-	// this gives a better guarantee to free the allocated memory right NOW
+	// this gives a better guarantee to free the allocated memory right NOW (as opposed to, actually, never)
 	{
-	std::vector<u8> tmp;
-	g_current_buffer.swap(tmp);
+		std::lock_guard<std::mutex> lk(g_cs_current_buffer);
+		std::vector<u8>().swap(g_current_buffer);
 	}
 
 	{
-	std::vector<u8> tmp;
-	g_undo_load_buffer.swap(tmp);
+		std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+		std::vector<u8>().swap(g_undo_load_buffer);
 	}
 }
 
@@ -411,32 +503,6 @@ static std::string MakeStateFilename(int number)
 {
 	return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX).c_str(),
 		SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), number);
-}
-
-void ScheduleFileEvent(const std::string &filename, int ev)
-{
-	if (g_op_in_progress)
-		return;
-	g_op_in_progress = true;
-
-	g_current_filename = filename;
-	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev);
-}
-
-void SaveAs(const std::string &filename)
-{
-	g_last_filename = filename;
-	ScheduleFileEvent(filename, ev_FileSave);
-}
-
-void LoadAs(const std::string &filename)
-{
-	ScheduleFileEvent(filename, ev_FileLoad);
-}
-
-void VerifyAt(const std::string &filename)
-{
-	ScheduleFileEvent(filename, ev_FileVerify);
 }
 
 void Save(int slot)
@@ -462,31 +528,6 @@ void LoadLastSaved()
 		LoadAs(g_last_filename);
 }
 
-void ScheduleBufferEvent(std::vector<u8>& buffer, int ev)
-{
-	if (g_op_in_progress)
-		return;
-	g_op_in_progress = true;
-
-	g_current_buffer.swap(buffer);
-	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev);
-}
-
-void SaveToBuffer(std::vector<u8>& buffer)
-{
-	ScheduleBufferEvent(buffer, ev_BufferSave);
-}
-
-void LoadFromBuffer(std::vector<u8>& buffer)
-{
-	ScheduleBufferEvent(buffer, ev_BufferLoad);
-}
-
-void VerifyBuffer(std::vector<u8>& buffer)
-{
-	ScheduleBufferEvent(buffer, ev_BufferVerify);
-}
-
 void Flush()
 {
 	// If already saving state, wait for it to finish
@@ -497,8 +538,18 @@ void Flush()
 // Load the last state before loading the state
 void UndoLoadState()
 {
+	std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 	if (!g_undo_load_buffer.empty())
-		LoadFromBuffer(g_undo_load_buffer);
+	{
+		if (File::Exists("undo.dtm") || (!Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
+		{
+			LoadFromBuffer(g_undo_load_buffer);
+			if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+				Movie::LoadInput("undo.dtm");
+		}
+		else
+			PanicAlert("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+	}
 	else
 		PanicAlert("There is nothing to undo!");
 }
@@ -506,7 +557,7 @@ void UndoLoadState()
 // Load the state that the last save state overwritten on
 void UndoSaveState()
 {
-	LoadAs((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str());
+		LoadAs((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str());
 }
 
 } // namespace State

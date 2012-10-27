@@ -169,53 +169,50 @@ u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 
 	return 0;
 }
 
-static volatile u32 s_doStateRequested = false;
- 
-static volatile struct
+
+void VideoBackendHardware::InitializeShared()
 {
-	unsigned char **ptr;
-	int mode;
-} s_doStateArgs;
+	VideoCommon_Init();
 
-// Depending on the threading mode (DC/SC) this can be called 
-// from either the GPU thread or the CPU thread
-void VideoFifo_CheckStateRequest()
-{
-	if (Common::AtomicLoadAcquire(s_doStateRequested))
-	{
-		// Clear all caches that touch RAM
-		TextureCache::Invalidate(false);
-		VertexLoaderManager::MarkAllDirty();
-
-		PointerWrap p(s_doStateArgs.ptr, s_doStateArgs.mode);
-		VideoCommon_DoState(p);
-
-		// Refresh state.
-		if (s_doStateArgs.mode == PointerWrap::MODE_READ)
-		{
-			BPReload();
-			RecomputeCachedArraybases();
-		}
-
-		Common::AtomicStoreRelease(s_doStateRequested, false);
-	}
+	s_swapRequested = 0;
+	s_efbAccessRequested = 0;
+	s_FifoShuttingDown = 0;
+	memset((void*)&s_beginFieldArgs, 0, sizeof(s_beginFieldArgs));
+	memset(&s_accessEFBArgs, 0, sizeof(s_accessEFBArgs));
+	s_AccessEFBResult = 0;
 }
 
 // Run from the CPU thread
 void VideoBackendHardware::DoState(PointerWrap& p)
 {
-	s_doStateArgs.ptr = p.ptr;
-	s_doStateArgs.mode = p.mode;
-	Common::AtomicStoreRelease(s_doStateRequested, true);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+	VideoCommon_DoState(p);
+	p.DoMarker("VideoCommon");
+
+	p.Do(s_swapRequested);
+	p.Do(s_efbAccessRequested);
+	p.Do(s_beginFieldArgs);
+	p.Do(s_accessEFBArgs);
+	p.Do(s_AccessEFBResult);
+	p.DoMarker("VideoBackendHardware");
+
+	// Refresh state.
+	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		while (Common::AtomicLoadAcquire(s_doStateRequested) && !s_FifoShuttingDown)
-			//Common::SleepCurrentThread(1);
-			Common::YieldCPU();
+		BPReload();
+		RecomputeCachedArraybases();
+
+		// Clear all caches that touch RAM
+		// (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
+		TextureCache::Invalidate();
+		VertexLoaderManager::MarkAllDirty();
 	}
-	else
-		VideoFifo_CheckStateRequest();
 }
+
+void VideoBackendHardware::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	Fifo_PauseAndLock(doLock, unpauseOnUnlock);
+}
+
 
 void VideoBackendHardware::RunLoop(bool enable)
 {
@@ -236,6 +233,11 @@ void VideoBackendHardware::Video_GatherPipeBursted()
 bool VideoBackendHardware::Video_IsPossibleWaitingSetDrawDone()
 {
 	return CommandProcessor::isPossibleWaitingSetDrawDone;
+}
+
+bool VideoBackendHardware::Video_IsHiWatermarkActive()
+{
+	return CommandProcessor::isHiWatermarkActive;
 }
 
 void VideoBackendHardware::Video_AbortFrame()

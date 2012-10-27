@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.cpp 65967 2010-10-31 13:33:34Z VZ $
+// RCS-ID:      $Id: bookctrl.cpp 70153 2011-12-28 13:51:25Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,8 +55,6 @@ void wxBookCtrlBase::Init()
 {
     m_selection = wxNOT_FOUND;
     m_bookctrl = NULL;
-    m_imageList = NULL;
-    m_ownsImageList = false;
     m_fitToCurrentPage = false;
 
 #if defined(__WXWINCE__)
@@ -89,39 +87,6 @@ wxBookCtrlBase::Create(wxWindow *parent,
                      );
 }
 
-wxBookCtrlBase::~wxBookCtrlBase()
-{
-    if ( m_ownsImageList )
-    {
-        // may be NULL, ok
-        delete m_imageList;
-    }
-}
-
-// ----------------------------------------------------------------------------
-// image list
-// ----------------------------------------------------------------------------
-
-void wxBookCtrlBase::SetImageList(wxImageList *imageList)
-{
-    if ( m_ownsImageList )
-    {
-        // may be NULL, ok
-        delete m_imageList;
-
-        m_ownsImageList = false;
-    }
-
-    m_imageList = imageList;
-}
-
-void wxBookCtrlBase::AssignImageList(wxImageList* imageList)
-{
-    SetImageList(imageList);
-
-    m_ownsImageList = true;
-}
-
 // ----------------------------------------------------------------------------
 // geometry
 // ----------------------------------------------------------------------------
@@ -140,8 +105,13 @@ void wxBookCtrlBase::DoInvalidateBestSize()
 
 wxSize wxBookCtrlBase::CalcSizeFromPage(const wxSize& sizePage) const
 {
-    // we need to add the size of the choice control and the border between
-    const wxSize sizeController = GetControllerSize();
+    // We need to add the size of the controller and the border between if it's
+    // shown. Notice that we don't use GetControllerSize() here as it returns
+    // the actual size while we want the best size here.
+    if ( !m_bookctrl || !m_bookctrl->IsShown() )
+        return sizePage;
+
+    const wxSize sizeController = m_bookctrl->GetBestSize();
 
     wxSize size = sizePage;
     if ( IsVertical() )

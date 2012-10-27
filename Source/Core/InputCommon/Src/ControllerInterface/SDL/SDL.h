@@ -16,12 +16,12 @@
 #endif
 
 #ifdef USE_SDL_HAPTIC
-	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
 	#ifdef _WIN32
 		#include <SDL_haptic.h>
 	#else
 		#include <SDL/SDL_haptic.h>
 	#endif
+	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
 #else
 	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK
 #endif
@@ -99,6 +99,36 @@ private:
 	public:
 		std::string GetName() const;
 		RampEffect(EffectIDState& effect) : m_effect(effect) {}
+		void SetState(const ControlState state);
+	private:
+		EffectIDState& m_effect;
+	};
+
+	class SineEffect : public Output
+	{
+	public:
+		std::string GetName() const;
+		SineEffect(EffectIDState& effect) : m_effect(effect) {}
+		void SetState(const ControlState state);
+	private:
+		EffectIDState& m_effect;
+	};
+
+	class SquareEffect : public Output
+	{
+	public:
+		std::string GetName() const;
+		SquareEffect(EffectIDState& effect) : m_effect(effect) {}
+		void SetState(const ControlState state);
+	private:
+		EffectIDState& m_effect;
+	};
+
+	class TriangleEffect : public Output
+	{
+	public:
+		std::string GetName() const;
+		TriangleEffect(EffectIDState& effect) : m_effect(effect) {}
 		void SetState(const ControlState state);
 	private:
 		EffectIDState& m_effect;

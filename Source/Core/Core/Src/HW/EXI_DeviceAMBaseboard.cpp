@@ -128,3 +128,10 @@ bool CEXIAMBaseboard::IsInterruptSet()
 		ERROR_LOG(SP1, "AM-BB IRQ");
 	return m_have_irq;
 }
+
+void CEXIAMBaseboard::DoState(PointerWrap &p)
+{
+	p.Do(m_position);
+	p.Do(m_have_irq);
+	p.Do(m_command);
+}

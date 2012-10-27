@@ -21,6 +21,7 @@
 #include "Statistics.h"
 #include "MemoryUtil.h"
 #include "Hash.h"
+#include "HW/Memmap.h"
 
 #include "CommonPaths.h"
 #include "FileUtil.h"
@@ -57,9 +58,17 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	D3D::SetTexture(stage, texture);
 }
 
-bool TextureCache::TCacheEntry::Save(const char filename[])
+bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 {
-	return SUCCEEDED(PD3DXSaveTextureToFileA(filename, D3DXIFF_PNG, texture, 0));
+	IDirect3DSurface9* surface;
+	HRESULT hr = texture->GetSurfaceLevel(level, &surface);
+	if (FAILED(hr))
+		return false;
+
+	hr = PD3DXSaveSurfaceToFileA(filename, D3DXIFF_PNG, surface, NULL, NULL);
+	surface->Release();
+
+	return SUCCEEDED(hr);
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
@@ -78,7 +87,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		FramebufferManager::GetEFBDepthTexture() :
 		FramebufferManager::GetEFBColorTexture();
 
-	if (!isDynamic || g_ActiveConfig.bCopyEFBToTexture)
+	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		LPDIRECT3DSURFACE9 Rendersurf = NULL;
 		texture->GetSurfaceLevel(0, &Rendersurf);
@@ -90,15 +99,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		// Stretch picture with increased internal resolution
 		vp.X = 0;
 		vp.Y = 0;
-		vp.Width  = virtualW;
-		vp.Height = virtualH;
+		vp.Width  = virtual_width;
+		vp.Height = virtual_height;
 		vp.MinZ = 0.0f;
 		vp.MaxZ = 1.0f;
 		D3D::dev->SetViewport(&vp);
 		RECT destrect;
-		destrect.bottom = virtualH;
+		destrect.bottom = virtual_height;
 		destrect.left = 0;
-		destrect.right = virtualW;
+		destrect.right = virtual_width;
 		destrect.top = 0;
 
 		PixelShaderManager::SetColorMatrix(colmat); // set transformation
@@ -133,7 +142,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		D3D::drawShadedTexQuad(read_texture, &sourcerect, 
 			Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-			virtualW, virtualH,
+			virtual_width, virtual_height,
 			// TODO: why is D3DFMT_D24X8 singled out here? why not D3DFMT_D24X4S4/D24S8/D24FS8/D32/D16/D15S1 too, or none of them?
 			PixelShaderCache::GetDepthMatrixProgram(SSAAMode, (srcFormat == PIXELFMT_Z24) && bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8),
 			VertexShaderCache::GetSimpleVertexShader(SSAAMode));
@@ -143,16 +152,27 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	if (!g_ActiveConfig.bCopyEFBToTexture)
 	{
-		hash = TextureConverter::EncodeToRamFromTexture(
-			addr,
-			read_texture,
-			Renderer::GetTargetWidth(), 
-			Renderer::GetTargetHeight(),
-			srcFormat == PIXELFMT_Z24, 
-			isIntensity, 
-			dstFormat, 
-			scaleByHalf, 
-			srcRect);
+		int encoded_size = TextureConverter::EncodeToRamFromTexture(
+					addr,
+					read_texture,
+					Renderer::GetTargetWidth(), 
+					Renderer::GetTargetHeight(),
+					srcFormat == PIXELFMT_Z24, 
+					isIntensity, 
+					dstFormat, 
+					scaleByHalf, 
+					srcRect);
+
+		u8* dst = Memory::GetPointer(addr);
+		u64 hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
+		if (!g_ActiveConfig.bEFBCopyCacheEnable)
+			TextureCache::MakeRangeDynamic(addr,encoded_size);
+		else if (!TextureCache::Find(addr, hash))
+			TextureCache::MakeRangeDynamic(addr,encoded_size);
+
+		this->hash = hash;
 	}
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);

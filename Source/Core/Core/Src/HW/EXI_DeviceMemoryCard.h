@@ -32,15 +32,15 @@ struct FlushData
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-	CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int card_index);
+	CEXIMemoryCard(const int index);
 	virtual ~CEXIMemoryCard();
 	void SetCS(int cs);
 	void Update();
 	bool IsInterruptSet();
 	bool IsPresent();
 	void DoState(PointerWrap &p);
-
-	inline const std::string &GetFileName() const { return m_strFilename; };
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
+	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1);
 
 private:
 	// This is scheduled whenever a page write is issued. The this pointer is passed
@@ -72,7 +72,6 @@ private:
 	std::string m_strFilename;
 	int card_index;
 	int et_this_card;
-	bool reloadOnState;
 	//! memory card state
 
 	// STATE_TO_SAVE
@@ -84,7 +83,6 @@ private:
 	u8 programming_buffer[128];
 	u32 formatDelay;
 	bool m_bDirty;
-	
 	//! memory card parameters 
 	unsigned int nintendo_card_id, card_id;
 	unsigned int address;	

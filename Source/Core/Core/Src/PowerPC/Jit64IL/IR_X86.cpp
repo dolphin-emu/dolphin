@@ -50,6 +50,7 @@ The register allocation is linear scan allocation.
 #include "../../../../Common/Src/CPUDetect.h"
 #include "MathUtil.h"
 #include "../../Core.h"
+#include "HW/ProcessorInterface.h"
 
 static ThunkManager thunks;
 
@@ -758,9 +759,11 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case RFIExit:
 		case InterpreterBranch:		
 		case ShortIdleLoop:
-		case FPExceptionCheckStart:
-		case FPExceptionCheckEnd:
+		case FPExceptionCheck:
+		case DSIExceptionCheck:
 		case ISIException:
+		case ExtExceptionCheck:
+		case BreakPointCheck:
 		case Int3:
 		case Tramp:
 			// No liveness effects
@@ -1347,6 +1350,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 				Core::g_CoreStartupParameter.iTLBHack) {
 				mem_mask |= Memory::ADDR_MASK_MEM1;
 			}
+#ifdef ENABLE_MEM_CHECK
+			if (Core::g_CoreStartupParameter.bEnableDebugging)
+			{
+				mem_mask |= Memory::EXRAM_MASK;
+			}
+#endif
 			Jit->TEST(32, regLocForInst(RI, getOp2(I)), Imm32(mem_mask));
 			FixupBranch safe = Jit->J_CC(CC_NZ);
 				// Fast routine
@@ -1379,7 +1388,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 					RI.Jit->UnsafeWriteRegToReg(EAX, ECX, 32, 0);
 				}
-			FixupBranch exit = Jit->J();
+			FixupBranch exit = Jit->J(true);
 			Jit->SetJumpTarget(safe);
 				// Safe but slow routine
 				OpArg value = fregLocForInst(RI, getOp1(I));
@@ -1860,7 +1869,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->WriteRfiExitDestInOpArg(R(EAX));
 			break;
 		}
-		case FPExceptionCheckStart: {
+		case FPExceptionCheck: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			//This instruction uses FPU - needs to add FP exception bailout
 			Jit->TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
@@ -1874,7 +1883,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->SetJumpTarget(b1);
 			break;
 		}
-		case FPExceptionCheckEnd: {
+		case DSIExceptionCheck: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
 			FixupBranch noMemException = Jit->J_CC(CC_Z);
@@ -1912,6 +1921,38 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->MOV(32, MatR(RAX), Imm32(JIT_ICACHE_INVALID_WORD));
 #endif
 			Jit->WriteExceptionExit();
+			break;
+		}
+		case ExtExceptionCheck: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
+			FixupBranch clearInt = Jit->J_CC(CC_NZ);
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+			FixupBranch noExtException = Jit->J_CC(CC_Z);
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
+			FixupBranch noExtIntEnable = Jit->J_CC(CC_Z);
+			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
+			FixupBranch noCPInt = Jit->J_CC(CC_Z);
+
+			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->WriteExceptionExit();
+
+			Jit->SetJumpTarget(noCPInt);
+			Jit->SetJumpTarget(noExtIntEnable);
+			Jit->SetJumpTarget(noExtException);
+			Jit->SetJumpTarget(clearInt);
+			break;
+		}
+		case BreakPointCheck: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+
+			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+			Jit->TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+			FixupBranch noBreakpoint = Jit->J_CC(CC_Z);
+			Jit->WriteExit(InstLoc, 0);
+			Jit->SetJumpTarget(noBreakpoint);
 			break;
 		}
 		case Int3: {

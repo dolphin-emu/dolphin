@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     20.09.01
-// RCS-ID:      $Id: toplevel.h 65680 2010-09-30 11:44:45Z VZ $
+// RCS-ID:      $Id: toplevel.h 70295 2012-01-08 14:52:47Z VZ $
 // Copyright:   (c) 2001 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -51,9 +51,6 @@ public:
 
     virtual wxPoint GetClientAreaOrigin() const;
 
-    virtual bool SetShape(const wxRegion& region)
-        { return DoSetShape(region); }
-
     // Attracts the users attention to this window if the application is
     // inactive (should be called when a background event occurs)
     virtual void RequestUserAttention(int flags = wxUSER_ATTENTION_INFO);
@@ -79,6 +76,8 @@ public:
 
     virtual void OSXSetModified(bool modified);
     virtual bool OSXIsModified() const;
+
+    virtual void SetRepresentedFilename(const wxString& filename);
 
 protected:
     // common part of all ctors

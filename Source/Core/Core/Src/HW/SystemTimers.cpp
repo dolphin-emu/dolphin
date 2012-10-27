@@ -231,12 +231,19 @@ void PatchEngineCallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_PatchEngine);
 }
 
+// split from Init to break a circular dependency between VideoInterface::Init and SystemTimers::Init
+void PreInit()
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		CPU_CORE_CLOCK = 729000000u;
+	else
+		CPU_CORE_CLOCK = 486000000u;
+}
+
 void Init()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		CPU_CORE_CLOCK = 729000000u;
-
 		if (!DSP::GetDSPEmulator()->IsLLE())
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
@@ -246,15 +253,13 @@ void Init()
 
 		// FIXME: does Wiimote Speaker support really require a different interval? (issue 4608)
 		const int interval = SConfig::GetInstance().m_LocalCoreStartupParameter.
-				bDisableWiimoteSpeaker ? 1250 : 1500;
+				bDisableWiimoteSpeaker ? 15000 : 4000;
 		const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.
 				bVBeam ? 2 : 1;
 		IPC_HLE_PERIOD = GetTicksPerSecond() / (interval * fields);
 	}
 	else
 	{
-		CPU_CORE_CLOCK = 486000000u;
-
 		if (!DSP::GetDSPEmulator()->IsLLE())
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
 	}

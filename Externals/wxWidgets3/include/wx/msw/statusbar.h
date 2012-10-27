@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.04.98
-// RCS-ID:      $Id: statusbar.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: statusbar.h 70310 2012-01-10 17:01:09Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -76,8 +76,10 @@ protected:
     // used by DoUpdateStatusText()
     wxClientDC *m_pDC;
 
+#if wxUSE_TOOLTIPS
     // the tooltips used when wxSTB_SHOW_TIPS is given
     wxVector<wxToolTip*> m_tooltips;
+#endif
 
 private:
     struct MSWBorders

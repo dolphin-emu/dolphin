@@ -31,9 +31,21 @@ class VertexManager : public ::VertexManager
 public:
 	NativeVertexFormat* CreateNativeVertexFormat();
 	void GetElements(NativeVertexFormat* format, D3DVERTEXELEMENT9** elems, int* num);
-
+	void CreateDeviceObjects();
+	void DestroyDeviceObjects();
 private:
-	void Draw(int stride);
+	u32 CurrentVBufferIndex;
+	u32 CurrentVBufferSize;
+	u32 CurrentIBufferIndex;
+	u32 CurrentIBufferSize;
+	u32 NumVBuffers;
+	u32 CurrentVBuffer;
+	u32 CurrentIBuffer;
+	LPDIRECT3DVERTEXBUFFER9 *VBuffers;
+	LPDIRECT3DINDEXBUFFER9 *IBuffers; 
+	void PrepareVBuffers(int stride);
+	void DrawVB(int stride);
+	void DrawVA(int stride);
 	// temp
 	void vFlush();
 };

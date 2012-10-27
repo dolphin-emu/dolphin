@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: glcanvas.h 66088 2010-11-10 13:52:04Z VZ $
+// RCS-ID:      $Id: glcanvas.h 70165 2011-12-29 14:42:13Z SN $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -49,7 +49,7 @@ enum
     WX_GL_MIN_ACCUM_BLUE,  // use blue buffer with most bits (> MIN_ACCUM_BLUE bits)
     WX_GL_MIN_ACCUM_ALPHA, // use alpha buffer with most bits (> MIN_ACCUM_ALPHA bits)
     WX_GL_SAMPLE_BUFFERS,  // 1 for multisampling support (antialiasing)
-    WX_GL_SAMPLES          // 4 for 2x2 antialising supersampling on most graphics cards
+    WX_GL_SAMPLES          // 4 for 2x2 antialiasing supersampling on most graphics cards
 };
 
 #define wxGLCanvasName wxT("GLCanvas")
@@ -143,7 +143,7 @@ public:
 
 #ifdef __WXUNIVERSAL__
     // resolve the conflict with wxWindowUniv::SetCurrent()
-    virtual bool SetCurrent(bool doit) { return wxWindow::SetCurrent(doit); };
+    virtual bool SetCurrent(bool doit) { return wxWindow::SetCurrent(doit); }
 #endif
 
 protected:

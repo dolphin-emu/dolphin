@@ -7,7 +7,9 @@
 
 #if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__
 // GCC 4.4 provides <thread>
+#ifndef _GLIBCXX_USE_SCHED_YIELD
 #define _GLIBCXX_USE_SCHED_YIELD
+#endif
 #include <thread>
 #else
 
@@ -279,7 +281,7 @@ namespace this_thread
 inline void yield()
 {
 #ifdef _WIN32
-	Sleep(0);
+	SwitchToThread();
 #else
 	sleep(0);
 #endif

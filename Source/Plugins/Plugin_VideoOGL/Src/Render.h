@@ -7,6 +7,8 @@
 namespace OGL
 {
 
+void ClearEFBCache();
+
 class Renderer : public ::Renderer
 {
 public:
@@ -15,7 +17,7 @@ public:
 
 	void SetColorMask();
 	void SetBlendMode(bool forceUpdate);
-	bool SetScissorRect();
+	void SetScissorRect(const TargetRectangle& rc);
 	void SetGenerationMode();
 	void SetDepthMode();
 	void SetLogicOpMode();
@@ -57,6 +59,9 @@ public:
 	void SetVSConstant4fv(unsigned int const_number, const float *f);
 	void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f);
 	void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
+
+private:
+	void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data);
 };
 
 }

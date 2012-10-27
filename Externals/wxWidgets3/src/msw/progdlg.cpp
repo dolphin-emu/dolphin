@@ -3,7 +3,7 @@
 // Purpose:     wxProgressDialog
 // Author:      Rickard Westerlund
 // Created:     2010-07-22
-// RCS-ID:      $Id: progdlg.cpp 66613 2011-01-07 04:50:53Z PC $
+// RCS-ID:      $Id: progdlg.cpp 70512 2012-02-05 14:18:25Z VZ $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -236,6 +236,11 @@ void PerformNotificationUpdates(HWND hwnd,
             body.assign(title, posNL + numNLs, wxString::npos);
             title.erase(posNL);
         }
+        else // A single line
+        {
+            // Don't use title without the body, this doesn't make sense.
+            title.swap(body);
+        }
 
         ::SendMessage( hwnd,
                        TDM_SET_ELEMENT_TEXT,
@@ -302,7 +307,7 @@ wxProgressDialog::wxProgressDialog( const wxString& title,
                                     int maximum,
                                     wxWindow *parent,
                                     int style )
-    : wxGenericProgressDialog(parent, style),
+    : wxGenericProgressDialog(),
       m_taskDialogRunner(NULL),
       m_sharedData(NULL),
       m_message(message),
@@ -311,6 +316,8 @@ wxProgressDialog::wxProgressDialog( const wxString& title,
 #ifdef wxHAS_MSW_TASKDIALOG
     if ( HasNativeTaskDialog() )
     {
+        SetTopParent(parent);
+        SetPDStyle(style);
         SetMaximum(maximum);
 
         Show();
@@ -516,6 +523,23 @@ void wxProgressDialog::Resume()
         ::BringWindowToTop(hwnd);
     }
 #endif // wxHAS_MSW_TASKDIALOG
+}
+
+WXWidget wxProgressDialog::GetHandle() const 
+{ 
+#ifdef wxHAS_MSW_TASKDIALOG
+    if ( HasNativeTaskDialog() )
+    {
+        HWND hwnd;
+        {
+            wxCriticalSectionLocker locker(m_sharedData->m_cs);
+            m_sharedData->m_state = m_state;
+            hwnd = m_sharedData->m_hwnd;
+        }
+        return hwnd;
+    }
+#endif
+    return wxGenericProgressDialog::GetHandle();
 }
 
 int wxProgressDialog::GetValue() const
@@ -761,6 +785,11 @@ void* wxProgressDialogTaskRunner::Entry()
         wxTdc.caption = m_sharedData.m_title.wx_str();
         wxTdc.message = m_sharedData.m_message.wx_str();
 
+        // MSWCommonTaskDialogInit() will add an IDCANCEL button but we need to
+        // give it the correct label.
+        wxTdc.btnOKLabel = m_sharedData.m_labelCancel;
+        wxTdc.useCustomLabels = true;
+
         wxTdc.MSWCommonTaskDialogInit( tdc );
         tdc.pfCallback = TaskDialogCallbackProc;
         tdc.lpCallbackData = (LONG_PTR) &m_sharedData;
@@ -769,15 +798,8 @@ void* wxProgressDialogTaskRunner::Entry()
         tdc.dwFlags &= ~TDF_EXPAND_FOOTER_AREA; // Expand in content area.
         tdc.dwCommonButtons = 0; // Don't use common buttons.
 
-        wxTdc.useCustomLabels = true;
-
         if ( m_sharedData.m_style & wxPD_CAN_SKIP )
             wxTdc.AddTaskDialogButton( tdc, Id_SkipBtn, 0, _("Skip") );
-
-        // Use a Cancel button when requested or use a Close button when
-        // the dialog does not automatically hide.
-        wxTdc.AddTaskDialogButton( tdc, IDCANCEL, 0,
-                                   m_sharedData.m_labelCancel );
 
         tdc.dwFlags |= TDF_CALLBACK_TIMER | TDF_SHOW_PROGRESS_BAR;
 

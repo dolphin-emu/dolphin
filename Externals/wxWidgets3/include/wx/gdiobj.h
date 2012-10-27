@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: gdiobj.h 66374 2010-12-14 18:43:49Z VZ $
+// RCS-ID:      $Id: gdiobj.h 70345 2012-01-15 01:05:28Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -57,7 +57,7 @@ public:
     // because it's still widely used)
     bool Ok() const { return IsOk(); }
 
-#if defined(__WXMSW__) || defined(__WXPM__) || defined(__WXPALMOS__)
+#if defined(__WXMSW__) || defined(__WXPM__)
     // Creates the resource
     virtual bool RealizeResource() { return false; }
 

@@ -46,13 +46,12 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -116,7 +115,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -127,7 +126,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -138,7 +137,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -151,7 +150,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -164,12 +163,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Core\Common\Src;..\..\Core\Core\Src;..\..\Core\VideoCommon\Src;..\..\Core\DolphinWX\Src;..\..\..\Externals\GLew\include;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\Include;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -234,22 +233,12 @@
     <ClInclude Include="Src\XFMemLoader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Externals\wxWidgets\build\msw\wx_adv.vcxproj">
-      <Project>{0e231fb1-f3c9-4724-accb-de8bcb3c089e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\wxWidgets\build\msw\wx_base.vcxproj">
-      <Project>{1c8436c9-dbaf-42be-83bc-cf3ec9175abe}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\wxWidgets\build\msw\wx_core.vcxproj">
-      <Project>{11f55366-12ec-4c44-a8cb-1d4e315d61ed}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\Core\VideoCommon\VideoCommon.vcxproj">
       <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
-    <None Include="Src\SConscript" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -4,7 +4,7 @@
 // Author:      Julian Smart, after Robert Roebling, Vadim Zeitlin, SciTech
 // Modified by:
 // Created:     2006-04-13
-// Id:          $Id: buttonbar.cpp 61508 2009-07-23 20:30:22Z VZ $
+// Id:          $Id: buttonbar.cpp 70450 2012-01-23 14:42:53Z VZ $
 // Copyright:   (c) Julian Smart, Robert Roebling, Vadim Zeitlin,
 //              SciTech Software, Inc.
 // Licence:     wxWindows licence
@@ -140,7 +140,10 @@ bool wxButtonToolBar::Create(wxWindow *parent,
 
     // wxColour lightBackground(244, 244, 244);
 
-    wxFont font(wxSMALL_FONT->GetPointSize(), wxNORMAL_FONT->GetFamily(), wxNORMAL_FONT->GetStyle(), wxNORMAL);
+    wxFont font(wxSMALL_FONT->GetPointSize(),
+                wxNORMAL_FONT->GetFamily(),
+                wxNORMAL_FONT->GetStyle(),
+                wxFONTWEIGHT_NORMAL);
     SetFont(font);
 
     // Calculate the label height if necessary

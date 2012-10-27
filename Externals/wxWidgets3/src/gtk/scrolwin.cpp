@@ -5,7 +5,7 @@
 // Modified by: Ron Lee
 //              Vadim Zeitlin: removed 90% of duplicated common code
 // Created:     01/02/97
-// RCS-ID:      $Id: scrolwin.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: scrolwin.cpp 68121 2011-07-01 17:44:49Z PC $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,6 +20,7 @@
 #include "wx/scrolwin.h"
 
 #include <gtk/gtk.h>
+#include "wx/gtk/private/gtk2-compat.h"
 
 // ----------------------------------------------------------------------------
 // wxScrollHelper implementation
@@ -30,10 +31,10 @@ void wxScrollHelper::SetScrollbars(int pixelsPerUnitX, int pixelsPerUnitY,
                                    int xPos, int yPos,
                                    bool noRefresh)
 {
-    m_win->m_scrollPos[wxWindow::ScrollDir_Horz] =
-    m_win->m_scrollBar[wxWindow::ScrollDir_Horz]->adjustment->value = xPos;
-    m_win->m_scrollPos[wxWindow::ScrollDir_Vert] =
-    m_win->m_scrollBar[wxWindow::ScrollDir_Vert]->adjustment->value = yPos;
+    // prevent programmatic position changes from causing scroll events
+    m_win->SetScrollPos(wxHORIZONTAL, xPos);
+    m_win->SetScrollPos(wxVERTICAL, yPos);
+
     base_type::SetScrollbars(
         pixelsPerUnitX, pixelsPerUnitY, noUnitsX, noUnitsY, xPos, yPos, noRefresh);
 }
@@ -68,10 +69,8 @@ void wxScrollHelper::DoAdjustScrollbar(GtkRange* range,
         *linesPerPage = 0;
     }
 
-    GtkAdjustment* adj = range->adjustment;
-    adj->step_increment = 1;
-    adj->page_increment =
-    adj->page_size = page_size;
+    gtk_range_set_increments(range, 1, page_size);
+    gtk_adjustment_set_page_size(gtk_range_get_adjustment(range), page_size);
     gtk_range_set_range(range, 0, upper);
 
     // ensure that the scroll position is always in valid range

@@ -35,7 +35,7 @@
 #define I_TRANSFORMMATRICES     "ctrmtx"
 #define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
-#define I_DEPTHPARAMS           "cDepth"
+#define I_DEPTHPARAMS           "cDepth" // farZ, zRange, scaled viewport width, scaled viewport height
 
 #define C_POSNORMALMATRIX        0
 #define C_PROJECTION            (C_POSNORMALMATRIX + 6)
@@ -48,17 +48,18 @@
 #define C_DEPTHPARAMS           (C_POSTTRANSFORMMATRICES + 64)
 #define C_VENVCONST_END			(C_DEPTHPARAMS + 4)
 
-class VERTEXSHADERUID
+template<bool safe>
+class _VERTEXSHADERUID
 {
+#define NUM_VSUID_VALUES_SAFE 25
 public:
-	u32 values[9];
+	u32 values[safe ? NUM_VSUID_VALUES_SAFE : 9];
 
-	VERTEXSHADERUID()
+	_VERTEXSHADERUID()
 	{
-		memset(values, 0, sizeof(values));		
 	}
 
-	VERTEXSHADERUID(const VERTEXSHADERUID& r)
+	_VERTEXSHADERUID(const _VERTEXSHADERUID& r)
 	{
 		for (size_t i = 0; i < sizeof(values) / sizeof(u32); ++i) 
 			values[i] = r.values[i]; 
@@ -66,10 +67,11 @@ public:
 
 	int GetNumValues() const 
 	{
-		return (((values[0] >> 23) & 0xf) * 3 + 3) / 4 + 3; // numTexGens*3/4+1
+		if (safe) return NUM_VSUID_VALUES_SAFE;
+		else return (((values[0] >> 23) & 0xf) * 3 + 3) / 4 + 3; // numTexGens*3/4+1
 	}
 
-	bool operator <(const VERTEXSHADERUID& _Right) const
+	bool operator <(const _VERTEXSHADERUID& _Right) const
 	{
 		if (values[0] < _Right.values[0])
 			return true;
@@ -86,7 +88,7 @@ public:
 		return false;
 	}
 
-	bool operator ==(const VERTEXSHADERUID& _Right) const
+	bool operator ==(const _VERTEXSHADERUID& _Right) const
 	{
 		if (values[0] != _Right.values[0])
 			return false;
@@ -99,14 +101,18 @@ public:
 		return true;
 	}
 };
-
+typedef _VERTEXSHADERUID<false> VERTEXSHADERUID;
+typedef _VERTEXSHADERUID<true> VERTEXSHADERUIDSAFE;
 
 
 // components is included in the uid.
 char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE api_type);
 const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type);
-void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components);
 
-extern VERTEXSHADERUID  last_vertex_shader_uid;
+void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components);
+void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components);
+
+// Used to make sure that our optimized vertex shader IDs don't lose any possible shader code changes
+void ValidateVertexShaderIDs(API_TYPE api, VERTEXSHADERUIDSAFE old_id, const std::string& old_code, u32 components);
 
 #endif // GCOGL_VERTEXSHADER_H

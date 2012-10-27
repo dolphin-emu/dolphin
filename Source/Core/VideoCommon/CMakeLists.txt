@@ -6,6 +6,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/DLCache.cpp
 			Src/Debugger.cpp
 			Src/Fifo.cpp
+			Src/FPSCounter.cpp
 			Src/FramebufferManagerBase.cpp
 			Src/HiresTextures.cpp
 			Src/ImageWrite.cpp
@@ -40,6 +41,10 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/memcpy_amd.cpp)
 
 set(LIBS core)
+if(NOT ${CL} STREQUAL CL-NOTFOUND)
+	list(APPEND LIBS ${CL})
+endif()
+
 if(wxWidgets_FOUND AND WIN32)
 	set(SRCS ${SRCS} Src/EmuWindow.cpp)
 endif()

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: combobox.mm 69948 2011-12-07 23:41:06Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -163,6 +163,18 @@ int wxNSComboBoxControl::FindString(const wxString& text) const
     else
         result = (int) nsresult;
     return result;
+}
+
+void wxNSComboBoxControl::Popup()
+{
+    id ax = NSAccessibilityUnignoredDescendant(m_comboBox);
+    [ax accessibilitySetValue: [NSNumber numberWithBool: YES] forAttribute: NSAccessibilityExpandedAttribute];
+}
+
+void wxNSComboBoxControl::Dismiss()
+{
+    id ax = NSAccessibilityUnignoredDescendant(m_comboBox);
+    [ax accessibilitySetValue: [NSNumber numberWithBool: NO] forAttribute: NSAccessibilityExpandedAttribute];
 }
 
 wxWidgetImplType* wxWidgetImpl::CreateComboBox( wxComboBox* wxpeer, 

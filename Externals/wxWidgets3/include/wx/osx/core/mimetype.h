@@ -4,7 +4,7 @@
 // Author:      Neil Perkins
 // Modified by:
 // Created:     2010-05-15
-// RCS-ID:      $Id: mimetype.h 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: mimetype.h 68563 2011-08-05 19:02:26Z VZ $
 // Copyright:   (C) 2010 Neil Perkins
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,6 +56,7 @@ private:
     bool GetMimeTypes(const wxString& uti, wxArrayString& mimeTypes);
     bool GetIcon(const wxString& uti, wxIconLocation *iconLoc);
     bool GetDescription(const wxString& uti, wxString *desc);
+    bool GetApplication(const wxString& uti, wxString *command);
 
     // Structure to represent file types
     typedef struct FileTypeData
@@ -63,6 +64,7 @@ private:
         wxArrayString extensions;
         wxArrayString mimeTypes;
         wxIconLocation iconLoc;
+        wxString application;
         wxString description;
     }
     FileTypeInfo;
@@ -95,9 +97,9 @@ public:
     bool GetMimeTypes(wxArrayString& mimeTypes) const ;
     bool GetIcon(wxIconLocation *iconLoc) const ;
     bool GetDescription(wxString *desc) const ;
+    bool GetOpenCommand(wxString *openCmd, const wxFileType::MessageParameters& params) const;
 
     // These functions are only stubs on Mac OS X
-    bool GetOpenCommand(wxString *openCmd, const wxFileType::MessageParameters& params) const;
     bool GetPrintCommand(wxString *printCmd, const wxFileType::MessageParameters& params) const;
     size_t GetAllCommands(wxArrayString *verbs, wxArrayString *commands, const wxFileType::MessageParameters& params) const;
     bool SetCommand(const wxString& cmd, const wxString& verb, bool overwriteprompt = TRUE);

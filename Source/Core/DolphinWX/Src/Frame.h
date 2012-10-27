@@ -361,6 +361,8 @@ private:
 
 int GetCmdForHotkey(unsigned int key);
 
+void OnAfterLoadCallback();
+
 // For TASInputDlg
 void TASManipFunction(SPADStatus *PadStatus, int controllerID);
 

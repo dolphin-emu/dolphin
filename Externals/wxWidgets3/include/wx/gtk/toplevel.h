@@ -2,7 +2,7 @@
 // Name:        wx/gtk/toplevel.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: toplevel.h 65373 2010-08-21 09:53:25Z RR $
+// Id:          $Id: toplevel.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,9 +55,7 @@ public:
 
     virtual void ShowWithoutActivating();
     virtual bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL);
-    virtual bool IsFullScreen() const { return m_fsIsShowing; };
-
-    virtual bool SetShape(const wxRegion& region);
+    virtual bool IsFullScreen() const { return m_fsIsShowing; }
 
     virtual void RequestUserAttention(int flags = wxUSER_ATTENTION_INFO);
 
@@ -95,6 +93,8 @@ public:
     // GTK callbacks
     virtual void OnInternalIdle();
 
+    virtual void GTKHandleRealized();
+
     // do *not* call this to iconize the frame, this is a private function!
     void SetIconizeState(bool iconic);
 
@@ -111,12 +111,11 @@ public:
     // size of WM decorations
     wxSize m_decorSize;
 
-    // shape of the frame
-    wxRegion m_shape;
-
     // private gtk_timeout_add result for mimicing wxUSER_ATTENTION_INFO and
     // wxUSER_ATTENTION_ERROR difference, -2 for no hint, -1 for ERROR hint, rest for GtkTimeout handle.
     int m_urgency_hint;
+    // timer for detecting WM with broken _NET_REQUEST_FRAME_EXTENTS handling
+    unsigned m_netFrameExtentsTimerId;
 
     // return the size of the window without WM decorations
     void GTKDoGetSize(int *width, int *height) const;

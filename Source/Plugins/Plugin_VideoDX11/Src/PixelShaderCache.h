@@ -17,11 +17,12 @@
 
 #pragma once
 
-#include <map>
+#include "PixelShaderGen.h"
 
 #include <d3d11.h>
 
-class PIXELSHADERUID;
+#include <map>
+
 enum DSTALPHA_MODE;
 
 namespace DX11
@@ -52,9 +53,11 @@ private:
 	struct PSCacheEntry
 	{
 		ID3D11PixelShader* shader;
-		int frameCount;
 
-		PSCacheEntry() : shader(NULL), frameCount(0) {}
+		PIXELSHADERUIDSAFE safe_uid;
+		std::string code;
+
+		PSCacheEntry() : shader(NULL) {}
 		void Destroy() { SAFE_RELEASE(shader); }
 	};
 
@@ -62,6 +65,7 @@ private:
 
 	static PSCache PixelShaders;
 	static const PSCacheEntry* last_entry;
+	static PIXELSHADERUID last_uid;
 };
 
 }  // namespace DX11

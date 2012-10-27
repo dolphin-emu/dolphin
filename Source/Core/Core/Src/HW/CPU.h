@@ -54,6 +54,14 @@ public:
 
 	// is stepping ?
 	static bool IsStepping();
+
+	// waits until is stepping and is ready for a command (paused and fully idle), and acquires a lock on that state.
+	// or, if doLock is false, releases a lock on that state and optionally re-disables stepping.
+	// calls must be balanced and non-recursive (once with doLock true, then once with doLock false).
+	// intended (but not required) to be called from another thread,
+	// e.g. when the GUI thread wants to make sure everything is paused so that it can create a savestate.
+	// the return value is whether the cpu was unpaused before the call.
+	static bool PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 };
 
 #endif

@@ -45,8 +45,16 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
 }
 
-bool TextureCache::TCacheEntry::Save(const char filename[])
+bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 {
+	// TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
+	static bool warn_once = true;
+	if (level && warn_once)
+	{
+		WARN_LOG(VIDEO, "Dumping individual LOD not supported by D3D11 backend!");
+		warn_once = false;
+		return false;
+	}
 	return SUCCEEDED(PD3DX11SaveTextureToFileA(D3D::context, texture->GetTex(), D3DX11_IFF_PNG, filename));
 }
 
@@ -102,12 +110,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
 {
-	if (!isDynamic || g_ActiveConfig.bCopyEFBToTexture)
+	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		g_renderer->ResetAPIState();
 
 		// stretch picture with increased internal resolution
-		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtualW, (float)virtualH);
+		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtual_width, (float)virtual_height);
 		D3D::context->RSSetViewports(1, &vp);
 
 		// set transformation
@@ -149,17 +157,17 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	if (!g_ActiveConfig.bCopyEFBToTexture)
 	{
 		u8* dst = Memory::GetPointer(dstAddr);
-		size_t encodeSize = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
-		hash = GetHash64(dst, encodeSize, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-		if (g_ActiveConfig.bEFBCopyCacheEnable)
-		{
-			// If the texture in RAM is already in the texture cache,
-			// do not copy it again as it has not changed.
-			if (TextureCache::Find(dstAddr, hash))
-				return;
-		}
+		size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 
-		TextureCache::MakeRangeDynamic(dstAddr, encodeSize);
+		u64 hash = GetHash64(dst, (int)encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
+		if (!g_ActiveConfig.bEFBCopyCacheEnable)
+			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
+		else if (!TextureCache::Find(addr, hash))
+			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
+
+		this->hash = hash;
 	}
 }
 

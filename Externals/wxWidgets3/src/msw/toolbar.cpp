@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: toolbar.cpp 70798 2012-03-04 00:29:44Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -568,13 +568,17 @@ bool wxToolBar::DoDeleteTool(size_t pos, wxToolBarToolBase *tool)
     // get the size of the button we're going to delete
     const RECT r = wxGetTBItemRect(GetHwnd(), pos);
 
-    int width = r.right - r.left;
+    int delta = IsVertical() ? r.bottom - r.top : r.right - r.left;
 
     if ( tool->IsControl() )
     {
         nButtonsToDelete = ((wxToolBarTool *)tool)->GetSeparatorsCount();
-        width *= nButtonsToDelete;
+
+        if ( !IsVertical() )
+            delta *= nButtonsToDelete;
     }
+
+    m_totalFixedSize -= delta;
 
     // do delete all buttons
     m_nButtons -= nButtonsToDelete;
@@ -588,14 +592,45 @@ bool wxToolBar::DoDeleteTool(size_t pos, wxToolBarToolBase *tool)
         }
     }
 
-    // and finally reposition all the controls after this button (the toolbar
-    // takes care of all normal items)
-    for ( /* node -> first after deleted */ ; node; node = node->GetNext() )
+    // and finally rearrange the tools
+
+    // search for any stretch spacers before the removed tool
+    bool hasPrecedingStrechables = false;
+    for ( wxToolBarToolsList::compatibility_iterator nodeStch = m_tools.GetFirst();
+                                 nodeStch != node; nodeStch = nodeStch->GetNext() )
     {
-        wxToolBarTool *tool2 = (wxToolBarTool*)node->GetData();
-        if ( tool2->IsControl() )
+        if ( ((wxToolBarTool*)nodeStch->GetData())->IsStretchable() )
         {
-            tool2->MoveBy(-width);
+            hasPrecedingStrechables = true;
+            break;
+        }
+    }
+
+    if ( hasPrecedingStrechables )
+    {
+        // if the removed tool is preceded by stretch spacers
+        // just redistribute the space
+        UpdateStretchableSpacersSize();
+    }
+    else
+    {
+        // reposition all the controls after this button but before any
+        // stretch spacer (the toolbar takes care of all normal items)
+        for ( /* node -> first after deleted */ ; node; node = node->GetNext() )
+        {
+            wxToolBarTool *tool2 = (wxToolBarTool*)node->GetData();
+
+            if ( tool2->IsControl() )
+            {
+                tool2->MoveBy(-delta);
+            }
+
+            // if a stretch spacer is found just redistribute the available space
+            else if ( tool2->IsStretchable() )
+            {
+                UpdateStretchableSpacersSize();
+                break;
+            }
         }
     }
 
@@ -618,7 +653,7 @@ void wxToolBar::CreateDisabledImageList()
         {
             wxToolBarToolBase *tool = node->GetData();
             wxBitmap bmpDisabled = tool->GetDisabledBitmap();
-            if ( bmpDisabled.Ok() )
+            if ( bmpDisabled.IsOk() )
             {
                 const wxSize sizeBitmap = bmpDisabled.GetSize();
                 m_disabledImgList = new wxImageList
@@ -744,7 +779,7 @@ bool wxToolBar::Realize()
                 const int w = bmp.GetWidth();
                 const int h = bmp.GetHeight();
 
-                if ( bmp.Ok() )
+                if ( bmp.IsOk() )
                 {
                     int xOffset = wxMax(0, (m_defaultWidth - w)/2);
                     int yOffset = wxMax(0, (m_defaultHeight - h)/2);
@@ -762,7 +797,7 @@ bool wxToolBar::Realize()
                 {
                     wxBitmap bmpDisabled = tool->GetDisabledBitmap();
 #if wxUSE_IMAGE && wxUSE_WXDIB
-                    if ( !bmpDisabled.Ok() )
+                    if ( !bmpDisabled.IsOk() )
                     {
                         // no disabled bitmap specified but we still need to
                         // fill the space in the image list with something, so

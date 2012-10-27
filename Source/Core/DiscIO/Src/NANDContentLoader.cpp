@@ -191,6 +191,8 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 
 bool CNANDContentLoader::Initialize(const std::string& _rName)
 {
+	if (_rName.empty())
+		return false;
 	m_Path = _rName;
 	WiiWAD Wad(_rName);
 	u8* pDataApp = NULL;
@@ -221,7 +223,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		File::IOFile pTMDFile(TMDFileName, "rb");
 		if (!pTMDFile)
 		{
-			ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
+			DEBUG_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
 					  TMDFileName.c_str());
 			return false;
 		}
@@ -460,7 +462,7 @@ void cUIDsys::AddTitle(u64 _TitleID)
 	File::CreateFullPath(uidSys);
 	File::IOFile pFile(uidSys, "ab");
 
-	if (pFile.WriteArray(&Element, 1))
+	if (!pFile.WriteArray(&Element, 1))
 		ERROR_LOG(DISCIO, "fwrite failed");
 }
 
@@ -536,20 +538,14 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 
 	pTMDFile.Close();
 	
+
+
+
 	//Extract and copy WAD's ticket to ticket directory
-	std::string TicketFileName = Common::GetTicketFileName(TitleID);
-
-	File::CreateFullPath(TicketFileName);
-	File::IOFile pTicketFile(TicketFileName, "wb");
-	if (!pTicketFile)
+	if (!Add_Ticket(TitleID, ContentLoader.GetTIK(), ContentLoader.GetTIKSize()))
 	{
-		PanicAlertT("WAD installation failed: error creating %s", TicketFileName.c_str());
+		PanicAlertT("WAD installation failed: error creating ticket");
 		return 0;
-	} 
-
-	if (ContentLoader.GetTIK())
-	{
-		pTicketFile.WriteBytes(ContentLoader.GetTIK(), ContentLoader.GetTIKSize());
 	}
 
 	cUIDsys::AccessInstance().AddTitle(TitleID);
@@ -558,6 +554,18 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	return TitleID;
 }
 
+bool Add_Ticket(u64 TitleID, const u8 *p_tik, u32 tikSize)
+{
+	std::string TicketFileName = Common::GetTicketFileName(TitleID);
+	File::CreateFullPath(TicketFileName);
+	File::IOFile pTicketFile(TicketFileName, "wb");
+	if (!pTicketFile || !p_tik)
+	{
+		//PanicAlertT("WAD installation failed: error creating %s", TicketFileName.c_str());
+		return false;
+	}
+	return pTicketFile.WriteBytes(p_tik, tikSize);
+}
 
 } // namespace end
 

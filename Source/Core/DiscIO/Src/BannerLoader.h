@@ -39,10 +39,11 @@ class IBannerLoader
 		virtual bool GetBanner(u32* _pBannerImage) = 0;
 
 		virtual bool GetName(std::string* _rName) = 0;
-
+		virtual bool GetName(std::vector<std::wstring>&  _rNames) {return false;};
 		virtual bool GetCompany(std::string& _rCompany) = 0;
 
 		virtual bool GetDescription(std::string* _rDescription) = 0;
+		virtual bool GetDescription(std::wstring& _rDescription) {return false;};
 
 
 	protected:

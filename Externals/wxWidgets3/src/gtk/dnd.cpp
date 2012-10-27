@@ -2,7 +2,7 @@
 // Name:        src/gtk/dnd.cpp
 // Purpose:     wxDropTarget class
 // Author:      Robert Roebling
-// Id:          $Id: dnd.cpp 65680 2010-09-30 11:44:45Z VZ $
+// Id:          $Id: dnd.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,6 +26,7 @@
 #include "wx/scopeguard.h"
 
 #include <gtk/gtk.h>
+#include "wx/gtk/private/gtk2-compat.h"
 
 //----------------------------------------------------------------------------
 // global data
@@ -363,7 +364,7 @@ static void target_drag_data_received( GtkWidget *WXUNUSED(widget),
     /* Owen Taylor: "call gtk_drag_finish() with
        success == TRUE" */
 
-    if ((data->length <= 0) || (data->format != 8))
+    if (gtk_selection_data_get_length(data) <= 0 || gtk_selection_data_get_format(data) != 8)
     {
         /* negative data length and non 8-bit data format
            qualifies for junk */
@@ -533,12 +534,14 @@ bool wxDropTarget::GetData()
     if (!m_dataObject)
         return false;
 
-    wxDataFormat dragFormat( m_dragData->target );
+    wxDataFormat dragFormat(gtk_selection_data_get_target(m_dragData));
 
     if (!m_dataObject->IsSupportedFormat( dragFormat ))
         return false;
 
-    m_dataObject->SetData( dragFormat, (size_t)m_dragData->length, (const void*)m_dragData->data );
+    m_dataObject->SetData(dragFormat,
+        (size_t)gtk_selection_data_get_length(m_dragData),
+        (const void*)gtk_selection_data_get_data(m_dragData));
 
     return true;
 }
@@ -605,7 +608,7 @@ source_drag_data_get  (GtkWidget          *WXUNUSED(widget),
                        guint               WXUNUSED(time),
                        wxDropSource       *drop_source )
 {
-    wxDataFormat format( selection_data->target );
+    wxDataFormat format(gtk_selection_data_get_target(selection_data));
 
     wxLogTrace(TRACE_DND, wxT("Drop source: format requested: %s"),
                format.GetId().c_str());
@@ -647,7 +650,7 @@ source_drag_data_get  (GtkWidget          *WXUNUSED(widget),
     drop_source->m_retValue = ConvertFromGTK( context->action );
 
     gtk_selection_data_set( selection_data,
-                            selection_data->target,
+                            gtk_selection_data_get_target(selection_data),
                             8,   // 8-bit
                             d,
                             size );
@@ -734,11 +737,11 @@ void wxDropSource::SetIcons(const wxIcon &iconCopy,
     m_iconMove = iconMove;
     m_iconNone = iconNone;
 
-    if ( !m_iconCopy.Ok() )
+    if ( !m_iconCopy.IsOk() )
         m_iconCopy = wxIcon(page_xpm);
-    if ( !m_iconMove.Ok() )
+    if ( !m_iconMove.IsOk() )
         m_iconMove = m_iconCopy;
-    if ( !m_iconNone.Ok() )
+    if ( !m_iconNone.IsOk() )
         m_iconNone = m_iconCopy;
 }
 
@@ -783,7 +786,7 @@ void wxDropSource::PrepareIcon( int action, GdkDragContext *context )
     g_signal_connect (m_iconWindow, "configure_event",
                       G_CALLBACK (gtk_dnd_window_configure_callback), this);
 
-    gdk_window_set_back_pixmap (m_iconWindow->window, pixmap, FALSE);
+    gdk_window_set_back_pixmap(gtk_widget_get_window(m_iconWindow), pixmap, false);
 
     if (mask)
         gtk_widget_shape_combine_mask (m_iconWindow, mask, 0, 0);

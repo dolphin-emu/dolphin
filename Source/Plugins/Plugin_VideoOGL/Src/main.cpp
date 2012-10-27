@@ -155,6 +155,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 
 bool VideoBackend::Initialize(void *&window_handle)
 {
+	InitializeShared();
 	InitBackendInfo();
 
 	frameCount = 0;
@@ -234,6 +235,7 @@ void VideoBackend::Shutdown()
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
 		g_renderer = NULL;
+		g_texture_cache = NULL;
 	}
 	OpenGL_Shutdown();
 }

@@ -59,6 +59,7 @@ public:
 	// we really have to clean all this code
 
 	bool IsConnected() const { return m_ConnectionState == CONN_COMPLETE; }
+	bool IsInactive() const { return m_ConnectionState == CONN_INACTIVE; }
 	bool LinkChannel();
 	void ResetChannels();
 	void Activate(bool ready);

@@ -28,9 +28,8 @@
 
 
 CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
-	: IUCode(dsp_hle)
+	: IUCode(dsp_hle, l_CRC)
 	, m_addressPBs(0xFFFFFFFF)
-	, _CRC(l_CRC)
 {
 	// we got loaded
 	m_rMailHandler.PushMail(DSP_INIT);
@@ -38,7 +37,7 @@ CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
 	templbuffer = new int[1024 * 1024];
 	temprbuffer = new int[1024 * 1024];
 
-	wiisportsHack = _CRC == 0xfa450138;
+	wiisportsHack = m_CRC == 0xfa450138;
 }
 
 CUCode_AXWii::~CUCode_AXWii()
@@ -260,10 +259,8 @@ void CUCode_AXWii::DoState(PointerWrap &p)
 {
 	std::lock_guard<std::mutex> lk(m_csMix);
 
-	p.Do(_CRC);
 	p.Do(m_addressPBs);
 	p.Do(wiisportsHack);
-	p.Do(m_UploadSetupInProgress);
 
-	m_rMailHandler.DoState(p);
+	DoStateShared(p);
 }

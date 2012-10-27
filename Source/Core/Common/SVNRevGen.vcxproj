@@ -7,13 +7,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="make_scmrev.h.js">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cscript /nologo /E:JScript "make_scmrev.h.js"</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Updating scmrev.h</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">dummy</Outputs>
-    </CustomBuild>
+    <None Include="make_scmrev.h.js">
+    </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="force_rebuild.h" />
     <ClInclude Include="Src\scmrev.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -37,25 +35,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>cscript /nologo /E:JScript "make_scmrev.h.js"</Command>
     </PreBuildEvent>
-    <CustomBuild>
-      <Outputs>
-      </Outputs>
-    </CustomBuild>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

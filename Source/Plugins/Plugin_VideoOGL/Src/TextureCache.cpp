@@ -39,6 +39,7 @@
 #include "Globals.h"
 #include "Hash.h"
 #include "HiresTextures.h"
+#include "HW/Memmap.h"
 #include "ImageWrite.h"
 #include "MemoryUtil.h"
 #include "PixelShaderCache.h"
@@ -75,11 +76,13 @@ static const GLint c_WrapSettings[4] = {
 	GL_REPEAT,
 };
 
-bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height)
+bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
+	int width = std::max(virtual_width >> level, 1);
+	int height = std::max(virtual_height >> level, 1);
 	std::vector<u32> data(width * height);
 	glBindTexture(textarget, tex);
-	glGetTexImage(textarget, 0, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
+	glGetTexImage(textarget, level, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
 	
 	const GLenum err = GL_REPORT_ERROR();
 	if (GL_NO_ERROR != err)
@@ -118,13 +121,13 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	SetTextureParameters(tm0, tm1);
 }
 
-bool TextureCache::TCacheEntry::Save(const char filename[])
+bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 {
 	// TODO: make ogl dump PNGs
 	std::string tga_filename(filename);
 	tga_filename.replace(tga_filename.size() - 3, 3, "tga");
 
-	return SaveTexture(tga_filename.c_str(), GL_TEXTURE_2D, texture, realW, realH);
+	return SaveTexture(tga_filename.c_str(), GL_TEXTURE_2D, texture, virtual_width, virtual_height, level);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
@@ -278,7 +281,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
     GL_REPORT_ERRORD();
 
-	if (false == isDynamic || g_ActiveConfig.bCopyEFBToTexture)
+	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		if (s_TempFramebuffer == 0)
 			glGenFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
@@ -294,7 +297,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glEnable(GL_TEXTURE_RECTANGLE_ARB);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 
-		glViewport(0, 0, virtualW, virtualH);
+		glViewport(0, 0, virtual_width, virtual_height);
 
 		PixelShaderCache::SetCurrentShader((srcFormat == PIXELFMT_Z24) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
 		PixelShaderManager::SetColorMatrix(colmat); // set transformation
@@ -329,7 +332,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	if (false == g_ActiveConfig.bCopyEFBToTexture)
 	{
-		hash = TextureConverter::EncodeToRamFromTexture(
+		int encoded_size = TextureConverter::EncodeToRamFromTexture(
 			addr,
 			read_texture,
 			srcFormat == PIXELFMT_Z24, 
@@ -337,6 +340,17 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			dstFormat, 
 			scaleByHalf, 
 			srcRect);
+
+		u8* dst = Memory::GetPointer(addr);
+		u64 hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
+		if (!g_ActiveConfig.bEFBCopyCacheEnable)
+			TextureCache::MakeRangeDynamic(addr,encoded_size);
+		else if (!TextureCache::Find(addr, hash))
+			TextureCache::MakeRangeDynamic(addr,encoded_size);
+
+		this->hash = hash;
 	}
 
     FramebufferManager::SetFramebuffer(0);
@@ -349,7 +363,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
     {
 		static int count = 0;
 		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-			count++).c_str(), GL_TEXTURE_2D, texture, realW, realH);
+			count++).c_str(), GL_TEXTURE_2D, texture, virtual_width, virtual_height, 0);
     }
 }
 

@@ -229,7 +229,33 @@ static u8                 g_SIBuffer[128];
 
 void DoState(PointerWrap &p)
 {
-	// p.DoArray(g_Channel);
+	for(int i = 0; i < NUMBER_OF_CHANNELS; i++)
+	{
+		p.Do(g_Channel[i].m_InHi.Hex);
+		p.Do(g_Channel[i].m_InLo.Hex);
+		p.Do(g_Channel[i].m_Out.Hex);
+		
+		ISIDevice* pDevice = g_Channel[i].m_pDevice;
+		SIDevices type = pDevice->GetDeviceType();
+		p.Do(type);
+		ISIDevice* pSaveDevice = (type == pDevice->GetDeviceType()) ? pDevice : SIDevice_Create(type, i);
+		pSaveDevice->DoState(p);
+		if(pSaveDevice != pDevice)
+		{
+			// if we had to create a temporary device, discard it if we're not loading.
+			// also, if no movie is active, we'll assume the user wants to keep their current devices
+			// instead of the ones they had when the savestate was created.
+			if(p.GetMode() != PointerWrap::MODE_READ ||
+				(!Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
+			{
+				delete pSaveDevice;
+			}
+			else
+			{
+				AddDevice(pSaveDevice);
+			}
+		}
+	}
 	p.Do(g_Poll);
 	p.Do(g_ComCSR);
 	p.Do(g_StatusReg);
@@ -246,10 +272,8 @@ void Init()
 		g_Channel[i].m_InHi.Hex = 0;
 		g_Channel[i].m_InLo.Hex = 0;
 
-		if (Movie::IsUsingPad(i))
-			AddDevice(SI_GC_CONTROLLER, i);
-		else if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-			AddDevice(SI_NONE, i);
+		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+			AddDevice(Movie::IsUsingPad(i) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
 		else
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
 	}
@@ -538,15 +562,23 @@ void RemoveDevice(int _iDeviceNumber)
 	g_Channel[_iDeviceNumber].m_pDevice = NULL;
 }
 
-void AddDevice(const TSIDevices _device, int _iDeviceNumber)
+void AddDevice(ISIDevice* pDevice)
 {
+	int _iDeviceNumber = pDevice->GetDeviceNumber();
+
 	//_dbg_assert_(SERIALINTERFACE, _iDeviceNumber < NUMBER_OF_CHANNELS);
 
 	// delete the old device
 	RemoveDevice(_iDeviceNumber);
 
 	// create the new one
-	g_Channel[_iDeviceNumber].m_pDevice = SIDevice_Create(_device, _iDeviceNumber);
+	g_Channel[_iDeviceNumber].m_pDevice = pDevice;
+}
+
+void AddDevice(const SIDevices _device, int _iDeviceNumber)
+{
+	ISIDevice* pDevice = SIDevice_Create(_device, _iDeviceNumber);
+	AddDevice(pDevice);
 }
 
 void SetNoResponse(u32 channel)
@@ -572,14 +604,14 @@ void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 
 	SetNoResponse(channel);
 
-	AddDevice((TSIDevices)(u32)userdata, channel);
+	AddDevice((SIDevices)(u32)userdata, channel);
 }
 
-void ChangeDevice(TSIDevices device, int channel)
+void ChangeDevice(SIDevices device, int channel)
 {
 	// Called from GUI, so we need to make it thread safe.
 	// Let the hardware see no device for .5b cycles
-	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SI_NONE);
+	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
 	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | device);
 }
 

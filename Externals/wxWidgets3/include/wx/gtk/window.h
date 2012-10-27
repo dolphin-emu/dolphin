@@ -2,7 +2,7 @@
 // Name:        wx/gtk/window.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.h 65680 2010-09-30 11:44:45Z VZ $
+// Id:          $Id: window.h 70569 2012-02-11 16:26:52Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,6 +17,13 @@
 struct wxGtkIMData;
 
 WX_DEFINE_EXPORTED_ARRAY_PTR(GdkWindow *, wxArrayGdkWindows);
+
+extern "C"
+{
+
+typedef void (*wxGTKCallback)();
+
+}
 
 //-----------------------------------------------------------------------------
 // wxWindowGTK
@@ -52,8 +59,6 @@ public:
 
     virtual bool Show( bool show = true );
 
-    virtual void SetWindowStyleFlag( long style );
-
     virtual bool IsRetained() const;
 
     virtual void SetFocus();
@@ -76,6 +81,7 @@ public:
     virtual bool SetFont( const wxFont &font );
 
     virtual bool SetBackgroundStyle(wxBackgroundStyle style) ;
+    virtual bool IsTransparentBackgroundSupported(wxString* reason = NULL) const;
 
     virtual int GetCharHeight() const;
     virtual int GetCharWidth() const;
@@ -187,6 +193,10 @@ public:
     void GTKHandleFocusOutNoDeferring();
     static void GTKHandleDeferredFocusOut();
 
+    // Called when m_widget becomes realized. Derived classes must call the
+    // base class method if they override it.
+    virtual void GTKHandleRealized();
+
 protected:
     // for controls composed of multiple GTK widgets, return true to eliminate
     // spurious focus events if the focus changes between GTK+ children within
@@ -218,7 +228,7 @@ public:
 
 #if wxUSE_TOOLTIPS
     // applies tooltip to the widget (tip must be UTF-8 encoded)
-    virtual void GTKApplyToolTip( GtkTooltips *tips, const gchar *tip );
+    virtual void GTKApplyToolTip(const char* tip);
 #endif // wxUSE_TOOLTIPS
 
     // Called when a window should delay showing itself
@@ -370,7 +380,7 @@ protected:
     //
     // This is just a wrapper for g_signal_connect() and returns the handler id
     // just as it does.
-    gulong GTKConnectWidget(const char *signal, void (*callback)());
+    unsigned long GTKConnectWidget(const char *signal, wxGTKCallback callback);
 
     // Return true from here if PostCreation() should connect to size_request
     // signal: this is done by default but doesn't work for some native
@@ -389,7 +399,6 @@ private:
     // are already at the end)
     bool DoScrollByUnits(ScrollDir dir, ScrollUnit unit, int units);
     virtual void AddChildGTK(wxWindowGTK* child);
-
 
     DECLARE_DYNAMIC_CLASS(wxWindowGTK)
     wxDECLARE_NO_COPY_CLASS(wxWindowGTK);

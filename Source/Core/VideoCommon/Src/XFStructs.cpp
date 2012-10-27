@@ -121,12 +121,18 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETVIEWPORT+3:
 		case XFMEM_SETVIEWPORT+4:
 		case XFMEM_SETVIEWPORT+5:
-			VertexManager::Flush();
-			VertexShaderManager::SetViewportChanged();
-			PixelShaderManager::SetViewportChanged();
+			{
+				u8 size = std::min(transferSize * 4, 6 * 4);
+				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
+				{
+					VertexManager::Flush();
+					VertexShaderManager::SetViewportChanged();
+					PixelShaderManager::SetViewportChanged();
+				}
 
-			nextAddress = XFMEM_SETVIEWPORT + 6;
-			break;
+				nextAddress = XFMEM_SETVIEWPORT + 6;
+				break;
+			}
 
 		case XFMEM_SETPROJECTION:
 		case XFMEM_SETPROJECTION+1:
@@ -135,11 +141,17 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETPROJECTION+4:
 		case XFMEM_SETPROJECTION+5:
 		case XFMEM_SETPROJECTION+6:
-			VertexManager::Flush();			
-			VertexShaderManager::SetProjectionChanged();
+			{
+				u8 size = std::min(transferSize * 4, 7 * 4);
+				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
+				{
+					VertexManager::Flush();
+					VertexShaderManager::SetProjectionChanged();
+				}
 
-			nextAddress = XFMEM_SETPROJECTION + 7;
-			break;
+				nextAddress = XFMEM_SETPROJECTION + 7;
+				break;
+			}
 
         case XFMEM_SETNUMTEXGENS: // GXSetNumTexGens
 			if (xfregs.numTexGen.numTexGens != (newValue & 15))
@@ -154,8 +166,16 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETTEXMTXINFO+5:
 		case XFMEM_SETTEXMTXINFO+6:
 		case XFMEM_SETTEXMTXINFO+7:
-			nextAddress = XFMEM_SETTEXMTXINFO + 8;
-			break;
+			{
+				u8 size = std::min(transferSize * 4, 8 * 4);
+				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
+				{
+					VertexManager::Flush();
+				}
+
+				nextAddress = XFMEM_SETTEXMTXINFO + 8;
+				break;
+			}
 
 		case XFMEM_SETPOSMTXINFO:
 		case XFMEM_SETPOSMTXINFO+1:
@@ -165,8 +185,16 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETPOSMTXINFO+5:
 		case XFMEM_SETPOSMTXINFO+6:
 		case XFMEM_SETPOSMTXINFO+7:
-			nextAddress = XFMEM_SETPOSMTXINFO + 8;
-			break;
+			{
+				u8 size = std::min(transferSize * 4, 8 * 4);
+				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
+				{
+					VertexManager::Flush();
+				}
+
+				nextAddress = XFMEM_SETPOSMTXINFO + 8;
+				break;
+			}
 
 		// --------------
 		// Unknown Regs
@@ -236,8 +264,15 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 			transferSize = 0;
 		}
 		
-		XFMemWritten(xfMemTransferSize, xfMemBase);
-		memcpy_gc(&xfmem[xfMemBase], pData, xfMemTransferSize * 4);
+		for (u32 i = 0; i < xfMemTransferSize; ++i)
+		{
+			if (((u32*)&xfmem[xfMemBase])[i] != pData[i])
+			{
+				XFMemWritten(xfMemTransferSize, xfMemBase);
+				memcpy_gc(&xfmem[xfMemBase], pData, xfMemTransferSize * 4);
+				break;
+			}
+		}
 
 		pData += xfMemTransferSize;
 	}
@@ -253,13 +288,26 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 // TODO - verify that it is correct. Seems to work, though.
 void LoadIndexedXF(u32 val, int refarray)
 {
-    int index = val >> 16;
-    int address = val & 0xFFF; // check mask
-    int size = ((val >> 12) & 0xF) + 1;
-    //load stuff from array to address in xf mem
+	int index = val >> 16;
+	int address = val & 0xFFF; // check mask
+	int size = ((val >> 12) & 0xF) + 1;
+	//load stuff from array to address in xf mem
 
-	XFMemWritten(size, address);
-
-    for (int i = 0; i < size; i++)
-		xfmem[address + i] = Memory::Read_U32(arraybases[refarray] + arraystrides[refarray] * index + i * 4);
+	u32* currData = (u32*)(xfmem + address);
+	u32* newData = (u32*)Memory::GetPointer(arraybases[refarray] + arraystrides[refarray] * index);
+	bool changed = false;
+	for (int i = 0; i < size; ++i)
+	{
+		if (currData[i] != Common::swap32(newData[i]))
+		{
+			changed = true;
+			XFMemWritten(size, address);
+			break;
+		}
+	}
+	if (changed)
+	{
+		for (int i = 0; i < size; ++i)
+			currData[i] = Common::swap32(newData[i]);
+	}
 }

@@ -181,7 +181,7 @@ union UGeckoInstruction
 		u32			:	11;
 		u32 CRBB	:	5;
 		u32 CRBA	:	5;
-		u32 CRBD	:	5;		
+		u32 CRBD	:	5;
 		u32			:	6;
 	};
 
@@ -235,9 +235,9 @@ union UGeckoInstruction
 	};
 	struct
 	{
-		u32			:   17;
-		u32 FM		:   8;
-		u32			:   7;
+		u32			:	17;
+		u32 FM		:	8;
+		u32			:	7;
 	};
 
 	// paired
@@ -247,8 +247,8 @@ union UGeckoInstruction
 		u32 Ix		:	3;
 		u32 Wx		:	1;
 		u32			:	1;
-		u32 I		:   3;
-		u32 W		:   1;
+		u32 I		:	3;
+		u32 W		:	1;
 		u32			:	16;
 	};
 
@@ -303,6 +303,8 @@ union UFPR
 };
 
 #define XER_CA_MASK 0x20000000
+#define XER_OV_MASK 0x40000000
+#define XER_SO_MASK 0x80000000
 // XER
 union UReg_XER
 {
@@ -317,7 +319,7 @@ union UReg_XER
 	u32 Hex;
 
 	UReg_XER(u32 _hex) { Hex = _hex; }
-	UReg_XER()		{ Hex = 0; }	
+	UReg_XER()		{ Hex = 0; }
 };
 
 // Machine State Register
@@ -349,7 +351,7 @@ union UReg_MSR
 	u32 Hex;
 
 	UReg_MSR(u32 _hex) { Hex = _hex; }
-	UReg_MSR()		{ Hex = 0; }	
+	UReg_MSR()		{ Hex = 0; }
 };
 
 // Floating Point Status and Control Register
@@ -485,13 +487,47 @@ union UReg_SPR1
 	u32 Hex;
 	struct 
 	{
-		u32 htaborg  : 16;
-		u32          : 7;
-		u32 htabmask : 9;
+		u32	htaborg		:	16;
+		u32				:	7;
+		u32	htabmask	:	9;
 	};
 };
 
+// MMCR0 - Monitor Mode Control Register 0 format
+union UReg_MMCR0
+{
+	u32 Hex;
+	struct
+	{
+		u32	PMC2SELECT		:	6;
+		u32	PMC1SELECT		:	7;
+		u32	PMCTRIGGER		:	1;
+		u32	PMCINTCONTROL	:	1;
+		u32	PMC1INTCONTROL	:	1;
+		u32	THRESHOLD		:	6;
+		u32	INTONBITTRANS	:	1;
+		u32	RTCSELECT		:	2;
+		u32	DISCOUNT		:	1;
+		u32	ENINT			:	1;
+		u32	DMR				:	1;
+		u32	DMS				:	1;
+		u32	DU				:	1;
+		u32	DP				:	1;
+		u32	DIS				:	1;
+	};
+};
 
+// MMCR1 - Monitor Mode Control Register 1 format
+union UReg_MMCR1
+{
+	u32 Hex;
+	struct
+	{
+		u32				:	22;
+		u32	PMC4SELECT	:	5;
+		u32	PMC3SELECT	:	5;
+	};
+};
 
 // Write Pipe Address Register
 union UReg_WPAR
@@ -514,7 +550,7 @@ union UReg_DMAU
 	struct
 	{
 		u32 DMA_LEN_U	:	5;
-		u32 MEM_ADDR	:	27;		
+		u32 MEM_ADDR	:	27;
 	};
 	u32 Hex;
 
@@ -531,7 +567,7 @@ union UReg_DMAL
 		u32 DMA_T		:	1;
 		u32 DMA_LEN_L	:	2;
 		u32 DMA_LD		:	1;
-		u32 LC_ADDR		:	27;		
+		u32 LC_ADDR		:	27;
 	};
 	u32 Hex;
 
@@ -543,11 +579,11 @@ union UReg_BAT_Up
 {
 	struct 
 	{
-		u32 VP			:   1;
-		u32 VS			:   1;
+		u32 VP			:	1;
+		u32 VS			:	1;
 		u32 BL			:	11; // Block length (aka block size mask)
 		u32				:	4;
-		u32 BEPI		:	15;		
+		u32 BEPI		:	15;
 	};
 	u32 Hex;
 
@@ -559,8 +595,8 @@ union UReg_BAT_Lo
 {
 	struct 
 	{
-		u32 PP			:   2;
-		u32				:   1;
+		u32 PP			:	2;
+		u32				:	1;
 		u32 WIMG		:	4;
 		u32				:	10;
 		u32 BRPN		:	15; // Physical Block Number
@@ -584,7 +620,7 @@ union UReg_PTE
 		u64 WIMG		:	4;
 		u64 C			:	1;
 		u64 R			:	1;
-		u64				:   3;
+		u64				:	3;
 		u64 RPN			:	20;
 
 	};
@@ -621,16 +657,16 @@ enum
 // Special purpose register indices
 enum
 {
-	SPR_XER   =	1,
+	SPR_XER   = 1,
 	SPR_LR    = 8,
 	SPR_CTR   = 9,
 	SPR_DSISR = 18,
-	SPR_DAR	  = 19,
+	SPR_DAR   = 19,
 	SPR_DEC   = 22,
-	SPR_SDR	  = 25,
+	SPR_SDR   = 25,
 	SPR_SRR0  = 26,
 	SPR_SRR1  = 27,
-	SPR_TL	  = 268,
+	SPR_TL    = 268,
 	SPR_TU    = 269,
 	SPR_TL_W  = 284,
 	SPR_TU_W  = 285,
@@ -667,7 +703,17 @@ enum
 	SPR_ECID_U = 924,
 	SPR_ECID_M = 925,
 	SPR_ECID_L = 926,
-	SPR_L2CR  = 1017
+	SPR_L2CR  = 1017,
+
+	SPR_UMMCR0 = 936,
+	SPR_MMCR0 = 952,
+	SPR_PMC1 = 953,
+	SPR_PMC2 = 954,
+
+	SPR_UMMCR1 = 940,
+	SPR_MMCR1 = 956,
+	SPR_PMC3 = 957,
+	SPR_PMC4 = 958,
 };
 
 // Exceptions
@@ -677,8 +723,9 @@ enum
 #define EXCEPTION_DSI					0x00000008
 #define EXCEPTION_ISI					0x00000010
 #define EXCEPTION_ALIGNMENT				0x00000020
-#define EXCEPTION_FPU_UNAVAILABLE       0x00000040
+#define EXCEPTION_FPU_UNAVAILABLE		0x00000040
 #define EXCEPTION_PROGRAM				0x00000080
+#define EXCEPTION_PERFORMANCE_MONITOR	0x00000100
 
 inline s32 SignExt16(s16 x) {return (s32)(s16)x;}
 inline s32 SignExt26(u32 x) {return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)(x);}

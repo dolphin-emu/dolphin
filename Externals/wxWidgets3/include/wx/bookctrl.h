@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.h 65967 2010-10-31 13:33:34Z VZ $
+// RCS-ID:      $Id: bookctrl.h 69082 2011-09-14 08:24:06Z SJL $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,6 +22,7 @@
 
 #include "wx/control.h"
 #include "wx/dynarray.h"
+#include "wx/withimages.h"
 
 WX_DEFINE_EXPORTED_ARRAY_PTR(wxWindow *, wxArrayPages);
 
@@ -54,7 +55,8 @@ enum
 // wxBookCtrlBase
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_CORE wxBookCtrlBase : public wxControl
+class WXDLLIMPEXP_CORE wxBookCtrlBase : public wxControl,
+                                        public wxWithImages
 {
 public:
     // construction
@@ -85,9 +87,6 @@ public:
                 long style = 0,
                 const wxString& name = wxEmptyString);
 
-    // dtor
-    virtual ~wxBookCtrlBase();
-
 
     // accessors
     // ---------
@@ -106,7 +105,7 @@ public:
     }
 
     // get the currently selected page or wxNOT_FOUND if none
-    int GetSelection() const { return m_selection; }
+    virtual int GetSelection() const { return m_selection; }
 
     // set/get the title of a page
     virtual bool SetPageText(size_t n, const wxString& strText) = 0;
@@ -116,15 +115,6 @@ public:
     // image list stuff: each page may have an image associated with it (all
     // images belong to the same image list)
     // ---------------------------------------------------------------------
-
-    // sets the image list to use, it is *not* deleted by the control
-    virtual void SetImageList(wxImageList *imageList);
-
-    // as SetImageList() but we will delete the image list ourselves
-    void AssignImageList(wxImageList *imageList);
-
-    // get pointer (may be NULL) to the associated image list
-    wxImageList* GetImageList() const { return m_imageList; }
 
     // sets/returns item's image index in the current image list
     virtual int GetPageImage(size_t n) const = 0;
@@ -191,7 +181,7 @@ public:
     virtual bool AddPage(wxWindow *page,
                          const wxString& text,
                          bool bSelect = false,
-                         int imageId = -1)
+                         int imageId = NO_IMAGE)
     {
         DoInvalidateBestSize();
         return InsertPage(GetPageCount(), page, text, bSelect, imageId);
@@ -202,7 +192,7 @@ public:
                             wxWindow *page,
                             const wxString& text,
                             bool bSelect = false,
-                            int imageId = -1) = 0;
+                            int imageId = NO_IMAGE) = 0;
 
     // set the currently selected page, return the index of the previously
     // selected one (or wxNOT_FOUND on error)
@@ -319,12 +309,6 @@ protected:
 
     // the array of all pages of this control
     wxArrayPages m_pages;
-
-    // the associated image list or NULL
-    wxImageList *m_imageList;
-
-    // true if we must delete m_imageList
-    bool m_ownsImageList;
 
     // get the page area
     virtual wxRect GetPageRect() const;

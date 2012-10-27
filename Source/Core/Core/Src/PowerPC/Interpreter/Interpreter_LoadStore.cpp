@@ -363,17 +363,34 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 	{
 		NPC = PC + 12;
 	}*/
+	// Invalidate the jit block cache on dcbf
+	if (jit)
+	{
+		u32 address = Helper_Get_EA_X(_inst);
+		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
+	}
 }
 
 void Interpreter::dcbi(UGeckoInstruction _inst)
 {
-	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything.
-	// Seen used during initialization.
+	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything to the data cache
+	// However, we invalidate the jit block cache on dcbi
+	if (jit)
+	{
+		u32 address = Helper_Get_EA_X(_inst);
+		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
+	}
 }
 
 void Interpreter::dcbst(UGeckoInstruction _inst)
 {
 	// Cache line flush. Since we don't emulate the data cache, we don't need to do anything.
+	// Invalidate the jit block cache on dcbst in case new code has been loaded via the data cache
+	if (jit)
+	{
+		u32 address = Helper_Get_EA_X(_inst);
+		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
+	}
 }
 
 void Interpreter::dcbt(UGeckoInstruction _inst)
@@ -390,7 +407,10 @@ void Interpreter::dcbtst(UGeckoInstruction _inst)
 void Interpreter::dcbz(UGeckoInstruction _inst)
 {	
 	// HACK but works... we think
-	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
+	if (HID2.WPE || !HID0.DCFA)
+		Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
+	if (!jit)
+		PowerPC::CheckExceptions();
 }
 
 // eciwx/ecowx technically should access the specified device

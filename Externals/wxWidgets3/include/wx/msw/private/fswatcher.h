@@ -3,7 +3,7 @@
 // Purpose:     File system watcher impl classes
 // Author:      Bartosz Bekier
 // Created:     2009-05-26
-// RCS-ID:      $Id: fswatcher.h 62678 2009-11-18 09:56:52Z VZ $
+// RCS-ID:      $Id: fswatcher.h 67806 2011-05-28 19:35:13Z VZ $
 // Copyright:   (c) 2009 Bartosz Bekier <bartosz.bekier@gmail.com>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ public:
                                 m_path);
             }
         }
-        delete m_overlapped;
+        free(m_overlapped);
     }
 
     bool IsOk() const
@@ -104,7 +104,6 @@ private:
     wxDECLARE_NO_COPY_CLASS(wxFSWatchEntryMSW);
 };
 
-
 // ============================================================================
 // wxFSWatcherImplMSW helper classes implementations
 // ============================================================================
@@ -156,6 +155,48 @@ public:
         return m_watches.insert(val).second;
     }
 
+    // Removes a watch we're currently using. Notice that this doesn't happen
+    // immediately, CompleteRemoval() must be called later when it's really
+    // safe to delete the watch, i.e. after completion of the IO operation
+    // using it.
+    bool ScheduleForRemoval(const wxSharedPtr<wxFSWatchEntryMSW>& watch)
+    {
+        wxCHECK_MSG( m_iocp != INVALID_HANDLE_VALUE, false, "IOCP not init" );
+        wxCHECK_MSG( watch->IsOk(), false, "Invalid watch" );
+
+        const wxString path = watch->GetPath();
+        wxFSWatchEntries::iterator it = m_watches.find(path);
+        wxCHECK_MSG( it != m_watches.end(), false,
+                     "Can't remove a watch we don't use" );
+
+        // We can't just delete the watch here as we can have pending events
+        // for it and if we destroyed it now, we could get a dangling (or,
+        // worse, reused to point to another object) pointer in ReadEvents() so
+        // just remember that this one should be removed when CompleteRemoval()
+        // is called later.
+        m_removedWatches.insert(wxFSWatchEntries::value_type(path, watch));
+        m_watches.erase(it);
+
+        return true;
+    }
+
+    // Really remove the watch previously passed to ScheduleForRemoval().
+    //
+    // It's ok to call this for a watch that hadn't been removed before, in
+    // this case we'll just return false and do nothing.
+    bool CompleteRemoval(wxFSWatchEntryMSW* watch)
+    {
+        wxFSWatchEntries::iterator it = m_removedWatches.find(watch->GetPath());
+        if ( it == m_removedWatches.end() )
+            return false;
+
+        // Removing the object from the map will result in deleting the watch
+        // itself as it's not referenced from anywhere else now.
+        m_removedWatches.erase(it);
+
+        return true;
+    }
+
     // post completion packet
     bool PostEmptyStatus()
     {
@@ -203,7 +244,13 @@ protected:
     }
 
     HANDLE m_iocp;
+
+    // The hash containing all the wxFSWatchEntryMSW objects currently being
+    // watched keyed by their paths.
     wxFSWatchEntries m_watches;
+
+    // Contains the watches which had been removed but are still pending.
+    wxFSWatchEntries m_removedWatches;
 };
 
 

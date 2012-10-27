@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.mm 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: toolbar.mm 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -126,7 +126,7 @@ wxToolBarToolBase(
         [bui initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
         bui.width = 25.0f;
     }
-    else if ( bmpNormal.Ok() )
+    else if ( bmpNormal.IsOk() )
     {
         [bui initWithImage:bmpNormal.GetUIImage() style:UIBarButtonItemStylePlain target:toolbar
                       action:@selector(clickedAction:)];

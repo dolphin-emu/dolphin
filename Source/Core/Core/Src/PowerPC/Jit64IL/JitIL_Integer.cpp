@@ -493,6 +493,9 @@ void JitIL::srawx(UGeckoInstruction inst)
 	test = ibuild.EmitOr(val, mask2);
 	test = ibuild.EmitICmpUgt(test, mask);
 	ibuild.EmitStoreCarry(test);
+	
+	if (inst.Rc)
+		ComputeRC(ibuild, val);
 }
 
 void JitIL::srawix(UGeckoInstruction inst)

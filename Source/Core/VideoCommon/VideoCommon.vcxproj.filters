@@ -119,6 +119,9 @@
     <ClCompile Include="Src\LightingShaderGen.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="Src\FPSCounter.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\CommandProcessor.h" />
@@ -246,9 +249,11 @@
     <ClInclude Include="Src\LightingShaderGen.h">
       <Filter>Shader Generators</Filter>
     </ClInclude>
+    <ClInclude Include="Src\FPSCounter.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Src\SConscript" />
     <None Include="CMakeLists.txt" />
     <None Include="..\..\..\Data\User\OpenCL\TextureDecoder.cl">
       <Filter>Decoding\OpenCL</Filter>

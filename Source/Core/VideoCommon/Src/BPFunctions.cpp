@@ -39,40 +39,57 @@ void FlushPipeline()
 	VertexManager::Flush();
 }
 
-void SetGenerationMode(const BPCmd &bp)
+void SetGenerationMode()
 {
 	g_renderer->SetGenerationMode();
 }
 
-void SetScissor(const BPCmd &bp)
+void SetScissor()
 {
-	g_renderer->SetScissorRect();
+	const int xoff = bpmem.scissorOffset.x * 2 - 342;
+	const int yoff = bpmem.scissorOffset.y * 2 - 342;
+
+	EFBRectangle rc (bpmem.scissorTL.x - xoff - 342, bpmem.scissorTL.y - yoff - 342,
+					bpmem.scissorBR.x - xoff - 341, bpmem.scissorBR.y - yoff - 341);
+
+	if (rc.left < 0) rc.left = 0;
+	if (rc.top < 0) rc.top = 0;
+	if (rc.right > EFB_WIDTH) rc.right = EFB_WIDTH;
+	if (rc.bottom > EFB_HEIGHT) rc.bottom = EFB_HEIGHT;
+
+	if (rc.left > rc.right) rc.right = rc.left;
+	if (rc.top > rc.bottom) rc.bottom = rc.top;
+
+	TargetRectangle trc = g_renderer->ConvertEFBRectangle(rc);
+	g_renderer->SetScissorRect(trc);
+
+	UpdateViewportWithCorrection();
 }
 
-void SetLineWidth(const BPCmd &bp)
+void SetLineWidth()
 {
 	g_renderer->SetLineWidth();
 }
 
-void SetDepthMode(const BPCmd &bp)
+void SetDepthMode()
 {
 	g_renderer->SetDepthMode();
 }
 
-void SetBlendMode(const BPCmd &bp)
+void SetBlendMode()
 {
 	g_renderer->SetBlendMode(false);
 }
-void SetDitherMode(const BPCmd &bp)
+void SetDitherMode()
 {
 	g_renderer->SetDitherMode();
 }
-void SetLogicOpMode(const BPCmd &bp)
+void SetLogicOpMode()
 {
 	g_renderer->SetLogicOpMode();
 }
 
-void SetColorMask(const BPCmd &bp)
+void SetColorMask()
 {
 	g_renderer->SetColorMask();
 }
@@ -104,7 +121,7 @@ void CopyEFB(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		- convert the RGBA8 color to RGBA6/RGB8/RGB565 and convert it to RGBA8 again
 		- convert the Z24 depth value to Z16 and back to Z24
 */
-void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
+void ClearScreen(const EFBRectangle &rc)
 {
 	bool colorEnable = bpmem.blendmode.colorupdate;
 	bool alphaEnable = bpmem.blendmode.alphaupdate;
@@ -137,7 +154,7 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 	}
 }
 
-void OnPixelFormatChange(const BPCmd &bp)
+void OnPixelFormatChange()
 {
 	int convtype = -1;
 

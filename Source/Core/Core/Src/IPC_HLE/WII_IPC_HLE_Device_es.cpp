@@ -58,12 +58,14 @@
 #include "CommonPaths.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
+
+std::string CWII_IPC_HLE_Device_es::m_ContentFile;
+
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pContentLoader(NULL)
     , m_TitleID(-1)
     , AccessIdentID(0x6000000)
-	, m_ContentFile()
 {}
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
@@ -93,7 +95,7 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
     {
 		// blindly grab the titleID from the disc - it's unencrypted at:
 		// offset 0x0F8001DC and 0x0F80044C
-		VolumeHandler::RAWReadToPtr((u8*)&m_TitleID, (u64)0x0F8001DC, 8);
+		VolumeHandler::GetVolume()->GetTitleID((u8*)&m_TitleID);
 		m_TitleID = Common::swap64(m_TitleID);
     }
     else
@@ -177,11 +179,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
-			const DiscIO::INANDContentLoader& rNANDCOntent = AccessContentDevice(TitleID);
+			const DiscIO::INANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
 			u16 NumberOfPrivateContent = 0;
-			if (rNANDCOntent.IsValid()) // Not sure if dolphin will ever fail this check
+			if (rNANDContent.IsValid()) // Not sure if dolphin will ever fail this check
 			{
-				NumberOfPrivateContent = rNANDCOntent.GetNumEntries();
+				NumberOfPrivateContent = rNANDContent.GetNumEntries();
 
 				if ((u32)(TitleID>>32) == 0x00010000)
 					Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
@@ -191,10 +193,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				Memory::Write_U32(0, _CommandAddress + 0x4);
 			}
 			else
-				Memory::Write_U32((u32)rNANDCOntent.GetContentSize(), _CommandAddress + 0x4);
+				Memory::Write_U32((u32)rNANDContent.GetContentSize(), _CommandAddress + 0x4);
 
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i", 
-				(u32)(TitleID>>32), (u32)TitleID, rNANDCOntent.IsValid() ? NumberOfPrivateContent : (u32)rNANDCOntent.GetContentSize());
+				(u32)(TitleID>>32), (u32)TitleID, rNANDContent.IsValid() ? NumberOfPrivateContent : (u32)rNANDContent.GetContentSize());
 
 			return true;
 		}
@@ -254,24 +256,26 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         }
         break;
 
-    case IOCTL_ES_OPENCONTENT:
-        {
-            _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
-            _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
+	case IOCTL_ES_OPENCONTENT:
+		{
+			_dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
+			_dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
 
-            u32 CFD = AccessIdentID++;
-            u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+			u32 CFD = AccessIdentID++;
+			u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
-            m_ContentAccessMap[CFD].m_Position = 0;
-            m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(m_TitleID).GetContentByIndex(Index);
-            _dbg_assert_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL);
+			m_ContentAccessMap[CFD].m_Position = 0;
+			m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(m_TitleID).GetContentByIndex(Index);
+			
+			if (m_ContentAccessMap[CFD].m_pContent == NULL)
+				CFD = 0xffffffff; //TODO: what is the correct error value here?
 
-            Memory::Write_U32(CFD, _CommandAddress + 0x4);
+			Memory::Write_U32(CFD, _CommandAddress + 0x4);
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
-            return true;
-        }
-        break;
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
+			return true;
+		}
+		break;
 
     case IOCTL_ES_READCONTENT:
         {
@@ -371,7 +375,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
             char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-            sprintf(Path, "/%08x/%08x/data", (u32)(TitleID >> 32), (u32)TitleID);
+            sprintf(Path, "/title/%08x/%08x/data", (u32)(TitleID >> 32), (u32)TitleID);
 
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEDIR: %s", Path);
         }
@@ -509,11 +513,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					File::IOFile pFile(TicketFilename, "rb");
 					if (pFile)
 					{
-						u8 Ticket[DiscIO::INANDContentLoader::TICKET_SIZE];
-						for (unsigned int View = 0; View != maxViews && pFile.ReadBytes(Ticket, DiscIO::INANDContentLoader::TICKET_SIZE); ++View)
+						u8 FileTicket[DiscIO::INANDContentLoader::TICKET_SIZE];
+						for (unsigned int View = 0; View != maxViews && pFile.ReadBytes(FileTicket, DiscIO::INANDContentLoader::TICKET_SIZE); ++View)
 						{
 							Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address + View * 0xD8);
-							Memory::WriteBigEData(Ticket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
+							Memory::WriteBigEData(FileTicket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
 						}
 					}
 				}
@@ -538,11 +542,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
 			const DiscIO::INANDContentLoader& Loader = AccessContentDevice(TitleID);
-
-			// Assert if title is not a disc title and the loader is not valid
-			_dbg_assert_msg_(WII_IPC_ES, ((u32)(TitleID >> 32) == 0x00010000) ||
-					((u32)(TitleID >> 32) == 0x00010004) || Loader.IsValid(),
-					"Loader not valid for TitleID %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
 
             u32 TMDViewCnt = 0;
             if (Loader.IsValid())
@@ -675,7 +674,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				// TODO: actually use this param in when writing to the outbuffer :/ 
 				MaxCount = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
 			}
-			const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(TitleID);
+			const DiscIO::INANDContentLoader& Loader = AccessContentDevice(TitleID);
 
 
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
@@ -765,21 +764,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 						PC = DolLoader.GetEntryPoint() | 0x80000000;
 						IOSv = ContentLoader.GetIosVersion();
 						bSuccess = true;
-						// Reset the connection of all connected wiimotes
-						// ugly haxx
-						static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
-						for (unsigned int i = 0; i < 4; i++)
-						{
-							if (s_Usb->m_WiiMotes[i].IsConnected())
-							{
-								s_Usb->m_WiiMotes[i].Activate(false);
-								s_Usb->m_WiiMotes[i].Activate(true);
-							}
-							else
-							{
-								s_Usb->m_WiiMotes[i].Activate(false);
-							}
-						}
+						
 					}
 				}
 			}
@@ -792,8 +777,32 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				IOSv = TitleID & 0xffff;
 			}
 			if (!bSuccess)
+			{
 				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
 					"TitleID %016llx.\n Dolphin will likely hang now", TitleID);
+			}
+			else
+			{
+				std::string tContentFile(m_ContentFile.c_str());
+				WII_IPC_HLE_Interface::Reset(true);
+				WII_IPC_HLE_Interface::Init();
+
+				static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
+				for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
+				{
+					if (s_Usb->m_WiiMotes[i].IsConnected())
+					{
+						s_Usb->m_WiiMotes[i].Activate(false);
+						s_Usb->m_WiiMotes[i].Activate(true);
+					}
+					else
+					{
+						s_Usb->m_WiiMotes[i].Activate(false);
+					}
+				}
+				
+				WII_IPC_HLE_Interface::SetDefaultContentFile(tContentFile);
+			}
 			// Pass the "#002 check"
 			// Apploader should write the IOS version and revision to 0x3140, and compare it
 			// to 0x3188 to pass the check, but we don't do it, and i don't know where to read the IOS rev...
@@ -856,7 +865,7 @@ const DiscIO::INANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u6
 
     m_NANDContent[_TitleID] = &DiscIO::CNANDContentManager::Access().GetNANDLoader(_TitleID);
 
-    _dbg_assert_msg_(WII_IPC_ES, m_NANDContent[_TitleID]->IsValid(), "NandContent not valid for TitleID %08x/%08x", (u32)(_TitleID >> 32), (u32)_TitleID);
+    _dbg_assert_msg_(WII_IPC_ES, ((u32)(_TitleID >> 32) == 0x00010000) || m_NANDContent[_TitleID]->IsValid(), "NandContent not valid for TitleID %08x/%08x", (u32)(_TitleID >> 32), (u32)_TitleID);
     return *m_NANDContent[_TitleID];
 }
 
@@ -878,11 +887,10 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	{
 		return -1;
 	}
-	std::string tmdPath  = Common::GetTMDFileName(tmdTitleID),
-				dataPath = Common::GetTitleDataPath(tmdTitleID);
+	std::string tmdPath  = Common::GetTMDFileName(tmdTitleID);
 
 	File::CreateFullPath(tmdPath);
-	File::CreateFullPath(dataPath);
+	File::CreateFullPath(Common::GetTitleDataPath(tmdTitleID));
 	if(!File::Exists(tmdPath))
 	{
 		File::IOFile _pTMDFile(tmdPath, "wb");

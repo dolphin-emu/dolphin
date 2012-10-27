@@ -73,8 +73,9 @@ void OpenGL_SetWindowText(const char *text)
 #elif defined(__APPLE__)
 	[GLWin.cocoaWin setTitle: [NSString stringWithUTF8String: text]];
 #elif defined(_WIN32)
-	// TODO convert text to unicode and change SetWindowTextA to SetWindowText
-	SetWindowTextA(EmuWindow::GetWnd(), text);
+	TCHAR temp[512];
+	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs"), text);
+	EmuWindow::SetWindowText(temp);
 #elif defined(HAVE_X11) && HAVE_X11
 	// Tell X to ask the window manager to set the window title.
 	// (X itself doesn't provide window title functionality.)
@@ -173,7 +174,7 @@ void XEventThread()
 							OSDChoice = 1;
 							// Toggle native resolution
 							g_Config.iEFBScale = g_Config.iEFBScale + 1;
-							if (g_Config.iEFBScale > 4) g_Config.iEFBScale = 0;
+							if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
 							break;
 						case XK_4:
 							OSDChoice = 2;
@@ -196,10 +197,6 @@ void XEventThread()
 						case XK_6:
 							OSDChoice = 4;
 							g_Config.bDisableFog = !g_Config.bDisableFog;
-							break;
-						case XK_7:
-							OSDChoice = 5;
-							g_Config.bDisableLighting = !g_Config.bDisableLighting;
 							break;
 						default:
 							break;

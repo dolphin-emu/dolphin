@@ -3,7 +3,7 @@
 // Purpose:     Common defines for wxListCtrl and wxListCtrl-based classes.
 // Author:      Kevin Ollivier
 // Created:     09/15/06
-// RCS-ID:      $Id: listctrlcmn.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: listctrlcmn.cpp 70284 2012-01-07 15:09:51Z VZ $
 // Copyright:   (c) Kevin Ollivier
 // Licence:     wxWindows licence
 ////////////////////////////////////////////////////////////////////////////////
@@ -26,6 +26,10 @@
 #if wxUSE_LISTCTRL
 
 #include "wx/listctrl.h"
+
+#ifndef WX_PRECOMP
+    #include "wx/dcclient.h"
+#endif
 
 const char wxListCtrlNameStr[] = "listCtrl";
 
@@ -127,5 +131,84 @@ wxCONSTRUCTOR_5( wxListCtrl, wxWindow*, Parent, wxWindowID, Id, \
 IMPLEMENT_DYNAMIC_CLASS(wxListView, wxListCtrl)
 IMPLEMENT_DYNAMIC_CLASS(wxListItem, wxObject)
 IMPLEMENT_DYNAMIC_CLASS(wxListEvent, wxNotifyEvent)
+
+// ----------------------------------------------------------------------------
+// wxListCtrlBase implementation
+// ----------------------------------------------------------------------------
+
+long
+wxListCtrlBase::AppendColumn(const wxString& heading,
+                             int format,
+                             int width)
+{
+    return InsertColumn(GetColumnCount(), heading, format, width);
+}
+
+long
+wxListCtrlBase::InsertColumn(long col,
+                             const wxString& heading,
+                             int format,
+                             int width)
+{
+    wxListItem item;
+    item.m_mask = wxLIST_MASK_TEXT | wxLIST_MASK_FORMAT;
+    item.m_text = heading;
+    if ( width >= 0
+            || width == wxLIST_AUTOSIZE
+                || width == wxLIST_AUTOSIZE_USEHEADER )
+    {
+        item.m_mask |= wxLIST_MASK_WIDTH;
+        item.m_width = width;
+    }
+    item.m_format = format;
+
+    return InsertColumn(col, item);
+}
+
+long wxListCtrlBase::InsertColumn(long col, const wxListItem& info)
+{
+    long rc = DoInsertColumn(col, info);
+    if ( rc != -1 )
+    {
+        // As our best size calculation depends on the column headers,
+        // invalidate the previously cached best size when a column is added.
+        InvalidateBestSize();
+    }
+
+    return rc;
+}
+
+wxSize wxListCtrlBase::DoGetBestClientSize() const
+{
+    // There is no obvious way to determine the best size in icon and list
+    // modes so just don't do it for now.
+    if ( !InReportView() )
+        return wxControl::DoGetBestClientSize();
+
+    // In report mode, we use only the column headers, not items, to determine
+    // the best width. The reason for this is that it's easier (we can't just
+    // iterate over all items, especially not in a virtual control, so we'd
+    // have to do something relatively complicated such as checking the size of
+    // some items in the beginning and the end only) and also because the
+    // columns are usually static while the list contents is dynamic so it
+    // usually doesn't make much sense to adjust the control size to it anyhow.
+    // And finally, scrollbars can always be used with the items while the
+    // headers are just truncated if there is not enough place for them.
+    const int columns = GetColumnCount();
+    if ( HasFlag(wxLC_NO_HEADER) || !columns )
+        return wxControl::DoGetBestClientSize();
+
+    wxClientDC dc(const_cast<wxListCtrlBase*>(this));
+
+    // Total width of all headers determines the best control width.
+    int totalWidth = 0;
+    for ( int col = 0; col < columns; col++ )
+    {
+        totalWidth += GetColumnWidth(col);
+    }
+
+    // Use some arbitrary height, there is no good way to determine it.
+    return wxSize(totalWidth, 10*dc.GetCharHeight());
+}
 
 #endif // wxUSE_LISTCTRL

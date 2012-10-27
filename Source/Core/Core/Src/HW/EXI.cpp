@@ -64,29 +64,43 @@ void Shutdown()
 
 void DoState(PointerWrap &p)
 {
-	// TODO: Complete DoState for each IEXIDevice
-	g_Channels[0]->GetDevice(1)->DoState(p);
-	g_Channels[0]->GetDevice(2)->DoState(p);
-	g_Channels[0]->GetDevice(4)->DoState(p);
-	g_Channels[1]->GetDevice(1)->DoState(p);	
-	g_Channels[2]->GetDevice(1)->DoState(p);
+	for (int c = 0; c < NUM_CHANNELS; ++c)
+		g_Channels[c]->DoState(p);
 }
+
+void PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	for (int c = 0; c < NUM_CHANNELS; ++c)
+		g_Channels[c]->PauseAndLock(doLock, unpauseOnUnlock);
+}
+
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 {
 	u8 channel = (u8)(userdata >> 32);
-	u8 device = (u8)(userdata >> 16);
-	u8 slot = (u8)userdata;
+	u8 type = (u8)(userdata >> 16);
+	u8 num = (u8)userdata;
 
-	g_Channels[channel]->AddDevice((TEXIDevices)device, slot);
+	g_Channels[channel]->AddDevice((TEXIDevices)type, num);
 }
 
-void ChangeDevice(u8 channel, TEXIDevices device, u8 slot)
+void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 device_num)
 {
 	// Called from GUI, so we need to make it thread safe.
 	// Let the hardware see no device for .5b cycles
-	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | ((u64)EXIDEVICE_NONE << 16) | slot);
-	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | ((u64)device << 16) | slot);
+	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | ((u64)EXIDEVICE_NONE << 16) | device_num);
+	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | ((u64)device_type << 16) | device_num);
+}
+
+IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
+{
+	for (int i = 0; i < NUM_CHANNELS; ++i)
+	{
+		IEXIDevice* device = g_Channels[i]->FindDevice(device_type, customIndex);
+		if (device)
+			return device;
+	}
+	return NULL;
 }
 
 // Unused (?!)

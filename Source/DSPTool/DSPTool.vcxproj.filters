@@ -18,7 +18,6 @@
     <None Include="Testdata\hermes.s">
       <Filter>TestData</Filter>
     </None>
-    <None Include="SConscript" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\DSPTool.cpp" />

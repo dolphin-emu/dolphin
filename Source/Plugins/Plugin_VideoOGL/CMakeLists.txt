@@ -22,8 +22,10 @@ if(wxWidgets_FOUND)
 	set(LIBS	${LIBS} ${wxWidgets_LIBRARIES})
 endif(wxWidgets_FOUND)
 
-if(APPLE OR WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	set(LIBS	${LIBS} Cg CgGL)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	list(APPEND LIBS "${CMAKE_SOURCE_DIR}/Externals/Cg/Cg.framework")
 endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

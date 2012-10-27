@@ -161,6 +161,7 @@ void LoadDefaultSSEState();
 float MathFloatVectorSum(const std::vector<float>&);
 
 #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
+#define ROUND_DOWN(x, a)	((x) & ~((a) - 1))
 
 
 // Tiny matrix/vector library.

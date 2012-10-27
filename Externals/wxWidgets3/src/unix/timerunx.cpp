@@ -3,7 +3,7 @@
 // Purpose:     wxTimer implementation for non-GUI applications under Unix
 // Author:      Lukasz Michalski
 // Created:     15/01/2005
-// RCS-ID:      $Id: timerunx.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: timerunx.cpp 69839 2011-11-27 19:50:33Z VZ $
 // Copyright:   (c) 2007 Lukasz Michalski
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,6 +31,7 @@
 
 #include "wx/apptrait.h"
 #include "wx/longlong.h"
+#include "wx/time.h"
 #include "wx/vector.h"
 
 #include <sys/time.h>
@@ -125,7 +126,7 @@ bool wxTimerScheduler::GetNext(wxUsecClock_t *remaining) const
 
     wxCHECK_MSG( remaining, false, wxT("NULL pointer") );
 
-    *remaining = (*m_timers.begin())->m_expiration - wxGetLocalTimeUsec();
+    *remaining = (*m_timers.begin())->m_expiration - wxGetUTCTimeUSec();
     if ( *remaining < 0 )
     {
         // timer already expired, don't wait at all before notifying it
@@ -140,7 +141,7 @@ bool wxTimerScheduler::NotifyExpired()
     if ( m_timers.empty() )
       return false;
 
-    const wxUsecClock_t now = wxGetLocalTimeUsec();
+    const wxUsecClock_t now = wxGetUTCTimeUSec();
 
     typedef wxVector<wxUnixTimerImpl *> TimerImpls;
     TimerImpls toNotify;
@@ -218,7 +219,7 @@ bool wxUnixTimerImpl::Start(int milliseconds, bool oneShot)
     // notice that this will stop an already running timer
     wxTimerImpl::Start(milliseconds, oneShot);
 
-    wxTimerScheduler::Get().AddTimer(this, wxGetLocalTimeUsec() + m_milli*1000);
+    wxTimerScheduler::Get().AddTimer(this, wxGetUTCTimeUSec() + m_milli*1000);
     m_isRunning = true;
 
     return true;
@@ -263,21 +264,6 @@ IMPLEMENT_DYNAMIC_CLASS(wxTimerUnixModule, wxModule)
 // ============================================================================
 // global functions
 // ============================================================================
-
-wxUsecClock_t wxGetLocalTimeUsec()
-{
-#ifdef HAVE_GETTIMEOFDAY
-    struct timeval tv;
-    if ( wxGetTimeOfDay(&tv) != -1 )
-    {
-        wxUsecClock_t val = 1000000L; // usec/sec
-        val *= tv.tv_sec;
-        return val + tv.tv_usec;
-    }
-#endif // HAVE_GETTIMEOFDAY
-
-    return wxGetLocalTimeMillis() * 1000L;
-}
 
 wxTimerImpl *wxConsoleAppTraits::CreateTimerImpl(wxTimer *timer)
 {

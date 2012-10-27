@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Stefan Csomor
 // Created:     2009-01-01
-// RCS-ID:      $Id: sound.cpp 65680 2010-09-30 11:44:45Z VZ $
+// RCS-ID:      $Id: sound.cpp 69178 2011-09-21 15:08:02Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -129,7 +129,7 @@ bool wxOSXAudioToolboxSoundData::Play(unsigned flags)
     return true;
 }
 
-bool wxSound::Create(int WXUNUSED(size), const wxByte* WXUNUSED(data))
+bool wxSound::Create(size_t WXUNUSED(size), const void* WXUNUSED(data))
 {
     wxFAIL_MSG( "not implemented" );
 

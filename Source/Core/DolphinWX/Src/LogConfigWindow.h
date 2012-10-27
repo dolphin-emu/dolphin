@@ -37,11 +37,11 @@ public:
 private:
 	LogManager *m_LogManager;
 	CLogWindow *m_LogWindow;
-	bool m_writeFile, m_writeConsole, m_writeWindow;
+	bool m_writeFile, m_writeConsole, m_writeWindow, m_writeDebugger;
 	bool enableAll;
 
 	// Controls
-	wxCheckBox *m_writeFileCB, *m_writeConsoleCB, *m_writeWindowCB;
+	wxCheckBox *m_writeFileCB, *m_writeConsoleCB, *m_writeWindowCB, *m_writeDebuggerCB;
 	wxCheckListBox* m_checks;
 	wxRadioBox *m_verbosity;
 
@@ -50,6 +50,7 @@ private:
 	void OnWriteFileChecked(wxCommandEvent& event);
 	void OnWriteConsoleChecked(wxCommandEvent& event);
 	void OnWriteWindowChecked(wxCommandEvent& event);
+	void OnWriteDebuggerChecked(wxCommandEvent& event);
 	void OnToggleAll(wxCommandEvent& event);
 	void ToggleLog(int _logType, bool enable);
 	void OnLogCheck(wxCommandEvent& event);

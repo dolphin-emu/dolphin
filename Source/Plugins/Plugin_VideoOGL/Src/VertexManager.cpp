@@ -69,6 +69,16 @@ VertexManager::VertexManager()
 	GL_REPORT_ERRORD();
 }
 
+void VertexManager::CreateDeviceObjects()
+{
+	
+
+}
+void VertexManager::DestroyDeviceObjects()
+{
+	
+}
+
 void VertexManager::Draw()
 {
 	if (IndexGenerator::GetNumTriangles() > 0)
@@ -154,22 +164,14 @@ void VertexManager::vFlush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
-				(tex.texMode1[i&3].max_lod >> 4));
+				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8),
+				tex.texMode1[i&3].max_lod >> 4,
+				tex.texImage1[i&3].image_type);
 
 			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
-				PixelShaderManager::SetTexDims(i, tentry->realW, tentry->realH, 0, 0);
-
-				if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
-				{
-					// save the textures
-					char strfile[255];
-					sprintf(strfile, "%stex%.3d_%d.tga",
-							File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_Config.iSaveTargetId, i);
-					tentry->Save(strfile);
-				}
+				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
 			}
 			else
 				ERROR_LOG(VIDEO, "error loading texture");
@@ -267,6 +269,8 @@ void VertexManager::vFlush()
 	}
 #endif
 	g_Config.iSaveTargetId++;
+
+	ClearEFBCache();
 
 	GL_REPORT_ERRORD();
 }

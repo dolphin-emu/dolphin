@@ -127,11 +127,6 @@ int FindWiimotes(Wiimote **wm, int max_wiimotes)
 	bti = [[IOBluetoothDeviceInquiry alloc] init];
 	[bti setDelegate: sbt];
 	[bti setInquiryLength: 5];
-	[bti setSearchCriteria: kBluetoothServiceClassMajorAny
-		majorDeviceClass: kBluetoothDeviceClassMajorPeripheral
-		minorDeviceClass: kBluetoothDeviceClassMinorPeripheral2Joystick
-		];
-	[bti setUpdateNewDeviceNames: NO];
 
 	if ([bti start] == kIOReturnSuccess)
 		[bti retain];
@@ -149,6 +144,9 @@ int FindWiimotes(Wiimote **wm, int max_wiimotes)
 	en = [[bti foundDevices] objectEnumerator];
 	for (int i = 0; i < found_devices; i++)
 	{
+		IOBluetoothDevice *dev = [en nextObject];
+		if (!IsValidBluetoothName([[dev name] UTF8String]))
+			continue;
 		// Find an unused slot
 		for (int k = 0; k < MAX_WIIMOTES; k++) {
 			if (wm[k] != NULL ||
@@ -156,7 +154,7 @@ int FindWiimotes(Wiimote **wm, int max_wiimotes)
 				continue;
 
 			wm[k] = new Wiimote(k);
-			wm[k]->btd = [en nextObject];
+			wm[k]->btd = dev;
 			found_wiimotes++;
 			break;
 		}
@@ -244,7 +242,7 @@ int Wiimote::IOWrite(unsigned char *buf, int len)
 	if (!IsConnected())
 		return 0;
 
-	ret = [cchan writeAsync: buf length: len refcon: nil];
+	ret = [ichan writeAsync: buf length: len refcon: nil];
 
 	if (ret == kIOReturnSuccess)
 		return len;

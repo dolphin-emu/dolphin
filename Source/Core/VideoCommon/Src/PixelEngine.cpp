@@ -31,6 +31,7 @@
 #include "CommandProcessor.h"
 #include "HW/ProcessorInterface.h"
 #include "DLCache.h"
+#include "State.h"
 namespace PixelEngine
 {
 
@@ -154,6 +155,16 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate);
 void Init()
 {
 	m_Control.Hex = 0;
+	m_ZConf.Hex = 0;
+	m_AlphaConf.Hex = 0;
+	m_DstAlphaConf.Hex = 0;
+	m_AlphaModeConf.Hex = 0;
+	m_AlphaRead.Hex = 0;
+
+	g_bSignalTokenInterrupt = false;
+	g_bSignalFinishInterrupt = false;
+	interruptSetToken = false;
+	interruptSetFinish = false;
 
 	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
 	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
@@ -169,7 +180,6 @@ void Init()
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
 	DEBUG_LOG(PIXELENGINE, "(r16) 0x%08x", _iAddress);
-	CommandProcessor::ProcessFifoEvents();
 	switch (_iAddress & 0xFFF)
 	{
 		// CPU Direct Access EFB Raster State Config
@@ -205,14 +215,45 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		INFO_LOG(PIXELENGINE, "(r16) TOKEN_REG : %04x", _uReturnValue);
 		break;
 
-		// The return values for these BBOX registers need to be gotten from the bounding box of the object. 
-		// See http://code.google.com/p/dolphin-emu/issues/detail?id=360#c74 for more details.
+	case PE_BBOX_LEFT:
+	{
+		// Left must be even and 606px max
+		_uReturnValue = std::min((u16) 606, bbox[0]) & ~1;
 
-	// 0x80, 0xa0, 0x80, 0xa0 makes Paper Mario happy.
-	case PE_BBOX_LEFT:   _uReturnValue = bbox[0]; INFO_LOG(PIXELENGINE, "R: BBOX_LEFT   = %i", bbox[0]); bbox_active = false; break;
-	case PE_BBOX_RIGHT:  _uReturnValue = bbox[1]; INFO_LOG(PIXELENGINE, "R: BBOX_RIGHT  = %i", bbox[1]); bbox_active = false; break;
-	case PE_BBOX_TOP:    _uReturnValue = bbox[2]; INFO_LOG(PIXELENGINE, "R: BBOX_TOP    = %i", bbox[2]); bbox_active = false; break;
-	case PE_BBOX_BOTTOM: _uReturnValue = bbox[3]; INFO_LOG(PIXELENGINE, "R: BBOX_BOTTOM = %i", bbox[3]); bbox_active = false; break;
+		INFO_LOG(PIXELENGINE, "R: BBOX_LEFT   = %i", _uReturnValue);
+		bbox_active = false;
+		break;
+	}
+
+	case PE_BBOX_RIGHT:
+	{
+		// Right must be odd and 607px max
+		_uReturnValue = std::min((u16) 607, bbox[1]) | 1;
+
+		INFO_LOG(PIXELENGINE, "R: BBOX_RIGHT  = %i", _uReturnValue);
+		bbox_active = false;
+		break;
+	}
+
+	case PE_BBOX_TOP:
+	{
+		// Top must be even and 478px max
+		_uReturnValue = std::min((u16) 478, bbox[2]) & ~1;
+
+		INFO_LOG(PIXELENGINE, "R: BBOX_TOP    = %i", _uReturnValue);
+		bbox_active = false;
+		break;
+	}
+
+	case PE_BBOX_BOTTOM:
+	{
+		// Bottom must be odd and 479px max
+		_uReturnValue = std::min((u16) 479, bbox[3]) | 1;
+
+		INFO_LOG(PIXELENGINE, "R: BBOX_BOTTOM = %i", _uReturnValue);
+		bbox_active = false;
+		break;
+	}
 
 	case PE_PERF_0L:
 	case PE_PERF_0H:
@@ -227,6 +268,10 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	case PE_PERF_5L:
 	case PE_PERF_5H:
 		INFO_LOG(PIXELENGINE, "(r16) perf counter @ %08x", _iAddress);
+		// git r90a2096a24f4 (svn r3663) added the PE_PERF cases, without setting
+		// _uReturnValue to anything, this reverts to the previous behaviour which allows
+		// The timer in SMS:Scrubbing Serena Beach to countdown correctly
+		_uReturnValue = 1;
 		break;
 
 	default:
@@ -281,7 +326,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	case PE_TOKEN_REG:
-		//LOG(PIXELENGINE,"WEIRD: program wrote token: %i",_iValue);
 		PanicAlert("(w16) WTF? PowerPC program wrote token: %i", _iValue);
 		//only the gx pipeline is supposed to be able to write here
 		//g_token = _iValue;
@@ -292,7 +336,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 	}
 
-	CommandProcessor::ProcessFifoEvents();
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
@@ -316,20 +359,14 @@ void UpdateInterrupts()
 
 void UpdateTokenInterrupt(bool active)
 {
-	if(interruptSetToken != active)
-	{
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
 		interruptSetToken = active;
-	}
 }
 
 void UpdateFinishInterrupt(bool active)
 {
-	if(interruptSetFinish != active)
-	{
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
 		interruptSetFinish = active;
-	}
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
@@ -348,8 +385,6 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 		CommandProcessor::interruptTokenWaiting = false;
 		IncrementCheckContextId();
 	//}
-	//else
-	//	LOGV(PIXELENGINE, 1, "VIDEO Backend wrote token: %i", CommandProcessor::fifo.PEToken);
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
@@ -424,6 +459,19 @@ void ResetSetToken()
 	{
 		CoreTiming::RemoveEvent(et_SetTokenOnMainThread);
 	}
+	CommandProcessor::interruptTokenWaiting = false;
+}
+
+bool WaitingForPEInterrupt()
+{
+	return !CommandProcessor::waitingForPEInterruptDisable && (CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || interruptSetFinish || interruptSetToken);
+}
+
+void ResumeWaitingForPEInterrupt()
+{
+	interruptSetFinish = false;
+	interruptSetToken = false;
+	CommandProcessor::interruptFinishWaiting = false;
 	CommandProcessor::interruptTokenWaiting = false;
 }
 } // end of namespace PixelEngine

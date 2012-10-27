@@ -187,14 +187,15 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 		p = GenerateVSOutputStruct(p, components, API_D3D11);
 		p += sprintf(p, "\n%s", LINE_GS_COMMON);
 		
-		std::stringstream numTexCoordsStr;
-		numTexCoordsStr << xfregs.numTexGen.numTexGens;
+		std::stringstream numTexCoordsStream;
+		numTexCoordsStream << xfregs.numTexGen.numTexGens;
 		
 		INFO_LOG(VIDEO, "Compiling line geometry shader for components 0x%.08X (num texcoords %d)",
 			components, xfregs.numTexGen.numTexGens);
 
+		const std::string& numTexCoordsStr = numTexCoordsStream.str();
 		D3D_SHADER_MACRO macros[] = {
-			{ "NUM_TEXCOORDS", numTexCoordsStr.str().c_str() },
+			{ "NUM_TEXCOORDS", numTexCoordsStr.c_str() },
 			{ NULL, NULL }
 		};
 		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code, unsigned int(strlen(code)), macros);

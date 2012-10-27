@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dialog.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: dialog.cpp 70511 2012-02-05 14:18:22Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -192,11 +192,6 @@ bool wxDialog::Show(bool show)
     }
 
     return true;
-}
-
-void wxDialog::Raise()
-{
-    ::SetForegroundWindow(GetHwnd());
 }
 
 // show dialog modally
@@ -420,7 +415,7 @@ WXLRESULT wxDialog::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPar
             }
 #endif // wxUSE_DIALOG_SIZEGRIP
 
-            // the Windows dialogs unfortunately are not meant to be resizeable
+            // the Windows dialogs unfortunately are not meant to be resizable
             // at all and their standard class doesn't include CS_[VH]REDRAW
             // styles which means that the window is not refreshed properly
             // after the resize and no amount of WS_CLIPCHILDREN/SIBLINGS can
@@ -443,7 +438,7 @@ WXLRESULT wxDialog::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPar
             {
                 // set our cursor for all windows (but see below)
                 wxCursor cursor = m_cursor;
-                if ( !cursor.Ok() )
+                if ( !cursor.IsOk() )
                     cursor = wxCURSOR_ARROW;
 
                 ::SetCursor(GetHcursorOf(cursor));

@@ -32,19 +32,19 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	{
 	case UCODE_ROM:
 		INFO_LOG(DSPHLE, "Switching to ROM ucode");
-		return new CUCode_Rom(dsp_hle);
+		return new CUCode_Rom(dsp_hle, _CRC);
       
 	case UCODE_INIT_AUDIO_SYSTEM:
 		INFO_LOG(DSPHLE, "Switching to INIT ucode");
-		return new CUCode_InitAudioSystem(dsp_hle);
+		return new CUCode_InitAudioSystem(dsp_hle, _CRC);
 
 	case 0x65d6cc6f: // CARD
 		INFO_LOG(DSPHLE, "Switching to CARD ucode");
-		return new CUCode_CARD(dsp_hle);
+		return new CUCode_CARD(dsp_hle, _CRC);
 
 	case 0xdd7e72d5:
 		INFO_LOG(DSPHLE, "Switching to GBA ucode");
-		return new CUCode_GBA(dsp_hle);
+		return new CUCode_GBA(dsp_hle, _CRC);
 
 	case 0x3ad3b7ac: // Naruto3, Paper Mario - The Thousand Year Door
 	case 0x3daf59b9: // Alien Hominid
@@ -103,6 +103,9 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AX.\n\nTry LLE emulator if this is homebrew.", _CRC);
 			return new CUCode_AX(dsp_hle, _CRC);
 		}
+
+	case UCODE_NULL:
+		break;
 	}
 
 	return NULL;
@@ -178,4 +181,12 @@ void IUCode::PrepareBootUCode(u32 mail)
 
 		m_DSPHLE->SwapUCode(ector_crc);
 	}
+}
+
+void IUCode::DoStateShared(PointerWrap &p)
+{
+	p.Do(m_UploadSetupInProgress);
+	p.Do(m_NextUCode);
+	p.Do(m_NextUCode_steps);
+	p.Do(m_NeedsResumeMail);
 }

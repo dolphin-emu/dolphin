@@ -37,6 +37,7 @@
 #include "CPUCoreBase.h"
 
 #include "../Host.h"
+#include "HW/EXI.h"
 
 CPUCoreBase *cpu_core_base;
 
@@ -74,13 +75,20 @@ void ExpandCR()
 
 void DoState(PointerWrap &p)
 {
-	rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
-	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
+	// some of this code has been disabled, because
+	// it changes registers even in MODE_MEASURE (which is suspicious and seems like it could cause desyncs)
+	// and because the values it's changing have been added to CoreTiming::DoState, so it might conflict to mess with them here.
+
+//	rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
+//	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
 
 	p.Do(ppcState);
 
-	SystemTimers::DecrementerSet();
-	SystemTimers::TimeBaseSet();
+//	SystemTimers::DecrementerSet();
+//	SystemTimers::TimeBaseSet();
+
+	if (jit && p.GetMode() == PointerWrap::MODE_READ)
+		jit->GetBlockCache()->ClearSafe();
 }
 
 void ResetRegisters()
@@ -146,6 +154,17 @@ void Init(int cpu_core)
 	//but still - set any useful sse options here
 #endif
 
+	memset(ppcState.mojs, 0, sizeof(ppcState.mojs));
+	memset(ppcState.sr, 0, sizeof(ppcState.sr));
+	ppcState.DebugCount = 0;
+	ppcState.dtlb_last = 0;
+	ppcState.dtlb_last = 0;
+	memset(ppcState.dtlb_va, 0, sizeof(ppcState.dtlb_va));
+	memset(ppcState.dtlb_pa, 0, sizeof(ppcState.dtlb_pa));
+	ppcState.itlb_last = 0;
+	memset(ppcState.itlb_va, 0, sizeof(ppcState.itlb_va));
+	memset(ppcState.itlb_pa, 0, sizeof(ppcState.itlb_pa));
+
 	ResetRegisters();
 	PPCTables::InitTables(cpu_core);
 
@@ -189,7 +208,7 @@ void Init(int cpu_core)
 	}
 	state = CPU_STEPPING;
 
-	ppcState.iCache.Reset();
+	ppcState.iCache.Init();
 }
 
 void Shutdown()
@@ -205,6 +224,11 @@ void Shutdown()
 	state = CPU_POWERDOWN;
 }
 
+CoreMode GetMode()
+{
+	return mode;
+}
+
 void SetMode(CoreMode new_mode)
 {
 	if (new_mode == mode)
@@ -215,7 +239,6 @@ void SetMode(CoreMode new_mode)
 	switch (mode)
 	{
 	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		jit->ClearCache();  // Remove all those nasty JIT patches.
 		cpu_core_base = interpreter;
 		break;
 
@@ -266,14 +289,73 @@ void Stop()
 	Host_UpdateDisasmDialog();
 }
 
+void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
+{
+	switch (MMCR0.PMC1SELECT)
+	{
+	case 0: // No change
+		break;
+	case 1: // Processor cycles
+		PowerPC::ppcState.spr[SPR_PMC1] += cycles;
+		break;
+	default:
+		break;
+	}
+
+	switch (MMCR0.PMC2SELECT)
+	{
+	case 0: // No change
+		break;
+	case 1: // Processor cycles
+		PowerPC::ppcState.spr[SPR_PMC2] += cycles;
+		break;
+	case 11: // Number of loads and stores completed
+		PowerPC::ppcState.spr[SPR_PMC2] += num_load_stores;
+		break;
+	default:
+		break;
+	}
+
+	switch (MMCR1.PMC3SELECT)
+	{
+	case 0: // No change
+		break;
+	case 1: // Processor cycles
+		PowerPC::ppcState.spr[SPR_PMC3] += cycles;
+		break;
+	case 11: // Number of FPU instructions completed
+		PowerPC::ppcState.spr[SPR_PMC3] += num_fp_inst;
+		break;
+	default:
+		break;
+	}
+
+	switch (MMCR1.PMC4SELECT)
+	{
+	case 0: // No change
+		break;
+	case 1: // Processor cycles
+		PowerPC::ppcState.spr[SPR_PMC4] += cycles;
+		break;
+	default:
+		break;
+	}
+
+	if ((MMCR0.PMC1INTCONTROL && (PowerPC::ppcState.spr[SPR_PMC1] & 0x80000000) != 0) ||
+		(MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC2] & 0x80000000) != 0) ||
+		(MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC3] & 0x80000000) != 0) ||
+		(MMCR0.PMCINTCONTROL && (PowerPC::ppcState.spr[SPR_PMC4] & 0x80000000) != 0))
+		PowerPC::ppcState.Exceptions |= EXCEPTION_PERFORMANCE_MONITOR;
+}
+
 void CheckExceptions()
 {
+	// Make sure we are checking against the latest EXI status. This is required
+	// for devices which interrupt frequently, such as the gc mic
+	ExpansionInterface::UpdateInterrupts();
+
 	// Read volatile data once
 	u32 exceptions = ppcState.Exceptions;
-
-	// This check is unnecessary in JIT mode. However, it probably doesn't really hurt.
-	if (!exceptions)
-		return;
 
 	// Example procedure:
 	// set SRR0 to either PC or NPC
@@ -285,7 +367,7 @@ void CheckExceptions()
 	// clear MSR as specified
 	//MSR &= ~0x04EF36; // 0x04FF36 also clears ME (only for machine check exception)
 	// set to exception type entry point
-	//NPC = 0x80000x00;
+	//NPC = 0x00000x00;
 
 	if (exceptions & EXCEPTION_ISI)
 	{
@@ -294,7 +376,7 @@ void CheckExceptions()
 		SRR1 = (MSR & 0x87C0FFFF) | (1 << 30);
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x80000400;
+		PC = NPC = 0x00000400;
 
 		INFO_LOG(POWERPC, "EXCEPTION_ISI");
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_ISI);
@@ -303,10 +385,10 @@ void CheckExceptions()
 	{
 		SRR0 = PC;
 		// say that it's a trap exception
-		SRR1 = (MSR & 0x87C0FFFF) | 0x40000;
+		SRR1 = (MSR & 0x87C0FFFF) | 0x20000;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x80000700;
+		PC = NPC = 0x00000700;
 
 		INFO_LOG(POWERPC, "EXCEPTION_PROGRAM");
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_PROGRAM);
@@ -317,7 +399,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x80000C00;
+		PC = NPC = 0x00000C00;
 
 		INFO_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_SYSCALL);
@@ -329,7 +411,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x80000800;
+		PC = NPC = 0x00000800;
 
 		INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_FPU_UNAVAILABLE);
@@ -340,7 +422,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x80000300;
+		PC = NPC = 0x00000300;
 		//DSISR and DAR regs are changed in GenerateDSIException()
 
 		INFO_LOG(POWERPC, "EXCEPTION_DSI");
@@ -354,7 +436,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
-		NPC = 0x80000600;
+		PC = NPC = 0x00000600;
 
 		//TODO crazy amount of DSISR options to check out
 
@@ -372,12 +454,23 @@ void CheckExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
-			NPC = 0x80000500;
+			PC = NPC = 0x00000500;
 
 			INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
 			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
 
 			_dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
+		}
+		else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
+		{
+			SRR0 = NPC;
+			SRR1 = MSR & 0x87C0FFFF;
+			MSR |= (MSR >> 16) & 1;
+			MSR &= ~0x04EF36;
+			PC = NPC = 0x00000F00;
+
+			INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
+			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_PERFORMANCE_MONITOR);
 		}
 		else if (exceptions & EXCEPTION_DECREMENTER)
 		{
@@ -385,7 +478,54 @@ void CheckExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
-			NPC = 0x80000900;
+			PC = NPC = 0x00000900;
+
+			INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
+			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_DECREMENTER);
+		}
+	}
+}
+
+void CheckExternalExceptions()
+{
+	// Read volatile data once
+	u32 exceptions = ppcState.Exceptions;
+
+	// EXTERNAL INTERRUPT
+	if (MSR & 0x0008000) //hacky...the exception shouldn't be generated if EE isn't set...
+	{
+		if (exceptions & EXCEPTION_EXTERNAL_INT)
+		{
+			// Pokemon gets this "too early", it hasn't a handler yet
+			SRR0 = NPC;
+			SRR1 = MSR & 0x87C0FFFF;
+			MSR |= (MSR >> 16) & 1;
+			MSR &= ~0x04EF36;
+			PC = NPC = 0x00000500;
+
+			INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
+			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_EXTERNAL_INT);
+
+			_dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
+		}
+		else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
+		{
+			SRR0 = NPC;
+			SRR1 = MSR & 0x87C0FFFF;
+			MSR |= (MSR >> 16) & 1;
+			MSR &= ~0x04EF36;
+			PC = NPC = 0x00000F00;
+
+			INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
+			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_PERFORMANCE_MONITOR);
+		}
+		else if (exceptions & EXCEPTION_DECREMENTER)
+		{
+			SRR0 = NPC;
+			SRR1 = MSR & 0x87C0FFFF;
+			MSR |= (MSR >> 16) & 1;
+			MSR &= ~0x04EF36;
+			PC = NPC = 0x00000900;
 
 			INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
 			Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_DECREMENTER);

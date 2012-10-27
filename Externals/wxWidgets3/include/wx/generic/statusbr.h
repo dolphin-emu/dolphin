@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 05.02.00 to derive from wxStatusBarBase
 // Created:     01/02/97
-// RCS-ID:      $Id: statusbr.h 61624 2009-08-06 00:01:43Z VZ $
+// RCS-ID:      $Id: statusbr.h 67384 2011-04-03 20:31:32Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ protected:
     virtual void InitColours();
 
     // true if the status bar shows the size grip: for this it must have
-    // wxSTB_SIZEGRIP style and the window it is attached to must be resizeable
+    // wxSTB_SIZEGRIP style and the window it is attached to must be resizable
     // and not maximized
     bool ShowsSizeGrip() const;
 

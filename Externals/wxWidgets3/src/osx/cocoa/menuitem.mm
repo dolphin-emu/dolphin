@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menuitem.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: menuitem.mm 69205 2011-09-27 07:21:44Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,8 +33,11 @@ struct Mapping
 
 Mapping sActionToWXMapping[] =
 {
+// as we don't have NSUndoManager support we must not use the native actions
+#if 0
     { wxID_UNDO, @selector(undo:) },
     { wxID_REDO, @selector(redo:) },
+#endif
     { wxID_CUT, @selector(cut:) },
     { wxID_COPY, @selector(copy:) },
     { wxID_PASTE, @selector(paste:) },
@@ -74,8 +77,8 @@ SEL wxOSXGetSelectorFromID(int menuId )
 
 - (id) initWithTitle:(NSString *)aString action:(SEL)aSelector keyEquivalent:(NSString *)charCode
 {
-    [super initWithTitle:aString action:aSelector keyEquivalent:charCode];
-     return self;
+    self = [super initWithTitle:aString action:aSelector keyEquivalent:charCode];
+    return self;
 }
 
 - (void) clickedAction: (id) sender
@@ -100,8 +103,12 @@ SEL wxOSXGetSelectorFromID(int menuId )
     wxUnusedVar(menuItem);
     if( impl )
     {
-        if ( impl->GetWXPeer()->GetMenu()->HandleCommandUpdateStatus(impl->GetWXPeer()) )
-            return impl->GetWXPeer()->IsEnabled();
+        wxMenuItem* wxmenuitem = impl->GetWXPeer();
+        if ( wxmenuitem )
+        {
+            wxmenuitem->GetMenu()->HandleCommandUpdateStatus(wxmenuitem);
+            return wxmenuitem->IsEnabled();
+        }
     }
     return YES ;
 }
@@ -120,6 +127,12 @@ SEL wxOSXGetSelectorFromID(int menuId )
 
 void wxMacCocoaMenuItemSetAccelerator( NSMenuItem* menuItem, wxAcceleratorEntry* entry )
 {
+    if ( entry == NULL )
+    {
+        [menuItem setKeyEquivalent:@""];
+        return;
+    }
+         
     unsigned int modifiers = 0 ;
     int key = entry->GetKeyCode() ;
     if ( key )
@@ -127,6 +140,9 @@ void wxMacCocoaMenuItemSetAccelerator( NSMenuItem* menuItem, wxAcceleratorEntry*
         if (entry->GetFlags() & wxACCEL_CTRL)
             modifiers |= NSCommandKeyMask;
 
+        if (entry->GetFlags() & wxACCEL_RAW_CTRL)
+            modifiers |= NSControlKeyMask;
+        
         if (entry->GetFlags() & wxACCEL_ALT)
             modifiers |= NSAlternateKeyMask ;
 
@@ -256,9 +272,7 @@ public :
         wxCFStringRef cfText(text);
         [m_osxMenuItem setTitle:cfText.AsNSString()];
 
-        if ( entry )
-            wxMacCocoaMenuItemSetAccelerator( m_osxMenuItem, entry );
-
+        wxMacCocoaMenuItemSetAccelerator( m_osxMenuItem, entry );
     }
     
     bool DoDefault();
@@ -320,7 +334,7 @@ wxMenuItemImpl* wxMenuItemImpl::Create( wxMenuItem* peer, wxMenu *pParentMenu,
         wxCFStringRef cfText(text);
         SEL selector = nil;
         bool targetSelf = false;
-        if ( ! pParentMenu->GetNoEventsMode() && pSubMenu == NULL )
+        if ( (pParentMenu == NULL || !pParentMenu->GetNoEventsMode()) && pSubMenu == NULL )
         {
             selector = wxOSXGetSelectorFromID(menuid);
             
@@ -342,8 +356,7 @@ wxMenuItemImpl* wxMenuItemImpl::Create( wxMenuItem* peer, wxMenu *pParentMenu,
         }
         else
         {
-            if ( entry )
-                wxMacCocoaMenuItemSetAccelerator( menuitem, entry );
+            wxMacCocoaMenuItemSetAccelerator( menuitem, entry );
         }
         item = menuitem;
     }

@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     28/06/98
-// RCS-ID:      $Id: txtstrm.cpp 63244 2010-01-24 10:13:33Z VZ $
+// RCS-ID:      $Id: txtstrm.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -336,7 +336,7 @@ wxTextOutputStream::wxTextOutputStream(wxOutputStream& s, wxEOL mode)
     m_mode = mode;
     if (m_mode == wxEOL_NATIVE)
     {
-#if defined(__WXMSW__) || defined(__WXPM__)
+#if defined(__WINDOWS__) || defined(__WXPM__)
         m_mode = wxEOL_DOS;
 #else
         m_mode = wxEOL_UNIX;
@@ -356,7 +356,7 @@ void wxTextOutputStream::SetMode(wxEOL mode)
     m_mode = mode;
     if (m_mode == wxEOL_NATIVE)
     {
-#if defined(__WXMSW__) || defined(__WXPM__)
+#if defined(__WINDOWS__) || defined(__WXPM__)
         m_mode = wxEOL_DOS;
 #else
         m_mode = wxEOL_UNIX;

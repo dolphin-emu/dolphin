@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.07.99
-// RCS-ID:      $Id: control.h 67062 2011-02-27 12:48:07Z VZ $
+// RCS-ID:      $Id: control.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -221,8 +221,6 @@ protected:
 
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/control.h"
-#elif defined(__WXPALMOS__)
-    #include "wx/palmos/control.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/control.h"
 #elif defined(__WXMOTIF__)

@@ -276,12 +276,6 @@ void JitIL::Init()
 			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
 	}
 
-#ifdef _M_X64
-	jo.enableFastMem = false;
-#else
-	jo.enableFastMem = false;
-#endif
-	jo.assumeFPLoadFromMem = Core::g_CoreStartupParameter.bUseFastMem;
 	jo.fpAccurateFcmp = false;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
@@ -396,6 +390,10 @@ void JitIL::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+
+	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
+	if (MMCR0.Hex || MMCR1.Hex)
+		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
 void JitIL::WriteExit(u32 destination, int exit_num)
@@ -494,7 +492,7 @@ void JitIL::Trace()
 	}
 #endif	
 
-	NOTICE_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
+	DEBUG_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
 		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], 
 		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, 
 		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
@@ -524,12 +522,19 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
-		blockSize = 1;
-		Trace();
+		if (!Profiler::g_ProfileBlocks)
+		{
+			if (GetState() == CPU_STEPPING)
+				blockSize = 1;
+			Trace();
+		}
 	}
 
 	if (em_address == 0)
-		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
+	{
+		// Memory exception occurred during instruction fetch
+		memory_exception = true;
+	}
 
 	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
 	{
@@ -546,6 +551,8 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
 	js.cancel = false;
+	jit->js.numLoadStoreInst = 0;
+	jit->js.numFloatingPointInst = 0;
 
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
@@ -646,15 +653,31 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 			{
-				ibuild.EmitFPExceptionCheckStart(ibuild.EmitIntConst(ops[i].address));
+				ibuild.EmitFPExceptionCheck(ibuild.EmitIntConst(ops[i].address));
+			}
+
+			if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
+			{
+				ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
+			}
+
+			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			{
+				ibuild.EmitBreakPointCheck(ibuild.EmitIntConst(ops[i].address));
 			}
 			
 			JitILTables::CompileInstruction(ops[i]);
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
-				ibuild.EmitFPExceptionCheckEnd(ibuild.EmitIntConst(ops[i].address));
+				ibuild.EmitDSIExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
+
+			if (opinfo->flags & FL_LOADSTORE)
+				++jit->js.numLoadStoreInst;
+
+			if (opinfo->flags & FL_USE_FPU)
+				++jit->js.numFloatingPointInst;
 		}
 	}
 

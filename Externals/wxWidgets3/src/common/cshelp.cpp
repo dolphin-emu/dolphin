@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     08/09/2000
-// RCS-ID:      $Id: cshelp.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: cshelp.cpp 68859 2011-08-23 04:55:46Z DS $
 // Copyright:   (c) 2000 Julian Smart, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -284,7 +284,7 @@ wxContextHelpButton::wxContextHelpButton(wxWindow* parent,
                                          long style)
 #if defined(__WXPM__)
                    : wxBitmapButton(parent, id, wxBitmap(wxCSQUERY_BITMAP
-                                                         ,wxBITMAP_TYPE_RESOURCE
+                                                         ,wxBITMAP_TYPE_BMP_RESOURCE
                                                         ),
                                     pos, size, style)
 #else

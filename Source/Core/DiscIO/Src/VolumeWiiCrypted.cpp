@@ -17,6 +17,7 @@
 
 #include "VolumeWiiCrypted.h"
 #include "StringUtil.h"
+#include "Crypto/sha1.h"
 
 namespace DiscIO
 {
@@ -230,6 +231,70 @@ u64 CVolumeWiiCrypted::GetSize() const
 	{
 		return 0;
 	}
+}
+
+bool CVolumeWiiCrypted::CheckIntegrity() const
+{
+	// Get partition data size
+	u32 partSizeDiv4;
+	RAWRead(m_VolumeOffset + 0x2BC, 4, (u8*)&partSizeDiv4);
+	u64 partDataSize = (u64)Common::swap32(partSizeDiv4) * 4;
+
+	u32 nClusters = (u32)(partDataSize / 0x8000);
+	for (u32 clusterID = 0; clusterID < nClusters; ++clusterID)
+	{
+		u64 clusterOff = m_VolumeOffset + dataOffset + (u64)clusterID * 0x8000;
+
+		// Read and decrypt the cluster metadata
+		u8 clusterMDCrypted[0x400];
+		u8 clusterMD[0x400];
+		u8 IV[16] = { 0 };
+		if (!m_pReader->Read(clusterOff, 0x400, clusterMDCrypted))
+		{
+			NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", clusterID);
+			return false;
+		}
+		AES_cbc_encrypt(clusterMDCrypted, clusterMD, 0x400, &m_AES_KEY, IV, AES_DECRYPT);
+
+		// Some clusters have invalid data and metadata because they aren't
+		// meant to be read by the game (for example, holes between files). To
+		// try to avoid reporting errors because of these clusters, we check
+		// the 0x00 paddings in the metadata.
+		//
+		// This may cause some false negatives though: some bad clusters may be
+		// skipped because they are *too* bad and are not even recognized as
+		// valid clusters. To be improved.
+		bool meaningless = false;
+		for (u32 idx = 0x26C; idx < 0x280; ++idx)
+			if (clusterMD[idx] != 0)
+				meaningless = true;
+
+		if (meaningless)
+			continue;
+
+		u8 clusterData[0x7C00];
+		if (!Read((u64)clusterID * 0x7C00, 0x7C00, clusterData))
+		{
+			NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read data", clusterID);
+			return false;
+		}
+
+		for (u32 hashID = 0; hashID < 31; ++hashID)
+		{
+			u8 hash[20];
+
+			sha1(clusterData + hashID * 0x400, 0x400, hash);
+
+			// Note that we do not use strncmp here
+			if (memcmp(hash, clusterMD + hashID * 20, 20))
+			{
+				NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: hash %d is invalid", clusterID, hashID);
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 } // namespace

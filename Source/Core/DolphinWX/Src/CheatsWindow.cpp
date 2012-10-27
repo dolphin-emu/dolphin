@@ -443,7 +443,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 		if (filter_mask != 7) // don't need the value for the "None" filter
 		{
 			unsigned long parsed_x_val = 0;
-			wxString x_val = textctrl_value_x->GetLabel();
+			wxString x_val = textctrl_value_x->GetValue();
 
 			if (!x_val.ToULong(&parsed_x_val, 0))
 			{
@@ -494,8 +494,9 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	UpdateCheatSearchResultsList();
 }
 
-void CheatSearchTab::ApplyFocus(wxCommandEvent&)
+void CheatSearchTab::ApplyFocus(wxCommandEvent& ev)
 {
+	ev.Skip(true);
 	value_x_radiobtn.rad_uservalue->SetValue(true);
 }
 

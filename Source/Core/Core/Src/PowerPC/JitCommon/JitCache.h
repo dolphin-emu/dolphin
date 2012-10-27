@@ -18,12 +18,16 @@
 #ifndef _JITCACHE_H
 #define _JITCACHE_H
 
+#include <bitset>
 #include <map>
 #include <vector>
 
 #include "../Gekko.h"
 #include "../PPCAnalyst.h"
 
+// Define this in order to get VTune profile support for the Jit generated code.
+// Add the VTune include/lib directories to the project directories to get this to build.
+// #define USE_VTUNE
 
 // emulate CPU with unlimited instruction cache
 // the only way to invalidate a region is the "icbi" instruction
@@ -39,12 +43,13 @@
 #define JIT_ICACHE_INVALID_BYTE 0x14
 #define JIT_ICACHE_INVALID_WORD 0x14141414
 
-// TODO(ector) - optimize this struct for size
 struct JitBlock
 {
+	const u8 *checkedEntry;
+	const u8 *normalEntry;
+
+	u8 *exitPtrs[2];     // to be able to rewrite the exit jum
 	u32 exitAddress[2];  // 0xFFFFFFFF == unknown
-	u8 *exitPtrs[2];     // to be able to rewrite the exit jump
-	bool linkStatus[2];
 
 	u32 originalAddress;
 	u32 originalFirstOpcode; //to be able to restore
@@ -52,6 +57,11 @@ struct JitBlock
 	u32 originalSize;
 	int runCount;  // for profiling.
 	int blockNum;
+	int flags;
+
+	bool invalid;
+	bool linkStatus[2];
+	bool ContainsAddress(u32 em_address);
 
 #ifdef _WIN32
 	// we don't really need to save start and stop
@@ -60,12 +70,10 @@ struct JitBlock
 	u64 ticStop;		// for profiling - time.
 	u64 ticCounter;	// for profiling - time.
 #endif
-	const u8 *checkedEntry;
-	const u8 *normalEntry;
-	bool invalid;
-	int flags;
 
-	bool ContainsAddress(u32 em_address);
+#ifdef USE_VTUNE
+	char blockName[32];
+#endif
 };
 
 typedef void (*CompiledCode)();
@@ -77,6 +85,7 @@ class JitBlockCache
 	int num_blocks;
 	std::multimap<u32, int> links_to;
 	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
+	std::bitset<0x20000000 / 32> valid_block;
 #ifdef JIT_UNLIMITED_ICACHE
 	u8 *iCache;
 	u8 *iCacheEx;
@@ -87,6 +96,7 @@ class JitBlockCache
 	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
 	void LinkBlockExits(int i);
 	void LinkBlock(int i);
+	void UnlinkBlock(int i);
 
 public:
 	JitBlockCache() :
@@ -129,7 +139,7 @@ public:
 	CompiledCode GetCompiledCodeFromBlock(int block_num);
 
 	// DOES NOT WORK CORRECTLY WITH INLINING
-	void InvalidateICache(u32 em_address);
+	void InvalidateICache(u32 address, const u32 length);
 	void DestroyBlock(int block_num, bool invalidate);
 
 	// Not currently used

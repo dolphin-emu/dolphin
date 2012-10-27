@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxNotificationMessage for Windows
 // Author:      Vadim Zeitlin
 // Created:     2007-12-01
-// RCS-ID:      $Id: notifmsg.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: notifmsg.cpp 69379 2011-10-11 17:08:02Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -134,11 +134,6 @@ public:
 
     // can't close automatic notification [currently]
     virtual bool DoClose() { return false; }
-
-private:
-    // custom event handler connected to m_icon which will receive the icon
-    // close event and delete it and itself when it happens
-    wxEvtHandler * const m_iconEvtHandler;
 };
 
 // implementation for manually closed notifications
@@ -356,9 +351,14 @@ bool wxManualNotifMsgImpl::DoClose()
 // ----------------------------------------------------------------------------
 
 wxAutoNotifMsgImpl::wxAutoNotifMsgImpl(wxWindow *win)
-                  : wxBalloonNotifMsgImpl(win),
-                    m_iconEvtHandler(new wxNotificationIconEvtHandler(m_icon))
+                  : wxBalloonNotifMsgImpl(win)
 {
+    if ( m_ownsIcon )
+    {
+        // This object will self-destruct and also delete the icon when the
+        // notification is hidden.
+        new wxNotificationIconEvtHandler(m_icon);
+    }
 }
 
 bool

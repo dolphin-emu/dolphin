@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.cpp 67243 2011-03-19 08:36:23Z SC $
+// RCS-ID:      $Id: window.cpp 69440 2011-10-16 15:59:31Z SJL $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -585,7 +585,7 @@ wxMacWindowServiceEventHandler(EventHandlerCallRef WXUNUSED(handler),
     return result ;
 }
 
-pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef handler , EventRef event , void *data )
+WXDLLEXPORT pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef handler , EventRef event , void *data )
 {
     OSStatus result = eventNotHandledErr ;
     wxWindowMac* focus = (wxWindowMac*) data ;

@@ -34,6 +34,7 @@ public:
 	virtual bool IsLLE() { return false; }
 
 	virtual void DoState(PointerWrap &p);
+	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 
 	virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short);
 	virtual void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short);
@@ -55,6 +56,7 @@ public:
 
 private:
 	void SendMailToDSP(u32 _uMail);
+	void InitMixer();
 
 	// Declarations and definitions
 	void *m_hWnd;

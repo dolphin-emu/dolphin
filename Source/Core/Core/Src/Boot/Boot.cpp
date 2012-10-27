@@ -19,6 +19,7 @@
 #include "Common.h" // Common
 #include "StringUtil.h"
 #include "FileUtil.h"
+#include "MathUtil.h"
 
 #include "../HLE/HLE.h" // Core
 #include "../PowerPC/PowerPC.h"
@@ -68,13 +69,13 @@ void CBoot::Load_FST(bool _bIsWii)
 	u32 fstSize    = VolumeHandler::Read32(0x0428) << shift;
 	u32 maxFstSize = VolumeHandler::Read32(0x042c) << shift;
 
-	u32 arenaHigh = 0x817FFFF4 - maxFstSize;
+	u32 arenaHigh = ROUND_DOWN(0x817FFFFF - maxFstSize, 0x20);
 	Memory::Write_U32(arenaHigh, 0x00000034);
 
 	// load FST
 	VolumeHandler::ReadToPtr(Memory::GetPointer(arenaHigh), fstOffset, fstSize);
 	Memory::Write_U32(arenaHigh, 0x00000038);
-	Memory::Write_U32(maxFstSize, 0x0000003c);		
+	Memory::Write_U32(maxFstSize, 0x0000003c);
 }
 
 void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
@@ -195,10 +196,13 @@ bool CBoot::BootUp()
 
 	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
 
-	// HLE jump to loader (homebrew)
-	HLE::Patch(0x80001800, "HBReload");
-	const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };
-	Memory::WriteBigEData(stubstr, 0x80001804, 8);
+	// HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code handler
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	{
+		HLE::Patch(0x80001800, "HBReload");
+		const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };
+		Memory::WriteBigEData(stubstr, 0x80001804, 8);
+	}
 
 	g_symbolDB.Clear();
 	VideoInterface::Preset(_StartupPara.bNTSC);
@@ -224,7 +228,9 @@ bool CBoot::BootUp()
 		// setup the map from ISOFile ID
 		VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
 
-		VideoInterface::SetRegionReg((char)VolumeHandler::GetVolume()->GetUniqueID().at(3));
+		std::string unique_id = VolumeHandler::GetVolume()->GetUniqueID();
+		if (unique_id.size() >= 4)
+			VideoInterface::SetRegionReg(unique_id.at(3));
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 

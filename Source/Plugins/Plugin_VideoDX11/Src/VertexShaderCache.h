@@ -18,12 +18,12 @@
 #ifndef _VERTEXSHADERCACHE_H
 #define _VERTEXSHADERCACHE_H
 
-#include <map>
+#include "VertexShaderGen.h"
 
 #include "D3DBase.h"
 #include "D3DBlob.h"
 
-class VERTEXSHADERUID;
+#include <map>
 
 namespace DX11 {
 
@@ -51,9 +51,11 @@ private:
 	{ 
 		ID3D11VertexShader* shader;
 		D3DBlob* bytecode; // needed to initialize the input layout
-		int frameCount;
 
-		VSCacheEntry() : shader(NULL), bytecode(NULL), frameCount(0) {}
+		VERTEXSHADERUIDSAFE safe_uid;
+		std::string code;
+
+		VSCacheEntry() : shader(NULL), bytecode(NULL) {}
 		void SetByteCode(D3DBlob* blob)
 		{
 			SAFE_RELEASE(bytecode);
@@ -70,6 +72,7 @@ private:
 	
 	static VSCache vshaders;
 	static const VSCacheEntry* last_entry;
+	static VERTEXSHADERUID last_uid;
 };
 
 }  // namespace DX11

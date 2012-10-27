@@ -46,9 +46,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Makefile" />
     <None Include="..\CMakeLists.txt" />
-    <None Include="..\SConscript" />
     <None Include="generateClRun.pl">
       <Filter>Resource Files</Filter>
     </None>

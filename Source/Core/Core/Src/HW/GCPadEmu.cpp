@@ -25,7 +25,8 @@ const u16 button_bitmasks[] =
 	PAD_BUTTON_X,
 	PAD_BUTTON_Y,
 	PAD_TRIGGER_Z,
-	PAD_BUTTON_START
+	PAD_BUTTON_START,
+	0	// MIC HAX
 };
 
 const u16 trigger_bitmasks[] =
@@ -47,6 +48,7 @@ const char* const named_buttons[] =
 	"Y",
 	"Z",
 	_trans("Start"),
+	"Mic"
 };
 
 const char* const named_triggers[] =
@@ -63,10 +65,11 @@ const char* const named_triggers[] =
 
 GCPad::GCPad(const unsigned int index) : m_index(index)
 {
+	int const mic_hax = index > 1;
 
 	// buttons
 	groups.push_back(m_buttons = new Buttons(_trans("Buttons")));
-	for (unsigned int i=0; i < sizeof(named_buttons)/sizeof(*named_buttons); ++i)
+	for (unsigned int i=0; i < sizeof(named_buttons)/sizeof(*named_buttons) - mic_hax; ++i)
 		m_buttons->controls.push_back(new ControlGroup::Input(named_buttons[i]));
 
 	// sticks
@@ -202,4 +205,9 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 	// Triggers
 	set_control(m_triggers, 0, "Q");	// L
 	set_control(m_triggers, 1, "W");	// R
+}
+
+bool GCPad::GetMicButton() const
+{
+	return m_buttons->controls.back()->control_ref->State();
 }

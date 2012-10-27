@@ -93,8 +93,6 @@ public:
 
 	virtual bool Initialize(void *&) = 0;
 	virtual void Shutdown() = 0;
-
-	virtual void DoState(PointerWrap &p) = 0;
 	virtual void RunLoop(bool enable) = 0;
 
 	virtual std::string GetName() = 0;
@@ -119,6 +117,7 @@ public:
 	virtual void Video_GatherPipeBursted() = 0;
 
 	virtual bool Video_IsPossibleWaitingSetDrawDone() = 0;
+	virtual bool Video_IsHiWatermarkActive() = 0;
 	virtual void Video_AbortFrame() = 0;
 
 	virtual readFn16  Video_CPRead16() = 0;
@@ -130,6 +129,14 @@ public:
 	static void PopulateList();
 	static void ClearList();
 	static void ActivateBackend(const std::string& name);
+
+	// waits until is paused and fully idle, and acquires a lock on that state.
+	// or, if doLock is false, releases a lock on that state and optionally unpauses.
+	// calls must be balanced and non-recursive (once with doLock true, then once with doLock false).
+	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) = 0;
+
+	// the implementation needs not do synchronization logic, because calls to it are surrounded by PauseAndLock now
+	virtual void DoState(PointerWrap &p) = 0;
 };
 
 extern std::vector<VideoBackend*> g_available_video_backends;
@@ -138,8 +145,8 @@ extern VideoBackend* g_video_backend;
 // inherited by dx9/dx11/ogl backends
 class VideoBackendHardware : public VideoBackend
 {
-	void DoState(PointerWrap &p);
 	void RunLoop(bool enable);
+	bool Initialize(void *&) { InitializeShared(); return true; }
 
 	void EmuStateChange(EMUSTATE_CHANGE);
 
@@ -158,6 +165,7 @@ class VideoBackendHardware : public VideoBackend
 	void Video_GatherPipeBursted();
 
 	bool Video_IsPossibleWaitingSetDrawDone();
+	bool Video_IsHiWatermarkActive();
 	void Video_AbortFrame();
 
 	readFn16  Video_CPRead16();
@@ -165,6 +173,12 @@ class VideoBackendHardware : public VideoBackend
 	readFn16  Video_PERead16();
 	writeFn16 Video_PEWrite16();
 	writeFn32 Video_PEWrite32();
+
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
+	void DoState(PointerWrap &p);
+
+protected:
+	void InitializeShared();
 };
 
 #endif

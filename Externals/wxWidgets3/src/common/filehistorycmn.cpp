@@ -3,7 +3,7 @@
 // Purpose:     wxFileHistory class
 // Author:      Julian Smart, Vaclav Slavik, Vadim Zeitlin
 // Created:     2010-05-03
-// RCS-ID:      $Id: filehistorycmn.cpp 64240 2010-05-07 06:45:48Z VS $
+// RCS-ID:      $Id: filehistorycmn.cpp 70503 2012-02-03 17:27:13Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,15 +68,36 @@ wxFileHistoryBase::wxFileHistoryBase(size_t maxFiles, wxWindowID idBase)
     m_idBase = idBase;
 }
 
+/* static */
+wxString wxFileHistoryBase::NormalizeFileName(const wxFileName& fn)
+{
+    // We specifically exclude wxPATH_NORM_LONG here as it can take a long time
+    // (several seconds) for network file paths under MSW, resulting in huge
+    // delays when opening a program using wxFileHistory. We also exclude
+    // wxPATH_NORM_ENV_VARS as the file names here are supposed to be "real"
+    // file names and not have any environment variables in them.
+    wxFileName fnNorm(fn);
+    fnNorm.Normalize(wxPATH_NORM_DOTS |
+                     wxPATH_NORM_TILDE |
+                     wxPATH_NORM_CASE |
+                     wxPATH_NORM_ABSOLUTE);
+    return fnNorm.GetFullPath();
+}
+
 void wxFileHistoryBase::AddFileToHistory(const wxString& file)
 {
-    // check if we don't already have this file
+    // Check if we don't already have this file. Notice that we avoid
+    // wxFileName::operator==(wxString) here as it converts the string to
+    // wxFileName and then normalizes it using all normalizations which is too
+    // slow (see the comment above), so we use our own quick normalization
+    // functions and a string comparison.
     const wxFileName fnNew(file);
+    const wxString newFile = NormalizeFileName(fnNew);
     size_t i,
            numFiles = m_fileHistory.size();
     for ( i = 0; i < numFiles; i++ )
     {
-        if ( fnNew == m_fileHistory[i] )
+        if ( newFile == NormalizeFileName(m_fileHistory[i]) )
         {
             // we do have it, move it to the top of the history
             RemoveFileFromHistory(i);

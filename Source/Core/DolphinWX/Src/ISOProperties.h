@@ -74,7 +74,7 @@ private:
 	// Wii
 	wxCheckBox *EnableProgressiveScan, *EnableWideScreen, *DisableWiimoteSpeaker;
 	// Video
-	wxCheckBox *UseZTPSpeedupHack, *PHackEnable;
+	wxCheckBox *UseZTPSpeedupHack, *PHackEnable, *UseBBox;
 	wxButton *PHSettings;
 
 	wxArrayString arrayStringFor_EmuState;
@@ -133,6 +133,7 @@ private:
 		ID_DISCSPEED,
 		ID_MERGEBLOCKS,
 		ID_AUDIO_DSP_HLE,
+		ID_USE_BBOX,
 		ID_ZTP_SPEEDUP,
 		ID_PHACKENABLE,
 		ID_PHSETTINGS,
@@ -169,6 +170,7 @@ private:
 		IDM_EXTRACTFILE,
 		IDM_EXTRACTAPPLOADER,
 		IDM_EXTRACTDOL,
+		IDM_CHECKINTEGRITY,
 		IDM_BNRSAVEAS
 	};
 
@@ -185,6 +187,7 @@ private:
 	void OnExtractFile(wxCommandEvent& event);
 	void OnExtractDir(wxCommandEvent& event);
 	void OnExtractDataFromHeader(wxCommandEvent& event);
+	void CheckPartitionIntegrity(wxCommandEvent& event);
 	void SetRefresh(wxCommandEvent& event);
 	void OnChangeBannerLang(wxCommandEvent& event);
 	void PHackButtonClicked(wxCommandEvent& event);

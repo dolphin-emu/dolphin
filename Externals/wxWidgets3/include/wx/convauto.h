@@ -3,7 +3,7 @@
 // Purpose:     wxConvAuto class declaration
 // Author:      Vadim Zeitlin
 // Created:     2006-04-03
-// RCS-ID:      $Id: convauto.h 63991 2010-04-16 10:43:18Z VS $
+// RCS-ID:      $Id: convauto.h 69675 2011-11-05 11:23:41Z VZ $
 // Copyright:   (c) 2006 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,6 +17,18 @@
 // ----------------------------------------------------------------------------
 // wxConvAuto: uses BOM to automatically detect input encoding
 // ----------------------------------------------------------------------------
+
+// All currently recognized BOM values.
+enum wxBOM
+{
+    wxBOM_Unknown = -1,
+    wxBOM_None,
+    wxBOM_UTF32BE,
+    wxBOM_UTF32LE,
+    wxBOM_UTF16BE,
+    wxBOM_UTF16LE,
+    wxBOM_UTF8
+};
 
 class WXDLLIMPEXP_BASE wxConvAuto : public wxMBConv
 {
@@ -69,29 +81,27 @@ public:
 
     virtual wxMBConv *Clone() const { return new wxConvAuto(*this); }
 
-private:
-    // all currently recognized BOM values
-    enum BOMType
-    {
-        BOM_Unknown = -1,
-        BOM_None,
-        BOM_UTF32BE,
-        BOM_UTF32LE,
-        BOM_UTF16BE,
-        BOM_UTF16LE,
-        BOM_UTF8
-    };
-
     // return the BOM type of this buffer
-    static BOMType DetectBOM(const char *src, size_t srcLen);
+    static wxBOM DetectBOM(const char *src, size_t srcLen);
 
+    // return the characters composing the given BOM.
+    static const char* GetBOMChars(wxBOM bomType, size_t* count);
+
+    wxBOM GetBOM() const
+    {
+        return m_bomType;
+    }
+
+private:
     // common part of all ctors
     void Init()
     {
-        // no need to initialize m_bomType and m_consumedBOM here, this will be
-        // done when m_conv is created
+        // We don't initialize m_encDefault here as different ctors do it
+        // differently.
         m_conv = NULL;
+        m_bomType = wxBOM_Unknown;
         m_ownsConv = false;
+        m_consumedBOM = false;
     }
 
     // initialize m_conv with the UTF-8 conversion
@@ -102,7 +112,7 @@ private:
     }
 
     // create the correct conversion object for the given BOM type
-    void InitFromBOM(BOMType bomType);
+    void InitFromBOM(wxBOM bomType);
 
     // create the correct conversion object for the BOM present in the
     // beginning of the buffer
@@ -128,7 +138,7 @@ private:
     wxFontEncoding m_encDefault;
 
     // our BOM type
-    BOMType m_bomType;
+    wxBOM m_bomType;
 
     // true if we allocated m_conv ourselves, false if we just use an existing
     // global conversion

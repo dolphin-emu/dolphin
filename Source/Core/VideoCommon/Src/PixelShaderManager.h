@@ -22,6 +22,8 @@
 #include "XFMemory.h"
 #include "PixelShaderGen.h"
 
+class PointerWrap;
+
 // The non-API dependent parts.
 class PixelShaderManager
 {
@@ -30,6 +32,7 @@ public:
 	static void Init();
 	static void Dirty();
 	static void Shutdown();
+	static void DoState(PointerWrap &p);
 
 	static void SetConstants(); // sets pixel shader constants
 

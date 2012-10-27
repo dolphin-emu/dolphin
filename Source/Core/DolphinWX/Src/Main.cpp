@@ -115,37 +115,37 @@ bool DolphinApp::OnInit()
 	wxCmdLineEntryDesc cmdLineDesc[] =
 	{
 		{
-			wxCMD_LINE_SWITCH, wxS("h"), wxS("help"),
+			wxCMD_LINE_SWITCH, "h", "help",
 			_("Show this help message"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
 		},
 		{
-			wxCMD_LINE_SWITCH, wxS("d"), wxS("debugger"),
+			wxCMD_LINE_SWITCH, "d", "debugger",
 			_("Opens the debugger"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_SWITCH, wxS("l"), wxS("logger"),
+			wxCMD_LINE_SWITCH, "l", "logger",
 			_("Opens the logger"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, wxS("e"), wxS("exec"),
+			wxCMD_LINE_OPTION, "e", "exec",
 			_("Loads the specified file (DOL,ELF,GCM,ISO,WAD)"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_SWITCH, wxS("b"), wxS("batch"),
+			wxCMD_LINE_SWITCH, "b", "batch",
 			_("Exit Dolphin with emulator"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, wxS("V"), wxS("video_backend"),
+			wxCMD_LINE_OPTION, "V", "video_backend",
 			_("Specify a video backend"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, wxS("A"), wxS("audio_emulation"),
+			wxCMD_LINE_OPTION, "A", "audio_emulation",
 			_("Low level (LLE) or high level (HLE) audio"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
@@ -217,26 +217,16 @@ bool DolphinApp::OnInit()
 			File::GetUserPath(D_WIIUSER_IDX));
 	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP),
 			File::GetUserPath(D_OPENCL_IDX));
-
-	if (!File::Exists(File::GetUserPath(D_CONFIG_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
-	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-	if (!File::Exists(File::GetUserPath(D_CACHE_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
-	if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-	if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-	if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-	if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-	if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-	if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX)))
-		File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
 #endif
+	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
 
 	LogManager::Init();
 	SConfig::Init();
@@ -520,7 +510,6 @@ void Host_UpdateTitle(const char* title)
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
 	event.SetString(wxString::FromAscii(title));
 	main_frame->GetEventHandler()->AddPendingEvent(event);
-	Host_UpdateMainFrame();
 }
 
 void Host_UpdateBreakPointView()

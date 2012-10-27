@@ -8,7 +8,7 @@
 //              3) Fixed ShowPage() bug on displaying bitmaps
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: wizard.cpp 70630 2012-02-20 11:38:52Z JS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -83,6 +83,7 @@ private:
 
 wxDEFINE_EVENT( wxEVT_WIZARD_PAGE_CHANGED, wxWizardEvent );
 wxDEFINE_EVENT( wxEVT_WIZARD_PAGE_CHANGING, wxWizardEvent );
+wxDEFINE_EVENT( wxEVT_WIZARD_BEFORE_PAGE_CHANGED, wxWizardEvent );
 wxDEFINE_EVENT( wxEVT_WIZARD_CANCEL, wxWizardEvent );
 wxDEFINE_EVENT( wxEVT_WIZARD_FINISHED, wxWizardEvent );
 wxDEFINE_EVENT( wxEVT_WIZARD_HELP, wxWizardEvent );
@@ -324,7 +325,7 @@ void wxWizard::AddBitmapRow(wxBoxSizer *mainColumn)
     );
 
 #if wxUSE_STATBMP
-    if ( m_bitmap.Ok() )
+    if ( m_bitmap.IsOk() )
     {
         wxSize bitmapSize(wxDefaultSize);
         if (GetBitmapPlacement())
@@ -396,7 +397,7 @@ void wxWizard::AddButtonRow(wxBoxSizer *mainColumn)
     // to activate the 'next' button first (create the next button before the back button).
     // The reason is: The user will repeatedly enter information in the wizard pages and then wants to
     // press 'next'. If a user uses mostly the keyboard, he would have to skip the 'back' button
-    // everytime. This is annoying. There is a second reason: RETURN acts as TAB. If the 'next'
+    // every time. This is annoying. There is a second reason: RETURN acts as TAB. If the 'next'
     // button comes first in the TAB order, the user can enter information very fast using the RETURN
     // key to TAB to the next entry field and page. This would not be possible, if the 'back' button
     // was created before the 'next' button.
@@ -604,10 +605,10 @@ bool wxWizard::ShowPage(wxWizardPage *page, bool goingForward)
     if ( m_statbmp )
     {
         bmp = m_page->GetBitmap();
-        if ( !bmp.Ok() )
+        if ( !bmp.IsOk() )
             bmp = m_bitmap;
 
-        if ( !bmpPrev.Ok() )
+        if ( !bmpPrev.IsOk() )
             bmpPrev = m_bitmap;
 
         if (!GetBitmapPlacement())
@@ -782,7 +783,7 @@ void wxWizard::OnBackOrNext(wxCommandEvent& event)
     wxCHECK_RET( m_page, wxT("should have a valid current page") );
 
     // ask the current page first: notice that we do it before calling
-    // GetNext/Prev() because the data transfered from the controls of the page
+    // GetNext/Prev() because the data transferred from the controls of the page
     // may change the value returned by these methods
     if ( !m_page->Validate() || !m_page->TransferDataFromWindow() )
     {
@@ -791,6 +792,13 @@ void wxWizard::OnBackOrNext(wxCommandEvent& event)
     }
 
     bool forward = event.GetEventObject() == m_btnNext;
+
+    // Give the application a chance to set state which may influence GetNext()/GetPrev()
+    wxWizardEvent eventPreChanged(wxEVT_WIZARD_BEFORE_PAGE_CHANGED, GetId(), forward, m_page);
+    (void)m_page->GetEventHandler()->ProcessEvent(eventPreChanged);
+
+    if (!eventPreChanged.IsAllowed())
+        return;
 
     wxWizardPage *page;
     if ( forward )
@@ -928,7 +936,7 @@ bool wxWizard::ResizeBitmap(wxBitmap& bmp)
     if (!GetBitmapPlacement())
         return false;
 
-    if (bmp.Ok())
+    if (bmp.IsOk())
     {
         wxSize pageSize = m_sizerPage->GetSize();
         if (pageSize == wxSize(0,0))
@@ -936,7 +944,7 @@ bool wxWizard::ResizeBitmap(wxBitmap& bmp)
         int bitmapWidth = wxMax(bmp.GetWidth(), GetMinimumBitmapWidth());
         int bitmapHeight = pageSize.y;
 
-        if (!m_statbmp->GetBitmap().Ok() || m_statbmp->GetBitmap().GetHeight() != bitmapHeight)
+        if (!m_statbmp->GetBitmap().IsOk() || m_statbmp->GetBitmap().GetHeight() != bitmapHeight)
         {
             wxBitmap bitmap(bitmapWidth, bitmapHeight);
             {

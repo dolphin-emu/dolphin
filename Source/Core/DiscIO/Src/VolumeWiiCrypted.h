@@ -43,6 +43,9 @@ public:
 	ECountry GetCountry() const;
 	u64 GetSize() const;
 
+	bool SupportsIntegrityCheck() const { return true; }
+	bool CheckIntegrity() const;
+
 private:
 	IBlobReader* m_pReader;
 

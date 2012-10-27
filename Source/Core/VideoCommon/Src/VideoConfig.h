@@ -34,7 +34,6 @@
 // Log in two categories, and save three other options in the same byte
 #define CONF_LOG			1
 #define CONF_PRIMLOG		2
-#define CONF_SAVETEXTURES	4
 #define CONF_SAVETARGETS	8
 #define CONF_SAVESHADERS	16
 
@@ -78,7 +77,6 @@ struct VideoConfig
 	bool bCrop;   // Aspect ratio controls.
 	bool bUseXFB;
 	bool bUseRealXFB;
-	bool bUseNativeMips;
 
 	// OpenCL/OpenMP
 	bool bEnableOpenCL;
@@ -99,11 +97,10 @@ struct VideoConfig
 	bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
 	bool bShowEFBCopyRegions;
+	bool bLogFPSToFile;
 	
 	// Render
 	bool bWireFrame;
-	bool bDisableLighting;
-	bool bDisableTexturing;
 	bool bDstAlphaPass;
 	bool bDisableFog;
 	
@@ -129,23 +126,26 @@ struct VideoConfig
 	bool bOSDHotKey;
 	bool bCopyEFBToTexture;	
 	bool bCopyEFBScaled;
-	bool bSafeTextureCache;
 	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[4];
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
+	bool bUseBBox;
 	bool bEnablePixelLighting;
 	bool bEnablePerPixelDepth;
 
 	int iLog; // CONF_ bits
-	int iSaveTargetId;
-	
+	int iSaveTargetId; // TODO: Should be dropped
+
 	//currently unused:
 	int iCompileDLsLevel;
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
+
+	// Debugging
+	bool bEnableShaderDebugging;
 
 	// Static config per API
 	// TODO: Move this out of VideoConfig
