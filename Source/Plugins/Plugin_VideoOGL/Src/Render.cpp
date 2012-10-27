@@ -543,11 +543,13 @@ void Renderer::DrawDebugInfo()
 		// Set Line Size
 		glLineWidth(3.0f);
 
-		glBegin(GL_LINES);
+		GLfloat *RectPoints = new GLfloat[stats.efb_regions.size() * 16];
+		GLfloat *Colours = new GLfloat[stats.efb_regions.size() * 3];
 
 		// Draw EFB copy regions rectangles
+		int a = 0;
 		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin();
-			it != stats.efb_regions.end(); ++it)
+			it != stats.efb_regions.end(); ++it, ++a)
 		{
 			GLfloat halfWidth = EFB_WIDTH / 2.0f;
 			GLfloat halfHeight = EFB_HEIGHT / 2.0f;
@@ -556,22 +558,40 @@ void Renderer::DrawDebugInfo()
 			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)it->right / halfWidth);
 			GLfloat y2 = (GLfloat) 1.0f - ((GLfloat)it->bottom / halfHeight);
 
-			// Draw shadow of rect
-			glColor3f(0.0f, 0.0f, 0.0f);
-			glVertex2f(x, y - 0.01);  glVertex2f(x2, y - 0.01);
-			glVertex2f(x, y2 - 0.01); glVertex2f(x2, y2 - 0.01);
-			glVertex2f(x + 0.005, y);  glVertex2f(x + 0.005, y2);
-			glVertex2f(x2 + 0.005, y); glVertex2f(x2 + 0.005, y2);
+			Colours[a * 3] = 0.0f;
+			Colours[a * 3 + 1] = 1.0f;
+			Colours[a * 3 + 2] = 1.0f;
 
-			// Draw rect
-			glColor3f(0.0f, 1.0f, 1.0f);
-			glVertex2f(x, y);  glVertex2f(x2, y);
-			glVertex2f(x, y2); glVertex2f(x2, y2);
-			glVertex2f(x, y);  glVertex2f(x, y2);
-			glVertex2f(x2, y); glVertex2f(x2, y2);
+			RectPoints[a * 16] = x;
+			RectPoints[a * 16 + 1] = y;
+			
+			RectPoints[a * 16 + 2] = x2;
+			RectPoints[a * 16 + 3] = y;
+			
+			RectPoints[a * 16 + 4] = x;
+			RectPoints[a * 16 + 5] = y2;
+
+			RectPoints[a * 16 + 6] = x2;
+			RectPoints[a * 16 + 7] = y2;
+
+			RectPoints[a * 16 + 8] = x;
+			RectPoints[a * 16 + 9] = y;
+
+			RectPoints[a * 16 + 10] = x;
+			RectPoints[a * 16 + 11] = y2;
+
+			RectPoints[a * 16 + 12] = x2;
+			RectPoints[a * 16 + 13] = y;
+
+			RectPoints[a * 16 + 14] = x2;
+			RectPoints[a * 16 + 15] = y2;
 		}
-
-		glEnd();
+		
+		glColorPointer (3, GL_FLOAT, 0, Colours);
+		glVertexPointer(2, GL_FLOAT, 0, RectPoints);
+		glDrawArrays(GL_LINE_STRIP, 0, stats.efb_regions.size() * 8);		
+		delete[] RectPoints;
+		delete[] Colours;
 
 		// Restore Line Size
 		glLineWidth(lSize);
