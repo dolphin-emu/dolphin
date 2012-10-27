@@ -458,11 +458,6 @@ Renderer::Renderer()
 
 	glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
 	glShadeModel(GL_SMOOTH);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearDepth(1.0f);
@@ -478,11 +473,6 @@ Renderer::Renderer()
 	glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 	glBlendColorEXT(0, 0, 0, 0.5f);
 	glClearDepth(1.0f);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 
 	// legacy multitexturing: select texture channel only.
 	glActiveTexture(GL_TEXTURE0);
