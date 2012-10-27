@@ -159,6 +159,9 @@ void VertexManager::AddVertices(int primitive, int numVertices)
 
 void VertexManager::Flush()
 {
+	if (LocalVBuffer == s_pCurBufferPointer) return;
+	if (Flushed) return;
+	Flushed = true;	
 	g_vertex_manager->vFlush();
 }
 

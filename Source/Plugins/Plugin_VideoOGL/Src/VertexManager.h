@@ -52,6 +52,7 @@ public:
 private:
 	void DrawVertexArray();
 	void DrawVertexBufferObject();
+	void DrawVertexBufferObjectBase(u32 stride);
 	void vFlush();
 	void PrepareDrawBuffers(u32 stride);
 	u32 m_vertex_buffer_cursor;
@@ -63,6 +64,7 @@ private:
 	u32 m_current_index_buffer;
 	GLuint* m_vertex_buffers;
 	GLuint* m_index_buffers; 
+	NativeVertexFormat *m_CurrentVertexFmt;
 };
 
 }

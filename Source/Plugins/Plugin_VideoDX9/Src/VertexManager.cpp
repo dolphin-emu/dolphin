@@ -105,7 +105,7 @@ void VertexManager::CreateDeviceObjects()
 	m_current_index_buffer = 0;
 	m_index_buffer_cursor = m_index_buffer_size;
 	m_vertex_buffer_cursor = m_vertex_buffer_size;
-	
+	m_current_stride = 0;
 	if (Fail)
 	{
 		m_buffers_count--;
@@ -119,8 +119,8 @@ void VertexManager::CreateDeviceObjects()
 }
 void VertexManager::DestroyDeviceObjects()
 {
-	D3D::dev->SetStreamSource( 0, NULL, 0, 0);
-	D3D::dev->SetIndices(NULL);
+	D3D::SetStreamSource( 0, NULL, 0, 0);
+	D3D::SetIndices(NULL);
 	for (int i = 0; i < MAX_VBUFFER_COUNT; i++)
 	{
 		if(m_vertex_buffers)
@@ -160,14 +160,14 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	int PDataSize = IndexGenerator::GetPointindexLen();
 	int IndexDataSize = TdataSize + LDataSize + PDataSize;
 	DWORD LockMode = D3DLOCK_NOOVERWRITE;
-
+	m_vertex_buffer_cursor--;
+	m_vertex_buffer_cursor = m_vertex_buffer_cursor - (m_vertex_buffer_cursor % stride) + stride;
 	if (m_vertex_buffer_cursor > m_vertex_buffer_size - datasize)
 	{
 		LockMode = D3DLOCK_DISCARD;
 		m_vertex_buffer_cursor = 0;
-		m_current_vertex_buffer = (m_current_vertex_buffer + 1) % m_buffers_count;
-	}
-
+		m_current_vertex_buffer = (m_current_vertex_buffer + 1) % m_buffers_count;		
+	}	
 	if(FAILED(m_vertex_buffers[m_current_vertex_buffer]->Lock(m_vertex_buffer_cursor, datasize,(VOID**)(&pVertices), LockMode))) 
 	{
 		DestroyDeviceObjects();
@@ -177,13 +177,12 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	m_vertex_buffers[m_current_vertex_buffer]->Unlock();
 
 	LockMode = D3DLOCK_NOOVERWRITE;
-
 	if (m_index_buffer_cursor > m_index_buffer_size - IndexDataSize)
 	{
 		LockMode = D3DLOCK_DISCARD;
 		m_index_buffer_cursor = 0;
-		m_current_index_buffer = (m_current_index_buffer + 1) % m_buffers_count;
-	}
+		m_current_index_buffer = (m_current_index_buffer + 1) % m_buffers_count;		
+	}	
 	
 	if(FAILED(m_index_buffers[m_current_index_buffer]->Lock(m_index_buffer_cursor * sizeof(u16), IndexDataSize * sizeof(u16), (VOID**)(&pIndices), LockMode ))) 
 	{
@@ -204,12 +203,16 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	{		
 		memcpy(pIndices, PIBuffer, PDataSize * sizeof(u16));
 	}
-	m_index_buffers[m_current_index_buffer]->Unlock();
-	D3D::dev->SetStreamSource( 0, m_vertex_buffers[m_current_vertex_buffer], m_vertex_buffer_cursor, stride);
-	if(m_index_buffer_cursor == 0)
+	if(m_current_stride != stride || m_vertex_buffer_cursor == 0)
 	{
-		D3D::dev->SetIndices(m_index_buffers[m_current_index_buffer]);
+		m_current_stride = stride;
+		D3D::SetStreamSource( 0, m_vertex_buffers[m_current_vertex_buffer], 0, stride);
 	}
+	if (m_index_buffer_cursor == 0)
+	{
+		D3D::SetIndices(m_index_buffers[m_current_index_buffer]);
+	}
+	m_index_buffers[m_current_index_buffer]->Unlock();
 }
 
 void VertexManager::DrawVertexBuffer(int stride)
@@ -217,8 +220,8 @@ void VertexManager::DrawVertexBuffer(int stride)
 	if (IndexGenerator::GetNumTriangles() > 0)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitive(
-			D3DPT_TRIANGLELIST, 
-			0,
+			D3DPT_TRIANGLELIST,
+			m_vertex_buffer_cursor / stride,
 			0, 
 			IndexGenerator::GetNumVerts(),
 			m_index_buffer_cursor, 
@@ -232,7 +235,7 @@ void VertexManager::DrawVertexBuffer(int stride)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitive(
 			D3DPT_LINELIST, 
-			0,
+			m_vertex_buffer_cursor / stride,
 			0, 
 			IndexGenerator::GetNumVerts(),
 			m_index_buffer_cursor + IndexGenerator::GetTriangleindexLen(), 
@@ -246,7 +249,7 @@ void VertexManager::DrawVertexBuffer(int stride)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitive(
 			D3DPT_POINTLIST, 
-			0,
+			m_vertex_buffer_cursor / stride,
 			0, 
 			IndexGenerator::GetNumVerts(),
 			m_index_buffer_cursor + IndexGenerator::GetTriangleindexLen() + IndexGenerator::GetLineindexLen(), 
@@ -307,11 +310,7 @@ void VertexManager::DrawVertexArray(int stride)
 
 void VertexManager::vFlush()
 {
-	if (LocalVBuffer == s_pCurBufferPointer) return;
-	if (Flushed) return;
-	Flushed = true;
 	VideoFifo_CheckEFBAccess();
-
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
 		if (bpmem.tevorders[i / 2].getEnable(i & 1))

@@ -211,9 +211,6 @@ void VertexManager::Draw(UINT stride)
 
 void VertexManager::vFlush()
 {
-	if (LocalVBuffer == s_pCurBufferPointer) return;
-	if (Flushed) return;
-	Flushed=true;
 	VideoFifo_CheckEFBAccess();
 
 	u32 usedtextures = 0;

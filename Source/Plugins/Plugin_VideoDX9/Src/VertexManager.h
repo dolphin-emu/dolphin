@@ -40,6 +40,7 @@ private:
 	u32 m_index_buffer_size;
 	u32 m_buffers_count;
 	u32 m_current_vertex_buffer;
+	u32 m_current_stride;
 	u32 m_current_index_buffer;
 	LPDIRECT3DVERTEXBUFFER9 *m_vertex_buffers;
 	LPDIRECT3DINDEXBUFFER9 *m_index_buffers; 

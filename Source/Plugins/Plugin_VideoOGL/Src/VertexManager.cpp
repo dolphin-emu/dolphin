@@ -114,8 +114,9 @@ void VertexManager::CreateDeviceObjects()
 	m_buffers_count = MAX_VBUFFER_COUNT;
 	m_current_index_buffer = 0;
 	m_current_vertex_buffer = 0;
-	m_index_buffer_cursor = 0;
-	m_vertex_buffer_cursor = 0;
+	m_index_buffer_cursor = m_index_buffer_size;
+	m_vertex_buffer_cursor = m_vertex_buffer_size;
+	m_CurrentVertexFmt = NULL;
 }
 void VertexManager::DestroyDeviceObjects()
 {
@@ -153,18 +154,20 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	int line_index_size = IndexGenerator::GetLineindexLen() * sizeof(u16);
 	int point_index_size = IndexGenerator::GetPointindexLen() * sizeof(u16);
 	int index_data_size = triangle_index_size + line_index_size + point_index_size;
-	GLbitfield LockMode = GL_MAP_WRITE_BIT;
+	GLbitfield LockMode = GL_MAP_WRITE_BIT;	
+	m_vertex_buffer_cursor--;
+	m_vertex_buffer_cursor = m_vertex_buffer_cursor - (m_vertex_buffer_cursor % stride) + stride;
 	if (m_vertex_buffer_cursor > m_vertex_buffer_size - vertex_data_size)
 	{
 		LockMode |= GL_MAP_INVALIDATE_BUFFER_BIT;
 		m_vertex_buffer_cursor = 0;
 		m_current_vertex_buffer = (m_current_vertex_buffer + 1) % m_buffers_count;
+		glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffers[m_current_vertex_buffer]);
 	}
 	else
 	{
 		LockMode |= GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffers[m_current_vertex_buffer]);
+	}	
 	if(GLEW_ARB_map_buffer_range)
 	{
 		pVertices = (u8*)glMapBufferRange(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, LockMode);
@@ -189,13 +192,13 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	{
 		LockMode |= GL_MAP_INVALIDATE_BUFFER_BIT;
 		m_index_buffer_cursor = 0;
-		m_current_index_buffer = (m_current_index_buffer + 1) % m_buffers_count;
+		m_current_index_buffer = (m_current_index_buffer + 1) % m_buffers_count;		
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffers[m_current_index_buffer]);
 	}
 	else
 	{
 		LockMode |= GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
-	}
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffers[m_current_index_buffer]);
+	}	
 	if(GLEW_ARB_map_buffer_range)
 	{
 		pIndices = (u16*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_cursor , index_data_size, LockMode);
@@ -279,11 +282,33 @@ void VertexManager::DrawVertexBufferObject()
 	}
 }
 
+void VertexManager::DrawVertexBufferObjectBase(u32 stride)
+{
+	int triangle_index_size = IndexGenerator::GetTriangleindexLen();
+	int line_index_size = IndexGenerator::GetLineindexLen();
+	int point_index_size = IndexGenerator::GetPointindexLen();
+	int StartIndex = m_index_buffer_cursor;
+	if (triangle_index_size > 0)
+	{
+		glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, m_vertex_buffer_cursor / stride);
+		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+	}
+	if (line_index_size > 0)
+	{
+		StartIndex += triangle_index_size * sizeof(u16);
+		glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, m_vertex_buffer_cursor / stride);
+		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+	}
+	if (point_index_size > 0)
+	{
+		StartIndex += line_index_size * sizeof(u16);
+		glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, m_vertex_buffer_cursor / stride);
+		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+	}
+}
+
 void VertexManager::vFlush()
 {
-	if (LocalVBuffer == s_pCurBufferPointer) return;
-	if (Flushed) return;
-	Flushed=true;
 	VideoFifo_CheckEFBAccess();
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGen.numTexGens,
@@ -318,13 +343,18 @@ void VertexManager::vFlush()
 	u32 stride  = g_nativeVertexFmt->GetVertexStride();
 
 	PrepareDrawBuffers(stride);
-	if(m_buffers_count)
+	//still testing if this line is enabled to reduce the amount of vertex setup call everything goes wrong
+	//if(m_CurrentVertexFmt != g_nativeVertexFmt || !GLEW_ARB_draw_elements_base_vertex )
 	{
-		((GLVertexFormat*)g_nativeVertexFmt)->SetupVertexPointersOffset(m_vertex_buffer_cursor);			
-	}
-	else
-	{
-		g_nativeVertexFmt->SetupVertexPointers();
+		if(m_buffers_count)
+		{
+			((GLVertexFormat*)g_nativeVertexFmt)->SetupVertexPointersOffset(GLEW_ARB_draw_elements_base_vertex ? 0 : m_vertex_buffer_cursor);			
+		}
+		else
+		{
+			g_nativeVertexFmt->SetupVertexPointers();
+		}
+		m_CurrentVertexFmt = g_nativeVertexFmt;
 	}
 	GL_REPORT_ERRORD();
 
@@ -402,7 +432,21 @@ void VertexManager::vFlush()
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
 
-	if(m_buffers_count) { DrawVertexBufferObject(); }else{ DrawVertexArray();};
+	if(m_buffers_count) 
+	{ 
+		if(GLEW_ARB_draw_elements_base_vertex)
+		{
+			DrawVertexBufferObjectBase(stride);
+		} 
+		else
+		{
+			DrawVertexBufferObject();
+		} 
+	}
+	else
+	{ 
+		DrawVertexArray();
+	}
 
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
@@ -415,7 +459,21 @@ void VertexManager::vFlush()
 
 		glDisable(GL_BLEND);
 
-		if(m_buffers_count) { DrawVertexBufferObject(); }else{ DrawVertexArray();};
+		if(m_buffers_count) 
+		{
+			if(GLEW_ARB_draw_elements_base_vertex)
+			{
+				DrawVertexBufferObjectBase(stride);
+			} 
+			else
+			{
+				DrawVertexBufferObject();
+			} 
+		}
+		else
+		{ 
+			DrawVertexArray();
+		} 
 		// restore color mask
 		g_renderer->SetColorMask();
 
