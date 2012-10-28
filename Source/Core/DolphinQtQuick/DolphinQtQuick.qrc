@@ -7,6 +7,7 @@
         <file>qml/components/DGraphicsConfig.qml</file>
         <file>qml/components/DPadConfig.qml</file>
         <file>qml/components/DWiimoteConfig.qml</file>
+        <file>Dolphin.ico</file>
     </qresource>
 </RCC>
 

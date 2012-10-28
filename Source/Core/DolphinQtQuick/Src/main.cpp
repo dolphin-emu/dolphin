@@ -2,6 +2,7 @@
 #include <QDeclarativeContext>
 #include <QMessageBox>
 #include <QDir>
+#include <QIcon>
 #include <QGraphicsObject>
 #include "qmlapplicationviewer/qmlapplicationviewer.h"
 
@@ -100,8 +101,9 @@ int main(int argc, char* argv[])
         viewer = new QmlApplicationViewer();
 	viewer->rootContext()->setContextProperty("currentDir", QDir::currentPath());
 	viewer->setSource(QUrl("qrc:/qml/main.qml"));
-	viewer->showExpanded(); // Geometry needs to be detected/restored as before.
+	viewer->setWindowIcon(QIcon("qrc:/Dolphin.ico"));
 	viewer->setWindowTitle("Dolphin QtQuick" /* + SVR_REV_STR*/);
+	viewer->showExpanded(); // Geometry needs to be detected/restored as before.
 
 	// TODO: Use Logger
 	int ret = app.exec();

@@ -1,19 +1,4 @@
-set(SRCS		Src/Config/ConfigAudio.cpp
-			Src/Config/ConfigGeneral.cpp
-			Src/Config/ConfigGfx.cpp
-			Src/Config/ConfigMain.cpp
-			Src/Config/ConfigPad.cpp
-			Src/Config/ConfigWiimote.cpp
-			Src/Util/Util.cpp
-			Src/Util/Resources.cpp
-			Src/GameList.cpp
-			Src/ISOFile.cpp
-			Src/IssueReporter.cpp
-			Src/LogWindow.cpp
-			Src/main.cpp
-			Src/MainWindow.cpp
-			Src/MainWindowEvents.cpp
-			Src/RenderWindow.cpp
+set(SRCS		Src/main.cpp
                         Src/qmlapplicationviewer/qmlapplicationviewer.cpp)
 
 set(LIBS		core
@@ -33,19 +18,7 @@ set(LIBS		core
 set(EXEGUI dolphin-emu-qtquick)
 
 qt4_add_resources(RCC_SRCS DolphinQtQuick.qrc)
-qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/Config/ConfigAudio.h
-				Src/Config/ConfigGeneral.h
-				Src/Config/ConfigGfx.h
-				Src/Config/ConfigMain.h
-				Src/Config/ConfigPad.h
-				Src/Config/ConfigWiimote.h
-				Src/Util/Util.h
-				Src/IssueReporter.h
-				Src/GameList.h
-				Src/LogWindow.h
-				Src/MainWindow.h
-				Src/RenderWindow.h
-                                Src/qmlapplicationviewer/qmlapplicationviewer.h)
+qt_wrap_cpp(${EXEGUI} MOC_SRCS     Src/qmlapplicationviewer/qmlapplicationviewer.h)
 
 add_executable(${EXEGUI} ${SRCS} ${MOC_SRCS} ${RCC_SRCS})
 target_link_libraries(${EXEGUI} ${LIBS} ${QT_LIBRARIES})
