@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="DebugFast|Win32">
+      <Configuration>DebugFast</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebugFast|x64">
+      <Configuration>DebugFast</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{53704151-B0C1-4038-BD84-A0BD5ED4ED9E}</ProjectGuid>
+    <RootNamespace>DolphinQtQuick</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
+    <Import Project="..\..\VSProps\DolphinQtQuick.Win32.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+    <Import Project="..\..\VSProps\DolphinQtQuick.x64.props" />
+    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+    <Import Project="..\..\VSProps\CodeGen_Release.props" />
+    <Import Project="..\..\VSProps\DolphinQtQuick.Win32.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
+    <Import Project="..\..\VSProps\DolphinQtQuick.Win32.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+    <Import Project="..\..\VSProps\CodeGen_Release.props" />
+    <Import Project="..\..\VSProps\DolphinQtQuick.x64.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
+    <Import Project="..\..\VSProps\DolphinQtQuick.x64.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>$(ProjectName)D</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>$(ProjectName)D</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
+    <TargetName>$(ProjectName)DF</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
+    <TargetName>$(ProjectName)DF</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link />
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
+echo Copying External .dlls
+xcopy "$(SolutionDir)..\Externals\Cg\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
+</Command>
+      <Message>Copying Data\* to $(TargetDir)</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link />
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
+echo Copying External .dlls
+xcopy "$(SolutionDir)..\Externals\Cg64\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
+</Command>
+      <Message>Copying Data\* to $(TargetDir)</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>
+      </OpenMPSupport>
+    </ClCompile>
+    <Link />
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
+echo Copying External .dlls
+xcopy "$(SolutionDir)..\Externals\Cg\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
+</Command>
+      <Message>Copying Data\* to $(TargetDir)</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link />
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
+echo Copying External .dlls
+xcopy "$(SolutionDir)..\Externals\Cg\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
+</Command>
+      <Message>Copying Data\* to $(TargetDir)</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>
+      </OpenMPSupport>
+    </ClCompile>
+    <Link />
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
+echo Copying External .dlls
+xcopy "$(SolutionDir)..\Externals\Cg64\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
+</Command>
+      <Message>Copying Data\* to $(TargetDir)</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\InputUICommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link />
+    <PostBuildEvent>
+      <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
+echo Copying External .dlls
+xcopy "$(SolutionDir)..\Externals\Cg64\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
+</Command>
+      <Message>Copying Data\* to $(TargetDir)</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\Config\ConfigAudio.cpp" />
+    <ClCompile Include="Src\Config\ConfigGeneral.cpp" />
+    <ClCompile Include="Src\Config\ConfigGfx.cpp" />
+    <ClCompile Include="Src\Config\ConfigMain.cpp" />
+    <ClCompile Include="Src\Config\ConfigPad.cpp" />
+    <ClCompile Include="Src\Config\ConfigWiimote.cpp" />
+    <ClCompile Include="Src\GameList.cpp" />
+    <ClCompile Include="Src\ISOFile.cpp" />
+    <ClCompile Include="Src\IssueReporter.cpp" />
+    <ClCompile Include="Src\LogWindow.cpp" />
+    <ClCompile Include="Src\main.cpp" />
+    <ClCompile Include="Src\MainWindow.cpp" />
+    <ClCompile Include="Src\MainWindowEvents.cpp" />
+    <ClCompile Include="Src\RenderWindow.cpp" />
+    <ClCompile Include="Src\Util\Resources.cpp" />
+    <ClCompile Include="Src\Util\Util.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\Config\ConfigAudio.h" />
+    <ClInclude Include="Src\Config\ConfigGeneral.h" />
+    <ClInclude Include="Src\Config\ConfigGfx.h" />
+    <ClInclude Include="Src\Config\ConfigMain.h" />
+    <ClInclude Include="Src\Config\ConfigPad.h" />
+    <ClInclude Include="Src\Config\ConfigWiimote.h" />
+    <ClInclude Include="Src\GameList.h" />
+    <ClInclude Include="Src\ISOFile.h" />
+    <ClInclude Include="Src\IssueReporter.h" />
+    <ClInclude Include="Src\LogWindow.h" />
+    <ClInclude Include="Src\MainWindow.h" />
+    <ClInclude Include="Src\RenderWindow.h" />
+    <ClInclude Include="Src\Util\Resources.h" />
+    <ClInclude Include="Src\Util\Util.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Externals\Bochs_disasm\Bochs_disasm.vcxproj">
+      <Project>{cd3d4c3c-1027-4d33-b047-aec7b56d0bf6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\LZO\LZO.vcxproj">
+      <Project>{d8890b98-26f7-4cff-bbfb-b95f371b5f20}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\SFML\build\vc2010\SFML_Network.vcxproj">
+      <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\wxWidgets\build\msw\wx_adv.vcxproj">
+      <Project>{0e231fb1-f3c9-4724-accb-de8bcb3c089e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\wxWidgets\build\msw\wx_aui.vcxproj">
+      <Project>{05c75041-d67d-4903-a362-8395a7b35c75}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\wxWidgets\build\msw\wx_base.vcxproj">
+      <Project>{1c8436c9-dbaf-42be-83bc-cf3ec9175abe}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\wxWidgets\build\msw\wx_core.vcxproj">
+      <Project>{11f55366-12ec-4c44-a8cb-1d4e315d61ed}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\zlib\zlib.vcxproj">
+      <Project>{3e1339f5-9311-4122-9442-369702e8fcad}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Plugins\Plugin_VideoDX11\Plugin_VideoDX11.vcxproj">
+      <Project>{9a4c733c-bade-4ac6-b58a-6e274395e90e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Plugins\Plugin_VideoDX9\Plugin_VideoDX9.vcxproj">
+      <Project>{dc7d7af4-ce47-49e8-8b63-265cb6233a49}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Plugins\Plugin_VideoOGL\Plugin_VideoOGL.vcxproj">
+      <Project>{1909cd2d-1707-456f-86ca-0df42a727c99}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Plugins\Plugin_VideoSoftware\Plugin_VideoSoftware.vcxproj">
+      <Project>{9e9da440-e9ad-413c-b648-91030e792211}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\AudioCommon\AudioCommon.vcxproj">
+      <Project>{37d007bd-d66c-4eaf-b56c-bd1aac340a05}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{c87a4178-44f6-49b2-b7aa-c79af1b8c534}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Core.vcxproj">
+      <Project>{8c60e805-0da5-4e25-8f84-038db504bb0d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\DiscIO\DiscIO.vcxproj">
+      <Project>{b6398059-ebb6-4c34-b547-95f365b71ff4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\InputCommon\InputCommon.vcxproj">
+      <Project>{b39ac394-5db5-4da9-9d98-09d46ca3701f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\VideoCommon\VideoCommon.vcxproj">
+      <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
