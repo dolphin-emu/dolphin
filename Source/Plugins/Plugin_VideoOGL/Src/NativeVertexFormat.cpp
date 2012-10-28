@@ -274,10 +274,6 @@ void GLVertexFormat::EnableComponents(u32 components)
 			if ((components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i))) 
 			{
 				glClientActiveTexture(GL_TEXTURE0 + i);
-				if (components & (VB_HAS_UV0 << i))
-					glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-				else
-					glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			}
 		}
 

@@ -474,6 +474,7 @@ Renderer::Renderer()
 	glBlendColorEXT(0, 0, 0, 0.5f);
 	glClearDepth(1.0f);
 
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	// legacy multitexturing: select texture channel only.
 	glActiveTexture(GL_TEXTURE0);
 	glClientActiveTexture(GL_TEXTURE0);
@@ -1154,18 +1155,19 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		};
 		
 		glClientActiveTexture(GL_TEXTURE0);
-		glTexCoordPointer(2, GL_FLOAT, 0, tex1);
 
 		if (applyShader)
 		{
-			glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0);
-			glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1);
-			glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1);
-			glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
+			glMultiTexCoord2f(GL_TEXTURE1, 0, 0);
+			glMultiTexCoord2f(GL_TEXTURE1, 0, 1);
+			glMultiTexCoord2f(GL_TEXTURE1, 1, 1);
+			glMultiTexCoord2f(GL_TEXTURE1, 1, 0);
 		}
-		
+			
 		glVertexPointer(3, GL_FLOAT, 0, vtx1);
+		glTexCoordPointer(2, GL_FLOAT, 0, tex1);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
 		if(applyShader)
 			PixelShaderCache::DisableShader();
 	}

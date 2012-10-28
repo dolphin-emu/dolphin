@@ -222,13 +222,14 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 		(float)sourceRc.right, (float)sourceRc.top
 	};
 	GLfloat vtx1[] = {
-		-1, -1,  1,
-		-1, 1, 1,
-		1, 1, 1,
-		1, -1, 1
+		-1.f, -1.f, 
+		-1.f, 1.f,
+		1.f, 1.f,
+		1.f, -1.f
 	};
+
 	glTexCoordPointer(2, GL_FLOAT, 0, tex1);
-	glVertexPointer(3, GL_FLOAT, 0, vtx1);
+	glVertexPointer(2, GL_FLOAT, 0, vtx1);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	
 	GL_REPORT_ERRORD();
@@ -389,19 +390,21 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	GLfloat tex1[] = {
 		(float)srcFmtWidth, (float)srcHeight,
-		(float)srcFmtWidth, 0,
-		0, 0,
-		0, (float)srcHeight
+		(float)srcFmtWidth, 0.f,
+		0.f, 0.f,
+		0.f, (float)srcHeight
 	};
 	GLfloat vtx1[] = {
-		1, -1,  1,
-		1, 1, 1,
-		-1, 1, 1,
-		-1, -1, 1
+		1.f, -1.f,
+		1.f, 1.f,
+		-1.f, 1.f,
+		-1.f, -1.f
 	};
+	
 	glTexCoordPointer(2, GL_FLOAT, 0, tex1);
-	glVertexPointer(3, GL_FLOAT, 0, vtx1);
+	glVertexPointer(2, GL_FLOAT, 0, vtx1);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
 
 	GL_REPORT_ERRORD();
 
