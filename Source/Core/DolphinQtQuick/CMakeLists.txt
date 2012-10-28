@@ -1,4 +1,5 @@
 set(SRCS		Src/main.cpp
+			Src/interqt.cpp
                         Src/qmlapplicationviewer/qmlapplicationviewer.cpp)
 
 set(LIBS		core
@@ -18,7 +19,9 @@ set(LIBS		core
 set(EXEGUI dolphin-emu-qtquick)
 
 qt4_add_resources(RCC_SRCS DolphinQtQuick.qrc)
-qt_wrap_cpp(${EXEGUI} MOC_SRCS     Src/qmlapplicationviewer/qmlapplicationviewer.h)
+qt_wrap_cpp(${EXEGUI} MOC_SRCS		Src/main.h
+					Src/interqt.h
+					Src/qmlapplicationviewer/qmlapplicationviewer.h)
 
 add_executable(${EXEGUI} ${SRCS} ${MOC_SRCS} ${RCC_SRCS})
 target_link_libraries(${EXEGUI} ${LIBS} ${QT_LIBRARIES})

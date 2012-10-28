@@ -1,43 +1,45 @@
 #include <QApplication>
-#include <QDeclarativeContext>
-#include <QMessageBox>
 #include <QDir>
+#include <QMessageBox>
+#include <QDeclarativeContext>
 #include <QIcon>
 #include <QGraphicsObject>
-#include "qmlapplicationviewer/qmlapplicationviewer.h"
-
-#include "CommonPaths.h"
 #include "CPUDetect.h"
-#include "ConfigManager.h"
-#include "LogManager.h"
-#include "HW/Wiimote.h"
 
-#include "VideoBackendBase.h"
+#include "interqt.h"
+#include "qmlapplicationviewer/qmlapplicationviewer.h"
+#include "main.h"
 
+// TODO: Make this in to a class
 QmlApplicationViewer* viewer = NULL;
 int main(int argc, char* argv[])
 {
-	// TODO: Add command line options:
+// TODO: All low priority comments below
+	// Add command line options:
 	// help, debugger, logger, load file, exit on emulation stop, chose video backend, DSP LLE/HLE
 
-	// TODO
 /*#if defined _DEBUG && defined _WIN32
     int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
     tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
     _CrtSetDbgFlag(tmpflag);
 #endif*/
 
-    // Register message box and translation handlers
+	// Register message box and translation handlers
 //RegisterMsgAlertHandler( .. );
 //RegisterStringTranslator( .. );
 
-    // "ExtendedTrace" looks freakin dangerous!!!
+	// "ExtendedTrace" looks freakin dangerous!!!
 /*#ifdef _WIN32
     EXTENDEDTRACEINITIALIZE(".");
     SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
 #elif wxUSE_ON_FATAL_EXCEPTION
     wxHandleFatalExceptions(true);
 #endif*/
+
+	// TODO for multithreading on X?
+/*#if defined HAVE_X11 && HAVE_X11
+    XInitThreads();
+#endif */
 
 
 #ifdef _WIN32
@@ -84,29 +86,32 @@ int main(int argc, char* argv[])
 
 	SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
 
-	// TODO?
-/*#if defined HAVE_X11 && HAVE_X11
-    XInitThreads();
-#endif */
-
+	// Start Qt
 	QApplication app(argc, argv);
 
 	if (!cpu_info.bSSE2)
 	{
-		QMessageBox::information(NULL,"Hardware does not support","Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
+		QMessageBox::information(NULL,"Hardware not supported","Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
 					"Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
 					"Sayonara!\n");
 		return 0;
 	}
+	QSettings ui_settings("Dolphin Team", "Dolphin");
+	// TODO: Load settings?
+
+	InterQt tools;
+//	tools.RefeshList();
+
         viewer = new QmlApplicationViewer();
 	viewer->rootContext()->setContextProperty("currentDir", QDir::currentPath());
 	viewer->setSource(QUrl("qrc:/qml/main.qml"));
 	viewer->setWindowIcon(QIcon("qrc:/Dolphin.ico"));
-	viewer->setWindowTitle("Dolphin QtQuick" /* + SVR_REV_STR*/);
+	viewer->setWindowTitle("Dolphin QtQuick" /* + SVN_REV_STR*/);
 	viewer->showExpanded(); // Geometry needs to be detected/restored as before.
 
 	// TODO: Use Logger
 	int ret = app.exec();
+        // Qt has ended
 
 	WiimoteReal::Shutdown();
 #ifdef _WIN32

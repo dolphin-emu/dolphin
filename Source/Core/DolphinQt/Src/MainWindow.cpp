@@ -11,8 +11,6 @@
 #include "ConfigManager.h"
 #include "Core.h"
 
-// TODO: Investigate a cleaner Qt frontend with QtQuick UI and minimal subclassing.
-// Will be much easier to add features.
 // TODO: Consider integrating Qt in to entire project through the use of Common features.
 
 DMainWindow::DMainWindow() : logWindow(NULL), renderWindow(NULL), is_stopping(false)
