@@ -697,13 +697,11 @@ void UpdateAudioDMA()
 
 void Do_ARAM_DMA()
 {
-	// Fake the DMA taking time to complete. The delay is not accurate, but
-	// seems like a good estimate
-	CoreTiming::ScheduleEvent_Threadsafe(g_arDMA.Cnt.count >> 1, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
-
 	// Emulating the DMA wait time fixes Knockout Kings 2003 in DSP HLE mode
 	if (!GetDSPEmulator()->IsLLE())
 		g_dspState.DSPControl.DMAState = 1;
+
+	GenerateDSPInterrupt(INT_ARAM, true);
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
