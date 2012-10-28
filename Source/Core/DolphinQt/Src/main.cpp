@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QMessageBox>
 #include <QMainWindow>
 #include "MainWindow.h"
 
@@ -36,15 +37,6 @@ int main(int argc, char* argv[])
     wxHandleFatalExceptions(true);
 #endif*/
 
-
-	if (!cpu_info.bSSE2)
-    {
-		// TODO
-/*        Message box with("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
-                "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
-                "Sayonara!\n");*/
-        return 0;
-    }
 
 #ifdef _WIN32
 	// TODO: Check if the file portable exists
@@ -98,12 +90,21 @@ int main(int argc, char* argv[])
 #endif */
 
 	QApplication app(argc, argv);
+	if (!cpu_info.bSSE2)
+	{
+		QMessageBox::information(NULL,"Hardware does not support","Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
+					"Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
+					"Sayonara!\n");
+		return 0;
+	}
+
 	mainWindow = new DMainWindow();
 	// TODO: Title => svn_rev_str
 	// TODO: UseLogger
 	return app.exec();
 
 	// TODO: On exit:
+        // We'll do these in subclass of MainWindow/QMLViewer
 	// WiimoteReal::Shutdown();
 /*#ifdef _WIN32
     if (SConfig::GetInstance().m_WiiAutoUnpair)
