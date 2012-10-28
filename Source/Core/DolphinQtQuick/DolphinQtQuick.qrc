@@ -1,6 +1,12 @@
 <RCC>
     <qresource prefix="/">
         <file>qml/main.qml</file>
+        <file>qml/components/DMenuBar.qml</file>
+        <file>qml/components/DToolBar.qml</file>
+        <file>qml/components/DConfig.qml</file>
+        <file>qml/components/DGraphicsConfig.qml</file>
+        <file>qml/components/DPadConfig.qml</file>
+        <file>qml/components/DWiimoteConfig.qml</file>
     </qresource>
 </RCC>
 

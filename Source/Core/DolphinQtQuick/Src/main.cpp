@@ -1,8 +1,8 @@
 #include <QApplication>
 #include <QDeclarativeContext>
 #include <QMessageBox>
-#include <QMainWindow>
-#include "MainWindow.h"
+#include <QDir>
+#include <QGraphicsObject>
 #include "qmlapplicationviewer/qmlapplicationviewer.h"
 
 #include "CommonPaths.h"
@@ -13,8 +13,7 @@
 
 #include "VideoBackendBase.h"
 
-DMainWindow* mainWindow = NULL;
-
+QmlApplicationViewer* viewer = NULL;
 int main(int argc, char* argv[])
 {
 	// TODO: Add command line options:
@@ -76,8 +75,6 @@ int main(int argc, char* argv[])
         File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
 #endif
 
-
-	// TODO: Move this out of GUI code
 	LogManager::Init();
 	SConfig::Init();
 	VideoBackend::PopulateList();
@@ -92,6 +89,7 @@ int main(int argc, char* argv[])
 #endif */
 
 	QApplication app(argc, argv);
+
 	if (!cpu_info.bSSE2)
 	{
 		QMessageBox::information(NULL,"Hardware does not support","Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
@@ -99,26 +97,24 @@ int main(int argc, char* argv[])
 					"Sayonara!\n");
 		return 0;
 	}
-	QmlApplicationViewer viewer;
-	viewer.setSource(QUrl("qrc:/qml/BBUpdateScan/main.qml"));
-	viewer.showExpanded(); // Geometry needs to be detected/restored as before.
+        viewer = new QmlApplicationViewer();
+	viewer->rootContext()->setContextProperty("currentDir", QDir::currentPath());
+	viewer->setSource(QUrl("qrc:/qml/main.qml"));
+	viewer->showExpanded(); // Geometry needs to be detected/restored as before.
+	viewer->setWindowTitle("Dolphin QtQuick" /* + SVR_REV_STR*/);
 
-//	mainWindow = new DMainWindow();
-	// TODO: Title => svn_rev_str
-	// TODO: UseLogger
-	return app.exec();
+	// TODO: Use Logger
+	int ret = app.exec();
 
-	// TODO: On exit:
-        // We'll do these in subclass of MainWindow/QMLViewer
-	// WiimoteReal::Shutdown();
-/*#ifdef _WIN32
+	WiimoteReal::Shutdown();
+#ifdef _WIN32
     if (SConfig::GetInstance().m_WiiAutoUnpair)
         WiimoteReal::UnPair();
-#endif*/
-	// VideoBackend::ClearList();
-	// SConfig::Shutdown();
-	// LogManager::Shutdown();
-
+#endif
+	VideoBackend::ClearList();
+	SConfig::Shutdown();
+	LogManager::Shutdown();
+	return ret;
 }
 
 void Host_SetStartupDebuggingParameters()
@@ -135,7 +131,7 @@ void* Host_GetInstance()
 
 void* Host_GetRenderHandle()
 {
-	return (void*)(mainWindow->GetRenderWindow()->winId());
+	//return (void*)(mainWindow->GetRenderWindow()->winId());
 }
 
 bool Host_GetKeyState(int)
@@ -150,14 +146,20 @@ void Host_RefreshDSPDebuggerWindow()
 
 void Host_RequestRenderWindowSize(int w, int h)
 {
+	QObject *window = viewer->rootObject()->findChild<QObject*>("window");
+        if (window == NULL)
+		return;
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		// Make sure to resize the actual client area
 		// TODO: Might not work properly, yet.
-		QSize sizediff = mainWindow->size() - mainWindow->GetRenderWindow()->size();
-		mainWindow->resize(w + sizediff.width(), h + sizediff.height());
+		//QSize sizediff = mainWindow->size() - mainWindow->GetRenderWindow()->size();
+		window->setProperty("width",  w);
+		window->setProperty("height", h);
+
 	}
-	else mainWindow->GetRenderWindow()->resize(w, h);
+	window->setProperty("width",  w);
+	window->setProperty("height", h);
 }
 
 // TODO: Rename this to GetRenderClientSize
@@ -166,8 +168,12 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 	// TODO: Make it more clear what this is supposed to return.. i.e. wxw always sets x=y=0
 	x = 0;
 	y = 0;
-	width = mainWindow->GetRenderWindow()->width();
-	height = mainWindow->GetRenderWindow()->height();
+	QObject *window = viewer->rootObject()->findChild<QObject*>("window");
+        if (window != NULL)
+	{
+		width = window->property("width").toInt();
+		height = window->property("height").toInt();
+	}
 }
 
 void Host_ConnectWiimote(int, bool)
@@ -187,11 +193,7 @@ void Host_UpdateMainFrame()
 
 void Host_UpdateTitle(const char* title)
 {
-	// TODO: Doesn't work perfectly with render to main, yet.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-		mainWindow->setWindowTitle(QString(title));
-	else
-		mainWindow->GetRenderWindow()->setWindowTitle(QString(title));
+	viewer->setWindowTitle(QString(title));
 }
 
 void Host_UpdateDisasmDialog()
@@ -225,9 +227,11 @@ void Host_SetDebugMode(bool enable)
 bool Host_RendererHasFocus()
 {
 	// TODO: Sometimes with render to main this won't return the correct value
-	if (mainWindow->GetRenderWindow())
+/*	if (mainWindow->GetRenderWindow())
 		return mainWindow->GetRenderWindow()->hasFocus();
 	else return false;
+*/
+	return true;
 }
 
 
