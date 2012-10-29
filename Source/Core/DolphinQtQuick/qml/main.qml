@@ -5,7 +5,7 @@ import "components"
 Window {
     id: window
     // The geometry can be set in main.cpp, according to defaults or save
-    width: 588
+    width: 638
     height: 360
     DMenuBar { id: menubar }
 
@@ -49,9 +49,9 @@ Window {
             TableColumn { role: "logo"; title: "Banner"; width: 60 }
             TableColumn { role: "name"; title: "Title"; width: 180 }
             TableColumn { role: "desc"; title: "Notes"; }
-            TableColumn { role: "flag"; title: ""; width: 35 }
-            TableColumn { role: "size"; title: "Size"; width: 60 }
-            TableColumn { role: "star"; title: "State"; width: 50 }
+            TableColumn { role: "flag"; title: ""; width: 45 }
+            TableColumn { role: "size"; title: "Size"; width: 80 }
+            TableColumn { role: "star"; title: "State"; width: 65 }
             model: gameList // from C++
         }
     }

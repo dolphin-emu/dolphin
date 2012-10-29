@@ -1,25 +1,68 @@
 #include "GameList.h"
+#include <QStringList>
+#include <QDebug>
 
-Game::Game(const std::string& fileName)
-{
-    GameListItem item(fileName);
-    m_type = "Wii";
-    m_logo = "Banner";
-    m_name = QString::fromStdString(item.GetName(0));
-    m_desc = QString::fromStdString(item.GetDescription(0));
-    m_flag = "EU";
-    m_size = "0 MB";
-    m_star = QString::fromStdString(item.GetIssues());
-}
 Game::Game(const GameListItem& item)
 {
-        m_type = "Wii";
+        int platform = item.GetPlatform();
+        switch (platform)
+        {
+            case 0: m_type = "GC";
+                    break;
+            case 1: m_type = "Wii";
+                    break;
+            case 2: m_type = "WAD";
+                    break;
+            default: m_type = "Unknown";
+                    break;
+        }
         m_logo = "Banner";
         m_name = QString::fromStdString(item.GetName(0));
         m_desc = QString::fromStdString(item.GetDescription(0));
-        m_flag = "EU";
-        m_size = "0 MB";
-        m_star = QString::fromStdString(item.GetIssues());
+
+        int country = item.GetCountry();
+        switch(country)
+        {
+            case DiscIO::IVolume::COUNTRY_JAPAN:    m_flag = "Japan";
+                 break;
+            case DiscIO::IVolume::COUNTRY_USA:      m_flag = "USA";
+                 break;
+            case DiscIO::IVolume::COUNTRY_TAIWAN:   m_flag = "Taiwan";
+                 break;
+            case DiscIO::IVolume::COUNTRY_KOREA:    m_flag = "Korea";
+                 break;
+            case DiscIO::IVolume::COUNTRY_FRANCE:   m_flag = "France";
+                 break;
+            case DiscIO::IVolume::COUNTRY_ITALY:    m_flag = "Italy";
+                 break;
+            default: m_flag = "PAL";
+                 break;
+
+        }
+
+        QStringList list;
+        list << "KB" << "MB" << "GB" << "TB";
+        QStringListIterator i(list);
+        QString unit("b");
+        double num = item.GetFileSize();
+        while(num >= 1024.0 && i.hasNext())
+        {
+            unit = i.next();
+            num /= 1024.0;
+        }
+        m_size = QString().setNum(num, 'f', 1) + " " + unit;
+
+        static const char* const emuState[] = { "Broken", "Intro", "In-Game", "Playable", "Perfect" };
+        int rating;
+        IniFile ini;
+        ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (item.GetUniqueID()) + ".ini").c_str());
+        qDebug() << (std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (item.GetUniqueID()) + ".ini").c_str();
+        ini.Get("EmuState", "EmulationStateId", &rating);
+        qDebug() << rating;
+        if (rating > 0 && rating < 6)
+            m_star = emuState[rating - 1];
+        else
+            m_star = "Unknown";
 }
 
 

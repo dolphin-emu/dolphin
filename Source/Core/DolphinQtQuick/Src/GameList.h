@@ -1,15 +1,16 @@
 #include <QAbstractListModel>
 #include "ISOFile.h"
+#include "IniFile.h"
+#include "FileUtil.h"
 
 class Game
 {
 public:
-    Game(const std::string& fileName);
     Game(const GameListItem& item);
     QString type() const { return m_type; }
     QString logo() const { return m_logo; }
     QString name() const { return m_name; }
-    QString desc() const  { return m_desc; }
+    QString desc() const { return m_desc; }
     QString flag() const { return m_flag; }
     QString size() const { return m_size; }
     QString star() const { return m_star; }
