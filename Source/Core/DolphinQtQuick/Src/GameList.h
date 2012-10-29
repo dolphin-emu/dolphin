@@ -13,7 +13,7 @@ public:
     QString desc() const { return m_desc; }
     QString flag() const { return m_flag; }
     QString size() const { return m_size; }
-    QString star() const { return m_star; }
+    int star() const { return m_star; }
 private:
     QString m_type;
     QString m_logo;
@@ -21,7 +21,7 @@ private:
     QString m_desc;
     QString m_flag;
     QString m_size;
-    QString m_star;
+    int m_star;
 };
 
 class GameList : public QAbstractListModel

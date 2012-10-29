@@ -8,6 +8,25 @@
         <file>qml/components/DPadConfig.qml</file>
         <file>qml/components/DWiimoteConfig.qml</file>
         <file>Dolphin.ico</file>
+        <file>qml/images/star5.png</file>
+        <file>qml/images/star4.png</file>
+        <file>qml/images/star3.png</file>
+        <file>qml/images/star2.png</file>
+        <file>qml/images/star1.png</file>
+        <file>qml/images/star0.png</file>
+        <file>qml/images/platform2.png</file>
+        <file>qml/images/platform1.png</file>
+        <file>qml/images/platform0.png</file>
+        <file>qml/images/no_banner.png</file>
+        <file>qml/images/flag9.png</file>
+        <file>qml/images/flag8.png</file>
+        <file>qml/images/flag7.png</file>
+        <file>qml/images/flag6.png</file>
+        <file>qml/images/flag5.png</file>
+        <file>qml/images/flag4.png</file>
+        <file>qml/images/flag3.png</file>
+        <file>qml/images/flag2.png</file>
+        <file>qml/images/flag1.png</file>
+        <file>qml/images/flag0.png</file>
     </qresource>
 </RCC>
-
