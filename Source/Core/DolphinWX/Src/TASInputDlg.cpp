@@ -884,99 +884,62 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 	{
 		case ID_A:
 			placeholder = wx_a_button;
-			
-			if(A_turbo)
-				A_turbo = false;
-			else
-				A_turbo = true;
-			break;
+            A_turbo = !A_turbo;
+            break;
 
 		case ID_B:
 			placeholder = wx_b_button;
-			if(B_turbo)
-				B_turbo = false;
-			else
-				B_turbo = true;
-			break;
+			B_turbo = !B_turbo;
+            break;
 
 		case ID_X:
 			placeholder = wx_x_button;
-			if(X_turbo)
-				X_turbo = false;
-			else
-				X_turbo = true;
+			X_turbo = !X_turbo;
 			break;
 
 		case ID_Y:
 			placeholder = wx_y_button;
-			if(Y_turbo)
-				Y_turbo = false;
-			else
-				Y_turbo = true;
-			break;
+			Y_turbo = !Y_turbo;
+            break;
 
 		case ID_Z:
 			placeholder = wx_z_button;
-			if(Z_turbo)
-				Z_turbo = false;
-			else
-				Z_turbo = true;
+			Z_turbo = !Z_turbo;
 			break;
 
 		case ID_L:
 			placeholder = wx_l_button;
-			if(L_turbo)
-				L_turbo = false;
-			else
-				L_turbo = true;
-			break;
+			L_turbo = !L_turbo;
+            break;
 
 		case ID_R:
 			placeholder = wx_r_button;
-			if(R_turbo)
-				R_turbo = false;
-			else
-				R_turbo = true;
+			R_turbo = !R_turbo;
 			break;
 
 		case ID_START:
 			placeholder = wx_start_button;
-			if(START_turbo)
-				START_turbo = false;
-			else
-				START_turbo = true;
+			START_turbo = !START_turbo;
 			break;
 
 		case ID_UP:
-			placeholder = wx_start_button;
-			if(DU_turbo)
-				DU_turbo = false;
-			else
-				DU_turbo = true;
+			placeholder = wx_up_button;
+			DU_turbo = !DU_turbo;
 			break;
 
 		case ID_DOWN:
-			placeholder = wx_start_button;
-			if(DD_turbo)
-				DD_turbo = false;
-			else
-				DD_turbo = true;
+			placeholder = wx_down_button;
+			DD_turbo = !DD_turbo;
 			break;
 
 		case ID_LEFT:
 			placeholder = wx_left_button;
-			if(DL_turbo)
-				DL_turbo = false;
-			else
-				DL_turbo = true;
+			DL_turbo = !DL_turbo;
 			break;
 
 		case ID_RIGHT:
 			placeholder = wx_right_button;
-			if(DR_turbo)
-				DR_turbo = false;
-			else
-				DR_turbo = true;
+			DR_turbo = !DR_turbo;
 			break;
 		default:
 			return;
@@ -988,109 +951,61 @@ void TASInputDlg::ButtonTurbo()
 {
 	if(A_turbo)
 	{
-		if(wx_a_button->GetValue())
-			wx_a_button->SetValue(false);
-		
-		else
-			wx_a_button->SetValue(true);
+        wx_a_button->SetValue(!wx_a_button->GetValue());
 	}
 
 	if(B_turbo)
 	{
-		if(wx_b_button->GetValue())
-			wx_b_button->SetValue(false);
-		
-		else
-			wx_b_button->SetValue(true);
-	}
+        wx_b_button->SetValue(!wx_b_button->GetValue());
+    }
 	
 	if(X_turbo)
 	{
-		if(wx_x_button->GetValue())
-			wx_x_button->SetValue(false);
-		
-		else
-			wx_x_button->SetValue(true);
+			wx_x_button->SetValue(!wx_x_button->GetValue());
 	}
 	
 	if(Y_turbo)
 	{
-		if(wx_y_button->GetValue())
-			wx_y_button->SetValue(false);
-		
-		else
-			wx_y_button->SetValue(true);
+        wx_y_button->SetValue(!wx_y_button->GetValue());
 	}
 	
 	if(Z_turbo)
 	{
-		if(wx_z_button->GetValue())
-			wx_z_button->SetValue(false);
-	
-		else
-			wx_z_button->SetValue(true);
+        wx_z_button->SetValue(!wx_z_button->GetValue());
 	}
-			if(L_turbo)
+    if(L_turbo)
 	{
-		if(wx_l_button->GetValue())
-			wx_l_button->SetValue(false);
-	
-		else
-			wx_l_button->SetValue(true);
-	}
+			wx_l_button->SetValue(!wx_l_button->GetValue());
+    }
 
 	if(R_turbo)
 	{
-		if(wx_r_button->GetValue())
-			wx_r_button->SetValue(false);
-			
-		else
-			wx_r_button->SetValue(true);
+        wx_r_button->SetValue(!wx_r_button->GetValue());
 	}
 
 	if(START_turbo)
 	{
-		if(wx_start_button->GetValue())
-			wx_start_button->SetValue(false);
-		
-		else
-			wx_start_button->SetValue(true);
-		}
+        wx_start_button->SetValue(!wx_start_button->GetValue());
+    }
 
 	if(DU_turbo)
 	{
-		if(wx_up_button->GetValue())
-			wx_up_button->SetValue(false);
-			
-		else
-			wx_up_button->SetValue(true);
-	}
+        wx_up_button->SetValue(!wx_up_button->GetValue());
+    }
 
 	if(DD_turbo)
 	{
-		if(wx_down_button->GetValue())
-			wx_down_button->SetValue(false);
-		
-		else
-			wx_down_button->SetValue(true);
-	}
+        wx_down_button->SetValue(!wx_down_button->GetValue());
+    }
 
 	if(DL_turbo)
 	{
-		if(wx_left_button->GetValue())
-			wx_left_button->SetValue(false);
-			
-		else
-			wx_left_button->SetValue(true);
+        wx_left_button->SetValue(!wx_left_button->GetValue());
 	}
 
 	if(DR_turbo)
 	{
-		if(wx_right_button->GetValue())
-			wx_right_button->SetValue(false);
-	
-		else
-			wx_right_button->SetValue(true);
+        wx_right_button->SetValue(!wx_right_button->GetValue());
 	}
 }
 
