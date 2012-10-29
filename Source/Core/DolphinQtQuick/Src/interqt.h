@@ -8,16 +8,20 @@
 
 
 // TODO: A class for the QML to talk to. Flesh it out.
-class InterQt
+class InterQt : public QObject
 {
+    Q_OBJECT
 public:
-    InterQt() {};
-    Q_INVOKABLE void RefreshList();
-    Q_INVOKABLE void StartPauseEmu();
-    Q_INVOKABLE void LoadISO();
-    Q_INVOKABLE void StopEmu();
-    Q_INVOKABLE void SwitchFullscreen();
-    Q_INVOKABLE void TakeScreenshot();
+    InterQt(QObject* parent = 0);
+    Q_INVOKABLE void refreshList();
+    Q_INVOKABLE void startPauseEmu();
+    Q_INVOKABLE void loadISO();
+    Q_INVOKABLE void addISOFolder(QString path);
+    Q_INVOKABLE void stopEmu();
+    Q_INVOKABLE void switchFullscreen();
+    Q_INVOKABLE void takeScreenshot();
     GameList games;
+private:
+    QList<QString>* pathList;
 };
 

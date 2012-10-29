@@ -1,7 +1,15 @@
 #include "interqt.h"
 
-// TODO: Qtify this
-void InterQt::RefreshList()
+InterQt::InterQt(QObject *parent) : QObject(parent)
+{
+    pathList = new QList<QString>;
+    for (std::vector<std::string>::iterator it = SConfig::GetInstance().m_ISOFolder.begin(); it != SConfig::GetInstance().m_ISOFolder.end(); ++it)
+        pathList->append(QString::fromStdString(*it));
+    refreshList();
+}
+
+// TODO: Qtify this (where it makes sense)
+void InterQt::refreshList()
 {
     games.clear();
     CFileSearch::XStringVector Directories(SConfig::GetInstance().m_ISOFolder);
@@ -110,8 +118,8 @@ void InterQt::RefreshList()
                     break;
                 }
 
-              //if (list)
-              //    games.push_back(ISOFile);
+                if (list)
+                    games.addGame(ISOFile);
             }
         }
         //progressBar->SetVisible(false);
@@ -124,27 +132,35 @@ void InterQt::RefreshList()
         // Another silly Windows limitation of 24 drive letters
         for (u32 i = 0; i < drives.size() && i < 24; i++)
         {
-            //Drive[i] = new GameListItem(drives[i].c_str());
-            //if (Drive[i]->IsValid())
-            //        games.push_back(*Drive[i]);
+            Drive[i] = new GameListItem(drives[i].c_str());
+            if (Drive[i]->IsValid())
+                games.addGame(*Drive[i]);
         }
     }
 
 //    std::sort(games.begin(), games.end());
 }
-void InterQt::StartPauseEmu()
+void InterQt::startPauseEmu()
 {
 }
-void InterQt::LoadISO()
+void InterQt::loadISO()
 {
 }
-void InterQt::StopEmu()
+void InterQt::addISOFolder(QString path)
+{
+    pathList->append(path);
+    SConfig::GetInstance().m_ISOFolder.clear();
+    for (int i = 0; i < pathList->count(); ++i)
+        SConfig::GetInstance().m_ISOFolder.push_back(pathList->at(i).toStdString());
+    refreshList();
+}
+void InterQt::stopEmu()
 {
 }
-void InterQt::SwitchFullscreen()
+void InterQt::switchFullscreen()
 {
 }
-void InterQt::TakeScreenshot()
+void InterQt::takeScreenshot()
 {
 }
 

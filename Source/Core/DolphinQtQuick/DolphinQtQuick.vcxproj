@@ -211,38 +211,16 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Src\Config\ConfigAudio.cpp" />
-    <ClCompile Include="Src\Config\ConfigGeneral.cpp" />
-    <ClCompile Include="Src\Config\ConfigGfx.cpp" />
-    <ClCompile Include="Src\Config\ConfigMain.cpp" />
-    <ClCompile Include="Src\Config\ConfigPad.cpp" />
-    <ClCompile Include="Src\Config\ConfigWiimote.cpp" />
     <ClCompile Include="Src\GameList.cpp" />
     <ClCompile Include="Src\ISOFile.cpp" />
-    <ClCompile Include="Src\IssueReporter.cpp" />
-    <ClCompile Include="Src\LogWindow.cpp" />
     <ClCompile Include="Src\main.cpp" />
-    <ClCompile Include="Src\MainWindow.cpp" />
-    <ClCompile Include="Src\MainWindowEvents.cpp" />
-    <ClCompile Include="Src\RenderWindow.cpp" />
-    <ClCompile Include="Src\Util\Resources.cpp" />
-    <ClCompile Include="Src\Util\Util.cpp" />
+    <ClCompile Include="Src\interqt.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\Config\ConfigAudio.h" />
-    <ClInclude Include="Src\Config\ConfigGeneral.h" />
-    <ClInclude Include="Src\Config\ConfigGfx.h" />
-    <ClInclude Include="Src\Config\ConfigMain.h" />
-    <ClInclude Include="Src\Config\ConfigPad.h" />
-    <ClInclude Include="Src\Config\ConfigWiimote.h" />
     <ClInclude Include="Src\GameList.h" />
     <ClInclude Include="Src\ISOFile.h" />
-    <ClInclude Include="Src\IssueReporter.h" />
-    <ClInclude Include="Src\LogWindow.h" />
-    <ClInclude Include="Src\MainWindow.h" />
-    <ClInclude Include="Src\RenderWindow.h" />
-    <ClInclude Include="Src\Util\Resources.h" />
-    <ClInclude Include="Src\Util\Util.h" />
+    <ClInclude Include="Src\main.h" />
+    <ClInclude Include="Src\interqt.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

@@ -23,7 +23,7 @@ ToolBar {
         ToolButton{
             iconName: "folder-open"
             anchors.verticalCenter: parent.verticalCenter
-            onClicked: fileDialogLoad.open()
+            onClicked: fileDialogBrowse.open()
             //text: "Browse"
         }
         ToolButton{
@@ -77,19 +77,20 @@ ToolBar {
     FileDialog {
         id: fileDialogLoad
         folder: currentDir
-        title: "Choose a file to open"
-        selectMultiple: true
-        nameFilters: [ "Image files (*.png *.jpg)", "All files (*)" ]
+        modality: Qt.ApplicationModal
+        title: "Select a game"
+        nameFilters: [ "GC/Wii Files (*.iso *.ciso *.gcz *.gcm *.wad *.elf *.dol)", "All files (*)" ]
 
         onAccepted: { console.log("Accepted: " + filePaths) }
     }
 
     FileDialog {
         id: fileDialogSave
-        folder: "/tmp"
-        title: "Save as..."
-        modality: Qt.WindowModal
+        folder: currentDir
+        title: "Saves screenshot as..."
+        modality: Qt.ApplicationModal
         selectExisting: false
+        nameFilters: [ "Image (*.png)", "All files(*)"]
 
         onAccepted: { console.log("Accepted: " + filePath) }
     }

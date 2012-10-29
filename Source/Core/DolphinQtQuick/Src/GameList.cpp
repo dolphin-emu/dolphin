@@ -11,6 +11,17 @@ Game::Game(const std::string& fileName)
     m_size = "0 MB";
     m_star = QString::fromStdString(item.GetIssues());
 }
+Game::Game(const GameListItem& item)
+{
+        m_type = "Wii";
+        m_logo = "Banner";
+        m_name = QString::fromStdString(item.GetName(0));
+        m_desc = QString::fromStdString(item.GetDescription(0));
+        m_flag = "EU";
+        m_size = "0 MB";
+        m_star = QString::fromStdString(item.GetIssues());
+}
+
 
 GameList::GameList(QObject *parent)
 {

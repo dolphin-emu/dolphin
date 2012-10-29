@@ -100,10 +100,10 @@ int main(int argc, char* argv[])
     // TODO: Load settings?
 
     InterQt tools;
-//  tools.RefeshList();
 
     viewer = new QmlApplicationViewer();
     viewer->rootContext()->setContextProperty("currentDir", QDir::currentPath());
+    viewer->rootContext()->setContextProperty("tools", &tools);
     viewer->rootContext()->setContextProperty("gameList", &tools.games);
     viewer->setSource(QUrl("qrc:/qml/main.qml"));
     viewer->setWindowIcon(QIcon("qrc:/Dolphin.ico"));

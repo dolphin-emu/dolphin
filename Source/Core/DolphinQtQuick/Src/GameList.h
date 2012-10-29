@@ -5,6 +5,7 @@ class Game
 {
 public:
     Game(const std::string& fileName);
+    Game(const GameListItem& item);
     QString type() const { return m_type; }
     QString logo() const { return m_logo; }
     QString name() const { return m_name; }
