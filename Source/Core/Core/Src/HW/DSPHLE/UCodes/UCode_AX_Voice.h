@@ -236,7 +236,7 @@ inline void MixAddVoice(ParamBlockType &pb,
 			{
 				if (pb.audio_addr.looping == 1)
 				{
-					if (samplePos == sampleEnd || (pb.audio_addr.sample_format != AUDIOFORMAT_ADPCM))
+					if ((samplePos & ~0x1f) == (sampleEnd & ~0x1f) || (pb.audio_addr.sample_format != AUDIOFORMAT_ADPCM))
 						samplePos = loopPos;
 					if ((!pb.is_stream) && (pb.audio_addr.sample_format == AUDIOFORMAT_ADPCM))
 					{
