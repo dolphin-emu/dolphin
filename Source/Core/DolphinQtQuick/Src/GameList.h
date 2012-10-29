@@ -26,6 +26,7 @@ private:
 class GameList : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(int count READ count NOTIFY countChanged)
 public:
     enum GameListRoles {
         TypeRole = Qt::UserRole + 1,
@@ -38,10 +39,16 @@ public:
     };
     GameList(QObject *parent=0);
 
+    int count() const { return m_games.count(); }
+
     void addGame(const Game &item);
-    int rowCount(const QModelIndex & parent = QModelIndex()) const;
+    Q_INVOKABLE int rowCount(const QModelIndex & parent = QModelIndex()) const;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
     void clear();
+
+signals:
+    void countChanged();
+
 private:
     QList<Game> m_games;
 };

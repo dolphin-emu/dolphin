@@ -40,6 +40,7 @@ void GameList::addGame(const Game& item)
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
     m_games << item;
     endInsertRows();
+    emit countChanged();
 }
 int GameList::rowCount(const QModelIndex & parent) const {
     return m_games.count();
