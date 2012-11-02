@@ -1,6 +1,6 @@
 Dolphin-emu - The Gamecube / Wii Emulator
 ==========================================
-Homesite: http://dolphin-emulator.com/
+Homesite: http://dolphin-emu.org/
 Project Site: http://code.google.com/p/dolphin-emu
 
 Dolphin-emu is a emulator for Gamecube, Wii, Triforce that lets
