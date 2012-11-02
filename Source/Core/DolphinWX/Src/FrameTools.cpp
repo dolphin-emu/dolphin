@@ -1289,7 +1289,7 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		}
 		break;
 	case IDM_HELPWEBSITE:
-		WxUtils::Launch("http://www.dolphin-emulator.com/");
+		WxUtils::Launch("http://dolphin-emu.org/");
 		break;
 	case IDM_HELPGOOGLECODE:
 		WxUtils::Launch("http://code.google.com/p/dolphin-emu/");
