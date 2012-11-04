@@ -45,7 +45,7 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	A_turbo = B_turbo = X_turbo = Y_turbo = Z_turbo = L_turbo = R_turbo = START_turbo = DL_turbo = DR_turbo = DD_turbo = DU_turbo = false;
 	xaxis = yaxis = c_xaxis = c_yaxis = 128;
 	A_cont = B_cont = X_cont = Y_cont = Z_cont = L_cont = R_cont = START_cont = DL_cont = DR_cont = DD_cont = DU_cont = mstickx = msticky = cstickx = csticky = false;
-	
+    
 	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticBoxSizer* const main_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Main Stick"));
@@ -54,8 +54,9 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	wxBoxSizer* const main_stick_box = new wxBoxSizer(wxVERTICAL);
 
 	static_bitmap_main = new wxStaticBitmap(this, ID_MAIN_STICK, TASInputDlg::CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
-	static_bitmap_main->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpL), NULL, this);
-	static_bitmap_main->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpR), NULL, this);
+	static_bitmap_main->Connect(wxEVT_MOTION, wxMouseEventHandler(TASInputDlg::OnMouseDownL), NULL, this);
+	static_bitmap_main->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::OnMouseDownL), NULL, this);
+    static_bitmap_main->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpR), NULL, this);
 	wx_mainX_s = new wxSlider(this, ID_MAIN_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
 	wx_mainX_s->SetMinSize(wxSize(120,-1));
 	wx_mainX_t = new wxTextCtrl(this, ID_MAIN_X_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
@@ -80,7 +81,8 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	wxBoxSizer* const c_stick_box = new wxBoxSizer(wxVERTICAL);
 	
 	static_bitmap_c = new wxStaticBitmap(this, ID_C_STICK, TASInputDlg::CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
-	static_bitmap_c->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpL), NULL, this);
+	static_bitmap_c->Connect(wxEVT_MOTION, wxMouseEventHandler(TASInputDlg::OnMouseDownL), NULL, this);
+    static_bitmap_c->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::OnMouseDownL), NULL, this);
 	static_bitmap_c->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpR), NULL, this);
 	wx_cX_s = new wxSlider(this, ID_C_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
 	wx_cX_s->SetMinSize(wxSize(120,-1));
@@ -766,8 +768,11 @@ void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 
 }
 
-void TASInputDlg::OnMouseUpL(wxMouseEvent& event)
+void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 {
+    if(!event.LeftIsDown())
+        return;
+        
 	wxSlider *sliderX,*sliderY;
 	wxStaticBitmap *sbitmap;
 	wxTextCtrl *textX, *textY;
@@ -798,16 +803,23 @@ void TASInputDlg::OnMouseUpL(wxMouseEvent& event)
 		default:
 			return;
 	}
-
+    
+    
 	wxPoint ptM(event.GetPosition()); 
 	*x = ptM.x *2;
 	*y = ptM.y * 2;
 
 	if(*x > 255)
 		*x = 255;
+    
+    if(*x < 0)
+        *x =0;
 	
 	if(*y > 255)
 		*y = 255;
+    
+    if(*y <0)
+        *y = 0;
 
 	sbitmap->SetBitmap(TASInputDlg::CreateStickBitmap(*x,*y));
 	
@@ -961,7 +973,7 @@ void TASInputDlg::ButtonTurbo()
 	
 	if(X_turbo)
 	{
-			wx_x_button->SetValue(!wx_x_button->GetValue());
+        wx_x_button->SetValue(!wx_x_button->GetValue());
 	}
 	
 	if(Y_turbo)
@@ -975,7 +987,7 @@ void TASInputDlg::ButtonTurbo()
 	}
     if(L_turbo)
 	{
-			wx_l_button->SetValue(!wx_l_button->GetValue());
+        wx_l_button->SetValue(!wx_l_button->GetValue());
     }
 
 	if(R_turbo)
