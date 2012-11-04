@@ -750,12 +750,12 @@ void DSPEmitter::addp(const UDSPInstruction opc)
 	ADD(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
-//	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, prod, res));
+//	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, prod, res));
 	if (FlagsNeeded())
 	{
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1);
 	}
 	else
 	{

@@ -464,7 +464,7 @@ void addp(const UDSPInstruction opc)
 
 	dsp_set_long_acc(dreg, res);
 	res = dsp_get_long_acc(dreg);
-	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, prod, res));
+	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, prod, res));
 }
 
 // ADDAXL $acD, $axS.l
