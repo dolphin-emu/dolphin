@@ -682,7 +682,7 @@ void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
 	}
 }
 
-bool TASInputDlg::HasFocus()
+bool TASInputDlg::TASInputDlgHasFocus()
 {	
 	//allows numbers to be used as hotkeys
 	if(TextBoxHasFocus())
@@ -753,7 +753,6 @@ void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 			return;
 	}
 
-	wxPoint ptM(event.GetPosition()); 
 	*x = 128;
 	*y = 128;
 
@@ -1027,7 +1026,7 @@ wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
 	y = y/2;
     
 	wxMemoryDC memDC;
-    wxBitmap bitmap(127, 127);
+    wxBitmap bitmap(129, 129);
     memDC.SelectObject(bitmap);
     memDC.SetBackground(*wxLIGHT_GREY_BRUSH);
     memDC.Clear();

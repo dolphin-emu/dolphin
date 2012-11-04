@@ -951,7 +951,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		else
 		{
 			unsigned int i = NUM_HOTKEYS;
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || g_TASInputDlg->HasFocus())
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || g_TASInputDlg->TASInputDlgHasFocus())
 			{
 				for (i = 0; i < NUM_HOTKEYS; i++)
 				{
