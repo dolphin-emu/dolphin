@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
+#include "Timer.h"
 #include "State.h"
 #include "Core.h"
 #include "ConfigManager.h"
@@ -58,13 +59,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 16;
-
-struct StateHeader
-{
-	u8 gameID[6];
-	size_t size;
-};
+static const u32 STATE_VERSION = 17;
 
 enum
 {
@@ -159,17 +154,59 @@ void VerifyBuffer(std::vector<u8>& buffer)
 	Core::PauseAndLock(false, wasUnpaused);
 }
 
+// return state number not in map
+int GetEmptySlot(std::map<double, int> m)
+{
+	for (int i = 1; i <= NUM_STATES; i++)
+	{
+		bool found = false;
+		for (std::map<double, int>::iterator it = m.begin(); it != m.end(); it++)
+		{
+			if (it->second == i)
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found) return i;
+	}
+	return -1;
+}
+
+// read state timestamps
+std::map<double, int> GetSavedStates()
+{
+	StateHeader header;
+	std::map<double, int> m;
+	for (int i = 1; i <= NUM_STATES; i++)
+	{
+		if (File::Exists(MakeStateFilename(i)))
+		{
+			if (ReadHeader(MakeStateFilename(i), header))
+			{
+				double d = Common::Timer::GetDoubleTime() - header.time;
+				// increase time until unique value is obtained
+				while (m.find(d) != m.end()) d += .001;
+				m.insert(std::pair<double,int>(d, i));
+			}
+		}
+	}
+	return m;
+}
+
 struct CompressAndDumpState_args
 {
 	std::vector<u8>* buffer_vector;
 	std::mutex* buffer_mutex;
 	std::string filename;
+	bool wait;
 };
 
 void CompressAndDumpState(CompressAndDumpState_args save_args)
 {
 	std::lock_guard<std::mutex> lk(*save_args.buffer_mutex);
-	g_compressAndDumpStateSyncEvent.Set();
+	if (!save_args.wait)
+		g_compressAndDumpStateSyncEvent.Set();
 
 	const u8* const buffer_data = &(*(save_args.buffer_vector))[0];
 	const size_t buffer_size = (save_args.buffer_vector)->size();
@@ -201,6 +238,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 	if (!f)
 	{
 		Core::DisplayMessage("Could not save state", 2000);
+		g_compressAndDumpStateSyncEvent.Set();
 		return;
 	}
 
@@ -208,6 +246,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 	StateHeader header;
 	memcpy(header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
 	header.size = g_use_compression ? buffer_size : 0;
+	header.time = Common::Timer::GetDoubleTime();
 
 	f.WriteArray(&header, 1);
 
@@ -244,9 +283,10 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s",
 		filename.c_str()).c_str(), 2000);
+	g_compressAndDumpStateSyncEvent.Set();
 }
 
-void SaveAs(const std::string& filename)
+void SaveAs(const std::string& filename, bool wait)
 {
 	// Pause the core while we save the state
 	bool wasUnpaused = Core::PauseAndLock(true);
@@ -274,6 +314,7 @@ void SaveAs(const std::string& filename)
 		save_args.buffer_vector = &g_current_buffer;
 		save_args.buffer_mutex = &g_cs_current_buffer;
 		save_args.filename = filename;
+		save_args.wait = wait;
 
 		Flush();
 		g_save_thread = std::thread(CompressAndDumpState, save_args);
@@ -289,6 +330,20 @@ void SaveAs(const std::string& filename)
 
 	// Resume the core and disable stepping
 	Core::PauseAndLock(false, wasUnpaused);
+}
+
+bool ReadHeader(const std::string filename, StateHeader& header)
+{
+	Flush();
+	File::IOFile f(filename, "rb");
+	if (!f)
+	{
+		Core::DisplayMessage("State not found", 2000);
+		return false;
+	}
+
+	f.ReadArray(&header, 1);
+	return true;
 }
 
 void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
@@ -496,9 +551,9 @@ static std::string MakeStateFilename(int number)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), number);
 }
 
-void Save(int slot)
+void Save(int slot, bool wait)
 {
-	SaveAs(MakeStateFilename(slot));
+	SaveAs(MakeStateFilename(slot), wait);
 }
 
 void Load(int slot)
@@ -511,12 +566,35 @@ void Verify(int slot)
 	VerifyAt(MakeStateFilename(slot));
 }
 
-void LoadLastSaved()
+void LoadLastSaved(int i)
 {
-	if (g_last_filename.empty())
-		Core::DisplayMessage("There is no last saved state", 2000);
+	std::map<double, int> savedStates = GetSavedStates();
+
+	if (i > savedStates.size())
+		Core::DisplayMessage("State doesn't exist", 2000);
 	else
-		LoadAs(g_last_filename);
+	{
+		std::map<double, int>::iterator it = savedStates.begin();
+		std::advance(it, i-1);
+		Load(it->second);
+	}
+}
+
+// must wait for state to be written because it must know if all slots are taken
+void SaveFirstSaved()
+{
+	std::map<double, int> savedStates = GetSavedStates();
+
+	// save to an empty slot
+	if (savedStates.size() < NUM_STATES)
+		Save(GetEmptySlot(savedStates), true);
+	// overwrite the oldest state
+	else
+	{
+		std::map<double, int>::iterator it = savedStates.begin();
+		std::advance(it, savedStates.size()-1);
+		Save(it->second, true);
+	}
 }
 
 void Flush()
