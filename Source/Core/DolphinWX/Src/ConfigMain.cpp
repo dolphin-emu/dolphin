@@ -891,7 +891,8 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 	{
 	case ID_DSPENGINE:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = DSPEngine->GetSelection() == 0;
-		ac_Config.m_EnableJIT = DSPEngine->GetSelection() == 1;
+		if (!DSPEngine->GetSelection() == 0)
+			ac_Config.m_EnableJIT = DSPEngine->GetSelection() == 1;
 		ac_Config.Update();
 		break;
 
