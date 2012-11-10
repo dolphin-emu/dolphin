@@ -238,7 +238,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 		return 0;
 
 	SetRenderStates();
-	D3D::SetStreamSource(0, m_pVB, 0, sizeof(FONT2DVERTEX));
+	D3D::ChangeStreamSource(0, m_pVB, 0, sizeof(FONT2DVERTEX));
 
 	float vpWidth = 1;
 	float vpHeight = 1;

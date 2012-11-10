@@ -150,10 +150,10 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	u8* pVertices = NULL;
 	u16* pIndices = NULL;
 	int vertex_data_size = IndexGenerator::GetNumVerts() * stride;
-	int triangle_index_size = IndexGenerator::GetTriangleindexLen() * sizeof(u16);
-	int line_index_size = IndexGenerator::GetLineindexLen() * sizeof(u16);
-	int point_index_size = IndexGenerator::GetPointindexLen() * sizeof(u16);
-	int index_data_size = triangle_index_size + line_index_size + point_index_size;
+	int triangle_index_size = IndexGenerator::GetTriangleindexLen();
+	int line_index_size = IndexGenerator::GetLineindexLen();
+	int point_index_size = IndexGenerator::GetPointindexLen();
+	int index_data_size = (triangle_index_size + line_index_size + point_index_size) * sizeof(u16);
 	GLbitfield LockMode = GL_MAP_WRITE_BIT;	
 	m_vertex_buffer_cursor--;
 	m_vertex_buffer_cursor = m_vertex_buffer_cursor - (m_vertex_buffer_cursor % stride) + stride;
@@ -206,17 +206,17 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 		{
 			if(triangle_index_size)
 			{		
-				memcpy(pIndices, TIBuffer, triangle_index_size);
+				memcpy(pIndices, TIBuffer, triangle_index_size * sizeof(u16));
 				pIndices += triangle_index_size;
 			}
 			if(line_index_size)
 			{		
-				memcpy(pIndices, LIBuffer, line_index_size);
+				memcpy(pIndices, LIBuffer, line_index_size * sizeof(u16));
 				pIndices += line_index_size;
 			}
 			if(point_index_size)
 			{		
-				memcpy(pIndices, PIBuffer, point_index_size);
+				memcpy(pIndices, PIBuffer, point_index_size * sizeof(u16));
 			}
 			glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 		}
@@ -224,14 +224,17 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 		{
 			if(triangle_index_size)
 			{		
+				triangle_index_size *= sizeof(u16);
 				glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor, triangle_index_size, TIBuffer);				
 			}
 			if(line_index_size)
 			{
+				line_index_size *= sizeof(u16);
 				glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor + triangle_index_size, line_index_size, LIBuffer);
 			}
 			if(point_index_size)
 			{
+				point_index_size *= sizeof(u16);
 				glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor + triangle_index_size + line_index_size, point_index_size, PIBuffer);
 			}			
 		}

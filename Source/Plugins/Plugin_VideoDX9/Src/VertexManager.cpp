@@ -203,6 +203,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	{		
 		memcpy(pIndices, PIBuffer, PDataSize * sizeof(u16));
 	}
+	m_index_buffers[m_current_index_buffer]->Unlock();
 	if(m_current_stride != stride || m_vertex_buffer_cursor == 0)
 	{
 		m_current_stride = stride;
@@ -212,7 +213,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	{
 		D3D::SetIndices(m_index_buffers[m_current_index_buffer]);
 	}
-	m_index_buffers[m_current_index_buffer]->Unlock();
+	
 }
 
 void VertexManager::DrawVertexBuffer(int stride)
@@ -363,7 +364,14 @@ void VertexManager::vFlush()
 	}
 	PrepareDrawBuffers(stride);
 	g_nativeVertexFmt->SetupVertexPointers();	
-	if(m_buffers_count){ DrawVertexBuffer(stride);} else { DrawVertexArray(stride);}
+	if(m_buffers_count)
+	{
+		DrawVertexBuffer(stride);
+	} 
+	else 
+	{ 
+		DrawVertexArray(stride);
+	}
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
 						bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
@@ -376,7 +384,14 @@ void VertexManager::vFlush()
 		}
 		// update alpha only
 		g_renderer->ApplyState(true);
-		if(m_buffers_count){ DrawVertexBuffer(stride);} else { DrawVertexArray(stride);}
+		if(m_buffers_count)
+		{ 
+			DrawVertexBuffer(stride);
+		} 
+		else 
+		{ 
+			DrawVertexArray(stride);
+		}
 		g_renderer->RestoreState();
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
