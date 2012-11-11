@@ -144,9 +144,11 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_TASINPUT, _("TAS Input"));
 	emulationMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at end of movie"));
 	emulationMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_pauseMovie);
+	emulationMenu->AppendCheckItem(IDM_SHOWLAG, _("Show lag counter"));
+	emulationMenu->Check(IDM_SHOWLAG, SConfig::GetInstance().m_showLag);
 	emulationMenu->Check(IDM_RECORDREADONLY, true);
 	emulationMenu->AppendSeparator();
-	
+
 	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
 
 	wxMenu *skippingMenu = new wxMenu;
@@ -709,6 +711,13 @@ void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
 	SConfig::GetInstance().m_pauseMovie = !SConfig::GetInstance().m_pauseMovie;
 	SConfig::GetInstance().SaveSettings();
 }
+
+void CFrame::OnShowLag(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_showLag = !SConfig::GetInstance().m_showLag;
+	SConfig::GetInstance().SaveSettings();
+}
+
 void CFrame::OnFrameStep(wxCommandEvent& event)
 {
 	bool wasPaused = (Core::GetState() == Core::CORE_PAUSE);

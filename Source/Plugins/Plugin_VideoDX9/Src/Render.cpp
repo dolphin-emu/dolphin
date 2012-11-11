@@ -55,6 +55,7 @@
 #include "Movie.h"
 #include "BPFunctions.h"
 #include "FPSCounter.h"
+#include "ConfigManager.h"
 
 namespace DX9
 {
@@ -1091,23 +1092,31 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::font.DrawTextScaled(0, 0, 20, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 
+	if (SConfig::GetInstance().m_showLag)
+	{
+		char lag[10];
+		StringCchPrintfA(lag, 1000, "Lag: %d\n", Movie::g_currentLagCount);
+		D3D::font.DrawTextScaled(0, 18, 20, 20, 0.0f, 0xFF00FFFF, lag);
+	}
+
 	if (g_ActiveConfig.bShowInputDisplay)
 	{
 		char inputDisplay[1000];
 		StringCchPrintfA(inputDisplay, 1000, Movie::GetInputDisplay().c_str());
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, inputDisplay);
+		D3D::font.DrawTextScaled(0, 36, 20, 20, 0.0f, 0xFF00FFFF, inputDisplay);
 	}
+
 	Renderer::DrawDebugText();
 
 	if (g_ActiveConfig.bOverlayStats)
 	{
 		Statistics::ToString(st);
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, st);
+		D3D::font.DrawTextScaled(0, 36, 20, 20, 0.0f, 0xFF00FFFF, st);
 	}
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
 		Statistics::ToStringProj(st);
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, st);
+		D3D::font.DrawTextScaled(0, 35, 20, 20, 0.0f, 0xFF00FFFF, st);
 	}
 
 	OSD::DrawMessages();

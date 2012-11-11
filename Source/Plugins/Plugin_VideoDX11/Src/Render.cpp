@@ -45,6 +45,7 @@
 #include "BPFunctions.h"
 #include "AVIDump.h"
 #include "FPSCounter.h"
+#include "ConfigManager.h"
 
 namespace DX11
 {
@@ -1094,11 +1095,18 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 
+	if (SConfig::GetInstance().m_showLag)
+	{
+		char lag[10];
+		StringCchPrintfA(lag, 1000, "Lag: %d\n", Movie::g_currentLagCount);
+		D3D::font.DrawTextScaled(0, 18, 20, 0.0f, 0xFF00FFFF, lag);
+	}
+
 	if (g_ActiveConfig.bShowInputDisplay)
 	{
 		char inputDisplay[1000];
 		StringCchPrintfA(inputDisplay, 1000, Movie::GetInputDisplay().c_str());
-		D3D::font.DrawTextScaled(0, 30, 20, 0.0f, 0xFF00FFFF, inputDisplay);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, inputDisplay);
 	}
 	Renderer::DrawDebugText();
 
@@ -1106,13 +1114,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		char buf[32768];
 		Statistics::ToString(buf);
-		D3D::font.DrawTextScaled(0, 30, 20, 0.0f, 0xFF00FFFF, buf);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, buf);
 	}
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
 		char buf[32768];
 		Statistics::ToStringProj(buf);
-		D3D::font.DrawTextScaled(0, 30, 20, 0.0f, 0xFF00FFFF, buf);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, buf);
 	}
 
 	OSD::DrawMessages();

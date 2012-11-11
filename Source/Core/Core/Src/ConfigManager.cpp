@@ -132,6 +132,7 @@ void SConfig::SaveSettings()
 	// General
 	ini.Set("General", "LastFilename",	m_LastFilename);
 	ini.Set("General", "PauseMovie", m_pauseMovie);
+	ini.Set("General", "ShowLag", m_showLag);
 
 	// ISO folders
 	// clear removed folders
@@ -262,6 +263,7 @@ void SConfig::LoadSettings()
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
 		ini.Get("General", "PauseMovie", &m_pauseMovie, false);
+		ini.Get("General", "ShowLag", &m_showLag, false);
 
 		m_ISOFolder.clear();
 		int numGCMPaths;
