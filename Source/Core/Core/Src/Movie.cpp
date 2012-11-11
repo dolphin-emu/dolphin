@@ -92,6 +92,10 @@ std::string GetInputDisplay()
 
 void FrameUpdate()
 {
+	if (SConfig::GetInstance().m_pauseMovie && IsPlayingInput() && g_currentInputCount == g_totalInputCount -1)
+	{
+		Core::SetState(Core::CORE_PAUSE);
+	}
 	g_currentFrame++;
 	if(!g_bPolled) 
 		g_currentLagCount++;

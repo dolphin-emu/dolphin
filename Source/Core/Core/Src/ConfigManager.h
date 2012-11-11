@@ -75,6 +75,7 @@ struct SConfig : NonCopyable
 	bool m_ListKorea;
 	bool m_ListTaiwan;
 	bool m_ListUnknown;
+	bool m_pauseMovie;
 
 	SysConf* m_SYSCONF;
 

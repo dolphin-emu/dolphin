@@ -142,6 +142,8 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_RECORDEXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
 	emulationMenu->Append(IDM_RECORDREADONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
 	emulationMenu->Append(IDM_TASINPUT, _("TAS Input"));
+	emulationMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at end of movie"));
+	emulationMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_pauseMovie);
 	emulationMenu->Check(IDM_RECORDREADONLY, true);
 	emulationMenu->AppendSeparator();
 	
@@ -702,6 +704,11 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 	g_TASInputDlg->Show(true);
 }
 
+void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_pauseMovie = !SConfig::GetInstance().m_pauseMovie;
+	SConfig::GetInstance().SaveSettings();
+}
 void CFrame::OnFrameStep(wxCommandEvent& event)
 {
 	bool wasPaused = (Core::GetState() == Core::CORE_PAUSE);
