@@ -408,6 +408,10 @@ CFrame::CFrame(wxFrame* parent,
 	m_LogWindow->Disable();
 
 	g_TASInputDlg = new TASInputDlg(this);
+	g_TASInputDlg1 = new TASInputDlg(this);
+    g_TASInputDlg2 = new TASInputDlg(this);
+    g_TASInputDlg3 = new TASInputDlg(this);
+    
 	Movie::SetInputManip(TASManipFunction);
 
 	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
@@ -892,14 +896,41 @@ void OnAfterLoadCallback()
 
 void TASManipFunction(SPADStatus *PadStatus, int controllerID)
 {
-	if (main_frame)
+	if (main_frame && controllerID == 0)
 		main_frame->g_TASInputDlg->GetValues(PadStatus, controllerID);
+    
+    if (main_frame && controllerID == 1)
+		main_frame->g_TASInputDlg1->GetValues(PadStatus, controllerID);
+    
+    if (main_frame && controllerID == 2)
+		main_frame->g_TASInputDlg2->GetValues(PadStatus, controllerID);
+    
+    if (main_frame && controllerID == 3)
+		main_frame->g_TASInputDlg3->GetValues(PadStatus, controllerID);
 }
+
+bool TASInputHasFocus()
+{
+    if(main_frame->g_TASInputDlg->TASInputDlgHasFocus())
+        return true;
+    
+    if(main_frame->g_TASInputDlg1->TASInputDlgHasFocus())
+        return true;
+    
+    if(main_frame->g_TASInputDlg2->TASInputDlgHasFocus())
+        return true;
+    
+    if(main_frame->g_TASInputDlg3->TASInputDlgHasFocus())
+        return true;
+    
+    return false;
+}
+
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED &&
-			(RendererHasFocus() || g_TASInputDlg->HasFocus()))
+			(RendererHasFocus() || TASInputHasFocus()))
 	{
 		int WiimoteId = -1;
 		// Toggle fullscreen
@@ -951,7 +982,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		else
 		{
 			unsigned int i = NUM_HOTKEYS;
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || g_TASInputDlg->TASInputDlgHasFocus())
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || TASInputHasFocus())
 			{
 				for (i = 0; i < NUM_HOTKEYS; i++)
 				{

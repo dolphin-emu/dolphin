@@ -431,8 +431,8 @@ void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 	GetKeyBoardInput(PadStatus);
 
 	// TODO: implement support for more controllers
-	if (controllerID != 0)
-		return;
+	//if (controllerID != 0)
+	//	return;
 
 	PadStatus->stickX = mainX;
 	PadStatus->stickY = mainY;

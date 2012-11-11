@@ -699,7 +699,29 @@ void CFrame::OnRecordReadOnly(wxCommandEvent& event)
 
 void CFrame::OnTASInput(wxCommandEvent& event)
 {
-	g_TASInputDlg->Show(true);
+    if(SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_GC_CONTROLLER)
+    {
+        g_TASInputDlg->Show(true);
+        g_TASInputDlg->SetTitle("TAS Input - Controller 1");
+    }
+    
+    if(SConfig::GetInstance().m_SIDevice[1] == SIDEVICE_GC_CONTROLLER)
+    {
+        g_TASInputDlg1->Show(true);
+        g_TASInputDlg1->SetTitle("TAS Input - Controller 2");
+    }
+        
+    if(SConfig::GetInstance().m_SIDevice[2] == SIDEVICE_GC_CONTROLLER)
+    {
+        g_TASInputDlg2->Show(true);
+        g_TASInputDlg2->SetTitle("TAS Input - Controller 3");
+    }
+    
+    if(SConfig::GetInstance().m_SIDevice[3] == SIDEVICE_GC_CONTROLLER)
+    {
+        g_TASInputDlg3->Show(true);
+        g_TASInputDlg3->SetTitle("TAS Input - Controller 4");
+    }
 }
 
 void CFrame::OnFrameStep(wxCommandEvent& event)
