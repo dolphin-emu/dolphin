@@ -111,7 +111,10 @@ public:
 	NetPlaySetupDiag* g_NetPlaySetupDiag;
 	wxCheatsWindow* g_CheatsWindow;
 	TASInputDlg* g_TASInputDlg;
-
+    TASInputDlg* g_TASInputDlg1;
+    TASInputDlg* g_TASInputDlg2;
+    TASInputDlg* g_TASInputDlg3;
+    
 	void InitBitmaps();
 	void DoPause();
 	void DoStop();
@@ -349,6 +352,7 @@ void OnAfterLoadCallback();
 
 // For TASInputDlg
 void TASManipFunction(SPADStatus *PadStatus, int controllerID);
+bool TASInputHasFocus();
 
 #endif  // __FRAME_H_
 
