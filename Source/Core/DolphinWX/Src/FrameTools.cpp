@@ -27,7 +27,6 @@ window handle that is returned by CreateWindow() can be accessed from
 Core::GetWindowHandle().
 */
 
-
 #include "Setup.h" // Common
 
 #include "NetWindow.h"
@@ -98,6 +97,8 @@ extern "C" {
 #include "../resources/X-Plastik.h"
 #include "../resources/KDE.h"
 };
+
+#include <stdio.h>
 
 // Create menu items
 // ---------------------
@@ -699,28 +700,15 @@ void CFrame::OnRecordReadOnly(wxCommandEvent& event)
 
 void CFrame::OnTASInput(wxCommandEvent& event)
 {
-    if(SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_GC_CONTROLLER)
-    {
-        g_TASInputDlg->Show(true);
-        g_TASInputDlg->SetTitle("TAS Input - Controller 1");
-    }
+    std::string number[4] = {"1","2","3","4"};
     
-    if(SConfig::GetInstance().m_SIDevice[1] == SIDEVICE_GC_CONTROLLER)
+    for(int i = 0; i < 4; i++)
     {
-        g_TASInputDlg1->Show(true);
-        g_TASInputDlg1->SetTitle("TAS Input - Controller 2");
-    }
-        
-    if(SConfig::GetInstance().m_SIDevice[2] == SIDEVICE_GC_CONTROLLER)
-    {
-        g_TASInputDlg2->Show(true);
-        g_TASInputDlg2->SetTitle("TAS Input - Controller 3");
-    }
-    
-    if(SConfig::GetInstance().m_SIDevice[3] == SIDEVICE_GC_CONTROLLER)
-    {
-        g_TASInputDlg3->Show(true);
-        g_TASInputDlg3->SetTitle("TAS Input - Controller 4");
+        if(SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
+        {
+            g_TASInputDlg[i]->Show(true);
+            g_TASInputDlg[i]->SetTitle("TAS Input - Controller " + number[i]);
+        }
     }
 }
 

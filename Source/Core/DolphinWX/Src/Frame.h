@@ -120,10 +120,7 @@ public:
 	CCodeWindow* g_pCodeWindow;
 	NetPlaySetupDiag* g_NetPlaySetupDiag;
 	wxCheatsWindow* g_CheatsWindow;
-	TASInputDlg* g_TASInputDlg;
-    TASInputDlg* g_TASInputDlg1;
-    TASInputDlg* g_TASInputDlg2;
-    TASInputDlg* g_TASInputDlg3;
+	TASInputDlg* g_TASInputDlg[4];
     
 	void InitBitmaps();
 	void DoPause();

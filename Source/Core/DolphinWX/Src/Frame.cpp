@@ -406,11 +406,11 @@ CFrame::CFrame(wxFrame* parent,
 	m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
 	m_LogWindow->Hide();
 	m_LogWindow->Disable();
-
-	g_TASInputDlg = new TASInputDlg(this);
-	g_TASInputDlg1 = new TASInputDlg(this);
-    g_TASInputDlg2 = new TASInputDlg(this);
-    g_TASInputDlg3 = new TASInputDlg(this);
+    
+    g_TASInputDlg[0] = new TASInputDlg(this);
+	g_TASInputDlg[1] = new TASInputDlg(this);
+    g_TASInputDlg[2] = new TASInputDlg(this);
+    g_TASInputDlg[3] = new TASInputDlg(this);
     
 	Movie::SetInputManip(TASManipFunction);
 
@@ -896,33 +896,17 @@ void OnAfterLoadCallback()
 
 void TASManipFunction(SPADStatus *PadStatus, int controllerID)
 {
-	if (main_frame && controllerID == 0)
-		main_frame->g_TASInputDlg->GetValues(PadStatus, controllerID);
-    
-    if (main_frame && controllerID == 1)
-		main_frame->g_TASInputDlg1->GetValues(PadStatus, controllerID);
-    
-    if (main_frame && controllerID == 2)
-		main_frame->g_TASInputDlg2->GetValues(PadStatus, controllerID);
-    
-    if (main_frame && controllerID == 3)
-		main_frame->g_TASInputDlg3->GetValues(PadStatus, controllerID);
+	if (main_frame)
+		main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus, controllerID);
 }
 
 bool TASInputHasFocus()
 {
-    if(main_frame->g_TASInputDlg->TASInputDlgHasFocus())
-        return true;
-    
-    if(main_frame->g_TASInputDlg1->TASInputDlgHasFocus())
-        return true;
-    
-    if(main_frame->g_TASInputDlg2->TASInputDlgHasFocus())
-        return true;
-    
-    if(main_frame->g_TASInputDlg3->TASInputDlgHasFocus())
-        return true;
-    
+    for(int i = 0; i < 4; i++)
+    {
+        if(main_frame->g_TASInputDlg[i]->TASInputDlgHasFocus())
+            return true;
+    }
     return false;
 }
 
