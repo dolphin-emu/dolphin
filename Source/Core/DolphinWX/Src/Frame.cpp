@@ -327,11 +327,11 @@ CFrame::CFrame(wxFrame* parent,
 	m_LogWindow->Hide();
 	m_LogWindow->Disable();
 
-	g_TASInputDlg = new TASInputDlg(this);
-	g_TASInputDlg1 = new TASInputDlg(this);
-    g_TASInputDlg2 = new TASInputDlg(this);
-    g_TASInputDlg3 = new TASInputDlg(this);
-    
+	g_TASInputDlg[0] = new TASInputDlg(this);
+	g_TASInputDlg[1] = new TASInputDlg(this);
+	g_TASInputDlg[2] = new TASInputDlg(this);
+	g_TASInputDlg[3] = new TASInputDlg(this);
+
 	Movie::SetInputManip(TASManipFunction);
 
 	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
@@ -788,7 +788,7 @@ int GetCmdForHotkey(unsigned int key)
 void OnAfterLoadCallback()
 {
 	// warning: this gets called from the CPU thread, so we should only queue things to do on the proper thread
-	if(main_frame)
+	if (main_frame)
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
@@ -797,34 +797,18 @@ void OnAfterLoadCallback()
 
 void TASManipFunction(SPADStatus *PadStatus, int controllerID)
 {
-	if (main_frame && controllerID == 0)
-		main_frame->g_TASInputDlg->GetValues(PadStatus, controllerID);
-    
-    if (main_frame && controllerID == 1)
-		main_frame->g_TASInputDlg1->GetValues(PadStatus, controllerID);
-    
-    if (main_frame && controllerID == 2)
-		main_frame->g_TASInputDlg2->GetValues(PadStatus, controllerID);
-    
-    if (main_frame && controllerID == 3)
-		main_frame->g_TASInputDlg3->GetValues(PadStatus, controllerID);
+	if (main_frame)
+		main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus, controllerID);
 }
 
 bool TASInputHasFocus()
 {
-    if(main_frame->g_TASInputDlg->HasFocus())
-        return true;
-    
-    if(main_frame->g_TASInputDlg1->HasFocus())
-        return true;
-    
-    if(main_frame->g_TASInputDlg2->HasFocus())
-        return true;
-    
-    if(main_frame->g_TASInputDlg3->HasFocus())
-        return true;
-    
-    return false;
+	for (int i = 0; i < 4; i++)
+	{
+		if (main_frame->g_TASInputDlg[i]->HasFocus())
+			return true;
+	}
+	return false;
 }
 
 
