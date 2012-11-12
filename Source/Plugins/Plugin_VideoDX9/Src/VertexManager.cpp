@@ -158,7 +158,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	int TdataSize = IndexGenerator::GetTriangleindexLen();
 	int LDataSize = IndexGenerator::GetLineindexLen();
 	int PDataSize = IndexGenerator::GetPointindexLen();
-	int IndexDataSize = TdataSize + LDataSize + PDataSize;
+	int IndexDataSize = TdataSize + LDataSize;
 	DWORD LockMode = D3DLOCK_NOOVERWRITE;
 	m_vertex_buffer_cursor--;
 	m_vertex_buffer_cursor = m_vertex_buffer_cursor - (m_vertex_buffer_cursor % stride) + stride;
@@ -198,10 +198,6 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	{		
 		memcpy(pIndices, LIBuffer, LDataSize * sizeof(u16));
 		pIndices += LDataSize;
-	}
-	if(PDataSize)
-	{		
-		memcpy(pIndices, PIBuffer, PDataSize * sizeof(u16));
 	}
 	m_index_buffers[m_current_index_buffer]->Unlock();
 	if(m_current_stride != stride || m_vertex_buffer_cursor == 0)
@@ -256,17 +252,20 @@ void VertexManager::DrawVertexBuffer(int stride)
 	}
 	if (points > 0)
 	{
-		if (FAILED(D3D::dev->DrawIndexedPrimitive(
-			D3DPT_POINTLIST, 
-			basevertex,
-			0, 
-			numverts,
-			StartIndex, 
-			points)))
+		//DrawIndexedPrimitive does not support point list so we have to draw the points one by one
+		for (int i = 0; i < points; i++)
 		{
-			DumpBadShaders();
+			if (FAILED(D3D::dev->DrawPrimitive(
+			D3DPT_POINTLIST, 
+			basevertex + PIBuffer[i],
+			1)))
+			{
+				DumpBadShaders();
+			}
+			INCSTAT(stats.thisFrame.numDrawCalls);
 		}
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		
+		
 	}
 	
 }
