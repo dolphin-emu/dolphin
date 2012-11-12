@@ -6,12 +6,8 @@ cmake_minimum_required(VERSION 2.6)
 # Update compiler before calling project()
 if (APPLE)
 	# Use clang compiler
-	set(CMAKE_C_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang")
-	set(CMAKE_CXX_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++")
-	if (NOT EXISTS "${CMAKE_CXX_COMPILER}")
-		set(CMAKE_C_COMPILER "clang")
-		set(CMAKE_CXX_COMPILER "clang++")
-	endif()
+	set(CMAKE_C_COMPILER "clang")
+	set(CMAKE_CXX_COMPILER "clang++")
 endif()
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
@@ -126,10 +122,6 @@ if(UNIX AND NOT APPLE)
 endif()
 
 if(APPLE)
-	# Ignore MacPorts and Fink and any other locally installed packages that
-	# might prevent building a distributable binary.
-	set(CMAKE_SYSTEM_PREFIX_PATH /usr)
-	set(ENV{PATH} /usr/bin:/bin:/usr/sbin:/sbin)
 
 	# Some of our code contains Objective C constructs.
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c")
@@ -144,7 +136,7 @@ if(APPLE)
 	# This is inserted into the Info.plist as well.
 	# Note that the SDK determines the maximum version of which optional
 	# features can be used, not the minimum required version to run.
-	set(OSX_MIN_VERSION "10.5.4")
+	set(OSX_MIN_VERSION "10.6")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
 	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.6.sdk")
 	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk")
@@ -153,9 +145,9 @@ if(APPLE)
 	elseif(EXISTS "${SYSROOT_LEGACY_PATH}/")
         set(TARGET_SYSROOT ${SYSROOT_LEGACY_PATH})
 	endif()
-	if(${TARGET_SYSROOT})
+	if(TARGET_SYSROOT)
         set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${TARGET_SYSROOT}")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,${TARGET_SYSROOT}")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION} -Wl,-syslibroot,${TARGET_SYSROOT}")
 	endif()
 	# Do not warn about frameworks that are not available on all architectures.
 	# This avoids a warning when linking with QuickTime.
@@ -218,6 +210,7 @@ if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
+add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 ########################################
 # Dependency checking
@@ -392,17 +385,26 @@ else()
 endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	include(FindSDL OPTIONAL)
+	include(FindSDL2 OPTIONAL)
 endif()
-if(SDL_FOUND)
-	message("Using shared SDL")
-	include_directories(${SDL_INCLUDE_DIR})
-else(SDL_FOUND)
-	# TODO: Use the prebuilt one on Windows
-	message("Using static SDL from Externals")
-	include_directories(Externals/SDL Externals/SDL/include)
-	add_subdirectory(Externals/SDL)
-endif(SDL_FOUND)
+if(SDL2_FOUND)
+	message("Using shared SDL2")
+	include_directories(${SDL2_INCLUDE_DIR})
+else(SDL2_FOUND)
+	# SDL2 not found, try SDL
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		include(FindSDL OPTIONAL)
+	endif()
+	if(SDL_FOUND)
+		message("Using shared SDL")
+		include_directories(${SDL_INCLUDE_DIR})
+	else(SDL_FOUND)
+		# TODO: Use the prebuilt one on Windows
+		message("Using static SDL from Externals")
+		include_directories(Externals/SDL Externals/SDL/include)
+		add_subdirectory(Externals/SDL)
+	endif(SDL_FOUND)
+endif(SDL2_FOUND)
 
 set(SFML_FIND_VERSION TRUE)
 set(SFML_FIND_VERSION_MAJOR 1)
@@ -478,7 +480,7 @@ endif()
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 if(NOT DISABLE_WX)
 	include(FindwxWidgets OPTIONAL)
-	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
+	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv gl)
 
 	if(wxWidgets_FOUND)
 		EXECUTE_PROCESS(
@@ -489,8 +491,13 @@ if(NOT DISABLE_WX)
 			ERROR_QUIET
 			)
 		message("Found wxWidgets version ${wxWidgets_VERSION}")
-		if(${wxWidgets_VERSION} VERSION_LESS "2.9.4")
-			message("At least 2.9.4 is required; ignoring found version")
+		if(UNIX AND NOT APPLE)
+			set(wxMIN_VERSION "2.9.3")
+		else()
+			set(wxMIN_VERSION "2.9.4")
+		endif()
+		if(${wxWidgets_VERSION} VERSION_LESS ${wxMIN_VERSION})
+			message("At least ${wxMIN_VERSION} is required; ignoring found version")
 			unset(wxWidgets_FOUND)
 		endif()
 	endif(wxWidgets_FOUND)
@@ -566,8 +573,6 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/scmrev.h
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
-
-add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 ########################################
 # Optional Targets

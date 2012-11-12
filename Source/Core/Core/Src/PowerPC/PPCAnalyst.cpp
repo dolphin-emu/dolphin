@@ -559,7 +559,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 		}
 		else
 		{
-			// Memory exception occurred
+			// ISI exception or other critical memory exception occurred (game over)
 			break;
 		}
 	}

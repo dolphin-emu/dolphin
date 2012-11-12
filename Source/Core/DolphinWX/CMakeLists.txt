@@ -7,10 +7,24 @@ set(LIBS	core
 			audiocommon
 			z
 			sfml-network
-			SDL
+			${GTK2_LIBRARIES}
 			${OPENGL_LIBRARIES}
 			${XRANDR_LIBRARIES}
 			${X11_LIBRARIES})
+
+if(SDL2_FOUND)
+	# Using shared SDL2
+	set(LIBS	${LIBS} ${SDL2_LIBRARY})
+else(SDL2_FOUND)
+	if(SDL_FOUND)
+		# Using shared SDL
+		set(LIBS	${LIBS} ${SDL_LIBRARY})
+	else(SDL_FOUND)
+		# Using static SDL from Externals
+		set(LIBS	${LIBS} SDL)
+	endif()
+endif()
+
 
 if(LIBAV_FOUND)
 	set(LIBS	${LIBS} ${LIBAV_LIBRARIES})

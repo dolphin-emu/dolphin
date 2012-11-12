@@ -266,8 +266,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			m_ContentAccessMap[CFD].m_Position = 0;
 			m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(m_TitleID).GetContentByIndex(Index);
-			_dbg_assert_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL);
-
+			
 			if (m_ContentAccessMap[CFD].m_pContent == NULL)
 				CFD = 0xffffffff; //TODO: what is the correct error value here?
 
@@ -784,6 +783,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			}
 			else
 			{
+				std::string tContentFile(m_ContentFile.c_str());
 				WII_IPC_HLE_Interface::Reset(true);
 				WII_IPC_HLE_Interface::Init();
 
@@ -800,7 +800,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 						s_Usb->m_WiiMotes[i].Activate(false);
 					}
 				}
-
+				
+				WII_IPC_HLE_Interface::SetDefaultContentFile(tContentFile);
 			}
 			// Pass the "#002 check"
 			// Apploader should write the IOS version and revision to 0x3140, and compare it

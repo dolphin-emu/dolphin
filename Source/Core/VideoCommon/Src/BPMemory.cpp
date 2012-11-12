@@ -43,31 +43,6 @@ void LoadBPReg(u32 value0)
 	BPWritten(bp);
 }
 
-// Called when loading a saved state.
-// Needs more testing though.
-void BPReload()
-{
-	for (int i = 0; i < 254; i++)
-	{
-		switch (i) 
-		{
-		case BPMEM_BLENDMODE:
-		case BPMEM_SETDRAWDONE:
-		case BPMEM_TRIGGER_EFB_COPY:
-		case BPMEM_LOADTLUT1:
-		case BPMEM_PERF1:
-		case BPMEM_PE_TOKEN_ID:
-		case BPMEM_PE_TOKEN_INT_ID:
-			// Cases in which we DON'T want to reload the BP
-			continue;
-		default:
-			BPCmd bp = {i, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[i])};
-			BPWritten(bp);
-		}
-	}
-}
-
-
 void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size_t desc_size)
 {
 	const char* no_yes[2] = { "No", "Yes" };

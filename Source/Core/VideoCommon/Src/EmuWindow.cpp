@@ -251,7 +251,7 @@ void OSDMenu(WPARAM wParam)
 		OSDChoice = 1;
 		// Toggle native resolution
 		g_Config.iEFBScale = g_Config.iEFBScale + 1;
-		if (g_Config.iEFBScale > 4) g_Config.iEFBScale = 0;
+		if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
 		break;
 	case '4':
 		OSDChoice = 2;
@@ -279,11 +279,6 @@ void OSDMenu(WPARAM wParam)
 	case '6':
 		OSDChoice = 4;
 		g_Config.bDisableFog = !g_Config.bDisableFog;
-		break;
-	case '7':
-		// TODO: Not implemented in the D3D backends, yet
-		OSDChoice = 5;
-		g_Config.bDisableLighting = !g_Config.bDisableLighting;
 		break;
 	}
 }

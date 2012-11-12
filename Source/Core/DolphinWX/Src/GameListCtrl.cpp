@@ -553,6 +553,7 @@ void CGameListCtrl::ScanForISOs()
 		Extensions.push_back("*.iso");
 		Extensions.push_back("*.ciso");
 		Extensions.push_back("*.gcz");
+		Extensions.push_back("*.wbfs");
 	}
 	if (SConfig::GetInstance().m_ListWad)
 		Extensions.push_back("*.wad");
@@ -1054,7 +1055,7 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	std::string wikiUrl = "http://api.dolphin-emulator.com/wiki.html?id=[GAME_ID]&name=[GAME_NAME]";
+	std::string wikiUrl = "http://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=[GAME_ID]";
 	wikiUrl = ReplaceAll(wikiUrl, "[GAME_ID]", UriEncode(iso->GetUniqueID()));
 	if (UriEncode(iso->GetName(0)).length() < 100)
 		wikiUrl = ReplaceAll(wikiUrl, "[GAME_NAME]", UriEncode(iso->GetName(0)));

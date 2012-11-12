@@ -170,6 +170,7 @@ private:
 		IDM_EXTRACTFILE,
 		IDM_EXTRACTAPPLOADER,
 		IDM_EXTRACTDOL,
+		IDM_CHECKINTEGRITY,
 		IDM_BNRSAVEAS
 	};
 
@@ -186,6 +187,7 @@ private:
 	void OnExtractFile(wxCommandEvent& event);
 	void OnExtractDir(wxCommandEvent& event);
 	void OnExtractDataFromHeader(wxCommandEvent& event);
+	void CheckPartitionIntegrity(wxCommandEvent& event);
 	void SetRefresh(wxCommandEvent& event);
 	void OnChangeBannerLang(wxCommandEvent& event);
 	void PHackButtonClicked(wxCommandEvent& event);

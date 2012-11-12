@@ -111,7 +111,25 @@ void SWBPWritten(int address, int newvalue)
 				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tmem_config.tlut_src, bpmem.tmem_config.tlut_src << 5, (bpmem.tmem_config.tlut_src & 0xFFFFF)<< 5);
 			break;
         }
-	
+
+	case BPMEM_PRELOAD_MODE:
+		if (newvalue != 0)
+		{
+			// NOTE(neobrain): Apparently tmemodd doesn't affect hardware behavior at all (libogc uses it just as a buffe$
+			BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
+			u8* ram_ptr = Memory::GetPointer(tmem_cfg.preload_addr << 5);
+			u32 tmem_addr = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
+			u32 size = tmem_cfg.preload_tile_info.count * 32;
+
+			// Check if the game has overflowed TMEM, and copy up to the limit.
+			// Paper Mario does this when entering the Great Boogly Tree (Chap 2)
+			if ((tmem_addr + size) > TMEM_SIZE)
+				size = TMEM_SIZE - tmem_addr;
+
+			memcpy(texMem + tmem_addr, ram_ptr, size);
+		}
+ 		break;
+
     case BPMEM_TEV_REGISTER_L:   // Reg 1
 	case BPMEM_TEV_REGISTER_L+2: // Reg 2
 	case BPMEM_TEV_REGISTER_L+4: // Reg 3

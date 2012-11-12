@@ -43,6 +43,8 @@ void Write32(const u32 _iValue, const u32 _iAddress);
 // Get the audio rates (48000 or 32000 only)
 unsigned int GetAIDSampleRate();
 
+void GenerateAISInterrupt();
+
 }  // namespace
 
 #endif

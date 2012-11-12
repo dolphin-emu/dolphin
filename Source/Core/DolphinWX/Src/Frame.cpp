@@ -653,6 +653,11 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 #ifdef __WXGTK__
+	case WM_USER_CREATE:
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			m_RenderParent->SetCursor(wxCURSOR_BLANK);
+		break;
+
 	case IDM_PANIC:
 		{
 			wxString caption = event.GetString().BeforeFirst(':');
@@ -676,8 +681,11 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 	if (!wxIsMainThread())
 		wxMutexGuiEnter();
 #endif
-	m_RenderParent->GetClientSize(&width, &height);
-	m_RenderParent->GetPosition(&x, &y);
+	wxRect client_rect = m_RenderParent->GetClientRect();
+	width = client_rect.width;
+	height = client_rect.height;
+	x = client_rect.x;
+	y = client_rect.y;
 #ifdef __WXGTK__
 	if (!wxIsMainThread())
 		wxMutexGuiLeave();
@@ -789,8 +797,9 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 bool IsHotkey(wxKeyEvent &event, int Id)
 {
-	return (event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
-			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
+	return (event.GetKeyCode() != WXK_NONE &&
+	        event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
+	        event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
 }
 
 int GetCmdForHotkey(unsigned int key)
@@ -942,7 +951,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		else
 		{
 			unsigned int i = NUM_HOTKEYS;
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || g_TASInputDlg->HasFocus())
 			{
 				for (i = 0; i < NUM_HOTKEYS; i++)
 				{

@@ -24,6 +24,7 @@
 
 #include "Jit.h"
 #include "JitRegCache.h"
+#include "CPUDetect.h"
 
 const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
@@ -64,9 +65,19 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEm
 		(this->*op)(XMM0, Gen::R(XMM1));
 		MOVSD(fpr.RX(d), Gen::R(XMM0));
 	}
-	if (dupe) {
+	if (dupe)
+	{
 		ForceSinglePrecisionS(fpr.RX(d));
-		MOVDDUP(fpr.RX(d), fpr.R(d));
+		if (cpu_info.bSSE3)
+		{
+			MOVDDUP(fpr.RX(d), fpr.R(d));
+		}
+		else
+		{
+			if (!fpr.R(d).IsSimpleReg(fpr.RX(d)))
+				MOVQ_xmm(fpr.RX(d), fpr.R(d));
+			UNPCKLPD(fpr.RX(d), R(fpr.RX(d)));
+		}
 	}
 	fpr.UnlockAll();
 }
@@ -229,8 +240,6 @@ void Jit64::fmrx(UGeckoInstruction inst)
  
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
-	// TODO : This still causes crashes in Nights, and broken graphics
-	// in Paper Mario, Super Paper Mario as well as SoulCalibur 2 prolly others too.. :(
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
 	if (jo.fpAccurateFcmp) {
@@ -243,36 +252,59 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	int crf	= inst.CRFD;
 
 	fpr.Lock(a,b);
-	if (a != b) fpr.BindToRegister(a, true);
+	fpr.BindToRegister(b, true);
 
 	// Are we masking sNaN invalid floating point exceptions? If not this could crash if we don't handle the exception?
-	UCOMISD(fpr.R(a).GetSimpleReg(), fpr.R(b));
+	UCOMISD(fpr.R(b).GetSimpleReg(), fpr.R(a));
 
-	FixupBranch pNaN	 = J_CC(CC_P);
-	FixupBranch pLesser  = J_CC(CC_B);
-	FixupBranch pGreater = J_CC(CC_A);
+	FixupBranch pNaN, pLesser, pGreater;
+	FixupBranch continue1, continue2, continue3;
+
+	if (a != b)
+	{
+		// if B > A, goto Lesser's jump target
+		pLesser  = J_CC(CC_A);
+	}
+
+	// if (B != B) or (A != A), goto NaN's jump target
+	pNaN    	 = J_CC(CC_P);
+
+	if (a != b)
+	{
+		// if B < A, goto Greater's jump target
+		// JB can't precede the NaN check because it doesn't test ZF
+		pGreater = J_CC(CC_B);
+	}
 
 	// Equal
 	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2));
-	FixupBranch continue1 = J();
-	
-	// Greater Than
-	SetJumpTarget(pGreater);
-	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4));
-	FixupBranch continue2 = J();
-	
-	// Less Than
-	SetJumpTarget(pLesser);
-	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8));
-	FixupBranch continue3 = J();
-	
+	continue1 = J();
+
 	// NAN
 	SetJumpTarget(pNaN);
 	MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x1));
+
+	if (a != b)
+	{
+		continue2 = J();
+
+		// Greater Than
+		SetJumpTarget(pGreater);
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4));
+		continue3 = J();
+	
+		// Less Than
+		SetJumpTarget(pLesser);
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8));
+	}
 	
 	SetJumpTarget(continue1);
-	SetJumpTarget(continue2);
-	SetJumpTarget(continue3);
+	if (a != b)
+	{
+		SetJumpTarget(continue2);
+		SetJumpTarget(continue3);
+	}
+
 	fpr.UnlockAll();
 }
 

@@ -122,5 +122,7 @@ void CUCode_Rom::DoState(PointerWrap &p)
 	p.Do(m_CurrentUCode);
 	p.Do(m_BootTask_numSteps);
 	p.Do(m_NextParameter);
+
+	DoStateShared(p);
 }
 

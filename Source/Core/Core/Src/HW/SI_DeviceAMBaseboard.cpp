@@ -89,8 +89,8 @@ public:
 
 
 // AM-Baseboard device on SI
-CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(int _iDeviceNumber)
-	: ISIDevice(_iDeviceNumber)
+CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(SIDevices device, int _iDeviceNumber)
+	: ISIDevice(device, _iDeviceNumber)
 {
 }
 

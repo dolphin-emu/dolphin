@@ -465,5 +465,6 @@ void CUCode_AX::DoState(PointerWrap &p)
 	p.Do(numPBaddr);
 	p.Do(m_addressPBs);
 	p.Do(PBaddr);
-	p.Do(m_UploadSetupInProgress);
+
+	DoStateShared(p);
 }

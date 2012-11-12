@@ -106,6 +106,7 @@
 // Files in the directory returned by GetUserPath(D_DUMP_IDX)
 #define RAM_DUMP	"ram.raw"
 #define ARAM_DUMP	"aram.raw"
+#define FAKEVMEM_DUMP	"fakevmem.raw"
 
 // Sys files
 #define TOTALDB		"totaldb.dsy"
@@ -120,6 +121,8 @@
 #define GC_SRAM		"SRAM.raw"
 #define GC_MEMCARDA	"MemoryCardA"
 #define GC_MEMCARDB	"MemoryCardB"
+
+#define WII_STATE 	"state.dat"
 
 #define WII_SETTING 	"setting.txt"
 #define WII_EUR_SETTING "setting-eur.txt"

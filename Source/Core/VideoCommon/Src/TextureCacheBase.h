@@ -27,6 +27,8 @@
 
 #include "CommonTypes.h"
 
+struct VideoConfig;
+
 class TextureCache
 {
 public:
@@ -84,7 +86,7 @@ public:
 		virtual ~TCacheEntryBase();
 
 		virtual void Bind(unsigned int stage) = 0;
-		virtual bool Save(const char filename[]) = 0;
+		virtual bool Save(const char filename[], unsigned int level) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level, bool autogen_mips) = 0;
@@ -100,10 +102,10 @@ public:
 
 	virtual ~TextureCache(); // needs virtual for DX11 dtor
 
+	static void OnConfigChanged(VideoConfig& config);
 	static void Cleanup();
 
-	static void Invalidate(bool shutdown);
-	static void InvalidateDefer();
+	static void Invalidate();
 	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
 	static void ClearRenderTargets();	// currently only used by OGL
@@ -118,17 +120,34 @@ public:
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
-	static bool DeferredInvalidate;
-
 protected:
 	TextureCache();
 
 	static  GC_ALIGNED16(u8 *temp);
+	static unsigned int temp_size;
 
 private:
+	static bool CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels);
+	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height);
+	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
+
+
 	typedef std::map<u32, TCacheEntryBase*> TexCache;
 
 	static TexCache textures;
+
+	// Backup configuration values
+	static struct BackupConfig {
+		int s_colorsamples;
+		bool s_copy_efb_to_texture;
+		bool s_copy_efb_scaled;
+		bool s_copy_efb;
+		int s_efb_scale;
+		bool s_texfmt_overlay;
+		bool s_texfmt_overlay_center;
+		bool s_hires_textures;
+		bool s_copy_cache_enable;
+	} backup_config;
 };
 
 extern TextureCache *g_texture_cache;

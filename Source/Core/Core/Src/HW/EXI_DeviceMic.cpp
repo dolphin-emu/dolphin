@@ -38,12 +38,12 @@ void CEXIMic::StreamLog(const char *msg)
 void CEXIMic::StreamInit()
 {
 	// Setup the wonderful c-interfaced lib...
-	pa_stream = NULL;
+	pa_stream = nullptr;
 
 	if ((pa_error = Pa_Initialize()) != paNoError)
 		StreamLog("Pa_Initialize");
 
-	stream_buffer = NULL;
+	stream_buffer = nullptr;
 	samples_avail = stream_wpos = stream_rpos = 0;
 }
 
@@ -75,7 +75,7 @@ static int Pa_Callback(const void *inputBuffer, void *outputBuffer,
 	s16 *buff_in = (s16 *)inputBuffer;
 	s16 *buff_out = &mic->stream_buffer[mic->stream_wpos];
 
-	if (buff_in == NULL)
+	if (buff_in == nullptr)
 	{
 		for (int i = 0; i < mic->buff_size_samples; i++)
 		{
@@ -118,11 +118,13 @@ void CEXIMic::StreamStart()
 
 void CEXIMic::StreamStop()
 {
-	if (pa_stream != NULL && Pa_IsStreamActive(pa_stream) >= paNoError)
+	if (pa_stream != nullptr && Pa_IsStreamActive(pa_stream) >= paNoError)
 		Pa_AbortStream(pa_stream);
 
+	samples_avail = stream_wpos = stream_rpos = 0;
+
 	delete [] stream_buffer;
-	stream_buffer = NULL;
+	stream_buffer = nullptr;
 }
 
 void CEXIMic::StreamReadOne()

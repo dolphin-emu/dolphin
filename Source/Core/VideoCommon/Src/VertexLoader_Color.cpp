@@ -149,7 +149,7 @@ void LOADERDECL Color_ReadIndex8_24b_888()
 void LOADERDECL Color_ReadIndex8_32b_888x()
 {
 	u8 Index = DataReadU8();
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR]+colIndex);
+	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read24(iAddress));
 }
 void LOADERDECL Color_ReadIndex8_16b_4444()

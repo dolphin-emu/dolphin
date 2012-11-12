@@ -216,7 +216,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 		MOVD_xmm(R(EAX), XMM0);
 		UnsafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
 	}
-	FixupBranch exit = J();
+	FixupBranch exit = J(true);
 	SetJumpTarget(safe);
 
 	// Safe but slow routine

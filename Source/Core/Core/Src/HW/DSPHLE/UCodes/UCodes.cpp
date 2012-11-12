@@ -182,3 +182,11 @@ void IUCode::PrepareBootUCode(u32 mail)
 		m_DSPHLE->SwapUCode(ector_crc);
 	}
 }
+
+void IUCode::DoStateShared(PointerWrap &p)
+{
+	p.Do(m_UploadSetupInProgress);
+	p.Do(m_NextUCode);
+	p.Do(m_NextUCode_steps);
+	p.Do(m_NeedsResumeMail);
+}

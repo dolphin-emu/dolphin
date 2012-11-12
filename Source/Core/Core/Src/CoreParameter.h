@@ -132,7 +132,7 @@ struct SCoreStartupParameter
 	std::string strFullscreenResolution;
 	int iRenderWindowXPos, iRenderWindowYPos;
 	int iRenderWindowWidth, iRenderWindowHeight;
-	bool bRenderWindowAutoSize;
+	bool bRenderWindowAutoSize, bKeepWindowOnTop;
 	bool bFullscreen, bRenderToMain;
 	bool bProgressive, bDisableScreenSaver;
 

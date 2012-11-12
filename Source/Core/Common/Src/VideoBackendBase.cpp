@@ -69,6 +69,9 @@ void VideoBackend::ClearList()
 
 void VideoBackend::ActivateBackend(const std::string& name)
 {
+	if (name.length() == 0) // If NULL, set it to the first one in the list. Expected behavior
+		g_video_backend = g_available_video_backends.front();
+
 	for (std::vector<VideoBackend*>::const_iterator it = g_available_video_backends.begin(); it != g_available_video_backends.end(); ++it)
 		if (name == (*it)->GetName())
 			g_video_backend = *it;

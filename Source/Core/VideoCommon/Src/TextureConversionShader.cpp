@@ -259,7 +259,7 @@ void WriteIncrementSampleX(char*& p,API_TYPE ApiType)
 
 void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
 {
-	float result = pow(2.0f, depth) - 1.0f;
+	float result = 255 / pow(2.0f, (8 - depth));
 	WRITE(p, "  %s = floor(%s * %ff);\n", dest, src, result);
 }
 

@@ -31,7 +31,7 @@ const int lut3to8[] = { 0x00,0x24,0x48,0x6D,0x91,0xB6,0xDA,0xFF };
 
 u32 Decode5A3(u16 val)
 {
-	const u32 bg_color = 0x00000000;
+	const u32 bg_color = 0xFFFFFFFF;
 
 	int r, g, b, a;
 

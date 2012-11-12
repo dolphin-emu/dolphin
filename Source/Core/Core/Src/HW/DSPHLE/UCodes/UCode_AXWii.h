@@ -41,7 +41,6 @@ private:
 
 	// PBs
 	u32 m_addressPBs;
-	u32 _CRC;
 
 	bool wiisportsHack;
 

@@ -20,6 +20,8 @@
 
 #include "Common.h"
 
+class PointerWrap;
+
 // Devices can reply with these
 #define SI_ERROR_NO_RESPONSE    0x0008 // Nothing is attached
 #define SI_ERROR_UNKNOWN        0x0040 // Unknown device is attached
@@ -32,30 +34,6 @@
 // GC Controller types
 #define SI_GC_NOMOTOR           0x20000000u // No rumble motor
 #define SI_GC_STANDARD          0x01000000u
-
-class ISIDevice
-{
-protected:
-	int m_iDeviceNumber;
-
-public:
-	// Constructor
-	ISIDevice(int _iDeviceNumber) :
-	  m_iDeviceNumber(_iDeviceNumber)
-	{}
-
-	// Destructor
-	virtual ~ISIDevice() {}
-
-	// Run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength);
-
-	// Return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low) = 0;
-
-	// Send a command directly (no detour per buffer)
-	virtual void SendCommand(u32 _Cmd, u8 _Poll) = 0;
-};
 
 // SI Device IDs for emulator use
 enum TSIDevices
@@ -86,6 +64,47 @@ enum SIDevices
 	SIDEVICE_GC_STEERING,
 	SIDEVICE_GC_TARUKONGA,
 	SIDEVICE_AM_BASEBOARD
+};
+
+
+class ISIDevice
+{
+protected:
+	int m_iDeviceNumber;
+	SIDevices m_deviceType;
+
+public:
+	// Constructor
+	ISIDevice(SIDevices deviceType, int _iDeviceNumber)
+		: m_iDeviceNumber(_iDeviceNumber)
+		, m_deviceType(deviceType)
+	{}
+
+	// Destructor
+	virtual ~ISIDevice() {}
+
+	// Run the SI Buffer
+	virtual int RunBuffer(u8* _pBuffer, int _iLength);
+
+	// Return true on new data
+	virtual bool GetData(u32& _Hi, u32& _Low) = 0;
+
+	// Send a command directly (no detour per buffer)
+	virtual void SendCommand(u32 _Cmd, u8 _Poll) = 0;
+
+	// Savestate support
+	virtual void DoState(PointerWrap& p) {}
+
+
+	int GetDeviceNumber()
+	{
+		return m_iDeviceNumber;
+	}
+
+	SIDevices GetDeviceType()
+	{
+		return m_deviceType;
+	}
 };
 
 extern ISIDevice* SIDevice_Create(const SIDevices device, const int port_number);

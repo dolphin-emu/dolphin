@@ -82,9 +82,11 @@ bool Renderer::s_EnableDLCachingAfterRecording;
 
 unsigned int Renderer::prev_efb_format = (unsigned int)-1;
 
+
 Renderer::Renderer() : frame_data(NULL), bLastFrameDumped(false)
 {
 	UpdateActiveConfig();
+	TextureCache::OnConfigChanged(g_ActiveConfig);
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	bAVIDumping = false;
@@ -129,11 +131,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	{
 		g_renderer->Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc,Gamma);
 		Common::AtomicStoreRelease(s_swapRequested, false);
-	}
-	
-	if (TextureCache::DeferredInvalidate)
-	{
-		TextureCache::Invalidate(false);
 	}
 }
 
@@ -276,7 +273,6 @@ void Renderer::DrawDebugText()
 				std::string("4: Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
 				std::string("5: Copy EFB: ") + efbcopy_text,
 				std::string("6: Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
-				std::string("7: Material Lighting: ") + (g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"),
 			};
 
 			enum { lines_count = sizeof(lines)/sizeof(*lines) };
@@ -390,5 +386,6 @@ void Renderer::RecordVideoMemory()
 
 void UpdateViewport(Matrix44& vpCorrection)
 {
-	g_renderer->UpdateViewport(vpCorrection);
+	if (xfregs.viewport.wd != 0 && xfregs.viewport.ht != 0)
+		g_renderer->UpdateViewport(vpCorrection);
 }

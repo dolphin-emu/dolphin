@@ -151,7 +151,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 		// ! we must continue executing of the loop after exception handling, maybe there is still 0 in r0
 		//MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC));
-		JMP(asm_routines.testExceptions, true);			
+		WriteExceptionExit();
 
 		SetJumpTarget(noIdle);
 
@@ -233,6 +233,21 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
+}
+
+void Jit64::dcbst(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
+	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
+	// memory location.  Do not invalidate the JIT cache in this case as the memory
+	// will be the same.
+	// dcbt = 0x7c00022c
+	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
+	{
+		Default(inst); return;
+	}
 }
 
 // Zero cache line.
@@ -405,10 +420,13 @@ void Jit64::stXx(UGeckoInstruction inst)
 	gpr.Lock(a, b, s);
 	gpr.FlushLockX(ECX, EDX);
 
-	if (inst.SUBOP10 & 32) {
+	if (inst.SUBOP10 & 32)
+	{
+		MEMCHECK_START
 		gpr.BindToRegister(a, true, true);
 		ADD(32, gpr.R(a), gpr.R(b));
 		MOV(32, R(EDX), gpr.R(a));
+		MEMCHECK_END
 	} else {
 		MOV(32, R(EDX), gpr.R(a));
 		ADD(32, R(EDX), gpr.R(b));
@@ -425,12 +443,6 @@ void Jit64::stXx(UGeckoInstruction inst)
 	MOV(32, R(ECX), gpr.R(s));
 	SafeWriteRegToReg(ECX, EDX, accessSize, 0);
 
-	//MEMCHECK_START
-
-	// TODO: Insert rA update code here
-
-	//MEMCHECK_END
-
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
@@ -438,6 +450,9 @@ void Jit64::stXx(UGeckoInstruction inst)
 // A few games use these heavily in video codecs.
 void Jit64::lmw(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
 #ifdef _M_X64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
@@ -458,6 +473,9 @@ void Jit64::lmw(UGeckoInstruction inst)
 
 void Jit64::stmw(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
 #ifdef _M_X64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));

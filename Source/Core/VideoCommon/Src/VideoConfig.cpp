@@ -57,9 +57,9 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "Crop", &bCrop, false);
 	iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
 	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, 0);
-	iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, false);	
 	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,128);
 	iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
+	iniFile.Get("Settings", "LogFPSToFile", &bLogFPSToFile, false);
 	iniFile.Get("Settings", "ShowInputDisplay", &bShowInputDisplay, false);
 	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
 	iniFile.Get("Settings", "OverlayProjStats", &bOverlayProjStats, false);
@@ -85,8 +85,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
 	iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
 	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
-	iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
-	iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
 	
 	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
@@ -129,7 +127,6 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "Crop", &bCrop);
 	iniFile.GetIfExists("Video_Settings", "UseXFB", &bUseXFB);
 	iniFile.GetIfExists("Video_Settings", "UseRealXFB", &bUseRealXFB);
-	iniFile.GetIfExists("Video_Settings", "UseNativeMips", &bUseNativeMips);
 	iniFile.GetIfExists("Video_Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples);
 	iniFile.GetIfExists("Video_Settings", "DLOptimize", &iCompileDLsLevel);
 	iniFile.GetIfExists("Video_Settings", "HiresTextures", &bHiresTextures);
@@ -141,8 +138,6 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
 	iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale); // integral
 	iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass);
-	iniFile.GetIfExists("Video_Settings", "DisableLighting", &bDisableLighting);
-	iniFile.GetIfExists("Video_Settings", "DisableTexturing", &bDisableTexturing);
 	iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog);
 	iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL);
 	iniFile.GetIfExists("Video_Settings", "OMPDecoder", &bOMPDecoder);
@@ -190,9 +185,9 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "wideScreenHack", bWidescreenHack);
 	iniFile.Set("Settings", "UseXFB", bUseXFB);
 	iniFile.Set("Settings", "UseRealXFB", bUseRealXFB);
-	iniFile.Set("Settings", "UseNativeMips", bUseNativeMips);
 	iniFile.Set("Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	iniFile.Set("Settings", "ShowFPS", bShowFPS);
+	iniFile.Set("Settings", "LogFPSToFile", bLogFPSToFile);
 	iniFile.Set("Settings", "ShowInputDisplay", bShowInputDisplay);
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
 	iniFile.Set("Settings", "OverlayProjStats", bOverlayProjStats);
@@ -217,8 +212,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
 	iniFile.Set("Settings", "Wireframe", bWireFrame);
-	iniFile.Set("Settings", "DisableLighting", bDisableLighting);
-	iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
 	iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
 	iniFile.Set("Settings", "DisableFog", bDisableFog);
 
@@ -269,7 +262,6 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "Crop", bCrop);
 	SET_IF_DIFFERS("Video_Settings", "UseXFB", bUseXFB);
 	SET_IF_DIFFERS("Video_Settings", "UseRealXFB", bUseRealXFB);
-	SET_IF_DIFFERS("Video_Settings", "UseNativeMips", bUseNativeMips);
 	SET_IF_DIFFERS("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	SET_IF_DIFFERS("Video_Settings", "DLOptimize", iCompileDLsLevel);
 	SET_IF_DIFFERS("Video_Settings", "HiresTextures", bHiresTextures);
@@ -281,8 +273,6 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "MSAA", iMultisampleMode);
 	SET_IF_DIFFERS("Video_Settings", "EFBScale", iEFBScale); // integral
 	SET_IF_DIFFERS("Video_Settings", "DstAlphaPass", bDstAlphaPass);
-	SET_IF_DIFFERS("Video_Settings", "DisableLighting", bDisableLighting);
-	SET_IF_DIFFERS("Video_Settings", "DisableTexturing", bDisableTexturing);
 	SET_IF_DIFFERS("Video_Settings", "DisableFog", bDisableFog);
 	SET_IF_DIFFERS("Video_Settings", "EnableOpenCL", bEnableOpenCL);
 	SET_IF_DIFFERS("Video_Settings", "OMPDecoder", bOMPDecoder);
