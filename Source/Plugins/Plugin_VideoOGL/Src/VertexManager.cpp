@@ -68,7 +68,6 @@ void VertexManager::CreateDeviceObjects()
 	m_buffers_count = 0;
 	m_vertex_buffers = NULL;
 	m_index_buffers = NULL;
-
 	glEnableClientState(GL_VERTEX_ARRAY);
 	GL_REPORT_ERRORD();
 	int max_Index_size = 0;
@@ -243,17 +242,20 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 void VertexManager::DrawVertexArray()
 {
-	if (IndexGenerator::GetNumTriangles() > 0)
+	int triangle_index_size = IndexGenerator::GetTriangleindexLen();
+	int line_index_size = IndexGenerator::GetLineindexLen();
+	int point_index_size = IndexGenerator::GetPointindexLen();
+	if (triangle_index_size > 0)
 	{
-		glDrawElements(GL_TRIANGLES, IndexGenerator::GetTriangleindexLen(), GL_UNSIGNED_SHORT, TIBuffer);
+		glDrawElements(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, TIBuffer);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	if (IndexGenerator::GetNumLines() > 0)
+	if (line_index_size > 0)
 	{
-		glDrawElements(GL_LINES, IndexGenerator::GetLineindexLen(), GL_UNSIGNED_SHORT, LIBuffer);
+		glDrawElements(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, LIBuffer);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	if (IndexGenerator::GetNumPoints() > 0)
+	if (point_index_size > 0)
 	{
 		glDrawElements(GL_POINTS, IndexGenerator::GetPointindexLen(), GL_UNSIGNED_SHORT, PIBuffer);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
@@ -269,17 +271,17 @@ void VertexManager::DrawVertexBufferObject()
 	if (triangle_index_size > 0)
 	{
 		glDrawElements(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex);
+		StartIndex += triangle_index_size * sizeof(u16);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if (line_index_size > 0)
-	{
-		StartIndex += triangle_index_size * sizeof(u16);
+	{		
 		glDrawElements(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex);
+		StartIndex += line_index_size * sizeof(u16);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if (point_index_size > 0)
-	{
-		StartIndex += line_index_size * sizeof(u16);
+	{		
 		glDrawElements(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
@@ -291,21 +293,22 @@ void VertexManager::DrawVertexBufferObjectBase(u32 stride)
 	int line_index_size = IndexGenerator::GetLineindexLen();
 	int point_index_size = IndexGenerator::GetPointindexLen();
 	int StartIndex = m_index_buffer_cursor;
+	int basevertex = m_vertex_buffer_cursor / stride;
 	if (triangle_index_size > 0)
 	{
-		glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, m_vertex_buffer_cursor / stride);
+		glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, basevertex);
+		StartIndex += triangle_index_size * sizeof(u16);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if (line_index_size > 0)
 	{
-		StartIndex += triangle_index_size * sizeof(u16);
-		glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, m_vertex_buffer_cursor / stride);
+		glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, basevertex);
+		StartIndex += line_index_size * sizeof(u16);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if (point_index_size > 0)
 	{
-		StartIndex += line_index_size * sizeof(u16);
-		glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, m_vertex_buffer_cursor / stride);
+		glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, basevertex);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 }

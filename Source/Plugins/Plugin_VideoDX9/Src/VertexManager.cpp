@@ -218,43 +218,51 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 void VertexManager::DrawVertexBuffer(int stride)
 {
-	if (IndexGenerator::GetNumTriangles() > 0)
+	int triangles = IndexGenerator::GetNumTriangles();
+	int lines = IndexGenerator::GetNumLines();
+	int points = IndexGenerator::GetNumPoints();
+	int numverts = IndexGenerator::GetNumVerts();
+	int StartIndex = m_index_buffer_cursor;
+	int basevertex = m_vertex_buffer_cursor / stride;
+	if (triangles > 0)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitive(
 			D3DPT_TRIANGLELIST,
-			m_vertex_buffer_cursor / stride,
+			basevertex,
 			0, 
-			IndexGenerator::GetNumVerts(),
-			m_index_buffer_cursor, 
-			IndexGenerator::GetNumTriangles())))
+			numverts,
+			StartIndex, 
+			triangles)))
 		{
 			DumpBadShaders();
 		}
+		StartIndex += IndexGenerator::GetTriangleindexLen();
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	if (IndexGenerator::GetNumLines() > 0)
+	if (lines > 0)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitive(
 			D3DPT_LINELIST, 
-			m_vertex_buffer_cursor / stride,
+			basevertex,
 			0, 
-			IndexGenerator::GetNumVerts(),
-			m_index_buffer_cursor + IndexGenerator::GetTriangleindexLen(), 
+			numverts,
+			StartIndex, 
 			IndexGenerator::GetNumLines())))
 		{
 			DumpBadShaders();
 		}
+		StartIndex += IndexGenerator::GetLineindexLen();
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	if (IndexGenerator::GetNumPoints() > 0)
+	if (points > 0)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitive(
 			D3DPT_POINTLIST, 
-			m_vertex_buffer_cursor / stride,
+			basevertex,
 			0, 
-			IndexGenerator::GetNumVerts(),
-			m_index_buffer_cursor + IndexGenerator::GetTriangleindexLen() + IndexGenerator::GetLineindexLen(), 
-			IndexGenerator::GetNumPoints())))
+			numverts,
+			StartIndex, 
+			points)))
 		{
 			DumpBadShaders();
 		}
@@ -264,12 +272,16 @@ void VertexManager::DrawVertexBuffer(int stride)
 }
 
 void VertexManager::DrawVertexArray(int stride)
-{	
-	if (IndexGenerator::GetNumTriangles() > 0)
+{
+	int triangles = IndexGenerator::GetNumTriangles();
+	int lines = IndexGenerator::GetNumLines();
+	int points = IndexGenerator::GetNumPoints();
+	int numverts = IndexGenerator::GetNumVerts();
+	if (triangles > 0)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_TRIANGLELIST, 
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(), 
+			0, numverts, triangles, 
 			TIBuffer, 
 			D3DFMT_INDEX16, 
 			LocalVBuffer, 
@@ -279,11 +291,11 @@ void VertexManager::DrawVertexArray(int stride)
 		}
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	if (IndexGenerator::GetNumLines() > 0)
+	if (lines > 0)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_LINELIST, 
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(), 
+			0, numverts, lines, 
 			LIBuffer, 
 			D3DFMT_INDEX16, 
 			LocalVBuffer, 
@@ -293,11 +305,11 @@ void VertexManager::DrawVertexArray(int stride)
 		}
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	if (IndexGenerator::GetNumPoints() > 0)
+	if (points > 0)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_POINTLIST, 
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(), 
+			0, numverts, points, 
 			PIBuffer, 
 			D3DFMT_INDEX16, 
 			LocalVBuffer, 
