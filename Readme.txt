@@ -17,7 +17,7 @@ Please read the FAQ before use:
 http://code.google.com/p/dolphin-emu/wiki/Facts_And_Questions
 
 System Requirements:
-* OS: Microsoft Windows (2000/XP/Vista or higher) or Linux or Apple Mac OS X.
+* OS: Microsoft Windows (XP/Vista or higher) or Linux or Apple Mac OS X.
 * Processor: Fast CPU with SSE2 supported (recommended at least 2Ghz).
   Dual Core for speed boost.
 * Graphics: Any graphics card that supports Direct3D 9 or OpenGL 2.1.
