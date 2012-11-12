@@ -23,17 +23,23 @@
 #include "lusb0_usb.h"
 #include "hidapi.h"
 
+static std::map<std::string, int> loaded_devices;
+static std::map<int, std::string> loaded_devices_rev;
+static std::map<int, hid_device *> opened_devices;
+
+
+
 CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
 	
-    usb_init(); /* initialize the library */
-  
+    //usb_init(); /* initialize the library */
+	hid_init();
 }
 
 CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
 {
-
+	hid_exit();
 }
 
 bool CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
@@ -175,7 +181,29 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		fclose(test);
 		upto++;
 		*/
+
+		hid_device * dev_handle = GetDeviceByDevNumHidLib(dev_num);
 		
+		if (dev_handle == NULL)
+		{
+			ReturnValue = -4;
+			DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d",
+				requesttype, request, ReturnValue);
+			break;
+		}
+
+		// this is our write request
+		if(request == 0x09)
+		{
+			#define rw_buf_size 0x21
+			unsigned char buf[rw_buf_size];
+			memset(&buf[0], 0, rw_buf_size);
+			memcpy(&buf[1], (unsigned char*)Memory::GetPointer(data), size);
+			int success = hid_write_report(dev_handle, buf, size+1);
+				
+			DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control) success = %d", success);
+		}
+
 		ReturnValue = size + sizeof(usb_ctrl_setup);
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d",
 			requesttype, request, ReturnValue);
@@ -193,21 +221,29 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		u32 data = Memory::Read_U32(BufferIn+0x1C);
 		
-		struct usb_dev_handle * dev_handle = GetDeviceByDevNum(dev_num);
+		hid_device * dev_handle = GetDeviceByDevNumHidLib(dev_num);
 		
 		if (dev_handle == NULL)
 		{
 			ReturnValue = -4;
+			DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt In)(%d,%d,%p) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+				end_point, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 			break;
 		}
 		
-		usb_claim_interface(dev_handle,0);
-		ReturnValue = usb_interrupt_read(dev_handle, end_point, (char*)Memory::GetPointer(data), length, 1000);
+		//ReturnValue = -5;
+		ReturnValue = hid_read(dev_handle, (unsigned char*)Memory::GetPointer(data), length);
+		//ReturnValue = usb_interrupt_read(dev_handle, end_point, (char*)Memory::GetPointer(data), length, 1000);
 		
+			
+		FILE* test = fopen ("readdata.bin", "wb");
+		fwrite(Memory::GetPointer(data), ReturnValue, 1, test);
+		fclose(test);
+
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt In)(%d,%d,%p) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			end_point, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
-		usb_close(dev_handle);
+		
 		break;
 	}
 	case IOCTL_HID_INTERRUPT_OUT:
@@ -220,21 +256,22 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		u32 data = Memory::Read_U32(BufferIn+0x1C);
 		
-		struct usb_dev_handle * dev_handle = GetDeviceByDevNum(dev_num);
+		hid_device * dev_handle = GetDeviceByDevNumHidLib(dev_num);
 		
 		if (dev_handle == NULL)
 		{
 			ReturnValue = -4;
+			DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt Out) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+				ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 			break;
 		}
 		
-		usb_claim_interface(dev_handle,0);
-		ReturnValue = usb_interrupt_write(dev_handle, end_point, (char*)Memory::GetPointer(data), length, 0);
+		ReturnValue = -5;
+		//ReturnValue = usb_interrupt_write(dev_handle, end_point, (char*)Memory::GetPointer(data), length, 0);
 		
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt Out) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
-		usb_close(dev_handle);
 		break;
 	}
 	default:
@@ -303,7 +340,12 @@ void CWII_IPC_HLE_Device_hid::ConvertEndpointToWii(WiiHIDEndpointDescriptor *des
 static int x = 0;
 u32 CWII_IPC_HLE_Device_hid::GetAvailableID(char* path)
 {
-	return x++;
+	std::string dev_path = path;
+	if(loaded_devices.find(dev_path) == loaded_devices.end()){
+		loaded_devices_rev[x] = dev_path;
+		loaded_devices[dev_path] = x++;
+	}
+	return loaded_devices[dev_path];
 }
 
 // hidapi version
@@ -411,9 +453,6 @@ void CWII_IPC_HLE_Device_hid::FillOutDevicesHidApi(u32 BufferOut, u32 BufferOutS
 	}
 	Memory::Write_U32(0xFFFFFFFF, OffsetBuffer); // no more devices
 
-	FILE* test = fopen ("mattsbin.bin", "wb");
-	fwrite(Memory::GetPointer(BufferOut), BufferOutSize, 1, test);
-	fclose(test);
 	hid_free_enumeration(devs);
 }
 
@@ -499,6 +538,16 @@ int CWII_IPC_HLE_Device_hid::Align(int num, int alignment)
 	return (num + (alignment-1)) & ~(alignment-1);
 }
 
+hid_device * CWII_IPC_HLE_Device_hid::GetDeviceByDevNumHidLib(u32 devNum)
+{
+	if (loaded_devices_rev.find(devNum) == loaded_devices_rev.end())
+		return NULL;
+	if (opened_devices.find(devNum) != opened_devices.end())
+		return opened_devices[devNum];
+	
+	hid_device * phPortalHandle = opened_devices[devNum] = hid_open_path(loaded_devices_rev[devNum].c_str());
+	return phPortalHandle;
+}
 
 struct usb_dev_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 {

@@ -155,7 +155,7 @@ extern "C" {
 				This function returns a pointer to a #hid_device object on
 				success or NULL on failure.
 		*/
-		HID_API_EXPORT hid_device * HID_API_CALL hid_open(unsigned short vendor_id, unsigned short product_id, wchar_t *serial_number);
+		HID_API_EXPORT hid_device * HID_API_CALL hid_open(unsigned short vendor_id, unsigned short product_id, const wchar_t *serial_number);
 
 		/** @brief Open a HID device by its path name.
 
@@ -173,7 +173,7 @@ extern "C" {
 		HID_API_EXPORT hid_device * HID_API_CALL hid_open_path(const char *path);
 
 		/** @brief Write an Output report to a HID device.
-
+		
 			The first byte of @p data[] must contain the Report ID. For
 			devices which only support a single report, this must be set
 			to 0x0. The remaining bytes contain the report data. Since
@@ -199,8 +199,8 @@ extern "C" {
 				-1 on error.
 		*/
 		int  HID_API_EXPORT HID_API_CALL hid_write(hid_device *device, const unsigned char *data, size_t length);
+		int  HID_API_EXPORT HID_API_CALL hid_write_report(hid_device *device, const unsigned char *data, size_t length);
 
-		int HID_API_EXPORT HID_API_CALL hid_set_output_report(hid_device *dev, const unsigned char *data, size_t length);
 		/** @brief Read an Input report from a HID device with timeout.
 
 			Input reports are returned

@@ -19,6 +19,7 @@
 
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
+#include "hidapi.h"
 
 class CWII_IPC_HLE_Device_hid : public IWII_IPC_HLE_Device
 {
@@ -122,7 +123,7 @@ private:
 	void ConvertEndpointToWii(WiiHIDEndpointDescriptor *dest, struct usb_endpoint_descriptor *src);
 
 	int Align(int num, int alignment);
-
+	hid_device * GetDeviceByDevNumHidLib(u32 devNum);
 	struct usb_dev_handle * GetDeviceByDevNum(u32 devNum);
 
 
