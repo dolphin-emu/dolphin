@@ -377,7 +377,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		Y_cont = false;
 	}
 
-	if(((PadStatus->triggerLeft) != 0))
+	if(((PadStatus->triggerLeft) != 0) || ((PadStatus->button & PAD_TRIGGER_L) != 0))
 	{
 		wx_l_button->SetValue(true);
 		L_cont = true;
@@ -388,7 +388,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		L_cont = false;
 	}
 	
-	if(((PadStatus->triggerRight) != 0))
+	if(((PadStatus->triggerRight) != 0) || ((PadStatus->button & PAD_TRIGGER_R) != 0))
 	{
 		wx_r_button->SetValue(true);
 		R_cont = true;
