@@ -92,7 +92,7 @@ std::string GetInputDisplay()
 
 void FrameUpdate()
 {
-	if (SConfig::GetInstance().m_pauseMovie && IsPlayingInput() && g_currentInputCount == g_totalInputCount -1)
+	if (IsPlayingInput() && g_currentInputCount == g_totalInputCount -1  && SConfig::GetInstance().m_pauseMovie)
 	{
 		Core::SetState(Core::CORE_PAUSE);
 	}
@@ -135,7 +135,7 @@ void Init()
 	g_bFrameStep = false;
 	g_bFrameStop = false;
 	bSaveConfig = false;
-
+	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
 	if (IsPlayingInput())
 	{
 		ReadHeader();
@@ -743,11 +743,8 @@ void LoadInput(const char *filename)
 	ReadHeader();
 	if (!g_bReadOnly)
 	{
-		if (g_rerecords > tmpHeader.numRerecords)
-		{
-			tmpHeader.numRerecords = g_rerecords;
-		}
-		tmpHeader.numRerecords++;
+		g_rerecords++;
+		tmpHeader.numRerecords = g_rerecords;
 		t_record.Seek(0, SEEK_SET);
 		t_record.WriteArray(&tmpHeader, 1);
 	}
@@ -968,7 +965,6 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 		}
 		else
 		{
-			Core::SetState(Core::CORE_PAUSE);
 			PanicAlert("Change the disc to %s", g_discChange.c_str());
 		}
 	}

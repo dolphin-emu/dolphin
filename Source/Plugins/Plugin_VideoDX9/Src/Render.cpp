@@ -1116,7 +1116,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
 		Statistics::ToStringProj(st);
-		D3D::font.DrawTextScaled(0, 35, 20, 20, 0.0f, 0xFF00FFFF, st);
+		D3D::font.DrawTextScaled(0, 36, 20, 20, 0.0f, 0xFF00FFFF, st);
 	}
 
 	OSD::DrawMessages();
