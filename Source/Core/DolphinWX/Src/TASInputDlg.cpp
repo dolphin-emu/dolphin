@@ -377,7 +377,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		Y_cont = false;
 	}
 
-	if(((PadStatus->button & PAD_TRIGGER_L) != 0))
+	if(((PadStatus->triggerLeft) != 0))
 	{
 		wx_l_button->SetValue(true);
 		L_cont = true;
@@ -388,7 +388,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		L_cont = false;
 	}
 	
-	if(((PadStatus->button & PAD_TRIGGER_R) != 0))
+	if(((PadStatus->triggerRight) != 0))
 	{
 		wx_r_button->SetValue(true);
 		R_cont = true;
@@ -422,6 +422,19 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 	}
 }
 
+void TASInputDlg::SetLandRTriggers()
+{
+    if(wx_l_button->GetValue())
+        lTrig = 255;
+    else
+        lTrig = wx_r_s->GetValue();
+    
+    if(wx_r_button->GetValue())
+        rTrig = 255;
+    else
+        rTrig = wx_r_s->GetValue();
+}
+
 void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 {
 	if (!IsShown())
@@ -429,7 +442,8 @@ void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 	
 	//TODO:: Make this instant not when polled.
 	GetKeyBoardInput(PadStatus);
-
+	SetLandRTriggers();
+    
 	PadStatus->stickX = mainX;
 	PadStatus->stickY = mainY;
 	PadStatus->substickX = cX;
@@ -488,16 +502,6 @@ void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 		PadStatus->button |= PAD_BUTTON_Y;
 	else
 		PadStatus->button &= ~PAD_BUTTON_Y;
-
-	if(wx_l_button->IsChecked())
-		PadStatus->button |= PAD_TRIGGER_L;
-	else
-		PadStatus->button &= ~PAD_TRIGGER_L;
-
-	if(wx_r_button->IsChecked())
-		PadStatus->button |= PAD_TRIGGER_R;
-	else
-		PadStatus->button &= ~PAD_TRIGGER_R;
 
 	if(wx_z_button->IsChecked())
 		PadStatus->button |= PAD_TRIGGER_Z;
