@@ -342,7 +342,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 				// Fixing this would require rewriting most of the AX HLE.
 				u32 block_addr = uAddress;
 				AXPB pb;
-				while (block_addr)
+				for (int i = 0; block_addr && i < NUMBER_OF_PBS; i++)
 				{
 					if (!ReadPB(block_addr, pb))
 						break;
