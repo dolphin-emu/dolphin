@@ -232,13 +232,38 @@ static void ApplyUpdatesForMs(AXPB& pb, int curr_ms)
 
 void CUCode_NewAX::SetupProcessing(u32 studio_addr)
 {
-	// Initialize to 0. Real hardware initializes using values from studio_addr
-	// (to have volume ramps instead of 0), but we don't emulate this yet.
+	u16 studio_data[0x20];
 
-	(void)studio_addr;
+	for (u32 i = 0; i < 0x20; ++i)
+		studio_data[i] = HLEMemory_Read_U16(studio_addr + 2 * i);
 
-	memset(m_samples_left, 0, sizeof (m_samples_left));
-	memset(m_samples_right, 0, sizeof (m_samples_right));
+	// studio_data[0, 1, 2] are for left samples volume ramping
+	s32 left_init = (s32)((studio_data[0] << 16) | studio_data[1]);
+	s16 left_delta = (s16)studio_data[2];
+	if (!left_init)
+		memset(m_samples_left, 0, sizeof (m_samples_left));
+	else
+	{
+		for (u32 i = 0; i < 32 * 5; ++i)
+		{
+			m_samples_left[i] = left_init;
+			left_init -= left_delta;
+		}
+	}
+
+	// studio_data[3, 4, 5] are for right samples volume ramping
+	s32 right_init = (s32)((studio_data[0] << 16) | studio_data[1]);
+	s16 right_delta = (s16)studio_data[2];
+	if (!right_init)
+		memset(m_samples_right, 0, sizeof (m_samples_right));
+	else
+	{
+		for (u32 i = 0; i < 32 * 5; ++i)
+		{
+			m_samples_right[i] = right_init;
+			right_init -= right_delta;
+		}
+	}
 }
 
 void CUCode_NewAX::ProcessPBList(u32 pb_addr)
