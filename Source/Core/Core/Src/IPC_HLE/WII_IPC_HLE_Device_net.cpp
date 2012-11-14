@@ -46,6 +46,7 @@ it failed)
 #endif
 
 #include "WII_IPC_HLE_Device_net.h"
+#include "../ConfigManager.h"
 #include "FileUtil.h"
 #include <stdio.h>
 #include <string>
@@ -276,10 +277,35 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 	//     No idea why the fifth and sixth bytes are left untouched.
 	{
 		// hardcoded address as a fallback
-		// TODO: Make this configurable? Different MAC addresses MIGHT be needed for requesting a user id or encrypting content with NWC24
 		const u8 default_address[] = { 0x00, 0x19, 0x1e, 0xfd, 0x71, 0x84 };
 
 		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
+
+		if (!SConfig::GetInstance().m_WirelessMac.empty())
+		{
+			int x = 0;
+			int tmpaddress[6];
+			for (int i = 0; i < SConfig::GetInstance().m_WirelessMac.length() && x < 6; i++)
+			{
+				if (SConfig::GetInstance().m_WirelessMac[i] == ':' || SConfig::GetInstance().m_WirelessMac[i] == '-')
+					continue;
+
+				std::stringstream ss;
+				ss << std::hex << SConfig::GetInstance().m_WirelessMac[i];
+				if (SConfig::GetInstance().m_WirelessMac[i+1] != ':' && SConfig::GetInstance().m_WirelessMac[i+1] != '-')
+				{
+					ss << std::hex << SConfig::GetInstance().m_WirelessMac[i+1];
+					i++;
+				}
+				ss >> tmpaddress[x];
+				x++;
+			}
+			u8 address[6];
+			for (int i = 0; i < 6;i++)
+				address[i] = tmpaddress[i];
+			Memory::WriteBigEData(address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
+			break;
+		}
 
 #if defined(__linux__)
 		const char *check_devices[3] = { "wlan0", "ath0", "eth0" };
@@ -324,7 +350,6 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 
 		if (SUCCEEDED(ret)) Memory::WriteBigEData(adapter_info->Address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
 		else Memory::WriteBigEData(default_address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
-
 		delete[] adapter_info;
 #else
 		Memory::WriteBigEData(default_address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);

@@ -155,6 +155,7 @@ void SConfig::SaveSettings()
 
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
 	ini.Set("General", "NANDRoot",			m_NANDPath);
+	ini.Set("General", "WirelessMac",		m_WirelessMac);
 
 	// Interface		
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
@@ -282,6 +283,7 @@ void SConfig::LoadSettings()
 		m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
 		DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 		DiscIO::CSharedContent::AccessInstance().UpdateLocation();
+		ini.Get("General", "WirelessMac",			&m_WirelessMac);
 	}
 
 	{
