@@ -19,7 +19,9 @@
 
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
-#include "hidapi.h"
+#include <list>
+
+/* Connection timed out */ #define ETRANSFER_TIMEDOUT -116
 
 class CWII_IPC_HLE_Device_hid : public IWII_IPC_HLE_Device
 {
@@ -30,13 +32,12 @@ public:
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
 	virtual bool Close(u32 _CommandAddress, bool _bForce);
+	virtual u32 Update();
 
 	virtual bool IOCtlV(u32 _CommandAddress);
 	virtual bool IOCtl(u32 _CommandAddress);
 private:	
 
-	
-	std::map<u32, std::string> deviceList;
 
 	enum
     {
@@ -112,10 +113,7 @@ private:
 	} WiiHIDEndpointDescriptor;
 
 	
-	u32 GetAvailableID(char* path);
-
-	void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
-	void FillOutDevicesHidApi(u32 BufferOut, u32 BufferOutSize);
+	void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize);
 
 	void ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, struct usb_device_descriptor *src);
 	void ConvertConfigToWii(WiiHIDConfigDescriptor *dest, struct usb_config_descriptor *src);
@@ -123,8 +121,17 @@ private:
 	void ConvertEndpointToWii(WiiHIDEndpointDescriptor *dest, struct usb_endpoint_descriptor *src);
 
 	int Align(int num, int alignment);
-	hid_device * GetDeviceByDevNumHidLib(u32 devNum);
+
 	struct usb_dev_handle * GetDeviceByDevNum(u32 devNum);
+	std::map<u32,usb_dev_handle*> open_devices;
 
-
+	
+	typedef struct
+	{
+		u32 enq_address;
+		u32 type;
+		void * context;
+	} _hidevent;
+	
+	std::list<_hidevent> event_list;
 };

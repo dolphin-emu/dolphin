@@ -9,7 +9,7 @@
   <ItemDefinitionGroup>
     <Link>
       <AdditionalLibraryDirectories>..\..\..\Externals\SDL\$(PlatformName);..\..\..\Externals\GLew;..\..\..\Externals\Cg64;..\..\..\Externals\portaudio\$(PlatformName)\$(ConfigurationName);..\..\..\Externals\libusb\$(PlatformName)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>portaudio.lib;dsound.lib;dxerr.lib;iphlpapi.lib;winmm.lib;setupapi.lib;xinput.lib;vfw32.lib;cg.lib;cgGL.lib;opengl32.lib;glew64s.lib;glu32.lib;rpcrt4.lib;comctl32.lib;libusb.lib;hidapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>portaudio.lib;dsound.lib;dxerr.lib;iphlpapi.lib;winmm.lib;setupapi.lib;xinput.lib;vfw32.lib;cg.lib;cgGL.lib;opengl32.lib;glew64s.lib;glu32.lib;rpcrt4.lib;comctl32.lib;libusb.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
