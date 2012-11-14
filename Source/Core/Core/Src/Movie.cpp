@@ -92,7 +92,7 @@ std::string GetInputDisplay()
 
 void FrameUpdate()
 {
-	if (IsPlayingInput() && g_currentInputCount == g_totalInputCount -1  && SConfig::GetInstance().m_pauseMovie)
+	if (IsPlayingInput() && g_currentInputCount == g_totalInputCount -1  && SConfig::GetInstance().m_PauseMovie)
 	{
 		Core::SetState(Core::CORE_PAUSE);
 	}
@@ -400,7 +400,7 @@ bool BeginRecordingInput(int controllers)
 	}
 	g_playMode = MODE_RECORDING;
 	GetSettings();
-
+	author = SConfig::GetInstance().m_strMovieAuthor;
 	delete [] tmpInput;
 	tmpInput = new u8[MAX_DTM_LENGTH];
 	g_currentByte = g_totalBytes = 0;

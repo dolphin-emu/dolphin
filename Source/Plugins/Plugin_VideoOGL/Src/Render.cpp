@@ -532,7 +532,7 @@ void Renderer::DrawDebugInfo()
 	if (g_ActiveConfig.bShowFPS)
 		p+=sprintf(p, "FPS: %d\n", s_fps);
 
-	if (SConfig::GetInstance().m_showLag)
+	if (SConfig::GetInstance().m_ShowLag)
 		p+=sprintf(p, "Lag: %d\n", Movie::g_currentLagCount);
 
 	if (g_ActiveConfig.bShowInputDisplay)

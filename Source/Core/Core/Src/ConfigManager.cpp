@@ -131,8 +131,7 @@ void SConfig::SaveSettings()
 
 	// General
 	ini.Set("General", "LastFilename",	m_LastFilename);
-	ini.Set("General", "PauseMovie", m_pauseMovie);
-	ini.Set("General", "ShowLag", m_showLag);
+	ini.Set("General", "ShowLag", m_ShowLag);
 
 	// ISO folders
 	// clear removed folders
@@ -248,6 +247,10 @@ void SConfig::SaveSettings()
 	// GFX Backend
 	ini.Set("Core", "GFXBackend",	m_LocalCoreStartupParameter.m_strVideoBackend);
 
+	// Movie
+	ini.Set("Movie", "PauseMovie", m_PauseMovie);
+	ini.Set("Movie", "Author", m_strMovieAuthor);
+
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
 }
@@ -262,8 +265,7 @@ void SConfig::LoadSettings()
 	// General
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
-		ini.Get("General", "PauseMovie", &m_pauseMovie, false);
-		ini.Get("General", "ShowLag", &m_showLag, false);
+		ini.Get("General", "ShowLag", &m_ShowLag, false);
 
 		m_ISOFolder.clear();
 		int numGCMPaths;
@@ -388,6 +390,10 @@ void SConfig::LoadSettings()
 
 		// GFX Backend
 		ini.Get("Core", "GFXBackend",  &m_LocalCoreStartupParameter.m_strVideoBackend, "");
+
+		// Movie
+		ini.Get("General", "PauseMovie", &m_PauseMovie, false);
+		ini.Get("Movie", "Author", &m_strMovieAuthor, "");
 	}
 
 	m_SYSCONF = new SysConf();
