@@ -90,7 +90,7 @@ private:
 
 	void AXThread();
 	void HandleCommandList();
-	void ProcessPB(u32 pb_addr);
+	void ProcessPBList(u32 pb_addr);
 };
 
 #endif // !_UCODE_NEWAX_H
