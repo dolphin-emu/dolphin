@@ -20,6 +20,8 @@
 
 CUCode_NewAX::CUCode_NewAX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
+	, m_cmdlist_addr(0)
+	, m_axthread(&CUCode_NewAX::AXThread, this)
 {
 	m_rMailHandler.PushMail(DSP_INIT);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
@@ -27,14 +29,46 @@ CUCode_NewAX::CUCode_NewAX(DSPHLE* dsp_hle, u32 crc)
 
 CUCode_NewAX::~CUCode_NewAX()
 {
+	m_cmdlist_addr = (u32)-1;	// Special value to signal end
+	NotifyAXThread();
+	m_axthread.join();
+
 	m_rMailHandler.Clear();
+}
+
+void CUCode_NewAX::AXThread()
+{
+	while (true)
+	{
+		{
+			std::unique_lock<std::mutex> lk(m_cmdlist_mutex);
+			while (m_cmdlist_addr == 0)
+				m_cmdlist_cv.wait(lk);
+		}
+
+		if (m_cmdlist_addr == (u32)-1)	// End of thread signal
+			break;
+
+		m_processing.lock();
+		HandleCommandList(m_cmdlist_addr);
+		m_cmdlist_addr = 0;
+
+		// Signal end of processing
+		m_rMailHandler.PushMail(DSP_YIELD);
+		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+		m_processing.unlock();
+	}
+}
+
+void CUCode_NewAX::NotifyAXThread()
+{
+	std::unique_lock<std::mutex> lk(m_cmdlist_mutex);
+	m_cmdlist_cv.notify_one();
 }
 
 void CUCode_NewAX::HandleCommandList(u32 addr)
 {
-	// Signal end of processing
-	m_rMailHandler.PushMail(DSP_YIELD);
-	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+	WARN_LOG(DSPHLE, "TODO: HandleCommandList(%08x)", addr);
 }
 
 void CUCode_NewAX::HandleMail(u32 mail)
@@ -43,9 +77,15 @@ void CUCode_NewAX::HandleMail(u32 mail)
 	static bool next_is_cmdlist = false;
 	bool set_next_is_cmdlist = false;
 
+	// Wait for DSP processing to be done before answering any mail. This is
+	// safe to do because it matches what the DSP does on real hardware: there
+	// is no interrupt when a mail from CPU is received.
+	m_processing.lock();
+
 	if (next_is_cmdlist)
 	{
-		HandleCommandList(mail);
+		m_cmdlist_addr = mail;
+		NotifyAXThread();
 	}
 	else if (m_UploadSetupInProgress)
 	{
@@ -81,6 +121,7 @@ void CUCode_NewAX::HandleMail(u32 mail)
 		ERROR_LOG(DSPHLE, "Unknown mail sent to AX::HandleMail: %08x", mail);
 	}
 
+	m_processing.unlock();
 	next_is_cmdlist = set_next_is_cmdlist;
 }
 
@@ -102,5 +143,7 @@ void CUCode_NewAX::Update(int cycles)
 
 void CUCode_NewAX::DoState(PointerWrap& p)
 {
+	std::lock_guard<std::mutex> lk(m_processing);
+
 	DoStateShared(p);
 }

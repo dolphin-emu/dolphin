@@ -45,6 +45,22 @@ private:
 		MAIL_CMDLIST_MASK = 0xFFFF0000
 	};
 
+	// Volatile because it's set by HandleMail and accessed in
+	// HandleCommandList, which are running in two different threads.
+	volatile u32 m_cmdlist_addr;
+
+	std::thread m_axthread;
+
+	// Sync objects
+	std::mutex m_processing;
+	std::condition_variable m_cmdlist_cv;
+	std::mutex m_cmdlist_mutex;
+
+	// Send a notification to the AX thread to tell him a new cmdlist addr is
+	// available for processing.
+	void NotifyAXThread();
+
+	void AXThread();
 	void HandleCommandList(u32 addr);
 };
 
