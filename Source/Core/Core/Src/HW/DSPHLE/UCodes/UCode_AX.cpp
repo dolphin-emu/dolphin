@@ -172,8 +172,6 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			if (!ReadPB(blockAddr, PB))
 				break;
 
-			ProcessUpdates(PB);
-
 			if (m_CRC != 0x3389a79e)
 				VoiceHacks(PB);
 
@@ -334,6 +332,24 @@ bool CUCode_AX::AXTask(u32& _uMail)
 			{
 				PBaddr[numPBaddr] = HLEMemory_Read_U32(uAddress);
 				numPBaddr++;
+
+				// HACK: process updates right now instead of waiting until
+				// Premix is called. Some games using sequenced music (Tales of
+				// Symphonia for example) thought PBs were unused because we
+				// were too slow to update them and set them as running. This
+				// happens because Premix is basically completely desync-ed
+				// from the emulation core (it's running in the audio thread).
+				// Fixing this would require rewriting most of the AX HLE.
+				u32 block_addr = uAddress;
+				AXPB pb;
+				for (int i = 0; block_addr && i < NUMBER_OF_PBS; i++)
+				{
+					if (!ReadPB(block_addr, pb))
+						break;
+					ProcessUpdates(pb);
+					WritePB(block_addr, pb);
+					block_addr = (pb.next_pb_hi << 16) | pb.next_pb_lo;
+				}
 
 				m_addressPBs = HLEMemory_Read_U32(uAddress); // left in for now
 				uAddress += 4;

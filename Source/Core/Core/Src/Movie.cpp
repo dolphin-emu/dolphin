@@ -131,7 +131,7 @@ void Init()
 	g_bFrameStep = false;
 	g_bFrameStop = false;
 	bSaveConfig = false;
-
+	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
 	if (IsPlayingInput())
 	{
 		ReadHeader();
