@@ -20,7 +20,7 @@
 
 CUCode_NewAX::CUCode_NewAX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
-	, m_cmdlist_addr(0)
+	, m_cmdlist_size(0)
 	, m_axthread(&CUCode_NewAX::AXThread, this)
 {
 	m_rMailHandler.PushMail(DSP_INIT);
@@ -29,7 +29,7 @@ CUCode_NewAX::CUCode_NewAX(DSPHLE* dsp_hle, u32 crc)
 
 CUCode_NewAX::~CUCode_NewAX()
 {
-	m_cmdlist_addr = (u32)-1;	// Special value to signal end
+	m_cmdlist_size = (u16)-1;	// Special value to signal end
 	NotifyAXThread();
 	m_axthread.join();
 
@@ -42,16 +42,16 @@ void CUCode_NewAX::AXThread()
 	{
 		{
 			std::unique_lock<std::mutex> lk(m_cmdlist_mutex);
-			while (m_cmdlist_addr == 0)
+			while (m_cmdlist_size == 0)
 				m_cmdlist_cv.wait(lk);
 		}
 
-		if (m_cmdlist_addr == (u32)-1)	// End of thread signal
+		if (m_cmdlist_size == (u16)-1)	// End of thread signal
 			break;
 
 		m_processing.lock();
-		HandleCommandList(m_cmdlist_addr);
-		m_cmdlist_addr = 0;
+		HandleCommandList();
+		m_cmdlist_size = 0;
 
 		// Signal end of processing
 		m_rMailHandler.PushMail(DSP_YIELD);
@@ -66,15 +66,78 @@ void CUCode_NewAX::NotifyAXThread()
 	m_cmdlist_cv.notify_one();
 }
 
-void CUCode_NewAX::HandleCommandList(u32 addr)
+void CUCode_NewAX::HandleCommandList()
 {
-	WARN_LOG(DSPHLE, "TODO: HandleCommandList(%08x)", addr);
+	u16 pb_addr_hi, pb_addr_lo;
+	u32 pb_addr = 0;
+
+	u32 curr_idx = 0;
+	bool end = false;
+	while (!end)
+	{
+		u16 cmd = m_cmdlist[curr_idx++];
+
+		switch (cmd)
+		{
+
+			// A lot of these commands are unknown, or unused in this AX HLE.
+			// We still need to skip their arguments using "curr_idx += N".
+
+			case CMD_STUDIO_ADDR: curr_idx += 2; break;
+			case CMD_UNK_01: curr_idx += 5; break;
+
+			case CMD_PB_ADDR:
+				pb_addr_hi = m_cmdlist[curr_idx++];
+				pb_addr_lo = m_cmdlist[curr_idx++];
+				pb_addr = (pb_addr_hi << 16) | pb_addr_lo;
+
+				WARN_LOG(DSPHLE, "PB addr: %08x", pb_addr);
+				break;
+
+			case CMD_PROCESS:
+				ProcessPB(pb_addr);
+				break;
+
+			case CMD_UNK_04: curr_idx += 4; break;
+			case CMD_UNK_05: curr_idx += 4; break;
+			case CMD_UNK_06: curr_idx += 2; break;
+			case CMD_SBUFFER_ADDR: curr_idx += 2; break;
+			case CMD_UNK_08: curr_idx += 10; break;	// TODO: check
+			case CMD_UNK_09: curr_idx += 2; break;
+			case CMD_COMPRESSOR_TABLE_ADDR: curr_idx += 2; break;
+			case CMD_UNK_0B: break; // TODO: check other versions
+			case CMD_UNK_0C: break; // TODO: check other versions
+			case CMD_UNK_0D: curr_idx += 2; break;
+			case CMD_UNK_0E: curr_idx += 4; break;
+
+			case CMD_END:
+				end = true;
+				break;
+
+			case CMD_UNK_10: curr_idx += 4; break;
+			case CMD_UNK_11: curr_idx += 2; break;
+			case CMD_UNK_12: curr_idx += 1; break;
+			case CMD_UNK_13: curr_idx += 12; break;
+
+			default:
+				ERROR_LOG(DSPHLE, "Unknown command in AX cmdlist: %04x", cmd);
+				end = true;
+				break;
+		}
+	}
+}
+
+void CUCode_NewAX::ProcessPB(u32 pb_addr)
+{
+	NOTICE_LOG(DSPHLE, "TODO: process pb %08x", pb_addr);
 }
 
 void CUCode_NewAX::HandleMail(u32 mail)
 {
 	// Indicates if the next message is a command list address.
 	static bool next_is_cmdlist = false;
+	static u16 cmdlist_size = 0;
+
 	bool set_next_is_cmdlist = false;
 
 	// Wait for DSP processing to be done before answering any mail. This is
@@ -84,7 +147,7 @@ void CUCode_NewAX::HandleMail(u32 mail)
 
 	if (next_is_cmdlist)
 	{
-		m_cmdlist_addr = mail;
+		CopyCmdList(mail, cmdlist_size);
 		NotifyAXThread();
 	}
 	else if (m_UploadSetupInProgress)
@@ -97,7 +160,7 @@ void CUCode_NewAX::HandleMail(u32 mail)
 		m_rMailHandler.PushMail(DSP_RESUME);
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
-	else if (mail == MAIL_NEWUCODE)
+	else if (mail == MAIL_NEW_UCODE)
 	{
 		soundStream->GetMixer()->SetHLEReady(false);
 		m_UploadSetupInProgress = true;
@@ -115,6 +178,7 @@ void CUCode_NewAX::HandleMail(u32 mail)
 	{
 		// A command list address is going to be sent next.
 		set_next_is_cmdlist = true;
+		cmdlist_size = (u16)(mail & ~MAIL_CMDLIST_MASK);
 	}
 	else
 	{
@@ -123,6 +187,19 @@ void CUCode_NewAX::HandleMail(u32 mail)
 
 	m_processing.unlock();
 	next_is_cmdlist = set_next_is_cmdlist;
+}
+
+void CUCode_NewAX::CopyCmdList(u32 addr, u16 size)
+{
+	if (size >= (sizeof (m_cmdlist) / sizeof (u16)))
+	{
+		ERROR_LOG(DSPHLE, "Command list at %08x is too large: size=%d", addr, size);
+		return;
+	}
+
+	for (u32 i = 0; i < size; ++i, addr += 2)
+		m_cmdlist[i] = HLEMemory_Read_U16(addr);
+	m_cmdlist_size = size;
 }
 
 void CUCode_NewAX::MixAdd(short* out_buffer, int nsamples)

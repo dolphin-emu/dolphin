@@ -36,7 +36,7 @@ private:
 	enum MailType
 	{
 		MAIL_RESUME = 0xCDD10000,
-		MAIL_NEWUCODE = 0xCDD10001,
+		MAIL_NEW_UCODE = 0xCDD10001,
 		MAIL_RESET = 0xCDD10002,
 		MAIL_CONTINUE = 0xCDD10003,
 
@@ -45,9 +45,34 @@ private:
 		MAIL_CMDLIST_MASK = 0xFFFF0000
 	};
 
+	enum CmdType
+	{
+		CMD_STUDIO_ADDR = 0x00,
+		CMD_UNK_01 = 0x01,
+		CMD_PB_ADDR = 0x02,
+		CMD_PROCESS = 0x03,
+		CMD_UNK_04 = 0x04,
+		CMD_UNK_05 = 0x05,
+		CMD_UNK_06 = 0x06,
+		CMD_SBUFFER_ADDR = 0x07,
+		CMD_UNK_08 = 0x08,
+		CMD_UNK_09 = 0x09,
+		CMD_COMPRESSOR_TABLE_ADDR = 0x0A,
+		CMD_UNK_0B = 0x0B,
+		CMD_UNK_0C = 0x0C,
+		CMD_UNK_0D = 0x0D,
+		CMD_UNK_0E = 0x0E,
+		CMD_END = 0x0F,
+		CMD_UNK_10 = 0x10,
+		CMD_UNK_11 = 0x11,
+		CMD_UNK_12 = 0x12,
+		CMD_UNK_13 = 0x13,
+	};
+
 	// Volatile because it's set by HandleMail and accessed in
 	// HandleCommandList, which are running in two different threads.
-	volatile u32 m_cmdlist_addr;
+	volatile u16 m_cmdlist[512];
+	volatile u32 m_cmdlist_size;
 
 	std::thread m_axthread;
 
@@ -56,12 +81,16 @@ private:
 	std::condition_variable m_cmdlist_cv;
 	std::mutex m_cmdlist_mutex;
 
+	// Copy a command list from memory to our temp buffer
+	void CopyCmdList(u32 addr, u16 size);
+
 	// Send a notification to the AX thread to tell him a new cmdlist addr is
 	// available for processing.
 	void NotifyAXThread();
 
 	void AXThread();
-	void HandleCommandList(u32 addr);
+	void HandleCommandList();
+	void ProcessPB(u32 pb_addr);
 };
 
 #endif // !_UCODE_NEWAX_H
