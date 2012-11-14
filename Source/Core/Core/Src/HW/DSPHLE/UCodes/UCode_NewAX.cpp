@@ -126,15 +126,21 @@ void CUCode_NewAX::HandleCommandList()
 				MixAUXSamples(cmd == CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2));
 				break;
 
+			case CMD_UPLOAD_LRS:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				UploadLRS(HILO_TO_32(addr));
+				break;
+
+			case CMD_SBUFFER_ADDR: curr_idx += 2; break;
+			case CMD_UNK_08: curr_idx += 10; break;	// TODO: check
+
 			case CMD_MIX_AUXB_NOWRITE:
 				addr_hi = m_cmdlist[curr_idx++];
 				addr_lo = m_cmdlist[curr_idx++];
 				MixAUXSamples(false, 0, HILO_TO_32(addr));
 				break;
 
-			case CMD_SBUFFER_ADDR: curr_idx += 2; break;
-			case CMD_UNK_08: curr_idx += 10; break;	// TODO: check
-			case CMD_UNK_09: curr_idx += 2; break;
 			case CMD_COMPRESSOR_TABLE_ADDR: curr_idx += 2; break;
 			case CMD_UNK_0B: break; // TODO: check other versions
 			case CMD_UNK_0C: break; // TODO: check other versions
@@ -368,6 +374,19 @@ void CUCode_NewAX::MixAUXSamples(bool AUXA, u32 write_addr, u32 read_addr)
 		m_samples_right[i] += Common::swap32(buffers[1][i]);
 		m_samples_surround[i] += Common::swap32(buffers[2][i]);
 	}
+}
+
+void CUCode_NewAX::UploadLRS(u32 dst_addr)
+{
+	int buffers[3][5 * 32];
+
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		buffers[0][i] = Common::swap32(m_samples_left[i]);
+		buffers[1][i] = Common::swap32(m_samples_right[i]);
+		buffers[2][i] = Common::swap32(m_samples_surround[i]);
+	}
+	memcpy(HLEMemory_Get_Pointer(dst_addr), buffers, sizeof (buffers));
 }
 
 void CUCode_NewAX::OutputSamples(u32 out_addr)

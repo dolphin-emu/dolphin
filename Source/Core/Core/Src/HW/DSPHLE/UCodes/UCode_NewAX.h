@@ -57,10 +57,10 @@ private:
 		CMD_PROCESS = 0x03,
 		CMD_MIX_AUXA = 0x04,
 		CMD_MIX_AUXB = 0x05,
-		CMD_MIX_AUXB_NOWRITE = 0x06,
+		CMD_UPLOAD_LRS = 0x06,
 		CMD_SBUFFER_ADDR = 0x07,
 		CMD_UNK_08 = 0x08,
-		CMD_UNK_09 = 0x09,
+		CMD_MIX_AUXB_NOWRITE = 0x09,
 		CMD_COMPRESSOR_TABLE_ADDR = 0x0A,
 		CMD_UNK_0B = 0x0B,
 		CMD_UNK_0C = 0x0C,
@@ -108,6 +108,7 @@ private:
 	void SetupProcessing(u32 studio_addr);
 	void ProcessPBList(u32 pb_addr);
 	void MixAUXSamples(bool AUXA, u32 write_addr, u32 read_addr);
+	void UploadLRS(u32 dst_addr);
 	void OutputSamples(u32 out_addr);
 };
 
