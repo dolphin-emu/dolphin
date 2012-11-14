@@ -263,7 +263,7 @@ void CUCode_NewAX::ProcessPBList(u32 pb_addr)
 				VoiceHacks(pb);
 
 			MixAddVoice(pb, m_samples_left + spms * curr_ms,
-					    m_samples_right + spms * curr_ms, spms);
+					    m_samples_right + spms * curr_ms, spms, false);
 		}
 
 		WritePB(pb_addr, pb);

@@ -100,12 +100,17 @@ inline bool WritePB(u32 addr, AXPBWii &PB)
 template<class ParamBlockType>
 inline void MixAddVoice(ParamBlockType &pb,
 						int *templbuffer, int *temprbuffer,
-						int _iSize)
+						int _iSize, bool resample = true)
 {
 	if (pb.running)
 	{
-		const u32 ratio = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo)
-			* /*ratioFactor:*/((float)AudioInterface::GetAIDSampleRate() / (float)soundStream->GetMixer()->GetSampleRate()));
+		float ratioFactor;
+		if (resample)
+			ratioFactor = (float)AudioInterface::GetAIDSampleRate() / (float)soundStream->GetMixer()->GetSampleRate();
+		else
+			ratioFactor = 1.0;
+
+		const u32 ratio = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
 		u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
 		u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
 
