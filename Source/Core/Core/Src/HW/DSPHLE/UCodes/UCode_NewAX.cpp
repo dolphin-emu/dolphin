@@ -80,7 +80,9 @@ void CUCode_NewAX::NotifyAXThread()
 
 void CUCode_NewAX::HandleCommandList()
 {
+	// Temp variables for addresses computation
 	u16 addr_hi, addr_lo;
+	u16 addr2_hi, addr2_lo;
 
 	u32 pb_addr = 0;
 
@@ -96,7 +98,7 @@ void CUCode_NewAX::HandleCommandList()
 			// A lot of these commands are unknown, or unused in this AX HLE.
 			// We still need to skip their arguments using "curr_idx += N".
 
-			case CMD_STUDIO_ADDR:
+			case CMD_SETUP:
 				addr_hi = m_cmdlist[curr_idx++];
 				addr_lo = m_cmdlist[curr_idx++];
 				SetupProcessing(HILO_TO_32(addr));
@@ -114,9 +116,22 @@ void CUCode_NewAX::HandleCommandList()
 				ProcessPBList(pb_addr);
 				break;
 
-			case CMD_UNK_04: curr_idx += 4; break;
-			case CMD_UNK_05: curr_idx += 4; break;
-			case CMD_UNK_06: curr_idx += 2; break;
+			case CMD_MIX_AUXA:
+			case CMD_MIX_AUXB:
+				// These two commands are handled almost the same internally.
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				addr2_hi = m_cmdlist[curr_idx++];
+				addr2_lo = m_cmdlist[curr_idx++];
+				MixAUXSamples(cmd == CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2));
+				break;
+
+			case CMD_MIX_AUXB_NOWRITE:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				MixAUXSamples(false, 0, HILO_TO_32(addr));
+				break;
+
 			case CMD_SBUFFER_ADDR: curr_idx += 2; break;
 			case CMD_UNK_08: curr_idx += 10; break;	// TODO: check
 			case CMD_UNK_09: curr_idx += 2; break;
@@ -126,7 +141,8 @@ void CUCode_NewAX::HandleCommandList()
 			case CMD_UNK_0D: curr_idx += 2; break;
 
 			case CMD_OUTPUT:
-				// Skip the first address, we don't know what it's used for.
+				// Skip the first address, it is used for surround audio
+				// output, which we don't support yet.
 				curr_idx += 2;
 
 				addr_hi = m_cmdlist[curr_idx++];
@@ -235,38 +251,43 @@ static void ApplyUpdatesForMs(AXPB& pb, int curr_ms)
 	}
 }
 
-void CUCode_NewAX::SetupProcessing(u32 studio_addr)
+void CUCode_NewAX::SetupProcessing(u32 init_addr)
 {
-	u16 studio_data[0x20];
+	u16 init_data[0x20];
 
 	for (u32 i = 0; i < 0x20; ++i)
-		studio_data[i] = HLEMemory_Read_U16(studio_addr + 2 * i);
+		init_data[i] = HLEMemory_Read_U16(init_addr + 2 * i);
 
-	// studio_data[0, 1, 2] are for left samples volume ramping
-	s32 left_init = (s32)((studio_data[0] << 16) | studio_data[1]);
-	s16 left_delta = (s16)studio_data[2];
-	if (!left_init)
-		memset(m_samples_left, 0, sizeof (m_samples_left));
-	else
-	{
-		for (u32 i = 0; i < 32 * 5; ++i)
-		{
-			m_samples_left[i] = left_init;
-			left_init -= left_delta;
-		}
-	}
+	// List of all buffers we have to initialize
+	int* buffers[] = {
+		m_samples_left,
+		m_samples_right,
+		m_samples_surround,
+		m_samples_auxA_left,
+		m_samples_auxA_right,
+		m_samples_auxA_surround,
+		m_samples_auxB_left,
+		m_samples_auxB_right,
+		m_samples_auxB_surround
+	};
 
-	// studio_data[3, 4, 5] are for right samples volume ramping
-	s32 right_init = (s32)((studio_data[0] << 16) | studio_data[1]);
-	s16 right_delta = (s16)studio_data[2];
-	if (!right_init)
-		memset(m_samples_right, 0, sizeof (m_samples_right));
-	else
+	u32 init_idx = 0;
+	for (u32 i = 0; i < sizeof (buffers) / sizeof (buffers[0]); ++i)
 	{
-		for (u32 i = 0; i < 32 * 5; ++i)
+		s32 init_val = (s32)((init_data[init_idx] << 16) | init_data[init_idx + 1]);
+		s16 delta = (s16)init_data[init_idx + 2];
+
+		init_idx += 3;
+
+		if (!init_val)
+			memset(buffers[i], 0, 5 * 32 * sizeof (int));
+		else
 		{
-			m_samples_right[i] = right_init;
-			right_init -= right_delta;
+			for (u32 j = 0; j < 32 * 5; ++j)
+			{
+				buffers[i][j] = init_val;
+				init_val -= delta;
+			}
 		}
 	}
 }
@@ -275,12 +296,21 @@ void CUCode_NewAX::ProcessPBList(u32 pb_addr)
 {
 	// Samples per millisecond. In theory DSP sampling rate can be changed from
 	// 32KHz to 48KHz, but AX always process at 32KHz.
-	u32 spms = 32;
+	const u32 spms = 32;
 
 	AXPB pb;
 
 	while (pb_addr)
 	{
+		AXBuffers buffers = {{
+			m_samples_left,
+			m_samples_right,
+			m_samples_auxA_left,
+			m_samples_auxA_right,
+			m_samples_auxB_left,
+			m_samples_auxB_right
+		}};
+
 		if (!ReadPB(pb_addr, pb))
 			break;
 
@@ -292,18 +322,62 @@ void CUCode_NewAX::ProcessPBList(u32 pb_addr)
 			if (m_CRC != 0x3389a79e)
 				VoiceHacks(pb);
 
-			MixAddVoice(pb, m_samples_left + spms * curr_ms,
-					    m_samples_right + spms * curr_ms, spms, false);
+			MixAddVoice(pb, buffers, spms, false);
+
+			// Forward the buffers
+			for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)
+				buffers.ptrs[i] += spms;
 		}
 
 		WritePB(pb_addr, pb);
 		pb_addr = HILO_TO_32(pb.next_pb);
 	}
+}
 
-	// Clamp to 16 bits.
-	// TODO: check the clamping is done in this command and not in a later
-	// command.
-	for (u32 i = 0; i < 5 * spms; ++i)
+void CUCode_NewAX::MixAUXSamples(bool AUXA, u32 write_addr, u32 read_addr)
+{
+	int buffers[3][5 * 32];
+
+	// First, we need to send the contents of our AUX buffers to the CPU.
+	if (write_addr)
+	{
+		for (u32 i = 0; i < 5 * 32; ++i)
+		{
+			if (AUXA)
+			{
+				buffers[0][i] = Common::swap32(m_samples_auxA_left[i]);
+				buffers[1][i] = Common::swap32(m_samples_auxA_right[i]);
+				buffers[2][i] = Common::swap32(m_samples_auxA_surround[i]);
+			}
+			else
+			{
+				buffers[0][i] = Common::swap32(m_samples_auxB_left[i]);
+				buffers[1][i] = Common::swap32(m_samples_auxB_right[i]);
+				buffers[2][i] = Common::swap32(m_samples_auxB_surround[i]);
+			}
+		}
+		memset(buffers, 0, sizeof (buffers));
+		memcpy(HLEMemory_Get_Pointer(write_addr), buffers, sizeof (buffers));
+	}
+
+	// Then, we read the new buffers from the CPU and add to our current
+	// buffers.
+	memcpy(buffers, HLEMemory_Get_Pointer(read_addr), sizeof (buffers));
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		m_samples_left[i] += Common::swap32(buffers[0][i]);
+		m_samples_right[i] += Common::swap32(buffers[1][i]);
+		m_samples_surround[i] += Common::swap32(buffers[2][i]);
+	}
+}
+
+void CUCode_NewAX::OutputSamples(u32 out_addr)
+{
+	// 32 samples per ms, 5 ms, 2 channels
+	short buffer[5 * 32 * 2];
+
+	// Clamp internal buffers to 16 bits.
+	for (u32 i = 0; i < 5 * 32; ++i)
 	{
 		int left  = m_samples_left[i];
 		int right = m_samples_right[i];
@@ -316,12 +390,6 @@ void CUCode_NewAX::ProcessPBList(u32 pb_addr)
 		m_samples_left[i] = left;
 		m_samples_right[i] = right;
 	}
-}
-
-void CUCode_NewAX::OutputSamples(u32 out_addr)
-{
-	// 32 samples per ms, 5 ms, 2 channels
-	short buffer[5 * 32 * 2];
 
 	for (u32 i = 0; i < 5 * 32; ++i)
 	{

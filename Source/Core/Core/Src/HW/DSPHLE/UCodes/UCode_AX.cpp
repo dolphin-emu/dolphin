@@ -158,6 +158,11 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	memset(temprbuffer, 0, _iSize * sizeof(int));
 
 	AXPB PB;
+	AXBuffers buffers = {{
+		templbuffer,
+		temprbuffer,
+		NULL
+	}};
 
 	for (int x = 0; x < numPBaddr; x++) 
 	{
@@ -175,7 +180,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			if (m_CRC != 0x3389a79e)
 				VoiceHacks(PB);
 
-			MixAddVoice(PB, templbuffer, temprbuffer, _iSize);
+			MixAddVoice(PB, buffers, _iSize);
 
 			if (!WritePB(blockAddr, PB))
 				break;

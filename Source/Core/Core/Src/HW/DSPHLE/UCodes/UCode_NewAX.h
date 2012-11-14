@@ -51,13 +51,13 @@ private:
 
 	enum CmdType
 	{
-		CMD_STUDIO_ADDR = 0x00,
+		CMD_SETUP = 0x00,
 		CMD_UNK_01 = 0x01,
 		CMD_PB_ADDR = 0x02,
 		CMD_PROCESS = 0x03,
-		CMD_UNK_04 = 0x04,
-		CMD_UNK_05 = 0x05,
-		CMD_UNK_06 = 0x06,
+		CMD_MIX_AUXA = 0x04,
+		CMD_MIX_AUXB = 0x05,
+		CMD_MIX_AUXB_NOWRITE = 0x06,
 		CMD_SBUFFER_ADDR = 0x07,
 		CMD_UNK_08 = 0x08,
 		CMD_UNK_09 = 0x09,
@@ -76,6 +76,13 @@ private:
 	// 32 * 5 because 32 samples per millisecond, for 5 milliseconds.
 	int m_samples_left[32 * 5];
 	int m_samples_right[32 * 5];
+	int m_samples_surround[32 * 5];
+	int m_samples_auxA_left[32 * 5];
+	int m_samples_auxA_right[32 * 5];
+	int m_samples_auxA_surround[32 * 5];
+	int m_samples_auxB_left[32 * 5];
+	int m_samples_auxB_right[32 * 5];
+	int m_samples_auxB_surround[32 * 5];
 
 	// Volatile because it's set by HandleMail and accessed in
 	// HandleCommandList, which are running in two different threads.
@@ -100,6 +107,7 @@ private:
 	void HandleCommandList();
 	void SetupProcessing(u32 studio_addr);
 	void ProcessPBList(u32 pb_addr);
+	void MixAUXSamples(bool AUXA, u32 write_addr, u32 read_addr);
 	void OutputSamples(u32 out_addr);
 };
 

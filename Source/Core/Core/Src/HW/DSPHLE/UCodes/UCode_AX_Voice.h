@@ -94,12 +94,26 @@ inline bool WritePB(u32 addr, AXPBWii &PB)
 	return true;
 }
 
+union AXBuffers
+{
+	struct
+	{
+		int* left;
+		int* right;
+		int* auxA_left;
+		int* auxA_right;
+		int* auxB_left;
+		int* auxB_right;
+	};
+
+	int* ptrs[6];
+};
+
 //////////////////////////////////////////////////////////////////////////
 // TODO: fix handling of gc/wii PB differences
 // TODO: generally fix up the mess - looks crazy and kinda wrong
 template<class ParamBlockType>
-inline void MixAddVoice(ParamBlockType &pb,
-						int *templbuffer, int *temprbuffer,
+inline void MixAddVoice(ParamBlockType &pb, const AXBuffers& buffers,
 						int _iSize, bool resample = true)
 {
 	if (pb.running)
@@ -230,11 +244,25 @@ inline void MixAddVoice(ParamBlockType &pb,
 
 			int leftmix		= pb.mixer.left >> 5;
 			int rightmix	= pb.mixer.right >> 5;
+			int auxAleftmix	= pb.mixer.auxA_left >> 5;
+			int auxArightmix= pb.mixer.auxA_right >> 5;
+			int auxBleftmix	= pb.mixer.auxB_left >> 5;
+			int auxBrightmix= pb.mixer.auxB_right >> 5;
+
 			int left		= sample * leftmix >> 8;
 			int right		= sample * rightmix >> 8;
+			int auxAleft	= sample * auxAleftmix >> 8;
+			int auxAright	= sample * auxArightmix >> 8;
+			int auxBleft	= sample * auxBleftmix >> 8;
+			int auxBright	= sample * auxBrightmix >> 8;
+
 			// adpcm has to walk from oldSamplePos to samplePos here
-			templbuffer[s] += left;
-			temprbuffer[s] += right;
+			if ((pb.mixer_control & 1) && buffers.left) buffers.left[s] += left;
+			if ((pb.mixer_control & 2) && buffers.right) buffers.right [s] += right;
+			if ((pb.mixer_control & 16) && buffers.auxA_left) buffers.auxA_left[s] += auxAleft;
+			if ((pb.mixer_control & 32) && buffers.auxA_right) buffers.auxA_right[s] += auxAright;
+			if ((pb.mixer_control & 512) && buffers.auxB_left) buffers.auxB_left[s] += auxBleft;
+			if ((pb.mixer_control & 1024) && buffers.auxB_right) buffers.auxB_right[s] += auxBright;
 
 			// Control the behavior when we reach the end of the sample
 			if (samplePos >= sampleEnd)
@@ -265,6 +293,10 @@ inline void MixAddVoice(ParamBlockType &pb,
 		// Update volume
 		pb.mixer.left = ADPCM_Vol(pb.mixer.left, pb.mixer.left_delta);
 		pb.mixer.right = ADPCM_Vol(pb.mixer.right, pb.mixer.right_delta);
+		pb.mixer.auxA_left = ADPCM_Vol(pb.mixer.auxA_left, pb.mixer.auxA_left_delta);
+		pb.mixer.auxA_right = ADPCM_Vol(pb.mixer.auxA_right, pb.mixer.auxA_right_delta);
+		pb.mixer.auxB_left = ADPCM_Vol(pb.mixer.auxB_left, pb.mixer.auxB_left_delta);
+		pb.mixer.auxB_right = ADPCM_Vol(pb.mixer.auxB_right, pb.mixer.auxB_right_delta);
 
 		pb.src.cur_addr_frac = (u16)frac;
 		pb.audio_addr.cur_addr_hi = samplePos >> 16;

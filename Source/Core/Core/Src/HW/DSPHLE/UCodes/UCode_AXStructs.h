@@ -25,7 +25,16 @@ struct PBMixer
 	u16 right;
 	u16 right_delta;
 
-	u16 unknown3[8];
+	u16 auxA_left;
+	u16 auxA_left_delta;
+	u16 auxA_right;
+	u16 auxA_right_delta;
+
+	u16 auxB_left;
+	u16 auxB_left_delta;
+	u16 auxB_right;
+	u16 auxB_right_delta;
+
 	u16 unknown4[6];
 };
 

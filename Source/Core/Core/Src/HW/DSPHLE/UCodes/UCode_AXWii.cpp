@@ -101,15 +101,21 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 	if (!blockAddr)
 		return;
 
+	AXBuffers buffers = {{
+		templbuffer,
+		temprbuffer,
+		NULL
+	}};
+
 	for (int i = 0; i < NUMBER_OF_PBS; i++)
 	{
 		if (!ReadPB(blockAddr, PB))
 			break;
 
 		if (wiisportsHack)
-			MixAddVoice(*(AXPBWiiSports*)&PB, templbuffer, temprbuffer, _iSize);
+			MixAddVoice(*(AXPBWiiSports*)&PB, buffers, _iSize);
 		else
-			MixAddVoice(PB, templbuffer, temprbuffer, _iSize);
+			MixAddVoice(PB, buffers, _iSize);
 
 		if (!WritePB(blockAddr, PB))
 			break;
