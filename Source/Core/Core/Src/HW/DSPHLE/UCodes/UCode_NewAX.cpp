@@ -19,6 +19,12 @@
 #include "UCode_AX_Voice.h"
 #include "../../DSP.h"
 
+// Useful macro to convert xxx_hi + xxx_lo to xxx for 32 bits.
+#define HILO_TO_32(name) \
+	((name##_hi << 16) | name##_lo)
+
+#define MIXBUF_MAX_SAMPLES 16000			// 500ms of stereo audio
+
 CUCode_NewAX::CUCode_NewAX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
 	, m_cmdlist_size(0)
@@ -69,7 +75,8 @@ void CUCode_NewAX::NotifyAXThread()
 
 void CUCode_NewAX::HandleCommandList()
 {
-	u16 pb_addr_hi, pb_addr_lo;
+	u16 addr_hi, addr_lo;
+
 	u32 pb_addr = 0;
 
 	u32 curr_idx = 0;
@@ -84,15 +91,18 @@ void CUCode_NewAX::HandleCommandList()
 			// A lot of these commands are unknown, or unused in this AX HLE.
 			// We still need to skip their arguments using "curr_idx += N".
 
-			case CMD_STUDIO_ADDR: curr_idx += 2; break;
+			case CMD_STUDIO_ADDR:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				SetupProcessing(HILO_TO_32(addr));
+				break;
+
 			case CMD_UNK_01: curr_idx += 5; break;
 
 			case CMD_PB_ADDR:
-				pb_addr_hi = m_cmdlist[curr_idx++];
-				pb_addr_lo = m_cmdlist[curr_idx++];
-				pb_addr = (pb_addr_hi << 16) | pb_addr_lo;
-
-				WARN_LOG(DSPHLE, "PB addr: %08x", pb_addr);
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				pb_addr = HILO_TO_32(addr);
 				break;
 
 			case CMD_PROCESS:
@@ -109,7 +119,15 @@ void CUCode_NewAX::HandleCommandList()
 			case CMD_UNK_0B: break; // TODO: check other versions
 			case CMD_UNK_0C: break; // TODO: check other versions
 			case CMD_UNK_0D: curr_idx += 2; break;
-			case CMD_UNK_0E: curr_idx += 4; break;
+
+			case CMD_OUTPUT:
+				// Skip the first address, we don't know what it's used for.
+				curr_idx += 2;
+
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				OutputSamples(HILO_TO_32(addr));
+				break;
 
 			case CMD_END:
 				end = true;
@@ -202,7 +220,7 @@ static void ApplyUpdatesForMs(AXPB& pb, int curr_ms)
 	for (int i = 0; i < curr_ms; ++i)
 		start_idx += pb.updates.num_updates[i];
 
-	u32 update_addr = (pb.updates.data_hi << 16) | pb.updates.data_lo;
+	u32 update_addr = HILO_TO_32(pb.updates.data);
 	for (u32 i = start_idx; i < start_idx + pb.updates.num_updates[curr_ms]; ++i)
 	{
 		u16 update_off = HLEMemory_Read_U16(update_addr + 4 * i);
@@ -212,9 +230,22 @@ static void ApplyUpdatesForMs(AXPB& pb, int curr_ms)
 	}
 }
 
+void CUCode_NewAX::SetupProcessing(u32 studio_addr)
+{
+	// Initialize to 0. Real hardware initializes using values from studio_addr
+	// (to have volume ramps instead of 0), but we don't emulate this yet.
+
+	(void)studio_addr;
+
+	memset(m_samples_left, 0, sizeof (m_samples_left));
+	memset(m_samples_right, 0, sizeof (m_samples_right));
+}
+
 void CUCode_NewAX::ProcessPBList(u32 pb_addr)
 {
-	static int tmp_mix_buffer_left[5 * 32], tmp_mix_buffer_right[5 * 32];
+	// Samples per millisecond. In theory DSP sampling rate can be changed from
+	// 32KHz to 48KHz, but AX always process at 32KHz.
+	u32 spms = 32;
 
 	AXPB pb;
 
@@ -231,15 +262,44 @@ void CUCode_NewAX::ProcessPBList(u32 pb_addr)
 			if (m_CRC != 0x3389a79e)
 				VoiceHacks(pb);
 
-			MixAddVoice(pb, tmp_mix_buffer_left + 32 * curr_ms,
-					    tmp_mix_buffer_right + 32 * curr_ms, 32);
+			MixAddVoice(pb, m_samples_left + spms * curr_ms,
+					    m_samples_right + spms * curr_ms, spms);
 		}
 
 		WritePB(pb_addr, pb);
-		pb_addr = (pb.next_pb_hi << 16) | pb.next_pb_lo;
+		pb_addr = HILO_TO_32(pb.next_pb);
 	}
 
-	// TODO: write the 5ms back to a buffer the audio interface can read from
+	// Clamp to 16 bits.
+	// TODO: check the clamping is done in this command and not in a later
+	// command.
+	for (u32 i = 0; i < 5 * spms; ++i)
+	{
+		int left  = m_samples_left[i];
+		int right = m_samples_right[i];
+
+		if (left < -32767)  left = -32767;
+		if (left > 32767)   left = 32767;
+		if (right < -32767) right = -32767;
+		if (right >  32767) right = 32767;
+
+		m_samples_left[i] = left;
+		m_samples_right[i] = right;
+	}
+}
+
+void CUCode_NewAX::OutputSamples(u32 out_addr)
+{
+	// 32 samples per ms, 5 ms, 2 channels
+	short buffer[5 * 32 * 2];
+
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		buffer[2 * i] = Common::swap16(m_samples_left[i]);
+		buffer[2 * i + 1] = Common::swap16(m_samples_right[i]);
+	}
+
+	memcpy(HLEMemory_Get_Pointer(out_addr), buffer, sizeof (buffer));
 }
 
 void CUCode_NewAX::HandleMail(u32 mail)
@@ -314,8 +374,8 @@ void CUCode_NewAX::CopyCmdList(u32 addr, u16 size)
 
 void CUCode_NewAX::MixAdd(short* out_buffer, int nsamples)
 {
-	// nsamples * 2 for left and right audio channel
-	memset(out_buffer, 0, nsamples * 2 * sizeof (short));
+	// Should never be called: we do not set HLE as ready.
+	// We accurately send samples to RAM instead of directly to the mixer.
 }
 
 void CUCode_NewAX::Update(int cycles)

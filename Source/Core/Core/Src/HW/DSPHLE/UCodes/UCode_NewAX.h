@@ -61,13 +61,17 @@ private:
 		CMD_UNK_0B = 0x0B,
 		CMD_UNK_0C = 0x0C,
 		CMD_UNK_0D = 0x0D,
-		CMD_UNK_0E = 0x0E,
+		CMD_OUTPUT = 0x0E,
 		CMD_END = 0x0F,
 		CMD_UNK_10 = 0x10,
 		CMD_UNK_11 = 0x11,
 		CMD_UNK_12 = 0x12,
 		CMD_UNK_13 = 0x13,
 	};
+
+	// 32 * 5 because 32 samples per millisecond, for 5 milliseconds.
+	int m_samples_left[32 * 5];
+	int m_samples_right[32 * 5];
 
 	// Volatile because it's set by HandleMail and accessed in
 	// HandleCommandList, which are running in two different threads.
@@ -90,7 +94,9 @@ private:
 
 	void AXThread();
 	void HandleCommandList();
+	void SetupProcessing(u32 studio_addr);
 	void ProcessPBList(u32 pb_addr);
+	void OutputSamples(u32 out_addr);
 };
 
 #endif // !_UCODE_NEWAX_H
