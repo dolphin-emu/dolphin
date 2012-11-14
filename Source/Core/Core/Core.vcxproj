@@ -265,6 +265,7 @@
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_CARD.cpp" />
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_GBA.cpp" />
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_InitAudioSystem.cpp" />
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_NewAX.cpp" />
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_ROM.cpp" />
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_Zelda.cpp" />
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_ADPCM.cpp" />
@@ -466,6 +467,7 @@
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_CARD.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_GBA.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_InitAudioSystem.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_NewAX.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_ROM.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_Zelda.h" />
     <ClInclude Include="Src\HW\DSPLLE\DSPDebugInterface.h" />
