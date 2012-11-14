@@ -32,6 +32,10 @@ public:
 	void Update(int cycles);
 	void DoState(PointerWrap& p);
 
+	// Needed because StdThread.h std::thread implem does not support member
+	// pointers.
+	static void SpawnAXThread(CUCode_NewAX* self);
+
 private:
 	enum MailType
 	{

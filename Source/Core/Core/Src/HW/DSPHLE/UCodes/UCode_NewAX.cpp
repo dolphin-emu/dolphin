@@ -28,7 +28,7 @@
 CUCode_NewAX::CUCode_NewAX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
 	, m_cmdlist_size(0)
-	, m_axthread(&CUCode_NewAX::AXThread, this)
+	, m_axthread(&SpawnAXThread, this)
 {
 	m_rMailHandler.PushMail(DSP_INIT);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
@@ -41,6 +41,11 @@ CUCode_NewAX::~CUCode_NewAX()
 	m_axthread.join();
 
 	m_rMailHandler.Clear();
+}
+
+void CUCode_NewAX::SpawnAXThread(CUCode_NewAX* self)
+{
+	self->AXThread();
 }
 
 void CUCode_NewAX::AXThread()
