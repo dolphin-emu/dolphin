@@ -356,7 +356,6 @@ void CUCode_NewAX::MixAUXSamples(bool AUXA, u32 write_addr, u32 read_addr)
 				buffers[2][i] = Common::swap32(m_samples_auxB_surround[i]);
 			}
 		}
-		memset(buffers, 0, sizeof (buffers));
 		memcpy(HLEMemory_Get_Pointer(write_addr), buffers, sizeof (buffers));
 	}
 
