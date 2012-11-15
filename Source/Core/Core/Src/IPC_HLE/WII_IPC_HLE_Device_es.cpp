@@ -803,7 +803,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					}
 				}
 				
-				delete wiiMoteConnected;
+				delete[] wiiMoteConnected;
 				WII_IPC_HLE_Interface::SetDefaultContentFile(tContentFile);
 			}
 			// Pass the "#002 check"
