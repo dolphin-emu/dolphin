@@ -468,6 +468,7 @@
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_GBA.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_InitAudioSystem.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_NewAX.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_NewAX_Voice.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_ROM.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_Zelda.h" />
     <ClInclude Include="Src\HW\DSPLLE\DSPDebugInterface.h" />

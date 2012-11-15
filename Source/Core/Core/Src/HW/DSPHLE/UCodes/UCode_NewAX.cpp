@@ -16,12 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "UCode_NewAX.h"
-#include "UCode_AX_Voice.h"
+#include "UCode_NewAX_Voice.h"
 #include "../../DSP.h"
-
-// Useful macro to convert xxx_hi + xxx_lo to xxx for 32 bits.
-#define HILO_TO_32(name) \
-	((name##_hi << 16) | name##_lo)
 
 #define MIXBUF_MAX_SAMPLES 16000			// 500ms of stereo audio
 
@@ -173,74 +169,6 @@ void CUCode_NewAX::HandleCommandList()
 	}
 }
 
-// From old UCode_AX.cpp.
-static void VoiceHacks(AXPB &pb)
-{
-	// get necessary values
-	const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
-	const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
-	// 		const u32 updaddr   = (u32)(pb.updates.data_hi << 16) | pb.updates.data_lo;
-	// 		const u16 updpar    = HLEMemory_Read_U16(updaddr);
-	// 		const u16 upddata   = HLEMemory_Read_U16(updaddr + 2);
-
-	// =======================================================================================
-	/* Fix problems introduced with the SSBM fix. Sometimes when a music stream ended sampleEnd
-	would end up outside of bounds while the block was still playing resulting in noise 
-	a strange noise. This should take care of that.
-	*/
-	if ((sampleEnd > (0x017fffff * 2) || loopPos > (0x017fffff * 2))) // ARAM bounds in nibbles
-	{
-		pb.running = 0;
-
-		// also reset all values if it makes any difference
-		pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-		pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-		pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-		pb.src.cur_addr_frac = 0; pb.src.ratio_hi = 0; pb.src.ratio_lo = 0;
-		pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-
-		pb.audio_addr.looping = 0;
-		pb.adpcm_loop_info.pred_scale = 0;
-		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-	}
-
-	/*
-	// the fact that no settings are reset (except running) after a SSBM type music stream or another
-	looping block (for example in Battle Stadium DON) has ended could cause loud garbled sound to be
-	played from one or more blocks. Perhaps it was in conjunction with the old sequenced music fix below,
-	I'm not sure. This was an attempt to prevent that anyway by resetting all. But I'm not sure if this
-	is needed anymore. Please try to play SSBM without it and see if it works anyway.
-	*/
-	if (
-		// detect blocks that have recently been running that we should reset
-		pb.running == 0 && pb.audio_addr.looping == 1
-		//pb.running == 0 && pb.adpcm_loop_info.pred_scale
-
-		// this prevents us from ruining sequenced music blocks, may not be needed
-		/*
-		&& !(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
-		|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
-		*/	
-		//&& !(updpar || upddata)
-
-		&& pb.mixer_control == 0	// only use this in SSBM
-		)
-	{
-		// reset the detection values
-		pb.audio_addr.looping = 0;
-		pb.adpcm_loop_info.pred_scale = 0;
-		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-
-		//pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-		//pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-		//pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-		//pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
-		//pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-	}
-}
-
 static void ApplyUpdatesForMs(AXPB& pb, int curr_ms)
 {
 	u32 start_idx = 0;
@@ -292,7 +220,7 @@ void CUCode_NewAX::SetupProcessing(u32 init_addr)
 			for (u32 j = 0; j < 32 * 5; ++j)
 			{
 				buffers[i][j] = init_val;
-				init_val -= delta;
+				init_val += delta;
 			}
 		}
 	}
@@ -311,10 +239,13 @@ void CUCode_NewAX::ProcessPBList(u32 pb_addr)
 		AXBuffers buffers = {{
 			m_samples_left,
 			m_samples_right,
+			m_samples_surround,
 			m_samples_auxA_left,
 			m_samples_auxA_right,
+			m_samples_auxA_surround,
 			m_samples_auxB_left,
-			m_samples_auxB_right
+			m_samples_auxB_right,
+			m_samples_auxB_surround
 		}};
 
 		if (!ReadPB(pb_addr, pb))
@@ -324,11 +255,7 @@ void CUCode_NewAX::ProcessPBList(u32 pb_addr)
 		{
 			ApplyUpdatesForMs(pb, curr_ms);
 
-			// TODO: is that still needed?
-			if (m_CRC != 0x3389a79e)
-				VoiceHacks(pb);
-
-			MixAddVoice(pb, buffers, spms, false);
+			Process1ms(pb, buffers);
 
 			// Forward the buffers
 			for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)

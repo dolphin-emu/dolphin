@@ -35,7 +35,12 @@ struct PBMixer
 	u16 auxB_right;
 	u16 auxB_right_delta;
 
-	u16 unknown4[6];
+	u16 auxB_surround;
+	u16 auxB_surround_delta;
+	u16 surround;
+	u16 surround_delta;
+	u16 auxA_surround;
+	u16 auxA_surround_delta;
 };
 
 struct PBMixerWii
@@ -212,6 +217,14 @@ struct PBADPCMLoopInfo
 	u16 yn2;
 };
 
+struct PBLowPassFilter
+{
+	u16 enabled;
+	u16 yn1;
+	u16 a0;
+	u16 b0;
+};
+
 struct AXPB
 {
 	u16 next_pb_hi;
@@ -236,15 +249,9 @@ struct AXPB
 	PBADPCMInfo adpcm;
 	PBSampleRateConverter src;
 	PBADPCMLoopInfo adpcm_loop_info;
-	u16 unknown_maybe_padding[3];
-};
+	PBLowPassFilter lpf;
 
-struct PBLowPassFilter
-{
-	u16 enabled;
-	u16 yn1;
-	u16 a0;
-	u16 b0;
+	u16 padding[25];
 };
 
 struct PBBiquadFilter
@@ -360,9 +367,29 @@ enum {
 };
 
 enum {
+	SRCTYPE_POLYPHASE = 0,
 	SRCTYPE_LINEAR  = 1,
 	SRCTYPE_NEAREST = 2,
-	MIXCONTROL_RAMPING = 8,
+};
+
+enum {
+	MIX_L = 0x0001,
+	MIX_R = 0x0002,
+	MIX_S = 0x0004,
+	MIX_RAMP = 0x0008,
+
+	MIX_AUXA_L = 0x0010,
+	MIX_AUXA_R = 0x0020,
+	MIX_AUXA_RAMPLR = 0x0040,
+	MIX_AUXA_S = 0x0080,
+	MIX_AUXA_RAMPS = 0x0100,
+
+	MIX_AUXB_L = 0x0200,
+	MIX_AUXB_R = 0x0400,
+	MIX_AUXB_RAMPLR = 0x0800,
+	MIX_AUXB_S = 0x1000,
+	MIX_AUXB_RAMPS = 0x2000,
+	MIX_AUXB_DPL2 = 0x4000
 };
 
 // Both may be used at once

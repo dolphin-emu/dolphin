@@ -230,7 +230,7 @@ inline void MixAddVoice(ParamBlockType &pb, const AXBuffers& buffers,
 			int vol = pb.vol_env.cur_volume >> 9;
 			sample = sample * vol >> 8;
 
-			if (pb.mixer_control & MIXCONTROL_RAMPING)
+			if (pb.mixer_control & MIX_RAMP)
 			{
 				int x = pb.vol_env.cur_volume;
 				x += pb.vol_env.cur_volume_delta;	// I'm not sure about this, can anybody find a game
