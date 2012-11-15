@@ -89,7 +89,9 @@ inline void AcceleratorSetup(AXPB* pb, u32* cur_addr)
 	acc_cur_addr = cur_addr;
 }
 
-// Reads a sample from the simulated accelerator.
+// Reads a sample from the simulated accelerator. Also handles looping and
+// disabling streams that reached the end (this is done by an exception raised
+// by the accelerator on real hardware).
 inline u16 AcceleratorGetSample()
 {
 	u16 ret;
@@ -98,6 +100,7 @@ inline u16 AcceleratorGetSample()
 	{
 		case 0x00:	// ADPCM
 		{
+			// ADPCM decoding, not much to explain here.
 			if ((*acc_cur_addr & 15) == 0)
 			{
 				acc_pb->adpcm.pred_scale = DSP::ReadARAM((*acc_cur_addr & ~15) >> 1);
@@ -148,14 +151,24 @@ inline u16 AcceleratorGetSample()
 			return 0;
 	}
 
+	// Have we reached the end address?
+	//
+	// On real hardware, this would raise an interrupt that is handled by the
+	// UCode. We simulate what this interrupt does here.
 	if (*acc_cur_addr >= acc_end_addr)
 	{
+		// If we are really at the end (and we don't simply have cur_addr >
+		// end_addr all the time), loop back to loop_addr.
 		if ((*acc_cur_addr & ~0x1F) == (acc_end_addr & ~0x1F))
 			*acc_cur_addr = acc_loop_addr;
 
-		// Simulate an ACC overflow interrupt.
 		if (acc_pb->audio_addr.looping)
 		{
+			// Set the ADPCM infos to continue processing at loop_addr.
+			//
+			// For some reason, yn1 and yn2 aren't set if the voice is not of
+			// stream type. This is what the AX UCode does and I don't really
+			// know why.
 			acc_pb->adpcm.pred_scale = acc_pb->adpcm_loop_info.pred_scale;
 			if (!acc_pb->is_stream)
 			{
@@ -165,6 +178,7 @@ inline u16 AcceleratorGetSample()
 		}
 		else
 		{
+			// Non looping voice reached the end -> running = 0.
 			acc_pb->running = 0;
 		}
 	}
@@ -181,12 +195,31 @@ inline void GetInputSamples(AXPB& pb, s16* samples)
 	// TODO: support polyphase interpolation if coefficients are available.
 	if (pb.src_type == SRCTYPE_POLYPHASE || pb.src_type == SRCTYPE_LINEAR)
 	{
+		// Convert the input to a higher or lower sample rate using a linear
+		// interpolation algorithm. The input to output ratio is set in
+		// pb.src.ratio, which is a floating point num stored as a 32b integer:
+		//  * Upper 16 bits of the ratio are the integer part
+		//  * Lower 16 bits are the decimal part
 		u32 ratio = HILO_TO_32(pb.src.ratio);
 
+		// We start getting samples not from sample 0, but 0.<cur_addr_frac>.
+		// This avoids discontinuties in the audio stream, especially with very
+		// low ratios which interpolate a lot of values between two "real"
+		// samples.
 		u32 curr_pos = pb.src.cur_addr_frac;
-		u32 real_samples_needed = (32 * ratio + curr_pos) >> 16;
-		s16 real_samples[130];		// Max supported ratio is 4
 
+		// Compute the number of real samples we will need to read from the
+		// data source. We need to output 32 samples, so we need to read
+		// 32 * ratio + curr_pos samples. The maximum possible ratio available
+		// on the DSP is 4.0, so at most we will read 128 real samples.
+		s16 real_samples[130];
+		u32 real_samples_needed = (32 * ratio + curr_pos) >> 16;
+
+		// The first two real samples are the ones we read at the previous
+		// iteration. That way we can interpolate before having read 2 new
+		// samples from the accelerator.
+		//
+		// The next real samples are read from the accelerator.
 		real_samples[0] = pb.src.last_samples[2];
 		real_samples[1] = pb.src.last_samples[3];
 		for (u32 i = 0; i < real_samples_needed; ++i)
@@ -194,17 +227,24 @@ inline void GetInputSamples(AXPB& pb, s16* samples)
 
 		for (u32 i = 0; i < 32; ++i)
 		{
+			// Get our current integer and fractional position. The integer
+			// position is used to get the two samples around us. The
+			// fractional position is used to compute the linear interpolation
+			// between these two samples.
 			u32 curr_int_pos = (curr_pos >> 16);
 			s32 curr_frac_pos = curr_pos & 0xFFFF;
 			s16 samp1 = real_samples[curr_int_pos];
 			s16 samp2 = real_samples[curr_int_pos + 1];
 
+			// Linear interpolation: s1 + (s2 - s1) * pos
 			s16 sample = samp1 + (s16)(((samp2 - samp1) * (s32)curr_frac_pos) >> 16);
 			samples[i] = sample;
 
 			curr_pos += ratio;
 		}
 
+		// Update the last_samples array. A bit tricky because we can't know
+		// for sure we have more than 4 real samples in our array.
 		if (real_samples_needed >= 2)
 			memcpy(pb.src.last_samples, &real_samples[real_samples_needed + 2 - 4], 4 * sizeof (u16));
 		else
@@ -216,21 +256,28 @@ inline void GetInputSamples(AXPB& pb, s16* samples)
 	}
 	else // SRCTYPE_NEAREST
 	{
+		// No sample rate conversion here: simply read 32 samples from the
+		// accelerator to the output buffer.
 		for (u32 i = 0; i < 32; ++i)
 			samples[i] = AcceleratorGetSample();
 
 		memcpy(pb.src.last_samples, samples + 28, 4 * sizeof (u16));
 	}
 
+	// Update current position in the PB.
 	pb.audio_addr.cur_addr_hi = (u16)(cur_addr >> 16);
 	pb.audio_addr.cur_addr_lo = (u16)(cur_addr & 0xFFFF);
 }
 
-// Mix samples to an output buffer, with optional volume ramping.
+// Add samples to an output buffer, with optional volume ramping.
 inline void MixAdd(int* out, const s16* input, u16* pvol, bool ramp)
 {
 	u16& volume = pvol[0];
 	u16 volume_delta = pvol[1];
+
+	// If volume ramping is disabled, set volume_delta to 0. That way, the
+	// mixing loop can avoid testing if volume ramping is enabled at each step,
+	// and just add volume_delta.
 	if (!ramp)
 		volume_delta = 0;
 
@@ -242,7 +289,7 @@ inline void MixAdd(int* out, const s16* input, u16* pvol, bool ramp)
 	}
 }
 
-// Process 1ms of audio from a PB and mix it to the buffers.
+// Process 1ms of audio (32 samples) from a PB and mix it to the buffers.
 inline void Process1ms(AXPB& pb, const AXBuffers& buffers)
 {
 	// If the voice is not running, nothing to do.
