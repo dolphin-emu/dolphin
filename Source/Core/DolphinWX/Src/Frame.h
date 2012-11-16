@@ -33,7 +33,7 @@
 #include "Debugger/CodeWindow.h"
 #include "LogWindow.h"
 #include "LogConfigWindow.h"
-#include "TASInputDlg.h"
+#include "GCTASInputDlg.h"
 #include "Movie.h"
 #if defined(HAVE_X11) && HAVE_X11
 #include "X11Utils.h"
@@ -120,7 +120,7 @@ public:
 	CCodeWindow* g_pCodeWindow;
 	NetPlaySetupDiag* g_NetPlaySetupDiag;
 	wxCheatsWindow* g_CheatsWindow;
-	TASInputDlg* g_TASInputDlg[4];
+	GCTASInputDlg* g_GCTASInputDlg[4];
     
 	void InitBitmaps();
 	void DoPause();

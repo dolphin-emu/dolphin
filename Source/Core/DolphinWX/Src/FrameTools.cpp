@@ -71,7 +71,7 @@ Core::GetWindowHandle().
 #include "WiimoteConfigDiag.h"
 #include "InputConfigDiag.h"
 #include "HotkeyDlg.h"
-#include "TASInputDlg.h"
+#include "GCTASInputDlg.h"
 
 #include <wx/datetime.h> // wxWidgets
 
@@ -706,8 +706,8 @@ void CFrame::OnTASInput(wxCommandEvent& event)
     {
         if(SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
         {
-            g_TASInputDlg[i]->Show(true);
-            g_TASInputDlg[i]->SetTitle("TAS Input - Controller " + number[i]);
+            g_GCTASInputDlg[i]->Show(true);
+            g_GCTASInputDlg[i]->SetTitle("TAS Input - Controller " + number[i]);
         }
     }
 }

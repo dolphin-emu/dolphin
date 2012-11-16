@@ -129,7 +129,7 @@
     <ClCompile Include="Src\FifoPlayerDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Src\TASInputDlg.cpp">
+    <ClCompile Include="Src\GCTASInputDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="Src\GCMicDlg.cpp">
