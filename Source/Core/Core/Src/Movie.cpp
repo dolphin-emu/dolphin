@@ -35,6 +35,7 @@
 #include "HW/EXI_Device.h"
 #include "HW/EXI_Channel.h"
 #include "HW/DVDInterface.h"
+#include "../../Common/Src/NandPaths.h"
 
 // large enough for just over 24 hours of single-player recording
 #define MAX_DTM_LENGTH (40 * 1024 * 1024)
@@ -60,19 +61,14 @@ u64 g_currentFrame = 0, g_totalFrames = 0; // VI
 u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
-bool bSaveConfig = false;
-bool bSkipIdle = false;
-bool bDualCore = false;
-bool bProgressive = false;
-bool bDSPHLE = false;
-bool bFastDiscSpeed = false;
+bool bSaveConfig, bSkipIdle, bDualCore, bProgressive, bDSPHLE, bFastDiscSpeed = false;
+bool bMemcard, g_bClearSave = false;
 std::string videoBackend = "opengl";
 int iCPUCore = 1;
-bool bMemcard;
-bool bBlankMC = false;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
 std::string author = "";
+u64 g_titleID = 0;
 
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
@@ -96,6 +92,10 @@ std::string GetInputDisplay()
 
 void FrameUpdate()
 {
+	if (IsPlayingInput() && g_currentInputCount == g_totalInputCount -1  && SConfig::GetInstance().m_PauseMovie)
+	{
+		Core::SetState(Core::CORE_PAUSE);
+	}
 	g_currentFrame++;
 	if(!g_bPolled) 
 		g_currentLagCount++;
@@ -104,6 +104,10 @@ void FrameUpdate()
 	{
 		g_totalFrames = g_currentFrame;
 		g_totalLagCount = g_currentLagCount;
+	}
+	if (IsPlayingInput() && IsConfigSaved())
+	{
+		SetGraphicsConfig();
 	}
 
 	if (g_bFrameStep)
@@ -135,11 +139,21 @@ void Init()
 	if (IsPlayingInput())
 	{
 		ReadHeader();
+		if ((strncmp((char *)tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)))
+		{
+			PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
+			EndPlayInput(false);
+		}
+	}
+	if (IsRecordingInput())
+	{
+		GetSettings();
 	}
 	g_frameSkipCounter = g_framesToSkip;
 	memset(&g_padState, 0, sizeof(g_padState));
 	if (!tmpHeader.bFromSaveState || !IsPlayingInput())
 		Core::SetStateFileName("");
+
 	for (int i = 0; i < 8; ++i)
 		g_InputDisplay[i].clear();
 
@@ -307,9 +321,9 @@ int GetCPUMode()
 	return iCPUCore;
 }
 
-bool IsBlankMemcard()
+bool IsStartingFromClearSave()
 {
-	return bBlankMC;
+	return g_bClearSave;
 }
 
 bool IsUsingMemcard()
@@ -376,19 +390,17 @@ bool BeginRecordingInput(int controllers)
 
 		State::SaveAs(tmpStateFilename.c_str());
 		g_bRecordingFromSaveState = true;
+
+		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
+		// TODO: find a way to GetTitleDataPath() from Movie::Init()
+		if (File::Exists((Common::GetTitleDataPath(g_titleID) + "banner.bin").c_str()))
+			Movie::g_bClearSave = false;
+		else
+			Movie::g_bClearSave = true;
 	}
 	g_playMode = MODE_RECORDING;
-
-	bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
-	bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
-	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
-	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
-	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
-	videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
-	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
-	bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
-	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
-
+	GetSettings();
+	author = SConfig::GetInstance().m_strMovieAuthor;
 	delete [] tmpInput;
 	tmpInput = new u8[MAX_DTM_LENGTH];
 	g_currentByte = g_totalBytes = 0;
@@ -475,15 +487,6 @@ void SetInputDisplayString(ControllerState padState, int controllerID)
 	if(g_padState.DPadRight)
 		g_InputDisplay[controllerID].append(" RIGHT");
 
-	//if(g_padState.L)
-	//{
-	//	g_InputDisplay[controllerID].append(" L");
-	//}
-	//if(g_padState.R)
-	//{
-	//	g_InputDisplay[controllerID].append(" R");
-	//}
-
 	Analog1DToString(g_padState.TriggerL, " L", inp);
 	g_InputDisplay[controllerID].append(inp);
 
@@ -549,8 +552,6 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 
 	g_InputDisplay[controllerID].append("\n");
 }
-
-
 
 void RecordInput(SPADStatus *PadStatus, int controllerID)
 {
@@ -628,23 +629,15 @@ void ReadHeader()
 		bDSPHLE = tmpHeader.bDSPHLE;
 		bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
 		iCPUCore = tmpHeader.CPUCore;
-		bBlankMC = tmpHeader.bBlankMC;
+		g_bClearSave = tmpHeader.bClearSave;
 		bMemcard = tmpHeader.bMemcard;
 
 	}
 	else
 	{
+		GetSettings();
 		bSaveConfig = false;
-		bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
-		bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
-		bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
-		bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
-		bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
-		videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
-		bBlankMC = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
-		bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 	}
-
 
 	videoBackend.resize(ARRAYSIZE(tmpHeader.videoBackend));
 	for (int i = 0; i < ARRAYSIZE(tmpHeader.videoBackend);i++)
@@ -694,19 +687,6 @@ bool PlayInput(const char *filename)
 		g_bRecordingFromSaveState = true;
 		Movie::LoadInput(filename);
 	}
-
-	/* TODO: Put this verification somewhere we have the gameID of the played game
-	// TODO: Replace with Unique ID
-	if(tmpHeader.uniqueID != 0) {
-		PanicAlert("Recording Unique ID Verification Failed");
-		goto cleanup;
-	}
-
-	if(strncmp((char *)tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)) {
-		PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
-		goto cleanup;
-	}
-	*/
 
 	ReadHeader();
 	g_totalFrames = tmpHeader.frameCount;
@@ -762,11 +742,8 @@ void LoadInput(const char *filename)
 	ReadHeader();
 	if (!g_bReadOnly)
 	{
-		if (g_rerecords > tmpHeader.numRerecords)
-		{
-			tmpHeader.numRerecords = g_rerecords;
-		}
-		tmpHeader.numRerecords++;
+		g_rerecords++;
+		tmpHeader.numRerecords = g_rerecords;
 		t_record.Seek(0, SEEK_SET);
 		t_record.WriteArray(&tmpHeader, 1);
 	}
@@ -892,10 +869,6 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == NULL)
 		return;
 
-	if (IsConfigSaved())
-	{
-		SetGraphicsConfig();
-	}
 	if (g_currentFrame == 1)
 	{
 		if (tmpHeader.bMemcard)
@@ -915,8 +888,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 		return;
 	}
 
-	// dtm files don't save the mic button or error bit. not sure if they're actually
-	// used, but better safe than sorry
+	// dtm files don't save the mic button or error bit. not sure if they're actually used, but better safe than sorry
 	signed char e = PadStatus->err;
 	memset(PadStatus, 0, sizeof(SPADStatus));
 	PadStatus->err = e;
@@ -992,7 +964,6 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 		}
 		else
 		{
-			Core::SetState(Core::CORE_PAUSE);
 			PanicAlert("Change the disc to %s", g_discChange.c_str());
 		}
 	}
@@ -1104,7 +1075,7 @@ void SaveRecording(const char *filename)
 	header.bUseXFB = g_ActiveConfig.bUseXFB;
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
 	header.bMemcard = bMemcard;
-	header.bBlankMC = bBlankMC;
+	header.bClearSave = g_bClearSave;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 
@@ -1149,5 +1120,20 @@ void SetGraphicsConfig()
 	g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
 	g_Config.bUseXFB = tmpHeader.bUseXFB;
 	g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;
+}
+
+void GetSettings()
+{
+	bSaveConfig = true;
+	bSkipIdle = SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
+	bDualCore = SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
+	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
+	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
+	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
+	videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+	if (!Core::g_CoreStartupParameter.bWii)
+		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
+	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 }
 };

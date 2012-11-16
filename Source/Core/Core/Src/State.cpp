@@ -385,6 +385,7 @@ void LoadAs(const std::string& filename)
 	g_loadDepth++;
 
 	// Save temp buffer for undo load state
+	if (!Movie::IsJustStartingRecordingInputFromSaveState())
 	{
 		std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 		SaveToBuffer(g_undo_load_buffer);

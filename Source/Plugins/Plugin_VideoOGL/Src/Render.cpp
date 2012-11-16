@@ -62,6 +62,7 @@
 #include "Host.h"
 #include "BPFunctions.h"
 #include "FPSCounter.h"
+#include "ConfigManager.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -530,6 +531,9 @@ void Renderer::DrawDebugInfo()
 
 	if (g_ActiveConfig.bShowFPS)
 		p+=sprintf(p, "FPS: %d\n", s_fps);
+
+	if (SConfig::GetInstance().m_ShowLag)
+		p+=sprintf(p, "Lag: %d\n", Movie::g_currentLagCount);
 
 	if (g_ActiveConfig.bShowInputDisplay)
 		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
