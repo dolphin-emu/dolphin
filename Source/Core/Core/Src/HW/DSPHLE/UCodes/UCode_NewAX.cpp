@@ -79,6 +79,7 @@ void CUCode_NewAX::HandleCommandList()
 	// Temp variables for addresses computation
 	u16 addr_hi, addr_lo;
 	u16 addr2_hi, addr2_lo;
+	u16 size;
 
 	u32 pb_addr = 0;
 
@@ -90,8 +91,7 @@ void CUCode_NewAX::HandleCommandList()
 
 		switch (cmd)
 		{
-
-			// A lot of these commands are unknown, or unused in this AX HLE.
+			// Some of these commands are unknown, or unused in this AX HLE.
 			// We still need to skip their arguments using "curr_idx += N".
 
 			case CMD_SETUP:
@@ -140,7 +140,15 @@ void CUCode_NewAX::HandleCommandList()
 			case CMD_COMPRESSOR_TABLE_ADDR: curr_idx += 2; break;
 			case CMD_UNK_0B: break; // TODO: check other versions
 			case CMD_UNK_0C: break; // TODO: check other versions
-			case CMD_UNK_0D: curr_idx += 2; break;
+
+			case CMD_MORE:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				size = m_cmdlist[curr_idx++];
+
+				CopyCmdList(HILO_TO_32(addr), size);
+				curr_idx = 0;
+				break;
 
 			case CMD_OUTPUT:
 				// Skip the first address, it is used for surround audio

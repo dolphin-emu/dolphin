@@ -64,7 +64,7 @@ private:
 		CMD_COMPRESSOR_TABLE_ADDR = 0x0A,
 		CMD_UNK_0B = 0x0B,
 		CMD_UNK_0C = 0x0C,
-		CMD_UNK_0D = 0x0D,
+		CMD_MORE = 0x0D,
 		CMD_OUTPUT = 0x0E,
 		CMD_END = 0x0F,
 		CMD_UNK_10 = 0x10,
