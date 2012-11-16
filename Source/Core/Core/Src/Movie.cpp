@@ -639,7 +639,6 @@ void ReadHeader()
 		bSaveConfig = false;
 	}
 
-
 	videoBackend.resize(ARRAYSIZE(tmpHeader.videoBackend));
 	for (int i = 0; i < ARRAYSIZE(tmpHeader.videoBackend);i++)
 	{
@@ -1078,7 +1077,6 @@ void SaveRecording(const char *filename)
 	header.bMemcard = bMemcard;
 	header.bClearSave = g_bClearSave;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
-	// TODO: prompt the user for author name. It's currently always blank, unless the user manually edits the .dtm file.
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 
 	// TODO

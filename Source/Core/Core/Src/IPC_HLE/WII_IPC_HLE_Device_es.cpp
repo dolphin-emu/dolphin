@@ -906,6 +906,8 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 		else
 			Movie::g_bClearSave = true;
 	}
+
+	// TODO: Force the game to save to another location, instead of moving the user's save.
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsStartingFromClearSave())
 	{		
 		if (File::Exists((savePath + "banner.bin").c_str()))
