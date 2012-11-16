@@ -116,37 +116,37 @@ bool DolphinApp::OnInit()
 	{
 		{
 			wxCMD_LINE_SWITCH, "h", "help",
-			_("Show this help message"),
+			"Show this help message",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
 		},
 		{
 			wxCMD_LINE_SWITCH, "d", "debugger",
-			_("Opens the debugger"),
+			"Opens the debugger",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_SWITCH, "l", "logger",
-			_("Opens the logger"),
+			"Opens the logger",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, "e", "exec",
-			_("Loads the specified file (DOL,ELF,GCM,ISO,WAD)"),
+			"Loads the specified file (DOL,ELF,GCM,ISO,WAD)",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_SWITCH, "b", "batch",
-			_("Exit Dolphin with emulator"),
+			"Exit Dolphin with emulator",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, "V", "video_backend",
-			_("Specify a video backend"),
+			"Specify a video backend",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, "A", "audio_emulation",
-			_("Low level (LLE) or high level (HLE) audio"),
+			"Low level (LLE) or high level (HLE) audio",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
