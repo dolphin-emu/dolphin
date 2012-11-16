@@ -234,192 +234,58 @@ void TASInputDlg::ResetValues()
 	wx_start_button->SetValue(false);
 }
 
+void TASInputDlg::SetStickValue(bool *ActivatedByKeyboard, u8 *AmountPressed, wxTextCtrl *Textbox, u8 CurrentValue)
+{
+    if(CurrentValue != 128)
+    {
+        AmountPressed = &CurrentValue;
+        *ActivatedByKeyboard = true;
+        Textbox->SetValue(wxString::Format(wxT("%i"), *AmountPressed));
+    }
+    else if(*ActivatedByKeyboard)
+    {
+        *AmountPressed = 128;
+        *ActivatedByKeyboard = false;
+        Textbox->SetValue(wxString::Format(wxT("%i"),*AmountPressed));
+    }
+}
+
+void TASInputDlg::SetButtonValue(bool *ActivatedByKeyboard, wxCheckBox* button,bool CurrentState)
+{
+    if(CurrentState)
+    {
+        *ActivatedByKeyboard = true;
+        button->SetValue(CurrentState);
+    }
+    else if(*ActivatedByKeyboard)
+    {
+        *ActivatedByKeyboard = false;
+        button->SetValue(CurrentState);
+    }
+}
+
 void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 {
-	if(PadStatus->stickX != 128)
-	{
-		mainX = PadStatus->stickX;
-		mstickx = true;
-		wx_mainX_t->SetValue(wxString::Format(wxT("%i"), mainX));
-	}
+    SetStickValue(&mstickx,&mainX,wx_mainX_t,PadStatus->stickX);
+    SetStickValue(&msticky,&mainY,wx_mainY_t,PadStatus->stickY);
 	
-	else if(mstickx)
-	{
-		mstickx = false;
-		mainX = 128;
-		wx_mainX_t->SetValue(wxString::Format(wxT("%i"), mainX));
-	}
-
-	if(PadStatus->stickY != 128)
-	{
-		mainY = PadStatus->stickY;
-		msticky = true;
-		wx_mainY_t->SetValue(wxString::Format(wxT("%i"),mainY));
-	}
-	else if(msticky)
-	{
-		msticky = false;
-		mainY = 128;
-		wx_mainY_t->SetValue(wxString::Format(wxT("%i"), mainY));
-	}
-
-	if(PadStatus->substickX != 128)
-	{
-		cX = PadStatus->substickX;
-		cstickx = true;
-		wx_cX_t->SetValue(wxString::Format(wxT("%i"), cX));
-	}
-	else if(cstickx)
-	{
-		cstickx = false;
-		cX = 128;
-		wx_cX_t->SetValue(wxString::Format(wxT("%i"), cX));
-	}
-
-	if(PadStatus->substickY != 128)
-	{
-		cY = PadStatus->substickY;
-		csticky = true;
-		wx_cY_t->SetValue(wxString::Format(wxT("%i"), cY));
-	}
-	else if(csticky)
-	{
-		csticky = false;
-		cY = 128;
-		wx_cY_t->SetValue(wxString::Format(wxT("%i"), cY));
-	}
-
-	if(((PadStatus->button & PAD_BUTTON_UP) != 0))
-	{
-		wx_up_button->SetValue(true);
-		DU_cont = true;
-	}
-	else if(DU_cont)
-	{
-		wx_up_button->SetValue(false);
-		DU_cont = false;
-	}
-
-	if(((PadStatus->button & PAD_BUTTON_DOWN) != 0))
-	{
-		wx_down_button->SetValue(true);
-		DD_cont = true;
-	}
-	else if(DD_cont)
-	{
-		wx_down_button->SetValue(false);
-		DD_cont = false;
-	}
-
-	if(((PadStatus->button & PAD_BUTTON_LEFT) != 0))
-	{
-		wx_left_button->SetValue(true);
-		DL_cont = true;
-	}
-	else if(DL_cont)
-	{
-		wx_left_button->SetValue(false);
-		DL_cont = false;
-	}
+    SetStickValue(&cstickx,&cX,wx_cX_t,PadStatus->substickX);
+    SetStickValue(&csticky,&cY,wx_cY_t,PadStatus->substickY);
+    
+    SetButtonValue(&DU_cont, wx_up_button, ((PadStatus->button & PAD_BUTTON_UP) != 0));
+    SetButtonValue(&DD_cont, wx_down_button, ((PadStatus->button & PAD_BUTTON_DOWN) != 0));
+	SetButtonValue(&DL_cont, wx_left_button, ((PadStatus->button & PAD_BUTTON_LEFT) != 0));
+    SetButtonValue(&DR_cont, wx_right_button, ((PadStatus->button & PAD_BUTTON_RIGHT) != 0));
+    
+    SetButtonValue(&A_cont, wx_a_button, ((PadStatus->button & PAD_BUTTON_A) != 0));
+	SetButtonValue(&B_cont, wx_b_button, ((PadStatus->button & PAD_BUTTON_B) != 0));
+    SetButtonValue(&X_cont, wx_x_button, ((PadStatus->button & PAD_BUTTON_X) != 0));
+	SetButtonValue(&Y_cont, wx_y_button, ((PadStatus->button & PAD_BUTTON_Y) != 0));
+    SetButtonValue(&Z_cont, wx_z_button, ((PadStatus->button & PAD_TRIGGER_Z) != 0));
+    SetButtonValue(&START_cont, wx_start_button, ((PadStatus->button & PAD_BUTTON_START) != 0));
 	
-	if(((PadStatus->button & PAD_BUTTON_RIGHT) != 0))
-	{
-		wx_right_button->SetValue(true);
-		DR_cont = true;
-	}
-	else if(DR_cont)
-	{
-		wx_right_button->SetValue(false);
-		DR_cont = false;
-	}
-
-	if(((PadStatus->button & PAD_BUTTON_A) != 0))
-	{
-		wx_a_button->SetValue(true);
-		A_cont = true;
-	}
-	else if(A_cont)
-	{
-		wx_a_button->SetValue(false);
-		A_cont = false;
-	}
-
-	if(((PadStatus->button & PAD_BUTTON_B) != 0))
-	{
-		wx_b_button->SetValue(true);
-		B_cont = true;
-	}
-	else if(B_cont)
-	{
-		wx_b_button->SetValue(false);
-		B_cont = false;
-	}
-
-	if(((PadStatus->button & PAD_BUTTON_X) != 0))
-	{
-		wx_x_button->SetValue(true);
-		X_cont = true;
-	}
-	else if(X_cont)
-	{
-		wx_x_button->SetValue(false);
-		X_cont = false;
-	}
-
-	if(((PadStatus->button & PAD_BUTTON_Y) != 0))
-	{
-		wx_y_button->SetValue(true);
-		Y_cont = true;
-	}
-	else if(Y_cont)
-	{
-		wx_y_button->SetValue(false);
-		Y_cont = false;
-	}
-
-	if(((PadStatus->triggerLeft) != 0) || ((PadStatus->button & PAD_TRIGGER_L) != 0))
-	{
-		wx_l_button->SetValue(true);
-		L_cont = true;
-	}
-	else if(L_cont)
-	{
-		wx_l_button->SetValue(false);
-		L_cont = false;
-	}
-	
-	if(((PadStatus->triggerRight) != 0) || ((PadStatus->button & PAD_TRIGGER_R) != 0))
-	{
-		wx_r_button->SetValue(true);
-		R_cont = true;
-	}
-	else if(R_cont)
-	{
-		wx_r_button->SetValue(false);
-		R_cont = false;
-	}
-
-	if(((PadStatus->button & PAD_TRIGGER_Z) != 0))
-	{
-		wx_z_button->SetValue(true);
-		Z_cont = true;
-	}
-	else if(Z_cont)
-	{
-		wx_z_button->SetValue(false);
-		Z_cont = false;
-	}
-	
-	if(((PadStatus->button & PAD_BUTTON_START) != 0))
-	{
-		wx_start_button->SetValue(true);
-		START_cont = true;
-	}
-	else if(START_cont)
-	{
-		wx_start_button->SetValue(false);
-		START_cont = false;
-	}
+    SetButtonValue(&L_cont, wx_l_button, ((PadStatus->triggerLeft) != 0) || ((PadStatus->button & PAD_TRIGGER_L) != 0));
+	SetButtonValue(&R_cont, wx_r_button, ((PadStatus->triggerRight) != 0) || ((PadStatus->button & PAD_TRIGGER_R) != 0));
 }
 
 void TASInputDlg::SetLandRTriggers()
@@ -961,64 +827,41 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 void TASInputDlg::ButtonTurbo()
 {
 	if(A_turbo)
-	{
         wx_a_button->SetValue(!wx_a_button->GetValue());
-	}
 
 	if(B_turbo)
-	{
         wx_b_button->SetValue(!wx_b_button->GetValue());
-    }
 	
 	if(X_turbo)
-	{
         wx_x_button->SetValue(!wx_x_button->GetValue());
-	}
 	
 	if(Y_turbo)
-	{
         wx_y_button->SetValue(!wx_y_button->GetValue());
-	}
 	
 	if(Z_turbo)
-	{
         wx_z_button->SetValue(!wx_z_button->GetValue());
-	}
+
     if(L_turbo)
-	{
         wx_l_button->SetValue(!wx_l_button->GetValue());
-    }
-
+    
 	if(R_turbo)
-	{
-        wx_r_button->SetValue(!wx_r_button->GetValue());
-	}
-
+	    wx_r_button->SetValue(!wx_r_button->GetValue());
+	
 	if(START_turbo)
-	{
-        wx_start_button->SetValue(!wx_start_button->GetValue());
-    }
-
+	    wx_start_button->SetValue(!wx_start_button->GetValue());
+    
 	if(DU_turbo)
-	{
-        wx_up_button->SetValue(!wx_up_button->GetValue());
-    }
-
+	    wx_up_button->SetValue(!wx_up_button->GetValue());
+    
 	if(DD_turbo)
-	{
-        wx_down_button->SetValue(!wx_down_button->GetValue());
-    }
-
+	    wx_down_button->SetValue(!wx_down_button->GetValue());
+    
 	if(DL_turbo)
-	{
-        wx_left_button->SetValue(!wx_left_button->GetValue());
-	}
-
+	    wx_left_button->SetValue(!wx_left_button->GetValue());
+	
 	if(DR_turbo)
-	{
-        wx_right_button->SetValue(!wx_right_button->GetValue());
+	    wx_right_button->SetValue(!wx_right_button->GetValue());
 	}
-}
 
 wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
 {

@@ -45,6 +45,8 @@ class TASInputDlg : public wxDialog
 		void SetTurboFalse(wxMouseEvent& event);
 		void ButtonTurbo();
 		void GetKeyBoardInput(SPADStatus *PadStatus);
+        void SetStickValue(bool *ActivatedByKeyboard, u8 *AmountPressed, wxTextCtrl *Textbox, u8 CurrentValue);
+        void SetButtonValue(bool *ActivatedByKeyboard, wxCheckBox* button,bool CurrentState);
 		bool TextBoxHasFocus();
         void SetLandRTriggers();
 		bool TASInputDlgHasFocus();
