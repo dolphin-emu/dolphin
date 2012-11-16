@@ -125,6 +125,7 @@ EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
 
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::DisplaySettingsChanged)
+EVT_CHECKBOX(ID_INTERFACE_ONSCREENDISPLAYMESSAGES, CConfigMain::DisplaySettingsChanged)
 EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::DisplaySettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::DisplaySettingsChanged)
 EVT_BUTTON(ID_HOTKEY_CONFIG, CConfigMain::DisplaySettingsChanged)
@@ -337,6 +338,7 @@ void CConfigMain::InitializeGUIValues()
 	// Display - Interface
 	ConfirmStop->SetValue(startup_params.bConfirmStop);
 	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
+	OnScreenDisplayMessages->SetValue(startup_params.bOnScreenDisplayMessages);
 	Theme->SetSelection(startup_params.iTheme);
 	// need redesign
 	for (unsigned int i = 0; i < sizeof(langIds) / sizeof(wxLanguage); i++)
@@ -490,6 +492,7 @@ void CConfigMain::InitializeGUITooltips()
 	// Display - Interface
 	ConfirmStop->SetToolTip(_("Show a confirmation box before stopping a game."));
 	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occured.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
+	OnScreenDisplayMessages->SetToolTip(_("Show messages on the emulation screen area.\nThese messages include memory card writes, video backend and CPU information, and JIT cache clearing."));
 
 	// Display - Themes: Copyright notice
 	Theme->SetItemToolTip(0, _("Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"));
@@ -579,6 +582,8 @@ void CConfigMain::CreateGUIControls()
 			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UsePanicHandlers = new wxCheckBox(DisplayPage, ID_INTERFACE_USEPANICHANDLERS,
 			_("Use Panic Handlers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	OnScreenDisplayMessages = new wxCheckBox(DisplayPage, ID_INTERFACE_ONSCREENDISPLAYMESSAGES,
+			_("On-Screen Display Messages"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	wxBoxSizer* sInterface = new wxBoxSizer(wxHORIZONTAL);
 	sInterface->Add(TEXT_BOX(DisplayPage, _("Language:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -588,6 +593,7 @@ void CConfigMain::CreateGUIControls()
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Interface Settings"));
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
+	sbInterface->Add(OnScreenDisplayMessages, 0, wxALL, 5);
 	sbInterface->Add(Theme, 0, wxEXPAND | wxALL, 5);
 	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
 
@@ -864,6 +870,10 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 	case ID_INTERFACE_USEPANICHANDLERS:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers = UsePanicHandlers->IsChecked();
 		SetEnableAlert(UsePanicHandlers->IsChecked());
+		break;
+	case ID_INTERFACE_ONSCREENDISPLAYMESSAGES:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages = OnScreenDisplayMessages->IsChecked();
+		SetEnableAlert(OnScreenDisplayMessages->IsChecked());
 		break;
 	case ID_INTERFACE_THEME:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme = Theme->GetSelection();
