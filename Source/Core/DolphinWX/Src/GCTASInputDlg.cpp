@@ -42,9 +42,7 @@ GCTASInputDlg::GCTASInputDlg(wxWindow *parent, wxWindowID id, const wxString &ti
 		const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	A_turbo = B_turbo = X_turbo = Y_turbo = Z_turbo = L_turbo = R_turbo = START_turbo = DL_turbo = DR_turbo = DD_turbo = DU_turbo = false;
-	xaxis = yaxis = c_xaxis = c_yaxis = 128;
-	A_cont = B_cont = X_cont = Y_cont = Z_cont = L_cont = R_cont = START_cont = DL_cont = DR_cont = DD_cont = DU_cont = mstickx = msticky = cstickx = csticky = false;
+	mstickx = msticky = cstickx = csticky = false;
     
 	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
@@ -53,26 +51,26 @@ GCTASInputDlg::GCTASInputDlg(wxWindow *parent, wxWindowID id, const wxString &ti
 	wxBoxSizer* const main_yslider_box = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* const main_stick_box = new wxBoxSizer(wxVERTICAL);
 
-	static_bitmap_main = new wxStaticBitmap(this, ID_MAIN_STICK, GCTASInputDlg::CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
-	static_bitmap_main->Connect(wxEVT_MOTION, wxMouseEventHandler(GCTASInputDlg::OnMouseDownL), NULL, this);
-	static_bitmap_main->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::OnMouseDownL), NULL, this);
-    static_bitmap_main->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(GCTASInputDlg::OnMouseUpR), NULL, this);
-	wx_mainX_s = new wxSlider(this, ID_MAIN_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
-	wx_mainX_s->SetMinSize(wxSize(120,-1));
-	wx_mainX_t = new wxTextCtrl(this, ID_MAIN_X_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
-	wx_mainX_t->SetMaxLength(3);
-	wx_mainY_s = new wxSlider(this, ID_MAIN_Y_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
-	wx_mainY_s->SetMinSize(wxSize(-1,120));
-	wx_mainY_t = new wxTextCtrl(this, ID_MAIN_Y_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
-	wx_mainY_t->SetMaxLength(3);
+	MainStick.bitmap = new wxStaticBitmap(this, ID_MAIN_STICK, GCTASInputDlg::CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
+	MainStick.bitmap->Connect(wxEVT_MOTION, wxMouseEventHandler(GCTASInputDlg::OnMouseDownL), NULL, this);
+	MainStick.bitmap->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::OnMouseDownL), NULL, this);
+    MainStick.bitmap->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(GCTASInputDlg::OnMouseUpR), NULL, this);
+	MainStick.xSlider = new wxSlider(this, ID_MAIN_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+	MainStick.xSlider->SetMinSize(wxSize(120,-1));
+	MainStick.xText = new wxTextCtrl(this, ID_MAIN_X_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
+	MainStick.xText->SetMaxLength(3);
+	MainStick.ySlider = new wxSlider(this, ID_MAIN_Y_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
+	MainStick.ySlider->SetMinSize(wxSize(-1,120));
+	MainStick.yText = new wxTextCtrl(this, ID_MAIN_Y_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
+	MainStick.yText->SetMaxLength(3);
 
-	main_xslider_box->Add(wx_mainX_s, 0, wxALIGN_TOP);
-	main_xslider_box->Add(wx_mainX_t, 0, wxALIGN_TOP);
+	main_xslider_box->Add(MainStick.xSlider, 0, wxALIGN_TOP);
+	main_xslider_box->Add(MainStick.xText, 0, wxALIGN_TOP);
 	main_stick_box->Add(main_xslider_box);
-	main_stick_box->Add(static_bitmap_main, 0, wxALL|wxCENTER, 3);
+	main_stick_box->Add(MainStick.bitmap, 0, wxALL|wxCENTER, 3);
 	main_box->Add(main_stick_box);
-	main_yslider_box->Add(wx_mainY_s, 0, wxALIGN_CENTER_VERTICAL);
-	main_yslider_box->Add(wx_mainY_t, 0, wxALIGN_CENTER_VERTICAL);
+	main_yslider_box->Add(MainStick.ySlider, 0, wxALIGN_CENTER_VERTICAL);
+	main_yslider_box->Add(MainStick.yText, 0, wxALIGN_CENTER_VERTICAL);
 	main_box->Add(main_yslider_box);
     
 	wxStaticBoxSizer* const c_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("C Stick"));
@@ -80,26 +78,26 @@ GCTASInputDlg::GCTASInputDlg(wxWindow *parent, wxWindowID id, const wxString &ti
 	wxBoxSizer* const c_yslider_box = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* const c_stick_box = new wxBoxSizer(wxVERTICAL);
 	
-	static_bitmap_c = new wxStaticBitmap(this, ID_C_STICK, GCTASInputDlg::CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
-	static_bitmap_c->Connect(wxEVT_MOTION, wxMouseEventHandler(GCTASInputDlg::OnMouseDownL), NULL, this);
-    static_bitmap_c->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::OnMouseDownL), NULL, this);
-	static_bitmap_c->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(GCTASInputDlg::OnMouseUpR), NULL, this);
-	wx_cX_s = new wxSlider(this, ID_C_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
-	wx_cX_s->SetMinSize(wxSize(120,-1));
-	wx_cX_t = new wxTextCtrl(this, ID_C_X_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
-	wx_cX_t->SetMaxLength(3);
-	wx_cY_s = new wxSlider(this, ID_C_Y_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
-	wx_cY_s->SetMinSize(wxSize(-1,120));
-	wx_cY_t = new wxTextCtrl(this, ID_C_Y_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
-	wx_cY_t->SetMaxLength(3);
+	CStick.bitmap = new wxStaticBitmap(this, ID_C_STICK, GCTASInputDlg::CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
+	CStick.bitmap->Connect(wxEVT_MOTION, wxMouseEventHandler(GCTASInputDlg::OnMouseDownL), NULL, this);
+    CStick.bitmap->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::OnMouseDownL), NULL, this);
+	CStick.bitmap->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(GCTASInputDlg::OnMouseUpR), NULL, this);
+	CStick.xSlider = new wxSlider(this, ID_C_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+	CStick.xSlider->SetMinSize(wxSize(120,-1));
+	CStick.xText = new wxTextCtrl(this, ID_C_X_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
+	CStick.xText->SetMaxLength(3);
+	CStick.ySlider = new wxSlider(this, ID_C_Y_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
+	CStick.ySlider->SetMinSize(wxSize(-1,120));
+	CStick.yText = new wxTextCtrl(this, ID_C_Y_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
+	CStick.yText->SetMaxLength(3);
 
-	c_xslider_box->Add(wx_cX_s, 0, wxALIGN_TOP);
-	c_xslider_box->Add(wx_cX_t, 0, wxALIGN_TOP);
+	c_xslider_box->Add(CStick.xSlider, 0, wxALIGN_TOP);
+	c_xslider_box->Add(CStick.xText, 0, wxALIGN_TOP);
 	c_stick_box->Add(c_xslider_box);
-	c_stick_box->Add(static_bitmap_c,0, wxALL|wxCenter,3);
+	c_stick_box->Add(CStick.bitmap,0, wxALL|wxCenter,3);
 	c_box->Add(c_stick_box);
-	c_yslider_box->Add(wx_cY_s, 0, wxALIGN_CENTER_VERTICAL);
-	c_yslider_box->Add(wx_cY_t, 0, wxALIGN_CENTER_VERTICAL);
+	c_yslider_box->Add(CStick.ySlider, 0, wxALIGN_CENTER_VERTICAL);
+	c_yslider_box->Add(CStick.yText, 0, wxALIGN_CENTER_VERTICAL);
 	c_box->Add(c_yslider_box);
 
 	wxStaticBoxSizer* const shoulder_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Shoulder Buttons"));
@@ -121,64 +119,40 @@ GCTASInputDlg::GCTASInputDlg(wxWindow *parent, wxWindowID id, const wxString &ti
 	wxStaticBoxSizer* const buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
 	wxGridSizer* const buttons_grid = new wxGridSizer(4);
 	
-	wx_a_button = new wxCheckBox(this,ID_A,_T("A"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_a_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_a_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
-	wx_b_button = new wxCheckBox(this,ID_B,_T("B"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_b_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_b_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
-	wx_x_button = new wxCheckBox(this,ID_X,_T("X"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_x_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_x_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
-	wx_y_button = new wxCheckBox(this,ID_Y,_T("Y"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_y_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_y_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
-	wx_l_button = new wxCheckBox(this,ID_L,_T("L"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_l_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_l_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
-	wx_r_button = new wxCheckBox(this,ID_R,_T("R"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_r_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_r_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
-	wx_z_button = new wxCheckBox(this,ID_Z,_T("Z"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_z_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_z_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
-	wx_start_button = new wxCheckBox(this,ID_START,_T("Start"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_start_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_start_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
+	A.Checkbox = CreateCheckBoxAndListerners(ID_A,"A");
+    B.Checkbox = CreateCheckBoxAndListerners(ID_B,"B");
+    X.Checkbox = CreateCheckBoxAndListerners(ID_X,"X");
+    Y.Checkbox = CreateCheckBoxAndListerners(ID_Y,"Y");
+    L.Checkbox = CreateCheckBoxAndListerners(ID_L,"L");
+    R.Checkbox = CreateCheckBoxAndListerners(ID_R,"R");
+    Z.Checkbox = CreateCheckBoxAndListerners(ID_Z,"Z");
+    START.Checkbox = CreateCheckBoxAndListerners(ID_START,"Start");
 	
-	buttons_grid->Add(wx_a_button,false);
-	buttons_grid->Add(wx_b_button,false);
-	buttons_grid->Add(wx_x_button,false);
-	buttons_grid->Add(wx_y_button,false);
-	buttons_grid->Add(wx_l_button,false);
-	buttons_grid->Add(wx_r_button,false);
-	buttons_grid->Add(wx_z_button,false);
-	buttons_grid->Add(wx_start_button,false);
+	buttons_grid->Add(A.Checkbox,false);
+	buttons_grid->Add(B.Checkbox,false);
+	buttons_grid->Add(X.Checkbox,false);
+	buttons_grid->Add(Y.Checkbox,false);
+	buttons_grid->Add(L.Checkbox,false);
+	buttons_grid->Add(R.Checkbox,false);
+	buttons_grid->Add(Z.Checkbox,false);
+	buttons_grid->Add(START.Checkbox,false);
 	buttons_grid->AddSpacer(5);
 
 	wxGridSizer* const buttons_dpad = new wxGridSizer(3);
 	
-	wx_up_button = new wxCheckBox(this,ID_UP,_T("Up"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_up_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_up_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
-	wx_right_button = new wxCheckBox(this,ID_RIGHT,_T("Right"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_right_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_right_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
-	wx_down_button = new wxCheckBox(this,ID_DOWN,_T("Down"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_down_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_down_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
-	wx_left_button = new wxCheckBox(this,ID_LEFT,_T("Left"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_left_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
-	wx_left_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
+	dpad_up.Checkbox = CreateCheckBoxAndListerners(ID_UP,"Up");
+	dpad_right.Checkbox = CreateCheckBoxAndListerners(ID_RIGHT,"Right");
+	dpad_down.Checkbox = CreateCheckBoxAndListerners(ID_DOWN,"Down");
+	dpad_left.Checkbox = CreateCheckBoxAndListerners(ID_LEFT,"Left");
 	
 	buttons_dpad->AddSpacer(20);
-	buttons_dpad->Add(wx_up_button,false);
+	buttons_dpad->Add(dpad_up.Checkbox,false);
 	buttons_dpad->AddSpacer(20);
-	buttons_dpad->Add(wx_left_button,false);
+	buttons_dpad->Add(dpad_left.Checkbox,false);
 	buttons_dpad->AddSpacer(20);
-	buttons_dpad->Add(wx_right_button,false);
+	buttons_dpad->Add(dpad_right.Checkbox,false);
 	buttons_dpad->AddSpacer(20);
-	buttons_dpad->Add(wx_down_button,false);
+	buttons_dpad->Add(dpad_down.Checkbox,false);
 	buttons_dpad->AddSpacer(20);
 	buttons_box->Add(buttons_grid);
 	buttons_box->Add(buttons_dpad);
@@ -201,40 +175,48 @@ GCTASInputDlg::GCTASInputDlg(wxWindow *parent, wxWindowID id, const wxString &ti
 	ResetValues();
 }
 
+wxCheckBox* GCTASInputDlg::CreateCheckBoxAndListerners(int id, std::string name)
+{
+    wxCheckBox *checkbox = new wxCheckBox(this,id,name,wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
+	checkbox->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurbo), NULL, this);
+	checkbox->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(GCTASInputDlg::SetTurboFalse), NULL, this);
+    return checkbox;
+}
+
 void GCTASInputDlg::ResetValues()
 {
-	mainX = mainY = cX = cY = 128;
+	MainStick.x = MainStick.y = CStick.x = CStick.y = 128;
 	lTrig = rTrig = 0;
 	
-	wx_mainX_s->SetValue(128);
-	wx_mainY_s->SetValue(128);
-	wx_cX_s->SetValue(128);
-	wx_cY_s->SetValue(128);
+	MainStick.xSlider->SetValue(128);
+	MainStick.ySlider->SetValue(128);
+	CStick.xSlider->SetValue(128);
+	CStick.ySlider->SetValue(128);
 	wx_l_s->SetValue(0);
 	wx_r_s->SetValue(0);
 	
-	wx_mainX_t->SetValue(wxT("128"));
-	wx_mainY_t->SetValue(wxT("128"));
-	wx_cX_t->SetValue(wxT("128"));
-	wx_cY_t->SetValue(wxT("128"));
+	MainStick.xText->SetValue(wxT("128"));
+	MainStick.yText->SetValue(wxT("128"));
+	CStick.xText->SetValue(wxT("128"));
+	CStick.yText->SetValue(wxT("128"));
 	wx_l_t->SetValue(wxT("0"));
 	wx_r_t->SetValue(wxT("0"));
 	
-	wx_up_button->SetValue(false);
-	wx_down_button->SetValue(false);
-	wx_left_button->SetValue(false);
-	wx_right_button->SetValue(false);
-	wx_a_button->SetValue(false);
-	wx_b_button->SetValue(false);
-	wx_x_button->SetValue(false);
-	wx_y_button->SetValue(false);
-	wx_l_button->SetValue(false);
-	wx_r_button->SetValue(false);
-	wx_z_button->SetValue(false);
-	wx_start_button->SetValue(false);
+	dpad_up.Checkbox->SetValue(false);
+	dpad_down.Checkbox->SetValue(false);
+	dpad_left.Checkbox->SetValue(false);
+	dpad_right.Checkbox->SetValue(false);
+	A.Checkbox->SetValue(false);
+	B.Checkbox->SetValue(false);
+	X.Checkbox->SetValue(false);
+	Y.Checkbox->SetValue(false);
+	L.Checkbox->SetValue(false);
+	R.Checkbox->SetValue(false);
+	Z.Checkbox->SetValue(false);
+	START.Checkbox->SetValue(false);
 }
 
-void GCTASInputDlg::SetStickValue(bool *ActivatedByKeyboard, u8 *AmountPressed, wxTextCtrl *Textbox, u8 CurrentValue)
+void GCTASInputDlg::SetStickValue(bool *ActivatedByKeyboard, int *AmountPressed, wxTextCtrl *Textbox, int CurrentValue)
 {
     if(CurrentValue != 128)
     {
@@ -250,52 +232,52 @@ void GCTASInputDlg::SetStickValue(bool *ActivatedByKeyboard, u8 *AmountPressed, 
     }
 }
 
-void GCTASInputDlg::SetButtonValue(bool *ActivatedByKeyboard, wxCheckBox* button,bool CurrentState)
+void GCTASInputDlg::SetButtonValue(Button *button,bool CurrentState)
 {
     if(CurrentState)
     {
-        *ActivatedByKeyboard = true;
-        button->SetValue(CurrentState);
+        button->SetByKeyboard = true;
+        button->Checkbox->SetValue(CurrentState);
     }
-    else if(*ActivatedByKeyboard)
+    else if(button->SetByKeyboard)
     {
-        *ActivatedByKeyboard = false;
-        button->SetValue(CurrentState);
+        button->SetByKeyboard = false;
+        button->Checkbox->SetValue(CurrentState);
     }
 }
 
 void GCTASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 {
-    SetStickValue(&mstickx,&mainX,wx_mainX_t,PadStatus->stickX);
-    SetStickValue(&msticky,&mainY,wx_mainY_t,PadStatus->stickY);
+    SetStickValue(&mstickx,&MainStick.x,MainStick.xText,PadStatus->stickX);
+    SetStickValue(&msticky,&MainStick.y,MainStick.yText,PadStatus->stickY);
 	
-    SetStickValue(&cstickx,&cX,wx_cX_t,PadStatus->substickX);
-    SetStickValue(&csticky,&cY,wx_cY_t,PadStatus->substickY);
+    SetStickValue(&cstickx,&CStick.x,CStick.xText,PadStatus->substickX);
+    SetStickValue(&csticky,&CStick.y,CStick.yText,PadStatus->substickY);
     
-    SetButtonValue(&DU_cont, wx_up_button, ((PadStatus->button & PAD_BUTTON_UP) != 0));
-    SetButtonValue(&DD_cont, wx_down_button, ((PadStatus->button & PAD_BUTTON_DOWN) != 0));
-	SetButtonValue(&DL_cont, wx_left_button, ((PadStatus->button & PAD_BUTTON_LEFT) != 0));
-    SetButtonValue(&DR_cont, wx_right_button, ((PadStatus->button & PAD_BUTTON_RIGHT) != 0));
+    SetButtonValue(&dpad_up, ((PadStatus->button & PAD_BUTTON_UP) != 0));
+    SetButtonValue(&dpad_down, ((PadStatus->button & PAD_BUTTON_DOWN) != 0));
+	SetButtonValue(&dpad_left, ((PadStatus->button & PAD_BUTTON_LEFT) != 0));
+    SetButtonValue(&dpad_right, ((PadStatus->button & PAD_BUTTON_RIGHT) != 0));
     
-    SetButtonValue(&A_cont, wx_a_button, ((PadStatus->button & PAD_BUTTON_A) != 0));
-	SetButtonValue(&B_cont, wx_b_button, ((PadStatus->button & PAD_BUTTON_B) != 0));
-    SetButtonValue(&X_cont, wx_x_button, ((PadStatus->button & PAD_BUTTON_X) != 0));
-	SetButtonValue(&Y_cont, wx_y_button, ((PadStatus->button & PAD_BUTTON_Y) != 0));
-    SetButtonValue(&Z_cont, wx_z_button, ((PadStatus->button & PAD_TRIGGER_Z) != 0));
-    SetButtonValue(&START_cont, wx_start_button, ((PadStatus->button & PAD_BUTTON_START) != 0));
+    SetButtonValue(&A, ((PadStatus->button & PAD_BUTTON_A) != 0));
+	SetButtonValue(&B, ((PadStatus->button & PAD_BUTTON_B) != 0));
+    SetButtonValue(&X, ((PadStatus->button & PAD_BUTTON_X) != 0));
+	SetButtonValue(&Y, ((PadStatus->button & PAD_BUTTON_Y) != 0));
+    SetButtonValue(&Z, ((PadStatus->button & PAD_TRIGGER_Z) != 0));
+    SetButtonValue(&START, ((PadStatus->button & PAD_BUTTON_START) != 0));
 	
-    SetButtonValue(&L_cont, wx_l_button, ((PadStatus->triggerLeft) != 0) || ((PadStatus->button & PAD_TRIGGER_L) != 0));
-	SetButtonValue(&R_cont, wx_r_button, ((PadStatus->triggerRight) != 0) || ((PadStatus->button & PAD_TRIGGER_R) != 0));
+    SetButtonValue(&L, ((PadStatus->triggerLeft) != 0) || ((PadStatus->button & PAD_TRIGGER_L) != 0));
+	SetButtonValue(&R, ((PadStatus->triggerRight) != 0) || ((PadStatus->button & PAD_TRIGGER_R) != 0));
 }
 
 void GCTASInputDlg::SetLandRTriggers()
 {
-    if(wx_l_button->GetValue())
+    if(L.Checkbox->GetValue())
         lTrig = 255;
     else
         lTrig = wx_r_s->GetValue();
     
-    if(wx_r_button->GetValue())
+    if(R.Checkbox->GetValue())
         rTrig = 255;
     else
         rTrig = wx_r_s->GetValue();
@@ -310,34 +292,34 @@ void GCTASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 	GetKeyBoardInput(PadStatus);
 	SetLandRTriggers();
     
-	PadStatus->stickX = mainX;
-	PadStatus->stickY = mainY;
-	PadStatus->substickX = cX;
-	PadStatus->substickY = cY;
+	PadStatus->stickX = MainStick.x;
+	PadStatus->stickY = MainStick.y;
+	PadStatus->substickX = CStick.x;
+	PadStatus->substickY = CStick.y;
 	PadStatus->triggerLeft = lTrig;
 	PadStatus->triggerRight = rTrig;
 
-	if(wx_up_button->IsChecked())
+	if(dpad_up.Checkbox->IsChecked())
 		PadStatus->button |= PAD_BUTTON_UP;
 	else
 		PadStatus->button &= ~PAD_BUTTON_UP;
 
-	if(wx_down_button->IsChecked())
+	if(dpad_down.Checkbox->IsChecked())
 		PadStatus->button |= PAD_BUTTON_DOWN;
 	else
 		PadStatus->button &= ~PAD_BUTTON_DOWN;
 
-	if(wx_left_button->IsChecked())
+	if(dpad_left.Checkbox->IsChecked())
 		PadStatus->button |= PAD_BUTTON_LEFT;
 	else
 		PadStatus->button &= ~PAD_BUTTON_LEFT;
 
-	if(wx_right_button->IsChecked())
+	if(dpad_right.Checkbox->IsChecked())
 		PadStatus->button |= PAD_BUTTON_RIGHT;
 	else
 		PadStatus->button &= ~PAD_BUTTON_RIGHT;
 	
-	if(wx_a_button->IsChecked())
+	if(A.Checkbox->IsChecked())
 	{
 		PadStatus->button |= PAD_BUTTON_A;
 		PadStatus->analogA = 0xFF;
@@ -348,7 +330,7 @@ void GCTASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 		PadStatus->analogA = 0x00;
 	}
 
-	if(wx_b_button->IsChecked())
+	if(B.Checkbox->IsChecked())
 	{
 		PadStatus->button |= PAD_BUTTON_B;
 		PadStatus->analogB = 0xFF;
@@ -359,22 +341,22 @@ void GCTASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 		PadStatus->analogB = 0x00;
 	}
 
-	if(wx_x_button->IsChecked())
+	if(X.Checkbox->IsChecked())
 		PadStatus->button |= PAD_BUTTON_X;
 	else
 		PadStatus->button &= ~PAD_BUTTON_X;
 
-	if(wx_y_button->IsChecked())
+	if(Y.Checkbox->IsChecked())
 		PadStatus->button |= PAD_BUTTON_Y;
 	else
 		PadStatus->button &= ~PAD_BUTTON_Y;
 
-	if(wx_z_button->IsChecked())
+	if(Z.Checkbox->IsChecked())
 		PadStatus->button |= PAD_TRIGGER_Z;
 	else
 		PadStatus->button &= ~PAD_TRIGGER_Z;
 
-	if(wx_start_button->IsChecked())
+	if(START.Checkbox->IsChecked())
 		PadStatus->button |= PAD_BUTTON_START;
 	else
 		PadStatus->button &= ~PAD_BUTTON_START;
@@ -385,36 +367,36 @@ void GCTASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 void GCTASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 {
 	wxTextCtrl *text;
-	u8 *v;
-	update = 0;
+	int *v;
+	int update = 0;
 
 	switch(event.GetId())
 	{
 		case ID_MAIN_X_SLIDER:
-			text = wx_mainX_t;
-			v = &mainX;
-			xaxis =((wxSlider *) event.GetEventObject())->GetValue();
+			text = MainStick.xText;
+			v = &MainStick.x;
+			MainStick.x =((wxSlider *) event.GetEventObject())->GetValue();
 			update = 1;
 			break;
 
 		case ID_MAIN_Y_SLIDER:
-			text = wx_mainY_t;
-			v = &mainY;
-			yaxis = 256 - ((wxSlider *) event.GetEventObject())->GetValue();
+			text = MainStick.yText;
+			v = &MainStick.y;
+			MainStick.y = 256 - ((wxSlider *) event.GetEventObject())->GetValue();
 			update = 1;
 			break;
 
 		case ID_C_X_SLIDER:
-			text = wx_cX_t;
-			v = &cX;
-			c_xaxis = ((wxSlider *) event.GetEventObject())->GetValue();
+			text = CStick.xText;
+			v = &CStick.x;
+			CStick.x = ((wxSlider *) event.GetEventObject())->GetValue();
 			update = 2;
 			break;
 
 		case ID_C_Y_SLIDER:
-			text = wx_cY_t;
-			v = &cY;
-			c_yaxis = 256 -((wxSlider *) event.GetEventObject())->GetValue();
+			text = CStick.yText;
+			v = &CStick.y;
+			CStick.y = 256 -((wxSlider *) event.GetEventObject())->GetValue();
 			update = 2;
 			break;
 
@@ -438,104 +420,80 @@ void GCTASInputDlg::UpdateFromSliders(wxCommandEvent& event)
 	
 	if(update == 1)
 	{
-		static_bitmap_main->SetBitmap(GCTASInputDlg::CreateStickBitmap(xaxis, yaxis));
+		MainStick.bitmap->SetBitmap(GCTASInputDlg::CreateStickBitmap(MainStick.x, MainStick.y));
 	}
 	
 	if(update == 2)
 	{
-		static_bitmap_c->SetBitmap(GCTASInputDlg::CreateStickBitmap(c_xaxis, c_yaxis));
+		CStick.bitmap->SetBitmap(GCTASInputDlg::CreateStickBitmap(CStick.x, CStick.y));
 	}
 }
 
 void GCTASInputDlg::UpdateFromText(wxCommandEvent& event)
 {
-	wxSlider *slider;
-	u8 *v;
-	update = 0;
-	update_axis = 0;
+	Stick *stick;
+    wxSlider *slider;
+    bool XAxis;
+	int v;
+    unsigned long value;
+	
+    if (((wxTextCtrl *) event.GetEventObject())->GetValue().ToULong(&value))
+		v = (u8) (value > 255 ? 255 : value);
+    else
+        return;
 	
 	switch(event.GetId())
 	{
 		case ID_MAIN_X_TEXT:
-			slider = wx_mainX_s;
-			v = &mainX;
-			update = 1;
-			update_axis = 1;
-			break;
+			stick = &MainStick;
+			XAxis = true;
+            break;
 
 		case ID_MAIN_Y_TEXT:
-			slider = wx_mainY_s;
-			v = &mainY;
-			update = 1;
-			update_axis = 2;
+			stick = &MainStick;
+			XAxis = false;
 			break;
 
 		case ID_C_X_TEXT:
-			slider = wx_cX_s;
-			v = &cX;
-			update = 2;
-			update_axis = 1;
+			stick = &CStick;
+			XAxis = true;
 			break;
 
 		case ID_C_Y_TEXT:
-			slider = wx_cY_s;
-			v = &cY;
-			update = 2; 
-			update_axis = 2;
+			stick = &CStick;
+			XAxis = false;
 			break;
 
 		case ID_L_TEXT:
 			slider = wx_l_s;
-			v = &lTrig;
+			lTrig = v;
+            goto SetSlider;
 			break;
 
 		case ID_R_TEXT:
 			slider = wx_r_s;
-			v = &rTrig;
+			rTrig = v;
+            goto SetSlider;
 			break;
 
 		default:
 			return;
 	}
-	unsigned long value;
-
-	if (((wxTextCtrl *) event.GetEventObject())->GetValue().ToULong(&value))
-	{
-		*v = (u8) (value > 255 ? 255 : value);
-		slider->SetValue(*v);
-	
-		if(update == 1)
-			{
-				if(update_axis == 1)
-				{
-					xaxis = *v;
-					static_bitmap_main->SetBitmap(GCTASInputDlg::CreateStickBitmap(xaxis,yaxis));
-				}
-			
-				if(update_axis == 2)
-				{
-					yaxis =256 - *v;
-					static_bitmap_main->SetBitmap(GCTASInputDlg::CreateStickBitmap(xaxis,yaxis));
-				}
-			
-			}
-
-		if(update == 2)
-		{
-			if(update_axis == 1)
-			{
-				c_xaxis = *v;
-				static_bitmap_c->SetBitmap(GCTASInputDlg::CreateStickBitmap(c_xaxis,c_yaxis));
-			}
-			
-			if(update_axis == 2)
-			{
-				c_yaxis =256- *v;
-				static_bitmap_c->SetBitmap(GCTASInputDlg::CreateStickBitmap(c_xaxis,c_yaxis));
-			}
-	
-		}
-	}
+    
+    if(XAxis)
+    {
+        stick->x = v;
+        slider = stick->xSlider;
+    }
+    else
+    {
+        stick->y = 256 - v;
+        slider = stick->ySlider;
+    }
+    stick->bitmap->SetBitmap(GCTASInputDlg::CreateStickBitmap(stick->x, stick->y));
+    	
+    SetSlider:
+        slider->SetValue(v);
 }
 
 void GCTASInputDlg::OnCloseWindow(wxCloseEvent& event)
@@ -565,16 +523,16 @@ bool GCTASInputDlg::TASInputDlgHasFocus()
 
 bool GCTASInputDlg::TextBoxHasFocus()
 {
-	if(wxWindow::FindFocus() == wx_mainX_t)
+	if(wxWindow::FindFocus() == MainStick.xText)
 		return true;
 
-	if(wxWindow::FindFocus() == wx_mainY_t)
+	if(wxWindow::FindFocus() == MainStick.yText)
 		return true;
 
-	if(wxWindow::FindFocus() == wx_cX_t)
+	if(wxWindow::FindFocus() == CStick.xText)
 		return true;
 
-	if(wxWindow::FindFocus() == wx_cY_t)
+	if(wxWindow::FindFocus() == CStick.yText)
 		return true;
 
 	if(wxWindow::FindFocus() == wx_l_t)
@@ -588,47 +546,32 @@ bool GCTASInputDlg::TextBoxHasFocus()
 
 void GCTASInputDlg::OnMouseUpR(wxMouseEvent& event)
 {
-	wxSlider *sliderX,*sliderY;
-	wxStaticBitmap *sbitmap;
-	wxTextCtrl *textX, *textY;
-	int *x,*y;
-
+	Stick *stick;
+    
 	switch(event.GetId())
 	{
 		case ID_MAIN_STICK:
-			sliderX = wx_mainX_s;
-			sliderY = wx_mainY_s;
-			textX = wx_mainX_t;
-			textY = wx_mainY_t;
-			sbitmap = static_bitmap_main;
-			x = &xaxis;
-			y = &yaxis;
+			stick = &MainStick;
 			break;
 
 		case ID_C_STICK:
-			sliderX = wx_cX_s;
-			sliderY = wx_cY_s;
-			textX = wx_cX_t;
-			textY = wx_cY_t;
-			sbitmap = static_bitmap_c;
-			x = &c_xaxis;
-			y = &c_yaxis;
-			break;
+			stick = &CStick;
+            break;
 
 		default:
 			return;
 	}
 
-	*x = 128;
-	*y = 128;
+	stick->x = 128;
+	stick->y = 128;
 
-	sbitmap->SetBitmap(GCTASInputDlg::CreateStickBitmap(*x,*y));
+	stick->bitmap->SetBitmap(GCTASInputDlg::CreateStickBitmap(stick->x,stick->y));
 	
-	textX->SetValue(wxString::Format(wxT("%i"), *x));
-	textY->SetValue(wxString::Format(wxT("%i"), 256 - *y));
+	stick->xText->SetValue(wxString::Format(wxT("%i"), stick->x));
+	stick->yText->SetValue(wxString::Format(wxT("%i"), 256 - stick->y));
 	
-	sliderX->SetValue(*x);
-	sliderY->SetValue(256 - *y);
+	stick->xSlider->SetValue(stick->x);
+	stick->ySlider->SetValue(256 - stick->y);
 	event.Skip(true);
 
 }
@@ -638,32 +581,17 @@ void GCTASInputDlg::OnMouseDownL(wxMouseEvent& event)
     if(!event.LeftIsDown())
         return;
         
-	wxSlider *sliderX,*sliderY;
-	wxStaticBitmap *sbitmap;
-	wxTextCtrl *textX, *textY;
-	int *x,*y;
+	Stick *stick;
 
 	switch(event.GetId())
 	{
 		case ID_MAIN_STICK:
-			sliderX = wx_mainX_s;
-			sliderY = wx_mainY_s;
-			textX = wx_mainX_t;
-			textY = wx_mainY_t;
-			sbitmap = static_bitmap_main;
-			x = &xaxis;
-			y = &yaxis;
-			break;
+			stick = &MainStick;
+            break;
 
 		case ID_C_STICK:
-			sliderX = wx_cX_s;
-			sliderY = wx_cY_s;
-			textX = wx_cX_t;
-			textY = wx_cY_t;
-			sbitmap = static_bitmap_c;
-			x = &c_xaxis;
-			y = &c_yaxis;
-			break;
+			stick = &CStick;
+            break;
 
 		default:
 			return;
@@ -671,28 +599,28 @@ void GCTASInputDlg::OnMouseDownL(wxMouseEvent& event)
     
     
 	wxPoint ptM(event.GetPosition()); 
-	*x = ptM.x *2;
-	*y = ptM.y * 2;
+	stick->x = ptM.x *2;
+	stick->y = ptM.y * 2;
 
-	if(*x > 255)
-		*x = 255;
+	if(stick->x > 255)
+		stick->x = 255;
     
-    if(*x < 0)
-        *x =0;
+    if(stick->x < 0)
+        stick->x =0;
 	
-	if(*y > 255)
-		*y = 255;
+	if(stick->y > 255)
+		stick->y = 255;
     
-    if(*y <0)
-        *y = 0;
+    if(stick->y <0)
+        stick->y = 0;
 
-	sbitmap->SetBitmap(GCTASInputDlg::CreateStickBitmap(*x,*y));
+	stick->bitmap->SetBitmap(GCTASInputDlg::CreateStickBitmap(stick->x,stick->y));
 	
-	textX->SetValue(wxString::Format(wxT("%i"), *x));
-	textY->SetValue(wxString::Format(wxT("%i"), 256 - *y));
+	stick->xText->SetValue(wxString::Format(wxT("%i"), stick->x));
+	stick->yText->SetValue(wxString::Format(wxT("%i"), 256 - stick->y));
 	
-	sliderX->SetValue(*x);
-	sliderY->SetValue(256 - *y);
+	stick->xSlider->SetValue(stick->x);
+	stick->ySlider->SetValue(256 - stick->y);
 	event.Skip(true);
 }
 
@@ -701,50 +629,50 @@ void GCTASInputDlg::SetTurboFalse(wxMouseEvent& event)
 	switch(event.GetId())
 	{
 		case ID_A:
-				A_turbo = false;
+				A.TurboOn = false;
 			break;
 		case ID_B:
-				B_turbo = false;
+				B.TurboOn = false;
 			break;
 
 		case ID_X:
-				X_turbo = false;
+				X.TurboOn = false;
 			break;
 
 		case ID_Y:
-				Y_turbo = false;
+				Y.TurboOn = false;
 			break;
 
 		case ID_Z:
-				Z_turbo = false;
+				Z.TurboOn = false;
 			break;
 
 		case ID_L:
-				L_turbo = false;
+				L.TurboOn = false;
 			break;
 
 		case ID_R:
-				R_turbo = false;
+				R.TurboOn = false;
 			break;
 
 		case ID_START:
-				START_turbo = false;
+				START.TurboOn = false;
 			break;
 
 		case ID_UP:
-				DU_turbo = false;
+				dpad_up.TurboOn = false;
 			break;
 
 		case ID_DOWN:
-				DD_turbo = false;
+				dpad_down.TurboOn = false;
 			break;
 
 		case ID_LEFT:
-				DL_turbo = false;
+				dpad_left.TurboOn = false;
 			break;
 
 		case ID_RIGHT:
-				DR_turbo = false;
+				dpad_right.TurboOn = false;
 			break;
 		default:
 			return;
@@ -755,112 +683,101 @@ void GCTASInputDlg::SetTurboFalse(wxMouseEvent& event)
 
 void GCTASInputDlg::SetTurbo(wxMouseEvent& event)
 {
-	wxCheckBox* placeholder;
+	Button *button;
 
 	switch(event.GetId())
 	{
 		case ID_A:
-			placeholder = wx_a_button;
-            A_turbo = !A_turbo;
+			button = &A;
             break;
 
 		case ID_B:
-			placeholder = wx_b_button;
-			B_turbo = !B_turbo;
+            button = &B;
             break;
 
 		case ID_X:
-			placeholder = wx_x_button;
-			X_turbo = !X_turbo;
+            button = &X;
 			break;
 
 		case ID_Y:
-			placeholder = wx_y_button;
-			Y_turbo = !Y_turbo;
+            button = &Y;
             break;
 
 		case ID_Z:
-			placeholder = wx_z_button;
-			Z_turbo = !Z_turbo;
+            button = &Z;
 			break;
 
 		case ID_L:
-			placeholder = wx_l_button;
-			L_turbo = !L_turbo;
+            button = &L;
             break;
 
 		case ID_R:
-			placeholder = wx_r_button;
-			R_turbo = !R_turbo;
+            button = &R;
 			break;
 
 		case ID_START:
-			placeholder = wx_start_button;
-			START_turbo = !START_turbo;
+            button = &START;
 			break;
 
 		case ID_UP:
-			placeholder = wx_up_button;
-			DU_turbo = !DU_turbo;
+            button = &dpad_up;
 			break;
 
 		case ID_DOWN:
-			placeholder = wx_down_button;
-			DD_turbo = !DD_turbo;
+            button = &dpad_down;
 			break;
 
 		case ID_LEFT:
-			placeholder = wx_left_button;
-			DL_turbo = !DL_turbo;
+            button = &dpad_left;
 			break;
 
 		case ID_RIGHT:
-			placeholder = wx_right_button;
-			DR_turbo = !DR_turbo;
+            button = &dpad_right;
 			break;
 		default:
 			return;
 	}
-	placeholder->SetValue(true);
+	button->Checkbox->SetValue(true);
+    button->TurboOn = !button->TurboOn;
 }
 
 void GCTASInputDlg::ButtonTurbo()
 {
-	if(A_turbo)
-        wx_a_button->SetValue(!wx_a_button->GetValue());
+	if(A.TurboOn)
+        A.Checkbox->SetValue(!A.Checkbox->GetValue());
 
-	if(B_turbo)
-        wx_b_button->SetValue(!wx_b_button->GetValue());
+	if(B.TurboOn)
+        B.Checkbox->SetValue(!B.Checkbox->GetValue());
 	
-	if(X_turbo)
-        wx_x_button->SetValue(!wx_x_button->GetValue());
+	if(X.TurboOn)
+        X.Checkbox->SetValue(!X.Checkbox->GetValue());
 	
-	if(Y_turbo)
-        wx_y_button->SetValue(!wx_y_button->GetValue());
+	if(Y.TurboOn)
+        Y.Checkbox->SetValue(!Y.Checkbox->GetValue());
 	
-	if(Z_turbo)
-        wx_z_button->SetValue(!wx_z_button->GetValue());
+	if(Z.TurboOn)
+        Z.Checkbox->SetValue(!Z.Checkbox->GetValue());
 
-    if(L_turbo)
-        wx_l_button->SetValue(!wx_l_button->GetValue());
+    if(L.TurboOn)
+        L.Checkbox->SetValue(!L.Checkbox->GetValue());
     
-	if(R_turbo)
-	    wx_r_button->SetValue(!wx_r_button->GetValue());
+	if(R.TurboOn)
+	    R.Checkbox->SetValue(!R.Checkbox->GetValue());
 	
-	if(START_turbo)
-	    wx_start_button->SetValue(!wx_start_button->GetValue());
+	if(START.TurboOn)
+	    START.Checkbox->SetValue(!START.Checkbox->GetValue());
     
-	if(DU_turbo)
-	    wx_up_button->SetValue(!wx_up_button->GetValue());
+	if(dpad_up.TurboOn)
+	    dpad_up.Checkbox->SetValue(!dpad_up.Checkbox->GetValue());
     
-	if(DD_turbo)
-	    wx_down_button->SetValue(!wx_down_button->GetValue());
+	if(dpad_down.TurboOn)
+	    dpad_down.Checkbox->SetValue(!dpad_down.Checkbox->GetValue());
     
-	if(DL_turbo)
-	    wx_left_button->SetValue(!wx_left_button->GetValue());
+	if(dpad_left.TurboOn)
+	    dpad_left.Checkbox->SetValue(!dpad_left.Checkbox->GetValue());
 	
-	if(DR_turbo)
-	    wx_right_button->SetValue(!wx_right_button->GetValue());
+	if(dpad_right.TurboOn)
+	    dpad_right.Checkbox->SetValue(!dpad_right.Checkbox->GetValue());
 	}
 
 wxBitmap GCTASInputDlg::CreateStickBitmap(int x, int y)
