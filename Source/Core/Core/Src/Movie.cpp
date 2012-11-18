@@ -92,10 +92,6 @@ std::string GetInputDisplay()
 
 void FrameUpdate()
 {
-	if (IsPlayingInput() && g_currentInputCount == g_totalInputCount -1  && SConfig::GetInstance().m_PauseMovie)
-	{
-		Core::SetState(Core::CORE_PAUSE);
-	}
 	g_currentFrame++;
 	if(!g_bPolled) 
 		g_currentLagCount++;
@@ -178,6 +174,9 @@ void InputUpdate()
 	g_currentInputCount++;
 	if (IsRecordingInput())
 		g_totalInputCount = g_currentInputCount;
+
+	if (IsPlayingInput() && g_currentInputCount == (g_totalInputCount -1) && SConfig::GetInstance().m_PauseMovie)
+		Core::SetState(Core::CORE_PAUSE);
 }
 
 void SetFrameSkipping(unsigned int framesToSkip)
