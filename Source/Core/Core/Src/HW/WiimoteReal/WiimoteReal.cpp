@@ -520,6 +520,8 @@ bool IsValidBluetoothName(const char* name) {
 		"Nintendo RVL-CNT-01-TR",
 		"Nintendo RVL-WBC-01",
 	};
+  if (name == NULL)
+		return false;
 	for (size_t i = 0; i < ARRAYSIZE(kValidWiiRemoteBluetoothNames); i++)
 		if (strcmp(name, kValidWiiRemoteBluetoothNames[i]) == 0)
 			return true;
