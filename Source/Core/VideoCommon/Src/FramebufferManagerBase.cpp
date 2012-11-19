@@ -10,6 +10,9 @@ XFBSourceBase *FramebufferManagerBase::m_realXFBSource; // Only used in Real XFB
 FramebufferManagerBase::VirtualXFBListType FramebufferManagerBase::m_virtualXFBList; // Only used in Virtual XFB mode
 const XFBSourceBase* FramebufferManagerBase::m_overlappingXFBArray[MAX_VIRTUAL_XFB];
 
+unsigned int FramebufferManagerBase::s_last_xfb_width = 1;
+unsigned int FramebufferManagerBase::s_last_xfb_height = 1;
+
 FramebufferManagerBase::FramebufferManagerBase()
 {
 	m_realXFBSource = NULL;
@@ -225,4 +228,32 @@ void FramebufferManagerBase::ReplaceVirtualXFB()
 			}
 		}
 	}
+}
+
+int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x, unsigned int backbuffer_width)
+{
+	if (g_ActiveConfig.RealXFBEnabled())
+		return x;
+
+	if (g_ActiveConfig.b3DVision)
+	{
+		// This works, yet the version in the else doesn't. No idea why.
+		return x * (int)backbuffer_width / (int)FramebufferManagerBase::LastXfbWidth();
+	}
+	else
+		return x * (int)Renderer::GetTargetRectangle().GetWidth() / (int)FramebufferManagerBase::LastXfbWidth();
+}
+
+int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y, unsigned int backbuffer_height)
+{
+	if (g_ActiveConfig.RealXFBEnabled())
+		return y;
+
+	if (g_ActiveConfig.b3DVision)
+	{
+		// This works, yet the version in the else doesn't. No idea why.
+		return y * (int)backbuffer_height / (int)FramebufferManagerBase::LastXfbHeight();
+	}
+	else
+		return y * (int)Renderer::GetTargetRectangle().GetHeight() / (int)FramebufferManagerBase::LastXfbHeight();
 }

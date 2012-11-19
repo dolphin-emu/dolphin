@@ -280,19 +280,16 @@ Renderer::Renderer()
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 
-	s_XFB_width = MAX_XFB_WIDTH;
-	s_XFB_height = MAX_XFB_HEIGHT;
+	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
+	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-	CalculateXYScale(dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	int SupersampleCoeficient = (s_LastAA % 3) + 1;
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	CalculateTargetSize(SupersampleCoeficient);
+	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height, SupersampleCoeficient);
 
 	// Make sure to use valid texture sizes
 	D3D::FixTextureSize(s_target_width, s_target_height);
@@ -837,7 +834,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
-	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
 		if (g_ActiveConfig.bDumpFrames && frame_data)
 			AVIDump::AddFrame(frame_data);
@@ -888,8 +885,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::dev->SetDepthStencilSurface(NULL);
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	D3DVIEWPORT9 vp;
 
 	// Clear full target screen (edges, borders etc)
@@ -909,10 +905,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 	}
 
-	int X = dst_rect.left;
-	int Y = dst_rect.top;
-	int Width  = dst_rect.right - dst_rect.left;
-	int Height = dst_rect.bottom - dst_rect.top;
+	int X = GetTargetRectangle().left;
+	int Y = GetTargetRectangle().top;
+	int Width  = GetTargetRectangle().right - GetTargetRectangle().left;
+	int Height = GetTargetRectangle().bottom - GetTargetRectangle().top;
 
 	// Sanity check
 	if (X < 0) X = 0;
@@ -955,7 +951,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 			MathUtil::Rectangle<float> drawRc;
 
-			if (!g_ActiveConfig.bUseRealXFB)
+			if (g_ActiveConfig.bUseRealXFB)
+			{
+				drawRc.top = -1;
+				drawRc.bottom = 1;
+				drawRc.left = -1;
+				drawRc.right = 1;
+			}
+			else
 			{
 				// use virtual xfb with offset
 				int xfbHeight = xfbSource->srcHeight;
@@ -969,19 +972,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 				// The following code disables auto stretch.  Kept for reference.
 				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				//float vScale = (float)fbHeight / (float)dst_rect.GetHeight();
-				//float hScale = (float)fbWidth / (float)dst_rect.GetWidth();
+				//float vScale = (float)fbHeight / (float)GetTargetRectangle().GetHeight();
+				//float hScale = (float)fbWidth / (float)GetTargetRectangle().GetWidth();
 				//drawRc.top *= vScale;
 				//drawRc.bottom *= vScale;
 				//drawRc.left *= hScale;
 				//drawRc.right *= hScale;
-			}
-			else
-			{
-				drawRc.top = -1;
-				drawRc.bottom = 1;
-				drawRc.left = -1;
-				drawRc.right = 1;
 			}
 
 			xfbSource->Draw(sourceRc, drawRc, Width, Height);
@@ -1019,7 +1015,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (s_bScreenshot)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		SaveScreenshot(s_sScreenshotName, dst_rect);
+		SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
 		s_bScreenshot = false;
 	}
 
@@ -1033,8 +1029,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		HRESULT hr = D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);
 		if (!bLastFrameDumped)
 		{
-			s_recordWidth = dst_rect.GetWidth();
-			s_recordHeight = dst_rect.GetHeight();
+			s_recordWidth = GetTargetRectangle().GetWidth();
+			s_recordHeight = GetTargetRectangle().GetHeight();
 			bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
 			if (!bAVIDumping)
 			{
@@ -1051,7 +1047,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		if (bAVIDumping)
 		{
 			D3DLOCKED_RECT rect;
-			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, dst_rect.AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
+			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, GetTargetRectangle().AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
 			{
 				if (!frame_data || w != s_recordWidth || h != s_recordHeight)
 				{
@@ -1138,15 +1134,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	bool xfbchanged = false;
 
-	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
+	if (FramebufferManagerBase::LastXfbWidth() != fbWidth || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		s_XFB_width = fbWidth;
-		s_XFB_height = fbHeight;
-		if (s_XFB_width < 1) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_width > MAX_XFB_WIDTH) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_height < 1) s_XFB_height = MAX_XFB_HEIGHT;
-		if (s_XFB_height > MAX_XFB_HEIGHT) s_XFB_height = MAX_XFB_HEIGHT;
+		unsigned int w = (fbWidth < 1 || fbWidth > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbWidth;
+		unsigned int h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+		FramebufferManagerBase::SetLastXfbWidth(w);
+		FramebufferManagerBase::SetLastXfbHeight(h);
 	}
 
 	u32 newAA = g_ActiveConfig.iMultisampleMode;
@@ -1155,14 +1149,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		s_LastAA = newAA;
 
-		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-		CalculateXYScale(dst_rect);
+		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 		
 		int SupersampleCoeficient = (s_LastAA % 3) + 1;
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
-		CalculateTargetSize(SupersampleCoeficient);
+		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height, SupersampleCoeficient);
 
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
