@@ -74,7 +74,6 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
 			Src/HW/DSPHLE/UCodes/UCode_CARD.cpp
 			Src/HW/DSPHLE/UCodes/UCode_InitAudioSystem.cpp
-			Src/HW/DSPHLE/UCodes/UCode_NewAX.cpp
 			Src/HW/DSPHLE/UCodes/UCode_ROM.cpp
 			Src/HW/DSPHLE/UCodes/UCodes.cpp
 			Src/HW/DSPHLE/UCodes/UCode_GBA.cpp

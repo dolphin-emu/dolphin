@@ -22,7 +22,6 @@
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
-#include "UCode_AX.h" // for some functions in CUCode_AX
 #include "UCode_AXWii.h"
 #include "UCode_AX_Voice.h"
 
@@ -112,10 +111,10 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 		if (!ReadPB(blockAddr, PB))
 			break;
 
-		if (wiisportsHack)
-			MixAddVoice(*(AXPBWiiSports*)&PB, buffers, _iSize);
-		else
-			MixAddVoice(PB, buffers, _iSize);
+//		if (wiisportsHack)
+//			MixAddVoice(*(AXPBWiiSports*)&PB, buffers, _iSize);
+//		else
+//			MixAddVoice(PB, buffers, _iSize);
 
 		if (!WritePB(blockAddr, PB))
 			break;

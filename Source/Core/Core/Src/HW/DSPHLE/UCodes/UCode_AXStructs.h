@@ -285,7 +285,8 @@ struct AXPBWii
 
 	u16 src_type;		// Type of sample rate converter (none, 4-tap, linear)
 	u16 coef_select;	// coef for the 4-tap src
-	u32 mixer_control;
+	u16 mixer_control_hi;
+	u16 mixer_control_lo;
 
 	u16 running;		// 1=RUN   0=STOP
 	u16 is_stream;		// 1 = stream, 0 = one shot
