@@ -19,13 +19,12 @@
 #include "UCode_NewAX_Voice.h"
 #include "../../DSP.h"
 
-#define MIXBUF_MAX_SAMPLES 16000			// 500ms of stereo audio
-
 CUCode_NewAX::CUCode_NewAX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
 	, m_cmdlist_size(0)
 	, m_axthread(&SpawnAXThread, this)
 {
+	WARN_LOG(DSPHLE, "Instantiating CUCode_NewAX: crc=%08x", crc);
 	m_rMailHandler.PushMail(DSP_INIT);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
@@ -82,6 +81,11 @@ void CUCode_NewAX::HandleCommandList()
 	u16 size;
 
 	u32 pb_addr = 0;
+
+//	WARN_LOG(DSPHLE, "Command list:");
+//	for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
+//		WARN_LOG(DSPHLE, "%04x", m_cmdlist[i]);
+//	WARN_LOG(DSPHLE, "-------------");
 
 	u32 curr_idx = 0;
 	bool end = false;
@@ -193,6 +197,54 @@ static void ApplyUpdatesForMs(AXPB& pb, int curr_ms)
 	}
 }
 
+AXMixControl CUCode_NewAX::ConvertMixerControl(u32 mixer_control)
+{
+	u32 ret = 0;
+
+	// TODO: find other UCode versions with different mixer_control values
+	if (m_CRC == 0x4e8a8b21)
+	{
+		ret |= MIX_L | MIX_R;
+		if (mixer_control & 0x0001) ret |= MIX_AUXA_L | MIX_AUXA_R;
+		if (mixer_control & 0x0002) ret |= MIX_AUXB_L | MIX_AUXB_R;
+		if (mixer_control & 0x0004)
+		{
+			ret |= MIX_S;
+			if (ret & MIX_AUXA_L) ret |= MIX_AUXA_S;
+			if (ret & MIX_AUXB_L) ret |= MIX_AUXB_S;
+		}
+		if (mixer_control & 0x0008)
+		{
+			ret |= MIX_L_RAMP | MIX_R_RAMP;
+			if (ret & MIX_AUXA_L) ret |= MIX_AUXA_L_RAMP | MIX_AUXA_R_RAMP;
+			if (ret & MIX_AUXB_L) ret |= MIX_AUXB_L_RAMP | MIX_AUXB_R_RAMP;
+			if (ret & MIX_AUXA_S) ret |= MIX_AUXA_S_RAMP;
+			if (ret & MIX_AUXB_S) ret |= MIX_AUXB_S_RAMP;
+		}
+	}
+	else
+	{
+		if (mixer_control & 0x0001) ret |= MIX_L;
+		if (mixer_control & 0x0002) ret |= MIX_R;
+		if (mixer_control & 0x0004) ret |= MIX_S;
+		if (mixer_control & 0x0008) ret |= MIX_L_RAMP | MIX_R_RAMP | MIX_S_RAMP;
+		if (mixer_control & 0x0010) ret |= MIX_AUXA_L;
+		if (mixer_control & 0x0020) ret |= MIX_AUXA_R;
+		if (mixer_control & 0x0040) ret |= MIX_AUXA_L_RAMP | MIX_AUXA_R_RAMP;
+		if (mixer_control & 0x0080) ret |= MIX_AUXA_S;
+		if (mixer_control & 0x0100) ret |= MIX_AUXA_S_RAMP;
+		if (mixer_control & 0x0200) ret |= MIX_AUXB_L;
+		if (mixer_control & 0x0400) ret |= MIX_AUXB_R;
+		if (mixer_control & 0x0800) ret |= MIX_AUXB_L_RAMP | MIX_AUXB_R_RAMP;
+		if (mixer_control & 0x1000) ret |= MIX_AUXB_S;
+		if (mixer_control & 0x2000) ret |= MIX_AUXB_S_RAMP;
+
+		// TODO: 0x4000 is used for Dolby Pro 2 sound mixing
+	}
+
+	return (AXMixControl)ret;
+}
+
 void CUCode_NewAX::SetupProcessing(u32 init_addr)
 {
 	u16 init_data[0x20];
@@ -263,7 +315,7 @@ void CUCode_NewAX::ProcessPBList(u32 pb_addr)
 		{
 			ApplyUpdatesForMs(pb, curr_ms);
 
-			Process1ms(pb, buffers);
+			Process1ms(pb, buffers, ConvertMixerControl(pb.mixer_control));
 
 			// Forward the buffers
 			for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)

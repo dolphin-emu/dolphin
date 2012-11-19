@@ -47,6 +47,33 @@ union AXBuffers
 	int* ptrs[9];
 };
 
+// We can't directly use the mixer_control field from the PB because it does
+// not mean the same in all AX versions. The AX UCode converts the
+// mixer_control value to an AXMixControl bitfield.
+enum AXMixControl
+{
+	MIX_L				= 0x00001,
+	MIX_L_RAMP			= 0x00002,
+	MIX_R				= 0x00004,
+	MIX_R_RAMP			= 0x00008,
+	MIX_S				= 0x00010,
+	MIX_S_RAMP			= 0x00020,
+
+	MIX_AUXA_L			= 0x00040,
+	MIX_AUXA_L_RAMP		= 0x00080,
+	MIX_AUXA_R			= 0x00100,
+	MIX_AUXA_R_RAMP		= 0x00200,
+	MIX_AUXA_S			= 0x00400,
+	MIX_AUXA_S_RAMP		= 0x00800,
+
+	MIX_AUXB_L			= 0x01000,
+	MIX_AUXB_L_RAMP		= 0x02000,
+	MIX_AUXB_R			= 0x04000,
+	MIX_AUXB_R_RAMP		= 0x08000,
+	MIX_AUXB_S			= 0x10000,
+	MIX_AUXB_S_RAMP		= 0x20000
+};
+
 // Read a PB from MRAM/ARAM
 inline bool ReadPB(u32 addr, AXPB& pb)
 {
@@ -290,7 +317,7 @@ inline void MixAdd(int* out, const s16* input, u16* pvol, bool ramp)
 }
 
 // Process 1ms of audio (32 samples) from a PB and mix it to the buffers.
-inline void Process1ms(AXPB& pb, const AXBuffers& buffers)
+inline void Process1ms(AXPB& pb, const AXBuffers& buffers, AXMixControl mctrl)
 {
 	// If the voice is not running, nothing to do.
 	if (!pb.running)
@@ -320,26 +347,26 @@ inline void Process1ms(AXPB& pb, const AXBuffers& buffers)
 	// HACK: at the moment we don't mix surround into left and right, so always
 	// mix left and right in order to have sound even if a game uses surround
 	// only.
-	//if (pb.mixer_control & MIX_L)
-		MixAdd(buffers.left, samples, &pb.mixer.left, pb.mixer_control & MIX_RAMP);
-	//if (pb.mixer_control & MIX_R)
-		MixAdd(buffers.right, samples, &pb.mixer.right, pb.mixer_control & MIX_RAMP);
-	if (pb.mixer_control & MIX_S)
-		MixAdd(buffers.surround, samples, &pb.mixer.surround, pb.mixer_control & MIX_RAMP);
+	if (mctrl & MIX_L)
+		MixAdd(buffers.left, samples, &pb.mixer.left, mctrl & MIX_L_RAMP);
+	if (mctrl & MIX_R)
+		MixAdd(buffers.right, samples, &pb.mixer.right, mctrl & MIX_R_RAMP);
+	if (mctrl & MIX_S)
+		MixAdd(buffers.surround, samples, &pb.mixer.surround, mctrl & MIX_S_RAMP);
 
-	if (pb.mixer_control & MIX_AUXA_L)
-		MixAdd(buffers.auxA_left, samples, &pb.mixer.auxA_left, pb.mixer_control & MIX_AUXA_RAMPLR);
-	if (pb.mixer_control & MIX_AUXA_R)
-		MixAdd(buffers.auxA_right, samples, &pb.mixer.auxA_right, pb.mixer_control & MIX_AUXA_RAMPLR);
-	if (pb.mixer_control & MIX_AUXA_S)
-		MixAdd(buffers.auxA_surround, samples, &pb.mixer.auxA_surround, pb.mixer_control & MIX_AUXA_RAMPS);
+	if (mctrl & MIX_AUXA_L)
+		MixAdd(buffers.auxA_left, samples, &pb.mixer.auxA_left, mctrl & MIX_AUXA_L_RAMP);
+	if (mctrl & MIX_AUXA_R)
+		MixAdd(buffers.auxA_right, samples, &pb.mixer.auxA_right, mctrl & MIX_AUXA_R_RAMP);
+	if (mctrl & MIX_AUXA_S)
+		MixAdd(buffers.auxA_surround, samples, &pb.mixer.auxA_surround, mctrl & MIX_AUXA_S_RAMP);
 
-	if (pb.mixer_control & MIX_AUXB_L)
-		MixAdd(buffers.auxB_left, samples, &pb.mixer.auxB_left, pb.mixer_control & MIX_AUXB_RAMPLR);
-	if (pb.mixer_control & MIX_AUXB_R)
-		MixAdd(buffers.auxB_right, samples, &pb.mixer.auxB_right, pb.mixer_control & MIX_AUXB_RAMPLR);
-	if (pb.mixer_control & MIX_AUXB_S)
-		MixAdd(buffers.auxB_surround, samples, &pb.mixer.auxB_surround, pb.mixer_control & MIX_AUXB_RAMPS);
+	if (mctrl & MIX_AUXB_L)
+		MixAdd(buffers.auxB_left, samples, &pb.mixer.auxB_left, mctrl & MIX_AUXB_L_RAMP);
+	if (mctrl & MIX_AUXB_R)
+		MixAdd(buffers.auxB_right, samples, &pb.mixer.auxB_right, mctrl & MIX_AUXB_R_RAMP);
+	if (mctrl & MIX_AUXB_S)
+		MixAdd(buffers.auxB_surround, samples, &pb.mixer.auxB_surround, mctrl & MIX_AUXB_S_RAMP);
 
 	// Optionally, phase shift left or right channel to simulate 3D sound.
 	if (pb.initial_time_delay.on)

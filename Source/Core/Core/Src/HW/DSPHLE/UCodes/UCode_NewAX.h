@@ -20,6 +20,7 @@
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
+#include "UCode_NewAX_Voice.h"
 
 class CUCode_NewAX : public IUCode
 {
@@ -98,6 +99,11 @@ private:
 
 	// Copy a command list from memory to our temp buffer
 	void CopyCmdList(u32 addr, u16 size);
+
+	// Convert a mixer_control bitfield to our internal representation for that
+	// value. Required because that bitfield has a different meaning in some
+	// versions of AX.
+	AXMixControl ConvertMixerControl(u32 mixer_control);
 
 	// Send a notification to the AX thread to tell him a new cmdlist addr is
 	// available for processing.
