@@ -15,6 +15,15 @@
 // Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// High-level emulation for the AX Gamecube UCode.
+//
+// TODO:
+//  * Depop support
+//  * ITD support
+//  * Polyphase sample interpolation support (not very useful)
+//  * Surround sound mixing
+//  * Dolby Pro 2 mixing with recent AX versions
+
 #ifndef _UCODE_NEWAX_H
 #define _UCODE_NEWAX_H
 
