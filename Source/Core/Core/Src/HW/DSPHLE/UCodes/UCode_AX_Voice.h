@@ -36,6 +36,10 @@
 # define PB_TYPE AXPBWii
 #endif
 
+// Put all of that in an anonymous namespace to avoid stupid compilers merging
+// functions from AX GC and AX Wii.
+namespace {
+
 // Useful macro to convert xxx_hi + xxx_lo to xxx for 32 bits.
 #define HILO_TO_32(name) \
 	((name##_hi << 16) | name##_lo)
@@ -242,7 +246,7 @@ inline void GetInputSamples(PB_TYPE& pb, s16* samples)
 		if (ratio > 0x00100000)
 			ratio = 0x00100000;
 
-		s16 real_samples[1026];
+		s16 real_samples[514];
 		u32 real_samples_needed = (32 * ratio + curr_pos) >> 16;
 
 		// The first two real samples are the ones we read at the previous
@@ -383,5 +387,7 @@ void Process1ms(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
 		// TODO
 	}
 }
+
+} // namespace
 
 #endif // !_UCODE_AX_VOICE_H
