@@ -234,9 +234,15 @@ inline void GetInputSamples(PB_TYPE& pb, s16* samples)
 
 		// Compute the number of real samples we will need to read from the
 		// data source. We need to output 32 samples, so we need to read
-		// 32 * ratio + curr_pos samples. The maximum possible ratio available
-		// on the DSP is 4.0, so at most we will read 128 real samples.
-		s16 real_samples[130];
+		// 32 * ratio + curr_pos samples. There does not seem to be a maximum
+		// value for the ratio in recent versions of AXWii (previously it was
+		// limited to 4.0), so we will limit it to 16.0 and clamp the ratio if
+		// needed. This is a HACK, and using another algorithm for linear
+		// interpolation might be a better idea.
+		if (ratio > 0x00100000)
+			ratio = 0x00100000;
+
+		s16 real_samples[514];
 		u32 real_samples_needed = (32 * ratio + curr_pos) >> 16;
 
 		// The first two real samples are the ones we read at the previous
@@ -341,9 +347,6 @@ void Process1ms(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
 	// Mix LRS, AUXA and AUXB depending on mixer_control
 	// TODO: Handle DPL2 on AUXB.
 
-	// HACK: at the moment we don't mix surround into left and right, so always
-	// mix left and right in order to have sound even if a game uses surround
-	// only.
 	if (mctrl & MIX_L)
 		MixAdd(buffers.left, samples, &pb.mixer.left, mctrl & MIX_L_RAMP);
 	if (mctrl & MIX_R)

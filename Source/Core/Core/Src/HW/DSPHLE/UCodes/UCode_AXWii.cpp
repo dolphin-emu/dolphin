@@ -315,7 +315,7 @@ void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume)
 
 void CUCode_AXWii::DoState(PointerWrap &p)
 {
-	std::lock_guard<std::mutex> lk(m_csMix);
+	std::lock_guard<std::mutex> lk(m_processing);
 
 	// TODO
 
