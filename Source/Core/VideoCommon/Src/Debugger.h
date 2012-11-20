@@ -72,21 +72,9 @@ void GFXDebuggerCheckAndPause(bool update);
 void GFXDebuggerToPause(bool update);
 void GFXDebuggerUpdateScreen();
 
-#undef ENABLE_GFX_DEBUGGER
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#define ENABLE_GFX_DEBUGGER
-#endif
-
-#ifdef ENABLE_GFX_DEBUGGER
 #define GFX_DEBUGGER_PAUSE_AT(event,update) {if (((GFXDebuggerToPauseAtNext & event) && --GFXDebuggerEventToPauseCount<=0) || GFXDebuggerPauseFlag) GFXDebuggerToPause(update);}
 #define GFX_DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc) {if (((GFXDebuggerToPauseAtNext & event) && --GFXDebuggerEventToPauseCount<=0) || GFXDebuggerPauseFlag) {{dumpfunc};GFXDebuggerToPause(update);}}
 #define GFX_DEBUGGER_LOG_AT(event,dumpfunc) {if (( GFXDebuggerToPauseAtNext & event ) ) {{dumpfunc};}}
-#else
-// Disable debugging calls in Release build
-#define GFX_DEBUGGER_PAUSE_AT(event,update)
-#define GFX_DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc)
-#define GFX_DEBUGGER_LOG_AT(event,dumpfunc)
-#endif // ENABLE_GFX_DEBUGGER
 
 
 #endif // _GFX_DEBUGGER_H_
