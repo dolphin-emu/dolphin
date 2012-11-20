@@ -42,7 +42,7 @@ protected:
 
 	void SetupProcessing(u32 init_addr);
 	void ProcessPBList(u32 pb_addr);
-	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
+	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume);
 	void OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume);
 
 private:

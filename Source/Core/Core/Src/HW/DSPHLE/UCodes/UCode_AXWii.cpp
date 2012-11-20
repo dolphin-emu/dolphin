@@ -80,12 +80,12 @@ void CUCode_AXWii::HandleCommandList()
 			case CMD_MIX_AUXA:
 			case CMD_MIX_AUXB:
 			case CMD_MIX_AUXC:
-				curr_idx++;		// TODO: Unknown u16
+				volume = m_cmdlist[curr_idx++];
 				addr_hi = m_cmdlist[curr_idx++];
 				addr_lo = m_cmdlist[curr_idx++];
 				addr2_hi = m_cmdlist[curr_idx++];
 				addr2_lo = m_cmdlist[curr_idx++];
-				MixAUXSamples(cmd - CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2));
+				MixAUXSamples(cmd - CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2), volume);
 				break;
 
 			// These two go together and manipulate some AUX buffers.
@@ -230,7 +230,7 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 	}
 }
 
-void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
+void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume)
 {
 	int temp[3][3 * 32];
 	int* buffers[3] = { 0 };
@@ -269,7 +269,10 @@ void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
 	memcpy(temp, HLEMemory_Get_Pointer(read_addr), sizeof (temp));
 	for (u32 i = 0; i < 3 * 32; ++i)
 		for (u32 j = 0; j < 3; ++j)
-			buffers[j][i] += Common::swap32(temp[j][i]);
+		{
+			s64 new_val = buffers[j][i] + Common::swap32(temp[j][i]);
+			buffers[j][i] = (new_val * volume) >> 15;
+		}
 }
 
 void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume)
@@ -287,6 +290,10 @@ void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume)
 	{
 		int left  = m_samples_left[i];
 		int right = m_samples_right[i];
+
+		// Apply global volume. Cast to s64 to avoid overflow.
+		left = ((s64)left * volume) >> 15;
+		right = ((s64)right * volume) >> 15;
 
 		if (left < -32767)  left = -32767;
 		if (left > 32767)   left = 32767;
