@@ -15,12 +15,26 @@
 // Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// This file is UGLY (full of #ifdef) so that it can be used with both GC and
+// Wii version of AX. Maybe it would be better to abstract away the parts that
+// can be made common.
+
 #ifndef _UCODE_AX_VOICE_H
 #define _UCODE_AX_VOICE_H
+
+#if !defined(AX_GC) && !defined(AX_WII)
+#error UCode_AX_Voice.h included without specifying version
+#endif
 
 #include "Common.h"
 #include "UCode_AXStructs.h"
 #include "../../DSP.h"
+
+#ifdef AX_GC
+# define PB_TYPE AXPB
+#else
+# define PB_TYPE AXPBWii
+#endif
 
 // Useful macro to convert xxx_hi + xxx_lo to xxx for 32 bits.
 #define HILO_TO_32(name) \
@@ -42,41 +56,23 @@ union AXBuffers
 		int* auxB_left;
 		int* auxB_right;
 		int* auxB_surround;
+
+#ifdef AX_WII
+		int* auxC_left;
+		int* auxC_right;
+		int* auxC_surround;
+#endif
 	};
 
+#ifdef AX_GC
 	int* ptrs[9];
-};
-
-// We can't directly use the mixer_control field from the PB because it does
-// not mean the same in all AX versions. The AX UCode converts the
-// mixer_control value to an AXMixControl bitfield.
-enum AXMixControl
-{
-	MIX_L				= 0x00001,
-	MIX_L_RAMP			= 0x00002,
-	MIX_R				= 0x00004,
-	MIX_R_RAMP			= 0x00008,
-	MIX_S				= 0x00010,
-	MIX_S_RAMP			= 0x00020,
-
-	MIX_AUXA_L			= 0x00040,
-	MIX_AUXA_L_RAMP		= 0x00080,
-	MIX_AUXA_R			= 0x00100,
-	MIX_AUXA_R_RAMP		= 0x00200,
-	MIX_AUXA_S			= 0x00400,
-	MIX_AUXA_S_RAMP		= 0x00800,
-
-	MIX_AUXB_L			= 0x01000,
-	MIX_AUXB_L_RAMP		= 0x02000,
-	MIX_AUXB_R			= 0x04000,
-	MIX_AUXB_R_RAMP		= 0x08000,
-	MIX_AUXB_S			= 0x10000,
-	MIX_AUXB_S_RAMP		= 0x20000
+#else
+	int* ptrs[12];
+#endif
 };
 
 // Read a PB from MRAM/ARAM
-template <typename PBType>
-bool ReadPB(u32 addr, PBType& pb)
+bool ReadPB(u32 addr, PB_TYPE& pb)
 {
 	u16* dst = (u16*)&pb;
 	const u16* src = (const u16*)Memory::GetPointer(addr);
@@ -90,8 +86,7 @@ bool ReadPB(u32 addr, PBType& pb)
 }
 
 // Write a PB back to MRAM/ARAM
-template <typename PBType>
-inline bool WritePB(u32 addr, const PBType& pb)
+inline bool WritePB(u32 addr, const PB_TYPE& pb)
 {
 	const u16* src = (const u16*)&pb;
 	u16* dst = (u16*)Memory::GetPointer(addr);
@@ -107,10 +102,10 @@ inline bool WritePB(u32 addr, const PBType& pb)
 // Simulated accelerator state.
 static u32 acc_loop_addr, acc_end_addr;
 static u32* acc_cur_addr;
-static AXPB* acc_pb;
+static PB_TYPE* acc_pb;
 
 // Sets up the simulated accelerator.
-inline void AcceleratorSetup(AXPB* pb, u32* cur_addr)
+inline void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
 {
 	acc_pb = pb;
 	acc_loop_addr = HILO_TO_32(pb->audio_addr.loop_addr);
@@ -216,7 +211,7 @@ inline u16 AcceleratorGetSample()
 }
 
 // Read 32 input samples from ARAM, decoding and converting rate if required.
-inline void GetInputSamples(AXPB& pb, s16* samples)
+inline void GetInputSamples(PB_TYPE& pb, s16* samples)
 {
 	u32 cur_addr = HILO_TO_32(pb.audio_addr.cur_addr);
 	AcceleratorSetup(&pb, &cur_addr);
@@ -319,7 +314,7 @@ inline void MixAdd(int* out, const s16* input, u16* pvol, bool ramp)
 }
 
 // Process 1ms of audio (32 samples) from a PB and mix it to the buffers.
-inline void Process1ms(AXPB& pb, const AXBuffers& buffers, AXMixControl mctrl)
+void Process1ms(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
 {
 	// If the voice is not running, nothing to do.
 	if (!pb.running)
@@ -369,6 +364,15 @@ inline void Process1ms(AXPB& pb, const AXBuffers& buffers, AXMixControl mctrl)
 		MixAdd(buffers.auxB_right, samples, &pb.mixer.auxB_right, mctrl & MIX_AUXB_R_RAMP);
 	if (mctrl & MIX_AUXB_S)
 		MixAdd(buffers.auxB_surround, samples, &pb.mixer.auxB_surround, mctrl & MIX_AUXB_S_RAMP);
+
+#ifdef AX_WII
+	if (mctrl & MIX_AUXC_L)
+		MixAdd(buffers.auxC_left, samples, &pb.mixer.auxC_left, mctrl & MIX_AUXC_L_RAMP);
+	if (mctrl & MIX_AUXC_R)
+		MixAdd(buffers.auxC_right, samples, &pb.mixer.auxC_right, mctrl & MIX_AUXC_R_RAMP);
+	if (mctrl & MIX_AUXC_S)
+		MixAdd(buffers.auxC_surround, samples, &pb.mixer.auxC_surround, mctrl & MIX_AUXC_S_RAMP);
+#endif
 
 	// Optionally, phase shift left or right channel to simulate 3D sound.
 	if (pb.initial_time_delay.on)

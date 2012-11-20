@@ -29,7 +29,40 @@
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
-#include "UCode_AX_Voice.h"
+
+// We can't directly use the mixer_control field from the PB because it does
+// not mean the same in all AX versions. The AX UCode converts the
+// mixer_control value to an AXMixControl bitfield.
+enum AXMixControl
+{
+	MIX_L				= 0x000001,
+	MIX_L_RAMP			= 0x000002,
+	MIX_R				= 0x000004,
+	MIX_R_RAMP			= 0x000008,
+	MIX_S				= 0x000010,
+	MIX_S_RAMP			= 0x000020,
+
+	MIX_AUXA_L			= 0x000040,
+	MIX_AUXA_L_RAMP		= 0x000080,
+	MIX_AUXA_R			= 0x000100,
+	MIX_AUXA_R_RAMP		= 0x000200,
+	MIX_AUXA_S			= 0x000400,
+	MIX_AUXA_S_RAMP		= 0x000800,
+
+	MIX_AUXB_L			= 0x001000,
+	MIX_AUXB_L_RAMP		= 0x002000,
+	MIX_AUXB_R			= 0x004000,
+	MIX_AUXB_R_RAMP		= 0x008000,
+	MIX_AUXB_S			= 0x010000,
+	MIX_AUXB_S_RAMP		= 0x020000,
+
+	MIX_AUXC_L			= 0x040000,
+	MIX_AUXC_L_RAMP		= 0x080000,
+	MIX_AUXC_R			= 0x100000,
+	MIX_AUXC_R_RAMP		= 0x200000,
+	MIX_AUXC_S			= 0x400000,
+	MIX_AUXC_S_RAMP		= 0x800000
+};
 
 class CUCode_AX : public IUCode
 {
@@ -37,16 +70,16 @@ public:
 	CUCode_AX(DSPHLE* dsp_hle, u32 crc);
 	virtual ~CUCode_AX();
 
-	void HandleMail(u32 mail);
-	void MixAdd(short* out_buffer, int nsamples);
-	void Update(int cycles);
-	void DoState(PointerWrap& p);
+	virtual void HandleMail(u32 mail);
+	virtual void MixAdd(short* out_buffer, int nsamples);
+	virtual void Update(int cycles);
+	virtual void DoState(PointerWrap& p);
 
 	// Needed because StdThread.h std::thread implem does not support member
 	// pointers.
 	static void SpawnAXThread(CUCode_AX* self);
 
-private:
+protected:
 	enum MailType
 	{
 		MAIL_RESUME = 0xCDD10000,
@@ -59,31 +92,7 @@ private:
 		MAIL_CMDLIST_MASK = 0xFFFF0000
 	};
 
-	enum CmdType
-	{
-		CMD_SETUP = 0x00,
-		CMD_UNK_01 = 0x01,
-		CMD_PB_ADDR = 0x02,
-		CMD_PROCESS = 0x03,
-		CMD_MIX_AUXA = 0x04,
-		CMD_MIX_AUXB = 0x05,
-		CMD_UPLOAD_LRS = 0x06,
-		CMD_SBUFFER_ADDR = 0x07,
-		CMD_UNK_08 = 0x08,
-		CMD_MIX_AUXB_NOWRITE = 0x09,
-		CMD_COMPRESSOR_TABLE_ADDR = 0x0A,
-		CMD_UNK_0B = 0x0B,
-		CMD_UNK_0C = 0x0C,
-		CMD_MORE = 0x0D,
-		CMD_OUTPUT = 0x0E,
-		CMD_END = 0x0F,
-		CMD_UNK_10 = 0x10,
-		CMD_UNK_11 = 0x11,
-		CMD_UNK_12 = 0x12,
-		CMD_UNK_13 = 0x13,
-	};
-
-	// 32 * 5 because 32 samples per millisecond, for 5 milliseconds.
+	// 32 * 5 because 32 samples per millisecond, for max 5 milliseconds.
 	int m_samples_left[32 * 5];
 	int m_samples_right[32 * 5];
 	int m_samples_surround[32 * 5];
@@ -119,12 +128,39 @@ private:
 	void NotifyAXThread();
 
 	void AXThread();
-	void HandleCommandList();
-	void SetupProcessing(u32 studio_addr);
+
+	virtual void HandleCommandList();
+
+	void SetupProcessing(u32 init_addr);
 	void ProcessPBList(u32 pb_addr);
-	void MixAUXSamples(bool AUXA, u32 write_addr, u32 read_addr);
+	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
 	void UploadLRS(u32 dst_addr);
 	void OutputSamples(u32 out_addr);
+
+private:
+	enum CmdType
+	{
+		CMD_SETUP = 0x00,
+		CMD_UNK_01 = 0x01,
+		CMD_PB_ADDR = 0x02,
+		CMD_PROCESS = 0x03,
+		CMD_MIX_AUXA = 0x04,
+		CMD_MIX_AUXB = 0x05,
+		CMD_UPLOAD_LRS = 0x06,
+		CMD_SBUFFER_ADDR = 0x07,
+		CMD_UNK_08 = 0x08,
+		CMD_MIX_AUXB_NOWRITE = 0x09,
+		CMD_COMPRESSOR_TABLE_ADDR = 0x0A,
+		CMD_UNK_0B = 0x0B,
+		CMD_UNK_0C = 0x0C,
+		CMD_MORE = 0x0D,
+		CMD_OUTPUT = 0x0E,
+		CMD_END = 0x0F,
+		CMD_UNK_10 = 0x10,
+		CMD_UNK_11 = 0x11,
+		CMD_UNK_12 = 0x12,
+		CMD_UNK_13 = 0x13,
+	};
 };
 
 #endif // !_UCODE_AX_H

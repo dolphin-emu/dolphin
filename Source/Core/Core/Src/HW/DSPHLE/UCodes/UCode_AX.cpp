@@ -16,8 +16,10 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "UCode_AX.h"
-#include "UCode_AX_Voice.h"
 #include "../../DSP.h"
+
+#define AX_GC
+#include "UCode_AX_Voice.h"
 
 CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
@@ -123,7 +125,7 @@ void CUCode_AX::HandleCommandList()
 				addr_lo = m_cmdlist[curr_idx++];
 				addr2_hi = m_cmdlist[curr_idx++];
 				addr2_lo = m_cmdlist[curr_idx++];
-				MixAUXSamples(cmd == CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2));
+				MixAUXSamples(cmd - CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2));
 				break;
 
 			case CMD_UPLOAD_LRS:
@@ -327,40 +329,41 @@ void CUCode_AX::ProcessPBList(u32 pb_addr)
 	}
 }
 
-void CUCode_AX::MixAUXSamples(bool AUXA, u32 write_addr, u32 read_addr)
+void CUCode_AX::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
 {
-	int buffers[3][5 * 32];
+	int temp[3][5 * 32];
+	int* buffers[3] = { 0 };
+
+	switch (aux_id)
+	{
+	case 0:
+		buffers[0] = m_samples_auxA_left;
+		buffers[1] = m_samples_auxA_right;
+		buffers[2] = m_samples_auxA_surround;
+		break;
+
+	case 1:
+		buffers[0] = m_samples_auxB_left;
+		buffers[1] = m_samples_auxB_right;
+		buffers[2] = m_samples_auxB_surround;
+		break;
+	}
 
 	// First, we need to send the contents of our AUX buffers to the CPU.
 	if (write_addr)
 	{
-		for (u32 i = 0; i < 5 * 32; ++i)
-		{
-			if (AUXA)
-			{
-				buffers[0][i] = Common::swap32(m_samples_auxA_left[i]);
-				buffers[1][i] = Common::swap32(m_samples_auxA_right[i]);
-				buffers[2][i] = Common::swap32(m_samples_auxA_surround[i]);
-			}
-			else
-			{
-				buffers[0][i] = Common::swap32(m_samples_auxB_left[i]);
-				buffers[1][i] = Common::swap32(m_samples_auxB_right[i]);
-				buffers[2][i] = Common::swap32(m_samples_auxB_surround[i]);
-			}
-		}
-		memcpy(HLEMemory_Get_Pointer(write_addr), buffers, sizeof (buffers));
+		for (u32 i = 0; i < 3 * 32; ++i)
+			for (u32 j = 0; j < 3; ++j)
+				temp[j][i] = Common::swap32(buffers[j][i]);
+		memcpy(HLEMemory_Get_Pointer(write_addr), temp, sizeof (temp));
 	}
 
-	// Then, we read the new buffers from the CPU and add to our current
-	// buffers.
-	memcpy(buffers, HLEMemory_Get_Pointer(read_addr), sizeof (buffers));
+	// Then, we read the new temp from the CPU and add to our current
+	// temp.
+	memcpy(temp, HLEMemory_Get_Pointer(read_addr), sizeof (temp));
 	for (u32 i = 0; i < 5 * 32; ++i)
-	{
-		m_samples_left[i] += Common::swap32(buffers[0][i]);
-		m_samples_right[i] += Common::swap32(buffers[1][i]);
-		m_samples_surround[i] += Common::swap32(buffers[2][i]);
-	}
+		for (u32 j = 0; j < 3; ++j)
+			buffers[j][i] += Common::swap32(temp[j][i]);
 }
 
 void CUCode_AX::UploadLRS(u32 dst_addr)
@@ -494,6 +497,8 @@ void CUCode_AX::Update(int cycles)
 void CUCode_AX::DoState(PointerWrap& p)
 {
 	std::lock_guard<std::mutex> lk(m_processing);
+
+	// TODO
 
 	DoStateShared(p);
 }

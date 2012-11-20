@@ -12,44 +12,58 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _UCODE_AXWII
-#define _UCODE_AXWII
+#ifndef _UCODE_AXWII_H
+#define _UCODE_AXWII_H
 
-#include "UCode_AXStructs.h"
+#include "UCode_AX.h"
 
-#define NUMBER_OF_PBS 128
-
-class CUCode_AXWii : public IUCode
+class CUCode_AXWii : public CUCode_AX
 {
 public:
 	CUCode_AXWii(DSPHLE *dsp_hle, u32 _CRC);
 	virtual ~CUCode_AXWii();
 
-	void HandleMail(u32 _uMail);
-	void MixAdd(short* _pBuffer, int _iSize);
-	void Update(int cycles);
-	void DoState(PointerWrap &p);
+	virtual void DoState(PointerWrap &p);
+
+protected:
+	int m_samples_auxC_left[32 * 3];
+	int m_samples_auxC_right[32 * 3];
+	int m_samples_auxC_surround[32 * 3];
+
+	// Convert a mixer_control bitfield to our internal representation for that
+	// value. Required because that bitfield has a different meaning in some
+	// versions of AX.
+	AXMixControl ConvertMixerControl(u32 mixer_control);
+
+	virtual void HandleCommandList();
+
+	void SetupProcessing(u32 init_addr);
+	void ProcessPBList(u32 pb_addr);
+	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
+	void OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume);
 
 private:
-	enum
+	enum CmdType
 	{
-		MAIL_AX_ALIST = 0xBABE0000,
+		CMD_SETUP = 0x00,
+		CMD_UNK_01 = 0x01,
+		CMD_UNK_02 = 0x02,
+		CMD_UNK_03 = 0x03,
+		CMD_PROCESS = 0x04,
+		CMD_MIX_AUXA = 0x05,
+		CMD_MIX_AUXB = 0x06,
+		CMD_MIX_AUXC = 0x07,
+		CMD_UNK_08 = 0x08,
+		CMD_UNK_09 = 0x09,
+		CMD_UNK_0A = 0x0A,
+		CMD_OUTPUT = 0x0B,
+		CMD_UNK_0C = 0x0C,
+		CMD_UNK_0D = 0x0D,
+		CMD_END = 0x0E
 	};
-
-	// PBs
-	u32 m_addressPBs;
-
-	bool wiisportsHack;
-
-	int *templbuffer;
-	int *temprbuffer;
-
-	// ax task message handler
-	bool AXTask(u32& _uMail);
-	void SendMail(u32 _uMail);
 };
 
 #endif  // _UCODE_AXWII
