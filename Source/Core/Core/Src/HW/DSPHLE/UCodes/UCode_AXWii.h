@@ -33,6 +33,16 @@ protected:
 	int m_samples_auxC_right[32 * 3];
 	int m_samples_auxC_surround[32 * 3];
 
+	// Wiimote buffers
+	int m_samples_wm0[6 * 3];
+	int m_samples_aux0[6 * 3];
+	int m_samples_wm1[6 * 3];
+	int m_samples_aux1[6 * 3];
+	int m_samples_wm2[6 * 3];
+	int m_samples_aux2[6 * 3];
+	int m_samples_wm3[6 * 3];
+	int m_samples_aux3[6 * 3];
+
 	// Convert a mixer_control bitfield to our internal representation for that
 	// value. Required because that bitfield has a different meaning in some
 	// versions of AX.
@@ -44,6 +54,7 @@ protected:
 	void ProcessPBList(u32 pb_addr);
 	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume);
 	void OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume);
+	void OutputWMSamples(u32* addresses);	// 4 addresses
 
 private:
 	enum CmdType
@@ -61,7 +72,7 @@ private:
 		CMD_UNK_0A = 0x0A,
 		CMD_OUTPUT = 0x0B,
 		CMD_UNK_0C = 0x0C,
-		CMD_UNK_0D = 0x0D,
+		CMD_WM_OUTPUT = 0x0D,
 		CMD_END = 0x0E
 	};
 };

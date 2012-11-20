@@ -105,10 +105,18 @@ void CUCode_AXWii::HandleCommandList()
 
 			case CMD_UNK_0C: curr_idx += 5; break;
 
-			case CMD_UNK_0D:
-				// Wiimote output?
+			case CMD_WM_OUTPUT:
+			{
+				u32 addresses[4] = {
+					(u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+					(u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+					(u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+					(u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+				};
 				curr_idx += 8;
+				OutputWMSamples(addresses);
 				break;
+			}
 
 			case CMD_END:
 				end = true;
@@ -126,19 +134,31 @@ void CUCode_AXWii::SetupProcessing(u32 init_addr)
 		init_data[i] = HLEMemory_Read_U16(init_addr + 2 * i);
 
 	// List of all buffers we have to initialize
-	int* buffers[] = {
-		m_samples_left,
-		m_samples_right,
-		m_samples_surround,
-		m_samples_auxA_left,
-		m_samples_auxA_right,
-		m_samples_auxA_surround,
-		m_samples_auxB_left,
-		m_samples_auxB_right,
-		m_samples_auxB_surround,
-		m_samples_auxC_left,
-		m_samples_auxC_right,
-		m_samples_auxC_surround
+	struct {
+		int* ptr;
+		u32 samples;
+	} buffers[] = {
+		{ m_samples_left, 32 },
+		{ m_samples_right, 32 },
+		{ m_samples_surround, 32 },
+		{ m_samples_auxA_left, 32 },
+		{ m_samples_auxA_right, 32 },
+		{ m_samples_auxA_surround, 32 },
+		{ m_samples_auxB_left, 32 },
+		{ m_samples_auxB_right, 32 },
+		{ m_samples_auxB_surround, 32 },
+		{ m_samples_auxC_left, 32 },
+		{ m_samples_auxC_right, 32 },
+		{ m_samples_auxC_surround, 32 },
+
+		{ m_samples_wm0, 6 },
+		{ m_samples_aux0, 6 },
+		{ m_samples_wm1, 6 },
+		{ m_samples_aux1, 6 },
+		{ m_samples_wm2, 6 },
+		{ m_samples_aux2, 6 },
+		{ m_samples_wm3, 6 },
+		{ m_samples_aux3, 6 }
 	};
 
 	u32 init_idx = 0;
@@ -150,12 +170,12 @@ void CUCode_AXWii::SetupProcessing(u32 init_addr)
 		init_idx += 3;
 
 		if (!init_val)
-			memset(buffers[i], 0, 3 * 32 * sizeof (int));
+			memset(buffers[i].ptr, 0, 3 * buffers[i].samples * sizeof (int));
 		else
 		{
-			for (u32 j = 0; j < 3 * 32; ++j)
+			for (u32 j = 0; j < 3 * buffers[i].samples; ++j)
 			{
-				buffers[i][j] = init_val;
+				buffers[i].ptr[j] = init_val;
 				init_val += delta;
 			}
 		}
@@ -311,6 +331,29 @@ void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume)
 	}
 
 	memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof (buffer));
+}
+
+void CUCode_AXWii::OutputWMSamples(u32* addresses)
+{
+	int* buffers[] = {
+		m_samples_wm0,
+		m_samples_wm1,
+		m_samples_wm2,
+		m_samples_wm3
+	};
+
+	for (u32 i = 0; i < 4; ++i)
+	{
+		int* in = buffers[i];
+		u16* out = (u16*)HLEMemory_Get_Pointer(addresses[i]);
+		for (u32 j = 0; j < 3 * 6; ++j)
+		{
+			int sample = in[j];
+			if (sample < -32767) sample = -32767;
+			if (sample > 32767) sample = 32767;
+			out[j] = Common::swap16((u16)sample);
+		}
+	}
 }
 
 void CUCode_AXWii::DoState(PointerWrap &p)
