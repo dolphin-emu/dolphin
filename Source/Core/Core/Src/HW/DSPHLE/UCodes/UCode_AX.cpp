@@ -157,13 +157,11 @@ void CUCode_AX::HandleCommandList()
 				break;
 
 			case CMD_OUTPUT:
-				// Skip the first address, it is used for surround audio
-				// output, which we don't support yet.
-				curr_idx += 2;
-
 				addr_hi = m_cmdlist[curr_idx++];
 				addr_lo = m_cmdlist[curr_idx++];
-				OutputSamples(HILO_TO_32(addr));
+				addr2_hi = m_cmdlist[curr_idx++];
+				addr2_lo = m_cmdlist[curr_idx++];
+				OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr));
 				break;
 
 			case CMD_END:
@@ -379,8 +377,14 @@ void CUCode_AX::UploadLRS(u32 dst_addr)
 	memcpy(HLEMemory_Get_Pointer(dst_addr), buffers, sizeof (buffers));
 }
 
-void CUCode_AX::OutputSamples(u32 out_addr)
+void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)
 {
+	int surround_buffer[5 * 32];
+
+	for (u32 i = 0; i < 5 * 32; ++i)
+		surround_buffer[i] = Common::swap32(m_samples_surround[i]);
+	memcpy(HLEMemory_Get_Pointer(surround_addr), surround_buffer, sizeof (surround_buffer));
+
 	// 32 samples per ms, 5 ms, 2 channels
 	short buffer[5 * 32 * 2];
 
@@ -405,7 +409,7 @@ void CUCode_AX::OutputSamples(u32 out_addr)
 		buffer[2 * i + 1] = Common::swap16(m_samples_right[i]);
 	}
 
-	memcpy(HLEMemory_Get_Pointer(out_addr), buffer, sizeof (buffer));
+	memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof (buffer));
 }
 
 void CUCode_AX::HandleMail(u32 mail)

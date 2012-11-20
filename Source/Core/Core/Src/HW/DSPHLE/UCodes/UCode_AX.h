@@ -21,7 +21,6 @@
 //  * Depop support
 //  * ITD support
 //  * Polyphase sample interpolation support (not very useful)
-//  * Surround sound mixing
 //  * Dolby Pro 2 mixing with recent AX versions
 
 #ifndef _UCODE_AX_H
@@ -135,7 +134,7 @@ protected:
 	void ProcessPBList(u32 pb_addr);
 	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
 	void UploadLRS(u32 dst_addr);
-	void OutputSamples(u32 out_addr);
+	void OutputSamples(u32 out_addr, u32 surround_addr);
 
 private:
 	enum CmdType
