@@ -242,7 +242,7 @@ inline void GetInputSamples(PB_TYPE& pb, s16* samples)
 		if (ratio > 0x00100000)
 			ratio = 0x00100000;
 
-		s16 real_samples[514];
+		s16 real_samples[1026];
 		u32 real_samples_needed = (32 * ratio + curr_pos) >> 16;
 
 		// The first two real samples are the ones we read at the previous
