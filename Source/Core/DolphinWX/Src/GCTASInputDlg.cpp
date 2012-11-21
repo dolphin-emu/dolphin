@@ -42,7 +42,10 @@ GCTASInputDlg::GCTASInputDlg(wxWindow *parent, wxWindowID id, const wxString &ti
 		const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	mstickx = msticky = cstickx = csticky = false;
+    //Due to an issue introduced in wxwidget 2.9, calling SetValue on the first created
+    //wxTextCtrl results in a crash, to avoid this. We need a wxTextCtrl that never gets
+    //SetValue called on it. OSX Issue Only!
+    FixCrashHack = new wxTextCtrl(this, 1324, wxT("128"), wxDefaultPosition, wxSize(0, 0));
     
 	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);

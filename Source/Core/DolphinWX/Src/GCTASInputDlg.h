@@ -52,6 +52,7 @@ class GCTASInputDlg : public wxDialog
         wxCheckBox* CreateCheckBoxAndListerners(int id, std::string name);
 
 		wxBitmap CreateStickBitmap(int x, int y);
+        wxTextCtrl* FixCrashHack;
 
 	private:
 		int lTrig, rTrig;
