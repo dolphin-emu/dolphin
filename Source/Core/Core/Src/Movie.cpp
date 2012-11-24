@@ -36,7 +36,6 @@
 #include "HW/EXI_Channel.h"
 #include "HW/DVDInterface.h"
 #include "../../Common/Src/NandPaths.h"
-#include "thread.h"
 #include "Crypto/md5.h"
 
 // large enough for just over 24 hours of single-player recording
@@ -1154,7 +1153,7 @@ void CheckMD5()
 {
 	if (IsRecordingInput())
 	{
-		Core::DisplayMessage("Calculating md5 of game file...", 2000);
+		Core::DisplayMessage("Calculating checksum of game file...", 2000);
 		for (int i = 0; i < 16; i++)
 			MD5[i] = 0;
 	}
@@ -1167,7 +1166,7 @@ void CheckMD5()
 			if (i == 15)
 				return;
 		}
-		Core::DisplayMessage("Checking md5 of game file against recorded game...", 2000);
+		Core::DisplayMessage("Verifying checksum...", 2000);
 	}
 
 	unsigned char gameMD5[16];
@@ -1178,14 +1177,14 @@ void CheckMD5()
 	if (IsPlayingInput())
 	{
 		if (memcmp(gameMD5,MD5,16) == 0)
-			Core::DisplayMessage("MD5 of playing game matches the recorded game.", 2000);
+			Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
 		else
-			PanicAlert("MD5 of playing game does not match the recorded game!");
+			PanicAlert("Checksum of current game does not match the recorded game!");
 	}
 	else
 	{
 		memcpy(MD5, gameMD5,16);
-		Core::DisplayMessage("Finished Calculating md5.", 2000);
+		Core::DisplayMessage("Finished calculating checksum.", 2000);
 	}
 }
 };
