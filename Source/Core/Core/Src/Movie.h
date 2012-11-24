@@ -99,7 +99,7 @@ struct DTMHeader {
 
     u8  videoBackend[16];	// UTF-8 representation of the video backend
     u8  audioEmulator[16];	// UTF-8 representation of the audio emulator
-    u8  padBackend[16];		// UTF-8 representation of the input backend
+    unsigned char  md5[16];	// MD5 of game iso
 
 	u64 recordingStartTime; // seconds since 1970 that recording started (used for RTC)
 
@@ -178,6 +178,7 @@ bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures&
 void EndPlayInput(bool cont);
 void SaveRecording(const char *filename);
 void DoState(PointerWrap &p);
+void CheckMD5();
 
 std::string GetInputDisplay();
 

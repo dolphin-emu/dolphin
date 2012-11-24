@@ -36,6 +36,8 @@
 #include "HW/EXI_Channel.h"
 #include "HW/DVDInterface.h"
 #include "../../Common/Src/NandPaths.h"
+#include "thread.h"
+#include "Crypto/md5.h"
 
 // large enough for just over 24 hours of single-player recording
 #define MAX_DTM_LENGTH (40 * 1024 * 1024)
@@ -69,6 +71,7 @@ bool g_bDiscChange = false;
 std::string g_discChange = "";
 std::string author = "";
 u64 g_titleID = 0;
+unsigned char MD5[16];
 
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
@@ -167,6 +170,8 @@ void Init()
 		//delete tmpInput;
 		//tmpInput = NULL;
 	}
+	else
+		std::thread md5thread(CheckMD5);
 }
 
 void InputUpdate()
@@ -392,10 +397,13 @@ bool BeginRecordingInput(int controllers)
 
 		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
 		// TODO: find a way to GetTitleDataPath() from Movie::Init()
-		if (File::Exists((Common::GetTitleDataPath(g_titleID) + "banner.bin").c_str()))
-			Movie::g_bClearSave = false;
-		else
-			Movie::g_bClearSave = true;
+		if (Core::g_CoreStartupParameter.bWii)
+		{
+			if (File::Exists((Common::GetTitleDataPath(g_titleID) + "banner.bin").c_str()))
+				Movie::g_bClearSave = false;
+			else
+				Movie::g_bClearSave = true;
+		}
 	}
 	g_playMode = MODE_RECORDING;
 	GetSettings();
@@ -655,6 +663,9 @@ void ReadHeader()
 	{
 		author[i] = tmpHeader.author[i];
 	}
+
+	for (int i = 0; i < 16; i++)
+		MD5[i] = tmpHeader.md5[i];
 }
 
 bool PlayInput(const char *filename)
@@ -1077,6 +1088,8 @@ void SaveRecording(const char *filename)
 	header.bClearSave = g_bClearSave;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
+	for (int i = 0; i < 16;i++)
+		header.md5[i] = MD5[i];
 
 	// TODO
 	header.uniqueID = 0; 
@@ -1134,5 +1147,44 @@ void GetSettings()
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
+}
+
+void CheckMD5()
+{
+	if (IsRecordingInput())
+	{
+		Core::DisplayMessage("Calculating md5 of game file...", 2000);
+		for (int i = 0; i < 16; i++)
+			MD5[i] = 0;
+	}
+	else
+	{
+		for (int i=0; i<16; i++)
+		{
+			if (tmpHeader.md5[i] != 0)
+				continue;
+			if (i == 15)
+				return;
+		}
+		Core::DisplayMessage("Checking md5 of game file against recorded game...", 2000);
+	}
+
+	unsigned char gameMD5[16];
+	char game[255];
+	memcpy(game, SConfig::GetInstance().m_LastFilename.c_str(), SConfig::GetInstance().m_LastFilename.size());
+	md5_file(game, gameMD5);
+
+	if (IsPlayingInput())
+	{
+		if (memcmp(gameMD5,MD5,16) == 0)
+			Core::DisplayMessage("MD5 of playing game matches the recorded game.", 2000);
+		else
+			PanicAlert("MD5 of playing game does not match the recorded game!");
+	}
+	else
+	{
+		memcpy(MD5, gameMD5,16);
+		Core::DisplayMessage("Finished Calculating md5.", 2000);
+	}
 }
 };
