@@ -394,6 +394,7 @@ bool BeginRecordingInput(int controllers)
 
 		State::SaveAs(tmpStateFilename.c_str());
 		g_bRecordingFromSaveState = true;
+		std::thread md5thread(CheckMD5);
 
 		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
 		// TODO: find a way to GetTitleDataPath() from Movie::Init()
