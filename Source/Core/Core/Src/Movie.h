@@ -19,7 +19,6 @@
 #define __MOVIE_H
 
 #include "Common.h"
-#include "FileUtil.h"
 #include "../../InputCommon/Src/GCPadStatus.h"
 
 #include <string>
@@ -133,7 +132,6 @@ void Init();
 
 void SetPolledDevice();
 
-bool IsAutoFiring();
 bool IsRecordingInput();
 bool IsRecordingInputFromSaveState();
 bool IsJustStartingRecordingInputFromSaveState();

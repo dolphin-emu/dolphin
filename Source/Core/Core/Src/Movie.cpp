@@ -27,7 +27,6 @@
 #include "HW/WiimoteEmu/WiimoteEmu.h"
 #include "HW/WiimoteEmu/WiimoteHid.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
-#include "VideoBackendBase.h"
 #include "State.h"
 #include "Timer.h"
 #include "VideoConfig.h"
@@ -64,7 +63,7 @@ u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
 bool bSaveConfig, bSkipIdle, bDualCore, bProgressive, bDSPHLE, bFastDiscSpeed = false;
 bool bMemcard, g_bClearSave = false;
-std::string videoBackend = "opengl";
+std::string videoBackend = "unknown";
 int iCPUCore = 1;
 bool g_bDiscChange = false;
 std::string g_discChange = "";
