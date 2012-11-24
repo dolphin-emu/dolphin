@@ -163,10 +163,6 @@ void Init()
 		g_currentFrame = 0;
 		g_currentLagCount = 0;
 		g_currentInputCount = 0;
-		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
-		//g_totalFrames = g_totalBytes = 0;
-		//delete tmpInput;
-		//tmpInput = NULL;
 	}
 	else
 		std::thread md5thread(CheckMD5);
@@ -1185,5 +1181,12 @@ void CheckMD5()
 		memcpy(MD5, gameMD5,16);
 		Core::DisplayMessage("Finished calculating checksum.", 2000);
 	}
+}
+
+void Shutdown()
+{
+	g_currentInputCount = g_totalInputCount = g_totalFrames = g_totalBytes = 0;
+	delete [] tmpInput;
+	tmpInput = NULL;
 }
 };

@@ -293,7 +293,7 @@ void Stop()  // - Hammertime!
 		SConfig::GetInstance().m_SYSCONF->Reload();
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
-	Movie::g_currentInputCount = 0;
+	Movie::Shutdown();
 	g_bStopping = false;
 }
 

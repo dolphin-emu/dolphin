@@ -177,6 +177,7 @@ void EndPlayInput(bool cont);
 void SaveRecording(const char *filename);
 void DoState(PointerWrap &p);
 void CheckMD5();
+void Shutdown();
 
 std::string GetInputDisplay();
 
