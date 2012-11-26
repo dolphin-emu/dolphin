@@ -19,7 +19,6 @@
 #define __MOVIE_H
 
 #include "Common.h"
-#include "FileUtil.h"
 #include "../../InputCommon/Src/GCPadStatus.h"
 
 #include <string>
@@ -99,7 +98,7 @@ struct DTMHeader {
 
     u8  videoBackend[16];	// UTF-8 representation of the video backend
     u8  audioEmulator[16];	// UTF-8 representation of the audio emulator
-    u8  padBackend[16];		// UTF-8 representation of the input backend
+    unsigned char  md5[16];	// MD5 of game iso
 
 	u64 recordingStartTime; // seconds since 1970 that recording started (used for RTC)
 
@@ -133,7 +132,6 @@ void Init();
 
 void SetPolledDevice();
 
-bool IsAutoFiring();
 bool IsRecordingInput();
 bool IsRecordingInputFromSaveState();
 bool IsJustStartingRecordingInputFromSaveState();
@@ -178,6 +176,9 @@ bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures&
 void EndPlayInput(bool cont);
 void SaveRecording(const char *filename);
 void DoState(PointerWrap &p);
+void CheckMD5();
+void GetMD5();
+void Shutdown();
 
 std::string GetInputDisplay();
 
@@ -188,4 +189,4 @@ void SetInputManip(ManipFunction);
 void CallInputManip(SPADStatus *PadStatus, int controllerID);
 };
 
-#endif // __FRAME_H
+#endif // __MOVIE_H

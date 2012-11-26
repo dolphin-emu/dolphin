@@ -594,13 +594,69 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
 
 void Wiimote::DoState(PointerWrap& p)
 {
-	// not working :(
-	//if (p.MODE_READ == p.GetMode())
-	//{
-	//	// LOAD
-	//	Reset();	// should cause a status report to be sent, then wii should re-setup wiimote
-	//}
-	//p.Do(m_reporting_channel);
+	p.Do(m_extension->active_extension);
+	p.Do(m_extension->switch_extension);
+
+	p.Do(m_accel);
+	p.Do(m_index);
+	p.Do(ir_sin);
+	p.Do(ir_cos);
+	p.Do(m_rumble_on);
+	p.Do(m_speaker_mute);
+	p.Do(m_motion_plus_present);
+	p.Do(m_motion_plus_active);
+	p.Do(m_reporting_auto);
+	p.Do(m_reporting_mode);
+	p.Do(m_reporting_channel);
+	p.Do(m_shake_step);
+	p.Do(m_sensor_bar_on_top);
+	p.Do(m_status);
+	p.Do(m_adpcm_state);
+	p.Do(m_ext_key);
+	p.Do(m_eeprom);
+	p.Do(m_reg_motion_plus);
+	p.Do(m_reg_ir);
+	p.Do(m_reg_ext);
+	p.Do(m_reg_speaker);
+
+	//Do 'm_read_requests' queue
+	{
+		u32 size;
+		if (p.mode == PointerWrap::MODE_READ)
+		{
+			//clear
+			while (m_read_requests.size())
+				m_read_requests.pop();
+
+			p.Do(size);
+			while (size--)
+			{
+				ReadRequest tmp;
+				p.Do(tmp.address);
+				p.Do(tmp.position);
+				p.Do(tmp.size);
+				tmp.data = new u8[tmp.size];
+				p.DoArray(tmp.data, tmp.size);
+				m_read_requests.push(tmp);
+			}
+		}
+		else
+		{
+			std::queue<ReadRequest> tmp_queue(m_read_requests);
+			size = m_read_requests.size();
+			p.Do(size);
+			while (!tmp_queue.empty())
+			{
+				ReadRequest tmp = tmp_queue.front();
+				p.Do(tmp.address);
+				p.Do(tmp.position);
+				p.Do(tmp.size);
+				p.DoArray(tmp.data, tmp.size);
+				tmp_queue.pop();
+			}
+		}
+	}
+	p.DoMarker("Wiimote");
 }
 
 }

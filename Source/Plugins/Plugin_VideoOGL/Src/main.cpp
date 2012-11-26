@@ -88,7 +88,6 @@ Make AA apply instantly during gameplay if possible
 #include "TextureConverter.h"
 #include "PostProcessing.h"
 #include "OnScreenDisplay.h"
-#include "Setup.h"
 #include "DLCache.h"
 #include "FramebufferManager.h"
 #include "Core.h"

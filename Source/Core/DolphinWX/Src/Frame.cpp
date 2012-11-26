@@ -26,7 +26,6 @@
 #include "Common.h" // Common
 #include "FileUtil.h"
 #include "Timer.h"
-#include "Setup.h"
 
 #include "Globals.h" // Local
 #include "Frame.h"
@@ -458,13 +457,6 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Update controls
 	UpdateGUI();
-
-	// If we are rerecording create the status bar now instead of later when a game starts
-	#ifdef RERECORDING
-		ModifyStatusBar();
-		// It's to early for the OnHostMessage(), we will update the status when Ctrl or Space is pressed
-		//Core::WriteStatus();
-	#endif
 }
 // Destructor
 CFrame::~CFrame()

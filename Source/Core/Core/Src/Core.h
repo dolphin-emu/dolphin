@@ -95,21 +95,6 @@ void RequestRefreshInfo();
 // the return value of the first call should be passed in as the second argument of the second call.
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 
-#ifdef RERECORDING
-
-void FrameUpdate();
-void FrameAdvance();
-void FrameStepOnOff();
-void WriteStatus();
-void RerecordingStart();
-void RerecordingStop();
-void WindBack(int Counter);
-
-extern int g_FrameCounter,g_InputCounter;
-extern bool g_FrameStep;
-
-#endif
-
 }  // namespace
 
 #endif

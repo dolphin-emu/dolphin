@@ -5,7 +5,6 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/Console.cpp
 			Src/Core.cpp
 			Src/CoreParameter.cpp
-			Src/CoreRerecording.cpp
 			Src/CoreTiming.cpp
 			Src/DSPEmulator.cpp
 			Src/GeckoCodeConfig.cpp

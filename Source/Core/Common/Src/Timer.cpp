@@ -97,12 +97,6 @@ void Timer::AddTimeDifference()
 	m_StartTime += GetTimeDifference();
 }
 
-// Wind back the starting time to a custom time
-void Timer::WindBackStartingTime(u64 WindBack)
-{
-	m_StartTime += WindBack;
-}
-
 // Get the time elapsed since the Start()
 u64 Timer::GetTimeElapsed()
 {
