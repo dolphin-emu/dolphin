@@ -35,7 +35,6 @@ public:
 	// The time difference is always returned in milliseconds, regardless of alternative internal representation
 	u64 GetTimeDifference();
 	void AddTimeDifference();
-	void WindBackStartingTime(u64 WindBack);
 
 	static void IncreaseResolution();
 	static void RestoreResolution();
