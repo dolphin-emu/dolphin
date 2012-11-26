@@ -21,8 +21,7 @@
 #include <queue>
 #include "../HW/Memmap.h"
 
-class PointerWrap;
-
+#include "Chunkfile.h"
 
 #define	FS_SUCCESS		(u32)0		// Success
 #define	FS_EACCES		(u32)-1		// Permission denied 
