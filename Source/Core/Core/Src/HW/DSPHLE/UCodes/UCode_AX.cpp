@@ -392,7 +392,7 @@ void CUCode_AX::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
 	// First, we need to send the contents of our AUX buffers to the CPU.
 	if (write_addr)
 	{
-		for (u32 i = 0; i < 3 * 32; ++i)
+		for (u32 i = 0; i < 5 * 32; ++i)
 			for (u32 j = 0; j < 3; ++j)
 				temp[j][i] = Common::swap32(buffers[j][i]);
 		memcpy(HLEMemory_Get_Pointer(write_addr), temp, sizeof (temp));
