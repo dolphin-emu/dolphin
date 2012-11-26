@@ -132,13 +132,13 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	if(Movie::IsPlayingInput())
 	{
 		Movie::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
-		if(!Core::g_CoreStartupParameter.bWii)
+		if(!Movie::IsUsingWiimote(0))
 			Movie::InputUpdate();
 	}
 	else if(Movie::IsRecordingInput())
 	{
 		Movie::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
-		if(!Core::g_CoreStartupParameter.bWii)
+		if(!Movie::IsUsingWiimote(0))
 			Movie::InputUpdate();
 	}
 
