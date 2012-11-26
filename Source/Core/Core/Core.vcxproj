@@ -207,7 +207,6 @@
     <ClCompile Include="Src\Console.cpp" />
     <ClCompile Include="Src\Core.cpp" />
     <ClCompile Include="Src\CoreParameter.cpp" />
-    <ClCompile Include="Src\CoreRerecording.cpp" />
     <ClCompile Include="Src\CoreTiming.cpp" />
     <ClCompile Include="Src\Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Src\Debugger\Dump.cpp" />

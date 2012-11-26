@@ -28,7 +28,6 @@
 #include "CPUDetect.h"
 #include "IniFile.h"
 #include "FileUtil.h"
-#include "Setup.h"
 
 #include "Host.h" // Core
 #include "HW/Wiimote.h"

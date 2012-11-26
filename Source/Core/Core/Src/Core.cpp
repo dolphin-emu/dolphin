@@ -18,9 +18,9 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include "EmuWindow.h"
 #endif
 
-#include "Setup.h" // Common
 #include "Atomic.h"
 #include "Thread.h"
 #include "Timer.h"
@@ -61,9 +61,6 @@
 #include "VideoBackendBase.h"
 #include "AudioCommon.h"
 #include "OnScreenDisplay.h"
-#ifdef _WIN32
-#include "EmuWindow.h"
-#endif
 
 #include "VolumeHandler.h"
 #include "FileMonitor.h"

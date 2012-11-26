@@ -189,4 +189,4 @@ void SetInputManip(ManipFunction);
 void CallInputManip(SPADStatus *PadStatus, int controllerID);
 };
 
-#endif // __FRAME_H
+#endif // __MOVIE_H

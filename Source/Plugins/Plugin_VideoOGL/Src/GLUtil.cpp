@@ -18,7 +18,6 @@
 #include "Globals.h"
 #include "VideoConfig.h"
 #include "IniFile.h"
-#include "Setup.h"
 #include "Core.h"
 #include "Host.h"
 #include "VideoBackend.h"

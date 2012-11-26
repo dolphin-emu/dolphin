@@ -27,9 +27,6 @@ window handle that is returned by CreateWindow() can be accessed from
 Core::GetWindowHandle().
 */
 
-
-#include "Setup.h" // Common
-
 #include "NetWindow.h"
 #include "Common.h" // Common
 #include "FileUtil.h"
