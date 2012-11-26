@@ -112,6 +112,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	std::deque<SQueuedEvent> m_EventQueue;
  */
 
+	p.Do(m_ControllerBD);
 	p.Do(m_CtrlSetup);
 	p.Do(m_ACLSetup);
 	p.Do(m_HCIEndpoint);
