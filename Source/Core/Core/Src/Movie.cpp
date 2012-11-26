@@ -136,6 +136,7 @@ void Init()
 	if (IsPlayingInput())
 	{
 		ReadHeader();
+		std::thread md5thread(CheckMD5);
 		if ((strncmp((char *)tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)))
 		{
 			PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
@@ -164,8 +165,6 @@ void Init()
 		g_currentLagCount = 0;
 		g_currentInputCount = 0;
 	}
-	else
-		std::thread md5thread(CheckMD5);
 }
 
 void InputUpdate()
@@ -388,7 +387,6 @@ bool BeginRecordingInput(int controllers)
 
 		State::SaveAs(tmpStateFilename.c_str());
 		g_bRecordingFromSaveState = true;
-		std::thread md5thread(CheckMD5);
 
 		// This is only done here if starting from save state because otherwise we won't have the titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
 		// TODO: find a way to GetTitleDataPath() from Movie::Init()
@@ -638,7 +636,6 @@ void ReadHeader()
 	else
 	{
 		GetSettings();
-		bSaveConfig = false;
 	}
 
 	videoBackend.resize(ARRAYSIZE(tmpHeader.videoBackend));
@@ -658,9 +655,7 @@ void ReadHeader()
 	{
 		author[i] = tmpHeader.author[i];
 	}
-
-	for (int i = 0; i < 16; i++)
-		MD5[i] = tmpHeader.md5[i];
+	memcpy(MD5, tmpHeader.md5, 16);
 }
 
 bool PlayInput(const char *filename)
@@ -1083,8 +1078,7 @@ void SaveRecording(const char *filename)
 	header.bClearSave = g_bClearSave;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
-	for (int i = 0; i < 16;i++)
-		header.md5[i] = MD5[i];
+	memcpy(header.md5,MD5,16);
 
 	// TODO
 	header.uniqueID = 0; 
@@ -1142,45 +1136,41 @@ void GetSettings()
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
+	std::thread md5thread(GetMD5);
 }
 
 void CheckMD5()
 {
-	if (IsRecordingInput())
+	for (int i=0, n=0; i<16; i++)
 	{
-		Core::DisplayMessage("Calculating checksum of game file...", 2000);
-		for (int i = 0; i < 16; i++)
-			MD5[i] = 0;
+		if (tmpHeader.md5[i] != 0)
+			continue;
+		n++;
+		if (n == 16)
+			return;
 	}
-	else
-	{
-		for (int i=0; i<16; i++)
-		{
-			if (tmpHeader.md5[i] != 0)
-				continue;
-			if (i == 15)
-				return;
-		}
-		Core::DisplayMessage("Verifying checksum...", 2000);
-	}
+	Core::DisplayMessage("Verifying checksum...", 2000);
 
 	unsigned char gameMD5[16];
 	char game[255];
 	memcpy(game, SConfig::GetInstance().m_LastFilename.c_str(), SConfig::GetInstance().m_LastFilename.size());
 	md5_file(game, gameMD5);
 
-	if (IsPlayingInput())
-	{
-		if (memcmp(gameMD5,MD5,16) == 0)
-			Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
-		else
-			PanicAlert("Checksum of current game does not match the recorded game!");
-	}
+	if (memcmp(gameMD5,MD5,16) == 0)
+		Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
 	else
-	{
-		memcpy(MD5, gameMD5,16);
-		Core::DisplayMessage("Finished calculating checksum.", 2000);
-	}
+		PanicAlert("Checksum of current game does not match the recorded game!");
+}
+
+void GetMD5()
+{
+	Core::DisplayMessage("Calculating checksum of game file...", 2000);
+	for (int i = 0; i < 16; i++)
+		MD5[i] = 0;
+	char game[255];
+	memcpy(game, SConfig::GetInstance().m_LastFilename.c_str(), SConfig::GetInstance().m_LastFilename.size());
+	md5_file(game, MD5);
+	Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 
 void Shutdown()
