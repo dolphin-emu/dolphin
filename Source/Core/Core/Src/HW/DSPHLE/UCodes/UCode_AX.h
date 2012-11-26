@@ -135,6 +135,8 @@ protected:
 	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
 	void UploadLRS(u32 dst_addr);
 	void OutputSamples(u32 out_addr, u32 surround_addr);
+	void SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
+	                   u32 main_r_dl, u32 auxb_l_dl, u32 auxb_r_dl);
 
 private:
 	enum CmdType
@@ -158,7 +160,7 @@ private:
 		CMD_UNK_10 = 0x10,
 		CMD_UNK_11 = 0x11,
 		CMD_UNK_12 = 0x12,
-		CMD_UNK_13 = 0x13,
+		CMD_SEND_AUX_AND_MIX = 0x13,
 	};
 };
 

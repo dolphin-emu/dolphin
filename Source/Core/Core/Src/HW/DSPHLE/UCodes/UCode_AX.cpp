@@ -84,10 +84,12 @@ void CUCode_AX::HandleCommandList()
 
 	u32 pb_addr = 0;
 
-//	WARN_LOG(DSPHLE, "Command list:");
-//	for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
-//		WARN_LOG(DSPHLE, "%04x", m_cmdlist[i]);
-//	WARN_LOG(DSPHLE, "-------------");
+#if 0
+	WARN_LOG(DSPHLE, "Command list:");
+	for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
+		WARN_LOG(DSPHLE, "%04x", m_cmdlist[i]);
+	WARN_LOG(DSPHLE, "-------------");
+#endif
 
 	u32 curr_idx = 0;
 	bool end = false;
@@ -171,7 +173,40 @@ void CUCode_AX::HandleCommandList()
 			case CMD_UNK_10: curr_idx += 4; break;
 			case CMD_UNK_11: curr_idx += 2; break;
 			case CMD_UNK_12: curr_idx += 1; break;
-			case CMD_UNK_13: curr_idx += 12; break;
+
+			// Send the contents of MAIN LRS, AUXA LRS and AUXB S to RAM, and
+			// mix data to MAIN LR and AUXB LR.
+			case CMD_SEND_AUX_AND_MIX:
+			{
+				// Address for Main + AUXA LRS upload
+				u16 main_auxa_up_hi = m_cmdlist[curr_idx++];
+				u16 main_auxa_up_lo = m_cmdlist[curr_idx++];
+
+				// Address for AUXB S upload
+				u16 auxb_s_up_hi = m_cmdlist[curr_idx++];
+				u16 auxb_s_up_lo = m_cmdlist[curr_idx++];
+
+				// Address to read data for Main L
+				u16 main_l_dl_hi = m_cmdlist[curr_idx++];
+				u16 main_l_dl_lo = m_cmdlist[curr_idx++];
+
+				// Address to read data for Main R
+				u16 main_r_dl_hi = m_cmdlist[curr_idx++];
+				u16 main_r_dl_lo = m_cmdlist[curr_idx++];
+
+				// Address to read data for AUXB L
+				u16 auxb_l_dl_hi = m_cmdlist[curr_idx++];
+				u16 auxb_l_dl_lo = m_cmdlist[curr_idx++];
+
+				// Address to read data for AUXB R
+				u16 auxb_r_dl_hi = m_cmdlist[curr_idx++];
+				u16 auxb_r_dl_lo = m_cmdlist[curr_idx++];
+
+				SendAUXAndMix(HILO_TO_32(main_auxa_up), HILO_TO_32(auxb_s_up),
+				              HILO_TO_32(main_l_dl), HILO_TO_32(main_r_dl),
+				              HILO_TO_32(auxb_l_dl), HILO_TO_32(auxb_r_dl));
+				break;
+			}
 
 			default:
 				ERROR_LOG(DSPHLE, "Unknown command in AX cmdlist: %04x", cmd);
@@ -410,6 +445,53 @@ void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)
 	}
 
 	memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof (buffer));
+}
+
+void CUCode_AX::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
+                              u32 main_r_dl, u32 auxb_l_dl, u32 auxb_r_dl)
+{
+	// Buffers to upload first
+	int* up_buffers[] = {
+		m_samples_left,
+		m_samples_right,
+		m_samples_surround,
+		m_samples_auxA_left,
+		m_samples_auxA_right,
+		m_samples_auxA_surround
+	};
+
+	// Upload Main LRS + AUXA LRS
+	int* ptr = (int*)HLEMemory_Get_Pointer(main_auxa_up);
+	for (u32 i = 0; i < sizeof (up_buffers) / sizeof (up_buffers[0]); ++i)
+		for (u32 j = 0; j < 32 * 5; ++j)
+			*ptr++ = Common::swap32(up_buffers[i][j]);
+
+	// Upload AUXB S
+	ptr = (int*)HLEMemory_Get_Pointer(auxb_s_up);
+	for (u32 i = 0; i < 32 * 5; ++i)
+		*ptr++ = Common::swap32(m_samples_auxB_surround[i]);
+
+	// Download buffers and addresses
+	int* dl_buffers[] = {
+		m_samples_left,
+		m_samples_right,
+		m_samples_auxB_left,
+		m_samples_auxB_right
+	};
+	u32 dl_addrs[] = {
+		main_l_dl,
+		main_r_dl,
+		auxb_l_dl,
+		auxb_r_dl
+	};
+
+	// Download and mix
+	for (u32 i = 0; i < sizeof (dl_buffers) / sizeof (dl_buffers[0]); ++i)
+	{
+		int* dl_src = (int*)HLEMemory_Get_Pointer(dl_addrs[i]);
+		for (u32 j = 0; j < 32 * 5; ++j)
+			dl_buffers[i][j] += (int)Common::swap32(*dl_src++);
+	}
 }
 
 void CUCode_AX::HandleMail(u32 mail)
