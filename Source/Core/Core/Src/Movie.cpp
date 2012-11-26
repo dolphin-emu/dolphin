@@ -166,7 +166,9 @@ void Init()
 	if (IsRecordingInput())
 	{
 		GetSettings();
+		std::thread md5thread(GetMD5);
 	}
+
 	g_frameSkipCounter = g_framesToSkip;
 	memset(&g_padState, 0, sizeof(g_padState));
 	if (!tmpHeader.bFromSaveState || !IsPlayingInput())
@@ -417,6 +419,7 @@ bool BeginRecordingInput(int controllers)
 			else
 				Movie::g_bClearSave = true;
 		}
+		std::thread md5thread(GetMD5);
 	}
 	g_playMode = MODE_RECORDING;
 	GetSettings();
@@ -1155,7 +1158,6 @@ void GetSettings()
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
-	std::thread md5thread(GetMD5);
 }
 
 void CheckMD5()
@@ -1172,7 +1174,7 @@ void CheckMD5()
 
 	unsigned char gameMD5[16];
 	char game[255];
-	memcpy(game, SConfig::GetInstance().m_LastFilename.c_str(), SConfig::GetInstance().m_LastFilename.size());
+	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(), SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.size());
 	md5_file(game, gameMD5);
 
 	if (memcmp(gameMD5,MD5,16) == 0)
@@ -1187,7 +1189,7 @@ void GetMD5()
 	for (int i = 0; i < 16; i++)
 		MD5[i] = 0;
 	char game[255];
-	memcpy(game, SConfig::GetInstance().m_LastFilename.c_str(), SConfig::GetInstance().m_LastFilename.size());
+	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(),SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.size());
 	md5_file(game, MD5);
 	Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
