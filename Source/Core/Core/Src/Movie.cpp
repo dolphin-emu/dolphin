@@ -37,8 +37,8 @@
 #include "../../Common/Src/NandPaths.h"
 #include "Crypto/md5.h"
 
-// large enough for just over 24 hours of single-player recording
-#define MAX_DTM_LENGTH (40 * 1024 * 1024)
+// The chunk to allocate movie data in multiples of.
+#define DTM_BASE_LENGTH (1024)
 
 std::mutex cs_frameSkip;
 
@@ -56,6 +56,7 @@ u8 g_numPads = 0;
 ControllerState g_padState;
 DTMHeader tmpHeader;
 u8* tmpInput = NULL;
+size_t tmpInputAllocated = 0;
 u64 g_currentByte = 0, g_totalBytes = 0;
 u64 g_currentFrame = 0, g_totalFrames = 0; // VI
 u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
@@ -81,6 +82,25 @@ std::string g_InputDisplay[8];
 
 ManipFunction mfunc = NULL;
 
+void EnsureTmpInputSize(size_t bound)
+{
+	if (tmpInputAllocated >= bound)
+		return;
+	// The buffer expands in powers of two of DTM_BASE_LENGTH
+	// (standard exponential buffer growth).
+	size_t newAlloc = DTM_BASE_LENGTH;
+	while (newAlloc < bound)
+		newAlloc *= 2;
+	u8* newTmpInput = new u8[newAlloc];
+	tmpInputAllocated = newAlloc;
+	if (tmpInput != NULL)
+	{
+		if (g_totalBytes > 0)
+			memcpy(newTmpInput, tmpInput, g_totalBytes);
+		delete[] tmpInput;
+	}
+	tmpInput = newTmpInput;
+}
 
 std::string GetInputDisplay()
 {
@@ -401,8 +421,8 @@ bool BeginRecordingInput(int controllers)
 	g_playMode = MODE_RECORDING;
 	GetSettings();
 	author = SConfig::GetInstance().m_strMovieAuthor;
-	delete [] tmpInput;
-	tmpInput = new u8[MAX_DTM_LENGTH];
+	EnsureTmpInputSize(1);
+
 	g_currentByte = g_totalBytes = 0;
 
 	Core::DisplayMessage("Starting movie recording", 2000);
@@ -582,7 +602,7 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 	g_padState.CStickX = PadStatus->substickX;
 	g_padState.CStickY = PadStatus->substickY;
 
-
+	EnsureTmpInputSize(g_currentByte + 8);
 	memcpy(&(tmpInput[g_currentByte]), &g_padState, 8);
 	g_currentByte += 8;
 	g_totalBytes = g_currentByte;
@@ -606,6 +626,7 @@ void RecordWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf
 	u8 size = rptf.size;
 
 	InputUpdate();
+	EnsureTmpInputSize(g_currentByte + size + 1);
 	tmpInput[g_currentByte++] = size;
 	memcpy(&(tmpInput[g_currentByte]), data, size);
 	g_currentByte += size;
@@ -699,8 +720,7 @@ bool PlayInput(const char *filename)
 	g_playMode = MODE_PLAYING;
 	
 	g_totalBytes = g_recordfd.GetSize() - 256;
-	delete tmpInput;
-	tmpInput = new u8[MAX_DTM_LENGTH];
+	EnsureTmpInputSize((size_t)g_totalBytes);
 	g_recordfd.ReadArray(tmpInput, (size_t)g_totalBytes);
 	g_currentByte = 0;
 	g_recordfd.Close();
@@ -767,9 +787,8 @@ void LoadInput(const char *filename)
 		g_totalLagCount = tmpHeader.lagCount;
 		g_totalInputCount = tmpHeader.inputCount;
 
+		EnsureTmpInputSize((size_t)totalSavedBytes);
 		g_totalBytes = totalSavedBytes;
-		delete [] tmpInput;
-		tmpInput = new u8[MAX_DTM_LENGTH];
 		t_record.ReadArray(tmpInput, (size_t)g_totalBytes);
 	}
 	else if (g_currentByte > 0)
@@ -1178,5 +1197,6 @@ void Shutdown()
 	g_currentInputCount = g_totalInputCount = g_totalFrames = g_totalBytes = 0;
 	delete [] tmpInput;
 	tmpInput = NULL;
+	tmpInputAllocated = 0;
 }
 };
