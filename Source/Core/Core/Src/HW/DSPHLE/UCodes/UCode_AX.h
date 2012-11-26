@@ -135,6 +135,7 @@ protected:
 	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
 	void UploadLRS(u32 dst_addr);
 	void OutputSamples(u32 out_addr, u32 surround_addr);
+	void MixAUXBLR(u32 ul_addr, u32 dl_addr);
 	void SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
 	                   u32 main_r_dl, u32 auxb_l_dl, u32 auxb_r_dl);
 
@@ -157,7 +158,7 @@ private:
 		CMD_MORE = 0x0D,
 		CMD_OUTPUT = 0x0E,
 		CMD_END = 0x0F,
-		CMD_UNK_10 = 0x10,
+		CMD_MIX_AUXB_LR = 0x10,
 		CMD_UNK_11 = 0x11,
 		CMD_UNK_12 = 0x12,
 		CMD_SEND_AUX_AND_MIX = 0x13,

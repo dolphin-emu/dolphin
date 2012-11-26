@@ -170,7 +170,14 @@ void CUCode_AX::HandleCommandList()
 				end = true;
 				break;
 
-			case CMD_UNK_10: curr_idx += 4; break;
+			case CMD_MIX_AUXB_LR:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				addr2_hi = m_cmdlist[curr_idx++];
+				addr2_lo = m_cmdlist[curr_idx++];
+				MixAUXBLR(HILO_TO_32(addr), HILO_TO_32(addr2));
+				break;
+
 			case CMD_UNK_11: curr_idx += 2; break;
 			case CMD_UNK_12: curr_idx += 1; break;
 
@@ -445,6 +452,31 @@ void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)
 	}
 
 	memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof (buffer));
+}
+
+void CUCode_AX::MixAUXBLR(u32 ul_addr, u32 dl_addr)
+{
+	// Upload AUXB L/R
+	int* ptr = (int*)HLEMemory_Get_Pointer(ul_addr);
+	for (u32 i = 0; i < 5 * 32; ++i)
+		*ptr++ = Common::swap32(m_samples_auxB_left[i]);
+	for (u32 i = 0; i < 5 * 32; ++i)
+		*ptr++ = Common::swap32(m_samples_auxB_right[i]);
+
+	// Mix AUXB L/R to MAIN L/R, and replace AUXB L/R
+	ptr = (int*)HLEMemory_Get_Pointer(dl_addr);
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		int samp = Common::swap32(*ptr++);
+		m_samples_auxB_left[i] = samp;
+		m_samples_left[i] += samp;
+	}
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		int samp = Common::swap32(*ptr++);
+		m_samples_auxB_right[i] = samp;
+		m_samples_right[i] += samp;
+	}
 }
 
 void CUCode_AX::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
