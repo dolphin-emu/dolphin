@@ -136,7 +136,12 @@ void CUCode_AX::HandleCommandList()
 				UploadLRS(HILO_TO_32(addr));
 				break;
 
-			case CMD_SBUFFER_ADDR: curr_idx += 2; break;
+			case CMD_SET_LR:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				SetMainLR(HILO_TO_32(addr));
+				break;
+
 			case CMD_UNK_08: curr_idx += 10; break;	// TODO: check
 
 			case CMD_MIX_AUXB_NOWRITE:
@@ -417,6 +422,18 @@ void CUCode_AX::UploadLRS(u32 dst_addr)
 		buffers[2][i] = Common::swap32(m_samples_surround[i]);
 	}
 	memcpy(HLEMemory_Get_Pointer(dst_addr), buffers, sizeof (buffers));
+}
+
+void CUCode_AX::SetMainLR(u32 src_addr)
+{
+	int* ptr = (int*)HLEMemory_Get_Pointer(src_addr);
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		int samp = (int)Common::swap32(*ptr++);
+		m_samples_left[i] = samp;
+		m_samples_right[i] = samp;
+		m_samples_surround[i] = 0;
+	}
 }
 
 void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)

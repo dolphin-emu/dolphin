@@ -134,6 +134,7 @@ protected:
 	void ProcessPBList(u32 pb_addr);
 	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
 	void UploadLRS(u32 dst_addr);
+	void SetMainLR(u32 src_addr);
 	void OutputSamples(u32 out_addr, u32 surround_addr);
 	void MixAUXBLR(u32 ul_addr, u32 dl_addr);
 	void SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
@@ -149,7 +150,7 @@ private:
 		CMD_MIX_AUXA = 0x04,
 		CMD_MIX_AUXB = 0x05,
 		CMD_UPLOAD_LRS = 0x06,
-		CMD_SBUFFER_ADDR = 0x07,
+		CMD_SET_LR = 0x07,
 		CMD_UNK_08 = 0x08,
 		CMD_MIX_AUXB_NOWRITE = 0x09,
 		CMD_COMPRESSOR_TABLE_ADDR = 0x0A,
