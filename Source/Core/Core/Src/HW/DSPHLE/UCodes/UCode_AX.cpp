@@ -376,7 +376,6 @@ void CUCode_AX::ProcessPBList(u32 pb_addr)
 
 void CUCode_AX::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
 {
-	int temp[3][5 * 32];
 	int* buffers[3] = { 0 };
 
 	switch (aux_id)
@@ -397,18 +396,18 @@ void CUCode_AX::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
 	// First, we need to send the contents of our AUX buffers to the CPU.
 	if (write_addr)
 	{
-		for (u32 i = 0; i < 5 * 32; ++i)
-			for (u32 j = 0; j < 3; ++j)
-				temp[j][i] = Common::swap32(buffers[j][i]);
-		memcpy(HLEMemory_Get_Pointer(write_addr), temp, sizeof (temp));
+		int* ptr = (int*)HLEMemory_Get_Pointer(write_addr);
+		for (u32 i = 0; i < 3; ++i)
+			for (u32 j = 0; j < 5 * 32; ++j)
+				*ptr++ = Common::swap32(buffers[i][j]);
 	}
 
 	// Then, we read the new temp from the CPU and add to our current
 	// temp.
-	memcpy(temp, HLEMemory_Get_Pointer(read_addr), sizeof (temp));
-	for (u32 i = 0; i < 5 * 32; ++i)
-		for (u32 j = 0; j < 3; ++j)
-			buffers[j][i] += Common::swap32(temp[j][i]);
+	int* ptr = (int*)HLEMemory_Get_Pointer(read_addr);
+	for (u32 i = 0; i < 3; ++i)
+		for (u32 j = 0; j < 5 * 32; ++j)
+			buffers[i][j] += (int)Common::swap32(*ptr++);
 }
 
 void CUCode_AX::UploadLRS(u32 dst_addr)
