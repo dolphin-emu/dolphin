@@ -405,9 +405,12 @@ void CUCode_AX::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
 	// Then, we read the new temp from the CPU and add to our current
 	// temp.
 	int* ptr = (int*)HLEMemory_Get_Pointer(read_addr);
-	for (u32 i = 0; i < 3; ++i)
-		for (u32 j = 0; j < 5 * 32; ++j)
-			buffers[i][j] += (int)Common::swap32(*ptr++);
+	for (u32 i = 0; i < 5 * 32; ++i)
+		m_samples_left[i] += (int)Common::swap32(*ptr++);
+	for (u32 i = 0; i < 5 * 32; ++i)
+		m_samples_right[i] += (int)Common::swap32(*ptr++);
+	for (u32 i = 0; i < 5 * 32; ++i)
+		m_samples_surround[i] += (int)Common::swap32(*ptr++);
 }
 
 void CUCode_AX::UploadLRS(u32 dst_addr)

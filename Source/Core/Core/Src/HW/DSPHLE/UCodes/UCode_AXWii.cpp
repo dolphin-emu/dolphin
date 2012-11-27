@@ -252,8 +252,12 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 
 void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume)
 {
-	int temp[3][3 * 32];
 	int* buffers[3] = { 0 };
+	int* main_buffers[3] = {
+		m_samples_left,
+		m_samples_right,
+		m_samples_surround
+	};
 
 	switch (aux_id)
 	{
@@ -279,19 +283,19 @@ void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 
 	// Send the content of AUX buffers to the CPU
 	if (write_addr)
 	{
-		for (u32 i = 0; i < 3 * 32; ++i)
-			for (u32 j = 0; j < 3; ++j)
-				temp[j][i] = Common::swap32(buffers[j][i]);
-		memcpy(HLEMemory_Get_Pointer(write_addr), temp, sizeof (temp));
+		int* ptr = (int*)HLEMemory_Get_Pointer(write_addr);
+		for (u32 i = 0; i < 3; ++i)
+			for (u32 j = 0; j < 3 * 32; ++j)
+				*ptr++ = Common::swap32(buffers[i][j]);
 	}
 
-	// Then read the buffers from the CPU and add to our current buffers.
-	memcpy(temp, HLEMemory_Get_Pointer(read_addr), sizeof (temp));
-	for (u32 i = 0; i < 3 * 32; ++i)
-		for (u32 j = 0; j < 3; ++j)
+	// Then read the buffers from the CPU and add to our main buffers.
+	int* ptr = (int*)HLEMemory_Get_Pointer(read_addr);
+	for (u32 i = 0; i < 3; ++i)
+		for (u32 j = 0; j < 3 * 32; ++j)
 		{
-			s64 new_val = buffers[j][i] + Common::swap32(temp[j][i]);
-			buffers[j][i] = (new_val * volume) >> 15;
+			s64 new_val = main_buffers[i][j] + Common::swap32(*ptr++);
+			main_buffers[i][j] = (new_val * volume) >> 15;
 		}
 }
 
