@@ -108,7 +108,16 @@ void CUCode_AX::HandleCommandList()
 				SetupProcessing(HILO_TO_32(addr));
 				break;
 
-			case CMD_UNK_01: curr_idx += 5; break;
+			case CMD_DL_AND_VOL_MIX:
+			{
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				u16 vol_main = m_cmdlist[curr_idx++];
+				u16 vol_auxa = m_cmdlist[curr_idx++];
+				u16 vol_auxb = m_cmdlist[curr_idx++];
+				DownloadAndMixWithVolume(HILO_TO_32(addr), vol_main, vol_auxa, vol_auxb);
+				break;
+			}
 
 			case CMD_PB_ADDR:
 				addr_hi = m_cmdlist[curr_idx++];
@@ -328,6 +337,30 @@ void CUCode_AX::SetupProcessing(u32 init_addr)
 			{
 				buffers[i][j] = init_val;
 				init_val += delta;
+			}
+		}
+	}
+}
+
+void CUCode_AX::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb)
+{
+	int* buffers_main[3] = { m_samples_left, m_samples_right, m_samples_surround };
+	int* buffers_auxa[3] = { m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround };
+	int* buffers_auxb[3] = { m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround };
+	int** buffers[3] = { buffers_main, buffers_auxa, buffers_auxb };
+	u16 volumes[3] = { vol_main, vol_auxa, vol_auxb };
+
+	for (u32 i = 0; i < 3; ++i)
+	{
+		int* ptr = (int*)HLEMemory_Get_Pointer(addr);
+		s16 volume = (s16)volumes[i];
+		for (u32 j = 0; j < 3; ++j)
+		{
+			int* buffer = buffers[i][j];
+			for (u32 k = 0; k < 5 * 32; ++k)
+			{
+				s64 sample = 2 * (s32)Common::swap32(*ptr++) * volume;
+				buffer[k] += (s32)(sample >> 16);
 			}
 		}
 	}

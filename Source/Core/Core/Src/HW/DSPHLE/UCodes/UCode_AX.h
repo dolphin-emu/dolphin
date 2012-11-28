@@ -131,6 +131,7 @@ protected:
 	virtual void HandleCommandList();
 
 	void SetupProcessing(u32 init_addr);
+	void DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb);
 	void ProcessPBList(u32 pb_addr);
 	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
 	void UploadLRS(u32 dst_addr);
@@ -147,7 +148,7 @@ private:
 	enum CmdType
 	{
 		CMD_SETUP = 0x00,
-		CMD_UNK_01 = 0x01,
+		CMD_DL_AND_VOL_MIX = 0x01,
 		CMD_PB_ADDR = 0x02,
 		CMD_PROCESS = 0x03,
 		CMD_MIX_AUXA = 0x04,
