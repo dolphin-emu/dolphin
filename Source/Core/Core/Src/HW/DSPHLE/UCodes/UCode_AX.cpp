@@ -503,15 +503,12 @@ void CUCode_AX::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
 {
 	// Buffers to upload first
 	int* up_buffers[] = {
-		m_samples_left,
-		m_samples_right,
-		m_samples_surround,
 		m_samples_auxA_left,
 		m_samples_auxA_right,
 		m_samples_auxA_surround
 	};
 
-	// Upload Main LRS + AUXA LRS
+	// Upload AUXA LRS
 	int* ptr = (int*)HLEMemory_Get_Pointer(main_auxa_up);
 	for (u32 i = 0; i < sizeof (up_buffers) / sizeof (up_buffers[0]); ++i)
 		for (u32 j = 0; j < 32 * 5; ++j)
