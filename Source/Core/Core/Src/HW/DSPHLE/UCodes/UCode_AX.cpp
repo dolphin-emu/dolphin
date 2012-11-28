@@ -628,11 +628,26 @@ void CUCode_AX::Update(int cycles)
 	}
 }
 
+void CUCode_AX::DoAXState(PointerWrap& p)
+{
+	p.Do(m_cmdlist);
+	p.Do(m_cmdlist_size);
+
+	p.Do(m_samples_left);
+	p.Do(m_samples_right);
+	p.Do(m_samples_surround);
+	p.Do(m_samples_auxA_left);
+	p.Do(m_samples_auxA_right);
+	p.Do(m_samples_auxA_surround);
+	p.Do(m_samples_auxB_left);
+	p.Do(m_samples_auxB_right);
+	p.Do(m_samples_auxB_surround);
+}
+
 void CUCode_AX::DoState(PointerWrap& p)
 {
 	std::lock_guard<std::mutex> lk(m_processing);
 
-	// TODO
-
 	DoStateShared(p);
+	DoAXState(p);
 }

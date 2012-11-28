@@ -364,7 +364,20 @@ void CUCode_AXWii::DoState(PointerWrap &p)
 {
 	std::lock_guard<std::mutex> lk(m_processing);
 
-	// TODO
-
 	DoStateShared(p);
+	DoAXState(p);
+
+	p.Do(m_samples_auxC_left);
+	p.Do(m_samples_auxC_right);
+	p.Do(m_samples_auxC_surround);
+
+	p.Do(m_samples_wm0);
+	p.Do(m_samples_wm1);
+	p.Do(m_samples_wm2);
+	p.Do(m_samples_wm3);
+
+	p.Do(m_samples_aux0);
+	p.Do(m_samples_aux1);
+	p.Do(m_samples_aux2);
+	p.Do(m_samples_aux3);
 }
