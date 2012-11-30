@@ -482,7 +482,7 @@ void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)
 	// 32 samples per ms, 5 ms, 2 channels
 	short buffer[5 * 32 * 2];
 
-	// Clamp internal buffers to 16 bits.
+	// Output samples clamped to 16 bits and interlaced RLRLRLRLRL...
 	for (u32 i = 0; i < 5 * 32; ++i)
 	{
 		int left  = m_samples_left[i];
@@ -493,14 +493,8 @@ void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)
 		if (right < -32767) right = -32767;
 		if (right >  32767) right = 32767;
 
-		m_samples_left[i] = left;
-		m_samples_right[i] = right;
-	}
-
-	for (u32 i = 0; i < 5 * 32; ++i)
-	{
-		buffer[2 * i] = Common::swap16(m_samples_left[i]);
-		buffer[2 * i + 1] = Common::swap16(m_samples_right[i]);
+		buffer[2 * i] = Common::swap16(right);
+		buffer[2 * i + 1] = Common::swap16(left);
 	}
 
 	memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof (buffer));
