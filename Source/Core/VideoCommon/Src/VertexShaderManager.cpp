@@ -207,6 +207,7 @@ void VertexShaderManager::SetConstants()
 		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
 		const float* pstart = (const float*)&xfmem[XFMEM_POSTMATRICES + startn * 4];
 		SetMultiVSConstant4fv(C_POSTTRANSFORMMATRICES + startn, endn - startn, pstart);
+		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
 	}
 
 	if (nLightsChanged[0] >= 0)
