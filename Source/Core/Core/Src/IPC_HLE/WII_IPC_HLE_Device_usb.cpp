@@ -117,11 +117,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	m_acl_pool.DoState(p);
 
     for (unsigned int i = 0; i < 4; i++)
-	{
-		if (p.GetMode() == PointerWrap::MODE_READ && !(WIIMOTE_SRC_EMU == g_wiimote_sources[i] || WIIMOTE_SRC_NONE == g_wiimote_sources[i]))
-			continue;
 		m_WiiMotes[i].DoState(p);
-	}
 
 	// Reset the connection of real and hybrid wiimotes
 	if (p.GetMode() == PointerWrap::MODE_READ && SConfig::GetInstance().m_WiimoteReconnectOnLoad)
