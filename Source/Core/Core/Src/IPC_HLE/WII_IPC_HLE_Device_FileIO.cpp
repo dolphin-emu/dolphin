@@ -371,6 +371,8 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 	p.Do(have_file_handle);
 	p.Do(m_Mode);
 	p.Do(seek);
+	p.Do(m_SeekPos);
+	p.Do(m_Filename);
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
