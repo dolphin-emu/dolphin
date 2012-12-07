@@ -32,6 +32,7 @@ namespace OGL
 class TextureCache : public ::TextureCache
 {
 public:
+	TextureCache();
 	static void DisableStage(unsigned int stage);
 
 private:

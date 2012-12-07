@@ -57,6 +57,7 @@ namespace OGL
 {
 
 static u32 s_TempFramebuffer = 0;
+static GLuint s_VBO = 0;
 
 static const GLint c_MinLinearFilter[8] = {
 	GL_NEAREST,
@@ -306,18 +307,19 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 
 		GL_REPORT_ERRORD();
-		GLfloat tex1[] = {
-		(GLfloat)targetSource.left, (GLfloat)targetSource.bottom,
-		(GLfloat)targetSource.left, (GLfloat)targetSource.top,
-		(GLfloat)targetSource.right, (GLfloat)targetSource.top,
-		(GLfloat)targetSource.right, (GLfloat)targetSource.bottom
+		GLfloat vertices[] = {
+			-1.f, 1.f,
+			(GLfloat)targetSource.left, (GLfloat)targetSource.bottom,
+			-1.f, -1.f,
+			(GLfloat)targetSource.left, (GLfloat)targetSource.top,
+			1.f, -1.f,
+			(GLfloat)targetSource.right, (GLfloat)targetSource.top,
+			1.f, 1.f,
+			(GLfloat)targetSource.right, (GLfloat)targetSource.bottom
 		};
-		GLfloat vtx1[] = {
-		-1.f, 1.f,
-		-1.f, -1.f,
-		1.f, -1.f,
-		1.f, 1.f
-		};
+		
+		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 		
 		// disable all pointer, TODO: use VAO
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -335,9 +337,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		}
 
 		glClientActiveTexture(GL_TEXTURE0);
-		glTexCoordPointer(2, GL_FLOAT, 0, tex1);
-		glVertexPointer(2, GL_FLOAT, 0, vtx1);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat)*4, (GLfloat*)NULL + 2);
+		glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*4, 0);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		
+		// TODO: this should be removed if we use vbo everywhere
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		GL_REPORT_ERRORD();
 
@@ -415,13 +420,21 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 			(float)(1 << g_ActiveConfig.iMaxAnisotropy));
 }
 
+TextureCache::TextureCache()
+{
+	glGenBuffers(1, &s_VBO);
+}
+
+
 TextureCache::~TextureCache()
 {
-    if (s_TempFramebuffer)
+	glDeleteBuffers(1, &s_VBO);
+	
+	if (s_TempFramebuffer)
 	{
-        glDeleteFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
-        s_TempFramebuffer = 0;
-    }
+		glDeleteFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
+		s_TempFramebuffer = 0;
+	}
 }
 
 void TextureCache::DisableStage(unsigned int stage)
