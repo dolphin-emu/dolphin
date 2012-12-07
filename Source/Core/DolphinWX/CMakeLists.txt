@@ -153,6 +153,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/postprocess_bundle.cmake "
 		include(BundleUtilities)
 		message(\"Fixing up application bundle: ${BUNDLE_PATH}\")
+		set(BU_CHMOD_BUNDLE_ITEMS ON)
 		fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
 		")
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
