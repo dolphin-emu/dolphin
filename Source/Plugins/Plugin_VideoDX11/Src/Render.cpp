@@ -1094,7 +1094,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (SConfig::GetInstance().m_ShowLag)
 	{
 		char lag[10];
-		StringCchPrintfA(lag, 1000, "Lag: %d\n", Movie::g_currentLagCount);
+		StringCchPrintfA(lag, 1000, "Lag: %llu\n", Movie::g_currentLagCount);
 		D3D::font.DrawTextScaled(0, 18, 20, 0.0f, 0xFF00FFFF, lag);
 	}
 
