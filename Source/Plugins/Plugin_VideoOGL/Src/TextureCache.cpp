@@ -319,6 +319,21 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		1.f, 1.f
 		};
 		
+		// disable all pointer, TODO: use VAO
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
+		glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+		glClientActiveTexture(GL_TEXTURE0);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		for(int i=1; i<8; i++) {
+			glClientActiveTexture(GL_TEXTURE0 + i);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+
 		glClientActiveTexture(GL_TEXTURE0);
 		glTexCoordPointer(2, GL_FLOAT, 0, tex1);
 		glVertexPointer(2, GL_FLOAT, 0, vtx1);

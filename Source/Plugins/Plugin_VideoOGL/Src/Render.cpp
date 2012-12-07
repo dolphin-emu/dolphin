@@ -474,7 +474,6 @@ Renderer::Renderer()
 	glBlendColorEXT(0, 0, 0, 0.5f);
 	glClearDepth(1.0f);
 
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	// legacy multitexturing: select texture channel only.
 	glActiveTexture(GL_TEXTURE0);
 	glClientActiveTexture(GL_TEXTURE0);
@@ -578,6 +577,19 @@ void Renderer::DrawDebugInfo()
 			RectPoints[a * 16 + 15] = y2;
 		}
 		
+		// disable all pointer, TODO: use VAO
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
+		glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+		for(int i=0; i<8; i++) {
+			glClientActiveTexture(GL_TEXTURE0 + i);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+
 		glColorPointer (3, GL_FLOAT, 0, Colours);
 		glVertexPointer(2, GL_FLOAT, 0, RectPoints);
 		glDrawArrays(GL_LINE_STRIP, 0, stats.efb_regions.size() * 8);		
@@ -1159,14 +1171,29 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			1.0f, 1.0f,
 			1.0f, 0.0f
 		};
-		
+
+		// disable all pointer, TODO: use VAO
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
+		glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+		glClientActiveTexture(GL_TEXTURE0);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		for(int i=1; i<8; i++) {
+			glClientActiveTexture(GL_TEXTURE0 + i);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
 
 		if (applyShader)
 		{
 			glClientActiveTexture(GL_TEXTURE1);
 			glTexCoordPointer(2, GL_FLOAT, 0, tex2);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
-			
+
 		glVertexPointer(3, GL_FLOAT, 0, vtx1);
 		glClientActiveTexture(GL_TEXTURE0);
 		glTexCoordPointer(2, GL_FLOAT, 0, tex1);

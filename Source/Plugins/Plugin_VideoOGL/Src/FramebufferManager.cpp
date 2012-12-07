@@ -17,6 +17,7 @@
 
 #include "Globals.h"
 #include "FramebufferManager.h"
+#include "VertexShaderGen.h"
 
 #include "TextureConverter.h"
 #include "Render.h"
@@ -324,6 +325,22 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 		1.0f, 0.0f
 	};
 	
+	// disable all pointer, TODO: use VAO
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
+	glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glClientActiveTexture(GL_TEXTURE1);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	for(int i=2; i<8; i++) {
+		glClientActiveTexture(GL_TEXTURE0 + i);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
 
 	glVertexPointer(2, GL_FLOAT, 0, vtx1);
 	glClientActiveTexture(GL_TEXTURE0);
