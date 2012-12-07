@@ -533,13 +533,15 @@ void Renderer::DrawDebugInfo()
 		// Set Line Size
 		glLineWidth(3.0f);
 
-		GLfloat *RectPoints = new GLfloat[stats.efb_regions.size() * 16];
-		GLfloat *Colours = new GLfloat[stats.efb_regions.size() * 3];
+		// 2*Coords + 3*Color
+		GLfloat *Vertices = new GLfloat[stats.efb_regions.size() * (2+3)*2*6];
 
 		// Draw EFB copy regions rectangles
 		int a = 0;
+		GLfloat color[3] = {0.0f, 1.0f, 1.0f};
+		
 		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin();
-			it != stats.efb_regions.end(); ++it, ++a)
+			it != stats.efb_regions.end(); ++it)
 		{
 			GLfloat halfWidth = EFB_WIDTH / 2.0f;
 			GLfloat halfHeight = EFB_HEIGHT / 2.0f;
@@ -548,33 +550,88 @@ void Renderer::DrawDebugInfo()
 			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)it->right / halfWidth);
 			GLfloat y2 = (GLfloat) 1.0f - ((GLfloat)it->bottom / halfHeight);
 
-			Colours[a * 3] = 0.0f;
-			Colours[a * 3 + 1] = 1.0f;
-			Colours[a * 3 + 2] = 1.0f;
-
-			RectPoints[a * 16] = x;
-			RectPoints[a * 16 + 1] = y;
+			Vertices[a++] = x;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
 			
-			RectPoints[a * 16 + 2] = x2;
-			RectPoints[a * 16 + 3] = y;
+			Vertices[a++] = x2;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
 			
-			RectPoints[a * 16 + 4] = x;
-			RectPoints[a * 16 + 5] = y2;
-
-			RectPoints[a * 16 + 6] = x2;
-			RectPoints[a * 16 + 7] = y2;
-
-			RectPoints[a * 16 + 8] = x;
-			RectPoints[a * 16 + 9] = y;
-
-			RectPoints[a * 16 + 10] = x;
-			RectPoints[a * 16 + 11] = y2;
-
-			RectPoints[a * 16 + 12] = x2;
-			RectPoints[a * 16 + 13] = y;
-
-			RectPoints[a * 16 + 14] = x2;
-			RectPoints[a * 16 + 15] = y2;
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			
+			Vertices[a++] = x;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			
+			Vertices[a++] = x;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			// TO DO: build something nicer here
+			GLfloat temp = color[0];
+			color[0] = color[1];
+			color[1] = color[2];
+			color[2] = temp;
 		}
 		
 		// disable all pointer, TODO: use VAO
@@ -590,11 +647,10 @@ void Renderer::DrawDebugInfo()
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
 
-		glColorPointer (3, GL_FLOAT, 0, Colours);
-		glVertexPointer(2, GL_FLOAT, 0, RectPoints);
-		glDrawArrays(GL_LINE_STRIP, 0, stats.efb_regions.size() * 8);		
-		delete[] RectPoints;
-		delete[] Colours;
+		glColorPointer (3, GL_FLOAT, sizeof(GLfloat)*5, Vertices+2);
+		glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*5, Vertices);
+		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
+		delete[] Vertices;
 
 		// Restore Line Size
 		glLineWidth(lSize);
