@@ -317,16 +317,19 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 		sourcerc.right, sourcerc.top,
 		sourcerc.right, sourcerc.bottom
 	};
+	GLfloat tex2[] = { // For TEXTURE1
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f
+	};
 	
-	glClientActiveTexture(GL_TEXTURE0);
-
-	glMultiTexCoord2f(GL_TEXTURE1, 0, 0);
-	glMultiTexCoord2f(GL_TEXTURE1, 0, 1);
-	glMultiTexCoord2f(GL_TEXTURE1, 1, 1);
-	glMultiTexCoord2f(GL_TEXTURE1, 1, 0);
 
 	glVertexPointer(2, GL_FLOAT, 0, vtx1);
+	glClientActiveTexture(GL_TEXTURE0);
 	glTexCoordPointer(2, GL_FLOAT, 0, tex1);
+	glClientActiveTexture(GL_TEXTURE1);
+	glTexCoordPointer(2, GL_FLOAT, 0, tex2);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 		

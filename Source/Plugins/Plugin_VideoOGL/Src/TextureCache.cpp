@@ -319,6 +319,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		1.f, 1.f
 		};
 		
+		glClientActiveTexture(GL_TEXTURE0);
 		glTexCoordPointer(2, GL_FLOAT, 0, tex1);
 		glVertexPointer(2, GL_FLOAT, 0, vtx1);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

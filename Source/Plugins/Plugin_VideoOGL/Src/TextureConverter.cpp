@@ -228,6 +228,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 		1.f, -1.f
 	};
 
+	glClientActiveTexture(GL_TEXTURE0);
 	glTexCoordPointer(2, GL_FLOAT, 0, tex1);
 	glVertexPointer(2, GL_FLOAT, 0, vtx1);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -401,6 +402,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 		-1.f, -1.f
 	};
 	
+	glClientActiveTexture(GL_TEXTURE0);
 	glTexCoordPointer(2, GL_FLOAT, 0, tex1);
 	glVertexPointer(2, GL_FLOAT, 0, vtx1);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
