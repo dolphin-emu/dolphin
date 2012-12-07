@@ -106,10 +106,10 @@ namespace OGL
 
 // Declarations and definitions
 // ----------------------------
-int s_fps=0;
+static int s_fps = 0;
+static GLuint s_ShowEFBCopyRegions_VBO = 0;
 
-
-RasterFont* s_pfont = NULL;
+static RasterFont* s_pfont = NULL;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
@@ -125,9 +125,9 @@ static std::thread scrshotThread;
 #endif
 
 // EFB cache related
-const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
-const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
-const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
+static const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
+static const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
+static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
@@ -250,6 +250,7 @@ Renderer::Renderer()
 	OSDInternalH = 0;
 
 	s_fps=0;
+	s_ShowEFBCopyRegions_VBO = 0;
 	s_blendMode = 0;
 
 	InitFPSCounter();
@@ -452,6 +453,9 @@ Renderer::Renderer()
 	cgGLSetDebugMode(GL_FALSE);
 #endif
 #endif
+	
+	// creating buffers
+	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);
 
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -489,6 +493,10 @@ Renderer::~Renderer()
 {
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
+	
+	glDeleteBuffers(1, &s_ShowEFBCopyRegions_VBO);
+	s_ShowEFBCopyRegions_VBO = 0;
+	
 	delete s_pfont;
 	s_pfont = 0;
 
@@ -534,7 +542,9 @@ void Renderer::DrawDebugInfo()
 		glLineWidth(3.0f);
 
 		// 2*Coords + 3*Color
-		GLfloat *Vertices = new GLfloat[stats.efb_regions.size() * (2+3)*2*6];
+		glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
+		glBufferData(GL_ARRAY_BUFFER, stats.efb_regions.size() * sizeof(GLfloat) * (2+3)*2*6, NULL, GL_STREAM_DRAW);
+		GLfloat *Vertices = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 		// Draw EFB copy regions rectangles
 		int a = 0;
@@ -633,6 +643,7 @@ void Renderer::DrawDebugInfo()
 			color[1] = color[2];
 			color[2] = temp;
 		}
+		glUnmapBuffer(GL_ARRAY_BUFFER);
 		
 		// disable all pointer, TODO: use VAO
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -647,13 +658,15 @@ void Renderer::DrawDebugInfo()
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
 
-		glColorPointer (3, GL_FLOAT, sizeof(GLfloat)*5, Vertices+2);
-		glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*5, Vertices);
+		glColorPointer (3, GL_FLOAT, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
+		glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*5, NULL);
 		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
-		delete[] Vertices;
 
 		// Restore Line Size
 		glLineWidth(lSize);
+		
+		// disable buffer TODO: remove this, after everting is in vbo
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		// Clear stored regions
 		stats.efb_regions.clear();
