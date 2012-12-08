@@ -108,6 +108,7 @@ namespace OGL
 // ----------------------------
 static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
+static GLuint s_Swap_VBO = 0;
 
 static RasterFont* s_pfont = NULL;
 
@@ -251,6 +252,7 @@ Renderer::Renderer()
 
 	s_fps=0;
 	s_ShowEFBCopyRegions_VBO = 0;
+	s_Swap_VBO = 0;
 	s_blendMode = 0;
 
 	InitFPSCounter();
@@ -456,6 +458,7 @@ Renderer::Renderer()
 	
 	// creating buffers
 	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);
+	glGenBuffers(1, &s_Swap_VBO);
 
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -495,6 +498,7 @@ Renderer::~Renderer()
 	UpdateActiveConfig();
 	
 	glDeleteBuffers(1, &s_ShowEFBCopyRegions_VBO);
+	glDeleteBuffers(1, &s_Swap_VBO);
 	s_ShowEFBCopyRegions_VBO = 0;
 	
 	delete s_pfont;
@@ -1217,29 +1221,26 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 
-		GLfloat vtx1[] = {
-			-1, -1, 1,
-			-1, 1, 1,
-			1, 1, 1,
-			1, -1, 1
-		};
-		GLfloat top = (GLfloat)targetRc.top;
-		GLfloat right = (GLfloat)targetRc.right;
-		GLfloat bottom = (GLfloat)targetRc.bottom;
-		GLfloat left = (GLfloat)targetRc.left;
-
-		GLfloat tex1[] = { // For TEXTURE0
-			left, bottom,
-			left, top,
-			right, top,
-			right, bottom
-		};
-		GLfloat tex2[] = { // For TEXTURE1
+		GLfloat vertices[] = {
+			-1.0f, -1.0f, 1.0f,
+			(GLfloat)targetRc.left, (GLfloat)targetRc.bottom,
 			0.0f, 0.0f,
+			
+			-1.0f, 1.0f, 1.0f,
+			(GLfloat)targetRc.left, (GLfloat)targetRc.top,
 			0.0f, 1.0f,
+			
+			1.0f, 1.0f, 1.0f,
+			(GLfloat)targetRc.right, (GLfloat)targetRc.top,
 			1.0f, 1.0f,
+			
+			1.0f, -1.0f, 1.0f,
+			(GLfloat)targetRc.right, (GLfloat)targetRc.bottom,
 			1.0f, 0.0f
 		};
+		
+		glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
+		glBufferData(GL_ARRAY_BUFFER, 4*7*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 
 		// disable all pointer, TODO: use VAO
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -1259,14 +1260,18 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		if (applyShader)
 		{
 			glClientActiveTexture(GL_TEXTURE1);
-			glTexCoordPointer(2, GL_FLOAT, 0, tex2);
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		}
 
-		glVertexPointer(3, GL_FLOAT, 0, vtx1);
+		glVertexPointer(3, GL_FLOAT, 7*sizeof(GLfloat), NULL);
 		glClientActiveTexture(GL_TEXTURE0);
-		glTexCoordPointer(2, GL_FLOAT, 0, tex1);
+		glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+3);
+		glClientActiveTexture(GL_TEXTURE1);
+		glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+5);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		
+		// TODO: also remove this
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		if(applyShader)
 			PixelShaderCache::DisableShader();
