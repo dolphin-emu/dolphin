@@ -57,6 +57,8 @@ static FRAGMENTSHADER s_yuyvToRgbProgram;
 const u32 NUM_ENCODING_PROGRAMS = 64;
 static FRAGMENTSHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 
+static GLuint s_VBO = 0;
+
 void CreateRgbToYuyvProgram()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
@@ -140,6 +142,8 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 void Init()
 {
 	glGenFramebuffersEXT(1, &s_texConvFrameBuffer);
+	
+	glGenBuffers(1, &s_VBO);
 
 	glGenRenderbuffersEXT(1, &s_dstRenderBuffer);
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
@@ -162,6 +166,7 @@ void Shutdown()
 	glDeleteTextures(1, &s_srcTexture);
 	glDeleteRenderbuffersEXT(1, &s_dstRenderBuffer);
 	glDeleteFramebuffersEXT(1, &s_texConvFrameBuffer);
+	glDeleteBuffers(1, &s_VBO);
 
 	s_rgbToYuyvProgram.Destroy();
 	s_yuyvToRgbProgram.Destroy();
@@ -215,18 +220,19 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	GL_REPORT_ERRORD();
 
-	GLfloat tex1[] = {
+	GLfloat vertices[] = {
+		-1.f, -1.f, 
 		(float)sourceRc.left, (float)sourceRc.top,
+		-1.f, 1.f,
 		(float)sourceRc.left, (float)sourceRc.bottom,
+		1.f, 1.f,
 		(float)sourceRc.right, (float)sourceRc.bottom,
+		1.f, -1.f,
 		(float)sourceRc.right, (float)sourceRc.top
 	};
-	GLfloat vtx1[] = {
-		-1.f, -1.f, 
-		-1.f, 1.f,
-		1.f, 1.f,
-		1.f, -1.f
-	};
+	
+	glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+	glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 
 	// disable all pointer, TODO: use VAO
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -244,9 +250,12 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	}
 
 	glClientActiveTexture(GL_TEXTURE0);
-	glTexCoordPointer(2, GL_FLOAT, 0, tex1);
-	glVertexPointer(2, GL_FLOAT, 0, vtx1);
+	glTexCoordPointer(2, GL_FLOAT, 4*sizeof(GLfloat), (GLfloat*)NULL + 2);
+	glVertexPointer(2, GL_FLOAT, 4*sizeof(GLfloat), NULL);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	
+	// TODO: remove this
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	GL_REPORT_ERRORD();
 
