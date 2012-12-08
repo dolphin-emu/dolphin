@@ -28,6 +28,8 @@ namespace OGL
 
 extern bool s_bHaveFramebufferBlit; // comes from Render.cpp. ugly.
 
+static GLuint s_VBO = 0;
+
 int FramebufferManager::m_targetWidth;
 int FramebufferManager::m_targetHeight;
 int FramebufferManager::m_msaaSamples;
@@ -170,6 +172,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	// Create XFB framebuffer; targets will be created elsewhere.
 
 	glGenFramebuffersEXT(1, &m_xfbFramebuffer);
+	
+	glGenBuffers(1, &s_VBO);
 
 	// EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
 	glViewport(0, 0, m_targetWidth, m_targetHeight);
@@ -182,6 +186,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 FramebufferManager::~FramebufferManager()
 {
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glDeleteBuffers(1, &s_VBO);
 
 	GLuint glObj[3];
 
@@ -306,24 +311,23 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
 
-	GLfloat vtx1[] = {
+	GLfloat vertices[] = {
 		drawrc.left, drawrc.bottom,
-		drawrc.left, drawrc.top,
-		drawrc.right, drawrc.top,
-		drawrc.right, drawrc.bottom,
-	};
-	GLfloat tex1[] = { // For TEXTURE0
 		sourcerc.left, sourcerc.bottom,
-		sourcerc.left, sourcerc.top,
-		sourcerc.right, sourcerc.top,
-		sourcerc.right, sourcerc.bottom
-	};
-	GLfloat tex2[] = { // For TEXTURE1
 		0.0f, 0.0f,
+		drawrc.left, drawrc.top,
+		sourcerc.left, sourcerc.top,
 		0.0f, 1.0f,
+		drawrc.right, drawrc.top,
+		sourcerc.right, sourcerc.top,
 		1.0f, 1.0f,
+		drawrc.right, drawrc.bottom,
+		sourcerc.right, sourcerc.bottom,
 		1.0f, 0.0f
 	};
+	
+	glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+	glBufferData(GL_ARRAY_BUFFER, 2*4*3*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 	
 	// disable all pointer, TODO: use VAO
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -342,13 +346,15 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
-	glVertexPointer(2, GL_FLOAT, 0, vtx1);
+	glVertexPointer(2, GL_FLOAT, 6*sizeof(GLfloat), NULL);
 	glClientActiveTexture(GL_TEXTURE0);
-	glTexCoordPointer(2, GL_FLOAT, 0, tex1);
+	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+2);
 	glClientActiveTexture(GL_TEXTURE1);
-	glTexCoordPointer(2, GL_FLOAT, 0, tex2);
+	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+4);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
+	// TODO: this need to be removed in future
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
 	GL_REPORT_ERRORD();
 }
