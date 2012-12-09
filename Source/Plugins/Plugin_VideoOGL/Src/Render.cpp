@@ -109,7 +109,7 @@ namespace OGL
 static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_Swap_VBO = 0;
-static TargetRectangle s_old_targetRc;
+static TargetRectangle s_cached_targetRc;
 
 static RasterFont* s_pfont = NULL;
 
@@ -257,10 +257,10 @@ Renderer::Renderer()
 	s_blendMode = 0;
 	
 	// should be invalid, so there will be an upload on the first call
-	s_old_targetRc.bottom = -1;
-	s_old_targetRc.top = -1;
-	s_old_targetRc.left = -1;
-	s_old_targetRc.right = -1;
+	s_cached_targetRc.bottom = -1;
+	s_cached_targetRc.top = -1;
+	s_cached_targetRc.left = -1;
+	s_cached_targetRc.right = -1;
 	
 
 	InitFPSCounter();
@@ -1229,7 +1229,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 
-		if(!(s_old_targetRc == targetRc)) {
+		if(!( s_cached_targetRc == targetRc)) {
 			GLfloat vertices[] = {
 				-1.0f, -1.0f, 1.0f,
 				(GLfloat)targetRc.left, (GLfloat)targetRc.bottom,
@@ -1251,7 +1251,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
 			glBufferData(GL_ARRAY_BUFFER, 4*7*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 			
-			s_old_targetRc = targetRc;
+			s_cached_targetRc = targetRc;
 		} else {
 			// TODO: remove this after switch to VAO
 			glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);

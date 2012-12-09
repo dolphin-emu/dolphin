@@ -56,8 +56,13 @@
 namespace OGL
 {
 
+struct VBOCache {
+	GLuint vbo;
+	TargetRectangle targetSource;
+};
+static std::map<u32,VBOCache> s_VBO;
+
 static u32 s_TempFramebuffer = 0;
-static GLuint s_VBO = 0;
 
 static const GLint c_MinLinearFilter[8] = {
 	GL_NEAREST,
@@ -305,21 +310,41 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		GL_REPORT_ERRORD();
 
 		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
-
 		GL_REPORT_ERRORD();
-		GLfloat vertices[] = {
-			-1.f, 1.f,
-			(GLfloat)targetSource.left, (GLfloat)targetSource.bottom,
-			-1.f, -1.f,
-			(GLfloat)targetSource.left, (GLfloat)targetSource.top,
-			1.f, -1.f,
-			(GLfloat)targetSource.right, (GLfloat)targetSource.top,
-			1.f, 1.f,
-			(GLfloat)targetSource.right, (GLfloat)targetSource.bottom
-		};
 		
-		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+		// should be unique enough, if not, vbo will "only" be uploaded to much
+		u32 targetSourceHash = targetSource.left<<24 | targetSource.top<<16 | targetSource.right<<8 | targetSource.bottom;
+		std::map<u32, VBOCache>::iterator vbo_it = s_VBO.find(targetSourceHash);
+		
+		if(vbo_it == s_VBO.end()) {
+			VBOCache item;
+			item.targetSource.bottom = -1;
+			item.targetSource.top = -1;
+			item.targetSource.left = -1;
+			item.targetSource.right = -1;
+			glGenBuffers(1, &item.vbo);
+			vbo_it = s_VBO.insert(std::pair<u32,VBOCache>(targetSourceHash, item)).first;
+		}
+		if(!(vbo_it->second.targetSource == targetSource)) {
+			GLfloat vertices[] = {
+				-1.f, 1.f,
+				(GLfloat)targetSource.left, (GLfloat)targetSource.bottom,
+				-1.f, -1.f,
+				(GLfloat)targetSource.left, (GLfloat)targetSource.top,
+				1.f, -1.f,
+				(GLfloat)targetSource.right, (GLfloat)targetSource.top,
+				1.f, 1.f,
+				(GLfloat)targetSource.right, (GLfloat)targetSource.bottom
+			};
+				
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
+			glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+			
+			vbo_it->second.targetSource = targetSource;
+		} else {
+			// TODO: remove after switched to VAO
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
+		}
 		
 		// disable all pointer, TODO: use VAO
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -422,13 +447,14 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 
 TextureCache::TextureCache()
 {
-	glGenBuffers(1, &s_VBO);
 }
 
 
 TextureCache::~TextureCache()
 {
-	glDeleteBuffers(1, &s_VBO);
+	for(std::map<u32, VBOCache>::iterator it = s_VBO.begin(); it != s_VBO.end(); it++) {
+		glGenBuffers(1, &it->second.vbo);
+	}
 	
 	if (s_TempFramebuffer)
 	{
