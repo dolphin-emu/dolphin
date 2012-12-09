@@ -109,6 +109,7 @@ namespace OGL
 static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_Swap_VBO = 0;
+static TargetRectangle s_old_targetRc;
 
 static RasterFont* s_pfont = NULL;
 
@@ -254,6 +255,13 @@ Renderer::Renderer()
 	s_ShowEFBCopyRegions_VBO = 0;
 	s_Swap_VBO = 0;
 	s_blendMode = 0;
+	
+	// should be invalid, so there will be an upload on the first call
+	s_old_targetRc.bottom = -1;
+	s_old_targetRc.top = -1;
+	s_old_targetRc.left = -1;
+	s_old_targetRc.right = -1;
+	
 
 	InitFPSCounter();
 
@@ -1221,26 +1229,33 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 
-		GLfloat vertices[] = {
-			-1.0f, -1.0f, 1.0f,
-			(GLfloat)targetRc.left, (GLfloat)targetRc.bottom,
-			0.0f, 0.0f,
+		if(!(s_old_targetRc == targetRc)) {
+			GLfloat vertices[] = {
+				-1.0f, -1.0f, 1.0f,
+				(GLfloat)targetRc.left, (GLfloat)targetRc.bottom,
+				0.0f, 0.0f,
+				
+				-1.0f, 1.0f, 1.0f,
+				(GLfloat)targetRc.left, (GLfloat)targetRc.top,
+				0.0f, 1.0f,
+				
+				1.0f, 1.0f, 1.0f,
+				(GLfloat)targetRc.right, (GLfloat)targetRc.top,
+				1.0f, 1.0f,
+				
+				1.0f, -1.0f, 1.0f,
+				(GLfloat)targetRc.right, (GLfloat)targetRc.bottom,
+				1.0f, 0.0f
+			};
 			
-			-1.0f, 1.0f, 1.0f,
-			(GLfloat)targetRc.left, (GLfloat)targetRc.top,
-			0.0f, 1.0f,
+			glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
+			glBufferData(GL_ARRAY_BUFFER, 4*7*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 			
-			1.0f, 1.0f, 1.0f,
-			(GLfloat)targetRc.right, (GLfloat)targetRc.top,
-			1.0f, 1.0f,
-			
-			1.0f, -1.0f, 1.0f,
-			(GLfloat)targetRc.right, (GLfloat)targetRc.bottom,
-			1.0f, 0.0f
-		};
-		
-		glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
-		glBufferData(GL_ARRAY_BUFFER, 4*7*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+			s_old_targetRc = targetRc;
+		} else {
+			// TODO: remove this after switch to VAO
+			glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
+		}
 
 		// disable all pointer, TODO: use VAO
 		glEnableClientState(GL_VERTEX_ARRAY);
