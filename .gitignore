@@ -35,3 +35,4 @@ Source/Core/Common/Src/scmrev.h
 *.ipch
 .sconsign.dblite
 Externals/scons-local/*
+*~

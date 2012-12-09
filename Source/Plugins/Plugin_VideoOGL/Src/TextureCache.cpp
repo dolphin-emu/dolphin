@@ -58,6 +58,7 @@ namespace OGL
 
 struct VBOCache {
 	GLuint vbo;
+	GLuint vao;
 	TargetRectangle targetSource;
 };
 static std::map<u32,VBOCache> s_VBO;
@@ -323,6 +324,18 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			item.targetSource.left = -1;
 			item.targetSource.right = -1;
 			glGenBuffers(1, &item.vbo);
+			glGenVertexArrays(1, &item.vao);
+			
+			glBindBuffer(GL_ARRAY_BUFFER, item.vbo);
+			glBindVertexArray(item.vao);
+			
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*4, 0);
+			
+			glClientActiveTexture(GL_TEXTURE0);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat)*4, (GLfloat*)NULL + 2);
+			
 			vbo_it = s_VBO.insert(std::pair<u32,VBOCache>(targetSourceHash, item)).first;
 		}
 		if(!(vbo_it->second.targetSource == targetSource)) {
@@ -336,38 +349,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 				1.f, 1.f,
 				(GLfloat)targetSource.right, (GLfloat)targetSource.bottom
 			};
-				
+			
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
 			glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 			
 			vbo_it->second.targetSource = targetSource;
-		} else {
-			// TODO: remove after switched to VAO
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
-		}
-		
-		// disable all pointer, TODO: use VAO
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
-		glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
-		glDisableClientState(GL_COLOR_ARRAY);
-		glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-		glClientActiveTexture(GL_TEXTURE0);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		for(int i=1; i<8; i++) {
-			glClientActiveTexture(GL_TEXTURE0 + i);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		}
+		} 
 
-		glClientActiveTexture(GL_TEXTURE0);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat)*4, (GLfloat*)NULL + 2);
-		glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*4, 0);
+		glBindVertexArray(vbo_it->second.vao);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		
-		// TODO: this should be removed if we use vbo everywhere
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		GL_REPORT_ERRORD();
 
@@ -453,7 +443,8 @@ TextureCache::TextureCache()
 TextureCache::~TextureCache()
 {
 	for(std::map<u32, VBOCache>::iterator it = s_VBO.begin(); it != s_VBO.end(); it++) {
-		glGenBuffers(1, &it->second.vbo);
+		glDeleteBuffers(1, &it->second.vbo);
+		glDeleteVertexArrays(1, &it->second.vao);
 	}
 	s_VBO.clear();
 	

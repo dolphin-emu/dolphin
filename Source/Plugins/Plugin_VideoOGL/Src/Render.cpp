@@ -108,7 +108,9 @@ namespace OGL
 // ----------------------------
 static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
+static GLuint s_ShowEFBCopyRegions_VAO = 0;
 static GLuint s_Swap_VBO = 0;
+static GLuint s_Swap_VAO[2];
 static TargetRectangle s_cached_targetRc;
 
 static RasterFont* s_pfont = NULL;
@@ -322,6 +324,13 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
+	if (!GLEW_ARB_vertex_array_object)
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_vertex_array_object.\n"
+				"GPU: Does your video card support OpenGL 3.0?");
+		bSuccess = false;
+	}
+
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 
@@ -466,7 +475,33 @@ Renderer::Renderer()
 	
 	// creating buffers
 	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);
+	glGenVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
+	glBindVertexArray( s_ShowEFBCopyRegions_VAO );
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer (3, GL_FLOAT, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*5, NULL);
+	
 	glGenBuffers(1, &s_Swap_VBO);
+	glGenVertexArrays(2, s_Swap_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
+	glBindVertexArray(s_Swap_VAO[0]);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 7*sizeof(GLfloat), NULL);
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+3);
+	
+	glBindVertexArray(s_Swap_VAO[1]);	
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 7*sizeof(GLfloat), NULL);
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+3);
+	glClientActiveTexture(GL_TEXTURE1);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+5);
 
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -506,7 +541,9 @@ Renderer::~Renderer()
 	UpdateActiveConfig();
 	
 	glDeleteBuffers(1, &s_ShowEFBCopyRegions_VBO);
+	glDeleteVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
 	glDeleteBuffers(1, &s_Swap_VBO);
+	glDeleteVertexArrays(2, s_Swap_VAO);
 	s_ShowEFBCopyRegions_VBO = 0;
 	
 	delete s_pfont;
@@ -657,28 +694,11 @@ void Renderer::DrawDebugInfo()
 		}
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 		
-		// disable all pointer, TODO: use VAO
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
-		glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-		for(int i=0; i<8; i++) {
-			glClientActiveTexture(GL_TEXTURE0 + i);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		}
-
-		glColorPointer (3, GL_FLOAT, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
-		glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*5, NULL);
+		glBindVertexArray( s_ShowEFBCopyRegions_VAO );
 		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
 
 		// Restore Line Size
 		glLineWidth(lSize);
-		
-		// disable buffer TODO: remove this, after everting is in vbo
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		// Clear stored regions
 		stats.efb_regions.clear();
@@ -1252,41 +1272,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			glBufferData(GL_ARRAY_BUFFER, 4*7*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 			
 			s_cached_targetRc = targetRc;
-		} else {
-			// TODO: remove this after switch to VAO
-			glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
-		}
-
-		// disable all pointer, TODO: use VAO
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
-		glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
-		glDisableClientState(GL_COLOR_ARRAY);
-		glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-		glClientActiveTexture(GL_TEXTURE0);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		for(int i=1; i<8; i++) {
-			glClientActiveTexture(GL_TEXTURE0 + i);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		}
-
-		if (applyShader)
-		{
-			glClientActiveTexture(GL_TEXTURE1);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		}
-
-		glVertexPointer(3, GL_FLOAT, 7*sizeof(GLfloat), NULL);
-		glClientActiveTexture(GL_TEXTURE0);
-		glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+3);
-		glClientActiveTexture(GL_TEXTURE1);
-		glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+5);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		} 
 		
-		// TODO: also remove this
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(s_Swap_VAO[applyShader]);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 		if(applyShader)
 			PixelShaderCache::DisableShader();

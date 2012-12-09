@@ -29,6 +29,7 @@ namespace OGL
 extern bool s_bHaveFramebufferBlit; // comes from Render.cpp. ugly.
 
 static GLuint s_VBO = 0;
+static GLuint s_VAO = 0;
 static MathUtil::Rectangle<float> s_cached_sourcerc;
 static MathUtil::Rectangle<float> s_cached_drawrc;
 
@@ -184,7 +185,22 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 	glGenFramebuffersEXT(1, &m_xfbFramebuffer);
 	
+	// Generate VBO & VAO - and initialize the VAO for "Draw"
 	glGenBuffers(1, &s_VBO);
+	glGenVertexArrays(1, &s_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+	glBindVertexArray(s_VAO);
+	
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 6*sizeof(GLfloat), NULL);
+	
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+2);
+	
+	glClientActiveTexture(GL_TEXTURE1);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+4);
 
 	// EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
 	glViewport(0, 0, m_targetWidth, m_targetHeight);
@@ -198,6 +214,7 @@ FramebufferManager::~FramebufferManager()
 {
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 	glDeleteBuffers(1, &s_VBO);
+	glDeleteVertexArrays(1, &s_VAO);
 
 	GLuint glObj[3];
 
@@ -339,42 +356,13 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 		};
 		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
 		glBufferData(GL_ARRAY_BUFFER, 2*4*3*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-		
+	
 		s_cached_sourcerc = sourcerc;
 		s_cached_drawrc = drawrc;
 	}
-	else
-	{
-		// TODO: remove on VAO
-		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-	}
-	
-	// disable all pointer, TODO: use VAO
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
-	glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glClientActiveTexture(GL_TEXTURE1);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	for(int i=2; i<8; i++) {
-		glClientActiveTexture(GL_TEXTURE0 + i);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	}
 
-	glVertexPointer(2, GL_FLOAT, 6*sizeof(GLfloat), NULL);
-	glClientActiveTexture(GL_TEXTURE0);
-	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+2);
-	glClientActiveTexture(GL_TEXTURE1);
-	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+4);
+	glBindVertexArray(s_VAO);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-	// TODO: this need to be removed in future
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
 	GL_REPORT_ERRORD();
 }

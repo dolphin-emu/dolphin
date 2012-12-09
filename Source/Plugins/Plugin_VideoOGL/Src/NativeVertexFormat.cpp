@@ -187,6 +187,10 @@ void GLVertexFormat::SetupVertexPointers() {
 #ifdef USE_JIT
 	((void (*)())(void*)m_compiledCode)();
 #else
+	// TODO: use this :-)
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	
 	glVertexPointer(3, GL_FLOAT, vtx_decl.stride, VertexManager::s_pBaseBufferPointer);
 	if (vtx_decl.num_normals >= 1) {
 		glNormalPointer(VarToGL(vtx_decl.normal_gl_type), vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.normal_offset[0]));
