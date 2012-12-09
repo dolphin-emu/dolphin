@@ -58,6 +58,7 @@ const u32 NUM_ENCODING_PROGRAMS = 64;
 static FRAGMENTSHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 
 static GLuint s_VBO = 0;
+static TargetRectangle s_cached_sourceRc;
 
 void CreateRgbToYuyvProgram()
 {
@@ -144,6 +145,10 @@ void Init()
 	glGenFramebuffersEXT(1, &s_texConvFrameBuffer);
 	
 	glGenBuffers(1, &s_VBO);
+	s_cached_sourceRc.top = -1;
+	s_cached_sourceRc.bottom = -1;
+	s_cached_sourceRc.left = -1;
+	s_cached_sourceRc.right = -1;
 
 	glGenRenderbuffersEXT(1, &s_dstRenderBuffer);
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
@@ -219,20 +224,25 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	PixelShaderCache::SetCurrentShader(shader.glprogid);
 
 	GL_REPORT_ERRORD();
-
-	GLfloat vertices[] = {
-		-1.f, -1.f, 
-		(float)sourceRc.left, (float)sourceRc.top,
-		-1.f, 1.f,
-		(float)sourceRc.left, (float)sourceRc.bottom,
-		1.f, 1.f,
-		(float)sourceRc.right, (float)sourceRc.bottom,
-		1.f, -1.f,
-		(float)sourceRc.right, (float)sourceRc.top
-	};
-	
-	glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-	glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+	if(!(s_cached_sourceRc == sourceRc)) {
+		GLfloat vertices[] = {
+			-1.f, -1.f, 
+			(float)sourceRc.left, (float)sourceRc.top,
+			-1.f, 1.f,
+			(float)sourceRc.left, (float)sourceRc.bottom,
+			1.f, 1.f,
+			(float)sourceRc.right, (float)sourceRc.bottom,
+			1.f, -1.f,
+			(float)sourceRc.right, (float)sourceRc.top
+		};
+		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+		
+		s_cached_sourceRc = sourceRc;
+	} else {
+		// TODO: remove
+		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+	}
 
 	// disable all pointer, TODO: use VAO
 	glEnableClientState(GL_VERTEX_ARRAY);

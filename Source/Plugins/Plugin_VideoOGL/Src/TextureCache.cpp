@@ -455,6 +455,7 @@ TextureCache::~TextureCache()
 	for(std::map<u32, VBOCache>::iterator it = s_VBO.begin(); it != s_VBO.end(); it++) {
 		glGenBuffers(1, &it->second.vbo);
 	}
+	s_VBO.clear();
 	
 	if (s_TempFramebuffer)
 	{
