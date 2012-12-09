@@ -29,6 +29,8 @@ namespace OGL
 extern bool s_bHaveFramebufferBlit; // comes from Render.cpp. ugly.
 
 static GLuint s_VBO = 0;
+static MathUtil::Rectangle<float> s_cached_sourcerc;
+static MathUtil::Rectangle<float> s_cached_drawrc;
 
 int FramebufferManager::m_targetWidth;
 int FramebufferManager::m_targetHeight;
@@ -56,6 +58,15 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
     m_resolvedDepthTexture = 0;
     m_xfbFramebuffer = 0;
 
+	s_cached_sourcerc.bottom = -1;
+	s_cached_sourcerc.left = -1;
+	s_cached_sourcerc.right = -1;
+	s_cached_sourcerc.top = -1;
+	s_cached_drawrc.bottom = -1;
+	s_cached_drawrc.left = -1;
+	s_cached_drawrc.right = -1;
+	s_cached_drawrc.top = -1;   
+	
 	m_targetWidth = targetWidth;
 	m_targetHeight = targetHeight;
 
@@ -311,23 +322,32 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
 
-	GLfloat vertices[] = {
-		drawrc.left, drawrc.bottom,
-		sourcerc.left, sourcerc.bottom,
-		0.0f, 0.0f,
-		drawrc.left, drawrc.top,
-		sourcerc.left, sourcerc.top,
-		0.0f, 1.0f,
-		drawrc.right, drawrc.top,
-		sourcerc.right, sourcerc.top,
-		1.0f, 1.0f,
-		drawrc.right, drawrc.bottom,
-		sourcerc.right, sourcerc.bottom,
-		1.0f, 0.0f
-	};
-	
-	glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-	glBufferData(GL_ARRAY_BUFFER, 2*4*3*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+	if(!(s_cached_sourcerc == sourcerc) || !(s_cached_drawrc == drawrc)) {
+		GLfloat vertices[] = {
+			drawrc.left, drawrc.bottom,
+			sourcerc.left, sourcerc.bottom,
+			0.0f, 0.0f,
+			drawrc.left, drawrc.top,
+			sourcerc.left, sourcerc.top,
+			0.0f, 1.0f,
+			drawrc.right, drawrc.top,
+			sourcerc.right, sourcerc.top,
+			1.0f, 1.0f,
+			drawrc.right, drawrc.bottom,
+			sourcerc.right, sourcerc.bottom,
+			1.0f, 0.0f
+		};
+		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+		glBufferData(GL_ARRAY_BUFFER, 2*4*3*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+		
+		s_cached_sourcerc = sourcerc;
+		s_cached_drawrc = drawrc;
+	}
+	else
+	{
+		// TODO: remove on VAO
+		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+	}
 	
 	// disable all pointer, TODO: use VAO
 	glEnableClientState(GL_VERTEX_ARRAY);
