@@ -320,7 +320,7 @@ void CGameListCtrl::Update()
 
 		// Sort items by Title
 		wxListEvent event;
-		event.m_col = COLUMN_TITLE; last_column = 0;
+		event.m_col = SConfig::GetInstance().m_ListSort; last_column = 0;
 		OnColumnClick(event);
 
 		SetColumnWidth(COLUMN_SIZE, wxLIST_AUTOSIZE);
@@ -708,6 +708,7 @@ void CGameListCtrl::OnColumnClick(wxListEvent& event)
 			last_sort = current_column;
 		}
 
+		SConfig::GetInstance().m_ListSort = last_sort;
 		caller = this;
 		SortItems(wxListCompare, last_sort);
 	}
