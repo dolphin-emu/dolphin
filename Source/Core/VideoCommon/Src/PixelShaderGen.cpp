@@ -129,17 +129,11 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 		return;
 	}
 
+	// numtexgens should be <= 8
 	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
-	{
-		// TODO:  This is all wrong.  i in the else clause will always be out of range as a
-		// subscript for xfregs.texMtxInfo.  NeoBrain??
-		if (18+i < 32)
-			uid->values[0] |= xfregs.texMtxInfo[i].projection << (18+i); // 1
-		else
-			uid->values[1] |= xfregs.texMtxInfo[i].projection << (i - 14); // 1
-	}
+		uid->values[0] |= xfregs.texMtxInfo[i].projection << (18+i); // 1
 
-	uid->values[1] = bpmem.genMode.numindstages << 2; // 3
+	uid->values[1] = bpmem.genMode.numindstages; // 3
 	u32 indirectStagesUsed = 0;
 	for (unsigned int i = 0; i < bpmem.genMode.numindstages; ++i)
 		if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
@@ -147,15 +141,15 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 
 	assert(indirectStagesUsed == (indirectStagesUsed & 0xF));
 
-	uid->values[1] |= indirectStagesUsed << 5; // 4;
+	uid->values[1] |= indirectStagesUsed << 3; // 4;
 
 	for (unsigned int i = 0; i < bpmem.genMode.numindstages; ++i)
 	{
 		if (indirectStagesUsed & (1 << i))
 		{
-			uid->values[1] |= (bpmem.tevindref.getTexCoord(i) < bpmem.genMode.numtexgens) << (9 + 3*i); // 1
+			uid->values[1] |= (bpmem.tevindref.getTexCoord(i) < bpmem.genMode.numtexgens) << (7 + 3*i); // 1
 			if (bpmem.tevindref.getTexCoord(i) < bpmem.genMode.numtexgens)
-				uid->values[1] |= bpmem.tevindref.getTexCoord(i) << (10 + 3*i); // 2
+				uid->values[1] |= bpmem.tevindref.getTexCoord(i) << (8 + 3*i); // 2
 		}
 	}
 
