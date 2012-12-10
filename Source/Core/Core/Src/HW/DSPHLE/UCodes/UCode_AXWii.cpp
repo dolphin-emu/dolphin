@@ -159,8 +159,8 @@ void CUCode_AXWii::Update(int cycles)
 bool CUCode_AXWii::AXTask(u32& _uMail)
 {
 	u32 uAddress = _uMail;
-	u32 Addr__AXStudio;
-	u32 Addr__AXOutSBuffer;
+	//u32 Addr__AXStudio;
+	//u32 Addr__AXOutSBuffer;
 	bool bExecuteList = true;
 
 /*
@@ -178,7 +178,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		switch (iCommand)
 		{
 	    case 0x0000: 
-		    Addr__AXStudio = HLEMemory_Read_U32(uAddress);
+		    //Addr__AXStudio = HLEMemory_Read_U32(uAddress);
 		    uAddress += 4;
 		    break;
 
@@ -209,7 +209,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    break; 
 
 		case 0x0007:   // AXLIST_SBUFFER
-		    Addr__AXOutSBuffer = HLEMemory_Read_U32(uAddress);
+		    //Addr__AXOutSBuffer = HLEMemory_Read_U32(uAddress);
 		    uAddress += 10;
 		    break;
 

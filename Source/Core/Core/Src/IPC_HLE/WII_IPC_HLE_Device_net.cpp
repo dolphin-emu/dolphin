@@ -285,7 +285,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		{
 			int x = 0;
 			int tmpaddress[6];
-			for (int i = 0; i < SConfig::GetInstance().m_WirelessMac.length() && x < 6; i++)
+			for (unsigned int i = 0; i < SConfig::GetInstance().m_WirelessMac.length() && x < 6; i++)
 			{
 				if (SConfig::GetInstance().m_WirelessMac[i] == ':' || SConfig::GetInstance().m_WirelessMac[i] == '-')
 					continue;

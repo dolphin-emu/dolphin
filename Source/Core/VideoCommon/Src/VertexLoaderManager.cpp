@@ -20,8 +20,8 @@
 #include <hash_map>
 using stdext::hash_map;
 #else
-#include <ext/hash_map>
-using __gnu_cxx::hash_map;
+#include <unordered_map>
+using std::unordered_map;
 #endif
 #include <map>
 #include <vector>
@@ -44,20 +44,21 @@ namespace stdext {
 		return uid.GetHash();
 	}
 }
+typedef hash_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
 #else
-namespace __gnu_cxx {
+namespace std {
 	template<> struct hash<VertexLoaderUID> {
 		size_t operator()(const VertexLoaderUID& uid) const {
 			return uid.GetHash();
 		}
 	};
 }
+typedef unordered_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
 #endif
 
 namespace VertexLoaderManager
 {
 
-typedef hash_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
 static VertexLoaderMap g_VertexLoaderMap;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 

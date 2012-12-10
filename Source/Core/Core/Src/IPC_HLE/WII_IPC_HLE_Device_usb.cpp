@@ -1467,9 +1467,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkPolicy(u8* _Input)
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%04x", pLinkPolicy->con_handle);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Policy: 0x%04x", pLinkPolicy->settings);
 
-	hci_write_link_policy_settings_rp Reply;
-	Reply.status = 0x00;
-	Reply.con_handle = pLinkPolicy->con_handle;
+	//hci_write_link_policy_settings_rp Reply;
+	//Reply.status = 0x00;
+	//Reply.con_handle = pLinkPolicy->con_handle;
 
 	SendEventCommandStatus(HCI_CMD_WRITE_LINK_POLICY_SETTINGS);
 

@@ -621,7 +621,7 @@ void Wiimote::DoState(PointerWrap& p)
 
 	//Do 'm_read_requests' queue
 	{
-		u32 size;
+		u32 size = 0;
 		if (p.mode == PointerWrap::MODE_READ)
 		{
 			//clear

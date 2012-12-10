@@ -285,7 +285,7 @@ bool GameListItem::GetName(std::wstring& wName, int index) const
 	index++; 
 	if ((index >=0) && (index < 10))
 	{
-		if (m_wNames.size() > index)
+		if (m_wNames.size() > (size_t)index)
 		{
 			wName = m_wNames[index];
 			return true;

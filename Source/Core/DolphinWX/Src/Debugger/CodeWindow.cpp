@@ -319,7 +319,7 @@ void CCodeWindow::UpdateLists()
 	   	{
 			int idx = callers->Append(wxString::FromAscii(StringFromFormat
 						("< %s (%08x)", caller_symbol->name.c_str(), caller_addr).c_str()));
-			callers->SetClientData(idx, (void*)caller_addr);
+			callers->SetClientData(idx, (void*)(u64)caller_addr);
 		}
 	}
 
@@ -332,7 +332,7 @@ void CCodeWindow::UpdateLists()
 	   	{
 			int idx = calls->Append(wxString::FromAscii(StringFromFormat
 						("> %s (%08x)", call_symbol->name.c_str(), call_addr).c_str()));
-			calls->SetClientData(idx, (void*)call_addr);
+			calls->SetClientData(idx, (void*)(u64)call_addr);
 		}
 	}
 }

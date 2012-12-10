@@ -321,7 +321,7 @@ void ExecuteCommand(u32 _Address)
     bool CmdSuccess = false;
 
     ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
-	volatile int DeviceID = Memory::Read_U32(_Address + 8);
+	volatile u32 DeviceID = Memory::Read_U32(_Address + 8);
 
 	IWII_IPC_HLE_Device* pDevice = (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : NULL;
 

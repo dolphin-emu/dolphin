@@ -71,7 +71,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system 
-static const int STATE_VERSION = 10;
+static const u32 STATE_VERSION = 10;
 
 struct StateHeader
 {

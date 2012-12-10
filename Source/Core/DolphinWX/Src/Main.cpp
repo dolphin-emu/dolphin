@@ -105,7 +105,7 @@ bool DolphinApp::OnInit()
 	bool UseDebugger = false;
 	bool UseLogger = false;
 	bool selectVideoBackend = false;
-	bool selectAudioEmulation = false;
+	//bool selectAudioEmulation = false;
 
 	wxString videoBackendName;
 	wxString audioEmulationName;
@@ -167,8 +167,8 @@ bool DolphinApp::OnInit()
 	selectVideoBackend = parser.Found(wxT("video_backend"),
 		&videoBackendName);
 	// TODO:  This currently has no effect.  Implement or delete.
-	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
-		&audioEmulationName);
+	//selectAudioEmulation = parser.Found(wxT("audio_emulation"),
+	//	&audioEmulationName);
 #endif // wxUSE_CMDLINE_PARSER
 
 #if defined _DEBUG && defined _WIN32

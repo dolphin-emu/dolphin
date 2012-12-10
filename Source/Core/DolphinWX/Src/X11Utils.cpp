@@ -225,7 +225,7 @@ void XRRConfiguration::Update()
 	}
 	else
 		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
-				"%a[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
+				"%m[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
 
 	for (int i = 0; i < screenResources->noutput; i++)
 	{

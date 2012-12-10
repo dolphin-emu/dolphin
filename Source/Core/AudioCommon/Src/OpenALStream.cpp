@@ -123,7 +123,6 @@ void OpenALStream::SoundLoop()
 {
 	Common::SetCurrentThreadName("Audio thread - openal");
 
-	ALenum err;
 	u32 ulFrequency = m_mixer->GetSampleRate();
 
 	memset(uiBuffers, 0, OAL_NUM_BUFFERS * sizeof(ALuint));
@@ -144,8 +143,8 @@ void OpenALStream::SoundLoop()
 	// Set the default sound volume as saved in the config file.
 	alSourcef(uiSource, AL_GAIN, fVolume); 
 
-	err = alGetError();
 	// TODO: Error handling
+	//ALenum err = alGetError();
 
 	ALint iBuffersFilled = 0;
 	ALint iBuffersProcessed = 0;

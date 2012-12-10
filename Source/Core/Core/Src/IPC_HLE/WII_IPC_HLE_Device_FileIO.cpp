@@ -183,8 +183,8 @@ void CWII_IPC_HLE_Device_FileIO::CloseFile()
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
 {
 	u32 ReturnValue	= FS_RESULT_FATAL;
-	const s32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
-	const s32 Mode = Memory::Read_U32(_CommandAddress + 0x10);  
+	const u32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
+	const u32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
 
 	
 	if (OpenFile())
@@ -205,7 +205,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 			}
 			case 1:
 			{
-				s32 wantedPos = SeekPosition+m_SeekPos;
+				u32 wantedPos = SeekPosition+m_SeekPos;
 				if (wantedPos >=0 && wantedPos <= fileSize)
 				{
 					m_SeekPos = wantedPos;
@@ -215,7 +215,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 			}
 			case 2:
 			{
-				s32 wantedPos = fileSize+m_SeekPos;
+				u64 wantedPos = fileSize+m_SeekPos;
 				if (wantedPos >=0 && wantedPos <= fileSize)
 				{
 					m_SeekPos = wantedPos;

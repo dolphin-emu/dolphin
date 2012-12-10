@@ -652,7 +652,7 @@ void CGameListCtrl::ScanForISOs()
 
 		for (std::vector<std::string>::const_iterator iter = drives.begin(); iter != drives.end(); ++iter)
 		{
-			std::auto_ptr<GameListItem> gli(new GameListItem(*iter));
+			std::unique_ptr<GameListItem> gli(new GameListItem(*iter));
 
 			if (gli->IsValid())
 				m_ISOFiles.push_back(gli.release());

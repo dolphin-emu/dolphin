@@ -361,9 +361,9 @@ u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 							(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 							numVertices);
 						num_draw_call++;
-						const int tc[12] = {
+						const u32 tc[12] = {
 							g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
-							g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const int)((g_VtxDesc.Hex >> 31) & 3)
+							g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const u32)((g_VtxDesc.Hex >> 31) & 3)
 						};
 						for(int i = 0; i < 12; i++)
 						{
@@ -563,9 +563,9 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 							dl->InsertRegion(NewRegion);
 							memcpy(NewRegion->start_address, StartAddress, Vdatasize);
 							emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices, cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewRegion->start_address);
-							const int tc[12] = {
+							const u32 tc[12] = {
 							g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
-							g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const int)((g_VtxDesc.Hex >> 31) & 3)
+							g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const u32)((g_VtxDesc.Hex >> 31) & 3)
 							};
 							for(int i = 0; i < 12; i++)
 							{

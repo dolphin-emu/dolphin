@@ -265,7 +265,7 @@ bool GCMemcard::Save()
 	mcdFile.WriteBytes(&dir_backup, BLOCK_SIZE);
 	mcdFile.WriteBytes(&bat, BLOCK_SIZE);
 	mcdFile.WriteBytes(&bat_backup, BLOCK_SIZE);
-	for (int i = 0; i < maxBlock - MC_FST_BLOCKS; ++i)
+	for (unsigned int i = 0; i < maxBlock - MC_FST_BLOCKS; ++i)
 	{
 		mcdFile.WriteBytes(mc_data_blocks[i].block, BLOCK_SIZE);
 	}
@@ -587,7 +587,7 @@ u16 GCMemcard::BlockAlloc::NextFreeBlock(u16 StartingBlock) const
 		for (u16 i = StartingBlock; i < BAT_SIZE; ++i)
 			if (Map[i-MC_FST_BLOCKS] == 0)
 				return i;
-		for (u16 i = 0; i < StartingBlock; ++i)
+		for (u16 i = MC_FST_BLOCKS; i < StartingBlock; ++i)
 			if (Map[i-MC_FST_BLOCKS] == 0)
 				return i;
 	}
@@ -609,7 +609,7 @@ bool GCMemcard::BlockAlloc::ClearBlocks(u16 FirstBlock, u16 BlockCount)
 		{
 			return false;
 		}
-		for (int i = 0; i < length; ++i)
+		for (unsigned int i = 0; i < length; ++i)
 			Map[blocks.at(i)-MC_FST_BLOCKS] = 0;
 		FreeBlocks = BE16(BE16(FreeBlocks) + BlockCount);
 
@@ -625,7 +625,7 @@ u32 GCMemcard::GetSaveData(u8 index,  std::vector<GCMBlock> & Blocks) const
 
 	u16 block = DEntry_FirstBlock(index);
 	u16 BlockCount = DEntry_BlockCount(index);
-	u16 memcardSize = BE16(hdr.SizeMb) * MBIT_TO_BLOCKS;
+	//u16 memcardSize = BE16(hdr.SizeMb) * MBIT_TO_BLOCKS;
 
 	if ((block == 0xFFFF) || (BlockCount == 0xFFFF))
 	{
@@ -669,12 +669,10 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 	Directory UpdatedDir = *CurrentDir;
 	
 	// find first free dir entry
-	int index = -1;
 	for (int i=0; i < DIRLEN; i++)
 	{
 		if (BE32(UpdatedDir.Dir[i].Gamecode) == 0xFFFFFFFF)
 		{
-			index = i;
 			UpdatedDir.Dir[i] = direntry;
 			*(u16*)&UpdatedDir.Dir[i].FirstBlock = BE16(firstBlock);
 			UpdatedDir.Dir[i].CopyCounter = UpdatedDir.Dir[i].CopyCounter+1;
@@ -887,7 +885,7 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::s
 	std::vector<GCMBlock> saveData;
 	saveData.reserve(size);
 
-	for (int i = 0; i < size; ++i)
+	for (unsigned int i = 0; i < size; ++i)
 	{
 		GCMBlock b;
 		gci.ReadBytes(b.block, BLOCK_SIZE);
@@ -1000,7 +998,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &dire
 		return NOMEMCARD;
 	}
 	gci.Seek(DENTRY_SIZE + offset, SEEK_SET);
-	for (int i = 0; i < size; ++i)
+	for (unsigned int i = 0; i < size; ++i)
 	{
 		gci.WriteBytes(saveData[i].block, BLOCK_SIZE);
 	}

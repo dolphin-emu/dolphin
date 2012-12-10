@@ -512,8 +512,6 @@ void StateChange(EMUSTATE_CHANGE newState)
 	// TODO: disable/enable auto reporting, maybe
 }
 
-#define ARRAYSIZE(_arr) (sizeof(_arr)/(sizeof(_arr[0])))
-
 bool IsValidBluetoothName(const char* name) {
 	static const char* kValidWiiRemoteBluetoothNames[] = {
 		"Nintendo RVL-CNT-01",

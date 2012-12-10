@@ -1,5 +1,7 @@
 #include "Xlib.h"
 
+#include <X11/XKBlib.h>
+
 namespace ciface
 {
 namespace Xlib
@@ -93,7 +95,7 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
 	KeySym keysym = 0;
 	do
 	{
-		keysym = XKeycodeToKeysym(m_display, keycode, i);
+		keysym = XkbKeycodeToKeysym(m_display, keycode, i, 0);
 		i++;
 	}
 	while (keysym == NoSymbol && i < 8);

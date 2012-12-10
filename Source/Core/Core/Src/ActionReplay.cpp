@@ -285,7 +285,6 @@ bool RunCode(const ARCode &arcode)
 	// used for conditional codes
 	int skip_count = 0;
 
-	u32 addr_last = 0;
 	u32 val_last = 0;
 
 	current_code = &arcode;
@@ -394,7 +393,6 @@ bool RunCode(const ARCode &arcode)
 					{
 						LogInfo("ZCode: Memory Copy");
 						doMemoryCopy = true;
-						addr_last = addr;
 						val_last = data;
 					}
 					else 

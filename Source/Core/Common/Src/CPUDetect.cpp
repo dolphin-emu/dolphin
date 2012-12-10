@@ -173,9 +173,7 @@ void CPUInfo::Detect()
 	if (max_ex_fn >= 0x80000001) {
 		// Check for more features.
 		__cpuid(cpu_id, 0x80000001);
-		bool cmp_legacy = false;
 		if (cpu_id[2] & 1) bLAHFSAHF64 = true;
-		if (cpu_id[2] & 2) cmp_legacy = true; //wtf is this?
 		if ((cpu_id[3] >> 29) & 1) bLongMode = true;
 	}
 

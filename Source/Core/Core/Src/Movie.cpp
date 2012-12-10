@@ -663,19 +663,19 @@ void ReadHeader()
 	}
 
 	videoBackend.resize(ARRAYSIZE(tmpHeader.videoBackend));
-	for (int i = 0; i < ARRAYSIZE(tmpHeader.videoBackend);i++)
+	for (unsigned int i = 0; i < ARRAYSIZE(tmpHeader.videoBackend);i++)
 	{
 		videoBackend[i] = tmpHeader.videoBackend[i];
 	}
 
 	g_discChange.resize(ARRAYSIZE(tmpHeader.discChange));
-	for (int i = 0; i < ARRAYSIZE(tmpHeader.discChange);i++)
+	for (unsigned int i = 0; i < ARRAYSIZE(tmpHeader.discChange);i++)
 	{
 		g_discChange[i] = tmpHeader.discChange[i];
 	}
 
 	author.resize(ARRAYSIZE(tmpHeader.author));
-	for (int i = 0; i < ARRAYSIZE(tmpHeader.author);i++)
+	for (unsigned int i = 0; i < ARRAYSIZE(tmpHeader.author);i++)
 	{
 		author[i] = tmpHeader.author[i];
 	}

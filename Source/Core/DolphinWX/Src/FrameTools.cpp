@@ -1320,9 +1320,8 @@ void CFrame::StatusBarMessage(const char * Text, ...)
 	const int MAX_BYTES = 1024*10;
 	char Str[MAX_BYTES];
 	va_list ArgPtr;
-	int Cnt;
 	va_start(ArgPtr, Text);
-	Cnt = vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
+	vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
 	va_end(ArgPtr);
 
 	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(wxString::FromAscii(Str),0);

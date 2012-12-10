@@ -131,6 +131,8 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 
 	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
 	{
+		// TODO:  This is all wrong.  i in the else clause will always be out of range as a
+		// subscript for xfregs.texMtxInfo.  NeoBrain??
 		if (18+i < 32)
 			uid->values[0] |= xfregs.texMtxInfo[i].projection << (18+i); // 1
 		else
@@ -158,7 +160,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	}
 
 	u32* ptr = &uid->values[2];
-	for (unsigned int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
+	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
 	{
 		StageHash(i, ptr);
 		ptr += 4; // max: ptr = &uid->values[66]
@@ -626,7 +628,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 	WRITE(p, "        ) {\n");
 
-	char* pmainstart = p;
 	int Pretest = AlphaPreTest();
 	if(Pretest >= 0 && !DepthTextureEnable)
 	{
