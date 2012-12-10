@@ -19,6 +19,9 @@
 #ifdef _MSC_VER
 #include <hash_map>
 using stdext::hash_map;
+#elif defined __APPLE__
+#include <ext/hash_map>
+using __gnu_cxx::hash_map;
 #else
 #include <unordered_map>
 using std::unordered_map;
@@ -44,15 +47,24 @@ namespace stdext {
 		return uid.GetHash();
 	}
 }
-typedef hash_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
 #else
-namespace std {
+#ifdef __APPLE__
+namespace __gnu_cxx
+#else
+namespace std
+#endif
+{
 	template<> struct hash<VertexLoaderUID> {
 		size_t operator()(const VertexLoaderUID& uid) const {
 			return uid.GetHash();
 		}
 	};
 }
+#endif
+
+#if defined _MSC_VER || defined __APPLE__
+typedef hash_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
+#else
 typedef unordered_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
 #endif
 
