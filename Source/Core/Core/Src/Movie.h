@@ -166,7 +166,7 @@ void FrameSkipping();
 
 bool BeginRecordingInput(int controllers);
 void RecordInput(SPADStatus *PadStatus, int controllerID);
-void RecordWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
+void RecordWiimote(int wiimote, u8 *data, u8 size);
 
 bool PlayInput(const char *filename);
 void LoadInput(const char *filename);
@@ -179,6 +179,8 @@ void DoState(PointerWrap &p);
 void CheckMD5();
 void GetMD5();
 void Shutdown();
+void CheckPadStatus(SPADStatus *PadStatus, int controllerID);
+void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 
 std::string GetInputDisplay();
 

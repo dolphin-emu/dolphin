@@ -104,6 +104,17 @@ void EnsureTmpInputSize(size_t bound)
 
 std::string GetInputDisplay()
 {
+	if (!IsPlayingInput() && !IsRecordingInput())
+	{
+		g_numPads = 0;
+		for (int i = 0; i < 4; i++)
+		{
+			if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
+				g_numPads |= (1 << i);
+			if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
+				g_numPads |= (1 << (i + 4));
+		}
+	}
 	std::string inputDisplay = "";
 	for (int i = 0; i < 8; ++i)
 		if ((g_numPads & (1 << i)) != 0)
@@ -181,7 +192,6 @@ void Init()
 	{
 		g_bRecordingFromSaveState = false;
 		g_rerecords = 0;
-		g_numPads = 0;
 		g_currentByte = 0;
 		g_currentFrame = 0;
 		g_currentLagCount = 0;
@@ -576,57 +586,69 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 	g_InputDisplay[controllerID].append("\n");
 }
 
-void RecordInput(SPADStatus *PadStatus, int controllerID)
+void CheckPadStatus(SPADStatus *PadStatus, int controllerID)
 {
-	if(!IsRecordingInput() || !IsUsingPad(controllerID))
-		return;
-
 	g_padState.A		 = ((PadStatus->button & PAD_BUTTON_A) != 0);
 	g_padState.B		 = ((PadStatus->button & PAD_BUTTON_B) != 0);
 	g_padState.X		 = ((PadStatus->button & PAD_BUTTON_X) != 0);
 	g_padState.Y		 = ((PadStatus->button & PAD_BUTTON_Y) != 0);
 	g_padState.Z		 = ((PadStatus->button & PAD_TRIGGER_Z) != 0);
 	g_padState.Start     = ((PadStatus->button & PAD_BUTTON_START) != 0);
-	
+
 	g_padState.DPadUp	 = ((PadStatus->button & PAD_BUTTON_UP) != 0);
 	g_padState.DPadDown  = ((PadStatus->button & PAD_BUTTON_DOWN) != 0);
 	g_padState.DPadLeft  = ((PadStatus->button & PAD_BUTTON_LEFT) != 0);
 	g_padState.DPadRight = ((PadStatus->button & PAD_BUTTON_RIGHT) != 0);
-	
+
 	g_padState.L = ((PadStatus->button & PAD_TRIGGER_L) != 0);
 	g_padState.R = ((PadStatus->button & PAD_TRIGGER_R) != 0);
 	g_padState.TriggerL = PadStatus->triggerLeft;
 	g_padState.TriggerR = PadStatus->triggerRight;
-	g_padState.disc = g_bDiscChange;
 
 	g_padState.AnalogStickX = PadStatus->stickX;
 	g_padState.AnalogStickY = PadStatus->stickY;
-	
+
 	g_padState.CStickX = PadStatus->substickX;
 	g_padState.CStickY = PadStatus->substickY;
+
+	SetInputDisplayString(g_padState, controllerID);
+}
+
+void RecordInput(SPADStatus *PadStatus, int controllerID)
+{
+	if (!IsRecordingInput() || !IsUsingPad(controllerID))
+		return;
+
+	CheckPadStatus(PadStatus, controllerID);
+
+	if (g_bDiscChange)
+	{
+		g_padState.disc = g_bDiscChange;
+		g_bDiscChange = false;
+	}
 
 	EnsureTmpInputSize(g_currentByte + 8);
 	memcpy(&(tmpInput[g_currentByte]), &g_padState, 8);
 	g_currentByte += 8;
 	g_totalBytes = g_currentByte;
-
-	SetInputDisplayString(g_padState, controllerID);
-
-	if (g_bDiscChange)
-	{
-		g_bDiscChange = false;
-	}
 }
 
-void RecordWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int irMode)
+void CheckWiimoteStatus(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int irMode)
 {
-	if(!IsRecordingInput() || !IsUsingWiimote(wiimote))
-		return;
-
 	u8* const coreData = rptf.core?(data+rptf.core):NULL;
 	u8* const accelData = rptf.accel?(data+rptf.accel):NULL;
 	u8* const irData = rptf.ir?(data+rptf.ir):NULL;
 	u8 size = rptf.size;
+	SetWiiInputDisplayString(wiimote, coreData, accelData, irData);
+
+	if (IsRecordingInput())
+		RecordWiimote(wiimote, data, size);
+}
+
+void RecordWiimote(int wiimote, u8 *data, u8 size)
+{
+	if(!IsRecordingInput() || !IsUsingWiimote(wiimote))
+		return;
 
 	InputUpdate();
 	EnsureTmpInputSize(g_currentByte + size + 1);
@@ -634,7 +656,6 @@ void RecordWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf
 	memcpy(&(tmpInput[g_currentByte]), data, size);
 	g_currentByte += size;
 	g_totalBytes = g_currentByte;
-	SetWiiInputDisplayString(wiimote, coreData, accelData, irData);
 }
 
 void ReadHeader()
@@ -991,7 +1012,6 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	}
 
 	SetInputDisplayString(g_padState, controllerID);
-
 	CheckInputEnd();
 }
 
@@ -1050,7 +1070,7 @@ void EndPlayInput(bool cont)
 	}
 	else if(g_playMode != MODE_NONE)
 	{
-		g_numPads = g_rerecords = 0;
+		g_rerecords = 0;
 		g_currentByte = 0;
 		g_playMode = MODE_NONE;
 		Core::DisplayMessage("Movie End.", 2000);

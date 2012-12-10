@@ -141,6 +141,8 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		if(!Movie::IsUsingWiimote(0))
 			Movie::InputUpdate();
 	}
+	else
+		Movie::CheckPadStatus(&PadStatus, ISIDevice::m_iDeviceNumber);
 
 	// Thankfully changing mode does not change the high bits ;)
 	_Hi  = (u32)((u8)PadStatus.stickY);
