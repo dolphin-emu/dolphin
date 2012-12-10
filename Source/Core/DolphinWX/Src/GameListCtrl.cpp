@@ -652,7 +652,11 @@ void CGameListCtrl::ScanForISOs()
 
 		for (std::vector<std::string>::const_iterator iter = drives.begin(); iter != drives.end(); ++iter)
 		{
+			#ifdef __APPLE__
+			std::auto_ptr<GameListItem> gli(new GameListItem(*iter));
+			#else
 			std::unique_ptr<GameListItem> gli(new GameListItem(*iter));
+			#endif
 
 			if (gli->IsValid())
 				m_ISOFiles.push_back(gli.release());
