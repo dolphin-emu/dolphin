@@ -61,7 +61,7 @@ struct VBOCache {
 	GLuint vao;
 	TargetRectangle targetSource;
 };
-static std::map<u32,VBOCache> s_VBO;
+static std::map<u64,VBOCache> s_VBO;
 
 static u32 s_TempFramebuffer = 0;
 
@@ -314,8 +314,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		GL_REPORT_ERRORD();
 		
 		// should be unique enough, if not, vbo will "only" be uploaded to much
-		u32 targetSourceHash = targetSource.left<<24 | targetSource.top<<16 | targetSource.right<<8 | targetSource.bottom;
-		std::map<u32, VBOCache>::iterator vbo_it = s_VBO.find(targetSourceHash);
+		u64 targetSourceHash = u64(targetSource.left)<<48 | u64(targetSource.top)<<32 | u64(targetSource.right)<<16 | u64(targetSource.bottom);
+		std::map<u64, VBOCache>::iterator vbo_it = s_VBO.find(targetSourceHash);
 		
 		if(vbo_it == s_VBO.end()) {
 			VBOCache item;
@@ -336,7 +336,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 			glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat)*4, (GLfloat*)NULL + 2);
 			
-			vbo_it = s_VBO.insert(std::pair<u32,VBOCache>(targetSourceHash, item)).first;
+			vbo_it = s_VBO.insert(std::pair<u64,VBOCache>(targetSourceHash, item)).first;
 		}
 		if(!(vbo_it->second.targetSource == targetSource)) {
 			GLfloat vertices[] = {
@@ -442,7 +442,7 @@ TextureCache::TextureCache()
 
 TextureCache::~TextureCache()
 {
-	for(std::map<u32, VBOCache>::iterator it = s_VBO.begin(); it != s_VBO.end(); it++) {
+	for(std::map<u64, VBOCache>::iterator it = s_VBO.begin(); it != s_VBO.end(); it++) {
 		glDeleteBuffers(1, &it->second.vbo);
 		glDeleteVertexArrays(1, &it->second.vao);
 	}
