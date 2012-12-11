@@ -126,6 +126,23 @@ const u8 rasters[char_count][char_height] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x8f, 0xf1, 0x60, 0x00, 0x00, 0x00} 
 };
 
+static const char *s_vertex_shader = 
+	"attribute vec2 vertexPosition;\n"
+	"attribute vec2 texturePosition;\n"
+	"varying vec2 tpos;\n"
+	"void main(void) {\n"
+	"	gl_Position = vec4(vertexPosition,0,1);\n"
+	"	tpos = texturePosition;\n"
+	"}\n"; 
+
+static const char *s_fragment_shader =
+	"uniform sampler2DRect textureSampler;\n"
+	"uniform vec4 color;\n"
+	"varying vec2 tpos;\n"
+	"void main(void) {\n"
+	"	gl_FragColor = texture2DRect(textureSampler,tpos) * color;\n"
+	"}\n";
+	
 RasterFont::RasterFont()
 {
 	// generate the texture
@@ -149,12 +166,35 @@ RasterFont::RasterFont()
 	glGenVertexArrays(1, &VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindVertexArray(VAO);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*4, NULL);
-	glEnable(GL_TEXTURE_RECTANGLE);
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
+	glEnableVertexAttribArray(0); // vertexPosition
+	glVertexAttribPointer(0, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, NULL);
+	glEnableVertexAttribArray(1); // texturePosition
+	glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
+	
+	// generate shader
+	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+	shader_program = glCreateProgram();
+	
+	glShaderSource(vertex_shader, 1, &s_vertex_shader, NULL);
+	glCompileShader(vertex_shader);
+	glShaderSource(fragment_shader, 1, &s_fragment_shader, NULL);
+	glCompileShader(fragment_shader);
+	glAttachShader(shader_program, vertex_shader);
+	glAttachShader(shader_program, fragment_shader);
+	glBindAttribLocation(shader_program, 0, "vertexPosition");
+	glBindAttribLocation(shader_program, 1, "texturePosition");
+	glLinkProgram(shader_program);
+	glDeleteShader(vertex_shader);
+	glDeleteShader(fragment_shader);
+	
+	// bound uniforms
+	glUseProgram(shader_program);
+	glUniform1i(glGetUniformLocation(shader_program,"textureSampler"), 0); // GL_TEXTURE0
+	uniform_color_id = glGetUniformLocation(shader_program,"color");
+	glUniform4f(uniform_color_id, 1, 1, 1, 1);
+	cached_color = -1;
+	glUseProgram(0);
 }
 
 RasterFont::~RasterFont()
@@ -162,12 +202,11 @@ RasterFont::~RasterFont()
 	glDeleteTextures(1, &texture);
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
+	glDeleteProgram(shader_program);
 }
 
 void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
 {
-	if(!(color & 0xffffff)) return; // color are not supported atm, so do not draw black shadows
-	
 	int length = (int)strlen(text);
 	if (!length)
 		return; // nothing to do
@@ -240,10 +279,20 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	// no printable char, so also nothing to do
 	if(!usage) return;
 
+	glUseProgram(shader_program);
+	
+	if(color != cached_color) {
+		glUniform4f(uniform_color_id, ((color>>0)&0xff)/255.f,((color>>8)&0xff)/255.f,((color>>16)&0xff)/255.f,((color>>24)&0xff)/255.f);
+		cached_color = color;
+	}
+	
+	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
 	glEnable(GL_TEXTURE_RECTANGLE);
 	glDrawArrays(GL_TRIANGLES, 0, usage/4);
+	
+	glUseProgram(0);
 }
