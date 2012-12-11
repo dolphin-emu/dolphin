@@ -127,18 +127,22 @@ const u8 rasters[char_count][char_height] = {
 };
 
 static const char *s_vertex_shader = 
-	"attribute vec2 vertexPosition;\n"
-	"attribute vec2 texturePosition;\n"
-	"varying vec2 tpos;\n"
+	"#version 330 core\n"
+	"layout(location = 0) in  vec2 vertexPosition;\n"
+	"layout(location = 1) in  vec2 texturePosition;\n"
+	"out vec2 tpos;\n"
 	"void main(void) {\n"
 	"	gl_Position = vec4(vertexPosition,0,1);\n"
 	"	tpos = texturePosition;\n"
 	"}\n"; 
 
 static const char *s_fragment_shader =
+	"#version 330 core\n"
+	"#extension GL_ARB_texture_rectangle : enable\n"
 	"uniform sampler2DRect textureSampler;\n"
 	"uniform vec4 color;\n"
-	"varying vec2 tpos;\n"
+	"in vec2 tpos;\n"
+	"out vec4 gl_FragColor;\n"
 	"void main(void) {\n"
 	"	gl_FragColor = texture2DRect(textureSampler,tpos) * color;\n"
 	"}\n";
@@ -182,8 +186,6 @@ RasterFont::RasterFont()
 	glCompileShader(fragment_shader);
 	glAttachShader(shader_program, vertex_shader);
 	glAttachShader(shader_program, fragment_shader);
-	glBindAttribLocation(shader_program, 0, "vertexPosition");
-	glBindAttribLocation(shader_program, 1, "texturePosition");
 	glLinkProgram(shader_program);
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
