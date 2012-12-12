@@ -96,6 +96,9 @@ u32 OpenGL_GetBackbufferHeight();
 // Set things
 void OpenGL_SetWindowText(const char *text);
 
+// Helpers
+GLuint OpenGL_CompileProgram(const char *vertexShader, const char *fragmentShader);
+
 // Error reporting - use the convenient macros.
 void OpenGL_ReportARBProgramError();
 GLuint OpenGL_ReportGLError(const char *function, const char *file, int line);
@@ -125,5 +128,8 @@ extern CGprofile g_cgvProf, g_cgfProf;
 // work, we may need to use glBindFragDataLocation. To use that, we need to
 // use GLSL shaders across the whole pipeline. Yikes!
 //#define USE_DUAL_SOURCE_BLEND
+
+// TODO: should be removed if we use glsl a lot
+#define DEBUG_GLSL
 
 #endif  // _GLINIT_H_

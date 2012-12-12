@@ -176,19 +176,7 @@ RasterFont::RasterFont()
 	glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 	
 	// generate shader
-	GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	shader_program = glCreateProgram();
-	
-	glShaderSource(vertex_shader, 1, &s_vertex_shader, NULL);
-	glCompileShader(vertex_shader);
-	glShaderSource(fragment_shader, 1, &s_fragment_shader, NULL);
-	glCompileShader(fragment_shader);
-	glAttachShader(shader_program, vertex_shader);
-	glAttachShader(shader_program, fragment_shader);
-	glLinkProgram(shader_program);
-	glDeleteShader(vertex_shader);
-	glDeleteShader(fragment_shader);
+	shader_program = OpenGL_CompileProgram(s_vertex_shader, s_fragment_shader);
 	
 	// bound uniforms
 	glUseProgram(shader_program);
