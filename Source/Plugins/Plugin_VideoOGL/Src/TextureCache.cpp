@@ -113,6 +113,8 @@ TextureCache::TCacheEntry::~TCacheEntry()
 TextureCache::TCacheEntry::TCacheEntry()
 {
 	glGenTextures(1, &texture);
+	currmode.hex = 0;
+	currmode1.hex = 0;
 	GL_REPORT_ERRORD();
 }
 
@@ -125,7 +127,9 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	// TODO: is this already done somewhere else?
 	TexMode0 &tm0 = bpmem.tex[stage >> 2].texMode0[stage & 3];
 	TexMode1 &tm1 = bpmem.tex[stage >> 2].texMode1[stage & 3];
-	SetTextureParameters(tm0, tm1);
+	
+	if(currmode.hex != tm0.hex || currmode1.hex != tm1.hex)
+		SetTextureParameters(tm0, tm1);
 }
 
 bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
@@ -404,6 +408,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1)
 {
+	currmode = newmode;
+	currmode1 = newmode1;
+	
 	// TODO: not used anywhere
 	TexMode0 mode = newmode;
 	//mode1 = newmode1;

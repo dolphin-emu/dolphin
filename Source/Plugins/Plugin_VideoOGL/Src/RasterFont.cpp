@@ -17,8 +17,6 @@
 
 #include "GLUtil.h"
 
-#include <string.h>
-
 #include "RasterFont.h"
 // globals
 
@@ -150,7 +148,6 @@ static const char *s_fragment_shader =
 RasterFont::RasterFont()
 {
 	// generate the texture
-	glEnable(GL_TEXTURE_RECTANGLE);
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
 	u32* texture_data = new u32[char_width*char_count*char_height];
@@ -281,7 +278,6 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
-	glEnable(GL_TEXTURE_RECTANGLE);
 	glDrawArrays(GL_TRIANGLES, 0, usage/4);
 	
 	glUseProgram(0);
