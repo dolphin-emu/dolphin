@@ -357,11 +357,17 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
 			glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 			
+			// TODO: this after merging with graphic_update
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			
 			vbo_it->second.targetSource = targetSource;
 		} 
 
 		glBindVertexArray(vbo_it->second.vao);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		
+		// TODO: this after merging with graphic_update
+		glBindVertexArray(0);
 
 		GL_REPORT_ERRORD();
 

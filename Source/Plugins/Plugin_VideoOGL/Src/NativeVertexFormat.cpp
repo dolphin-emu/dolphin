@@ -187,9 +187,6 @@ void GLVertexFormat::SetupVertexPointers() {
 #ifdef USE_JIT
 	((void (*)())(void*)m_compiledCode)();
 #else
-	// TODO: use this :-)
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
 	
 	glVertexPointer(3, GL_FLOAT, vtx_decl.stride, VertexManager::s_pBaseBufferPointer);
 	if (vtx_decl.num_normals >= 1) {
@@ -224,13 +221,13 @@ void GLVertexFormat::SetupVertexPointers() {
 	}
 #endif
 
-//	if (s_prevcomponents != m_components)
+	if (s_prevcomponents != m_components)
 	{
 		// vertices
 		glEnableClientState(GL_VERTEX_ARRAY);
 
 		// matrices
-//		if ((m_components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX))
+		if ((m_components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX))
 		{
 			if (m_components & VB_HAS_POSMTXIDX)
 				glEnableVertexAttribArray(SHADER_POSMTX_ATTRIB);
@@ -239,14 +236,14 @@ void GLVertexFormat::SetupVertexPointers() {
 		}
 
 		// normals
-//		if ((m_components & VB_HAS_NRM0) != (s_prevcomponents & VB_HAS_NRM0))
+		if ((m_components & VB_HAS_NRM0) != (s_prevcomponents & VB_HAS_NRM0))
 		{
 			if (m_components & VB_HAS_NRM0)
 				glEnableClientState(GL_NORMAL_ARRAY);
 			else
 				glDisableClientState(GL_NORMAL_ARRAY);
 		}
-//		if ((m_components & VB_HAS_NRM1) != (s_prevcomponents & VB_HAS_NRM1))
+		if ((m_components & VB_HAS_NRM1) != (s_prevcomponents & VB_HAS_NRM1))
 		{
 			if (m_components & VB_HAS_NRM1) {
 				glEnableVertexAttribArray(SHADER_NORM1_ATTRIB);
@@ -261,7 +258,7 @@ void GLVertexFormat::SetupVertexPointers() {
 		// color
 		for (int i = 0; i < 2; ++i) 
 		{
-//			if ((m_components & (VB_HAS_COL0 << i)) != (s_prevcomponents & (VB_HAS_COL0 << i)))
+			if ((m_components & (VB_HAS_COL0 << i)) != (s_prevcomponents & (VB_HAS_COL0 << i)))
 			{
 				if (m_components & (VB_HAS_COL0 << i))
 					glEnableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
@@ -273,7 +270,7 @@ void GLVertexFormat::SetupVertexPointers() {
 		// tex
 		for (int i = 0; i < 8; ++i) 
 		{
-//			if ((m_components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i)))
+			if ((m_components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i)))
 			{
 				glClientActiveTexture(GL_TEXTURE0 + i);
 				if (m_components & (VB_HAS_UV0 << i))

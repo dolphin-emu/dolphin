@@ -182,6 +182,10 @@ RasterFont::RasterFont()
 	glUniform4f(uniform_color_id, 1, 1, 1, 1);
 	cached_color = -1;
 	glUseProgram(0);
+	
+	// TODO: this after merging with graphic_update
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 RasterFont::~RasterFont()
@@ -279,6 +283,10 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
 	glDrawArrays(GL_TRIANGLES, 0, usage/4);
+	
+	// TODO: this after merging with graphic_update
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 	
 	glUseProgram(0);
 }

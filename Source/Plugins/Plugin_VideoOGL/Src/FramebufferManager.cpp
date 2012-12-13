@@ -201,7 +201,11 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glClientActiveTexture(GL_TEXTURE1);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+4);
-
+	
+	// TODO: this after merging with graphic_update
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	
 	// EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
 	glViewport(0, 0, m_targetWidth, m_targetHeight);
 	glScissor(0, 0, m_targetWidth, m_targetHeight);
@@ -356,6 +360,9 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 		};
 		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
 		glBufferData(GL_ARRAY_BUFFER, 2*4*3*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+		
+		// TODO: this after merging with graphic_update
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 		s_cached_sourcerc = sourcerc;
 		s_cached_drawrc = drawrc;
@@ -363,6 +370,9 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 
 	glBindVertexArray(s_VAO);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	
+	// TODO: this after merging with graphic_update
+	glBindVertexArray(0);
 		
 	GL_REPORT_ERRORD();
 }
