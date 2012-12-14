@@ -128,6 +128,7 @@
 #define WII_EUR_SETTING "setting-eur.txt"
 #define WII_USA_SETTING "setting-usa.txt"
 #define WII_JAP_SETTING "setting-jpn.txt"
+#define WII_KOR_SETTING "setting-kor.txt"
 
 #define GECKO_CODE_HANDLER "codehandler.bin"
 
