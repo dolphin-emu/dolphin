@@ -1055,7 +1055,7 @@ void CFrame::DoPause()
 	{
 		Core::SetState(Core::CORE_PAUSE);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			::wxSetCursor(wxNullCursor);
+			m_RenderParent->SetCursor(wxCURSOR_ARROW);
 	}
 	else
 	{
@@ -1075,7 +1075,7 @@ void CFrame::DoPause()
 		Core::SetState(Core::CORE_RUN);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 				RendererHasFocus())
-			::wxSetCursor(cursor_transparent);
+			m_RenderParent->SetCursor(cursor_transparent);
 	}
 	UpdateGUI();
 }

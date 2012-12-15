@@ -514,14 +514,14 @@ void CFrame::OnActive(wxActivateEvent& event)
 			m_RenderParent->SetFocus();
 #endif
 			
-		    if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
-                ::wxSetCursor(cursor_transparent);
+				m_RenderParent->SetCursor(cursor_transparent);
 		}
 		else
 		{
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-                ::wxSetCursor(wxNullCursor);
+				m_RenderParent->SetCursor(wxNullCursor);
 		}
 	}
 	event.Skip();
