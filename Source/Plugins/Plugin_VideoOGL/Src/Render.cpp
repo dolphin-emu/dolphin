@@ -1453,7 +1453,7 @@ void Renderer::RestoreAPIState()
 	PixelShaderCache::SetCurrentShader(0);
 	
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
-	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers[vm->m_current_buffer]);
+	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
 	vm->m_last_vao = 0;
 }
 

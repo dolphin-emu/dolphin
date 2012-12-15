@@ -35,7 +35,7 @@ namespace OGL
 		virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
 		virtual void SetupVertexPointers();
 		
-		GLuint *VAO;
+		GLuint VAO;
 	};
 
 // Handles the OpenGL details of drawing lots of vertices quickly.
@@ -50,10 +50,8 @@ public:
 	void DestroyDeviceObjects();
 	
 	// NativeVertexFormat use this
-	u32 m_buffers_count;
-	u32 m_current_buffer;
-	GLuint* m_vertex_buffers;
-	GLuint* m_index_buffers; 
+	GLuint m_vertex_buffers;
+	GLuint m_index_buffers; 
 	GLuint m_last_vao;
 private:
 	void Draw(u32 stride);

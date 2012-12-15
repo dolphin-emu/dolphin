@@ -53,7 +53,6 @@ const u32 MAX_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * 16 * sizeof(u16);
 const u32 MAX_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 16;
 const u32 MIN_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE *  1 * sizeof(u16);
 const u32 MIN_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE *  1;
-const u32 MAX_VBUFFER_COUNT = 2;
 
 VertexManager::VertexManager()
 {
@@ -67,10 +66,6 @@ VertexManager::~VertexManager()
 
 void VertexManager::CreateDeviceObjects()
 {
-	m_buffers_count = 0;
-	m_vertex_buffers = NULL;
-	m_index_buffers = NULL;
-	glEnableClientState(GL_VERTEX_ARRAY);
 	GL_REPORT_ERRORD();
 	u32 max_Index_size = 0;
 	u32 max_Vertex_size = 0;
@@ -90,31 +85,18 @@ void VertexManager::CreateDeviceObjects()
 		ERROR_LOG(VIDEO, "GL_MAX_ELEMENTS_VERTICES to small, so try it anyway. good luck\n");
 	}
 
-	//TODO: find out, how many buffers fit in gpu memory
-	m_buffers_count = MAX_VBUFFER_COUNT;
-	
-	m_vertex_buffers = new GLuint[m_buffers_count];
-	m_index_buffers = new GLuint[m_buffers_count];
-
-	glGenBuffers(m_buffers_count, m_vertex_buffers);
+	glGenBuffers(1, &m_vertex_buffers);
 	GL_REPORT_ERROR();
-	glGenBuffers(m_buffers_count, m_index_buffers);
+	glGenBuffers(1, &m_index_buffers);
 	GL_REPORT_ERROR();
-	for (u32 i = 0; i < m_buffers_count; i++)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffers[i] );
-		GL_REPORT_ERROR();
-		glBufferData(GL_ARRAY_BUFFER, m_vertex_buffer_size, NULL, GL_STREAM_DRAW  );
-		GL_REPORT_ERROR();
-	}
-	for (u32 i = 0; i < m_buffers_count; i++)
-	{
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffers[i] );
-		GL_REPORT_ERROR();
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size, NULL, GL_STREAM_DRAW  );
-		GL_REPORT_ERROR();
-	}
-	m_current_buffer = 0;
+	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffers );
+	GL_REPORT_ERROR();
+	glBufferData(GL_ARRAY_BUFFER, m_vertex_buffer_size, NULL, GL_STREAM_DRAW  );
+	GL_REPORT_ERROR();
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffers );
+	GL_REPORT_ERROR();
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size, NULL, GL_STREAM_DRAW  );
+	GL_REPORT_ERROR();
 	m_index_buffer_cursor = 0;
 	m_vertex_buffer_cursor = 0;
 	m_CurrentVertexFmt = NULL;
@@ -122,23 +104,16 @@ void VertexManager::CreateDeviceObjects()
 }
 void VertexManager::DestroyDeviceObjects()
 {
-	glDisableClientState(GL_VERTEX_ARRAY);
 	GL_REPORT_ERRORD();
 	glBindBuffer(GL_ARRAY_BUFFER, 0 );
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0 );
 	GL_REPORT_ERROR();
 	
-	glDeleteBuffers(m_buffers_count, m_vertex_buffers);
+	glDeleteBuffers(1, &m_vertex_buffers);
 	GL_REPORT_ERROR();
-	delete [] m_vertex_buffers;
 
-	glDeleteBuffers(m_buffers_count, m_index_buffers);
+	glDeleteBuffers(1, &m_index_buffers);
 	GL_REPORT_ERROR();
-	delete [] m_index_buffers;
-	
-	m_vertex_buffers = NULL;
-	m_index_buffers = NULL;
-	m_buffers_count = 0;
 }
 
 void VertexManager::PrepareDrawBuffers(u32 stride)
@@ -150,7 +125,6 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	int line_index_size = IndexGenerator::GetLineindexLen();
 	int point_index_size = IndexGenerator::GetPointindexLen();
 	int index_data_size = (triangle_index_size + line_index_size + point_index_size) * sizeof(u16);
-	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)g_nativeVertexFmt;
 	GLbitfield LockMode = GL_MAP_WRITE_BIT;
 	
 	m_vertex_buffer_cursor--;
@@ -158,22 +132,14 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	
 	if (m_vertex_buffer_cursor >= m_vertex_buffer_size - vertex_data_size || m_index_buffer_cursor >= m_index_buffer_size - index_data_size)
 	{
-		// do we really want to set this? this require a reallocation. usualy only one buffer with reallocation, or much buffers without it
 		LockMode |= GL_MAP_INVALIDATE_BUFFER_BIT;
 		m_vertex_buffer_cursor = 0;
 		m_index_buffer_cursor = 0;
-		m_current_buffer = (m_current_buffer + 1) % m_buffers_count;
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffers[m_current_buffer]);
 	}
 	else
 	{
 		LockMode |= GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
 	}
-		
-	// this replaces SetupVertexPointers and must be called after switching buffer and befor uploading indexes
-	// but could be deleted, if we only use one buffer with orphaning
-	if(m_last_vao != nativeVertexFmt->VAO[m_current_buffer])
-		glBindVertexArray(nativeVertexFmt->VAO[m_current_buffer]);
 	
 	pVertices = (u8*)glMapBufferRange(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, LockMode);
 	if(pVertices)
@@ -284,9 +250,16 @@ void VertexManager::vFlush()
 
 	(void)GL_REPORT_ERROR();
 	
-	u32 stride  = g_nativeVertexFmt->GetVertexStride();
+	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)g_nativeVertexFmt;
+	u32 stride  = nativeVertexFmt->GetVertexStride();
+	
+	if(m_last_vao != nativeVertexFmt->VAO) {
+		glBindVertexArray(nativeVertexFmt->VAO);
+		m_last_vao = nativeVertexFmt->VAO;
+	}
 
 	PrepareDrawBuffers(stride);
+	
 	GL_REPORT_ERRORD();
 
 	u32 usedtextures = 0;
@@ -385,11 +358,10 @@ void VertexManager::vFlush()
 			glEnable(GL_BLEND);
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
-	if(m_buffers_count)
-	{
-		m_index_buffer_cursor += (IndexGenerator::GetTriangleindexLen() + IndexGenerator::GetLineindexLen() + IndexGenerator::GetPointindexLen()) * sizeof(u16);
-		m_vertex_buffer_cursor += IndexGenerator::GetNumVerts() * stride;
-	}
+	
+	m_index_buffer_cursor += (IndexGenerator::GetTriangleindexLen() + IndexGenerator::GetLineindexLen() + IndexGenerator::GetPointindexLen()) * sizeof(u16);
+	m_vertex_buffer_cursor += IndexGenerator::GetNumVerts() * stride;
+	
 	ResetBuffer();
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) 
