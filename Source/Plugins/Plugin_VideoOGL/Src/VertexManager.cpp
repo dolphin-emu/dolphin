@@ -49,8 +49,10 @@ extern NativeVertexFormat *g_nativeVertexFmt;
 namespace OGL
 {
 //This are the initially requeted size for the buffers expresed in bytes
-const u32 IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * 16 * sizeof(u16);
-const u32 VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 16;
+const u32 MAX_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * 16 * sizeof(u16);
+const u32 MAX_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 16;
+const u32 MIN_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE *  1 * sizeof(u16);
+const u32 MIN_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE *  1;
 const u32 MAX_VBUFFER_COUNT = 2;
 
 VertexManager::VertexManager()
@@ -70,82 +72,77 @@ void VertexManager::CreateDeviceObjects()
 	m_index_buffers = NULL;
 	glEnableClientState(GL_VERTEX_ARRAY);
 	GL_REPORT_ERRORD();
-	int max_Index_size = 0;
-	int max_Vertex_size = 0;
+	u32 max_Index_size = 0;
+	u32 max_Vertex_size = 0;
 	glGetIntegerv(GL_MAX_ELEMENTS_INDICES, (GLint*)&max_Index_size);
 	glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, (GLint*)&max_Vertex_size);
 	max_Index_size *= sizeof(u16);
 	GL_REPORT_ERROR();
-	m_index_buffer_size = IBUFFER_SIZE;
-	if (max_Index_size > 0 && max_Index_size < m_index_buffer_size)
-		m_index_buffer_size = max_Index_size;
-
-	m_vertex_buffer_size = VBUFFER_SIZE;
-	if (max_Vertex_size > 0 && max_Vertex_size < m_vertex_buffer_size)
-		m_vertex_buffer_size = max_Vertex_size;
-
-	if (m_index_buffer_size < VertexManager::MAXIBUFFERSIZE || m_vertex_buffer_size < VertexManager::MAXVBUFFERSIZE)
-	{
-		return;
+	
+	m_index_buffer_size = std::min(MAX_IBUFFER_SIZE, std::max(max_Index_size, MIN_IBUFFER_SIZE));
+	m_vertex_buffer_size = std::min(MAX_VBUFFER_SIZE, std::max(max_Vertex_size, MIN_VBUFFER_SIZE));
+	
+	// should be not bigger, but we need it. so try and have luck
+	if (m_index_buffer_size > max_Index_size) {
+		ERROR_LOG(VIDEO, "GL_MAX_ELEMENTS_INDICES to small, so try it anyway. good luck\n");
+	}
+	if (m_vertex_buffer_size > max_Vertex_size) {
+		ERROR_LOG(VIDEO, "GL_MAX_ELEMENTS_VERTICES to small, so try it anyway. good luck\n");
 	}
 
-	m_vertex_buffers = new GLuint[MAX_VBUFFER_COUNT];
-	m_index_buffers = new GLuint[MAX_VBUFFER_COUNT];
+	//TODO: find out, how many buffers fit in gpu memory
+	m_buffers_count = MAX_VBUFFER_COUNT;
+	
+	m_vertex_buffers = new GLuint[m_buffers_count];
+	m_index_buffers = new GLuint[m_buffers_count];
 
-	glGenBuffers(MAX_VBUFFER_COUNT, m_vertex_buffers);
+	glGenBuffers(m_buffers_count, m_vertex_buffers);
 	GL_REPORT_ERROR();
-	glGenBuffers(MAX_VBUFFER_COUNT, m_index_buffers);
+	glGenBuffers(m_buffers_count, m_index_buffers);
 	GL_REPORT_ERROR();
-	for (u32 i = 0; i < MAX_VBUFFER_COUNT; i++)
+	for (u32 i = 0; i < m_buffers_count; i++)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffers[i] );
 		GL_REPORT_ERROR();
 		glBufferData(GL_ARRAY_BUFFER, m_vertex_buffer_size, NULL, GL_STREAM_DRAW  );
 		GL_REPORT_ERROR();
 	}
-	for (u32 i = 0; i < MAX_VBUFFER_COUNT; i++)
+	for (u32 i = 0; i < m_buffers_count; i++)
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffers[i] );
 		GL_REPORT_ERROR();
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size, NULL, GL_STREAM_DRAW  );
 		GL_REPORT_ERROR();
 	}
-	m_buffers_count = MAX_VBUFFER_COUNT;
-	m_current_index_buffer = 0;
-	m_current_vertex_buffer = 0;
-	m_index_buffer_cursor = m_index_buffer_size;
-	m_vertex_buffer_cursor = m_vertex_buffer_size;
+	m_current_buffer = 0;
+	m_index_buffer_cursor = 0;
+	m_vertex_buffer_cursor = 0;
 	m_CurrentVertexFmt = NULL;
+	m_last_vao = 0;
 }
 void VertexManager::DestroyDeviceObjects()
 {
 	glDisableClientState(GL_VERTEX_ARRAY);
 	GL_REPORT_ERRORD();
-	glBindBuffer(GL_ARRAY_BUFFER, NULL );
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, NULL );
+	glBindBuffer(GL_ARRAY_BUFFER, 0 );
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0 );
 	GL_REPORT_ERROR();
-	if(m_vertex_buffers)
-	{
-		glDeleteBuffers(MAX_VBUFFER_COUNT, m_vertex_buffers);
-		GL_REPORT_ERROR();
-		delete [] m_vertex_buffers;
-	}
-	if(m_index_buffers)
-	{
-		glDeleteBuffers(MAX_VBUFFER_COUNT, m_index_buffers);
-		GL_REPORT_ERROR();
-		delete [] m_index_buffers;
-	}
+	
+	glDeleteBuffers(m_buffers_count, m_vertex_buffers);
+	GL_REPORT_ERROR();
+	delete [] m_vertex_buffers;
+
+	glDeleteBuffers(m_buffers_count, m_index_buffers);
+	GL_REPORT_ERROR();
+	delete [] m_index_buffers;
+	
 	m_vertex_buffers = NULL;
 	m_index_buffers = NULL;
+	m_buffers_count = 0;
 }
 
 void VertexManager::PrepareDrawBuffers(u32 stride)
 {
-	if (!m_buffers_count)
-	{
-		return;
-	}
 	u8* pVertices = NULL;
 	u16* pIndices = NULL;
 	int vertex_data_size = IndexGenerator::GetNumVerts() * stride;
@@ -153,141 +150,82 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	int line_index_size = IndexGenerator::GetLineindexLen();
 	int point_index_size = IndexGenerator::GetPointindexLen();
 	int index_data_size = (triangle_index_size + line_index_size + point_index_size) * sizeof(u16);
-	GLbitfield LockMode = GL_MAP_WRITE_BIT;	
+	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)g_nativeVertexFmt;
+	GLbitfield LockMode = GL_MAP_WRITE_BIT;
+	
 	m_vertex_buffer_cursor--;
 	m_vertex_buffer_cursor = m_vertex_buffer_cursor - (m_vertex_buffer_cursor % stride) + stride;
-	if (m_vertex_buffer_cursor > m_vertex_buffer_size - vertex_data_size)
+	
+	if (m_vertex_buffer_cursor >= m_vertex_buffer_size - vertex_data_size || m_index_buffer_cursor >= m_index_buffer_size - index_data_size)
 	{
+		// do we really want to set this? this require a reallocation. usualy only one buffer with reallocation, or much buffers without it
 		LockMode |= GL_MAP_INVALIDATE_BUFFER_BIT;
 		m_vertex_buffer_cursor = 0;
-		m_current_vertex_buffer = (m_current_vertex_buffer + 1) % m_buffers_count;
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffers[m_current_vertex_buffer]);
+		m_index_buffer_cursor = 0;
+		m_current_buffer = (m_current_buffer + 1) % m_buffers_count;
+		glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffers[m_current_buffer]);
 	}
 	else
 	{
 		LockMode |= GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
-	}	
-	if(GLEW_ARB_map_buffer_range)
-	{
-		pVertices = (u8*)glMapBufferRange(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, LockMode);
-		if(pVertices)
-		{
-			memcpy(pVertices, LocalVBuffer, vertex_data_size);
-			glUnmapBuffer(GL_ARRAY_BUFFER);
-		}
-		else
-		{
-			glBufferSubData(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, LocalVBuffer);
-		}		
 	}
-	else
+		
+	// this replaces SetupVertexPointers and must be called after switching buffer and befor uploading indexes
+	// but could be deleted, if we only use one buffer with orphaning
+	if(m_last_vao != nativeVertexFmt->VAO[m_current_buffer])
+		glBindVertexArray(nativeVertexFmt->VAO[m_current_buffer]);
+	
+	pVertices = (u8*)glMapBufferRange(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, LockMode);
+	if(pVertices)
+	{
+		memcpy(pVertices, LocalVBuffer, vertex_data_size);
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
+	else // could that happen? out-of-memory?
 	{
 		glBufferSubData(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, LocalVBuffer);
 	}
-
-	LockMode = GL_MAP_WRITE_BIT;
-
-	if (m_index_buffer_cursor > m_index_buffer_size - index_data_size)
+	
+	pIndices = (u16*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_cursor , index_data_size, LockMode);
+	if(pIndices)
 	{
-		LockMode |= GL_MAP_INVALIDATE_BUFFER_BIT;
-		m_index_buffer_cursor = 0;
-		m_current_index_buffer = (m_current_index_buffer + 1) % m_buffers_count;		
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffers[m_current_index_buffer]);
-	}
-	else
-	{
-		LockMode |= GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT;
-	}	
-	if(GLEW_ARB_map_buffer_range)
-	{
-		pIndices = (u16*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_cursor , index_data_size, LockMode);
-		if(pIndices)
-		{
-			if(triangle_index_size)
-			{		
-				memcpy(pIndices, TIBuffer, triangle_index_size * sizeof(u16));
-				pIndices += triangle_index_size;
-			}
-			if(line_index_size)
-			{		
-				memcpy(pIndices, LIBuffer, line_index_size * sizeof(u16));
-				pIndices += line_index_size;
-			}
-			if(point_index_size)
-			{		
-				memcpy(pIndices, PIBuffer, point_index_size * sizeof(u16));
-			}
-			glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+		if(triangle_index_size)
+		{		
+			memcpy(pIndices, TIBuffer, triangle_index_size * sizeof(u16));
+			pIndices += triangle_index_size;
 		}
-		else
-		{
-			if(triangle_index_size)
-			{		
-				triangle_index_size *= sizeof(u16);
-				glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor, triangle_index_size, TIBuffer);				
-			}
-			if(line_index_size)
-			{
-				line_index_size *= sizeof(u16);
-				glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor + triangle_index_size, line_index_size, LIBuffer);
-			}
-			if(point_index_size)
-			{
-				point_index_size *= sizeof(u16);
-				glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor + triangle_index_size + line_index_size, point_index_size, PIBuffer);
-			}			
+		if(line_index_size)
+		{		
+			memcpy(pIndices, LIBuffer, line_index_size * sizeof(u16));
+			pIndices += line_index_size;
 		}
-	}	
-}
-
-void VertexManager::DrawVertexArray()
-{
-	int triangle_index_size = IndexGenerator::GetTriangleindexLen();
-	int line_index_size = IndexGenerator::GetLineindexLen();
-	int point_index_size = IndexGenerator::GetPointindexLen();
-	if (triangle_index_size > 0)
+		if(point_index_size)
+		{		
+			memcpy(pIndices, PIBuffer, point_index_size * sizeof(u16));
+		}
+		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+	}
+	else // could that happen? out-of-memory?
 	{
-		glDrawElements(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, TIBuffer);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-	}
-	if (line_index_size > 0)
-	{
-		glDrawElements(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, LIBuffer);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-	}
-	if (point_index_size > 0)
-	{
-		glDrawElements(GL_POINTS, IndexGenerator::GetPointindexLen(), GL_UNSIGNED_SHORT, PIBuffer);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-	}
-}
-
-void VertexManager::DrawVertexBufferObject()
-{
-	int triangle_index_size = IndexGenerator::GetTriangleindexLen();
-	int line_index_size = IndexGenerator::GetLineindexLen();
-	int point_index_size = IndexGenerator::GetPointindexLen();
-	int StartIndex = m_index_buffer_cursor;
-	if (triangle_index_size > 0)
-	{
-		glDrawElements(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex);
-		StartIndex += triangle_index_size * sizeof(u16);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-	}
-	if (line_index_size > 0)
-	{		
-		glDrawElements(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex);
-		StartIndex += line_index_size * sizeof(u16);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-	}
-	if (point_index_size > 0)
-	{		
-		glDrawElements(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		if(triangle_index_size)
+		{		
+			triangle_index_size *= sizeof(u16);
+			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor, triangle_index_size, TIBuffer);				
+		}
+		if(line_index_size)
+		{
+			line_index_size *= sizeof(u16);
+			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor + triangle_index_size, line_index_size, LIBuffer);
+		}
+		if(point_index_size)
+		{
+			point_index_size *= sizeof(u16);
+			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor + triangle_index_size + line_index_size, point_index_size, PIBuffer);
+		}			
 	}
 }
 
-void VertexManager::DrawVertexBufferObjectBase(u32 stride)
+void VertexManager::Draw(u32 stride)
 {
 	int triangle_index_size = IndexGenerator::GetTriangleindexLen();
 	int line_index_size = IndexGenerator::GetLineindexLen();
@@ -296,19 +234,19 @@ void VertexManager::DrawVertexBufferObjectBase(u32 stride)
 	int basevertex = m_vertex_buffer_cursor / stride;
 	if (triangle_index_size > 0)
 	{
-		glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, basevertex);
+		glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+StartIndex, basevertex);
 		StartIndex += triangle_index_size * sizeof(u16);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if (line_index_size > 0)
 	{
-		glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, basevertex);
+		glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+StartIndex, basevertex);
 		StartIndex += line_index_size * sizeof(u16);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if (point_index_size > 0)
 	{
-		glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (GLvoid*)StartIndex, basevertex);
+		glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+StartIndex, basevertex);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 }
@@ -349,19 +287,6 @@ void VertexManager::vFlush()
 	u32 stride  = g_nativeVertexFmt->GetVertexStride();
 
 	PrepareDrawBuffers(stride);
-	//still testing if this line is enabled to reduce the amount of vertex setup call everything goes wrong
-	//if(m_CurrentVertexFmt != g_nativeVertexFmt || !GLEW_ARB_draw_elements_base_vertex )
-	{
-		if(m_buffers_count)
-		{
-			((GLVertexFormat*)g_nativeVertexFmt)->SetupVertexPointersOffset(GLEW_ARB_draw_elements_base_vertex ? 0 : m_vertex_buffer_cursor);			
-		}
-		else
-		{
-			g_nativeVertexFmt->SetupVertexPointers();
-		}
-		m_CurrentVertexFmt = g_nativeVertexFmt;
-	}
 	GL_REPORT_ERRORD();
 
 	u32 usedtextures = 0;
@@ -438,21 +363,7 @@ void VertexManager::vFlush()
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
 
-	if(m_buffers_count) 
-	{ 
-		if(GLEW_ARB_draw_elements_base_vertex)
-		{
-			DrawVertexBufferObjectBase(stride);
-		} 
-		else
-		{
-			DrawVertexBufferObject();
-		} 
-	}
-	else
-	{ 
-		DrawVertexArray();
-	}
+	Draw(stride);
 
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
@@ -465,21 +376,8 @@ void VertexManager::vFlush()
 
 		glDisable(GL_BLEND);
 
-		if(m_buffers_count) 
-		{
-			if(GLEW_ARB_draw_elements_base_vertex)
-			{
-				DrawVertexBufferObjectBase(stride);
-			} 
-			else
-			{
-				DrawVertexBufferObject();
-			} 
-		}
-		else
-		{ 
-			DrawVertexArray();
-		} 
+		Draw(stride);
+		
 		// restore color mask
 		g_renderer->SetColorMask();
 

@@ -62,6 +62,7 @@
 #include "Host.h"
 #include "BPFunctions.h"
 #include "FPSCounter.h"
+#include "VertexManager.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -308,6 +309,20 @@ Renderer::Renderer()
 	{
 		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_EXT_secondary_color.\n"
 				"GPU: Does your video card support OpenGL 2.x?");
+		bSuccess = false;
+	}
+	
+	if (!GLEW_ARB_map_buffer_range)
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_map_buffer_range.\n"
+				"GPU: Does your video card support OpenGL 3.0?");
+		bSuccess = false;
+	}
+
+	if (!GLEW_ARB_draw_elements_base_vertex)
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_draw_elements_base_vertex.\n"
+				"GPU: Does your video card support OpenGL 3.2?");
 		bSuccess = false;
 	}
 
@@ -1415,6 +1430,10 @@ void Renderer::ResetAPIState()
 	glDisable(GL_BLEND);
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	
+	// TODO: remove this after merging with immediate-remove
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void Renderer::RestoreAPIState()
@@ -1432,6 +1451,10 @@ void Renderer::RestoreAPIState()
 
 	VertexShaderCache::SetCurrentShader(0);
 	PixelShaderCache::SetCurrentShader(0);
+	
+	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
+	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers[vm->m_current_buffer]);
+	vm->m_last_vao = 0;
 }
 
 void Renderer::SetGenerationMode()

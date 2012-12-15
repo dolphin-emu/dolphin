@@ -26,7 +26,6 @@ namespace OGL
 {
 	class GLVertexFormat : public NativeVertexFormat
 	{
-		u8 *m_compiledCode;
 		PortableVertexDeclaration vtx_decl;
 
 	public:
@@ -35,8 +34,8 @@ namespace OGL
 
 		virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
 		virtual void SetupVertexPointers();
-		virtual void SetupVertexPointersOffset(u32 offset);
-		virtual void EnableComponents(u32 components);
+		
+		GLuint *VAO;
 	};
 
 // Handles the OpenGL details of drawing lots of vertices quickly.
@@ -49,21 +48,21 @@ public:
 	NativeVertexFormat* CreateNativeVertexFormat();
 	void CreateDeviceObjects();
 	void DestroyDeviceObjects();
+	
+	// NativeVertexFormat use this
+	u32 m_buffers_count;
+	u32 m_current_buffer;
+	GLuint* m_vertex_buffers;
+	GLuint* m_index_buffers; 
+	GLuint m_last_vao;
 private:
-	void DrawVertexArray();
-	void DrawVertexBufferObject();
-	void DrawVertexBufferObjectBase(u32 stride);
+	void Draw(u32 stride);
 	void vFlush();
 	void PrepareDrawBuffers(u32 stride);
 	u32 m_vertex_buffer_cursor;
 	u32 m_vertex_buffer_size;
 	u32 m_index_buffer_cursor;
 	u32 m_index_buffer_size;
-	u32 m_buffers_count;
-	u32 m_current_vertex_buffer;
-	u32 m_current_index_buffer;
-	GLuint* m_vertex_buffers;
-	GLuint* m_index_buffers; 
 	NativeVertexFormat *m_CurrentVertexFmt;
 };
 
