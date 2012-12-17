@@ -62,7 +62,6 @@ struct SConfig : NonCopyable
 	bool m_InterfaceLogWindow;
 	bool m_InterfaceLogConfigWindow;
 	bool m_InterfaceConsole;
-	int m_ListSort;
 
 	bool m_ListDrives;
 	bool m_ListWad;
@@ -76,6 +75,9 @@ struct SConfig : NonCopyable
 	bool m_ListKorea;
 	bool m_ListTaiwan;
 	bool m_ListUnknown;
+	int m_ListSort;
+	int m_ListSort2;
+
 	std::string m_WirelessMac;
 	bool m_PauseMovie;
 	bool m_ShowLag;
