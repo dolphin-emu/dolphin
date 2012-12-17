@@ -205,8 +205,11 @@ void TextureCache::ClearRenderTargets()
 		tcend = textures.end();
 
 	for (; iter!=tcend; ++iter)
-		if (iter->second->type != TCET_EC_DYNAMIC)
-			iter->second->type = TCET_NORMAL;
+		if (iter->second->type == TCET_EC_VRAM)
+		{
+			delete iter->second;
+			textures.erase(iter++);
+		}
 }
 
 bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels)
@@ -782,7 +785,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		textures[dstAddr] = entry = g_texture_cache->CreateRenderTargetTexture(scaled_tex_w, scaled_tex_h);
 
 		// TODO: Using the wrong dstFormat, dumb...
-		entry->SetGeneralParameters(dstAddr, 0, dstFormat, 0);
+		entry->SetGeneralParameters(dstAddr, 0, dstFormat, 1);
 		entry->SetDimensions(tex_w, tex_h, scaled_tex_w, scaled_tex_h);
 		entry->SetHashes(TEXHASH_INVALID);
 		entry->type = TCET_EC_VRAM;
