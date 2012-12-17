@@ -26,7 +26,7 @@
 #elif defined(__APPLE__)
 #include "VideoInterface/AGL.h"
 #elif defined(_WIN32)
-#include "VideoInterface/GLW.h"
+#include "VideoInterface/WGL.h"
 #elif defined(HAVE_X11) && HAVE_X11
 #include "VideoInterface/GLX.h"
 #endif
