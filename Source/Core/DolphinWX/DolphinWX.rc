@@ -1,5 +1,6 @@
 // Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
+#define wxUSE_NO_MANIFEST 1
 #include <wx/msw/wx.rc>
 IDI_ICON1               ICON                    "..\\..\\..\\Installer\\Dolphin.ico"
