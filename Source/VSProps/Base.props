@@ -20,6 +20,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <BaseAddress>0x00400000</BaseAddress>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\..\..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>
