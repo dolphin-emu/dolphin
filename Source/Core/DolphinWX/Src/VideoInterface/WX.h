@@ -17,7 +17,7 @@
 #ifndef _INTERFACEWX_H_
 #define _INTERFACEWX_H_
 
-#ifdef HAVE_X11 && HAVE_X11
+#if defined HAVE_X11 && HAVE_X11
 #include <GL/glxew.h>
 #include <GL/gl.h>
 #elif defined __APPLE__
