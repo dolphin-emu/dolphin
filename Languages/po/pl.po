@@ -8,13 +8,14 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-12-11 08:14-0600\n"
-"PO-Revision-Date: 2012-06-23 11:42+0100\n"
-"Last-Translator: Krzysztof Baszczok <baszta2@gmail.com>\n"
+"PO-Revision-Date: 2012-12-16 20:16+0100\n"
+"Last-Translator: Baszta <baszta2@gmail.com>\n"
 "Language-Team: Polish <baszta2@gmail.com>\n"
 "Language: Polish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:512
 msgid " (too many to display)"
@@ -658,14 +659,13 @@ msgid "All files (*.*)|*.*"
 msgstr "Wszystkie pliki (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:121
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3, 4, 5 and 6 within the "
 "emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Pozwala przełączać określone opcje przez skróty klawiszowe 3, 4, 5, 6 i 7 w "
+"Pozwala przełączać określone opcje przez skróty klawiszowe 3, 4, 5 i 6 w "
 "oknie emulacji.\n"
 "\n"
 "W razie wątpliwości, pozostaw wyłączone."
@@ -708,7 +708,7 @@ msgid ""
 "\n"
 "If unsure, select (off)."
 msgstr ""
-"Stosuje efekt post-processingowy po zakonczeniu ramki.\n"
+"Stosuje efekt post-processingowy po zakonczeniu klatki.\n"
 "\n"
 "W razie wątpliwości, wybierz (wyłączone)."
 
@@ -1764,7 +1764,7 @@ msgstr "Atrapa"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:609
 msgid "Dump Audio"
-msgstr "Zrzut Audio"
+msgstr "Zrzut audio"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:536
 msgid "Dump EFB Target"
@@ -1772,7 +1772,7 @@ msgstr "Zrzut EFB Target"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:537
 msgid "Dump Frames"
-msgstr "Zrzut ramek"
+msgstr "Zrzut klatek"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:534
 msgid "Dump Textures"
@@ -1784,7 +1784,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Zrzuca wszystkie renderowane ramki do pliku AVI w User/Dump/Frames/\n"
+"Zrzuca wszystkie renderowane klatki do pliku AVI w User/Dump/Frames/\n"
 "\n"
 "W razie wątpliwości, pozostaw wyłączone."
 
@@ -1823,16 +1823,16 @@ msgid "EFB Copies"
 msgstr "EFB Copies"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
 "version %d.%d -- If you recently upgraded your Dolphin distribution, a "
 "reboot is probably required at this point to get Windows to see the new "
 "driver."
 msgstr ""
-"BŁĄD: Ta wersja programu wymaga sterownika TAP-Win32 w najnowszej wersji %d. "
-"%d -- Jeśli ostatnio aktualizowałeś program, ponowne uruchomienie systemu "
-"jest wymagane by sterownik zaczął działać."
+"BŁĄD: Ta wersja programu wymaga sterownika TAP-Win32 w wersji przynajmniej "
+"%d. %d -- Jeśli ostatnio aktualizowałeś program, ponowne uruchomienie "
+"systemu jest wymagane aby sterownik zaczął działać."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:171
 msgid "EUROPE"
@@ -2101,7 +2101,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Koduj zrzuty ramek używając kodeka FFV1.\n"
+"Koduj zrzuty klatek używając kodeka FFV1.\n"
 "\n"
 "W razie wątpliwości, pozostaw wyłączone."
 
@@ -2583,11 +2583,11 @@ msgstr "Znaleziono %d dla '"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:855
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:923
 msgid "Frame"
-msgstr "Ramka"
+msgstr "Klatka"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:865
 msgid "Frame "
-msgstr "Ramka"
+msgstr "Klatka"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:189
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:189
@@ -2596,7 +2596,7 @@ msgstr "Frame Advance"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:540
 msgid "Frame Dumps use FFV1"
-msgstr "Zrzuty ramek używają FFV1"
+msgstr "Zrzuty klatek używają FFV1"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:222
 msgid "Frame Info"
@@ -2604,7 +2604,7 @@ msgstr "Frame Info"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:111
 msgid "Frame Range"
-msgstr "Zasięg ramki"
+msgstr "Zasięg klatki"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:152
 msgid "Frame S&kipping"
@@ -2612,11 +2612,11 @@ msgstr "Frame S&kipping"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:552
 msgid "Framelimit:"
-msgstr "Limit ramek:"
+msgstr "Limit klatek:"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:199
 msgid "Frames To Record"
-msgstr "Ramki do nagrania"
+msgstr "Klatki do nagrania"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:538
 msgid "Free Look"
@@ -2687,7 +2687,7 @@ msgstr "Konfiguracja gry"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:523
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr ""
+msgstr "Pliki zapisu GameCube(*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
 msgid "Gamecube"
@@ -2956,9 +2956,9 @@ msgid ""
 "Audio to throttle using the DSP (might fix audio clicks but can also cause "
 "constant noise depending on the game)."
 msgstr ""
-"Jeśli ustawisz limit ramek większy niż pełna szybkość gry (NTSC:60, PAL:50), "
-"ustaw Audio Throttle w DSP (może naprawić klikania dźwięku, ale może "
-"spowodować trwały szum zależnie od gry)."
+"Jeśli ustawisz limitu klatek większego niż pełna szybkość gry (NTSC:60, "
+"PAL:50), ustaw Audio Throttle w DSP (może naprawić klikania dźwięku, ale "
+"może spowodować trwały szum zależnie od gry)."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:431
 msgid "Ignore Format Changes"
@@ -3415,21 +3415,21 @@ msgstr "Konfiguracja Logu"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:300
 msgid "Log FPS to file"
-msgstr ""
+msgstr "Zapisz FPS do pliku"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:98
 msgid "Log Types"
 msgstr "Typy logów"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
-#, fuzzy
 msgid ""
 "Log the number of frames rendered per second to User/Logs/fps.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Pokaż liczbę renderowanych ramek na sekundę jako miara szybkości emulacji.\n"
+"Zapisz liczbę renderowanych klatek na sekundę do User/Logs/fps.txt. Użyj tej "
+"opcji jeśli chcesz zmierzyć wydajność programu.\n"
 "\n"
 "W razie wątpliwości, pozostaw wyłączone."
 
@@ -3854,7 +3854,7 @@ msgstr "Offset:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:586
 msgid "On-Screen Display Messages"
-msgstr ""
+msgstr "On-Screen Display Messages"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:435
 #, c-format
@@ -3994,7 +3994,7 @@ msgstr "Pause"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:142
 msgid "Pause at end of movie"
-msgstr ""
+msgstr "Zatrzymaj na koncu filmu"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Per-Pixel Lighting"
@@ -4331,42 +4331,42 @@ msgstr "Zapisz GCI jako..."
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:213
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:213
 msgid "Save State Slot 1"
-msgstr "Zapisz stan Slot 1"
+msgstr "Slot stanu 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:214
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:214
 msgid "Save State Slot 2"
-msgstr "Zapisz stan Slot 2"
+msgstr "Slot stanu 2"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:215
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:215
 msgid "Save State Slot 3"
-msgstr "Zapisz stan Slot 3"
+msgstr "Slot stanu 3"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:216
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:216
 msgid "Save State Slot 4"
-msgstr "Zapisz stan Slot 4"
+msgstr "Slot stanu 4"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:217
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:217
 msgid "Save State Slot 5"
-msgstr "Zapisz stan Slot 5"
+msgstr "Slot stanu 5"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:218
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:218
 msgid "Save State Slot 6"
-msgstr "Zapisz stan Slot 6"
+msgstr "Slot stanu 6"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:219
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:219
 msgid "Save State Slot 7"
-msgstr "Zapisz stan Slot 8"
+msgstr "Slot stanu 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:220
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:220
 msgid "Save State Slot 8"
-msgstr "Zapisz stan Slot 9"
+msgstr "Slot stanu 9"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:165
 msgid "Save State..."
@@ -4409,7 +4409,7 @@ msgstr "Przeszukuję obrazy ISO"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:568
 msgid "Scanning..."
-msgstr "Przeszukuję"
+msgstr "Przeszukuję..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:441
 msgid "ScrShot"
@@ -4716,9 +4716,8 @@ msgid "Show first block"
 msgstr "Pokaż pierwszy blok"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "Show lag counter"
-msgstr "Pokaż komentarz zapisu"
+msgstr "Pokaż licznik opóźnienia"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
 msgid ""
@@ -4726,6 +4725,9 @@ msgid ""
 "These messages include memory card writes, video backend and CPU "
 "information, and JIT cache clearing."
 msgstr ""
+"Wyświetla wiadomości na ekrnie emulacji.\n"
+"Wiadomości zawierają informacje o zapisach do karty pamięci, video backend, "
+"informacje o procesorze oraz oczyszczaniu cache'u JIT."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:825
 msgid "Show save blocks"
@@ -4750,7 +4752,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Pokaż liczbę renderowanych ramek na sekundę jako miara szybkości emulacji.\n"
+"Pokaż liczbę renderowanych klatek na sekundę jako miara szybkości emulacji.\n"
 "\n"
 "W razie wątpliwości, pozostaw wyłączone."
 
@@ -4912,7 +4914,7 @@ msgstr "Square Stick"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:81
 msgid "Standard Controller"
-msgstr "Standard Controller"
+msgstr "Standardowy kontroler"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
@@ -5903,6 +5905,113 @@ msgstr "zNear Correction: "
 msgid "| OR"
 msgstr "| OR"
 
+#~ msgid ""
+#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
+#~ "Increases performance a bit but might cause minor texture defects.\n"
+#~ "\n"
+#~ "If unsure, leave this checked."
+#~ msgstr ""
+#~ "Automatycznie generuje mipmapy zamiast dekodowania ich z pamięci.\n"
+#~ "Zwiększa wydajność, ale może powodować defekty tekstur.\n"
+#~ "\n"
+#~ "W razie wątpliwości, pozostaw włączone."
+
+#~ msgid "Disable Lighting"
+#~ msgstr "Wyłącz światła"
+
+#~ msgid "Disable Textures"
+#~ msgstr "Wyłącz tekstury"
+
+#~ msgid ""
+#~ "Disable texturing.\n"
+#~ "\n"
+#~ "If unsure, leave this unchecked."
+#~ msgstr ""
+#~ "Wyłącza teksturowanie.\n"
+#~ "\n"
+#~ "W razie wątpliwości, pozostaw wyłączone."
+
+#~ msgid "Exit Dolphin with emulator"
+#~ msgstr "Wyjście z Dolphina"
+
+#~ msgid "Fast Mipmaps"
+#~ msgstr "Fast Mipmaps"
+
+#~ msgid ""
+#~ "Improves performance but causes lighting to disappear in most games.\n"
+#~ "\n"
+#~ "If unsure, leave this unchecked."
+#~ msgstr ""
+#~ "Zwiększa wydajność, ale powoduje zniknięcie świateł w większości grach.\n"
+#~ "\n"
+#~ "W razie wątpliwości, pozostaw wyłączone."
+
+#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
+#~ msgstr "Wczytuje określony plik (DOL, ELF, GCM, ISO,  WAD)"
+
+#~ msgid "Low level (LLE) or high level (HLE) audio"
+#~ msgstr "Llow level (LLE) lub high level (HLE) audio"
+
+#~ msgid "Opens the debugger"
+#~ msgstr "Otwiera debugera"
+
+#~ msgid "Opens the logger"
+#~ msgstr "Otwiera logera"
+
+#~ msgid "Show this help message"
+#~ msgstr "Pokaż wiadomość pomocy"
+
+#~ msgid "Specify a video backend"
+#~ msgstr "Wybierz video backend"
+
+#~ msgid "Clear failed."
+#~ msgstr "Czyszczenie nie powiodło się."
+
+#~ msgid "Enable DTK Music"
+#~ msgstr "Włącz muzykę DTK"
+
+#~ msgid "This is used to play music tracks, like BGM."
+#~ msgstr "Jest to używane do odtwarzania muzyki, BGM."
+
+#~ msgid "Enable Audio Throttle"
+#~ msgstr "Włącz Audio Throttle"
+
+#~ msgid ""
+#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
+#~ "Sorry, Wii recording is temporarily broken."
+#~ msgstr ""
+#~ "Błąd w PlayWiimote.  %u != %u, bajt %d.\n"
+#~ "Przepraszamy, nagrywanie Wii jest tymczasowo niesprawne."
+
+#~ msgid ""
+#~ "This is used to control game speed by sound throttle.\n"
+#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
+#~ "But sometimes enabling this could cause constant noise.\n"
+#~ "\n"
+#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
+#~ msgstr ""
+#~ "Ustawienia te wykorzystywane są do kontrolowania szybkości gry przez "
+#~ "sound throttle(spowalnianie dźwięku).\n"
+#~ "Wyłączenie tego może spowodować nienormalne działanie gry, np. zbyt "
+#~ "szybkie działanie.\n"
+#~ "Czasami powoduje stały szum.\n"
+#~ "\n"
+#~ "Skrót klawiszowy <TAB>: Przytrzymaj by natychmiastowo wyłączyc Audio "
+#~ "Throttle."
+
+#~ msgid "Cannot record movies in read-only mode."
+#~ msgstr "Nie można nagrywać filmów w trybie tylko do odczytu."
+
+#~ msgid "Disable Wiimote Speaker"
+#~ msgstr "Wyłącz głośnik Wiilota"
+
+#~ msgid ""
+#~ "Unknown pointer %#08x\n"
+#~ "Continue?"
+#~ msgstr ""
+#~ "Nieznany wskaźnik %#08x\n"
+#~ "Kontynuować?"
+
 #~ msgid "%d %%"
 #~ msgstr "%d %%"
 
@@ -5968,17 +6077,6 @@ msgstr "| OR"
 #~ "Dla lepszego efektu najlepiej ustawić proporcje ekranu na rozciągniete do "
 #~ "okna, gdy używasz tej opcji."
 
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Automatycznie generuje mipmapy zamiast dekodowania ich z pamięci.\n"
-#~ "Zwiększa wydajność, ale może powodować defekty tekstur.\n"
-#~ "\n"
-#~ "W razie wątpliwości, pozostaw włączone."
-
 #~ msgid "Bad gameini filename"
 #~ msgstr "Zła nazwa pliku gameini"
 
@@ -6004,12 +6102,6 @@ msgstr "| OR"
 
 #~ msgid "Can't open %s, it has a missing function"
 #~ msgstr "Nie można otworzyć %s, ma brakującą funkcję"
-
-#~ msgid "Cannot record movies in read-only mode."
-#~ msgstr "Nie można nagrywać filmów w trybie tylko do odczytu."
-
-#~ msgid "Clear failed."
-#~ msgstr "Czyszczenie nie powiodło się."
 
 #~ msgid "Config..."
 #~ msgstr "Konfiguracja..."
@@ -6046,24 +6138,6 @@ msgstr "| OR"
 
 #~ msgid "Danish"
 #~ msgstr "Duński"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Wyłącz światła"
-
-#~ msgid "Disable Textures"
-#~ msgstr "Wyłącz tekstury"
-
-#~ msgid "Disable Wiimote Speaker"
-#~ msgstr "Wyłącz głośnik Wiilota"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Wyłącza teksturowanie.\n"
-#~ "\n"
-#~ "W razie wątpliwości, pozostaw wyłączone."
 
 #~ msgid ""
 #~ "Disable texturing.\n"
@@ -6125,17 +6199,11 @@ msgstr "| OR"
 #~ msgid "Emulator Display Settings"
 #~ msgstr "Ustawienia ekranu emulatora"
 
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "Włącz Audio Throttle"
-
 #~ msgid "Enable CPU Access"
 #~ msgstr "Włącz dostęp CPU"
 
 #~ msgid "Enable Copy to EFB"
 #~ msgstr "Włącz kopiowanie do EFB"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "Włącz muzykę DTK"
 
 #~ msgid "Enable EFB To Texture"
 #~ msgstr "Włącz EFB To Texture"
@@ -6186,13 +6254,6 @@ msgstr "| OR"
 #~ msgid "Error allocating buffer"
 #~ msgstr "Błąd alokacji bufora"
 
-#~ msgid ""
-#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
-#~ "Sorry, Wii recording is temporarily broken."
-#~ msgstr ""
-#~ "Błąd w PlayWiimote.  %u != %u, bajt %d.\n"
-#~ "Przepraszamy, nagrywanie Wii jest tymczasowo niesprawne."
-
 #~ msgid "Error loading %s: can't read info"
 #~ msgstr "Błąd wczytywania %s: nie można odczytać informacji"
 
@@ -6205,14 +6266,8 @@ msgstr "| OR"
 #~ msgid "Error opening file %s for recording"
 #~ msgstr "Błąd otwarcia pliku %s do nagrania."
 
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Wyjście z Dolphina"
-
 #~ msgid "Failed to load DSP ROM: %s"
 #~ msgstr "Nieudane ładowanie romu DSP: %s"
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Fast Mipmaps"
 
 #~ msgid ""
 #~ "Faster variants look at fewer pixels and thus have more potential for "
@@ -6261,15 +6316,6 @@ msgstr "| OR"
 #~ "Jeśli gra się zawiesza, działa tylko w Interpreter lub Dolphin się "
 #~ "zawiesza, ta opcja może naprawić działanie gry."
 
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Zwiększa wydajność, ale powoduje zniknięcie świateł w większości grach.\n"
-#~ "\n"
-#~ "W razie wątpliwości, pozostaw wyłączone."
-
 #~ msgid "Input Source"
 #~ msgstr "Źródło wejścia"
 
@@ -6311,12 +6357,6 @@ msgstr "| OR"
 #~ "Wczytywanie natywnych mipmap jest bardziej dokładnym zachowaniem, ale "
 #~ "może obniżyć wydajność."
 
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "Wczytuje określony plik (DOL, ELF, GCM, ISO,  WAD)"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Llow level (LLE) lub high level (HLE) audio"
-
 #~ msgid "Lua Script Console"
 #~ msgstr "Konsola skryptów Lua"
 
@@ -6350,12 +6390,6 @@ msgstr "| OR"
 
 #~ msgid "OpenGL"
 #~ msgstr "OpenGL"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "Otwiera debugera"
-
-#~ msgid "Opens the logger"
-#~ msgstr "Otwiera logera"
 
 #~ msgid "Plugins"
 #~ msgstr "Wtyczki"
@@ -6436,9 +6470,6 @@ msgstr "| OR"
 #~ msgid "Show the number of frames rendered per second."
 #~ msgstr "Pokazuje ilośc generowanych ramek na sekundę."
 
-#~ msgid "Show this help message"
-#~ msgstr "Pokaż wiadomość pomocy"
-
 #~ msgid ""
 #~ "Show various statistics.\n"
 #~ "This is only useful for debugging purposes."
@@ -6478,9 +6509,6 @@ msgstr "| OR"
 #~ "Pozostałe opcje to ustawione rozdzielczoście niezależne od wielkości "
 #~ "ekranu."
 
-#~ msgid "Specify a video backend"
-#~ msgstr "Wybierz video backend"
-
 #~ msgid "Specify an audio plugin"
 #~ msgstr "Wybierz wtyczkę audio"
 
@@ -6493,25 +6521,6 @@ msgstr "| OR"
 #~ msgid "The file "
 #~ msgstr "Plik"
 
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "Ustawienia te wykorzystywane są do kontrolowania szybkości gry przez "
-#~ "sound throttle(spowalnianie dźwięku).\n"
-#~ "Wyłączenie tego może spowodować nienormalne działanie gry, np. zbyt "
-#~ "szybkie działanie.\n"
-#~ "Czasami powoduje stały szum.\n"
-#~ "\n"
-#~ "Skrót klawiszowy <TAB>: Przytrzymaj by natychmiastowo wyłączyc Audio "
-#~ "Throttle."
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr "Jest to używane do odtwarzania muzyki, BGM."
-
 #~ msgid "This is usually used to play voice and sound effects."
 #~ msgstr "To zazwyczaj jest używane do odtwarza głosów i efektów dźwiękowych."
 
@@ -6520,13 +6529,6 @@ msgstr "| OR"
 
 #~ msgid "Type %d config not supported in plugin %s"
 #~ msgstr "Typ %d konfiguracji nie jest wspierany przez wtyczkę %s"
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "Nieznany wskaźnik %#08x\n"
-#~ "Kontynuować?"
 
 #~ msgid "Use FPS For Limiting"
 #~ msgstr "Użyj FPS do limitowania"
