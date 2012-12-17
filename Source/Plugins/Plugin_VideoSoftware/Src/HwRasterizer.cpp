@@ -26,6 +26,17 @@
 #include "DebugUtil.h"
 
 #define TEMP_SIZE (1024*1024*4)
+#ifdef USE_GLES
+#define PREC "highp"
+#define TEX2D	GL_TEXTURE_2D
+#define TEXTYPE "sampler2D"
+#define TEXFUNC "texture2D"
+#else
+#define PREC 
+#define TEX2D	GL_TEXTURE_RECTANGLE_ARB
+#define TEXTYPE "sampler2DRect"
+#define TEXFUNC "texture2DRect"
+#endif
 
 namespace HwRasterizer
 {
@@ -35,6 +46,75 @@ namespace HwRasterizer
 
     u8 *temp;   
 
+	// Programs
+	static GLuint colProg, texProg, clearProg;
+	
+	// Color
+	static GLint col_apos = -1, col_atex = -1;
+	// Tex
+	static GLint tex_apos = -1, tex_atex = -1, tex_utex = -1;
+	// Clear shader
+	static GLint clear_apos = -1, clear_ucol = -1;
+
+	void CreateShaders()
+	{
+		// Color Vertices
+		static const char *fragcolText =
+			"varying " PREC " vec4 TexCoordOut;\n"
+			"void main() {\n"
+			"	gl_FragColor = TexCoordOut;\n"
+			"}\n";
+		// Texture Vertices
+		static const char *fragtexText =
+			"varying " PREC " vec4 TexCoordOut;\n"
+			"uniform " TEXTYPE " Texture;\n"
+			"void main() {\n"
+			"   " PREC " vec4 tmpcolor;\n"
+			"   tmpcolor = " TEXFUNC "(Texture, TexCoordOut.xy);\n"
+			"	gl_FragColor = tmpcolor;\n"
+			"}\n";
+		// Clear shader
+		static const char *fragclearText = 
+			"uniform vec4 Color;\n"
+			"void main() {\n"
+			"	gl_FragColor = Color;\n"
+			"}\n";
+		// Generic passthrough vertice shaders
+		static const char *vertShaderText =
+			"attribute vec4 pos;\n"
+			"attribute vec4 TexCoordIn;\n "
+			"varying vec4 TexCoordOut;\n "
+			"void main() {\n"
+			"   gl_Position = pos;\n"
+			"	TexCoordOut = TexCoordIn;\n"
+			"}\n";
+		static const char *vertclearText = 
+			"attribute vec4 pos;\n"
+			"void main() {\n"
+			"	gl_Position = pos;\n"
+			"}\n";
+
+		// Color Program
+		colProg = OpenGL_CompileProgram(vertShaderText, fragcolText);
+
+		// Texture Program
+		texProg = OpenGL_CompileProgram(vertShaderText, fragtexText);
+
+		// Clear Program
+		clearProg = OpenGL_CompileProgram(vertclearText, fragclearText);
+
+		// Color attributes
+		col_apos = glGetAttribLocation(colProg, "pos");
+		col_atex = glGetAttribLocation(colProg, "TexCoordIn"); 
+		// Texture attributes
+		tex_apos = glGetAttribLocation(texProg, "pos");
+		tex_atex = glGetAttribLocation(texProg, "TexCoordIn"); 
+		tex_utex = glGetUniformLocation(texProg, "Texture"); 
+		// Clear attributes
+		clear_apos = glGetAttribLocation(clearProg, "pos");
+		clear_ucol = glGetUniformLocation(clearProg, "Color");
+	}
+
     void Init()
     {
         efbHalfWidth = EFB_WIDTH / 2.0f;
@@ -42,23 +122,72 @@ namespace HwRasterizer
 
         temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
     }
+	void Shutdown()
+	{
+		glDeleteProgram(colProg);
+		glDeleteProgram(texProg);
+		glDeleteProgram(clearProg);
+	}
+	void Prepare()
+	{
+		//legacy multitexturing: select texture channel only.
+		glActiveTexture(GL_TEXTURE0);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
+#ifndef USE_GLES
+		glShadeModel(GL_SMOOTH);
+		glDisable(GL_BLEND);
+		glClearDepth(1.0f);
+		glEnable(GL_SCISSOR_TEST);
+		glDisable(GL_LIGHTING);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
 
+		glClientActiveTexture(GL_TEXTURE0); 
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_TEXTURE_RECTANGLE_ARB);
+		glStencilFunc(GL_ALWAYS, 0, 0);
+		glDisable(GL_STENCIL_TEST);
+#endif
+		// used by hw rasterizer if it enables blending and depth test
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthFunc(GL_LEQUAL);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		
+		CreateShaders();
+		GL_REPORT_ERRORD();
+	}
+	static float width, height;
     void LoadTexture()
     {
         FourTexUnits &texUnit = bpmem.tex[0];
         u32 imageAddr = texUnit.texImage3[0].image_base;
-
+		// Texture Rectangle uses pixel coordinates
+		// While GLES uses texture coordinates
+#ifdef USE_GLES	
+		width = texUnit.texImage0[0].width;
+		height = texUnit.texImage0[0].height;
+#else
+		width = 1;
+		height = 1;
+#endif
         TexCacheEntry &cacheEntry = textures[imageAddr];
         cacheEntry.Update();
+		GL_REPORT_ERRORD();
 
-        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, cacheEntry.texture);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, texUnit.texMode0[0].mag_filter ? GL_LINEAR : GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, (texUnit.texMode0[0].min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+		glBindTexture(TEX2D, cacheEntry.texture);
+		glTexParameteri(TEX2D, GL_TEXTURE_MAG_FILTER, texUnit.texMode0[0].mag_filter ? GL_LINEAR : GL_NEAREST);
+		glTexParameteri(TEX2D, GL_TEXTURE_MIN_FILTER, (texUnit.texMode0[0].min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+		GL_REPORT_ERRORD();
     }
 
     void BeginTriangles()
     {
         // disabling depth test sometimes allows more things to be visible
+		GL_REPORT_ERRORD();
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
 
@@ -66,51 +195,121 @@ namespace HwRasterizer
 
         if (hasTexture)
             LoadTexture();        
+		GL_REPORT_ERRORD();
     }
 
     void EndTriangles()
     {
-        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-
+        glBindTexture(TEX2D, 0);
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
     }
 
-    void DrawColorVertex(OutputVertexData *v)
+    void DrawColorVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
     {
-		glColor3ub(v->color[0][OutputVertexData::RED_C], v->color[0][OutputVertexData::GRN_C], v->color[0][OutputVertexData::BLU_C]);
-        glVertex3f(v->screenPosition.x / efbHalfWidth - 1.0f, 1.0f - v->screenPosition.y / efbHalfHeight, v->screenPosition.z / (float)0x00ffffff);
+		float x0 = (v0->screenPosition.x / efbHalfWidth) - 1.0f;
+		float y0 = 1.0f - (v0->screenPosition.y / efbHalfHeight);
+		float z0 = v0->screenPosition.z / (float)0x00ffffff;
+
+		float x1 = (v1->screenPosition.x / efbHalfWidth) - 1.0f;
+		float y1 = 1.0f - (v1->screenPosition.y / efbHalfHeight);
+		float z1 = v1->screenPosition.z / (float)0x00ffffff;
+		
+		float x2 = (v2->screenPosition.x / efbHalfWidth) - 1.0f;
+		float y2 = 1.0f - (v2->screenPosition.y / efbHalfHeight);
+		float z2 = v2->screenPosition.z / (float)0x00ffffff;
+		
+		float r0 = v0->color[0][OutputVertexData::RED_C] / 255.0f;
+		float g0 = v0->color[0][OutputVertexData::GRN_C] / 255.0f; 
+		float b0 = v0->color[0][OutputVertexData::BLU_C] / 255.0f;
+
+		float r1 = v1->color[0][OutputVertexData::RED_C] / 255.0f;
+		float g1 = v1->color[0][OutputVertexData::GRN_C] / 255.0f; 
+		float b1 = v1->color[0][OutputVertexData::BLU_C] / 255.0f;
+
+		float r2 = v2->color[0][OutputVertexData::RED_C] / 255.0f;
+		float g2 = v2->color[0][OutputVertexData::GRN_C] / 255.0f; 
+		float b2 = v2->color[0][OutputVertexData::BLU_C] / 255.0f;
+
+		static const GLfloat verts[3][3] = {
+			{ x0, y0, z0 },
+			{ x1, y1, z1 },
+			{ x2, y2, z2 }
+		};
+		static const GLfloat col[3][4] = {
+		   { r0, g0, b0, 0.1f },
+		   { r1, g1, b1, 0.1f },
+		   { r2, g2, b2, 0.1f }
+		};
+		{
+			glUseProgram(colProg);
+			glEnableVertexAttribArray(col_apos);
+			glEnableVertexAttribArray(col_atex);
+
+			glVertexAttribPointer(col_apos, 3, GL_FLOAT, GL_FALSE, 0, verts);
+			glVertexAttribPointer(col_atex, 4, GL_FLOAT, GL_FALSE, 0, col);
+				glDrawArrays(GL_TRIANGLES, 0, 3);
+			glDisableVertexAttribArray(col_atex);
+			glDisableVertexAttribArray(col_apos);
+		}
+		GL_REPORT_ERRORD();
     }
 
-    void DrawTextureVertex(OutputVertexData *v)
+    void DrawTextureVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
     {
-        float s = v->texCoords[0].x;
-		float t = v->texCoords[0].y;
-		glTexCoord2f(s, t);
+		float x0 = (v0->screenPosition.x / efbHalfWidth) - 1.0f;
+		float y0 = 1.0f - (v0->screenPosition.y / efbHalfHeight);
+		float z0 = v0->screenPosition.z;
 
-		float x = (v->screenPosition.x / efbHalfWidth) - 1.0f;
-		float y = 1.0f - (v->screenPosition.y / efbHalfHeight);
-		float z = v->screenPosition.z;
-        glVertex3f(x, y, z);
+		float x1 = (v1->screenPosition.x / efbHalfWidth) - 1.0f;
+		float y1 = 1.0f - (v1->screenPosition.y / efbHalfHeight);
+		float z1 = v1->screenPosition.z;
+		
+		float x2 = (v2->screenPosition.x / efbHalfWidth) - 1.0f;
+		float y2 = 1.0f - (v2->screenPosition.y / efbHalfHeight);
+		float z2 = v2->screenPosition.z;
+
+		float s0 = v0->texCoords[0].x / width;
+		float t0 = v0->texCoords[0].y / height;
+
+		float s1 = v1->texCoords[0].x / width;
+		float t1 = v1->texCoords[0].y / height;
+
+		float s2 = v2->texCoords[0].x / width;
+		float t2 = v2->texCoords[0].y / width;
+
+		static const GLfloat verts[3][3] = {
+			{ x0, y0, z0 },
+			{ x1, y1, z1 },
+			{ x2, y2, z2 }
+		};
+		static const GLfloat tex[3][2] = {
+			{ s0, t0 },
+			{ s1, t1 },
+			{ s2, t2 }
+		};
+		{
+			glUseProgram(texProg);
+			glEnableVertexAttribArray(tex_apos);
+			glEnableVertexAttribArray(tex_atex);
+
+			glVertexAttribPointer(tex_apos, 3, GL_FLOAT, GL_FALSE, 0, verts);
+			glVertexAttribPointer(tex_atex, 2, GL_FLOAT, GL_FALSE, 0, tex);
+				glUniform1i(tex_utex, 0);
+				glDrawArrays(GL_TRIANGLES, 0, 3);
+			glDisableVertexAttribArray(tex_atex);
+			glDisableVertexAttribArray(tex_apos);
+		}
+		GL_REPORT_ERRORD();
     }
 
     void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
     {
-        glBegin(GL_TRIANGLES);
-            if (hasTexture)
-            {                
-                DrawTextureVertex(v0);
-                DrawTextureVertex(v1);
-                DrawTextureVertex(v2);
-            }
-            else
-            {
-                DrawColorVertex(v0);
-                DrawColorVertex(v1);
-                DrawColorVertex(v2);
-            }   
-        glEnd();
-    }
+		if (hasTexture)
+			DrawTextureVertex(v0, v1, v2);
+		else
+			DrawColorVertex(v0, v1, v2);
+	}
 
     void Clear()
     {
@@ -124,17 +323,21 @@ namespace HwRasterizer
         GLfloat right  = (GLfloat)(left + bpmem.copyTexSrcWH.x + 1) / efbHalfWidth - 1.0f;
 	    GLfloat bottom = 1.0f - (GLfloat)(top + bpmem.copyTexSrcWH.y + 1) / efbHalfHeight;
         GLfloat depth = (GLfloat)bpmem.clearZValue / (GLfloat)0x00ffffff;
-
-        glBegin(GL_QUADS);
-            glColor4ub(r, g, b, a);
-            glVertex3f(left, top, depth);
-            glColor4ub(r, g, b, a);
-            glVertex3f(right, top, depth);
-            glColor4ub(r, g, b, a);
-            glVertex3f(right, bottom, depth);
-            glColor4ub(r, g, b, a);
-            glVertex3f(left, bottom, depth);
-        glEnd();
+		static const GLfloat verts[4][3] = {
+			{ left, top, depth },
+			{ right, top, depth },
+			{ right, bottom, depth },
+			{ left, bottom, depth }
+		};
+		{
+			glUseProgram(clearProg);
+			glVertexAttribPointer(clear_apos, 3, GL_FLOAT, GL_FALSE, 0, verts);
+			glUniform4f(clear_ucol, r, g, b, a);	
+			glEnableVertexAttribArray(col_apos);
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+			glDisableVertexAttribArray(col_apos);
+		}
+		GL_REPORT_ERRORD();
     }
 
     TexCacheEntry::TexCacheEntry()
@@ -158,9 +361,14 @@ namespace HwRasterizer
         DebugUtil::GetTextureBGRA(temp, 0, 0, width, height);
 
         glGenTextures(1, (GLuint *)&texture);
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
-        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_BGRA, GL_UNSIGNED_BYTE, temp);        
-    }
+		glBindTexture(TEX2D, texture);
+#ifdef USE_GLES
+        glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);        
+#else
+        glTexImage2D(TEX2D, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_BGRA, GL_UNSIGNED_BYTE, temp);        
+#endif
+		GL_REPORT_ERRORD();
+	}
 
     void TexCacheEntry::Destroy()
     {

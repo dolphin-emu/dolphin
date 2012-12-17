@@ -12,11 +12,22 @@ set(SRCS	Src/FramebufferManager.cpp
 			Src/VertexManager.cpp)
 
 set(LIBS	videocommon
-			GLEW
 			SOIL
 			common
-			${OPENGL_LIBRARIES}
 			${X11_LIBRARIES})
+if(USE_EGL)
+	set(LIBS ${LIBS}
+		EGL)
+endif()
+
+if(USE_GLES)
+	set(LIBS ${LIBS}
+		GLESv2)
+else()
+	set(LIBS ${LIBS}
+		GLEW
+		${OPENGL_LIBRARIES})
+endif()
 
 if(wxWidgets_FOUND)
 	set(LIBS	${LIBS} ${wxWidgets_LIBRARIES})

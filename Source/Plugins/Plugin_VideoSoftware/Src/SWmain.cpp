@@ -40,6 +40,8 @@
 #include "VideoBackend.h"
 #include "Core.h"
 
+#define VSYNC_ENABLED 0
+
 namespace SW
 {
 
@@ -69,8 +71,9 @@ void VideoSoftware::ShowConfig(void *_hParent)
 bool VideoSoftware::Initialize(void *&window_handle)
 {
     g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
+	InitInterface();
 
-	if (!OpenGL_Create(window_handle))
+	if (!GLInterface->CreateWindow(window_handle))
 	{
 		INFO_LOG(VIDEO, "%s", "SWRenderer::Create failed\n");
 		return false;
@@ -83,8 +86,10 @@ bool VideoSoftware::Initialize(void *&window_handle)
     OpcodeDecoder::Init();
     Clipper::Init();
     Rasterizer::Init();
-    HwRasterizer::Init();
-    SWRenderer::Init();
+	if (g_SWVideoConfig.bHwRasterizer)
+		HwRasterizer::Init();
+	else
+		SWRenderer::Init();
     DebugUtil::Init();
 
 	return true;
@@ -124,14 +129,44 @@ void VideoSoftware::EmuStateChange(EMUSTATE_CHANGE newState)
 
 void VideoSoftware::Shutdown()
 {
-	SWRenderer::Shutdown();
-	OpenGL_Shutdown();
+	if (g_SWVideoConfig.bHwRasterizer)
+		HwRasterizer::Shutdown();
+	else
+		SWRenderer::Shutdown();
+	GLInterface->Shutdown();
 }
 
 // This is called after Video_Initialize() from the Core
 void VideoSoftware::Video_Prepare()
-{    
-    SWRenderer::Prepare();
+{
+	GLInterface->MakeCurrent();
+    // Init extension support.
+	{
+#ifndef USE_GLES
+	if (glewInit() != GLEW_OK) {
+        ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
+        return;
+    }
+
+    // Handle VSync on/off
+#ifdef _WIN32
+	if (WGLEW_EXT_swap_control)
+		wglSwapIntervalEXT(VSYNC_ENABLED);
+	else
+		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)Does your video card support OpenGL 2.x?");
+#elif defined(HAVE_X11) && HAVE_X11
+	if (glXSwapIntervalSGI)
+		glXSwapIntervalSGI(VSYNC_ENABLED);
+	else
+		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)");
+#endif 
+#endif
+	}
+
+	if (g_SWVideoConfig.bHwRasterizer)
+	    HwRasterizer::Prepare();
+	else
+		SWRenderer::Prepare();
 
     INFO_LOG(VIDEO, "Video backend initialized.");
 }
@@ -273,20 +308,7 @@ writeFn32 VideoSoftware::Video_PEWrite32()
 // Draw messages on top of the screen
 unsigned int VideoSoftware::PeekMessages()
 {
-#ifdef _WIN32
-	// TODO: peekmessage
-	MSG msg;
-	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-	{
-		if (msg.message == WM_QUIT)
-			return FALSE;
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-	return TRUE;
-#else
-	return false;
-#endif
+	return GLInterface->PeekMessages();
 }
 
 // Show the current FPS
@@ -294,7 +316,7 @@ void VideoSoftware::UpdateFPSDisplay(const char *text)
 {
 	char temp[100];
 	snprintf(temp, sizeof temp, "%s | Software | %s", scm_rev_str, text);
-	OpenGL_SetWindowText(temp);
+	GLInterface->UpdateFPSDisplay(temp);
 }
 
 }

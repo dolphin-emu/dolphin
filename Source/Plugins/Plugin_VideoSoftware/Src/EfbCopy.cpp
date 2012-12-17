@@ -25,7 +25,6 @@
 #include "DebugUtil.h"
 #include "HwRasterizer.h"
 #include "SWCommandProcessor.h"
-#include "../../Plugin_VideoOGL/Src/GLUtil.h"
 #include "HW/Memmap.h"
 #include "Core.h"
 
@@ -33,7 +32,7 @@ namespace EfbCopy
 {
     void CopyToXfb()
     {
-        OpenGL_Update(); // just updates the render window position and the backbuffer size	
+        GLInterface->Update(); // just updates the render window position and the backbuffer size	
 
 		if (!g_SWVideoConfig.bHwRasterizer)
         {

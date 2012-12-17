@@ -218,6 +218,12 @@ if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
+option(USE_GLES "Enables GLES, disables OGL" OFF)
+if(USE_GLES)
+	message("GLES rendering enabled")
+	add_definitions(-DUSE_GLES)
+	add_definitions(-DUSE_EGL)
+endif()
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 ########################################

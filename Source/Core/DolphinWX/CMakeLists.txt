@@ -8,7 +8,6 @@ set(LIBS	core
 			z
 			sfml-network
 			${GTK2_LIBRARIES}
-			${OPENGL_LIBRARIES}
 			${XRANDR_LIBRARIES}
 			${X11_LIBRARIES})
 
@@ -31,7 +30,8 @@ if(LIBAV_FOUND)
 endif()
 
 if(wxWidgets_FOUND)
-	set(SRCS	Src/ARCodeAddEdit.cpp
+	set(SRCS 
+				Src/ARCodeAddEdit.cpp
 				Src/AboutDolphin.cpp
 				Src/CheatsWindow.cpp
 				Src/ConfigMain.cpp
@@ -79,7 +79,28 @@ if(wxWidgets_FOUND)
 
 	set(WXLIBS ${wxWidgets_LIBRARIES})
 else()
-	set(SRCS	Src/MainNoGUI.cpp)
+	set(SRCS 		
+		Src/MainNoGUI.cpp)
+endif()
+
+if(USE_EGL)
+	set(SRCS ${SRCS}
+		Src/VideoInterface/EGL.cpp
+	)
+else()
+	if(WIN32)
+		set(SRCS ${SRCS}
+			Src/VideoInterface/GLW.cpp
+		)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		set(SRCS ${SRCS}
+			Src/VideoInterface/AGL.cpp
+		)
+	else()
+		set(SRCS ${SRCS}
+			Src/VideoInterface/GLX.cpp
+		)
+	endif()
 endif()
 
 if(WIN32)

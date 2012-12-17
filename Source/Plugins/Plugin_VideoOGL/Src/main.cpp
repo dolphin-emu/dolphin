@@ -165,7 +165,8 @@ bool VideoBackend::Initialize(void *&window_handle)
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
-	if (!OpenGL_Create(window_handle))
+	InitInterface();
+	if (!GLInterface->CreateWindow(window_handle))
 		return false;
 
 	s_BackendInitialized = true;
@@ -177,7 +178,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 // Run from the graphics thread
 void VideoBackend::Video_Prepare()
 {
-	OpenGL_MakeCurrent();
+	GLInterface->MakeCurrent();
 
 	g_renderer = new Renderer;
 
@@ -236,7 +237,7 @@ void VideoBackend::Shutdown()
 		g_renderer = NULL;
 		g_texture_cache = NULL;
 	}
-	OpenGL_Shutdown();
+	GLInterface->Shutdown();
 }
 
 }

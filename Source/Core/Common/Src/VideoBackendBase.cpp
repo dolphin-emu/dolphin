@@ -22,7 +22,9 @@
 #include "../../../Plugins/Plugin_VideoDX9/Src/VideoBackend.h"
 #include "../../../Plugins/Plugin_VideoDX11/Src/VideoBackend.h"
 #endif
+#ifndef USE_GLES
 #include "../../../Plugins/Plugin_VideoOGL/Src/VideoBackend.h"
+#endif
 #include "../../../Plugins/Plugin_VideoSoftware/Src/VideoBackend.h"
 
 std::vector<VideoBackend*> g_available_video_backends;
@@ -52,7 +54,9 @@ void VideoBackend::PopulateList()
 	if (IsGteVista())
 		g_available_video_backends.push_back(new DX11::VideoBackend);
 #endif
+#ifndef USE_GLES
 	g_available_video_backends.push_back(new OGL::VideoBackend);
+#endif
 	g_available_video_backends.push_back(new SW::VideoSoftware);
 
 	g_video_backend = g_available_video_backends.front();
