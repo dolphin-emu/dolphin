@@ -71,30 +71,7 @@ extern "C" {
 };
 
 
-// Windows functions. Setting the cursor with wxSetCursor() did not work in
-// this instance.  Probably because it's somehow reset from the WndProc() in
-// the child window
 #ifdef _WIN32
-// Declare a blank icon and one that will be the normal cursor
-HCURSOR hCursor = NULL, hCursorBlank = NULL;
-
-// Create the default cursor
-void CreateCursor()
-{
-	hCursor = LoadCursor( NULL, IDC_ARROW );
-}
-
-void MSWSetCursor(bool Show)
-{
-	if(Show)
-		SetCursor(hCursor);
-	else
-	{
-		SetCursor(hCursorBlank);
-		//wxSetCursor(wxCursor(wxNullCursor));
-	}
-}
-
 // I could not use FindItemByHWND() instead of this, it crashed on that occation I used it */
 HWND MSWGetParent_(HWND Parent)
 {
@@ -133,10 +110,11 @@ CPanel::CPanel(
 
 			case WM_USER_SETCURSOR:
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
-					MSWSetCursor(!SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
+						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN &&
+						SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					SetCursor(wxCURSOR_BLANK);
 				else
-					MSWSetCursor(true);
+					SetCursor(wxCURSOR_ARROW);
 				break;
 
 			case WIIMOTE_DISCONNECT:
@@ -435,9 +413,7 @@ CFrame::CFrame(wxFrame* parent,
 	// Commit
 	m_Mgr->Update();
 
-	// Create cursors
 	#ifdef _WIN32
-		CreateCursor();
 		SetToolTip(wxT(""));
 		GetToolTip()->SetAutoPop(25000);
 	#endif
@@ -494,20 +470,6 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-			// 32x32, 8bpp b/w image
-			// We want all transparent, so we can just use the same buffer for
-			// the "image" as for the transparency mask
-			static const char cursor_data[32 * 32] = { 0 };
-			
-#ifdef __WXGTK__
-			wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
-				cursor_data, wxWHITE, wxBLACK);
-#else
-			wxBitmap cursor_bitmap(cursor_data, 32, 32);
-			cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
-			wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
-#endif
-
 #ifdef __WXMSW__
 			::SetFocus((HWND)m_RenderParent->GetHandle());
 #else
@@ -516,12 +478,12 @@ void CFrame::OnActive(wxActivateEvent& event)
 			
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
-				m_RenderParent->SetCursor(cursor_transparent);
+				m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		}
 		else
 		{
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-				m_RenderParent->SetCursor(wxNullCursor);
+				m_RenderParent->SetCursor(wxCURSOR_ARROW);
 		}
 	}
 	event.Skip();
@@ -646,12 +608,12 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		}
 		break;
 
-#ifdef __WXGTK__
 	case WM_USER_CREATE:
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
 
+#ifdef __WXGTK__
 	case IDM_PANIC:
 		{
 			wxString caption = event.GetString().BeforeFirst(':');
