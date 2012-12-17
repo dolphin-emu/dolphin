@@ -17,8 +17,14 @@
 #ifndef _INTERFACEWX_H_
 #define _INTERFACEWX_H_
 
+#ifdef HAVE_X11 && HAVE_X11
 #include <GL/glxew.h>
 #include <GL/gl.h>
+#elif defined __APPLE__
+#include <GL/glew.h>
+#import <AppKit/AppKit.h>
+#endif
+
 #if defined USE_WX && USE_WX
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
