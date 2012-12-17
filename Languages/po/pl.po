@@ -5905,113 +5905,6 @@ msgstr "zNear Correction: "
 msgid "| OR"
 msgstr "| OR"
 
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Automatycznie generuje mipmapy zamiast dekodowania ich z pamięci.\n"
-#~ "Zwiększa wydajność, ale może powodować defekty tekstur.\n"
-#~ "\n"
-#~ "W razie wątpliwości, pozostaw włączone."
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Wyłącz światła"
-
-#~ msgid "Disable Textures"
-#~ msgstr "Wyłącz tekstury"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Wyłącza teksturowanie.\n"
-#~ "\n"
-#~ "W razie wątpliwości, pozostaw wyłączone."
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Wyjście z Dolphina"
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Fast Mipmaps"
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Zwiększa wydajność, ale powoduje zniknięcie świateł w większości grach.\n"
-#~ "\n"
-#~ "W razie wątpliwości, pozostaw wyłączone."
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "Wczytuje określony plik (DOL, ELF, GCM, ISO,  WAD)"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Llow level (LLE) lub high level (HLE) audio"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "Otwiera debugera"
-
-#~ msgid "Opens the logger"
-#~ msgstr "Otwiera logera"
-
-#~ msgid "Show this help message"
-#~ msgstr "Pokaż wiadomość pomocy"
-
-#~ msgid "Specify a video backend"
-#~ msgstr "Wybierz video backend"
-
-#~ msgid "Clear failed."
-#~ msgstr "Czyszczenie nie powiodło się."
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "Włącz muzykę DTK"
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr "Jest to używane do odtwarzania muzyki, BGM."
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "Włącz Audio Throttle"
-
-#~ msgid ""
-#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
-#~ "Sorry, Wii recording is temporarily broken."
-#~ msgstr ""
-#~ "Błąd w PlayWiimote.  %u != %u, bajt %d.\n"
-#~ "Przepraszamy, nagrywanie Wii jest tymczasowo niesprawne."
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "Ustawienia te wykorzystywane są do kontrolowania szybkości gry przez "
-#~ "sound throttle(spowalnianie dźwięku).\n"
-#~ "Wyłączenie tego może spowodować nienormalne działanie gry, np. zbyt "
-#~ "szybkie działanie.\n"
-#~ "Czasami powoduje stały szum.\n"
-#~ "\n"
-#~ "Skrót klawiszowy <TAB>: Przytrzymaj by natychmiastowo wyłączyc Audio "
-#~ "Throttle."
-
-#~ msgid "Cannot record movies in read-only mode."
-#~ msgstr "Nie można nagrywać filmów w trybie tylko do odczytu."
-
-#~ msgid "Disable Wiimote Speaker"
-#~ msgstr "Wyłącz głośnik Wiilota"
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "Nieznany wskaźnik %#08x\n"
-#~ "Kontynuować?"
-
 #~ msgid "%d %%"
 #~ msgstr "%d %%"
 
@@ -6077,6 +5970,17 @@ msgstr "| OR"
 #~ "Dla lepszego efektu najlepiej ustawić proporcje ekranu na rozciągniete do "
 #~ "okna, gdy używasz tej opcji."
 
+#~ msgid ""
+#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
+#~ "Increases performance a bit but might cause minor texture defects.\n"
+#~ "\n"
+#~ "If unsure, leave this checked."
+#~ msgstr ""
+#~ "Automatycznie generuje mipmapy zamiast dekodowania ich z pamięci.\n"
+#~ "Zwiększa wydajność, ale może powodować defekty tekstur.\n"
+#~ "\n"
+#~ "W razie wątpliwości, pozostaw włączone."
+
 #~ msgid "Bad gameini filename"
 #~ msgstr "Zła nazwa pliku gameini"
 
@@ -6102,6 +6006,12 @@ msgstr "| OR"
 
 #~ msgid "Can't open %s, it has a missing function"
 #~ msgstr "Nie można otworzyć %s, ma brakującą funkcję"
+
+#~ msgid "Cannot record movies in read-only mode."
+#~ msgstr "Nie można nagrywać filmów w trybie tylko do odczytu."
+
+#~ msgid "Clear failed."
+#~ msgstr "Czyszczenie nie powiodło się."
 
 #~ msgid "Config..."
 #~ msgstr "Konfiguracja..."
@@ -6138,6 +6048,24 @@ msgstr "| OR"
 
 #~ msgid "Danish"
 #~ msgstr "Duński"
+
+#~ msgid "Disable Lighting"
+#~ msgstr "Wyłącz światła"
+
+#~ msgid "Disable Textures"
+#~ msgstr "Wyłącz tekstury"
+
+#~ msgid "Disable Wiimote Speaker"
+#~ msgstr "Wyłącz głośnik Wiilota"
+
+#~ msgid ""
+#~ "Disable texturing.\n"
+#~ "\n"
+#~ "If unsure, leave this unchecked."
+#~ msgstr ""
+#~ "Wyłącza teksturowanie.\n"
+#~ "\n"
+#~ "W razie wątpliwości, pozostaw wyłączone."
 
 #~ msgid ""
 #~ "Disable texturing.\n"
@@ -6199,11 +6127,17 @@ msgstr "| OR"
 #~ msgid "Emulator Display Settings"
 #~ msgstr "Ustawienia ekranu emulatora"
 
+#~ msgid "Enable Audio Throttle"
+#~ msgstr "Włącz Audio Throttle"
+
 #~ msgid "Enable CPU Access"
 #~ msgstr "Włącz dostęp CPU"
 
 #~ msgid "Enable Copy to EFB"
 #~ msgstr "Włącz kopiowanie do EFB"
+
+#~ msgid "Enable DTK Music"
+#~ msgstr "Włącz muzykę DTK"
 
 #~ msgid "Enable EFB To Texture"
 #~ msgstr "Włącz EFB To Texture"
@@ -6254,6 +6188,13 @@ msgstr "| OR"
 #~ msgid "Error allocating buffer"
 #~ msgstr "Błąd alokacji bufora"
 
+#~ msgid ""
+#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
+#~ "Sorry, Wii recording is temporarily broken."
+#~ msgstr ""
+#~ "Błąd w PlayWiimote.  %u != %u, bajt %d.\n"
+#~ "Przepraszamy, nagrywanie Wii jest tymczasowo niesprawne."
+
 #~ msgid "Error loading %s: can't read info"
 #~ msgstr "Błąd wczytywania %s: nie można odczytać informacji"
 
@@ -6266,8 +6207,14 @@ msgstr "| OR"
 #~ msgid "Error opening file %s for recording"
 #~ msgstr "Błąd otwarcia pliku %s do nagrania."
 
+#~ msgid "Exit Dolphin with emulator"
+#~ msgstr "Wyjście z Dolphina"
+
 #~ msgid "Failed to load DSP ROM: %s"
 #~ msgstr "Nieudane ładowanie romu DSP: %s"
+
+#~ msgid "Fast Mipmaps"
+#~ msgstr "Fast Mipmaps"
 
 #~ msgid ""
 #~ "Faster variants look at fewer pixels and thus have more potential for "
@@ -6316,6 +6263,15 @@ msgstr "| OR"
 #~ "Jeśli gra się zawiesza, działa tylko w Interpreter lub Dolphin się "
 #~ "zawiesza, ta opcja może naprawić działanie gry."
 
+#~ msgid ""
+#~ "Improves performance but causes lighting to disappear in most games.\n"
+#~ "\n"
+#~ "If unsure, leave this unchecked."
+#~ msgstr ""
+#~ "Zwiększa wydajność, ale powoduje zniknięcie świateł w większości grach.\n"
+#~ "\n"
+#~ "W razie wątpliwości, pozostaw wyłączone."
+
 #~ msgid "Input Source"
 #~ msgstr "Źródło wejścia"
 
@@ -6357,6 +6313,12 @@ msgstr "| OR"
 #~ "Wczytywanie natywnych mipmap jest bardziej dokładnym zachowaniem, ale "
 #~ "może obniżyć wydajność."
 
+#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
+#~ msgstr "Wczytuje określony plik (DOL, ELF, GCM, ISO,  WAD)"
+
+#~ msgid "Low level (LLE) or high level (HLE) audio"
+#~ msgstr "Llow level (LLE) lub high level (HLE) audio"
+
 #~ msgid "Lua Script Console"
 #~ msgstr "Konsola skryptów Lua"
 
@@ -6390,6 +6352,12 @@ msgstr "| OR"
 
 #~ msgid "OpenGL"
 #~ msgstr "OpenGL"
+
+#~ msgid "Opens the debugger"
+#~ msgstr "Otwiera debugera"
+
+#~ msgid "Opens the logger"
+#~ msgstr "Otwiera logera"
 
 #~ msgid "Plugins"
 #~ msgstr "Wtyczki"
@@ -6470,6 +6438,9 @@ msgstr "| OR"
 #~ msgid "Show the number of frames rendered per second."
 #~ msgstr "Pokazuje ilośc generowanych ramek na sekundę."
 
+#~ msgid "Show this help message"
+#~ msgstr "Pokaż wiadomość pomocy"
+
 #~ msgid ""
 #~ "Show various statistics.\n"
 #~ "This is only useful for debugging purposes."
@@ -6509,6 +6480,9 @@ msgstr "| OR"
 #~ "Pozostałe opcje to ustawione rozdzielczoście niezależne od wielkości "
 #~ "ekranu."
 
+#~ msgid "Specify a video backend"
+#~ msgstr "Wybierz video backend"
+
 #~ msgid "Specify an audio plugin"
 #~ msgstr "Wybierz wtyczkę audio"
 
@@ -6521,6 +6495,25 @@ msgstr "| OR"
 #~ msgid "The file "
 #~ msgstr "Plik"
 
+#~ msgid ""
+#~ "This is used to control game speed by sound throttle.\n"
+#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
+#~ "But sometimes enabling this could cause constant noise.\n"
+#~ "\n"
+#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
+#~ msgstr ""
+#~ "Ustawienia te wykorzystywane są do kontrolowania szybkości gry przez "
+#~ "sound throttle(spowalnianie dźwięku).\n"
+#~ "Wyłączenie tego może spowodować nienormalne działanie gry, np. zbyt "
+#~ "szybkie działanie.\n"
+#~ "Czasami powoduje stały szum.\n"
+#~ "\n"
+#~ "Skrót klawiszowy <TAB>: Przytrzymaj by natychmiastowo wyłączyc Audio "
+#~ "Throttle."
+
+#~ msgid "This is used to play music tracks, like BGM."
+#~ msgstr "Jest to używane do odtwarzania muzyki, BGM."
+
 #~ msgid "This is usually used to play voice and sound effects."
 #~ msgstr "To zazwyczaj jest używane do odtwarza głosów i efektów dźwiękowych."
 
@@ -6529,6 +6522,13 @@ msgstr "| OR"
 
 #~ msgid "Type %d config not supported in plugin %s"
 #~ msgstr "Typ %d konfiguracji nie jest wspierany przez wtyczkę %s"
+
+#~ msgid ""
+#~ "Unknown pointer %#08x\n"
+#~ "Continue?"
+#~ msgstr ""
+#~ "Nieznany wskaźnik %#08x\n"
+#~ "Kontynuować?"
 
 #~ msgid "Use FPS For Limiting"
 #~ msgstr "Użyj FPS do limitowania"

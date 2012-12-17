@@ -5909,27 +5909,6 @@ msgstr "Korekce zNear:"
 msgid "| OR"
 msgstr "| NEBO"
 
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Ukončit Dolphin s emulátorem"
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "Nahraje určený soubor (DOL, ELF, GCM, ISO, WAD)"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Nízkoúrovňový (lle) nebo vysokoúrovňový (hle) zvuk"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "Otevřít ladící program"
-
-#~ msgid "Opens the logger"
-#~ msgstr "Otevře protokol"
-
-#~ msgid "Show this help message"
-#~ msgstr "Zobrazit tuto zprávu nápovědy"
-
-#~ msgid "Specify a video backend"
-#~ msgstr "Určit backend videa"
-
 #~ msgid "(Default)"
 #~ msgstr "(Výchozí)"
 
@@ -6166,6 +6145,9 @@ msgstr "| NEBO"
 #~ msgid "Error opening file %s for recording"
 #~ msgstr "Chyba při otevírání souboru %s pro nahrávání"
 
+#~ msgid "Exit Dolphin with emulator"
+#~ msgstr "Ukončit Dolphin s emulátorem"
+
 #~ msgid "Failed to compile ps %s"
 #~ msgstr "Nelze zkompilovat ps %s"
 
@@ -6266,6 +6248,12 @@ msgstr "| NEBO"
 #~ "Nahrání původních mipmap je správnější chování, ale může také snížit "
 #~ "výkon (Váš užitek se ale může měnit)."
 
+#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
+#~ msgstr "Nahraje určený soubor (DOL, ELF, GCM, ISO, WAD)"
+
+#~ msgid "Low level (LLE) or high level (HLE) audio"
+#~ msgstr "Nízkoúrovňový (lle) nebo vysokoúrovňový (hle) zvuk"
+
 #~ msgid "Mixer: Unsupported sample rate."
 #~ msgstr "Mixér: Nepodporovaná vzorkovací frekvence."
 
@@ -6281,6 +6269,12 @@ msgstr "| NEBO"
 
 #~ msgid "OK"
 #~ msgstr "OK"
+
+#~ msgid "Opens the debugger"
+#~ msgstr "Otevřít ladící program"
+
+#~ msgid "Opens the logger"
+#~ msgstr "Otevře protokol"
 
 #~ msgid ""
 #~ "Portable Setting could not be saved\n"
@@ -6346,6 +6340,9 @@ msgstr "| NEBO"
 #~ msgid "Show the number of frames rendered per second."
 #~ msgstr "Zobrazit počet snímků vykreslených za sekundu."
 
+#~ msgid "Show this help message"
+#~ msgstr "Zobrazit tuto zprávu nápovědy"
+
 #~ msgid ""
 #~ "Show various statistics.\n"
 #~ "This is only useful for debugging purposes."
@@ -6379,6 +6376,9 @@ msgstr "| NEBO"
 #~ "pomalejší.\n"
 #~ "Ostatní volby jsou pevná rozlišení pro volbu kvality obrazu nezávislé na "
 #~ "Vaší velikosti displeje."
+
+#~ msgid "Specify a video backend"
+#~ msgstr "Určit backend videa"
 
 #~ msgid "Start Renderer in Fullscreen"
 #~ msgstr "Spustit vykreslovače v Celé obrazovce"
