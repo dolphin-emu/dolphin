@@ -1055,7 +1055,7 @@ void CFrame::DoPause()
 	{
 		Core::SetState(Core::CORE_PAUSE);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxCURSOR_ARROW);
+			m_RenderParent->SetCursor(wxNullCursor);
 	}
 	else
 	{
@@ -1138,7 +1138,7 @@ void CFrame::DoStop()
 				wxMouseEventHandler(CFrame::OnMouse),
 				(wxObject*)0, this);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxCURSOR_ARROW);
+			m_RenderParent->SetCursor(wxNullCursor);
 		DoFullscreen(false);
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			m_RenderFrame->Destroy();

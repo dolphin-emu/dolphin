@@ -114,7 +114,7 @@ CPanel::CPanel(
 						SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 					SetCursor(wxCURSOR_BLANK);
 				else
-					SetCursor(wxCURSOR_ARROW);
+					SetCursor(wxNullCursor);
 				break;
 
 			case WIIMOTE_DISCONNECT:
@@ -483,7 +483,7 @@ void CFrame::OnActive(wxActivateEvent& event)
 		else
 		{
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-				m_RenderParent->SetCursor(wxCURSOR_ARROW);
+				m_RenderParent->SetCursor(wxNullCursor);
 		}
 	}
 	event.Skip();
