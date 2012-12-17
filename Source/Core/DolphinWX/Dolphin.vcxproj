@@ -265,6 +265,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <ClCompile Include="Src\PHackSettings.cpp" />
     <ClCompile Include="Src\Debugger\RegisterView.cpp" />
     <ClCompile Include="Src\Debugger\RegisterWindow.cpp" />
+	<ClCompile Include="Src\VideoInterface\WGL.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">Create</PrecompiledHeader>
