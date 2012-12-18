@@ -337,8 +337,11 @@ void MixAdd(int* out, const s16* input, u16* pvol, bool ramp)
 
 	for (u32 i = 0; i < 32; ++i)
 	{
-		s64 sample = 2 * (s16)input[i] * (s16)volume;
-		out[i] += (s32)(sample >> 16);
+		s64 sample = input[i];
+		sample *= volume;
+		sample >>= 15;
+
+		out[i] += (s32)sample;
 		volume += volume_delta;
 	}
 }
