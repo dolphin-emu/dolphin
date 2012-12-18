@@ -256,56 +256,38 @@ void GetInputSamples(PB_TYPE& pb, s16* samples)
 		// samples.
 		u32 curr_pos = pb.src.cur_addr_frac;
 
-		// Compute the number of real samples we will need to read from the
-		// data source. We need to output 32 samples, so we need to read
-		// 32 * ratio + curr_pos samples. There does not seem to be a maximum
-		// value for the ratio in recent versions of AXWii (previously it was
-		// limited to 4.0), so we will limit it to 16.0 and clamp the ratio if
-		// needed. This is a HACK, and using another algorithm for linear
-		// interpolation might be a better idea.
-		if (ratio > 0x00100000)
-			ratio = 0x00100000;
-
-		s16 real_samples[514];
-		u32 real_samples_needed = (32 * ratio + curr_pos) >> 16;
-
-		// The first two real samples are the ones we read at the previous
-		// iteration. That way we can interpolate before having read 2 new
-		// samples from the accelerator.
-		//
-		// The next real samples are read from the accelerator.
-		real_samples[0] = pb.src.last_samples[2];
-		real_samples[1] = pb.src.last_samples[3];
-		for (u32 i = 0; i < real_samples_needed; ++i)
-			real_samples[i + 2] = AcceleratorGetSample();
+		// These are the two samples between which we interpolate. The initial
+		// values are stored in the PB, and we update them when resampling the
+		// input data.
+		s16 curr0 = pb.src.last_samples[2];
+		s16 curr1 = pb.src.last_samples[3];
 
 		for (u32 i = 0; i < 32; ++i)
 		{
-			// Get our current integer and fractional position. The integer
-			// position is used to get the two samples around us. The
-			// fractional position is used to compute the linear interpolation
-			// between these two samples.
-			u32 curr_int_pos = (curr_pos >> 16);
+			// Get our current fractional position, used to know how much of
+			// curr0 and how much of curr1 the output sample should be.
 			s32 curr_frac_pos = curr_pos & 0xFFFF;
-			s16 samp1 = real_samples[curr_int_pos];
-			s16 samp2 = real_samples[curr_int_pos + 1];
 
 			// Linear interpolation: s1 + (s2 - s1) * pos
-			s16 sample = samp1 + (s16)(((samp2 - samp1) * (s32)curr_frac_pos) >> 16);
+			s16 sample = curr0 + (s16)(((curr1 - curr0) * (s32)curr_frac_pos) >> 16);
 			samples[i] = sample;
 
 			curr_pos += ratio;
+
+			// While our current position is >= 1.0, shift to the next 2
+			// samples for interpolation.
+			while ((curr_pos >> 16) != 0)
+			{
+				curr0 = curr1;
+				curr1 = AcceleratorGetSample();
+				curr_pos -= 0x10000;
+			}
 		}
 
-		// Update the last_samples array. A bit tricky because we can't know
-		// for sure we have more than 4 real samples in our array.
-		if (real_samples_needed >= 2)
-			memcpy(pb.src.last_samples, &real_samples[real_samples_needed + 2 - 4], 4 * sizeof (u16));
-		else
-		{
-			memmove(pb.src.last_samples, &pb.src.last_samples[real_samples_needed], (4 - real_samples_needed) * sizeof (u16));
-			memcpy(&pb.src.last_samples[4 - real_samples_needed], &real_samples[2], real_samples_needed * sizeof (u16));
-		}
+		// Update the two last_samples values in the PB as well as the current
+		// position.
+		pb.src.last_samples[2] = curr0;
+		pb.src.last_samples[3] = curr1;
 		pb.src.cur_addr_frac = curr_pos & 0xFFFF;
 	}
 	else // SRCTYPE_NEAREST
