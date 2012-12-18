@@ -461,7 +461,6 @@
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXStructs.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXWii.h" />
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_ADPCM.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_Voice.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_CARD.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_GBA.h" />

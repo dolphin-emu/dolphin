@@ -727,9 +727,6 @@
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_ADPCM.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_Voice.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
