@@ -201,6 +201,8 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
 </Command>
       <Message>Copying Data\* to $(TargetDir)</Message>
     </PostBuildEvent>
+    <ResourceCompile>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
