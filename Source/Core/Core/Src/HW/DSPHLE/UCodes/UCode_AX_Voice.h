@@ -90,7 +90,7 @@ bool ReadPB(u32 addr, PB_TYPE& pb)
 }
 
 // Write a PB back to MRAM/ARAM
-inline bool WritePB(u32 addr, const PB_TYPE& pb)
+bool WritePB(u32 addr, const PB_TYPE& pb)
 {
 	const u16* src = (const u16*)&pb;
 	u16* dst = (u16*)Memory::GetPointer(addr);
@@ -109,7 +109,7 @@ static u32* acc_cur_addr;
 static PB_TYPE* acc_pb;
 
 // Sets up the simulated accelerator.
-inline void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
+void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
 {
 	acc_pb = pb;
 	acc_loop_addr = HILO_TO_32(pb->audio_addr.loop_addr);
@@ -120,7 +120,7 @@ inline void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
 // Reads a sample from the simulated accelerator. Also handles looping and
 // disabling streams that reached the end (this is done by an exception raised
 // by the accelerator on real hardware).
-inline u16 AcceleratorGetSample()
+u16 AcceleratorGetSample()
 {
 	u16 ret;
 
@@ -215,7 +215,7 @@ inline u16 AcceleratorGetSample()
 }
 
 // Read 32 input samples from ARAM, decoding and converting rate if required.
-inline void GetInputSamples(PB_TYPE& pb, s16* samples)
+void GetInputSamples(PB_TYPE& pb, s16* samples)
 {
 	u32 cur_addr = HILO_TO_32(pb.audio_addr.cur_addr);
 	AcceleratorSetup(&pb, &cur_addr);
@@ -304,7 +304,7 @@ inline void GetInputSamples(PB_TYPE& pb, s16* samples)
 }
 
 // Add samples to an output buffer, with optional volume ramping.
-inline void MixAdd(int* out, const s16* input, u16* pvol, bool ramp)
+void MixAdd(int* out, const s16* input, u16* pvol, bool ramp)
 {
 	u16& volume = pvol[0];
 	u16 volume_delta = pvol[1];
