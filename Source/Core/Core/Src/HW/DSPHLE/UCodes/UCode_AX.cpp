@@ -193,7 +193,16 @@ void CUCode_AX::HandleCommandList()
 				break;
 
 			case CMD_UNK_11: curr_idx += 2; break;
-			case CMD_UNK_12: curr_idx += 1; break;
+
+			case CMD_UNK_12:
+			{
+				u16 samp_val = m_cmdlist[curr_idx++];
+				u16 idx = m_cmdlist[curr_idx++];
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				// TODO
+				break;
+			}
 
 			// Send the contents of MAIN LRS, AUXA LRS and AUXB S to RAM, and
 			// mix data to MAIN LR and AUXB LR.
