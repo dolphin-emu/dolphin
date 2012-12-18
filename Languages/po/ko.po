@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-12-11 08:14-0600\n"
-"PO-Revision-Date: 2012-01-19 11:47+0900\n"
+"PO-Revision-Date: 2012-12-18 17:21+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: Korean\n"
@@ -48,7 +48,7 @@ msgstr "\"%s\"는 비적합 GCM/ISO 파일임, 혹은 GC/Wii ISO가 아님."
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:720
 #, c-format
 msgid "%08X:  "
-msgstr ""
+msgstr "%08X:  "
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:194
 #, c-format
@@ -302,7 +302,7 @@ msgstr "위키(&W)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:505
 msgid "'"
-msgstr ""
+msgstr "'"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:58
 msgid "(-)+zFar"
@@ -322,7 +322,7 @@ msgstr "(끔)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:653
 msgid "0x44"
-msgstr ""
+msgstr "0x44"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:172
 msgid "16 bit"
@@ -363,7 +363,7 @@ msgstr "<시스템>"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:694
 msgid "A"
-msgstr ""
+msgstr "A"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:187
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:221
@@ -626,14 +626,12 @@ msgid "Advanced Settings"
 msgstr "고급 설정"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:667
-#, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
-msgstr "모든 GC/Wii 파일들 (elf, dol, gcm, iso, ciso, gcz, wad)"
+msgstr "모든 GC/Wii 파일들 (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:754
-#, fuzzy
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
-msgstr "모든 GC/Wii 이미지들 (gcm, iso, ciso, gcz)"
+msgstr "모든 GC/Wii 이미지들 (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1200
 msgid "All Gamecube GCM files (gcm)"
@@ -657,17 +655,15 @@ msgid "All files (*.*)|*.*"
 msgstr "모든 파일 (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:121
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3, 4, 5 and 6 within the "
 "emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"에뮬레이션 창안에서 3, 4, 5, 6, 7 핫키들을 통해 특정 옵션들 토글을 허용합니"
-"다.\n"
+"에뮬레이션 창안에서 3, 4, 5, 6 핫키들을 통해 특정 옵션들 토글을 허용합니다.\n"
 "\n"
-"확신 없으면, 이것을 언체크로 두세요."
+"모르겠으면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:333
 msgid "Alternate Wiimote Timing"
@@ -675,7 +671,7 @@ msgstr "위모트 타이밍 대안"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:280
 msgid "Analyze"
-msgstr ""
+msgstr "분석"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:371
 msgid "Anisotropic Filtering:"
@@ -783,12 +779,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "B"
-msgstr ""
+msgstr "B"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:753
-#, fuzzy
 msgid "BP register "
-msgstr "레지스터들(&R)"
+msgstr "BP 레지스터"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -907,7 +902,7 @@ msgstr "버튼"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:696
 msgid "C"
-msgstr ""
+msgstr "C"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:77
 msgid "C Stick"
@@ -919,7 +914,7 @@ msgstr "C-스틱"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:762
 msgid "CP reg"
-msgstr ""
+msgstr "CP 레지"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:546
 msgid "CPU Emulator Engine"
@@ -1076,11 +1071,11 @@ msgstr "치트들 관리자"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:643
 msgid "Check Partition Integrity"
-msgstr ""
+msgstr "파티션 완전성 체크"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:884
 msgid "Checking integrity..."
-msgstr ""
+msgstr "파티션 완전성 체크중..."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
 msgid "Chinese (Simplified)"
@@ -1440,7 +1435,7 @@ msgstr "체코"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:696
 msgid "D"
-msgstr ""
+msgstr "D"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:89
 msgid "D-Pad"
@@ -1481,11 +1476,11 @@ msgstr "DVD 루트:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:238
 msgid "DVDLowRead - Fatal Error: failed to read from volume"
-msgstr ""
+msgstr "DVD저수준읽기 - 치명적 에러: 볼륨에서 읽기를 실패했습니다"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:332
 msgid "DVDLowUnencryptedRead - Fatal Error: failed to read from volume"
-msgstr ""
+msgstr "DVD저수준비암호화읽기 - 치명적 에러: 볼륨에서 읽기를 실패했습니다."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:177
 msgid "Data Size"
@@ -1819,16 +1814,16 @@ msgid "EFB Copies"
 msgstr "EFB 복사"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
 "version %d.%d -- If you recently upgraded your Dolphin distribution, a "
 "reboot is probably required at this point to get Windows to see the new "
 "driver."
 msgstr ""
-"에러:  이 버전의 돌핀은 적어도 버전 %d.%d인 TAP-Win32 드라이버가 필요하다  "
-"-- 당신이 최근에 당신의 돌핀 배포를 업그레이드했다면, 윈도우즈가 새로운 드라"
-"이버를 알게 하려는 시점에서 아마도 재부팅이 필요합니다."
+"에러:  이 버전의 돌핀은 적어도 %d.%d 버전 TAP-Win32 드라이버가 필요합니다. "
+"-- 최근에 돌핀 배포를 업그레이드했다면, 윈도우즈가 새로운 드라이버를 인식하"
+"는 관점에서 재부팅이 필요할 겁니다."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:171
 msgid "EUROPE"
@@ -2337,15 +2332,15 @@ msgid "Failed to read banner.bin"
 msgstr "banner.bin 읽기에 실패했습니다"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:223
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to read block %d of the save data\n"
 "Memcard may be truncated\n"
 "FilePosition:%llx"
 msgstr ""
-"저장 데이터를 읽기에 실패했습니다\n"
-"(0xA000-)\n"
-"메모리카드가 잘렸을 지도"
+"저장 데이터의 %d 블럭 읽기에 실패했습니다\n"
+"메모리카드가 잘렸을 지도\n"
+"파일위치:%llx"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:148
 msgid ""
@@ -2416,7 +2411,7 @@ msgstr "%d 파일에 대한 헤더 쓰기에 실패했습니다"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
 msgid "Farsi"
-msgstr ""
+msgstr "페르시아어"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:470
 msgid "Fast"
@@ -2431,6 +2426,8 @@ msgstr "MMU의 빠른 버전. 모든 게임에 대해 작동하지는 않는다.
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
 msgstr ""
+"치명적 비동기. 재생을 중단합니다. (PlayWiimote에서 에러: %u != %u, byte "
+"%u.)%s"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:213
 msgid "Fifo Player"
@@ -2488,11 +2485,11 @@ msgstr "'ini'파일타입은 알려지지 않음! 열지 않겠습니다!"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:260
 msgid "Find next"
-msgstr ""
+msgstr "다음 찾기"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:261
 msgid "Find previous"
-msgstr ""
+msgstr "이전 찾기"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:630
 msgid "First Block"
@@ -2567,7 +2564,7 @@ msgstr "앞으로"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:505
 #, c-format
 msgid "Found %d results for '"
-msgstr ""
+msgstr "%d 개 찾았습니다 '"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:855
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:923
@@ -2588,9 +2585,8 @@ msgid "Frame Dumps use FFV1"
 msgstr "프레임 덤프가 FFV1를 사용"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:222
-#, fuzzy
 msgid "Frame Info"
-msgstr "프레임"
+msgstr "프레임 정보"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:111
 msgid "Frame Range"
@@ -2649,7 +2645,7 @@ msgstr "GC패드"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:657
 msgid "GX_CMD_INVL_VC"
-msgstr ""
+msgstr "GX_CMD_INVL_VC"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:468
 msgid "Game ID:"
@@ -2677,7 +2673,7 @@ msgstr "게임환경"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:523
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr ""
+msgstr "게임큐브 게임저장 파일(*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
 msgid "Gamecube"
@@ -2702,7 +2698,7 @@ msgid "Gecko Codes"
 msgstr "Gecko 코드"
 
 #: Source/Core/Core/Src/GeckoCode.cpp:222
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
 "(either a bad code or the code type is not yet supported. Try using the "
@@ -2710,7 +2706,8 @@ msgid ""
 "directory and restarting Dolphin.)"
 msgstr ""
 "Gecko코드가 (CT%i CST%i) (%s) 구동에 실패했습니다\n"
-"(잘못된 코드이거나 코드 타입이 아직 지원않된다.)"
+"(잘못된 코드이거나 코드 타입이 아직 지원되지 않습니다. codehandler.bin 파일"
+"을  Sys 폴더에 위치시키고 돌핀을 재시작해서 원본 코드 핸들러를 사용해보세요.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
@@ -2941,14 +2938,14 @@ msgstr ""
 "름)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:487
-#, fuzzy
 msgid ""
 "If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use "
 "Audio to throttle using the DSP (might fix audio clicks but can also cause "
 "constant noise depending on the game)."
 msgstr ""
-"프레임제한을 게임 풀 스피드 (NTSC:60, PAL:50)보다 더 높게 설정하면, DSP에서 "
-"오디오 병목도 꺼야 그것이 효과를 냅니다."
+"프레임제한을 게임 풀 스피드 (NTSC:60, PAL:50)보다 더 높게 설정하려면, DSP를 "
+"이용해 오디오 병목을 사용하세요 (게임에 따라서는 소리 끊김들을 고칠지 모르지"
+"만 또한 지속적인 잡음을 유발할 수도 있습니다)."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:431
 msgid "Ignore Format Changes"
@@ -3079,15 +3076,15 @@ msgstr "WAD 설치하기..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:905
 msgid "Integrity Check Error"
-msgstr ""
+msgstr "완전성 체크 에러"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:911
 msgid "Integrity check completed"
-msgstr ""
+msgstr "완전성 체크 완료됨"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:910
 msgid "Integrity check completed. No errors have been found."
-msgstr ""
+msgstr "완전성 체크가 완료되었습니다. 에러가 발견되지 않었습니다."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:902
 #, c-format
@@ -3095,6 +3092,8 @@ msgid ""
 "Integrity check for partition %d failed. Your dump is most likely corrupted "
 "or has been patched incorrectly."
 msgstr ""
+"파티션 %d 에 대한 완전성 체크가 실패하였습니다. 당신의 덤프가 오염되었거나 잘"
+"못 패치된 것 같습니다."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:531
 msgid "Interface"
@@ -3172,15 +3171,15 @@ msgstr "비적합 기록 파일"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:472
 msgid "Invalid search parameters (no object selected)"
-msgstr ""
+msgstr "비적합 찾기 파라미터 (선택된 오브젝트 없음)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:451
 msgid "Invalid search string (couldn't convert to number)"
-msgstr ""
+msgstr "비적합 찾기 스트링 (숫자로 변환될 수 없었습니다)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:439
 msgid "Invalid search string (only even string lengths supported)"
-msgstr ""
+msgstr "비적합 찾기 스트링 (짝수 길이 스트링만 지원됩니다)"
 
 #: Source/Core/Core/Src/Core.cpp:528
 msgid "Invalid state"
@@ -3214,19 +3213,18 @@ msgid "KOREA"
 msgstr "한국"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:76
-#, fuzzy
 msgid ""
 "Keep the game window on top of all other windows.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"에뮬레이션 윈도우 위에 마우스 커서가 있을 때 숨깁니다.\n"
+"게임 윈도우를 다른 모든 윈도우들의 맨위로 유지합니다.\n"
 "\n"
-"모르겠으면, 이것을 체크로 두세요."
+"모르겠으면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:302
 msgid "Keep window on top"
-msgstr ""
+msgstr "윈도우를 맨위로 유지"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:245
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:245
@@ -3402,21 +3400,21 @@ msgstr "로그 환경설정"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:300
 msgid "Log FPS to file"
-msgstr ""
+msgstr "FPS를 파일에 기록"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:98
 msgid "Log Types"
 msgstr "로그 타입"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
-#, fuzzy
 msgid ""
 "Log the number of frames rendered per second to User/Logs/fps.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"에뮬레이션 속도의 측정으로 초당 렌더되는 프레임 수치를 보여줍니다.\n"
+"초당 렌더되는 프레임 수치를 User/Logs/fps.txt 에 기록합니다. 돌핀의 성능을 측"
+"정하고 싶을때 이 기능을 사용하세요.\n"
 "\n"
 "모르겠으면, 이것을 언체크로 두세요."
 
@@ -3602,11 +3600,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:649
 msgid "NOP"
-msgstr ""
+msgstr "NOP"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:628
 msgid "NOTE: Stream size doesn't match actual data length\n"
-msgstr ""
+msgstr "알림: 스트림 사이즈가 실제 데이터 길이와 매치되지 않습니다\n"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:129
 msgid "NP Add"
@@ -3743,7 +3741,7 @@ msgstr "%s 타이틀에 대한 배너 파일이 없음"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:759
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:766
 msgid "No description available"
-msgstr ""
+msgstr "적합한 상세설명 없음"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:513
 msgid "No docking"
@@ -3840,7 +3838,7 @@ msgstr "오프셋:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:586
 msgid "On-Screen Display Messages"
-msgstr ""
+msgstr "온-스크린 메시지 보여주기"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:435
 #, c-format
@@ -3977,7 +3975,7 @@ msgstr "일시정지"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:142
 msgid "Pause at end of movie"
-msgstr ""
+msgstr "무비의 끝에서 멈추기"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Per-Pixel Lighting"
@@ -4403,9 +4401,8 @@ msgid "Scroll Lock"
 msgstr "스크롤 락"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:259
-#, fuzzy
 msgid "Search"
-msgstr "치트 찾기"
+msgstr "찾기"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:228
 msgid "Search Filter"
@@ -4416,13 +4413,12 @@ msgid "Search Subfolders"
 msgstr "하위폴더들 찾기"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:245
-#, fuzzy
 msgid "Search current Object"
-msgstr "현재 관점을 저장"
+msgstr "최근 오브젝트 찾기"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:249
 msgid "Search for hex Value:"
-msgstr ""
+msgstr "헥스 값 찾기:"
 
 #: Source/Core/Common/Src/SysConf.h:103 Source/Core/Common/Src/SysConf.h:126
 #: Source/Core/Common/Src/SysConf.h:146 Source/Core/Common/Src/SysConf.h:167
@@ -4702,9 +4698,8 @@ msgid "Show first block"
 msgstr "첫번째 블럭 보기"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "Show lag counter"
-msgstr "저장 주석 보기"
+msgstr "랙 계측기 보여주기"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
 msgid ""
@@ -4712,6 +4707,9 @@ msgid ""
 "These messages include memory card writes, video backend and CPU "
 "information, and JIT cache clearing."
 msgstr ""
+"에뮬레이션 화면상에 메시지들을 보여줍니다.\n"
+"이 메시지들은 메모리 카드 쓰기, 비디오 백엔드와 CPU 정보, 그리고 JIT 캐시 비"
+"우기를 포함합니다."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:825
 msgid "Show save blocks"
@@ -5093,7 +5091,6 @@ msgid "The resulting decrypted AR code doesn't contain any lines."
 msgstr "해독된 AR 코드 결과가 없습니다."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:96
-#, fuzzy
 msgid ""
 "The safer you adjust this, the less likely the emulator will be missing any "
 "texture updates from RAM.\n"
@@ -5102,7 +5099,7 @@ msgid ""
 msgstr ""
 "이것을 안전하게 정할 수록, 에뮬레이터가 램으로 부터 텍스처 업데이트들을 덜 놓"
 "치는 경향이 있습니다.\n"
-"모르겠으면, 오른쪽에서 두번째-가장빠름을 사용하세요."
+"모르겠으면, 가장 오른쪽 값을 사용하세요."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:444
 msgid "The save you are trying to copy has an invalid file size"
@@ -5295,9 +5292,9 @@ msgid "UNKNOWN"
 msgstr "알려지지 않음"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:754
-#, fuzzy, c-format
+#, c-format
 msgid "UNKNOWN_%02X"
-msgstr "알려지지 않음"
+msgstr "알려지지않은_%02X"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:183
 msgid "USA"
@@ -5333,7 +5330,7 @@ msgstr "상태 로드 되돌림"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:716
 msgid "Unexpected 0x80 call? Aborting..."
-msgstr ""
+msgstr "예상하지 못한 0x80 콜? 중단시킴..."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:216
 msgid "Unknown"
@@ -5459,9 +5456,8 @@ msgid "WAD installation failed: error creating %s"
 msgstr "WAD 설치 실패했습니다: 에러 생성 %s"
 
 #: Source/Core/DiscIO/Src/NANDContentLoader.cpp:547
-#, fuzzy
 msgid "WAD installation failed: error creating ticket"
-msgstr "WAD 설치 실패했습니다: 에러 생성 %s"
+msgstr "WAD 설치 실패했습니다: 에러 생성 티켓"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:82
 msgid ""
@@ -5680,9 +5676,8 @@ msgid "Write to Console"
 msgstr "콘솔에 쓰기"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:69
-#, fuzzy
 msgid "Write to Debugger"
-msgstr "파일에 쓰기"
+msgstr "디버거에 기록"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:59
 msgid "Write to File"
@@ -5709,7 +5704,7 @@ msgstr "XAudio2 매스터 보이스 생성 실패: %#X"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:764
 msgid "XF reg"
-msgstr ""
+msgstr "XF reg"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Yellow"
