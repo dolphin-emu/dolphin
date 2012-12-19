@@ -95,7 +95,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
     if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 1" : "");
 		
-    WRITE(p, "%sfloat4 "I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
+    WRITE(p, "%sfloat4 " I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
     
      if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
@@ -155,7 +155,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	WRITE(p, "  float yl = floor(uv1.y / %f);\n", blkH);
 	WRITE(p, "  float yb = yl * %f;\n", blkH);
 	WRITE(p, "  float yoff = uv1.y - yb;\n");
-	WRITE(p, "  float xp = uv1.x + (yoff * "I_COLORS"[1].x);\n");
+	WRITE(p, "  float xp = uv1.x + (yoff * " I_COLORS"[1].x);\n");
 	WRITE(p, "  float xel = floor(xp / %f);\n", blkW);
 	WRITE(p, "  float xb = floor(xel / %f);\n", blkH);
 	WRITE(p, "  float xoff = xel - (xb * %f);\n", blkH);
@@ -163,17 +163,17 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	WRITE(p, "  sampleUv.x = xib + (xb * %f);\n", blkW);
 	WRITE(p, "  sampleUv.y = yb + xoff;\n");
 
-	WRITE(p, "  sampleUv = sampleUv * "I_COLORS"[0].xy;\n");
+	WRITE(p, "  sampleUv = sampleUv * " I_COLORS"[0].xy;\n");
 
 	if (ApiType == API_OPENGL || ApiType == API_GLSL)
-		WRITE(p,"  sampleUv.y = "I_COLORS"[1].y - sampleUv.y;\n");
+		WRITE(p,"  sampleUv.y = " I_COLORS"[1].y - sampleUv.y;\n");
 	
-	WRITE(p, "  sampleUv = sampleUv + "I_COLORS"[1].zw;\n");
+	WRITE(p, "  sampleUv = sampleUv + " I_COLORS"[1].zw;\n");
 
 	if (ApiType != API_OPENGL && ApiType != API_GLSL)
 	{
 		WRITE(p, "  sampleUv = sampleUv + float2(0.0f,1.0f);\n");// still to determine the reason for this
-		WRITE(p, "  sampleUv = sampleUv / "I_COLORS"[0].zw;\n");
+		WRITE(p, "  sampleUv = sampleUv / " I_COLORS"[0].zw;\n");
 	}		
 }
 
@@ -186,7 +186,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
     // Two were merged for GLSL
 	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 1" : "");
-    WRITE(p, "%sfloat4 "I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
+    WRITE(p, "%sfloat4 " I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
 	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
 
@@ -242,7 +242,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	WRITE(p, "  float yl = floor(uv1.y / %f);\n", blkH);
 	WRITE(p, "  float yb = yl * %f;\n", blkH);
 	WRITE(p, "  float yoff = uv1.y - yb;\n");
-	WRITE(p, "  float xp = uv1.x + (yoff * "I_COLORS"[1].x);\n");
+	WRITE(p, "  float xp = uv1.x + (yoff * " I_COLORS"[1].x);\n");
 	WRITE(p, "  float xel = floor(xp / 2);\n");
 	WRITE(p, "  float xb = floor(xel / %f);\n", blkH);
 	WRITE(p, "  float xoff = xel - (xb * %f);\n", blkH);
@@ -254,17 +254,17 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	
 	WRITE(p, "  sampleUv.x = xib + (halfxb * %f);\n", blkW);
 	WRITE(p, "  sampleUv.y = yb + xoff;\n");
-	WRITE(p, "  sampleUv = sampleUv * "I_COLORS"[0].xy;\n");
+	WRITE(p, "  sampleUv = sampleUv * " I_COLORS"[0].xy;\n");
 	
 	if (ApiType == API_OPENGL || ApiType == API_GLSL)
-		WRITE(p,"  sampleUv.y = "I_COLORS"[1].y - sampleUv.y;\n");
+		WRITE(p,"  sampleUv.y = " I_COLORS"[1].y - sampleUv.y;\n");
 	
-	WRITE(p, "  sampleUv = sampleUv + "I_COLORS"[1].zw;\n");
+	WRITE(p, "  sampleUv = sampleUv + " I_COLORS"[1].zw;\n");
 
 	if (ApiType != API_OPENGL && ApiType != API_GLSL)
 	{
 		WRITE(p, "  sampleUv = sampleUv + float2(0.0f,1.0f);\n");// still to determine the reason for this
-		WRITE(p, "  sampleUv = sampleUv / "I_COLORS"[0].zw;\n");
+		WRITE(p, "  sampleUv = sampleUv / " I_COLORS"[0].zw;\n");
 	}	
 }
 
@@ -283,7 +283,7 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYP
 	// the increment of sampleUv.x is delayed, so we perform it here. see WriteIncrementSampleX.
 	const char* texSampleIncrementUnit;
 	if (ApiType != API_OPENGL || ApiType != API_GLSL)
-		texSampleIncrementUnit = I_COLORS"[0].x / "I_COLORS"[0].z";
+		texSampleIncrementUnit = I_COLORS"[0].x / " I_COLORS"[0].z";
 	else
 		texSampleIncrementUnit = I_COLORS"[0].x";
 
