@@ -362,14 +362,15 @@ void CUCode_AX::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u
 	for (u32 i = 0; i < 3; ++i)
 	{
 		int* ptr = (int*)HLEMemory_Get_Pointer(addr);
-		s16 volume = (s16)volumes[i];
+		u16 volume = volumes[i];
 		for (u32 j = 0; j < 3; ++j)
 		{
 			int* buffer = buffers[i][j];
 			for (u32 k = 0; k < 5 * 32; ++k)
 			{
-				s64 sample = 2 * (s32)Common::swap32(*ptr++) * volume;
-				buffer[k] += (s32)(sample >> 16);
+				s64 sample = (s64)(s32)Common::swap32(*ptr++);
+				sample *= volume;
+				buffer[k] += (s32)(sample >> 15);
 			}
 		}
 	}
