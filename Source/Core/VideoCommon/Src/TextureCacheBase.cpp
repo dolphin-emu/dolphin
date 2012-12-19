@@ -377,7 +377,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		//
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
-		if ((entry->type == TCET_NORMAL && width == entry->native_width && height == entry->native_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
+		if ((entry->type == TCET_NORMAL && width == entry->virtual_width && height == entry->virtual_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
 			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == width && entry->native_height == height))
 		{
 			// reuse the texture
@@ -396,14 +396,21 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		pcfmt = LoadCustomTexture(tex_hash, texformat, 0, width, height);
 		if (pcfmt != PC_TEX_FMT_NONE)
 		{
-			expandedWidth = width;
-			expandedHeight = height;
+			if (expandedWidth != width || expandedHeight != height)
+			{
+				expandedWidth = width;
+				expandedHeight = height;
+
+				// If we thought we could reuse the texture before, make sure to delete it now!
+				delete entry;
+				entry = NULL;
+			}
 			using_custom_texture = true;
 		}
 	}
 
-	// TODO: RGBA8 textures are stored non-continuously in tmem, that might cause problems when preloading is enabled
-	if (pcfmt == PC_TEX_FMT_NONE)
+	// TODO: RGBA8 textures are stored non-continuously in tmem, that might cause problems here when preloading is enabled
+	if (!using_custom_texture)
 		pcfmt = TexDecoder_Decode(temp, src_data, expandedWidth,
 					expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 
