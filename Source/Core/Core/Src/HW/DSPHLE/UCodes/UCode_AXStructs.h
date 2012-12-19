@@ -128,7 +128,17 @@ struct PBUpdates
 // and ramped down on a per-sample basis to provide a gentle "roll off."
 struct PBDpop
 {
-	s16 unknown[9];
+	s16 left;
+	s16 auxA_left;
+	s16 auxB_left;
+
+	s16 right;
+	s16 auxA_right;
+	s16 auxB_right;
+
+	s16 surround;
+	s16 auxA_surround;
+	s16 auxB_surround;
 };
 
 struct PBDpopWii

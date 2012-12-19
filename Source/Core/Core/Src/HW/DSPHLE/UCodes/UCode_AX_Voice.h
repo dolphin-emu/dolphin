@@ -306,7 +306,7 @@ void GetInputSamples(PB_TYPE& pb, s16* samples)
 }
 
 // Add samples to an output buffer, with optional volume ramping.
-void MixAdd(int* out, const s16* input, u16* pvol, bool ramp)
+void MixAdd(int* out, const s16* input, u16* pvol, s16* dpop, bool ramp)
 {
 	u16& volume = pvol[0];
 	u16 volume_delta = pvol[1];
@@ -323,8 +323,10 @@ void MixAdd(int* out, const s16* input, u16* pvol, bool ramp)
 		sample *= volume;
 		sample >>= 15;
 
-		out[i] += (s32)sample;
+		out[i] += (s16)sample;
 		volume += volume_delta;
+
+		*dpop = (s16)sample;
 	}
 }
 
@@ -357,33 +359,33 @@ void Process1ms(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
 	// TODO: Handle DPL2 on AUXB.
 
 	if (mctrl & MIX_L)
-		MixAdd(buffers.left, samples, &pb.mixer.left, mctrl & MIX_L_RAMP);
+		MixAdd(buffers.left, samples, &pb.mixer.left, &pb.dpop.left, mctrl & MIX_L_RAMP);
 	if (mctrl & MIX_R)
-		MixAdd(buffers.right, samples, &pb.mixer.right, mctrl & MIX_R_RAMP);
+		MixAdd(buffers.right, samples, &pb.mixer.right, &pb.dpop.right, mctrl & MIX_R_RAMP);
 	if (mctrl & MIX_S)
-		MixAdd(buffers.surround, samples, &pb.mixer.surround, mctrl & MIX_S_RAMP);
+		MixAdd(buffers.surround, samples, &pb.mixer.surround, &pb.dpop.surround, mctrl & MIX_S_RAMP);
 
 	if (mctrl & MIX_AUXA_L)
-		MixAdd(buffers.auxA_left, samples, &pb.mixer.auxA_left, mctrl & MIX_AUXA_L_RAMP);
+		MixAdd(buffers.auxA_left, samples, &pb.mixer.auxA_left, &pb.dpop.auxA_left, mctrl & MIX_AUXA_L_RAMP);
 	if (mctrl & MIX_AUXA_R)
-		MixAdd(buffers.auxA_right, samples, &pb.mixer.auxA_right, mctrl & MIX_AUXA_R_RAMP);
+		MixAdd(buffers.auxA_right, samples, &pb.mixer.auxA_right, &pb.dpop.auxA_right, mctrl & MIX_AUXA_R_RAMP);
 	if (mctrl & MIX_AUXA_S)
-		MixAdd(buffers.auxA_surround, samples, &pb.mixer.auxA_surround, mctrl & MIX_AUXA_S_RAMP);
+		MixAdd(buffers.auxA_surround, samples, &pb.mixer.auxA_surround, &pb.dpop.auxA_surround, mctrl & MIX_AUXA_S_RAMP);
 
 	if (mctrl & MIX_AUXB_L)
-		MixAdd(buffers.auxB_left, samples, &pb.mixer.auxB_left, mctrl & MIX_AUXB_L_RAMP);
+		MixAdd(buffers.auxB_left, samples, &pb.mixer.auxB_left, &pb.dpop.auxB_left, mctrl & MIX_AUXB_L_RAMP);
 	if (mctrl & MIX_AUXB_R)
-		MixAdd(buffers.auxB_right, samples, &pb.mixer.auxB_right, mctrl & MIX_AUXB_R_RAMP);
+		MixAdd(buffers.auxB_right, samples, &pb.mixer.auxB_right, &pb.dpop.auxB_right, mctrl & MIX_AUXB_R_RAMP);
 	if (mctrl & MIX_AUXB_S)
-		MixAdd(buffers.auxB_surround, samples, &pb.mixer.auxB_surround, mctrl & MIX_AUXB_S_RAMP);
+		MixAdd(buffers.auxB_surround, samples, &pb.mixer.auxB_surround, &pb.dpop.auxB_surround, mctrl & MIX_AUXB_S_RAMP);
 
 #ifdef AX_WII
 	if (mctrl & MIX_AUXC_L)
-		MixAdd(buffers.auxC_left, samples, &pb.mixer.auxC_left, mctrl & MIX_AUXC_L_RAMP);
+		MixAdd(buffers.auxC_left, samples, &pb.mixer.auxC_left, &pb.dpop.auxC_left, mctrl & MIX_AUXC_L_RAMP);
 	if (mctrl & MIX_AUXC_R)
-		MixAdd(buffers.auxC_right, samples, &pb.mixer.auxC_right, mctrl & MIX_AUXC_R_RAMP);
+		MixAdd(buffers.auxC_right, samples, &pb.mixer.auxC_right, &pb.dpop.auxC_right, mctrl & MIX_AUXC_R_RAMP);
 	if (mctrl & MIX_AUXC_S)
-		MixAdd(buffers.auxC_surround, samples, &pb.mixer.auxC_surround, mctrl & MIX_AUXC_S_RAMP);
+		MixAdd(buffers.auxC_surround, samples, &pb.mixer.auxC_surround, &pb.dpop.auxC_surround, mctrl & MIX_AUXC_S_RAMP);
 #endif
 
 	// Optionally, phase shift left or right channel to simulate 3D sound.
