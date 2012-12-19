@@ -282,7 +282,7 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYP
 
 	// the increment of sampleUv.x is delayed, so we perform it here. see WriteIncrementSampleX.
 	const char* texSampleIncrementUnit;
-	if (ApiType != API_OPENGL || ApiType != API_GLSL)
+	if (ApiType != API_OPENGL && ApiType != API_GLSL)
 		texSampleIncrementUnit = I_COLORS"[0].x / " I_COLORS"[0].z";
 	else
 		texSampleIncrementUnit = I_COLORS"[0].x";
