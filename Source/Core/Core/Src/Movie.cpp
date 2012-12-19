@@ -71,6 +71,7 @@ std::string g_discChange = "";
 std::string author = "";
 u64 g_titleID = 0;
 unsigned char MD5[16];
+u8 bongos;
 
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
@@ -109,7 +110,7 @@ std::string GetInputDisplay()
 		g_numPads = 0;
 		for (int i = 0; i < 4; i++)
 		{
-			if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
+			if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 				g_numPads |= (1 << i);
 			if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
 				g_numPads |= (1 << (i + 4));
@@ -311,6 +312,11 @@ bool IsUsingPad(int controller)
 	return ((g_numPads & (1 << controller)) != 0);
 }
 
+bool IsUsingBongo(int controller)
+{
+	return ((bongos & (1 << controller)) != 0);
+}
+
 bool IsUsingWiimote(int wiimote)
 {
 	return ((g_numPads & (1 << (wiimote + 4))) != 0);
@@ -368,7 +374,7 @@ void ChangePads(bool instantly)
 	int controllers = 0;
 
 	for (int i = 0; i < 4; i++)
-		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
+		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			controllers |= (1 << i);
 
 	if (instantly && (g_numPads & 0x0F) == controllers)
@@ -376,9 +382,9 @@ void ChangePads(bool instantly)
 
 	for (int i = 0; i < 4; i++)
 		if (instantly) // Changes from savestates need to be instantaneous
-			SerialInterface::AddDevice(IsUsingPad(i) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
+			SerialInterface::AddDevice(IsUsingPad(i) ? (IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
 		else
-			SerialInterface::ChangeDevice(IsUsingPad(i) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
+			SerialInterface::ChangeDevice(IsUsingPad(i) ? (IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
 }
 
 void ChangeWiiPads(bool instantly)
@@ -411,6 +417,10 @@ bool BeginRecordingInput(int controllers)
 	g_currentInputCount = g_totalInputCount = 0;
 	g_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();
 	g_rerecords = 0;
+
+	for (int i = 0; i < 4; i++)
+		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
+			bongos |= (1 << i);
 
 	if (Core::IsRunning())
 	{
@@ -676,7 +686,7 @@ void ReadHeader()
 		iCPUCore = tmpHeader.CPUCore;
 		g_bClearSave = tmpHeader.bClearSave;
 		bMemcard = tmpHeader.bMemcard;
-
+		bongos = tmpHeader.bongos;
 	}
 	else
 	{
@@ -1121,6 +1131,7 @@ void SaveRecording(const char *filename)
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 	memcpy(header.md5,MD5,16);
+	header.bongos = bongos;
 
 	// TODO
 	header.uniqueID = 0; 

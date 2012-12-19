@@ -118,7 +118,8 @@ struct DTMHeader {
 	bool bUseRealXFB;
 	bool bMemcard;
 	bool bClearSave;		// Create a new memory card when playing back a movie if true
-	u8 reserved[16];		// Padding for any new config options
+	u8 bongos;
+	u8 reserved[15];		// Padding for any new config options
 	u8 discChange[40];		// Name of iso file to switch to, for two disc games.
 	u8 reserved2[47];		// Make heading 256 bytes, just because we can
 };
@@ -154,6 +155,7 @@ void GetSettings();
 
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
+bool IsUsingBongo(int controller);
 void ChangePads(bool instantly = false);
 void ChangeWiiPads(bool instantly = false);
 
