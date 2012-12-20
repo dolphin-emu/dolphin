@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-12-11 08:14-0600\n"
-"PO-Revision-Date: 2012-06-07 14:20+0100\n"
-"Last-Translator: Petiso Carambanal <diegoae@gmail.com>\n"
+"PO-Revision-Date: 2012-12-19 10:25+0100\n"
+"Last-Translator: Puniasterus <puniasterus@gmail.com>\n"
 "Language-Team: DARIO_FF <LL@li.org>\n"
 "Language: Spanish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Spanish\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:512
 msgid " (too many to display)"
@@ -636,12 +636,10 @@ msgid "Advanced Settings"
 msgstr "Configuración avanzada"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:667
-#, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "Todos los archivos de GC/Wii (elf, dol, gcm, iso, ciso, wad)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:754
-#, fuzzy
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Todas las imágenes de GC/Wii (gcm, iso, ciso, gcz)"
 
@@ -677,7 +675,7 @@ msgstr ""
 "Permite alternar algunas opciones a través de las teclas de acceso rápido 3, "
 "4, 5, 6 y 7 en la ventana de emulación.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:333
 msgid "Alternate Wiimote Timing"
@@ -782,6 +780,7 @@ msgid "Auto adjust Window Size"
 msgstr "Autoajuste del tamaño de la ventana"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:75
+#, fuzzy
 msgid ""
 "Automatically adjusts the window size to your internal resolution.\n"
 "\n"
@@ -789,7 +788,7 @@ msgid ""
 msgstr ""
 "Ajusta automáticamente el tamaño de la ventana a tu resolución interna.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "B"
@@ -2060,6 +2059,7 @@ msgstr ""
 "Si no estás seguro, déjalo sin marcar."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:78
+#, fuzzy
 msgid ""
 "Enable this if you want to use the main Dolphin window for rendering rather "
 "than a separate render window.\n"
@@ -2069,7 +2069,7 @@ msgstr ""
 "Active esto si quiere usar la ventana principal de Dolphin para renderizar "
 "en vez de una ventana aparte.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:341
 msgid ""
@@ -2366,7 +2366,7 @@ msgid "Failed to read banner.bin"
 msgstr "Fallo al leer banner.bin"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:223
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to read block %d of the save data\n"
 "Memcard may be truncated\n"
@@ -2709,8 +2709,9 @@ msgid "GameConfig"
 msgstr "Configurar Juego"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:523
+#, fuzzy
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr ""
+msgstr "Tipos de partidas guardadas GameCube(*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
 msgid "Gamecube"
@@ -3441,8 +3442,9 @@ msgid "Log Configuration"
 msgstr "Configuración de registro"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:300
+#, fuzzy
 msgid "Log FPS to file"
-msgstr ""
+msgstr "Guardar FPS en un archivo"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:98
 msgid "Log Types"
@@ -3884,8 +3886,9 @@ msgid "Offset:"
 msgstr "Offset:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:586
+#, fuzzy
 msgid "On-Screen Display Messages"
-msgstr ""
+msgstr "Mensajes de arranque"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:435
 #, c-format
@@ -4025,8 +4028,9 @@ msgid "Pause"
 msgstr "Pausa"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:142
+#, fuzzy
 msgid "Pause at end of movie"
-msgstr ""
+msgstr "Pausar al final de la película"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Per-Pixel Lighting"
@@ -4762,11 +4766,15 @@ msgid "Show lag counter"
 msgstr "Mostrar comentario del guardado"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
+#, fuzzy
 msgid ""
 "Show messages on the emulation screen area.\n"
 "These messages include memory card writes, video backend and CPU "
 "information, and JIT cache clearing."
 msgstr ""
+"Mostrar mensajes en la pantalla de emulación.\n"
+"Estos mensajes incluyen escrituras a la tarjeta de memória, motor gráfico, "
+"información de la CPU y limpieza caché JIT."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:825
 msgid "Show save blocks"
