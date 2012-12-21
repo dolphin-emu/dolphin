@@ -8,13 +8,14 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-12-11 08:14-0600\n"
-"PO-Revision-Date: 2012-06-07 19:13-0300\n"
-"Last-Translator: Runo <i.am.runo@hotmail.com>\n"
+"PO-Revision-Date: 2012-12-20 22:53-0300\n"
+"Last-Translator: Runo <i.am.runo@gmail.com>\n"
 "Language-Team: Portuguese (BR) <dolphinbrtrans@gmail.com>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:512
 msgid " (too many to display)"
@@ -633,12 +634,10 @@ msgid "Advanced Settings"
 msgstr "Configurações Avançadas"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:667
-#, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "Todos os arquivos de GC/WII (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:754
-#, fuzzy
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Todas as imagens CG/Wii (gcm, iso, wbfs, ciso, gcz)"
 
@@ -664,15 +663,14 @@ msgid "All files (*.*)|*.*"
 msgstr "Todos os arquivos (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:121
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3, 4, 5 and 6 within the "
 "emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Permite Ligar/Desligar algumas opções através das teclas 3, 4, 5, 6 e 7 "
-"enquanto o emulador está funcionando.\n"
+"Permite Ligar/Desligar algumas opções através das teclas 3, 4, 5 e 6 estando "
+"na janela de emulação.\n"
 "\n"
 "Se estiver em dúvida, deixe isto desativado."
 
@@ -1834,14 +1832,14 @@ msgid "EFB Copies"
 msgstr "Cópias de EFB"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
 "version %d.%d -- If you recently upgraded your Dolphin distribution, a "
 "reboot is probably required at this point to get Windows to see the new "
 "driver."
 msgstr ""
-"ERRO: Esta versão do Dolphin precisa de um driver TAP-Win32 no mínimo com a "
+"ERRO: Essa versão do Dolphin precisa de um driver TAP-Win32 no mínimo com a "
 "versão %d.%d -- Se você mudou a versão do Dolphin recentemente, reiniciar o "
 "PC é provavelmente necessário no momento para que o Windows veja o novo "
 "driver."
@@ -2359,7 +2357,7 @@ msgid "Failed to read banner.bin"
 msgstr "Falha ao ler banner.bin"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:223
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to read block %d of the save data\n"
 "Memcard may be truncated\n"
@@ -2701,7 +2699,7 @@ msgstr "Opçõesdojogo"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:523
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr ""
+msgstr "Arquivos de Save do GameCube (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
 msgid "Gamecube"
@@ -3434,22 +3432,21 @@ msgstr "Configuração do Log"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:300
 msgid "Log FPS to file"
-msgstr ""
+msgstr "Registrar FPS em arquivo"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:98
 msgid "Log Types"
 msgstr "Tipo de Log"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
-#, fuzzy
 msgid ""
 "Log the number of frames rendered per second to User/Logs/fps.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Mostra o número de quadros renderizados por segundo como uma forma de medir "
-"a velocidade da emulação.\n"
+"Registra o número de quadros renderizados por segundo em User/Logs/fps.txt. "
+"Use este recurso para medir a performance do Dolphin.\n"
 "\n"
 "Se estiver em dúvida, deixe isto desativado."
 
@@ -3874,7 +3871,7 @@ msgstr "Offset:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:586
 msgid "On-Screen Display Messages"
-msgstr ""
+msgstr "Mostrar Mensagens na Tela"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:435
 #, c-format
@@ -4014,7 +4011,7 @@ msgstr "Pausar"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:142
 msgid "Pause at end of movie"
-msgstr ""
+msgstr "Pausar no fim do vídeo"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Per-Pixel Lighting"
@@ -4739,9 +4736,8 @@ msgid "Show first block"
 msgstr "Mostrar o primeiro bloco"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "Show lag counter"
-msgstr "Mostar comentário do save"
+msgstr "Mostar o contador de lag"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
 msgid ""
@@ -4749,6 +4745,9 @@ msgid ""
 "These messages include memory card writes, video backend and CPU "
 "information, and JIT cache clearing."
 msgstr ""
+"Mostra mensagens na área da tela de emulação.\n"
+"Essas mensagens incluem acesso ao Memory Card, informações sobre o backend "
+"de vídeo e a CPU, e limpeza do cache do JIT."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:825
 msgid "Show save blocks"
@@ -5656,7 +5655,7 @@ msgstr "Importar Save de Wii"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1357
 msgid "Wii save files (*.bin)|*.bin"
-msgstr "Arquivos de Salva do Wii (*.bin)|*.bin"
+msgstr "Arquivos de Save do Wii (*.bin)|*.bin"
 
 #: Source/Core/DiscIO/Src/WiiWad.cpp:81
 msgid "WiiWAD: Could not read from file"
