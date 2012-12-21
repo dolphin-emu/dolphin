@@ -604,12 +604,17 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
 		((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	s_pfont->printMultilineText(text,
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight);
 
 	GL_REPORT_ERRORD();
+
+	glDisable(GL_BLEND);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
