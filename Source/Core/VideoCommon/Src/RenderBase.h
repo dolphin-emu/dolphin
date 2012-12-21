@@ -111,6 +111,8 @@ public:
 
 	// Finish up the current frame, print some stats
 	virtual void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma = 1.0f) = 0;
+	static void BackupSwapParameters(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc, float Gamma);
+	static void RenderFrameWhilePaused();
 
 	virtual void UpdateViewport(Matrix44& vpCorrection) = 0;
 
@@ -164,6 +166,7 @@ protected:
 	static int s_LastEFBScale;
 
 	static bool s_skipSwap;
+
 	static bool XFBWrited;
 
 	static bool s_EnableDLCachingAfterRecording;
@@ -175,6 +178,15 @@ private:
 	static unsigned int efb_scale_denominatorX;
 	static unsigned int efb_scale_denominatorY;
 	static unsigned int ssaa_multiplier;
+
+	static struct SwapParameters {
+		u32 xfbAddr;
+		FieldType field;
+		u32 fbWidth;
+		u32 fbHeight;
+		EFBRectangle rc;
+		float Gamma;
+	} swap_parameters;
 };
 
 extern Renderer *g_renderer;

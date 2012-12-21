@@ -48,6 +48,8 @@ class VideoSoftware : public VideoBackend
 	void UpdateFPSDisplay(const char*);
 	unsigned int PeekMessages();
 
+	void RenderFrameWhilePaused();
+
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 	void DoState(PointerWrap &p);
 	

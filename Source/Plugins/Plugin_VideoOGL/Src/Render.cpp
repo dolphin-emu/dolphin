@@ -991,6 +991,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		return;
 	}
 
+	BackupSwapParameters(xfbAddr, field, fbWidth, fbHeight, rc, Gamma);
+
 	ResetAPIState();
 
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
@@ -1092,6 +1094,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		// Render to the real buffer now.
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
+
 		if (applyShader)
 		{
 			glBegin(GL_QUADS);

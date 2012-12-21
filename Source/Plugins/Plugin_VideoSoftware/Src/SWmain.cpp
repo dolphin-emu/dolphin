@@ -223,6 +223,7 @@ void VideoSoftware::Video_EnterLoop()
 		while (!emuRunningState && fifoStateRun)
 		{
 			g_video_backend->PeekMessages();
+			g_video_backend->RenderFrameWhilePaused();
 			m_csSWVidOccupied.unlock();
 			Common::SleepCurrentThread(1);
 			m_csSWVidOccupied.lock();
@@ -296,6 +297,11 @@ writeFn32 VideoSoftware::Video_PEWrite32()
 unsigned int VideoSoftware::PeekMessages()
 {
 	return GLInterface->PeekMessages();
+}
+
+void VideoSoftware::RenderFrameWhilePaused()
+{
+	// TODO
 }
 
 // Show the current FPS

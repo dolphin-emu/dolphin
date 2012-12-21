@@ -646,7 +646,9 @@ void Callback_VideoCopiedToXFB(bool video_update)
 {
 	if(video_update)
 		Common::AtomicIncrement(DrawnFrame);
-	Movie::FrameUpdate();
+
+	if (GetState() == CORE_RUN)
+		Movie::FrameUpdate();
 }
 
 // Callback_ISOName: Let the DSP emulator get the game name

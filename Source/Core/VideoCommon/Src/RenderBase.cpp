@@ -75,6 +75,8 @@ bool Renderer::s_skipSwap;
 bool Renderer::XFBWrited;
 bool Renderer::s_EnableDLCachingAfterRecording;
 
+Renderer::SwapParameters Renderer::swap_parameters;
+
 unsigned int Renderer::prev_efb_format = (unsigned int)-1;
 unsigned int Renderer::efb_scale_numeratorX = 1;
 unsigned int Renderer::efb_scale_numeratorY = 1;
@@ -87,6 +89,8 @@ Renderer::Renderer() : frame_data(NULL), bLastFrameDumped(false)
 {
 	UpdateActiveConfig();
 	TextureCache::OnConfigChanged(g_ActiveConfig);
+
+	memset(&swap_parameters, 0, sizeof(swap_parameters));
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	bAVIDumping = false;
@@ -137,6 +141,24 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 		g_renderer->Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc,Gamma);
 		Common::AtomicStoreRelease(s_swapRequested, false);
 	}
+}
+
+void Renderer::BackupSwapParameters(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc, float Gamma)
+{
+	swap_parameters.xfbAddr = xfbAddr;
+	swap_parameters.field = field;
+	swap_parameters.fbWidth = fbWidth;
+	swap_parameters.fbHeight = fbHeight;
+	swap_parameters.rc = rc;
+	swap_parameters.Gamma = Gamma;
+}
+
+void Renderer::RenderFrameWhilePaused()
+{
+	XFBWrited = true;
+	g_renderer->Swap(swap_parameters.xfbAddr, swap_parameters.field,
+					 swap_parameters.fbWidth, swap_parameters.fbHeight,
+					 swap_parameters.rc, swap_parameters.Gamma);
 }
 
 int Renderer::EFBToScaledX(int x)

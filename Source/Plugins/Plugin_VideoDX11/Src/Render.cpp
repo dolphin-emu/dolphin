@@ -801,6 +801,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		return;
 	}
 
+	BackupSwapParameters(xfbAddr, field, fbWidth, fbHeight, rc, Gamma);
+
 	ResetAPIState();
 
 	// Prepare to copy the XFBs to our backbuffer

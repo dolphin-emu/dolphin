@@ -200,6 +200,7 @@ void RunGpuLoop()
 			while (!EmuRunningState)
 			{
 				g_video_backend->PeekMessages();
+				g_video_backend->RenderFrameWhilePaused();
 				m_csHWVidOccupied.unlock();
 				Common::SleepCurrentThread(1);
 				m_csHWVidOccupied.lock();

@@ -89,6 +89,9 @@ public:
 
 	virtual void UpdateFPSDisplay(const char*) = 0;
 
+	// Renders the previous frame with updated OSD messages when emulation is paused
+	virtual void RenderFrameWhilePaused() = 0;
+
 	virtual unsigned int PeekMessages() = 0;
 
 	virtual bool Initialize(void *&) = 0;
@@ -175,6 +178,8 @@ class VideoBackendHardware : public VideoBackend
 	readFn16  Video_PERead16();
 	writeFn16 Video_PEWrite16();
 	writeFn32 Video_PEWrite32();
+
+	void RenderFrameWhilePaused();
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 	void DoState(PointerWrap &p);

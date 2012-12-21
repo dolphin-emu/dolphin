@@ -208,7 +208,8 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 	}
 }
 
-void VideoBackendHardware::CheckInvalidState() {
+void VideoBackendHardware::CheckInvalidState()
+{
 	if (m_invalid)
 	{
 		m_invalid = false;
@@ -216,6 +217,11 @@ void VideoBackendHardware::CheckInvalidState() {
 		BPReload();
 		TextureCache::Invalidate();
 	}
+}
+
+void VideoBackendHardware::RenderFrameWhilePaused()
+{
+	Renderer::RenderFrameWhilePaused();
 }
 
 void VideoBackendHardware::PauseAndLock(bool doLock, bool unpauseOnUnlock)
