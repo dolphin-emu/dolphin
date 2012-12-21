@@ -198,7 +198,7 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 	// Refresh state.
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		BPReload();
+		BPInvalidate();
 		RecomputeCachedArraybases();
 
 		// Clear all caches that touch RAM
