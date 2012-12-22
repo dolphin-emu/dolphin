@@ -15,7 +15,7 @@ if (APPLE)
 endif()
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
-set(DOLPHIN_IS_STABLE TRUE)
+set(DOLPHIN_IS_STABLE FAST)
 
 # Set up paths
 if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
