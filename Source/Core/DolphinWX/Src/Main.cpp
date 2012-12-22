@@ -105,7 +105,7 @@ bool DolphinApp::OnInit()
 	bool UseDebugger = false;
 	bool UseLogger = false;
 	bool selectVideoBackend = false;
-	//bool selectAudioEmulation = false;
+	bool selectAudioEmulation = false;
 
 	wxString videoBackendName;
 	wxString audioEmulationName;
@@ -166,9 +166,8 @@ bool DolphinApp::OnInit()
 	BatchMode = parser.Found(wxT("batch"));
 	selectVideoBackend = parser.Found(wxT("video_backend"),
 		&videoBackendName);
-	// TODO:  This currently has no effect.  Implement or delete.
-	//selectAudioEmulation = parser.Found(wxT("audio_emulation"),
-	//	&audioEmulationName);
+	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
+		&audioEmulationName);
 #endif // wxUSE_CMDLINE_PARSER
 
 #if defined _DEBUG && defined _WIN32
@@ -235,6 +234,12 @@ bool DolphinApp::OnInit()
 	if (selectVideoBackend && videoBackendName != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
 			std::string(videoBackendName.mb_str());
+
+	if (selectAudioEmulation)
+		if (audioEmulationName == "HLE")
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = true;
+		else if (audioEmulationName == "LLE")
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = false;
 
 	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
 
