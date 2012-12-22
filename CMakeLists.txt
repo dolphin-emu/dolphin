@@ -15,7 +15,7 @@ if (APPLE)
 endif()
 project(dolphin-emu)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
-set(DOLPHIN_IS_STABLE FALSE)
+set(DOLPHIN_IS_STABLE TRUE)
 
 # Set up paths
 if((${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
@@ -86,7 +86,7 @@ endif()
 
 # version number
 set(DOLPHIN_VERSION_MAJOR "3")
-set(DOLPHIN_VERSION_MINOR "0")
+set(DOLPHIN_VERSION_MINOR "5")
 if(DOLPHIN_IS_STABLE)
 	set(DOLPHIN_VERSION_PATCH "0")
 else()
@@ -581,7 +581,6 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/scmrev.h
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
-
 ########################################
 # Optional Targets
 # TODO: Add DSPSpy and TestSuite.
@@ -617,19 +616,20 @@ set(CPACK_PACKAGE_VENDOR "Dolphin Team")
 set(CPACK_PACKAGE_VERSION_MAJOR ${DOLPHIN_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${DOLPHIN_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${DOLPHIN_VERSION_PATCH})
+set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/Data/cpack_package_description.txt)
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A Gamecube, Wii and Triforce emulator")
 
-# TODO: CPACK_PACKAGE_DESCRIPTION_FILE
-# TODO: CPACK_PACKAGE_DESCRIPTION_SUMMARY
+set(CPACK_RPM_PACKAGE_GROUP System/Emulators/Other)
+set(CPACK_RPM_PACKAGE_LICENSE GPL-2.0)
 # TODO: CPACK_RESOURCE_FILE_README
 # TODO: CPACK_RESOURCE_FILE_WELCOME
-# TODO: CPACK_PACKAGE_EXECUTABLES
 # TODO: CPACK_PACKAGE_ICON
 # TODO: CPACK_NSIS_*
 # TODO: Use CPack components for DSPSpy, etc => cpack_add_component
 
 set(CPACK_SET_DESTDIR ON)
 set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;ZIP")
-set(CPACK_SOURCE_IGNORE_FILES  "\\\\.#;/#;.*~;\\\\.swp;/\\\\.svn")
+set(CPACK_SOURCE_IGNORE_FILES  "\\\\.#;/#;.*~;\\\\.swp;/\\\\.git")
 list(APPEND CPACK_SOURCE_IGNORE_FILES "${CMAKE_BINARY_DIR}")
 
 # CPack must be included after the CPACK_* variables are set in order for those
