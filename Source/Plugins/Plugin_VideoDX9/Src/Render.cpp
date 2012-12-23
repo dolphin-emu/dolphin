@@ -704,8 +704,8 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	// If GX viewport is off the render target, we must clamp our viewport
 	// within the bounds. Use the correction matrix to compensate.
 	ViewportCorrectionMatrix(vpCorrection,
-		intendedX, intendedY, intendedWd, intendedHt,
-		X, Y, Wd, Ht);
+		(float)intendedX, (float)intendedY, (float)intendedWd, (float)intendedHt,
+		(float)X, (float)Y, (float)Wd, (float)Ht);
 
 	D3DVIEWPORT9 vp;
 	vp.X = X;
