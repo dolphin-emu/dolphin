@@ -61,7 +61,7 @@ public:
 	}
 	void OnReconnectOnLoad(wxCommandEvent& event)
 	{
-		SConfig::GetInstance().m_WiimoteReconnectOnLoad = event.GetInt();
+		SConfig::GetInstance().m_WiimoteReconnectOnLoad = event.IsChecked();
 		event.Skip();
 	}
 
