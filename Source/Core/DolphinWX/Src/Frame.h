@@ -29,10 +29,6 @@
 #include <string>
 #include <vector>
 
-#ifdef __APPLE__
-#include <Cocoa/Cocoa.h>
-#endif
-
 #include "CDUtils.h"
 #include "Debugger/CodeWindow.h"
 #include "LogWindow.h"

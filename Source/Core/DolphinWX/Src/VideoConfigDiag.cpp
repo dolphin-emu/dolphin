@@ -252,14 +252,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxFlexGridSizer* const szr_display = new wxFlexGridSizer(2, 5, 5);
 
 	{
-
-#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-	NSView *view = (NSView *) parent->GetHandle();
-	NSWindow *window = [view window];
-
-	if (![window respondsToSelector:@selector(toggleFullScreen:)])
-#endif
-
 	// display resolution
 	{
 		wxArrayString res_list = GetListOfResolutions();
