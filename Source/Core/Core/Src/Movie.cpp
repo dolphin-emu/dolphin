@@ -97,7 +97,7 @@ void EnsureTmpInputSize(size_t bound)
 	if (tmpInput != NULL)
 	{
 		if (g_totalBytes > 0)
-			memcpy(newTmpInput, tmpInput, g_totalBytes);
+			memcpy(newTmpInput, tmpInput, (size_t)g_totalBytes);
 		delete[] tmpInput;
 	}
 	tmpInput = newTmpInput;
@@ -637,7 +637,7 @@ void RecordInput(SPADStatus *PadStatus, int controllerID)
 		g_bDiscChange = false;
 	}
 
-	EnsureTmpInputSize(g_currentByte + 8);
+	EnsureTmpInputSize((size_t)(g_currentByte + 8));
 	memcpy(&(tmpInput[g_currentByte]), &g_padState, 8);
 	g_currentByte += 8;
 	g_totalBytes = g_currentByte;
@@ -661,7 +661,7 @@ void RecordWiimote(int wiimote, u8 *data, u8 size)
 		return;
 
 	InputUpdate();
-	EnsureTmpInputSize(g_currentByte + size + 1);
+	EnsureTmpInputSize((size_t)(g_currentByte + size + 1));
 	tmpInput[g_currentByte++] = size;
 	memcpy(&(tmpInput[g_currentByte]), data, size);
 	g_currentByte += size;

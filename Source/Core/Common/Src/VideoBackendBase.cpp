@@ -41,7 +41,7 @@ static bool IsGteVista()
 
 	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL);
 
-	return VerifyVersionInfo(&osvi, VER_MAJORVERSION, dwlConditionMask);
+	return VerifyVersionInfo(&osvi, VER_MAJORVERSION, dwlConditionMask) != FALSE;
 }
 #endif
 
