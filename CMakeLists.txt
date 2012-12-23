@@ -414,6 +414,16 @@ else(SDL2_FOUND)
 	endif(SDL_FOUND)
 endif(SDL2_FOUND)
 
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	include(FindLibUSB OPTIONAL)
+endif()
+if(LIBUSB_FOUND)
+	message("Using shared LibUSB")
+	include_directories(${LIBUSB_INCLUDE_DIR})
+else(LIBUSB_FOUND)
+	
+endif(LIBUSB_FOUND)
+
 set(SFML_FIND_VERSION TRUE)
 set(SFML_FIND_VERSION_MAJOR 1)
 set(SFML_FIND_VERSION_MINOR 5)

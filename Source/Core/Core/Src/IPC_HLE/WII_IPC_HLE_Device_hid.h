@@ -21,7 +21,7 @@
 #include "WII_IPC_HLE_Device.h"
 #include <list>
 
-/* Connection timed out */ #define ETRANSFER_TIMEDOUT -116
+/* Connection timed out */ 
 
 class CWII_IPC_HLE_Device_hid : public IWII_IPC_HLE_Device
 {
@@ -45,8 +45,8 @@ private:
         IOCTL_HID_SET_SUSPEND		= 0x01,
         IOCTL_HID_CONTROL			= 0x02,
         IOCTL_HID_INTERRUPT_IN		= 0x03,
-        IOCTL_HID_INTERRUPT_OUT		= 0x04,
-        IOCTL_HID_GET_US_STRING		= 0x05,
+        IOCTL_HID_INTERRUPT_OUT	= 0x04,
+        IOCTL_HID_GET_US_STRING	= 0x05,
         IOCTL_HID_OPEN				= 0x06,
         IOCTL_HID_SHUTDOWN			= 0x07,
         IOCTL_HID_CANCEL_INTERRUPT	= 0x08,
@@ -113,7 +113,7 @@ private:
 	} WiiHIDEndpointDescriptor;
 
 	
-	void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize);
+	void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
 
 	void ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, const struct libusb_device_descriptor *src);
 	void ConvertConfigToWii(WiiHIDConfigDescriptor *dest, const struct libusb_config_descriptor *src);

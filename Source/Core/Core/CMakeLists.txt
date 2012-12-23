@@ -138,6 +138,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_fs.cpp
+			Src/IPC_HLE/WII_IPC_HLE_Device_hid.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_net.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp
@@ -193,6 +194,12 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/JitCommon/Jit_Util.cpp)
 
 set(LIBS bdisasm inputcommon videoogl videosoftware sfml-network)
+
+
+if(LIBUSB_FOUND)
+	# Using shared LibUSB
+	set(LIBS	${LIBS} ${LIBUSB_LIBRARIES})
+endif(LIBUSB_FOUND)
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp
