@@ -161,7 +161,7 @@ void VertexManager::AddVertices(int primitive, int numVertices)
 void VertexManager::Flush()
 {
 	// loading a state will invalidate BP, so check for it
-	BPReload();
+	g_video_backend->CheckInvalidState();
 	
 	g_vertex_manager->vFlush();
 }

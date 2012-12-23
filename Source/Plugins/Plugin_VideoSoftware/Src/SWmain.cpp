@@ -95,6 +95,11 @@ void VideoSoftware::DoState(PointerWrap&)
 	// NYI
 }
 
+void VideoSoftware::CheckInvalidState()
+{
+	// there is no state to invalidate
+}
+
 void VideoSoftware::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
 	if (doLock)

@@ -72,18 +72,6 @@ void TextureCache::Invalidate()
 	textures.clear();
 }
 
-// this function is dirty hack to work around a OGL bug.
-// it is only used on loading states. It will work for normal textures,
-// but for efb2ram, it wouldn't be checked. So there may be glitches on loading
-void TextureCache::InvalidateHashes()
-{
-	TexCache::iterator
-		iter = textures.begin(),
-		tcend = textures.end();
-	for (; iter != tcend; ++iter)
-		iter->second->hash = TEXHASH_INVALID;
-}
-
 TextureCache::~TextureCache()
 {
 	Invalidate();

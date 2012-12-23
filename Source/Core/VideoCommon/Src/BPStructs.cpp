@@ -37,7 +37,6 @@ using namespace BPFunctions;
 static u32 mapTexAddress;
 static bool mapTexFound;
 static int numWrites;
-static bool s_invalid;
 
 extern volatile bool g_bSkipCurrentFrame;
 
@@ -57,7 +56,6 @@ void BPInit()
 	mapTexAddress = 0;
 	numWrites = 0;
 	mapTexFound = false;
-	s_invalid = false;
 }
 
 void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xfbLines, u32 xfbAddr, const u32 dstWidth, const u32 dstHeight, float gamma)
@@ -85,7 +83,7 @@ void BPWritten(const BPCmd& bp)
 	*/
 	
 	// check for invalid state, else unneeded configuration are built
-	BPReload();
+	g_video_backend->CheckInvalidState();
 
 	// Debugging only, this lets you skip a bp update
 	//static int times = 0;
@@ -685,42 +683,32 @@ void BPWritten(const BPCmd& bp)
 // Called when loading a saved state.
 void BPReload()
 {
-	if(s_invalid) {
-		s_invalid = false;
-		
-		// restore anything that goes straight to the renderer.
-		// let's not risk actually replaying any writes.
-		// note that PixelShaderManager is already covered since it has its own DoState.
-		SetGenerationMode();
-		SetScissor();
-		SetLineWidth();
-		SetDepthMode();
-		SetLogicOpMode();
-		SetDitherMode();
-		SetBlendMode();
-		SetColorMask();
-		OnPixelFormatChange();
-		{
-			BPCmd bp = {BPMEM_TX_SETMODE0, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_TX_SETMODE0])};
-			SetTextureMode(bp);
-		}
-		{
-			BPCmd bp = {BPMEM_TX_SETMODE0_4, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_TX_SETMODE0_4])};
-			SetTextureMode(bp);
-		}
-		{
-			BPCmd bp = {BPMEM_FIELDMASK, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMASK])};
-			SetInterlacingMode(bp);
-		}
-		{
-			BPCmd bp = {BPMEM_FIELDMODE, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMODE])};
-			SetInterlacingMode(bp);
-		}
+	// restore anything that goes straight to the renderer.
+	// let's not risk actually replaying any writes.
+	// note that PixelShaderManager is already covered since it has its own DoState.
+	SetGenerationMode();
+	SetScissor();
+	SetLineWidth();
+	SetDepthMode();
+	SetLogicOpMode();
+	SetDitherMode();
+	SetBlendMode();
+	SetColorMask();
+	OnPixelFormatChange();
+	{
+		BPCmd bp = {BPMEM_TX_SETMODE0, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_TX_SETMODE0])};
+		SetTextureMode(bp);
+	}
+	{
+		BPCmd bp = {BPMEM_TX_SETMODE0_4, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_TX_SETMODE0_4])};
+		SetTextureMode(bp);
+	}
+	{
+		BPCmd bp = {BPMEM_FIELDMASK, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMASK])};
+		SetInterlacingMode(bp);
+	}
+	{
+		BPCmd bp = {BPMEM_FIELDMODE, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMODE])};
+		SetInterlacingMode(bp);
 	}
 }
-
-void BPInvalidate()
-{
-	s_invalid = true;
-}
-

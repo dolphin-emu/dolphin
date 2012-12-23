@@ -106,7 +106,6 @@ public:
 	static void Cleanup();
 
 	static void Invalidate();
-	static void InvalidateHashes();
 	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
 	static void ClearRenderTargets();	// currently only used by OGL

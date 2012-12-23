@@ -23,6 +23,5 @@
 void BPInit();
 void LoadBPReg(u32 value0);
 void BPReload();
-void BPInvalidate();
 
 #endif // _BPSTRUCTS_H_
