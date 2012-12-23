@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-12-11 08:14-0600\n"
-"PO-Revision-Date: 2012-12-19 10:25+0100\n"
-"Last-Translator: Puniasterus <puniasterus@gmail.com>\n"
+"PO-Revision-Date: 2012-12-15 02:01+0100\n"
+"Last-Translator: Petiso Carambanal <diegoae@gmail.com>\n"
 "Language-Team: DARIO_FF <LL@li.org>\n"
 "Language: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -637,11 +637,11 @@ msgstr "Configuración avanzada"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:667
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
-msgstr "Todos los archivos de GC/Wii (elf, dol, gcm, iso, ciso, wad)"
+msgstr "Todos los archivos de GC/Wii (elf, dol, gcm, iso, wbfs, ciso, wad)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:754
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
-msgstr "Todas las imágenes de GC/Wii (gcm, iso, ciso, gcz)"
+msgstr "Todas las imágenes de GC/Wii (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1200
 msgid "All Gamecube GCM files (gcm)"
@@ -675,7 +675,7 @@ msgstr ""
 "Permite alternar algunas opciones a través de las teclas de acceso rápido 3, "
 "4, 5, 6 y 7 en la ventana de emulación.\n"
 "\n"
-"Si no estás seguro, déjala sin marcar."
+"Si no estás seguro, déjalo sin marcar."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:333
 msgid "Alternate Wiimote Timing"
@@ -780,7 +780,6 @@ msgid "Auto adjust Window Size"
 msgstr "Autoajuste del tamaño de la ventana"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:75
-#, fuzzy
 msgid ""
 "Automatically adjusts the window size to your internal resolution.\n"
 "\n"
@@ -788,7 +787,7 @@ msgid ""
 msgstr ""
 "Ajusta automáticamente el tamaño de la ventana a tu resolución interna.\n"
 "\n"
-"Si no estás seguro, déjala sin marcar."
+"Si no estás seguro, déjalo sin marcar."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "B"
@@ -855,7 +854,7 @@ msgstr "Bajo"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:186
 msgid "Block Allocation Table checksum failed"
-msgstr "La suma de verificación de la Tabla de Localización de Bloques falló"
+msgstr "La suma de verificación de la tabla de localización de bloques falló"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:629
 msgid "Blocks"
@@ -1355,7 +1354,7 @@ msgid ""
 msgstr ""
 "No se pudo escribir el archivo de tarjeta de memoria %s.\n"
 "\n"
-"¿Está ejecutando Dolphin desde un CD/DVD, o el archivo de guardado está "
+"¿Estás ejecutando Dolphin desde un CD/DVD, o el archivo de guardado está "
 "protegido contra escritura?"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1143
@@ -1838,7 +1837,7 @@ msgid "EFB Copies"
 msgstr "Copias de EFB"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
 "version %d.%d -- If you recently upgraded your Dolphin distribution, a "
@@ -1846,9 +1845,9 @@ msgid ""
 "driver."
 msgstr ""
 "ERROR: Esta versión de Dolphin requiere un controlador TAP-Win32 que sea por "
-"lo menos de versión %d.%d. Si  actualizaste recientemente tu distribución de "
-"Dolphin, puede que se necesite reiniciar para que Windows reconozca el nuevo "
-"controlador."
+"lo menos de versión %d.%d -- Si  actualizaste recientemente tu distribución "
+"de Dolphin, puede que se necesite reiniciar para que Windows reconozca el "
+"nuevo controlador."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:171
 msgid "EUROPE"
@@ -2059,7 +2058,6 @@ msgstr ""
 "Si no estás seguro, déjalo sin marcar."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:78
-#, fuzzy
 msgid ""
 "Enable this if you want to use the main Dolphin window for rendering rather "
 "than a separate render window.\n"
@@ -2069,7 +2067,7 @@ msgstr ""
 "Active esto si quiere usar la ventana principal de Dolphin para renderizar "
 "en vez de una ventana aparte.\n"
 "\n"
-"Si no estás seguro, déjala sin marcar."
+"Si no estás seguro, déjalo sin marcar."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:341
 msgid ""
@@ -2709,9 +2707,8 @@ msgid "GameConfig"
 msgstr "Configurar Juego"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:523
-#, fuzzy
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr "Tipos de partidas guardadas GameCube(*.gci;*.gcs;*.sav)"
+msgstr "Ficheros de guardado de GameCube (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
 msgid "Gamecube"
@@ -3213,12 +3210,13 @@ msgid "Invalid recording file"
 msgstr "Archivo de grabación no válido"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:472
+#, fuzzy
 msgid "Invalid search parameters (no object selected)"
-msgstr "Parametros de búsqueda inválidos (ningun objeto seleccionado)"
+msgstr "Parametros de búsqueda inválidos (ningún objeto seleccionado)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:451
 msgid "Invalid search string (couldn't convert to number)"
-msgstr "Cadena de búsqueda incorrecta(no se pudo convertir en un número)"
+msgstr "Cadena de búsqueda incorrecta (no se pudo convertir en un número)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:439
 msgid "Invalid search string (only even string lengths supported)"
@@ -3442,24 +3440,23 @@ msgid "Log Configuration"
 msgstr "Configuración de registro"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:300
-#, fuzzy
 msgid "Log FPS to file"
-msgstr "Guardar FPS en un archivo"
+msgstr "Escribir FPS en un fichero"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:98
 msgid "Log Types"
 msgstr "Tipos de registro"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
-#, fuzzy
 msgid ""
 "Log the number of frames rendered per second to User/Logs/fps.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Mostar el número de fotogramas renderizados por segundo como una medida de "
-"la velocidad de la emulación.\n"
+"Registrar el número de fotogramas renderizados por segundo a User/Logs/fps."
+"txt. Usa esta característica cuando quieras medir el rendimiento de "
+"Dolphin.\n"
 "\n"
 "Si no estás seguro, déjala sin marcar."
 
@@ -3886,9 +3883,8 @@ msgid "Offset:"
 msgstr "Offset:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:586
-#, fuzzy
 msgid "On-Screen Display Messages"
-msgstr "Mensajes de arranque"
+msgstr "Mensajes en pantalla"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:435
 #, c-format
@@ -4028,9 +4024,8 @@ msgid "Pause"
 msgstr "Pausa"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:142
-#, fuzzy
 msgid "Pause at end of movie"
-msgstr "Pausar al final de la película"
+msgstr "Pausar al acabar la película"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Per-Pixel Lighting"
@@ -4761,20 +4756,18 @@ msgid "Show first block"
 msgstr "Mostrar primer bloque"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "Show lag counter"
-msgstr "Mostrar comentario del guardado"
+msgstr "Mostrar contador de lag"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
-#, fuzzy
 msgid ""
 "Show messages on the emulation screen area.\n"
 "These messages include memory card writes, video backend and CPU "
 "information, and JIT cache clearing."
 msgstr ""
-"Mostrar mensajes en la pantalla de emulación.\n"
-"Estos mensajes incluyen escrituras a la tarjeta de memória, motor gráfico, "
-"información de la CPU y limpieza caché JIT."
+"Mostrar mensajes en el área de emulación. Estos mensajes incluyen escritura "
+"de tarjetas de memoria,sobre el motor de vídeo,información sobre la CPU y "
+"limpieza de la cache JIT."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:825
 msgid "Show save blocks"
@@ -5571,7 +5564,7 @@ msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Advertencia - arrancando un ISO en un modo de consola incorrecto!"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:519
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "Warning! it is advised to backup all files in the folder:\n"
 "%s\n"
@@ -5580,7 +5573,7 @@ msgstr ""
 "¡Advertencia! Es recomendable hacer una copia de todos los archivos en la "
 "carpeta:\n"
 "%s\n"
-"¿Quiere continuar?"
+"¿Quieres continuar?"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:583
 #, c-format

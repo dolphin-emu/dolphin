@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-12-11 08:14-0600\n"
-"PO-Revision-Date: 2012-06-13 10:37+0100\n"
+"PO-Revision-Date: 2012-12-22 10:47+0100\n"
 "Last-Translator: Pascal\n"
 "Language-Team: \n"
 "Language: French\n"
@@ -633,12 +633,10 @@ msgid "Advanced Settings"
 msgstr "Paramètres avancés"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:667
-#, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "Tous les fichiers GC/Wii (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:754
-#, fuzzy
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Toutes les images GC/Wii (gcm, iso, wbfs, ciso, gcz)"
 
@@ -664,15 +662,14 @@ msgid "All files (*.*)|*.*"
 msgstr "Tous les fichiers (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:121
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3, 4, 5 and 6 within the "
 "emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Permet d'activer certaines options via les raccourcis clavier 3, 4, 5, 6 et "
-"7 dans la fenêtre d'émulation.\n"
+"Permet d'activer certaines options via les raccourcis clavier 3, 4, 5, et 6 "
+"dans la fenêtre d'émulation.\n"
 "\n"
 "Dans le doute, décochez cette case."
 
@@ -1843,7 +1840,7 @@ msgid "EFB Copies"
 msgstr "Copies de l'EFB"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
 "version %d.%d -- If you recently upgraded your Dolphin distribution, a "
@@ -2372,7 +2369,7 @@ msgid "Failed to read banner.bin"
 msgstr "Impossible de lire banner.bin"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:223
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to read block %d of the save data\n"
 "Memcard may be truncated\n"
@@ -2716,7 +2713,7 @@ msgstr "Config du Jeu"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:523
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr ""
+msgstr "Fichiers de sauvegarde GameCube (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
 msgid "Gamecube"
@@ -3455,22 +3452,22 @@ msgstr "Configuration de la journalisation"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:300
 msgid "Log FPS to file"
-msgstr ""
+msgstr "Enregistrer le nombre de FPS"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:98
 msgid "Log Types"
 msgstr "Types de journaux"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
-#, fuzzy
 msgid ""
 "Log the number of frames rendered per second to User/Logs/fps.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Affiche le nombre d'images rendues par seconde, afin de mesurer la vitesse "
-"d'émulation.\n"
+"Enregistre le nombre d'images rendues par seconde vers le fichier User/Logs/"
+"fps.txt. Utilisez cette fonctionnalité pour mesurer les performances de "
+"Dolphin.\n"
 "\n"
 "Dans le doute, décochez cette case."
 
@@ -3898,7 +3895,7 @@ msgstr "Offset :"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:586
 msgid "On-Screen Display Messages"
-msgstr ""
+msgstr "Afficher les messages informatifs"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:435
 #, c-format
@@ -4039,7 +4036,7 @@ msgstr "Pause"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:142
 msgid "Pause at end of movie"
-msgstr ""
+msgstr "Faire une pause à la fin du film"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Per-Pixel Lighting"
@@ -4772,9 +4769,8 @@ msgid "Show first block"
 msgstr "Afficher le premier bloc"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "Show lag counter"
-msgstr "Afficher le commentaire de sauvegarde"
+msgstr "Afficher le compteur de lag"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
 msgid ""
@@ -4782,6 +4778,9 @@ msgid ""
 "These messages include memory card writes, video backend and CPU "
 "information, and JIT cache clearing."
 msgstr ""
+"Affiche les messages par-dessus la zone d'émulation.\n"
+"Ces messages incluent les écritures de carte mémoire, la moteur de rendu "
+"vidéo et les infos du processeur, et l'effacement du cache JIT."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:825
 msgid "Show save blocks"
