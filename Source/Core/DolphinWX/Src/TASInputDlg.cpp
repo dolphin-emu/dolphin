@@ -680,7 +680,7 @@ void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
 	}
 }
 
-bool TASInputDlg::HasFocus()
+bool TASInputDlg::HasFocus() const
 {	
 	//allows numbers to be used as hotkeys
 	if(TextBoxHasFocus())
@@ -695,7 +695,7 @@ bool TASInputDlg::HasFocus()
         return false;
 }
 
-bool TASInputDlg::TextBoxHasFocus()
+bool TASInputDlg::TextBoxHasFocus() const
 {
 	if(wxWindow::FindFocus() == wx_mainX_t)
 		return true;

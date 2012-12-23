@@ -45,8 +45,8 @@ class TASInputDlg : public wxDialog
 		void SetTurboFalse(wxMouseEvent& event);
 		void ButtonTurbo();
 		void GetKeyBoardInput(SPADStatus *PadStatus);
-		bool TextBoxHasFocus();
-		bool HasFocus();
+		virtual bool TextBoxHasFocus() const;
+		virtual bool HasFocus() const;
 
 		wxBitmap CreateStickBitmap(int x, int y);
 

@@ -50,7 +50,7 @@ public:
 	DSPDebuggerLLE(wxWindow *parent, wxWindowID id = wxID_ANY);
 	virtual ~DSPDebuggerLLE();
 
-	void Refresh();
+	virtual void Refresh();
 
 private:
 	DECLARE_EVENT_TABLE();

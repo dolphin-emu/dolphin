@@ -876,39 +876,46 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	m_XRRConfig->ToggleDisplayMode(bFullscreen);
 #elif defined __APPLE__
-	if (!bFullscreen) {
-		CGRestorePermanentDisplayConfiguration();
-		CGDisplayRelease(CGMainDisplayID());
-		return;
-	}
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSWindow *window = [view window];
 
-	CFArrayRef modes = CGDisplayAvailableModes(CGMainDisplayID());
-	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
+	if (![window respondsToSelector:@selector(toggleFullScreen:)])
+#endif
 	{
-		CFDictionaryRef mode;
-		CFNumberRef ref;
-		int x, y, w, h, d;
+		if (!bFullscreen) {
+				CGRestorePermanentDisplayConfiguration();
+				CGDisplayRelease(CGMainDisplayID());
+				return;
+		}
 
-		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.\
-			strFullscreenResolution.c_str(), "%dx%d", &x, &y);
+		CFArrayRef modes = CGDisplayAvailableModes(CGMainDisplayID());
+		for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
+		{
+				CFDictionaryRef mode;
+				CFNumberRef ref;
+				int x, y, w, h, d;
 
-		mode = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, i);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayWidth);
-		CFNumberGetValue(ref, kCFNumberIntType, &w);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayHeight);
-		CFNumberGetValue(ref, kCFNumberIntType, &h);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode,
-			kCGDisplayBitsPerPixel);
-		CFNumberGetValue(ref, kCFNumberIntType, &d);
+				sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.\
+						strFullscreenResolution.c_str(), "%dx%d", &x, &y);
 
-		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsStretched))
-			continue;
-		if (w != x || h != y || d != 32)
-			continue;;
+				mode = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, i);
+				ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayWidth);
+				CFNumberGetValue(ref, kCFNumberIntType, &w);
+				ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayHeight);
+				CFNumberGetValue(ref, kCFNumberIntType, &h);
+				ref = (CFNumberRef)CFDictionaryGetValue(mode,
+                        kCGDisplayBitsPerPixel);
+				CFNumberGetValue(ref, kCFNumberIntType, &d);
 
-		CGDisplaySwitchToMode(CGMainDisplayID(), mode);
+				if (CFDictionaryContainsKey(mode, kCGDisplayModeIsStretched))
+						continue;
+				if (w != x || h != y || d != 32)
+						continue;;
+
+				CGDisplaySwitchToMode(CGMainDisplayID(), mode);
+		}
 	}
-
 #endif
 }
 
@@ -967,6 +974,14 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderParent = new CPanel(m_RenderFrame, wxID_ANY);
 		m_RenderFrame->Show();
 	}
+
+#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSWindow *window = [view window];
+
+	if ([window respondsToSelector:@selector(setCollectionBehavior:)])
+		[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+#endif
 
 	wxBeginBusyCursor();
 
@@ -1140,8 +1155,23 @@ void CFrame::DoStop()
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxNullCursor);
 		DoFullscreen(false);
+
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+		{
 			m_RenderFrame->Destroy();
+		}
+#if defined(__APPLE__) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+		else
+		{
+			// Disable the full screen button when not in a game.
+			NSView *view = (NSView *) m_RenderFrame->GetHandle();
+			NSWindow *window = [view window];
+
+			if ([window respondsToSelector:@selector(setCollectionBehavior:)])
+				[window setCollectionBehavior:NSWindowCollectionBehaviorDefault];
+		}
+#endif
+
 		m_RenderParent = NULL;
 
 		// Clean framerate indications from the status bar.
