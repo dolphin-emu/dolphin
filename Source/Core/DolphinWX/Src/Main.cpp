@@ -236,10 +236,12 @@ bool DolphinApp::OnInit()
 			std::string(videoBackendName.mb_str());
 
 	if (selectAudioEmulation)
+	{
 		if (audioEmulationName == "HLE")
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = true;
 		else if (audioEmulationName == "LLE")
 			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = false;
+	}
 
 	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
 
