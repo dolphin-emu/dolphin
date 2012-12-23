@@ -762,9 +762,9 @@ void Wiimote::Update()
 			}
 		}
 	}
-	if (Movie::IsRecordingInput())
+	if (!Movie::IsPlayingInput())
 	{
-		Movie::RecordWiimote(m_index, data, rptf, m_reg_ir.mode);
+		Movie::CheckWiimoteStatus(m_index, data, rptf, m_reg_ir.mode);
 	}
 
 	// don't send a data report if auto reporting is off

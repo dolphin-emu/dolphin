@@ -28,7 +28,6 @@
 #include "CPUDetect.h"
 #include "IniFile.h"
 #include "FileUtil.h"
-#include "Setup.h"
 
 #include "Host.h" // Core
 #include "HW/Wiimote.h"
@@ -116,37 +115,37 @@ bool DolphinApp::OnInit()
 	{
 		{
 			wxCMD_LINE_SWITCH, "h", "help",
-			_("Show this help message"),
+			"Show this help message",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
 		},
 		{
 			wxCMD_LINE_SWITCH, "d", "debugger",
-			_("Opens the debugger"),
+			"Opens the debugger",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_SWITCH, "l", "logger",
-			_("Opens the logger"),
+			"Opens the logger",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, "e", "exec",
-			_("Loads the specified file (DOL,ELF,GCM,ISO,WAD)"),
+			"Loads the specified file (DOL,ELF,GCM,ISO,WAD)",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_SWITCH, "b", "batch",
-			_("Exit Dolphin with emulator"),
+			"Exit Dolphin with emulator",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, "V", "video_backend",
-			_("Specify a video backend"),
+			"Specify a video backend",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, "A", "audio_emulation",
-			_("Low level (LLE) or high level (HLE) audio"),
+			"Low level (LLE) or high level (HLE) audio",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -167,7 +166,6 @@ bool DolphinApp::OnInit()
 	BatchMode = parser.Found(wxT("batch"));
 	selectVideoBackend = parser.Found(wxT("video_backend"),
 		&videoBackendName);
-	// TODO:  This currently has no effect.  Implement or delete.
 	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
 		&audioEmulationName);
 #endif // wxUSE_CMDLINE_PARSER
@@ -236,6 +234,14 @@ bool DolphinApp::OnInit()
 	if (selectVideoBackend && videoBackendName != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
 			std::string(videoBackendName.mb_str());
+
+	if (selectAudioEmulation)
+	{
+		if (audioEmulationName == "HLE")
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = true;
+		else if (audioEmulationName == "LLE")
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = false;
+	}
 
 	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
 

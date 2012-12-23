@@ -718,6 +718,8 @@ void Do_ARAM_DMA()
 		{
 			while (g_arDMA.Cnt.count)
 			{
+				// These are logically seperated in code to show that a memory map has been set up
+				// See below in the write section for more information
 				if ((g_ARAM_Info.Hex & 0xf) == 3)
 				{
 					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);

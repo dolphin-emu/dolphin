@@ -281,7 +281,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	u32 Addr__AXOutSBuffer_1;
 	u32 Addr__AXOutSBuffer_2;
 	u32 Addr__A;
-	u32 Addr__12;
+	//u32 Addr__12;
 	u32 Addr__4_1;
 	u32 Addr__4_2;
 	//u32 Addr__4_3;
@@ -429,7 +429,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 			break;
 
 		case 0x0012:
-			Addr__12  = HLEMemory_Read_U16(uAddress);
+			//Addr__12  = HLEMemory_Read_U16(uAddress);
 			uAddress += 2;
 			break;
 

@@ -102,6 +102,7 @@ void CWII_IPC_HLE_WiiMote::DoState(PointerWrap &p)
 	p.Do(uclass);
 	p.Do(features);
 	p.Do(lmp_version);
+	p.Do(lmp_subversion);
 	p.Do(m_LinkKey);
 	p.Do(m_Name);
 

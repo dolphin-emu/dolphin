@@ -624,7 +624,6 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 		int cmd = *objectdata++;
 		int stream_size = Common::swap16(objectdata);
 		objectdata += 2;
-		int vertex_size = (objectdata_end - objectdata) / stream_size;
 		wxString newLabel = wxString::Format(wxT("%08X:  %02X %04X  "), obj_offset, cmd, stream_size);
 		if ((objectdata_end - objectdata) % stream_size) newLabel += _("NOTE: Stream size doesn't match actual data length\n");
 		while (objectdata < objectdata_end)

@@ -656,8 +656,10 @@ u8 *GetPointer(const u32 _Address)
 	case 0x9:
 	case 0xd:
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		{
 			if ((_Address & 0xfffffff) < EXRAM_SIZE)
 				return m_pPhysicalEXRAM + (_Address & EXRAM_MASK);
+		}
 		else
 			break;
 

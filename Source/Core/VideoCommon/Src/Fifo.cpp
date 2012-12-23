@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "VideoConfig.h"
-#include "Setup.h"
 #include "MemoryUtil.h"
 #include "Thread.h"
 #include "Atomic.h"

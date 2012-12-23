@@ -19,7 +19,6 @@
 #define __MOVIE_H
 
 #include "Common.h"
-#include "FileUtil.h"
 #include "../../InputCommon/Src/GCPadStatus.h"
 
 #include <string>
@@ -61,8 +60,9 @@ static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes")
 #pragma pack(pop)
 
 // Global declarations
-extern bool g_bFrameStep, g_bPolled, g_bReadOnly, g_bDiscChange;
+extern bool g_bFrameStep, g_bPolled, g_bReadOnly, g_bDiscChange, g_bClearSave;
 extern PlayMode g_playMode;
+extern u64 g_titleID;
 
 extern u32 g_framesToSkip, g_frameSkipCounter;
 
@@ -98,7 +98,7 @@ struct DTMHeader {
 
     u8  videoBackend[16];	// UTF-8 representation of the video backend
     u8  audioEmulator[16];	// UTF-8 representation of the audio emulator
-    u8  padBackend[16];		// UTF-8 representation of the input backend
+    unsigned char  md5[16];	// MD5 of game iso
 
 	u64 recordingStartTime; // seconds since 1970 that recording started (used for RTC)
 
@@ -117,8 +117,9 @@ struct DTMHeader {
 	bool bUseXFB;
 	bool bUseRealXFB;
 	bool bMemcard;
-	bool bBlankMC;			// Create a new memory card when playing back a movie if true
-	u8 reserved[16];		// Padding for any new config options
+	bool bClearSave;		// Create a new memory card when playing back a movie if true
+	u8 bongos;
+	u8 reserved[15];		// Padding for any new config options
 	u8 discChange[40];		// Name of iso file to switch to, for two disc games.
 	u8 reserved2[47];		// Make heading 256 bytes, just because we can
 };
@@ -132,7 +133,6 @@ void Init();
 
 void SetPolledDevice();
 
-bool IsAutoFiring();
 bool IsRecordingInput();
 bool IsRecordingInputFromSaveState();
 bool IsJustStartingRecordingInputFromSaveState();
@@ -148,12 +148,14 @@ bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
 int GetCPUMode();
-bool IsBlankMemcard();
+bool IsStartingFromClearSave();
 bool IsUsingMemcard();
 void SetGraphicsConfig();
+void GetSettings();
 
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);
+bool IsUsingBongo(int controller);
 void ChangePads(bool instantly = false);
 void ChangeWiiPads(bool instantly = false);
 
@@ -166,7 +168,7 @@ void FrameSkipping();
 
 bool BeginRecordingInput(int controllers);
 void RecordInput(SPADStatus *PadStatus, int controllerID);
-void RecordWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
+void RecordWiimote(int wiimote, u8 *data, u8 size);
 
 bool PlayInput(const char *filename);
 void LoadInput(const char *filename);
@@ -176,6 +178,11 @@ bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures&
 void EndPlayInput(bool cont);
 void SaveRecording(const char *filename);
 void DoState(PointerWrap &p);
+void CheckMD5();
+void GetMD5();
+void Shutdown();
+void CheckPadStatus(SPADStatus *PadStatus, int controllerID);
+void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int irMode);
 
 std::string GetInputDisplay();
 
@@ -186,4 +193,4 @@ void SetInputManip(ManipFunction);
 void CallInputManip(SPADStatus *PadStatus, int controllerID);
 };
 
-#endif // __FRAME_H
+#endif // __MOVIE_H

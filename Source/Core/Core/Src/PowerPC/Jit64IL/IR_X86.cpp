@@ -472,10 +472,10 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 #else
 			// 64-bit
 			if (Profiled) {
-				RI.Jit->LEA(32, EAX, M((void*)addr));
+				RI.Jit->LEA(32, EAX, M((void*)(u64)addr));
 				return MComplex(RBX, EAX, SCALE_1, 0);
 			}
-			return M((void*)addr);
+			return M((void*)(u64)addr);
 #endif
 		}
 	}

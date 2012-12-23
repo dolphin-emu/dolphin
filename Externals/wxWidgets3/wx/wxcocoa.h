@@ -996,25 +996,25 @@
 #define HAVE_USLEEP 1
 
 /* Define if you have wcscasecmp() function  */
-#define HAVE_WCSCASECMP 1
+/* #undef HAVE_WCSCASECMP 1 */
 
 /* Define if you have wcsncasecmp() function  */
-#define HAVE_WCSNCASECMP 1
+/* #undef HAVE_WCSNCASECMP 1 */
 
 /* Define if you have wcslen function  */
 #define HAVE_WCSLEN 1
 
 /* Define if you have wcsdup function  */
-#define HAVE_WCSDUP 1
+/* #undef HAVE_WCSDUP 1 */
 
 /* Define if you have wcsftime() function  */
 #define HAVE_WCSFTIME 1
 
 /* Define if you have strnlen() function */
-#define HAVE_STRNLEN 1
+/* #undef HAVE_STRNLEN 1 */
 
 /* Define if you have wcsnlen() function */
-#define HAVE_WCSNLEN 1
+/* #undef HAVE_WCSNLEN 1 */
 
 /* Define if you have wcstoull() and wcstoll() */
 /* #undef HAVE_WCSTOULL */

@@ -163,6 +163,12 @@ struct VideoConfig
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
 	} backend_info;
+
+    // Utility
+    bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
+    bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
+    bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
+    bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
 };
 
 extern VideoConfig g_Config;
@@ -170,7 +176,5 @@ extern VideoConfig g_ActiveConfig;
 
 // Called every frame.
 void UpdateActiveConfig();
-
-void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip, TargetRectangle *rc);
 
 #endif  // _VIDEO_CONFIG_H_

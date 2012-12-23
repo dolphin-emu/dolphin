@@ -185,6 +185,11 @@ bool Wiimote::Connect()
 		RealDisconnect();
 		return false;
 	}
+    
+    // As of 10.8 these need explicit retaining or writing to the wiimote has a very high
+    // chance of crashing and burning.
+    [ichan retain];
+    [cchan retain];
 
 	NOTICE_LOG(WIIMOTE, "Connected to wiimote %i at %s",
 		index + 1, [[btd getAddressString] UTF8String]);
@@ -215,7 +220,8 @@ void Wiimote::RealDisconnect()
 		m_wiimote_thread.join();
 
 	[btd closeConnection];
-
+    [ichan release];
+    [cchan release];
 	btd = NULL;
 	cchan = NULL;
 	ichan = NULL;

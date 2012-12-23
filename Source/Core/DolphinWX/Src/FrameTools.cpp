@@ -27,9 +27,6 @@ window handle that is returned by CreateWindow() can be accessed from
 Core::GetWindowHandle().
 */
 
-
-#include "Setup.h" // Common
-
 #include "NetWindow.h"
 #include "Common.h" // Common
 #include "FileUtil.h"
@@ -142,9 +139,13 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_RECORDEXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
 	emulationMenu->Append(IDM_RECORDREADONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
 	emulationMenu->Append(IDM_TASINPUT, _("TAS Input"));
+	emulationMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at end of movie"));
+	emulationMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_PauseMovie);
+	emulationMenu->AppendCheckItem(IDM_SHOWLAG, _("Show lag counter"));
+	emulationMenu->Check(IDM_SHOWLAG, SConfig::GetInstance().m_ShowLag);
 	emulationMenu->Check(IDM_RECORDREADONLY, true);
 	emulationMenu->AppendSeparator();
-	
+
 	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
 
 	wxMenu *skippingMenu = new wxMenu;
@@ -702,6 +703,18 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 	g_TASInputDlg->Show(true);
 }
 
+void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_PauseMovie = !SConfig::GetInstance().m_PauseMovie;
+	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnShowLag(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_ShowLag = !SConfig::GetInstance().m_ShowLag;
+	SConfig::GetInstance().SaveSettings();
+}
+
 void CFrame::OnFrameStep(wxCommandEvent& event)
 {
 	bool wasPaused = (Core::GetState() == Core::CORE_PAUSE);
@@ -732,7 +745,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 	}
 
 	for (int i = 0; i < 4; i++) {
-		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
+		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			controllers |= (1 << i);
 
 		if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
@@ -1042,27 +1055,14 @@ void CFrame::DoPause()
 	{
 		Core::SetState(Core::CORE_PAUSE);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxCURSOR_ARROW);
+			m_RenderParent->SetCursor(wxNullCursor);
 	}
 	else
 	{
-		// 32x32, 8bpp b/w image
-		// We want all transparent, so we can just use the same buffer for
-		// the "image" as for the transparency mask
-		static const char cursor_data[32 * 32] = { 0 };
-#ifdef __WXGTK__
-		wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
-			cursor_data, wxWHITE, wxBLACK);
-#else
-		wxBitmap cursor_bitmap(cursor_data, 32, 32);
-		cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
-		wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
-#endif
-
 		Core::SetState(Core::CORE_RUN);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 				RendererHasFocus())
-			m_RenderParent->SetCursor(cursor_transparent);
+			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 	}
 	UpdateGUI();
 }
@@ -1138,7 +1138,7 @@ void CFrame::DoStop()
 				wxMouseEventHandler(CFrame::OnMouse),
 				(wxObject*)0, this);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxCURSOR_ARROW);
+			m_RenderParent->SetCursor(wxNullCursor);
 		DoFullscreen(false);
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			m_RenderFrame->Destroy();
@@ -1307,9 +1307,8 @@ void CFrame::StatusBarMessage(const char * Text, ...)
 	const int MAX_BYTES = 1024*10;
 	char Str[MAX_BYTES];
 	va_list ArgPtr;
-	int Cnt;
 	va_start(ArgPtr, Text);
-	Cnt = vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
+	vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
 	va_end(ArgPtr);
 
 	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(wxString::FromAscii(Str),0);

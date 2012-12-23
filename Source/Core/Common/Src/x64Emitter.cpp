@@ -870,7 +870,6 @@ void XEmitter::BTC(int bits, OpArg dest, OpArg index) {WriteBitTest(bits, dest, 
 //shift can be either imm8 or cl
 void XEmitter::SHRD(int bits, OpArg dest, OpArg src, OpArg shift)
 {
-	bool writeImm = false;
 	if (dest.IsImm())
 	{
 		_assert_msg_(DYNA_REC, 0, "SHRD - can't use imms as destination");
@@ -901,7 +900,6 @@ void XEmitter::SHRD(int bits, OpArg dest, OpArg src, OpArg shift)
 
 void XEmitter::SHLD(int bits, OpArg dest, OpArg src, OpArg shift)
 {
-	bool writeImm = false;
 	if (dest.IsImm())
 	{
 		_assert_msg_(DYNA_REC, 0, "SHLD - can't use imms as destination");

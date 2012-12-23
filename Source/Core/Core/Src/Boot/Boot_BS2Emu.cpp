@@ -187,8 +187,10 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	switch((DiscIO::IVolume::ECountry)_CountryCode)
 	{
 	case DiscIO::IVolume::COUNTRY_KOREA:
+        region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_KOR_SETTING;
+        break;
 	case DiscIO::IVolume::COUNTRY_TAIWAN: 
-		// TODO: Determine if Korea / Taiwan have their own specific settings.
+        // TODO: Determine if Taiwan has their own specific settings.
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_JAP_SETTING;
 		break;

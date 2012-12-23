@@ -71,7 +71,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system 
-static const int STATE_VERSION = 8;
+static const u32 STATE_VERSION = 10;
 
 struct StateHeader
 {
@@ -199,8 +199,10 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"))
 			File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"));
 
-		if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav") || !File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"))
+		if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
+		else 
+			File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
 	}
 	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
 		Movie::SaveRecording((filename + ".dtm").c_str());
@@ -385,6 +387,7 @@ void LoadAs(const std::string& filename)
 	g_loadDepth++;
 
 	// Save temp buffer for undo load state
+	if (!Movie::IsJustStartingRecordingInputFromSaveState())
 	{
 		std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 		SaveToBuffer(g_undo_load_buffer);

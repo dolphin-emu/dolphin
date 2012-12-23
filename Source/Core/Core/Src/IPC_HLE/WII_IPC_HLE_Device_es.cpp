@@ -57,7 +57,11 @@
 #include "NandPaths.h"
 #include "CommonPaths.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "../Movie.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 std::string CWII_IPC_HLE_Device_es::m_ContentFile;
 
@@ -783,14 +787,17 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			}
 			else
 			{
+				static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
+				bool* wiiMoteConnected = new bool[s_Usb->m_WiiMotes.size()];
+				for(unsigned int i = 0; i < s_Usb->m_WiiMotes.size();
+						i++) wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
+				
 				std::string tContentFile(m_ContentFile.c_str());
 				WII_IPC_HLE_Interface::Reset(true);
 				WII_IPC_HLE_Interface::Init();
-
-				static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
 				for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
 				{
-					if (s_Usb->m_WiiMotes[i].IsConnected())
+					if (wiiMoteConnected[i])
 					{
 						s_Usb->m_WiiMotes[i].Activate(false);
 						s_Usb->m_WiiMotes[i].Activate(true);
@@ -801,6 +808,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					}
 				}
 				
+				delete[] wiiMoteConnected;
 				WII_IPC_HLE_Interface::SetDefaultContentFile(tContentFile);
 			}
 			// Pass the "#002 check"
@@ -891,6 +899,52 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 
 	File::CreateFullPath(tmdPath);
 	File::CreateFullPath(Common::GetTitleDataPath(tmdTitleID));
+
+	Movie::g_titleID = tmdTitleID;
+	std::string savePath = Common::GetTitleDataPath(tmdTitleID);
+	if (Movie::IsRecordingInput())
+	{
+		// TODO: Check for the actual save data
+		if (File::Exists((savePath + "banner.bin").c_str()))
+			Movie::g_bClearSave = false;
+		else
+			Movie::g_bClearSave = true;
+	}
+
+	// TODO: Force the game to save to another location, instead of moving the user's save.
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsStartingFromClearSave())
+	{		
+		if (File::Exists((savePath + "banner.bin").c_str()))
+		{
+			if (File::Exists((savePath + "../backup/").c_str()))
+			{
+				// The last run of this game must have been to play back a movie, so their save is already backed up. 
+				File::DeleteDirRecursively(savePath.c_str());
+			}
+			else
+			{
+				#ifdef _WIN32
+					MoveFile(savePath.c_str(), (savePath + "../backup/").c_str());
+				#else
+					File::CopyDir(savePath.c_str(),(savePath + "../backup/").c_str());
+					File::DeleteDirRecursively(savePath.c_str());
+				#endif
+			}
+		}		
+	}
+	else if (File::Exists((savePath + "../backup/").c_str()))
+	{
+		// Delete the save made by a previous movie, and copy back the user's save.
+		if (File::Exists((savePath + "banner.bin").c_str()))
+			File::DeleteDirRecursively(savePath);
+		#ifdef _WIN32
+			MoveFile((savePath + "../backup/").c_str(), savePath.c_str());
+		#else
+			File::CopyDir((savePath + "../backup/").c_str(), savePath.c_str());
+			File::DeleteDirRecursively((savePath + "../backup/").c_str());
+		#endif
+	}
+
 	if(!File::Exists(tmdPath))
 	{
 		File::IOFile _pTMDFile(tmdPath, "wb");

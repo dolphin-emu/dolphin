@@ -687,14 +687,13 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolder, const int partitionNum)
 {
 	char exportName[512];
-	u32 index[2] = {0, 0}, offsetShift = 0;
+	u32 index[2] = {0, 0};
 	std::vector<const DiscIO::SFileInfo *> fst;
 	DiscIO::IFileSystem *FS = 0;
 
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
 		FS = WiiDisc.at(partitionNum).FileSystem;
-		offsetShift = 2;
 	}
 	else
 		FS = pFileSystem;

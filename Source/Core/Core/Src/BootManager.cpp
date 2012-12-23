@@ -118,13 +118,12 @@ bool BootCore(const std::string& _rFilename)
 
 		if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
 		{
-			Movie::Init();
 			StartUp.bCPUThread = Movie::IsDualCore();
 			StartUp.bSkipIdle = Movie::IsSkipIdle();
 			StartUp.bDSPHLE = Movie::IsDSPHLE();
 			StartUp.bProgressive = Movie::IsProgressive();
 			StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
-			if (Movie::IsUsingMemcard() && Movie::IsBlankMemcard())
+			if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
 			{
 				if (File::Exists("Movie.raw"))
 					File::Delete("Movie.raw");

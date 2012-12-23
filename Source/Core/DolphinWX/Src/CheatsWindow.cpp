@@ -36,7 +36,7 @@ extern CFrame* main_frame;
 static wxCheatsWindow *g_cheat_window;
 
 wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
-	: wxDialog(parent, wxID_ANY, _("Cheats Manager"), wxDefaultPosition, wxDefaultSize)
+	: wxDialog(parent, wxID_ANY, _("Cheats Manager"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxDIALOG_NO_PARENT)
 {
 	::g_cheat_window = this;
 
@@ -57,6 +57,7 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 	}
 	}
 
+	SetSize(wxSize(-1, 600));
 	Center();
 	Show();
 }
