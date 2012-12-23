@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <math.h>
-#include <strsafe.h>
 
 #include "Timer.h"
 
@@ -46,6 +45,7 @@
 #include "AVIDump.h"
 #include "FPSCounter.h"
 #include "ConfigManager.h"
+#include <strsafe.h>
 
 namespace DX11
 {

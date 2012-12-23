@@ -17,7 +17,6 @@
 
 #include <list>
 #include <d3dx9.h>
-#include <strsafe.h>
 
 #include "StringUtil.h"
 #include "Common.h"
@@ -56,6 +55,9 @@
 #include "BPFunctions.h"
 #include "FPSCounter.h"
 #include "ConfigManager.h"
+
+#include <strsafe.h>
+
 
 namespace DX9
 {
