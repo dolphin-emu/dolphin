@@ -751,7 +751,6 @@ void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 			return;
 	}
 
-	wxPoint ptM(event.GetPosition()); 
 	*x = 128;
 	*y = 128;
 
