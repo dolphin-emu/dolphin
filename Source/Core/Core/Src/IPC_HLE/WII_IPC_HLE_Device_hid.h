@@ -115,15 +115,16 @@ private:
 	
 	void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize);
 
-	void ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, struct usb_device_descriptor *src);
-	void ConvertConfigToWii(WiiHIDConfigDescriptor *dest, struct usb_config_descriptor *src);
-	void ConvertInterfaceToWii(WiiHIDInterfaceDescriptor *dest, struct usb_interface_descriptor *src);
-	void ConvertEndpointToWii(WiiHIDEndpointDescriptor *dest, struct usb_endpoint_descriptor *src);
+	void ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, const struct libusb_device_descriptor *src);
+	void ConvertConfigToWii(WiiHIDConfigDescriptor *dest, const struct libusb_config_descriptor *src);
+	void ConvertInterfaceToWii(WiiHIDInterfaceDescriptor *dest, const struct libusb_interface_descriptor *src);
+	void ConvertEndpointToWii(WiiHIDEndpointDescriptor *dest, const struct libusb_endpoint_descriptor *src);
 
 	int Align(int num, int alignment);
 
-	struct usb_dev_handle * GetDeviceByDevNum(u32 devNum);
-	std::map<u32,usb_dev_handle*> open_devices;
+	struct libusb_device_handle * GetDeviceByDevNum(u32 devNum);
+	std::map<u32,libusb_device_handle*> open_devices;
+	std::map<std::string,int> device_identifiers;
 
 	
 	typedef struct
