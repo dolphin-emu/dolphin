@@ -357,7 +357,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		default:
 			_assert_(texinfo.sourcerow <= XF_SRCTEX7_INROW);
 			if (components & (VB_HAS_UV0<<(texinfo.sourcerow - XF_SRCTEX0_INROW)) )
-				WRITE(p, "coord = float4(tex%d.x, tex%d.y, 1.0f, 1.0f);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
+				WRITE(p, "coord = float4(o.tex%d.x, o.tex%d.y, 1.0f, 1.0f);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
 			break;
 		}
 
@@ -389,9 +389,9 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 			default:
 				if (components & (VB_HAS_TEXMTXIDX0<<i)) {
 					if (texinfo.projection == XF_TEXPROJ_STQ)
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+1].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+2].t));\n", i, i, i, i);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES".T[o.tex%d.z].t), dot(coord, " I_TRANSFORMMATRICES".T[o.tex%d.z+1].t), dot(coord, " I_TRANSFORMMATRICES".T[o.tex%d.z+2].t));\n", i, i, i, i);
 					else {
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+1].t), 1);\n", i, i, i);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES".T[o.tex%d.z].t), dot(coord, " I_TRANSFORMMATRICES".T[o.tex%d.z+1].t), 1);\n", i, i, i);
 					}
 				}
 				else {
