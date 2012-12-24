@@ -9,6 +9,7 @@
 #include "NativeVertexFormat.h"
 #include "TextureCacheBase.h"
 #include "RenderBase.h"
+#include "BPStructs.h"
 
 #include "VertexManagerBase.h"
 #include "VideoConfig.h"
@@ -159,6 +160,9 @@ void VertexManager::AddVertices(int primitive, int numVertices)
 
 void VertexManager::Flush()
 {
+	// loading a state will invalidate BP, so check for it
+	g_video_backend->CheckInvalidState();
+	
 	g_vertex_manager->vFlush();
 }
 
