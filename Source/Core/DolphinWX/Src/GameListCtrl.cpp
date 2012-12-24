@@ -713,20 +713,25 @@ void CGameListCtrl::OnColumnClick(wxListEvent& event)
 	if(event.GetColumn() != COLUMN_BANNER)
 	{
 		int current_column = event.GetColumn();
-
-		if (last_column == current_column)
+		if (sorted)
 		{
-			last_sort = -last_sort;
+			if (last_column == current_column)
+			{
+				last_sort = -last_sort;
+			}
+			else
+			{
+				SConfig::GetInstance().m_ListSort2 = last_sort;
+				last_column = current_column;
+				last_sort = current_column;
+			}
+			SConfig::GetInstance().m_ListSort = last_sort;
 		}
 		else
 		{
-			if (sorted)
-				SConfig::GetInstance().m_ListSort2 = last_sort;
-			last_column = current_column;
 			last_sort = current_column;
+			last_column = current_column;
 		}
-		if (sorted)
-			SConfig::GetInstance().m_ListSort = last_sort;
 		caller = this;
 		SortItems(wxListCompare, last_sort);
 	}
