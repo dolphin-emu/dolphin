@@ -29,19 +29,7 @@ static GLint attr_pos = -1, attr_tex = -1;
 static GLint uni_tex = -1;
 static GLuint program;
 
-#ifdef USE_GLES
-#define PREC "highp"
-#define TEX2D	GL_TEXTURE_2D
-#define TEXTYPE "sampler2D"
-#define TEXFUNC "texture2D"
-#else
-#define PREC 
-#define TEX2D	GL_TEXTURE_RECTANGLE_ARB
-#define TEXTYPE "sampler2DRect"
-#define TEXFUNC "texture2DRect"
-#endif
-
-
+// Rasterfont isn't compatible with GLES
 #ifndef USE_GLES
 RasterFont* s_pfont = NULL;
 #endif
@@ -104,9 +92,9 @@ void SWRenderer::Prepare()
 
 void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
+#ifndef USE_GLES
 	int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
-#ifndef USE_GLES
 	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
 	          ((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
        s_pfont->printMultilineText(pstr,

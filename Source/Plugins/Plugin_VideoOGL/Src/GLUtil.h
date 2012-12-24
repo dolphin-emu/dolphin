@@ -29,6 +29,19 @@
 #define GL_TEXTURE_STENCIL_SIZE_EXT 0x88F1
 #endif
 
+#ifdef USE_GLES
+#define TEX2D	GL_TEXTURE_2D
+#define PREC	"highp"
+#define TEXTYPE "sampler2D"
+#define TEXFUNC "texture2D"
+#else
+#define TEX2D	GL_TEXTURE_RECTANGLE_ARB
+#define PREC 
+#define TEXTYPE "sampler2DRect"
+#define TEXFUNC "texture2DRect"
+#endif
+
+
 #ifndef _WIN32
 
 #include <sys/types.h>

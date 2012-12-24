@@ -218,11 +218,14 @@ if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
+# For now GLES and EGL are tied to each other.
+# Enabling GLES also disables the OpenGL plugin.
 option(USE_GLES "Enables GLES, disables OGL" OFF)
 if(USE_GLES)
 	message("GLES rendering enabled")
 	add_definitions(-DUSE_GLES)
 	add_definitions(-DUSE_EGL)
+	set(USE_EGL True)
 endif()
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 

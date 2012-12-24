@@ -26,17 +26,6 @@
 #include "DebugUtil.h"
 
 #define TEMP_SIZE (1024*1024*4)
-#ifdef USE_GLES
-#define PREC "highp"
-#define TEX2D	GL_TEXTURE_2D
-#define TEXTYPE "sampler2D"
-#define TEXFUNC "texture2D"
-#else
-#define PREC 
-#define TEX2D	GL_TEXTURE_RECTANGLE_ARB
-#define TEXTYPE "sampler2DRect"
-#define TEXFUNC "texture2DRect"
-#endif
 
 namespace HwRasterizer
 {
@@ -176,7 +165,6 @@ namespace HwRasterizer
 #endif
         TexCacheEntry &cacheEntry = textures[imageAddr];
         cacheEntry.Update();
-		GL_REPORT_ERRORD();
 
 		glBindTexture(TEX2D, cacheEntry.texture);
 		glTexParameteri(TEX2D, GL_TEXTURE_MAG_FILTER, texUnit.texMode0[0].mag_filter ? GL_LINEAR : GL_NEAREST);
@@ -187,7 +175,6 @@ namespace HwRasterizer
     void BeginTriangles()
     {
         // disabling depth test sometimes allows more things to be visible
-		GL_REPORT_ERRORD();
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
 
@@ -195,7 +182,6 @@ namespace HwRasterizer
 
         if (hasTexture)
             LoadTexture();        
-		GL_REPORT_ERRORD();
     }
 
     void EndTriangles()
@@ -237,9 +223,9 @@ namespace HwRasterizer
 			{ x2, y2, z2 }
 		};
 		static const GLfloat col[3][4] = {
-		   { r0, g0, b0, 0.1f },
-		   { r1, g1, b1, 0.1f },
-		   { r2, g2, b2, 0.1f }
+		   { r0, g0, b0, 1.0f },
+		   { r1, g1, b1, 1.0f },
+		   { r2, g2, b2, 1.0f }
 		};
 		{
 			glUseProgram(colProg);
