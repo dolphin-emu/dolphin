@@ -322,10 +322,11 @@ void CGameListCtrl::Update()
 		}
 
 		// Sort items by Title
+		if (!sorted)
+			last_column = 0;
 		sorted = false;
 		wxListEvent event;
 		event.m_col = SConfig::GetInstance().m_ListSort2;
-		last_column = 0;
 		OnColumnClick(event);
 
 		event.m_col = SConfig::GetInstance().m_ListSort;
