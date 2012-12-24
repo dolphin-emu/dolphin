@@ -144,7 +144,7 @@ void Init(int cpu_core)
 #ifdef _WIN32
 	_control87(_PC_53, MCW_PC);
 #else
-	unsigned short _mode = 0;
+	unsigned short _mode;
 	asm ("fstcw %0" : : "m" (_mode));
 	_mode = (_mode & ~FPU_PREC_MASK) | FPU_PREC_53;
 	asm ("fldcw %0" : : "m" (_mode));
