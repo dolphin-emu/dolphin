@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-12-11 08:14-0600\n"
-"PO-Revision-Date: 2012-04-03 21:13+0200\n"
+"PO-Revision-Date: 2012-12-24 11:46+0200\n"
 "Last-Translator: Linktothepast <kostamarino@hotmail.com>\n"
 "Language-Team: Gpower2 <gpower2@yahoo.com>\n"
 "Language: Greek\n"
@@ -44,13 +44,12 @@ msgstr ""
 #: Source/Core/Core/Src/CoreParameter.cpp:144
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
-msgstr ""
-"Το \"%s\" είναι ένα μη έγκυρο αρχείο GCM/ISO, ή δεν είναι ένα ISO GC/Wii."
+msgstr "Το \"%s\" είναι ένα μη έγκυρο αρχείο GCM/ISO, ή δεν είναι ένα ISO GC/Wii."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:720
 #, c-format
 msgid "%08X:  "
-msgstr ""
+msgstr "%08X: "
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:194
 #, c-format
@@ -78,8 +77,7 @@ msgstr "%s υπάρχει ήδη, θέλετε αντικατάσταση;"
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:167
 #, c-format
 msgid "%s failed to be scrubbed. Probably the image is corrupt."
-msgstr ""
-"%s απέτυχε να γίνει scrubbed. Πιθανότατα το αρχείο εικόνας είναι φθαρμένο."
+msgstr "%s απέτυχε να γίνει scrubbed. Πιθανότατα το αρχείο εικόνας είναι φθαρμένο."
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:95
 #, c-format
@@ -106,8 +104,7 @@ msgid ""
 "file is not large enough to be a valid memory card file (0x%x bytes)"
 msgstr ""
 "%s απέτυχε να φορτώσει ως κάρτα μνήμης \n"
-"το αρχείο δεν είναι αρκετά μεγάλο ώστε να αποτελεί έγκυρο αρχείο κάρτας "
-"μνήμης (0x%x bytes)"
+"το αρχείο δεν είναι αρκετά μεγάλο ώστε να αποτελεί έγκυρο αρχείο κάρτας μνήμης (0x%x bytes)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:367
 #, c-format
@@ -138,9 +135,7 @@ msgstr "Το %s είναι ήδη συμπιεσμένο! Δε γίνεται ν
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:345
 #, c-format
 msgid "%s is too long for the filename, max chars is 45"
-msgstr ""
-"Το %s είναι πολύ μεγάλο για όνομα αρχείου, ο μέγιστος αριθμός χαρακτήρων "
-"είναι 45"
+msgstr "Το %s είναι πολύ μεγάλο για όνομα αρχείου, ο μέγιστος αριθμός χαρακτήρων είναι 45"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:200
 #, c-format
@@ -308,7 +303,7 @@ msgstr "&Wiki"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:505
 msgid "'"
-msgstr ""
+msgstr "'"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:58
 msgid "(-)+zFar"
@@ -328,7 +323,7 @@ msgstr "(ανενεργό)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:653
 msgid "0x44"
-msgstr ""
+msgstr "0x44"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:172
 msgid "16 bit"
@@ -369,7 +364,7 @@ msgstr "<Συστήματος>"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:694
 msgid "A"
-msgstr ""
+msgstr "A"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:187
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:221
@@ -393,13 +388,11 @@ msgstr ""
 msgid ""
 "ALERT:\n"
 "\n"
-"NetPlay will currently only work properly when using the following "
-"settings:\n"
+"NetPlay will currently only work properly when using the following settings:\n"
 " - Dual Core [OFF]\n"
 " - Audio Throttle [OFF]\n"
 " - DSP-HLE with \"Null Audio\" or DSP-LLE\n"
-" - Manually set the exact number of controllers that will be used to "
-"[Standard Controller]\n"
+" - Manually set the exact number of controllers that will be used to [Standard Controller]\n"
 "\n"
 "All players should try to use the same Dolphin version and settings.\n"
 "Disable all memory cards or send them to all players before starting.\n"
@@ -413,12 +406,10 @@ msgstr ""
 " - Δύο Πυρήνες [ΑΝΕΝΕΡΓΟ]\n"
 " - Throttle Ήχου [ΑΝΕΝΕΡΓΟ]\n"
 " - DSP-HLE με \"Null Audio\" ή DSP-LLE\n"
-" - Χειροκίνητη εισαγωγή του ακριβούς αριθμού των ελεγκτών που θα "
-"χρησιμοποιηθούν σαν [Τυπικός Ελεγκτής]\n"
+" - Χειροκίνητη εισαγωγή του ακριβούς αριθμού των ελεγκτών που θα χρησιμοποιηθούν σαν [Τυπικός Ελεγκτής]\n"
 "\n"
 "Όλοι οι παίκτες πρέπει να έχουν την ίδια έκδοση και ρυθμίσεις του Dolphin.\n"
-"Απενεργοποιήστε όλες τις κάρτες μνήμης ή στείλτε τες σε όλους τους παίκτες "
-"πριν την εκκίνηση.\n"
+"Απενεργοποιήστε όλες τις κάρτες μνήμης ή στείλτε τες σε όλους τους παίκτες πριν την εκκίνηση.\n"
 "Η υποστήριξη Wiimote δεν έχει ακόμα υλοποιηθεί.\n"
 "\n"
 "Θα πρέπει να έχετε κάνει προώθηση της πόρτας TCP στον host!!"
@@ -452,14 +443,12 @@ msgstr "Ακριβής VBeam εξομοίωση"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
 msgid ""
 "Accurately emulate EFB copies.\n"
-"Some games depend on this for certain graphical effects or gameplay "
-"functionality.\n"
+"Some games depend on this for certain graphical effects or gameplay functionality.\n"
 "\n"
 "If unsure, check EFB to Texture instead."
 msgstr ""
 "Εξομοιώνει με ακρίβεια τα EFB αντίγραφα.\n"
-"Κάποια παιχνίδια βασίζονται σε αυτό για ορισμένα εφέ γραφικών ή λειτουργίες "
-"του gameplay.\n"
+"Κάποια παιχνίδια βασίζονται σε αυτό για ορισμένα εφέ γραφικών ή λειτουργίες του gameplay.\n"
 "\n"
 "Αν δεν είστε σίγουροι, επιλέξτε EFB Αντίγραφα σε Υφή."
 
@@ -485,38 +474,23 @@ msgstr ""
 
 #: Source/Core/Core/Src/ActionReplay.cpp:667
 #, c-format
-msgid ""
-"Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
-msgstr ""
-"Σφάλμα Action Replay: Μη έγκυρο μέγεθος (%08x : διεύθυνση = %08x) στην "
-"Προσθήκη Κωδικού (%s)"
+msgid "Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
+msgstr "Σφάλμα Action Replay: Μη έγκυρο μέγεθος (%08x : διεύθυνση = %08x) στην Προσθήκη Κωδικού (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:754
 #, c-format
-msgid ""
-"Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide "
-"(%s)"
-msgstr ""
-"Σφάλμα Action Replay: Μη έγκυρο μέγεθος (%08x : διεύθυνση = %08x) σε Fill "
-"και Slide (%s)"
+msgid "Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide (%s)"
+msgstr "Σφάλμα Action Replay: Μη έγκυρο μέγεθος (%08x : διεύθυνση = %08x) σε Fill και Slide (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:547
 #, c-format
-msgid ""
-"Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And "
-"Fill (%s)"
-msgstr ""
-"Σφάλμα Action Replay: Μη έγκυρο μέγεθος (%08x : διεύθυνση = %08x) σε Ram "
-"Write και Fill (%s)"
+msgid "Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And Fill (%s)"
+msgstr "Σφάλμα Action Replay: Μη έγκυρο μέγεθος (%08x : διεύθυνση = %08x) σε Ram Write και Fill (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:607
 #, c-format
-msgid ""
-"Action Replay Error: Invalid size (%08x : address = %08x) in Write To "
-"Pointer (%s)"
-msgstr ""
-"Σφάλμα Action Replay: Μη έγκυρο μέγεθος (%08x : διεύθυνση = %08x) σε Write "
-"To Pointer (%s)"
+msgid "Action Replay Error: Invalid size (%08x : address = %08x) in Write To Pointer (%s)"
+msgstr "Σφάλμα Action Replay: Μη έγκυρο μέγεθος (%08x : διεύθυνση = %08x) σε Write To Pointer (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:801
 #, c-format
@@ -525,11 +499,8 @@ msgstr "Σφάλμα Action Replay: Μη έγκυρη τιμή (%08x) σε Memor
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
 #, c-format
-msgid ""
-"Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)"
-msgstr ""
-"Σφάλμα Action Replay: Οι λειτουργίες Master Code και Write To CCXXXXXX δεν "
-"έχουν υλοποιηθεί (%s)"
+msgid "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)"
+msgstr "Σφάλμα Action Replay: Οι λειτουργίες Master Code και Write To CCXXXXXX δεν έχουν υλοποιηθεί (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -591,8 +562,7 @@ msgstr "Διεύθυνση :"
 msgid ""
 "Adds the specified value to zFar Parameter.\n"
 "Two ways to express the floating point values.\n"
-"Example: entering ''200'' or ''0.0002'' directly, it produces equal effects, "
-"the acquired value will be ''0.0002''.\n"
+"Example: entering ''200'' or ''0.0002'' directly, it produces equal effects, the acquired value will be ''0.0002''.\n"
 "Values: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n"
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
@@ -602,8 +572,7 @@ msgstr ""
 msgid ""
 "Adds the specified value to zNear Parameter.\n"
 "Two ways to express the floating point values.\n"
-"Example: entering ''200'' or ''0.0002'' directly, it produces equal effects, "
-"the acquired value will be ''0.0002''.\n"
+"Example: entering ''200'' or ''0.0002'' directly, it produces equal effects, the acquired value will be ''0.0002''.\n"
 "Values: (0->+/-Integer) or (0->+/-FP[6 digits of precision])\n"
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
@@ -611,9 +580,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:759
 msgid "Adjust the analog control pressure required to activate buttons."
-msgstr ""
-"Ρύθμιση της απαιτούμενης πίεσης του αναλογικού χειριστηρίου για την "
-"ενεργοποίηση των κουμπιών."
+msgstr "Ρύθμιση της απαιτούμενης πίεσης του αναλογικού χειριστηρίου για την ενεργοποίηση των κουμπιών."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:513
 msgid "Advanced"
@@ -624,14 +591,12 @@ msgid "Advanced Settings"
 msgstr "Ρυθμίσεις για Προχωρημένους"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:667
-#, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
-msgstr "Όλα τα αρχεία GC/Wii (elf, dol, gcm, iso, ciso, gcz, wad)"
+msgstr "Όλα τα αρχεία GC/Wii (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:754
-#, fuzzy
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
-msgstr "Όλες οι εικόνες GC/Wii (gcm, iso, ciso, gcz)"
+msgstr "Όλες οι εικόνες GC/Wii (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1200
 msgid "All Gamecube GCM files (gcm)"
@@ -655,15 +620,12 @@ msgid "All files (*.*)|*.*"
 msgstr "Όλα τα αρχεία (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:121
-#, fuzzy
 msgid ""
-"Allows toggling certain options via the hotkeys 3, 4, 5 and 6 within the "
-"emulation window.\n"
+"Allows toggling certain options via the hotkeys 3, 4, 5 and 6 within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Επιτρέπει την εναλλαγή ορισμένων επιλογών με τα πλήκτρα συντόμευσης 3, 4, 5, "
-"6 και 7 μέσα από το παράθυρο εξομοίωσης.\n"
+"Επιτρέπει την εναλλαγή ορισμένων επιλογών με τα πλήκτρα συντόμευσης 3, 4, 5, και 6 μέσα από το παράθυρο εξομοίωσης.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -673,7 +635,7 @@ msgstr "Εναλλακτικός Χρονισμός Wiimote"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:280
 msgid "Analyze"
-msgstr ""
+msgstr "Ανάλυση"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:371
 msgid "Anisotropic Filtering:"
@@ -728,9 +690,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1023
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
-msgstr ""
-"Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το αρχείο; Θα εξαφανιστεί για "
-"πάντα!"
+msgstr "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το αρχείο; Θα εξαφανιστεί για πάντα!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:727
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:281
@@ -777,19 +737,17 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Προσαρμόζει αυτόματα το μέγεθος του παραθύρου σύμφωνα με την εσωτερική "
-"ανάλυση.\n"
+"Προσαρμόζει αυτόματα το μέγεθος του παραθύρου σύμφωνα με την εσωτερική ανάλυση.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "B"
-msgstr ""
+msgstr "B"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:753
-#, fuzzy
 msgid "BP register "
-msgstr "&Καταχωρητές"
+msgstr "BP Καταχωρητές"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -908,7 +866,7 @@ msgstr "Κουμπιά"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:696
 msgid "C"
-msgstr ""
+msgstr "C"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:77
 msgid "C Stick"
@@ -920,7 +878,7 @@ msgstr "Stick Κάμερας"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:762
 msgid "CP reg"
-msgstr ""
+msgstr "CP reg"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:546
 msgid "CPU Emulator Engine"
@@ -933,16 +891,12 @@ msgstr "Cache Display Lists"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 msgid ""
 "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-"In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-"depth calculations are necessary to properly emulate a small number of "
-"games.\n"
+"In contrast to pixel lighting (which is merely an enhancement), per-pixel depth calculations are necessary to properly emulate a small number of games.\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
 "Υπολογισμός των τιμών βάθους των 3D γραφικών ανά pixel αντί ανά vertex.\n"
-"Αντίθετα με τον φωτισμό ανά pixel (που είναι απλά μία βελτίωση), οι "
-"υπολογισμοί του βάθους ανά pixel είναι απαραίτητοι για την σωστή εξομοίωση "
-"ενός μικρού αριθμού παιχνιδιών.\n"
+"Αντίθετα με τον φωτισμό ανά pixel (που είναι απλά μία βελτίωση), οι υπολογισμοί του βάθους ανά pixel είναι απαραίτητοι για την σωστή εξομοίωση ενός μικρού αριθμού παιχνιδιών.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
@@ -956,8 +910,7 @@ msgid ""
 msgstr ""
 "Υπολογίζει τον φωτισμό των 3D γραφικών ανά pixel αντί ανά vertex.\n"
 "Μειώνει την ταχύτητα εξομοίωσης κατά κάποιο ποσοστό (ανάλογα με την GPU).\n"
-"Αυτή συνήθως είναι μια ασφαλής βελτίωση, αλλά μπορεί να προκαλέσει ορισμένες "
-"φορές προβλήματα.\n"
+"Αυτή συνήθως είναι μια ασφαλής βελτίωση, αλλά μπορεί να προκαλέσει ορισμένες φορές προβλήματα.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -975,7 +928,7 @@ msgstr "Αποτυχία ανοίγματος %s"
 
 #: Source/Core/Core/Src/CoreTiming.cpp:141
 msgid "Cannot unregister events with events pending"
-msgstr ""
+msgstr "Δεν μπορεί να γίνει κατάργηση καταχώρησης συμβάντων όταν ορισμένα εκκρεμούν."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1022
 #, c-format
@@ -1079,11 +1032,11 @@ msgstr "Διαχείριση Cheat"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:643
 msgid "Check Partition Integrity"
-msgstr ""
+msgstr "Έλεγχος Ακεραιότητας Κατάτμησης"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:884
 msgid "Checking integrity..."
-msgstr ""
+msgstr "Έλεγχος ακεραιότητας..."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
 msgid "Chinese (Simplified)"
@@ -1118,12 +1071,8 @@ msgid "Choose a memory card:"
 msgstr "Επιλέξτε μια κάρτα μνήμης:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:757
-msgid ""
-"Choose file to use as apploader: (applies to discs constructed from "
-"directories only)"
-msgstr ""
-"Επιλέξτε ένα αρχείο για χρήση ως apploader: (έχει εφαρμογή σε δίσκους που "
-"απαρτίζονται μόνο από φακέλους)"
+msgid "Choose file to use as apploader: (applies to discs constructed from directories only)"
+msgstr "Επιλέξτε ένα αρχείο για χρήση ως apploader: (έχει εφαρμογή σε δίσκους που απαρτίζονται μόνο από φακέλους)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:787
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:826
@@ -1146,12 +1095,8 @@ msgid "Clear"
 msgstr "Καθάρισ."
 
 #: Source/Core/Core/Src/NetPlayServer.cpp:259
-msgid ""
-"Client disconnect while game is running!! NetPlay is disabled. You must "
-"manually stop the game."
-msgstr ""
-"Ο Client έχει αποσυνδεθεί ενώ το παιχνίδι εκτελείται!! Το NetPlay έχει "
-"απενεργοποιηθεί. Θα πρέπει να σταματήσετε χειροκίνητα το παιχνίδι."
+msgid "Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game."
+msgstr "Ο Client έχει αποσυνδεθεί ενώ το παιχνίδι εκτελείται!! Το NetPlay έχει απενεργοποιηθεί. Θα πρέπει να σταματήσετε χειροκίνητα το παιχνίδι."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:293
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:245
@@ -1305,15 +1250,10 @@ msgstr "Αποτυχία εκκίνησης backend %s"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:139
 #, c-format
-msgid ""
-"Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
-"backup.  Please note that original Gamecube and Wii discs cannot be read by "
-"most PC DVD drives."
+msgid "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii backup.  Please note that original Gamecube and Wii discs cannot be read by most PC DVD drives."
 msgstr ""
-"Δεν μπόρεσε να γίνει ανάγνωση \"%s\".  Δεν υπάρχει δίσκος στον οδηγό, ή δεν "
-"είναι ένα αντίγραφο εικόνας GC/Wii.\n"
-" Σημειώστε πως αυθεντικοί Gamecube και Wii δίσκοι δεν μπορούν να αναγνωστούν "
-"από τους περισσότερους PC DVD οδηγούς."
+"Δεν μπόρεσε να γίνει ανάγνωση \"%s\".  Δεν υπάρχει δίσκος στον οδηγό, ή δεν είναι ένα αντίγραφο εικόνας GC/Wii.\n"
+" Σημειώστε πως αυθεντικοί Gamecube και Wii δίσκοι δεν μπορούν να αναγνωστούν από τους περισσότερους PC DVD οδηγούς."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:294
 #, c-format
@@ -1330,23 +1270,19 @@ msgid ""
 "Could not set pads. The player left or the game is currently running!\n"
 "(setting pads while the game is running is not yet supported)"
 msgstr ""
-"Αδυναμία καθορισμού χειριστηρίων. Ο παίκτης εγκατέλειψε ή το παιχνίδι "
-"τρέχει!\n"
-"(ο καθορισμός των χειριστηρίων ενώ το παιχνίδι τρέχει δεν υποστηρίζεται προς "
-"το παρόν)"
+"Αδυναμία καθορισμού χειριστηρίων. Ο παίκτης εγκατέλειψε ή το παιχνίδι τρέχει!\n"
+"(ο καθορισμός των χειριστηρίων ενώ το παιχνίδι τρέχει δεν υποστηρίζεται προς το παρόν)"
 
 #: Source/Core/Core/Src/HW/EXI_DeviceMemoryCard.cpp:123
 #, c-format
 msgid ""
 "Could not write memory card file %s.\n"
 "\n"
-"Are you running Dolphin from a CD/DVD, or is the save file maybe write "
-"protected?"
+"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?"
 msgstr ""
 "Δεν μπόρεσε να γίνει εγγραφή των αρχείων της κάρτας μνήμης %s.\n"
 "\n"
-"Μήπως εκτελείτε το Dolphin από CD/DVD, ή το αποθηκευόμενο αρχείο έχει "
-"προστασία εγγραφής;"
+"Μήπως εκτελείτε το Dolphin από CD/DVD, ή το αποθηκευόμενο αρχείο έχει προστασία εγγραφής;"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1143
 msgid "Couldn't find open command for extension 'ini'!"
@@ -1384,11 +1320,8 @@ msgid "Created by KDE-Look.org"
 msgstr "Δημιουργήθηκε από KDE-Look.org"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
-msgid ""
-"Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-msgstr ""
-"Δημιουργήθηκε από Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart."
-"com]"
+msgid "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
+msgstr "Δημιουργήθηκε από Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:499
 msgid "Created by VistaIcons.com"
@@ -1396,9 +1329,7 @@ msgstr "Δημιουργήθηκε από VistaIcons.com"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:500
 msgid "Created by black_rider and published on ForumW.org > Web Developments"
-msgstr ""
-"Δημιουργήθηκε από black_rider και δημοσιεύθηκε στο ForumW.org > Web "
-"Developments"
+msgstr "Δημιουργήθηκε από black_rider και δημοσιεύθηκε στο ForumW.org > Web Developments"
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:28
 msgid "Creator: "
@@ -1449,7 +1380,7 @@ msgstr "Τσέχικα"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:696
 msgid "D"
-msgstr ""
+msgstr "D"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:89
 msgid "D-Pad"
@@ -1494,8 +1425,7 @@ msgstr "DVDLowRead - Σφάλμα Τερματισμού: αποτυχία αν�
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:332
 msgid "DVDLowUnencryptedRead - Fatal Error: failed to read from volume"
-msgstr ""
-"DVDLowUnencryptedRead - Σφάλμα Τερματισμού: αποτυχία ανάγνωσης από τον τομέα"
+msgstr "DVDLowUnencryptedRead - Σφάλμα Τερματισμού: αποτυχία ανάγνωσης από τον τομέα"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:177
 msgid "Data Size"
@@ -1579,12 +1509,8 @@ msgstr "Ανίχνευση"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:232
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:327
-msgid ""
-"Detected attempt to read more data from the DVD than fit inside the out "
-"buffer. Clamp."
-msgstr ""
-"Εντοπίστηκε προσπάθεια ανάγνωσης περισσότερων δεδομένων από το DVD από όσα "
-"χωράνε μέσα στο buffer. Clamp."
+msgid "Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp."
+msgstr "Εντοπίστηκε προσπάθεια ανάγνωσης περισσότερων δεδομένων από το DVD από όσα χωράνε μέσα στο buffer. Clamp."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:131
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:902
@@ -1632,30 +1558,24 @@ msgstr "Απενεργοποίηση Βάθους ανά Pixel"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:106
 msgid ""
 "Disable any XFB emulation.\n"
-"Speeds up emulation a lot but causes heavy glitches in many games which rely "
-"on them (especially homebrew applications).\n"
+"Speeds up emulation a lot but causes heavy glitches in many games which rely on them (especially homebrew applications).\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
 "Απενεργοποιεί την XFB εξομοίωση.\n"
-"Επιταχύνει αρκετά την εξομοίωση αλλά προκαλεί μεγάλα ελαττώματα σε πολλά "
-"παιχνίδια που βασίζονται σε αυτήν (ειδικά σε homebrew εφαρμογές).\n"
+"Επιταχύνει αρκετά την εξομοίωση αλλά προκαλεί μεγάλα ελαττώματα σε πολλά παιχνίδια που βασίζονται σε αυτήν (ειδικά σε homebrew εφαρμογές).\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:93
 msgid ""
 "Disable emulation of EFB copies.\n"
-"These are often used for post-processing or render-to-texture effects, so "
-"while checking this setting gives a great speedup it almost always also "
-"causes issues.\n"
+"These are often used for post-processing or render-to-texture effects, so while checking this setting gives a great speedup it almost always also causes issues.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
 "Απενεργοποιεί την εξομοίωση των EFB αντιγραφών.\n"
-"Χρησιμοποιούνται συχνά για post-processing ή render-to-texture εφέ, έτσι αν "
-"και επιλέγοντάς το αυξάνονται κατά πολύ οι επιδόσεις, σχεδόν πάντα "
-"προκαλούνται προβλήματα.\n"
+"Χρησιμοποιούνται συχνά για post-processing ή render-to-texture εφέ, έτσι αν και επιλέγοντάς το αυξάνονται κατά πολύ οι επιδόσεις, σχεδόν πάντα προκαλούνται προβλήματα.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -1733,20 +1653,12 @@ msgid "Dolphin at &Google Code"
 msgstr "Dolphin στο &Google Code"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:341
-msgid ""
-"Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for "
-"files..."
-msgstr ""
-"Το Dolphin δεν μπόρεσε να βρει GC/Wii ISO. Κάντε διπλό κλίκ εδώ για εύρεση "
-"αρχείων..."
+msgid "Dolphin could not find any GC/Wii ISOs.  Doubleclick here to browse for files..."
+msgstr "Το Dolphin δεν μπόρεσε να βρει GC/Wii ISO. Κάντε διπλό κλίκ εδώ για εύρεση αρχείων..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:345
-msgid ""
-"Dolphin is currently set to hide all games.  Doubleclick here to show all "
-"games..."
-msgstr ""
-"Το Dolphin είναι ρυθμισμένο να αποκρύπτει όλα τα παιχνίδια. Κάντε διπλό κλίκ "
-"εδώ για να εμφανιστούν όλα τα παιχνίδια..."
+msgid "Dolphin is currently set to hide all games.  Doubleclick here to show all games..."
+msgstr "Το Dolphin είναι ρυθμισμένο να αποκρύπτει όλα τα παιχνίδια. Κάντε διπλό κλίκ εδώ για να εμφανιστούν όλα τα παιχνίδια..."
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
@@ -1792,8 +1704,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Εξαγωγή όλων των απεικονισμένων καρέ σε ένα AVI αρχείο στο User/Dump/"
-"Frames/\n"
+"Εξαγωγή όλων των απεικονισμένων καρέ σε ένα AVI αρχείο στο User/Dump/Frames/\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -1803,8 +1714,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Εξαγωγή των αποκωδικοποιημένων υφών του παιχνιδιού στο User/Dump/Textures/"
-"<id παιχνιδιού>/\n"
+"Εξαγωγή των αποκωδικοποιημένων υφών του παιχνιδιού στο User/Dump/Textures/<id παιχνιδιού>/\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -1833,17 +1743,9 @@ msgid "EFB Copies"
 msgstr "EFB Αντίγραφα"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
-#, fuzzy, c-format
-msgid ""
-"ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
-"version %d.%d -- If you recently upgraded your Dolphin distribution, a "
-"reboot is probably required at this point to get Windows to see the new "
-"driver."
-msgstr ""
-"ΣΦΑΛΜΑ: Αυτή η έκδοση του Dolphin απαιτεί TAP-Win32 οδηγούς που να είναι "
-"τουλάχιστον έκδοσης %d.%d -- Αν πρόσφατα αναβαθμίσατε την διανομή του "
-"Dolphin σας, μία επανεκκίνηση απαιτείται για να κάνει τα Windows να δούνε "
-"τους νέους οδηγούς."
+#, c-format
+msgid "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver."
+msgstr "ΣΦΑΛΜΑ: Αυτή η έκδοση του Dolphin απαιτεί TAP-Win32 οδηγούς που να είναι τουλάχιστον έκδοσης %d.%d -- Αν πρόσφατα αναβαθμίσατε την διανομή του Dolphin σας, πιθανότατα απαιτείται μία επανεκκίνηση ώστε τα Windows να δούνε τους νέους οδηγούς."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:171
 msgid "EUROPE"
@@ -1893,31 +1795,24 @@ msgstr "Το νήμα εξομοίωσης εκτελείται ήδη"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:108
 msgid ""
 "Emulate XFBs accurately.\n"
-"Slows down emulation a lot and prohibits high-resolution rendering but is "
-"necessary to emulate a number of games properly.\n"
+"Slows down emulation a lot and prohibits high-resolution rendering but is necessary to emulate a number of games properly.\n"
 "\n"
 "If unsure, check virtual XFB emulation instead."
 msgstr ""
 "Εξομοιώνει τα XFBs με ακρίβεια.\n"
-"Επιβραδύνει αρκετά την εξομοίωση και αποτρέπει την απόδοση γραφικών υψηλής "
-"ανάλυσης, αλλά είναι απαραίτητο για την σωστή εξομοίωση ορισμένου αριθμού "
-"παιχνιδιών.\n"
+"Επιβραδύνει αρκετά την εξομοίωση και αποτρέπει την απόδοση γραφικών υψηλής ανάλυσης, αλλά είναι απαραίτητο για την σωστή εξομοίωση ορισμένου αριθμού παιχνιδιών.\n"
 "\n"
 "Αν δεν είστε σίγουροι, επιλέξτε εικονική XFB εξομοίωση."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:107
 msgid ""
 "Emulate XFBs using GPU texture objects.\n"
-"Fixes many games which don't work without XFB emulation while not being as "
-"slow as real XFB emulation. However, it may still fail for a lot of other "
-"games (especially homebrew applications).\n"
+"Fixes many games which don't work without XFB emulation while not being as slow as real XFB emulation. However, it may still fail for a lot of other games (especially homebrew applications).\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
 "Εξομοιώνει XFBs χρησιμοποιώντας GPU αντικείμενα υφής.\n"
-"Διορθώνει πολλά παιχνίδια που δεν δουλεύουν χωρίς XFB εξομοίωση, χωρίς "
-"παράληλα να είναι αργή όπως η πραγματική XFB εξομοίωση. Παρόλα αυτά μπορεί "
-"να αποτύχει σε πολλά άλλα παιχνίδια (ειδικά homebrew εφαρμογές).\n"
+"Διορθώνει πολλά παιχνίδια που δεν δουλεύουν χωρίς XFB εξομοίωση, χωρίς παράληλα να είναι αργή όπως η πραγματική XFB εξομοίωση. Παρόλα αυτά μπορεί να αποτύχει σε πολλά άλλα παιχνίδια (ειδικά homebrew εφαρμογές).\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
@@ -1935,15 +1830,13 @@ msgstr "Ενεργοποίηση"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:89
 msgid ""
-"Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's "
-"supported by your GPU.\n"
+"Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's supported by your GPU.\n"
 "Possibly causes issues.\n"
 "Requires fullscreen to work.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Ενεργοποιεί 3D εφέ μέσω στερεοσκοπίας χρησιμοποιώντας την τεχνολογία 3D "
-"Vision της Nvidia αν υποστηρίζεται από την GPU.\n"
+"Ενεργοποιεί 3D εφέ μέσω στερεοσκοπίας χρησιμοποιώντας την τεχνολογία 3D Vision της Nvidia αν υποστηρίζεται από την GPU.\n"
 "Πιθανώς μπορεί να προκαλέσει προβλήματα.\n"
 "Χρειάζεται λειτουργία πλήρης οθόνης για να λειτουργήσει.\n"
 "\n"
@@ -2023,19 +1916,14 @@ msgid ""
 "If unsure, select 1x."
 msgstr ""
 "Ενεργοποιεί το ανισοτροπικό φιλτράρισμα.\n"
-"Βελτιώνει την ποιότητα απεικόνισης των υφών που βρίσκονται σε οξείες οπτικές "
-"γωνίες.\n"
+"Βελτιώνει την ποιότητα απεικόνισης των υφών που βρίσκονται σε οξείες οπτικές γωνίες.\n"
 "Μπορεί να προκαλέσει προβλήματα σε έναν μικρό αριθμό παιχνιδιών.\n"
 "\n"
 "Αν δεν είστε σίγουροι, επιλέξτε 1x."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
-msgid ""
-"Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = "
-"Compatible)"
-msgstr ""
-"Ενεργοποιεί τη γρήγορη πρόσβαση δίσκου. Απαραίτητο για μερικά παιχνίδια. "
-"(ΕΝΕΡΓΟ = Γρήγορο, ΑΝΕΝΕΡΓΟ = Συμβατό)"
+msgid "Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"
+msgstr "Ενεργοποιεί τη γρήγορη πρόσβαση δίσκου. Απαραίτητο για μερικά παιχνίδια. (ΕΝΕΡΓΟ = Γρήγορο, ΑΝΕΝΕΡΓΟ = Συμβατό)"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:813
 msgid "Enable pages"
@@ -2048,41 +1936,28 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Ενεργοποιήστε το αν θέλετε ολόκληρη η οθόνη να χρησιμοποιηθεί για την "
-"απεικόνιση.\n"
+"Ενεργοποιήστε το αν θέλετε ολόκληρη η οθόνη να χρησιμοποιηθεί για την απεικόνιση.\n"
 "Αν αυτό είναι απενεργοποιημένο, θα δημιουργηθεί ένα παράθυρο απεικόνισης.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:78
 msgid ""
-"Enable this if you want to use the main Dolphin window for rendering rather "
-"than a separate render window.\n"
+"Enable this if you want to use the main Dolphin window for rendering rather than a separate render window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Ενεργοποιήστε το αν θέλετε να χρησιμοποιήσετε το κύριο παράθυρο του Dolphin "
-"για απεικόνιση αντί για ξεχωριστό παράθυρο απεικόνισης.\n"
+"Ενεργοποιήστε το αν θέλετε να χρησιμοποιήσετε το κύριο παράθυρο του Dolphin για απεικόνιση αντί για ξεχωριστό παράθυρο απεικόνισης.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:341
-msgid ""
-"Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for "
-"ANY other game."
-msgstr ""
-"Ενεργοποιήστε το για να επιταχύνετε το The Legend of Zelda: Twilight "
-"Princess. Απενεργοποιήστε το για τα υπόλοιπα παιχνίδια."
+msgid "Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."
+msgstr "Ενεργοποιήστε το για να επιταχύνετε το The Legend of Zelda: Twilight Princess. Απενεργοποιήστε το για τα υπόλοιπα παιχνίδια."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
-msgid ""
-"Enables Block Address Translation (BAT); a function of the Memory Management "
-"Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = "
-"Fast)"
-msgstr ""
-"Ενεργοποιεί την Block Address Translation (BAT), μία λειτουργία της Μονάδας "
-"Διαχείρισης Μνήμης. Ακριβές ως προς το υλικό, αλλά αργό στην εξομοίωση. "
-"(Ενεργό = Συμβατό, Ανενεργό = Γρήγορο)"
+msgid "Enables Block Address Translation (BAT); a function of the Memory Management Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = Fast)"
+msgstr "Ενεργοποιεί την Block Address Translation (BAT), μία λειτουργία της Μονάδας Διαχείρισης Μνήμης. Ακριβές ως προς το υλικό, αλλά αργό στην εξομοίωση. (Ενεργό = Συμβατό, Ανενεργό = Γρήγορο)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:346
 msgid "Enables Custom Projection Hack"
@@ -2095,18 +1970,13 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Ενεργοποιεί την προοδευτική σάρωση αν υποστηρίζεται από το εξομοιωμένο "
-"λογισμικό. Τα περισσότερα παιχνίδια δεν την χρειάζονται αυτήν την ρύθμιση.\n"
+"Ενεργοποιεί την προοδευτική σάρωση αν υποστηρίζεται από το εξομοιωμένο λογισμικό. Τα περισσότερα παιχνίδια δεν την χρειάζονται αυτήν την ρύθμιση.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:318
-msgid ""
-"Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
-"OFF = Fast)"
-msgstr ""
-"Ενεργοποιεί τη Μονάδα Διαχείρισης Μνήμης, απαραίτητο για μερικά παιχνίδια. "
-"(Ενεργό = Συμβατό, Ανενεργό = Γρήγορο)"
+msgid "Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"
+msgstr "Ενεργοποιεί τη Μονάδα Διαχείρισης Μνήμης, απαραίτητο για μερικά παιχνίδια. (Ενεργό = Συμβατό, Ανενεργό = Γρήγορο)"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:114
 msgid ""
@@ -2159,28 +2029,17 @@ msgstr "Σφάλμα"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:345
 msgid "Error loading selected language. Falling back to system default."
-msgstr ""
-"Αποτυχία φόρτωσης της επιλεγμένης γλώσσας. Επαναφορά στην προεπιλογή "
-"συστήματος."
+msgstr "Αποτυχία φόρτωσης της επιλεγμένης γλώσσας. Επαναφορά στην προεπιλογή συστήματος."
 
 #: Source/Core/Common/Src/ChunkFile.h:251
 #, c-format
-msgid ""
-"Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
-"Aborting savestate load..."
-msgstr ""
-"Σφάλμα: Μετά από \"%s\", βρέθηκε %d (0x%X) αντί του σημείου αποθήκευσης %d "
-"(0x%X). Ματαίωση φόρτωσης σημείου αποθήκευσης..."
+msgid "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load..."
+msgstr "Σφάλμα: Μετά από \"%s\", βρέθηκε %d (0x%X) αντί του σημείου αποθήκευσης %d (0x%X). Ματαίωση φόρτωσης σημείου αποθήκευσης..."
 
 #: Source/Core/Core/Src/HW/EXI_DeviceIPL.cpp:342
 #, c-format
-msgid ""
-"Error: Trying to access %s fonts but they are not loaded. Games may not show "
-"fonts correctly, or crash."
-msgstr ""
-"Σφάλμα: Προσπάθεια πρόσβασης των %s γραμματοσειρών αλλά δεν είναι "
-"φορτωμένες. Τα παιχνίδια μπορεί να μη δείχνουν τις γραμματοσειρές σωστά, ή "
-"να κρασάρουν."
+msgid "Error: Trying to access %s fonts but they are not loaded. Games may not show fonts correctly, or crash."
+msgstr "Σφάλμα: Προσπάθεια πρόσβασης των %s γραμματοσειρών αλλά δεν είναι φορτωμένες. Τα παιχνίδια μπορεί να μη δείχνουν τις γραμματοσειρές σωστά, ή να κρασάρουν."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:30
 msgid "Escape"
@@ -2193,8 +2052,7 @@ msgstr "Euphoria"
 #: Source/Core/Core/Src/MemTools.cpp:214
 #, c-format
 msgid "Exception handler - access below memory space. %08llx%08llx"
-msgstr ""
-"Χειριστής εξαιρέσεων - πρόσβαση κάτω από την περιοχή μνήμης. %08llx%08llx"
+msgstr "Χειριστής εξαιρέσεων - πρόσβαση κάτω από την περιοχή μνήμης. %08llx%08llx"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:61
 msgid "Execute"
@@ -2342,12 +2200,10 @@ msgstr ""
 "Αποτυχία φόρτωσης DSP ROM:\t%s\n"
 "\n"
 "Αυτό το αρχείο χρειάζεται για να χρησιμοποιηθεί το DSP LLE.\n"
-"Δεν συμπεριλαμβάνεται με το Dolphin γιατί περιέχει δεδομένα πνευματικής "
-"ιδιοκτησίας.\n"
+"Δεν συμπεριλαμβάνεται με το Dolphin γιατί περιέχει δεδομένα πνευματικής ιδιοκτησίας.\n"
 "Χρησιμοποιήστε το DSPSpy για να εξάγετε το αρχείο από την κονσόλα σας.\n"
 "\n"
-"Μπορείτε να χρησιμοποιήσετε την  DSP HLE μηχανή η οποία δεν χρειάζεται ROM "
-"dumps.\n"
+"Μπορείτε να χρησιμοποιήσετε την  DSP HLE μηχανή η οποία δεν χρειάζεται ROM dumps.\n"
 "(Επιλέξτε την από την καρτέλα \"Ήχος\" του παραθύρου των γενικών ρυθμίσεων.)"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:99
@@ -2365,12 +2221,15 @@ msgid "Failed to read banner.bin"
 msgstr "Αποτυχία ανάγνωσης banner.bin"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:223
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to read block %d of the save data\n"
 "Memcard may be truncated\n"
 "FilePosition:%llx"
-msgstr "Αποτυχία ανάγνωσης "
+msgstr ""
+"Αποτυχία ανάγνωσης του μπλόκ %d από το αρχείο αποθήκευσης\n"
+"Μπορεί να έχουν περικοπεί τα δεδομένα στην κάρτα μνήμης\n"
+"Θέση αρχείου:%llx"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:148
 msgid ""
@@ -2453,11 +2312,8 @@ msgstr "Γρήγορη έκδοση του MMU. Δε δουλεύει για ό�
 
 #: Source/Core/Core/Src/Movie.cpp:1039
 #, c-format
-msgid ""
-"Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
-msgstr ""
-"Ανεπανόρθωτος αποσυγχρονισμός. Ακύρωση αναπαραγωγής.  (Σφάλμα σε "
-"PlayWiimote: %u != %u, byte %u.)%s"
+msgid "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
+msgstr "Ανεπανόρθωτος αποσυγχρονισμός. Ακύρωση αναπαραγωγής.  (Σφάλμα σε PlayWiimote: %u != %u, byte %u.)%s"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:213
 msgid "Fifo Player"
@@ -2515,11 +2371,11 @@ msgstr "Ο τύπος αρχείου 'ini' είναι άγνωστος! Δε θ�
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:260
 msgid "Find next"
-msgstr ""
+msgstr "Εύρεση επομένου"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:261
 msgid "Find previous"
-msgstr ""
+msgstr "Εύρεση προηγούμενου"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:630
 msgid "First Block"
@@ -2553,8 +2409,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Επιβάλλει φιλτράρισμα υφών ακόμα κι αν το παιχνίδι το έχει απενεργοποιήσει.\n"
-"Βελτιώνει ελαφρώς την ποιότητα των υφών αλλά μπορεί να προκαλέσει προβλήματα "
-"σε ορισμένα παιχνίδια.\n"
+"Βελτιώνει ελαφρώς την ποιότητα των υφών αλλά μπορεί να προκαλέσει προβλήματα σε ορισμένα παιχνίδια.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -2573,13 +2428,10 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:490
 msgid ""
 "Forces NTSC-J mode for using the Japanese ROM font.\n"
-"Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
-"setting when playing Japanese games."
+"Left unchecked, dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."
 msgstr ""
-"Επιβάλει τη NTSC-J λειτουργία για να χρησιμοποιηθεί η Ιαπωνική ROM "
-"γραμματοσειρά.\n"
-"Άμα αφεθεί αποεπιλεγμένο, το dolphin προεπιλέγει τη NTSC-U και ενεργοποιεί "
-"αυτόματα αυτήν την ρύθμιση όταν παίζονται Ιαπωνικά παιχνίδια."
+"Επιβάλει τη NTSC-J λειτουργία για να χρησιμοποιηθεί η Ιαπωνική ROM γραμματοσειρά.\n"
+"Άμα αφεθεί αποεπιλεγμένο, το dolphin προεπιλέγει τη NTSC-U και ενεργοποιεί αυτόματα αυτήν την ρύθμιση όταν παίζονται Ιαπωνικά παιχνίδια."
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:74
 msgid ""
@@ -2596,7 +2448,7 @@ msgstr "Μπροστά"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:505
 #, c-format
 msgid "Found %d results for '"
-msgstr ""
+msgstr "Βρέθηκαν %d αποτελέσματα για '"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:855
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:923
@@ -2617,9 +2469,8 @@ msgid "Frame Dumps use FFV1"
 msgstr "FFV1 Για Τα Εξαγώμενα Καρέ"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:222
-#, fuzzy
 msgid "Frame Info"
-msgstr "Καρέ"
+msgstr "Πληροφορίες Καρέ"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:111
 msgid "Frame Range"
@@ -2678,7 +2529,7 @@ msgstr "GCPad"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:657
 msgid "GX_CMD_INVL_VC"
-msgstr ""
+msgstr "GX_CMD_INVL_VC"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:468
 msgid "Game ID:"
@@ -2706,7 +2557,7 @@ msgstr "Ρυθμίσεις Παιχνιδιού"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:523
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr ""
+msgstr "GameCube αρχεία αποθήκευσης(*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:533
 msgid "Gamecube"
@@ -2734,14 +2585,10 @@ msgstr "Κωδικοί Gecko"
 #, c-format
 msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
-"(either a bad code or the code type is not yet supported. Try using the "
-"native code handler by placing the codehandler.bin file into the Sys "
-"directory and restarting Dolphin.)"
+"(either a bad code or the code type is not yet supported. Try using the native code handler by placing the codehandler.bin file into the Sys directory and restarting Dolphin.)"
 msgstr ""
 "Ο Κωδικός Gecko απέτυχε να εκτελεστεί (CT%i CST%i) (%s)\n"
-"(Ή είναι ένας κακός κωδικός ή ο τύπος του κωδικού δεν υποστηρίζεται. "
-"Δοκιμάστε να χρησιμοποιήσετε τον εγγενή διαχειριστή κώδικα τοποθετώντας το "
-"codehandler.bin αρχείο στον φάκελο Sys και επανεκκινώντας το Dolphin.)"
+"(Ή είναι ένας κακός κωδικός ή ο τύπος του κωδικού δεν υποστηρίζεται. Δοκιμάστε να χρησιμοποιήσετε τον εγγενή διαχειριστή κώδικα τοποθετώντας το codehandler.bin αρχείο στον φάκελο Sys και επανεκκινώντας το Dolphin.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:176
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:176
@@ -2763,9 +2610,7 @@ msgstr "Γερμανικά"
 #: Source/Core/Core/Src/ActionReplay.cpp:449
 #, c-format
 msgid "GetARCode: Index is greater than ar code list size %lu"
-msgstr ""
-"GetARCode: Ο δείκτης είναι μεγαλύτερος από το μέγεθος %lu της λίστας των "
-"κωδικών ar"
+msgstr "GetARCode: Ο δείκτης είναι μεγαλύτερος από το μέγεθος %lu της λίστας των κωδικών ar"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:444
 msgid "Graphics"
@@ -2781,19 +2626,15 @@ msgstr "Μεγαλύτερο από"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:85
 msgid ""
-"Greatly increases quality of textures generated using render to texture "
-"effects.\n"
+"Greatly increases quality of textures generated using render to texture effects.\n"
 "Raising the internal resolution will improve the effect of this setting.\n"
-"Slightly decreases performance and possibly causes issues (although "
-"unlikely).\n"
+"Slightly decreases performance and possibly causes issues (although unlikely).\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"Βελτιώνει πολύ την ποιότητα των υφών που παράγονται χρησιμοποιώντας render "
-"to texture εφέ.\n"
+"Βελτιώνει πολύ την ποιότητα των υφών που παράγονται χρησιμοποιώντας render to texture εφέ.\n"
 "Μία αύξηση της εσωτερικής ανάλυσης θα βελτιώσει το εφέ αυτής της ρύθμισης.\n"
-"Μειώνει ελαφρώς την επίδοση και είναι πιθανό να προκαλέσει προβλήματα (αν "
-"και σπάνια).\n"
+"Μειώνει ελαφρώς την επίδοση και είναι πιθανό να προκαλέσει προβλήματα (αν και σπάνια).\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
@@ -2871,8 +2712,7 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"Αποκρύπτει τον δείκτη του ποντικιού αν βρίσκεται πάνω από το παράθυρο "
-"εξομοίωσης.\n"
+"Αποκρύπτει τον δείκτη του ποντικιού αν βρίσκεται πάνω από το παράθυρο εξομοίωσης.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
@@ -2906,20 +2746,16 @@ msgstr "Υβριδικό Wiimote"
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:531
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
-msgstr ""
-"IOCTL_ES_GETVIEWS: Απόπειρα ανάγνωσης δεδομένων από ένα άγνωστο εισιτήριο: "
-"%08x/%08x"
+msgstr "IOCTL_ES_GETVIEWS: Απόπειρα ανάγνωσης δεδομένων από ένα άγνωστο εισιτήριο: %08x/%08x"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:785
 #, c-format
 msgid ""
-"IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available "
-"in your nand dump\n"
+"IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
 "TitleID %016llx.\n"
 " Dolphin will likely hang now"
 msgstr ""
-"IOCTL_ES_LAUNCH: Το παιχνίδι προσπάθησε να επαναφορτώσει ios ή έναν τίτλο "
-"που δεν είναι διαθέσιμος στο nand dump\n"
+"IOCTL_ES_LAUNCH: Το παιχνίδι προσπάθησε να επαναφορτώσει ios ή έναν τίτλο που δεν είναι διαθέσιμος στο nand dump\n"
 "TitleID %016llx.\n"
 "Το Dolphin πιθανότατα θα κολλήσει τώρα."
 
@@ -2960,30 +2796,16 @@ msgid "Icon"
 msgstr "Εικονίδιο"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:338
-msgid ""
-"If checked, the bounding box registers will be updated. Used by the Paper "
-"Mario games."
-msgstr ""
-"Εάν επιλεχθεί, οι καταχωρητές bounding box θα ανανεώνονται. Χρησιμοποιούνται "
-"από τα Paper Mario παιχνίδια."
+msgid "If checked, the bounding box registers will be updated. Used by the Paper Mario games."
+msgstr "Εάν επιλεχθεί, οι καταχωρητές bounding box θα ανανεώνονται. Χρησιμοποιούνται από τα Paper Mario παιχνίδια."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
-msgid ""
-"If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
-msgstr ""
-"Αν τα FPS διακυμαίνονται, αυτή η επιλογή μπορείο να βοηθήσει. (Ενεργό = "
-"Συμβατό, Ανενεργό = Γρήγορο)"
+msgid "If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
+msgstr "Αν τα FPS διακυμαίνονται, αυτή η επιλογή μπορείο να βοηθήσει. (Ενεργό = Συμβατό, Ανενεργό = Γρήγορο)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:487
-msgid ""
-"If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use "
-"Audio to throttle using the DSP (might fix audio clicks but can also cause "
-"constant noise depending on the game)."
-msgstr ""
-"Αν θέσετε τιμή υψηλότερη από την πλήρη ταχύτητα του παιχνιδιού (NTSC:60, "
-"PAL:50), χρησιμοποιήστε τον ήχο για να κάνετε Throttle μέσω DSP (μπορεί να "
-"διορθώσει ορισμένα κλικαρίσματα στον ήχο άλλα και να προκαλέσει συνεχές "
-"θόρυβο αναλόγα με το παιχνίδι)."
+msgid "If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use Audio to throttle using the DSP (might fix audio clicks but can also cause constant noise depending on the game)."
+msgstr "Αν θέσετε τιμή υψηλότερη από την πλήρη ταχύτητα του παιχνιδιού (NTSC:60, PAL:50), χρησιμοποιήστε τον ήχο για να κάνετε Throttle μέσω DSP (μπορεί να διορθώσει ορισμένα κλικαρίσματα στον ήχο άλλα και να προκαλέσει συνεχές θόρυβο αναλόγα με το παιχνίδι)."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:431
 msgid "Ignore Format Changes"
@@ -2992,29 +2814,24 @@ msgstr "Αγνόηση Αλλαγών Format"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:92
 msgid ""
 "Ignore any changes to the EFB format.\n"
-"Improves performance in many games without any negative effect. Causes "
-"graphical defects in a small number of other games though.\n"
+"Improves performance in many games without any negative effect. Causes graphical defects in a small number of other games though.\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
 "Αγνοεί οποιαδήποτε αλλαγή στο EFB format.\n"
-"Βελτιώνει τις επιδόσεις σε πολλά παιχνίδια χωρίς αρνητικές συνέπειες. "
-"Προκαλεί όμως ελαττώματα στα γραφικά σε ένα μικρό αριθμό παιχνιδιών.\n"
+"Βελτιώνει τις επιδόσεις σε πολλά παιχνίδια χωρίς αρνητικές συνέπειες. Προκαλεί όμως ελαττώματα στα γραφικά σε ένα μικρό αριθμό παιχνιδιών.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:91
 msgid ""
 "Ignore any requests of the CPU to read from or write to the EFB.\n"
-"Improves performance in some games, but might disable some gameplay-related "
-"features or graphical effects.\n"
+"Improves performance in some games, but might disable some gameplay-related features or graphical effects.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
 "Αγνοεί οποιοδήποτε αίτημα από την CPU για ανάγνωση ή εγγραφή στο EFB.\n"
-"Βελτιώνει τις επιδόσεις σε ορισμένα παιχνίδια, αλλά μπορεί να "
-"απενεργοποιήσει ορισμένα χαρακτηριστικά που σχετίζονται με το gameplay ή εφέ "
-"γραφικών.\n"
+"Βελτιώνει τις επιδόσεις σε ορισμένα παιχνίδια, αλλά μπορεί να απενεργοποιήσει ορισμένα χαρακτηριστικά που σχετίζονται με το gameplay ή εφέ γραφικών.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -3048,13 +2865,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
 msgid ""
-"Improves performance but causes glitches in most games which rely on proper "
-"fog emulation.\n"
+"Improves performance but causes glitches in most games which rely on proper fog emulation.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Βελτιώνει τις επιδόσεις αλλά προκαλεί προβλήματα σε παιχνίδια που βασίζονται "
-"στη σωστή εξομοίωση της ομίχλης.\n"
+"Βελτιώνει τις επιδόσεις αλλά προκαλεί προβλήματα σε παιχνίδια που βασίζονται στη σωστή εξομοίωση της ομίχλης.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -3104,11 +2919,8 @@ msgid "Install to Wii Menu"
 msgstr "Εγκατάσταση στο Μενού Wii"
 
 #: Source/Core/Core/Src/MemTools.cpp:248
-msgid ""
-"InstallExceptionHandler called, but this platform does not yet support it."
-msgstr ""
-"InstallExceptionHandler καλέστηκε, αλλά αυτή η πλατφόρμα δεν το υποστηρίζει "
-"ακόμα."
+msgid "InstallExceptionHandler called, but this platform does not yet support it."
+msgstr "InstallExceptionHandler καλέστηκε, αλλά αυτή η πλατφόρμα δεν το υποστηρίζει ακόμα."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1410
 msgid "Installing WAD..."
@@ -3116,22 +2928,20 @@ msgstr "Γίνεται εγκατάσταση WAD..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:905
 msgid "Integrity Check Error"
-msgstr ""
+msgstr "Σφάλμα Ελέγχου Ακεραιότητας"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:911
 msgid "Integrity check completed"
-msgstr ""
+msgstr "Ο έλεγχος ακεραιότητας ολοκληρώθηκε."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:910
 msgid "Integrity check completed. No errors have been found."
-msgstr ""
+msgstr "Ο έλεγχος ακεραιότητας ολοκληρώθηκε. Δε βρέθηκαν σφάλματα."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:902
 #, c-format
-msgid ""
-"Integrity check for partition %d failed. Your dump is most likely corrupted "
-"or has been patched incorrectly."
-msgstr ""
+msgid "Integrity check for partition %d failed. Your dump is most likely corrupted or has been patched incorrectly."
+msgstr "Ο έλεγχος ακεραιότητας για την κατάτμηση %d απέτυχε. Το αρχείο έχει πιθανότατα αλλοιωθεί ή έχει γίνει patched με λάθος τρόπο."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:531
 msgid "Interface"
@@ -3209,15 +3019,15 @@ msgstr "Μη έγκυρο αρχείο εγγραφής"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:472
 msgid "Invalid search parameters (no object selected)"
-msgstr ""
+msgstr "Μη έγκυρες παράμετροι αναζήτησης (δεν επιλέχθηκε αντικείμενο)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:451
 msgid "Invalid search string (couldn't convert to number)"
-msgstr ""
+msgstr "Μη έγκυρο string αναζήτησης (δεν μπορεί να γίνει μετατροπή σε νούμερο)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:439
 msgid "Invalid search string (only even string lengths supported)"
-msgstr ""
+msgstr "Μη έγκυρο string αναζήτησης (μόνο ζυγά μήκη string υποστηρίζονται)"
 
 #: Source/Core/Core/Src/Core.cpp:528
 msgid "Invalid state"
@@ -3251,20 +3061,18 @@ msgid "KOREA"
 msgstr "ΚΟΡΕΑ"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:76
-#, fuzzy
 msgid ""
 "Keep the game window on top of all other windows.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Αποκρύπτει τον δείκτη του ποντικιού αν βρίσκεται πάνω από το παράθυρο "
-"εξομοίωσης.\n"
+"Διατηρεί το παράθυρο του παιχνιδιού πάνω από όλα τα υπόλοιπα παράθυρα.\n"
 "\n"
-"Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
+"Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:302
 msgid "Keep window on top"
-msgstr ""
+msgstr "Διατήρηση παραθύρου στην κορυφή."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:245
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:245
@@ -3440,22 +3248,19 @@ msgstr "Ρυθμίσεις Καταγραφής"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:300
 msgid "Log FPS to file"
-msgstr ""
+msgstr "Καταγραφή FPS σε αρχείο"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:98
 msgid "Log Types"
 msgstr "Τύποι Καταγραφής"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
-#, fuzzy
 msgid ""
-"Log the number of frames rendered per second to User/Logs/fps.txt. Use this "
-"feature when you want to measure the performance of Dolphin.\n"
+"Log the number of frames rendered per second to User/Logs/fps.txt. Use this feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Εμφανίζει τον αριθμό των καρέ που απεικονίζονται ανά δευτερόλεπτο, ως τρόπο "
-"μέτρησης της ταχύτητας εξομοίωσης.\n"
+"Καταγράφει τον αριθμό των καρέ ανά δευτερόλεπτο στο αρχείο User/Logs/fps.txt. Χρησιμοποιήστε αυτό το χαρακτηριστικό όταν θέλετε να μετρήσετε την ταχύτητα του Dolphin.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -3530,12 +3335,8 @@ msgid "Memory Card"
 msgstr "Κάρτα Μνήμης"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.h:36
-msgid ""
-"Memory Card Manager WARNING-Make backups before using, should be fixed but "
-"could mangle stuff!"
-msgstr ""
-"Διαχειριστής Καρτών Μνήμης ΠΡΟΕΙΔΟΠΟΙΗΣΗ-Κάντε αντίγραφα ασφαλείας πριν την "
-"χρήση, αν και διορθωμένος μπορεί να χαλάσει πράγματα!"
+msgid "Memory Card Manager WARNING-Make backups before using, should be fixed but could mangle stuff!"
+msgstr "Διαχειριστής Καρτών Μνήμης ΠΡΟΕΙΔΟΠΟΙΗΣΗ-Κάντε αντίγραφα ασφαλείας πριν την χρήση, αν και διορθωμένος μπορεί να χαλάσει πράγματα!"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:369
 #, c-format
@@ -3556,9 +3357,7 @@ msgstr ""
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:124
 msgid "Memorycard filesize does not match the header size"
-msgstr ""
-"Το μέγεθος του αρχείου της κάρτας μνήμης δεν ταιριάζει με το μέγεθος της "
-"κεφαλίδας."
+msgstr "Το μέγεθος του αρχείου της κάρτας μνήμης δεν ταιριάζει με το μέγεθος της κεφαλίδας."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:50
 msgid "Menu"
@@ -3588,13 +3387,11 @@ msgstr "Modifier"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:104
 msgid ""
-"Modify textures to show the format they're encoded in. Needs an emulation "
-"reset in most cases.\n"
+"Modify textures to show the format they're encoded in. Needs an emulation reset in most cases.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Τροποποιεί τις υφές ώστε να εμφανίζουν το format στο οποίο είναι "
-"κωδικοποιημένες.\n"
+"Τροποποιεί τις υφές ώστε να εμφανίζουν το format στο οποίο είναι κωδικοποιημένες.\n"
 "Χρειάζεται επανεκκίνηση της εξομοίωσης στις περισσότερες περιπτώσεις.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
@@ -3622,8 +3419,7 @@ msgid ""
 "\n"
 "\n"
 msgstr ""
-"Μετακινήστε τον δείκτη του ποντικιού πάνω από μία επιλογή για να εμφανιστεί "
-"μία λεπτομερής περιγραφή.\n"
+"Μετακινήστε τον δείκτη του ποντικιού πάνω από μία επιλογή για να εμφανιστεί μία λεπτομερής περιγραφή.\n"
 "\n"
 "\n"
 "\n"
@@ -3634,20 +3430,16 @@ msgid "Multiply"
 msgstr "Multiply"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:334
-msgid ""
-"Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No "
-"effect on emulated wiimotes."
-msgstr ""
-"Απενεργοποιεί το ηχείο του Wiimote. Διορθώνει τυχαίες αποσυνδέσεις σε "
-"πραγματικά wiimotes. Δεν έχει καμία επίδραση σε εξομοιωμένα wiimotes."
+msgid "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No effect on emulated wiimotes."
+msgstr "Απενεργοποιεί το ηχείο του Wiimote. Διορθώνει τυχαίες αποσυνδέσεις σε πραγματικά wiimotes. Δεν έχει καμία επίδραση σε εξομοιωμένα wiimotes."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:649
 msgid "NOP"
-msgstr ""
+msgstr "NOP"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:628
 msgid "NOTE: Stream size doesn't match actual data length\n"
-msgstr ""
+msgstr "ΣΗΜΕΙΩΣΗ: Το μέγεθος της ροής δεν ταιριάζει με το πραγματικό μήκος των δεδομένων.\n"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:129
 msgid "NP Add"
@@ -3784,7 +3576,7 @@ msgstr "Δε βρέθηκε αρχείο εικονιδίου για τον τί
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:759
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:766
 msgid "No description available"
-msgstr ""
+msgstr "Μη διαθέσιμη περιγραφή"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:513
 msgid "No docking"
@@ -3881,7 +3673,7 @@ msgstr "Offset:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:586
 msgid "On-Screen Display Messages"
-msgstr ""
+msgstr "Απεικόνιση Μηνυμάτων Στην Οθόνη"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:435
 #, c-format
@@ -3943,8 +3735,7 @@ msgid ""
 "Right click and export all of the saves,\n"
 "and import the the saves to a new memcard\n"
 msgstr ""
-"Η σειρά των αρχείων στον Κατάλογο Αρχείων δεν ταιριάζει με την σειρά των "
-"block.\n"
+"Η σειρά των αρχείων στον Κατάλογο Αρχείων δεν ταιριάζει με την σειρά των block.\n"
 "Κάντε δεξί κλίκ, εξάγετε όλα τα αρχεία αποθήκευσης\n"
 "και εισάγετέ τα σε μία νέα κάρτα μνήμης.\n"
 
@@ -3954,12 +3745,8 @@ msgid "Other"
 msgstr "Άλλα"
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:206
-msgid ""
-"Other client disconnected while game is running!! NetPlay is disabled. You "
-"manually stop the game."
-msgstr ""
-"Ο άλλος client έχει αποσυνδεθεί ενώ το παιχνίδι εκτελείται!! Το NetPlay έχει "
-"απενεργοποιηθεί. Σταματήστε χειροκίνητα το παιχνίδι."
+msgid "Other client disconnected while game is running!! NetPlay is disabled. You manually stop the game."
+msgstr "Ο άλλος client έχει αποσυνδεθεί ενώ το παιχνίδι εκτελείται!! Το NetPlay έχει απενεργοποιηθεί. Σταματήστε χειροκίνητα το παιχνίδι."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:485
 msgid "Output"
@@ -4022,7 +3809,7 @@ msgstr "Παύση"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:142
 msgid "Pause at end of movie"
-msgstr ""
+msgstr "Παύση στο τέλος της ταινίας"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:401
 msgid "Per-Pixel Lighting"
@@ -4420,9 +4207,7 @@ msgstr "Αποθήκευση αποσυμπιεσμένου GCM/ISO"
 #: Source/Core/Core/Src/Movie.cpp:782
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
-msgstr ""
-"Η ταινία του σημείου αποθήκευσης %s είναι αλλοιωμένη, γίνεται διακοπή της "
-"εγγραφής της ταινίας..."
+msgstr "Η ταινία του σημείου αποθήκευσης %s είναι αλλοιωμένη, γίνεται διακοπή της εγγραφής της ταινίας..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:400
 msgid "Scaled EFB Copy"
@@ -4450,9 +4235,8 @@ msgid "Scroll Lock"
 msgstr "Scroll Lock"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:259
-#, fuzzy
 msgid "Search"
-msgstr "Αναζήτηση Cheat"
+msgstr "Αναζήτηση"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:228
 msgid "Search Filter"
@@ -4463,16 +4247,17 @@ msgid "Search Subfolders"
 msgstr "Αναζήτηση σε Υποφακέλους"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:245
-#, fuzzy
 msgid "Search current Object"
-msgstr "Αποθήκευση τρέχουσας οπτικής"
+msgstr "Αναζήτηση τρέχων Αντικειμένου"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:249
 msgid "Search for hex Value:"
-msgstr ""
+msgstr "Αναζήτηση δεκαεξαδικής Τιμής:"
 
-#: Source/Core/Common/Src/SysConf.h:103 Source/Core/Common/Src/SysConf.h:126
-#: Source/Core/Common/Src/SysConf.h:146 Source/Core/Common/Src/SysConf.h:167
+#: Source/Core/Common/Src/SysConf.h:103
+#: Source/Core/Common/Src/SysConf.h:126
+#: Source/Core/Common/Src/SysConf.h:146
+#: Source/Core/Common/Src/SysConf.h:167
 #, c-format
 msgid "Section %s not found in SYSCONF"
 msgstr "Η ενότητα %s δε βρέθηκε στο SYSCONF"
@@ -4539,8 +4324,7 @@ msgstr ""
 "Αυτόματα: Χρήση της τοπικής αναλογίας οθόνης (4:3)\n"
 "Επιβολή 16:9: Προσαρμόζει την εικόνα σε αναλογία οθόνης 16:9.\n"
 "Επιβολή 4:3: Προσαρμόζει την εικόνα σε αναλογία οθόνης 4:3.\n"
-"Προσαρμογή στο παράθυρο: Προσαρμόζει την εικόνα στην αναλογία του "
-"παραθύρου.\n"
+"Προσαρμογή στο παράθυρο: Προσαρμόζει την εικόνα στην αναλογία του παραθύρου.\n"
 "\n"
 "Αν δεν είστε σίγουροι επιλέξτε Αυτόματα."
 
@@ -4551,32 +4335,26 @@ msgstr "Επιλεγμένη γραμματοσειρά"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:73
 msgid ""
 "Selects the display resolution used in fullscreen mode.\n"
-"This should always be bigger than or equal to the internal resolution. "
-"Performance impact is negligible.\n"
+"This should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n"
 "\n"
 "If unsure, use your desktop resolution.\n"
 "If still unsure, use the highest resolution which works for you."
 msgstr ""
-"Επιλέγει την ανάλυση της οθόνης που θα χρησιμοποιηθεί σε λειτουργία πλήρους "
-"οθόνης. Αυτή θα πρέπει να είναι πάντα μεγαλύτερη ή ίση με την εσωτερική "
-"ανάλυση. Το αντίκτυπο στις επιδόσεις είναι αμελητέο.\n"
+"Επιλέγει την ανάλυση της οθόνης που θα χρησιμοποιηθεί σε λειτουργία πλήρους οθόνης. Αυτή θα πρέπει να είναι πάντα μεγαλύτερη ή ίση με την εσωτερική ανάλυση. Το αντίκτυπο στις επιδόσεις είναι αμελητέο.\n"
 "\n"
-"Αν δεν είστε σίγουροι, χρησιμοποιήστε την ανάλυση της επιφάνειας εργασίας "
-"σας.\n"
+"Αν δεν είστε σίγουροι, χρησιμοποιήστε την ανάλυση της επιφάνειας εργασίας σας.\n"
 "Αν πάλι δεν είστε σίγουροι, χρησιμοποιήστε την υψηλότερη λειτουργική ανάλυση."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:71
 msgid ""
 "Selects what graphics API to use internally.\n"
-"Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
-"Direct3D 11 is somewhere between the two.\n"
+"Direct3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\n"
 "Note that the Direct3D backends are only available on Windows.\n"
 "\n"
 "If unsure, use Direct3D 9."
 msgstr ""
 "Επιλέγει το API γραφικών που θα χρησιμοποιηθεί εσωτερικά.\n"
-"Το Direct3D 9 συνήθως είναι το γρηγορότερο. Το OpenGL είναι περισσότερο "
-"ακριβές όμως. Το Direct3D 11 βρίσκεται κάπου ενδιάμεσα μεταξύ των δύο.\n"
+"Το Direct3D 9 συνήθως είναι το γρηγορότερο. Το OpenGL είναι περισσότερο ακριβές όμως. Το Direct3D 11 βρίσκεται κάπου ενδιάμεσα μεταξύ των δύο.\n"
 "Σημειώστε ότι τα Direct3D backends είναι διαθέσιμα μόνο στα Windows.\n"
 "\n"
 "Αν δεν είστε σίγουροι, χρησιμοποιήστε το Direct3D 9."
@@ -4598,11 +4376,8 @@ msgid "Serbian"
 msgstr "Σερβικά"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:511
-msgid ""
-"Serial Port 1 - This is the port which devices such as the net adapter use"
-msgstr ""
-"Σειριακή Θύρα 1 - Αυτή είναι η θύρα που χρησιμοποιούν οι συσκευές όπως ο "
-"προσαρμογέας δικτύου"
+msgid "Serial Port 1 - This is the port which devices such as the net adapter use"
+msgstr "Σειριακή Θύρα 1 - Αυτή είναι η θύρα που χρησιμοποιούν οι συσκευές όπως ο προσαρμογέας δικτύου"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:492
 msgid "Set"
@@ -4620,9 +4395,7 @@ msgstr "Ορισμός ως προεπιλεγμένη Κάρτα Μνήμης %
 #: Source/Core/Core/Src/ActionReplay.cpp:460
 #, c-format
 msgid "SetARCode_IsActive: Index is greater than ar code list size %lu"
-msgstr ""
-"SetARCode_IsActive: Ο δείκτης είναι μεγαλύτερος από το μέγεθος λίστας των "
-"κωδικών ar %lu"
+msgstr "SetARCode_IsActive: Ο δείκτης είναι μεγαλύτερος από το μέγεθος λίστας των κωδικών ar %lu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
 msgid "Settings..."
@@ -4743,12 +4516,10 @@ msgstr "Εμφάνιση επιβεβαίωσης πριν τη διακοπή �
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:494
 msgid ""
 "Show a message box when a potentially serious error has occured.\n"
-"Disabling this may avoid annoying and non-fatal messages, but it may also "
-"mean that Dolphin suddenly crashes without any explanation at all."
+"Disabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."
 msgstr ""
 "Εμφάνιση μηνύματος όταν προκύψει ένα πιθανά σοβαρό σφάλμα.\n"
-"Απενεργοποιώντας αυτήν την επιλογή μπορεί να γλιτώσετε από ενοχλητικά μη "
-"κρίσιμα σφάλματα, αλλά \n"
+"Απενεργοποιώντας αυτήν την επιλογή μπορεί να γλιτώσετε από ενοχλητικά μη κρίσιμα σφάλματα, αλλά \n"
 "το Dolphin μπορεί να κρασάρει ξαφνικά χωρίς καμία εξήγηση. "
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:826
@@ -4756,16 +4527,16 @@ msgid "Show first block"
 msgstr "Εμφάνιση πρώτου μπλοκ"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:144
-#, fuzzy
 msgid "Show lag counter"
-msgstr "Εμφάνιση αποθηκευμένου σχολίου"
+msgstr "Εμφάνιση μετρητή καθυστέρησης "
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
 msgid ""
 "Show messages on the emulation screen area.\n"
-"These messages include memory card writes, video backend and CPU "
-"information, and JIT cache clearing."
+"These messages include memory card writes, video backend and CPU information, and JIT cache clearing."
 msgstr ""
+"Εμφανίζει μηνύματα στην περιοχή της εξομοίωσης στην οθόνη.\n"
+"Στα μηνύματα αυτά περιλαμβάνονται εγγραφές στην κάρτα μνήμης, πληροφορίες σχετικά με την CPU και του βίντεο backend, καθώς και καθαρισμού της JIT cache."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:825
 msgid "Show save blocks"
@@ -4785,13 +4556,11 @@ msgstr "Εμφάνιση αποθηκευμένου τίτλου"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
 msgid ""
-"Show the number of frames rendered per second as a measure of emulation "
-"speed.\n"
+"Show the number of frames rendered per second as a measure of emulation speed.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Εμφανίζει τον αριθμό των καρέ που απεικονίζονται ανά δευτερόλεπτο, ως τρόπο "
-"μέτρησης της ταχύτητας εξομοίωσης.\n"
+"Εμφανίζει τον αριθμό των καρέ που απεικονίζονται ανά δευτερόλεπτο, ως τρόπο μέτρησης της ταχύτητας εξομοίωσης.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -4835,13 +4604,11 @@ msgstr "Παράλειψη EFB Πρόσβασης από τη CPU"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:99
 msgid ""
-"Skip the destination alpha pass used in many games for various graphical "
-"effects.\n"
+"Skip the destination alpha pass used in many games for various graphical effects.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Παράλειψη του destination alpha pass που χρησιμοποιείται από πολλά παιχνίδια "
-"σε διάφορα γραφικά εφέ.\n"
+"Παράλειψη του destination alpha pass που χρησιμοποιείται από πολλά παιχνίδια σε διάφορα γραφικά εφέ.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -4849,16 +4616,13 @@ msgstr ""
 msgid ""
 "Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\n"
 "Sometimes also increases visual quality.\n"
-"If you're experiencing any issues, try raising texture cache accuracy or "
-"disable this option.\n"
+"If you're experiencing any issues, try raising texture cache accuracy or disable this option.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Επιταχύνει ελαφρώς τα EFB σε RAM αντίγραφα θυσιάζοντας την ακρίβεια της "
-"εξομοίωσης.\n"
+"Επιταχύνει ελαφρώς τα EFB σε RAM αντίγραφα θυσιάζοντας την ακρίβεια της εξομοίωσης.\n"
 "Μερικές φορές μπορεί να βελτιώσει την οπτική ποιότητα.\n"
-"Αν αντιμετωπίζετε προβλήματα, δοκιμάστε να αυξήσετε την ακρίβεια της cache "
-"υφών ή απενεργοποιήστε αυτήν την επιλογή.\n"
+"Αν αντιμετωπίζετε προβλήματα, δοκιμάστε να αυξήσετε την ακρίβεια της cache υφών ή απενεργοποιήστε αυτήν την επιλογή.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -4886,16 +4650,13 @@ msgstr "Απεικόνιση Λογισμικού"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.h:83
 msgid ""
-"Software rendering is an order of magnitude slower than using the other "
-"backends.\n"
+"Software rendering is an order of magnitude slower than using the other backends.\n"
 "It's only useful for debugging purposes.\n"
 "Do you really want to enable software rendering? If unsure, select 'No'."
 msgstr ""
-"Η απεικόνιση λογισμικού είναι αρκετές βαθμίδες πιο αργή απ' ότι τα υπόλοιπα "
-"backends.\n"
+"Η απεικόνιση λογισμικού είναι αρκετές βαθμίδες πιο αργή απ' ότι τα υπόλοιπα backends.\n"
 "Είναι μόνο χρήσιμη για debugging σκοπούς.\n"
-"Θέλετε όντως να χρησιμοποιήσετε την απεικόνιση λογισμικού; Αν δεν είστε "
-"σίγουροι, επιλέξτε 'Όχι'."
+"Θέλετε όντως να χρησιμοποιήσετε την απεικόνιση λογισμικού; Αν δεν είστε σίγουροι, επιλέξτε 'Όχι'."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:622
 msgid "Sound Settings"
@@ -4927,22 +4688,13 @@ msgstr "Ένταση ηχείου:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:90
 msgid ""
-"Specifies the resolution used to render at. A high resolution will improve "
-"visual quality a lot but is also quite heavy on performance and might cause "
-"glitches in certain games.\n"
-"\"Multiple of 640x528\" is a bit slower than \"Window Size\" but yields less "
-"issues. Generally speaking, the lower the internal resolution is, the better "
-"your performance will be.\n"
+"Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.\n"
+"\"Multiple of 640x528\" is a bit slower than \"Window Size\" but yields less issues. Generally speaking, the lower the internal resolution is, the better your performance will be.\n"
 "\n"
 "If unsure, select 640x528."
 msgstr ""
-"Ορίζει την ανάλυση που θα χρησιμοποιηθεί κατά την απεικόνιση. Μια υψηλή "
-"ανάλυση θα βελτιώσει την οπτική ποιότητα αρκετά αλλά επίσης θα έχει βαρύ "
-"αντίκτυπο στις επιδόσεις και μπορεί να προκαλέσει ελαττώματα σε ορισμένα "
-"παιχνίδια.\n"
-"Το \"Πολλαπλάσιο του 640x528\" είναι λίγο πιο αργό από το \"Μέγεθος Παραθύρου"
-"\" αλλά αποδίδει λιγότερα προβλήματα. Γενικά, όσο χαμηλότερη είναι η "
-"εσωτερική ανάλυση, θα είναι και καλύτερες οι επιδόσεις.\n"
+"Ορίζει την ανάλυση που θα χρησιμοποιηθεί κατά την απεικόνιση. Μια υψηλή ανάλυση θα βελτιώσει την οπτική ποιότητα αρκετά αλλά επίσης θα έχει βαρύ αντίκτυπο στις επιδόσεις και μπορεί να προκαλέσει ελαττώματα σε ορισμένα παιχνίδια.\n"
+"Το \"Πολλαπλάσιο του 640x528\" είναι λίγο πιο αργό από το \"Μέγεθος Παραθύρου\" αλλά αποδίδει λιγότερα προβλήματα. Γενικά, όσο χαμηλότερη είναι η εσωτερική ανάλυση, θα είναι και καλύτερες οι επιδόσεις.\n"
 "\n"
 "Αν δεν είστε σίγουροι, επιλέξτε 640x528."
 
@@ -5001,14 +4753,12 @@ msgstr "Διακοπή"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:94
 msgid ""
 "Store EFB copies in GPU texture objects.\n"
-"This is not so accurate, but it works well enough for most games and gives a "
-"great speedup over EFB to RAM.\n"
+"This is not so accurate, but it works well enough for most games and gives a great speedup over EFB to RAM.\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
 "Αποθήκευση των EFB αντιγράφων σε GPU αντικείμενα υφών.\n"
-"Αυτό δεν είναι τόσο ακριβές, αλλά δουλεύει αρκετά καλά για τα περισσότερα "
-"παιχνίδια και προσφέρει μεγάλη επιτάχυνση σε σχέση με EFB σε RAM.\n"
+"Αυτό δεν είναι τόσο ακριβές, αλλά δουλεύει αρκετά καλά για τα περισσότερα παιχνίδια και προσφέρει μεγάλη επιτάχυνση σε σχέση με EFB σε RAM.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
@@ -5123,12 +4873,8 @@ msgstr ""
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:51
 #, c-format
-msgid ""
-"The file %s could not be opened for writing. Please check if it's already "
-"opened by another program."
-msgstr ""
-"Αδυναμία ανοίγματος του αρχείου %s για εγγραφή. Παρακαλώ ελέγξτε αν είναι "
-"ήδη ανοιχτό από άλλο πρόγραμμα."
+msgid "The file %s could not be opened for writing. Please check if it's already opened by another program."
+msgstr "Αδυναμία ανοίγματος του αρχείου %s για εγγραφή. Παρακαλώ ελέγξτε αν είναι ήδη ανοιχτό από άλλο πρόγραμμα."
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:44
 #, c-format
@@ -5150,33 +4896,25 @@ msgstr "Το όνομα δεν μπορεί να περιέχει τον χαρ�
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:141
 msgid "The resulting decrypted AR code doesn't contain any lines."
-msgstr ""
-"Το αποτέλεσμα αποκρυπτογράφησης του κωδικού AR δεν περιέχει καθόλου γραμμές."
+msgstr "Το αποτέλεσμα αποκρυπτογράφησης του κωδικού AR δεν περιέχει καθόλου γραμμές."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:96
 msgid ""
-"The safer you adjust this, the less likely the emulator will be missing any "
-"texture updates from RAM.\n"
+"The safer you adjust this, the less likely the emulator will be missing any texture updates from RAM.\n"
 "\n"
 "If unsure, use the rightmost value."
 msgstr ""
-"Όσο πιο ασφαλής είναι αυτή η ρύθμιση, τόσο λιγότερο πιθανό ο εξομοιωτής να "
-"χάσει ανανεώσεις των υφών από την RAM.\n"
+"Όσο πιο ασφαλής είναι αυτή η ρύθμιση, τόσο λιγότερο πιθανό ο εξομοιωτής να χάσει ανανεώσεις των υφών από την RAM.\n"
 "\n"
 "Αν δεν είστε σίγουροι, χρησιμοποιήστε την δεξιότερη τιμή."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:444
 msgid "The save you are trying to copy has an invalid file size"
-msgstr ""
-"Το σημείο αποθήκευσης που προσπαθείτε να αντιγράψετε έχει μη έγκυρο μέγεθος"
+msgstr "Το σημείο αποθήκευσης που προσπαθείτε να αντιγράψετε έχει μη έγκυρο μέγεθος"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:352
-msgid ""
-"The selected language is not supported by your system. Falling back to "
-"system default."
-msgstr ""
-"Η επιλεγμένη γλώσσα δεν υποστηρίζεται από το σύστημά σας. Επαναφορά στην "
-"προεπιλογή συστήματος."
+msgid "The selected language is not supported by your system. Falling back to system default."
+msgstr "Η επιλεγμένη γλώσσα δεν υποστηρίζεται από το σύστημά σας. Επαναφορά στην προεπιλογή συστήματος."
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:43
 msgid "The server and client's NetPlay versions are incompatible!"
@@ -5212,12 +4950,8 @@ msgid "Theme selection went wrong"
 msgstr "Η επιλογή θέματος απέτυχε"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
-msgid ""
-"There must be a ticket for 00000001/00000002. Your NAND dump is probably "
-"incomplete."
-msgstr ""
-"Πρέπει να υπάρχει εισητήριο για 00000001/00000002. Το NAND dump σας είναι "
-"πιθανότατα ημιτελές."
+msgid "There must be a ticket for 00000001/00000002. Your NAND dump is probably incomplete."
+msgstr "Πρέπει να υπάρχει εισητήριο για 00000001/00000002. Το NAND dump σας είναι πιθανότατα ημιτελές."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
 msgid ""
@@ -5225,59 +4959,40 @@ msgid ""
 "Undetermined means the game uses Dolphin's setting."
 msgstr ""
 "Αυτές οι ρυθμίσεις υπερισχύουν των γενικών ρυθμίσεων του Dolphin.\n"
-"Αν είναι ακαθόριστη η επιλογή το παιχνίδι χρησιμοποιεί τις γενικές ρυθμίσεις "
-"του Dolphin. "
+"Αν είναι ακαθόριστη η επιλογή το παιχνίδι χρησιμοποιεί τις γενικές ρυθμίσεις του Dolphin. "
 
 #: Source/Core/Core/Src/ActionReplay.cpp:355
-msgid ""
-"This action replay simulator does not support codes that modify Action "
-"Replay itself."
-msgstr ""
-"Αυτός ο προσομοιωτής action replay δεν υποστηρίζει κωδικούς που αλλάζουν το "
-"ίδιο το Action Replay."
+msgid "This action replay simulator does not support codes that modify Action Replay itself."
+msgstr "Αυτός ο προσομοιωτής action replay δεν υποστηρίζει κωδικούς που αλλάζουν το ίδιο το Action Replay."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:514
 msgid "This could cause slow down in Wii Menu and some games."
-msgstr ""
-"Αυτό μπορεί να προκαλέσει καθυστερήσεις στο Μενού Wii και σε μερικά "
-"παιχνίδια."
+msgstr "Αυτό μπορεί να προκαλέσει καθυστερήσεις στο Μενού Wii και σε μερικά παιχνίδια."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:116
 msgid ""
 "This feature allows you to change the game's camera.\n"
-"Hold the right mouse button and move the mouse to pan the camera around. "
-"Hold SHIFT and press one of the WASD keys to move the camera by a certain "
-"step distance (SHIFT+0 to move faster and SHIFT+9 to move slower). Press "
-"SHIFT+R to reset the camera.\n"
+"Hold the right mouse button and move the mouse to pan the camera around. Hold SHIFT and press one of the WASD keys to move the camera by a certain step distance (SHIFT+0 to move faster and SHIFT+9 to move slower). Press SHIFT+R to reset the camera.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Αυτό το χαρακτηριστικό σας επιτρέπει να πειράξετε την κάμερα του "
-"παιχνιδιού.\n"
-"Κρατώντας πατημένο το δεξί πλήκτρο του ποντικιού μετακινήστε το ποντίκι για "
-"να μετακινήσετε τριγύρω την κάμερα. Κρατώντας πατημένο το SHIFT πιέστε ένα "
-"από τα WASD πλήκτρα για να μετακινήσετε την κάμερα κατά μία καθορισμένη "
-"απόσταση (SHIFT+0 για να κινηθεί γρηγορότερα και SHIFT+9 για να κινηθεί πιο "
-"αργά). Πατήστε SHIFT+R για να επαναφέρετε την κάμερα στην αρχική της θέση.\n"
+"Αυτό το χαρακτηριστικό σας επιτρέπει να πειράξετε την κάμερα του παιχνιδιού.\n"
+"Κρατώντας πατημένο το δεξί πλήκτρο του ποντικιού μετακινήστε το ποντίκι για να μετακινήσετε τριγύρω την κάμερα. Κρατώντας πατημένο το SHIFT πιέστε ένα από τα WASD πλήκτρα για να μετακινήσετε την κάμερα κατά μία καθορισμένη απόσταση (SHIFT+0 για να κινηθεί γρηγορότερα και SHIFT+9 για να κινηθεί πιο αργά). Πατήστε SHIFT+R για να επαναφέρετε την κάμερα στην αρχική της θέση.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:486
 msgid ""
-"This splits the Video and CPU threads, so they can be run on separate "
-"cores.\n"
-"Causes major speed improvements on PCs with more than one core, but can also "
-"cause occasional crashes/glitches."
+"This splits the Video and CPU threads, so they can be run on separate cores.\n"
+"Causes major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."
 msgstr ""
-"Χωρίζει τα νήματα του Βίντεο και της CPU, ώστε να τρέχουν σε ξεχωριστούς "
-"πυρήνες.\n"
+"Χωρίζει τα νήματα του Βίντεο και της CPU, ώστε να τρέχουν σε ξεχωριστούς πυρήνες.\n"
 "Προκαλεί μεγάλη επιτάχυνση σε PC με περισσότερους από έναν πυρήνες,\n"
 "αλλά μπορεί να προκαλέσει κρασαρίσματα ή άλλα προβλήματα. "
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:292
 msgid "This will let you Manually Edit the INI config file"
-msgstr ""
-"Αυτό σας επιτρέπει την χειροκίνητη επεξεργασία του αρχείου ρυθμίσεων INI"
+msgstr "Αυτό σας επιτρέπει την χειροκίνητη επεξεργασία του αρχείου ρυθμίσεων INI"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:249
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:254
@@ -5325,7 +5040,8 @@ msgstr "Προσπάθεια φόρτωσης ενός άγνωστου τύπο
 msgid "Triggers"
 msgstr "Σκανδάλες"
 
-#: Source/Core/Common/Src/SysConf.h:91 Source/Core/Common/Src/SysConf.h:114
+#: Source/Core/Common/Src/SysConf.h:91
+#: Source/Core/Common/Src/SysConf.h:114
 msgid "Trying to read from invalid SYSCONF"
 msgstr "Προσπάθεια ανάγνωσης από ένα μη έγκυρο SYSCONF"
 
@@ -5363,9 +5079,9 @@ msgid "UNKNOWN"
 msgstr "ΑΓΝΩΣΤΟ"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:754
-#, fuzzy, c-format
+#, c-format
 msgid "UNKNOWN_%02X"
-msgstr "ΑΓΝΩΣΤΟ"
+msgstr "ΑΓΝΩΣΤΟ_%02X"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:183
 msgid "USA"
@@ -5382,13 +5098,10 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:123
 #, c-format
 msgid ""
-"Unable to parse line %lu of the entered AR code as a valid encrypted or "
-"decrypted code.  Make sure you typed it correctly.\n"
+"Unable to parse line %lu of the entered AR code as a valid encrypted or decrypted code.  Make sure you typed it correctly.\n"
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
-"Δεν μπορεί να γίνει parse της γραμμής %lu από τον εισαγώμενο κωδικό AR ως "
-"ένας έγκυρος κωδικοποιημένος ή αποκωδικοποιημένος κωδικός. Σιγουρευτείτε ότι "
-"τον πληκτρολογήσατε σωστά.\n"
+"Δεν μπορεί να γίνει parse της γραμμής %lu από τον εισαγώμενο κωδικό AR ως ένας έγκυρος κωδικοποιημένος ή αποκωδικοποιημένος κωδικός. Σιγουρευτείτε ότι τον πληκτρολογήσατε σωστά.\n"
 "Θα θέλατε να αγνοήσετε αυτήν την γραμμή και να συνεχίσετε με το parsing;"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:405
@@ -5402,7 +5115,7 @@ msgstr "Αναίρεση Φόρτωσης Σημείου Αποθ. "
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:716
 msgid "Unexpected 0x80 call? Aborting..."
-msgstr ""
+msgstr "Αναπάντεχη 0x80 κλήση; Ματαίωση..."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:216
 msgid "Unknown"
@@ -5466,23 +5179,19 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Χρησιμοποίηση πολλαπλών νημάτων για την αποκωδικοποίηση υφών.\n"
-"Μπορεί να βελτιώσει την ταχύτητα (ειδικά σε CPUs με περισσότερους από δύο "
-"πυρήνες).\n"
+"Μπορεί να βελτιώσει την ταχύτητα (ειδικά σε CPUs με περισσότερους από δύο πυρήνες).\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:124
 msgid ""
 "Usually if shader compilation fails, an error message is displayed.\n"
-"However, one may skip the popups to allow interruption free gameplay by "
-"checking this option.\n"
+"However, one may skip the popups to allow interruption free gameplay by checking this option.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Συνήθως άμα αποτύχει η μεταγλώττιση ενός shader, θα εμφανιστεί ένα μύνημα "
-"σφάλματος.\n"
-"Παρόλα αυτά μπορείτε να παραλείψετε το αναδυόμενο μύνημα ώστε να έχετε "
-"gameplay χωρίς παρεμβάσεις επιλέγοντας αυτήν την ρύθμιση.\n"
+"Συνήθως άμα αποτύχει η μεταγλώττιση ενός shader, θα εμφανιστεί ένα μήνυμα σφάλματος.\n"
+"Παρόλα αυτά μπορείτε να παραλείψετε το αναδυόμενο μύνημα ώστε να έχετε gameplay χωρίς παρεμβάσεις επιλέγοντας αυτήν την ρύθμιση.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -5539,8 +5248,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Αναμονή για την κάθετη ανανέωση της οθόνης ώστε να μειωθεί το σπάσιμο της "
-"εικόνας.\n"
+"Αναμονή για την κάθετη ανανέωση της οθόνης ώστε να μειωθεί το σπάσιμο της εικόνας.\n"
 "Μειώνει τις επιδόσεις αν η ταχύτητα εξομοίωσης είναι μικρότερη από 100%.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
@@ -5570,8 +5278,7 @@ msgid ""
 "%s\n"
 "Do you wish to continue?"
 msgstr ""
-"Προειδοποίηση! Συστήνεται η δημιουργία αντιγράφου ασφαλείας όλων των αρχείων "
-"στον φάκελο:\n"
+"Προειδοποίηση! Συστήνεται η δημιουργία αντιγράφου ασφαλείας όλων των αρχείων στον φάκελο:\n"
 "%s\n"
 "Θέλετε να συνεχίσετε;"
 
@@ -5583,71 +5290,43 @@ msgid ""
 "and have the same name as a file on your memcard\n"
 "Continue?"
 msgstr ""
-"Προειδοποίηση: Αυτό θα αντικαταστήσει όλα τα υπάρχοντα σημεία αποθήκευσης "
-"που υπάρχουν στον φάκελο:\n"
+"Προειδοποίηση: Αυτό θα αντικαταστήσει όλα τα υπάρχοντα σημεία αποθήκευσης που υπάρχουν στον φάκελο:\n"
 "%s\n"
 "και έχουν το ίδιο όνομα με αρχεία στη memcard\n"
 "Συνέχεια;"
 
 #: Source/Core/Core/Src/Movie.cpp:825
 #, c-format
-msgid ""
-"Warning: You loaded a save that's after the end of the current movie. (byte "
-"%u > %u) (frame %u > %u). You should load another save before continuing, or "
-"load this state with read-only mode off."
-msgstr ""
-"Προειδοποίηση: Φορτώσατε ένα σημείο αποθήκευσης που βρίσκεται μετά το τέλος "
-"της τρέχουσας ταινίας. (byte %u > %u) (frame %u > %u). Θα πρέπει να "
-"φορτώσετε άλλο σημείο αποθήκευσης πρωτού συνεχίσετε ή να φορτώσετε το τρέχων "
-"με απενεργοποιημένη την λειτουργία Μόνο Για Ανάγνωση (Εγγραφής)."
+msgid "Warning: You loaded a save that's after the end of the current movie. (byte %u > %u) (frame %u > %u). You should load another save before continuing, or load this state with read-only mode off."
+msgstr "Προειδοποίηση: Φορτώσατε ένα σημείο αποθήκευσης που βρίσκεται μετά το τέλος της τρέχουσας ταινίας. (byte %u > %u) (frame %u > %u). Θα πρέπει να φορτώσετε άλλο σημείο αποθήκευσης πρωτού συνεχίσετε ή να φορτώσετε το τρέχων με απενεργοποιημένη την λειτουργία Μόνο Για Ανάγνωση (Εγγραφής)."
 
 #: Source/Core/Core/Src/Movie.cpp:842
 #, c-format
-msgid ""
-"Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
-"should load another save before continuing, or load this state with read-"
-"only mode off. Otherwise you'll probably get a desync."
-msgstr ""
-"Προειδοποίηση: Φορτώσατε ένα σημείο αποθήκευσης του οποίου η ταινία "
-"εμφανίζει ασυμφωνία στο byte %d (0x%X). Θα πρέπει να φορτώσετε άλλο σημείο "
-"αποθήκευσης πρωτού συνεχίσετε ή να φορτώσετε το τρέχων με απενεργοποιημένη "
-"την λειτουργία Μόνο Για Ανάγνωση (Εγγραφής). Ειδάλλως πιθανώς θα εμφανιστεί "
-"ασυγχρονισμός."
+msgid "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync."
+msgstr "Προειδοποίηση: Φορτώσατε ένα σημείο αποθήκευσης του οποίου η ταινία εμφανίζει ασυμφωνία στο byte %d (0x%X). Θα πρέπει να φορτώσετε άλλο σημείο αποθήκευσης πρωτού συνεχίσετε ή να φορτώσετε το τρέχων με απενεργοποιημένη την λειτουργία Μόνο Για Ανάγνωση (Εγγραφής). Ειδάλλως πιθανώς θα εμφανιστεί ασυγχρονισμός."
 
 #: Source/Core/Core/Src/Movie.cpp:851
 #, c-format
 msgid ""
-"Warning: You loaded a save whose movie mismatches on frame %d. You should "
-"load another save before continuing, or load this state with read-only mode "
-"off. Otherwise you'll probably get a desync.\n"
+"Warning: You loaded a save whose movie mismatches on frame %d. You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.\n"
 "\n"
-"More information: The current movie is %d frames long and the savestate's "
-"movie is %d frames long.\n"
+"More information: The current movie is %d frames long and the savestate's movie is %d frames long.\n"
 "\n"
 "On frame %d, the current movie presses:\n"
-"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
-"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
 "\n"
 "On frame %d, the savestate's movie presses:\n"
-"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
-"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 msgstr ""
-"Προειδοποίηση: Φορτώσατε ένα σημείο αποθήκευσης του οποίου η ταινία "
-"εμφανίζει ασυμφωνία στο καρέ %d. Θα πρέπει να φορτώσετε άλλο σημείο "
-"αποθήκευσης πρωτού συνεχίσετε ή να φορτώσετε το τρέχων με απενεργοποιημένη "
-"την λειτουργία Μόνο Για Ανάγνωση (Εγγραφής). Ειδάλλως πιθανώς θα εμφανιστεί "
-"ασυγχρονισμός.\n"
+"Προειδοποίηση: Φορτώσατε ένα σημείο αποθήκευσης του οποίου η ταινία εμφανίζει ασυμφωνία στο καρέ %d. Θα πρέπει να φορτώσετε άλλο σημείο αποθήκευσης πρωτού συνεχίσετε ή να φορτώσετε το τρέχων με απενεργοποιημένη την λειτουργία Μόνο Για Ανάγνωση (Εγγραφής). Ειδάλλως πιθανώς θα εμφανιστεί ασυγχρονισμός.\n"
 "\n"
-"Περισσότερες πληροφορίες: Η τρέχουσα ταινία έχει μήκος %d καρέ και η ταινία "
-"του σημείου αποθήκευσης έχει μήκος %d καρέ.\n"
+"Περισσότερες πληροφορίες: Η τρέχουσα ταινία έχει μήκος %d καρέ και η ταινία του σημείου αποθήκευσης έχει μήκος %d καρέ.\n"
 "\n"
 "Στο καρέ %d, η τρέχουσα ταινία εμφανίζει τους χειρισμούς:\n"
-"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
-"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
 "\n"
 "Στο καρέ %d, η ταινία του σημείου αποθήκευσης εμφανίζει τους χειρισμούς:\n"
-"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
-"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:106
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:120
@@ -5785,7 +5464,7 @@ msgstr "Αποτυχία δημιουργίας κεντρικής φωνής XA
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:764
 msgid "XF reg"
-msgstr ""
+msgstr "XF reg"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Yellow"
@@ -5821,8 +5500,7 @@ msgstr "Πρέπει να εισάγετε ένα έγκυρο όνομα προ
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:884
 msgid "You must restart Dolphin in order for the change to take effect."
-msgstr ""
-"Πρέπει να κάνετε επανεκκίνηση του Dolphin για να έχει επίπτωση αυτή η αλλαγή."
+msgstr "Πρέπει να κάνετε επανεκκίνηση του Dolphin για να έχει επίπτωση αυτή η αλλαγή."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:177
 msgid ""
@@ -5880,19 +5558,14 @@ msgstr "[Προσαρμοζόμενο]"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
 msgid ""
 "[EXPERIMENTAL]\n"
-"Aims to speed up emulation by offloading texture decoding to the GPU using "
-"the OpenCL framework.\n"
-"However, right now it's known to cause texture defects in various games. "
-"Also it's slower than regular CPU texture decoding in most cases.\n"
+"Aims to speed up emulation by offloading texture decoding to the GPU using the OpenCL framework.\n"
+"However, right now it's known to cause texture defects in various games. Also it's slower than regular CPU texture decoding in most cases.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
 "[ΠΕΙΡΑΜΑΤΙΚΟ]\n"
-"Στοχεύει στην επιτάχυνση της εξομοίωσης φορτώνοντας την αποκωδικοποίηση των "
-"υφών στην GPU χρησιμοποιώντας το OpenCL framework.\n"
-"Παρ'όλα αυτά, προς το παρόν είναι γνωστό ότι προκαλεί προβλήματα στις υφές "
-"σε διάφορα παιχνίδια. Επίσης είναι πιο αργή από την τυπική αποκωδικοποίηση "
-"υφών από την CPU στις περισσότερες περιπτώσεις.\n"
+"Στοχεύει στην επιτάχυνση της εξομοίωσης φορτώνοντας την αποκωδικοποίηση των υφών στην GPU χρησιμοποιώντας το OpenCL framework.\n"
+"Παρ'όλα αυτά, προς το παρόν είναι γνωστό ότι προκαλεί προβλήματα στις υφές σε διάφορα παιχνίδια. Επίσης είναι πιο αργή από την τυπική αποκωδικοποίηση υφών από την CPU στις περισσότερες περιπτώσεις.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -5939,9 +5612,7 @@ msgstr "iCacheJIT: Ανάγνωση Opcode από %x. Παρακαλώ να το
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:108
 #, c-format
 msgid "not a wii save or read failure for file header size %x"
-msgstr ""
-"δεν είναι σημείο αποθήκευσης wii ή αποτυχία ανάγνωσης κεφαλίδας αρχείου "
-"μεγέθους %x"
+msgstr "δεν είναι σημείο αποθήκευσης wii ή αποτυχία ανάγνωσης κεφαλίδας αρχείου μεγέθους %x"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:933
 msgid "s"
