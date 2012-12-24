@@ -94,11 +94,6 @@ typedef struct
 } ScrStrct;
 #endif
 
-#if defined HAVE_CG && HAVE_CG
-CGcontext g_cgcontext;
-CGprofile g_cgvProf;
-CGprofile g_cgfProf;
-#endif
 
 int OSDInternalW, OSDInternalH;
 
@@ -185,16 +180,6 @@ static const GLenum glLogicOpCodes[16] = {
 	GL_SET
 };
 
-#if defined HAVE_CG && HAVE_CG
-void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
-{
-	DEBUG_LOG(VIDEO, "Cg error: %s", cgGetErrorString(err));
-	const char* listing = cgGetLastListing(g_cgcontext);
-	if (listing != NULL)
-		DEBUG_LOG(VIDEO, "    last listing: %s", listing);
-}
-#endif
-
 int GetNumMSAASamples(int MSAAMode)
 {
 	// required for MSAA
@@ -255,12 +240,6 @@ Renderer::Renderer()
 
 	InitFPSCounter();
 
-#if defined HAVE_CG && HAVE_CG
-	g_cgcontext = cgCreateContext();
-	cgGetError();
-	cgSetErrorHandler(HandleCgError, NULL);
-#endif
-
 	// Look for required extensions.
 	const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
 	if (!ptoken)
@@ -314,26 +293,23 @@ Renderer::Renderer()
 
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
-	if(g_ActiveConfig.bUseGLSL)
-	{
-		// TODO: Switch over to using glew once 1.6/1.7 becomes more mainstream, seems most people are stuck in 1.5
-		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_shading_language_420pack") != NULL)
-			g_Config.backend_info.bSupportsGLSLBinding = true;
-		if (glewIsSupported("GL_ARB_blend_func_extended"))
-			g_Config.backend_info.bSupportsGLSLBlend = true;
-		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_uniform_buffer_object") != NULL)
-			g_Config.backend_info.bSupportsGLSLUBO = true;
-		if ((g_Config.backend_info.bSupportsGLSLBinding || g_Config.backend_info.bSupportsGLSLUBO) && strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_explicit_attrib_location") != NULL)
-			g_Config.backend_info.bSupportsGLSLATTRBind = true;
-		if (strstr((const char*)glGetString(GL_EXTENSIONS), "GL_ARB_get_program_binary") != NULL)
-			g_Config.backend_info.bSupportsGLSLCache = true;
+
+	if (glewIsSupported("GL_ARB_shading_language_420pack"))
+		g_Config.backend_info.bSupportsGLSLBinding = true;
+	if (glewIsSupported("GL_ARB_blend_func_extended"))
+		g_Config.backend_info.bSupportsGLSLBlend = true;
+	if (glewIsSupported("GL_ARB_uniform_buffer_object"))
+		g_Config.backend_info.bSupportsGLSLUBO = true;
+	if ((g_Config.backend_info.bSupportsGLSLBinding || g_Config.backend_info.bSupportsGLSLUBO) && glewIsSupported("GL_ARB_explicit_attrib_location"))
+		g_Config.backend_info.bSupportsGLSLATTRBind = true;
+	if (glewIsSupported("GL_ARB_get_program_binary"))
+		g_Config.backend_info.bSupportsGLSLCache = true;
 		
 		UpdateActiveConfig();
-		OSD::AddMessage(StringFromFormat("Using GLSL. Supports Binding: %s UBOs: %s Cache: %s",
+		OSD::AddMessage(StringFromFormat("Supports Binding: %s UBOs: %s Cache: %s",
 				g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "True" : "False",
 				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False",
 				g_ActiveConfig.backend_info.bSupportsGLSLCache ? "True" : "False").c_str(), 5000);
-	}
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
@@ -411,74 +387,7 @@ Renderer::Renderer()
 		bSuccess = false;
 
 	s_pfont = new RasterFont();
-
-#if defined HAVE_CG && HAVE_CG
-	// load the effect, find the best profiles (if any)
-	if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1) != CG_TRUE)
-	{
-		ERROR_LOG(VIDEO, "arbvp1 not supported");
-		return;	// TODO: fail
-	}
-
-	if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1) != CG_TRUE)
-	{
-		ERROR_LOG(VIDEO, "arbfp1 not supported");
-		return;	// TODO: fail
-	}
-
-	g_cgvProf = cgGLGetLatestProfile(CG_GL_VERTEX);
-	g_cgfProf = cgGLGetLatestProfile(CG_GL_FRAGMENT);
-	if (strstr((const char*)glGetString(GL_VENDOR), "Humper") == NULL)
-	{
-#if CG_VERSION_NUM == 2100
-	// A bug was introduced in Cg2.1's handling of very large profile option values
-	// so this will not work on ATI. ATI returns MAXINT = 2147483647 (0x7fffffff)
-	// which is correct in OpenGL but Cg fails to handle it properly. As a result
-	// -1 is used by Cg resulting (signedness incorrect) and compilation fails.
-		if (strstr((const char*)glGetString(GL_VENDOR), "ATI") == NULL)
-#endif
-		{
-			cgGLSetOptimalOptions(g_cgvProf);
-			cgGLSetOptimalOptions(g_cgfProf);
-		}
-	}
-#else
-	// If we don't have Nvidia CG, we HAVE to use GLSL
-	g_Config.bUseGLSL = true;
-	UpdateActiveConfig();
-	INFO_LOG(VIDEO, "CG not found, switching to GLSL");
-#endif	// HAVE_CG
-
-	int nenvvertparams, nenvfragparams, naddrregisters[2];
-	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,
-			GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,
-			(GLint *)&nenvvertparams);
-	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB,
-			GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,
-			(GLint *)&nenvfragparams);
-	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,
-			GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB,
-			(GLint *)&naddrregisters[0]);
-	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB,
-			GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB,
-			(GLint *)&naddrregisters[1]);
-	DEBUG_LOG(VIDEO, "Max program env parameters: vert=%d, frag=%d",
-			nenvvertparams, nenvfragparams);
-	DEBUG_LOG(VIDEO, "Max program address register parameters: vert=%d, frag=%d",
-			naddrregisters[0], naddrregisters[1]);
-
-	if (nenvvertparams < 238)
-		ERROR_LOG(VIDEO, "Not enough vertex shader environment constants!!");
-
-#if defined HAVE_CG && HAVE_CG
-	INFO_LOG(VIDEO, "Max buffer sizes: %d %d",
-		cgGetProgramBufferMaxSize(g_cgvProf),
-		cgGetProgramBufferMaxSize(g_cgfProf));
-#ifndef _DEBUG
-	cgGLSetDebugMode(GL_FALSE);
-#endif
-#endif
-
+	
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
 
@@ -527,14 +436,6 @@ Renderer::~Renderer()
 	UpdateActiveConfig();
 	delete s_pfont;
 	s_pfont = 0;
-
-#if defined HAVE_CG && HAVE_CG
-	if (g_cgcontext)
-	{
-		cgDestroyContext(g_cgcontext);
-		g_cgcontext = 0;
-	}
-#endif
 
 #if defined(HAVE_WX) && HAVE_WX
 	if (scrshotThread.joinable())
@@ -962,7 +863,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
-	bool useDualSource = useDstAlpha && g_ActiveConfig.bUseGLSL && g_ActiveConfig.backend_info.bSupportsGLSLBlend;
+	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsGLSLBlend;
 
 	if (changes & 1)
 		// blend enable change
@@ -1139,7 +1040,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			// It takes care of disabling it in that case. It returns false in
 			// case of no post processing.
 			if (applyShader)
-				PixelShaderCache::DisableShader();
+				ProgramShaderCache::SetBothShaders(0, 0);
 		}
 	}
 	else
@@ -1168,7 +1069,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
 			glVertex2f( 1, -1);
 			glEnd();
-			PixelShaderCache::DisableShader();
+			ProgramShaderCache::SetBothShaders(0, 0);
 		}
 		else
 		{
@@ -1432,13 +1333,8 @@ void Renderer::ResetAPIState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
 	// image copies with textured quads, etc.
-	if (g_ActiveConfig.bUseGLSL) 
-		ProgramShaderCache::SetBothShaders(0, 0);
-	else
-	{
-		VertexShaderCache::DisableShader();
-		PixelShaderCache::DisableShader();
-	}
+	ProgramShaderCache::SetBothShaders(0, 0);
+
 	glDisable(GL_SCISSOR_TEST);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -1460,13 +1356,7 @@ void Renderer::RestoreAPIState()
 
 	glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
 
-	if(g_ActiveConfig.bUseGLSL)
-		ProgramShaderCache::SetBothShaders(0, 0);
-	else
-	{
-		VertexShaderCache::SetCurrentShader(0);
-		PixelShaderCache::SetCurrentShader(0);
-	}
+	ProgramShaderCache::SetBothShaders(0, 0);
 }
 
 void Renderer::SetGenerationMode()

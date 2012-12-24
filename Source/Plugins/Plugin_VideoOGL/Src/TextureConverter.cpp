@@ -61,69 +61,45 @@ static FRAGMENTSHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 void CreateRgbToYuyvProgram()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
-	if (g_ActiveConfig.bUseGLSL)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 	{
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-		{
-			const char *FProgram =
-			"#version 330 compatibility\n"
-			"#extension GL_ARB_texture_rectangle : enable\n"
-			"#extension GL_ARB_shading_language_420pack : enable\n"
-			"layout(binding = 0) uniform sampler2DRect samp0;\n"
-			"void main()\n"
-			"{\n"
-			"  vec2 uv1 = vec2(gl_TexCoord[0].x + 1.0f, gl_TexCoord[0].y);\n"
-			"  vec3 c0 = texture2DRect(samp0, gl_TexCoord[0].xy).rgb;\n"
-			"  vec3 c1 = texture2DRect(samp0, uv1).rgb;\n"
-			"  vec3 y_const = vec3(0.257f,0.504f,0.098f);\n"
-			"  vec3 u_const = vec3(-0.148f,-0.291f,0.439f);\n"
-			"  vec3 v_const = vec3(0.439f,-0.368f,-0.071f);\n"
-			"  vec4 const3 = vec4(0.0625f,0.5f,0.0625f,0.5f);\n"
-			"  vec3 c01 = (c0 + c1) * 0.5f;\n"
-			"  gl_FragData[0] = vec4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
-			"}\n";
-			if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram))
-				ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program.");
-		}
-		else
-		{
-			const char *FProgram =
-			"#version 120\n"
-			"#extension GL_ARB_texture_rectangle : enable\n"
-			"uniform sampler2DRect samp0;\n"
-			"void main()\n"
-			"{\n"
-			"  vec2 uv1 = vec2(gl_TexCoord[0].x + 1.0f, gl_TexCoord[0].y);\n"
-			"  vec3 c0 = texture2DRect(samp0, gl_TexCoord[0].xy).rgb;\n"
-			"  vec3 c1 = texture2DRect(samp0, uv1).rgb;\n"
-			"  vec3 y_const = vec3(0.257f,0.504f,0.098f);\n"
-			"  vec3 u_const = vec3(-0.148f,-0.291f,0.439f);\n"
-			"  vec3 v_const = vec3(0.439f,-0.368f,-0.071f);\n"
-			"  vec4 const3 = vec4(0.0625f,0.5f,0.0625f,0.5f);\n"
-			"  vec3 c01 = (c0 + c1) * 0.5f;\n"
-			"  gl_FragData[0] = vec4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
-			"}\n";
-			if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram))
-				ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program.");
-		}
+		const char *FProgram =
+		"#version 330 compatibility\n"
+		"#extension GL_ARB_texture_rectangle : enable\n"
+		"#extension GL_ARB_shading_language_420pack : enable\n"
+		"layout(binding = 0) uniform sampler2DRect samp0;\n"
+		"void main()\n"
+		"{\n"
+		"  vec2 uv1 = vec2(gl_TexCoord[0].x + 1.0f, gl_TexCoord[0].y);\n"
+		"  vec3 c0 = texture2DRect(samp0, gl_TexCoord[0].xy).rgb;\n"
+		"  vec3 c1 = texture2DRect(samp0, uv1).rgb;\n"
+		"  vec3 y_const = vec3(0.257f,0.504f,0.098f);\n"
+		"  vec3 u_const = vec3(-0.148f,-0.291f,0.439f);\n"
+		"  vec3 v_const = vec3(0.439f,-0.368f,-0.071f);\n"
+		"  vec4 const3 = vec4(0.0625f,0.5f,0.0625f,0.5f);\n"
+		"  vec3 c01 = (c0 + c1) * 0.5f;\n"
+		"  gl_FragData[0] = vec4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
+		"}\n";
+		if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram))
+			ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program.");
 	}
 	else
 	{
 		const char *FProgram =
-		"uniform samplerRECT samp0 : register(s0);\n"
-		"void main(\n"
-		"  out float4 ocol0 : COLOR0,\n"
-		"  in float2 uv0 : TEXCOORD0)\n"
+		"#version 120\n"
+		"#extension GL_ARB_texture_rectangle : enable\n"
+		"uniform sampler2DRect samp0;\n"
+		"void main()\n"
 		"{\n"
-		"  float2 uv1 = float2(uv0.x + 1.0f, uv0.y);\n"
-		"  float3 c0 = texRECT(samp0, uv0).rgb;\n"
-		"  float3 c1 = texRECT(samp0, uv1).rgb;\n"
-		"  float3 y_const = float3(0.257f,0.504f,0.098f);\n"
-		"  float3 u_const = float3(-0.148f,-0.291f,0.439f);\n"
-		"  float3 v_const = float3(0.439f,-0.368f,-0.071f);\n"
-		"  float4 const3 = float4(0.0625f,0.5f,0.0625f,0.5f);\n"
-		"  float3 c01 = (c0 + c1) * 0.5f;\n"
-		"  ocol0 = float4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
+		"  vec2 uv1 = vec2(gl_TexCoord[0].x + 1.0f, gl_TexCoord[0].y);\n"
+		"  vec3 c0 = texture2DRect(samp0, gl_TexCoord[0].xy).rgb;\n"
+		"  vec3 c1 = texture2DRect(samp0, uv1).rgb;\n"
+		"  vec3 y_const = vec3(0.257f,0.504f,0.098f);\n"
+		"  vec3 u_const = vec3(-0.148f,-0.291f,0.439f);\n"
+		"  vec3 v_const = vec3(0.439f,-0.368f,-0.071f);\n"
+		"  vec4 const3 = vec4(0.0625f,0.5f,0.0625f,0.5f);\n"
+		"  vec3 c01 = (c0 + c1) * 0.5f;\n"
+		"  gl_FragData[0] = vec4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
 		"}\n";
 		if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram))
 			ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program.");
@@ -132,82 +108,54 @@ void CreateRgbToYuyvProgram()
 
 void CreateYuyvToRgbProgram()
 {
-	if (g_ActiveConfig.bUseGLSL)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 	{
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-		{
-			const char *FProgram =
-				"#version 330 compatibility\n"
-				"#extension GL_ARB_texture_rectangle : enable\n"
-				"#extension GL_ARB_shading_language_420pack : enable\n"
-				"layout(binding = 0) uniform sampler2DRect samp0;\n"
-				"void main()\n"
-				"{\n"
-				"  vec4 c0 = texture2DRect(samp0, gl_TexCoord[0].xy).rgba;\n"
+		const char *FProgram =
+			"#version 330 compatibility\n"
+			"#extension GL_ARB_texture_rectangle : enable\n"
+			"#extension GL_ARB_shading_language_420pack : enable\n"
+			"layout(binding = 0) uniform sampler2DRect samp0;\n"
+			"void main()\n"
+			"{\n"
+			"  vec4 c0 = texture2DRect(samp0, gl_TexCoord[0].xy).rgba;\n"
 
-				"  float f = step(0.5, fract(gl_TexCoord[0].x));\n"
-				"  float y = mix(c0.b, c0.r, f);\n"
-				"  float yComp = 1.164f * (y - 0.0625f);\n"
-				"  float uComp = c0.g - 0.5f;\n"
-				"  float vComp = c0.a - 0.5f;\n"
+			"  float f = step(0.5, fract(gl_TexCoord[0].x));\n"
+			"  float y = mix(c0.b, c0.r, f);\n"
+			"  float yComp = 1.164f * (y - 0.0625f);\n"
+			"  float uComp = c0.g - 0.5f;\n"
+			"  float vComp = c0.a - 0.5f;\n"
 
-				"  gl_FragData[0] = vec4(yComp + (1.596f * vComp),\n"
-				"                 yComp - (0.813f * vComp) - (0.391f * uComp),\n"
-				"                 yComp + (2.018f * uComp),\n"
-				"                 1.0f);\n"
-				"}\n";
-			if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgram))
-				ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program.");
-		}
-		else
-		{
-			const char *FProgram =
-				"#version 120\n"
-				"#ifdef GL_ARB_texture_rectangle\n"
-				"#extension GL_ARB_texture_rectangle : require\n"
-				"#endif\n"
-				"uniform sampler2DRect samp0;\n"
-				"void main()\n"
-				"{\n"
-				"  vec4 c0 = texture2DRect(samp0, gl_TexCoord[0].xy).rgba;\n"
-
-				"  float f = step(0.5, fract(gl_TexCoord[0].x));\n"
-				"  float y = mix(c0.b, c0.r, f);\n"
-				"  float yComp = 1.164f * (y - 0.0625f);\n"
-				"  float uComp = c0.g - 0.5f;\n"
-				"  float vComp = c0.a - 0.5f;\n"
-
-				"  gl_FragData[0] = vec4(yComp + (1.596f * vComp),\n"
-				"                 yComp - (0.813f * vComp) - (0.391f * uComp),\n"
-				"                 yComp + (2.018f * uComp),\n"
-				"                 1.0f);\n"
-				"}\n";
-			if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgram))
-				ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program.");
-		}
+			"  gl_FragData[0] = vec4(yComp + (1.596f * vComp),\n"
+			"                 yComp - (0.813f * vComp) - (0.391f * uComp),\n"
+			"                 yComp + (2.018f * uComp),\n"
+			"                 1.0f);\n"
+			"}\n";
+		if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgram))
+			ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program.");
 	}
 	else
 	{
 		const char *FProgram =
-		"uniform samplerRECT samp0 : register(s0);\n"
-		"void main(\n"
-		"  out float4 ocol0 : COLOR0,\n"
-		"  in float2 uv0 : TEXCOORD0)\n"
-		"{\n"
-		"  float4 c0 = texRECT(samp0, uv0).rgba;\n"
+			"#version 120\n"
+			"#ifdef GL_ARB_texture_rectangle\n"
+			"#extension GL_ARB_texture_rectangle : require\n"
+			"#endif\n"
+			"uniform sampler2DRect samp0;\n"
+			"void main()\n"
+			"{\n"
+			"  vec4 c0 = texture2DRect(samp0, gl_TexCoord[0].xy).rgba;\n"
 
-		"  float f = step(0.5, frac(uv0.x));\n"
-		"  float y = lerp(c0.b, c0.r, f);\n"
-		"  float yComp = 1.164f * (y - 0.0625f);\n"
-		"  float uComp = c0.g - 0.5f;\n"
-		"  float vComp = c0.a - 0.5f;\n"
+			"  float f = step(0.5, fract(gl_TexCoord[0].x));\n"
+			"  float y = mix(c0.b, c0.r, f);\n"
+			"  float yComp = 1.164f * (y - 0.0625f);\n"
+			"  float uComp = c0.g - 0.5f;\n"
+			"  float vComp = c0.a - 0.5f;\n"
 
-		"  ocol0 = float4(yComp + (1.596f * vComp),\n"
-		"                 yComp - (0.813f * vComp) - (0.391f * uComp),\n"
-		"                 yComp + (2.018f * uComp),\n"
-		"                 1.0f);\n"
-		"}\n";
-
+			"  gl_FragData[0] = vec4(yComp + (1.596f * vComp),\n"
+			"                 yComp - (0.813f * vComp) - (0.391f * uComp),\n"
+			"                 yComp + (2.018f * uComp),\n"
+			"                 1.0f);\n"
+			"}\n";
 		if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgram))
 			ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program.");
 	}
@@ -223,7 +171,7 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 
 	if (s_encodingPrograms[format].glprogid == 0)
 	{
-		const char* shader = TextureConversionShader::GenerateEncodingShader(format, g_ActiveConfig.bUseGLSL ? API_GLSL : API_OPENGL);
+		const char* shader = TextureConversionShader::GenerateEncodingShader(format, API_GLSL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)
@@ -390,10 +338,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-	if (g_ActiveConfig.bUseGLSL)
-		ProgramShaderCache::SetBothShaders(texconv_shader.glprogid, 0);
-	else
-		PixelShaderCache::SetCurrentShader(texconv_shader.glprogid);
+	ProgramShaderCache::SetBothShaders(texconv_shader.glprogid, 0);
 		
 	float sampleStride = bScaleByHalf ? 2.f : 1.f;
 	TextureConversionShader::SetShaderParameters((float)expandedWidth,
@@ -425,10 +370,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 {
 	g_renderer->ResetAPIState();
 	
-	if (g_ActiveConfig.bUseGLSL)
-		ProgramShaderCache::SetBothShaders(s_rgbToYuyvProgram.glprogid, 0);
-	else
-		PixelShaderCache::SetCurrentShader(s_rgbToYuyvProgram.glprogid);
+	ProgramShaderCache::SetBothShaders(s_rgbToYuyvProgram.glprogid, 0);
 		
 	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	FramebufferManager::SetFramebuffer(0);
@@ -486,10 +428,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	}
 
 	glViewport(0, 0, srcWidth, srcHeight);
-	if (g_ActiveConfig.bUseGLSL)
-		ProgramShaderCache::SetBothShaders(s_yuyvToRgbProgram.glprogid, 0);
-	else
-		PixelShaderCache::SetCurrentShader(s_yuyvToRgbProgram.glprogid);
+	ProgramShaderCache::SetBothShaders(s_yuyvToRgbProgram.glprogid, 0);
 
 	GL_REPORT_ERRORD();
 

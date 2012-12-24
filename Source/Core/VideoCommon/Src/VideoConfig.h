@@ -103,7 +103,6 @@ struct VideoConfig
 	bool bWireFrame;
 	bool bDstAlphaPass;
 	bool bDisableFog;
-	bool bUseGLSL;
 	
 	// Utility
 	bool bDumpTextures;

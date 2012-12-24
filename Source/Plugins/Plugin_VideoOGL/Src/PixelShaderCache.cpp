@@ -50,11 +50,6 @@ bool PixelShaderCache::ShaderEnabled;
 PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry = NULL;
 PIXELSHADERUID PixelShaderCache::last_uid;
 
-void (*pSetPSConstant4f)(unsigned int, float, float, float, float);
-void (*pSetPSConstant4fv)(unsigned int, const float*);
-void (*pSetMultiPSConstant4fv)(unsigned int, unsigned int, const float*);
-bool (*pCompilePixelShader)(FRAGMENTSHADER&, const char*);
-
 GLuint PixelShaderCache::GetDepthMatrixProgram()
 {
 	return s_DepthMatrixProgram.glprogid;
@@ -73,207 +68,88 @@ void PixelShaderCache::Init()
 	GL_REPORT_ERRORD();
 
 	s_displayCompileAlert = true;
+	
+	char pmatrixprog[2048];
+	sprintf(pmatrixprog, "#version %s\n"
+		"#extension GL_ARB_texture_rectangle : enable\n"
+		"%s\n"
+		"%suniform sampler2DRect samp0;\n"
+		"%s\n"
+		"%svec4 " I_COLORS"[7];\n"
+		"%s\n"
+		"void main(){\n"
+		"vec4 Temp0, Temp1;\n"
+		"vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
+		"Temp0 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
+		"Temp0 = Temp0 * " I_COLORS"[%d];\n"
+		"Temp0 = Temp0 + K0;\n"
+		"Temp0 = floor(Temp0);\n"
+		"Temp0 = Temp0 * " I_COLORS"[%d];\n"
+		"Temp1.x = dot(Temp0, " I_COLORS"[%d]);\n"
+		"Temp1.y = dot(Temp0, " I_COLORS"[%d]);\n"
+		"Temp1.z = dot(Temp0, " I_COLORS"[%d]);\n"
+		"Temp1.w = dot(Temp0, " I_COLORS"[%d]);\n"
+		"gl_FragData[0] = Temp1 + " I_COLORS"[%d];\n"
+		"}\n",
+		(g_ActiveConfig.backend_info.bSupportsGLSLUBO || g_ActiveConfig.backend_info.bSupportsGLSLBinding) ? "330 compatibility" : "120",
+		g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "#extension GL_ARB_shading_language_420pack : enable" : "",
+		g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "layout(binding = 0) " : "",
+		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140) uniform PSBlock {" : "",
+		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
+		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "};" : "",
+		C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
 
-	if (g_ActiveConfig.bUseGLSL)
+
+	if (!PixelShaderCache::CompilePixelShader(s_ColorMatrixProgram, pmatrixprog))
 	{
-		pSetPSConstant4f = SetGLSLPSConstant4f;
-		pSetPSConstant4fv = SetGLSLPSConstant4fv;
-		pSetMultiPSConstant4fv = SetMultiGLSLPSConstant4fv;
-		pCompilePixelShader = CompileGLSLPixelShader;
-	}
-	else
-	{
-		pSetPSConstant4f = SetCGPSConstant4f;
-		pSetPSConstant4fv = SetCGPSConstant4fv;
-		pSetMultiPSConstant4fv = SetMultiCGPSConstant4fv;
-		pCompilePixelShader = CompileCGPixelShader;
-		glEnable(GL_FRAGMENT_PROGRAM_ARB);
-	}
-
-	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
-
-	if (s_nMaxPixelInstructions == 0) // Some combination of drivers and hardware returns zero for some reason.
-		s_nMaxPixelInstructions = 4096;
-	if (strstr((const char*)glGetString(GL_VENDOR), "Humper") != NULL) s_nMaxPixelInstructions = 4096;
-#if CG_VERSION_NUM == 2100
-	if (strstr((const char*)glGetString(GL_VENDOR), "ATI") != NULL)
-	{
-		s_nMaxPixelInstructions = 4096;
-	}
-#endif
-
-	int maxinst, maxattribs;
-	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&maxinst);
-	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ATTRIBS_ARB, (GLint *)&maxattribs);
-	INFO_LOG(VIDEO, "pixel max_alu=%d, max_inst=%d, max_attrib=%d", s_nMaxPixelInstructions, maxinst, maxattribs);
-	if (g_ActiveConfig.bUseGLSL)
-	{
-		char pmatrixprog[2048];
-		sprintf(pmatrixprog, "#version %s\n"
-			"#extension GL_ARB_texture_rectangle : enable\n"
-			"%s\n"
-			"%suniform sampler2DRect samp0;\n"
-			"%s\n"
-			"%svec4 " I_COLORS"[7];\n"
-			"%s\n"
-			"void main(){\n"
-			"vec4 Temp0, Temp1;\n"
-			"vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
-			"Temp0 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
-			"Temp0 = Temp0 * " I_COLORS"[%d];\n"
-			"Temp0 = Temp0 + K0;\n"
-			"Temp0 = floor(Temp0);\n"
-			"Temp0 = Temp0 * " I_COLORS"[%d];\n"
-			"Temp1.x = dot(Temp0, " I_COLORS"[%d]);\n"
-			"Temp1.y = dot(Temp0, " I_COLORS"[%d]);\n"
-			"Temp1.z = dot(Temp0, " I_COLORS"[%d]);\n"
-			"Temp1.w = dot(Temp0, " I_COLORS"[%d]);\n"
-			"gl_FragData[0] = Temp1 + " I_COLORS"[%d];\n"
-			"}\n",
-			(g_ActiveConfig.backend_info.bSupportsGLSLUBO || g_ActiveConfig.backend_info.bSupportsGLSLBinding) ? "330 compatibility" : "120",
-			g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "#extension GL_ARB_shading_language_420pack : enable" : "",
-			g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "layout(binding = 0) " : "",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140) uniform PSBlock {" : "",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "};" : "",
-			C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
-
-
-		if (!PixelShaderCache::CompilePixelShader(s_ColorMatrixProgram, pmatrixprog))
-		{
-			ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
-			s_ColorMatrixProgram.Destroy();
-		}
-
-		sprintf(pmatrixprog, "#version %s\n"
-			"#extension GL_ARB_texture_rectangle : enable\n"
-			"%s\n"
-			"%suniform sampler2DRect samp0;\n"
-			"%s\n"
-			"%svec4 " I_COLORS"[5];\n"
-			"%s\n"
-			"void main(){\n"
-			"vec4 R0, R1, R2;\n"
-			"vec4 K0 = vec4(255.99998474121, 0.003921568627451, 256.0, 0.0);\n"
-			"vec4 K1 = vec4(15.0, 0.066666666666, 0.0, 0.0);\n"
-			"R2 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
-			"R0.x = R2.x * K0.x;\n"
-			"R0.x = floor(R0).x;\n"
-			"R0.yzw = (R0 - R0.x).yzw;\n"
-			"R0.yzw = (R0 * K0.z).yzw;\n"
-			"R0.y = floor(R0).y;\n"
-			"R0.zw = (R0 - R0.y).zw;\n"
-			"R0.zw = (R0 * K0.z).zw;\n"
-			"R0.z = floor(R0).z;\n"
-			"R0.w = R0.x;\n"
-			"R0 = R0 * K0.y;\n"
-			"R0.w = (R0 * K1.x).w;\n"
-			"R0.w = floor(R0).w;\n"
-			"R0.w = (R0 * K1.y).w;\n"
-			"R1.x = dot(R0, " I_COLORS"[%d]);\n"
-			"R1.y = dot(R0, " I_COLORS"[%d]);\n"
-			"R1.z = dot(R0, " I_COLORS"[%d]);\n"
-			"R1.w = dot(R0, " I_COLORS"[%d]);\n"
-			"gl_FragData[0] = R1 * " I_COLORS"[%d];\n"
-			"}\n",
-			(g_ActiveConfig.backend_info.bSupportsGLSLUBO || g_ActiveConfig.backend_info.bSupportsGLSLBinding) ? "330 compatibility" : "120",
-			g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "#extension GL_ARB_shading_language_420pack : enable" : "",
-			g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "layout(binding = 0) " : "",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140) uniform PSBlock {" : "",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "};" : "",
-			C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
-
-		if (!PixelShaderCache::CompilePixelShader(s_DepthMatrixProgram, pmatrixprog))
-		{
-			ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
-			s_DepthMatrixProgram.Destroy();
-		}
-	}
-	else
-	{
-		char pmatrixprog[2048];
-		sprintf(pmatrixprog, "!!ARBfp1.0"
-			"TEMP R0;\n"
-			"TEMP R1;\n"
-			"PARAM K0 = { 0.5, 0.5, 0.5, 0.5};\n"
-			"TEX R0, fragment.texcoord[0], texture[0], RECT;\n"
-			"MUL R0, R0, program.env[%d];\n"
-			"ADD R0, R0, K0;\n"
-			"FLR R0, R0;\n"
-			"MUL R0, R0, program.env[%d];\n"
-			"DP4 R1.x, R0, program.env[%d];\n"
-			"DP4 R1.y, R0, program.env[%d];\n"
-			"DP4 R1.z, R0, program.env[%d];\n"
-			"DP4 R1.w, R0, program.env[%d];\n"
-			"ADD result.color, R1, program.env[%d];\n"
-			"END\n",C_COLORS+5,C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
-		glGenProgramsARB(1, &s_ColorMatrixProgram.glprogid);
-		SetCurrentShader(s_ColorMatrixProgram.glprogid);
-		glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pmatrixprog), pmatrixprog);
-
-		GLenum err = GL_REPORT_ERROR();
-		if (err != GL_NO_ERROR) {
-			ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
-			s_ColorMatrixProgram.Destroy();
-		}
-
-		sprintf(pmatrixprog, "!!ARBfp1.0\n"
-			"TEMP R0;\n"
-			"TEMP R1;\n"
-			"TEMP R2;\n"
-			//16777215/16777216*256, 1/255, 256, 0
-			"PARAM K0 = { 255.99998474121, 0.003921568627451, 256.0, 0.0};\n"
-			"PARAM K1 = { 15.0, 0.066666666666, 0.0, 0.0};\n"
-			//sample the depth value
-			"TEX R2, fragment.texcoord[0], texture[0], RECT;\n"
-
-			//scale from [0*16777216..1*16777216] to
-			//[0*16777215..1*16777215], multiply by 256
-			"MUL R0, R2.x, K0.x;\n" // *16777215/16777216*256
-
-			//It is easy to get bad results due to low precision
-			//here, for example converting like this:
-			//MUL R0,R0,{ 65536, 256, 1, 16777216 }
-			//FRC R0,R0
-			//gives {?, 128/255, 254/255, ?} for depth value 254/255
-			//on some gpus
-
-			"FLR R0.x,R0;\n"        //bits 31..24
-
-			"SUB R0.yzw,R0,R0.x;\n" //subtract bits 31..24 from rest
-			"MUL R0.yzw,R0,K0.z;\n" // *256
-			"FLR R0.y,R0;\n"        //bits 23..16
-
-			"SUB R0.zw,R0,R0.y;\n"  //subtract bits 23..16 from rest
-			"MUL R0.zw,R0,K0.z;\n"  // *256
-			"FLR R0.z,R0;\n"        //bits 15..8
-
-			"MOV R0.w,R0.x;\n"   //duplicate bit 31..24
-
-			"MUL R0,R0,K0.y;\n"     // /255
-
-			"MUL R0.w,R0,K1.x;\n"   // *15
-			"FLR R0.w,R0;\n"        //bits 31..28
-			"MUL R0.w,R0,K1.y;\n"   // /15
-
-			"DP4 R1.x, R0, program.env[%d];\n"
-			"DP4 R1.y, R0, program.env[%d];\n"
-			"DP4 R1.z, R0, program.env[%d];\n"
-			"DP4 R1.w, R0, program.env[%d];\n"
-			"ADD result.color, R1, program.env[%d];\n"
-			"END\n", C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
-		glGenProgramsARB(1, &s_DepthMatrixProgram.glprogid);
-		SetCurrentShader(s_DepthMatrixProgram.glprogid);
-		glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pmatrixprog), pmatrixprog);
-
-		err = GL_REPORT_ERROR();
-		if (err != GL_NO_ERROR) {
-			ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
-			s_DepthMatrixProgram.Destroy();
-		}
+		ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
+		s_ColorMatrixProgram.Destroy();
 	}
 
+	sprintf(pmatrixprog, "#version %s\n"
+		"#extension GL_ARB_texture_rectangle : enable\n"
+		"%s\n"
+		"%suniform sampler2DRect samp0;\n"
+		"%s\n"
+		"%svec4 " I_COLORS"[5];\n"
+		"%s\n"
+		"void main(){\n"
+		"vec4 R0, R1, R2;\n"
+		"vec4 K0 = vec4(255.99998474121, 0.003921568627451, 256.0, 0.0);\n"
+		"vec4 K1 = vec4(15.0, 0.066666666666, 0.0, 0.0);\n"
+		"R2 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
+		"R0.x = R2.x * K0.x;\n"
+		"R0.x = floor(R0).x;\n"
+		"R0.yzw = (R0 - R0.x).yzw;\n"
+		"R0.yzw = (R0 * K0.z).yzw;\n"
+		"R0.y = floor(R0).y;\n"
+		"R0.zw = (R0 - R0.y).zw;\n"
+		"R0.zw = (R0 * K0.z).zw;\n"
+		"R0.z = floor(R0).z;\n"
+		"R0.w = R0.x;\n"
+		"R0 = R0 * K0.y;\n"
+		"R0.w = (R0 * K1.x).w;\n"
+		"R0.w = floor(R0).w;\n"
+		"R0.w = (R0 * K1.y).w;\n"
+		"R1.x = dot(R0, " I_COLORS"[%d]);\n"
+		"R1.y = dot(R0, " I_COLORS"[%d]);\n"
+		"R1.z = dot(R0, " I_COLORS"[%d]);\n"
+		"R1.w = dot(R0, " I_COLORS"[%d]);\n"
+		"gl_FragData[0] = R1 * " I_COLORS"[%d];\n"
+		"}\n",
+		(g_ActiveConfig.backend_info.bSupportsGLSLUBO || g_ActiveConfig.backend_info.bSupportsGLSLBinding) ? "330 compatibility" : "120",
+		g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "#extension GL_ARB_shading_language_420pack : enable" : "",
+		g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "layout(binding = 0) " : "",
+		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140) uniform PSBlock {" : "",
+		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
+		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "};" : "",
+		C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+
+	if (!PixelShaderCache::CompilePixelShader(s_DepthMatrixProgram, pmatrixprog))
+	{
+		ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
+		s_DepthMatrixProgram.Destroy();
+	}
 }
 
 void PixelShaderCache::Shutdown()
@@ -318,7 +194,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 	// Make an entry in the table
 	PSCacheEntry& newentry = PixelShaders[uid];
 	last_entry = &newentry;
-	const char *code = GeneratePixelShaderCode(dstAlphaMode, g_ActiveConfig.bUseGLSL ? API_GLSL : API_OPENGL, components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_GLSL, components);
 
 	if (g_ActiveConfig.bEnableShaderDebugging && code)
 	{
@@ -348,38 +224,6 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 }
 
 bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
-{
-	return pCompilePixelShader(ps, pstrprogram);
-}
-
-// Disable Fragment programs and reset the selected Program
-void PixelShaderCache::DisableShader()
-{
-	if (ShaderEnabled)
-	{
-		glDisable(GL_FRAGMENT_PROGRAM_ARB);
-		ShaderEnabled = false;
-	}
-}
-
-// bind a program if is different from the binded oone
-void PixelShaderCache::SetCurrentShader(GLuint Shader)
-{
-	if (!ShaderEnabled)
-	{
-		glEnable(GL_FRAGMENT_PROGRAM_ARB);
-		ShaderEnabled = true;
-	}
-	if (CurrentShader != Shader)
-	{
-		if (Shader != 0)
-			CurrentShader = Shader;
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
-	}
-}
-
-// GLSL Specific
-bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 {
 	GLuint result = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -415,7 +259,6 @@ bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 
 	(void)GL_REPORT_ERROR();
 	ps.glprogid = result;
-	ps.bGLSL = true;
 	return true;
 }
 
@@ -437,7 +280,8 @@ void SetPSConstant4fvByName(const char * name, unsigned int offset, const float 
 	}
 }
 
-void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
+// Renderer functions
+void Renderer::SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	float const f[4] = {f1, f2, f3, f4};
 
@@ -457,7 +301,7 @@ void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3
 	}
 }
 
-void SetGLSLPSConstant4fv(unsigned int const_number, const float *f)
+void Renderer::SetPSConstant4fv(unsigned int const_number, const float *f)
 {
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
@@ -475,7 +319,7 @@ void SetGLSLPSConstant4fv(unsigned int const_number, const float *f)
 	}
 }
 
-void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
+void Renderer::SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
@@ -491,121 +335,5 @@ void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, co
 			return;
 		}
 	}
-}
-
-// CG Specific
-bool CompileCGPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
-{
-	GLenum err = GL_REPORT_ERROR();
-	if (err != GL_NO_ERROR)
-	{
-		ERROR_LOG(VIDEO, "glError %08x before PS!", err);
-	}
-
-#if defined HAVE_CG && HAVE_CG
-	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", NULL);
-
-	// handle errors
-	if (!cgIsProgram(tempprog))
-	{
-		cgDestroyProgram(tempprog);
-
-		static int num_failures = 0;
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "bad_ps_%04i.txt", num_failures++);
-		std::ofstream file(szTemp);
-		file << pstrprogram;
-		file.close();
-
-		PanicAlert("Failed to compile pixel shader %d!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%d):\n%s",
-			num_failures - 1, szTemp,
-			g_cgfProf,
-			cgGetLastListing(g_cgcontext));
-
-		return false;
-	}
-
-	// handle warnings
-	if (cgGetError() != CG_NO_ERROR)
-	{
-		WARN_LOG(VIDEO, "Warnings on compile ps %s:", cgGetLastListing(g_cgcontext));
-		WARN_LOG(VIDEO, "%s", pstrprogram);
-	}
-
-	// This looks evil - we modify the program through the const char * we got from cgGetProgramString!
-	// It SHOULD not have any nasty side effects though - but you never know...
-	char *pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
-	char *plocal = strstr(pcompiledprog, "program.local");
-	while (plocal != NULL)
-	{
-		const char *penv = "  program.env";
-		memcpy(plocal, penv, 13);
-		plocal = strstr(plocal+13, "program.local");
-	}
-
-	glGenProgramsARB(1, &ps.glprogid);
-	ps.bGLSL = false;
-	PixelShaderCache::SetCurrentShader(ps.glprogid);
-	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
-
-	err = GL_REPORT_ERROR();
-	if (err != GL_NO_ERROR)
-	{
-		GLint error_pos, native_limit;
-		glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &error_pos);
-		glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &native_limit);
-		// Error occur
-		if (error_pos != -1) {
-			const char *program_error = (const char *)glGetString(GL_PROGRAM_ERROR_STRING_ARB);
-			char line[256];
-			strncpy(line, (const char *)pcompiledprog + error_pos, 255);
-			line[255] = 0;
-			ERROR_LOG(VIDEO, "Error at %i: %s", error_pos, program_error);
-			ERROR_LOG(VIDEO, "Line dump: \n%s", line);
-		} else if (native_limit != -1) {
-			ERROR_LOG(VIDEO, "Hit limit? %i", native_limit);
-			// TODO
-		}
-		ERROR_LOG(VIDEO, "%s", pstrprogram);
-		ERROR_LOG(VIDEO, "%s", pcompiledprog);
-	}
-
-	cgDestroyProgram(tempprog);
-#endif
-
-	return true;
-}
-
-void SetCGPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
-{
-	float f[4] = { f1, f2, f3, f4 };
-	glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
-}
-
-void SetCGPSConstant4fv(unsigned int const_number, const float *f)
-{
-	glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
-}
-
-void SetMultiCGPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
-{
-	for (unsigned int i = 0; i < count; i++,f+=4)
-		glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number + i, f);
-}
-
-// Renderer functions
-void Renderer::SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
-{
-	pSetPSConstant4f(const_number, f1, f2, f3, f4);
-}
-
-void Renderer::SetPSConstant4fv(unsigned int const_number, const float *f)
-{
-	pSetPSConstant4fv(const_number, f);
-}
-
-void Renderer::SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
-{
-	pSetMultiPSConstant4fv(const_number, count, f);
 }
 }  // namespace OGL

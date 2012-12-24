@@ -75,14 +75,14 @@ bool ApplyShader()
 		}
 	}
 
+	// TODO: Convert PP shaders to GLSL
 	if (s_shader.glprogid != 0)
 	{
-		PixelShaderCache::SetCurrentShader(s_shader.glprogid);		
+		// SetBothShaders(s_shader, 0);
 		return true;
 	}
 	else
 	{
-		PixelShaderCache::DisableShader();
 		return false;
 	}
 }

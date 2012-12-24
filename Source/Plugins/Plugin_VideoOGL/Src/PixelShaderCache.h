@@ -29,21 +29,17 @@ namespace OGL
 
 struct FRAGMENTSHADER
 {
-	FRAGMENTSHADER() : glprogid(0), bGLSL(0) { }
+	FRAGMENTSHADER() : glprogid(0) { }
 	void Destroy()
 	{
 		if (glprogid)
 		{
-			if (bGLSL)
-				glDeleteShader(glprogid);
-			else
-				glDeleteProgramsARB(1, &glprogid);
+			glDeleteShader(glprogid);
 			glprogid = 0;
 		}
 	}
 	GLuint glprogid; // opengl program id
 	
-	bool bGLSL;
 	std::string strprog;
 };
 
@@ -85,22 +81,7 @@ public:
 	static GLuint GetColorMatrixProgram();
 
     static GLuint GetDepthMatrixProgram();
-
-	static void SetCurrentShader(GLuint Shader);
-
-	static void DisableShader();
 };
-// GLSL Specific
-void SetGLSLPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
-void SetGLSLPSConstant4fv(unsigned int const_number, const float *f);
-void SetMultiGLSLPSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
-bool CompileGLSLPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
-
-//CG Specific
-void SetCGPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
-void SetCGPSConstant4fv(unsigned int const_number, const float *f);
-void SetMultiCGPSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
-bool CompileCGPixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
 }  // namespace OGL
 
 #endif // _PIXELSHADERCACHE_H_

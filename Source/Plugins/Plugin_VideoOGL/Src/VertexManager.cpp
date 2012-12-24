@@ -170,7 +170,7 @@ void VertexManager::vFlush()
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
 	// Makes sure we can actually do Dual source blending
-	bool dualSourcePossible = g_ActiveConfig.bUseGLSL && g_ActiveConfig.backend_info.bSupportsGLSLBlend;
+	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsGLSLBlend;
 
 	// finally bind
 	FRAGMENTSHADER* ps;
@@ -195,13 +195,7 @@ void VertexManager::vFlush()
 	}
 	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
 	
-	if (g_ActiveConfig.bUseGLSL)
-		ProgramShaderCache::SetBothShaders(ps->glprogid, vs->glprogid);
-	else
-	{
-		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
-		if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
-	}
+	ProgramShaderCache::SetBothShaders(ps->glprogid, vs->glprogid);
 
 	// set global constants
 	VertexShaderManager::SetConstants();
@@ -218,17 +212,12 @@ void VertexManager::vFlush()
 	if (useDstAlpha && !dualSourcePossible)
 	{
 		ps = PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
-		if (g_ActiveConfig.bUseGLSL)
-		{
-			ProgramShaderCache::SetBothShaders(ps->glprogid, 0);
-			if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-				PixelShaderManager::SetConstants(); // Need to set these again, if we don't support UBO
-			if (g_nativeVertexFmt)
-				g_nativeVertexFmt->SetupVertexPointers();
-		}
-		else
-			if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
-
+		ProgramShaderCache::SetBothShaders(ps->glprogid, 0);
+		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+			PixelShaderManager::SetConstants(); // Need to set these again, if we don't support UBO
+		if (g_nativeVertexFmt)
+			g_nativeVertexFmt->SetupVertexPointers();
+	
 		// only update alpha
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 

@@ -113,13 +113,6 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #define GL_REPORT_PROGRAM_ERROR() (void)0
 #endif
 
-#if HAVE_CG && (defined __APPLE__ || defined __linux__ || defined _WIN32)
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
-extern CGcontext g_cgcontext;
-extern CGprofile g_cgvProf, g_cgfProf;
-#endif
-
 // Isn't defined if we aren't using GLEW 1.6
 #ifndef GL_ONE_MINUS_SRC1_ALPHA 
 #define GL_ONE_MINUS_SRC1_ALPHA 0x88FB
