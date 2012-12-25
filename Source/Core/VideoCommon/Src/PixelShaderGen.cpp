@@ -706,27 +706,27 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 //table with the color compare operations
 static const char *TEVCMPColorOPTable[8] =
 {
-	"   %s + ((%s.r >= %s.r + (0.25f/255.0f)) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_R8_GT 8
-	"   %s + ((abs(%s.r - %s.r) < (0.5f/255.0f)) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_R8_EQ 9
-	"   %s + (( dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_GR16_GT 10
-	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (0.5f/255.0f) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_GR16_EQ 11
-	"   %s + (( dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (0.25f/255.0f))) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_BGR24_GT 12
-	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5f/255.0f) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_BGR24_EQ 13
-	"   %s + (max(sign(%s.rgb - %s.rgb - (0.25f/255.0f)), float3(0.0f, 0.0f, 0.0f)) * %s)",//#define TEVCMP_RGB8_GT  14
-	"   %s + ((float3(1.0f, 1.0f, 1.0f) - max(sign(abs(%s.rgb - %s.rgb) - (0.5f/255.0f)), float3(0.0f, 0.0f, 0.0f))) * %s)"//#define TEVCMP_RGB8_EQ  15
+	"   %s + ((%s.r >  %s.r) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_R8_GT 8
+	"   %s + ((%s.r == %s.r) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_R8_EQ 9
+	"   %s + ((dot(%s.rgb, comp16) >  dot(%s.rgb, comp16)) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_GR16_GT 10
+	"   %s + ((dot(%s.rgb, comp16) == dot(%s.rgb, comp16)) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_GR16_EQ 11
+	"   %s + ((dot(%s.rgb, comp24) >  dot(%s.rgb, comp24)) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_BGR24_GT 12
+	"   %s + ((dot(%s.rgb, comp24) == dot(%s.rgb, comp24)) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_BGR24_EQ 13
+	"   %s + (max(sign(%s.rgb - %s.rgb), float3(0.0f, 0.0f, 0.0f)) * %s)",//#define TEVCMP_RGB8_GT  14
+	"   %s + ((float3(1.0f, 1.0f, 1.0f) - max(sign(abs(%s.rgb - %s.rgb)), float3(0.0f, 0.0f, 0.0f))) * %s)"//#define TEVCMP_RGB8_EQ  15
 };
 
 //table with the alpha compare operations
 static const char *TEVCMPAlphaOPTable[8] =
 {
-	"   %s.a + ((%s.r >= (%s.r + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_R8_GT 8
-	"   %s.a + (abs(%s.r - %s.r) < (0.5f/255.0f) ? %s.a : 0.0f)",//#define TEVCMP_R8_EQ 9
-	"   %s.a + ((dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_GR16_GT 10
-	"   %s.a + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (0.5f/255.0f) ? %s.a : 0.0f)",//#define TEVCMP_GR16_EQ 11
-	"   %s.a + ((dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_GT 12
-	"   %s.a + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5f/255.0f) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_EQ 13
-	"   %s.a + ((%s.a >= (%s.a + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_A8_GT 14
-	"   %s.a + (abs(%s.a - %s.a) < (0.5f/255.0f) ? %s.a : 0.0f)"//#define TEVCMP_A8_EQ 15
+	"   %s.a + ((%s.r >  %s.r) ? %s.a : 0.0f)",//#define TEVCMP_R8_GT 8
+	"   %s.a + ((%s.r == %s.r) ? %s.a : 0.0f)",//#define TEVCMP_R8_EQ 9
+	"   %s.a + ((dot(%s.rgb, comp16) >  dot(%s.rgb, comp16)) ? %s.a : 0.0f)",//#define TEVCMP_GR16_GT 10
+	"   %s.a + ((dot(%s.rgb, comp16) == dot(%s.rgb, comp16)) ? %s.a : 0.0f)",//#define TEVCMP_GR16_EQ 11
+	"   %s.a + ((dot(%s.rgb, comp24) >  dot(%s.rgb, comp24)) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_GT 12
+	"   %s.a + ((dot(%s.rgb, comp24) == dot(%s.rgb, comp24)) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_EQ 13
+	"   %s.a + ((%s.a >  %s.a) ? %s.a : 0.0f)",//#define TEVCMP_A8_GT 14
+	"   %s.a + ((%s.a == %s.a) ? %s.a : 0.0f)"//#define TEVCMP_A8_EQ 15
 };
 
 
