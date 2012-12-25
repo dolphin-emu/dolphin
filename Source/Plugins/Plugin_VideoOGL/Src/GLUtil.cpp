@@ -628,6 +628,70 @@ void OpenGL_Shutdown()
 #endif
 }
 
+GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentShader )
+{
+	// generate objects
+	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint programID = glCreateProgram();
+	GLint Result = GL_FALSE;
+	char stringBuffer[1024];
+	GLsizei stringBufferUsage = 0;
+	
+	// compile vertex shader
+	glShaderSource(vertexShaderID, 1, &vertexShader, NULL);
+	glCompileShader(vertexShaderID);
+#if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
+	glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &Result);
+	glGetShaderInfoLog(vertexShaderID, 1024, &stringBufferUsage, stringBuffer);
+	if(Result && stringBufferUsage) {
+		ERROR_LOG(VIDEO, "GLSL vertex shader warnings:\n%s%s", stringBuffer, vertexShader);
+	} else if(!Result) {
+		ERROR_LOG(VIDEO, "GLSL vertex shader error:\n%s%s", stringBuffer, vertexShader);
+	} else {
+		DEBUG_LOG(VIDEO, "GLSL vertex shader compiled:\n%s", vertexShader);
+	}
+	bool shader_errors = !Result;
+#endif
+	
+	// compile fragment shader
+	glShaderSource(fragmentShaderID, 1, &fragmentShader, NULL);
+	glCompileShader(fragmentShaderID);
+#if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
+	glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &Result);
+	glGetShaderInfoLog(fragmentShaderID, 1024, &stringBufferUsage, stringBuffer);
+	if(Result && stringBufferUsage) {
+		ERROR_LOG(VIDEO, "GLSL fragment shader warnings:\n%s%s", stringBuffer, fragmentShader);
+	} else if(!Result) {
+		ERROR_LOG(VIDEO, "GLSL fragment shader error:\n%s%s", stringBuffer, fragmentShader);
+	} else {
+		DEBUG_LOG(VIDEO, "GLSL fragment shader compiled:\n%s", fragmentShader);
+	}
+	shader_errors |= !Result;
+#endif
+	
+	// link them
+	glAttachShader(programID, vertexShaderID);
+	glAttachShader(programID, fragmentShaderID);
+	glLinkProgram(programID);
+#if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
+	glGetProgramiv(programID, GL_LINK_STATUS, &Result);
+	glGetProgramInfoLog(programID, 1024, &stringBufferUsage, stringBuffer);
+	if(Result && stringBufferUsage) {
+		ERROR_LOG(VIDEO, "GLSL linker warnings:\n%s%s%s", stringBuffer, vertexShader, fragmentShader);
+	} else if(!Result && !shader_errors) {
+		ERROR_LOG(VIDEO, "GLSL linker error:\n%s%s%s", stringBuffer, vertexShader, fragmentShader);
+	}
+#endif
+	
+	// cleanup
+	glDeleteShader(vertexShaderID);
+	glDeleteShader(fragmentShaderID);
+	
+	return programID;
+}
+
+
 GLuint OpenGL_ReportGLError(const char *function, const char *file, int line)
 {
 	GLint err = glGetError();

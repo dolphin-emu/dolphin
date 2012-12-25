@@ -57,6 +57,14 @@ static FRAGMENTSHADER s_yuyvToRgbProgram;
 const u32 NUM_ENCODING_PROGRAMS = 64;
 static FRAGMENTSHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 
+static GLuint s_encode_VBO = 0;
+static GLuint s_encode_VAO = 0;
+static GLuint s_decode_VBO = 0;
+static GLuint s_decode_VAO = 0;
+static TargetRectangle s_cached_sourceRc;
+static int s_cached_srcWidth = 0;
+static int s_cached_srcHeight = 0;
+
 void CreateRgbToYuyvProgram()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
@@ -140,9 +148,40 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 void Init()
 {
 	glGenFramebuffersEXT(1, &s_texConvFrameBuffer);
+	
+	glGenBuffers(1, &s_encode_VBO );
+	glGenVertexArrays(1, &s_encode_VAO );
+	glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
+	glBindVertexArray( s_encode_VAO );
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 4*sizeof(GLfloat), NULL);
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 4*sizeof(GLfloat), (GLfloat*)NULL + 2);
+	s_cached_sourceRc.top = -1;
+	s_cached_sourceRc.bottom = -1;
+	s_cached_sourceRc.left = -1;
+	s_cached_sourceRc.right = -1;
+	
+	glGenBuffers(1, &s_decode_VBO );
+	glGenVertexArrays(1, &s_decode_VAO );
+	glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
+	glBindVertexArray( s_decode_VAO );
+	s_cached_srcWidth = -1;
+	s_cached_srcHeight = -1;
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*4, NULL);
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
+	
+	// TODO: this after merging with graphic_update
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 
 	glGenRenderbuffersEXT(1, &s_dstRenderBuffer);
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
+	
 	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, renderBufferWidth, renderBufferHeight);
 
 	s_srcTextureWidth = 0;
@@ -162,6 +201,10 @@ void Shutdown()
 	glDeleteTextures(1, &s_srcTexture);
 	glDeleteRenderbuffersEXT(1, &s_dstRenderBuffer);
 	glDeleteFramebuffersEXT(1, &s_texConvFrameBuffer);
+	glDeleteBuffers(1, &s_encode_VBO );
+	glDeleteVertexArrays(1, &s_encode_VAO );
+	glDeleteBuffers(1, &s_decode_VBO );
+	glDeleteVertexArrays(1, &s_decode_VAO );
 
 	s_rgbToYuyvProgram.Destroy();
 	s_yuyvToRgbProgram.Destroy();
@@ -213,13 +256,33 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	PixelShaderCache::SetCurrentShader(shader.glprogid);
 
-	// Draw...
-	glBegin(GL_QUADS);
-	glTexCoord2f((float)sourceRc.left, (float)sourceRc.top);     glVertex2f(-1,-1);
-	glTexCoord2f((float)sourceRc.left, (float)sourceRc.bottom);  glVertex2f(-1,1);
-	glTexCoord2f((float)sourceRc.right, (float)sourceRc.bottom); glVertex2f(1,1);
-	glTexCoord2f((float)sourceRc.right, (float)sourceRc.top);    glVertex2f(1,-1);
-	glEnd();
+	GL_REPORT_ERRORD();
+	if(!(s_cached_sourceRc == sourceRc)) {
+		GLfloat vertices[] = {
+			-1.f, -1.f, 
+			(float)sourceRc.left, (float)sourceRc.top,
+			-1.f, 1.f,
+			(float)sourceRc.left, (float)sourceRc.bottom,
+			1.f, 1.f,
+			(float)sourceRc.right, (float)sourceRc.bottom,
+			1.f, -1.f,
+			(float)sourceRc.right, (float)sourceRc.top
+		};
+		glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
+		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+		
+		// TODO: this after merging with graphic_update
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+		s_cached_sourceRc = sourceRc;
+	} 
+
+	glBindVertexArray( s_encode_VAO );
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	
+	// TODO: this after merging with graphic_update
+	glBindVertexArray(0);
+	
 	GL_REPORT_ERRORD();
 
 	// .. and then read back the results.
@@ -375,18 +438,41 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	PixelShaderCache::SetCurrentShader(s_yuyvToRgbProgram.glprogid);
 
 	GL_REPORT_ERRORD();
-
-	glBegin(GL_QUADS);
-	glTexCoord2f((float)srcFmtWidth, (float)srcHeight); glVertex2f(1,-1);
-	glTexCoord2f((float)srcFmtWidth, 0); glVertex2f(1,1);
-	glTexCoord2f(0, 0); glVertex2f(-1,1);
-	glTexCoord2f(0, (float)srcHeight); glVertex2f(-1,-1);
-	glEnd();
+	
+	if(s_cached_srcHeight != srcHeight || s_cached_srcWidth != srcWidth) {
+		GLfloat vertices[] = {
+			1.f, -1.f,
+			(float)srcFmtWidth, (float)srcHeight,
+			1.f, 1.f,
+			(float)srcFmtWidth, 0.f,
+			-1.f, 1.f,
+			0.f, 0.f,
+			-1.f, -1.f,
+			0.f, (float)srcHeight
+		};
+		
+		glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*4*4, vertices, GL_STREAM_DRAW);
+		
+		// TODO: this after merging with graphic_update
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+		s_cached_srcHeight = srcHeight;
+		s_cached_srcWidth = srcWidth;
+	}
+	
+	glBindVertexArray( s_decode_VAO );
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	
+	// TODO: this after merging with graphic_update
+	glBindVertexArray(0);
+	
+	GL_REPORT_ERRORD();
 
 	// reset state
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-    TextureCache::DisableStage(0);
+	TextureCache::DisableStage(0);
 
 	VertexShaderManager::SetViewportChanged();
 

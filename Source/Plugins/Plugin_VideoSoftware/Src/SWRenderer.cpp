@@ -101,12 +101,11 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
 	int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
 	int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
-	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
-	          ((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
+	
 	s_pfont->printMultilineText(pstr,
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
-		0, nBackbufferWidth, nBackbufferHeight);
+		0, nBackbufferWidth, nBackbufferHeight, color);
 }
 
 void SWRenderer::DrawDebugText()

@@ -56,6 +56,13 @@
 namespace OGL
 {
 
+struct VBOCache {
+	GLuint vbo;
+	GLuint vao;
+	TargetRectangle targetSource;
+};
+static std::map<u64,VBOCache> s_VBO;
+
 static u32 s_TempFramebuffer = 0;
 
 static const GLint c_MinLinearFilter[8] = {
@@ -106,6 +113,8 @@ TextureCache::TCacheEntry::~TCacheEntry()
 TextureCache::TCacheEntry::TCacheEntry()
 {
 	glGenTextures(1, &texture);
+	currmode.hex = 0;
+	currmode1.hex = 0;
 	GL_REPORT_ERRORD();
 }
 
@@ -118,7 +127,9 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	// TODO: is this already done somewhere else?
 	TexMode0 &tm0 = bpmem.tex[stage >> 2].texMode0[stage & 3];
 	TexMode1 &tm1 = bpmem.tex[stage >> 2].texMode1[stage & 3];
-	SetTextureParameters(tm0, tm1);
+	
+	if(currmode.hex != tm0.hex || currmode1.hex != tm1.hex)
+		SetTextureParameters(tm0, tm1);
 }
 
 bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
@@ -304,13 +315,59 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		GL_REPORT_ERRORD();
 
 		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
+		GL_REPORT_ERRORD();
+		
+		// should be unique enough, if not, vbo will "only" be uploaded to much
+		u64 targetSourceHash = u64(targetSource.left)<<48 | u64(targetSource.top)<<32 | u64(targetSource.right)<<16 | u64(targetSource.bottom);
+		std::map<u64, VBOCache>::iterator vbo_it = s_VBO.find(targetSourceHash);
+		
+		if(vbo_it == s_VBO.end()) {
+			VBOCache item;
+			item.targetSource.bottom = -1;
+			item.targetSource.top = -1;
+			item.targetSource.left = -1;
+			item.targetSource.right = -1;
+			glGenBuffers(1, &item.vbo);
+			glGenVertexArrays(1, &item.vao);
+			
+			glBindBuffer(GL_ARRAY_BUFFER, item.vbo);
+			glBindVertexArray(item.vao);
+			
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*4, 0);
+			
+			glClientActiveTexture(GL_TEXTURE0);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat)*4, (GLfloat*)NULL + 2);
+			
+			vbo_it = s_VBO.insert(std::pair<u64,VBOCache>(targetSourceHash, item)).first;
+		}
+		if(!(vbo_it->second.targetSource == targetSource)) {
+			GLfloat vertices[] = {
+				-1.f, 1.f,
+				(GLfloat)targetSource.left, (GLfloat)targetSource.bottom,
+				-1.f, -1.f,
+				(GLfloat)targetSource.left, (GLfloat)targetSource.top,
+				1.f, -1.f,
+				(GLfloat)targetSource.right, (GLfloat)targetSource.top,
+				1.f, 1.f,
+				(GLfloat)targetSource.right, (GLfloat)targetSource.bottom
+			};
+			
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
+			glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+			
+			// TODO: this after merging with graphic_update
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			
+			vbo_it->second.targetSource = targetSource;
+		} 
 
-		glBegin(GL_QUADS);
-		glTexCoord2f((GLfloat)targetSource.left,  (GLfloat)targetSource.bottom); glVertex2f(-1,  1);
-		glTexCoord2f((GLfloat)targetSource.left,  (GLfloat)targetSource.top  ); glVertex2f(-1, -1);
-		glTexCoord2f((GLfloat)targetSource.right, (GLfloat)targetSource.top  ); glVertex2f( 1, -1);
-		glTexCoord2f((GLfloat)targetSource.right, (GLfloat)targetSource.bottom); glVertex2f( 1,  1);
-		glEnd();
+		glBindVertexArray(vbo_it->second.vao);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		
+		// TODO: this after merging with graphic_update
+		glBindVertexArray(0);
 
 		GL_REPORT_ERRORD();
 
@@ -357,6 +414,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1)
 {
+	currmode = newmode;
+	currmode1 = newmode1;
+	
 	// TODO: not used anywhere
 	TexMode0 mode = newmode;
 	//mode1 = newmode1;
@@ -388,13 +448,24 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 			(float)(1 << g_ActiveConfig.iMaxAnisotropy));
 }
 
+TextureCache::TextureCache()
+{
+}
+
+
 TextureCache::~TextureCache()
 {
-    if (s_TempFramebuffer)
+	for(std::map<u64, VBOCache>::iterator it = s_VBO.begin(); it != s_VBO.end(); it++) {
+		glDeleteBuffers(1, &it->second.vbo);
+		glDeleteVertexArrays(1, &it->second.vao);
+	}
+	s_VBO.clear();
+	
+	if (s_TempFramebuffer)
 	{
-        glDeleteFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
-        s_TempFramebuffer = 0;
-    }
+		glDeleteFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
+		s_TempFramebuffer = 0;
+	}
 }
 
 void TextureCache::DisableStage(unsigned int stage)

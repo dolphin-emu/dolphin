@@ -32,6 +32,7 @@ namespace OGL
 class TextureCache : public ::TextureCache
 {
 public:
+	TextureCache();
 	static void DisableStage(unsigned int stage);
 
 private:
@@ -66,6 +67,8 @@ private:
 
 	private:
 		void SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1);
+		TexMode0 currmode;
+		TexMode1 currmode1;
 	};
 
 	~TextureCache();
