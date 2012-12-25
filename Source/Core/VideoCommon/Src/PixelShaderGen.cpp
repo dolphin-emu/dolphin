@@ -1009,10 +1009,9 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 
 	// combine the color channel
 	WRITE(p, "// color combine\n");
+	WRITE(p, "%s = ", tevCOutputTable[cc.dest]);
 	if (cc.clamp)
-		WRITE(p, "%s = saturate(", tevCOutputTable[cc.dest]);
-	else
-		WRITE(p, "%s = ", tevCOutputTable[cc.dest]);
+		WRITE(p, "saturate(");
 
 	// combine the color channel
 	if (cc.bias != TevBias_COMPARE) // if not compare
@@ -1038,10 +1037,9 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 
 	// combine the alpha channel
 	WRITE(p, "// alpha combine\n");
+	WRITE(p, "%s = ", tevAOutputTable[ac.dest]);
 	if (ac.clamp)
-		WRITE(p, "%s = saturate(", tevAOutputTable[ac.dest]);
-	else
-		WRITE(p, "%s = ", tevAOutputTable[ac.dest]);
+		WRITE(p, "saturate(");
 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
