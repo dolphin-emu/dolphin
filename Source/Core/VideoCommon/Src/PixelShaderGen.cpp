@@ -997,14 +997,14 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	RegisterStates[cc.dest].ColorNeedOverflowControl = (cc.clamp == 0);
 	RegisterStates[cc.dest].AuxStored = false;
 
-	WRITE(p, "input_ca = %s;\n", tevCInputTable[cc.a]);
-	WRITE(p, "input_cb = %s;\n", tevCInputTable[cc.b]);
-	WRITE(p, "input_cc = %s;\n", tevCInputTable[cc.c]);
+	WRITE(p, "input_ca = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.a]);
+	WRITE(p, "input_cb = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.b]);
+	WRITE(p, "input_cc = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.c]);
 	WRITE(p, "input_cd = %s;\n", tevCInputTable[cc.d]);
 
-	WRITE(p, "input_aa = %s;\n", tevAInputTable[ac.a]);
-	WRITE(p, "input_ab = %s;\n", tevAInputTable[ac.b]);
-	WRITE(p, "input_ac = %s;\n", tevAInputTable[ac.c]);
+	WRITE(p, "input_aa = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.a]);
+	WRITE(p, "input_ab = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.b]);
+	WRITE(p, "input_ac = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.c]);
 	WRITE(p, "input_ad = %s;\n", tevAInputTable[ac.d]);
 
 	// combine the color channel
