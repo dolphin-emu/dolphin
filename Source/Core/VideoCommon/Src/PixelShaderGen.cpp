@@ -393,13 +393,13 @@ static const char *tevCInputTable[] = // CC
 static const char *tevAInputTable[] = // CA
 {
 	"prev",            // APREV,
-	"c0",              // A0,
-	"c1",              // A1,
+	"c0",              // A0,//!!
+	"c1",              // A1,//!!
 	"c2",              // A2,
 	"textemp",         // TEXA,
-	"rastemp",         // RASA,
+	"rastemp",         // RASA,//!!
 	"konsttemp",       // KONST,  (hw1 had quarter)
-	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO
+	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO//!!
 };
 
 static const char *tevRasTable[] =
@@ -572,7 +572,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			"  float3 input_cd=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float4 input_aa=float4(0.0f,0.0f,0.0f,0.0f), input_ab=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 input_ac=float4(0.0f,0.0f,0.0f,0.0f), input_ad=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  int4 stuff = int4(0,0,0,0), stuff2 = int4(0,0,0,0)\n\n");
+			"  int4 stuff = int4(0,0,0,0), stuff2 = int4(0,0,0,0);\n\n");
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -641,6 +641,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	for (int i = 0; i < numStages; i++)
 		WriteStage(p, i, ApiType); //build the equation for this stage
 
+
+	/*WRITE(p, "ocol0.a = 1.f;\n");
+	WRITE(p, "ocol0.b = 0.f;\n");
+	WRITE(p, "ocol0.g = 0.f;\n");
+	WRITE(p, "ocol0.r = (%s.a > 1.f) ? 1.f : 0.f;\n", tevAInputTable[bpmem.combiners[0].alphaC.d]);
+	WRITE(p, "ocol0.g = (%s.a < -0.5f) ? 1.f : 0.f;\n", tevAInputTable[bpmem.combiners[0].alphaC.d]);
+*/#if 1
 	if(numStages)
 	{
 		// The results of the last texenv stage are put onto the screen,
@@ -693,7 +700,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		// ...and the alpha from ocol0 will be written to the framebuffer.
 		WRITE(p, "  ocol0.a = " I_ALPHA"[0].a;\n");
 	}
-	
+#endif
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
@@ -817,6 +824,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
+
 	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
 		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
 		|| cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC
@@ -859,25 +867,29 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	WRITE(p, "input_ca = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.a]);
 	WRITE(p, "input_cb = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.b]);
 	WRITE(p, "input_cc = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.c]);
+	WRITE(p, "input_cd = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.d]);
 //	WRITE(p, "input_cd = %s;\n", tevCInputTable[cc.d]);
-    WRITE(p, "stuff.rgb = round(%s - float3(0.5f,0.5f,0.5f)/2047.0f) * 2047;\n", tevCInputTable[cc.d]);
+/*	WRITE(p, "stuff.rgb = (%s/2.f - float4(0.5f,0.5f,0.5f,0.5f)/2047.0f) * 2047.f;\n", tevCInputTable[cc.d]);
     WRITE(p, "stuff2.r =  (stuff.r >= 0) ? (stuff.r / 1024) : ((stuff.r+1) / 1024);\n");
     WRITE(p, "stuff2.g =  (stuff.g >= 0) ? (stuff.g / 1024) : ((stuff.g+1) / 1024);\n");
     WRITE(p, "stuff2.b =  (stuff.b >= 0) ? (stuff.b / 1024) : ((stuff.b+1) / 1024);\n");
     WRITE(p, "stuff.rgb -= 1024 * ((stuff2.rgb+sign(stuff2.rgb)*1)/2*2);");
-    WRITE(p, "input_cd = stuff.rgb / 2047.0f + float3(0.5f,0.5f,0.5f)/2047.f;\n");
+    WRITE(p, "input_cd = 2.f*stuff.rgb / 2047.0f + float4(0.5f,0.5f,0.5f,0.5f)/2047.0f;\n");*/
 
 	WRITE(p, "input_aa = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.a]);
 	WRITE(p, "input_ab = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.b]);
 	WRITE(p, "input_ac = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.c]);
-//	WRITE(p, "input_ad = %s;\n", tevAInputTable[ac.d]);
-    WRITE(p, "stuff = round(%s - float4(0.5f,0.5,0.5f,0.5f)/2047.0f) * 2047;\n", tevAInputTable[ac.d]);
+	WRITE(p, "input_ad = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.d]);
+
+/*	WRITE(p, "stuff = (%s - float4(0.5f,0.5f,0.5f,0.5f)/2047.0f) * 2047.f;\n", tevAInputTable[ac.d]);
     WRITE(p, "stuff2.r =  (stuff.r >= 0) ? (stuff.r / 1024) : ((stuff.r+1) / 1024);\n");
     WRITE(p, "stuff2.g =  (stuff.g >= 0) ? (stuff.g / 1024) : ((stuff.g+1) / 1024);\n");
     WRITE(p, "stuff2.b =  (stuff.b >= 0) ? (stuff.b / 1024) : ((stuff.b+1) / 1024);\n");
     WRITE(p, "stuff2.a =  (stuff.a >= 0) ? (stuff.a / 1024) : ((stuff.a+1) / 1024);\n");
     WRITE(p, "stuff -= 1024 * ((stuff2+sign(stuff2)*1)/2*2);");
-    WRITE(p, "input_ad = stuff / 2047.0f + float4(0.5f,0.5f,0.5f,0.5f)/2047.f;\n");
+    WRITE(p, "input_ad = 2.f*stuff / 2047.0f + float4(0.5f,0.5f,0.5f,0.5f)/2047.0f;\n");
+*/
+//	WRITE(p, "input_ad = %s;\n", tevAInputTable[ac.d]);
 
 /*  WRITE(p, "ocol0 = float4(0.f,0.f,0.f,0.f);\n");
 //  WRITE(p, "float a = 7*rawpos.x/640.0f-3.f;\n");
@@ -897,6 +909,8 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (cc.clamp)
 		WRITE(p, "saturate(");
 
+	printf("cc n(%d): bias %d, d %d\n", n, cc.bias, cc.d);
+	printf("ac n(%d): bias %d, d %d\n", n, ac.bias, ac.d);
 	// combine the color channel
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
@@ -940,6 +954,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (ac.clamp)
 		WRITE(p, ")");
 	WRITE(p, ";\n\n");
+
 	WRITE(p, "// TEV done\n");
 }
 
