@@ -928,7 +928,8 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			{
 				if (selected_iso->IsCompressed())
 					popupMenu->Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
-				else
+				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" 
+						 && selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
 					popupMenu->Append(IDM_COMPRESSGCM, _("Compress ISO..."));
 			} else
 				popupMenu->Append(IDM_LIST_INSTALLWAD, _("Install to Wii Menu"));
