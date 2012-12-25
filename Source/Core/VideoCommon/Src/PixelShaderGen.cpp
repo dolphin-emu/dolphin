@@ -388,24 +388,6 @@ static const char *tevCInputTable[] = // CC
 	"float3(0.5f, 0.5f, 0.5f)",                 // HALF
 	"(konsttemp.rgb)", //"konsttemp.rgb",        // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
-	///aded extra values to map clamped values
-	"(cprev.rgb)",               // CPREV,
-	"(cprev.aaa)",         // APREV,
-	"(cc0.rgb)",                 // C0,
-	"(cc0.aaa)",           // A0,
-	"(cc1.rgb)",                 // C1,
-	"(cc1.aaa)",           // A1,
-	"(cc2.rgb)",                 // C2,
-	"(cc2.aaa)",           // A2,
-	"(textemp.rgb)",            // TEXC,
-	"(textemp.aaa)",      // TEXA,
-	"(crastemp.rgb)",            // RASC,
-	"(crastemp.aaa)",      // RASA,
-	"float3(1.0f, 1.0f, 1.0f)",              // ONE
-	"float3(0.5f, 0.5f, 0.5f)",                 // HALF
-	"(ckonsttemp.rgb)", //"konsttemp.rgb",        // KONST
-	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
-	"PADERROR1", "PADERROR2", "PADERROR3", "PADERROR4"
 };
 
 static const char *tevAInputTable[] = // CA
@@ -418,17 +400,6 @@ static const char *tevAInputTable[] = // CA
 	"rastemp",         // RASA,
 	"konsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO
-	///aded extra values to map clamped values
-	"cprev",            // APREV,
-	"cc0",              // A0,
-	"cc1",              // A1,
-	"cc2",              // A2,
-	"textemp",         // TEXA,
-	"crastemp",         // RASA,
-	"ckonsttemp",       // KONST,  (hw1 had quarter)
-	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO
-	"PADERROR5", "PADERROR6", "PADERROR7", "PADERROR8",
-	"PADERROR9", "PADERROR10", "PADERROR11", "PADERROR12",
 };
 
 static const char *tevRasTable[] =
@@ -460,15 +431,6 @@ static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "7.0f" };
 static char swapModeTable[4][5];
 
 static char text[16384];
-
-struct RegisterState
-{
-	bool ColorNeedOverflowControl;
-	bool AlphaNeedOverflowControl;
-	bool AuxStored;
-};
-
-static RegisterState RegisterStates[4];
 
 static void BuildSwapModeTable()
 {
@@ -604,15 +566,12 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			"  float4 alphabump=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float3 tevcoord=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n"
-			"  float4 cc0=float4(0.0f,0.0f,0.0f,0.0f), cc1=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float3 input_ca=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float3 input_cb=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float3 input_cc=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float3 input_cd=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float4 input_aa=float4(0.0f,0.0f,0.0f,0.0f), input_ab=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  float4 input_ac=float4(0.0f,0.0f,0.0f,0.0f), input_ad=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  float4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  float4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
+			"  float4 input_ac=float4(0.0f,0.0f,0.0f,0.0f), input_ad=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -678,16 +637,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 	}
 
-	RegisterStates[0].AlphaNeedOverflowControl = false;
-	RegisterStates[0].ColorNeedOverflowControl = false;
-	RegisterStates[0].AuxStored = false;
-	for(int i = 1; i < 4; i++)
-	{
-		RegisterStates[i].AlphaNeedOverflowControl = true;
-		RegisterStates[i].ColorNeedOverflowControl = true;
-		RegisterStates[i].AuxStored = false;
-	}
-
 	for (int i = 0; i < numStages; i++)
 		WriteStage(p, i, ApiType); //build the equation for this stage
 
@@ -697,20 +646,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		// regardless of the used destination register
 		if(bpmem.combiners[numStages - 1].colorC.dest != 0)
 		{
-			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].AuxStored;
-			WRITE(p, "prev.rgb = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
-			RegisterStates[0].ColorNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl;
+			WRITE(p, "prev.rgb = %s;\n", tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
 		}
 		if(bpmem.combiners[numStages - 1].alphaC.dest != 0)
 		{
-			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AuxStored;
-			WRITE(p, "prev.a = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
-			RegisterStates[0].AlphaNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl;
+			WRITE(p, "prev.a = %s;\n", tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
 		}
 	}
-	// emulation of unsigned 8 overflow when casting if needed
-	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
-		WRITE(p, "prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	if (Pretest == AlphaTest::UNDETERMINED)
@@ -883,7 +825,6 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		WRITE(p, "rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
-		WRITE(p, "crastemp = rastemp;\n");
 	}
 
 
@@ -912,39 +853,6 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 		WRITE(p, "konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
-		WRITE(p, "ckonsttemp = konsttemp;\n");
-	}
-
-	if(cc.a == TEVCOLORARG_CPREV || cc.a == TEVCOLORARG_APREV
-		|| cc.b == TEVCOLORARG_CPREV || cc.b == TEVCOLORARG_APREV
-		|| cc.c == TEVCOLORARG_CPREV || cc.c == TEVCOLORARG_APREV
-		|| ac.a == TEVALPHAARG_APREV || ac.b == TEVALPHAARG_APREV || ac.c == TEVALPHAARG_APREV)
-	{
-		WRITE(p, "cprev = prev;\n");
-	}
-
-	if(cc.a == TEVCOLORARG_C0 || cc.a == TEVCOLORARG_A0
-	|| cc.b == TEVCOLORARG_C0 || cc.b == TEVCOLORARG_A0
-	|| cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0
-	|| ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 || ac.c == TEVALPHAARG_A0)
-	{
-		WRITE(p, "cc0 = c0;\n");
-	}
-
-	if(cc.a == TEVCOLORARG_C1 || cc.a == TEVCOLORARG_A1
-	|| cc.b == TEVCOLORARG_C1 || cc.b == TEVCOLORARG_A1
-	|| cc.c == TEVCOLORARG_C1 || cc.c == TEVCOLORARG_A1
-	|| ac.a == TEVALPHAARG_A1 || ac.b == TEVALPHAARG_A1 || ac.c == TEVALPHAARG_A1)
-	{
-		WRITE(p, "cc1 = c1;\n");
-	}
-
-	if(cc.a == TEVCOLORARG_C2 || cc.a == TEVCOLORARG_A2
-	|| cc.b == TEVCOLORARG_C2 || cc.b == TEVCOLORARG_A2
-	|| cc.c == TEVCOLORARG_C2 || cc.c == TEVCOLORARG_A2
-	|| ac.a == TEVALPHAARG_A2 || ac.b == TEVALPHAARG_A2 || ac.c == TEVALPHAARG_A2)
-	{
-		WRITE(p, "cc2 = c2;\n");
 	}
 
 	WRITE(p, "input_ca = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.a]);
@@ -1020,12 +928,12 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 static const char *tevAlphaFuncsTable[] =
 {
 	"(false)",									//ALPHACMP_NEVER 0
-	"(prev.a <= %s - (0.25f/255.0f))",			//ALPHACMP_LESS 1
-	"(abs( prev.a - %s ) < (0.5f/255.0f))",		//ALPHACMP_EQUAL 2
-	"(prev.a < %s + (0.25f/255.0f))",			//ALPHACMP_LEQUAL 3
-	"(prev.a >= %s + (0.25f/255.0f))",			//ALPHACMP_GREATER 4
-	"(abs( prev.a - %s ) >= (0.5f/255.0f))",	//ALPHACMP_NEQUAL 5
-	"(prev.a > %s - (0.25f/255.0f))",			//ALPHACMP_GEQUAL 6
+	"(prev.a < %s)",			//ALPHACMP_LESS 1
+	"(prev.a == %s)",		//ALPHACMP_EQUAL 2
+	"(prev.a <= %s)",			//ALPHACMP_LEQUAL 3
+	"(prev.a > %s)",			//ALPHACMP_GREATER 4
+	"(prev.a != %s)",	//ALPHACMP_NEQUAL 5
+	"(prev.a >= %s)",			//ALPHACMP_GEQUAL 6
 	"(true)"									//ALPHACMP_ALWAYS 7
 };
 
