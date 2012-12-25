@@ -18,7 +18,7 @@
 #ifndef _UCODE_AXWII
 #define _UCODE_AXWII
 
-#include "UCode_AXStructs.h"
+#include "UCode_AXWii_Structs.h"
 
 #define NUMBER_OF_PBS 128
 
