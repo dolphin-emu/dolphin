@@ -605,6 +605,12 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			"  float3 tevcoord=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n"
 			"  float4 cc0=float4(0.0f,0.0f,0.0f,0.0f), cc1=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"  float3 input_ca=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float3 input_cb=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float3 input_cc=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float3 input_cd=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float4 input_aa=float4(0.0f,0.0f,0.0f,0.0f), input_ab=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"  float4 input_ac=float4(0.0f,0.0f,0.0f,0.0f), input_ad=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
 
@@ -779,7 +785,6 @@ static const char *TEVCMPAlphaOPTable[8] =
 	"   %s.a + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5f/255.0f) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_EQ 13
 	"   %s.a + ((%s.a >= (%s.a + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_A8_GT 14
 	"   %s.a + (abs(%s.a - %s.a) < (0.5f/255.0f) ? %s.a : 0.0f)"//#define TEVCMP_A8_EQ 15
-
 };
 
 
@@ -992,6 +997,16 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	RegisterStates[cc.dest].ColorNeedOverflowControl = (cc.clamp == 0);
 	RegisterStates[cc.dest].AuxStored = false;
 
+	WRITE(p, "input_ca = %s;\n", tevCInputTable[cc.a]);
+	WRITE(p, "input_cb = %s;\n", tevCInputTable[cc.b]);
+	WRITE(p, "input_cc = %s;\n", tevCInputTable[cc.c]);
+	WRITE(p, "input_cd = %s;\n", tevCInputTable[cc.d]);
+
+	WRITE(p, "input_aa = %s;\n", tevAInputTable[ac.a]);
+	WRITE(p, "input_ab = %s;\n", tevAInputTable[ac.b]);
+	WRITE(p, "input_ac = %s;\n", tevAInputTable[ac.c]);
+	WRITE(p, "input_ad = %s;\n", tevAInputTable[ac.d]);
+
 	// combine the color channel
 	WRITE(p, "// color combine\n");
 	if (cc.clamp)
@@ -1003,16 +1018,16 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal color combiner goes here
-		WRITE(p, "%s * (%s %s lerp(%s, %s, %s) %s)", tevScaleTable[cc.shift], tevCInputTable[cc.d], tevOpTable[cc.op], tevCInputTable[cc.a + 16], tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16], tevBiasTable[cc.bias]);
+		WRITE(p, "%s * (%s %s lerp(%s, %s, %s) %s)", tevScaleTable[cc.shift], "input_cd", tevOpTable[cc.op], "input_ca", "input_cb", "input_cc", tevBiasTable[cc.bias]);
 	}
 	else
 	{
 		int cmp = (cc.shift<<1)|cc.op; // comparemode stored here
 		WRITE(p, TEVCMPColorOPTable[cmp],//lookup the function from the op table
-				tevCInputTable[cc.d],
-				tevCInputTable[cc.a + 16],
-				tevCInputTable[cc.b + 16],
-				tevCInputTable[cc.c + 16]);
+				"input_cd",
+				"input_ca",
+				"input_cb",
+				"input_cc");
 	}
 	if (cc.clamp)
 		WRITE(p, ")");
@@ -1031,17 +1046,17 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal alpha combiner goes here
-		WRITE(p, "%s * (%s.a %s lerp(%s.a, %s.a, %s.a) %s)", tevScaleTable[ac.shift], tevAInputTable[ac.d], tevOpTable[ac.op], tevAInputTable[ac.a + 8], tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8], tevBiasTable[ac.bias]);
+		WRITE(p, "%s * (%s.a %s lerp(%s.a, %s.a, %s.a) %s)", tevScaleTable[ac.shift], "input_ad", tevOpTable[ac.op], "input_aa", "input_ab", "input_ac", tevBiasTable[ac.bias]);
 	}
 	else
 	{
 		//compare alpha combiner goes here
 		int cmp = (ac.shift<<1)|ac.op; // comparemode stored here
 		WRITE(p, TEVCMPAlphaOPTable[cmp],
-				tevAInputTable[ac.d],
-				tevAInputTable[ac.a + 8],
-				tevAInputTable[ac.b + 8],
-				tevAInputTable[ac.c + 8]);
+				"input_ad",
+				"input_aa",
+				"input_ab",
+				"input_ac");
 	}
 	if (ac.clamp)
 		WRITE(p, ")");
