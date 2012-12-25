@@ -125,22 +125,19 @@ const u8 rasters[char_count][char_height] = {
 };
 
 static const char *s_vertex_shader = 
-	"#version 330 core\n"
-	"layout(location = 0) in  vec2 vertexPosition;\n"
-	"layout(location = 1) in  vec2 texturePosition;\n"
-	"out vec2 tpos;\n"
+	"attribute vec2 vertexPosition;\n"
+	"attribute vec2 texturePosition;\n"
+	"varying vec2 tpos;\n"
 	"void main(void) {\n"
 	"	gl_Position = vec4(vertexPosition,0,1);\n"
 	"	tpos = texturePosition;\n"
 	"}\n"; 
 
 static const char *s_fragment_shader =
-	"#version 330 core\n"
 	"#extension GL_ARB_texture_rectangle : enable\n"
 	"uniform sampler2DRect textureSampler;\n"
 	"uniform vec4 color;\n"
-	"in vec2 tpos;\n"
-	"out vec4 gl_FragColor;\n"
+	"varying vec2 tpos;\n"
 	"void main(void) {\n"
 	"	gl_FragColor = texture2DRect(textureSampler,tpos) * color;\n"
 	"}\n";
@@ -162,16 +159,6 @@ RasterFont::RasterFont()
 	glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, char_width*char_count, char_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data);
 	delete [] texture_data;
 	
-	// generate VBO & VAO
-	glGenBuffers(1, &VBO);
-	glGenVertexArrays(1, &VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBindVertexArray(VAO);
-	glEnableVertexAttribArray(0); // vertexPosition
-	glVertexAttribPointer(0, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, NULL);
-	glEnableVertexAttribArray(1); // texturePosition
-	glVertexAttribPointer(1, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
-	
 	// generate shader
 	shader_program = OpenGL_CompileProgram(s_vertex_shader, s_fragment_shader);
 	
@@ -182,6 +169,16 @@ RasterFont::RasterFont()
 	glUniform4f(uniform_color_id, 1, 1, 1, 1);
 	cached_color = -1;
 	glUseProgram(0);
+	
+	// generate VBO & VAO
+	glGenBuffers(1, &VBO);
+	glGenVertexArrays(1, &VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindVertexArray(VAO);
+	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "vertexPosition"));
+	glVertexAttribPointer(glGetAttribLocation(shader_program, "vertexPosition"), 2, GL_FLOAT, 0, sizeof(GLfloat)*4, NULL);
+	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "texturePosition"));
+	glVertexAttribPointer(glGetAttribLocation(shader_program, "texturePosition"), 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 	
 	// TODO: this after merging with graphic_update
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
