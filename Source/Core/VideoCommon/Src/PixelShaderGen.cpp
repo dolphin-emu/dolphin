@@ -883,7 +883,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		WRITE(p, "rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
-		WRITE(p, "crastemp = frac(rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+		WRITE(p, "crastemp = rastemp;\n");
 	}
 
 
@@ -912,14 +912,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 		WRITE(p, "konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
-		if(kc > 7 || ka > 7)
-		{
-			WRITE(p, "ckonsttemp = frac(konsttemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-		}
-		else
-		{
-			WRITE(p, "ckonsttemp = konsttemp;\n");
-		}
+		WRITE(p, "ckonsttemp = konsttemp;\n");
 	}
 
 	if(cc.a == TEVCOLORARG_CPREV || cc.a == TEVCOLORARG_APREV
@@ -927,17 +920,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		|| cc.c == TEVCOLORARG_CPREV || cc.c == TEVCOLORARG_APREV
 		|| ac.a == TEVALPHAARG_APREV || ac.b == TEVALPHAARG_APREV || ac.c == TEVALPHAARG_APREV)
 	{
-		if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
-		{
-			WRITE(p, "cprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[0].AlphaNeedOverflowControl = false;
-			RegisterStates[0].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cprev = prev;\n");
-		}
-		RegisterStates[0].AuxStored = true;
+		WRITE(p, "cprev = prev;\n");
 	}
 
 	if(cc.a == TEVCOLORARG_C0 || cc.a == TEVCOLORARG_A0
@@ -945,17 +928,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	|| cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0
 	|| ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 || ac.c == TEVALPHAARG_A0)
 	{
-		if(RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
-		{
-			WRITE(p, "cc0 = frac(c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[1].AlphaNeedOverflowControl = false;
-			RegisterStates[1].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cc0 = c0;\n");
-		}
-		RegisterStates[1].AuxStored = true;
+		WRITE(p, "cc0 = c0;\n");
 	}
 
 	if(cc.a == TEVCOLORARG_C1 || cc.a == TEVCOLORARG_A1
@@ -963,17 +936,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	|| cc.c == TEVCOLORARG_C1 || cc.c == TEVCOLORARG_A1
 	|| ac.a == TEVALPHAARG_A1 || ac.b == TEVALPHAARG_A1 || ac.c == TEVALPHAARG_A1)
 	{
-		if(RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
-		{
-			WRITE(p, "cc1 = frac(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[2].AlphaNeedOverflowControl = false;
-			RegisterStates[2].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cc1 = c1;\n");
-		}
-		RegisterStates[2].AuxStored = true;
+		WRITE(p, "cc1 = c1;\n");
 	}
 
 	if(cc.a == TEVCOLORARG_C2 || cc.a == TEVCOLORARG_A2
@@ -981,21 +944,8 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	|| cc.c == TEVCOLORARG_C2 || cc.c == TEVCOLORARG_A2
 	|| ac.a == TEVALPHAARG_A2 || ac.b == TEVALPHAARG_A2 || ac.c == TEVALPHAARG_A2)
 	{
-		if(RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
-		{
-			WRITE(p, "cc2 = frac(c2 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
-			RegisterStates[3].AlphaNeedOverflowControl = false;
-			RegisterStates[3].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			WRITE(p, "cc2 = c2;\n");
-		}
-		RegisterStates[3].AuxStored = true;
+		WRITE(p, "cc2 = c2;\n");
 	}
-
-	RegisterStates[cc.dest].ColorNeedOverflowControl = (cc.clamp == 0);
-	RegisterStates[cc.dest].AuxStored = false;
 
 	WRITE(p, "input_ca = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.a]);
 	WRITE(p, "input_cb = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.b]);
@@ -1031,9 +981,6 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (cc.clamp)
 		WRITE(p, ")");
 	WRITE(p,";\n");
-
-	RegisterStates[ac.dest].AlphaNeedOverflowControl = (ac.clamp == 0);
-	RegisterStates[ac.dest].AuxStored = false;
 
 	// combine the alpha channel
 	WRITE(p, "// alpha combine\n");
