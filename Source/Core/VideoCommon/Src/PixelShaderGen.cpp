@@ -571,7 +571,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			"  float3 input_cc=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float3 input_cd=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float4 input_aa=float4(0.0f,0.0f,0.0f,0.0f), input_ab=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  float4 input_ac=float4(0.0f,0.0f,0.0f,0.0f), input_ad=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
+			"  float4 input_ac=float4(0.0f,0.0f,0.0f,0.0f), input_ad=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"  int4 stuff = int4(0,0,0,0), stuff2 = int4(0,0,0,0)\n\n");
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -858,12 +859,37 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	WRITE(p, "input_ca = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.a]);
 	WRITE(p, "input_cb = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.b]);
 	WRITE(p, "input_cc = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.c]);
-	WRITE(p, "input_cd = %s;\n", tevCInputTable[cc.d]);
+//	WRITE(p, "input_cd = %s;\n", tevCInputTable[cc.d]);
+    WRITE(p, "stuff.rgb = round(%s - float3(0.5f,0.5f,0.5f)/2047.0f) * 2047;\n", tevCInputTable[cc.d]);
+    WRITE(p, "stuff2.r =  (stuff.r >= 0) ? (stuff.r / 1024) : ((stuff.r+1) / 1024);\n");
+    WRITE(p, "stuff2.g =  (stuff.g >= 0) ? (stuff.g / 1024) : ((stuff.g+1) / 1024);\n");
+    WRITE(p, "stuff2.b =  (stuff.b >= 0) ? (stuff.b / 1024) : ((stuff.b+1) / 1024);\n");
+    WRITE(p, "stuff.rgb -= 1024 * ((stuff2.rgb+sign(stuff2.rgb)*1)/2*2);");
+    WRITE(p, "input_cd = stuff.rgb / 2047.0f + float3(0.5f,0.5f,0.5f)/2047.f;\n");
 
 	WRITE(p, "input_aa = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.a]);
 	WRITE(p, "input_ab = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.b]);
 	WRITE(p, "input_ac = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.c]);
-	WRITE(p, "input_ad = %s;\n", tevAInputTable[ac.d]);
+//	WRITE(p, "input_ad = %s;\n", tevAInputTable[ac.d]);
+    WRITE(p, "stuff = round(%s - float4(0.5f,0.5,0.5f,0.5f)/2047.0f) * 2047;\n", tevAInputTable[ac.d]);
+    WRITE(p, "stuff2.r =  (stuff.r >= 0) ? (stuff.r / 1024) : ((stuff.r+1) / 1024);\n");
+    WRITE(p, "stuff2.g =  (stuff.g >= 0) ? (stuff.g / 1024) : ((stuff.g+1) / 1024);\n");
+    WRITE(p, "stuff2.b =  (stuff.b >= 0) ? (stuff.b / 1024) : ((stuff.b+1) / 1024);\n");
+    WRITE(p, "stuff2.a =  (stuff.a >= 0) ? (stuff.a / 1024) : ((stuff.a+1) / 1024);\n");
+    WRITE(p, "stuff -= 1024 * ((stuff2+sign(stuff2)*1)/2*2);");
+    WRITE(p, "input_ad = stuff / 2047.0f + float4(0.5f,0.5f,0.5f,0.5f)/2047.f;\n");
+
+/*  WRITE(p, "ocol0 = float4(0.f,0.f,0.f,0.f);\n");
+//  WRITE(p, "float a = 7*rawpos.x/640.0f-3.f;\n");
+    WRITE(p, "float a = -1;\n");
+//-1.f->-15->1
+    WRITE(p, "signed int b = round((a - 0.5f/15.0f) * 15.0f);\n");
+    WRITE(p, "int c =  (b >= 0) ? (b / 8) : ((b+1)/8);"
+              "b -= 8 * ((c+sign(c)*1)/2*2);");
+    WRITE(p, "ocol0.r = 0.5f + b / 15.0f + 0.5f/15.f;\n"); // frac(-0.9) = 0.1
+//  WRITE(p, "ocol0.g = (b == 1) ? 1 : 0;\n");
+*/
+
 
 	// combine the color channel
 	WRITE(p, "// color combine\n");
