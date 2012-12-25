@@ -1019,29 +1019,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal color combiner goes here
-		if (cc.shift > TEVSCALE_1)
-			WRITE(p, "%s*(", tevScaleTable[cc.shift]);
-
-		if(!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
-			WRITE(p, "%s%s", tevCInputTable[cc.d], tevOpTable[cc.op]);
-
-		if (cc.a == cc.b)
-			WRITE(p, "%s", tevCInputTable[cc.a + 16]);
-		else if (cc.c == TEVCOLORARG_ZERO)
-			WRITE(p, "%s", tevCInputTable[cc.a + 16]);
-		else if (cc.c == TEVCOLORARG_ONE)
-			WRITE(p, "%s", tevCInputTable[cc.b + 16]);
-		else if (cc.a == TEVCOLORARG_ZERO)
-			WRITE(p, "%s*%s", tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
-		else if (cc.b == TEVCOLORARG_ZERO)
-			WRITE(p, "%s*(float3(1.0f, 1.0f, 1.0f)-%s)", tevCInputTable[cc.a + 16], tevCInputTable[cc.c + 16]);
-		else
-			WRITE(p, "lerp(%s, %s, %s)", tevCInputTable[cc.a + 16], tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
-
-		WRITE(p, "%s", tevBiasTable[cc.bias]);
-
-		if (cc.shift > TEVSCALE_1)
-			WRITE(p, ")");
+		WRITE(p, "%s * (%s %s lerp(%s, %s, %s) %s)", tevScaleTable[cc.shift], tevCInputTable[cc.d], tevOpTable[cc.op], tevCInputTable[cc.a + 16], tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16], tevBiasTable[cc.bias]);
 	}
 	else
 	{
@@ -1069,28 +1047,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal alpha combiner goes here
-		if (ac.shift > TEVSCALE_1)
-			WRITE(p, "%s*(", tevScaleTable[ac.shift]);
-
-		if(!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
-			WRITE(p, "%s.a%s", tevAInputTable[ac.d], tevOpTable[ac.op]);
-
-		if (ac.a == ac.b)
-			WRITE(p, "%s.a", tevAInputTable[ac.a + 8]);
-		else if (ac.c == TEVALPHAARG_ZERO)
-			WRITE(p, "%s.a", tevAInputTable[ac.a + 8]);
-		else if (ac.a == TEVALPHAARG_ZERO)
-			WRITE(p, "%s.a*%s.a", tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
-		else if (ac.b == TEVALPHAARG_ZERO)
-			WRITE(p, "%s.a*(1.0f-%s.a)", tevAInputTable[ac.a + 8], tevAInputTable[ac.c + 8]);
-		else
-			WRITE(p, "lerp(%s.a, %s.a, %s.a)", tevAInputTable[ac.a + 8], tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
-
-		WRITE(p, "%s",tevBiasTable[ac.bias]);
-
-		if (ac.shift>0)
-			WRITE(p, ")");
-
+		WRITE(p, "%s * (%s.a %s lerp(%s.a, %s.a, %s.a) %s)", tevScaleTable[ac.shift], tevAInputTable[ac.d], tevOpTable[ac.op], tevAInputTable[ac.a + 8], tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8], tevBiasTable[ac.bias]);
 	}
 	else
 	{
