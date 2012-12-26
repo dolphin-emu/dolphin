@@ -35,7 +35,7 @@ void cInterfaceWX::UpdateFPSDisplay(const char *text)
 
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceWX::CreateCreate(void *&window_handle)
+bool cInterfaceWX::CreateWindow(void *&window_handle)
 {
 	int _tx, _ty, _twidth, _theight;
 	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
