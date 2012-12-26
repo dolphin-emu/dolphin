@@ -10,6 +10,7 @@
 struct ID3D11Texture2D;
 struct ID3D11ShaderResourceView;
 struct ID3D11PixelShader;
+struct ID3D11SamplerState;
 
 namespace DX11
 {
@@ -44,6 +45,7 @@ private:
 	ID3D11Texture2D* m_yuyvTexture;
 	ID3D11ShaderResourceView* m_yuyvTextureSRV;
 	ID3D11PixelShader* m_pShader;
+	ID3D11SamplerState* m_samplerState;
 
 };
 

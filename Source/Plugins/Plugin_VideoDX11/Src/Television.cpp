@@ -10,6 +10,7 @@
 #include "D3DUtil.h"
 #include "VertexShaderCache.h"
 #include "HW/Memmap.h"
+#include <vector>
 
 namespace DX11
 {
@@ -67,10 +68,22 @@ void Television::Init()
 
 	// Create YUYV texture for real XFB mode
 
+
+	// Initialize the texture with YCbCr black
+	//
+	// Some games use narrower XFB widths (Nintendo titles are fond of 608),
+	// so the sampler's BorderColor won't cover the right side
+	// (see sampler state below)
+	const unsigned int MAX_XFB_SIZE = 2*(MAX_XFB_WIDTH) * MAX_XFB_HEIGHT;
+	std::vector<u8> fill(MAX_XFB_SIZE);
+	for (size_t i = 0; i < MAX_XFB_SIZE / sizeof(u32); ++i)
+		reinterpret_cast<u32*>(fill.data())[i] = 0x80108010;
+	D3D11_SUBRESOURCE_DATA srd = { fill.data(), 2*(MAX_XFB_WIDTH), 0 };
+
 	// This texture format is designed for YUYV data.
 	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
 		DXGI_FORMAT_G8R8_G8B8_UNORM, MAX_XFB_WIDTH, MAX_XFB_HEIGHT, 1, 1);
-	hr = D3D::device->CreateTexture2D(&t2dd, NULL, &m_yuyvTexture);
+	hr = D3D::device->CreateTexture2D(&t2dd, &srd, &m_yuyvTexture);
 	CHECK(SUCCEEDED(hr), "create tv yuyv texture");
 	D3D::SetDebugObjectName(m_yuyvTexture, "tv yuyv texture");
 
@@ -88,6 +101,21 @@ void Television::Init()
 	m_pShader = D3D::CompileAndCreatePixelShader(YUYV_DECODER_PS, sizeof(YUYV_DECODER_PS));
 	CHECK(m_pShader != NULL, "compile and create yuyv decoder pixel shader");
 	D3D::SetDebugObjectName(m_pShader, "yuyv decoder pixel shader");
+
+	// Create sampler state and set border color
+	// 
+	// The default sampler border color of { 0.f, 0.f, 0.f, 0.f }
+	// creates a green border around the image - see issue 6483
+	// (remember, the XFB is being interpreted as YUYV, and 0,0,0,0
+	// is actually two green pixels in YUYV - black should be 16,128,16,128,
+	// but we reverse the order to match DXGI_FORMAT_G8R8_G8B8_UNORM's ordering)
+	float border[4] = { 128.0f/255.0f, 16.0f/255.0f, 128.0f/255.0f, 16.0f/255.0f };
+	D3D11_SAMPLER_DESC samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_LINEAR,
+		D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER,
+		0.f, 1, D3D11_COMPARISON_ALWAYS, border, 0.f, 0.f);
+	hr = D3D::device->CreateSamplerState(&samDesc, &m_samplerState);
+	CHECK(SUCCEEDED(hr), "create yuyv decoder sampler state");
+	D3D::SetDebugObjectName(m_samplerState, "yuyv decoder sampler state");
 }
 
 void Television::Shutdown()
@@ -95,6 +123,7 @@ void Television::Shutdown()
 	SAFE_RELEASE(m_pShader);
 	SAFE_RELEASE(m_yuyvTextureSRV);
 	SAFE_RELEASE(m_yuyvTexture);
+	SAFE_RELEASE(m_samplerState);
 }
 
 void Television::Submit(u32 xfbAddr, u32 width, u32 height)
@@ -120,6 +149,8 @@ void Television::Render()
 
 		MathUtil::Rectangle<float> sourceRc(0.f, 0.f, float(m_curWidth), float(m_curHeight));
 		MathUtil::Rectangle<float> destRc(-1.f, 1.f, 1.f, -1.f);
+
+		D3D::context->PSSetSamplers(0, 1, &m_samplerState);
 
 		D3D::drawShadedTexSubQuad(
 			m_yuyvTextureSRV, &sourceRc,
