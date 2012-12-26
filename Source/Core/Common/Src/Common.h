@@ -60,11 +60,6 @@ private:
 #undef STACKALIGN
 #define STACKALIGN __attribute__((__force_align_arg_pointer__))
 #endif
-// We use wxWidgets on OS X only if it is version 2.9+ with Cocoa support.
-#ifdef __WXOSX_COCOA__
-#define HAVE_WX 1
-#define USE_WX 1	// Use wxGLCanvas
-#endif
 
 #elif defined _WIN32
 

@@ -16,17 +16,23 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include <math.h>
 
 #include "../../Plugin_VideoOGL/Src/GLUtil.h"
+#include "../../Plugin_VideoOGL/Src/RasterFont.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
-#include "../../Plugin_VideoOGL/Src/RasterFont.h"
-
-#define VSYNC_ENABLED 0
 
 static GLuint s_RenderTarget = 0;
 
+static GLint attr_pos = -1, attr_tex = -1;
+static GLint uni_tex = -1;
+static GLuint program;
+
+// Rasterfont isn't compatible with GLES
+#ifndef USE_GLES
 RasterFont* s_pfont = NULL;
+#endif
 
 void SWRenderer::Init()
 {
@@ -34,71 +40,60 @@ void SWRenderer::Init()
 
 void SWRenderer::Shutdown()
 {
-    glDeleteTextures(1, &s_RenderTarget);	
+	glDeleteProgram(program);
+	glDeleteTextures(1, &s_RenderTarget);	
+#ifndef USE_GLES
+	delete s_pfont;
+	s_pfont = 0;
+#endif
+}
 
-    delete s_pfont;
-    s_pfont = 0;
+void CreateShaders()
+{
+	static const char *fragShaderText =
+		"varying " PREC " vec2 TexCoordOut;\n"
+		"uniform " TEXTYPE " Texture;\n"
+		"void main() {\n"
+		"	" PREC " vec4 tmpcolor;\n"
+		"	tmpcolor = " TEXFUNC "(Texture, TexCoordOut);\n"
+		"	gl_FragColor = tmpcolor;\n"
+		"}\n";
+	static const char *vertShaderText =
+		"attribute vec4 pos;\n"
+		"attribute vec2 TexCoordIn;\n "
+		"varying vec2 TexCoordOut;\n "
+		"void main() {\n"
+		"   gl_Position = pos;\n"
+		"	TexCoordOut = TexCoordIn;\n"
+		"}\n";
+
+	program = OpenGL_CompileProgram(vertShaderText, fragShaderText);
+
+	glUseProgram(program);
+
+	uni_tex = glGetUniformLocation(program, "Texture");
+	attr_pos = glGetAttribLocation(program, "pos");
+	attr_tex = glGetAttribLocation(program, "TexCoordIn"); 
 }
 
 void SWRenderer::Prepare()
 {
-    OpenGL_MakeCurrent();
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
+	glGenTextures(1, &s_RenderTarget);
 
-    // Init extension support.
-	if (glewInit() != GLEW_OK) {
-        ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
-        return;
-    }
-
-    	// Handle VSync on/off
-#ifdef _WIN32
-	if (WGLEW_EXT_swap_control)
-		wglSwapIntervalEXT(VSYNC_ENABLED);
-	else
-		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)Does your video card support OpenGL 2.x?");
-#elif defined(HAVE_X11) && HAVE_X11
-	if (glXSwapIntervalSGI)
-		glXSwapIntervalSGI(VSYNC_ENABLED);
-	else
-		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)");
-#endif
-
-    glStencilFunc(GL_ALWAYS, 0, 0);
-    // used by hw rasterizer if it enables blending and depth test
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthFunc(GL_LEQUAL);
-
-    glShadeModel(GL_SMOOTH);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClearDepth(1.0f);
-    glEnable(GL_SCISSOR_TEST);
-    
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
-    
-    glDisable(GL_LIGHTING);
-    glDisable(GL_BLEND);
-    glDisable(GL_STENCIL_TEST);
-    //glDisable(GL_SCISSOR_TEST);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    s_pfont = new RasterFont();    
-
-    // legacy multitexturing: select texture channel only.
-    glActiveTexture(GL_TEXTURE0);
-    glClientActiveTexture(GL_TEXTURE0);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    glGenTextures(1, &s_RenderTarget);
+	CreateShaders();
+	// TODO: Enable for GLES once RasterFont supports GLES
+#ifndef USE_GLES
+	s_pfont = new RasterFont();
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
+#endif
+	GL_REPORT_ERRORD();
 }
 
 void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
+#ifndef USE_GLES
 	int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
 	int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
 	
@@ -106,11 +101,12 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight, color);
+#endif
 }
 
 void SWRenderer::DrawDebugText()
 {
-    char debugtext_buffer[8192];
+	char debugtext_buffer[8192];
 	char *p = debugtext_buffer;
 	p[0] = 0;
 
@@ -138,48 +134,71 @@ void SWRenderer::DrawDebugText()
 
 void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 {
-    GLsizei glWidth = (GLsizei)OpenGL_GetBackbufferWidth();
-	GLsizei glHeight = (GLsizei)OpenGL_GetBackbufferHeight();
+	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
+	GLsizei glHeight = (GLsizei)GLInterface->GetBackBufferHeight();
 
 	// Update GLViewPort
 	glViewport(0, 0, glWidth, glHeight);
-    glScissor(0, 0, glWidth, glHeight);
+	glScissor(0, 0, glWidth, glHeight);
 
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glBindTexture(TEX2D, s_RenderTarget);
 
+	glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
+	glTexParameteri(TEX2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(TEX2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	GLfloat u_max = (GLfloat)width;
+	GLfloat v_max = (GLfloat)glHeight;
+	 
+	static const GLfloat verts[4][2] = {
+		{ -1, -1}, // Left top
+		{ -1,  1}, // left bottom
+		{  1,  1}, // right bottom
+		{  1, -1} // right top
+	};
+	//Texture rectangle uses pixel coordinates
+#ifndef USE_GLES
+	static const GLfloat texverts[4][2] = {
+		{0, v_max},
+		{0, 0},
+		{u_max, 0},
+		{u_max, v_max}
+	};
+#else
+	static const GLfloat texverts[4][2] = {
+		{0, 1},
+		{0, 0},
+		{1, 0},
+		{1, 1}
+	};
+#endif
+	glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+	glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
+	glEnableVertexAttribArray(attr_pos);
+	glEnableVertexAttribArray(attr_tex);
+		glActiveTexture(GL_TEXTURE0); 
+		glUniform1i(uni_tex, 0);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glDisableVertexAttribArray(attr_pos);
+	glDisableVertexAttribArray(attr_tex);
+
+	glBindTexture(TEX2D, 0); 
 	GL_REPORT_ERRORD();
-
-    GLfloat u_max = (GLfloat)width;
-    GLfloat v_max = (GLfloat)glHeight;
-    
-    glBegin(GL_QUADS);
-		glTexCoord2f(0, v_max); glVertex2f(-1, -1);
-		glTexCoord2f(0, 0); glVertex2f(-1,  1);
-		glTexCoord2f(u_max, 0); glVertex2f( 1,  1);
-		glTexCoord2f(u_max, v_max); glVertex2f( 1, -1);
-	glEnd();
-
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);    
 }
 
 void SWRenderer::SwapBuffer()
 {
-    DrawDebugText();
+	DrawDebugText();
 
-    glFlush();
+	glFlush();
 
-	OpenGL_SwapBuffers();
+	GLInterface->Swap();
     
-	GL_REPORT_ERRORD();
-
-    swstats.ResetFrame();
+	 swstats.ResetFrame();
 	
-	// Clear framebuffer
-	glClearColor(0, 0, 0, 0);
-    glClearDepth(1.0);
+#ifndef USE_GLES
+	glClearDepth(1.0f);
+#endif
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	GL_REPORT_ERRORD();

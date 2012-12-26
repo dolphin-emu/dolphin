@@ -178,6 +178,10 @@ if(APPLE)
 	# page on x86_64 is 4GB in size.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-pagezero_size,0x1000")
 
+	if(NOT DISABLE_WX)
+		add_definitions(-DUSE_WX -DHAVE_WX)
+		set(USE_WX TRUE)
+	endif()
 	find_library(APPKIT_LIBRARY AppKit)
 	find_library(APPSERV_LIBRARY ApplicationServices)
 	find_library(ATB_LIBRARY AudioToolbox)
@@ -218,6 +222,15 @@ if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
+# For now GLES and EGL are tied to each other.
+# Enabling GLES also disables the OpenGL plugin.
+option(USE_GLES "Enables GLES, disables OGL" OFF)
+if(USE_GLES)
+	message("GLES rendering enabled")
+	add_definitions(-DUSE_GLES)
+	add_definitions(-DUSE_EGL)
+	set(USE_EGL True)
+endif()
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 ########################################

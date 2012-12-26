@@ -343,8 +343,8 @@ Renderer::Renderer()
 		return;	// TODO: fail
 
 	// Decide frambuffer size
-	s_backbuffer_width = (int)OpenGL_GetBackbufferWidth();
-	s_backbuffer_height = (int)OpenGL_GetBackbufferHeight();
+	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
+	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
 #ifdef __APPLE__
@@ -572,7 +572,7 @@ Renderer::~Renderer()
 void Renderer::DrawDebugInfo()
 {
 	// Reset viewport for drawing text
-	glViewport(0, 0, OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight());
+	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
 	// Draw various messages on the screen, like FPS, statistics, etc.
 	char debugtext_buffer[8192];
 	char *p = debugtext_buffer;
@@ -730,8 +730,8 @@ void Renderer::DrawDebugInfo()
 
 void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
-	const int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
-	const int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
+	const int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
+	const int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1429,7 +1429,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	SetWindowSize(fbWidth, fbHeight);
 
-	OpenGL_Update(); // just updates the render window position and the backbuffer size
+	GLInterface->Update(); // just updates the render window position and the backbuffer size
 
 	bool xfbchanged = false;
 
@@ -1443,8 +1443,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	bool WindowResized = false;
-	int W = (int)OpenGL_GetBackbufferWidth();
-	int H = (int)OpenGL_GetBackbufferHeight();
+	int W = (int)GLInterface->GetBackBufferWidth();
+	int H = (int)GLInterface->GetBackBufferHeight();
 	if (W != s_backbuffer_width || H != s_backbuffer_height || s_LastEFBScale != g_ActiveConfig.iEFBScale)
 	{
 		WindowResized = true;
@@ -1489,7 +1489,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 
 	// Copy the rendered frame to the real window
-	OpenGL_SwapBuffers();
+	GLInterface->Swap();
 
 	GL_REPORT_ERRORD();
 
