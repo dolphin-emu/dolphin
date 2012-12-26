@@ -1142,6 +1142,9 @@ void CFrame::DoStop()
 		DoFullscreen(false);
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			m_RenderFrame->Destroy();
+		else
+			// Make sure the window is not longer set to stay on top
+			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 		m_RenderParent = NULL;
 
 		// Clean framerate indications from the status bar.
