@@ -29,15 +29,15 @@
 
 namespace HwRasterizer
 {
-    float efbHalfWidth;
-    float efbHalfHeight;
-    bool hasTexture;
+	float efbHalfWidth;
+	float efbHalfHeight;
+	bool hasTexture;
 
-    u8 *temp;   
+	u8 *temp;   
 
 	// Programs
 	static GLuint colProg, texProg, clearProg;
-	
+
 	// Color
 	static GLint col_apos = -1, col_atex = -1;
 	// Tex
@@ -58,9 +58,7 @@ namespace HwRasterizer
 			"varying " PREC " vec4 TexCoordOut;\n"
 			"uniform " TEXTYPE " Texture;\n"
 			"void main() {\n"
-			"   " PREC " vec4 tmpcolor;\n"
-			"   tmpcolor = " TEXFUNC "(Texture, TexCoordOut.xy);\n"
-			"	gl_FragColor = tmpcolor;\n"
+			"	gl_FragColor = " TEXFUNC "(Texture, TexCoordOut.xy);\n"
 			"}\n";
 		// Clear shader
 		static const char *fragclearText = 
@@ -74,7 +72,7 @@ namespace HwRasterizer
 			"attribute vec4 TexCoordIn;\n "
 			"varying vec4 TexCoordOut;\n "
 			"void main() {\n"
-			"   gl_Position = pos;\n"
+			"	gl_Position = pos;\n"
 			"	TexCoordOut = TexCoordIn;\n"
 			"}\n";
 		static const char *vertclearText = 
@@ -104,13 +102,13 @@ namespace HwRasterizer
 		clear_ucol = glGetUniformLocation(clearProg, "Color");
 	}
 
-    void Init()
-    {
-        efbHalfWidth = EFB_WIDTH / 2.0f;
-        efbHalfHeight = 480 / 2.0f;
+	void Init()
+	{
+		efbHalfWidth = EFB_WIDTH / 2.0f;
+		efbHalfHeight = 480 / 2.0f;
 
-        temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
-    }
+		temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
+	}
 	void Shutdown()
 	{
 		glDeleteProgram(colProg);
@@ -150,10 +148,10 @@ namespace HwRasterizer
 		GL_REPORT_ERRORD();
 	}
 	static float width, height;
-    void LoadTexture()
-    {
-        FourTexUnits &texUnit = bpmem.tex[0];
-        u32 imageAddr = texUnit.texImage3[0].image_base;
+	void LoadTexture()
+	{
+		FourTexUnits &texUnit = bpmem.tex[0];
+		u32 imageAddr = texUnit.texImage3[0].image_base;
 		// Texture Rectangle uses pixel coordinates
 		// While GLES uses texture coordinates
 #ifdef USE_GLES	
@@ -163,36 +161,36 @@ namespace HwRasterizer
 		width = 1;
 		height = 1;
 #endif
-        TexCacheEntry &cacheEntry = textures[imageAddr];
-        cacheEntry.Update();
+		TexCacheEntry &cacheEntry = textures[imageAddr];
+		cacheEntry.Update();
 
 		glBindTexture(TEX2D, cacheEntry.texture);
 		glTexParameteri(TEX2D, GL_TEXTURE_MAG_FILTER, texUnit.texMode0[0].mag_filter ? GL_LINEAR : GL_NEAREST);
 		glTexParameteri(TEX2D, GL_TEXTURE_MIN_FILTER, (texUnit.texMode0[0].min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
 		GL_REPORT_ERRORD();
-    }
+	}
 
-    void BeginTriangles()
-    {
-        // disabling depth test sometimes allows more things to be visible
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
+	void BeginTriangles()
+	{
+		// disabling depth test sometimes allows more things to be visible
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
 
-        hasTexture = bpmem.tevorders[0].enable0;
+		hasTexture = bpmem.tevorders[0].enable0;
 
-        if (hasTexture)
-            LoadTexture();        
-    }
+		if (hasTexture)
+			LoadTexture();        
+	}
 
-    void EndTriangles()
-    {
-        glBindTexture(TEX2D, 0);
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_BLEND);
-    }
+	void EndTriangles()
+	{
+		glBindTexture(TEX2D, 0);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_BLEND);
+	}
 
-    void DrawColorVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
-    {
+	void DrawColorVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
+	{
 		float x0 = (v0->screenPosition.x / efbHalfWidth) - 1.0f;
 		float y0 = 1.0f - (v0->screenPosition.y / efbHalfHeight);
 		float z0 = v0->screenPosition.z / (float)0x00ffffff;
@@ -200,11 +198,11 @@ namespace HwRasterizer
 		float x1 = (v1->screenPosition.x / efbHalfWidth) - 1.0f;
 		float y1 = 1.0f - (v1->screenPosition.y / efbHalfHeight);
 		float z1 = v1->screenPosition.z / (float)0x00ffffff;
-		
+
 		float x2 = (v2->screenPosition.x / efbHalfWidth) - 1.0f;
 		float y2 = 1.0f - (v2->screenPosition.y / efbHalfHeight);
 		float z2 = v2->screenPosition.z / (float)0x00ffffff;
-		
+
 		float r0 = v0->color[0][OutputVertexData::RED_C] / 255.0f;
 		float g0 = v0->color[0][OutputVertexData::GRN_C] / 255.0f; 
 		float b0 = v0->color[0][OutputVertexData::BLU_C] / 255.0f;
@@ -223,9 +221,9 @@ namespace HwRasterizer
 			{ x2, y2, z2 }
 		};
 		static const GLfloat col[3][4] = {
-		   { r0, g0, b0, 1.0f },
-		   { r1, g1, b1, 1.0f },
-		   { r2, g2, b2, 1.0f }
+			{ r0, g0, b0, 1.0f },
+			{ r1, g1, b1, 1.0f },
+			{ r2, g2, b2, 1.0f }
 		};
 		{
 			glUseProgram(colProg);
@@ -239,10 +237,10 @@ namespace HwRasterizer
 			glDisableVertexAttribArray(col_apos);
 		}
 		GL_REPORT_ERRORD();
-    }
+	}
 
-    void DrawTextureVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
-    {
+	void DrawTextureVertex(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
+	{
 		float x0 = (v0->screenPosition.x / efbHalfWidth) - 1.0f;
 		float y0 = 1.0f - (v0->screenPosition.y / efbHalfHeight);
 		float z0 = v0->screenPosition.z;
@@ -250,7 +248,7 @@ namespace HwRasterizer
 		float x1 = (v1->screenPosition.x / efbHalfWidth) - 1.0f;
 		float y1 = 1.0f - (v1->screenPosition.y / efbHalfHeight);
 		float z1 = v1->screenPosition.z;
-		
+
 		float x2 = (v2->screenPosition.x / efbHalfWidth) - 1.0f;
 		float y2 = 1.0f - (v2->screenPosition.y / efbHalfHeight);
 		float z2 = v2->screenPosition.z;
@@ -262,7 +260,7 @@ namespace HwRasterizer
 		float t1 = v1->texCoords[0].y / height;
 
 		float s2 = v2->texCoords[0].x / width;
-		float t2 = v2->texCoords[0].y / width;
+		float t2 = v2->texCoords[0].y / height;
 
 		static const GLfloat verts[3][3] = {
 			{ x0, y0, z0 },
@@ -287,28 +285,28 @@ namespace HwRasterizer
 			glDisableVertexAttribArray(tex_apos);
 		}
 		GL_REPORT_ERRORD();
-    }
+	}
 
-    void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
-    {
+	void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
+	{
 		if (hasTexture)
 			DrawTextureVertex(v0, v1, v2);
 		else
 			DrawColorVertex(v0, v1, v2);
 	}
 
-    void Clear()
-    {
-        u8 r = (bpmem.clearcolorAR & 0x00ff);
-        u8 g = (bpmem.clearcolorGB & 0xff00) >> 8;
-        u8 b = (bpmem.clearcolorGB & 0x00ff);
-        u8 a = (bpmem.clearcolorAR & 0xff00) >> 8;
+	void Clear()
+	{
+		u8 r = (bpmem.clearcolorAR & 0x00ff);
+		u8 g = (bpmem.clearcolorGB & 0xff00) >> 8;
+		u8 b = (bpmem.clearcolorGB & 0x00ff);
+		u8 a = (bpmem.clearcolorAR & 0xff00) >> 8;
 
-        GLfloat left   = (GLfloat)bpmem.copyTexSrcXY.x / efbHalfWidth - 1.0f;
-	    GLfloat top    = 1.0f - (GLfloat)bpmem.copyTexSrcXY.y / efbHalfHeight;
-        GLfloat right  = (GLfloat)(left + bpmem.copyTexSrcWH.x + 1) / efbHalfWidth - 1.0f;
-	    GLfloat bottom = 1.0f - (GLfloat)(top + bpmem.copyTexSrcWH.y + 1) / efbHalfHeight;
-        GLfloat depth = (GLfloat)bpmem.clearZValue / (GLfloat)0x00ffffff;
+		GLfloat left   = (GLfloat)bpmem.copyTexSrcXY.x / efbHalfWidth - 1.0f;
+		GLfloat top    = 1.0f - (GLfloat)bpmem.copyTexSrcXY.y / efbHalfHeight;
+		GLfloat right  = (GLfloat)(left + bpmem.copyTexSrcWH.x + 1) / efbHalfWidth - 1.0f;
+		GLfloat bottom = 1.0f - (GLfloat)(top + bpmem.copyTexSrcWH.y + 1) / efbHalfHeight;
+		GLfloat depth = (GLfloat)bpmem.clearZValue / (GLfloat)0x00ffffff;
 		static const GLfloat verts[4][3] = {
 			{ left, top, depth },
 			{ right, top, depth },
@@ -324,62 +322,61 @@ namespace HwRasterizer
 			glDisableVertexAttribArray(col_apos);
 		}
 		GL_REPORT_ERRORD();
-    }
+	}
 
-    TexCacheEntry::TexCacheEntry()
-    {
-        Create();
-    }
+	TexCacheEntry::TexCacheEntry()
+	{
+		Create();
+	}
 
-    void TexCacheEntry::Create()
-    {
-        FourTexUnits &texUnit = bpmem.tex[0];
+	void TexCacheEntry::Create()
+	{
+		FourTexUnits &texUnit = bpmem.tex[0];
 
-        texImage0.hex = texUnit.texImage0[0].hex;
-        texImage1.hex = texUnit.texImage1[0].hex;
-        texImage2.hex = texUnit.texImage2[0].hex;
-        texImage3.hex = texUnit.texImage3[0].hex;
-        texTlut.hex = texUnit.texTlut[0].hex;
+		texImage0.hex = texUnit.texImage0[0].hex;
+		texImage1.hex = texUnit.texImage1[0].hex;
+		texImage2.hex = texUnit.texImage2[0].hex;
+		texImage3.hex = texUnit.texImage3[0].hex;
+		texTlut.hex = texUnit.texTlut[0].hex;
 
-        int width = texImage0.width;
-        int height = texImage0.height;
+		int width = texImage0.width;
+		int height = texImage0.height;
 
-        DebugUtil::GetTextureBGRA(temp, 0, 0, width, height);
+		DebugUtil::GetTextureBGRA(temp, 0, 0, width, height);
 
-        glGenTextures(1, (GLuint *)&texture);
+		glGenTextures(1, (GLuint *)&texture);
 		glBindTexture(TEX2D, texture);
 #ifdef USE_GLES
-        glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);        
+		glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);        
 #else
-        glTexImage2D(TEX2D, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_BGRA, GL_UNSIGNED_BYTE, temp);        
+		glTexImage2D(TEX2D, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_BGRA, GL_UNSIGNED_BYTE, temp);        
 #endif
 		GL_REPORT_ERRORD();
 	}
 
-    void TexCacheEntry::Destroy()
-    {
-        if (texture == 0)
-            return;
+	void TexCacheEntry::Destroy()
+	{
+		if (texture == 0)
+			return;
 
-        glDeleteTextures(1, &texture);
-        texture = 0;
-    }
+		glDeleteTextures(1, &texture);
+		texture = 0;
+	}
 
-    void TexCacheEntry::Update()
-    {
-        FourTexUnits &texUnit = bpmem.tex[0];
+	void TexCacheEntry::Update()
+	{
+		FourTexUnits &texUnit = bpmem.tex[0];
 
-        // extra checks cause textures to be reloaded much more
-        if (texUnit.texImage0[0].hex != texImage0.hex ||
-            //texUnit.texImage1[0].hex != texImage1.hex ||
-            //texUnit.texImage2[0].hex != texImage2.hex ||
-            texUnit.texImage3[0].hex != texImage3.hex ||
-            texUnit.texTlut[0].hex   != texTlut.hex)
-        {
-            Destroy();
-            Create();
-        }
-    }
-
+		// extra checks cause textures to be reloaded much more
+		if (texUnit.texImage0[0].hex != texImage0.hex ||
+		//texUnit.texImage1[0].hex != texImage1.hex ||
+		//texUnit.texImage2[0].hex != texImage2.hex ||
+		texUnit.texImage3[0].hex != texImage3.hex ||
+		texUnit.texTlut[0].hex   != texTlut.hex)
+		{
+			Destroy();
+			Create();
+		}
+	}
 }
 

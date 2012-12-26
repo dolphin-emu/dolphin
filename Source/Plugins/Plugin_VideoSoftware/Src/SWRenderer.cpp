@@ -41,7 +41,7 @@ void SWRenderer::Init()
 void SWRenderer::Shutdown()
 {
 	glDeleteProgram(program);
-    glDeleteTextures(1, &s_RenderTarget);	
+	glDeleteTextures(1, &s_RenderTarget);	
 #ifndef USE_GLES
 	delete s_pfont;
 	s_pfont = 0;
@@ -79,12 +79,12 @@ void CreateShaders()
 void SWRenderer::Prepare()
 {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
-    glGenTextures(1, &s_RenderTarget);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
+	glGenTextures(1, &s_RenderTarget);
 
 	CreateShaders();
 #ifndef USE_GLES
-    s_pfont = new RasterFont();
+	s_pfont = new RasterFont();
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 #endif
 	GL_REPORT_ERRORD();
@@ -106,7 +106,7 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 
 void SWRenderer::DrawDebugText()
 {
-    char debugtext_buffer[8192];
+	char debugtext_buffer[8192];
 	char *p = debugtext_buffer;
 	p[0] = 0;
 
@@ -134,21 +134,21 @@ void SWRenderer::DrawDebugText()
 
 void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 {
-    GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
+	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
 	GLsizei glHeight = (GLsizei)GLInterface->GetBackBufferHeight();
 
 	// Update GLViewPort
 	glViewport(0, 0, glWidth, glHeight);
-    glScissor(0, 0, glWidth, glHeight);
+	glScissor(0, 0, glWidth, glHeight);
 
-    glBindTexture(TEX2D, s_RenderTarget);
+	glBindTexture(TEX2D, s_RenderTarget);
 
-    glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
-    glTexParameteri(TEX2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
+	glTexParameteri(TEX2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(TEX2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    GLfloat u_max = (GLfloat)width;
-    GLfloat v_max = (GLfloat)glHeight;
+	GLfloat u_max = (GLfloat)width;
+	GLfloat v_max = (GLfloat)glHeight;
 	 
 	static const GLfloat verts[4][2] = {
 		{ -1, -1}, // Left top
@@ -174,30 +174,30 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 #endif
 	glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
 	glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
-    glEnableVertexAttribArray(attr_pos);
+	glEnableVertexAttribArray(attr_pos);
 	glEnableVertexAttribArray(attr_tex);
 		glActiveTexture(GL_TEXTURE0); 
 		glUniform1i(uni_tex, 0);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    glDisableVertexAttribArray(attr_pos);
+	glDisableVertexAttribArray(attr_pos);
 	glDisableVertexAttribArray(attr_tex);
 
-    glBindTexture(TEX2D, 0); 
+	glBindTexture(TEX2D, 0); 
 	GL_REPORT_ERRORD();
 }
 
 void SWRenderer::SwapBuffer()
 {
-    DrawDebugText();
+	DrawDebugText();
 
-    glFlush();
+	glFlush();
 
 	GLInterface->Swap();
     
-    swstats.ResetFrame();
+	 swstats.ResetFrame();
 	
 #ifndef USE_GLES
-    glClearDepth(1.0f);
+	glClearDepth(1.0f);
 #endif
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
