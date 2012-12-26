@@ -24,15 +24,16 @@
 #include <GL/glxew.h>
 #include <GL/gl.h>
 #endif
+
+#include "X11_Util.h"
 #include "InterfaceBase.h"
 
 class cInterfaceEGL : public cInterfaceBase
 {
 private:
-	void CreateXWindow();
-	void DestroyXWindow();
-	void XEventThread(); 
+	cX11Window XWindow;
 public:
+	friend class cX11Window;
 	void Swap();
 	void UpdateFPSDisplay(const char *Text);
 	bool Create(void *&window_handle);

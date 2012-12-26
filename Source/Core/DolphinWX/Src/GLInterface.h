@@ -34,8 +34,8 @@
 typedef struct {
 #if defined(USE_EGL) && USE_EGL // This is currently a X11/EGL implementation for desktop
 	int screen;
-	Display *x_dpy;
-	Display *x_evdpy;
+	Display *dpy;
+	Display *evdpy;
 	Window win;
 	Window parent;
 	EGLSurface egl_surf;

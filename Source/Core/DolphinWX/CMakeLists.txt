@@ -84,7 +84,8 @@ else()
 endif()
 
 if(USE_EGL)
-	set(SRCS ${SRCS} Src/GLInterface/EGL.cpp)
+	set(SRCS ${SRCS} Src/GLInterface/EGL.cpp
+		Src/GLInterface/X11_Util.cpp)
 else()
 	if(WIN32)
 		set(SRCS ${SRCS} Src/GLInterface/GLW.cpp)
@@ -95,7 +96,9 @@ else()
 			set(SRCS ${SRCS} Src/GLInterface/AGL.cpp)
 		endif()
 	else()
-		set(SRCS ${SRCS} Src/GLInterface/GLX.cpp)
+		set(SRCS ${SRCS} Src/GLInterface/GLX.cpp
+			Src/GLInterface/X11_Util.cpp)
+
 	endif()
 endif()
 

@@ -15,208 +15,16 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "VideoConfig.h"
 #include "Host.h"
 #include "RenderBase.h"
 
-#include "VertexShaderManager.h"
 #include "../GLInterface.h"
 #include "EGL.h"
-
-void cInterfaceEGL::CreateXWindow(void)
-{
-	Atom wmProtocols[1];
-
-	// Setup window attributes
-	GLWin.attr.colormap = XCreateColormap(GLWin.x_evdpy,
-			GLWin.parent, GLWin.vi->visual, AllocNone);
-	GLWin.attr.event_mask = KeyPressMask | StructureNotifyMask | FocusChangeMask;
-	GLWin.attr.background_pixel = BlackPixel(GLWin.x_evdpy, GLWin.screen);
-	GLWin.attr.border_pixel = 0;
-
-	// Create the window
-	GLWin.win = XCreateWindow(GLWin.x_evdpy, GLWin.parent,
-			GLWin.x, GLWin.y, GLWin.width, GLWin.height, 0,
-			GLWin.vi->depth, InputOutput, GLWin.vi->visual,
-			CWBorderPixel | CWBackPixel | CWColormap | CWEventMask, &GLWin.attr);
-	wmProtocols[0] = XInternAtom(GLWin.x_evdpy, "WM_DELETE_WINDOW", True);
-	XSetWMProtocols(GLWin.x_evdpy, GLWin.win, wmProtocols, 1);
-	XSetStandardProperties(GLWin.x_evdpy, GLWin.win, "GPU", "GPU", None, NULL, 0, NULL);
-	XMapRaised(GLWin.x_evdpy, GLWin.win);
-	XSync(GLWin.x_evdpy, True);
-
-	GLWin.xEventThread = std::thread(&cInterfaceEGL::XEventThread, this);
-}
-
-void cInterfaceEGL::DestroyXWindow(void)
-{
-	XUnmapWindow(GLWin.x_dpy, GLWin.win);
-	GLWin.win = 0;
-	if (GLWin.xEventThread.joinable())
-		GLWin.xEventThread.join();
-	XFreeColormap(GLWin.x_dpy, GLWin.attr.colormap);
-}
-
-void cInterfaceEGL::XEventThread()
-{
-	// Free look variables
-	static bool mouseLookEnabled = false;
-	static bool mouseMoveEnabled = false;
-	static float lastMouse[2];
-	while (GLWin.win)
-	{
-		XEvent event;
-		KeySym key;
-		for (int num_events = XPending(GLWin.x_evdpy); num_events > 0; num_events--)
-		{
-			XNextEvent(GLWin.x_evdpy, &event);
-			switch(event.type) {
-				case KeyPress:
-					key = XLookupKeysym((XKeyEvent*)&event, 0);
-					switch (key)
-					{
-						case XK_3:
-							OSDChoice = 1;
-							// Toggle native resolution
-							g_Config.iEFBScale = g_Config.iEFBScale + 1;
-							if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
-							break;
-						case XK_4:
-							OSDChoice = 2;
-							// Toggle aspect ratio
-							g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
-							break;
-						case XK_5:
-							OSDChoice = 3;
-							// Toggle EFB copy
-							if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
-							{
-								g_Config.bEFBCopyEnable ^= true;
-								g_Config.bCopyEFBToTexture = false;
-							}
-							else
-							{
-								g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
-							}
-							break;
-						case XK_6:
-							OSDChoice = 4;
-							g_Config.bDisableFog = !g_Config.bDisableFog;
-							break;
-						default:
-							break;
-					}
-					if (g_Config.bFreeLook)
-					{
-						static float debugSpeed = 1.0f;
-						switch (key)
-						{
-							case XK_parenleft:
-								debugSpeed /= 2.0f;
-								break;
-							case XK_parenright:
-								debugSpeed *= 2.0f;
-								break;
-							case XK_w:
-								VertexShaderManager::TranslateView(0.0f, debugSpeed);
-								break;
-							case XK_s:
-								VertexShaderManager::TranslateView(0.0f, -debugSpeed);
-								break;
-							case XK_a:
-								VertexShaderManager::TranslateView(debugSpeed, 0.0f);
-								break;
-							case XK_d:
-								VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
-								break;
-							case XK_r:
-								VertexShaderManager::ResetView();
-								break;
-						}
-					}
-					break;
-				case ButtonPress:
-					if (g_Config.bFreeLook)
-					{
-						switch (event.xbutton.button)
-						{
-							case 2: // Middle button
-								lastMouse[0] = event.xbutton.x;
-								lastMouse[1] = event.xbutton.y;
-								mouseMoveEnabled = true;
-								break;
-							case 3: // Right button
-								lastMouse[0] = event.xbutton.x;
-								lastMouse[1] = event.xbutton.y;
-								mouseLookEnabled = true;
-								break;
-						}
-					}
-					break;
-				case ButtonRelease:
-					if (g_Config.bFreeLook)
-					{
-						switch (event.xbutton.button)
-						{
-							case 2: // Middle button
-								mouseMoveEnabled = false;
-								break;
-							case 3: // Right button
-								mouseLookEnabled = false;
-								break;
-						}
-					}
-					break;
-				case MotionNotify:
-					if (g_Config.bFreeLook)
-					{
-						if (mouseLookEnabled)
-						{
-							VertexShaderManager::RotateView((event.xmotion.x - lastMouse[0]) / 200.0f,
-									(event.xmotion.y - lastMouse[1]) / 200.0f);
-							lastMouse[0] = event.xmotion.x;
-							lastMouse[1] = event.xmotion.y;
-						}
-
-						if (mouseMoveEnabled)
-						{
-							VertexShaderManager::TranslateView((event.xmotion.x - lastMouse[0]) / 50.0f,
-									(event.xmotion.y - lastMouse[1]) / 50.0f);
-							lastMouse[0] = event.xmotion.x;
-							lastMouse[1] = event.xmotion.y;
-						}
-					}
-					break;
-				case ConfigureNotify:
-					Window winDummy;
-					unsigned int borderDummy, depthDummy;
-					XGetGeometry(GLWin.x_dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
-							&GLWin.width, &GLWin.height, &borderDummy, &depthDummy);
-					s_backbuffer_width = GLWin.width;
-					s_backbuffer_height = GLWin.height;
-					break;
-				case ClientMessage:
-					if ((unsigned long) event.xclient.data.l[0] ==
-							XInternAtom(GLWin.x_dpy, "WM_DELETE_WINDOW", False))
-						Host_Message(WM_USER_STOP);
-					if ((unsigned long) event.xclient.data.l[0] ==
-							XInternAtom(GLWin.x_dpy, "RESIZE", False))
-						XMoveResizeWindow(GLWin.x_dpy, GLWin.win,
-								event.xclient.data.l[1], event.xclient.data.l[2],
-								event.xclient.data.l[3], event.xclient.data.l[4]);
-					break;
-				default:
-					break;
-			}
-		}
-		Common::SleepCurrentThread(20);
-	}
-}
 
 // Show the current FPS
 void cInterfaceEGL::UpdateFPSDisplay(const char *text)
 {
-	XStoreName(GLWin.x_dpy, GLWin.win, text);
+	XStoreName(GLWin.dpy, GLWin.win, text);
 }
 void cInterfaceEGL::Swap()
 {
@@ -237,14 +45,14 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	const char *s;
    EGLint egl_major, egl_minor;
 
-   GLWin.x_dpy = XOpenDisplay(NULL);
+   GLWin.dpy = XOpenDisplay(NULL);
 
-   if (!GLWin.x_dpy) {
+   if (!GLWin.dpy) {
       printf("Error: couldn't open display\n");
       return false;
    }
 
-   GLWin.egl_dpy = eglGetDisplay(GLWin.x_dpy);
+   GLWin.egl_dpy = eglGetDisplay(GLWin.dpy);
    if (!GLWin.egl_dpy) {
       printf("Error: eglGetDisplay() failed\n");
       return false;
@@ -288,11 +96,11 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		EGL_NONE
 	};
 	
-	GLWin.x_evdpy = XOpenDisplay(NULL);
+	GLWin.evdpy = XOpenDisplay(NULL);
 	GLWin.parent = (Window)window_handle;
-	GLWin.screen = DefaultScreen(GLWin.x_dpy);
+	GLWin.screen = DefaultScreen(GLWin.dpy);
 	if (GLWin.parent == 0)
-		GLWin.parent = RootWindow(GLWin.x_dpy, GLWin.screen);
+		GLWin.parent = RootWindow(GLWin.dpy, GLWin.screen);
 
    XVisualInfo  visTemplate;
    int num_visuals;
@@ -312,7 +120,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 
    /* The X window visual must match the EGL config */
    visTemplate.visualid = vid;
-   GLWin.vi = XGetVisualInfo(GLWin.x_dpy, VisualIDMask, &visTemplate, &num_visuals);
+   GLWin.vi = XGetVisualInfo(GLWin.dpy, VisualIDMask, &visTemplate, &num_visuals);
    if (!GLWin.vi) {
       printf("Error: couldn't get X visual\n");
       exit(1);
@@ -323,7 +131,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	GLWin.width = _twidth;
 	GLWin.height = _theight;
 
-	CreateXWindow();
+	XWindow.CreateXWindow();
 #ifdef USE_GLES
 	eglBindAPI(EGL_OPENGL_ES_API);
 #else
@@ -368,7 +176,7 @@ bool cInterfaceEGL::MakeCurrent()
 // Close backend
 void cInterfaceEGL::Shutdown()
 {
-	DestroyXWindow();
+	XWindow.DestroyXWindow();
 	if (GLWin.egl_ctx && !eglMakeCurrent(GLWin.egl_dpy, GLWin.egl_surf, GLWin.egl_surf, GLWin.egl_ctx))
 		NOTICE_LOG(VIDEO, "Could not release drawing context.");
 	if (GLWin.egl_ctx)
