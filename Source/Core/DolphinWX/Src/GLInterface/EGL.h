@@ -33,7 +33,7 @@ private:
 	void DestroyXWindow();
 	void XEventThread(); 
 public:
-	void SwapBuffers();
+	void Swap();
 	void UpdateFPSDisplay(const char *Text);
 	bool Create(void *&window_handle);
 	bool MakeCurrent();

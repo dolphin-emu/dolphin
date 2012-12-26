@@ -23,7 +23,7 @@
 #include "../GLInterface.h"
 #include "AGL.h"
 
-void cInterfaceAGL::SwapBuffers()
+void cInterfaceAGL::Swap()
 {
 	[GLWin.cocoaCtx flushBuffer];
 }

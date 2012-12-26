@@ -23,7 +23,7 @@
 #include "../GLInterface.h"
 #include "WX.h"
 
-void cInterfaceWX::SwapBuffers()
+void cInterfaceWX::Swap()
 {
 	GLWin.glCanvas->SwapBuffers();
 }

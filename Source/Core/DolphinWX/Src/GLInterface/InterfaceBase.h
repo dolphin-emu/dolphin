@@ -23,7 +23,7 @@ protected:
 	u32 s_backbuffer_width;
 	u32 s_backbuffer_height;
 public:
-	virtual void SwapBuffers() = 0;
+	virtual void Swap() = 0;
 	virtual void UpdateFPSDisplay(const char *Text) = 0;
 	virtual bool Create(void *&window_handle) = 0;
 	virtual bool MakeCurrent() = 0;

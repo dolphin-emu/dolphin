@@ -192,7 +192,7 @@ void SWRenderer::SwapBuffer()
 
     glFlush();
 
-	GLInterface->SwapBuffers();
+	GLInterface->Swap();
     
     swstats.ResetFrame();
 	

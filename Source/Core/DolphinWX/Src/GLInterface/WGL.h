@@ -28,7 +28,7 @@
 class cInterfaceWGL : public cInterfaceBase
 {
 public:
-	void SwapBuffers();
+	void Swap();
 	void UpdateFPSDisplay(const char *Text);
 	bool Create(void *&window_handle);
 	bool MakeCurrent();

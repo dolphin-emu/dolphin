@@ -218,7 +218,7 @@ void cInterfaceEGL::UpdateFPSDisplay(const char *text)
 {
 	XStoreName(GLWin.x_dpy, GLWin.win, text);
 }
-void cInterfaceEGL::SwapBuffers()
+void cInterfaceEGL::Swap()
 {
 	eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);
 }

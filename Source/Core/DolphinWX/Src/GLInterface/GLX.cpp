@@ -218,7 +218,7 @@ void cInterfaceGLX::UpdateFPSDisplay(const char *text)
 {
 	XStoreName(GLWin.dpy, GLWin.win, text);
 }
-void cInterfaceGLX::SwapBuffers()
+void cInterfaceGLX::Swap()
 {
 	glXSwapBuffers(GLWin.dpy, GLWin.win);
 }

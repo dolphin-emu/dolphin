@@ -27,7 +27,7 @@
 static HDC hDC = NULL;       // Private GDI Device Context
 static HGLRC hRC = NULL;     // Permanent Rendering Context
 
-void cInterfaceWGL::SwapBuffers()
+void cInterfaceWGL::Swap()
 {
 	SwapBuffers(hDC);
 }

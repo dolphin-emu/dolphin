@@ -1354,7 +1354,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 
 	// Copy the rendered frame to the real window
-	GLInterface->SwapBuffers();
+	GLInterface->Swap();
 
 	GL_REPORT_ERRORD();
 
