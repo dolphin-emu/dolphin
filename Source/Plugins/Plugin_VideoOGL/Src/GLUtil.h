@@ -20,7 +20,7 @@
 
 #include "VideoConfig.h"
 #include "MathUtil.h"
-#include "GLVideoInterface.h"
+#include "GLInterface.h"
 
 #ifndef GL_DEPTH24_STENCIL8_EXT // allows FBOs to support stencils
 #define GL_DEPTH_STENCIL_EXT 0x84F9

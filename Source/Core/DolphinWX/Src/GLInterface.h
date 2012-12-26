@@ -14,21 +14,21 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-#ifndef _VIDEOINTERFACE_H_
-#define _VIDEOINTERFACE_H_
+#ifndef _GLINTERFACE_H_
+#define _GLINTERFACE_H_
 
 #include "Thread.h"
 
 #if defined(USE_EGL) && USE_EGL
-#include "VideoInterface/EGL.h"
+#include "GLInterface/EGL.h"
 #elif defined(USE_WX) && USE_WX
-#include "VideoInterface/WX.h"
+#include "GLInterface/WX.h"
 #elif defined(__APPLE__)
-#include "VideoInterface/AGL.h"
+#include "GLInterface/AGL.h"
 #elif defined(_WIN32)
-#include "VideoInterface/WGL.h"
+#include "GLInterface/WGL.h"
 #elif defined(HAVE_X11) && HAVE_X11
-#include "VideoInterface/GLX.h"
+#include "GLInterface/GLX.h"
 #endif
 
 typedef struct {

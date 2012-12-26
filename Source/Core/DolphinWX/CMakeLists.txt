@@ -85,20 +85,26 @@ endif()
 
 if(USE_EGL)
 	set(SRCS ${SRCS}
-		Src/VideoInterface/EGL.cpp
+		Src/GLInterface/EGL.cpp
 	)
 else()
 	if(WIN32)
 		set(SRCS ${SRCS}
-			Src/VideoInterface/GLW.cpp
+			Src/GLInterface/GLW.cpp
 		)
 	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set(SRCS ${SRCS}
-			Src/VideoInterface/AGL.cpp
-		)
+		if(USE_WX)
+			set(SRCS ${SRCS}
+				Src/GLInterface/WX.cpp
+			)
+		else()	
+			set(SRCS ${SRCS}
+				Src/GLInterface/AGL.cpp
+			)
+		endif()
 	else()
 		set(SRCS ${SRCS}
-			Src/VideoInterface/GLX.cpp
+			Src/GLInterface/GLX.cpp
 		)
 	endif()
 endif()

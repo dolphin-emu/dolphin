@@ -20,7 +20,7 @@
 #include "RenderBase.h"
 
 #include "VertexShaderManager.h"
-#include "../GLVideoInterface.h"
+#include "../GLInterface.h"
 #include "WX.h"
 
 void cInterfaceWX::SwapBuffers()

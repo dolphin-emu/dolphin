@@ -178,6 +178,10 @@ if(APPLE)
 	# page on x86_64 is 4GB in size.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-pagezero_size,0x1000")
 
+	if(NOT DISABLE_WX)
+		add_definitions(-DUSE_WX -DHAVE_WX)
+		set(USE_WX TRUE)
+	endif()
 	find_library(APPKIT_LIBRARY AppKit)
 	find_library(APPSERV_LIBRARY ApplicationServices)
 	find_library(ATB_LIBRARY AudioToolbox)
