@@ -52,9 +52,6 @@ void InitInterface();
 // Helpers
 GLuint OpenGL_CompileProgram(const char *vertexShader, const char *fragmentShader);
 
-// Helpers
-GLuint OpenGL_CompileProgram(const char *vertexShader, const char *fragmentShader);
-
 // Error reporting - use the convenient macros.
 void OpenGL_ReportARBProgramError();
 GLuint OpenGL_ReportGLError(const char *function, const char *file, int line);

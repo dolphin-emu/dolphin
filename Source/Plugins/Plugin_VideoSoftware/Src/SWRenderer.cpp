@@ -94,8 +94,8 @@ void SWRenderer::Prepare()
 void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
 #ifndef USE_GLES
-	int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
-	int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
+	int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
+	int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
 	
 	s_pfont->printMultilineText(pstr,
 		left * 2.0f / (float)nBackbufferWidth - 1,
