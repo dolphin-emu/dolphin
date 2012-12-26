@@ -33,7 +33,7 @@ private:
 public:
 	void SwapBuffers();
 	void UpdateFPSDisplay(const char *Text);
-	bool CreateWindow(void *&window_handle);
+	bool Create(void *&window_handle);
 	bool MakeCurrent();
 	void Shutdown(); 
 };

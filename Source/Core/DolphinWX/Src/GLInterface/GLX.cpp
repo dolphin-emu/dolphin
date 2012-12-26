@@ -225,7 +225,7 @@ void cInterfaceGLX::SwapBuffers()
 
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceGLX::CreateWindow(void *&window_handle)
+bool cInterfaceGLX::Create(void *&window_handle)
 {
 	int _tx, _ty, _twidth, _theight;
 	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);

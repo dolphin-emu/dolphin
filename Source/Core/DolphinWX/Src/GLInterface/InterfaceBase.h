@@ -25,7 +25,7 @@ protected:
 public:
 	virtual void SwapBuffers() = 0;
 	virtual void UpdateFPSDisplay(const char *Text) = 0;
-	virtual bool CreateWindow(void *&window_handle) = 0;
+	virtual bool Create(void *&window_handle) = 0;
 	virtual bool MakeCurrent() = 0;
 	virtual void Shutdown() = 0; 
 

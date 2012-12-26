@@ -166,7 +166,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 	UpdateActiveConfig();
 
 	InitInterface();
-	if (!GLInterface->CreateWindow(window_handle))
+	if (!GLInterface->Create(window_handle))
 		return false;
 
 	s_BackendInitialized = true;

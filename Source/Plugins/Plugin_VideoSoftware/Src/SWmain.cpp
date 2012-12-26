@@ -73,7 +73,7 @@ bool VideoSoftware::Initialize(void *&window_handle)
     g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
 	InitInterface();
 
-	if (!GLInterface->CreateWindow(window_handle))
+	if (!GLInterface->Create(window_handle))
 	{
 		INFO_LOG(VIDEO, "%s", "SWRenderer::Create failed\n");
 		return false;
