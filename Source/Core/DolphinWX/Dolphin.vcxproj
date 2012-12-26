@@ -130,7 +130,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\Externals\GLew;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\Externals\GLew\include;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\Core\Src;..\Core\Src\PowerPC\JitCommon;..\DebuggerWX\Src;..\..\..\Externals\Bochs_disasm;..\InputCommon\Src;..\DiscIO\Src;..\..\..\Externals\SFML\include;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\include;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
     <PostBuildEvent>
