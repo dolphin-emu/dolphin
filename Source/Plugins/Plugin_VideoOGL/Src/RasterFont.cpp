@@ -270,7 +270,7 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	glUseProgram(shader_program);
 	
 	if(color != cached_color) {
-		glUniform4f(uniform_color_id, ((color>>0)&0xff)/255.f,((color>>8)&0xff)/255.f,((color>>16)&0xff)/255.f,((color>>24)&0xff)/255.f);
+		glUniform4f(uniform_color_id, ((color>>16)&0xff)/255.f,((color>>8)&0xff)/255.f,((color>>0)&0xff)/255.f,((color>>24)&0xff)/255.f);
 		cached_color = color;
 	}
 	
