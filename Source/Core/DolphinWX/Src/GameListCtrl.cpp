@@ -1329,42 +1329,42 @@ void CGameListCtrl::UnselectAll()
 #ifdef _WIN32
 HRESULT CreateLink(LPCWSTR lpszPathObj, LPCSTR lpszPathLink, LPCWSTR lpszDesc, wxString iso)
 {
-    HRESULT hres;
-    IShellLink* psl;
+	HRESULT hres;
+	IShellLink* psl;
 
-    // Get a pointer to the IShellLink interface. It is assumed that CoInitialize
-    // has already been called.
-    hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
-    if (SUCCEEDED(hres))
-    {
-        IPersistFile* ppf;
+	// Get a pointer to the IShellLink interface. It is assumed that CoInitialize
+	// has already been called.
+	hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+	if (SUCCEEDED(hres))
+	{
+		IPersistFile* ppf;
 
-        // Set the path to the shortcut target and add the description.
-        psl->SetPath(lpszPathObj);
-        psl->SetDescription(lpszDesc);
+		// Set the path to the shortcut target and add the description.
+		psl->SetPath(lpszPathObj);
+		psl->SetDescription(lpszDesc);
 		wxString argument = "-b -e " + iso;
 		psl->SetArguments(argument);
 		wxString dir = File::GetExeDirectory();
 		psl->SetWorkingDirectory(dir);
 
-        // Query IShellLink for the IPersistFile interface, used for saving the
-        // shortcut in persistent storage.
-        hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+		// Query IShellLink for the IPersistFile interface, used for saving the
+		// shortcut in persistent storage.
+		hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
 
-        if (SUCCEEDED(hres))
-        {
-            WCHAR wsz[MAX_PATH];
+		if (SUCCEEDED(hres))
+		{
+			WCHAR wsz[MAX_PATH];
 
-            // Ensure that the string is Unicode.
-            MultiByteToWideChar(CP_ACP, 0, lpszPathLink, -1, wsz, MAX_PATH);
+			// Ensure that the string is Unicode.
+			MultiByteToWideChar(CP_ACP, 0, lpszPathLink, -1, wsz, MAX_PATH);
 
-            // Save the link by calling IPersistFile::Save.
-            hres = ppf->Save(wsz, TRUE);
-            ppf->Release();
-        }
-        psl->Release();
-    }
-    return hres;
+			// Save the link by calling IPersistFile::Save.
+			hres = ppf->Save(wsz, TRUE);
+			ppf->Release();
+		}
+		psl->Release();
+	}
+	return hres;
 }
 
 void CGameListCtrl::OnCreateShortcut(wxCommandEvent& event)
