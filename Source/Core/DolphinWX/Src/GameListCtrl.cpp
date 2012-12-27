@@ -167,7 +167,9 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_MENU(IDM_EXPORTSAVE, CGameListCtrl::OnExportSave)
 	EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
 	EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
+#ifdef _WIN32
 	EVT_MENU(IDM_CREATESHORTCUT, CGameListCtrl::OnCreateShortcut)
+#endif
 	EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
 	EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
 	EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
