@@ -1383,7 +1383,9 @@ void CGameListCtrl::OnCreateShortcut(wxCommandEvent& event)
 	t2.Append(iso->GetName(0));
 	t2.Append(".lnk");
 	t3 = "Dolphin";
-	t4 = iso->GetFileName();
+	t4 = "\"";
+	t4.Append(iso->GetFileName());
+	t4.Append("\"");
 	CreateLink(t1, t2, t3, t4);
 }
 #endif
