@@ -22,7 +22,9 @@
 
 #include <algorithm>
 #include <memory>
-#include <shlobj.h>.
+#ifdef _WIN32
+#include <shlobj.h>
+#endif
 
 #include "FileSearch.h"
 #include "StringUtil.h"
