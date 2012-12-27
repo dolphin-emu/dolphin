@@ -1342,7 +1342,7 @@ HRESULT CreateLink(LPCWSTR lpszPathObj, LPCSTR lpszPathLink, LPCWSTR lpszDesc, w
         // Set the path to the shortcut target and add the description.
         psl->SetPath(lpszPathObj);
         psl->SetDescription(lpszDesc);
-		wxString argument = "-e " + iso;
+		wxString argument = "-b -e " + iso;
 		psl->SetArguments(argument);
 		wxString dir = File::GetExeDirectory();
 		psl->SetWorkingDirectory(dir);
@@ -1374,12 +1374,12 @@ void CGameListCtrl::OnCreateShortcut(wxCommandEvent& event)
 
 	WCHAR userpath[MAX_PATH];
 	WCHAR exepath[MAX_PATH];
-	SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, userpath);
+	SHGetFolderPathW(NULL, CSIDL_DESKTOP, NULL, 0, userpath);
 	GetModuleFileName(NULL, exepath, MAX_PATH);
 
 	t1 =  exepath;
 	t2 = userpath;
-	t2.Append("\\desktop\\");
+	t2.Append("\\");
 	t2.Append(iso->GetName(0));
 	t2.Append(".lnk");
 	t3 = "Dolphin";
