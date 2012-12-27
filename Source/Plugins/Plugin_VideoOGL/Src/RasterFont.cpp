@@ -18,8 +18,12 @@
 #include "GLUtil.h"
 
 #include "RasterFont.h"
+#include "PixelShaderCache.h"
+#include "ProgramShaderCache.h"
+#include "VertexShaderCache.h"
 // globals
 
+namespace OGL {
 
 static const u32 char_width = 8;
 static const u32 char_height = 13;
@@ -124,7 +128,7 @@ const u8 rasters[char_count][char_height] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x8f, 0xf1, 0x60, 0x00, 0x00, 0x00} 
 };
 
-static const char *s_vertex_shader = 
+static const char *s_vertexShaderSrc = 
 	"attribute vec2 vertexPosition;\n"
 	"attribute vec2 texturePosition;\n"
 	"varying vec2 tpos;\n"
@@ -133,7 +137,7 @@ static const char *s_vertex_shader =
 	"	tpos = texturePosition;\n"
 	"}\n"; 
 
-static const char *s_fragment_shader =
+static const char *s_fragmentShaderSrc =
 	"#extension GL_ARB_texture_rectangle : enable\n"
 	"uniform sampler2DRect textureSampler;\n"
 	"uniform vec4 color;\n"
@@ -141,6 +145,10 @@ static const char *s_fragment_shader =
 	"void main(void) {\n"
 	"	gl_FragColor = texture2DRect(textureSampler,tpos) * color;\n"
 	"}\n";
+	
+	
+static FRAGMENTSHADER s_fragmentShader;
+static VERTEXSHADER s_vertexShader;
 	
 RasterFont::RasterFont()
 {
@@ -160,15 +168,16 @@ RasterFont::RasterFont()
 	delete [] texture_data;
 	
 	// generate shader
-	shader_program = OpenGL_CompileProgram(s_vertex_shader, s_fragment_shader);
+	VertexShaderCache::CompileVertexShader(s_vertexShader, s_vertexShaderSrc);
+	PixelShaderCache::CompilePixelShader(s_fragmentShader, s_fragmentShaderSrc);
+	ProgramShaderCache::SetBothShaders(s_fragmentShader.glprogid, s_vertexShader.glprogid);
+	GLuint shader_program = ProgramShaderCache::GetCurrentProgram();
 	
 	// bound uniforms
-	glUseProgram(shader_program);
 	glUniform1i(glGetUniformLocation(shader_program,"textureSampler"), 0); // GL_TEXTURE0
 	uniform_color_id = glGetUniformLocation(shader_program,"color");
 	glUniform4f(uniform_color_id, 1, 1, 1, 1);
 	cached_color = -1;
-	glUseProgram(0);
 	
 	// generate VBO & VAO
 	glGenBuffers(1, &VBO);
@@ -190,7 +199,8 @@ RasterFont::~RasterFont()
 	glDeleteTextures(1, &texture);
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteProgram(shader_program);
+	s_fragmentShader.Destroy();
+	s_vertexShader.Destroy();
 }
 
 void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
@@ -267,7 +277,7 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	// no printable char, so also nothing to do
 	if(!usage) return;
 
-	glUseProgram(shader_program);
+	ProgramShaderCache::SetBothShaders(s_fragmentShader.glprogid, s_vertexShader.glprogid);
 	
 	if(color != cached_color) {
 		glUniform4f(uniform_color_id, ((color>>16)&0xff)/255.f,((color>>8)&0xff)/255.f,((color>>0)&0xff)/255.f,((color>>24)&0xff)/255.f);
@@ -281,6 +291,6 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	// TODO: this after merging with graphic_update
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-	
-	glUseProgram(0);
+}
+
 }

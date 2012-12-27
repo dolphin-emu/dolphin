@@ -31,7 +31,7 @@ static GLuint program;
 
 // Rasterfont isn't compatible with GLES
 #ifndef USE_GLES
-RasterFont* s_pfont = NULL;
+OGL::RasterFont* s_pfont = NULL;
 #endif
 
 void SWRenderer::Init()
@@ -85,7 +85,7 @@ void SWRenderer::Prepare()
 	CreateShaders();
 	// TODO: Enable for GLES once RasterFont supports GLES
 #ifndef USE_GLES
-	s_pfont = new RasterFont();
+	s_pfont = new OGL::RasterFont();
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
 #endif
 	GL_REPORT_ERRORD();
