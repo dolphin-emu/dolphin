@@ -520,6 +520,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				? wxString::FromAscii("")
 				: wxString::From8BitData(DefaultIOPath.c_str()),
 			wxEmptyString, wxEmptyString,
+			_("GameCube Savegame files(*.gci;*.gcs;*.sav)") + wxString(wxT("|*.gci;*.gcs;*.sav|")) +
 			_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
 			_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
 			_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),

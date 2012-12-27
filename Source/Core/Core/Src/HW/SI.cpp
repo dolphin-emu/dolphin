@@ -273,7 +273,7 @@ void Init()
 		g_Channel[i].m_InLo.Hex = 0;
 
 		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-			AddDevice(Movie::IsUsingPad(i) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
+			AddDevice(Movie::IsUsingPad(i) ?  (Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
 		else
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
 	}

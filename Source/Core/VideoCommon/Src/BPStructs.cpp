@@ -34,9 +34,9 @@
 
 using namespace BPFunctions;
 
-u32 mapTexAddress;
-bool mapTexFound;
-int numWrites;
+static u32 mapTexAddress;
+static bool mapTexFound;
+static int numWrites;
 
 extern volatile bool g_bSkipCurrentFrame;
 
@@ -81,6 +81,9 @@ void BPWritten(const BPCmd& bp)
 		  just stuff geometry in them and don't put state changes there
 	----------------------------------------------------------------------------------------------------------------
 	*/
+	
+	// check for invalid state, else unneeded configuration are built
+	g_video_backend->CheckInvalidState();
 
 	// Debugging only, this lets you skip a bp update
 	//static int times = 0;

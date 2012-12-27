@@ -5,7 +5,6 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/Console.cpp
 			Src/Core.cpp
 			Src/CoreParameter.cpp
-			Src/CoreRerecording.cpp
 			Src/CoreTiming.cpp
 			Src/DSPEmulator.cpp
 			Src/GeckoCodeConfig.cpp
@@ -71,7 +70,8 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/CPU.cpp
 			Src/HW/DSP.cpp
 			Src/HW/DSPHLE/UCodes/UCode_AX.cpp
-			Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
+            Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
+            Src/HW/DSPHLE/UCodes/UCode_NewAXWii.cpp
 			Src/HW/DSPHLE/UCodes/UCode_CARD.cpp
 			Src/HW/DSPHLE/UCodes/UCode_InitAudioSystem.cpp
 			Src/HW/DSPHLE/UCodes/UCode_ROM.cpp
@@ -192,7 +192,11 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/JitCommon/JitCache.cpp
 			Src/PowerPC/JitCommon/Jit_Util.cpp)
 
-set(LIBS bdisasm inputcommon videoogl videosoftware sfml-network)
+set(LIBS bdisasm inputcommon videosoftware sfml-network)
+
+if(NOT USE_GLES)
+	set(LIBS ${LIBS} videoogl)
+endif()
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp

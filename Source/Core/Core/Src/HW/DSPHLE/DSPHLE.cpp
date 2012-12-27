@@ -20,7 +20,6 @@
 #include "ChunkFile.h"
 #include "IniFile.h"
 #include "HLEMixer.h"
-#include "Setup.h"
 #include "StringUtil.h"
 #include "LogManager.h"
 #include "IniFile.h"

@@ -34,7 +34,7 @@ public:
 	virtual void step() {}
 	virtual void breakNow();
 	virtual void runToBreakpoint();
-	virtual void insertBLR(unsigned int address, unsigned int);
+	virtual void insertBLR(unsigned int address, unsigned int value);
 	virtual int getColor(unsigned int address);
 	virtual std::string getDescription(unsigned int address);
 	virtual void showJitResults(u32 address);

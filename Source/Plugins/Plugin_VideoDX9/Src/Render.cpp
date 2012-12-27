@@ -17,7 +17,6 @@
 
 #include <list>
 #include <d3dx9.h>
-#include <strsafe.h>
 
 #include "StringUtil.h"
 #include "Common.h"
@@ -55,6 +54,10 @@
 #include "Movie.h"
 #include "BPFunctions.h"
 #include "FPSCounter.h"
+#include "ConfigManager.h"
+
+#include <strsafe.h>
+
 
 namespace DX9
 {
@@ -225,6 +228,7 @@ void SetupDeviceObjects()
 	// To avoid shader compilation stutters, read back all shaders from cache.
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
+	g_vertex_manager->CreateDeviceObjects();
 	// Texture cache will recreate themselves over time.
 }
 
@@ -243,6 +247,7 @@ void TeardownDeviceObjects()
 	VertexShaderCache::Shutdown();
 	PixelShaderCache::Shutdown();
 	TextureConverter::Shutdown();
+	g_vertex_manager->DestroyDeviceObjects();
 }
 
 // Init functions
@@ -277,19 +282,16 @@ Renderer::Renderer()
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 
-	s_XFB_width = MAX_XFB_WIDTH;
-	s_XFB_height = MAX_XFB_HEIGHT;
+	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
+	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-	CalculateXYScale(dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	int SupersampleCoeficient = (s_LastAA % 3) + 1;
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	CalculateTargetSize(SupersampleCoeficient);
+	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height, SupersampleCoeficient);
 
 	// Make sure to use valid texture sizes
 	D3D::FixTextureSize(s_target_width, s_target_height);
@@ -704,8 +706,8 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	// If GX viewport is off the render target, we must clamp our viewport
 	// within the bounds. Use the correction matrix to compensate.
 	ViewportCorrectionMatrix(vpCorrection,
-		intendedX, intendedY, intendedWd, intendedHt,
-		X, Y, Wd, Ht);
+		(float)intendedX, (float)intendedY, (float)intendedWd, (float)intendedHt,
+		(float)X, (float)Y, (float)Wd, (float)Ht);
 
 	D3DVIEWPORT9 vp;
 	vp.X = X;
@@ -834,7 +836,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
-	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
 		if (g_ActiveConfig.bDumpFrames && frame_data)
 			AVIDump::AddFrame(frame_data);
@@ -885,8 +887,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::dev->SetDepthStencilSurface(NULL);
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	D3DVIEWPORT9 vp;
 
 	// Clear full target screen (edges, borders etc)
@@ -906,10 +907,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 	}
 
-	int X = dst_rect.left;
-	int Y = dst_rect.top;
-	int Width  = dst_rect.right - dst_rect.left;
-	int Height = dst_rect.bottom - dst_rect.top;
+	int X = GetTargetRectangle().left;
+	int Y = GetTargetRectangle().top;
+	int Width  = GetTargetRectangle().right - GetTargetRectangle().left;
+	int Height = GetTargetRectangle().bottom - GetTargetRectangle().top;
 
 	// Sanity check
 	if (X < 0) X = 0;
@@ -952,7 +953,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 			MathUtil::Rectangle<float> drawRc;
 
-			if (!g_ActiveConfig.bUseRealXFB)
+			if (g_ActiveConfig.bUseRealXFB)
+			{
+				drawRc.top = -1;
+				drawRc.bottom = 1;
+				drawRc.left = -1;
+				drawRc.right = 1;
+			}
+			else
 			{
 				// use virtual xfb with offset
 				int xfbHeight = xfbSource->srcHeight;
@@ -966,19 +974,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 				// The following code disables auto stretch.  Kept for reference.
 				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				//float vScale = (float)fbHeight / (float)dst_rect.GetHeight();
-				//float hScale = (float)fbWidth / (float)dst_rect.GetWidth();
+				//float vScale = (float)fbHeight / (float)GetTargetRectangle().GetHeight();
+				//float hScale = (float)fbWidth / (float)GetTargetRectangle().GetWidth();
 				//drawRc.top *= vScale;
 				//drawRc.bottom *= vScale;
 				//drawRc.left *= hScale;
 				//drawRc.right *= hScale;
-			}
-			else
-			{
-				drawRc.top = -1;
-				drawRc.bottom = 1;
-				drawRc.left = -1;
-				drawRc.right = 1;
 			}
 
 			xfbSource->Draw(sourceRc, drawRc, Width, Height);
@@ -1016,7 +1017,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (s_bScreenshot)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		SaveScreenshot(s_sScreenshotName, dst_rect);
+		SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
 		s_bScreenshot = false;
 	}
 
@@ -1030,8 +1031,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		HRESULT hr = D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);
 		if (!bLastFrameDumped)
 		{
-			s_recordWidth = dst_rect.GetWidth();
-			s_recordHeight = dst_rect.GetHeight();
+			s_recordWidth = GetTargetRectangle().GetWidth();
+			s_recordHeight = GetTargetRectangle().GetHeight();
 			bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
 			if (!bAVIDumping)
 			{
@@ -1048,7 +1049,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		if (bAVIDumping)
 		{
 			D3DLOCKED_RECT rect;
-			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, dst_rect.AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
+			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, GetTargetRectangle().AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
 			{
 				if (!frame_data || w != s_recordWidth || h != s_recordHeight)
 				{
@@ -1089,23 +1090,31 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::font.DrawTextScaled(0, 0, 20, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 
+	if (SConfig::GetInstance().m_ShowLag)
+	{
+		char lag[10];
+		StringCchPrintfA(lag, 1000, "Lag: %llu\n", Movie::g_currentLagCount);
+		D3D::font.DrawTextScaled(0, 18, 20, 20, 0.0f, 0xFF00FFFF, lag);
+	}
+
 	if (g_ActiveConfig.bShowInputDisplay)
 	{
 		char inputDisplay[1000];
 		StringCchPrintfA(inputDisplay, 1000, Movie::GetInputDisplay().c_str());
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, inputDisplay);
+		D3D::font.DrawTextScaled(0, 36, 20, 20, 0.0f, 0xFF00FFFF, inputDisplay);
 	}
+
 	Renderer::DrawDebugText();
 
 	if (g_ActiveConfig.bOverlayStats)
 	{
 		Statistics::ToString(st);
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, st);
+		D3D::font.DrawTextScaled(0, 36, 20, 20, 0.0f, 0xFF00FFFF, st);
 	}
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
 		Statistics::ToStringProj(st);
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, st);
+		D3D::font.DrawTextScaled(0, 36, 20, 20, 0.0f, 0xFF00FFFF, st);
 	}
 
 	OSD::DrawMessages();
@@ -1127,15 +1136,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	bool xfbchanged = false;
 
-	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
+	if (FramebufferManagerBase::LastXfbWidth() != fbWidth || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		s_XFB_width = fbWidth;
-		s_XFB_height = fbHeight;
-		if (s_XFB_width < 1) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_width > MAX_XFB_WIDTH) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_height < 1) s_XFB_height = MAX_XFB_HEIGHT;
-		if (s_XFB_height > MAX_XFB_HEIGHT) s_XFB_height = MAX_XFB_HEIGHT;
+		unsigned int w = (fbWidth < 1 || fbWidth > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbWidth;
+		unsigned int h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+		FramebufferManagerBase::SetLastXfbWidth(w);
+		FramebufferManagerBase::SetLastXfbHeight(h);
 	}
 
 	u32 newAA = g_ActiveConfig.iMultisampleMode;
@@ -1144,14 +1151,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		s_LastAA = newAA;
 
-		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-		CalculateXYScale(dst_rect);
+		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 		
 		int SupersampleCoeficient = (s_LastAA % 3) + 1;
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
-		CalculateTargetSize(SupersampleCoeficient);
+		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height, SupersampleCoeficient);
 
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
@@ -1198,6 +1203,14 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 	{
 		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
+		if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
+		{
+			//This is needed to draw to the correct pixels in multi-pass algorithms
+			//this avoid z-figthing and grants that you write to the same pixels
+			//affected by the last pass
+			D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);
+			D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_EQUAL);
+		}
 	}
 }
 
@@ -1205,7 +1218,11 @@ void Renderer::RestoreState()
 {
 	D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
 	D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
-
+	if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
+	{
+		D3D::RefreshRenderState(D3DRS_ZWRITEENABLE);
+		D3D::RefreshRenderState(D3DRS_ZFUNC);
+	}
 	// TODO: Enable this code. Caused glitches for me however (neobrain)
 //	for (unsigned int i = 0; i < 8; ++i)
 //		D3D::dev->SetTexture(i, NULL);

@@ -24,6 +24,7 @@
 #include "../Core.h"
 #include "CPU.h"
 #include "DSP.h"
+#include "Movie.h"
 
 #include "VideoBackendBase.h"
 
@@ -36,6 +37,10 @@ namespace
 
 void CCPU::Init(int cpu_core)
 {
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+	{
+		cpu_core = Movie::GetCPUMode();
+	}
 	PowerPC::Init(cpu_core);
 	m_SyncEvent = 0;
 }

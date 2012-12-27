@@ -354,9 +354,6 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 
 				static s16 l1 = 0;
 				static s16 l2 = 0;
-				static s16 r1 = 0;
-				static s16 r2 = 0;
-
 				
 				if ( frac >= 0x10000 || frac == 0)
 				{
@@ -364,9 +361,6 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 
 					l1 = l2;		   //current
 					l2 = pcm[pos * 2]; //next
-
-					r1 = r2;			   //current
-					r2 = pcm[pos * 2 + 1]; //next
 				}
 
 				pcm_l = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;

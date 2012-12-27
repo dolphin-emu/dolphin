@@ -18,9 +18,9 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include "EmuWindow.h"
 #endif
 
-#include "Setup.h" // Common
 #include "Atomic.h"
 #include "Thread.h"
 #include "Timer.h"
@@ -61,9 +61,6 @@
 #include "VideoBackendBase.h"
 #include "AudioCommon.h"
 #include "OnScreenDisplay.h"
-#ifdef _WIN32
-#include "EmuWindow.h"
-#endif
 
 #include "VolumeHandler.h"
 #include "FileMonitor.h"
@@ -293,7 +290,7 @@ void Stop()  // - Hammertime!
 		SConfig::GetInstance().m_SYSCONF->Reload();
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
-	Movie::g_currentInputCount = 0;
+	Movie::Shutdown();
 	g_bStopping = false;
 }
 
@@ -434,7 +431,7 @@ void EmuThread()
 	CBoot::BootUp();
 
 	// Setup our core, but can't use dynarec if we are compare server
-	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer ||
+	if (Movie::GetCPUMode() && (!_CoreParameter.bRunCompareServer ||
 					_CoreParameter.bRunCompareClient))
 		PowerPC::SetMode(PowerPC::MODE_JIT);
 	else

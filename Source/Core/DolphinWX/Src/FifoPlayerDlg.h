@@ -57,6 +57,7 @@ private:
 	void OnFrameListSelectionChanged(wxCommandEvent& event);
 	void OnObjectListSelectionChanged(wxCommandEvent& event);
 	void OnObjectCmdListSelectionChanged(wxCommandEvent& event);
+	void OnObjectCmdListSelectionCopy(wxCommandEvent& WXUNUSED(event));
 
 	void UpdatePlayGui();
 	void UpdateRecorderGui();

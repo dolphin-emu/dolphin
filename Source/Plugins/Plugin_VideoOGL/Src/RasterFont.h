@@ -23,20 +23,16 @@ public:
     RasterFont();
     ~RasterFont(void);
     static int debug;
-    
-    // some useful constants
-    enum	{char_width = 10};
-    enum	{char_height = 15};
-    
-    // and the happy helper functions
-    void printString(const char *s, double x, double y, double z=0.0);
-    void printCenteredString(const char *s, double y, int screen_width, double z=0.0);
 
-	void printMultilineText(const char *text, double x, double y, double z, int bbWidth, int bbHeight);
+	void printMultilineText(const char *text, double x, double y, double z, int bbWidth, int bbHeight, u32 color);
 private:
-	int	fontOffset;
-    char *temp_buffer;
-	enum {TEMP_BUFFER_SIZE = 64 * 1024};
+	
+	u32 VBO;
+	u32 VAO;
+	u32 texture;
+	u32 shader_program;
+	u32 uniform_color_id;
+	u32 cached_color;
 };
 
 #endif // _RASTERFONT_H_

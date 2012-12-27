@@ -224,14 +224,14 @@ void VertexLoader::CompileVertexTranslator()
 #endif
 
 	// Colors
-	const int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
+	const u32 col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
 	// TextureCoord
 	// Since m_VtxDesc.Text7Coord is broken across a 32 bit word boundary, retrieve its value manually.
 	// If we didn't do this, the vertex format would be read as one bit offset from where it should be, making
 	// 01 become 00, and 10/11 become 01
-	const int tc[8] = {
+	const u32 tc[8] = {
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
-		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (const int)((m_VtxDesc.Hex >> 31) & 3)
+		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (const u32)((m_VtxDesc.Hex >> 31) & 3)
 	};
 	
 	// Reset pipeline
@@ -770,7 +770,7 @@ void VertexLoader::AppendToString(std::string *dest) const
 		dest->append(StringFromFormat("Nrm: %i %s-%s ",
 			m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat]));
 	}
-	int color_mode[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
+	u32 color_mode[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
 	for (int i = 0; i < 2; i++)
 	{
 		if (color_mode[i])
@@ -778,7 +778,7 @@ void VertexLoader::AppendToString(std::string *dest) const
 			dest->append(StringFromFormat("C%i: %i %s-%s ", i, m_VtxAttr.color[i].Elements, posMode[color_mode[i]], colorFormat[m_VtxAttr.color[i].Comp]));
 		}
 	}
-	int tex_mode[8] = {
+	u32 tex_mode[8] = {
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord, 
 		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord
 	};

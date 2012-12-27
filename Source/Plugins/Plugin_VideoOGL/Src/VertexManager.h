@@ -33,7 +33,8 @@ public:
 	VertexManager();
 
 	NativeVertexFormat* CreateNativeVertexFormat();
-
+	void CreateDeviceObjects();
+	void DestroyDeviceObjects();
 private:
 	void Draw();
 	// temp

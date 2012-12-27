@@ -121,18 +121,12 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETVIEWPORT+3:
 		case XFMEM_SETVIEWPORT+4:
 		case XFMEM_SETVIEWPORT+5:
-			{
-				u8 size = std::min(transferSize * 4, 6 * 4);
-				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
-				{
-					VertexManager::Flush();
-					VertexShaderManager::SetViewportChanged();
-					PixelShaderManager::SetViewportChanged();
-				}
+			VertexManager::Flush();
+			VertexShaderManager::SetViewportChanged();
+			PixelShaderManager::SetViewportChanged();
 
-				nextAddress = XFMEM_SETVIEWPORT + 6;
-				break;
-			}
+			nextAddress = XFMEM_SETVIEWPORT + 6;
+			break;
 
 		case XFMEM_SETPROJECTION:
 		case XFMEM_SETPROJECTION+1:
@@ -141,21 +135,15 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETPROJECTION+4:
 		case XFMEM_SETPROJECTION+5:
 		case XFMEM_SETPROJECTION+6:
-			{
-				u8 size = std::min(transferSize * 4, 7 * 4);
-				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
-				{
-					VertexManager::Flush();
-					VertexShaderManager::SetProjectionChanged();
-				}
+			VertexManager::Flush();			
+			VertexShaderManager::SetProjectionChanged();
 
-				nextAddress = XFMEM_SETPROJECTION + 7;
-				break;
-			}
+			nextAddress = XFMEM_SETPROJECTION + 7;
+			break;
 
         case XFMEM_SETNUMTEXGENS: // GXSetNumTexGens
 			if (xfregs.numTexGen.numTexGens != (newValue & 15))
-                VertexManager::Flush();
+				VertexManager::Flush();
             break;
 
 		case XFMEM_SETTEXMTXINFO:
@@ -166,16 +154,10 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETTEXMTXINFO+5:
 		case XFMEM_SETTEXMTXINFO+6:
 		case XFMEM_SETTEXMTXINFO+7:
-			{
-				u8 size = std::min(transferSize * 4, 8 * 4);
-				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
-				{
-					VertexManager::Flush();
-				}
+			VertexManager::Flush();
 
-				nextAddress = XFMEM_SETTEXMTXINFO + 8;
-				break;
-			}
+			nextAddress = XFMEM_SETTEXMTXINFO + 8;
+			break;
 
 		case XFMEM_SETPOSMTXINFO:
 		case XFMEM_SETPOSMTXINFO+1:
@@ -185,16 +167,10 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETPOSMTXINFO+5:
 		case XFMEM_SETPOSMTXINFO+6:
 		case XFMEM_SETPOSMTXINFO+7:
-			{
-				u8 size = std::min(transferSize * 4, 8 * 4);
-				if (memcmp((u32*)&xfregs + (address - 0x1000), pData + dataIndex, size))
-				{
-					VertexManager::Flush();
-				}
+			VertexManager::Flush();
 
-				nextAddress = XFMEM_SETPOSMTXINFO + 8;
-				break;
-			}
+			nextAddress = XFMEM_SETPOSMTXINFO + 8;
+			break;
 
 		// --------------
 		// Unknown Regs
@@ -264,15 +240,8 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 			transferSize = 0;
 		}
 		
-		for (u32 i = 0; i < xfMemTransferSize; ++i)
-		{
-			if (((u32*)&xfmem[xfMemBase])[i] != pData[i])
-			{
-				XFMemWritten(xfMemTransferSize, xfMemBase);
-				memcpy_gc(&xfmem[xfMemBase], pData, xfMemTransferSize * 4);
-				break;
-			}
-		}
+		XFMemWritten(xfMemTransferSize, xfMemBase);
+		memcpy_gc(&xfmem[xfMemBase], pData, xfMemTransferSize * 4);
 
 		pData += xfMemTransferSize;
 	}

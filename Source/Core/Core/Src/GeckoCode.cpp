@@ -171,7 +171,7 @@ bool InstallCodeHandler()
 	Memory::Write_U8(1, 0x80001807);
 
 	// Invalidate the icache
-	for (int i = 0; i < data.length(); i += 32)
+	for (unsigned int i = 0; i < data.length(); i += 32)
 	{
 		PowerPC::ppcState.iCache.Invalidate(0x80001800 + i);
 	}

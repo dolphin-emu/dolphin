@@ -17,6 +17,7 @@
 
 #include "Globals.h"
 #include "FramebufferManager.h"
+#include "VertexShaderGen.h"
 
 #include "TextureConverter.h"
 #include "Render.h"
@@ -26,6 +27,11 @@ namespace OGL
 {
 
 extern bool s_bHaveFramebufferBlit; // comes from Render.cpp. ugly.
+
+static GLuint s_VBO = 0;
+static GLuint s_VAO = 0;
+static MathUtil::Rectangle<float> s_cached_sourcerc;
+static MathUtil::Rectangle<float> s_cached_drawrc;
 
 int FramebufferManager::m_targetWidth;
 int FramebufferManager::m_targetHeight;
@@ -53,6 +59,15 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
     m_resolvedDepthTexture = 0;
     m_xfbFramebuffer = 0;
 
+	s_cached_sourcerc.bottom = -1;
+	s_cached_sourcerc.left = -1;
+	s_cached_sourcerc.right = -1;
+	s_cached_sourcerc.top = -1;
+	s_cached_drawrc.bottom = -1;
+	s_cached_drawrc.left = -1;
+	s_cached_drawrc.right = -1;
+	s_cached_drawrc.top = -1;   
+	
 	m_targetWidth = targetWidth;
 	m_targetHeight = targetHeight;
 
@@ -169,7 +184,28 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	// Create XFB framebuffer; targets will be created elsewhere.
 
 	glGenFramebuffersEXT(1, &m_xfbFramebuffer);
-
+	
+	// Generate VBO & VAO - and initialize the VAO for "Draw"
+	glGenBuffers(1, &s_VBO);
+	glGenVertexArrays(1, &s_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+	glBindVertexArray(s_VAO);
+	
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 6*sizeof(GLfloat), NULL);
+	
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+2);
+	
+	glClientActiveTexture(GL_TEXTURE1);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+4);
+	
+	// TODO: this after merging with graphic_update
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	
 	// EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
 	glViewport(0, 0, m_targetWidth, m_targetHeight);
 	glScissor(0, 0, m_targetWidth, m_targetHeight);
@@ -181,6 +217,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 FramebufferManager::~FramebufferManager()
 {
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glDeleteBuffers(1, &s_VBO);
+	glDeleteVertexArrays(1, &s_VAO);
 
 	GLuint glObj[3];
 
@@ -305,24 +343,37 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
 
-	glBegin(GL_QUADS);
-	glTexCoord2f(sourcerc.left, sourcerc.bottom);
-	glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0);
-	glVertex2f(drawrc.left, drawrc.bottom);
+	if(!(s_cached_sourcerc == sourcerc) || !(s_cached_drawrc == drawrc)) {
+		GLfloat vertices[] = {
+			drawrc.left, drawrc.bottom,
+			sourcerc.left, sourcerc.bottom,
+			0.0f, 0.0f,
+			drawrc.left, drawrc.top,
+			sourcerc.left, sourcerc.top,
+			0.0f, 1.0f,
+			drawrc.right, drawrc.top,
+			sourcerc.right, sourcerc.top,
+			1.0f, 1.0f,
+			drawrc.right, drawrc.bottom,
+			sourcerc.right, sourcerc.bottom,
+			1.0f, 0.0f
+		};
+		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+		glBufferData(GL_ARRAY_BUFFER, 2*4*3*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+		
+		// TODO: this after merging with graphic_update
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
+		s_cached_sourcerc = sourcerc;
+		s_cached_drawrc = drawrc;
+	}
 
-	glTexCoord2f(sourcerc.left, sourcerc.top);
-	glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1);
-	glVertex2f(drawrc.left, drawrc.top);
-
-	glTexCoord2f(sourcerc.right, sourcerc.top);
-	glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1);
-	glVertex2f(drawrc.right, drawrc.top);
-
-	glTexCoord2f(sourcerc.right, sourcerc.bottom);
-	glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
-	glVertex2f(drawrc.right, drawrc.bottom);
-	glEnd();
-
+	glBindVertexArray(s_VAO);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	
+	// TODO: this after merging with graphic_update
+	glBindVertexArray(0);
+		
 	GL_REPORT_ERRORD();
 }
 

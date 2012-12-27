@@ -134,7 +134,7 @@ void DSPDebugInterface::toggleMemCheck(unsigned int address)
 	PanicAlert("MemCheck functionality not supported in DSP module.");
 }
 
-void DSPDebugInterface::insertBLR(unsigned int address) 
+void DSPDebugInterface::insertBLR(unsigned int address, unsigned int value) 
 {
 	PanicAlert("insertBLR functionality not supported in DSP module.");
 }

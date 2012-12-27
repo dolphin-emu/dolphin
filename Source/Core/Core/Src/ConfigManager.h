@@ -75,6 +75,13 @@ struct SConfig : NonCopyable
 	bool m_ListKorea;
 	bool m_ListTaiwan;
 	bool m_ListUnknown;
+	int m_ListSort;
+	int m_ListSort2;
+
+	std::string m_WirelessMac;
+	bool m_PauseMovie;
+	bool m_ShowLag;
+	std::string m_strMovieAuthor;
 
 	SysConf* m_SYSCONF;
 

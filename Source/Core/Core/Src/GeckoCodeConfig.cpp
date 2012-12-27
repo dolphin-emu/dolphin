@@ -42,8 +42,6 @@ void LoadCodes(const IniFile& inifile, std::vector<GeckoCode>& gcodes)
 
 		std::istringstream	ss(*lines_iter);
 
-		int read_state = 0;
-
 		switch ((*lines_iter)[0])
 		{
 
@@ -61,7 +59,6 @@ void LoadCodes(const IniFile& inifile, std::vector<GeckoCode>& gcodes)
 			gcode.name = StripSpaces(gcode.name);
 			// read the code creator name
 			std::getline(ss, gcode.creator, ']');
-			read_state = 0;
 			break;
 
 			// notes

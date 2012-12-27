@@ -3,6 +3,7 @@
 #include "CDUtils.h"
 #include "Common.h"
 
+#include <memory> // for std::unique_ptr
 #ifdef _WIN32
 #include <windows.h>
 #elif __APPLE__

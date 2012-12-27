@@ -31,7 +31,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 			wxBitmap(iDolphinLogo));
 
 	std::string Text = "Dolphin " SCM_DESC_STR "\n"
-		"Copyright (c) 2003-2011+ Dolphin Team\n"
+		"Copyright (c) 2003-2013+ Dolphin Team\n"
 		"\n"
 		"Branch: " SCM_BRANCH_STR "\n"
 		"Revision: " SCM_REV_STR "\n"

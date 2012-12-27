@@ -262,7 +262,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							{
 
 								int cmd = *jvs_io++;
-								int unknown = 0;
 								DEBUG_LOG(AMBASEBOARDDEBUG, "JVS IO, node=%d, cmd=%02x", node, cmd);
 
 								switch (cmd)
@@ -362,10 +361,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									}
 								case 0xf0:
 									if (*jvs_io++ == 0xD9)
-									{
 										ERROR_LOG(AMBASEBOARDDEBUG, "JVS RESET");
-									} else
-										unknown = 1;
 									msg.addData(1);
 
 									d10_1 |= 1;

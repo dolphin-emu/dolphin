@@ -209,6 +209,7 @@ void VertexShaderManager::SetConstants()
 		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
 		const float* pstart = (const float*)&xfmem[XFMEM_POSTMATRICES + startn * 4];
 		SetMultiVSConstant4fv(C_POSTTRANSFORMMATRICES + startn, endn - startn, pstart);
+		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
 	}
 
 	if (nLightsChanged[0] >= 0)
@@ -252,6 +253,7 @@ void VertexShaderManager::SetConstants()
 		float GC_ALIGNED16(material[4]);
 		float NormalizationCoef = 1 / 255.0f;
 
+		// TODO:  This code is wrong.  i goes out of range for xfregs.ambColor.
 		for (int i = 0; i < 4; ++i)
 		{
 			if (nMaterialsChanged & (1 << i))
