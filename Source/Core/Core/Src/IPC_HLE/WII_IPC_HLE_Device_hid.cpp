@@ -216,6 +216,8 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 	{
 		
 		int transfered = 0;
+		int checkme = 34;
+		int worked = 35;
 		u32 dev_num  = Memory::Read_U32(BufferIn+0x10);
 		u32 endpoint = Memory::Read_U32(BufferIn+0x14);
 		u32 length = Memory::Read_U32(BufferIn+0x18);
@@ -232,8 +234,26 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			ReturnValue = -4;
 			goto int_in_end_print;
 		}
+		if (libusb_kernel_driver_active(dev_handle, 0) == 1)
+		{
+			DEBUG_LOG(WII_IPC_HID, "Kernel has the interface, gtfo kernel!");
+			worked = libusb_detach_kernel_driver(dev_handle, 0);
+			if (worked)
+			{
+				DEBUG_LOG(WII_IPC_HID, "Attempt to detach interface failed with error: %d", worked);
+			}
+		}
 		
-		if(libusb_interrupt_transfer(dev_handle, endpoint, (unsigned char*)Memory::GetPointer(data), length, &transfered, 0 ) == 0)
+		worked = libusb_claim_interface(dev_handle, 0);
+		if (worked)
+		{
+			DEBUG_LOG(WII_IPC_HID, "Attempt to claim interface failed with error: %d", worked);
+			ReturnValue = -4;
+			goto int_in_end_print;
+		}
+		
+		checkme = libusb_interrupt_transfer(dev_handle, endpoint, (unsigned char*)Memory::GetPointer(data), length, &transfered, 3000 );
+		if(checkme == 0)
 		{
 			ReturnValue = transfered;
 		}
@@ -249,8 +269,8 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 
 	int_in_end_print:
-		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i), err = %d",
+			Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize, checkme);
 
 		break;
 	}
@@ -438,10 +458,13 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 	libusb_device_handle *handle = NULL;
 	ssize_t cnt;
 	
-	devNum = 0x204;
+	devNum = 0x304;
 	
 	if (open_devices.find(devNum) != open_devices.end())
+	{
+		DEBUG_LOG(WII_IPC_HID, "Found it... ");
 		return open_devices[devNum];
+	}
 	
 	cnt = libusb_get_device_list(NULL, &list);
 	
