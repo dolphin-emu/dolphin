@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <shlobj.h>.
 
 #include "FileSearch.h"
 #include "StringUtil.h"
@@ -164,6 +165,7 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_MENU(IDM_EXPORTSAVE, CGameListCtrl::OnExportSave)
 	EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
 	EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
+	EVT_MENU(IDM_CREATESHORTCUT, CGameListCtrl::OnCreateShortcut)
 	EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
 	EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
 	EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
@@ -920,6 +922,9 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			if(selected_iso->GetFileName() == SConfig::GetInstance().
 				m_LocalCoreStartupParameter.m_strDefaultGCM)
 				popupMenu->FindItem(IDM_SETDEFAULTGCM)->Check();
+		#ifdef _WIN32
+			popupMenu->Append(IDM_CREATESHORTCUT, _("Create shortcut on desktop"));
+		#endif
 
 			popupMenu->AppendSeparator();
 			popupMenu->Append(IDM_DELETEGCM, _("&Delete ISO..."));
@@ -1317,4 +1322,64 @@ void CGameListCtrl::UnselectAll()
 
 }
 
+#ifdef _WIN32
+HRESULT CreateLink(LPCWSTR lpszPathObj, LPCSTR lpszPathLink, LPCWSTR lpszDesc, wxString iso)
+{
+    HRESULT hres;
+    IShellLink* psl;
 
+    // Get a pointer to the IShellLink interface. It is assumed that CoInitialize
+    // has already been called.
+    hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+    if (SUCCEEDED(hres))
+    {
+        IPersistFile* ppf;
+
+        // Set the path to the shortcut target and add the description.
+        psl->SetPath(lpszPathObj);
+        psl->SetDescription(lpszDesc);
+		wxString argument = "-e " + iso;
+		psl->SetArguments(argument);
+		wxString dir = File::GetExeDirectory();
+		psl->SetWorkingDirectory(dir);
+
+        // Query IShellLink for the IPersistFile interface, used for saving the
+        // shortcut in persistent storage.
+        hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+
+        if (SUCCEEDED(hres))
+        {
+            WCHAR wsz[MAX_PATH];
+
+            // Ensure that the string is Unicode.
+            MultiByteToWideChar(CP_ACP, 0, lpszPathLink, -1, wsz, MAX_PATH);
+
+            // Save the link by calling IPersistFile::Save.
+            hres = ppf->Save(wsz, TRUE);
+            ppf->Release();
+        }
+        psl->Release();
+    }
+    return hres;
+}
+
+void CGameListCtrl::OnCreateShortcut(wxCommandEvent& event)
+{
+	wxString t1, t2, t3, t4;
+	const GameListItem *iso = GetSelectedISO();
+
+	WCHAR userpath[MAX_PATH];
+	WCHAR exepath[MAX_PATH];
+	SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, userpath);
+	GetModuleFileName(NULL, exepath, MAX_PATH);
+
+	t1 =  exepath;
+	t2 = userpath;
+	t2.Append("\\desktop\\");
+	t2.Append(iso->GetName(0));
+	t2.Append(".lnk");
+	t3 = "Dolphin";
+	t4 = iso->GetFileName();
+	CreateLink(t1, t2, t3, t4);
+}
+#endif
