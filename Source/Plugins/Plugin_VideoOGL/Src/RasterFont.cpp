@@ -263,9 +263,6 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 		x += delta_x + border_x;
 	}
 	glUnmapBuffer(GL_ARRAY_BUFFER);
-	
-	// no printable char, so also nothing to do
-	if(!usage) return;
 
 	glUseProgram(shader_program);
 	
