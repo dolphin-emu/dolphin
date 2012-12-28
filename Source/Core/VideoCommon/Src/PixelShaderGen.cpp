@@ -782,10 +782,17 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function		
 			WRITE(p, "\tocol0 = float4(0.0f);\n");
+			if(DepthTextureEnable)
+				WRITE(p, "\tdepth = 1.f;\n");
 			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 				WRITE(p, "\tocol1 = float4(0.0f);\n");
-			if(ApiType == API_OPENGL && dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "\tgl_FragData[0] = ocol0;\n");
+			if (ApiType == API_OPENGL)
+			{
+				if (DepthTextureEnable)
+					WRITE(p, "\tgl_FragDepth = depth;\n");
+				if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
+					WRITE(p, "\tgl_FragData[0] = ocol0;\n");
+			}
 			WRITE(p, "\tdiscard;\n");
 			if(ApiType != API_D3D11)
 				WRITE(p, "\treturn;\n");
