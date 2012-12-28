@@ -40,6 +40,13 @@ namespace HLE_Misc
 	void FZ_rsqrt_internal();
 	void HBReload();
 	void OSBootDol();
+	void OSGetResetCode();
+	void memcpy();
+	void memset();
+	void memmove();
+	void memcmp();
+	void div2i();
+	void div2u();
 	void ExecuteDOL(u8* dolFile, u32 fileSize);
 }
 

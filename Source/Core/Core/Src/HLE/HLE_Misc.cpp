@@ -37,7 +37,6 @@
 namespace HLE_Misc
 {
 
-std::string dol;
 std::string args;
 u32 argsPtr;
 u32 bootType;
@@ -302,7 +301,7 @@ void HBReload()
 void ExecuteDOL(u8* dolFile, u32 fileSize)
 {
 	// Clear memory before loading the dol
-	for (int i = 0x80004000; i < Memory::Read_U32(0x00000034); i += 4)
+	for (u32 i = 0x80004000; i < Memory::Read_U32(0x00000034); i += 4)
 	{
 		// TODO: Should not write over the "save region"
 		Memory::Write_U32(0x00000000, i);
@@ -320,7 +319,6 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 			db.Apply(&g_symbolDB);
 			HLE::PatchFunctions();
 			db.Clear();
-			g_symbolDB.Clear();
 		}
 	}
 
@@ -359,12 +357,12 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 	NPC = dolLoader.GetEntryPoint() | 0x80000000;
 }
 
-void LoadDOLFromDisc()
+void LoadDOLFromDisc(std::string dol)
 {
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
 	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
-	if (dol.substr(1, 1).compare("//"))
+	if (dol.length() > 1 && dol.compare(0, 1, "/") == 0)
 		dol = dol.substr(1);
 
 	u32 fileSize = (u32) pFileSystem->GetFileSize(dol.c_str());
@@ -391,17 +389,90 @@ void LoadBootDOLFromDisc()
 	delete[] dolFile;
 }
 
-u32 GetDolFileSize()
+u32 GetDolFileSize(std::string dol)
 {
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
 	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
 	std::string dolFile;
 
-	if (dol.substr(1, 1).compare("//"))
+	if (dol.length() > 1 && dol.compare(0, 1, "/") == 0)
 		dolFile = dol.substr(1);
+	else
+		dolFile = dol;
 
 	return (u32)pFileSystem->GetFileSize(dolFile.c_str());
+}
+
+void memmove()
+{
+	u32 dest = GPR(3);
+	u32 src = GPR(4);
+	u32 count = GPR(5);
+	std::memmove((u8*)(Memory::base + dest), (u8*)(Memory::base + src), count);
+	NPC = LR;
+}
+
+void memcpy()
+{
+	u32 dest = GPR(3);
+	u32 src = GPR(4);
+	u32 count = GPR(5);
+	std::memcpy((u8*)(Memory::base + dest), (u8*)(Memory::base + src), count);
+	NPC = LR;
+}
+
+void memset()
+{
+	u32 dest = GPR(3);
+	u32 ch = GPR(4);
+	u32 count = GPR(5);
+	std::memset((u8*)(Memory::base + dest), ch, count);
+	NPC = LR;
+}
+
+void memcmp()
+{
+	u32 dest = GPR(3);
+	u32 src = GPR(4);
+	u32 count = GPR(5);
+	GPR(3) = std::memcmp((u8*)(Memory::base + dest), (u8*)(Memory::base + src), count);
+	NPC = LR;
+}
+
+void div2i()
+{
+	s64 num = (s64)(GPR(3)) << 32 | GPR(4);
+	s64 den = (s64)(GPR(5)) << 32 | GPR(6);
+	s64 quo = num / den;
+	GPR(3) = quo >> 32;
+	GPR(4) = quo & 0xffffffff;
+	NPC = LR;
+}
+
+void div2u()
+{
+	u64 num = (u64)(GPR(3)) << 32 | GPR(4);
+	u64 den = (u64)(GPR(5)) << 32 | GPR(6);
+	u64 quo = num / den;
+	GPR(3) = quo >> 32;
+	GPR(4) = quo & 0xffffffff;
+	NPC = LR;
+}
+
+void OSGetResetCode()
+{
+	u32 resetCode = Memory::Read_U32(0xCC003024);
+	if (resetCode != 0)
+	{
+		GPR(3) = resetCode | 0x80000000;
+	}
+	else
+	{
+		GPR(3) = 0;
+	}
+
+	NPC = LR;	
 }
 
 void OSBootDol()
@@ -417,8 +488,7 @@ void OSBootDol()
 			u32 resetCode = GPR(30);
 
 			// Reset game
-			Memory::Write_U32(resetCode << 3, 0xCC003024);
-			//Memory::Write_U32((resetCode << 3) | 0x80000000, 0x800030f0); // Warm reset
+			Memory::Write_U32(resetCode, 0xCC003024);
 			LoadBootDOLFromDisc();
 			return;
 		}
@@ -429,15 +499,17 @@ void OSBootDol()
 		}
 		else if ((GPR(4) >> 28) == 0xC)
 		{
+			std::string dol;
+
 			// Boot DOL from disc
 			u32 ptr = GPR(28);
 			Memory::GetString(dol, ptr);
 
-			if (GetDolFileSize() == 0)
+			if (GetDolFileSize(dol) == 0)
 			{
 				ptr = GPR(30);
 				Memory::GetString(dol, ptr);
-				if (GetDolFileSize() == 0)
+				if (GetDolFileSize(dol) == 0)
 				{
 					// Cannot locate the dol file, exit.
 					HLE::UnPatch("__OSBootDol");
@@ -448,7 +520,7 @@ void OSBootDol()
 
 			argsPtr = Memory::Read_U32(GPR(5));
 			Memory::GetString(args, argsPtr);
-			LoadDOLFromDisc();
+			LoadDOLFromDisc(dol);
 			return;
 		}
 		else

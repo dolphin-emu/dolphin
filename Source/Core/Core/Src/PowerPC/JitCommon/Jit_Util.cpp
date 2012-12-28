@@ -269,23 +269,18 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 
 void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr)
 {
-	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
-	{
-		mem_mask |= Memory::ADDR_MASK_MEM1;
-	}
-
-#ifdef ENABLE_MEM_CHECK
-	if (Core::g_CoreStartupParameter.bEnableDebugging)
-	{
-		mem_mask |= Memory::EXRAM_MASK;
-	}
-#endif
-
-	TEST(32, R(reg_addr), Imm32(mem_mask));
 	if (false && cpu_info.bSSSE3) {
 		// This path should be faster but for some reason it causes errors so I've disabled it.
+		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+
+		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			mem_mask |= Memory::ADDR_MASK_MEM1;
+
+#ifdef ENABLE_MEM_CHECK
+		if (Core::g_CoreStartupParameter.bEnableDebugging)
+			mem_mask |= Memory::EXRAM_MASK;
+#endif
+		TEST(32, R(reg_addr), Imm32(mem_mask));
 		FixupBranch argh = J_CC(CC_Z);
 		MOVSS(M(&float_buffer), xmm_value);
 		MOV(32, R(EAX), M(&float_buffer));

@@ -26,6 +26,7 @@
 #include "PowerPCDisasm.h"
 #include "../../IPC_HLE/WII_IPC_HLE.h"
 #include "Atomic.h"
+#include "HLE/HLE.h"
 
 
 namespace {
@@ -79,57 +80,63 @@ int startTrace = 0;
 
 void Trace( UGeckoInstruction &instCode )
 {
-	char regs[500]="";
+	char reg[25]="";
+	std::string regs = "";
 	for (int i=0; i<32; i++) {
-		sprintf(regs, "%sr%02d: %08x ", regs, i, PowerPC::ppcState.gpr[i]);
+		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
+		regs.append(reg);
 	}
 
-	char fregs[500]="";
+	char freg[25]="";
+	std::string fregs = "";
 	for (int i=0; i<32; i++) {
-		sprintf(fregs, "%sf%02d: %08llx %08llx ", fregs, i,
-			PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
+		sprintf(freg, "f%02d: %08llx %08llx ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
+		fregs.append(freg);
 	}
 
 	char ppcInst[256];
 	DisassembleGekko(instCode.hex, PC, ppcInst, 256);
 
-	DEBUG_LOG(POWERPC, "INTER PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s %08x %s", PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs, instCode.hex, ppcInst);
+	DEBUG_LOG(POWERPC, "INTER PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s %08x %s", PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str(), instCode.hex, ppcInst);
 }
 
 int Interpreter::SingleStepInner(void)
 {
 	static UGeckoInstruction instCode;
 
-	NPC = PC + sizeof(UGeckoInstruction);
-	instCode.hex = Memory::Read_Opcode(PC);
-
-	// Uncomment to trace the interpreter
-	//if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
-	//	startTrace = 1;
-	//else
-	//	startTrace = 0;
-
-	if (startTrace)
+	u32 function = m_EndBlock ? HLE::GetFunctionIndex(PC) : 0; // Check for HLE functions after branches
+	if (function != 0)
 	{
-		Trace(instCode);
-	}
-
-	if (instCode.hex != 0)
-	{
-		UReg_MSR& msr = (UReg_MSR&)MSR;
-		if (msr.FP)  //If FPU is enabled, just execute
+		int type = HLE::GetFunctionTypeByIndex(function);
+		if (type == HLE::HLE_HOOK_START || type == HLE::HLE_HOOK_REPLACE)
 		{
-			m_opTable[instCode.OPCD](instCode);
-			if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+			int flags = HLE::GetFunctionFlagsByIndex(function);
+			if (HLE::IsEnabled(flags))
 			{
-				PowerPC::CheckExceptions();
-				m_EndBlock = true;
+				HLEFunction(function);
 			}
 		}
-		else
+	}
+	else
+	{
+		NPC = PC + sizeof(UGeckoInstruction);
+		instCode.hex = Memory::Read_Opcode(PC);
+
+		// Uncomment to trace the interpreter
+		//if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
+		//	startTrace = 1;
+		//else
+		//	startTrace = 0;
+
+		if (startTrace)
 		{
-			// check if we have to generate a FPU unavailable exception
-			if (!PPCTables::UsesFPU(instCode))
+			Trace(instCode);
+		}
+
+		if (instCode.hex != 0)
+		{
+			UReg_MSR& msr = (UReg_MSR&)MSR;
+			if (msr.FP)  //If FPU is enabled, just execute
 			{
 				m_opTable[instCode.OPCD](instCode);
 				if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
@@ -140,17 +147,30 @@ int Interpreter::SingleStepInner(void)
 			}
 			else
 			{
-				Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_FPU_UNAVAILABLE);
-				PowerPC::CheckExceptions();
-				m_EndBlock = true;
+				// check if we have to generate a FPU unavailable exception
+				if (!PPCTables::UsesFPU(instCode))
+				{
+					m_opTable[instCode.OPCD](instCode);
+					if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+					{
+						PowerPC::CheckExceptions();
+						m_EndBlock = true;
+					}
+				}
+				else
+				{
+					Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_FPU_UNAVAILABLE);
+					PowerPC::CheckExceptions();
+					m_EndBlock = true;
+				}
 			}
 		}
-	}
-	else
-	{
-		// Memory exception on instruction fetch
-		PowerPC::CheckExceptions();
-		m_EndBlock = true;
+		else
+		{
+			// Memory exception on instruction fetch
+			PowerPC::CheckExceptions();
+			m_EndBlock = true;
+		}
 	}
 	last_pc = PC;
 	PC = NPC;

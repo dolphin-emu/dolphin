@@ -258,7 +258,7 @@ bool CBoot::BootUp()
 		}
 
 		// Scan for common HLE functions
-		if (!_StartupPara.bEnableDebugging && Memory::Read_U16(0x00003140) >= 30)
+		if (_StartupPara.bSkipIdle && !_StartupPara.bEnableDebugging)
 		{
 			PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
 			SignatureDB db;
@@ -267,7 +267,6 @@ bool CBoot::BootUp()
 				db.Apply(&g_symbolDB);
 				HLE::PatchFunctions();
 				db.Clear();
-				g_symbolDB.Clear();
 			}
 		}
 
