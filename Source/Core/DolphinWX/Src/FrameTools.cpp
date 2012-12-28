@@ -96,6 +96,8 @@ extern "C" {
 #include "../resources/KDE.h"
 };
 
+bool confirmStop = false;
+
 // Create menu items
 // ---------------------
 void CFrame::CreateMenu()
@@ -1070,6 +1072,9 @@ void CFrame::DoPause()
 // Stop the emulation
 void CFrame::DoStop()
 {
+	if (confirmStop)
+		return;
+
 	m_bGameLoading = false;
 	if (Core::GetState() != Core::CORE_UNINITIALIZED ||
 			m_RenderParent != NULL)
@@ -1082,6 +1087,9 @@ void CFrame::DoStop()
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
+			Core::EState state = Core::GetState();
+			confirmStop = true;
+			Core::SetState(Core::CORE_PAUSE);
 			wxMessageDialog *m_StopDlg = new wxMessageDialog(
 				this,
 				_("Do you want to stop the current emulation?"),
@@ -1091,8 +1099,12 @@ void CFrame::DoStop()
 
 			int Ret = m_StopDlg->ShowModal();
 			m_StopDlg->Destroy();
+			confirmStop = false;
 			if (Ret != wxID_YES)
+			{
+				Core::SetState(state);
 				return;
+			}
 		}
 
 		// TODO: Show the author/description dialog here
