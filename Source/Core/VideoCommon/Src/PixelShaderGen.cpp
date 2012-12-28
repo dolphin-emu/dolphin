@@ -787,6 +787,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				WRITE(p, "ocol1 = float4(0.0f);\n");
 			if(ApiType == API_OPENGL && dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
 				WRITE(p, "gl_FragData[0] = ocol0;\n");
+			WRITE(p, "discard;\n");
 			if(ApiType != API_D3D11)
 				WRITE(p, "return;\n");
 		}
