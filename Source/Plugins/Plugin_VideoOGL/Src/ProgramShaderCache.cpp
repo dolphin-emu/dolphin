@@ -67,10 +67,10 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 	// Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		glUniformBlockBinding(entry.prog_id, 0, 1);
+		glUniformBlockBinding(entry.prog_id, glGetUniformBlockIndex(entry.prog_id, "PSBlock"), 1);
 		// Some things have no vertex shader
 		if (entry.vsid != 0)
-			glUniformBlockBinding(entry.prog_id, 1, 2);
+			glUniformBlockBinding(entry.prog_id, glGetUniformBlockIndex(entry.prog_id, "VSBlock"), 2);
 	}
 
 	// We cache our uniform locations for now
