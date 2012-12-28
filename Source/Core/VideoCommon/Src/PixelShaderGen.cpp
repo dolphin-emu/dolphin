@@ -667,7 +667,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
 				dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
 				DepthTextureEnable ? "\n  out float depth : DEPTH," : "",
-				ApiType & API_OPENGL ? "WPOS" : ApiType & API_D3D9_SM20 ? "POSITION" : "VPOS");
+				ApiType & API_D3D9_SM20 ? "POSITION" : "VPOS");
 		}
 		else
 		{
@@ -728,7 +728,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "	float4 ocol0;\n");
 		}
 		if (DepthTextureEnable)
-				WRITE(p, "  float depth;\n"); // TODO: Passed to Vertex Shader right?
+			WRITE(p, "  float depth;\n"); // TODO: Passed to Vertex Shader right?
 		WRITE(p, "   float4 rawpos = gl_FragCoord;\n");
 
 		WRITE(p, "VARYIN   float4 colors_02;\n");
@@ -782,14 +782,11 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if (!Pretest)
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function		
-			
-			WRITE(p, "ocol0 = float4(0.0);\n");
-			if(DepthTextureEnable)
-				WRITE(p, "depth = 1.f;\n");
+			WRITE(p, "ocol0 = float4(0.0f);\n");
 			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-					WRITE(p, "ocol1 = 0;\n");
+				WRITE(p, "ocol1 = float4(0.0f);\n");
 			if(ApiType == API_OPENGL && dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
-					WRITE(p, "gl_FragData[0] = ocol0;\n");
+				WRITE(p, "gl_FragData[0] = ocol0;\n");
 			if(ApiType != API_D3D11)
 				WRITE(p, "return;\n");
 		}
