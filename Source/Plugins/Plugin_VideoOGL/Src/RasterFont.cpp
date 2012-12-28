@@ -129,21 +129,24 @@ const u8 rasters[char_count][char_height] = {
 };
 
 static const char *s_vertexShaderSrc = 
-	"attribute vec2 vertexPosition;\n"
-	"attribute vec2 texturePosition;\n"
-	"varying vec2 tpos;\n"
+	"#version 130\n"
+	"uniform vec2 charSize;\n"
+	"in vec2 vertexPosition;\n"
+	"in vec2 texturePosition;\n"
+	"out vec2 tpos;\n"
 	"void main(void) {\n"
 	"	gl_Position = vec4(vertexPosition,0,1);\n"
-	"	tpos = texturePosition;\n"
+	"	tpos = texturePosition * charSize;\n"
 	"}\n"; 
 
 static const char *s_fragmentShaderSrc =
-	"#extension GL_ARB_texture_rectangle : enable\n"
-	"uniform sampler2DRect textureSampler;\n"
+	"#version 130\n"
+	"uniform sampler2D samp0;\n"
 	"uniform vec4 color;\n"
-	"varying vec2 tpos;\n"
+	"in vec2 tpos;\n"
+	"out vec4 ocol0;\n"
 	"void main(void) {\n"
-	"	gl_FragColor = texture2DRect(textureSampler,tpos) * color;\n"
+	"	ocol0 = texture2D(samp0,tpos) * color;\n"
 	"}\n";
 	
 	
@@ -154,7 +157,7 @@ RasterFont::RasterFont()
 {
 	// generate the texture
 	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
 	u32* texture_data = new u32[char_width*char_count*char_height];
 	for(u32 y=0; y<char_height; y++) {
 		for(u32 c=0; c<char_count; c++) {
@@ -164,7 +167,9 @@ RasterFont::RasterFont()
 			}
 		}
 	}
-	glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, char_width*char_count, char_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, char_width*char_count, char_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data);
 	delete [] texture_data;
 	
 	// generate shader
@@ -174,9 +179,10 @@ RasterFont::RasterFont()
 	GLuint shader_program = ProgramShaderCache::GetCurrentProgram();
 	
 	// bound uniforms
-	glUniform1i(glGetUniformLocation(shader_program,"textureSampler"), 0); // GL_TEXTURE0
+	glUniform1i(glGetUniformLocation(shader_program,"samp0"), 0); // GL_TEXTURE0
+	glUniform2f(glGetUniformLocation(shader_program,"charSize"), 1.0f / GLfloat(char_count), 1.0f);
 	uniform_color_id = glGetUniformLocation(shader_program,"color");
-	glUniform4f(uniform_color_id, 1, 1, 1, 1);
+	glUniform4f(uniform_color_id, 1.0f, 1.0f, 1.0f, 1.0f);
 	cached_color = -1;
 	
 	// generate VBO & VAO
@@ -205,7 +211,7 @@ RasterFont::~RasterFont()
 
 void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
 {
-	int length = (int)strlen(text);
+	size_t length = strlen(text);
 	if (!length)
 		return; // nothing to do
 	
@@ -215,15 +221,15 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	GLfloat *vertices = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	
 	int usage = 0;
-	GLfloat delta_x = 2*char_width/GLfloat(bbWidth);
-	GLfloat delta_y = 2*char_height/GLfloat(bbHeight);
-	GLfloat border_x = 1*2/GLfloat(bbWidth);
-	GLfloat border_y = 2*2/GLfloat(bbHeight);
+	GLfloat delta_x = GLfloat(2*char_width)/GLfloat(bbWidth);
+	GLfloat delta_y = GLfloat(2*char_height)/GLfloat(bbHeight);
+	GLfloat border_x = 2.0/GLfloat(bbWidth);
+	GLfloat border_y = 4.0/GLfloat(bbHeight);
 	
-	GLfloat x = start_x;
-	GLfloat y = start_y;
+	GLfloat x = GLfloat(start_x);
+	GLfloat y = GLfloat(start_y);
 	
-	for(int i=0; i<length; i++) {
+	for(size_t i=0; i<length; i++) {
 		u8 c = text[i];
 		
 		if(c == '\n') {
@@ -242,33 +248,33 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 		
 		vertices[usage++] = x;
 		vertices[usage++] = y;
-		vertices[usage++] = (c-char_offset)*char_width;
-		vertices[usage++] = 0;
+		vertices[usage++] = GLfloat(c-char_offset);
+		vertices[usage++] = 0.0f;
 		
 		vertices[usage++] = x+delta_x;
 		vertices[usage++] = y;
-		vertices[usage++] = (c-char_offset+1)*char_width;
-		vertices[usage++] = 0;
+		vertices[usage++] = GLfloat(c-char_offset+1);
+		vertices[usage++] = 0.0f;
 		
 		vertices[usage++] = x+delta_x;
 		vertices[usage++] = y+delta_y;
-		vertices[usage++] = (c-char_offset+1)*char_width;
-		vertices[usage++] = char_height;
+		vertices[usage++] = GLfloat(c-char_offset+1);
+		vertices[usage++] = 1.0f;
 		
 		vertices[usage++] = x;
 		vertices[usage++] = y;
-		vertices[usage++] = (c-char_offset)*char_width;
-		vertices[usage++] = 0;
+		vertices[usage++] = GLfloat(c-char_offset);
+		vertices[usage++] = 0.0f;
 		
 		vertices[usage++] = x+delta_x;
 		vertices[usage++] = y+delta_y;
-		vertices[usage++] = (c-char_offset+1)*char_width;
-		vertices[usage++] = char_height;
+		vertices[usage++] = GLfloat(c-char_offset+1);
+		vertices[usage++] = 1.0f;
 		
 		vertices[usage++] = x;
 		vertices[usage++] = y+delta_y;
-		vertices[usage++] = (c-char_offset)*char_width;
-		vertices[usage++] = char_height;
+		vertices[usage++] = GLfloat(c-char_offset);
+		vertices[usage++] = 1.0f;
 		
 		x += delta_x + border_x;
 	}
@@ -280,12 +286,12 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	ProgramShaderCache::SetBothShaders(s_fragmentShader.glprogid, s_vertexShader.glprogid);
 	
 	if(color != cached_color) {
-		glUniform4f(uniform_color_id, ((color>>16)&0xff)/255.f,((color>>8)&0xff)/255.f,((color>>0)&0xff)/255.f,((color>>24)&0xff)/255.f);
+		glUniform4f(uniform_color_id, GLfloat((color>>16)&0xff)/255.f,GLfloat((color>>8)&0xff)/255.f,GLfloat((color>>0)&0xff)/255.f,GLfloat((color>>24)&0xff)/255.f);
 		cached_color = color;
 	}
 	
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
 	glDrawArrays(GL_TRIANGLES, 0, usage/4);
 	
 	// TODO: this after merging with graphic_update
