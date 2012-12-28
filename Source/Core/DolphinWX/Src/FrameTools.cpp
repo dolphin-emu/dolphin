@@ -1090,15 +1090,14 @@ void CFrame::DoStop()
 			Core::EState state = Core::GetState();
 			confirmStop = true;
 			Core::SetState(Core::CORE_PAUSE);
-			wxMessageDialog *m_StopDlg = new wxMessageDialog(
+			wxMessageDialog m_StopDlg(
 				this,
 				_("Do you want to stop the current emulation?"),
 				_("Please confirm..."),
 				wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
 				wxDefaultPosition);
 
-			int Ret = m_StopDlg->ShowModal();
-			m_StopDlg->Destroy();
+			int Ret = m_StopDlg.ShowModal();
 			confirmStop = false;
 			if (Ret != wxID_YES)
 			{
