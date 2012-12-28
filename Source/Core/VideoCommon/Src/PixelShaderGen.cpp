@@ -559,14 +559,14 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	if (ApiType == API_OPENGL)
 	{
-			// A few required defines and ones that will make our lives a lot easier
-			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-			{
-				WRITE(p, "#version 130\n");
-				if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-					WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
-				if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-					WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
+		// A few required defines and ones that will make our lives a lot easier
+		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		{
+			WRITE(p, "#version 130\n");
+			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+				WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
+			if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+				WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
 			WRITE(p, "#define ATTRIN in\n");
 			WRITE(p, "#define ATTROUT out\n");
 			WRITE(p, "#define VARYIN in\n");
@@ -581,35 +581,33 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "#define VARYOUT varying\n");
 		}
 
-			if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
-				WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
-			// Silly differences
-			WRITE(p, "#define float2 vec2\n");
-			WRITE(p, "#define float3 vec3\n");
-			WRITE(p, "#define float4 vec4\n");
+		if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
+			WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
+		// Silly differences
+		WRITE(p, "#define float2 vec2\n");
+		WRITE(p, "#define float3 vec3\n");
+		WRITE(p, "#define float4 vec4\n");
 
-			// cg to glsl function translation
-			WRITE(p, "#define frac(x) fract(x)\n");
-			WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
-			WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
+		// cg to glsl function translation
+		WRITE(p, "#define frac(x) fract(x)\n");
+		WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
+		WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
 
-			// A function here
-			// Fmod implementation gleaned from Nvidia
-			// At http://http.developer.nvidia.com/Cg/fmod.html
-			WRITE(p, "float fmod( float x, float y )\n");
-			WRITE(p, "{\n");
-			WRITE(p, "float z = fract( abs( x / y) ) * abs( y );\n");
-			WRITE(p, "return (x < 0) ? -z : z;\n");
-			WRITE(p, "}\n");
+		// A function here
+		// Fmod implementation gleaned from Nvidia
+		// At http://http.developer.nvidia.com/Cg/fmod.html
+		WRITE(p, "float fmod( float x, float y )\n");
+		WRITE(p, "{\n");
+		WRITE(p, "\tfloat z = fract( abs( x / y) ) * abs( y );\n");
+		WRITE(p, "\treturn (x < 0) ? -z : z;\n");
+		WRITE(p, "}\n");
 
-			
 		for (int i = 0; i < 8; ++i)
 			WRITE(p, "%suniform sampler2D samp%d;\n", WriteBinding(ApiType, i), i);
 	}
 	else
 	{
 		// Declare samplers
-
 		if (ApiType != API_D3D11)
 		{
 			WRITE(p, "uniform sampler2D ");
@@ -642,25 +640,97 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "\n");
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140) uniform PSBlock {\n");
-		
-		WRITE(p, "%sfloat4 " I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
-		WRITE(p, "%sfloat4 " I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_KCOLORS));
-		WRITE(p, "%sfloat4 " I_ALPHA"[1] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_ALPHA));
-		WRITE(p, "%sfloat4 " I_TEXDIMS"[8] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXDIMS));
-		WRITE(p, "%sfloat4 " I_ZBIAS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_ZBIAS));
-		WRITE(p, "%sfloat4 " I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType),  WriteRegister(ApiType, "c", C_INDTEXSCALE));
-		WRITE(p, "%sfloat4 " I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_INDTEXMTX));
-		WRITE(p, "%sfloat4 " I_FOG"[3] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_FOG));
-		
-		// Compiler will optimize these out by itself.
-		WRITE(p, "%sfloat4 " I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
-		WRITE(p, "%sfloat4 " I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PMATERIALS));
+	
+	WRITE(p, "\t%sfloat4 " I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
+	WRITE(p, "\t%sfloat4 " I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_KCOLORS));
+	WRITE(p, "\t%sfloat4 " I_ALPHA"[1] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_ALPHA));
+	WRITE(p, "\t%sfloat4 " I_TEXDIMS"[8] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXDIMS));
+	WRITE(p, "\t%sfloat4 " I_ZBIAS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_ZBIAS));
+	WRITE(p, "\t%sfloat4 " I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType),  WriteRegister(ApiType, "c", C_INDTEXSCALE));
+	WRITE(p, "\t%sfloat4 " I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_INDTEXMTX));
+	WRITE(p, "\t%sfloat4 " I_FOG"[3] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_FOG));
+	
+	// For pixel lighting
+	WRITE(p, "\t%sfloat4 " I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
+	WRITE(p, "\t%sfloat4 " I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PMATERIALS));
 		
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
 
-    if (ApiType != API_OPENGL)
-    {
+	if (ApiType == API_OPENGL)
+	{
+		// GLSL doesn't do main arguments
+		// Once we switch to GLSL 1.3 we will bind a lot of these.
+		
+		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+		{
+			// This won't get hit unless we support GL 3.3
+			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+			{
+				WRITE(p, "layout(location = 0) out float4 ocol0;\n");
+				WRITE(p, "layout(location = 0, index = 1) out float4 ocol1;\n");
+			}
+			else
+			{
+				WRITE(p, "out float4 ocol0;\n");
+				WRITE(p, "out float4 ocol1;\n");
+			}
+		}
+		else
+		{
+			WRITE(p, "float4 ocol0;\n");
+		}
+		if (DepthTextureEnable)
+			WRITE(p, "float depth;\n");
+		WRITE(p, "float4 rawpos = gl_FragCoord;\n");
+
+		WRITE(p, "VARYIN float4 colors_02;\n");
+		WRITE(p, "VARYIN float4 colors_12;\n");
+		WRITE(p, "float4 colors_0 = colors_02;\n");
+		WRITE(p, "float4 colors_1 = colors_12;\n");
+
+		// compute window position if needed because binding semantic WPOS is not widely supported
+				// Let's set up attributes
+		if (xfregs.numTexGen.numTexGens < 7)
+		{
+			for (int i = 0; i < 8; ++i)
+			{
+				WRITE(p, "VARYIN float3 uv%d_2;\n", i);
+				WRITE(p, "float3 uv%d = uv%d_2;\n", i, i);
+			}
+			WRITE(p, "VARYIN float4 clipPos_2;\n");
+			WRITE(p, "float4 clipPos = clipPos_2;\n");
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				WRITE(p, "VARYIN float4 Normal_2;\n");
+				WRITE(p, "float4 Normal = Normal_2;\n");
+			}
+		}
+		else
+		{
+			// wpos is in w of first 4 texcoords
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				for (int i = 0; i < 8; ++i)
+				{
+					WRITE(p, "VARYIN float4 uv%d_2;\n", i);
+					WRITE(p, "float4 uv%d = uv%d_2;\n", i, i);
+				}
+			}
+			else
+			{
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+				{
+					WRITE(p, "VARYIN float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
+					WRITE(p, "float%d uv%d = uv%d_2;\n", i < 4 ? 4 : 3 , i, i);
+				}
+			}
+			WRITE(p, "float4 clipPos;\n");
+		}
+		WRITE(p, "void main()\n{\n");
+	}
+	else
+	{
 		WRITE(p, "void main(\n");
 		if (ApiType != API_D3D11)
 		{
@@ -704,77 +774,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 		WRITE(p, "        ) {\n");
 	}
-	else
-	{
-	   // GLSL doesn't do main arguments
-	   // Once we switch to GLSL 1.3 we will bind a lot of these.
-		
-		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-		{
-			// This won't get hit unless we support GL 3.3
-			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-			{
-				WRITE(p, "	layout(location = 0) out float4 ocol0;\n");
-				WRITE(p, "	layout(location = 0, index = 1) out float4 ocol1;\n");
-			}
-			else
-			{
-				WRITE(p, "	out float4 ocol0;\n");
-				WRITE(p, "	out float4 ocol1;\n");
-			}
-		}
-		else
-		{
-			WRITE(p, "	float4 ocol0;\n");
-		}
-		if (DepthTextureEnable)
-			WRITE(p, "  float depth;\n"); // TODO: Passed to Vertex Shader right?
-		WRITE(p, "   float4 rawpos = gl_FragCoord;\n");
-
-		WRITE(p, "VARYIN   float4 colors_02;\n");
-		WRITE(p, "VARYIN   float4 colors_12;\n");
-		WRITE(p, "   float4 colors_0 = colors_02;\n");
-		WRITE(p, "   float4 colors_1 = colors_12;\n");
-
-		// compute window position if needed because binding semantic WPOS is not widely supported
-				// Let's set up attributes
-		if (xfregs.numTexGen.numTexGens < 7)
-		{
-			for (int i = 0; i < 8; ++i)
-			{
-				WRITE(p, "VARYIN  float3 uv%d_2;\n", i);
-				WRITE(p, "  float3 uv%d = uv%d_2;\n", i, i);
-			}
-			WRITE(p, "VARYIN   float4 clipPos_2;\n");
-			WRITE(p, "   float4 clipPos = clipPos_2;\n");
-			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			{
-				WRITE(p, "VARYIN   float4 Normal_2;\n");
-				WRITE(p, "   float4 Normal = Normal_2;\n");
-			}
-		}
-		else
-		{
-			// wpos is in w of first 4 texcoords
-			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			{
-				for (int i = 0; i < 8; ++i)
-				{
-					WRITE(p, "VARYIN   float4 uv%d_2;\n", i);
-					WRITE(p, "   float4 uv%d = uv%d_2;\n", i, i);
-				}
-			}
-			else
-			{
-				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				{
-					WRITE(p, "VARYIN   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
-					WRITE(p, "   float%d uv%d = uv%d_2;\n", i < 4 ? 4 : 3 , i, i);
-				}
-			}
-		}
-		WRITE(p, "void main()\n{\n");
-	}
 
 	int Pretest = AlphaPreTest();
 	if(Pretest >= 0 && !DepthTextureEnable)
@@ -782,18 +781,18 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if (!Pretest)
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function		
-			WRITE(p, "ocol0 = float4(0.0f);\n");
+			WRITE(p, "\tocol0 = float4(0.0f);\n");
 			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "ocol1 = float4(0.0f);\n");
+				WRITE(p, "\tocol1 = float4(0.0f);\n");
 			if(ApiType == API_OPENGL && dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "gl_FragData[0] = ocol0;\n");
-			WRITE(p, "discard;\n");
+				WRITE(p, "\tgl_FragData[0] = ocol0;\n");
+			WRITE(p, "\tdiscard;\n");
 			if(ApiType != API_D3D11)
-				WRITE(p, "return;\n");
+				WRITE(p, "\treturn;\n");
 		}
 		else if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 		{
-			WRITE(p, "  ocol0 = " I_ALPHA"[0].aaaa;\n");
+			WRITE(p, "\tocol0 = " I_ALPHA"[0].aaaa;\n");
 		}
 		if(!Pretest || dstAlphaMode == DSTALPHA_ALPHA_PASS)
 		{
@@ -802,45 +801,45 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 	}
 
-	WRITE(p, "  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
-			"  float3 comp16 = float3(1.0f, 255.0f, 0.0f), comp24 = float3(1.0f, 255.0f, 255.0f*255.0f);\n"
-			"  float4 alphabump=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  float3 tevcoord=float3(0.0f, 0.0f, 0.0f);\n"
-			"  float2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n"
-			"  float4 cc0=float4(0.0f,0.0f,0.0f,0.0f), cc1=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  float4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  float4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
+	WRITE(p, "\tfloat4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
+			"\tfloat3 comp16 = float3(1.0f, 255.0f, 0.0f), comp24 = float3(1.0f, 255.0f, 255.0f*255.0f);\n"
+			"\tfloat4 alphabump=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"\tfloat3 tevcoord=float3(0.0f, 0.0f, 0.0f);\n"
+			"\tfloat2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n"
+			"\tfloat4 cc0=float4(0.0f,0.0f,0.0f,0.0f), cc1=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"\tfloat4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"\tfloat4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
-			WRITE(p,"float3 _norm0 = normalize(Normal.xyz);\n\n");
-			WRITE(p,"float3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
+			WRITE(p,"\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
+			WRITE(p,"\tfloat3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
 		}
 		else
 		{
-			WRITE(p,"  float3 _norm0 = normalize(float3(uv4.w,uv5.w,uv6.w));\n\n");
-			WRITE(p,"float3 pos = float3(uv0.w,uv1.w,uv7.w);\n");
+			WRITE(p,"\tfloat3 _norm0 = normalize(float3(uv4.w,uv5.w,uv6.w));\n\n");
+			WRITE(p,"\tfloat3 pos = float3(uv0.w,uv1.w,uv7.w);\n");
 		}
 
 
-		WRITE(p, "float4 mat, lacc;\n"
-		"float3 ldir, h;\n"
-		"float dist, dist2, attn;\n");
+		WRITE(p, "\tfloat4 mat, lacc;\n"
+		"\tfloat3 ldir, h;\n"
+		"\tfloat dist, dist2, attn;\n");
 
 		p = GenerateLightingShader(p, components, I_PMATERIALS, I_PLIGHTS, "colors_", "colors_");
 	}
 
 	if (numTexgen < 7)
-		WRITE(p, "clipPos = float4(rawpos.x, rawpos.y, clipPos.z, clipPos.w);\n");
+		WRITE(p, "\tclipPos = float4(rawpos.x, rawpos.y, clipPos.z, clipPos.w);\n");
 	else
-		WRITE(p, "float4 clipPos = float4(rawpos.x, rawpos.y, uv2.w, uv3.w);\n");
+		WRITE(p, "\tclipPos = float4(rawpos.x, rawpos.y, uv2.w, uv3.w);\n");
 
 	// HACK to handle cases where the tex gen is not enabled
 	if (numTexgen == 0)
 	{
-		WRITE(p, "float3 uv0 = float3(0.0f, 0.0f, 0.0f);\n");
+		WRITE(p, "\tfloat3 uv0 = float3(0.0f, 0.0f, 0.0f);\n");
 	}
 	else
 	{
@@ -849,8 +848,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			// optional perspective divides
 			if (xfregs.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
 			{
-				WRITE(p, "if (uv%d.z != 0.0f)", i);
-				WRITE(p, "	uv%d.xy = uv%d.xy / uv%d.z;\n", i, i, i);
+				WRITE(p, "\tif (uv%d.z != 0.0f)", i);
+				WRITE(p, "\t\tuv%d.xy = uv%d.xy / uv%d.z;\n", i, i, i);
 			}
 
 			WRITE(p, "uv%d.xy = uv%d.xy * " I_TEXDIMS"[%d].zw;\n", i, i, i);
@@ -865,9 +864,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			int texcoord = bpmem.tevindref.getTexCoord(i);
 
 			if (texcoord < numTexgen)
-				WRITE(p, "tempcoord = uv%d.xy * " I_INDTEXSCALE"[%d].%s;\n", texcoord, i/2, (i&1)?"zw":"xy");
+				WRITE(p, "\ttempcoord = uv%d.xy * " I_INDTEXSCALE"[%d].%s;\n", texcoord, i/2, (i&1)?"zw":"xy");
 			else
-				WRITE(p, "tempcoord = float2(0.0f, 0.0f);\n");
+				WRITE(p, "\ttempcoord = float2(0.0f, 0.0f);\n");
 
 			char buffer[32];
 			sprintf(buffer, "float3 indtex%d", i);
@@ -895,19 +894,19 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if(bpmem.combiners[numStages - 1].colorC.dest != 0)
 		{
 			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].AuxStored;
-			WRITE(p, "prev.rgb = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
+			WRITE(p, "\tprev.rgb = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
 			RegisterStates[0].ColorNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl;
 		}
 		if(bpmem.combiners[numStages - 1].alphaC.dest != 0)
 		{
 			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AuxStored;
-			WRITE(p, "prev.a = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
+			WRITE(p, "\tprev.a = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
 			RegisterStates[0].AlphaNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl;
 		}
 	}
 	// emulation of unsigned 8 overflow when casting if needed
 	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
-		WRITE(p, "prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+		WRITE(p, "\tprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
 	if(Pretest ==  -1)
 	{
@@ -917,7 +916,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if((bpmem.fog.c_proj_fsel.fsel != 0) || DepthTextureEnable)
 	{
 		// the screen space depth value = far z + (clip z / clip w) * z range
-		WRITE(p, "float zCoord = " I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS"[1].y;\n");
+		WRITE(p, "\tfloat zCoord = " I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS"[1].y;\n");
 	}
 
 	if (DepthTextureEnable)
@@ -926,24 +925,24 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
 		{
 			if (bpmem.ztex2.op == ZTEXTURE_ADD)
-				WRITE(p, "zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w + zCoord;\n");
+				WRITE(p, "\tzCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w + zCoord;\n");
 			else
-				WRITE(p, "zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w;\n");
+				WRITE(p, "\tzCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w;\n");
 
 			// scale to make result from frac correct
-			WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
-			WRITE(p, "zCoord = frac(zCoord);\n");
-			WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
+			WRITE(p, "\tzCoord = zCoord * (16777215.0f/16777216.0f);\n");
+			WRITE(p, "\tzCoord = frac(zCoord);\n");
+			WRITE(p, "\tzCoord = zCoord * (16777216.0f/16777215.0f);\n");
 		}
-		WRITE(p, "depth = zCoord;\n");
+		WRITE(p, "\tdepth = zCoord;\n");
 	}
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
-		WRITE(p, "  ocol0 = float4(prev.rgb, " I_ALPHA"[0].a);\n");
+		WRITE(p, "\tocol0 = float4(prev.rgb, " I_ALPHA"[0].a);\n");
 	else
 	{
 		WriteFog(p);
-		WRITE(p, "  ocol0 = prev;\n");
+		WRITE(p, "\tocol0 = prev;\n");
 	}
 
 	// On D3D11, use dual-source color blending to perform dst alpha in a
@@ -951,16 +950,16 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 	{
 		// Colors will be blended against the alpha from ocol1...
-		WRITE(p, "  ocol1 = ocol0;\n");
+		WRITE(p, "\tocol1 = ocol0;\n");
 		// ...and the alpha from ocol0 will be written to the framebuffer.
-		WRITE(p, "  ocol0.a = " I_ALPHA"[0].a;\n");	
+		WRITE(p, "\tocol0.a = " I_ALPHA"[0].a;\n");	
 	}
 	if (ApiType == API_OPENGL)
 	{
 		if (DepthTextureEnable)
-			WRITE(p, "gl_FragDepth = depth;\n");
+			WRITE(p, "\tgl_FragDepth = depth;\n");
 		if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
-			WRITE(p, "gl_FragData[0] = ocol0;\n");
+			WRITE(p, "\tgl_FragData[0] = ocol0;\n");
 	}
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
@@ -1396,7 +1395,7 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 
 	// using discard then return works the same in cg and dx9 but not in dx11
-	WRITE(p, "if(!( ");
+	WRITE(p, "\tif(!( ");
 
 	int compindex = bpmem.alphaFunc.comp0 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0]);//lookup the first component from the alpha function table
@@ -1407,11 +1406,11 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
 	WRITE(p, ")) {\n");
 
-	WRITE(p, "ocol0 = float4(0.0f);\n");
+	WRITE(p, "\t\tocol0 = float4(0.0f);\n");
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-		WRITE(p, "ocol1 = float4(0.0f);\n");
+		WRITE(p, "\t\tocol1 = float4(0.0f);\n");
 	if (DepthTextureEnable)
-		WRITE(p, "depth = 1.f;\n");
+		WRITE(p, "\t\tdepth = 1.f;\n");
 
 	// HAXX: zcomploc is a way to control whether depth test is done before
 	// or after texturing and alpha test. PC GPU does depth test before texturing ONLY if depth value is
@@ -1427,12 +1426,12 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	// this way is the only CORRECT way to emulate perfectly the zcomplock behaviour
 	if (!(bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable))
 	{
-		WRITE(p, "discard;\n");
+		WRITE(p, "\t\tdiscard;\n");
 		if (ApiType != API_D3D11)
-			WRITE(p, "return;\n");
+			WRITE(p, "\t\treturn;\n");
 	}
 
-	WRITE(p, "}\n");
+	WRITE(p, "\t}\n");
 }
 
 static const char *tevFogFuncsTable[] =
@@ -1441,10 +1440,10 @@ static const char *tevFogFuncsTable[] =
 	"",																//?
 	"",																//Linear
 	"",																//?
-	"  fog = 1.0f - pow(2.0f, -8.0f * fog);\n",						//exp
-	"  fog = 1.0f - pow(2.0f, -8.0f * fog * fog);\n",					//exp2
-	"  fog = pow(2.0f, -8.0f * (1.0f - fog));\n",						//backward exp
-	"  fog = 1.0f - fog;\n   fog = pow(2.0f, -8.0f * fog * fog);\n"	//backward exp2
+	"\tfog = 1.0f - pow(2.0f, -8.0f * fog);\n",						//exp
+	"\tfog = 1.0f - pow(2.0f, -8.0f * fog * fog);\n",					//exp2
+	"\tfog = pow(2.0f, -8.0f * (1.0f - fog));\n",						//backward exp
+	"\tfog = 1.0f - fog;\n   fog = pow(2.0f, -8.0f * fog * fog);\n"	//backward exp2
 };
 
 static void WriteFog(char *&p)
@@ -1456,13 +1455,13 @@ static void WriteFog(char *&p)
 	{
 		// perspective
 		// ze = A/(B - (Zs >> B_SHF)
-		WRITE (p, "  float ze = " I_FOG"[1].x / (" I_FOG"[1].y - (zCoord / " I_FOG"[1].w));\n");
+		WRITE (p, "\tfloat ze = " I_FOG"[1].x / (" I_FOG"[1].y - (zCoord / " I_FOG"[1].w));\n");
 	}
 	else
 	{
 		// orthographic
 		// ze = a*Zs	(here, no B_SHF)
-		WRITE (p, "  float ze = " I_FOG"[1].x * zCoord;\n");
+		WRITE (p, "\tfloat ze = " I_FOG"[1].x * zCoord;\n");
 	}
 
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
@@ -1470,12 +1469,12 @@ static void WriteFog(char *&p)
 	//this is complitly teorical as the real hard seems to use a table intead of calculate the values.
 	if (bpmem.fogRange.Base.Enabled)
 	{
-		WRITE (p, "  float x_adjust = (2.0f * (clipPos.x / " I_FOG"[2].y)) - 1.0f - " I_FOG"[2].x;\n");
-		WRITE (p, "  x_adjust = sqrt(x_adjust * x_adjust + " I_FOG"[2].z * " I_FOG"[2].z) / " I_FOG"[2].z;\n");
-		WRITE (p, "  ze *= x_adjust;\n");
+		WRITE (p, "\tfloat x_adjust = (2.0f * (clipPos.x / " I_FOG"[2].y)) - 1.0f - " I_FOG"[2].x;\n");
+		WRITE (p, "\tx_adjust = sqrt(x_adjust * x_adjust + " I_FOG"[2].z * " I_FOG"[2].z) / " I_FOG"[2].z;\n");
+		WRITE (p, "\tze *= x_adjust;\n");
 	}
 
-	WRITE (p, "  float fog = saturate(ze - " I_FOG"[1].z);\n");
+	WRITE (p, "\tfloat fog = saturate(ze - " I_FOG"[1].z);\n");
 
 	if (bpmem.fog.c_proj_fsel.fsel > 3)
 	{
@@ -1487,5 +1486,5 @@ static void WriteFog(char *&p)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 
-	WRITE(p, "  prev.rgb = lerp(prev.rgb," I_FOG"[0].rgb,fog);\n");
+	WRITE(p, "\tprev.rgb = lerp(prev.rgb, " I_FOG"[0].rgb, fog);\n");
 }
