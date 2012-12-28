@@ -50,6 +50,7 @@ Core::GetWindowHandle().
 #include "LogConfigWindow.h"
 #include "FifoPlayerDlg.h"
 #include "WxUtils.h"
+#include "Host.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -1468,6 +1469,7 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 		wxString msg(wxString::Format(wxT("Wiimote %i %s"), wm_idx + 1,
 					connect ? wxT("Connected") : wxT("Disconnected")));
 		Core::DisplayMessage(msg.ToAscii(), 3000);
+		Host_UpdateMainFrame();
 	}
 }
 
