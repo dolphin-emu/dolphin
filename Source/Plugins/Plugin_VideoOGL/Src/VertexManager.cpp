@@ -220,12 +220,13 @@ void VertexManager::vFlush()
 	if (useDstAlpha && !dualSourcePossible)
 	{
 		ps = PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
-		if(ps)
-			ProgramShaderCache::SetBothShaders(ps->glprogid, 0);
+		if(ps && vs)
+			ProgramShaderCache::SetBothShaders(ps->glprogid, vs->glprogid);
 		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		{
 			PixelShaderManager::SetConstants(); // Need to set these again, if we don't support UBO
-		if (g_nativeVertexFmt)
-			g_nativeVertexFmt->SetupVertexPointers();
+			VertexShaderManager::SetConstants();
+		}
 	
 		// only update alpha
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
