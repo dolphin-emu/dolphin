@@ -911,24 +911,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if(Pretest ==  -1)
 	{
 		WriteAlphaTest(p, ApiType, dstAlphaMode);
-		// alpha test will always fail, so restart the shader and just make it an empty function
-	/*	p = pmainstart;
-		WRITE(p, "ocol0 = float4(0.0f);\n");
-		if(DepthTextureEnable)
-			WRITE(p, "depth = 1.f;\n");
-		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "ocol1 = float4(0.0f,0.0f,0.0f,0.0f);\n");
-		if (ApiType == API_OPENGL)
-		{
-			// Once we switch to GLSL 1.3 and bind variables, we won't need to do this
-			if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "gl_FragData[0] = ocol0;\n");
-			if (DepthTextureEnable)
-				WRITE(p, "gl_FragDepth = depth;\n");
-		}
-		WRITE(p, "discard;\n");
-		if(ApiType != API_D3D11)
-			WRITE(p, "return;\n");*/
 	}
 
 	if((bpmem.fog.c_proj_fsel.fsel != 0) || DepthTextureEnable)
@@ -973,12 +955,12 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "  ocol0.a = " I_ALPHA"[0].a;\n");	
 	}
 	if (ApiType == API_OPENGL)
-		{
-			if (DepthTextureEnable)
-				WRITE(p, "gl_FragDepth = depth;\n");
-			if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "gl_FragData[0] = ocol0;\n");
-		}
+	{
+		if (DepthTextureEnable)
+			WRITE(p, "gl_FragDepth = depth;\n");
+		if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
+			WRITE(p, "gl_FragData[0] = ocol0;\n");
+	}
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
