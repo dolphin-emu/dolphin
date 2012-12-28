@@ -190,7 +190,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		// A few required defines and ones that will make our lives a lot easier
 		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		{
-			WRITE(p, "#version 330 compatibility\n");
+			WRITE(p, "#version 130\n");
 			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 				WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
 			if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)

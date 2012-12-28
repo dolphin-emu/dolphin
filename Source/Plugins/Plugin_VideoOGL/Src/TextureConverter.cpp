@@ -72,9 +72,10 @@ void CreateRgbToYuyvProgram()
 	if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 	{
 		const char *FProgram =
-		"#version 330 compatibility\n"
+		"#version 130\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
 		"#extension GL_ARB_shading_language_420pack : enable\n"
+		"#extension GL_ARB_explicit_attrib_location : enable\n"
 		"layout(binding = 0) uniform sampler2DRect samp0;\n"
 		"void main()\n"
 		"{\n"
@@ -119,9 +120,10 @@ void CreateYuyvToRgbProgram()
 	if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 	{
 		const char *FProgram =
-			"#version 330 compatibility\n"
+			"#version 130\n"
 			"#extension GL_ARB_texture_rectangle : enable\n"
 			"#extension GL_ARB_shading_language_420pack : enable\n"
+			"#extension GL_ARB_explicit_attrib_location : enable\n"
 			"layout(binding = 0) uniform sampler2DRect samp0;\n"
 			"void main()\n"
 			"{\n"

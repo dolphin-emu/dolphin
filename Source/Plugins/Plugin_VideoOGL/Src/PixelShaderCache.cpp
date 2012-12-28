@@ -73,6 +73,7 @@ void PixelShaderCache::Init()
 	sprintf(pmatrixprog, "#version %s\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
 		"%s\n"
+		"%s\n"
 		"%suniform sampler2DRect samp0;\n"
 		"%s\n"
 		"%svec4 " I_COLORS"[7];\n"
@@ -91,8 +92,9 @@ void PixelShaderCache::Init()
 		"Temp1.w = dot(Temp0, " I_COLORS"[%d]);\n"
 		"gl_FragData[0] = Temp1 + " I_COLORS"[%d];\n"
 		"}\n",
-		(g_ActiveConfig.backend_info.bSupportsGLSLUBO || g_ActiveConfig.backend_info.bSupportsGLSLBinding) ? "330 compatibility" : "120",
+		(g_ActiveConfig.backend_info.bSupportsGLSLUBO || g_ActiveConfig.backend_info.bSupportsGLSLBinding) ? "130" : "120",
 		g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "#extension GL_ARB_shading_language_420pack : enable" : "",
+		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "#extension GL_ARB_uniform_buffer_object : enable" : "",
 		g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "layout(binding = 0) " : "",
 		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140) uniform PSBlock {" : "",
 		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
@@ -108,6 +110,7 @@ void PixelShaderCache::Init()
 
 	sprintf(pmatrixprog, "#version %s\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
+		"%s\n"
 		"%s\n"
 		"%suniform sampler2DRect samp0;\n"
 		"%s\n"
@@ -137,8 +140,9 @@ void PixelShaderCache::Init()
 		"R1.w = dot(R0, " I_COLORS"[%d]);\n"
 		"gl_FragData[0] = R1 * " I_COLORS"[%d];\n"
 		"}\n",
-		(g_ActiveConfig.backend_info.bSupportsGLSLUBO || g_ActiveConfig.backend_info.bSupportsGLSLBinding) ? "330 compatibility" : "120",
+		(g_ActiveConfig.backend_info.bSupportsGLSLUBO || g_ActiveConfig.backend_info.bSupportsGLSLBinding) ? "130" : "120",
 		g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "#extension GL_ARB_shading_language_420pack : enable" : "",
+		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "#extension GL_ARB_uniform_buffer_object : enable" : "",
 		g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "layout(binding = 0) " : "",
 		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140) uniform PSBlock {" : "",
 		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
