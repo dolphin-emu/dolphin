@@ -69,7 +69,7 @@ u16 GetEncodedSampleCount(u32 format)
 
 const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 {
-	if (ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 		return ""; // Once we switch to GLSL 1.3 we can do something here
 	static char result[64];
 	sprintf(result, " : register(%s%d)", prefix, num);
@@ -78,7 +78,7 @@ const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 
 const char *WriteLocation(API_TYPE ApiType)
 {
-	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		return "";
 	static char result[64];
 	sprintf(result, "uniform ");
@@ -92,22 +92,18 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
     // [0] left, top, right, bottom of source rectangle within source texture
     // [1] width and height of destination texture in pixels
     // Two were merged for GLSL
-    if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+    if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 1" : "");
 		
     WRITE(p, "%sfloat4 " I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
     
-     if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+     if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
 
     float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
 	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
 	float samples = (float)GetEncodedSampleCount(format);
 	if (ApiType == API_OPENGL)
-	{
-		WRITE(p,"uniform samplerRECT samp0 : register(s0);\n");
-	}
-	else if (ApiType == API_GLSL)
 	{
 		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 			WRITE(p, "layout(binding = 0) ");
@@ -124,7 +120,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	}
 
 	
-	if (ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "  float4 ocol0;\n");
 		WRITE(p, "  float2 uv0 = gl_TexCoord[0].xy;\n");
@@ -165,12 +161,12 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	WRITE(p, "  sampleUv = sampleUv * " I_COLORS"[0].xy;\n");
 
-	if (ApiType == API_OPENGL || ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 		WRITE(p,"  sampleUv.y = " I_COLORS"[1].y - sampleUv.y;\n");
 	
 	WRITE(p, "  sampleUv = sampleUv + " I_COLORS"[1].zw;\n");
 
-	if (ApiType != API_OPENGL && ApiType != API_GLSL)
+	if (ApiType != API_OPENGL)
 	{
 		WRITE(p, "  sampleUv = sampleUv + float2(0.0f,1.0f);\n");// still to determine the reason for this
 		WRITE(p, "  sampleUv = sampleUv / " I_COLORS"[0].zw;\n");
@@ -184,10 +180,10 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
     // [0] left, top, right, bottom of source rectangle within source texture
     // [1] width and height of destination texture in pixels
     // Two were merged for GLSL
-	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 1" : "");
     WRITE(p, "%sfloat4 " I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
-	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
 
     float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
@@ -195,10 +191,6 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
 	if (ApiType == API_OPENGL)
-	{
-		WRITE(p,"uniform samplerRECT samp0 : register(s0);\n");
-	}
-	else if (ApiType == API_GLSL)
 	{
 		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 			WRITE(p, "layout(binding = 0) ");
@@ -214,7 +206,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 		WRITE(p, "Texture2D Tex0 : register(t0);\n");		
 	}
 
-	if (ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "  float4 ocol0;\n");
 		WRITE(p, "  float2 uv0 = gl_TexCoord[0].xy;\n");
@@ -256,12 +248,12 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	WRITE(p, "  sampleUv.y = yb + xoff;\n");
 	WRITE(p, "  sampleUv = sampleUv * " I_COLORS"[0].xy;\n");
 	
-	if (ApiType == API_OPENGL || ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 		WRITE(p,"  sampleUv.y = " I_COLORS"[1].y - sampleUv.y;\n");
 	
 	WRITE(p, "  sampleUv = sampleUv + " I_COLORS"[1].zw;\n");
 
-	if (ApiType != API_OPENGL && ApiType != API_GLSL)
+	if (ApiType != API_OPENGL)
 	{
 		WRITE(p, "  sampleUv = sampleUv + float2(0.0f,1.0f);\n");// still to determine the reason for this
 		WRITE(p, "  sampleUv = sampleUv / " I_COLORS"[0].zw;\n");
@@ -275,14 +267,12 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYP
 		texSampleOpName = "tex2D";
 	else if (ApiType == API_D3D11)
 		texSampleOpName = "tex0.Sample";
-	else if (ApiType == API_GLSL)
-		texSampleOpName = "texture2DRect";
 	else
-		texSampleOpName = "texRECT";
+		texSampleOpName = "texture2DRect";
 
 	// the increment of sampleUv.x is delayed, so we perform it here. see WriteIncrementSampleX.
 	const char* texSampleIncrementUnit;
-	if (ApiType != API_OPENGL && ApiType != API_GLSL)
+	if (ApiType != API_OPENGL)
 		texSampleIncrementUnit = I_COLORS"[0].x / " I_COLORS"[0].z";
 	else
 		texSampleIncrementUnit = I_COLORS"[0].x";
@@ -329,7 +319,7 @@ void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
 
 void WriteEncoderEnd(char* p, API_TYPE ApiType)
 {
-	if (ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 		WRITE(p, "gl_FragData[0] = ocol0;\n");
 	WRITE(p, "}\n");
 	IntensityConstantAdded = false;
@@ -855,7 +845,7 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 
 	char *p = text;
 
-	if (ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 	{
 		// A few required defines and ones that will make our lives a lot easier
 		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)

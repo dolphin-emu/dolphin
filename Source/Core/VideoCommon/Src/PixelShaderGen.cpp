@@ -507,7 +507,7 @@ static void BuildSwapModeTable()
 
 const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 {
-	if (ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 		return ""; // Nothing to do here
 	static char result[64];
 	sprintf(result, " : register(%s%d)", prefix, num);
@@ -516,7 +516,7 @@ const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 
 const char* WriteBinding(API_TYPE ApiType, const u32 num)
 {
-	if (ApiType != API_GLSL || !g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+	if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
 		return "";
 	static char result[64];
 	sprintf(result, "layout(binding = %d) ", num);
@@ -525,7 +525,7 @@ const char* WriteBinding(API_TYPE ApiType, const u32 num)
 
 const char *WriteLocation(API_TYPE ApiType)
 {
-	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		return "";
 	static char result[64];
 	sprintf(result, "uniform ");
@@ -557,7 +557,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ;
 
-	if (ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 	{
 			// A few required defines and ones that will make our lives a lot easier
 			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
@@ -640,7 +640,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 
 	WRITE(p, "\n");
-	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140) uniform PSBlock {\n");
 		
 		WRITE(p, "%sfloat4 " I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
@@ -656,10 +656,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "%sfloat4 " I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
 		WRITE(p, "%sfloat4 " I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PMATERIALS));
 		
-	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
 
-    if (ApiType != API_GLSL)
+    if (ApiType != API_OPENGL)
     {
 		WRITE(p, "void main(\n");
 		if (ApiType != API_D3D11)
@@ -788,7 +788,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				WRITE(p, "depth = 1.f;\n");
 			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 					WRITE(p, "ocol1 = 0;\n");
-			if(ApiType == API_GLSL && dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
+			if(ApiType == API_OPENGL && dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
 					WRITE(p, "gl_FragData[0] = ocol0;\n");
 			if(ApiType != API_D3D11)
 				WRITE(p, "return;\n");
@@ -921,7 +921,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "depth = 1.f;\n");
 		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 				WRITE(p, "ocol1 = float4(0.0f,0.0f,0.0f,0.0f);\n");
-		if (ApiType == API_GLSL)
+		if (ApiType == API_OPENGL)
 		{
 			// Once we switch to GLSL 1.3 and bind variables, we won't need to do this
 			if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
@@ -975,7 +975,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		// ...and the alpha from ocol0 will be written to the framebuffer.
 		WRITE(p, "  ocol0.a = " I_ALPHA"[0].a;\n");	
 	}
-	if (ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 		{
 			if (DepthTextureEnable)
 				WRITE(p, "gl_FragDepth = depth;\n");
@@ -1350,7 +1350,7 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 	if (ApiType == API_D3D11)
 		WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
 	else
-		WRITE(p, "%s=%s(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", destination, ApiType == API_GLSL ? "texture2D" : "tex2D", texmap, texcoords, texmap, texswap);
+		WRITE(p, "%s=%s(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", destination, ApiType == API_OPENGL ? "texture2D" : "tex2D", texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =

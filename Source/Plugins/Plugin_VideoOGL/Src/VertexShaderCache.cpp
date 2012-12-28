@@ -89,7 +89,7 @@ VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
 	// Make an entry in the table
 	VSCacheEntry& entry = vshaders[uid];
 	last_entry = &entry;
-	const char *code = GenerateVertexShaderCode(components, API_GLSL);
+	const char *code = GenerateVertexShaderCode(components, API_OPENGL);
 	GetSafeVertexShaderId(&entry.safe_uid, components);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)

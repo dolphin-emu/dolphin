@@ -132,30 +132,30 @@ static char text[16384];
 
 char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 {
-	// This turned a bit ugly with GLSL
-	// Will be less ugly with GLSL 1.3...hopefully
+	// GLSL makes this ugly
+	// TODO: Make pretty
 	WRITE(p, "struct VS_OUTPUT {\n");
-	WRITE(p, "  float4 pos %s POSITION;\n", ApiType == API_GLSL ? ";//" : ":");
-	WRITE(p, "  float4 colors_0 %s COLOR0;\n", ApiType == API_GLSL ? ";//" : ":");
-	WRITE(p, "  float4 colors_1 %s COLOR1;\n", ApiType == API_GLSL ? ";//" : ":");
+	WRITE(p, "  float4 pos %s POSITION;\n", ApiType == API_OPENGL ? ";//" : ":");
+	WRITE(p, "  float4 colors_0 %s COLOR0;\n", ApiType == API_OPENGL ? ";//" : ":");
+	WRITE(p, "  float4 colors_1 %s COLOR1;\n", ApiType == API_OPENGL ? ";//" : ":");
 
 	if (xfregs.numTexGen.numTexGens < 7) {
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			WRITE(p, "  float3 tex%d %s TEXCOORD%d;\n", i, ApiType == API_GLSL ? ";//" : ":", i);
-		WRITE(p, "  float4 clipPos %s TEXCOORD%d;\n", ApiType == API_GLSL ? ";//" : ":", xfregs.numTexGen.numTexGens);
+			WRITE(p, "  float3 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL ? ";//" : ":", i);
+		WRITE(p, "  float4 clipPos %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens);
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			WRITE(p, "  float4 Normal %s TEXCOORD%d;\n", ApiType == API_GLSL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
+			WRITE(p, "  float4 Normal %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
 	} else {
 		// clip position is in w of first 4 texcoords
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
 			for (int i = 0; i < 8; ++i)
-				WRITE(p, "  float4 tex%d %s TEXCOORD%d;\n", i, ApiType == API_GLSL ? ";//" : ":", i);
+				WRITE(p, "  float4 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL? ";//" : ":", i);
 		}
 		else
 		{
 			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, "  float%d tex%d %s TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, ApiType == API_GLSL ? ";//" : ":", i);
+				WRITE(p, "  float%d tex%d %s TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, ApiType == API_OPENGL ? ";//" : ":", i);
 		}
 	}
 	WRITE(p, "};\n");
@@ -185,7 +185,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	char *p = text;
 	WRITE(p, "//Vertex Shader: comp:%x, \n", components);
 	
-	if (ApiType == API_GLSL)
+	if (ApiType == API_OPENGL)
 	{
 		// A few required defines and ones that will make our lives a lot easier
 		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
@@ -222,7 +222,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	}
 	
 	// uniforms
-	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140) uniform VSBlock {\n");
 		
 	WRITE(p, "%sfloat4 " I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
@@ -235,13 +235,13 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	WRITE(p, "%sfloat4 " I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
 	WRITE(p, "%sfloat4 " I_DEPTHPARAMS" %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_DEPTHPARAMS));
 		
-	if (ApiType == API_GLSL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
 	
 
 	p = GenerateVSOutputStruct(p, components, ApiType);
 
-	if(ApiType == API_GLSL)
+	if(ApiType == API_OPENGL)
 	{
 		if (components & VB_HAS_NRM0)
 			WRITE(p, " float3 rawnorm0 = gl_Normal; // NORMAL0,\n");
@@ -603,9 +603,10 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		WRITE(p, "o.pos = o.pos + float4(" I_DEPTHPARAMS".z, " I_DEPTHPARAMS".w, 0.f, 0.f);\n");
 	}
 
-	if(ApiType == API_GLSL)
+	if(ApiType == API_OPENGL)
 	{
 		// Bit ugly here
+		// TODO: Make pretty
 		// Will look better when we bind uniforms in GLSL 1.3
 		// clipPos/w needs to be done in pixel shader, not here
 

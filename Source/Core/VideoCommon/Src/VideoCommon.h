@@ -105,8 +105,7 @@ typedef enum
 	API_D3D9_SM20 = 4,
 	API_D3D9 = 6,	
 	API_D3D11 = 8,
-	API_GLSL = 16,
-	API_NONE = 32
+	API_NONE = 16
 } API_TYPE;
 
 inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)

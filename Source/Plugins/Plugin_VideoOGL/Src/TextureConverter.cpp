@@ -179,7 +179,7 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 
 	if (s_encodingPrograms[format].glprogid == 0)
 	{
-		const char* shader = TextureConversionShader::GenerateEncodingShader(format, API_GLSL);
+		const char* shader = TextureConversionShader::GenerateEncodingShader(format, API_OPENGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)

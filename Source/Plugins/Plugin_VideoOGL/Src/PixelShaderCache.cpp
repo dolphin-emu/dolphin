@@ -194,7 +194,7 @@ FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 comp
 	// Make an entry in the table
 	PSCacheEntry& newentry = PixelShaders[uid];
 	last_entry = &newentry;
-	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_GLSL, components);
+	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
 
 	if (g_ActiveConfig.bEnableShaderDebugging && code)
 	{
