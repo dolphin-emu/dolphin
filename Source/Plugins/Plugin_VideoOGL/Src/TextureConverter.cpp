@@ -176,8 +176,8 @@ void Init()
 	glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 	
 	// TODO: this after merging with graphic_update
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glGenRenderbuffersEXT(1, &s_dstRenderBuffer);
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
@@ -271,9 +271,6 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 		glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
 		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 		
-		// TODO: this after merging with graphic_update
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
 		s_cached_sourceRc = sourceRc;
 	} 
 
@@ -282,6 +279,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	
 	// TODO: this after merging with graphic_update
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	GL_REPORT_ERRORD();
 
@@ -454,9 +452,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 		glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*4*4, vertices, GL_STREAM_DRAW);
 		
-		// TODO: this after merging with graphic_update
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
 		s_cached_srcHeight = srcHeight;
 		s_cached_srcWidth = srcWidth;
 	}
@@ -466,6 +461,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	
 	// TODO: this after merging with graphic_update
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	GL_REPORT_ERRORD();
 
