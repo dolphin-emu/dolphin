@@ -177,6 +177,9 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			ERROR CODES:
 			-4 Cant find device specified
 		*/
+		int ret = -1;
+		int worked = 32;
+		
 		u32 dev_num  = Memory::Read_U32(BufferIn+0x10);
 		u8 requestType = Memory::Read_U8(BufferIn+0x14);
 		u8 request = Memory::Read_U8(BufferIn+0x15);
@@ -185,8 +188,10 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		u16 size = Memory::Read_U16(BufferIn+0x1A);
 		u32 data = Memory::Read_U32(BufferIn+0x1C);
 		
-		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			requestType, request, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		ReturnValue = -4;
+		
+		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+		//	requestType, request, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 		libusb_device_handle * dev_handle = GetDeviceByDevNum(dev_num);
 		
@@ -200,10 +205,30 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
                         value, index, (char*)Memory::GetPointer(data), size,
                         0);
 		*/
-		ReturnValue = libusb_control_transfer (dev_handle, requestType, request, value, index, (unsigned char*)Memory::GetPointer(data), size, 0);
-		if(ReturnValue>=0)
+		
+		if (libusb_kernel_driver_active(dev_handle, 0) == 1)
 		{
-			ReturnValue += sizeof(libusb_control_setup);
+			//DEBUG_LOG(WII_IPC_HID, "Kernel has the interface, gtfo kernel!");
+			worked = libusb_detach_kernel_driver(dev_handle, 0);
+			if (worked)
+			{
+				//DEBUG_LOG(WII_IPC_HID, "Attempt to detach interface failed with error: %d", worked);
+			}
+		}
+		
+		worked = libusb_claim_interface(dev_handle, 0);
+		if (worked)
+		{
+			DEBUG_LOG(WII_IPC_HID, "Attempt to claim interface failed with error: %d", worked);
+			ReturnValue = -4;
+			break;
+		}
+		
+		ret = libusb_control_transfer (dev_handle, requestType, request, value, index, (unsigned char*)Memory::GetPointer(data), size, 0);
+		if(ret>=0)
+		{
+			ret += sizeof(libusb_control_setup);
+			ReturnValue = ret;
 		}
 
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
@@ -223,8 +248,8 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		u32 length = Memory::Read_U32(BufferIn+0x18);
 
 		u32 data = Memory::Read_U32(BufferIn+0x1C);
-		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+		//	Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		ReturnValue = -4;
 
 		libusb_device_handle * dev_handle = GetDeviceByDevNum(dev_num);
@@ -236,23 +261,23 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		}
 		if (libusb_kernel_driver_active(dev_handle, 0) == 1)
 		{
-			DEBUG_LOG(WII_IPC_HID, "Kernel has the interface, gtfo kernel!");
+			//DEBUG_LOG(WII_IPC_HID, "Kernel has the interface, gtfo kernel!");
 			worked = libusb_detach_kernel_driver(dev_handle, 0);
 			if (worked)
 			{
-				DEBUG_LOG(WII_IPC_HID, "Attempt to detach interface failed with error: %d", worked);
+				//DEBUG_LOG(WII_IPC_HID, "Attempt to detach interface failed with error: %d", worked);
 			}
 		}
 		
 		worked = libusb_claim_interface(dev_handle, 0);
 		if (worked)
 		{
-			DEBUG_LOG(WII_IPC_HID, "Attempt to claim interface failed with error: %d", worked);
+			//DEBUG_LOG(WII_IPC_HID, "Attempt to claim interface failed with error: %d", worked);
 			ReturnValue = -4;
 			goto int_in_end_print;
 		}
 		
-		checkme = libusb_interrupt_transfer(dev_handle, endpoint, (unsigned char*)Memory::GetPointer(data), length, &transfered, 3000 );
+		checkme = libusb_interrupt_transfer(dev_handle, endpoint, (unsigned char*)Memory::GetPointer(data), length, &transfered, 20 );
 		if(checkme == 0)
 		{
 			ReturnValue = transfered;
@@ -295,25 +320,16 @@ bool CWII_IPC_HLE_Device_hid::IOCtlV(u32 _CommandAddress)
 	u32 ReturnValue = 0;
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
-	switch (CommandBuffer.Parameter)
-	{
-	case 0x1337:
-		break;
-	default:
-		{
-			DEBUG_LOG(WII_IPC_HID, "%s - IOCtlV:", GetDeviceName().c_str());
-			DEBUG_LOG(WII_IPC_HID, "    Parameter: 0x%x", CommandBuffer.Parameter);
-			DEBUG_LOG(WII_IPC_HID, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
-			DEBUG_LOG(WII_IPC_HID, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
-			DEBUG_LOG(WII_IPC_HID, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
-			DEBUG_LOG(WII_IPC_HID, "    PayloadAddr: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Address);
-			DEBUG_LOG(WII_IPC_HID, "    PayloadSize: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Size);
-			#if defined(_DEBUG) || defined(DEBUGFAST)
-			DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
-			#endif
-		}
-		break;
-	}
+	DEBUG_LOG(WII_IPC_HID, "%s - IOCtlV:", GetDeviceName().c_str());
+	DEBUG_LOG(WII_IPC_HID, "    Parameter: 0x%x", CommandBuffer.Parameter);
+	DEBUG_LOG(WII_IPC_HID, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
+	DEBUG_LOG(WII_IPC_HID, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
+	DEBUG_LOG(WII_IPC_HID, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
+	DEBUG_LOG(WII_IPC_HID, "    PayloadAddr: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Address);
+	DEBUG_LOG(WII_IPC_HID, "    PayloadSize: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Size);
+	#if defined(_DEBUG) || defined(DEBUGFAST)
+	DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
+	#endif
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
 	return true;
@@ -367,15 +383,15 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 		u32 devNum = (libusb_get_bus_number (device) << 8) | libusb_get_device_address (device);
 		
 		DEBUG_LOG(WII_IPC_HID, "Vendor: %d Product: %X Devnum: %X",desc.idVendor, desc.idProduct, devNum);
-		if (desc.idVendor != 0x21A4)
-			continue;
+		//if (desc.idVendor != 0x21A4)
+		//	continue;
 
 		DEBUG_LOG(WII_IPC_HID, "Found device with Vendor: %d Product: %d Devnum: %d, Error: %d",desc.idVendor, desc.idProduct, devNum, dRet);
 
 		OffsetStart = OffsetBuffer;
 		OffsetBuffer += 4; // skip length for now, fill at end
 
-		Memory::Write_U32( 0/*devNum*/, OffsetBuffer); //write device num
+		Memory::Write_U32( d /*devNum*/, OffsetBuffer); //write device num
 		OffsetBuffer += 4;
 
 		WiiHIDDeviceDescriptor wii_device;
@@ -458,11 +474,8 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 	libusb_device_handle *handle = NULL;
 	ssize_t cnt;
 	
-	devNum = 0x304;
-	
 	if (open_devices.find(devNum) != open_devices.end())
 	{
-		DEBUG_LOG(WII_IPC_HID, "Found it... ");
 		return open_devices[devNum];
 	}
 	
@@ -483,8 +496,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 		
 		//struct libusb_device_descriptor desc;
 		u32 deviceID = (libusb_get_bus_number (device) << 8) | libusb_get_device_address (device);
-		DEBUG_LOG(WII_IPC_HID, "Testing device id == %d", deviceID);
-		if (deviceID == devNum)
+		if (i == devNum)
 		{
 			open_devices[devNum] = handle;
 			break;
