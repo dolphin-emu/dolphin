@@ -322,9 +322,11 @@ void CGameListCtrl::Update()
 		}
 
 		// Sort items by Title
+		if (!sorted)
+			last_column = 0;
+		sorted = false;
 		wxListEvent event;
 		event.m_col = SConfig::GetInstance().m_ListSort2;
-		last_column = 1;
 		OnColumnClick(event);
 
 		event.m_col = SConfig::GetInstance().m_ListSort;
@@ -711,20 +713,25 @@ void CGameListCtrl::OnColumnClick(wxListEvent& event)
 	if(event.GetColumn() != COLUMN_BANNER)
 	{
 		int current_column = event.GetColumn();
-
-		if (last_column == current_column)
+		if (sorted)
 		{
-			last_sort = -last_sort;
+			if (last_column == current_column)
+			{
+				last_sort = -last_sort;
+			}
+			else
+			{
+				SConfig::GetInstance().m_ListSort2 = last_sort;
+				last_column = current_column;
+				last_sort = current_column;
+			}
+			SConfig::GetInstance().m_ListSort = last_sort;
 		}
 		else
 		{
-			if (sorted)
-				SConfig::GetInstance().m_ListSort2 = last_sort;
-			last_column = current_column;
 			last_sort = current_column;
+			last_column = current_column;
 		}
-		if (sorted)
-			SConfig::GetInstance().m_ListSort = last_sort;
 		caller = this;
 		SortItems(wxListCompare, last_sort);
 	}
@@ -921,7 +928,8 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			{
 				if (selected_iso->IsCompressed())
 					popupMenu->Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
-				else
+				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" 
+						 && selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
 					popupMenu->Append(IDM_COMPRESSGCM, _("Compress ISO..."));
 			} else
 				popupMenu->Append(IDM_LIST_INSTALLWAD, _("Install to Wii Menu"));

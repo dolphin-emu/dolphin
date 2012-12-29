@@ -180,6 +180,7 @@ void VideoBackendHardware::InitializeShared()
 	memset((void*)&s_beginFieldArgs, 0, sizeof(s_beginFieldArgs));
 	memset(&s_accessEFBArgs, 0, sizeof(s_accessEFBArgs));
 	s_AccessEFBResult = 0;
+	m_invalid = false;
 }
 
 // Run from the CPU thread
@@ -198,13 +199,22 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 	// Refresh state.
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		BPReload();
+		m_invalid = true;
 		RecomputeCachedArraybases();
 
 		// Clear all caches that touch RAM
 		// (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
-		TextureCache::Invalidate();
 		VertexLoaderManager::MarkAllDirty();
+	}
+}
+
+void VideoBackendHardware::CheckInvalidState() {
+	if (m_invalid)
+	{
+		m_invalid = false;
+		
+		BPReload();
+		TextureCache::Invalidate();
 	}
 }
 

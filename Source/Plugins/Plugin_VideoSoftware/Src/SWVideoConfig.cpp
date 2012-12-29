@@ -51,7 +51,7 @@ void SWVideoConfig::Load(const char* ini_file)
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
     iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
 
-	iniFile.Get("Rendering", "HwRasterizer", &bHwRasterizer, false);
+	iniFile.Get("Rendering", "HwRasterizer", &bHwRasterizer, true);
 
 	iniFile.Get("Info", "ShowStats", &bShowStats, false);
 

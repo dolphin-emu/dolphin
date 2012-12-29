@@ -21,10 +21,10 @@
 #include "Mixer.h"
 
 #include "UCodes.h"
-#include "UCode_AXStructs.h"
+#include "UCode_AXWii_Structs.h"
 #include "UCode_AX.h" // for some functions in CUCode_AX
 #include "UCode_AXWii.h"
-#include "UCode_AX_Voice.h"
+#include "UCode_AXWii_Voice.h"
 
 
 CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)

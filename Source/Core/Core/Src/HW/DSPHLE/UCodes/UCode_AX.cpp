@@ -12,475 +12,683 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "FileUtil.h" // For IsDirectory()
-#include "StringUtil.h" // For StringFromFormat()
-#include <sstream>
-
-#include "Mixer.h"
-#include "../MailHandler.h"
-#include "../../DSP.h"
-#include "UCodes.h"
-#include "UCode_AXStructs.h"
 #include "UCode_AX.h"
+#include "../../DSP.h"
+
+#define AX_GC
 #include "UCode_AX_Voice.h"
 
-CUCode_AX::CUCode_AX(DSPHLE *dsp_hle, u32 l_CRC)
-	: IUCode(dsp_hle, l_CRC)
-	, m_addressPBs(0xFFFFFFFF)
+CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
+	: IUCode(dsp_hle, crc)
+	, m_cmdlist_size(0)
+	, m_axthread(&SpawnAXThread, this)
 {
-	// we got loaded
+	WARN_LOG(DSPHLE, "Instantiating CUCode_AX: crc=%08x", crc);
 	m_rMailHandler.PushMail(DSP_INIT);
-
-	templbuffer = new int[1024 * 1024];
-	temprbuffer = new int[1024 * 1024];
+	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
 CUCode_AX::~CUCode_AX()
 {
+	m_cmdlist_size = (u16)-1;	// Special value to signal end
+	NotifyAXThread();
+	m_axthread.join();
+
 	m_rMailHandler.Clear();
-	delete [] templbuffer;
-	delete [] temprbuffer;
 }
 
-// Needs A LOT of love!
-static void ProcessUpdates(AXPB &PB)
+void CUCode_AX::SpawnAXThread(CUCode_AX* self)
 {
-	// Make the updates we are told to do. When there are multiple updates for a block they
-	// are placed in memory directly following updaddr. They are mostly for initial time
-	// delays, sometimes for the FIR filter or channel volumes. We do all of them at once here.
-	// If we get both an on and an off update we chose on. Perhaps that makes the RE1 music
-	// work better.
-	int numupd = PB.updates.num_updates[0]
-	+ PB.updates.num_updates[1]
-	+ PB.updates.num_updates[2]
-	+ PB.updates.num_updates[3]
-	+ PB.updates.num_updates[4];
-	if (numupd > 64) numupd = 64; // prevent crazy values TODO: LOL WHAT
-	const u32 updaddr   = (u32)(PB.updates.data_hi << 16) | PB.updates.data_lo;
-	int on = 0, off = 0;
-	for (int j = 0; j < numupd; j++)
+	self->AXThread();
+}
+
+void CUCode_AX::AXThread()
+{
+	while (true)
 	{
-		const u16 updpar = HLEMemory_Read_U16(updaddr + j*4);
-		const u16 upddata = HLEMemory_Read_U16(updaddr + j*4 + 2);
-		// some safety checks, I hope it's enough
-		if (updaddr > 0x80000000 && updaddr < 0x817fffff
-			&& updpar < 63 && updpar > 3 // updpar > 3 because we don't want to change
-			// 0-3, those are important
-			//&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
-			// but I don't know how or when
-			)
 		{
-			((u16*)&PB)[updpar] = upddata; // WTF ABOUNDS!
+			std::unique_lock<std::mutex> lk(m_cmdlist_mutex);
+			while (m_cmdlist_size == 0)
+				m_cmdlist_cv.wait(lk);
 		}
-		if (updpar == 7 && upddata != 0) on++;
-		if (updpar == 7 && upddata == 0) off++;
-	}
-	// hack: if we get both an on and an off select on rather than off
-	if (on > 0 && off > 0) PB.running = 1;
-}
 
-static void VoiceHacks(AXPB &pb)
-{
-	// get necessary values
-	const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
-	const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
-	// 		const u32 updaddr   = (u32)(pb.updates.data_hi << 16) | pb.updates.data_lo;
-	// 		const u16 updpar    = HLEMemory_Read_U16(updaddr);
-	// 		const u16 upddata   = HLEMemory_Read_U16(updaddr + 2);
+		if (m_cmdlist_size == (u16)-1)	// End of thread signal
+			break;
 
-	// =======================================================================================
-	/* Fix problems introduced with the SSBM fix. Sometimes when a music stream ended sampleEnd
-	would end up outside of bounds while the block was still playing resulting in noise 
-	a strange noise. This should take care of that.
-	*/
-	if ((sampleEnd > (0x017fffff * 2) || loopPos > (0x017fffff * 2))) // ARAM bounds in nibbles
-	{
-		pb.running = 0;
+		m_processing.lock();
+		HandleCommandList();
+		m_cmdlist_size = 0;
 
-		// also reset all values if it makes any difference
-		pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-		pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-		pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-		pb.src.cur_addr_frac = 0; pb.src.ratio_hi = 0; pb.src.ratio_lo = 0;
-		pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-
-		pb.audio_addr.looping = 0;
-		pb.adpcm_loop_info.pred_scale = 0;
-		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-	}
-
-	/*
-	// the fact that no settings are reset (except running) after a SSBM type music stream or another
-	looping block (for example in Battle Stadium DON) has ended could cause loud garbled sound to be
-	played from one or more blocks. Perhaps it was in conjunction with the old sequenced music fix below,
-	I'm not sure. This was an attempt to prevent that anyway by resetting all. But I'm not sure if this
-	is needed anymore. Please try to play SSBM without it and see if it works anyway.
-	*/
-	if (
-		// detect blocks that have recently been running that we should reset
-		pb.running == 0 && pb.audio_addr.looping == 1
-		//pb.running == 0 && pb.adpcm_loop_info.pred_scale
-
-		// this prevents us from ruining sequenced music blocks, may not be needed
-		/*
-		&& !(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
-		|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
-		*/	
-		//&& !(updpar || upddata)
-
-		&& pb.mixer_control == 0	// only use this in SSBM
-		)
-	{
-		// reset the detection values
-		pb.audio_addr.looping = 0;
-		pb.adpcm_loop_info.pred_scale = 0;
-		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-
-		//pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-		//pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-		//pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-		//pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
-		//pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
+		// Signal end of processing
+		m_rMailHandler.PushMail(DSP_YIELD);
+		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+		m_processing.unlock();
 	}
 }
 
-void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
+void CUCode_AX::NotifyAXThread()
 {
-	if (_iSize > 1024 * 1024)
-		_iSize = 1024 * 1024;
+	std::unique_lock<std::mutex> lk(m_cmdlist_mutex);
+	m_cmdlist_cv.notify_one();
+}
 
-	memset(templbuffer, 0, _iSize * sizeof(int));
-	memset(temprbuffer, 0, _iSize * sizeof(int));
+void CUCode_AX::HandleCommandList()
+{
+	// Temp variables for addresses computation
+	u16 addr_hi, addr_lo;
+	u16 addr2_hi, addr2_lo;
+	u16 size;
 
-	AXPB PB;
+	u32 pb_addr = 0;
 
-	for (int x = 0; x < numPBaddr; x++) 
+#if 0
+	WARN_LOG(DSPHLE, "Command list:");
+	for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
+		WARN_LOG(DSPHLE, "%04x", m_cmdlist[i]);
+	WARN_LOG(DSPHLE, "-------------");
+#endif
+
+	u32 curr_idx = 0;
+	bool end = false;
+	while (!end)
 	{
-		//u32 blockAddr = m_addressPBs;
-		u32 blockAddr = PBaddr[x];
+		u16 cmd = m_cmdlist[curr_idx++];
 
-		if (!blockAddr)
-			return;
-
-		for (int i = 0; i < NUMBER_OF_PBS; i++)
+		switch (cmd)
 		{
-			if (!ReadPB(blockAddr, PB))
+			// Some of these commands are unknown, or unused in this AX HLE.
+			// We still need to skip their arguments using "curr_idx += N".
+
+			case CMD_SETUP:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				SetupProcessing(HILO_TO_32(addr));
 				break;
 
-			if (m_CRC != 0x3389a79e)
-				VoiceHacks(PB);
+			case CMD_DL_AND_VOL_MIX:
+			{
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				u16 vol_main = m_cmdlist[curr_idx++];
+				u16 vol_auxa = m_cmdlist[curr_idx++];
+				u16 vol_auxb = m_cmdlist[curr_idx++];
+				DownloadAndMixWithVolume(HILO_TO_32(addr), vol_main, vol_auxa, vol_auxb);
+				break;
+			}
 
-			MixAddVoice(PB, templbuffer, temprbuffer, _iSize);
-
-			if (!WritePB(blockAddr, PB))
+			case CMD_PB_ADDR:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				pb_addr = HILO_TO_32(addr);
 				break;
 
-			// next PB, or done
-			blockAddr = (PB.next_pb_hi << 16) | PB.next_pb_lo;
-			if (!blockAddr)
+			case CMD_PROCESS:
+				ProcessPBList(pb_addr);
 				break;
-		}
-	}
 
-	if (_pBuffer)
-	{
-		for (int i = 0; i < _iSize; i++)
-		{
-			// Clamp into 16-bit. Maybe we should add a volume compressor here.
-			int left  = templbuffer[i] + _pBuffer[0];
-			int right = temprbuffer[i] + _pBuffer[1];
-			if (left < -32767)  left = -32767;
-			if (left > 32767)   left = 32767;
-			if (right < -32767) right = -32767;
-			if (right >  32767) right = 32767;
-			*_pBuffer++ = left;
-			*_pBuffer++ = right;
+			case CMD_MIX_AUXA:
+			case CMD_MIX_AUXB:
+				// These two commands are handled almost the same internally.
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				addr2_hi = m_cmdlist[curr_idx++];
+				addr2_lo = m_cmdlist[curr_idx++];
+				MixAUXSamples(cmd - CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2));
+				break;
+
+			case CMD_UPLOAD_LRS:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				UploadLRS(HILO_TO_32(addr));
+				break;
+
+			case CMD_SET_LR:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				SetMainLR(HILO_TO_32(addr));
+				break;
+
+			case CMD_UNK_08: curr_idx += 10; break;	// TODO: check
+
+			case CMD_MIX_AUXB_NOWRITE:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				MixAUXSamples(false, 0, HILO_TO_32(addr));
+				break;
+
+			case CMD_COMPRESSOR_TABLE_ADDR: curr_idx += 2; break;
+			case CMD_UNK_0B: break; // TODO: check other versions
+			case CMD_UNK_0C: break; // TODO: check other versions
+
+			case CMD_MORE:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				size = m_cmdlist[curr_idx++];
+
+				CopyCmdList(HILO_TO_32(addr), size);
+				curr_idx = 0;
+				break;
+
+			case CMD_OUTPUT:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				addr2_hi = m_cmdlist[curr_idx++];
+				addr2_lo = m_cmdlist[curr_idx++];
+				OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr));
+				break;
+
+			case CMD_END:
+				end = true;
+				break;
+
+			case CMD_MIX_AUXB_LR:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				addr2_hi = m_cmdlist[curr_idx++];
+				addr2_lo = m_cmdlist[curr_idx++];
+				MixAUXBLR(HILO_TO_32(addr), HILO_TO_32(addr2));
+				break;
+
+			case CMD_UNK_11: curr_idx += 2; break;
+
+			case CMD_UNK_12:
+			{
+				u16 samp_val = m_cmdlist[curr_idx++];
+				u16 idx = m_cmdlist[curr_idx++];
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+
+				// TODO
+				(void)samp_val;
+				(void)idx;
+
+				break;
+			}
+
+			// Send the contents of MAIN LRS, AUXA LRS and AUXB S to RAM, and
+			// mix data to MAIN LR and AUXB LR.
+			case CMD_SEND_AUX_AND_MIX:
+			{
+				// Address for Main + AUXA LRS upload
+				u16 main_auxa_up_hi = m_cmdlist[curr_idx++];
+				u16 main_auxa_up_lo = m_cmdlist[curr_idx++];
+
+				// Address for AUXB S upload
+				u16 auxb_s_up_hi = m_cmdlist[curr_idx++];
+				u16 auxb_s_up_lo = m_cmdlist[curr_idx++];
+
+				// Address to read data for Main L
+				u16 main_l_dl_hi = m_cmdlist[curr_idx++];
+				u16 main_l_dl_lo = m_cmdlist[curr_idx++];
+
+				// Address to read data for Main R
+				u16 main_r_dl_hi = m_cmdlist[curr_idx++];
+				u16 main_r_dl_lo = m_cmdlist[curr_idx++];
+
+				// Address to read data for AUXB L
+				u16 auxb_l_dl_hi = m_cmdlist[curr_idx++];
+				u16 auxb_l_dl_lo = m_cmdlist[curr_idx++];
+
+				// Address to read data for AUXB R
+				u16 auxb_r_dl_hi = m_cmdlist[curr_idx++];
+				u16 auxb_r_dl_lo = m_cmdlist[curr_idx++];
+
+				SendAUXAndMix(HILO_TO_32(main_auxa_up), HILO_TO_32(auxb_s_up),
+				              HILO_TO_32(main_l_dl), HILO_TO_32(main_r_dl),
+				              HILO_TO_32(auxb_l_dl), HILO_TO_32(auxb_r_dl));
+				break;
+			}
+
+			default:
+				ERROR_LOG(DSPHLE, "Unknown command in AX cmdlist: %04x", cmd);
+				end = true;
+				break;
 		}
 	}
 }
 
-
-// ------------------------------------------------------------------------------
-// Handle incoming mail
-void CUCode_AX::HandleMail(u32 _uMail)
+static void ApplyUpdatesForMs(AXPB& pb, int curr_ms)
 {
-	if (m_UploadSetupInProgress) 
+	u32 start_idx = 0;
+	for (int i = 0; i < curr_ms; ++i)
+		start_idx += pb.updates.num_updates[i];
+
+	u32 update_addr = HILO_TO_32(pb.updates.data);
+	for (u32 i = start_idx; i < start_idx + pb.updates.num_updates[curr_ms]; ++i)
 	{
-		PrepareBootUCode(_uMail);
-		return;
+		u16 update_off = HLEMemory_Read_U16(update_addr + 4 * i);
+		u16 update_val = HLEMemory_Read_U16(update_addr + 4 * i + 2);
+
+		((u16*)&pb)[update_off] = update_val;
 	}
-	else {	
-		if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
+}
+
+AXMixControl CUCode_AX::ConvertMixerControl(u32 mixer_control)
+{
+	u32 ret = 0;
+
+	// TODO: find other UCode versions with different mixer_control values
+	if (m_CRC == 0x4e8a8b21)
+	{
+		ret |= MIX_L | MIX_R;
+		if (mixer_control & 0x0001) ret |= MIX_AUXA_L | MIX_AUXA_R;
+		if (mixer_control & 0x0002) ret |= MIX_AUXB_L | MIX_AUXB_R;
+		if (mixer_control & 0x0004)
 		{
-			// We are expected to get a new CmdBlock
-			DEBUG_LOG(DSPHLE, "GetNextCmdBlock (%ibytes)", (u16)_uMail);
+			ret |= MIX_S;
+			if (ret & MIX_AUXA_L) ret |= MIX_AUXA_S;
+			if (ret & MIX_AUXB_L) ret |= MIX_AUXB_S;
 		}
-		else if (_uMail == 0xCDD10000) // Action 0 - AX_ResumeTask();
+		if (mixer_control & 0x0008)
 		{
-			m_rMailHandler.PushMail(DSP_RESUME);
+			ret |= MIX_L_RAMP | MIX_R_RAMP;
+			if (ret & MIX_AUXA_L) ret |= MIX_AUXA_L_RAMP | MIX_AUXA_R_RAMP;
+			if (ret & MIX_AUXB_L) ret |= MIX_AUXB_L_RAMP | MIX_AUXB_R_RAMP;
+			if (ret & MIX_AUXA_S) ret |= MIX_AUXA_S_RAMP;
+			if (ret & MIX_AUXB_S) ret |= MIX_AUXB_S_RAMP;
 		}
-		else if (_uMail == 0xCDD10001) // Action 1 - new ucode upload ( GC: BayBlade S.T.B,...)
-		{
-			DEBUG_LOG(DSPHLE,"DSP IROM - New Ucode!");
-			// TODO find a better way to protect from HLEMixer?
-			soundStream->GetMixer()->SetHLEReady(false);
-			m_UploadSetupInProgress = true;
-		}
-		else if (_uMail == 0xCDD10002) // Action 2 - IROM_Reset(); ( GC: NFS Carbon, FF Crystal Chronicles,...)
-		{
-			DEBUG_LOG(DSPHLE,"DSP IROM - Reset!");
-			m_DSPHLE->SetUCode(UCODE_ROM);
-			return;
-		}
-		else if (_uMail == 0xCDD10003) // Action 3 - AX_GetNextCmdBlock();
-		{
-		}
+	}
+	else
+	{
+		if (mixer_control & 0x0001) ret |= MIX_L;
+		if (mixer_control & 0x0002) ret |= MIX_R;
+		if (mixer_control & 0x0004) ret |= MIX_S;
+		if (mixer_control & 0x0008) ret |= MIX_L_RAMP | MIX_R_RAMP | MIX_S_RAMP;
+		if (mixer_control & 0x0010) ret |= MIX_AUXA_L;
+		if (mixer_control & 0x0020) ret |= MIX_AUXA_R;
+		if (mixer_control & 0x0040) ret |= MIX_AUXA_L_RAMP | MIX_AUXA_R_RAMP;
+		if (mixer_control & 0x0080) ret |= MIX_AUXA_S;
+		if (mixer_control & 0x0100) ret |= MIX_AUXA_S_RAMP;
+		if (mixer_control & 0x0200) ret |= MIX_AUXB_L;
+		if (mixer_control & 0x0400) ret |= MIX_AUXB_R;
+		if (mixer_control & 0x0800) ret |= MIX_AUXB_L_RAMP | MIX_AUXB_R_RAMP;
+		if (mixer_control & 0x1000) ret |= MIX_AUXB_S;
+		if (mixer_control & 0x2000) ret |= MIX_AUXB_S_RAMP;
+
+		// TODO: 0x4000 is used for Dolby Pro 2 sound mixing
+	}
+
+	return (AXMixControl)ret;
+}
+
+void CUCode_AX::SetupProcessing(u32 init_addr)
+{
+	u16 init_data[0x20];
+
+	for (u32 i = 0; i < 0x20; ++i)
+		init_data[i] = HLEMemory_Read_U16(init_addr + 2 * i);
+
+	// List of all buffers we have to initialize
+	int* buffers[] = {
+		m_samples_left,
+		m_samples_right,
+		m_samples_surround,
+		m_samples_auxA_left,
+		m_samples_auxA_right,
+		m_samples_auxA_surround,
+		m_samples_auxB_left,
+		m_samples_auxB_right,
+		m_samples_auxB_surround
+	};
+
+	u32 init_idx = 0;
+	for (u32 i = 0; i < sizeof (buffers) / sizeof (buffers[0]); ++i)
+	{
+		s32 init_val = (s32)((init_data[init_idx] << 16) | init_data[init_idx + 1]);
+		s16 delta = (s16)init_data[init_idx + 2];
+
+		init_idx += 3;
+
+		if (!init_val)
+			memset(buffers[i], 0, 5 * 32 * sizeof (int));
 		else
 		{
-			DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
-			AXTask(_uMail);
+			for (u32 j = 0; j < 32 * 5; ++j)
+			{
+				buffers[i][j] = init_val;
+				init_val += delta;
+			}
 		}
 	}
 }
 
+void CUCode_AX::DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb)
+{
+	int* buffers_main[3] = { m_samples_left, m_samples_right, m_samples_surround };
+	int* buffers_auxa[3] = { m_samples_auxA_left, m_samples_auxA_right, m_samples_auxA_surround };
+	int* buffers_auxb[3] = { m_samples_auxB_left, m_samples_auxB_right, m_samples_auxB_surround };
+	int** buffers[3] = { buffers_main, buffers_auxa, buffers_auxb };
+	u16 volumes[3] = { vol_main, vol_auxa, vol_auxb };
 
-// ------------------------------------------------------------------------------
-// Update with DSP Interrupt
+	for (u32 i = 0; i < 3; ++i)
+	{
+		int* ptr = (int*)HLEMemory_Get_Pointer(addr);
+		u16 volume = volumes[i];
+		for (u32 j = 0; j < 3; ++j)
+		{
+			int* buffer = buffers[i][j];
+			for (u32 k = 0; k < 5 * 32; ++k)
+			{
+				s64 sample = (s64)(s32)Common::swap32(*ptr++);
+				sample *= volume;
+				buffer[k] += (s32)(sample >> 15);
+			}
+		}
+	}
+}
+
+void CUCode_AX::ProcessPBList(u32 pb_addr)
+{
+	// Samples per millisecond. In theory DSP sampling rate can be changed from
+	// 32KHz to 48KHz, but AX always process at 32KHz.
+	const u32 spms = 32;
+
+	AXPB pb;
+
+	while (pb_addr)
+	{
+		AXBuffers buffers = {{
+			m_samples_left,
+			m_samples_right,
+			m_samples_surround,
+			m_samples_auxA_left,
+			m_samples_auxA_right,
+			m_samples_auxA_surround,
+			m_samples_auxB_left,
+			m_samples_auxB_right,
+			m_samples_auxB_surround
+		}};
+
+		if (!ReadPB(pb_addr, pb))
+			break;
+
+		for (int curr_ms = 0; curr_ms < 5; ++curr_ms)
+		{
+			ApplyUpdatesForMs(pb, curr_ms);
+
+			Process1ms(pb, buffers, ConvertMixerControl(pb.mixer_control));
+
+			// Forward the buffers
+			for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)
+				buffers.ptrs[i] += spms;
+		}
+
+		WritePB(pb_addr, pb);
+		pb_addr = HILO_TO_32(pb.next_pb);
+	}
+}
+
+void CUCode_AX::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
+{
+	int* buffers[3] = { 0 };
+
+	switch (aux_id)
+	{
+	case 0:
+		buffers[0] = m_samples_auxA_left;
+		buffers[1] = m_samples_auxA_right;
+		buffers[2] = m_samples_auxA_surround;
+		break;
+
+	case 1:
+		buffers[0] = m_samples_auxB_left;
+		buffers[1] = m_samples_auxB_right;
+		buffers[2] = m_samples_auxB_surround;
+		break;
+	}
+
+	// First, we need to send the contents of our AUX buffers to the CPU.
+	if (write_addr)
+	{
+		int* ptr = (int*)HLEMemory_Get_Pointer(write_addr);
+		for (u32 i = 0; i < 3; ++i)
+			for (u32 j = 0; j < 5 * 32; ++j)
+				*ptr++ = Common::swap32(buffers[i][j]);
+	}
+
+	// Then, we read the new temp from the CPU and add to our current
+	// temp.
+	int* ptr = (int*)HLEMemory_Get_Pointer(read_addr);
+	for (u32 i = 0; i < 5 * 32; ++i)
+		m_samples_left[i] += (int)Common::swap32(*ptr++);
+	for (u32 i = 0; i < 5 * 32; ++i)
+		m_samples_right[i] += (int)Common::swap32(*ptr++);
+	for (u32 i = 0; i < 5 * 32; ++i)
+		m_samples_surround[i] += (int)Common::swap32(*ptr++);
+}
+
+void CUCode_AX::UploadLRS(u32 dst_addr)
+{
+	int buffers[3][5 * 32];
+
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		buffers[0][i] = Common::swap32(m_samples_left[i]);
+		buffers[1][i] = Common::swap32(m_samples_right[i]);
+		buffers[2][i] = Common::swap32(m_samples_surround[i]);
+	}
+	memcpy(HLEMemory_Get_Pointer(dst_addr), buffers, sizeof (buffers));
+}
+
+void CUCode_AX::SetMainLR(u32 src_addr)
+{
+	int* ptr = (int*)HLEMemory_Get_Pointer(src_addr);
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		int samp = (int)Common::swap32(*ptr++);
+		m_samples_left[i] = samp;
+		m_samples_right[i] = samp;
+		m_samples_surround[i] = 0;
+	}
+}
+
+void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)
+{
+	int surround_buffer[5 * 32];
+
+	for (u32 i = 0; i < 5 * 32; ++i)
+		surround_buffer[i] = Common::swap32(m_samples_surround[i]);
+	memcpy(HLEMemory_Get_Pointer(surround_addr), surround_buffer, sizeof (surround_buffer));
+
+	// 32 samples per ms, 5 ms, 2 channels
+	short buffer[5 * 32 * 2];
+
+	// Output samples clamped to 16 bits and interlaced RLRLRLRLRL...
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		int left  = m_samples_left[i];
+		int right = m_samples_right[i];
+
+		if (left < -32767)  left = -32767;
+		if (left > 32767)   left = 32767;
+		if (right < -32767) right = -32767;
+		if (right >  32767) right = 32767;
+
+		buffer[2 * i] = Common::swap16(right);
+		buffer[2 * i + 1] = Common::swap16(left);
+	}
+
+	memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof (buffer));
+}
+
+void CUCode_AX::MixAUXBLR(u32 ul_addr, u32 dl_addr)
+{
+	// Upload AUXB L/R
+	int* ptr = (int*)HLEMemory_Get_Pointer(ul_addr);
+	for (u32 i = 0; i < 5 * 32; ++i)
+		*ptr++ = Common::swap32(m_samples_auxB_left[i]);
+	for (u32 i = 0; i < 5 * 32; ++i)
+		*ptr++ = Common::swap32(m_samples_auxB_right[i]);
+
+	// Mix AUXB L/R to MAIN L/R, and replace AUXB L/R
+	ptr = (int*)HLEMemory_Get_Pointer(dl_addr);
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		int samp = Common::swap32(*ptr++);
+		m_samples_auxB_left[i] = samp;
+		m_samples_left[i] += samp;
+	}
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		int samp = Common::swap32(*ptr++);
+		m_samples_auxB_right[i] = samp;
+		m_samples_right[i] += samp;
+	}
+}
+
+void CUCode_AX::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
+                              u32 main_r_dl, u32 auxb_l_dl, u32 auxb_r_dl)
+{
+	// Buffers to upload first
+	int* up_buffers[] = {
+		m_samples_auxA_left,
+		m_samples_auxA_right,
+		m_samples_auxA_surround
+	};
+
+	// Upload AUXA LRS
+	int* ptr = (int*)HLEMemory_Get_Pointer(main_auxa_up);
+	for (u32 i = 0; i < sizeof (up_buffers) / sizeof (up_buffers[0]); ++i)
+		for (u32 j = 0; j < 32 * 5; ++j)
+			*ptr++ = Common::swap32(up_buffers[i][j]);
+
+	// Upload AUXB S
+	ptr = (int*)HLEMemory_Get_Pointer(auxb_s_up);
+	for (u32 i = 0; i < 32 * 5; ++i)
+		*ptr++ = Common::swap32(m_samples_auxB_surround[i]);
+
+	// Download buffers and addresses
+	int* dl_buffers[] = {
+		m_samples_left,
+		m_samples_right,
+		m_samples_auxB_left,
+		m_samples_auxB_right
+	};
+	u32 dl_addrs[] = {
+		main_l_dl,
+		main_r_dl,
+		auxb_l_dl,
+		auxb_r_dl
+	};
+
+	// Download and mix
+	for (u32 i = 0; i < sizeof (dl_buffers) / sizeof (dl_buffers[0]); ++i)
+	{
+		int* dl_src = (int*)HLEMemory_Get_Pointer(dl_addrs[i]);
+		for (u32 j = 0; j < 32 * 5; ++j)
+			dl_buffers[i][j] += (int)Common::swap32(*dl_src++);
+	}
+}
+
+void CUCode_AX::HandleMail(u32 mail)
+{
+	// Indicates if the next message is a command list address.
+	static bool next_is_cmdlist = false;
+	static u16 cmdlist_size = 0;
+
+	bool set_next_is_cmdlist = false;
+
+	// Wait for DSP processing to be done before answering any mail. This is
+	// safe to do because it matches what the DSP does on real hardware: there
+	// is no interrupt when a mail from CPU is received.
+	m_processing.lock();
+
+	if (next_is_cmdlist)
+	{
+		CopyCmdList(mail, cmdlist_size);
+		NotifyAXThread();
+	}
+	else if (m_UploadSetupInProgress)
+	{
+		PrepareBootUCode(mail);
+	}
+	else if (mail == MAIL_RESUME)
+	{
+		// Acknowledge the resume request
+		m_rMailHandler.PushMail(DSP_RESUME);
+		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+	}
+	else if (mail == MAIL_NEW_UCODE)
+	{
+		soundStream->GetMixer()->SetHLEReady(false);
+		m_UploadSetupInProgress = true;
+	}
+	else if (mail == MAIL_RESET)
+	{
+		m_DSPHLE->SetUCode(UCODE_ROM);
+	}
+	else if (mail == MAIL_CONTINUE)
+	{
+		// We don't have to do anything here - the CPU does not wait for a ACK
+		// and sends a cmdlist mail just after.
+	}
+	else if ((mail & MAIL_CMDLIST_MASK) == MAIL_CMDLIST)
+	{
+		// A command list address is going to be sent next.
+		set_next_is_cmdlist = true;
+		cmdlist_size = (u16)(mail & ~MAIL_CMDLIST_MASK);
+	}
+	else
+	{
+		ERROR_LOG(DSPHLE, "Unknown mail sent to AX::HandleMail: %08x", mail);
+	}
+
+	m_processing.unlock();
+	next_is_cmdlist = set_next_is_cmdlist;
+}
+
+void CUCode_AX::CopyCmdList(u32 addr, u16 size)
+{
+	if (size >= (sizeof (m_cmdlist) / sizeof (u16)))
+	{
+		ERROR_LOG(DSPHLE, "Command list at %08x is too large: size=%d", addr, size);
+		return;
+	}
+
+	for (u32 i = 0; i < size; ++i, addr += 2)
+		m_cmdlist[i] = HLEMemory_Read_U16(addr);
+	m_cmdlist_size = size;
+}
+
+void CUCode_AX::MixAdd(short* out_buffer, int nsamples)
+{
+	// Should never be called: we do not set HLE as ready.
+	// We accurately send samples to RAM instead of directly to the mixer.
+}
+
 void CUCode_AX::Update(int cycles)
 {
+	// Used for UCode switching.
 	if (NeedsResumeMail())
 	{
 		m_rMailHandler.PushMail(DSP_RESUME);
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
-	// check if we have to send something
-	else if (!m_rMailHandler.IsEmpty())
-	{
-		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-	}
 }
 
-// ============================================
-// AX seems to bootup one task only and waits for resume-callbacks
-// everytime the DSP has "spare time" it sends a resume-mail to the CPU
-// and the __DSPHandler calls a AX-Callback which generates a new AXFrame
-bool CUCode_AX::AXTask(u32& _uMail)
+void CUCode_AX::DoAXState(PointerWrap& p)
 {
-	u32 uAddress = _uMail;
-	DEBUG_LOG(DSPHLE, "Begin");
-	DEBUG_LOG(DSPHLE, "=====================================================================");
-	DEBUG_LOG(DSPHLE, "%08x : AXTask - AXCommandList-Addr:", uAddress);
+	p.Do(m_cmdlist);
+	p.Do(m_cmdlist_size);
 
-	u32 Addr__AXStudio;
-	u32 Addr__AXOutSBuffer;
-	u32 Addr__AXOutSBuffer_1;
-	u32 Addr__AXOutSBuffer_2;
-	u32 Addr__A;
-	//u32 Addr__12;
-	u32 Addr__4_1;
-	u32 Addr__4_2;
-	//u32 Addr__4_3;
-	//u32 Addr__4_4;
-	u32 Addr__5_1;
-	u32 Addr__5_2;
-	u32 Addr__6;
-	u32 Addr__9;
-
-	bool bExecuteList = true;
-
-	numPBaddr = 0;
-
-	while (bExecuteList)
-	{
-		static int last_valid_command = 0;
-		u16 iCommand = HLEMemory_Read_U16(uAddress);
-		uAddress += 2;
-
-		switch (iCommand)
-		{
-		case AXLIST_STUDIOADDR: //00
-			Addr__AXStudio = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST studio address: %08x", uAddress, Addr__AXStudio);
-			break;
-
-		case 0x001: // 2byte x 10
-			{
-				u32 address = HLEMemory_Read_U32(uAddress);
-				uAddress += 4;
-				u16 param1 = HLEMemory_Read_U16(uAddress);
-				uAddress += 2;
-				u16 param2 = HLEMemory_Read_U16(uAddress);
-				uAddress += 2;
-				u16 param3 = HLEMemory_Read_U16(uAddress);
-				uAddress += 2;
-				DEBUG_LOG(DSPHLE, "%08x : AXLIST 1: %08x, %04x, %04x, %04x", uAddress, address, param1, param2, param3);
-			}
-			break;
-
-			//
-			// Somewhere we should be getting a bitmask of AX_SYNC values
-			// that tells us what has been updated
-			// Dunno if important
-			//
-		case AXLIST_PBADDR: //02
-			{
-				PBaddr[numPBaddr] = HLEMemory_Read_U32(uAddress);
-				numPBaddr++;
-
-				// HACK: process updates right now instead of waiting until
-				// Premix is called. Some games using sequenced music (Tales of
-				// Symphonia for example) thought PBs were unused because we
-				// were too slow to update them and set them as running. This
-				// happens because Premix is basically completely desync-ed
-				// from the emulation core (it's running in the audio thread).
-				// Fixing this would require rewriting most of the AX HLE.
-				u32 block_addr = uAddress;
-				AXPB pb;
-				for (int i = 0; block_addr && i < NUMBER_OF_PBS; i++)
-				{
-					if (!ReadPB(block_addr, pb))
-						break;
-					ProcessUpdates(pb);
-					WritePB(block_addr, pb);
-					block_addr = (pb.next_pb_hi << 16) | pb.next_pb_lo;
-				}
-
-				m_addressPBs = HLEMemory_Read_U32(uAddress); // left in for now
-				uAddress += 4;
-				soundStream->GetMixer()->SetHLEReady(true);
-				DEBUG_LOG(DSPHLE, "%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
-			}
-			break;
-
-		case 0x0003:
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST command 0x0003 ????", uAddress);
-			break;
-
-		case 0x0004:  // AUX?
-			Addr__4_1 = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-			Addr__4_2 = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST 4_1 4_2 addresses: %08x %08x", uAddress, Addr__4_1, Addr__4_2);
-			break;
-
-		case 0x0005:
-			Addr__5_1 = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-			Addr__5_2 = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST 5_1 5_2 addresses: %08x %08x", uAddress, Addr__5_1, Addr__5_2);
-			break;
-
-		case 0x0006:
-			Addr__6   = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST 6 address: %08x", uAddress, Addr__6);
-			break;
-
-		case AXLIST_SBUFFER:
-			Addr__AXOutSBuffer = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST OutSBuffer address: %08x", uAddress, Addr__AXOutSBuffer);
-			break;
-
-		case 0x0009:
-			Addr__9   = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST 6 address: %08x", uAddress, Addr__9);
-			break;
-
-		case AXLIST_COMPRESSORTABLE:  // 0xa
-			Addr__A   = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST CompressorTable address: %08x", uAddress, Addr__A);
-			break;
-
-		case 0x000e:
-			Addr__AXOutSBuffer_1 = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-
-			// Addr__AXOutSBuffer_2 is the address in RAM that we are supposed to mix to.
-			// Although we don't, currently.
-			Addr__AXOutSBuffer_2 = HLEMemory_Read_U32(uAddress);
-			uAddress += 4;
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST sbuf2 addresses: %08x %08x", uAddress, Addr__AXOutSBuffer_1, Addr__AXOutSBuffer_2);
-			break;
-
-		case AXLIST_END:
-			bExecuteList = false;
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST end", uAddress);
-			break;
-
-		case 0x0010:  //Super Monkey Ball 2
-			DEBUG_LOG(DSPHLE, "%08x : AXLIST 0x0010", uAddress);
-			//should probably read/skip stuff here
-			uAddress += 8;
-			break;
-
-		case 0x0011:
-			uAddress += 4;
-			break;
-
-		case 0x0012:
-			//Addr__12  = HLEMemory_Read_U16(uAddress);
-			uAddress += 2;
-			break;
-
-		case 0x0013:
-			uAddress += 6 * 4; // 6 Addresses.
-			break;
-
-		default:
-			{
-				static bool bFirst = true;
-				if (bFirst)
-				{
-					char szTemp[2048];
-					sprintf(szTemp, "Unknown AX-Command 0x%x (address: 0x%08x). Last valid: %02x\n",
-						iCommand, uAddress - 2, last_valid_command);
-					int num = -32;
-					while (num < 64+32)
-					{
-						char szTemp2[128] = "";
-						sprintf(szTemp2, "%s0x%04x\n", num == 0 ? ">>" : "  ", HLEMemory_Read_U16(uAddress + num));
-						strcat(szTemp, szTemp2);
-						num += 2;
-					}
-
-					PanicAlert("%s", szTemp);
-					// bFirst = false;
-				}
-
-				// unknown command so stop the execution of this TaskList
-				bExecuteList = false;
-			}
-			break;
-		}
-		if (bExecuteList)
-			last_valid_command = iCommand;
-	}
-	DEBUG_LOG(DSPHLE, "AXTask - done, send resume");
-	DEBUG_LOG(DSPHLE, "=====================================================================");
-	DEBUG_LOG(DSPHLE, "End");
-
-	m_rMailHandler.PushMail(DSP_YIELD);
-	return true;
+	p.Do(m_samples_left);
+	p.Do(m_samples_right);
+	p.Do(m_samples_surround);
+	p.Do(m_samples_auxA_left);
+	p.Do(m_samples_auxA_right);
+	p.Do(m_samples_auxA_surround);
+	p.Do(m_samples_auxB_left);
+	p.Do(m_samples_auxB_right);
+	p.Do(m_samples_auxB_surround);
 }
 
-void CUCode_AX::DoState(PointerWrap &p)
+void CUCode_AX::DoState(PointerWrap& p)
 {
-	std::lock_guard<std::mutex> lk(m_csMix);
-
-	p.Do(numPBaddr);
-	p.Do(m_addressPBs);
-	p.Do(PBaddr);
+	std::lock_guard<std::mutex> lk(m_processing);
 
 	DoStateShared(p);
+	DoAXState(p);
 }

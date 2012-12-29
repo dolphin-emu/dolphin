@@ -117,6 +117,8 @@ struct Rectangle
 	Rectangle(T theLeft, T theTop, T theRight, T theBottom)
 		: left(theLeft), top(theTop), right(theRight), bottom(theBottom)
 	{ }
+	
+	bool operator==(const Rectangle& r) { return left==r.left && top==r.top && right==r.right && bottom==r.bottom; }
 
 	T GetWidth() const { return abs(right - left); }
 	T GetHeight() const { return abs(bottom - top); }
