@@ -208,9 +208,16 @@ if(NOT CMAKE_BUILD_TYPE)
 		"Build type (Release/Debug/RelWithDebInfo/MinSizeRe)" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	add_definitions(-D_DEBUG -ggdb)
 	set(wxWidgets_USE_DEBUG ON CACHE BOOL "Use wxWidgets Debugging")
+
+	option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
+	if(ENABLE_GPROF)
+		add_definitions(-pg)
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+	endif()
 endif(CMAKE_BUILD_TYPE STREQUAL Debug)
 
 if(CMAKE_BUILD_TYPE STREQUAL Release)
