@@ -688,8 +688,8 @@ typedef struct libusb_context libusb_context;
  * Certain operations can be performed on a device, but in order to do any
  * I/O you will have to first obtain a device handle using libusb_open().
  *
- * Devices are reference counted with libusb_ref_device() and
- * libusb_unref_device(), and are freed when the reference count reaches 0.
+ * Devices are reference counted with libusb_device_ref() and
+ * libusb_device_unref(), and are freed when the reference count reaches 0.
  * New devices presented by libusb_get_device_list() have a reference count of
  * 1, and libusb_free_device_list() can optionally decrease the reference count
  * on all devices in the list. libusb_open() adds another reference which is

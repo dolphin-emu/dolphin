@@ -457,6 +457,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 			else
 			{
 				DEBUG_LOG(WII_IPC_HID, "Could not open the device %d", cRet);
+				hidDeviceAliases[devNum] = 0;
 				deviceValid = false;
 				OffsetBuffer = OffsetStart;
 			}
