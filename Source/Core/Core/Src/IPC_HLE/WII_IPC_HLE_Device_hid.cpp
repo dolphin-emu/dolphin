@@ -23,9 +23,13 @@
 #include "errno.h"
 #include <time.h>
 
+#define MAX_DEVICE_DEVNUM 256
+static u64 hidDeviceAliases[MAX_DEVICE_DEVNUM];
+
 CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
+	memset(hidDeviceAliases, 0, sizeof(hidDeviceAliases));
 	libusb_init(NULL);
 }
 
@@ -58,9 +62,36 @@ bool CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForce)
 	return true;
 }
 
+static u32  replyAddress = 0;
+static bool hasRun = false;
+
 u32 CWII_IPC_HLE_Device_hid::Update()
 {
+	static u16 timeToFill = 0; 
 	u32 work_done = 0;
+	
+	if (timeToFill == 0)
+	{
+		if (replyAddress != 0){
+			FillOutDevices(Memory::Read_U32(replyAddress + 0x18), Memory::Read_U32(replyAddress + 0x1C));
+			
+			Memory::Write_U32(8, replyAddress);
+			// IOS seems to write back the command that was responded to
+			Memory::Write_U32(/*COMMAND_IOCTL*/ 6, replyAddress + 8);
+			
+			// Return value
+			Memory::Write_U32(0, replyAddress + 4);
+			
+			WII_IPC_HLE_Interface::EnqReply(replyAddress);
+			replyAddress = 0;
+			hasRun = false;
+		}
+	}
+	
+	timeToFill+=2;
+	
+	work_done = 1;
+	
 	//int ret = -4;
 	//timeval tv;
 	
@@ -84,7 +115,15 @@ u32 CWII_IPC_HLE_Device_hid::Update()
 					Memory::Write_U32(ret, ev->enq_address + 4);
 					WII_IPC_HLE_Interface::EnqReply(ev->enq_address);
 					work_done = ev_finished = true;
-				}
+}
+
+if (replyAddress != 0){
+	FillOutDevices(Memory::Read_U32(replyAddress + 0x18), Memory::Read_U32(replyAddress + 0x1C));
+	WII_IPC_HLE_Interface::EnqReply(replyAddress);
+	replyAddress = 0;
+	hasRun = false;
+}
+
 
 				break;
 			}
@@ -100,8 +139,6 @@ u32 CWII_IPC_HLE_Device_hid::Update()
 
 bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 {
-	static u32  replyAddress = 0;
-	static bool hasRun = false;
 	u32 Parameter		= Memory::Read_U32(_CommandAddress + 0xC);
 	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
@@ -143,12 +180,6 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		// not actually implemented in IOS
 		ReturnValue = 0;
-		if (replyAddress != 0){
-			FillOutDevices(Memory::Read_U32(replyAddress + 0x18), Memory::Read_U32(replyAddress + 0x1C));
-			WII_IPC_HLE_Interface::EnqReply(replyAddress);
-			replyAddress = 0;
-			hasRun = false;
-		}
 		break;
 	}
 	case IOCTL_HID_CANCEL_INTERRUPT:
@@ -156,14 +187,6 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Cancel Interrupt) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		ReturnValue = 0;
-		
-		if (replyAddress != 0){
-			FillOutDevices(Memory::Read_U32(replyAddress + 0x18), Memory::Read_U32(replyAddress + 0x1C));
-			WII_IPC_HLE_Interface::EnqReply(replyAddress);
-			replyAddress = 0;
-			hasRun = false;
-		}
-		
 		break;
 	}
 	case IOCTL_HID_CONTROL:
@@ -212,8 +235,8 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			ReturnValue = -4;
 		}
 
-		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			requestType, request, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+		//	requestType, request, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		
 		break;
 	}
@@ -246,7 +269,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			break;
 		}
 		
-		ret = libusb_interrupt_transfer(dev_handle, endpoint, (unsigned char*)Memory::GetPointer(data), length, &transfered, 20 );
+		ret = libusb_interrupt_transfer(dev_handle, endpoint, (unsigned char*)Memory::GetPointer(data), length, &transfered, 40 );
 		if(ret == 0)
 		{
 			ReturnValue = transfered;
@@ -264,8 +287,8 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			event_list.push_back(ev);
 			return false;
 			*/
-		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+		//	Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 		break;
 	}
@@ -289,13 +312,13 @@ bool CWII_IPC_HLE_Device_hid::ClaimDevice(libusb_device_handle * dev)
 	if ((ret = libusb_kernel_driver_active(dev, 0)) == 1)
 	{
 		//DEBUG_LOG(WII_IPC_HID, "Kernel has the interface, gtfo kernel!");
-		if ((ret = libusb_detach_kernel_driver(dev, 0)))
+		if ((ret = libusb_detach_kernel_driver(dev, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
 		{
 			DEBUG_LOG(WII_IPC_HID, "libusb_detach_kernel_driver failed with error: %d", ret);
 			return false;
 		}
 	}
-	else if (ret != 0)
+	else if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
 	{
 		DEBUG_LOG(WII_IPC_HID, "libusb_kernel_driver_active error ret = %d", ret);
 		return false;
@@ -370,25 +393,31 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 	libusb_device **list;
 	//libusb_device *found = NULL;
 	ssize_t cnt = libusb_get_device_list(NULL, &list);
-
+	DEBUG_LOG(WII_IPC_HID, "Hello plane???? %ld", cnt);
 	for (d = 0; d < cnt; d++)
 	{
 		libusb_device *device = list[d];
 		struct libusb_device_descriptor desc;
 		int dRet = libusb_get_device_descriptor (device, &desc);
 		
-		u32 devNum = (libusb_get_bus_number (device) << 8) | libusb_get_device_address (device);
+		//u32 devNum = (libusb_get_bus_number (device) << 8) | libusb_get_device_address (device);
 		
-		DEBUG_LOG(WII_IPC_HID, "Vendor: %d Product: %X Devnum: %X",desc.idVendor, desc.idProduct, devNum);
-		//if (desc.idVendor != 0x21A4)
-		//	continue;
+		int devNum = GetAvaiableDevNum(desc.idVendor,
+										desc.idProduct,
+										libusb_get_bus_number (device),
+										libusb_get_device_address (device));
+		if (devNum < 0 )
+		{
+			DEBUG_LOG(WII_IPC_HID, "Too many snakes on thsi motherfucking plane.");
+			// too many devices to handle.
+			continue;
+		}
 
 		DEBUG_LOG(WII_IPC_HID, "Found device with Vendor: %d Product: %d Devnum: %d, Error: %d",desc.idVendor, desc.idProduct, devNum, dRet);
-
 		OffsetStart = OffsetBuffer;
 		OffsetBuffer += 4; // skip length for now, fill at end
 
-		Memory::Write_U32( d /*devNum*/, OffsetBuffer); //write device num
+		Memory::Write_U32( devNum , OffsetBuffer); //write device num
 		OffsetBuffer += 4;
 
 		WiiHIDDeviceDescriptor wii_device;
@@ -464,9 +493,21 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 	libusb_device_handle *handle = NULL;
 	ssize_t cnt;
 	
+	if(devNum >= MAX_DEVICE_DEVNUM)
+		return NULL;
+	
 	if (open_devices.find(devNum) != open_devices.end())
 	{
-		return open_devices[devNum];
+		handle = open_devices[devNum];
+		if(libusb_kernel_driver_active(handle, 0) != LIBUSB_ERROR_NO_DEVICE)
+		{
+			return handle;
+		}
+		else
+		{
+			libusb_close(handle);
+			open_devices.erase(devNum);
+		}	
 	}
 	
 	cnt = libusb_get_device_list(NULL, &list);
@@ -476,23 +517,46 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 	
 	for (i = 0; i < cnt; i++) {
 		libusb_device *device = list[i];
-		int ret = libusb_open(device, &handle);
-		if (ret)
+		struct libusb_device_descriptor desc;
+		int dRet = libusb_get_device_descriptor (device, &desc);
+		u8 bus = libusb_get_bus_number (device);
+		u8 port = libusb_get_device_address (device);
+		u64 unique_id = ((u64)desc.idVendor << 32) | (desc.idProduct << 16) |	(bus << 8) | port;
+		if (hidDeviceAliases[devNum] == unique_id)
 		{
+			int ret = libusb_open(device, &handle);
+			if (ret)
+			{
+				if (ret == LIBUSB_ERROR_ACCESS)
+				{
+					if( dRet )
+					{
+						DEBUG_LOG(WII_IPC_HID, "Dolphin does not have access to this device: Bus %03d Device %03d: ID ????:???? (couldn't get id).", 
+								bus, 
+								port
+						);
+					}
+					else{
+						DEBUG_LOG(WII_IPC_HID, "Dolphin does not have access to this device: Bus %03d Device %03d: ID %04X:%04X.", 
+								bus, 
+								port,
+								desc.idVendor,
+								desc.idProduct
+						);
+					}
+				}
+				else
+				{
+					DEBUG_LOG(WII_IPC_HID, "Failed to open device with error = %d", ret);
+				}
+				continue;
+			}
 			
-			DEBUG_LOG(WII_IPC_HID, "Failed to open device with error = %d", ret);
-			continue;
-		}
-		
-		// u32 deviceID = (libusb_get_bus_number (device) << 8) | libusb_get_device_address (device);
-		if (i == devNum)
-		{
 			open_devices[devNum] = handle;
 			break;
 		}
 		else
 		{
-			libusb_close(handle);
 			handle = NULL;
 		}
 	}
@@ -501,4 +565,30 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 
 
 	return handle;
+}
+
+
+int CWII_IPC_HLE_Device_hid::GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port)
+{
+	int i;
+	int pos = -1;
+	u64 unique_id = ((u64)idVendor << 32) | (idProduct << 16) |	(bus << 8) | port;
+	for (i=0; i< MAX_DEVICE_DEVNUM; i++)
+	{
+		u64 id = hidDeviceAliases[i];
+		if(id == 0 && pos == -1)
+		{
+			pos = i;
+		}
+		else if (id == unique_id)
+		{
+			return i;
+		}
+	}
+	if(pos != -1)
+	{
+		hidDeviceAliases[pos] = unique_id;
+		return pos;
+	}
+	return -1;
 }

@@ -115,6 +115,7 @@ private:
 
 	
 	void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
+	int GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port);
 	
 	bool ClaimDevice(libusb_device_handle * dev);
 
