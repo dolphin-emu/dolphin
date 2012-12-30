@@ -28,7 +28,7 @@ public:
 
 	GCPad(const unsigned int index);
 	void GetInput(SPADStatus* const pad);
-	void SetOutput(const bool on);
+	void SetOutput(const u8 on);
 
 	bool GetMicButton() const;
 	

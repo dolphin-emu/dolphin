@@ -130,10 +130,13 @@ void GCPad::GetInput(SPADStatus* const pad)
 	}
 }
 
-void GCPad::SetOutput(const bool on)
+void GCPad::SetOutput(const u8 on)
 {
 	// only rumble if window has focus or background input is enabled
-	m_rumble->controls[0]->control_ref->State(on && (Host_RendererHasFocus() || m_options[0].settings[0]->value));
+	if (Host_RendererHasFocus() || m_options[0].settings[0]->value)
+		m_rumble->controls[0]->control_ref->State((float)on / 255);
+	else
+		m_rumble->controls[0]->control_ref->State(0);
 }
 
 void GCPad::LoadDefaults(const ControllerInterface& ciface)
