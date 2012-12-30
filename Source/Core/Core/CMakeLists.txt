@@ -70,8 +70,8 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/CPU.cpp
 			Src/HW/DSP.cpp
 			Src/HW/DSPHLE/UCodes/UCode_AX.cpp
-            Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
-            Src/HW/DSPHLE/UCodes/UCode_NewAXWii.cpp
+			Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
+			Src/HW/DSPHLE/UCodes/UCode_NewAXWii.cpp
 			Src/HW/DSPHLE/UCodes/UCode_CARD.cpp
 			Src/HW/DSPHLE/UCodes/UCode_InitAudioSystem.cpp
 			Src/HW/DSPHLE/UCodes/UCode_ROM.cpp
@@ -138,7 +138,6 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_fs.cpp
-			Src/IPC_HLE/WII_IPC_HLE_Device_hid.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_net.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp
@@ -202,7 +201,8 @@ endif()
 
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
-	set(LIBS	${LIBS} ${LIBUSB_LIBRARIES})
+	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
+	set(SRCS	${SRCS}	Src/IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
 endif(LIBUSB_FOUND)
 
 if(WIN32)

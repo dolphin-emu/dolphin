@@ -16,6 +16,7 @@ if (NOT LIBUSB_FOUND)
        ${LIBUSB_PKG_INCLUDE_DIRS}
        /usr/include/libusb-1.0
        /usr/include
+       /usr/local/include/libusb-1.0
        /usr/local/include
     )
 

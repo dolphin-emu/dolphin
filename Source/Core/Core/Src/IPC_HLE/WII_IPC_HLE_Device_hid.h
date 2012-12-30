@@ -19,6 +19,7 @@
 
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
+#include "libusb.h"
 #include <list>
 
 /* Connection timed out */ 
@@ -114,6 +115,8 @@ private:
 
 	
 	void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
+	
+	bool ClaimDevice(libusb_device_handle * dev);
 
 	void ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, const struct libusb_device_descriptor *src);
 	void ConvertConfigToWii(WiiHIDConfigDescriptor *dest, const struct libusb_config_descriptor *src);
