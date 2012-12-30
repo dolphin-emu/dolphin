@@ -449,13 +449,6 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
 	Memory::Write_U32(0xFFFFFFFF, OffsetBuffer); // no more devices
 	
-	char file[0x50];
-	snprintf(file, 0x50, "device_list.bin");
- 	FILE* test = fopen (file, "wb");
-	fwrite((char*)Memory::GetPointer(BufferOut), 1, (OffsetBuffer - BufferOut)+4, test);
-
-	fclose(test);
-	
 }
 	
 int CWII_IPC_HLE_Device_hid::Align(int num, int alignment)
