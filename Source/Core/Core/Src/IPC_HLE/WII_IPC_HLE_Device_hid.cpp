@@ -115,16 +115,7 @@ u32 CWII_IPC_HLE_Device_hid::Update()
 					Memory::Write_U32(ret, ev->enq_address + 4);
 					WII_IPC_HLE_Interface::EnqReply(ev->enq_address);
 					work_done = ev_finished = true;
-}
-
-if (replyAddress != 0){
-	FillOutDevices(Memory::Read_U32(replyAddress + 0x18), Memory::Read_U32(replyAddress + 0x1C));
-	WII_IPC_HLE_Interface::EnqReply(replyAddress);
-	replyAddress = 0;
-	hasRun = false;
-}
-
-
+				}
 				break;
 			}
 		}
@@ -235,8 +226,8 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			ReturnValue = -4;
 		}
 
-		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-		//	requestType, request, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			requestType, request, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		
 		break;
 	}
@@ -287,8 +278,8 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			event_list.push_back(ev);
 			return false;
 			*/
-		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-		//	Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 		break;
 	}
