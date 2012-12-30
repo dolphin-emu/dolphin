@@ -146,9 +146,6 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
 	glTexParameteri(TEX2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(TEX2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	GLfloat u_max = (GLfloat)width;
-	GLfloat v_max = (GLfloat)glHeight;
 	 
 	static const GLfloat verts[4][2] = {
 		{ -1, -1}, // Left top
@@ -158,6 +155,9 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	};
 	//Texture rectangle uses pixel coordinates
 #ifndef USE_GLES
+	GLfloat u_max = (GLfloat)width;
+	GLfloat v_max = (GLfloat)height;
+
 	static const GLfloat texverts[4][2] = {
 		{0, v_max},
 		{0, 0},
