@@ -148,7 +148,7 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	glTexParameteri(TEX2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	GLfloat u_max = (GLfloat)width;
-	GLfloat v_max = (GLfloat)glHeight;
+	GLfloat v_max = (GLfloat)height;
 	 
 	static const GLfloat verts[4][2] = {
 		{ -1, -1}, // Left top
