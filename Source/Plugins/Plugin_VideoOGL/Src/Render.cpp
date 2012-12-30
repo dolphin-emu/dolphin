@@ -503,8 +503,8 @@ Renderer::Renderer()
 	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+5);
 
 	// TODO: this after merging with graphic_update
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -704,8 +704,8 @@ void Renderer::DrawDebugInfo()
 		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
 		
 		// TODO: this after merging with graphic_update
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		// Restore Line Size
 		glLineWidth(lSize);
@@ -1286,9 +1286,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			
 			glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
 			glBufferData(GL_ARRAY_BUFFER, 4*7*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-			
-			// TODO: this after merging with graphic_update
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
 			s_cached_targetRc = targetRc;
 		} 
@@ -1299,6 +1296,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		
 		// TODO: this after merging with graphic_update
 		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
 		if(applyShader)
 			PixelShaderCache::DisableShader();

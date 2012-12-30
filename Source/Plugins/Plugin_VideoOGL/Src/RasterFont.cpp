@@ -181,8 +181,8 @@ RasterFont::RasterFont()
 	glVertexAttribPointer(glGetAttribLocation(shader_program, "texturePosition"), 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 	
 	// TODO: this after merging with graphic_update
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 RasterFont::~RasterFont()
@@ -276,8 +276,8 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	glDrawArrays(GL_TRIANGLES, 0, usage/4);
 	
 	// TODO: this after merging with graphic_update
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	glUseProgram(0);
 }

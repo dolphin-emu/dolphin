@@ -1469,13 +1469,17 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 		wxString msg(wxString::Format(wxT("Wiimote %i %s"), wm_idx + 1,
 					connect ? wxT("Connected") : wxT("Disconnected")));
 		Core::DisplayMessage(msg.ToAscii(), 3000);
+
+		// Wait for the wiimote to connect
+		while (GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->IsConnected() != connect)
+		{}
 		Host_UpdateMainFrame();
 	}
 }
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
-	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, event.IsChecked());
+	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !GetUsbPointer()->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected());
 }
 
 // Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
