@@ -271,6 +271,7 @@ bool DolphinApp::OnInit()
 #ifdef _WIN32
 	if (File::Exists("www.dolphin-emulator.com.txt"))
 	{
+		File::Delete("www.dolphin-emulator.com.txt");
 		MessageBox(NULL,
 				   L"This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
 				   L"download Dolphin from the official website instead: http://dolphin-emu.org/",
