@@ -93,6 +93,13 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 			if (entry.UniformLocations[a] != -1)
 				glUniform1i(entry.UniformLocations[a], a);
 		}
+	}
+}
+
+void ProgramShaderCache::SetProgramBindings ( ProgramShaderCache::PCacheEntry& entry )
+{
+	if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+	{
 		if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
 		{
 			// So we don't support binding, but we do support extended blending
@@ -103,7 +110,7 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 		}
 	}
 
-	// Need to get some attribute locations
+	// Need to set some attribute locations
 	if (entry.vsid != 0 && !g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
 	{
 		// We have no vertex Shader
@@ -112,6 +119,7 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 		glBindAttribLocation(entry.prog_id, SHADER_POSMTX_ATTRIB, "fposmtx");
 	}
 }
+
 
 void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 {
@@ -151,6 +159,8 @@ void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
 		glProgramParameteri(entry.prog_id, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 
+	SetProgramBindings(entry);
+	
 	glLinkProgram(entry.prog_id);
 
 	glUseProgram(entry.prog_id);

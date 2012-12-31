@@ -155,6 +155,7 @@ private:
 	static GLuint s_ps_vs_ubo;
 	static GLintptr s_vs_data_offset;
 	static void SetProgramVariables(PCacheEntry &entry);
+	static void SetProgramBindings(PCacheEntry &entry);
 };
 
 }  // namespace OGL
