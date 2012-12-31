@@ -22,6 +22,10 @@
 #include "libusb.h"
 #include <list>
 
+#define MAX_HID_INTERFACES 1
+
+#define HIDERR_NO_DEVICE_FOUND -4
+
 /* Connection timed out */ 
 
 class CWII_IPC_HLE_Device_hid : public IWII_IPC_HLE_Device

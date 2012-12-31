@@ -196,22 +196,13 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		u16 size = Memory::Read_U16(BufferIn+0x1A);
 		u32 data = Memory::Read_U32(BufferIn+0x1C);
 		
-		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-		//	requestType, request, BufferIn, BufferInSize, BufferOut, BufferOutSize);
-
+		ReturnValue = HIDERR_NO_DEVICE_FOUND;
+		
 		libusb_device_handle * dev_handle = GetDeviceByDevNum(dev_num);
 		
 		if (dev_handle == NULL)
 		{
 			DEBUG_LOG(WII_IPC_HID, "Could not find handle: %X", dev_num);
-			ReturnValue = -4;
-			break;
-		}
-		
-		if (!ClaimDevice(dev_handle))
-		{
-			DEBUG_LOG(WII_IPC_HID, "Could not claim the device for handle: %X", dev_num);
-			ReturnValue = -4;
 			break;
 		}
 		
@@ -220,10 +211,6 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		{
 			ret += sizeof(libusb_control_setup);
 			ReturnValue = ret;
-		}
-		else
-		{
-			ReturnValue = -4;
 		}
 
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
@@ -242,21 +229,14 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		u32 length = Memory::Read_U32(BufferIn+0x18);
 
 		u32 data = Memory::Read_U32(BufferIn+0x1C);
-		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-		//	Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		
+		ReturnValue = HIDERR_NO_DEVICE_FOUND;
+		
 		libusb_device_handle * dev_handle = GetDeviceByDevNum(dev_num);
 		
 		if (dev_handle == NULL)
 		{
 			DEBUG_LOG(WII_IPC_HID, "Could not find handle: %X", dev_num);
-			ReturnValue = -4;
-			break;
-		}
-		
-		if (!ClaimDevice(dev_handle))
-		{
-			DEBUG_LOG(WII_IPC_HID, "Could not claim the device for handle: %X", dev_num);
-			ReturnValue = -4;
 			break;
 		}
 		
@@ -265,19 +245,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		{
 			ReturnValue = transfered;
 		}
-		else
-		{
-			ReturnValue = -4;
-		}
 
-		/*
-			_hidevent ev;
-			ev.enq_address = _CommandAddress;
-			ev.type = Parameter;
-			ev.context = context;
-			event_list.push_back(ev);
-			return false;
-			*/
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
@@ -302,7 +270,6 @@ bool CWII_IPC_HLE_Device_hid::ClaimDevice(libusb_device_handle * dev)
 	int ret = 0;
 	if ((ret = libusb_kernel_driver_active(dev, 0)) == 1)
 	{
-		//DEBUG_LOG(WII_IPC_HID, "Kernel has the interface, gtfo kernel!");
 		if ((ret = libusb_detach_kernel_driver(dev, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
 		{
 			DEBUG_LOG(WII_IPC_HID, "libusb_detach_kernel_driver failed with error: %d", ret);
@@ -384,27 +351,31 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 	libusb_device **list;
 	//libusb_device *found = NULL;
 	ssize_t cnt = libusb_get_device_list(NULL, &list);
-	DEBUG_LOG(WII_IPC_HID, "Hello plane???? %ld", cnt);
+	DEBUG_LOG(WII_IPC_HID, "Found %ld viable USB devices.", cnt);
 	for (d = 0; d < cnt; d++)
 	{
 		libusb_device *device = list[d];
 		struct libusb_device_descriptor desc;
 		int dRet = libusb_get_device_descriptor (device, &desc);
-		
-		//u32 devNum = (libusb_get_bus_number (device) << 8) | libusb_get_device_address (device);
-		
+		if (dRet)
+		{
+			// could not aquire the descriptor, no point in trying to use it.
+			DEBUG_LOG(WII_IPC_HID, "libusb_get_device_descriptor failed with error: %d", dRet);
+			continue;
+		}
 		int devNum = GetAvaiableDevNum(desc.idVendor,
 										desc.idProduct,
 										libusb_get_bus_number (device),
 										libusb_get_device_address (device));
 		if (devNum < 0 )
 		{
-			DEBUG_LOG(WII_IPC_HID, "Too many snakes on thsi motherfucking plane.");
 			// too many devices to handle.
+			ERROR_LOG(WII_IPC_HID, "Exhausted device list, you have way too many usb devices plugged in."
+									"Or it might be our fault. Let us know at https://code.google.com/p/dolphin-emu/issues/entry?template=Defect%%20report");
 			continue;
 		}
 
-		DEBUG_LOG(WII_IPC_HID, "Found device with Vendor: %d Product: %d Devnum: %d, Error: %d",desc.idVendor, desc.idProduct, devNum, dRet);
+		DEBUG_LOG(WII_IPC_HID, "Found device with Vendor: %d Product: %d Devnum: %d", desc.idVendor, desc.idProduct, devNum);
 		OffsetStart = OffsetBuffer;
 		OffsetBuffer += 4; // skip length for now, fill at end
 
@@ -416,18 +387,21 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 		Memory::WriteBigEData((const u8*)&wii_device, OffsetBuffer, Align(wii_device.bLength, 4));
 		OffsetBuffer += Align(wii_device.bLength, 4);
 		bool deviceValid = true;
+		
     	for (c = 0; deviceValid && c < desc.bNumConfigurations; c++)
 		{
 			struct libusb_config_descriptor *config = NULL;
 			int cRet = libusb_get_config_descriptor(device, c, &config);
-			if(cRet == 0)
+			
+			// do not try to use usb devices with more than one interface, games can crash
+			if(cRet == 0 && config->bNumInterfaces <= MAX_HID_INTERFACES)
 			{
 				WiiHIDConfigDescriptor wii_config;
 				ConvertConfigToWii(&wii_config, config);
 				Memory::WriteBigEData((const u8*)&wii_config, OffsetBuffer, Align(wii_config.bLength, 4));
 				OffsetBuffer += Align(wii_config.bLength, 4);
-
-    			for (ic = 0; ic < config->bNumInterfaces; ic++)
+				
+				for (ic = 0; ic < config->bNumInterfaces; ic++)
 				{
 					const struct libusb_interface *interfaceContainer = &config->interface[ic];
 					for (i = 0; i < interfaceContainer->num_altsetting; i++)
@@ -456,13 +430,16 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 			}
 			else
 			{
-				DEBUG_LOG(WII_IPC_HID, "Could not open the device %d", cRet);
+				if(cRet)
+					DEBUG_LOG(WII_IPC_HID, "libusb_get_config_descriptor failed with: %d", cRet);
 				hidDeviceAliases[devNum] = 0;
 				deviceValid = false;
 				OffsetBuffer = OffsetStart;
 			}
 		} // configs
-		Memory::Write_U32(OffsetBuffer-OffsetStart, OffsetStart); // fill in length
+		
+		if (deviceValid)
+			Memory::Write_U32(OffsetBuffer-OffsetStart, OffsetStart); // fill in length
 
 	}
 	
@@ -523,13 +500,13 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 				{
 					if( dRet )
 					{
-						DEBUG_LOG(WII_IPC_HID, "Dolphin does not have access to this device: Bus %03d Device %03d: ID ????:???? (couldn't get id).", 
+						ERROR_LOG(WII_IPC_HID, "Dolphin does not have access to this device: Bus %03d Device %03d: ID ????:???? (couldn't get id).", 
 								bus, 
 								port
 						);
 					}
 					else{
-						DEBUG_LOG(WII_IPC_HID, "Dolphin does not have access to this device: Bus %03d Device %03d: ID %04X:%04X.", 
+						ERROR_LOG(WII_IPC_HID, "Dolphin does not have access to this device: Bus %03d Device %03d: ID %04X:%04X.", 
 								bus, 
 								port,
 								desc.idVendor,
@@ -539,8 +516,16 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 				}
 				else
 				{
-					DEBUG_LOG(WII_IPC_HID, "Failed to open device with error = %d", ret);
+					ERROR_LOG(WII_IPC_HID, "libusb_open failed to open device with error = %d", ret);
 				}
+				continue;
+			}
+			
+			
+			if (!ClaimDevice(handle))
+			{
+				ERROR_LOG(WII_IPC_HID, "Could not claim the device for handle: %X", devNum);
+				libusb_close(handle);
 				continue;
 			}
 			
