@@ -88,43 +88,9 @@ u32 CWII_IPC_HLE_Device_hid::Update()
 		}
 	}
 	
-	timeToFill+=2;
+	timeToFill+=8;
 	
 	work_done = 1;
-	
-	//int ret = -4;
-	//timeval tv;
-	
-	
-	//libusb_handle_events_timeout_completed(NULL, &tv, NULL);
-	/*
-	std::list<_hidevent>::iterator ev = event_list.begin();
-	while (ev != event_list.end()) {
-		
-		bool ev_finished = false;
-
-		
-		switch (ev->type)
-		{
-			case IOCTL_HID_INTERRUPT_OUT:
-			case IOCTL_HID_INTERRUPT_IN:
-			{
-				ret = usb_reap_async_nocancel(ev->context, 0);
-				if(ret >= 0)
-				{
-					Memory::Write_U32(ret, ev->enq_address + 4);
-					WII_IPC_HLE_Interface::EnqReply(ev->enq_address);
-					work_done = ev_finished = true;
-				}
-				break;
-			}
-		}
-		
-		if (ev_finished)
-			event_list.erase(ev++);
-		else
-			ev++;
-	}*/
 	return work_done;
 }
 
@@ -143,17 +109,8 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 	{
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Get Attached) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			BufferIn, BufferInSize, BufferOut, BufferOutSize);
-		//Memory::Write_U32(0xFFFFFFFF, BufferOut);
-		if(!hasRun)
-		{
-			FillOutDevices(BufferOut, BufferOutSize);
-			hasRun = true;
-		}
-		else
-		{
-			replyAddress = _CommandAddress;
-			return false;
-		}
+		replyAddress = _CommandAddress;
+		return false;
 		break;
 	}
 	case IOCTL_HID_OPEN:
@@ -213,8 +170,8 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			ReturnValue = ret;
 		}
 
-		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			requestType, request, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i) = %d",
+			requestType, request, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize, ret);
 		
 		break;
 	}
@@ -343,6 +300,7 @@ void CWII_IPC_HLE_Device_hid::ConvertEndpointToWii(WiiHIDEndpointDescriptor *des
 
 void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 {
+	static u16 check = 1;
 	int OffsetBuffer = BufferOut;
 	int OffsetStart = 0;
 	//int OffsetDevice = 0;
@@ -363,24 +321,10 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 			DEBUG_LOG(WII_IPC_HID, "libusb_get_device_descriptor failed with error: %d", dRet);
 			continue;
 		}
-		int devNum = GetAvaiableDevNum(desc.idVendor,
-										desc.idProduct,
-										libusb_get_bus_number (device),
-										libusb_get_device_address (device));
-		if (devNum < 0 )
-		{
-			// too many devices to handle.
-			ERROR_LOG(WII_IPC_HID, "Exhausted device list, you have way too many usb devices plugged in."
-									"Or it might be our fault. Let us know at https://code.google.com/p/dolphin-emu/issues/entry?template=Defect%%20report");
-			continue;
-		}
-
-		DEBUG_LOG(WII_IPC_HID, "Found device with Vendor: %d Product: %d Devnum: %d", desc.idVendor, desc.idProduct, devNum);
 		OffsetStart = OffsetBuffer;
 		OffsetBuffer += 4; // skip length for now, fill at end
 
-		Memory::Write_U32( devNum , OffsetBuffer); //write device num
-		OffsetBuffer += 4;
+		OffsetBuffer += 4; // skip devNum for now
 
 		WiiHIDDeviceDescriptor wii_device;
 		ConvertDeviceToWii(&wii_device, &desc);
@@ -432,16 +376,53 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 			{
 				if(cRet)
 					DEBUG_LOG(WII_IPC_HID, "libusb_get_config_descriptor failed with: %d", cRet);
-				hidDeviceAliases[devNum] = 0;
 				deviceValid = false;
 				OffsetBuffer = OffsetStart;
 			}
 		} // configs
 		
 		if (deviceValid)
+		{
 			Memory::Write_U32(OffsetBuffer-OffsetStart, OffsetStart); // fill in length
-
+			
+			int devNum = GetAvaiableDevNum(desc.idVendor,
+											desc.idProduct,
+											libusb_get_bus_number (device),
+											libusb_get_device_address (device),
+											check);
+			if (devNum < 0 )
+			{
+				// too many devices to handle.
+				ERROR_LOG(WII_IPC_HID, "Exhausted device list, you have way too many usb devices plugged in."
+				"Or it might be our fault. Let us know at https://code.google.com/p/dolphin-emu/issues/entry?template=Defect%%20report");
+				OffsetBuffer = OffsetStart;
+				continue;
+			}
+			
+			DEBUG_LOG(WII_IPC_HID, "Found device with Vendor: %X Product: %X Devnum: %d", desc.idVendor, desc.idProduct, devNum);
+			
+			Memory::Write_U32(devNum , OffsetStart+4); //write device num
+		}
 	}
+	
+	// Find devices that no longer exists and free them
+	for (i=0; i<MAX_DEVICE_DEVNUM; i++)
+	{
+		u16 check_cur = (u16)(hidDeviceAliases[i] >> 48);
+		if(hidDeviceAliases[i] != 0 && check_cur != check)
+		{
+			DEBUG_LOG(WII_IPC_HID, "Removing: device %d %hX %hX", i, check, check_cur);
+			if (open_devices.find(i) != open_devices.end())
+			{
+				libusb_device_handle *handle = open_devices[i];
+				libusb_close(handle);
+				open_devices.erase(i);
+			}
+			hidDeviceAliases[i] = 0;
+		}
+	}
+	check++;
+	
 	
 	libusb_free_device_list(list, 1);
 
@@ -490,8 +471,8 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 		int dRet = libusb_get_device_descriptor (device, &desc);
 		u8 bus = libusb_get_bus_number (device);
 		u8 port = libusb_get_device_address (device);
-		u64 unique_id = ((u64)desc.idVendor << 32) | (desc.idProduct << 16) |	(bus << 8) | port;
-		if (hidDeviceAliases[devNum] == unique_id)
+		u64 unique_id = ((u64)desc.idVendor << 32) | ((u64)desc.idProduct << 16) | ((u64)bus << 8) | (u64)port;
+		if ((hidDeviceAliases[devNum] & HID_ID_MASK) == unique_id)
 		{
 			int ret = libusb_open(device, &handle);
 			if (ret)
@@ -551,26 +532,27 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 }
 
 
-int CWII_IPC_HLE_Device_hid::GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port)
+int CWII_IPC_HLE_Device_hid::GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check)
 {
 	int i;
 	int pos = -1;
-	u64 unique_id = ((u64)idVendor << 32) | (idProduct << 16) |	(bus << 8) | port;
-	for (i=0; i< MAX_DEVICE_DEVNUM; i++)
+	u64 unique_id = ((u64)idVendor << 32) | ((u64)idProduct << 16) | ((u64)bus << 8) | (u64)port;
+	for (i=0; i<MAX_DEVICE_DEVNUM; i++)
 	{
-		u64 id = hidDeviceAliases[i];
+		u64 id = hidDeviceAliases[i] & HID_ID_MASK;
 		if(id == 0 && pos == -1)
 		{
 			pos = i;
 		}
 		else if (id == unique_id)
 		{
+			hidDeviceAliases[i] = id | ((u64)check << 48);
 			return i;
 		}
 	}
 	if(pos != -1)
 	{
-		hidDeviceAliases[pos] = unique_id;
+		hidDeviceAliases[pos] = unique_id | ((u64)check << 48);
 		return pos;
 	}
 	return -1;

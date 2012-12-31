@@ -22,6 +22,7 @@
 #include "libusb.h"
 #include <list>
 
+#define HID_ID_MASK 0x0000FFFFFFFFFFFF
 #define MAX_HID_INTERFACES 1
 
 #define HIDERR_NO_DEVICE_FOUND -4
@@ -119,7 +120,7 @@ private:
 
 	
 	void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
-	int GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port);
+	int GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check);
 	
 	bool ClaimDevice(libusb_device_handle * dev);
 
