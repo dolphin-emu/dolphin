@@ -39,7 +39,7 @@
 
 // TODO: Move these out of here.
 extern int frameCount;
-extern int OSDChoice, OSDTime;
+extern int OSDChoice;
 
 extern bool bLastFrameDumped;
 

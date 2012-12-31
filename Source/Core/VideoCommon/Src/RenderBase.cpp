@@ -91,6 +91,9 @@ Renderer::Renderer() : frame_data(NULL), bLastFrameDumped(false)
 #if defined _WIN32 || defined HAVE_LIBAV
 	bAVIDumping = false;
 #endif
+
+	OSDChoice = 0;
+	OSDTime = 0;
 }
 
 Renderer::~Renderer()
@@ -263,108 +266,109 @@ void Renderer::SetScreenshot(const char *filename)
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
+	if (!g_Config.bOSDHotKey)
+		return;
+
 	// OSD Menu messages
-	if (g_ActiveConfig.bOSDHotKey)
+	if (OSDChoice > 0)
 	{
-		if (OSDChoice > 0)
-		{
-			OSDTime = Common::Timer::GetTimeMs() + 3000;
-			OSDChoice = -OSDChoice;
-		}
-		if ((u32)OSDTime > Common::Timer::GetTimeMs())
-		{
-			const char* res_text = "";
-			switch (g_ActiveConfig.iEFBScale)
-			{
-			case 0:
-				res_text = "Auto (fractional)";
-				break;
-			case 1:
-				res_text = "Auto (integral)";
-				break;
-			case 2:
-				res_text = "Native";
-				break;
-			case 3:
-				res_text = "1.5x";
-				break;
-			case 4:
-				res_text = "2x";
-				break;
-			case 5:
-				res_text = "2.5x";
-				break;
-			case 6:
-				res_text = "3x";
-				break;
-			case 7:
-				res_text = "4x";
-				break;
-			}
-
-			const char* ar_text = "";
-			switch(g_ActiveConfig.iAspectRatio)
-			{
-			case ASPECT_AUTO:
-				ar_text = "Auto";
-				break;
-			case ASPECT_FORCE_16_9:
-				ar_text = "16:9";
-				break;
-			case ASPECT_FORCE_4_3:
-				ar_text = "4:3";
-				break;
-			case ASPECT_STRETCH:
-				ar_text = "Stretch";
-				break;
-			}
-
-			const char* const efbcopy_text = g_ActiveConfig.bEFBCopyEnable ?
-				(g_ActiveConfig.bCopyEFBToTexture ? "to Texture" : "to RAM") : "Disabled";
-
-			// The rows
-			const std::string lines[] =
-			{
-				std::string("3: Internal Resolution: ") + res_text,
-				std::string("4: Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
-				std::string("5: Copy EFB: ") + efbcopy_text,
-				std::string("6: Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
-			};
-
-			enum { lines_count = sizeof(lines)/sizeof(*lines) };
-
-			std::string final_yellow, final_cyan;
-
-			// If there is more text than this we will have a collision
-			if (g_ActiveConfig.bShowFPS)
-			{
-				final_yellow = final_cyan = "\n\n";
-			}
-
-			// The latest changed setting in yellow
-			for (int i = 0; i != lines_count; ++i)
-			{
-				if (OSDChoice == -i - 1)
-					final_yellow += lines[i];
-				final_yellow += '\n';
-			}
-
-			// The other settings in cyan
-			for (int i = 0; i != lines_count; ++i)
-			{
-				if (OSDChoice != -i - 1)
-					final_cyan += lines[i];
-				final_cyan += '\n';
-			}
-
-			// Render a shadow
-			g_renderer->RenderText(final_cyan.c_str(), 21, 21, 0xDD000000);
-			g_renderer->RenderText(final_yellow.c_str(), 21, 21, 0xDD000000);
-			//and then the text
-			g_renderer->RenderText(final_cyan.c_str(), 20, 20, 0xFF00FFFF);
-			g_renderer->RenderText(final_yellow.c_str(), 20, 20, 0xFFFFFF00);
-		}
+		OSDTime = Common::Timer::GetTimeMs() + 3000;
+		OSDChoice = -OSDChoice;
 	}
+
+	if ((u32)OSDTime <= Common::Timer::GetTimeMs())
+		return;
+
+	const char* res_text = "";
+	switch (g_ActiveConfig.iEFBScale)
+	{
+	case 0:
+		res_text = "Auto (fractional)";
+		break;
+	case 1:
+		res_text = "Auto (integral)";
+		break;
+	case 2:
+		res_text = "Native";
+		break;
+	case 3:
+		res_text = "1.5x";
+		break;
+	case 4:
+		res_text = "2x";
+		break;
+	case 5:
+		res_text = "2.5x";
+		break;
+	case 6:
+		res_text = "3x";
+		break;
+	case 7:
+		res_text = "4x";
+		break;
+	}
+
+	const char* ar_text = "";
+	switch(g_ActiveConfig.iAspectRatio)
+	{
+	case ASPECT_AUTO:
+		ar_text = "Auto";
+		break;
+	case ASPECT_FORCE_16_9:
+		ar_text = "16:9";
+		break;
+	case ASPECT_FORCE_4_3:
+		ar_text = "4:3";
+		break;
+	case ASPECT_STRETCH:
+		ar_text = "Stretch";
+		break;
+	}
+
+	const char* const efbcopy_text = g_ActiveConfig.bEFBCopyEnable ?
+		(g_ActiveConfig.bCopyEFBToTexture ? "to Texture" : "to RAM") : "Disabled";
+
+	// The rows
+	const std::string lines[] =
+	{
+		std::string("3: Internal Resolution: ") + res_text,
+		std::string("4: Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
+		std::string("5: Copy EFB: ") + efbcopy_text,
+		std::string("6: Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
+	};
+
+	enum { lines_count = sizeof(lines)/sizeof(*lines) };
+
+	std::string final_yellow, final_cyan;
+
+	// If there is more text than this we will have a collision
+	if (g_ActiveConfig.bShowFPS)
+	{
+		final_yellow = final_cyan = "\n\n";
+	}
+
+	// The latest changed setting in yellow
+	for (int i = 0; i != lines_count; ++i)
+	{
+		if (OSDChoice == -i - 1)
+			final_yellow += lines[i];
+		final_yellow += '\n';
+	}
+
+	// The other settings in cyan
+	for (int i = 0; i != lines_count; ++i)
+	{
+		if (OSDChoice != -i - 1)
+			final_cyan += lines[i];
+		final_cyan += '\n';
+	}
+
+	// Render a shadow
+	g_renderer->RenderText(final_cyan.c_str(), 21, 21, 0xDD000000);
+	g_renderer->RenderText(final_yellow.c_str(), 21, 21, 0xDD000000);
+	//and then the text
+	g_renderer->RenderText(final_cyan.c_str(), 20, 20, 0xFF00FFFF);
+	g_renderer->RenderText(final_yellow.c_str(), 20, 20, 0xFFFFFF00);
 }
 
 // TODO: remove
