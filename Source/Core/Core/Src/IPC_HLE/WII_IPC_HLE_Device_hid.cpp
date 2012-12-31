@@ -517,7 +517,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 #ifdef _WIN32
 				else if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
 				{
-					WARN_LOG(WII_IPC_HID, "Please install the libusb drivers for the device %04X:%04X", ret, desc.idVendor, desc.idProduct);
+					WARN_LOG(WII_IPC_HID, "Please install the libusb drivers for the device %04X:%04X", desc.idVendor, desc.idProduct);
 				}
 #endif
 				else
