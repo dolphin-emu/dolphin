@@ -133,7 +133,7 @@ private:
 
 	int Align(int num, int alignment);
 	static void checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid);
-	static void handleUsbUpdates(struct libusb_transfer *transfer);
+	static void LIBUSB_CALL handleUsbUpdates(struct libusb_transfer *transfer);
 	
 	struct libusb_device_handle * GetDeviceByDevNum(u32 devNum);
 	std::map<u32,libusb_device_handle*> open_devices;
