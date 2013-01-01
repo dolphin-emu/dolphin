@@ -265,8 +265,6 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 _Cmd, u8 _Poll)
 			// get the correct pad number that should rumble locally when using netplay
 			const u8 numPAD = NetPlay_GetPadNum(ISIDevice::m_iDeviceNumber);
 
-			NOTICE_LOG(COMMON, "Type: %d     Strength: %d", uType, uStrength);
-
 			if (numPAD < 4)
 				Pad::Motor(numPAD, uType, uStrength);
 
