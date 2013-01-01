@@ -21,20 +21,52 @@
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device_hid.h"
 #include "errno.h"
-#include <time.h>
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#  include <time.h>
+#ifndef _TIMEVAL_DEFINED /* also in winsock[2].h */
+#define _TIMEVAL_DEFINED
+struct timeval {
+	long tv_sec;
+	long tv_usec;
+};
+#endif /* _TIMEVAL_DEFINED */
+#else
+#  include <sys/time.h>
+#endif
 
 #define MAX_DEVICE_DEVNUM 256
 static u64 hidDeviceAliases[MAX_DEVICE_DEVNUM];
+
+// Regular thread
+void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
+{
+	timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = 500;
+	
+	while (hid->usb_thread_running)
+		libusb_handle_events_timeout(NULL, &tv);
+	
+	return;
+}
+
 
 CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
 	memset(hidDeviceAliases, 0, sizeof(hidDeviceAliases));
 	libusb_init(NULL);
+	
+	usb_thread_running = true;
+	usb_thread = std::thread(checkUsbUpdates, this);
 }
 
 CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
 {
+	usb_thread_running = false;
+	usb_thread.join();
+	
 	for ( std::map<u32,libusb_device_handle*>::const_iterator iter = open_devices.begin(); iter != open_devices.end(); ++iter )
 	{
 		libusb_close(iter->second);

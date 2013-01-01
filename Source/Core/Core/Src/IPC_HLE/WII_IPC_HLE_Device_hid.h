@@ -20,6 +20,7 @@
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
 #include "libusb.h"
+#include "Thread.h"
 #include <list>
 
 #define HID_ID_MASK 0x0000FFFFFFFFFFFF
@@ -130,11 +131,13 @@ private:
 	void ConvertEndpointToWii(WiiHIDEndpointDescriptor *dest, const struct libusb_endpoint_descriptor *src);
 
 	int Align(int num, int alignment);
-
+	static void checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid);
+	
 	struct libusb_device_handle * GetDeviceByDevNum(u32 devNum);
 	std::map<u32,libusb_device_handle*> open_devices;
 	std::map<std::string,int> device_identifiers;
-
+	std::thread usb_thread;
+	bool usb_thread_running;
 	
 	typedef struct
 	{
