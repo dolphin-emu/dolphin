@@ -145,7 +145,7 @@ LCleanup:
 void InitJoystick(IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices, HWND hwnd)
 {
 	std::list<DIDEVICEINSTANCE> joysticks;
-	idi8->EnumDevices( DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks, DIEDFL_FORCEFEEDBACK | DIEDFL_ATTACHEDONLY );
+	idi8->EnumDevices( DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks, DIEDFL_ATTACHEDONLY );
 
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0

@@ -92,6 +92,10 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* _pBuffer, int _iLength)
 		}
 		break;
 
+	// Seen in F-Zero GX
+	case CMD_MOTOR_OFF:
+		break;
+
 	// DEFAULT
 	default:
 		{
@@ -144,12 +148,12 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 		Movie::CheckPadStatus(&PadStatus, ISIDevice::m_iDeviceNumber);
 
 	// Thankfully changing mode does not change the high bits ;)
-	_Hi  = (u32)((u8)PadStatus.stickY);
-	_Hi |= (u32)((u8)PadStatus.stickX << 8);
+	_Hi  = (u32)((u8)PadStatus.stickX); // Steering
+	_Hi |= 0x800; // Pedal connected flag
 	_Hi |= (u32)((u16)(PadStatus.button | PAD_USE_ORIGIN) << 16);
 
 	// Low bits are packed differently per mode
-	if (m_Mode == 0 || m_Mode == 5 || m_Mode == 6 || m_Mode == 7)
+	if (m_Mode == 0 || m_Mode == 5 || m_Mode == 7)
 	{
 		_Low  = (u8)(PadStatus.analogB >> 4);					// Top 4 bits
 		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);		// Top 4 bits
@@ -191,6 +195,19 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 		// triggerLeft/Right are always 0
 		_Low |= (u32)((u8)PadStatus.substickY << 16);			// All 8 bits
 		_Low |= (u32)((u8)PadStatus.substickX << 24);			// All 8 bits
+	}
+	else if (m_Mode == 6)
+	{
+		_Low  = (u8)PadStatus.triggerRight;						// All 8 bits
+		_Low |= (u32)((u8)PadStatus.triggerLeft << 8);			// All 8 bits
+
+		// The GC Steering Wheel appears to have combined pedals
+		// (both the Accelerate and Brake pedals are mapped to a single axis)
+		// We use the stickY axis for the pedals.
+		if (PadStatus.stickY < 128)
+			_Low |= (u32)((u8)(255 - ((PadStatus.stickY & 0x7f) * 2)) << 16); // All 8 bits (Brake)
+		if (PadStatus.stickY >= 128)
+			_Low |= (u32)((u8)((PadStatus.stickY & 0x7f) * 2) << 24); // All 8 bits (Accelerate)
 	}
 
 	// Keep track of the special button combos (embedded in controller hardware... :( )
