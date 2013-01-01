@@ -61,6 +61,8 @@
 #include "Movie.h"
 #include "Host.h"
 #include "BPFunctions.h"
+#include "FPSCounter.h"
+#include "ConfigManager.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -105,10 +107,14 @@ namespace OGL
 
 // Declarations and definitions
 // ----------------------------
-int s_fps=0;
+static int s_fps = 0;
+static GLuint s_ShowEFBCopyRegions_VBO = 0;
+static GLuint s_ShowEFBCopyRegions_VAO = 0;
+static GLuint s_Swap_VBO = 0;
+static GLuint s_Swap_VAO[2];
+static TargetRectangle s_cached_targetRc;
 
-
-RasterFont* s_pfont = NULL;
+static RasterFont* s_pfont = NULL;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
@@ -124,9 +130,9 @@ static std::thread scrshotThread;
 #endif
 
 // EFB cache related
-const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
-const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
-const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
+static const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
+static const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
+static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
@@ -249,7 +255,18 @@ Renderer::Renderer()
 	OSDInternalH = 0;
 
 	s_fps=0;
+	s_ShowEFBCopyRegions_VBO = 0;
+	s_Swap_VBO = 0;
 	s_blendMode = 0;
+	
+	// should be invalid, so there will be an upload on the first call
+	s_cached_targetRc.bottom = -1;
+	s_cached_targetRc.top = -1;
+	s_cached_targetRc.left = -1;
+	s_cached_targetRc.right = -1;
+	
+
+	InitFPSCounter();
 
 #if defined HAVE_CG && HAVE_CG
 	g_cgcontext = cgCreateContext();
@@ -308,6 +325,13 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
+	if (!GLEW_ARB_vertex_array_object)
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_vertex_array_object.\n"
+				"GPU: Does your video card support OpenGL 3.0?");
+		bSuccess = false;
+	}
+
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 
@@ -319,8 +343,8 @@ Renderer::Renderer()
 		return;	// TODO: fail
 
 	// Decide frambuffer size
-	s_backbuffer_width = (int)OpenGL_GetBackbufferWidth();
-	s_backbuffer_height = (int)OpenGL_GetBackbufferHeight();
+	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
+	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
 #ifdef __APPLE__
@@ -359,16 +383,14 @@ Renderer::Renderer()
 	if (!GLEW_ARB_texture_non_power_of_two)
 		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
 
-	s_XFB_width = MAX_XFB_WIDTH;
-	s_XFB_height = MAX_XFB_HEIGHT;
+	// TODO: Move these somewhere else?
+	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
+	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-	CalculateXYScale(dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	CalculateTargetSize();
+	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	// Because of the fixed framebuffer size we need to disable the resolution
 	// options while running
@@ -449,16 +471,45 @@ Renderer::Renderer()
 	cgGLSetDebugMode(GL_FALSE);
 #endif
 #endif
+	
+	// creating buffers
+	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);
+	glGenVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
+	glBindVertexArray( s_ShowEFBCopyRegions_VAO );
+	glEnableClientState(GL_COLOR_ARRAY);
+	glColorPointer (3, GL_FLOAT, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*5, NULL);
+	
+	glGenBuffers(1, &s_Swap_VBO);
+	glGenVertexArrays(2, s_Swap_VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
+	glBindVertexArray(s_Swap_VAO[0]);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 7*sizeof(GLfloat), NULL);
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+3);
+	
+	glBindVertexArray(s_Swap_VAO[1]);	
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 7*sizeof(GLfloat), NULL);
+	glClientActiveTexture(GL_TEXTURE0);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+3);
+	glClientActiveTexture(GL_TEXTURE1);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+5);
 
+	// TODO: this after merging with graphic_update
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
 
 	glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 
 	glShadeModel(GL_SMOOTH);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -476,11 +527,6 @@ Renderer::Renderer()
 	glBlendColorEXT(0, 0, 0, 0.5f);
 	glClearDepth(1.0f);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
 	// legacy multitexturing: select texture channel only.
 	glActiveTexture(GL_TEXTURE0);
 	glClientActiveTexture(GL_TEXTURE0);
@@ -496,6 +542,13 @@ Renderer::~Renderer()
 {
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
+	
+	glDeleteBuffers(1, &s_ShowEFBCopyRegions_VBO);
+	glDeleteVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
+	glDeleteBuffers(1, &s_Swap_VBO);
+	glDeleteVertexArrays(2, s_Swap_VAO);
+	s_ShowEFBCopyRegions_VBO = 0;
+	
 	delete s_pfont;
 	s_pfont = 0;
 
@@ -519,7 +572,7 @@ Renderer::~Renderer()
 void Renderer::DrawDebugInfo()
 {
 	// Reset viewport for drawing text
-	glViewport(0, 0, OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight());
+	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
 	// Draw various messages on the screen, like FPS, statistics, etc.
 	char debugtext_buffer[8192];
 	char *p = debugtext_buffer;
@@ -527,6 +580,9 @@ void Renderer::DrawDebugInfo()
 
 	if (g_ActiveConfig.bShowFPS)
 		p+=sprintf(p, "FPS: %d\n", s_fps);
+
+	if (SConfig::GetInstance().m_ShowLag)
+		p+=sprintf(p, "Lag: %llu\n", Movie::g_currentLagCount);
 
 	if (g_ActiveConfig.bShowInputDisplay)
 		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
@@ -540,9 +596,15 @@ void Renderer::DrawDebugInfo()
 		// Set Line Size
 		glLineWidth(3.0f);
 
-		glBegin(GL_LINES);
+		// 2*Coords + 3*Color
+		glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
+		glBufferData(GL_ARRAY_BUFFER, stats.efb_regions.size() * sizeof(GLfloat) * (2+3)*2*6, NULL, GL_STREAM_DRAW);
+		GLfloat *Vertices = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
 		// Draw EFB copy regions rectangles
+		int a = 0;
+		GLfloat color[3] = {0.0f, 1.0f, 1.0f};
+		
 		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin();
 			it != stats.efb_regions.end(); ++it)
 		{
@@ -553,22 +615,97 @@ void Renderer::DrawDebugInfo()
 			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)it->right / halfWidth);
 			GLfloat y2 = (GLfloat) 1.0f - ((GLfloat)it->bottom / halfHeight);
 
-			// Draw shadow of rect
-			glColor3f(0.0f, 0.0f, 0.0f);
-			glVertex2f(x, y - 0.01);  glVertex2f(x2, y - 0.01);
-			glVertex2f(x, y2 - 0.01); glVertex2f(x2, y2 - 0.01);
-			glVertex2f(x + 0.005, y);  glVertex2f(x + 0.005, y2);
-			glVertex2f(x2 + 0.005, y); glVertex2f(x2 + 0.005, y2);
-
-			// Draw rect
-			glColor3f(0.0f, 1.0f, 1.0f);
-			glVertex2f(x, y);  glVertex2f(x2, y);
-			glVertex2f(x, y2); glVertex2f(x2, y2);
-			glVertex2f(x, y);  glVertex2f(x, y2);
-			glVertex2f(x2, y); glVertex2f(x2, y2);
+			Vertices[a++] = x;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			
+			Vertices[a++] = x;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			
+			Vertices[a++] = x;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			
+			Vertices[a++] = x2;
+			Vertices[a++] = y;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			Vertices[a++] = x;
+			Vertices[a++] = y2;
+			Vertices[a++] = color[0];
+			Vertices[a++] = color[1];
+			Vertices[a++] = color[2];
+			
+			// TO DO: build something nicer here
+			GLfloat temp = color[0];
+			color[0] = color[1];
+			color[1] = color[2];
+			color[2] = temp;
 		}
-
-		glEnd();
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+		
+		glBindVertexArray( s_ShowEFBCopyRegions_VAO );
+		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
+		
+		// TODO: this after merging with graphic_update
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		// Restore Line Size
 		glLineWidth(lSize);
@@ -593,18 +730,20 @@ void Renderer::DrawDebugInfo()
 
 void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
-	const int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
-	const int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
+	const int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
+	const int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
 
-	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
-		((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	s_pfont->printMultilineText(text,
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
-		0, nBackbufferWidth, nBackbufferHeight);
+		0, nBackbufferWidth, nBackbufferHeight, color);
 
 	GL_REPORT_ERRORD();
+
+	glDisable(GL_BLEND);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -660,14 +799,16 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 		s_efbCache[cacheType][cacheRectIdx].resize(EFB_CACHE_RECT_SIZE * EFB_CACHE_RECT_SIZE);
 
 	u32 targetPixelRcWidth = targetPixelRc.right - targetPixelRc.left;
+	u32 efbPixelRcHeight = efbPixelRc.bottom - efbPixelRc.top;
+	u32 efbPixelRcWidth = efbPixelRc.right - efbPixelRc.left;
 
-	for (u32 yCache = 0; yCache < EFB_CACHE_RECT_SIZE; ++yCache)
+	for (u32 yCache = 0; yCache < efbPixelRcHeight; ++yCache)
 	{
 		u32 yEFB = efbPixelRc.top + yCache;
 		u32 yPixel = (EFBToScaledY(EFB_HEIGHT - yEFB) + EFBToScaledY(EFB_HEIGHT - yEFB - 1)) / 2;
 		u32 yData = yPixel - targetPixelRc.bottom;
 
-		for (u32 xCache = 0; xCache < EFB_CACHE_RECT_SIZE; ++xCache)
+		for (u32 xCache = 0; xCache < efbPixelRcWidth; ++xCache)
 		{
 			u32 xEFB = efbPixelRc.left + xCache;
 			u32 xPixel = (EFBToScaledX(xEFB) + EFBToScaledX(xEFB + 1)) / 2;
@@ -705,8 +846,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = (x / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
 	efbPixelRc.top = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
-	efbPixelRc.right = efbPixelRc.left + EFB_CACHE_RECT_SIZE;
-	efbPixelRc.bottom = efbPixelRc.top + EFB_CACHE_RECT_SIZE;
+	efbPixelRc.right = std::min(efbPixelRc.left + EFB_CACHE_RECT_SIZE, (u32)EFB_WIDTH);
+	efbPixelRc.bottom = std::min(efbPixelRc.top + EFB_CACHE_RECT_SIZE, (u32)EFB_HEIGHT);
 
 	TargetRectangle targetPixelRc = ConvertEFBRectangle(efbPixelRc);
 	u32 targetPixelRcWidth = targetPixelRc.right - targetPixelRc.left;
@@ -988,14 +1129,16 @@ void Renderer::SetBlendMode(bool forceUpdate)
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	static int w = 0, h = 0;
-	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
 		if (g_ActiveConfig.bDumpFrames && frame_data)
-		#ifdef _WIN32
+		{
+#ifdef _WIN32
 			AVIDump::AddFrame(frame_data);
-		#elif defined HAVE_LIBAV
+#elif defined HAVE_LIBAV
 			AVIDump::AddFrame((u8*)frame_data, w, h);
-		#endif
+#endif
+		}
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -1006,7 +1149,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
-	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
+	if (g_ActiveConfig.VirtualXFBEnabled() && (!xfbSourceList || xfbCount == 0))
 	{
 		if (g_ActiveConfig.bDumpFrames && frame_data)
 		{
@@ -1022,8 +1165,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	ResetAPIState();
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, true, &dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+	TargetRectangle flipped_trc = GetTargetRectangle();
+
+	// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+	int tmp = flipped_trc.top;
+	flipped_trc.top = flipped_trc.bottom;
+	flipped_trc.bottom = tmp;
 
 	// Textured triangles are necessary because of post-processing shaders
 
@@ -1032,7 +1180,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		OGL::TextureCache::DisableStage(i);
 
 	// Update GLViewPort
-	glViewport(dst_rect.left, dst_rect.bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
+	glViewport(flipped_trc.left, flipped_trc.bottom, flipped_trc.GetWidth(), flipped_trc.GetHeight());
 
 	GL_REPORT_ERRORD();
 
@@ -1063,7 +1211,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 			MathUtil::Rectangle<float> drawRc;
 
-			if (!g_ActiveConfig.bUseRealXFB)
+			if (g_ActiveConfig.bUseRealXFB)
+			{
+				drawRc.top = 1;
+				drawRc.bottom = -1;
+				drawRc.left = -1;
+				drawRc.right = 1;
+			}
+			else
 			{
 				// use virtual xfb with offset
 				int xfbHeight = xfbSource->srcHeight;
@@ -1077,21 +1232,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 				// The following code disables auto stretch.  Kept for reference.
 				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				//float vScale = (float)fbHeight / (float)dst_rect.GetHeight();
-				//float hScale = (float)fbWidth / (float)dst_rect.GetWidth();
+				//float vScale = (float)fbHeight / (float)flipped_trc.GetHeight();
+				//float hScale = (float)fbWidth / (float)flipped_trc.GetWidth();
 				//drawRc.top *= vScale;
 				//drawRc.bottom *= vScale;
 				//drawRc.left *= hScale;
 				//drawRc.right *= hScale;
 			}
-			else
-			{
-				drawRc.top = 1;
-				drawRc.bottom = -1;
-				drawRc.left = -1;
-				drawRc.right = 1;
-			}
-
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
 
@@ -1117,43 +1264,42 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		// Render to the real buffer now.
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
-		if (applyShader)
-		{
-			glBegin(GL_QUADS);
-			glTexCoord2f(targetRc.left, targetRc.bottom);
-			glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0);
-			glVertex2f(-1, -1);
 
-			glTexCoord2f(targetRc.left, targetRc.top);
-			glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1);
-			glVertex2f(-1,  1);
+		if(!( s_cached_targetRc == targetRc)) {
+			GLfloat vertices[] = {
+				-1.0f, -1.0f, 1.0f,
+				(GLfloat)targetRc.left, (GLfloat)targetRc.bottom,
+				0.0f, 0.0f,
+				
+				-1.0f, 1.0f, 1.0f,
+				(GLfloat)targetRc.left, (GLfloat)targetRc.top,
+				0.0f, 1.0f,
+				
+				1.0f, 1.0f, 1.0f,
+				(GLfloat)targetRc.right, (GLfloat)targetRc.top,
+				1.0f, 1.0f,
+				
+				1.0f, -1.0f, 1.0f,
+				(GLfloat)targetRc.right, (GLfloat)targetRc.bottom,
+				1.0f, 0.0f
+			};
+			
+			glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
+			glBufferData(GL_ARRAY_BUFFER, 4*7*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+		
+			s_cached_targetRc = targetRc;
+		} 
+		
+		glBindVertexArray(s_Swap_VAO[applyShader]);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-			glTexCoord2f(targetRc.right, targetRc.top);
-			glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1);
-			glVertex2f( 1,  1);
-
-			glTexCoord2f(targetRc.right, targetRc.bottom);
-			glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
-			glVertex2f( 1, -1);
-			glEnd();
+		
+		// TODO: this after merging with graphic_update
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+		if(applyShader)
 			PixelShaderCache::DisableShader();
-		}
-		else
-		{
-			glBegin(GL_QUADS);
-			glTexCoord2f(targetRc.left, targetRc.bottom);
-			glVertex2f(-1, -1);
-
-			glTexCoord2f(targetRc.left, targetRc.top);
-			glVertex2f(-1, 1);
-
-			glTexCoord2f(targetRc.right, targetRc.top);
-			glVertex2f( 1, 1);
-
-			glTexCoord2f(targetRc.right, targetRc.bottom);
-			glVertex2f( 1, -1);
-			glEnd();
-		}
 	}
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
@@ -1163,7 +1309,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (s_bScreenshot)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		SaveScreenshot(s_sScreenshotName, dst_rect);
+		SaveScreenshot(s_sScreenshotName, flipped_trc);
 		// Reset settings
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;
@@ -1174,16 +1320,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		if (!frame_data || w != dst_rect.GetWidth() ||
-		             h != dst_rect.GetHeight())
+		if (!frame_data || w != flipped_trc.GetWidth() ||
+		             h != flipped_trc.GetHeight())
 		{
 			if (frame_data) delete[] frame_data;
-			w = dst_rect.GetWidth();
-			h = dst_rect.GetHeight();
+			w = flipped_trc.GetWidth();
+			h = flipped_trc.GetHeight();
 			frame_data = new char[3 * w * h];
 		}
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
+		glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
 		{
 			if (!bLastFrameDumped)
@@ -1238,11 +1384,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		std::string movie_file_name;
-		w = dst_rect.GetWidth();
-		h = dst_rect.GetHeight();
+		w = GetTargetRectangle().GetWidth();
+		h = GetTargetRectangle().GetHeight();
 		frame_data = new char[3 * w * h];
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
+		glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR)
 		{
 			if (!bLastFrameDumped)
@@ -1281,24 +1427,22 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	SetWindowSize(fbWidth, fbHeight);
 
-	OpenGL_Update(); // just updates the render window position and the backbuffer size
+	GLInterface->Update(); // just updates the render window position and the backbuffer size
 
 	bool xfbchanged = false;
 
-	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
+	if (FramebufferManagerBase::LastXfbWidth() != fbWidth || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		s_XFB_width = fbWidth;
-		s_XFB_height = fbHeight;
-		if (s_XFB_width < 1) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_width > MAX_XFB_WIDTH) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_height < 1) s_XFB_height = MAX_XFB_HEIGHT;
-		if (s_XFB_height > MAX_XFB_HEIGHT) s_XFB_height = MAX_XFB_HEIGHT;
+		unsigned int w = (fbWidth < 1 || fbWidth > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbWidth;
+		unsigned int h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+		FramebufferManagerBase::SetLastXfbWidth(w);
+		FramebufferManagerBase::SetLastXfbHeight(h);
 	}
 
 	bool WindowResized = false;
-	int W = (int)OpenGL_GetBackbufferWidth();
-	int H = (int)OpenGL_GetBackbufferHeight();
+	int W = (int)GLInterface->GetBackBufferWidth();
+	int H = (int)GLInterface->GetBackBufferHeight();
 	if (W != s_backbuffer_width || H != s_backbuffer_height || s_LastEFBScale != g_ActiveConfig.iEFBScale)
 	{
 		WindowResized = true;
@@ -1309,11 +1453,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
 	{
-		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		CalculateXYScale(dst_rect);
-
-		if (CalculateTargetSize() || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
+		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode)
 		{
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
@@ -1326,20 +1468,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 	}
 
-	// Place messages on the picture, then copy it to the screen
-	// ---------------------------------------------------------------------
-	// Count FPS.
-	// -------------
-	static int fpscount = 0;
-	static unsigned long lasttime = 0;
-	if (Common::Timer::GetTimeMs() - lasttime >= 1000)
-	{
-		lasttime = Common::Timer::GetTimeMs();
-		s_fps = fpscount;
-		fpscount = 0;
-	}
 	if (XFBWrited)
-		++fpscount;
+		s_fps = UpdateFPSCounter();
 	// ---------------------------------------------------------------------
 	GL_REPORT_ERRORD();
 
@@ -1357,7 +1487,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 
 	// Copy the rendered frame to the real window
-	OpenGL_SwapBuffers();
+	GLInterface->Swap();
 
 	GL_REPORT_ERRORD();
 
@@ -1393,14 +1523,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 	g_Config.iSaveTargetId = 0;
 
-	// reload textures if these settings changed
-	if (g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
-		TextureCache::Invalidate(false);
-
-	if (g_Config.bCopyEFBToTexture != g_ActiveConfig.bCopyEFBToTexture)
-		TextureCache::ClearRenderTargets();
-
 	UpdateActiveConfig();
+	TextureCache::OnConfigChanged(g_ActiveConfig);
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();

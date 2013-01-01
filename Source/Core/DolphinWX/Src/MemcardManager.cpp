@@ -480,12 +480,12 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	int index_B = m_MemcardList[SLOT_B]->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	int slot = SLOT_B;
 	int slot2 = SLOT_A;
-	int index = index_B;
 	std::string fileName2("");
 
 	if (index_A != wxNOT_FOUND && page[SLOT_A]) index_A += itemsPerPage * page[SLOT_A];
 	if (index_B != wxNOT_FOUND && page[SLOT_B]) index_B += itemsPerPage * page[SLOT_B];
 
+	int index = index_B;
 	switch (event.GetId())
 	{
 	case ID_COPYFROM_B:
@@ -520,6 +520,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				? wxString::FromAscii("")
 				: wxString::From8BitData(DefaultIOPath.c_str()),
 			wxEmptyString, wxEmptyString,
+			_("GameCube Savegame files(*.gci;*.gcs;*.sav)") + wxString(wxT("|*.gci;*.gcs;*.sav|")) +
 			_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
 			_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
 			_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),

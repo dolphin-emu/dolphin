@@ -1097,7 +1097,7 @@ void Jit64::mulli(UGeckoInstruction inst)
 		gpr.BindToRegister(d, (d == a), true);
 		if (imm == 0)
 			XOR(32, gpr.R(d), gpr.R(d));
-		else if(imm == -1)
+		else if(imm == (u32)-1)
 		{
 			if (d != a)
 				MOV(32, gpr.R(d), gpr.R(a));
@@ -1147,7 +1147,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
 			int src = gpr.R(a).IsImm() ? b : a;
 			if (imm == 0)
 				XOR(32, gpr.R(d), gpr.R(d));
-			else if(imm == -1)
+			else if(imm == (u32)-1)
 			{
 				if (d != src)
 					MOV(32, gpr.R(d), gpr.R(src));
@@ -1263,7 +1263,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 			while(!(divisor & (1 << shift)))
 				shift--;
 
-			if (divisor == (1 << shift))
+			if (divisor == (u32)(1 << shift))
 			{
 				gpr.Lock(a, b, d);
 				gpr.BindToRegister(d, d == a, true);
@@ -1387,7 +1387,7 @@ void Jit64::divwx(UGeckoInstruction inst)
 	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
 	{
 		s32 i = (s32)gpr.R(a).offset, j = (s32)gpr.R(b).offset;
-		if( j == 0 || i == 0x80000000 && j == -1)
+		if( j == 0 || (i == (s32)0x80000000 && j == -1))
 		{
 			gpr.SetImmediate32(d, (i >> 31) ^ j);
 			if (inst.OE)

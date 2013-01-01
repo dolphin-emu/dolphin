@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <math.h>
-#include <strsafe.h>
 
 #include "Timer.h"
 
@@ -44,6 +43,9 @@
 #include "Host.h"
 #include "BPFunctions.h"
 #include "AVIDump.h"
+#include "FPSCounter.h"
+#include "ConfigManager.h"
+#include <strsafe.h>
 
 namespace DX11
 {
@@ -219,6 +221,7 @@ static const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] =
 	D3D11_TEXTURE_ADDRESS_WRAP //reserved
 };
 
+
 void SetupDeviceObjects()
 {
 	s_television.Init();
@@ -300,10 +303,7 @@ void SetupDeviceObjects()
 	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
 
-	D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
-	hr = D3D::device->CreateTexture2D(&scrtex_desc, NULL, &s_screenshot_texture);
-	CHECK(hr==S_OK, "Create screenshot staging texture");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
+	s_screenshot_texture = NULL;
 }
 
 // Kill off all device objects
@@ -327,10 +327,20 @@ void TeardownDeviceObjects()
 	s_television.Shutdown();
 }
 
+void CreateScreenshotTexture()
+{
+	D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
+	HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, NULL, &s_screenshot_texture);
+	CHECK(hr==S_OK, "Create screenshot staging texture");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
+}
+
 Renderer::Renderer()
 {
 	int x, y, w_temp, h_temp;
 	s_blendMode = 0;
+
+	InitFPSCounter();
 
 	Host_GetRenderWindowSize(x, y, w_temp, h_temp);
 
@@ -339,17 +349,14 @@ Renderer::Renderer()
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 
-	s_XFB_width = MAX_XFB_WIDTH;
-	s_XFB_height = MAX_XFB_HEIGHT;
+	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
+	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-	CalculateXYScale(dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	CalculateTargetSize();
+	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	SetupDeviceObjects();
 
@@ -847,6 +854,9 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &rc)
 {
+	if (!s_screenshot_texture)
+		CreateScreenshotTexture();
+
 	// copy back buffer to system memory
 	D3D::context->CopyResource(s_screenshot_texture, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
 
@@ -889,7 +899,7 @@ void formatBufferDump(const char *in, char *out, int w, int h, int p)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
-	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
 		if (g_ActiveConfig.bDumpFrames && frame_data)
 			AVIDump::AddFrame(frame_data);
@@ -915,18 +925,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	ResetAPIState();
 
 	// Prepare to copy the XFBs to our backbuffer
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)s_backbuffer_width, (float)s_backbuffer_height);
-	D3D::context->RSSetViewports(1, &vp);
-	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
-	D3D::context->ClearRenderTargetView(D3D::GetBackBuffer()->GetRTV(), ClearColor);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-	int X = dst_rect.left;
-	int Y = dst_rect.top;
-	int Width  = dst_rect.right - dst_rect.left;
-	int Height = dst_rect.bottom - dst_rect.top;
+	int X = GetTargetRectangle().left;
+	int Y = GetTargetRectangle().top;
+	int Width  = GetTargetRectangle().right - GetTargetRectangle().left;
+	int Height = GetTargetRectangle().bottom - GetTargetRectangle().top;
 
+	// TODO: Redundant checks...
 	if (X < 0) X = 0;
 	if (Y < 0) Y = 0;
 	if (X > s_backbuffer_width) X = s_backbuffer_width;
@@ -935,9 +941,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (Height < 0) Height = 0;
 	if (Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
 	if (Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
-	vp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height);
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height);
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
+
+	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
+	D3D::context->ClearRenderTargetView(D3D::GetBackBuffer()->GetRTV(), ClearColor);
 
 	// activate linear filtering for the buffer copies
 	D3D::SetLinearCopySampler();
@@ -965,7 +974,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 			MathUtil::Rectangle<float> drawRc;
 
-			if (g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
+			if (g_ActiveConfig.bUseRealXFB)
+			{
+				drawRc.top = 1;
+				drawRc.bottom = -1;
+				drawRc.left = -1;
+				drawRc.right = 1;
+			}
+			else
 			{
 				// use virtual xfb with offset
 				int xfbHeight = xfbSource->srcHeight;
@@ -986,13 +1002,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				//drawRc.left *= hScale;
 				//drawRc.right *= hScale;
 			}
-			else
-			{
-				drawRc.top = 1;
-				drawRc.bottom = -1;
-				drawRc.left = -1;
-				drawRc.right = 1;
-			}
 
 			xfbSource->Draw(sourceRc, drawRc, 0, 0);
 		}
@@ -1009,7 +1018,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// done with drawing the game stuff, good moment to save a screenshot
 	if (s_bScreenshot)
 	{
-		SaveScreenshot(s_sScreenshotName, dst_rect);
+		SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
 		s_bScreenshot = false;
 	}
 
@@ -1020,11 +1029,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		static int s_recordWidth;
 		static int s_recordHeight;
 
+		if (!s_screenshot_texture)
+			CreateScreenshotTexture();
+
 		D3D::context->CopyResource(s_screenshot_texture, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
 		if (!bLastFrameDumped)
 		{
-			s_recordWidth = dst_rect.GetWidth();
-			s_recordHeight = dst_rect.GetHeight();
+			s_recordWidth = GetTargetRectangle().GetWidth();
+			s_recordHeight = GetTargetRectangle().GetHeight();
 			bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
 			if (!bAVIDumping)
 			{
@@ -1050,7 +1062,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				w = s_recordWidth;
 				h = s_recordHeight;
 			}
-			char* source_ptr = (char*)map.pData + dst_rect.left*4 + dst_rect.top*map.RowPitch;
+			char* source_ptr = (char*)map.pData + GetTargetRectangle().left*4 + GetTargetRectangle().top*map.RowPitch;
 			formatBufferDump(source_ptr, frame_data, s_recordWidth, s_recordHeight, map.RowPitch);
 			AVIDump::AddFrame(frame_data);
 			D3D::context->Unmap(s_screenshot_texture, 0);
@@ -1079,11 +1091,18 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::font.DrawTextScaled(0, 0, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 
+	if (SConfig::GetInstance().m_ShowLag)
+	{
+		char lag[10];
+		StringCchPrintfA(lag, 1000, "Lag: %llu\n", Movie::g_currentLagCount);
+		D3D::font.DrawTextScaled(0, 18, 20, 0.0f, 0xFF00FFFF, lag);
+	}
+
 	if (g_ActiveConfig.bShowInputDisplay)
 	{
 		char inputDisplay[1000];
 		StringCchPrintfA(inputDisplay, 1000, Movie::GetInputDisplay().c_str());
-		D3D::font.DrawTextScaled(0, 30, 20, 0.0f, 0xFF00FFFF, inputDisplay);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, inputDisplay);
 	}
 	Renderer::DrawDebugText();
 
@@ -1091,13 +1110,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		char buf[32768];
 		Statistics::ToString(buf);
-		D3D::font.DrawTextScaled(0, 30, 20, 0.0f, 0xFF00FFFF, buf);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, buf);
 	}
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
 		char buf[32768];
 		Statistics::ToStringProj(buf);
-		D3D::font.DrawTextScaled(0, 30, 20, 0.0f, 0xFF00FFFF, buf);
+		D3D::font.DrawTextScaled(0, 36, 20, 0.0f, 0xFF00FFFF, buf);
 	}
 
 	OSD::DrawMessages();
@@ -1109,12 +1128,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 
-	// Reload textures if this settings changes
-	if (g_Config.bUseNativeMips != g_ActiveConfig.bUseNativeMips)
-		TextureCache::Invalidate(false);
-
 	// Enable configuration changes
 	UpdateActiveConfig();
+	TextureCache::OnConfigChanged(g_ActiveConfig);
 
 	SetWindowSize(fbWidth, fbHeight);
 
@@ -1122,28 +1138,18 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	bool xfbchanged = false;
 
-	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
+	if (FramebufferManagerBase::LastXfbWidth() != fbWidth || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		s_XFB_width = fbWidth;
-		s_XFB_height = fbHeight;
-		if (s_XFB_width < 1) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_width > MAX_XFB_WIDTH) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_height < 1) s_XFB_height = MAX_XFB_HEIGHT;
-		if (s_XFB_height > MAX_XFB_HEIGHT) s_XFB_height = MAX_XFB_HEIGHT;
+		unsigned int w = (fbWidth < 1 || fbWidth > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbWidth;
+		unsigned int h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+		FramebufferManagerBase::SetLastXfbWidth(w);
+		FramebufferManagerBase::SetLastXfbHeight(h);
 	}
 
 	// update FPS counter
-	static int fpscount = 0;
-	static unsigned long lasttime = 0;
-	if (Common::Timer::GetTimeMs() - lasttime >= 1000)
-	{
-		lasttime = Common::Timer::GetTimeMs();
-		s_fps = fpscount;
-		fpscount = 0;
-	}
 	if (XFBWrited)
-		++fpscount;
+		s_fps = UpdateFPSCounter();
 
 	// Begin new frame
 	// Set default viewport and scissor, for the clear to work correctly
@@ -1162,20 +1168,22 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_LastAA = g_ActiveConfig.iMultisampleMode;
 		PixelShaderCache::InvalidateMSAAShaders();
 
-		// TODO: Aren't we still holding a reference to the back buffer right now?
-		D3D::Reset();
-		s_backbuffer_width = D3D::GetBackBufferWidth();
-		s_backbuffer_height = D3D::GetBackBufferHeight();
+		if (windowResized)
+		{
+			// TODO: Aren't we still holding a reference to the back buffer right now?
+			D3D::Reset();
+			SAFE_RELEASE(s_screenshot_texture);
+			s_backbuffer_width = D3D::GetBackBufferWidth();
+			s_backbuffer_height = D3D::GetBackBufferHeight();
+		}
 
-		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-		CalculateXYScale(dst_rect);
+		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
-		CalculateTargetSize();
+		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
-		
+
 		delete g_framebuffer_manager;
 		g_framebuffer_manager = new FramebufferManager;
 		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };

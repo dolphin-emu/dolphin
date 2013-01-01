@@ -129,7 +129,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 		break;
 
 	case EXIDEVICE_ETH:
-		result = new CEXIETHERNET(SConfig::GetInstance().m_bba_mac);
+		result = new CEXIETHERNET();
 		break;
 
 	case EXIDEVICE_AM_BASEBOARD:

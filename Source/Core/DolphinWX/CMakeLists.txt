@@ -7,17 +7,31 @@ set(LIBS	core
 			audiocommon
 			z
 			sfml-network
-			SDL
-			${OPENGL_LIBRARIES}
+			${GTK2_LIBRARIES}
 			${XRANDR_LIBRARIES}
 			${X11_LIBRARIES})
+
+if(SDL2_FOUND)
+	# Using shared SDL2
+	set(LIBS	${LIBS} ${SDL2_LIBRARY})
+else(SDL2_FOUND)
+	if(SDL_FOUND)
+		# Using shared SDL
+		set(LIBS	${LIBS} ${SDL_LIBRARY})
+	else(SDL_FOUND)
+		# Using static SDL from Externals
+		set(LIBS	${LIBS} SDL)
+	endif()
+endif()
+
 
 if(LIBAV_FOUND)
 	set(LIBS	${LIBS} ${LIBAV_LIBRARIES})
 endif()
 
 if(wxWidgets_FOUND)
-	set(SRCS	Src/ARCodeAddEdit.cpp
+	set(SRCS 
+				Src/ARCodeAddEdit.cpp
 				Src/AboutDolphin.cpp
 				Src/CheatsWindow.cpp
 				Src/ConfigMain.cpp
@@ -65,7 +79,27 @@ if(wxWidgets_FOUND)
 
 	set(WXLIBS ${wxWidgets_LIBRARIES})
 else()
-	set(SRCS	Src/MainNoGUI.cpp)
+	set(SRCS 		
+		Src/MainNoGUI.cpp)
+endif()
+
+if(USE_EGL)
+	set(SRCS ${SRCS} Src/GLInterface/EGL.cpp
+		Src/GLInterface/X11_Util.cpp)
+else()
+	if(WIN32)
+		set(SRCS ${SRCS} Src/GLInterface/GLW.cpp)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		if(USE_WX)
+			set(SRCS ${SRCS} Src/GLInterface/WX.cpp)
+		else()	
+			set(SRCS ${SRCS} Src/GLInterface/AGL.cpp)
+		endif()
+	else()
+		set(SRCS ${SRCS} Src/GLInterface/GLX.cpp
+			Src/GLInterface/X11_Util.cpp)
+
+	endif()
 endif()
 
 if(WIN32)
@@ -139,6 +173,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/postprocess_bundle.cmake "
 		include(BundleUtilities)
 		message(\"Fixing up application bundle: ${BUNDLE_PATH}\")
+		set(BU_CHMOD_BUNDLE_ITEMS ON)
 		fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
 		")
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
@@ -181,3 +216,5 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 else()
 	install(TARGETS ${DOLPHIN_EXE} RUNTIME DESTINATION ${bindir})
 endif()
+
+set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})

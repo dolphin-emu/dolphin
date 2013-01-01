@@ -143,7 +143,7 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 
         case XFMEM_SETNUMTEXGENS: // GXSetNumTexGens
 			if (xfregs.numTexGen.numTexGens != (newValue & 15))
-                VertexManager::Flush();
+				VertexManager::Flush();
             break;
 
 		case XFMEM_SETTEXMTXINFO:
@@ -257,13 +257,26 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 // TODO - verify that it is correct. Seems to work, though.
 void LoadIndexedXF(u32 val, int refarray)
 {
-    int index = val >> 16;
-    int address = val & 0xFFF; // check mask
-    int size = ((val >> 12) & 0xF) + 1;
-    //load stuff from array to address in xf mem
+	int index = val >> 16;
+	int address = val & 0xFFF; // check mask
+	int size = ((val >> 12) & 0xF) + 1;
+	//load stuff from array to address in xf mem
 
-	XFMemWritten(size, address);
-
-    for (int i = 0; i < size; i++)
-		xfmem[address + i] = Memory::Read_U32(arraybases[refarray] + arraystrides[refarray] * index + i * 4);
+	u32* currData = (u32*)(xfmem + address);
+	u32* newData = (u32*)Memory::GetPointer(arraybases[refarray] + arraystrides[refarray] * index);
+	bool changed = false;
+	for (int i = 0; i < size; ++i)
+	{
+		if (currData[i] != Common::swap32(newData[i]))
+		{
+			changed = true;
+			XFMemWritten(size, address);
+			break;
+		}
+	}
+	if (changed)
+	{
+		for (int i = 0; i < size; ++i)
+			currData[i] = Common::swap32(newData[i]);
+	}
 }

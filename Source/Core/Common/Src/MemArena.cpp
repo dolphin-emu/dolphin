@@ -29,8 +29,10 @@
 #include <cstring>
 #endif
 
-#ifndef _WIN32
+#if defined(__APPLE__)
 static const char* ram_temp_file = "/tmp/gc_mem.tmp";
+#elif !defined(_WIN32) // non OSX unixes
+static const char* ram_temp_file = "/dev/shm/gc_mem.tmp";
 #endif
 
 void MemArena::GrabLowMemSpace(size_t size)
@@ -40,6 +42,7 @@ void MemArena::GrabLowMemSpace(size_t size)
 #else
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 	fd = open(ram_temp_file, O_RDWR | O_CREAT, mode);
+	unlink(ram_temp_file);
 	ftruncate(fd, size);
 	return;
 #endif
@@ -53,27 +56,30 @@ void MemArena::ReleaseSpace()
 	hMemoryMapping = 0;
 #else
 	close(fd);
-	unlink(ram_temp_file);
 #endif
 }
 
 
-void* MemArena::CreateView(s64 offset, size_t size)
-{
-#ifdef _WIN32
-	return MapViewOfFile(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size);
-#else
-	return mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
-#endif
-}
-
-
-void* MemArena::CreateViewAt(s64 offset, size_t size, void* base)
+void *MemArena::CreateView(s64 offset, size_t size, void *base)
 {
 #ifdef _WIN32
 	return MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
 #else
-	return mmap(base, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, offset);
+	void *retval = mmap(
+		base, size,
+		PROT_READ | PROT_WRITE,
+		MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED),
+		fd, offset);
+
+	if (retval == MAP_FAILED)
+	{
+		NOTICE_LOG(MEMMAP, "mmap on %s failed", ram_temp_file);
+		return nullptr;
+	}
+	else
+	{
+		return retval;
+	}
 #endif
 }
 
@@ -112,8 +118,7 @@ u8* MemArena::Find4GBBase()
 	}
 	return base;
 #else
-	void* base = mmap(0, 0x31000000, PROT_READ | PROT_WRITE,
-		MAP_ANON | MAP_SHARED, -1, 0);
+	void* base = mmap(0, 0x31000000, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
 	if (base == MAP_FAILED) {
 		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
 		return 0;
@@ -160,14 +165,14 @@ static bool Memory_TryBase(u8 *base, const MemoryView *views, int num_views, u32
 				goto bail;
 		}
 #ifdef _M_X64
-		*views[i].out_ptr = (u8*)arena->CreateViewAt(
+		*views[i].out_ptr = (u8*)arena->CreateView(
 			position, views[i].size, base + views[i].virtual_address);
 #else
 		if (views[i].flags & MV_MIRROR_PREVIOUS) {
 			// No need to create multiple identical views.
 			*views[i].out_ptr = *views[i - 1].out_ptr;
 		} else {
-			*views[i].out_ptr = (u8*)arena->CreateViewAt(
+			*views[i].out_ptr = (u8*)arena->CreateView(
 				position, views[i].size, base + (views[i].virtual_address & 0x3FFFFFFF));
 			if (!*views[i].out_ptr)
 				goto bail;

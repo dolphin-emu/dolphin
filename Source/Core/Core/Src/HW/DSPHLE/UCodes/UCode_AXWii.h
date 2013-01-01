@@ -18,7 +18,7 @@
 #ifndef _UCODE_AXWII
 #define _UCODE_AXWII
 
-#include "UCode_AXStructs.h"
+#include "UCode_AXWii_Structs.h"
 
 #define NUMBER_OF_PBS 128
 
@@ -41,7 +41,6 @@ private:
 
 	// PBs
 	u32 m_addressPBs;
-	u32 _CRC;
 
 	bool wiisportsHack;
 

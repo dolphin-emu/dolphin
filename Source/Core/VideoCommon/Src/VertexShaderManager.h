@@ -20,6 +20,8 @@
 
 #include "VertexShaderGen.h"
 
+class PointerWrap;
+
 struct ProjectionHack
 {
 	float sign;
@@ -31,6 +33,8 @@ struct ProjectionHack
 
 void UpdateProjectionHack(int iParams[], std::string sParams[]);
 
+void UpdateViewportWithCorrection();
+
 // The non-API dependent parts.
 class VertexShaderManager
 {
@@ -38,7 +42,8 @@ public:
 	static void Init();
 	static void Dirty();
 	static void Shutdown();
-
+	static void DoState(PointerWrap &p);
+;
 	// constant management
 	static void SetConstants();
 

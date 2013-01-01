@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "VideoConfig.h"
-#include "Setup.h"
 #include "MemoryUtil.h"
 #include "Thread.h"
 #include "Atomic.h"
@@ -26,6 +25,7 @@
 #include "ChunkFile.h"
 #include "Fifo.h"
 #include "HW/Memmap.h"
+#include "Core.h"
 
 volatile bool g_bSkipCurrentFrame = false;
 extern u8* g_pVideoData;
@@ -34,21 +34,38 @@ namespace
 {
 static volatile bool GpuRunningState = false;
 static volatile bool EmuRunningState = false;
-static u8 *videoBuffer;
+static std::mutex m_csHWVidOccupied;
 // STATE_TO_SAVE
+static u8 *videoBuffer;
 static int size = 0;
 }  // namespace
 
 void Fifo_DoState(PointerWrap &p) 
 {
-
     p.DoArray(videoBuffer, FIFO_SIZE);
     p.Do(size);
-	int pos = (int)(g_pVideoData - videoBuffer); // get offset
-	p.Do(pos); // read or write offset (depends on the mode afaik)
-	g_pVideoData = &videoBuffer[pos]; // overwrite g_pVideoData -> expected no change when load ss and change when save ss
-
+    p.DoPointer(g_pVideoData, videoBuffer);
+    p.Do(g_bSkipCurrentFrame);
 }
+
+void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	if (doLock)
+	{
+		EmulatorState(false);
+		if (!Core::IsGPUThread())
+			m_csHWVidOccupied.lock();
+		_dbg_assert_(COMMON, !CommandProcessor::fifo.isGpuReadingData);
+	}
+	else
+	{
+		if (unpauseOnUnlock)
+			EmulatorState(true);
+		if (!Core::IsGPUThread())
+			m_csHWVidOccupied.unlock();
+	}
+}
+
 
 void Fifo_Init()
 {	
@@ -127,6 +144,7 @@ void ResetVideoBuffer()
 // Purpose: Keep the Core HW updated about the CPU-GPU distance
 void RunGpuLoop()
 {
+	std::lock_guard<std::mutex> lk(m_csHWVidOccupied);
 	GpuRunningState = true;
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
 
@@ -178,12 +196,13 @@ void RunGpuLoop()
 			Common::YieldCPU();
 		else
 		{
-			// While the emu is paused, we still handle async request such as Savestates then sleep.
+			// While the emu is paused, we still handle async requests then sleep.
 			while (!EmuRunningState)
 			{
 				g_video_backend->PeekMessages();
-				VideoFifo_CheckStateRequest();
+				m_csHWVidOccupied.unlock();
 				Common::SleepCurrentThread(1);
+				m_csHWVidOccupied.lock();
 			}
 		}
 	}

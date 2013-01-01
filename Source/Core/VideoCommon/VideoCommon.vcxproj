@@ -111,7 +111,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
+	  <OpenMPSupport>false</OpenMPSupport>
+	</ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
@@ -129,7 +130,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <OpenMPSupport>true</OpenMPSupport>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -141,7 +142,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
+      <OpenMPSupport>false</OpenMPSupport>
+	</ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -183,6 +185,7 @@
     <ClCompile Include="Src\DLCache.cpp" />
     <ClCompile Include="Src\EmuWindow.cpp" />
     <ClCompile Include="Src\Fifo.cpp" />
+    <ClCompile Include="Src\FPSCounter.cpp" />
     <ClCompile Include="Src\FramebufferManagerBase.cpp" />
     <ClCompile Include="Src\HiresTextures.cpp" />
     <ClCompile Include="Src\ImageWrite.cpp" />
@@ -228,6 +231,7 @@
     <ClInclude Include="Src\DLCache.h" />
     <ClInclude Include="Src\EmuWindow.h" />
     <ClInclude Include="Src\Fifo.h" />
+    <ClInclude Include="Src\FPSCounter.h" />
     <ClInclude Include="Src\FramebufferManagerBase.h" />
     <ClInclude Include="Src\HiresTextures.h" />
     <ClInclude Include="Src\ImageWrite.h" />

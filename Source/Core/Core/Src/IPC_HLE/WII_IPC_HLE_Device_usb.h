@@ -41,6 +41,12 @@ struct SQueuedEvent
 		}
 		memset(m_buffer, 0, 1024);
 	}
+
+	SQueuedEvent()
+		: m_size(0)
+		, m_connectionHandle(0)
+	{
+	}
 };
 
 

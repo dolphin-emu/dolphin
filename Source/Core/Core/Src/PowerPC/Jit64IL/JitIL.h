@@ -212,6 +212,7 @@ public:
 	void negx(UGeckoInstruction inst);
 	void slwx(UGeckoInstruction inst);
 	void srwx(UGeckoInstruction inst);
+	void dcbst(UGeckoInstruction inst);
 	void dcbz(UGeckoInstruction inst);
 	void lfsx(UGeckoInstruction inst);
 

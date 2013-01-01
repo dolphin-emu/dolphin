@@ -139,7 +139,7 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 			if (DSPCore_GetState() == DSPCORE_STEPPING)
 			{
 				DSPCore_Step();
-				Refresh();
+				Update();
 			}
 			break;
 
@@ -155,10 +155,10 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 void Host_RefreshDSPDebuggerWindow()
 {
 	if (m_DebuggerFrame)
-		m_DebuggerFrame->Refresh();
+		m_DebuggerFrame->Update();
 }
 
-void DSPDebuggerLLE::Refresh()
+void DSPDebuggerLLE::Update()
 {
 #if defined __WXGTK__
 	if (!wxIsMainThread())

@@ -114,11 +114,11 @@ void GenericLog(LOGTYPES_LEVELS level, LOGTYPES_TYPE type,
 	}
 #endif
 
-#define ERROR_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__) }
-#define WARN_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__) }
-#define NOTICE_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LNOTICE, __VA_ARGS__) }
-#define INFO_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__) }
-#define DEBUG_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__) }
+#define ERROR_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__) } while (0)
+#define WARN_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__) } while (0)
+#define NOTICE_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LNOTICE, __VA_ARGS__) } while (0)
+#define INFO_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__) } while (0)
+#define DEBUG_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__) } while (0)
 
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 #define _dbg_assert_(_t_, _a_) \

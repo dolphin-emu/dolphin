@@ -32,12 +32,12 @@ static const struct {
 	const int	DefaultModifier;
 } g_HKData[] = {
 #ifdef __APPLE__
-	{ "Open",		79 /* 'O' */,		8 /* wxMOD_CMD */ },
+	{ "Open",		79 /* 'O' */,		2 /* wxMOD_CMD */ },
 	{ "ChangeDisc",		0,			0 /* wxMOD_NONE */ },
 	{ "RefreshList",	0,			0 /* wxMOD_NONE */ },
 
-	{ "PlayPause",		80 /* 'P' */,		8 /* wxMOD_CMD */ },
-	{ "Stop",		87 /* 'W' */,		8 /* wxMOD_CMD */ },
+	{ "PlayPause",		80 /* 'P' */,		2 /* wxMOD_CMD */ },
+	{ "Stop",		87 /* 'W' */,		2 /* wxMOD_CMD */ },
 	{ "Reset",		0,			0 /* wxMOD_NONE */ },
 	{ "FrameAdvance",	0,			0 /* wxMOD_NONE */ },
 
@@ -46,13 +46,13 @@ static const struct {
 	{ "ExportRecording",	0,			0 /* wxMOD_NONE */ },
 	{ "Readonlymode",	0,			0 /* wxMOD_NONE */ },
 
-	{ "ToggleFullscreen",	70 /* 'F' */,		8 /* wxMOD_CMD */ },
-	{ "Screenshot",		83 /* 'S' */,		8 /* wxMOD_CMD */ },
+	{ "ToggleFullscreen",	70 /* 'F' */,		2 /* wxMOD_CMD */ },
+	{ "Screenshot",		83 /* 'S' */,		2 /* wxMOD_CMD */ },
 
-	{ "Wiimote1Connect",	49 /* '1' */,		8 /* wxMOD_CMD */ },
-	{ "Wiimote2Connect",	50 /* '2' */,		8 /* wxMOD_CMD */ },
-	{ "Wiimote3Connect",	51 /* '3' */,		8 /* wxMOD_CMD */ },
-	{ "Wiimote4Connect",	52 /* '4' */,		8 /* wxMOD_CMD */ },
+	{ "Wiimote1Connect",	49 /* '1' */,		2 /* wxMOD_CMD */ },
+	{ "Wiimote2Connect",	50 /* '2' */,		2 /* wxMOD_CMD */ },
+	{ "Wiimote3Connect",	51 /* '3' */,		2 /* wxMOD_CMD */ },
+	{ "Wiimote4Connect",	52 /* '4' */,		2 /* wxMOD_CMD */ },
 #else
 	{ "Open",		79 /* 'O' */,		2 /* wxMOD_CONTROL */},
 	{ "ChangeDisc",		0,			0 /* wxMOD_NONE */ },
@@ -131,6 +131,7 @@ void SConfig::SaveSettings()
 
 	// General
 	ini.Set("General", "LastFilename",	m_LastFilename);
+	ini.Set("General", "ShowLag", m_ShowLag);
 
 	// ISO folders
 	// clear removed folders
@@ -155,10 +156,12 @@ void SConfig::SaveSettings()
 
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
 	ini.Set("General", "NANDRoot",			m_NANDPath);
+	ini.Set("General", "WirelessMac",		m_WirelessMac);
 
 	// Interface		
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
 	ini.Set("Interface", "UsePanicHandlers",	m_LocalCoreStartupParameter.bUsePanicHandlers);
+	ini.Set("Interface", "OnScreenDisplayMessages",	m_LocalCoreStartupParameter.bOnScreenDisplayMessages);
 	ini.Set("Interface", "HideCursor",			m_LocalCoreStartupParameter.bHideCursor);
 	ini.Set("Interface", "AutoHideCursor",		m_LocalCoreStartupParameter.bAutoHideCursor);
 	ini.Set("Interface", "Theme",				m_LocalCoreStartupParameter.iTheme);
@@ -208,6 +211,8 @@ void SConfig::SaveSettings()
 	ini.Set("GameList", "ListKorea",	m_ListKorea);
 	ini.Set("GameList", "ListTaiwan",	m_ListTaiwan);
 	ini.Set("GameList", "ListUnknown",	m_ListUnknown);
+	ini.Set("GameList", "ListSort",		m_ListSort);
+	ini.Set("GameList", "ListSortSecondary", m_ListSort2);
 
 	// Core
 	ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
@@ -246,6 +251,10 @@ void SConfig::SaveSettings()
 	// GFX Backend
 	ini.Set("Core", "GFXBackend",	m_LocalCoreStartupParameter.m_strVideoBackend);
 
+	// Movie
+	ini.Set("Movie", "PauseMovie", m_PauseMovie);
+	ini.Set("Movie", "Author", m_strMovieAuthor);
+
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
 }
@@ -260,6 +269,7 @@ void SConfig::LoadSettings()
 	// General
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
+		ini.Get("General", "ShowLag", &m_ShowLag, false);
 
 		m_ISOFolder.clear();
 		int numGCMPaths;
@@ -282,12 +292,14 @@ void SConfig::LoadSettings()
 		m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
 		DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 		DiscIO::CSharedContent::AccessInstance().UpdateLocation();
+		ini.Get("General", "WirelessMac",			&m_WirelessMac);
 	}
 
 	{
 		// Interface
 		ini.Get("Interface", "ConfirmStop",			&m_LocalCoreStartupParameter.bConfirmStop,		false);
 		ini.Get("Interface", "UsePanicHandlers",	&m_LocalCoreStartupParameter.bUsePanicHandlers,	true);
+		ini.Get("Interface", "OnScreenDisplayMessages",	&m_LocalCoreStartupParameter.bOnScreenDisplayMessages,	true);
 		ini.Get("Interface", "HideCursor",			&m_LocalCoreStartupParameter.bHideCursor,		false);
 		ini.Get("Interface", "AutoHideCursor",		&m_LocalCoreStartupParameter.bAutoHideCursor,	false);
 		ini.Get("Interface", "Theme",				&m_LocalCoreStartupParameter.iTheme,			0);
@@ -334,11 +346,13 @@ void SConfig::LoadSettings()
 		ini.Get("GameList", "ListPal",		&m_ListPal,		true);
 		ini.Get("GameList", "ListUsa",		&m_ListUsa,		true);
 
-		ini.Get("GameList", "ListFrance",		&m_ListFrance, true);
-		ini.Get("GameList", "ListItaly",		&m_ListItaly, true);
-		ini.Get("GameList", "ListKorea",		&m_ListKorea, true);
-		ini.Get("GameList", "ListTaiwan",		&m_ListTaiwan, true);
-		ini.Get("GameList", "ListUnknown",		&m_ListUnknown, true);
+		ini.Get("GameList", "ListFrance",	&m_ListFrance,	true);
+		ini.Get("GameList", "ListItaly",	&m_ListItaly,	true);
+		ini.Get("GameList", "ListKorea",	&m_ListKorea,	true);
+		ini.Get("GameList", "ListTaiwan",	&m_ListTaiwan,	true);
+		ini.Get("GameList", "ListUnknown",	&m_ListUnknown,	true);
+		ini.Get("GameList", "ListSort",		&m_ListSort,	3);
+		ini.Get("GameList", "ListSortSecondary",&m_ListSort2,	0);
 
 		// Core
 		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		false);
@@ -384,6 +398,10 @@ void SConfig::LoadSettings()
 
 		// GFX Backend
 		ini.Get("Core", "GFXBackend",  &m_LocalCoreStartupParameter.m_strVideoBackend, "");
+
+		// Movie
+		ini.Get("General", "PauseMovie", &m_PauseMovie, false);
+		ini.Get("Movie", "Author", &m_strMovieAuthor, "");
 	}
 
 	m_SYSCONF = new SysConf();

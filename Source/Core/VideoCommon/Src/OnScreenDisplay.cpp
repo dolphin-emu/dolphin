@@ -19,6 +19,7 @@
 
 #include "Common.h"
 
+#include "ConfigManager.h"
 #include "OnScreenDisplay.h"
 #include "RenderBase.h"
 #include "Timer.h"
@@ -47,6 +48,8 @@ void AddMessage(const char* pstr, u32 ms)
 
 void DrawMessages()
 {
+	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages) return;
+
 	if (s_listMsgs.size() > 0)
 	{
 		int left = 25, top = 15;

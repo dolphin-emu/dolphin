@@ -187,35 +187,35 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	case DiscIO::IVolume::COUNTRY_KOREA:
 		area = "KOR";
 		video = "NTSC";
-    game = "KR";
-    code = "LKH";
+		game = "KR";
+		code = "LKH";
 		break;   
 	case DiscIO::IVolume::COUNTRY_TAIWAN: 
 		// TODO: Determine if Taiwan have their own specific settings.
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		area = "JPN";
 		video = "NTSC";
-    game = "JP";
-    code = "LJ";
+		game = "JP";
+		code = "LJ";
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
 		area = "USA";
 		video = "NTSC";
-    game = "US";
-    code = "LU";
+		game = "US";
+		code = "LU";
 		break;
 	case DiscIO::IVolume::COUNTRY_EUROPE:
 		area = "EUR";
 		video = "PAL";
-    game = "EU";
-    code = "LE";
+		game = "EU";
+		code = "LE";
 		break;
 	default:
 		// PanicAlertT("SetupWiiMem: Unknown country. Wii boot process will be switched to European settings.");
 		area = "EUR";
 		video = "PAL";
-    game = "EU";
-    code = "LE";
+		game = "EU";
+		code = "LE";
 		break;
 	}
 

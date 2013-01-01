@@ -48,10 +48,14 @@
 
 #if defined USE_OPROFILE && USE_OPROFILE
 #include <opagent.h>
+
+op_agent_t agent;
 #endif
 
-#if defined USE_OPROFILE && USE_OPROFILE
-	op_agent_t agent;
+#if defined USE_VTUNE
+#include <jitprofiling.h>
+#pragma comment(lib, "libittnotify.lib")
+#pragma comment(lib, "jitprofiling.lib")
 #endif
 
 using namespace Gen;
@@ -121,6 +125,10 @@ bool JitBlock::ContainsAddress(u32 em_address)
 #if defined USE_OPROFILE && USE_OPROFILE
 		op_close_agent(agent);
 #endif
+
+#ifdef USE_VTUNE
+		iJIT_NotifyEvent(iJVM_EVENT_TYPE_SHUTDOWN, NULL);
+#endif
 	}
 	
 	// This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
@@ -134,6 +142,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		}
 		links_to.clear();
 		block_map.clear();
+		valid_block.reset();
 		num_blocks = 0;
 		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
 	}
@@ -212,6 +221,9 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		// Convert the logical address to a physical address for the block map
 		u32 pAddr = b.originalAddress & 0x1FFFFFFF;
 
+		for (u32 i = 0; i < (b.originalSize + 7) / 8; ++i)
+			valid_block[pAddr / 32 + i] = true;
+
 		block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
 		if (block_link)
 		{
@@ -231,6 +243,20 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		const u8* blockStart = blockCodePointers[block_num];
 		op_write_native_code(agent, buf, (uint64_t)blockStart,
 		                     blockStart, b.codeSize);
+#endif
+
+#ifdef USE_VTUNE
+		sprintf(b.blockName, "EmuCode_0x%08x", b.originalAddress);
+
+		iJIT_Method_Load jmethod = {0};
+		jmethod.method_id = iJIT_GetNewMethodID();
+		jmethod.class_file_name = "";
+		jmethod.source_file_name = __FILE__;
+		jmethod.method_load_address = (void*)blockCodePointers[block_num];
+		jmethod.method_size = b.codeSize;
+		jmethod.line_number_size = 0;
+		jmethod.method_name = b.blockName;
+		iJIT_NotifyEvent(iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void*)&jmethod);
 #endif
 	}
 
@@ -418,15 +444,25 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		// Convert the logical address to a physical address for the block map
 		u32 pAddr = address & 0x1FFFFFFF;
 
+		// Optimize the common case of length == 32 which is used by Interpreter::dcb*
+		bool destroy_block = true;
+		if (length == 32)
+		{
+			if (!valid_block[pAddr / 32])
+				destroy_block = false;
+			else
+				valid_block[pAddr / 32] = false;
+		}
+
 		// destroy JIT blocks
 		// !! this works correctly under assumption that any two overlapping blocks end at the same address
-		std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(pAddr, 0)), it2 = it1, it;
-		while (it2 != block_map.end() && it2->first.second < pAddr + length)
+		if (destroy_block)
 		{
-#ifdef JIT_UNLIMITED_ICACHE
-			JitBlock &b = blocks[it2->second];
-			if (b.originalFirstOpcode != Memory::ReadUnchecked_U32(b.originalAddress))
+			std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(pAddr, 0)), it2 = it1, it;
+			while (it2 != block_map.end() && it2->first.second < pAddr + length)
 			{
+#ifdef JIT_UNLIMITED_ICACHE
+				JitBlock &b = blocks[it2->second];
 				if (b.originalAddress & JIT_ICACHE_VMEM_BIT)
 				{
 					u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
@@ -444,12 +480,12 @@ bool JitBlock::ContainsAddress(u32 em_address)
 				}
 #endif
 				DestroyBlock(it2->second, true);
+				it2++;
 			}
-			it2++;
-		}
-		if (it1 != it2)
-		{
-			block_map.erase(it1, it2);
+			if (it1 != it2)
+			{
+				block_map.erase(it1, it2);
+			}
 		}
 
 #ifdef JIT_UNLIMITED_ICACHE

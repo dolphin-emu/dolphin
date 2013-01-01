@@ -6,6 +6,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/DLCache.cpp
 			Src/Debugger.cpp
 			Src/Fifo.cpp
+			Src/FPSCounter.cpp
 			Src/FramebufferManagerBase.cpp
 			Src/HiresTextures.cpp
 			Src/ImageWrite.cpp

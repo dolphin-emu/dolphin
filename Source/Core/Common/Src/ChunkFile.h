@@ -78,12 +78,6 @@ public:
 	template<class T>
 	void Do(std::map<unsigned int, T> &x)
 	{
-		// TODO
-		PanicAlert("Do(map<>) does not yet work.");
-	}
-
-	void Do(std::map<unsigned int, std::string> &x)
-	{
 		unsigned int number = (unsigned int)x.size();
 		Do(number);
 		switch (mode) {
@@ -94,7 +88,7 @@ public:
 				{
 					unsigned int first = 0;
 					Do(first);
-					std::string second;
+					T second;
 					Do(second);
 					x[first] = second;
 					--number;
@@ -105,7 +99,7 @@ public:
 		case MODE_MEASURE:
 		case MODE_VERIFY:
 			{
-				std::map<unsigned int, std::string>::iterator itr = x.begin();
+				typename std::map<unsigned int, T>::iterator itr = x.begin();
 				while (number > 0)
 				{
 					Do(itr->first);
@@ -164,7 +158,7 @@ public:
 		case MODE_READ:		x = (wchar_t*)*ptr; break;
 		case MODE_WRITE:	memcpy(*ptr, x.c_str(), stringLen); break;
 		case MODE_MEASURE: break;
-		case MODE_VERIFY: _dbg_assert_msg_(COMMON, x == (wchar_t*)*ptr, "Savestate verification failure: \"%s\" != \"%s\" (at %p).\n", x.c_str(), (wchar_t*)*ptr, ptr); break;
+		case MODE_VERIFY: _dbg_assert_msg_(COMMON, x == (wchar_t*)*ptr, "Savestate verification failure: \"%ls\" != \"%ls\" (at %p).\n", x.c_str(), (wchar_t*)*ptr, ptr); break;
 		}
 		(*ptr) += stringLen;
 	}
@@ -178,11 +172,74 @@ public:
 	void Do(T &x) {
 		DoVoid((void *)&x, sizeof(x));
 	}
-	
+
 	template<class T>
-	void DoLinkedList(LinkedListItem<T> **list_start) {
-		// TODO
-		PanicAlert("Do(linked list<>) does not yet work.");
+	void DoPointer(T* &x, T*const base) {
+		// pointers can be more than 2^31 apart, but you're using this function wrong if you need that much range
+		s32 offset = x - base;
+		Do(offset);
+		if (mode == MODE_READ)
+			x = base + offset;
+	}
+
+	template<class T, LinkedListItem<T>* (*TNew)(), void (*TFree)(LinkedListItem<T>*), void (*TDo)(PointerWrap&, T*)>
+	void DoLinkedList(LinkedListItem<T>*& list_start, LinkedListItem<T>** list_end=0)
+	{
+		LinkedListItem<T>* list_cur = list_start;
+		LinkedListItem<T>* prev = 0;
+
+		while (true)
+		{
+			u8 shouldExist = (list_cur ? 1 : 0);
+			Do(shouldExist);
+			if (shouldExist == 1)
+			{
+				LinkedListItem<T>* cur = list_cur ? list_cur : TNew();
+				TDo(*this, (T*)cur);
+				if (!list_cur)
+				{
+					if (mode == MODE_READ)
+					{
+						cur->next = 0;
+						list_cur = cur;
+						if (prev)
+							prev->next = cur;
+						else
+							list_start = cur;
+					}
+					else
+					{
+						TFree(cur);
+						continue;
+					}
+				}
+			}
+			else
+			{
+				if (mode == MODE_READ)
+				{
+					if (prev)
+						prev->next = 0;
+					if (list_end)
+						*list_end = prev;
+					if (list_cur)
+					{
+						if (list_start == list_cur)
+							list_start = 0;
+						do
+						{
+							LinkedListItem<T>* next = list_cur->next;
+							TFree(list_cur);
+							list_cur = next;
+						}
+						while (list_cur);
+					}
+				}
+				break;
+			}
+			prev = list_cur;
+			list_cur = list_cur->next;
+		}
 	}
 
 	void DoMarker(const char* prevName, u32 arbitraryNumber=0x42)

@@ -116,9 +116,4 @@ namespace HW
 		}
 		p.DoMarker("WIIHW");
 	}
-
-	void OnAfterLoad()
-	{
-		ExpansionInterface::OnAfterLoad();
-	}
 }

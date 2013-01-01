@@ -870,7 +870,6 @@ void XEmitter::BTC(int bits, OpArg dest, OpArg index) {WriteBitTest(bits, dest, 
 //shift can be either imm8 or cl
 void XEmitter::SHRD(int bits, OpArg dest, OpArg src, OpArg shift)
 {
-	bool writeImm = false;
 	if (dest.IsImm())
 	{
 		_assert_msg_(DYNA_REC, 0, "SHRD - can't use imms as destination");
@@ -901,7 +900,6 @@ void XEmitter::SHRD(int bits, OpArg dest, OpArg src, OpArg shift)
 
 void XEmitter::SHLD(int bits, OpArg dest, OpArg src, OpArg shift)
 {
-	bool writeImm = false;
 	if (dest.IsImm())
 	{
 		_assert_msg_(DYNA_REC, 0, "SHLD - can't use imms as destination");
@@ -1070,8 +1068,10 @@ void XEmitter::XOR (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(t
 void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2) 
 {
 #ifdef _DEBUG
+#ifndef _M_X64
 	_assert_msg_(DYNA_REC, !a1.IsSimpleReg() || !a2.IsSimpleReg() || a1.GetSimpleReg() != a2.GetSimpleReg(), "Redundant MOV @ %p - bug in JIT?", 
-				 code); 
+				 code);
+#endif
 #endif
 	WriteNormalOp(this, bits, nrmMOV, a1, a2);
 }
@@ -1321,7 +1321,7 @@ void XEmitter::MOVDDUP(X64Reg regOp, OpArg arg)
 	{
 		// Simulate this instruction with SSE2 instructions
 		if (!arg.IsSimpleReg(regOp))
-			MOVQ_xmm(regOp, arg);   // MOVSD better?
+			MOVSD(regOp, arg);
 		UNPCKLPD(regOp, R(regOp));
 	}
 }

@@ -20,7 +20,6 @@
 #include "ChunkFile.h"
 #include "IniFile.h"
 #include "HLEMixer.h"
-#include "Setup.h"
 #include "StringUtil.h"
 #include "LogManager.h"
 #include "IniFile.h"
@@ -130,7 +129,24 @@ void DSPHLE::SwapUCode(u32 _crc)
 
 void DSPHLE::DoState(PointerWrap &p)
 {
+	bool prevInitMixer = m_InitMixer;
 	p.Do(m_InitMixer);
+	if (prevInitMixer != m_InitMixer && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		if (m_InitMixer)
+		{
+			InitMixer();
+			AudioCommon::PauseAndLock(true);
+		}
+		else
+		{
+			AudioCommon::PauseAndLock(false);
+			soundStream->Stop();
+			delete soundStream;
+			soundStream = NULL;
+		}
+	}
+
 	p.Do(m_DSPControl);
 	p.Do(m_dspState);
 
@@ -230,6 +246,17 @@ void DSPHLE::DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short _Value)
 	}
 }
 
+void DSPHLE::InitMixer()
+{
+	unsigned int AISampleRate, DACSampleRate;
+	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
+	delete soundStream;
+	soundStream = AudioCommon::InitSoundStream(new HLEMixer(this, AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd);
+	if(!soundStream) PanicAlert("Error starting up sound stream");
+	// Mixer is initialized
+	m_InitMixer = true;
+}
+
 // Other DSP fuctions
 u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
 {
@@ -238,14 +265,7 @@ u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
 	{
 		if (!Temp.DSPHalt && Temp.DSPInit)
 		{
-			unsigned int AISampleRate, DACSampleRate;
-			AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-
-			soundStream = AudioCommon::InitSoundStream(
-				new HLEMixer(this, AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd);
-			if(!soundStream) PanicAlert("Error starting up sound stream");
-			// Mixer is initialized
-			m_InitMixer = true;
+			InitMixer();
 		}
 	}
 
@@ -294,4 +314,10 @@ void DSPHLE::DSP_ClearAudioBuffer(bool mute)
 {
 	if (soundStream)
 		soundStream->Clear(mute);
+}
+
+void DSPHLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	if (doLock || unpauseOnUnlock)
+		DSP_ClearAudioBuffer(doLock); 
 }

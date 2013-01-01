@@ -84,7 +84,7 @@ static ipc_msg_queue reply_queue;	// arm -> ppc
 void Init()
 {
     _dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isnt empty on init");
-	
+	CWII_IPC_HLE_Device_es::m_ContentFile = "";
 	u32 i;
 	for (i=0; i<IPC_MAX_FDS; i++)
 	{
@@ -324,7 +324,7 @@ void ExecuteCommand(u32 _Address)
     bool CmdSuccess = false;
 
     ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
-	volatile int DeviceID = Memory::Read_U32(_Address + 8);
+	volatile s32 DeviceID = Memory::Read_U32(_Address + 8);
 
 	IWII_IPC_HLE_Device* pDevice = (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : NULL;
 
@@ -390,7 +390,7 @@ void ExecuteCommand(u32 _Address)
 
 				INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
 						pDevice->GetDeviceName().c_str(), DeviceID, Mode);
-				if (Memory::Read_U32(_Address + 4) == DeviceID)
+				if (Memory::Read_U32(_Address + 4) == (u32)DeviceID)
 				{
 					g_FdMap[DeviceID] = pDevice;
 				}
@@ -578,3 +578,12 @@ void UpdateDevices()
 
 
 } // end of namespace WII_IPC_HLE_Interface
+
+// TODO: create WII_IPC_HLE_Device.cpp ?
+void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
+{
+	p.Do(m_Name);
+	p.Do(m_DeviceID);
+	p.Do(m_Hardware);
+	p.Do(m_Active);
+}

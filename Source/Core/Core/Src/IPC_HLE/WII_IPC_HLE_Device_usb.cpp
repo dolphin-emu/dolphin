@@ -24,6 +24,7 @@
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device_usb.h"
 #include "../ConfigManager.h"
+#include "../Movie.h"
 #include "CoreTiming.h"
 
 // The device class
@@ -103,14 +104,8 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 {
-/*
-  //things that do not get saved:
-
-	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
-
-	std::deque<SQueuedEvent> m_EventQueue;
- */
-
+	p.Do(m_Active);
+	p.Do(m_ControllerBD);
 	p.Do(m_CtrlSetup);
 	p.Do(m_ACLSetup);
 	p.Do(m_HCIEndpoint);
@@ -118,26 +113,28 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_last_ticks);
 	p.DoArray(m_PacketCount,4);
 	p.Do(m_ScanEnable);
+	p.Do(m_EventQueue);
 	m_acl_pool.DoState(p);
 
-	if (p.GetMode() == PointerWrap::MODE_READ) {
-	    m_EventQueue.clear();
-	}
-	if (p.GetMode() == PointerWrap::MODE_READ &&
-		SConfig::GetInstance().m_WiimoteReconnectOnLoad)
+    for (unsigned int i = 0; i < 4; i++)
+		m_WiiMotes[i].DoState(p);
+
+	// Reset the connection of real and hybrid wiimotes
+	if (p.GetMode() == PointerWrap::MODE_READ && SConfig::GetInstance().m_WiimoteReconnectOnLoad)
 	{
-		// Reset the connection of all connected wiimotes
         for (unsigned int i = 0; i < 4; i++)
 	    {
-        	if (!m_WiiMotes[i].IsInactive())
+			if (WIIMOTE_SRC_EMU == g_wiimote_sources[i] || WIIMOTE_SRC_NONE == g_wiimote_sources[i])
+				continue;
+			// TODO: Selectively clear real wiimote messages if possible. Or create a real wiimote channel and reporting mode pre-setup to vacate the need for m_WiimoteReconnectOnLoad.
+			m_EventQueue.clear();
+			if (!m_WiiMotes[i].IsInactive())
             {
-                    m_WiiMotes[i].Activate(false);
-                    m_WiiMotes[i].Activate(true);
+				m_WiiMotes[i].Activate(false);
+				m_WiiMotes[i].Activate(true);
 	        }
-        	else
-            {
-                    m_WiiMotes[i].Activate(false);
-	        }
+			else
+				m_WiiMotes[i].Activate(false);
         }
 	}
 }
@@ -1470,9 +1467,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkPolicy(u8* _Input)
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%04x", pLinkPolicy->con_handle);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Policy: 0x%04x", pLinkPolicy->settings);
 
-	hci_write_link_policy_settings_rp Reply;
-	Reply.status = 0x00;
-	Reply.con_handle = pLinkPolicy->con_handle;
+	//hci_write_link_policy_settings_rp Reply;
+	//Reply.status = 0x00;
+	//Reply.con_handle = pLinkPolicy->con_handle;
 
 	SendEventCommandStatus(HCI_CMD_WRITE_LINK_POLICY_SETTINGS);
 

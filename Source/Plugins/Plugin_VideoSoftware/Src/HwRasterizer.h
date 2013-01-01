@@ -28,6 +28,9 @@ struct OutputVertexData;
 namespace HwRasterizer
 {
     void Init();
+	void Shutdown();
+		
+	void Prepare();
 
     void BeginTriangles();
     void EndTriangles();

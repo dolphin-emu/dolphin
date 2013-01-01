@@ -23,6 +23,7 @@
 #include "FifoPlayer/FifoRecorder.h"
 #include "OpcodeDecoding.h"
 #include <wx/spinctrl.h>
+#include <wx/clipbrd.h>
 
 DECLARE_EVENT_TYPE(RECORDING_FINISHED_EVENT, -1)
 DEFINE_EVENT_TYPE(RECORDING_FINISHED_EVENT)
@@ -323,6 +324,13 @@ void FifoPlayerDlg::CreateGUIControls()
 	m_searchField->Connect(wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler(FifoPlayerDlg::OnBeginSearch), NULL, this);
 	m_searchField->Connect(wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler(FifoPlayerDlg::OnSearchFieldTextChanged), NULL, this);
 
+	// Setup command copying
+	wxAcceleratorEntry entry;
+	entry.Set(wxACCEL_CTRL, (int)'C', wxID_COPY);
+	wxAcceleratorTable accel(1, &entry);
+	m_objectCmdList->SetAcceleratorTable(accel);
+	m_objectCmdList->Connect(wxID_COPY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(FifoPlayerDlg::OnObjectCmdListSelectionCopy), NULL, this);
+
 	Connect(RECORDING_FINISHED_EVENT, wxCommandEventHandler(FifoPlayerDlg::OnRecordingFinished), NULL, this);
 	Connect(FRAME_WRITTEN_EVENT, wxCommandEventHandler(FifoPlayerDlg::OnFrameWritten), NULL, this);
 
@@ -616,7 +624,6 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 		int cmd = *objectdata++;
 		int stream_size = Common::swap16(objectdata);
 		objectdata += 2;
-		int vertex_size = (objectdata_end - objectdata) / stream_size;
 		wxString newLabel = wxString::Format(wxT("%08X:  %02X %04X  "), obj_offset, cmd, stream_size);
 		if ((objectdata_end - objectdata) % stream_size) newLabel += _("NOTE: Stream size doesn't match actual data length\n");
 		while (objectdata < objectdata_end)
@@ -761,6 +768,15 @@ void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
 	m_objectCmdInfo->SetLabel(newLabel);
 	Layout();
 	Fit();
+}
+
+void FifoPlayerDlg::OnObjectCmdListSelectionCopy(wxCommandEvent& WXUNUSED(event))
+{
+	if (wxTheClipboard->Open())
+	{
+		wxTheClipboard->SetData(new wxTextDataObject(m_objectCmdList->GetStringSelection()));
+		wxTheClipboard->Close();
+	}
 }
 
 void FifoPlayerDlg::OnCloseClick(wxCommandEvent& WXUNUSED(event))

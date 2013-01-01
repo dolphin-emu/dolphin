@@ -19,6 +19,7 @@
 #define _MIXER_H_
 
 #include "WaveFile.h"
+#include "StdMutex.h"
 
 // 16 bit Stereo
 #define MAX_SAMPLES			(1024 * 8)
@@ -89,6 +90,7 @@ public:
 		}
 	}
 
+	std::mutex& MixerCritical() { return m_csMixing; }
 
 protected:
 	unsigned int m_sampleRate;
@@ -110,7 +112,7 @@ protected:
 	u32 m_indexR;
 
 	bool m_AIplaying;
-
+	std::mutex m_csMixing;
 private:
 
 };

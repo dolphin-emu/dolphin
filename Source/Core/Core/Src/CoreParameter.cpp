@@ -53,7 +53,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bFastDiscSpeed(false),
   SelectedLanguage(0), bWii(false), bDisableWiimoteSpeaker(false),
   bConfirmStop(false), bHideCursor(false), 
-  bAutoHideCursor(false), bUsePanicHandlers(true),
+  bAutoHideCursor(false), bUsePanicHandlers(true), bOnScreenDisplayMessages(true),
   iRenderWindowXPos(-1), iRenderWindowYPos(-1),
   iRenderWindowWidth(640), iRenderWindowHeight(480),
   bRenderWindowAutoSize(false), bKeepWindowOnTop(false),

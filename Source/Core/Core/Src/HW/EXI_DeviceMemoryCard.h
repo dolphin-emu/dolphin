@@ -39,7 +39,8 @@ public:
 	bool IsInterruptSet();
 	bool IsPresent();
 	void DoState(PointerWrap &p);
-	void OnAfterLoad();
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
+	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1);
 
 private:
 	// This is scheduled whenever a page write is issued. The this pointer is passed

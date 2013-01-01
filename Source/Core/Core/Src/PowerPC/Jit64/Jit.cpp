@@ -191,8 +191,7 @@ void Jit64::Init()
 		else
 			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
 	}
-
-	jo.fpAccurateFcmp = true; // Fallback to Interpreter
+	jo.fpAccurateFcmp = Core::g_CoreStartupParameter.bEnableFPRF;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = true;

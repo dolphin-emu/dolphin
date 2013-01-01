@@ -24,6 +24,7 @@
 #include "../Core.h"
 #include "CPU.h"
 #include "DSP.h"
+#include "Movie.h"
 
 #include "VideoBackendBase.h"
 
@@ -31,10 +32,15 @@ namespace
 {
 	static Common::Event m_StepEvent;
 	static Common::Event *m_SyncEvent;
+	static std::mutex m_csCpuOccupied;
 }
 
 void CCPU::Init(int cpu_core)
 {
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+	{
+		cpu_core = Movie::GetCPUMode();
+	}
 	PowerPC::Init(cpu_core);
 	m_SyncEvent = 0;
 }
@@ -47,6 +53,7 @@ void CCPU::Shutdown()
 
 void CCPU::Run()
 {
+	std::lock_guard<std::mutex> lk(m_csCpuOccupied);
 	Host_UpdateDisasmDialog();
 
 	while (true)
@@ -60,8 +67,12 @@ reswitch:
 			break;
 
 		case PowerPC::CPU_STEPPING:
-			m_StepEvent.Wait();
+			m_csCpuOccupied.unlock();
+
 			//1: wait for step command..
+			m_StepEvent.Wait();
+
+			m_csCpuOccupied.lock();
 			if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 				return;
 			if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
@@ -131,4 +142,27 @@ void CCPU::EnableStepping(const bool _bStepping)
 void CCPU::Break() 
 {
 	EnableStepping(true);
+}
+
+bool CCPU::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	bool wasUnpaused = !IsStepping();
+	if (doLock)
+	{
+		// we can't use EnableStepping, that would causes deadlocks with both audio and video
+		PowerPC::Pause();
+		if (!Core::IsCPUThread())
+			m_csCpuOccupied.lock();
+	}
+	else
+	{
+		if (unpauseOnUnlock)
+		{
+			PowerPC::Start();
+			m_StepEvent.Set();
+		}
+		if (!Core::IsCPUThread())
+			m_csCpuOccupied.unlock();
+	}
+	return wasUnpaused;
 }

@@ -28,7 +28,6 @@
 #include "CPUDetect.h"
 #include "IniFile.h"
 #include "FileUtil.h"
-#include "Setup.h"
 
 #include "Host.h" // Core
 #include "HW/Wiimote.h"
@@ -45,6 +44,19 @@
 #include "VideoBackendBase.h"
 
 #include <wx/intl.h>
+
+#ifdef _WIN32
+#include <shellapi.h>
+#endif
+
+// Nvidia drivers >= v302 will check if the application exports a global
+// variable named NvOptimusEnablement to know if it should run the app in high
+// performance graphics mode or using the IGP.
+#ifdef WIN32
+extern "C" {
+	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
+}
+#endif
 
 // ------------
 //  Main window
@@ -116,37 +128,37 @@ bool DolphinApp::OnInit()
 	{
 		{
 			wxCMD_LINE_SWITCH, "h", "help",
-			_("Show this help message"),
+			"Show this help message",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
 		},
 		{
 			wxCMD_LINE_SWITCH, "d", "debugger",
-			_("Opens the debugger"),
+			"Opens the debugger",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_SWITCH, "l", "logger",
-			_("Opens the logger"),
+			"Opens the logger",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, "e", "exec",
-			_("Loads the specified file (DOL,ELF,GCM,ISO,WAD)"),
+			"Loads the specified file (DOL,ELF,GCM,ISO,WAD)",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_SWITCH, "b", "batch",
-			_("Exit Dolphin with emulator"),
+			"Exit Dolphin with emulator",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, "V", "video_backend",
-			_("Specify a video backend"),
+			"Specify a video backend",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
 			wxCMD_LINE_OPTION, "A", "audio_emulation",
-			_("Low level (LLE) or high level (HLE) audio"),
+			"Low level (LLE) or high level (HLE) audio",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -167,7 +179,6 @@ bool DolphinApp::OnInit()
 	BatchMode = parser.Found(wxT("batch"));
 	selectVideoBackend = parser.Found(wxT("video_backend"),
 		&videoBackendName);
-	// TODO:  This currently has no effect.  Implement or delete.
 	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
 		&audioEmulationName);
 #endif // wxUSE_CMDLINE_PARSER
@@ -237,6 +248,14 @@ bool DolphinApp::OnInit()
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
 			std::string(videoBackendName.mb_str());
 
+	if (selectAudioEmulation)
+	{
+		if (audioEmulationName == "HLE")
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = true;
+		else if (audioEmulationName == "LLE")
+			SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = false;
+	}
+
 	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
 
 	// Enable the PNG image handler for screenshots
@@ -248,6 +267,19 @@ bool DolphinApp::OnInit()
 	int y = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY;
 	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
 	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
+
+#ifdef _WIN32
+	if (File::Exists("www.dolphin-emulator.com.txt"))
+	{
+		File::Delete("www.dolphin-emulator.com.txt");
+		MessageBox(NULL,
+				   L"This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
+				   L"download Dolphin from the official website instead: http://dolphin-emu.org/",
+                   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
+		ShellExecute(NULL, L"open", L"http://dolphin-emu.org/?ref=badver", NULL, NULL, SW_SHOWDEFAULT);
+		exit(0);
+	}
+#endif
 
 	// The following is not needed with X11, where window managers
 	// do not allow windows to be created off the desktop.

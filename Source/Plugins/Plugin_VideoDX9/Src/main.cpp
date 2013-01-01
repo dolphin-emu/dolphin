@@ -49,7 +49,7 @@
 #include "D3DUtil.h"
 #include "EmuWindow.h"
 #include "VideoState.h"
-#include "render.h"
+#include "Render.h"
 #include "DLCache.h"
 #include "IniFile.h"
 #include "Core.h"
@@ -168,9 +168,9 @@ void VideoBackend::Video_Prepare()
 	s_swapRequested = FALSE;
 
 	// internal interfaces
-	g_renderer = new Renderer;
-	g_texture_cache = new TextureCache;
 	g_vertex_manager = new VertexManager;
+	g_renderer = new Renderer;
+	g_texture_cache = new TextureCache;		
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
@@ -208,10 +208,11 @@ void VideoBackend::Shutdown()
 		// internal interfaces
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
-		delete g_vertex_manager;
 		delete g_texture_cache;
 		delete g_renderer;
+		delete g_vertex_manager;
 		g_renderer = NULL;
+		g_texture_cache = NULL;
 	}
 	D3D::Shutdown();
 }

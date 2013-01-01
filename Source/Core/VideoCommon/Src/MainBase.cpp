@@ -169,8 +169,7 @@ u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 
 	return 0;
 }
 
-static volatile u32 s_doStateRequested = false;
- 
+
 void VideoBackendHardware::InitializeShared()
 {
 	VideoCommon_Init();
@@ -181,53 +180,49 @@ void VideoBackendHardware::InitializeShared()
 	memset((void*)&s_beginFieldArgs, 0, sizeof(s_beginFieldArgs));
 	memset(&s_accessEFBArgs, 0, sizeof(s_accessEFBArgs));
 	s_AccessEFBResult = 0;
-}
-
-static volatile struct
-{
-	unsigned char **ptr;
-	int mode;
-} s_doStateArgs;
-
-// Depending on the threading mode (DC/SC) this can be called 
-// from either the GPU thread or the CPU thread
-void VideoFifo_CheckStateRequest()
-{
-	if (Common::AtomicLoadAcquire(s_doStateRequested))
-	{
-		// Clear all caches that touch RAM
-		TextureCache::Invalidate(false);
-		VertexLoaderManager::MarkAllDirty();
-
-		PointerWrap p(s_doStateArgs.ptr, s_doStateArgs.mode);
-		VideoCommon_DoState(p);
-
-		// Refresh state.
-		if (s_doStateArgs.mode == PointerWrap::MODE_READ)
-		{
-			BPReload();
-			RecomputeCachedArraybases();
-		}
-
-		Common::AtomicStoreRelease(s_doStateRequested, false);
-	}
+	m_invalid = false;
 }
 
 // Run from the CPU thread
 void VideoBackendHardware::DoState(PointerWrap& p)
 {
-	s_doStateArgs.ptr = p.ptr;
-	s_doStateArgs.mode = p.mode;
-	Common::AtomicStoreRelease(s_doStateRequested, true);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+	VideoCommon_DoState(p);
+	p.DoMarker("VideoCommon");
+
+	p.Do(s_swapRequested);
+	p.Do(s_efbAccessRequested);
+	p.Do(s_beginFieldArgs);
+	p.Do(s_accessEFBArgs);
+	p.Do(s_AccessEFBResult);
+	p.DoMarker("VideoBackendHardware");
+
+	// Refresh state.
+	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		while (Common::AtomicLoadAcquire(s_doStateRequested) && !s_FifoShuttingDown)
-			//Common::SleepCurrentThread(1);
-			Common::YieldCPU();
+		m_invalid = true;
+		RecomputeCachedArraybases();
+
+		// Clear all caches that touch RAM
+		// (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
+		VertexLoaderManager::MarkAllDirty();
 	}
-	else
-		VideoFifo_CheckStateRequest();
 }
+
+void VideoBackendHardware::CheckInvalidState() {
+	if (m_invalid)
+	{
+		m_invalid = false;
+		
+		BPReload();
+		TextureCache::Invalidate();
+	}
+}
+
+void VideoBackendHardware::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	Fifo_PauseAndLock(doLock, unpauseOnUnlock);
+}
+
 
 void VideoBackendHardware::RunLoop(bool enable)
 {

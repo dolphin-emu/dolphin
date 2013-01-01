@@ -27,9 +27,6 @@ window handle that is returned by CreateWindow() can be accessed from
 Core::GetWindowHandle().
 */
 
-
-#include "Setup.h" // Common
-
 #include "NetWindow.h"
 #include "Common.h" // Common
 #include "FileUtil.h"
@@ -53,6 +50,7 @@ Core::GetWindowHandle().
 #include "LogConfigWindow.h"
 #include "FifoPlayerDlg.h"
 #include "WxUtils.h"
+#include "Host.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -99,6 +97,8 @@ extern "C" {
 #include "../resources/KDE.h"
 };
 
+bool confirmStop = false;
+
 // Create menu items
 // ---------------------
 void CFrame::CreateMenu()
@@ -142,9 +142,13 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_RECORDEXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
 	emulationMenu->Append(IDM_RECORDREADONLY, GetMenuLabel(HK_READ_ONLY_MODE), wxEmptyString, wxITEM_CHECK);
 	emulationMenu->Append(IDM_TASINPUT, _("TAS Input"));
+	emulationMenu->AppendCheckItem(IDM_TOGGLE_PAUSEMOVIE, _("Pause at end of movie"));
+	emulationMenu->Check(IDM_TOGGLE_PAUSEMOVIE, SConfig::GetInstance().m_PauseMovie);
+	emulationMenu->AppendCheckItem(IDM_SHOWLAG, _("Show lag counter"));
+	emulationMenu->Check(IDM_SHOWLAG, SConfig::GetInstance().m_ShowLag);
 	emulationMenu->Check(IDM_RECORDREADONLY, true);
 	emulationMenu->AppendSeparator();
-	
+
 	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
 
 	wxMenu *skippingMenu = new wxMenu;
@@ -162,7 +166,7 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_SAVESTATE, _("Sa&ve State"), saveMenu);
 
 	saveMenu->Append(IDM_SAVESTATEFILE, _("Save State..."));
-	loadMenu->Append(IDM_UNDOSAVESTATE, _("Last Overwritten State") + wxString(wxT("\tShift+F12")));
+	loadMenu->Append(IDM_UNDOSAVESTATE, _("Last Overwritten State") + wxString(wxT("\tF12")));
 	saveMenu->AppendSeparator();
 
 	loadMenu->Append(IDM_LOADSTATEFILE, _("Load State..."));
@@ -173,7 +177,7 @@ void CFrame::CreateMenu()
 	else
 		loadMenu->Append(IDM_LOADLASTSTATE, _("Last Saved State") + wxString(wxT("\tF11")));
 	
-	loadMenu->Append(IDM_UNDOLOADSTATE, _("Undo Load State") + wxString(wxT("\tF12")));
+	loadMenu->Append(IDM_UNDOLOADSTATE, _("Undo Load State") + wxString(wxT("\tShift+F12")));
 	loadMenu->AppendSeparator();
 
 	for (int i = 1; i <= 8; i++) {
@@ -669,6 +673,9 @@ void CFrame::DoOpen(bool Boot)
 			wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 			this);
 
+	if (path.IsEmpty())
+		return;
+
 	std::string currentDir2 = File::GetCurrentDir();
 
 	if (currentDir != currentDir2)
@@ -697,6 +704,18 @@ void CFrame::OnRecordReadOnly(wxCommandEvent& event)
 void CFrame::OnTASInput(wxCommandEvent& event)
 {
 	g_TASInputDlg->Show(true);
+}
+
+void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_PauseMovie = !SConfig::GetInstance().m_PauseMovie;
+	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnShowLag(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_ShowLag = !SConfig::GetInstance().m_ShowLag;
+	SConfig::GetInstance().SaveSettings();
 }
 
 void CFrame::OnFrameStep(wxCommandEvent& event)
@@ -729,7 +748,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 	}
 
 	for (int i = 0; i < 4; i++) {
-		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
+		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			controllers |= (1 << i);
 
 		if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
@@ -1039,27 +1058,14 @@ void CFrame::DoPause()
 	{
 		Core::SetState(Core::CORE_PAUSE);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxCURSOR_ARROW);
+			m_RenderParent->SetCursor(wxNullCursor);
 	}
 	else
 	{
-		// 32x32, 8bpp b/w image
-		// We want all transparent, so we can just use the same buffer for
-		// the "image" as for the transparency mask
-		static const char cursor_data[32 * 32] = { 0 };
-#ifdef __WXGTK__
-		wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
-			cursor_data, wxWHITE, wxBLACK);
-#else
-		wxBitmap cursor_bitmap(cursor_data, 32, 32);
-		cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
-		wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
-#endif
-
 		Core::SetState(Core::CORE_RUN);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 				RendererHasFocus())
-			m_RenderParent->SetCursor(cursor_transparent);
+			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 	}
 	UpdateGUI();
 }
@@ -1067,6 +1073,9 @@ void CFrame::DoPause()
 // Stop the emulation
 void CFrame::DoStop()
 {
+	if (confirmStop)
+		return;
+
 	m_bGameLoading = false;
 	if (Core::GetState() != Core::CORE_UNINITIALIZED ||
 			m_RenderParent != NULL)
@@ -1079,17 +1088,23 @@ void CFrame::DoStop()
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
-			wxMessageDialog *m_StopDlg = new wxMessageDialog(
+			Core::EState state = Core::GetState();
+			confirmStop = true;
+			Core::SetState(Core::CORE_PAUSE);
+			wxMessageDialog m_StopDlg(
 				this,
 				_("Do you want to stop the current emulation?"),
 				_("Please confirm..."),
 				wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
 				wxDefaultPosition);
 
-			int Ret = m_StopDlg->ShowModal();
-			m_StopDlg->Destroy();
+			int Ret = m_StopDlg.ShowModal();
+			confirmStop = false;
 			if (Ret != wxID_YES)
+			{
+				Core::SetState(state);
 				return;
+			}
 		}
 
 		// TODO: Show the author/description dialog here
@@ -1135,10 +1150,13 @@ void CFrame::DoStop()
 				wxMouseEventHandler(CFrame::OnMouse),
 				(wxObject*)0, this);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxCURSOR_ARROW);
+			m_RenderParent->SetCursor(wxNullCursor);
 		DoFullscreen(false);
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			m_RenderFrame->Destroy();
+		else
+			// Make sure the window is not longer set to stay on top
+			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 		m_RenderParent = NULL;
 
 		// Clean framerate indications from the status bar.
@@ -1286,7 +1304,7 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		}
 		break;
 	case IDM_HELPWEBSITE:
-		WxUtils::Launch("http://www.dolphin-emulator.com/");
+		WxUtils::Launch("http://dolphin-emu.org/");
 		break;
 	case IDM_HELPGOOGLECODE:
 		WxUtils::Launch("http://code.google.com/p/dolphin-emu/");
@@ -1304,9 +1322,8 @@ void CFrame::StatusBarMessage(const char * Text, ...)
 	const int MAX_BYTES = 1024*10;
 	char Str[MAX_BYTES];
 	va_list ArgPtr;
-	int Cnt;
 	va_start(ArgPtr, Text);
-	Cnt = vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
+	vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
 	va_end(ArgPtr);
 
 	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(wxString::FromAscii(Str),0);
@@ -1452,12 +1469,17 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 		wxString msg(wxString::Format(wxT("Wiimote %i %s"), wm_idx + 1,
 					connect ? wxT("Connected") : wxT("Disconnected")));
 		Core::DisplayMessage(msg.ToAscii(), 3000);
+
+		// Wait for the wiimote to connect
+		while (GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->IsConnected() != connect)
+		{}
+		Host_UpdateMainFrame();
 	}
 }
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
-	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, event.IsChecked());
+	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !GetUsbPointer()->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected());
 }
 
 // Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
@@ -1509,26 +1531,26 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadLastState(wxCommandEvent& WXUNUSED (event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 		State::LoadLastSaved();
 }
 
 void CFrame::OnUndoLoadState(wxCommandEvent& WXUNUSED (event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 		State::UndoLoadState();
 }
 
 void CFrame::OnUndoSaveState(wxCommandEvent& WXUNUSED (event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 		State::UndoSaveState();
 }
 
 
 void CFrame::OnLoadState(wxCommandEvent& event)
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 	{
 		int id = event.GetId();
 		int slot = id - IDM_LOADSLOT1 + 1;
@@ -1538,7 +1560,7 @@ void CFrame::OnLoadState(wxCommandEvent& event)
 
 void CFrame::OnSaveState(wxCommandEvent& event)
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (Core::IsRunningAndStarted())
 	{
 		int id = event.GetId();
 		int slot = id - IDM_SAVESLOT1 + 1;

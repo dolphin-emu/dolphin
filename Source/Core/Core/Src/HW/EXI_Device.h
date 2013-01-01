@@ -53,7 +53,8 @@ public:
 	virtual bool IsPresent() {return false;}
 	virtual void SetCS(int) {}
 	virtual void DoState(PointerWrap&) {}
-	virtual void OnAfterLoad() {}
+	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) {}
+	virtual IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) { return (device_type == m_deviceType) ? this : NULL; }
 
 	// Update
 	virtual void Update() {}

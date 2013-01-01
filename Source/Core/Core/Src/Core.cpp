@@ -18,9 +18,9 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include "EmuWindow.h"
 #endif
 
-#include "Setup.h" // Common
 #include "Atomic.h"
 #include "Thread.h"
 #include "Timer.h"
@@ -48,6 +48,7 @@
 #include "HW/GPFifo.h"
 #include "HW/AudioInterface.h"
 #include "HW/VideoInterface.h"
+#include "HW/EXI.h"
 #include "HW/SystemTimers.h"
 
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
@@ -58,10 +59,8 @@
 #include "DSPEmulator.h"
 #include "ConfigManager.h"
 #include "VideoBackendBase.h"
+#include "AudioCommon.h"
 #include "OnScreenDisplay.h"
-#ifdef _WIN32
-#include "EmuWindow.h"
-#endif
 
 #include "VolumeHandler.h"
 #include "FileMonitor.h"
@@ -95,13 +94,15 @@ void Stop();
 
 bool g_bStopping = false;
 bool g_bHwInit = false;
+bool g_bStarted = false;
 bool g_bRealWiimote = false;
 void *g_pWindowHandle = NULL;
 std::string g_stateFileName;
 std::thread g_EmuThread;
 
 static std::thread g_cpu_thread;
-static bool g_requestRefreshInfo;
+static bool g_requestRefreshInfo = false;
+static int g_pauseAndLockDepth = 0;
 
 SCoreStartupParameter g_CoreStartupParameter;
 
@@ -160,16 +161,35 @@ bool IsRunning()
 	return (GetState() != CORE_UNINITIALIZED) || g_bHwInit;
 }
 
+bool IsRunningAndStarted()
+{
+	return g_bStarted;
+}
+
 bool IsRunningInCurrentThread()
 {
-	return IsRunning() && ((!g_cpu_thread.joinable()) || g_cpu_thread.get_id() == std::this_thread::get_id());
+	return IsRunning() && IsCPUThread();
 }
 
 bool IsCPUThread()
 {
-	return ((!g_cpu_thread.joinable()) || g_cpu_thread.get_id() == std::this_thread::get_id());
+	return (g_cpu_thread.joinable() ? (g_cpu_thread.get_id() == std::this_thread::get_id()) : !g_bStarted);
 }
 
+bool IsGPUThread()
+{
+	const SCoreStartupParameter& _CoreParameter =
+		SConfig::GetInstance().m_LocalCoreStartupParameter;
+	if (_CoreParameter.bCPUThread)
+	{
+		return (g_EmuThread.joinable() && (g_EmuThread.get_id() == std::this_thread::get_id()));
+	}
+	else
+	{
+		return IsCPUThread();
+	}
+}
+	
 // This is called from the GUI thread. See the booting call schedule in
 // BootManager.cpp
 bool Init()
@@ -270,7 +290,7 @@ void Stop()  // - Hammertime!
 		SConfig::GetInstance().m_SYSCONF->Reload();
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
-	Movie::g_currentInputCount = 0;
+	Movie::Shutdown();
 	g_bStopping = false;
 }
 
@@ -300,8 +320,12 @@ void CpuThread()
 	if (!g_stateFileName.empty())
 		State::LoadAs(g_stateFileName);
 
+	g_bStarted = true;
+
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
+
+	g_bStarted = false;
 
 	return;
 }
@@ -323,12 +347,16 @@ void FifoPlayerThread()
 	if (_CoreParameter.bLockThreads)
 		Common::SetCurrentThreadAffinity(1);  // Force to first core
 
+	g_bStarted = true;
+
 	// Enter CPU run loop. When we leave it - we are done.
 	if (FifoPlayer::GetInstance().Open(_CoreParameter.m_strFilename))
 	{
 		FifoPlayer::GetInstance().Play();
 		FifoPlayer::GetInstance().Close();
 	}
+
+	g_bStarted = false;
 
 	return;
 }
@@ -403,7 +431,7 @@ void EmuThread()
 	CBoot::BootUp();
 
 	// Setup our core, but can't use dynarec if we are compare server
-	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer ||
+	if (Movie::GetCPUMode() && (!_CoreParameter.bRunCompareServer ||
 					_CoreParameter.bRunCompareClient))
 		PowerPC::SetMode(PowerPC::MODE_JIT);
 	else
@@ -554,6 +582,26 @@ void RequestRefreshInfo()
 	g_requestRefreshInfo = true;
 }
 
+bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	// let's support recursive locking to simplify things on the caller's side,
+	// and let's do it at this outer level in case the individual systems don't support it.
+	if (doLock ? g_pauseAndLockDepth++ : --g_pauseAndLockDepth)
+		return true;
+
+	// first pause or unpause the cpu
+	bool wasUnpaused = CCPU::PauseAndLock(doLock, unpauseOnUnlock);
+	ExpansionInterface::PauseAndLock(doLock, unpauseOnUnlock);
+
+	// audio has to come after cpu, because cpu thread can wait for audio thread (m_throttle).
+	AudioCommon::PauseAndLock(doLock, unpauseOnUnlock);
+	DSP::GetDSPEmulator()->PauseAndLock(doLock, unpauseOnUnlock);
+
+	// video has to come after cpu, because cpu thread can wait for video thread (s_efbAccessRequested).
+	g_video_backend->PauseAndLock(doLock, unpauseOnUnlock);
+	return wasUnpaused;
+}
+
 // Apply Frame Limit and Display FPS info
 // This should only be called from VI
 void VideoThrottle()
@@ -583,9 +631,12 @@ void VideoThrottle()
 		g_requestRefreshInfo = false;
 		SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
+		if (ElapseTime == 0)
+			ElapseTime = 1;
+
 		u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
 		u32 VPS = DrawnVideo * 1000 / ElapseTime;
-		u32 Speed = VPS * 100 / VideoInterface::TargetRefreshRate;
+		u32 Speed = DrawnVideo * (100 * 1000) / (VideoInterface::TargetRefreshRate * ElapseTime);
 		
 		// Settings are shown the same for both extended and summary info
 		std::string SSettings = StringFromFormat("%s %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC");

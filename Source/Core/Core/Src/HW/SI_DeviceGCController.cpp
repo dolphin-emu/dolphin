@@ -35,8 +35,8 @@
 #include "../Core.h"
 
 // --- standard gamecube controller ---
-CSIDevice_GCController::CSIDevice_GCController(int _iDeviceNumber)
-	: ISIDevice(_iDeviceNumber)
+CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNumber)
+	: ISIDevice(device, _iDeviceNumber)
 	, m_TButtonComboStart(0)
 	, m_TButtonCombo(0)
 	, m_LastButtonCombo(COMBO_NONE)
@@ -115,7 +115,7 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
-
+	
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 	Movie::CallInputManip(&PadStatus, ISIDevice::m_iDeviceNumber);
 
@@ -132,15 +132,15 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	if(Movie::IsPlayingInput())
 	{
 		Movie::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
-		if(!Core::g_CoreStartupParameter.bWii)
-			Movie::InputUpdate();
+		Movie::InputUpdate();
 	}
 	else if(Movie::IsRecordingInput())
 	{
 		Movie::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
-		if(!Core::g_CoreStartupParameter.bWii)
-			Movie::InputUpdate();
+		Movie::InputUpdate();
 	}
+	else
+		Movie::CheckPadStatus(&PadStatus, ISIDevice::m_iDeviceNumber);
 
 	// Thankfully changing mode does not change the high bits ;)
 	_Hi  = (u32)((u8)PadStatus.stickY);
@@ -267,4 +267,14 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 		}			
 		break;
 	}
+}
+
+// Savestate support
+void CSIDevice_GCController::DoState(PointerWrap& p)
+{
+	p.Do(m_Origin);
+	p.Do(m_Mode);
+	p.Do(m_TButtonComboStart);
+	p.Do(m_TButtonCombo);
+	p.Do(m_LastButtonCombo);
 }

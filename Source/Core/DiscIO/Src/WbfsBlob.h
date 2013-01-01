@@ -55,7 +55,7 @@ class WbfsFileReader : public IBlobReader
 	u32 hd_sector_count;
 
 	u64 wbfs_sector_size;
-	u64 wbfs_sector_shift;
+	u8 wbfs_sector_shift;
 	u64 wbfs_sector_count;
 	u64 m_disc_info_size;
 

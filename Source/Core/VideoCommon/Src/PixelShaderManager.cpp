@@ -302,7 +302,7 @@ void PixelShaderManager::SetConstants()
 			float GC_ALIGNED16(material[4]);
 			float NormalizationCoef = 1 / 255.0f;
 
-			for (int i = 0; i < 4; ++i)
+			for (int i = 0; i < 2; ++i)
 			{
 				if (nMaterialsChanged & (1 << i))
 				{
@@ -314,6 +314,21 @@ void PixelShaderManager::SetConstants()
 					material[3] = ( data        & 0xFF) * NormalizationCoef;
 
 					SetPSConstant4fv(C_PMATERIALS + i, material);
+				}
+			}
+			
+			for (int i = 0; i < 2; ++i)
+			{
+				if (nMaterialsChanged & (1 << (i + 2)))
+				{
+					u32 data = *(xfregs.matColor + i);
+
+					material[0] = ((data >> 24) & 0xFF) * NormalizationCoef;
+					material[1] = ((data >> 16) & 0xFF) * NormalizationCoef;
+					material[2] = ((data >>  8) & 0xFF) * NormalizationCoef;
+					material[3] = ( data        & 0xFF) * NormalizationCoef;
+
+					SetPSConstant4fv(C_PMATERIALS + i + 2, material);
 				}
 			}
 
@@ -464,4 +479,17 @@ void PixelShaderManager::InvalidateXFRange(int start, int end)
 void PixelShaderManager::SetMaterialColorChanged(int index)
 {
 	nMaterialsChanged  |= (1 << index);
+}
+
+void PixelShaderManager::DoState(PointerWrap &p)
+{
+	p.Do(lastRGBAfull);
+	p.Do(lastAlpha);
+	p.Do(lastTexDims);
+	p.Do(lastZBias);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Dirty();
+	}
 }

@@ -67,12 +67,7 @@ int Renderer::s_target_height;
 int Renderer::s_backbuffer_width;
 int Renderer::s_backbuffer_height;
 
-// ratio of backbuffer size and render area size
-float Renderer::xScale;
-float Renderer::yScale;
-
-unsigned int Renderer::s_XFB_width;
-unsigned int Renderer::s_XFB_height;
+TargetRectangle Renderer::target_rc;
 
 int Renderer::s_LastEFBScale;
 
@@ -81,10 +76,17 @@ bool Renderer::XFBWrited;
 bool Renderer::s_EnableDLCachingAfterRecording;
 
 unsigned int Renderer::prev_efb_format = (unsigned int)-1;
+unsigned int Renderer::efb_scale_numeratorX = 1;
+unsigned int Renderer::efb_scale_numeratorY = 1;
+unsigned int Renderer::efb_scale_denominatorX = 1;
+unsigned int Renderer::efb_scale_denominatorY = 1;
+unsigned int Renderer::ssaa_multiplier = 1;
+
 
 Renderer::Renderer() : frame_data(NULL), bLastFrameDumped(false)
 {
 	UpdateActiveConfig();
+	TextureCache::OnConfigChanged(g_ActiveConfig);
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	bAVIDumping = false;
@@ -95,6 +97,8 @@ Renderer::~Renderer()
 {
 	// invalidate previous efb format
 	prev_efb_format = (unsigned int)-1;
+
+	efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = ssaa_multiplier = 1;
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	if (g_ActiveConfig.bDumpFrames && bLastFrameDumped && bAVIDumping)
@@ -119,69 +123,117 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 	XFBWrited = true;
 
-	// XXX: Without the VI, how would we know what kind of field this is? So
-	// just use progressive.
 	if (g_ActiveConfig.bUseXFB)
 	{
 		FramebufferManagerBase::CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc,Gamma);
 	}
 	else
 	{
+		// XXX: Without the VI, how would we know what kind of field this is? So
+		// just use progressive.
 		g_renderer->Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc,Gamma);
 		Common::AtomicStoreRelease(s_swapRequested, false);
 	}
-	
-	if (TextureCache::DeferredInvalidate)
+}
+
+int Renderer::EFBToScaledX(int x)
+{
+	switch (g_ActiveConfig.iEFBScale)
 	{
-		TextureCache::Invalidate(false);
-	}
+		case 0: // fractional
+			return (int)ssaa_multiplier * FramebufferManagerBase::ScaleToVirtualXfbWidth(x, s_backbuffer_width);
+
+		default:
+			return x * (int)ssaa_multiplier * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
+	};
+}
+
+int Renderer::EFBToScaledY(int y)
+{
+	switch (g_ActiveConfig.iEFBScale)
+	{
+		case 0: // fractional
+			return (int)ssaa_multiplier * FramebufferManagerBase::ScaleToVirtualXfbHeight(y, s_backbuffer_height);
+
+		default:
+			return y * (int)ssaa_multiplier * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
+	};
 }
 
 void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
 {
-	switch (g_ActiveConfig.iEFBScale)
+	if (g_ActiveConfig.iEFBScale == 0 || g_ActiveConfig.iEFBScale == 1)
 	{
-		case 3: // 1.5x
-			scaledX = (x / 2) * 3;
-			scaledY = (y / 2) * 3;
-			break;
-		case 4: // 2x
-			scaledX = x * 2;
-			scaledY = y * 2;
-			break;
-		case 5: // 2.5x
-			scaledX = (x / 2) * 5;
-			scaledY = (y / 2) * 5;
-			break;
-		case 6: // 3x
-			scaledX = x * 3;
-			scaledY = y * 3;
-			break;
-		case 7: // 4x
-			scaledX = x * 4;
-			scaledY = y * 4;
-			break;
-		default:
-			scaledX = x;
-			scaledY = y;
-			break;
-	};
+		scaledX = x;
+		scaledY = y;
+	}
+	else
+	{
+		scaledX = x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
+		scaledY = y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
+	}
 }
 
 // return true if target size changed
-bool Renderer::CalculateTargetSize(int multiplier)
+bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, int multiplier)
 {
 	int newEFBWidth, newEFBHeight;
+
+	// TODO: Ugly. Clean up
+	switch (s_LastEFBScale)
+	{
+		case 2: // 1x
+			efb_scale_numeratorX = efb_scale_numeratorY = 1;
+			efb_scale_denominatorX = efb_scale_denominatorY = 1;
+			break;
+
+		case 3: // 1.5x
+			efb_scale_numeratorX = efb_scale_numeratorY = 3;
+			efb_scale_denominatorX = efb_scale_denominatorY = 2;
+			break;
+
+		case 4: // 2x
+			efb_scale_numeratorX = efb_scale_numeratorY = 2;
+			efb_scale_denominatorX = efb_scale_denominatorY = 1;
+			break;
+
+		case 5: // 2.5x
+			efb_scale_numeratorX = efb_scale_numeratorY = 5;
+			efb_scale_denominatorX = efb_scale_denominatorY = 2;
+			break;
+
+		case 6: // 3x
+			efb_scale_numeratorX = efb_scale_numeratorY = 3;
+			efb_scale_denominatorX = efb_scale_denominatorY = 1;
+			break;
+
+		case 7: // 4x
+			efb_scale_numeratorX = efb_scale_numeratorY = 4;
+			efb_scale_denominatorX = efb_scale_denominatorY = 1;
+			break;
+
+		default: // fractional & integral handled later
+			break;
+	}
+
 	switch (s_LastEFBScale)
 	{
 		case 0: // fractional
-			newEFBWidth = (int)(EFB_WIDTH * xScale);
-			newEFBHeight = (int)(EFB_HEIGHT * yScale);
-			break;
 		case 1: // integral
-			newEFBWidth = EFB_WIDTH * (int)ceilf(xScale);
-			newEFBHeight = EFB_HEIGHT * (int)ceilf(yScale);
+			newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, framebuffer_width);
+			newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, framebuffer_height);
+
+			if (s_LastEFBScale == 1)
+			{
+				newEFBWidth = ((newEFBWidth-1) / EFB_WIDTH + 1) * EFB_WIDTH;
+				newEFBHeight = ((newEFBHeight-1) / EFB_HEIGHT + 1) * EFB_HEIGHT;
+			}
+			efb_scale_numeratorX = newEFBWidth;
+			efb_scale_denominatorX = EFB_WIDTH;
+			efb_scale_numeratorY = newEFBHeight;
+			efb_scale_denominatorY = EFB_HEIGHT;
 			break;
+
 		default:
 			CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, newEFBWidth, newEFBHeight);
 			break;
@@ -189,6 +241,7 @@ bool Renderer::CalculateTargetSize(int multiplier)
 
 	newEFBWidth *= multiplier;
 	newEFBHeight *= multiplier;
+	ssaa_multiplier = multiplier;
 
 	if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
 	{
@@ -276,7 +329,6 @@ void Renderer::DrawDebugText()
 				std::string("4: Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
 				std::string("5: Copy EFB: ") + efbcopy_text,
 				std::string("6: Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
-				std::string("7: Material Lighting: ") + (g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"),
 			};
 
 			enum { lines_count = sizeof(lines)/sizeof(*lines) };
@@ -315,27 +367,125 @@ void Renderer::DrawDebugText()
 	}
 }
 
-void Renderer::CalculateXYScale(const TargetRectangle& dst_rect)
+// TODO: remove
+extern bool g_aspect_wide;
+
+void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 {
-	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
+	float FloatGLWidth = (float)backbuffer_width;
+	float FloatGLHeight = (float)backbuffer_height;
+	float FloatXOffset = 0;
+	float FloatYOffset = 0;
+
+	// The rendering window size
+	const float WinWidth = FloatGLWidth;
+	const float WinHeight = FloatGLHeight;
+
+	// Handle aspect ratio.
+	// Default to auto.
+	bool use16_9 = g_aspect_wide;
+
+	// Update aspect ratio hack values
+	// Won't take effect until next frame
+	// Don't know if there is a better place for this code so there isn't a 1 frame delay
+	if ( g_ActiveConfig.bWidescreenHack )
 	{
-		xScale = 1.0f;
-		yScale = 1.0f;
-	}
-	else
-	{
-		if (g_ActiveConfig.b3DVision)
+		float source_aspect = use16_9 ? (16.0f / 9.0f) : (4.0f / 3.0f);
+		float target_aspect;
+
+		switch ( g_ActiveConfig.iAspectRatio )
 		{
-			// This works, yet the version in the else doesn't. No idea why.
-			xScale = (float)(s_backbuffer_width-1) / (float)(s_XFB_width-1);
-			yScale = (float)(s_backbuffer_height-1) / (float)(s_XFB_height-1);
+		case ASPECT_FORCE_16_9 :
+			target_aspect = 16.0f / 9.0f;
+			break;
+		case ASPECT_FORCE_4_3 :
+			target_aspect = 4.0f / 3.0f;
+			break;
+		case ASPECT_STRETCH :
+			target_aspect = WinWidth / WinHeight;
+			break;
+		default :
+			// ASPECT_AUTO == no hacking
+			target_aspect = source_aspect;
+			break;
+		}
+
+		float adjust = source_aspect / target_aspect;
+		if ( adjust > 1 )
+		{
+			// Vert+
+			g_Config.fAspectRatioHackW = 1;
+			g_Config.fAspectRatioHackH = 1/adjust;
 		}
 		else
 		{
-			xScale = (float)(dst_rect.right - dst_rect.left - 1) / (float)(s_XFB_width-1);
-			yScale = (float)(dst_rect.bottom - dst_rect.top - 1) / (float)(s_XFB_height-1);
+			// Hor+
+			g_Config.fAspectRatioHackW = adjust;
+			g_Config.fAspectRatioHackH = 1;
 		}
 	}
+	else
+	{
+		// Hack is disabled
+		g_Config.fAspectRatioHackW = 1;
+		g_Config.fAspectRatioHackH = 1;
+	}
+
+	// Check for force-settings and override.
+	if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)
+		use16_9 = true;
+	else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
+		use16_9 = false;
+
+	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
+	{
+		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
+		float Ratio = (WinWidth / WinHeight) / (!use16_9 ? (4.0f / 3.0f) : (16.0f / 9.0f));
+		// Check if height or width is the limiting factor. If ratio > 1 the picture is too wide and have to limit the width.
+		if (Ratio > 1.0f)
+		{
+			// Scale down and center in the X direction.
+			FloatGLWidth /= Ratio;
+			FloatXOffset = (WinWidth - FloatGLWidth) / 2.0f;
+		}
+		// The window is too high, we have to limit the height
+		else
+		{
+			// Scale down and center in the Y direction.
+			FloatGLHeight *= Ratio;
+			FloatYOffset = FloatYOffset + (WinHeight - FloatGLHeight) / 2.0f;
+		}
+	}
+
+	// -----------------------------------------------------------------------
+	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
+	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
+	// ------------------
+	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH && g_ActiveConfig.bCrop)
+	{
+		float Ratio = !use16_9 ? ((4.0f / 3.0f) / (5.0f / 4.0f)) : (((16.0f / 9.0f) / (16.0f / 10.0f)));
+		// The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is adjusted)
+		float IncreasedWidth = (Ratio - 1.0f) * FloatGLWidth;
+		float IncreasedHeight = (Ratio - 1.0f) * FloatGLHeight;
+		// The new width and height
+		FloatGLWidth = FloatGLWidth * Ratio;
+		FloatGLHeight = FloatGLHeight * Ratio;
+		// Adjust the X and Y offset
+		FloatXOffset = FloatXOffset - (IncreasedWidth * 0.5f);
+		FloatYOffset = FloatYOffset - (IncreasedHeight * 0.5f);
+	}
+
+	int XOffset = (int)(FloatXOffset + 0.5f);
+	int YOffset = (int)(FloatYOffset + 0.5f);
+	int iWhidth = (int)ceil(FloatGLWidth);
+	int iHeight = (int)ceil(FloatGLHeight);
+	iWhidth -= iWhidth % 4; // ensure divisibility by 4 to make it compatible with all the video encoders
+	iHeight -= iHeight % 4;
+
+	target_rc.left = XOffset;
+	target_rc.top = YOffset;
+	target_rc.right = XOffset + iWhidth;
+	target_rc.bottom = YOffset + iHeight;
 }
 
 void Renderer::SetWindowSize(int width, int height)
@@ -390,5 +540,6 @@ void Renderer::RecordVideoMemory()
 
 void UpdateViewport(Matrix44& vpCorrection)
 {
-	g_renderer->UpdateViewport(vpCorrection);
+	if (xfregs.viewport.wd != 0 && xfregs.viewport.ht != 0)
+		g_renderer->UpdateViewport(vpCorrection);
 }

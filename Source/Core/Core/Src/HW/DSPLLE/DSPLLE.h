@@ -32,6 +32,7 @@ public:
 	virtual bool IsLLE() { return true; }
 
 	virtual void DoState(PointerWrap &p);
+	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 
 	virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short);
 	virtual void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short);
@@ -46,8 +47,10 @@ public:
 
 private:
 	static void dsp_thread(DSPLLE* lpParameter);
+	void InitMixer();
 
 	std::thread m_hDSPThread;
+	std::mutex m_csDSPThreadActive;
 	bool m_InitMixer;
 	void *m_hWnd;
 	bool m_bWii;

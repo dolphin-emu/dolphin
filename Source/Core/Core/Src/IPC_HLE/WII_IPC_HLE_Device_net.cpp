@@ -47,6 +47,7 @@ it failed)
 #endif
 
 #include "WII_IPC_HLE_Device_net.h"
+#include "../ConfigManager.h"
 #include "FileUtil.h"
 #include <stdio.h>
 #include <string>
@@ -292,9 +293,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		Memory::Write_U32(common_result,
 			CommandBuffer.PayloadBuffer.at(common_vector).m_Address + 4);
 	}
-
 	Memory::Write_U32(return_value, _CommandAddress + 4);
-
 	return true;
 }
 

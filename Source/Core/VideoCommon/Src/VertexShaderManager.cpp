@@ -51,6 +51,11 @@ static float s_fViewRotation[2];
 
 void UpdateViewport(Matrix44& vpCorrection);
 
+void UpdateViewportWithCorrection()
+{
+	UpdateViewport(s_viewportCorrection);
+}
+
 inline void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	g_renderer->SetVSConstant4f(const_number, f1, f2, f3, f4);
@@ -202,6 +207,7 @@ void VertexShaderManager::SetConstants()
 		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
 		const float* pstart = (const float*)&xfmem[XFMEM_POSTMATRICES + startn * 4];
 		SetMultiVSConstant4fv(C_POSTTRANSFORMMATRICES + startn, endn - startn, pstart);
+		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
 	}
 
 	if (nLightsChanged[0] >= 0)
@@ -245,7 +251,7 @@ void VertexShaderManager::SetConstants()
 		float GC_ALIGNED16(material[4]);
 		float NormalizationCoef = 1 / 255.0f;
 
-		for (int i = 0; i < 4; ++i)
+		for (int i = 0; i < 2; ++i)
 		{
 			if (nMaterialsChanged & (1 << i))
 			{
@@ -257,6 +263,21 @@ void VertexShaderManager::SetConstants()
 				material[3] = ( data        & 0xFF) * NormalizationCoef;
 
 				SetVSConstant4fv(C_MATERIALS + i, material);
+			}
+		}
+		
+		for (int i = 0; i < 2; ++i)
+		{
+			if (nMaterialsChanged & (1 << (i + 2)))
+			{
+				u32 data = *(xfregs.matColor + i);
+
+				material[0] = ((data >> 24) & 0xFF) * NormalizationCoef;
+				material[1] = ((data >> 16) & 0xFF) * NormalizationCoef;
+				material[2] = ((data >>  8) & 0xFF) * NormalizationCoef;
+				material[3] = ( data        & 0xFF) * NormalizationCoef;
+
+				SetVSConstant4fv(C_MATERIALS + i + 2, material);
 			}
 		}
 
@@ -615,4 +636,19 @@ void VertexShaderManager::ResetView()
 	s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
 
 	bProjectionChanged = true;
+}
+
+void VertexShaderManager::DoState(PointerWrap &p)
+{
+	p.Do(g_fProjectionMatrix);
+	p.Do(s_viewportCorrection);
+	p.Do(s_viewRotationMatrix);
+	p.Do(s_viewInvRotationMatrix);
+	p.Do(s_fViewTranslationVector);
+	p.Do(s_fViewRotation);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Dirty();
+	}
 }

@@ -53,7 +53,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 
 	m_ConnectionState = (ready) ? CONN_READY : CONN_INACTIVE;
 	m_ConnectionHandle = 0x100 + _Number;
-	memset(m_LinkKey, 0xA0 + _Number, 16);
+	memset(m_LinkKey, 0xA0 + _Number, HCI_KEY_SIZE);
 
 	bdaddr_t _nullBD = BDADDR_ANY;
 	if (memcmp(&m_BD, &_nullBD, sizeof(bdaddr_t))==0)
@@ -84,7 +84,29 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 
 void CWII_IPC_HLE_WiiMote::DoState(PointerWrap &p)
 {
+	// this function is usually not called... see CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState
+
 	p.Do(m_ConnectionState);
+
+	p.Do(m_HIDControlChannel_Connected);
+	p.Do(m_HIDControlChannel_ConnectedWait);
+	p.Do(m_HIDControlChannel_Config);
+	p.Do(m_HIDControlChannel_ConfigWait);
+	p.Do(m_HIDInterruptChannel_Connected);
+	p.Do(m_HIDInterruptChannel_ConnectedWait);
+	p.Do(m_HIDInterruptChannel_Config);
+	p.Do(m_HIDInterruptChannel_ConfigWait);
+
+	p.Do(m_BD);
+	p.Do(m_ConnectionHandle);
+	p.Do(uclass);
+	p.Do(features);
+	p.Do(lmp_version);
+	p.Do(lmp_subversion);
+	p.Do(m_LinkKey);
+	p.Do(m_Name);
+
+	p.Do(m_Channel);
 }
 
 //

@@ -20,6 +20,7 @@
 #include "Common.h"
 #include "SI_Device.h"
 class PointerWrap;
+class ISIDevice;
 
 namespace SerialInterface
 {
@@ -32,6 +33,7 @@ void UpdateDevices();
 
 void RemoveDevice(int _iDeviceNumber);
 void AddDevice(const SIDevices _device, int _iDeviceNumber);
+void AddDevice(ISIDevice* pDevice);
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate);
 void ChangeDevice(SIDevices device, int channel);

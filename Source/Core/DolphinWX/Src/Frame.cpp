@@ -26,7 +26,6 @@
 #include "Common.h" // Common
 #include "FileUtil.h"
 #include "Timer.h"
-#include "Setup.h"
 
 #include "Globals.h" // Local
 #include "Frame.h"
@@ -72,30 +71,7 @@ extern "C" {
 };
 
 
-// Windows functions. Setting the cursor with wxSetCursor() did not work in
-// this instance.  Probably because it's somehow reset from the WndProc() in
-// the child window
 #ifdef _WIN32
-// Declare a blank icon and one that will be the normal cursor
-HCURSOR hCursor = NULL, hCursorBlank = NULL;
-
-// Create the default cursor
-void CreateCursor()
-{
-	hCursor = LoadCursor( NULL, IDC_ARROW );
-}
-
-void MSWSetCursor(bool Show)
-{
-	if(Show)
-		SetCursor(hCursor);
-	else
-	{
-		SetCursor(hCursorBlank);
-		//wxSetCursor(wxCursor(wxNullCursor));
-	}
-}
-
 // I could not use FindItemByHWND() instead of this, it crashed on that occation I used it */
 HWND MSWGetParent_(HWND Parent)
 {
@@ -134,10 +110,11 @@ CPanel::CPanel(
 
 			case WM_USER_SETCURSOR:
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
-					MSWSetCursor(!SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
+						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN &&
+						SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					SetCursor(wxCURSOR_BLANK);
 				else
-					MSWSetCursor(true);
+					SetCursor(wxNullCursor);
 				break;
 
 			case WIIMOTE_DISCONNECT:
@@ -244,6 +221,8 @@ EVT_MENU(IDM_PLAYRECORD, CFrame::OnPlayRecording)
 EVT_MENU(IDM_RECORDEXPORT, CFrame::OnRecordExport)
 EVT_MENU(IDM_RECORDREADONLY, CFrame::OnRecordReadOnly)
 EVT_MENU(IDM_TASINPUT, CFrame::OnTASInput)
+EVT_MENU(IDM_TOGGLE_PAUSEMOVIE, CFrame::OnTogglePauseMovie)
+EVT_MENU(IDM_SHOWLAG, CFrame::OnShowLag)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
@@ -386,8 +365,6 @@ CFrame::CFrame(wxFrame* parent,
 	// ---------------
 
 	// Manager
-	// wxAUI_MGR_LIVE_RESIZE does not exist in the wxWidgets 2.8.9 that comes with Ubuntu 9.04
-	// Could just check for wxWidgets version if it becomes a problem.
 	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
 	m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
@@ -434,9 +411,7 @@ CFrame::CFrame(wxFrame* parent,
 	// Commit
 	m_Mgr->Update();
 
-	// Create cursors
 	#ifdef _WIN32
-		CreateCursor();
 		SetToolTip(wxT(""));
 		GetToolTip()->SetAutoPop(25000);
 	#endif
@@ -456,13 +431,6 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Update controls
 	UpdateGUI();
-
-	// If we are rerecording create the status bar now instead of later when a game starts
-	#ifdef RERECORDING
-		ModifyStatusBar();
-		// It's to early for the OnHostMessage(), we will update the status when Ctrl or Space is pressed
-		//Core::WriteStatus();
-	#endif
 }
 // Destructor
 CFrame::~CFrame()
@@ -500,20 +468,6 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-			// 32x32, 8bpp b/w image
-			// We want all transparent, so we can just use the same buffer for
-			// the "image" as for the transparency mask
-			static const char cursor_data[32 * 32] = { 0 };
-			
-#ifdef __WXGTK__
-			wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
-				cursor_data, wxWHITE, wxBLACK);
-#else
-			wxBitmap cursor_bitmap(cursor_data, 32, 32);
-			cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
-			wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
-#endif
-
 #ifdef __WXMSW__
 			::SetFocus((HWND)m_RenderParent->GetHandle());
 #else
@@ -522,7 +476,7 @@ void CFrame::OnActive(wxActivateEvent& event)
 			
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
-				m_RenderParent->SetCursor(cursor_transparent);
+				m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		}
 		else
 		{
@@ -652,12 +606,12 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		}
 		break;
 
-#ifdef __WXGTK__
 	case WM_USER_CREATE:
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
 
+#ifdef __WXGTK__
 	case IDM_PANIC:
 		{
 			wxString caption = event.GetString().BeforeFirst(':');
@@ -797,8 +751,9 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 bool IsHotkey(wxKeyEvent &event, int Id)
 {
-	return (event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
-			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
+	return (event.GetKeyCode() != WXK_NONE &&
+	        event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
+	        event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
 }
 
 int GetCmdForHotkey(unsigned int key)
@@ -950,7 +905,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		else
 		{
 			unsigned int i = NUM_HOTKEYS;
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || g_TASInputDlg->HasFocus())
 			{
 				for (i = 0; i < NUM_HOTKEYS; i++)
 				{

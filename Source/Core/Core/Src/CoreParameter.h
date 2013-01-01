@@ -122,7 +122,7 @@ struct SCoreStartupParameter
 	bool bDisableWiimoteSpeaker;
 
 	// Interface settings
-	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers;
+	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;
 
 	// Hotkeys
 	int iHotkey[NUM_HOTKEYS];

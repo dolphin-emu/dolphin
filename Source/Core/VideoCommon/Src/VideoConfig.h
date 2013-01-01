@@ -34,7 +34,6 @@
 // Log in two categories, and save three other options in the same byte
 #define CONF_LOG			1
 #define CONF_PRIMLOG		2
-#define CONF_SAVETEXTURES	4
 #define CONF_SAVETARGETS	8
 #define CONF_SAVESHADERS	16
 
@@ -78,7 +77,6 @@ struct VideoConfig
 	bool bCrop;   // Aspect ratio controls.
 	bool bUseXFB;
 	bool bUseRealXFB;
-	bool bUseNativeMips;
 
 	// OpenCL/OpenMP
 	bool bEnableOpenCL;
@@ -99,11 +97,10 @@ struct VideoConfig
 	bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
 	bool bShowEFBCopyRegions;
+	bool bLogFPSToFile;
 	
 	// Render
 	bool bWireFrame;
-	bool bDisableLighting;
-	bool bDisableTexturing;
 	bool bDstAlphaPass;
 	bool bDisableFog;
 	
@@ -139,8 +136,8 @@ struct VideoConfig
 	bool bEnablePerPixelDepth;
 
 	int iLog; // CONF_ bits
-	int iSaveTargetId;
-	
+	int iSaveTargetId; // TODO: Should be dropped
+
 	//currently unused:
 	int iCompileDLsLevel;
 
@@ -166,6 +163,12 @@ struct VideoConfig
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
 	} backend_info;
+
+    // Utility
+    bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
+    bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
+    bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
+    bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
 };
 
 extern VideoConfig g_Config;
@@ -173,7 +176,5 @@ extern VideoConfig g_ActiveConfig;
 
 // Called every frame.
 void UpdateActiveConfig();
-
-void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip, TargetRectangle *rc);
 
 #endif  // _VIDEO_CONFIG_H_
