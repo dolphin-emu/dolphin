@@ -62,7 +62,7 @@ it failed)
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x)) 
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
-#elif defined(__linux__)
+#elif defined(__linux__) or defined(__APPLE__)
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -598,12 +598,12 @@ static int inet_pton(const char *src, unsigned char *dst)
 }
 
 // Maps SOCKOPT level from native to Wii
-static int opt_level_mapping[][2] = {
+static unsigned int opt_level_mapping[][2] = {
 	{ SOL_SOCKET, 0xFFFF }
 };
 
 // Maps SOCKOPT optname from native to Wii
-static int opt_name_mapping[][2] = {
+static unsigned int opt_name_mapping[][2] = {
 	{ SO_REUSEADDR, 0x4 },
 	{ SO_SNDBUF, 0x1001 },
 	{ SO_RCVBUF, 0x1002 },
@@ -761,11 +761,11 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			// Do the level/optname translation
 			int nat_level = -1, nat_optname = -1;
 
-			for (int i = 0; i < sizeof (opt_level_mapping) / sizeof (opt_level_mapping[0]); ++i)
+			for (unsigned int i = 0; i < sizeof (opt_level_mapping) / sizeof (opt_level_mapping[0]); ++i)
 				if (level == opt_level_mapping[i][1])
 					nat_level = opt_level_mapping[i][0];
 
-			for (int i = 0; i < sizeof (opt_name_mapping) / sizeof (opt_name_mapping[0]); ++i)
+			for (unsigned int i = 0; i < sizeof (opt_name_mapping) / sizeof (opt_name_mapping[0]); ++i)
 				if (optname == opt_name_mapping[i][1])
 					nat_optname = opt_name_mapping[i][0];
 
