@@ -120,6 +120,7 @@ private:
 	} WiiHIDEndpointDescriptor;
 
 	
+	u32 deviceCommandAddress;
 	void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
 	int GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check);
 	
@@ -132,10 +133,13 @@ private:
 
 	int Align(int num, int alignment);
 	static void checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid);
+	static void handleUsbUpdates(struct libusb_transfer *transfer);
 	
 	struct libusb_device_handle * GetDeviceByDevNum(u32 devNum);
 	std::map<u32,libusb_device_handle*> open_devices;
+	std::mutex s_open_devices;
 	std::map<std::string,int> device_identifiers;
+	
 	std::thread usb_thread;
 	bool usb_thread_running;
 	

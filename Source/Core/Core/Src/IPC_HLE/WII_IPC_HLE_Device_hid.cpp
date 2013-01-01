@@ -44,17 +44,58 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
 	timeval tv;
 	tv.tv_sec = 0;
 	tv.tv_usec = 500;
-	
 	while (hid->usb_thread_running)
+	{
+		
+		static u16 timeToFill = 0;
+		if (timeToFill == 0)
+		{
+			if (hid->deviceCommandAddress != 0){
+				hid->FillOutDevices(Memory::Read_U32(hid->deviceCommandAddress + 0x18), Memory::Read_U32(hid->deviceCommandAddress + 0x1C));
+				
+				Memory::Write_U32(8, hid->deviceCommandAddress);
+				// IOS seems to write back the command that was responded to
+				Memory::Write_U32(/*COMMAND_IOCTL*/ 6, hid->deviceCommandAddress + 8);
+				
+				// Return value
+				Memory::Write_U32(0, hid->deviceCommandAddress + 4);
+				
+				WII_IPC_HLE_Interface::EnqReply(hid->deviceCommandAddress);
+				hid->deviceCommandAddress = 0;
+			}
+		}
+		timeToFill+=8;
 		libusb_handle_events_timeout(NULL, &tv);
+	}
 	
 	return;
+}
+
+void CWII_IPC_HLE_Device_hid::handleUsbUpdates(struct libusb_transfer *transfer)
+{
+	int ret = HIDERR_NO_DEVICE_FOUND;
+	u32 replyAddress = (u32)(size_t)transfer->user_data;
+	if (transfer->status == LIBUSB_TRANSFER_COMPLETED)
+	{
+		ret = transfer->length;
+	}
+	
+	Memory::Write_U32(8, replyAddress);
+	// IOS seems to write back the command that was responded to
+	Memory::Write_U32(/*COMMAND_IOCTL*/ 6, replyAddress + 8);
+	
+	// Return value
+	Memory::Write_U32(ret, replyAddress + 4);
+	
+	WII_IPC_HLE_Interface::EnqReply(replyAddress);
+	//DEBUG_LOG(WII_IPC_HID, "OMG OMG OMG I GOT A CALLBACK, IMMA BE FAMOUS %d %d %d", transfer->actual_length, transfer->length, transfer->status);	
 }
 
 
 CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
+	deviceCommandAddress = 0;
 	memset(hidDeviceAliases, 0, sizeof(hidDeviceAliases));
 	libusb_init(NULL);
 	
@@ -94,35 +135,10 @@ bool CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForce)
 	return true;
 }
 
-static u32  replyAddress = 0;
-static bool hasRun = false;
-
 u32 CWII_IPC_HLE_Device_hid::Update()
 {
-	static u16 timeToFill = 0; 
+	
 	u32 work_done = 0;
-	
-	if (timeToFill == 0)
-	{
-		if (replyAddress != 0){
-			FillOutDevices(Memory::Read_U32(replyAddress + 0x18), Memory::Read_U32(replyAddress + 0x1C));
-			
-			Memory::Write_U32(8, replyAddress);
-			// IOS seems to write back the command that was responded to
-			Memory::Write_U32(/*COMMAND_IOCTL*/ 6, replyAddress + 8);
-			
-			// Return value
-			Memory::Write_U32(0, replyAddress + 4);
-			
-			WII_IPC_HLE_Interface::EnqReply(replyAddress);
-			replyAddress = 0;
-			hasRun = false;
-		}
-	}
-	
-	timeToFill+=8;
-	
-	work_done = 1;
 	return work_done;
 }
 
@@ -141,7 +157,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 	{
 		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Get Attached) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			BufferIn, BufferInSize, BufferOut, BufferOutSize);
-		replyAddress = _CommandAddress;
+		deviceCommandAddress = _CommandAddress;
 		return false;
 		break;
 	}
@@ -175,14 +191,13 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			ERROR CODES:
 			-4 Cant find device specified
 		*/
-		int ret = -1;
 		
 		u32 dev_num  = Memory::Read_U32(BufferIn+0x10);
-		u8 requestType = Memory::Read_U8(BufferIn+0x14);
-		u8 request = Memory::Read_U8(BufferIn+0x15);
-		u16 value = Memory::Read_U16(BufferIn+0x16);
-		u16 index = Memory::Read_U16(BufferIn+0x18);
-		u16 size = Memory::Read_U16(BufferIn+0x1A);
+		u8 bmRequestType = Memory::Read_U8(BufferIn+0x14);
+		u8 bRequest = Memory::Read_U8(BufferIn+0x15);
+		u16 wValue = Memory::Read_U16(BufferIn+0x16);
+		u16 wIndex = Memory::Read_U16(BufferIn+0x18);
+		u16 wLength = Memory::Read_U16(BufferIn+0x1A);
 		u32 data = Memory::Read_U32(BufferIn+0x1C);
 		
 		ReturnValue = HIDERR_NO_DEVICE_FOUND;
@@ -194,25 +209,25 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			DEBUG_LOG(WII_IPC_HID, "Could not find handle: %X", dev_num);
 			break;
 		}
+		struct libusb_transfer *transfer = libusb_alloc_transfer(0);
+		transfer->flags |= LIBUSB_TRANSFER_FREE_BUFFER | LIBUSB_TRANSFER_FREE_TRANSFER;
 		
-		ret = libusb_control_transfer (dev_handle, requestType, request, value, index, (unsigned char*)Memory::GetPointer(data), size, 0);
-		if(ret>=0)
-		{
-			ret += sizeof(libusb_control_setup);
-			ReturnValue = ret;
-		}
+		u8 * buffer = (u8*)malloc(wLength + LIBUSB_CONTROL_SETUP_SIZE);
+		libusb_fill_control_setup(buffer, bmRequestType, bRequest, wValue, wIndex, wLength);
+		memcpy(buffer + LIBUSB_CONTROL_SETUP_SIZE, Memory::GetPointer(data), wLength);
+		libusb_fill_control_transfer(transfer, dev_handle, buffer, handleUsbUpdates, (void*)(size_t)_CommandAddress, /* no timeout */ 0);
+		libusb_submit_transfer(transfer);
 
-		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i) = %d",
-			requestType, request, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize, ret);
+		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+		//		  bmRequestType, bRequest, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		
+		// It's the async way!
+		return false;
 		break;
 	}
 	case IOCTL_HID_INTERRUPT_OUT:
 	case IOCTL_HID_INTERRUPT_IN:
 	{
-		
-		int transfered = 0;
-		int ret;
 		u32 dev_num  = Memory::Read_U32(BufferIn+0x10);
 		u32 endpoint = Memory::Read_U32(BufferIn+0x14);
 		u32 length = Memory::Read_U32(BufferIn+0x18);
@@ -229,15 +244,17 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			break;
 		}
 		
-		ret = libusb_interrupt_transfer(dev_handle, endpoint, (unsigned char*)Memory::GetPointer(data), length, &transfered, 40 );
-		if(ret == 0)
-		{
-			ReturnValue = transfered;
-		}
+		struct libusb_transfer *transfer = libusb_alloc_transfer(0);
+		transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
+		libusb_fill_interrupt_transfer(transfer, dev_handle, endpoint, Memory::GetPointer(data), length,
+									   handleUsbUpdates, (void*)(size_t)_CommandAddress, 0);
+		libusb_submit_transfer(transfer);
 
-		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) = %d (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
-
+		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+		//	Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		
+		// It's the async way!
+		return false;
 		break;
 	}
 	default:
@@ -444,6 +461,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 		if(hidDeviceAliases[i] != 0 && check_cur != check)
 		{
 			DEBUG_LOG(WII_IPC_HID, "Removing: device %d %hX %hX", i, check, check_cur);
+			std::lock_guard<std::mutex> lk(s_open_devices);
 			if (open_devices.find(i) != open_devices.end())
 			{
 				libusb_device_handle *handle = open_devices[i];
@@ -477,6 +495,9 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 	
 	if(devNum >= MAX_DEVICE_DEVNUM)
 		return NULL;
+	
+	
+	std::lock_guard<std::mutex> lk(s_open_devices);
 	
 	if (open_devices.find(devNum) != open_devices.end())
 	{
