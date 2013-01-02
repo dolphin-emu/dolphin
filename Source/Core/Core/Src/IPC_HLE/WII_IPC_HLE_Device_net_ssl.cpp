@@ -89,7 +89,7 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 
 u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer CommandBuffer) 
 {
-	u32 returnValue = 0;
+	s32 returnValue = 0;
 
 	u32 _BufferIn = 0, _BufferIn2 = 0, _BufferIn3 = 0;
 	u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
