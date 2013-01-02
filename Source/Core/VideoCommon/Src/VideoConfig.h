@@ -164,10 +164,8 @@ struct VideoConfig
 		bool bSupportsPixelLighting;
 		
 		bool bSupportsGLSL;
-		bool bSupportsGLSLBinding;
 		bool bSupportsGLSLBlend;
 		bool bSupportsGLSLUBO;
-		bool bSupportsGLSLATTRBind;
 		bool bSupportsGLSLCache;
 	} backend_info;
 

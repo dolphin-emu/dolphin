@@ -514,15 +514,6 @@ const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 	return result;
 }
 
-const char* WriteBinding(API_TYPE ApiType, const u32 num)
-{
-	if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-		return "";
-	static char result[64];
-	sprintf(result, "layout(binding = %d) ", num);
-	return result;
-}
-
 const char *WriteLocation(API_TYPE ApiType)
 {
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
@@ -560,29 +551,14 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if (ApiType == API_OPENGL)
 	{
 		// A few required defines and ones that will make our lives a lot easier
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		{
-			WRITE(p, "#version 130\n");
-			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-				WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
-			if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-				WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
-			WRITE(p, "#define ATTRIN in\n");
-			WRITE(p, "#define ATTROUT out\n");
-			WRITE(p, "#define VARYIN in\n");
-			WRITE(p, "#define VARYOUT out\n");
-		}
-		else
-		{
-			WRITE(p, "#version 120\n");
-			WRITE(p, "#define ATTRIN attribute\n");
-			WRITE(p, "#define ATTROUT attribute\n"); // Can't really be used, but provide it anyway
-			WRITE(p, "#define VARYIN varying\n");
-			WRITE(p, "#define VARYOUT varying\n");
-		}
+		WRITE(p, "#version 130\n");
+		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+			WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
+		WRITE(p, "#define ATTRIN in\n");
+		WRITE(p, "#define ATTROUT out\n");
+		WRITE(p, "#define VARYIN in\n");
+		WRITE(p, "#define VARYOUT out\n");
 
-		if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
-			WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
 		// Silly differences
 		WRITE(p, "#define float2 vec2\n");
 		WRITE(p, "#define float3 vec3\n");
@@ -603,7 +579,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "}\n");
 
 		for (int i = 0; i < 8; ++i)
-			WRITE(p, "%suniform sampler2D samp%d;\n", WriteBinding(ApiType, i), i);
+			WRITE(p, "uniform sampler2D samp%d;\n", i);
 	}
 	else
 	{
@@ -659,27 +635,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	if (ApiType == API_OPENGL)
 	{
-		// GLSL doesn't do main arguments
-		// Once we switch to GLSL 1.3 we will bind a lot of these.
-		
+		WRITE(p, "out float4 ocol0;\n");
 		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-		{
-			// This won't get hit unless we support GL 3.3
-			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-			{
-				WRITE(p, "layout(location = 0) out float4 ocol0;\n");
-				WRITE(p, "layout(location = 0, index = 1) out float4 ocol1;\n");
-			}
-			else
-			{
-				WRITE(p, "out float4 ocol0;\n");
-				WRITE(p, "out float4 ocol1;\n");
-			}
-		}
-		else
-		{
-			WRITE(p, "float4 ocol0;\n");
-		}
+			WRITE(p, "out float4 ocol1;\n");
+		
 		if (DepthTextureEnable)
 			WRITE(p, "float depth;\n");
 		WRITE(p, "float4 rawpos = gl_FragCoord;\n");
@@ -790,8 +749,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			{
 				if (DepthTextureEnable)
 					WRITE(p, "\tgl_FragDepth = depth;\n");
-				if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
-					WRITE(p, "\tgl_FragData[0] = ocol0;\n");
 			}
 			WRITE(p, "\tdiscard;\n");
 			if(ApiType != API_D3D11)
@@ -957,16 +914,15 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 	{
 		// Colors will be blended against the alpha from ocol1...
-		WRITE(p, "\tocol1 = ocol0;\n");
+		WRITE(p, "\tocol1 = prev;\n");
 		// ...and the alpha from ocol0 will be written to the framebuffer.
 		WRITE(p, "\tocol0.a = " I_ALPHA"[0].a;\n");	
 	}
+	
 	if (ApiType == API_OPENGL)
 	{
 		if (DepthTextureEnable)
 			WRITE(p, "\tgl_FragDepth = depth;\n");
-		if (dstAlphaMode != DSTALPHA_DUAL_SOURCE_BLEND)
-			WRITE(p, "\tgl_FragData[0] = ocol0;\n");
 	}
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)

@@ -315,20 +315,16 @@ Renderer::Renderer()
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 
-	if (glewIsSupported("GL_ARB_shading_language_420pack"))
-		g_Config.backend_info.bSupportsGLSLBinding = true;
 	if (glewIsSupported("GL_ARB_blend_func_extended"))
 		g_Config.backend_info.bSupportsGLSLBlend = true;
 	if (glewIsSupported("GL_ARB_uniform_buffer_object"))
 		g_Config.backend_info.bSupportsGLSLUBO = true;
-	if ((g_Config.backend_info.bSupportsGLSLBinding || g_Config.backend_info.bSupportsGLSLUBO) && glewIsSupported("GL_ARB_explicit_attrib_location"))
-		g_Config.backend_info.bSupportsGLSLATTRBind = true;
 	if (glewIsSupported("GL_ARB_get_program_binary"))
 		g_Config.backend_info.bSupportsGLSLCache = true;
 		
 		UpdateActiveConfig();
-		OSD::AddMessage(StringFromFormat("Supports Binding: %s UBOs: %s Cache: %s",
-				g_ActiveConfig.backend_info.bSupportsGLSLBinding ? "True" : "False",
+		OSD::AddMessage(StringFromFormat("Supports Blending: %s UBOs: %s Cache: %s",
+				g_ActiveConfig.backend_info.bSupportsGLSLBlend ? "True" : "False",
 				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False",
 				g_ActiveConfig.backend_info.bSupportsGLSLCache ? "True" : "False").c_str(), 5000);
 			

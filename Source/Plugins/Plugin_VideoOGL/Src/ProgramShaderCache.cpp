@@ -61,18 +61,18 @@ const char *UniformNames[NUM_UNIFORMS] =
 
 void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 {
-	// Dunno why this is needed when I have the binding
-	// points statically set in the shader source
-	// We should only need these two functions when we don't support binding but do support UBO
-	// Driver Bug? Nvidia GTX 570, 290.xx Driver, Linux x64
+	// Bind UBO 
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		glUniformBlockBinding(entry.prog_id, glGetUniformBlockIndex(entry.prog_id, "PSBlock"), 1);
-		// Some things have no vertex shader
-		if (entry.vsid != 0)
-			glUniformBlockBinding(entry.prog_id, glGetUniformBlockIndex(entry.prog_id, "VSBlock"), 2);
+		GLint PSBlock_id = glGetUniformBlockIndex(entry.prog_id, "PSBlock");
+		GLint VSBlock_id = glGetUniformBlockIndex(entry.prog_id, "VSBlock");
+		
+		if(PSBlock_id != -1)
+			glUniformBlockBinding(entry.prog_id, PSBlock_id, 1);
+		if(VSBlock_id != -1)
+			glUniformBlockBinding(entry.prog_id, VSBlock_id, 2);
 	}
-
+	
 	// We cache our uniform locations for now
 	// Once we move up to a newer version of GLSL, ~1.30
 	// We can remove this
@@ -84,40 +84,32 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 		for (int a = 8; a < NUM_UNIFORMS; ++a)
 			entry.UniformLocations[a] = glGetUniformLocation(entry.prog_id, UniformNames[a]);
 
-	if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+	// Bind Texture Sampler
+	for (int a = 0; a < 8; ++a)
 	{
-		for (int a = 0; a < 8; ++a)
-		{
-			// Still need to get sampler locations since we aren't binding them statically in the shaders
-			entry.UniformLocations[a] = glGetUniformLocation(entry.prog_id, UniformNames[a]);
-			if (entry.UniformLocations[a] != -1)
-				glUniform1i(entry.UniformLocations[a], a);
-		}
+		// Still need to get sampler locations since we aren't binding them statically in the shaders
+		entry.UniformLocations[a] = glGetUniformLocation(entry.prog_id, UniformNames[a]);
+		if (entry.UniformLocations[a] != -1)
+			glUniform1i(entry.UniformLocations[a], a);
 	}
+
 }
 
 void ProgramShaderCache::SetProgramBindings ( ProgramShaderCache::PCacheEntry& entry )
 {
-	if (!g_ActiveConfig.backend_info.bSupportsGLSLBinding)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
 	{
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
-		{
-			// So we don't support binding, but we do support extended blending
-			// So we need to set a few more things here.
-			// Bind our out locations
-			glBindFragDataLocationIndexed(entry.prog_id, 0, 0, "ocol0");
-			glBindFragDataLocationIndexed(entry.prog_id, 0, 1, "ocol1");
-		}
+		// So we do support extended blending
+		// So we need to set a few more things here.
+		// Bind our out locations
+		glBindFragDataLocationIndexed(entry.prog_id, 0, 0, "ocol0");
+		glBindFragDataLocationIndexed(entry.prog_id, 0, 1, "ocol1");
 	}
 
 	// Need to set some attribute locations
-	if (entry.vsid != 0 && !g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
-	{
-		// We have no vertex Shader
-		glBindAttribLocation(entry.prog_id, SHADER_NORM1_ATTRIB, "rawnorm1");
-		glBindAttribLocation(entry.prog_id, SHADER_NORM2_ATTRIB, "rawnorm2");
-		glBindAttribLocation(entry.prog_id, SHADER_POSMTX_ATTRIB, "fposmtx");
-	}
+	glBindAttribLocation(entry.prog_id, SHADER_NORM1_ATTRIB, "rawnorm1");
+	glBindAttribLocation(entry.prog_id, SHADER_NORM2_ATTRIB, "rawnorm2");
+	glBindAttribLocation(entry.prog_id, SHADER_POSMTX_ATTRIB, "fposmtx");
 }
 
 

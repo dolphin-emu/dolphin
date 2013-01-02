@@ -164,8 +164,7 @@ char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 }
 
 extern const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num);
-extern const char* WriteBinding(API_TYPE ApiType, const u32 num);
-const char *WriteLocation(API_TYPE ApiType);
+extern const char *WriteLocation(API_TYPE ApiType);
 
 const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 {
@@ -188,28 +187,15 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 	{
 		// A few required defines and ones that will make our lives a lot easier
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		{
-			WRITE(p, "#version 130\n");
-			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-				WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
-			if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-				WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
-			WRITE(p, "#define ATTRIN in\n");
-			WRITE(p, "#define ATTROUT out\n");
-			WRITE(p, "#define VARYIN in\n");
-			WRITE(p, "#define VARYOUT out\n");
-		}
-		else
-		{
-			WRITE(p, "#version 120\n");
-			WRITE(p, "#define ATTRIN attribute\n");
-			WRITE(p, "#define ATTROUT attribute\n"); // Can't really be used, but provide it anyway
-			WRITE(p, "#define VARYIN varying\n");
-			WRITE(p, "#define VARYOUT varying\n");
-		}
-		if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
-			WRITE(p, "#extension GL_ARB_explicit_attrib_location : enable\n");
+		
+		WRITE(p, "#version 130\n");
+		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+			WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
+		WRITE(p, "#define ATTRIN in\n");
+		WRITE(p, "#define ATTROUT out\n");
+		WRITE(p, "#define VARYIN in\n");
+		WRITE(p, "#define VARYOUT out\n");
+		
 		// Silly differences
 		WRITE(p, "#define float2 vec2\n");
 		WRITE(p, "#define float3 vec3\n");
@@ -246,24 +232,12 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		if (components & VB_HAS_NRM0)
 			WRITE(p, " float3 rawnorm0 = gl_Normal; // NORMAL0,\n");
 
-		if (g_ActiveConfig.backend_info.bSupportsGLSLATTRBind)
-		{
-			if (components & VB_HAS_POSMTXIDX)
-				WRITE(p, "layout(location = %d) ATTRIN float fposmtx;\n", SHADER_POSMTX_ATTRIB);
-			if (components & VB_HAS_NRM1)
-				WRITE(p, "layout(location = %d) ATTRIN float3 rawnorm1;\n", SHADER_NORM1_ATTRIB);
-			if (components & VB_HAS_NRM2)
-				WRITE(p, "layout(location = %d) ATTRIN float3 rawnorm2;\n", SHADER_NORM2_ATTRIB);
-		}
-		else
-		{
-			if (components & VB_HAS_POSMTXIDX)
-				WRITE(p, "ATTRIN float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
-			if (components & VB_HAS_NRM1)
-				WRITE(p, "ATTRIN float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
-			if (components & VB_HAS_NRM2)
-				WRITE(p, "ATTRIN float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
-		}
+		if (components & VB_HAS_POSMTXIDX)
+			WRITE(p, "ATTRIN float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		if (components & VB_HAS_NRM1)
+			WRITE(p, "ATTRIN float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
+		if (components & VB_HAS_NRM2)
+			WRITE(p, "ATTRIN float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
 
 		if (components & VB_HAS_COL0)
 			WRITE(p, "  float4 color0 = gl_Color; // COLOR0,\n");

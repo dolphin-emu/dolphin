@@ -93,7 +93,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
     // [1] width and height of destination texture in pixels
     // Two were merged for GLSL
     if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 1" : "");
+		WRITE(p, "layout(std140) uniform PSBlock {\n");
 		
     WRITE(p, "%sfloat4 " I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
     
@@ -105,8 +105,6 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	float samples = (float)GetEncodedSampleCount(format);
 	if (ApiType == API_OPENGL)
 	{
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-			WRITE(p, "layout(binding = 0) ");
 		WRITE(p, "uniform sampler2DRect samp0;\n");
 	}
 	else if (ApiType & API_D3D9)
@@ -181,7 +179,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
     // [1] width and height of destination texture in pixels
     // Two were merged for GLSL
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportsGLSLBinding ? ", binding = 1" : "");
+		WRITE(p, "layout(std140) uniform PSBlock {\n");
     WRITE(p, "%sfloat4 " I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
@@ -192,8 +190,6 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
 	if (ApiType == API_OPENGL)
 	{
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-			WRITE(p, "layout(binding = 0) ");
 		WRITE(p, "uniform sampler2DRect samp0;\n");
 	}
 	else if (ApiType & API_D3D9)
@@ -848,16 +844,10 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 	{
 		// A few required defines and ones that will make our lives a lot easier
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBinding || g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		{
-			WRITE(p, "#version 130\n");
-			if (g_ActiveConfig.backend_info.bSupportsGLSLBinding)
-				WRITE(p, "#extension GL_ARB_shading_language_420pack : enable\n");
-			if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-				WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
-		}
-		else
-			WRITE(p, "#version 120\n");
+		WRITE(p, "#version 130\n");
+		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+			WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
+		
 		// Silly differences
 		WRITE(p, "#define float2 vec2\n");
 		WRITE(p, "#define float3 vec3\n");
