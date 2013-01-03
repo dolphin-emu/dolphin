@@ -618,6 +618,12 @@ void CConfigMain::CreateGUIControls()
 	FrequencySelection->Append(wxString::Format(_("%d Hz"), 48000));
 	FrequencySelection->Append(wxString::Format(_("%d Hz"), 32000));
 
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		FrequencySelection->Disable();
+		BackendSelection->Disable();
+	}
+
 	// Create sizer and add items to dialog
 	wxStaticBoxSizer *sbAudioSettings = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Sound Settings"));
 	sbAudioSettings->Add(DSPEngine, 0, wxALL | wxEXPAND, 5);
