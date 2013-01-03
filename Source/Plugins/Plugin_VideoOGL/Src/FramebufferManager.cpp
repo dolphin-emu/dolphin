@@ -381,13 +381,24 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 void XFBSource::CopyEFB(float Gamma)
 {
 	// Copy EFB data to XFB and restore render target again
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
 
+	// Bind texture.
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, texture, 0);
+	GL_REPORT_FBO_ERROR();
+
+	glBlitFramebuffer(
+		0, 0, texWidth, texHeight,
+		0, 0, texWidth, texHeight,
+		GL_COLOR_BUFFER_BIT, GL_NEAREST
+	);
+
+	// Unbind texture.
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, 0, 0);
+
+	// Return to EFB.
 	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
-
-	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
-	glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, 4, 0, 0, texWidth, texHeight, 0);
-
-	glBindTexture(GL_TEXTURE_RECTANGLE, 0);
 
 }
 
@@ -397,18 +408,10 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 
 	glGenTextures(1, &texture);
 
-#if 0// XXX: Some video drivers don't handle glCopyTexImage2D correctly, so use EXT_framebuffer_blit whenever possible.
-	if (m_msaaSamples > 1)
-#endif
-	{
-		// In MSAA mode, allocate the texture image here. In non-MSAA mode,
-		// the image will be allocated by glCopyTexImage2D (later).
+	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
+	glTexImage2D(GL_TEXTURE_RECTANGLE, 0, 4, target_width, target_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-		glBindTexture(GL_TEXTURE_RECTANGLE, texture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, 4, target_width, target_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-		glBindTexture(GL_TEXTURE_RECTANGLE, 0);
-	}
+	glBindTexture(GL_TEXTURE_RECTANGLE, 0);
 
 	return new XFBSource(texture);
 }
