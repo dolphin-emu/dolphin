@@ -1185,6 +1185,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		GLuint read_texture = FramebufferManager::ResolveAndGetRenderTarget(rc);
 		// Render to the real buffer now.
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 
 		if(!( s_cached_targetRc == targetRc)) {

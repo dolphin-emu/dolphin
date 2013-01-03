@@ -121,7 +121,6 @@ TextureCache::TCacheEntry::TCacheEntry()
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	GL_REPORT_ERRORD();
 
@@ -215,7 +214,6 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level, bool autogen_mips)
 {
-	//glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	//GL_REPORT_ERRORD();
 
@@ -307,6 +305,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 		glActiveTexture(GL_TEXTURE0);
 		glEnable(GL_TEXTURE_RECTANGLE_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 
 		glViewport(0, 0, virtual_width, virtual_height);
@@ -369,6 +368,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		
 		// TODO: this after merging with graphic_update
 		glBindVertexArray(0);
+		
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 
 		GL_REPORT_ERRORD();
 
@@ -472,7 +473,6 @@ TextureCache::~TextureCache()
 void TextureCache::DisableStage(unsigned int stage)
 {
 	glActiveTexture(GL_TEXTURE0 + stage);
-	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_TEXTURE_RECTANGLE_ARB);
 }
 

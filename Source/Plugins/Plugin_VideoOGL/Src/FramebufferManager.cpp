@@ -341,6 +341,7 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 {
 	// Texture map xfbSource->texture onto the main buffer
 
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
 
 	if(!(s_cached_sourcerc == sourcerc) || !(s_cached_drawrc == drawrc)) {
@@ -373,6 +374,8 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 	
 	// TODO: this after merging with graphic_update
 	glBindVertexArray(0);
+	
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 		
 	GL_REPORT_ERRORD();
 }
