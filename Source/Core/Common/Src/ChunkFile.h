@@ -155,7 +155,14 @@ public:
 		Do(stringLen);
 
 		switch (mode) {
-		case MODE_READ:		x = (wchar_t*)*ptr; break;
+		case MODE_READ:
+			{
+				wchar_t* tmp = new wchar_t[stringLen / sizeof(wchar_t)];
+				memcpy(tmp, *ptr, stringLen);
+				x = tmp;
+				delete[] tmp;
+			}
+			break;
 		case MODE_WRITE:	memcpy(*ptr, x.c_str(), stringLen); break;
 		case MODE_MEASURE: break;
 		case MODE_VERIFY: _dbg_assert_msg_(COMMON, x == (wchar_t*)*ptr, "Savestate verification failure: \"%ls\" != \"%ls\" (at %p).\n", x.c_str(), (wchar_t*)*ptr, ptr); break;
