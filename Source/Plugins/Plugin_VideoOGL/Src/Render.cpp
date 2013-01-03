@@ -110,9 +110,6 @@ namespace OGL
 static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
-static GLuint s_Swap_VBO = 0;
-static GLuint s_Swap_VAO[2];
-static TargetRectangle s_cached_targetRc;
 
 static RasterFont* s_pfont = NULL;
 
@@ -251,16 +248,7 @@ Renderer::Renderer()
 
 	s_fps=0;
 	s_ShowEFBCopyRegions_VBO = 0;
-	s_Swap_VBO = 0;
 	s_blendMode = 0;
-	
-	// should be invalid, so there will be an upload on the first call
-	s_cached_targetRc.bottom = -1;
-	s_cached_targetRc.top = -1;
-	s_cached_targetRc.left = -1;
-	s_cached_targetRc.right = -1;
-	
-
 	InitFPSCounter();
 
 #if defined HAVE_CG && HAVE_CG
@@ -475,26 +463,6 @@ Renderer::Renderer()
 	glColorPointer (3, GL_FLOAT, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*5, NULL);
-	
-	glGenBuffers(1, &s_Swap_VBO);
-	glGenVertexArrays(2, s_Swap_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
-	glBindVertexArray(s_Swap_VAO[0]);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 7*sizeof(GLfloat), NULL);
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+3);
-	
-	glBindVertexArray(s_Swap_VAO[1]);	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 7*sizeof(GLfloat), NULL);
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+3);
-	glClientActiveTexture(GL_TEXTURE1);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+5);
 
 	// TODO: this after merging with graphic_update
 	glBindVertexArray(0);
@@ -539,8 +507,6 @@ Renderer::~Renderer()
 	
 	glDeleteBuffers(1, &s_ShowEFBCopyRegions_VBO);
 	glDeleteVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
-	glDeleteBuffers(1, &s_Swap_VBO);
-	glDeleteVertexArrays(2, s_Swap_VAO);
 	s_ShowEFBCopyRegions_VBO = 0;
 	
 	delete s_pfont;
@@ -1170,7 +1136,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Textured triangles are necessary because of post-processing shaders
 
 	// Disable all other stages
-	for (int i = 1; i < 8; ++i)
+	for (int i = 0; i < 8; ++i)
 		OGL::TextureCache::DisableStage(i);
 
 	// Update GLViewPort
@@ -1178,26 +1144,22 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	GL_REPORT_ERRORD();
 
-	// Copy the framebuffer to screen.
-
-	// Texture map s_xfbTexture onto the main buffer
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_RECTANGLE);
-	// Use linear filtering.
-	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
 	// We must call ApplyShader here even if no post proc is selected - it takes
 	// care of disabling it in that case. It returns false in case of no post processing.
-	bool applyShader = PostProcessing::ApplyShader();
+	//bool applyShader = PostProcessing::ApplyShader();
+	// degasus: disabled for blitting
+	
+	// Render to the real buffer now.
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // switch to the window backbuffer
+	
+	// Copy the framebuffer to screen.
 
 	const XFBSourceBase* xfbSource = NULL;
 
 	if(g_ActiveConfig.bUseXFB)
 	{
 		// draw each xfb source
-		// Render to the real buffer now.
-		glBindFramebuffer(GL_FRAMEBUFFER, 0); // switch to the window backbuffer
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
 
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
@@ -1207,10 +1169,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 			if (g_ActiveConfig.bUseRealXFB)
 			{
-				drawRc.top = 1;
-				drawRc.bottom = -1;
-				drawRc.left = -1;
-				drawRc.right = 1;
+				drawRc.top = flipped_trc.top;
+				drawRc.bottom = flipped_trc.bottom;
+				drawRc.left = flipped_trc.left;
+				drawRc.right = flipped_trc.right;
 			}
 			else
 			{
@@ -1218,12 +1180,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				int xfbHeight = xfbSource->srcHeight;
 				int xfbWidth = xfbSource->srcWidth;
 				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
-
-				drawRc.top = 1.0f - (2.0f * (hOffset) / (float)fbHeight);
-				drawRc.bottom = 1.0f - (2.0f * (hOffset + xfbHeight) / (float)fbHeight);
-				drawRc.left = -(xfbWidth / (float)fbWidth);
-				drawRc.right = (xfbWidth / (float)fbWidth);
-
+				
+				drawRc.top = flipped_trc.bottom + (hOffset + xfbHeight) * flipped_trc.GetHeight() / fbHeight;
+				drawRc.bottom = flipped_trc.bottom + hOffset * flipped_trc.GetHeight() / fbHeight;
+				drawRc.left = flipped_trc.left + (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / fbWidth)/2;
+				drawRc.right = flipped_trc.left + (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / fbWidth)/2;
+				
 				// The following code disables auto stretch.  Kept for reference.
 				// scale draw area for a 1 to 1 pixel mapping with the draw target
 				//float vScale = (float)fbHeight / (float)flipped_trc.GetHeight();
@@ -1243,67 +1205,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			sourceRc.bottom = xfbSource->sourceRc.bottom;
 
 			xfbSource->Draw(sourceRc, drawRc, 0, 0);
-
-			// We must call ApplyShader here even if no post proc is selected.
-			// It takes care of disabling it in that case. It returns false in
-			// case of no post processing.
-			if (applyShader)
-				PixelShaderCache::DisableShader();
 		}
 	}
 	else
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
-		if(applyShader) {
-			GLuint read_texture = FramebufferManager::ResolveAndGetRenderTarget(rc);
-			// Render to the real buffer now.
-			glBindFramebuffer(GL_FRAMEBUFFER, 0); // switch to the window backbuffer
-			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
-
-			if(!( s_cached_targetRc == targetRc)) {
-				GLfloat vertices[] = {
-					-1.0f, -1.0f, 1.0f,
-					(GLfloat)targetRc.left, (GLfloat)targetRc.bottom,
-					0.0f, 0.0f,
-					
-					-1.0f, 1.0f, 1.0f,
-					(GLfloat)targetRc.left, (GLfloat)targetRc.top,
-					0.0f, 1.0f,
-					
-					1.0f, 1.0f, 1.0f,
-					(GLfloat)targetRc.right, (GLfloat)targetRc.top,
-					1.0f, 1.0f,
-					
-					1.0f, -1.0f, 1.0f,
-					(GLfloat)targetRc.right, (GLfloat)targetRc.bottom,
-					1.0f, 0.0f
-				};
-				
-				glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
-				glBufferData(GL_ARRAY_BUFFER, 4*7*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-			
-				s_cached_targetRc = targetRc;
-			} 
-			
-			glBindVertexArray(s_Swap_VAO[applyShader]);
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-			
-			// TODO: this after merging with graphic_update
-			glBindVertexArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			
-			PixelShaderCache::DisableShader();
-			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-			OGL::TextureCache::DisableStage(0);
-			
-		} else {
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
-			glBlitFramebuffer(targetRc.left, targetRc.bottom, targetRc.right, targetRc.top,
-				flipped_trc.left, flipped_trc.bottom, flipped_trc.right, flipped_trc.top,
-				GL_COLOR_BUFFER_BIT, GL_LINEAR);
-		}
+		
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
+		glBlitFramebuffer(targetRc.left, targetRc.bottom, targetRc.right, targetRc.top,
+			flipped_trc.left, flipped_trc.bottom, flipped_trc.right, flipped_trc.top,
+			GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 
 

@@ -26,11 +26,6 @@
 namespace OGL
 {
 
-static GLuint s_VBO = 0;
-static GLuint s_VAO = 0;
-static MathUtil::Rectangle<float> s_cached_sourcerc;
-static MathUtil::Rectangle<float> s_cached_drawrc;
-
 int FramebufferManager::m_targetWidth;
 int FramebufferManager::m_targetHeight;
 int FramebufferManager::m_msaaSamples;
@@ -45,7 +40,7 @@ GLuint FramebufferManager::m_resolvedFramebuffer;
 GLuint FramebufferManager::m_resolvedColorTexture;
 GLuint FramebufferManager::m_resolvedDepthTexture;
 
-GLuint FramebufferManager::m_xfbFramebuffer; // Only used in MSAA mode
+GLuint FramebufferManager::m_xfbFramebuffer;
 
 FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples, int msaaCoverageSamples)
 {
@@ -56,15 +51,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
     m_resolvedColorTexture = 0;
     m_resolvedDepthTexture = 0;
     m_xfbFramebuffer = 0;
-
-	s_cached_sourcerc.bottom = -1;
-	s_cached_sourcerc.left = -1;
-	s_cached_sourcerc.right = -1;
-	s_cached_sourcerc.top = -1;
-	s_cached_drawrc.bottom = -1;
-	s_cached_drawrc.left = -1;
-	s_cached_drawrc.right = -1;
-	s_cached_drawrc.top = -1;   
 	
 	m_targetWidth = targetWidth;
 	m_targetHeight = targetHeight;
@@ -183,27 +169,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 	glGenFramebuffers(1, &m_xfbFramebuffer);
 	
-	// Generate VBO & VAO - and initialize the VAO for "Draw"
-	glGenBuffers(1, &s_VBO);
-	glGenVertexArrays(1, &s_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-	glBindVertexArray(s_VAO);
-	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 6*sizeof(GLfloat), NULL);
-	
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+2);
-	
-	glClientActiveTexture(GL_TEXTURE1);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 6*sizeof(GLfloat), (GLfloat*)NULL+4);
-	
-	// TODO: this after merging with graphic_update
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
 	// EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
 	glViewport(0, 0, m_targetWidth, m_targetHeight);
 	glScissor(0, 0, m_targetWidth, m_targetHeight);
@@ -215,8 +180,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 FramebufferManager::~FramebufferManager()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDeleteBuffers(1, &s_VBO);
-	glDeleteVertexArrays(1, &s_VAO);
 
 	GLuint glObj[3];
 
@@ -338,38 +301,11 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 		const MathUtil::Rectangle<float> &drawrc, int width, int height) const
 {
 	// Texture map xfbSource->texture onto the main buffer
+	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, texture, 0);
+	glBlitFramebuffer(sourcerc.left, sourcerc.bottom, sourcerc.right, sourcerc.top,
+		drawrc.left, drawrc.bottom, drawrc.right, drawrc.top,
+		GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
-
-	if(!(s_cached_sourcerc == sourcerc) || !(s_cached_drawrc == drawrc)) {
-		GLfloat vertices[] = {
-			drawrc.left, drawrc.bottom,
-			sourcerc.left, sourcerc.bottom,
-			0.0f, 0.0f,
-			drawrc.left, drawrc.top,
-			sourcerc.left, sourcerc.top,
-			0.0f, 1.0f,
-			drawrc.right, drawrc.top,
-			sourcerc.right, sourcerc.top,
-			1.0f, 1.0f,
-			drawrc.right, drawrc.bottom,
-			sourcerc.right, sourcerc.bottom,
-			1.0f, 0.0f
-		};
-		glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-		glBufferData(GL_ARRAY_BUFFER, 2*4*3*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-	
-		s_cached_sourcerc = sourcerc;
-		s_cached_drawrc = drawrc;
-	}
-
-	glBindVertexArray(s_VAO);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	
-	// TODO: this after merging with graphic_update
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
 	GL_REPORT_ERRORD();
 }
 
