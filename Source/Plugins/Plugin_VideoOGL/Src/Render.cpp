@@ -1217,6 +1217,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 	// Save screenshot
 	if (s_bScreenshot)
