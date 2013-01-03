@@ -147,7 +147,7 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 
 void Init()
 {
-	glGenFramebuffersEXT(1, &s_texConvFrameBuffer);
+	glGenFramebuffers(1, &s_texConvFrameBuffer);
 	
 	glGenBuffers(1, &s_encode_VBO );
 	glGenVertexArrays(1, &s_encode_VAO );
@@ -179,10 +179,10 @@ void Init()
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glGenRenderbuffersEXT(1, &s_dstRenderBuffer);
-	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
+	glGenRenderbuffers(1, &s_dstRenderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, s_dstRenderBuffer);
 	
-	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, renderBufferWidth, renderBufferHeight);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, renderBufferWidth, renderBufferHeight);
 
 	s_srcTextureWidth = 0;
 	s_srcTextureHeight = 0;
@@ -199,8 +199,8 @@ void Init()
 void Shutdown()
 {
 	glDeleteTextures(1, &s_srcTexture);
-	glDeleteRenderbuffersEXT(1, &s_dstRenderBuffer);
-	glDeleteFramebuffersEXT(1, &s_texConvFrameBuffer);
+	glDeleteRenderbuffers(1, &s_dstRenderBuffer);
+	glDeleteFramebuffers(1, &s_texConvFrameBuffer);
 	glDeleteBuffers(1, &s_encode_VBO );
 	glDeleteVertexArrays(1, &s_encode_VAO );
 	glDeleteBuffers(1, &s_decode_VBO );
@@ -227,8 +227,8 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 	// attach render buffer as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
 
-	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
-	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_dstRenderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, s_dstRenderBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, s_dstRenderBuffer);
 	GL_REPORT_ERRORD();
 
 	for (int i = 1; i < 8; ++i)
@@ -236,18 +236,18 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	// set source texture
 	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, srcTexture);
+	glEnable(GL_TEXTURE_RECTANGLE);
+	glBindTexture(GL_TEXTURE_RECTANGLE, srcTexture);
 
 	if (linearFilter)
 	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 	else
 	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
 
 	GL_REPORT_ERRORD();
@@ -404,7 +404,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// attach destTexture as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, destTexture);
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, destTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, destTexture, 0);
 
 	GL_REPORT_FBO_ERROR();
 
@@ -414,18 +414,18 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// activate source texture
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
+	glEnable(GL_TEXTURE_RECTANGLE);
+	glBindTexture(GL_TEXTURE_RECTANGLE, s_srcTexture);
 
 	// TODO: make this less slow.  (How?)
 	if((GLsizei)s_srcTextureWidth == (GLsizei)srcFmtWidth && (GLsizei)s_srcTextureHeight == (GLsizei)srcHeight)
 	{
-		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0,0,0,s_srcTextureWidth, s_srcTextureHeight,
+		glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0,0,0,s_srcTextureWidth, s_srcTextureHeight,
 				GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 	}
 	else
 	{
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight,
+		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight,
 				0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 		s_srcTextureWidth = (GLsizei)srcFmtWidth;
 		s_srcTextureHeight = (GLsizei)srcHeight;
@@ -467,7 +467,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	// reset state
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, 0, 0);
 	TextureCache::DisableStage(0);
 
 	VertexShaderManager::SetViewportChanged();

@@ -121,7 +121,6 @@ static int s_MSAASamples = 1;
 static int s_MSAACoverageSamples = 0;
 static int s_LastMultisampleMode = 0;
 
-bool s_bHaveFramebufferBlit = false; // export to FramebufferManager.cpp
 static bool s_bHaveCoverageMSAA = false;
 static u32 s_blendMode;
 
@@ -201,10 +200,6 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 
 int GetNumMSAASamples(int MSAAMode)
 {
-	// required for MSAA
-	if (!s_bHaveFramebufferBlit)
-		return 1;
-
 	switch (MSAAMode)
 	{
 		case MULTISAMPLE_OFF:
@@ -311,17 +306,17 @@ Renderer::Renderer()
 		return;	// TODO: fail
 	}
 
-	if (!GLEW_EXT_framebuffer_object)
-	{
-		ERROR_LOG(VIDEO, "GPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets.\n"
-				"GPU: Does your video card support OpenGL 2.x?");
-		bSuccess = false;
-	}
-
 	if (!GLEW_EXT_secondary_color)
 	{
 		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_EXT_secondary_color.\n"
 				"GPU: Does your video card support OpenGL 2.x?");
+		bSuccess = false;
+	}
+
+	if (!GLEW_ARB_framebuffer_object)
+	{
+		ERROR_LOG(VIDEO, "GPU: ERROR: Need GL_ARB_framebufer_object for multiple render targets.\n"
+				"GPU: Does your video card support OpenGL 3.0?");
 		bSuccess = false;
 	}
 
@@ -332,7 +327,6 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
@@ -403,7 +397,7 @@ Renderer::Renderer()
 	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 			s_MSAASamples, s_MSAACoverageSamples);
 
-	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
@@ -524,7 +518,7 @@ Renderer::Renderer()
 	glEnable(GL_SCISSOR_TEST);
 
 	glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
-	glBlendColorEXT(0, 0, 0, 0.5f);
+	glBlendColor(0, 0, 0, 0.5f);
 	glClearDepth(1.0f);
 
 	// legacy multitexturing: select texture channel only.
@@ -866,7 +860,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 				{
 					// Resolve our rectangle.
 					FramebufferManager::GetEFBDepthTexture(efbPixelRc);
-					glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, FramebufferManager::GetResolvedFramebuffer());
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
 				}
 
 				u32* depthMap = new u32[targetPixelRcWidth * targetPixelRcHeight];
@@ -915,7 +909,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 				{
 					// Resolve our rectangle.
 					FramebufferManager::GetEFBColorTexture(efbPixelRc);
-					glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, FramebufferManager::GetResolvedFramebuffer());
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
 				}
 
 				u32* colorMap = new u32[targetPixelRcWidth * targetPixelRcHeight];
@@ -1188,10 +1182,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Texture map s_xfbTexture onto the main buffer
 	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_RECTANGLE_ARB);
+	glEnable(GL_TEXTURE_RECTANGLE);
 	// Use linear filtering.
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	// We must call ApplyShader here even if no post proc is selected - it takes
 	// care of disabling it in that case. It returns false in case of no post processing.
@@ -1203,7 +1197,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		// draw each xfb source
 		// Render to the real buffer now.
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // switch to the window backbuffer
 
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
@@ -1262,7 +1256,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 		GLuint read_texture = FramebufferManager::ResolveAndGetRenderTarget(rc);
 		// Render to the real buffer now.
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 
 		if(!( s_cached_targetRc == targetRc)) {
@@ -1464,7 +1458,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 				s_MSAASamples, s_MSAACoverageSamples);
-			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		}
 	}
 
