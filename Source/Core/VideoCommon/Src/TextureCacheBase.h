@@ -94,6 +94,8 @@ public:
 			unsigned int srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 			const float *colmat) = 0;
+		virtual bool CopyComplete();
+		virtual void AbortCopy();
 
 		int IntersectsMemoryRange(u32 range_address, u32 range_size) const;
 
@@ -119,6 +121,9 @@ public:
 		int format, unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem);
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+	
+	static bool CheckCopyStatus();
+	static void QueueRenderTarget(TCacheEntryBase *entry);
 
 protected:
 	TextureCache();

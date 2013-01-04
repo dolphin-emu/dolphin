@@ -30,6 +30,7 @@
 #include "VertexLoader.h"
 #include "VertexShaderManager.h"
 #include "Thread.h"
+#include "TextureCacheBase.h"
 #include "HW/Memmap.h"
 
 using namespace BPFunctions;
@@ -233,6 +234,7 @@ void BPWritten(const BPCmd& bp)
 		switch (bp.newvalue & 0xFF)
 		{
 		case 0x02:
+			while(!TextureCache::CheckCopyStatus());
 			PixelEngine::SetFinish(); // may generate interrupt
 			DEBUG_LOG(VIDEO, "GXSetDrawDone SetPEFinish (value: 0x%02X)", (bp.newvalue & 0xFFFF));
 			break;

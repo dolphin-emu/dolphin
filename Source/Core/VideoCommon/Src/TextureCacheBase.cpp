@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <list>
 #include "MemoryUtil.h"
 
 #include "VideoConfig.h"
@@ -46,8 +47,25 @@ TextureCache::TexCache TextureCache::textures;
 TextureCache::BackupConfig TextureCache::backup_config;
 
 
+struct CopyQueueItem {
+	TextureCache::TCacheEntryBase *entry;
+};
+static std::list<CopyQueueItem> s_CopyQueue;
+
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
+	//while(!TextureCache::CheckCopyStatus());
+	
+	// remove from queue
+	std::list<CopyQueueItem>::iterator it = s_CopyQueue.begin();
+	while(it != s_CopyQueue.end()) {
+		if(it->entry == this) {
+			AbortCopy();
+			s_CopyQueue.erase(it++);
+		} else {
+			it++;
+		}
+	}
 }
 
 TextureCache::TextureCache()
@@ -357,7 +375,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			tex_hash = TEXHASH_INVALID;
 
 		// 2. a) For EFB copies, only the hash and the texture address need to match
-		if (entry->IsEfbCopy() && tex_hash == entry->hash && address == entry->addr)
+		if (entry->IsEfbCopy() && (tex_hash == entry->hash || entry->hash == TEXHASH_INVALID) && address == entry->addr)
 		{
 			entry->type = TCET_EC_VRAM;
 
@@ -805,4 +823,53 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
 
 	g_renderer->RestoreAPIState();
+}
+
+void TextureCache::QueueRenderTarget ( TextureCache::TCacheEntryBase* entry )
+{
+	// remove dplicated items
+	std::list<CopyQueueItem>::iterator it = s_CopyQueue.begin();
+	while(it != s_CopyQueue.end()) {
+		if(it->entry == entry) {
+			entry->AbortCopy();
+			s_CopyQueue.erase(it++);
+		} else {
+			it++;
+		}
+	}
+	
+	// hash = invalid will be used as not transfered
+	entry->hash = TEXHASH_INVALID;
+	
+	CopyQueueItem item;
+	item.entry = entry;
+	s_CopyQueue.push_back(item);
+}
+
+
+bool TextureCache::TCacheEntryBase::CopyComplete()
+{
+	// backend doesn't support async readback, so it is ready
+	return true;
+}
+
+void TextureCache::TCacheEntryBase::AbortCopy()
+{
+
+}
+
+
+bool TextureCache::CheckCopyStatus()
+{
+	while(!s_CopyQueue.empty()) {
+		CopyQueueItem item = s_CopyQueue.front();
+		if(item.entry) {
+			if(! item.entry->CopyComplete()) {
+				return false; // isn't ready
+			}
+		}
+		s_CopyQueue.pop_front();
+	}
+	// queue is now empty
+	return true;
 }

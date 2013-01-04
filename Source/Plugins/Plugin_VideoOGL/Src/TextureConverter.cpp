@@ -222,6 +222,8 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 						   	bool toTexture, bool linearFilter)
 {
 
+	// on using pbo, dest is always null
+	destAddr = NULL;
 
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
@@ -288,6 +290,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	int writeStride = bpmem.copyMipMapStrideChannels * 32;
 
+	//ERROR_LOG(VIDEO, "start readback");
 	if (writeStride != readStride && toTexture)
 	{
 		// writing to a texture of a different size
@@ -304,9 +307,10 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 			destAddr += writeStride;
 		}
 	}
-	else
+	else {
 		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
-
+	}
+	//ERROR_LOG(VIDEO, "stop  readback");
 	GL_REPORT_ERRORD();
 
 }

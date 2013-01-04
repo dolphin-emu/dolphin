@@ -108,6 +108,9 @@ TextureCache::TCacheEntry::~TCacheEntry()
 		glDeleteTextures(1, &texture);
 		texture = 0;
 	}
+	if(pbo) {
+		glDeleteBuffers(1, &pbo);
+	}
 }
 
 TextureCache::TCacheEntry::TCacheEntry()
@@ -115,6 +118,7 @@ TextureCache::TCacheEntry::TCacheEntry()
 	glGenTextures(1, &texture);
 	currmode.hex = 0;
 	currmode1.hex = 0;
+	pbo = 0;
 	GL_REPORT_ERRORD();
 }
 
@@ -274,6 +278,10 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		GL_REPORT_ERRORD();
 	}
+	
+	glGenBuffers(1, &entry->pbo);
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, entry->pbo);
+	glBufferData(GL_PIXEL_PACK_BUFFER, 4*scaled_tex_w*scaled_tex_h, NULL, GL_STREAM_READ);
 
 	return entry;
 }
@@ -375,7 +383,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 	if (false == g_ActiveConfig.bCopyEFBToTexture)
 	{
-		int encoded_size = TextureConverter::EncodeToRamFromTexture(
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+		
+		encoded_size = TextureConverter::EncodeToRamFromTexture(
 			addr,
 			read_texture,
 			srcFormat == PIXELFMT_Z24, 
@@ -383,17 +393,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			dstFormat, 
 			scaleByHalf, 
 			srcRect);
-
-		u8* dst = Memory::GetPointer(addr);
-		u64 hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
-
-		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
-		if (!g_ActiveConfig.bEFBCopyCacheEnable)
-			TextureCache::MakeRangeDynamic(addr,encoded_size);
-		else if (!TextureCache::Find(addr, hash))
-			TextureCache::MakeRangeDynamic(addr,encoded_size);
-
-		this->hash = hash;
+		TextureCache::QueueRenderTarget(this);
+		fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	}
 
     FramebufferManager::SetFramebuffer(0);
@@ -409,6 +410,45 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			count++).c_str(), GL_TEXTURE_2D, texture, virtual_width, virtual_height, 0);
     }
 }
+
+bool TextureCache::TCacheEntry::CopyComplete()
+{
+	// check if readback if ready
+	int status = 0;
+	glGetSynciv(fence, GL_SYNC_STATUS, 1, 0, &status);
+	if(status == GL_UNSIGNALED) return false;
+	
+	glDeleteSync(fence);
+	
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+	void* data = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+	u8* dst = Memory::GetPointer(addr);
+	if(data) {
+		memcpy(dst, data, encoded_size);
+		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+	} else {
+		ERROR_LOG(VIDEO, "tcache mmap fails");
+	}
+	
+	u64 hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+	// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
+	if (!g_ActiveConfig.bEFBCopyCacheEnable)
+		TextureCache::MakeRangeDynamic(addr,encoded_size);
+	else if (!TextureCache::Find(addr, hash))
+		TextureCache::MakeRangeDynamic(addr,encoded_size);
+
+	this->hash = hash;
+	
+	return true;
+}
+
+void TextureCache::TCacheEntry::AbortCopy()
+{
+	glDeleteSync(fence);
+	this->hash = TEXHASH_INVALID;
+}
+
 
 void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1)
 {

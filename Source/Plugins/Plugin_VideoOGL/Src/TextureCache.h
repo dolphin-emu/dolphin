@@ -39,6 +39,10 @@ private:
 	struct TCacheEntry : TCacheEntryBase
 	{
 		GLuint texture;
+		
+		GLuint pbo;
+		GLsync fence;
+		int encoded_size;
 
 		PC_TexFormat pcfmt;
 
@@ -64,6 +68,9 @@ private:
 
 		void Bind(unsigned int stage);
 		bool Save(const char filename[], unsigned int level);
+		
+		bool CopyComplete();
+		void AbortCopy();
 
 	private:
 		void SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1);

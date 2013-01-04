@@ -332,6 +332,13 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
+	if (!GLEW_ARB_sync)
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_sync.\n"
+				"GPU: Does your video card support OpenGL 3.2?");
+		bSuccess = false;
+	}
+
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 
