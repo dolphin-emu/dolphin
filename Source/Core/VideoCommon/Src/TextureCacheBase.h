@@ -124,6 +124,8 @@ public:
 	
 	static bool CheckCopyStatus();
 	static void QueueRenderTarget(TCacheEntryBase *entry);
+	static void RemoveFromQueue(TCacheEntryBase *entry);
+	static void RemoveAllFromQueue();
 
 protected:
 	TextureCache();

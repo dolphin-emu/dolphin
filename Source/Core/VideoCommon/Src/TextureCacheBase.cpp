@@ -54,18 +54,6 @@ static std::list<CopyQueueItem> s_CopyQueue;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
-	//while(!TextureCache::CheckCopyStatus());
-	
-	// remove from queue
-	std::list<CopyQueueItem>::iterator it = s_CopyQueue.begin();
-	while(it != s_CopyQueue.end()) {
-		if(it->entry == this) {
-			AbortCopy();
-			s_CopyQueue.erase(it++);
-		} else {
-			it++;
-		}
-	}
 }
 
 TextureCache::TextureCache()
@@ -93,6 +81,7 @@ void TextureCache::Invalidate()
 TextureCache::~TextureCache()
 {
 	Invalidate();
+	RemoveAllFromQueue();
 	if (temp)
 	{
 		FreeAlignedMemory(temp);
@@ -828,6 +817,18 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 void TextureCache::QueueRenderTarget ( TextureCache::TCacheEntryBase* entry )
 {
 	// remove dplicated items
+	RemoveFromQueue(entry);
+	
+	// hash = invalid will be used as not transfered
+	entry->hash = TEXHASH_INVALID;
+	
+	CopyQueueItem item;
+	item.entry = entry;
+	s_CopyQueue.push_back(item);
+}
+
+void TextureCache::RemoveFromQueue ( TextureCache::TCacheEntryBase* entry )
+{
 	std::list<CopyQueueItem>::iterator it = s_CopyQueue.begin();
 	while(it != s_CopyQueue.end()) {
 		if(it->entry == entry) {
@@ -837,13 +838,17 @@ void TextureCache::QueueRenderTarget ( TextureCache::TCacheEntryBase* entry )
 			it++;
 		}
 	}
-	
-	// hash = invalid will be used as not transfered
-	entry->hash = TEXHASH_INVALID;
-	
-	CopyQueueItem item;
-	item.entry = entry;
-	s_CopyQueue.push_back(item);
+}
+
+void TextureCache::RemoveAllFromQueue()
+{
+	while(!s_CopyQueue.empty()) {
+		CopyQueueItem item = s_CopyQueue.front();
+		if(item.entry) {
+			item.entry->AbortCopy();
+		}
+		s_CopyQueue.pop_front();
+	}
 }
 
 

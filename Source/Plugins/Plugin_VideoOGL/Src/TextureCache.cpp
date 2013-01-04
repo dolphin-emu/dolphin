@@ -111,6 +111,7 @@ TextureCache::TCacheEntry::~TCacheEntry()
 	if(pbo) {
 		glDeleteBuffers(1, &pbo);
 	}
+	RemoveFromQueue(this);
 }
 
 TextureCache::TCacheEntry::TCacheEntry()
