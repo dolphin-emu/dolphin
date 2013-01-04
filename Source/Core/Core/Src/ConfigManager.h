@@ -79,6 +79,7 @@ struct SConfig : NonCopyable
 	int m_ListSort2;
 
 	std::string m_WirelessMac;
+	std::string m_HollywoodID;
 	bool m_PauseMovie;
 	bool m_ShowLag;
 	std::string m_strMovieAuthor;

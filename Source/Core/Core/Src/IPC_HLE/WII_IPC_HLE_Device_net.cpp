@@ -47,11 +47,15 @@ it failed)
 #endif
 
 #include "WII_IPC_HLE_Device_net.h"
+#include "WII_IPC_HLE_Device_es.h"
 #include "../ConfigManager.h"
 #include "FileUtil.h"
 #include <stdio.h>
 #include <string>
 #include "ICMP.h"
+#include "CommonPaths.h"
+#include "SettingsHandler.h"
+
 
 #ifdef _WIN32
 #include <ws2tcpip.h>
@@ -91,8 +95,6 @@ const u8 default_address[] = { 0x00, 0x17, 0xAB, 0x99, 0x99, 0x99 };
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName) 
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	, m_UserID("Dolphin-EMU")
-	// TODO: Dump the true ID from real Wii
 {
 }
 
@@ -102,7 +104,7 @@ CWII_IPC_HLE_Device_net_kd_request::~CWII_IPC_HLE_Device_net_kd_request()
 
 bool CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
 {
-	INFO_LOG(WII_IPC_NET, "NET_KD_REQ: Open");
+	INFO_LOG(WII_IPC_WC24, "NET_KD_REQ: Open");
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
 	m_Active = true;
 	return true;
@@ -110,7 +112,7 @@ bool CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_net_kd_request::Close(u32 _CommandAddress, bool _bForce)
 {
-	INFO_LOG(WII_IPC_NET, "NET_KD_REQ: Close");
+	INFO_LOG(WII_IPC_WC24, "NET_KD_REQ: Close");
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
@@ -130,65 +132,109 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 	{
 	case IOCTL_NWC24_SUSPEND_SCHEDULAR:
 		// NWC24iResumeForCloseLib  from NWC24SuspendScheduler (Input: none, Output: 32 bytes) 
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_SUSPEND_SCHEDULAR - NI");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_SUSPEND_SCHEDULAR - NI");
 		break;
 
 	case IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR: // NWC24iResumeForCloseLib
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR - NI");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR - NI");
 		break;
 
 	case IOCTL_NWC24_EXEC_RESUME_SCHEDULAR : // NWC24iResumeForCloseLib
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_EXEC_RESUME_SCHEDULAR - NI");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_EXEC_RESUME_SCHEDULAR - NI");
 		break;
 
 	case IOCTL_NWC24_STARTUP_SOCKET: // NWC24iStartupSocket
 		Memory::Write_U32(0, BufferOut);
 		Memory::Write_U32(0, BufferOut+4);
 		ReturnValue = 0;
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_STARTUP_SOCKET - NI");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_STARTUP_SOCKET - NI");
 		break;
 	case IOCTL_NWC24_CLEANUP_SOCKET:
 		Memory::Memset(BufferOut, 0, BufferOutSize);
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_CLEANUP_SOCKET - NI");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_CLEANUP_SOCKET - NI");
 		break;
 	case IOCTL_NWC24_LOCK_SOCKET: // WiiMenu
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_LOCK_SOCKET - NI");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_LOCK_SOCKET - NI");
 		break;
 
 	case IOCTL_NWC24_UNLOCK_SOCKET:
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_UNLOCK_SOCKET - NI");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_UNLOCK_SOCKET - NI");
 		break;
 
 	case IOCTL_NWC24_REQUEST_REGISTER_USER_ID:
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_REGISTER_USER_ID");
 		Memory::Write_U32(0, BufferOut);
 		Memory::Write_U32(0, BufferOut+4);
 		break;
 
 	case IOCTL_NWC24_REQUEST_GENERATED_USER_ID: // (Input: none, Output: 32 bytes)
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
-		//Memory::Write_U32(0xFFFFFFDC, BufferOut);
-		//Memory::Write_U32(0x00050495, BufferOut + 4);
-		//Memory::Write_U32(0x90CFBF35, BufferOut + 8);
-		//Memory::Write_U32(0x00000002, BufferOut + 0xC);
-		Memory::WriteBigEData((u8*)m_UserID.c_str(), BufferOut, m_UserID.length() + 1);
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
+		
+		if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_INITIAL)
+		{
+			std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
+			SettingsHandler gen;
+			std::string area, model;
+			bool _GotSettings = false;
+			
+			if (File::Exists(settings_Filename))
+			{
+				File::IOFile settingsFileHandle(settings_Filename, "rb");
+				if (settingsFileHandle.ReadBytes((void*)gen.GetData(), SettingsHandler::SETTINGS_SIZE))
+				{
+					gen.Decrypt();
+					area = gen.GetValue("AREA");
+					model = gen.GetValue("MODEL");
+					_GotSettings = true;
+				}
+				
+			}
+			if (_GotSettings)
+			{
+				u8 area_code = GetAreaCode(area.c_str());
+				u8 id_ctr = config.IdGen();
+				u8 hardware_model = GetHardwareModel(model.c_str());
+				u32 HollywoodID = CWII_IPC_HLE_Device_es::GetHollywoodID();
+				u64 UserID = 0;
+				
+				s32 ret = NWC24MakeUserID(&UserID, HollywoodID, id_ctr, hardware_model, area_code);
+				config.SetId(UserID);
+				config.IncrementIdGen();
+				config.SetCreationStage(nwc24_config_t::NWC24_IDCS_GENERATED);
+				config.WriteConfig();
+				
+				Memory::Write_U32(ret, BufferOut);
+			}
+			else
+			{
+				Memory::Write_U32(nwc24_err_t::WC24_ERR_FATAL, BufferOut);	
+			}
+			
+		}
+		else if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_GENERATED)
+			Memory::Write_U32(nwc24_err_t::WC24_ERR_ID_GENERATED, BufferOut);
+		else if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_REGISTERED)
+			Memory::Write_U32(nwc24_err_t::WC24_ERR_ID_REGISTERED, BufferOut);
+		
+		Memory::Write_U64(config.Id(), BufferOut + 4);
+		Memory::Write_U32(config.CreationStage(), BufferOut + 0xC);
 		break;
 
 	case IOCTL_NWC24_GET_SCHEDULAR_STAT:
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_GET_SCHEDULAR_STAT - NI");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_GET_SCHEDULAR_STAT - NI");
 		break;
 
 	case IOCTL_NWC24_SAVE_MAIL_NOW:
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW - NI");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW - NI");
 		break;
 
 	case IOCTL_NWC24_REQUEST_SHUTDOWN:
 		// if ya set the IOS version to a very high value this happens ...
-		WARN_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN - NI");
+		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN - NI");
 		break;
 
 	default:
-		WARN_LOG(WII_IPC_NET, "/dev/net/kd/request::IOCtl request 0x%x (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+		WARN_LOG(WII_IPC_WC24, "/dev/net/kd/request::IOCtl request 0x%x (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		break;
 	}
@@ -200,6 +246,107 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 }
 
 
+u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode( const char * area )
+{
+	u32 i;
+	u8 regions_[] = {0,1,2,2,1,3,3,4,5,5,1,2,6,7};
+	const char* regions[] = {"JPN", "USA", "EUR", "AUS", "BRA", "TWN", "ROC", "KOR", "HKG", "ASI", "LTN", "SAF", "CHN", ""};
+	
+	u8 region_code = 0xff;
+	for (i=0; i<sizeof(regions)/sizeof(*regions); i++)
+	{
+		if (!strncmp(regions[i], area, 4))
+		{
+			return regions_[i];
+		}
+	}
+	
+	return 7;
+}
+
+u8 CWII_IPC_HLE_Device_net_kd_request::GetHardwareModel(const char * model)
+{
+	u8 mdl;
+	if (!strncmp(model, "RVL", 4))
+	{
+		mdl = MODEL_RVL;
+	}else if (!strncmp(model, "RVT", 4))
+	{
+		mdl = MODEL_RVT;
+	}else if (!strncmp(model, "RVV", 4))
+	{
+		mdl = MODEL_RVV;
+	}else if (!strncmp(model, "RVD", 4))
+	{
+		mdl = MODEL_RVD;
+	}else
+	{
+		mdl = MODEL_ELSE;
+	}
+	return mdl;
+}
+
+static inline u8 u64_get_byte(u64 value, u8 shift)
+{
+	return (u8)(value >> (shift*8));
+}
+
+static inline u64 u64_insert_byte(u64 value, u8 shift, u8 byte)
+{
+	u64 mask = 0x00000000000000FFULL << (shift*8);
+	u64 inst = (u64)byte << (shift*8);
+	return (value & ~mask) | inst;
+}
+
+s32 CWII_IPC_HLE_Device_net_kd_request::NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_model, u8 area_code)
+{
+	const u8 table2[8]  = {0x1, 0x5, 0x0, 0x4, 0x2, 0x3, 0x6, 0x7};
+	const u8 table1[16] = {0x4, 0xB, 0x7, 0x9, 0xF, 0x1, 0xD, 0x3, 0xC, 0x2, 0x6, 0xE, 0x8, 0x0, 0xA, 0x5};
+	
+	u64 mix_id = ((u64)area_code<<50) | ((u64)hardware_model<<47) | ((u64)hollywood_id<<15) | ((u64)id_ctr<<10);
+	u64 mix_id_copy1 = mix_id;
+	
+	int ctr = 0;
+	for (ctr = 0; ctr <= 42; ctr++)
+	{
+		u64 value = mix_id >> (52-ctr);
+		if (value & 1)
+		{
+			value = 0x0000000000000635ULL << (42-ctr);
+			mix_id ^= value;
+		}
+	}
+	
+	mix_id = (mix_id_copy1 | (mix_id & 0xFFFFFFFFUL)) ^ 0x0000B3B3B3B3B3B3ULL;
+	mix_id = (mix_id >> 10) | ((mix_id & 0x3FF) << (11+32));
+	
+	for (ctr = 0; ctr <= 5; ctr++)
+	{
+		u8 ret = u64_get_byte(mix_id, ctr);
+		u8 foobar = ((table1[(ret>>4)&0xF])<<4) | (table1[ret&0xF]);
+		mix_id = u64_insert_byte(mix_id, ctr, foobar & 0xff);
+	}	
+	u64 mix_id_copy2 = mix_id;
+	
+	for (ctr = 0; ctr <= 5; ctr++)
+	{
+		u8 ret = u64_get_byte(mix_id_copy2, ctr);
+		mix_id = u64_insert_byte(mix_id, table2[ctr], ret);
+	}
+	
+	mix_id &= 0x001FFFFFFFFFFFFFULL;
+	mix_id = (mix_id << 1) | ((mix_id >> 52) & 1);
+	
+	mix_id ^= 0x00005E5E5E5E5E5EULL;
+	mix_id &= 0x001FFFFFFFFFFFFFULL;
+	
+	*nwc24_id = mix_id;
+	
+	if (mix_id > 9999999999999999ULL)
+		return nwc24_err_t::WC24_ERR_FATAL;
+	
+	return nwc24_err_t::WC24_OK;
+}
 // **********************************************************************************
 // Handle /dev/net/ncd/manage requests
 CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(u32 _DeviceID, const std::string& _rDeviceName) 
@@ -522,9 +669,9 @@ struct GC_sockaddr_in
 
 char* DecodeError(int ErrorCode)
 {
-	static char Message[1024];
 
 #ifdef _WIN32
+	static char Message[1024];
 	// If this program was multi-threaded, we'd want to use FORMAT_MESSAGE_ALLOCATE_BUFFER
 	// instead of a static buffer here.
 	// (And of course, free the buffer when we were done with it)
@@ -1448,26 +1595,23 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 		{
 			u32 sock	= Memory::Read_U32(_BufferIn);
 			u32 flags	= Memory::Read_U32(_BufferIn + 4);
-
+			
 			char *buf	= (char *)Memory::GetPointer(_BufferOut);
 			int len		= BufferOutSize;
 			struct sockaddr_in addr;
 			memset(&addr, 0, sizeof(sockaddr_in));
 			socklen_t fromlen = 0;
-
+			
 			if (BufferOutSize2 != 0)
 			{
 				fromlen = BufferOutSize2 >= sizeof(struct sockaddr) ? BufferOutSize2 : sizeof(struct sockaddr);
 			}
-
 			
-			
-
 			if (flags != 2)
 				flags = 0;
 			else
 				flags = MSG_PEEK;
-
+			
 			static int ret;
 #ifdef _WIN32
 			if(flags & MSG_PEEK){
@@ -1496,10 +1640,10 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 				addr.sin_family = (addr.sin_family << 8) | (BufferOutSize2&0xFF);
 				Memory::WriteBigEData((u8*)&addr, _BufferOut2, BufferOutSize2);
 			}
-
+			
 			return err;
 		}
-
+		
 	case IOCTLV_SO_GETADDRINFO:
 		{
 			struct addrinfo hints;

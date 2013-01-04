@@ -134,7 +134,203 @@ struct network_config_t
 
 	netcfg_connection_t connection[3];
 };
+
+enum nwc24_err_t
+{
+	WC24_OK 					=   0,
+	WC24_ERR_FATAL				=  -1,
+	WC24_ERR_ID_NONEXISTANCE	= -34,
+	WC24_ERR_ID_GENERATED 		= -35,
+	WC24_ERR_ID_REGISTERED 		= -36,
+	WC24_ERR_ID_NOT_REGISTERED 	= -44,
+};
+
+struct nwc24_config_t
+{
+	enum
+	{
+		NWC24_IDCS_INITIAL = 0,
+		NWC24_IDCS_GENERATED = 1,
+		NWC24_IDCS_REGISTERED = 2
+	};
+	
+	enum
+	{
+		URL_COUNT = 0x05,
+		MAX_URL_LENGTH = 0x80,
+		MAX_EMAIL_LENGTH = 0x40,
+		MAX_PASSWORD_LENGTH = 0x20,
+	};
+	
+	u32 magic;		/* 'WcCf' 0x57634366 */
+	u32 _unk_04;	/* must be 8 */
+	u64 nwc24_id;
+	u32 id_generation;
+	u32 creation_stage;	/* 0==not_generated;1==generated;2==registered; */
+	char email[MAX_EMAIL_LENGTH];
+	char paswd[MAX_PASSWORD_LENGTH];
+	char mlchkid[0x24];
+	char http_urls[URL_COUNT][MAX_URL_LENGTH];
+	u8 reserved[0xDC];
+	u32 enable_booting;
+	u32 checksum;
+};
+
 #pragma pack(pop)
+
+
+
+class NWC24Config
+{
+private:
+	std::string path;
+	nwc24_config_t config;
+	
+public:
+	NWC24Config()
+	{
+		path = File::GetUserPath(D_WIIWC24_IDX) + "nwc24msg.cfg";
+		ReadConfig();
+	}
+	
+	void ResetConfig()
+	{
+		int i;
+		
+		if (File::Exists(path))
+			File::Delete(path);
+		
+		const char* urls[5] = {
+			"https://amw.wc24.wii.com/cgi-bin/account.cgi",
+			"http://rcw.wc24.wii.com/cgi-bin/check.cgi",
+			"http://mtw.wc24.wii.com/cgi-bin/receive.cgi",
+			"http://mtw.wc24.wii.com/cgi-bin/delete.cgi",
+			"http://mtw.wc24.wii.com/cgi-bin/send.cgi",
+		};
+		
+		memset(&config, 0, sizeof(config));
+		
+		SetMagic(0x57634366);
+		SetUnk(8);
+		SetCreationStage(nwc24_config_t::NWC24_IDCS_INITIAL);
+		SetEnableBooting(0);
+		SetEmail("@wii.com");
+		
+		for(i=0; i<nwc24_config_t::URL_COUNT; i++)
+		{
+			strncpy(config.http_urls[i], urls[i], nwc24_config_t::MAX_URL_LENGTH);
+		}
+		
+		SetChecksum(CalculateNwc24ConfigChecksum());
+		
+		WriteConfig();
+	}
+	
+	void WriteConfig()
+	{
+		if (!File::Exists(path))
+		{
+			if (!File::CreateFullPath(File::GetUserPath(D_WIIWC24_IDX)))
+			{
+				ERROR_LOG(WII_IPC_WC24, "Failed to create directory for WC24");
+			}
+		}
+		
+		File::IOFile(path, "wb").WriteBytes((void*)&config, sizeof(config));
+	}
+	
+	
+	void ReadConfig()
+	{
+		if (File::Exists(path))
+		{
+			if (!File::IOFile(path, "rb").ReadBytes((void *)&config, sizeof(config)))
+				ResetConfig();
+			else
+			{
+				s32 config_error = CheckNwc24Config();
+				if(config_error)
+					ERROR_LOG(WII_IPC_WC24, "There is an error in the config for for WC24: %d", config_error);
+			}
+		}
+		else
+		{
+			ResetConfig();
+		}
+	}
+	
+	u32 CalculateNwc24ConfigChecksum(void)
+	{
+		u32* ptr = (u32*)&config;
+		u32 sum = 0;
+		int i;
+		for (i=0; i<0xFF; i++)
+		{
+			sum += Common::swap32(*ptr++);
+		}
+		return sum;
+	}
+	
+	s32 CheckNwc24Config(void)
+	{
+		if (Magic() != 0x57634366)	/* 'WcCf' magic */
+		{
+			ERROR_LOG(WII_IPC_WC24, "Magic mismatch");
+			return -14;
+		}
+		u32 checksum = CalculateNwc24ConfigChecksum();
+		DEBUG_LOG(WII_IPC_WC24, "Checksum: %X", checksum);
+		if (Checksum() != checksum)
+		{
+			ERROR_LOG(WII_IPC_WC24, "Checksum mismatch expected %X and got %X", checksum, Checksum());
+			return -14;
+		}
+		if (IdGen() > 0x1F)
+		{
+			ERROR_LOG(WII_IPC_WC24, "Id gen error");
+			return -14;
+		}
+		if (Unk() != 8)
+			return -27;
+		
+		return 0;
+	}	
+	
+	u32 Magic(){return Common::swap32(config.magic);}
+	void SetMagic(u32 magic){config.magic = Common::swap32(magic);}
+	
+	u32 Unk(){return Common::swap32(config._unk_04);}
+	void SetUnk(u32 _unk_04){config._unk_04 = Common::swap32(_unk_04);}
+	
+	u32 IdGen(){return Common::swap32(config.id_generation);}
+	void SetIdGen(u32 id_generation){config.id_generation = Common::swap32(id_generation);}
+	void IncrementIdGen(){
+		u32 id_ctr = IdGen();
+		id_ctr++;
+		id_ctr &= 0x1F;
+		SetIdGen(id_ctr);
+	}
+	
+	u32 Checksum(){return Common::swap32(config.checksum);}
+	void SetChecksum(u32 checksum){config.checksum = Common::swap32(checksum);}
+	
+	u32 CreationStage(){return Common::swap32(config.creation_stage);}
+	void SetCreationStage(u32 creation_stage){config.creation_stage = Common::swap32(creation_stage);}
+	
+	u32 EnableBooting(){return Common::swap32(config.enable_booting);}
+	void SetEnableBooting(u32 enable_booting){config.enable_booting = Common::swap32(enable_booting);}
+	
+	u64 Id(){return Common::swap64(config.nwc24_id);}
+	void SetId(u64 nwc24_id){config.nwc24_id = Common::swap64(nwc24_id);}
+	
+	const char * Email(){return config.email;}
+	void SetEmail(const char * email)
+	{
+		strncpy(config.email, email, nwc24_config_t::MAX_EMAIL_LENGTH); 
+		config.email[nwc24_config_t::MAX_EMAIL_LENGTH-1] = '\0';
+	}
+	
+};
 
 class WiiNetConfig
 {
@@ -246,9 +442,21 @@ private:
         IOCTL_NWC24_SET_SCRIPT_MODE                 = 0x22,
         IOCTL_NWC24_REQUEST_SHUTDOWN                = 0x28,
     };
-
-	// Max size 32 Bytes
-	std::string m_UserID;
+	
+	enum {
+		MODEL_RVT = 0,
+		MODEL_RVV = 0,
+		MODEL_RVL = 1,
+		MODEL_RVD = 2,
+		MODEL_ELSE = 7
+	};
+	
+	u8 GetAreaCode(const char * area);
+	u8 GetHardwareModel(const char * model);
+	
+	s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_model, u8 area_code);
+	
+	NWC24Config config;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -438,7 +646,7 @@ private:
 	enum
 	{
 		IOCTLV_NCD_LOCKWIRELESSDRIVER		= 0x1,  // NCDLockWirelessDriver
-		IOCTLV_NCD_UNLOCKWIRELESSDRIVER		= 0x2,  // NCDUnlockWirelessDriver
+		IOCTLV_NCD_UNLOCKWIRELESSDRIVER	= 0x2,  // NCDUnlockWirelessDriver
 		IOCTLV_NCD_GETCONFIG				= 0x3,  // NCDiGetConfig
 		IOCTLV_NCD_SETCONFIG				= 0x4,  // NCDiSetConfig
 		IOCTLV_NCD_READCONFIG				= 0x5,

@@ -52,6 +52,7 @@
 #include "../VolumeHandler.h"
 #include "FileUtil.h"
 #include "Crypto/aes.h"
+#include "ConfigManager.h"
 
 #include "../Boot/Boot_DOL.h"
 #include "NandPaths.h"
@@ -104,6 +105,15 @@ CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
 void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile) 
 {
 	m_ContentFile = _rContentFile;
+}
+
+u32 CWII_IPC_HLE_Device_es::GetHollywoodID()
+{
+	unsigned int HollywoodID = 0;   
+	std::stringstream ss;
+	ss << std::hex << SConfig::GetInstance().m_HollywoodID;
+	ss >> HollywoodID;
+	return HollywoodID;
 }
 
 bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
@@ -179,9 +189,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		{
 			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETDEVICEID no out buffer");
 
-			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID");
-			// Return arbitrary device ID - TODO allow user to set value?
-			Memory::Write_U32(0x21FFFFF, Buffer.PayloadBuffer[0].m_Address);
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID %s", SConfig::GetInstance().m_HollywoodID.c_str());
+			Memory::Write_U32(GetHollywoodID(), Buffer.PayloadBuffer[0].m_Address);
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 			return true;
 		}

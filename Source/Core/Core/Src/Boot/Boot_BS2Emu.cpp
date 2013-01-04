@@ -258,14 +258,14 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	File::CreateFullPath(settings_Filename);
 
 	{
-	File::IOFile settingsFileHandle(settings_Filename, "wb");
-	
-	if (!settingsFileHandle.WriteBytes(gen.GetData(), SettingsHandler::SETTINGS_SIZE))
-	{
-		PanicAlertT("SetupWiiMem: Cant create setting file");	
-		return false;
-	}
-	Memory::WriteBigEData(gen.GetData(), 0x3800, SettingsHandler::SETTINGS_SIZE);
+		File::IOFile settingsFileHandle(settings_Filename, "wb");
+		
+		if (!settingsFileHandle.WriteBytes(gen.GetData(), SettingsHandler::SETTINGS_SIZE))
+		{
+			PanicAlertT("SetupWiiMem: Cant create setting file");	
+			return false;
+		}
+		Memory::WriteBigEData(gen.GetData(), 0x3800, SettingsHandler::SETTINGS_SIZE);
 	}
 
 	/*
@@ -319,7 +319,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	Memory::Write_U32(0x00000000, 0x00003160);		// Init semaphore (sysmenu waits for this to clear)
 	Memory::Write_U32(0x00090204, 0x00003188);		// Expected IOS revision
 
-	Memory::Write_U8(0x80, 0x0000315c);				// OSInit
+	Memory::Write_U8(0x80, 0x0000315c);			// OSInit
 	Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
 	Memory::Write_U32(0x80000000, 0x00003184);		// GameID Address
 

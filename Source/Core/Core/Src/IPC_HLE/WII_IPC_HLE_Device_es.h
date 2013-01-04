@@ -31,6 +31,7 @@ public:
     virtual ~CWII_IPC_HLE_Device_es();
 
     void LoadWAD(const std::string& _rContentFile);
+	static u32 GetHollywoodID();
 
     virtual bool Open(u32 _CommandAddress, u32 _Mode);
 

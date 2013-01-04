@@ -89,6 +89,7 @@
 #define MAIL_LOGS_DIR		LOGS_DIR DIR_SEP "Mail"
 #define SHADERS_DIR 		"Shaders"
 #define WII_SYSCONF_DIR		"shared2" DIR_SEP "sys"
+#define WII_WC24CONF_DIR		"shared2" DIR_SEP "wc24"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
