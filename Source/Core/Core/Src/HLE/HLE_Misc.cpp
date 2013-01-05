@@ -40,7 +40,6 @@ namespace HLE_Misc
 std::string args;
 u32 argsPtr;
 u32 bootType;
-u16 IOSv;
 
 // Helper to quickly read the floating point value at a memory location.
 inline float F(u32 addr)
@@ -312,6 +311,7 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 	// Scan for common HLE functions
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 	{
+		g_symbolDB.Clear();
 		PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
 		SignatureDB db;
 		if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
@@ -325,9 +325,15 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 	PowerPC::ppcState.iCache.Reset();
 
 	static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
-	for (unsigned int i = 0; i < 4; i++)
+	bool* wiiMoteConnected = new bool[s_Usb->m_WiiMotes.size()];
+	for(unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
+		wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
+
+	WII_IPC_HLE_Interface::Reset(true);
+	WII_IPC_HLE_Interface::Init();
+	for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
 	{
-		if (s_Usb->m_WiiMotes[i].IsConnected())
+		if (wiiMoteConnected[i])
 		{
 			s_Usb->m_WiiMotes[i].Activate(false);
 			s_Usb->m_WiiMotes[i].Activate(true);
@@ -337,6 +343,8 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 			s_Usb->m_WiiMotes[i].Activate(false);
 		}
 	}
+
+	delete[] wiiMoteConnected;
 
 	if (argsPtr)
 	{
@@ -475,11 +483,14 @@ void OSGetResetCode()
 	NPC = LR;	
 }
 
+u16 GetIOSVersion()
+{
+	return Memory::Read_U16(0x00003140);
+}
+
 void OSBootDol()
 {
-	IOSv = Memory::Read_U16(0x00003140);
-
-	if (IOSv >= 30)
+	if (GetIOSVersion() >= 30)
 	{
 		bootType = GPR(4);
 
