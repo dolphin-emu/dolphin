@@ -358,7 +358,7 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 		Memory::Write_U32(num_args, args_base + ptr_to_num_args);
 		Memory::Write_U32(0x14, hi_ptr);
 
-		for (int i = 0; i < args.length(); i++)
+		for (unsigned int i = 0; i < args.length(); i++)
 			Memory::WriteUnchecked_U8(args[i], new_args_ptr+i);
 	}
 
@@ -412,39 +412,39 @@ u32 GetDolFileSize(std::string dol)
 	return (u32)pFileSystem->GetFileSize(dolFile.c_str());
 }
 
-void memmove()
+void gc_memmove()
 {
 	u32 dest = GPR(3);
 	u32 src = GPR(4);
 	u32 count = GPR(5);
-	std::memmove((u8*)(Memory::base + dest), (u8*)(Memory::base + src), count);
+	memmove((u8*)(Memory::base + dest), (u8*)(Memory::base + src), count);
 	NPC = LR;
 }
 
-void memcpy()
+void gc_memcpy()
 {
 	u32 dest = GPR(3);
 	u32 src = GPR(4);
 	u32 count = GPR(5);
-	std::memcpy((u8*)(Memory::base + dest), (u8*)(Memory::base + src), count);
+	memcpy((u8*)(Memory::base + dest), (u8*)(Memory::base + src), count);
 	NPC = LR;
 }
 
-void memset()
+void gc_memset()
 {
 	u32 dest = GPR(3);
 	u32 ch = GPR(4);
 	u32 count = GPR(5);
-	std::memset((u8*)(Memory::base + dest), ch, count);
+	memset((u8*)(Memory::base + dest), ch, count);
 	NPC = LR;
 }
 
-void memcmp()
+void gc_memcmp()
 {
 	u32 dest = GPR(3);
 	u32 src = GPR(4);
 	u32 count = GPR(5);
-	GPR(3) = std::memcmp((u8*)(Memory::base + dest), (u8*)(Memory::base + src), count);
+	GPR(3) = memcmp((u8*)(Memory::base + dest), (u8*)(Memory::base + src), count);
 	NPC = LR;
 }
 

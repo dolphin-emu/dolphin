@@ -58,10 +58,10 @@ static const SPatch OSPatches[] =
 	// speedup
 	//{ "OSProtectRange", HLE_Misc::UnimplementedFunctionFalse, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 	//{ "THPPlayerGetState", HLE_Misc:THPPlayerGetState, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ "memcpy",				HLE_Misc::memcpy, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
-	//{ "memcmp",				HLE_Misc::memcmp, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
-	//{ "memset",				HLE_Misc::memset, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
-	//{ "memmove",			HLE_Misc::memmove, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
+	//{ "memcpy",				HLE_Misc::gc_memcpy, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
+	//{ "memcmp",				HLE_Misc::gc_memcmp, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
+	//{ "memset",				HLE_Misc::gc_memset, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
+	//{ "memmove",			HLE_Misc::gc_memmove, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
 
 	//{ "__div2i",			HLE_Misc::div2i, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC }, // Slower?
 	//{ "__div2u",			HLE_Misc::div2u, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC }, // Slower?
