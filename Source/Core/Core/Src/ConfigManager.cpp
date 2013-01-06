@@ -157,6 +157,7 @@ void SConfig::SaveSettings()
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
 	ini.Set("General", "NANDRoot",			m_NANDPath);
 	ini.Set("General", "WirelessMac",		m_WirelessMac);
+	ini.Set("General", "GDBPort", m_LocalCoreStartupParameter.iGDBPort);
 
 	// Interface		
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
@@ -270,6 +271,9 @@ void SConfig::LoadSettings()
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
 		ini.Get("General", "ShowLag", &m_ShowLag, false);
+		#ifdef USE_GDBSTUB
+		ini.Get("General", "GDBPort", &(m_LocalCoreStartupParameter.iGDBPort), -1);
+		#endif
 
 		m_ISOFolder.clear();
 		int numGCMPaths;

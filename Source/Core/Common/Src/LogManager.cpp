@@ -57,6 +57,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::DVDINTERFACE]		= new LogContainer("DVD",			"DVDInterface");
 	m_Log[LogTypes::GPFIFO]				= new LogContainer("GP",			"GPFifo");
 	m_Log[LogTypes::EXPANSIONINTERFACE]	= new LogContainer("EXI",			"ExpansionInt");
+	m_Log[LogTypes::GDB_STUB]			= new LogContainer("GDB_STUB",		"GDB Stub");
 	m_Log[LogTypes::AUDIO_INTERFACE]	= new LogContainer("AI",			"AudioInt");
 	m_Log[LogTypes::POWERPC]			= new LogContainer("PowerPC",		"IBM CPU");
 	m_Log[LogTypes::OSHLE]				= new LogContainer("HLE",			"HLE");

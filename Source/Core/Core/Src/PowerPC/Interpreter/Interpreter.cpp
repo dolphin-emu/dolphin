@@ -27,6 +27,10 @@
 #include "../../IPC_HLE/WII_IPC_HLE.h"
 #include "Atomic.h"
 
+#ifdef USE_GDBSTUB
+#include "../GDBStub.h"
+#endif
+
 
 namespace {
 	u32 last_pc;
@@ -99,7 +103,18 @@ void Trace( UGeckoInstruction &instCode )
 int Interpreter::SingleStepInner(void)
 {
 	static UGeckoInstruction instCode;
-
+	
+	#ifdef USE_GDBSTUB
+	if (gdb_active() && gdb_bp_x(PC)) {
+		
+		Host_UpdateDisasmDialog();
+		
+		gdb_signal(SIGTRAP);
+		gdb_handle_events();
+		m_GdbWaitEvent.Wait();
+	}
+	#endif
+	
 	NPC = PC + sizeof(UGeckoInstruction);
 	instCode.hex = Memory::Read_Opcode(PC);
 
@@ -218,7 +233,8 @@ void Interpreter::Run()
 						if (PCVec.size() > ShowSteps)
 							PCVec.erase(PCVec.begin());
 					#endif
-
+					
+							
 					//2: check for breakpoint
 					if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
 					{

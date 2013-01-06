@@ -55,6 +55,9 @@
 
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/JitCommon/JitBase.h"
+#ifdef USE_GDBSTUB
+#include "PowerPC/GDBStub.h"
+#endif
 
 #include "DSPEmulator.h"
 #include "ConfigManager.h"
@@ -101,6 +104,9 @@ std::string g_stateFileName;
 std::thread g_EmuThread;
 
 static std::thread g_cpu_thread;
+#ifdef USE_GDBSTUB
+static std::thread g_gdb_thread;
+#endif
 static bool g_requestRefreshInfo = false;
 static int g_pauseAndLockDepth = 0;
 
@@ -448,6 +454,20 @@ void EmuThread()
 	else
 		cpuThreadFunc = CpuThread;
 
+	#ifdef USE_GDBSTUB
+	if(_CoreParameter.iGDBPort > 0)
+	{
+		INFO_LOG(GDB_STUB, "Trying to start the GDB Stub listening on port %d.", _CoreParameter.iGDBPort);
+		Core::SetState(Core::CORE_PAUSE);
+		gdb_init(_CoreParameter.iGDBPort);
+		
+		g_gdb_thread = std::thread(gdb_thread);
+		
+		//gdb_signal(SIGTRAP);
+		gdb_add_bp(GDB_BP_TYPE_X, 0x80004050, 4);
+	}
+	#endif
+	
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{
@@ -491,6 +511,14 @@ void EmuThread()
 	g_cpu_thread.join();
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
+	
+	#ifdef USE_GDBSTUB
+		// Wait for g_gdb_thread to exit
+		INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping GDB thread ...").c_str());
+		gdb_deinit();
+		g_gdb_thread.join();
+		INFO_LOG(CONSOLE, "%s", StopMessage(true, "GDB thread stopped.").c_str());
+	#endif
 
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
