@@ -471,7 +471,8 @@ void div2u()
 void OSGetResetCode()
 {
 	u32 resetCode = Memory::Read_U32(0xCC003024);
-	if (resetCode != 0)
+
+	if ((resetCode & 0x1fffffff) != 0)
 	{
 		GPR(3) = resetCode | 0x80000000;
 	}
