@@ -130,13 +130,24 @@ void GCPad::GetInput(SPADStatus* const pad)
 	}
 }
 
+void GCPad::SetMotor(const u8 on)
+{
+	float state = (float)on / 255;
+	float force = abs(state - 0.5) * 2;
+	if (state < 0.5)
+		force = -force;
+
+	// only rumble if window has focus or background input is enabled
+	if (Host_RendererHasFocus() || m_options[0].settings[0]->value)
+		m_rumble->controls[0]->control_ref->State(force);
+	else
+		m_rumble->controls[0]->control_ref->State(0);
+}
+
 void GCPad::SetOutput(const u8 on)
 {
 	// only rumble if window has focus or background input is enabled
-	if (Host_RendererHasFocus() || m_options[0].settings[0]->value)
-		m_rumble->controls[0]->control_ref->State((float)on / 255);
-	else
-		m_rumble->controls[0]->control_ref->State(0);
+	m_rumble->controls[0]->control_ref->State(on && (Host_RendererHasFocus() || m_options[0].settings[0]->value));
 }
 
 void GCPad::LoadDefaults(const ControllerInterface& ciface)

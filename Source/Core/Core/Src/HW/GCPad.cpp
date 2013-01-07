@@ -105,6 +105,10 @@ void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 		{
 			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput(255);
 		}
+		else
+		{
+			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput(0);
+		}
 	}
 }
 
@@ -123,9 +127,9 @@ void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 	{
 		// TODO: this has potential to not stop rumble if user is messing with GUI at the perfect time
 		// set rumble
-		if (_uType == 06)
+		if (_uType == 6)
 		{
-			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput(_uStrength);
+			((GCPad*)g_plugin.controllers[ _numPAD ])->SetMotor(_uStrength);
 		}
 	}
 }
