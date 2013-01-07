@@ -622,6 +622,13 @@ endif()
 if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin"))
 	install(FILES Data/license.txt DESTINATION ${datadir})
 endif()
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	# Install the application icon and menu item
+	install(FILES Source/Core/DolphinWX/resources/Dolphin.xpm
+		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/pixmaps RENAME dolphin-emu.xpm)
+	install(FILES Source/Core/DolphinWX/resources/dolphin-emu.desktop
+		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+endif()
 
 # packaging information
 set(CPACK_PACKAGE_NAME "dolphin-emu")
