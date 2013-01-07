@@ -28,6 +28,8 @@
 #include "Debugger.h"
 #include "ConfigManager.h"
 #include "HW/Memmap.h"
+#include "Fifo.h"
+#include "BPStructs.h"
 
 // ugly
 extern int frameCount;
@@ -49,6 +51,8 @@ TextureCache::BackupConfig TextureCache::backup_config;
 
 struct CopyQueueItem {
 	TextureCache::TCacheEntryBase *entry;
+	u32 ptr;
+	BPCmd bp;
 };
 static std::list<CopyQueueItem> s_CopyQueue;
 
@@ -824,8 +828,20 @@ void TextureCache::QueueRenderTarget ( TextureCache::TCacheEntryBase* entry )
 	
 	CopyQueueItem item;
 	item.entry = entry;
+	item.ptr = readPtr;
+	item.bp.address = -1;
 	s_CopyQueue.push_back(item);
 }
+
+void TextureCache::QueueBp ( BPCmd bp )
+{
+	CopyQueueItem item;
+	item.entry = NULL;
+	item.bp = bp;
+	item.ptr = readPtr;
+	s_CopyQueue.push_back(item);
+}
+
 
 void TextureCache::RemoveFromQueue ( TextureCache::TCacheEntryBase* entry )
 {
@@ -872,6 +888,10 @@ bool TextureCache::CheckCopyStatus()
 			if(! item.entry->CopyComplete()) {
 				return false; // isn't ready
 			}
+		}
+		
+		if(item.bp.address >= 0) {
+			BPAsyncWritten(item.bp);
 		}
 		s_CopyQueue.pop_front();
 	}

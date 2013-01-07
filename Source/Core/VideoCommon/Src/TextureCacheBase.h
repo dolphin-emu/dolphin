@@ -124,6 +124,7 @@ public:
 	
 	static bool CheckCopyStatus();
 	static void QueueRenderTarget(TCacheEntryBase *entry);
+	static void QueueBp(BPCmd bp);
 	static void RemoveFromQueue(TCacheEntryBase *entry);
 	static void RemoveAllFromQueue();
 

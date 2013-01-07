@@ -23,5 +23,6 @@
 void BPInit();
 void LoadBPReg(u32 value0);
 void BPReload();
+void BPAsyncWritten(BPCmd bp);
 
 #endif // _BPSTRUCTS_H_

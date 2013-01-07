@@ -26,8 +26,10 @@
 #include "Fifo.h"
 #include "HW/Memmap.h"
 #include "Core.h"
+#include "TextureCacheBase.h"
 
 volatile bool g_bSkipCurrentFrame = false;
+u32 readPtr = 0;
 extern u8* g_pVideoData;
 
 namespace
@@ -163,7 +165,7 @@ void RunGpuLoop()
 			fifo.isGpuReadingData = true;
 			CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable ? true : false;
 			
-			u32 readPtr = fifo.CPReadPointer;
+			readPtr = fifo.CPReadPointer;
 			u8 *uData = Memory::GetPointer(readPtr);
 
 			if (readPtr == fifo.CPEnd) readPtr = fifo.CPBase;
@@ -174,10 +176,12 @@ void RunGpuLoop()
 			
 			ReadDataFromFifo(uData, 32);	
 			
-			OpcodeDecoder_Run(g_bSkipCurrentFrame);	
+			OpcodeDecoder_Run(g_bSkipCurrentFrame);
+			
+			TextureCache::CheckCopyStatus();
 
 			Common::AtomicStore(fifo.CPReadPointer, readPtr);
-			Common::AtomicAdd(fifo.CPReadWriteDistance, -32);						
+			Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
 			if((GetVideoBufferEndPtr() - g_pVideoData) == 0)
 				Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
 			CommandProcessor::SetCpStatus();
@@ -188,6 +192,8 @@ void RunGpuLoop()
 			VideoFifo_CheckAsyncRequest();		
 			CommandProcessor::isPossibleWaitingSetDrawDone = false;
 		}
+		
+		TextureCache::CheckCopyStatus();
 		
 		fifo.isGpuReadingData = false;
 		

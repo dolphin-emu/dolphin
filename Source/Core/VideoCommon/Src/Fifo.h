@@ -26,7 +26,7 @@ class PointerWrap;
 #define FIFO_SIZE (1024*1024)
 
 extern volatile bool g_bSkipCurrentFrame;
-
+extern u32 readPtr;
 
 void Fifo_Init();
 void Fifo_Shutdown();
