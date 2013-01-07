@@ -114,7 +114,10 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -123,7 +126,10 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -134,7 +140,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
@@ -145,7 +154,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -156,7 +168,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
@@ -167,17 +182,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Src\aldlist.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="Src\aldlist.cpp" />
     <ClCompile Include="Src\AOSoundStream.cpp" />
     <ClCompile Include="Src\AudioCommon.cpp" />
     <ClCompile Include="Src\AudioCommonConfig.cpp" />
@@ -189,14 +200,7 @@
     <ClCompile Include="Src\XAudio2Stream.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\aldlist.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="Src\aldlist.h" />
     <ClInclude Include="Src\AOSoundStream.h" />
     <ClInclude Include="Src\AudioCommon.h" />
     <ClInclude Include="Src\AudioCommonConfig.h" />
