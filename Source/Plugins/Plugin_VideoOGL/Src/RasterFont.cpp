@@ -212,8 +212,6 @@ RasterFont::~RasterFont()
 void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
 {
 	size_t length = strlen(text);
-	if (!length)
-		return; // nothing to do
 	
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -286,7 +284,7 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	ProgramShaderCache::SetBothShaders(s_fragmentShader.glprogid, s_vertexShader.glprogid);
 	
 	if(color != cached_color) {
-		glUniform4f(uniform_color_id, GLfloat((color>>16)&0xff)/255.f,GLfloat((color>>8)&0xff)/255.f,GLfloat((color>>0)&0xff)/255.f,GLfloat((color>>24)&0xff)/255.f);
+		glUniform4f(uniform_color_id, GLfloat((color>>0)&0xff)/255.f,GLfloat((color>>8)&0xff)/255.f,GLfloat((color>>16)&0xff)/255.f,GLfloat((color>>24)&0xff)/255.f);
 		cached_color = color;
 	}
 	
