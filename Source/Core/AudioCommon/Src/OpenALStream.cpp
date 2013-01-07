@@ -19,6 +19,8 @@
 
 #include "aldlist.h"
 #include "OpenALStream.h"
+#include "../../Core/Src/HW/SystemTimers.h"
+#include "../../Core/Src/HW/AudioInterface.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
@@ -158,9 +160,16 @@ void OpenALStream::SoundLoop()
 			iBuffersFilled = 0;
 		}
 
-		unsigned int numSamples = m_mixer->GetNumSamples();
+		// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
+		const u32 stereo_16_bit_size = 4;
+		const u32 dma_length = 32;
+		const u64 audio_dma_period = SystemTimers::GetTicksPerSecond() / (AudioInterface::GetAIDSampleRate() * stereo_16_bit_size / dma_length);
+		const u64 ais_samples_per_second = 48000 * stereo_16_bit_size;
+		const u64 num_samples_to_render = (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
 
-		if (iBuffersProcessed && (numSamples >= OAL_THRESHOLD))
+		unsigned int numSamples = (unsigned int)num_samples_to_render;
+
+		if (iBuffersProcessed)
 		{
 			numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
 			// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
@@ -175,14 +184,10 @@ void OpenALStream::SoundLoop()
 			if (iBuffersFilled == OAL_NUM_BUFFERS)
 				alSourcePlay(uiSource);
 		}
-		else if (numSamples >= OAL_THRESHOLD)
+		else
 		{
-			ALint state = 0;
-			alGetSourcei(uiSource, AL_SOURCE_STATE, &state);
-			if (state == AL_STOPPED)
-				alSourcePlay(uiSource);
+			soundSyncEvent.Wait();
 		}
-		soundSyncEvent.Wait();
 	}
 }
 
