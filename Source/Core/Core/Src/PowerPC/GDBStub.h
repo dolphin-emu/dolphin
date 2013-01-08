@@ -44,6 +44,7 @@ typedef enum {
 void gdb_init(u32 port);
 void gdb_deinit();
 bool gdb_active();
+void gdb_break();
 
 void gdb_handle_exception();
 int  gdb_signal(u32 signal);

@@ -633,17 +633,22 @@ static void gdb_write_mem()
 	gdb_reply("OK");
 }
 
-static void gdb_step()
+// forces a break on next instruction check
+void gdb_break()
 {
 	step_break = 1;
 	send_signal = 1;
+}
+
+static void gdb_step()
+{
+	gdb_break();
 }
 
 static void gdb_continue()
 {
 	send_signal = 1;
 }
-
 
 bool gdb_add_bp(u32 type, u32 addr, u32 len)
 {

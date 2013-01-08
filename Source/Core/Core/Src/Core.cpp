@@ -330,7 +330,8 @@ void CpuThread()
 	if(_CoreParameter.iGDBPort > 0)
 	{
 		gdb_init(_CoreParameter.iGDBPort);
-		gdb_handle_exception();
+		// break at next instruction (the first instruction)
+		gdb_break();
 	}
 	#endif
 	
