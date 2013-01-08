@@ -20,6 +20,7 @@
 
 #include "../DSPEmulator.h"
 #include "../PowerPC/PowerPC.h"
+#include "../PowerPC/GDBStub.h"
 #include "../Host.h"
 #include "../Core.h"
 #include "CPU.h"
@@ -125,10 +126,19 @@ void CCPU::EnableStepping(const bool _bStepping)
 {	
 	if (_bStepping)
 	{
+		#ifdef USE_GDBSTUB
+		if (gdb_active())
+		{
+			gdb_break();
+		}
+		else
+		#endif
+		{
 		PowerPC::Pause();
 		m_StepEvent.Reset();
 		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PAUSE);
 		DSP::GetDSPEmulator()->DSP_ClearAudioBuffer(true);
+		}
 	}
 	else
 	{

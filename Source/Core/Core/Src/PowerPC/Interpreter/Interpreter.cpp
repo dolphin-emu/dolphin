@@ -105,12 +105,14 @@ int Interpreter::SingleStepInner(void)
 	static UGeckoInstruction instCode;
 	
 	#ifdef USE_GDBSTUB
-	if (gdb_active() && gdb_bp_x(PC)) {
+	if (gdb_bp_x(PC)) {
 		
-		Host_UpdateDisasmDialog();
+		PowerPC::Pause();
 		
 		gdb_signal(SIGTRAP);
 		gdb_handle_exception();
+		
+		PowerPC::Start();
 	}
 	#endif
 	

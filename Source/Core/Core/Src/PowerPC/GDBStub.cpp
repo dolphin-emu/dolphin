@@ -880,12 +880,12 @@ void gdb_deinit()
 
 bool gdb_active()
 {
-	return tmpsock != -1 || sock != -1;
+	return sock != -1;
 }
 
 int gdb_signal(u32 s)
 {
-	if (sock == -1)
+	if(!gdb_active())
 		return 1;
 	
 	sig = s;
@@ -900,7 +900,7 @@ int gdb_signal(u32 s)
 
 int gdb_bp_x(u32 addr)
 {
-	if (sock == -1)
+	if(!gdb_active())
 		return 0;
 	
 	if (step_break)
@@ -916,7 +916,7 @@ int gdb_bp_x(u32 addr)
 
 int gdb_bp_r(u32 addr)
 {
-	if (sock == -1)
+	if(!gdb_active())
 		return 0;
 	
 	return gdb_bp_check(addr, GDB_BP_TYPE_R);
@@ -924,7 +924,7 @@ int gdb_bp_r(u32 addr)
 
 int gdb_bp_w(u32 addr)
 {
-	if (sock == -1)
+	if(!gdb_active())
 		return 0;
 	
 	return gdb_bp_check(addr, GDB_BP_TYPE_W);
@@ -932,7 +932,7 @@ int gdb_bp_w(u32 addr)
 
 int gdb_bp_a(u32 addr)
 {
-	if (sock == -1)
+	if(!gdb_active())
 		return 0;
 	
 	return gdb_bp_check(addr, GDB_BP_TYPE_A);
