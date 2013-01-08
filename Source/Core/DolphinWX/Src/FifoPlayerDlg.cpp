@@ -470,6 +470,7 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 	if (obj_idx == -1)
 	{
 		m_numResultsText->SetLabel(_("Invalid search parameters (no object selected)"));
+		delete[] search_val;
 		return;
 	}
 	start_ptr = &fifo_frame.fifoData[frame.objectStarts[obj_idx]];
