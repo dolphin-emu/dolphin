@@ -45,7 +45,7 @@
 #define C_PMATERIALS	(C_PLIGHTS + 40)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
 #define PIXELSHADERUID_MAX_VALUES 70
-#define PIXELSHADERUID_MAX_VALUES_SAFE 120
+#define PIXELSHADERUID_MAX_VALUES_SAFE 119
 
 // DO NOT make anything in this class virtual.
 template<bool safe>

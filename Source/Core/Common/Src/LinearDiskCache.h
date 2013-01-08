@@ -24,7 +24,7 @@
 // Increment this every time you change shader generation code.
 enum
 {
-	LINEAR_DISKCACHE_VER = 6977
+	LINEAR_DISKCACHE_VER = 6978
 };
 
 // On disk format:
