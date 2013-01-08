@@ -38,7 +38,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	// Activate only first Wiimote by default
 
 	_conf_pads BT_DINF;
-
+	SetUsbPointer(this);
 	if (!SConfig::GetInstance().m_SYSCONF->GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
 	{
 		PanicAlertT("Trying to read from invalid SYSCONF\nWiimote bt ids are not available");
@@ -100,6 +100,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 {
 	m_WiiMotes.clear();
+	SetUsbPointer(NULL);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
