@@ -535,11 +535,7 @@ ControlState Joystick::Hat::GetState() const
 
 void Joystick::ForceConstant::SetState(const ControlState state)
 {
-	float force = abs(state - 0.5) * 2;
-	if (state < 0.5)
-		force = -force;
-
-	const LONG new_val = LONG(10000 * force);
+	const LONG new_val = LONG(10000 * state);
 
 	LONG &val = params.lMagnitude;
 	if (val != new_val)
