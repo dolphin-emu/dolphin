@@ -471,10 +471,13 @@ void Renderer::SetColorMask()
 {
 	// Only enable alpha channel if it's supported by the current EFB format
 	UINT8 color_mask = 0;
-	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
-		color_mask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate)
-		color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
+	if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
+	{
+		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+			color_mask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
+		if (bpmem.blendmode.colorupdate)
+			color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
+	}
 	gx_state.blenddc.RenderTarget[0].RenderTargetWriteMask = color_mask;
 }
 

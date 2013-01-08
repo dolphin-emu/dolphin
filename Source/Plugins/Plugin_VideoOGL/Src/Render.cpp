@@ -646,10 +646,13 @@ void Renderer::SetColorMask()
 {
 	// Only enable alpha channel if it's supported by the current EFB format
 	GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
-	if (bpmem.blendmode.colorupdate)
-		ColorMask = GL_TRUE;
-	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
-		AlphaMask = GL_TRUE;
+	if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
+	{
+		if (bpmem.blendmode.colorupdate)
+			ColorMask = GL_TRUE;
+		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+			AlphaMask = GL_TRUE;
+	}
 	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
 }
 

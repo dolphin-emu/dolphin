@@ -428,10 +428,13 @@ void Renderer::SetColorMask()
 {
 	// Only enable alpha channel if it's supported by the current EFB format
 	DWORD color_mask = 0;
-	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
-		color_mask = D3DCOLORWRITEENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate)
-		color_mask |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+	if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
+	{
+		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+			color_mask = D3DCOLORWRITEENABLE_ALPHA;
+		if (bpmem.blendmode.colorupdate)
+			color_mask |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+	}
 	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
 
