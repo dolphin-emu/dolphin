@@ -793,7 +793,7 @@ union PE_CONTROL
     {
         u32 pixel_format : 3;	// PIXELFMT_X
         u32 zformat : 3;		// Z Compression for 16bit Z format
-        u32 zcomploc : 1;		// 1: before tex stage
+        u32 early_ztest : 1;	// 1: before tex stage
         u32 unused : 17;
         u32 rid : 8;
     };

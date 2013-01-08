@@ -109,7 +109,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	uid->values[0] |= bpmem.genMode.numtexgens << 4; // 4
 	uid->values[0] |= dstAlphaMode << 8; // 2
 
-	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth;
+	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth;
 
 	uid->values[0] |= DepthTextureEnable << 10; // 1
 
@@ -170,7 +170,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 		if (DepthTextureEnable)
 		{
 			ptr[0] |= bpmem.ztex2.op << 11; // 2
-			ptr[0] |= bpmem.zcontrol.zcomploc << 13; // 1
+			ptr[0] |= bpmem.zcontrol.early_ztest << 13; // 1
 			ptr[0] |= bpmem.zmode.testenable << 14; // 1
 			ptr[0] |= bpmem.zmode.updateenable << 15; // 1
 		}
@@ -528,7 +528,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
 		}
 	}
-	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ;
+	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ;
 	// Declare samplers
 
 	if(ApiType != API_D3D11)
@@ -769,12 +769,11 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if (DepthTextureEnable)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-		if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
+		// Note: depth textures are disabled if early depth test is enabled
+		if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable)
 		{
-			if (bpmem.ztex2.op == ZTEXTURE_ADD)
-				WRITE(p, "zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w + zCoord;\n");
-			else
-				WRITE(p, "zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w;\n");
+			WRITE(p, "zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
+										(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
 
 			// scale to make result from frac correct
 			WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
@@ -1264,7 +1263,7 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	// depth channel.
 	// 2 - in the next pass disable depth chanel update, but proccess the color data normally
 	// this way is the only CORRECT way to emulate perfectly the zcomplock behaviour
-	if (!(bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable))
+	if (!(bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable))
 	{
 		WRITE(p, "discard;\n");
 		if (ApiType != API_D3D11)
