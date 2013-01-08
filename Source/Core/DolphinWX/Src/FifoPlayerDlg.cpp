@@ -22,8 +22,12 @@
 #include "FifoPlayer/FifoPlayer.h"
 #include "FifoPlayer/FifoRecorder.h"
 #include "OpcodeDecoding.h"
+
 #include <wx/spinctrl.h>
 #include <wx/clipbrd.h>
+
+#include <algorithm>
+#include <vector>
 
 DECLARE_EVENT_TYPE(RECORDING_FINISHED_EVENT, -1)
 DEFINE_EVENT_TYPE(RECORDING_FINISHED_EVENT)
@@ -440,26 +444,22 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 		return;
 	}
 
-	unsigned int val_length = str_search_val.Length() / 2;
-	u8* search_val = new u8[val_length];
+	unsigned int const val_length = str_search_val.Length() / 2;
+	std::vector<u8> search_val(val_length);
 	for (unsigned int i = 0; i < val_length; ++i)
 	{
 		wxString char_str = str_search_val.Mid(2*i, 2);
-		unsigned long val;
+		unsigned long val = 0;
 		if (!char_str.ToULong(&val, 16))
 		{
 			m_numResultsText->SetLabel(_("Invalid search string (couldn't convert to number)"));
-			delete[] search_val;
 			return;
 		}
 		search_val[i] = (u8)val;
 	}
 	search_results.clear();
 
-	u8* start_ptr;
-	u8* end_ptr;
-
-	int frame_idx = m_framesList->GetSelection();
+	int const frame_idx = m_framesList->GetSelection();
 	FifoPlayer& player = FifoPlayer::GetInstance();
 	const AnalyzedFrameInfo& frame = player.GetAnalyzedFrameInfo(frame_idx);
 	const FifoFrameInfo& fifo_frame = player.GetFile()->GetFrame(frame_idx);
@@ -470,15 +470,15 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 	if (obj_idx == -1)
 	{
 		m_numResultsText->SetLabel(_("Invalid search parameters (no object selected)"));
-		delete[] search_val;
 		return;
 	}
-	start_ptr = &fifo_frame.fifoData[frame.objectStarts[obj_idx]];
-	end_ptr = &fifo_frame.fifoData[frame.objectStarts[obj_idx+1]];
 
-	for (u8* ptr = start_ptr; ptr < end_ptr-val_length+1; ++ptr)
+	const u8* const start_ptr = &fifo_frame.fifoData[frame.objectStarts[obj_idx]];
+	const u8* const end_ptr = &fifo_frame.fifoData[frame.objectStarts[obj_idx+1]];
+
+	for (const u8* ptr = start_ptr; ptr < end_ptr-val_length+1; ++ptr)
 	{
-		if (memcmp(ptr, search_val, val_length) == 0)
+		if (std::equal(search_val.begin(), search_val.end(), ptr))
 		{
 			SearchResult result;
 			result.frame_idx = frame_idx;
@@ -497,7 +497,6 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 			search_results.push_back(result);
 		}
 	}
-	delete[] search_val;
 
 	ChangeSearchResult(0);
 	m_beginSearch->Disable();
