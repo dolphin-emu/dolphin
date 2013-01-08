@@ -151,23 +151,17 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	ptr[0] |= bpmem.alpha_test.comp1 << 3; // 3
 	ptr[0] |= bpmem.alpha_test.logic << 6; // 2
 
-	if (alphaPreTest != AlphaTest::FAIL)
-	{
-		ptr[0] |= bpmem.fog.c_proj_fsel.fsel << 8; // 3
-		ptr[0] |= bpmem.ztex2.op << 11; // 2
-//		ptr[0] |= bpmem.zcontrol.early_ztest << 13; // 1
-		ptr[0] |= bpmem.zmode.testenable << 14; // 1
-	}
-
-	ptr[0] |= bpmem.zcontrol.early_ztest << 13; // 1
-	ptr[0] |= bpmem.zmode.updateenable << 15; // 1
+	ptr[0] |= bpmem.ztex2.op << 8; // 2
+	ptr[0] |= bpmem.zcontrol.early_ztest << 10; // 1
+	ptr[0] |= bpmem.zmode.testenable << 11; // 1
+	ptr[0] |= bpmem.zmode.updateenable << 12; // 1
 
 	if (dstAlphaMode != DSTALPHA_ALPHA_PASS)
 	{
 		if (bpmem.fog.c_proj_fsel.fsel != 0)
 		{
-			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 16; // 1
-			ptr[0] |= bpmem.fogRange.Base.Enabled << 17; // 1
+			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 13; // 1
+			ptr[0] |= bpmem.fogRange.Base.Enabled << 14; // 1
 		}
 	}
 
