@@ -158,7 +158,10 @@ void SConfig::SaveSettings()
 	ini.Set("General", "NANDRoot",			m_NANDPath);
 	ini.Set("General", "WirelessMac",		m_WirelessMac);
 	ini.Set("General", "HollywoodID",		m_HollywoodID);
-
+	#ifdef USE_GDBSTUB
+	ini.Set("General", "GDBPort", m_LocalCoreStartupParameter.iGDBPort);
+	#endif
+	
 	// Interface		
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
 	ini.Set("Interface", "UsePanicHandlers",	m_LocalCoreStartupParameter.bUsePanicHandlers);
@@ -271,6 +274,9 @@ void SConfig::LoadSettings()
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
 		ini.Get("General", "ShowLag", &m_ShowLag, false);
+		#ifdef USE_GDBSTUB
+		ini.Get("General", "GDBPort", &(m_LocalCoreStartupParameter.iGDBPort), -1);
+		#endif
 
 		m_ISOFolder.clear();
 		int numGCMPaths;

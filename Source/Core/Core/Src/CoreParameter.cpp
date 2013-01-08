@@ -68,6 +68,9 @@ SCoreStartupParameter::SCoreStartupParameter()
 void SCoreStartupParameter::LoadDefaults()
 {
 	bEnableDebugging = false;
+	#ifdef USE_GDBSTUB
+	iGDBPort = -1;
+	#endif
 	iCPUCore = 1;
 	bCPUThread = false;
 	bSkipIdle = false;

@@ -55,6 +55,9 @@
 
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/JitCommon/JitBase.h"
+#ifdef USE_GDBSTUB
+#include "PowerPC/GDBStub.h"
+#endif
 
 #include "DSPEmulator.h"
 #include "ConfigManager.h"
@@ -322,6 +325,16 @@ void CpuThread()
 
 	g_bStarted = true;
 
+	
+	#ifdef USE_GDBSTUB
+	if(_CoreParameter.iGDBPort > 0)
+	{
+		gdb_init(_CoreParameter.iGDBPort);
+		// break at next instruction (the first instruction)
+		gdb_break();
+	}
+	#endif
+	
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
 
@@ -447,7 +460,7 @@ void EmuThread()
 		cpuThreadFunc = FifoPlayerThread;
 	else
 		cpuThreadFunc = CpuThread;
-
+	
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{
@@ -487,11 +500,17 @@ void EmuThread()
 
 	// Wait for g_cpu_thread to exit
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
-
+	
+	#ifdef USE_GDBSTUB
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping GDB ...").c_str());
+	gdb_deinit();
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "GDB stopped.").c_str());
+	#endif
+	
 	g_cpu_thread.join();
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
-
+	
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
 

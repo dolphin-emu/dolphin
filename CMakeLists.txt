@@ -222,6 +222,12 @@ if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
+
+option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
+if(GDBSTUB)
+	add_definitions(-DUSE_GDBSTUB)
+endif(GDBSTUB)
+
 # For now GLES and EGL are tied to each other.
 # Enabling GLES also disables the OpenGL plugin.
 option(USE_GLES "Enables GLES, disables OGL" OFF)

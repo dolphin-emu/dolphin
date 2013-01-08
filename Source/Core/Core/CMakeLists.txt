@@ -224,5 +224,9 @@ if(OPROFILE_FOUND)
 	set(LIBS ${LIBS} opagent bfd)
 endif(OPROFILE_FOUND)
 
+if(GDBSTUB)
+	set(SRCS ${SRCS} Src/PowerPC/GDBStub.cpp)
+endif(GDBSTUB)
+
 add_library(core STATIC ${SRCS})
 target_link_libraries(core ${LIBS})
