@@ -157,7 +157,9 @@ void SConfig::SaveSettings()
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
 	ini.Set("General", "NANDRoot",			m_NANDPath);
 	ini.Set("General", "WirelessMac",		m_WirelessMac);
+	#ifdef USE_GDBSTUB
 	ini.Set("General", "GDBPort", m_LocalCoreStartupParameter.iGDBPort);
+	#endif
 
 	// Interface		
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
