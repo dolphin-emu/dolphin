@@ -328,7 +328,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 
 	// Wii Console
-	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DisableWiimoteSpeaker = new wxCheckBox(m_GameConfig, ID_DISABLEWIIMOTESPEAKER, _("Alternate Wiimote Timing"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DisableWiimoteSpeaker->SetToolTip(_("Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No effect on emulated wiimotes."));
@@ -378,18 +377,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
 	{
 		sbWiiOverrides->ShowItems(false);
-		EnableProgressiveScan->Hide();
 		EnableWideScreen->Hide();
 		DisableWiimoteSpeaker->Hide();
 	}
-	else
-	{
-		// Progressive Scan is not used by Dolphin itself, and changing it on a per-game
-		// basis would have the side-effect of changing the SysConf, making this setting
-		// rather useless.
-		EnableProgressiveScan->Disable();
-	}
-	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, 5);
 	sbWiiOverrides->Add(DisableWiimoteSpeaker, 0, wxLEFT, 5);
 
@@ -971,11 +961,6 @@ void CISOProperties::LoadGameConfig()
 	else
 		DSPHLE->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Display", "ProgressiveScan", &bTemp))
-		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EnableProgressiveScan->Set3StateValue(wxCHK_UNDETERMINED);
-
 	// ??
 	if (GameIni.Get("Wii", "Widescreen", &bTemp))
 		EnableWideScreen->Set3StateValue((wxCheckBoxState)bTemp);
@@ -1070,11 +1055,6 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Core", "DSPHLE");
 	else
 		GameIni.Set("Core", "DSPHLE", DSPHLE->Get3StateValue());
-
-	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Display", "ProgressiveScan");
-	else
-		GameIni.Set("Display", "ProgressiveScan", EnableProgressiveScan->Get3StateValue());
 
 	if (EnableWideScreen->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Wii", "Widescreen");

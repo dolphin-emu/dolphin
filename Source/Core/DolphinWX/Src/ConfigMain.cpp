@@ -79,6 +79,7 @@ static const wxLanguage langIds[] =
 #define DEV_DUMMY_STR		_trans("Dummy")
 
 #define SIDEV_STDCONT_STR	_trans("Standard Controller")
+#define SIDEV_STEERING_STR	_trans("Steering Wheel")
 #define SIDEV_BONGO_STR		_trans("TaruKonga (Bongos)")
 #define SIDEV_GBA_STR		"GBA"
 #define SIDEV_AM_BB_STR		_trans("AM-Baseboard")
@@ -391,6 +392,7 @@ void CConfigMain::InitializeGUIValues()
 	wxArrayString SIDevices;
 		SIDevices.Add(_(DEV_NONE_STR));
 		SIDevices.Add(_(SIDEV_STDCONT_STR));
+		SIDevices.Add(_(SIDEV_STEERING_STR));
 		SIDevices.Add(_(SIDEV_BONGO_STR));
 		SIDevices.Add(_(SIDEV_GBA_STR));
 		SIDevices.Add(_(SIDEV_AM_BB_STR));
@@ -443,14 +445,17 @@ void CConfigMain::InitializeGUIValues()
 		case SIDEVICE_GC_CONTROLLER:
 			GCSIDevice[i]->SetStringSelection(SIDevices[1]);
 			break;
-		case SIDEVICE_GC_TARUKONGA:
+		case SIDEVICE_GC_STEERING:
 			GCSIDevice[i]->SetStringSelection(SIDevices[2]);
 			break;
-		case SIDEVICE_GC_GBA:
+		case SIDEVICE_GC_TARUKONGA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[3]);
 			break;
-		case SIDEVICE_AM_BASEBOARD:
+		case SIDEVICE_GC_GBA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[4]);
+			break;
+		case SIDEVICE_AM_BASEBOARD:
+			GCSIDevice[i]->SetStringSelection(SIDevices[5]);
 			break;
 		default:
 			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
@@ -617,6 +622,12 @@ void CConfigMain::CreateGUIControls()
 	FrequencySelection = new wxChoice(AudioPage, ID_FREQUENCY);
 	FrequencySelection->Append(wxString::Format(_("%d Hz"), 48000));
 	FrequencySelection->Append(wxString::Format(_("%d Hz"), 32000));
+
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		FrequencySelection->Disable();
+		BackendSelection->Disable();
+	}
 
 	// Create sizer and add items to dialog
 	wxStaticBoxSizer *sbAudioSettings = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Sound Settings"));
@@ -1053,6 +1064,8 @@ void CConfigMain::ChooseSIDevice(wxString deviceName, int deviceNum)
 	SIDevices tempType;
 	if (!deviceName.compare(WXSTR_TRANS(SIDEV_STDCONT_STR)))
 		tempType = SIDEVICE_GC_CONTROLLER;
+	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_STEERING_STR)))
+		tempType = SIDEVICE_GC_STEERING;
 	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_BONGO_STR)))
 		tempType = SIDEVICE_GC_TARUKONGA;
 	else if (!deviceName.compare(wxT(SIDEV_GBA_STR)))

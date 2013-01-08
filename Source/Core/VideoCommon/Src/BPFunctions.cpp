@@ -236,7 +236,7 @@ bool GetConfig(const int &type)
 	case CONFIG_DISABLEFOG:
 		return g_ActiveConfig.bDisableFog;
 	case CONFIG_SHOWEFBREGIONS:
-		return g_ActiveConfig.bShowEFBCopyRegions;
+		return false;
 	default:
 		PanicAlert("GetConfig Error: Unknown Config Type!");
 		return false;

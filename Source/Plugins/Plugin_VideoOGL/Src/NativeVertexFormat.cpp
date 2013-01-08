@@ -27,9 +27,8 @@
 
 #define COMPILED_CODE_SIZE 4096
 
-// TODO: Use this again for performance, but without VAO we never know exactly the last configuration
-static u32 s_prevcomponents; // previous state set
-
+// TODO: this guy is never initialized
+u32 s_prevcomponents; // previous state set
 /*
 #ifdef _WIN32
 #ifdef _M_IX86
@@ -65,6 +64,7 @@ public:
 
 	virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
 	virtual void SetupVertexPointers();
+	virtual void EnableComponents(u32 components);
 };
 
 namespace OGL
@@ -187,7 +187,6 @@ void GLVertexFormat::SetupVertexPointers() {
 #ifdef USE_JIT
 	((void (*)())(void*)m_compiledCode)();
 #else
-	
 	glVertexPointer(3, GL_FLOAT, vtx_decl.stride, VertexManager::s_pBaseBufferPointer);
 	if (vtx_decl.num_normals >= 1) {
 		glNormalPointer(VarToGL(vtx_decl.normal_gl_type), vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.normal_offset[0]));
@@ -220,32 +219,34 @@ void GLVertexFormat::SetupVertexPointers() {
 		glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (void *)(VertexManager::s_pBaseBufferPointer + vtx_decl.posmtx_offset));
 	}
 #endif
+}
 
-	if (s_prevcomponents != m_components)
+void GLVertexFormat::EnableComponents(u32 components)
+{
+	if (s_prevcomponents != components) 
 	{
-		// vertices
-		glEnableClientState(GL_VERTEX_ARRAY);
+		VertexManager::Flush();
 
 		// matrices
-		if ((m_components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX))
+		if ((components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX)) 
 		{
-			if (m_components & VB_HAS_POSMTXIDX)
+			if (components & VB_HAS_POSMTXIDX)
 				glEnableVertexAttribArray(SHADER_POSMTX_ATTRIB);
 			else
 				glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
 		}
 
 		// normals
-		if ((m_components & VB_HAS_NRM0) != (s_prevcomponents & VB_HAS_NRM0))
+		if ((components & VB_HAS_NRM0) != (s_prevcomponents & VB_HAS_NRM0)) 
 		{
-			if (m_components & VB_HAS_NRM0)
+			if (components & VB_HAS_NRM0)
 				glEnableClientState(GL_NORMAL_ARRAY);
 			else
 				glDisableClientState(GL_NORMAL_ARRAY);
 		}
-		if ((m_components & VB_HAS_NRM1) != (s_prevcomponents & VB_HAS_NRM1))
+		if ((components & VB_HAS_NRM1) != (s_prevcomponents & VB_HAS_NRM1)) 
 		{
-			if (m_components & VB_HAS_NRM1) {
+			if (components & VB_HAS_NRM1) {
 				glEnableVertexAttribArray(SHADER_NORM1_ATTRIB);
 				glEnableVertexAttribArray(SHADER_NORM2_ATTRIB);
 			}
@@ -258,9 +259,9 @@ void GLVertexFormat::SetupVertexPointers() {
 		// color
 		for (int i = 0; i < 2; ++i) 
 		{
-			if ((m_components & (VB_HAS_COL0 << i)) != (s_prevcomponents & (VB_HAS_COL0 << i)))
+			if ((components & (VB_HAS_COL0 << i)) != (s_prevcomponents & (VB_HAS_COL0 << i))) 
 			{
-				if (m_components & (VB_HAS_COL0 << i))
+				if (components & (VB_HAS_COL0 << i))
 					glEnableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
 				else
 					glDisableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
@@ -270,16 +271,16 @@ void GLVertexFormat::SetupVertexPointers() {
 		// tex
 		for (int i = 0; i < 8; ++i) 
 		{
-			if ((m_components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i)))
+			if ((components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i))) 
 			{
 				glClientActiveTexture(GL_TEXTURE0 + i);
-				if (m_components & (VB_HAS_UV0 << i))
+				if (components & (VB_HAS_UV0 << i))
 					glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 				else
 					glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 			}
 		}
 
-		s_prevcomponents = m_components;
+		s_prevcomponents = components;
 	}
 }

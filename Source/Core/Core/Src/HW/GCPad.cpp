@@ -101,7 +101,36 @@ void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 	{
 		// TODO: this has potential to not stop rumble if user is messing with GUI at the perfect time
 		// set rumble
-		((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput( 1 == _uType && _uStrength > 2 );
+		if (1 == _uType && _uStrength > 2)
+		{
+			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput(255);
+		}
+		else
+		{
+			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput(0);
+		}
+	}
+}
+
+// __________________________________________________________________________________________________
+// Function: Motor
+// Purpose:  For devices with constant Force feedback
+// input:	 Type - 06 = Motor On, 04 = Motor Off
+//           Strength - 00 = Left Strong, 127 = Left Weak, 128 = Right Weak, 255 = Right Strong
+// output:   none
+//
+void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
+{
+	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
+
+	if (lk.owns_lock())
+	{
+		// TODO: this has potential to not stop rumble if user is messing with GUI at the perfect time
+		// set rumble
+		if (_uType == 6)
+		{
+			((GCPad*)g_plugin.controllers[ _numPAD ])->SetMotor(_uStrength);
+		}
 	}
 }
 

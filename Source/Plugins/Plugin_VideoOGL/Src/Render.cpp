@@ -107,14 +107,10 @@ namespace OGL
 
 // Declarations and definitions
 // ----------------------------
-static int s_fps = 0;
-static GLuint s_ShowEFBCopyRegions_VBO = 0;
-static GLuint s_ShowEFBCopyRegions_VAO = 0;
-static GLuint s_Swap_VBO = 0;
-static GLuint s_Swap_VAO[2];
-static TargetRectangle s_cached_targetRc;
+int s_fps=0;
 
-static RasterFont* s_pfont = NULL;
+
+RasterFont* s_pfont = NULL;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
@@ -130,9 +126,9 @@ static std::thread scrshotThread;
 #endif
 
 // EFB cache related
-static const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
-static const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
-static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
+const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
+const u32 EFB_CACHE_WIDTH = (EFB_WIDTH + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE; // round up
+const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_RECT_SIZE;
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
@@ -255,16 +251,7 @@ Renderer::Renderer()
 	OSDInternalH = 0;
 
 	s_fps=0;
-	s_ShowEFBCopyRegions_VBO = 0;
-	s_Swap_VBO = 0;
 	s_blendMode = 0;
-	
-	// should be invalid, so there will be an upload on the first call
-	s_cached_targetRc.bottom = -1;
-	s_cached_targetRc.top = -1;
-	s_cached_targetRc.left = -1;
-	s_cached_targetRc.right = -1;
-	
 
 	InitFPSCounter();
 
@@ -322,13 +309,6 @@ Renderer::Renderer()
 	{
 		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_EXT_secondary_color.\n"
 				"GPU: Does your video card support OpenGL 2.x?");
-		bSuccess = false;
-	}
-
-	if (!GLEW_ARB_vertex_array_object)
-	{
-		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_vertex_array_object.\n"
-				"GPU: Does your video card support OpenGL 3.0?");
 		bSuccess = false;
 	}
 
@@ -471,45 +451,16 @@ Renderer::Renderer()
 	cgGLSetDebugMode(GL_FALSE);
 #endif
 #endif
-	
-	// creating buffers
-	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);
-	glGenVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
-	glBindVertexArray( s_ShowEFBCopyRegions_VAO );
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer (3, GL_FLOAT, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*5, NULL);
-	
-	glGenBuffers(1, &s_Swap_VBO);
-	glGenVertexArrays(2, s_Swap_VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
-	glBindVertexArray(s_Swap_VAO[0]);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 7*sizeof(GLfloat), NULL);
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+3);
-	
-	glBindVertexArray(s_Swap_VAO[1]);	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 7*sizeof(GLfloat), NULL);
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+3);
-	glClientActiveTexture(GL_TEXTURE1);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 7*sizeof(GLfloat), (GLfloat*)NULL+5);
 
-	// TODO: this after merging with graphic_update
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
 
 	glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
 	glShadeModel(GL_SMOOTH);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -527,6 +478,11 @@ Renderer::Renderer()
 	glBlendColorEXT(0, 0, 0, 0.5f);
 	glClearDepth(1.0f);
 
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
 	// legacy multitexturing: select texture channel only.
 	glActiveTexture(GL_TEXTURE0);
 	glClientActiveTexture(GL_TEXTURE0);
@@ -542,13 +498,6 @@ Renderer::~Renderer()
 {
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
-	
-	glDeleteBuffers(1, &s_ShowEFBCopyRegions_VBO);
-	glDeleteVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
-	glDeleteBuffers(1, &s_Swap_VBO);
-	glDeleteVertexArrays(2, s_Swap_VAO);
-	s_ShowEFBCopyRegions_VBO = 0;
-	
 	delete s_pfont;
 	s_pfont = 0;
 
@@ -596,15 +545,9 @@ void Renderer::DrawDebugInfo()
 		// Set Line Size
 		glLineWidth(3.0f);
 
-		// 2*Coords + 3*Color
-		glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
-		glBufferData(GL_ARRAY_BUFFER, stats.efb_regions.size() * sizeof(GLfloat) * (2+3)*2*6, NULL, GL_STREAM_DRAW);
-		GLfloat *Vertices = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		glBegin(GL_LINES);
 
 		// Draw EFB copy regions rectangles
-		int a = 0;
-		GLfloat color[3] = {0.0f, 1.0f, 1.0f};
-		
 		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin();
 			it != stats.efb_regions.end(); ++it)
 		{
@@ -615,97 +558,22 @@ void Renderer::DrawDebugInfo()
 			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)it->right / halfWidth);
 			GLfloat y2 = (GLfloat) 1.0f - ((GLfloat)it->bottom / halfHeight);
 
-			Vertices[a++] = x;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			Vertices[a++] = x2;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			
-			Vertices[a++] = x2;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			Vertices[a++] = x2;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			
-			Vertices[a++] = x2;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			Vertices[a++] = x;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			
-			Vertices[a++] = x;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			Vertices[a++] = x;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			
-			Vertices[a++] = x;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			Vertices[a++] = x2;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			
-			Vertices[a++] = x2;
-			Vertices[a++] = y;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			Vertices[a++] = x;
-			Vertices[a++] = y2;
-			Vertices[a++] = color[0];
-			Vertices[a++] = color[1];
-			Vertices[a++] = color[2];
-			
-			// TO DO: build something nicer here
-			GLfloat temp = color[0];
-			color[0] = color[1];
-			color[1] = color[2];
-			color[2] = temp;
+			// Draw shadow of rect
+			glColor3f(0.0f, 0.0f, 0.0f);
+			glVertex2f(x, y - 0.01);  glVertex2f(x2, y - 0.01);
+			glVertex2f(x, y2 - 0.01); glVertex2f(x2, y2 - 0.01);
+			glVertex2f(x + 0.005, y);  glVertex2f(x + 0.005, y2);
+			glVertex2f(x2 + 0.005, y); glVertex2f(x2 + 0.005, y2);
+
+			// Draw rect
+			glColor3f(0.0f, 1.0f, 1.0f);
+			glVertex2f(x, y);  glVertex2f(x2, y);
+			glVertex2f(x, y2); glVertex2f(x2, y2);
+			glVertex2f(x, y);  glVertex2f(x, y2);
+			glVertex2f(x2, y); glVertex2f(x2, y2);
 		}
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-		
-		glBindVertexArray( s_ShowEFBCopyRegions_VAO );
-		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
-		
-		// TODO: this after merging with graphic_update
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glEnd();
 
 		// Restore Line Size
 		glLineWidth(lSize);
@@ -733,13 +601,16 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 	const int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	const int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
 
+	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
+		((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	s_pfont->printMultilineText(text,
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
-		0, nBackbufferWidth, nBackbufferHeight, color);
+		0, nBackbufferWidth, nBackbufferHeight);
 
 	GL_REPORT_ERRORD();
 
@@ -1264,42 +1135,43 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		// Render to the real buffer now.
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
+		if (applyShader)
+		{
+			glBegin(GL_QUADS);
+			glTexCoord2f(targetRc.left, targetRc.bottom);
+			glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0);
+			glVertex2f(-1, -1);
 
-		if(!( s_cached_targetRc == targetRc)) {
-			GLfloat vertices[] = {
-				-1.0f, -1.0f, 1.0f,
-				(GLfloat)targetRc.left, (GLfloat)targetRc.bottom,
-				0.0f, 0.0f,
-				
-				-1.0f, 1.0f, 1.0f,
-				(GLfloat)targetRc.left, (GLfloat)targetRc.top,
-				0.0f, 1.0f,
-				
-				1.0f, 1.0f, 1.0f,
-				(GLfloat)targetRc.right, (GLfloat)targetRc.top,
-				1.0f, 1.0f,
-				
-				1.0f, -1.0f, 1.0f,
-				(GLfloat)targetRc.right, (GLfloat)targetRc.bottom,
-				1.0f, 0.0f
-			};
-			
-			glBindBuffer(GL_ARRAY_BUFFER, s_Swap_VBO);
-			glBufferData(GL_ARRAY_BUFFER, 4*7*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-		
-			s_cached_targetRc = targetRc;
-		} 
-		
-		glBindVertexArray(s_Swap_VAO[applyShader]);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+			glTexCoord2f(targetRc.left, targetRc.top);
+			glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1);
+			glVertex2f(-1,  1);
 
-		
-		// TODO: this after merging with graphic_update
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
-		if(applyShader)
+			glTexCoord2f(targetRc.right, targetRc.top);
+			glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1);
+			glVertex2f( 1,  1);
+
+			glTexCoord2f(targetRc.right, targetRc.bottom);
+			glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0);
+			glVertex2f( 1, -1);
+			glEnd();
 			PixelShaderCache::DisableShader();
+		}
+		else
+		{
+			glBegin(GL_QUADS);
+			glTexCoord2f(targetRc.left, targetRc.bottom);
+			glVertex2f(-1, -1);
+
+			glTexCoord2f(targetRc.left, targetRc.top);
+			glVertex2f(-1, 1);
+
+			glTexCoord2f(targetRc.right, targetRc.top);
+			glVertex2f( 1, 1);
+
+			glTexCoord2f(targetRc.right, targetRc.bottom);
+			glVertex2f( 1, -1);
+			glEnd();
+		}
 	}
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);

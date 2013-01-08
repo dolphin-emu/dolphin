@@ -464,14 +464,15 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		SelectedLanguage = 0;
 	default:
 		{
-		wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
-		rISOFile.GetName(wstring_name, SelectedLanguage);
+			wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
+			rISOFile.GetName(wstring_name, SelectedLanguage);
 
-		name = wxString(rISOFile.GetName(SelectedLanguage).c_str(), WindowsCP1252);
-		m_gameList.append(StringFromFormat("%s (%c)\n",
-			rISOFile.GetName(SelectedLanguage).c_str(), (rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA)?'U':'E'));
-		description = wxString(company.size() ?	company.c_str() :
-							rISOFile.GetDescription(SelectedLanguage).c_str(), WindowsCP1252);
+			name = wxString(rISOFile.GetName(SelectedLanguage).c_str(), WindowsCP1252);
+			m_gameList.append(StringFromFormat("%s (%c)\n",
+						rISOFile.GetName(SelectedLanguage).c_str(),
+						(rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA) ? 'U' : 'E'));
+			description = wxString(company.size() ?	company.c_str() :
+					rISOFile.GetDescription(SelectedLanguage).c_str(), WindowsCP1252);
 		}
 		break;
 	}

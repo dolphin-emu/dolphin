@@ -72,7 +72,7 @@ private:
 	wxCheckBox *CPUThread, *SkipIdle, *MMU, *MMUBAT, *TLBHack;
 	wxCheckBox *VBeam, *FastDiscSpeed, *BlockMerging, *DSPHLE;
 	// Wii
-	wxCheckBox *EnableProgressiveScan, *EnableWideScreen, *DisableWiimoteSpeaker;
+	wxCheckBox *EnableWideScreen, *DisableWiimoteSpeaker;
 	// Video
 	wxCheckBox *UseZTPSpeedupHack, *PHackEnable, *UseBBox;
 	wxButton *PHSettings;

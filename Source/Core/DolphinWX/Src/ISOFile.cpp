@@ -140,8 +140,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 						SplitPath(m_FileName, NULL, &FileName, NULL);
 						int length = FileName.length();
 						wFileName.reserve(length+1);
-						for (int i = 0; i < length; ++i)
-							wFileName.push_back(FileName[i]);
+						for (int j = 0; j < length; ++j)
+							wFileName.push_back(FileName[j]);
 						wFileName.push_back(0);
 					}
 					*i = wFileName;
@@ -283,7 +283,7 @@ bool GameListItem::GetName(std::wstring& wName, int index) const
 	// This function will only succeed for wii discs with banners or WADs
 	// utilize the same array as for gc discs (-1= Japanese, 0 = English etc
 	index++; 
-	if ((index >=0) && (index < 10))
+	if ((index >= 0) && (index < 10))
 	{
 		if (m_wNames.size() > (size_t)index)
 		{
