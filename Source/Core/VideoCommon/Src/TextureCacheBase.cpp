@@ -208,7 +208,7 @@ void TextureCache::ClearRenderTargets()
 		if (iter->second->type == TCET_EC_VRAM)
 		{
 			delete iter->second;
-			textures.erase(iter++);
+			textures.erase(iter);
 		}
 }
 
