@@ -28,12 +28,6 @@
 #include "NativeVertexFormat.h"
 
 
-#define ALPHATEST_PASS 2
-#define ALPHATEST_FAIL 1
-#define ALPHATEST_UNDETERMINED 0
-
-static unsigned int AlphaPreTest();
-
 static void StageHash(int stage, u32* out)
 {
 	out[0] |= bpmem.combiners[stage].colorC.hex & 0xFFFFFF; // 24
@@ -119,7 +113,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 
 	if (!enablePL) uid->values[0] |= xfregs.numTexGen.numTexGens << 11; // 4
 
-	u32 alphaPreTest = AlphaPreTest();
+	AlphaTest::TEST_RESULT alphaPreTest = bpmem.alpha_test.TestResult();
 	uid->values[0] |= alphaPreTest << 15; // 2
 
 	// numtexgens should be <= 8
@@ -153,11 +147,11 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 		ptr += 4; // max: ptr = &uid->values[66]
 	}
 
-	ptr[0] |= bpmem.alphaFunc.comp0; // 3
-	ptr[0] |= bpmem.alphaFunc.comp1 << 3; // 3
-	ptr[0] |= bpmem.alphaFunc.logic << 6; // 2
+	ptr[0] |= bpmem.alpha_test.comp0; // 3
+	ptr[0] |= bpmem.alpha_test.comp1 << 3; // 3
+	ptr[0] |= bpmem.alpha_test.logic << 6; // 2
 
-	if (alphaPreTest != ALPHATEST_FAIL)
+	if (alphaPreTest != AlphaTest::FAIL)
 	{
 		ptr[0] |= bpmem.fog.c_proj_fsel.fsel << 8; // 3
 		ptr[0] |= bpmem.ztex2.op << 11; // 2
@@ -227,7 +221,7 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 
 	ptr = &uid->values[112];
 
-	*ptr++ = bpmem.alphaFunc.hex; // 112
+	*ptr++ = bpmem.alpha_test.hex; // 112
 
 	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 113
 	*ptr++ = bpmem.fogRange.Base.hex; // 114
@@ -719,8 +713,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
 	// TODO: ALPHATEST_FAIL should be handled by disabling color writes in the render state
-	int Pretest = AlphaPreTest();
-	if (Pretest == ALPHATEST_UNDETERMINED)
+	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
+	if (Pretest == AlphaTest::UNDETERMINED)
 		WriteAlphaTest(p, ApiType, dstAlphaMode);
 
 	// the screen space depth value = far z + (clip z / clip w) * z range
@@ -1149,48 +1143,6 @@ static const char *tevAlphaFunclogicTable[] =
 	" == "  // xnor
 };
 
-static unsigned int AlphaPreTest()
-{
-	u32 op = bpmem.alphaFunc.logic;
-	u32 comp[2] = { bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1 };
-
-	// First kill all the simple cases
-	switch(op)
-	{
-	case 0: // AND
-		if (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS)
-			return ALPHATEST_PASS;
-		if (comp[0] == ALPHACMP_NEVER || comp[1] == ALPHACMP_NEVER)
-			return ALPHATEST_FAIL;
-		break;
-
-	case 1: // OR
-		if (comp[0] == ALPHACMP_ALWAYS || comp[1] == ALPHACMP_ALWAYS)
-			return ALPHATEST_PASS;
-		if (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)
-			return ALPHATEST_FAIL;
-		break;
-
-	case 2: // XOR
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS))
-			return ALPHATEST_PASS;
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
-			return ALPHATEST_FAIL;
-		break;
-
-	case 3: // XNOR
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS))
-			return ALPHATEST_FAIL;
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
-			return ALPHATEST_PASS;
-		break;
-
-	default: PanicAlert("bad logic for alpha test? %08x", op);
-	}
-	return ALPHATEST_UNDETERMINED;
-}
-
-
 static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode)
 {
 	static const char *alphaRef[2] =
@@ -1202,12 +1154,12 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	// using discard then return works the same in cg and dx9 but not in dx11
 	WRITE(p, "if(!( ");
 
-	int compindex = bpmem.alphaFunc.comp0 % 8;
+	int compindex = bpmem.alpha_test.comp0;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0]);//lookup the first component from the alpha function table
 
-	WRITE(p, "%s", tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);//lookup the logic op
+	WRITE(p, "%s", tevAlphaFunclogicTable[bpmem.alpha_test.logic]);//lookup the logic op
 
-	compindex = bpmem.alphaFunc.comp1 % 8;
+	compindex = bpmem.alpha_test.comp1;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
 	WRITE(p, ")) {\n");
 

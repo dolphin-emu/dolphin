@@ -857,7 +857,7 @@ union TevKSel
     int getKA(int i) {return i?kasel1:kasel0;}
 };
 
-union AlphaFunc
+union AlphaTest
 {
     struct
     {
@@ -868,6 +868,15 @@ union AlphaFunc
         u32 logic : 2;
     };
     u32 hex;
+
+	enum TEST_RESULT
+	{
+		UNDETERMINED = 0,
+		FAIL = 1,
+		PASS = 2,
+	};
+
+	TEST_RESULT TestResult();
 };
 
 union UPE_Copy
@@ -981,7 +990,7 @@ struct BPMemory
     TevReg tevregs[4];  //0xE0
     FogRangeParams fogRange;
     FogParams fog; //0xEE,0xEF,0xF0,0xF1,0xF2
-    AlphaFunc alphaFunc; //0xF3
+    AlphaTest alpha_test; //0xF3
     ZTex1 ztex1; //0xf4,0xf5
     ZTex2 ztex2;
     TevKSel tevksel[8];//0xf6,0xf7,f8,f9,fa,fb,fc,fd

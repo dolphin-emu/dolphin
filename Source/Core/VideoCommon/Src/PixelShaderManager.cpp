@@ -373,7 +373,7 @@ void PixelShaderManager::SetColorChanged(int type, int num, bool high)
     PRIM_LOG("pixel %scolor%d: %f %f %f %f\n", type?"k":"", num, pf[0], pf[1], pf[2], pf[3]);
 }
 
-void PixelShaderManager::SetAlpha(const AlphaFunc& alpha)
+void PixelShaderManager::SetAlpha(const AlphaTest& alpha)
 {
     if ((alpha.hex & 0xffff) != lastAlpha)
 	{

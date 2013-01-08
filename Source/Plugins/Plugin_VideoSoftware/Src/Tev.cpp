@@ -433,10 +433,10 @@ static bool AlphaCompare(int alpha, int ref, int comp)
 
 static bool AlphaTest(int alpha)
 {
-    bool comp0 = AlphaCompare(alpha, bpmem.alphaFunc.ref0, bpmem.alphaFunc.comp0);
-    bool comp1 = AlphaCompare(alpha, bpmem.alphaFunc.ref1, bpmem.alphaFunc.comp1);
+    bool comp0 = AlphaCompare(alpha, bpmem.alpha_test.ref0, bpmem.alpha_test.comp0);
+    bool comp1 = AlphaCompare(alpha, bpmem.alpha_test.ref1, bpmem.alpha_test.comp1);
 
-    switch (bpmem.alphaFunc.logic) {
+    switch (bpmem.alpha_test.logic) {
     case 0: return comp0 && comp1; // and
     case 1: return comp0 || comp1; // or
     case 2: return comp0 ^ comp1; // xor
