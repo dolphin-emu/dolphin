@@ -104,9 +104,6 @@ std::string g_stateFileName;
 std::thread g_EmuThread;
 
 static std::thread g_cpu_thread;
-#ifdef USE_GDBSTUB
-static std::thread g_gdb_thread;
-#endif
 static bool g_requestRefreshInfo = false;
 static int g_pauseAndLockDepth = 0;
 
@@ -328,6 +325,15 @@ void CpuThread()
 
 	g_bStarted = true;
 
+	
+	#ifdef USE_GDBSTUB
+	if(_CoreParameter.iGDBPort > 0)
+	{
+		gdb_init(_CoreParameter.iGDBPort);
+		gdb_handle_exception();
+	}
+	#endif
+	
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
 
@@ -453,20 +459,6 @@ void EmuThread()
 		cpuThreadFunc = FifoPlayerThread;
 	else
 		cpuThreadFunc = CpuThread;
-
-	#ifdef USE_GDBSTUB
-	if(_CoreParameter.iGDBPort > 0)
-	{
-		INFO_LOG(GDB_STUB, "Trying to start the GDB Stub listening on port %d.", _CoreParameter.iGDBPort);
-		Core::SetState(Core::CORE_PAUSE);
-		gdb_init(_CoreParameter.iGDBPort);
-		
-		g_gdb_thread = std::thread(gdb_thread);
-		
-		//gdb_signal(SIGTRAP);
-		gdb_add_bp(GDB_BP_TYPE_X, 0x80004050, 4);
-	}
-	#endif
 	
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
@@ -507,19 +499,17 @@ void EmuThread()
 
 	// Wait for g_cpu_thread to exit
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
-
+	
+	#ifdef USE_GDBSTUB
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping GDB ...").c_str());
+	gdb_deinit();
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "GDB stopped.").c_str());
+	#endif
+	
 	g_cpu_thread.join();
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 	
-	#ifdef USE_GDBSTUB
-		// Wait for g_gdb_thread to exit
-		INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping GDB thread ...").c_str());
-		gdb_deinit();
-		g_gdb_thread.join();
-		INFO_LOG(CONSOLE, "%s", StopMessage(true, "GDB thread stopped.").c_str());
-	#endif
-
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
 

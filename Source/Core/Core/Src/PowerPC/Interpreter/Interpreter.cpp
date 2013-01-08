@@ -110,8 +110,7 @@ int Interpreter::SingleStepInner(void)
 		Host_UpdateDisasmDialog();
 		
 		gdb_signal(SIGTRAP);
-		gdb_handle_events();
-		m_GdbWaitEvent.Wait();
+		gdb_handle_exception();
 	}
 	#endif
 	

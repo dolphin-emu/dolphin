@@ -45,8 +45,7 @@ void gdb_init(u32 port);
 void gdb_deinit();
 bool gdb_active();
 
-void gdb_thread();
-void gdb_handle_events();
+void gdb_handle_exception();
 int  gdb_signal(u32 signal);
 
 int  gdb_bp_x(u32 addr);
@@ -55,7 +54,5 @@ int  gdb_bp_w(u32 addr);
 int  gdb_bp_a(u32 addr);
 
 bool gdb_add_bp(u32 type, u32 addr, u32 len);
-
-static Common::Event m_GdbWaitEvent;
 
 #endif
