@@ -1216,18 +1216,16 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 		WRITE(p, "ocol1 = 0;\n");
 	WRITE(p, "depth = 1.f;\n");
 
-	// HAXX: zcomploc is a way to control whether depth test is done before
-	// or after texturing and alpha test. PC GPU does depth test before texturing ONLY if depth value is
-	// not updated during shader execution.
+	// HAXX: zcomploc (aka early_ztest) is a way to control whether depth test is done before
+	// or after texturing and alpha test. PC GPUs have no way to support this
+	// feature properly as of 2012: depth buffer and depth test are not
+	// programmable and the depth test is always done after texturing.
+	// Most importantly, PC GPUs do not allow writing to the z buffer without
+	// writing a color value (unless color writing is disabled altogether).
 	// We implement "depth test before texturing" by discarding the fragment
 	// when the alpha test fail. This is not a correct implementation because
-	// even if the depth test fails the fragment could be alpha blended.
-	// this implemnetation is a trick to  keep speed.
-	// the correct, but slow, way to implement a correct zComploc is :
-	// 1 - if zcomplock is enebled make a first pass, with color channel write disabled updating only 
-	// depth channel.
-	// 2 - in the next pass disable depth chanel update, but proccess the color data normally
-	// this way is the only CORRECT way to emulate perfectly the zcomplock behaviour
+	// even if the depth test fails the fragment could be alpha blended, but
+	// we don't have a choice.
 	if (!(bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable))
 	{
 		WRITE(p, "discard;\n");
@@ -1236,7 +1234,6 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	}
 
 	WRITE(p, "}\n");
-	
 }
 
 static const char *tevFogFuncsTable[] =
