@@ -795,6 +795,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				std::string tContentFile(m_ContentFile.c_str());
 				WII_IPC_HLE_Interface::Reset(true);
 				WII_IPC_HLE_Interface::Init();
+				s_Usb = GetUsbPointer();
 				for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
 				{
 					if (wiiMoteConnected[i])
