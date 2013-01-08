@@ -293,7 +293,8 @@ void Interpreter::mfspr(UGeckoInstruction _inst)
 
 	case SPR_WPAR:
 		{
-			// If wpar_empty ever is false, Paper Mario hangs. Strange.			
+			// TODO: If wpar_empty ever is false, Paper Mario hangs. Strange.
+			// Maybe WPAR is automatically flushed after a certain amount of time?
 			bool wpar_empty = true; //GPFifo::IsEmpty();
 			if (!wpar_empty)
 				rSPR(iIndex) |= 1;  // BNE = buffer not empty
