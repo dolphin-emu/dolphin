@@ -199,7 +199,7 @@ void OpenALStream::SoundLoop()
 			if (rate > 0)
 			{
 				// Adjust SETTING_SEQUENCE_MS to balance between lag vs hollow audio
-				soundTouch.setSetting(SETTING_SEQUENCE_MS, (int)pow(1 / rate, 2));
+				soundTouch.setSetting(SETTING_SEQUENCE_MS, (int)(1 / (rate * rate)));
 				soundTouch.setTempo(rate);
 			}
 			unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * 2 * OAL_NUM_BUFFERS);
