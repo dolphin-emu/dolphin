@@ -160,8 +160,7 @@ void DSPCallback(u64 userdata, int cyclesLate)
 
 void AudioDMACallback(u64 userdata, int cyclesLate)
 {
-	int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam?2:1;
-	int period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32 * fields);
+	int period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
