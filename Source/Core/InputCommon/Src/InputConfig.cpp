@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "InputConfig.h"
+#include "../../Core/Src/ConfigManager.h"
 
 InputPlugin::~InputPlugin()
 {
@@ -26,25 +27,53 @@ InputPlugin::~InputPlugin()
 		delete *i;
 }
 
-bool InputPlugin::LoadConfig(std::string ini)
+bool InputPlugin::LoadConfig(bool isGC)
 {
 	IniFile inifile;
-	std::string ini2 = ini;
-	if (ini == "")
-		ini = ini_name;
-	if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + ini + ".ini"))
+	IniFile game_ini;
+	bool useProfile[4] = {false, false, false, false};
+	std::string num[4] = {"1", "2", "3", "4"};
+	std::string profile[4];
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() != "00000000")
+	{
+		std::string type;
+		if (isGC)
+			type = "GC";
+		else
+			type = "Wii";
+		game_ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
+		for (int i = 0; i < 4; i++)
+		{
+			if (game_ini.Exists("Core", (type + "Profile" + num[i]).c_str()))
+			{
+				useProfile[i] = true;
+				game_ini.Get("Core", (type + "Profile" + num[i]).c_str(), &profile[i]);
+			}
+		}
+	}
+
+	if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + ini_name + ".ini"))
 	{
 		std::vector< ControllerEmu* >::const_iterator
 			i = controllers.begin(),
 			e = controllers.end();
-		for (; i!=e; ++i)
+		for (int n = 0; i!=e; ++i, ++n)
 		{
 			// load settings from ini
-			std::string section;
-			section = (*i)->GetName();
-			if (ini2 != "")
-				section = "Profile";
-			(*i)->LoadConfig(inifile.GetOrCreateSection(section.c_str()));
+			if (useProfile[n])
+			{
+				IniFile profile_ini;
+				std::string path;
+				if (isGC)
+					path = "Profiles/GCPad/";
+				else
+					path = "Profiles/Wiimote/";
+				profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini");
+				(*i)->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
+			}
+			else
+				(*i)->LoadConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
 			// update refs
 			(*i)->UpdateReferences(g_controller_interface);
 		}

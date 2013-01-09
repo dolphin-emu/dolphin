@@ -45,7 +45,7 @@ void Initialize(void* const hwnd)
 	g_controller_interface.SetHwnd(hwnd);
 	g_controller_interface.Initialize();
 
-	g_plugin.LoadConfig(SConfig::GetInstance().m_LocalCoreStartupParameter.strWiiControllerProfile);
+	g_plugin.LoadConfig(false);
 
 	WiimoteReal::Initialize();
 	

@@ -56,7 +56,7 @@ void Initialize(void* const hwnd)
 	g_controller_interface.Initialize();
 
 	// load the saved controller config
-	g_plugin.LoadConfig(SConfig::GetInstance().m_LocalCoreStartupParameter.strGCControllerProfile);
+	g_plugin.LoadConfig(true);
 }
 
 void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)

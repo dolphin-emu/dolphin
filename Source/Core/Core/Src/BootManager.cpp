@@ -136,11 +136,6 @@ bool BootCore(const std::string& _rFilename)
 		}
 	} 
 
-	if (game_ini.Exists("Core", "WiiProfile"))
-		game_ini.Get("Core", "WiiProfile", &StartUp.strWiiControllerProfile);
-	if (game_ini.Exists("Core", "GCProfile"))
-		game_ini.Get("Core", "GCProfile", &StartUp.strGCControllerProfile);
-
 	// Run the game
 	// Init the core
 	if (!Core::Init())
@@ -158,6 +153,7 @@ void Stop()
 
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
+	StartUp.m_strUniqueID = "00000000";
 	if (config_cache.valid)
 	{
 		config_cache.valid = false;
@@ -173,8 +169,6 @@ void Stop()
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
 		StartUp.bDisableWiimoteSpeaker = config_cache.bDisableWiimoteSpeaker;
 		StartUp.m_strVideoBackend = config_cache.strBackend;
-		StartUp.strGCControllerProfile = "";
-		StartUp.strWiiControllerProfile = "";
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 	}
 }
