@@ -1149,15 +1149,15 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	//bool applyShader = PostProcessing::ApplyShader();
 	// degasus: disabled for blitting
 	
-	// Render to the real buffer now.
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // switch to the window backbuffer
-	
 	// Copy the framebuffer to screen.
 
 	const XFBSourceBase* xfbSource = NULL;
 
 	if(g_ActiveConfig.bUseXFB)
 	{
+		// Render to the real buffer now.
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // switch to the window backbuffer
+		
 		// draw each xfb source
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
 
@@ -1211,7 +1211,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 		
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
+		// for msaa mode, we must resolve the efb content to non-msaa
+		FramebufferManager::ResolveAndGetRenderTarget(rc);
+		
+		// Render to the real buffer now. (resolve have changed this in msaa mode)
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		
+		// always the non-msaa fbo
+		GLuint fb = s_MSAASamples>1?FramebufferManager::GetResolvedFramebuffer():FramebufferManager::GetEFBFramebuffer();
+			
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fb);
 		glBlitFramebuffer(targetRc.left, targetRc.bottom, targetRc.right, targetRc.top,
 			flipped_trc.left, flipped_trc.bottom, flipped_trc.right, flipped_trc.top,
 			GL_COLOR_BUFFER_BIT, GL_LINEAR);
