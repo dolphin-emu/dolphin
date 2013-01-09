@@ -34,11 +34,11 @@
 #include <AL/alc.h>
 #endif
 
-#include "../../Core/Src/Core.h"
-#include "../../Core/Src/HW/SystemTimers.h"
-#include "../../Core/Src/HW/AudioInterface.h"
-#include "../../../../Externals/SoundTouch/STTypes.h"
-#include "../../../../Externals/SoundTouch/SoundTouch.h"
+#include "Core.h"
+#include "HW/SystemTimers.h"
+#include "HW/AudioInterface.h"
+#include <soundtouch/SoundTouch.h>
+#include <soundtouch/STTypes.h>
 
 // 16 bit Stereo
 #define SFX_MAX_SOURCE		1

@@ -22,8 +22,7 @@
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
-using namespace soundtouch;
-SoundTouch soundTouch;
+soundtouch::SoundTouch soundTouch;
 
 //
 // AyuanX: Spec says OpenAL1.1 is thread safe already
