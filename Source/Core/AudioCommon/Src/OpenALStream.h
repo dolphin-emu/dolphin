@@ -24,8 +24,8 @@
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 #ifdef _WIN32
-#include "../../../../Externals/OpenAL/include/al.h"
-#include "../../../../Externals/OpenAL/include/alc.h"
+#include <OpenAL/include/al.h>
+#include <OpenAL/include/alc.h>
 #elif defined __APPLE__
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
