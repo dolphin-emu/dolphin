@@ -216,6 +216,14 @@
     <None Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Externals\SoundTouch\SoundTouch.vcxproj">
+      <Project>{68a5dd20-7057-448b-8fe0-b6ac8d205509}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.vcxproj">
       <Project>{c87a4178-44f6-49b2-b7aa-c79af1b8c534}</Project>
       <Private>true</Private>
