@@ -204,12 +204,16 @@ void TextureCache::ClearRenderTargets()
 		iter = textures.begin(),
 		tcend = textures.end();
 
-	for (; iter!=tcend; ++iter)
+	while (iter != tcend)
+	{
 		if (iter->second->type == TCET_EC_VRAM)
 		{
 			delete iter->second;
-			textures.erase(iter);
+			textures.erase(iter++);
 		}
+		else
+			++iter;
+	}
 }
 
 bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels)
