@@ -20,6 +20,7 @@
 
 #include "ControllerInterface/ControllerInterface.h"
 #include "GCPadEmu.h"
+#include "../ConfigManager.h"
 
 #include "../../InputCommon/Src/InputConfig.h"
 
@@ -55,7 +56,7 @@ void Initialize(void* const hwnd)
 	g_controller_interface.Initialize();
 
 	// load the saved controller config
-	g_plugin.LoadConfig();
+	g_plugin.LoadConfig(SConfig::GetInstance().m_LocalCoreStartupParameter.strGCControllerProfile);
 }
 
 void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)

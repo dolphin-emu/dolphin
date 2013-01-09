@@ -138,7 +138,9 @@ struct SCoreStartupParameter
 
 	int iTheme;
 	int iPosX, iPosY, iWidth, iHeight;
-	
+
+	std::string strGCControllerProfile;
+	std::string strWiiControllerProfile;
 	enum EBootBS2
 	{
 		BOOT_DEFAULT,

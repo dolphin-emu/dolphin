@@ -42,7 +42,7 @@ public:
 
 	~InputPlugin();
 
-	bool LoadConfig();
+	bool LoadConfig(std::string ini);
 	void SaveConfig();
 
 	std::vector< ControllerEmu* >	controllers;

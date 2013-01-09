@@ -26,10 +26,13 @@ InputPlugin::~InputPlugin()
 		delete *i;
 }
 
-bool InputPlugin::LoadConfig()
+bool InputPlugin::LoadConfig(std::string ini)
 {
 	IniFile inifile;
-	if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + ini_name + ".ini"))
+	std::string ini2 = ini;
+	if (ini == "")
+		ini = ini_name;
+	if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + ini + ".ini"))
 	{
 		std::vector< ControllerEmu* >::const_iterator
 			i = controllers.begin(),
@@ -37,7 +40,11 @@ bool InputPlugin::LoadConfig()
 		for (; i!=e; ++i)
 		{
 			// load settings from ini
-			(*i)->LoadConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
+			std::string section;
+			section = (*i)->GetName();
+			if (ini2 != "")
+				section = "Profile";
+			(*i)->LoadConfig(inifile.GetOrCreateSection(section.c_str()));
 			// update refs
 			(*i)->UpdateReferences(g_controller_interface);
 		}
