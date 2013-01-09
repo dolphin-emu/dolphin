@@ -452,6 +452,17 @@ else()
 	include_directories(Externals/SOIL)
 endif()
 
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	check_lib(SoundTouch SoundTouch SoundTouch.h QUIET)
+endif()
+if(SOUNDTOUCH_FOUND)
+	message("Using shared SoundTouch")
+else()
+	message("Using static SoundTouch from Externals")
+	add_subdirectory(Externals/SoundTouch)
+	include_directories(Externals/SoundTouch)
+endif()
+
 # If zlib has already been found on a previous run of cmake don't check again
 # as the check seems to take a long time.
 if(NOT ZLIB_FOUND)

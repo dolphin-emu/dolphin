@@ -34,10 +34,16 @@
 #include <AL/alc.h>
 #endif
 
+#include "../../Core/Src/Core.h"
+#include "../../Core/Src/HW/SystemTimers.h"
+#include "../../Core/Src/HW/AudioInterface.h"
+#include "../../../../Externals/SoundTouch/STTypes.h"
+#include "../../../../Externals/SoundTouch/SoundTouch.h"
+
 // 16 bit Stereo
 #define SFX_MAX_SOURCE		1
 #define OAL_NUM_BUFFERS		16
-#define OAL_MAX_SAMPLES		512		// AyuanX: Don't make it too large, as larger buffer means longer delay
+#define OAL_MAX_SAMPLES		512
 #endif
 
 class OpenALStream: public SoundStream
@@ -63,8 +69,10 @@ public:
 private:
 	std::thread thread;
 	Common::Event soundSyncEvent;
-	
+	Common::Event mainSyncEvent;
+
 	short realtimeBuffer[OAL_MAX_SAMPLES * 2];
+	soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * 2 * OAL_NUM_BUFFERS];
 	ALuint uiBuffers[OAL_NUM_BUFFERS];
 	ALuint uiSource;
 	ALfloat fVolume;

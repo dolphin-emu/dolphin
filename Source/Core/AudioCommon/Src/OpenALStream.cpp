@@ -19,10 +19,11 @@
 
 #include "aldlist.h"
 #include "OpenALStream.h"
-#include "../../Core/Src/HW/SystemTimers.h"
-#include "../../Core/Src/HW/AudioInterface.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
+
+using namespace soundtouch;
+SoundTouch soundTouch;
 
 //
 // AyuanX: Spec says OpenAL1.1 is thread safe already
@@ -67,6 +68,7 @@ bool OpenALStream::Start()
 		PanicAlertT("OpenAL: can't find sound devices");
 	}
 
+	soundTouch.clear();
 	return bReturn;
 }
 
@@ -75,6 +77,8 @@ void OpenALStream::Stop()
 	threadData = 1;
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
+
+	soundTouch.clear();
 
 	thread.join();
 
@@ -105,6 +109,7 @@ void OpenALStream::SetVolume(int volume)
 void OpenALStream::Update()
 {
 	soundSyncEvent.Set();
+	mainSyncEvent.Wait();
 }
 
 void OpenALStream::Clear(bool mute)
@@ -113,6 +118,7 @@ void OpenALStream::Clear(bool mute)
 
 	if(m_muted)
 	{
+		soundTouch.clear();
 		alSourceStop(uiSource);
 	}
 	else
@@ -136,9 +142,10 @@ void OpenALStream::SoundLoop()
 	alGenSources(1, &uiSource);
 
 	// Short Silence
+	memset(sampleBuffer, 0, OAL_MAX_SAMPLES * 4 * OAL_NUM_BUFFERS);
 	memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * 4);
 	for (int i = 0; i < OAL_NUM_BUFFERS; i++)
-		alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, OAL_MAX_SAMPLES, ulFrequency);
+		alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, OAL_MAX_SAMPLES * 4, ulFrequency);
 	alSourceQueueBuffers(uiSource, OAL_NUM_BUFFERS, uiBuffers);
 	alSourcePlay(uiSource);
 	
@@ -152,42 +159,68 @@ void OpenALStream::SoundLoop()
 	ALint iBuffersProcessed = 0;
 	ALuint uiBufferTemp[OAL_NUM_BUFFERS] = {0};
 
+	soundTouch.setChannels(2);
+	soundTouch.setSampleRate(ulFrequency);
+	soundTouch.setSetting(SETTING_USE_QUICKSEEK, 0);
+	soundTouch.setSetting(SETTING_USE_AA_FILTER, 0);
+	soundTouch.setSetting(SETTING_SEQUENCE_MS, 1);
+	soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 28);
+	soundTouch.setSetting(SETTING_OVERLAP_MS, 12);
+
 	while (!threadData) 
 	{
+		// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
+		const u32 stereo_16_bit_size = 4;
+		const u32 dma_length = 32;
+		const u64 ais_samples_per_second = 48000 * stereo_16_bit_size;
+		u64 audio_dma_period = SystemTimers::GetTicksPerSecond() / (AudioInterface::GetAIDSampleRate() * stereo_16_bit_size / dma_length);
+		u64 num_samples_to_render = (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
+
+		unsigned int numSamples = (unsigned int)num_samples_to_render;
+
+		numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
+		numSamples = m_mixer->Mix(realtimeBuffer, numSamples);
+		soundTouch.putSamples(realtimeBuffer, numSamples);
+
 		if (iBuffersProcessed == iBuffersFilled)
 		{
 			alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
 			iBuffersFilled = 0;
 		}
 
-		// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
-		const u32 stereo_16_bit_size = 4;
-		const u32 dma_length = 32;
-		const u64 audio_dma_period = SystemTimers::GetTicksPerSecond() / (AudioInterface::GetAIDSampleRate() * stereo_16_bit_size / dma_length);
-		const u64 ais_samples_per_second = 48000 * stereo_16_bit_size;
-		const u64 num_samples_to_render = (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
-
-		unsigned int numSamples = (unsigned int)num_samples_to_render;
-
 		if (iBuffersProcessed)
 		{
-			numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
-			// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
-			if (iBuffersFilled == 0)
-				alSourceUnqueueBuffers(uiSource, iBuffersProcessed, uiBufferTemp);
+			float rate = m_mixer->GetCurrentSpeed();
+			if (rate <= 0)
+			{
+				Core::RequestRefreshInfo();
+				rate = m_mixer->GetCurrentSpeed();
+			}
+			if (rate > 0)
+			{
+				// Adjust SETTING_SEQUENCE_MS to balance between lag vs hollow audio
+				soundTouch.setSetting(SETTING_SEQUENCE_MS, (int)pow(1 / rate, 2));
+				soundTouch.setTempo(rate);
+			}
+			unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * 2 * OAL_NUM_BUFFERS);
+			if (nSamples > 0)
+			{
+				// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
+				if (iBuffersFilled == 0)
+					alSourceUnqueueBuffers(uiSource, iBuffersProcessed, uiBufferTemp);
+				alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, sampleBuffer, nSamples * 4, ulFrequency);
+				alSourceQueueBuffers(uiSource, 1, &uiBufferTemp[iBuffersFilled]);
+				iBuffersFilled++;
 
-			m_mixer->Mix(realtimeBuffer, numSamples);
-			alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, realtimeBuffer, numSamples * 4, ulFrequency);
-			alSourceQueueBuffers(uiSource, 1, &uiBufferTemp[iBuffersFilled]);
-			iBuffersFilled++;
-
-			if (iBuffersFilled == OAL_NUM_BUFFERS)
-				alSourcePlay(uiSource);
+				if (iBuffersFilled == OAL_NUM_BUFFERS)
+					alSourcePlay(uiSource);
+			}
 		}
 		else
 		{
 			soundSyncEvent.Wait();
 		}
+		mainSyncEvent.Set();
 	}
 }
 
