@@ -106,6 +106,8 @@ namespace OGL
 static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
+static FRAGMENTSHADER s_ShowEFBCopyRegions_PS;
+static VERTEXSHADER s_ShowEFBCopyRegions_VS;
 
 static RasterFont* s_pfont = NULL;
 
@@ -384,16 +386,37 @@ Renderer::Renderer()
 		bSuccess = false;
 
 	s_pfont = new RasterFont();
-
+	
+	PixelShaderCache::CompilePixelShader(s_ShowEFBCopyRegions_PS,
+		"#version 130\n"
+		"in vec4 c;\n"
+		"out vec4 ocol0;\n"
+		"void main(void) {\n"
+		"	ocol0 = c;\n"
+		"}\n"
+	);
+	VertexShaderCache::CompileVertexShader(s_ShowEFBCopyRegions_VS,
+		"#version 130\n"
+		"in vec2 vertexPosition;\n"
+		"in vec3 color;\n"
+		"out vec4 c;\n"
+		"void main(void) {\n"
+		"	gl_Position = vec4(vertexPosition,0,1);\n"
+		"	c = vec4(color, 1.0);\n"
+		"}\n"
+	);
+	ProgramShaderCache::SetBothShaders(s_ShowEFBCopyRegions_PS.glprogid, s_ShowEFBCopyRegions_VS.glprogid);
+	GLuint shader_program = ProgramShaderCache::GetCurrentProgram();
+	
 	// creating buffers
 	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);
 	glGenVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
 	glBindVertexArray( s_ShowEFBCopyRegions_VAO );
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer (3, GL_FLOAT, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*5, NULL);
+	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "vertexPosition"));
+	glVertexAttribPointer(glGetAttribLocation(shader_program, "vertexPosition"), 2, GL_FLOAT, 0, sizeof(GLfloat)*5, NULL);
+	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "color"));
+	glVertexAttribPointer(glGetAttribLocation(shader_program, "color"), 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
 
 	// TODO: this after merging with graphic_update
 	glBindVertexArray(0);
@@ -442,6 +465,8 @@ Renderer::~Renderer()
 	
 	delete s_pfont;
 	s_pfont = 0;
+	s_ShowEFBCopyRegions_PS.Destroy();
+	s_ShowEFBCopyRegions_VS.Destroy();
 
 #if defined(HAVE_WX) && HAVE_WX
 	if (scrshotThread.joinable())
@@ -583,6 +608,7 @@ void Renderer::DrawDebugInfo()
 		}
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 		
+		ProgramShaderCache::SetBothShaders(s_ShowEFBCopyRegions_PS.glprogid, s_ShowEFBCopyRegions_VS.glprogid);
 		glBindVertexArray( s_ShowEFBCopyRegions_VAO );
 		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
 		
