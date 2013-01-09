@@ -294,19 +294,19 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		if (s_TempFramebuffer == 0)
-			glGenFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
+			glGenFramebuffers(1, (GLuint*)&s_TempFramebuffer);
 
 		FramebufferManager::SetFramebuffer(s_TempFramebuffer);
 		// Bind texture to temporary framebuffer
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 		GL_REPORT_FBO_ERROR();
 		GL_REPORT_ERRORD();
 
-		glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		glActiveTexture(GL_TEXTURE0);
-		glEnable(GL_TEXTURE_RECTANGLE_ARB);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
+		glEnable(GL_TEXTURE_RECTANGLE);
+		glBindTexture(GL_TEXTURE_RECTANGLE, read_texture);
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
@@ -357,9 +357,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
 			glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 			
-			// TODO: this after merging with graphic_update
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			
 			vbo_it->second.targetSource = targetSource;
 		} 
 
@@ -368,13 +365,14 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		
 		// TODO: this after merging with graphic_update
 		glBindVertexArray(0);
-		
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 
 		GL_REPORT_ERRORD();
 
 		// Unbind texture from temporary framebuffer
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 0, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
 	}
 
 	if (false == g_ActiveConfig.bCopyEFBToTexture)
@@ -465,7 +463,7 @@ TextureCache::~TextureCache()
 	
 	if (s_TempFramebuffer)
 	{
-		glDeleteFramebuffersEXT(1, (GLuint*)&s_TempFramebuffer);
+		glDeleteFramebuffers(1, (GLuint*)&s_TempFramebuffer);
 		s_TempFramebuffer = 0;
 	}
 }
@@ -473,7 +471,8 @@ TextureCache::~TextureCache()
 void TextureCache::DisableStage(unsigned int stage)
 {
 	glActiveTexture(GL_TEXTURE0 + stage);
-	glDisable(GL_TEXTURE_RECTANGLE_ARB);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_RECTANGLE);
 }
 
 }

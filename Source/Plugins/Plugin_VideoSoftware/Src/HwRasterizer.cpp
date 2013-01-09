@@ -62,7 +62,7 @@ namespace HwRasterizer
 			"}\n";
 		// Clear shader
 		static const char *fragclearText = 
-			"uniform vec4 Color;\n"
+			"uniform " PREC " vec4 Color;\n"
 			"void main() {\n"
 			"	gl_FragColor = Color;\n"
 			"}\n";

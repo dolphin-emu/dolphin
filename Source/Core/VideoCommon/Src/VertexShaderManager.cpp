@@ -253,8 +253,7 @@ void VertexShaderManager::SetConstants()
 		float GC_ALIGNED16(material[4]);
 		float NormalizationCoef = 1 / 255.0f;
 
-		// TODO:  This code is wrong.  i goes out of range for xfregs.ambColor.
-		for (int i = 0; i < 4; ++i)
+		for (int i = 0; i < 2; ++i)
 		{
 			if (nMaterialsChanged & (1 << i))
 			{
@@ -266,6 +265,21 @@ void VertexShaderManager::SetConstants()
 				material[3] = ( data        & 0xFF) * NormalizationCoef;
 
 				SetVSConstant4fv(C_MATERIALS + i, material);
+			}
+		}
+		
+		for (int i = 0; i < 2; ++i)
+		{
+			if (nMaterialsChanged & (1 << (i + 2)))
+			{
+				u32 data = *(xfregs.matColor + i);
+
+				material[0] = ((data >> 24) & 0xFF) * NormalizationCoef;
+				material[1] = ((data >> 16) & 0xFF) * NormalizationCoef;
+				material[2] = ((data >>  8) & 0xFF) * NormalizationCoef;
+				material[3] = ( data        & 0xFF) * NormalizationCoef;
+
+				SetVSConstant4fv(C_MATERIALS + i + 2, material);
 			}
 		}
 

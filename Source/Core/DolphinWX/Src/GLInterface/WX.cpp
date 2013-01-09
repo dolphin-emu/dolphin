@@ -50,6 +50,7 @@ bool cInterfaceWX::Create(void *&window_handle)
 	GLWin.glCanvas->Show(true);
 	if (GLWin.glCtxt == NULL) // XXX dirty hack
 		GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
+	return true;
 }
 
 bool cInterfaceWX::MakeCurrent()

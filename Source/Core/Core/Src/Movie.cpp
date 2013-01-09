@@ -36,6 +36,7 @@
 #include "HW/DVDInterface.h"
 #include "../../Common/Src/NandPaths.h"
 #include "Crypto/md5.h"
+#include "scmrev.h"
 
 // The chunk to allocate movie data in multiples of.
 #define DTM_BASE_LENGTH (1024)
@@ -72,6 +73,7 @@ std::string author = "";
 u64 g_titleID = 0;
 unsigned char MD5[16];
 u8 bongos;
+u8 revision[20];
 
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
@@ -687,6 +689,7 @@ void ReadHeader()
 		g_bClearSave = tmpHeader.bClearSave;
 		bMemcard = tmpHeader.bMemcard;
 		bongos = tmpHeader.bongos;
+		memcpy(revision, tmpHeader.revision, ARRAYSIZE(revision));
 	}
 	else
 	{
@@ -1132,6 +1135,7 @@ void SaveRecording(const char *filename)
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 	memcpy(header.md5,MD5,16);
 	header.bongos = bongos;
+	memcpy(header.revision, revision, ARRAYSIZE(header.revision));
 
 	// TODO
 	header.uniqueID = 0; 
@@ -1189,6 +1193,10 @@ void GetSettings()
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
+
+	std::stringstream ss;
+	ss << std::hex << SCM_REV_STR;
+	ss >> revision;
 }
 
 void CheckMD5()

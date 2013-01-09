@@ -173,7 +173,7 @@ bool Wiimote::Read()
 		return true;
 	}
 
-	delete rpt.first;
+	delete[] rpt.first;
 	return false;
 }
 

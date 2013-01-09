@@ -50,6 +50,7 @@ Core::GetWindowHandle().
 #include "LogConfigWindow.h"
 #include "FifoPlayerDlg.h"
 #include "WxUtils.h"
+#include "Host.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -95,6 +96,8 @@ extern "C" {
 #include "../resources/X-Plastik.h"
 #include "../resources/KDE.h"
 };
+
+bool confirmStop = false;
 
 // Create menu items
 // ---------------------
@@ -1070,6 +1073,9 @@ void CFrame::DoPause()
 // Stop the emulation
 void CFrame::DoStop()
 {
+	if (confirmStop)
+		return;
+
 	m_bGameLoading = false;
 	if (Core::GetState() != Core::CORE_UNINITIALIZED ||
 			m_RenderParent != NULL)
@@ -1082,17 +1088,23 @@ void CFrame::DoStop()
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
-			wxMessageDialog *m_StopDlg = new wxMessageDialog(
+			Core::EState state = Core::GetState();
+			confirmStop = true;
+			Core::SetState(Core::CORE_PAUSE);
+			wxMessageDialog m_StopDlg(
 				this,
 				_("Do you want to stop the current emulation?"),
 				_("Please confirm..."),
 				wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
 				wxDefaultPosition);
 
-			int Ret = m_StopDlg->ShowModal();
-			m_StopDlg->Destroy();
+			int Ret = m_StopDlg.ShowModal();
+			confirmStop = false;
 			if (Ret != wxID_YES)
+			{
+				Core::SetState(state);
 				return;
+			}
 		}
 
 		// TODO: Show the author/description dialog here
@@ -1457,12 +1469,17 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 		wxString msg(wxString::Format(wxT("Wiimote %i %s"), wm_idx + 1,
 					connect ? wxT("Connected") : wxT("Disconnected")));
 		Core::DisplayMessage(msg.ToAscii(), 3000);
+
+		// Wait for the wiimote to connect
+		while (GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->IsConnected() != connect)
+		{}
+		Host_UpdateMainFrame();
 	}
 }
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
-	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, event.IsChecked());
+	ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !GetUsbPointer()->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected());
 }
 
 // Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover

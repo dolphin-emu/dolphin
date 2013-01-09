@@ -60,8 +60,6 @@ bool cInterfaceGLX::Create(void *&window_handle)
 		GLX_GREEN_SIZE, 8,
 		GLX_BLUE_SIZE, 8,
 		GLX_DEPTH_SIZE, 24,
-		GLX_SAMPLE_BUFFERS_ARB, g_Config.iMultisampleMode != MULTISAMPLE_OFF?1:0,
-		GLX_SAMPLES_ARB, g_Config.iMultisampleMode != MULTISAMPLE_OFF?1:0, 
 		None };
 
 	int attrListDefault[] = {

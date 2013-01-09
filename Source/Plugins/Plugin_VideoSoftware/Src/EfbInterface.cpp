@@ -355,7 +355,7 @@ namespace EfbInterface
                 dstClr = (~srcClr) & dstClr;
                 break;
             case 5:  // noop
-                dstClr = dstClr;
+		// Do nothing
                 break;
             case 6:  // xor
                 dstClr = srcClr ^ dstClr;
