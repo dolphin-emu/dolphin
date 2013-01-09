@@ -414,7 +414,7 @@ if(OPENAL_FOUND)
 	else()
 		message("Using static soundtouch from Externals")
 		add_subdirectory(Externals/soundtouch)
-		include_directories(Externals/soundtouch)
+		include_directories(Externals)
 	endif()
 endif()
 
