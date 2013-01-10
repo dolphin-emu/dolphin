@@ -165,7 +165,7 @@ private:
 	wxCheckBox* ConfirmStop;
 	wxCheckBox* UsePanicHandlers;
 	wxCheckBox* OnScreenDisplayMessages;
-	wxRadioBox* Theme;
+	wxChoice* Theme;
 	wxChoice* InterfaceLang;
 	wxButton* HotkeyConfig;
 

@@ -127,7 +127,7 @@ EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_ONSCREENDISPLAYMESSAGES, CConfigMain::DisplaySettingsChanged)
-EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::DisplaySettingsChanged)
+EVT_CHOICE(ID_INTERFACE_THEME, CConfigMain::DisplaySettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::DisplaySettingsChanged)
 EVT_BUTTON(ID_HOTKEY_CONFIG, CConfigMain::DisplaySettingsChanged)
 
@@ -500,10 +500,7 @@ void CConfigMain::InitializeGUITooltips()
 	OnScreenDisplayMessages->SetToolTip(_("Show messages on the emulation screen area.\nThese messages include memory card writes, video backend and CPU information, and JIT cache clearing."));
 
 	// Display - Themes: Copyright notice
-	Theme->SetItemToolTip(0, _("Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"));
-	Theme->SetItemToolTip(1, _("Created by VistaIcons.com"));
-	Theme->SetItemToolTip(2, _("Created by black_rider and published on ForumW.org > Web Developments"));
-	Theme->SetItemToolTip(3, _("Created by KDE-Look.org"));
+	Theme->SetToolTip(_("Boomy: Milosz Wlazlo [miloszwl@miloszwl.com]\nVista: VistaIcons.com\nX-Plastik: black_rider [ForumW.org]\nKDE: KDE-Look.org"));
 
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
@@ -579,9 +576,9 @@ void CConfigMain::CreateGUIControls()
 	// Hotkey configuration
 	HotkeyConfig = new wxButton(DisplayPage, ID_HOTKEY_CONFIG, _("Hotkeys"),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
-	// Themes - this should really be a wxChoice...
-	Theme = new wxRadioBox(DisplayPage, ID_INTERFACE_THEME, _("Theme"),
-			wxDefaultPosition, wxDefaultSize, arrayStringFor_Themes, 1, wxRA_SPECIFY_ROWS);
+	// Themes
+	Theme = new wxChoice(DisplayPage, ID_INTERFACE_THEME, wxDefaultPosition,
+			wxDefaultSize, arrayStringFor_Themes, 0, wxDefaultValidator);
 	// Interface settings
 	ConfirmStop = new wxCheckBox(DisplayPage, ID_INTERFACE_CONFIRMSTOP, _("Confirm on Stop"),
 			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -595,13 +592,16 @@ void CConfigMain::CreateGUIControls()
 	sInterface->Add(InterfaceLang, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterface->AddStretchSpacer();
 	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
+	wxBoxSizer* scInterface = new wxBoxSizer(wxHORIZONTAL);
+	scInterface->Add(TEXT_BOX(DisplayPage, _("Theme:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	scInterface->Add(Theme, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	scInterface->AddStretchSpacer();
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Interface Settings"));
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
 	sbInterface->Add(OnScreenDisplayMessages, 0, wxALL, 5);
-	sbInterface->Add(Theme, 0, wxEXPAND | wxALL, 5);
+	sbInterface->Add(scInterface, 0, wxEXPAND | wxALL, 5);
 	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
-
 	sDisplayPage = new wxBoxSizer(wxVERTICAL);
 	sDisplayPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
 	DisplayPage->SetSizer(sDisplayPage);
