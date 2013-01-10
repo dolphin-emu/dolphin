@@ -365,6 +365,7 @@ void CGameListCtrl::Update()
 
 	AutomaticColumnWidth();
 	ScrollLines(scrollPos);
+	SetFocus();
 }
 
 wxString NiceSizeFormat(s64 _size)
