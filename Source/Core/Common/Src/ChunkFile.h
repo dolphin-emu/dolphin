@@ -63,13 +63,13 @@ public:
 	Mode GetMode() const {return mode;}
 	u8 **GetPPtr() {return ptr;}
 
-	void DoVoid(void *data, size_t size)
+	void DoVoid(void *data, int size)
 	{
 		switch (mode) {
 		case MODE_READ:	memcpy(data, *ptr, size); break;
 		case MODE_WRITE: memcpy(*ptr, data, size); break;
 		case MODE_MEASURE: break;  // MODE_MEASURE - don't need to do anything
-		case MODE_VERIFY: for(size_t i = 0; i < size; i++) _dbg_assert_msg_(COMMON, ((u8*)data)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n", ((u8*)data)[i], ((u8*)data)[i], &((u8*)data)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]); break;
+		case MODE_VERIFY: for(int i = 0; i < size; i++) _dbg_assert_msg_(COMMON, ((u8*)data)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n", ((u8*)data)[i], ((u8*)data)[i], &((u8*)data)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]); break;
 		default: break;  // throw an error?
 		}
 		(*ptr) += size;
@@ -78,7 +78,7 @@ public:
 	template<class T>
 	void Do(std::map<unsigned int, T> &x)
 	{
-		size_t number = x.size();
+		unsigned int number = (unsigned int)x.size();
 		Do(number);
 		switch (mode) {
 		case MODE_READ:
@@ -126,17 +126,18 @@ public:
 	template<class T>
 	void Do(std::deque<T> &x)
 	{
-		size_t deq_size = x.size();
+		u32 deq_size = (u32)x.size();
 		Do(deq_size);
 		x.resize(deq_size);
-		for(size_t i = 0; i < deq_size; i++)
+		u32 i;
+		for(i = 0; i < deq_size; i++)
 			DoVoid(&x[i],sizeof(T));
 	}
 	
 	// Store strings.
 	void Do(std::string &x) 
 	{
-		size_t stringLen = (x.length() + 1);
+		int stringLen = (int)x.length() + 1;
 		Do(stringLen);
 		
 		switch (mode) {
@@ -150,7 +151,7 @@ public:
 
 	void Do(std::wstring &x) 
 	{
-		size_t stringLen = sizeof(wchar_t)*(x.length() + 1);
+		int stringLen = sizeof(wchar_t)*((int)x.length() + 1);
 		Do(stringLen);
 
 		switch (mode) {
@@ -163,7 +164,7 @@ public:
 	}
 
     template<class T>
-	void DoArray(T *x, size_t count) {
+	void DoArray(T *x, int count) {
         DoVoid((void *)x, sizeof(T) * count);
     }
 	
