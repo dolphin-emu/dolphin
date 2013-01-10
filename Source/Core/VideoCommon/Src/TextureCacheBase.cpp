@@ -333,6 +333,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	if (from_tmem) src_data = &texMem[bpmem.tex[stage/4].texImage1[stage%4].tmem_even * TMEM_LINE_SIZE];
 	else src_data = Memory::GetPointer(address);
 
+	// TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data from the low tmem bank than it should)
 	tex_hash = GetHash64(src_data, texture_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 	if (isPaletteTexture)
 	{
@@ -413,10 +414,19 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 	}
 
-	// TODO: RGBA8 textures are stored non-continuously in tmem, that might cause problems here when preloading is enabled
 	if (!using_custom_texture)
-		pcfmt = TexDecoder_Decode(temp, src_data, expandedWidth,
-					expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
+	{
+		if (!(texformat == GX_TF_RGBA8 && from_tmem))
+		{
+			pcfmt = TexDecoder_Decode(temp, src_data, expandedWidth,
+						expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
+		}
+		else
+		{
+			u8* src_data_gb = &texMem[bpmem.tex[stage/4].texImage2[stage%4].tmem_odd * TMEM_LINE_SIZE];
+			pcfmt = TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
+		}
+	}
 
 	// TODO: Cleanup. Plus, we still autogenerate mipmaps in certain cases (we shouldn't do that)
 	bool isPow2;

@@ -2519,7 +2519,7 @@ void TexDecoder_DecodeTexelRGBA8FromTmem(u8 *dst, const u8 *src_ar, const u8* sr
 {
 	u16 sBlk = s >> 2;
 	u16 tBlk = t >> 2;
-	u16 widthBlks = (imageWidth >> 2) + 1;
+	u16 widthBlks = (imageWidth >> 2) + 1; // TODO: Looks wrong. Shouldn't this be ((imageWidth-1)>>2)+1 ?
 	u32 base_ar = (tBlk * widthBlks + sBlk) << 4;
 	u32 base_gb = (tBlk * widthBlks + sBlk) << 4;
 	u16 blkS = s & 3;
@@ -2537,6 +2537,18 @@ void TexDecoder_DecodeTexelRGBA8FromTmem(u8 *dst, const u8 *src_ar, const u8* sr
 	dst[2] = val_addr_gb[1]; // B
 }
 
+PC_TexFormat TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height)
+{
+	// TODO for someone who cares: Make this less slow!
+	for (int y = 0; y < height; ++y)
+		for (int x = 0; x < width; ++x)
+		{
+			TexDecoder_DecodeTexelRGBA8FromTmem(dst, src_ar, src_gb, x, y, width-1);
+			dst += 4;
+		}
+
+	return PC_TEX_FMT_RGBA32;
+}
 
 const char* texfmt[] = {
 	// pixel
