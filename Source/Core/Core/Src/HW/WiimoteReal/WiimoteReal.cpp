@@ -312,7 +312,7 @@ void Wiimote::ThreadFunc()
 	Rumble();
 
 	// main loop
-	while (IsConnected())
+	while (IsOpen())
 	{
 #ifdef __APPLE__
 		while (Write()) {}

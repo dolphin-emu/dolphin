@@ -54,6 +54,7 @@ public:
 	bool Write();
 	bool Connect();
 	bool IsConnected();
+	bool IsOpen() const;
 	void Disconnect();
 	void DisableDataReporting();
 	void Rumble();
@@ -72,6 +73,9 @@ public:
 	bdaddr_t bdaddr;					// Bluetooth address
 	int out_sock;						// Output socket
 	int in_sock;						// Input socket
+
+	void Close();
+
 #elif defined(_WIN32)
 	char devicepath[255];				// Unique wiimote reference
 	//ULONGLONG btaddr;					// Bluetooth address

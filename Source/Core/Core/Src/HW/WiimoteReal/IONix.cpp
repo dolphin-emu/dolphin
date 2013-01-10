@@ -195,20 +195,30 @@ void Wiimote::RealDisconnect()
 	if (m_wiimote_thread.joinable())
 		m_wiimote_thread.join();
 
-	Host_ConnectWiimote(index, false);
+	Close();
+}
 
-	close(out_sock);
-	close(in_sock);
+void Wiimote::Close()
+{
+	if (IsOpen())
+	{
+		Host_ConnectWiimote(index, false);
 
-	out_sock = -1;
-	in_sock = -1;
+		close(out_sock);
+		close(in_sock);
+
+		out_sock = -1;
+		in_sock = -1;
+	}
+}
+
+bool Wiimote::IsOpen() const
+{
+	return out_sock != -1 && in_sock != -1;
 }
 
 int Wiimote::IORead(unsigned char *buf)
 {
-	if (!IsConnected())
-		return 0;
-
 	// Block select for 1/2000th of a second
 	timeval tv;
 	tv.tv_sec = 0;
@@ -239,7 +249,7 @@ int Wiimote::IORead(unsigned char *buf)
 			// This can happen if the bluetooth dongle is disconnected
 			ERROR_LOG(WIIMOTE, "Bluetooth appears to be disconnected.  "
 					"Wiimote %i will be disconnected.", index + 1);
-			//RealDisconnect();
+			Close();
 		}
 
 		return 0;
@@ -247,7 +257,7 @@ int Wiimote::IORead(unsigned char *buf)
 	else if (!r)
 	{
 		// Disconnect
-		//RealDisconnect();
+		Close();
 	}
 
 	return r;
