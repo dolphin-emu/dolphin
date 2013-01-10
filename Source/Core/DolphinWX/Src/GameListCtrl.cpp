@@ -259,6 +259,7 @@ void CGameListCtrl::BrowseForDirectory()
 
 void CGameListCtrl::Update()
 {
+	int scrollPos = wxWindow::GetScrollPos(wxVERTICAL);
 	// Don't let the user refresh it while a game is running
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
@@ -363,6 +364,7 @@ void CGameListCtrl::Update()
 	Show();
 
 	AutomaticColumnWidth();
+	ScrollLines(scrollPos);
 }
 
 wxString NiceSizeFormat(s64 _size)
