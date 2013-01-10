@@ -127,7 +127,6 @@ EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_ONSCREENDISPLAYMESSAGES, CConfigMain::DisplaySettingsChanged)
-EVT_CHOICE(ID_INTERFACE_THEME, CConfigMain::DisplaySettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::DisplaySettingsChanged)
 EVT_BUTTON(ID_HOTKEY_CONFIG, CConfigMain::DisplaySettingsChanged)
 
@@ -253,14 +252,6 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_DSPEngine.Add(_("DSP LLE recompiler"));
 	arrayStringFor_DSPEngine.Add(_("DSP LLE interpreter (slow)"));
 	
-	
-	// Display page
-	// Themes
-	arrayStringFor_Themes.Add(wxT("Boomy"));
-	arrayStringFor_Themes.Add(wxT("Vista"));
-	arrayStringFor_Themes.Add(wxT("X-Plastik"));
-	arrayStringFor_Themes.Add(wxT("KDE"));
-	
 	// Gamecube page
 	// GC Language arrayStrings
 	arrayStringFor_GCSystemLang.Add(_("English"));
@@ -340,7 +331,6 @@ void CConfigMain::InitializeGUIValues()
 	ConfirmStop->SetValue(startup_params.bConfirmStop);
 	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
 	OnScreenDisplayMessages->SetValue(startup_params.bOnScreenDisplayMessages);
-	Theme->SetSelection(startup_params.iTheme);
 	// need redesign
 	for (unsigned int i = 0; i < sizeof(langIds) / sizeof(wxLanguage); i++)
 	{
@@ -499,9 +489,6 @@ void CConfigMain::InitializeGUITooltips()
 	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occured.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
 	OnScreenDisplayMessages->SetToolTip(_("Show messages on the emulation screen area.\nThese messages include memory card writes, video backend and CPU information, and JIT cache clearing."));
 
-	// Display - Themes: Copyright notice
-	Theme->SetToolTip(_("Boomy: Milosz Wlazlo [miloszwl@miloszwl.com]\nVista: VistaIcons.com\nX-Plastik: black_rider [ForumW.org]\nKDE: KDE-Look.org"));
-
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
 	// Audio tooltips
@@ -576,9 +563,6 @@ void CConfigMain::CreateGUIControls()
 	// Hotkey configuration
 	HotkeyConfig = new wxButton(DisplayPage, ID_HOTKEY_CONFIG, _("Hotkeys"),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
-	// Themes
-	Theme = new wxChoice(DisplayPage, ID_INTERFACE_THEME, wxDefaultPosition,
-			wxDefaultSize, arrayStringFor_Themes, 0, wxDefaultValidator);
 	// Interface settings
 	ConfirmStop = new wxCheckBox(DisplayPage, ID_INTERFACE_CONFIRMSTOP, _("Confirm on Stop"),
 			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -592,15 +576,10 @@ void CConfigMain::CreateGUIControls()
 	sInterface->Add(InterfaceLang, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterface->AddStretchSpacer();
 	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
-	wxBoxSizer* scInterface = new wxBoxSizer(wxHORIZONTAL);
-	scInterface->Add(TEXT_BOX(DisplayPage, _("Theme:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	scInterface->Add(Theme, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	scInterface->AddStretchSpacer();
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Interface Settings"));
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
 	sbInterface->Add(OnScreenDisplayMessages, 0, wxALL, 5);
-	sbInterface->Add(scInterface, 0, wxEXPAND | wxALL, 5);
 	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
 	sDisplayPage = new wxBoxSizer(wxVERTICAL);
 	sDisplayPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
@@ -885,10 +864,6 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 	case ID_INTERFACE_ONSCREENDISPLAYMESSAGES:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages = OnScreenDisplayMessages->IsChecked();
 		SetEnableAlert(OnScreenDisplayMessages->IsChecked());
-		break;
-	case ID_INTERFACE_THEME:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme = Theme->GetSelection();
-		main_frame->InitBitmaps();
 		break;
 	case ID_INTERFACE_LANG:
 		if (SConfig::GetInstance().m_InterfaceLanguage != langIds[InterfaceLang->GetSelection()])

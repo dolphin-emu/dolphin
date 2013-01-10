@@ -87,7 +87,6 @@ private:
 		ID_INTERFACE_CONFIRMSTOP,
 		ID_INTERFACE_USEPANICHANDLERS,
 		ID_INTERFACE_ONSCREENDISPLAYMESSAGES,
-		ID_INTERFACE_THEME,
 		ID_INTERFACE_LANG,
 		ID_HOTKEY_CONFIG,
 
@@ -165,7 +164,6 @@ private:
 	wxCheckBox* ConfirmStop;
 	wxCheckBox* UsePanicHandlers;
 	wxCheckBox* OnScreenDisplayMessages;
-	wxChoice* Theme;
 	wxChoice* InterfaceLang;
 	wxButton* HotkeyConfig;
 
@@ -227,7 +225,6 @@ private:
 	wxArrayString arrayStringFor_CPUEngine;
 	wxArrayString arrayStringFor_DSPEngine;
 	wxArrayString arrayStringFor_FullscreenResolution;
-	wxArrayString arrayStringFor_Themes;
 	wxArrayString arrayStringFor_InterfaceLang;
 	wxArrayString arrayStringFor_GCSystemLang;
 	wxArrayString arrayStringFor_WiiSensBarPos;
