@@ -23,8 +23,7 @@ endif(OPENAL_FOUND)
 
 if(PULSEAUDIO_FOUND)
 	set(SRCS ${SRCS} Src/PulseAudioStream.cpp)
-# TODO: remove hacks
-	set(LIBS ${LIBS} ${PULSEAUDIO_LIBRARIES} pulse-simple)
+	set(LIBS ${LIBS} ${PULSEAUDIO_LIBRARIES})
 endif(PULSEAUDIO_FOUND)
 
 if(WIN32)
