@@ -294,6 +294,11 @@ void Wiimote::RealDisconnect()
 	ResetEvent(&hid_overlap);
 }
 
+bool Wiimote::IsOpen() const
+{
+	return IsConnected();
+}
+
 int Wiimote::IORead(unsigned char* buf)
 {
 	DWORD b, r;

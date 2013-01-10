@@ -136,10 +136,10 @@ int FindWiimotes(Wiimote** wm, int max_wiimotes)
 // Connect to a wiimote with a known address.
 bool Wiimote::Connect()
 {
-	struct sockaddr_l2 addr;
+	if (IsConnected())
+		return false;
 
-	if (IsConnected()) return false;
-
+	sockaddr_l2 addr;
 	addr.l2_family = AF_BLUETOOTH;
 	addr.l2_bdaddr = bdaddr;
 	addr.l2_cid = 0;
@@ -195,28 +195,36 @@ void Wiimote::RealDisconnect()
 	if (m_wiimote_thread.joinable())
 		m_wiimote_thread.join();
 
-	Host_ConnectWiimote(index, false);
+	Close();
+}
 
-	close(out_sock);
-	close(in_sock);
+void Wiimote::Close()
+{
+	if (IsOpen())
+	{
+		Host_ConnectWiimote(index, false);
 
-	out_sock = -1;
-	in_sock = -1;
+		close(out_sock);
+		close(in_sock);
+
+		out_sock = -1;
+		in_sock = -1;
+	}
+}
+
+bool Wiimote::IsOpen() const
+{
+	return out_sock != -1 && in_sock != -1;
 }
 
 int Wiimote::IORead(unsigned char *buf)
 {
-	struct timeval tv;
-	fd_set fds;
-	int r;
-
-	if (!IsConnected())
-		return 0;
-
 	// Block select for 1/2000th of a second
+	timeval tv;
 	tv.tv_sec = 0;
 	tv.tv_usec = WIIMOTE_DEFAULT_TIMEOUT * 1000;
 
+	fd_set fds;
 	FD_ZERO(&fds);
 	FD_SET(in_sock, &fds);
 
@@ -230,7 +238,7 @@ int Wiimote::IORead(unsigned char *buf)
 		return 0;
 
 	// Read the pending message into the buffer
-	r = read(in_sock, buf, MAX_PAYLOAD);
+	int r = read(in_sock, buf, MAX_PAYLOAD);
 	if (r == -1)
 	{
 		// Error reading data
@@ -241,17 +249,17 @@ int Wiimote::IORead(unsigned char *buf)
 			// This can happen if the bluetooth dongle is disconnected
 			ERROR_LOG(WIIMOTE, "Bluetooth appears to be disconnected.  "
 					"Wiimote %i will be disconnected.", index + 1);
-			RealDisconnect();
+			Close();
 		}
 
 		return 0;
 	}
-	if (!r)
+	else if (!r)
 	{
 		// Disconnect
-		RealDisconnect();
-		return 0;
+		Close();
 	}
+
 	return r;
 }
 
