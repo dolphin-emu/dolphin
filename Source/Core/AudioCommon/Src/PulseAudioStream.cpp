@@ -92,7 +92,6 @@ bool PulseAudio::PulseInit()
 	else
 	{
 		NOTICE_LOG(AUDIO, "Pulse successfully initialized.");
-		//SetVolume(iVolume);
 		return true;
 	}
 }
