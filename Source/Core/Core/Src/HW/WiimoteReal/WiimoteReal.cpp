@@ -240,7 +240,7 @@ void Wiimote::Disconnect()
 	DisableDataReporting();
 }
 
-bool Wiimote::IsConnected()
+bool Wiimote::IsConnected() const
 {
 	return m_connected;
 }

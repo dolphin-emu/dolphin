@@ -53,7 +53,7 @@ public:
 	bool Read();
 	bool Write();
 	bool Connect();
-	bool IsConnected();
+	bool IsConnected() const;
 	bool IsOpen() const;
 	void Disconnect();
 	void DisableDataReporting();
