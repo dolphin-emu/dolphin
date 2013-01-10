@@ -34,21 +34,31 @@ bool InputPlugin::LoadConfig(bool isGC)
 	bool useProfile[4] = {false, false, false, false};
 	std::string num[4] = {"1", "2", "3", "4"};
 	std::string profile[4];
+	std::string path;
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() != "00000000")
 	{
 		std::string type;
 		if (isGC)
+		{
 			type = "GC";
+			path = "Profiles/GCPad/";
+		}
 		else
+		{
 			type = "Wii";
+			path = "Profiles/Wiimote/";
+		}
 		game_ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 		for (int i = 0; i < 4; i++)
 		{
 			if (game_ini.Exists("Core", (type + "Profile" + num[i]).c_str()))
 			{
-				useProfile[i] = true;
 				game_ini.Get("Core", (type + "Profile" + num[i]).c_str(), &profile[i]);
+				if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
+					useProfile[i] = true;
+				else
+					PanicAlertT("Selected controller profile does not exist");
 			}
 		}
 	}
@@ -64,11 +74,6 @@ bool InputPlugin::LoadConfig(bool isGC)
 			if (useProfile[n])
 			{
 				IniFile profile_ini;
-				std::string path;
-				if (isGC)
-					path = "Profiles/GCPad/";
-				else
-					path = "Profiles/Wiimote/";
 				profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini");
 				(*i)->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
 			}
