@@ -41,20 +41,20 @@ bool InputPlugin::LoadConfig(bool isGC)
 		std::string type;
 		if (isGC)
 		{
-			type = "GC";
+			type = "Pad";
 			path = "Profiles/GCPad/";
 		}
 		else
 		{
-			type = "Wii";
+			type = "Wiimote";
 			path = "Profiles/Wiimote/";
 		}
 		game_ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
 		for (int i = 0; i < 4; i++)
 		{
-			if (game_ini.Exists("Core", (type + "Profile" + num[i]).c_str()))
+			if (game_ini.Exists("Controls", (type + "Profile" + num[i]).c_str()))
 			{
-				game_ini.Get("Core", (type + "Profile" + num[i]).c_str(), &profile[i]);
+				game_ini.Get("Controls", (type + "Profile" + num[i]).c_str(), &profile[i]);
 				if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
 					useProfile[i] = true;
 				else
