@@ -21,9 +21,13 @@
 #include "XFMemory.h"
 #include "VideoCommon.h"
 
-#define SHADER_POSMTX_ATTRIB 1
-#define SHADER_NORM1_ATTRIB  6
-#define SHADER_NORM2_ATTRIB  7
+// TODO should be reordered
+#define SHADER_POSMTX_ATTRIB    1
+#define SHADER_POSITION_ATTRIB  2
+#define SHADER_TEXTURE0_ATTRIB  3
+#define SHADER_COLOR0_ATTRIB    4
+#define SHADER_NORM1_ATTRIB     6
+#define SHADER_NORM2_ATTRIB     7
 
 
 // shader variables

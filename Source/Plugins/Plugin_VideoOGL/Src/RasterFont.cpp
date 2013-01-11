@@ -131,22 +131,22 @@ const u8 rasters[char_count][char_height] = {
 static const char *s_vertexShaderSrc = 
 	"#version 130\n"
 	"uniform vec2 charSize;\n"
-	"in vec2 vertexPosition;\n"
-	"in vec2 texturePosition;\n"
-	"out vec2 tpos;\n"
+	"in vec2 vposition;\n"
+	"in vec2 texture0;\n"
+	"out vec2 uv0;\n"
 	"void main(void) {\n"
-	"	gl_Position = vec4(vertexPosition,0,1);\n"
-	"	tpos = texturePosition * charSize;\n"
+	"	gl_Position = vec4(vposition,0,1);\n"
+	"	uv0 = texture0 * charSize;\n"
 	"}\n"; 
 
 static const char *s_fragmentShaderSrc =
 	"#version 130\n"
 	"uniform sampler2D samp0;\n"
 	"uniform vec4 color;\n"
-	"in vec2 tpos;\n"
+	"in vec2 uv0;\n"
 	"out vec4 ocol0;\n"
 	"void main(void) {\n"
-	"	ocol0 = texture2D(samp0,tpos) * color;\n"
+	"	ocol0 = texture2D(samp0,uv0) * color;\n"
 	"}\n";
 	
 	
@@ -179,7 +179,6 @@ RasterFont::RasterFont()
 	GLuint shader_program = ProgramShaderCache::GetCurrentProgram();
 	
 	// bound uniforms
-	glUniform1i(glGetUniformLocation(shader_program,"samp0"), 0); // GL_TEXTURE0
 	glUniform2f(glGetUniformLocation(shader_program,"charSize"), 1.0f / GLfloat(char_count), 1.0f);
 	uniform_color_id = glGetUniformLocation(shader_program,"color");
 	glUniform4f(uniform_color_id, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -190,10 +189,10 @@ RasterFont::RasterFont()
 	glGenVertexArrays(1, &VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBindVertexArray(VAO);
-	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "vertexPosition"));
-	glVertexAttribPointer(glGetAttribLocation(shader_program, "vertexPosition"), 2, GL_FLOAT, 0, sizeof(GLfloat)*4, NULL);
-	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "texturePosition"));
-	glVertexAttribPointer(glGetAttribLocation(shader_program, "texturePosition"), 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
+	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, NULL);
+	glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
+	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 	
 	// TODO: this after merging with graphic_update
 	glBindVertexArray(0);

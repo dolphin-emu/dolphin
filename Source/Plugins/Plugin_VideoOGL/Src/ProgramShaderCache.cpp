@@ -107,9 +107,12 @@ void ProgramShaderCache::SetProgramBindings ( ProgramShaderCache::PCacheEntry& e
 	}
 
 	// Need to set some attribute locations
-	glBindAttribLocation(entry.prog_id, SHADER_NORM1_ATTRIB, "rawnorm1");
-	glBindAttribLocation(entry.prog_id, SHADER_NORM2_ATTRIB, "rawnorm2");
-	glBindAttribLocation(entry.prog_id, SHADER_POSMTX_ATTRIB, "fposmtx");
+	glBindAttribLocation(entry.prog_id, SHADER_POSITION_ATTRIB, "vposition");
+	glBindAttribLocation(entry.prog_id, SHADER_POSMTX_ATTRIB,   "fposmtx");
+	glBindAttribLocation(entry.prog_id, SHADER_TEXTURE0_ATTRIB, "texture0");
+	glBindAttribLocation(entry.prog_id, SHADER_COLOR0_ATTRIB,   "color0");
+	glBindAttribLocation(entry.prog_id, SHADER_NORM1_ATTRIB,    "rawnorm1");
+	glBindAttribLocation(entry.prog_id, SHADER_NORM2_ATTRIB,    "rawnorm2");
 }
 
 

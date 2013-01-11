@@ -53,6 +53,7 @@ const int renderBufferHeight = 1024;
 
 static FRAGMENTSHADER s_rgbToYuyvProgram;
 static FRAGMENTSHADER s_yuyvToRgbProgram;
+static VERTEXSHADER s_vProgram;
 
 // Not all slots are taken - but who cares.
 const u32 NUM_ENCODING_PROGRAMS = 64;
@@ -66,52 +67,63 @@ static TargetRectangle s_cached_sourceRc;
 static int s_cached_srcWidth = 0;
 static int s_cached_srcHeight = 0;
 
-void CreateRgbToYuyvProgram()
+void CreatePrograms()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
-	const char *FProgram =
-	"#version 130\n"
-	"#extension GL_ARB_texture_rectangle : enable\n"
-	"uniform sampler2DRect samp0;\n"
-	"void main()\n"
-	"{\n"
-	"  vec2 uv1 = vec2(gl_TexCoord[0].x + 1.0f, gl_TexCoord[0].y);\n"
-	"  vec3 c0 = texture2DRect(samp0, gl_TexCoord[0].xy).rgb;\n"
-	"  vec3 c1 = texture2DRect(samp0, uv1).rgb;\n"
-	"  vec3 y_const = vec3(0.257f,0.504f,0.098f);\n"
-	"  vec3 u_const = vec3(-0.148f,-0.291f,0.439f);\n"
-	"  vec3 v_const = vec3(0.439f,-0.368f,-0.071f);\n"
-	"  vec4 const3 = vec4(0.0625f,0.5f,0.0625f,0.5f);\n"
-	"  vec3 c01 = (c0 + c1) * 0.5f;\n"
-	"  gl_FragData[0] = vec4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
-	"}\n";
-	if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram))
-		ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program.");
-}
-
-void CreateYuyvToRgbProgram()
-{
-	const char *FProgram =
+	const char *FProgramRgbToYuyv =
 		"#version 130\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
 		"uniform sampler2DRect samp0;\n"
+		"in vec2 uv0;\n"
+		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"  vec4 c0 = texture2DRect(samp0, gl_TexCoord[0].xy).rgba;\n"
-
-		"  float f = step(0.5, fract(gl_TexCoord[0].x));\n"
-		"  float y = mix(c0.b, c0.r, f);\n"
-		"  float yComp = 1.164f * (y - 0.0625f);\n"
-		"  float uComp = c0.g - 0.5f;\n"
-		"  float vComp = c0.a - 0.5f;\n"
-
-		"  gl_FragData[0] = vec4(yComp + (1.596f * vComp),\n"
-		"                 yComp - (0.813f * vComp) - (0.391f * uComp),\n"
-		"                 yComp + (2.018f * uComp),\n"
-		"                 1.0f);\n"
+		"	vec3 c0 = texture2DRect(samp0, uv0).rgb;\n"
+		"	vec3 c1 = texture2DRect(samp0, uv0 + vec2(1.0, 0.0)).rgb;\n"
+		"	vec3 c01 = (c0 + c1) * 0.5;\n"
+		"	vec3 y_const = vec3(0.257,0.504,0.098);\n"
+		"	vec3 u_const = vec3(-0.148,-0.291,0.439);\n"
+		"	vec3 v_const = vec3(0.439,-0.368,-0.071);\n"
+		"	vec4 const3 = vec4(0.0625,0.5,0.0625f,0.5);\n"
+		"	ocol0 = vec4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
 		"}\n";
-	if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgram))
+	if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgramRgbToYuyv))
+		ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program.");
+
+	const char *FProgramYuyvToRgb =
+		"#version 130\n"
+		"#extension GL_ARB_texture_rectangle : enable\n"
+		"uniform sampler2DRect samp0;\n"
+		"in vec2 uv0;\n"
+		"out vec4 ocol0;\n"
+		"void main()\n"
+		"{\n"
+		"	vec4 c0 = texture2DRect(samp0, uv0).rgba;\n"
+		"	float f = step(0.5, fract(uv0.x));\n"
+		"	float y = mix(c0.b, c0.r, f);\n"
+		"	float yComp = 1.164f * (y - 0.0625f);\n"
+		"	float uComp = c0.g - 0.5f;\n"
+		"	float vComp = c0.a - 0.5f;\n"
+		"	ocol0 = vec4(yComp + (1.596f * vComp),\n"
+		"		yComp - (0.813f * vComp) - (0.391f * uComp),\n"
+		"		yComp + (2.018f * uComp),\n"
+		"		1.0f);\n"
+		"}\n";
+	if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgramYuyvToRgb))
 		ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program.");
+	
+	const char *VProgram =
+		"#version 130\n"
+		"in vec2 vposition;\n"
+		"in vec2 texture0;\n"
+		"out vec2 uv0;\n"
+		"void main()\n"
+		"{\n"
+		"	uv0 = texture0;\n"
+		"	gl_Position = vec4(vposition,0,1);\n"
+		"}\n";
+	if (!VertexShaderCache::CompileVertexShader(s_vProgram, VProgram))
+		ERROR_LOG(VIDEO, "Failed to create texture converter vertex program.");
 }
 
 FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
@@ -152,11 +164,10 @@ void Init()
 	glGenVertexArrays(1, &s_encode_VAO );
 	glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
 	glBindVertexArray( s_encode_VAO );
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 4*sizeof(GLfloat), NULL);
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 4*sizeof(GLfloat), (GLfloat*)NULL + 2);
+	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL);
+	glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
+	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 	s_cached_sourceRc.top = -1;
 	s_cached_sourceRc.bottom = -1;
 	s_cached_sourceRc.left = -1;
@@ -168,11 +179,10 @@ void Init()
 	glBindVertexArray( s_decode_VAO );
 	s_cached_srcWidth = -1;
 	s_cached_srcHeight = -1;
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*4, NULL);
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
+	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL);
+	glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
+	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 	
 	// TODO: this after merging with graphic_update
 	glBindVertexArray(0);
@@ -191,9 +201,8 @@ void Init()
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-
-	CreateRgbToYuyvProgram();
-	CreateYuyvToRgbProgram();
+	
+	CreatePrograms();
 }
 
 void Shutdown()
@@ -208,6 +217,7 @@ void Shutdown()
 
 	s_rgbToYuyvProgram.Destroy();
 	s_yuyvToRgbProgram.Destroy();
+	s_vProgram.Destroy();
 
 	for (unsigned int i = 0; i < NUM_ENCODING_PROGRAMS; i++)
 		s_encodingPrograms[i].Destroy();
@@ -348,7 +358,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-	ProgramShaderCache::SetBothShaders(texconv_shader.glprogid, 0);
+	ProgramShaderCache::SetBothShaders(texconv_shader.glprogid, s_vProgram.glprogid);
 		
 	float sampleStride = bScaleByHalf ? 2.f : 1.f;
 	TextureConversionShader::SetShaderParameters((float)expandedWidth,
@@ -380,7 +390,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 {
 	g_renderer->ResetAPIState();
 	
-	ProgramShaderCache::SetBothShaders(s_rgbToYuyvProgram.glprogid, 0);
+	ProgramShaderCache::SetBothShaders(s_rgbToYuyvProgram.glprogid, s_vProgram.glprogid);
 		
 	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	FramebufferManager::SetFramebuffer(0);
@@ -439,7 +449,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	}
 
 	glViewport(0, 0, srcWidth, srcHeight);
-	ProgramShaderCache::SetBothShaders(s_yuyvToRgbProgram.glprogid, 0);
+	ProgramShaderCache::SetBothShaders(s_yuyvToRgbProgram.glprogid, s_vProgram.glprogid);
 
 	GL_REPORT_ERRORD();
 	

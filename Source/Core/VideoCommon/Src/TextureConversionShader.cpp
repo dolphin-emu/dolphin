@@ -120,8 +120,8 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	
 	if (ApiType == API_OPENGL)
 	{
-		WRITE(p, "  float4 ocol0;\n");
-		WRITE(p, "  float2 uv0 = gl_TexCoord[0].xy;\n");
+		WRITE(p, "  out float4 ocol0;\n");
+		WRITE(p, "  in float2 uv0;\n");
 		WRITE(p, "void main()\n");
 	}
 	else
@@ -204,8 +204,8 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	if (ApiType == API_OPENGL)
 	{
-		WRITE(p, "  float4 ocol0;\n");
-		WRITE(p, "  float2 uv0 = gl_TexCoord[0].xy;\n");
+		WRITE(p, "  out float4 ocol0;\n");
+		WRITE(p, "  in float2 uv0;\n");
 		WRITE(p, "void main()\n");
 	}
 	else
@@ -315,8 +315,6 @@ void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
 
 void WriteEncoderEnd(char* p, API_TYPE ApiType)
 {
-	if (ApiType == API_OPENGL)
-		WRITE(p, "gl_FragData[0] = ocol0;\n");
 	WRITE(p, "}\n");
 	IntensityConstantAdded = false;
 	s_incrementSampleXCount = 0;

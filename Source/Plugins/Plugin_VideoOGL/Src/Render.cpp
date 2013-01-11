@@ -397,26 +397,24 @@ Renderer::Renderer()
 	);
 	VertexShaderCache::CompileVertexShader(s_ShowEFBCopyRegions_VS,
 		"#version 130\n"
-		"in vec2 vertexPosition;\n"
-		"in vec3 color;\n"
+		"in vec2 vposition;\n"
+		"in vec3 color0;\n"
 		"out vec4 c;\n"
 		"void main(void) {\n"
-		"	gl_Position = vec4(vertexPosition,0,1);\n"
-		"	c = vec4(color, 1.0);\n"
+		"	gl_Position = vec4(vposition,0,1);\n"
+		"	c = vec4(color0, 1.0);\n"
 		"}\n"
 	);
-	ProgramShaderCache::SetBothShaders(s_ShowEFBCopyRegions_PS.glprogid, s_ShowEFBCopyRegions_VS.glprogid);
-	GLuint shader_program = ProgramShaderCache::GetCurrentProgram();
 	
 	// creating buffers
 	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);
 	glGenVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
 	glBindVertexArray( s_ShowEFBCopyRegions_VAO );
-	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "vertexPosition"));
-	glVertexAttribPointer(glGetAttribLocation(shader_program, "vertexPosition"), 2, GL_FLOAT, 0, sizeof(GLfloat)*5, NULL);
-	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "color"));
-	glVertexAttribPointer(glGetAttribLocation(shader_program, "color"), 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
+	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*5, NULL);
+	glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB);
+	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
 
 	// TODO: this after merging with graphic_update
 	glBindVertexArray(0);
