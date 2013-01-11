@@ -36,6 +36,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include <map>
 #include <string>
 #include <list>
+#include <mutex>
 
 #include "Common.h"
 #include "CommonPaths.h"
