@@ -638,6 +638,7 @@ void CConfigMain::CreateGUIControls()
 	{
 		FrequencySelection->Disable();
 		BackendSelection->Disable();
+		DPL2Decoder->Disable();
 	}
 
 	// Create sizer and add items to dialog

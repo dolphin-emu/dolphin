@@ -79,7 +79,6 @@ void OpenALStream::Stop()
 	threadData = 1;
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
-	mainSyncEvent.Set();
 
 	soundTouch.clear();
 
@@ -112,7 +111,6 @@ void OpenALStream::SetVolume(int volume)
 void OpenALStream::Update()
 {
 	soundSyncEvent.Set();
-	mainSyncEvent.Wait();
 }
 
 void OpenALStream::Clear(bool mute)
@@ -149,10 +147,12 @@ void OpenALStream::SoundLoop()
 	memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * 4);
 	for (int i = 0; i < OAL_NUM_BUFFERS; i++)
 	{
+#if !defined(__APPLE__)
 		if (Core::g_CoreStartupParameter.bDPL2Decoder)
-			alBufferData(uiBuffers[i], AL_FORMAT_51CHN32, sampleBuffer, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_NUM_BUFFERS, ulFrequency);
+			alBufferData(uiBuffers[i], AL_FORMAT_51CHN32, sampleBuffer, 4 * SIZE_FLOAT * SURROUND_CHANNELS, ulFrequency);
 		else
-			alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, OAL_MAX_SAMPLES * 4, ulFrequency);
+#endif
+			alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, 4 * 2 * 2, ulFrequency);
 	}
 	alSourceQueueBuffers(uiSource, OAL_NUM_BUFFERS, uiBuffers);
 	alSourcePlay(uiSource);
@@ -165,6 +165,7 @@ void OpenALStream::SoundLoop()
 
 	ALint iBuffersFilled = 0;
 	ALint iBuffersProcessed = 0;
+	ALint iState = 0;
 	ALuint uiBufferTemp[OAL_NUM_BUFFERS] = {0};
 
 	soundTouch.setChannels(2);
@@ -232,7 +233,7 @@ void OpenALStream::SoundLoop()
 				if (surround_capable)
 				{
 					// Convert the samples from short to float for the dpl2 decoder
-					float dest[OAL_MAX_SAMPLES * 2 * OAL_NUM_BUFFERS];
+					float dest[OAL_MAX_SAMPLES * 2 * 2 * OAL_NUM_BUFFERS];
 					for (u32 i = 0; i < nSamples; ++i)
 					{
 						dest[i * 2 + 0] = (float)sampleBuffer[i * 2 + 0] / (1<<16);
@@ -247,7 +248,7 @@ void OpenALStream::SoundLoop()
 					if (err == AL_INVALID_ENUM)
 					{
 						// 5.1 is not supported by the host, fallback to stereo
-						WARN_LOG(AUDIO, "Unable set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
+						WARN_LOG(AUDIO, "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
 						surround_capable = false;
 					}
 					else if (err != 0)
@@ -278,13 +279,24 @@ void OpenALStream::SoundLoop()
 						ERROR_LOG(AUDIO, "Error occurred during playback: %08x", err);
 					}
 				}
+
+				alGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
+				if (iState != AL_PLAYING)
+				{
+					// Buffer underrun occurred, resume playback
+					alSourcePlay(uiSource);
+					ALenum err = alGetError();
+					if (err != 0)
+					{
+						ERROR_LOG(AUDIO, "Error occurred resuming playback: %08x", err);
+					}
+				}
 			}
 		}
 		else
 		{
 			soundSyncEvent.Wait();
 		}
-		mainSyncEvent.Set();
 	}
 }
 
