@@ -73,7 +73,6 @@ public:
 private:
 	std::thread thread;
 	Common::Event soundSyncEvent;
-	Common::Event mainSyncEvent;
 
 	short realtimeBuffer[OAL_MAX_SAMPLES * 2];
 	soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_NUM_BUFFERS];

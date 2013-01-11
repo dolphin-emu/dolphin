@@ -207,7 +207,10 @@ void OpenALStream::SoundLoop()
 				Core::RequestRefreshInfo();
 				rate = m_mixer->GetCurrentSpeed();
 			}
-			if (rate > 0)
+
+			// Place a lower limit of 10% speed.  When a game boots up, there will be
+			// many silence samples.  These do not need to be timestretched.
+			if (rate > 0.10)
 			{
 				// Adjust SETTING_SEQUENCE_MS to balance between lag vs hollow audio
 				soundTouch.setSetting(SETTING_SEQUENCE_MS, (int)(1 / (rate * rate)));
