@@ -19,6 +19,7 @@
 
 #include <wx/imaglist.h>
 #include <wx/fontmap.h>
+#include <wx/filename.h>
 
 #include <algorithm>
 #include <memory>
@@ -982,9 +983,11 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
-	std::string path;
-	SplitPath(iso->GetFileName(), &path, 0, 0);
-	WxUtils::Explore(path.c_str());
+
+	wxString strPath(iso->GetFileName().c_str(), wxConvUTF8);
+	wxFileName path = wxFileName::FileName(strPath);
+	path.MakeAbsolute();
+	WxUtils::Explore(path.GetPath().char_str());
 }
 
 void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
