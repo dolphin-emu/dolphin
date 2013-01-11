@@ -22,6 +22,9 @@
 
 #include <functional>
 #include <vector>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "DPL2Decoder.h"
 
 #define M_PI 3.14159265358979323846
@@ -315,7 +318,7 @@ void matrix_decode(const float *in, const int k, const int il,
 void dpl2decode(float *samples, int numsamples, float *out)
 {
 	static const unsigned int FWRDURATION = 240;    /* FWR average duration (samples) */
-	static const unsigned int cfg_delay = 0;
+	static const int cfg_delay = 0;
 	static const unsigned int fmt_freq = 48000;
 	static const unsigned int fmt_nchannels = 2; // input channels
 
