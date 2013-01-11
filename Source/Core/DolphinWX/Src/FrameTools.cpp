@@ -1177,6 +1177,7 @@ void CFrame::DoStop()
 
 		m_GameListCtrl->Enable();
 		m_GameListCtrl->Show();
+		m_GameListCtrl->SetFocus();
 		UpdateGUI();
 	}
 }
