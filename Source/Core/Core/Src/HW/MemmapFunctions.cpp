@@ -25,6 +25,10 @@
 #include "../PowerPC/PowerPC.h"
 #include "VideoBackendBase.h"
 
+#ifdef USE_GDBSTUB
+#include "../PowerPC/GDBStub.h"
+#endif
+
 namespace Memory
 {
 

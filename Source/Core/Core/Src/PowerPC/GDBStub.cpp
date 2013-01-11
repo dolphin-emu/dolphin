@@ -399,14 +399,41 @@ static void wbe64hex(u8 *p, u64 v)
 		p[i] =  nibble2hex(v >> (60 - 4*i));
 }
 
+static u32 re32hex(u8 *p)
+{
+	u32 i;
+	u32 res = 0;
+	
+	for (i = 0; i < 8; i++)
+		res = (res << 4) | hex2char(p[i]);
+	
+	return res;
+}
+
+static u64 re64hex(u8 *p)
+{
+	u32 i;
+	u64 res = 0;
+	
+	for (i = 0; i < 16; i++)
+		res = (res << 4) | hex2char(p[i]);
+	
+	return res;
+}
+
 static void gdb_read_register()
 {
 	static u8 reply[64];
 	u32 id;
 	
 	memset(reply, 0, sizeof reply);
-	id = hex2char(cmd_bfr[1]) << 4;
-	id |= hex2char(cmd_bfr[2]);
+	id = hex2char(cmd_bfr[1]);
+	if (cmd_bfr[2] != '\0')
+	{
+		id <<= 4;
+		id |= hex2char(cmd_bfr[2]);
+	}
+	
 	
 	switch (id) {
 		case 0 ... 31:
@@ -458,13 +485,13 @@ static void gdb_read_registers()
 	for (i = 0; i < 32; i++) {
 		wbe32hex(bufptr + i*8, GPR(i));
 	}
-	bufptr += 32 * 4;
+	bufptr += 32 * 8;
 	
+	/*
 	for (i = 0; i < 32; i++) {
-		wbe64hex(bufptr + i*16, riPS0(i));
+		wbe32hex(bufptr + i*8, riPS0(i));
 	}
-	bufptr += 64 * 4;
-	
+	bufptr += 32 * 8;
 	wbe32hex(bufptr, PC); 		bufptr += 4;
 	wbe32hex(bufptr, MSR); 		bufptr += 4;
 	wbe32hex(bufptr, GetCR()); 	bufptr += 4;
@@ -475,32 +502,10 @@ static void gdb_read_registers()
 	wbe32hex(bufptr, PowerPC::ppcState.spr[SPR_XER]); bufptr += 4;
 	// MQ register not used.
 	wbe32hex(bufptr, 0x0BADC0DE); bufptr += 4;
-	
+	*/
 	
 	
 	gdb_reply((char *)bfr);
-}
-
-static u32 re32hex(u8 *p)
-{
-	u32 i;
-	u32 res = 0;
-	
-	for (i = 0; i < 8; i++)
-		res = (res << 4) | hex2char(p[i]);
-	
-	return res;
-}
-
-static u64 re64hex(u8 *p)
-{
-	u32 i;
-	u64 res = 0;
-	
-	for (i = 0; i < 16; i++)
-		res = (res << 4) | hex2char(p[i]);
-	
-	return res;
 }
 
 static void gdb_write_registers()
@@ -509,26 +514,9 @@ static void gdb_write_registers()
 	u8 * bufptr = cmd_bfr;
 	
 	for (i = 0; i < 32; i++) {
-		GPR(i) = re32hex(bufptr + i*4);
+		GPR(i) = re32hex(bufptr + i*8);
 	}
-	bufptr += 32 * 4;
-	
-	for (i = 0; i < 32; i++) {
-		riPS0(i) = re64hex(bufptr + i*4);
-	}
-	bufptr += 64 * 4;
-	
-	PC = re32hex(bufptr); 		bufptr += 4;
-	MSR = re32hex(bufptr); 		bufptr += 4;
-	SetCR(re32hex(bufptr)); 	bufptr += 4;
-	LR = re32hex(bufptr); 		bufptr += 4;
-	
-	
-	CTR = re32hex(bufptr); 		bufptr += 4;
-	PowerPC::ppcState.spr[SPR_XER] = re32hex(bufptr); bufptr += 4;
-	// MQ register not used.
-	(void)re32hex(bufptr); bufptr += 4;
-	
+	bufptr += 32 * 8;
 	
 	gdb_reply("OK");
 }
@@ -537,12 +525,15 @@ static void gdb_write_register()
 {
 	u32 id;
 	
-	id = hex2char(cmd_bfr[1]) << 4;
-	id |= hex2char(cmd_bfr[2]);
+	u8 * bufptr = cmd_bfr + 3;
 	
-	
-	u8 * bufptr = cmd_bfr + 4;
-	
+	id = hex2char(cmd_bfr[1]);
+	if (cmd_bfr[2] != '=')
+	{
+		++bufptr;
+		id <<= 4;
+		id |= hex2char(cmd_bfr[2]);
+	}
 	
 	switch (id) {
 		case 0 ... 31:
