@@ -44,7 +44,7 @@
 #include "../resources/Flag_Taiwan.xpm"
 #include "../resources/Flag_Korea.xpm"
 #include "../resources/Flag_Unknown.xpm"
-#include "../resources/Flag_Sdk.xpm"
+#include "../resources/Flag_SDK.xpm"
 
 #include "../resources/Platform_Wad.xpm"
 #include "../resources/Platform_Wii.xpm"
@@ -209,7 +209,7 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN] =
 		m_imageListSmall->Add(wxBitmap(Flag_Taiwan_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SDK] =
-		m_imageListSmall->Add(wxBitmap(Flag_Sdk_xpm), wxNullBitmap);
+		m_imageListSmall->Add(wxBitmap(Flag_SDK_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN] =
 		m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm), wxNullBitmap);
 
