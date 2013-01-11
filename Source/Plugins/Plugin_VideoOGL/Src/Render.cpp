@@ -397,11 +397,11 @@ Renderer::Renderer()
 	);
 	VertexShaderCache::CompileVertexShader(s_ShowEFBCopyRegions_VS,
 		"#version 130\n"
-		"in vec2 vposition;\n"
+		"in vec2 rawpos;\n"
 		"in vec3 color0;\n"
 		"out vec4 c;\n"
 		"void main(void) {\n"
-		"	gl_Position = vec4(vposition,0,1);\n"
+		"	gl_Position = vec4(rawpos,0,1);\n"
 		"	c = vec4(color0, 1.0);\n"
 		"}\n"
 	);

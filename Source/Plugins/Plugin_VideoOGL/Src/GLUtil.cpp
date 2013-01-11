@@ -28,6 +28,9 @@
 
 #include "GLUtil.h"
 
+// this should be removed in future, but as long as glsl is unstable, we should really read this messages
+#define DEBUG_GLSL
+
 GLWindow GLWin;
 cInterfaceBase *GLInterface;
 
@@ -70,14 +73,14 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 	GLuint programID = glCreateProgram();
-	GLint Result = GL_FALSE;
-	char stringBuffer[1024];
-	GLsizei stringBufferUsage = 0;
 	
 	// compile vertex shader
 	glShaderSource(vertexShaderID, 1, &vertexShader, NULL);
 	glCompileShader(vertexShaderID);
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
+	GLint Result = GL_FALSE;
+	char stringBuffer[1024];
+	GLsizei stringBufferUsage = 0;
 	glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &Result);
 	glGetShaderInfoLog(vertexShaderID, 1024, &stringBufferUsage, stringBuffer);
 	if(Result && stringBufferUsage) {
