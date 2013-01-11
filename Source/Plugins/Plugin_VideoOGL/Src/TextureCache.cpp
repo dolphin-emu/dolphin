@@ -59,6 +59,7 @@ namespace OGL
 
 static FRAGMENTSHADER s_ColorMatrixProgram;
 static FRAGMENTSHADER s_DepthMatrixProgram;
+static VERTEXSHADER s_vProgram;
 
 struct VBOCache {
 	GLuint vbo;
@@ -313,7 +314,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
-		ProgramShaderCache::SetBothShaders((srcFormat == PIXELFMT_Z24) ? s_DepthMatrixProgram.glprogid : s_ColorMatrixProgram.glprogid, 0);
+		ProgramShaderCache::SetBothShaders((srcFormat == PIXELFMT_Z24) ? s_DepthMatrixProgram.glprogid : s_ColorMatrixProgram.glprogid, s_vProgram.glprogid);
 		PixelShaderManager::SetColorMatrix(colmat); // set transformation
 		GL_REPORT_ERRORD();
 
@@ -336,12 +337,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			glBindBuffer(GL_ARRAY_BUFFER, item.vbo);
 			glBindVertexArray(item.vao);
 			
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glVertexPointer(2, GL_FLOAT, sizeof(GLfloat)*4, 0);
-			
-			glClientActiveTexture(GL_TEXTURE0);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(2, GL_FLOAT, sizeof(GLfloat)*4, (GLfloat*)NULL + 2);
+			glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
+			glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL);
+			glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
+			glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 			
 			vbo_it = s_VBO.insert(std::pair<u64,VBOCache>(targetSourceHash, item)).first;
 		}
@@ -461,12 +460,13 @@ TextureCache::TextureCache()
 		"%s\n"
 		"%svec4 " I_COLORS"[7];\n"
 		"%s\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
 		"	vec4 Temp0, Temp1;\n"
 		"	vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
-		"	Temp0 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
+		"	Temp0 = texture2DRect(samp0, uv0);\n"
 		"	Temp0 = Temp0 * " I_COLORS"[%d];\n"
 		"	Temp0 = Temp0 + K0;\n"
 		"	Temp0 = floor(Temp0);\n"
@@ -497,13 +497,14 @@ TextureCache::TextureCache()
 		"%s\n"
 		"%svec4 " I_COLORS"[5];\n"
 		"%s\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
 		"	vec4 R0, R1, R2;\n"
 		"	vec4 K0 = vec4(255.99998474121, 0.003921568627451, 256.0, 0.0);\n"
 		"	vec4 K1 = vec4(15.0, 0.066666666666, 0.0, 0.0);\n"
-		"	R2 = texture2DRect(samp0, gl_TexCoord[0].xy);\n"
+		"	R2 = texture2DRect(samp0, uv0);\n"
 		"	R0.x = R2.x * K0.x;\n"
 		"	R0.x = floor(R0).x;\n"
 		"	R0.yzw = (R0 - R0.x).yzw;\n"
@@ -534,6 +535,19 @@ TextureCache::TextureCache()
 		ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
 		s_DepthMatrixProgram.Destroy();
 	}
+	
+	const char *VProgram =
+		"#version 130\n"
+		"in vec2 vposition;\n"
+		"in vec2 texture0;\n"
+		"out vec2 uv0;\n"
+		"void main()\n"
+		"{\n"
+		"	uv0 = texture0;\n"
+		"	gl_Position = vec4(vposition,0,1);\n"
+		"}\n";
+	if (!VertexShaderCache::CompileVertexShader(s_vProgram, VProgram))
+		ERROR_LOG(VIDEO, "Failed to create texture converter vertex program.");
 }
 
 
@@ -541,6 +555,7 @@ TextureCache::~TextureCache()
 {
 	s_ColorMatrixProgram.Destroy();
 	s_DepthMatrixProgram.Destroy();
+	s_vProgram.Destroy();
 	
 	for(std::map<u64, VBOCache>::iterator it = s_VBO.begin(); it != s_VBO.end(); it++) {
 		glDeleteBuffers(1, &it->second.vbo);
