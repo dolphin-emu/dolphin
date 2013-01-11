@@ -39,5 +39,9 @@ endif(WIN32)
 
 enable_precompiled_headers(Src/stdafx.h Src/stdafx.cpp SRCS)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	set(SRCS ${SRCS} Src/XDGLookup.cpp)
+endif()
+
 add_library(common STATIC ${SRCS})
 target_link_libraries(common ${CMAKE_THREAD_LIBS_INIT})

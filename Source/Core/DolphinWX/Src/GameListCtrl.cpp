@@ -24,6 +24,9 @@
 #include <memory>
 #ifdef _WIN32
 #include <shlobj.h>
+#elif defined __WXGTK__
+#include <wx/ffile.h>
+#include "XDGLookup.h"
 #endif
 
 #include "FileSearch.h"
@@ -167,7 +170,7 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_MENU(IDM_EXPORTSAVE, CGameListCtrl::OnExportSave)
 	EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
 	EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
-#ifdef _WIN32
+#if defined _WIN32 || defined __WXGTK__
 	EVT_MENU(IDM_CREATESHORTCUT, CGameListCtrl::OnCreateShortcut)
 #endif
 	EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
@@ -926,7 +929,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			if(selected_iso->GetFileName() == SConfig::GetInstance().
 				m_LocalCoreStartupParameter.m_strDefaultGCM)
 				popupMenu->FindItem(IDM_SETDEFAULTGCM)->Check();
-		#ifdef _WIN32
+		#if defined _WIN32 || defined __WXGTK__
 			popupMenu->Append(IDM_CREATESHORTCUT, _("Create shortcut on desktop"));
 		#endif
 
@@ -1387,5 +1390,24 @@ void CGameListCtrl::OnCreateShortcut(wxCommandEvent& event)
 	t4.Append(iso->GetFileName());
 	t4.Append("\"");
 	CreateLink(t1, t2, t3, t4);
+}
+#elif defined __WXGTK__
+static void CreateLink(const std::string& name, const std::string& filename)
+{
+	std::string desktop_filename = XDG::Lookup("DESKTOP", XDG::HomeDir() + "/Desktop") + "/" + name + ".desktop";
+	wxFFile file(desktop_filename, "w");
+	file.Write("[Desktop Entry]\n");
+	file.Write("Type=Application\n");
+	file.Write("Name=" + name + "\n");
+	file.Write("Exec=dolphin-emu -b -e " + filename + "\n");
+	file.Write("Icon=dolphin-emu\n");
+	file.Close();
+	chmod(desktop_filename.c_str(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+}
+
+void CGameListCtrl::OnCreateShortcut(wxCommandEvent& event)
+{
+	const GameListItem *iso = GetSelectedISO();
+	CreateLink(iso->GetName(0), iso->GetFileName());
 }
 #endif
