@@ -652,7 +652,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 	}
 	// Final tev output is U8
-	WRITE(p, "prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+	WRITE(p, "prev = round(frac(prev * (255.0f/256.0f)) * (256.0f/255.0f)*255.0f)/255.0f;\n");
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	if (Pretest == AlphaTest::UNDETERMINED)
@@ -668,10 +668,11 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
 									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
 
-		// scale to make result from frac correct
+		// U24 overflow emulation
 		WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
 		WRITE(p, "zCoord = frac(zCoord);\n");
 		WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
+		WRITE(p, "zCoord = round(zCoord * 16777215.0f) / 16777215.0f;\n");
 	}
 	WRITE(p, "depth = zCoord;\n");
 
@@ -857,14 +858,14 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	}
 
 	// 8 bit integer overflow emulation for input registers
-	WRITE(p, "input_ca = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.a]);
-	WRITE(p, "input_cb = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.b]);
-	WRITE(p, "input_cc = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.c]);
+	WRITE(p, "input_ca = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevCInputTable[cc.a]);
+	WRITE(p, "input_cb = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevCInputTable[cc.b]);
+	WRITE(p, "input_cc = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevCInputTable[cc.c]);
 	WRITE(p, "input_cd = %s;\n", tevCInputTable[cc.d]);
 
-	WRITE(p, "input_aa = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.a]);
-	WRITE(p, "input_ab = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.b]);
-	WRITE(p, "input_ac = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.c]);
+	WRITE(p, "input_aa = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevAInputTable[ac.a]);
+	WRITE(p, "input_ab = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevAInputTable[ac.b]);
+	WRITE(p, "input_ac = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevAInputTable[ac.c]);
 	WRITE(p, "input_ad = %s;\n", tevAInputTable[ac.d]);
 
 
