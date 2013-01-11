@@ -70,8 +70,8 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/CPU.cpp
 			Src/HW/DSP.cpp
 			Src/HW/DSPHLE/UCodes/UCode_AX.cpp
-            Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
-            Src/HW/DSPHLE/UCodes/UCode_NewAXWii.cpp
+			Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
+			Src/HW/DSPHLE/UCodes/UCode_NewAXWii.cpp
 			Src/HW/DSPHLE/UCodes/UCode_CARD.cpp
 			Src/HW/DSPHLE/UCodes/UCode_InitAudioSystem.cpp
 			Src/HW/DSPHLE/UCodes/UCode_ROM.cpp
@@ -200,6 +200,13 @@ set(LIBS bdisasm inputcommon videosoftware sfml-network ${OPENSSL_LIBRARIES})
 if(NOT USE_GLES)
 	set(LIBS ${LIBS} videoogl)
 endif()
+
+
+if(LIBUSB_FOUND)
+	# Using shared LibUSB
+	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
+	set(SRCS	${SRCS}	Src/IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
+endif(LIBUSB_FOUND)
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp

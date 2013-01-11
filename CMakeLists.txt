@@ -208,9 +208,16 @@ if(NOT CMAKE_BUILD_TYPE)
 		"Build type (Release/Debug/RelWithDebInfo/MinSizeRe)" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	add_definitions(-D_DEBUG -ggdb)
 	set(wxWidgets_USE_DEBUG ON CACHE BOOL "Use wxWidgets Debugging")
+
+	option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
+	if(ENABLE_GPROF)
+		add_definitions(-pg)
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+	endif()
 endif(CMAKE_BUILD_TYPE STREQUAL Debug)
 
 if(CMAKE_BUILD_TYPE STREQUAL Release)
@@ -434,6 +441,16 @@ else(SDL2_FOUND)
 		add_subdirectory(Externals/SDL)
 	endif(SDL_FOUND)
 endif(SDL2_FOUND)
+
+include(FindLibUSB OPTIONAL)
+if(LIBUSB_FOUND)
+	message("Using shared LibUSB")
+	
+	add_definitions(-D__LIBUSB__)
+	include_directories(${LIBUSB_INCLUDE_DIR})
+else(LIBUSB_FOUND)
+	
+endif(LIBUSB_FOUND)
 
 set(SFML_FIND_VERSION TRUE)
 set(SFML_FIND_VERSION_MAJOR 1)

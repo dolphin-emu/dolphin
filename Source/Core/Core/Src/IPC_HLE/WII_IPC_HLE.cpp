@@ -52,6 +52,10 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "WII_IPC_HLE_Device_usb_kbd.h"
 #include "WII_IPC_HLE_Device_sdio_slot0.h"
 
+#if defined(__LIBUSB__) || defined (_WIN32)
+	#include "WII_IPC_HLE_Device_hid.h"
+#endif
+
 #include "FileUtil.h" // For Copy
 #include "../ConfigManager.h"
 #include "../HW/CPU.h"
@@ -80,6 +84,7 @@ IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
 typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue;	// ppc -> arm
 static ipc_msg_queue reply_queue;	// arm -> ppc
+static std::mutex s_reply_queue;
 
 void Init()
 {
@@ -116,7 +121,11 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_kbd(i, std::string("/dev/usb/kbd")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_sdio_slot0(i, std::string("/dev/sdio/slot0")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/sdio/slot1")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/hid")); i++;
+	#if  defined(__LIBUSB__) || defined(_WIN32)
+		g_DeviceMap[i] = new CWII_IPC_HLE_Device_hid(i, std::string("/dev/usb/hid")); i++;
+	#else
+        g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/hid")); i++;
+	#endif
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/oh1")); i++;
 	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, std::string("_Unimplemented_Device_")); i++;
 }
@@ -154,7 +163,12 @@ void Reset(bool _bHard)
 		g_DeviceMap.erase(g_DeviceMap.begin(), g_DeviceMap.end());
 	}
 	request_queue.clear();
-	reply_queue.clear();
+	
+	// lock due to using reply_queue
+	{
+		std::lock_guard<std::mutex> lk(s_reply_queue);
+		reply_queue.clear();
+	}
 }
 
 void Shutdown()
@@ -236,6 +250,8 @@ IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName
 
 void DoState(PointerWrap &p)
 {
+	std::lock_guard<std::mutex> lk(s_reply_queue);
+	
 	p.Do(request_queue);
 	p.Do(reply_queue);
 
@@ -531,6 +547,7 @@ void EnqRequest(u32 _Address)
 // Called when IOS module has some reply
 void EnqReply(u32 _Address)
 {
+	std::lock_guard<std::mutex> lk(s_reply_queue);
 	reply_queue.push_back(_Address);
 }
 
@@ -555,12 +572,16 @@ void Update()
 		Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
 #endif
 	}
-
-	if (reply_queue.size())
+	
+	// lock due to using reply_queue
 	{
-		WII_IPCInterface::GenerateReply(reply_queue.front());
-		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
-		reply_queue.pop_front();
+		std::lock_guard<std::mutex> lk(s_reply_queue);
+		if (reply_queue.size())
+		{
+			WII_IPCInterface::GenerateReply(reply_queue.front());
+			INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
+			reply_queue.pop_front();
+		}
 	}
 }
 

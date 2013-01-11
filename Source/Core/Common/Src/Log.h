@@ -65,6 +65,7 @@ enum LOG_TYPE {
 	WII_IPC_DVD,
 	WII_IPC_ES,
 	WII_IPC_FILEIO,
+	WII_IPC_HID,
 	WII_IPC_HLE,
 	WII_IPC_NET,
 	WII_IPC_WC24,
@@ -100,10 +101,10 @@ void GenericLog(LOGTYPES_LEVELS level, LOGTYPES_TYPE type,
 		;
 
 #if defined LOGGING || defined _DEBUG || defined DEBUGFAST
-#define MAX_LOGLEVEL DEBUG_LEVEL
+#define MAX_LOGLEVEL WARNING_LEVEL
 #else
 #ifndef MAX_LOGLEVEL
-		#define MAX_LOGLEVEL DEBUG_LEVEL
+#define MAX_LOGLEVEL DEBUG_LEVEL
 #endif // loglevel
 #endif // logging
 

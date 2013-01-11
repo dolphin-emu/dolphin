@@ -566,7 +566,10 @@
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
     <ClCompile Include="Src\IPC_HLE\ICMPWin.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+		<Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+	</ClCompile>
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_hid.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1063,6 +1066,9 @@
     <ClInclude Include="Src\IPC_HLE\ICMP.h">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_hid.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
@@ -1202,6 +1208,9 @@
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\GCMemcard">
       <UniqueIdentifier>{3e9e6e83-c1bf-45f9-aeff-231f98f60d29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\USB">
+      <UniqueIdentifier>{321a9af5-9b3d-4620-888c-fe9d02e9559e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
