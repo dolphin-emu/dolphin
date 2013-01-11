@@ -36,10 +36,10 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include <map>
 #include <string>
 #include <list>
-#include <mutex>
 
 #include "Common.h"
 #include "CommonPaths.h"
+#include "Thread.h"
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
 #include "WII_IPC_HLE_Device_DI.h"
