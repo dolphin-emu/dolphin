@@ -35,8 +35,6 @@
 #include "WxUtils.h"
 #include "Main.h"
 
-extern "C"
-{
 #include "../resources/Flag_Europe.xpm"
 #include "../resources/Flag_Germany.xpm"
 #include "../resources/Flag_France.xpm"
@@ -47,7 +45,6 @@ extern "C"
 #include "../resources/Flag_Korea.xpm"
 #include "../resources/Flag_Unknown.xpm"
 #include "../resources/Flag_Sdk.xpm"
-}
 
 #include "../resources/Platform_Wad.xpm"
 #include "../resources/Platform_Wii.xpm"
