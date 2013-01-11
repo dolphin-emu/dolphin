@@ -102,16 +102,12 @@ namespace AudioCommon
 			backends.push_back(BACKEND_DIRECTSOUND);
 		if (XAudio2::isValid())  
 			backends.push_back(BACKEND_XAUDIO2);
-		if (OpenALStream::isValid())
-			backends.push_back(BACKEND_OPENAL);
 		if (AOSound::isValid())   
 			backends.push_back(BACKEND_AOSOUND);
 		if (AlsaSound::isValid()) 
 			backends.push_back(BACKEND_ALSA);
 		if (CoreAudioSound::isValid())       
 			backends.push_back(BACKEND_COREAUDIO);
-		if (PulseAudio::isValid()) 
-			backends.push_back(BACKEND_PULSEAUDIO);
 	   
 		return backends;
 	}

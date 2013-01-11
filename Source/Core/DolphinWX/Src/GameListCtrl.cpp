@@ -259,6 +259,7 @@ void CGameListCtrl::BrowseForDirectory()
 
 void CGameListCtrl::Update()
 {
+	int scrollPos = wxWindow::GetScrollPos(wxVERTICAL);
 	// Don't let the user refresh it while a game is running
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
@@ -363,6 +364,8 @@ void CGameListCtrl::Update()
 	Show();
 
 	AutomaticColumnWidth();
+	ScrollLines(scrollPos);
+	SetFocus();
 }
 
 wxString NiceSizeFormat(s64 _size)
@@ -1121,6 +1124,9 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	if (browseDialog.ShowModal() != wxID_OK)
 		return;
 
+	bool all_good = true;
+
+	{
 	wxProgressDialog progressDialog(
 		_compress ? _("Compressing ISO") : _("Decompressing ISO"),
 		_("Working..."),
@@ -1157,7 +1163,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 							wxYES_NO) == wxNO)
 					continue;
 
-				DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
+				all_good &= DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
 						OutputFileName.c_str(),
 						(iso->GetPlatform() == GameListItem::WII_DISC) ? 1 : 0,
 						16384, &MultiCompressCB, &progressDialog);
@@ -1185,11 +1191,16 @@ void CGameListCtrl::CompressSelection(bool _compress)
 							wxYES_NO) == wxNO)
 					continue;
 
-				DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
+				all_good &= DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
 						OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
 			}
 			m_currentItem++;
 	}
+	}
+
+	if (!all_good)
+		wxMessageBox(_("Dolphin was unable to complete the requested action."));
+
 	Update();
 }
 
@@ -1249,6 +1260,9 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 				_("Confirm File Overwrite"),
 				wxYES_NO) == wxNO);
 
+	bool all_good = false;
+
+	{
 	wxProgressDialog dialog(
 		iso->IsCompressed() ? _("Decompressing ISO") : _("Compressing ISO"),
 		_("Working..."),
@@ -1259,14 +1273,19 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 		wxPD_SMOOTH
 		);
 
+
 	if (iso->IsCompressed())
-		DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
+		all_good = DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
 				path.char_str(), &CompressCB, &dialog);
 	else
-		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
+		all_good = DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
 				path.char_str(),
 				(iso->GetPlatform() == GameListItem::WII_DISC) ? 1 : 0,
 				16384, &CompressCB, &dialog);
+	}
+
+	if (!all_good)
+		wxMessageBox(_("Dolphin was unable to complete the requested action."));
 
 	Update();
 }

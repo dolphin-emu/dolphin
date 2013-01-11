@@ -471,10 +471,13 @@ void Renderer::SetColorMask()
 {
 	// Only enable alpha channel if it's supported by the current EFB format
 	UINT8 color_mask = 0;
-	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
-		color_mask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate)
-		color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
+	if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
+	{
+		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+			color_mask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
+		if (bpmem.blendmode.colorupdate)
+			color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
+	}
 	gx_state.blenddc.RenderTarget[0].RenderTargetWriteMask = color_mask;
 }
 
@@ -907,10 +910,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
-	// this function is called after the XFB field is changed, not after
-	// EFB is copied to XFB. In this way, flickering is reduced in games
-	// and seems to also give more FPS in ZTP
 
+	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)

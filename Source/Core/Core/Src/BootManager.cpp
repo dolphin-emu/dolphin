@@ -47,7 +47,6 @@
 #include "VideoBackendBase.h"
 #include "Movie.h"
 
-
 namespace BootManager
 {
 
@@ -154,6 +153,7 @@ void Stop()
 
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
+	StartUp.m_strUniqueID = "00000000";
 	if (config_cache.valid)
 	{
 		config_cache.valid = false;

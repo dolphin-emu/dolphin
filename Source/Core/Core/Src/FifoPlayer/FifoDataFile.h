@@ -33,7 +33,7 @@ struct MemoryUpdate
 		TEXTURE_MAP = 0x01,
 		XF_DATA = 0x02,
 		VERTEX_STREAM = 0x04,
-		TLUT = 0x08
+		TMEM = 0x08,
 	};
 
 	u32 fifoPosition;

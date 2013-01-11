@@ -227,6 +227,11 @@ void Wiimote::RealDisconnect()
 	ichan = NULL;
 }
 
+bool Wiimote::IsOpen() const
+{
+	return IsConnected();
+}
+
 int Wiimote::IORead(unsigned char *buf)
 {
 	int bytes;

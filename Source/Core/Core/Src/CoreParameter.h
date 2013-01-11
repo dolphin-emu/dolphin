@@ -141,7 +141,7 @@ struct SCoreStartupParameter
 
 	int iTheme;
 	int iPosX, iPosY, iWidth, iHeight;
-	
+
 	enum EBootBS2
 	{
 		BOOT_DEFAULT,

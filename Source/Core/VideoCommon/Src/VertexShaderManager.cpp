@@ -169,14 +169,24 @@ void VertexShaderManager::Shutdown()
 
 void VertexShaderManager::Dirty()
 {
-	nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
-	nNormalMatricesChanged[0] = 0; nNormalMatricesChanged[1] = 96;
-	nPostTransformMatricesChanged[0] = 0; nPostTransformMatricesChanged[1] = 256;
-	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
+	nTransformMatricesChanged[0] = 0; 
+	nTransformMatricesChanged[1] = 256;
+	
+	nNormalMatricesChanged[0] = 0;
+	nNormalMatricesChanged[1] = 96;
+	
+	nPostTransformMatricesChanged[0] = 0; 
+	nPostTransformMatricesChanged[1] = 256;
+	
+	nLightsChanged[0] = 0; 
+	nLightsChanged[1] = 0x80;
+	
 	bPosNormalMatrixChanged = true;
-	bTexMatricesChanged[0] = bTexMatricesChanged[1] = true;
+	bTexMatricesChanged[0] = true;
+	bTexMatricesChanged[1] = true;
+	
 	bProjectionChanged = true;
-	bPosNormalMatrixChanged = bTexMatricesChanged[0] = bTexMatricesChanged[1] = true;
+	
 	nMaterialsChanged = 15;
 }
 

@@ -240,7 +240,7 @@ void Wiimote::Disconnect()
 	DisableDataReporting();
 }
 
-bool Wiimote::IsConnected()
+bool Wiimote::IsConnected() const
 {
 	return m_connected;
 }
@@ -312,7 +312,7 @@ void Wiimote::ThreadFunc()
 	Rumble();
 
 	// main loop
-	while (IsConnected())
+	while (IsOpen())
 	{
 #ifdef __APPLE__
 		while (Write()) {}
