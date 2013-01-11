@@ -79,6 +79,7 @@ private:
 		ID_ENABLE_HLE_AUDIO,
 		ID_ENABLE_THROTTLE,
 		ID_DUMP_AUDIO,
+		ID_DPL2DECODER,
 		ID_FREQUENCY,
 		ID_BACKEND,
 		ID_VOLUME,
@@ -157,6 +158,7 @@ private:
 	wxSlider*	VolumeSlider;
 	wxStaticText* VolumeText;    
 	wxCheckBox*	DumpAudio;
+	wxCheckBox*	DPL2Decoder;
 	wxArrayString wxArrayBackends;
 	wxChoice*	BackendSelection;
 	wxChoice*	FrequencySelection;

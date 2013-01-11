@@ -120,6 +120,7 @@ EVT_RADIOBOX(ID_DSPENGINE, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DUMP_AUDIO, CConfigMain::AudioSettingsChanged)
+EVT_CHECKBOX(ID_DPL2DECODER, CConfigMain::AudioSettingsChanged)
 EVT_CHOICE(ID_FREQUENCY, CConfigMain::AudioSettingsChanged)
 EVT_CHOICE(ID_BACKEND, CConfigMain::AudioSettingsChanged)
 EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
@@ -363,6 +364,7 @@ void CConfigMain::InitializeGUIValues()
 	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), ac_Config.m_Volume));
 	DSPThread->SetValue(startup_params.bDSPThread);
 	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
+	DPL2Decoder->SetValue(startup_params.bDPL2Decoder);
 	FrequencySelection->SetSelection(
 		FrequencySelection->FindString(wxString::Format(_("%d Hz"), ac_Config.iFrequency)));
 	// add backends to the list
@@ -517,6 +519,14 @@ void CConfigMain::InitializeGUITooltips()
 
 	// Wii - Devices
 	WiiKeyboard->SetToolTip(_("This could cause slow down in Wii Menu and some games."));
+
+#if defined(__APPLE__)
+	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OSX."));
+#elif defined(__linux__)
+	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."));
+#elif defined(_WIN32)
+	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."));
+#endif
 }
 
 void CConfigMain::CreateGUIControls()
@@ -613,6 +623,7 @@ void CConfigMain::CreateGUIControls()
 	DSPThread = new wxCheckBox(AudioPage, ID_DSPTHREAD, _("DSP LLE on Thread"));
 	DumpAudio = new wxCheckBox(AudioPage, ID_DUMP_AUDIO, _("Dump Audio"),
 				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	DPL2Decoder = new wxCheckBox(AudioPage, ID_DPL2DECODER, _("Dolby Pro Logic II decoder"));
 	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 1, 100,
 				wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
 	VolumeText = new wxStaticText(AudioPage, wxID_ANY, wxT(""),
@@ -634,6 +645,7 @@ void CConfigMain::CreateGUIControls()
 	sbAudioSettings->Add(DSPEngine, 0, wxALL | wxEXPAND, 5);
 	sbAudioSettings->Add(DSPThread, 0, wxALL, 5);
 	sbAudioSettings->Add(DumpAudio, 0, wxALL, 5);
+	sbAudioSettings->Add(DPL2Decoder, 0, wxALL, 5);
 
 	wxStaticBoxSizer *sbVolume = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Volume"));
 	sbVolume->Add(VolumeSlider, 1, wxLEFT|wxRIGHT, 13);
@@ -925,6 +937,10 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 
 	case ID_DSPTHREAD:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = DSPThread->IsChecked();
+		break;
+
+	case ID_DPL2DECODER:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bDPL2Decoder = DPL2Decoder->IsChecked();
 		break;
 
 	case ID_BACKEND:

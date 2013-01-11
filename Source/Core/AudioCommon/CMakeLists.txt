@@ -1,5 +1,6 @@
 set(SRCS	Src/AudioCommon.cpp
 			Src/AudioCommonConfig.cpp
+			Src/DPL2Decoder.cpp
 			Src/Mixer.cpp
 			Src/WaveFile.cpp
 			Src/NullSoundStream.cpp)

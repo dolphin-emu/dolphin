@@ -15,10 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <functional>
-
 #include "aldlist.h"
 #include "OpenALStream.h"
+#include "DPL2Decoder.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
@@ -37,8 +36,10 @@ bool OpenALStream::Start()
 	pDeviceList = new ALDeviceList();
 	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
 	{
-		char *defDevName = pDeviceList-> \
-			GetDeviceName(pDeviceList->GetDefaultDevice());
+		char *defDevName = pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice());
+
+		WARN_LOG(AUDIO, "Found OpenAL device %s", defDevName);
+
 		pDevice = alcOpenDevice(defDevName);
 		if (pDevice)
 		{
@@ -52,8 +53,7 @@ bool OpenALStream::Start()
 			else
 			{
 				alcCloseDevice(pDevice);
-				PanicAlertT("OpenAL: can't create context "
-					"for device %s", defDevName);
+				PanicAlertT("OpenAL: can't create context for device %s", defDevName);
 			}
 		}
 		else
@@ -67,6 +67,9 @@ bool OpenALStream::Start()
 		PanicAlertT("OpenAL: can't find sound devices");
 	}
 
+	// Initialise DPL2 parameters
+	dpl2reset();
+
 	soundTouch.clear();
 	return bReturn;
 }
@@ -76,6 +79,7 @@ void OpenALStream::Stop()
 	threadData = 1;
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
+	mainSyncEvent.Set();
 
 	soundTouch.clear();
 
@@ -141,10 +145,15 @@ void OpenALStream::SoundLoop()
 	alGenSources(1, &uiSource);
 
 	// Short Silence
-	memset(sampleBuffer, 0, OAL_MAX_SAMPLES * 4 * OAL_NUM_BUFFERS);
+	memset(sampleBuffer, 0, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_NUM_BUFFERS);
 	memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * 4);
 	for (int i = 0; i < OAL_NUM_BUFFERS; i++)
-		alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, OAL_MAX_SAMPLES * 4, ulFrequency);
+	{
+		if (Core::g_CoreStartupParameter.bDPL2Decoder)
+			alBufferData(uiBuffers[i], AL_FORMAT_51CHN32, sampleBuffer, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_NUM_BUFFERS, ulFrequency);
+		else
+			alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, OAL_MAX_SAMPLES * 4, ulFrequency);
+	}
 	alSourceQueueBuffers(uiSource, OAL_NUM_BUFFERS, uiBuffers);
 	alSourcePlay(uiSource);
 	
@@ -165,6 +174,8 @@ void OpenALStream::SoundLoop()
 	soundTouch.setSetting(SETTING_SEQUENCE_MS, 1);
 	soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 28);
 	soundTouch.setSetting(SETTING_OVERLAP_MS, 12);
+
+	bool surround_capable = Core::g_CoreStartupParameter.bDPL2Decoder;
 
 	while (!threadData) 
 	{
@@ -201,18 +212,72 @@ void OpenALStream::SoundLoop()
 				soundTouch.setSetting(SETTING_SEQUENCE_MS, (int)(1 / (rate * rate)));
 				soundTouch.setTempo(rate);
 			}
-			unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * 2 * OAL_NUM_BUFFERS);
+			unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_NUM_BUFFERS);
 			if (nSamples > 0)
 			{
 				// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
 				if (iBuffersFilled == 0)
+				{
 					alSourceUnqueueBuffers(uiSource, iBuffersProcessed, uiBufferTemp);
-				alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, sampleBuffer, nSamples * 4, ulFrequency);
+					ALenum err = alGetError();
+					if (err != 0)
+					{
+						ERROR_LOG(AUDIO, "Error unqueuing buffers: %08x", err);
+					}
+				}
+#if defined(__APPLE__)
+				// OSX does not have the alext AL_FORMAT_51CHN32 yet.
+				surround_capable = false;
+#else
+				if (surround_capable)
+				{
+					// Convert the samples from short to float for the dpl2 decoder
+					float dest[OAL_MAX_SAMPLES * 2 * OAL_NUM_BUFFERS];
+					for (u32 i = 0; i < nSamples; ++i)
+					{
+						dest[i * 2 + 0] = (float)sampleBuffer[i * 2 + 0] / (1<<16);
+						dest[i * 2 + 1] = (float)sampleBuffer[i * 2 + 1] / (1<<16);
+					}
+
+					float dpl2[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_NUM_BUFFERS];
+					dpl2decode(dest, nSamples, dpl2);
+
+					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * SIZE_FLOAT * SURROUND_CHANNELS, ulFrequency);
+					ALenum err = alGetError();
+					if (err == AL_INVALID_ENUM)
+					{
+						// 5.1 is not supported by the host, fallback to stereo
+						WARN_LOG(AUDIO, "Unable set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
+						surround_capable = false;
+					}
+					else if (err != 0)
+					{
+						ERROR_LOG(AUDIO, "Error occurred while buffering data: %08x", err);
+					}
+				}
+#endif
+				if (!surround_capable)
+				{
+					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, sampleBuffer, nSamples * 2 * 2, ulFrequency);
+				}
+
 				alSourceQueueBuffers(uiSource, 1, &uiBufferTemp[iBuffersFilled]);
+				ALenum err = alGetError();
+				if (err != 0)
+				{
+					ERROR_LOG(AUDIO, "Error queuing buffers: %08x", err);
+				}
 				iBuffersFilled++;
 
 				if (iBuffersFilled == OAL_NUM_BUFFERS)
+				{
 					alSourcePlay(uiSource);
+					ALenum err = alGetError();
+					if (err != 0)
+					{
+						ERROR_LOG(AUDIO, "Error occurred during playback: %08x", err);
+					}
+				}
 			}
 		}
 		else

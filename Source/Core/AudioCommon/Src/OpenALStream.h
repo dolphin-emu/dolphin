@@ -26,12 +26,14 @@
 #ifdef _WIN32
 #include <OpenAL/include/al.h>
 #include <OpenAL/include/alc.h>
+#include <OpenAL/include/alext.h>
 #elif defined __APPLE__
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
 #else
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/alext.h>
 #endif
 
 #include "Core.h"
@@ -44,6 +46,8 @@
 #define SFX_MAX_SOURCE		1
 #define OAL_NUM_BUFFERS		16
 #define OAL_MAX_SAMPLES		512
+#define SURROUND_CHANNELS	6	// number of channels in surround mode
+#define SIZE_FLOAT			4   // size of a float in bytes
 #endif
 
 class OpenALStream: public SoundStream
@@ -72,7 +76,7 @@ private:
 	Common::Event mainSyncEvent;
 
 	short realtimeBuffer[OAL_MAX_SAMPLES * 2];
-	soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * 2 * OAL_NUM_BUFFERS];
+	soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_NUM_BUFFERS];
 	ALuint uiBuffers[OAL_NUM_BUFFERS];
 	ALuint uiSource;
 	ALfloat fVolume;

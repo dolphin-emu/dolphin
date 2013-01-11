@@ -109,7 +109,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -121,7 +121,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -147,7 +147,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -175,7 +175,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -192,6 +192,7 @@
     <ClCompile Include="Src\AOSoundStream.cpp" />
     <ClCompile Include="Src\AudioCommon.cpp" />
     <ClCompile Include="Src\AudioCommonConfig.cpp" />
+    <ClCompile Include="Src\DPL2Decoder.cpp" />
     <ClCompile Include="Src\DSoundStream.cpp" />
     <ClCompile Include="Src\Mixer.cpp" />
     <ClCompile Include="Src\NullSoundStream.cpp" />
@@ -204,6 +205,7 @@
     <ClInclude Include="Src\AOSoundStream.h" />
     <ClInclude Include="Src\AudioCommon.h" />
     <ClInclude Include="Src\AudioCommonConfig.h" />
+    <ClInclude Include="Src\DPL2Decoder.h" />
     <ClInclude Include="Src\DSoundStream.h" />
     <ClInclude Include="Src\Mixer.h" />
     <ClInclude Include="Src\NullSoundStream.h" />

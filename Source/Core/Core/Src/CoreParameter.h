@@ -107,6 +107,8 @@ struct SCoreStartupParameter
 	bool bEnableCheats;
 	bool bMergeBlocks;
 
+	bool bDPL2Decoder;
+
 	bool bRunCompareServer;
 	bool bRunCompareClient;
 
