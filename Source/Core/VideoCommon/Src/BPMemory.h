@@ -278,7 +278,7 @@ struct TevStageCombiner
 {
     union ColorCombiner
     {
-        struct  //abc=8bit,d=10bit
+        struct  //abc=8bit(unsigned), d=10bit(+sign bit)
         {
             u32 d : 4; // TEVSELCC_X
             u32 c : 4; // TEVSELCC_X
@@ -287,7 +287,7 @@ struct TevStageCombiner
 
             u32 bias : 2;
             u32 op : 1;
-            u32 clamp : 1;
+			u32 clamp : 1; // clamp to 0..255 (clamp to -1024..1023 otherwise)
 
             u32 shift : 2;
             u32 dest : 2;  //1,2,3
@@ -308,7 +308,7 @@ struct TevStageCombiner
 
             u32 bias : 2; //GXTevBias
             u32 op : 1;
-            u32 clamp : 1;
+			u32 clamp : 1; // clamp to 0..255 (clamp to -1024..1023 otherwise)
 
             u32 shift : 2;
             u32 dest : 2;  //1,2,3

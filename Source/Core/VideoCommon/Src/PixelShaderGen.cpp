@@ -566,13 +566,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			"  float4 alphabump=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float3 tevcoord=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n"
-			"  float3 input_ca=float3(0.0f, 0.0f, 0.0f);\n"
-			"  float3 input_cb=float3(0.0f, 0.0f, 0.0f);\n"
-			"  float3 input_cc=float3(0.0f, 0.0f, 0.0f);\n"
-			"  float3 input_cd=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float3 input_ca=float3(0.0f, 0.0f, 0.0f), input_cb=float3(0.0f, 0.0f, 0.0f);\n" // tev stage input registers
+			"  float3 input_cc=float3(0.0f, 0.0f, 0.0f), input_cd=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float4 input_aa=float4(0.0f,0.0f,0.0f,0.0f), input_ab=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  float4 input_ac=float4(0.0f,0.0f,0.0f,0.0f), input_ad=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  int4 stuff = int4(0,0,0,0), stuff2 = int4(0,0,0,0);\n\n");
+			"  float4 input_ac=float4(0.0f,0.0f,0.0f,0.0f), input_ad=float4(0.0f,0.0f,0.0f,0.0f);\n");
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -641,13 +638,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	for (int i = 0; i < numStages; i++)
 		WriteStage(p, i, ApiType); //build the equation for this stage
 
-
-	/*WRITE(p, "ocol0.a = 1.f;\n");
-	WRITE(p, "ocol0.b = 0.f;\n");
-	WRITE(p, "ocol0.g = 0.f;\n");
-	WRITE(p, "ocol0.r = (%s.a > 1.f) ? 1.f : 0.f;\n", tevAInputTable[bpmem.combiners[0].alphaC.d]);
-	WRITE(p, "ocol0.g = (%s.a < -0.5f) ? 1.f : 0.f;\n", tevAInputTable[bpmem.combiners[0].alphaC.d]);
-*/#if 1
 	if(numStages)
 	{
 		// The results of the last texenv stage are put onto the screen,
@@ -661,6 +651,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, "prev.a = %s;\n", tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
 		}
 	}
+	// Final tev output is U8
+	WRITE(p, "prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	if (Pretest == AlphaTest::UNDETERMINED)
@@ -700,7 +692,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		// ...and the alpha from ocol0 will be written to the framebuffer.
 		WRITE(p, "  ocol0.a = " I_ALPHA"[0].a;\n");
 	}
-#endif
+
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
@@ -864,53 +856,26 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		WRITE(p, "konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 	}
 
+	// 8 bit integer overflow emulation for input registers
 	WRITE(p, "input_ca = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.a]);
 	WRITE(p, "input_cb = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.b]);
 	WRITE(p, "input_cc = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.c]);
-	WRITE(p, "input_cd = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.d]);
-//	WRITE(p, "input_cd = %s;\n", tevCInputTable[cc.d]);
-/*	WRITE(p, "stuff.rgb = (%s/2.f - float4(0.5f,0.5f,0.5f,0.5f)/2047.0f) * 2047.f;\n", tevCInputTable[cc.d]);
-    WRITE(p, "stuff2.r =  (stuff.r >= 0) ? (stuff.r / 1024) : ((stuff.r+1) / 1024);\n");
-    WRITE(p, "stuff2.g =  (stuff.g >= 0) ? (stuff.g / 1024) : ((stuff.g+1) / 1024);\n");
-    WRITE(p, "stuff2.b =  (stuff.b >= 0) ? (stuff.b / 1024) : ((stuff.b+1) / 1024);\n");
-    WRITE(p, "stuff.rgb -= 1024 * ((stuff2.rgb+sign(stuff2.rgb)*1)/2*2);");
-    WRITE(p, "input_cd = 2.f*stuff.rgb / 2047.0f + float4(0.5f,0.5f,0.5f,0.5f)/2047.0f;\n");*/
+	WRITE(p, "input_cd = %s;\n", tevCInputTable[cc.d]);
 
 	WRITE(p, "input_aa = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.a]);
 	WRITE(p, "input_ab = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.b]);
 	WRITE(p, "input_ac = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.c]);
-	WRITE(p, "input_ad = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.d]);
-
-/*	WRITE(p, "stuff = (%s - float4(0.5f,0.5f,0.5f,0.5f)/2047.0f) * 2047.f;\n", tevAInputTable[ac.d]);
-    WRITE(p, "stuff2.r =  (stuff.r >= 0) ? (stuff.r / 1024) : ((stuff.r+1) / 1024);\n");
-    WRITE(p, "stuff2.g =  (stuff.g >= 0) ? (stuff.g / 1024) : ((stuff.g+1) / 1024);\n");
-    WRITE(p, "stuff2.b =  (stuff.b >= 0) ? (stuff.b / 1024) : ((stuff.b+1) / 1024);\n");
-    WRITE(p, "stuff2.a =  (stuff.a >= 0) ? (stuff.a / 1024) : ((stuff.a+1) / 1024);\n");
-    WRITE(p, "stuff -= 1024 * ((stuff2+sign(stuff2)*1)/2*2);");
-    WRITE(p, "input_ad = 2.f*stuff / 2047.0f + float4(0.5f,0.5f,0.5f,0.5f)/2047.0f;\n");
-*/
-//	WRITE(p, "input_ad = %s;\n", tevAInputTable[ac.d]);
-
-/*  WRITE(p, "ocol0 = float4(0.f,0.f,0.f,0.f);\n");
-//  WRITE(p, "float a = 7*rawpos.x/640.0f-3.f;\n");
-    WRITE(p, "float a = -1;\n");
-//-1.f->-15->1
-    WRITE(p, "signed int b = round((a - 0.5f/15.0f) * 15.0f);\n");
-    WRITE(p, "int c =  (b >= 0) ? (b / 8) : ((b+1)/8);"
-              "b -= 8 * ((c+sign(c)*1)/2*2);");
-    WRITE(p, "ocol0.r = 0.5f + b / 15.0f + 0.5f/15.f;\n"); // frac(-0.9) = 0.1
-//  WRITE(p, "ocol0.g = (b == 1) ? 1 : 0;\n");
-*/
+	WRITE(p, "input_ad = %s;\n", tevAInputTable[ac.d]);
 
 
 	// combine the color channel
 	WRITE(p, "// color combine\n");
 	WRITE(p, "%s = ", tevCOutputTable[cc.dest]);
 	if (cc.clamp)
-		WRITE(p, "saturate(");
+		WRITE(p, "saturate("); // clamp to U8 (0..255)
+	else
+		WRITE(p, "clamp("); // clamp to S11 (-1024..1023)
 
-	printf("cc n(%d): bias %d, d %d\n", n, cc.bias, cc.d);
-	printf("ac n(%d): bias %d, d %d\n", n, ac.bias, ac.d);
 	// combine the color channel
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
@@ -926,15 +891,17 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 				"input_cb",
 				"input_cc");
 	}
-	if (cc.clamp)
-		WRITE(p, ")");
-	WRITE(p,";\n");
+	if (!cc.clamp)
+		WRITE(p, ", -1024.0f/255.0f, 1023.0f/255.0f");
+	WRITE(p,");\n");
 
 	// combine the alpha channel
 	WRITE(p, "// alpha combine\n");
 	WRITE(p, "%s = ", tevAOutputTable[ac.dest]);
 	if (ac.clamp)
-		WRITE(p, "saturate(");
+		WRITE(p, "saturate("); // clamp to U8 (0..255)
+	else
+		WRITE(p, "clamp("); // clamp to S11 (-1024..1023)
 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
@@ -951,9 +918,9 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 				"input_ab",
 				"input_ac");
 	}
-	if (ac.clamp)
-		WRITE(p, ")");
-	WRITE(p, ";\n\n");
+	if (!ac.clamp)
+		WRITE(p, ", -1024.0f/255.0f, 1023.0f/255.0f");
+	WRITE(p,");\n");
 
 	WRITE(p, "// TEV done\n");
 }
