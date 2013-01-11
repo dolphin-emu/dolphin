@@ -287,10 +287,10 @@ static const char *tevKSelTableC[] = // KCSEL
 	"0.375f,0.375f,0.375f", // 3_8 = 0x05
 	"0.25f,0.25f,0.25f",    // 1_4 = 0x06
 	"0.125f,0.125f,0.125f", // 1_8 = 0x07
-	"ERROR", // 0x08
-	"ERROR", // 0x09
-	"ERROR", // 0x0a
-	"ERROR", // 0x0b
+	"ERROR1", // 0x08
+	"ERROR2", // 0x09
+	"ERROR3", // 0x0a
+	"ERROR4", // 0x0b
 	I_KCOLORS"[0].rgb", // K0 = 0x0C
 	I_KCOLORS"[1].rgb", // K1 = 0x0D
 	I_KCOLORS"[2].rgb", // K2 = 0x0E
@@ -323,14 +323,14 @@ static const char *tevKSelTableA[] = // KASEL
 	"0.375f",// 3_8 = 0x05
 	"0.25f", // 1_4 = 0x06
 	"0.125f",// 1_8 = 0x07
-	"ERROR", // 0x08
-	"ERROR", // 0x09
-	"ERROR", // 0x0a
-	"ERROR", // 0x0b
-	"ERROR", // 0x0c
-	"ERROR", // 0x0d
-	"ERROR", // 0x0e
-	"ERROR", // 0x0f
+	"ERROR5", // 0x08
+	"ERROR6", // 0x09
+	"ERROR7", // 0x0a
+	"ERROR8", // 0x0b
+	"ERROR9", // 0x0c
+	"ERROR10", // 0x0d
+	"ERROR11", // 0x0e
+	"ERROR12", // 0x0f
 	I_KCOLORS"[0].r", // K0_R = 0x10
 	I_KCOLORS"[1].r", // K1_R = 0x11
 	I_KCOLORS"[2].r", // K2_R = 0x12
@@ -405,7 +405,7 @@ static const char *tevCInputTable[] = // CC
 	"float3(0.5f, 0.5f, 0.5f)",                 // HALF
 	"(ckonsttemp.rgb)", //"konsttemp.rgb",        // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
-	"PADERROR", "PADERROR", "PADERROR", "PADERROR"
+	"PADERROR1", "PADERROR2", "PADERROR3", "PADERROR4"
 };
 
 static const char *tevAInputTable[] = // CA
@@ -427,17 +427,17 @@ static const char *tevAInputTable[] = // CA
 	"crastemp",         // RASA,
 	"ckonsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO
-	"PADERROR", "PADERROR", "PADERROR", "PADERROR",
-	"PADERROR", "PADERROR", "PADERROR", "PADERROR",
+	"PADERROR5", "PADERROR6", "PADERROR7", "PADERROR8",
+	"PADERROR9", "PADERROR10", "PADERROR11", "PADERROR12",
 };
 
 static const char *tevRasTable[] =
 {
 	"colors_0",
 	"colors_1",
-	"ERROR", //2
-	"ERROR", //3
-	"ERROR", //4
+	"ERROR13", //2
+	"ERROR14", //3
+	"ERROR15", //4
 	"alphabump", // use bump alpha
 	"(alphabump*(255.0f/248.0f))", //normalized
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
