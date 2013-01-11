@@ -36,6 +36,7 @@
 #include "Main.h"
 
 #include "../resources/Flag_Europe.xpm"
+#include "../resources/Flag_Germany.xpm"
 #include "../resources/Flag_France.xpm"
 #include "../resources/Flag_Italy.xpm"
 #include "../resources/Flag_Japan.xpm"
@@ -191,6 +192,8 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE] =
 		m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY] =
+		m_imageListSmall->Add(wxBitmap(Flag_Germany_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE] =
 		m_imageListSmall->Add(wxBitmap(Flag_France_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA] =
