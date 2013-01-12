@@ -164,6 +164,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 			ptr[0] |= bpmem.fogRange.Base.Enabled << 14; // 1
 		}
 	}
+	ptr[0] |= bpmem.zcontrol.pixel_format << 15; // 3
 
 	++ptr;
 	if (enablePL)
@@ -219,6 +220,8 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 
 	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 113
 	*ptr++ = bpmem.fogRange.Base.hex; // 114
+
+	*ptr++ = bpmem.zcontrol.pixel_format; // 115
 
 	_assert_((ptr - uid->values) == uid->GetNumValues());
 }
@@ -690,6 +693,12 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WriteFog(p);
 		WRITE(p, "  ocol0 = prev;\n");
 	}
+
+	// Emulate limited color resolution
+	if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+		WRITE(p, "ocol0 = round(ocol0 * 63.0f) / 63.0f;\n");
+	else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		WRITE(p, "ocol0 = round(ocol0 * float4(31.0f,63.0f,31.0f,0.0f)) / float4(31.0f,63.0f,31.0f,1.0f);\n");
 
 	// On D3D11, use dual-source color blending to perform dst alpha in a
 	// single pass
