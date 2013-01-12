@@ -42,7 +42,6 @@ void AudioCommonConfig::Load()
 #else
 	file.Get("Config", "Backend", &sBackend, BACKEND_NULLSOUND);
 #endif
-	file.Get("Config", "Frequency", &iFrequency, 48000);
 	file.Get("Config", "Volume", &m_Volume, 100);
 }
 
@@ -55,7 +54,6 @@ void AudioCommonConfig::SaveSettings()
 	file.Set("Config", "EnableJIT", m_EnableJIT);
 	file.Set("Config", "DumpAudio", m_DumpAudio);
 	file.Set("Config", "Backend", sBackend);
-	file.Set("Config", "Frequency", iFrequency);
 	file.Set("Config", "Volume", m_Volume);
 
 	file.Save(File::GetUserPath(F_DSPCONFIG_IDX));

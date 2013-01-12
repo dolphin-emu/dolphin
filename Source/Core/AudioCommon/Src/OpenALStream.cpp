@@ -46,6 +46,11 @@ bool OpenALStream::Start()
 			pContext = alcCreateContext(pDevice, NULL);
 			if (pContext)
 			{
+				// Used to determine an appropriate period size (2x period = total buffer size)
+				//ALCint refresh;
+				//alcGetIntegerv(pDevice, ALC_REFRESH, 1, &refresh);
+				//period_size_in_millisec = 1000 / refresh;
+
 				alcMakeContextCurrent(pContext);
 				thread = std::thread(std::mem_fun(&OpenALStream::SoundLoop), this);
 				bReturn = true;
@@ -90,7 +95,7 @@ void OpenALStream::Stop()
 	// Clean up buffers and sources
 	alDeleteSources(1, &uiSource);
 	uiSource = 0;
-	alDeleteBuffers(OAL_NUM_BUFFERS, uiBuffers);
+	alDeleteBuffers(numBuffers, uiBuffers);
 
 	ALCcontext *pContext = alcGetCurrentContext();
 	ALCdevice *pDevice = alcGetContextsDevice(pContext);
@@ -133,19 +138,20 @@ void OpenALStream::SoundLoop()
 	Common::SetCurrentThreadName("Audio thread - openal");
 
 	u32 ulFrequency = m_mixer->GetSampleRate();
+	numBuffers = Core::g_CoreStartupParameter.iLatency + 2; // OpenAL requires a minimum of two buffers
 
-	memset(uiBuffers, 0, OAL_NUM_BUFFERS * sizeof(ALuint));
+	memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
 	uiSource = 0;
 
 	// Generate some AL Buffers for streaming
-	alGenBuffers(OAL_NUM_BUFFERS, (ALuint *)uiBuffers);
+	alGenBuffers(numBuffers, (ALuint *)uiBuffers);
 	// Generate a Source to playback the Buffers
 	alGenSources(1, &uiSource);
 
 	// Short Silence
-	memset(sampleBuffer, 0, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_NUM_BUFFERS);
+	memset(sampleBuffer, 0, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * numBuffers);
 	memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * 4);
-	for (int i = 0; i < OAL_NUM_BUFFERS; i++)
+	for (int i = 0; i < numBuffers; i++)
 	{
 #if !defined(__APPLE__)
 		if (Core::g_CoreStartupParameter.bDPL2Decoder)
@@ -154,7 +160,7 @@ void OpenALStream::SoundLoop()
 #endif
 			alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, 4 * 2 * 2, ulFrequency);
 	}
-	alSourceQueueBuffers(uiSource, OAL_NUM_BUFFERS, uiBuffers);
+	alSourceQueueBuffers(uiSource, numBuffers, uiBuffers);
 	alSourcePlay(uiSource);
 	
 	// Set the default sound volume as saved in the config file.
@@ -166,7 +172,7 @@ void OpenALStream::SoundLoop()
 	ALint iBuffersFilled = 0;
 	ALint iBuffersProcessed = 0;
 	ALint iState = 0;
-	ALuint uiBufferTemp[OAL_NUM_BUFFERS] = {0};
+	ALuint uiBufferTemp[OAL_MAX_BUFFERS] = {0};
 
 	soundTouch.setChannels(2);
 	soundTouch.setSampleRate(ulFrequency);
@@ -216,7 +222,7 @@ void OpenALStream::SoundLoop()
 				soundTouch.setSetting(SETTING_SEQUENCE_MS, (int)(1 / (rate * rate)));
 				soundTouch.setTempo(rate);
 			}
-			unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_NUM_BUFFERS);
+			unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_MAX_BUFFERS);
 			if (nSamples > 0)
 			{
 				// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
@@ -236,14 +242,14 @@ void OpenALStream::SoundLoop()
 				if (surround_capable)
 				{
 					// Convert the samples from short to float for the dpl2 decoder
-					float dest[OAL_MAX_SAMPLES * 2 * 2 * OAL_NUM_BUFFERS];
+					float dest[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
 					for (u32 i = 0; i < nSamples; ++i)
 					{
 						dest[i * 2 + 0] = (float)sampleBuffer[i * 2 + 0] / (1<<16);
 						dest[i * 2 + 1] = (float)sampleBuffer[i * 2 + 1] / (1<<16);
 					}
 
-					float dpl2[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_NUM_BUFFERS];
+					float dpl2[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
 					dpl2decode(dest, nSamples, dpl2);
 
 					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * SIZE_FLOAT * SURROUND_CHANNELS, ulFrequency);
@@ -273,7 +279,7 @@ void OpenALStream::SoundLoop()
 				}
 				iBuffersFilled++;
 
-				if (iBuffersFilled == OAL_NUM_BUFFERS)
+				if (iBuffersFilled == numBuffers)
 				{
 					alSourcePlay(uiSource);
 					ALenum err = alGetError();

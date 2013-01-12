@@ -80,7 +80,7 @@ private:
 		ID_ENABLE_THROTTLE,
 		ID_DUMP_AUDIO,
 		ID_DPL2DECODER,
-		ID_FREQUENCY,
+		ID_LATENCY,
 		ID_BACKEND,
 		ID_VOLUME,
 
@@ -156,12 +156,13 @@ private:
 	wxBoxSizer* sAudioPage; // GC settings
 	wxRadioBox* DSPEngine;
 	wxSlider*	VolumeSlider;
-	wxStaticText* VolumeText;    
+	wxStaticText* VolumeText;
 	wxCheckBox*	DumpAudio;
 	wxCheckBox*	DPL2Decoder;
 	wxArrayString wxArrayBackends;
 	wxChoice*	BackendSelection;
-	wxChoice*	FrequencySelection;
+	wxSlider*	LatencySlider;
+	wxStaticText* LatencyText;
 
 	// Interface
 	wxCheckBox* ConfirmStop;

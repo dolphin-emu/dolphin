@@ -108,6 +108,7 @@ struct SCoreStartupParameter
 	bool bMergeBlocks;
 
 	bool bDPL2Decoder;
+	int iLatency;
 
 	bool bRunCompareServer;
 	bool bRunCompareClient;

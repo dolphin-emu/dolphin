@@ -121,7 +121,7 @@ EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DUMP_AUDIO, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DPL2DECODER, CConfigMain::AudioSettingsChanged)
-EVT_CHOICE(ID_FREQUENCY, CConfigMain::AudioSettingsChanged)
+EVT_SLIDER(ID_LATENCY, CConfigMain::AudioSettingsChanged)
 EVT_CHOICE(ID_BACKEND, CConfigMain::AudioSettingsChanged)
 EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
 
@@ -218,6 +218,8 @@ void CConfigMain::UpdateGUI()
 		// Disable stuff on AudioPage
 		DSPEngine->Disable();
 		DSPThread->Disable();
+		DPL2Decoder->Disable();
+		LatencySlider->Disable();
 
 		// Disable stuff on GamecubePage
 		GCSystemLang->Disable();
@@ -365,8 +367,9 @@ void CConfigMain::InitializeGUIValues()
 	DSPThread->SetValue(startup_params.bDSPThread);
 	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
 	DPL2Decoder->SetValue(startup_params.bDPL2Decoder);
-	FrequencySelection->SetSelection(
-		FrequencySelection->FindString(wxString::Format(_("%d Hz"), ac_Config.iFrequency)));
+	LatencySlider->Enable(std::string(ac_Config.sBackend) == BACKEND_OPENAL);
+	LatencySlider->SetValue(startup_params.iLatency);
+	LatencyText->SetLabel(wxString::Format(wxT("%d"), startup_params.iLatency));
 	// add backends to the list
 	AddAudioBackends();
 
@@ -511,7 +514,6 @@ void CConfigMain::InitializeGUITooltips()
 
 	// Audio tooltips
 	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread (not recommended)."));
-	FrequencySelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 
 	// Gamecube - Devices
@@ -527,6 +529,8 @@ void CConfigMain::InitializeGUITooltips()
 #elif defined(_WIN32)
 	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."));
 #endif
+
+	LatencySlider->SetToolTip(_("Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL backend only."));
 }
 
 void CConfigMain::CreateGUIControls()
@@ -630,13 +634,14 @@ void CConfigMain::CreateGUIControls()
 				wxDefaultPosition, wxDefaultSize, 0);
 	BackendSelection = new wxChoice(AudioPage, ID_BACKEND, wxDefaultPosition,
 				wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
-	FrequencySelection = new wxChoice(AudioPage, ID_FREQUENCY);
-	FrequencySelection->Append(wxString::Format(_("%d Hz"), 48000));
-	FrequencySelection->Append(wxString::Format(_("%d Hz"), 32000));
+	LatencySlider = new wxSlider(AudioPage, ID_LATENCY, 0, 0, 30,
+		wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
+	LatencyText = new wxStaticText(AudioPage, wxID_ANY, wxT(""),
+		wxDefaultPosition, wxDefaultSize, 0);
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		FrequencySelection->Disable();
+		LatencySlider->Disable();
 		BackendSelection->Disable();
 		DPL2Decoder->Disable();
 	}
@@ -655,8 +660,9 @@ void CConfigMain::CreateGUIControls()
 	wxGridBagSizer *sBackend = new wxGridBagSizer();
 	sBackend->Add(TEXT_BOX(AudioPage, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBackend->Add(BackendSelection, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	sBackend->Add(TEXT_BOX(AudioPage, _("Sample Rate:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBackend->Add(FrequencySelection, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(LatencySlider, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	sBackend->Add(LatencyText, wxGBPosition(1, 2), wxDefaultSpan, wxALL, 5);
 	wxStaticBoxSizer *sbBackend = new wxStaticBoxSizer(wxHORIZONTAL, AudioPage, _("Backend Settings"));
 	sbBackend->Add(sBackend, 0, wxEXPAND);
 
@@ -946,17 +952,19 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 
 	case ID_BACKEND:
 		VolumeSlider->Enable(SupportsVolumeChanges(std::string(BackendSelection->GetStringSelection().mb_str())));
+		LatencySlider->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
+		DPL2Decoder->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
 		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
 		ac_Config.Update();
 		break;
 
+	case ID_LATENCY:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iLatency = LatencySlider->GetValue();
+		LatencyText->SetLabel(wxString::Format(wxT("%d"), LatencySlider->GetValue()));
+		break;
+
 	default:
 		ac_Config.m_DumpAudio = DumpAudio->GetValue();
-
-		long int frequency;
-		FrequencySelection->GetStringSelection().ToLong(&frequency);
-		ac_Config.iFrequency = frequency;
-		ac_Config.Update();
 		break;
 	}
 }

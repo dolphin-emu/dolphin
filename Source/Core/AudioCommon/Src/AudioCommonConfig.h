@@ -37,7 +37,6 @@ struct AudioCommonConfig
 	bool m_DumpAudio;
 	int m_Volume;
 	std::string sBackend;
-	int iFrequency;
 	
 	// Load from given file
 	void Load();
