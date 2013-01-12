@@ -59,6 +59,8 @@ namespace OGL
 
 static FRAGMENTSHADER s_ColorMatrixProgram;
 static FRAGMENTSHADER s_DepthMatrixProgram;
+static GLuint s_ColorMatrixUniform;
+static GLuint s_DepthMatrixUniform;
 static VERTEXSHADER s_vProgram;
 
 struct VBOCache {
@@ -314,8 +316,13 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
-		ProgramShaderCache::SetBothShaders((srcFormat == PIXELFMT_Z24) ? s_DepthMatrixProgram.glprogid : s_ColorMatrixProgram.glprogid, s_vProgram.glprogid);
-		PixelShaderManager::SetColorMatrix(colmat); // set transformation
+		if(srcFormat == PIXELFMT_Z24) {
+			ProgramShaderCache::SetBothShaders(s_DepthMatrixProgram.glprogid, s_vProgram.glprogid);
+			glUniform4fv(s_DepthMatrixUniform, 5, colmat);
+		} else {
+			ProgramShaderCache::SetBothShaders(s_ColorMatrixProgram.glprogid, s_vProgram.glprogid);
+			glUniform4fv(s_ColorMatrixUniform, 7, colmat);
+		}
 		GL_REPORT_ERRORD();
 
 		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
@@ -452,14 +459,11 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 
 TextureCache::TextureCache()
 {
-	char pmatrixprog[2048];
-	sprintf(pmatrixprog, "#version 130\n"
+	const char *pColorMatrixProg = 
+		"#version 130\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
-		"%s\n"
 		"uniform sampler2DRect samp0;\n"
-		"%s\n"
-		"%svec4 " I_COLORS"[7];\n"
-		"%s\n"
+		"uniform vec4 colmat[7];\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
@@ -467,36 +471,27 @@ TextureCache::TextureCache()
 		"	vec4 Temp0, Temp1;\n"
 		"	vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
 		"	Temp0 = texture2DRect(samp0, uv0);\n"
-		"	Temp0 = Temp0 * " I_COLORS"[%d];\n"
+		"	Temp0 = Temp0 * colmat[5];\n"
 		"	Temp0 = Temp0 + K0;\n"
 		"	Temp0 = floor(Temp0);\n"
-		"	Temp0 = Temp0 * " I_COLORS"[%d];\n"
-		"	Temp1.x = dot(Temp0, " I_COLORS"[%d]);\n"
-		"	Temp1.y = dot(Temp0, " I_COLORS"[%d]);\n"
-		"	Temp1.z = dot(Temp0, " I_COLORS"[%d]);\n"
-		"	Temp1.w = dot(Temp0, " I_COLORS"[%d]);\n"
-		"	ocol0 = Temp1 + " I_COLORS"[%d];\n"
-		"}\n",
-		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "#extension GL_ARB_uniform_buffer_object : enable" : "",
-		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140) uniform PSBlock {" : "",
-		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
-		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "};" : "",
-		C_COLORS+5, C_COLORS+6, C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
-
-
-	if (!PixelShaderCache::CompilePixelShader(s_ColorMatrixProgram, pmatrixprog))
+		"	Temp0 = Temp0 * colmat[6];\n"
+		"	Temp1.x = dot(Temp0, colmat[0]);\n"
+		"	Temp1.y = dot(Temp0, colmat[1]);\n"
+		"	Temp1.z = dot(Temp0, colmat[2]);\n"
+		"	Temp1.w = dot(Temp0, colmat[3]);\n"
+		"	ocol0 = Temp1 + colmat[4];\n"
+		"}\n";
+	if (!PixelShaderCache::CompilePixelShader(s_ColorMatrixProgram, pColorMatrixProg))
 	{
 		ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
 		s_ColorMatrixProgram.Destroy();
 	}
 
-	sprintf(pmatrixprog, "#version 130\n"
+	const char *pDepthMatrixProg =
+		"#version 130\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
-		"%s\n"
 		"uniform sampler2DRect samp0;\n"
-		"%s\n"
-		"%svec4 " I_COLORS"[5];\n"
-		"%s\n"
+		"uniform vec4 colmat[5];\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
@@ -518,19 +513,14 @@ TextureCache::TextureCache()
 		"	R0.w = (R0 * K1.x).w;\n"
 		"	R0.w = floor(R0).w;\n"
 		"	R0.w = (R0 * K1.y).w;\n"
-		"	R1.x = dot(R0, " I_COLORS"[%d]);\n"
-		"	R1.y = dot(R0, " I_COLORS"[%d]);\n"
-		"	R1.z = dot(R0, " I_COLORS"[%d]);\n"
-		"	R1.w = dot(R0, " I_COLORS"[%d]);\n"
-		"	ocol0 = R1 * " I_COLORS"[%d];\n"
-		"}\n",
-		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "#extension GL_ARB_uniform_buffer_object : enable" : "",
-		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "layout(std140) uniform PSBlock {" : "",
-		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "uniform ",
-		g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "};" : "",
-		C_COLORS, C_COLORS+1, C_COLORS+2, C_COLORS+3, C_COLORS+4);
+		"	R1.x = dot(R0, colmat[0]);\n"
+		"	R1.y = dot(R0, colmat[1]);\n"
+		"	R1.z = dot(R0, colmat[2]);\n"
+		"	R1.w = dot(R0, colmat[3]);\n"
+		"	ocol0 = R1 * colmat[4];\n"
+		"}\n";
 
-	if (!PixelShaderCache::CompilePixelShader(s_DepthMatrixProgram, pmatrixprog))
+	if (!PixelShaderCache::CompilePixelShader(s_DepthMatrixProgram, pDepthMatrixProg))
 	{
 		ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
 		s_DepthMatrixProgram.Destroy();
@@ -548,6 +538,11 @@ TextureCache::TextureCache()
 		"}\n";
 	if (!VertexShaderCache::CompileVertexShader(s_vProgram, VProgram))
 		ERROR_LOG(VIDEO, "Failed to create texture converter vertex program.");
+	
+	ProgramShaderCache::SetBothShaders(s_ColorMatrixProgram.glprogid, s_vProgram.glprogid);
+	s_ColorMatrixUniform = glGetUniformLocation(ProgramShaderCache::GetCurrentProgram(), "colmat");
+	ProgramShaderCache::SetBothShaders(s_DepthMatrixProgram.glprogid, s_vProgram.glprogid);
+	s_DepthMatrixUniform = glGetUniformLocation(ProgramShaderCache::GetCurrentProgram(), "colmat");
 }
 
 
