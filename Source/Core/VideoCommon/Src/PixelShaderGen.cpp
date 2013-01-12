@@ -141,7 +141,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	}
 
 	u32* ptr = &uid->values[2];
-	for (unsigned int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
+	for (unsigned int i = 0; i < bpmem.genMode.numtevstages+1u; ++i)
 	{
 		StageHash(i, ptr);
 		ptr += 4; // max: ptr = &uid->values[66]
@@ -204,7 +204,7 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 
 	*ptr++ = bpmem.tevindref.hex; // 31
 
-	for (unsigned int i = 0; i < bpmem.genMode.numtevstages+1; ++i) // up to 16 times
+	for (unsigned int i = 0; i < bpmem.genMode.numtevstages+1u; ++i) // up to 16 times
 	{
 		*ptr++ = bpmem.combiners[i].colorC.hex; // 32+5*i
 		*ptr++ = bpmem.combiners[i].alphaC.hex; // 33+5*i
