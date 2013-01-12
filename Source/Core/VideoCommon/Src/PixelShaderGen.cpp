@@ -459,6 +459,16 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "//%i TEV stages, %i texgens, XXX IND stages\n",
 		numStages, numTexgen/*, bpmem.genMode.numindstages*/);
 
+	WRITE(p, "#define FIX_PRECISION_U8(x) (round((x) * 255.0f) / 255.0f)\n");
+	WRITE(p, "#define CHECK_OVERFLOW_U8(x) (frac((x) * (255.0f/256.0f)) * (256.0f/255.0f))\n");
+	WRITE(p, "#define AS_UNORM8(x) FIX_PRECISION_U8(CHECK_OVERFLOW_U8(x))\n");
+	WRITE(p, "#define FIX_PRECISION_U16(x) (round((x) * 65535.0f) / 65535.0f)\n");
+	WRITE(p, "#define CHECK_OVERFLOW_U16(x) (frac((x) * (65535.0f/65536.0f)) * (65536.0f/65535.0f))\n");
+	WRITE(p, "#define AS_UNORM16(x) FIX_PRECISION_U16(CHECK_OVERFLOW_U16(x))\n");
+	WRITE(p, "#define FIX_PRECISION_U24(x) (round((x) * 16777215.0f) / 16777215.0f)\n");
+	WRITE(p, "#define CHECK_OVERFLOW_U24(x) (frac((x) * (16777215.0f/16777216.0f)) * (16777216.0f/16777215.0f))\n");
+	WRITE(p, "#define AS_UNORM24(x) FIX_PRECISION_U24(CHECK_OVERFLOW_U24(x))\n");
+
 	int nIndirectStagesUsed = 0;
 	if (bpmem.genMode.numindstages > 0)
 	{
@@ -652,7 +662,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 	}
 	// Final tev output is U8
-	WRITE(p, "prev = round(frac(prev * (255.0f/256.0f)) * (256.0f/255.0f)*255.0f)/255.0f;\n");
+	WRITE(p, "prev = AS_UNORM8(prev);\n");
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	if (Pretest == AlphaTest::UNDETERMINED)
@@ -669,10 +679,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
 
 		// U24 overflow emulation
-		WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
-		WRITE(p, "zCoord = frac(zCoord);\n");
-		WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
-		WRITE(p, "zCoord = round(zCoord * 16777215.0f) / 16777215.0f;\n");
+		WRITE(p, "zCoord = AS_UNORM24(zCoord);\n");
 	}
 	WRITE(p, "depth = zCoord;\n");
 
@@ -858,14 +865,14 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	}
 
 	// 8 bit integer overflow emulation for input registers
-	WRITE(p, "input_ca = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevCInputTable[cc.a]);
-	WRITE(p, "input_cb = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevCInputTable[cc.b]);
-	WRITE(p, "input_cc = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevCInputTable[cc.c]);
+	WRITE(p, "input_ca = AS_UNORM8(%s);\n", tevCInputTable[cc.a]);
+	WRITE(p, "input_cb = AS_UNORM8(%s);\n", tevCInputTable[cc.b]);
+	WRITE(p, "input_cc = AS_UNORM8(%s);\n", tevCInputTable[cc.c]);
 	WRITE(p, "input_cd = %s;\n", tevCInputTable[cc.d]);
 
-	WRITE(p, "input_aa = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevAInputTable[ac.a]);
-	WRITE(p, "input_ab = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevAInputTable[ac.b]);
-	WRITE(p, "input_ac = round(frac(%s * (255.0f/256.0f)) * (256.0f/255.0f) * 255.0f) / 255.0f;\n", tevAInputTable[ac.c]);
+	WRITE(p, "input_aa = AS_UNORM8(%s);\n", tevAInputTable[ac.a]);
+	WRITE(p, "input_ab = AS_UNORM8(%s);\n", tevAInputTable[ac.b]);
+	WRITE(p, "input_ac = AS_UNORM8(%s);\n", tevAInputTable[ac.c]);
 	WRITE(p, "input_ad = %s;\n", tevAInputTable[ac.d]);
 
 
@@ -881,7 +888,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal color combiner goes here
-		WRITE(p, "%s * (%s %s lerp(%s, %s, %s) %s)", tevScaleTable[cc.shift], "input_cd", tevOpTable[cc.op], "input_ca", "input_cb", "input_cc", tevBiasTable[cc.bias]);
+		WRITE(p, "FIX_PRECISION_U8(%s * (%s %s FIX_PRECISION_U8(lerp(%s, %s, FIX_PRECISION_U8(%s*(256.0f/255.0f)))) %s))", tevScaleTable[cc.shift], "input_cd", tevOpTable[cc.op], "input_ca", "input_cb", "input_cc", tevBiasTable[cc.bias]);
 	}
 	else
 	{
@@ -907,7 +914,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal alpha combiner goes here
-		WRITE(p, "%s * (%s.a %s lerp(%s.a, %s.a, %s.a) %s)", tevScaleTable[ac.shift], "input_ad", tevOpTable[ac.op], "input_aa", "input_ab", "input_ac", tevBiasTable[ac.bias]);
+		WRITE(p, "FIX_PRECISION_U8(%s * (%s.a %s FIX_PRECISION_U8(lerp(%s.a, %s.a, FIX_PRECISION_U8(%s.a*(256.0f/255.0f)))) %s))", tevScaleTable[ac.shift], "input_ad", tevOpTable[ac.op], "input_aa", "input_ab", "input_ac", tevBiasTable[ac.bias]);
 	}
 	else
 	{
