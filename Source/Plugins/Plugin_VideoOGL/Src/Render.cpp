@@ -185,6 +185,25 @@ static const GLenum glLogicOpCodes[16] = {
 	GL_SET
 };
 
+static const GLenum glLogicOpCodesNoAlpha[16] = {
+	GL_CLEAR, // 0
+	GL_COPY, // s & 1
+	GL_CLEAR, // s & 0
+	GL_COPY, // s
+	GL_AND_INVERTED, // ~s & 1
+	GL_SET, // 1
+	GL_COPY_INVERTED, // s ^ 1
+	GL_COPY, // s || 1
+	GL_CLEAR, // ~(s | 1)
+	GL_COPY, // ~(s ^ 1)
+	GL_CLEAR, // ~1
+	GL_COPY, // s | ~1
+	GL_COPY_INVERTED, // ~s
+	GL_SET, // ~s | 1
+	GL_COPY_INVERTED, // ~(s & 1)
+	GL_SET // s
+};
+
 #if defined HAVE_CG && HAVE_CG
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 {
@@ -968,10 +987,17 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	if (changes & 0x1F8)
 	{
-#ifdef USE_DUAL_SOURCE_BLEND
 		GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
-		GLenum srcFactorAlpha = srcFactor;
 		GLenum dstFactor = glDestFactors[(newval >> 6) & 7];
+		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+		{
+			if (srcFactor == GL_DST_ALPHA) srcFactor = GL_ONE;
+			if (dstFactor == GL_DST_ALPHA) dstFactor = GL_ONE;
+			if (srcFactor == GL_ONE_MINUS_DST_ALPHA) srcFactor = GL_ZERO;
+			if (dstFactor == GL_ONE_MINUS_DST_ALPHA) dstFactor = GL_ZERO;
+		}
+#ifdef USE_DUAL_SOURCE_BLEND
+		GLenum srcFactorAlpha = srcFactor;
 		GLenum dstFactorAlpha = dstFactor;
 		if (useDualSource)
 		{
@@ -992,7 +1018,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		// blend RGB change
 		glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
 #else
-		glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
+		glBlendFunc(srcFactor, dstFactor);
 #endif
 	}
 
@@ -1474,7 +1500,10 @@ void Renderer::SetLogicOpMode()
 	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
 	{
 		glEnable(GL_COLOR_LOGIC_OP);
-		glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
+		if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+			glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
+		else
+			glLogicOp(glLogicOpCodesNoAlpha[bpmem.blendmode.logicmode]);
 	}
 	else
 	{
