@@ -58,24 +58,6 @@ namespace OGL
 
 static u32 s_TempFramebuffer = 0;
 
-static const GLint c_MinLinearFilter[8] = {
-	GL_NEAREST,
-	GL_NEAREST_MIPMAP_NEAREST,
-	GL_NEAREST_MIPMAP_LINEAR,
-	GL_NEAREST,
-	GL_LINEAR,
-	GL_LINEAR_MIPMAP_NEAREST,
-	GL_LINEAR_MIPMAP_LINEAR,
-	GL_LINEAR,
-};
-
-static const GLint c_WrapSettings[4] = {
-	GL_CLAMP_TO_EDGE,
-	GL_REPEAT,
-	GL_MIRRORED_REPEAT,
-	GL_REPEAT,
-};
-
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
 	int width = std::max(virtual_width >> level, 1);
@@ -357,32 +339,41 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1)
 {
-	// TODO: not used anywhere
-	TexMode0 mode = newmode;
-	//mode1 = newmode1;
+	const GLint c_MinLinearFilter[8] =
+	{
+		GL_NEAREST,
+		GL_NEAREST_MIPMAP_NEAREST,
+		GL_NEAREST_MIPMAP_LINEAR,
+		GL_NEAREST,
+		GL_LINEAR,
+		GL_LINEAR_MIPMAP_NEAREST,
+		GL_LINEAR_MIPMAP_LINEAR,
+		GL_LINEAR,
+	};
+	const GLint c_WrapSettings[4] =
+	{
+		GL_CLAMP_TO_EDGE,
+		GL_REPEAT,
+		GL_MIRRORED_REPEAT,
+		GL_REPEAT,
+	};
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-		(newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
+					(newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
 
-	if (bHaveMipMaps) 
-	{
-		// TODO: not used anywhere
-		if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
-			mode.min_filter += 4; // take equivalent forced linear
+	int filt = newmode.min_filter;
+	if (g_ActiveConfig.bForceFiltering && filt < 4)
+		filt += 4; // take equivalent forced linear
 
-		int filt = newmode.min_filter;            
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 4);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 4);
-		glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias / 32.0f));
-	}
-	else
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-			(g_ActiveConfig.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt]);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod / 16.f);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod / 16.f);
+	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, newmode.lod_bias / 32.0f);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
 
+	// TODO: Reset anisotrop when changed to 1
 	if (g_Config.iMaxAnisotropy >= 1)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
 			(float)(1 << g_ActiveConfig.iMaxAnisotropy));

@@ -54,8 +54,6 @@ static int s_fps = 0;
 
 static u32 s_LastAA = 0;
 
-static u32 s_blendMode;
-
 static Television s_television;
 
 ID3D11Buffer* access_efb_cbuf = NULL;
@@ -75,151 +73,6 @@ struct
 	D3D11_DEPTH_STENCIL_DESC depthdc;
 	D3D11_RASTERIZER_DESC rastdc;
 } gx_state;
-
-// State translation lookup tables
-static const D3D11_BLEND d3dSrcFactors[8] =
-{
-	D3D11_BLEND_ZERO,
-	D3D11_BLEND_ONE,
-	D3D11_BLEND_DEST_COLOR,
-	D3D11_BLEND_INV_DEST_COLOR,
-	D3D11_BLEND_SRC_ALPHA,
-	D3D11_BLEND_INV_SRC_ALPHA, // NOTE: Use SRC1_ALPHA if dst alpha is enabled!
-	D3D11_BLEND_DEST_ALPHA,
-	D3D11_BLEND_INV_DEST_ALPHA
-};
-
-static const D3D11_BLEND d3dDestFactors[8] =
-{
-	D3D11_BLEND_ZERO,
-	D3D11_BLEND_ONE,
-	D3D11_BLEND_SRC_COLOR,
-	D3D11_BLEND_INV_SRC_COLOR,
-	D3D11_BLEND_SRC_ALPHA,
-	D3D11_BLEND_INV_SRC_ALPHA, // NOTE: Use SRC1_ALPHA if dst alpha is enabled!
-	D3D11_BLEND_DEST_ALPHA,
-	D3D11_BLEND_INV_DEST_ALPHA
-};
-
-//		0	0x00
-//		1	Source & destination
-//		2	Source & ~destination
-//		3	Source
-//		4	~Source & destination
-//		5	Destination
-//		6	Source ^ destination =  Source & ~destination | ~Source & destination
-//		7	Source | destination
-
-//		8	~(Source | destination)
-//		9	~(Source ^ destination) = ~Source & ~destination | Source & destination
-//		10	~Destination
-//		11	Source | ~destination
-//		12	~Source
-//		13	~Source | destination
-//		14	~(Source & destination)
-//		15	0xff
-
-static const D3D11_BLEND_OP d3dLogicOps[16] =
-{
-	D3D11_BLEND_OP_ADD,//0
-	D3D11_BLEND_OP_ADD,//1
-	D3D11_BLEND_OP_SUBTRACT,//2
-	D3D11_BLEND_OP_ADD,//3
-	D3D11_BLEND_OP_REV_SUBTRACT,//4
-	D3D11_BLEND_OP_ADD,//5
-	D3D11_BLEND_OP_MAX,//6
-	D3D11_BLEND_OP_ADD,//7
-	
-	D3D11_BLEND_OP_MAX,//8
-	D3D11_BLEND_OP_MAX,//9
-	D3D11_BLEND_OP_ADD,//10
-	D3D11_BLEND_OP_ADD,//11
-	D3D11_BLEND_OP_ADD,//12
-	D3D11_BLEND_OP_ADD,//13
-	D3D11_BLEND_OP_ADD,//14
-	D3D11_BLEND_OP_ADD//15
-};
-
-static const D3D11_BLEND d3dLogicOpSrcFactors[16] =
-{
-	D3D11_BLEND_ZERO,//0
-	D3D11_BLEND_DEST_COLOR,//1
-	D3D11_BLEND_ONE,//2
-	D3D11_BLEND_ONE,//3
-	D3D11_BLEND_DEST_COLOR,//4
-	D3D11_BLEND_ZERO,//5
-	D3D11_BLEND_INV_DEST_COLOR,//6
-	D3D11_BLEND_INV_DEST_COLOR,//7
-
-	D3D11_BLEND_INV_SRC_COLOR,//8
-	D3D11_BLEND_INV_SRC_COLOR,//9
-	D3D11_BLEND_INV_DEST_COLOR,//10
-	D3D11_BLEND_ONE,//11
-	D3D11_BLEND_INV_SRC_COLOR,//12
-	D3D11_BLEND_INV_SRC_COLOR,//13 
-	D3D11_BLEND_INV_DEST_COLOR,//14
-	D3D11_BLEND_ONE//15
-};
-
-static const D3D11_BLEND d3dLogicOpDestFactors[16] =
-{
-	D3D11_BLEND_ZERO,//0
-	D3D11_BLEND_ZERO,//1
-	D3D11_BLEND_INV_SRC_COLOR,//2
-	D3D11_BLEND_ZERO,//3
-	D3D11_BLEND_ONE,//4
-	D3D11_BLEND_ONE,//5
-	D3D11_BLEND_INV_SRC_COLOR,//6
-	D3D11_BLEND_ONE,//7
-
-	D3D11_BLEND_INV_DEST_COLOR,//8
-	D3D11_BLEND_SRC_COLOR,//9
-	D3D11_BLEND_INV_DEST_COLOR,//10
-	D3D11_BLEND_INV_DEST_COLOR,//11
-	D3D11_BLEND_INV_SRC_COLOR,//12
-	D3D11_BLEND_ONE,//13 
-	D3D11_BLEND_INV_SRC_COLOR,//14
-	D3D11_BLEND_ONE//15
-};
-
-static const D3D11_CULL_MODE d3dCullModes[4] =
-{
-	D3D11_CULL_NONE,
-	D3D11_CULL_BACK,
-	D3D11_CULL_FRONT,
-	D3D11_CULL_BACK
-};
-
-static const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] =
-{
-	D3D11_COMPARISON_NEVER,
-	D3D11_COMPARISON_LESS,
-	D3D11_COMPARISON_EQUAL,
-	D3D11_COMPARISON_LESS_EQUAL,
-	D3D11_COMPARISON_GREATER,
-	D3D11_COMPARISON_NOT_EQUAL,
-	D3D11_COMPARISON_GREATER_EQUAL,
-	D3D11_COMPARISON_ALWAYS
-};
-
-#define TEXF_NONE   0
-#define TEXF_POINT  1
-#define TEXF_LINEAR 2
-static const unsigned int d3dMipFilters[4] =
-{
-	TEXF_NONE,
-	TEXF_POINT,
-	TEXF_LINEAR,
-	TEXF_NONE, //reserved
-};
-
-static const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] =
-{
-	D3D11_TEXTURE_ADDRESS_CLAMP,
-	D3D11_TEXTURE_ADDRESS_WRAP,
-	D3D11_TEXTURE_ADDRESS_MIRROR,
-	D3D11_TEXTURE_ADDRESS_WRAP //reserved
-};
 
 
 void SetupDeviceObjects()
@@ -338,7 +191,6 @@ void CreateScreenshotTexture()
 Renderer::Renderer()
 {
 	int x, y, w_temp, h_temp;
-	s_blendMode = 0;
 
 	InitFPSCounter();
 
@@ -833,6 +685,32 @@ void SetBlendOp(D3D11_BLEND_OP val)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
+	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
+	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
+    bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	const D3D11_BLEND d3dSrcFactors[8] =
+	{
+		D3D11_BLEND_ZERO,
+		D3D11_BLEND_ONE,
+		D3D11_BLEND_DEST_COLOR,
+		D3D11_BLEND_INV_DEST_COLOR,
+		D3D11_BLEND_SRC_ALPHA,
+		D3D11_BLEND_INV_SRC_ALPHA, // NOTE: Use SRC1_ALPHA if dst alpha is enabled!
+		(target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
+		(target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO
+	};
+	const D3D11_BLEND d3dDestFactors[8] =
+	{
+		D3D11_BLEND_ZERO,
+		D3D11_BLEND_ONE,
+		D3D11_BLEND_SRC_COLOR,
+		D3D11_BLEND_INV_SRC_COLOR,
+		D3D11_BLEND_SRC_ALPHA,
+		D3D11_BLEND_INV_SRC_ALPHA, // NOTE: Use SRC1_ALPHA if dst alpha is enabled!
+		(target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
+		(target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO
+	};
+
 	if (bpmem.blendmode.logicopenable && !forceUpdate)
 		return;
 
@@ -845,8 +723,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 	else
 	{
-		gx_state.blenddc.RenderTarget[0].BlendEnable = bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0));
-		if (bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)))
+		gx_state.blenddc.RenderTarget[0].BlendEnable = bpmem.blendmode.blendenable;
+		if (bpmem.blendmode.blendenable)
 		{
 			SetBlendOp(D3D11_BLEND_OP_ADD);
 			SetSrcBlend(d3dSrcFactors[bpmem.blendmode.srcfactor]);
@@ -1331,12 +1209,32 @@ void Renderer::RestoreCull()
 
 void Renderer::SetGenerationMode()
 {
+	const D3D11_CULL_MODE d3dCullModes[4] =
+	{
+		D3D11_CULL_NONE,
+		D3D11_CULL_BACK,
+		D3D11_CULL_FRONT,
+		D3D11_CULL_BACK
+	};
+
 	// rastdc.FrontCounterClockwise must be false for this to work
 	gx_state.rastdc.CullMode = d3dCullModes[bpmem.genMode.cullmode];
 }
 
 void Renderer::SetDepthMode()
 {
+	const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] =
+	{
+		D3D11_COMPARISON_NEVER,
+		D3D11_COMPARISON_LESS,
+		D3D11_COMPARISON_EQUAL,
+		D3D11_COMPARISON_LESS_EQUAL,
+		D3D11_COMPARISON_GREATER,
+		D3D11_COMPARISON_NOT_EQUAL,
+		D3D11_COMPARISON_GREATER_EQUAL,
+		D3D11_COMPARISON_ALWAYS
+	};
+
 	if (bpmem.zmode.testenable)
 	{
 		gx_state.depthdc.DepthEnable = TRUE;
@@ -1353,9 +1251,85 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
+	// D3D11 doesn't support logic blending, so this is a huge hack
+	// TODO: Make use of D3D11.1's logic blending support
+
+	//		0	0x00
+	//		1	Source & destination
+	//		2	Source & ~destination
+	//		3	Source
+	//		4	~Source & destination
+	//		5	Destination
+	//		6	Source ^ destination =  Source & ~destination | ~Source & destination
+	//		7	Source | destination
+	//		8	~(Source | destination)
+	//		9	~(Source ^ destination) = ~Source & ~destination | Source & destination
+	//		10	~Destination
+	//		11	Source | ~destination
+	//		12	~Source
+	//		13	~Source | destination
+	//		14	~(Source & destination)
+	//		15	0xff
+	const D3D11_BLEND_OP d3dLogicOps[16] =
 	{
-		s_blendMode = 0;
+		D3D11_BLEND_OP_ADD,//0
+		D3D11_BLEND_OP_ADD,//1
+		D3D11_BLEND_OP_SUBTRACT,//2
+		D3D11_BLEND_OP_ADD,//3
+		D3D11_BLEND_OP_REV_SUBTRACT,//4
+		D3D11_BLEND_OP_ADD,//5
+		D3D11_BLEND_OP_MAX,//6
+		D3D11_BLEND_OP_ADD,//7
+		D3D11_BLEND_OP_MAX,//8
+		D3D11_BLEND_OP_MAX,//9
+		D3D11_BLEND_OP_ADD,//10
+		D3D11_BLEND_OP_ADD,//11
+		D3D11_BLEND_OP_ADD,//12
+		D3D11_BLEND_OP_ADD,//13
+		D3D11_BLEND_OP_ADD,//14
+		D3D11_BLEND_OP_ADD//15
+	};
+	const D3D11_BLEND d3dLogicOpSrcFactors[16] =
+	{
+		D3D11_BLEND_ZERO,//0
+		D3D11_BLEND_DEST_COLOR,//1
+		D3D11_BLEND_ONE,//2
+		D3D11_BLEND_ONE,//3
+		D3D11_BLEND_DEST_COLOR,//4
+		D3D11_BLEND_ZERO,//5
+		D3D11_BLEND_INV_DEST_COLOR,//6
+		D3D11_BLEND_INV_DEST_COLOR,//7
+		D3D11_BLEND_INV_SRC_COLOR,//8
+		D3D11_BLEND_INV_SRC_COLOR,//9
+		D3D11_BLEND_INV_DEST_COLOR,//10
+		D3D11_BLEND_ONE,//11
+		D3D11_BLEND_INV_SRC_COLOR,//12
+		D3D11_BLEND_INV_SRC_COLOR,//13 
+		D3D11_BLEND_INV_DEST_COLOR,//14
+		D3D11_BLEND_ONE//15
+	};
+	const D3D11_BLEND d3dLogicOpDestFactors[16] =
+	{
+		D3D11_BLEND_ZERO,//0
+		D3D11_BLEND_ZERO,//1
+		D3D11_BLEND_INV_SRC_COLOR,//2
+		D3D11_BLEND_ZERO,//3
+		D3D11_BLEND_ONE,//4
+		D3D11_BLEND_ONE,//5
+		D3D11_BLEND_INV_SRC_COLOR,//6
+		D3D11_BLEND_ONE,//7
+		D3D11_BLEND_INV_DEST_COLOR,//8
+		D3D11_BLEND_SRC_COLOR,//9
+		D3D11_BLEND_INV_DEST_COLOR,//10
+		D3D11_BLEND_INV_DEST_COLOR,//11
+		D3D11_BLEND_INV_SRC_COLOR,//12
+		D3D11_BLEND_ONE,//13 
+		D3D11_BLEND_INV_SRC_COLOR,//14
+		D3D11_BLEND_ONE//15
+	};
+
+	if (bpmem.blendmode.logicopenable)
+	{
 		gx_state.blenddc.RenderTarget[0].BlendEnable = true;
 		SetBlendOp(d3dLogicOps[bpmem.blendmode.logicmode]);
 		SetSrcBlend(d3dLogicOpSrcFactors[bpmem.blendmode.logicmode]);
@@ -1379,18 +1353,32 @@ void Renderer::SetLineWidth()
 
 void Renderer::SetSamplerState(int stage, int texindex)
 {
+#define TEXF_NONE   0
+#define TEXF_POINT  1
+#define TEXF_LINEAR 2
+	const unsigned int d3dMipFilters[4] =
+	{
+		TEXF_NONE,
+		TEXF_POINT,
+		TEXF_LINEAR,
+		TEXF_NONE, //reserved
+	};
+	const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] =
+	{
+		D3D11_TEXTURE_ADDRESS_CLAMP,
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_MIRROR,
+		D3D11_TEXTURE_ADDRESS_WRAP //reserved
+	};
+
 	const FourTexUnits &tex = bpmem.tex[texindex];
 	const TexMode0 &tm0 = tex.texMode0[stage];
 	const TexMode1 &tm1 = tex.texMode1[stage];
 	
-	unsigned int mip;
-	mip = (tm0.min_filter == 8) ? TEXF_NONE:d3dMipFilters[tm0.min_filter & 3];
-	if ((tm0.min_filter & 3) && (tm0.min_filter != 8) && ((tm1.max_lod >> 4) == 0)) mip = TEXF_NONE;
+	unsigned int mip = d3dMipFilters[tm0.min_filter & 3];
 
 	if (texindex) stage += 4;
 
-	// TODO: Clarify whether these values are correct
-	// NOTE: since there's no "no filter" in DX11 we're using point filters in these cases
 	if (g_ActiveConfig.bForceFiltering)
 	{
 		gx_state.sampdc[stage].Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;

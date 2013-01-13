@@ -132,58 +132,6 @@ const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
-static const GLenum glSrcFactors[8] =
-{
-	GL_ZERO,
-	GL_ONE,
-	GL_DST_COLOR,
-	GL_ONE_MINUS_DST_COLOR,
-	GL_SRC_ALPHA,
-	GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
-	GL_DST_ALPHA,
-	GL_ONE_MINUS_DST_ALPHA
-};
-
-static const GLenum glDestFactors[8] = {
-	GL_ZERO,
-	GL_ONE,
-	GL_SRC_COLOR,
-	GL_ONE_MINUS_SRC_COLOR,
-	GL_SRC_ALPHA,
-	GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
-	GL_DST_ALPHA,
-	GL_ONE_MINUS_DST_ALPHA
-};
-
-static const GLenum glCmpFuncs[8] = {
-	GL_NEVER,
-	GL_LESS,
-	GL_EQUAL,
-	GL_LEQUAL,
-	GL_GREATER,
-	GL_NOTEQUAL,
-	GL_GEQUAL,
-	GL_ALWAYS
-};
-
-static const GLenum glLogicOpCodes[16] = {
-	GL_CLEAR,
-	GL_AND,
-	GL_AND_REVERSE,
-	GL_COPY,
-	GL_AND_INVERTED,
-	GL_NOOP,
-	GL_XOR,
-	GL_OR,
-	GL_NOR,
-	GL_EQUIV,
-	GL_INVERT,
-	GL_OR_REVERSE,
-	GL_COPY_INVERTED,
-	GL_OR_INVERTED,
-	GL_NAND,
-	GL_SET
-};
 
 #if defined HAVE_CG && HAVE_CG
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
@@ -908,6 +856,32 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
+	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
+	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
+    bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	const GLenum glSrcFactors[8] =
+	{
+		GL_ZERO,
+		GL_ONE,
+		GL_DST_COLOR,
+		GL_ONE_MINUS_DST_COLOR,
+		GL_SRC_ALPHA,
+		GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
+		(target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
+		(target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO
+	};
+	const GLenum glDestFactors[8] =
+	{
+		GL_ZERO,
+		GL_ONE,
+		GL_SRC_COLOR,
+		GL_ONE_MINUS_SRC_COLOR,
+		GL_SRC_ALPHA,
+		GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
+		(target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
+		(target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO
+	};
+
 	// blend mode bit mask
 	// 0 - blend enable
 	// 2 - reverse subtract enable (else add)
@@ -951,10 +925,10 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	if (changes & 0x1F8)
 	{
-#ifdef USE_DUAL_SOURCE_BLEND
 		GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
-		GLenum srcFactorAlpha = srcFactor;
 		GLenum dstFactor = glDestFactors[(newval >> 6) & 7];
+#ifdef USE_DUAL_SOURCE_BLEND
+		GLenum srcFactorAlpha = srcFactor;
 		GLenum dstFactorAlpha = dstFactor;
 		if (useDualSource)
 		{
@@ -975,7 +949,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		// blend RGB change
 		glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
 #else
-		glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
+		glBlendFunc(srcFactor, dstFactor);
 #endif
 	}
 
@@ -1438,6 +1412,18 @@ void Renderer::SetGenerationMode()
 
 void Renderer::SetDepthMode()
 {
+	const GLenum glCmpFuncs[8] =
+	{
+		GL_NEVER,
+		GL_LESS,
+		GL_EQUAL,
+		GL_LEQUAL,
+		GL_GREATER,
+		GL_NOTEQUAL,
+		GL_GEQUAL,
+		GL_ALWAYS
+	};
+
 	if (bpmem.zmode.testenable)
 	{
 		glEnable(GL_DEPTH_TEST);
@@ -1454,7 +1440,27 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
+	const GLenum glLogicOpCodes[16] =
+	{
+		GL_CLEAR,
+		GL_AND,
+		GL_AND_REVERSE,
+		GL_COPY,
+		GL_AND_INVERTED,
+		GL_NOOP,
+		GL_XOR,
+		GL_OR,
+		GL_NOR,
+		GL_EQUIV,
+		GL_INVERT,
+		GL_OR_REVERSE,
+		GL_COPY_INVERTED,
+		GL_OR_INVERTED,
+		GL_NAND,
+		GL_SET
+	};
+
+	if (bpmem.blendmode.logicopenable)
 	{
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
