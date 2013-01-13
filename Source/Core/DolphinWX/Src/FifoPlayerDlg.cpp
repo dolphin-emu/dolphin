@@ -307,26 +307,26 @@ void FifoPlayerDlg::CreateGUIControls()
 
 	// Connect Events
 	Connect(wxEVT_PAINT, wxPaintEventHandler(FifoPlayerDlg::OnPaint));
-	m_FrameFromCtrl->Connect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(FifoPlayerDlg::OnFrameFrom), NULL, this);
-	m_FrameToCtrl->Connect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(FifoPlayerDlg::OnFrameTo), NULL, this);
-	m_ObjectFromCtrl->Connect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(FifoPlayerDlg::OnObjectFrom), NULL, this);
-	m_ObjectToCtrl->Connect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(FifoPlayerDlg::OnObjectTo), NULL, this);
-	m_EarlyMemoryUpdates->Connect(wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnCheckEarlyMemoryUpdates), NULL, this);
-	m_RecordStop->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnRecordStop), NULL, this);
-	m_Save->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnSaveFile), NULL, this);
-	m_FramesToRecordCtrl->Connect(wxEVT_COMMAND_SPINCTRL_UPDATED, wxSpinEventHandler(FifoPlayerDlg::OnNumFramesToRecord), NULL, this);
-	Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnCloseClick), NULL, this);
+	m_FrameFromCtrl->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnFrameFrom, this);
+	m_FrameToCtrl->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnFrameTo, this);
+	m_ObjectFromCtrl->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnObjectFrom, this);
+	m_ObjectToCtrl->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnObjectTo, this);
+	m_EarlyMemoryUpdates->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &FifoPlayerDlg::OnCheckEarlyMemoryUpdates, this);
+	m_RecordStop->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnRecordStop, this);
+	m_Save->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnSaveFile, this);
+	m_FramesToRecordCtrl->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnNumFramesToRecord, this);
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnCloseClick, this);
 
-	m_framesList->Connect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FifoPlayerDlg::OnFrameListSelectionChanged), NULL, this);
-	m_objectsList->Connect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FifoPlayerDlg::OnObjectListSelectionChanged), NULL, this);
-	m_objectCmdList->Connect(wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler(FifoPlayerDlg::OnObjectCmdListSelectionChanged), NULL, this);
+	m_framesList->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnFrameListSelectionChanged, this);
+	m_objectsList->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnObjectListSelectionChanged, this);
+	m_objectCmdList->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &FifoPlayerDlg::OnObjectCmdListSelectionChanged, this);
 
-	m_beginSearch->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnBeginSearch), NULL, this);
-	m_findNext->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnFindNextClick), NULL, this);
-	m_findPrevious->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FifoPlayerDlg::OnFindPreviousClick), NULL, this);
+	m_beginSearch->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnBeginSearch, this);
+	m_findNext->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnFindNextClick, this);
+	m_findPrevious->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnFindPreviousClick, this);
 
-	m_searchField->Connect(wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler(FifoPlayerDlg::OnBeginSearch), NULL, this);
-	m_searchField->Connect(wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler(FifoPlayerDlg::OnSearchFieldTextChanged), NULL, this);
+	m_searchField->Bind(wxEVT_COMMAND_TEXT_ENTER, &FifoPlayerDlg::OnBeginSearch, this);
+	m_searchField->Bind(wxEVT_COMMAND_TEXT_UPDATED, &FifoPlayerDlg::OnSearchFieldTextChanged, this);
 
 	// Setup command copying
 	wxAcceleratorEntry entry;
