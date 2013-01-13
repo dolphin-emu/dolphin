@@ -252,7 +252,6 @@ void CMemcardManager::CreateGUIControls()
 
 	SetSizerAndFit(sMain);
 	Center();
-	SetFocus();
 
 	for (int i = SLOT_A; i <= SLOT_B; i++)
 	{
@@ -525,13 +524,13 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
 			_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
 			_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),
-			wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+			wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 		if (!fileName.empty() && !fileName2.empty())
 		{
 			wxString temp2 = wxFileSelector(_("Save GCI as..."),
 				wxEmptyString, wxEmptyString, wxT(".gci"),
 				_("GCI File(*.gci)") + wxString(_T("|*.gci")),
-				wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
+				wxFD_OVERWRITE_PROMPT|wxFD_SAVE, this);
 			if (temp2.empty()) break;
 			fileName2 = temp2.mb_str();
 		}
@@ -561,7 +560,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
 				_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
 				_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),
-				wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
+				wxFD_OVERWRITE_PROMPT|wxFD_SAVE, this);
 
 			if (fileName.length() > 0)
 			{
