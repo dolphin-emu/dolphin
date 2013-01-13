@@ -18,8 +18,6 @@
 
 #include <sstream>
 
-#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
-
 namespace Gecko
 {
 
@@ -31,8 +29,8 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	: wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize)
 {
 	m_listbox_gcodes = new wxCheckListBox(this, -1, wxDefaultPosition, wxDefaultSize);
-	_connect_macro_(m_listbox_gcodes, CodeConfigPanel::UpdateInfoBox, wxEVT_COMMAND_LISTBOX_SELECTED, this);
-	_connect_macro_(m_listbox_gcodes, CodeConfigPanel::ToggleCode, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, this);
+	m_listbox_gcodes->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &CodeConfigPanel::UpdateInfoBox, this);
+	m_listbox_gcodes->Bind(wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, &CodeConfigPanel::ToggleCode, this);
 
 	m_infobox.label_name = new wxStaticText(this, -1, wxGetTranslation(wxstr_name));
 	m_infobox.label_creator = new wxStaticText(this, -1, wxGetTranslation(wxstr_creator));
@@ -53,7 +51,7 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	// button sizer
 	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
 	wxButton* const btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
-	_connect_macro_(btn_download, CodeConfigPanel::DownloadCodes, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	btn_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CodeConfigPanel::DownloadCodes, this);
 	sizer_buttons->AddStretchSpacer(1);
 	sizer_buttons->Add(btn_download, 1, wxEXPAND);
 

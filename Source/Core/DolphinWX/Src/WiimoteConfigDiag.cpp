@@ -4,8 +4,6 @@
 #include "HW/WiimoteReal/WiimoteReal.h"
 #include "Frame.h"
 
-#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
-
 const wxString& ConnectedWiimotesString()
 {
 	static wxString str;
@@ -42,9 +40,9 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 
 		wiimote_label[i] = new wxStaticText(this, wxID_ANY, str);
 		wiimote_source_ch[i] = new wxChoice(this, source_ctrl_id, wxDefaultPosition, wxDefaultSize, sizeof(src_choices)/sizeof(*src_choices), src_choices);
-		_connect_macro_(wiimote_source_ch[i], WiimoteConfigDiag::SelectSource, wxEVT_COMMAND_CHOICE_SELECTED, this);
+		wiimote_source_ch[i]->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &WiimoteConfigDiag::SelectSource, this);
 		wiimote_configure_bt[i] = new wxButton(this, config_bt_id, _("Configure"));
-		_connect_macro_(wiimote_configure_bt[i], WiimoteConfigDiag::ConfigEmulatedWiimote, wxEVT_COMMAND_BUTTON_CLICKED, this);
+		wiimote_configure_bt[i]->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::ConfigEmulatedWiimote, this);
 
 		m_orig_wiimote_sources[i] = g_wiimote_sources[i];
 		wiimote_source_ch[i]->Select(m_orig_wiimote_sources[i]);
@@ -69,11 +67,11 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	connected_wiimotes_txt = new wxStaticText(this, -1, ConnectedWiimotesString());
 
 	wxButton* const refresh_btn = new wxButton(this, -1, _("Refresh"), wxDefaultPosition);
-	_connect_macro_(refresh_btn, WiimoteConfigDiag::RefreshRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	refresh_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::RefreshRealWiimotes, this);
 
 #ifdef _WIN32
 	wxButton* const pairup_btn = new wxButton(this, -1, _("Pair Up"), wxDefaultPosition);
-	_connect_macro_(pairup_btn, WiimoteConfigDiag::PairUpRealWiimotes, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	pairup_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::PairUpRealWiimotes, this);
 #endif
 
 
@@ -133,11 +131,11 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	WiimoteMotor->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<bool>("BT.MOT"));
 	WiimoteReconnectOnLoad->SetValue(SConfig::GetInstance().m_WiimoteReconnectOnLoad);
 
-	_connect_macro_(WiiSensBarPos, WiimoteConfigDiag::OnSensorBarPos, wxEVT_COMMAND_CHOICE_SELECTED, this);
-	_connect_macro_(WiiSensBarSens, WiimoteConfigDiag::OnSensorBarSensitivity, wxEVT_COMMAND_SLIDER_UPDATED, this);
-	_connect_macro_(WiimoteSpkVolume, WiimoteConfigDiag::OnSpeakerVolume, wxEVT_COMMAND_SLIDER_UPDATED, this);
-	_connect_macro_(WiimoteMotor, WiimoteConfigDiag::OnMotor, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(WiimoteReconnectOnLoad, WiimoteConfigDiag::OnReconnectOnLoad, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	WiiSensBarPos->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &WiimoteConfigDiag::OnSensorBarPos, this);
+	WiiSensBarSens->Bind(wxEVT_COMMAND_SLIDER_UPDATED, &WiimoteConfigDiag::OnSensorBarSensitivity, this);
+	WiimoteSpkVolume->Bind(wxEVT_COMMAND_SLIDER_UPDATED, &WiimoteConfigDiag::OnSpeakerVolume, this);
+	WiimoteMotor->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &WiimoteConfigDiag::OnMotor, this);
+	WiimoteReconnectOnLoad->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &WiimoteConfigDiag::OnReconnectOnLoad, this);
 
 
 	// "General Settings" layout
@@ -175,8 +173,8 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	main_sizer->Add(general_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(WiimoteConfigDiag::Save));
-	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(WiimoteConfigDiag::Cancel));
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::Save, this, wxID_OK);
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::Cancel, this, wxID_CANCEL);
 
 	SetSizerAndFit(main_sizer);
 	Center();

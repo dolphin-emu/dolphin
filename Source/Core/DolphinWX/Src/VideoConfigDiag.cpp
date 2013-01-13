@@ -11,8 +11,6 @@
 #include <ApplicationServices/ApplicationServices.h>
 #endif
 
-#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
-
 extern CFrame* main_frame;
 
 // template instantiation
@@ -27,7 +25,7 @@ SettingCheckBox::BoolSetting(wxWindow* parent, const wxString& label, const wxSt
 {
 	SetToolTip(tooltip);
 	SetValue(m_setting ^ m_reverse);
-	_connect_macro_(this, SettingCheckBox::UpdateValue, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &SettingCheckBox::UpdateValue, this);
 }
 
 template <>
@@ -38,7 +36,7 @@ SettingRadioButton::BoolSetting(wxWindow* parent, const wxString& label, const w
 {
 	SetToolTip(tooltip);
 	SetValue(m_setting ^ m_reverse);
-	_connect_macro_(this, SettingRadioButton::UpdateValue, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
+	Bind(wxEVT_COMMAND_RADIOBUTTON_SELECTED, &SettingRadioButton::UpdateValue, this);
 }
 
 SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num, const wxString choices[], long style)
@@ -47,7 +45,7 @@ SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& too
 {
 	SetToolTip(tooltip);
 	Select(m_setting);
-	_connect_macro_(this, SettingChoice::UpdateValue, wxEVT_COMMAND_CHOICE_SELECTED, this);
+	Bind(wxEVT_COMMAND_CHOICE_SELECTED, &SettingChoice::UpdateValue, this);
 }
 
 void SettingChoice::UpdateValue(wxCommandEvent& ev)
@@ -190,7 +188,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 {
 	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
-	Connect(wxID_ANY, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(VideoConfigDiag::OnUpdateUI), NULL, this);
+	Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
 	wxNotebook* const notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize);
 
@@ -217,7 +215,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		choice_backend->AppendString(wxGetTranslation(wxString::FromAscii((*it)->GetName().c_str())));
 
 	choice_backend->SetStringSelection(wxGetTranslation(wxString::FromAscii(g_video_backend->GetName().c_str())));
-	_connect_macro_(choice_backend, VideoConfigDiag::Event_Backend, wxEVT_COMMAND_CHOICE_SELECTED, this);
+	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_Backend, this);
 
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
 	szr_basic->Add(choice_backend, 1, 0, 0);
@@ -259,7 +257,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		wxStaticText* const label_display_resolution = new wxStaticText(page_general, wxID_ANY, _("Fullscreen resolution:"));
 		choice_display_resolution = new wxChoice(page_general, wxID_ANY, wxDefaultPosition, wxDefaultSize, res_list);
 		RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
-		_connect_macro_(choice_display_resolution, VideoConfigDiag::Event_DisplayResolution, wxEVT_COMMAND_CHOICE_SELECTED, this);
+		choice_display_resolution->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_DisplayResolution, this);
 
 		choice_display_resolution->SetStringSelection(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str()));
 
@@ -389,7 +387,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		else
 			choice_ppshader->SetStringSelection(wxString::FromAscii(vconfig.sPostProcessingShader.c_str()));
 
-		_connect_macro_(choice_ppshader, VideoConfigDiag::Event_PPShader, wxEVT_COMMAND_CHOICE_SELECTED, this);
+		choice_ppshader->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_PPShader, this);
 
 		szr_enh->Add(new wxStaticText(page_enh, -1, _("Post-Processing Effect:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_enh->Add(choice_ppshader);
@@ -455,7 +453,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// TODO: Use wxSL_MIN_MAX_LABELS or wxSL_VALUE_LABEL with wx 2.9.1
 	wxSlider* const stc_slider = new wxSlider(page_hacks, wxID_ANY, 0, 0, 2, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL|wxSL_BOTTOM);
-	_connect_macro_(stc_slider, VideoConfigDiag::Event_Stc, wxEVT_COMMAND_SLIDER_UPDATED, this);
+	stc_slider->Bind(wxEVT_COMMAND_SLIDER_UPDATED, &VideoConfigDiag::Event_Stc, this);
 	RegisterControl(stc_slider, wxGetTranslation(stc_desc));
 
 	if (vconfig.iSafeTextureCache_ColorSamples == 0) stc_slider->SetValue(0);
@@ -556,7 +554,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxCheckBox* const cb_prog_scan = new wxCheckBox(page_advanced, wxID_ANY, _("Enable Progressive Scan"));
 	RegisterControl(cb_prog_scan, wxGetTranslation(prog_scan_desc));
-	_connect_macro_(cb_prog_scan, VideoConfigDiag::Event_ProgressiveScan, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	cb_prog_scan->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &VideoConfigDiag::Event_ProgressiveScan, this);
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		cb_prog_scan->Disable();
 
@@ -579,9 +577,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"), wxDefaultPosition);
-	_connect_macro_(btn_close, VideoConfigDiag::Event_ClickClose, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	btn_close->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &VideoConfigDiag::Event_ClickClose, this);
 
-	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(VideoConfigDiag::Event_Close), (wxObject*)0, this);
+	Bind(wxEVT_CLOSE_WINDOW, &VideoConfigDiag::Event_Close, this);
 
 	wxBoxSizer* const szr_main = new wxBoxSizer(wxVERTICAL);
 	szr_main->Add(notebook, 1, wxEXPAND | wxALL, 5);
@@ -629,8 +627,8 @@ SettingRadioButton* VideoConfigDiag::CreateRadioButton(wxWindow* parent, const w
 wxControl* VideoConfigDiag::RegisterControl(wxControl* const control, const wxString& description)
 {
 	ctrl_descs.insert(std::pair<wxWindow*,wxString>(control, description));
-	control->Connect(wxID_ANY, wxEVT_ENTER_WINDOW, wxMouseEventHandler(VideoConfigDiag::Evt_EnterControl), NULL, this);
-	control->Connect(wxID_ANY, wxEVT_LEAVE_WINDOW, wxMouseEventHandler(VideoConfigDiag::Evt_LeaveControl), NULL, this);
+	control->Bind(wxEVT_ENTER_WINDOW, &VideoConfigDiag::Evt_EnterControl, this);
+	control->Bind(wxEVT_LEAVE_WINDOW, &VideoConfigDiag::Evt_LeaveControl, this);
 	return control;
 }
 
