@@ -133,6 +133,7 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 	case IOCTL_NWC24_SUSPEND_SCHEDULAR:
 		// NWC24iResumeForCloseLib  from NWC24SuspendScheduler (Input: none, Output: 32 bytes) 
 		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_SUSPEND_SCHEDULAR - NI");
+		Memory::Write_U32(0, BufferOut); // no error
 		break;
 
 	case IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR: // NWC24iResumeForCloseLib
@@ -141,6 +142,7 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_NWC24_EXEC_RESUME_SCHEDULAR : // NWC24iResumeForCloseLib
 		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_EXEC_RESUME_SCHEDULAR - NI");
+		Memory::Write_U32(0, BufferOut); // no error
 		break;
 
 	case IOCTL_NWC24_STARTUP_SOCKET: // NWC24iStartupSocket
@@ -169,7 +171,6 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_NWC24_REQUEST_GENERATED_USER_ID: // (Input: none, Output: 32 bytes)
 		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
-		
 		if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_INITIAL)
 		{
 			std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
@@ -212,14 +213,16 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 			
 		}
 		else if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_GENERATED)
+		{
 			Memory::Write_U32(nwc24_err_t::WC24_ERR_ID_GENERATED, BufferOut);
+		}
 		else if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_REGISTERED)
+		{
 			Memory::Write_U32(nwc24_err_t::WC24_ERR_ID_REGISTERED, BufferOut);
-		
+		}
 		Memory::Write_U64(config.Id(), BufferOut + 4);
 		Memory::Write_U32(config.CreationStage(), BufferOut + 0xC);
 		break;
-
 	case IOCTL_NWC24_GET_SCHEDULAR_STAT:
 		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_GET_SCHEDULAR_STAT - NI");
 		break;
@@ -1656,9 +1659,9 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 				hints.ai_socktype	= Memory::Read_U32(_BufferIn3 + 0x8);
 				hints.ai_protocol	= Memory::Read_U32(_BufferIn3 + 0xC);
 				hints.ai_addrlen	= Memory::Read_U32(_BufferIn3 + 0x10);
-				hints.ai_canonname	= (char*)Memory::GetPointer(Memory::Read_U32(_BufferIn3 + 0x14));
-				hints.ai_addr		= (sockaddr *)Memory::GetPointer(Memory::Read_U32(_BufferIn3 + 0x18));
-				hints.ai_next		= (addrinfo *)Memory::GetPointer(Memory::Read_U32(_BufferIn3 + 0x1C));
+				hints.ai_canonname	= (char*)Memory::Read_U32(_BufferIn3 + 0x14);
+				hints.ai_addr		= (sockaddr *)Memory::Read_U32(_BufferIn3 + 0x18);
+				hints.ai_next		= (addrinfo *)Memory::Read_U32(_BufferIn3 + 0x1C);
 			}
 
 			char* pNodeName = NULL;

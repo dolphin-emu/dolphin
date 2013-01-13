@@ -182,20 +182,20 @@ void CWII_IPC_HLE_Device_FileIO::CloseFile()
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
 {
 	u32 ReturnValue	= FS_RESULT_FATAL;
-	const u32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
-	const u32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
+	const s32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
+	const s32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
 
 	
 	if (OpenFile())
 	{
 		ReturnValue = FS_RESULT_FATAL;
 
-		const u64 fileSize = m_pFileHandle.GetSize();
-		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), fileSize);
+		const s64 fileSize = m_pFileHandle.GetSize();
+		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx) (%08X)", SeekPosition, Mode, m_Name.c_str(), fileSize, m_DeviceID);
 		switch (Mode){
 			case 0:
 			{
-				if (SeekPosition <= fileSize)
+				if ((SeekPosition >=0) && (SeekPosition <= fileSize))
 				{
 					m_SeekPos = SeekPosition;
 					ReturnValue = m_SeekPos;
@@ -204,8 +204,8 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 			}
 			case 1:
 			{
-				u32 wantedPos = SeekPosition+m_SeekPos;
-				if (wantedPos <= fileSize)
+				s32 wantedPos = SeekPosition+m_SeekPos;
+				if (wantedPos >=0 && wantedPos <= fileSize)
 				{
 					m_SeekPos = wantedPos;
 					ReturnValue = m_SeekPos;
@@ -214,8 +214,8 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 			}
 			case 2:
 			{
-				u64 wantedPos = fileSize+m_SeekPos;
-				if (wantedPos <= fileSize)
+				s32 wantedPos = fileSize+m_SeekPos;
+				if (wantedPos >=0 && wantedPos <= fileSize)
 				{
 					m_SeekPos = wantedPos;
 					ReturnValue = m_SeekPos;
@@ -328,12 +328,12 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 	{
 	case ISFS_IOCTL_GETFILESTATS:
 		{
+			INFO_LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
 			if (OpenFile())
 			{
 				u32 m_FileLength = (u32)m_pFileHandle.GetSize();
 
 				const u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-				INFO_LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
 				INFO_LOG(WII_IPC_FILEIO, "  File: %s, Length: %i, Pos: %i", m_Name.c_str(), m_FileLength, m_SeekPos);
 
 				Memory::Write_U32(m_FileLength, BufferOut);
