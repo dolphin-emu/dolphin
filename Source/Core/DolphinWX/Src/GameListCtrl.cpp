@@ -19,6 +19,7 @@
 
 #include <wx/imaglist.h>
 #include <wx/fontmap.h>
+#include <wx/filename.h>
 
 #include <algorithm>
 #include <memory>
@@ -36,6 +37,7 @@
 #include "Main.h"
 
 #include "../resources/Flag_Europe.xpm"
+#include "../resources/Flag_Germany.xpm"
 #include "../resources/Flag_France.xpm"
 #include "../resources/Flag_Italy.xpm"
 #include "../resources/Flag_Japan.xpm"
@@ -43,6 +45,8 @@
 #include "../resources/Flag_Taiwan.xpm"
 #include "../resources/Flag_Korea.xpm"
 #include "../resources/Flag_Unknown.xpm"
+#include "../resources/Flag_SDK.xpm"
+
 #include "../resources/Platform_Wad.xpm"
 #include "../resources/Platform_Wii.xpm"
 #include "../resources/Platform_Gamecube.xpm"
@@ -191,6 +195,8 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE] =
 		m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY] =
+		m_imageListSmall->Add(wxBitmap(Flag_Germany_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE] =
 		m_imageListSmall->Add(wxBitmap(Flag_France_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA] =
@@ -204,7 +210,7 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN] =
 		m_imageListSmall->Add(wxBitmap(Flag_Taiwan_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SDK] =
-		m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm), wxNullBitmap);
+		m_imageListSmall->Add(wxBitmap(Flag_SDK_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN] =
 		m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm), wxNullBitmap);
 
@@ -982,9 +988,11 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
-	std::string path;
-	SplitPath(iso->GetFileName(), &path, 0, 0);
-	WxUtils::Explore(path.c_str());
+
+	wxString strPath(iso->GetFileName().c_str(), wxConvUTF8);
+	wxFileName path = wxFileName::FileName(strPath);
+	path.MakeAbsolute();
+	WxUtils::Explore(path.GetPath().char_str());
 }
 
 void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
