@@ -21,8 +21,6 @@
 #include "FileUtil.h"
 #include "Core.h"
 
-#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
-
 template <typename T>
 IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& setting, int minVal, int maxVal, long style) :
 	wxSpinCtrl(parent, -1, label, wxDefaultPosition, wxDefaultSize, style),
@@ -30,7 +28,7 @@ IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& se
 {
 	SetRange(minVal, maxVal);
 	SetValue(m_setting);
-	_connect_macro_(this, IntegerSetting::UpdateValue, wxEVT_COMMAND_SPINCTRL_UPDATED, this);
+	this->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &IntegerSetting::UpdateValue, this);
 }
 
 
@@ -70,7 +68,7 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 
 	// TODO: How to get the translated plugin name?
 	choice_backend->SetStringSelection(wxString::FromAscii(g_video_backend->GetName().c_str()));
-	_connect_macro_(choice_backend, VideoConfigDialog::Event_Backend, wxEVT_COMMAND_CHOICE_SELECTED, this);
+	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDialog::Event_Backend, this);
 
 	szr_rendering->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
 	szr_rendering->Add(choice_backend, 1, 0, 0);
