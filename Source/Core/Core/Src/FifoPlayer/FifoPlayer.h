@@ -87,7 +87,6 @@ private:
 
 	void LoadMemory();
 
-	u16 ReadCP(u32 address);
 	void WriteCP(u32 address, u16 value);
 	void WritePI(u32 address, u32 value);
 
