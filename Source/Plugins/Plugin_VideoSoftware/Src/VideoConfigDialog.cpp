@@ -28,7 +28,7 @@ IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& se
 {
 	SetRange(minVal, maxVal);
 	SetValue(m_setting);
-	this->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &IntegerSetting::UpdateValue, this);
+	Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &IntegerSetting::UpdateValue, this);
 }
 
 
