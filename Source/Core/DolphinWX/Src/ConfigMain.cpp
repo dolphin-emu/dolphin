@@ -17,10 +17,12 @@
 
 #include <string> // System
 #include <vector>
+#include <algorithm>
 #include <wx/spinbutt.h>
 
 #include "Common.h"
 #include "CommonPaths.h"
+#include "FileSearch.h"
 
 #include "Core.h" // Core
 #include "HW/EXI.h"
@@ -576,10 +578,40 @@ void CConfigMain::CreateGUIControls()
 	sInterface->Add(InterfaceLang, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterface->AddStretchSpacer();
 	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
+
+	// theme selection
+	auto const theme_selection = new wxChoice(DisplayPage, wxID_ANY);
+
+    CFileSearch cfs(CFileSearch::XStringVector(1, "*"), CFileSearch::XStringVector(1, File::GetUserPath(D_THEMES_IDX)));
+	auto const& sv = cfs.GetFileNames();
+	std::for_each(sv.begin(), sv.end(), [theme_selection](const std::string& filename)
+	{
+		std::string name, ext;
+		SplitPath(filename, NULL, &name, &ext);
+
+		name += ext;
+		theme_selection->Append(name);
+
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name == name)
+			theme_selection->SetSelection(theme_selection->GetCount() - 1);
+	});
+
+	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, [this,theme_selection](wxEvent&)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = theme_selection->GetStringSelection();
+		main_frame->InitBitmaps();
+	});
+
+	auto const scInterface = new wxBoxSizer(wxHORIZONTAL);
+	scInterface->Add(TEXT_BOX(DisplayPage, _("Theme:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	scInterface->Add(theme_selection, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	scInterface->AddStretchSpacer();
+
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Interface Settings"));
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
 	sbInterface->Add(OnScreenDisplayMessages, 0, wxALL, 5);
+	sbInterface->Add(scInterface, 0, wxEXPAND | wxALL, 5);
 	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
 	sDisplayPage = new wxBoxSizer(wxVERTICAL);
 	sDisplayPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
