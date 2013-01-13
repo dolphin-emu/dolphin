@@ -313,7 +313,7 @@ void CpuThread()
 	if (_CoreParameter.bLockThreads)
 		Common::SetCurrentThreadAffinity(1);  // Force to first core
 
-	#if defined(_WIN32) && defined(_M_X64)
+	#if defined(_M_X64)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
 
