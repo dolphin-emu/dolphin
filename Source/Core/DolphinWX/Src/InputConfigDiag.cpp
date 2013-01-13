@@ -971,7 +971,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	UpdateDeviceComboBox();
 	UpdateProfileComboBox();
 
-	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(InputConfigDialog::ClickSave));
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InputConfigDialog::ClickSave, this, wxID_OK);
 
 	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
 	szr->Add(m_pad_notebook, 0, wxEXPAND|wxTOP|wxLEFT|wxRIGHT, 5);
@@ -982,7 +982,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 
 	// live preview update timer
 	m_update_timer = new wxTimer(this, -1);
-	Connect(wxID_ANY, wxEVT_TIMER, wxTimerEventHandler(InputConfigDialog::UpdateBitmaps), (wxObject*)0, this);
+	Bind(wxEVT_TIMER, &InputConfigDialog::UpdateBitmaps, this);
 	m_update_timer->Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
 }
 

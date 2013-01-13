@@ -424,9 +424,7 @@ CFrame::CFrame(wxFrame* parent,
 	// -------------------------
 	// Connect event handlers
 
-	m_Mgr->Connect(wxID_ANY, wxEVT_AUI_RENDER, // Resize
-		wxAuiManagerEventHandler(CFrame::OnManagerResize),
-		(wxObject*)0, this);
+	m_Mgr->Bind(wxEVT_AUI_RENDER, &CFrame::OnManagerResize, this);
 	// ----------
 
 	// Update controls

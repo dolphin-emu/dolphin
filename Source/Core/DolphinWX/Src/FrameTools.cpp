@@ -958,15 +958,9 @@ void CFrame::StartGame(const std::string& filename)
 		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 		m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
-		m_RenderFrame->Connect(wxID_ANY, wxEVT_CLOSE_WINDOW,
-				wxCloseEventHandler(CFrame::OnRenderParentClose),
-				(wxObject*)0, this);
-		m_RenderFrame->Connect(wxID_ANY, wxEVT_ACTIVATE,
-				wxActivateEventHandler(CFrame::OnActive),
-				(wxObject*)0, this);
-		m_RenderFrame->Connect(wxID_ANY, wxEVT_MOVE,
-				wxMoveEventHandler(CFrame::OnRenderParentMove),
-				(wxObject*)0, this);
+		m_RenderFrame->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnRenderParentClose, this);
+		m_RenderFrame->Bind(wxEVT_ACTIVATE, &CFrame::OnActive, this);
+		m_RenderFrame->Bind(wxEVT_MOVE, &CFrame::OnRenderParentMove, this);
 		m_RenderParent = new CPanel(m_RenderFrame, wxID_ANY);
 		m_RenderFrame->Show();
 	}
@@ -999,30 +993,14 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderParent->SetFocus();
 #endif
 		
-		wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
-				wxKeyEventHandler(CFrame::OnKeyDown),
-				(wxObject*)0, this);
-		wxTheApp->Connect(wxID_ANY, wxEVT_KEY_UP,
-				wxKeyEventHandler(CFrame::OnKeyUp),
-				(wxObject*)0, this);
-		wxTheApp->Connect(wxID_ANY, wxEVT_RIGHT_DOWN, // Mouse
-				wxMouseEventHandler(CFrame::OnMouse),
-				(wxObject*)0, this);
-		wxTheApp->Connect(wxID_ANY, wxEVT_RIGHT_UP,
-				wxMouseEventHandler(CFrame::OnMouse),
-				(wxObject*)0, this);
-		wxTheApp->Connect(wxID_ANY, wxEVT_MIDDLE_DOWN,
-				wxMouseEventHandler(CFrame::OnMouse),
-				(wxObject*)0, this);
-		wxTheApp->Connect(wxID_ANY, wxEVT_MIDDLE_UP,
-				wxMouseEventHandler(CFrame::OnMouse),
-				(wxObject*)0, this);
-		wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
-				wxMouseEventHandler(CFrame::OnMouse),
-				(wxObject*)0, this);
-		m_RenderParent->Connect(wxID_ANY, wxEVT_SIZE,
-				wxSizeEventHandler(CFrame::OnRenderParentResize),
-				(wxObject*)0, this);
+		wxTheApp->Bind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
+		wxTheApp->Bind(wxEVT_KEY_UP, &CFrame::OnKeyUp, this);
+		wxTheApp->Bind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
+		wxTheApp->Bind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
+		wxTheApp->Bind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
+		wxTheApp->Bind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
+		wxTheApp->Bind(wxEVT_MOTION, &CFrame::OnMouse, this);
+		m_RenderParent->Bind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
 	}
 
 	wxEndBusyCursor();
@@ -1125,30 +1103,18 @@ void CFrame::DoStop()
 		m_RenderFrame->SetTitle(wxString::FromAscii(scm_rev_str));
 
 		// Destroy the renderer frame when not rendering to main
-		m_RenderParent->Disconnect(wxID_ANY, wxEVT_SIZE,
-				wxSizeEventHandler(CFrame::OnRenderParentResize),
-				(wxObject*)0, this);
-		wxTheApp->Disconnect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
-				wxKeyEventHandler(CFrame::OnKeyDown),
-				(wxObject*)0, this);
-		wxTheApp->Disconnect(wxID_ANY, wxEVT_KEY_UP,
-				wxKeyEventHandler(CFrame::OnKeyUp),
-				(wxObject*)0, this);
-		wxTheApp->Disconnect(wxID_ANY, wxEVT_RIGHT_DOWN, // Mouse
-				wxMouseEventHandler(CFrame::OnMouse),
-				(wxObject*)0, this);
-		wxTheApp->Disconnect(wxID_ANY, wxEVT_RIGHT_UP,
-				wxMouseEventHandler(CFrame::OnMouse),
-				(wxObject*)0, this);
-		wxTheApp->Disconnect(wxID_ANY, wxEVT_MIDDLE_DOWN,
-				wxMouseEventHandler(CFrame::OnMouse),
-				(wxObject*)0, this);
-		wxTheApp->Disconnect(wxID_ANY, wxEVT_MIDDLE_UP,
-				wxMouseEventHandler(CFrame::OnMouse),
-				(wxObject*)0, this);
-		wxTheApp->Disconnect(wxID_ANY, wxEVT_MOTION,
-				wxMouseEventHandler(CFrame::OnMouse),
-				(wxObject*)0, this);
+		m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
+
+		// Keyboard
+		wxTheApp->Unbind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
+		wxTheApp->Unbind(wxEVT_KEY_UP, &CFrame::OnKeyUp, this);
+
+		// Mouse
+		wxTheApp->Unbind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
+		wxTheApp->Unbind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
+		wxTheApp->Unbind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
+		wxTheApp->Unbind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
+		wxTheApp->Unbind(wxEVT_MOTION, &CFrame::OnMouse, this);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxNullCursor);
 		DoFullscreen(false);

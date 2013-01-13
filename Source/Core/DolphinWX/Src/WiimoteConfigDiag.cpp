@@ -173,8 +173,8 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	main_sizer->Add(general_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(WiimoteConfigDiag::Save));
-	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(WiimoteConfigDiag::Cancel));
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::Save, this, wxID_OK);
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::Cancel, this, wxID_CANCEL);
 
 	SetSizerAndFit(main_sizer);
 	Center();
