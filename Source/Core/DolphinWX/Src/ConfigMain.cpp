@@ -18,7 +18,6 @@
 #include <string> // System
 #include <vector>
 #include <algorithm>
-#include <functional>
 #include <wx/spinbutt.h>
 
 #include "Common.h"
@@ -42,6 +41,14 @@
 #include "HotkeyDlg.h"
 #include "Main.h"
 #include "VideoBackendBase.h"
+
+#if defined(__APPLE__)
+#include <tr1/functional>
+using std::tr1::function;
+#else
+#include <functional>
+using std::function;
+#endif
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
 
@@ -597,7 +604,8 @@ void CConfigMain::CreateGUIControls()
 			theme_selection->SetSelection(theme_selection->GetCount() - 1);
 	});
 
-	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, std::function<void(wxEvent&)>([this,theme_selection](wxEvent&)
+	// std::function = avoid error on msvc
+	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, function<void(wxEvent&)>([this,theme_selection](wxEvent&)
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = theme_selection->GetStringSelection();
 		main_frame->InitBitmaps();
