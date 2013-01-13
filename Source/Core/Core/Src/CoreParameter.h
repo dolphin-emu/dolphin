@@ -123,6 +123,7 @@ struct SCoreStartupParameter
 
 	// Interface settings
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;
+	std::string theme_name;
 
 	// Hotkeys
 	int iHotkey[NUM_HOTKEYS];

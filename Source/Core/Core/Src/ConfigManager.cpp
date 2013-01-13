@@ -174,6 +174,7 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "ShowLogWindow",		m_InterfaceLogWindow);
 	ini.Set("Interface", "ShowLogConfigWindow",	m_InterfaceLogConfigWindow);
 	ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
+	ini.Set("Interface", "ThemeName",			m_LocalCoreStartupParameter.theme_name);
 
 	// Hotkeys
 	for (int i = 0; i < NUM_HOTKEYS; i++)
@@ -311,6 +312,7 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowLogWindow",		&m_InterfaceLogWindow,							false);
 		ini.Get("Interface", "ShowLogConfigWindow",	&m_InterfaceLogConfigWindow,					false);
 		ini.Get("Interface", "ShowConsole",			&m_InterfaceConsole,							false);
+		ini.Get("Interface", "ThemeName",			&m_LocalCoreStartupParameter.theme_name,		"Boomy");
 
 		// Hotkeys
 		for (int i = 0; i < NUM_HOTKEYS; i++)

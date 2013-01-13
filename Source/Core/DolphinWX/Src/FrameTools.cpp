@@ -495,7 +495,7 @@ void CFrame::RecreateToolbar()
 
 void CFrame::InitBitmaps()
 {
-	wxString dir("theme/");
+	wxString dir(File::GetUserPath(D_THEMES_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/");
 
 	m_Bitmaps[Toolbar_FileOpen].LoadFile(dir + "open.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Refresh].LoadFile(dir + "refresh.png", wxBITMAP_TYPE_PNG);
