@@ -18,6 +18,7 @@
 #include <string> // System
 #include <vector>
 #include <algorithm>
+#include <functional>
 #include <wx/spinbutt.h>
 
 #include "Common.h"
@@ -596,11 +597,11 @@ void CConfigMain::CreateGUIControls()
 			theme_selection->SetSelection(theme_selection->GetCount() - 1);
 	});
 
-	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, [this,theme_selection](wxEvent&)
+	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, std::function<void(wxEvent&)>([this,theme_selection](wxEvent&)
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = theme_selection->GetStringSelection();
 		main_frame->InitBitmaps();
-	});
+	}));
 
 	auto const scInterface = new wxBoxSizer(wxHORIZONTAL);
 	scInterface->Add(TEXT_BOX(DisplayPage, _("Theme:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
