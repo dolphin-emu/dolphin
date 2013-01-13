@@ -115,7 +115,6 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
 
 ControlState KeyboardMouse::Key::GetState() const
 {
-	const KeyCode shift = XKeysymToKeycode(m_display, XK_Shift_L);
 	return (m_keyboard[m_keycode / 8] & (1 << (m_keycode % 8))) != 0;
 }
 
