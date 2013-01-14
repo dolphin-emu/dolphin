@@ -43,7 +43,6 @@ VideoConfig::VideoConfig()
 	backend_info.APIType = API_NONE;
 	backend_info.bUseRGBATextures = false;
 	backend_info.bSupports3DVision = false;
-	backend_info.bSupportsGLSL = false;
 }
 
 void VideoConfig::Load(const char *ini_file)
@@ -174,6 +173,7 @@ void VideoConfig::VerifyValidity()
 	if (!backend_info.bSupports3DVision) b3DVision = false;
 	if (!backend_info.bSupportsFormatReinterpretation) bEFBEmulateFormatChanges = false;
 	if (!backend_info.bSupportsPixelLighting) bEnablePixelLighting = false;
+	if (backend_info.APIType != API_OPENGL) backend_info.bSupportsGLSLUBO = false;
 }
 
 void VideoConfig::Save(const char *ini_file)

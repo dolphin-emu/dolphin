@@ -163,8 +163,6 @@ struct VideoConfig
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
 		
-		bool bSupportsGLSL;
-		bool bSupportsGLSLBlend;
 		bool bSupportsGLSLUBO;
 		bool bSupportsGLSLCache;
 	} backend_info;

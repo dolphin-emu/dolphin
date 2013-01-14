@@ -300,7 +300,7 @@ Renderer::Renderer()
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 
 	if (glewIsSupported("GL_ARB_blend_func_extended"))
-		g_Config.backend_info.bSupportsGLSLBlend = true;
+		g_Config.backend_info.bSupportsDualSourceBlend = true;
 	if (glewIsSupported("GL_ARB_uniform_buffer_object"))
 		g_Config.backend_info.bSupportsGLSLUBO = true;
 	if (glewIsSupported("GL_ARB_get_program_binary"))
@@ -308,7 +308,7 @@ Renderer::Renderer()
 		
 		UpdateActiveConfig();
 		OSD::AddMessage(StringFromFormat("Supports Blending: %s UBOs: %s Cache: %s",
-				g_ActiveConfig.backend_info.bSupportsGLSLBlend ? "True" : "False",
+				g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "True" : "False",
 				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False",
 				g_ActiveConfig.backend_info.bSupportsGLSLCache ? "True" : "False").c_str(), 5000);
 			
@@ -973,7 +973,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
-	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsGLSLBlend;
+	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
 	if (changes & 1)
 		// blend enable change
@@ -985,7 +985,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		GLenum equation = newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
 		GLenum equationAlpha = useDualSource ? GL_FUNC_ADD : equation;
 		
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
+		if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 			glBlendEquationSeparate(equation, equationAlpha);
 		else
 			glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
@@ -993,7 +993,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	if (changes & 0x1F8)
 	{
-		if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
+		if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 		{
 			GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
 			GLenum srcFactorAlpha = srcFactor;

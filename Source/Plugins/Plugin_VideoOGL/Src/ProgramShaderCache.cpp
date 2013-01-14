@@ -100,7 +100,7 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 
 void ProgramShaderCache::SetProgramBindings ( ProgramShaderCache::PCacheEntry& entry )
 {
-	if (g_ActiveConfig.backend_info.bSupportsGLSLBlend)
+	if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 	{
 		// So we do support extended blending
 		// So we need to set a few more things here.
