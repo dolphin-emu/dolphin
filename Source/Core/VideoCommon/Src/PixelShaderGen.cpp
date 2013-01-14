@@ -740,11 +740,11 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if (!Pretest)
 		{
 			// alpha test will always fail, so restart the shader and just make it an empty function		
-			WRITE(p, "\tocol0 = float4(0.0f);\n");
+			WRITE(p, "\tocol0 = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
 			if(DepthTextureEnable)
 				WRITE(p, "\tdepth = 1.f;\n");
 			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "\tocol1 = float4(0.0f);\n");
+				WRITE(p, "\tocol1 = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
 			if (ApiType == API_OPENGL)
 			{
 				if (DepthTextureEnable)
@@ -1369,9 +1369,9 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
 	WRITE(p, ")) {\n");
 
-	WRITE(p, "\t\tocol0 = float4(0.0f);\n");
+	WRITE(p, "\t\tocol0 = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-		WRITE(p, "\t\tocol1 = float4(0.0f);\n");
+		WRITE(p, "\t\tocol1 = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
 	if (DepthTextureEnable)
 		WRITE(p, "\t\tdepth = 1.f;\n");
 
