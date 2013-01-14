@@ -96,18 +96,20 @@ namespace AudioCommon
 	{
 		std::vector<std::string> backends;
 
-		if (NullSound::isValid())  
+		if (NullSound::isValid())
 			backends.push_back(BACKEND_NULLSOUND);
-		if (DSound::isValid())  
+		if (DSound::isValid())
 			backends.push_back(BACKEND_DIRECTSOUND);
-		if (XAudio2::isValid())  
+		if (XAudio2::isValid())
 			backends.push_back(BACKEND_XAUDIO2);
-		if (AOSound::isValid())   
+		if (AOSound::isValid())
 			backends.push_back(BACKEND_AOSOUND);
-		if (AlsaSound::isValid()) 
+		if (AlsaSound::isValid())
 			backends.push_back(BACKEND_ALSA);
-		if (CoreAudioSound::isValid())       
+		if (CoreAudioSound::isValid())
 			backends.push_back(BACKEND_COREAUDIO);
+		if (PulseAudio::isValid())
+			backends.push_back(BACKEND_PULSEAUDIO);
 	   
 		return backends;
 	}

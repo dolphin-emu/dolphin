@@ -77,7 +77,7 @@ bool PulseAudio::PulseInit()
 	pa_sample_spec ss = {};
 	ss.format = PA_SAMPLE_S16LE;
 	ss.channels = 2;
-	ss.rate = m_mixer->GetSampleRate();	
+	ss.rate = m_mixer->GetSampleRate();
 
 	int error;
 	pa = pa_simple_new(nullptr, "dolphin-emu", PA_STREAM_PLAYBACK,
