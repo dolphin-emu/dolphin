@@ -117,7 +117,7 @@ void StateChange(EMUSTATE_CHANGE newState);
 
 int FindWiimotes(Wiimote** wm, int max_wiimotes);
 
-bool IsValidBluetoothName(const char* name);
+bool IsValidBluetoothName(const std::string& name);
 
 }; // WiimoteReal
 

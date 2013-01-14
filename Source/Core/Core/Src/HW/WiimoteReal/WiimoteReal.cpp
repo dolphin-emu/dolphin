@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <queue>
+#include <algorithm>
 #include <stdlib.h>
 
 #include "Common.h"
@@ -512,19 +513,11 @@ void StateChange(EMUSTATE_CHANGE newState)
 	// TODO: disable/enable auto reporting, maybe
 }
 
-bool IsValidBluetoothName(const char* name) {
-	static const char* kValidWiiRemoteBluetoothNames[] = {
-		"Nintendo RVL-CNT-01",
-		"Nintendo RVL-CNT-01-TR",
-		"Nintendo RVL-WBC-01",
-	};
-	if (name == NULL)
-		return false;
-	for (size_t i = 0; i < ARRAYSIZE(kValidWiiRemoteBluetoothNames); i++)
-		if (strcmp(name, kValidWiiRemoteBluetoothNames[i]) == 0)
-			return true;
-	return false;
+bool IsValidBluetoothName(const std::string& name)
+{
+	std::string const prefix("Nintendo RVL-");
+	return name.size() > prefix.size() &&
+		std::equal(prefix.begin(), prefix.end(), name.begin());
 }
-
 
 }; // end of namespace
