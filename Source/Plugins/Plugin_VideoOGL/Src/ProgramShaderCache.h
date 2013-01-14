@@ -117,6 +117,7 @@ public:
 
 	static void SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count);
 	static void SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count);
+	static void UploadConstants();
 
 	static void Init(void);
 	static void Shutdown(void);
@@ -154,6 +155,9 @@ private:
 
 	static GLuint s_ps_vs_ubo;
 	static GLintptr s_vs_data_offset;
+	static float *s_ubo_buffer;
+	static u32 s_ubo_buffer_size;
+	static bool s_ubo_dirty;
 	static void SetProgramVariables(PCacheEntry &entry);
 	static void SetProgramBindings(PCacheEntry &entry);
 };

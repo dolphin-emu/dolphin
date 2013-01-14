@@ -208,6 +208,7 @@ void VertexManager::vFlush()
 	// set global constants
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
+	ProgramShaderCache::UploadConstants();
 	
 	// setup the pointers
 	if (g_nativeVertexFmt)

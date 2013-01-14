@@ -25,6 +25,9 @@ GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShade
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 GLuint ProgramShaderCache::s_ps_vs_ubo;
 GLintptr ProgramShaderCache::s_vs_data_offset;
+float *ProgramShaderCache::s_ubo_buffer;
+u32 ProgramShaderCache::s_ubo_buffer_size;
+bool ProgramShaderCache::s_ubo_dirty;
 
 LinearDiskCache<ProgramShaderCache::ShaderUID, u8> g_program_disk_cache;
 GLenum ProgramFormat;
@@ -169,15 +172,23 @@ void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 
 void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
 {
-	glBufferSubData(GL_UNIFORM_BUFFER, offset * sizeof(float) * 4,
-		count * sizeof(float) * 4, f);
+	s_ubo_dirty = true;
+	memcpy(s_ubo_buffer+(offset*4), f, count*4*sizeof(float));
 }
 
 void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
 {
-	glBufferSubData(GL_UNIFORM_BUFFER, s_vs_data_offset + offset * sizeof(float) * 4,
-		count * sizeof(float) * 4, f);
+	s_ubo_dirty = true;
+	memcpy(s_ubo_buffer+(offset*4)+s_vs_data_offset/sizeof(float), f, count*4*sizeof(float));
 }
+
+void ProgramShaderCache::UploadConstants()
+{
+	if(s_ubo_dirty)
+		glBufferData(GL_UNIFORM_BUFFER, s_ubo_buffer_size, s_ubo_buffer, GL_STREAM_DRAW);
+	s_ubo_dirty = false;
+}
+
 
 GLuint ProgramShaderCache::GetCurrentProgram(void)
 {
@@ -202,19 +213,23 @@ void ProgramShaderCache::Init(void)
 		GLintptr const ps_data_size = ROUND_UP(C_PENVCONST_END * sizeof(float) * 4, Align);
 		GLintptr const vs_data_size = ROUND_UP(C_VENVCONST_END * sizeof(float) * 4, Align);
 		s_vs_data_offset = ps_data_size;
+		s_ubo_buffer_size = ps_data_size + vs_data_size;
 
 		// We multiply by *4*4 because we need to get down to basic machine units.
 		// So multiply by four to get how many floats we have from vec4s
 		// Then once more to get bytes
 		glGenBuffers(1, &s_ps_vs_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, s_ps_vs_ubo);
-		glBufferData(GL_UNIFORM_BUFFER, ps_data_size + vs_data_size, NULL, GL_DYNAMIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, s_ubo_buffer_size, NULL, GL_STREAM_DRAW);
 
 		// Now bind the buffer to the index point
 		// We know PS is 0 since we have it statically set in the shader
 		// Repeat for VS shader
 		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_ps_vs_ubo, 0, ps_data_size);
 		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_vs_data_offset, vs_data_size);
+		
+		s_ubo_buffer = new float[s_ubo_buffer_size/sizeof(float)];
+		s_ubo_dirty = true;
 	}
 
 	// Read our shader cache, only if supported
@@ -256,6 +271,8 @@ void ProgramShaderCache::Shutdown(void)
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glDeleteBuffers(1, &s_ps_vs_ubo);
 		s_ps_vs_ubo = 0;
+		delete [] s_ubo_buffer;
+		s_ubo_buffer = 0;
 	}
 }
 
