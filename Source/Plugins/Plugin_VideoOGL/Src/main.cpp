@@ -130,7 +130,7 @@ void GetShaders(std::vector<std::string> &shaders)
 void InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_OPENGL;
-	g_Config.backend_info.bUseRGBATextures = false;
+	g_Config.backend_info.bUseRGBATextures = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = true; // but may be disabled for old gpus
 	g_Config.backend_info.bSupportsFormatReinterpretation = false;
