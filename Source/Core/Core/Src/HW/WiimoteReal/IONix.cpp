@@ -215,7 +215,7 @@ void Wiimote::Close()
 
 bool Wiimote::IsOpen() const
 {
-	return cmd_sock != -1 && int_sock != -1;
+	return IsConnected() && cmd_sock != -1 && int_sock != -1;
 }
 
 int Wiimote::IORead(unsigned char *buf)
