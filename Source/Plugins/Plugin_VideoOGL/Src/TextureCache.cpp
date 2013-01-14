@@ -61,6 +61,8 @@ static FRAGMENTSHADER s_ColorMatrixProgram;
 static FRAGMENTSHADER s_DepthMatrixProgram;
 static GLuint s_ColorMatrixUniform;
 static GLuint s_DepthMatrixUniform;
+static u32 s_ColorCbufid;
+static u32 s_DepthCbufid;
 static VERTEXSHADER s_vProgram;
 
 struct VBOCache {
@@ -318,10 +320,14 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		if(srcFormat == PIXELFMT_Z24) {
 			ProgramShaderCache::SetBothShaders(s_DepthMatrixProgram.glprogid, s_vProgram.glprogid);
-			glUniform4fv(s_DepthMatrixUniform, 5, colmat);
+			if(s_DepthCbufid != cbufid)
+				glUniform4fv(s_DepthMatrixUniform, 5, colmat);
+			s_DepthCbufid = cbufid;
 		} else {
 			ProgramShaderCache::SetBothShaders(s_ColorMatrixProgram.glprogid, s_vProgram.glprogid);
-			glUniform4fv(s_ColorMatrixUniform, 7, colmat);
+			if(s_ColorCbufid != cbufid)
+				glUniform4fv(s_ColorMatrixUniform, 7, colmat);
+			s_ColorCbufid = cbufid;
 		}
 		GL_REPORT_ERRORD();
 
@@ -543,6 +549,8 @@ TextureCache::TextureCache()
 	s_ColorMatrixUniform = glGetUniformLocation(ProgramShaderCache::GetCurrentProgram(), "colmat");
 	ProgramShaderCache::SetBothShaders(s_DepthMatrixProgram.glprogid, s_vProgram.glprogid);
 	s_DepthMatrixUniform = glGetUniformLocation(ProgramShaderCache::GetCurrentProgram(), "colmat");
+	s_ColorCbufid = -1;
+	s_DepthCbufid = -1;
 }
 
 

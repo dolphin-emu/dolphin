@@ -361,12 +361,14 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	ProgramShaderCache::SetBothShaders(texconv_shader.glprogid, s_vProgram.glprogid);
 		
 	float sampleStride = bScaleByHalf ? 2.f : 1.f;
-	TextureConversionShader::SetShaderParameters((float)expandedWidth,
-		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
-		(float)Renderer::EFBToScaledX(source.left),
-		(float)Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight),
-		Renderer::EFBToScaledXf(sampleStride),
-		Renderer::EFBToScaledYf(sampleStride));
+	
+	float params[] = {
+		Renderer::EFBToScaledXf(sampleStride), Renderer::EFBToScaledYf(sampleStride),
+		0.0f, 0.0f,
+		(float)expandedWidth, (float)Renderer::EFBToScaledY(expandedHeight)-1,
+		(float)Renderer::EFBToScaledX(source.left), (float)Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight)
+	};
+	glUniform4fv(glGetUniformLocation(ProgramShaderCache::GetCurrentProgram(), I_COLORS), 2, params);
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;

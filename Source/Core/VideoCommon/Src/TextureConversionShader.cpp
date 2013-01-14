@@ -76,31 +76,16 @@ const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 	return result;
 }
 
-const char *WriteLocation(API_TYPE ApiType)
-{
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		return "";
-	static char result[64];
-	sprintf(result, "uniform ");
-	return result;
-}
-
 // block dimensions : widthStride, heightStride 
 // texture dims : width, height, x offset, y offset
 void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 {
-    // [0] left, top, right, bottom of source rectangle within source texture
-    // [1] width and height of destination texture in pixels
-    // Two were merged for GLSL
-    if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140) uniform PSBlock {\n");
-		
-    WRITE(p, "%sfloat4 " I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
-    
-     if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "};\n");
+	// [0] left, top, right, bottom of source rectangle within source texture
+	// [1] width and height of destination texture in pixels
+	// Two were merged for GLSL
+	WRITE(p, "uniform float4 " I_COLORS"[2] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
 
-    float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
+	float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
 	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
 	float samples = (float)GetEncodedSampleCount(format);
 	if (ApiType == API_OPENGL)
@@ -175,16 +160,12 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 // texture dims : width, height, x offset, y offset
 void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 {	
-    // [0] left, top, right, bottom of source rectangle within source texture
-    // [1] width and height of destination texture in pixels
-    // Two were merged for GLSL
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140) uniform PSBlock {\n");
-    WRITE(p, "%sfloat4 " I_COLORS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "};\n");
+	// [0] left, top, right, bottom of source rectangle within source texture
+	// [1] width and height of destination texture in pixels
+	// Two were merged for GLSL
+	WRITE(p, "uniform float4 " I_COLORS"[2] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
 
-    float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
+	float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
 	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
 
 	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
