@@ -44,7 +44,7 @@ Wiimote::Wiimote(const unsigned int _index)
 #ifdef __APPLE__
 	, inputlen(0)
 #elif defined(__linux__) && HAVE_BLUEZ
-	, out_sock(-1), in_sock(-1)
+	, cmd_sock(-1), int_sock(-1)
 #elif defined(_WIN32)
 	, dev_handle(0), stack(MSBT_STACK_UNKNOWN)
 #endif

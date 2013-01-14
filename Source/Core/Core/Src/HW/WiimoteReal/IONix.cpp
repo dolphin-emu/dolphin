@@ -34,11 +34,6 @@
 #include "WiimoteReal.h"
 #include "Host.h"
 
-// Identify the wiimote device by its class
-#define WM_DEV_CLASS_0				0x04
-#define WM_DEV_CLASS_1				0x25
-#define WM_DEV_CLASS_2				0x00
-
 namespace WiimoteReal
 {
 
@@ -95,9 +90,15 @@ int FindWiimotes(Wiimote** wm, int max_wiimotes)
 		// Display discovered devices
 		for (i = 0; (i < found_devices) && (found_wiimotes < max_wiimotes); ++i)
 		{
-			if ((scan_info[i].dev_class[0] == WM_DEV_CLASS_0) &&
-					(scan_info[i].dev_class[1] == WM_DEV_CLASS_1) &&
-					(scan_info[i].dev_class[2] == WM_DEV_CLASS_2))
+			char name[1000];
+			memset(name, 0, sizeof(name));
+			ERROR_LOG(WIIMOTE, "found a device...");
+			if (hci_read_remote_name(device_sock, &scan_info[i].bdaddr, sizeof(name), name, 0) < 0) {
+				ERROR_LOG(WIIMOTE, "name request failed");
+				continue;
+			}
+			ERROR_LOG(WIIMOTE, "device name %s", name);
+			if (IsValidBluetoothName(name))
 			{
 				bool new_wiimote = true;
 				// Determine if this wiimote has already been found.
@@ -146,24 +147,24 @@ bool Wiimote::Connect()
 
 	// Output channel
 	addr.l2_psm = htobs(WM_OUTPUT_CHANNEL);
-	if ((out_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
-			connect(out_sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+	if ((cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
+			connect(cmd_sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
 	{
 		DEBUG_LOG(WIIMOTE, "Unable to open output socket to wiimote.");
-		close(out_sock);
-		out_sock = -1;
+		close(cmd_sock);
+		cmd_sock = -1;
 		return false;
 	}
 
 	// Input channel
 	addr.l2_psm = htobs(WM_INPUT_CHANNEL);
-	if ((in_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
-			connect(in_sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+	if ((int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
+			connect(int_sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
 	{
 		DEBUG_LOG(WIIMOTE, "Unable to open input socket from wiimote.");
-		close(in_sock);
-		close(out_sock);
-		in_sock = out_sock = -1;
+		close(int_sock);
+		close(cmd_sock);
+		int_sock = cmd_sock = -1;
 		return false;
 	}
 
@@ -204,17 +205,17 @@ void Wiimote::Close()
 	{
 		Host_ConnectWiimote(index, false);
 
-		close(out_sock);
-		close(in_sock);
+		close(cmd_sock);
+		close(int_sock);
 
-		out_sock = -1;
-		in_sock = -1;
+		cmd_sock = -1;
+		int_sock = -1;
 	}
 }
 
 bool Wiimote::IsOpen() const
 {
-	return out_sock != -1 && in_sock != -1;
+	return cmd_sock != -1 && int_sock != -1;
 }
 
 int Wiimote::IORead(unsigned char *buf)
@@ -226,19 +227,19 @@ int Wiimote::IORead(unsigned char *buf)
 
 	fd_set fds;
 	FD_ZERO(&fds);
-	FD_SET(in_sock, &fds);
+	FD_SET(int_sock, &fds);
 
-	if (select(in_sock + 1, &fds, NULL, NULL, &tv) == -1)
+	if (select(int_sock + 1, &fds, NULL, NULL, &tv) == -1)
 	{
 		ERROR_LOG(WIIMOTE, "Unable to select wiimote %i input socket.", index + 1);
 		return 0;
 	}
 
-	if (!FD_ISSET(in_sock, &fds))
+	if (!FD_ISSET(int_sock, &fds))
 		return 0;
 
 	// Read the pending message into the buffer
-	int r = read(in_sock, buf, MAX_PAYLOAD);
+	int r = read(int_sock, buf, MAX_PAYLOAD);
 	if (r == -1)
 	{
 		// Error reading data
@@ -265,7 +266,7 @@ int Wiimote::IORead(unsigned char *buf)
 
 int Wiimote::IOWrite(unsigned char* buf, int len)
 {
-	return write(out_sock, buf, len);
+	return write(int_sock, buf, len);
 }
 
 }; // WiimoteReal

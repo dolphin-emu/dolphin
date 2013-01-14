@@ -34,8 +34,8 @@
 
 // The 4 most significant bits of the first byte of an outgoing command must be
 // 0x50 if sending on the command channel and 0xA0 if sending on the interrupt
-// channel. On Mac we use interrupt channel; on Windows/Linux, command.
-#ifndef __APPLE__
+// channel. On Mac and Linux we use interrupt channel; on Windows, command.
+#ifdef _WIN32
 #define WM_SET_REPORT				0x50
 #else
 #define WM_SET_REPORT				0xA0
