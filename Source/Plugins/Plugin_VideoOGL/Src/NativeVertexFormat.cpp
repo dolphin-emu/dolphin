@@ -73,39 +73,28 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vm->m_index_buffers);
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, vtx_decl.stride, (u8*)NULL);
+	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE, vtx_decl.stride, (u8*)NULL);
 	
-	if (vtx_decl.num_normals >= 1) {
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glNormalPointer(VarToGL(vtx_decl.normal_gl_type), vtx_decl.stride, (u8*)NULL + vtx_decl.normal_offset[0]);
-		if (vtx_decl.num_normals == 3) {
-			glEnableVertexAttribArray(SHADER_NORM1_ATTRIB);
-			glEnableVertexAttribArray(SHADER_NORM2_ATTRIB);
-			glVertexAttribPointer(SHADER_NORM1_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (u8*)NULL + vtx_decl.normal_offset[1]);
-			glVertexAttribPointer(SHADER_NORM2_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (u8*)NULL + vtx_decl.normal_offset[2]);
+	for (int i = 0; i < 3; i++) {
+		if (vtx_decl.num_normals > i) {
+			glEnableVertexAttribArray(SHADER_NORM0_ATTRIB+i);
+			glVertexAttribPointer(SHADER_NORM0_ATTRIB+i, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (u8*)NULL + vtx_decl.normal_offset[i]);
 		}
 	}
 
 	for (int i = 0; i < 2; i++) {
 		if (vtx_decl.color_offset[i] != -1) {
-			if (i == 0) {
-				glEnableClientState(GL_COLOR_ARRAY);
-				glColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (u8*)NULL + vtx_decl.color_offset[i]);
-			} else {
-				glEnableClientState(GL_SECONDARY_COLOR_ARRAY);
-				glSecondaryColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (u8*)NULL + vtx_decl.color_offset[i]); 
-			}
+			glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB+i);
+			glVertexAttribPointer(SHADER_COLOR0_ATTRIB+i, 4, GL_UNSIGNED_BYTE, GL_TRUE, vtx_decl.stride, (u8*)NULL + vtx_decl.color_offset[i]);
 		}
 	}
 
 	for (int i = 0; i < 8; i++) {
 		if (vtx_decl.texcoord_offset[i] != -1) {
-			int id = GL_TEXTURE0 + i;
-			glClientActiveTexture(id);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(vtx_decl.texcoord_size[i], VarToGL(vtx_decl.texcoord_gl_type[i]),
-				vtx_decl.stride, (u8*)NULL + vtx_decl.texcoord_offset[i]);
+			glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB+i);
+			glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB+i, vtx_decl.texcoord_size[i], VarToGL(vtx_decl.texcoord_gl_type[i]),
+				GL_FALSE, vtx_decl.stride, (u8*)NULL + vtx_decl.texcoord_offset[i]);
 		}
 	}
 

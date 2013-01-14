@@ -115,11 +115,11 @@ void CreatePrograms()
 	const char *VProgram =
 		"#version 130\n"
 		"in vec2 rawpos;\n"
-		"in vec2 texture0;\n"
+		"in vec2 tex0;\n"
 		"out vec2 uv0;\n"
 		"void main()\n"
 		"{\n"
-		"	uv0 = texture0;\n"
+		"	uv0 = tex0;\n"
 		"	gl_Position = vec4(rawpos,0,1);\n"
 		"}\n";
 	if (!VertexShaderCache::CompileVertexShader(s_vProgram, VProgram))

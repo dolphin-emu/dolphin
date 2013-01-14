@@ -132,11 +132,11 @@ static const char *s_vertexShaderSrc =
 	"#version 130\n"
 	"uniform vec2 charSize;\n"
 	"in vec2 rawpos;\n"
-	"in vec2 texture0;\n"
+	"in vec2 tex0;\n"
 	"out vec2 uv0;\n"
 	"void main(void) {\n"
 	"	gl_Position = vec4(rawpos,0,1);\n"
-	"	uv0 = texture0 * charSize;\n"
+	"	uv0 = tex0 * charSize;\n"
 	"}\n"; 
 
 static const char *s_fragmentShaderSrc =

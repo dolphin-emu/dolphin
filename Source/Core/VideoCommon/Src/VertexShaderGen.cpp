@@ -229,24 +229,25 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 
 	if(ApiType == API_OPENGL)
 	{
-		if (components & VB_HAS_NRM0)
-			WRITE(p, " float3 rawnorm0 = gl_Normal; // NORMAL0,\n");
-
+		WRITE(p, "ATTRIN float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
 		if (components & VB_HAS_POSMTXIDX)
 			WRITE(p, "ATTRIN float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		if (components & VB_HAS_NRM0)
+			WRITE(p, "ATTRIN float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
 		if (components & VB_HAS_NRM1)
 			WRITE(p, "ATTRIN float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
 		if (components & VB_HAS_NRM2)
 			WRITE(p, "ATTRIN float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
 
 		if (components & VB_HAS_COL0)
-			WRITE(p, "  float4 color0 = gl_Color; // COLOR0,\n");
+			WRITE(p, "ATTRIN float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
 		if (components & VB_HAS_COL1)
-			WRITE(p, "  float4 color1 = gl_SecondaryColor; // COLOR1,\n");
+			WRITE(p, "ATTRIN float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
+		
 		for (int i = 0; i < 8; ++i) {
 			u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
 			if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
-				WRITE(p, "  float%d tex%d = gl_MultiTexCoord%d.xy%s; // TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i, hastexmtx ? "z" : "", i);
+				WRITE(p, "ATTRIN float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
 		// Let's set up attributes
@@ -272,7 +273,6 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 					WRITE(p, "VARYOUT   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
 			}
 		}
-		WRITE(p, "  float4 rawpos = gl_Vertex;\n");
 		WRITE(p, "VARYOUT   float4 colors_02;\n");
 		WRITE(p, "VARYOUT   float4 colors_12;\n");
 
