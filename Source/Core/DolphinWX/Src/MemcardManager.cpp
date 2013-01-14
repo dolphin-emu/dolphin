@@ -39,11 +39,11 @@ const u8 hdr[] = {
 0x00,0x00,0x00,0x00
 };
 
-wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, int width, int height)
+wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, u32 width, u32 height)
 {
-	int stride = (4*width);
+	u32 stride = (4*width);
 
-	int bytes = (stride*height) + sizeof(hdr);
+	u32 bytes = (stride*height) + sizeof(hdr);
 
 	bytes = (bytes+3)&(~3);
 
@@ -54,13 +54,13 @@ wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, int width, int height
 
 	u8 *pixelData = pdata + sizeof(hdr);
 
-	for (int y=0;y<height;y++)
+	for (u32 y=0;y<height;y++)
 	{
 		memcpy(pixelData+y*stride,data+(height-y-1)*stride,stride);
 	}
 
-	*(int*)(pdata+18) = width;
-	*(int*)(pdata+22) = height;
+	*(u32*)(pdata+18) = width;
+	*(u32*)(pdata+22) = height;
 	*(u32*)(pdata+34) = bytes-sizeof(hdr);
 
 	wxMemoryInputStream is(pdata, bytes);
