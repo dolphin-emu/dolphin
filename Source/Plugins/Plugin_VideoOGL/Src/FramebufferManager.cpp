@@ -345,7 +345,7 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 	glGenTextures(1, &texture);
 
 	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
-	glTexImage2D(GL_TEXTURE_RECTANGLE, 0, 4, target_width, target_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, target_width, target_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
 	glBindTexture(GL_TEXTURE_RECTANGLE, 0);
 

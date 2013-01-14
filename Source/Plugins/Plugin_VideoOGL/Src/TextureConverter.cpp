@@ -247,7 +247,6 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	// set source texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glEnable(GL_TEXTURE_RECTANGLE);
 	glBindTexture(GL_TEXTURE_RECTANGLE, srcTexture);
 
 	if (linearFilter)
@@ -433,7 +432,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glEnable(GL_TEXTURE_RECTANGLE);
 	glBindTexture(GL_TEXTURE_RECTANGLE, s_srcTexture);
 
 	// TODO: make this less slow.  (How?)

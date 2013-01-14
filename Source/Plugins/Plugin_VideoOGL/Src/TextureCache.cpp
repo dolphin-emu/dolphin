@@ -166,13 +166,13 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 			PanicAlert("Invalid PC texture format %i", pcfmt); 
 		case PC_TEX_FMT_BGRA32:
 			gl_format = GL_BGRA;
-			gl_iformat = 4;
+			gl_iformat = GL_RGBA;
 			gl_type = GL_UNSIGNED_BYTE;
 			break;
 
 		case PC_TEX_FMT_RGBA32:
 			gl_format = GL_RGBA;
-			gl_iformat = 4;
+			gl_iformat = GL_RGBA;
 			gl_type = GL_UNSIGNED_BYTE;
 			break;
 
@@ -232,9 +232,8 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 
 		if (bHaveMipMaps && autogen_mips)
 		{
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 			glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+			glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else
 		{
@@ -262,7 +261,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 
 	const GLenum
 		gl_format = GL_RGBA,
-		gl_iformat = 4,
+		gl_iformat = GL_RGBA,
 		gl_type = GL_UNSIGNED_BYTE;
 
 	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
@@ -313,7 +312,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glEnable(GL_TEXTURE_RECTANGLE);
 		glBindTexture(GL_TEXTURE_RECTANGLE, read_texture);
 
 		glViewport(0, 0, virtual_width, virtual_height);
@@ -449,7 +447,6 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 4);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 4);
-		glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias / 32.0f));
 	}
 	else
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
@@ -575,9 +572,6 @@ TextureCache::~TextureCache()
 
 void TextureCache::DisableStage(unsigned int stage)
 {
-	glActiveTexture(GL_TEXTURE0 + stage);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_TEXTURE_RECTANGLE);
 }
 
 }
