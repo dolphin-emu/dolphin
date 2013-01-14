@@ -103,7 +103,6 @@ struct SCoreStartupParameter
 	bool bNTSC;
 	bool bForceNTSCJ;
 	bool bHLE_BS2;
-	bool bLockThreads;
 	bool bEnableCheats;
 	bool bMergeBlocks;
 

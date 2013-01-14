@@ -69,7 +69,6 @@ private:
 		ID_FRAMELIMIT_USEFPSFORLIMITING,
 
 		ID_CPUENGINE,
-		ID_LOCKTHREADS,
 		ID_DSPTHREAD,
 
 		ID_NTSCJ,
@@ -143,7 +142,6 @@ private:
 	wxCheckBox* EnableOpenCL;
 	wxRadioBox* CPUEngine;
 	wxCheckBox* DSPThread;
-	wxCheckBox* LockThreads;
 	wxCheckBox* _NTSCJ;
 
 

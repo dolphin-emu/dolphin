@@ -310,8 +310,7 @@ void CpuThread()
 		g_video_backend->Video_Prepare();
 	}
 
-	if (_CoreParameter.bLockThreads)
-		Common::SetCurrentThreadAffinity(1);  // Force to first core
+	Common::SetCurrentThreadAffinity(1);  // Force to first core
 
 	#if defined(_WIN32) && defined(_M_X64)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
@@ -344,8 +343,7 @@ void FifoPlayerThread()
 		Common::SetCurrentThreadName("FIFO-GPU thread");
 	}
 
-	if (_CoreParameter.bLockThreads)
-		Common::SetCurrentThreadAffinity(1);  // Force to first core
+	Common::SetCurrentThreadAffinity(1);  // Force to first core
 
 	g_bStarted = true;
 
@@ -371,7 +369,6 @@ void EmuThread()
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
 
-	if (_CoreParameter.bLockThreads)
 	{
 		if (cpu_info.num_cores > 3)	// Force to third, non-HT core
 			Common::SetCurrentThreadAffinity(4);

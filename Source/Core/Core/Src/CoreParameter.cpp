@@ -45,8 +45,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bEnableFPRF(false), 
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bNTSC(false), bForceNTSCJ(false),
-  bHLE_BS2(true), bLockThreads(false),
-  bEnableCheats(false),
+  bHLE_BS2(true), bEnableCheats(false),
   bMergeBlocks(false),
   bRunCompareServer(false), bRunCompareClient(false),
   bMMU(false), bMMUBAT(false), iTLBHack(0), bVBeam(false),
@@ -74,7 +73,6 @@ void SCoreStartupParameter::LoadDefaults()
 	bRunCompareServer = false;
 	bDSPHLE = true;
 	bDSPThread = true;
-	bLockThreads = true;
 	bEnableFPRF = false;
 	bMMU = false;
 	bMMUBAT = false;

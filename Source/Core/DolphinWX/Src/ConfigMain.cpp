@@ -112,7 +112,6 @@ EVT_CHOICE(ID_FRAMELIMIT, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_FRAMELIMIT_USEFPSFORLIMITING, CConfigMain::CoreSettingsChanged)
 
 EVT_RADIOBOX(ID_CPUENGINE, CConfigMain::CoreSettingsChanged)
-EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_NTSCJ, CConfigMain::CoreSettingsChanged)
 
 
@@ -211,7 +210,6 @@ void CConfigMain::UpdateGUI()
 		EnableCheats->Disable();
 		
 		CPUEngine->Disable();
-		LockThreads->Disable();
 		_NTSCJ->Disable();
 
 		// Disable stuff on AudioPage
@@ -332,7 +330,6 @@ void CConfigMain::InitializeGUIValues()
 
 	// General - Advanced
 	CPUEngine->SetSelection(startup_params.iCPUCore);
-	LockThreads->SetValue(startup_params.bLockThreads);
 	_NTSCJ->SetValue(startup_params.bForceNTSCJ);
 
 
@@ -546,7 +543,6 @@ void CConfigMain::CreateGUIControls()
 	UseFPSForLimiting = new wxCheckBox(GeneralPage, ID_FRAMELIMIT_USEFPSFORLIMITING, _("Limit by FPS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	// Core Settings - Advanced
 	CPUEngine = new wxRadioBox(GeneralPage, ID_CPUENGINE, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_CPUEngine, 0, wxRA_SPECIFY_ROWS);
-	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, _("Lock Threads to Cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	_NTSCJ = new wxCheckBox(GeneralPage, ID_NTSCJ, _("Force Console as NTSC-J"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Populate the General settings
@@ -562,7 +558,6 @@ void CConfigMain::CreateGUIControls()
 
 	wxStaticBoxSizer* const sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, _("Advanced Settings"));
 	sbAdvanced->Add(CPUEngine, 0, wxALL, 5);
-	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(_NTSCJ, 0, wxALL, 5);
 
 	wxBoxSizer* const sGeneralPage = new wxBoxSizer(wxVERTICAL);
@@ -859,9 +854,6 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		if (main_frame->g_pCodeWindow)
 			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore?false:true);
-		break;
-	case ID_LOCKTHREADS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads = LockThreads->IsChecked();
 		break;
 	case ID_NTSCJ:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ = _NTSCJ->IsChecked();

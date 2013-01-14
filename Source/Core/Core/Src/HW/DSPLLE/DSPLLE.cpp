@@ -104,7 +104,6 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 {
 	Common::SetCurrentThreadName("DSP thread");
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads)
 	{
 		if (cpu_info.num_cores > 3)
 		{

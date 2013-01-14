@@ -221,7 +221,6 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
 	ini.Set("Core", "DSPHLE",			m_LocalCoreStartupParameter.bDSPHLE);
 	ini.Set("Core", "SkipIdle",			m_LocalCoreStartupParameter.bSkipIdle);
-	ini.Set("Core", "LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
 	ini.Set("Core", "DefaultGCM",		m_LocalCoreStartupParameter.m_strDefaultGCM);
 	ini.Set("Core", "DVDRoot",			m_LocalCoreStartupParameter.m_strDVDRoot);
 	ini.Set("Core", "Apploader",		m_LocalCoreStartupParameter.m_strApploader);
@@ -361,7 +360,6 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "DSPHLE",		&m_LocalCoreStartupParameter.bDSPHLE,		true);
 		ini.Get("Core", "CPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);
 		ini.Get("Core", "SkipIdle",		&m_LocalCoreStartupParameter.bSkipIdle,		true);
-		ini.Get("Core", "LockThreads",	&m_LocalCoreStartupParameter.bLockThreads,	false);
 		ini.Get("Core", "DefaultGCM",	&m_LocalCoreStartupParameter.m_strDefaultGCM);
 		ini.Get("Core", "DVDRoot",		&m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Get("Core", "Apploader",	&m_LocalCoreStartupParameter.m_strApploader);
