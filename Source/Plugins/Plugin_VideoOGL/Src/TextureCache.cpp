@@ -375,10 +375,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		glBindVertexArray(vbo_it->second.vao);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		
-		// TODO: this after merging with graphic_update
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 

@@ -183,10 +183,6 @@ void Init()
 	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL);
 	glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
 	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
-	
-	// TODO: this after merging with graphic_update
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glGenRenderbuffers(1, &s_dstRenderBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, s_dstRenderBuffer);
@@ -284,10 +280,6 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 
 	glBindVertexArray( s_encode_VAO );
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	
-	// TODO: this after merging with graphic_update
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	
@@ -474,10 +466,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	
 	glBindVertexArray( s_decode_VAO );
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	
-	// TODO: this after merging with graphic_update
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	GL_REPORT_ERRORD();
 

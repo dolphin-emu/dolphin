@@ -64,6 +64,7 @@
 #include "BPFunctions.h"
 #include "FPSCounter.h"
 #include "ConfigManager.h"
+#include "VertexManager.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -296,6 +297,20 @@ Renderer::Renderer()
 				"GPU: Does your video card support OpenGL 3.0?");
 		bSuccess = false;
 	}
+	
+	if (!GLEW_ARB_map_buffer_range)
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_map_buffer_range.\n"
+				"GPU: Does your video card support OpenGL 3.0?");
+		bSuccess = false;
+	}
+
+	if (!GLEW_ARB_draw_elements_base_vertex)
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_draw_elements_base_vertex.\n"
+				"GPU: Does your video card support OpenGL 3.2?");
+		bSuccess = false;
+	}
 
 	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
 
@@ -415,10 +430,6 @@ Renderer::Renderer()
 	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*5, NULL);
 	glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB);
 	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
-
-	// TODO: this after merging with graphic_update
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -603,10 +614,6 @@ void Renderer::DrawDebugInfo()
 		ProgramShaderCache::SetBothShaders(s_ShowEFBCopyRegions_PS.glprogid, s_ShowEFBCopyRegions_VS.glprogid);
 		glBindVertexArray( s_ShowEFBCopyRegions_VAO );
 		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
-		
-		// TODO: this after merging with graphic_update
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		// Restore Line Size
 		glLineWidth(lSize);
@@ -1429,6 +1436,10 @@ void Renderer::RestoreAPIState()
 	glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
 
 	ProgramShaderCache::SetBothShaders(0, 0);
+	
+	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
+	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
+	vm->m_last_vao = 0;
 }
 
 void Renderer::SetGenerationMode()

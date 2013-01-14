@@ -163,6 +163,9 @@ void VertexManager::Flush()
 	// loading a state will invalidate BP, so check for it
 	g_video_backend->CheckInvalidState();
 	
+	if (LocalVBuffer == s_pCurBufferPointer) return;
+	if (Flushed) return;
+	Flushed = true;	
 	g_vertex_manager->vFlush();
 }
 
