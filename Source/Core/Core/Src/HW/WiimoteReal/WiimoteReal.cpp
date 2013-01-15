@@ -320,7 +320,7 @@ void Wiimote::ThreadFunc()
 		Common::SleepCurrentThread(1);
 #else
 		bool read = false;
-		while (Write() || (read = true, Read()))
+		while (Write() || (read = true, IsOpen() && Read()))
 		{
 			if (m_audio_reports.Size() && !read)
 				Read();
