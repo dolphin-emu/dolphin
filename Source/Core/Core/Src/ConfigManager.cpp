@@ -369,7 +369,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "Apploader",	&m_LocalCoreStartupParameter.m_strApploader);
 		ini.Get("Core", "EnableCheats",	&m_LocalCoreStartupParameter.bEnableCheats,				false);
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage,		0);
-		ini.Get("Core", "DPL2Decoder",	&m_LocalCoreStartupParameter.bDPL2Decoder,	true);
+		ini.Get("Core", "DPL2Decoder",	&m_LocalCoreStartupParameter.bDPL2Decoder,	false);
 		ini.Get("Core", "Latency",		&m_LocalCoreStartupParameter.iLatency,		14);
 		ini.Get("Core", "MemcardA",		&m_strMemoryCardA);
 		ini.Get("Core", "MemcardB",		&m_strMemoryCardB);

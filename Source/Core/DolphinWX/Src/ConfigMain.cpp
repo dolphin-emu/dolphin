@@ -366,6 +366,7 @@ void CConfigMain::InitializeGUIValues()
 	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), ac_Config.m_Volume));
 	DSPThread->SetValue(startup_params.bDSPThread);
 	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
+	DPL2Decoder->Enable(std::string(ac_Config.sBackend) == BACKEND_OPENAL);
 	DPL2Decoder->SetValue(startup_params.bDPL2Decoder);
 	LatencySlider->Enable(std::string(ac_Config.sBackend) == BACKEND_OPENAL);
 	LatencySlider->SetValue(startup_params.iLatency);

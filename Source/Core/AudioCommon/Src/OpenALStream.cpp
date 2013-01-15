@@ -176,6 +176,7 @@ void OpenALStream::SoundLoop()
 
 	soundTouch.setChannels(2);
 	soundTouch.setSampleRate(ulFrequency);
+	soundTouch.setTempo(1.0);
 	soundTouch.setSetting(SETTING_USE_QUICKSEEK, 0);
 	soundTouch.setSetting(SETTING_USE_AA_FILTER, 0);
 	soundTouch.setSetting(SETTING_SEQUENCE_MS, 1);
@@ -197,7 +198,16 @@ void OpenALStream::SoundLoop()
 
 		numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
 		numSamples = m_mixer->Mix(realtimeBuffer, numSamples);
-		soundTouch.putSamples(realtimeBuffer, numSamples);
+
+		// Convert the samples from short to float
+		float dest[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
+		for (u32 i = 0; i < numSamples; ++i)
+		{
+			dest[i * 2 + 0] = (float)realtimeBuffer[i * 2 + 0] / (1 << 16);
+			dest[i * 2 + 1] = (float)realtimeBuffer[i * 2 + 1] / (1 << 16);
+		}
+
+		soundTouch.putSamples(dest, numSamples);
 
 		if (iBuffersProcessed == iBuffersFilled)
 		{
@@ -241,16 +251,8 @@ void OpenALStream::SoundLoop()
 #else
 				if (surround_capable)
 				{
-					// Convert the samples from short to float for the dpl2 decoder
-					float dest[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
-					for (u32 i = 0; i < nSamples; ++i)
-					{
-						dest[i * 2 + 0] = (float)sampleBuffer[i * 2 + 0] / (1<<16);
-						dest[i * 2 + 1] = (float)sampleBuffer[i * 2 + 1] / (1<<16);
-					}
-
 					float dpl2[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-					dpl2decode(dest, nSamples, dpl2);
+					dpl2decode(sampleBuffer, nSamples, dpl2);
 
 					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * SIZE_FLOAT * SURROUND_CHANNELS, ulFrequency);
 					ALenum err = alGetError();
@@ -268,7 +270,18 @@ void OpenALStream::SoundLoop()
 #endif
 				if (!surround_capable)
 				{
-					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, sampleBuffer, nSamples * 2 * 2, ulFrequency);
+#if defined(__APPLE__)
+					// Convert the samples from float to short
+					short stereo[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
+					for (u32 i = 0; i < nSamples; ++i)
+					{
+						stereo[i * 2 + 0] = (short)((float)sampleBuffer[i * 2 + 0] * (1 << 16));
+						stereo[i * 2 + 1] = (short)((float)sampleBuffer[i * 2 + 1] * (1 << 16));
+					}
+					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * 2 * 2, ulFrequency);
+#else
+					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO_FLOAT32, sampleBuffer, nSamples * 4 * 2, ulFrequency);
+#endif
 				}
 
 				alSourceQueueBuffers(uiSource, 1, &uiBufferTemp[iBuffersFilled]);
