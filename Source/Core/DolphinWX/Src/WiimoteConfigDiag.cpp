@@ -205,8 +205,9 @@ void WiimoteConfigDiag::PairUpRealWiimotes(wxCommandEvent&)
 		UpdateGUI();
 	}
 	else if (paired < 0)
-		PanicAlertT("A supported bluetooth device was not found!\n"
-				"(Only the Microsoft bluetooth stack is supported.)");
+		PanicAlertT("A supported bluetooth device could not be found!\n"
+			"If you are not using Microsoft's bluetooth stack "
+			"you must manually pair your wiimotes and use only the \"Refresh\" button.");
 }
 #endif
 
