@@ -110,6 +110,8 @@ namespace AudioCommon
 			backends.push_back(BACKEND_COREAUDIO);
 		if (PulseAudio::isValid())
 			backends.push_back(BACKEND_PULSEAUDIO);
+		if (OpenALStream::isValid())
+			backends.push_back(BACKEND_OPENAL);
 	   
 		return backends;
 	}
