@@ -131,26 +131,25 @@ void ProgramShaderCache::SetProgramBindings ( ProgramShaderCache::PCacheEntry& e
 
 void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 {
+	if(!PS || !VS) {
+		ERROR_LOG(VIDEO, "tried to bind a zero shader");
+		return;
+	}
+	
 	CurrentFShader = PS;
 	CurrentVShader = VS;
 
-	if (CurrentFShader == 0 && CurrentVShader == 0)
-	{
-		CurrentProgram = 0;
-		glUseProgram(0);
-		return;
-	}
-
-	// Fragment shaders can survive without Vertex Shaders
-	// We have a valid fragment shader, let's create our program
+	// We have a valid shaders, let's create our program
 	std::pair<u32, u32> ShaderPair = std::make_pair(CurrentFShader, CurrentVShader);
 	PCache::iterator iter = pshaders.find(ShaderPair);
 	if (iter != pshaders.end())
 	{
 		PCacheEntry &entry = iter->second;
-		glUseProgram(entry.prog_id);
-		CurrentShaderProgram = ShaderPair;
-		CurrentProgram = entry.prog_id;
+		if(CurrentProgram != entry.prog_id) {
+			glUseProgram(entry.prog_id);
+			CurrentProgram = entry.prog_id;
+			CurrentShaderProgram = ShaderPair;
+		}
 		return;
 	}
 
@@ -159,9 +158,7 @@ void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 
 	// Right, the program is created now
 	// Let's attach everything
-	if (entry.vsid != 0) // attaching zero vertex shader makes it freak out
-		glAttachShader(entry.prog_id, entry.vsid);
-
+	glAttachShader(entry.prog_id, entry.vsid);
 	glAttachShader(entry.prog_id, entry.psid);
 
 	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
@@ -254,6 +251,8 @@ void ProgramShaderCache::Init(void)
 		ProgramShaderCacheInserter inserter;
 		g_program_disk_cache.OpenAndRead(cache_filename, inserter);
 	}
+	
+	CurrentProgram = 0;
 }
 
 void ProgramShaderCache::Shutdown(void)

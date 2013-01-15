@@ -283,8 +283,6 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glDrawArrays(GL_TRIANGLES, 0, usage/4);
-	
-	glUseProgram(0);
 }
 
 }

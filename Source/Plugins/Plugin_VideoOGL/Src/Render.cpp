@@ -1412,8 +1412,6 @@ void Renderer::ResetAPIState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
 	// image copies with textured quads, etc.
-	ProgramShaderCache::SetBothShaders(0, 0);
-
 	glDisable(GL_SCISSOR_TEST);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
@@ -1434,8 +1432,6 @@ void Renderer::RestoreAPIState()
 	VertexShaderManager::SetViewportChanged();
 
 	glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
-
-	ProgramShaderCache::SetBothShaders(0, 0);
 	
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
