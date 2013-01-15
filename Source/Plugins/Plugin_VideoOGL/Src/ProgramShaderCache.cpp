@@ -21,7 +21,7 @@
 namespace OGL
 {
 
-GLuint ProgramShaderCache::CurrentFShader = 0, ProgramShaderCache::CurrentVShader = 0, ProgramShaderCache::CurrentProgram = 0;
+GLuint ProgramShaderCache::CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 GLuint ProgramShaderCache::s_ps_vs_ubo;
 GLintptr ProgramShaderCache::s_vs_data_offset;
@@ -136,25 +136,23 @@ void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 		return;
 	}
 	
-	CurrentFShader = PS;
-	CurrentVShader = VS;
-
-	// We have a valid shaders, let's create our program
-	std::pair<u32, u32> ShaderPair = std::make_pair(CurrentFShader, CurrentVShader);
+	std::pair<u32, u32> ShaderPair = std::make_pair(PS, VS);
+	
+	// program is already bound
+	if(ShaderPair == CurrentShaderProgram) return;
+	
 	PCache::iterator iter = pshaders.find(ShaderPair);
 	if (iter != pshaders.end())
 	{
 		PCacheEntry &entry = iter->second;
-		if(CurrentProgram != entry.prog_id) {
-			glUseProgram(entry.prog_id);
-			CurrentProgram = entry.prog_id;
-			CurrentShaderProgram = ShaderPair;
-		}
+		glUseProgram(entry.prog_id);
+		CurrentProgram = entry.prog_id;
+		CurrentShaderProgram = ShaderPair;
 		return;
 	}
 
 	PCacheEntry entry;
-	entry.Create(CurrentFShader, CurrentVShader);
+	entry.Create(PS, VS);
 
 	// Right, the program is created now
 	// Let's attach everything
@@ -253,6 +251,7 @@ void ProgramShaderCache::Init(void)
 	}
 	
 	CurrentProgram = 0;
+	CurrentShaderProgram = std::pair<u32,u32>(0,0);
 }
 
 void ProgramShaderCache::Shutdown(void)
@@ -270,6 +269,8 @@ void ProgramShaderCache::Shutdown(void)
 		g_program_disk_cache.Close();
 	}
 
+	glUseProgram(0);
+	
 	PCache::iterator iter = pshaders.begin();
 	for (; iter != pshaders.end(); ++iter)
 		iter->second.Destroy();

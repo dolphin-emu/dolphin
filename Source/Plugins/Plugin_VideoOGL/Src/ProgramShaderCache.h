@@ -150,7 +150,7 @@ private:
 	typedef std::map<ShaderUID, PCacheEntry> PCache;
 
 	static PCache pshaders;
-	static GLuint CurrentFShader, CurrentVShader, CurrentProgram;
+	static GLuint CurrentProgram;
 	static ShaderUID CurrentShaderProgram;
 
 	static GLuint s_ps_vs_ubo;
