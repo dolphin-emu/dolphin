@@ -275,6 +275,7 @@ void OpenALStream::SoundLoop()
 #endif
 				if (!surround_capable)
 				{
+#if !defined(__APPLE__)
 					if (float32_capable)
 					{
 						alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO_FLOAT32, sampleBuffer, nSamples * 4 * 2, ulFrequency);
@@ -289,7 +290,7 @@ void OpenALStream::SoundLoop()
 						}
 
 					}
-
+#endif
 					if (!float32_capable)
 					{
 						// Convert the samples from float to short
