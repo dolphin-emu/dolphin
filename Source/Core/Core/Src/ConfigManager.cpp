@@ -226,6 +226,8 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "Apploader",		m_LocalCoreStartupParameter.m_strApploader);
 	ini.Set("Core", "EnableCheats",		m_LocalCoreStartupParameter.bEnableCheats);
 	ini.Set("Core", "SelectedLanguage",	m_LocalCoreStartupParameter.SelectedLanguage);
+	ini.Set("Core", "DPL2Decoder",		m_LocalCoreStartupParameter.bDPL2Decoder);
+	ini.Set("Core", "Latency",			m_LocalCoreStartupParameter.iLatency);
 	ini.Set("Core", "MemcardA",			m_strMemoryCardA);
 	ini.Set("Core", "MemcardB",			m_strMemoryCardB);
 	ini.Set("Core", "SlotA",			m_EXIDevice[0]);
@@ -365,6 +367,8 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "Apploader",	&m_LocalCoreStartupParameter.m_strApploader);
 		ini.Get("Core", "EnableCheats",	&m_LocalCoreStartupParameter.bEnableCheats,				false);
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage,		0);
+		ini.Get("Core", "DPL2Decoder",	&m_LocalCoreStartupParameter.bDPL2Decoder,	false);
+		ini.Get("Core", "Latency",		&m_LocalCoreStartupParameter.iLatency,		14);
 		ini.Get("Core", "MemcardA",		&m_strMemoryCardA);
 		ini.Get("Core", "MemcardB",		&m_strMemoryCardB);
 		ini.Get("Core", "SlotA",		(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);

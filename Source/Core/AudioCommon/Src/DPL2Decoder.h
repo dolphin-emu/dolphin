@@ -15,37 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _AUDIO_COMMON_CONFIG_H_
-#define _AUDIO_COMMON_CONFIG_H_
+#ifndef _DPL2DECODER_H_
+#define _DPL2DECODER_H_
 
-#include <string>
-#include "IniFile.h"
+void dpl2decode(float *samples, int numsamples, float *out);
+void dpl2reset();
 
-// Backend Types
-#define BACKEND_NULLSOUND	"No audio output"
-#define BACKEND_ALSA		"ALSA"
-#define BACKEND_AOSOUND		"AOSound"
-#define BACKEND_COREAUDIO	"CoreAudio"
-#define BACKEND_DIRECTSOUND	"DSound"
-#define BACKEND_OPENAL		"OpenAL"
-#define BACKEND_PULSEAUDIO	"Pulse"
-#define BACKEND_XAUDIO2		"XAudio2"
-
-struct AudioCommonConfig 
-{
-	bool m_EnableJIT;
-	bool m_DumpAudio;
-	int m_Volume;
-	std::string sBackend;
-	
-	// Load from given file
-	void Load();
-	
-	// Self explanatory
-	void SaveSettings();
-
-	// Update according to the values (stream/mixer)
-	void Update();
-};
-
-#endif //AUDIO_COMMON_CONFIG
+#endif  // _DPL2DECODER_H_

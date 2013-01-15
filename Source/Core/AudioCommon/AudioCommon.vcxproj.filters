@@ -21,6 +21,7 @@
     <ClCompile Include="Src\NullSoundStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
+    <ClCompile Include="Src\DPL2Decoder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\aldlist.h" />
@@ -44,6 +45,7 @@
     <ClInclude Include="Src\XAudio2Stream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
+    <ClInclude Include="Src\DPL2Decoder.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

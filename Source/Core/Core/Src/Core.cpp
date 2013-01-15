@@ -680,7 +680,14 @@ void VideoThrottle()
 			SMessage;
 
 		// Show message
-		g_video_backend->UpdateFPSDisplay(SMessage.c_str()); 
+		g_video_backend->UpdateFPSDisplay(SMessage.c_str());
+
+		// Update the audio timestretcher with the current speed
+		if (soundStream)
+		{
+			CMixer* pMixer = soundStream->GetMixer();
+			pMixer->UpdateSpeed((float)Speed / 100);
+		}
 
 		if (_CoreParameter.bRenderToMain &&
 			SConfig::GetInstance().m_InterfaceStatusbar) {

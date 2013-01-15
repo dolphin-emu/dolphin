@@ -48,6 +48,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bHLE_BS2(true), bEnableCheats(false),
   bMergeBlocks(false),
   bRunCompareServer(false), bRunCompareClient(false),
+  bDPL2Decoder(false), iLatency(14),
   bMMU(false), bMMUBAT(false), iTLBHack(0), bVBeam(false),
   bFastDiscSpeed(false),
   SelectedLanguage(0), bWii(false), bDisableWiimoteSpeaker(false),
@@ -82,6 +83,8 @@ void SCoreStartupParameter::LoadDefaults()
 	bMergeBlocks = false;
 	SelectedLanguage = 0;
 	bWii = false;
+	bDPL2Decoder = false;
+	iLatency = 14;
 
 	iPosX = 100;
 	iPosY = 100;
