@@ -184,6 +184,11 @@ void OpenALStream::SoundLoop()
 	soundTouch.setSetting(SETTING_OVERLAP_MS, 12);
 
 	bool surround_capable = Core::g_CoreStartupParameter.bDPL2Decoder;
+#if defined(__APPLE__)
+	bool float32_capable = false;
+#else
+	bool float32_capable = true;
+#endif
 
 	while (!threadData) 
 	{
@@ -270,18 +275,33 @@ void OpenALStream::SoundLoop()
 #endif
 				if (!surround_capable)
 				{
-#if defined(__APPLE__)
-					// Convert the samples from float to short
-					short stereo[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
-					for (u32 i = 0; i < nSamples; ++i)
+					if (float32_capable)
 					{
-						stereo[i * 2 + 0] = (short)((float)sampleBuffer[i * 2 + 0] * (1 << 16));
-						stereo[i * 2 + 1] = (short)((float)sampleBuffer[i * 2 + 1] * (1 << 16));
+						alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO_FLOAT32, sampleBuffer, nSamples * 4 * 2, ulFrequency);
+						ALenum err = alGetError();
+						if (err == AL_INVALID_ENUM)
+						{
+							float32_capable = false;
+						}
+						else if (err != 0)
+						{
+							ERROR_LOG(AUDIO, "Error occurred while buffering float32 data: %08x", err);
+						}
+
 					}
-					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * 2 * 2, ulFrequency);
-#else
-					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO_FLOAT32, sampleBuffer, nSamples * 4 * 2, ulFrequency);
-#endif
+
+					if (!float32_capable)
+					{
+						// Convert the samples from float to short
+						short stereo[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
+						for (u32 i = 0; i < nSamples; ++i)
+						{
+							stereo[i * 2 + 0] = (short)((float)sampleBuffer[i * 2 + 0] * (1 << 16));
+							stereo[i * 2 + 1] = (short)((float)sampleBuffer[i * 2 + 1] * (1 << 16));
+						}
+						alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * 2 * 2, ulFrequency);
+
+					}
 				}
 
 				alSourceQueueBuffers(uiSource, 1, &uiBufferTemp[iBuffersFilled]);
