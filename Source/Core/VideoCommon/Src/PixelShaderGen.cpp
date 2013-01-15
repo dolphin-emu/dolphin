@@ -716,6 +716,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 				WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
+			WRITE(p, "        ) {\n");
 		}
 		else
 		{
@@ -730,8 +731,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 					WRITE(p, ",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
 			}
+			WRITE(p, "        ) {\n");
+			WRITE(p, "\tfloat4 clipPos = float4(0.0f, 0.0f, 0.0f, 0.0f);");
 		}
-		WRITE(p, "        ) {\n");
 	}
 
 	int Pretest = AlphaPreTest();
