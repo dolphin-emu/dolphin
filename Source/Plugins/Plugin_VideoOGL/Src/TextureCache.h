@@ -46,7 +46,7 @@ private:
 		int gl_iformat;
 		int gl_type;
 
-		bool bHaveMipMaps;
+		int m_tex_levels;
 
 		//TexMode0 mode; // current filter and clamp modes that texture is set to
 		//TexMode1 mode1; // current filter and clamp modes that texture is set to

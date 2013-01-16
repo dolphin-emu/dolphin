@@ -214,7 +214,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	entry.gl_type = gl_type;
 	entry.pcfmt = pcfmt;
 
-	entry.bHaveMipMaps = tex_levels != 1;
+	entry.m_tex_levels = tex_levels;
 
 	return &entry;
 }
@@ -224,21 +224,19 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 {
 	glBindTexture(GL_TEXTURE_2D, texture);
 	//GL_REPORT_ERRORD();
+	
+	if(level == 0 && m_tex_levels != 0)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m_tex_levels - 1);
 
 	if (pcfmt != PC_TEX_FMT_DXT1)
 	{
 	    if (expanded_width != width)
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
 
-		if (bHaveMipMaps && autogen_mips)
-		{
-			glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+		glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+	    
+		if (autogen_mips)
 			glGenerateMipmap(GL_TEXTURE_2D);
-		}
-		else
-		{
-			glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
-		}
 
 		if (expanded_width != width)
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
@@ -263,12 +261,9 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 		gl_format = GL_RGBA,
 		gl_iformat = GL_RGBA,
 		gl_type = GL_UNSIGNED_BYTE;
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+	entry->m_tex_levels = 1;
 
 	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
 	
@@ -424,7 +419,7 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
 		(newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
 
-	if (bHaveMipMaps) 
+	if (m_tex_levels != 1) 
 	{
 		// TODO: not used anywhere
 		if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
@@ -432,8 +427,8 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 
 		int filt = newmode.min_filter;            
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 4);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 4);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, newmode1.min_lod >> 4);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, newmode1.max_lod >> 4);
 	}
 	else
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
