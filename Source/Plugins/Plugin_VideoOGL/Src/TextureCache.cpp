@@ -264,22 +264,15 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 		gl_iformat = GL_RGBA,
 		gl_type = GL_UNSIGNED_BYTE;
 
-	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
-	
-	GL_REPORT_ERRORD();
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	if (GL_REPORT_ERROR() != GL_NO_ERROR)
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		GL_REPORT_ERRORD();
-	}
+	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
+	
+	GL_REPORT_ERRORD();
 
 	return entry;
 }
@@ -289,8 +282,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
 {
-	glBindTexture(GL_TEXTURE_2D, texture);
-
 	// Make sure to resolve anything we need to read from.
 	const GLuint read_texture = (srcFormat == PIXELFMT_Z24) ?
 		FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
