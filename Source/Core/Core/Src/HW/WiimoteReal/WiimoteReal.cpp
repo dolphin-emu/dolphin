@@ -596,6 +596,8 @@ void Update(int _WiimoteNumber)
 
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->Update();
+	else
+		Host_ConnectWiimote(_WiimoteNumber, false);
 }
 
 void StateChange(EMUSTATE_CHANGE newState)
