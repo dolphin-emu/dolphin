@@ -49,9 +49,9 @@ LPDIRECT3DSURFACE9 back_buffer_z;
 D3DCAPS9 caps;
 HWND hWnd;
 
-static int multisample;
-static int resolution;
-static int xres, yres;
+static unsigned int multisample;
+static unsigned int resolution;
+static unsigned int xres, yres;
 static bool auto_depth_stencil = false;
 
 #define VENDOR_NVIDIA 4318
@@ -480,24 +480,25 @@ const D3DCAPS9 &GetCaps()
 }
 
 // returns true if size was changed
-bool FixTextureSize(int& width, int& height)
+bool FixTextureSize(u32& width, u32& height)
 {
-	int oldw = width, oldh = height;
+	u32 oldw = width;
+	u32 oldh = height;
 
 	// conditional nonpow2 support should work fine for us
 	if ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) && !(caps.TextureCaps & D3DPTEXTURECAPS_NONPOW2CONDITIONAL))
 	{
 		// all texture dimensions need to be powers of two
-		width = (int)MakePow2((u32)width);
-		height = (int)MakePow2((u32)height);
+		width = MakePow2(width);
+		height = MakePow2(height);
 	}
 	if (caps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY)
 	{
 		width = height = max(width, height);
 	}
 
-	width = min(width, (int)caps.MaxTextureWidth);
-	height = min(height, (int)caps.MaxTextureHeight);
+	width = min(width, (u32)caps.MaxTextureWidth);
+	height = min(height, (u32)caps.MaxTextureHeight);
 
 	return (width != oldw) || (height != oldh);
 }
@@ -515,18 +516,22 @@ bool CheckDepthStencilSupport(D3DFORMAT target_format, D3DFORMAT depth_format)
 
 D3DFORMAT GetSupportedDepthTextureFormat()
 {
-	for (int i = 0; i < sizeof(DepthFormats)/sizeof(D3DFORMAT); ++i)
+	for (size_t i = 0; i < sizeof(DepthFormats)/sizeof(D3DFORMAT); ++i)
+	{
 		if (D3D::CheckTextureSupport(D3DUSAGE_DEPTHSTENCIL, DepthFormats[i]))
 			return DepthFormats[i];
+	}
 
 	return D3DFMT_UNKNOWN;
 }
 
 D3DFORMAT GetSupportedDepthSurfaceFormat(D3DFORMAT target_format)
 {
-	for (int i = 0; i < sizeof(DepthFormats)/sizeof(D3DFORMAT); ++i)
+	for (size_t i = 0; i < sizeof(DepthFormats)/sizeof(D3DFORMAT); ++i)
+	{
 		if (D3D::CheckDepthStencilSupport(target_format, DepthFormats[i]))
 			return DepthFormats[i];
+	}
 
 	return D3DFMT_UNKNOWN;
 }
@@ -567,7 +572,7 @@ void ShowD3DError(HRESULT err)
 		PanicAlert("Driver Internal Error");
 		break;
 	case D3DERR_OUTOFVIDEOMEMORY:
-		PanicAlert("Out of vid mem");
+		PanicAlert("Out of video memory");
 		break;
 	default:
 		// MessageBox(0,_T("Other error or success"),_T("ERROR"),0);

@@ -288,10 +288,10 @@ Renderer::Renderer()
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
-	int SupersampleCoeficient = (s_LastAA % 3) + 1;
+	u32 SupersampleCoefficient = (s_LastAA % 3) + 1;
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height, SupersampleCoeficient);
+	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height, SupersampleCoefficient);
 
 	// Make sure to use valid texture sizes
 	D3D::FixTextureSize(s_target_width, s_target_height);
@@ -305,7 +305,7 @@ Renderer::Renderer()
 
 	SetupDeviceObjects();
 
-	for (int stage = 0; stage < 8; stage++)
+	for (u32 stage = 0; stage < 8; stage++)
 		D3D::SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, 1 << g_ActiveConfig.iMaxAnisotropy);
 
 	D3DVIEWPORT9 vp;
@@ -468,8 +468,10 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 	// if depth textures aren't supported by the hardware, just return
 	if (type == PEEK_Z)
+	{
 		if (FramebufferManager::GetEFBDepthTexture() == NULL)
 			return 0;
+	}
 
 	// We're using three surfaces here:
 	// - pEFBSurf: EFB Surface. Source surface when peeking, destination surface when poking.
@@ -693,16 +695,14 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	}
 
 	// In D3D, the viewport rectangle must fit within the render target.
-	int X = intendedX;
-	if (X < 0)
-		X = 0;
-	int Y = intendedY;
-	if (Y < 0)
-		Y = 0;
-	int Wd = intendedWd;
+	u32 X = intendedX;
+	u32 Y = intendedY;
+	u32 Wd = intendedWd;
+	u32 Ht = intendedHt;
+	
 	if (X + Wd > GetTargetWidth())
 		Wd = GetTargetWidth() - X;
-	int Ht = intendedHt;
+
 	if (Y + Ht > GetTargetHeight())
 		Ht = GetTargetHeight() - Y;
 
@@ -907,18 +907,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 	}
 
-	int X = GetTargetRectangle().left;
-	int Y = GetTargetRectangle().top;
-	int Width  = GetTargetRectangle().right - GetTargetRectangle().left;
-	int Height = GetTargetRectangle().bottom - GetTargetRectangle().top;
+	u32 X = GetTargetRectangle().left;
+	u32 Y = GetTargetRectangle().top;
+	u32 Width  = (GetTargetRectangle().right - GetTargetRectangle().left);
+	u32 Height = (GetTargetRectangle().bottom - GetTargetRectangle().top);
 
 	// Sanity check
-	if (X < 0) X = 0;
-	if (Y < 0) Y = 0;
 	if (X > s_backbuffer_width) X = s_backbuffer_width;
 	if (Y > s_backbuffer_height) Y = s_backbuffer_height;
-	if (Width < 0) Width = 0;
-	if (Height < 0) Height = 0;
 	if (Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
 	if (Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
 
@@ -1153,10 +1149,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 		
-		int SupersampleCoeficient = (s_LastAA % 3) + 1;
+		u32 SupersampleCoefficient = (s_LastAA % 3) + 1;
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
-		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height, SupersampleCoeficient);
+		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height, SupersampleCoefficient);
 
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());

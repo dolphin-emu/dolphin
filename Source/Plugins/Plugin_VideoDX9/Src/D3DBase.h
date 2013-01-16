@@ -75,7 +75,7 @@ const char *VertexShaderVersionString();
 void ShowD3DError(HRESULT err);
 
 // returns true if size was changed
-bool FixTextureSize(int& width, int& height);
+bool FixTextureSize(u32& width, u32& height);
 
 // returns true if format is supported
 bool CheckTextureSupport(DWORD usage, D3DFORMAT tex_format);
@@ -115,8 +115,8 @@ void EnableAlphaToCoverage();
 struct Resolution
 {
 	char name[32];
-	int xres;
-	int yres;
+	unsigned int xres;
+	unsigned int yres;
 	std::set<D3DFORMAT> bitdepths;
 	std::set<int> refreshes;
 };

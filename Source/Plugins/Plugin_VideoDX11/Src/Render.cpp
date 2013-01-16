@@ -691,18 +691,14 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	}
 
 	// In D3D, the viewport rectangle must fit within the render target.
-	int X = intendedX;
-	if (X < 0)
-		X = 0;
+	u32 X = intendedX;
+	u32 Y = intendedY;
+	u32 Wd = intendedWd;
+	u32 Ht = intendedHt;
 
-	int Y = intendedY;
-	if (Y < 0)
-		Y = 0;
-
-	int Wd = intendedWd;
 	if (X + Wd > GetTargetWidth())
 		Wd = GetTargetWidth() - X;
-	int Ht = intendedHt;
+	
 	if (Y + Ht > GetTargetHeight())
 		Ht = GetTargetHeight() - Y;
 	
@@ -928,20 +924,17 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Prepare to copy the XFBs to our backbuffer
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-	int X = GetTargetRectangle().left;
-	int Y = GetTargetRectangle().top;
-	int Width  = GetTargetRectangle().right - GetTargetRectangle().left;
-	int Height = GetTargetRectangle().bottom - GetTargetRectangle().top;
+	u32 X = GetTargetRectangle().left;
+	u32 Y = GetTargetRectangle().top;
+	u32 Width  = GetTargetRectangle().right - GetTargetRectangle().left;
+	u32 Height = GetTargetRectangle().bottom - GetTargetRectangle().top;
 
 	// TODO: Redundant checks...
-	if (X < 0) X = 0;
-	if (Y < 0) Y = 0;
 	if (X > s_backbuffer_width) X = s_backbuffer_width;
 	if (Y > s_backbuffer_height) Y = s_backbuffer_height;
-	if (Width < 0) Width = 0;
-	if (Height < 0) Height = 0;
 	if (Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
 	if (Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
+	
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height);
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);

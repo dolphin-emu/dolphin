@@ -60,12 +60,12 @@ std::string Renderer::s_sScreenshotName;
 volatile bool Renderer::s_bScreenshot;
 
 // The framebuffer size
-int Renderer::s_target_width;
-int Renderer::s_target_height;
+unsigned int Renderer::s_target_width;
+unsigned int Renderer::s_target_height;
 
 // TODO: Add functionality to reinit all the render targets when the window is resized.
-int Renderer::s_backbuffer_width;
-int Renderer::s_backbuffer_height;
+unsigned int Renderer::s_backbuffer_width;
+unsigned int Renderer::s_backbuffer_height;
 
 TargetRectangle Renderer::target_rc;
 
@@ -163,7 +163,7 @@ int Renderer::EFBToScaledY(int y)
 	};
 }
 
-void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
+void Renderer::CalculateTargetScale(unsigned int x, unsigned int y, unsigned int &scaledX, unsigned int &scaledY)
 {
 	if (g_ActiveConfig.iEFBScale == 0 || g_ActiveConfig.iEFBScale == 1)
 	{
@@ -172,15 +172,15 @@ void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
 	}
 	else
 	{
-		scaledX = x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
-		scaledY = y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
+		scaledX = x * (efb_scale_numeratorX / efb_scale_denominatorX);
+		scaledY = y * (efb_scale_numeratorY / efb_scale_denominatorY);
 	}
 }
 
 // return true if target size changed
-bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, int multiplier)
+bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, unsigned int multiplier)
 {
-	int newEFBWidth, newEFBHeight;
+	u32 newEFBWidth, newEFBHeight;
 
 	// TODO: Ugly. Clean up
 	switch (s_LastEFBScale)
@@ -374,7 +374,7 @@ void Renderer::DrawDebugText()
 // TODO: remove
 extern bool g_aspect_wide;
 
-void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
+void Renderer::UpdateDrawRectangle(u32 backbuffer_width, u32 backbuffer_height)
 {
 	float FloatGLWidth = (float)backbuffer_width;
 	float FloatGLHeight = (float)backbuffer_height;
@@ -492,7 +492,7 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 	target_rc.bottom = YOffset + iHeight;
 }
 
-void Renderer::SetWindowSize(int width, int height)
+void Renderer::SetWindowSize(u32 width, u32 height)
 {
 	if (width < 1)
 		width = 1;

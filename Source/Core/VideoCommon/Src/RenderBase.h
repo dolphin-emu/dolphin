@@ -67,14 +67,14 @@ public:
 	virtual void RestoreState() = 0;
 
 	// Ideal internal resolution - determined by display resolution (automatic scaling) and/or a multiple of the native EFB resolution
-	static int GetTargetWidth() { return s_target_width; }
-	static int GetTargetHeight() { return s_target_height; }
+	static u32 GetTargetWidth() { return s_target_width; }
+	static u32 GetTargetHeight() { return s_target_height; }
 
 	// Display resolution
-	static int GetBackbufferWidth() { return s_backbuffer_width; }
-	static int GetBackbufferHeight() { return s_backbuffer_height; }
+	static u32 GetBackbufferWidth() { return s_backbuffer_width; }
+	static u32 GetBackbufferHeight() { return s_backbuffer_height; }
 
-	static void SetWindowSize(int width, int height);
+	static void SetWindowSize(u32 width, u32 height);
 
 	// EFB coordinate conversion functions
 
@@ -82,7 +82,7 @@ public:
 	virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
 	static const TargetRectangle& GetTargetRectangle() { return target_rc; }
-	static void UpdateDrawRectangle(int backbuffer_width, int backbuffer_height);
+	static void UpdateDrawRectangle(u32 backbuffer_width, u32 backbuffer_height);
 
 
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
@@ -132,8 +132,8 @@ public:
 
 protected:
 
-	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);
-	static bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, int multiplier = 1);
+	static void CalculateTargetScale(unsigned int x, unsigned int y, unsigned int &scaledX, unsigned int &scaledY);
+	static bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, unsigned int multiplier = 1);
 
 	static void CheckFifoRecording();
 	static void RecordVideoMemory();
@@ -151,12 +151,12 @@ protected:
 	bool bLastFrameDumped;
 
 	// The framebuffer size
-	static int s_target_width;
-	static int s_target_height;
+	static u32 s_target_width;
+	static u32 s_target_height;
 
 	// TODO: Add functionality to reinit all the render targets when the window is resized.
-	static int s_backbuffer_width;
-	static int s_backbuffer_height;
+	static u32 s_backbuffer_width;
+	static u32 s_backbuffer_height;
 
 	static TargetRectangle target_rc;
 
