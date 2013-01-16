@@ -38,7 +38,7 @@ void Update(int _number);
 namespace WiimoteReal
 {
 
-unsigned int Initialize();
+void Initialize();
 void Shutdown();
 void Refresh();
 

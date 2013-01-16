@@ -20,6 +20,7 @@
 #define WIIMOTE_REAL_H
 
 #include <functional>
+#include <vector>
 
 #include "WiimoteRealBase.h"
 #include "ChunkFile.h"
@@ -41,7 +42,7 @@ class Wiimote : NonCopyable
 {
 friend class WiimoteEmu::Wiimote;
 public:
-	Wiimote(const unsigned int _index);
+	Wiimote();
 	~Wiimote();
 
 	void ControlChannel(const u16 channel, const void* const data, const u32 size);
@@ -52,16 +53,28 @@ public:
 
 	bool Read();
 	bool Write();
-	bool Connect();
-	bool IsConnected() const;
+
+	void StartThread();
+	void StopThread();
+
+	// "handshake" / stop packets
+	bool EmuStart();
+	void EmuStop();
+
+	// connecting and disconnecting from physical devices
+	bool Open();
+	void Close();
+
+	// TODO: change to something like IsRelevant
 	bool IsOpen() const;
-	void Disconnect();
+
+	void SetLEDs(int leds);
+
 	void DisableDataReporting();
 	void Rumble();
 	void SendPacket(const u8 rpt_id, const void* const data, const unsigned int size);
-	void RealDisconnect();
 
-	const unsigned int	index;
+	int index;
 
 #if defined(__APPLE__)
 	IOBluetoothDevice *btd;
@@ -74,8 +87,6 @@ public:
 	int cmd_sock;						// Command socket
 	int int_sock;						// Interrupt socket
 
-	void Close();
-
 #elif defined(_WIN32)
 	char devicepath[255];				// Unique wiimote reference
 	//ULONGLONG btaddr;					// Bluetooth address
@@ -83,7 +94,6 @@ public:
 	OVERLAPPED hid_overlap;				// Overlap handle
 	enum win_bt_stack_t stack;			// Type of bluetooth stack to use
 #endif
-	unsigned char leds;					// Currently lit leds
 
 protected:
 	Report	m_last_data_report;
@@ -91,21 +101,51 @@ protected:
 
 private:
 	void ClearReadQueue();
-	bool SendRequest(unsigned char report_type, unsigned char* data, int length);
-	bool Handshake();
-	void SetLEDs(int leds);
-	int IORead(unsigned char* buf);
-	int IOWrite(unsigned char* buf, int len);
+	bool SendRequest(u8 report_type, u8 const* data, int length);
+	
+	int IORead(u8* buf);
+	int IOWrite(u8 const* buf, int len);
+
 	void ThreadFunc();
 
-	bool				m_connected;
+	bool				m_run_thread;
 	std::thread			m_wiimote_thread;
+	
 	Common::FifoQueue<Report>	m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;
 	Common::FifoQueue<Report>	m_audio_reports;
 };
 
-extern std::mutex g_refresh_lock;
+class WiimoteScanner
+{
+public:
+	WiimoteScanner();
+	~WiimoteScanner();
+
+	bool IsReady() const;
+	
+	void WantWiimotes(size_t count);
+
+	void StartScanning();
+	void StopScanning();
+
+	std::vector<Wiimote*> FindWiimotes(size_t max_wiimotes);
+
+private:
+	void ThreadFunc();
+
+	std::thread scan_thread;
+
+	volatile bool run_thread;
+	
+	// TODO: this should probably be atomic
+	volatile size_t want_wiimotes;
+
+	int device_id;
+	int device_sock;	
+};
+
+extern std::recursive_mutex g_refresh_lock;
 extern Wiimote *g_wiimotes[4];
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
@@ -116,6 +156,7 @@ void DoState(PointerWrap &p);
 void StateChange(EMUSTATE_CHANGE newState);
 
 int FindWiimotes(Wiimote** wm, int max_wiimotes);
+void ChangeWiimoteSource(unsigned int index, int source);
 
 bool IsValidBluetoothName(const std::string& name);
 

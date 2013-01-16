@@ -23,6 +23,7 @@
 #include "IniFile.h"
 #include "StringUtil.h"
 #include "Timer.h"
+#include "Host.h"
 
 #include "WiimoteReal.h"
 
@@ -33,15 +34,20 @@ unsigned int	g_wiimote_sources[MAX_WIIMOTES];
 namespace WiimoteReal
 {
 
+void HandleFoundWiimotes(const std::vector<Wiimote*>&);
+void HandleWiimoteConnect(Wiimote*);
+void HandleWiimoteDisconnect(int index);
+
 bool g_real_wiimotes_initialized = false;
-unsigned int g_wiimotes_found = 0;
 
-std::mutex g_refresh_lock;
+std::recursive_mutex g_refresh_lock;
 
-Wiimote *g_wiimotes[MAX_WIIMOTES];
+Wiimote* g_wiimotes[MAX_WIIMOTES];
 
-Wiimote::Wiimote(const unsigned int _index)
-	: index(_index)
+WiimoteScanner g_wiimote_scanner;
+
+Wiimote::Wiimote()
+	: index()
 #ifdef __APPLE__
 	, inputlen(0)
 #elif defined(__linux__) && HAVE_BLUEZ
@@ -49,8 +55,8 @@ Wiimote::Wiimote(const unsigned int _index)
 #elif defined(_WIN32)
 	, dev_handle(0), stack(MSBT_STACK_UNKNOWN)
 #endif
-	, leds(0), m_last_data_report(Report((u8 *)NULL, 0))
-	, m_channel(0), m_connected(false)
+	, m_last_data_report(Report((u8 *)NULL, 0))
+	, m_channel(0), m_run_thread(false)
 {
 #if defined(__linux__) && HAVE_BLUEZ
 	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
@@ -61,8 +67,11 @@ Wiimote::Wiimote(const unsigned int _index)
 
 Wiimote::~Wiimote()
 {
-	RealDisconnect();
+	StopThread();	
 
+	if (IsOpen())
+		Close();
+	
 	ClearReadQueue();
 
 	// clear write queue
@@ -111,7 +120,7 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
 {
 	// Check for custom communication
 	if (99 == channel)
-		Disconnect();
+		EmuStop();
 	else
 	{
 		InterruptChannel(channel, data, size);
@@ -167,6 +176,9 @@ bool Wiimote::Read()
 	
 	rpt.first = new unsigned char[MAX_PAYLOAD];
 	rpt.second = IORead(rpt.first);
+
+	if (0 == rpt.second)
+		Close();
 
 	if (rpt.second > 0 && m_channel > 0) {
 		// Add it to queue
@@ -234,24 +246,18 @@ void Wiimote::Update()
 		delete[] rpt.first;
 }
 
-void Wiimote::Disconnect()
+void Wiimote::EmuStop()
 {
 	m_channel = 0;
 
 	DisableDataReporting();
-}
 
-bool Wiimote::IsConnected() const
-{
-	return m_connected;
+	NOTICE_LOG(WIIMOTE, "Stopping wiimote data reporting");
 }
 
 // Rumble briefly
 void Wiimote::Rumble()
 {
-	if (!IsConnected())
-		return;
-
 	unsigned char buffer = 0x01;
 	DEBUG_LOG(WIIMOTE, "Starting rumble...");
 	SendRequest(WM_CMD_RUMBLE, &buffer, 1);
@@ -264,37 +270,29 @@ void Wiimote::Rumble()
 }
 
 // Set the active LEDs.
-// leds is a bitwise or of WIIMOTE_LED_1 through WIIMOTE_LED_4.
+// leds is a bitwise OR of WIIMOTE_LED_1 through WIIMOTE_LED_4.
 void Wiimote::SetLEDs(int new_leds)
 {
-	unsigned char buffer;
-
-	if (!IsConnected())
-		return;
-
 	// Remove the lower 4 bits because they control rumble
-	buffer = leds = (new_leds & 0xF0);
-
+	u8 const buffer = (new_leds & 0xF0);
 	SendRequest(WM_CMD_LED, &buffer, 1);
 }
 
-// Send a handshake
-bool Wiimote::Handshake()
+bool Wiimote::EmuStart()
 {
+	// Send a handshake
+
 	// Set buffer[0] to 0x04 for continuous reporting
-	unsigned char buffer[2] = {0x04, 0x30};
+	u8 const buffer[2] = {0x04, 0x30};
 
-	if (!IsConnected())
-		return 0;
-
-	DEBUG_LOG(WIIMOTE, "Sending handshake to wiimote");
+	NOTICE_LOG(WIIMOTE, "Sending handshake to wiimote");
 
 	return SendRequest(WM_CMD_REPORT_TYPE, buffer, 2);
 }
 
 // Send a packet to the wiimote.
 // report_type should be one of WIIMOTE_CMD_LED, WIIMOTE_CMD_RUMBLE, etc.
-bool Wiimote::SendRequest(unsigned char report_type, unsigned char* data, int length)
+bool Wiimote::SendRequest(u8 report_type, u8 const* data, int length)
 {
 	unsigned char buffer[32] = {WM_SET_REPORT | WM_BT_OUTPUT, report_type};
 
@@ -303,58 +301,98 @@ bool Wiimote::SendRequest(unsigned char report_type, unsigned char* data, int le
 	return (IOWrite(buffer, length + 2) != 0);
 }
 
+unsigned int CalculateWantedWiimotes()
+{
+	// Figure out how many real wiimotes are required
+	unsigned int wanted_wiimotes = 0;
+	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
+		if (WIIMOTE_SRC_REAL & g_wiimote_sources[i] && !g_wiimotes[i])
+			++wanted_wiimotes;
+
+	return wanted_wiimotes;
+}
+
+void WiimoteScanner::WantWiimotes(size_t count)
+{
+	want_wiimotes = count;
+}
+
+void WiimoteScanner::StartScanning()
+{
+	run_thread = true;
+	scan_thread = std::thread(std::mem_fun(&WiimoteScanner::ThreadFunc), this);
+}
+
+void WiimoteScanner::StopScanning()
+{
+	run_thread = false;
+	if (scan_thread.joinable())
+	{
+		scan_thread.join();
+		NOTICE_LOG(WIIMOTE, "Wiimote scanning has stopped");
+	}
+}
+
+void WiimoteScanner::ThreadFunc()
+{
+	Common::SetCurrentThreadName("Wiimote Scanning Thread");
+
+	NOTICE_LOG(WIIMOTE, "Wiimote scanning has started");
+
+	while (run_thread)
+	{
+		auto const found_wiimotes = FindWiimotes(want_wiimotes);
+		HandleFoundWiimotes(found_wiimotes);
+#if 1
+		{
+		// TODO: this code here is ugly
+		std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
+			if (g_wiimotes[i] && !g_wiimotes[i]->IsOpen())
+				HandleWiimoteDisconnect(i);
+		}
+#endif	
+		//std::this_thread::yield();
+		Common::SleepCurrentThread(500);
+	}
+}
+
 void Wiimote::ThreadFunc()
 {
-	char thname[] = "Wiimote # Thread";
-	thname[8] = (char)('1' + index);
-	Common::SetCurrentThreadName(thname);
+	Common::SetCurrentThreadName("Wiimote Device Thread");
 
 	// rumble briefly
 	Rumble();
 
 	// main loop
-	while (IsOpen())
+	while (m_run_thread && IsOpen())
 	{
 #ifdef __APPLE__
 		while (Write()) {}
 		Common::SleepCurrentThread(1);
 #else
-		bool read = false;
-		while (Write() || (read = true, IsOpen() && Read()))
+		// TODO: this is all a mess
+		while (m_run_thread && IsOpen())
 		{
-			if (m_audio_reports.Size() && !read)
-				Read();
-			Common::SleepCurrentThread(m_audio_reports.Size() ? 5 : 2);
-			read = false;
+			bool const did_write = Write();
+
+			if (did_write)
+				break;
+			else
+				if (!Read())
+					break;
+
+			// TODO: what is this doing?
+			//if (m_audio_reports.Size() && did_write)
+			//	Read();
+
+			// TODO: make work well
+			//Common::SleepCurrentThread(m_audio_reports.Size() ? 5 : 2);
+			Common::SleepCurrentThread(2);
 		}
 #endif
 	}
 }
-
-#ifndef _WIN32
-// Connect all discovered wiimotes
-// Return the number of wiimotes that successfully connected.
-static int ConnectWiimotes(Wiimote** wm)
-{
-	int connected = 0;
-
-	for (int i = 0; i < MAX_WIIMOTES; ++i)
-	{
-		if (!wm[i] || wm[i]->IsConnected())
-			continue;
-
-		if (wm[i]->Connect())
-			++connected;
-		else
-		{
-			delete wm[i];
-			wm[i] = NULL;
-		}
-	}
-
-	return connected;
-}
-#endif
 
 void LoadSettings()
 {
@@ -373,71 +411,124 @@ void LoadSettings()
 	}
 }
 
-unsigned int Initialize()
+void Initialize()
 {
-	// Return if already initialized
+	NOTICE_LOG(WIIMOTE, "WiimoteReal::Initialize");
+
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+
 	if (g_real_wiimotes_initialized)
-		return g_wiimotes_found;
+		return;
 
-	memset(g_wiimotes, 0, sizeof(g_wiimotes));
+	auto const wanted_wiimotes = CalculateWantedWiimotes();
+	g_wiimote_scanner.WantWiimotes(wanted_wiimotes);
 
-	// Only call FindWiimotes with the number of slots configured for real wiimotes
-	unsigned int wanted_wiimotes = 0;
-	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-		if (WIIMOTE_SRC_REAL & g_wiimote_sources[i])
-			++wanted_wiimotes;
+	//if (wanted_wiimotes > 0)
+		g_wiimote_scanner.StartScanning();
 
-	// Don't bother initializing if we don't want any real wiimotes
-	if (0 == wanted_wiimotes)
-	{
-		g_wiimotes_found = 0;
-		return 0;
-	}
-
-	// Initialized
 	g_real_wiimotes_initialized = true;
-
-	g_wiimotes_found = FindWiimotes(g_wiimotes, wanted_wiimotes);
-
-	DEBUG_LOG(WIIMOTE, "Found %i Real Wiimotes, %i wanted",
-			g_wiimotes_found, wanted_wiimotes);
-
-#ifndef _WIN32
-	atexit(WiimoteReal::Shutdown);
-	g_wiimotes_found = ConnectWiimotes(g_wiimotes);
-#endif
-
-	DEBUG_LOG(WIIMOTE, "Connected to %i Real Wiimotes", g_wiimotes_found);
-
-	return g_wiimotes_found;
 }
 
 void Shutdown(void)
 {
-	if (false == g_real_wiimotes_initialized)
+	NOTICE_LOG(WIIMOTE, "WiimoteReal::Shutdown");
+	
+	g_wiimote_scanner.StopScanning();
+
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+
+	if (!g_real_wiimotes_initialized)
 		return;
 
-	// Uninitialized
 	g_real_wiimotes_initialized = false;
 
-	// Delete wiimotes
 	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-		if (g_wiimotes[i])
+		HandleWiimoteDisconnect(i);
+}
+
+void ChangeWiimoteSource(unsigned int index, int source)
+{
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+
+	g_wiimote_sources[index] = source;
+
+	// source is emulated, kill any real connection
+	if (!(WIIMOTE_SRC_REAL & g_wiimote_sources[index]))
+		HandleWiimoteDisconnect(index);
+
+	auto const wanted_wiimotes = CalculateWantedWiimotes();
+	g_wiimote_scanner.WantWiimotes(wanted_wiimotes);
+}
+
+void HandleWiimoteConnect(Wiimote* wm)
+{
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+
+	for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
+	{
+		if (WIIMOTE_SRC_REAL & g_wiimote_sources[i] && !g_wiimotes[i])
 		{
-			delete g_wiimotes[i];
-			g_wiimotes[i] = NULL;
+			g_wiimotes[i] = wm;
+
+			wm->index = i;
+			wm->StartThread();
+			wm->SetLEDs(WIIMOTE_LED_1 << i);
+
+			Host_ConnectWiimote(i, true);
+			
+			NOTICE_LOG(WIIMOTE, "Connected to wiimote %i.", i + 1);
+
+			wm = NULL;
+			break;
 		}
+	}
+
+	delete wm;
+
+	auto const want_wiimotes = CalculateWantedWiimotes();
+	g_wiimote_scanner.WantWiimotes(want_wiimotes);
+}
+
+void HandleWiimoteDisconnect(int index)
+{
+	// locked above
+	//std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+
+	Host_ConnectWiimote(index, false);
+
+	if (g_wiimotes[index])
+	{
+		delete g_wiimotes[index];
+		g_wiimotes[index] = NULL;
+	
+		NOTICE_LOG(WIIMOTE, "Disconnected wiimote %i.", index + 1);
+	}
+
+	auto const want_wiimotes = CalculateWantedWiimotes();
+	g_wiimote_scanner.WantWiimotes(want_wiimotes);
+}
+
+void HandleFoundWiimotes(const std::vector<Wiimote*>& wiimotes)
+{
+	std::for_each(wiimotes.begin(), wiimotes.end(), [](Wiimote* const wm)
+	{
+		if (wm->Open())
+			HandleWiimoteConnect(wm);
+		else
+			delete wm;
+	});
 }
 
 // This is called from the GUI thread
 void Refresh()
 {
-	std::lock_guard<std::mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
 #ifdef _WIN32
 	Shutdown();
 	Initialize();
 #else
+/*
 	// Make sure real wiimotes have been initialized
 	if (!g_real_wiimotes_initialized)
 	{
@@ -477,12 +568,13 @@ void Refresh()
 
 		g_wiimotes_found = num_wiimotes;
 	}
+*/
 #endif
 }
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-	std::lock_guard<std::mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->InterruptChannel(_channelID, _pData, _Size);
@@ -490,7 +582,7 @@ void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u3
 
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-	std::lock_guard<std::mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->ControlChannel(_channelID, _pData, _Size);
@@ -500,7 +592,7 @@ void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 
 // Read the Wiimote once
 void Update(int _WiimoteNumber)
 {
-	std::lock_guard<std::mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->Update();
@@ -508,7 +600,7 @@ void Update(int _WiimoteNumber)
 
 void StateChange(EMUSTATE_CHANGE newState)
 {
-	//std::lock_guard<std::mutex> lk(g_refresh_lock);
+	//std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
 	// TODO: disable/enable auto reporting, maybe
 }

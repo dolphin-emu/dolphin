@@ -4,11 +4,12 @@
 #include "HW/WiimoteReal/WiimoteReal.h"
 #include "Frame.h"
 
-const wxString& ConnectedWiimotesString()
+wxString ConnectedWiimotesString()
 {
-	static wxString str;
-	str.Printf(_("%i connected"), WiimoteReal::Initialize());
-	return str;
+	//static wxString str;
+	//str.Printf(_("%i connected"), WiimoteReal::Initialize());
+	//return str;
+	return "TODO: this text";
 }
 
 WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin)
@@ -222,13 +223,16 @@ void WiimoteConfigDiag::SelectSource(wxCommandEvent& event)
 	// This needs to be changed now in order for refresh to work right.
 	// Revert if the dialog is canceled.
 	int index = m_wiimote_index_from_ctrl_id[event.GetId()];
-	g_wiimote_sources[index] = event.GetInt();
+	
+	WiimoteReal::ChangeWiimoteSource(index, event.GetInt());
+
 	if (g_wiimote_sources[index] != WIIMOTE_SRC_EMU && g_wiimote_sources[index] != WIIMOTE_SRC_HYBRID)
 		wiimote_configure_bt[index]->Disable();
 	else
 		wiimote_configure_bt[index]->Enable();
 }
 
+// TODO: race conditiions
 void WiimoteConfigDiag::UpdateWiimoteStatus()
 {
 	for (int index = 0; index < 4; ++index)
@@ -241,7 +245,7 @@ void WiimoteConfigDiag::UpdateWiimoteStatus()
 			if (WIIMOTE_SRC_EMU & g_wiimote_sources[index])
 				CFrame::ConnectWiimote(index, true);
 			else if (WIIMOTE_SRC_REAL & g_wiimote_sources[index] && WiimoteReal::g_wiimotes[index])
-				CFrame::ConnectWiimote(index, WiimoteReal::g_wiimotes[index]->IsConnected());
+				CFrame::ConnectWiimote(index, WiimoteReal::g_wiimotes[index]->IsOpen());
 		}
 	}
 }
