@@ -120,7 +120,6 @@ EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DUMP_AUDIO, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DPL2DECODER, CConfigMain::AudioSettingsChanged)
-EVT_SLIDER(ID_LATENCY, CConfigMain::AudioSettingsChanged)
 EVT_CHOICE(ID_BACKEND, CConfigMain::AudioSettingsChanged)
 EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
 
@@ -217,7 +216,7 @@ void CConfigMain::UpdateGUI()
 		DSPEngine->Disable();
 		DSPThread->Disable();
 		DPL2Decoder->Disable();
-		LatencySlider->Disable();
+		Latency->Disable();
 
 		// Disable stuff on GamecubePage
 		GCSystemLang->Disable();
@@ -365,9 +364,8 @@ void CConfigMain::InitializeGUIValues()
 	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
 	DPL2Decoder->Enable(std::string(ac_Config.sBackend) == BACKEND_OPENAL);
 	DPL2Decoder->SetValue(startup_params.bDPL2Decoder);
-	LatencySlider->Enable(std::string(ac_Config.sBackend) == BACKEND_OPENAL);
-	LatencySlider->SetValue(startup_params.iLatency);
-	LatencyText->SetLabel(wxString::Format(wxT("%d"), startup_params.iLatency));
+	Latency->Enable(std::string(ac_Config.sBackend) == BACKEND_OPENAL);
+	Latency->SetValue(startup_params.iLatency);
 	// add backends to the list
 	AddAudioBackends();
 
@@ -525,7 +523,7 @@ void CConfigMain::InitializeGUITooltips()
 	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."));
 #endif
 
-	LatencySlider->SetToolTip(_("Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL backend only."));
+	Latency->SetToolTip(_("Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL backend only."));
 }
 
 void CConfigMain::CreateGUIControls()
@@ -630,14 +628,14 @@ void CConfigMain::CreateGUIControls()
 				wxDefaultPosition, wxDefaultSize, 0);
 	BackendSelection = new wxChoice(AudioPage, ID_BACKEND, wxDefaultPosition,
 				wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
-	LatencySlider = new wxSlider(AudioPage, ID_LATENCY, 0, 0, 30,
-		wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
-	LatencyText = new wxStaticText(AudioPage, wxID_ANY, wxT(""),
-		wxDefaultPosition, wxDefaultSize, 0);
+	Latency = new wxSpinCtrl(AudioPage, ID_LATENCY, "", wxDefaultPosition, wxDefaultSize,
+		wxSP_ARROW_KEYS, 0, 30);
+
+	Latency->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &CConfigMain::AudioSettingsChanged, this);
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		LatencySlider->Disable();
+		Latency->Disable();
 		BackendSelection->Disable();
 		DPL2Decoder->Disable();
 	}
@@ -657,8 +655,7 @@ void CConfigMain::CreateGUIControls()
 	sBackend->Add(TEXT_BOX(AudioPage, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBackend->Add(BackendSelection, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
 	sBackend->Add(TEXT_BOX(AudioPage, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBackend->Add(LatencySlider, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
-	sBackend->Add(LatencyText, wxGBPosition(1, 2), wxDefaultSpan, wxALL, 5);
+	sBackend->Add(Latency, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
 	wxStaticBoxSizer *sbBackend = new wxStaticBoxSizer(wxHORIZONTAL, AudioPage, _("Backend Settings"));
 	sbBackend->Add(sBackend, 0, wxEXPAND);
 
@@ -945,15 +942,14 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 
 	case ID_BACKEND:
 		VolumeSlider->Enable(SupportsVolumeChanges(std::string(BackendSelection->GetStringSelection().mb_str())));
-		LatencySlider->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
+		Latency->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
 		DPL2Decoder->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
 		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
 		ac_Config.Update();
 		break;
 
 	case ID_LATENCY:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iLatency = LatencySlider->GetValue();
-		LatencyText->SetLabel(wxString::Format(wxT("%d"), LatencySlider->GetValue()));
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iLatency = Latency->GetValue();
 		break;
 
 	default:

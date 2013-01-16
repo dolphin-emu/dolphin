@@ -159,8 +159,7 @@ private:
 	wxCheckBox*	DPL2Decoder;
 	wxArrayString wxArrayBackends;
 	wxChoice*	BackendSelection;
-	wxSlider*	LatencySlider;
-	wxStaticText* LatencyText;
+	wxSpinCtrl*	Latency;
 
 	// Interface
 	wxCheckBox* ConfirmStop;
