@@ -780,7 +780,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				// someone with an affected game should test
 				IOSv = TitleID & 0xffff;
 			}
-			if (!bSuccess)
+			if (!bSuccess && IOSv >= 30 && IOSv != 0xffff)
 			{
 				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
 					"TitleID %016llx.\n Dolphin will likely hang now", TitleID);

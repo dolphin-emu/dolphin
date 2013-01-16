@@ -257,6 +257,19 @@ bool CBoot::BootUp()
 			EmulatedBS2(_StartupPara.bWii);
 		}
 
+		// Scan for common HLE functions
+		if (_StartupPara.bSkipIdle && !_StartupPara.bEnableDebugging)
+		{
+			PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
+			SignatureDB db;
+			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+			{
+				db.Apply(&g_symbolDB);
+				HLE::PatchFunctions();
+				db.Clear();
+			}
+		}
+
 		/* Try to load the symbol map if there is one, and then scan it for
 			and eventually replace code */
 		if (LoadMapFromFilename(_StartupPara.m_strFilename, gameID))
