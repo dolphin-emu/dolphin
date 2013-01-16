@@ -71,10 +71,10 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	refresh_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::RefreshRealWiimotes, this);
 
 #ifdef _WIN32
-	wxButton* const pairup_btn = new wxButton(this, -1, _("Pair Up"), wxDefaultPosition);
-	pairup_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::PairUpRealWiimotes, this);
+	//wxButton* const pairup_btn = new wxButton(this, -1, _("Pair Up"), wxDefaultPosition);
+	//pairup_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::PairUpRealWiimotes, this);
+	// TODO: text if can't Pair
 #endif
-
 
 	// "Real wiimotes" layout
 	wxStaticBoxSizer* const real_wiimotes_group = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Real Wiimotes"));
@@ -193,24 +193,6 @@ void WiimoteConfigDiag::UpdateGUI()
 {
 	connected_wiimotes_txt->SetLabel(ConnectedWiimotesString());
 }
-
-#ifdef _WIN32
-void WiimoteConfigDiag::PairUpRealWiimotes(wxCommandEvent&)
-{
-	const int paired = WiimoteReal::PairUp();
-
-	if (paired > 0)
-	{
-		// TODO: Maybe add a label of newly paired up wiimotes?
-		WiimoteReal::Refresh();
-		UpdateGUI();
-	}
-	else if (paired < 0)
-		PanicAlertT("A supported bluetooth device could not be found!\n"
-			"If you are not using Microsoft's bluetooth stack "
-			"you must manually pair your wiimotes and use only the \"Refresh\" button.");
-}
-#endif
 
 void WiimoteConfigDiag::RefreshRealWiimotes(wxCommandEvent&)
 {

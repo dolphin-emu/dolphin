@@ -151,13 +151,6 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = NULL;
 	HIDD_ATTRIBUTES attr;
 
-	// Count the number of already found wiimotes
-	for (int i = 0; i < MAX_WIIMOTES; ++i)
-	{
-		if (wm[i])
-			found_wiimotes++;
-	}
-
 	device_data.cbSize = sizeof(device_data);
 
 	// Get the device id
@@ -185,19 +178,6 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 
 		// Query the data for this device
 		if (!SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, NULL, NULL))
-			continue;
-
-		// Determine if this wiimote has already been found.
-		bool found = false;
-		for(int i = 0; i < MAX_WIIMOTES; i++)
-		{
-			if(wm[i] && strcmp(wm[i]->devicepath, detail_data->DevicePath) == 0)
-			{
-				found = true;
-				break;
-			}
-		}
-		if (found)
 			continue;
 
 		// Open new device
@@ -391,6 +371,26 @@ int Wiimote::IOWrite(unsigned char* buf, int len)
 	return 0;
 }
 
+// return true if a device using MS BT stack is available
+bool CanPairUp()
+{
+	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
+	radioParam.dwSize = sizeof(radioParam);
+
+	HANDLE hRadio;
+	HBLUETOOTH_RADIO_FIND hFindRadio = Bth_BluetoothFindFirstRadio(&radioParam, &hRadio);
+
+	if (NULL != hFindRadio)
+	{
+		Bth_BluetoothFindRadioClose(hFindRadio);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 // WiiMote Pair-Up, function will return amount of either new paired or unpaired devices
 // negative number on failure
 int PairUp(bool unpair)
@@ -409,7 +409,8 @@ int PairUp(bool unpair)
 	srch.fReturnConnected = true;
 	srch.fReturnUnknown = true;
 	srch.fIssueInquiry = true;
-	srch.cTimeoutMultiplier = 2;	// == (2 * 1.28) seconds
+	// multiple of 1.28 seconds
+	srch.cTimeoutMultiplier = 1;
 
 	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
 	radioParam.dwSize = sizeof(radioParam);

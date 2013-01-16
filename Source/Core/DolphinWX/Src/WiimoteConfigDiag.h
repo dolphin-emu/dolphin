@@ -24,9 +24,6 @@ class WiimoteConfigDiag : public wxDialog
 public:
 	WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin);
 
-#ifdef _WIN32
-	void PairUpRealWiimotes(wxCommandEvent& event);
-#endif
 	void RefreshRealWiimotes(wxCommandEvent& event);
 
 
