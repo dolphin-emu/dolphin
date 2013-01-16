@@ -131,7 +131,7 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 }
 
 // Connect to a wiimote with a known address.
-bool Wiimote::Open()
+bool Wiimote::Connect()
 {
 	sockaddr_l2 addr;
 	addr.l2_family = AF_BLUETOOTH;
@@ -177,7 +177,7 @@ void Wiimote::StopThread()
 		m_wiimote_thread.join();
 }
 
-void Wiimote::Close()
+void Wiimote::Disconnect()
 {
 	close(cmd_sock);
 	close(int_sock);
@@ -186,7 +186,7 @@ void Wiimote::Close()
 	int_sock = -1;
 }
 
-bool Wiimote::IsOpen() const
+bool Wiimote::IsConnected() const
 {
 	return cmd_sock != -1;// && int_sock != -1;
 }

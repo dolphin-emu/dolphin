@@ -127,12 +127,21 @@ inline void init_lib()
 namespace WiimoteReal
 {
 
+WiimoteScanner::WiimoteScanner()
+{
+	init_lib();
+}
+
 // Find and connect wiimotes.
 // Does not replace already found wiimotes even if they are disconnected.
 // wm is an array of max_wiimotes wiimotes
 // Returns the total number of found and connected wiimotes.
-int FindWiimotes(Wiimote** wm, int max_wiimotes)
+std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 {
+	PairUp();
+
+	std::vector<Wiimote*> wiimotes;
+
 	GUID device_id;
 	HANDLE dev;
 	HDEVINFO device_info;
@@ -141,8 +150,6 @@ int FindWiimotes(Wiimote** wm, int max_wiimotes)
 	SP_DEVICE_INTERFACE_DATA device_data;
 	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = NULL;
 	HIDD_ATTRIBUTES attr;
-
-	init_lib();
 
 	// Count the number of already found wiimotes
 	for (int i = 0; i < MAX_WIIMOTES; ++i)
@@ -207,22 +214,11 @@ int FindWiimotes(Wiimote** wm, int max_wiimotes)
 
 		// Find an unused slot
 		unsigned int k = 0;
-		for (; k < MAX_WIIMOTES && !(WIIMOTE_SRC_REAL & g_wiimote_sources[k] && !wm[k]); ++k);
-		wm[k] = new Wiimote(k);
-		wm[k]->dev_handle = dev;
-		memcpy(wm[k]->devicepath, detail_data->DevicePath, 197);
+		auto const wm = new Wiimote;
+		wm->dev_handle = dev;
+		memcpy(wm->devicepath, detail_data->DevicePath, 197);
 
-		if (!wm[k]->Connect())
-		{
-			ERROR_LOG(WIIMOTE, "Unable to connect to wiimote %i.", wm[k]->index + 1);
-			delete wm[k];
-			wm[k] = NULL;
-			CloseHandle(dev);
-		}
-		else
-		{
-			++found_wiimotes;
-		}
+		found_wiimotes.push_back(wm);
 	}
 
 	if (detail_data)
@@ -233,87 +229,64 @@ int FindWiimotes(Wiimote** wm, int max_wiimotes)
 	return found_wiimotes;
 }
 
+bool WiimoteScanner::IsReady() const
+{
+	// TODO: impl
+	return true;
+}
+
 // Connect to a wiimote with a known device path.
 bool Wiimote::Connect()
 {
-	if (IsConnected()) return false;
+	dev_handle = CreateFile(devicepath,
+		(GENERIC_READ | GENERIC_WRITE),
+		(FILE_SHARE_READ | FILE_SHARE_WRITE),
+		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 
-	if (!dev_handle)
+	if (dev_handle == INVALID_HANDLE_VALUE)
 	{
-		dev_handle = CreateFile(devicepath,
-				(GENERIC_READ | GENERIC_WRITE),
-				(FILE_SHARE_READ | FILE_SHARE_WRITE),
-				NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
-		if (dev_handle == INVALID_HANDLE_VALUE)
-			return false;
+		dev_handle = 0;
+		return false;
 	}
 
 	hid_overlap.hEvent = CreateEvent(NULL, 1, 1, _T(""));
 	hid_overlap.Offset = 0;
 	hid_overlap.OffsetHigh = 0;
 
-	m_connected = true;
-
-	// Try a handshake to see if the device is actually connected
-	if (!Handshake())
-	{
-		m_connected = false;
-		return false;
-	}
-
-	// Set LEDs
-	SetLEDs(WIIMOTE_LED_1 << index);
-
-	m_wiimote_thread = std::thread(std::mem_fun(&Wiimote::ThreadFunc), this);
-
+	// TODO: do this elsewhere
 	// This isn't as drastic as it sounds, since the process in which the threads
 	// reside is normal priority. Needed for keeping audio reports at a decent rate
+/*
 	if (!SetThreadPriority(m_wiimote_thread.native_handle(), THREAD_PRIORITY_TIME_CRITICAL))
 	{
 		ERROR_LOG(WIIMOTE, "Failed to set wiimote thread priority");
 	}
-
-	NOTICE_LOG(WIIMOTE, "Connected to wiimote %i.", index + 1);
+*/
 
 	return true;
 }
 
-void Wiimote::RealDisconnect()
+void Wiimote::Disconnect()
 {
-	if (!IsConnected())
-		return;
-
-	m_connected = false;
-
-	if (m_wiimote_thread.joinable())
-		m_wiimote_thread.join();
-
 	CloseHandle(dev_handle);
 	dev_handle = 0;
 
-	ResetEvent(&hid_overlap);
+	//ResetEvent(&hid_overlap);
+	CloseHandle(hid_overlap.hEvent);
 }
 
-bool Wiimote::IsOpen() const
+bool Wiimote::IsConnected() const
 {
-	return IsConnected();
+	return dev_handle != 0;
 }
 
 int Wiimote::IORead(unsigned char* buf)
 {
-	DWORD b, r;
-
-	init_lib();
-
-	if (!IsConnected())
-		return 0;
-
-	*buf = 0;
+	//*buf = 0;
 	if (!ReadFile(dev_handle, buf, MAX_PAYLOAD, &b, &hid_overlap))
 	{
 		// Partial read
-		b = GetLastError();
-
+		auto const b = GetLastError();
 		if ((b == ERROR_HANDLE_EOF) || (b == ERROR_DEVICE_NOT_CONNECTED))
 		{
 			// Remote disconnect
@@ -321,7 +294,7 @@ int Wiimote::IORead(unsigned char* buf)
 			return 0;
 		}
 
-		r = WaitForSingleObject(hid_overlap.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
+		auto const r = WaitForSingleObject(hid_overlap.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
 		if (r == WAIT_TIMEOUT)
 		{
 			// Timeout - cancel and continue
@@ -357,68 +330,64 @@ int Wiimote::IORead(unsigned char* buf)
 
 int Wiimote::IOWrite(unsigned char* buf, int len)
 {
-	DWORD bytes, dw;
-	int i;
-
-	init_lib();
-
-	if (!IsConnected())
-		return 0;
-
 	switch (stack)
 	{
-		case MSBT_STACK_UNKNOWN:
-			{
-				// Try to auto-detect the stack type
-				if (i = WriteFile(dev_handle, buf + 1, 22, &bytes, &hid_overlap))
-				{
-					// Bluesoleil will always return 1 here, even if it's not connected
-					stack = MSBT_STACK_BLUESOLEIL;
-					return i;
-				}
-
-				if (i = HidD_SetOutputReport(dev_handle, buf + 1, len - 1))
-				{
-					stack = MSBT_STACK_MS;
-					return i;
-				}
-
-				dw = GetLastError();
-				// Checking for 121 = timeout on semaphore/device off/disconnected to
-				// avoid trouble with other stacks toshiba/widcomm 
-				if (dw == 121)
-				{
-					NOTICE_LOG(WIIMOTE, "IOWrite[MSBT_STACK_UNKNOWN]: Timeout");
-					RealDisconnect();
-				}
-				else ERROR_LOG(WIIMOTE,
-						"IOWrite[MSBT_STACK_UNKNOWN]: ERROR: %08x", dw); 
-				return 0;
-			}
-
-		case MSBT_STACK_MS:
-			i = HidD_SetOutputReport(dev_handle, buf + 1, len - 1);
-			dw = GetLastError();
-
-			if (dw == 121)
-			{
-				// Semaphore timeout
-				NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to wiimote");
-				RealDisconnect();
-				return 0;
-			}
+	case MSBT_STACK_UNKNOWN:
+	{
+		// Try to auto-detect the stack type
+		DWORD bytes = 0;
+		auto i = WriteFile(dev_handle, buf + 1, 22, &bytes, &hid_overlap);
+		if (i)
+		{
+			// Bluesoleil will always return 1 here, even if it's not connected
+			stack = MSBT_STACK_BLUESOLEIL;
 			return i;
+		}
 
-		case MSBT_STACK_BLUESOLEIL:
-			return WriteFile(dev_handle, buf + 1, 22, &bytes, &hid_overlap);
+		i = HidD_SetOutputReport(dev_handle, buf + 1, len - 1);
+		if (i)
+		{
+			stack = MSBT_STACK_MS;
+			return i;
+		}
+
+		auto const dw = GetLastError();
+		// Checking for 121 = timeout on semaphore/device off/disconnected to
+		// avoid trouble with other stacks toshiba/widcomm 
+		if (dw == 121)
+		{
+			NOTICE_LOG(WIIMOTE, "IOWrite[MSBT_STACK_UNKNOWN]: Timeout");
+			return 0;
+		}
+		else
+		{
+			ERROR_LOG(WIIMOTE, "IOWrite[MSBT_STACK_UNKNOWN]: ERROR: %08x", dw);
+			// Correct?
+			return -1
+		}
+		break;
+	}
+	case MSBT_STACK_MS:
+	{
+		i = HidD_SetOutputReport(dev_handle, buf + 1, len - 1);
+		dw = GetLastError();
+
+		if (dw == 121)
+		{
+			// Semaphore timeout
+			NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to wiimote");
+			RealDisconnect();
+			return 0;
+		}
+
+		return i;
+		break;
+	}
+	case MSBT_STACK_BLUESOLEIL:
+		return WriteFile(dev_handle, buf + 1, 22, &bytes, &hid_overlap);
+		break;
 	}
 
-	return 0;
-}
-
-int UnPair()
-{
-	// TODO:
 	return 0;
 }
 
@@ -426,8 +395,6 @@ int UnPair()
 // negative number on failure
 int PairUp(bool unpair)
 {
-	init_lib();
-
 	// match strings like "Nintendo RVL-WBC-01", "Nintendo RVL-CNT-01", "Nintendo RVL-CNT-01-TR"
 	const std::wregex wiimote_device_name(L"Nintendo RVL-\\w{3}-\\d{2}(-\\w{2})?");
 

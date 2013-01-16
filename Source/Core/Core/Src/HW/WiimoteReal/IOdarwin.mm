@@ -10,6 +10,19 @@
 }
 @end
 
+WiimoteScanner::WiimoteScanner()
+{}
+
+std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
+{
+	return std::vector<Wiimote*>();
+}
+
+bool WiimoteScanner::IsReady() const
+{
+	return false;
+}
+
 @implementation SearchBT
 - (void) deviceInquiryComplete: (IOBluetoothDeviceInquiry *) sender
 	error: (IOReturn) error
@@ -92,7 +105,7 @@
 
 	WARN_LOG(WIIMOTE, "Lost channel to wiimote %i", wm->index + 1);
 
-	wm->RealDisconnect();
+	wm->Disconnect();
 }
 @end
 
@@ -182,7 +195,7 @@ bool Wiimote::Connect()
 	if (ichan == NULL || cchan == NULL) {
 		ERROR_LOG(WIIMOTE, "Unable to open L2CAP channels "
 			"for wiimote %i", index + 1);
-		RealDisconnect();
+		Disconnect();
 		return false;
 	}
     
@@ -207,7 +220,7 @@ bool Wiimote::Connect()
 }
 
 // Disconnect a wiimote.
-void Wiimote::RealDisconnect()
+void Wiimote::Disconnect()
 {
 	if (!IsConnected())
 		return;

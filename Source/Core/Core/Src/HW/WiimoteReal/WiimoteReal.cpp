@@ -69,8 +69,8 @@ Wiimote::~Wiimote()
 {
 	StopThread();	
 
-	if (IsOpen())
-		Close();
+	if (IsConnected())
+		Disconnect();
 	
 	ClearReadQueue();
 
@@ -178,7 +178,7 @@ bool Wiimote::Read()
 	rpt.second = IORead(rpt.first);
 
 	if (0 == rpt.second)
-		Close();
+		Disconnect();
 
 	if (rpt.second > 0 && m_channel > 0) {
 		// Add it to queue
@@ -348,7 +348,7 @@ void WiimoteScanner::ThreadFunc()
 		// TODO: this code here is ugly
 		std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
-			if (g_wiimotes[i] && !g_wiimotes[i]->IsOpen())
+			if (g_wiimotes[i] && !g_wiimotes[i]->IsConnected())
 				HandleWiimoteDisconnect(i);
 		}
 #endif	
@@ -365,14 +365,14 @@ void Wiimote::ThreadFunc()
 	Rumble();
 
 	// main loop
-	while (m_run_thread && IsOpen())
+	while (m_run_thread && IsConnected())
 	{
 #ifdef __APPLE__
 		while (Write()) {}
 		Common::SleepCurrentThread(1);
 #else
 		// TODO: this is all a mess
-		while (m_run_thread && IsOpen())
+		while (m_run_thread && IsConnected())
 		{
 			bool const did_write = Write();
 
@@ -512,7 +512,7 @@ void HandleFoundWiimotes(const std::vector<Wiimote*>& wiimotes)
 {
 	std::for_each(wiimotes.begin(), wiimotes.end(), [](Wiimote* const wm)
 	{
-		if (wm->Open())
+		if (wm->Connect())
 			HandleWiimoteConnect(wm);
 		else
 			delete wm;

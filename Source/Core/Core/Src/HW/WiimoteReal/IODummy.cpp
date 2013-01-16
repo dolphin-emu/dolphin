@@ -21,9 +21,19 @@
 namespace WiimoteReal
 {
 
-int FindWiimotes(Wiimote **wm, int max_wiimotes)
+WiimoteScanner::WiimoteScanner()
 {
-	return 0;
+	return;
+}
+
+std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
+{
+	return std::vector<Wiimote*>()
+}
+
+bool WiimoteScanner::IsReady() const
+{
+	return false;
 }
 
 bool Wiimote::Connect()
@@ -31,7 +41,7 @@ bool Wiimote::Connect()
 	return 0;
 }
 
-void Wiimote::RealDisconnect()
+void Wiimote::Disconnect()
 {
 	return;
 }

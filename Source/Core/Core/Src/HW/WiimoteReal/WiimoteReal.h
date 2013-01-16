@@ -62,11 +62,11 @@ public:
 	void EmuStop();
 
 	// connecting and disconnecting from physical devices
-	bool Open();
-	void Close();
+	bool Connect();
+	void Disconnect();
 
 	// TODO: change to something like IsRelevant
-	bool IsOpen() const;
+	bool IsConnected() const;
 
 	void SetLEDs(int leds);
 
@@ -141,8 +141,13 @@ private:
 	// TODO: this should probably be atomic
 	volatile size_t want_wiimotes;
 
+#if defined(_WIN32)
+	
+
+#elif defined(__linux__) && HAVE_BLUEZ
 	int device_id;
-	int device_sock;	
+	int device_sock;
+#endif
 };
 
 extern std::recursive_mutex g_refresh_lock;
