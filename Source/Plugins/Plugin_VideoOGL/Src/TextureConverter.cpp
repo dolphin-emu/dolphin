@@ -395,7 +395,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 
 
 // Should be scale free.
-void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTexture)
+void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRenderbuf)
 {
 	u8* srcAddr = Memory::GetPointer(xfbAddr);
 	if (!srcAddr)
@@ -411,9 +411,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// switch to texture converter frame buffer
 	// attach destTexture as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, destTexture);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, destTexture, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, destRenderbuf);
 
 	GL_REPORT_FBO_ERROR();
 
@@ -471,7 +469,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	// reset state
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, 0, 0);
 	TextureCache::DisableStage(0);
 
 	VertexShaderManager::SetViewportChanged();

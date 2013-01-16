@@ -297,11 +297,17 @@ GLuint FramebufferManager::ResolveAndGetDepthTarget(const EFBRectangle &source_r
 	return GetEFBDepthTexture(source_rect);
 }
 
+XFBSource::~XFBSource()
+{
+	glDeleteRenderbuffers(1, &renderbuf);
+}
+
+
 void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 		const MathUtil::Rectangle<float> &drawrc, int width, int height) const
 {
 	// Texture map xfbSource->texture onto the main buffer
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, texture, 0);
+	glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuf);
 	glBlitFramebuffer(sourcerc.left, sourcerc.bottom, sourcerc.right, sourcerc.top,
 		drawrc.left, drawrc.bottom, drawrc.right, drawrc.top,
 		GL_COLOR_BUFFER_BIT, GL_LINEAR);
@@ -311,7 +317,7 @@ void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
 
 void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, texture);
+	TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, renderbuf);
 }
 
 void XFBSource::CopyEFB(float Gamma)
@@ -321,7 +327,7 @@ void XFBSource::CopyEFB(float Gamma)
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
 
 	// Bind texture.
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, texture, 0);
+	glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbuf);
 	GL_REPORT_FBO_ERROR();
 
 	glBlitFramebuffer(
@@ -330,26 +336,21 @@ void XFBSource::CopyEFB(float Gamma)
 		GL_COLOR_BUFFER_BIT, GL_NEAREST
 	);
 
-	// Unbind texture.
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, 0, 0);
-
 	// Return to EFB.
-	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
+	FramebufferManager::SetFramebuffer(0);
 
 }
 
 XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height)
 {
-	GLuint texture;
+	GLuint renderbuf;
 
-	glGenTextures(1, &texture);
+	glGenRenderbuffers(1, &renderbuf);
+	
+	glBindRenderbuffer(GL_RENDERBUFFER, renderbuf);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, target_width, target_height);
 
-	glBindTexture(GL_TEXTURE_RECTANGLE, texture);
-	glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, target_width, target_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-	glBindTexture(GL_TEXTURE_RECTANGLE, 0);
-
-	return new XFBSource(texture);
+	return new XFBSource(renderbuf);
 }
 
 void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc)
