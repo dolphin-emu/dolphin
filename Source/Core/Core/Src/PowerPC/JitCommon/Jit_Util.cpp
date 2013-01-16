@@ -118,7 +118,7 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 
 void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend)
 {
-#if defined(_WIN32) && defined(_M_X64)
+#if defined(_M_X64)
 #ifdef ENABLE_MEM_CHECK
 	if (accessSize == 32 && !Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
 #else
