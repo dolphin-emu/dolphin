@@ -63,7 +63,7 @@ struct XFBSource : public XFBSourceBase
 	void CopyEFB(float Gamma);
 	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 	void Draw(const MathUtil::Rectangle<float> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc, u32 width, u32 height) const;
+		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
 
 	const GLuint texture;
 };

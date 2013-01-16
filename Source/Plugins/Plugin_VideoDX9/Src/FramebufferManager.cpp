@@ -44,8 +44,8 @@ FramebufferManager::Efb FramebufferManager::s_efb;
 FramebufferManager::FramebufferManager()
 {
 	bool depth_textures_supported = true;
-	u32 target_width = Renderer::GetTargetWidth();
-	u32 target_height = Renderer::GetTargetHeight();
+	int target_width = Renderer::GetTargetWidth();
+	int target_height = Renderer::GetTargetHeight();
 	s_efb.color_surface_Format = D3DFMT_A8R8G8B8;
 
 	// EFB color texture - primary render target
@@ -161,7 +161,7 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 }
 
 void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
-	const MathUtil::Rectangle<float> &drawrc, u32 width, u32 height) const
+	const MathUtil::Rectangle<float> &drawrc, int width, int height) const
 {
 	D3D::drawShadedTexSubQuad(texture, &sourcerc, texWidth, texHeight, &drawrc, width , height,
 		PixelShaderCache::GetColorCopyProgram(0), VertexShaderCache::GetSimpleVertexShader(0));

@@ -323,8 +323,8 @@ Renderer::Renderer()
 		return;	// TODO: fail
 
 	// Decide frambuffer size
-	s_backbuffer_width = GLInterface->GetBackBufferWidth();
-	s_backbuffer_height = GLInterface->GetBackBufferHeight();
+	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
+	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
 #ifdef __APPLE__
@@ -1047,7 +1047,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Textured triangles are necessary because of post-processing shaders
 
 	// Disable all other stages
-	for (unsigned int i = 1; i < 8; ++i)
+	for (int i = 1; i < 8; ++i)
 		OGL::TextureCache::DisableStage(i);
 
 	// Update GLViewPort

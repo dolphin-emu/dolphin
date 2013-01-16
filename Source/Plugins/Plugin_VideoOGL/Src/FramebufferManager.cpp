@@ -299,7 +299,7 @@ GLuint FramebufferManager::ResolveAndGetDepthTarget(const EFBRectangle &source_r
 }
 
 void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc, u32 width, u32 height) const
+		const MathUtil::Rectangle<float> &drawrc, int width, int height) const
 {
 	// Texture map xfbSource->texture onto the main buffer
 

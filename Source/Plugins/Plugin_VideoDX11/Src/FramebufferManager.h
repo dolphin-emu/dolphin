@@ -64,7 +64,7 @@ struct XFBSource : public XFBSourceBase
 	~XFBSource() { tex->Release(); }
 
 	void Draw(const MathUtil::Rectangle<float> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc, u32 width, u32 height) const;
+		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
 	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 	void CopyEFB(float Gamma);
 
