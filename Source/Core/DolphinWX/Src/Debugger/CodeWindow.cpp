@@ -52,10 +52,7 @@
 
 extern "C"  // Bitmaps
 {
-	#include "../../resources/toolbar_play.c"
-	#include "../../resources/toolbar_pause.c"
 	#include "../../resources/toolbar_add_memorycheck.c"
-	#include "../../resources/toolbar_debugger_delete.c"
 	#include "../../resources/toolbar_add_breakpoint.c"
 }
 
@@ -563,23 +560,21 @@ bool CCodeWindow::JITBlockLinking()
 void CCodeWindow::InitBitmaps()
 {
 	// load original size 48x48
-	m_Bitmaps[Toolbar_DebugGo] = wxGetBitmapFromMemory(toolbar_play_png);
 	m_Bitmaps[Toolbar_Step] = wxGetBitmapFromMemory(toolbar_add_breakpoint_png);
 	m_Bitmaps[Toolbar_StepOver] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_Skip] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_GotoPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_DebugPause] = wxGetBitmapFromMemory(toolbar_pause_png);
 
 	// scale to 24x24 for toolbar
-	for (size_t n = Toolbar_DebugGo; n < ToolbarDebugBitmapMax; n++)
+	for (size_t n = 0; n < ToolbarDebugBitmapMax; n++)
 		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(24, 24));
 }
 
 void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 {
-	int w = m_Bitmaps[Toolbar_DebugGo].GetWidth(),
-		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
+	int w = m_Bitmaps[0].GetWidth(),
+		h = m_Bitmaps[0].GetHeight();
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
 	toolBar->AddTool(IDM_STEP,		_("Step"),			m_Bitmaps[Toolbar_Step]);
