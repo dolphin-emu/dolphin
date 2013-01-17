@@ -319,7 +319,7 @@ Renderer::Renderer()
 	if (glewIsSupported("GL_ARB_uniform_buffer_object"))
 		g_Config.backend_info.bSupportsGLSLUBO = true;
 	if (glewIsSupported("GL_ARB_get_program_binary"))
-		g_Config.backend_info.bSupportsGLSLCache = true;
+		g_Config.backend_info.bSupportsGLSLCache = false;//TODO: revert this after cache is fixed itself
 		
 		UpdateActiveConfig();
 		OSD::AddMessage(StringFromFormat("Supports Blending: %s UBOs: %s Cache: %s",
