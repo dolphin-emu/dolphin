@@ -125,6 +125,7 @@ struct SCoreStartupParameter
 
 	// Interface settings
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;
+	std::string theme_name;
 
 	// Hotkeys
 	int iHotkey[NUM_HOTKEYS];
@@ -138,7 +139,6 @@ struct SCoreStartupParameter
 	bool bFullscreen, bRenderToMain;
 	bool bProgressive, bDisableScreenSaver;
 
-	int iTheme;
 	int iPosX, iPosY, iWidth, iHeight;
 
 	enum EBootBS2

@@ -78,23 +78,6 @@ Core::GetWindowHandle().
 // Resources
 extern "C" {
 #include "../resources/Dolphin.c" // Dolphin icon
-#include "../resources/toolbar_browse.c"
-#include "../resources/toolbar_file_open.c"
-#include "../resources/toolbar_fullscreen.c"
-#include "../resources/toolbar_help.c"
-#include "../resources/toolbar_pause.c"
-#include "../resources/toolbar_play.c"
-#include "../resources/toolbar_plugin_dsp.c"
-#include "../resources/toolbar_plugin_gfx.c"
-#include "../resources/toolbar_plugin_options.c"
-#include "../resources/toolbar_plugin_pad.c"
-#include "../resources/toolbar_plugin_wiimote.c"
-#include "../resources/toolbar_refresh.c"
-#include "../resources/toolbar_stop.c"
-#include "../resources/Boomy.h" // Theme packages
-#include "../resources/Vista.h"
-#include "../resources/X-Plastik.h"
-#include "../resources/KDE.h"
 };
 
 bool confirmStop = false;
@@ -512,102 +495,26 @@ void CFrame::RecreateToolbar()
 
 void CFrame::InitBitmaps()
 {
-	// Get selected theme
-	int Theme = SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme;
+	wxString dir(File::GetUserPath(D_THEMES_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/");
 
-	// Save memory by only having one set of bitmaps loaded at any time. I mean, they are still
-	// in the exe, which is in memory, but at least we wont make another copy of all of them. 
-	switch (Theme)
-	{
-	case BOOMY:
-	{
-		// These are stored as 48x48
-		m_Bitmaps[Toolbar_FileOpen]		= wxGetBitmapFromMemory(toolbar_file_open_png);
-		m_Bitmaps[Toolbar_Refresh]		= wxGetBitmapFromMemory(toolbar_refresh_png);
-		m_Bitmaps[Toolbar_Browse]		= wxGetBitmapFromMemory(toolbar_browse_png);
-		m_Bitmaps[Toolbar_Play]			= wxGetBitmapFromMemory(toolbar_play_png);
-		m_Bitmaps[Toolbar_Stop]			= wxGetBitmapFromMemory(toolbar_stop_png);
-		m_Bitmaps[Toolbar_Pause]		= wxGetBitmapFromMemory(toolbar_pause_png);
-		m_Bitmaps[Toolbar_ConfigMain]	= wxGetBitmapFromMemory(toolbar_plugin_options_png);
-		m_Bitmaps[Toolbar_ConfigGFX]	= wxGetBitmapFromMemory(toolbar_plugin_gfx_png);
-		m_Bitmaps[Toolbar_ConfigDSP]	= wxGetBitmapFromMemory(toolbar_plugin_dsp_png);
-		m_Bitmaps[Toolbar_ConfigPAD]	= wxGetBitmapFromMemory(toolbar_plugin_pad_png);
-		m_Bitmaps[Toolbar_Wiimote]		= wxGetBitmapFromMemory(toolbar_plugin_wiimote_png);
-		m_Bitmaps[Toolbar_Screenshot]	= wxGetBitmapFromMemory(toolbar_fullscreen_png);
-		m_Bitmaps[Toolbar_FullScreen]	= wxGetBitmapFromMemory(toolbar_fullscreen_png);
-		m_Bitmaps[Toolbar_Help]			= wxGetBitmapFromMemory(toolbar_help_png);
-
-		// Scale the 48x48 bitmaps to 24x24
-		for (size_t n = Toolbar_FileOpen; n < EToolbar_Max; n++)
-		{
-			m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(24, 24));
-		}
-	}
-	break;
-
-	case VISTA:
-	{
-		// These are stored as 24x24 and need no scaling
-		m_Bitmaps[Toolbar_FileOpen]		= wxGetBitmapFromMemory(Toolbar_Open1_png);
-		m_Bitmaps[Toolbar_Refresh]		= wxGetBitmapFromMemory(Toolbar_Refresh1_png);
-		m_Bitmaps[Toolbar_Browse]		= wxGetBitmapFromMemory(Toolbar_Browse1_png);
-		m_Bitmaps[Toolbar_Play]			= wxGetBitmapFromMemory(Toolbar_Play1_png);
-		m_Bitmaps[Toolbar_Stop]			= wxGetBitmapFromMemory(Toolbar_Stop1_png);
-		m_Bitmaps[Toolbar_Pause]		= wxGetBitmapFromMemory(Toolbar_Pause1_png);
-		m_Bitmaps[Toolbar_ConfigMain]	= wxGetBitmapFromMemory(Toolbar_Options1_png);
-		m_Bitmaps[Toolbar_ConfigGFX]	= wxGetBitmapFromMemory(Toolbar_Gfx1_png);
-		m_Bitmaps[Toolbar_ConfigDSP]	= wxGetBitmapFromMemory(Toolbar_DSP1_png);
-		m_Bitmaps[Toolbar_ConfigPAD]	= wxGetBitmapFromMemory(Toolbar_Pad1_png);
-		m_Bitmaps[Toolbar_Wiimote]		= wxGetBitmapFromMemory(Toolbar_Wiimote1_png);
-		m_Bitmaps[Toolbar_Screenshot]	= wxGetBitmapFromMemory(Toolbar_Fullscreen1_png);
-		m_Bitmaps[Toolbar_FullScreen]	= wxGetBitmapFromMemory(Toolbar_Fullscreen1_png);
-		m_Bitmaps[Toolbar_Help]			= wxGetBitmapFromMemory(Toolbar_Help1_png);
-	}
-	break;
-
-	case XPLASTIK:
-	{
-		m_Bitmaps[Toolbar_FileOpen]		= wxGetBitmapFromMemory(Toolbar_Open2_png);
-		m_Bitmaps[Toolbar_Refresh]		= wxGetBitmapFromMemory(Toolbar_Refresh2_png);
-		m_Bitmaps[Toolbar_Browse]		= wxGetBitmapFromMemory(Toolbar_Browse2_png);
-		m_Bitmaps[Toolbar_Play]			= wxGetBitmapFromMemory(Toolbar_Play2_png);
-		m_Bitmaps[Toolbar_Stop]			= wxGetBitmapFromMemory(Toolbar_Stop2_png);
-		m_Bitmaps[Toolbar_Pause]		= wxGetBitmapFromMemory(Toolbar_Pause2_png);
-		m_Bitmaps[Toolbar_ConfigMain]	= wxGetBitmapFromMemory(Toolbar_Options2_png);
-		m_Bitmaps[Toolbar_ConfigGFX]	= wxGetBitmapFromMemory(Toolbar_Gfx2_png);
-		m_Bitmaps[Toolbar_ConfigDSP]	= wxGetBitmapFromMemory(Toolbar_DSP2_png);
-		m_Bitmaps[Toolbar_ConfigPAD]	= wxGetBitmapFromMemory(Toolbar_Pad2_png);
-		m_Bitmaps[Toolbar_Wiimote]		= wxGetBitmapFromMemory(Toolbar_Wiimote2_png);
-		m_Bitmaps[Toolbar_Screenshot]	= wxGetBitmapFromMemory(Toolbar_Fullscreen2_png);
-		m_Bitmaps[Toolbar_FullScreen]	= wxGetBitmapFromMemory(Toolbar_Fullscreen2_png);
-		m_Bitmaps[Toolbar_Help]			= wxGetBitmapFromMemory(Toolbar_Help2_png);
-	}
-	break;
-
-	case KDE:
-	{
-		m_Bitmaps[Toolbar_FileOpen]		= wxGetBitmapFromMemory(Toolbar_Open3_png);
-		m_Bitmaps[Toolbar_Refresh]		= wxGetBitmapFromMemory(Toolbar_Refresh3_png);
-		m_Bitmaps[Toolbar_Browse]		= wxGetBitmapFromMemory(Toolbar_Browse3_png);
-		m_Bitmaps[Toolbar_Play]			= wxGetBitmapFromMemory(Toolbar_Play3_png);
-		m_Bitmaps[Toolbar_Stop]			= wxGetBitmapFromMemory(Toolbar_Stop3_png);
-		m_Bitmaps[Toolbar_Pause]		= wxGetBitmapFromMemory(Toolbar_Pause3_png);
-		m_Bitmaps[Toolbar_ConfigMain]	= wxGetBitmapFromMemory(Toolbar_Options3_png);
-		m_Bitmaps[Toolbar_ConfigGFX]	= wxGetBitmapFromMemory(Toolbar_Gfx3_png);
-		m_Bitmaps[Toolbar_ConfigDSP]	= wxGetBitmapFromMemory(Toolbar_DSP3_png);
-		m_Bitmaps[Toolbar_ConfigPAD]	= wxGetBitmapFromMemory(Toolbar_Pad3_png);
-		m_Bitmaps[Toolbar_Wiimote]		= wxGetBitmapFromMemory(Toolbar_Wiimote3_png);
-		m_Bitmaps[Toolbar_Screenshot]	= wxGetBitmapFromMemory(Toolbar_Fullscreen3_png);
-		m_Bitmaps[Toolbar_FullScreen]	= wxGetBitmapFromMemory(Toolbar_Fullscreen3_png);
-		m_Bitmaps[Toolbar_Help]			= wxGetBitmapFromMemory(Toolbar_Help3_png);
-	}
-	break;
-
-	default: PanicAlertT("Theme selection went wrong");
-	}
+	m_Bitmaps[Toolbar_FileOpen].LoadFile(dir + "open.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Refresh].LoadFile(dir + "refresh.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Browse].LoadFile(dir + "browse.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Play].LoadFile(dir + "play.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Stop].LoadFile(dir + "stop.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Pause].LoadFile(dir + "pause.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigMain].LoadFile(dir + "config.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigGFX].LoadFile(dir + "graphics.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigDSP].LoadFile(dir + "dsp.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_ConfigPAD].LoadFile(dir + "gcpad.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Wiimote].LoadFile(dir + "wiimote.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Screenshot].LoadFile(dir + "screenshot.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_FullScreen].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
+	m_Bitmaps[Toolbar_Help].LoadFile(dir + "help.png", wxBITMAP_TYPE_PNG);
 
 	// Update in case the bitmap has been updated
-	if (m_ToolBar != NULL) RecreateToolbar();
+	if (m_ToolBar != NULL)
+		RecreateToolbar();
 }
 
 // Menu items

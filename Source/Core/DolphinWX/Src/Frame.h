@@ -210,15 +210,6 @@ private:
 		EToolbar_Max
 	};
 
-	enum EBitmapsThemes
-	{
-		BOOMY,
-		VISTA,
-		XPLASTIK,
-		KDE,
-		THEMES_MAX
-	};
-
 	wxBitmap m_Bitmaps[EToolbar_Max];
 	wxBitmap m_BitmapsMenu[EToolbar_Max];
 

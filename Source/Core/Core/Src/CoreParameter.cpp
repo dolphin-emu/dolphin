@@ -59,7 +59,6 @@ SCoreStartupParameter::SCoreStartupParameter()
   bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
   bFullscreen(false), bRenderToMain(false),
   bProgressive(false), bDisableScreenSaver(false),
-  iTheme(0),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600)
 {
 	LoadDefaults();

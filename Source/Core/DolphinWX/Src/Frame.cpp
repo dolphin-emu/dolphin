@@ -52,22 +52,6 @@
 
 extern "C" {
 #include "../resources/Dolphin.c" // Dolphin icon
-#include "../resources/toolbar_browse.c"
-#include "../resources/toolbar_file_open.c"
-#include "../resources/toolbar_fullscreen.c"
-#include "../resources/toolbar_help.c"
-#include "../resources/toolbar_pause.c"
-#include "../resources/toolbar_play.c"
-#include "../resources/toolbar_plugin_dsp.c"
-#include "../resources/toolbar_plugin_gfx.c"
-#include "../resources/toolbar_plugin_options.c"
-#include "../resources/toolbar_plugin_pad.c"
-#include "../resources/toolbar_refresh.c"
-#include "../resources/toolbar_stop.c"
-#include "../resources/Boomy.h" // Theme packages
-#include "../resources/Vista.h"
-#include "../resources/X-Plastik.h"
-#include "../resources/KDE.h"
 };
 
 

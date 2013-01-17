@@ -164,7 +164,6 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "OnScreenDisplayMessages",	m_LocalCoreStartupParameter.bOnScreenDisplayMessages);
 	ini.Set("Interface", "HideCursor",			m_LocalCoreStartupParameter.bHideCursor);
 	ini.Set("Interface", "AutoHideCursor",		m_LocalCoreStartupParameter.bAutoHideCursor);
-	ini.Set("Interface", "Theme",				m_LocalCoreStartupParameter.iTheme);
 	ini.Set("Interface", "MainWindowPosX",		(m_LocalCoreStartupParameter.iPosX == -32000) ? 0 : m_LocalCoreStartupParameter.iPosX); // TODO - HAX
 	ini.Set("Interface", "MainWindowPosY",		(m_LocalCoreStartupParameter.iPosY == -32000) ? 0 : m_LocalCoreStartupParameter.iPosY); // TODO - HAX
 	ini.Set("Interface", "MainWindowWidth",		m_LocalCoreStartupParameter.iWidth);
@@ -175,6 +174,7 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "ShowLogWindow",		m_InterfaceLogWindow);
 	ini.Set("Interface", "ShowLogConfigWindow",	m_InterfaceLogConfigWindow);
 	ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
+	ini.Set("Interface", "ThemeName",			m_LocalCoreStartupParameter.theme_name);
 
 	// Hotkeys
 	for (int i = 0; i < NUM_HOTKEYS; i++)
@@ -303,7 +303,6 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "OnScreenDisplayMessages",	&m_LocalCoreStartupParameter.bOnScreenDisplayMessages,	true);
 		ini.Get("Interface", "HideCursor",			&m_LocalCoreStartupParameter.bHideCursor,		false);
 		ini.Get("Interface", "AutoHideCursor",		&m_LocalCoreStartupParameter.bAutoHideCursor,	false);
-		ini.Get("Interface", "Theme",				&m_LocalCoreStartupParameter.iTheme,			0);
 		ini.Get("Interface", "MainWindowPosX",		&m_LocalCoreStartupParameter.iPosX,				100);
 		ini.Get("Interface", "MainWindowPosY",		&m_LocalCoreStartupParameter.iPosY,				100);
 		ini.Get("Interface", "MainWindowWidth",		&m_LocalCoreStartupParameter.iWidth,			800);
@@ -314,6 +313,7 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowLogWindow",		&m_InterfaceLogWindow,							false);
 		ini.Get("Interface", "ShowLogConfigWindow",	&m_InterfaceLogConfigWindow,					false);
 		ini.Get("Interface", "ShowConsole",			&m_InterfaceConsole,							false);
+		ini.Get("Interface", "ThemeName",			&m_LocalCoreStartupParameter.theme_name,		"Boomy");
 
 		// Hotkeys
 		for (int i = 0; i < NUM_HOTKEYS; i++)
