@@ -595,7 +595,13 @@ void CConfigMain::CreateGUIControls()
 	// theme selection
 	auto const theme_selection = new wxChoice(DisplayPage, wxID_ANY);
 
-    CFileSearch cfs(CFileSearch::XStringVector(1, "*"), CFileSearch::XStringVector(1, File::GetUserPath(D_THEMES_IDX)));
+	CFileSearch::XStringVector theme_dirs;
+	theme_dirs.push_back(File::GetUserPath(D_THEMES_IDX));
+#if !defined(_WIN32)
+	theme_dirs.push_back(SHARED_USER_DIR THEMES_DIR);
+#endif
+
+	CFileSearch cfs(CFileSearch::XStringVector(1, "*"), theme_dirs);
 	auto const& sv = cfs.GetFileNames();
 	std::for_each(sv.begin(), sv.end(), [theme_selection](const std::string& filename)
 	{
@@ -603,7 +609,8 @@ void CConfigMain::CreateGUIControls()
 		SplitPath(filename, NULL, &name, &ext);
 
 		name += ext;
-		theme_selection->Append(name);
+		if (-1 == theme_selection->FindString(name))
+			theme_selection->Append(name);
 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name == name)
 			theme_selection->SetSelection(theme_selection->GetCount() - 1);
