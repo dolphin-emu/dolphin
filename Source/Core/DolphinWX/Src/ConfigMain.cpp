@@ -611,13 +611,12 @@ void CConfigMain::CreateGUIControls()
 		name += ext;
 		if (-1 == theme_selection->FindString(name))
 			theme_selection->Append(name);
-
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name == name)
-			theme_selection->SetSelection(theme_selection->GetCount() - 1);
 	});
+	
+	theme_selection->SetStringSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name);
 
 	// std::function = avoid error on msvc
-	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, function<void(wxEvent&)>([this,theme_selection](wxEvent&)
+	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, function<void(wxEvent&)>([theme_selection](wxEvent&)
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = theme_selection->GetStringSelection();
 		main_frame->InitBitmaps();
