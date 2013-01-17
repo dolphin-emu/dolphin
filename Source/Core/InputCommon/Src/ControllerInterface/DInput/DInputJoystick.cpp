@@ -267,8 +267,8 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 			const LONG& ax = (&m_state_in.lX)[offset];
 
 			// each axis gets a negative and a positive input instance associated with it
-			AddInput(new Axis(offset, ax, base, range.lMin-base));
-			AddInput(new Axis(offset, ax, base, range.lMax-base));
+			AddAnalogInputs(new Axis(offset, ax, base, range.lMin-base),
+				new Axis(offset, ax, base, range.lMax-base));
 		}
 	}
 

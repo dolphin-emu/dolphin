@@ -86,8 +86,8 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	for (u8 i = 0; i != SDL_JoystickNumAxes(m_joystick); ++i)
 	{
 		// each axis gets a negative and a positive input instance associated with it
-		AddInput(new Axis(i, m_joystick, -32768));
-		AddInput(new Axis(i, m_joystick, 32767));
+		AddAnalogInputs(new Axis(i, m_joystick, -32768),
+			new Axis(i, m_joystick, 32767));
 	}
 
 #ifdef USE_SDL_HAPTIC
