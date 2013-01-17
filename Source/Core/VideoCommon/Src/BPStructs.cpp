@@ -224,6 +224,8 @@ void BPWritten(const BPCmd& bp)
 		{
 			PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
 			PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
+			if(bp.changes & 0x100)
+				SetBlendMode();
 			break;
 		}
 	// This is called when the game is done drawing the new frame (eg: like in DX: Begin(); Draw(); End();)
@@ -457,6 +459,8 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
 		g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
 		OnPixelFormatChange();
+		if(bp.changes & 3)
+			SetBlendMode(); // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
 		break;
 
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel

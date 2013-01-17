@@ -959,13 +959,19 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
+	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
+		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+	
 	// blend mode bit mask
 	// 0 - blend enable
+	// 1 - dst alpha enabled
 	// 2 - reverse subtract enable (else add)
 	// 3-5 - srcRGB function
 	// 6-8 - dstRGB function
 
-	u32 newval = bpmem.blendmode.subtract << 2;
+	u32 newval = useDualSource << 1;
+	newval |= bpmem.blendmode.subtract << 2;
 
 	if (bpmem.blendmode.subtract)
 		newval |= 0x0049;   // enable blending src 1 dst 1
@@ -977,10 +983,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
-
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
-		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
-	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
 	if (changes & 1)
 		// blend enable change
@@ -998,7 +1000,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 			glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
 	}
 
-	if (changes & 0x1F8)
+	if (changes & 0x1FA)
 	{
 		if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 		{

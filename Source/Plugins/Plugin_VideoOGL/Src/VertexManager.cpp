@@ -311,12 +311,10 @@ void VertexManager::vFlush()
 		{
 			// If host supports GL_ARB_blend_func_extended, we can do dst alpha in
 			// the same pass as regular rendering.
-			g_renderer->SetBlendMode(true);
 			ps = PixelShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
 		}
 		else
 		{
-			g_renderer->SetBlendMode(true);
 			ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
 		}
 	}
