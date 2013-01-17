@@ -951,6 +951,7 @@ void CFrame::DoPause()
 		Core::SetState(Core::CORE_PAUSE);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxNullCursor);
+		Core::UpdateTitle();
 	}
 	else
 	{
