@@ -321,9 +321,6 @@ void CConfigMain::InitializeGUIValues()
 {
 	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	
-	// Load DSP Settings.
-	ac_Config.Load();
-
 	// General - Basic
 	CPUThread->SetValue(startup_params.bCPUThread);
 	SkipIdle->SetValue(startup_params.bSkipIdle);
@@ -354,17 +351,17 @@ void CConfigMain::InitializeGUIValues()
 	if (startup_params.bDSPHLE)
 		DSPEngine->SetSelection(0);
 	else
-		DSPEngine->SetSelection(ac_Config.m_EnableJIT ? 1 : 2);
+		DSPEngine->SetSelection(SConfig::GetInstance().m_EnableJIT ? 1 : 2);
 
 	// Audio
-	VolumeSlider->Enable(SupportsVolumeChanges(ac_Config.sBackend));
-	VolumeSlider->SetValue(ac_Config.m_Volume);
-	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), ac_Config.m_Volume));
+	VolumeSlider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
+	VolumeSlider->SetValue(SConfig::GetInstance().m_Volume);
+	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), SConfig::GetInstance().m_Volume));
 	DSPThread->SetValue(startup_params.bDSPThread);
-	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
-	DPL2Decoder->Enable(std::string(ac_Config.sBackend) == BACKEND_OPENAL);
+	DumpAudio->SetValue(SConfig::GetInstance().m_DumpAudio ? true : false);
+	DPL2Decoder->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
 	DPL2Decoder->SetValue(startup_params.bDPL2Decoder);
-	Latency->Enable(std::string(ac_Config.sBackend) == BACKEND_OPENAL);
+	Latency->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
 	Latency->SetValue(startup_params.iLatency);
 	// add backends to the list
 	AddAudioBackends();
@@ -858,9 +855,6 @@ void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))
 
 	// Save the config. Dolphin crashes to often to save the settings on closing only
 	SConfig::GetInstance().SaveSettings();
-
-	// Save Audio settings
-	ac_Config.SaveSettings();
 }
 
 // Core settings
@@ -880,7 +874,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = Framelimit->GetSelection();
-		ac_Config.Update();
+		AudioCommon::UpdateSoundStream();
 		break;
 	case ID_FRAMELIMIT_USEFPSFORLIMITING:
 		SConfig::GetInstance().b_UseFPS = UseFPSForLimiting->IsChecked();
@@ -938,13 +932,13 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 	case ID_DSPENGINE:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = DSPEngine->GetSelection() == 0;
 		if (!DSPEngine->GetSelection() == 0)
-			ac_Config.m_EnableJIT = DSPEngine->GetSelection() == 1;
-		ac_Config.Update();
+			SConfig::GetInstance().m_EnableJIT = DSPEngine->GetSelection() == 1;
+		AudioCommon::UpdateSoundStream();
 		break;
 
 	case ID_VOLUME:
-		ac_Config.m_Volume = VolumeSlider->GetValue();
-		ac_Config.Update();
+		SConfig::GetInstance().m_Volume = VolumeSlider->GetValue();
+		AudioCommon::UpdateSoundStream();
 		VolumeText->SetLabel(wxString::Format(wxT("%d %%"), VolumeSlider->GetValue()));
 		break;
 
@@ -960,8 +954,8 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		VolumeSlider->Enable(SupportsVolumeChanges(std::string(BackendSelection->GetStringSelection().mb_str())));
 		Latency->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
 		DPL2Decoder->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
-		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
-		ac_Config.Update();
+		SConfig::GetInstance().sBackend = BackendSelection->GetStringSelection().mb_str();
+		AudioCommon::UpdateSoundStream();
 		break;
 
 	case ID_LATENCY:
@@ -969,7 +963,7 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		break;
 
 	default:
-		ac_Config.m_DumpAudio = DumpAudio->GetValue();
+		SConfig::GetInstance().m_DumpAudio = DumpAudio->GetValue();
 		break;
 	}
 }
@@ -983,7 +977,7 @@ void CConfigMain::AddAudioBackends()
 	{
 		BackendSelection->Append(wxString::FromAscii((*iter).c_str()));
 		int num = BackendSelection->\
-			FindString(wxString::FromAscii(ac_Config.sBackend.c_str()));
+			FindString(wxString::FromAscii(SConfig::GetInstance().sBackend.c_str()));
 		BackendSelection->SetSelection(num);
 	}
 }

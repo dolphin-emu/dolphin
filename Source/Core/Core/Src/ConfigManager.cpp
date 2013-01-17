@@ -256,6 +256,12 @@ void SConfig::SaveSettings()
 	ini.Set("Movie", "PauseMovie", m_PauseMovie);
 	ini.Set("Movie", "Author", m_strMovieAuthor);
 
+	// DSP
+	ini.Set("DSP", "EnableJIT", m_EnableJIT);
+	ini.Set("DSP", "DumpAudio", m_DumpAudio);
+	ini.Set("DSP", "Backend", sBackend);
+	ini.Set("DSP", "Volume", m_Volume);
+
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
 }
@@ -404,6 +410,20 @@ void SConfig::LoadSettings()
 		// Movie
 		ini.Get("General", "PauseMovie", &m_PauseMovie, false);
 		ini.Get("Movie", "Author", &m_strMovieAuthor, "");
+
+		// DSP
+		ini.Get("Config", "EnableJIT", &m_EnableJIT, true);
+		ini.Get("Config", "DumpAudio", &m_DumpAudio, false);
+	#if defined __linux__ && HAVE_ALSA
+		ini.Get("Config", "Backend", &sBackend, BACKEND_ALSA);
+	#elif defined __APPLE__
+		ini.Get("Config", "Backend", &sBackend, BACKEND_COREAUDIO);
+	#elif defined _WIN32
+		ini.Get("Config", "Backend", &sBackend, BACKEND_DIRECTSOUND);
+	#else
+		ini.Get("Config", "Backend", &sBackend, BACKEND_NULLSOUND);
+	#endif
+		ini.Get("Config", "Volume", &m_Volume, 100);
 	}
 
 	m_SYSCONF = new SysConf();
