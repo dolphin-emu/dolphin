@@ -412,18 +412,18 @@ void SConfig::LoadSettings()
 		ini.Get("Movie", "Author", &m_strMovieAuthor, "");
 
 		// DSP
-		ini.Get("Config", "EnableJIT", &m_EnableJIT, true);
-		ini.Get("Config", "DumpAudio", &m_DumpAudio, false);
+		ini.Get("DSP", "EnableJIT", &m_EnableJIT, true);
+		ini.Get("DSP", "DumpAudio", &m_DumpAudio, false);
 	#if defined __linux__ && HAVE_ALSA
-		ini.Get("Config", "Backend", &sBackend, BACKEND_ALSA);
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_ALSA);
 	#elif defined __APPLE__
-		ini.Get("Config", "Backend", &sBackend, BACKEND_COREAUDIO);
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_COREAUDIO);
 	#elif defined _WIN32
-		ini.Get("Config", "Backend", &sBackend, BACKEND_DIRECTSOUND);
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_DIRECTSOUND);
 	#else
-		ini.Get("Config", "Backend", &sBackend, BACKEND_NULLSOUND);
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_NULLSOUND);
 	#endif
-		ini.Get("Config", "Volume", &m_Volume, 100);
+		ini.Get("DSP", "Volume", &m_Volume, 100);
 	}
 
 	m_SYSCONF = new SysConf();
