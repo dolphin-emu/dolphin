@@ -369,9 +369,6 @@ Renderer::Renderer()
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
-	if (glDrawBuffers == NULL && !GLEW_ARB_draw_buffers)
-		glDrawBuffers = glDrawBuffersARB;
-
 	if (!GLEW_ARB_texture_non_power_of_two)
 		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
 
@@ -394,8 +391,6 @@ Renderer::Renderer()
 	// Initialize the FramebufferManager
 	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 			s_MSAASamples, s_MSAACoverageSamples);
-
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
@@ -1339,7 +1334,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 				s_MSAASamples, s_MSAACoverageSamples);
-			glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		}
 	}
 

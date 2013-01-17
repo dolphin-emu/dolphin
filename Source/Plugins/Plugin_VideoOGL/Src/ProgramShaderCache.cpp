@@ -108,6 +108,8 @@ void ProgramShaderCache::SetProgramBindings ( ProgramShaderCache::PCacheEntry& e
 		glBindFragDataLocationIndexed(entry.prog_id, 0, 0, "ocol0");
 		glBindFragDataLocationIndexed(entry.prog_id, 0, 1, "ocol1");
 	}
+	else
+		glBindFragDataLocation(entry.prog_id, 0, "ocol0");
 
 	// Need to set some attribute locations
 	glBindAttribLocation(entry.prog_id, SHADER_POSITION_ATTRIB, "rawpos");
