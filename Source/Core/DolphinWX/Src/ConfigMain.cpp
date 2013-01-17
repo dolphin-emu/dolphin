@@ -494,7 +494,7 @@ void CConfigMain::InitializeGUITooltips()
 
 	// Display - Interface
 	ConfirmStop->SetToolTip(_("Show a confirmation box before stopping a game."));
-	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occured.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
+	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occurred.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
 	OnScreenDisplayMessages->SetToolTip(_("Show messages on the emulation screen area.\nThese messages include memory card writes, video backend and CPU information, and JIT cache clearing."));
 
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
