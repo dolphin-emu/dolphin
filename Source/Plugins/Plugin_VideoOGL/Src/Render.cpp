@@ -1437,6 +1437,8 @@ void Renderer::RestoreAPIState()
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
 	vm->m_last_vao = 0;
+	
+	TextureCache::SetStage();
 }
 
 void Renderer::SetGenerationMode()

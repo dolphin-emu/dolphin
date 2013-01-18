@@ -73,13 +73,13 @@ void CreatePrograms()
 	const char *FProgramRgbToYuyv =
 		"#version 130\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
-		"uniform sampler2DRect samp0;\n"
+		"uniform sampler2DRect samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	vec3 c0 = texture2DRect(samp0, uv0).rgb;\n"
-		"	vec3 c1 = texture2DRect(samp0, uv0 + vec2(1.0, 0.0)).rgb;\n"
+		"	vec3 c0 = texture2DRect(samp9, uv0).rgb;\n"
+		"	vec3 c1 = texture2DRect(samp9, uv0 + vec2(1.0, 0.0)).rgb;\n"
 		"	vec3 c01 = (c0 + c1) * 0.5;\n"
 		"	vec3 y_const = vec3(0.257,0.504,0.098);\n"
 		"	vec3 u_const = vec3(-0.148,-0.291,0.439);\n"
@@ -93,12 +93,12 @@ void CreatePrograms()
 	const char *FProgramYuyvToRgb =
 		"#version 130\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
-		"uniform sampler2DRect samp0;\n"
+		"uniform sampler2DRect samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	vec4 c0 = texture2DRect(samp0, uv0).rgba;\n"
+		"	vec4 c0 = texture2DRect(samp9, uv0).rgba;\n"
 		"	float f = step(0.5, fract(uv0.x));\n"
 		"	float y = mix(c0.b, c0.r, f);\n"
 		"	float yComp = 1.164f * (y - 0.0625f);\n"
@@ -237,12 +237,8 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, s_dstRenderBuffer);
 	GL_REPORT_ERRORD();
 
-	for (int i = 1; i < 8; ++i)
-		TextureCache::DisableStage(i);
-
 	// set source texture
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_RECTANGLE, srcTexture);
 
 	if (linearFilter)
@@ -415,13 +411,9 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 
 	GL_REPORT_FBO_ERROR();
 
-    for (int i = 1; i < 8; ++i)
-		TextureCache::DisableStage(i);
-
 	// activate source texture
 	// set srcAddr as data for source texture
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_RECTANGLE, s_srcTexture);
 
 	// TODO: make this less slow.  (How?)
@@ -469,7 +461,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 
 	// reset state
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	TextureCache::DisableStage(0);
 
 	VertexShaderManager::SetViewportChanged();
 

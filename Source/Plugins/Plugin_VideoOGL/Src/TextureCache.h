@@ -34,6 +34,7 @@ class TextureCache : public ::TextureCache
 public:
 	TextureCache();
 	static void DisableStage(unsigned int stage);
+	static void SetStage();
 
 private:
 	struct TCacheEntry : TCacheEntryBase

@@ -97,8 +97,11 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width
 	int width = std::max(virtual_width >> level, 1);
 	int height = std::max(virtual_height >> level, 1);
 	std::vector<u32> data(width * height);
+	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(textarget, tex);
 	glGetTexImage(textarget, level, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
+	glBindTexture(textarget, 0);
+	TextureCache::SetStage();
 	
 	const GLenum err = GL_REPORT_ERROR();
 	if (GL_NO_ERROR != err)
@@ -254,6 +257,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 	unsigned int scaled_tex_w, unsigned int scaled_tex_h)
 {
 	TCacheEntry *const entry = new TCacheEntry;
+	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_2D, entry->texture);
 	GL_REPORT_ERRORD();
 
@@ -266,6 +270,10 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 	entry->m_tex_levels = 1;
 
 	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
+	
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	SetStage();
 	
 	GL_REPORT_ERRORD();
 
@@ -295,8 +303,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		GL_REPORT_FBO_ERROR();
 		GL_REPORT_ERRORD();
 		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0+9);
 		glBindTexture(GL_TEXTURE_RECTANGLE, read_texture);
 
 		glViewport(0, 0, virtual_width, virtual_height);
@@ -446,7 +453,7 @@ TextureCache::TextureCache()
 	const char *pColorMatrixProg = 
 		"#version 130\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
-		"uniform sampler2DRect samp0;\n"
+		"uniform sampler2DRect samp9;\n"
 		"uniform vec4 colmat[7];\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
@@ -454,7 +461,7 @@ TextureCache::TextureCache()
 		"void main(){\n"
 		"	vec4 Temp0, Temp1;\n"
 		"	vec4 K0 = vec4(0.5, 0.5, 0.5, 0.5);\n"
-		"	Temp0 = texture2DRect(samp0, uv0);\n"
+		"	Temp0 = texture2DRect(samp9, uv0);\n"
 		"	Temp0 = Temp0 * colmat[5];\n"
 		"	Temp0 = Temp0 + K0;\n"
 		"	Temp0 = floor(Temp0);\n"
@@ -474,7 +481,7 @@ TextureCache::TextureCache()
 	const char *pDepthMatrixProg =
 		"#version 130\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
-		"uniform sampler2DRect samp0;\n"
+		"uniform sampler2DRect samp9;\n"
 		"uniform vec4 colmat[5];\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
@@ -483,7 +490,7 @@ TextureCache::TextureCache()
 		"	vec4 R0, R1, R2;\n"
 		"	vec4 K0 = vec4(255.99998474121, 0.003921568627451, 256.0, 0.0);\n"
 		"	vec4 K1 = vec4(15.0, 0.066666666666, 0.0, 0.0);\n"
-		"	R2 = texture2DRect(samp0, uv0);\n"
+		"	R2 = texture2DRect(samp9, uv0);\n"
 		"	R0.x = R2.x * K0.x;\n"
 		"	R0.x = floor(R0).x;\n"
 		"	R0.yzw = (R0 - R0.x).yzw;\n"
@@ -554,5 +561,10 @@ TextureCache::~TextureCache()
 void TextureCache::DisableStage(unsigned int stage)
 {
 }
+
+void TextureCache::SetStage ()
+{
+}
+
 
 }

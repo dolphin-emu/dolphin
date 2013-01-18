@@ -90,6 +90,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	float samples = (float)GetEncodedSampleCount(format);
 	if (ApiType == API_OPENGL)
 	{
+		WRITE(p, "#define samp0 samp9\n");
 		WRITE(p, "uniform sampler2DRect samp0;\n");
 	}
 	else if (ApiType & API_D3D9)
@@ -171,6 +172,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
 	if (ApiType == API_OPENGL)
 	{
+		WRITE(p, "#define samp0 samp9\n");
 		WRITE(p, "uniform sampler2DRect samp0;\n");
 	}
 	else if (ApiType & API_D3D9)

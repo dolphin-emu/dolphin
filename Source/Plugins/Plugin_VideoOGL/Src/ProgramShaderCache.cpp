@@ -86,7 +86,7 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 			entry.UniformLocations[a] = glGetUniformLocation(entry.prog_id, UniformNames[a]);
 
 	// Bind Texture Sampler
-	for (int a = 0; a < 8; ++a)
+	for (int a = 0; a <= 9; ++a)
 	{
 		char name[8];
 		snprintf(name, 8, "samp%d", a);

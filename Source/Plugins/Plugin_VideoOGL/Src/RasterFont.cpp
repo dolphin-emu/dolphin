@@ -141,12 +141,12 @@ static const char *s_vertexShaderSrc =
 
 static const char *s_fragmentShaderSrc =
 	"#version 130\n"
-	"uniform sampler2D samp0;\n"
+	"uniform sampler2D samp8;\n"
 	"uniform vec4 color;\n"
 	"in vec2 uv0;\n"
 	"out vec4 ocol0;\n"
 	"void main(void) {\n"
-	"	ocol0 = texture2D(samp0,uv0) * color;\n"
+	"	ocol0 = texture2D(samp8,uv0) * color;\n"
 	"}\n";
 	
 	
@@ -157,6 +157,7 @@ RasterFont::RasterFont()
 {
 	// generate the texture
 	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0+8);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	u32* texture_data = new u32[char_width*char_count*char_height];
 	for(u32 y=0; y<char_height; y++) {
@@ -280,8 +281,7 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 		cached_color = color;
 	}
 	
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glActiveTexture(GL_TEXTURE0+8);
 	glDrawArrays(GL_TRIANGLES, 0, usage/4);
 }
 
