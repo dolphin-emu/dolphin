@@ -119,6 +119,22 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 
 	glShaderSource(result, 1, &pstrprogram, NULL);
 	glCompileShader(result);
+	
+	GLsizei length = 0;
+	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
+	if (length > 1)
+	{
+		GLsizei charsWritten;
+		GLchar* infoLog = new GLchar[length];
+		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
+		ERROR_LOG(VIDEO, "VS Shader info log:\n%s", infoLog);
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "vs_%d.txt", result);
+		FILE *fp = fopen(szTemp, "wb");
+		fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
+		fclose(fp);
+		delete[] infoLog;
+	}
 
 	GLint compileStatus;
 	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
@@ -126,22 +142,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	{
 		// Compile failed
 		ERROR_LOG(VIDEO, "Shader compilation failed; see info log");
-
-		GLsizei length = 0;
-		glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
-		if (length > 0)
-		{
-			GLsizei charsWritten;
-			GLchar* infoLog = new GLchar[length];
-			glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-			WARN_LOG(VIDEO, "VS Shader info log:\n%s", infoLog);
-			char szTemp[MAX_PATH];
-			sprintf(szTemp, "vs_%d.txt", result);
-			FILE *fp = fopen(szTemp, "wb");
-			fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
-			fclose(fp);
-			delete[] infoLog;
-		}
+		
 		// Don't try to use this shader
 		glDeleteShader(result);
 		return false;
