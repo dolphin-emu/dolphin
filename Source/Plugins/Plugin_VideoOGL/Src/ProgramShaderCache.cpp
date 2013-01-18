@@ -37,8 +37,6 @@ GLuint ProgramShaderCache::PCacheEntry::prog_format = 0;
 std::pair<u32, u32> ProgramShaderCache::CurrentShaderProgram;
 const char *UniformNames[NUM_UNIFORMS] =
 {
-	// SAMPLERS
-	"samp0","samp1","samp2","samp3","samp4","samp5","samp6","samp7",
 	// PIXEL SHADER UNIFORMS
 	I_COLORS,
 	I_KCOLORS,
@@ -84,16 +82,19 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 	//glGetUniformIndices(entry.prog_id, NUM_UNIFORMS, UniformNames, entry.UniformLocations);
 	// Got to do it this crappy way.
 	if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		for (int a = 8; a < NUM_UNIFORMS; ++a)
+		for (int a = 0; a < NUM_UNIFORMS; ++a)
 			entry.UniformLocations[a] = glGetUniformLocation(entry.prog_id, UniformNames[a]);
 
 	// Bind Texture Sampler
 	for (int a = 0; a < 8; ++a)
 	{
+		char name[8];
+		snprintf(name, 8, "samp%d", a);
+		
 		// Still need to get sampler locations since we aren't binding them statically in the shaders
-		entry.UniformLocations[a] = glGetUniformLocation(entry.prog_id, UniformNames[a]);
-		if (entry.UniformLocations[a] != -1)
-			glUniform1i(entry.UniformLocations[a], a);
+		int loc = glGetUniformLocation(entry.prog_id, name);
+		if (loc != -1)
+			glUniform1i(loc, a);
 	}
 
 }

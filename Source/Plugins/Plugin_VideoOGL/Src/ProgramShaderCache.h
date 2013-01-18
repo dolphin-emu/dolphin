@@ -30,7 +30,7 @@
 namespace OGL
 {
 
-const int NUM_UNIFORMS = 27;
+const int NUM_UNIFORMS = 19;
 extern const char *UniformNames[NUM_UNIFORMS];
 
 class ProgramShaderCache
