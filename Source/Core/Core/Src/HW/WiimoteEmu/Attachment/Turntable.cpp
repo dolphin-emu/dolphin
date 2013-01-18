@@ -97,8 +97,9 @@ void Turntable::GetState(u8* const data, const bool focus)
 
 	// crossfade slider
 	{
-	u8 cfs = 0;
-	m_crossfade->GetState(&cfs, 8, 7);
+	s8 cfs = 0;
+	m_crossfade->GetState(&cfs, focus ? 7 : 0);
+	cfs += 8;
 
 	ttdata->slider = cfs;
 	}
