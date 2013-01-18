@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <cmath>
+
 #include "Attachment/Classic.h"
 #include "Attachment/Nunchuk.h"
 #include "Attachment/Guitar.h"
@@ -89,23 +91,32 @@ const ReportFeatures reporting_mode_features[] =
 	{ 0, 0, 0, 0, 23 },
 };
 
-void EmulateShake( AccelData* const accel
+void EmulateShake(AccelData* const accel
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step )
 {
-	static const double shake_data[] = { -2.5f, -5.0f, -2.5f, 0.0f, 2.5f, 5.0f, 2.5f, 0.0f };
+	// frame count of one up/down shake
+	// < 9 no shake detection in "Wario Land: Shake It"
+	auto const shake_step_max = 15;
+
+	// peak G-force
+	auto const shake_intensity = 3.f;
+	
+	// shake is a bitfield of X,Y,Z shake button states
 	static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
 	unsigned int shake = 0;
-
 	buttons_group->GetState( &shake, btns );
-	for ( unsigned int i=0; i<3; ++i )
+
+	for (int i = 0; i != 3; ++i)
+	{
 		if (shake & (1 << i))
 		{
-			(&(accel->x))[i] = shake_data[shake_step[i]++];
-			shake_step[i] %= sizeof(shake_data)/sizeof(double);
+			(&(accel->x))[i] = std::sin(TAU * shake_step[i] / shake_step_max) * shake_intensity;
+			shake_step[i] = (shake_step[i] + 1) % shake_step_max;
 		}
 		else
 			shake_step[i] = 0;
+	}
 }
 
 void EmulateTilt(AccelData* const accel
