@@ -446,7 +446,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	else entry->type = TCET_NORMAL;
 
 	// load texture
-	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));
+	entry->Load(stage, width, height, expandedWidth, 0, (texLevels == 0));
 
 	if (g_ActiveConfig.bDumpTextures && !using_custom_texture)
 		DumpTexture(entry, 0);
@@ -481,7 +481,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			expandedHeight = (currentHeight + bsh) & (~bsh);
 
 			TexDecoder_Decode(temp, *ptr, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
-			entry->Load(currentWidth, currentHeight, expandedWidth, level, false);
+			entry->Load(stage, currentWidth, currentHeight, expandedWidth, level, false);
 
 			if (g_ActiveConfig.bDumpTextures)
 				DumpTexture(entry, level);
@@ -504,7 +504,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			unsigned int currentHeight = (mipHeight > 0) ? mipHeight : 1;
 
 			LoadCustomTexture(tex_hash, texformat, level, currentWidth, currentHeight);
-			entry->Load(currentWidth, currentHeight, currentWidth, level, false);
+			entry->Load(stage, currentWidth, currentHeight, currentWidth, level, false);
 
 			mipWidth >>= 1;
 			mipHeight >>= 1;

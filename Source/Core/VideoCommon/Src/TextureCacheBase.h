@@ -88,7 +88,7 @@ public:
 		virtual void Bind(unsigned int stage) = 0;
 		virtual bool Save(const char filename[], unsigned int level) = 0;
 
-		virtual void Load(unsigned int width, unsigned int height,
+		virtual void Load(unsigned int stage, unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level, bool autogen_mips) = 0;
 		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 			unsigned int srcFormat, const EFBRectangle& srcRect,

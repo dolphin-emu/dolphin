@@ -132,6 +132,7 @@ TextureCache::TCacheEntry::TCacheEntry()
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
+	glActiveTexture(GL_TEXTURE0 + stage);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	GL_REPORT_ERRORD();
 
@@ -222,9 +223,10 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	return &entry;
 }
 
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
+void TextureCache::TCacheEntry::Load(unsigned int stage, unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level, bool autogen_mips)
 {
+	glActiveTexture(GL_TEXTURE0 + stage);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	//GL_REPORT_ERRORD();
 	

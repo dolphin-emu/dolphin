@@ -55,7 +55,7 @@ private:
 		TCacheEntry();
 		~TCacheEntry();
 
-		void Load(unsigned int width, unsigned int height,
+		void Load(unsigned int stage, unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level, bool autogen_mips = false);
 
 		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,

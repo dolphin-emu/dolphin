@@ -71,7 +71,7 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 	return SUCCEEDED(hr);
 }
 
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
+void TextureCache::TCacheEntry::Load(unsigned int stage, unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level, bool autogen_mips)
 {
 	D3D::ReplaceTexture2D(texture, temp, width, height, expanded_width, d3d_fmt, swap_r_b, level);
