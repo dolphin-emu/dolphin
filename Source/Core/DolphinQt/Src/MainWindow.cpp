@@ -202,7 +202,7 @@ void DMainWindow::CreateMenus()
 void DMainWindow::CreateToolBars()
 {
 	toolBar = addToolBar(tr("Main Toolbar"));
-	toolBar->setIconSize(style()->standardIcon(QStyle::SP_DialogOpenButton).actualSize(QSize(99,99)));
+	toolBar->setIconSize(style()->standardIcon(QStyle::SP_DialogOpenButton).actualSize(QSize(24,24)));
 	toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 	openAction = toolBar->addAction(style()->standardIcon(QStyle::SP_DialogOpenButton), tr("Open"));
 	refreshAction = toolBar->addAction(style()->standardIcon(QStyle::SP_BrowserReload), tr("Refresh"));
