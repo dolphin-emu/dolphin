@@ -1129,6 +1129,8 @@ void CFrame::OnConfigPAD(wxCommandEvent& WXUNUSED (event))
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = X11Utils::XWindowFromHandle(GetHandle());
 		Pad::Initialize((void *)win);
+#elif defined(__APPLE__)
+		Pad::Initialize((void *)this);
 #else
 		Pad::Initialize(GetHandle());
 #endif
@@ -1153,6 +1155,8 @@ void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = X11Utils::XWindowFromHandle(GetHandle());
 		Wiimote::Initialize((void *)win);
+#elif defined(__APPLE__)
+		Wiimote::Initialize((void *)this);
 #else
 		Wiimote::Initialize(GetHandle());
 #endif
