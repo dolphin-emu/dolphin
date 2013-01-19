@@ -686,6 +686,8 @@ union FogRangeKElement
 		u32 LO : 12;
 		u32 regid : 8;
 	};
+	// TODO: Which scaling coefficient should we use here? This is just a guess!
+	float GetValue(int i) { return (i ? HI : LO) / 32.f; }
 	u32 HEX;
 };
 

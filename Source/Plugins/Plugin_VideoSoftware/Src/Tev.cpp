@@ -748,10 +748,15 @@ void Tev::Draw()
 
 		}
 
-		// stuff to do!
-		// here, where we'll have to add/handle x range adjustment (if related BP register it's enabled)
-		// x_adjust = sqrt((x-center)^2 + k^2)/k
-		// ze *= x_adjust
+		if(bpmem.fogRange.Base.Enabled)
+		{
+			// TODO: Check if this is correct (especially the magic values)
+			float offset = Position[0] - bpmem.fogRange.Base.Center + 324.f;
+			int index = 9 - abs(Position[0] - bpmem.fogRange.Base.Center + 324) / (162/5);
+			float k = bpmem.fogRange.K[index/2].GetValue(index%2);
+			float x_adjust = sqrt(offset*offset/162.f/162.f + k*k)/k;
+			ze *= x_adjust;
+		}
 
 		ze -= bpmem.fog.c_proj_fsel.GetC();
 
