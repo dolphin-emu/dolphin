@@ -855,7 +855,7 @@ void LoadInput(const char *filename)
 				{
 					// this is a "you did something wrong" alert for the user's benefit.
 					// we'll try to say what's going on in excruciating detail, otherwise the user might not believe us.
-					if(IsUsingWiimote(1))
+					if(IsUsingWiimote(0))
 					{ 
 						// TODO: more detail
 						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i+256, i+256);
