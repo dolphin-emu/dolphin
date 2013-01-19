@@ -736,16 +736,6 @@ bool PlayInput(const char *filename)
 		goto cleanup;
 	}
 
-	// Load savestate (and skip to frame data)
-	if(tmpHeader.bFromSaveState)
-	{
-		const std::string stateFilename = std::string(filename) + ".sav";
-		if(File::Exists(stateFilename))
-			Core::SetStateFileName(stateFilename);
-		g_bRecordingFromSaveState = true;
-		Movie::LoadInput(filename);
-	}
-
 	ReadHeader();
 	g_totalFrames = tmpHeader.frameCount;
 	g_totalLagCount = tmpHeader.lagCount;
@@ -761,6 +751,16 @@ bool PlayInput(const char *filename)
 	g_recordfd.ReadArray(tmpInput, (size_t)g_totalBytes);
 	g_currentByte = 0;
 	g_recordfd.Close();
+
+	// Load savestate (and skip to frame data)
+	if(tmpHeader.bFromSaveState)
+	{
+		const std::string stateFilename = std::string(filename) + ".sav";
+		if(File::Exists(stateFilename))
+			Core::SetStateFileName(stateFilename);
+		g_bRecordingFromSaveState = true;
+		Movie::LoadInput(filename);
+	}
 
 	return true;
 
@@ -786,7 +786,13 @@ void DoState(PointerWrap &p)
 
 void LoadInput(const char *filename)
 {
-	File::IOFile t_record(filename, "r+b");
+	File::IOFile t_record;
+	if (!t_record.Open(filename, "r+b"))
+	{
+		PanicAlertT("Failed to read %s", filename);
+		EndPlayInput(false);
+		return;
+	}
 
 	t_record.ReadArray(&tmpHeader, 1);
 
@@ -849,7 +855,7 @@ void LoadInput(const char *filename)
 				{
 					// this is a "you did something wrong" alert for the user's benefit.
 					// we'll try to say what's going on in excruciating detail, otherwise the user might not believe us.
-					if(Core::g_CoreStartupParameter.bWii)
+					if(IsUsingWiimote(1))
 					{ 
 						// TODO: more detail
 						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i+256, i+256);
@@ -924,18 +930,6 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	// in the same order done during recording
 	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == NULL)
 		return;
-
-	if (g_currentFrame == 1)
-	{
-		if (tmpHeader.bMemcard)
-		{
-			ExpansionInterface::ChangeDevice(0, EXIDEVICE_MEMORYCARD, 0);
-		}
-		else if (!tmpHeader.bMemcard)
-		{
-			ExpansionInterface::ChangeDevice(0, EXIDEVICE_NONE, 0);
-		}
-	}
 
 	if (g_currentByte + 8 > g_totalBytes)
 	{
@@ -1194,9 +1188,13 @@ void GetSettings()
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 
-	std::stringstream ss;
-	ss << std::hex << SCM_REV_STR;
-	ss >> revision;
+	int temp;
+
+	for(int i = 0; i < 4; ++i )
+	{
+		sscanf(SCM_REV_STR + 2 * i, "%2x", &temp );
+		revision[i] = temp;
+	}
 }
 
 void CheckMD5()
