@@ -70,7 +70,7 @@ void VideoSoftware::ShowConfig(void *_hParent)
 
 bool VideoSoftware::Initialize(void *&window_handle)
 {
-    g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
+	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
 	InitInterface();
 
 	if (!GLInterface->Create(window_handle))
@@ -79,18 +79,16 @@ bool VideoSoftware::Initialize(void *&window_handle)
 		return false;
 	}
 
-    InitBPMemory();
-    InitXFMemory();
-    SWCommandProcessor::Init();
-    SWPixelEngine::Init();
-    OpcodeDecoder::Init();
-    Clipper::Init();
-    Rasterizer::Init();
-	if (g_SWVideoConfig.bHwRasterizer)
-		HwRasterizer::Init();
-	else
-		SWRenderer::Init();
-    DebugUtil::Init();
+	InitBPMemory();
+	InitXFMemory();
+	SWCommandProcessor::Init();
+	SWPixelEngine::Init();
+	OpcodeDecoder::Init();
+	Clipper::Init();
+	Rasterizer::Init();
+	HwRasterizer::Init();
+	SWRenderer::Init();
+	DebugUtil::Init();
 
 	return true;
 }
@@ -134,10 +132,8 @@ void VideoSoftware::EmuStateChange(EMUSTATE_CHANGE newState)
 
 void VideoSoftware::Shutdown()
 {
-	if (g_SWVideoConfig.bHwRasterizer)
-		HwRasterizer::Shutdown();
-	else
-		SWRenderer::Shutdown();
+	HwRasterizer::Shutdown();
+	SWRenderer::Shutdown();
 	GLInterface->Shutdown();
 }
 
@@ -149,9 +145,9 @@ void VideoSoftware::Video_Prepare()
 	{
 #ifndef USE_GLES
 	if (glewInit() != GLEW_OK) {
-        ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
-        return;
-    }
+		ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
+		return;
+	}
 
     // Handle VSync on/off
 #ifdef _WIN32
@@ -168,12 +164,10 @@ void VideoSoftware::Video_Prepare()
 #endif
 	}
 
-	if (g_SWVideoConfig.bHwRasterizer)
-	    HwRasterizer::Prepare();
-	else
-		SWRenderer::Prepare();
+	HwRasterizer::Prepare();
+	SWRenderer::Prepare();
 
-    INFO_LOG(VIDEO, "Video backend initialized.");
+	INFO_LOG(VIDEO, "Video backend initialized.");
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)

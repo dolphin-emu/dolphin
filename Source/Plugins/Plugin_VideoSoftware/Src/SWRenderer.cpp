@@ -75,22 +75,7 @@ void CreateShaders()
 	attr_pos = glGetAttribLocation(program, "pos");
 	attr_tex = glGetAttribLocation(program, "TexCoordIn"); 
 	
-	static const GLfloat verts[4][2] = {
-		{ -1, -1}, // Left top
-		{ -1,  1}, // left bottom
-		{  1,  1}, // right bottom
-		{  1, -1} // right top
-	};
-	static const GLfloat texverts[4][2] = {
-		{0, 1},
-		{0, 0},
-		{1, 0},
-		{1, 1}
-	};
-
-	glUniform1i(uni_tex, 0);
-	glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-	glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
+	
 }
 
 void SWRenderer::Prepare()
@@ -165,8 +150,25 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	 
+	glUseProgram(program);
+	static const GLfloat verts[4][2] = {
+		{ -1, -1}, // Left top
+		{ -1,  1}, // left bottom
+		{  1,  1}, // right bottom
+		{  1, -1} // right top
+	};
+	static const GLfloat texverts[4][2] = {
+		{0, 1},
+		{0, 0},
+		{1, 0},
+		{1, 1}
+	};
+
+	glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+	glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
 	glEnableVertexAttribArray(attr_pos);
 	glEnableVertexAttribArray(attr_tex);
+		glUniform1i(uni_tex, 0);
 		glActiveTexture(GL_TEXTURE0); 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	glDisableVertexAttribArray(attr_pos);
