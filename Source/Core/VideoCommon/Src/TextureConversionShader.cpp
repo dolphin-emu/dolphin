@@ -247,7 +247,7 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYP
 	else if (ApiType == API_D3D11)
 		texSampleOpName = "tex0.Sample";
 	else
-		texSampleOpName = "texture2DRect";
+		texSampleOpName = "texture";
 
 	// the increment of sampleUv.x is delayed, so we perform it here. see WriteIncrementSampleX.
 	const char* texSampleIncrementUnit;

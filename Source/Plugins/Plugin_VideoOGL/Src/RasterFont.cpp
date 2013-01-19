@@ -146,7 +146,7 @@ static const char *s_fragmentShaderSrc =
 	"in vec2 uv0;\n"
 	"out vec4 ocol0;\n"
 	"void main(void) {\n"
-	"	ocol0 = texture2D(samp8,uv0) * color;\n"
+	"	ocol0 = texture(samp8,uv0) * color;\n"
 	"}\n";
 	
 	
