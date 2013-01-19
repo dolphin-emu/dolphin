@@ -90,6 +90,10 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
 	case 4:
 		CALL(thunks.ProtectFunction((void *)&Memory::Read_U32, 1));
 		break;
+	case 2:
+		CALL(thunks.ProtectFunction((void *)&Memory::Read_U16, 1));
+		SHL(32, R(EAX), Imm8(16));
+		break;
 	}
 	ABI_PopAllCallerSavedRegsAndAdjustStack();
 	if (dataReg != EAX) {
@@ -176,7 +180,7 @@ const u8 *JitBase::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *c
 					   codePtr, emAddress);
 	}*/
 
-	if (info.operandSize != 4) {
+	if (info.operandSize == 1) {
 		BackPatchError(StringFromFormat("BackPatch - no support for operand size %i", info.operandSize), codePtr, emAddress);
 	}
 
@@ -188,7 +192,6 @@ const u8 *JitBase::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *c
 		PanicAlert("BackPatch : Currently only supporting reads."
 		           "\n\nAttempted to write to %08x.", emAddress);
 
-	// In the first iteration, we assume that all accesses are 32-bit. We also only deal with reads.
 	if (accessType == 0)
 	{
 		XEmitter emitter(codePtr);

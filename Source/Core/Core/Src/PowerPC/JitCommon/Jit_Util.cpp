@@ -120,12 +120,13 @@ void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s
 {
 #if defined(_M_X64)
 #ifdef ENABLE_MEM_CHECK
-	if (accessSize == 32 && !Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
+	if (accessSize != 8 && !Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
 #else
-	if (accessSize == 32 && !Core::g_CoreStartupParameter.bMMU)
+	if (accessSize != 8 && !Core::g_CoreStartupParameter.bMMU)
 #endif
 	{
-		// BackPatch only supports 32-bits accesses
+		// We don't support 8 bit loads backpatching at the moment, but they
+		// are very rare.
 		UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
 	}
 	else
