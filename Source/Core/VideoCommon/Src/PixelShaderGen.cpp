@@ -158,10 +158,11 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 
 	if (dstAlphaMode != DSTALPHA_ALPHA_PASS)
 	{
+		ptr[0] |= bpmem.fog.c_proj_fsel.fsel << 13; // 3
 		if (bpmem.fog.c_proj_fsel.fsel != 0)
 		{
-			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 13; // 1
-			ptr[0] |= bpmem.fogRange.Base.Enabled << 14; // 1
+			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 16; // 1
+			ptr[0] |= bpmem.fogRange.Base.Enabled << 17; // 1
 		}
 	}
 
