@@ -94,6 +94,9 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
 		CALL(thunks.ProtectFunction((void *)&Memory::Read_U16, 1));
 		SHL(32, R(EAX), Imm8(16));
 		break;
+	case 1:
+		CALL(thunks.ProtectFunction((void *)&Memory::Read_U8, 1));
+		break;
 	}
 	ABI_PopAllCallerSavedRegsAndAdjustStack();
 	if (dataReg != EAX) {
@@ -179,10 +182,6 @@ const u8 *JitBase::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *c
 		BackPatchError("BackPatch - determined that MOV is write, not yet supported and should have been caught before",
 					   codePtr, emAddress);
 	}*/
-
-	if (info.operandSize == 1) {
-		BackPatchError(StringFromFormat("BackPatch - no support for operand size %i", info.operandSize), codePtr, emAddress);
-	}
 
 	if (info.otherReg != RBX)
 		PanicAlert("BackPatch : Base reg not RBX."

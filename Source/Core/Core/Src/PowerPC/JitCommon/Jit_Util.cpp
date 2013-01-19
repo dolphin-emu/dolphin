@@ -96,7 +96,11 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 		MOVZX(32, accessSize, EAX, MDisp(EAX, (u32)Memory::base + offset));
 	}
 #endif
-	
+
+	// Add a 2 bytes NOP to have some space for the backpatching
+	if (accessSize == 8)
+		NOP(2);
+
 	if (accessSize == 32)
 	{
 		BSWAP(32, EAX);
@@ -120,13 +124,11 @@ void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s
 {
 #if defined(_M_X64)
 #ifdef ENABLE_MEM_CHECK
-	if (accessSize != 8 && !Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
+	if (!Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
 #else
-	if (accessSize != 8 && !Core::g_CoreStartupParameter.bMMU)
+	if (!Core::g_CoreStartupParameter.bMMU)
 #endif
 	{
-		// We don't support 8 bit loads backpatching at the moment, but they
-		// are very rare.
 		UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
 	}
 	else
