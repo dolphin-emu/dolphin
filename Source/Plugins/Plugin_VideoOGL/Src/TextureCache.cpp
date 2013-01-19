@@ -65,6 +65,9 @@ static u32 s_ColorCbufid;
 static u32 s_DepthCbufid;
 static VERTEXSHADER s_vProgram;
 
+static u32 s_Textures[8];
+static u32 s_ActiveTexture;
+
 struct VBOCache {
 	GLuint vbo;
 	GLuint vao;
@@ -117,6 +120,9 @@ TextureCache::TCacheEntry::~TCacheEntry()
 {
 	if (texture)
 	{
+		for(int i=0; i<8; i++)
+			if(s_Textures[i] == texture)
+				s_Textures[i] = 0;
 		glDeleteTextures(1, &texture);
 		texture = 0;
 	}
@@ -132,16 +138,29 @@ TextureCache::TCacheEntry::TCacheEntry()
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	glActiveTexture(GL_TEXTURE0 + stage);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	GL_REPORT_ERRORD();
-
 	// TODO: is this already done somewhere else?
 	TexMode0 &tm0 = bpmem.tex[stage >> 2].texMode0[stage & 3];
 	TexMode1 &tm1 = bpmem.tex[stage >> 2].texMode1[stage & 3];
 	
 	if(currmode.hex != tm0.hex || currmode1.hex != tm1.hex)
+	{
+		if(s_ActiveTexture != stage)
+			glActiveTexture(GL_TEXTURE0 + stage);
+		if(s_Textures[stage] != texture)
+			glBindTexture(GL_TEXTURE_2D, texture);
+		
 		SetTextureParameters(tm0, tm1);
+		s_ActiveTexture = stage;
+		s_Textures[stage] = texture;
+	} 
+	else if (s_Textures[stage] != texture) 
+	{
+		if(s_ActiveTexture != stage)
+			glActiveTexture(GL_TEXTURE0 + stage);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		s_ActiveTexture = stage;
+		s_Textures[stage] = texture;
+	}
 }
 
 bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
@@ -226,9 +245,12 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 void TextureCache::TCacheEntry::Load(unsigned int stage, unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level, bool autogen_mips)
 {
-	glActiveTexture(GL_TEXTURE0 + stage);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	//GL_REPORT_ERRORD();
+	if(s_ActiveTexture != stage)
+		glActiveTexture(GL_TEXTURE0 + stage);
+	if(s_Textures[stage] != texture)
+		glBindTexture(GL_TEXTURE_2D, texture);
+	s_ActiveTexture = stage;
+	s_Textures[stage] = texture;
 	
 	if(level == 0 && m_tex_levels != 0)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m_tex_levels - 1);
@@ -403,7 +425,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
     FramebufferManager::SetFramebuffer(0);
     VertexShaderManager::SetViewportChanged();
-    DisableStage(0);
 
     GL_REPORT_ERRORD();
 
@@ -538,6 +559,10 @@ TextureCache::TextureCache()
 	s_DepthMatrixUniform = glGetUniformLocation(ProgramShaderCache::GetCurrentProgram(), "colmat");
 	s_ColorCbufid = -1;
 	s_DepthCbufid = -1;
+	
+	s_ActiveTexture = -1;
+	for(int i=0; i<8; i++)
+		s_Textures[i] = -1;
 }
 
 
@@ -566,6 +591,7 @@ void TextureCache::DisableStage(unsigned int stage)
 
 void TextureCache::SetStage ()
 {
+	glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
 
 
