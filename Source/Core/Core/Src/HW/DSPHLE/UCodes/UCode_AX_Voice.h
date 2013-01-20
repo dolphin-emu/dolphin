@@ -364,8 +364,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
 	// Apply a global volume ramp using the volume envelope parameters.
 	for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)
 	{
-		s64 sample = 2 * (s16)samples[i] * (s16)pb.vol_env.cur_volume;
-		samples[i] = (s16)(sample >> 16);
+		samples[i] = ((s32)samples[i] * pb.vol_env.cur_volume) >> 15;
 		pb.vol_env.cur_volume += pb.vol_env.cur_volume_delta;
 	}
 
