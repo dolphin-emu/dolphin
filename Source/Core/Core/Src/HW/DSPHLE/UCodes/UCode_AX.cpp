@@ -405,7 +405,7 @@ void CUCode_AX::ProcessPBList(u32 pb_addr)
 		{
 			ApplyUpdatesForMs(pb, curr_ms);
 
-			Process1ms(pb, buffers, ConvertMixerControl(pb.mixer_control));
+			ProcessVoice(pb, buffers, ConvertMixerControl(pb.mixer_control));
 
 			// Forward the buffers
 			for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)

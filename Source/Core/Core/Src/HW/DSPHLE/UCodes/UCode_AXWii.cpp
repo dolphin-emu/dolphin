@@ -212,8 +212,6 @@ AXMixControl CUCode_AXWii::ConvertMixerControl(u32 mixer_control)
 
 void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 {
-	const u32 spms = 32;
-
 	AXPBWii pb;
 
 	while (pb_addr)
@@ -236,14 +234,7 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 		if (!ReadPB(pb_addr, pb))
 			break;
 
-		for (int curr_ms = 0; curr_ms < 3; ++curr_ms)
-		{
-			Process1ms(pb, buffers, ConvertMixerControl(HILO_TO_32(pb.mixer_control)));
-
-			// Forward the buffers
-			for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)
-				buffers.ptrs[i] += spms;
-		}
+		ProcessVoice(pb, buffers, ConvertMixerControl(HILO_TO_32(pb.mixer_control)));
 
 		WritePB(pb_addr, pb);
 		pb_addr = HILO_TO_32(pb.next_pb);

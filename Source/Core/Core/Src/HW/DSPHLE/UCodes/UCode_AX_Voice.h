@@ -32,8 +32,12 @@
 
 #ifdef AX_GC
 # define PB_TYPE AXPB
+# define MS_PER_FRAME 1
+# define SAMPLES_PER_FRAME 32
 #else
 # define PB_TYPE AXPBWii
+# define MS_PER_FRAME 3
+# define SAMPLES_PER_FRAME 96
 #endif
 
 // Put all of that in an anonymous namespace to avoid stupid compilers merging
@@ -232,7 +236,8 @@ u16 AcceleratorGetSample()
 	return ret;
 }
 
-// Read 32 input samples from ARAM, decoding and converting rate if required.
+// Read SAMPLES_PER_FRAME input samples from ARAM, decoding and converting rate
+// if required.
 void GetInputSamples(PB_TYPE& pb, s16* samples)
 {
 	u32 cur_addr = HILO_TO_32(pb.audio_addr.cur_addr);
@@ -260,7 +265,7 @@ void GetInputSamples(PB_TYPE& pb, s16* samples)
 		s16 curr0 = pb.src.last_samples[2];
 		s16 curr1 = pb.src.last_samples[3];
 
-		for (u32 i = 0; i < 32; ++i)
+		for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)
 		{
 			// Get our current fractional position, used to know how much of
 			// curr0 and how much of curr1 the output sample should be.
@@ -290,12 +295,12 @@ void GetInputSamples(PB_TYPE& pb, s16* samples)
 	}
 	else // SRCTYPE_NEAREST
 	{
-		// No sample rate conversion here: simply read 32 samples from the
+		// No sample rate conversion here: simply read samples from the
 		// accelerator to the output buffer.
-		for (u32 i = 0; i < 32; ++i)
+		for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)
 			samples[i] = AcceleratorGetSample();
 
-		memcpy(pb.src.last_samples, samples + 28, 4 * sizeof (u16));
+		memcpy(pb.src.last_samples, samples + SAMPLES_PER_FRAME - 4, 4 * sizeof (u16));
 	}
 
 	// Update current position in the PB.
@@ -315,7 +320,7 @@ void MixAdd(int* out, const s16* input, u16* pvol, s16* dpop, bool ramp)
 	if (!ramp)
 		volume_delta = 0;
 
-	for (u32 i = 0; i < 32; ++i)
+	for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)
 	{
 		s64 sample = input[i];
 		sample *= volume;
@@ -328,19 +333,20 @@ void MixAdd(int* out, const s16* input, u16* pvol, s16* dpop, bool ramp)
 	}
 }
 
-// Process 1ms of audio (32 samples) from a PB and mix it to the buffers.
-void Process1ms(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
+// Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
+// mix it to the output buffers.
+void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
 {
 	// If the voice is not running, nothing to do.
 	if (!pb.running)
 		return;
 
 	// Read input samples, performing sample rate conversion if needed.
-	s16 samples[32];
+	s16 samples[SAMPLES_PER_FRAME];
 	GetInputSamples(pb, samples);
 
 	// Apply a global volume ramp using the volume envelope parameters.
-	for (u32 i = 0; i < 32; ++i)
+	for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)
 	{
 		s64 sample = 2 * (s16)samples[i] * (s16)pb.vol_env.cur_volume;
 		samples[i] = (s16)(sample >> 16);
