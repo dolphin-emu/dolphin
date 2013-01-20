@@ -330,8 +330,8 @@ void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume)
 
 	for (u32 i = 0; i < 3 * 32; ++i)
 	{
-		buffer[2 * i] = Common::swap16(m_samples_left[i]);
-		buffer[2 * i + 1] = Common::swap16(m_samples_right[i]);
+		buffer[2 * i] = Common::swap16(m_samples_right[i]);
+		buffer[2 * i + 1] = Common::swap16(m_samples_left[i]);
 	}
 
 	memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof (buffer));
