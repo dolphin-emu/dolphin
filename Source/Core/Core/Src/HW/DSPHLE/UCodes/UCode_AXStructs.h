@@ -230,9 +230,9 @@ struct PBADPCMLoopInfo
 struct PBLowPassFilter
 {
 	u16 enabled;
-	u16 yn1;
-	u16 a0;
-	u16 b0;
+	s16 yn1;
+	s16 a0;
+	s16 b0;
 };
 
 struct AXPB

@@ -340,6 +340,15 @@ void MixAdd(int* out, const s16* input, u32 count, u16* pvol, s16* dpop, bool ra
 	}
 }
 
+// Execute a low pass filter on the samples using one history value. Returns
+// the new history value.
+s16 LowPassFilter(s16* samples, u32 count, s16 yn1, s16 a0, s16 b0)
+{
+	for (u32 i = 0; i < count; ++i)
+		yn1 = samples[i] = (s32)a0 * samples[i] - (s32)b0 * yn1;
+	return yn1;
+}
+
 // Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
 // mix it to the output buffers.
 void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
@@ -362,9 +371,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
 
 	// Optionally, execute a low pass filter
 	if (pb.lpf.enabled)
-	{
-		// TODO
-	}
+		pb.lpf.yn1 = LowPassFilter(samples, SAMPLES_PER_FRAME, pb.lpf.yn1, pb.lpf.a0, pb.lpf.b0);
 
 	// Mix LRS, AUXA and AUXB depending on mixer_control
 	// TODO: Handle DPL2 on AUXB.
