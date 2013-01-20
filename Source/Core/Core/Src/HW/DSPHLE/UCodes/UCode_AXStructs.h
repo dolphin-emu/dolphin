@@ -161,15 +161,15 @@ struct PBDpopWii
 
 struct PBDpopWM
 {
-	s16 aMain0;
-	s16 aMain1;
-	s16 aMain2;
-	s16 aMain3;
+	s16 main0;
+	s16 main1;
+	s16 main2;
+	s16 main3;
 
-	s16 aAux0;
-	s16 aAux1;
-	s16 aAux2;
-	s16 aAux3;
+	s16 aux0;
+	s16 aux1;
+	s16 aux2;
+	s16 aux3;
 };
 
 struct PBVolumeEnvelope
@@ -216,7 +216,7 @@ struct PBSampleRateConverter
 
 struct PBSampleRateConverterWM
 {
-	u16 currentAddressFrac;
+	u16 cur_addr_frac;
 	u16 last_samples[4];
 };
 

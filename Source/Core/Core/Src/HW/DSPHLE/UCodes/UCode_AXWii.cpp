@@ -228,7 +228,15 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 			m_samples_auxB_surround,
 			m_samples_auxC_left,
 			m_samples_auxC_right,
-			m_samples_auxC_surround
+			m_samples_auxC_surround,
+			m_samples_wm0,
+			m_samples_aux0,
+			m_samples_wm1,
+			m_samples_aux1,
+			m_samples_wm2,
+			m_samples_aux2,
+			m_samples_wm3,
+			m_samples_aux3
 		}};
 
 		if (!ReadPB(pb_addr, pb))
