@@ -124,7 +124,8 @@ void EmulateTilt(AccelData* const accel
 	, const bool focus, const bool sideways, const bool upright)
 {
 	float roll, pitch;
-	tilt_group->GetState( &roll, &pitch, 0, focus ? (PI / 2) : 0 ); // 90 degrees
+	// 180 degrees
+	tilt_group->GetState(&roll, &pitch, 0, focus ? PI : 0);
 
 	unsigned int	ud = 0, lr = 0, fb = 0;
 
@@ -267,6 +268,9 @@ Wiimote::Wiimote( const unsigned int index )
 	for (unsigned int i=0; i < sizeof(named_buttons)/sizeof(*named_buttons); ++i)
 		m_buttons->controls.push_back(new ControlGroup::Input( named_buttons[i]));
 
+	// udp
+	groups.push_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
+
 	// ir
 	groups.push_back(m_ir = new Cursor(_trans("IR")));
 
@@ -275,9 +279,6 @@ Wiimote::Wiimote( const unsigned int index )
 
 	// tilt
 	groups.push_back(m_tilt = new Tilt(_trans("Tilt")));
-
-	// udp 
-	groups.push_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
 
 	// shake
 	groups.push_back(m_shake = new Buttons(_trans("Shake")));
