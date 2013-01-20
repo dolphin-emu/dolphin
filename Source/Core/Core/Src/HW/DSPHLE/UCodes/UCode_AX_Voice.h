@@ -342,10 +342,10 @@ void MixAdd(int* out, const s16* input, u32 count, u16* pvol, s16* dpop, bool ra
 
 // Execute a low pass filter on the samples using one history value. Returns
 // the new history value.
-s16 LowPassFilter(s16* samples, u32 count, s16 yn1, s16 a0, s16 b0)
+s16 LowPassFilter(s16* samples, u32 count, s16 yn1, u16 a0, u16 b0)
 {
 	for (u32 i = 0; i < count; ++i)
-		yn1 = samples[i] = (s32)a0 * samples[i] - (s32)b0 * yn1;
+		yn1 = samples[i] = (a0 * (s32)samples[i] + b0 * (s32)yn1) >> 15;
 	return yn1;
 }
 
