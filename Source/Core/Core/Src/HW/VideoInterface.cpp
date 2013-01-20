@@ -144,8 +144,8 @@ void Preset(bool _bNTSC)
 	m_HorizontalStepping.FbSteps = 40;
 	m_HorizontalStepping.FieldSteps = 40;
 
-	m_HBeamPos = 1;
-	m_VBeamPos = 1;
+	m_HBeamPos = 0;
+	m_VBeamPos = 0;
 
 	// 54MHz, capable of progressive scan
 	m_Clock = Core::g_CoreStartupParameter.bProgressive;
