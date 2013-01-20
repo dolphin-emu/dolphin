@@ -1064,6 +1064,13 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 				return;
 			}
 		}
+		#ifdef _WIN32
+			if (!strncmp(File::GetExeDirectory().c_str(), filename.c_str(), File::GetExeDirectory().size()))
+			{
+				filename.erase(0, File::GetExeDirectory().size() +1);
+				filename = "./" + filename;
+			}
+		#endif
 
 		// also check that the path isn't used for the other memcard...
 		if (filename.compare(isSlotA ? SConfig::GetInstance().m_strMemoryCardB
