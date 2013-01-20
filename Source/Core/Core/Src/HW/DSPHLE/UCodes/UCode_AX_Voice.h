@@ -27,7 +27,7 @@
 #endif
 
 #include "Common.h"
-#include "UCode_AX_Structs.h"
+#include "UCode_AXStructs.h"
 #include "../../DSP.h"
 
 #ifdef AX_GC

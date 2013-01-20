@@ -200,11 +200,7 @@ void CUCode_AX::HandleCommandList()
 				u16 idx = m_cmdlist[curr_idx++];
 				addr_hi = m_cmdlist[curr_idx++];
 				addr_lo = m_cmdlist[curr_idx++];
-
 				// TODO
-				(void)samp_val;
-				(void)idx;
-
 				break;
 			}
 
