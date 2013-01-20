@@ -69,7 +69,7 @@ private:
 	DECLARE_EVENT_TABLE();
 
 	// Core
-	wxCheckBox *CPUThread, *SkipIdle, *MMU, *MMUBAT, *TLBHack;
+	wxCheckBox *CPUThread, *SkipIdle, *MMU, *DCBZOFF, *TLBHack;
 	wxCheckBox *VBeam, *FastDiscSpeed, *BlockMerging, *DSPHLE;
 	// Wii
 	wxCheckBox *EnableWideScreen, *DisableWiimoteSpeaker;
@@ -127,7 +127,7 @@ private:
 		ID_USEDUALCORE,
 		ID_IDLESKIP,
 		ID_MMU,
-		ID_MMUBAT,
+		ID_DCBZOFF,
 		ID_TLBHACK,
 		ID_VBEAM,
 		ID_DISCSPEED,

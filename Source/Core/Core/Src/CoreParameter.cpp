@@ -49,7 +49,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bMergeBlocks(false),
   bDPL2Decoder(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
-  bMMU(false), bMMUBAT(false), iTLBHack(0), bVBeam(false),
+  bMMU(false), bDCBZOFF(false), iTLBHack(0), bVBeam(false),
   bFastDiscSpeed(false),
   SelectedLanguage(0), bWii(false), bDisableWiimoteSpeaker(false),
   bConfirmStop(false), bHideCursor(false), 
@@ -75,7 +75,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bDSPThread = true;
 	bEnableFPRF = false;
 	bMMU = false;
-	bMMUBAT = false;
+	bDCBZOFF = false;
 	iTLBHack = 0;
 	bVBeam = false;
 	bFastDiscSpeed = false;
