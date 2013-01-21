@@ -51,6 +51,7 @@ protected:
 	virtual void HandleCommandList();
 
 	void SetupProcessing(u32 init_addr);
+	void AddToLR(u32 val_addr);
 	void ProcessPBList(u32 pb_addr);
 	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume);
 	void OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume);
@@ -60,7 +61,7 @@ private:
 	enum CmdType
 	{
 		CMD_SETUP = 0x00,
-		CMD_UNK_01 = 0x01,
+		CMD_ADD_TO_LR = 0x01,
 		CMD_UNK_02 = 0x02,
 		CMD_UNK_03 = 0x03,
 		CMD_PROCESS = 0x04,

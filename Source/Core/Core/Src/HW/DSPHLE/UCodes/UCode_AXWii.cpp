@@ -67,7 +67,12 @@ void CUCode_AXWii::HandleCommandList()
 				SetupProcessing(HILO_TO_32(addr));
 				break;
 
-			case CMD_UNK_01: curr_idx += 2; break;
+			case CMD_ADD_TO_LR:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				AddToLR(HILO_TO_32(addr));
+				break;
+
 			case CMD_UNK_02: curr_idx += 2; break;
 			case CMD_UNK_03: curr_idx += 2; break;
 
@@ -179,6 +184,18 @@ void CUCode_AXWii::SetupProcessing(u32 init_addr)
 				init_val += delta;
 			}
 		}
+	}
+}
+
+void CUCode_AXWii::AddToLR(u32 val_addr)
+{
+	int* ptr = (int*)HLEMemory_Get_Pointer(val_addr);
+	for (int i = 0; i < 32 * 3; ++i)
+	{
+		int val = (int)Common::swap32(*ptr++);
+
+		m_samples_left[i] += val;
+		m_samples_right[i] += val;
 	}
 }
 
