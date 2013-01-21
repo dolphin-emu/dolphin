@@ -38,7 +38,7 @@
 #define TEX2D	GL_TEXTURE_RECTANGLE_ARB
 #define PREC 
 #define TEXTYPE "sampler2DRect"
-#define TEXFUNC "texture"
+#define TEXFUNC "texture2DRect"
 #endif
 
 
