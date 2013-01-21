@@ -348,7 +348,11 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 	{
 		// Use default memcard path if there is no user defined name
 		std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
-		memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+		#ifdef _WIN32
+			memcardPath = "." + File::GetUserPath(D_GCUSER_IDX).substr(File::GetExeDirectory().size()) + defaultFilename + ext;
+		#else
+			memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+		#endif
 	}
 	else
 	{
