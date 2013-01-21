@@ -49,7 +49,6 @@ class CARCodeAddEdit : public wxDialog
 		void SaveCheatData(wxCommandEvent& event);
 		void ChangeEntry(wxSpinEvent& event);
 		void UpdateTextCtrl(ActionReplay::ARCode arCode);
-		void OnKey(wxKeyEvent& event);
 
 		int selection;
 

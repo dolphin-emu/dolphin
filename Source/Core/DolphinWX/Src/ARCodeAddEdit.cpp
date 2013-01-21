@@ -48,13 +48,11 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 
 	wxStaticText* EditCheatNameText = new wxStaticText(this, ID_EDITCHEAT_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
 	EditCheatName = new wxTextCtrl(this, ID_EDITCHEAT_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-	EditCheatName->Bind(wxEVT_KEY_DOWN, &CARCodeAddEdit::OnKey, this);
 	EditCheatName->SetValue(currentName);
 	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
 	EntrySelection->SetRange(1, ((int)arCodes.size()) > 0 ? (int)arCodes.size() : 1); 
 	EntrySelection->SetValue((int)(arCodes.size() - selection));
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxSize(300, 100), wxTE_MULTILINE);
-	EditCheatCode->Bind(wxEVT_KEY_DOWN, &CARCodeAddEdit::OnKey, this);
 	UpdateTextCtrl(tempEntries);
 
 	sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER|wxALL, 5);
@@ -175,26 +173,4 @@ void CARCodeAddEdit::UpdateTextCtrl(ActionReplay::ARCode arCode)
 			EditCheatCode->AppendText(wxString::Format(wxT("%08X %08X\n"), arCode.ops.at(i).cmd_addr, arCode.ops.at(i).value));
 	else
 		EditCheatCode->SetValue(_("Insert Encrypted or Decrypted code here..."));
-}
-
-void CARCodeAddEdit::OnKey(wxKeyEvent& event)
-{
-	// Technically you can extend this to whatever bindings you want.
-	switch (event.GetKeyCode())
-	{
-	case 'a':
-	case 'A':
-		{
-			if (event.ControlDown() && FindFocus() == EditCheatCode)
-			{
-				EditCheatCode->SetSelection(0, EditCheatCode->GetValue().Length());
-			}
-
-			if (event.ControlDown() && FindFocus() == EditCheatName)
-			{
-				EditCheatName->SetSelection(0, EditCheatName->GetValue().Length());
-			}
-		}
-		break;
-	}
 }
