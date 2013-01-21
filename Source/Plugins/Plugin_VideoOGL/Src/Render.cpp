@@ -299,19 +299,19 @@ Renderer::Renderer()
 	}
 
 	s_bHaveCoverageMSAA = glewIsSupported("GL_NV_framebuffer_multisample_coverage");
+	
+	g_Config.backend_info.bSupportsDualSourceBlend = glewIsSupported("GL_ARB_blend_func_extended");
+	
+	g_Config.backend_info.bSupportsGLSLUBO = glewIsSupported("GL_ARB_uniform_buffer_object");
+	
+	//TODO: revert this after cache is fixed itself
+	g_Config.backend_info.bSupportsGLSLCache = false; // glewIsSupported("GL_ARB_get_program_binary")
 
-	if (glewIsSupported("GL_ARB_blend_func_extended"))
-		g_Config.backend_info.bSupportsDualSourceBlend = true;
-	if (glewIsSupported("GL_ARB_uniform_buffer_object"))
-		g_Config.backend_info.bSupportsGLSLUBO = true;
-	if (glewIsSupported("GL_ARB_get_program_binary"))
-		g_Config.backend_info.bSupportsGLSLCache = false;//TODO: revert this after cache is fixed itself
-		
-		UpdateActiveConfig();
-		OSD::AddMessage(StringFromFormat("Supports Blending: %s UBOs: %s Cache: %s",
-				g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "True" : "False",
-				g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False",
-				g_ActiveConfig.backend_info.bSupportsGLSLCache ? "True" : "False").c_str(), 5000);
+	UpdateActiveConfig();
+	OSD::AddMessage(StringFromFormat("Supports Blending: %s UBOs: %s Cache: %s",
+			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "True" : "False",
+			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False",
+			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "True" : "False").c_str(), 5000);
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
