@@ -240,20 +240,6 @@ Renderer::Renderer()
 	s_blendMode = 0;
 	InitFPSCounter();
 
-	// Look for required extensions.
-	const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
-	if (!ptoken)
-	{
-		PanicAlert("Your OpenGL Driver seems to be not working.\n"
-				"Please make sure your drivers are up-to-date and\n"
-				"that your video hardware is OpenGL 2.x compatible.");
-		return;	// TODO: fail
-	}
-
-	INFO_LOG(VIDEO, "Supported OpenGL Extensions:");
-	INFO_LOG(VIDEO, "%s", ptoken);  // write to the log file
-	INFO_LOG(VIDEO, "\n");
-
 	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s",
 				glGetString(GL_VENDOR),
 				glGetString(GL_RENDERER),
@@ -262,7 +248,7 @@ Renderer::Renderer()
 	bool bSuccess = true;
 	GLint numvertexattribs = 0;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
-	if (numvertexattribs < 11)
+	if (numvertexattribs < 16)
 	{
 		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Number of attributes %d not enough.\n"
 				"GPU: Does your video card support OpenGL 2.x?",
@@ -312,7 +298,7 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	s_bHaveCoverageMSAA = strstr(ptoken, "GL_NV_framebuffer_multisample_coverage") != NULL;
+	s_bHaveCoverageMSAA = glewIsSupported("GL_NV_framebuffer_multisample_coverage");
 
 	if (glewIsSupported("GL_ARB_blend_func_extended"))
 		g_Config.backend_info.bSupportsDualSourceBlend = true;
@@ -431,7 +417,6 @@ Renderer::Renderer()
 
 	glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
 
-	glShadeModel(GL_SMOOTH);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
