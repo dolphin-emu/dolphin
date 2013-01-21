@@ -237,6 +237,7 @@ void ProgramShaderCache::Init(void)
 		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_vs_data_offset, vs_data_size);
 		
 		s_ubo_buffer = new float[s_ubo_buffer_size/sizeof(float)];
+		memset(s_ubo_buffer, 0, s_ubo_buffer_size);
 		s_ubo_dirty = true;
 	}
 
