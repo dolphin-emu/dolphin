@@ -203,10 +203,12 @@ u16 AcceleratorGetSample()
 	//
 	// On real hardware, this would raise an interrupt that is handled by the
 	// UCode. We simulate what this interrupt does here.
-	if ((*acc_cur_addr & ~0x1F) == (acc_end_addr & ~0x1F))
+	if (*acc_cur_addr >= acc_end_addr)
 	{
-		// If we are really at the end, loop back to loop_addr.
-		*acc_cur_addr = acc_loop_addr;
+		// If we are really at the end (and we don't simply have cur_addr >
+		// end_addr all the time), loop back to loop_addr.
+		if ((*acc_cur_addr & ~0x1F) == (acc_end_addr & ~0x1F))
+			*acc_cur_addr = acc_loop_addr;
 
 		if (acc_pb->audio_addr.looping)
 		{
