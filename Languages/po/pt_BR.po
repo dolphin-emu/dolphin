@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-01-16 21:37-0600\n"
-"PO-Revision-Date: 2013-01-16 21:41-0600\n"
+"PO-Revision-Date: 2013-01-17 02:48-0300\n"
 "Last-Translator: Runo <i.am.runo@gmail.com>\n"
 "Language-Team: Portuguese (BR) <dolphinbrtrans@gmail.com>\n"
 "Language: \n"
@@ -371,14 +371,14 @@ msgid "A game is not currently running."
 msgstr "Não tem nenhum jogo rodando no momento."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
 "Nenhum dispositivo Bluetooth suportado foi encontrado!\n"
-"(Apenas o Bluetooth Microsoft é suportado.)"
+"(Se você não está usando o dispositivo Bluetooth da Microsoft você deve "
+"parear seus wiimotes manualmente e usar apenas o botão \"Atualizar\"."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -517,13 +517,14 @@ msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Erro no Action Replay: Valor inválido (%08x) na Cópia de Memória (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
 "Erro no Action Replay: Master Code e Write To CCXXXXXX não está implementado "
-"(%s)"
+"(%s)\n"
+"Master codes não são necessários. Não use master codes."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -1649,7 +1650,7 @@ msgstr "Você quer parar a emulação atual?"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:648
 msgid "Dolby Pro Logic II decoder"
-msgstr ""
+msgstr "Decoder Dolby Pro Logic II"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:866
 msgid "Dolphin"
@@ -1712,7 +1713,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1210
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1296
 msgid "Dolphin was unable to complete the requested action."
-msgstr ""
+msgstr "O Dolphin não conseguiu completar a ação requisitada."
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
@@ -2054,17 +2055,24 @@ msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on "
 "OSX."
 msgstr ""
+"Habilita emulação do Dolby Pro Logic II usando surround 5.1. Não disponível "
+"no OSX."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:515
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."
 msgstr ""
+"Habilita emulação do Dolby Pro Logic II usando surround 5.1. Disponível "
+"apenas no backend OpenAL."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:517
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
 "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
 msgstr ""
+"Habilita emulação do Dolby Pro Logic II usando surround 5.1. Disponível "
+"apenas no backend OpenAL. Talvez seja necessário renomear o soft_oal.dll "
+"para OpenAL32.dll para que funcione."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:77
 msgid ""
@@ -3277,7 +3285,7 @@ msgstr "Último State Salvo"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:681
 msgid "Latency:"
-msgstr ""
+msgstr "Latência:"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
@@ -4505,9 +4513,8 @@ msgstr ""
 "Se estiver em dúvida, selecione Automático."
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "O arquivo especificado \"%s\" não existe"
+msgstr "O perfil de controle especificado não existe"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -4592,6 +4599,8 @@ msgid ""
 "Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL "
 "backend only."
 msgstr ""
+"Configura a latência (em ms). Valores mais altos podem reduzir problemas de "
+"corte no áudio. Disponível apenas no backend OpenAL."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
 msgid "Settings..."
@@ -4715,7 +4724,7 @@ msgid ""
 "Disabling this may avoid annoying and non-fatal messages, but it may also "
 "mean that Dolphin suddenly crashes without any explanation at all."
 msgstr ""
-"Mostra uma menssagem quando erros potencialmente sérios ocorreram. \n"
+"Mostra uma mensagem quando erros potencialmente sérios ocorreram. \n"
 "Desabilitar isso pode evitar menssagens irritantes e não-fatais, mas também "
 "pode fazer com que o Dolphin trave sem nenhuma explicação."
 
@@ -4956,7 +4965,7 @@ msgstr "Estados Salvos"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:92
 msgid "Steering Wheel"
-msgstr ""
+msgstr "Volante"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
@@ -5175,9 +5184,8 @@ msgid "The value is invalid"
 msgstr "O valor é inválido"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:627
-#, fuzzy
 msgid "Theme:"
-msgstr "Tema"
+msgstr "Tema:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
