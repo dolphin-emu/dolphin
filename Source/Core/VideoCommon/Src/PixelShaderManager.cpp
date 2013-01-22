@@ -85,7 +85,7 @@ void PixelShaderManager::Shutdown()
 
 void PixelShaderManager::SetConstants()
 {
-	if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		Dirty();
     for (int i = 0; i < 2; ++i)
 	{
