@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-01-16 21:37-0600\n"
-"PO-Revision-Date: 2013-01-16 21:40-0600\n"
+"PO-Revision-Date: 2013-01-23 10:06+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: Japanese\n"
@@ -295,7 +295,7 @@ msgstr "公式Wiki(英語)で動作状況を確認(&W)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:505
 msgid "'"
-msgstr ""
+msgstr "'"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:58
 msgid "(-)+zFar"
@@ -369,14 +369,14 @@ msgid "A game is not currently running."
 msgstr "ゲームは現在、起動されていません"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
 "サポートしているBluetoothデバイスが見つかりませんでした\n"
-"(Microsoft製Bluetoothスタックのみサポートしています)"
+"Microsoft製以外のBluetoothスタックを使っている場合は、手動でペアリングを行"
+"い、『更新』ボタンのみ使用してください。"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -510,12 +510,14 @@ msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Action Replay エラー: 不正な値 (%08x) in Memory Copy (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
-"エラー: マスターコード、または CCXXXXXX への書き込みは実装されていません (%s)"
+"エラー: マスターコード、または CCXXXXXX への書き込みは実装されていません "
+"(%s)\n"
+"マスターコードは必要ありません。使用しないでください。"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -779,7 +781,7 @@ msgstr "B"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:753
 msgid "BP register "
-msgstr ""
+msgstr "BP register "
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -993,7 +995,6 @@ msgid "Catalan"
 msgstr "カタルーニャ語"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:310
-#, fuzzy
 msgid "Center"
 msgstr "Center"
 
@@ -1639,7 +1640,7 @@ msgstr "動作中のゲームを停止しますか？"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:648
 msgid "Dolby Pro Logic II decoder"
-msgstr ""
+msgstr "Dolby Pro Logic II decoder"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:866
 msgid "Dolphin"
@@ -1702,7 +1703,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1210
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1296
 msgid "Dolphin was unable to complete the requested action."
-msgstr ""
+msgstr "要求された操作を完了することができませんでした。"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
@@ -2043,17 +2044,24 @@ msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on "
 "OSX."
 msgstr ""
+"Dolby Pro Logic II を使用した5.1サラウンドのエミュレーションを行います。OSX "
+"には現在未対応です"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:515
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."
 msgstr ""
+"Dolby Pro Logic II を使用した5.1サラウンドのエミュレーションを行います。"
+"OpenALのみ対応"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:517
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
 "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
 msgstr ""
+"Dolby Pro Logic II を使用した5.1サラウンドのエミュレーションを行います。"
+"OpenALのみ対応。『soft_oal.dll』を『OenAL32.dll』にリネームすることで動作しま"
+"す"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:77
 msgid ""
@@ -2560,7 +2568,7 @@ msgstr "前方"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:505
 #, c-format
 msgid "Found %d results for '"
-msgstr ""
+msgstr "検索結果：%d 件 '"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:855
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:923
@@ -3167,7 +3175,7 @@ msgstr "不正な録画ファイル"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:472
 msgid "Invalid search parameters (no object selected)"
-msgstr ""
+msgstr "エラー：オブジェクトを選択してください"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:455
 msgid "Invalid search string (couldn't convert to number)"
@@ -3262,7 +3270,7 @@ msgstr "最新のステートセーブ"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:681
 msgid "Latency:"
-msgstr ""
+msgstr "レイテンシー："
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
@@ -4486,9 +4494,8 @@ msgstr ""
 "よく分からなければ、【自動】を選択してください。"
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "指定されたファイル \"%s\" は存在しません"
+msgstr "選択されたプロファイルは存在しません"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -4572,6 +4579,8 @@ msgid ""
 "Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL "
 "backend only."
 msgstr ""
+"レイテンシーを調整します（単位：ms）。高くすることで音の問題を軽減できます。"
+"OpenALのみ"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
 msgid "Settings..."
@@ -4935,7 +4944,7 @@ msgstr "ステートセーブ／ロード"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:92
 msgid "Steering Wheel"
-msgstr ""
+msgstr "SPEED FORCE"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
@@ -5154,9 +5163,8 @@ msgid "The value is invalid"
 msgstr "無効な値です"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:627
-#, fuzzy
 msgid "Theme:"
-msgstr "テーマ"
+msgstr "テーマ："
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
