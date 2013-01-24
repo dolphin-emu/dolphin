@@ -64,9 +64,6 @@ VertexManager::VertexManager()
 	//	max_Index_size = MAXIBUFFERSIZE;
 	//
 	//GL_REPORT_ERRORD();
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	GL_REPORT_ERRORD();
 }
 
 void VertexManager::CreateDeviceObjects()
