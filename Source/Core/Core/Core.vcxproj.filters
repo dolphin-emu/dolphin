@@ -290,6 +290,9 @@
     <ClCompile Include="Src\HW\SI_DeviceGCController.cpp">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClCompile>
+    <ClCompile Include="Src\HW\SI_DeviceGCSteeringWheel.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
     <ClCompile Include="Src\HW\VideoInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
     </ClCompile>
@@ -812,6 +815,9 @@
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
     <ClInclude Include="Src\HW\SI_DeviceGCController.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HW\SI_DeviceGCSteeringWheel.h">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
     <ClInclude Include="Src\HW\SI.h">

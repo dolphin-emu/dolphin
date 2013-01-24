@@ -43,7 +43,7 @@ struct Statistics
 
 	int numUniquePixelShaders;
 
-	float proj_0, proj_1, proj_2, proj_3, proj_4, proj_5, proj_6;
+	float proj_0, proj_1, proj_2, proj_3, proj_4, proj_5;
 	float gproj_0, gproj_1, gproj_2, gproj_3, gproj_4, gproj_5;
 	float gproj_6, gproj_7, gproj_8, gproj_9, gproj_10, gproj_11, gproj_12, gproj_13, gproj_14, gproj_15;
 

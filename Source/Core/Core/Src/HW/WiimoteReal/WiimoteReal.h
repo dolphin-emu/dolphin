@@ -53,7 +53,8 @@ public:
 	bool Read();
 	bool Write();
 	bool Connect();
-	bool IsConnected();
+	bool IsConnected() const;
+	bool IsOpen() const;
 	void Disconnect();
 	void DisableDataReporting();
 	void Rumble();
@@ -70,8 +71,11 @@ public:
 	int inputlen;
 #elif defined(__linux__) && HAVE_BLUEZ
 	bdaddr_t bdaddr;					// Bluetooth address
-	int out_sock;						// Output socket
-	int in_sock;						// Input socket
+	int cmd_sock;						// Command socket
+	int int_sock;						// Interrupt socket
+
+	void Close();
+
 #elif defined(_WIN32)
 	char devicepath[255];				// Unique wiimote reference
 	//ULONGLONG btaddr;					// Bluetooth address
@@ -113,7 +117,7 @@ void StateChange(EMUSTATE_CHANGE newState);
 
 int FindWiimotes(Wiimote** wm, int max_wiimotes);
 
-bool IsValidBluetoothName(const char* name);
+bool IsValidBluetoothName(const std::string& name);
 
 }; // WiimoteReal
 

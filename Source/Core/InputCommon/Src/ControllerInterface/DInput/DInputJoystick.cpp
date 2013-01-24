@@ -254,9 +254,9 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	for (unsigned int offset = 0; offset < DIJOFS_BUTTON(0) / sizeof(LONG); ++offset)
 	{
 		range.diph.dwObj = offset * sizeof(LONG);
-		// try to set some nice power of 2 values (8192)
-		range.lMin = -(1 << 13);
-		range.lMax = (1 << 13);
+		// try to set some nice power of 2 values (128) to match the GameCube controls
+		range.lMin = -(1 << 7);
+		range.lMax = (1 << 7);
 		m_device->SetProperty(DIPROP_RANGE, &range.diph);
 		// but i guess not all devices support setting range
 		// so i getproperty right afterward incase it didn't set :P
@@ -267,8 +267,8 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 			const LONG& ax = (&m_state_in.lX)[offset];
 
 			// each axis gets a negative and a positive input instance associated with it
-			AddInput(new Axis(offset, ax, base, range.lMin-base));
-			AddInput(new Axis(offset, ax, base, range.lMax-base));
+			AddAnalogInputs(new Axis(offset, ax, base, range.lMin-base),
+				new Axis(offset, ax, base, range.lMax-base));
 		}
 	}
 
@@ -281,17 +281,19 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	if ( objects.size() )
 	{
 		// temporary
-		DWORD rgdwAxes[] = {DIJOFS_X, DIJOFS_Y};
-		LONG rglDirection[] = {0, 0};
+		DWORD rgdwAxes[2] = {DIJOFS_X, DIJOFS_Y};
+		LONG rglDirection[2] = {-200, 0};
 
 		DIEFFECT eff;
 		ZeroMemory(&eff, sizeof(eff));
 		eff.dwSize = sizeof(DIEFFECT);
 		eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
 		eff.dwDuration = INFINITE;	// (4 * DI_SECONDS)
+		eff.dwSamplePeriod = 0;
 		eff.dwGain = DI_FFNOMINALMAX;
 		eff.dwTriggerButton = DIEB_NOTRIGGER;
-		eff.cAxes = std::min((DWORD)2, (DWORD)objects.size());
+		eff.dwTriggerRepeatInterval = 0;
+		eff.cAxes = std::min((DWORD)1, (DWORD)objects.size());
 		eff.rgdwAxes = rgdwAxes;
 		eff.rglDirection = rglDirection;
 
@@ -310,7 +312,12 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		{
 			// ugly if ladder
 			if (0 == f)
+			{
+				DICONSTANTFORCE  diCF = {-10000};
+				diCF.lMagnitude = DI_FFNOMINALMAX;
 				eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
+				eff.lpvTypeSpecificParams = &diCF;
+			}
 			else if (1 == f)
 				eff.cbTypeSpecificParams = sizeof(DIRAMPFORCE);
 			else

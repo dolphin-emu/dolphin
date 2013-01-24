@@ -27,9 +27,8 @@
 #include "VideoConfig.h"
 #include "NativeVertexFormat.h"
 
-static int AlphaPreTest();
 
-static void StageHash(int stage, u32* out)
+static void StageHash(u32 stage, u32* out)
 {
 	out[0] |= bpmem.combiners[stage].colorC.hex & 0xFFFFFF; // 24
 	u32 alphaC = bpmem.combiners[stage].alphaC.hex & 0xFFFFF0; // 24, strip out tswap and rswap for now
@@ -109,29 +108,17 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	uid->values[0] |= bpmem.genMode.numtexgens << 4; // 4
 	uid->values[0] |= dstAlphaMode << 8; // 2
 
-	bool DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth;
-
-	uid->values[0] |= DepthTextureEnable << 10; // 1
-
 	bool enablePL = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
-	uid->values[0] |= enablePL << 11; // 1
+	uid->values[0] |= enablePL << 10; // 1
 
-	if (!enablePL) uid->values[0] |= xfregs.numTexGen.numTexGens << 12; // 4
-	u32 alphaPreTest = AlphaPreTest()+1;
+	if (!enablePL) uid->values[0] |= xfregs.numTexGen.numTexGens << 11; // 4
 
-	uid->values[0] |= alphaPreTest << 16; // 2
-
-	if (alphaPreTest == 1 || (alphaPreTest && !DepthTextureEnable && dstAlphaMode == DSTALPHA_ALPHA_PASS))
-	{
-		// Courtesy of PreAlphaTest, we're done already ;)
-		// NOTE: The comment header of generated shaders depends on the value of bpmem.genmode.numindstages.. shouldnt really bother about that though.
-		uid->num_values = 1;
-		return;
-	}
+	AlphaTest::TEST_RESULT alphaPreTest = bpmem.alpha_test.TestResult();
+	uid->values[0] |= alphaPreTest << 15; // 2
 
 	// numtexgens should be <= 8
 	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
-		uid->values[0] |= xfregs.texMtxInfo[i].projection << (18+i); // 1
+		uid->values[0] |= xfregs.texMtxInfo[i].projection << (17+i); // 1
 
 	uid->values[1] = bpmem.genMode.numindstages; // 3
 	u32 indirectStagesUsed = 0;
@@ -154,30 +141,24 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	}
 
 	u32* ptr = &uid->values[2];
-	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
+	for (unsigned int i = 0; i < bpmem.genMode.numtevstages+1u; ++i)
 	{
 		StageHash(i, ptr);
 		ptr += 4; // max: ptr = &uid->values[66]
 	}
 
-	ptr[0] |= bpmem.alphaFunc.comp0; // 3
-	ptr[0] |= bpmem.alphaFunc.comp1 << 3; // 3
-	ptr[0] |= bpmem.alphaFunc.logic << 6; // 2
+	ptr[0] |= bpmem.alpha_test.comp0; // 3
+	ptr[0] |= bpmem.alpha_test.comp1 << 3; // 3
+	ptr[0] |= bpmem.alpha_test.logic << 6; // 2
 
-	if (alphaPreTest == 0 || alphaPreTest == 2)
-	{
-		ptr[0] |= bpmem.fog.c_proj_fsel.fsel << 8; // 3
-		if (DepthTextureEnable)
-		{
-			ptr[0] |= bpmem.ztex2.op << 11; // 2
-			ptr[0] |= bpmem.zcontrol.zcomploc << 13; // 1
-			ptr[0] |= bpmem.zmode.testenable << 14; // 1
-			ptr[0] |= bpmem.zmode.updateenable << 15; // 1
-		}
-	}
+	ptr[0] |= bpmem.ztex2.op << 8; // 2
+	ptr[0] |= bpmem.zcontrol.early_ztest << 10; // 1
+	ptr[0] |= bpmem.zmode.testenable << 11; // 1
+	ptr[0] |= bpmem.zmode.updateenable << 12; // 1
 
 	if (dstAlphaMode != DSTALPHA_ALPHA_PASS)
 	{
+		ptr[0] |= bpmem.fog.c_proj_fsel.fsel << 13; // 3
 		if (bpmem.fog.c_proj_fsel.fsel != 0)
 		{
 			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 16; // 1
@@ -204,9 +185,8 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 	*ptr++ = bpmem.ztex2.hex; // 2
 	*ptr++ = bpmem.zcontrol.hex; // 3
 	*ptr++ = bpmem.zmode.hex; // 4
-	*ptr++ = g_ActiveConfig.bEnablePerPixelDepth; // 5
-	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting; // 6
-	*ptr++ = xfregs.numTexGen.hex; // 7
+	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting; // 5
+	*ptr++ = xfregs.numTexGen.hex; // 6
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -218,28 +198,28 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 	}
 
 	for (unsigned int i = 0; i < 8; ++i)
-		*ptr++ = xfregs.texMtxInfo[i].hex; // 8-15
+		*ptr++ = xfregs.texMtxInfo[i].hex; // 7-14
 
 	for (unsigned int i = 0; i < 16; ++i)
-		*ptr++ = bpmem.tevind[i].hex; // 16-31
+		*ptr++ = bpmem.tevind[i].hex; // 15-30
 
-	*ptr++ = bpmem.tevindref.hex; // 32
+	*ptr++ = bpmem.tevindref.hex; // 31
 
-	for (u32 i = 0; i < bpmem.genMode.numtevstages+1; ++i) // up to 16 times
+	for (u32 i = 0; i < bpmem.genMode.numtevstages+1u; ++i) // up to 16 times
 	{
-		*ptr++ = bpmem.combiners[i].colorC.hex; // 33+5*i
-		*ptr++ = bpmem.combiners[i].alphaC.hex; // 34+5*i
-		*ptr++ = bpmem.tevind[i].hex; // 35+5*i
-		*ptr++ = bpmem.tevksel[i/2].hex; // 36+5*i
-		*ptr++ = bpmem.tevorders[i/2].hex; // 37+5*i
+		*ptr++ = bpmem.combiners[i].colorC.hex; // 32+5*i
+		*ptr++ = bpmem.combiners[i].alphaC.hex; // 33+5*i
+		*ptr++ = bpmem.tevind[i].hex; // 34+5*i
+		*ptr++ = bpmem.tevksel[i/2].hex; // 35+5*i
+		*ptr++ = bpmem.tevorders[i/2].hex; // 36+5*i
 	}
 
-	ptr = &uid->values[113];
+	ptr = &uid->values[112];
 
-	*ptr++ = bpmem.alphaFunc.hex; // 113
+	*ptr++ = bpmem.alpha_test.hex; // 112
 
-	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 114
-	*ptr++ = bpmem.fogRange.Base.hex; // 115
+	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 113
+	*ptr++ = bpmem.fogRange.Base.hex; // 114
 
 	_assert_((ptr - uid->values) == uid->GetNumValues());
 }
@@ -308,10 +288,10 @@ static const char *tevKSelTableC[] = // KCSEL
 	"0.375f,0.375f,0.375f", // 3_8 = 0x05
 	"0.25f,0.25f,0.25f",    // 1_4 = 0x06
 	"0.125f,0.125f,0.125f", // 1_8 = 0x07
-	"ERROR", // 0x08
-	"ERROR", // 0x09
-	"ERROR", // 0x0a
-	"ERROR", // 0x0b
+	"ERROR1", // 0x08
+	"ERROR2", // 0x09
+	"ERROR3", // 0x0a
+	"ERROR4", // 0x0b
 	I_KCOLORS"[0].rgb", // K0 = 0x0C
 	I_KCOLORS"[1].rgb", // K1 = 0x0D
 	I_KCOLORS"[2].rgb", // K2 = 0x0E
@@ -344,14 +324,14 @@ static const char *tevKSelTableA[] = // KASEL
 	"0.375f",// 3_8 = 0x05
 	"0.25f", // 1_4 = 0x06
 	"0.125f",// 1_8 = 0x07
-	"ERROR", // 0x08
-	"ERROR", // 0x09
-	"ERROR", // 0x0a
-	"ERROR", // 0x0b
-	"ERROR", // 0x0c
-	"ERROR", // 0x0d
-	"ERROR", // 0x0e
-	"ERROR", // 0x0f
+	"ERROR5", // 0x08
+	"ERROR6", // 0x09
+	"ERROR7", // 0x0a
+	"ERROR8", // 0x0b
+	"ERROR9", // 0x0c
+	"ERROR10", // 0x0d
+	"ERROR11", // 0x0e
+	"ERROR12", // 0x0f
 	I_KCOLORS"[0].r", // K0_R = 0x10
 	I_KCOLORS"[1].r", // K1_R = 0x11
 	I_KCOLORS"[2].r", // K2_R = 0x12
@@ -426,7 +406,7 @@ static const char *tevCInputTable[] = // CC
 	"float3(0.5f, 0.5f, 0.5f)",                 // HALF
 	"(ckonsttemp.rgb)", //"konsttemp.rgb",        // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
-	"PADERROR", "PADERROR", "PADERROR", "PADERROR"
+	"PADERROR1", "PADERROR2", "PADERROR3", "PADERROR4"
 };
 
 static const char *tevAInputTable[] = // CA
@@ -448,17 +428,17 @@ static const char *tevAInputTable[] = // CA
 	"crastemp",         // RASA,
 	"ckonsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO
-	"PADERROR", "PADERROR", "PADERROR", "PADERROR",
-	"PADERROR", "PADERROR", "PADERROR", "PADERROR",
+	"PADERROR5", "PADERROR6", "PADERROR7", "PADERROR8",
+	"PADERROR9", "PADERROR10", "PADERROR11", "PADERROR12",
 };
 
 static const char *tevRasTable[] =
 {
 	"colors_0",
 	"colors_1",
-	"ERROR", //2
-	"ERROR", //3
-	"ERROR", //4
+	"ERROR13", //2
+	"ERROR14", //3
+	"ERROR15", //4
 	"alphabump", // use bump alpha
 	"(alphabump*(255.0f/248.0f))", //normalized
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
@@ -481,7 +461,6 @@ static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "7.0f" };
 static char swapModeTable[4][5];
 
 static char text[16384];
-static bool DepthTextureEnable;
 
 struct RegisterState
 {
@@ -546,7 +525,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
 		}
 	}
-	DepthTextureEnable = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable) || g_ActiveConfig.bEnablePerPixelDepth ;
 
 	if (ApiType == API_OPENGL)
 	{
@@ -639,8 +617,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 			WRITE(p, "out float4 ocol1;\n");
 		
-		if (DepthTextureEnable)
-			WRITE(p, "float depth;\n");
+		WRITE(p, "float depth;\n");
 		WRITE(p, "float4 rawpos = gl_FragCoord;\n");
 
 		WRITE(p, "VARYIN float4 colors_02;\n");
@@ -695,14 +672,14 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		{
 			WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
 				dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
-				DepthTextureEnable ? "\n  out float depth : DEPTH," : "",
+				"\n  out float depth : DEPTH,",
 				ApiType & API_D3D9_SM20 ? "POSITION" : "VPOS");
 		}
 		else
 		{
 			WRITE(p, "  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
 				dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
-				DepthTextureEnable ? "\n  out float depth : SV_Depth," : "");
+				"\n  out float depth : SV_Depth,");
 		}
 
 		WRITE(p, "  in float4 colors_0 : COLOR0,\n");
@@ -736,45 +713,14 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		}
 	}
 
-	int Pretest = AlphaPreTest();
-	if(Pretest >= 0 && !DepthTextureEnable)
-	{
-		if (!Pretest)
-		{
-			// alpha test will always fail, so restart the shader and just make it an empty function		
-			WRITE(p, "\tocol0 = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
-			if(DepthTextureEnable)
-				WRITE(p, "\tdepth = 1.f;\n");
-			if(dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-				WRITE(p, "\tocol1 = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
-			if (ApiType == API_OPENGL)
-			{
-				if (DepthTextureEnable)
-					WRITE(p, "\tgl_FragDepth = depth;\n");
-			}
-			WRITE(p, "\tdiscard;\n");
-			if(ApiType != API_D3D11)
-				WRITE(p, "\treturn;\n");
-		}
-		else if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
-		{
-			WRITE(p, "\tocol0 = " I_ALPHA"[0].aaaa;\n");
-		}
-		if(!Pretest || dstAlphaMode == DSTALPHA_ALPHA_PASS)
-		{
-			WRITE(p, "}\n");
-			return text;
-		}
-	}
-
-	WRITE(p, "\tfloat4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
-			"\tfloat3 comp16 = float3(1.0f, 255.0f, 0.0f), comp24 = float3(1.0f, 255.0f, 255.0f*255.0f);\n"
-			"\tfloat4 alphabump=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"\tfloat3 tevcoord=float3(0.0f, 0.0f, 0.0f);\n"
-			"\tfloat2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n"
-			"\tfloat4 cc0=float4(0.0f,0.0f,0.0f,0.0f), cc1=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"\tfloat4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"\tfloat4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
+	WRITE(p, "  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
+			"  float3 comp16 = float3(1.0f, 255.0f, 0.0f), comp24 = float3(1.0f, 255.0f, 255.0f*255.0f);\n"
+			"  float4 alphabump=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"  float3 tevcoord=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n"
+			"  float4 cc0=float4(0.0f,0.0f,0.0f,0.0f), cc1=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"  float4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"  float4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -874,34 +820,26 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
 		WRITE(p, "\tprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
-	if(Pretest ==  -1)
-	{
+	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
+	if (Pretest == AlphaTest::UNDETERMINED)
 		WriteAlphaTest(p, ApiType, dstAlphaMode);
-	}
 
-	if((bpmem.fog.c_proj_fsel.fsel != 0) || DepthTextureEnable)
-	{
-		// the screen space depth value = far z + (clip z / clip w) * z range
-		WRITE(p, "\tfloat zCoord = " I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS"[1].y;\n");
-	}
+	// the screen space depth value = far z + (clip z / clip w) * z range
+	WRITE(p, "float zCoord = " I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS"[1].y;\n");
 
-	if (DepthTextureEnable)
+	// Note: depth textures are disabled if early depth test is enabled
+	if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-		if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
-		{
-			if (bpmem.ztex2.op == ZTEXTURE_ADD)
-				WRITE(p, "\tzCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w + zCoord;\n");
-			else
-				WRITE(p, "\tzCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w;\n");
+		WRITE(p, "zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
+									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
 
-			// scale to make result from frac correct
-			WRITE(p, "\tzCoord = zCoord * (16777215.0f/16777216.0f);\n");
-			WRITE(p, "\tzCoord = frac(zCoord);\n");
-			WRITE(p, "\tzCoord = zCoord * (16777216.0f/16777215.0f);\n");
-		}
-		WRITE(p, "\tdepth = zCoord;\n");
+		// scale to make result from frac correct
+		WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
+		WRITE(p, "zCoord = frac(zCoord);\n");
+		WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
 	}
+	WRITE(p, "depth = zCoord;\n");
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 		WRITE(p, "\tocol0 = float4(prev.rgb, " I_ALPHA"[0].a);\n");
@@ -923,8 +861,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	
 	if (ApiType == API_OPENGL)
 	{
-		if (DepthTextureEnable)
-			WRITE(p, "\tgl_FragDepth = depth;\n");
+		WRITE(p, "\tgl_FragDepth = depth;\n");
 	}
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
@@ -1316,39 +1253,6 @@ static const char *tevAlphaFunclogicTable[] =
 	" != ", // xor
 	" == "  // xnor
 };
-static int AlphaPreTest()
-{
-	u32 op = bpmem.alphaFunc.logic;
-	u32 comp[2] = {bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1};
-
-	// First kill all the simple cases
-	switch(op)
-	{
-	case 0: // AND
-		if (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) return true;
-		if (comp[0] == ALPHACMP_NEVER || comp[1] == ALPHACMP_NEVER) return false;
-		break;
-	case 1: // OR
-		if (comp[0] == ALPHACMP_ALWAYS || comp[1] == ALPHACMP_ALWAYS) return true;
-		if (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)return false;
-		break;
-	case 2: // XOR
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS))
-			return true;
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
-			return false;
-		break;
-	case 3: // XNOR
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS))
-			return false;
-		if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
-			return true;
-		break;
-	default: PanicAlert("bad logic for alpha test? %08x", op);
-	}
-	return -1;
-}
-
 
 static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode)
 {
@@ -1362,41 +1266,38 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	// using discard then return works the same in cg and dx9 but not in dx11
 	WRITE(p, "\tif(!( ");
 
-	int compindex = bpmem.alphaFunc.comp0 % 8;
+	int compindex = bpmem.alpha_test.comp0;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0]);//lookup the first component from the alpha function table
 
-	WRITE(p, "%s", tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);//lookup the logic op
+	WRITE(p, "%s", tevAlphaFunclogicTable[bpmem.alpha_test.logic]);//lookup the logic op
 
-	compindex = bpmem.alphaFunc.comp1 % 8;
+	compindex = bpmem.alpha_test.comp1;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
 	WRITE(p, ")) {\n");
 
 	WRITE(p, "\t\tocol0 = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		WRITE(p, "\t\tocol1 = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
-	if (DepthTextureEnable)
-		WRITE(p, "\t\tdepth = 1.f;\n");
+	WRITE(p, "depth = 1.f;\n");
 
-	// HAXX: zcomploc is a way to control whether depth test is done before
-	// or after texturing and alpha test. PC GPU does depth test before texturing ONLY if depth value is
-	// not updated during shader execution.
+	// HAXX: zcomploc (aka early_ztest) is a way to control whether depth test is done before
+	// or after texturing and alpha test. PC GPUs have no way to support this
+	// feature properly as of 2012: depth buffer and depth test are not
+	// programmable and the depth test is always done after texturing.
+	// Most importantly, PC GPUs do not allow writing to the z buffer without
+	// writing a color value (unless color writing is disabled altogether).
 	// We implement "depth test before texturing" by discarding the fragment
 	// when the alpha test fail. This is not a correct implementation because
-	// even if the depth test fails the fragment could be alpha blended.
-	// this implemnetation is a trick to  keep speed.
-	// the correct, but slow, way to implement a correct zComploc is :
-	// 1 - if zcomplock is enebled make a first pass, with color channel write disabled updating only 
-	// depth channel.
-	// 2 - in the next pass disable depth chanel update, but proccess the color data normally
-	// this way is the only CORRECT way to emulate perfectly the zcomplock behaviour
-	if (!(bpmem.zcontrol.zcomploc && bpmem.zmode.updateenable))
+	// even if the depth test fails the fragment could be alpha blended, but
+	// we don't have a choice.
+	if (!(bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable))
 	{
 		WRITE(p, "\t\tdiscard;\n");
 		if (ApiType != API_D3D11)
 			WRITE(p, "\t\treturn;\n");
 	}
 
-	WRITE(p, "\t}\n");
+	WRITE(p, "}\n");
 }
 
 static const char *tevFogFuncsTable[] =

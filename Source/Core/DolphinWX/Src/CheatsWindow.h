@@ -99,7 +99,7 @@ protected:
 	void StartNewSearch(wxCommandEvent& event);
 	void FilterCheatSearchResults(wxCommandEvent& event);
 	void CreateARCode(wxCommandEvent&);
-	void ApplyFocus(wxCommandEvent&);
+	void ApplyFocus(wxEvent&);
 };
 
 class wxCheatsWindow : public wxDialog

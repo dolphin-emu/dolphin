@@ -212,8 +212,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
 	ChangeBannerDetails((int)SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
 	m_Banner->SetBitmap(OpenGameListItem->GetImage());
-	m_Banner->Connect(wxID_ANY, wxEVT_RIGHT_DOWN,
-		wxMouseEventHandler(CISOProperties::RightClickOnBanner), (wxObject*)NULL, this);
+	m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
 
 	// Filesystem browser/dumper
 	// TODO : Should we add a way to browse the wad file ?
@@ -316,10 +315,10 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	MMU->SetToolTip(_("Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
-	MMUBAT = new wxCheckBox(m_GameConfig, ID_MMUBAT, _("Enable BAT"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	MMUBAT->SetToolTip(_("Enables Block Address Translation (BAT); a function of the Memory Management Unit. Accurate to the hardware, but slow to emulate. (ON = Compatible, OFF = Fast)"));
 	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("MMU Speed Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	TLBHack->SetToolTip(_("Fast version of the MMU.  Does not work for every game."));
+	DCBZOFF = new wxCheckBox(m_GameConfig, ID_DCBZOFF, _("Skip DCBZ clearing"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	DCBZOFF->SetToolTip(_("Bypass the clearing of the data cache by the DCBZ instruction. Usually leave this option disabled."));
 	VBeam = new wxCheckBox(m_GameConfig, ID_VBEAM, _("Accurate VBeam emulation"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	VBeam->SetToolTip(_("If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"));
 	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -328,7 +327,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 
 	// Wii Console
-	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DisableWiimoteSpeaker = new wxCheckBox(m_GameConfig, ID_DISABLEWIIMOTESPEAKER, _("Alternate Wiimote Timing"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DisableWiimoteSpeaker->SetToolTip(_("Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No effect on emulated wiimotes."));
@@ -366,7 +364,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(CPUThread, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(SkipIdle, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(MMU, 0, wxLEFT, 5);
-	sbCoreOverrides->Add(MMUBAT, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(DCBZOFF, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(VBeam, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);	
@@ -378,18 +376,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
 	{
 		sbWiiOverrides->ShowItems(false);
-		EnableProgressiveScan->Hide();
 		EnableWideScreen->Hide();
 		DisableWiimoteSpeaker->Hide();
 	}
-	else
-	{
-		// Progressive Scan is not used by Dolphin itself, and changing it on a per-game
-		// basis would have the side-effect of changing the SysConf, making this setting
-		// rather useless.
-		EnableProgressiveScan->Disable();
-	}
-	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, 5);
 	sbWiiOverrides->Add(DisableWiimoteSpeaker, 0, wxLEFT, 5);
 
@@ -941,15 +930,15 @@ void CISOProperties::LoadGameConfig()
 	else
 		MMU->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Core", "BAT", &bTemp))
-		MMUBAT->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		MMUBAT->Set3StateValue(wxCHK_UNDETERMINED);
-
 	if (GameIni.Get("Core", "TLBHack", &bTemp))
 		TLBHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		TLBHack->Set3StateValue(wxCHK_UNDETERMINED);
+
+	if (GameIni.Get("Core", "DCBZ", &bTemp))
+		DCBZOFF->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		DCBZOFF->Set3StateValue(wxCHK_UNDETERMINED);
 
 	if (GameIni.Get("Core", "VBeam", &bTemp))
 		VBeam->Set3StateValue((wxCheckBoxState)bTemp);
@@ -970,11 +959,6 @@ void CISOProperties::LoadGameConfig()
 		DSPHLE->Set3StateValue((wxCheckBoxState)bTemp);
 	else
 		DSPHLE->Set3StateValue(wxCHK_UNDETERMINED);
-
-	if (GameIni.Get("Display", "ProgressiveScan", &bTemp))
-		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EnableProgressiveScan->Set3StateValue(wxCHK_UNDETERMINED);
 
 	// ??
 	if (GameIni.Get("Wii", "Widescreen", &bTemp))
@@ -1041,15 +1025,15 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Core", "MMU", MMU->Get3StateValue());
 
-	if (MMUBAT->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "BAT");
-	else
-		GameIni.Set("Core", "BAT", MMUBAT->Get3StateValue());
-
 	if (TLBHack->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Core", "TLBHack");
 	else
 		GameIni.Set("Core", "TLBHack", TLBHack->Get3StateValue());
+
+	if (DCBZOFF->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "DCBZ");
+	else
+		GameIni.Set("Core", "DCBZ", DCBZOFF->Get3StateValue());
 
 	if (VBeam->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Core", "VBeam");
@@ -1070,11 +1054,6 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Core", "DSPHLE");
 	else
 		GameIni.Set("Core", "DSPHLE", DSPHLE->Get3StateValue());
-
-	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Display", "ProgressiveScan");
-	else
-		GameIni.Set("Display", "ProgressiveScan", EnableProgressiveScan->Get3StateValue());
 
 	if (EnableWideScreen->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Wii", "Widescreen");

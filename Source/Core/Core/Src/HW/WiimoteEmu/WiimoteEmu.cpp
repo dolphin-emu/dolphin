@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <cmath>
+
 #include "Attachment/Classic.h"
 #include "Attachment/Nunchuk.h"
 #include "Attachment/Guitar.h"
@@ -89,23 +91,32 @@ const ReportFeatures reporting_mode_features[] =
 	{ 0, 0, 0, 0, 23 },
 };
 
-void EmulateShake( AccelData* const accel
+void EmulateShake(AccelData* const accel
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step )
 {
-	static const double shake_data[] = { -2.5f, -5.0f, -2.5f, 0.0f, 2.5f, 5.0f, 2.5f, 0.0f };
+	// frame count of one up/down shake
+	// < 9 no shake detection in "Wario Land: Shake It"
+	auto const shake_step_max = 15;
+
+	// peak G-force
+	auto const shake_intensity = 3.f;
+	
+	// shake is a bitfield of X,Y,Z shake button states
 	static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
 	unsigned int shake = 0;
-
 	buttons_group->GetState( &shake, btns );
-	for ( unsigned int i=0; i<3; ++i )
+
+	for (int i = 0; i != 3; ++i)
+	{
 		if (shake & (1 << i))
 		{
-			(&(accel->x))[i] = shake_data[shake_step[i]++];
-			shake_step[i] %= sizeof(shake_data)/sizeof(double);
+			(&(accel->x))[i] = std::sin(TAU * shake_step[i] / shake_step_max) * shake_intensity;
+			shake_step[i] = (shake_step[i] + 1) % shake_step_max;
 		}
 		else
 			shake_step[i] = 0;
+	}
 }
 
 void EmulateTilt(AccelData* const accel
@@ -113,7 +124,8 @@ void EmulateTilt(AccelData* const accel
 	, const bool focus, const bool sideways, const bool upright)
 {
 	float roll, pitch;
-	tilt_group->GetState( &roll, &pitch, 0, focus ? (PI / 2) : 0 ); // 90 degrees
+	// 180 degrees
+	tilt_group->GetState(&roll, &pitch, 0, focus ? PI : 0);
 
 	unsigned int	ud = 0, lr = 0, fb = 0;
 
@@ -256,6 +268,9 @@ Wiimote::Wiimote( const unsigned int index )
 	for (unsigned int i=0; i < sizeof(named_buttons)/sizeof(*named_buttons); ++i)
 		m_buttons->controls.push_back(new ControlGroup::Input( named_buttons[i]));
 
+	// udp
+	groups.push_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
+
 	// ir
 	groups.push_back(m_ir = new Cursor(_trans("IR")));
 
@@ -264,9 +279,6 @@ Wiimote::Wiimote( const unsigned int index )
 
 	// tilt
 	groups.push_back(m_tilt = new Tilt(_trans("Tilt")));
-
-	// udp 
-	groups.push_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
 
 	// shake
 	groups.push_back(m_shake = new Buttons(_trans("Shake")));

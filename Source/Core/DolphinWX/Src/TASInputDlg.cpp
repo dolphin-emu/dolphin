@@ -54,8 +54,8 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	wxBoxSizer* const main_stick_box = new wxBoxSizer(wxVERTICAL);
 
 	static_bitmap_main = new wxStaticBitmap(this, ID_MAIN_STICK, TASInputDlg::CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
-	static_bitmap_main->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpL), NULL, this);
-	static_bitmap_main->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpR), NULL, this);
+	static_bitmap_main->Bind(wxEVT_LEFT_UP, &TASInputDlg::OnMouseUpL, this);
+	static_bitmap_main->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
 	wx_mainX_s = new wxSlider(this, ID_MAIN_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
 	wx_mainX_s->SetMinSize(wxSize(120,-1));
 	wx_mainX_t = new wxTextCtrl(this, ID_MAIN_X_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
@@ -80,8 +80,8 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	wxBoxSizer* const c_stick_box = new wxBoxSizer(wxVERTICAL);
 	
 	static_bitmap_c = new wxStaticBitmap(this, ID_C_STICK, TASInputDlg::CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
-	static_bitmap_c->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpL), NULL, this);
-	static_bitmap_c->Connect(wxEVT_RIGHT_UP, wxMouseEventHandler(TASInputDlg::OnMouseUpR), NULL, this);
+	static_bitmap_c->Bind(wxEVT_LEFT_UP, &TASInputDlg::OnMouseUpL, this);
+	static_bitmap_c->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
 	wx_cX_s = new wxSlider(this, ID_C_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
 	wx_cX_s->SetMinSize(wxSize(120,-1));
 	wx_cX_t = new wxTextCtrl(this, ID_C_X_TEXT, wxT("128"), wxDefaultPosition, wxSize(40, 20));
@@ -120,29 +120,29 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	wxGridSizer* const buttons_grid = new wxGridSizer(4);
 	
 	wx_a_button = new wxCheckBox(this,ID_A,_T("A"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_a_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_a_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_a_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_a_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	wx_b_button = new wxCheckBox(this,ID_B,_T("B"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_b_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_b_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_b_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_b_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	wx_x_button = new wxCheckBox(this,ID_X,_T("X"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_x_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_x_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_x_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_x_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	wx_y_button = new wxCheckBox(this,ID_Y,_T("Y"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_y_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_y_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_y_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_y_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	wx_l_button = new wxCheckBox(this,ID_L,_T("L"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_l_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_l_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_l_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_l_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	wx_r_button = new wxCheckBox(this,ID_R,_T("R"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_r_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_r_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_r_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_r_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	wx_z_button = new wxCheckBox(this,ID_Z,_T("Z"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_z_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_z_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_z_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_z_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	wx_start_button = new wxCheckBox(this,ID_START,_T("Start"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_start_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_start_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_start_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_start_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	
 	buttons_grid->Add(wx_a_button,false);
 	buttons_grid->Add(wx_b_button,false);
@@ -157,17 +157,17 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	wxGridSizer* const buttons_dpad = new wxGridSizer(3);
 	
 	wx_up_button = new wxCheckBox(this,ID_UP,_T("Up"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_up_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_up_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_up_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_up_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	wx_right_button = new wxCheckBox(this,ID_RIGHT,_T("Right"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_right_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_right_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_right_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_right_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	wx_down_button = new wxCheckBox(this,ID_DOWN,_T("Down"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_down_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_down_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_down_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_down_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	wx_left_button = new wxCheckBox(this,ID_LEFT,_T("Left"),wxDefaultPosition,wxDefaultSize,0,wxDefaultValidator,wxCheckBoxNameStr);
-	wx_left_button->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurbo), NULL, this);
-	wx_left_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(TASInputDlg::SetTurboFalse), NULL, this);
+	wx_left_button->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
+	wx_left_button->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurboFalse, this);
 	
 	buttons_dpad->AddSpacer(20);
 	buttons_dpad->Add(wx_up_button,false);

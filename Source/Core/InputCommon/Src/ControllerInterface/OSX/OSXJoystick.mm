@@ -64,8 +64,8 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 				AddInput(new Hat(e, m_device, Hat::down));
 				AddInput(new Hat(e, m_device, Hat::left));
 			} else {
-				AddInput(new Axis(e, m_device, Axis::negative));
-				AddInput(new Axis(e, m_device, Axis::positive));
+				AddAnalogInputs(new Axis(e, m_device, Axis::negative),
+					new Axis(e, m_device, Axis::positive));
 			}
 		}
 		CFRelease(axes);

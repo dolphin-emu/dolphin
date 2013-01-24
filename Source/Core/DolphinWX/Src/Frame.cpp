@@ -52,22 +52,6 @@
 
 extern "C" {
 #include "../resources/Dolphin.c" // Dolphin icon
-#include "../resources/toolbar_browse.c"
-#include "../resources/toolbar_file_open.c"
-#include "../resources/toolbar_fullscreen.c"
-#include "../resources/toolbar_help.c"
-#include "../resources/toolbar_pause.c"
-#include "../resources/toolbar_play.c"
-#include "../resources/toolbar_plugin_dsp.c"
-#include "../resources/toolbar_plugin_gfx.c"
-#include "../resources/toolbar_plugin_options.c"
-#include "../resources/toolbar_plugin_pad.c"
-#include "../resources/toolbar_refresh.c"
-#include "../resources/toolbar_stop.c"
-#include "../resources/Boomy.h" // Theme packages
-#include "../resources/Vista.h"
-#include "../resources/X-Plastik.h"
-#include "../resources/KDE.h"
 };
 
 
@@ -329,7 +313,7 @@ CFrame::CFrame(wxFrame* parent,
 	ConsoleListener *Console = LogManager::GetInstance()->GetConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
 
-	// Start debugging mazimized
+	// Start debugging maximized
 	if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
@@ -424,9 +408,7 @@ CFrame::CFrame(wxFrame* parent,
 	// -------------------------
 	// Connect event handlers
 
-	m_Mgr->Connect(wxID_ANY, wxEVT_AUI_RENDER, // Resize
-		wxAuiManagerEventHandler(CFrame::OnManagerResize),
-		(wxObject*)0, this);
+	m_Mgr->Bind(wxEVT_AUI_RENDER, &CFrame::OnManagerResize, this);
 	// ----------
 
 	// Update controls
@@ -758,78 +740,107 @@ bool IsHotkey(wxKeyEvent &event, int Id)
 
 int GetCmdForHotkey(unsigned int key)
 {
-	if (key == HK_OPEN)
+	switch (key)
+	{
+	case HK_OPEN:
 		return wxID_OPEN;
-	if (key == HK_CHANGE_DISC)
+
+	case HK_CHANGE_DISC:
 		return IDM_CHANGEDISC;
-	if (key == HK_REFRESH_LIST)
+
+	case HK_REFRESH_LIST:
 		return wxID_REFRESH;
 
-	if (key == HK_PLAY_PAUSE)
+	case HK_PLAY_PAUSE:
 		return IDM_PLAY;
-	if (key == HK_STOP)
+
+	case HK_STOP:
 		return IDM_STOP;
-	if (key == HK_RESET)
+
+	case HK_RESET:
 		return IDM_RESET;
-	if (key == HK_FRAME_ADVANCE)
+
+	case HK_FRAME_ADVANCE:
 		return IDM_FRAMESTEP;
 
-	if (key == HK_START_RECORDING)
+	case HK_START_RECORDING:
 		return IDM_RECORD;
-	if (key == HK_PLAY_RECORDING)
+
+	case HK_PLAY_RECORDING:
 		return IDM_PLAYRECORD;
-	if (key == HK_EXPORT_RECORDING)
+
+	case HK_EXPORT_RECORDING:
 		return IDM_RECORDEXPORT;
-	if (key == HK_READ_ONLY_MODE)
+
+	case HK_READ_ONLY_MODE:
 		return IDM_RECORDREADONLY;
 
-	if (key == HK_FULLSCREEN)
+	case HK_FULLSCREEN:
 		return IDM_TOGGLE_FULLSCREEN;
-	if (key == HK_SCREENSHOT)
+
+	case HK_SCREENSHOT:
 		return IDM_SCREENSHOT;
 
-	if (key == HK_WIIMOTE1_CONNECT)
+	case HK_WIIMOTE1_CONNECT:
 		return IDM_CONNECT_WIIMOTE1;
-	if (key == HK_WIIMOTE2_CONNECT)
+
+	case HK_WIIMOTE2_CONNECT:
 		return IDM_CONNECT_WIIMOTE2;
-	if (key == HK_WIIMOTE3_CONNECT)
+
+	case HK_WIIMOTE3_CONNECT:
 		return IDM_CONNECT_WIIMOTE3;
-	if (key == HK_WIIMOTE4_CONNECT)
+
+	case HK_WIIMOTE4_CONNECT:
 		return IDM_CONNECT_WIIMOTE4;
 
-	if (key == HK_LOAD_STATE_SLOT_1)
+	case HK_LOAD_STATE_SLOT_1:
 		return IDM_LOADSLOT1;
-	if (key == HK_LOAD_STATE_SLOT_2)
+
+	case HK_LOAD_STATE_SLOT_2:
 		return IDM_LOADSLOT2;
-	if (key == HK_LOAD_STATE_SLOT_3)
+
+	case HK_LOAD_STATE_SLOT_3:
 		return IDM_LOADSLOT3;
-	if (key == HK_LOAD_STATE_SLOT_4)
+
+	case HK_LOAD_STATE_SLOT_4:
 		return IDM_LOADSLOT4;
-	if (key == HK_LOAD_STATE_SLOT_5)
+
+	case HK_LOAD_STATE_SLOT_5:
 		return IDM_LOADSLOT5;
-	if (key == HK_LOAD_STATE_SLOT_6)
+
+	case HK_LOAD_STATE_SLOT_6:
 		return IDM_LOADSLOT6;
-	if (key == HK_LOAD_STATE_SLOT_7)
+
+	case HK_LOAD_STATE_SLOT_7:
 		return IDM_LOADSLOT7;
-	if (key == HK_LOAD_STATE_SLOT_8)
+
+	case HK_LOAD_STATE_SLOT_8:
 		return IDM_LOADSLOT8;
 
-	if (key == HK_SAVE_STATE_SLOT_1)
+	case HK_SAVE_STATE_SLOT_1:
 		return IDM_SAVESLOT1;
-	if (key == HK_SAVE_STATE_SLOT_2)
+
+	case HK_SAVE_STATE_SLOT_2:
 		return IDM_SAVESLOT2;
-	if (key == HK_SAVE_STATE_SLOT_3)
+
+	case HK_SAVE_STATE_SLOT_3:
 		return IDM_SAVESLOT3;
-	if (key == HK_SAVE_STATE_SLOT_4)
+
+	case HK_SAVE_STATE_SLOT_4:
 		return IDM_SAVESLOT4;
-	if (key == HK_SAVE_STATE_SLOT_5)
+
+	case HK_SAVE_STATE_SLOT_5:
 		return IDM_SAVESLOT5;
-	if (key == HK_SAVE_STATE_SLOT_6)
+
+	case HK_SAVE_STATE_SLOT_6:
 		return IDM_SAVESLOT6;
-	if (key == HK_SAVE_STATE_SLOT_7)
+
+	case HK_SAVE_STATE_SLOT_7:
 		return IDM_SAVESLOT7;
-	if (key == HK_SAVE_STATE_SLOT_8)	
+
+	case HK_SAVE_STATE_SLOT_8:
 		return IDM_SAVESLOT8;
+	}
 
 	return -1;
 }

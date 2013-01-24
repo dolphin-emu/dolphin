@@ -109,78 +109,89 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>SoundTouchD.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;..\..\..\Externals\SoundTouch\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>SoundTouchD.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;..\..\..\Externals\SoundTouch\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>SoundTouch.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;..\..\..\Externals\SoundTouch\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>SoundTouch.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win32;..\..\..\Externals\SoundTouch\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>SoundTouch.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;..\..\..\Externals\SoundTouch\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Common\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Core\Src;..\Common\Src;..\..\..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <Lib />
+    <Lib>
+      <AdditionalDependencies>SoundTouch.lib;OpenAL32.lib;dsound.lib;dxerr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\OpenAL\Win64;..\..\..\Externals\SoundTouch\Win64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Src\aldlist.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="Src\aldlist.cpp" />
     <ClCompile Include="Src\AOSoundStream.cpp" />
     <ClCompile Include="Src\AudioCommon.cpp" />
-    <ClCompile Include="Src\AudioCommonConfig.cpp" />
+    <ClCompile Include="Src\DPL2Decoder.cpp" />
     <ClCompile Include="Src\DSoundStream.cpp" />
     <ClCompile Include="Src\Mixer.cpp" />
     <ClCompile Include="Src\NullSoundStream.cpp" />
@@ -189,17 +200,10 @@
     <ClCompile Include="Src\XAudio2Stream.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\aldlist.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="Src\aldlist.h" />
     <ClInclude Include="Src\AOSoundStream.h" />
     <ClInclude Include="Src\AudioCommon.h" />
-    <ClInclude Include="Src\AudioCommonConfig.h" />
+    <ClInclude Include="Src\DPL2Decoder.h" />
     <ClInclude Include="Src\DSoundStream.h" />
     <ClInclude Include="Src\Mixer.h" />
     <ClInclude Include="Src\NullSoundStream.h" />
@@ -212,6 +216,14 @@
     <None Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Externals\SoundTouch\SoundTouch.vcxproj">
+      <Project>{68a5dd20-7057-448b-8fe0-b6ac8d205509}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.vcxproj">
       <Project>{c87a4178-44f6-49b2-b7aa-c79af1b8c534}</Project>
       <Private>true</Private>

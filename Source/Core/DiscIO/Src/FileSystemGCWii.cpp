@@ -19,6 +19,7 @@
 #include "FileUtil.h"
 
 #include <string>
+#include <vector>
 
 #include "FileSystemGCWii.h"
 #include "StringUtil.h"
@@ -95,7 +96,7 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 
 	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
 
-	if (!pFileInfo || pFileInfo->m_FileSize == 0)
+	if (!pFileInfo)
 		return false;
 
 	u64 remainingSize = pFileInfo->m_FileSize;
@@ -112,22 +113,17 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 		// Limit read size to 128 MB
 		size_t readSize = (size_t)min(remainingSize, (u64)0x08000000);
 
-		u8* buffer = new u8[readSize];
+		std::vector<u8> buffer(readSize);
 
-		result = m_rVolume->Read(fileOffset, readSize, buffer);
+		result = m_rVolume->Read(fileOffset, readSize, &buffer[0]);
 
 		if (!result)
-		{
-			delete[] buffer;
 			break;
-		}
 
-		f.WriteBytes(buffer, readSize);
+		f.WriteBytes(&buffer[0], readSize);
 
 		remainingSize -= readSize;
 		fileOffset += readSize;
-
-		delete[] buffer;
 	}
 
 	return result;
@@ -140,26 +136,24 @@ bool CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
 	AppSize += 0x20;					// + header size
 	DEBUG_LOG(DISCIO,"AppSize -> %x", AppSize);
 
-	u8* buffer = new u8[AppSize];
-	if (m_rVolume->Read(0x2440, AppSize, buffer))
+	std::vector<u8> buffer(AppSize);
+	if (m_rVolume->Read(0x2440, AppSize, &buffer[0]))
 	{
-		char exportName[512];
-		sprintf(exportName, "%s/apploader.img", _rExportFolder);
+		std::string exportName(_rExportFolder);
+		exportName += "/apploader.img";
 
 		File::IOFile AppFile(exportName, "wb");
 		if (AppFile)
 		{
-			AppFile.WriteBytes(buffer, AppSize);
-			delete[] buffer;
+			AppFile.WriteBytes(&buffer[0], AppSize);
 			return true;
 		}
 	}
 
-	delete[] buffer;
 	return false;
 }
 
-bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
+u32 CFileSystemGCWii::GetBootDOLSize() const
 {
 	u32 DolOffset = Read32(0x420) << m_OffsetShift;
 	u32 DolSize = 0, offset = 0, size = 0;
@@ -181,22 +175,34 @@ bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
 		if (offset + size > DolSize)
 			DolSize = offset + size;
 	}
+	return DolSize;
+}
 
-	u8* buffer = new u8[DolSize];
-	if (m_rVolume->Read(DolOffset, DolSize, buffer))
+bool CFileSystemGCWii::GetBootDOL(u8* &buffer, u32 DolSize) const
+{
+	u32 DolOffset = Read32(0x420) << m_OffsetShift;
+	return m_rVolume->Read(DolOffset, DolSize, buffer);
+}
+
+bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
+{
+	u32 DolOffset = Read32(0x420) << m_OffsetShift;
+	u32 DolSize = GetBootDOLSize();
+
+	std::vector<u8> buffer(DolSize);
+	if (m_rVolume->Read(DolOffset, DolSize, &buffer[0]))
 	{
-		char exportName[512];
-		sprintf(exportName, "%s/boot.dol", _rExportFolder);
+		std::string exportName(_rExportFolder);
+		exportName += "/boot.dol";
+
 		File::IOFile DolFile(exportName, "wb");
 		if (DolFile)
 		{
-			DolFile.WriteBytes(buffer, DolSize);
-			delete[] buffer;
+			DolFile.WriteBytes(&buffer[0], DolSize);
 			return true;
 		}
 	}
 	
-	delete[] buffer;
 	return false;
 }
 

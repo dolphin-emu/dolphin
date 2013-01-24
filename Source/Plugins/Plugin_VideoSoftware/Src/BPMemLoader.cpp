@@ -115,18 +115,40 @@ void SWBPWritten(int address, int newvalue)
 	case BPMEM_PRELOAD_MODE:
 		if (newvalue != 0)
 		{
-			// NOTE(neobrain): Apparently tmemodd doesn't affect hardware behavior at all (libogc uses it just as a buffe$
+			// TODO: Not quite sure if this is completely correct (likely not)
+			// NOTE: libogc's implementation of GX_PreloadEntireTexture seems flawed, so it's not necessarily a good reference for RE'ing this feature.
+
 			BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
-			u8* ram_ptr = Memory::GetPointer(tmem_cfg.preload_addr << 5);
-			u32 tmem_addr = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
-			u32 size = tmem_cfg.preload_tile_info.count * 32;
+			u8* src_ptr = Memory::GetPointer(tmem_cfg.preload_addr << 5); // TODO: Should we add mask here on GC?
+			u32 size = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
+			u32 tmem_addr_even = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
 
-			// Check if the game has overflowed TMEM, and copy up to the limit.
-			// Paper Mario does this when entering the Great Boogly Tree (Chap 2)
-			if ((tmem_addr + size) > TMEM_SIZE)
-				size = TMEM_SIZE - tmem_addr;
+			if (tmem_cfg.preload_tile_info.type != 3)
+			{
+				if (tmem_addr_even + size > TMEM_SIZE)
+					size = TMEM_SIZE - tmem_addr_even;
 
-			memcpy(texMem + tmem_addr, ram_ptr, size);
+				memcpy(texMem + tmem_addr_even, src_ptr, size);
+			}
+			else // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
+			{
+				// AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for everything
+				u32 tmem_addr_odd = tmem_cfg.preload_tmem_odd * TMEM_LINE_SIZE;
+
+				for (int i = 0; i < tmem_cfg.preload_tile_info.count; ++i)
+				{
+					// FIXME: Duplicate conditions
+					if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE ||
+						tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE)
+						break;
+
+					memcpy(texMem + tmem_addr_even, src_ptr, TMEM_LINE_SIZE);
+					memcpy(texMem + tmem_addr_odd, src_ptr + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
+					tmem_addr_even += TMEM_LINE_SIZE;
+					tmem_addr_odd += TMEM_LINE_SIZE;
+					src_ptr += TMEM_LINE_SIZE * 2;
+				}
+			}
 		}
  		break;
 

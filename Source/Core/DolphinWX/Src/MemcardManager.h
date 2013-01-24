@@ -149,13 +149,11 @@ class CMemcardManager : public wxDialog
 				: wxListCtrl(parent, id, pos, size, style)
 				, __mcmSettings(_mcmSetngs)
 			{
-				Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(
-					CMemcardListCtrl::OnRightClick));
+				Bind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this);
 			}
 			~CMemcardListCtrl()
 			{
-				Disconnect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(
-					CMemcardListCtrl::OnRightClick));
+				Unbind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this);
 			}
 			_mcmSettings & __mcmSettings;
 			bool prevPage,

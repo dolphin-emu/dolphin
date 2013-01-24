@@ -18,6 +18,7 @@
 #include "VideoConfig.h"
 #include "Host.h"
 #include "RenderBase.h"
+#include "ConfigManager.h"
 
 #include "VertexShaderManager.h"
 #include "../GLInterface.h"
@@ -91,13 +92,6 @@ bool cInterfaceAGL::Create(void *&window_handle)
 
 bool cInterfaceAGL::MakeCurrent()
 {
-	[GLWin.cocoaCtx makeCurrentContext];
-	return true;
-}
-
-// Update window width, size and etc. Called from Render.cpp
-void cInterfaceAGL::Update()
-{
 	int width, height;
 
 	width = [[GLWin.cocoaWin contentView] frame].size.width;
@@ -110,6 +104,7 @@ void cInterfaceAGL::Update()
 	[GLWin.cocoaCtx makeCurrentContext];
 	s_backbuffer_width = width;
 	s_backbuffer_height = height;
+  return true;
 }
 
 // Close backend

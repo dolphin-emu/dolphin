@@ -104,27 +104,6 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 {
 	Common::SetCurrentThreadName("DSP thread");
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads)
-	{
-		if (cpu_info.num_cores > 3)
-		{
-			// HACK (delroth): there is no way to know where hyperthreads are in
-			// the current Dolphin version.
-			bool windows = false;
-#ifdef _WIN32
-			windows = true;
-#endif
-
-			u8 core_id;
-			if (windows && cpu_info.num_cores > 4) // Probably HT
-				core_id = 5; // 3rd non HT core
-			else
-				core_id = 3; // 3rd core
-
-			Common::SetCurrentThreadAffinity(1 << (core_id - 1));
-		}
-	}
-
 	while (dsp_lle->m_bIsRunning)
 	{
 		int cycles = (int)dsp_lle->m_cycle_count;
@@ -204,7 +183,7 @@ void DSPLLE::InitMixer()
 	unsigned int AISampleRate, DACSampleRate;
 	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
 	delete soundStream;
-	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd); 
+	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, 48000), m_hWnd); 
 	if(!soundStream) PanicAlert("Error starting up sound stream");
 	// Mixer is initialized
 	m_InitMixer = true;

@@ -542,6 +542,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
 	//if not early z culling will improve speed
+	// TODO: Can probably be dropped?
 	if (is_d3d)
 	{
 		WRITE(p, "o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");

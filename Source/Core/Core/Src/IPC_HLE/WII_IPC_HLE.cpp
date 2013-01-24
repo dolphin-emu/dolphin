@@ -253,15 +253,15 @@ void DoState(PointerWrap &p)
 		u32 i;
 		for (i=0; i<IPC_MAX_FDS; i++)
 		{
-			u32 exists;
+			u32 exists = 0;
 			p.Do(exists);
 			if (exists)
 			{
-				u32 isHw;
+				u32 isHw = 0;
 				p.Do(isHw);
 				if (isHw)
 				{
-					u32 hwId;
+					u32 hwId = 0;
 					p.Do(hwId);
 					g_FdMap[i] = AccessDeviceByID(hwId);
 				}

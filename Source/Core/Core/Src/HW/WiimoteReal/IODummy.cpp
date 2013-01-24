@@ -36,6 +36,11 @@ void Wiimote::RealDisconnect()
 	return;
 }
 
+bool Wiimote::IsOpen() const
+{
+	return IsConnected();
+}
+
 int Wiimote::IORead(unsigned char* buf)
 {
 	return 0;

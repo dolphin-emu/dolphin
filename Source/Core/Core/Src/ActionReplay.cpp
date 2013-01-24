@@ -679,7 +679,8 @@ bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr addr, const u32 data)
 	// u8  mcode_type = (data & 0xFF0000) >> 16;
 	// u8  mcode_count = (data & 0xFF00) >> 8;
 	// u8  mcode_number = data & 0xFF;
-	PanicAlertT("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)", current_code->name.c_str());
+	PanicAlertT("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
+		"Master codes are not needed. Do not use master codes.", current_code->name.c_str());
 	return false;
 }
 

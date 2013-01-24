@@ -39,11 +39,11 @@ const u8 hdr[] = {
 0x00,0x00,0x00,0x00
 };
 
-wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, int width, int height)
+wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, u32 width, u32 height)
 {
-	int stride = (4*width);
+	u32 stride = (4*width);
 
-	int bytes = (stride*height) + sizeof(hdr);
+	u32 bytes = (stride*height) + sizeof(hdr);
 
 	bytes = (bytes+3)&(~3);
 
@@ -54,13 +54,13 @@ wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, int width, int height
 
 	u8 *pixelData = pdata + sizeof(hdr);
 
-	for (int y=0;y<height;y++)
+	for (u32 y=0;y<height;y++)
 	{
 		memcpy(pixelData+y*stride,data+(height-y-1)*stride,stride);
 	}
 
-	*(int*)(pdata+18) = width;
-	*(int*)(pdata+22) = height;
+	*(u32*)(pdata+18) = width;
+	*(u32*)(pdata+22) = height;
 	*(u32*)(pdata+34) = bytes-sizeof(hdr);
 
 	wxMemoryInputStream is(pdata, bytes);
@@ -252,7 +252,6 @@ void CMemcardManager::CreateGUIControls()
 
 	SetSizerAndFit(sMain);
 	Center();
-	SetFocus();
 
 	for (int i = SLOT_A; i <= SLOT_B; i++)
 	{
@@ -471,6 +470,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 		PanicAlert(E_UNK);
 		break;
 	}
+	SetFocus();
 	return true;
 }
 
@@ -524,13 +524,13 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
 			_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
 			_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),
-			wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+			wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 		if (!fileName.empty() && !fileName2.empty())
 		{
 			wxString temp2 = wxFileSelector(_("Save GCI as..."),
 				wxEmptyString, wxEmptyString, wxT(".gci"),
 				_("GCI File(*.gci)") + wxString(_T("|*.gci")),
-				wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
+				wxFD_OVERWRITE_PROMPT|wxFD_SAVE, this);
 			if (temp2.empty()) break;
 			fileName2 = temp2.mb_str();
 		}
@@ -560,7 +560,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
 				_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
 				_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),
-				wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
+				wxFD_OVERWRITE_PROMPT|wxFD_SAVE, this);
 
 			if (fileName.length() > 0)
 			{
@@ -776,6 +776,9 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	wxLabel.Printf(_("%u Free Blocks; %u Free Dir Entries"),
 		memoryCard[card]->GetFreeBlocks(), DIRLEN - nFiles);
 	t_Status[card]->SetLabel(wxLabel);
+
+	// Done so text doesn't overlap the UI.
+	this->Fit();
 
 	return true;
 }

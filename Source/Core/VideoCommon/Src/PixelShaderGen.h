@@ -45,7 +45,7 @@
 #define C_PMATERIALS	(C_PLIGHTS + 40)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
 #define PIXELSHADERUID_MAX_VALUES 70
-#define PIXELSHADERUID_MAX_VALUES_SAFE 120
+#define PIXELSHADERUID_MAX_VALUES_SAFE 115
 
 // Annoying sure, can be removed once we get up to GLSL ~1.3
 const s_svar PSVar_Loc[] = { {I_COLORS, C_COLORS, 4 },

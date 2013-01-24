@@ -780,21 +780,23 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				// someone with an affected game should test
 				IOSv = TitleID & 0xffff;
 			}
-			if (!bSuccess)
+			if (!bSuccess && IOSv >= 30 && IOSv != 0xffff)
 			{
 				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
 					"TitleID %016llx.\n Dolphin will likely hang now", TitleID);
 			}
 			else
 			{
-				static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
-				bool* wiiMoteConnected = new bool[s_Usb->m_WiiMotes.size()];
-				for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
+				CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
+				size_t size = s_Usb->m_WiiMotes.size();
+				bool* wiiMoteConnected = new bool[size];
+				for (unsigned int i = 0; i < size; i++)
 					wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
 				
 				std::string tContentFile(m_ContentFile.c_str());
 				WII_IPC_HLE_Interface::Reset(true);
 				WII_IPC_HLE_Interface::Init();
+				s_Usb = GetUsbPointer();
 				for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
 				{
 					if (wiiMoteConnected[i])

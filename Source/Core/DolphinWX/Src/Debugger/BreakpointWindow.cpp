@@ -31,13 +31,10 @@ extern "C" {
 #include "../../resources/toolbar_debugger_delete.c"
 }
 
-#define _connect_macro_(id, handler) \
-	Connect(id, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(handler), (wxObject*)0, (wxEvtHandler*)parent)
-
 class CBreakPointBar : public wxAuiToolBar
 {
 public:
-	CBreakPointBar(wxWindow* parent, const wxWindowID id)
+	CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id)
 		: wxAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
 				wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT)
 	{
@@ -51,26 +48,26 @@ public:
 			wxBitmap(wxGetBitmapFromMemory(toolbar_add_memcheck_png).ConvertToImage().Rescale(24, 24));
 
 		AddTool(ID_DELETE, wxT("Delete"), m_Bitmaps[Toolbar_Delete]);
-		_connect_macro_(ID_DELETE, CBreakPointWindow::OnDelete);
+		Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::OnDelete, parent, ID_DELETE);
 
 		AddTool(ID_CLEAR, wxT("Clear"), m_Bitmaps[Toolbar_Delete]);
-		_connect_macro_(ID_CLEAR, CBreakPointWindow::OnClear);
+		Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::OnClear, parent, ID_CLEAR);
 
 		AddTool(ID_ADDBP, wxT("+BP"), m_Bitmaps[Toolbar_Add_BP]);
-		_connect_macro_(ID_ADDBP, CBreakPointWindow::OnAddBreakPoint);
+		Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::OnAddBreakPoint, parent, ID_ADDBP);
 
 		// Add memory breakpoints if you can use them
 		if (Memory::AreMemoryBreakpointsActivated())
 		{
 			AddTool(ID_ADDMC, wxT("+MC"), m_Bitmaps[Toolbar_Add_MC]);
-			_connect_macro_(ID_ADDMC, CBreakPointWindow::OnAddMemoryCheck);
+			Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::OnAddMemoryCheck, parent, ID_ADDMC);
 		}
 
 		AddTool(ID_LOAD, wxT("Load"), m_Bitmaps[Toolbar_Delete]);
-		_connect_macro_(ID_LOAD, CBreakPointWindow::LoadAll);
+		Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::LoadAll, parent, ID_LOAD);
 
 		AddTool(ID_SAVE, wxT("Save"), m_Bitmaps[Toolbar_Delete]);
-		_connect_macro_(ID_SAVE, CBreakPointWindow::Event_SaveAll);
+		Bind(wxEVT_COMMAND_TOOL_CLICKED, &CBreakPointWindow::Event_SaveAll, parent, ID_SAVE);
 	}
 
 private:

@@ -22,8 +22,6 @@
 
 DSPEmulator *CreateDSPEmulator(bool HLE) 
 {
-	ac_Config.Load();
-
 	if (HLE)
 	{
 		return new DSPHLE();

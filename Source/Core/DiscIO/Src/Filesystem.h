@@ -57,6 +57,8 @@ public:
 	virtual bool ExportApploader(const char* _rExportFolder) const = 0;
 	virtual bool ExportDOL(const char* _rExportFolder) const = 0;
 	virtual const char* GetFileName(u64 _Address) = 0;
+	virtual bool GetBootDOL(u8* &buffer, u32 DolSize) const = 0;
+	virtual u32 GetBootDOLSize() const = 0;
 
 	virtual const IVolume *GetVolume() const { return m_rVolume; }
 protected:

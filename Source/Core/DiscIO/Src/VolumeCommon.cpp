@@ -28,9 +28,11 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		
 		// PAL
 		case 'D': // German
+			return IVolume::COUNTRY_GERMANY;
+			break;
+
 		case 'X': // Used by a couple PAL games
 		case 'Y': // German, french
-
 
 		case 'L': // Japanese import to PAL regions
 		case 'M': // Japanese import to PAL regions

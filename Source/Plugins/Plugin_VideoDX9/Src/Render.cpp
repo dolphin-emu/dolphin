@@ -432,10 +432,13 @@ void Renderer::SetColorMask()
 {
 	// Only enable alpha channel if it's supported by the current EFB format
 	DWORD color_mask = 0;
-	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
-		color_mask = D3DCOLORWRITEENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate)
-		color_mask |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+	if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
+	{
+		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+			color_mask = D3DCOLORWRITEENABLE_ALPHA;
+		if (bpmem.blendmode.colorupdate)
+			color_mask |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+	}
 	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
 
@@ -848,9 +851,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
-	// this function is called after the XFB field is changed, not after
-	// EFB is copied to XFB. In this way, flickering is reduced in games
-	// and seems to also give more FPS in ZTP
 
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
@@ -1205,6 +1205,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	if (bUseDstAlpha)
 	{
+		// TODO: WTF is this crap? We're enabling color writing regardless of the actual GPU state here...
 		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
 		if(bpmem.zmode.testenable && bpmem.zmode.updateenable)

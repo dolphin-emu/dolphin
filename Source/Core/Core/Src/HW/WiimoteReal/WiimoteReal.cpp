@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <queue>
+#include <algorithm>
 #include <stdlib.h>
 
 #include "Common.h"
@@ -44,7 +45,7 @@ Wiimote::Wiimote(const unsigned int _index)
 #ifdef __APPLE__
 	, inputlen(0)
 #elif defined(__linux__) && HAVE_BLUEZ
-	, out_sock(-1), in_sock(-1)
+	, cmd_sock(-1), int_sock(-1)
 #elif defined(_WIN32)
 	, dev_handle(0), stack(MSBT_STACK_UNKNOWN)
 #endif
@@ -240,7 +241,7 @@ void Wiimote::Disconnect()
 	DisableDataReporting();
 }
 
-bool Wiimote::IsConnected()
+bool Wiimote::IsConnected() const
 {
 	return m_connected;
 }
@@ -312,14 +313,14 @@ void Wiimote::ThreadFunc()
 	Rumble();
 
 	// main loop
-	while (IsConnected())
+	while (IsOpen())
 	{
 #ifdef __APPLE__
 		while (Write()) {}
 		Common::SleepCurrentThread(1);
 #else
 		bool read = false;
-		while (Write() || (read = true, Read()))
+		while (Write() || (read = true, IsOpen() && Read()))
 		{
 			if (m_audio_reports.Size() && !read)
 				Read();
@@ -512,19 +513,11 @@ void StateChange(EMUSTATE_CHANGE newState)
 	// TODO: disable/enable auto reporting, maybe
 }
 
-bool IsValidBluetoothName(const char* name) {
-	static const char* kValidWiiRemoteBluetoothNames[] = {
-		"Nintendo RVL-CNT-01",
-		"Nintendo RVL-CNT-01-TR",
-		"Nintendo RVL-WBC-01",
-	};
-	if (name == NULL)
-		return false;
-	for (size_t i = 0; i < ARRAYSIZE(kValidWiiRemoteBluetoothNames); i++)
-		if (strcmp(name, kValidWiiRemoteBluetoothNames[i]) == 0)
-			return true;
-	return false;
+bool IsValidBluetoothName(const std::string& name)
+{
+	std::string const prefix("Nintendo RVL-");
+	return name.size() > prefix.size() &&
+		std::equal(prefix.begin(), prefix.end(), name.begin());
 }
-
 
 }; // end of namespace

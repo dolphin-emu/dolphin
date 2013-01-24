@@ -296,9 +296,13 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 	}
 
 	CompressedBlobReader* reader = CompressedBlobReader::Create(infile);
-	if (!reader) return false;
+	if (!reader)
+		return false;
 
 	File::IOFile f(outfile, "wb");
+	if (!f)
+		return false;
+
 	const CompressedBlobHeader &header = reader->GetHeader();
 	u8* buffer = new u8[header.block_size];
 	int progress_monitor = max<int>(1, header.num_blocks / 100);

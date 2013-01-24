@@ -668,10 +668,13 @@ void Renderer::SetColorMask()
 {
 	// Only enable alpha channel if it's supported by the current EFB format
 	GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
-	if (bpmem.blendmode.colorupdate)
-		ColorMask = GL_TRUE;
-	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
-		AlphaMask = GL_TRUE;
+	if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
+	{
+		if (bpmem.blendmode.colorupdate)
+			ColorMask = GL_TRUE;
+		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+			AlphaMask = GL_TRUE;
+	}
 	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
 }
 
@@ -1036,9 +1039,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
-	// this function is called after the XFB field is changed, not after
-	// EFB is copied to XFB. In this way, flickering is reduced in games
-	// and seems to also give more FPS in ZTP
 
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;

@@ -416,10 +416,7 @@ bool AreMemoryBreakpointsActivated()
 u32 Read_Instruction(const u32 em_address)
 {
 	UGeckoInstruction inst = ReadUnchecked_U32(em_address);	
-	if (inst.OPCD == 1)
-		return HLE::GetOrigInstruction(em_address);
-	else
-		return inst.hex;
+	return inst.hex;
 }
 
 u32 Read_Opcode_JIT_Uncached(const u32 _Address)

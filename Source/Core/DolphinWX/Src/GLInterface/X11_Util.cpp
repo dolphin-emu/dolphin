@@ -71,38 +71,45 @@ void cX11Window::XEventThread()
 			switch(event.type) {
 				case KeyPress:
 					key = XLookupKeysym((XKeyEvent*)&event, 0);
-					switch (key)
+					if (g_Config.bOSDHotKey)
 					{
-						case XK_3:
-							OSDChoice = 1;
-							// Toggle native resolution
-							g_Config.iEFBScale = g_Config.iEFBScale + 1;
-							if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
-							break;
-						case XK_4:
-							OSDChoice = 2;
-							// Toggle aspect ratio
-							g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
-							break;
-						case XK_5:
-							OSDChoice = 3;
-							// Toggle EFB copy
-							if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
-							{
-								g_Config.bEFBCopyEnable ^= true;
-								g_Config.bCopyEFBToTexture = false;
-							}
-							else
-							{
-								g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
-							}
-							break;
-						case XK_6:
-							OSDChoice = 4;
-							g_Config.bDisableFog = !g_Config.bDisableFog;
-							break;
-						default:
-							break;
+						switch (key)
+						{
+							case XK_3:
+								OSDChoice = 1;
+								// Toggle native resolution
+								g_Config.iEFBScale = g_Config.iEFBScale + 1;
+								if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
+								break;
+
+							case XK_4:
+								OSDChoice = 2;
+								// Toggle aspect ratio
+								g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
+								break;
+
+							case XK_5:
+								OSDChoice = 3;
+								// Toggle EFB copy
+								if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
+								{
+									g_Config.bEFBCopyEnable ^= true;
+									g_Config.bCopyEFBToTexture = false;
+								}
+								else
+								{
+									g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+								}
+								break;
+
+							case XK_6:
+								OSDChoice = 4;
+								g_Config.bDisableFog = !g_Config.bDisableFog;
+								break;
+
+							default:
+								break;
+						}
 					}
 					if (g_Config.bFreeLook)
 					{

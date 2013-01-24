@@ -19,7 +19,9 @@
 #include "DebugInterface.h"
 #include "BreakPoints.h"
 #include "../../Core/Src/PowerPC/JitCommon/JitBase.h"
+
 #include <sstream>
+#include <algorithm>
 
 bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {
@@ -110,12 +112,17 @@ void BreakPoints::Remove(u32 em_address)
 
 void BreakPoints::Clear()
 {
-	for (TBreakPoints::iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
+	if (jit)
 	{
-		if (jit)
-			jit->GetBlockCache()->InvalidateICache(i->iAddress, 4);
-		m_BreakPoints.erase(i);
+		std::for_each(m_BreakPoints.begin(), m_BreakPoints.end(),
+			[](const TBreakPoint& bp)
+			{
+				jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4);
+			}
+		);
 	}
+	
+	m_BreakPoints.clear();
 }
 
 MemChecks::TMemChecksStr MemChecks::GetStrings() const

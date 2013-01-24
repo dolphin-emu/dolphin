@@ -11,8 +11,6 @@
 #include <ApplicationServices/ApplicationServices.h>
 #endif
 
-#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
-
 extern CFrame* main_frame;
 
 // template instantiation
@@ -27,7 +25,7 @@ SettingCheckBox::BoolSetting(wxWindow* parent, const wxString& label, const wxSt
 {
 	SetToolTip(tooltip);
 	SetValue(m_setting ^ m_reverse);
-	_connect_macro_(this, SettingCheckBox::UpdateValue, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &SettingCheckBox::UpdateValue, this);
 }
 
 template <>
@@ -38,7 +36,7 @@ SettingRadioButton::BoolSetting(wxWindow* parent, const wxString& label, const w
 {
 	SetToolTip(tooltip);
 	SetValue(m_setting ^ m_reverse);
-	_connect_macro_(this, SettingRadioButton::UpdateValue, wxEVT_COMMAND_RADIOBUTTON_SELECTED, this);
+	Bind(wxEVT_COMMAND_RADIOBUTTON_SELECTED, &SettingRadioButton::UpdateValue, this);
 }
 
 SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& tooltip, int num, const wxString choices[], long style)
@@ -47,7 +45,7 @@ SettingChoice::SettingChoice(wxWindow* parent, int &setting, const wxString& too
 {
 	SetToolTip(tooltip);
 	Select(m_setting);
-	_connect_macro_(this, SettingChoice::UpdateValue, wxEVT_COMMAND_CHOICE_SELECTED, this);
+	Bind(wxEVT_COMMAND_CHOICE_SELECTED, &SettingChoice::UpdateValue, this);
 }
 
 void SettingChoice::UpdateValue(wxCommandEvent& ev)
@@ -84,7 +82,6 @@ wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual q
 wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis makes the rendered picture look less blocky.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select None.");
 wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render to texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly decreases performance and possibly causes issues (although unlikely).\n\nIf unsure, leave this checked.");
 wxString pixel_lighting_desc = wxTRANSLATE("Calculate lighting of 3D graphics per-pixel rather than per vertex.\nDecreases emulation speed by some percent (depending on your GPU).\nThis usually is a safe enhancement, but might cause issues sometimes.\n\nIf unsure, leave this unchecked.");
-wxString pixel_depth_desc = wxTRANSLATE("Calculate depth values of 3D graphics per-pixel rather than per vertex.\nIn contrast to pixel lighting (which is merely an enhancement), per-pixel depth calculations are necessary to properly emulate a small number of games.\n\nIf unsure, leave this checked.");
 wxString force_filtering_desc = wxTRANSLATE("Force texture filtering even if the emulated game explicitly disabled it.\nImproves texture quality slightly but causes glitches in some games.\n\nIf unsure, leave this unchecked.");
 wxString _3d_vision_desc = wxTRANSLATE("Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's supported by your GPU.\nPossibly causes issues.\nRequires fullscreen to work.\n\nIf unsure, leave this unchecked.");
 wxString internal_res_desc = wxTRANSLATE("Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.\n\"Multiple of 640x528\" is a bit slower than \"Window Size\" but yields less issues. Generally speaking, the lower the internal resolution is, the better your performance will be.\n\nIf unsure, select 640x528.");
@@ -113,12 +110,12 @@ wxString dump_frames_desc = wxTRANSLATE("Dump all rendered frames to an AVI file
 #if !defined WIN32 && defined HAVE_LIBAV
 wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
 #endif
-wxString free_look_desc = wxTRANSLATE("This feature allows you to change the game's camera.\nHold the right mouse button and move the mouse to pan the camera around. Hold SHIFT and press one of the WASD keys to move the camera by a certain step distance (SHIFT+0 to move faster and SHIFT+9 to move slower). Press SHIFT+R to reset the camera.\n\nIf unsure, leave this unchecked.");
+wxString free_look_desc = wxTRANSLATE("This feature allows you to change the game's camera.\nMove the mouse while holding the right mouse button to pan and while holding the middle button to move.\nHold SHIFT and press one of the WASD keys to move the camera by a certain step distance (SHIFT+0 to move faster and SHIFT+9 to move slower). Press SHIFT+R to reset the camera.\n\nIf unsure, leave this unchecked.");
 wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.\n\nIf unsure, leave this unchecked.");
 wxString opencl_desc = wxTRANSLATE("[EXPERIMENTAL]\nAims to speed up emulation by offloading texture decoding to the GPU using the OpenCL framework.\nHowever, right now it's known to cause texture defects in various games. Also it's slower than regular CPU texture decoding in most cases.\n\nIf unsure, leave this unchecked.");
 wxString dlc_desc = wxTRANSLATE("[EXPERIMENTAL]\nSpeeds up emulation a bit by caching display lists.\nPossibly causes issues though.\n\nIf unsure, leave this unchecked.");
 wxString omp_desc = wxTRANSLATE("Use multiple threads to decode textures.\nMight result in a speedup (especially on CPUs with more than two cores).\n\nIf unsure, leave this unchecked.");
-wxString hotkeys_desc = wxTRANSLATE("Allows toggling certain options via the hotkeys 3, 4, 5 and 6 within the emulation window.\n\nIf unsure, leave this unchecked.");
+wxString hotkeys_desc = wxTRANSLATE("Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 (Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n\nIf unsure, leave this unchecked.");
 wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
 wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nSometimes also increases visual quality.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
 wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, an error message is displayed.\nHowever, one may skip the popups to allow interruption free gameplay by checking this option.\n\nIf unsure, leave this unchecked.");
@@ -191,7 +188,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 {
 	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
-	Connect(wxID_ANY, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(VideoConfigDiag::OnUpdateUI), NULL, this);
+	Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
 	wxNotebook* const notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize);
 
@@ -218,7 +215,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		choice_backend->AppendString(wxGetTranslation(wxString::FromAscii((*it)->GetName().c_str())));
 
 	choice_backend->SetStringSelection(wxGetTranslation(wxString::FromAscii(g_video_backend->GetName().c_str())));
-	_connect_macro_(choice_backend, VideoConfigDiag::Event_Backend, wxEVT_COMMAND_CHOICE_SELECTED, this);
+	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_Backend, this);
 
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
 	szr_basic->Add(choice_backend, 1, 0, 0);
@@ -260,7 +257,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		wxStaticText* const label_display_resolution = new wxStaticText(page_general, wxID_ANY, _("Fullscreen resolution:"));
 		choice_display_resolution = new wxChoice(page_general, wxID_ANY, wxDefaultPosition, wxDefaultSize, res_list);
 		RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
-		_connect_macro_(choice_display_resolution, VideoConfigDiag::Event_DisplayResolution, wxEVT_COMMAND_CHOICE_SELECTED, this);
+		choice_display_resolution->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_DisplayResolution, this);
 
 		choice_display_resolution->SetStringSelection(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str()));
 
@@ -390,7 +387,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		else
 			choice_ppshader->SetStringSelection(wxString::FromAscii(vconfig.sPostProcessingShader.c_str()));
 
-		_connect_macro_(choice_ppshader, VideoConfigDiag::Event_PPShader, wxEVT_COMMAND_CHOICE_SELECTED, this);
+		choice_ppshader->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_PPShader, this);
 
 		szr_enh->Add(new wxStaticText(page_enh, -1, _("Post-Processing Effect:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_enh->Add(choice_ppshader);
@@ -456,7 +453,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// TODO: Use wxSL_MIN_MAX_LABELS or wxSL_VALUE_LABEL with wx 2.9.1
 	wxSlider* const stc_slider = new wxSlider(page_hacks, wxID_ANY, 0, 0, 2, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL|wxSL_BOTTOM);
-	_connect_macro_(stc_slider, VideoConfigDiag::Event_Stc, wxEVT_COMMAND_SLIDER_UPDATED, this);
+	stc_slider->Bind(wxEVT_COMMAND_SLIDER_UPDATED, &VideoConfigDiag::Event_Stc, this);
 	RegisterControl(stc_slider, wxGetTranslation(stc_desc));
 
 	if (vconfig.iSafeTextureCache_ColorSamples == 0) stc_slider->SetValue(0);
@@ -493,7 +490,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_other->Add(CreateCheckBox(page_hacks, _("Cache Display Lists"), wxGetTranslation(dlc_desc), vconfig.bDlistCachingEnable));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
-	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Per-Pixel Depth"), wxGetTranslation(pixel_depth_desc), vconfig.bEnablePerPixelDepth, true));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Skip Dest. Alpha Pass"), wxGetTranslation(disable_alphapass_desc), vconfig.bDstAlphaPass));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenCL Texture Decoder"), wxGetTranslation(opencl_desc), vconfig.bEnableOpenCL));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_desc), vconfig.bOMPDecoder));
@@ -558,7 +554,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 	wxCheckBox* const cb_prog_scan = new wxCheckBox(page_advanced, wxID_ANY, _("Enable Progressive Scan"));
 	RegisterControl(cb_prog_scan, wxGetTranslation(prog_scan_desc));
-	_connect_macro_(cb_prog_scan, VideoConfigDiag::Event_ProgressiveScan, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	cb_prog_scan->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &VideoConfigDiag::Event_ProgressiveScan, this);
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		cb_prog_scan->Disable();
 
@@ -580,9 +576,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	}
 
 	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"), wxDefaultPosition);
-	_connect_macro_(btn_close, VideoConfigDiag::Event_ClickClose, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	btn_close->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &VideoConfigDiag::Event_ClickClose, this);
 
-	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(VideoConfigDiag::Event_Close), (wxObject*)0, this);
+	Bind(wxEVT_CLOSE_WINDOW, &VideoConfigDiag::Event_Close, this);
 
 	wxBoxSizer* const szr_main = new wxBoxSizer(wxVERTICAL);
 	szr_main->Add(notebook, 1, wxEXPAND | wxALL, 5);
@@ -630,8 +626,8 @@ SettingRadioButton* VideoConfigDiag::CreateRadioButton(wxWindow* parent, const w
 wxControl* VideoConfigDiag::RegisterControl(wxControl* const control, const wxString& description)
 {
 	ctrl_descs.insert(std::pair<wxWindow*,wxString>(control, description));
-	control->Connect(wxID_ANY, wxEVT_ENTER_WINDOW, wxMouseEventHandler(VideoConfigDiag::Evt_EnterControl), NULL, this);
-	control->Connect(wxID_ANY, wxEVT_LEAVE_WINDOW, wxMouseEventHandler(VideoConfigDiag::Evt_LeaveControl), NULL, this);
+	control->Bind(wxEVT_ENTER_WINDOW, &VideoConfigDiag::Evt_EnterControl, this);
+	control->Bind(wxEVT_LEAVE_WINDOW, &VideoConfigDiag::Evt_LeaveControl, this);
 	return control;
 }
 

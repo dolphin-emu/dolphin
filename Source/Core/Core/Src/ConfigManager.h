@@ -26,6 +26,16 @@
 #include "HW/SI_Device.h"
 #include "SysConf.h"
 
+// DSP Backend Types
+#define BACKEND_NULLSOUND	"No audio output"
+#define BACKEND_ALSA		"ALSA"
+#define BACKEND_AOSOUND		"AOSound"
+#define BACKEND_COREAUDIO	"CoreAudio"
+#define BACKEND_DIRECTSOUND	"DSound"
+#define BACKEND_OPENAL		"OpenAL"
+#define BACKEND_PULSEAUDIO	"Pulse"
+#define BACKEND_XAUDIO2		"XAudio2"
+
 struct SConfig : NonCopyable
 {
 	// Wii Devices
@@ -82,6 +92,12 @@ struct SConfig : NonCopyable
 	bool m_PauseMovie;
 	bool m_ShowLag;
 	std::string m_strMovieAuthor;
+
+	// DSP settings
+	bool m_EnableJIT;
+	bool m_DumpAudio;
+	int m_Volume;
+	std::string sBackend;
 
 	SysConf* m_SYSCONF;
 
