@@ -134,7 +134,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	initBroadcastIPv6();
 
 	std::lock_guard<std::mutex> lk(d->termLock);
-	d->thread = std::thread(std::mem_fn(&UDPWiimote::mainThread), this);
+	d->thread = std::thread(std::mem_fun(&UDPWiimote::mainThread), this);
 
 	return;
 }

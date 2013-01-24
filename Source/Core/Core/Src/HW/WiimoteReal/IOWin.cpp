@@ -264,7 +264,7 @@ bool Wiimote::Connect()
 	// Set LEDs
 	SetLEDs(WIIMOTE_LED_1 << index);
 
-	m_wiimote_thread = std::thread(std::mem_fn(&Wiimote::ThreadFunc), this);
+	m_wiimote_thread = std::thread(std::mem_fun(&Wiimote::ThreadFunc), this);
 
 	// This isn't as drastic as it sounds, since the process in which the threads
 	// reside is normal priority. Needed for keeping audio reports at a decent rate

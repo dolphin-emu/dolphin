@@ -101,7 +101,7 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 			recv_fifo = std::queue<u8>();
 			send_fifo = std::queue<u8>();
 		}
-		clientThread = std::thread(std::mem_fn(&GeckoSockServer::ClientThread), this);
+		clientThread = std::thread(std::mem_fun(&GeckoSockServer::ClientThread), this);
 		client_count++;
 		waiting_socks.pop();
 		sock_filled = true;

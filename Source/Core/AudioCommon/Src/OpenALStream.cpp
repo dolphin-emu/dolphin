@@ -15,8 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <functional>
-
 #include "aldlist.h"
 #include "OpenALStream.h"
 #include "DPL2Decoder.h"
@@ -54,7 +52,7 @@ bool OpenALStream::Start()
 				//period_size_in_millisec = 1000 / refresh;
 
 				alcMakeContextCurrent(pContext);
-				thread = std::thread(std::mem_fn(&OpenALStream::SoundLoop), this);
+				thread = std::thread(std::mem_fun(&OpenALStream::SoundLoop), this);
 				bReturn = true;
 			}
 			else
@@ -74,7 +72,7 @@ bool OpenALStream::Start()
 		PanicAlertT("OpenAL: can't find sound devices");
 	}
 
-	// Initialize DPL2 parameters
+	// Initialise DPL2 parameters
 	dpl2reset();
 
 	soundTouch.clear();

@@ -63,7 +63,7 @@ bool AOSound::Start()
 {
 	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
 	
-	thread = std::thread(std::mem_fn(&AOSound::SoundLoop), this);
+	thread = std::thread(std::mem_fun(&AOSound::SoundLoop), this);
 	return true;
 }
 
