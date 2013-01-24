@@ -135,7 +135,7 @@ bool DSound::Start()
 	dsBuffer->Lock(0, bufferSize, (void* *)&p1, &num1, 0, 0, DSBLOCK_ENTIREBUFFER);
 	memset(p1, 0, num1);
 	dsBuffer->Unlock(p1, num1, 0, 0);
-	thread = std::thread(std::mem_fun(&DSound::SoundLoop), this);
+	thread = std::thread(std::mem_fn(&DSound::SoundLoop), this);
 	return true;
 }
 
