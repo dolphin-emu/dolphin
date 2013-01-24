@@ -26,6 +26,12 @@ void cInterfaceEGL::UpdateFPSDisplay(const char *text)
 {
 	XStoreName(GLWin.dpy, GLWin.win, text);
 }
+
+void cInterfaceEGL::SwapInterval(int Interval)
+{
+	eglSwapInterval(GLWin.egl_dpy, Interval);
+}
+
 void cInterfaceEGL::Swap()
 {
 	eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);
