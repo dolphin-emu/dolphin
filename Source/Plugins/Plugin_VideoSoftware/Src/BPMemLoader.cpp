@@ -137,6 +137,7 @@ void SWBPWritten(int address, int newvalue)
 
 				for (int i = 0; i < tmem_cfg.preload_tile_info.count; ++i)
 				{
+					// FIXME: Duplicate conditions
 					if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE ||
 						tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE)
 						break;

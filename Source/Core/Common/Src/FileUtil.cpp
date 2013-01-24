@@ -512,12 +512,24 @@ bool DeleteDirRecursively(const std::string &directory)
 		if (IsDirectory(newPath))
 		{
 			if (!DeleteDirRecursively(newPath))
+			{
+				#ifndef _WIN32
+				closedir(dirp);
+				#endif
+				
 				return false;
+			}
 		}
 		else
 		{
 			if (!File::Delete(newPath))
+			{
+				#ifndef _WIN32
+				closedir(dirp);
+				#endif
+				
 				return false;
+			}
 		}
 
 #ifdef _WIN32
