@@ -48,7 +48,6 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	s_backbuffer_width = _twidth;
 	s_backbuffer_height = _theight;
 
-	const char *s;
 	EGLint egl_major, egl_minor;
 
 	GLWin.dpy = XOpenDisplay(NULL);
@@ -69,17 +68,10 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		return false;
 	}
 
-	s = eglQueryString(GLWin.egl_dpy, EGL_VERSION);
-	INFO_LOG(VIDEO, "EGL_VERSION = %s\n", s);
-
-	s = eglQueryString(GLWin.egl_dpy, EGL_VENDOR);
-	INFO_LOG(VIDEO, "EGL_VENDOR = %s\n", s);
-
-	s = eglQueryString(GLWin.egl_dpy, EGL_EXTENSIONS);
-	INFO_LOG(VIDEO, "EGL_EXTENSIONS = %s\n", s);
-
-	s = eglQueryString(GLWin.egl_dpy, EGL_CLIENT_APIS);
-	INFO_LOG(VIDEO, "EGL_CLIENT_APIS = %s\n", s);
+	INFO_LOG(VIDEO, "EGL_VERSION = %s\n", eglQueryString(GLWin.egl_dpy, EGL_VERSION));
+	INFO_LOG(VIDEO, "EGL_VENDOR = %s\n", eglQueryString(GLWin.egl_dpy, EGL_VENDOR));
+	INFO_LOG(VIDEO, "EGL_EXTENSIONS = %s\n", eglQueryString(GLWin.egl_dpy, EGL_EXTENSIONS));
+	INFO_LOG(VIDEO, "EGL_CLIENT_APIS = %s\n", eglQueryString(GLWin.egl_dpy, EGL_CLIENT_APIS));
 
 	// attributes for a visual in RGBA format with at least
 	// 8 bits per color and a 24 bit depth buffer
@@ -120,7 +112,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	}
 
 	if (!eglGetConfigAttrib(GLWin.egl_dpy, config, EGL_NATIVE_VISUAL_ID, &vid)) {
-		ERROG_LOG(VIDEO, "Error: eglGetConfigAttrib() failed\n");
+		ERROR_LOG(VIDEO, "Error: eglGetConfigAttrib() failed\n");
 		return false;
 	}
 
@@ -160,7 +152,6 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		return false;
 	}
 	
-
 	INFO_LOG(VIDEO, "GL_VENDOR: %s\n", glGetString(GL_VENDOR));
 	INFO_LOG(VIDEO, "GL_RENDERER: %s\n", glGetString(GL_RENDERER));
 	INFO_LOG(VIDEO, "GL_VERSION: %s\n", glGetString(GL_VERSION));
