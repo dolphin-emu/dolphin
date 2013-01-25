@@ -307,38 +307,60 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, const s16* coeffs)
 		// samples.
 		u32 curr_pos = pb.src.cur_addr_frac;
 
-		// These are the two samples between which we interpolate. The initial
-		// values are stored in the PB, and we update them when resampling the
-		// input data.
-		s16 curr0 = pb.src.last_samples[2];
-		s16 curr1 = pb.src.last_samples[3];
+		// This is the circular buffer containing samples to use for the
+		// interpolation. It is initialized with the values from the PB, and it
+		// will be stored back to the PB at the end.
+		s16 temp[4];
+		u32 idx = 0;
+
+		temp[idx++ & 3] = pb.src.last_samples[0];
+		temp[idx++ & 3] = pb.src.last_samples[1];
+		temp[idx++ & 3] = pb.src.last_samples[2];
+		temp[idx++ & 3] = pb.src.last_samples[3];
 
 		for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)
 		{
-			// Get our current fractional position, used to know how much of
-			// curr0 and how much of curr1 the output sample should be.
-			s32 curr_frac_pos = curr_pos & 0xFFFF;
-
-			// Linear interpolation: s1 + (s2 - s1) * pos
-			s16 sample = curr0 + (s16)(((curr1 - curr0) * (s32)curr_frac_pos) >> 16);
-			samples[i] = sample;
-
 			curr_pos += ratio;
 
-			// While our current position is >= 1.0, shift to the next 2
-			// samples for interpolation.
-			while ((curr_pos >> 16) != 0)
+			// While our current position is >= 1.0, push new samples to the
+			// circular buffer.
+			while (curr_pos >= 0x10000)
 			{
-				curr0 = curr1;
-				curr1 = AcceleratorGetSample();
+				temp[idx++ & 3] = AcceleratorGetSample();
 				curr_pos -= 0x10000;
 			}
+
+			// Get our current fractional position, used to know how much of
+			// curr0 and how much of curr1 the output sample should be.
+			u16 curr_frac = curr_pos & 0xFFFF;
+			u16 inv_curr_frac = -curr_frac;
+
+			// Interpolate! If curr_frac is 0, we can simply take the last
+			// sample without any multiplying.
+			s16 sample;
+			if (curr_frac)
+			{
+				s32 s0 = temp[idx++ & 3];
+				s32 s1 = temp[idx++ & 3];
+
+				sample = ((s0 * inv_curr_frac) + (s1 * curr_frac)) >> 16;
+				idx += 2;
+			}
+			else
+			{
+				sample = temp[idx++ & 3];
+				idx += 3;
+			}
+
+			samples[i] = sample;
 		}
 
-		// Update the two last_samples values in the PB as well as the current
+		// Update the four last_samples values in the PB as well as the current
 		// position.
-		pb.src.last_samples[2] = curr0;
-		pb.src.last_samples[3] = curr1;
+		pb.src.last_samples[3] = temp[--idx & 3];
+		pb.src.last_samples[2] = temp[--idx & 3];
+		pb.src.last_samples[1] = temp[--idx & 3];
+		pb.src.last_samples[0] = temp[--idx & 3];
 		pb.src.cur_addr_frac = curr_pos & 0xFFFF;
 	}
 	else // SRCTYPE_NEAREST
