@@ -999,7 +999,6 @@ void CISOProperties::LoadGameConfig()
 	if (!sTemp.empty())
 	{
 		EmuIssues->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
-		bRefreshList = true;
 	}
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
 
@@ -1085,6 +1084,11 @@ bool CISOProperties::SaveGameConfig()
 	GameIni.Set("Video", "PH_ZFar", PHack_Data.PHZFar);
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
+
+	std::string sTemp;
+	GameIni.Get("EmuState","EmulationIssues", &sTemp);
+	if (EmuIssues->GetValue() != sTemp)
+		bRefreshList = true;
 	GameIni.Set("EmuState", "EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(*wxConvCurrent));
 
 	PatchList_Save();
