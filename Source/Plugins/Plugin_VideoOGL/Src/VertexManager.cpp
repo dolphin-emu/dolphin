@@ -126,23 +126,19 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	int line_index_size = IndexGenerator::GetLineindexLen();
 	int point_index_size = IndexGenerator::GetPointindexLen();
 	int index_data_size = (triangle_index_size + line_index_size + point_index_size) * sizeof(u16);
-	GLbitfield LockMode = GL_MAP_WRITE_BIT;
 	
 	m_vertex_buffer_cursor--;
 	m_vertex_buffer_cursor = m_vertex_buffer_cursor - (m_vertex_buffer_cursor % stride) + stride;
 	
 	if (m_vertex_buffer_cursor >= m_vertex_buffer_size - vertex_data_size || m_index_buffer_cursor >= m_index_buffer_size - index_data_size)
 	{
-		LockMode |= GL_MAP_INVALIDATE_BUFFER_BIT;
 		m_vertex_buffer_cursor = 0;
 		m_index_buffer_cursor = 0;
-	}
-	else
-	{
-		LockMode |= /*GL_MAP_INVALIDATE_RANGE_BIT |*/ GL_MAP_UNSYNCHRONIZED_BIT;
+		glBufferData(GL_ARRAY_BUFFER, m_vertex_buffer_size, NULL, GL_STREAM_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size, NULL, GL_STREAM_DRAW);
 	}
 	
-	pVertices = (u8*)glMapBufferRange(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, LockMode);
+	pVertices = (u8*)glMapBufferRange(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 	if(pVertices)
 	{
 		memcpy(pVertices, LocalVBuffer, vertex_data_size);
@@ -153,7 +149,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 		glBufferSubData(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, LocalVBuffer);
 	}
 	
-	pIndices = (u16*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_cursor , index_data_size, LockMode);
+	pIndices = (u16*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_cursor , index_data_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 	if(pIndices)
 	{
 		if(triangle_index_size)
