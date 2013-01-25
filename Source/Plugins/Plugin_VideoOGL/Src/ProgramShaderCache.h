@@ -154,6 +154,7 @@ private:
 	static ShaderUID CurrentShaderProgram;
 
 	static GLuint s_ps_vs_ubo;
+	static u32 s_ubo_iterator;
 	static GLintptr s_vs_data_offset;
 	static float *s_ubo_buffer;
 	static u32 s_ubo_buffer_size;

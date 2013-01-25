@@ -21,9 +21,12 @@
 namespace OGL
 {
 
+static const u32 UBO_LENGTH = 1024*1024;
+
 GLuint ProgramShaderCache::CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 GLuint ProgramShaderCache::s_ps_vs_ubo;
+u32 ProgramShaderCache::s_ubo_iterator;
 GLintptr ProgramShaderCache::s_vs_data_offset;
 float *ProgramShaderCache::s_ubo_buffer;
 u32 ProgramShaderCache::s_ubo_buffer_size;
@@ -192,11 +195,22 @@ void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float 
 
 void ProgramShaderCache::UploadConstants()
 {
-	if(s_ubo_dirty)
-		glBufferData(GL_UNIFORM_BUFFER, s_ubo_buffer_size, s_ubo_buffer, GL_STREAM_DRAW);
+	if(s_ubo_dirty) {
+		if(s_ubo_iterator + s_ubo_buffer_size >= UBO_LENGTH) {
+			glBufferData(GL_UNIFORM_BUFFER, UBO_LENGTH, NULL, GL_STREAM_DRAW);
+			s_ubo_iterator = 0;
+		}
+		void *ubo = glMapBufferRange(GL_UNIFORM_BUFFER, s_ubo_iterator, s_ubo_buffer_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+		memcpy(ubo, s_ubo_buffer, s_ubo_buffer_size);
+		glUnmapBuffer(GL_UNIFORM_BUFFER);
+		
+		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_ps_vs_ubo, s_ubo_iterator, s_vs_data_offset);
+		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_ubo_iterator + s_vs_data_offset, s_ubo_buffer_size - s_vs_data_offset);
+		
+		s_ubo_iterator += s_ubo_buffer_size;
+	}
 	s_ubo_dirty = false;
 }
-
 
 GLuint ProgramShaderCache::GetCurrentProgram(void)
 {
@@ -228,13 +242,8 @@ void ProgramShaderCache::Init(void)
 		// Then once more to get bytes
 		glGenBuffers(1, &s_ps_vs_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, s_ps_vs_ubo);
-		glBufferData(GL_UNIFORM_BUFFER, s_ubo_buffer_size, NULL, GL_STREAM_DRAW);
-
-		// Now bind the buffer to the index point
-		// We know PS is 0 since we have it statically set in the shader
-		// Repeat for VS shader
-		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_ps_vs_ubo, 0, ps_data_size);
-		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_vs_data_offset, vs_data_size);
+		glBufferData(GL_UNIFORM_BUFFER, UBO_LENGTH, NULL, GL_STREAM_DRAW);
+		s_ubo_iterator = 0;
 		
 		s_ubo_buffer = new float[s_ubo_buffer_size/sizeof(float)];
 		memset(s_ubo_buffer, 0, s_ubo_buffer_size);
