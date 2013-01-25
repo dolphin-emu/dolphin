@@ -17,6 +17,7 @@
 
 #include "UCode_AX.h"
 #include "../../DSP.h"
+#include "FileUtil.h"
 
 #define AX_GC
 #include "UCode_AX_Voice.h"
@@ -29,6 +30,8 @@ CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AX: crc=%08x", crc);
 	m_rMailHandler.PushMail(DSP_INIT);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+
+	LoadResamplingCoefficients();
 }
 
 CUCode_AX::~CUCode_AX()
@@ -38,6 +41,27 @@ CUCode_AX::~CUCode_AX()
 	m_axthread.join();
 
 	m_rMailHandler.Clear();
+}
+
+void CUCode_AX::LoadResamplingCoefficients()
+{
+	m_coeffs_available = false;
+
+	std::string filename = File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin";
+	if (!File::Exists(filename))
+		return;
+
+	if (File::GetSize(filename) != 0x1000)
+		return;
+
+	FILE* fp = fopen(filename.c_str(), "rb");
+	fread(m_coeffs, 1, 0x1000, fp);
+	fclose(fp);
+
+	for (u32 i = 0; i < 0x800; ++i)
+		m_coeffs[i] = Common::swap16(m_coeffs[i]);
+
+	m_coeffs_available = true;
 }
 
 void CUCode_AX::SpawnAXThread(CUCode_AX* self)
@@ -405,7 +429,8 @@ void CUCode_AX::ProcessPBList(u32 pb_addr)
 		{
 			ApplyUpdatesForMs(pb, curr_ms);
 
-			ProcessVoice(pb, buffers, ConvertMixerControl(pb.mixer_control));
+			ProcessVoice(pb, buffers, ConvertMixerControl(pb.mixer_control),
+			             m_coeffs_available ? m_coeffs : NULL);
 
 			// Forward the buffers
 			for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)

@@ -114,6 +114,14 @@ protected:
 	std::condition_variable m_cmdlist_cv;
 	std::mutex m_cmdlist_mutex;
 
+	// Table of coefficients for polyphase sample rate conversion.
+	// The coefficients aren't always available (they are part of the DSP DROM)
+	// so we also need to know if they are valid or not.
+	bool m_coeffs_available;
+	s16 m_coeffs[0x800];
+
+	void LoadResamplingCoefficients();
+
 	// Copy a command list from memory to our temp buffer
 	void CopyCmdList(u32 addr, u16 size);
 

@@ -245,13 +245,54 @@ u16 AcceleratorGetSample()
 
 // Read SAMPLES_PER_FRAME input samples from ARAM, decoding and converting rate
 // if required.
-void GetInputSamples(PB_TYPE& pb, s16* samples)
+void GetInputSamples(PB_TYPE& pb, s16* samples, const s16* coeffs)
 {
 	u32 cur_addr = HILO_TO_32(pb.audio_addr.cur_addr);
 	AcceleratorSetup(&pb, &cur_addr);
 
-	// TODO: support polyphase interpolation if coefficients are available.
-	if (pb.src_type == SRCTYPE_POLYPHASE || pb.src_type == SRCTYPE_LINEAR)
+	// If DSP DROM coefficients are available, support polyphase resampling.
+	if (coeffs && pb.src_type == SRCTYPE_POLYPHASE)
+	{
+		s16 temp[4];
+		u32 idx = 0;
+
+		u32 ratio = HILO_TO_32(pb.src.ratio);
+		u32 curr_pos = pb.src.cur_addr_frac;
+
+		temp[idx++ & 3] = pb.src.last_samples[0];
+		temp[idx++ & 3] = pb.src.last_samples[1];
+		temp[idx++ & 3] = pb.src.last_samples[2];
+		temp[idx++ & 3] = pb.src.last_samples[3];
+
+		for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)
+		{
+			curr_pos += ratio;
+			while (curr_pos >= 0x10000)
+			{
+				temp[idx++ & 3] = AcceleratorGetSample();
+				curr_pos -= 0x10000;
+			}
+
+			u16 curr_pos_frac = ((curr_pos & 0xFFFF) >> 9) << 2;
+			const s16* c = &coeffs[pb.coef_select * 0x200 + curr_pos_frac];
+
+			s64 t0 = temp[idx++ & 3];
+			s64 t1 = temp[idx++ & 3];
+			s64 t2 = temp[idx++ & 3];
+			s64 t3 = temp[idx++ & 3];
+
+			s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
+
+			samples[i] = (s16)samp;
+		}
+
+		pb.src.last_samples[3] = temp[--idx & 3];
+		pb.src.last_samples[2] = temp[--idx & 3];
+		pb.src.last_samples[1] = temp[--idx & 3];
+		pb.src.last_samples[0] = temp[--idx & 3];
+		pb.src.cur_addr_frac = curr_pos & 0xFFFF;
+	}
+	else if (pb.src_type == SRCTYPE_LINEAR || (!coeffs && pb.src_type == SRCTYPE_POLYPHASE))
 	{
 		// Convert the input to a higher or lower sample rate using a linear
 		// interpolation algorithm. The input to output ratio is set in
@@ -351,7 +392,7 @@ s16 LowPassFilter(s16* samples, u32 count, s16 yn1, u16 a0, u16 b0)
 
 // Process 1ms of audio (for AX GC) or 3ms of audio (for AX Wii) from a PB and
 // mix it to the output buffers.
-void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
+void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl, const s16* coeffs)
 {
 	// If the voice is not running, nothing to do.
 	if (!pb.running)
@@ -359,7 +400,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl)
 
 	// Read input samples, performing sample rate conversion if needed.
 	s16 samples[SAMPLES_PER_FRAME];
-	GetInputSamples(pb, samples);
+	GetInputSamples(pb, samples, coeffs);
 
 	// Apply a global volume ramp using the volume envelope parameters.
 	for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)

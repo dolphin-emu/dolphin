@@ -259,7 +259,8 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 		if (!ReadPB(pb_addr, pb))
 			break;
 
-		ProcessVoice(pb, buffers, ConvertMixerControl(HILO_TO_32(pb.mixer_control)));
+		ProcessVoice(pb, buffers, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+		             m_coeffs_available ? m_coeffs : NULL);
 
 		WritePB(pb_addr, pb);
 		pb_addr = HILO_TO_32(pb.next_pb);
