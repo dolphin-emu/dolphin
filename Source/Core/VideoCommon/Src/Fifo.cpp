@@ -155,6 +155,7 @@ void RunGpuLoop()
 		VideoFifo_CheckAsyncRequest();
 				
 		CommandProcessor::SetCpStatus();
+
 		// check if we are able to run this buffer	
 		while (GpuRunningState && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() && !PixelEngine::WaitingForPEInterrupt())
 		{
@@ -172,7 +173,7 @@ void RunGpuLoop()
 			_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
 			"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce inestabilty in the game. Please report it.", fifo.CPReadWriteDistance - 32);
 			
-			ReadDataFromFifo(uData, 32);	
+			ReadDataFromFifo(uData, 32);
 			
 			OpcodeDecoder_Run(g_bSkipCurrentFrame);	
 
@@ -180,6 +181,7 @@ void RunGpuLoop()
 			Common::AtomicAdd(fifo.CPReadWriteDistance, -32);						
 			if((GetVideoBufferEndPtr() - g_pVideoData) == 0)
 				Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
+
 			CommandProcessor::SetCpStatus();
 		
 			// This call is pretty important in DualCore mode and must be called in the FIFO Loop.
