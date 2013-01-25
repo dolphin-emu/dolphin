@@ -380,7 +380,62 @@ Renderer::Renderer()
 
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
+	
+	glStencilFunc(GL_ALWAYS, 0, 0);
+	glBlendFunc(GL_ONE, GL_ONE);
 
+	glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearDepth(1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
+
+	glDisable(GL_STENCIL_TEST);
+	glEnable(GL_SCISSOR_TEST);
+
+	glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
+	glBlendColor(0, 0, 0, 0.5f);
+	glClearDepth(1.0f);
+	
+	// this is a hack to work around an ati driver issue.
+	// usually this shouldn't be needed (and isn't allowed in core)
+	// but else glGenerateMipmaps wouldn't work always
+	glEnable(GL_TEXTURE_2D);
+
+	UpdateActiveConfig();
+}
+
+Renderer::~Renderer()
+{
+
+#if defined(HAVE_WX) && HAVE_WX
+	if (scrshotThread.joinable())
+		scrshotThread.join();
+#endif
+
+	delete g_framebuffer_manager;
+}
+
+void Renderer::Shutdown()
+{
+	g_Config.bRunning = false;
+	UpdateActiveConfig();
+	
+	glDeleteBuffers(1, &s_ShowEFBCopyRegions_VBO);
+	glDeleteVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
+	s_ShowEFBCopyRegions_VBO = 0;
+	
+	delete s_pfont;
+	s_pfont = 0;
+	s_ShowEFBCopyRegions_PS.Destroy();
+	s_ShowEFBCopyRegions_VS.Destroy();
+}
+
+void Renderer::Init()
+{
 	s_pfont = new RasterFont();
 	
 	PixelShaderCache::CompilePixelShader(s_ShowEFBCopyRegions_PS,
@@ -411,57 +466,6 @@ Renderer::Renderer()
 	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*5, NULL);
 	glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB);
 	glVertexAttribPointer(SHADER_COLOR0_ATTRIB, 3, GL_FLOAT, 0, sizeof(GLfloat)*5, (GLfloat*)NULL+2);
-	
-	glStencilFunc(GL_ALWAYS, 0, 0);
-	glBlendFunc(GL_ONE, GL_ONE);
-
-	glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
-
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClearDepth(1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
-
-	glDisable(GL_STENCIL_TEST);
-	glEnable(GL_SCISSOR_TEST);
-
-	glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
-	glBlendColor(0, 0, 0, 0.5f);
-	glClearDepth(1.0f);
-	
-	// this is a hack to work around an ati driver issue.
-	// usually this shouldn't be needed (and isn't allowed in core)
-	// but else glGenerateMipmaps wouldn't work always
-	glEnable(GL_TEXTURE_2D);
-
-	UpdateActiveConfig();
-
-	//return GL_REPORT_ERROR() == GL_NO_ERROR && bSuccess;
-	return;
-}
-
-Renderer::~Renderer()
-{
-	g_Config.bRunning = false;
-	UpdateActiveConfig();
-	
-	glDeleteBuffers(1, &s_ShowEFBCopyRegions_VBO);
-	glDeleteVertexArrays(1, &s_ShowEFBCopyRegions_VAO);
-	s_ShowEFBCopyRegions_VBO = 0;
-	
-	delete s_pfont;
-	s_pfont = 0;
-	s_ShowEFBCopyRegions_PS.Destroy();
-	s_ShowEFBCopyRegions_VS.Destroy();
-
-#if defined(HAVE_WX) && HAVE_WX
-	if (scrshotThread.joinable())
-		scrshotThread.join();
-#endif
-
-	delete g_framebuffer_manager;
 }
 
 // Create On-Screen-Messages

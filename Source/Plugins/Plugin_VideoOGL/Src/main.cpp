@@ -202,6 +202,7 @@ void VideoBackend::Video_Prepare()
 	PixelShaderManager::Init();
 	ProgramShaderCache::Init();
 	PostProcessing::Init();
+	Renderer::Init();
 	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
@@ -226,6 +227,7 @@ void VideoBackend::Shutdown()
 
 		// The following calls are NOT Thread Safe
 		// And need to be called from the video thread
+		Renderer::Shutdown();
 		TextureConverter::Shutdown();
 		VertexLoaderManager::Shutdown();
 		ProgramShaderCache::Shutdown();
