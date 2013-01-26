@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="Src\aldlist.cpp" />
     <ClCompile Include="Src\AudioCommon.cpp" />
-    <ClCompile Include="Src\AudioCommonConfig.cpp" />
     <ClCompile Include="Src\Mixer.cpp" />
     <ClCompile Include="Src\WaveFile.cpp" />
     <ClCompile Include="Src\AOSoundStream.cpp">
@@ -21,11 +20,11 @@
     <ClCompile Include="Src\NullSoundStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
+    <ClCompile Include="Src\DPL2Decoder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\aldlist.h" />
     <ClInclude Include="Src\AudioCommon.h" />
-    <ClInclude Include="Src\AudioCommonConfig.h" />
     <ClInclude Include="Src\Mixer.h" />
     <ClInclude Include="Src\SoundStream.h" />
     <ClInclude Include="Src\WaveFile.h" />
@@ -44,6 +43,7 @@
     <ClInclude Include="Src\XAudio2Stream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
+    <ClInclude Include="Src\DPL2Decoder.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

@@ -90,11 +90,11 @@
 #define SHADERS_DIR 		"Shaders"
 #define WII_SYSCONF_DIR		"shared2" DIR_SEP "sys"
 #define WII_WC24CONF_DIR		"shared2" DIR_SEP "wc24"
+#define THEMES_DIR		"Themes"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
 #define DOLPHIN_CONFIG	"Dolphin.ini"
-#define DSP_CONFIG		"DSP.ini"
 #define DEBUGGER_CONFIG	"Debugger.ini"
 #define LOGGER_CONFIG	"Logger.ini"
 

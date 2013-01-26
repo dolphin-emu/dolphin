@@ -48,7 +48,7 @@ ALDeviceList::ALDeviceList()
 	const char *actualDeviceName = NULL;
 
 	// DeviceInfo vector stores, for each enumerated device, it's device name, selection status, spec version #, and extension support
-	vDeviceInfo.empty();
+	vDeviceInfo.clear();
 	vDeviceInfo.reserve(10);
 
 	defaultDeviceIndex = 0;
@@ -151,7 +151,7 @@ ALDeviceList::~ALDeviceList()
 		}
 	}
 
-	vDeviceInfo.empty();
+	vDeviceInfo.clear();
 }
 
 /*

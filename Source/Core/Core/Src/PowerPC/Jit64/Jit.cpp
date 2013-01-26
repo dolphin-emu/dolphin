@@ -252,8 +252,6 @@ void Jit64::HLEFunction(UGeckoInstruction _inst)
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
-	MOV(32, R(EAX), M(&NPC));
-	WriteExitDestInEAX();
 }
 
 void Jit64::DoNothing(UGeckoInstruction _inst)
@@ -566,6 +564,27 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			ABI_CallFunction(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
 		}
 
+		u32 function = HLE::GetFunctionIndex(ops[i].address);
+		if (function != 0)
+		{
+			int type = HLE::GetFunctionTypeByIndex(function);
+			if (type == HLE::HLE_HOOK_START || type == HLE::HLE_HOOK_REPLACE)
+			{
+				int flags = HLE::GetFunctionFlagsByIndex(function);
+				if (HLE::IsEnabled(flags))
+				{
+					HLEFunction(function);
+					if (type == HLE::HLE_HOOK_REPLACE)
+					{
+						MOV(32, R(EAX), M(&NPC));
+						js.downcountAmount += js.st.numCycles;
+						WriteExitDestInEAX();
+						break;
+					}
+				}
+			}
+		}
+
 		if (!ops[i].skip)
 		{
 			if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
@@ -666,6 +685,20 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		
 		if (js.cancel)
 			break;
+	}
+
+	u32 function = HLE::GetFunctionIndex(js.blockStart);
+	if (function != 0)
+	{
+		int type = HLE::GetFunctionTypeByIndex(function);
+		if (type == HLE::HLE_HOOK_END)
+		{
+			int flags = HLE::GetFunctionFlagsByIndex(function);
+			if (HLE::IsEnabled(flags))
+			{
+				HLEFunction(function);
+			}
+		}
 	}
 
 	if (memory_exception)

@@ -45,7 +45,7 @@ void ControllerInterface::Initialize()
 	ciface::Xlib::Init(m_devices, m_hwnd);
 #endif
 #ifdef CIFACE_USE_OSX
-	ciface::OSX::Init(m_devices);
+	ciface::OSX::Init(m_devices, m_hwnd);
 #endif
 #ifdef CIFACE_USE_SDL
 	ciface::SDL::Init(m_devices);
@@ -461,7 +461,7 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 		i = device->Inputs().begin(),
 		e = device->Inputs().end();
 	for (std::vector<bool>::iterator state = states.begin(); i != e; ++i)
-		*state++ = ((*i)->GetState() > INPUT_DETECT_THRESHOLD);
+		*state++ = ((*i)->GetState() > (1 - INPUT_DETECT_THRESHOLD));
 
 	while (time < ms)
 	{
@@ -477,7 +477,7 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 				if (false == *state)
 					return *i;
 			}
-			else
+			else if ((*i)->GetState() < (1 - INPUT_DETECT_THRESHOLD))
 				*state = false;
 		}
 		Common::SleepCurrentThread(10); time += 10;

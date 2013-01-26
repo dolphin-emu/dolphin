@@ -212,8 +212,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
 	ChangeBannerDetails((int)SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
 	m_Banner->SetBitmap(OpenGameListItem->GetImage());
-	m_Banner->Connect(wxID_ANY, wxEVT_RIGHT_DOWN,
-		wxMouseEventHandler(CISOProperties::RightClickOnBanner), (wxObject*)NULL, this);
+	m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
 
 	// Filesystem browser/dumper
 	// TODO : Should we add a way to browse the wad file ?

@@ -25,6 +25,7 @@
 #endif
 
 #include <string>
+#include <algorithm>
 
 #include "FileSearch.h"
 
@@ -72,36 +73,36 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 
 
 #else
-	size_t dot_pos = _searchString.rfind(".");
+	// TODO: super lame/broken
 
-	if (dot_pos == std::string::npos)
-		return;
+	auto end_match(_searchString);
 
-	std::string ext = _searchString.substr(dot_pos);
+	// assuming we have a "*.blah"-like pattern
+	if (!end_match.empty() && end_match[0] == '*')
+		end_match.erase(0, 1);
+
+	// ugly
+	if (end_match == ".*")
+		end_match.clear();
+
 	DIR* dir = opendir(_strPath.c_str());
 
 	if (!dir)
 		return;
 
-	dirent* dp;
-
-	while (true)
+	while (auto const dp = readdir(dir))
 	{
-		dp = readdir(dir);
+		std::string found(dp->d_name);
 
-		if (!dp)
-			break;
-
-		std::string s(dp->d_name);
-
-		if ( (!ext.compare(".*") && s.compare(".") && s.compare("..")) ||
-				((s.size() > ext.size()) && (!strcasecmp(s.substr(s.size() - ext.size()).c_str(), ext.c_str())) ))
+		if ((found != ".") && (found != "..")
+			&& (found.size() >= end_match.size())
+			&& std::equal(end_match.rbegin(), end_match.rend(), found.rbegin()))
 		{
 			std::string full_name;
 			if (_strPath.c_str()[_strPath.size()-1] == DIR_SEP_CHR)
-				full_name = _strPath + s;
+				full_name = _strPath + found;
 			else
-				full_name = _strPath + DIR_SEP + s;
+				full_name = _strPath + DIR_SEP + found;
 
 			m_FileNames.push_back(full_name);
 		}

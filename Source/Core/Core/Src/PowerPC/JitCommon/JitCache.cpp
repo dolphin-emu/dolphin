@@ -135,7 +135,11 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	// is full and when saving and loading states.
 	void JitBlockCache::Clear()
 	{
-		Core::DisplayMessage("Clearing code cache.", 3000);
+		if (IsFull())
+			Core::DisplayMessage("Clearing block cache.", 3000);
+		else
+			Core::DisplayMessage("Clearing code cache.", 3000);
+
 		for (int i = 0; i < num_blocks; i++)
 		{
 			DestroyBlock(i, false);
@@ -370,29 +374,27 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	{
 		LinkBlockExits(i);
 		JitBlock &b = blocks[i];
-		std::map<u32, int>::iterator iter;
 		pair<multimap<u32, int>::iterator, multimap<u32, int>::iterator> ppp;
 		// equal_range(b) returns pair<iterator,iterator> representing the range
 		// of element with key b
 		ppp = links_to.equal_range(b.originalAddress);
 		if (ppp.first == ppp.second)
 			return;
-		for (multimap<u32, int>::iterator iter2 = ppp.first; iter2 != ppp.second; ++iter2) {
-			// PanicAlert("Linking block %i to block %i", iter2->second, i);
-			LinkBlockExits(iter2->second);
+		for (multimap<u32, int>::iterator iter = ppp.first; iter != ppp.second; ++iter) {
+			// PanicAlert("Linking block %i to block %i", iter->second, i);
+			LinkBlockExits(iter->second);
 		}
 	}
 
 	void JitBlockCache::UnlinkBlock(int i)
 	{
 		JitBlock &b = blocks[i];
-		std::map<u32, int>::iterator iter;
 		pair<multimap<u32, int>::iterator, multimap<u32, int>::iterator> ppp;
 		ppp = links_to.equal_range(b.originalAddress);
 		if (ppp.first == ppp.second)
 			return;
-		for (multimap<u32, int>::iterator iter2 = ppp.first; iter2 != ppp.second; ++iter2) {
-			JitBlock &sourceBlock = blocks[iter2->second];
+		for (multimap<u32, int>::iterator iter = ppp.first; iter != ppp.second; ++iter) {
+			JitBlock &sourceBlock = blocks[iter->second];
 			for (int e = 0; e < 2; e++)
 			{
 				if (sourceBlock.exitAddress[e] == b.originalAddress)
@@ -458,7 +460,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		// !! this works correctly under assumption that any two overlapping blocks end at the same address
 		if (destroy_block)
 		{
-			std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(pAddr, 0)), it2 = it1, it;
+			std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(pAddr, 0)), it2 = it1;
 			while (it2 != block_map.end() && it2->first.second < pAddr + length)
 			{
 #ifdef JIT_UNLIMITED_ICACHE

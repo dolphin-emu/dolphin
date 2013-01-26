@@ -24,21 +24,30 @@
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 #ifdef _WIN32
-#include "../../../../Externals/OpenAL/include/al.h"
-#include "../../../../Externals/OpenAL/include/alc.h"
+#include <OpenAL/include/al.h>
+#include <OpenAL/include/alc.h>
+#include <OpenAL/include/alext.h>
 #elif defined __APPLE__
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
 #else
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/alext.h>
 #endif
+
+#include "Core.h"
+#include "HW/SystemTimers.h"
+#include "HW/AudioInterface.h"
+#include <soundtouch/SoundTouch.h>
+#include <soundtouch/STTypes.h>
 
 // 16 bit Stereo
 #define SFX_MAX_SOURCE		1
-#define OAL_NUM_BUFFERS		16
-#define OAL_MAX_SAMPLES		512		// AyuanX: Don't make it too large, as larger buffer means longer delay
-#define OAL_THRESHOLD		128		// Some games are quite sensitive to delay
+#define OAL_MAX_BUFFERS		32
+#define OAL_MAX_SAMPLES		256
+#define SURROUND_CHANNELS	6	// number of channels in surround mode
+#define SIZE_FLOAT			4   // size of a float in bytes
 #endif
 
 class OpenALStream: public SoundStream
@@ -64,11 +73,14 @@ public:
 private:
 	std::thread thread;
 	Common::Event soundSyncEvent;
-	
+
 	short realtimeBuffer[OAL_MAX_SAMPLES * 2];
-	ALuint uiBuffers[OAL_NUM_BUFFERS];
+	soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
+	ALuint uiBuffers[OAL_MAX_BUFFERS];
 	ALuint uiSource;
 	ALfloat fVolume;
+
+	u8 numBuffers;
 #else
 public:
 	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}

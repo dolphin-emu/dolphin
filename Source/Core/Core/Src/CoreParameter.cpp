@@ -45,9 +45,9 @@ SCoreStartupParameter::SCoreStartupParameter()
   bEnableFPRF(false), 
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bNTSC(false), bForceNTSCJ(false),
-  bHLE_BS2(true), bLockThreads(false),
-  bEnableCheats(false),
+  bHLE_BS2(true), bEnableCheats(false),
   bMergeBlocks(false),
+  bDPL2Decoder(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
   bMMU(false), bMMUBAT(false), iTLBHack(0), bVBeam(false),
   bFastDiscSpeed(false),
@@ -59,7 +59,6 @@ SCoreStartupParameter::SCoreStartupParameter()
   bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
   bFullscreen(false), bRenderToMain(false),
   bProgressive(false), bDisableScreenSaver(false),
-  iTheme(0),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600)
 {
 	LoadDefaults();
@@ -77,7 +76,6 @@ void SCoreStartupParameter::LoadDefaults()
 	bRunCompareServer = false;
 	bDSPHLE = true;
 	bDSPThread = true;
-	bLockThreads = true;
 	bEnableFPRF = false;
 	bMMU = false;
 	bMMUBAT = false;
@@ -87,6 +85,8 @@ void SCoreStartupParameter::LoadDefaults()
 	bMergeBlocks = false;
 	SelectedLanguage = 0;
 	bWii = false;
+	bDPL2Decoder = false;
+	iLatency = 14;
 
 	iPosX = 100;
 	iPosY = 100;

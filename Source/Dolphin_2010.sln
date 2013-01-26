@@ -108,6 +108,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "png", "..\Externals\libpng\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCMRevGen", "Core\Common\SVNRevGen.vcxproj", "{69F00340-5C3D-449F-9A80-958435C6CF06}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoundTouch", "..\Externals\SoundTouch\SoundTouch.vcxproj", "{68A5DD20-7057-448B-8FE0-B6AC8D205509}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -382,6 +384,18 @@ Global
 		{69F00340-5C3D-449F-9A80-958435C6CF06}.Release|Win32.Build.0 = Release|x64
 		{69F00340-5C3D-449F-9A80-958435C6CF06}.Release|x64.ActiveCfg = Release|x64
 		{69F00340-5C3D-449F-9A80-958435C6CF06}.Release|x64.Build.0 = Release|x64
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.Debug|Win32.ActiveCfg = Debug|Win32
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.Debug|Win32.Build.0 = Debug|Win32
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.Debug|x64.ActiveCfg = Debug|x64
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.Debug|x64.Build.0 = Debug|x64
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.DebugFast|Win32.ActiveCfg = Debug|Win32
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.DebugFast|Win32.Build.0 = Debug|Win32
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.DebugFast|x64.ActiveCfg = Release|x64
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.DebugFast|x64.Build.0 = Release|x64
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.Release|Win32.ActiveCfg = Release|Win32
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.Release|Win32.Build.0 = Release|Win32
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.Release|x64.ActiveCfg = Release|x64
+		{68A5DD20-7057-448B-8FE0-B6AC8D205509}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

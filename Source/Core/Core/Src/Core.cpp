@@ -313,10 +313,9 @@ void CpuThread()
 		g_video_backend->Video_Prepare();
 	}
 
-	if (_CoreParameter.bLockThreads)
-		Common::SetCurrentThreadAffinity(1);  // Force to first core
+	Common::SetCurrentThreadAffinity(1);  // Force to first core
 
-	#if defined(_WIN32) && defined(_M_X64)
+	#if defined(_M_X64)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
 
@@ -357,8 +356,7 @@ void FifoPlayerThread()
 		Common::SetCurrentThreadName("FIFO-GPU thread");
 	}
 
-	if (_CoreParameter.bLockThreads)
-		Common::SetCurrentThreadAffinity(1);  // Force to first core
+	Common::SetCurrentThreadAffinity(1);  // Force to first core
 
 	g_bStarted = true;
 
@@ -384,7 +382,6 @@ void EmuThread()
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
 
-	if (_CoreParameter.bLockThreads)
 	{
 		if (cpu_info.num_cores > 3)	// Force to third, non-HT core
 			Common::SetCurrentThreadAffinity(4);
@@ -444,7 +441,7 @@ void EmuThread()
 	CBoot::BootUp();
 
 	// Setup our core, but can't use dynarec if we are compare server
-	if (Movie::GetCPUMode() && (!_CoreParameter.bRunCompareServer ||
+	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer ||
 					_CoreParameter.bRunCompareClient))
 		PowerPC::SetMode(PowerPC::MODE_JIT);
 	else
@@ -647,70 +644,7 @@ void VideoThrottle()
 	u32 ElapseTime = (u32)Timer.GetTimeDifference();
 	if ((ElapseTime >= 1000 && DrawnVideo > 0) || g_requestRefreshInfo)
 	{
-		g_requestRefreshInfo = false;
-		SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
-
-		if (ElapseTime == 0)
-			ElapseTime = 1;
-
-		u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
-		u32 VPS = DrawnVideo * 1000 / ElapseTime;
-		u32 Speed = DrawnVideo * (100 * 1000) / (VideoInterface::TargetRefreshRate * ElapseTime);
-		
-		// Settings are shown the same for both extended and summary info
-		std::string SSettings = StringFromFormat("%s %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC");
-
-		// Use extended or summary information. The summary information does not print the ticks data,
-		// that's more of a debugging interest, it can always be optional of course if someone is interested.
-		//#define EXTENDED_INFO
-		#ifdef EXTENDED_INFO
-			u64 newTicks = CoreTiming::GetTicks();
-			u64 newIdleTicks = CoreTiming::GetIdleTicks();
-	 
-			u64 diff = (newTicks - ticks) / 1000000;
-			u64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
-	 
-			ticks = newTicks;
-			idleTicks = newIdleTicks;	 
-			
-			float TicksPercentage = (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
-
-			std::string SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
-			SFPS += StringFromFormat(" | CPU: %s%i MHz [Real: %i + IdleSkip: %i] / %i MHz (%s%3.0f%%)",
-					_CoreParameter.bSkipIdle ? "~" : "",
-					(int)(diff),
-					(int)(diff - idleDiff),
-					(int)(idleDiff),
-					SystemTimers::GetTicksPerSecond() / 1000000,
-					_CoreParameter.bSkipIdle ? "~" : "",
-					TicksPercentage);
-
-		#else	// Summary information
-		std::string SFPS;
-		if (Movie::IsPlayingInput())
-			SFPS = StringFromFormat("VI: %u/%u - Frame: %u/%u - FPS: %u - VPS: %u - SPEED: %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
-		else if (Movie::IsRecordingInput())
-			SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - SPEED: %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
-		else
-			SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
-		#endif
-
-		// This is our final "frame counter" string
-		std::string SMessage = StringFromFormat("%s | %s",
-			SSettings.c_str(), SFPS.c_str());
-		std::string TMessage = StringFromFormat("%s | ", scm_rev_str) +
-			SMessage;
-
-		// Show message
-		g_video_backend->UpdateFPSDisplay(SMessage.c_str()); 
-
-		if (_CoreParameter.bRenderToMain &&
-			SConfig::GetInstance().m_InterfaceStatusbar) {
-			Host_UpdateStatusBar(SMessage.c_str());
-			Host_UpdateTitle(scm_rev_str);
-		} else
-			Host_UpdateTitle(TMessage.c_str());
-		
+		UpdateTitle();
 
 		// Reset counter
 		Timer.Update();
@@ -756,5 +690,80 @@ const char *Callback_ISOName()
 	else	
 		return "";
 }
+
+void UpdateTitle()
+{
+	u32 ElapseTime = (u32)Timer.GetTimeDifference();
+	g_requestRefreshInfo = false;
+	SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+	if (ElapseTime == 0)
+		ElapseTime = 1;
+
+	u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
+	u32 VPS = DrawnVideo * 1000 / ElapseTime;
+	u32 Speed = DrawnVideo * (100 * 1000) / (VideoInterface::TargetRefreshRate * ElapseTime);
+
+	// Settings are shown the same for both extended and summary info
+	std::string SSettings = StringFromFormat("%s %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC");
+
+	// Use extended or summary information. The summary information does not print the ticks data,
+	// that's more of a debugging interest, it can always be optional of course if someone is interested.
+	//#define EXTENDED_INFO
+	#ifdef EXTENDED_INFO
+		u64 newTicks = CoreTiming::GetTicks();
+		u64 newIdleTicks = CoreTiming::GetIdleTicks();
+
+		u64 diff = (newTicks - ticks) / 1000000;
+		u64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
+
+		ticks = newTicks;
+		idleTicks = newIdleTicks;
+
+		float TicksPercentage = (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
+
+		std::string SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
+		SFPS += StringFromFormat(" | CPU: %s%i MHz [Real: %i + IdleSkip: %i] / %i MHz (%s%3.0f%%)",
+				_CoreParameter.bSkipIdle ? "~" : "",
+				(int)(diff),
+				(int)(diff - idleDiff),
+				(int)(idleDiff),
+				SystemTimers::GetTicksPerSecond() / 1000000,
+				_CoreParameter.bSkipIdle ? "~" : "",
+				TicksPercentage);
+
+	#else	// Summary information
+	std::string SFPS;
+	if (Movie::IsPlayingInput())
+		SFPS = StringFromFormat("VI: %u/%u - Frame: %u/%u - FPS: %u - VPS: %u - SPEED: %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
+	else if (Movie::IsRecordingInput())
+		SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - SPEED: %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
+	else
+		SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
+	#endif
+
+	// This is our final "frame counter" string
+	std::string SMessage = StringFromFormat("%s | %s",
+		SSettings.c_str(), SFPS.c_str());
+	std::string TMessage = StringFromFormat("%s | ", scm_rev_str) +
+		SMessage;
+
+	// Show message
+	g_video_backend->UpdateFPSDisplay(SMessage.c_str());
+
+	// Update the audio timestretcher with the current speed
+	if (soundStream)
+	{
+		CMixer* pMixer = soundStream->GetMixer();
+		pMixer->UpdateSpeed((float)Speed / 100);
+	}
+
+	if (_CoreParameter.bRenderToMain &&
+		SConfig::GetInstance().m_InterfaceStatusbar) {
+		Host_UpdateStatusBar(SMessage.c_str());
+		Host_UpdateTitle(scm_rev_str);
+	} else
+		Host_UpdateTitle(TMessage.c_str());
+	}
 
 } // Core

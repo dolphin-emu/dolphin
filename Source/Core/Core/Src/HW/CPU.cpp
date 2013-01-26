@@ -37,10 +37,6 @@ namespace
 
 void CCPU::Init(int cpu_core)
 {
-	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
-	{
-		cpu_core = Movie::GetCPUMode();
-	}
 	PowerPC::Init(cpu_core);
 	m_SyncEvent = NULL;
 }

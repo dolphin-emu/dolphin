@@ -62,8 +62,8 @@ void SaveTexture(const char* filename, u32 texmap, s32 mip)
 
     TexImage0& ti0 = texUnit.texImage0[subTexmap];
 
-	int width = ti0.width + 1;
-	int height = ti0.height + 1;
+	u32 width = ti0.width + 1;
+	u32 height = ti0.height + 1;
 
 	u8 *data = new u8[width * height * 4];
     
@@ -74,19 +74,23 @@ void SaveTexture(const char* filename, u32 texmap, s32 mip)
     delete []data;
 }
 
-void GetTextureBGRA(u8 *dst, u32 texmap, s32 mip, int width, int height)
+void GetTextureBGRA(u8 *dst, u32 texmap, s32 mip, u32 width, u32 height)
 {
     u8 sample[4];    
 
-    for (int y = 0; y < height; y++)
-        for (int x = 0; x < width; x++) {
+    for (u32 y = 0; y < height; y++)
+	{
+        for (u32 x = 0; x < width; x++)
+		{
             TextureSampler::SampleMip(x << 7, y << 7, mip, false, texmap, sample);
-            // rgba to bgra
+            
+			// RGBA to BGRA
             *(dst++) = sample[2];
             *(dst++) = sample[1];
             *(dst++) = sample[0];
             *(dst++) = sample[3];
         }
+	}
 }
 
 s32 GetMaxTextureLod(u32 texmap)

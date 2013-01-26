@@ -89,6 +89,8 @@ bool ShouldSkipFrame(int skipped);
 void VideoThrottle();
 void RequestRefreshInfo();
 
+void UpdateTitle();
+
 // waits until all systems are paused and fully idle, and acquires a lock on that state.
 // or, if doLock is false, releases a lock on that state and optionally unpauses.
 // calls must be balanced (once with doLock true, then once with doLock false) but may be recursive.
