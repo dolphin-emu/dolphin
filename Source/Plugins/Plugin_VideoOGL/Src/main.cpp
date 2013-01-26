@@ -190,8 +190,6 @@ void VideoBackend::Video_Prepare()
 	CommandProcessor::Init();
 	PixelEngine::Init();
 
-	g_texture_cache = new TextureCache;
-
 	BPInit();
 	g_vertex_manager = new VertexManager;
 	Fifo_Init(); // must be done before OpcodeDecoder_Init()
@@ -201,6 +199,7 @@ void VideoBackend::Video_Prepare()
 	PixelShaderCache::Init();
 	PixelShaderManager::Init();
 	ProgramShaderCache::Init();
+	g_texture_cache = new TextureCache;
 	PostProcessing::Init();
 	Renderer::Init();
 	GL_REPORT_ERRORD();
@@ -230,17 +229,18 @@ void VideoBackend::Shutdown()
 		Renderer::Shutdown();
 		TextureConverter::Shutdown();
 		VertexLoaderManager::Shutdown();
+		delete g_texture_cache;
+		g_texture_cache = NULL;
 		ProgramShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
 		VertexShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();
 		PixelShaderCache::Shutdown();
 		delete g_vertex_manager;
-		delete g_texture_cache;
+		g_vertex_manager = NULL;
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
 		g_renderer = NULL;
-		g_texture_cache = NULL;
 	}
 	GLInterface->Shutdown();
 }
