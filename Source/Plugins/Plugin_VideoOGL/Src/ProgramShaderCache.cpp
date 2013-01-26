@@ -200,7 +200,7 @@ void ProgramShaderCache::UploadConstants()
 			glBufferData(GL_UNIFORM_BUFFER, UBO_LENGTH, NULL, GL_STREAM_DRAW);
 			s_ubo_iterator = 0;
 		}
-		void *ubo = glMapBufferRange(GL_UNIFORM_BUFFER, s_ubo_iterator, s_ubo_buffer_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+		void *ubo = glMapBufferRange(GL_UNIFORM_BUFFER, s_ubo_iterator, s_ubo_buffer_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
 		memcpy(ubo, s_ubo_buffer, s_ubo_buffer_size);
 		glUnmapBuffer(GL_UNIFORM_BUFFER);
 		

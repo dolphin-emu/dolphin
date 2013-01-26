@@ -119,7 +119,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 
 	glShaderSource(result, 1, &pstrprogram, NULL);
 	glCompileShader(result);
-	
+#if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
 	GLsizei length = 0;
 	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
 	if (length > 1)
@@ -147,6 +147,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 		glDeleteShader(result);
 		return false;
 	}
+#endif
 	(void)GL_REPORT_ERROR();
 	vs.glprogid = result;
 	return true;

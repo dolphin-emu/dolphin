@@ -133,7 +133,7 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 
 	glShaderSource(result, 1, &pstrprogram, NULL);
 	glCompileShader(result);
-	
+#if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
 	GLsizei length = 0;
 	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
 	if (length > 1)
@@ -161,7 +161,7 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 		glDeleteShader(result);
 		return false;
 	}
-
+#endif
 	(void)GL_REPORT_ERROR();
 	ps.glprogid = result;
 	return true;
