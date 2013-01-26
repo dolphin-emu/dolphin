@@ -874,7 +874,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				millis.tv_sec = 3;
 				millis.tv_usec = 0;
 #endif
-				setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,&millis,sizeof(millis));
+				setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char *)&millis,sizeof(millis));
 			}
 			
 			
