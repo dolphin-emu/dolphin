@@ -39,6 +39,7 @@ public:
 	std::string GetApploaderDate() const;
 	ECountry GetCountry() const;
 	u64 GetSize() const;
+	bool IsDiscTwo() const;
 
 private:
 	IBlobReader* m_pReader;
