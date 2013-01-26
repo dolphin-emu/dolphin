@@ -41,6 +41,13 @@ inline double round(double x) { return (x-floor(x))>0.5 ? ceil(x) : floor(x); } 
 
 #include "../../Movie.h"
 
+namespace
+{
+// :)
+auto const TAU = 6.28318530717958647692;
+auto const PI = TAU / 2.0;
+}
+
 namespace WiimoteEmu
 {
 
