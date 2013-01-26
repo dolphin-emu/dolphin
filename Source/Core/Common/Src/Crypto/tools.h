@@ -13,6 +13,7 @@ void bn_add(u8 *d, u8 *a, u8 *b, u8 *N, u32 n);
 void bn_mul(u8 *d, u8 *a, u8 *b, u8 *N, u32 n);
 void bn_inv(u8 *d, u8 *a, u8 *N, u32 n);	// only for prime N
 void bn_exp(u8 *d, u8 *a, u8 *N, u32 n, u8 *e, u32 en);
+void point_mul(u8 *d, u8 *a, u8 *b);
 
 void generate_ecdsa(u8 *R, u8 *S, u8 *k, u8 *hash);
 

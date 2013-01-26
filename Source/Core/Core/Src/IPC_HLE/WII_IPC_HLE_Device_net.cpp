@@ -254,8 +254,6 @@ u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode( const char * area )
 	u32 i;
 	u8 regions_[] = {0,1,2,2,1,3,3,4,5,5,1,2,6,7};
 	const char* regions[] = {"JPN", "USA", "EUR", "AUS", "BRA", "TWN", "ROC", "KOR", "HKG", "ASI", "LTN", "SAF", "CHN", ""};
-	
-	u8 region_code = 0xff;
 	for (i=0; i<sizeof(regions)/sizeof(*regions); i++)
 	{
 		if (!strncmp(regions[i], area, 4))
@@ -432,7 +430,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		{
 			int x = 0;
 			int tmpaddress[6];
-			for (int i = 0; i < SConfig::GetInstance().m_WirelessMac.length() && x < 6; i++)
+			for (unsigned int i = 0; i < SConfig::GetInstance().m_WirelessMac.length() && x < 6; i++)
 			{
 				if (SConfig::GetInstance().m_WirelessMac[i] == ':' || SConfig::GetInstance().m_WirelessMac[i] == '-')
 					continue;
@@ -868,11 +866,19 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 				s, AF, TYPE, PROT, _BufferIn, BufferInSize, _BufferOut, BufferOutSize);
 			
 			int ret = getNetErrorCode(s, "SO_SOCKET", false);
-			if(ret>0){
+			if(ret>=0){
+#ifdef _WIN32
 				u32 millis = 3000;
-
-				setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,(char *)&millis,4);
+#else
+				struct timeval millis;
+				millis.tv_sec = 3;
+				millis.tv_usec = 0;
+#endif
+				setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,&millis,sizeof(millis));
 			}
+			
+			
+			
 			return ret;
 			break;
 		}
@@ -1059,7 +1065,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 			}
 			else if (cmd == F_SETFL)
 			{
-				int posix_flags = 0;
+				int posix_flags = O_NONBLOCK; //0;
 
 				for (unsigned int i = 0; i < sizeof (mapping) / sizeof (mapping[0]); ++i)
 				{
@@ -1191,9 +1197,9 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 
 			for (int i = 0; i < nfds; i++)
 			{
-				ufds[i].fd = Memory::Read_U32(_BufferOut + 0xc*i);
-				int events = Memory::Read_U32(_BufferOut + 0xc*i + 4);
-				ufds[i].revents = Memory::Read_U32(_BufferOut + 0xc*i + 8);
+				ufds[i].fd = Memory::Read_U32(_BufferOut + 0xc*i);				//fd
+				int events = Memory::Read_U32(_BufferOut + 0xc*i + 4);			//events
+				ufds[i].revents = Memory::Read_U32(_BufferOut + 0xc*i + 8);	//revents
 
 				// Translate Wii to native events
 				int unhandled_events = events;
@@ -1221,9 +1227,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 
 			for (int i = 0; i<nfds; i++)
 			{
-				Memory::Write_U32(ufds[i].fd, _BufferOut + 0xc*i);
-				Memory::Write_U32(ufds[i].events, _BufferOut + 0xc*i + 4);
-
+				
 				// Translate native to Wii events
 				int revents = 0;
 				for (unsigned int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
@@ -1231,11 +1235,16 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command,
 					if (ufds[i].revents & mapping[j][0])
 						revents |= mapping[j][1];
 				}
-				WARN_LOG(WII_IPC_NET, "IOCTL_SO_POLL socket %d revents %08X", i, revents);
-
-				Memory::Write_U32(revents, _BufferOut + 0xc*i + 8);
+				
+				// No need to change fd or events as they are input only.
+				//Memory::Write_U32(ufds[i].fd, _BufferOut + 0xc*i);	//fd
+				//Memory::Write_U32(events, _BufferOut + 0xc*i + 4);	//events
+				Memory::Write_U32(revents, _BufferOut + 0xc*i + 8);	//revents
+				
+				WARN_LOG(WII_IPC_NET, "IOCTL_SO_POLL socket %d revents %08X events %08X", i, revents, ufds[i].events);
 			}
 			free(ufds);
+			
 			return ret;
 		}
 
@@ -1623,7 +1632,6 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 				return totallen;
 			}
 #endif
-
 			ret = recvfrom(sock, buf, len, flags,
 			               fromlen ? (struct sockaddr*) &addr : NULL,
 			               fromlen ? &fromlen : 0);
@@ -1634,7 +1642,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 			WARN_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",fromlen ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ",
-			ret, buf, sock, flags,
+				err, buf, sock, flags,
 			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
 			_BufferOut, BufferOutSize, _BufferOut2, BufferOutSize2);
 

@@ -7,6 +7,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/CoreParameter.cpp
 			Src/CoreTiming.cpp
 			Src/DSPEmulator.cpp
+			Src/ec_wii.cpp
 			Src/GeckoCodeConfig.cpp
 			Src/GeckoCode.cpp
 			Src/MemTools.cpp

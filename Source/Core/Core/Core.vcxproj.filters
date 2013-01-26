@@ -533,6 +533,9 @@
     <ClCompile Include="Src\NetPlay.cpp">
       <Filter>NetPlay</Filter>
     </ClCompile>
+    <ClCompile Include="Src\ec_wii.cpp">
+      <Filter>ec_wii</Filter>
+    </ClCompile>
     <ClCompile Include="Src\NetPlayServer.cpp">
       <Filter>NetPlay</Filter>
     </ClCompile>
@@ -1030,6 +1033,9 @@
     <ClInclude Include="Src\DolLoader.h" />
     <ClInclude Include="Src\NetPlay.h">
       <Filter>NetPlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ec_wii.h">
+      <Filter>ec_wii</Filter>
     </ClInclude>
     <ClInclude Include="Src\BootManager.h" />
     <ClInclude Include="Src\FifoPlayer\FifoDataFile.h">

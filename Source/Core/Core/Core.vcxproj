@@ -341,7 +341,8 @@
     <ClCompile Include="Src\NetPlayClient.cpp" />
     <ClCompile Include="Src\NetPlayServer.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
-    <ClCompile Include="Src\DSPEmulator.cpp" />
+	<ClCompile Include="Src\DSPEmulator.cpp" />
+	<ClCompile Include="Src\ec_wii.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Branch.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_FloatingPoint.cpp" />
@@ -550,6 +551,7 @@
     <ClInclude Include="Src\MemTools.h" />
     <ClInclude Include="Src\Movie.h" />
     <ClInclude Include="Src\NetPlay.h" />
+    <ClInclude Include="Src\ec_wii.h" />
     <ClInclude Include="Src\PatchEngine.h" />
     <ClInclude Include="Src\DSPEmulator.h" />
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h" />

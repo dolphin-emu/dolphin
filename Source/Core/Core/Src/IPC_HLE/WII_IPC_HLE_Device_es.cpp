@@ -60,11 +60,7 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "../Movie.h"
 
-#include <openssl/bn.h>
-#include <openssl/ec.h>
-#include <openssl/ecdsa.h>
-#include <openssl/sha.h>
-#include <openssl/objects.h>
+#include <ec_wii.h>
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -872,6 +868,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		{
 			File::IOFile(path, "rb").ReadBytes(destination, size);
 		}
+		else
+		{
+			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT failed: no cert found.");
+			
+		}
 		
 		Memory::Write_U32(0, _CommandAddress + 0x4);
         break;
@@ -879,108 +880,15 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 	case IOCTL_ES_SIGN:
 	{
 		
-        WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
+		WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
+		u8 *ap_cert_out = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+		u8 *data = Memory::GetPointer(Buffer.InBuffer[0].m_Address);
+		u32 data_size = Buffer.InBuffer[0].m_Size;
+		u8 *sig_out =  Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 		
-		ecc_cert_t device_cert;
-		memset(&device_cert, 0, sizeof(ecc_cert_t));
-
-		std::string path = File::GetUserPath(D_WIIUSER_IDX) + "clientcert.bin";
-		if (File::Exists(path))
-		{
-			File::IOFile(path, "rb").ReadBytes((u8*)&device_cert, 0x180);
-		}else{
-			WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN: clientcert.bin not found.");
-			break;
-		}
-
-		ecc_cert_t * ap_cert = (ecc_cert_t *)Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 		
-		ap_cert->sig_type	= Common::swap32(0x00010002);
-		ap_cert->key_type	= Common::swap32(0x00000002);
-		ap_cert->ng_key_id	= 0;
-
-		snprintf((char*)ap_cert->issuer,
-			0x40,
-			"%s-%s",
-			device_cert.issuer,
-			device_cert.key_name);
+		get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, NULL, 0);
 		
-		snprintf((char*)ap_cert->key_name,
-			0x40,
-			"AP%08x%08x",
-			(u32)(m_TitleID>>32),
-			(u32)(m_TitleID & 0xFFFFFFFF));
-
-
-		u8 hash[SHA_DIGEST_LENGTH];
-		SHA1(Memory::GetPointer(Buffer.InBuffer[0].m_Address), Buffer.InBuffer[0].m_Size, hash);
-
-		BIGNUM *bn = BN_bin2bn(key_ecc_r, 0x1e, NULL);
-		EC_KEY *rand_key = EC_KEY_new_by_curve_name(NID_sect233r1);
-		EC_KEY_set_private_key(rand_key, bn);
-
-		const EC_GROUP *group = EC_KEY_get0_group(rand_key);
-
-		EC_POINT *pubkey = EC_POINT_new(group);
-		EC_POINT_mul(group, pubkey, bn, NULL, NULL, NULL);
-		
-		BIGNUM *x = BN_new();
-		BIGNUM *y = BN_new();
-		EC_POINT_get_affine_coordinates_GF2m(group, pubkey, x, y, NULL);
-
-		int len = BN_num_bits(x);
-		BN_bn2bin(x, &ap_cert->ecc_pubkey[(240-len)/8]);
-		len = BN_num_bits(y);
-		BN_bn2bin(y, &ap_cert->ecc_pubkey[0x1e + (240-len)/8]);
-
-		EC_KEY_set_public_key(rand_key, pubkey);
-
-		
-		unsigned int buf_len = ECDSA_size(rand_key);
-
-		unsigned char * sign_me = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-
-		ECDSA_SIG *rand_sig = ECDSA_do_sign(hash, SHA_DIGEST_LENGTH, rand_key);
-		
-		len = BN_num_bits(rand_sig->r);
-		BN_bn2bin(rand_sig->r, &sign_me[(240-len)/8]);
-		len = BN_num_bits(rand_sig->s);
-		BN_bn2bin(rand_sig->s, &sign_me[0x1e + (240-len)/8]);
-		
-		EC_POINT_free(pubkey);
-		BN_clear_free(bn);
-		BN_clear_free(x);
-		BN_clear_free(y);
-		ECDSA_SIG_free(rand_sig);
-		EC_KEY_free(rand_key);
-
-
-		SHA1(&ap_cert->issuer[0], 0x180 - 0x80, hash);
-		
-		bn = BN_bin2bn(key_ecc, 0x1e, NULL);
-		EC_KEY *ecc_key = EC_KEY_new_by_curve_name(NID_sect233r1);
-		EC_KEY_set_private_key(ecc_key, bn);
-
-		group = EC_KEY_get0_group(ecc_key);
-		pubkey = EC_POINT_new(group);
-		
-		EC_POINT_mul(group, pubkey, bn, NULL, NULL, NULL);
-
-		EC_KEY_set_public_key(ecc_key, pubkey);
-		
-		ECDSA_SIG *ecc_sig = ECDSA_do_sign(hash, SHA_DIGEST_LENGTH, ecc_key);
-		
-		len = BN_num_bits(ecc_sig->r);
-		BN_bn2bin(ecc_sig->r, &ap_cert->sig[(240-len)/8]);
-		len = BN_num_bits(ecc_sig->s);
-		BN_bn2bin(ecc_sig->s, &ap_cert->sig[0x1e + (240-len)/8]);
-
-		
-		EC_POINT_free(pubkey);
-		ECDSA_SIG_free(ecc_sig);
-		BN_clear_free(bn);
-		EC_KEY_free(ecc_key);
-
 		break;
 	}
 	case IOCTL_ES_GETBOOT2VERSION:
