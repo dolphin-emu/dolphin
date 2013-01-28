@@ -93,10 +93,7 @@ void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u
 	sha1(ap_cert_out + 0x80, 0x100, hash);
 	generate_ecdsa(ap_cert_out+4, ap_cert_out+34, NG_priv, hash);
 	
-	
 	sha1(data, data_size, hash);
-	sha1(hash, 20, hash);
-	
 	generate_ecdsa(sig_out, sig_out + 30, ap_priv, hash);
 }
 

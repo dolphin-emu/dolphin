@@ -888,7 +888,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		u8 *sig_out =  Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 		
 		
-		get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, NULL, 0);
+		get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, key_ecc, GetHollywoodID());
 		
 		break;
 	}
