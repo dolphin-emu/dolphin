@@ -15,7 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#pragma once
+#ifndef PROGRAM_SHADER_CACHE_H_
+#define PROGRAM_SHADER_CACHE_H_
 
 #include "GLUtil.h"
 
@@ -27,16 +28,18 @@
 #include "LinearDiskCache.h"
 #include "ConfigManager.h"
 
+#include <unordered_map>
+
 namespace OGL
 {
 
 const int NUM_UNIFORMS = 19;
 extern const char *UniformNames[NUM_UNIFORMS];
+u64 Create_Pair(u32 key1, u32 key2);
 
 class ProgramShaderCache
 {
 public:
-	typedef std::pair<u32, u32> ShaderUID;
 
 	struct PCacheEntry
 	{
@@ -59,7 +62,7 @@ public:
 		{
 			psid = pix_id;
 			vsid = vert_id;
-			uid = std::make_pair(psid, vsid);
+			uid = Create_Pair(psid, vsid);
 			prog_id = glCreateProgram();
 		}
 
@@ -147,7 +150,7 @@ private:
 		}
 	};
 
-	typedef std::map<ShaderUID, PCacheEntry> PCache;
+	typedef std::unordered_map<u64, PCacheEntry> PCache;
 
 	static PCache pshaders;
 	static GLuint CurrentProgram;
@@ -164,3 +167,4 @@ private:
 };
 
 }  // namespace OGL
+#endif

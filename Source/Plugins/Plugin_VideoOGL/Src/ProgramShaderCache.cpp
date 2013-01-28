@@ -37,7 +37,11 @@ GLenum ProgramFormat;
 
 GLuint ProgramShaderCache::PCacheEntry::prog_format = 0;
 
-std::pair<u32, u32> ProgramShaderCache::CurrentShaderProgram;
+u64 ProgramShaderCache::CurrentShaderProgram;
+u64 Create_Pair(u32 key1, u32 key2)
+{
+	return (((u64)key1) << 32) | key2;
+}
 const char *UniformNames[NUM_UNIFORMS] =
 {
 	// PIXEL SHADER UNIFORMS
@@ -142,7 +146,7 @@ void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 		return;
 	}
 	
-	std::pair<u32, u32> ShaderPair = std::make_pair(PS, VS);
+	u64 ShaderPair = Create_Pair(PS, VS);
 	
 	// program is already bound
 	if(ShaderPair == CurrentShaderProgram) return;
@@ -264,7 +268,7 @@ void ProgramShaderCache::Init(void)
 	}
 	
 	CurrentProgram = 0;
-	CurrentShaderProgram = std::pair<u32,u32>(0,0);
+	CurrentShaderProgram = 0;
 }
 
 void ProgramShaderCache::Shutdown(void)
