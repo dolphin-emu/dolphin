@@ -28,8 +28,13 @@
 #include "LinearDiskCache.h"
 #include "ConfigManager.h"
 
+#ifdef __APPLE__
+#include <tr1/unordered_map>
+using namespace std::tr1;
+#else
 #include <unordered_map>
-
+using namespace std;
+#endif
 namespace OGL
 {
 
@@ -153,7 +158,7 @@ private:
 		}
 	};
 
-	typedef std::unordered_map<u64, PCacheEntry> PCache;
+	typedef unordered_map<u64, PCacheEntry> PCache;
 
 	static PCache pshaders;
 	static GLuint CurrentProgram;
