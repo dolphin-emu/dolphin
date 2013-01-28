@@ -43,6 +43,7 @@ public:
 	virtual std::string GetApploaderDate() const = 0;
 	virtual bool SupportsIntegrityCheck() const { return false; }
 	virtual bool CheckIntegrity() const { return false; }
+	virtual bool IsDiscTwo() const { return false; }
 
 	enum ECountry
 	{

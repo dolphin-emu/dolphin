@@ -313,8 +313,6 @@ void CpuThread()
 		g_video_backend->Video_Prepare();
 	}
 
-	Common::SetCurrentThreadAffinity(1);  // Force to first core
-
 	#if defined(_M_X64)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
@@ -356,8 +354,6 @@ void FifoPlayerThread()
 		Common::SetCurrentThreadName("FIFO-GPU thread");
 	}
 
-	Common::SetCurrentThreadAffinity(1);  // Force to first core
-
 	g_bStarted = true;
 
 	// Enter CPU run loop. When we leave it - we are done.
@@ -381,13 +377,6 @@ void EmuThread()
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
-
-	{
-		if (cpu_info.num_cores > 3)	// Force to third, non-HT core
-			Common::SetCurrentThreadAffinity(4);
-		else				// Force to second core
-			Common::SetCurrentThreadAffinity(2);
-	}
 
 	DisplayMessage(cpu_info.brand_string, 8000);
 	DisplayMessage(cpu_info.Summarize(), 8000);

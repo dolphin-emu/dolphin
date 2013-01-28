@@ -52,10 +52,10 @@ void CreateShaders()
 {
 	static const char *fragShaderText =
 		"varying " PREC " vec2 TexCoordOut;\n"
-		"uniform " TEXTYPE " Texture;\n"
+		"uniform sampler2D Texture;\n"
 		"void main() {\n"
 		"	" PREC " vec4 tmpcolor;\n"
-		"	tmpcolor = " TEXFUNC "(Texture, TexCoordOut);\n"
+		"	tmpcolor = texture2D(Texture, TexCoordOut);\n"
 		"	gl_FragColor = tmpcolor;\n"
 		"}\n";
 	static const char *vertShaderText =
@@ -63,7 +63,7 @@ void CreateShaders()
 		"attribute vec2 TexCoordIn;\n "
 		"varying vec2 TexCoordOut;\n "
 		"void main() {\n"
-		"   gl_Position = pos;\n"
+		"	gl_Position = pos;\n"
 		"	TexCoordOut = TexCoordIn;\n"
 		"}\n";
 
@@ -74,6 +74,8 @@ void CreateShaders()
 	uni_tex = glGetUniformLocation(program, "Texture");
 	attr_pos = glGetAttribLocation(program, "pos");
 	attr_tex = glGetAttribLocation(program, "TexCoordIn"); 
+	
+	
 }
 
 void SWRenderer::Prepare()
@@ -86,7 +88,7 @@ void SWRenderer::Prepare()
 	// TODO: Enable for GLES once RasterFont supports GLES
 #ifndef USE_GLES
 	s_pfont = new RasterFont();
-	glEnable(GL_TEXTURE_RECTANGLE_ARB);
+	glEnable(GL_TEXTURE_2D);
 #endif
 	GL_REPORT_ERRORD();
 }
@@ -142,48 +144,37 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	glViewport(0, 0, glWidth, glHeight);
 	glScissor(0, 0, glWidth, glHeight);
 
-	glBindTexture(TEX2D, s_RenderTarget);
+	glBindTexture(GL_TEXTURE_2D, s_RenderTarget);
 
-	glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
-	glTexParameteri(TEX2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(TEX2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	 
+	glUseProgram(program);
 	static const GLfloat verts[4][2] = {
 		{ -1, -1}, // Left top
 		{ -1,  1}, // left bottom
 		{  1,  1}, // right bottom
 		{  1, -1} // right top
 	};
-	//Texture rectangle uses pixel coordinates
-#ifndef USE_GLES
-	GLfloat u_max = (GLfloat)width;
-	GLfloat v_max = (GLfloat)height;
-
-	static const GLfloat texverts[4][2] = {
-		{0, v_max},
-		{0, 0},
-		{u_max, 0},
-		{u_max, v_max}
-	};
-#else
 	static const GLfloat texverts[4][2] = {
 		{0, 1},
 		{0, 0},
 		{1, 0},
 		{1, 1}
 	};
-#endif
+
 	glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
 	glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
 	glEnableVertexAttribArray(attr_pos);
 	glEnableVertexAttribArray(attr_tex);
-		glActiveTexture(GL_TEXTURE0); 
 		glUniform1i(uni_tex, 0);
+		glActiveTexture(GL_TEXTURE0); 
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	glDisableVertexAttribArray(attr_pos);
 	glDisableVertexAttribArray(attr_tex);
 
-	glBindTexture(TEX2D, 0); 
+	glBindTexture(GL_TEXTURE_2D, 0); 
 	GL_REPORT_ERRORD();
 }
 
@@ -195,11 +186,8 @@ void SWRenderer::SwapBuffer()
 
 	GLInterface->Swap();
     
-	 swstats.ResetFrame();
+	swstats.ResetFrame();
 	
-#ifndef USE_GLES
-	glClearDepth(1.0f);
-#endif
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	GL_REPORT_ERRORD();

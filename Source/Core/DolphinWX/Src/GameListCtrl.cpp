@@ -94,6 +94,13 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	switch(sortData)
 	{
 		case CGameListCtrl::COLUMN_TITLE:
+			if (!strcasecmp(iso1->GetName(indexOne).c_str(),iso2->GetName(indexOther).c_str()))
+			{
+				if (iso1->IsDiscTwo())
+					return 1 * t;
+				else if (iso2->IsDiscTwo())
+					return -1 * t;
+			}
 			return strcasecmp(iso1->GetName(indexOne).c_str(),
 					iso2->GetName(indexOther).c_str()) * t;
 		case CGameListCtrl::COLUMN_NOTES:

@@ -124,12 +124,12 @@ void EWMH_Fullscreen(Display *dpy, int action)
 #if defined(HAVE_WX) && HAVE_WX
 Window XWindowFromHandle(void *Handle)
 {
-	return GDK_WINDOW_XID(GTK_WIDGET(Handle)->window);
+	return GDK_WINDOW_XID(gtk_widget_get_window(GTK_WIDGET(Handle)));
 }
 
 Display *XDisplayFromHandle(void *Handle)
 {
-	return GDK_WINDOW_XDISPLAY(GTK_WIDGET(Handle)->window);
+	return GDK_WINDOW_XDISPLAY(gtk_widget_get_window(GTK_WIDGET(Handle)));
 }
 #endif
 

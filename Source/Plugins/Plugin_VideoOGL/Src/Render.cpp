@@ -327,25 +327,8 @@ Renderer::Renderer()
 	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
-#ifdef __APPLE__
 	int swapInterval = g_ActiveConfig.bVSync ? 1 : 0;
-#if defined USE_WX && USE_WX
-	NSOpenGLContext *ctx = GLWin.glCtxt->GetWXGLContext();
-#else
-	NSOpenGLContext *ctx = GLWin.cocoaCtx;
-#endif
-	[ctx setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
-#elif defined _WIN32
-	if (WGLEW_EXT_swap_control)
-		wglSwapIntervalEXT(g_ActiveConfig.bVSync ? 1 : 0);
-	else
-		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
-#elif defined(HAVE_X11) && HAVE_X11
-	if (glXSwapIntervalSGI)
-		glXSwapIntervalSGI(g_ActiveConfig.bVSync ? 1 : 0);
-	else
-		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
-#endif
+	GLInterface->SwapInterval(swapInterval);
 
 	// check the max texture width and height
 	GLint max_texture_size;

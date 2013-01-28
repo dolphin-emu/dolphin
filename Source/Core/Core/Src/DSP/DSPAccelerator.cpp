@@ -165,10 +165,11 @@ u16 dsp_read_accelerator()
 	// Somehow, YN1 and YN2 must be initialized with their "loop" values,
 	// so yeah, it seems likely that we should raise an exception to let
 	// the DSP program do that, at least if DSP_FORMAT == 0x0A.
-	if ((Address & ~0x1f) == (EndAddress & ~0x1f))
+	if (Address >= EndAddress)
 	{
 		// Set address back to start address.
-		Address = (g_dsp.ifx_regs[DSP_ACSAH] << 16) | g_dsp.ifx_regs[DSP_ACSAL];
+		if ((Address & ~0x1f) == (EndAddress & ~0x1f))
+			Address = (g_dsp.ifx_regs[DSP_ACSAH] << 16) | g_dsp.ifx_regs[DSP_ACSAL];
 		DSPCore_SetException(EXP_ACCOV);
 	}
 

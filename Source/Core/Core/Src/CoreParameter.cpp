@@ -49,7 +49,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bMergeBlocks(false),
   bDPL2Decoder(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
-  bMMU(false), bMMUBAT(false), iTLBHack(0), bVBeam(false),
+  bMMU(false), bDCBZOFF(false), iTLBHack(0), bVBeam(false),
   bFastDiscSpeed(false),
   SelectedLanguage(0), bWii(false), bDisableWiimoteSpeaker(false),
   bConfirmStop(false), bHideCursor(false), 
@@ -78,7 +78,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bDSPThread = true;
 	bEnableFPRF = false;
 	bMMU = false;
-	bMMUBAT = false;
+	bDCBZOFF = false;
 	iTLBHack = 0;
 	bVBeam = false;
 	bFastDiscSpeed = false;
@@ -351,7 +351,11 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 	{
 		// Use default memcard path if there is no user defined name
 		std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
-		memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+		#ifdef _WIN32
+			memcardPath = "." + File::GetUserPath(D_GCUSER_IDX).substr(File::GetExeDirectory().size()) + defaultFilename + ext;
+		#else
+			memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+		#endif
 	}
 	else
 	{

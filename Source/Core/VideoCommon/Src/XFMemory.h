@@ -61,6 +61,9 @@
 #define LIGHTATTN_NONE 2
 #define LIGHTATTN_DIR  3
 
+#define GX_PERSPECTIVE  0
+#define GX_ORTHOGRAPHIC 1
+
 #define XFMEM_SIZE               0x8000
 #define XFMEM_POSMATRICES        0x000
 #define XFMEM_POSMATRICES_END    0x100
@@ -235,6 +238,12 @@ struct Viewport
 	float farZ;
 };
 
+struct Projection
+{
+	float rawProjection[6];
+	u32 type;                      // only GX_PERSPECTIVE or GX_ORTHOGRAPHIC are allowed
+};
+
 struct XFRegisters
 {
     u32 error;                      // 0x1000
@@ -257,10 +266,10 @@ struct XFRegisters
     u32 unk5;                       // 0x1015
     u32 unk6;                       // 0x1016
     u32 unk7;                       // 0x1017
-    u32 MatrixIndexA;				// 0x1018
-    u32 MatrixIndexB;				// 0x1019
+    u32 MatrixIndexA;               // 0x1018
+    u32 MatrixIndexB;               // 0x1019
     Viewport viewport;              // 0x101a - 0x101f
-    float rawProjection[7];         // 0x1020 - 0x1026
+    Projection projection;          // 0x1020 - 0x1026
     u32 unk8[24];                   // 0x1027 - 0x103e
     NumTexGen numTexGen;            // 0x103f
     TexMtxInfo texMtxInfo[8];       // 0x1040 - 0x1047
