@@ -92,11 +92,11 @@ void VertexManager::CreateDeviceObjects()
 	GL_REPORT_ERROR();
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffers );
 	GL_REPORT_ERROR();
-	glBufferData(GL_ARRAY_BUFFER, m_vertex_buffer_size, NULL, GL_STREAM_DRAW  );
+	glBufferData(GL_ARRAY_BUFFER, m_vertex_buffer_size, NULL, GL_STREAM_READ  );
 	GL_REPORT_ERROR();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffers );
 	GL_REPORT_ERROR();
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size, NULL, GL_STREAM_DRAW  );
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size, NULL, GL_STREAM_READ  );
 	GL_REPORT_ERROR();
 	m_index_buffer_cursor = 0;
 	m_vertex_buffer_cursor = 0;
@@ -134,11 +134,11 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	{
 		m_vertex_buffer_cursor = 0;
 		m_index_buffer_cursor = 0;
-		glBufferData(GL_ARRAY_BUFFER, m_vertex_buffer_size, NULL, GL_STREAM_DRAW);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size, NULL, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, m_vertex_buffer_size, NULL, GL_STREAM_READ);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size, NULL, GL_STREAM_READ);
 	}
 	
-	pVertices = (u8*)glMapBufferRange(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+	pVertices = (u8*)glMapBufferRange(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
 	if(pVertices)
 	{
 		memcpy(pVertices, LocalVBuffer, vertex_data_size);
@@ -149,7 +149,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 		glBufferSubData(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, LocalVBuffer);
 	}
 	
-	pIndices = (u16*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_cursor , index_data_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+	pIndices = (u16*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_cursor , index_data_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
 	if(pIndices)
 	{
 		if(triangle_index_size)

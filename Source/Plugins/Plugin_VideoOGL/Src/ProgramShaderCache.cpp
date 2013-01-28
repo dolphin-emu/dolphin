@@ -197,7 +197,7 @@ void ProgramShaderCache::UploadConstants()
 {
 	if(s_ubo_dirty) {
 		if(s_ubo_iterator + s_ubo_buffer_size >= UBO_LENGTH) {
-			glBufferData(GL_UNIFORM_BUFFER, UBO_LENGTH, NULL, GL_STREAM_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, UBO_LENGTH, NULL, GL_STREAM_READ);
 			s_ubo_iterator = 0;
 		}
 		void *ubo = glMapBufferRange(GL_UNIFORM_BUFFER, s_ubo_iterator, s_ubo_buffer_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
@@ -242,7 +242,7 @@ void ProgramShaderCache::Init(void)
 		// Then once more to get bytes
 		glGenBuffers(1, &s_ps_vs_ubo);
 		glBindBuffer(GL_UNIFORM_BUFFER, s_ps_vs_ubo);
-		glBufferData(GL_UNIFORM_BUFFER, UBO_LENGTH, NULL, GL_STREAM_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, UBO_LENGTH, NULL, GL_STREAM_READ);
 		s_ubo_iterator = 0;
 		
 		s_ubo_buffer = new float[s_ubo_buffer_size/sizeof(float)];
