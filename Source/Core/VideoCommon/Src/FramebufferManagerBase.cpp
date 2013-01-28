@@ -163,13 +163,9 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 
 	// keep stale XFB data from being used
 	ReplaceVirtualXFB();
-  
-	g_renderer->ResetAPIState(); // reset any game specific settings
 
 	// Copy EFB data to XFB and restore render target again
 	vxfb->xfbSource->CopyEFB(Gamma);
-
-	g_renderer->RestoreAPIState();
 }
 
 FramebufferManagerBase::VirtualXFBListType::iterator FramebufferManagerBase::FindVirtualXFB(u32 xfbAddr, u32 width, u32 height)

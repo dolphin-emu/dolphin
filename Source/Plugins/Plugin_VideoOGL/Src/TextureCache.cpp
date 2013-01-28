@@ -309,6 +309,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
 {
+	g_renderer->ResetAPIState(); // reset any game specific settings
+	
 	// Make sure to resolve anything we need to read from.
 	const GLuint read_texture = (srcFormat == PIXELFMT_Z24) ?
 		FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
@@ -434,6 +436,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
 			count++).c_str(), GL_TEXTURE_2D, texture, virtual_width, virtual_height, 0);
     }
+
+	g_renderer->RestoreAPIState();
 }
 
 void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1)
