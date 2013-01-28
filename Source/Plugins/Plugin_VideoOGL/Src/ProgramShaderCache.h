@@ -36,6 +36,7 @@ namespace OGL
 const int NUM_UNIFORMS = 19;
 extern const char *UniformNames[NUM_UNIFORMS];
 u64 Create_Pair(u32 key1, u32 key2);
+void Get_Pair(u64 key, u32 *key1, u32 *key2);
 
 class ProgramShaderCache
 {
@@ -48,7 +49,7 @@ public:
 		u8 *binary;
 		GLint binary_size;
 		GLuint vsid, psid;
-		ShaderUID uid;
+		u64 uid;
 		GLint UniformLocations[NUM_UNIFORMS];
 
 		PCacheEntry() : prog_id(0), binary(NULL), binary_size(0), vsid(0), psid(0)  { }
@@ -126,15 +127,17 @@ public:
 	static void Shutdown(void);
 
 private:
-	class ProgramShaderCacheInserter : public LinearDiskCacheReader<ShaderUID, u8>
+	class ProgramShaderCacheInserter : public LinearDiskCacheReader<u64, u8>
 	{
 	public:
-		void Read(const ShaderUID &key, const u8 *value, u32 value_size)
+		void Read(const u64 &key, const u8 *value, u32 value_size)
 		{
 			// The two shaders might not even exist anymore
 			// But it is fine, no need to worry about that
 			PCacheEntry entry;
-			entry.Create(key.first, key.second);
+			u32 key1, key2;
+			Get_Pair(key, &key1, &key2);
+			entry.Create(key1, key2);
 
 			glProgramBinary(entry.prog_id, entry.prog_format, value, value_size);
 
@@ -154,7 +157,7 @@ private:
 
 	static PCache pshaders;
 	static GLuint CurrentProgram;
-	static ShaderUID CurrentShaderProgram;
+	static u64 CurrentShaderProgram;
 
 	static GLuint s_ps_vs_ubo;
 	static u32 s_ubo_iterator;

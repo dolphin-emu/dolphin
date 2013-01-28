@@ -32,16 +32,23 @@ float *ProgramShaderCache::s_ubo_buffer;
 u32 ProgramShaderCache::s_ubo_buffer_size;
 bool ProgramShaderCache::s_ubo_dirty;
 
-LinearDiskCache<ProgramShaderCache::ShaderUID, u8> g_program_disk_cache;
+LinearDiskCache<u64, u8> g_program_disk_cache;
 GLenum ProgramFormat;
 
 GLuint ProgramShaderCache::PCacheEntry::prog_format = 0;
 
 u64 ProgramShaderCache::CurrentShaderProgram;
+
 u64 Create_Pair(u32 key1, u32 key2)
 {
 	return (((u64)key1) << 32) | key2;
 }
+void Get_Pair(u64 key, u32 *key1, u32 *key2)
+{
+	*key1 = (key & 0xFFFFFFFF00000000) >> 32;
+	*key2 = key & 0xFFFFFFFF;
+}
+
 const char *UniformNames[NUM_UNIFORMS] =
 {
 	// PIXEL SHADER UNIFORMS
