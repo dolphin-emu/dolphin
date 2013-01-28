@@ -273,16 +273,6 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	SetUidField(genMode.numtevstages, bpmem.genMode.numtevstages);
 	SetUidField(genMode.numtexgens, bpmem.genMode.numtexgens);
 
-	int nIndirectStagesUsed = 0;
-	if (bpmem.genMode.numindstages > 0)
-	{
-		for (unsigned int i = 0; i < numStages; ++i)
-		{
-			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
-				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
-		}
-	}
-
 	// Declare samplers
 	out.Write((ApiType != API_D3D11) ? "uniform sampler2D " : "sampler ");
 	for (int i = 0; i < 8; ++i)
@@ -317,6 +307,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		out.Write("uniform s_" I_PMATERIALS" " I_PMATERIALS" : register(c%d);\n", C_PMATERIALS);
 	}
 
+	// TODO: Somehow should put ApiType in the hash..
 	out.Write("void main(\n");
 	if(ApiType != API_D3D11)
 	{
@@ -355,6 +346,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		}
 		else
 		{
+			// TODO: Not necessary...
 			SetUidField(xfregs_numTexGen_numTexGens, xfregs.numTexGen.numTexGens);
 			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 				out.Write(",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
@@ -423,10 +415,20 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	}
 
 	// indirect texture map lookup
+	int nIndirectStagesUsed = 0;
+	if (bpmem.genMode.numindstages > 0)
+	{
+		for (unsigned int i = 0; i < numStages; ++i)
+		{
+			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
+				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
+		}
+	}
+
 	SetUidField(nIndirectStagesUsed, nIndirectStagesUsed);
 	for(u32 i = 0; i < bpmem.genMode.numindstages; ++i)
 	{
-		if (nIndirectStagesUsed & (1<<i))
+		if (nIndirectStagesUsed & (1 << i))
 		{
 			unsigned int texcoord = bpmem.tevindref.getTexCoord(i);
 			unsigned int texmap = bpmem.tevindref.getTexMap(i);
@@ -506,6 +508,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		out.Write("prev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
+	SetUidField(Pretest, Pretest);
 	if (Pretest == AlphaTest::UNDETERMINED)
 		WriteAlphaTest<T, type>(out, ApiType, dstAlphaMode);
 
@@ -514,8 +517,13 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	out.Write("float zCoord = " I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS"[1].y;\n");
 
 	// Note: depth textures are disabled if early depth test is enabled
+	SetUidField(Pretest, Pretest);
+	SetUidField(ztex.op, bpmem.ztex2.op);
+	SetUidField(early_z, bpmem.zcontrol.early_ztest);
+	SetUidField(ztestenable, bpmem.zmode.testenable);
 	if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable)
 	{
+		// TODO: Implement type??
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
 		out.SetConstantsUsed(C_ZBIAS, C_ZBIAS+1);
 		out.Write("zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w %s;\n",

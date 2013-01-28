@@ -20,6 +20,7 @@
 
 #include "VideoCommon.h"
 #include "ShaderGenCommon.h"
+#include "BPMemory.h"
 
 #define I_COLORS      "color"
 #define I_KCOLORS     "k"
@@ -54,18 +55,11 @@ enum DSTALPHA_MODE
 	DSTALPHA_DUAL_SOURCE_BLEND // Use dual-source blending
 };
 
-enum ALPHA_PRETEST_RESULT
-{
-	ALPHAPT_UNDEFINED, // AlphaTest Result is not defined
-	ALPHAPT_ALWAYSFAIL, // Alpha test alway Fail
-	ALPHAPT_ALWAYSPASS // Alpha test alway Pass
-};
-
 struct pixel_shader_uid_data
 {
 	u32 components;
 	DSTALPHA_MODE dstAlphaMode; // TODO: as u32 :2
-	ALPHA_PRETEST_RESULT Pretest; // TODO: As :2
+	AlphaTest::TEST_RESULT Pretest; // TODO: As :2
 	u32 nIndirectStagesUsed : 8;
 	struct {
         u32 numtexgens : 4;
@@ -168,6 +162,15 @@ struct pixel_shader_uid_data
 		u32 hex : 4;
 	} fog;
 
+	union {
+		struct {
+			u32 op : 2;
+		};
+		u32 hex : 2;
+	} ztex;
+
+	u32 early_z : 1;
+	u32 ztestenable : 1;
 
 	u32 bHasIndStage : 16;
 
