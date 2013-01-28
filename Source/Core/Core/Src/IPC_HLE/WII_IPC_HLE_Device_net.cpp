@@ -55,6 +55,7 @@ it failed)
 #include "ICMP.h"
 #include "CommonPaths.h"
 #include "SettingsHandler.h"
+#include "ec_wii.h"
 
 
 #ifdef _WIN32
@@ -195,7 +196,9 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 				u8 area_code = GetAreaCode(area.c_str());
 				u8 id_ctr = config.IdGen();
 				u8 hardware_model = GetHardwareModel(model.c_str());
-				u32 HollywoodID = CWII_IPC_HLE_Device_es::GetHollywoodID();
+				
+				EcWii &ec = EcWii::GetInstance();
+				u32 HollywoodID = ec.getNgId();
 				u64 UserID = 0;
 				
 				s32 ret = NWC24MakeUserID(&UserID, HollywoodID, id_ctr, hardware_model, area_code);

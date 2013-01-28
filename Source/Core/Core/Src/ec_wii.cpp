@@ -8,6 +8,7 @@
 #include "Crypto/aes.h"
 #include "Crypto/sha1.h"
 #include "Crypto/tools.h"
+#include "FileUtil.h"
 #include "ec_wii.h"
 
 static u32 default_NG_id = 0x0403AC68;
@@ -37,7 +38,7 @@ static u8 default_NG_sig[] = {
 // NG_sig is the device-unique signature blob (from issuer) to use
 // if NG_priv iis NULL or NG_sig is NULL or NG_id is 0 or NG_key_id is 0, default values
 // will be used for all of them
-void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, u8* NG_priv, u8* NG_sig)
+void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, const u8* NG_sig)
 {
 	char name[64];
 	if((NG_id==0)||(NG_key_id==0)||(NG_priv==NULL)||(NG_sig==NULL))
@@ -64,7 +65,7 @@ void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, u8* NG_priv, u8* NG_
 // NG_priv is the device-unique private key to use
 // NG_id is the device-unique id to use
 // if NG_priv is NULL or NG_id is 0, it will use builtin defaults
-void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u32 data_size, u8 *NG_priv, u32 NG_id)
+void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u32 data_size, const u8 *NG_priv, u32 NG_id)
 {
 	u8 hash[20];
 	u8 ap_priv[30];
@@ -97,7 +98,7 @@ void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u
 	generate_ecdsa(sig_out, sig_out + 30, ap_priv, hash);
 }
 
-void make_blanksig_ec_cert(u8 *cert_out, const char *signer, const char *name, u8 *private_key, u32 key_id)
+void make_blanksig_ec_cert(u8 *cert_out, const char *signer, const char *name, const u8 *private_key, u32 key_id)
 {
 	memset(cert_out, 0, 0x180);
 	*(u32*)cert_out = Common::swap32(0x10002);
@@ -128,4 +129,59 @@ void get_shared_secret(u8* shared_secret_out, u8* remote_public_key, u8* NG_priv
 	
 	point_mul(shared_secret_out, NG_priv, remote_public_key);
 	
+}
+
+EcWii::EcWii()
+{
+	bool init = true;
+	std::string keys_path = File::GetUserPath(D_WIIUSER_IDX) + "keys.bin";
+	if (File::Exists(keys_path))
+	{
+		File::IOFile keys_f(keys_path, "rb");
+		if(keys_f.IsOpen())
+		{
+			if(keys_f.ReadBytes(&BootMiiKeysBin, sizeof(BootMiiKeysBin)))
+			{
+				init = false;
+				
+				INFO_LOG(WII_IPC_ES, "Successfully loaded keys.bin created by: %s", BootMiiKeysBin.creator);
+			}
+			else
+			{
+				ERROR_LOG(WII_IPC_ES, "Failed to read keys.bin, check it is the correct size of %08lX bytes.", sizeof(BootMiiKeysBin));
+			}
+		}
+		else
+		{
+			ERROR_LOG(WII_IPC_ES, "Failed to open keys.bin, maybe a permissions error or it is in use?");
+		}
+	}
+	else
+	{
+		ERROR_LOG(WII_IPC_ES, "%s could not be found. Using default values. We recommend you grab keys.bin from BootMii.", keys_path.c_str());
+	}	
+	
+	if(init)
+		InitDefaults();
+}
+
+EcWii::~EcWii()
+{
+}
+
+void EcWii::InitDefaults()
+{
+	memset(&BootMiiKeysBin, 0, sizeof(BootMiiKeysBin));
+	
+	BootMiiKeysBin.ng_id = Common::swap32(default_NG_id);
+	BootMiiKeysBin.ng_key_id = Common::swap32(default_NG_key_id);
+	
+	memcpy(BootMiiKeysBin.ng_priv, default_NG_priv, sizeof(BootMiiKeysBin.ng_priv));
+	memcpy(BootMiiKeysBin.ng_sig, default_NG_sig, sizeof(BootMiiKeysBin.ng_sig));
+}
+
+EcWii& EcWii::GetInstance()
+{
+	static EcWii m_Instance;
+	return(m_Instance);
 }

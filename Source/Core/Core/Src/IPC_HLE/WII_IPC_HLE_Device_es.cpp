@@ -60,7 +60,8 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "../Movie.h"
 
-#include <ec_wii.h>
+#include "ec_wii.h"
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -101,15 +102,6 @@ CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
 void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile) 
 {
 	m_ContentFile = _rContentFile;
-}
-
-u32 CWII_IPC_HLE_Device_es::GetHollywoodID()
-{
-	unsigned int HollywoodID = 0;   
-	std::stringstream ss;
-	ss << std::hex << SConfig::GetInstance().m_HollywoodID;
-	ss >> HollywoodID;
-	return HollywoodID;
 }
 
 bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
@@ -184,9 +176,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 	case IOCTL_ES_GETDEVICEID:
 		{
 			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETDEVICEID no out buffer");
-
-			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID %s", SConfig::GetInstance().m_HollywoodID.c_str());
-			Memory::Write_U32(GetHollywoodID(), Buffer.PayloadBuffer[0].m_Address);
+			
+			EcWii &ec = EcWii::GetInstance();
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID %08X", ec.getNgId());
+			Memory::Write_U32(ec.getNgId(), Buffer.PayloadBuffer[0].m_Address);
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 			return true;
 		}
@@ -859,36 +852,23 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 	{
         WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
         _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
-		
-		std::string path = File::GetUserPath(D_WIIUSER_IDX) + "clientcert.bin";
-		
 		u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-		u32 size = Buffer.PayloadBuffer[0].m_Size;
 		
-		if (File::Exists(path))
-		{
-			File::IOFile(path, "rb").ReadBytes(destination, size);
-		}
-		else
-		{
-			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT failed: no cert found.");
-			
-		}
+		EcWii &ec = EcWii::GetInstance();
+		get_ng_cert(destination, ec.getNgId(), ec.getNgKeyId(), ec.getNgPriv(), ec.getNgSig());
 		
-		Memory::Write_U32(0, _CommandAddress + 0x4);
         break;
 	}
 	case IOCTL_ES_SIGN:
 	{
-		
 		WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
 		u8 *ap_cert_out = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 		u8 *data = Memory::GetPointer(Buffer.InBuffer[0].m_Address);
 		u32 data_size = Buffer.InBuffer[0].m_Size;
 		u8 *sig_out =  Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 		
-		
-		get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, key_ecc, GetHollywoodID());
+		EcWii &ec = EcWii::GetInstance();
+		get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.getNgPriv(), ec.getNgId());
 		
 		break;
 	}

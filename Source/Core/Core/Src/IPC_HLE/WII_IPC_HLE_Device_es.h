@@ -31,7 +31,6 @@ public:
     virtual ~CWII_IPC_HLE_Device_es();
 
     void LoadWAD(const std::string& _rContentFile);
-	static u32 GetHollywoodID();
 
     virtual bool Open(u32 _CommandAddress, u32 _Mode);
 
@@ -49,16 +48,16 @@ private:
         IOCTL_ES_ADDTICKET				= 0x01,
         IOCTL_ES_ADDTITLESTART			= 0x02,
         IOCTL_ES_ADDCONTENTSTART		= 0x03,
-        IOCTL_ES_ADDCONTENTDATA		    = 0x04,
+        IOCTL_ES_ADDCONTENTDATA		= 0x04,
         IOCTL_ES_ADDCONTENTFINISH		= 0x05,
-        IOCTL_ES_ADDTITLEFINISH		    = 0x06,
+        IOCTL_ES_ADDTITLEFINISH		= 0x06,
         IOCTL_ES_GETDEVICEID			= 0x07,
         IOCTL_ES_LAUNCH				    = 0x08,
         IOCTL_ES_OPENCONTENT			= 0x09,
         IOCTL_ES_READCONTENT			= 0x0A,
         IOCTL_ES_CLOSECONTENT			= 0x0B,
         IOCTL_ES_GETOWNEDTITLECNT		= 0x0C,
-        IOCTL_ES_GETOWNEDTITLES		    = 0x0D,
+        IOCTL_ES_GETOWNEDTITLES		= 0x0D,
         IOCTL_ES_GETTITLECNT			= 0x0E,
         IOCTL_ES_GETTITLES				= 0x0F,
         IOCTL_ES_GETTITLECONTENTSCNT	= 0x10,
@@ -67,7 +66,7 @@ private:
         IOCTL_ES_GETVIEWS				= 0x13,
         IOCTL_ES_GETTMDVIEWCNT			= 0x14,
         IOCTL_ES_GETTMDVIEWS			= 0x15,
-        IOCTL_ES_GETCONSUMPTION		    = 0x16,
+        IOCTL_ES_GETCONSUMPTION		= 0x16,
         IOCTL_ES_DELETETITLE			= 0x17,
         IOCTL_ES_DELETETICKET			= 0x18,
         // IOCTL_ES_DIGETTMDVIEWSIZE	= 0x19,
@@ -79,20 +78,20 @@ private:
         IOCTL_ES_IMPORTBOOT			    = 0x1F,
         IOCTL_ES_GETTITLEID			    = 0x20,
         IOCTL_ES_SETUID				    = 0x21,
-        IOCTL_ES_DELETETITLECONTENT	    = 0x22,
+        IOCTL_ES_DELETETITLECONTENT	= 0x22,
         IOCTL_ES_SEEKCONTENT			= 0x23,
         IOCTL_ES_OPENTITLECONTENT		= 0x24,
         // IOCTL_ES_LAUNCHBC			= 0x25,
-        // IOCTL_ES_EXPORTTITLEINIT		= 0x26,
+        // IOCTL_ES_EXPORTTITLEINIT	= 0x26,
         // IOCTL_ES_EXPORTCONTENTBEGIN	= 0x27,
         // IOCTL_ES_EXPORTCONTENTDATA	= 0x28,
         // IOCTL_ES_EXPORTCONTENTEND	= 0x29,
-        // IOCTL_ES_EXPORTTITLEDONE		= 0x2A,
+        // IOCTL_ES_EXPORTTITLEDONE	= 0x2A,
         IOCTL_ES_ADDTMD				    = 0x2B,
         IOCTL_ES_ENCRYPT			    = 0x2C,
         IOCTL_ES_DECRYPT				= 0x2D,
         IOCTL_ES_GETBOOT2VERSION		= 0x2E,
-        IOCTL_ES_ADDTITLECANCEL		    = 0x2F,
+        IOCTL_ES_ADDTITLECANCEL		= 0x2F,
         IOCTL_ES_SIGN					= 0x30,
         // IOCTL_ES_VERIFYSIGN			= 0x31,
         IOCTL_ES_GETSTOREDCONTENTCNT	= 0x32,
@@ -102,6 +101,7 @@ private:
         IOCTL_ES_GETSHAREDCONTENTCNT	= 0x36,
         IOCTL_ES_GETSHAREDCONTENTS		= 0x37,
 		IOCTL_ES_DELETESHAREDCONTENT	= 0x38,
+		
 		IOCTL_ES_CHECKKOREAREGION		= 0x45,
     };
 
