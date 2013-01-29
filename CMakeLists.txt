@@ -126,7 +126,7 @@ if(NOT MSVC)
 		-Wshadow
 		-Winit-self)
 	if (NOT (${CMAKE_C_COMPILER} MATCHES "clang"))
-		-Wlogical-op
+		add_definitions(-Wlogical-op)
 	endif()
 endif(NOT MSVC)
 
