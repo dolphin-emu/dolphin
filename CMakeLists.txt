@@ -125,6 +125,9 @@ if(NOT MSVC)
 		-Wuninitialized
 		-Wshadow
 		-Winit-self)
+	if (NOT (${CMAKE_C_COMPILER} MATCHES "clang"))
+		-Wlogical-op
+	endif()
 endif(NOT MSVC)
 
 # gcc uses some optimizations which might break stuff without this flag
