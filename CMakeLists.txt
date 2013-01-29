@@ -111,7 +111,21 @@ add_definitions(-msse2)
 
 # Enabling all warnings in MSVC spams too much
 if(NOT MSVC)
-	add_definitions(-Wall)
+	add_definitions(-Wall
+# TODO: would like these but they produce overwhelming amounts of warnings
+#		-Wextra
+#		-Wmissing-field-initializers
+#		-Wswitch-default
+#		-Wfloat-equal
+#		-Wconversion
+#		-Wzero-as-null-pointer-constant
+		-Wtype-limits
+		-Wsign-compare
+		-Wignored-qualifiers
+		-Wuninitialized
+		-Wlogical-op
+		-Wshadow
+		-Winit-self)
 endif(NOT MSVC)
 
 # gcc uses some optimizations which might break stuff without this flag
