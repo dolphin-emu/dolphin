@@ -123,9 +123,9 @@ if(NOT MSVC)
 		-Wsign-compare
 		-Wignored-qualifiers
 		-Wuninitialized
-if (NOT "${CMAKE_CXX_COMPILER}" MATCHES "clang++")
+if (NOT ${CMAKE_CXX_COMPILER} MATCHES "clang++")
 		-Wlogical-op
-endif(NOT "${CMAKE_CXX_COMPILER}" MATCHES "clang++")
+endif()
 		-Wshadow
 		-Winit-self)
 endif(NOT MSVC)
