@@ -92,7 +92,7 @@ public:
 
 	std::mutex& MixerCritical() { return m_csMixing; }
 
-	volatile float GetCurrentSpeed() const { return m_speed; }
+	float GetCurrentSpeed() const { return m_speed; }
 	void UpdateSpeed(volatile float val) { m_speed = val; }
 
 protected:

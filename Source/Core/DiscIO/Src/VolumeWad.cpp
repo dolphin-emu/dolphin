@@ -129,10 +129,10 @@ bool CVolumeWAD::GetWName(std::vector<std::wstring>& _rwNames) const
 			_rwNames.push_back(L"");
 			continue;
 		}
-		for (int i = 0; i < 42; ++i)
+		for (int j = 0; j < 42; ++j)
 		{
-			u16 t = Common::swap16(temp[i]);
-			if (t == 0 && i > 0)
+			u16 t = Common::swap16(temp[j]);
+			if (t == 0 && j > 0)
 			{
 				if (out_temp.at(out_temp.size()-1) != ' ')
 					out_temp.push_back(' ');			

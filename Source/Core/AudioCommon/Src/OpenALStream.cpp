@@ -316,7 +316,7 @@ void OpenALStream::SoundLoop()
 				if (iBuffersFilled == numBuffers)
 				{
 					alSourcePlay(uiSource);
-					ALenum err = alGetError();
+					err = alGetError();
 					if (err != 0)
 					{
 						ERROR_LOG(AUDIO, "Error occurred during playback: %08x", err);
@@ -328,7 +328,7 @@ void OpenALStream::SoundLoop()
 				{
 					// Buffer underrun occurred, resume playback
 					alSourcePlay(uiSource);
-					ALenum err = alGetError();
+					err = alGetError();
 					if (err != 0)
 					{
 						ERROR_LOG(AUDIO, "Error occurred resuming playback: %08x", err);
