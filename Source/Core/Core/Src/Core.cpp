@@ -38,6 +38,7 @@
 #include "FifoPlayer/FifoPlayer.h"
 
 #include "HW/Memmap.h"
+#include "HW/MMUTable.h"
 #include "HW/ProcessorInterface.h"
 #include "HW/GPFifo.h"
 #include "HW/CPU.h"
@@ -413,6 +414,44 @@ void EmuThread()
 
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+
+	// Setup Initial State
+
+	PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001FFF;
+	PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xC0001FFF;
+	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002A;
+	PowerPC::ppcState.spr[SPR_DBAT2U] = 0;
+	PowerPC::ppcState.spr[SPR_DBAT2L] = 0;
+	PowerPC::ppcState.spr[SPR_DBAT3U] = 0xFFF0001F;
+	PowerPC::ppcState.spr[SPR_DBAT3L] = 0xFFF00001;
+	PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001FFF;
+	PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+	PowerPC::ppcState.spr[SPR_IBAT1U] = 0;
+	PowerPC::ppcState.spr[SPR_IBAT1L] = 0;
+	PowerPC::ppcState.spr[SPR_IBAT2U] = 0;
+	PowerPC::ppcState.spr[SPR_IBAT2L] = 0;
+	PowerPC::ppcState.spr[SPR_IBAT3U] = 0xFFF0001F;
+	PowerPC::ppcState.spr[SPR_IBAT3L] = 0xFFF00001;
+	MMUTable::on_ibatl_change(PowerPC::ppcState.spr[SPR_IBAT0U], PowerPC::ppcState.spr[SPR_IBAT0L]);
+	MMUTable::on_ibatl_change(PowerPC::ppcState.spr[SPR_IBAT1U], PowerPC::ppcState.spr[SPR_IBAT1L]);
+	MMUTable::on_ibatl_change(PowerPC::ppcState.spr[SPR_IBAT2U], PowerPC::ppcState.spr[SPR_IBAT2L]);
+	MMUTable::on_ibatl_change(PowerPC::ppcState.spr[SPR_IBAT3U], PowerPC::ppcState.spr[SPR_IBAT3L]);
+	MMUTable::on_dbatl_change(PowerPC::ppcState.spr[SPR_DBAT0U], PowerPC::ppcState.spr[SPR_DBAT0L]);
+	MMUTable::on_dbatl_change(PowerPC::ppcState.spr[SPR_DBAT1U], PowerPC::ppcState.spr[SPR_DBAT1L]);
+	MMUTable::on_dbatl_change(PowerPC::ppcState.spr[SPR_DBAT2U], PowerPC::ppcState.spr[SPR_DBAT2L]);
+	MMUTable::on_dbatl_change(PowerPC::ppcState.spr[SPR_DBAT3U], PowerPC::ppcState.spr[SPR_DBAT3L]);
+	for(int i=0;i<16;i++)
+	{
+		PowerPC::ppcState.sr[i]=0xffffffff;
+	}
+
+	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
+	m_MSR.IR=1;
+	m_MSR.DR=1;
+	m_MSR.PR=0;
+	MMUTable::on_msr_change();
+
 
 	CBoot::BootUp();
 

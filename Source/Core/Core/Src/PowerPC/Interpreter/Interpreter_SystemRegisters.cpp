@@ -39,6 +39,7 @@ static const unsigned short FPU_ROUND_MASK = 3 << 10;
 #include "Atomic.h"
 #include "../../CoreTiming.h"
 #include "../../HW/Memmap.h"
+#include "../../HW/MMUTable.h"
 #include "../../HW/GPFifo.h"
 #include "../../HW/SystemTimers.h"
 #include "../../Core.h"
@@ -234,6 +235,7 @@ void Interpreter::mtmsr(UGeckoInstruction _inst)
 {
 	// Privileged?
 	MSR = m_GPR[_inst.RS];
+	MMUTable::on_msr_change();
 	m_EndBlock = true;
 }
 
@@ -242,6 +244,7 @@ void Interpreter::mtmsr(UGeckoInstruction _inst)
 static void SetSR(int index, u32 value) {
 	DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", PowerPC::ppcState.pc, index, value);
 	PowerPC::ppcState.sr[index] = value;
+	MMUTable::on_sr_change(index, value);
 }
 
 void Interpreter::mtsr(UGeckoInstruction _inst)
@@ -433,7 +436,32 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 
 	// Page table base etc
 	case SPR_SDR:
+		MMUTable::on_sdr_change(rSPR(iIndex));
 		Memory::SDRUpdated();
+		break;
+	case SPR_IBAT0U:
+	case SPR_IBAT1U:
+	case SPR_IBAT2U:
+	case SPR_IBAT3U:
+		MMUTable::on_ibatu_change(oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
+	case SPR_IBAT0L:
+	case SPR_IBAT1L:
+	case SPR_IBAT2L:
+	case SPR_IBAT3L:
+		MMUTable::on_ibatl_change(rSPR(iIndex-1), rSPR(iIndex));
+		break;
+	case SPR_DBAT0U:
+	case SPR_DBAT1U:
+	case SPR_DBAT2U:
+	case SPR_DBAT3U:
+		MMUTable::on_dbatu_change(oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
+	case SPR_DBAT0L:
+	case SPR_DBAT1L:
+	case SPR_DBAT2L:
+	case SPR_DBAT3L:
+		MMUTable::on_dbatl_change(rSPR(iIndex-1), rSPR(iIndex));
 		break;
 	}
 }

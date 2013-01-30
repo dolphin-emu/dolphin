@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Memmap.h"
+#include "MMUTable.h"
 
 #include "EXI_Device.h"
 #include "EXI_DeviceIPL.h"
@@ -57,21 +58,26 @@ u32 IEXIDevice::ImmRead(u32 _uSize)
 void IEXIDevice::DMAWrite(u32 _uAddr, u32 _uSize)
 {
 //	_dbg_assert_(EXPANSIONINTERFACE, 0);
+	u8 uByte;
 	while (_uSize--)
 	{
-		u8 uByte = Memory::Read_U8(_uAddr++);
+		MMUTable::read8(MMUTable::EmuPointer(_uAddr), uByte, ACCESS_MASK_PHYSICAL);
+//		u8 uByte = Memory::Read_U8(_uAddr++);
 		TransferByte(uByte);
+		_uAddr++;
 	}
 }
 
 void IEXIDevice::DMARead(u32 _uAddr, u32 _uSize)
 {
 //	_dbg_assert_(EXPANSIONINTERFACE, 0);
+	u8 uByte = 0;
 	while (_uSize--)
 	{
-		u8 uByte = 0;
 		TransferByte(uByte);
-		Memory::Write_U8(uByte, _uAddr++);
+//		Memory::Write_U8(uByte, _uAddr++);
+		MMUTable::write8(MMUTable::EmuPointer(_uAddr), uByte, ACCESS_MASK_PHYSICAL); 
+		_uAddr++;
 	}
 };
 

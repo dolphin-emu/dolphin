@@ -23,6 +23,7 @@
 #include "ChunkFile.h"
 
 #include "../HW/Memmap.h"
+#include "../HW/MMUTable.h"
 #include "../HW/CPU.h"
 #include "../Core.h"
 #include "../CoreTiming.h"
@@ -155,7 +156,7 @@ void Init(int cpu_core)
 #endif
 
 	memset(ppcState.mojs, 0, sizeof(ppcState.mojs));
-	memset(ppcState.sr, 0, sizeof(ppcState.sr));
+	memset(ppcState.sr, 0xff, sizeof(ppcState.sr)); // unfortunately, all 0's is used
 	ppcState.DebugCount = 0;
 	ppcState.dtlb_last = 0;
 	ppcState.dtlb_last = 0;
@@ -371,11 +372,12 @@ void CheckExceptions()
 
 	if (exceptions & EXCEPTION_ISI)
 	{
-		SRR0 = NPC;
+		SRR0 = PC;
 		// Page fault occurred
 		SRR1 = (MSR & 0x87C0FFFF) | (1 << 30);
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
+		MMUTable::on_msr_change();
 		PC = NPC = 0x00000400;
 
 		INFO_LOG(POWERPC, "EXCEPTION_ISI");
@@ -388,6 +390,7 @@ void CheckExceptions()
 		SRR1 = (MSR & 0x87C0FFFF) | 0x20000;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
+		MMUTable::on_msr_change();
 		PC = NPC = 0x00000700;
 
 		INFO_LOG(POWERPC, "EXCEPTION_PROGRAM");
@@ -399,6 +402,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
+		MMUTable::on_msr_change();
 		PC = NPC = 0x00000C00;
 
 		INFO_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
@@ -411,6 +415,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
+		MMUTable::on_msr_change();
 		PC = NPC = 0x00000800;
 
 		INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
@@ -422,6 +427,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
+		MMUTable::on_msr_change();
 		PC = NPC = 0x00000300;
 		//DSISR and DAR regs are changed in GenerateDSIException()
 
@@ -436,6 +442,7 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;
+		MMUTable::on_msr_change();
 		PC = NPC = 0x00000600;
 
 		//TODO crazy amount of DSISR options to check out
@@ -454,6 +461,7 @@ void CheckExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
+			MMUTable::on_msr_change();
 			PC = NPC = 0x00000500;
 
 			INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
@@ -467,6 +475,7 @@ void CheckExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
+			MMUTable::on_msr_change();
 			PC = NPC = 0x00000F00;
 
 			INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
@@ -478,6 +487,7 @@ void CheckExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
+			MMUTable::on_msr_change();
 			PC = NPC = 0x00000900;
 
 			INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
@@ -501,6 +511,7 @@ void CheckExternalExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
+			MMUTable::on_msr_change();
 			PC = NPC = 0x00000500;
 
 			INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
@@ -514,6 +525,7 @@ void CheckExternalExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
+			MMUTable::on_msr_change();
 			PC = NPC = 0x00000F00;
 
 			INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
@@ -525,6 +537,7 @@ void CheckExternalExceptions()
 			SRR1 = MSR & 0x87C0FFFF;
 			MSR |= (MSR >> 16) & 1;
 			MSR &= ~0x04EF36;
+			MMUTable::on_msr_change();
 			PC = NPC = 0x00000900;
 
 			INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");

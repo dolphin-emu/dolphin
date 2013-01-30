@@ -20,6 +20,7 @@
 #include "../../HLE/HLE.h"
 #include "../PPCAnalyst.h"
 #include "Atomic.h"
+#include "../../HW/MMUTable.h"
 
 void Interpreter::bx(UGeckoInstruction _inst)
 {
@@ -116,6 +117,7 @@ void Interpreter::rfi(UGeckoInstruction _inst)
 	MSR = (MSR & ~mask) | (SRR1 & mask);
 	//MSR[13] is set to 0.
 	MSR &= 0xFFFBFFFF;
+	MMUTable::on_msr_change();
 	// Here we should check if there are pending exceptions, and if their corresponding enable bits are set
 	// if above is true, we'd do:
 	//PowerPC::CheckExceptions();

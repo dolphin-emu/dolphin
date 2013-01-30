@@ -27,6 +27,7 @@ may be redirected here (for example to Read_U32()).
 #include "ChunkFile.h"
 
 #include "Memmap.h"
+#include "MMUTable.h"
 #include "../Core.h"
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/JitCommon/JitBase.h"
@@ -46,6 +47,7 @@ may be redirected here (for example to Read_U32()).
 #include "../ConfigManager.h"
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "VideoBackendBase.h"
+
 
 namespace Memory
 {
@@ -152,6 +154,229 @@ template <class T, u8 *P> void HW_Write_Memory(T _Data, const u32 _Address) {
 #define AUDIO_START		0x1B //0x6C00 >> 10
 #define GP_START		0x20 //0x8000 >> 10
 
+int MMIO_Device_0c006_read32(const void* context, const u32 addr, u32 &out)
+{
+//	WARN_LOG(MASTER_LOG, "MMIO_Device_0c006_read32(%p, %08x)", context, addr);
+	switch(addr & 0xc00)
+	{
+		case 0x000:
+		{
+			DVDInterface::Read32(out, addr);
+			break;
+		}
+		case 0x400:
+		{
+			SerialInterface::Read32(out, addr);
+			break;
+		}
+		case 0x800:
+		{
+			ExpansionInterface::Read32(out, addr);
+			break;
+		}
+		case 0xc00:
+		{
+			AudioInterface::Read32(out, addr);
+			break;
+		}
+	}
+	return 0;
+}
+
+int MMIO_Device_0c006_write32(void* context, const u32 addr, const u32 in)
+{
+//	WARN_LOG(MASTER_LOG, "MMIO_Device_0c006_write32(%p, %08x, %08x)", context, addr, in);
+	switch(addr & 0xc00)
+	{
+		case 0x000:
+		{
+			
+			DVDInterface::Write32(in, addr);
+			break;
+		}
+		case 0x400:
+		{
+			SerialInterface::Write32(in, addr);
+			break;
+		}
+		case 0x800:
+		{
+			ExpansionInterface::Write32(in, addr);
+			break;
+		}
+		case 0xc00:
+		{
+			AudioInterface::Write32(in, addr);
+			break;
+		}
+	}
+	return 0;
+}
+
+int MMIO_Device_CP_read16(const void* context, const u32 addr, u16 &out)
+{
+	g_video_backend->Video_CPRead16()(out, addr);
+	return 0;
+}
+
+int MMIO_Device_CP_write16(void* context, const u32 addr, const u16 in)
+{
+	g_video_backend->Video_CPWrite16()(in, addr);
+	return 0;
+}
+
+int MMIO_Device_DSP_read16(const void* context, const u32 addr, u16 &out)
+{
+	DSP::Read16(out, addr);
+	return 0;
+}
+
+int MMIO_Device_DSP_write16(void* context, const u32 addr, const u16 in)
+{
+	DSP::Write16(in, addr);
+	return 0;
+}
+
+int MMIO_Device_DSP_read32(const void* context, const u32 addr, u32 &out)
+{
+	DSP::Read32(out, addr);
+	return 0;
+}
+
+int MMIO_Device_DSP_write32(void* context, const u32 addr, const u32 in)
+{
+	DSP::Write32(in, addr);
+	return 0;
+}
+
+int MMIO_Device_GXFIFO_write8(void *context, const u32 addr, const u8 in)
+{
+	GPFifo::Write8(in, addr);
+	return 0;
+}
+
+int MMIO_Device_GXFIFO_write16(void *context, u32 addr, const u16 in)
+{
+	GPFifo::Write16(in, addr);
+	return 0;
+}
+
+int MMIO_Device_GXFIFO_write32(void *context, u32 addr, const u32 in)
+{
+	GPFifo::Write32(in, addr);
+	return 0;
+}
+int MMIO_Device_GXFIFO_write64(void *context, u32 addr, const u64 in)
+{
+	GPFifo::Write64(in, addr);
+	return 0;
+}
+
+int MMIO_Device_PE_read16(const void* context, const u32 addr, u16 &out)
+{
+	g_video_backend->Video_PERead16()(out, addr);
+	return 0;
+}
+
+int MMIO_Device_PE_write16(void *context, u32 addr, const u16 in)
+{
+	g_video_backend->Video_PEWrite16()(in, addr);
+	return 0;
+}
+
+int MMIO_Device_PE_write32(void *context, u32 addr, const u32 in)
+{
+	g_video_backend->Video_PEWrite32()(in, addr);
+	return 0;
+}
+
+int MMIO_Device_VI_read8(const void* context, const u32 addr, u8 &out)
+{
+	VideoInterface::Read8(out, addr);
+	return 0;
+}
+int MMIO_Device_VI_read16(const void* context, const u32 addr, u16 &out)
+{
+	VideoInterface::Read16(out, addr);
+	return 0;
+}
+int MMIO_Device_VI_read32(const void* context, const u32 addr, u32 &out)
+{
+	VideoInterface::Read32(out, addr);
+	return 0;
+}
+int MMIO_Device_VI_write16(void* context, const u32 addr, const u16 in)
+{
+	VideoInterface::Write16(in, addr);
+	return 0;
+}
+int MMIO_Device_VI_write32(void* context, const u32 addr, const u32 in)
+{
+	VideoInterface::Write32(in, addr);
+	return 0;
+}
+
+int MMIO_Device_PI_read16(const void* context, const u32 addr, u16 &out)
+{
+	ProcessorInterface::Read16(out, addr);
+	return 0;
+}
+int MMIO_Device_PI_read32(const void* context, const u32 addr, u32 &out)
+{
+	ProcessorInterface::Read32(out, addr);
+	return 0;
+}
+int MMIO_Device_PI_write32(void* context, const u32 addr, const u32 in)
+{
+	ProcessorInterface::Write32(in, addr);
+	return 0;
+}
+int MMIO_Device_MI_read16(const void* context, const u32 addr, u16 &out)
+{
+	MemoryInterface::Read16(out, addr);
+	return 0;
+}
+int MMIO_Device_MI_write16(void* context, const u32 addr, const u16 in)
+{
+	MemoryInterface::Write16(in, addr);
+	return 0;
+}
+int MMIO_Device_MI_read32(const void* context, const u32 addr, u32 &out)
+{
+	MemoryInterface::Read32(out, addr);
+	return 0;
+}
+int MMIO_Device_MI_write32(void* context, const u32 addr, const u32 in)
+{
+	MemoryInterface::Write32(in, addr);
+	return 0;
+}
+
+int MMIO_Device_EFB_read32(const void* context, const u32 addr, u32 &out)
+{
+	out = EFB_Read(addr);
+	return 0;
+}
+
+int MMIO_Device_EFB_write32(void* context, const u32 addr, const u32 in)
+{
+	int x = (addr & 0xfff) >> 2;
+	int y = (addr >> 12) & 0x3ff;
+	if (addr & 0x00400000) {
+		g_video_backend->Video_AccessEFB(POKE_Z, x, y, in);
+		DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", in, x, y);
+	} else {
+		g_video_backend->Video_AccessEFB(POKE_COLOR, x, y, in);
+		DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", in, x, y);
+	}
+	
+	return 0;
+}
+
+
+
+
+
 void InitHWMemFuncs()
 {
 	for (int i = 0; i < NUMHWMEMFUN; i++)
@@ -223,6 +448,71 @@ void InitHWMemFuncs()
 	hwWrite16[GP_START] = GPFifo::Write16;
 	hwWrite32[GP_START] = GPFifo::Write32;
 	hwWrite64[GP_START] = GPFifo::Write64;
+
+#ifdef MMUTABLE_CHECK
+	WARN_LOG(MASTER_LOG, "MMUTable check enabled for GC");
+#endif
+	MMUTable::map_physical(m_pRAM, RAM_SIZE, 0x00000000);
+
+	struct MMUTable::DAccessFuncs daf;
+
+
+	MMUTable::daf_reset_to_no_except(&daf);
+	daf.read_u16 = &MMIO_Device_CP_read16; 
+	daf.write_u16 = &MMIO_Device_CP_write16;
+	MMUTable::map_mmio_device(&daf, NULL, 0x1000, 0x0c000000);
+
+	MMUTable::daf_reset_to_no_except(&daf);
+	daf.read_u16 = &MMIO_Device_PE_read16; 
+	daf.write_u16 = &MMIO_Device_PE_write16;
+	daf.write_u32 = &MMIO_Device_PE_write32;
+	MMUTable::map_mmio_device(&daf, NULL, 0x1000, 0x0c001000);
+
+	MMUTable::daf_reset_to_no_except(&daf);
+	daf.read_u8 = &MMIO_Device_VI_read8; 
+	daf.read_u16 = &MMIO_Device_VI_read16; 
+	daf.read_u32 = &MMIO_Device_VI_read32; 
+	daf.write_u16 = &MMIO_Device_VI_write16;
+	daf.write_u32 = &MMIO_Device_VI_write32;
+	MMUTable::map_mmio_device(&daf, NULL, 0x1000, 0x0c002000);
+
+	MMUTable::daf_reset_to_no_except(&daf);
+	daf.read_u16 = &MMIO_Device_PI_read16; 
+	daf.read_u32 = &MMIO_Device_PI_read32;
+	daf.write_u32 = &MMIO_Device_PI_write32;
+	MMUTable::map_mmio_device(&daf, NULL, 0x1000, 0x0c003000);
+
+	MMUTable::daf_reset_to_no_except(&daf);
+	daf.read_u16 = &MMIO_Device_MI_read16; 
+	daf.read_u32 = &MMIO_Device_MI_read32;
+	daf.write_u16 = &MMIO_Device_MI_write16; 
+	daf.write_u32 = &MMIO_Device_MI_write32;
+	MMUTable::map_mmio_device(&daf, NULL, 0x1000, 0x0c004000);
+
+	MMUTable::daf_reset_to_no_except(&daf);
+	daf.read_u16 = &MMIO_Device_DSP_read16; 
+	daf.write_u16 = &MMIO_Device_DSP_write16;
+	daf.read_u32 = &MMIO_Device_DSP_read32; 
+	daf.write_u32 = &MMIO_Device_DSP_write32;
+	MMUTable::map_mmio_device(&daf, NULL, 0x1000, 0x0c005000);
+
+	MMUTable::daf_reset_to_no_except(&daf);
+	daf.read_u32 = &MMIO_Device_0c006_read32;
+	daf.write_u32 = &MMIO_Device_0c006_write32;
+	MMUTable::map_mmio_device(&daf, NULL, 0x1000, 0x0c006000);
+
+	MMUTable::daf_reset_to_no_except(&daf);
+	daf.write_u8 = &MMIO_Device_GXFIFO_write8;
+	daf.write_u16 = &MMIO_Device_GXFIFO_write16;
+	daf.write_u32 = &MMIO_Device_GXFIFO_write32;
+	daf.write_u64 = &MMIO_Device_GXFIFO_write64;
+	MMUTable::map_mmio_device(&daf, NULL, 0x1000, 0x0c008000);
+
+	MMUTable::daf_reset_to_no_except(&daf);
+	daf.read_u32 = &MMIO_Device_EFB_read32;
+	daf.write_u32 = &MMIO_Device_EFB_write32;
+	MMUTable::map_mmio_device(&daf, NULL, 0x200000, 0x08000000);
+
 }
 
 
@@ -311,6 +601,12 @@ void InitHWMemFuncsWii()
 	hwReadWii32	[AUDIO_START] = AudioInterface::Read32;
 	hwWrite32	[AUDIO_START] = AudioInterface::Write32;
 	hwWriteWii32[AUDIO_START] = AudioInterface::Write32;
+
+#ifdef MMUTABLE_CHECK
+	WARN_LOG(MASTER_LOG, "MMUTable check enabled for Wii");
+#endif
+	MMUTable::map_physical(m_pRAM, RAM_SIZE, 0x00000000);
+	MMUTable::map_physical(m_pEXRAM, EXRAM_SIZE, 0x10000000);
 }
 
 writeFn32 GetHWWriteFun32(const u32 _Address)
@@ -356,6 +652,8 @@ void Init()
 	if (wii) flags |= MV_WII_ONLY;
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	base = MemoryMap_Setup(views, num_views, flags, &g_arena);
+
+	MMUTable::reset();
 
 	if (wii)
 		InitHWMemFuncsWii();
@@ -551,7 +849,9 @@ void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 _iSize)
 }
 
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
-{	
+{
+	MMUTable::memset_emu(MMUTable::EmuPointer(_Address), _iValue, _iLength);
+/*
     u8 *ptr = GetPointer(_Address);
     if (ptr != NULL)
     {
@@ -562,6 +862,7 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
         for (u32 i = 0; i < _iLength; i++)
             Write_U8(_iValue, _Address + i);
     }
+*/
 }
 
 void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)

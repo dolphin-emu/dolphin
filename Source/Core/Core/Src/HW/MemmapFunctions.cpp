@@ -20,10 +20,15 @@
 
 #include "GPFifo.h"
 #include "Memmap.h"
+#include "MMUTable.h"
 #include "WII_IOB.h"
 #include "../Core.h"
 #include "../PowerPC/PowerPC.h"
 #include "VideoBackendBase.h"
+
+#define __STDC_FORMAT_MACROS
+
+#include <inttypes.h>
 
 namespace Memory
 {
@@ -312,13 +317,21 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 // ----------------
 u32 Read_Opcode(u32 _Address)
 {
+	// in MMU we trust
+	u32 _var_mmu=0;
+	if(MMUTable::read_instr(MMUTable::EmuPointer(_Address), _var_mmu) < 0)
+	{
+		WARN_LOG(MEMMAP, "Read_Opcode:MMUTable(%08x)=%02hhx", _Address, _var_mmu);
+	}
+	return _var_mmu;
+/*
 	if (_Address == 0x00000000)
 	{
 		// FIXME use assert?
 		PanicAlert("Program tried to read an opcode from [00000000]. It has crashed.");
 		return 0x00000000;
 	}
-
+*/
 	if (Core::g_CoreStartupParameter.bMMU && 
 		!Core::g_CoreStartupParameter.iTLBHack && 
 		(_Address & ADDR_MASK_MEM1))
@@ -334,13 +347,35 @@ u32 Read_Opcode(u32 _Address)
 			_Address = tlb_addr;
 	}
 
-	return PowerPC::ppcState.iCache.ReadInstruction(_Address);
+	u32 _var = PowerPC::ppcState.iCache.ReadInstruction(_Address);
+/*
+#ifdef MMUTABLE_CHECK
+	u32 _var_mmu = 0;
+	if(0==MMUTable::read_instr_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	{
+		if(_var_mmu != _var)
+		{
+			WARN_LOG(MEMMAP, "Read_Opcode:MMUTable(%08x)=%02hhx, RFH=%02hhx", _Address, _var, _var_mmu);
+		}
+	}
+#endif
+*/
+	return _var;
 }
 
 u8 Read_U8(const u32 _Address)
 {    
+#ifdef MMUTABLE_CHECK
+	u8 _var_mmu = 0;
+	if(0==MMUTable::read8_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	{
+		return _var_mmu;
+	}
+//	WARN_LOG(MEMMAP, "Read_U8:MMUTable(%08x) miss!", _Address);
+#endif
 	u8 _var = 0;
 	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_READ);
+
 #ifdef ENABLE_MEM_CHECK
     TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
 	if (mc)
@@ -354,6 +389,14 @@ u8 Read_U8(const u32 _Address)
 
 u16 Read_U16(const u32 _Address)
 {
+#ifdef MMUTABLE_CHECK
+	u16 _var_mmu = 0;
+	if(0==MMUTable::read16_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	{
+		return _var_mmu;
+	}
+//	WARN_LOG(MEMMAP, "Read_U16:MMUTable(%08x) miss!", _Address);
+#endif
 	u16 _var = 0;
 	ReadFromHardware<u16>(_var, _Address, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK
@@ -369,8 +412,17 @@ u16 Read_U16(const u32 _Address)
 
 u32 Read_U32(const u32 _Address)
 {
+#ifdef MMUTABLE_CHECK
+	u32 _var_mmu = 0;
+	if(0==MMUTable::read32_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	{
+		return _var_mmu;
+	}
+//	WARN_LOG(MEMMAP, "Read_U32:MMUTable(%08x) miss!", _Address);
+#endif
 	u32 _var = 0;	
 	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_READ);
+
 #ifdef ENABLE_MEM_CHECK
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
 	if (mc)
@@ -384,6 +436,14 @@ u32 Read_U32(const u32 _Address)
 
 u64 Read_U64(const u32 _Address)
 {
+#ifdef MMUTABLE_CHECK
+	u64 _var_mmu = 0;
+	if(0==MMUTable::read64_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	{
+		return _var_mmu;
+	}
+//	WARN_LOG(MEMMAP, "Read_U64:MMUTable(%08x) miss!", _Address);
+#endif
 	u64 _var = 0;
 	ReadFromHardware<u64>(_var, _Address, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK
@@ -417,6 +477,13 @@ void Write_U8(const u8 _Data, const u32 _Address)
 		mc->Action(&PowerPC::debug_interface, _Data,_Address,true,1,PC);
 	}
 #endif
+#ifdef MMUTABLE_CHECK
+	if(0==MMUTable::write8_ne(MMUTable::EmuPointer(_Address), _Data))
+	{
+		return;
+	}
+	WARN_LOG(MEMMAP, "Write_U8:MMUTable(%08x) miss @0x%08x!", _Address, PowerPC::ppcState.pc);
+#endif
 	WriteToHardware<u8>(_Address, _Data, _Address, FLAG_WRITE);
 }
 
@@ -430,6 +497,13 @@ void Write_U16(const u16 _Data, const u32 _Address)
 		mc->numHits++;
 		mc->Action(&PowerPC::debug_interface, _Data,_Address,true,2,PC);
 	}
+#endif
+#ifdef MMUTABLE_CHECK
+	if(0==MMUTable::write16_ne(MMUTable::EmuPointer(_Address), _Data))
+	{
+		return;
+	}
+//	WARN_LOG(MEMMAP, "Write_U16:MMUTable(%08x) miss!", _Address);
 #endif
 
 	WriteToHardware<u16>(_Address, _Data, _Address, FLAG_WRITE);
@@ -449,6 +523,13 @@ void Write_U32(const u32 _Data, const u32 _Address)
 		mc->Action(&PowerPC::debug_interface, _Data,_Address,true,4,PC);
 	}
 #endif
+#ifdef MMUTABLE_CHECK
+	if(0==MMUTable::write32_ne(MMUTable::EmuPointer(_Address), _Data))
+	{
+		return;
+	}
+//	WARN_LOG(MEMMAP, "Write_U32:MMUTable(%08x) miss!", _Address);
+#endif
 	WriteToHardware<u32>(_Address, _Data, _Address, FLAG_WRITE);
 }
 void Write_U32_Swap(const u32 _Data, const u32 _Address) {
@@ -465,6 +546,13 @@ void Write_U64(const u64 _Data, const u32 _Address)
 		mc->Action(&PowerPC::debug_interface, (u32)_Data,_Address,true,8,PC);
 	}
 #endif
+#ifdef MMUTABLE_CHECK
+	if(0==MMUTable::write64_ne(MMUTable::EmuPointer(_Address), _Data))
+	{
+		return;
+	}
+//	WARN_LOG(MEMMAP, "Write_U64:MMUTable(%08x) miss!", _Address);
+#endif
 
 	WriteToHardware<u64>(_Address, _Data, _Address + 4, FLAG_WRITE);
 }
@@ -473,7 +561,15 @@ void Write_U64_Swap(const u64 _Data, const u32 _Address) {
 }
 
 u8 ReadUnchecked_U8(const u32 _Address)
-{    
+{
+#ifdef MMUTABLE_CHECK
+	u8 _var_mmu = 0;
+	if(0==MMUTable::read8_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	{
+		return _var_mmu;
+	}
+#endif
+
 	u8 _var = 0;
 	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_NO_EXCEPTION);
 	return _var;
@@ -482,6 +578,13 @@ u8 ReadUnchecked_U8(const u32 _Address)
 
 u32 ReadUnchecked_U32(const u32 _Address)
 {
+#ifdef MMUTABLE_CHECK
+	u32 _var_mmu = 0;
+	if(0==MMUTable::read32_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	{
+		return _var_mmu;
+	}
+#endif
 	u32 _var = 0;
 	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_NO_EXCEPTION);
 	return _var;
@@ -489,12 +592,24 @@ u32 ReadUnchecked_U32(const u32 _Address)
 
 void WriteUnchecked_U8(const u8 _iValue, const u32 _Address)
 {
+#ifdef MMUTABLE_CHECK
+	if(0==MMUTable::write8_ne(MMUTable::EmuPointer(_Address), _iValue))
+	{
+		return;
+	}
+#endif
 	WriteToHardware<u8>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
 }
  
 
 void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 {
+#ifdef MMUTABLE_CHECK
+	if(0==MMUTable::write32_ne(MMUTable::EmuPointer(_Address), _iValue))
+	{
+		return;
+	}
+#endif
 	WriteToHardware<u32>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
 }
 

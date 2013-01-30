@@ -107,6 +107,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/GPFifo.cpp
 			Src/HW/HW.cpp
 			Src/HW/Memmap.cpp
+			Src/HW/MMUTable.cpp
 			Src/HW/MemmapFunctions.cpp
 			Src/HW/MemoryInterface.cpp
 			Src/HW/ProcessorInterface.cpp
