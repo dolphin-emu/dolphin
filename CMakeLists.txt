@@ -138,14 +138,7 @@ if(NOT MSVC)
 endif(NOT MSVC)
 
 # gcc uses some optimizations which might break stuff without this flag
-add_definitions(-fno-strict-aliasing -fno-exceptions -Wno-psabi)
-
-# We call fread numerous times without checking return values.  Hide the
-# corresponding compiler warnings if the compiler supports doing so.
-CHECK_CXX_COMPILER_FLAG(-Wunused-result NO_UNUSED_RESULT)
-if(NO_UNUSED_RESULT)
-	add_definitions(-Wno-unused-result)
-endif(NO_UNUSED_RESULT)
+add_definitions(-fno-strict-aliasing -fno-exceptions)
 
 check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
 
