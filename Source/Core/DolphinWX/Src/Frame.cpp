@@ -1004,6 +1004,8 @@ void CFrame::OnMouse(wxMouseEvent& event)
 					event.GetPosition().x, event.GetPosition().y, event.ButtonDown());
 	}
 #endif
+	if (event.LeftDClick())
+		DoFullscreen(!RendererIsFullscreen());
 	event.Skip();
 }
 
