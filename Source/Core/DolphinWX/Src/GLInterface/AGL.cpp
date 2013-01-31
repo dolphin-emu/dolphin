@@ -57,7 +57,7 @@ bool cInterfaceAGL::Create(void *&window_handle)
 	}
 
 	GLWin.cocoaCtx = [[NSOpenGLContext alloc]
-		initWithFormat: fmt shareContext: nil];
+		initWithFormat: fmt shareContext: nil kCGLPFAOpenGLProfile: kCGLOGLPVersion_3_2_Core ];
 	[fmt release];
 	if (GLWin.cocoaCtx == nil) {
 		ERROR_LOG(VIDEO, "failed to create context");

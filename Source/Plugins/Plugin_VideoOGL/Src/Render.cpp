@@ -257,6 +257,9 @@ Renderer::Renderer()
 	}
 
 	// Init extension support.
+#ifdef __APPLE__
+	glewExperimental = 1;
+#endif
 	if (glewInit() != GLEW_OK)
 	{
 		ERROR_LOG(VIDEO, "glewInit() failed! Does your video card support OpenGL 2.x?");

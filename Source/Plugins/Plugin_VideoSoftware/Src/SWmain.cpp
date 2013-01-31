@@ -141,9 +141,12 @@ void VideoSoftware::Shutdown()
 void VideoSoftware::Video_Prepare()
 {
 	GLInterface->MakeCurrent();
-    // Init extension support.
+	// Init extension support.
 	{
 #ifndef USE_GLES
+#ifdef __APPLE__
+	glewExperimental = 1;
+#endif
 	if (glewInit() != GLEW_OK) {
 		ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
 		return;
