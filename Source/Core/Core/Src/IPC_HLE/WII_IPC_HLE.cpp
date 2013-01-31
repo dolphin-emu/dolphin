@@ -382,18 +382,18 @@ void ExecuteCommand(u32 _Address)
 			}
 			else
 			{
-				IWII_IPC_HLE_Device* _pDevice = CreateFileIO(DeviceID, DeviceName);
-				CmdSuccess = _pDevice->Open(_Address, Mode);
+				pDevice = CreateFileIO(DeviceID, DeviceName);
+				CmdSuccess = pDevice->Open(_Address, Mode);
 
 				INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
-						_pDevice->GetDeviceName().c_str(), DeviceID, Mode);
+						pDevice->GetDeviceName().c_str(), DeviceID, Mode);
 				if (Memory::Read_U32(_Address + 4) == (u32)DeviceID)
 				{
-					g_FdMap[DeviceID] = _pDevice;
+					g_FdMap[DeviceID] = pDevice;
 				}
 				else
 				{
-					delete _pDevice;
+					delete pDevice;
 				}
 			}
 
