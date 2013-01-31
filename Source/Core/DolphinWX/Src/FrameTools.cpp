@@ -913,7 +913,6 @@ void CFrame::StartGame(const std::string& filename)
 		wxTheApp->Bind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
 		wxTheApp->Bind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
 		wxTheApp->Bind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
-		m_RenderParent->Bind(wxEVT_LEFT_DCLICK, &CFrame::OnMouse, this);
 		wxTheApp->Bind(wxEVT_MOTION, &CFrame::OnMouse, this);
 		m_RenderParent->Bind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
 	}
