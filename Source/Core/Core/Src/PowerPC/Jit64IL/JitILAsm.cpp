@@ -71,7 +71,7 @@ void JitILAsmRoutineManager::Generate()
 #endif
 //	INT3();
 
-	const u8 *outerLoop = GetCodePtr();
+	const u8 *outer_loop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
 	
@@ -220,7 +220,7 @@ void JitILAsmRoutineManager::Generate()
 		MOV(32, M(&PC), R(EAX));
 
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-		J_CC(CC_Z, outerLoop, true);
+		J_CC(CC_Z, outer_loop, true);
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
