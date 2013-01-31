@@ -633,17 +633,12 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 	const int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	const int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	s_pfont->printMultilineText(text,
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight, color);
 
 	GL_REPORT_ERRORD();
-
-	glDisable(GL_BLEND);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -1335,18 +1330,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_fps = UpdateFPSCounter();
 	// ---------------------------------------------------------------------
 	GL_REPORT_ERRORD();
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	DrawDebugText();
 	DrawDebugInfo();
 
 	GL_REPORT_ERRORD();
 
-	// Get the status of the Blend mode
-	GLboolean blend_enabled = glIsEnabled(GL_BLEND);
-	glDisable(GL_BLEND);
 	OSD::DrawMessages();
-	if (blend_enabled)
-		glEnable(GL_BLEND);
 	GL_REPORT_ERRORD();
 
 	// Copy the rendered frame to the real window
