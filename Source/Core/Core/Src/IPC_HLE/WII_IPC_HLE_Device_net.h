@@ -29,6 +29,7 @@
 #include <ws2tcpip.h>
 #endif
 #include "Timer.h"
+#include "Thread.h"
 #include "FileUtil.h"
 
 // data layout of the network configuration file (/shared2/sys/net/02/config.dat)
@@ -568,6 +569,54 @@ private:
 	}
 };
 
+class _tSocket
+{
+public:
+	bool running;
+	std::mutex m_mutex;
+	std::thread* thread;
+	
+	_tSocket()
+	{
+		running = true;
+	}
+	
+	bool getCommand(u32& commandAddress)
+	{
+		std::unique_lock<std::mutex> lk(m_mutex);
+		if (commands.empty())
+			return false;
+		commandAddress = commands.front();
+		commands.pop();
+		return true;
+	}
+	
+	void addCommand(u32 commandAddress)
+	{
+		std::unique_lock<std::mutex> lk(m_mutex);
+		commands.push(commandAddress);
+		event.Set();
+	}
+	
+	void StopAndJoin()
+	{
+		running = false;
+		event.Set();
+		thread->join();
+		delete thread;
+		thread = NULL;
+	}
+	
+	void WaitForEvent()
+	{
+		event.Wait();
+	}
+private:
+	Common::Event event;
+	std::queue<u32> commands;
+	
+};
+
 //////////////////////////////////////////////////////////////////////////
 class CWII_IPC_HLE_Device_net_ip_top : public IWII_IPC_HLE_Device
 {
@@ -585,6 +634,9 @@ private:
 #ifdef _WIN32
 	WSADATA InitData;
 #endif
+	std::map<u32, _tSocket*> socketMap;
+	std::mutex socketMapMutex;
+	void socketProcessor(u32 socket);
 	
     enum
 	{
@@ -628,6 +680,39 @@ private:
 	u32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
 	u32 ExecuteCommandV(SIOCtlVBuffer& CommandBuffer);
 };
+
+static int getNetErrorCode(int ret, std::string caller, bool isRW);
+
+
+struct bind_params
+{
+	u32 socket;
+	u32 has_name;
+	u8 name[28];
+};
+
+struct GC_sockaddr
+{
+	u8 sa_len;
+	u8 sa_family;
+	s8 sa_data[14];
+};
+
+struct GC_in_addr
+{
+	// this cannot be named s_addr under windows - collides with some crazy define.
+	u32 s_addr_;
+};
+
+struct GC_sockaddr_in
+{
+	u8 sin_len;
+	u8 sin_family;
+	u16 sin_port;
+	struct GC_in_addr sin_addr;
+	s8 sin_zero[8];
+};
+
 
 // **********************************************************************************
 // Interface for reading and changing network configuration (probably some other stuff as well)
