@@ -41,6 +41,7 @@
 #include "OpcodeDecoding.h"
 #include "FileUtil.h"
 #include "Debugger.h"
+#include "StreamBuffer.h"
 
 #include "main.h"
 
@@ -54,6 +55,11 @@ const u32 MAX_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * 16 * sizeof(u16);
 const u32 MAX_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 16;
 const u32 MIN_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE *  1 * sizeof(u16);
 const u32 MIN_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE *  1;
+
+static StreamBuffer *s_vertexBuffer;
+static StreamBuffer *s_indexBuffer;
+static u32 s_baseVertex;
+static u32 s_offset[3];
 
 VertexManager::VertexManager()
 {
@@ -75,31 +81,22 @@ void VertexManager::CreateDeviceObjects()
 	max_Index_size *= sizeof(u16);
 	GL_REPORT_ERROR();
 	
-	m_index_buffer_size = std::min(MAX_IBUFFER_SIZE, std::max(max_Index_size, MIN_IBUFFER_SIZE));
-	m_vertex_buffer_size = std::min(MAX_VBUFFER_SIZE, std::max(max_Vertex_size, MIN_VBUFFER_SIZE));
+	u32 index_buffer_size = std::min(MAX_IBUFFER_SIZE, std::max(max_Index_size, MIN_IBUFFER_SIZE));
+	u32 vertex_buffer_size = std::min(MAX_VBUFFER_SIZE, std::max(max_Vertex_size, MIN_VBUFFER_SIZE));
 	
 	// should be not bigger, but we need it. so try and have luck
-	if (m_index_buffer_size > max_Index_size) {
+	if (index_buffer_size > max_Index_size) {
 		ERROR_LOG(VIDEO, "GL_MAX_ELEMENTS_INDICES to small, so try it anyway. good luck\n");
 	}
-	if (m_vertex_buffer_size > max_Vertex_size) {
+	if (vertex_buffer_size > max_Vertex_size) {
 		ERROR_LOG(VIDEO, "GL_MAX_ELEMENTS_VERTICES to small, so try it anyway. good luck\n");
 	}
 
-	glGenBuffers(1, &m_vertex_buffers);
-	GL_REPORT_ERROR();
-	glGenBuffers(1, &m_index_buffers);
-	GL_REPORT_ERROR();
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffers );
-	GL_REPORT_ERROR();
-	glBufferData(GL_ARRAY_BUFFER, m_vertex_buffer_size, NULL, GL_STREAM_READ  );
-	GL_REPORT_ERROR();
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffers );
-	GL_REPORT_ERROR();
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size, NULL, GL_STREAM_READ  );
-	GL_REPORT_ERROR();
-	m_index_buffer_cursor = 0;
-	m_vertex_buffer_cursor = 0;
+	s_vertexBuffer = new StreamBuffer(GL_ARRAY_BUFFER, vertex_buffer_size);
+	m_vertex_buffers = s_vertexBuffer->getBuffer();
+	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_size);
+	m_index_buffers = s_indexBuffer->getBuffer();
+	
 	m_CurrentVertexFmt = NULL;
 	m_last_vao = 0;
 }
@@ -110,81 +107,34 @@ void VertexManager::DestroyDeviceObjects()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0 );
 	GL_REPORT_ERROR();
 	
-	glDeleteBuffers(1, &m_vertex_buffers);
-	GL_REPORT_ERROR();
-
-	glDeleteBuffers(1, &m_index_buffers);
+	delete s_vertexBuffer;
+	delete s_indexBuffer;
 	GL_REPORT_ERROR();
 }
 
 void VertexManager::PrepareDrawBuffers(u32 stride)
 {
-	u8* pVertices = NULL;
-	u16* pIndices = NULL;
 	int vertex_data_size = IndexGenerator::GetNumVerts() * stride;
 	int triangle_index_size = IndexGenerator::GetTriangleindexLen();
 	int line_index_size = IndexGenerator::GetLineindexLen();
 	int point_index_size = IndexGenerator::GetPointindexLen();
-	int index_data_size = (triangle_index_size + line_index_size + point_index_size) * sizeof(u16);
 	
-	m_vertex_buffer_cursor--;
-	m_vertex_buffer_cursor = m_vertex_buffer_cursor - (m_vertex_buffer_cursor % stride) + stride;
+	s_vertexBuffer->Align(stride);
+	u32 offset = s_vertexBuffer->Upload(LocalVBuffer, vertex_data_size);
 	
-	if (m_vertex_buffer_cursor >= m_vertex_buffer_size - vertex_data_size || m_index_buffer_cursor >= m_index_buffer_size - index_data_size)
+	s_baseVertex = offset / stride;
+
+	if(triangle_index_size)
 	{
-		m_vertex_buffer_cursor = 0;
-		m_index_buffer_cursor = 0;
-		glBufferData(GL_ARRAY_BUFFER, m_vertex_buffer_size, NULL, GL_STREAM_READ);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size, NULL, GL_STREAM_READ);
+		s_offset[0] = s_indexBuffer->Upload((u8*)TIBuffer, triangle_index_size * sizeof(u16));
 	}
-	
-	pVertices = (u8*)glMapBufferRange(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
-	if(pVertices)
+	if(line_index_size)
 	{
-		memcpy(pVertices, LocalVBuffer, vertex_data_size);
-		glUnmapBuffer(GL_ARRAY_BUFFER);
+		s_offset[1] = s_indexBuffer->Upload((u8*)LIBuffer, line_index_size * sizeof(u16));
 	}
-	else // could that happen? out-of-memory?
+	if(point_index_size)
 	{
-		glBufferSubData(GL_ARRAY_BUFFER, m_vertex_buffer_cursor, vertex_data_size, LocalVBuffer);
-	}
-	
-	pIndices = (u16*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_cursor , index_data_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
-	if(pIndices)
-	{
-		if(triangle_index_size)
-		{		
-			memcpy(pIndices, TIBuffer, triangle_index_size * sizeof(u16));
-			pIndices += triangle_index_size;
-		}
-		if(line_index_size)
-		{		
-			memcpy(pIndices, LIBuffer, line_index_size * sizeof(u16));
-			pIndices += line_index_size;
-		}
-		if(point_index_size)
-		{		
-			memcpy(pIndices, PIBuffer, point_index_size * sizeof(u16));
-		}
-		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-	}
-	else // could that happen? out-of-memory?
-	{
-		if(triangle_index_size)
-		{		
-			triangle_index_size *= sizeof(u16);
-			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor, triangle_index_size, TIBuffer);				
-		}
-		if(line_index_size)
-		{
-			line_index_size *= sizeof(u16);
-			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor + triangle_index_size, line_index_size, LIBuffer);
-		}
-		if(point_index_size)
-		{
-			point_index_size *= sizeof(u16);
-			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,  m_index_buffer_cursor + triangle_index_size + line_index_size, point_index_size, PIBuffer);
-		}			
+		s_offset[2] = s_indexBuffer->Upload((u8*)PIBuffer, point_index_size * sizeof(u16));
 	}
 }
 
@@ -193,23 +143,19 @@ void VertexManager::Draw(u32 stride)
 	int triangle_index_size = IndexGenerator::GetTriangleindexLen();
 	int line_index_size = IndexGenerator::GetLineindexLen();
 	int point_index_size = IndexGenerator::GetPointindexLen();
-	int StartIndex = m_index_buffer_cursor;
-	int basevertex = m_vertex_buffer_cursor / stride;
 	if (triangle_index_size > 0)
 	{
-		glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+StartIndex, basevertex);
-		StartIndex += triangle_index_size * sizeof(u16);
+		glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if (line_index_size > 0)
 	{
-		glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+StartIndex, basevertex);
-		StartIndex += line_index_size * sizeof(u16);
+		glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if (point_index_size > 0)
 	{
-		glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+StartIndex, basevertex);
+		glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 }
@@ -361,9 +307,6 @@ void VertexManager::vFlush()
 			glEnable(GL_BLEND);
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
-	
-	m_index_buffer_cursor += (IndexGenerator::GetTriangleindexLen() + IndexGenerator::GetLineindexLen() + IndexGenerator::GetPointindexLen()) * sizeof(u16);
-	m_vertex_buffer_cursor += IndexGenerator::GetNumVerts() * stride;
 	
 	ResetBuffer();
 #if defined(_DEBUG) || defined(DEBUGFAST)

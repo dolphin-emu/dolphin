@@ -17,6 +17,7 @@
 
 #include "ProgramShaderCache.h"
 #include "MathUtil.h"
+#include "StreamBuffer.h"
 
 namespace OGL
 {
@@ -25,10 +26,8 @@ static const u32 UBO_LENGTH = 1024*1024;
 
 GLuint ProgramShaderCache::CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
-GLuint ProgramShaderCache::s_ps_vs_ubo;
-u32 ProgramShaderCache::s_ubo_iterator;
 GLintptr ProgramShaderCache::s_vs_data_offset;
-float *ProgramShaderCache::s_ubo_buffer;
+u8 *ProgramShaderCache::s_ubo_buffer;
 u32 ProgramShaderCache::s_ubo_buffer_size;
 bool ProgramShaderCache::s_ubo_dirty;
 
@@ -38,6 +37,8 @@ GLenum ProgramFormat;
 GLuint ProgramShaderCache::PCacheEntry::prog_format = 0;
 
 u64 ProgramShaderCache::CurrentShaderProgram;
+
+static StreamBuffer *s_buffer;
 
 u64 Create_Pair(u32 key1, u32 key2)
 {
@@ -195,36 +196,23 @@ void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
 {
 	s_ubo_dirty = true;
-	memcpy(s_ubo_buffer+(offset*4), f, count*4*sizeof(float));
+	memcpy(s_ubo_buffer+(offset*4*sizeof(float)), f, count*4*sizeof(float));
 }
 
 void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
 {
 	s_ubo_dirty = true;
-	memcpy(s_ubo_buffer+(offset*4)+s_vs_data_offset/sizeof(float), f, count*4*sizeof(float));
+	memcpy(s_ubo_buffer+(offset*4*sizeof(float))+s_vs_data_offset, f, count*4*sizeof(float));
 }
 
 void ProgramShaderCache::UploadConstants()
 {
 	if(s_ubo_dirty) {
-		if(s_ubo_iterator + s_ubo_buffer_size >= UBO_LENGTH) {
-			glBufferData(GL_UNIFORM_BUFFER, UBO_LENGTH, NULL, GL_STREAM_READ);
-			s_ubo_iterator = 0;
-		}
-		void *ubo = glMapBufferRange(GL_UNIFORM_BUFFER, s_ubo_iterator, s_ubo_buffer_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
-		if(ubo) {
-			memcpy(ubo, s_ubo_buffer, s_ubo_buffer_size);
-			glUnmapBuffer(GL_UNIFORM_BUFFER);
-		} else {
-			glBufferSubData(GL_UNIFORM_BUFFER,  s_ubo_iterator, s_ubo_buffer_size, s_ubo_buffer);
-		}
-		
-		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_ps_vs_ubo, s_ubo_iterator, s_vs_data_offset);
-		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_ps_vs_ubo, s_ubo_iterator + s_vs_data_offset, s_ubo_buffer_size - s_vs_data_offset);
-		
-		s_ubo_iterator += s_ubo_buffer_size;
+		size_t offset = s_buffer->Upload(s_ubo_buffer, s_ubo_buffer_size);
+		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, s_vs_data_offset);
+		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset + s_vs_data_offset, s_ubo_buffer_size - s_vs_data_offset);
+		s_ubo_dirty = false;
 	}
-	s_ubo_dirty = false;
 }
 
 GLuint ProgramShaderCache::GetCurrentProgram(void)
@@ -255,12 +243,9 @@ void ProgramShaderCache::Init(void)
 		// We multiply by *4*4 because we need to get down to basic machine units.
 		// So multiply by four to get how many floats we have from vec4s
 		// Then once more to get bytes
-		glGenBuffers(1, &s_ps_vs_ubo);
-		glBindBuffer(GL_UNIFORM_BUFFER, s_ps_vs_ubo);
-		glBufferData(GL_UNIFORM_BUFFER, UBO_LENGTH, NULL, GL_STREAM_READ);
-		s_ubo_iterator = 0;
+		s_buffer = new StreamBuffer(GL_UNIFORM_BUFFER, UBO_LENGTH);
 		
-		s_ubo_buffer = new float[s_ubo_buffer_size/sizeof(float)];
+		s_ubo_buffer = new u8[s_ubo_buffer_size];
 		memset(s_ubo_buffer, 0, s_ubo_buffer_size);
 		s_ubo_dirty = true;
 	}
@@ -306,9 +291,8 @@ void ProgramShaderCache::Shutdown(void)
 
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		glDeleteBuffers(1, &s_ps_vs_ubo);
-		s_ps_vs_ubo = 0;
+		delete s_buffer;
+		s_buffer = 0;
 		delete [] s_ubo_buffer;
 		s_ubo_buffer = 0;
 	}

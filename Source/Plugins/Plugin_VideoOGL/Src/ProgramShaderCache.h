@@ -164,10 +164,8 @@ private:
 	static GLuint CurrentProgram;
 	static u64 CurrentShaderProgram;
 
-	static GLuint s_ps_vs_ubo;
-	static u32 s_ubo_iterator;
 	static GLintptr s_vs_data_offset;
-	static float *s_ubo_buffer;
+	static u8 *s_ubo_buffer;
 	static u32 s_ubo_buffer_size;
 	static bool s_ubo_dirty;
 	static void SetProgramVariables(PCacheEntry &entry);

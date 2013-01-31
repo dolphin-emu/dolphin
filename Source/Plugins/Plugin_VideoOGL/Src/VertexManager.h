@@ -57,10 +57,6 @@ private:
 	void Draw(u32 stride);
 	void vFlush();
 	void PrepareDrawBuffers(u32 stride);
-	u32 m_vertex_buffer_cursor;
-	u32 m_vertex_buffer_size;
-	u32 m_index_buffer_cursor;
-	u32 m_index_buffer_size;
 	NativeVertexFormat *m_CurrentVertexFmt;
 };
 

@@ -33,6 +33,9 @@
     <ClCompile Include="Src\Render.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="Src\StreamBuffer.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
     <ClCompile Include="Src\TextureCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
