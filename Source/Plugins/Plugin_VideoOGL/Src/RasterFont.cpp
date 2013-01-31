@@ -208,11 +208,7 @@ RasterFont::~RasterFont()
 void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
 {
 	size_t length = strlen(text);
-	
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, length*4*6*sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	GLfloat *vertices = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	GLfloat *vertices = new GLfloat[length*6*4];
 	
 	int usage = 0;
 	GLfloat delta_x = GLfloat(2*char_width)/GLfloat(bbWidth);
@@ -272,7 +268,17 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 		
 		x += delta_x + border_x;
 	}
-	glUnmapBuffer(GL_ARRAY_BUFFER);
+	
+	if(!usage) {
+		delete [] vertices;
+		return;
+	}
+	
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, usage*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+	
+	delete [] vertices;
 
 	ProgramShaderCache::SetBothShaders(s_fragmentShader.glprogid, s_vertexShader.glprogid);
 	
