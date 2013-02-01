@@ -25,7 +25,8 @@
 namespace OGL
 {
 enum StreamType {
-	MAP_AND_ORPHAN
+	MAP_AND_ORPHAN,
+	BUFFERSUBDATA
 };
 
 class StreamBuffer {
@@ -34,6 +35,7 @@ public:
 	StreamBuffer(u32 type, size_t size);
 	~StreamBuffer();
 	
+	void Alloc(size_t size);
 	size_t Upload(u8 *data, size_t size);
 	
 	u32 getBuffer() { return m_buffer; }

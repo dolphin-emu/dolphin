@@ -208,6 +208,7 @@ void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float 
 void ProgramShaderCache::UploadConstants()
 {
 	if(s_ubo_dirty) {
+		s_buffer->Alloc(s_ubo_buffer_size);
 		size_t offset = s_buffer->Upload(s_ubo_buffer, s_ubo_buffer_size);
 		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, s_vs_data_offset);
 		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset + s_vs_data_offset, s_ubo_buffer_size - s_vs_data_offset);

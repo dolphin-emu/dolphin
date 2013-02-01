@@ -114,16 +114,18 @@ void VertexManager::DestroyDeviceObjects()
 
 void VertexManager::PrepareDrawBuffers(u32 stride)
 {
-	int vertex_data_size = IndexGenerator::GetNumVerts() * stride;
-	int triangle_index_size = IndexGenerator::GetTriangleindexLen();
-	int line_index_size = IndexGenerator::GetLineindexLen();
-	int point_index_size = IndexGenerator::GetPointindexLen();
+	u32 vertex_data_size = IndexGenerator::GetNumVerts() * stride;
+	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
+	u32 line_index_size = IndexGenerator::GetLineindexLen();
+	u32 point_index_size = IndexGenerator::GetPointindexLen();
+	u32 index_size = (triangle_index_size+line_index_size+point_index_size) * sizeof(u16);
 	
 	s_vertexBuffer->Align(stride);
+	s_vertexBuffer->Alloc(vertex_data_size);
 	u32 offset = s_vertexBuffer->Upload(LocalVBuffer, vertex_data_size);
-	
 	s_baseVertex = offset / stride;
 
+	s_indexBuffer->Alloc(index_size);
 	if(triangle_index_size)
 	{
 		s_offset[0] = s_indexBuffer->Upload((u8*)TIBuffer, triangle_index_size * sizeof(u16));
@@ -140,9 +142,9 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 void VertexManager::Draw(u32 stride)
 {
-	int triangle_index_size = IndexGenerator::GetTriangleindexLen();
-	int line_index_size = IndexGenerator::GetLineindexLen();
-	int point_index_size = IndexGenerator::GetPointindexLen();
+	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
+	u32 line_index_size = IndexGenerator::GetLineindexLen();
+	u32 point_index_size = IndexGenerator::GetPointindexLen();
 	if (triangle_index_size > 0)
 	{
 		glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);

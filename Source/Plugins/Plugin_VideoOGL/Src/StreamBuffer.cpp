@@ -47,7 +47,7 @@ void StreamBuffer::Align ( u32 stride )
 	}
 }
 
-size_t StreamBuffer::Upload ( u8* data, size_t size )
+void StreamBuffer::Alloc ( size_t size )
 {
 	switch(m_uploadtype) {
 	case MAP_AND_ORPHAN:
@@ -55,6 +55,17 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 			glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
 			m_iterator = 0;
 		}
+		break;
+	case BUFFERSUBDATA:
+		m_iterator = 0;
+		break;
+	}
+}
+
+size_t StreamBuffer::Upload ( u8* data, size_t size )
+{
+	switch(m_uploadtype) {
+	case MAP_AND_ORPHAN:
 		pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 		if(pointer) {
 			memcpy(pointer, data, size);
@@ -63,17 +74,20 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 			ERROR_LOG(VIDEO, "buffer mapping failed");
 		}
 		break;
+	case BUFFERSUBDATA:
+		glBufferSubData(m_buffertype, m_iterator, size, data);
+		break;
 	}
 	size_t ret = m_iterator;
 	m_iterator += size;
 	return ret;
 }
 
-
 void StreamBuffer::Init()
 {
 	switch(m_uploadtype) {
 	case MAP_AND_ORPHAN:
+	case BUFFERSUBDATA:
 		glBindBuffer(m_buffertype, m_buffer);
 		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
 		break;
@@ -84,6 +98,7 @@ void StreamBuffer::Shutdown()
 {
 	switch(m_uploadtype) {
 	case MAP_AND_ORPHAN:
+	case BUFFERSUBDATA:
 		break;
 	}
 }
