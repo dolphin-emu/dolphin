@@ -26,7 +26,7 @@ namespace OGL
 static const u32 SYNC_POINTS = 16;
 
 StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
-: m_uploadtype(uploadType), m_buffertype(type), m_size(size), m_iterator(0), m_used_iterator(0), m_free_iterator(0)
+: m_uploadtype(uploadType), m_buffertype(type), m_size(size)
 {
 	glGenBuffers(1, &m_buffer);
 	
@@ -61,6 +61,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		}
 		break;
 	case MAP_AND_SYNC:
+	case PINNED_MEMORY:
 		
 		// insert waiting slots for used memory
 		for(u32 i=SLOT(m_used_iterator); i<SLOT(m_iterator); i++)
@@ -101,6 +102,8 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 	case BUFFERSUBDATA:
 		m_iterator_aligned = 0;
 		break;
+	case STREAM_DETECT:
+		break;
 	}
 	m_iterator = m_iterator_aligned;
 }
@@ -118,8 +121,13 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 			ERROR_LOG(VIDEO, "buffer mapping failed");
 		}
 		break;
+	case PINNED_MEMORY:
+		memcpy(pointer+m_iterator, data, size);
+		break;
 	case BUFFERSUBDATA:
 		glBufferSubData(m_buffertype, m_iterator, size, data);
+		break;
+	case STREAM_DETECT:
 		break;
 	}
 	size_t ret = m_iterator;
@@ -129,6 +137,10 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 
 void StreamBuffer::Init()
 {
+	m_iterator = 0;
+	m_used_iterator = 0;
+	m_free_iterator = 0;
+	
 	switch(m_uploadtype) {
 	case MAP_AND_SYNC:
 		fences = new GLsync[SYNC_POINTS];
@@ -139,6 +151,19 @@ void StreamBuffer::Init()
 	case BUFFERSUBDATA:
 		glBindBuffer(m_buffertype, m_buffer);
 		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
+		break;
+	case PINNED_MEMORY:
+		fences = new GLsync[SYNC_POINTS];
+		for(u32 i=0; i<SYNC_POINTS; i++)
+			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		
+		pointer = new u8[m_size];
+		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_buffer);
+		glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_size, pointer, GL_STREAM_COPY);
+		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, 0);
+		glBindBuffer(m_buffertype, m_buffer);
+		break;
+	case STREAM_DETECT:
 		break;
 	}
 }
@@ -154,6 +179,16 @@ void StreamBuffer::Shutdown()
 		
 	case MAP_AND_ORPHAN:
 	case BUFFERSUBDATA:
+		break;
+	case PINNED_MEMORY:
+		for(u32 i=0; i<SYNC_POINTS; i++)
+			glDeleteSync(fences[i]);
+		delete [] fences;
+		glBindBuffer(m_buffertype, 0);
+		glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
+		delete [] pointer;
+		break;
+	case STREAM_DETECT:
 		break;
 	}
 }
