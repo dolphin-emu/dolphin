@@ -697,7 +697,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 			u32 s = Memory::Read_U32(BufferIn);
 			_tSocket * sock = NULL;
 			{
-				std::unique_lock<std::mutex> lk(socketMapMutex);
+				std::lock_guard<std::mutex> lk(socketMapMutex);
 				if(socketMap.find(s) != socketMap.end())
 					sock = socketMap[s];
 			}
@@ -729,7 +729,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 			
 			if (ReturnValue > 0)
 			{
-				std::unique_lock<std::mutex> lk(socketMapMutex);
+				std::lock_guard<std::mutex> lk(socketMapMutex);
 				_tSocket* sock = new _tSocket();
 				socketMap[s] = sock;
 				sock->thread = new std::thread([this, s]{this->socketProcessor(s);});
@@ -773,7 +773,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 				
 			_tSocket * sock = NULL;
 			{
-				std::unique_lock<std::mutex> lk(socketMapMutex);
+				std::lock_guard<std::mutex> lk(socketMapMutex);
 				if(socketMap.find(s) != socketMap.end())
 					sock = socketMap[s];
 				if(sock)
@@ -1344,7 +1344,7 @@ void CWII_IPC_HLE_Device_net_ip_top::socketProcessor(u32 socket)
 	ERROR_LOG(WII_IPC_NET, "Socket %d has started a thread.... oh dear.", socket);
 	_tSocket* sock = NULL;
 	{
-		std::unique_lock<std::mutex> lk(socketMapMutex);
+		std::lock_guard<std::mutex> lk(socketMapMutex);
 		if(socketMap.find(socket) == socketMap.end())
 		{
 			ERROR_LOG(WII_IPC_NET, "Socket %d could not be found in the socket map.", socket);
@@ -1780,7 +1780,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		
 		_tSocket * sock = NULL;
 		{
-			std::unique_lock<std::mutex> lk(socketMapMutex);
+			std::lock_guard<std::mutex> lk(socketMapMutex);
 			if(socketMap.find(s) != socketMap.end())
 				sock = socketMap[s];
 		}

@@ -583,7 +583,7 @@ public:
 	
 	bool getCommand(u32& commandAddress)
 	{
-		std::unique_lock<std::mutex> lk(m_mutex);
+		std::lock_guard<std::mutex> lk(m_mutex);
 		if (commands.empty())
 			return false;
 		commandAddress = commands.front();
@@ -593,7 +593,7 @@ public:
 	
 	void addCommand(u32 commandAddress)
 	{
-		std::unique_lock<std::mutex> lk(m_mutex);
+		std::lock_guard<std::mutex> lk(m_mutex);
 		commands.push(commandAddress);
 		event.Set();
 	}
