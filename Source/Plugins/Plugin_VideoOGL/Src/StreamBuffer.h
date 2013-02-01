@@ -21,26 +21,27 @@
 
 #include "VideoCommon.h"
 #include "FramebufferManager.h"
+#include "GLUtil.h"
 
 namespace OGL
 {
 enum StreamType {
+	STREAM_DETECT,
 	MAP_AND_ORPHAN,
+	MAP_AND_SYNC,
 	BUFFERSUBDATA
 };
 
 class StreamBuffer {
 
 public:
-	StreamBuffer(u32 type, size_t size);
+	StreamBuffer(u32 type, size_t size, StreamType uploadType = STREAM_DETECT);
 	~StreamBuffer();
 	
-	void Alloc(size_t size);
+	void Alloc(size_t size, u32 stride = 0);
 	size_t Upload(u8 *data, size_t size);
 	
 	u32 getBuffer() { return m_buffer; }
-	
-	void Align(u32 stride);
 	
 private:
 	void Init();
@@ -52,6 +53,8 @@ private:
 	size_t m_size;
 	u8 *pointer;
 	size_t m_iterator;
+	size_t m_last_iterator;
+	GLsync *fences;
 };
 
 }

@@ -120,8 +120,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	u32 point_index_size = IndexGenerator::GetPointindexLen();
 	u32 index_size = (triangle_index_size+line_index_size+point_index_size) * sizeof(u16);
 	
-	s_vertexBuffer->Align(stride);
-	s_vertexBuffer->Alloc(vertex_data_size);
+	s_vertexBuffer->Alloc(vertex_data_size, stride);
 	u32 offset = s_vertexBuffer->Upload(LocalVBuffer, vertex_data_size);
 	s_baseVertex = offset / stride;
 
