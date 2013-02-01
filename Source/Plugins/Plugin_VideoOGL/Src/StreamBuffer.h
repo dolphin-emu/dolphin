@@ -53,7 +53,8 @@ private:
 	size_t m_size;
 	u8 *pointer;
 	size_t m_iterator;
-	size_t m_last_iterator;
+	size_t m_used_iterator;
+	size_t m_free_iterator;
 	GLsync *fences;
 };
 
