@@ -20,8 +20,8 @@
 #include "GLUtil.h"
 #include "StreamBuffer.h"
 
-#ifndef EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD
-#define EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD              0x9160
+#ifndef GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD
+#define GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD 0x9160
 #endif
 
 namespace OGL
