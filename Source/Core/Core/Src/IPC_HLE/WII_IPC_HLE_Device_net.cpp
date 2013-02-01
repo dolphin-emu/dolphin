@@ -732,7 +732,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 				std::unique_lock<std::mutex> lk(socketMapMutex);
 				_tSocket* sock = new _tSocket();
 				socketMap[s] = sock;
-				sock->thread = new std::thread(&CWII_IPC_HLE_Device_net_ip_top::socketProcessor, this, s);
+				sock->thread = new std::thread([this, s]{this->socketProcessor(s);});
 			}
 			
 			break;
