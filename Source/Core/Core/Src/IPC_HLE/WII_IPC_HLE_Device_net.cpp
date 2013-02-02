@@ -603,6 +603,13 @@ CWII_IPC_HLE_Device_net_ip_top::CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID, co
 	int ret = WSAStartup(MAKEWORD(2,2), &InitData);
 	INFO_LOG(WII_IPC_NET, "WSAStartup: %d", ret);
 #endif
+	
+	u32 s = 0xDEADBEEF;
+	std::lock_guard<std::mutex> lk(socketMapMutex);
+	_tSocket* sock = new _tSocket();
+	socketMap[s] = sock;
+	sock->thread = new std::thread([this, s]{this->processSocket(s);});
+	
 }
 
 CWII_IPC_HLE_Device_net_ip_top::~CWII_IPC_HLE_Device_net_ip_top() 
@@ -610,6 +617,27 @@ CWII_IPC_HLE_Device_net_ip_top::~CWII_IPC_HLE_Device_net_ip_top()
 #ifdef _WIN32
 	WSACleanup();
 #endif
+	
+	std::lock_guard<std::mutex> lk(socketMapMutex);
+	auto i = socketMap.begin();
+	while(i != socketMap.end())
+	{
+		u32 s = i->first;
+		_tSocket * sock = i->second;
+		if(s != 0xDEADBEEF)
+		{
+		(void)shutdown(s, SHUT_RDWR);
+		#ifdef _WIN32
+			(void)closesocket(s);
+		#else
+			(void)close(s);
+		#endif
+		}
+		
+		sock->StopAndJoin();
+		delete sock;
+		socketMap.erase(i++);
+	}
 }
 
 bool CWII_IPC_HLE_Device_net_ip_top::Open(u32 CommandAddress, u32 _Mode)
@@ -711,7 +739,29 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 				ReturnValue = -8; // EBADF
 			}
 			
-			ERROR_LOG(WII_IPC_NET, "Failed to find socket %X", s);
+			ERROR_LOG(WII_IPC_NET, "Failed to find socket %d %08X", s, Command);
+			break;
+		}
+		case IOCTL_SO_POLL:
+		{
+			u32 s = 0xDEADBEEF;
+			_tSocket * sock = NULL;
+			{
+				std::lock_guard<std::mutex> lk(socketMapMutex);
+				if(socketMap.find(s) != socketMap.end())
+					sock = socketMap[s];
+			}
+			if(sock)
+			{
+				sock->addCommand(CommandAddress);
+				return false;
+			}
+			else
+			{
+				ReturnValue = -8; // EBADF
+			}
+			
+			ERROR_LOG(WII_IPC_NET, "Failed to find socket %d %08X", s, Command);
 			break;
 		}
 		
@@ -732,7 +782,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 				std::lock_guard<std::mutex> lk(socketMapMutex);
 				_tSocket* sock = new _tSocket();
 				socketMap[s] = sock;
-				sock->thread = new std::thread([this, s]{this->socketProcessor(s);});
+				sock->thread = new std::thread([this, s]{this->processSocket(s);});
 			}
 			
 			break;
@@ -763,13 +813,14 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 			u32 s = Memory::Read_U32(BufferIn);
 			WARN_LOG(WII_IPC_NET, "IOCTL_SO_CLOSE (%08x)", s);
 			
+			ReturnValue = shutdown(s, SHUT_RDWR);
 			#ifdef _WIN32
 				ReturnValue = closesocket(s);
-				
-				ReturnValue = getNetErrorCode(ReturnValue, "IOCTL_SO_CLOSE", false);
 			#else
 				ReturnValue = close(s);
 			#endif
+				
+			ReturnValue = getNetErrorCode(ReturnValue, "IOCTL_SO_CLOSE", false);
 				
 			_tSocket * sock = NULL;
 			{
@@ -785,6 +836,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 				}
 			}
 			
+			WARN_LOG(WII_IPC_NET, "IOCTL_SO_CLOSE finished (%08x) = ", s, ReturnValue);
 				
 			break;
 		}
@@ -797,6 +849,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 			address.sin_family = addrPC.sin_family;
 			address.sin_addr.s_addr = addrPC.sin_addr.s_addr_;
 			address.sin_port = addrPC.sin_port;
+			
 			ReturnValue = bind(Common::swap32(addr->socket), (sockaddr*)&address, sizeof(address));
 			
 			WARN_LOG(WII_IPC_NET, "IOCTL_SO_BIND (%s:%d) = %d "
@@ -1011,6 +1064,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 			sa_len = sizeof(sa);
 			
 			ReturnValue = getpeername(sock, &sa, &sa_len);
+			ReturnValue = getNetErrorCode(ReturnValue, "IOCTL_SO_GETPEERNAME", false);
 			
 			Memory::Write_U8(BufferOutSize, BufferOut);
 			Memory::Write_U8(AF_INET, BufferOut + 1);
@@ -1065,83 +1119,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 CommandAddress)
 			memset(Memory::GetPointer(BufferOut), 0, BufferOutSize);
 			memcpy(Memory::GetPointer(BufferOut), ip_s, strlen(ip_s));
 			break;
-		}
-		
-		case IOCTL_SO_POLL:
-		{
-			// Map Wii/native poll events types
-			unsigned int mapping[][2] = {
-				{ POLLIN, 0x0001 },
-				{ POLLOUT, 0x0008 },
-				{ POLLHUP, 0x0040 },
-			};
-			
-			u32 unknown = Memory::Read_U32(BufferIn);
-			u32 timeout = Memory::Read_U32(BufferIn + 4);
-			
-			int nfds = BufferOutSize / 0xc;
-			if (nfds == 0)
-				ERROR_LOG(WII_IPC_NET,"Hidden POLL");
-			
-			pollfd_t* ufds = (pollfd_t *)malloc(sizeof(pollfd_t) * nfds);
-			if (ufds == NULL)
-			{
-				ReturnValue = -1;
-				break;
-			}
-			
-			for (int i = 0; i < nfds; i++)
-			{
-				ufds[i].fd = Memory::Read_U32(BufferOut + 0xc*i);				//fd
-				int events = Memory::Read_U32(BufferOut + 0xc*i + 4);			//events
-				ufds[i].revents = Memory::Read_U32(BufferOut + 0xc*i + 8);	//revents
-				
-				// Translate Wii to native events
-				int unhandled_events = events;
-				ufds[i].events = 0;
-				for (unsigned int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
-				{
-					if (events & mapping[j][1])
-						ufds[i].events |= mapping[j][0];
-					unhandled_events &= ~mapping[j][1];
-				}
-				
-				WARN_LOG(WII_IPC_NET, "IOCTL_SO_POLL(%d) "
-				"Sock: %08x, Unknown: %08x, Events: %08x, "
-				"NativeEvents: %08x",
-				i, ufds[i].fd, unknown, events, ufds[i].events
-				);
-				
-				if (unhandled_events)
-					ERROR_LOG(WII_IPC_NET, "SO_POLL: unhandled Wii event types: %04x", unhandled_events);
-			}
-			
-			ReturnValue = poll(ufds, nfds, timeout);
-			ReturnValue = getNetErrorCode(ReturnValue, "SO_POLL", false);
-			
-			for (int i = 0; i<nfds; i++)
-			{
-				
-				// Translate native to Wii events
-				int revents = 0;
-				for (unsigned int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
-				{
-					if (ufds[i].revents & mapping[j][0])
-						revents |= mapping[j][1];
-				}
-				
-				// No need to change fd or events as they are input only.
-				// Memory::Write_U32(ufds[i].fd, BufferOut + 0xc*i);	//fd
-				// Memory::Write_U32(events, BufferOut + 0xc*i + 4);	//events
-				Memory::Write_U32(revents, BufferOut + 0xc*i + 8);	//revents
-				
-				WARN_LOG(WII_IPC_NET, "IOCTL_SO_POLL socket %d revents %08X events %08X", i, revents, ufds[i].events);
-			}
-			free(ufds);
-			
-			break;
-		}
-		
+		}		
 		case IOCTL_SO_GETHOSTBYNAME:
 		{
 			hostent *remoteHost = gethostbyname((char*)Memory::GetPointer(BufferIn));
@@ -1339,9 +1317,251 @@ int getNetErrorCode(int ret, std::string caller, bool isRW)
 }
 
 
-void CWII_IPC_HLE_Device_net_ip_top::socketProcessor(u32 socket)
+s32 CWII_IPC_HLE_Device_net_ip_top::processSocketIoctl(u32 CommandAddress, u32 socket)
 {
-	ERROR_LOG(WII_IPC_NET, "Socket %d has started a thread.... oh dear.", socket);
+	s32 ReturnValue = 0;
+	u32 BufferIn		= Memory::Read_U32(CommandAddress + 0x10);
+	u32 BufferInSize	= Memory::Read_U32(CommandAddress + 0x14);
+	u32 BufferOut		= Memory::Read_U32(CommandAddress + 0x18);
+	u32 BufferOutSize	= Memory::Read_U32(CommandAddress + 0x1C);
+	u32 Command			= Memory::Read_U32(CommandAddress + 0x0C);
+	switch(Command)
+	{
+		case IOCTL_SO_ACCEPT:
+		{
+			WARN_LOG(WII_IPC_NET, "IOCTL_SO_ACCEPT(%d) "
+			"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+					 socket, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+			struct sockaddr* addr = (struct sockaddr*) Memory::GetPointer(BufferOut);
+			socklen_t* addrlen = (socklen_t*) Memory::GetPointer(BufferOutSize);
+			*addrlen = sizeof(struct sockaddr);
+			ReturnValue = accept(socket, addr, addrlen);
+			ReturnValue = getNetErrorCode(ReturnValue, "SO_ACCEPT", false);
+			break;
+		}
+		case IOCTL_SO_CONNECT:
+		{
+			//struct sockaddr_in echoServAddr;
+			struct connect_params
+			{
+				u32 socket;
+				u32 has_addr;
+				u8 addr[28];
+			} params;
+			sockaddr_in serverAddr;
+			
+			Memory::ReadBigEData((u8*)&params, BufferIn, sizeof(connect_params));
+			
+			if (Common::swap32(params.has_addr) != 1)
+			{
+				WARN_LOG(WII_IPC_NET,"IOCTL_SO_CONNECT: failed");
+				ReturnValue = -1;
+				break;
+			}
+			
+			memset(&serverAddr, 0, sizeof(serverAddr));
+			memcpy(&serverAddr, params.addr, params.addr[0]);
+			
+			// GC/Wii sockets have a length param as well, we dont really care :)
+			serverAddr.sin_family = serverAddr.sin_family >> 8;
+			
+			ReturnValue = connect(socket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
+			ReturnValue = getNetErrorCode(ReturnValue, "SO_CONNECT", false);
+			WARN_LOG(WII_IPC_NET,"IOCTL_SO_CONNECT (%08x, %s:%d)",
+					 socket, inet_ntoa(serverAddr.sin_addr), Common::swap16(serverAddr.sin_port));
+			break;
+		}
+		case IOCTL_SO_POLL:
+		{
+			// Map Wii/native poll events types
+			unsigned int mapping[][2] = {
+				{ POLLIN , 0x0001 },
+				{ POLLOUT, 0x0008 },
+				{ POLLHUP, 0x0040 },
+			};
+			
+			u32 unknown = Memory::Read_U32(BufferIn);
+			u32 timeout = Memory::Read_U32(BufferIn + 4);
+			
+			int nfds = BufferOutSize / 0xc;
+			if (nfds == 0)
+				ERROR_LOG(WII_IPC_NET,"Hidden POLL");
+			
+			pollfd_t* ufds = (pollfd_t *)malloc(sizeof(pollfd_t) * nfds);
+			if (ufds == NULL)
+			{
+				ReturnValue = -1;
+				break;
+			}
+			
+			for (int i = 0; i < nfds; i++)
+			{
+				ufds[i].fd = Memory::Read_U32(BufferOut + 0xc*i);				//fd
+				int events = Memory::Read_U32(BufferOut + 0xc*i + 4);			//events
+				ufds[i].revents = Memory::Read_U32(BufferOut + 0xc*i + 8);	//revents
+				
+				// Translate Wii to native events
+				int unhandled_events = events;
+				ufds[i].events = 0;
+				for (unsigned int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
+				{
+					if (events & mapping[j][1])
+						ufds[i].events |= mapping[j][0];
+					unhandled_events &= ~mapping[j][1];
+				}
+				
+				WARN_LOG(WII_IPC_NET, "IOCTL_SO_POLL(%d) "
+				"Sock: %08x, Unknown: %08x, Events: %08x, "
+				"NativeEvents: %08x",
+			 i, ufds[i].fd, unknown, events, ufds[i].events
+				);
+				
+				if (unhandled_events)
+					ERROR_LOG(WII_IPC_NET, "SO_POLL: unhandled Wii event types: %04x", unhandled_events);
+			}
+			
+			ReturnValue = poll(ufds, nfds, timeout);
+			ReturnValue = getNetErrorCode(ReturnValue, "SO_POLL", false);
+			
+			for (int i = 0; i<nfds; i++)
+			{
+				
+				// Translate native to Wii events
+				int revents = 0;
+				for (unsigned int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
+				{
+					if (ufds[i].revents & mapping[j][0])
+						revents |= mapping[j][1];
+				}
+				
+				// No need to change fd or events as they are input only.
+				// Memory::Write_U32(ufds[i].fd, BufferOut + 0xc*i);	//fd
+				// Memory::Write_U32(events, BufferOut + 0xc*i + 4);	//events
+				Memory::Write_U32(revents, BufferOut + 0xc*i + 8);	//revents
+				
+				WARN_LOG(WII_IPC_NET, "IOCTL_SO_POLL socket %d revents %08X events %08X", i, revents, ufds[i].events);
+			}
+			free(ufds);
+			
+			break;
+		}
+		default:
+		{
+			
+			ERROR_LOG(WII_IPC_NET, "Socket %08x has received an unknown IOCTLV %d.", socket, Command);
+			break;
+		}
+	}
+	return ReturnValue;
+}
+s32 CWII_IPC_HLE_Device_net_ip_top::processSocketIoctlv(u32 CommandAddress, u32 socket)
+{
+	SIOCtlVBuffer CommandBuffer(CommandAddress);
+	
+	s32 ReturnValue = 0;
+	
+	u32 BufferIn = 0, BufferIn2 = 0, BufferIn3 = 0;
+	u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
+	
+	u32 BufferOut = 0, BufferOut2 = 0, BufferOut3 = 0;
+	u32 BufferOutSize = 0, BufferOutSize2 = 0, BufferOutSize3 = 0;
+	
+	if (CommandBuffer.InBuffer.size() > 0)
+	{
+		BufferIn = CommandBuffer.InBuffer.at(0).m_Address;
+		BufferInSize = CommandBuffer.InBuffer.at(0).m_Size;
+	}
+	if (CommandBuffer.InBuffer.size() > 1)
+	{
+		BufferIn2 = CommandBuffer.InBuffer.at(1).m_Address;
+		BufferInSize2 = CommandBuffer.InBuffer.at(1).m_Size;
+	}
+	if (CommandBuffer.InBuffer.size() > 2)
+	{
+		BufferIn3 = CommandBuffer.InBuffer.at(2).m_Address;
+		BufferInSize3 = CommandBuffer.InBuffer.at(2).m_Size;
+	}
+	
+	if (CommandBuffer.PayloadBuffer.size() > 0)
+	{
+		BufferOut = CommandBuffer.PayloadBuffer.at(0).m_Address;
+		BufferOutSize = CommandBuffer.PayloadBuffer.at(0).m_Size;
+	}
+	if (CommandBuffer.PayloadBuffer.size() > 1)
+	{
+		BufferOut2 = CommandBuffer.PayloadBuffer.at(1).m_Address;
+		BufferOutSize2 = CommandBuffer.PayloadBuffer.at(1).m_Size;
+	}
+	if (CommandBuffer.PayloadBuffer.size() > 2)
+	{
+		BufferOut3 = CommandBuffer.PayloadBuffer.at(2).m_Address;
+		BufferOutSize3 = CommandBuffer.PayloadBuffer.at(2).m_Size;
+	}
+	switch(CommandBuffer.Parameter)
+	{
+		case IOCTLV_SO_RECVFROM:
+		{
+			
+			u32 flags	= Memory::Read_U32(BufferIn + 4);
+			
+			char *buf	= (char *)Memory::GetPointer(BufferOut);
+			int len		= BufferOutSize;
+			struct sockaddr_in addr;
+			memset(&addr, 0, sizeof(sockaddr_in));
+			socklen_t fromlen = 0;
+			
+			if (BufferOutSize2 != 0)
+			{
+				fromlen = BufferOutSize2 >= sizeof(struct sockaddr) ? BufferOutSize2 : sizeof(struct sockaddr);
+			}
+			
+			if (flags != 2)
+				flags = 0;
+			else
+				flags = MSG_PEEK;
+			#ifdef _WIN32
+				if(flags & MSG_PEEK){
+					unsigned long totallen = 0;
+					ioctlsocket(socket, FIONREAD, &totallen);
+					ReturnValue = totallen;
+					break;
+				}
+				#endif
+				ReturnValue = recvfrom(socket, buf, len, flags,
+									   fromlen ? (struct sockaddr*) &addr : NULL,
+									   fromlen ? &fromlen : 0);
+				
+				ReturnValue = getNetErrorCode(ReturnValue, fromlen ? "SO_RECVFROM" : "SO_RECV", true);
+				
+				
+				WARN_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
+				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+				"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",fromlen ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ",
+						 ReturnValue, buf, socket, flags,
+			 BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+			 BufferOut, BufferOutSize, BufferOut2, BufferOutSize2);
+				
+				if (BufferOutSize2 != 0)
+				{
+					addr.sin_family = (addr.sin_family << 8) | (BufferOutSize2&0xFF);
+					Memory::WriteBigEData((u8*)&addr, BufferOut2, BufferOutSize2);
+				}
+				
+				break;
+		}
+		default:
+		{
+			
+			ERROR_LOG(WII_IPC_NET, "Socket %d has received an unknown IOCTLV %d.", socket, CommandBuffer.Parameter);
+			break;
+		}
+	}
+	return ReturnValue;
+}
+
+void CWII_IPC_HLE_Device_net_ip_top::processSocket(u32 socket)
+{
+	//DEBUG_LOG(WII_IPC_NET, "Socket %08X has started a thread.... oh dear.", socket);
 	_tSocket* sock = NULL;
 	{
 		std::lock_guard<std::mutex> lk(socketMapMutex);
@@ -1351,7 +1571,7 @@ void CWII_IPC_HLE_Device_net_ip_top::socketProcessor(u32 socket)
 			return;
 		}
 		sock = socketMap[socket];
-	}
+	}	
 	while((sock->WaitForEvent(), true) && sock->running)
 	{
 		u32 CommandAddress = 0;
@@ -1368,213 +1588,11 @@ void CWII_IPC_HLE_Device_net_ip_top::socketProcessor(u32 socket)
 			
 			if(CommandType == COMMAND_IOCTL)
 			{
-				u32 BufferIn		= Memory::Read_U32(CommandAddress + 0x10);
-				u32 BufferInSize	= Memory::Read_U32(CommandAddress + 0x14);
-				u32 BufferOut		= Memory::Read_U32(CommandAddress + 0x18);
-				u32 BufferOutSize	= Memory::Read_U32(CommandAddress + 0x1C);
-				u32 Command			= Memory::Read_U32(CommandAddress + 0x0C);
-				WARN_LOG(WII_IPC_NET, "IOCTL command = %d", Command);
-				switch(Command)
-				{
-					case IOCTL_SO_ACCEPT:
-					{
-						WARN_LOG(WII_IPC_NET, "IOCTL_SO_ACCEPT(%d) "
-						"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-						socket, BufferIn, BufferInSize, BufferOut, BufferOutSize);
-						struct sockaddr* addr = (struct sockaddr*) Memory::GetPointer(BufferOut);
-						socklen_t* addrlen = (socklen_t*) Memory::GetPointer(BufferOutSize);
-						*addrlen = sizeof(struct sockaddr);
-						ReturnValue = accept(socket, addr, addrlen);
-						ReturnValue = getNetErrorCode(ReturnValue, "SO_ACCEPT", false);
-						break;
-					}
-					case IOCTL_SO_CONNECT:
-					{
-						//struct sockaddr_in echoServAddr;
-						struct connect_params
-						{
-							u32 socket;
-							u32 has_addr;
-							u8 addr[28];
-						} params;
-						sockaddr_in serverAddr;
-						
-						Memory::ReadBigEData((u8*)&params, BufferIn, sizeof(connect_params));
-						
-						if (Common::swap32(params.has_addr) != 1)
-						{
-							WARN_LOG(WII_IPC_NET,"IOCTL_SO_CONNECT: failed");
-							ReturnValue = -1;
-							break;
-						}
-						
-						memset(&serverAddr, 0, sizeof(serverAddr));
-						memcpy(&serverAddr, params.addr, params.addr[0]);
-						
-						// GC/Wii sockets have a length param as well, we dont really care :)
-						serverAddr.sin_family = serverAddr.sin_family >> 8;
-						
-						ReturnValue = connect(socket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
-						ReturnValue = getNetErrorCode(ReturnValue, "SO_CONNECT", false);
-						WARN_LOG(WII_IPC_NET,"IOCTL_SO_CONNECT (%08x, %s:%d)",
-								 socket, inet_ntoa(serverAddr.sin_addr), Common::swap16(serverAddr.sin_port));
-						break;
-					}
-					default:
-					{
-						
-						ERROR_LOG(WII_IPC_NET, "Socket %08x has received an unknown IOCTLV %d.", socket, Command);
-						break;
-					}
-				}
-				
+				ReturnValue = processSocketIoctl(CommandAddress, socket);
 			}
 			else if (CommandType == COMMAND_IOCTLV)
 			{
-				SIOCtlVBuffer CommandBuffer(CommandAddress);
-				
-				u32 BufferIn = 0, BufferIn2 = 0, BufferIn3 = 0;
-				u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
-				
-				u32 BufferOut = 0, BufferOut2 = 0, BufferOut3 = 0;
-				u32 BufferOutSize = 0, BufferOutSize2 = 0, BufferOutSize3 = 0;
-				
-				if (CommandBuffer.InBuffer.size() > 0)
-				{
-					BufferIn = CommandBuffer.InBuffer.at(0).m_Address;
-					BufferInSize = CommandBuffer.InBuffer.at(0).m_Size;
-				}
-				if (CommandBuffer.InBuffer.size() > 1)
-				{
-					BufferIn2 = CommandBuffer.InBuffer.at(1).m_Address;
-					BufferInSize2 = CommandBuffer.InBuffer.at(1).m_Size;
-				}
-				if (CommandBuffer.InBuffer.size() > 2)
-				{
-					BufferIn3 = CommandBuffer.InBuffer.at(2).m_Address;
-					BufferInSize3 = CommandBuffer.InBuffer.at(2).m_Size;
-				}
-				
-				if (CommandBuffer.PayloadBuffer.size() > 0)
-				{
-					BufferOut = CommandBuffer.PayloadBuffer.at(0).m_Address;
-					BufferOutSize = CommandBuffer.PayloadBuffer.at(0).m_Size;
-				}
-				if (CommandBuffer.PayloadBuffer.size() > 1)
-				{
-					BufferOut2 = CommandBuffer.PayloadBuffer.at(1).m_Address;
-					BufferOutSize2 = CommandBuffer.PayloadBuffer.at(1).m_Size;
-				}
-				if (CommandBuffer.PayloadBuffer.size() > 2)
-				{
-					BufferOut3 = CommandBuffer.PayloadBuffer.at(2).m_Address;
-					BufferOutSize3 = CommandBuffer.PayloadBuffer.at(2).m_Size;
-				}
-				switch(CommandBuffer.Parameter)
-				{
-					case IOCTLV_SO_RECVFROM:
-					{
-								 
-						u32 flags	= Memory::Read_U32(BufferIn + 4);
-						
-						char *buf	= (char *)Memory::GetPointer(BufferOut);
-						int len		= BufferOutSize;
-						struct sockaddr_in addr;
-						memset(&addr, 0, sizeof(sockaddr_in));
-						socklen_t fromlen = 0;
-						
-						if (BufferOutSize2 != 0)
-						{
-							fromlen = BufferOutSize2 >= sizeof(struct sockaddr) ? BufferOutSize2 : sizeof(struct sockaddr);
-						}
-						
-						if (flags != 2)
-							flags = 0;
-						else
-							flags = MSG_PEEK;
-						#ifdef _WIN32
-						if(flags & MSG_PEEK){
-							unsigned long totallen = 0;
-							ioctlsocket(socket, FIONREAD, &totallen);
-							ReturnValue = totallen;
-							break;
-						}
-						#endif
-						ReturnValue = recvfrom(socket, buf, len, flags,
-												fromlen ? (struct sockaddr*) &addr : NULL,
-												fromlen ? &fromlen : 0);
-						
-						ReturnValue = getNetErrorCode(ReturnValue, fromlen ? "SO_RECVFROM" : "SO_RECV", true);
-						
-						
-						WARN_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
-						"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-						"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",fromlen ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ",
-						ReturnValue, buf, socket, flags,
-						BufferIn, BufferInSize, BufferIn2, BufferInSize2,
-						BufferOut, BufferOutSize, BufferOut2, BufferOutSize2);
-						
-						if (BufferOutSize2 != 0)
-						{
-							addr.sin_family = (addr.sin_family << 8) | (BufferOutSize2&0xFF);
-							Memory::WriteBigEData((u8*)&addr, BufferOut2, BufferOutSize2);
-						}
-						
-						break;
-					}
-					case IOCTLV_SO_SENDTO:
-					{
-						struct sendto_params
-						{
-							u32 socket;
-							u32 flags;
-							u32 has_destaddr;
-							u8 destaddr[28];
-						} params;
-						
-						char * data = (char*)Memory::GetPointer(BufferIn);
-						Memory::ReadBigEData((u8*)&params, BufferIn2, BufferInSize2);
-						
-						if (params.has_destaddr)
-						{
-							struct sockaddr_in* addr = (struct sockaddr_in*)&params.destaddr;
-							u8 len = sizeof(sockaddr); //addr->sin_family & 0xFF;
-							addr->sin_family = addr->sin_family >> 8;
-							
-							ReturnValue = sendto(socket, data,
-												 BufferInSize, Common::swap32(params.flags), (struct sockaddr*)addr, len);
-							
-							WARN_LOG(WII_IPC_NET,
-									 "IOCTLV_SO_SENDTO = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
-									 ReturnValue, socket, BufferIn, BufferInSize,
-									 BufferIn2, BufferInSize2,
-									 addr->sin_addr.s_addr & 0xFF,
-									 (addr->sin_addr.s_addr >> 8) & 0xFF,
-									 (addr->sin_addr.s_addr >> 16) & 0xFF,
-									 (addr->sin_addr.s_addr >> 24) & 0xFF
-							);
-							
-							ReturnValue = getNetErrorCode(ReturnValue, "SO_SENDTO", true);
-						}
-						else
-						{
-							ReturnValue = send(socket, data,
-											   BufferInSize, Common::swap32(params.flags));
-							WARN_LOG(WII_IPC_NET, "IOCTLV_SO_SEND = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i)",
-											ReturnValue, socket, BufferIn, BufferInSize,
-											BufferIn2, BufferInSize2);
-							
-							ReturnValue = getNetErrorCode(ReturnValue, "SO_SEND", true);
-						}
-						break;
-					}
-					default:
-					{
-						
-						ERROR_LOG(WII_IPC_NET, "Socket %d has received an unknown IOCTLV %d.", socket, CommandBuffer.Parameter);
-						break;
-					}
-				}
+				ReturnValue = processSocketIoctlv(CommandAddress, socket);
 			}
 			
 			Memory::Write_U32(8, CommandAddress);
@@ -1767,7 +1785,6 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			break;
 		}
 
-	case IOCTLV_SO_SENDTO:
 	case IOCTLV_SO_RECVFROM:
 	{
 		u32 s = 0;
@@ -1777,6 +1794,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		} else {
 			s = Memory::Read_U32(BufferIn);
 		}
+		ERROR_LOG(WII_IPC_NET, "Adding sendto or recvfrom %08X %08X", s, CommandBuffer.Parameter);
 		
 		_tSocket * sock = NULL;
 		{
@@ -1794,10 +1812,56 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			ReturnValue = -8; // EBADF
 		}
 		
-		ERROR_LOG(WII_IPC_NET, "Failed to find socket %d", s);
+		ERROR_LOG(WII_IPC_NET, "Failed to find socket %d %08X", s, CommandBuffer.Parameter);
 		break;
 	}
+	
+	case IOCTLV_SO_SENDTO:
+	{
+		struct sendto_params
+		{
+			u32 socket;
+			u32 flags;
+			u32 has_destaddr;
+			u8 destaddr[28];
+		} params;
+		u32 socket = Memory::Read_U32(BufferIn2);
+		char * data = (char*)Memory::GetPointer(BufferIn);
+		Memory::ReadBigEData((u8*)&params, BufferIn2, BufferInSize2);
 		
+		if (params.has_destaddr)
+		{
+			struct sockaddr_in* addr = (struct sockaddr_in*)&params.destaddr;
+			u8 len = sizeof(sockaddr_in); //addr->sin_family & 0xFF;
+			addr->sin_family = addr->sin_family >> 8;
+			
+			ReturnValue = sendto(socket, data,
+								 BufferInSize, Common::swap32(params.flags), (struct sockaddr*)addr, len);
+			
+			WARN_LOG(WII_IPC_NET,
+					 "IOCTLV_SO_SENDTO = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
+					 ReturnValue, socket, BufferIn, BufferInSize,
+			BufferIn2, BufferInSize2,
+			addr->sin_addr.s_addr & 0xFF,
+			(addr->sin_addr.s_addr >> 8) & 0xFF,
+					 (addr->sin_addr.s_addr >> 16) & 0xFF,
+					 (addr->sin_addr.s_addr >> 24) & 0xFF
+			);
+			
+			ReturnValue = getNetErrorCode(ReturnValue, "SO_SENDTO", true);
+		}
+		else
+		{
+			ReturnValue = send(socket, data,
+							   BufferInSize, Common::swap32(params.flags));
+			WARN_LOG(WII_IPC_NET, "IOCTLV_SO_SEND = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i)",
+					 ReturnValue, socket, BufferIn, BufferInSize,
+			BufferIn2, BufferInSize2);
+			
+			ReturnValue = getNetErrorCode(ReturnValue, "SO_SEND", true);
+		}
+		break;
+	}
 	case IOCTLV_SO_GETADDRINFO:
 		{
 			struct addrinfo hints;

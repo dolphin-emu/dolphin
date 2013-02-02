@@ -636,7 +636,9 @@ private:
 #endif
 	std::map<u32, _tSocket*> socketMap;
 	std::mutex socketMapMutex;
-	void socketProcessor(u32 socket);
+	void processSocket(u32 socket);
+	s32 processSocketIoctl(u32 CommandAddress, u32 socket);
+	s32 processSocketIoctlv(u32 CommandAddress, u32 socket);
 	
     enum
 	{
