@@ -248,10 +248,10 @@ void Init()
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
 		// AyuanX: TO BE TWEAKED
-		// Now the 1500 is a pure assumption
+		// Now the 1500 is (was) a pure assumption
 		// We need to figure out the real frequency though
 
-		const int freq = 4000;
+		const int freq = 8000;
 		const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.
 				bVBeam ? 2 : 1;
 		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * fields);
