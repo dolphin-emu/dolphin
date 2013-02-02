@@ -485,18 +485,8 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		}
 	}
 
-	// The Real Wiimote sends report every ~6.66ms (150 Hz).
-	// However, we don't actually reach here at dependable intervals, so we
-	// instead just timeslice in such a way that makes the stack think we have
-	// perfect "radio quality" (WPADGetRadioSensitivity) and yet still have some
-	// idle time.
-	// Somehow, Dolphin's Wiimote Speaker support requires using an update interval
-	// of 5ms (200 Hz) for its output to work.  This increased frequency tends to
-	// fill the ACL queue (even) quicker than it can be processed by Dolphin,
-	// especially during simultaneous requests involving many (emulated) Wiimotes...
-	// Thus, we only use that interval when the option is enabled.  See issue 4608.
-	const u64 interval = SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().
-			m_LocalCoreStartupParameter.bDisableWiimoteSpeaker ? 150 : 200);
+	// The Real Wiimote sends report every ~5ms (200 Hz).
+	const u64 interval = SystemTimers::GetTicksPerSecond() / 200;
 	const u64 each_wiimote_interval = interval / m_WiiMotes.size();
 	const u64 now = CoreTiming::GetTicks();
 
