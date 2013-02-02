@@ -526,7 +526,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u
 	m_queue.push_back(Packet());
 	auto& packet = m_queue.back();
 	
-	std::copy_n(data, size, packet.data);
+	std::copy(data, data + size, packet.data);
 	packet.size = size;
 	packet.conn_handle = conn_handle;
 }
@@ -547,7 +547,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::WriteToEndpoint(CtrlBuffer& e
 	pHeader->length		= size;
 
 	// Write the packet to the buffer
-	std::copy_n(data, pHeader->length, (u8*)pHeader + sizeof(hci_acldata_hdr_t));
+	std::copy(data, data + size, (u8*)pHeader + sizeof(hci_acldata_hdr_t));
 
 	endpoint.SetRetVal(sizeof(hci_acldata_hdr_t) + size);
 
