@@ -535,12 +535,9 @@ void EnqReply(u32 _Address)
 // Takes care of routing ipc <-> ipc HLE
 void Update()
 {
-	if (!WII_IPCInterface::IsReady())
-		return;
-
 	UpdateDevices();
 
-	if (request_queue.size())
+	if (WII_IPCInterface::IsReady() && request_queue.size())
 	{
 		WII_IPCInterface::GenerateAck(request_queue.front());
 		INFO_LOG(WII_IPC_HLE, "||-- Acknowledge IPC Request @ 0x%08x", request_queue.front());
@@ -553,7 +550,8 @@ void Update()
 #endif
 	}
 
-	if (reply_queue.size())
+	// Avoiding a "Reply" and "Ack" on the same interrupt allowed Rhythm Heaven Fever's "Remix 1" to work.
+	if (WII_IPCInterface::IsReady() && reply_queue.size())
 	{
 		WII_IPCInterface::GenerateReply(reply_queue.front());
 		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
