@@ -19,6 +19,7 @@
 #include "Globals.h"
 #include "GLUtil.h"
 #include "StreamBuffer.h"
+#include "MemoryUtil.h"
 
 #ifndef GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD
 #define GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD 0x9160
@@ -28,6 +29,7 @@ namespace OGL
 {
 
 static const u32 SYNC_POINTS = 16;
+static const u32 ALGIN_PINNED_MEMORY = 4096;
 
 StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 : m_uploadtype(uploadType), m_buffertype(type), m_size(size)
@@ -35,7 +37,12 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 	glGenBuffers(1, &m_buffer);
 	
 	if(m_uploadtype == STREAM_DETECT)
-		m_uploadtype = MAP_AND_SYNC;
+	{
+		if(glewIsSupported("GL_AMD_pinned_memory"))
+			m_uploadtype = PINNED_MEMORY;
+		else
+			m_uploadtype = MAP_AND_SYNC;
+	}
 	
 	Init();
 }
@@ -161,7 +168,7 @@ void StreamBuffer::Init()
 		for(u32 i=0; i<SYNC_POINTS; i++)
 			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		
-		pointer = new u8[m_size];
+		pointer = AllocateAlignedMemory(m_size, ALGIN_PINNED_MEMORY);
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_buffer);
 		glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_size, pointer, GL_STREAM_COPY);
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, 0);
@@ -190,7 +197,7 @@ void StreamBuffer::Shutdown()
 		delete [] fences;
 		glBindBuffer(m_buffertype, 0);
 		glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
-		delete [] pointer;
+		FreeAlignedMemory(pointer);
 		break;
 	case STREAM_DETECT:
 		break;
