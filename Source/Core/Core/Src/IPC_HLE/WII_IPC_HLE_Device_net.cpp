@@ -90,6 +90,10 @@ typedef struct pollfd pollfd_t;
 #include <errno.h>
 #endif
 
+#ifdef _WIN32
+#define SHUT_RDWR SD_BOTH  
+#endif
+
 extern std::queue<std::pair<u32,std::string> > g_ReplyQueueLater;
 const u8 default_address[] = { 0x00, 0x17, 0xAB, 0x99, 0x99, 0x99 };
 
