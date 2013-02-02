@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-01-16 21:37-0600\n"
-"PO-Revision-Date: 2013-01-16 21:40-0600\n"
+"PO-Revision-Date: 2013-01-22 03:47+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: Korean\n"
@@ -369,14 +369,14 @@ msgid "A game is not currently running."
 msgstr "현재 게임이 구동되고 있지 않습니다."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
 "지원되는 블루투스 장치를 찾을 수 없습니다!\n"
-"(마이크로소프트 블루투스 스택만 지원됩니다.)"
+"마이크로소프트 블루투스 스택을 사용하고 있지 않다면 위모트들과 수동으로 짝을 "
+"지으셔야하고 \"갱신\" 버튼 만을 이용하세요."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -510,12 +510,14 @@ msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "액션 리플레이 에러: 비적합 크기 (%08x), 메모리 복사 (%s)에"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
-"액션 리플레이 에러: 매스터 코드와 CCXXXXXX에 쓰기가 시행되지 않습니다 (%s)"
+"액션 리플레이 에러: 마스터 코드와 CCXXXXXX에 쓰기가 실행되지 않었습니다. "
+"(%s)\n"
+"마스터 코드가 필요하지 않습니다. 마스터 코드를 사용하지 마세요."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -1631,7 +1633,7 @@ msgstr "현재 에뮬레이션을 중단하고 싶습니까?"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:648
 msgid "Dolby Pro Logic II decoder"
-msgstr ""
+msgstr "돌비 프로 로직 II 디코더"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:866
 msgid "Dolphin"
@@ -1694,7 +1696,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1210
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1296
 msgid "Dolphin was unable to complete the requested action."
-msgstr ""
+msgstr "돌핀이 요청된 액션을 완수할 수 없었습니다."
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
@@ -2032,17 +2034,22 @@ msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on "
 "OSX."
 msgstr ""
+"5.1 서라운드를 이용한 돌비 프로 로직 II 에뮬레이션을 켭니다. OSX에서는 않됨."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:515
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."
 msgstr ""
+"5.1 서라운드를 이용한 돌비 프로 로직 II 에뮬레이션을 켭니다. OpenAL 백엔드 전"
+"용."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:517
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
 "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
 msgstr ""
+"5.1 서라운드를 이용한 돌비 프로 로직 II 에뮬레이션을 켭니다. OpenAL 백엔드 전"
+"용. 작동시키려면 soft_oal.dll 을 OpenAL32.dll 로 이름바꾸기가 필요할 지도."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:77
 msgid ""
@@ -3246,7 +3253,7 @@ msgstr "마지막 저장된 상태"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:681
 msgid "Latency:"
-msgstr ""
+msgstr "지연:"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
@@ -3274,7 +3281,7 @@ msgid ""
 msgstr ""
 "좌-클릭 입력 감지.\n"
 "중-클릭 지우기.\n"
-"우-클릭 옵션들 더."
+"우-클릭 더 많은 옵션들."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:697
 msgid ""
@@ -4470,9 +4477,8 @@ msgstr ""
 "모르겠으면, 자동을 선택하세요."
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "기술된 \"%s\" 파일은 존재하지 않는다"
+msgstr "선택된 컨트롤러 프로파일이 존재하지 않습니다"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -4554,6 +4560,8 @@ msgid ""
 "Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL "
 "backend only."
 msgstr ""
+"지연(ms 단위로)을 설정합니다. 더 높은 값은 오디오 튐을 줄일 지도 모릅니다. "
+"OpenAL 백엔드 전용."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
 msgid "Settings..."
@@ -4677,9 +4685,9 @@ msgid ""
 "Disabling this may avoid annoying and non-fatal messages, but it may also "
 "mean that Dolphin suddenly crashes without any explanation at all."
 msgstr ""
-"잠재적으로 심각한 에러가 발생했을 때 메시지 박스를 보여준다.\n"
-"이것을 끄면 짜증나고 심각하지 않은 메시지들을 피할 수도 있다, 하지만 그것은 "
-"돌핀이 전혀 설명 없이 갑자기 깨진다는 것을 의미할 수도 있다."
+"잠재적으로 심각한 에러가 발생했을 때 메시지 박스를 보여줍니다.\n"
+"이것을 끄면 짜증나고 심각하지 않은 메시지들을 피할 수도 있습니다, 하지만 그것"
+"은 돌핀이 전혀 설명 없이 갑자기 고장난다는 것을 의미할 수도 있습니다."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:829
 msgid "Show first block"
@@ -4915,7 +4923,7 @@ msgstr "상태 저장"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:92
 msgid "Steering Wheel"
-msgstr ""
+msgstr "운전대"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
@@ -5131,9 +5139,8 @@ msgid "The value is invalid"
 msgstr "값이 비적합 합니다"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:627
-#, fuzzy
 msgid "Theme:"
-msgstr "테마"
+msgstr "테마:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
@@ -5693,7 +5700,7 @@ msgstr "XAudio2 매스터 보이스 생성 실패: %#X"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:764
 msgid "XF reg"
-msgstr "XF reg"
+msgstr "XF 레지"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Yellow"

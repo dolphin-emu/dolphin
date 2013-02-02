@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-01-16 21:37-0600\n"
-"PO-Revision-Date: 2013-01-16 21:40-0600\n"
+"PO-Revision-Date: 2013-01-21 23:41+0100\n"
 "Last-Translator: Petiso Carambanal <diegoae@gmail.com>\n"
 "Language-Team: DARIO_FF <LL@li.org>\n"
 "Language: Spanish\n"
@@ -58,7 +58,7 @@ msgstr "%1$sCopiar%1$s"
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:10
 #, c-format
 msgid "%i connected"
-msgstr "%i conectado."
+msgstr "%i conectado"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:128
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:296
@@ -372,14 +372,14 @@ msgid "A game is not currently running."
 msgstr "Ningún juego está emulándose actualmente."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
 "¡No se ha podido encontrar un dispositivo de Bluetooth soportado!\n"
-"(Solo se soporta el stack de Bluetooth de Microsoft)."
+"Si no estás usando el stack de Microsoft tendrás que emparejarlos "
+"manualmente y usar solo el botón \"Refrescar\"."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -518,13 +518,14 @@ msgstr ""
 "Error de Action Replay: Valor no válido (%08x) en copia de la memoria (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
-"Error de Action Replay: Código maestro y Escribir a CCXXXXXX no han sido "
-"implementados (%s)"
+"Error de Action Replay: Código Maestro y Escribir a CCXXXXXX no han sido "
+"implementados (%s)\n"
+"Los códigos maestros no son necesarios. No los uses."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -661,7 +662,6 @@ msgid "All files (*.*)|*.*"
 msgstr "Todos los archivos (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3, 4, 5 and 6 within the "
 "emulation window.\n"
@@ -671,7 +671,7 @@ msgstr ""
 "Permite alternar algunas opciones a través de las teclas de acceso rápido 3, "
 "4, 5, 6 y 7 en la ventana de emulación.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "Alternate Wiimote Timing"
@@ -752,7 +752,7 @@ msgstr "Audio"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:679
 msgid "Audio Backend:"
-msgstr "Motor de Audio:"
+msgstr "Motor de audio:"
 
 #: Source/Core/AudioCommon/Src/AOSoundStream.cpp:41
 msgid "AudioCommon: Error opening AO device.\n"
@@ -783,7 +783,7 @@ msgid ""
 msgstr ""
 "Ajusta automáticamente el tamaño de la ventana a tu resolución interna.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "B"
@@ -1337,7 +1337,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1122
 msgid "Couldn't find open command for extension 'ini'!"
-msgstr "No se pudo hallar el comando para abrir la extension 'ini'!"
+msgstr "No se pudo encontrar el comando para abrir la extension 'ini'!"
 
 #: Source/Core/Core/Src/BootManager.cpp:143
 msgid ""
@@ -1372,7 +1372,7 @@ msgstr "Creador:"
 
 #: Source/Core/Common/Src/MsgHandler.cpp:68
 msgid "Critical"
-msgstr "Critico"
+msgstr "Crítico"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:550
 msgid "Crop"
@@ -1384,9 +1384,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Recortar la imagen  de 4:3 a 5:4 o desde 16:9 a 16:10.\n"
+"Recorta la imagen  de 4:3 a 5:4 o desde 16:9 a 16:10.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
@@ -1489,7 +1489,7 @@ msgstr "Depurar"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:522
 msgid "Debugging"
-msgstr "Depurarando"
+msgstr "Depuración"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:79
 msgid "Decimal"
@@ -1501,7 +1501,7 @@ msgstr "Descomprimir ISO..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:956
 msgid "Decompress selected ISOs..."
-msgstr "Descomprimir ISOs seleccionadas..."
+msgstr "Descomprimir ISO seleccionadas..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1139
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1275
@@ -1614,12 +1614,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Desactivar emulación de copias EFB.\n"
+"Desactiva la emulación de copias EFB.\n"
 "Se usan a menudo para el posprocesado o efectos de renderización a textura, "
 "así que activando esta opción se obtiene una gran mejora, pero casi siempre "
 "causará problemas.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:552
 msgid "Disc"
@@ -1640,9 +1640,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Mostrar las entradas que lee el emulador.\n"
+"Muestra las entradas que lee el emulador.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:80
 msgid "Divide"
@@ -1654,7 +1654,7 @@ msgstr "¿Quieres detener la emulación actual?"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:648
 msgid "Dolby Pro Logic II decoder"
-msgstr ""
+msgstr "Decodificador Dolby Pro Logic II"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:866
 msgid "Dolphin"
@@ -1717,7 +1717,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1210
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1296
 msgid "Dolphin was unable to complete the requested action."
-msgstr ""
+msgstr "Dolphin no ha podido completar la acción solicitada."
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
@@ -2015,11 +2015,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Habilitar esta opción si desea que se use la pantalla completa para la "
+"Habilita esta opción si deseas que se use la pantalla completa para la "
 "representación.\n"
 "Si esto es desactivado, una ventana de renderizado se creará en su lugar.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:76
 msgid ""
@@ -2028,10 +2028,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Active esto si quiere usar la ventana principal de Dolphin para renderizar "
+"Activa esto si quieres usar la ventana principal de Dolphin para renderizar "
 "en vez de una ventana aparte.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:339
 msgid ""
@@ -2060,17 +2060,21 @@ msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on "
 "OSX."
 msgstr ""
+"Activa la emulación de Dolby Pro Logic II usando 5.1 surround. No disponible "
+"en OSX."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:515
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."
-msgstr ""
+msgstr "Activa la emulación de Dolby Pro Logic II. Solo para el motor OpenAL."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:517
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
 "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
 msgstr ""
+"Activa la emulación de Dolby Pro Logic II. Solo para el motor OpenAL. "
+"Requiere que renombres soft_oal.dll a OpenAl32.dll para que funcione."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:77
 msgid ""
@@ -2082,7 +2086,7 @@ msgstr ""
 "Activa el escaneo progresivo si es soportado por el software emulado.\n"
 "A muchos juegos no les afecta esto.\n"
 "\n"
-"Si no estás seguro, déjalo sin marcar."
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:317
 msgid ""
@@ -2233,7 +2237,7 @@ msgstr "Parámetro extra"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:61
 msgid "Extra Parameter useful in ''Metroid: Other M'' only."
-msgstr "Parámetro extra solo útil en  ''Metroid: Other M''."
+msgstr "Parámetro extra útil en «Metroid: Other M» exclusivamente."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:623
 msgid "Extract All Files..."
@@ -3191,9 +3195,8 @@ msgid "Invalid recording file"
 msgstr "Archivo de grabación no válido"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:472
-#, fuzzy
 msgid "Invalid search parameters (no object selected)"
-msgstr "Parametros de búsqueda inválidos (ningún objeto seleccionado)"
+msgstr "Parámetros de búsqueda inválidos (ningún objeto seleccionado)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:455
 msgid "Invalid search string (couldn't convert to number)"
@@ -3287,7 +3290,7 @@ msgstr "Último estado guardado"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:681
 msgid "Latency:"
-msgstr ""
+msgstr "Latencia:"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
@@ -3603,7 +3606,7 @@ msgid ""
 "\n"
 "\n"
 msgstr ""
-"Mueva el puntero del ratón sobre una opción para obtener una descripción "
+"Mueve el puntero del ratón sobre una opción para obtener una descripción "
 "detallada.\n"
 "\n"
 "\n"
@@ -4447,7 +4450,7 @@ msgstr "Buscar objeto actual"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:253
 msgid "Search for hex Value:"
-msgstr "Busdar valor hexadecimal:"
+msgstr "Buscar valor hexadecimal:"
 
 #: Source/Core/Common/Src/SysConf.h:103 Source/Core/Common/Src/SysConf.h:126
 #: Source/Core/Common/Src/SysConf.h:146 Source/Core/Common/Src/SysConf.h:167
@@ -4522,9 +4525,8 @@ msgstr ""
 "Si no estás seguro, elige Automático."
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "El archivo especificado \"%s\" no existe"
+msgstr "El perfil del controlador escogido no existe"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -4611,6 +4613,8 @@ msgid ""
 "Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL "
 "backend only."
 msgstr ""
+"Ajusta la latencia (en ms). Valores más altos pueden recir el petardeo del "
+"audio. Solo para el motor OpenAL."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
 msgid "Settings..."
@@ -4734,8 +4738,8 @@ msgid ""
 "Disabling this may avoid annoying and non-fatal messages, but it may also "
 "mean that Dolphin suddenly crashes without any explanation at all."
 msgstr ""
-"Mostrar un mensaje cuando un posible error severo ha ocurrido.\n"
-"Deshabilitar esto puede evitar ver mensajes que no son fatales, y molestos, "
+"Muestra una alerta cuando un posible error crítico haya ocurrido.\n"
+"Deshabilitando esto puedes evitar ver mensajes molestos que no son fatales, "
 "pero también significa que Dolphin puede cerrarse ante un error sin ninguna "
 "explicación."
 
@@ -4976,7 +4980,7 @@ msgstr "Estados guardados"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:92
 msgid "Steering Wheel"
-msgstr ""
+msgstr "Volante"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
@@ -5170,8 +5174,8 @@ msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
 msgstr ""
-"El idioma seleccionado no lo soporta su sistema. Volviendo al predeterminado "
-"del sistema."
+"El idioma seleccionado no es soportado por tu sistema. Volviendo al "
+"predeterminado del sistema."
 
 #: Source/Core/Core/Src/NetPlayClient.cpp:43
 msgid "The server and client's NetPlay versions are incompatible!"
@@ -5199,9 +5203,8 @@ msgid "The value is invalid"
 msgstr "El valor no es válido"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:627
-#, fuzzy
 msgid "Theme:"
-msgstr "Tema visual"
+msgstr "Tema:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
@@ -5242,12 +5245,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Esta característica le permite manejar la cámara del juego. \n"
+"Esta característica te permite manejar la cámara del juego. \n"
 "\n"
-"Mantenga pulsado el botón derecho del ratón y mueva el ratón para mover la "
-"cámara alrededor. Mantenga pulsado SHIFT y pulse una de las teclas WASD para "
+"Mantén pulsado el botón derecho del ratón y mueve el ratón para mover la "
+"cámara alrededor. Mantén pulsado SHIFT y pulsa una de las teclas WASD para "
 "mover la cámara por una distancia determinada de pasos (SHIFT + 0 multiplica "
-"(x2) y SHIFT+ 9 divide la misma (x0.5)). Presione SHIFT + R para reiniciar "
+"(x2) y SHIFT+ 9 divide la misma (x0.5)). Presiona SHIFT + R para reiniciar "
 "la cámara. \n"
 "\n"
 "Si no estás seguro, deja esta casilla sin marcar."
@@ -5553,7 +5556,7 @@ msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Advertencia - arrancando un ISO en un modo de consola incorrecto!"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:519
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Warning! it is advised to backup all files in the folder:\n"
 "%s\n"
@@ -6043,6 +6046,7 @@ msgstr "| OR"
 #~ msgid "Bleach Versus Crusade"
 #~ msgstr "Bleach Versus Crusade"
 
+#, fuzzy
 #~ msgid ""
 #~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
 #~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
@@ -6051,13 +6055,13 @@ msgstr "| OR"
 #~ "\n"
 #~ "If unsure, leave this checked."
 #~ msgstr ""
-#~ "Calcular los valores de profundidad de los gráficos 3D por píxel en lugar "
+#~ "Calcula los valores de profundidad de los gráficos 3D por píxel en lugar "
 #~ "de por vértice.\n"
 #~ "En contraste con la iluminación de píxeles (que no es más que una "
 #~ "mejora), los cálculos por profundidad de píxel son necesarios para emular "
 #~ "correctamente un pequeño número de juegos.\n"
 #~ "\n"
-#~ "Si no estás seguro, deja esta marcada."
+#~ "Si no estás seguro, déjala marcada."
 
 #~ msgid ""
 #~ "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
