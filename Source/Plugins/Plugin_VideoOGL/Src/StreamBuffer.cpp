@@ -29,7 +29,7 @@ namespace OGL
 {
 
 static const u32 SYNC_POINTS = 16;
-static const u32 ALGIN_PINNED_MEMORY = 4096;
+static const u32 ALIGN_PINNED_MEMORY = 4096;
 
 StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 : m_uploadtype(uploadType), m_buffertype(type), m_size(size)
@@ -168,7 +168,7 @@ void StreamBuffer::Init()
 		for(u32 i=0; i<SYNC_POINTS; i++)
 			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		
-		pointer = (u8*)AllocateAlignedMemory(m_size, ALGIN_PINNED_MEMORY);
+		pointer = (u8*)AllocateAlignedMemory(m_size, ALIGN_PINNED_MEMORY );
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_buffer);
 		glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_size, pointer, GL_STREAM_COPY);
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, 0);
