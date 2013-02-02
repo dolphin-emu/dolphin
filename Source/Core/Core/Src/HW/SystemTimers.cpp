@@ -251,7 +251,7 @@ void Init()
 		// Now the 1500 is (was) a pure assumption
 		// We need to figure out the real frequency though
 
-		const int freq = 8000;
+		const int freq = 5000;
 		const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.
 				bVBeam ? 2 : 1;
 		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * fields);

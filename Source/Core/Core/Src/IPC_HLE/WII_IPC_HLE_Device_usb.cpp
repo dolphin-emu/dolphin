@@ -509,14 +509,10 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u16 size, const u16 conn_handle)
 {
-	if (m_queue.size() >= 10)
+	if (m_queue.size() >= 100)
 	{
-		// Many simultaneous exchanges of ACL packets tend to cause the
-		// queue to fill up. Typically, this occurs when
-		// many emulated Wiimotes are requesting connections at once.
-		// See issue 4608 for more info.
-		ERROR_LOG(WII_IPC_WIIMOTE, "ACL queue size reached 10 - current packet will be "
-				"dropped! (Hopefully you never see this.)");
+		// Many simultaneous exchanges of ACL packets tend to cause the queue to fill up.
+		ERROR_LOG(WII_IPC_WIIMOTE, "ACL queue size reached 100 - current packet will be dropped!");
 		return;
 	}
 	
