@@ -69,7 +69,8 @@ std::string StringFromFormat(const char* format, ...)
 	delete[] buf;
 #else
 	va_start(args, format);
-	vasprintf(&buf, format, args);
+	if (vasprintf(&buf, format, args) < 0)
+		ERROR_LOG(COMMON, "Unable to allocate memory for string");
 	va_end(args);
 
 	std::string temp = buf;
