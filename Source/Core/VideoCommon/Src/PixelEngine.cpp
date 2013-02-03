@@ -110,8 +110,8 @@ static UPEAlphaReadReg		m_AlphaRead;
 static UPECtrlReg			m_Control;
 //static u16					m_Token; // token value most recently encountered
 
-static bool g_bSignalTokenInterrupt;
-static bool g_bSignalFinishInterrupt;
+volatile bool g_bSignalTokenInterrupt;
+volatile bool g_bSignalFinishInterrupt;
 
 static int et_SetTokenOnMainThread;
 static int et_SetFinishOnMainThread;
@@ -404,7 +404,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	{
 		CommandProcessor::interruptTokenWaiting = true;
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
-		g_bSignalTokenInterrupt = true;
+		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
 	}
 
 	IncrementCheckContextId();
@@ -416,7 +416,7 @@ void SetFinish()
 {
 	CommandProcessor::interruptFinishWaiting = true;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
-	g_bSignalFinishInterrupt = true;
+	Common::AtomicStore(*(volatile u32*)&g_bSignalFinishInterrupt, 1);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 	IncrementCheckContextId();
 }
