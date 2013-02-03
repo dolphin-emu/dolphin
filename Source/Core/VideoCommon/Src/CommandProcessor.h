@@ -162,7 +162,7 @@ bool AllowIdleSkipping();
 void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
-void SetOverflowStatusFromGatherPipe();
+void SetWatermarkFromGatherPipe();
 void ProcessFifoToLoWatermark();
 void ProcessFifoAllDistance();
 void ProcessFifoEvents();

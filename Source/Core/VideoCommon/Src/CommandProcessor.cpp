@@ -464,7 +464,7 @@ void STACKALIGN GatherPipeBursted()
 	}
 
 	if (IsOnThread())
-		SetOverflowStatusFromGatherPipe();
+		SetWatermarkFromGatherPipe();
 
 	// update the fifo-pointer
 	if (fifo.CPWritePointer >= fifo.CPEnd)
@@ -514,7 +514,7 @@ void AbortFrame()
 
 }
 
-void SetOverflowStatusFromGatherPipe()
+void SetWatermarkFromGatherPipe()
 {
 	fifo.bFF_HiWatermark = (fifo.CPReadWriteDistance > fifo.CPHiWatermark);
 	fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
@@ -633,10 +633,6 @@ void SetCpStatusRegister()
 	m_CPStatusReg.CommandIdle = !fifo.isGpuReadingData;
 	m_CPStatusReg.UnderflowLoWatermark = fifo.bFF_LoWatermark;
 	m_CPStatusReg.OverflowHiWatermark = fifo.bFF_HiWatermark;
-
-	// HACK to compensate for slow response to PE interrupts in Time Splitters: Future Perfect
-	if (IsOnThread())
-		PixelEngine::ResumeWaitingForPEInterrupt();
 
 	INFO_LOG(COMMANDPROCESSOR,"\t Read from STATUS_REGISTER : %04x", m_CPStatusReg.Hex);
 	DEBUG_LOG(COMMANDPROCESSOR, "(r) status: iBP %s | fReadIdle %s | fCmdIdle %s | iOvF %s | iUndF %s"

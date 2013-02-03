@@ -359,14 +359,14 @@ void UpdateInterrupts()
 
 void UpdateTokenInterrupt(bool active)
 {
-		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
-		interruptSetToken = active;
+	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
+	interruptSetToken = active;
 }
 
 void UpdateFinishInterrupt(bool active)
 {
-		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
-		interruptSetFinish = active;
+	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
+	interruptSetFinish = active;
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
@@ -376,20 +376,14 @@ void UpdateFinishInterrupt(bool active)
 // Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
 void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 {
-	//if (userdata >> 16)
-	//{
-		g_bSignalTokenInterrupt = true;	
-		//_dbg_assert_msg_(PIXELENGINE, (CommandProcessor::fifo.PEToken == (userdata&0xFFFF)), "WTF? BPMEM_PE_TOKEN_INT_ID's token != BPMEM_PE_TOKEN_ID's token" );
-		INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
-		UpdateInterrupts();
-		CommandProcessor::interruptTokenWaiting = false;
-		IncrementCheckContextId();
-	//}
+	INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
+	UpdateInterrupts();
+	CommandProcessor::interruptTokenWaiting = false;
+	IncrementCheckContextId();
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
-	g_bSignalFinishInterrupt = 1;	
 	UpdateInterrupts();
 	CommandProcessor::interruptFinishWaiting = false;
 	CommandProcessor::isPossibleWaitingSetDrawDone = false;
@@ -399,23 +393,20 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 // THIS IS EXECUTED FROM VIDEO THREAD
 void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 {
-	// TODO?: set-token-value and set-token-INT could be merged since set-token-INT own the token value.
+	// we do it directly from videoThread because of
+	// Super Monkey Ball
+	// XXX: No 16-bit atomic store available, so cheat and use 32-bit.
+	// That's what we've always done. We're counting on fifo.PEToken to be
+	// 4-byte padded.
+	Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
+
 	if (_bSetTokenAcknowledge) // set token INT
 	{
-
-		Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
 		CommandProcessor::interruptTokenWaiting = true;
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
+		g_bSignalTokenInterrupt = true;
 	}
-	else // set token value
-	{
-		// we do it directly from videoThread because of
-		// Super Monkey Ball
-		// XXX: No 16-bit atomic store available, so cheat and use 32-bit.
-		// That's what we've always done. We're counting on fifo.PEToken to be
-		// 4-byte padded.
-        Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
-	}
+
 	IncrementCheckContextId();
 }
 
@@ -425,6 +416,7 @@ void SetFinish()
 {
 	CommandProcessor::interruptFinishWaiting = true;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
+	g_bSignalFinishInterrupt = true;
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 	IncrementCheckContextId();
 }
@@ -438,7 +430,6 @@ void ResetSetFinish()
 	{
 		UpdateFinishInterrupt(false);
 		g_bSignalFinishInterrupt = false;
-		
 	}
 	else
 	{
@@ -453,7 +444,6 @@ void ResetSetToken()
 	{
 		UpdateTokenInterrupt(false);
 		g_bSignalTokenInterrupt = false;
-		
 	}
 	else
 	{
@@ -465,13 +455,5 @@ void ResetSetToken()
 bool WaitingForPEInterrupt()
 {
 	return !CommandProcessor::waitingForPEInterruptDisable && (CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || interruptSetFinish || interruptSetToken);
-}
-
-void ResumeWaitingForPEInterrupt()
-{
-	interruptSetFinish = false;
-	interruptSetToken = false;
-	CommandProcessor::interruptFinishWaiting = false;
-	CommandProcessor::interruptTokenWaiting = false;
 }
 } // end of namespace PixelEngine
