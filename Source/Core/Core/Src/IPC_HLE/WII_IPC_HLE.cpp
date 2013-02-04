@@ -515,7 +515,8 @@ void ExecuteCommand(u32 _Address)
     if (CmdSuccess)
     {
 		// Generate a reply to the IPC command
-		EnqReply(_Address, SystemTimers::GetTicksPerSecond() / 150);
+		// TODO: should probably figure out which commands need delayed replies and which don't
+		EnqReply(_Address, SystemTimers::GetTicksPerSecond() / 100);
     }
 	else
 	{
