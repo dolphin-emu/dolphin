@@ -164,6 +164,7 @@ struct VideoConfig
 		
 		bool bSupportsGLSLUBO;
 		bool bSupportsGLSLCache;
+		bool bSupportsGLPinnedMemory;
 	} backend_info;
 
     // Utility

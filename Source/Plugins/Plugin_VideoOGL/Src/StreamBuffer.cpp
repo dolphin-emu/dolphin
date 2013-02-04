@@ -38,7 +38,7 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 	
 	if(m_uploadtype == STREAM_DETECT)
 	{
-		if(glewIsSupported("GL_AMD_pinned_memory"))
+		if(g_Config.backend_info.bSupportsGLPinnedMemory)
 			m_uploadtype = PINNED_MEMORY;
 		else
 			m_uploadtype = MAP_AND_SYNC;

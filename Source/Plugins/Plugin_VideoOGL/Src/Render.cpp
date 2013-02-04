@@ -301,20 +301,22 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	s_bHaveCoverageMSAA = glewIsSupported("GL_NV_framebuffer_multisample_coverage");
+	s_bHaveCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
 	
-	g_Config.backend_info.bSupportsDualSourceBlend = glewIsSupported("GL_ARB_blend_func_extended");
+	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
 	
-	g_Config.backend_info.bSupportsGLSLUBO = glewIsSupported("GL_ARB_uniform_buffer_object");
+	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
+	
+	g_Config.backend_info.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
 	
 	//TODO: revert this after cache is fixed itself
-	g_Config.backend_info.bSupportsGLSLCache = false; // glewIsSupported("GL_ARB_get_program_binary")
+	g_Config.backend_info.bSupportsGLSLCache = false; // GLEW_ARB_get_program_binary
 
 	UpdateActiveConfig();
-	OSD::AddMessage(StringFromFormat("Supports Blending: %s UBOs: %s Cache: %s",
+	OSD::AddMessage(StringFromFormat("Supports Blending: %s UBOs: %s PinnedMem: %s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "True" : "False",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False",
-			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "True" : "False").c_str(), 5000);
+			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "True" : "False").c_str(), 5000);
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
