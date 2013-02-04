@@ -41,7 +41,7 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 		if(g_Config.backend_info.bSupportsGLPinnedMemory)
 			m_uploadtype = PINNED_MEMORY;
 		else
-			m_uploadtype = MAP_AND_SYNC;
+			m_uploadtype = MAP_AND_RISK;
 	}
 	
 	Init();
@@ -73,6 +73,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		break;
 	case MAP_AND_SYNC:
 	case PINNED_MEMORY:
+	case MAP_AND_RISK:
 		
 		// insert waiting slots for used memory
 		for(u32 i=SLOT(m_used_iterator); i<SLOT(m_iterator); i++)
@@ -133,6 +134,7 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 		}
 		break;
 	case PINNED_MEMORY:
+	case MAP_AND_RISK:
 		memcpy(pointer+m_iterator, data, size);
 		break;
 	case BUFFERSUBDATA:
@@ -174,6 +176,16 @@ void StreamBuffer::Init()
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, 0);
 		glBindBuffer(m_buffertype, m_buffer);
 		break;
+	case MAP_AND_RISK:
+		fences = new GLsync[SYNC_POINTS];
+		for(u32 i=0; i<SYNC_POINTS; i++)
+			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		
+		glBindBuffer(m_buffertype, m_buffer);
+		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
+		pointer = (u8*)glMapBuffer(m_buffertype, GL_WRITE_ONLY);
+		glUnmapBuffer(m_buffertype);
+		
 	case STREAM_DETECT:
 		break;
 	}
@@ -183,6 +195,7 @@ void StreamBuffer::Shutdown()
 {
 	switch(m_uploadtype) {
 	case MAP_AND_SYNC:
+	case MAP_AND_RISK:
 		for(u32 i=0; i<SYNC_POINTS; i++)
 			glDeleteSync(fences[i]);
 		delete [] fences;
