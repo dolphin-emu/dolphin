@@ -451,7 +451,7 @@ else(SDL2_FOUND)
 	else(SDL_FOUND)
 		# TODO: Use the prebuilt one on Windows
 		message("Using static SDL from Externals")
-		include_directories(Externals/SDL Externals/SDL/include)
+		include_directories(Externals/SDL/SDL Externals/SDL Externals/SDL/include)
 		add_subdirectory(Externals/SDL)
 	endif(SDL_FOUND)
 endif(SDL2_FOUND)
