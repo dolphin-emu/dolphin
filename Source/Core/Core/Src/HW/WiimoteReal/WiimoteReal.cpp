@@ -182,11 +182,11 @@ bool Wiimote::Write()
 {
 	Report rpt;
 	
-	if (last_audio_report.GetTimeDifference() > 6 && m_audio_reports.Pop(rpt))
+	if (last_audio_report.GetTimeDifference() > 5 && m_audio_reports.Pop(rpt))
 	{
+		IOWrite(rpt.first, rpt.second);
 		last_audio_report.Update();
 		
-		IOWrite(rpt.first, rpt.second);
 		delete[] rpt.first;
 		return true;
 	}
