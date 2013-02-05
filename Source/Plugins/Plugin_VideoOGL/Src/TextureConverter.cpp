@@ -355,7 +355,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		(float)expandedWidth, (float)Renderer::EFBToScaledY(expandedHeight)-1,
 		(float)Renderer::EFBToScaledX(source.left), (float)Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight)
 	};
-	glUniform4fv(glGetUniformLocation(ProgramShaderCache::GetCurrentProgram(), I_COLORS), 2, params);
+	glUniform4fv(ProgramShaderCache::GetShaderProgram().UniformLocations[C_COLORS], 2, params);
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;

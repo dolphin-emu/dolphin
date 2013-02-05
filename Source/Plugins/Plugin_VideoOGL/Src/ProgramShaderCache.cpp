@@ -96,8 +96,9 @@ void ProgramShaderCache::SetProgramVariables(PCacheEntry &entry)
 	// (Sonicadvance): For some reason this fails on my hardware
 	//glGetUniformIndices(entry.prog_id, NUM_UNIFORMS, UniformNames, entry.UniformLocations);
 	// Got to do it this crappy way.
+	entry.UniformLocations[0] = glGetUniformLocation(entry.prog_id, UniformNames[0]);
 	if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		for (int a = 0; a < NUM_UNIFORMS; ++a)
+		for (int a = 1; a < NUM_UNIFORMS; ++a)
 			entry.UniformLocations[a] = glGetUniformLocation(entry.prog_id, UniformNames[a]);
 
 	// Bind Texture Sampler
