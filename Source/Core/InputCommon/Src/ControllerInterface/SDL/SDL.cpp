@@ -325,7 +325,13 @@ bool Joystick::UpdateOutput()
 
 std::string Joystick::GetName() const
 {
-	return StripSpaces(SDL_JoystickName(m_sdl_index));
+	return StripSpaces(
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		SDL_JoystickNameForIndex(m_sdl_index)
+#else
+		SDL_JoystickName(m_sdl_index)
+#endif
+	);
 }
 
 std::string Joystick::GetSource() const
