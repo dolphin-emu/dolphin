@@ -38,8 +38,6 @@ public:
 
 	bool IOCtl(u32 _CommandAddress); 
 	bool IOCtlV(u32 _CommandAddress);
-	
-	int GetCmdDelay(u32);
 
 private:
 
