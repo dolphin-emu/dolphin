@@ -78,7 +78,7 @@ public:
 	void Close();
 
 #elif defined(_WIN32)
-	char devicepath[255];				// Unique wiimote reference
+	std::string devicepath;				// Unique wiimote reference
 	//ULONGLONG btaddr;					// Bluetooth address
 	HANDLE dev_handle;					// HID handle
 	OVERLAPPED hid_overlap;				// Overlap handle
