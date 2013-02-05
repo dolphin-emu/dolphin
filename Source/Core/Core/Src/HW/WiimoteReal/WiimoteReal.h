@@ -25,6 +25,7 @@
 #include "ChunkFile.h"
 #include "Thread.h"
 #include "FifoQueue.h"
+#include "Timer.h"
 
 #include "../Wiimote.h"
 #include "../WiimoteEmu/WiimoteEmu.h"
@@ -103,6 +104,8 @@ private:
 	Common::FifoQueue<Report>	m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;
 	Common::FifoQueue<Report>	m_audio_reports;
+	
+	Common::Timer last_audio_report;
 };
 
 extern std::mutex g_refresh_lock;
