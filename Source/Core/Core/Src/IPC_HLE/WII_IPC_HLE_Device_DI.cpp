@@ -28,6 +28,7 @@
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 #include "LogManager.h"
+#include "../HW/SystemTimers.h"
 
 #include "../../DiscIO/Src/FileMonitor.h"
 
@@ -459,4 +460,9 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
     // i dunno but prolly 1 is okay all the time :)
     return 1;
+}
+
+int CWII_IPC_HLE_Device_di::GetCmdDelay(u32)
+{
+	return SystemTimers::GetTicksPerSecond() / 100;
 }

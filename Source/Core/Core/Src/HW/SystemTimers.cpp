@@ -248,10 +248,11 @@ void Init()
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
 		// AyuanX: TO BE TWEAKED
-		// Now the 1500 is (was) a pure assumption
+		// Now the 1500 is a pure assumption
 		// We need to figure out the real frequency though
 
-		const int freq = 8000;
+		// FYI, WII_IPC_HLE_Interface::Update is also called in WII_IPCInterface::Write32
+		const int freq = 1500;
 		const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.
 				bVBeam ? 2 : 1;
 		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * fields);

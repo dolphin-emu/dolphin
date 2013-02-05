@@ -405,6 +405,7 @@ void ExecuteCommand(u32 _Address)
 				else
 				{
 					delete pDevice;
+					pDevice = NULL;
 				}
 			}
 
@@ -435,7 +436,10 @@ void ExecuteCommand(u32 _Address)
 
 			// Don't delete hardware
 			if (!pDevice->IsHardware())
+			{
 				delete pDevice;
+				pDevice = NULL;
+			}
 		}
 		else
 		{
@@ -515,7 +519,8 @@ void ExecuteCommand(u32 _Address)
     if (CmdSuccess)
     {
 		// Generate a reply to the IPC command
-		EnqReply(_Address, SystemTimers::GetTicksPerSecond() / 150);
+		int const reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
+		EnqReply(_Address, reply_delay);
     }
 	else
 	{
