@@ -54,7 +54,7 @@ namespace OGL
 const u32 MAX_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * 16 * sizeof(u16);
 const u32 MAX_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 16;
 const u32 MIN_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE *  1 * sizeof(u16);
-const u32 MIN_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE *  1;
+const u32 MIN_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE *  4;
 
 static StreamBuffer *s_vertexBuffer;
 static StreamBuffer *s_indexBuffer;

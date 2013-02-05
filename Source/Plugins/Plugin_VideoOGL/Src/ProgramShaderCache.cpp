@@ -22,7 +22,7 @@
 namespace OGL
 {
 
-static const u32 UBO_LENGTH = 1024*1024;
+static const u32 UBO_LENGTH = 4*1024*1024;
 
 GLuint ProgramShaderCache::CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
