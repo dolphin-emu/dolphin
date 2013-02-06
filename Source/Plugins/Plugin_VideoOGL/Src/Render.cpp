@@ -309,6 +309,8 @@ Renderer::Renderer()
 	
 	g_Config.backend_info.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
 	
+	g_Config.backend_info.bSupportsGLSync = GLEW_ARB_sync;
+	
 	//TODO: revert this after cache is fixed itself
 	g_Config.backend_info.bSupportsGLSLCache = false; // GLEW_ARB_get_program_binary
 

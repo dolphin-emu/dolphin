@@ -38,10 +38,12 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 	
 	if(m_uploadtype == STREAM_DETECT)
 	{
-		if(g_Config.backend_info.bSupportsGLPinnedMemory)
+		if(g_Config.backend_info.bSupportsGLPinnedMemory && g_Config.backend_info.bSupportsGLSync)
 			m_uploadtype = PINNED_MEMORY;
-		else
+		else if(g_Config.backend_info.bSupportsGLSync)
 			m_uploadtype = MAP_AND_RISK;
+		else 
+			m_uploadtype = MAP_AND_ORPHAN;
 	}
 	
 	Init();
