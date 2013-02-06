@@ -26,6 +26,7 @@
 #include "FileUtil.h"
 #include "NandPaths.h"
 #include "ChunkFile.h"
+#include "../HW/SystemTimers.h"
 
 #include "../VolumeHandler.h"
 
@@ -497,6 +498,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 	}
 
 	return FS_RESULT_FATAL;
+}
+
+int CWII_IPC_HLE_Device_fs::GetCmdDelay(u32)
+{
+	// ~1/1000th of a second is too short and causes hangs in Wii Party
+	// Play it safe at 1/500th
+	return SystemTimers::GetTicksPerSecond() / 500;
 }
 
 void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
