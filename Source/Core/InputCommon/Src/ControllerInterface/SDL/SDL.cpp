@@ -17,6 +17,15 @@ namespace ciface
 {
 namespace SDL
 {
+	
+std::string GetJoystickName(int index)
+{
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	return SDL_JoystickNameForIndex(index);
+#else
+	return SDL_JoystickName(index);
+#endif
+}
 
 void Init( std::vector<ControllerInterface::Device*>& devices )
 {	
@@ -32,7 +41,7 @@ void Init( std::vector<ControllerInterface::Device*>& devices )
 			SDL_Joystick* dev = SDL_JoystickOpen(i);
 			if (dev)
 			{
-				Joystick* js = new Joystick(dev, i, name_counts[SDL_JoystickName(i)]++);
+				Joystick* js = new Joystick(dev, i, name_counts[GetJoystickName(i)]++);
 				// only add if it has some inputs/outputs
 				if (js->Inputs().size() || js->Outputs().size())
 					devices.push_back( js );
@@ -325,13 +334,7 @@ bool Joystick::UpdateOutput()
 
 std::string Joystick::GetName() const
 {
-	return StripSpaces(
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-		SDL_JoystickNameForIndex(m_sdl_index)
-#else
-		SDL_JoystickName(m_sdl_index)
-#endif
-	);
+	return StripSpaces(GetJoystickName(m_sdl_index));
 }
 
 std::string Joystick::GetSource() const
