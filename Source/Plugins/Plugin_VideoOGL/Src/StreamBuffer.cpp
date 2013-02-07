@@ -137,7 +137,8 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 		break;
 	case PINNED_MEMORY:
 	case MAP_AND_RISK:
-		memcpy(pointer+m_iterator, data, size);
+		if(pointer)
+			memcpy(pointer+m_iterator, data, size);
 		break;
 	case BUFFERSUBDATA:
 		glBufferSubData(m_buffertype, m_iterator, size, data);
@@ -187,6 +188,8 @@ void StreamBuffer::Init()
 		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
 		pointer = (u8*)glMapBuffer(m_buffertype, GL_WRITE_ONLY);
 		glUnmapBuffer(m_buffertype);
+		if(!pointer)
+			ERROR_LOG(VIDEO, "buffer allocation failed");
 		
 	case STREAM_DETECT:
 		break;

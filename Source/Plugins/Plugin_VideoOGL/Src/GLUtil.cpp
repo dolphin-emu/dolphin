@@ -56,8 +56,6 @@ void InitInterface()
 {
 	#if defined(USE_EGL) && USE_EGL
 		GLInterface = new cInterfaceEGL;
-	#elif defined(USE_WX) && USE_WX
-		GLInterface = new cInterfaceWX;
 	#elif defined(__APPLE__)
 		GLInterface = new cInterfaceAGL;
 	#elif defined(_WIN32)

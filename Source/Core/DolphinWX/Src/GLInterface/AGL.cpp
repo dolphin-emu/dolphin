@@ -48,7 +48,7 @@ bool cInterfaceAGL::Create(void *&window_handle)
 
 	NSRect size;
 	NSUInteger style = NSMiniaturizableWindowMask;
-	NSOpenGLPixelFormatAttribute attr[2] = { NSOpenGLPFADoubleBuffer, 0 };
+	NSOpenGLPixelFormatAttribute attr[4] = { NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core, 0 };
 	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]
 		initWithAttributes: attr];
 	if (fmt == nil) {
@@ -57,7 +57,7 @@ bool cInterfaceAGL::Create(void *&window_handle)
 	}
 
 	GLWin.cocoaCtx = [[NSOpenGLContext alloc]
-		initWithFormat: fmt shareContext: nil kCGLPFAOpenGLProfile: kCGLOGLPVersion_3_2_Core ];
+		initWithFormat: fmt shareContext: nil];
 	[fmt release];
 	if (GLWin.cocoaCtx == nil) {
 		ERROR_LOG(VIDEO, "failed to create context");
@@ -97,7 +97,7 @@ bool cInterfaceAGL::MakeCurrent()
 	width = [[GLWin.cocoaWin contentView] frame].size.width;
 	height = [[GLWin.cocoaWin contentView] frame].size.height;
 	if (width == s_backbuffer_width && height == s_backbuffer_height)
-		return;
+		return true;
 
 	[GLWin.cocoaCtx setView: [GLWin.cocoaWin contentView]];
 	[GLWin.cocoaCtx update];

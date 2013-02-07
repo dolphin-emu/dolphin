@@ -334,9 +334,6 @@ Renderer::Renderer()
 	// Handle VSync on/off
 #ifdef __APPLE__
 	int swapInterval = g_ActiveConfig.bVSync ? 1 : 0;
-#if defined USE_WX && USE_WX
-	NSOpenGLContext *ctx = GLWin.glCtxt->GetWXGLContext();
-#else
 	NSOpenGLContext *ctx = GLWin.cocoaCtx;
 #endif
 	[ctx setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
