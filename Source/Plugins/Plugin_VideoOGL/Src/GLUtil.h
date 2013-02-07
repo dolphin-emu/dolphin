@@ -69,6 +69,9 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #define GL_REPORT_PROGRAM_ERROR() (void)0
 #endif
 
+// this should be removed in future, but as long as glsl is unstable, we should really read this messages
+#define DEBUG_GLSL
+
 // Isn't defined if we aren't using GLEW 1.6
 #ifndef GL_ONE_MINUS_SRC1_ALPHA 
 #define GL_ONE_MINUS_SRC1_ALPHA 0x88FB

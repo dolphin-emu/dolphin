@@ -131,6 +131,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "vs_%d.txt", result);
 		FILE *fp = fopen(szTemp, "wb");
+		fwrite(infoLog, strlen(infoLog), 1, fp);
 		fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
 		fclose(fp);
 		delete[] infoLog;

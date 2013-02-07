@@ -184,6 +184,48 @@ void ProgramShaderCache::SetBothShaders(GLuint PS, GLuint VS)
 	SetProgramBindings(entry);
 	
 	glLinkProgram(entry.prog_id);
+	
+#if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
+	GLsizei length = 0;
+	glGetProgramiv(entry.prog_id, GL_INFO_LOG_LENGTH, &length);
+	if (length > 1)
+	{
+		GLsizei charsWritten;
+		GLchar* infoLog = new GLchar[length];
+		glGetProgramInfoLog(entry.prog_id, length, &charsWritten, infoLog);
+		ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "p_%d.txt", entry.prog_id);
+		FILE *fp = fopen(szTemp, "wb");
+		fwrite(infoLog, length, 1, fp);
+		delete[] infoLog;
+		
+		glGetShaderiv(VS, GL_SHADER_SOURCE_LENGTH, &length);
+		GLchar* src = new GLchar[length];
+		glGetShaderSource(VS, length, &charsWritten, src);
+		fwrite(src, strlen(src), 1, fp);
+		delete [] src;
+		
+		glGetShaderiv(PS, GL_SHADER_SOURCE_LENGTH, &length);
+		src = new GLchar[length];
+		glGetShaderSource(PS, length, &charsWritten, src);
+		fwrite(src, strlen(src), 1, fp);
+		delete [] src;
+		fclose(fp);
+	}
+
+	GLint linkStatus;
+	glGetProgramiv(entry.prog_id, GL_LINK_STATUS, &linkStatus);
+	if (linkStatus != GL_TRUE)
+	{
+		// Compile failed
+		ERROR_LOG(VIDEO, "Program linking failed; see info log");
+
+		// Don't try to use this shader
+		glDeleteProgram(entry.prog_id);
+		return;
+	}
+#endif
 
 	glUseProgram(entry.prog_id);
 

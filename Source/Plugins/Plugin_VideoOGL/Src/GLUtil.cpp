@@ -28,9 +28,6 @@
 
 #include "GLUtil.h"
 
-// this should be removed in future, but as long as glsl is unstable, we should really read this messages
-#define DEBUG_GLSL
-
 GLWindow GLWin;
 cInterfaceBase *GLInterface;
 
