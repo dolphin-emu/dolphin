@@ -335,7 +335,6 @@ Renderer::Renderer()
 #ifdef __APPLE__
 	int swapInterval = g_ActiveConfig.bVSync ? 1 : 0;
 	NSOpenGLContext *ctx = GLWin.cocoaCtx;
-#endif
 	[ctx setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
 #elif defined _WIN32
 	if (WGLEW_EXT_swap_control)
