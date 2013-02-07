@@ -54,12 +54,12 @@ bool Wiimote::IsConnected() const
 	return false;
 }
 
-int Wiimote::Read(const u8* buf)
+int Wiimote::IORead(const u8* buf)
 {
 	return 0;
 }
 
-int Wiimote::Write(const u8* buf, int len)
+int Wiimote::IOWrite(const u8* buf, int len)
 {
 	return 0;
 }
