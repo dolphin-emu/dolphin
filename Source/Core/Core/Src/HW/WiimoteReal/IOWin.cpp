@@ -73,7 +73,7 @@ HINSTANCE bthprops_lib = NULL;
 
 static int initialized = 0;
 
-int PairUp(bool unpair);
+int PairUp(bool unpair = false);
 
 inline void init_lib()
 {
