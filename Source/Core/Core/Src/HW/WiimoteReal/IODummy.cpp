@@ -26,9 +26,12 @@ WiimoteScanner::WiimoteScanner()
 	return;
 }
 
+WiimoteScanner::~WiimoteScanner()
+{}
+
 std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 {
-	return std::vector<Wiimote*>()
+	return std::vector<Wiimote*>();
 }
 
 bool WiimoteScanner::IsReady() const
@@ -46,17 +49,17 @@ void Wiimote::Disconnect()
 	return;
 }
 
-bool Wiimote::IsOpen() const
+bool Wiimote::IsConnected() const
 {
-	return IsConnected();
+	return false;
 }
 
-int Wiimote::IORead(unsigned char* buf)
+int Wiimote::Read(const u8* buf)
 {
 	return 0;
 }
 
-int Wiimote::IOWrite(unsigned char* buf, int len)
+int Wiimote::Write(const u8* buf, int len)
 {
 	return 0;
 }
