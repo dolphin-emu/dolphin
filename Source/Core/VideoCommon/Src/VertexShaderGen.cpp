@@ -586,8 +586,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		// clipPos/w needs to be done in pixel shader, not here
 
 		if (xfregs.numTexGen.numTexGens < 7) {
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, " uv%d_2.xyz =  o.tex%d;\n", i, i);
+			for (unsigned int i = 0; i < 8; ++i)
+				if(i < xfregs.numTexGen.numTexGens)
+					WRITE(p, " uv%d_2.xyz =  o.tex%d;\n", i, i);
+				else
+					WRITE(p, " uv%d_2.xyz =  float3(0.0f, 0.0f, 0.0f);\n", i);
 			WRITE(p, "  clipPos_2 = o.clipPos;\n");
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 				WRITE(p, "  Normal_2 = o.Normal;\n");
