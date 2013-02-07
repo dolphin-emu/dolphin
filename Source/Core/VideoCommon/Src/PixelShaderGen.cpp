@@ -1322,6 +1322,8 @@ static void WriteFog(char *&p)
 		// perspective
 		// ze = A/(B - (Zs >> B_SHF)
 		WRITE (p, "\tfloat ze = " I_FOG"[1].x / (" I_FOG"[1].y - (zCoord / " I_FOG"[1].w));\n");
+		WRITE (p, "\tif(isnan(ze))\n"); // TODO: on intel/mesa, here will be a division by zero
+		WRITE (p, "\t\tze = 0.0f;\n");
 	}
 	else
 	{
