@@ -164,19 +164,6 @@ bool Wiimote::Connect()
 	return true;
 }
 
-void Wiimote::StartThread()
-{
-	m_run_thread = true;
-	m_wiimote_thread = std::thread(std::mem_fun(&Wiimote::ThreadFunc), this);
-}
-
-void Wiimote::StopThread()
-{
-	m_run_thread = false;
-	if (m_wiimote_thread.joinable())
-		m_wiimote_thread.join();
-}
-
 void Wiimote::Disconnect()
 {
 	close(cmd_sock);

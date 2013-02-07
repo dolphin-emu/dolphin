@@ -73,6 +73,8 @@ HINSTANCE bthprops_lib = NULL;
 
 static int initialized = 0;
 
+int PairUp(bool unpair);
+
 inline void init_lib()
 {
 	if (!initialized)
@@ -131,6 +133,9 @@ WiimoteScanner::WiimoteScanner()
 {
 	init_lib();
 }
+
+WiimoteScanner::~WiimoteScanner()
+{}
 
 // Find and connect wiimotes.
 // Does not replace already found wiimotes even if they are disconnected.
@@ -198,7 +203,7 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 		wm->dev_handle = dev;
 		memcpy(wm->devicepath, detail_data->DevicePath, 197);
 
-		found_wiimotes.push_back(wm);
+		wiimotes.push_back(wm);
 	}
 
 	if (detail_data)
@@ -206,7 +211,7 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 
 	SetupDiDestroyDeviceInfoList(device_info);
 
-	return found_wiimotes;
+	return wiimotes;
 }
 
 bool WiimoteScanner::IsReady() const
@@ -262,15 +267,15 @@ bool Wiimote::IsConnected() const
 
 int Wiimote::IORead(unsigned char* buf)
 {
-	//*buf = 0;
+	DWORD b;
 	if (!ReadFile(dev_handle, buf, MAX_PAYLOAD, &b, &hid_overlap))
 	{
 		// Partial read
-		auto const b = GetLastError();
+		b = GetLastError();
 		if ((b == ERROR_HANDLE_EOF) || (b == ERROR_DEVICE_NOT_CONNECTED))
 		{
 			// Remote disconnect
-			RealDisconnect();
+			Disconnect();
 			return 0;
 		}
 
@@ -308,14 +313,15 @@ int Wiimote::IORead(unsigned char* buf)
 	return MAX_PAYLOAD;	// XXX
 }
 
-int Wiimote::IOWrite(unsigned char* buf, int len)
+int Wiimote::IOWrite(const u8* buf, int len)
 {
+	DWORD bytes = 0;
 	switch (stack)
 	{
 	case MSBT_STACK_UNKNOWN:
 	{
 		// Try to auto-detect the stack type
-		DWORD bytes = 0;
+		
 		auto i = WriteFile(dev_handle, buf + 1, 22, &bytes, &hid_overlap);
 		if (i)
 		{
@@ -324,7 +330,7 @@ int Wiimote::IOWrite(unsigned char* buf, int len)
 			return i;
 		}
 
-		i = HidD_SetOutputReport(dev_handle, buf + 1, len - 1);
+		i = HidD_SetOutputReport(dev_handle, (unsigned char*) buf + 1, len - 1);
 		if (i)
 		{
 			stack = MSBT_STACK_MS;
@@ -343,20 +349,20 @@ int Wiimote::IOWrite(unsigned char* buf, int len)
 		{
 			ERROR_LOG(WIIMOTE, "IOWrite[MSBT_STACK_UNKNOWN]: ERROR: %08x", dw);
 			// Correct?
-			return -1
+			return -1;
 		}
 		break;
 	}
 	case MSBT_STACK_MS:
 	{
-		i = HidD_SetOutputReport(dev_handle, buf + 1, len - 1);
-		dw = GetLastError();
+		auto i = HidD_SetOutputReport(dev_handle, (unsigned char*) buf + 1, len - 1);
+		auto dw = GetLastError();
 
 		if (dw == 121)
 		{
 			// Semaphore timeout
 			NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to wiimote");
-			RealDisconnect();
+			Disconnect();
 			return 0;
 		}
 

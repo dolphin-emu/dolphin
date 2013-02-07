@@ -44,11 +44,6 @@ void Refresh();
 
 void LoadSettings();
 
-#ifdef _WIN32
-int PairUp(bool unpair = false);
-int UnPair();
-#endif
-
 }
 
 #endif

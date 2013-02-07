@@ -81,7 +81,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	wxFlexGridSizer* const real_wiimotes_sizer = new wxFlexGridSizer(3, 5, 5);
 	real_wiimotes_sizer->Add(connected_wiimotes_txt, 0, wxALIGN_CENTER_VERTICAL);
 #ifdef _WIN32
-	real_wiimotes_sizer->Add(pairup_btn);
+	//real_wiimotes_sizer->Add(pairup_btn);
 #endif
 	real_wiimotes_sizer->Add(refresh_btn);
 	real_wiimotes_group->Add(real_wiimotes_sizer, 1, wxALL, 5);
