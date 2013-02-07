@@ -1333,9 +1333,10 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
-	float lodbias = tm0.lod_bias / 32.0f;
+
+	float lodbias = (s32)tm0.lod_bias / 32.0f;
 	D3D::SetSamplerState(stage, D3DSAMP_MIPMAPLODBIAS, *(DWORD*)&lodbias);
-	D3D::SetSamplerState(stage, D3DSAMP_MAXMIPLEVEL, tm1.min_lod >> 4);
+	D3D::SetSamplerState(stage, D3DSAMP_MAXMIPLEVEL, tm1.max_lod >> 4);
 }
 
 void Renderer::SetInterlacingMode()
