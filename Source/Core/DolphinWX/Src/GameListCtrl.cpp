@@ -56,6 +56,7 @@ size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
 std::string CGameListCtrl::m_currentFilename;
 bool sorted = false;
+bool justFiltered = false;
 
 extern CFrame* main_frame;
 
@@ -166,7 +167,7 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_SIZE(CGameListCtrl::OnSize)
 	EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
 	EVT_LEFT_DOWN(CGameListCtrl::OnLeftClick)
-	EVT_LIST_KEY_DOWN(LIST_CTRL, CGameListCtrl::OnKeyPress)
+	EVT_KEY_DOWN(CGameListCtrl::OnKeyPress)
 	EVT_MOTION(CGameListCtrl::OnMouseMotion)
 	EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
 	EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
@@ -290,8 +291,8 @@ void CGameListCtrl::Update()
 	m_gamePath.clear();
 
 	Hide();
-
-	ScanForISOs();
+	if (!justFiltered)
+		ScanForISOs();
 
 	ClearAll();
 
@@ -378,6 +379,7 @@ void CGameListCtrl::Update()
 	if (GetSelectedISO() == NULL)
 		main_frame->UpdateGUI();
 	Show();
+	justFiltered = false;
 
 	AutomaticColumnWidth();
 	ScrollLines(scrollPos);
@@ -762,8 +764,17 @@ void CGameListCtrl::OnColumnClick(wxListEvent& event)
 }
 
 // This is used by keyboard gamelist search
-void CGameListCtrl::OnKeyPress(wxListEvent& event)
+void CGameListCtrl::OnKeyPress(wxKeyEvent& event)
 {
+	// TODO: something less retarded
+	if (event.GetKeyCode() == 'F' && event.GetModifiers() == wxMOD_CONTROL)
+	{
+		wxString filter = wxGetTextFromUser("Filter game list", "");
+		if (filter != "")
+			FilterGameList(filter);
+		event.Skip();
+		return;
+	}
 	static int lastKey = 0, sLoop = 0;
 	int Loop = 0;
 
@@ -809,7 +820,6 @@ void CGameListCtrl::OnKeyPress(wxListEvent& event)
 		if (i+1 == (int)m_ISOFiles.size() && sLoop > 0 && Loop > 0)
 			i = -1;
 	}
-
 	event.Skip();
 }
 
@@ -1355,4 +1365,20 @@ void CGameListCtrl::UnselectAll()
 
 }
 
+void CGameListCtrl::FilterGameList(wxString filter)
+{
+	filter.MakeUpper();
+	wxString name;
+	std::vector<GameListItem*> matches;
+	for (int i = 0; i < m_ISOFiles.size(); ++i)
+	{
+		name = m_ISOFiles[i]->GetName(1);
+		name.MakeUpper();
+		if (name.find(filter) != wxNOT_FOUND)
+			matches.push_back(m_ISOFiles[i]);
+	}
+	m_ISOFiles = matches;
+	justFiltered = true;
+	Update();
+}
 

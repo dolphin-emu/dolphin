@@ -105,7 +105,7 @@ private:
 	void OnMouseMotion(wxMouseEvent& event);
 	void OnColumnClick(wxListEvent& event);
 	void OnColBeginDrag(wxListEvent& event);
-	void OnKeyPress(wxListEvent& event);
+	void OnKeyPress(wxKeyEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnProperties(wxCommandEvent& event);
 	void OnWiki(wxCommandEvent& event);
@@ -128,6 +128,8 @@ private:
 	static size_t m_numberItem;
 	static void CompressCB(const char* text, float percent, void* arg);
 	static void MultiCompressCB(const char* text, float percent, void* arg);
+
+	void FilterGameList(wxString filter);
 };
 
 #endif
