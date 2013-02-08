@@ -61,13 +61,11 @@ Wiimote::Wiimote()
 #if defined(__linux__) && HAVE_BLUEZ
 	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
 #endif
-
-	DisableDataReporting();
 }
 
 Wiimote::~Wiimote()
 {
-	StopThread();	
+	StopThread();
 
 	if (IsConnected())
 		Disconnect();
@@ -80,26 +78,28 @@ Wiimote::~Wiimote()
 		delete[] rpt.first;
 }
 
-// Silly, copying data n stuff, o well, don't use this too often
-void Wiimote::SendPacket(const u8 rpt_id, const void* const data, const unsigned int size)
+// to be called from CPU thread
+void Wiimote::QueueReport(u8 rpt_id, const void* _data, unsigned int size)
 {
+	auto const data = static_cast<const u8*>(_data);
+	
 	Report rpt;
 	rpt.second = size + 2;
 	rpt.first = new u8[rpt.second];
-	rpt.first[0] = 0xA1;
+	rpt.first[0] = WM_SET_REPORT | WM_BT_OUTPUT;
 	rpt.first[1] = rpt_id;
-	memcpy(rpt.first + 2, data, size);
+	std::copy(data, data + size, rpt.first + 2);
 	m_write_reports.Push(rpt);
 }
 
 void Wiimote::DisableDataReporting()
 {
-	wm_report_mode rpt;
+	wm_report_mode rpt = {};
 	rpt.mode = WM_REPORT_CORE;
 	rpt.all_the_time = 0;
 	rpt.continuous = 0;
 	rpt.rumble = 0;
-	SendPacket(WM_REPORT_MODE, &rpt, sizeof(rpt));
+	QueueReport(WM_REPORT_MODE, &rpt, sizeof(rpt));
 }
 
 void Wiimote::ClearReadQueue()
@@ -133,24 +133,24 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
 	}
 }
 
-void Wiimote::InterruptChannel(const u16 channel, const void* const data, const u32 size)
+void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const u32 size)
 {
-	if (0 == m_channel)	// first interrupt/control channel sent
+	// first interrupt/control channel sent
+	if (channel != m_channel)
 	{
+		m_channel = channel;
+		
 		ClearReadQueue();
 
-		// request status
-		wm_request_status rpt;
-		rpt.rumble = 0;
-		SendPacket(WM_REQUEST_STATUS, &rpt, sizeof(rpt));
+		EmuStart();
 	}
-
-	m_channel = channel;	// this right?
+	
+	auto const data = static_cast<const u8*>(_data);
 
 	Report rpt;
 	rpt.first = new u8[size];
 	rpt.second = (u8)size;
-	memcpy(rpt.first, (u8*)data, size);
+	std::copy(data, data + size, rpt.first);
 
 	// Convert output DATA packets to SET_REPORT packets.
 	// Nintendo Wiimotes work without this translation, but 3rd
@@ -173,7 +173,8 @@ bool Wiimote::Read()
 	if (0 == rpt.second)
 		Disconnect();
 
-	if (rpt.second > 0 && m_channel > 0) {
+	if (rpt.second > 0 && m_channel > 0)
+	{
 		// Add it to queue
 		m_read_reports.Push(rpt);
 		return true;
@@ -241,27 +242,18 @@ void Wiimote::Update()
 		delete[] rpt.first;
 }
 
-void Wiimote::EmuStop()
-{
-	m_channel = 0;
-
-	DisableDataReporting();
-
-	NOTICE_LOG(WIIMOTE, "Stopping wiimote data reporting");
-}
-
 // Rumble briefly
-void Wiimote::Rumble()
+void Wiimote::RumbleBriefly()
 {
 	unsigned char buffer = 0x01;
 	DEBUG_LOG(WIIMOTE, "Starting rumble...");
-	SendRequest(WM_CMD_RUMBLE, &buffer, 1);
+	QueueReport(WM_CMD_RUMBLE, &buffer, sizeof(buffer));
 
 	SLEEP(200);
 
 	DEBUG_LOG(WIIMOTE, "Stopping rumble...");
 	buffer = 0x00;
-	SendRequest(WM_CMD_RUMBLE, &buffer, 1);
+	QueueReport(WM_CMD_RUMBLE, &buffer, sizeof(buffer));
 }
 
 // Set the active LEDs.
@@ -270,30 +262,21 @@ void Wiimote::SetLEDs(int new_leds)
 {
 	// Remove the lower 4 bits because they control rumble
 	u8 const buffer = (new_leds & 0xF0);
-	SendRequest(WM_CMD_LED, &buffer, 1);
+	QueueReport(WM_CMD_LED, &buffer, sizeof(buffer));
 }
 
 bool Wiimote::EmuStart()
 {
-	// Send a handshake
-
-	// Set buffer[0] to 0x04 for continuous reporting
-	u8 const buffer[2] = {0x04, 0x30};
-
-	NOTICE_LOG(WIIMOTE, "Sending handshake to wiimote");
-
-	return SendRequest(WM_CMD_REPORT_TYPE, buffer, 2);
+	DisableDataReporting();
 }
 
-// Send a packet to the wiimote.
-// report_type should be one of WIIMOTE_CMD_LED, WIIMOTE_CMD_RUMBLE, etc.
-bool Wiimote::SendRequest(u8 report_type, u8 const* data, int length)
+void Wiimote::EmuStop()
 {
-	unsigned char buffer[32] = {WM_SET_REPORT | WM_BT_OUTPUT, report_type};
+	m_channel = 0;
 
-	memcpy(buffer + 2, data, length);
+	DisableDataReporting();
 
-	return (IOWrite(buffer, length + 2) != 0);
+	NOTICE_LOG(WIIMOTE, "Stopping wiimote data reporting");
 }
 
 unsigned int CalculateWantedWiimotes()
@@ -368,9 +351,6 @@ void Wiimote::StopThread()
 void Wiimote::ThreadFunc()
 {
 	Common::SetCurrentThreadName("Wiimote Device Thread");
-
-	// rumble briefly
-	Rumble();
 
 	// main loop
 	while (m_run_thread && IsConnected())
@@ -464,7 +444,10 @@ void HandleWiimoteConnect(Wiimote* wm)
 
 			wm->index = i;
 			wm->StartThread();
+			
+			wm->DisableDataReporting();
 			wm->SetLEDs(WIIMOTE_LED_1 << i);
+			wm->RumbleBriefly();
 
 			Host_ConnectWiimote(i, true);
 			
@@ -516,52 +499,7 @@ void Refresh()
 {
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
-#ifdef _WIN32
-	Shutdown();
-	Initialize();
-#else
-/*
-	// Make sure real wiimotes have been initialized
-	if (!g_real_wiimotes_initialized)
-	{
-		Initialize();
-		return;
-	}
-
-	// Find the number of slots configured for real wiimotes
-	unsigned int wanted_wiimotes = 0;
-	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-		if (WIIMOTE_SRC_REAL & g_wiimote_sources[i])
-			++wanted_wiimotes;
-
-	// Remove wiimotes that are paired with slots no longer configured for a
-	// real wiimote or that are disconnected
-	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
-		if (g_wiimotes[i] && (!(WIIMOTE_SRC_REAL & g_wiimote_sources[i]) ||
-					!g_wiimotes[i]->IsConnected()))
-		{
-			delete g_wiimotes[i];
-			g_wiimotes[i] = NULL;
-			--g_wiimotes_found;
-		}
-
-	// Scan for wiimotes if we want more
-	if (wanted_wiimotes > g_wiimotes_found)
-	{
-		// Scan for wiimotes
-		unsigned int num_wiimotes = FindWiimotes(g_wiimotes, wanted_wiimotes);
-
-		DEBUG_LOG(WIIMOTE, "Found %i Real Wiimotes, %i wanted", num_wiimotes, wanted_wiimotes);
-
-		// Connect newly found wiimotes.
-		int num_new_wiimotes = ConnectWiimotes(g_wiimotes);
-
-		DEBUG_LOG(WIIMOTE, "Connected to %i additional Real Wiimotes", num_new_wiimotes);
-
-		g_wiimotes_found = num_wiimotes;
-	}
-*/
-#endif
+	// TODO: stuff, maybe
 }
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)

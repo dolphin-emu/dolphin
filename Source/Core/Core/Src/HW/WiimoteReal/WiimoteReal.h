@@ -70,10 +70,11 @@ public:
 	bool IsConnected() const;
 
 	void SetLEDs(int leds);
+	void RumbleBriefly();
 
 	void DisableDataReporting();
-	void Rumble();
-	void SendPacket(const u8 rpt_id, const void* const data, const unsigned int size);
+	
+	void QueueReport(u8 rpt_id, const void* data, unsigned int size);
 
 	int index;
 
@@ -102,7 +103,6 @@ protected:
 
 private:
 	void ClearReadQueue();
-	bool SendRequest(u8 report_type, u8 const* data, int length);
 	
 	int IORead(u8* buf);
 	int IOWrite(u8 const* buf, int len);
