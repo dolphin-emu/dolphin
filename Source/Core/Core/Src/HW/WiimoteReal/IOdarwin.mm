@@ -41,7 +41,7 @@
 	IOBluetoothDevice *device = [l2capChannel getDevice];
 	WiimoteReal::Wiimote *wm = NULL;
 	
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
@@ -81,7 +81,7 @@
 	IOBluetoothDevice *device = [l2capChannel getDevice];
 	WiimoteReal::Wiimote *wm = NULL;
 	
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
