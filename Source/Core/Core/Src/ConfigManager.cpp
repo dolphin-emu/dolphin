@@ -100,9 +100,6 @@ SConfig::SConfig()
 {
 	// Make sure we have log manager
 	LoadSettings();
-	//Make sure we load any extra settings
-	LoadSettingsWii();
-
 }
 
 void SConfig::Init()
@@ -427,19 +424,4 @@ void SConfig::LoadSettings()
 	}
 
 	m_SYSCONF = new SysConf();
-}
-void SConfig::LoadSettingsWii()
-{
-	IniFile ini;
-	//Wiimote configs
-	ini.Load((File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini"));
-	for (int i = 0; i < 4; i++)
-	{
-		char SectionName[32];
-		sprintf(SectionName, "Wiimote%i", i + 1);
-		ini.Get(SectionName, "AutoReconnectRealWiimote", &m_WiiAutoReconnect[i], false);
-	}
-		ini.Load((File::GetUserPath(D_CONFIG_IDX) + "wiimote.ini"));
-		ini.Get("Real", "Unpair", &m_WiiAutoUnpair, false);
-		
 }
