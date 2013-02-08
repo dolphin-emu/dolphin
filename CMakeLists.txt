@@ -3,6 +3,19 @@
 #
 cmake_minimum_required(VERSION 2.6)
 
+option(USE_GLES "Enables GLES, disables OGL" OFF)
+option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
+
+option(FASTLOG "Enable all logs" OFF)
+option(OPROFILING "Enable profiling" OFF)
+option(OPENMP "Enable OpenMP parallelization" ON)
+option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
+########################################
+# Optional Targets
+# TODO: Add DSPSpy and TestSuite.
+option(DSPTOOL "Build dsptool" OFF)
+option(UNITTESTS "Build unitests" OFF)
+
 # Update compiler before calling project()
 if (APPLE)
 	# Use clang compiler
@@ -96,33 +109,41 @@ endif()
 # Various compile flags
 add_definitions(-msse2)
 
+include(CheckCXXCompilerFlag)
+macro(check_and_add_flag var flag)
+	CHECK_CXX_COMPILER_FLAG(${flag} FLAG_${var})
+	if(FLAG_${var})
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+	endif()
+endmacro()
+
 # Enabling all warnings in MSVC spams too much
 if(NOT MSVC)
 	add_definitions(-Wall)
+
+	# TODO: would like these but they produce overwhelming amounts of warnings
+	#check_and_add_flag(EXTRA -Wextra)
+	#check_and_add_flag(MISSING_FIELD_INITIALIZERS -Wmissing-field-initializers)
+	#check_and_add_flag(SWITCH_DEFAULT -Wswitch-default)
+	#check_and_add_flag(FLOAT_EQUAL -Wfloat-equal)
+	#check_and_add_flag(CONVERSION -Wconversion)
+	#check_and_add_flag(ZERO_AS_NULL_POINTER_CONSTANT -Wzero-as-null-pointer-constant)
+	check_and_add_flag(TYPE_LIMITS -Wtype-limits)
+	check_and_add_flag(SIGN_COMPARE -Wsign-compare)
+	check_and_add_flag(IGNORED_QUALIFIERS -Wignored-qualifiers)
+	check_and_add_flag(UNINITIALIZED -Wuninitialized)
+	check_and_add_flag(LOGICAL_OP -Wlogical-op)
+	check_and_add_flag(SHADOW -Wshadow)
+	check_and_add_flag(INIT_SELF -Winit-self)
 endif(NOT MSVC)
 
 # gcc uses some optimizations which might break stuff without this flag
-add_definitions(-fno-strict-aliasing -fno-exceptions -Wno-psabi)
+add_definitions(-fno-strict-aliasing -fno-exceptions)
 
-include(CheckCXXCompilerFlag)
-
-# We call fread numerous times without checking return values.  Hide the
-# corresponding compiler warnings if the compiler supports doing so.
-CHECK_CXX_COMPILER_FLAG(-Wunused-result NO_UNUSED_RESULT)
-if(NO_UNUSED_RESULT)
-	add_definitions(-Wno-unused-result)
-endif(NO_UNUSED_RESULT)
-
-CHECK_CXX_COMPILER_FLAG(-fvisibility-inlines-hidden VISIBILITY_INLINES_HIDDEN)
-if(VISIBILITY_INLINES_HIDDEN)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-endif(VISIBILITY_INLINES_HIDDEN)
+check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
 
 if(UNIX AND NOT APPLE)
-	CHECK_CXX_COMPILER_FLAG(-fvisibility=hidden VISIBILITY_HIDDEN)
-	if(VISIBILITY_HIDDEN)
-		add_definitions(-fvisibility=hidden)
-	endif(VISIBILITY_HIDDEN)
+	check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
 endif()
 
 if(APPLE)
@@ -217,14 +238,12 @@ if(CMAKE_BUILD_TYPE STREQUAL Release)
 	add_definitions(-fomit-frame-pointer)
 endif(CMAKE_BUILD_TYPE STREQUAL Release)
 
-option(FASTLOG "Enable all logs" OFF)
 if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
 # For now GLES and EGL are tied to each other.
 # Enabling GLES also disables the OpenGL plugin.
-option(USE_GLES "Enables GLES, disables OGL" OFF)
 if(USE_GLES)
 	message("GLES rendering enabled")
 	add_definitions(-DUSE_GLES)
@@ -248,7 +267,6 @@ if(NOT OPENGL_GLU_FOUND)
 	message(FATAL_ERROR "GLU is required but not found")
 endif()
 
-option(OPENMP "Enable OpenMP parallelization" ON)
 if(OPENMP)
 	include(FindOpenMP OPTIONAL)
 	if(OPENMP_FOUND)
@@ -331,7 +349,6 @@ else()
 	add_definitions(-DHAVE_XRANDR=0)
 endif(XRANDR_FOUND)
 
-option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 if(ENCODE_FRAMEDUMPS)
 	check_libav()
 endif()
@@ -353,7 +370,6 @@ else()
 	set(PORTAUDIO_FOUND FALSE)
 endif(PORTAUDIO)
 
-option(OPROFILING "Enable profiling" OFF)
 if(OPROFILING)
 	check_lib(OPROFILE opagent opagent.h)
 	check_lib(BFD bfd bfd.h)
@@ -435,7 +451,7 @@ else(SDL2_FOUND)
 	else(SDL_FOUND)
 		# TODO: Use the prebuilt one on Windows
 		message("Using static SDL from Externals")
-		include_directories(Externals/SDL Externals/SDL/include)
+		include_directories(Externals/SDL/SDL Externals/SDL Externals/SDL/include)
 		add_subdirectory(Externals/SDL)
 	endif(SDL_FOUND)
 endif(SDL2_FOUND)
@@ -511,7 +527,6 @@ else()
 	add_subdirectory(Externals/CLRun)
 endif()
 
-option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 if(NOT DISABLE_WX)
 	include(FindwxWidgets OPTIONAL)
 	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
@@ -606,12 +621,6 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/scmrev.h
 	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_MASTER} "\n"
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
-
-########################################
-# Optional Targets
-# TODO: Add DSPSpy and TestSuite.
-option(DSPTOOL "Build dsptool" OFF)
-option(UNITTESTS "Build unitests" OFF)
 
 ########################################
 # Start compiling our code

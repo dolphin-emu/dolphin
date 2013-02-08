@@ -201,7 +201,7 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 		unsigned int k = 0;
 		auto const wm = new Wiimote;
 		wm->dev_handle = dev;
-		memcpy(wm->devicepath, detail_data->DevicePath, 197);
+		wm->devicepath = detail_data->DevicePath;
 
 		wiimotes.push_back(wm);
 	}
@@ -223,7 +223,7 @@ bool WiimoteScanner::IsReady() const
 // Connect to a wiimote with a known device path.
 bool Wiimote::Connect()
 {
-	dev_handle = CreateFile(devicepath,
+	dev_handle = CreateFile(devicepath.c_str(),
 		(GENERIC_READ | GENERIC_WRITE),
 		(FILE_SHARE_READ | FILE_SHARE_WRITE),
 		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);

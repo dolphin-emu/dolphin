@@ -160,13 +160,6 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 		rpt.first[0] = WM_SET_REPORT | WM_BT_OUTPUT;
  	}
 
-	if (rpt.first[0] == (WM_SET_REPORT | WM_BT_OUTPUT) &&
-		rpt.first[1] == 0x18 && rpt.second == 23)
-	{
-		m_audio_reports.Push(rpt);
- 		return;
- 	}
-
 	m_write_reports.Push(rpt);
 }
 
@@ -192,24 +185,26 @@ bool Wiimote::Read()
 
 bool Wiimote::Write()
 {
-	Report rpt;
-	bool audio_written = false;
-	
-	if (m_audio_reports.Pop(rpt))
+	if (!m_write_reports.Empty())
 	{
-		IOWrite(rpt.first, rpt.second);
-		delete[] rpt.first;
-		audio_written = true;
+		Report const& rpt = m_write_reports.Front();
+		
+		bool const is_speaker_data = rpt.first[1] == WM_WRITE_SPEAKER_DATA;
+		
+		if (!is_speaker_data || last_audio_report.GetTimeDifference() > 5)
+		{
+			IOWrite(rpt.first, rpt.second);
+			
+			if (is_speaker_data)
+				last_audio_report.Update();
+			
+			delete[] rpt.first;
+			m_write_reports.Pop();
+			return true;
+		}
 	}
-
-	if (m_write_reports.Pop(rpt))
-	{
-		IOWrite(rpt.first, rpt.second);
-		delete[] rpt.first;
-		return true;
-	}	
-
-	return audio_written;
+	
+	return false;
 }
 
 // Returns the next report that should be sent
@@ -384,25 +379,9 @@ void Wiimote::ThreadFunc()
 		while (Write()) {}
 		Common::SleepCurrentThread(1);
 #else
-		// TODO: this is all a mess
-		while (m_run_thread && IsConnected())
-		{
-			bool const did_write = Write();
-
-			if (did_write)
-				break;
-			else
-				if (!Read())
-					break;
-
-			// TODO: what is this doing?
-			//if (m_audio_reports.Size() && did_write)
-			//	Read();
-
-			// TODO: make work well
-			//Common::SleepCurrentThread(m_audio_reports.Size() ? 5 : 2);
-			Common::SleepCurrentThread(2);
-		}
+		bool const did_something = Write() || Read();
+		if (!did_something)
+			Common::SleepCurrentThread(1);
 #endif
 	}
 }

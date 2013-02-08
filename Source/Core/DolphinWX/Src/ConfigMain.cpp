@@ -17,10 +17,12 @@
 
 #include <string> // System
 #include <vector>
+#include <algorithm>
 #include <wx/spinbutt.h>
 
 #include "Common.h"
 #include "CommonPaths.h"
+#include "FileSearch.h"
 
 #include "Core.h" // Core
 #include "HW/EXI.h"
@@ -39,6 +41,14 @@
 #include "HotkeyDlg.h"
 #include "Main.h"
 #include "VideoBackendBase.h"
+
+#if defined(__APPLE__)
+#include <tr1/functional>
+using std::tr1::function;
+#else
+#include <functional>
+using std::function;
+#endif
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
 
@@ -126,7 +136,6 @@ EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_ONSCREENDISPLAYMESSAGES, CConfigMain::DisplaySettingsChanged)
-EVT_CHOICE(ID_INTERFACE_THEME, CConfigMain::DisplaySettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::DisplaySettingsChanged)
 EVT_BUTTON(ID_HOTKEY_CONFIG, CConfigMain::DisplaySettingsChanged)
 
@@ -253,14 +262,6 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_DSPEngine.Add(_("DSP LLE recompiler"));
 	arrayStringFor_DSPEngine.Add(_("DSP LLE interpreter (slow)"));
 	
-	
-	// Display page
-	// Themes
-	arrayStringFor_Themes.Add(wxT("Boomy"));
-	arrayStringFor_Themes.Add(wxT("Vista"));
-	arrayStringFor_Themes.Add(wxT("X-Plastik"));
-	arrayStringFor_Themes.Add(wxT("KDE"));
-	
 	// Gamecube page
 	// GC Language arrayStrings
 	arrayStringFor_GCSystemLang.Add(_("English"));
@@ -320,9 +321,6 @@ void CConfigMain::InitializeGUIValues()
 {
 	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	
-	// Load DSP Settings.
-	ac_Config.Load();
-
 	// General - Basic
 	CPUThread->SetValue(startup_params.bCPUThread);
 	SkipIdle->SetValue(startup_params.bSkipIdle);
@@ -339,7 +337,6 @@ void CConfigMain::InitializeGUIValues()
 	ConfirmStop->SetValue(startup_params.bConfirmStop);
 	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
 	OnScreenDisplayMessages->SetValue(startup_params.bOnScreenDisplayMessages);
-	Theme->SetSelection(startup_params.iTheme);
 	// need redesign
 	for (unsigned int i = 0; i < sizeof(langIds) / sizeof(wxLanguage); i++)
 	{
@@ -354,17 +351,17 @@ void CConfigMain::InitializeGUIValues()
 	if (startup_params.bDSPHLE)
 		DSPEngine->SetSelection(0);
 	else
-		DSPEngine->SetSelection(ac_Config.m_EnableJIT ? 1 : 2);
+		DSPEngine->SetSelection(SConfig::GetInstance().m_EnableJIT ? 1 : 2);
 
 	// Audio
-	VolumeSlider->Enable(SupportsVolumeChanges(ac_Config.sBackend));
-	VolumeSlider->SetValue(ac_Config.m_Volume);
-	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), ac_Config.m_Volume));
+	VolumeSlider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
+	VolumeSlider->SetValue(SConfig::GetInstance().m_Volume);
+	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), SConfig::GetInstance().m_Volume));
 	DSPThread->SetValue(startup_params.bDSPThread);
-	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
-	DPL2Decoder->Enable(std::string(ac_Config.sBackend) == BACKEND_OPENAL);
+	DumpAudio->SetValue(SConfig::GetInstance().m_DumpAudio ? true : false);
+	DPL2Decoder->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
 	DPL2Decoder->SetValue(startup_params.bDPL2Decoder);
-	Latency->Enable(std::string(ac_Config.sBackend) == BACKEND_OPENAL);
+	Latency->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
 	Latency->SetValue(startup_params.iLatency);
 	// add backends to the list
 	AddAudioBackends();
@@ -497,11 +494,8 @@ void CConfigMain::InitializeGUITooltips()
 
 	// Display - Interface
 	ConfirmStop->SetToolTip(_("Show a confirmation box before stopping a game."));
-	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occured.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
+	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occurred.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
 	OnScreenDisplayMessages->SetToolTip(_("Show messages on the emulation screen area.\nThese messages include memory card writes, video backend and CPU information, and JIT cache clearing."));
-
-	// Display - Themes: Copyright notice
-	Theme->SetToolTip(_("Boomy: Milosz Wlazlo [miloszwl@miloszwl.com]\nVista: VistaIcons.com\nX-Plastik: black_rider [ForumW.org]\nKDE: KDE-Look.org"));
 
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
@@ -584,9 +578,6 @@ void CConfigMain::CreateGUIControls()
 	// Hotkey configuration
 	HotkeyConfig = new wxButton(DisplayPage, ID_HOTKEY_CONFIG, _("Hotkeys"),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
-	// Themes
-	Theme = new wxChoice(DisplayPage, ID_INTERFACE_THEME, wxDefaultPosition,
-			wxDefaultSize, arrayStringFor_Themes, 0, wxDefaultValidator);
 	// Interface settings
 	ConfirmStop = new wxCheckBox(DisplayPage, ID_INTERFACE_CONFIRMSTOP, _("Confirm on Stop"),
 			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -600,10 +591,42 @@ void CConfigMain::CreateGUIControls()
 	sInterface->Add(InterfaceLang, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterface->AddStretchSpacer();
 	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
-	wxBoxSizer* scInterface = new wxBoxSizer(wxHORIZONTAL);
+
+	// theme selection
+	auto const theme_selection = new wxChoice(DisplayPage, wxID_ANY);
+
+	CFileSearch::XStringVector theme_dirs;
+	theme_dirs.push_back(File::GetUserPath(D_THEMES_IDX));
+#if !defined(_WIN32)
+	theme_dirs.push_back(SHARED_USER_DIR THEMES_DIR);
+#endif
+
+	CFileSearch cfs(CFileSearch::XStringVector(1, "*"), theme_dirs);
+	auto const& sv = cfs.GetFileNames();
+	std::for_each(sv.begin(), sv.end(), [theme_selection](const std::string& filename)
+	{
+		std::string name, ext;
+		SplitPath(filename, NULL, &name, &ext);
+
+		name += ext;
+		if (-1 == theme_selection->FindString(name))
+			theme_selection->Append(name);
+	});
+	
+	theme_selection->SetStringSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name);
+
+	// std::function = avoid error on msvc
+	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, function<void(wxEvent&)>([theme_selection](wxEvent&)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = theme_selection->GetStringSelection();
+		main_frame->InitBitmaps();
+	}));
+
+	auto const scInterface = new wxBoxSizer(wxHORIZONTAL);
 	scInterface->Add(TEXT_BOX(DisplayPage, _("Theme:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	scInterface->Add(Theme, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	scInterface->Add(theme_selection, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	scInterface->AddStretchSpacer();
+
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Interface Settings"));
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
@@ -838,9 +861,6 @@ void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))
 
 	// Save the config. Dolphin crashes to often to save the settings on closing only
 	SConfig::GetInstance().SaveSettings();
-
-	// Save Audio settings
-	ac_Config.SaveSettings();
 }
 
 // Core settings
@@ -860,7 +880,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = Framelimit->GetSelection();
-		ac_Config.Update();
+		AudioCommon::UpdateSoundStream();
 		break;
 	case ID_FRAMELIMIT_USEFPSFORLIMITING:
 		SConfig::GetInstance().b_UseFPS = UseFPSForLimiting->IsChecked();
@@ -895,10 +915,6 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages = OnScreenDisplayMessages->IsChecked();
 		SetEnableAlert(OnScreenDisplayMessages->IsChecked());
 		break;
-	case ID_INTERFACE_THEME:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme = Theme->GetSelection();
-		main_frame->InitBitmaps();
-		break;
 	case ID_INTERFACE_LANG:
 		if (SConfig::GetInstance().m_InterfaceLanguage != langIds[InterfaceLang->GetSelection()])
 			SuccessAlertT("You must restart Dolphin in order for the change to take effect.");
@@ -922,13 +938,13 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 	case ID_DSPENGINE:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = DSPEngine->GetSelection() == 0;
 		if (!DSPEngine->GetSelection() == 0)
-			ac_Config.m_EnableJIT = DSPEngine->GetSelection() == 1;
-		ac_Config.Update();
+			SConfig::GetInstance().m_EnableJIT = DSPEngine->GetSelection() == 1;
+		AudioCommon::UpdateSoundStream();
 		break;
 
 	case ID_VOLUME:
-		ac_Config.m_Volume = VolumeSlider->GetValue();
-		ac_Config.Update();
+		SConfig::GetInstance().m_Volume = VolumeSlider->GetValue();
+		AudioCommon::UpdateSoundStream();
 		VolumeText->SetLabel(wxString::Format(wxT("%d %%"), VolumeSlider->GetValue()));
 		break;
 
@@ -944,8 +960,8 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		VolumeSlider->Enable(SupportsVolumeChanges(std::string(BackendSelection->GetStringSelection().mb_str())));
 		Latency->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
 		DPL2Decoder->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
-		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
-		ac_Config.Update();
+		SConfig::GetInstance().sBackend = BackendSelection->GetStringSelection().mb_str();
+		AudioCommon::UpdateSoundStream();
 		break;
 
 	case ID_LATENCY:
@@ -953,7 +969,7 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		break;
 
 	default:
-		ac_Config.m_DumpAudio = DumpAudio->GetValue();
+		SConfig::GetInstance().m_DumpAudio = DumpAudio->GetValue();
 		break;
 	}
 }
@@ -967,7 +983,7 @@ void CConfigMain::AddAudioBackends()
 	{
 		BackendSelection->Append(wxString::FromAscii((*iter).c_str()));
 		int num = BackendSelection->\
-			FindString(wxString::FromAscii(ac_Config.sBackend.c_str()));
+			FindString(wxString::FromAscii(SConfig::GetInstance().sBackend.c_str()));
 		BackendSelection->SetSelection(num);
 	}
 }
@@ -1048,6 +1064,13 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 				return;
 			}
 		}
+		#ifdef _WIN32
+			if (!strncmp(File::GetExeDirectory().c_str(), filename.c_str(), File::GetExeDirectory().size()))
+			{
+				filename.erase(0, File::GetExeDirectory().size() +1);
+				filename = "./" + filename;
+			}
+		#endif
 
 		// also check that the path isn't used for the other memcard...
 		if (filename.compare(isSlotA ? SConfig::GetInstance().m_strMemoryCardB

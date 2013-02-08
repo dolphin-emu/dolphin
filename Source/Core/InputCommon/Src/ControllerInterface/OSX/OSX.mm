@@ -1,5 +1,6 @@
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
+#include <Cocoa/Cocoa.h>
 
 #include "../ControllerInterface.h"
 #include "OSX.h"
@@ -131,6 +132,7 @@ void DeviceDebugPrint(IOHIDDeviceRef device)
 #endif
 }
 
+static void *g_window;
 
 static void DeviceMatching_callback(void* inContext,
 	IOReturn inResult,
@@ -150,7 +152,7 @@ static void DeviceMatching_callback(void* inContext,
 	if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
 		kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
 		devices->push_back(new Keyboard(inIOHIDDeviceRef,
-			name, kbd_name_counts[name]++));
+			name, kbd_name_counts[name]++, g_window));
 #if 0
 	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
 		kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
@@ -162,12 +164,14 @@ static void DeviceMatching_callback(void* inContext,
 			name, joy_name_counts[name]++));
 }
 
-void Init(std::vector<ControllerInterface::Device*>& devices)
+void Init(std::vector<ControllerInterface::Device*>& devices, void *window)
 {
 	HIDManager = IOHIDManagerCreate(kCFAllocatorDefault,
 		kIOHIDOptionsTypeNone);
 	if (!HIDManager)
 		NSLog(@"Failed to create HID Manager reference");
+
+	g_window = window;
 
 	IOHIDManagerSetDeviceMatching(HIDManager, NULL);
 

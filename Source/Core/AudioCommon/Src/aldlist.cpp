@@ -146,7 +146,7 @@ ALDeviceList::~ALDeviceList()
 {
 	for (u32 i = 0; i < vDeviceInfo.size(); i++) {
 		if (vDeviceInfo[i].pvstrExtensions) {
-			vDeviceInfo[i].pvstrExtensions->empty();
+			vDeviceInfo[i].pvstrExtensions->clear();
 			delete vDeviceInfo[i].pvstrExtensions;
 		}
 	}

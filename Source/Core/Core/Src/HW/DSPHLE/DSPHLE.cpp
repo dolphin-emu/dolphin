@@ -26,6 +26,7 @@
 #include "DSPHLE.h"
 #include "UCodes/UCodes.h"
 #include "../AudioInterface.h"
+#include "ConfigManager.h"
 
 DSPHLE::DSPHLE() {
 	m_InitMixer = false;

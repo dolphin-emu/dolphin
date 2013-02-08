@@ -29,6 +29,7 @@ public:
 	virtual bool MakeCurrent() = 0;
 	virtual void Shutdown() = 0; 
 
+	virtual void SwapInterval(int Interval) { }
 	virtual u32 GetBackBufferWidth() { return s_backbuffer_width; }
 	virtual u32 GetBackBufferHeight() { return s_backbuffer_height; }
 	virtual void SetBackBufferDimensions(u32 W, u32 H) {s_backbuffer_width = W; s_backbuffer_height = H; }

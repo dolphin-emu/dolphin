@@ -58,6 +58,8 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "../HW/WII_IPC.h"
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../PowerPC/PowerPC.h"
+#include "../HW/SystemTimers.h"
+#include "CoreTiming.h"
 
 
 namespace WII_IPC_HLE_Interface
@@ -80,8 +82,17 @@ typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue;	// ppc -> arm
 static ipc_msg_queue reply_queue;	// arm -> ppc
 
+static int enque_reply;
+
+void EnqueReplyCallback(u64 userdata, int)
+{
+	reply_queue.push_back(userdata);
+}
+
 void Init()
 {
+	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
+	
     _dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isnt empty on init");
 	CWII_IPC_HLE_Device_es::m_ContentFile = "";
 	u32 i;
@@ -382,7 +393,7 @@ void ExecuteCommand(u32 _Address)
 			}
 			else
 			{
-				IWII_IPC_HLE_Device* pDevice = CreateFileIO(DeviceID, DeviceName);
+				pDevice = CreateFileIO(DeviceID, DeviceName);
 				CmdSuccess = pDevice->Open(_Address, Mode);
 
 				INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
@@ -394,6 +405,7 @@ void ExecuteCommand(u32 _Address)
 				else
 				{
 					delete pDevice;
+					pDevice = NULL;
 				}
 			}
 
@@ -424,7 +436,10 @@ void ExecuteCommand(u32 _Address)
 
 			// Don't delete hardware
 			if (!pDevice->IsHardware())
+			{
 				delete pDevice;
+				pDevice = NULL;
+			}
 		}
 		else
 		{
@@ -504,7 +519,8 @@ void ExecuteCommand(u32 _Address)
     if (CmdSuccess)
     {
 		// Generate a reply to the IPC command
-		EnqReply(_Address);
+		int const reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
+		EnqReply(_Address, reply_delay);
     }
 	else
 	{
@@ -526,9 +542,9 @@ void EnqRequest(u32 _Address)
 }
 
 // Called when IOS module has some reply
-void EnqReply(u32 _Address)
+void EnqReply(u32 _Address, int cycles_in_future)
 {
-	reply_queue.push_back(_Address);
+	CoreTiming::ScheduleEvent(cycles_in_future, enque_reply, _Address);
 }
 
 // This is called every IPC_HLE_PERIOD from SystemTimers.cpp

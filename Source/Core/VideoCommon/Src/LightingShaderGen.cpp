@@ -23,7 +23,7 @@
 
 int GetLightingShaderId(u32* out)
 {
-	for (int i = 0; i < xfregs.numChan.numColorChans; ++i)
+	for (u32 i = 0; i < xfregs.numChan.numColorChans; ++i)
 	{
 		out[i] = xfregs.color[i].enablelighting ?
 			(u32)xfregs.color[i].hex :

@@ -191,7 +191,6 @@
     <ClCompile Include="Src\aldlist.cpp" />
     <ClCompile Include="Src\AOSoundStream.cpp" />
     <ClCompile Include="Src\AudioCommon.cpp" />
-    <ClCompile Include="Src\AudioCommonConfig.cpp" />
     <ClCompile Include="Src\DPL2Decoder.cpp" />
     <ClCompile Include="Src\DSoundStream.cpp" />
     <ClCompile Include="Src\Mixer.cpp" />
@@ -204,7 +203,6 @@
     <ClInclude Include="Src\aldlist.h" />
     <ClInclude Include="Src\AOSoundStream.h" />
     <ClInclude Include="Src\AudioCommon.h" />
-    <ClInclude Include="Src\AudioCommonConfig.h" />
     <ClInclude Include="Src\DPL2Decoder.h" />
     <ClInclude Include="Src\DSoundStream.h" />
     <ClInclude Include="Src\Mixer.h" />

@@ -30,8 +30,6 @@
 #include <vector>
 #include <queue>
 
-#define PI	3.14159265358979323846
-
 // Registry sizes 
 #define WIIMOTE_EEPROM_SIZE			(16*1024)
 #define WIIMOTE_EEPROM_FREE_SIZE	0x1700

@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="Src\aldlist.cpp" />
     <ClCompile Include="Src\AudioCommon.cpp" />
-    <ClCompile Include="Src\AudioCommonConfig.cpp" />
     <ClCompile Include="Src\Mixer.cpp" />
     <ClCompile Include="Src\WaveFile.cpp" />
     <ClCompile Include="Src\AOSoundStream.cpp">
@@ -26,7 +25,6 @@
   <ItemGroup>
     <ClInclude Include="Src\aldlist.h" />
     <ClInclude Include="Src\AudioCommon.h" />
-    <ClInclude Include="Src\AudioCommonConfig.h" />
     <ClInclude Include="Src\Mixer.h" />
     <ClInclude Include="Src\SoundStream.h" />
     <ClInclude Include="Src\WaveFile.h" />
