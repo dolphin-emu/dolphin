@@ -26,15 +26,11 @@ public:
 
 	void RefreshRealWiimotes(wxCommandEvent& event);
 
-
 	void SelectSource(wxCommandEvent& event);
-	void UpdateWiimoteStatus();
 	void RevertSource();
-
 
 	void ConfigEmulatedWiimote(wxCommandEvent& event);
 	void Save(wxCommandEvent& event);
-	void UpdateGUI();
 
 	void OnSensorBarPos(wxCommandEvent& event)
 	{
@@ -73,8 +69,6 @@ private:
 
 	wxButton* wiimote_configure_bt[4];
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;
-
-	wxStaticText*	connected_wiimotes_txt;
 };
 
 

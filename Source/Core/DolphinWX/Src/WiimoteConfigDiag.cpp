@@ -4,14 +4,6 @@
 #include "HW/WiimoteReal/WiimoteReal.h"
 #include "Frame.h"
 
-wxString ConnectedWiimotesString()
-{
-	//static wxString str;
-	//str.Printf(_("%i connected"), WiimoteReal::Initialize());
-	//return str;
-	return "TODO: this text";
-}
-
 WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin)
 	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"), wxDefaultPosition, wxDefaultSize)
 	, m_plugin(plugin)
@@ -65,27 +57,17 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 
 
 	// "Real wiimotes" controls
-	connected_wiimotes_txt = new wxStaticText(this, -1, ConnectedWiimotesString());
-
 	wxButton* const refresh_btn = new wxButton(this, -1, _("Refresh"), wxDefaultPosition);
 	refresh_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::RefreshRealWiimotes, this);
 
-#ifdef _WIN32
-	//wxButton* const pairup_btn = new wxButton(this, -1, _("Pair Up"), wxDefaultPosition);
-	//pairup_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::PairUpRealWiimotes, this);
-	// TODO: text if can't Pair
-#endif
-
 	// "Real wiimotes" layout
-	wxStaticBoxSizer* const real_wiimotes_group = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Real Wiimotes"));
-	wxFlexGridSizer* const real_wiimotes_sizer = new wxFlexGridSizer(3, 5, 5);
-	real_wiimotes_sizer->Add(connected_wiimotes_txt, 0, wxALIGN_CENTER_VERTICAL);
-#ifdef _WIN32
-	//real_wiimotes_sizer->Add(pairup_btn);
-#endif
-	real_wiimotes_sizer->Add(refresh_btn);
-	real_wiimotes_group->Add(real_wiimotes_sizer, 1, wxALL, 5);
-
+	wxStaticBoxSizer* const real_wiimotes_group = new wxStaticBoxSizer(wxVERTICAL, this, _("Real Wiimotes"));
+	
+	if (!WiimoteReal::g_wiimote_scanner.IsReady())
+		real_wiimotes_group->Add(new wxStaticText(this, -1, _("A supported bluetooth device could not be found.\n"
+			"You must manually pair your wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
+	
+		real_wiimotes_group->Add(refresh_btn, 0, wxALIGN_CENTER);
 
 	// "General Settings" controls
 	const wxString str[] = { _("Bottom"), _("Top") };
@@ -189,15 +171,9 @@ void WiimoteConfigDiag::ConfigEmulatedWiimote(wxCommandEvent& ev)
 	m_emu_config_diag->Destroy();
 }
 
-void WiimoteConfigDiag::UpdateGUI()
-{
-	connected_wiimotes_txt->SetLabel(ConnectedWiimotesString());
-}
-
 void WiimoteConfigDiag::RefreshRealWiimotes(wxCommandEvent&)
 {
 	WiimoteReal::Refresh();
-	UpdateGUI();
 }
 
 void WiimoteConfigDiag::SelectSource(wxCommandEvent& event)
@@ -212,24 +188,6 @@ void WiimoteConfigDiag::SelectSource(wxCommandEvent& event)
 		wiimote_configure_bt[index]->Disable();
 	else
 		wiimote_configure_bt[index]->Enable();
-}
-
-// TODO: race conditiions
-void WiimoteConfigDiag::UpdateWiimoteStatus()
-{
-	for (int index = 0; index < 4; ++index)
-	{
-		if (m_orig_wiimote_sources[index] != g_wiimote_sources[index])
-		{
-			// Disconnect first, otherwise the new source doesn't seem to work
-			CFrame::ConnectWiimote(index, false);
-			// Connect wiimotes
-			if (WIIMOTE_SRC_EMU & g_wiimote_sources[index])
-				CFrame::ConnectWiimote(index, true);
-			else if (WIIMOTE_SRC_REAL & g_wiimote_sources[index] && WiimoteReal::g_wiimotes[index])
-				CFrame::ConnectWiimote(index, WiimoteReal::g_wiimotes[index]->IsConnected());
-		}
-	}
 }
 
 void WiimoteConfigDiag::RevertSource()
@@ -253,7 +211,6 @@ void WiimoteConfigDiag::Save(wxCommandEvent& event)
 
 		sec.Set("Source", (int)g_wiimote_sources[i]);
 	}
-	UpdateWiimoteStatus();
 
 	inifile.Save(ini_filename);
 

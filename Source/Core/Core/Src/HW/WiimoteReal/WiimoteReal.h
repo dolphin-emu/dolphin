@@ -59,7 +59,7 @@ public:
 	void StopThread();
 
 	// "handshake" / stop packets
-	bool EmuStart();
+	void EmuStart();
 	void EmuStop();
 
 	// connecting and disconnecting from physical devices
@@ -153,6 +153,7 @@ private:
 };
 
 extern std::recursive_mutex g_refresh_lock;
+extern WiimoteScanner g_wiimote_scanner;
 extern Wiimote *g_wiimotes[4];
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);

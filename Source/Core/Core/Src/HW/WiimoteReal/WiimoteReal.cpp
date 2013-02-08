@@ -265,7 +265,7 @@ void Wiimote::SetLEDs(int new_leds)
 	QueueReport(WM_CMD_LED, &buffer, sizeof(buffer));
 }
 
-bool Wiimote::EmuStart()
+void Wiimote::EmuStart()
 {
 	DisableDataReporting();
 }
@@ -298,7 +298,10 @@ void WiimoteScanner::WantWiimotes(size_t count)
 void WiimoteScanner::StartScanning()
 {
 	run_thread = true;
-	scan_thread = std::thread(std::mem_fun(&WiimoteScanner::ThreadFunc), this);
+	if (IsReady())
+	{
+		scan_thread = std::thread(std::mem_fun(&WiimoteScanner::ThreadFunc), this);
+	}
 }
 
 void WiimoteScanner::StopScanning()
@@ -307,7 +310,6 @@ void WiimoteScanner::StopScanning()
 	if (scan_thread.joinable())
 	{
 		scan_thread.join();
-		NOTICE_LOG(WIIMOTE, "Wiimote scanning has stopped");
 	}
 }
 
@@ -333,6 +335,8 @@ void WiimoteScanner::ThreadFunc()
 		//std::this_thread::yield();
 		Common::SleepCurrentThread(500);
 	}
+	
+	NOTICE_LOG(WIIMOTE, "Wiimote scanning has stopped");
 }
 
 void Wiimote::StartThread()
@@ -395,8 +399,7 @@ void Initialize()
 	auto const wanted_wiimotes = CalculateWantedWiimotes();
 	g_wiimote_scanner.WantWiimotes(wanted_wiimotes);
 
-	//if (wanted_wiimotes > 0)
-		g_wiimote_scanner.StartScanning();
+	g_wiimote_scanner.StartScanning();
 
 	g_real_wiimotes_initialized = true;
 }
@@ -497,9 +500,21 @@ void HandleFoundWiimotes(const std::vector<Wiimote*>& wiimotes)
 // This is called from the GUI thread
 void Refresh()
 {
+	g_wiimote_scanner.StopScanning();
+	
+	{
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
-	// TODO: stuff, maybe
+	
+	auto wanted_wiimotes = CalculateWantedWiimotes();	
+	auto const found_wiimotes = g_wiimote_scanner.FindWiimotes(wanted_wiimotes);	
+	
+	HandleFoundWiimotes(found_wiimotes);
+	
+	wanted_wiimotes = CalculateWantedWiimotes();
+	g_wiimote_scanner.WantWiimotes(wanted_wiimotes);
+	}
+	
+	g_wiimote_scanner.StartScanning();
 }
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)

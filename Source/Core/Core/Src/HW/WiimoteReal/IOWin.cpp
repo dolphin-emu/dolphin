@@ -135,7 +135,10 @@ WiimoteScanner::WiimoteScanner()
 }
 
 WiimoteScanner::~WiimoteScanner()
-{}
+{
+	// TODO: what do we want here?
+	//PairUp(true);
+}
 
 // Find and connect wiimotes.
 // Does not replace already found wiimotes even if they are disconnected.
@@ -216,8 +219,21 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 
 bool WiimoteScanner::IsReady() const
 {
-	// TODO: impl
-	return true;
+	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
+	radioParam.dwSize = sizeof(radioParam);
+
+	HANDLE hRadio;
+	HBLUETOOTH_RADIO_FIND hFindRadio = Bth_BluetoothFindFirstRadio(&radioParam, &hRadio);
+
+	if (NULL != hFindRadio)
+	{
+		Bth_BluetoothFindRadioClose(hFindRadio);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 // Connect to a wiimote with a known device path.
@@ -375,26 +391,6 @@ int Wiimote::IOWrite(const u8* buf, int len)
 	}
 
 	return 0;
-}
-
-// return true if a device using MS BT stack is available
-bool CanPairUp()
-{
-	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
-	radioParam.dwSize = sizeof(radioParam);
-
-	HANDLE hRadio;
-	HBLUETOOTH_RADIO_FIND hFindRadio = Bth_BluetoothFindFirstRadio(&radioParam, &hRadio);
-
-	if (NULL != hFindRadio)
-	{
-		Bth_BluetoothFindRadioClose(hFindRadio);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
 }
 
 // WiiMote Pair-Up, function will return amount of either new paired or unpaired devices
