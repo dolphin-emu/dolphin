@@ -84,6 +84,8 @@ static ipc_msg_queue reply_queue;	// arm -> ppc
 
 static int enque_reply;
 
+static u64 last_reply_time;
+
 void EnqueReplyCallback(u64 userdata, int)
 {
 	reply_queue.push_back(userdata);
@@ -163,6 +165,7 @@ void Reset(bool _bHard)
 	}
 	request_queue.clear();
 	reply_queue.clear();
+	last_reply_time = 0;
 }
 
 void Shutdown()
@@ -246,6 +249,7 @@ void DoState(PointerWrap &p)
 {
 	p.Do(request_queue);
 	p.Do(reply_queue);
+	p.Do(last_reply_time);
 
 	TDeviceMap::const_iterator itr;
 
@@ -518,8 +522,18 @@ void ExecuteCommand(u32 _Address)
 
     if (CmdSuccess)
     {
+		// Ensure replies happen in order, fairly ugly
+		// Without this, tons of games fail now that DI commads have different reply delays
+		int reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
+		
+		const s64 ticks_til_last_reply = last_reply_time - CoreTiming::GetTicks();
+		
+		if (ticks_til_last_reply > 0)
+			reply_delay = ticks_til_last_reply;
+		
+		last_reply_time = CoreTiming::GetTicks() + reply_delay;
+	
 		// Generate a reply to the IPC command
-		int const reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
 		EnqReply(_Address, reply_delay);
     }
 	else
