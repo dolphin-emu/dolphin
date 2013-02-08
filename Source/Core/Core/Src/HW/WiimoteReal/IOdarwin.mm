@@ -40,8 +40,11 @@
 {
 	IOBluetoothDevice *device = [l2capChannel getDevice];
 	WiimoteReal::Wiimote *wm = NULL;
+	
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
-	for (int i = 0; i < MAX_WIIMOTES; i++) {
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
 		if (WiimoteReal::g_wiimotes[i] == NULL)
 			continue;
 		if ([device isEqual: WiimoteReal::g_wiimotes[i]->btd] == TRUE)
@@ -77,8 +80,11 @@
 {
 	IOBluetoothDevice *device = [l2capChannel getDevice];
 	WiimoteReal::Wiimote *wm = NULL;
+	
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
-	for (int i = 0; i < MAX_WIIMOTES; i++) {
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
 		if (WiimoteReal::g_wiimotes[i] == NULL)
 			continue;
 		if ([device isEqual: WiimoteReal::g_wiimotes[i]->btd] == TRUE)
@@ -236,8 +242,6 @@ int Wiimote::IORead(unsigned char *buf)
 
 	if (!IsConnected())
 		return 0;
-	
-	// TODO: race conditions here, yo
 
 	bytes = inputlen;
 	memcpy(buf, input, bytes);

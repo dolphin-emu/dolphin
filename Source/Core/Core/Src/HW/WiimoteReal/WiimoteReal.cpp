@@ -360,13 +360,13 @@ void Wiimote::ThreadFunc()
 	while (m_run_thread && IsConnected())
 	{
 #ifdef __APPLE__
-		while (Write()) {}
-		Common::SleepCurrentThread(1);
+		// Reading happens elsewhere on OSX
+		bool const did_something = Write();
 #else
 		bool const did_something = Write() || Read();
+#endif
 		if (!did_something)
 			Common::SleepCurrentThread(1);
-#endif
 	}
 }
 
