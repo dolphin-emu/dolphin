@@ -84,6 +84,7 @@ public:
 	IOBluetoothL2CAPChannel *cchan;
 	char input[MAX_PAYLOAD];
 	int inputlen;
+	bool m_connected;
 #elif defined(__linux__) && HAVE_BLUEZ
 	bdaddr_t bdaddr;					// Bluetooth address
 	int cmd_sock;						// Command socket
