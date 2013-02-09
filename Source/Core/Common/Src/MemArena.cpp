@@ -43,7 +43,8 @@ void MemArena::GrabLowMemSpace(size_t size)
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 	fd = open(ram_temp_file, O_RDWR | O_CREAT, mode);
 	unlink(ram_temp_file);
-	ftruncate(fd, size);
+	if (ftruncate(fd, size) < 0)
+		ERROR_LOG(MEMMAP, "Failed to allocate low memory space");
 	return;
 #endif
 }

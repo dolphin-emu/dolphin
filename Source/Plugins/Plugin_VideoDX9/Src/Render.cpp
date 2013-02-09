@@ -73,148 +73,6 @@ static char *st;
 static LPDIRECT3DSURFACE9 ScreenShootMEMSurface = NULL;
 
 
-// State translation lookup tables
-static const D3DBLEND d3dSrcFactors[8] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_ONE,
-	D3DBLEND_DESTCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_SRCALPHA,
-	D3DBLEND_INVSRCALPHA, 
-	D3DBLEND_DESTALPHA,
-	D3DBLEND_INVDESTALPHA
-};
-
-static const D3DBLEND d3dDestFactors[8] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_ONE,
-	D3DBLEND_SRCCOLOR,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_SRCALPHA,
-	D3DBLEND_INVSRCALPHA, 
-	D3DBLEND_DESTALPHA,
-	D3DBLEND_INVDESTALPHA
-};
-
-//		0	0x00
-//		1	Source & destination
-//		2	Source & ~destination
-//		3	Source
-//		4	~Source & destination
-//		5	Destination
-//		6	Source ^ destination =  Source & ~destination | ~Source & destination
-//		7	Source | destination
-
-//		8	~(Source | destination)
-//		9	~(Source ^ destination) = ~Source & ~destination | Source & destination
-//		10	~Destination
-//		11	Source | ~destination
-//		12	~Source
-//		13	~Source | destination
-//		14	~(Source & destination)
-//		15	0xff
-
-static const D3DBLENDOP d3dLogicOpop[16] =
-{
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_SUBTRACT,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_REVSUBTRACT,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_MAX,
-	D3DBLENDOP_ADD,
-	
-	D3DBLENDOP_MAX,
-	D3DBLENDOP_MAX,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD
-};
-
-static const D3DBLEND d3dLogicOpSrcFactors[16] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_DESTCOLOR,
-	D3DBLEND_ONE,
-	D3DBLEND_ONE,
-	D3DBLEND_DESTCOLOR,
-	D3DBLEND_ZERO,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_ONE,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_ONE
-};
-
-static const D3DBLEND d3dLogicOpDestFactors[16] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_ZERO,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_ZERO,
-	D3DBLEND_ONE,
-	D3DBLEND_ONE,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_ONE,
-
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_SRCCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_ONE,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_ONE
-};
-
-static const D3DCULL d3dCullModes[4] =
-{
-	D3DCULL_NONE,
-	D3DCULL_CCW,
-	D3DCULL_CW,
-	D3DCULL_CCW
-};
-
-static const D3DCMPFUNC d3dCmpFuncs[8] =
-{
-	D3DCMP_NEVER,
-	D3DCMP_LESS,
-	D3DCMP_EQUAL,
-	D3DCMP_LESSEQUAL,
-	D3DCMP_GREATER,
-	D3DCMP_NOTEQUAL,
-	D3DCMP_GREATEREQUAL,
-	D3DCMP_ALWAYS
-};
-
-static const D3DTEXTUREFILTERTYPE d3dMipFilters[4] =
-{
-	D3DTEXF_NONE,
-	D3DTEXF_POINT,
-	D3DTEXF_LINEAR,
-	D3DTEXF_NONE, //reserved
-};
-
-static const D3DTEXTUREADDRESS d3dClamps[4] =
-{
-	D3DTADDRESS_CLAMP,
-	D3DTADDRESS_WRAP,
-	D3DTADDRESS_MIRROR,
-	D3DTADDRESS_WRAP //reserved
-};
-
 void SetupDeviceObjects()
 {
 	D3D::font.Init();
@@ -796,6 +654,32 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
+	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
+	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
+	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	const D3DBLEND d3dSrcFactors[8] =
+	{
+		D3DBLEND_ZERO,
+		D3DBLEND_ONE,
+		D3DBLEND_DESTCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_SRCALPHA,
+		D3DBLEND_INVSRCALPHA, 
+		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
+		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
+	};
+	const D3DBLEND d3dDestFactors[8] =
+	{
+		D3DBLEND_ZERO,
+		D3DBLEND_ONE,
+		D3DBLEND_SRCCOLOR,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_SRCALPHA,
+		D3DBLEND_INVSRCALPHA, 
+		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
+		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
+	};
+
 	if (bpmem.blendmode.logicopenable && !forceUpdate)
 		return;
 
@@ -808,8 +692,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 	else
 	{
-		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)));
-		if (bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)))
+		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
+		if (bpmem.blendmode.blendenable)
 		{
 			D3D::SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
 			D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[bpmem.blendmode.srcfactor]);
@@ -1261,11 +1145,31 @@ void Renderer::RestoreAPIState()
 
 void Renderer::SetGenerationMode()
 {
+	const D3DCULL d3dCullModes[4] =
+	{
+		D3DCULL_NONE,
+		D3DCULL_CCW,
+		D3DCULL_CW,
+		D3DCULL_CCW
+	};
+
 	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 }
 
 void Renderer::SetDepthMode()
 {
+	const D3DCMPFUNC d3dCmpFuncs[8] =
+	{
+		D3DCMP_NEVER,
+		D3DCMP_LESS,
+		D3DCMP_EQUAL,
+		D3DCMP_LESSEQUAL,
+		D3DCMP_GREATER,
+		D3DCMP_NOTEQUAL,
+		D3DCMP_GREATEREQUAL,
+		D3DCMP_ALWAYS
+	};
+
 	if (bpmem.zmode.testenable)
 	{
 		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
@@ -1282,7 +1186,83 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
+	// D3D9 doesn't support logic blending, so this is a huge hack
+
+	//		0	0x00
+	//		1	Source & destination
+	//		2	Source & ~destination
+	//		3	Source
+	//		4	~Source & destination
+	//		5	Destination
+	//		6	Source ^ destination =  Source & ~destination | ~Source & destination
+	//		7	Source | destination
+	//		8	~(Source | destination)
+	//		9	~(Source ^ destination) = ~Source & ~destination | Source & destination
+	//		10	~Destination
+	//		11	Source | ~destination
+	//		12	~Source
+	//		13	~Source | destination
+	//		14	~(Source & destination)
+	//		15	0xff
+	const D3DBLENDOP d3dLogicOpop[16] =
+	{
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_SUBTRACT,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_REVSUBTRACT,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_MAX,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_MAX,
+		D3DBLENDOP_MAX,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD
+	};
+	const D3DBLEND d3dLogicOpSrcFactors[16] =
+	{
+		D3DBLEND_ZERO,
+		D3DBLEND_DESTCOLOR,
+		D3DBLEND_ONE,
+		D3DBLEND_ONE,
+		D3DBLEND_DESTCOLOR,
+		D3DBLEND_ZERO,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_ONE,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_ONE
+	};
+	const D3DBLEND d3dLogicOpDestFactors[16] =
+	{
+		D3DBLEND_ZERO,
+		D3DBLEND_ZERO,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_ZERO,
+		D3DBLEND_ONE,
+		D3DBLEND_ONE,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_ONE,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_SRCCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_ONE,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_ONE
+	};
+
+	if (bpmem.blendmode.logicopenable)
 	{
 		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
 		D3D::SetRenderState(D3DRS_BLENDOP, d3dLogicOpop[bpmem.blendmode.logicmode]);
@@ -1310,6 +1290,21 @@ void Renderer::SetLineWidth()
 
 void Renderer::SetSamplerState(int stage, int texindex)
 {
+	const D3DTEXTUREFILTERTYPE d3dMipFilters[4] =
+	{
+		D3DTEXF_NONE,
+		D3DTEXF_POINT,
+		D3DTEXF_LINEAR,
+		D3DTEXF_NONE, //reserved
+	};
+	const D3DTEXTUREADDRESS d3dClamps[4] =
+	{
+		D3DTADDRESS_CLAMP,
+		D3DTADDRESS_WRAP,
+		D3DTADDRESS_MIRROR,
+		D3DTADDRESS_WRAP //reserved
+	};
+
 	const FourTexUnits &tex = bpmem.tex[texindex];
 	const TexMode0 &tm0 = tex.texMode0[stage];
 	const TexMode1 &tm1 = tex.texMode1[stage];
@@ -1323,13 +1318,11 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	{
 		min = (tm0.min_filter & 4) ? D3DTEXF_LINEAR : D3DTEXF_POINT;
 		mag = tm0.mag_filter ? D3DTEXF_LINEAR : D3DTEXF_POINT;
-		mip = (tm0.min_filter == 8) ? D3DTEXF_NONE : d3dMipFilters[tm0.min_filter & 3];
-		if((tm0.min_filter & 3) && (tm0.min_filter != 8) && ((tm1.max_lod >> 4) == 0))
-			mip = D3DTEXF_NONE;
+		mip = d3dMipFilters[tm0.min_filter & 3];
 	}
 	if (texindex)
 		stage += 4;
-	
+
 	if (mag == D3DTEXF_LINEAR && min == D3DTEXF_LINEAR && g_ActiveConfig.iMaxAnisotropy)
 	{
 		min = D3DTEXF_ANISOTROPIC;
@@ -1340,8 +1333,8 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
-	//float SuperSampleCoeficient = (s_LastAA < 3)? s_LastAA + 1 : s_LastAA - 1;// uncoment this changes to conserve detail when incresing ssaa level
-	float lodbias = (tm0.lod_bias / 32.0f);// + (s_LastAA)?(log(SuperSampleCoeficient) / log(2.0f)):0;
+
+	float lodbias = (s32)tm0.lod_bias / 32.0f;
 	D3D::SetSamplerState(stage, D3DSAMP_MIPMAPLODBIAS, *(DWORD*)&lodbias);
 	D3D::SetSamplerState(stage, D3DSAMP_MAXMIPLEVEL, tm1.min_lod >> 4);
 }

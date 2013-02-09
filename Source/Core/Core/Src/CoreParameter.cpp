@@ -51,8 +51,8 @@ SCoreStartupParameter::SCoreStartupParameter()
   bRunCompareServer(false), bRunCompareClient(false),
   bMMU(false), bDCBZOFF(false), iTLBHack(0), bVBeam(false),
   bFastDiscSpeed(false),
-  SelectedLanguage(0), bWii(false), bDisableWiimoteSpeaker(false),
-  bConfirmStop(false), bHideCursor(false), 
+  SelectedLanguage(0), bWii(false),
+  bConfirmStop(false), bHideCursor(false),
   bAutoHideCursor(false), bUsePanicHandlers(true), bOnScreenDisplayMessages(true),
   iRenderWindowXPos(-1), iRenderWindowYPos(-1),
   iRenderWindowWidth(640), iRenderWindowHeight(480),
@@ -101,8 +101,6 @@ void SCoreStartupParameter::LoadDefaults()
 	bJITIntegerOff = false;
 	bJITPairedOff = false;
 	bJITSystemRegistersOff = false;
-
-	bDisableWiimoteSpeaker = false;
 
 	m_strName = "NONE";
 	m_strUniqueID = "00000000";

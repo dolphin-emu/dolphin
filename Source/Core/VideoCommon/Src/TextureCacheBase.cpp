@@ -218,6 +218,9 @@ void TextureCache::ClearRenderTargets()
 
 bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels)
 {
+	if (levels == 1)
+		return false;
+
 	// Just checking if the necessary files exist, if they can't be loaded or have incorrect dimensions LODs will be black
 	char texBasePathTemp[MAX_PATH];
 	char texPathTemp[MAX_PATH];
@@ -300,7 +303,7 @@ void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
 
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	u32 address, unsigned int width, unsigned int height, int texformat,
-	unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem)
+	unsigned int tlutaddr, int tlutfmt, bool use_mipmaps, unsigned int maxlevel, bool from_tmem)
 {
 	if (0 == address)
 		return NULL;
@@ -372,7 +375,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 
 		// 2. b) For normal textures, all texture parameters need to match
 		if (address == entry->addr && tex_hash == entry->hash && full_format == entry->format &&
-			entry->num_mipmaps == maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
+			entry->num_mipmaps > maxlevel && entry->native_width == nativeW && entry->native_height == nativeH)
 		{
 			goto return_entry;
 		}
@@ -382,7 +385,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		//
 		// TODO: Don't we need to force texture decoding to RGBA8 for dynamic EFB copies?
 		// TODO: Actually, it should be enough if the internal texture format matches...
-		if ((entry->type == TCET_NORMAL && width == entry->virtual_width && height == entry->virtual_height && full_format == entry->format && entry->num_mipmaps == maxlevel)
+		if ((entry->type == TCET_NORMAL && width == entry->virtual_width && height == entry->virtual_height && full_format == entry->format && entry->num_mipmaps > maxlevel)
 			|| (entry->type == TCET_EC_DYNAMIC && entry->native_width == width && entry->native_height == height))
 		{
 			// reuse the texture
@@ -428,15 +431,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		}
 	}
 
-	// TODO: Cleanup. Plus, we still autogenerate mipmaps in certain cases (we shouldn't do that)
-	bool isPow2;
 	unsigned int texLevels;
-	isPow2 = !((width & (width - 1)) || (height & (height - 1)));
-	texLevels = (isPow2 && maxlevel) ? GetPow2(std::max(width, height)) : !isPow2;
-	texLevels = maxlevel ? std::min(texLevels, maxlevel + 1) : texLevels;
+	bool use_native_mips;
+	texLevels = use_mipmaps ? (maxlevel + 1) : 1;
 	using_custom_lods = using_custom_texture && CheckForCustomTextureLODs(tex_hash, texformat, texLevels);
-	UseNativeMips = UseNativeMips && !using_custom_lods && (width == nativeW && height == nativeH); // Only load native mips if their dimensions fit to our virtual texture dimensions
-	texLevels = (UseNativeMips || using_custom_lods) ? texLevels : !isPow2;
+	use_native_mips = use_mipmaps && !using_custom_lods && (width == nativeW && height == nativeH); // Only load native mips if their dimensions fit to our virtual texture dimensions
+	texLevels = (use_native_mips || using_custom_lods) ? texLevels : 1;
 
 	// create the entry/texture
 	if (NULL == entry) {
@@ -445,9 +445,8 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 		// Sometimes, we can get around recreating a texture if only the number of mip levels changes
 		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
 		// Thus, we don't update this member for every Load, but just whenever the texture gets recreated
-		//
-		// TODO: Won't we end up recreating textures all the time because maxlevel doesn't necessarily equal texLevels?
-		entry->num_mipmaps = maxlevel; // TODO: Does this actually work? We can't really adjust mipmap settings per-stage...
+		// TODO: D3D9 doesn't support min_lod. We should add a workaround for that here!
+		entry->num_mipmaps = maxlevel + 1;
 		entry->type = TCET_NORMAL;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
@@ -460,13 +459,13 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 	else entry->type = TCET_NORMAL;
 
 	// load texture
-	entry->Load(width, height, expandedWidth, 0, (texLevels == 0));
+	entry->Load(width, height, expandedWidth, 0);
 
 	if (g_ActiveConfig.bDumpTextures && !using_custom_texture)
 		DumpTexture(entry, 0);
 
 	// load mips - TODO: Loading mipmaps from tmem is untested!
-	if (texLevels > 1 && pcfmt != PC_TEX_FMT_NONE && UseNativeMips)
+	if (texLevels > 1 && pcfmt != PC_TEX_FMT_NONE && use_native_mips)
 	{
 		const unsigned int bsdepth = TexDecoder_GetTexelSizeInNibbles(texformat);
 
@@ -495,7 +494,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			expandedHeight = (currentHeight + bsh) & (~bsh);
 
 			TexDecoder_Decode(temp, *ptr, expandedWidth, expandedHeight, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
-			entry->Load(currentWidth, currentHeight, expandedWidth, level, false);
+			entry->Load(currentWidth, currentHeight, expandedWidth, level);
 
 			if (g_ActiveConfig.bDumpTextures)
 				DumpTexture(entry, level);
@@ -518,7 +517,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int stage,
 			unsigned int currentHeight = (mipHeight > 0) ? mipHeight : 1;
 
 			LoadCustomTexture(tex_hash, texformat, level, currentWidth, currentHeight);
-			entry->Load(currentWidth, currentHeight, currentWidth, level, false);
+			entry->Load(currentWidth, currentHeight, currentWidth, level);
 
 			mipWidth >>= 1;
 			mipHeight >>= 1;
