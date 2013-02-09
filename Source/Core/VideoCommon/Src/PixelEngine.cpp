@@ -32,6 +32,7 @@
 #include "HW/ProcessorInterface.h"
 #include "DLCache.h"
 #include "State.h"
+#include "Thread.h"
 namespace PixelEngine
 {
 
@@ -110,14 +111,14 @@ static UPEAlphaReadReg		m_AlphaRead;
 static UPECtrlReg			m_Control;
 //static u16					m_Token; // token value most recently encountered
 
-volatile bool g_bSignalTokenInterrupt;
-volatile bool g_bSignalFinishInterrupt;
+volatile u32 g_bSignalTokenInterrupt;
+volatile u32 g_bSignalFinishInterrupt;
 
 static int et_SetTokenOnMainThread;
 static int et_SetFinishOnMainThread;
 
-volatile bool interruptSetToken = false;
-volatile bool interruptSetFinish = false;
+volatile u32 interruptSetToken = 0;
+volatile u32 interruptSetFinish = 0;
 
 u16 bbox[4];
 bool bbox_active;
@@ -161,10 +162,10 @@ void Init()
 	m_AlphaModeConf.Hex = 0;
 	m_AlphaRead.Hex = 0;
 
-	g_bSignalTokenInterrupt = false;
-	g_bSignalFinishInterrupt = false;
-	interruptSetToken = false;
-	interruptSetFinish = false;
+	g_bSignalTokenInterrupt = 0;
+	g_bSignalFinishInterrupt = 0;
+	interruptSetToken = 0;
+	interruptSetFinish = 0;
 
 	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
 	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
@@ -211,7 +212,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 	case PE_TOKEN_REG:
-		_uReturnValue = CommandProcessor::fifo.PEToken;
+		_uReturnValue = Common::AtomicLoad(*(volatile u32*)&CommandProcessor::fifo.PEToken);
 		INFO_LOG(PIXELENGINE, "(r16) TOKEN_REG : %04x", _uReturnValue);
 		break;
 
@@ -312,8 +313,8 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		{
 			UPECtrlReg tmpCtrl(_iValue);
 
-			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = false;
-			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = false;
+			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = 0;
+			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = 0;
 
 			m_Control.PETokenEnable  = tmpCtrl.PETokenEnable;
 			m_Control.PEFinishEnable = tmpCtrl.PEFinishEnable;
@@ -360,13 +361,13 @@ void UpdateInterrupts()
 void UpdateTokenInterrupt(bool active)
 {
 	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
-	interruptSetToken = active;
+	Common::AtomicStore(interruptSetToken, active ? 1 : 0);
 }
 
 void UpdateFinishInterrupt(bool active)
 {
 	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
-	interruptSetFinish = active;
+	Common::AtomicStore(interruptSetFinish, active ? 1 : 0);
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
@@ -443,7 +444,7 @@ void ResetSetToken()
 	if (g_bSignalTokenInterrupt)
 	{
 		UpdateTokenInterrupt(false);
-		g_bSignalTokenInterrupt = false;
+		g_bSignalTokenInterrupt = 0;
 	}
 	else
 	{
@@ -454,6 +455,6 @@ void ResetSetToken()
 
 bool WaitingForPEInterrupt()
 {
-	return !CommandProcessor::waitingForPEInterruptDisable && (CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || interruptSetFinish || interruptSetToken);
+	return !CommandProcessor::waitingForPEInterruptDisable && (CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || Common::AtomicLoad(interruptSetFinish) || Common::AtomicLoad(interruptSetToken));
 }
 } // end of namespace PixelEngine
