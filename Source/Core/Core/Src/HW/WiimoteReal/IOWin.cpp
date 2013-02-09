@@ -148,12 +148,9 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 {
 	PairUp();
 
-	std::vector<Wiimote*> wiimotes;
-
 	GUID device_id;
 	HANDLE dev;
 	HDEVINFO device_info;
-	int found_wiimotes = 0;
 	DWORD len;
 	SP_DEVICE_INTERFACE_DATA device_data;
 	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = NULL;
@@ -167,13 +164,11 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 	// Get all hid devices connected
 	device_info = SetupDiGetClassDevs(&device_id, NULL, NULL, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
 
-	for (int index = 0; found_wiimotes < max_wiimotes; ++index)
+	std::vector<Wiimote*> wiimotes;
+	for (int index = 0; wiimotes.size() < max_wiimotes; ++index)
 	{
-		if (detail_data)
-		{
-			free(detail_data);
-			detail_data = NULL;
-		}
+		free(detail_data);
+		detail_data = NULL;
 
 		// Query the next hid device info
 		if (!SetupDiEnumDeviceInterfaces(device_info, NULL, &device_id, index, &device_data))
@@ -188,7 +183,10 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 		if (!SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, NULL, NULL))
 			continue;
 
+		auto const wm = new Wiimote;
+
 		// Open new device
+#if 0
 		dev = CreateFile(detail_data->DevicePath,
 				(GENERIC_READ | GENERIC_WRITE),
 				(FILE_SHARE_READ | FILE_SHARE_WRITE),
@@ -199,18 +197,15 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 		// Get device attributes 
 		attr.Size = sizeof(attr);
 		HidD_GetAttributes(dev, &attr);
-
-		// Find an unused slot
-		unsigned int k = 0;
-		auto const wm = new Wiimote;
+			
 		wm->dev_handle = dev;
+#endif
 		wm->devicepath = detail_data->DevicePath;
 
 		wiimotes.push_back(wm);
 	}
 
-	if (detail_data)
-		free(detail_data);
+	free(detail_data);
 
 	SetupDiDestroyDeviceInfoList(device_info);
 
@@ -219,6 +214,8 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 
 bool WiimoteScanner::IsReady() const
 {
+	// TODO: don't search for a radio each time
+	
 	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
 	radioParam.dwSize = sizeof(radioParam);
 
@@ -241,7 +238,7 @@ bool Wiimote::Connect()
 {
 	dev_handle = CreateFile(devicepath.c_str(),
 		(GENERIC_READ | GENERIC_WRITE),
-		(FILE_SHARE_READ | FILE_SHARE_WRITE),
+		/*(FILE_SHARE_READ | FILE_SHARE_WRITE)*/ 0,
 		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 
 	if (dev_handle == INVALID_HANDLE_VALUE)
@@ -281,8 +278,13 @@ bool Wiimote::IsConnected() const
 	return dev_handle != 0;
 }
 
+// positive = read packet
+// negative = didn't read packet
+// zero = error
 int Wiimote::IORead(unsigned char* buf)
 {
+	*buf = 0;
+	
 	DWORD b;
 	if (!ReadFile(dev_handle, buf, MAX_PAYLOAD, &b, &hid_overlap))
 	{
@@ -291,7 +293,6 @@ int Wiimote::IORead(unsigned char* buf)
 		if ((b == ERROR_HANDLE_EOF) || (b == ERROR_DEVICE_NOT_CONNECTED))
 		{
 			// Remote disconnect
-			Disconnect();
 			return 0;
 		}
 
@@ -299,24 +300,23 @@ int Wiimote::IORead(unsigned char* buf)
 		if (r == WAIT_TIMEOUT)
 		{
 			// Timeout - cancel and continue
-
 			if (*buf)
 				WARN_LOG(WIIMOTE, "Packet ignored.  This may indicate a problem (timeout is %i ms).",
 						WIIMOTE_DEFAULT_TIMEOUT);
 
 			CancelIo(dev_handle);
 			ResetEvent(hid_overlap.hEvent);
-			return 0;
+			return -1;
 		}
 		else if (r == WAIT_FAILED)
 		{
 			WARN_LOG(WIIMOTE, "A wait error occured on reading from wiimote %i.", index + 1);
-			return 0;
+			return -1;
 		}
 
 		if (!GetOverlappedResult(dev_handle, &hid_overlap, &b, 0))
 		{
-			return 0;
+			return -1;
 		}
 	}
 
@@ -378,7 +378,6 @@ int Wiimote::IOWrite(const u8* buf, int len)
 		{
 			// Semaphore timeout
 			NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to wiimote");
-			Disconnect();
 			return 0;
 		}
 
@@ -418,6 +417,8 @@ int PairUp(bool unpair)
 	radioParam.dwSize = sizeof(radioParam);
 
 	HANDLE hRadio;
+	
+	// TODO: save radio(s) in the WiimoteScanner constructor
 
 	// Enumerate BT radios
 	HBLUETOOTH_RADIO_FIND hFindRadio = Bth_BluetoothFindFirstRadio(&radioParam, &hRadio);

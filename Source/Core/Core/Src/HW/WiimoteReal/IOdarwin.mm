@@ -213,15 +213,9 @@ bool Wiimote::Connect()
 // Disconnect a wiimote.
 void Wiimote::Disconnect()
 {
-	if (!IsConnected())
-		return;
-
 	NOTICE_LOG(WIIMOTE, "Disconnecting wiimote %i", index + 1);
 
 	m_connected = false;
-
-	if (m_wiimote_thread.joinable())
-		m_wiimote_thread.join();
 
 	[btd closeConnection];
     [ichan release];

@@ -178,6 +178,9 @@ bool Wiimote::IsConnected() const
 	return cmd_sock != -1;// && int_sock != -1;
 }
 
+// positive = read packet
+// negative = didn't read packet
+// zero = error
 int Wiimote::IORead(u8* buf)
 {
 	// Block select for 1/2000th of a second
