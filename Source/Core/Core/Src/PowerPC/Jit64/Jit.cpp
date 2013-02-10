@@ -292,7 +292,6 @@ void Jit64::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 	{
-		MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
 	}
 
