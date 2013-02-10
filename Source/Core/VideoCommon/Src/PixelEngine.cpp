@@ -377,8 +377,13 @@ void UpdateFinishInterrupt(bool active)
 // Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
 void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 {
+	// XXX: No 16-bit atomic store available, so cheat and use 32-bit.
+	// That's what we've always done. We're counting on fifo.PEToken to be
+	// 4-byte padded.
+	Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, userdata & 0xffff);
 	INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
-	UpdateInterrupts();
+	if (userdata >> 16)
+		UpdateInterrupts();
 	CommandProcessor::interruptTokenWaiting = false;
 	IncrementCheckContextId();
 }
@@ -394,20 +399,13 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 // THIS IS EXECUTED FROM VIDEO THREAD
 void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 {
-	// we do it directly from videoThread because of
-	// Super Monkey Ball
-	// XXX: No 16-bit atomic store available, so cheat and use 32-bit.
-	// That's what we've always done. We're counting on fifo.PEToken to be
-	// 4-byte padded.
-	Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
-
 	if (_bSetTokenAcknowledge) // set token INT
 	{
-		CommandProcessor::interruptTokenWaiting = true;
-		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
 	}
 
+	CommandProcessor::interruptTokenWaiting = true;
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 	IncrementCheckContextId();
 }
 
@@ -455,6 +453,6 @@ void ResetSetToken()
 
 bool WaitingForPEInterrupt()
 {
-	return !CommandProcessor::waitingForPEInterruptDisable && (CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || Common::AtomicLoad(interruptSetFinish) || Common::AtomicLoad(interruptSetToken));
+	return !CommandProcessor::waitingForPEInterruptDisable && (CommandProcessor::interruptFinishWaiting || CommandProcessor::interruptTokenWaiting || Common::AtomicLoad(interruptSetFinish) || Common::AtomicLoad(interruptSetToken));
 }
 } // end of namespace PixelEngine
