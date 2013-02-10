@@ -766,7 +766,6 @@ void CGameListCtrl::OnColumnClick(wxListEvent& event)
 // This is used by keyboard gamelist search
 void CGameListCtrl::OnKeyPress(wxKeyEvent& event)
 {
-	// TODO: something less retarded
 	if (event.GetKeyCode() == 'F' && event.GetModifiers() == wxMOD_CONTROL)
 	{
 		wxString filter = wxGetTextFromUser("Filter game list", "");
@@ -1369,10 +1368,43 @@ void CGameListCtrl::FilterGameList(wxString filter)
 {
 	filter.MakeUpper();
 	wxString name;
+
+	#ifdef _WIN32
+		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
+		static bool validCP932 = ::IsValidCodePage(932) != 0;
+		if (validCP932)
+			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+		else
+			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
+	#else
+		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
+		// it returns CP-932, in order to use iconv we need to use CP932
+		wxCSConv SJISConv(wxT("CP932"));
+	#endif
+
+	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+
 	std::vector<GameListItem*> matches;
 	for (int i = 0; i < m_ISOFiles.size(); ++i)
 	{
-		name = m_ISOFiles[i]->GetName(1);
+		switch (m_ISOFiles[i]->GetCountry())
+		{
+			case DiscIO::IVolume::COUNTRY_TAIWAN:
+			case DiscIO::IVolume::COUNTRY_JAPAN:
+			{
+				name = wxString(m_ISOFiles[i]->GetName(0).c_str(), SJISConv);
+				break;
+			}
+			case DiscIO::IVolume::COUNTRY_USA:
+				SelectedLanguage = 0;
+			default:
+			{
+				wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
+				name = m_ISOFiles[i]->GetName(SelectedLanguage);
+
+				name = wxString(m_ISOFiles[i]->GetName(SelectedLanguage).c_str(), WindowsCP1252);
+			}
+		}
 		name.MakeUpper();
 		if (name.find(filter) != wxNOT_FOUND)
 			matches.push_back(m_ISOFiles[i]);
