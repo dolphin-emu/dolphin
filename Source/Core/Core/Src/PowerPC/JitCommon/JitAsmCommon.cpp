@@ -32,6 +32,7 @@
 #include "../../HW/GPFifo.h"
 #include "../../Core.h"
 #include "JitAsmCommon.h"
+#include "JitBase.h"
 
 using namespace Gen;
 
@@ -179,6 +180,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	MOV(64, MComplex(RBX, RCX, SCALE_1, 0), R(RAX));
 	FixupBranch skip_complex = J();
 	SetJumpTarget(too_complex);
+	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&WriteDual32, 2), RAX, RCX); 
 	SetJumpTarget(skip_complex);
 	RET();
@@ -195,6 +197,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	MOV(32, MDisp(ECX, 4+(u32)Memory::base), R(EAX));
 	FixupBranch arg2 = J();
 	SetJumpTarget(argh);
+	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 	MOV(32, R(EAX), M(((char*)&psTemp)));
 	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX); 
 	MOV(32, R(EAX), M(((char*)&psTemp)+4));
