@@ -239,14 +239,14 @@ endif()
 # Enabling GLES also disables the OpenGL plugin.
 if(USE_GLES)
 	message("GLES rendering enabled")
-	add_definitions(-DUSE_GLES)
-	add_definitions(-DUSE_EGL)
+	add_definitions(-DUSE_GLES=1)
+	add_definitions(-DUSE_EGL=1)
 	set(USE_EGL True)
 endif()
 
 if(USE_EGL)
 	message("EGL OpenGL interface enabled")
-	add_definitions(-DUSE_EGL)
+	add_definitions(-DUSE_EGL=1)
 endif()
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
