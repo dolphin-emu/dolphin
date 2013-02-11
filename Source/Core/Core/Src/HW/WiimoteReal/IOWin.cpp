@@ -270,10 +270,22 @@ bool Wiimote::Connect()
 		return false;
 	}
 
-	hid_overlap = OVERLAPPED();
-	hid_overlap.hEvent = CreateEvent(NULL, 1, 1, _T(""));
-	hid_overlap.Offset = 0;
-	hid_overlap.OffsetHigh = 0;
+#if 0
+	HIDD_ATTRIBUTES attr;
+	attr.Size = sizeof(attr);
+	if (!HidD_GetAttributes(dev_handle, &attr))
+	{
+		CloseHandle(dev_handle);
+		dev_handle = 0;
+		return false;
+	}
+#endif
+
+	hid_overlap_read = OVERLAPPED();
+	hid_overlap_read.hEvent = CreateEvent(NULL, true, false, NULL);
+
+	hid_overlap_write = OVERLAPPED();
+	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
 
 	// TODO: thread isn't started here now, do this elsewhere
 	// This isn't as drastic as it sounds, since the process in which the threads
@@ -296,7 +308,8 @@ void Wiimote::Disconnect()
 	CloseHandle(dev_handle);
 	dev_handle = 0;
 
-	CloseHandle(hid_overlap.hEvent);
+	CloseHandle(hid_overlap_read.hEvent);
+	CloseHandle(hid_overlap_write.hEvent);
 }
 
 bool Wiimote::IsConnected() const
@@ -307,20 +320,20 @@ bool Wiimote::IsConnected() const
 // positive = read packet
 // negative = didn't read packet
 // zero = error
-int Wiimote::IORead(unsigned char* buf)
+int Wiimote::IORead(u8* buf)
 {
 	// used below for a warning
 	*buf = 0;
 	
 	DWORD bytes;
-	ResetEvent(hid_overlap.hEvent);
-	if (!ReadFile(dev_handle, buf, MAX_PAYLOAD - 1, &bytes, &hid_overlap))
+	ResetEvent(hid_overlap_read.hEvent);
+	if (!ReadFile(dev_handle, buf, MAX_PAYLOAD - 1, &bytes, &hid_overlap_read))
 	{
 		auto const err = GetLastError();
 
 		if (ERROR_IO_PENDING == err)
 		{
-			auto const r = WaitForSingleObject(hid_overlap.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
+			auto const r = WaitForSingleObject(hid_overlap_read.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
 			if (WAIT_TIMEOUT == r)
 			{
 				// Timeout - cancel and continue
@@ -338,7 +351,7 @@ int Wiimote::IORead(unsigned char* buf)
 			}
 			else if (WAIT_OBJECT_0 == r)
 			{
-				if (!GetOverlappedResult(dev_handle, &hid_overlap, &bytes, TRUE))
+				if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, TRUE))
 				{
 					WARN_LOG(WIIMOTE, "GetOverlappedResult failed on wiimote %i.", index + 1);
 					bytes = 0;
@@ -380,69 +393,75 @@ int Wiimote::IORead(unsigned char* buf)
 
 int Wiimote::IOWrite(const u8* buf, int len)
 {
-	u8 big_buf[MAX_PAYLOAD];
-	if (len < MAX_PAYLOAD)
-	{
-		std::copy(buf, buf + len, big_buf);
-		std::fill(big_buf + len, big_buf + MAX_PAYLOAD, 0);
-		buf = big_buf;
-	}
-	
-	DWORD bytes = 0;
 	switch (stack)
 	{
 	case MSBT_STACK_UNKNOWN:
 	{
 		// Try to auto-detect the stack type
-		
-		auto i = WriteFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap);
-		if (i)
+		stack = MSBT_STACK_BLUESOLEIL;
+		if (IOWrite(buf, len))
+			return 1;
+
+		stack = MSBT_STACK_MS;
+		if (IOWrite(buf, len))
 		{
-			// Bluesoleil will always return 1 here, even if it's not connected
-			stack = MSBT_STACK_BLUESOLEIL;
-			return i;
+			// Don't mind me, just a random sleep to fix stuff on Windows
+			SLEEP(1000);
+			return 1;
 		}
 
-		i = HidD_SetOutputReport(dev_handle, (unsigned char*) buf + 1, len - 1);
-		if (i)
-		{
-			stack = MSBT_STACK_MS;
-			return i;
-		}
-
-		auto const dw = GetLastError();
-		// Checking for 121 = timeout on semaphore/device off/disconnected to
-		// avoid trouble with other stacks toshiba/widcomm 
-		if (dw == 121)
-		{
-			NOTICE_LOG(WIIMOTE, "IOWrite[MSBT_STACK_UNKNOWN]: Timeout");
-			return 0;
-		}
-		else
-		{
-			ERROR_LOG(WIIMOTE, "IOWrite[MSBT_STACK_UNKNOWN]: ERROR: %08x", dw);
-			return 0;
-		}
+		stack = MSBT_STACK_UNKNOWN;
 		break;
 	}
 	case MSBT_STACK_MS:
 	{
-		auto i = HidD_SetOutputReport(dev_handle, (unsigned char*) buf + 1, len - 1);
-		auto dw = GetLastError();
+		auto result = HidD_SetOutputReport(dev_handle, const_cast<u8*>(buf) + 1, len - 1);
+		//FlushFileBuffers(dev_handle);
 
-		if (dw == 121)
+		if (!result)
 		{
-			// Semaphore timeout
-			NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to wiimote");
-			return 0;
+			auto err = GetLastError();
+			if (err == 121)
+			{
+				// Semaphore timeout
+				NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to wiimote");
+			}
+			else
+			{
+				ERROR_LOG(WIIMOTE, "IOWrite[MSBT_STACK_MS]: ERROR: %08x", err);
+			}
 		}
 
-		return i;
+		return result;
 		break;
 	}
 	case MSBT_STACK_BLUESOLEIL:
-		return WriteFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap);
+	{
+		u8 big_buf[MAX_PAYLOAD];
+		if (len < MAX_PAYLOAD)
+		{
+			std::copy(buf, buf + len, big_buf);
+			std::fill(big_buf + len, big_buf + MAX_PAYLOAD, 0);
+			buf = big_buf;
+		}
+
+		ResetEvent(hid_overlap_write.hEvent);
+		DWORD bytes = 0;
+		if (WriteFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap_write))
+		{
+			// WriteFile always returns true with bluesoleil.
+			return 1;
+		}
+		else
+		{
+			auto const err = GetLastError();
+			if (ERROR_IO_PENDING == err)
+			{
+				CancelIo(dev_handle);
+			}
+		}
 		break;
+	}
 	}
 
 	return 0;
@@ -555,6 +574,7 @@ bool ForgetWiimote(HANDLE, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 		// We don't want "remembered" devices.
 		// SetServiceState seems to just fail with them.
 		// Make Windows forget about them.
+		// This is also required to detect a disconnect for some reason..
 		NOTICE_LOG(WIIMOTE, "Removing remembered wiimote.");
 		Bth_BluetoothRemoveDevice(&btdi.Address);
 

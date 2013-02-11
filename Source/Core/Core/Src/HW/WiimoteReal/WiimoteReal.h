@@ -96,7 +96,7 @@ public:
 	std::string devicepath;				// Unique wiimote reference
 	//ULONGLONG btaddr;					// Bluetooth address
 	HANDLE dev_handle;					// HID handle
-	OVERLAPPED hid_overlap;				// Overlap handle
+	OVERLAPPED hid_overlap_read, hid_overlap_write;	// Overlap handle
 	enum win_bt_stack_t stack;			// Type of bluetooth stack to use
 #endif
 
