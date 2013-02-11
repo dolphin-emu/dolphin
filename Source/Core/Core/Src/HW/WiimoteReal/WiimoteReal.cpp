@@ -259,7 +259,7 @@ bool Wiimote::Prepare(int _index)
 	u8 const mode_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_REPORT_TYPE, 0, 0x30};
 	
 	// Set the active LEDs and turn on rumble.
-	u8 const led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_LED, u8(WIIMOTE_LED_1 << index) | 0x1};
+	u8 const led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_LED, u8(WIIMOTE_LED_1 << index | 0x1)};
 
 	// Turn off rumble
 	u8 rumble_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_RUMBLE, 0};
