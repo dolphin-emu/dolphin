@@ -57,6 +57,12 @@ public:
 		SConfig::GetInstance().m_WiimoteReconnectOnLoad = event.IsChecked();
 		event.Skip();
 	}
+	void OnContinuousScanning(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_WiimoteContinuousScanning = event.IsChecked();
+		WiimoteReal::Initialize();
+		event.Skip();
+	}
 
 private:
 	void Cancel(wxCommandEvent& event);

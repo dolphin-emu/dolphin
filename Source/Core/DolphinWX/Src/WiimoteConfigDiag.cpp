@@ -60,14 +60,22 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	wxButton* const refresh_btn = new wxButton(this, -1, _("Refresh"), wxDefaultPosition);
 	refresh_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &WiimoteConfigDiag::RefreshRealWiimotes, this);
 
-	// "Real wiimotes" layout
 	wxStaticBoxSizer* const real_wiimotes_group = new wxStaticBoxSizer(wxVERTICAL, this, _("Real Wiimotes"));
+	
+	wxBoxSizer* const real_wiimotes_sizer = new wxBoxSizer(wxHORIZONTAL);
 	
 	if (!WiimoteReal::g_wiimote_scanner.IsReady())
 		real_wiimotes_group->Add(new wxStaticText(this, -1, _("A supported bluetooth device could not be found.\n"
 			"You must manually pair your wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
+		
+	wxCheckBox* const continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
+	continuous_scanning->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &WiimoteConfigDiag::OnContinuousScanning, this);
+	continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
 	
-		real_wiimotes_group->Add(refresh_btn, 0, wxALIGN_CENTER);
+	real_wiimotes_sizer->Add(continuous_scanning, 0, wxALIGN_CENTER_VERTICAL);
+	real_wiimotes_sizer->AddStretchSpacer(1);
+	real_wiimotes_sizer->Add(refresh_btn, 0, wxALL | wxALIGN_CENTER, 5);
+	real_wiimotes_group->Add(real_wiimotes_sizer, 1, wxEXPAND);
 
 	// "General Settings" controls
 	const wxString str[] = { _("Bottom"), _("Top") };

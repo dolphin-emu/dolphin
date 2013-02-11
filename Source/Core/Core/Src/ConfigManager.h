@@ -42,6 +42,7 @@ struct SConfig : NonCopyable
 	bool m_WiiSDCard;
 	bool m_WiiKeyboard;
 	bool m_WiimoteReconnectOnLoad;
+	bool m_WiimoteContinuousScanning;
 
 	// name of the last used filename
 	std::string m_LastFilename;

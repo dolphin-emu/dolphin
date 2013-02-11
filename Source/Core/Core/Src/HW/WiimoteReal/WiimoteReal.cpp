@@ -24,6 +24,7 @@
 #include "StringUtil.h"
 #include "Timer.h"
 #include "Host.h"
+#include "ConfigManager.h"
 
 #include "WiimoteReal.h"
 
@@ -303,9 +304,9 @@ void WiimoteScanner::WantWiimotes(bool do_want)
 
 void WiimoteScanner::StartScanning()
 {
-	m_run_thread = true;
-	if (IsReady())
+	if (!m_run_thread && IsReady())
 	{
+		m_run_thread = true;
 		m_scan_thread = std::thread(std::mem_fun(&WiimoteScanner::ThreadFunc), this);
 	}
 }
@@ -413,18 +414,22 @@ void LoadSettings()
 	}
 }
 
+// config dialog calls this when some settings change
 void Initialize()
 {
+	if (SConfig::GetInstance().m_WiimoteContinuousScanning)
+		g_wiimote_scanner.StartScanning();
+	else
+		g_wiimote_scanner.StopScanning();
+	
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
+	g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
+	
 	if (g_real_wiimotes_initialized)
 		return;
 
 	NOTICE_LOG(WIIMOTE, "WiimoteReal::Initialize");
-
-	g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
-
-	g_wiimote_scanner.StartScanning();
 
 	g_real_wiimotes_initialized = true;
 }
@@ -534,7 +539,7 @@ void Refresh()
 	HandleFoundWiimotes(found_wiimotes);
 	}
 	
-	g_wiimote_scanner.StartScanning();
+	Initialize();
 }
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
