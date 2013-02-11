@@ -14,8 +14,8 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-#ifndef _INTERFACEGLX_H_
-#define _INTERFACEGLX_H_
+#ifndef _INTERFACEEGL_H_
+#define _INTERFACEEGL_H_
 
 #include <EGL/egl.h>
 #ifdef USE_GLES
