@@ -3,7 +3,8 @@
 #
 cmake_minimum_required(VERSION 2.6)
 
-option(USE_GLES "Enables GLES, disables OGL" OFF)
+option(USE_GLES "Enables GLES And EGL, disables OGL" OFF)
+option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 
 option(FASTLOG "Enable all logs" OFF)
@@ -249,6 +250,11 @@ if(USE_GLES)
 	add_definitions(-DUSE_GLES)
 	add_definitions(-DUSE_EGL)
 	set(USE_EGL True)
+endif()
+
+if(USE_EGL)
+	message("EGL OpenGL interface enabled")
+	add_definitions(-DUSE_EGL)
 endif()
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
