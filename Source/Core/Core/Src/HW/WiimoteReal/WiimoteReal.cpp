@@ -249,15 +249,19 @@ bool Wiimote::Prepare(int _index)
 {
 	index = _index;
 
+	// core buttons, no continuous reporting
+	u8 const mode_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_REPORT_TYPE, 0, 0x30};
+	
 	// Set the active LEDs.
-	u8 const led_report[] = {HID_TYPE_SET_REPORT, WM_CMD_LED, u8(WIIMOTE_LED_1 << index)};
+	u8 const led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_LED, u8(WIIMOTE_LED_1 << index)};
 
 	// Rumble briefly
-	u8 rumble_report[] = {HID_TYPE_SET_REPORT, WM_CMD_RUMBLE, 1};
+	u8 rumble_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_RUMBLE, 1};
 
 	// TODO: request status and check for sane response?
 
-	return (IOWrite(led_report, sizeof(led_report))
+	return (IOWrite(mode_report, sizeof(mode_report))
+		&& IOWrite(led_report, sizeof(led_report))
 		&& IOWrite(rumble_report, sizeof(rumble_report))
 		&& (rumble_report[2] = 0, SLEEP(200), IOWrite(rumble_report, sizeof(rumble_report))));
 }

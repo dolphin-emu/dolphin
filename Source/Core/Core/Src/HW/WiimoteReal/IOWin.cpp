@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <regex>
+#include <algorithm>
 #include <unordered_set>
 
 #include <windows.h>
@@ -379,6 +380,14 @@ int Wiimote::IORead(unsigned char* buf)
 
 int Wiimote::IOWrite(const u8* buf, int len)
 {
+	u8 big_buf[MAX_PAYLOAD];
+	if (len < MAX_PAYLOAD)
+	{
+		std::copy(buf, buf + len, big_buf);
+		std::fill(big_buf + len, big_buf + MAX_PAYLOAD, 0);
+		buf = big_buf;
+	}
+	
 	DWORD bytes = 0;
 	switch (stack)
 	{
@@ -386,7 +395,7 @@ int Wiimote::IOWrite(const u8* buf, int len)
 	{
 		// Try to auto-detect the stack type
 		
-		auto i = WriteFile(dev_handle, buf + 1, 22, &bytes, &hid_overlap);
+		auto i = WriteFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap);
 		if (i)
 		{
 			// Bluesoleil will always return 1 here, even if it's not connected
@@ -433,7 +442,7 @@ int Wiimote::IOWrite(const u8* buf, int len)
 		break;
 	}
 	case MSBT_STACK_BLUESOLEIL:
-		return WriteFile(dev_handle, buf + 1, 22, &bytes, &hid_overlap);
+		return WriteFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap);
 		break;
 	}
 
