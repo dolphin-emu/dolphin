@@ -3,6 +3,20 @@
 #
 cmake_minimum_required(VERSION 2.6)
 
+option(USE_GLES "Enables GLES And EGL, disables OGL" OFF)
+option(USE_EGL "Enables EGL OpenGL Interface" OFF)
+option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
+
+option(FASTLOG "Enable all logs" OFF)
+option(OPROFILING "Enable profiling" OFF)
+option(OPENMP "Enable OpenMP parallelization" ON)
+option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
+########################################
+# Optional Targets
+# TODO: Add DSPSpy and TestSuite.
+option(DSPTOOL "Build dsptool" OFF)
+option(UNITTESTS "Build unitests" OFF)
+
 # Update compiler before calling project()
 if (APPLE)
 	# Use clang compiler
@@ -217,19 +231,22 @@ if(CMAKE_BUILD_TYPE STREQUAL Release)
 	add_definitions(-fomit-frame-pointer)
 endif(CMAKE_BUILD_TYPE STREQUAL Release)
 
-option(FASTLOG "Enable all logs" OFF)
 if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
 # For now GLES and EGL are tied to each other.
 # Enabling GLES also disables the OpenGL plugin.
-option(USE_GLES "Enables GLES, disables OGL" OFF)
 if(USE_GLES)
 	message("GLES rendering enabled")
 	add_definitions(-DUSE_GLES)
 	add_definitions(-DUSE_EGL)
 	set(USE_EGL True)
+endif()
+
+if(USE_EGL)
+	message("EGL OpenGL interface enabled")
+	add_definitions(-DUSE_EGL)
 endif()
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
@@ -248,7 +265,6 @@ if(NOT OPENGL_GLU_FOUND)
 	message(FATAL_ERROR "GLU is required but not found")
 endif()
 
-option(OPENMP "Enable OpenMP parallelization" ON)
 if(OPENMP)
 	include(FindOpenMP OPTIONAL)
 	if(OPENMP_FOUND)
@@ -331,7 +347,6 @@ else()
 	add_definitions(-DHAVE_XRANDR=0)
 endif(XRANDR_FOUND)
 
-option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 if(ENCODE_FRAMEDUMPS)
 	check_libav()
 endif()
@@ -353,7 +368,6 @@ else()
 	set(PORTAUDIO_FOUND FALSE)
 endif(PORTAUDIO)
 
-option(OPROFILING "Enable profiling" OFF)
 if(OPROFILING)
 	check_lib(OPROFILE opagent opagent.h)
 	check_lib(BFD bfd bfd.h)
@@ -502,7 +516,6 @@ else()
 	add_subdirectory(Externals/CLRun)
 endif()
 
-option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 if(NOT DISABLE_WX)
 	include(FindwxWidgets OPTIONAL)
 	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
@@ -598,11 +611,6 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/scmrev.h
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
-########################################
-# Optional Targets
-# TODO: Add DSPSpy and TestSuite.
-option(DSPTOOL "Build dsptool" OFF)
-option(UNITTESTS "Build unitests" OFF)
 
 ########################################
 # Start compiling our code
