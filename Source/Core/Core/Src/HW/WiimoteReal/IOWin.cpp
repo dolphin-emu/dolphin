@@ -138,6 +138,8 @@ void RemoveWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi);
 bool ForgetWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi);
 
 WiimoteScanner::WiimoteScanner()
+	: m_run_thread()
+	, m_want_wiimotes()
 {
 	init_lib();
 }

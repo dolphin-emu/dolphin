@@ -27,8 +27,8 @@ namespace WiimoteReal
 {
 
 WiimoteScanner::WiimoteScanner()
-	: run_thread()
-	, want_wiimotes()
+	: m_run_thread()
+	, m_want_wiimotes()
 	, device_id(-1)
 	, device_sock(-1)
 {

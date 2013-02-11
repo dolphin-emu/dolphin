@@ -250,13 +250,10 @@ bool Wiimote::Prepare(int _index)
 	index = _index;
 
 	// Set the active LEDs.
-	u8 const led_report[] = {HID_TYPE_SET_REPORT, WM_CMD_LED, WIIMOTE_LED_1 << index};
+	u8 const led_report[] = {HID_TYPE_SET_REPORT, WM_CMD_LED, u8(WIIMOTE_LED_1 << index)};
 
 	// Rumble briefly
 	u8 rumble_report[] = {HID_TYPE_SET_REPORT, WM_CMD_RUMBLE, 1};
-
-	// don't really care what is read, just that reading works
-	u8 input_buf[MAX_PAYLOAD];
 
 	// TODO: request status and check for sane response?
 
