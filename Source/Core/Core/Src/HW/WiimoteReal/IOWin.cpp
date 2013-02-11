@@ -75,6 +75,7 @@ HINSTANCE bthprops_lib = NULL;
 
 static int initialized = 0;
 
+std::mutex g_connected_devices_lock;
 static std::unordered_set<std::string> g_connected_devices;
 
 inline void init_lib()
@@ -182,7 +183,7 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 
 	// Hacks...
 	if (attached_some)
-		SLEEP(1000);
+		SLEEP(2000);
 
 	GUID device_id;
 	HDEVINFO device_info;
@@ -253,6 +254,8 @@ bool WiimoteScanner::IsReady() const
 // Connect to a wiimote with a known device path.
 bool Wiimote::Connect()
 {
+	std::lock_guard<std::mutex> lk(g_connected_devices_lock);
+
 	// This is where we disallow connecting to the same device twice
 	if (g_connected_devices.count(devicepath))
 		return false;
@@ -303,6 +306,7 @@ bool Wiimote::Connect()
 
 void Wiimote::Disconnect()
 {
+	std::lock_guard<std::mutex> lk(g_connected_devices_lock);
 	g_connected_devices.erase(devicepath);
 
 	CloseHandle(dev_handle);

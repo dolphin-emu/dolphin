@@ -64,8 +64,6 @@ public:
 
 	// connecting and disconnecting from physical devices
 	// (using address inserted by FindWiimotes)
-
-	// FYI, Connect/Disconnect are not thread safe even between unique objects (on windows)
 	bool Connect();
 	void Disconnect();
 
