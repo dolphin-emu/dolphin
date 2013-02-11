@@ -421,8 +421,7 @@ int Wiimote::IOWrite(const u8* buf, int len)
 		else
 		{
 			ERROR_LOG(WIIMOTE, "IOWrite[MSBT_STACK_UNKNOWN]: ERROR: %08x", dw);
-			// Correct?
-			return -1;
+			return 0;
 		}
 		break;
 	}
