@@ -111,7 +111,10 @@ WiimoteScanner::WiimoteScanner()
 WiimoteScanner::~WiimoteScanner()
 {}
 
-std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
+void WiimoteScanner::Update()
+{}
+
+std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 {
 	// TODO: find the device in the constructor and save it for later
 	
@@ -130,7 +133,7 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 	}
 
 	sbt = [[SearchBT alloc] init];
-	sbt->maxDevices = max_wiimotes;
+	sbt->maxDevices = 32;
 	bti = [[IOBluetoothDeviceInquiry alloc] init];
 	[bti setDelegate: sbt];
 	[bti setInquiryLength: 2];
@@ -157,9 +160,6 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 		Wiimote *wm = new Wiimote();
 		wm->btd = dev;
 		wiimotes.push_back(wm);
-		
-		if(wiimotes.size() >= max_wiimotes)
-			break;
 	}
 
 	[bth release];

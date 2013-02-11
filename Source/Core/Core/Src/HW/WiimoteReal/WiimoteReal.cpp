@@ -35,7 +35,7 @@ namespace WiimoteReal
 {
 
 void HandleFoundWiimotes(const std::vector<Wiimote*>&);
-void HandleWiimoteConnect(Wiimote*);
+void TryToConnectWiimote(Wiimote*);
 void HandleWiimoteDisconnect(int index);
 
 bool g_real_wiimotes_initialized = false;
@@ -171,7 +171,10 @@ bool Wiimote::Read()
 	rpt.second = IORead(rpt.first);
 
 	if (0 == rpt.second)
+	{
+		WARN_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting wiimote %d.", index + 1);
 		Disconnect();
+	}
 
 	if (rpt.second > 0 && m_channel > 0)
 	{
@@ -192,12 +195,12 @@ bool Wiimote::Write()
 		
 		bool const is_speaker_data = rpt.first[1] == WM_WRITE_SPEAKER_DATA;
 		
-		if (!is_speaker_data || last_audio_report.GetTimeDifference() > 5)
+		if (!is_speaker_data || m_last_audio_report.GetTimeDifference() > 5)
 		{
 			IOWrite(rpt.first, rpt.second);
 			
 			if (is_speaker_data)
-				last_audio_report.Update();
+				m_last_audio_report.Update();
 			
 			delete[] rpt.first;
 			m_write_reports.Pop();
@@ -242,27 +245,24 @@ void Wiimote::Update()
 		delete[] rpt.first;
 }
 
-// Rumble briefly
-void Wiimote::RumbleBriefly()
+bool Wiimote::Prepare(int _index)
 {
-	unsigned char buffer = 0x01;
-	DEBUG_LOG(WIIMOTE, "Starting rumble...");
-	QueueReport(WM_CMD_RUMBLE, &buffer, sizeof(buffer));
+	index = _index;
 
-	SLEEP(200);
+	// Set the active LEDs.
+	u8 const led_report[] = {HID_TYPE_SET_REPORT, WM_CMD_LED, WIIMOTE_LED_1 << index};
 
-	DEBUG_LOG(WIIMOTE, "Stopping rumble...");
-	buffer = 0x00;
-	QueueReport(WM_CMD_RUMBLE, &buffer, sizeof(buffer));
-}
+	// Rumble briefly
+	u8 rumble_report[] = {HID_TYPE_SET_REPORT, WM_CMD_RUMBLE, 1};
 
-// Set the active LEDs.
-// leds is a bitwise OR of WIIMOTE_LED_1 through WIIMOTE_LED_4.
-void Wiimote::SetLEDs(int new_leds)
-{
-	// Remove the lower 4 bits because they control rumble
-	u8 const buffer = (new_leds & 0xF0);
-	QueueReport(WM_CMD_LED, &buffer, sizeof(buffer));
+	// don't really care what is read, just that reading works
+	u8 input_buf[MAX_PAYLOAD];
+
+	// TODO: request status and check for sane response?
+
+	return (IOWrite(led_report, sizeof(led_report))
+		&& IOWrite(rumble_report, sizeof(rumble_report))
+		&& (rumble_report[2] = 0, SLEEP(200), IOWrite(rumble_report, sizeof(rumble_report))));
 }
 
 void Wiimote::EmuStart()
@@ -290,27 +290,37 @@ unsigned int CalculateWantedWiimotes()
 	return wanted_wiimotes;
 }
 
-void WiimoteScanner::WantWiimotes(size_t count)
+void WiimoteScanner::WantWiimotes(bool do_want)
 {
-	want_wiimotes = count;
+	m_want_wiimotes = do_want;
 }
 
 void WiimoteScanner::StartScanning()
 {
-	run_thread = true;
+	m_run_thread = true;
 	if (IsReady())
 	{
-		scan_thread = std::thread(std::mem_fun(&WiimoteScanner::ThreadFunc), this);
+		m_scan_thread = std::thread(std::mem_fun(&WiimoteScanner::ThreadFunc), this);
 	}
 }
 
 void WiimoteScanner::StopScanning()
 {
-	run_thread = false;
-	if (scan_thread.joinable())
+	m_run_thread = false;
+	if (m_scan_thread.joinable())
 	{
-		scan_thread.join();
+		m_scan_thread.join();
 	}
+}
+
+
+void CheckForDisconnectedWiimotes()
+{
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+
+	for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
+		if (g_wiimotes[i] && !g_wiimotes[i]->IsConnected())
+			HandleWiimoteDisconnect(i);
 }
 
 void WiimoteScanner::ThreadFunc()
@@ -319,19 +329,27 @@ void WiimoteScanner::ThreadFunc()
 
 	NOTICE_LOG(WIIMOTE, "Wiimote scanning has started");
 
-	while (run_thread)
+	while (m_run_thread)
 	{
-		auto const found_wiimotes = FindWiimotes(want_wiimotes);
-		HandleFoundWiimotes(found_wiimotes);
-#if 1
+		std::vector<Wiimote*> found_wiimotes;
+
+		//NOTICE_LOG(WIIMOTE, "in loop");
+
+		if (m_want_wiimotes)
+			found_wiimotes = FindWiimotes();
+		else
 		{
-		// TODO: this code here is ugly
-		std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
-			if (g_wiimotes[i] && !g_wiimotes[i]->IsConnected())
-				HandleWiimoteDisconnect(i);
+			// Does stuff needed to detect disconnects on Windows
+			Update();
 		}
-#endif	
+
+		//NOTICE_LOG(WIIMOTE, "after update");
+
+		// TODO: this is a fairly lame place for this
+		CheckForDisconnectedWiimotes();
+
+		HandleFoundWiimotes(found_wiimotes);
+
 		//std::this_thread::yield();
 		Common::SleepCurrentThread(500);
 	}
@@ -396,8 +414,7 @@ void Initialize()
 	if (g_real_wiimotes_initialized)
 		return;
 
-	auto const wanted_wiimotes = CalculateWantedWiimotes();
-	g_wiimote_scanner.WantWiimotes(wanted_wiimotes);
+	g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
 
 	g_wiimote_scanner.StartScanning();
 
@@ -431,26 +448,23 @@ void ChangeWiimoteSource(unsigned int index, int source)
 	if (!(WIIMOTE_SRC_REAL & g_wiimote_sources[index]))
 		HandleWiimoteDisconnect(index);
 
-	auto const wanted_wiimotes = CalculateWantedWiimotes();
-	g_wiimote_scanner.WantWiimotes(wanted_wiimotes);
+	g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
 }
 
-void HandleWiimoteConnect(Wiimote* wm)
+void TryToConnectWiimote(Wiimote* wm)
 {
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
 	for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
 	{
-		if (WIIMOTE_SRC_REAL & g_wiimote_sources[i] && !g_wiimotes[i])
+		if (WIIMOTE_SRC_REAL & g_wiimote_sources[i]
+			&& !g_wiimotes[i]
+			&& wm->Connect()
+			&& wm->Prepare(i))
 		{
 			g_wiimotes[i] = wm;
 
-			wm->index = i;
 			wm->StartThread();
-			
-			wm->DisableDataReporting();
-			wm->SetLEDs(WIIMOTE_LED_1 << i);
-			wm->RumbleBriefly();
 
 			Host_ConnectWiimote(i, true);
 			
@@ -463,14 +477,12 @@ void HandleWiimoteConnect(Wiimote* wm)
 
 	delete wm;
 
-	auto const want_wiimotes = CalculateWantedWiimotes();
-	g_wiimote_scanner.WantWiimotes(want_wiimotes);
+	g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
 }
 
 void HandleWiimoteDisconnect(int index)
 {
-	// locked above
-	//std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
 	Host_ConnectWiimote(index, false);
 
@@ -482,19 +494,12 @@ void HandleWiimoteDisconnect(int index)
 		NOTICE_LOG(WIIMOTE, "Disconnected wiimote %i.", index + 1);
 	}
 
-	auto const want_wiimotes = CalculateWantedWiimotes();
-	g_wiimote_scanner.WantWiimotes(want_wiimotes);
+	g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
 }
 
 void HandleFoundWiimotes(const std::vector<Wiimote*>& wiimotes)
 {
-	std::for_each(wiimotes.begin(), wiimotes.end(), [](Wiimote* const wm)
-	{
-		if (wm->Connect())
-			HandleWiimoteConnect(wm);
-		else
-			delete wm;
-	});
+	std::for_each(wiimotes.begin(), wiimotes.end(), TryToConnectWiimote);
 }
 
 // This is called from the GUI thread
@@ -504,14 +509,13 @@ void Refresh()
 	
 	{
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+
+	CheckForDisconnectedWiimotes();
 	
-	auto wanted_wiimotes = CalculateWantedWiimotes();	
-	auto const found_wiimotes = g_wiimote_scanner.FindWiimotes(wanted_wiimotes);	
-	
-	HandleFoundWiimotes(found_wiimotes);
-	
-	wanted_wiimotes = CalculateWantedWiimotes();
-	g_wiimote_scanner.WantWiimotes(wanted_wiimotes);
+	if (0 != CalculateWantedWiimotes())
+	{
+		HandleFoundWiimotes(g_wiimote_scanner.FindWiimotes());
+	}
 	}
 	
 	g_wiimote_scanner.StartScanning();

@@ -29,7 +29,10 @@ WiimoteScanner::WiimoteScanner()
 WiimoteScanner::~WiimoteScanner()
 {}
 
-std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
+void WiimoteScanner::Update()
+{}
+
+std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 {
 	return std::vector<Wiimote*>();
 }

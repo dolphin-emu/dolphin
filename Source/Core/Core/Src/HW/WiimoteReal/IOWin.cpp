@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <regex>
+#include <unordered_set>
 
 #include <windows.h>
 #include <dbt.h>
@@ -73,6 +74,8 @@ HINSTANCE bthprops_lib = NULL;
 
 static int initialized = 0;
 
+static std::unordered_set<std::string> g_connected_devices;
+
 inline void init_lib()
 {
 	if (!initialized)
@@ -127,7 +130,12 @@ inline void init_lib()
 namespace WiimoteReal
 {
 
-int PairUp(bool unpair = false);
+template <typename T>
+void ProcessWiimotes(bool new_scan, T& callback);
+
+bool AttachWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi);
+void RemoveWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi);
+bool ForgetWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi);
 
 WiimoteScanner::WiimoteScanner()
 {
@@ -137,24 +145,47 @@ WiimoteScanner::WiimoteScanner()
 WiimoteScanner::~WiimoteScanner()
 {
 	// TODO: what do we want here?
-	//PairUp(true);
+	ProcessWiimotes(false, RemoveWiimote);
+}
+
+void WiimoteScanner::Update()
+{
+	bool forgot_some = false;
+
+	ProcessWiimotes(false, [&](HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+	{
+		forgot_some |= ForgetWiimote(hRadio, btdi);
+	});
+
+	// Some hacks that allows disconnects to be detected before connections are handled
+	// workaround for wiimote 1 moving to slot 2 on temporary disconnect
+	if (forgot_some)
+		SLEEP(100);
 }
 
 // Find and connect wiimotes.
 // Does not replace already found wiimotes even if they are disconnected.
 // wm is an array of max_wiimotes wiimotes
 // Returns the total number of found and connected wiimotes.
-std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
+std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 {
-	PairUp();
+	bool attached_some;
+
+	ProcessWiimotes(true, [&](HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+	{
+		ForgetWiimote(hRadio, btdi);
+		attached_some |= AttachWiimote(hRadio, btdi);
+	});
+
+	// Hacks...
+	if (attached_some)
+		SLEEP(1000);
 
 	GUID device_id;
-	HANDLE dev;
 	HDEVINFO device_info;
 	DWORD len;
 	SP_DEVICE_INTERFACE_DATA device_data;
 	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = NULL;
-	HIDD_ATTRIBUTES attr;
 
 	device_data.cbSize = sizeof(device_data);
 
@@ -165,7 +196,7 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 	device_info = SetupDiGetClassDevs(&device_id, NULL, NULL, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
 
 	std::vector<Wiimote*> wiimotes;
-	for (int index = 0; wiimotes.size() < max_wiimotes; ++index)
+	for (int index = 0; true; ++index)
 	{
 		free(detail_data);
 		detail_data = NULL;
@@ -184,24 +215,7 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 			continue;
 
 		auto const wm = new Wiimote;
-
-		// Open new device
-#if 0
-		dev = CreateFile(detail_data->DevicePath,
-				(GENERIC_READ | GENERIC_WRITE),
-				(FILE_SHARE_READ | FILE_SHARE_WRITE),
-				NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
-		if (dev == INVALID_HANDLE_VALUE)
-			continue;
-
-		// Get device attributes 
-		attr.Size = sizeof(attr);
-		HidD_GetAttributes(dev, &attr);
-			
-		wm->dev_handle = dev;
-#endif
 		wm->devicepath = detail_data->DevicePath;
-
 		wiimotes.push_back(wm);
 	}
 
@@ -236,9 +250,15 @@ bool WiimoteScanner::IsReady() const
 // Connect to a wiimote with a known device path.
 bool Wiimote::Connect()
 {
+	// This is where we disallow connecting to the same device twice
+	if (g_connected_devices.count(devicepath))
+		return false;
+
 	dev_handle = CreateFile(devicepath.c_str(),
 		(GENERIC_READ | GENERIC_WRITE),
-		/*(FILE_SHARE_READ | FILE_SHARE_WRITE)*/ 0,
+		// TODO: Just do FILE_SHARE_READ and remove "g_connected_devices"?
+		// That is what "WiiYourself" does.
+		(FILE_SHARE_READ | FILE_SHARE_WRITE),
 		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 
 	if (dev_handle == INVALID_HANDLE_VALUE)
@@ -247,11 +267,12 @@ bool Wiimote::Connect()
 		return false;
 	}
 
+	hid_overlap = OVERLAPPED();
 	hid_overlap.hEvent = CreateEvent(NULL, 1, 1, _T(""));
 	hid_overlap.Offset = 0;
 	hid_overlap.OffsetHigh = 0;
 
-	// TODO: do this elsewhere
+	// TODO: thread isn't started here now, do this elsewhere
 	// This isn't as drastic as it sounds, since the process in which the threads
 	// reside is normal priority. Needed for keeping audio reports at a decent rate
 /*
@@ -261,15 +282,17 @@ bool Wiimote::Connect()
 	}
 */
 
+	g_connected_devices.insert(devicepath);
 	return true;
 }
 
 void Wiimote::Disconnect()
 {
+	g_connected_devices.erase(devicepath);
+
 	CloseHandle(dev_handle);
 	dev_handle = 0;
 
-	//ResetEvent(&hid_overlap);
 	CloseHandle(hid_overlap.hEvent);
 }
 
@@ -283,50 +306,73 @@ bool Wiimote::IsConnected() const
 // zero = error
 int Wiimote::IORead(unsigned char* buf)
 {
+	// used below for a warning
 	*buf = 0;
 	
-	DWORD b;
-	if (!ReadFile(dev_handle, buf, MAX_PAYLOAD, &b, &hid_overlap))
+	DWORD bytes;
+	ResetEvent(hid_overlap.hEvent);
+	if (!ReadFile(dev_handle, buf, MAX_PAYLOAD - 1, &bytes, &hid_overlap))
 	{
-		// Partial read
-		b = GetLastError();
-		if ((b == ERROR_HANDLE_EOF) || (b == ERROR_DEVICE_NOT_CONNECTED))
+		auto const err = GetLastError();
+
+		if (ERROR_IO_PENDING == err)
+		{
+			auto const r = WaitForSingleObject(hid_overlap.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
+			if (WAIT_TIMEOUT == r)
+			{
+				// Timeout - cancel and continue
+				if (*buf)
+					WARN_LOG(WIIMOTE, "Packet ignored.  This may indicate a problem (timeout is %i ms).",
+							WIIMOTE_DEFAULT_TIMEOUT);
+
+				CancelIo(dev_handle);
+				bytes = -1;
+			}
+			else if (WAIT_FAILED == r)
+			{
+				WARN_LOG(WIIMOTE, "A wait error occured on reading from wiimote %i.", index + 1);
+				bytes = 0;
+			}
+			else if (WAIT_OBJECT_0 == r)
+			{
+				if (!GetOverlappedResult(dev_handle, &hid_overlap, &bytes, TRUE))
+				{
+					WARN_LOG(WIIMOTE, "GetOverlappedResult failed on wiimote %i.", index + 1);
+					bytes = 0;
+				}
+			}
+			else
+			{
+				bytes =  0;
+			}
+		}
+		else if (ERROR_HANDLE_EOF == err)
 		{
 			// Remote disconnect
-			return 0;
+			bytes = 0;
 		}
-
-		auto const r = WaitForSingleObject(hid_overlap.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
-		if (r == WAIT_TIMEOUT)
+		else if (ERROR_DEVICE_NOT_CONNECTED == err)
 		{
-			// Timeout - cancel and continue
-			if (*buf)
-				WARN_LOG(WIIMOTE, "Packet ignored.  This may indicate a problem (timeout is %i ms).",
-						WIIMOTE_DEFAULT_TIMEOUT);
-
-			CancelIo(dev_handle);
-			ResetEvent(hid_overlap.hEvent);
-			return -1;
+			// Remote disconnect
+			bytes = 0;
 		}
-		else if (r == WAIT_FAILED)
+		else
 		{
-			WARN_LOG(WIIMOTE, "A wait error occured on reading from wiimote %i.", index + 1);
-			return -1;
-		}
-
-		if (!GetOverlappedResult(dev_handle, &hid_overlap, &b, 0))
-		{
-			return -1;
+			bytes = 0;
 		}
 	}
 
-	// This needs to be done even if ReadFile fails, essential during init
-	// Move the data over one, so we can add back in data report indicator byte (here, 0xa1)
-	memmove(buf + 1, buf, MAX_PAYLOAD - 1);
-	buf[0] = 0xa1;
+	if (bytes > 0)
+	{
+		// Move the data over one, so we can add back in data report indicator byte (here, 0xa1)
+		memmove(buf + 1, buf, MAX_PAYLOAD - 1);
+		buf[0] = 0xa1;
 
-	ResetEvent(hid_overlap.hEvent);
-	return MAX_PAYLOAD;	// XXX
+		// TODO: is this really needed?
+		bytes = MAX_PAYLOAD;
+	}
+
+	return bytes;
 }
 
 int Wiimote::IOWrite(const u8* buf, int len)
@@ -392,14 +438,12 @@ int Wiimote::IOWrite(const u8* buf, int len)
 	return 0;
 }
 
-// WiiMote Pair-Up, function will return amount of either new paired or unpaired devices
-// negative number on failure
-int PairUp(bool unpair)
+// invokes callback for each found wiimote bluetooth device
+template <typename T>
+void ProcessWiimotes(bool new_scan, T& callback)
 {
 	// match strings like "Nintendo RVL-WBC-01", "Nintendo RVL-CNT-01", "Nintendo RVL-CNT-01-TR"
-	const std::wregex wiimote_device_name(L"Nintendo RVL-\\w{3}-\\d{2}(-\\w{2})?");
-
-	int nPaired = 0;
+	const std::wregex wiimote_device_name(L"Nintendo RVL-.*");
 
 	BLUETOOTH_DEVICE_SEARCH_PARAMS srch;
 	srch.dwSize = sizeof(srch);
@@ -409,7 +453,7 @@ int PairUp(bool unpair)
 	// fConnected BT Devices
 	srch.fReturnConnected = true;
 	srch.fReturnUnknown = true;
-	srch.fIssueInquiry = true;
+	srch.fIssueInquiry = new_scan;
 	// multiple of 1.28 seconds
 	srch.cTimeoutMultiplier = 1;
 
@@ -418,14 +462,10 @@ int PairUp(bool unpair)
 
 	HANDLE hRadio;
 	
-	// TODO: save radio(s) in the WiimoteScanner constructor
+	// TODO: save radio(s) in the WiimoteScanner constructor?
 
 	// Enumerate BT radios
 	HBLUETOOTH_RADIO_FIND hFindRadio = Bth_BluetoothFindFirstRadio(&radioParam, &hRadio);
-
-	if (NULL == hFindRadio)
-		return -1;
-
 	while (hFindRadio)
 	{
 		BLUETOOTH_RADIO_INFO radioInfo;
@@ -449,40 +489,7 @@ int PairUp(bool unpair)
 
 			if (std::regex_match(btdi.szName, wiimote_device_name))
 			{
-				if (unpair)
-				{
-					if (SUCCEEDED(Bth_BluetoothRemoveDevice(&btdi.Address)))
-					{
-						NOTICE_LOG(WIIMOTE,
-								"Pair-Up: Automatically removed BT Device on shutdown: %08x",
-								GetLastError());
-						++nPaired;
-					}
-				}
-				else
-				{
-					if (false == btdi.fConnected)
-					{
-						// TODO: improve the read of the BT driver, esp. when batteries
-						// of the wiimote are removed while being fConnected
-						if (btdi.fRemembered)
-						{
-							// Make Windows forget old expired pairing.  We can pretty
-							// much ignore the return value here.  It either worked
-							// (ERROR_SUCCESS), or the device did not exist
-							// (ERROR_NOT_FOUND).  In both cases, there is nothing left.
-							Bth_BluetoothRemoveDevice(&btdi.Address);
-						}
-
-						// Activate service
-						const DWORD hr = Bth_BluetoothSetServiceState(hRadio, &btdi,
-								&HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
-						if (SUCCEEDED(hr))
-							++nPaired;
-						else
-							ERROR_LOG(WIIMOTE, "Pair-Up: BluetoothSetServiceState() returned %08x", hr);
-					}
-				}
+				callback(hRadio, btdi);
 			}
 
 			if (false == Bth_BluetoothFindNextDevice(hFindDevice, &btdi))
@@ -498,8 +505,53 @@ int PairUp(bool unpair)
 			hFindRadio = NULL;
 		}
 	}
+}
 
-	return nPaired;
+void RemoveWiimote(HANDLE, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+{
+	//if (btdi.fConnected)
+	{
+		if (SUCCEEDED(Bth_BluetoothRemoveDevice(&btdi.Address)))
+		{
+			NOTICE_LOG(WIIMOTE, "Removed BT Device", GetLastError());
+		}
+	}
+}
+
+bool AttachWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+{
+	if (!btdi.fConnected && !btdi.fRemembered)
+	{
+		NOTICE_LOG(WIIMOTE, "Found wiimote. Enabling HID service.");
+
+		// Activate service
+		const DWORD hr = Bth_BluetoothSetServiceState(hRadio, &btdi,
+			&HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
+
+		if (FAILED(hr))
+			ERROR_LOG(WIIMOTE, "Pair-Up: BluetoothSetServiceState() returned %08x", hr);
+		else
+			return true;
+	}
+
+	return false;
+}
+
+// Removes remembered non-connected devices
+bool ForgetWiimote(HANDLE, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+{
+	if (!btdi.fConnected && btdi.fRemembered)
+	{
+		// We don't want "remembered" devices.
+		// SetServiceState seems to just fail with them.
+		// Make Windows forget about them.
+		NOTICE_LOG(WIIMOTE, "Removing remembered wiimote.");
+		Bth_BluetoothRemoveDevice(&btdi.Address);
+
+		return true;
+	}
+
+	return false;
 }
 
 };

@@ -66,8 +66,9 @@
 
 // End Wiimote internal codes
 
-#define MAX_PAYLOAD					32
-#define WIIMOTE_DEFAULT_TIMEOUT		30
+// It's 23. NOT 32!
+#define MAX_PAYLOAD					23
+#define WIIMOTE_DEFAULT_TIMEOUT		1000
 
 #ifdef _WIN32
 // Available bluetooth stacks for Windows.

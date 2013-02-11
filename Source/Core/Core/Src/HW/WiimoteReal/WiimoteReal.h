@@ -63,14 +63,16 @@ public:
 	void EmuStop();
 
 	// connecting and disconnecting from physical devices
+	// (using address inserted by FindWiimotes)
+
+	// FYI, Connect/Disconnect are not thread safe even between unique objects (on windows)
 	bool Connect();
 	void Disconnect();
 
 	// TODO: change to something like IsRelevant
 	bool IsConnected() const;
 
-	void SetLEDs(int leds);
-	void RumbleBriefly();
+	bool Prepare(int index);
 
 	void DisableDataReporting();
 	
@@ -116,7 +118,7 @@ private:
 	Common::FifoQueue<Report>	m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;
 	
-	Common::Timer last_audio_report;
+	Common::Timer m_last_audio_report;
 };
 
 class WiimoteScanner
@@ -127,22 +129,23 @@ public:
 
 	bool IsReady() const;
 	
-	void WantWiimotes(size_t count);
+	void WantWiimotes(bool do_want);
 
 	void StartScanning();
 	void StopScanning();
 
-	std::vector<Wiimote*> FindWiimotes(size_t max_wiimotes);
+	std::vector<Wiimote*> FindWiimotes();
+
+	// function called when not looking for more wiimotes
+	void Update();
 
 private:
 	void ThreadFunc();
 
-	std::thread scan_thread;
+	std::thread m_scan_thread;
 
-	volatile bool run_thread;
-	
-	// TODO: this should probably be atomic
-	volatile size_t want_wiimotes;
+	volatile bool m_run_thread;
+	volatile bool m_want_wiimotes;
 
 #if defined(_WIN32)
 	

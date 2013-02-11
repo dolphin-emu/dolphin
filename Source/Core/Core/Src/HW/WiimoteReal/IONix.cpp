@@ -60,11 +60,10 @@ WiimoteScanner::~WiimoteScanner()
 		close(device_sock);
 }
 
-// Find wiimotes.
-// Does not replace already found wiimotes even if they are disconnected.
-// wm is an array of max_wiimotes wiimotes
-// Returns the total number of found wiimotes.
-std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
+void WiimoteScanner::Update()
+{}
+
+std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 {
 	std::vector<Wiimote*> found_wiimotes;
 
@@ -86,7 +85,7 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes(size_t max_wiimotes)
 	DEBUG_LOG(WIIMOTE, "Found %i bluetooth device(s).", found_devices);
 
 	// Display discovered devices
-	for (int i = 0; (i < found_devices) && (found_wiimotes.size() < max_wiimotes); ++i)
+	for (int i = 0; i < found_devices; ++i)
 	{
 		ERROR_LOG(WIIMOTE, "found a device...");
 		
