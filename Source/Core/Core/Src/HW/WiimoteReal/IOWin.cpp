@@ -432,7 +432,7 @@ int Wiimote::IOWrite(const u8* buf, int len)
 			}
 			else
 			{
-				ERROR_LOG(WIIMOTE, "IOWrite[MSBT_STACK_MS]: ERROR: %08x", err);
+				WARN_LOG(WIIMOTE, "IOWrite[MSBT_STACK_MS]: ERROR: %08x", err);
 			}
 		}
 
@@ -488,7 +488,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
 	srch.fReturnUnknown = true;
 	srch.fIssueInquiry = new_scan;
 	// multiple of 1.28 seconds
-	srch.cTimeoutMultiplier = 1;
+	srch.cTimeoutMultiplier = 2;
 
 	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
 	radioParam.dwSize = sizeof(radioParam);
