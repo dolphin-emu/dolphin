@@ -66,7 +66,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	
 	if (!WiimoteReal::g_wiimote_scanner.IsReady())
 		real_wiimotes_group->Add(new wxStaticText(this, -1, _("A supported bluetooth device could not be found.\n"
-			"You must manually pair your wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
+			"You must manually connect your wiimotes.")), 0, wxALIGN_CENTER | wxALL, 5);
 		
 	wxCheckBox* const continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
 	continuous_scanning->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &WiimoteConfigDiag::OnContinuousScanning, this);

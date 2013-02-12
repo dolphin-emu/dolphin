@@ -38,6 +38,7 @@ namespace WiimoteReal
 void HandleFoundWiimotes(const std::vector<Wiimote*>&);
 void TryToConnectWiimote(Wiimote*);
 void HandleWiimoteDisconnect(int index);
+void DoneWithWiimote(int index);
 
 bool g_real_wiimotes_initialized = false;
 
@@ -382,6 +383,7 @@ void Wiimote::ThreadFunc()
 	Common::SetCurrentThreadName("Wiimote Device Thread");
 
 	Host_ConnectWiimote(index, true);
+	NOTICE_LOG(WIIMOTE, "Connected to wiimote %i.", index + 1);
 
 	// main loop
 	while (m_run_thread && IsConnected())
@@ -453,15 +455,20 @@ void Shutdown(void)
 
 void ChangeWiimoteSource(unsigned int index, int source)
 {
+	{
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
+	
 	g_wiimote_sources[index] = source;
-
-	// source is emulated, kill any real connection
-	if (!(WIIMOTE_SRC_REAL & g_wiimote_sources[index]))
-		HandleWiimoteDisconnect(index);
-
 	g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
+	
+	// kill real connection (or swap to different slot)
+	DoneWithWiimote(index);
+	}
+
+	// reconnect to emu
+	Host_ConnectWiimote(index, false);
+	if (WIIMOTE_SRC_EMU & source)
+		Host_ConnectWiimote(index, true);
 }
 
 void TryToConnectWiimote(Wiimote* wm)
@@ -478,8 +485,6 @@ void TryToConnectWiimote(Wiimote* wm)
 			g_wiimotes[i] = wm;
 
 			wm->StartThread();
-			
-			NOTICE_LOG(WIIMOTE, "Connected to wiimote %i.", i + 1);
 
 			wm = NULL;
 			break;
@@ -489,6 +494,32 @@ void TryToConnectWiimote(Wiimote* wm)
 	delete wm;
 
 	g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
+}
+
+void DoneWithWiimote(int index)
+{
+	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+	
+	if (g_wiimotes[index])
+	{
+		g_wiimotes[index]->StopThread();
+		
+		// First see if we can use this real wiimote in another slot.
+		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
+		{
+			if (WIIMOTE_SRC_REAL & g_wiimote_sources[i]
+				&& !g_wiimotes[i]
+				&& g_wiimotes[index]->Prepare(i))
+			{
+				std::swap(g_wiimotes[i], g_wiimotes[index]);
+				g_wiimotes[i]->StartThread();
+				break;
+			}
+		}
+	}
+	
+	// else, just disconnect the wiimote
+	HandleWiimoteDisconnect(index);
 }
 
 void HandleWiimoteDisconnect(int index)
@@ -570,7 +601,6 @@ void Update(int _WiimoteNumber)
 	// Wiimote::Update() may remove the wiimote if it was disconnected.
 	if (!g_wiimotes[_WiimoteNumber])
 	{
-		NOTICE_LOG(WIIMOTE, "Emulating disconnect of wiimote %d.", _WiimoteNumber + 1);
 		Host_ConnectWiimote(_WiimoteNumber, false);
 	}
 }
