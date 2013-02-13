@@ -19,7 +19,8 @@
 #include <stdlib.h>
 #include <regex>
 #include <algorithm>
-#include <unordered_set>
+#include <unordered_map>
+#include <ctime>
 
 #include <windows.h>
 #include <dbt.h>
@@ -75,8 +76,7 @@ HINSTANCE bthprops_lib = NULL;
 
 static int initialized = 0;
 
-std::mutex g_connected_devices_lock;
-static std::unordered_set<std::string> g_connected_devices;
+std::unordered_map<BTH_ADDR, std::time_t> g_connect_times;
 
 inline void init_lib()
 {
@@ -173,59 +173,49 @@ void WiimoteScanner::Update()
 // Returns the total number of found and connected wiimotes.
 std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 {
-	bool attached_some;
-
-	ProcessWiimotes(true, [&](HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+	ProcessWiimotes(true, [](HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 	{
 		ForgetWiimote(hRadio, btdi);
-		attached_some |= AttachWiimote(hRadio, btdi);
+		AttachWiimote(hRadio, btdi);
 	});
 
-	// Hacks...
-	if (attached_some)
-		SLEEP(2000);
-
-	GUID device_id;
-	HDEVINFO device_info;
-	DWORD len;
-	SP_DEVICE_INTERFACE_DATA device_data;
-	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = NULL;
-
-	device_data.cbSize = sizeof(device_data);
-
 	// Get the device id
+	GUID device_id;
 	HidD_GetHidGuid(&device_id);
 
 	// Get all hid devices connected
-	device_info = SetupDiGetClassDevs(&device_id, NULL, NULL, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
+	HDEVINFO const device_info = SetupDiGetClassDevs(&device_id, NULL, NULL, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
 
 	std::vector<Wiimote*> wiimotes;
-	for (int index = 0; true; ++index)
+
+	SP_DEVICE_INTERFACE_DATA device_data;
+	device_data.cbSize = sizeof(device_data);
+	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = NULL;
+
+	for (int index = 0; SetupDiEnumDeviceInterfaces(device_info, NULL, &device_id, index, &device_data); ++index)
 	{
-		free(detail_data);
-		detail_data = NULL;
-
-		// Query the next hid device info
-		if (!SetupDiEnumDeviceInterfaces(device_info, NULL, &device_id, index, &device_data))
-			break;
-
 		// Get the size of the data block required
+		DWORD len;
 		SetupDiGetDeviceInterfaceDetail(device_info, &device_data, NULL, 0, &len, NULL);
 		detail_data = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(len);
 		detail_data->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
 		// Query the data for this device
-		if (!SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, NULL, NULL))
-			continue;
+		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, NULL, NULL))
+		{
+			auto const wm = new Wiimote;
+			wm->devicepath = detail_data->DevicePath;
+			wiimotes.push_back(wm);
+		}
 
-		auto const wm = new Wiimote;
-		wm->devicepath = detail_data->DevicePath;
-		wiimotes.push_back(wm);
+		free(detail_data);
 	}
 
-	free(detail_data);
-
 	SetupDiDestroyDeviceInfoList(device_info);
+
+	// Don't mind me, just a random sleep to fix stuff on Windows
+	//if (!wiimotes.empty())
+	//	SLEEP(2000);
 
 	return wiimotes;
 }
@@ -254,17 +244,14 @@ bool WiimoteScanner::IsReady() const
 // Connect to a wiimote with a known device path.
 bool Wiimote::Connect()
 {
-	std::lock_guard<std::mutex> lk(g_connected_devices_lock);
-
-	// This is where we disallow connecting to the same device twice
-	if (g_connected_devices.count(devicepath))
+	if (IsConnected())
 		return false;
 
 	dev_handle = CreateFile(devicepath.c_str(),
-		(GENERIC_READ | GENERIC_WRITE),
-		// TODO: Just do FILE_SHARE_READ and remove "g_connected_devices"?
-		// That is what "WiiYourself" does.
-		(FILE_SHARE_READ | FILE_SHARE_WRITE),
+		GENERIC_READ | GENERIC_WRITE,
+		// Having no FILE_SHARE_WRITE disallows us from connecting to the same wiimote twice.
+		// This is what "WiiYourself" does.
+		FILE_SHARE_READ,
 		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 
 	if (dev_handle == INVALID_HANDLE_VALUE)
@@ -299,15 +286,13 @@ bool Wiimote::Connect()
 		ERROR_LOG(WIIMOTE, "Failed to set wiimote thread priority");
 	}
 */
-
-	g_connected_devices.insert(devicepath);
 	return true;
 }
 
 void Wiimote::Disconnect()
 {
-	std::lock_guard<std::mutex> lk(g_connected_devices_lock);
-	g_connected_devices.erase(devicepath);
+	if (!IsConnected())
+		return;
 
 	CloseHandle(dev_handle);
 	dev_handle = 0;
@@ -385,7 +370,7 @@ int Wiimote::IORead(u8* buf)
 	if (bytes > 0)
 	{
 		// Move the data over one, so we can add back in data report indicator byte (here, 0xa1)
-		memmove(buf + 1, buf, MAX_PAYLOAD - 1);
+		std::copy_n(buf, MAX_PAYLOAD - 1, buf + 1);
 		buf[0] = 0xa1;
 
 		// TODO: is this really needed?
@@ -408,11 +393,7 @@ int Wiimote::IOWrite(const u8* buf, int len)
 
 		stack = MSBT_STACK_MS;
 		if (IOWrite(buf, len))
-		{
-			// Don't mind me, just a random sleep to fix stuff on Windows
-			SLEEP(1000);
 			return 1;
-		}
 
 		stack = MSBT_STACK_UNKNOWN;
 		break;
@@ -553,6 +534,8 @@ void RemoveWiimote(HANDLE, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 
 bool AttachWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 {
+	// We don't want "remembered" devices.
+	// SetServiceState will just fail with them..
 	if (!btdi.fConnected && !btdi.fRemembered)
 	{
 		NOTICE_LOG(WIIMOTE, "Found wiimote. Enabling HID service.");
@@ -560,6 +543,8 @@ bool AttachWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 		// Activate service
 		const DWORD hr = Bth_BluetoothSetServiceState(hRadio, &btdi,
 			&HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
+
+		g_connect_times[btdi.Address.ullLong] = std::time(nullptr);
 
 		if (FAILED(hr))
 			ERROR_LOG(WIIMOTE, "Pair-Up: BluetoothSetServiceState() returned %08x", hr);
@@ -575,14 +560,20 @@ bool ForgetWiimote(HANDLE, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 {
 	if (!btdi.fConnected && btdi.fRemembered)
 	{
-		// We don't want "remembered" devices.
-		// SetServiceState seems to just fail with them.
-		// Make Windows forget about them.
-		// This is also required to detect a disconnect for some reason..
-		NOTICE_LOG(WIIMOTE, "Removing remembered wiimote.");
-		Bth_BluetoothRemoveDevice(&btdi.Address);
+		// Time to avoid RemoveDevice after SetServiceState.
+		// Sometimes SetServiceState takes a while..
+		auto const avoid_forget_seconds = 5.0;
 
-		return true;
+		auto pair_time = g_connect_times.find(btdi.Address.ullLong);
+		if (pair_time == g_connect_times.end()
+			|| std::difftime(time(nullptr), pair_time->second) >= avoid_forget_seconds)
+		{
+			// Make Windows forget about device so it will re-find it if visible.
+			// This is also required to detect a disconnect for some reason..
+			NOTICE_LOG(WIIMOTE, "Removing remembered wiimote.");
+			Bth_BluetoothRemoveDevice(&btdi.Address);
+			return true;
+		}
 	}
 
 	return false;
