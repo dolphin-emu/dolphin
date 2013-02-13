@@ -150,7 +150,8 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 	[bti stop];
 	int found_devices = [[bti foundDevices] count];
 
-	NOTICE_LOG(WIIMOTE, "Found %i bluetooth devices", found_devices);
+	if (found_devices)
+		NOTICE_LOG(WIIMOTE, "Found %i bluetooth devices", found_devices);
 
 	en = [[bti foundDevices] objectEnumerator];
 	for (int i = 0; i < found_devices; i++)
@@ -180,10 +181,10 @@ bool WiimoteScanner::IsReady() const
 // Connect to a wiimote with a known address.
 bool Wiimote::Connect()
 {
-	ConnectBT *cbt = [[ConnectBT alloc] init];
-
 	if (IsConnected())
 		return false;
+
+	ConnectBT *cbt = [[ConnectBT alloc] init];
 
 	[btd openL2CAPChannelSync: &cchan
 		withPSM: kBluetoothL2CAPPSMHIDControl delegate: cbt];
@@ -215,6 +216,9 @@ bool Wiimote::Connect()
 // Disconnect a wiimote.
 void Wiimote::Disconnect()
 {
+	if (!IsConnected())
+		return;
+
 	NOTICE_LOG(WIIMOTE, "Disconnecting wiimote %i", index + 1);
 
 	m_connected = false;
