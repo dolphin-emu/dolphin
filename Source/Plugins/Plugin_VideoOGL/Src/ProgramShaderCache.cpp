@@ -222,7 +222,7 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 	
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
-		GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode, components);
+		GetSafeShaderId(&newentry.safe_uid, dstAlphaMode, components);
 		newentry.shader.strvprog = vcode;
 		newentry.shader.strpprog = pcode;
 	}
@@ -374,7 +374,8 @@ void ProgramShaderCache::GetSafeShaderId ( SHADERUIDSAFE* uid, DSTALPHA_MODE dst
 
 void ProgramShaderCache::ValidateShaderIDs ( PCacheEntry *entry, DSTALPHA_MODE dstAlphaMode, u32 components )
 {
-	//ValidatePixelShaderIDs(API_OPENGL, entry->safe_uid, entry->shader.strprog, dstAlphaMode, components);
+	ValidateVertexShaderIDs(API_OPENGL, entry->safe_uid.vuid, entry->shader.strvprog, components);
+	ValidatePixelShaderIDs(API_OPENGL, entry->safe_uid.puid, entry->shader.strpprog, dstAlphaMode, components);
 }
 
 

@@ -85,7 +85,7 @@ public:
 	struct PCacheEntry
 	{
 		SHADER shader;
-		PIXELSHADERUIDSAFE safe_uid;
+		SHADERUIDSAFE safe_uid;
 		
 		static GLenum prog_format;
 		u8 *binary;
