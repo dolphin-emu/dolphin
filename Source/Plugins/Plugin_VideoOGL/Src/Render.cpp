@@ -308,14 +308,14 @@ Renderer::Renderer()
 	
 	g_Config.backend_info.bSupportsGLSync = GLEW_ARB_sync;
 	
-	//TODO: revert this after cache is fixed itself
-	g_Config.backend_info.bSupportsGLSLCache = false; // GLEW_ARB_get_program_binary
+	g_Config.backend_info.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
 
 	UpdateActiveConfig();
-	OSD::AddMessage(StringFromFormat("Supports Blending: %s UBOs: %s PinnedMem: %s",
+	OSD::AddMessage(StringFromFormat("Supports Blending: %s UBOs: %s PinnedMem: %s Cache: %s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "True" : "False",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False",
-			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "True" : "False").c_str(), 5000);
+			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "True" : "False",
+			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "True" : "False").c_str(), 5000);
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);

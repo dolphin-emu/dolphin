@@ -34,9 +34,6 @@ u32 ProgramShaderCache::s_ubo_buffer_size;
 bool ProgramShaderCache::s_ubo_dirty;
 
 LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
-GLenum ProgramFormat;
-
-GLuint ProgramShaderCache::PCacheEntry::prog_format = 0;
 
 static StreamBuffer *s_buffer;
 
@@ -216,6 +213,7 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 	// Make an entry in the table
 	PCacheEntry& newentry = pshaders[uid];
 	last_entry = &newentry;
+	newentry.in_cache = 0;
 	
 	const char *vcode = GenerateVertexShaderCode(components, API_OPENGL);
 	const char *pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
@@ -413,14 +411,23 @@ void ProgramShaderCache::Init(void)
 	// Read our shader cache, only if supported
 	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
 	{
-		PCacheEntry::prog_format = PCacheEntry::SetProgramFormat();
-
-		char cache_filename[MAX_PATH];
-		sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
-
-		ProgramShaderCacheInserter inserter;
-		g_program_disk_cache.OpenAndRead(cache_filename, inserter);
+		GLint Supported;
+		glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
+		if(!Supported)
+		{
+			ERROR_LOG(VIDEO, "GL_ARB_get_program_binary is supported, but no binary format is known. So disable shader cache.");
+			g_ActiveConfig.backend_info.bSupportsGLSLCache = false;
+		}
+		else
+		{
+			char cache_filename[MAX_PATH];
+			sprintf(cache_filename, "%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+			
+			ProgramShaderCacheInserter inserter;
+			g_program_disk_cache.OpenAndRead(cache_filename, inserter);
+		}
+		SETSTAT(stats.numPixelShadersAlive, pshaders.size());
 	}
 	
 	CurrentProgram = 0;
@@ -429,13 +436,25 @@ void ProgramShaderCache::Init(void)
 
 void ProgramShaderCache::Shutdown(void)
 {
+	// store all shaders in cache on disk
 	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
 	{
 		PCache::iterator iter = pshaders.begin();
 		for (; iter != pshaders.end(); ++iter)
 		{
-			g_program_disk_cache.Append(iter->first, iter->second.GetProgram(), iter->second.Size());
-			iter->second.FreeProgram();
+			if(iter->second.in_cache) continue;
+			
+			GLint binary_size;
+			glGetProgramiv(iter->second.shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
+			if(!binary_size) continue;
+			
+			u8 *data = new u8[binary_size+sizeof(GLenum)];
+			u8 *binary = data + sizeof(GLenum);
+			GLenum *prog_format = (GLenum*)data;
+			glGetProgramBinary(iter->second.shader.glprogid, binary_size, NULL, prog_format, binary);
+			
+			g_program_disk_cache.Append(iter->first, data, binary_size+sizeof(GLenum));
+			delete [] data;
 		}
 
 		g_program_disk_cache.Sync();
@@ -460,11 +479,14 @@ void ProgramShaderCache::Shutdown(void)
 
 void ProgramShaderCache::ProgramShaderCacheInserter::Read ( const SHADERUID& key, const u8* value, u32 value_size )
 {
-	// The two shaders might not even exist anymore
-	// But it is fine, no need to worry about that
+	const u8 *binary = value+sizeof(GLenum);
+	GLenum *prog_format = (GLenum*)value;
+	GLint binary_size = value_size-sizeof(GLenum);
+	
 	PCacheEntry entry;
+	entry.in_cache = 1;
 	entry.shader.glprogid = glCreateProgram();
-	glProgramBinary(entry.shader.glprogid, entry.prog_format, value, value_size);
+	glProgramBinary(entry.shader.glprogid, *prog_format, binary, binary_size);
 
 	GLint success;
 	glGetProgramiv(entry.shader.glprogid, GL_LINK_STATUS, &success);
@@ -474,6 +496,8 @@ void ProgramShaderCache::ProgramShaderCacheInserter::Read ( const SHADERUID& key
 		pshaders[key] = entry;
 		entry.shader.SetProgramVariables();
 	}
+	else
+		glDeleteProgram(entry.shader.glprogid);
 }
 
 

@@ -86,60 +86,11 @@ public:
 	{
 		SHADER shader;
 		SHADERUIDSAFE safe_uid;
-		
-		static GLenum prog_format;
-		u8 *binary;
-		GLint binary_size;
-		
-		PCacheEntry() :binary(NULL), binary_size(0) { }
-
-		~PCacheEntry() {}
+		bool in_cache;
 
 		void Destroy()
 		{
 			shader.Destroy();
-			FreeProgram();
-		}
-
-		void UpdateSize()
-		{
-			if (binary_size == 0)
-				glGetProgramiv(shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
-		}
-
-		// No idea how necessary this is
-		static GLenum SetProgramFormat()
-		{
-			GLint Supported;
-			glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
-
-			GLint *Formats = new GLint[Supported];
-			glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, Formats);
-			// We don't really care about format
-			GLenum prog_format = (GLenum)Formats[0];
-			delete[] Formats;
-			return prog_format;
-		}
-
-		u8 *GetProgram()
-		{
-			UpdateSize();
-			FreeProgram();
-			binary = new u8[binary_size];
-			glGetProgramBinary(shader.glprogid, binary_size, NULL, &prog_format, binary);
-			return binary;
-		}
-
-		void FreeProgram()
-		{
-			delete [] binary;
-			binary = NULL;
-		}
-
-		GLint Size()
-		{
-			UpdateSize();
-			return binary_size;
 		}
 	};
 
