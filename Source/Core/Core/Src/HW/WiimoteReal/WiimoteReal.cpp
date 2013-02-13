@@ -478,15 +478,14 @@ void TryToConnectWiimote(Wiimote* wm)
 	for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
 	{
 		if (WIIMOTE_SRC_REAL & g_wiimote_sources[i]
-			&& !g_wiimotes[i]
-			&& wm->Connect()
-			&& wm->Prepare(i))
+			&& !g_wiimotes[i])
 		{
-			g_wiimotes[i] = wm;
-
-			wm->StartThread();
-
-			wm = NULL;
+			if (wm->Connect() && wm->Prepare(i))
+			{
+				g_wiimotes[i] = wm;
+				wm->StartThread();
+				wm = NULL;
+			}
 			break;
 		}
 	}
@@ -508,11 +507,13 @@ void DoneWithWiimote(int index)
 		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
 		{
 			if (WIIMOTE_SRC_REAL & g_wiimote_sources[i]
-				&& !g_wiimotes[i]
-				&& g_wiimotes[index]->Prepare(i))
+				&& !g_wiimotes[i])
 			{
-				std::swap(g_wiimotes[i], g_wiimotes[index]);
-				g_wiimotes[i]->StartThread();
+				if (g_wiimotes[index]->Prepare(i))
+				{
+					std::swap(g_wiimotes[i], g_wiimotes[index]);
+					g_wiimotes[i]->StartThread();
+				}
 				break;
 			}
 		}
