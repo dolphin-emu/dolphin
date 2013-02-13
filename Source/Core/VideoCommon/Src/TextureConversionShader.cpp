@@ -822,27 +822,6 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 
 	char *p = text;
 
-	if (ApiType == API_OPENGL)
-	{
-		// A few required defines and ones that will make our lives a lot easier
-		WRITE(p, "#version 130\n");
-		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-			WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
-		
-		// Silly differences
-		WRITE(p, "#define float2 vec2\n");
-		WRITE(p, "#define float3 vec3\n");
-		WRITE(p, "#define float4 vec4\n");
-
-		// cg to glsl function translation
-		WRITE(p, "#define frac(x) fract(x)\n");
-		WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
-		WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
-
-		// We require this here
-		WRITE(p, "#ifdef GL_ARB_texture_rectangle\n     #extension GL_ARB_texture_rectangle : require\n#endif\n");
-	}
-
 	switch (format)
 	{
 	case GX_TF_I4:

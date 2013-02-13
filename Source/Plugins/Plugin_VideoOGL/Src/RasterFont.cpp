@@ -127,7 +127,6 @@ const u8 rasters[char_count][char_height] = {
 };
 
 static const char *s_vertexShaderSrc = 
-	"#version 130\n"
 	"uniform vec2 charSize;\n"
 	"in vec2 rawpos;\n"
 	"in vec2 tex0;\n"
@@ -138,7 +137,6 @@ static const char *s_vertexShaderSrc =
 	"}\n"; 
 
 static const char *s_fragmentShaderSrc =
-	"#version 130\n"
 	"uniform sampler2D samp8;\n"
 	"uniform vec4 color;\n"
 	"in vec2 uv0;\n"

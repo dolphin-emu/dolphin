@@ -110,6 +110,7 @@ public:
 
 	static void Init(void);
 	static void Shutdown(void);
+	static void CreateHeader(void);
 
 private:
 	class ProgramShaderCacheInserter : public LinearDiskCacheReader<SHADERUID, u8>

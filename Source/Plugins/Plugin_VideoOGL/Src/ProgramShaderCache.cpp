@@ -26,19 +26,20 @@ namespace OGL
 
 static const u32 UBO_LENGTH = 4*1024*1024;
 
-static GLuint CurrentProgram = 0;
-ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 GLintptr ProgramShaderCache::s_vs_data_offset;
 u8 *ProgramShaderCache::s_ubo_buffer;
 u32 ProgramShaderCache::s_ubo_buffer_size;
 bool ProgramShaderCache::s_ubo_dirty;
 
-LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
-
 static StreamBuffer *s_buffer;
 
+LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
+static GLuint CurrentProgram = 0;
+ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_entry;
 SHADERUID ProgramShaderCache::last_uid;
+
+static char s_glsl_header[1024] = "";
 
 const char *UniformNames[NUM_UNIFORMS] =
 {
@@ -291,7 +292,9 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		FILE *fp = fopen(szTemp, "wb");
 		fwrite(infoLog, length, 1, fp);
 		delete[] infoLog;
+		fwrite(s_glsl_header, strlen(s_glsl_header), 1, fp);
 		fwrite(vcode, strlen(vcode), 1, fp);
+		fwrite(s_glsl_header, strlen(s_glsl_header), 1, fp);
 		fwrite(pcode, strlen(pcode), 1, fp);
 		fclose(fp);
 	}
@@ -318,9 +321,9 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 {
 	GLuint result = glCreateShader(type);
 
-	const char *src[] = {code};
+	const char *src[] = {s_glsl_header, code};
 	
-	glShaderSource(result, 1, src, NULL);
+	glShaderSource(result, 2, src, NULL);
 	glCompileShader(result);
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
 	GLsizei length = 0;
@@ -335,6 +338,7 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		sprintf(szTemp, "ps_%d.txt", result);
 		FILE *fp = fopen(szTemp, "wb");
 		fwrite(infoLog, strlen(infoLog), 1, fp);
+		fwrite(s_glsl_header, strlen(s_glsl_header), 1, fp);
 		fwrite(code, strlen(code), 1, fp);
 		fclose(fp);
 		delete[] infoLog;
@@ -433,6 +437,8 @@ void ProgramShaderCache::Init(void)
 		SETSTAT(stats.numPixelShadersAlive, pshaders.size());
 	}
 	
+	CreateHeader();
+	
 	CurrentProgram = 0;
 	last_entry = NULL;
 }
@@ -479,6 +485,36 @@ void ProgramShaderCache::Shutdown(void)
 		s_ubo_buffer = 0;
 	}
 }
+
+void ProgramShaderCache::CreateHeader ( void )
+{
+	snprintf(s_glsl_header, sizeof(s_glsl_header), 
+		"#version %s\n"
+		"#extension GL_ARB_texture_rectangle : enable\n"
+		"%s\n" // ubo
+		
+		"\n"// A few required defines and ones that will make our lives a lot easier
+		"#define ATTRIN in\n"
+		"#define ATTROUT out\n"
+		"#define VARYIN in\n"
+		"#define VARYOUT out\n"
+
+		// Silly differences
+		"#define float2 vec2\n"
+		"#define float3 vec3\n"
+		"#define float4 vec4\n"
+
+		// hlsl to glsl function translation
+		"#define frac(x) fract(x)\n"
+		"#define saturate(x) clamp(x, 0.0f, 1.0f)\n"
+		"#define lerp(x, y, z) mix(x, y, z)\n"
+		
+		
+		, "130"
+		, g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "#extension GL_ARB_uniform_buffer_object : enable" : "// ubo disabled"
+	);
+}
+
 
 void ProgramShaderCache::ProgramShaderCacheInserter::Read ( const SHADERUID& key, const u8* value, u32 value_size )
 {

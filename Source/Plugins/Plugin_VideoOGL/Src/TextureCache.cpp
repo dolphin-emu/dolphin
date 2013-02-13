@@ -476,8 +476,6 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 TextureCache::TextureCache()
 {
 	const char *pColorMatrixProg = 
-		"#version 130\n"
-		"#extension GL_ARB_texture_rectangle : enable\n"
 		"uniform sampler2DRect samp9;\n"
 		"uniform vec4 colmat[7];\n"
 		"in vec2 uv0;\n"
@@ -490,8 +488,6 @@ TextureCache::TextureCache()
 		"}\n";
 
 	const char *pDepthMatrixProg =
-		"#version 130\n"
-		"#extension GL_ARB_texture_rectangle : enable\n"
 		"uniform sampler2DRect samp9;\n"
 		"uniform vec4 colmat[5];\n"
 		"in vec2 uv0;\n"
@@ -506,7 +502,6 @@ TextureCache::TextureCache()
 
 	
 	const char *VProgram =
-		"#version 130\n"
 		"in vec2 rawpos;\n"
 		"in vec2 tex0;\n"
 		"out vec2 uv0;\n"

@@ -66,7 +66,6 @@ static int s_cached_srcWidth = 0;
 static int s_cached_srcHeight = 0;
 
 static const char *VProgram =
-	"#version 130\n"
 	"in vec2 rawpos;\n"
 	"in vec2 tex0;\n"
 	"out vec2 uv0;\n"
@@ -80,8 +79,6 @@ void CreatePrograms()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *FProgramRgbToYuyv =
-		"#version 130\n"
-		"#extension GL_ARB_texture_rectangle : enable\n"
 		"uniform sampler2DRect samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
@@ -98,8 +95,6 @@ void CreatePrograms()
 		"}\n";
 
 	const char *FProgramYuyvToRgb =
-		"#version 130\n"
-		"#extension GL_ARB_texture_rectangle : enable\n"
 		"uniform sampler2DRect samp9;\n"
 		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"

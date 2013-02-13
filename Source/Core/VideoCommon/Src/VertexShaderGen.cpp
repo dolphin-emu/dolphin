@@ -184,29 +184,6 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	char *p = text;
 	WRITE(p, "//Vertex Shader: comp:%x, \n", components);
 	
-	if (ApiType == API_OPENGL)
-	{
-		// A few required defines and ones that will make our lives a lot easier
-		
-		WRITE(p, "#version 130\n");
-		if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-			WRITE(p, "#extension GL_ARB_uniform_buffer_object : enable\n");
-		WRITE(p, "#define ATTRIN in\n");
-		WRITE(p, "#define ATTROUT out\n");
-		WRITE(p, "#define VARYIN in\n");
-		WRITE(p, "#define VARYOUT out\n");
-		
-		// Silly differences
-		WRITE(p, "#define float2 vec2\n");
-		WRITE(p, "#define float3 vec3\n");
-		WRITE(p, "#define float4 vec4\n");
-
-		// cg to glsl function translation
-		WRITE(p, "#define frac(x) fract(x)\n");
-		WRITE(p, "#define saturate(x) clamp(x, 0.0f, 1.0f)\n");
-		WRITE(p, "#define lerp(x, y, z) mix(x, y, z)\n");
-	}
-	
 	// uniforms
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140) uniform VSBlock {\n");
