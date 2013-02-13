@@ -224,7 +224,6 @@
     <ClInclude Include="Src\Globals.h" />
     <ClInclude Include="Src\GLUtil.h" />
     <ClInclude Include="Src\main.h" />
-    <ClInclude Include="Src\PixelShaderCache.h" />
     <ClInclude Include="Src\PostProcessing.h" />
     <ClInclude Include="Src\ProgramShaderCache.h" />
     <ClInclude Include="Src\RasterFont.h" />
@@ -234,7 +233,6 @@
     <ClInclude Include="Src\TextureCache.h" />
     <ClInclude Include="Src\TextureConverter.h" />
     <ClInclude Include="Src\VertexManager.h" />
-    <ClInclude Include="Src\VertexShaderCache.h" />
     <ClInclude Include="Src\VideoBackend.h" />
   </ItemGroup>
   <ItemGroup>

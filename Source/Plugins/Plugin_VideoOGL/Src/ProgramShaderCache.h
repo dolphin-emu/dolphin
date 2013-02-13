@@ -20,28 +20,63 @@
 
 #include "GLUtil.h"
 
-#include "VertexShaderCache.h"
-#include "PixelShaderCache.h"
 #include "PixelShaderGen.h"
 #include "VertexShaderGen.h"
 
 #include "LinearDiskCache.h"
 #include "ConfigManager.h"
 
-#ifdef __APPLE__
-#include <tr1/unordered_map>
-using namespace std::tr1;
-#else
-#include <unordered_map>
-using namespace std;
-#endif
 namespace OGL
 {
 
+template<bool safe>
+class _SHADERUID
+{
+public:
+	_VERTEXSHADERUID<safe> vuid;
+	_PIXELSHADERUID<safe> puid;
+
+	_SHADERUID() {}
+
+	_SHADERUID(const _SHADERUID& r) : vuid(r.vuid), puid(r.puid) {}
+
+	bool operator <(const _SHADERUID& r) const
+	{
+		if(puid < r.puid) return true;
+		if(r.puid < puid) return false;
+		if(vuid < r.vuid) return true;
+		return false;
+	}
+
+	bool operator ==(const _SHADERUID& r) const
+	{
+		return puid == r.puid && vuid == r.vuid;
+	}
+};
+typedef _SHADERUID<false> SHADERUID;
+typedef _SHADERUID<true> SHADERUIDSAFE;
+
+
 const int NUM_UNIFORMS = 19;
 extern const char *UniformNames[NUM_UNIFORMS];
-u64 Create_Pair(u32 key1, u32 key2);
-void Get_Pair(u64 key, u32 *key1, u32 *key2);
+
+struct SHADER
+{
+	SHADER() : glprogid(0) { }
+	void Destroy()
+	{
+		glDeleteProgram(glprogid);
+		glprogid = 0;
+	}
+	GLuint glprogid; // opengl program id
+	
+	std::string strvprog, strpprog;
+	GLint UniformLocations[NUM_UNIFORMS];
+	
+	void SetProgramVariables();
+	void SetProgramBindings();
+	void Bind();
+};
 
 class ProgramShaderCache
 {
@@ -49,39 +84,27 @@ public:
 
 	struct PCacheEntry
 	{
-		GLuint prog_id;
+		SHADER shader;
+		PIXELSHADERUIDSAFE safe_uid;
+		
 		static GLenum prog_format;
 		u8 *binary;
 		GLint binary_size;
-		GLuint vsid, psid;
-		u64 uid;
-		GLint UniformLocations[NUM_UNIFORMS];
+		
+		PCacheEntry() :binary(NULL), binary_size(0) { }
 
-		PCacheEntry() : prog_id(0), binary(NULL), binary_size(0), vsid(0), psid(0)  { }
-
-		~PCacheEntry()
-		{
-			FreeProgram();
-		}
-
-		void Create(const GLuint pix_id, const GLuint vert_id)
-		{
-			psid = pix_id;
-			vsid = vert_id;
-			uid = Create_Pair(psid, vsid);
-			prog_id = glCreateProgram();
-		}
+		~PCacheEntry() {}
 
 		void Destroy()
 		{
-			glDeleteProgram(prog_id);
-			prog_id = 0;
+			shader.Destroy();
+			FreeProgram();
 		}
 
 		void UpdateSize()
 		{
 			if (binary_size == 0)
-				glGetProgramiv(prog_id, GL_PROGRAM_BINARY_LENGTH, &binary_size);
+				glGetProgramiv(shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
 		}
 
 		// No idea how necessary this is
@@ -103,7 +126,7 @@ public:
 			UpdateSize();
 			FreeProgram();
 			binary = new u8[binary_size];
-			glGetProgramBinary(prog_id, binary_size, NULL, &prog_format, binary);
+			glGetProgramBinary(shader.glprogid, binary_size, NULL, &prog_format, binary);
 			return binary;
 		}
 
@@ -121,8 +144,14 @@ public:
 	};
 
 	static PCacheEntry GetShaderProgram(void);
-	static void SetBothShaders(GLuint PS, GLuint VS);
 	static GLuint GetCurrentProgram(void);
+	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
+	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
+	static void GetSafeShaderId(SHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
+	static void ValidateShaderIDs(PCacheEntry *entry, DSTALPHA_MODE dstAlphaMode, u32 components);
+	
+	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode);
+	static GLuint CompileSingleShader(GLuint type, const char *code);
 
 	static void SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count);
 	static void SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count);
@@ -132,44 +161,22 @@ public:
 	static void Shutdown(void);
 
 private:
-	class ProgramShaderCacheInserter : public LinearDiskCacheReader<u64, u8>
+	class ProgramShaderCacheInserter : public LinearDiskCacheReader<SHADERUID, u8>
 	{
 	public:
-		void Read(const u64 &key, const u8 *value, u32 value_size)
-		{
-			// The two shaders might not even exist anymore
-			// But it is fine, no need to worry about that
-			PCacheEntry entry;
-			u32 key1, key2;
-			Get_Pair(key, &key1, &key2);
-			entry.Create(key1, key2);
-
-			glProgramBinary(entry.prog_id, entry.prog_format, value, value_size);
-
-			GLint success;
-			glGetProgramiv(entry.prog_id, GL_LINK_STATUS, &success);
-
-			if (success)
-			{
-				pshaders[key] = entry;
-				glUseProgram(entry.prog_id);
-				SetProgramVariables(entry);
-			}
-		}
+		void Read(const SHADERUID &key, const u8 *value, u32 value_size);
 	};
 
-	typedef unordered_map<u64, PCacheEntry> PCache;
+	typedef std::map<SHADERUID, PCacheEntry> PCache;
 
 	static PCache pshaders;
-	static GLuint CurrentProgram;
-	static u64 CurrentShaderProgram;
+	static PCacheEntry* last_entry;
+	static SHADERUID last_uid;
 
 	static GLintptr s_vs_data_offset;
 	static u8 *s_ubo_buffer;
 	static u32 s_ubo_buffer_size;
 	static bool s_ubo_dirty;
-	static void SetProgramVariables(PCacheEntry &entry);
-	static void SetProgramBindings(PCacheEntry &entry);
 };
 
 }  // namespace OGL

@@ -20,7 +20,7 @@
 #include "VideoConfig.h"
 #include "GLUtil.h"
 #include "PostProcessing.h"
-#include "PixelShaderCache.h"
+#include "ProgramShaderCache.h"
 
 namespace OGL
 {
@@ -29,7 +29,7 @@ namespace PostProcessing
 {
 
 static std::string s_currentShader;
-static FRAGMENTSHADER s_shader;
+static SHADER s_shader;
 
 void Init()
 {
@@ -63,10 +63,10 @@ bool ApplyShader()
 			std::string code;
 			if (File::ReadFileToString(true, s_currentShader.c_str(), code))
 			{
-				if (!PixelShaderCache::CompilePixelShader(s_shader, code.c_str()))
-				{
-					ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", s_currentShader.c_str());
-				}
+				//if (!ProgramShaderCache::CompileShader(s_shader, "#version130\n...", code.c_str()))
+				//{
+				//	ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", s_currentShader.c_str());
+				//}
 			}
 			else 
 			{
@@ -78,7 +78,7 @@ bool ApplyShader()
 	// TODO: Convert PP shaders to GLSL
 	if (s_shader.glprogid != 0)
 	{
-		// SetBothShaders(s_shader, 0);
+		s_shader.Bind();
 		return true;
 	}
 	else

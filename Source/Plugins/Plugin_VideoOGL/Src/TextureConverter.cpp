@@ -23,7 +23,6 @@
 #include "TextureConverter.h"
 #include "TextureConversionShader.h"
 #include "TextureCache.h"
-#include "PixelShaderCache.h"
 #include "ProgramShaderCache.h"
 #include "VertexShaderManager.h"
 #include "FramebufferManager.h"
@@ -51,13 +50,12 @@ static GLuint s_dstRenderBuffer = 0;	// for encoding to RAM
 const int renderBufferWidth = 1024;
 const int renderBufferHeight = 1024;
 
-static FRAGMENTSHADER s_rgbToYuyvProgram;
-static FRAGMENTSHADER s_yuyvToRgbProgram;
-static VERTEXSHADER s_vProgram;
+static SHADER s_rgbToYuyvProgram;
+static SHADER s_yuyvToRgbProgram;
 
 // Not all slots are taken - but who cares.
 const u32 NUM_ENCODING_PROGRAMS = 64;
-static FRAGMENTSHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
+static SHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 
 static GLuint s_encode_VBO = 0;
 static GLuint s_encode_VAO = 0;
@@ -66,6 +64,17 @@ static GLuint s_decode_VAO = 0;
 static TargetRectangle s_cached_sourceRc;
 static int s_cached_srcWidth = 0;
 static int s_cached_srcHeight = 0;
+
+static const char *VProgram =
+	"#version 130\n"
+	"in vec2 rawpos;\n"
+	"in vec2 tex0;\n"
+	"out vec2 uv0;\n"
+	"void main()\n"
+	"{\n"
+	"	uv0 = tex0;\n"
+	"	gl_Position = vec4(rawpos,0,1);\n"
+	"}\n";
 
 void CreatePrograms()
 {
@@ -87,8 +96,6 @@ void CreatePrograms()
 		"	vec4 const3 = vec4(0.0625,0.5,0.0625f,0.5);\n"
 		"	ocol0 = vec4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
 		"}\n";
-	if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgramRgbToYuyv))
-		ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program.");
 
 	const char *FProgramYuyvToRgb =
 		"#version 130\n"
@@ -109,24 +116,12 @@ void CreatePrograms()
 		"		yComp + (2.018f * uComp),\n"
 		"		1.0f);\n"
 		"}\n";
-	if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgramYuyvToRgb))
-		ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program.");
-	
-	const char *VProgram =
-		"#version 130\n"
-		"in vec2 rawpos;\n"
-		"in vec2 tex0;\n"
-		"out vec2 uv0;\n"
-		"void main()\n"
-		"{\n"
-		"	uv0 = tex0;\n"
-		"	gl_Position = vec4(rawpos,0,1);\n"
-		"}\n";
-	if (!VertexShaderCache::CompileVertexShader(s_vProgram, VProgram))
-		ERROR_LOG(VIDEO, "Failed to create texture converter vertex program.");
+		
+	ProgramShaderCache::CompileShader(s_rgbToYuyvProgram, VProgram, FProgramRgbToYuyv);
+	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgram, FProgramYuyvToRgb);
 }
 
-FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
+SHADER &GetOrCreateEncodingShader(u32 format)
 {
 	if (format > NUM_ENCODING_PROGRAMS)
 	{
@@ -149,9 +144,7 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 		}
 #endif
 
-		if (!PixelShaderCache::CompilePixelShader(s_encodingPrograms[format], shader)) {
-			ERROR_LOG(VIDEO, "Failed to create encoding fragment program");
-		}
+		ProgramShaderCache::CompileShader(s_encodingPrograms[format], VProgram, shader);
     }
 	return s_encodingPrograms[format];
 }
@@ -213,7 +206,6 @@ void Shutdown()
 
 	s_rgbToYuyvProgram.Destroy();
 	s_yuyvToRgbProgram.Destroy();
-	s_vProgram.Destroy();
 
 	for (unsigned int i = 0; i < NUM_ENCODING_PROGRAMS; i++)
 		s_encodingPrograms[i].Destroy();
@@ -325,9 +317,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
 			format |= _GX_TF_CTF;
 
-	FRAGMENTSHADER& texconv_shader = GetOrCreateEncodingShader(format);
-	if (texconv_shader.glprogid == 0)
-		return 0;
+	SHADER& texconv_shader = GetOrCreateEncodingShader(format);
 
 	u8 *dest_ptr = Memory::GetPointer(address);
 
@@ -344,8 +334,6 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	// extra pixels are copied but not displayed in the resulting texture
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
-
-	ProgramShaderCache::SetBothShaders(texconv_shader.glprogid, s_vProgram.glprogid);
 		
 	float sampleStride = bScaleByHalf ? 2.f : 1.f;
 	
@@ -355,7 +343,9 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		(float)expandedWidth, (float)Renderer::EFBToScaledY(expandedHeight)-1,
 		(float)Renderer::EFBToScaledX(source.left), (float)Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight)
 	};
-	glUniform4fv(ProgramShaderCache::GetShaderProgram().UniformLocations[C_COLORS], 2, params);
+
+	texconv_shader.Bind();
+	glUniform4fv(texconv_shader.UniformLocations[C_COLORS], 2, params);
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
@@ -379,7 +369,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 {
 	g_renderer->ResetAPIState();
 	
-	ProgramShaderCache::SetBothShaders(s_rgbToYuyvProgram.glprogid, s_vProgram.glprogid);
+	s_rgbToYuyvProgram.Bind();
 		
 	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	FramebufferManager::SetFramebuffer(0);
@@ -431,7 +421,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 	}
 
 	glViewport(0, 0, srcWidth, srcHeight);
-	ProgramShaderCache::SetBothShaders(s_yuyvToRgbProgram.glprogid, s_vProgram.glprogid);
+	s_yuyvToRgbProgram.Bind();
 
 	GL_REPORT_ERRORD();
 	

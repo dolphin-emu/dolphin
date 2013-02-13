@@ -27,7 +27,6 @@
 #include "VertexShaderGen.h"
 #include "VertexShaderManager.h"
 #include "ProgramShaderCache.h"
-#include "VertexShaderCache.h"
 #include "VertexManager.h"
 #include "VertexLoader.h"
 #include "XFMemory.h"
@@ -38,122 +37,6 @@
 namespace OGL
 {
 
-VertexShaderCache::VSCache VertexShaderCache::vshaders;
-GLuint VertexShaderCache::CurrentShader;
-bool VertexShaderCache::ShaderEnabled;
-
-VertexShaderCache::VSCacheEntry* VertexShaderCache::last_entry = NULL;
-VERTEXSHADERUID VertexShaderCache::last_uid;
-
-void VertexShaderCache::Init()
-{
-	ShaderEnabled = true;
-	CurrentShader = 0;
-	last_entry = NULL;
-}
-
-void VertexShaderCache::Shutdown()
-{
-	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
-		iter->second.Destroy();
-	vshaders.clear();
-}
-
-VERTEXSHADER* VertexShaderCache::SetShader(u32 components)
-{
-	VERTEXSHADERUID uid;
-	GetVertexShaderId(&uid, components);
-	if (last_entry)
-	{
-		if (uid == last_uid)
-		{
-			GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-			ValidateVertexShaderIDs(API_OPENGL, vshaders[uid].safe_uid, vshaders[uid].shader.strprog, components);
-			return &last_entry->shader;
-		}
-	}
-
-	last_uid = uid;
-
-	VSCache::iterator iter = vshaders.find(uid);
-	if (iter != vshaders.end())
-	{
-		VSCacheEntry &entry = iter->second;
-		last_entry = &entry;
-
-		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-		ValidateVertexShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, components);
-		return &last_entry->shader;
-	}
-
-	// Make an entry in the table
-	VSCacheEntry& entry = vshaders[uid];
-	last_entry = &entry;
-	const char *code = GenerateVertexShaderCode(components, API_OPENGL);
-	GetSafeVertexShaderId(&entry.safe_uid, components);
-
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
-		static int counter = 0;
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-
-		SaveData(szTemp, code);
-	}
-#endif
-
-	if (!code || !VertexShaderCache::CompileVertexShader(entry.shader, code)) {
-		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
-		return NULL;
-	}
-
-	INCSTAT(stats.numVertexShadersCreated);
-	SETSTAT(stats.numVertexShadersAlive, vshaders.size());
-	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-	return &last_entry->shader;
-}
-
-bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
-{
-	GLuint result = glCreateShader(GL_VERTEX_SHADER);
-
-	glShaderSource(result, 1, &pstrprogram, NULL);
-	glCompileShader(result);
-#if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
-	GLsizei length = 0;
-	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
-	if (length > 1)
-	{
-		GLsizei charsWritten;
-		GLchar* infoLog = new GLchar[length];
-		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-		ERROR_LOG(VIDEO, "VS Shader info log:\n%s", infoLog);
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "vs_%d.txt", result);
-		FILE *fp = fopen(szTemp, "wb");
-		fwrite(infoLog, strlen(infoLog), 1, fp);
-		fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
-		fclose(fp);
-		delete[] infoLog;
-	}
-
-	GLint compileStatus;
-	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
-	if (compileStatus != GL_TRUE)
-	{
-		// Compile failed
-		ERROR_LOG(VIDEO, "Shader compilation failed; see info log");
-		
-		// Don't try to use this shader
-		glDeleteShader(result);
-		return false;
-	}
-#endif
-	(void)GL_REPORT_ERROR();
-	vs.glprogid = result;
-	return true;
-}
-
 void SetVSConstant4fvByName(const char * name, unsigned int offset, const float *f, const unsigned int count = 1)
 {
 	ProgramShaderCache::PCacheEntry tmp = ProgramShaderCache::GetShaderProgram();
@@ -161,11 +44,11 @@ void SetVSConstant4fvByName(const char * name, unsigned int offset, const float 
 	{
 		if (!strcmp(name, UniformNames[a]))
 		{
-			if (tmp.UniformLocations[a] == -1)
+			if (tmp.shader.UniformLocations[a] == -1)
 				return;
 			else
 			{
-				glUniform4fv(tmp.UniformLocations[a] + offset, count, f);
+				glUniform4fv(tmp.shader.UniformLocations[a] + offset, count, f);
 				return;
 			}
 		}

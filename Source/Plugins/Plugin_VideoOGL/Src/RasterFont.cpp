@@ -18,9 +18,7 @@
 #include "GLUtil.h"
 
 #include "RasterFont.h"
-#include "PixelShaderCache.h"
 #include "ProgramShaderCache.h"
-#include "VertexShaderCache.h"
 // globals
 
 namespace OGL {
@@ -149,9 +147,7 @@ static const char *s_fragmentShaderSrc =
 	"	ocol0 = texture(samp8,uv0) * color;\n"
 	"}\n";
 	
-	
-static FRAGMENTSHADER s_fragmentShader;
-static VERTEXSHADER s_vertexShader;
+static SHADER s_shader;
 	
 RasterFont::RasterFont()
 {
@@ -174,14 +170,11 @@ RasterFont::RasterFont()
 	delete [] texture_data;
 	
 	// generate shader
-	VertexShaderCache::CompileVertexShader(s_vertexShader, s_vertexShaderSrc);
-	PixelShaderCache::CompilePixelShader(s_fragmentShader, s_fragmentShaderSrc);
-	ProgramShaderCache::SetBothShaders(s_fragmentShader.glprogid, s_vertexShader.glprogid);
-	GLuint shader_program = ProgramShaderCache::GetCurrentProgram();
+	ProgramShaderCache::CompileShader(s_shader, s_vertexShaderSrc, s_fragmentShaderSrc);
 	
 	// bound uniforms
-	glUniform2f(glGetUniformLocation(shader_program,"charSize"), 1.0f / GLfloat(char_count), 1.0f);
-	uniform_color_id = glGetUniformLocation(shader_program,"color");
+	glUniform2f(glGetUniformLocation(s_shader.glprogid,"charSize"), 1.0f / GLfloat(char_count), 1.0f);
+	uniform_color_id = glGetUniformLocation(s_shader.glprogid,"color");
 	glUniform4f(uniform_color_id, 1.0f, 1.0f, 1.0f, 1.0f);
 	cached_color = -1;
 	
@@ -201,8 +194,7 @@ RasterFont::~RasterFont()
 	glDeleteTextures(1, &texture);
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
-	s_fragmentShader.Destroy();
-	s_vertexShader.Destroy();
+	s_shader.Destroy();
 }
 
 void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
@@ -280,7 +272,7 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	
 	delete [] vertices;
 
-	ProgramShaderCache::SetBothShaders(s_fragmentShader.glprogid, s_vertexShader.glprogid);
+	s_shader.Bind();
 	
 	if(color != cached_color) {
 		glUniform4f(uniform_color_id, GLfloat((color>>16)&0xff)/255.f,GLfloat((color>>8)&0xff)/255.f,GLfloat((color>>0)&0xff)/255.f,GLfloat((color>>24)&0xff)/255.f);

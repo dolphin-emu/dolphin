@@ -29,9 +29,7 @@
 #include "ImageWrite.h"
 #include "BPMemory.h"
 #include "TextureCache.h"
-#include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
-#include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
 #include "ProgramShaderCache.h"
 #include "VertexShaderGen.h"
@@ -246,28 +244,23 @@ void VertexManager::vFlush()
 	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
 	// finally bind
-	FRAGMENTSHADER* ps;
 	if (dualSourcePossible)
 	{
 		if (useDstAlpha)
 		{
 			// If host supports GL_ARB_blend_func_extended, we can do dst alpha in
 			// the same pass as regular rendering.
-			ps = PixelShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
+			ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
 		}
 		else
 		{
-			ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
+			ProgramShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
 		}
 	}
 	else
 	{
-		ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
+		ProgramShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
 	}
-	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
-	
-	if(ps && vs)
-		ProgramShaderCache::SetBothShaders(ps->glprogid, vs->glprogid);
 
 	// set global constants
 	VertexShaderManager::SetConstants();
@@ -284,9 +277,7 @@ void VertexManager::vFlush()
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
 	{
-		ps = PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
-		if(ps && vs)
-			ProgramShaderCache::SetBothShaders(ps->glprogid, vs->glprogid);
+		ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
 		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		{
 			// Need to set these again, if we don't support UBO

@@ -43,10 +43,8 @@
 #include "RasterFont.h"
 #include "VertexShaderGen.h"
 #include "DLCache.h"
-#include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "ProgramShaderCache.h"
-#include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
 #include "VertexLoaderManager.h"
 #include "VertexLoader.h"
@@ -107,8 +105,7 @@ namespace OGL
 static int s_fps = 0;
 static GLuint s_ShowEFBCopyRegions_VBO = 0;
 static GLuint s_ShowEFBCopyRegions_VAO = 0;
-static FRAGMENTSHADER s_ShowEFBCopyRegions_PS;
-static VERTEXSHADER s_ShowEFBCopyRegions_VS;
+static SHADER s_ShowEFBCopyRegions;
 
 static RasterFont* s_pfont = NULL;
 
@@ -433,23 +430,14 @@ void Renderer::Shutdown()
 	
 	delete s_pfont;
 	s_pfont = 0;
-	s_ShowEFBCopyRegions_PS.Destroy();
-	s_ShowEFBCopyRegions_VS.Destroy();
+	s_ShowEFBCopyRegions.Destroy();
 }
 
 void Renderer::Init()
 {
 	s_pfont = new RasterFont();
 	
-	PixelShaderCache::CompilePixelShader(s_ShowEFBCopyRegions_PS,
-		"#version 130\n"
-		"in vec4 c;\n"
-		"out vec4 ocol0;\n"
-		"void main(void) {\n"
-		"	ocol0 = c;\n"
-		"}\n"
-	);
-	VertexShaderCache::CompileVertexShader(s_ShowEFBCopyRegions_VS,
+	ProgramShaderCache::CompileShader(s_ShowEFBCopyRegions, 
 		"#version 130\n"
 		"in vec2 rawpos;\n"
 		"in vec3 color0;\n"
@@ -457,8 +445,13 @@ void Renderer::Init()
 		"void main(void) {\n"
 		"	gl_Position = vec4(rawpos,0,1);\n"
 		"	c = vec4(color0, 1.0);\n"
-		"}\n"
-	);
+		"}\n",
+		"#version 130\n"
+		"in vec4 c;\n"
+		"out vec4 ocol0;\n"
+		"void main(void) {\n"
+		"	ocol0 = c;\n"
+		"}\n");
 	
 	// creating buffers
 	glGenBuffers(1, &s_ShowEFBCopyRegions_VBO);
@@ -603,7 +596,7 @@ void Renderer::DrawDebugInfo()
 		}
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 		
-		ProgramShaderCache::SetBothShaders(s_ShowEFBCopyRegions_PS.glprogid, s_ShowEFBCopyRegions_VS.glprogid);
+		s_ShowEFBCopyRegions.Bind();
 		glBindVertexArray( s_ShowEFBCopyRegions_VAO );
 		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
 

@@ -63,9 +63,6 @@
     <ClInclude Include="Src\FramebufferManager.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\PixelShaderCache.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="Src\PostProcessing.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -76,9 +73,6 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Src\TextureCache.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\VertexShaderCache.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

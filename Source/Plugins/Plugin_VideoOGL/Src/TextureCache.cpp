@@ -42,7 +42,6 @@
 #include "HW/Memmap.h"
 #include "ImageWrite.h"
 #include "MemoryUtil.h"
-#include "PixelShaderCache.h"
 #include "ProgramShaderCache.h"
 #include "PixelShaderManager.h"
 #include "Render.h"
@@ -57,13 +56,12 @@
 namespace OGL
 {
 
-static FRAGMENTSHADER s_ColorMatrixProgram;
-static FRAGMENTSHADER s_DepthMatrixProgram;
+static SHADER s_ColorMatrixProgram;
+static SHADER s_DepthMatrixProgram;
 static GLuint s_ColorMatrixUniform;
 static GLuint s_DepthMatrixUniform;
 static u32 s_ColorCbufid;
 static u32 s_DepthCbufid;
-static VERTEXSHADER s_vProgram;
 
 static u32 s_Textures[8];
 static u32 s_ActiveTexture;
@@ -335,12 +333,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glViewport(0, 0, virtual_width, virtual_height);
 
 		if(srcFormat == PIXELFMT_Z24) {
-			ProgramShaderCache::SetBothShaders(s_DepthMatrixProgram.glprogid, s_vProgram.glprogid);
+			s_DepthMatrixProgram.Bind();
 			if(s_DepthCbufid != cbufid)
 				glUniform4fv(s_DepthMatrixUniform, 5, colmat);
 			s_DepthCbufid = cbufid;
 		} else {
-			ProgramShaderCache::SetBothShaders(s_ColorMatrixProgram.glprogid, s_vProgram.glprogid);
+			s_ColorMatrixProgram.Bind();
 			if(s_ColorCbufid != cbufid)
 				glUniform4fv(s_ColorMatrixUniform, 7, colmat);
 			s_ColorCbufid = cbufid;
@@ -499,11 +497,6 @@ TextureCache::TextureCache()
 		"	Temp1.w = dot(Temp0, colmat[3]);\n"
 		"	ocol0 = Temp1 + colmat[4];\n"
 		"}\n";
-	if (!PixelShaderCache::CompilePixelShader(s_ColorMatrixProgram, pColorMatrixProg))
-	{
-		ERROR_LOG(VIDEO, "Failed to create color matrix fragment program");
-		s_ColorMatrixProgram.Destroy();
-	}
 
 	const char *pDepthMatrixProg =
 		"#version 130\n"
@@ -538,11 +531,6 @@ TextureCache::TextureCache()
 		"	ocol0 = R1 * colmat[4];\n"
 		"}\n";
 
-	if (!PixelShaderCache::CompilePixelShader(s_DepthMatrixProgram, pDepthMatrixProg))
-	{
-		ERROR_LOG(VIDEO, "Failed to create depth matrix fragment program");
-		s_DepthMatrixProgram.Destroy();
-	}
 	
 	const char *VProgram =
 		"#version 130\n"
@@ -554,13 +542,12 @@ TextureCache::TextureCache()
 		"	uv0 = tex0;\n"
 		"	gl_Position = vec4(rawpos,0,1);\n"
 		"}\n";
-	if (!VertexShaderCache::CompileVertexShader(s_vProgram, VProgram))
-		ERROR_LOG(VIDEO, "Failed to create texture converter vertex program.");
+		
+	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, VProgram, pColorMatrixProg);
+	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, VProgram, pDepthMatrixProg);
 	
-	ProgramShaderCache::SetBothShaders(s_ColorMatrixProgram.glprogid, s_vProgram.glprogid);
-	s_ColorMatrixUniform = glGetUniformLocation(ProgramShaderCache::GetCurrentProgram(), "colmat");
-	ProgramShaderCache::SetBothShaders(s_DepthMatrixProgram.glprogid, s_vProgram.glprogid);
-	s_DepthMatrixUniform = glGetUniformLocation(ProgramShaderCache::GetCurrentProgram(), "colmat");
+	s_ColorMatrixUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "colmat");
+	s_DepthMatrixUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "colmat");
 	s_ColorCbufid = -1;
 	s_DepthCbufid = -1;
 	
@@ -574,7 +561,6 @@ TextureCache::~TextureCache()
 {
 	s_ColorMatrixProgram.Destroy();
 	s_DepthMatrixProgram.Destroy();
-	s_vProgram.Destroy();
 	
 	for(std::map<u64, VBOCache>::iterator it = s_VBO.begin(); it != s_VBO.end(); it++) {
 		glDeleteBuffers(1, &it->second.vbo);

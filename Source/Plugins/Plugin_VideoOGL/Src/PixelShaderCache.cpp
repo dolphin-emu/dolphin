@@ -28,7 +28,6 @@
 #include "Render.h"
 #include "VertexShaderGen.h"
 #include "ProgramShaderCache.h"
-#include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "OnScreenDisplay.h"
 #include "StringUtil.h"
@@ -38,136 +37,6 @@
 namespace OGL
 {
 
-static int s_nMaxPixelInstructions;
-PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
-PIXELSHADERUID PixelShaderCache::s_curuid;
-bool PixelShaderCache::s_displayCompileAlert;
-GLuint PixelShaderCache::CurrentShader;
-bool PixelShaderCache::ShaderEnabled;
-
-PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry = NULL;
-PIXELSHADERUID PixelShaderCache::last_uid;
-
-void PixelShaderCache::Init()
-{
-	ShaderEnabled = true;
-	CurrentShader = 0;
-	last_entry = NULL;
-	GL_REPORT_ERRORD();
-
-	s_displayCompileAlert = true;
-}
-
-void PixelShaderCache::Shutdown()
-{
-	PSCache::iterator iter = PixelShaders.begin();
-	for (; iter != PixelShaders.end(); iter++)
-		iter->second.Destroy();
-	PixelShaders.clear();
-}
-
-FRAGMENTSHADER* PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
-{
-	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlphaMode, components);
-
-	// Check if the shader is already set
-	if (last_entry)
-	{
-		if (uid == last_uid)
-		{
-			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-			ValidatePixelShaderIDs(API_OPENGL, last_entry->safe_uid, last_entry->shader.strprog, dstAlphaMode, components);
-			return &last_entry->shader;
-		}
-	}
-
-	last_uid = uid;
-
-	PSCache::iterator iter = PixelShaders.find(uid);
-	if (iter != PixelShaders.end())
-	{
-		PSCacheEntry &entry = iter->second;
-		last_entry = &entry;
-
-		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		ValidatePixelShaderIDs(API_OPENGL, entry.safe_uid, entry.shader.strprog, dstAlphaMode, components);
-		return &last_entry->shader;
-	}
-
-	// Make an entry in the table
-	PSCacheEntry& newentry = PixelShaders[uid];
-	last_entry = &newentry;
-	const char *code = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
-
-	if (g_ActiveConfig.bEnableShaderDebugging && code)
-	{
-		GetSafePixelShaderId(&newentry.safe_uid, dstAlphaMode, components);
-		newentry.shader.strprog = code;
-	}
-
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
-		static int counter = 0;
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-
-		SaveData(szTemp, code);
-	}
-#endif
-
-	if (!code || !CompilePixelShader(newentry.shader, code)) {
-		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
-		return NULL;
-	}
-
-	INCSTAT(stats.numPixelShadersCreated);
-	SETSTAT(stats.numPixelShadersAlive, PixelShaders.size());
-	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-	return &last_entry->shader;
-}
-
-bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
-{
-	GLuint result = glCreateShader(GL_FRAGMENT_SHADER);
-
-	glShaderSource(result, 1, &pstrprogram, NULL);
-	glCompileShader(result);
-#if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
-	GLsizei length = 0;
-	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
-	if (length > 1)
-	{
-		GLsizei charsWritten;
-		GLchar* infoLog = new GLchar[length];
-		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-		ERROR_LOG(VIDEO, "PS Shader info log:\n%s", infoLog);
-		char szTemp[MAX_PATH];
-		sprintf(szTemp, "ps_%d.txt", result);
-		FILE *fp = fopen(szTemp, "wb");
-		fwrite(infoLog, strlen(infoLog), 1, fp);
-		fwrite(pstrprogram, strlen(pstrprogram), 1, fp);
-		fclose(fp);
-		delete[] infoLog;
-	}
-
-	GLint compileStatus;
-	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
-	if (compileStatus != GL_TRUE)
-	{
-		// Compile failed
-		ERROR_LOG(VIDEO, "Shader compilation failed; see info log");
-
-		// Don't try to use this shader
-		glDeleteShader(result);
-		return false;
-	}
-#endif
-	(void)GL_REPORT_ERROR();
-	ps.glprogid = result;
-	return true;
-}
-
 void SetPSConstant4fvByName(const char * name, unsigned int offset, const float *f, const unsigned int count = 1)
 {
 	ProgramShaderCache::PCacheEntry tmp = ProgramShaderCache::GetShaderProgram();
@@ -175,11 +44,11 @@ void SetPSConstant4fvByName(const char * name, unsigned int offset, const float 
 	{
 		if (!strcmp(name, UniformNames[a]))
 		{
-			if (tmp.UniformLocations[a] == -1)
+			if (tmp.shader.UniformLocations[a] == -1)
 				return;
 			else
 			{
-				glUniform4fv(tmp.UniformLocations[a] + offset, count, f);
+				glUniform4fv(tmp.shader.UniformLocations[a] + offset, count, f);
 				return;
 			}
 		}
