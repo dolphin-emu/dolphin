@@ -488,6 +488,19 @@ void ProgramShaderCache::Shutdown(void)
 
 void ProgramShaderCache::CreateHeader ( void )
 {
+#ifdef _WIN32
+	// Intel Windows driver has a issue:
+	// their glsl doesn't know about the ubo extension, so we can't load it.
+	// but as version 140, ubo is in core and don't have to be loaded in glsl.
+	// as sandy do ogl3.1, glsl 140 is supported, so force it in this way. 
+	// TODO: remove this again when the issue is fixed:
+	// see http://communities.intel.com/thread/36084
+	u8 *vendor = glGetString(GL_VENDOR);
+	bool intel_windows_hack = strcmp(vendor, "Intel") == 0;
+#else
+	bool intel_windows_hack = false;
+#endif
+	
 	snprintf(s_glsl_header, sizeof(s_glsl_header), 
 		"#version %s\n"
 		"#extension GL_ARB_texture_rectangle : enable\n"
@@ -510,8 +523,8 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define lerp(x, y, z) mix(x, y, z)\n"
 		
 		
-		, "130"
-		, g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "#extension GL_ARB_uniform_buffer_object : enable" : "// ubo disabled"
+		, intel_windows_hack ? "140" : "130"
+		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && !intel_windows_hack ? "#extension GL_ARB_uniform_buffer_object : enable" : "// ubo disabled"
 	);
 }
 
