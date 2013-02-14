@@ -495,7 +495,7 @@ void ProgramShaderCache::CreateHeader ( void )
 	// as sandy do ogl3.1, glsl 140 is supported, so force it in this way. 
 	// TODO: remove this again when the issue is fixed:
 	// see http://communities.intel.com/thread/36084
-	u8 *vendor = glGetString(GL_VENDOR);
+	char *vendor = (char*)glGetString(GL_VENDOR);
 	bool intel_windows_hack = strcmp(vendor, "Intel") == 0;
 #else
 	bool intel_windows_hack = false;
