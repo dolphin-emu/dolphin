@@ -125,7 +125,7 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	if (z < 0 || z > 0x00ffffff)
 		return;
 
-	if (bpmem.zcontrol.early_ztest && bpmem.zmode.testenable)
+	if (bpmem.zcontrol.early_ztest && bpmem.zmode.testenable && g_SWVideoConfig.bZComploc)
 	{
 		// early z
 		if (!EfbInterface::ZCompare(x, y, z))
