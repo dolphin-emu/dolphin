@@ -369,7 +369,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
     float w[3] = { 1.0f / v0->projectedPosition.w, 1.0f / v1->projectedPosition.w, 1.0f / v2->projectedPosition.w };
     InitSlope(&WSlope, w[0], w[1], w[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
-	if (!bpmem.genMode.zfreeze)
+	if (!bpmem.genMode.zfreeze || !g_SWVideoConfig.bZFreeze)
 	    InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
     for(unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
