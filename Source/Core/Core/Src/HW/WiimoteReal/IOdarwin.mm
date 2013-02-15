@@ -216,19 +216,25 @@ bool Wiimote::Connect()
 // Disconnect a wiimote.
 void Wiimote::Disconnect()
 {
+	if (btd != NULL)
+		[btd closeConnection];
+
+	if (ichan != NULL)
+		[ichan release];
+
+	if (cchan != NULL)
+		[cchan release];
+
+	btd = NULL;
+	cchan = NULL;
+	ichan = NULL;
+
 	if (!IsConnected())
 		return;
 
 	NOTICE_LOG(WIIMOTE, "Disconnecting wiimote %i", index + 1);
 
 	m_connected = false;
-
-	[btd closeConnection];
-    [ichan release];
-    [cchan release];
-	btd = NULL;
-	cchan = NULL;
-	ichan = NULL;
 }
 
 bool Wiimote::IsConnected() const

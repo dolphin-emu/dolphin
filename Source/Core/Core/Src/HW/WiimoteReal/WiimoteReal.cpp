@@ -161,6 +161,18 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 	{
 		rpt.first[0] = WM_SET_REPORT | WM_BT_OUTPUT;
  	}
+ 	
+ 	// Disallow games from turning off all of the LEDs.
+ 	// It makes wiimote connection status confusing.
+ 	if (rpt.first[1] == WM_LEDS)
+	{
+		auto& leds_rpt = *reinterpret_cast<wm_leds*>(&rpt.first[2]);
+		if (0 == leds_rpt.leds)
+		{
+			// Turn on ALL of the LEDs.
+			leds_rpt.leds = 0xf;
+		}
+	}
 
 	m_write_reports.Push(rpt);
 }
@@ -265,12 +277,15 @@ bool Wiimote::Prepare(int _index)
 
 	// Turn off rumble
 	u8 rumble_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_RUMBLE, 0};
-
-	// TODO: request status and check for sane response?
+	
+	// Request status report
+	u8 const req_status_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REQUEST_STATUS, 0};
+	// TODO: check for sane response?
 
 	return (IOWrite(mode_report, sizeof(mode_report))
 		&& IOWrite(led_report, sizeof(led_report))
-		&& (SLEEP(200), IOWrite(rumble_report, sizeof(rumble_report))));
+		&& (SLEEP(200), IOWrite(rumble_report, sizeof(rumble_report)))
+		&& IOWrite(req_status_report, sizeof(req_status_report)));
 }
 
 void Wiimote::EmuStart()
@@ -382,9 +397,6 @@ void Wiimote::ThreadFunc()
 {
 	Common::SetCurrentThreadName("Wiimote Device Thread");
 
-	Host_ConnectWiimote(index, true);
-	NOTICE_LOG(WIIMOTE, "Connected to wiimote %i.", index + 1);
-
 	// main loop
 	while (m_run_thread && IsConnected())
 	{
@@ -485,6 +497,8 @@ void TryToConnectWiimote(Wiimote* wm)
 				g_wiimotes[i] = wm;
 				wm->StartThread();
 				wm = NULL;
+				
+				Host_ConnectWiimote(i, true);
 			}
 			break;
 		}
@@ -513,6 +527,8 @@ void DoneWithWiimote(int index)
 				{
 					std::swap(g_wiimotes[i], g_wiimotes[index]);
 					g_wiimotes[i]->StartThread();
+					
+					Host_ConnectWiimote(i, true);
 				}
 				break;
 			}
@@ -563,9 +579,12 @@ void Refresh()
 	// Brief rumble for already connected wiimotes.
 	for (int i = 0; i != MAX_WIIMOTES; ++i)
 	{
-		// kinda sloppy
 		if (g_wiimotes[i])
+		{
+			g_wiimotes[i]->StopThread();
 			g_wiimotes[i]->Prepare(i);
+			g_wiimotes[i]->StartThread();
+		}
 	}
 
 	HandleFoundWiimotes(found_wiimotes);
