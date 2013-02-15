@@ -823,6 +823,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 	WRITE(p, "depth = zCoord;\n");
 
+	// mark all NaNs. Intel yield NaNs because of UBO driver bug. This here is a hack to blame the driver
+	WRITE (p, "\tif(isnan(prev.x) || isinf(prev.x) || isnan(prev.y) || isinf(prev.y) || isnan(prev.z) || isinf(prev.z) || isnan(prev.w) || isinf(prev.w))\n"); // TODO: on intel/mesa, here will be a division by zero
+	WRITE (p, "\t\tprev = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
+	
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 		WRITE(p, "\tocol0 = float4(prev.rgb, " I_ALPHA"[0].a);\n");
 	else
@@ -1304,8 +1308,6 @@ static void WriteFog(char *&p)
 		// perspective
 		// ze = A/(B - (Zs >> B_SHF)
 		WRITE (p, "\tfloat ze = " I_FOG"[1].x / (" I_FOG"[1].y - (zCoord / " I_FOG"[1].w));\n");
-		WRITE (p, "\tif(isnan(ze))\n"); // TODO: on intel/mesa, here will be a division by zero
-		WRITE (p, "\t\tze = 0.0f;\n");
 	}
 	else
 	{
