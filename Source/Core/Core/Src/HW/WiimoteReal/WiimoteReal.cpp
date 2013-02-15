@@ -565,13 +565,15 @@ void Refresh()
 	g_wiimote_scanner.StopScanning();
 	
 	{
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
+	std::unique_lock<std::recursive_mutex> lk(g_refresh_lock);
 	std::vector<Wiimote*> found_wiimotes;
 	
 	if (0 != CalculateWantedWiimotes())
 	{
+		// Don't hang dolphin when searching
+		lk.unlock();
 		found_wiimotes = g_wiimote_scanner.FindWiimotes();
+		lk.lock();
 	}
 
 	CheckForDisconnectedWiimotes();
