@@ -784,7 +784,7 @@ void Tev::Draw()
 		output[BLU_C] = (output[BLU_C] * invFog + fogInt * bpmem.fog.color.b) >> 8;
 	}
 
-	bool late_ztest = !bpmem.zcontrol.early_ztest || g_SWVideoConfig.bZComploc;
+	bool late_ztest = !bpmem.zcontrol.early_ztest || !g_SWVideoConfig.bZComploc;
 	if (late_ztest && bpmem.zmode.testenable)
 	{
 		if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
