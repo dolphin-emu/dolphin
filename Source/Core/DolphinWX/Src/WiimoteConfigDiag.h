@@ -63,6 +63,11 @@ public:
 		WiimoteReal::Initialize();
 		event.Skip();
 	}
+	void OnEnableSpeaker(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
+		event.Skip();
+	}
 
 private:
 	void Cancel(wxCommandEvent& event);

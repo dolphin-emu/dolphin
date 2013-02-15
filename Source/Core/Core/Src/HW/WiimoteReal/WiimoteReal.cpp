@@ -173,6 +173,15 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 			leds_rpt.leds = 0xf;
 		}
 	}
+	else if (rpt.first[1] == WM_WRITE_SPEAKER_DATA
+		&& !SConfig::GetInstance().m_WiimoteEnableSpeaker)
+	{
+		// Translate speaker data reports into rumble reports.
+		rpt.first[1] = WM_CMD_RUMBLE;
+		// Keep only the rumble bit.
+		rpt.first[2] &= 0x1;
+		rpt.second = 3;
+	}
 
 	m_write_reports.Push(rpt);
 }

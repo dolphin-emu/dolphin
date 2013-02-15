@@ -242,6 +242,7 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
 	ini.Set("Core", "WiimoteReconnectOnLoad", m_WiimoteReconnectOnLoad);
 	ini.Set("Core", "WiimoteContinuousScanning", m_WiimoteContinuousScanning);
+	ini.Set("Core", "WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
 	ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
 	ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
 	ini.Set("Core", "FrameLimit",		m_Framelimit);
@@ -393,6 +394,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "WiiKeyboard",		&m_WiiKeyboard,									false);
 		ini.Get("Core", "WiimoteReconnectOnLoad",	&m_WiimoteReconnectOnLoad,				true);
 		ini.Get("Core", "WiimoteContinuousScanning", &m_WiimoteContinuousScanning,			false);
+		ini.Get("Core", "WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker,					true);
 		ini.Get("Core", "RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);

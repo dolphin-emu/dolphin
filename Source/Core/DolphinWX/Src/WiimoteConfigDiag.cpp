@@ -71,11 +71,17 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	wxCheckBox* const continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
 	continuous_scanning->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &WiimoteConfigDiag::OnContinuousScanning, this);
 	continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
+
+	auto wiimote_speaker = new wxCheckBox(this, wxID_ANY, _("Enable Speaker Data"));
+	wiimote_speaker->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &WiimoteConfigDiag::OnEnableSpeaker, this);
+	wiimote_speaker->SetValue(SConfig::GetInstance().m_WiimoteEnableSpeaker);
 	
 	real_wiimotes_sizer->Add(continuous_scanning, 0, wxALIGN_CENTER_VERTICAL);
 	real_wiimotes_sizer->AddStretchSpacer(1);
 	real_wiimotes_sizer->Add(refresh_btn, 0, wxALL | wxALIGN_CENTER, 5);
-	real_wiimotes_group->Add(real_wiimotes_sizer, 1, wxEXPAND);
+
+	real_wiimotes_group->Add(wiimote_speaker, 0);
+	real_wiimotes_group->Add(real_wiimotes_sizer, 0, wxEXPAND);
 
 	// "General Settings" controls
 	const wxString str[] = { _("Bottom"), _("Top") };
