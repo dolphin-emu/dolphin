@@ -484,7 +484,7 @@ TextureCache::TextureCache()
 		"void main(){\n"
 		"	vec4 texcol = texture2DRect(samp9, uv0);\n"
 		"	texcol = round(texcol * colmat[5]) * colmat[6];\n"
-		"	ocol0 = mat4(colmat[0], colmat[1], colmat[2], colmat[3]) * texcol + colmat[4];\n"
+		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
 	const char *pDepthMatrixProg =
@@ -497,7 +497,7 @@ TextureCache::TextureCache()
 		"	vec4 texcol = texture2DRect(samp9, uv0);\n"
 		"	vec4 EncodedDepth = fract((texcol.r * (16777215.0f/16777216.0f)) * vec4(1.0f,256.0f,256.0f*256.0f,1.0f));\n"
 		"	texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * vec4(255.0f,255.0f,255.0f,15.0f)) / vec4(255.0f,255.0f,255.0f,15.0f);\n"
-		"	ocol0 = mat4(colmat[0], colmat[1], colmat[2], colmat[3]) * texcol + colmat[4];"
+		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];"
 		"}\n";
 
 	
