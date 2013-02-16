@@ -431,7 +431,7 @@ static bool AlphaCompare(int alpha, int ref, int comp)
     return true;
 }
 
-static bool AlphaTest(int alpha)
+static bool TevAlphaTest(int alpha)
 {
     bool comp0 = AlphaCompare(alpha, bpmem.alpha_test.ref0, bpmem.alpha_test.comp0);
     bool comp1 = AlphaCompare(alpha, bpmem.alpha_test.ref1, bpmem.alpha_test.comp1);
@@ -700,7 +700,7 @@ void Tev::Draw()
     // convert to 8 bits per component
     u8 output[4] = {(u8)Reg[0][ALP_C], (u8)Reg[0][BLU_C], (u8)Reg[0][GRN_C], (u8)Reg[0][RED_C]};
 
-    if (!AlphaTest(output[ALP_C]))
+    if (!TevAlphaTest(output[ALP_C]))
         return;
 
     // z texture
@@ -784,11 +784,12 @@ void Tev::Draw()
 		output[BLU_C] = (output[BLU_C] * invFog + fogInt * bpmem.fog.color.b) >> 8;
 	}
 
-    if (!bpmem.zcontrol.early_ztest && bpmem.zmode.testenable)
-    {
-        if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
-            return;
-    }
+	bool late_ztest = !bpmem.zcontrol.early_ztest || !g_SWVideoConfig.bZComploc;
+	if (late_ztest && bpmem.zmode.testenable)
+	{
+		if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
+			return;
+	}
 
 #if ALLOW_TEV_DUMPS
 	if (g_SWVideoConfig.bDumpTevStages)

@@ -483,8 +483,7 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 			SearchResult result;
 			result.frame_idx = frame_idx;
 
-			int obj_idx = m_objectsList->GetSelection();
-			result.obj_idx = obj_idx;
+			result.obj_idx = m_objectsList->GetSelection();
 			result.cmd_idx = 0;
 			for (unsigned int cmd_idx = 1; cmd_idx < m_objectCmdOffsets.size(); ++cmd_idx)
 			{
@@ -625,7 +624,9 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 		int stream_size = Common::swap16(objectdata);
 		objectdata += 2;
 		wxString newLabel = wxString::Format(wxT("%08X:  %02X %04X  "), obj_offset, cmd, stream_size);
-		if ((objectdata_end - objectdata) % stream_size) newLabel += _("NOTE: Stream size doesn't match actual data length\n");
+		if (stream_size && ((objectdata_end - objectdata) % stream_size))
+			newLabel += _("NOTE: Stream size doesn't match actual data length\n");
+
 		while (objectdata < objectdata_end)
 		{
 			newLabel += wxString::Format(wxT("%02X"), *objectdata++);
@@ -642,8 +643,8 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 			{
 				m_objectCmdOffsets.push_back(objectdata - objectdata_start);
 				int new_offset = objectdata - &fifo_frame.fifoData[frame.objectStarts[0]];
-				int cmd = *objectdata++;
-				switch (cmd)
+				int command = *objectdata++;
+				switch (command)
 				{
 				case GX_NOP:
 					newLabel = _("NOP");
@@ -691,9 +692,9 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 				case GX_LOAD_INDX_C:
 				case GX_LOAD_INDX_D:
 					objectdata += 4;
-					newLabel = wxString::Format(wxT("LOAD INDX %s"), (cmd == GX_LOAD_INDX_A) ? _("A") :
-																	(cmd == GX_LOAD_INDX_B) ? _("B") :
-																	(cmd == GX_LOAD_INDX_C) ? _("C") : _("D"));
+					newLabel = wxString::Format(wxT("LOAD INDX %s"), (command == GX_LOAD_INDX_A) ? _("A") :
+																	(command == GX_LOAD_INDX_B) ? _("B") :
+																	(command == GX_LOAD_INDX_C) ? _("C") : _("D"));
 					break;
 
 				case GX_CMD_CALL_DL:

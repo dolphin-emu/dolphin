@@ -232,70 +232,70 @@ float passive_lock(float x)
 
 void matrix_decode(const float *in, const int k, const int il,
 	const int ir, bool decode_rear,
-	const int dlbuflen,
-	float l_fwr, float r_fwr,
-	float lpr_fwr, float lmr_fwr,
-	float *adapt_l_gain, float *adapt_r_gain,
-	float *adapt_lpr_gain, float *adapt_lmr_gain,
-	float *lf, float *rf, float *lr,
-	float *rr, float *cf)
+	const int _dlbuflen,
+	float _l_fwr, float _r_fwr,
+	float _lpr_fwr, float _lmr_fwr,
+	float *_adapt_l_gain, float *_adapt_r_gain,
+	float *_adapt_lpr_gain, float *_adapt_lmr_gain,
+	float *_lf, float *_rf, float *_lr,
+	float *_rr, float *_cf)
 {
 	static const float M9_03DB = 0.3535533906f;
 	static const float MATAGCTRIG = 8.0f;  /* (Fuzzy) AGC trigger */
 	static const float MATAGCDECAY = 1.0f; /* AGC baseline decay rate (1/samp.) */
 	static const float MATCOMPGAIN = 0.37f; /* Cross talk compensation gain,  0.50 - 0.55 is full cancellation. */
 
-	const int kr = (k + olddelay) % dlbuflen;
-	float l_gain = (l_fwr + r_fwr) / (1 + l_fwr + l_fwr);
-	float r_gain = (l_fwr + r_fwr) / (1 + r_fwr + r_fwr);
+	const int kr = (k + olddelay) % _dlbuflen;
+	float l_gain = (_l_fwr + _r_fwr) / (1 + _l_fwr + _l_fwr);
+	float r_gain = (_l_fwr + _r_fwr) / (1 + _r_fwr + _r_fwr);
 	/* The 2nd axis has strong gain fluctuations, and therefore require
 	limits.  The factor corresponds to the 1 / amplification of (Lt
 	- Rt) when (Lt, Rt) is strongly correlated. (e.g. during
 	dialogues).  It should be bigger than -12 dB to prevent
 	distortion. */
-	float lmr_lim_fwr = lmr_fwr > M9_03DB * lpr_fwr ? lmr_fwr : M9_03DB * lpr_fwr;
-	float lpr_gain = (lpr_fwr + lmr_lim_fwr) / (1 + lpr_fwr + lpr_fwr);
-	float lmr_gain = (lpr_fwr + lmr_lim_fwr) / (1 + lmr_lim_fwr + lmr_lim_fwr);
-	float lmr_unlim_gain = (lpr_fwr + lmr_fwr) / (1 + lmr_fwr + lmr_fwr);
+	float lmr_lim_fwr = _lmr_fwr > M9_03DB * _lpr_fwr ? _lmr_fwr : M9_03DB * _lpr_fwr;
+	float lpr_gain = (_lpr_fwr + lmr_lim_fwr) / (1 + _lpr_fwr + _lpr_fwr);
+	float lmr_gain = (_lpr_fwr + lmr_lim_fwr) / (1 + lmr_lim_fwr + lmr_lim_fwr);
+	float lmr_unlim_gain = (_lpr_fwr + _lmr_fwr) / (1 + _lmr_fwr + _lmr_fwr);
 	float lpr, lmr;
 	float l_agc, r_agc, lpr_agc, lmr_agc;
 	float f, d_gain, c_gain, c_agc_cfk;
 
 	/*** AXIS NO. 1: (Lt, Rt) -> (C, Ls, Rs) ***/
 	/* AGC adaption */
-	d_gain = (fabs(l_gain - *adapt_l_gain) + fabs(r_gain - *adapt_r_gain)) * 0.5f;
+	d_gain = (fabs(l_gain - *_adapt_l_gain) + fabs(r_gain - *_adapt_r_gain)) * 0.5f;
 	f = d_gain * (1.0f / MATAGCTRIG);
 	f = MATAGCDECAY - MATAGCDECAY / (1 + f * f);
-	*adapt_l_gain = (1 - f) * *adapt_l_gain + f * l_gain;
-	*adapt_r_gain = (1 - f) * *adapt_r_gain + f * r_gain;
+	*_adapt_l_gain = (1 - f) * *_adapt_l_gain + f * l_gain;
+	*_adapt_r_gain = (1 - f) * *_adapt_r_gain + f * r_gain;
 	/* Matrix */
-	l_agc = in[il] * passive_lock(*adapt_l_gain);
-	r_agc = in[ir] * passive_lock(*adapt_r_gain);
-	cf[k] = (l_agc + r_agc) * (float)M_SQRT1_2;
+	l_agc = in[il] * passive_lock(*_adapt_l_gain);
+	r_agc = in[ir] * passive_lock(*_adapt_r_gain);
+	_cf[k] = (l_agc + r_agc) * (float)M_SQRT1_2;
 	if (decode_rear)
 	{
-		lr[kr] = rr[kr] = (l_agc - r_agc) * (float)M_SQRT1_2;
+		_lr[kr] = _rr[kr] = (l_agc - r_agc) * (float)M_SQRT1_2;
 		/* Stereo rear channel is steered with the same AGC steering as
 		the decoding matrix. Note this requires a fast updating AGC
 		at the order of 20 ms (which is the case here). */
-		lr[kr] *= (l_fwr + l_fwr) / (1 + l_fwr + r_fwr);
-		rr[kr] *= (r_fwr + r_fwr) / (1 + l_fwr + r_fwr);
+		_lr[kr] *= (_l_fwr + _l_fwr) / (1 + _l_fwr + _r_fwr);
+		_rr[kr] *= (_r_fwr + _r_fwr) / (1 + _l_fwr + _r_fwr);
 	}
 
 	/*** AXIS NO. 2: (Lt + Rt, Lt - Rt) -> (L, R) ***/
 	lpr = (in[il] + in[ir]) * (float)M_SQRT1_2;
 	lmr = (in[il] - in[ir]) * (float)M_SQRT1_2;
 	/* AGC adaption */
-	d_gain = fabs(lmr_unlim_gain - *adapt_lmr_gain);
+	d_gain = fabs(lmr_unlim_gain - *_adapt_lmr_gain);
 	f = d_gain * (1.0f / MATAGCTRIG);
 	f = MATAGCDECAY - MATAGCDECAY / (1 + f * f);
-	*adapt_lpr_gain = (1 - f) * *adapt_lpr_gain + f * lpr_gain;
-	*adapt_lmr_gain = (1 - f) * *adapt_lmr_gain + f * lmr_gain;
+	*_adapt_lpr_gain = (1 - f) * *_adapt_lpr_gain + f * lpr_gain;
+	*_adapt_lmr_gain = (1 - f) * *_adapt_lmr_gain + f * lmr_gain;
 	/* Matrix */
-	lpr_agc = lpr * passive_lock(*adapt_lpr_gain);
-	lmr_agc = lmr * passive_lock(*adapt_lmr_gain);
-	lf[k] = (lpr_agc + lmr_agc) * (float)M_SQRT1_2;
-	rf[k] = (lpr_agc - lmr_agc) * (float)M_SQRT1_2;
+	lpr_agc = lpr * passive_lock(*_adapt_lpr_gain);
+	lmr_agc = lmr * passive_lock(*_adapt_lmr_gain);
+	_lf[k] = (lpr_agc + lmr_agc) * (float)M_SQRT1_2;
+	_rf[k] = (lpr_agc - lmr_agc) * (float)M_SQRT1_2;
 
 	/*** CENTER FRONT CANCELLATION ***/
 	/* A heuristic approach exploits that Lt + Rt gain contains the
@@ -303,16 +303,16 @@ void matrix_decode(const float *in, const int k, const int il,
 	the front and rear "cones" to concentrate Lt + Rt to C and
 	introduce Lt - Rt in L, R. */
 	/* 0.67677 is the empirical lower bound for lpr_gain. */
-	c_gain = 8 * (*adapt_lpr_gain - 0.67677f);
+	c_gain = 8 * (*_adapt_lpr_gain - 0.67677f);
 	c_gain = c_gain > 0 ? c_gain : 0;
 	/* c_gain should not be too high, not even reaching full
 	cancellation (~ 0.50 - 0.55 at current AGC implementation), or
 	the center will sound too narrow. */
 	c_gain = MATCOMPGAIN / (1 + c_gain * c_gain);
-	c_agc_cfk = c_gain * cf[k];
-	lf[k] -= c_agc_cfk;
-	rf[k] -= c_agc_cfk;
-	cf[k] += c_agc_cfk + c_agc_cfk;
+	c_agc_cfk = c_gain * _cf[k];
+	_lf[k] -= c_agc_cfk;
+	_rf[k] -= c_agc_cfk;
+	_cf[k] += c_agc_cfk + c_agc_cfk;
 }
 
 void dpl2decode(float *samples, int numsamples, float *out)

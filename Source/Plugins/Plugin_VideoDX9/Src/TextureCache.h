@@ -44,7 +44,7 @@ private:
 		~TCacheEntry();
 
 		void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int levels, bool autogen_mips = false);
+			unsigned int expanded_width, unsigned int levels);
 
 		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 			unsigned int srcFormat, const EFBRectangle& srcRect,

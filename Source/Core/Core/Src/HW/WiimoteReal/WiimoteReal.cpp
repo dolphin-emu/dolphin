@@ -181,23 +181,23 @@ bool Wiimote::Read()
 bool Wiimote::Write()
 {
 	Report rpt;
-	bool audio_written = false;
 	
-	if (m_audio_reports.Pop(rpt))
+	if (last_audio_report.GetTimeDifference() > 5 && m_audio_reports.Pop(rpt))
 	{
 		IOWrite(rpt.first, rpt.second);
+		last_audio_report.Update();
+		
 		delete[] rpt.first;
-		audio_written = true;
+		return true;
 	}
-
-	if (m_write_reports.Pop(rpt))
+	else if (m_write_reports.Pop(rpt))
 	{
 		IOWrite(rpt.first, rpt.second);
 		delete[] rpt.first;
 		return true;
-	}	
+	}
 
-	return audio_written;
+	return false;
 }
 
 // Returns the next report that should be sent
@@ -319,14 +319,9 @@ void Wiimote::ThreadFunc()
 		while (Write()) {}
 		Common::SleepCurrentThread(1);
 #else
-		bool read = false;
-		while (Write() || (read = true, IsOpen() && Read()))
-		{
-			if (m_audio_reports.Size() && !read)
-				Read();
-			Common::SleepCurrentThread(m_audio_reports.Size() ? 5 : 2);
-			read = false;
-		}
+		bool const did_something = Write() || Read();
+		if (!did_something)
+			Common::SleepCurrentThread(1);
 #endif
 	}
 }

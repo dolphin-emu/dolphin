@@ -328,8 +328,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	// Wii Console
 	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	DisableWiimoteSpeaker = new wxCheckBox(m_GameConfig, ID_DISABLEWIIMOTESPEAKER, _("Alternate Wiimote Timing"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	DisableWiimoteSpeaker->SetToolTip(_("Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. No effect on emulated wiimotes."));
 
 	// Video
 	UseBBox = new wxCheckBox(m_GameConfig, ID_USE_BBOX, _("Enable Bounding Box Calculation"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER);
@@ -377,10 +375,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	{
 		sbWiiOverrides->ShowItems(false);
 		EnableWideScreen->Hide();
-		DisableWiimoteSpeaker->Hide();
 	}
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, 5);
-	sbWiiOverrides->Add(DisableWiimoteSpeaker, 0, wxLEFT, 5);
 
 	wxStaticBoxSizer * const sbVideoOverrides =
 		new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
@@ -966,11 +962,6 @@ void CISOProperties::LoadGameConfig()
 	else
 		EnableWideScreen->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Wii", "DisableWiimoteSpeaker", &bTemp))
-		DisableWiimoteSpeaker->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		DisableWiimoteSpeaker->Set3StateValue(wxCHK_UNDETERMINED);
-
 	if (GameIni.Get("Video", "UseBBox", &bTemp))
 		UseBBox->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -999,7 +990,6 @@ void CISOProperties::LoadGameConfig()
 	if (!sTemp.empty())
 	{
 		EmuIssues->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
-		bRefreshList = true;
 	}
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
 
@@ -1060,11 +1050,6 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Wii", "Widescreen", EnableWideScreen->Get3StateValue());
 
-	if (DisableWiimoteSpeaker->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Wii", "DisableWiimoteSpeaker");
-	else
-		GameIni.Set("Wii", "DisableWiimoteSpeaker", DisableWiimoteSpeaker->Get3StateValue());
-
 	if (UseBBox->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "UseBBox");
 	else
@@ -1085,6 +1070,11 @@ bool CISOProperties::SaveGameConfig()
 	GameIni.Set("Video", "PH_ZFar", PHack_Data.PHZFar);
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
+
+	std::string sTemp;
+	GameIni.Get("EmuState","EmulationIssues", &sTemp);
+	if (EmuIssues->GetValue() != sTemp)
+		bRefreshList = true;
 	GameIni.Set("EmuState", "EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(*wxConvCurrent));
 
 	PatchList_Save();
