@@ -237,7 +237,7 @@ u32 FifoCommandRunnable(u32 &command_size)
                 command_size = 1 + 2;
                 u16 numVertices = DataPeek16(1);
 				command_size += numVertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK);
-				cycleTime = 12 * numVertices; // This depends on the number of pixels rendered
+				cycleTime = 393 * numVertices; // This depends on the number of pixels rendered
             }
 			else
 			{				

@@ -184,7 +184,7 @@ void RunGpuLoop()
 
 				cyclesExecuted = OpcodeDecoder_Run(g_bSkipCurrentFrame);
 
-				if (Common::AtomicLoad(CommandProcessor::VITicks) > cyclesExecuted &&  Core::g_CoreStartupParameter.bSyncGPU)
+				if (Common::AtomicLoad(CommandProcessor::VITicks) > cyclesExecuted && Core::g_CoreStartupParameter.bSyncGPU)
 					Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
 
 				Common::AtomicStore(fifo.CPReadPointer, readPtr);
