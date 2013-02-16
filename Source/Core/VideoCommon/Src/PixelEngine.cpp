@@ -390,6 +390,7 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
+	Common::AtomicStore(*(volatile u32*)&g_bSignalFinishInterrupt, 1);
 	UpdateInterrupts();
 	CommandProcessor::interruptFinishWaiting = false;
 	CommandProcessor::isPossibleWaitingSetDrawDone = false;
@@ -415,7 +416,6 @@ void SetFinish()
 {
 	CommandProcessor::interruptFinishWaiting = true;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
-	Common::AtomicStore(*(volatile u32*)&g_bSignalFinishInterrupt, 1);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 	IncrementCheckContextId();
 }
