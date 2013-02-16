@@ -32,6 +32,8 @@ public:
 	virtual void DisableQuery(PerfQueryGroup type) {}
 	virtual void ResetQuery() {}
 	virtual u32 GetQueryResult(PerfQueryType type) { return 0; }
+	virtual void FlushResults() {}
+	virtual bool IsFlushed() const { return true; }
 };
 
 extern PerfQueryBase* g_perf_query;

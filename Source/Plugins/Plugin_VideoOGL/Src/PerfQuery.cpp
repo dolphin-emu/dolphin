@@ -1,31 +1,47 @@
 #include "GLUtil.h"
 #include "PerfQuery.h"
 
-namespace OGL {
-
-u32 results[PQG_NUM_MEMBERS] = { 0 };
-GLuint query_id;
-
-PerfQueryGroup active_query;
+namespace OGL
+{
 
 PerfQuery::PerfQuery()
+	: m_query_read_pos()
+	, m_query_count()
 {
-	glGenQueries(1, &query_id);
+	for (int i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
+		glGenQueries(1, &m_query_buffer[i].query_id);
+	
+	ResetQuery();
 }
 
 PerfQuery::~PerfQuery()
 {
-	glDeleteQueries(1, &query_id);
+	for (int i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
+		glDeleteQueries(1, &m_query_buffer[i].query_id);
 }
 
 void PerfQuery::EnableQuery(PerfQueryGroup type)
 {
+	// Is this sane?
+	if (m_query_count > ARRAYSIZE(m_query_buffer) / 2)
+		WeakFlush();
+	
+	if (ARRAYSIZE(m_query_buffer) == m_query_count)
+	{
+		FlushOne();
+		//ERROR_LOG(VIDEO, "flushed query buffer early!");
+	}
+	
 	// start query
 	if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
 	{
-		glBeginQuery(GL_SAMPLES_PASSED, query_id);
+		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count) % ARRAYSIZE(m_query_buffer)];
+		
+		glBeginQuery(GL_SAMPLES_PASSED, entry.query_id);
+		entry.query_type = type;
+		
+		++m_query_count;
 	}
-	active_query = type;
 }
 
 void PerfQuery::DisableQuery(PerfQueryGroup type)
@@ -34,45 +50,82 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
 	if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
 	{
 		glEndQuery(GL_SAMPLES_PASSED);
+	}
+}
 
-		GLuint query_result = GL_FALSE;
-		while (query_result != GL_TRUE)
+bool PerfQuery::IsFlushed() const
+{
+	return 0 == m_query_count;
+}
+
+void PerfQuery::FlushOne()
+{
+	auto& entry = m_query_buffer[m_query_read_pos];
+	
+	GLuint result = 0;
+	glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT, &result);
+	
+	m_results[entry.query_type] += result;
+	
+	m_query_read_pos = (m_query_read_pos + 1) % ARRAYSIZE(m_query_buffer);
+	--m_query_count;
+}
+
+// TODO: could selectively flush things, but I don't think that will do much
+void PerfQuery::FlushResults()
+{
+	while (!IsFlushed())
+		FlushOne();
+}
+
+void PerfQuery::WeakFlush()
+{
+	while (!IsFlushed())
+	{
+		auto& entry = m_query_buffer[m_query_read_pos];
+		
+		GLuint result = GL_FALSE;
+		glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT_AVAILABLE, &result);
+		
+		if (GL_TRUE == result)
 		{
-			glGetQueryObjectuiv(query_id, GL_QUERY_RESULT_AVAILABLE, &query_result);
+			FlushOne();
 		}
-
-		glGetQueryObjectuiv(query_id, GL_QUERY_RESULT, &query_result);
-
-		results[active_query] += query_result;
+		else
+		{
+			break;
+		}
 	}
 }
 
 void PerfQuery::ResetQuery()
 {
-	memset(results, 0, sizeof(results));
+	m_query_count = 0;
+	std::fill_n(m_results, ARRAYSIZE(m_results), 0);
 }
 
 u32 PerfQuery::GetQueryResult(PerfQueryType type)
 {
-	if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC || type == PQ_BLEND_INPUT)
+	u32 result = 0;
+	
+	if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
 	{
-
+		result = m_results[PQG_ZCOMP_ZCOMPLOC];
 	}
-	if (type == PQ_ZCOMP_INPUT || type == PQ_ZCOMP_OUTPUT || type == PQ_BLEND_INPUT)
+	else if (type == PQ_ZCOMP_INPUT || type == PQ_ZCOMP_OUTPUT)
 	{
-
+		result = m_results[PQG_ZCOMP];
 	}
-	if (type == PQ_BLEND_INPUT)
+	else if (type == PQ_BLEND_INPUT)
 	{
-		results[PQ_BLEND_INPUT] = results[PQ_ZCOMP_OUTPUT] + results[PQ_ZCOMP_OUTPUT_ZCOMPLOC];
+		result = m_results[PQG_ZCOMP] + m_results[PQG_ZCOMP_ZCOMPLOC];
 	}
-
-	if (type == PQ_EFB_COPY_CLOCKS)
+	else if (type == PQ_EFB_COPY_CLOCKS)
 	{
-		// TODO
+		result = m_results[PQG_EFB_COPY_CLOCKS];
 	}
-
-	return results[type];
+	
+	return result / 4;
 }
 
 } // namespace

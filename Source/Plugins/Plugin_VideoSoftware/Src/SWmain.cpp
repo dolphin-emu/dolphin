@@ -176,6 +176,12 @@ u32 VideoSoftware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputDa
     return value;
 }
 
+u32 VideoSoftware::Video_GetQueryResult(PerfQueryType type)
+{
+	// TODO:
+	return 0;
+}
+
 bool VideoSoftware::Video_Screenshot(const char *_szFilename)
 {
 	return false;
