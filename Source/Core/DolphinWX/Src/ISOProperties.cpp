@@ -321,6 +321,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	DCBZOFF->SetToolTip(_("Bypass the clearing of the data cache by the DCBZ instruction. Usually leave this option disabled."));
 	VBeam = new wxCheckBox(m_GameConfig, ID_VBEAM, _("Accurate VBeam emulation"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	VBeam->SetToolTip(_("If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"));
+	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Sychronise GPU thread"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	SyncGPU->SetToolTip(_("Synchonises the GPU and CPU threads to help prevent random freezes in Dual Core mode. (ON = Compatible, OFF = Fast)"));
 	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	FastDiscSpeed->SetToolTip(_("Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"));
 	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -362,9 +364,10 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(CPUThread, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(SkipIdle, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(MMU, 0, wxLEFT, 5);
-	sbCoreOverrides->Add(DCBZOFF, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(DCBZOFF, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(VBeam, 0, wxLEFT, 5);
+	sbCoreOverrides->Add(SyncGPU, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);	
 	sbCoreOverrides->Add(BlockMerging, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(DSPHLE, 0, wxLEFT, 5);
@@ -941,6 +944,11 @@ void CISOProperties::LoadGameConfig()
 	else
 		VBeam->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("Core", "SyncGPU", &bTemp))
+		SyncGPU->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		SyncGPU->Set3StateValue(wxCHK_UNDETERMINED);
+
 	if (GameIni.Get("Core", "FastDiscSpeed", &bTemp))
 		FastDiscSpeed->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -1029,6 +1037,11 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Core", "VBeam");
 	else
 		GameIni.Set("Core", "VBeam", VBeam->Get3StateValue());
+
+	if (SyncGPU->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "SyncGPU");
+	else
+		GameIni.Set("Core", "SyncGPU", SyncGPU->Get3StateValue());
 
 	if (FastDiscSpeed->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Core", "FastDiscSpeed");

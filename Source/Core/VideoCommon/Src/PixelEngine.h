@@ -80,7 +80,6 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
 void SetFinish(void);
 void ResetSetFinish(void);
 void ResetSetToken(void);
-bool WaitingForPEInterrupt();
 
 // Bounding box functionality. Paper Mario (both) are a couple of the few games that use it.
 extern u16 bbox[4];
