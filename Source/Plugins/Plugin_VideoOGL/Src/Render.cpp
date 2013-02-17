@@ -311,11 +311,16 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
 
 	UpdateActiveConfig();
-	OSD::AddMessage(StringFromFormat("Supports Blending: %s UBOs: %s PinnedMem: %s Cache: %s",
-			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "True" : "False",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "True" : "False",
-			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "True" : "False",
-			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "True" : "False").c_str(), 5000);
+	OSD::AddMessage(StringFromFormat("Supports: %s%s%s%s- Missing: %s%s%s%s",
+			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "DualSourceBlend " : "",
+			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "UniformBuffer " : "",
+			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "PinnedMemory " : "",
+			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "ShaderCache " : "",
+			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
+			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
+			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
+			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "" : "ShaderCache "
+			).c_str(), 5000);
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
