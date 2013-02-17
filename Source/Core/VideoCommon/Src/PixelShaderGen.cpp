@@ -608,43 +608,20 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "float4 colors_1 = colors_12;\n");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
-				// Let's set up attributes
-		if (xfregs.numTexGen.numTexGens < 7)
+		// Let's set up attributes
+		for (int i = 0; i < numTexgen; ++i)
 		{
-			for (int i = 0; i < 8; ++i)
-			{
-				WRITE(p, "VARYIN float3 uv%d_2;\n", i);
-				WRITE(p, "float3 uv%d = uv%d_2;\n", i, i);
-			}
-			WRITE(p, "VARYIN float4 clipPos_2;\n");
-			WRITE(p, "float4 clipPos = clipPos_2;\n");
-			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			{
-				WRITE(p, "VARYIN float4 Normal_2;\n");
-				WRITE(p, "float4 Normal = Normal_2;\n");
-			}
+			WRITE(p, "VARYIN float3 uv%d_2;\n", i);
+			WRITE(p, "float3 uv%d = uv%d_2;\n", i, i);
 		}
-		else
+		WRITE(p, "VARYIN float4 clipPos_2;\n");
+		WRITE(p, "float4 clipPos = clipPos_2;\n");
+		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
-			// wpos is in w of first 4 texcoords
-			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			{
-				for (int i = 0; i < 8; ++i)
-				{
-					WRITE(p, "VARYIN float4 uv%d_2;\n", i);
-					WRITE(p, "float4 uv%d = uv%d_2;\n", i, i);
-				}
-			}
-			else
-			{
-				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				{
-					WRITE(p, "VARYIN float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
-					WRITE(p, "float%d uv%d = uv%d_2;\n", i < 4 ? 4 : 3 , i, i);
-				}
-			}
-			WRITE(p, "float4 clipPos;\n");
+			WRITE(p, "VARYIN float4 Normal_2;\n");
+			WRITE(p, "float4 Normal = Normal_2;\n");
 		}
+
 		WRITE(p, "void main()\n{\n");
 	}
 	else
@@ -668,31 +645,13 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "  in float4 colors_1 : COLOR1");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
-		if (numTexgen < 7)
-		{
-			for (int i = 0; i < numTexgen; ++i)
-				WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
-			WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
-			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
-			WRITE(p, "        ) {\n");
-		}
-		else
-		{
-			// wpos is in w of first 4 texcoords
-			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			{
-				for (int i = 0; i < 8; ++i)
-					WRITE(p, ",\n  in float4 uv%d : TEXCOORD%d", i, i);
-			}
-			else
-			{
-				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-					WRITE(p, ",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
-			}
-			WRITE(p, "        ) {\n");
-			WRITE(p, "\tfloat4 clipPos = float4(0.0f, 0.0f, 0.0f, 0.0f);");
-		}
+		for (int i = 0; i < numTexgen; ++i)
+			WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
+		WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
+		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
+		WRITE(p, "        ) {\n");
+		
 	}
 
 	WRITE(p, "  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
@@ -706,18 +665,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		if (xfregs.numTexGen.numTexGens < 7)
-		{
-			WRITE(p,"\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
-			WRITE(p,"\tfloat3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
-		}
-		else
-		{
-			WRITE(p,"\tfloat3 _norm0 = normalize(float3(uv4.w,uv5.w,uv6.w));\n\n");
-			WRITE(p,"\tfloat3 pos = float3(uv0.w,uv1.w,uv7.w);\n");
-		}
-
-
+		WRITE(p,"\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
+		WRITE(p,"\tfloat3 pos = float3(clipPos.x,clipPos.y,Normal.w);\n");
+		
 		WRITE(p, "\tfloat4 mat, lacc;\n"
 		"\tfloat3 ldir, h;\n"
 		"\tfloat dist, dist2, attn;\n");
@@ -725,11 +675,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		p = GenerateLightingShader(p, components, I_PMATERIALS, I_PLIGHTS, "colors_", "colors_");
 	}
 
-	if (numTexgen < 7)
-		WRITE(p, "\tclipPos = float4(rawpos.x, rawpos.y, clipPos.z, clipPos.w);\n");
-	else
-		WRITE(p, "\tclipPos = float4(rawpos.x, rawpos.y, uv2.w, uv3.w);\n");
-
+	WRITE(p, "\tclipPos = float4(rawpos.x, rawpos.y, clipPos.z, clipPos.w);\n");
+	
 	// HACK to handle cases where the tex gen is not enabled
 	if (numTexgen == 0)
 	{

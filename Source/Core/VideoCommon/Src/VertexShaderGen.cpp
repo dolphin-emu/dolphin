@@ -139,25 +139,11 @@ char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 	WRITE(p, "  float4 colors_0 %s COLOR0;\n", ApiType == API_OPENGL ? ";//" : ":");
 	WRITE(p, "  float4 colors_1 %s COLOR1;\n", ApiType == API_OPENGL ? ";//" : ":");
 
-	if (xfregs.numTexGen.numTexGens < 7) {
-		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			WRITE(p, "  float3 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL ? ";//" : ":", i);
-		WRITE(p, "  float4 clipPos %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens);
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			WRITE(p, "  float4 Normal %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
-	} else {
-		// clip position is in w of first 4 texcoords
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-		{
-			for (int i = 0; i < 8; ++i)
-				WRITE(p, "  float4 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL? ";//" : ":", i);
-		}
-		else
-		{
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, "  float%d tex%d %s TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, ApiType == API_OPENGL ? ";//" : ":", i);
-		}
-	}
+	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+		WRITE(p, "  float3 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL ? ";//" : ":", i);
+	WRITE(p, "  float4 clipPos %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens);
+	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		WRITE(p, "  float4 Normal %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
 	WRITE(p, "};\n");
 
 	return p;
@@ -228,28 +214,12 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		}
 
 		// Let's set up attributes
-		if (xfregs.numTexGen.numTexGens < 7)
-		{
-			for (int i = 0; i < 8; ++i)
-				WRITE(p, "VARYOUT  float3 uv%d_2;\n", i);
-			WRITE(p, "VARYOUT   float4 clipPos_2;\n");
-			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				WRITE(p, "VARYOUT   float4 Normal_2;\n");
-		}
-		else
-		{
-			// wpos is in w of first 4 texcoords
-			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			{
-				for (int i = 0; i < 8; ++i)
-					WRITE(p, "VARYOUT   float4 uv%d_2;\n", i);
-			}
-			else
-			{
-				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-					WRITE(p, "VARYOUT   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
-			}
-		}
+		for (int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+			WRITE(p, "VARYOUT  float3 uv%d_2;\n", i);
+		WRITE(p, "VARYOUT   float4 clipPos_2;\n");
+		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			WRITE(p, "VARYOUT   float4 Normal_2;\n");
+
 		WRITE(p, "VARYOUT   float4 colors_02;\n");
 		WRITE(p, "VARYOUT   float4 colors_12;\n");
 
@@ -487,34 +457,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		WRITE(p, "}\n");
 	}
 
-	// clipPos/w needs to be done in pixel shader, not here
-	if (xfregs.numTexGen.numTexGens < 7) {
-		WRITE(p, "o.clipPos = float4(pos.x,pos.y,o.pos.z,o.pos.w);\n");
-	} else {
-		WRITE(p, "o.tex0.w = pos.x;\n");
-		WRITE(p, "o.tex1.w = pos.y;\n");
-		WRITE(p, "o.tex2.w = o.pos.z;\n");
-		WRITE(p, "o.tex3.w = o.pos.w;\n");
-	}
+	WRITE(p, "o.clipPos = float4(pos.x,pos.y,o.pos.z,o.pos.w);\n");
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		if (xfregs.numTexGen.numTexGens < 7) {
-			WRITE(p, "o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
-		} else {
-			WRITE(p, "o.tex4.w = _norm0.x;\n");
-			WRITE(p, "o.tex5.w = _norm0.y;\n");
-			WRITE(p, "o.tex6.w = _norm0.z;\n");
-			if (xfregs.numTexGen.numTexGens < 8)
-				WRITE(p, "o.tex7 = pos.xyzz;\n");
-			else
-				WRITE(p, "o.tex7.w = pos.z;\n");
-		}		
-		if (components & VB_HAS_COL0)
-			WRITE(p, "o.colors_0 = color0;\n");		
-
-		if (components & VB_HAS_COL1)
-			WRITE(p, "o.colors_1 = color1;\n");
+		WRITE(p, "o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
 	}
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
@@ -562,28 +509,12 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		// Will look better when we bind uniforms in GLSL 1.3
 		// clipPos/w needs to be done in pixel shader, not here
 
-		if (xfregs.numTexGen.numTexGens < 7) {
-			for (unsigned int i = 0; i < 8; ++i)
-				if(i < xfregs.numTexGen.numTexGens)
-					WRITE(p, " uv%d_2.xyz =  o.tex%d;\n", i, i);
-				else
-					WRITE(p, " uv%d_2.xyz =  float3(0.0f, 0.0f, 0.0f);\n", i);
-			WRITE(p, "  clipPos_2 = o.clipPos;\n");
-			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				WRITE(p, "  Normal_2 = o.Normal;\n");
-		} else {
-			// clip position is in w of first 4 texcoords
-			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			{
-				for (int i = 0; i < 8; ++i)
-					WRITE(p, " uv%d_2 = o.tex%d;\n", i, i);
-			}
-			else
-			{
-				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-					WRITE(p, "  uv%d_2%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
-			}
-		}               
+		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+				WRITE(p, " uv%d_2.xyz =  o.tex%d;\n", i, i);
+		WRITE(p, "  clipPos_2 = o.clipPos;\n");
+		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			WRITE(p, "  Normal_2 = o.Normal;\n");
+              
 		WRITE(p, "colors_02 = o.colors_0;\n");
 		WRITE(p, "colors_12 = o.colors_1;\n");
 		WRITE(p, "gl_Position = o.pos;\n");
