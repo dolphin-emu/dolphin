@@ -519,7 +519,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 		button_sizer->Add(add_button, 1, 0, 5);
 	}
 
-	range_slider = new wxSlider(this, -1, SLIDER_TICK_COUNT, 0, SLIDER_TICK_COUNT * 5, wxDefaultPosition, wxDefaultSize, wxSL_TOP | wxSL_LABELS /*| wxSL_AUTOTICKS*/);
+	range_slider = new wxSlider(this, -1, SLIDER_TICK_COUNT, -SLIDER_TICK_COUNT * 5, SLIDER_TICK_COUNT * 5, wxDefaultPosition, wxDefaultSize, wxSL_TOP | wxSL_LABELS /*| wxSL_AUTOTICKS*/);
 
 	range_slider->SetValue((int)(control_reference->range * SLIDER_TICK_COUNT));
 
