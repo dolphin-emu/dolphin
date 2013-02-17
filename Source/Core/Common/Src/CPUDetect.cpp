@@ -205,14 +205,7 @@ void CPUInfo::Detect()
 // Turn the cpu info into a string we can show
 std::string CPUInfo::Summarize()
 {
-	std::string sum;
-	if (num_cores == 1)
-		sum = StringFromFormat("%s, %i core", cpu_string, num_cores);
-	else
-	{
-		sum = StringFromFormat("%s, %i cores", cpu_string, num_cores);
-		if (HTT) sum += StringFromFormat(" (%i logical threads per physical core)", logical_cpu_count);
-	}
+	std::string sum(cpu_string);
 	if (bSSE) sum += ", SSE";
 	if (bSSE2) sum += ", SSE2";
 	if (bSSE3) sum += ", SSE3";
