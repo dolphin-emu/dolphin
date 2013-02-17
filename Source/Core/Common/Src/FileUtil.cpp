@@ -196,8 +196,9 @@ bool CreateFullPath(const std::string &fullPath)
 		// we're done, yay!
 		if (position == fullPath.npos)
 			return true;
-			
-		std::string subPath = fullPath.substr(0, position);
+		
+		// Include the '/' so the first call is CreateDir("/") rather than CreateDir("")
+		std::string const subPath(fullPath.substr(0, position + 1));
 		if (!File::IsDirectory(subPath))
 			File::CreateDir(subPath);
 
