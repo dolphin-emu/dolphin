@@ -134,10 +134,16 @@ void GeckoSockServer::ClientThread()
 
 		if (send_fifo.size())
 		{
-			if (client.Send((char*)&send_fifo.front(), sizeof(u8))
+			char* packet = new char[send_fifo.size()];
+			int i = 0;
+			while(send_fifo.size())
+			{
+				packet[i++] = send_fifo.front();
+				send_fifo.pop();
+			}
+			if (client.Send(packet, sizeof(u8)*i)
 				== sf::Socket::Disconnected)
 				client_running = false;
-			send_fifo.pop();
 		}
 		}	// unlock transfer
 
