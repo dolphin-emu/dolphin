@@ -118,17 +118,18 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		"Read and Write"
 	};
 	
+	m_filepath = HLE_IPC_BuildFilename(m_Name, 64);
+	
 	// The file must exist before we can open it
 	// It should be created by ISFS_CreateFile, not here
-	auto const filename = HLE_IPC_BuildFilename(m_Name, 64);
-	if (File::Exists(filename))
+	if (File::Exists(m_filepath))
 	{
 		INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s == %08X)", m_Name.c_str(), Modes[_Mode], _Mode);
 		ReturnValue = m_DeviceID;
 	}
 	else
 	{
-		WARN_LOG(WII_IPC_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[_Mode], filename.c_str());
+		WARN_LOG(WII_IPC_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[_Mode], m_filepath.c_str());
 		ReturnValue = FS_FILE_NOT_EXIST;
 	}
 
@@ -158,7 +159,7 @@ File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
 		break;
 	}
 	
-	return File::IOFile(HLE_IPC_BuildFilename(m_Name, 64), open_mode);
+	return File::IOFile(m_filepath, open_mode);
 }
 
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
@@ -344,4 +345,6 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 
 	p.Do(m_Mode);
 	p.Do(m_SeekPos);
+	
+	m_filepath = HLE_IPC_BuildFilename(m_Name, 64);
 }
