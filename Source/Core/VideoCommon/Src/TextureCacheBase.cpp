@@ -318,7 +318,7 @@ static TextureCache::TCacheEntryBase* ReturnEntry(unsigned int stage, TextureCac
 
 TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	u32 const address, unsigned int width, unsigned int height, int const texformat,
-	unsigned int const tlutaddr, int const tlutfmt, bool const use_mipmaps, unsigned int const maxlevel, bool const from_tmem)
+	unsigned int const tlutaddr, int const tlutfmt, bool const use_mipmaps, unsigned int maxlevel, bool const from_tmem)
 {
 	if (0 == address)
 		return NULL;
@@ -345,7 +345,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		full_format = texformat | (tlutfmt << 16);
 
 	const u32 texture_size = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
-	
+
 	const u8* src_data;
 	if (from_tmem)
 		src_data = &texMem[bpmem.tex[stage / 4].texImage1[stage % 4].tmem_even * TMEM_LINE_SIZE];
@@ -371,6 +371,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
 		tex_hash ^= tlut_hash;
 	}
+
+	// D3D doesn't like when the specified mipmap count would require more than one 1x1-sized LOD in the mipmap chain
+	// e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,1x1, so we limit the mipmap count to 6 there
+	while (g_ActiveConfig.backend_info.bUseMinimalMipCount && max(expandedWidth, expandedHeight) >> maxlevel == 0)
+		--maxlevel;
 
 	TCacheEntryBase *entry = textures[texID];
 	if (entry)
@@ -456,7 +461,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	const bool using_custom_lods = using_custom_texture && CheckForCustomTextureLODs(tex_hash, texformat, texLevels);
 	// Only load native mips if their dimensions fit to our virtual texture dimensions
 	const bool use_native_mips = use_mipmaps && !using_custom_lods && (width == nativeW && height == nativeH);
-	texLevels = (use_native_mips || using_custom_lods) ? texLevels : 1;
+	texLevels = (use_native_mips || using_custom_lods) ? texLevels : 1; // TODO: Should be forced to 1 for non-pow2 textures (e.g. efb copies with automatically adjusted IR)
 
 	// create the entry/texture
 	if (NULL == entry)
