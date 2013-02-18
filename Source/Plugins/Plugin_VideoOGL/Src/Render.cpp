@@ -1464,6 +1464,7 @@ void Renderer::SetDepthMode()
 	else
 	{
 		// if the test is disabled write is disabled too
+		// TODO: When PE performance metrics are being emulated via occlusion queries, we should (probably?) enable depth test with depth function ALWAYS here
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 	}
