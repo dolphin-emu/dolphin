@@ -48,6 +48,7 @@ public:
 	bool IsCompressed() const {return m_BlobCompressed;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
+	bool IsDiscTwo() const {return m_IsDiscTwo;}
 #if defined(HAVE_WX) && HAVE_WX
 	const wxImage& GetImage() const {return m_Image;}
 #endif
@@ -87,6 +88,7 @@ private:
 	bool m_BlobCompressed;
 	std::vector<u8> m_pImage;
 	u32 m_ImageSize;
+	bool m_IsDiscTwo;
 
 	bool LoadFromCache();
 	void SaveToCache();

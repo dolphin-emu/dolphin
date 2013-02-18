@@ -72,10 +72,9 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int stage, unsigned int width, unsigned int height,
-	unsigned int expanded_width, unsigned int level, bool autogen_mips)
+	unsigned int expanded_width, unsigned int level)
 {
 	D3D::ReplaceTexture2D(texture, temp, width, height, expanded_width, d3d_fmt, swap_r_b, level);
-	// D3D9 will automatically generate mip maps if necessary
 }
 
 void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,

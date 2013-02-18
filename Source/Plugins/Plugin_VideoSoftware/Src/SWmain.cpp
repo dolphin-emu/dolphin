@@ -142,7 +142,6 @@ void VideoSoftware::Video_Prepare()
 {
 	GLInterface->MakeCurrent();
 	// Init extension support.
-	{
 #ifndef USE_GLES
 #ifdef __APPLE__
 	glewExperimental = 1;
@@ -151,21 +150,9 @@ void VideoSoftware::Video_Prepare()
 		ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
 		return;
 	}
-
-    // Handle VSync on/off
-#ifdef _WIN32
-	if (WGLEW_EXT_swap_control)
-		wglSwapIntervalEXT(VSYNC_ENABLED);
-	else
-		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)Does your video card support OpenGL 2.x?");
-#elif defined(HAVE_X11) && HAVE_X11
-	if (glXSwapIntervalSGI)
-		glXSwapIntervalSGI(VSYNC_ENABLED);
-	else
-		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)");
-#endif 
 #endif
-	}
+	// Handle VSync on/off
+	GLInterface->SwapInterval(VSYNC_ENABLED);
 
 	HwRasterizer::Prepare();
 	SWRenderer::Prepare();

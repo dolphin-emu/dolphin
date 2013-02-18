@@ -137,4 +137,11 @@ u64 CVolumeGC::GetSize() const
 		return 0;
 }
 
+bool CVolumeGC::IsDiscTwo() const
+{
+	bool discTwo;
+	Read(6,1, (u8*) &discTwo);
+	return discTwo;
+}
+
 } // namespace

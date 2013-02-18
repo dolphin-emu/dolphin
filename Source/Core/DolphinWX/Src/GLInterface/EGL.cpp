@@ -26,6 +26,12 @@ void cInterfaceEGL::UpdateFPSDisplay(const char *text)
 {
 	XStoreName(GLWin.dpy, GLWin.win, text);
 }
+
+void cInterfaceEGL::SwapInterval(int Interval)
+{
+	eglSwapInterval(GLWin.egl_dpy, Interval);
+}
+
 void cInterfaceEGL::Swap()
 {
 	eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);
@@ -42,38 +48,30 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	s_backbuffer_width = _twidth;
 	s_backbuffer_height = _theight;
 
-	const char *s;
-   EGLint egl_major, egl_minor;
+	EGLint egl_major, egl_minor;
 
-   GLWin.dpy = XOpenDisplay(NULL);
+	GLWin.dpy = XOpenDisplay(NULL);
 
-   if (!GLWin.dpy) {
-      printf("Error: couldn't open display\n");
-      return false;
-   }
+	if (!GLWin.dpy) {
+		ERROR_LOG(VIDEO, "Error: couldn't open display\n");
+		return false;
+	}
 
-   GLWin.egl_dpy = eglGetDisplay(GLWin.dpy);
-   if (!GLWin.egl_dpy) {
-      printf("Error: eglGetDisplay() failed\n");
-      return false;
-   }
+	GLWin.egl_dpy = eglGetDisplay(GLWin.dpy);
+	if (!GLWin.egl_dpy) {
+		ERROR_LOG(VIDEO, "Error: eglGetDisplay() failed\n");
+		return false;
+	}
 
-   if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor)) {
-      printf("Error: eglInitialize() failed\n");
-      return false;
-   }
+	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor)) {
+		ERROR_LOG(VIDEO, "Error: eglInitialize() failed\n");
+		return false;
+	}
 
-   s = eglQueryString(GLWin.egl_dpy, EGL_VERSION);
-   printf("EGL_VERSION = %s\n", s);
-
-   s = eglQueryString(GLWin.egl_dpy, EGL_VENDOR);
-   printf("EGL_VENDOR = %s\n", s);
-
-   s = eglQueryString(GLWin.egl_dpy, EGL_EXTENSIONS);
-   printf("EGL_EXTENSIONS = %s\n", s);
-
-   s = eglQueryString(GLWin.egl_dpy, EGL_CLIENT_APIS);
-   printf("EGL_CLIENT_APIS = %s\n", s);
+	INFO_LOG(VIDEO, "EGL_VERSION = %s\n", eglQueryString(GLWin.egl_dpy, EGL_VERSION));
+	INFO_LOG(VIDEO, "EGL_VENDOR = %s\n", eglQueryString(GLWin.egl_dpy, EGL_VENDOR));
+	INFO_LOG(VIDEO, "EGL_EXTENSIONS = %s\n", eglQueryString(GLWin.egl_dpy, EGL_EXTENSIONS));
+	INFO_LOG(VIDEO, "EGL_CLIENT_APIS = %s\n", eglQueryString(GLWin.egl_dpy, EGL_CLIENT_APIS));
 
 	// attributes for a visual in RGBA format with at least
 	// 8 bits per color and a 24 bit depth buffer
@@ -102,29 +100,29 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	if (GLWin.parent == 0)
 		GLWin.parent = RootWindow(GLWin.dpy, GLWin.screen);
 
-   XVisualInfo  visTemplate;
-   int num_visuals;
-   EGLConfig config;
-   EGLint num_configs;
-   EGLint vid;
+	XVisualInfo  visTemplate;
+	int num_visuals;
+	EGLConfig config;
+	EGLint num_configs;
+	EGLint vid;
 
-   if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs)) {
-      printf("Error: couldn't get an EGL visual config\n");
-      exit(1);
-   }
+	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs)) {
+		ERROR_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
+		return false;
+	}
 
-   if (!eglGetConfigAttrib(GLWin.egl_dpy, config, EGL_NATIVE_VISUAL_ID, &vid)) {
-      printf("Error: eglGetConfigAttrib() failed\n");
-      exit(1);
-   }
+	if (!eglGetConfigAttrib(GLWin.egl_dpy, config, EGL_NATIVE_VISUAL_ID, &vid)) {
+		ERROR_LOG(VIDEO, "Error: eglGetConfigAttrib() failed\n");
+		return false;
+	}
 
-   /* The X window visual must match the EGL config */
-   visTemplate.visualid = vid;
-   GLWin.vi = XGetVisualInfo(GLWin.dpy, VisualIDMask, &visTemplate, &num_visuals);
-   if (!GLWin.vi) {
-      printf("Error: couldn't get X visual\n");
-      exit(1);
-   }
+	/* The X window visual must match the EGL config */
+	visTemplate.visualid = vid;
+	GLWin.vi = XGetVisualInfo(GLWin.dpy, VisualIDMask, &visTemplate, &num_visuals);
+	if (!GLWin.vi) {
+		ERROR_LOG(VIDEO, "Error: couldn't get X visual\n");
+		return false;
+	}
 	
 	GLWin.x = _tx;
 	GLWin.y = _ty;
@@ -138,33 +136,26 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	eglBindAPI(EGL_OPENGL_API);
 #endif
 	GLWin.egl_ctx = eglCreateContext(GLWin.egl_dpy, config, EGL_NO_CONTEXT, ctx_attribs );
-   if (!GLWin.egl_ctx) {
-      printf("Error: eglCreateContext failed\n");
-      exit(1);
-   }
+	if (!GLWin.egl_ctx) {
+		ERROR_LOG(VIDEO, "Error: eglCreateContext failed\n");
+		return false;
+	}
 
-   GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.win, NULL);
-   if (!GLWin.egl_surf) {
-      printf("Error: eglCreateWindowSurface failed\n");
-      exit(1);
-   }
+	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.win, NULL);
+	if (!GLWin.egl_surf) {
+		ERROR_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
+		return false;
+	}
 
-   if (!eglMakeCurrent(GLWin.egl_dpy, GLWin.egl_surf, GLWin.egl_surf, GLWin.egl_ctx)) {
-
-      printf("Error: eglMakeCurrent() failed\n");
-      return false;
-   }
+	if (!eglMakeCurrent(GLWin.egl_dpy, GLWin.egl_surf, GLWin.egl_surf, GLWin.egl_ctx)) {
+		ERROR_LOG(VIDEO, "Error: eglMakeCurrent() failed\n");
+		return false;
+	}
 	
-
-	printf("GL_VENDOR: %s\n", glGetString(GL_VENDOR));
-	printf("GL_RENDERER: %s\n", glGetString(GL_RENDERER));
-	printf("GL_VERSION: %s\n", glGetString(GL_VERSION));
-	printf("GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
-   /* Set initial projection/viewing transformation.
-    * We can't be sure we'll get a ConfigureNotify event when the window
-    * first appears.
-    */
-	glViewport(0, 0, (GLint) _twidth, (GLint) _theight);
+	INFO_LOG(VIDEO, "GL_VENDOR: %s\n", glGetString(GL_VENDOR));
+	INFO_LOG(VIDEO, "GL_RENDERER: %s\n", glGetString(GL_RENDERER));
+	INFO_LOG(VIDEO, "GL_VERSION: %s\n", glGetString(GL_VERSION));
+	INFO_LOG(VIDEO, "GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
 	window_handle = (void *)GLWin.win;
 	return true;
 }

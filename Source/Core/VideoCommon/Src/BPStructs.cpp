@@ -458,6 +458,7 @@ void BPWritten(const BPCmd& bp)
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
 		g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
+		g_renderer->SetBlendMode(true);
 		OnPixelFormatChange();
 		if(bp.changes & 3)
 			SetBlendMode(); // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
@@ -523,9 +524,8 @@ void BPWritten(const BPCmd& bp)
 
 				for (u32 i = 0; i < tmem_cfg.preload_tile_info.count; ++i)
 				{
-					// FIXME: Duplicate conditions.
 					if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE ||
-						tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE)
+						tmem_addr_odd  + TMEM_LINE_SIZE > TMEM_SIZE)
 						break;
 
 					memcpy(texMem + tmem_addr_even, src_ptr, TMEM_LINE_SIZE);

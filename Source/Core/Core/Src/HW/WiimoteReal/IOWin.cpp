@@ -184,7 +184,7 @@ int FindWiimotes(Wiimote** wm, int max_wiimotes)
 		bool found = false;
 		for(int i = 0; i < MAX_WIIMOTES; i++)
 		{
-			if(wm[i] && strcmp(wm[i]->devicepath, detail_data->DevicePath) == 0)
+			if(wm[i] && (wm[i]->devicepath == detail_data->DevicePath))
 			{
 				found = true;
 				break;
@@ -210,7 +210,7 @@ int FindWiimotes(Wiimote** wm, int max_wiimotes)
 		for (; k < MAX_WIIMOTES && !(WIIMOTE_SRC_REAL & g_wiimote_sources[k] && !wm[k]); ++k);
 		wm[k] = new Wiimote(k);
 		wm[k]->dev_handle = dev;
-		memcpy(wm[k]->devicepath, detail_data->DevicePath, 197);
+		wm[k]->devicepath = detail_data->DevicePath;
 
 		if (!wm[k]->Connect())
 		{
@@ -240,7 +240,7 @@ bool Wiimote::Connect()
 
 	if (!dev_handle)
 	{
-		dev_handle = CreateFile(devicepath,
+		dev_handle = CreateFile(devicepath.c_str(),
 				(GENERIC_READ | GENERIC_WRITE),
 				(FILE_SHARE_READ | FILE_SHARE_WRITE),
 				NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);

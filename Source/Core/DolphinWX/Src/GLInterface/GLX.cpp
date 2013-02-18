@@ -27,6 +27,15 @@ void cInterfaceGLX::UpdateFPSDisplay(const char *text)
 {
 	XStoreName(GLWin.dpy, GLWin.win, text);
 }
+
+void cInterfaceGLX::SwapInterval(int Interval)
+{
+	if (glXSwapIntervalSGI)
+		glXSwapIntervalSGI(Interval);
+	else
+		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
+}
+
 void cInterfaceGLX::Swap()
 {
 	glXSwapBuffers(GLWin.dpy, GLWin.win);

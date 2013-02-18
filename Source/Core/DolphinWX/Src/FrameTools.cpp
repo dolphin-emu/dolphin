@@ -1566,6 +1566,8 @@ void CFrame::UpdateGUI()
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+				GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(true);
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty()
@@ -1574,6 +1576,8 @@ void CFrame::UpdateGUI()
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+				GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(true);
 			}
 			else
 			{
@@ -1581,6 +1585,8 @@ void CFrame::UpdateGUI()
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, false);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
+				GetMenuBar()->FindItem(IDM_RECORD)->Enable(false);
+				GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(false);
 			}
 		}
 
@@ -1596,6 +1602,8 @@ void CFrame::UpdateGUI()
 			if (m_ToolBar)
 				m_ToolBar->EnableTool(IDM_PLAY, true);
 			GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+			GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
+			GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(true);
 		}
 	}
 	else if (Initialized)

@@ -344,8 +344,8 @@ void VertexManager::vFlush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8),
-				tex.texMode1[i&3].max_lod >> 4,
+				(tex.texMode0[i&3].min_filter & 3),
+				(tex.texMode1[i&3].max_lod + 0xf) / 0x10,
 				tex.texImage1[i&3].image_type);
 
 			if (tentry)

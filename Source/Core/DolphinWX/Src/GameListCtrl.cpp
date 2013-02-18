@@ -57,6 +57,8 @@ size_t CGameListCtrl::m_numberItem = 0;
 std::string CGameListCtrl::m_currentFilename;
 bool sorted = false;
 
+extern CFrame* main_frame;
+
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
                                 long sortData = CGameListCtrl::COLUMN_TITLE)
 {
@@ -94,6 +96,13 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	switch(sortData)
 	{
 		case CGameListCtrl::COLUMN_TITLE:
+			if (!strcasecmp(iso1->GetName(indexOne).c_str(),iso2->GetName(indexOther).c_str()))
+			{
+				if (iso1->IsDiscTwo())
+					return 1 * t;
+				else if (iso2->IsDiscTwo())
+					return -1 * t;
+			}
 			return strcasecmp(iso1->GetName(indexOne).c_str(),
 					iso2->GetName(indexOther).c_str()) * t;
 		case CGameListCtrl::COLUMN_NOTES:
@@ -366,7 +375,8 @@ void CGameListCtrl::Update()
 		SetItemFont(index, *wxITALIC_FONT);
 		SetColumnWidth(0, wxLIST_AUTOSIZE);
 	}
-
+	if (GetSelectedISO() == NULL)
+		main_frame->UpdateGUI();
 	Show();
 
 	AutomaticColumnWidth();
@@ -968,7 +978,7 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 	{
 		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (item == wxNOT_FOUND)
-			return new GameListItem("");	// TODO: wtf is this
+			return NULL;
 		else
 		{
 			// Here is a little workaround for multiselections:

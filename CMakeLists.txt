@@ -110,33 +110,41 @@ endif()
 # Various compile flags
 add_definitions(-msse2)
 
+include(CheckCXXCompilerFlag)
+macro(check_and_add_flag var flag)
+	CHECK_CXX_COMPILER_FLAG(${flag} FLAG_${var})
+	if(FLAG_${var})
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+	endif()
+endmacro()
+
 # Enabling all warnings in MSVC spams too much
 if(NOT MSVC)
 	add_definitions(-Wall)
+
+	# TODO: would like these but they produce overwhelming amounts of warnings
+	#check_and_add_flag(EXTRA -Wextra)
+	#check_and_add_flag(MISSING_FIELD_INITIALIZERS -Wmissing-field-initializers)
+	#check_and_add_flag(SWITCH_DEFAULT -Wswitch-default)
+	#check_and_add_flag(FLOAT_EQUAL -Wfloat-equal)
+	#check_and_add_flag(CONVERSION -Wconversion)
+	#check_and_add_flag(ZERO_AS_NULL_POINTER_CONSTANT -Wzero-as-null-pointer-constant)
+	check_and_add_flag(TYPE_LIMITS -Wtype-limits)
+	check_and_add_flag(SIGN_COMPARE -Wsign-compare)
+	check_and_add_flag(IGNORED_QUALIFIERS -Wignored-qualifiers)
+	check_and_add_flag(UNINITIALIZED -Wuninitialized)
+	check_and_add_flag(LOGICAL_OP -Wlogical-op)
+	check_and_add_flag(SHADOW -Wshadow)
+	check_and_add_flag(INIT_SELF -Winit-self)
 endif(NOT MSVC)
 
 # gcc uses some optimizations which might break stuff without this flag
-add_definitions(-fno-strict-aliasing -fno-exceptions -Wno-psabi)
+add_definitions(-fno-strict-aliasing -fno-exceptions)
 
-include(CheckCXXCompilerFlag)
-
-# We call fread numerous times without checking return values.  Hide the
-# corresponding compiler warnings if the compiler supports doing so.
-CHECK_CXX_COMPILER_FLAG(-Wunused-result NO_UNUSED_RESULT)
-if(NO_UNUSED_RESULT)
-	add_definitions(-Wno-unused-result)
-endif(NO_UNUSED_RESULT)
-
-CHECK_CXX_COMPILER_FLAG(-fvisibility-inlines-hidden VISIBILITY_INLINES_HIDDEN)
-if(VISIBILITY_INLINES_HIDDEN)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-endif(VISIBILITY_INLINES_HIDDEN)
+check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
 
 if(UNIX AND NOT APPLE)
-	CHECK_CXX_COMPILER_FLAG(-fvisibility=hidden VISIBILITY_HIDDEN)
-	if(VISIBILITY_HIDDEN)
-		add_definitions(-fvisibility=hidden)
-	endif(VISIBILITY_HIDDEN)
+	check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
 endif()
 
 if(APPLE)

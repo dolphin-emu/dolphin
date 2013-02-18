@@ -128,58 +128,6 @@ static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
-static const GLenum glSrcFactors[8] =
-{
-	GL_ZERO,
-	GL_ONE,
-	GL_DST_COLOR,
-	GL_ONE_MINUS_DST_COLOR,
-	GL_SRC_ALPHA,
-	GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
-	GL_DST_ALPHA,
-	GL_ONE_MINUS_DST_ALPHA
-};
-
-static const GLenum glDestFactors[8] = {
-	GL_ZERO,
-	GL_ONE,
-	GL_SRC_COLOR,
-	GL_ONE_MINUS_SRC_COLOR,
-	GL_SRC_ALPHA,
-	GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
-	GL_DST_ALPHA,
-	GL_ONE_MINUS_DST_ALPHA
-};
-
-static const GLenum glCmpFuncs[8] = {
-	GL_NEVER,
-	GL_LESS,
-	GL_EQUAL,
-	GL_LEQUAL,
-	GL_GREATER,
-	GL_NOTEQUAL,
-	GL_GEQUAL,
-	GL_ALWAYS
-};
-
-static const GLenum glLogicOpCodes[16] = {
-	GL_CLEAR,
-	GL_AND,
-	GL_AND_REVERSE,
-	GL_COPY,
-	GL_AND_INVERTED,
-	GL_NOOP,
-	GL_XOR,
-	GL_OR,
-	GL_NOR,
-	GL_EQUIV,
-	GL_INVERT,
-	GL_OR_REVERSE,
-	GL_COPY_INVERTED,
-	GL_OR_INVERTED,
-	GL_NAND,
-	GL_SET
-};
 
 int GetNumMSAASamples(int MSAAMode)
 {
@@ -334,21 +282,8 @@ Renderer::Renderer()
 	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
-#ifdef __APPLE__
 	int swapInterval = g_ActiveConfig.bVSync ? 1 : 0;
-	NSOpenGLContext *ctx = GLWin.cocoaCtx;
-	[ctx setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
-#elif defined _WIN32
-	if (WGLEW_EXT_swap_control)
-		wglSwapIntervalEXT(g_ActiveConfig.bVSync ? 1 : 0);
-	else
-		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
-#elif defined(HAVE_X11) && HAVE_X11
-	if (glXSwapIntervalSGI)
-		glXSwapIntervalSGI(g_ActiveConfig.bVSync ? 1 : 0);
-	else
-		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
-#endif
+	GLInterface->SwapInterval(swapInterval);
 
 	// check the max texture width and height
 	GLint max_texture_size;
@@ -949,6 +884,32 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 	
+	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
+	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
+	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	const GLenum glSrcFactors[8] =
+	{
+		GL_ZERO,
+		GL_ONE,
+		GL_DST_COLOR,
+		GL_ONE_MINUS_DST_COLOR,
+		GL_SRC_ALPHA,
+		GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
+		(target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
+		(target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO
+	};
+	const GLenum glDestFactors[8] =
+	{
+		GL_ZERO,
+		GL_ONE,
+		GL_SRC_COLOR,
+		GL_ONE_MINUS_SRC_COLOR,
+		GL_SRC_ALPHA,
+		GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
+		(target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
+		(target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO
+	};
+
 	// blend mode bit mask
 	// 0 - blend enable
 	// 1 - dst alpha enabled
@@ -980,41 +941,33 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		GLenum equation = newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
 		GLenum equationAlpha = useDualSource ? GL_FUNC_ADD : equation;
 		
-		if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
-			glBlendEquationSeparate(equation, equationAlpha);
-		else
-			glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
+		glBlendEquationSeparate(equation, equationAlpha);
 	}
 
 	if (changes & 0x1FA)
 	{
-		if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+		GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
+		GLenum dstFactor = glDestFactors[(newval >> 6) & 7];
+		GLenum srcFactorAlpha = srcFactor;
+		GLenum dstFactorAlpha = dstFactor;
+		if (useDualSource)
 		{
-			GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
-			GLenum srcFactorAlpha = srcFactor;
-			GLenum dstFactor = glDestFactors[(newval >> 6) & 7];
-			GLenum dstFactorAlpha = dstFactor;
-			if (useDualSource)
-			{
-				srcFactorAlpha = GL_ONE;
-				dstFactorAlpha = GL_ZERO;
+			srcFactorAlpha = GL_ONE;
+			dstFactorAlpha = GL_ZERO;
 
-				if (srcFactor == GL_SRC_ALPHA)
-					srcFactor = GL_SRC1_ALPHA;
-				else if (srcFactor == GL_ONE_MINUS_SRC_ALPHA)
-					srcFactor = GL_ONE_MINUS_SRC1_ALPHA;
+			if (srcFactor == GL_SRC_ALPHA)
+				srcFactor = GL_SRC1_ALPHA;
+			else if (srcFactor == GL_ONE_MINUS_SRC_ALPHA)
+				srcFactor = GL_ONE_MINUS_SRC1_ALPHA;
 
-				if (dstFactor == GL_SRC_ALPHA)
-					dstFactor = GL_SRC1_ALPHA;
-				else if (dstFactor == GL_ONE_MINUS_SRC_ALPHA)
-					dstFactor = GL_ONE_MINUS_SRC1_ALPHA;
-			}
-
-			// blend RGB change
-			glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
+			if (dstFactor == GL_SRC_ALPHA)
+				dstFactor = GL_SRC1_ALPHA;
+			else if (dstFactor == GL_ONE_MINUS_SRC_ALPHA)
+				dstFactor = GL_ONE_MINUS_SRC1_ALPHA;
 		}
-		else
-			glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
+		
+		// blend RGB change
+		glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
 	}
 
 	s_blendMode = newval;
@@ -1289,10 +1242,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (FramebufferManagerBase::LastXfbWidth() != fbWidth || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		unsigned int w = (fbWidth < 1 || fbWidth > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbWidth;
-		unsigned int h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
-		FramebufferManagerBase::SetLastXfbWidth(w);
-		FramebufferManagerBase::SetLastXfbHeight(h);
+		unsigned int const last_w = (fbWidth < 1 || fbWidth > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbWidth;
+		unsigned int const last_h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+		FramebufferManagerBase::SetLastXfbWidth(last_w);
+		FramebufferManagerBase::SetLastXfbHeight(last_h);
 	}
 
 	bool WindowResized = false;
@@ -1436,6 +1389,18 @@ void Renderer::SetGenerationMode()
 
 void Renderer::SetDepthMode()
 {
+	const GLenum glCmpFuncs[8] =
+	{
+		GL_NEVER,
+		GL_LESS,
+		GL_EQUAL,
+		GL_LEQUAL,
+		GL_GREATER,
+		GL_NOTEQUAL,
+		GL_GEQUAL,
+		GL_ALWAYS
+	};
+
 	if (bpmem.zmode.testenable)
 	{
 		glEnable(GL_DEPTH_TEST);
@@ -1452,7 +1417,27 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
+	const GLenum glLogicOpCodes[16] =
+	{
+		GL_CLEAR,
+		GL_AND,
+		GL_AND_REVERSE,
+		GL_COPY,
+		GL_AND_INVERTED,
+		GL_NOOP,
+		GL_XOR,
+		GL_OR,
+		GL_NOR,
+		GL_EQUIV,
+		GL_INVERT,
+		GL_OR_REVERSE,
+		GL_COPY_INVERTED,
+		GL_OR_INVERTED,
+		GL_NAND,
+		GL_SET
+	};
+
+	if (bpmem.blendmode.logicopenable)
 	{
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);

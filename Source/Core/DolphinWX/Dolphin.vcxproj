@@ -137,6 +137,7 @@
       <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
 echo Copying External .dlls
 xcopy "$(SolutionDir)..\Externals\Cg\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\OpenAL\Win32\*.dll" "$(TargetDir)" /e /s /y /q /d
 xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
 </Command>
       <Message>Copying Data\* to $(TargetDir)</Message>
@@ -150,6 +151,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <PostBuildEvent>
       <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
 echo Copying External .dlls
+xcopy "$(SolutionDir)..\Externals\OpenAL\Win64\*.dll" "$(TargetDir)" /e /s /y /q /d
 xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
 </Command>
       <Message>Copying Data\* to $(TargetDir)</Message>
@@ -166,6 +168,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
 echo Copying External .dlls
 xcopy "$(SolutionDir)..\Externals\Cg\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\OpenAL\Win32\*.dll" "$(TargetDir)" /e /s /y /q /d
 xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
 </Command>
       <Message>Copying Data\* to $(TargetDir)</Message>
@@ -180,6 +183,7 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
       <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
 echo Copying External .dlls
 xcopy "$(SolutionDir)..\Externals\Cg\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\OpenAL\Win32\*.dll" "$(TargetDir)" /e /s /y /q /d
 xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
 </Command>
       <Message>Copying Data\* to $(TargetDir)</Message>
@@ -195,6 +199,11 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <PostBuildEvent>
       <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
 echo Copying External .dlls
+<<<<<<< HEAD
+=======
+xcopy "$(SolutionDir)..\Externals\Cg64\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\OpenAL\Win64\*.dll" "$(TargetDir)" /e /s /y /q /d
+>>>>>>> master
 xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
 </Command>
       <Message>Copying Data\* to $(TargetDir)</Message>
@@ -210,6 +219,11 @@ xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /
     <PostBuildEvent>
       <Command>xcopy "$(SolutionDir)..\Data" "$(TargetDir)" /e /s /y /d
 echo Copying External .dlls
+<<<<<<< HEAD
+=======
+xcopy "$(SolutionDir)..\Externals\Cg64\*.dll" "$(TargetDir)" /e /s /y /q /d
+xcopy "$(SolutionDir)..\Externals\OpenAL\Win64\*.dll" "$(TargetDir)" /e /s /y /q /d
+>>>>>>> master
 xcopy "$(SolutionDir)..\Externals\SDL\$(PlatformName)\*.dll" "$(TargetDir)" /e /s /y /q /d
 </Command>
       <Message>Copying Data\* to $(TargetDir)</Message>
