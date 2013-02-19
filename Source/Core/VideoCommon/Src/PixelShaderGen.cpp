@@ -560,14 +560,14 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "void main(\n");
 	if(ApiType != API_D3D11)
 	{
-		WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
+		WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float2 rawpos : %s,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
 			"\n  out float depth : DEPTH,",
 			ApiType & API_OPENGL ? "WPOS" : ApiType & API_D3D9_SM20 ? "POSITION" : "VPOS");
 	}
 	else
 	{
-		WRITE(p, "  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
+		WRITE(p, "  out float4 ocol0 : SV_Target0,%s%s\n  in float2 rawpos : SV_Position,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
 			"\n  out float depth : SV_Depth,");
 	}
