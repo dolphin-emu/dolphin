@@ -40,10 +40,8 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 	{
 		if(g_Config.backend_info.bSupportsGLPinnedMemory && g_Config.backend_info.bSupportsGLSync)
 			m_uploadtype = PINNED_MEMORY;
-		else if(g_Config.backend_info.bSupportsGLSync)
-			m_uploadtype = MAP_AND_RISK;
 		else 
-			m_uploadtype = MAP_AND_ORPHAN;
+			m_uploadtype = MAP_ORPAN_AND_RISK;
 	}
 	
 	Init();
@@ -71,6 +69,14 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		if(iter_end >= m_size) {
 			glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
 			m_iterator_aligned = 0;
+		}
+		break;
+	case MAP_ORPAN_AND_RISK:
+		if(iter_end >= m_size) {
+			glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
+			m_iterator_aligned = 0;
+			pointer = (u8*)glMapBufferRange(m_buffertype, 0, m_size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+			glUnmapBuffer(m_buffertype);
 		}
 		break;
 	case MAP_AND_SYNC:
@@ -137,6 +143,7 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 		break;
 	case PINNED_MEMORY:
 	case MAP_AND_RISK:
+	case MAP_ORPAN_AND_RISK:
 		if(pointer)
 			memcpy(pointer+m_iterator, data, size);
 		break;
@@ -183,7 +190,7 @@ void StreamBuffer::Init()
 		fences = new GLsync[SYNC_POINTS];
 		for(u32 i=0; i<SYNC_POINTS; i++)
 			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		
+	case MAP_ORPAN_AND_RISK:
 		glBindBuffer(m_buffertype, m_buffer);
 		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
 		pointer = (u8*)glMapBuffer(m_buffertype, GL_WRITE_ONLY);
@@ -207,6 +214,7 @@ void StreamBuffer::Shutdown()
 		break;
 		
 	case MAP_AND_ORPHAN:
+	case MAP_ORPAN_AND_RISK:
 	case BUFFERSUBDATA:
 		break;
 	case PINNED_MEMORY:
