@@ -215,7 +215,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 	{
 		std::string TMDFileName(m_Path);
 
-		if (File::IsDirectory(TMDFileName))
+		if ('/' == *TMDFileName.rbegin())
 			TMDFileName += "title.tmd";
 		else
 			m_Path = TMDFileName.substr(0, TMDFileName.find("title.tmd"));
