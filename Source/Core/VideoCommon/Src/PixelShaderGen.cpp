@@ -897,7 +897,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal color combiner goes here
-		WRITE(p, "FIX_PRECISION_U8(%s * (%s %s FIX_PRECISION_U8(lerp(%s, %s, FIX_PRECISION_U8(%s*(256.0f/255.0f)))) %s))", tevScaleTable[cc.shift], "input_cd", tevOpTable[cc.op], "input_ca", "input_cb", "input_cc", tevBiasTable[cc.bias]);
+		WRITE(p, "FIX_PRECISION_U8(%s * (%s %s FIX_PRECISION_U8(lerp(%s, %s, %s)) %s))", tevScaleTable[cc.shift], "input_cd", tevOpTable[cc.op], "input_ca", "input_cb", "input_cc", tevBiasTable[cc.bias]);
 	}
 	else
 	{
@@ -923,7 +923,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal alpha combiner goes here
-		WRITE(p, "FIX_PRECISION_U8(%s * (%s.a %s FIX_PRECISION_U8(lerp(%s.a, %s.a, FIX_PRECISION_U8(%s.a*(256.0f/255.0f)))) %s))", tevScaleTable[ac.shift], "input_ad", tevOpTable[ac.op], "input_aa", "input_ab", "input_ac", tevBiasTable[ac.bias]);
+		WRITE(p, "FIX_PRECISION_U8(%s * (%s.a %s FIX_PRECISION_U8(lerp(%s.a, %s.a, %s.a)) %s))", tevScaleTable[ac.shift], "input_ad", tevOpTable[ac.op], "input_aa", "input_ab", "input_ac", tevBiasTable[ac.bias]);
 	}
 	else
 	{
