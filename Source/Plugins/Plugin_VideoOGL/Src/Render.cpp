@@ -339,11 +339,6 @@ Renderer::Renderer()
 	glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 	glBlendColor(0, 0, 0, 0.5f);
 	glClearDepth(1.0f);
-	
-	// this is a hack to work around an ati driver issue.
-	// usually this shouldn't be needed (and isn't allowed in core)
-	// but else glGenerateMipmaps wouldn't work always
-	glEnable(GL_TEXTURE_2D);
 
 	UpdateActiveConfig();
 }
