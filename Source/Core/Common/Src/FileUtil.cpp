@@ -781,9 +781,9 @@ IOFile::IOFile(IOFile&& other)
 	Swap(other);
 }
 
-IOFile& IOFile::operator=(IOFile other)
+IOFile& IOFile::operator=(IOFile&& other)
 {
-	Swap(other);
+	IOFile(std::move(other)).Swap(*this);
 	return *this;
 }
 

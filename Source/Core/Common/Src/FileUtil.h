@@ -160,7 +160,7 @@ public:
 	~IOFile();
 	
 	IOFile(IOFile&& other);
-	IOFile& operator=(IOFile other);
+	IOFile& operator=(IOFile&& other);
 	
 	void Swap(IOFile& other);
 
