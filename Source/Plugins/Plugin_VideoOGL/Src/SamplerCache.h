@@ -59,15 +59,13 @@ private:
 	{
 		Value()
 			: sampler_id()
-		//	, last_frame_used()
 		{}
 		
 		GLuint sampler_id;
-		//int last_frame_used;
 	};
 	
 	void SetParameters(GLuint sampler_id, const Params& params);
-	std::pair<Params, Value> GetEntry(const Params& params);
+	Value& GetEntry(const Params& params);
 
 	std::map<Params, Value> m_cache;
 	std::pair<Params, Value> m_active_samplers[8];

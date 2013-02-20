@@ -49,36 +49,30 @@ void SamplerCache::SetSamplerState(int stage, const TexMode0& tm0, const TexMode
 	
 	// TODO: Should keep a circular buffer for each stage of recently used samplers.
 	
-	auto const& active_sampler = m_active_samplers[stage];
+	auto& active_sampler = m_active_samplers[stage];
 	if (active_sampler.first != params || !active_sampler.second.sampler_id)
 	{
 		// Active sampler does not match parameters (or is invalid), bind the proper one.
-		auto const new_sampler = GetEntry(params);
-		
-		glBindSampler(stage, new_sampler.second.sampler_id);
-		m_active_samplers[stage] = new_sampler;
+		active_sampler.first = params;
+		active_sampler.second = GetEntry(params);
+		glBindSampler(stage, active_sampler.second.sampler_id);
 	}
-	
-	//active_it->second.last_frame_used = frameCount;
 }
 
-auto SamplerCache::GetEntry(const Params& params) -> std::pair<Params, Value>
+auto SamplerCache::GetEntry(const Params& params) -> Value&
 {
-	auto it = m_cache.find(params);
-	if (m_cache.end() == it)
+	auto& val = m_cache[params];
+	if (!val.sampler_id)
 	{
 		// Sampler not found in cache, create it.
-		Value val;
 		glGenSamplers(1, &val.sampler_id);
 		SetParameters(val.sampler_id, params);
-		
-		it = m_cache.insert(std::make_pair(params, val)).first;
 		
 		// TODO: Maybe kill old samplers if the cache gets huge. It doesn't seem to get huge though.
 		//ERROR_LOG(VIDEO, "Sampler cache size is now %ld.", m_cache.size());
 	}
 	
-	return *it;
+	return val;
 }
 
 void SamplerCache::SetParameters(GLuint sampler_id, const Params& params)
