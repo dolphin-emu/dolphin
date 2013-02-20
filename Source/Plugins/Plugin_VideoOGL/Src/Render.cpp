@@ -248,6 +248,12 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
+	if (!GLEW_ARB_sampler_objects)
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_sampler_objects.");
+		bSuccess = false;
+	}
+
 	s_bHaveCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
 	
 	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
