@@ -207,7 +207,7 @@ Renderer::Renderer()
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
-	s_LastEFBScale = g_ActiveConfig.iEFBScale;
+	s_LastEFBScale = g_ActiveConfig.efb_scale;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	SetupDeviceObjects();
@@ -1041,7 +1041,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// resize the back buffers NOW to avoid flickering
 	if (xfbchanged ||
 		windowResized ||
-		s_LastEFBScale != g_ActiveConfig.iEFBScale ||
+		s_LastEFBScale != g_ActiveConfig.efb_scale ||
 		s_LastAA != g_ActiveConfig.iMultisampleMode)
 	{
 		s_LastAA = g_ActiveConfig.iMultisampleMode;
@@ -1058,7 +1058,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		s_LastEFBScale = g_ActiveConfig.iEFBScale;
+		s_LastEFBScale = g_ActiveConfig.efb_scale;
 		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
