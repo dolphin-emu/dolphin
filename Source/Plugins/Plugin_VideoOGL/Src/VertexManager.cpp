@@ -217,6 +217,7 @@ void VertexManager::vFlush()
 	{
 		if (usedtextures & (1 << i))
 		{
+			g_renderer->SetSamplerState(i % 4, i / 4);
 			FourTexUnits &tex = bpmem.tex[i >> 2];
 			TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
 				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,

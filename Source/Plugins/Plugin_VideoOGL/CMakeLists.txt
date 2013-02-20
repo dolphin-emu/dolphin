@@ -7,6 +7,7 @@ set(SRCS	Src/FramebufferManager.cpp
 			Src/ProgramShaderCache.cpp
 			Src/RasterFont.cpp
 			Src/Render.cpp
+			Src/SamplerCache.cpp
 			Src/StreamBuffer.cpp
 			Src/TextureCache.cpp
 			Src/TextureConverter.cpp

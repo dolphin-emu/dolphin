@@ -65,11 +65,6 @@ private:
 
 		void Bind(unsigned int stage);
 		bool Save(const char filename[], unsigned int level);
-
-	private:
-		void SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1);
-		TexMode0 currmode;
-		TexMode1 currmode1;
 	};
 
 	~TextureCache();

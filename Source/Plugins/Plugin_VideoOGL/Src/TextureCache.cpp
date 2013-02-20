@@ -111,34 +111,20 @@ TextureCache::TCacheEntry::~TCacheEntry()
 TextureCache::TCacheEntry::TCacheEntry()
 {
 	glGenTextures(1, &texture);
-	currmode.hex = 0;
-	currmode1.hex = 0;
 	GL_REPORT_ERRORD();
 }
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	// TODO: is this already done somewhere else?
-	TexMode0 &tm0 = bpmem.tex[stage >> 2].texMode0[stage & 3];
-	TexMode1 &tm1 = bpmem.tex[stage >> 2].texMode1[stage & 3];
-	
-	if(currmode.hex != tm0.hex || currmode1.hex != tm1.hex)
+	if (s_Textures[stage] != texture)
 	{
-		if(s_ActiveTexture != stage)
+		if (s_ActiveTexture != stage)
+		{
 			glActiveTexture(GL_TEXTURE0 + stage);
-		if(s_Textures[stage] != texture)
-			glBindTexture(GL_TEXTURE_2D, texture);
+			s_ActiveTexture = stage;
+		}
 		
-		SetTextureParameters(tm0, tm1);
-		s_ActiveTexture = stage;
-		s_Textures[stage] = texture;
-	} 
-	else if (s_Textures[stage] != texture) 
-	{
-		if(s_ActiveTexture != stage)
-			glActiveTexture(GL_TEXTURE0 + stage);
 		glBindTexture(GL_TEXTURE_2D, texture);
-		s_ActiveTexture = stage;
 		s_Textures[stage] = texture;
 	}
 }
@@ -225,15 +211,23 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 void TextureCache::TCacheEntry::Load(unsigned int stage, unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {
-	if(s_ActiveTexture != stage)
+	if (s_ActiveTexture != stage)
+	{
 		glActiveTexture(GL_TEXTURE0 + stage);
-	if(s_Textures[stage] != texture)
-		glBindTexture(GL_TEXTURE_2D, texture);
-	s_ActiveTexture = stage;
-	s_Textures[stage] = texture;
+		s_ActiveTexture = stage;
+	}
 	
-	if(level == 0 && m_tex_levels != 0)
+	if (s_Textures[stage] != texture)
+	{
+		glBindTexture(GL_TEXTURE_2D, texture);
+		s_Textures[stage] = texture;
+	}
+	
+	// TODO: sloppy, just do this on creation?
+	if (level == 0)
+	{
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m_tex_levels - 1);
+	}
 
 	if (pcfmt != PC_TEX_FMT_DXT1)
 	{
@@ -415,47 +409,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
     }
 
 	g_renderer->RestoreAPIState();
-}
-
-void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1)
-{
-	const GLint c_MinLinearFilter[8] =
-	{
-		GL_NEAREST,
-		GL_NEAREST_MIPMAP_NEAREST,
-		GL_NEAREST_MIPMAP_LINEAR,
-		GL_NEAREST,
-		GL_LINEAR,
-		GL_LINEAR_MIPMAP_NEAREST,
-		GL_LINEAR_MIPMAP_LINEAR,
-		GL_LINEAR,
-	};
-	const GLint c_WrapSettings[4] =
-	{
-		GL_CLAMP_TO_EDGE,
-		GL_REPEAT,
-		GL_MIRRORED_REPEAT,
-		GL_REPEAT,
-	};
-
-	int filt = newmode.min_filter;
-	if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
-		filt += 4; // take equivalent forced linear
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, newmode1.min_lod / 16.0f);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, newmode1.max_lod / 16.0f);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, newmode.lod_bias / 32.0f);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
-
-	// TODO: Reset anisotrop when changed to 1
-	if (g_Config.iMaxAnisotropy >= 1)
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-						(float)(1 << g_ActiveConfig.iMaxAnisotropy));
 }
 
 TextureCache::TextureCache()

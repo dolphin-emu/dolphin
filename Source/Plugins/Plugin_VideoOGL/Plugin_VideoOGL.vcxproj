@@ -205,6 +205,7 @@
     <ClCompile Include="Src\ProgramShaderCache.cpp" />
     <ClCompile Include="Src\RasterFont.cpp" />
     <ClCompile Include="Src\Render.cpp" />
+    <ClCompile Include="Src\SamplerCache.cpp" />
     <ClCompile Include="Src\StreamBuffer.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -228,6 +229,7 @@
     <ClInclude Include="Src\ProgramShaderCache.h" />
     <ClInclude Include="Src\RasterFont.h" />
     <ClInclude Include="Src\Render.h" />
+	<ClInclude Include="Src\SamplerCache.h" />
     <ClInclude Include="Src\StreamBuffer.h" />
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\TextureCache.h" />
