@@ -34,6 +34,7 @@
 #include "NativeVertexFormat.h"
 #include "FramebufferManagerBase.h"
 #include "BPMemory.h"
+#include "VideoConfig.h"
 
 #include <string>
 
@@ -161,7 +162,7 @@ protected:
 	static TargetRectangle target_rc;
 
 	// can probably eliminate this static var
-	static int s_LastEFBScale;
+	static VideoConfig::EFBScale s_LastEFBScale;
 
 	static bool s_skipSwap;
 	static bool XFBWrited;

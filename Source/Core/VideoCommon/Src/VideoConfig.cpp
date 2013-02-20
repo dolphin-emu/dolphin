@@ -78,7 +78,9 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
 	
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-	iniFile.Get("Settings", "EFBScale", &iEFBScale, 2); // native
+	iniFile.Get("Settings", "EFBScale", &efb_scale.setting, 2); // native
+	iniFile.Get("Settings",	"EFBScaleNumerator", &efb_scale.numerator, 1);
+	iniFile.Get("Settings",	"EFBScaleDenominator", &efb_scale.denominator, 1);
 	
 	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
 	
@@ -135,7 +137,9 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle);
 	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
-	iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale); // integral
+	iniFile.GetIfExists("Video_Settings", "EFBScale", &efb_scale.setting);
+	iniFile.GetIfExists("Video_Settings", "EFBScaleNumerator", &efb_scale.numerator);
+	iniFile.GetIfExists("Video_Settings", "EFBScaleDenominator", &efb_scale.denominator);
 	iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass);
 	iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog);
 	iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL);
@@ -206,7 +210,9 @@ void VideoConfig::Save(const char *ini_file)
 
 	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
 	iniFile.Set("Settings", "MSAA", iMultisampleMode);
-	iniFile.Set("Settings", "EFBScale", iEFBScale);
+	iniFile.Set("Settings", "EFBScale", efb_scale.setting);
+	iniFile.Set("Settings",	"EFBScaleNumerator", efb_scale.numerator);
+	iniFile.Set("Settings",	"EFBScaleDenominator", efb_scale.denominator);
 	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
 	iniFile.Set("Settings", "Wireframe", bWireFrame);
@@ -268,7 +274,9 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	SET_IF_DIFFERS("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	SET_IF_DIFFERS("Video_Settings", "MSAA", iMultisampleMode);
-	SET_IF_DIFFERS("Video_Settings", "EFBScale", iEFBScale); // integral
+	SET_IF_DIFFERS("Video_Settings", "EFBScale", efb_scale.setting);
+	SET_IF_DIFFERS("Video_Settings", "EFBScaleNumerator", efb_scale.numerator);
+	SET_IF_DIFFERS("Video_Settings", "EFBScaleDenominator", efb_scale.denominator);
 	SET_IF_DIFFERS("Video_Settings", "DstAlphaPass", bDstAlphaPass);
 	SET_IF_DIFFERS("Video_Settings", "DisableFog", bDisableFog);
 	SET_IF_DIFFERS("Video_Settings", "EnableOpenCL", bEnableOpenCL);

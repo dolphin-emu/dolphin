@@ -335,15 +335,42 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// Internal resolution
 	{
-	const wxString efbscale_choices[] = { _("Auto (Window Size)"), _("Auto (Multiple of 640x528)"),
-		wxT("1x Native (640x528)"), wxT("1.5x Native (960x792)"), wxT("2x Native (1280x1056)"), 
-		wxT("2.5x Native (1600x1320)"), wxT("3x Native (1920x1584)"), wxT("4x Native (2560x2112)") };
+	const wxString efbscale_choices[] = {_("Auto (Window Size)"), _("Auto (Multiple of 640x528)"), _("Custom")};
 
-	wxChoice *const choice_efbscale = CreateChoice(page_enh,
-		vconfig.iEFBScale, wxGetTranslation(internal_res_desc), sizeof(efbscale_choices)/sizeof(*efbscale_choices), efbscale_choices);
+	wxChoice* const choice_efbscale = CreateChoice(page_enh,
+		vconfig.efb_scale.setting, wxGetTranslation(internal_res_desc), ARRAYSIZE(efbscale_choices), efbscale_choices);
+	
+	spinIRNum = new wxSpinCtrl(page_enh, wxID_ANY, "", wxDefaultPosition, wxDefaultSize,
+		wxSP_ARROW_KEYS, 1, 1024);
+	spinIRDen = new wxSpinCtrl(page_enh, wxID_ANY, "", wxDefaultPosition, wxDefaultSize,
+		wxSP_ARROW_KEYS, 1, 1024);
+	
+	spinIRNum->SetValue(vconfig.efb_scale.numerator);
+	spinIRDen->SetValue(vconfig.efb_scale.denominator);
+	
+	// TODO: enable/disable num/den widgets when "custom" is selected/deselected
+#if 0
+	if (choice_efbscale->GetValue() != 2)
+	{
+		spinIRNum->Disable();
+		spinIRDen->Disable();
+	}
+#endif
+	
+	spinIRNum->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &VideoConfigDiag::Event_IR, this);
+	spinIRDen->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &VideoConfigDiag::Event_IR, this);
 
-	szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Internal Resolution:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-	szr_enh->Add(choice_efbscale);
+	wxBoxSizer* const szr_numden = new wxBoxSizer(wxHORIZONTAL);
+	szr_numden->Add(spinIRNum);
+	szr_numden->Add(new wxStaticText(page_enh, wxID_ANY, _(" / ")), 0, wxALIGN_CENTER_VERTICAL, 0);
+	szr_numden->Add(spinIRDen);
+	
+	wxBoxSizer* const szr_ir = new wxBoxSizer(wxVERTICAL);
+	szr_ir->Add(choice_efbscale, 0, wxBOTTOM, 5);
+	szr_ir->Add(szr_numden);
+	
+	szr_enh->Add(new wxStaticText(page_enh, -1, _("Internal Resolution:")), 0, wxALIGN_CENTER_VERTICAL, 0);
+	szr_enh->Add(szr_ir);
 	}
 
 	// AA

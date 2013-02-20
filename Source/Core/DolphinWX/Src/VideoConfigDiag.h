@@ -136,6 +136,12 @@ protected:
 		ev.Skip();
 	}
 
+	void Event_IR(wxEvent&)
+	{
+		g_Config.efb_scale.numerator = spinIRNum->GetValue();
+		g_Config.efb_scale.denominator = spinIRDen->GetValue();
+	}
+
 	void Event_ClickClose(wxCommandEvent&);
 	void Event_Close(wxCloseEvent&);
 
@@ -184,6 +190,9 @@ protected:
 	wxChoice* choice_display_resolution;
 	wxStaticText* text_aamode;
 	SettingChoice* choice_aamode;
+
+	wxSpinCtrl*	spinIRNum;
+	wxSpinCtrl*	spinIRDen;
 
 	SettingCheckBox* pixel_lighting;
 

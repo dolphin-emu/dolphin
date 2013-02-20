@@ -84,10 +84,39 @@ struct VideoConfig
 
 	// Enhancements
 	int iMultisampleMode;
-	int iEFBScale;
 	bool bForceFiltering;
 	int iMaxAnisotropy;
 	std::string sPostProcessingShader;
+	
+	struct EFBScale
+	{
+		int setting;
+		int numerator;
+		int denominator;
+		
+		bool IsAutoFractional() const
+		{
+			return 0 == setting;
+		}
+		
+		bool IsAutoIntegral() const
+		{
+			return 1 == setting;
+		}
+		
+		bool operator==(const EFBScale& other) const
+		{
+			return setting == other.setting
+				&& numerator == other.numerator
+				&& denominator == other.denominator;
+		}
+		
+		bool operator!=(const EFBScale& other) const
+		{
+			return !(*this == other);
+		}
+		
+	} efb_scale;
 
 	// Information
 	bool bShowFPS;

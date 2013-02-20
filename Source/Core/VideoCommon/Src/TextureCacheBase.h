@@ -21,6 +21,7 @@
 #include <map>
 
 #include "VideoCommon.h"
+#include "VideoConfig.h"
 #include "TextureDecoder.h"
 #include "BPMemory.h"
 #include "Thread.h"
@@ -142,7 +143,7 @@ private:
 		bool s_copy_efb_to_texture;
 		bool s_copy_efb_scaled;
 		bool s_copy_efb;
-		int s_efb_scale;
+		VideoConfig::EFBScale s_efb_scale;
 		bool s_texfmt_overlay;
 		bool s_texfmt_overlay_center;
 		bool s_hires_textures;
