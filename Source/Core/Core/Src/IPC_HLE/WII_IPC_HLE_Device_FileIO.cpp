@@ -165,7 +165,7 @@ File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 {
 	u32 ReturnValue	= FS_RESULT_FATAL;
-	const u32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
+	const u32 SeekOffset = Memory::Read_U32(_CommandAddress + 0xC);
 	const u32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
 
 	if (auto file = OpenFile())
@@ -173,48 +173,37 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 		ReturnValue = FS_RESULT_FATAL;
 
 		const u64 fileSize = file.GetSize();
-		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), fileSize);
+		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekOffset, Mode, m_Name.c_str(), fileSize);
+		u64 wantedPos = 0;
 		switch (Mode)
 		{
-			case 0:
-			{
-				if (SeekPosition <= fileSize)
-				{
-					m_SeekPos = SeekPosition;
-					ReturnValue = m_SeekPos;
-				}
-				break;
-			}
-			case 1:
-			{
-				u32 wantedPos = SeekPosition+m_SeekPos;
-				if (wantedPos <= fileSize)
-				{
-					m_SeekPos = wantedPos;
-					ReturnValue = m_SeekPos;
-				}
-				break;
-			}
-			case 2:
-			{
-				u64 wantedPos = fileSize+m_SeekPos;
-				if (wantedPos <= fileSize)
-				{
-					m_SeekPos = wantedPos;
-					ReturnValue = m_SeekPos;
-				}
-				break;
-			}
-			default:
-			{
-				PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
-				ReturnValue = FS_RESULT_FATAL;
-				break;
-			}
+		case 0:
+			wantedPos = SeekOffset;
+			break;
+			
+		case 1:
+			wantedPos = m_SeekPos + SeekOffset;
+			break;
+			
+		case 2:
+			wantedPos = fileSize + (s32)SeekOffset;
+			break;
+			
+		default:
+			PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
+			ReturnValue = FS_RESULT_FATAL;
+			break;
+		}
+		
+		if (wantedPos <= fileSize)
+		{
+			m_SeekPos = wantedPos;
+			ReturnValue = m_SeekPos;
 		}
 	}
 	else
 	{
+		// TODO: This can't be right.
 		ReturnValue = FS_FILE_NOT_EXIST;
 	}
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
