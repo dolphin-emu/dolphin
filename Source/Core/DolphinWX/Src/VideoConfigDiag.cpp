@@ -335,7 +335,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// Internal resolution
 	{
-	const wxString efbscale_choices[] = {_("Auto (Window Size)"), _("Auto (Multiple of 640x528)"), _("Custom")};
+	const wxString efbscale_choices[] =
+	{
+		_("Auto (Window Size)"),
+		_("Auto (Multiple of 640x528)"),
+		_("Native (640x528)"),
+		_("Custom"),
+	};
 
 	wxChoice* const choice_efbscale = CreateChoice(page_enh,
 		vconfig.efb_scale.setting, wxGetTranslation(internal_res_desc), ARRAYSIZE(efbscale_choices), efbscale_choices);

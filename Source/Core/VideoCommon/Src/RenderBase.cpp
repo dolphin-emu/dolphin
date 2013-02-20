@@ -192,8 +192,8 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 	}
 	else
 	{
-		efb_scale_numeratorX = efb_scale_numeratorY = s_LastEFBScale.numerator;
-		efb_scale_denominatorX = efb_scale_denominatorY = s_LastEFBScale.denominator;
+		efb_scale_numeratorX = efb_scale_numeratorY = s_LastEFBScale.GetNumerator();
+		efb_scale_denominatorX = efb_scale_denominatorY = s_LastEFBScale.GetDenominator();
 		CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, newEFBWidth, newEFBHeight);
 	}
 
@@ -241,7 +241,7 @@ void Renderer::DrawDebugText()
 		res_text = "Auto (integral)";
 	else
 		res_text = StringFromFormat("Fixed (%d / %d)",
-			g_ActiveConfig.efb_scale.numerator, g_ActiveConfig.efb_scale.denominator);
+			g_ActiveConfig.efb_scale.GetNumerator(), g_ActiveConfig.efb_scale.GetDenominator());
 	
 	const char* ar_text = "";
 	switch(g_ActiveConfig.iAspectRatio)

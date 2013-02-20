@@ -104,6 +104,17 @@ struct VideoConfig
 			return 1 == setting;
 		}
 		
+		int GetNumerator() const
+		{
+			// 2 == native
+			return (2 == setting) ? 1 : numerator;
+		}
+		
+		int GetDenominator() const
+		{
+			return (2 == setting) ? 1 : denominator;
+		}
+		
 		bool operator==(const EFBScale& other) const
 		{
 			return setting == other.setting
