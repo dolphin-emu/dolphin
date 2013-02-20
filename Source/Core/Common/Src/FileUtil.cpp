@@ -783,7 +783,7 @@ IOFile::IOFile(IOFile&& other)
 
 IOFile& IOFile::operator=(IOFile&& other)
 {
-	IOFile(std::move(other)).Swap(*this);
+	IOFile((IOFile&&)other).Swap(*this);
 	return *this;
 }
 
