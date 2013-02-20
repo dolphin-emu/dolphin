@@ -481,15 +481,20 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
+	else
+	{
+		// load texture (CreateTexture also loads level 0)
+		entry->Load(width, height, expandedWidth, 0);
+	}
 
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
-	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_EC_DYNAMIC;
-	else entry->type = TCET_NORMAL;
-
-	// load texture
-	entry->Load(width, height, expandedWidth, 0);
+	
+	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture)
+		entry->type = TCET_EC_DYNAMIC;
+	else
+		entry->type = TCET_NORMAL;
 
 	if (g_ActiveConfig.bDumpTextures && !using_custom_texture)
 		DumpTexture(entry, 0);
