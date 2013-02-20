@@ -248,6 +248,7 @@ u8 *GetPointer(const u32 &address)
 	return Memory::GetPointer(address);
 }
 
+// Never used. All backends call SetSamplerState in VertexManager::Flush
 void SetTextureMode(const BPCmd &bp)
 {
 	g_renderer->SetSamplerState(bp.address & 3, (bp.address & 0xE0) == 0xA0);
