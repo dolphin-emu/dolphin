@@ -133,6 +133,7 @@ struct VideoConfig
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
 	bool bUseBBox;
 	bool bEnablePixelLighting;
+	bool bHackedBufferUpload;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
