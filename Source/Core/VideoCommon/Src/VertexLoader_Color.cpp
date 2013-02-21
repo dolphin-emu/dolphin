@@ -15,9 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _VERTEXLOADERCOLOR_H
-#define _VERTEXLOADERCOLOR_H
-
 #include "Common.h"
 #include "VideoCommon.h"
 #include "LookUpTables.h"
@@ -132,80 +129,65 @@ void LOADERDECL Color_ReadDirect_32b_8888()
 	_SetCol(col);
 }
 
-
-
-void LOADERDECL Color_ReadIndex8_16b_565()
+template <typename I>
+void Color_ReadIndex_16b_565()
 {
-	u8 Index = DataReadU8();
+	auto const Index = DataRead<I>();
 	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])));
 	_SetCol565(val);
 }
-void LOADERDECL Color_ReadIndex8_24b_888()
+
+template <typename I>
+void Color_ReadIndex_24b_888()
 {
-	u8 Index = DataReadU8();
+	auto const Index = DataRead<I>();
 	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read24(iAddress));
 }
-void LOADERDECL Color_ReadIndex8_32b_888x()
+
+template <typename I>
+void Color_ReadIndex_32b_888x()
 {
-	u8 Index = DataReadU8();
+	auto const Index = DataRead<I>();
 	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read24(iAddress));
 }
-void LOADERDECL Color_ReadIndex8_16b_4444()
+
+template <typename I>
+void Color_ReadIndex_16b_4444()
 {
-	u8 Index = DataReadU8();
+	auto const Index = DataRead<I>();
 	u16 val = *(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]));
 	_SetCol4444(val);
 }
-void LOADERDECL Color_ReadIndex8_24b_6666()
+
+template <typename I>
+void Color_ReadIndex_24b_6666()
 {
-	u8 Index = DataReadU8();
+	auto const Index = DataRead<I>();
 	const u8* pData = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]) - 1;
 	u32 val = Common::swap32(pData);
 	_SetCol6666(val);
 }
-void LOADERDECL Color_ReadIndex8_32b_8888()
+
+template <typename I>
+void Color_ReadIndex_32b_8888()
 {
-	u8 Index = DataReadU8();
+	auto const Index = DataRead<I>();
 	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
 	_SetCol(_Read32(iAddress));
 }
-void LOADERDECL Color_ReadIndex16_16b_565()
-{
-	u16 Index = DataReadU16(); 
-	u16 val = Common::swap16(*(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex])));
-	_SetCol565(val);
-}
-void LOADERDECL Color_ReadIndex16_24b_888()
-{
-	u16 Index = DataReadU16(); 
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	_SetCol(_Read24(iAddress));
-}
-void LOADERDECL Color_ReadIndex16_32b_888x()
-{
-	u16 Index = DataReadU16(); 
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	_SetCol(_Read24(iAddress));
-}
-void LOADERDECL Color_ReadIndex16_16b_4444()
-{
-	u16 Index = DataReadU16();
-	u16 val = *(const u16 *)(cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]));
-	_SetCol4444(val);
-}
-void LOADERDECL Color_ReadIndex16_24b_6666()
-{
-	u16 Index = DataReadU16();
-	const u8 *pData = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]) - 1;
-	u32 val = Common::swap32(pData);
-	_SetCol6666(val);
-}
-void LOADERDECL Color_ReadIndex16_32b_8888()
-{
-	u16 Index = DataReadU16(); 
-	const u8 *iAddress = cached_arraybases[ARRAY_COLOR+colIndex] + (Index * arraystrides[ARRAY_COLOR+colIndex]);
-	_SetCol(_Read32(iAddress));
-}
-#endif
+
+void LOADERDECL Color_ReadIndex8_16b_565() { Color_ReadIndex_16b_565<u8>(); }
+void LOADERDECL Color_ReadIndex8_24b_888() { Color_ReadIndex_24b_888<u8>(); }
+void LOADERDECL Color_ReadIndex8_32b_888x() { Color_ReadIndex_32b_888x<u8>(); }
+void LOADERDECL Color_ReadIndex8_16b_4444() { Color_ReadIndex_16b_4444<u8>(); }
+void LOADERDECL Color_ReadIndex8_24b_6666() { Color_ReadIndex_24b_6666<u8>(); }
+void LOADERDECL Color_ReadIndex8_32b_8888() { Color_ReadIndex_32b_8888<u8>(); }
+
+void LOADERDECL Color_ReadIndex16_16b_565() { Color_ReadIndex_16b_565<u16>(); }
+void LOADERDECL Color_ReadIndex16_24b_888() { Color_ReadIndex_24b_888<u16>(); }
+void LOADERDECL Color_ReadIndex16_32b_888x() { Color_ReadIndex_32b_888x<u16>(); }
+void LOADERDECL Color_ReadIndex16_16b_4444() { Color_ReadIndex_16b_4444<u16>(); }
+void LOADERDECL Color_ReadIndex16_24b_6666() { Color_ReadIndex_24b_6666<u16>(); }
+void LOADERDECL Color_ReadIndex16_32b_8888() { Color_ReadIndex_32b_8888<u16>(); }
