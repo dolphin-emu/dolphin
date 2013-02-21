@@ -162,6 +162,40 @@ inline u16 swap16(const u8* _pData) {return swap16(*(const u16*)_pData);}
 inline u32 swap32(const u8* _pData) {return swap32(*(const u32*)_pData);}
 inline u64 swap64(const u8* _pData) {return swap64(*(const u64*)_pData);}
 
+template <int count>
+void swap(u8*);
+
+template <>
+inline void swap<1>(u8* data)
+{}
+
+template <>
+inline void swap<2>(u8* data)
+{
+	*reinterpret_cast<u16*>(data) = swap16(data);
+}
+
+template <>
+inline void swap<4>(u8* data)
+{
+	*reinterpret_cast<u32*>(data) = swap32(data);
+}
+
+template <>
+inline void swap<8>(u8* data)
+{
+	*reinterpret_cast<u64*>(data) = swap64(data);
+}
+
+template <typename T>
+inline T FromBigEndian(T data)
+{
+	//static_assert(std::is_arithmetic<T>::value, "function only makes sense with arithmetic types");
+	
+	swap<sizeof(data)>(reinterpret_cast<u8*>(&data));
+	return data;
+}
+
 }  // Namespace Common
 
 #endif // _COMMONFUNCS_H_
