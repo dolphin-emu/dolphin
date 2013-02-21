@@ -173,7 +173,7 @@ void VertexManager::PrepareVBuffers(int stride)
 		DestroyDeviceObjects();
 		return;
 	}
-	memcpy(pVertices, LocalVBuffer, datasize);
+	memcpy(pVertices, s_pBaseBufferPointer, datasize);
 	VBuffers[CurrentVBuffer]->Unlock();
 
 	LockMode = D3DLOCK_NOOVERWRITE;
@@ -268,7 +268,7 @@ void VertexManager::DrawVA(int stride)
 			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(), 
 			TIBuffer, 
 			D3DFMT_INDEX16, 
-			LocalVBuffer, 
+			s_pBaseBufferPointer, 
 			stride)))
 		{
 			DumpBadShaders();
@@ -282,7 +282,7 @@ void VertexManager::DrawVA(int stride)
 			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(), 
 			LIBuffer, 
 			D3DFMT_INDEX16, 
-			LocalVBuffer, 
+			s_pBaseBufferPointer, 
 			stride)))
 		{
 			DumpBadShaders();
@@ -296,7 +296,7 @@ void VertexManager::DrawVA(int stride)
 			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(), 
 			PIBuffer, 
 			D3DFMT_INDEX16, 
-			LocalVBuffer, 
+			s_pBaseBufferPointer, 
 			stride)))
 		{
 			DumpBadShaders();
@@ -307,7 +307,7 @@ void VertexManager::DrawVA(int stride)
 
 void VertexManager::vFlush()
 {
-	if (LocalVBuffer == s_pCurBufferPointer) return;
+	if (s_pBaseBufferPointer == s_pCurBufferPointer) return;
 	if (Flushed) return;
 	Flushed = true;
 	VideoFifo_CheckEFBAccess();

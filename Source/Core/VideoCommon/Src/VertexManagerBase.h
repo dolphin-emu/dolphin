@@ -30,8 +30,9 @@ public:
 	static void AddVertices(int _primitive, int _numVertices);
 
 	// TODO: protected?
-	static u8 *s_pCurBufferPointer;
 	static u8 *s_pBaseBufferPointer;
+	static u8 *s_pCurBufferPointer;
+	static u8 *s_pEndBufferPointer;
 
 	static int GetRemainingSize();
 	static int GetRemainingVertices(int primitive);
@@ -43,7 +44,7 @@ public:
 	static u16* GetTriangleIndexBuffer() { return TIBuffer; }
 	static u16* GetLineIndexBuffer() { return LIBuffer; }
 	static u16* GetPointIndexBuffer() { return PIBuffer; }
-	static u8* GetVertexBuffer() { return LocalVBuffer; }
+	static u8* GetVertexBuffer() { return s_pBaseBufferPointer; }
 
 	static void DoState(PointerWrap& p);
 	virtual void CreateDeviceObjects(){};
@@ -52,7 +53,6 @@ protected:
 	// TODO: make private after Flush() is merged
 	static void ResetBuffer();
 
-	static u8 *LocalVBuffer;
 	static u16 *TIBuffer;
 	static u16 *LIBuffer;
 	static u16 *PIBuffer;
@@ -67,6 +67,8 @@ private:
 	//virtual void Draw(u32 stride, bool alphapass) = 0;
 	// temp
 	virtual void vFlush() = 0;
+	
+	static u8 *LocalVBuffer;
 
 };
 

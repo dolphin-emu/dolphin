@@ -100,7 +100,7 @@ void VertexManager::Draw()
 
 void VertexManager::vFlush()
 {
-	if (LocalVBuffer == s_pCurBufferPointer) return;
+	if (s_pBaseBufferPointer == s_pCurBufferPointer) return;
 	if (Flushed) return;
 	Flushed=true;
 	VideoFifo_CheckEFBAccess();
@@ -135,7 +135,7 @@ void VertexManager::vFlush()
 	(void)GL_REPORT_ERROR();
 	
 	//glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
-	//glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer, GL_STREAM_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - s_pBaseBufferPointer, s_pBaseBufferPointer, GL_STREAM_DRAW);
 	GL_REPORT_ERRORD();
 
 	// setup the pointers
@@ -240,7 +240,7 @@ void VertexManager::vFlush()
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	//s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
-	s_pCurBufferPointer = LocalVBuffer;
+	s_pCurBufferPointer = s_pBaseBufferPointer;
 	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)

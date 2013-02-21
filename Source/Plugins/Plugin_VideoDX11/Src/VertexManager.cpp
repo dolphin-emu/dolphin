@@ -104,7 +104,7 @@ void VertexManager::LoadBuffers()
 {
 	D3D11_MAPPED_SUBRESOURCE map;
 
-	UINT vSize = UINT(s_pCurBufferPointer - LocalVBuffer);
+	UINT vSize = UINT(s_pCurBufferPointer - s_pBaseBufferPointer);
 	D3D11_MAP MapType = D3D11_MAP_WRITE_NO_OVERWRITE;
 	if (m_vertexBufferCursor + vSize >= VBUFFER_SIZE)
 	{
@@ -116,7 +116,7 @@ void VertexManager::LoadBuffers()
 
 	D3D::context->Map(m_vertexBuffers[m_activeVertexBuffer], 0, MapType, 0, &map);
 
-	memcpy((u8*)map.pData + m_vertexBufferCursor, LocalVBuffer, vSize);
+	memcpy((u8*)map.pData + m_vertexBufferCursor, s_pBaseBufferPointer, vSize);
 	D3D::context->Unmap(m_vertexBuffers[m_activeVertexBuffer], 0);
 	m_vertexDrawOffset = m_vertexBufferCursor;
 	m_vertexBufferCursor += vSize;
@@ -211,7 +211,7 @@ void VertexManager::Draw(UINT stride)
 
 void VertexManager::vFlush()
 {
-	if (LocalVBuffer == s_pCurBufferPointer) return;
+	if (s_pBaseBufferPointer == s_pCurBufferPointer) return;
 	if (Flushed) return;
 	Flushed=true;
 	VideoFifo_CheckEFBAccess();

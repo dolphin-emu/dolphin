@@ -16,8 +16,9 @@
 
 VertexManager *g_vertex_manager;
 
-u8 *VertexManager::s_pCurBufferPointer;
 u8 *VertexManager::s_pBaseBufferPointer;
+u8 *VertexManager::s_pCurBufferPointer;
+u8 *VertexManager::s_pEndBufferPointer;
 
 u8 *VertexManager::LocalVBuffer;
 u16 *VertexManager::TIBuffer;
@@ -32,6 +33,7 @@ VertexManager::VertexManager()
 
 	LocalVBuffer = new u8[MAXVBUFFERSIZE];
 	s_pCurBufferPointer = s_pBaseBufferPointer = LocalVBuffer;
+	s_pEndBufferPointer = s_pBaseBufferPointer + MAXVBUFFERSIZE;
 
 	TIBuffer = new u16[MAXIBUFFERSIZE];
 	LIBuffer = new u16[MAXIBUFFERSIZE];
@@ -42,7 +44,7 @@ VertexManager::VertexManager()
 
 void VertexManager::ResetBuffer()
 {
-	s_pCurBufferPointer = LocalVBuffer;
+	s_pCurBufferPointer = s_pBaseBufferPointer;
 }
 
 VertexManager::~VertexManager()
@@ -87,7 +89,7 @@ void VertexManager::AddIndices(int primitive, int numVertices)
 
 int VertexManager::GetRemainingSize()
 {
-	return MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
+	return (int)(s_pEndBufferPointer - s_pCurBufferPointer);
 }
 
 int VertexManager::GetRemainingVertices(int primitive)
@@ -170,7 +172,7 @@ void VertexManager::Flush()
 #if (0)
 void VertexManager::Flush()
 {
-	if (LocalVBuffer == s_pCurBufferPointer || Flushed)
+	if (s_pBaseBufferPointer == s_pCurBufferPointer || Flushed)
 		return;
 
 	Flushed = true;
