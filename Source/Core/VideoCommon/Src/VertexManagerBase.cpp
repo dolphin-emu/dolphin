@@ -92,6 +92,7 @@ int VertexManager::GetRemainingSize()
 	return (int)(s_pEndBufferPointer - s_pCurBufferPointer);
 }
 
+// Not used anywhere
 int VertexManager::GetRemainingVertices(int primitive)
 {
 	switch (primitive)
@@ -122,32 +123,6 @@ void VertexManager::AddVertices(int primitive, int numVertices)
 {
 	if (numVertices <= 0)
 		return;
-
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:
-	case GX_DRAW_TRIANGLES:
-	case GX_DRAW_TRIANGLE_STRIP:
-	case GX_DRAW_TRIANGLE_FAN:
-		if (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen() < 3 * numVertices)
-			Flush();
-		break;
-
-	case GX_DRAW_LINES:
-	case GX_DRAW_LINE_STRIP:
-		if (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen() < 2 * numVertices)
-			Flush();
-		break;
-
-	case GX_DRAW_POINTS:
-		if (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen() < numVertices)
-			Flush();
-		break;
-
-	default:
-		return;
-		break;
-	}
 
 	if (Flushed)
 	{

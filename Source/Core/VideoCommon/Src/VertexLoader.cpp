@@ -562,86 +562,17 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
-	// if strips or fans, make sure all vertices can fit in buffer, otherwise flush
-	int granularity = 1;
-	switch (primitive) {
-		case 3: // strip .. hm, weird
-		case 4: // fan
-			if (VertexManager::GetRemainingSize() < 3 * native_stride)
-				VertexManager::Flush();
-			break;
-		case 6: // line strip
-			if (VertexManager::GetRemainingSize() < 2 * native_stride)
-				VertexManager::Flush();
-			break;
-		case 0: granularity = 4; break; // quads
-		case 2: granularity = 3; break; // tris
-		case 5: granularity = 2; break; // lines
-	}
-
-	int startv = 0, extraverts = 0;
-	int v = 0;
-
-	//int remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
-	while (v < count)
+	if (VertexManager::GetRemainingSize() < count * native_stride)
 	{
-		int remainingVerts = VertexManager::GetRemainingSize() / native_stride;
-		//if (remainingVerts2 - v + startv < remainingVerts)
-		    //remainingVerts = remainingVerts2 - v + startv;
-		if (remainingVerts < granularity) {
-			INCSTAT(stats.thisFrame.numBufferSplits);
-			// This buffer full - break current primitive and flush, to switch to the next buffer.
-			if (v - startv > 0)
-				VertexManager::AddVertices(primitive, v - startv + extraverts);
-			VertexManager::Flush();
-			//remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
-			// Why does this need to be so complicated?
-			switch (primitive) {
-				case 3: // triangle strip, copy last two vertices
-					// a little trick since we have to keep track of signs
-					if (v & 1) {
-						g_pVideoData -= m_VertexSize*2;
-						ConvertVertices(1);
-						g_pVideoData -= m_VertexSize;
-						ConvertVertices(2);
-						extraverts = 3;
-					}
-					else {
-						g_pVideoData -= m_VertexSize*2;
-						ConvertVertices(2);
-						extraverts = 2;
-					}
-					break;
-				case 4: // tri fan, copy first and last vert
-					g_pVideoData -= m_VertexSize*(v-startv+extraverts);
-					ConvertVertices(1);
-					g_pVideoData += m_VertexSize*(v-startv+extraverts-2);
-					ConvertVertices(1);
-					extraverts = 2;
-					break;
-				case 6: // line strip
-					g_pVideoData -= m_VertexSize*1;
-					ConvertVertices(1);
-					extraverts = 1;
-					break;
-				default:
-					extraverts = 0;
-					break;
-			}
-			startv = v;
-		}
-		int remainingPrims = remainingVerts / granularity;
-		remainingVerts = remainingPrims * granularity;
-		if (count - v < remainingVerts)
-			remainingVerts = count - v;
-
-		ConvertVertices(remainingVerts);
-
-		v += remainingVerts;
+		VertexManager::Flush();
+	
+		if (VertexManager::GetRemainingSize() < count * native_stride)
+			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
+				"Increase MAXVBUFFERSIZE or we need primitive breaking afterall.");
 	}
-
-	if (startv < count)
-		VertexManager::AddVertices(primitive, count - startv + extraverts);
+	
+	VertexManager::AddVertices(primitive, count);
+	ConvertVertices(count);
 }
 
 
