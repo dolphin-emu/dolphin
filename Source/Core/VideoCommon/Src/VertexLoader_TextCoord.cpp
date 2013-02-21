@@ -54,6 +54,8 @@ void LOADERDECL TexCoord_ReadDirect()
 template <typename I, typename T, int N>
 void LOADERDECL TexCoord_ReadIndex()
 {
+	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
+	
 	auto const index = DataRead<I>();
 	auto const data = reinterpret_cast<T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex] + (index * arraystrides[ARRAY_TEXCOORD0 + tcIndex]));
 	reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer)[0] = Common::FromBigEndian(data[0]) * tcScale[tcIndex];
