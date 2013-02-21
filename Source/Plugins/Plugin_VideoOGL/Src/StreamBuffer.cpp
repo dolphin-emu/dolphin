@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #include "Globals.h"
 #include "GLUtil.h"
 #include "StreamBuffer.h"
@@ -36,12 +35,16 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 {
 	glGenBuffers(1, &m_buffer);
 	
+	bool nvidia = !strcmp((const char*)glGetString(GL_VENDOR), "NVIDIA Corporation");
+	
 	if(m_uploadtype == STREAM_DETECT)
 	{
 		if(g_Config.backend_info.bSupportsGLSync && g_Config.backend_info.bSupportsGLPinnedMemory)
 			m_uploadtype = PINNED_MEMORY;
 		else if(g_Config.backend_info.bSupportsGLSync && g_Config.bHackedBufferUpload)
 			m_uploadtype = MAP_AND_RISK;
+		else if(nvidia)
+			m_uploadtype = BUFFERSUBDATA;
 		else if(g_Config.backend_info.bSupportsGLSync)
 			m_uploadtype = MAP_AND_SYNC;
 		else 
