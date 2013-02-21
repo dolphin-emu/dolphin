@@ -34,12 +34,14 @@ void LOG_TEX();
 template <>
 __forceinline void LOG_TEX<1>()
 {
+	// warning: mapping buffer should be disabled to use this
 	// PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0]);
 }
 
 template <>
 __forceinline void LOG_TEX<2>()
 {
+	// warning: mapping buffer should be disabled to use this
 	// PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1]);
 }
 
@@ -125,11 +127,9 @@ void LOADERDECL TexCoord_ReadIndex16_Float2_SSSE3()
 	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
 	GC_ALIGNED128(const __m128i a = _mm_loadl_epi64((__m128i*)pData));
 	GC_ALIGNED128(const __m128i b = _mm_shuffle_epi8(a, kMaskSwap32));
-	u8* p = VertexManager::s_pCurBufferPointer;
-	_mm_storel_epi64((__m128i*)p, b);
+	_mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, b);
 	LOG_TEX2();
-	p += 8;
-	VertexManager::s_pCurBufferPointer = p;
+	VertexManager::s_pCurBufferPointer += 8;
 	tcIndex++;
 }
 #endif

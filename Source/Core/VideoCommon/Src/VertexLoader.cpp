@@ -72,6 +72,10 @@ int colElements[2];
 float posScale;
 float tcScale[8];
 
+// bbox must read vertex position, so convert it to this buffer
+static float s_bbox_vertex_buffer[3];
+static u8 *s_bbox_pCurBufferPointer_orig;
+
 static const float fractionTable[32] = {
 	1.0f / (1U << 0), 1.0f / (1U << 1), 1.0f / (1U << 2), 1.0f / (1U << 3),
 	1.0f / (1U << 4), 1.0f / (1U << 5), 1.0f / (1U << 6), 1.0f / (1U << 7),
@@ -99,17 +103,32 @@ void LOADERDECL PosMtx_Write()
 	*VertexManager::s_pCurBufferPointer++ = 0;
 }
 
+void LOADERDECL UpdateBoundingBoxPrepare() 
+{
+	if (!PixelEngine::bbox_active)
+		return;
+	
+	// set our buffer as videodata buffer, so we will get a copy of the vertex positions
+	// this is a big hack, but so we can use the same converting function then without bbox
+	s_bbox_pCurBufferPointer_orig = VertexManager::s_pCurBufferPointer;
+	VertexManager::s_pCurBufferPointer = (u8*)s_bbox_vertex_buffer;
+}
+
 void LOADERDECL UpdateBoundingBox() 
 {
 	if (!PixelEngine::bbox_active)
 		return;
+	
+	// reset videodata pointer
+	VertexManager::s_pCurBufferPointer = s_bbox_pCurBufferPointer_orig;
+	
+	// copy vertex pointers
+	memcpy(VertexManager::s_pCurBufferPointer, s_bbox_vertex_buffer, 12);
+	VertexManager::s_pCurBufferPointer += 12;
 
-	// Truly evil hack, reading backwards from the write pointer. If we were writing to write-only
-	// memory like we might have been with a D3D vertex buffer, this would have been a bad idea.
-	float *data = (float *)(VertexManager::s_pCurBufferPointer - 12);
 	// We must transform the just loaded point by the current world and projection matrix - in software.
 	// Then convert to screen space and update the bounding box.
-	float p[3] = {data[0], data[1], data[2]};
+	float p[3] = {s_bbox_vertex_buffer[0], s_bbox_vertex_buffer[1], s_bbox_vertex_buffer[2]};
 
 	const float *world_matrix  = (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
 	const float *proj_matrix = &g_fProjectionMatrix[0];
@@ -267,14 +286,15 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
 	// Write vertex position loader
-	WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+	if(g_ActiveConfig.bUseBBox) {
+		WriteCall(UpdateBoundingBoxPrepare);
+		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+		WriteCall(UpdateBoundingBox);
+	} else {
+		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+	}
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
 	nat_offset += 12;
-
-	// OK, so we just got a point. Let's go back and read it for the bounding box.
-	
-	if(g_ActiveConfig.bUseBBox)
-		WriteCall(UpdateBoundingBox);
 
 	// Normals
 	vtx_decl.num_normals = 0;
@@ -571,7 +591,6 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 		if (remainingVerts < granularity) {
 			INCSTAT(stats.thisFrame.numBufferSplits);
 			// This buffer full - break current primitive and flush, to switch to the next buffer.
-			u8* plastptr = VertexManager::s_pCurBufferPointer;
 			if (v - startv > 0)
 				VertexManager::AddVertices(primitive, v - startv + extraverts);
 			VertexManager::Flush();
@@ -581,27 +600,28 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 				case 3: // triangle strip, copy last two vertices
 					// a little trick since we have to keep track of signs
 					if (v & 1) {
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-2*native_stride, native_stride);
-						memcpy_gc(VertexManager::s_pCurBufferPointer+native_stride, plastptr-native_stride*2, 2*native_stride);
-						VertexManager::s_pCurBufferPointer += native_stride*3;
+						g_pVideoData -= m_VertexSize*2;
+						ConvertVertices(1);
+						g_pVideoData -= m_VertexSize;
+						ConvertVertices(2);
 						extraverts = 3;
 					}
 					else {
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*2, native_stride*2);
-						VertexManager::s_pCurBufferPointer += native_stride*2;
+						g_pVideoData -= m_VertexSize*2;
+						ConvertVertices(2);
 						extraverts = 2;
 					}
 					break;
 				case 4: // tri fan, copy first and last vert
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*(v-startv+extraverts), native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
+					g_pVideoData -= m_VertexSize*(v-startv+extraverts);
+					ConvertVertices(1);
+					g_pVideoData += m_VertexSize*(v-startv+extraverts-2);
+					ConvertVertices(1);
 					extraverts = 2;
 					break;
 				case 6: // line strip
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
+					g_pVideoData -= m_VertexSize*1;
+					ConvertVertices(1);
 					extraverts = 1;
 					break;
 				default:
@@ -615,27 +635,34 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 		if (count - v < remainingVerts)
 			remainingVerts = count - v;
 
-	#ifdef USE_JIT
-		if (remainingVerts > 0) {
-			loop_counter = remainingVerts;
-			((void (*)())(void*)m_compiledCode)();
-		}
-	#else
-		for (int s = 0; s < remainingVerts; s++)
-		{
-			tcIndex = 0;
-			colIndex = 0;
-			s_texmtxwrite = s_texmtxread = 0;
-			for (int i = 0; i < m_numPipelineStages; i++)
-				m_PipelineStages[i]();
-			PRIM_LOG("\n");
-		}
-	#endif
+		ConvertVertices(remainingVerts);
+
 		v += remainingVerts;
 	}
 
 	if (startv < count)
 		VertexManager::AddVertices(primitive, count - startv + extraverts);
+}
+
+
+void VertexLoader::ConvertVertices ( int count )
+{
+#ifdef USE_JIT
+	if (count > 0) {
+		loop_counter = count;
+		((void (*)())(void*)m_compiledCode)();
+	}
+#else
+	for (int s = 0; s < count; s++)
+	{
+		tcIndex = 0;
+		colIndex = 0;
+		s_texmtxwrite = s_texmtxread = 0;
+		for (int i = 0; i < m_numPipelineStages; i++)
+			m_PipelineStages[i]();
+		PRIM_LOG("\n");
+	}
+#endif
 }
 
 
