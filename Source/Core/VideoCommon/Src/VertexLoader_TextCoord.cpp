@@ -93,11 +93,14 @@ void LOADERDECL TexCoord_ReadIndex()
 #if _M_SSE >= 0x401
 static const __m128i kMaskSwap16_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0x02030001L);
 
-void LOADERDECL TexCoord_ReadIndex16_Short2_SSE4()
+template <typename I>
+void LOADERDECL TexCoord_ReadIndex_Short2_SSE4()
 {
+	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
+	
 	// Heavy in ZWW
-	u16 Index = DataReadU16();
-	const s32 *pData = (const s32*)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
+	auto const index = DataRead<I>();
+	const s32 *pData = (const s32*)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
 	const __m128i a = _mm_cvtsi32_si128(*pData);
 	const __m128i b = _mm_shuffle_epi8(a, kMaskSwap16_2);
 	const __m128i c = _mm_cvtepi16_epi32(b);
@@ -105,7 +108,7 @@ void LOADERDECL TexCoord_ReadIndex16_Short2_SSE4()
 	const __m128 e = _mm_load1_ps(&tcScale[tcIndex]);
 	const __m128 f = _mm_mul_ps(d, e);
 	_mm_storeu_ps((float*)VertexManager::s_pCurBufferPointer, f);
-	VertexManager::s_pCurBufferPointer += 8;
+	VertexManager::s_pCurBufferPointer += sizeof(float) * 2;
 	LOG_TEX<2>();
 	tcIndex++;
 }
@@ -114,14 +117,17 @@ void LOADERDECL TexCoord_ReadIndex16_Short2_SSE4()
 #if _M_SSE >= 0x301
 static const __m128i kMaskSwap32 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
 
-void LOADERDECL TexCoord_ReadIndex16_Float2_SSSE3()
+template <typename I>
+void LOADERDECL TexCoord_ReadIndex_Float2_SSSE3()
 {
-	u16 Index = DataReadU16(); 
-	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
+	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
+	
+	auto const index = DataRead<I>();
+	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
 	GC_ALIGNED128(const __m128i a = _mm_loadl_epi64((__m128i*)pData));
 	GC_ALIGNED128(const __m128i b = _mm_shuffle_epi8(a, kMaskSwap32));
 	_mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, b);
-	VertexManager::s_pCurBufferPointer += 8;
+	VertexManager::s_pCurBufferPointer += sizeof(float) * 2;
 	LOG_TEX<2>();
 	tcIndex++;
 }
@@ -177,16 +183,20 @@ void VertexLoader_TextCoord::Init(void) {
 
 #if _M_SSE >= 0x301
 
-	if (cpu_info.bSSSE3) {
-		tableReadTexCoord[3][4][1] = TexCoord_ReadIndex16_Float2_SSSE3;
+	if (cpu_info.bSSSE3)
+	{
+		tableReadTexCoord[2][4][1] = TexCoord_ReadIndex_Float2_SSSE3<u8>;
+		tableReadTexCoord[3][4][1] = TexCoord_ReadIndex_Float2_SSSE3<u16>;
 	}
 
 #endif
 
 #if _M_SSE >= 0x401
 
-	if (cpu_info.bSSE4_1) {
-		tableReadTexCoord[3][3][1] = TexCoord_ReadIndex16_Short2_SSE4;
+	if (cpu_info.bSSE4_1)
+	{
+		tableReadTexCoord[2][3][1] = TexCoord_ReadIndex_Short2_SSE4<u8>;
+		tableReadTexCoord[3][3][1] = TexCoord_ReadIndex_Short2_SSE4<u16>;
 	}
 
 #endif
