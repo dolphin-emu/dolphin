@@ -571,7 +571,6 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 		if (remainingVerts < granularity) {
 			INCSTAT(stats.thisFrame.numBufferSplits);
 			// This buffer full - break current primitive and flush, to switch to the next buffer.
-			u8* plastptr = VertexManager::s_pCurBufferPointer;
 			if (v - startv > 0)
 				VertexManager::AddVertices(primitive, v - startv + extraverts);
 			VertexManager::Flush();
@@ -581,27 +580,28 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 				case 3: // triangle strip, copy last two vertices
 					// a little trick since we have to keep track of signs
 					if (v & 1) {
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-2*native_stride, native_stride);
-						memcpy_gc(VertexManager::s_pCurBufferPointer+native_stride, plastptr-native_stride*2, 2*native_stride);
-						VertexManager::s_pCurBufferPointer += native_stride*3;
+						g_pVideoData -= m_VertexSize*2;
+						ConvertVertices(1);
+						g_pVideoData -= m_VertexSize;
+						ConvertVertices(2);
 						extraverts = 3;
 					}
 					else {
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*2, native_stride*2);
-						VertexManager::s_pCurBufferPointer += native_stride*2;
+						g_pVideoData -= m_VertexSize*2;
+						ConvertVertices(2);
 						extraverts = 2;
 					}
 					break;
 				case 4: // tri fan, copy first and last vert
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*(v-startv+extraverts), native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
+					g_pVideoData -= m_VertexSize*(v-startv+extraverts);
+					ConvertVertices(1);
+					g_pVideoData += m_VertexSize*(v-startv+extraverts-2);
+					ConvertVertices(1);
 					extraverts = 2;
 					break;
 				case 6: // line strip
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
+					g_pVideoData -= m_VertexSize*1;
+					ConvertVertices(1);
 					extraverts = 1;
 					break;
 				default:
@@ -615,27 +615,34 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 		if (count - v < remainingVerts)
 			remainingVerts = count - v;
 
-	#ifdef USE_JIT
-		if (remainingVerts > 0) {
-			loop_counter = remainingVerts;
-			((void (*)())(void*)m_compiledCode)();
-		}
-	#else
-		for (int s = 0; s < remainingVerts; s++)
-		{
-			tcIndex = 0;
-			colIndex = 0;
-			s_texmtxwrite = s_texmtxread = 0;
-			for (int i = 0; i < m_numPipelineStages; i++)
-				m_PipelineStages[i]();
-			PRIM_LOG("\n");
-		}
-	#endif
+		ConvertVertices(remainingVerts);
+
 		v += remainingVerts;
 	}
 
 	if (startv < count)
 		VertexManager::AddVertices(primitive, count - startv + extraverts);
+}
+
+
+void VertexLoader::ConvertVertices ( int count )
+{
+#ifdef USE_JIT
+	if (count > 0) {
+		loop_counter = count;
+		((void (*)())(void*)m_compiledCode)();
+	}
+#else
+	for (int s = 0; s < count; s++)
+	{
+		tcIndex = 0;
+		colIndex = 0;
+		s_texmtxwrite = s_texmtxread = 0;
+		for (int i = 0; i < m_numPipelineStages; i++)
+			m_PipelineStages[i]();
+		PRIM_LOG("\n");
+	}
+#endif
 }
 
 
