@@ -112,7 +112,7 @@ void LOADERDECL TexCoord_ReadIndex16_Short2_SSE4()
 	const __m128 e = _mm_load1_ps(&tcScale[tcIndex]);
 	const __m128 f = _mm_mul_ps(d, e);
 	_mm_storeu_ps((float*)VertexManager::s_pCurBufferPointer, f);
-	LOG_TEX2();
+	LOG_TEX<2>();
 	VertexManager::s_pCurBufferPointer += 8;
 	tcIndex++;
 }
@@ -128,7 +128,7 @@ void LOADERDECL TexCoord_ReadIndex16_Float2_SSSE3()
 	GC_ALIGNED128(const __m128i a = _mm_loadl_epi64((__m128i*)pData));
 	GC_ALIGNED128(const __m128i b = _mm_shuffle_epi8(a, kMaskSwap32));
 	_mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, b);
-	LOG_TEX2();
+	LOG_TEX<2>();
 	VertexManager::s_pCurBufferPointer += 8;
 	tcIndex++;
 }

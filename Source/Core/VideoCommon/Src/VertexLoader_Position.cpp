@@ -84,7 +84,7 @@ float PosScale(float val)
 { return val; }
 
 template <typename T, int N>
-LOADERDECL void Pos_ReadDirect()
+void LOADERDECL Pos_ReadDirect()
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
 	
@@ -100,7 +100,7 @@ LOADERDECL void Pos_ReadDirect()
 }
 
 template <typename I, typename T, int N>
-LOADERDECL void Pos_ReadIndex()
+void LOADERDECL Pos_ReadIndex()
 {
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
 	static_assert(N <= 3, "N > 3 is not sane!");
@@ -127,12 +127,12 @@ static const __m128i kMaskSwap32_3 = _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x0
 static const __m128i kMaskSwap32_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
 
 template <typename I, bool three>
-LOADERDECL void Pos_ReadIndex_Float_SSSE3()
+void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 {
 	auto const index = DataRead<I>();
 	if (index < std::numeric_limits<I>::max())
 	{
-		const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]));
+		const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
 		GC_ALIGNED128(const __m128i a = _mm_loadu_si128((__m128i*)pData));
 		GC_ALIGNED128(__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2));
 		_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
