@@ -28,8 +28,20 @@
 #include <tmmintrin.h>
 #endif
 
-#define LOG_TEX1() // PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0]);
-#define LOG_TEX2() // PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1]);
+template <int N>
+void LOG_TEX();
+
+template <>
+__forceinline void LOG_TEX<1>()
+{
+	// PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0]);
+}
+
+template <>
+__forceinline void LOG_TEX<2>()
+{
+	// PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1]);
+}
 
 extern int tcIndex;
 extern float tcScale[8];
@@ -39,14 +51,26 @@ void LOADERDECL TexCoord_Read_Dummy()
 	tcIndex++;
 }
 
+template <typename T>
+float TCScale(T val)
+{
+	return val * tcScale[tcIndex];
+}
+
+template <>
+float TCScale(float val)
+{ return val; }
+
 template <typename T, int N>
 void LOADERDECL TexCoord_ReadDirect()
 {
-	reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer)[0] = DataRead<T>() * tcScale[tcIndex];
-	if (N >= 1)
-		reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer)[1] = DataRead<T>() * tcScale[tcIndex];
-	//LOG_TEX1();
-	//LOG_TEX2();
+	auto const dest = reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer);
+	
+	for (int i = 0; i != N; ++i)
+		dest[i] = TCScale(DataRead<T>());
+
+	LOG_TEX<N>();
+	
 	VertexManager::s_pCurBufferPointer += sizeof(float) * N;
 	++tcIndex;
 }
@@ -57,12 +81,16 @@ void LOADERDECL TexCoord_ReadIndex()
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
 	
 	auto const index = DataRead<I>();
-	auto const data = reinterpret_cast<T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex] + (index * arraystrides[ARRAY_TEXCOORD0 + tcIndex]));
-	reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer)[0] = Common::FromBigEndian(data[0]) * tcScale[tcIndex];
-	if (N >= 1)
-		reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer)[1] = Common::FromBigEndian(data[1]) * tcScale[tcIndex];
-	//LOG_TEX1();
-	//LOG_TEX2();
+	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
+		+ (index * arraystrides[ARRAY_TEXCOORD0 + tcIndex]));
+	
+	auto const dest = reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer);
+	
+	for (int i = 0; i != N; ++i)
+		dest[i] = TCScale(Common::FromBigEndian(data[i]));
+	
+	LOG_TEX<N>();
+	
 	VertexManager::s_pCurBufferPointer += sizeof(float) * N;
 	++tcIndex;
 }
