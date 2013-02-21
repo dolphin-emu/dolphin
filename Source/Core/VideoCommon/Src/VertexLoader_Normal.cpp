@@ -40,7 +40,7 @@ namespace
 {
 
 template <typename T>
-float FracAdjust(T val)
+__forceinline float FracAdjust(T val)
 {
 	//auto const S8FRAC = 1.f / (1u << 6);
 	//auto const U8FRAC = 1.f / (1u << 7);
@@ -52,11 +52,11 @@ float FracAdjust(T val)
 }
 
 template <>
-float FracAdjust(float val)
+__forceinline float FracAdjust(float val)
 { return val; }
 
 template <typename T, int N>
-inline void ReadIndirect(const T* data)
+__forceinline void ReadIndirect(const T* data)
 {
 	static_assert(3 == N || 9 == N, "N is only sane as 3 or 9!");
 
@@ -69,15 +69,20 @@ inline void ReadIndirect(const T* data)
 }
 
 template <typename T, int N>
-void LOADERDECL Normal_Direct()
+struct Normal_Direct
 {
-	auto const source = reinterpret_cast<const T*>(DataGetPosition());
-	ReadIndirect<T, N * 3>(source);
-	DataSkip<N * 3 * sizeof(T)>();
-}
+	static void LOADERDECL function()
+	{
+		auto const source = reinterpret_cast<const T*>(DataGetPosition());
+		ReadIndirect<T, N * 3>(source);
+		DataSkip<N * 3 * sizeof(T)>();
+	}
+	
+	static const int size = sizeof(T) * N * 3;
+};
 
 template <typename I, typename T, int N, int Offset>
-inline void Normal_Index_Offset()
+__forceinline void Normal_Index_Offset()
 {
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
 	
@@ -88,88 +93,101 @@ inline void Normal_Index_Offset()
 }
 
 template <typename I, typename T, int N>
-void LOADERDECL Normal_Index()
+struct Normal_Index
 {
-	Normal_Index_Offset<I, T, N, 0>();
-}
+	static void LOADERDECL function()
+	{
+		Normal_Index_Offset<I, T, N, 0>();
+	}
+	
+	static const int size = sizeof(I);
+};
 
 template <typename I, typename T>
-void LOADERDECL Normal_Index_Indices3()
+struct Normal_Index_Indices3
 {
-	Normal_Index_Offset<I, T, 1, 0>();
-	Normal_Index_Offset<I, T, 1, 1>();
-	Normal_Index_Offset<I, T, 1, 2>();
-}
+	static void LOADERDECL function()
+	{
+		Normal_Index_Offset<I, T, 1, 0>();
+		Normal_Index_Offset<I, T, 1, 1>();
+		Normal_Index_Offset<I, T, 1, 2>();
+	}
+	
+	static const int size = sizeof(I) * 3;
+};
 
 }
 
 void VertexLoader_Normal::Init(void)
 {
-    m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_UBYTE] 	= Set(3,  Normal_Direct<u8, 1>);
-    m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_BYTE]   = Set(3,  Normal_Direct<s8, 1>);
-    m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_USHORT]	= Set(6,  Normal_Direct<u16, 1>);
-    m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_SHORT] 	= Set(6,  Normal_Direct<s16, 1>);
-    m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_FLOAT] 	= Set(12, Normal_Direct<float, 1>);
-    m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] 	= Set(9,  Normal_Direct<u8, 3>);
-    m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT3][FORMAT_BYTE]  	= Set(9,  Normal_Direct<s8, 3>);
-    m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT3][FORMAT_USHORT]	= Set(18, Normal_Direct<u16, 3>);
-    m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] 	= Set(18, Normal_Direct<s16, 3>);
-    m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] 	= Set(36, Normal_Direct<float, 3>);
-								  			
-	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT] [FORMAT_UBYTE] 	= Set(3,  Normal_Direct<u8, 1>);
-    m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT] [FORMAT_BYTE]  	= Set(3,  Normal_Direct<s8, 1>);
-    m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT] [FORMAT_USHORT]	= Set(6,  Normal_Direct<u16, 1>);
-    m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT] [FORMAT_SHORT] 	= Set(6,  Normal_Direct<s16, 1>);
-    m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT] [FORMAT_FLOAT] 	= Set(12, Normal_Direct<float, 1>);
-    m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] 	= Set(9,  Normal_Direct<u8, 3>);
-    m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT3][FORMAT_BYTE]  	= Set(9,  Normal_Direct<s8, 3>);
-    m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT3][FORMAT_USHORT]	= Set(18, Normal_Direct<u16, 3>);
-    m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] 	= Set(18, Normal_Direct<s16, 3>);
-    m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] 	= Set(36, Normal_Direct<float, 3>);
-								  			
-    m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT] [FORMAT_UBYTE] 	= Set(1,  Normal_Index<u8, u8, 1>);
-    m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT] [FORMAT_BYTE]  	= Set(1,  Normal_Index<u8, s8, 1>);
-    m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT] [FORMAT_USHORT]	= Set(1,  Normal_Index<u8, u16, 1>);
-    m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT] [FORMAT_SHORT] 	= Set(1,  Normal_Index<u8, s16, 1>);
-    m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT] [FORMAT_FLOAT] 	= Set(1,  Normal_Index<u8, float, 1>);
-    m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] 	= Set(1,  Normal_Index<u8, u8, 3>);
-    m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT3][FORMAT_BYTE]  	= Set(1,  Normal_Index<u8, s8, 3>);
-    m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT3][FORMAT_USHORT]	= Set(1,  Normal_Index<u8, u16, 3>);
-    m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] 	= Set(1,  Normal_Index<u8, s16, 3>);
-    m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] 	= Set(1,  Normal_Index<u8, float, 3>);
-								  			
-	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT] [FORMAT_UBYTE] 	= Set(1,  Normal_Index<u8, u8, 1>);
-    m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT] [FORMAT_BYTE]  	= Set(1,  Normal_Index<u8, s8, 1>);
-    m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT] [FORMAT_USHORT]	= Set(1,  Normal_Index<u8, u16, 1>);
-    m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT] [FORMAT_SHORT] 	= Set(1,  Normal_Index<u8, s16, 1>);
-    m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT] [FORMAT_FLOAT] 	= Set(1,  Normal_Index<u8, float, 1>);
-    m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] 	= Set(3,  Normal_Index_Indices3<u8, u8>);
-    m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT3][FORMAT_BYTE]  	= Set(3,  Normal_Index_Indices3<u8, s8>);
-    m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT3][FORMAT_USHORT]	= Set(3,  Normal_Index_Indices3<u8, u16>);
-    m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] 	= Set(3,  Normal_Index_Indices3<u8, s16>);
-    m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] 	= Set(3,  Normal_Index_Indices3<u8, float>);
-								  												  			
-    m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_UBYTE] 	= Set(2,  Normal_Index<u16, u8, 1>);
-    m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_BYTE]  	= Set(2,  Normal_Index<u16, s8, 1>);
-    m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_USHORT]	= Set(2,  Normal_Index<u16, u16, 1>);
-    m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_SHORT] 	= Set(2,  Normal_Index<u16, s16, 1>);
-    m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_FLOAT] 	= Set(2,  Normal_Index<u16, float, 1>);
-    m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] 	= Set(2,  Normal_Index<u16, u8, 3>);
-    m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_BYTE]  	= Set(2,  Normal_Index<u16, s8, 3>);
-    m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_USHORT]	= Set(2,  Normal_Index<u16, u16, 3>);
-    m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] 	= Set(2,  Normal_Index<u16, s16, 3>);
-    m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] 	= Set(2,  Normal_Index<u16, float, 3>);
-								  			
-	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_UBYTE] 	= Set(2,  Normal_Index<u16, u8, 1>);
-    m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_BYTE]  	= Set(2,  Normal_Index<u16, s8, 1>);
-    m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_USHORT]	= Set(2,  Normal_Index<u16, u16, 1>);
-    m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_SHORT] 	= Set(2,  Normal_Index<u16, s16, 1>);
-    m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_FLOAT] 	= Set(2,  Normal_Index<u16, float, 1>);
-    m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] 	= Set(6,  Normal_Index_Indices3<u16, u8>);
-    m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_BYTE]  	= Set(6,  Normal_Index_Indices3<u16, s8>);
-    m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_USHORT]	= Set(6,  Normal_Index_Indices3<u16, u16>);
-    m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] 	= Set(6,  Normal_Index_Indices3<u16, s16>);
-    m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] 	= Set(6,  Normal_Index_Indices3<u16, float>);
+	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_UBYTE] 	= Normal_Direct<u8, 1>();
+	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_BYTE]   = Normal_Direct<s8, 1>();
+	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_USHORT]	= Normal_Direct<u16, 1>();
+	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_SHORT] 	= Normal_Direct<s16, 1>();
+	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT] [FORMAT_FLOAT] 	= Normal_Direct<float, 1>();
+	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] 	= Normal_Direct<u8, 3>();
+	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT3][FORMAT_BYTE]  	= Normal_Direct<s8, 3>();
+	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT3][FORMAT_USHORT]	= Normal_Direct<u16, 3>();
+	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] 	= Normal_Direct<s16, 3>();
+	m_Table[NRM_DIRECT] [NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] 	= Normal_Direct<float, 3>();
+
+	// Same as above
+	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT] [FORMAT_UBYTE] 	= Normal_Direct<u8, 1>();
+	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT] [FORMAT_BYTE]  	= Normal_Direct<s8, 1>();
+	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT] [FORMAT_USHORT]	= Normal_Direct<u16, 1>();
+	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT] [FORMAT_SHORT] 	= Normal_Direct<s16, 1>();
+	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT] [FORMAT_FLOAT] 	= Normal_Direct<float, 1>();
+	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] 	= Normal_Direct<u8, 3>();
+	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT3][FORMAT_BYTE]  	= Normal_Direct<s8, 3>();
+	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT3][FORMAT_USHORT]	= Normal_Direct<u16, 3>();
+	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] 	= Normal_Direct<s16, 3>();
+	m_Table[NRM_DIRECT] [NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] 	= Normal_Direct<float, 3>();
+
+	m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT] [FORMAT_UBYTE] 	= Normal_Index<u8, u8, 1>();
+	m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT] [FORMAT_BYTE]  	= Normal_Index<u8, s8, 1>();
+	m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT] [FORMAT_USHORT]	= Normal_Index<u8, u16, 1>();
+	m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT] [FORMAT_SHORT] 	= Normal_Index<u8, s16, 1>();
+	m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT] [FORMAT_FLOAT] 	= Normal_Index<u8, float, 1>();
+	m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] 	= Normal_Index<u8, u8, 3>();
+	m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT3][FORMAT_BYTE]  	= Normal_Index<u8, s8, 3>();
+	m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT3][FORMAT_USHORT]	= Normal_Index<u8, u16, 3>();
+	m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] 	= Normal_Index<u8, s16, 3>();
+	m_Table[NRM_INDEX8] [NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] 	= Normal_Index<u8, float, 3>();
+
+	// Same as above for NRM_NBT
+	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT] [FORMAT_UBYTE] 	= Normal_Index<u8, u8, 1>();
+	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT] [FORMAT_BYTE]  	= Normal_Index<u8, s8, 1>();
+	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT] [FORMAT_USHORT]	= Normal_Index<u8, u16, 1>();
+	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT] [FORMAT_SHORT] 	= Normal_Index<u8, s16, 1>();
+	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT] [FORMAT_FLOAT] 	= Normal_Index<u8, float, 1>();
+	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] 	= Normal_Index_Indices3<u8, u8>();
+	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT3][FORMAT_BYTE]  	= Normal_Index_Indices3<u8, s8>();
+	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT3][FORMAT_USHORT]	= Normal_Index_Indices3<u8, u16>();
+	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] 	= Normal_Index_Indices3<u8, s16>();
+	m_Table[NRM_INDEX8] [NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] 	= Normal_Index_Indices3<u8, float>();
+
+	m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_UBYTE] 	= Normal_Index<u16, u8, 1>();
+	m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_BYTE]  	= Normal_Index<u16, s8, 1>();
+	m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_USHORT]	= Normal_Index<u16, u16, 1>();
+	m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_SHORT] 	= Normal_Index<u16, s16, 1>();
+	m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_FLOAT] 	= Normal_Index<u16, float, 1>();
+	m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_UBYTE] 	= Normal_Index<u16, u8, 3>();
+	m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_BYTE]  	= Normal_Index<u16, s8, 3>();
+	m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_USHORT]	= Normal_Index<u16, u16, 3>();
+	m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_SHORT] 	= Normal_Index<u16, s16, 3>();
+	m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_FLOAT] 	= Normal_Index<u16, float, 3>();
+
+	// Same as above for NRM_NBT
+	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_UBYTE] 	= Normal_Index<u16, u8, 1>();
+	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_BYTE]  	= Normal_Index<u16, s8, 1>();
+	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_USHORT]	= Normal_Index<u16, u16, 1>();
+	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_SHORT] 	= Normal_Index<u16, s16, 1>();
+	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_FLOAT] 	= Normal_Index<u16, float, 1>();
+	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_UBYTE] 	= Normal_Index_Indices3<u16, u8>();
+	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_BYTE]  	= Normal_Index_Indices3<u16, s8>();
+	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_USHORT]	= Normal_Index_Indices3<u16, u16>();
+	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_SHORT] 	= Normal_Index_Indices3<u16, s16>();
+	m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_FLOAT] 	= Normal_Index_Indices3<u16, float>();
 }
 
 unsigned int VertexLoader_Normal::GetSize(unsigned int _type,

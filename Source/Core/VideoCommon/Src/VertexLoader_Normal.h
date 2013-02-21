@@ -70,12 +70,17 @@ private:
 		NUM_NRM_INDICES
 	};
 
-	struct Set {
-		Set() {}
-		Set(int gc_size_, TPipelineFunction function_) : gc_size(gc_size_), function(function_) {}
+	struct Set
+	{
+		template <typename T>
+		void operator=(const T&)
+		{
+			gc_size = T::size;
+			function = T::function;
+		}
+		
 		int gc_size;
 		TPipelineFunction function;
-//		int pc_size;
 	};
 
 	static Set m_Table[NUM_NRM_TYPE][NUM_NRM_INDICES][NUM_NRM_ELEMENTS][NUM_NRM_FORMAT];
