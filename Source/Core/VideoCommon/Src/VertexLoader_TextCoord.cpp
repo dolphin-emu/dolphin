@@ -35,14 +35,14 @@ template <>
 __forceinline void LOG_TEX<1>()
 {
 	// warning: mapping buffer should be disabled to use this
-	// PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0]);
+	// PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-1]);
 }
 
 template <>
 __forceinline void LOG_TEX<2>()
 {
 	// warning: mapping buffer should be disabled to use this
-	// PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1]);
+	// PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-2], ((float*)VertexManager::s_pCurBufferPointer)[-1]);
 }
 
 extern int tcIndex;
@@ -66,14 +66,11 @@ float TCScale(float val)
 template <typename T, int N>
 void LOADERDECL TexCoord_ReadDirect()
 {
-	auto const dest = reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer);
-	
 	for (int i = 0; i != N; ++i)
-		dest[i] = TCScale(DataRead<T>());
+		DataWrite(TCScale(DataRead<T>()));
 
 	LOG_TEX<N>();
 	
-	VertexManager::s_pCurBufferPointer += sizeof(float) * N;
 	++tcIndex;
 }
 
@@ -86,14 +83,10 @@ void LOADERDECL TexCoord_ReadIndex()
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
 		+ (index * arraystrides[ARRAY_TEXCOORD0 + tcIndex]));
 	
-	auto const dest = reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer);
-	
 	for (int i = 0; i != N; ++i)
-		dest[i] = TCScale(Common::FromBigEndian(data[i]));
+		DataWrite(TCScale(Common::FromBigEndian(data[i])));
 	
 	LOG_TEX<N>();
-	
-	VertexManager::s_pCurBufferPointer += sizeof(float) * N;
 	++tcIndex;
 }
 
@@ -112,8 +105,8 @@ void LOADERDECL TexCoord_ReadIndex16_Short2_SSE4()
 	const __m128 e = _mm_load1_ps(&tcScale[tcIndex]);
 	const __m128 f = _mm_mul_ps(d, e);
 	_mm_storeu_ps((float*)VertexManager::s_pCurBufferPointer, f);
-	LOG_TEX<2>();
 	VertexManager::s_pCurBufferPointer += 8;
+	LOG_TEX<2>();
 	tcIndex++;
 }
 #endif
@@ -128,8 +121,8 @@ void LOADERDECL TexCoord_ReadIndex16_Float2_SSSE3()
 	GC_ALIGNED128(const __m128i a = _mm_loadl_epi64((__m128i*)pData));
 	GC_ALIGNED128(const __m128i b = _mm_shuffle_epi8(a, kMaskSwap32));
 	_mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, b);
-	LOG_TEX<2>();
 	VertexManager::s_pCurBufferPointer += 8;
+	LOG_TEX<2>();
 	tcIndex++;
 }
 #endif

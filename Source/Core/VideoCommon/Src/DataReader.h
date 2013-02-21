@@ -20,6 +20,8 @@
 #ifndef _DATAREADER_H
 #define _DATAREADER_H
 
+#include "VertexManagerBase.h"
+
 extern u8* g_pVideoData;
 
 #if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
@@ -143,6 +145,13 @@ __forceinline u32 DataReadU32Unswapped()
 __forceinline u8* DataGetPosition()
 {
 	return g_pVideoData;
+}
+
+template <typename T>
+__forceinline void DataWrite(T data)
+{
+	*(T*)VertexManager::s_pCurBufferPointer = data;
+	VertexManager::s_pCurBufferPointer += sizeof(T);
 }
 
 #endif

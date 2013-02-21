@@ -34,8 +34,7 @@ extern int colElements[2];
 
 __forceinline void _SetCol(u32 val)
 {
-	*(u32*)VertexManager::s_pCurBufferPointer = val;
-	VertexManager::s_pCurBufferPointer += 4;
+	DataWrite(val);
 	colIndex++;
 }
 

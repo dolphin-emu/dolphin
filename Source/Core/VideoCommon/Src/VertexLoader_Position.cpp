@@ -88,15 +88,10 @@ void LOADERDECL Pos_ReadDirect()
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
 	
-	auto const dest = reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer);
-	for (int i = 0; i != N; ++i)
-		dest[i] = PosScale(DataRead<T>());
-	
-	for (int i = N; i != 3; ++i)
-		dest[i] = 0.f;
+	for (int i = 0; i < 3; ++i)
+		DataWrite(i<N ? PosScale(DataRead<T>()) : 0.f);
 	
 	LOG_VTX();
-	VertexManager::s_pCurBufferPointer += sizeof(float) * 3;
 }
 
 template <typename I, typename T, int N>
@@ -109,16 +104,11 @@ void LOADERDECL Pos_ReadIndex()
 	if (index < std::numeric_limits<I>::max())
 	{
 		auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
-		auto const dest = reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer);
 		
-		for (int i = 0; i != N; ++i)
-			dest[i] = PosScale(Common::FromBigEndian(data[i]));
-		
-		for (int i = N; i != 3; ++i)
-			dest[i] = 0.f
+		for (int i = 0; i < 3; ++i)
+			DataWrite(i<N ? PosScale(Common::FromBigEndian(data[i])) : 0.f);
 		
 		LOG_VTX();
-		VertexManager::s_pCurBufferPointer += sizeof(float) * 3;
 	}
 }
 
@@ -136,8 +126,8 @@ void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 		GC_ALIGNED128(const __m128i a = _mm_loadu_si128((__m128i*)pData));
 		GC_ALIGNED128(__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2));
 		_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
-		LOG_VTX();
 		VertexManager::s_pCurBufferPointer += sizeof(float) * 3;
+		LOG_VTX();
 	}
 }
 #endif

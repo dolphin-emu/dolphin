@@ -59,16 +59,13 @@ template <typename T, int N>
 inline void ReadIndirect(const T* data)
 {
 	static_assert(3 == N || 9 == N, "N is only sane as 3 or 9!");
-	
-	auto const dest = reinterpret_cast<float*>(VertexManager::s_pCurBufferPointer);
 
 	for (int i = 0; i != N; ++i)
 	{
-		dest[i] = FracAdjust(Common::FromBigEndian(data[i]));
-		LOG_NORM();
+		DataWrite(FracAdjust(Common::FromBigEndian(data[i])));
 	}
 	
-	VertexManager::s_pCurBufferPointer += sizeof(float) * N;
+	LOG_NORM();
 }
 
 template <typename T, int N>
