@@ -439,8 +439,8 @@ static const char *tevRasTable[] =
 	"ERROR13", //2
 	"ERROR14", //3
 	"ERROR15", //4
-	"alphabump.xxxx", // use bump alpha
-	"(alphabump.xxxx*(255.0f/248.0f))", //normalized
+	"float4(alphabump,alphabump,alphabump,alphabump)", // use bump alpha
+	"(float4(alphabump,alphabump,alphabump,alphabump)*(255.0f/248.0f))", //normalized
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
 };
 
