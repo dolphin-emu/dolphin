@@ -17,6 +17,7 @@
 
 #include <cstddef>
 
+#include "Common.h"
 #include "IndexGenerator.h"
 
 /*
@@ -84,7 +85,7 @@ void IndexGenerator::AddIndices(int primitive, u32 numVerts)
 }
 
 // Triangles
-void IndexGenerator::WriteTriangle(u32 index1, u32 index2, u32 index3)
+__forceinline void IndexGenerator::WriteTriangle(u32 index1, u32 index2, u32 index3)
 {
 	*Tptr++ = index1;
 	*Tptr++ = index2;
