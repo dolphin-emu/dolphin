@@ -49,10 +49,8 @@ extern NativeVertexFormat *g_nativeVertexFmt;
 namespace OGL
 {
 //This are the initially requeted size for the buffers expresed in bytes
-const u32 MAX_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * 16 * sizeof(u16);
-const u32 MAX_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 16;
-const u32 MIN_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE *  1 * sizeof(u16);
-const u32 MIN_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE *  4;
+const u32 MAX_IBUFFER_SIZE =  2*1024*1024;
+const u32 MAX_VBUFFER_SIZE = 16*1024*1024;
 
 static StreamBuffer *s_vertexBuffer;
 static StreamBuffer *s_indexBuffer;
@@ -71,33 +69,15 @@ VertexManager::~VertexManager()
 
 void VertexManager::CreateDeviceObjects()
 {
-	GL_REPORT_ERRORD();
-	u32 max_Index_size = 0;
-	u32 max_Vertex_size = 0;
-	glGetIntegerv(GL_MAX_ELEMENTS_INDICES, (GLint*)&max_Index_size);
-	glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, (GLint*)&max_Vertex_size);
-	max_Index_size *= sizeof(u16);
-	GL_REPORT_ERROR();
-	
-	u32 index_buffer_size = std::min(MAX_IBUFFER_SIZE, std::max(max_Index_size, MIN_IBUFFER_SIZE));
-	u32 vertex_buffer_size = std::min(MAX_VBUFFER_SIZE, std::max(max_Vertex_size, MIN_VBUFFER_SIZE));
-	
-	// should be not bigger, but we need it. so try and have luck
-	if (index_buffer_size > max_Index_size) {
-		ERROR_LOG(VIDEO, "GL_MAX_ELEMENTS_INDICES to small, so try it anyway. good luck\n");
-	}
-	if (vertex_buffer_size > max_Vertex_size) {
-		ERROR_LOG(VIDEO, "GL_MAX_ELEMENTS_VERTICES to small, so try it anyway. good luck\n");
-	}
-
-	s_vertexBuffer = new StreamBuffer(GL_ARRAY_BUFFER, vertex_buffer_size);
+	s_vertexBuffer = new StreamBuffer(GL_ARRAY_BUFFER, MAX_VBUFFER_SIZE);
 	m_vertex_buffers = s_vertexBuffer->getBuffer();
-	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_size);
+	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
 	m_index_buffers = s_indexBuffer->getBuffer();
 	
 	m_CurrentVertexFmt = NULL;
 	m_last_vao = 0;
 }
+
 void VertexManager::DestroyDeviceObjects()
 {
 	GL_REPORT_ERRORD();

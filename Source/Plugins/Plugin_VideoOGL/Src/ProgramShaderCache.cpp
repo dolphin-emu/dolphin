@@ -24,7 +24,7 @@
 namespace OGL
 {
 
-static const u32 UBO_LENGTH = 4*1024*1024;
+static const u32 UBO_LENGTH = 32*1024*1024;
 
 GLintptr ProgramShaderCache::s_vs_data_offset;
 u8 *ProgramShaderCache::s_ubo_buffer;
