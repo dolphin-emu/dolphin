@@ -338,7 +338,7 @@ void Jit64::WriteRfiExitDestInEAX()
 	Cleanup();
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
-	JMP(asm_routines.dispatcher, true);
+	JMP(asm_routines.outerLoop, true);
 }
 
 void Jit64::WriteExceptionExit()
