@@ -448,7 +448,7 @@ static const char *tevRasTable[] =
 
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
-static const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
+static const char *tevIndAlphaSel[]   = {"", "xxxx", "yyyy", "zzzz"};
 //static const char *tevIndAlphaScale[] = {"", "*32", "*16", "*8"};
 static const char *tevIndAlphaScale[] = {"*(248.0f/255.0f)", "*(224.0f/255.0f)", "*(240.0f/255.0f)", "*(248.0f/255.0f)"};
 static const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
