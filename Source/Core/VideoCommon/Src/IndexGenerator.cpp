@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <cstddef>
+
 #include "IndexGenerator.h"
 
 /*
@@ -33,18 +35,12 @@ u16 *IndexGenerator::Lptr = 0;
 u16 *IndexGenerator::BASELptr = 0;
 u16 *IndexGenerator::Pptr = 0;
 u16 *IndexGenerator::BASEPptr = 0;
-int IndexGenerator::numT = 0;
-int IndexGenerator::numL = 0;
-int IndexGenerator::numP = 0;
-int IndexGenerator::index = 0;
-int IndexGenerator::Tadds = 0;
-int IndexGenerator::Ladds = 0;
-int IndexGenerator::Padds = 0;
-IndexGenerator::IndexPrimitiveType IndexGenerator::LastTPrimitive = Prim_None;
-IndexGenerator::IndexPrimitiveType IndexGenerator::LastLPrimitive = Prim_None;
-bool IndexGenerator::used = false;
+u32 IndexGenerator::numT = 0;
+u32 IndexGenerator::numL = 0;
+u32 IndexGenerator::numP = 0;
+u32 IndexGenerator::index = 0;
 
-void IndexGenerator::Start(u16 *Triangleptr,u16 *Lineptr,u16 *Pointptr)
+void IndexGenerator::Start(u16* Triangleptr, u16* Lineptr, u16* Pointptr)
 {
 	Tptr = Triangleptr;
 	Lptr = Lineptr;
@@ -56,288 +52,220 @@ void IndexGenerator::Start(u16 *Triangleptr,u16 *Lineptr,u16 *Pointptr)
 	numT = 0;
 	numL = 0;
 	numP = 0;
-	Tadds = 0;
-	Ladds = 0;
-	Padds = 0;
-	LastTPrimitive = Prim_None;
-	LastLPrimitive = Prim_None;
 }
-// Triangles
-void IndexGenerator::AddList(int numVerts)
+
+void IndexGenerator::AddIndices(int primitive, u32 numVerts)
 {
-	//if we have no vertices return
-	if(numVerts <= 0) return;
-	int numTris = numVerts / 3;
+	//switch (primitive)
+	//{
+	//case GX_DRAW_QUADS:          IndexGenerator::AddQuads(numVertices);		break;
+	//case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVertices);		break;
+	//case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVertices);		break;
+	//case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVertices);		break;
+	//case GX_DRAW_LINES:		   IndexGenerator::AddLineList(numVertices);	break;
+	//case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVertices);	break;
+	//case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVertices);	break;
+	//}
+
+	static void (*const primitive_table[])(u32) =
+	{
+		IndexGenerator::AddQuads,
+		NULL,
+		IndexGenerator::AddList,
+		IndexGenerator::AddStrip,
+		IndexGenerator::AddFan,
+		IndexGenerator::AddLineList,
+		IndexGenerator::AddLineStrip,
+		IndexGenerator::AddPoints,
+	};
+
+	primitive_table[primitive](numVerts);
+	index += numVerts;
+}
+
+// Triangles
+void IndexGenerator::WriteTriangle(u32 index1, u32 index2, u32 index3)
+{
+	*Tptr++ = index1;
+	*Tptr++ = index2;
+	*Tptr++ = index3;
+	
+	++numT;
+}
+
+void IndexGenerator::AddList(u32 const numVerts)
+{	
+	auto const numTris = numVerts / 3;
 	if (!numTris)
 	{
-		//if we have less than 3 verts
-		if(numVerts == 1)
+		if (2 == numVerts)
 		{
-			// discard
-			index++;
-			return;
-		}
-		else
-		{
-			//we have two verts render a degenerated triangle
-			numTris = 1;
-			*Tptr++ = index;
-			*Tptr++ = index+1;
-			*Tptr++ = index;
+			// We have two verts. Render a degenerated triangle.
+			WriteTriangle(index, index + 1, index);
 		}
 	}
 	else
 	{
-		for (int i = 0; i < numTris; i++)
+		for (u32 i = 0; i != numTris; ++i)
 		{
-			*Tptr++ = index+i*3;
-			*Tptr++ = index+i*3+1;
-			*Tptr++ = index+i*3+2;
+			WriteTriangle(index + i * 3, index + i * 3 + 1, index + i * 3 + 2);
 		}
-		int baseRemainingverts = numVerts - numVerts % 3;
+		
+		auto const base_remaining_verts = numTris * 3;
 		switch (numVerts % 3)
 		{
 		case 2:
-			//whe have 2 remaining verts use strip method
-			*Tptr++ = index + baseRemainingverts - 1;
-			*Tptr++ = index + baseRemainingverts;
-			*Tptr++ = index + baseRemainingverts + 1;
-			numTris++;
+			// We have 2 remaining verts. Use strip method
+			WriteTriangle(
+				index + base_remaining_verts - 1,
+				index + base_remaining_verts,
+				index + base_remaining_verts + 1);
+			
 			break;
+			
 		case 1:
-			//whe have 1 remaining verts use strip method this is only a conjeture
-			*Tptr++ = index + baseRemainingverts - 2;
-			*Tptr++ = index + baseRemainingverts - 1;
-			*Tptr++ = index + baseRemainingverts;
-			numTris++;
+			// We have 1 remaining vert. Use strip method this is only a conjeture
+			WriteTriangle(
+				index + base_remaining_verts - 2,
+				index + base_remaining_verts - 1,
+				index + base_remaining_verts);
 			break;
+			
 		default:
 			break;
 		};
 	}
-	index += numVerts;
-	numT += numTris;
-	Tadds++;
-	LastTPrimitive = Prim_List;
 }
 
-void IndexGenerator::AddStrip(int numVerts)
+void IndexGenerator::AddStrip(u32 const numVerts)
 {
-	if(numVerts <= 0) return;
-	int numTris = numVerts - 2;
-	if (numTris < 1) 
+	if (numVerts < 3) 
 	{
-		//if we have less than 3 verts
-		if(numVerts == 1)
+		if (2 == numVerts)
 		{
-			// discard
-			index++;
-			return;
-		}
-		else
-		{
-			//we have two verts render a degenerated triangle
-			numTris = 1;
-			*Tptr++ = index;
-			*Tptr++ = index+1;
-			*Tptr++ = index;
+			// We have two verts. Render a degenerated triangle.
+			WriteTriangle(index, index + 1, index);
 		}
 	}
 	else
-	{	
+	{
 		bool wind = false;
-		for (int i = 0; i < numTris; i++)
+		for (u32 i = 2; i < numVerts; ++i)
 		{
-			*Tptr++ = index+i;
-			*Tptr++ = index+i+(wind?2:1);
-			*Tptr++ = index+i+(wind?1:2);
-			wind = !wind;
+			WriteTriangle(
+				index + i - 2,
+				index + i - !wind,
+				index + i - wind);
+			
+			wind ^= true;
 		}
 	}
-	index += numVerts;
-	numT += numTris;
-	Tadds++;
-	LastTPrimitive = Prim_Strip;
-}
-void IndexGenerator::AddFan(int numVerts)
-{
-	if(numVerts <= 0) return;
-	int numTris = numVerts - 2;
-	if (numTris < 1) 
-	{
-		//if we have less than 3 verts
-		if(numVerts == 1)
-		{
-			//Discard
-			index++;
-			return;
-		}
-		else
-		{
-			//we have two verts render a degenerated triangle
-			numTris = 1;
-			*Tptr++ = index;
-			*Tptr++ = index+1;
-			*Tptr++ = index;
-		}
-	}
-	else
-	{
-		for (int i = 0; i < numTris; i++)
-		{
-			*Tptr++ = index;
-			*Tptr++ = index+i+1;
-			*Tptr++ = index+i+2;
-		}
-	}	
-	index += numVerts;
-	numT += numTris;
-	Tadds++;
-	LastTPrimitive = Prim_Fan;
 }
 
-void IndexGenerator::AddQuads(int numVerts)
+void IndexGenerator::AddFan(u32 numVerts)
 {
-	if(numVerts <= 0) return;
-	int numTris = (numVerts/4)*2;
-	if (numTris == 0) 
+	if (numVerts < 3)
 	{
-		//if we have less than 3 verts
-		if(numVerts == 1)
+		if (2 == numVerts)
 		{
-			//discard
-			index++;
-			return;
-		}
-		else
-		{
-			if(numVerts == 2)
-			{
-				//we have two verts render a degenerated triangle
-				numTris = 1;
-				*Tptr++ = index;
-				*Tptr++ = index + 1;
-				*Tptr++ = index;
-			}
-			else
-			{
-				//we have 3 verts render a full triangle
-				numTris = 1;
-				*Tptr++ = index;
-				*Tptr++ = index + 1;
-				*Tptr++ = index + 2;
-			}
+			// We have two verts. Render a degenerated triangle.
+			WriteTriangle(index, index + 1, index);
 		}
 	}
 	else
 	{
-		for (int i = 0; i < numTris / 2; i++)
+		for (u32 i = 2; i < numVerts; ++i)
 		{
-			*Tptr++ = index+i*4;
-			*Tptr++ = index+i*4+1;
-			*Tptr++ = index+i*4+2;
-			*Tptr++ = index+i*4;
-			*Tptr++ = index+i*4+2;
-			*Tptr++ = index+i*4+3;
+			WriteTriangle(index, index + i - 1, index + i);
 		}
-		int baseRemainingverts = numVerts - numVerts % 4;
+	}
+}
+
+void IndexGenerator::AddQuads(u32 numVerts)
+{
+	auto const numQuads = numVerts / 4;
+	if (!numQuads)
+	{
+		if (2 == numVerts)
+		{
+			// We have two verts. Render a degenerated triangle.
+			WriteTriangle(index, index + 1, index);
+		}
+		else if (3 == numVerts);
+		{
+			// We have 3 verts. Render a full triangle.
+			WriteTriangle(index, index + 1, index + 2);
+		}
+	}
+	else
+	{
+		for (u32 i = 0; i != numQuads; ++i)
+		{
+			WriteTriangle(index + i * 4, index + i * 4 + 1, index + i * 4 + 2);
+			WriteTriangle(index + i * 4, index + i * 4 + 2, index + i * 4 + 3);
+		}
+		
+		auto const base_remaining_verts = numQuads * 4;
 		switch (numVerts % 4)
 		{
 		case 3:
-			//whe have 3 remaining verts use strip method
-			*Tptr++ = index + baseRemainingverts;
-			*Tptr++ = index + baseRemainingverts + 1;
-			*Tptr++ = index + baseRemainingverts + 2;
-			numTris++;
+			// We have 3 remaining verts. Use strip method.
+			WriteTriangle(
+				index + base_remaining_verts,
+				index + base_remaining_verts + 1,
+				index + base_remaining_verts + 2);
 			break;
+			
 		case 2:
-			//whe have 2 remaining verts use strip method
-			*Tptr++ = index + baseRemainingverts - 1;
-			*Tptr++ = index + baseRemainingverts;
-			*Tptr++ = index + baseRemainingverts + 1;
-			numTris++;
+			// We have 3 remaining verts. Use strip method.
+			WriteTriangle(
+				index + base_remaining_verts - 1,
+				index + base_remaining_verts,
+				index + base_remaining_verts + 1);
 			break;
+			
 		case 1:
-			//whe have 1 remaining verts use strip method this is only a conjeture
-			*Tptr++ = index + baseRemainingverts - 2;
-			*Tptr++ = index + baseRemainingverts - 1;
-			*Tptr++ = index + baseRemainingverts;
-			numTris++;
+			// We have 1 remaining verts use strip method. This is only a conjeture.
+			WriteTriangle(
+				base_remaining_verts - 2,
+				index + base_remaining_verts - 1,
+				index + base_remaining_verts);
 			break;
+			
 		default:
 			break;
 		};
 	}
-	index += numVerts;
-	numT += numTris;
-	Tadds++;
-	LastTPrimitive = Prim_List;
 }
 
-
-//Lines
-void IndexGenerator::AddLineList(int numVerts)
+// Lines
+void IndexGenerator::AddLineList(u32 numVerts)
 {
-	if(numVerts <= 0) return;
-	int numLines = numVerts / 2;
-	if (!numLines)
+	auto const numLines = numVerts / 2;
+	for (u32 i = 0; i != numLines; ++i)
 	{
-		//Discard
-		index++;
-		return;
+		*Lptr++ = index + i * 2;
+		*Lptr++ = index + i * 2 + 1;
+		++numL;
 	}
-	else
-	{
-		for (int i = 0; i < numLines; i++)
-		{
-			*Lptr++ = index+i*2;
-			*Lptr++ = index+i*2+1;
-		}
-		if((numVerts & 1) != 0)
-		{
-			//use line strip for remaining vert
-			*Lptr++ = index + numLines * 2 - 1;
-			*Lptr++ = index + numLines * 2;
-		}
-	}
-	index += numVerts;
-	numL += numLines;
-	Ladds++;
-	LastLPrimitive = Prim_List;
 }
 
-void IndexGenerator::AddLineStrip(int numVerts)
+void IndexGenerator::AddLineStrip(u32 numVerts)
 {
-	int numLines = numVerts - 1;
-	if (numLines <= 0)
+	for (u32 i = 1; i < numVerts; ++i)
 	{
-		if(numVerts == 1)
-		{
-			index++;
-		}
-		return;
+		*Lptr++ = index + i - 1;
+		*Lptr++ = index + i;
+		++numL;
 	}
-	for (int i = 0; i < numLines; i++)
-	{
-		*Lptr++ = index+i;
-		*Lptr++ = index+i+1;
-	}
-	index += numVerts;
-	numL += numLines;
-	Ladds++;
-	LastLPrimitive = Prim_Strip;
 }
 
-
-
-//Points
-void IndexGenerator::AddPoints(int numVerts)
+// Points
+void IndexGenerator::AddPoints(u32 numVerts)
 {
-	for (int i = 0; i < numVerts; i++)
+	for (u32 i = 0; i != numVerts; ++i)
 	{
-		*Pptr++ = index+i;
+		*Pptr++ = index + i;
+		++numP;
 	}
-	index += numVerts;
-	numP += numVerts;
-	Padds++;
 }

@@ -59,34 +59,6 @@ VertexManager::~VertexManager()
 	ResetBuffer();
 }
 
-void VertexManager::AddIndices(int primitive, int numVertices)
-{
-	//switch (primitive)
-	//{
-	//case GX_DRAW_QUADS:          IndexGenerator::AddQuads(numVertices);		break;
-	//case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVertices);		break;
-	//case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVertices);		break;
-	//case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVertices);		break;
-	//case GX_DRAW_LINES:		   IndexGenerator::AddLineList(numVertices);	break;
-	//case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVertices);	break;
-	//case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVertices);	break;
-	//}
-
-	static void (*const primitive_table[])(int) =
-	{
-		IndexGenerator::AddQuads,
-		NULL,
-		IndexGenerator::AddList,
-		IndexGenerator::AddStrip,
-		IndexGenerator::AddFan,
-		IndexGenerator::AddLineList,
-		IndexGenerator::AddLineStrip,
-		IndexGenerator::AddPoints,
-	};
-
-	primitive_table[primitive](numVertices);
-}
-
 int VertexManager::GetRemainingSize()
 {
 	return (int)(s_pEndBufferPointer - s_pCurBufferPointer);
@@ -119,7 +91,7 @@ int VertexManager::GetRemainingVertices(int primitive)
 	}
 }
 
-void VertexManager::AddVertices(int primitive, int numVertices)
+void VertexManager::AddVertices(int primitive, u32 numVertices)
 {
 	if (numVertices <= 0)
 		return;
@@ -132,7 +104,7 @@ void VertexManager::AddVertices(int primitive, int numVertices)
 
 	ADDSTAT(stats.thisFrame.numPrims, numVertices);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
-	AddIndices(primitive, numVertices);
+	IndexGenerator::AddIndices(primitive, numVertices);
 }
 
 void VertexManager::Flush()

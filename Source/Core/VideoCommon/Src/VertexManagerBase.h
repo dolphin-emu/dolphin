@@ -27,7 +27,7 @@ public:
 	VertexManager();
 	virtual ~VertexManager();	// needs to be virtual for DX11's dtor
 
-	static void AddVertices(int _primitive, int _numVertices);
+	static void AddVertices(int _primitive, u32 _numVertices);
 
 	// TODO: protected?
 	static u8 *s_pBaseBufferPointer;
@@ -63,7 +63,6 @@ protected:
 	void DoStateShared(PointerWrap& p);
 
 private:
-	static void AddIndices(int primitive, int numVertices);
 	//virtual void Draw(u32 stride, bool alphapass) = 0;
 	// temp
 	virtual void vFlush() = 0;
