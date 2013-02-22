@@ -211,11 +211,6 @@ void VertexManager::Draw(UINT stride)
 
 void VertexManager::vFlush()
 {
-	if (s_pBaseBufferPointer == s_pCurBufferPointer) return;
-	if (Flushed) return;
-	Flushed=true;
-	VideoFifo_CheckEFBAccess();
-
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
 		if (bpmem.tevorders[i / 2].getEnable(i & 1))
@@ -263,12 +258,12 @@ void VertexManager::vFlush()
 		g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
-		goto shader_fail;
+		return;
 	}
 	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
-		goto shader_fail;
+		return;
 	}
 	LoadBuffers();
 	unsigned int stride = g_nativeVertexFmt->GetVertexStride();
@@ -280,9 +275,6 @@ void VertexManager::vFlush()
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	g_renderer->RestoreState();
-
-shader_fail:
-	ResetBuffer();
 }
 
 }  // namespace

@@ -12,25 +12,17 @@
 #include "BPStructs.h"
 
 #include "VertexManagerBase.h"
+#include "MainBase.h"
 #include "VideoConfig.h"
 
 VertexManager *g_vertex_manager;
 
-u8 *VertexManager::s_pBaseBufferPointer;
 u8 *VertexManager::s_pCurBufferPointer;
+u8 *VertexManager::s_pBaseBufferPointer;
 u8 *VertexManager::s_pEndBufferPointer;
-
-u8 *VertexManager::LocalVBuffer;
-u16 *VertexManager::TIBuffer;
-u16 *VertexManager::LIBuffer;
-u16 *VertexManager::PIBuffer;
-
-bool VertexManager::Flushed;
 
 VertexManager::VertexManager()
 {
-	Flushed = false;
-
 	LocalVBuffer = new u8[MAXVBUFFERSIZE];
 	s_pCurBufferPointer = s_pBaseBufferPointer = LocalVBuffer;
 	s_pEndBufferPointer = s_pBaseBufferPointer + MAXVBUFFERSIZE;
@@ -39,12 +31,7 @@ VertexManager::VertexManager()
 	LIBuffer = new u16[MAXIBUFFERSIZE];
 	PIBuffer = new u16[MAXIBUFFERSIZE];
 
-	IndexGenerator::Start(TIBuffer, LIBuffer, PIBuffer);
-}
-
-void VertexManager::ResetBuffer()
-{
-	s_pCurBufferPointer = s_pBaseBufferPointer;
+	ResetBuffer();
 }
 
 VertexManager::~VertexManager()
@@ -59,12 +46,25 @@ VertexManager::~VertexManager()
 	ResetBuffer();
 }
 
+void VertexManager::ResetBuffer()
+{
+	s_pCurBufferPointer = s_pBaseBufferPointer;
+	IndexGenerator::Start(TIBuffer, LIBuffer, PIBuffer);
+}
+
 int VertexManager::GetRemainingSize()
 {
 	return (int)(s_pEndBufferPointer - s_pCurBufferPointer);
 }
 
+bool VertexManager::IsFlushed() const
+{
+	return s_pBaseBufferPointer == s_pCurBufferPointer;
+}
+
 // Not used anywhere
+// TODO: use this
+#if 0
 int VertexManager::GetRemainingVertices(int primitive)
 {
 	switch (primitive)
@@ -90,42 +90,38 @@ int VertexManager::GetRemainingVertices(int primitive)
 		break;
 	}
 }
+#endif
 
 void VertexManager::AddVertices(int primitive, u32 numVertices)
 {
 	if (numVertices <= 0)
 		return;
 
-	if (Flushed)
-	{
-		IndexGenerator::Start(TIBuffer, LIBuffer, PIBuffer);
-		Flushed = false;
-	}
-
 	ADDSTAT(stats.thisFrame.numPrims, numVertices);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
+	
 	IndexGenerator::AddIndices(primitive, numVertices);
 }
 
 void VertexManager::Flush()
 {
+	if (g_vertex_manager->IsFlushed())
+		return;
+	
 	// loading a state will invalidate BP, so check for it
 	g_video_backend->CheckInvalidState();
 	
+	VideoFifo_CheckEFBAccess();
+	
 	g_vertex_manager->vFlush();
+	
+	g_vertex_manager->ResetBuffer();
 }
 
 // TODO: need to merge more stuff into VideoCommon to use this
 #if (0)
 void VertexManager::Flush()
 {
-	if (s_pBaseBufferPointer == s_pCurBufferPointer || Flushed)
-		return;
-
-	Flushed = true;
-
-	VideoFifo_CheckEFBAccess();
-
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGens,
 		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
@@ -198,9 +194,9 @@ void VertexManager::Flush()
 
 	// finally bind
 	if (false == PixelShaderCache::SetShader(false, g_nativeVertexFmt->m_components))
-		goto shader_fail;
+		return;
 	if (false == VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
-		goto shader_fail;
+		return;
 
 	const int stride = g_nativeVertexFmt->GetVertexStride();
 	//if (g_nativeVertexFmt)
@@ -212,7 +208,7 @@ void VertexManager::Flush()
 	if (false == g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
 		if (false == PixelShaderCache::SetShader(true, g_nativeVertexFmt->m_components))
-			goto shader_fail;
+			return;
 
 		g_vertex_manager->Draw(stride, true);
 	}
@@ -246,9 +242,6 @@ void VertexManager::Flush()
 	}
 #endif
 	++g_Config.iSaveTargetId;
-
-shader_fail:
-	ResetBuffer();
 }
 #endif
 
@@ -259,12 +252,9 @@ void VertexManager::DoState(PointerWrap& p)
 
 void VertexManager::DoStateShared(PointerWrap& p)
 {
-	p.DoPointer(s_pCurBufferPointer, LocalVBuffer);
+	p.DoPointer(s_pCurBufferPointer, g_vertex_manager->LocalVBuffer);
 	p.DoArray(LocalVBuffer, MAXVBUFFERSIZE);
-	p.DoArray(TIBuffer, MAXIBUFFERSIZE);
-	p.DoArray(LIBuffer, MAXIBUFFERSIZE);
-	p.DoArray(PIBuffer, MAXIBUFFERSIZE);
-
-	if (p.GetMode() == PointerWrap::MODE_READ)
-		Flushed = false;
+	p.DoArray(g_vertex_manager->TIBuffer, MAXIBUFFERSIZE);
+	p.DoArray(g_vertex_manager->LIBuffer, MAXIBUFFERSIZE);
+	p.DoArray(g_vertex_manager->PIBuffer, MAXIBUFFERSIZE);
 }

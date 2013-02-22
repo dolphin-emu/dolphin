@@ -571,8 +571,9 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 				"Increase MAXVBUFFERSIZE or we need primitive breaking afterall.");
 	}
 	
-	VertexManager::AddVertices(primitive, count);
 	ConvertVertices(count);
+	VertexManager::AddVertices(primitive, count);
+	//VertexManager::Flush();
 }
 
 

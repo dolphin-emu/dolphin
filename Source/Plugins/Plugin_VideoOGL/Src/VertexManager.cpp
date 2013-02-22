@@ -100,10 +100,6 @@ void VertexManager::Draw()
 
 void VertexManager::vFlush()
 {
-	if (s_pBaseBufferPointer == s_pCurBufferPointer) return;
-	if (Flushed) return;
-	Flushed=true;
-	VideoFifo_CheckEFBAccess();
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGen.numTexGens,
 		xfregs.numChan.numColorChans, xfregs.dualTexTrans.enabled, bpmem.ztex2.op,
@@ -240,8 +236,6 @@ void VertexManager::vFlush()
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	//s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
-	s_pCurBufferPointer = s_pBaseBufferPointer;
-	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) 

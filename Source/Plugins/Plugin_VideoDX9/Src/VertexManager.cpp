@@ -307,11 +307,6 @@ void VertexManager::DrawVA(int stride)
 
 void VertexManager::vFlush()
 {
-	if (s_pBaseBufferPointer == s_pCurBufferPointer) return;
-	if (Flushed) return;
-	Flushed = true;
-	VideoFifo_CheckEFBAccess();
-
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
 		if (bpmem.tevorders[i / 2].getEnable(i & 1))
@@ -388,7 +383,6 @@ shader_fail:
 		CurrentIBufferIndex += IndexGenerator::GetTriangleindexLen() + IndexGenerator::GetLineindexLen() + IndexGenerator::GetPointindexLen();
 		CurrentVBufferIndex += IndexGenerator::GetNumVerts() * stride;
 	}
-	ResetBuffer();
 }
 
 }

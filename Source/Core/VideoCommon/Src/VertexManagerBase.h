@@ -32,46 +32,47 @@ public:
 
 	static void AddVertices(int _primitive, u32 _numVertices);
 
-	// TODO: protected?
-	static u8 *s_pBaseBufferPointer;
 	static u8 *s_pCurBufferPointer;
+	static u8 *s_pBaseBufferPointer;
 	static u8 *s_pEndBufferPointer;
 
 	static int GetRemainingSize();
-	static int GetRemainingVertices(int primitive);
+	
+	//int GetRemainingVertices(int primitive);
 
 	static void Flush();
 
 	virtual ::NativeVertexFormat* CreateNativeVertexFormat() = 0;
 
-	static u16* GetTriangleIndexBuffer() { return TIBuffer; }
-	static u16* GetLineIndexBuffer() { return LIBuffer; }
-	static u16* GetPointIndexBuffer() { return PIBuffer; }
-	static u8* GetVertexBuffer() { return s_pBaseBufferPointer; }
+	// TODO: use these instead of TIBuffer, etc
+	
+// 	u16* GetTriangleIndexBuffer() { return TIBuffer; }
+// 	u16* GetLineIndexBuffer() { return LIBuffer; }
+// 	u16* GetPointIndexBuffer() { return PIBuffer; }
+// 	u8* GetVertexBuffer() { return s_pBaseBufferPointer; }
 
 	static void DoState(PointerWrap& p);
 	virtual void CreateDeviceObjects(){};
 	virtual void DestroyDeviceObjects(){};
+	
 protected:
-	// TODO: make private after Flush() is merged
-	static void ResetBuffer();
-
-	static u16 *TIBuffer;
-	static u16 *LIBuffer;
-	static u16 *PIBuffer;
-
-	static bool Flushed;
+	u16* TIBuffer;
+	u16* LIBuffer;
+	u16* PIBuffer;
 
 	virtual void vDoState(PointerWrap& p) { DoStateShared(p); }
 	void DoStateShared(PointerWrap& p);
 
 private:
+	bool IsFlushed() const;
+	
+	void ResetBuffer();
+	
 	//virtual void Draw(u32 stride, bool alphapass) = 0;
 	// temp
 	virtual void vFlush() = 0;
 	
-	static u8 *LocalVBuffer;
-
+	u8* LocalVBuffer;
 };
 
 extern VertexManager *g_vertex_manager;
