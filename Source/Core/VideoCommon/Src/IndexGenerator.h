@@ -57,14 +57,14 @@ private:
 	static void AddFan(u32 numVerts);
 	static void AddQuads(u32 numVerts);
 	
-	static void WriteTriangle(u32 index1, u32 index2, u32 index3);
-	
 	// Lines
 	static void AddLineList(u32 numVerts);
 	static void AddLineStrip(u32 numVerts);
 	
 	// Points
 	static void AddPoints(u32 numVerts);
+	
+	static void WriteTriangle(u32 index1, u32 index2, u32 index3);
 	
 	static u16 *Tptr;
 	static u16 *BASETptr;
