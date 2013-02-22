@@ -97,10 +97,10 @@ void LOADERDECL PosMtx_ReadDirect_UByte()
 
 void LOADERDECL PosMtx_Write()
 {
-	*VertexManager::s_pCurBufferPointer++ = s_curposmtx;
-	*VertexManager::s_pCurBufferPointer++ = 0;
-	*VertexManager::s_pCurBufferPointer++ = 0;
-	*VertexManager::s_pCurBufferPointer++ = 0;
+	DataWrite<u8>(s_curposmtx);
+	DataWrite<u8>(0);
+	DataWrite<u8>(0);
+	DataWrite<u8>(0);
 }
 
 void LOADERDECL UpdateBoundingBoxPrepare() 
@@ -166,24 +166,22 @@ void LOADERDECL TexMtx_ReadDirect_UByte()
 
 void LOADERDECL TexMtx_Write_Float()
 {
-	*(float*)VertexManager::s_pCurBufferPointer = (float)s_curtexmtx[s_texmtxwrite++];
-	VertexManager::s_pCurBufferPointer += 4;
+	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 }
 
 void LOADERDECL TexMtx_Write_Float2()
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = 0;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)s_curtexmtx[s_texmtxwrite++];
-	VertexManager::s_pCurBufferPointer += 8;
+	DataWrite(0.f);
+	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 }
 
 void LOADERDECL TexMtx_Write_Float4()
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = 0;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = 0;
-	((float*)VertexManager::s_pCurBufferPointer)[2] = s_curtexmtx[s_texmtxwrite++];
-	((float*)VertexManager::s_pCurBufferPointer)[3] = 0;  // Just to fill out with 0.
-	VertexManager::s_pCurBufferPointer += 16;
+	DataWrite(0.f);
+	DataWrite(0.f);
+	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
+	// Just to fill out with 0.
+	DataWrite(0.f);
 }
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr) 
