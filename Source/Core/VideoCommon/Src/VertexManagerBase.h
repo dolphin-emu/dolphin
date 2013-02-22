@@ -7,25 +7,28 @@ class PointerWrap;
 
 class VertexManager
 {
+private:
+	// What are the actual values?
+	static const u32 SMALLEST_POSSIBLE_VERTEX = 1;
+	static const u32 LARGEST_POSSIBLE_VERTEX = 188;
+	
+	static const u32 MAX_PRIMITIVES_PER_COMMAND = (u16)-1;
+	
 public:
-
-	enum
-	{
-		// values from OGL backend
-		//MAXVBUFFERSIZE = 0x1FFFF,
-		//MAXIBUFFERSIZE = 0xFFFF,
-
-		// values from DX9 backend
-		//MAXVBUFFERSIZE = 0x50000,
-		//MAXIBUFFERSIZE = 0xFFFF,
-
-		// values from DX11 backend
-		MAXVBUFFERSIZE = 0x50000,
-		MAXIBUFFERSIZE = 0xFFFF,
-	};
+	// values from OGL backend
+	//static const u32 MAXVBUFFERSIZE = 0x1FFFF;
+	
+	// values from DX9/11 backend
+	static const u32 MAXVBUFFERSIZE = MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX;
+	
+	// We may convert triangle-fans to triangle-lists, almost 3x as many indices.
+	// Watching for a full index buffer would probably be smarter than this calculation.
+	static const u32 MAXIBUFFERSIZE = MAXVBUFFERSIZE * 3 / SMALLEST_POSSIBLE_VERTEX;
+	//static const u32 MAXIBUFFERSIZE = MAX_PRIMITIVES_PER_COMMAND * 3;
 
 	VertexManager();
-	virtual ~VertexManager();	// needs to be virtual for DX11's dtor
+	// needs to be virtual for DX11's dtor
+	virtual ~VertexManager();
 
 	static void AddVertices(int _primitive, u32 _numVertices);
 
