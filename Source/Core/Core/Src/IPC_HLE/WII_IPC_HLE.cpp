@@ -374,7 +374,7 @@ void ExecuteCommand(u32 _Address)
 		Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
 
 		
-		WARN_LOG(WII_IPC_HLE, "Tried to open %s as %d", DeviceName.c_str(), DeviceID);
+		WARN_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
 		if (DeviceID >= 0)
 		{
 			if (DeviceName.find("/dev/es") == 0)

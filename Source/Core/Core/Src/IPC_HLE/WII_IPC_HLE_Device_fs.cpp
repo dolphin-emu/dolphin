@@ -428,7 +428,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			File::CreateFullPath(FilenameRename);
 
 			// if there is already a file, delete it
-			if (File::Exists(FilenameRename))
+			if (File::Exists(Filename) && File::Exists(FilenameRename))
 			{
 				File::Delete(FilenameRename);
 			}

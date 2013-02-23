@@ -692,7 +692,7 @@ inline void SetOpenMPThreadCount(int width, int height)
 	if (g_ActiveConfig.bOMPDecoder && width > 127 && height > 127)
 	{
 		// don't span to many threads they will kill the rest of the emu :)
-		omp_set_num_threads((cpu_info.num_cores + 2) / 3);
+		omp_set_num_threads((omp_get_num_procs() + 2) / 3);
 	}
 	else
 	{

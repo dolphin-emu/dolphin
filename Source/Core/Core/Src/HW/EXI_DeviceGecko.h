@@ -20,6 +20,8 @@
 
 #include "SFML/Network.hpp"
 #include "Thread.h"
+
+#include <deque>
 #include <queue>
 
 class GeckoSockServer
@@ -36,8 +38,8 @@ public:
 	std::thread clientThread;
 	std::mutex transfer_lock;
 
-	std::queue<u8> send_fifo;
-	std::queue<u8> recv_fifo;
+	std::deque<u8> send_fifo;
+	std::deque<u8> recv_fifo;
 
 private:
 	static int		client_count;

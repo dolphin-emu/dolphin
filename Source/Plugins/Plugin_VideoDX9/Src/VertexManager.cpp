@@ -334,7 +334,7 @@ void VertexManager::vFlush()
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
 				(tex.texMode0[i&3].min_filter & 3),
-				ceil(tex.texMode1[i&3].max_lod / 16.f),
+				(tex.texMode1[i&3].max_lod + 0xf) / 0x10,
 				tex.texImage1[i&3].image_type);
 
 			if (tentry)

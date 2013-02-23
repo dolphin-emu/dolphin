@@ -477,7 +477,7 @@ int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 		u32 const Size = Memory::Read_U32(BufferIn + 0x04);
 		// Delay depends on size of read, that makes sense, right?
 		// More than ~1150K "bytes / sec" hangs NSMBWii on boot.
-		// Less than ~800K "bytes / sec" hangs DKCR randomly.
+		// Less than ~800K "bytes / sec" hangs DKCR randomly (ok, probably not true)
 		return SystemTimers::GetTicksPerSecond() / 975000 * Size;
 		break;
 	}
@@ -498,7 +498,8 @@ int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 //	case DVDLowClosePartition:
 	default:
 		// ranom numbers here!
-		return SystemTimers::GetTicksPerSecond() / 1500;
+		// More than ~1/2000th of a second hangs DKCR with DSP HLE, maybe.
+		return SystemTimers::GetTicksPerSecond() / 15000;
 		break;
 	}
 }

@@ -42,6 +42,7 @@
 #endif
 
 #include <fstream>
+#include <algorithm>
 #include <sys/stat.h>
 
 #ifndef S_ISDIR
@@ -196,8 +197,9 @@ bool CreateFullPath(const std::string &fullPath)
 		// we're done, yay!
 		if (position == fullPath.npos)
 			return true;
-			
-		std::string subPath = fullPath.substr(0, position);
+		
+		// Include the '/' so the first call is CreateDir("/") rather than CreateDir("")
+		std::string const subPath(fullPath.substr(0, position + 1));
 		if (!File::IsDirectory(subPath))
 			File::CreateDir(subPath);
 
@@ -773,6 +775,24 @@ IOFile::IOFile(const std::string& filename, const char openmode[])
 IOFile::~IOFile()
 {
 	Close();
+}
+
+IOFile::IOFile(IOFile&& other)
+	: m_file(NULL), m_good(true)
+{
+	Swap(other);
+}
+
+IOFile& IOFile::operator=(IOFile&& other)
+{
+	IOFile((IOFile&&)other).Swap(*this);
+	return *this;
+}
+
+void IOFile::Swap(IOFile& other)
+{
+	std::swap(m_file, other.m_file);
+	std::swap(m_good, other.m_good);
 }
 
 bool IOFile::Open(const std::string& filename, const char openmode[])
