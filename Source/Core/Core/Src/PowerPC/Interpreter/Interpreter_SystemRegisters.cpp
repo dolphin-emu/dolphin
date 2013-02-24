@@ -234,6 +234,7 @@ void Interpreter::mtmsr(UGeckoInstruction _inst)
 {
 	// Privileged?
 	MSR = m_GPR[_inst.RS];
+	PowerPC::CheckExceptions();
 	m_EndBlock = true;
 }
 
