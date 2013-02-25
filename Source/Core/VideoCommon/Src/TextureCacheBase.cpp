@@ -129,8 +129,13 @@ void TextureCache::Cleanup()
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
-		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) // TODO: Deleting EFB copies might not be a good idea here...
+		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount)
 		{
+			// EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
+			// TODO: encoding the texture back to RAM here might be a good idea
+			if (g_ActiveConfig.bCopyEFBToTexture && entry->IsEfbCopy())
+				continue;
+
 			delete iter->second;
 			textures.erase(iter++);
 		}
