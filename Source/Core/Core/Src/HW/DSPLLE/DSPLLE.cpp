@@ -26,6 +26,7 @@
 #include "IniFile.h"
 #include "ConfigManager.h"
 #include "CPUDetect.h"
+#include "Core.h"
 
 #include "DSPLLEGlobals.h" // Local
 #include "DSP/DSPInterpreter.h"
@@ -56,6 +57,14 @@ Common::Event ppcEvent;
 
 void DSPLLE::DoState(PointerWrap &p)
 {
+	bool isHLE = false;
+	p.Do(isHLE);
+	if (isHLE != false && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Core::DisplayMessage("Save states made with the HLE audio engine are incompatible with the LLE DSP engine. Aborting load state.", 3000);
+		p.SetMode(PointerWrap::MODE_VERIFY);
+		return;
+	}
 	p.Do(g_dsp.r);
 	p.Do(g_dsp.pc);
 #if PROFILE
