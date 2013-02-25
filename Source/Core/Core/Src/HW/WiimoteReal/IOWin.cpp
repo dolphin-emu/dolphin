@@ -35,6 +35,8 @@
 #include <bthdef.h>
 #include <BluetoothAPIs.h>
 
+//#define AUTHENTICATE_WIIMOTES
+
 typedef struct _HIDD_ATTRIBUTES
 {
 	ULONG   Size;
@@ -56,6 +58,7 @@ typedef BOOL (__stdcall *PBth_BluetoothFindRadioClose)(HBLUETOOTH_RADIO_FIND);
 typedef DWORD (__stdcall *PBth_BluetoothGetRadioInfo)(HANDLE, PBLUETOOTH_RADIO_INFO);
 typedef DWORD (__stdcall *PBth_BluetoothRemoveDevice)(const BLUETOOTH_ADDRESS*);
 typedef DWORD (__stdcall *PBth_BluetoothSetServiceState)(HANDLE, const BLUETOOTH_DEVICE_INFO*, const GUID*, DWORD);
+typedef DWORD (__stdcall *PBth_BluetoothAuthenticateDevice)(HWND, HANDLE, BLUETOOTH_DEVICE_INFO*, PWCHAR, ULONG);
 
 PHidD_GetHidGuid HidD_GetHidGuid = NULL;
 PHidD_GetAttributes HidD_GetAttributes = NULL;
@@ -70,6 +73,7 @@ PBth_BluetoothFindRadioClose Bth_BluetoothFindRadioClose = NULL;
 PBth_BluetoothGetRadioInfo Bth_BluetoothGetRadioInfo = NULL;
 PBth_BluetoothRemoveDevice Bth_BluetoothRemoveDevice = NULL;
 PBth_BluetoothSetServiceState Bth_BluetoothSetServiceState = NULL;
+PBth_BluetoothAuthenticateDevice Bth_BluetoothAuthenticateDevice = NULL;
 
 HINSTANCE hid_lib = NULL;
 HINSTANCE bthprops_lib = NULL;
@@ -114,12 +118,13 @@ inline void init_lib()
 		Bth_BluetoothGetRadioInfo = (PBth_BluetoothGetRadioInfo)GetProcAddress(bthprops_lib, "BluetoothGetRadioInfo");
 		Bth_BluetoothRemoveDevice = (PBth_BluetoothRemoveDevice)GetProcAddress(bthprops_lib, "BluetoothRemoveDevice");
 		Bth_BluetoothSetServiceState = (PBth_BluetoothSetServiceState)GetProcAddress(bthprops_lib, "BluetoothSetServiceState");
+		Bth_BluetoothAuthenticateDevice = (PBth_BluetoothAuthenticateDevice)GetProcAddress(bthprops_lib, "BluetoothAuthenticateDevice");
 
 		if (!Bth_BluetoothFindDeviceClose || !Bth_BluetoothFindFirstDevice ||
 			!Bth_BluetoothFindFirstRadio || !Bth_BluetoothFindNextDevice ||
 			!Bth_BluetoothFindNextRadio || !Bth_BluetoothFindRadioClose ||
 			!Bth_BluetoothGetRadioInfo || !Bth_BluetoothRemoveDevice ||
-			!Bth_BluetoothSetServiceState)
+			!Bth_BluetoothSetServiceState || !Bth_BluetoothAuthenticateDevice)
 		{
 			PanicAlertT("Failed to load bthprops.cpl");
 			exit(EXIT_FAILURE);
@@ -135,9 +140,9 @@ namespace WiimoteReal
 template <typename T>
 void ProcessWiimotes(bool new_scan, T& callback);
 
-bool AttachWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi);
-void RemoveWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi);
-bool ForgetWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi);
+bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_INFO_STRUCT&);
+void RemoveWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
+bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
 
 WiimoteScanner::WiimoteScanner()
 	: m_run_thread()
@@ -149,16 +154,19 @@ WiimoteScanner::WiimoteScanner()
 WiimoteScanner::~WiimoteScanner()
 {
 	// TODO: what do we want here?
-	ProcessWiimotes(false, RemoveWiimote);
+	ProcessWiimotes(false, [](HANDLE, BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+	{
+		RemoveWiimote(btdi);
+	});
 }
 
 void WiimoteScanner::Update()
 {
 	bool forgot_some = false;
 
-	ProcessWiimotes(false, [&](HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+	ProcessWiimotes(false, [&](HANDLE, BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 	{
-		forgot_some |= ForgetWiimote(hRadio, btdi);
+		forgot_some |= ForgetWiimote(btdi);
 	});
 
 	// Some hacks that allows disconnects to be detected before connections are handled
@@ -173,10 +181,10 @@ void WiimoteScanner::Update()
 // Returns the total number of found and connected wiimotes.
 std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 {
-	ProcessWiimotes(true, [](HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+	ProcessWiimotes(true, [](HANDLE hRadio, const BLUETOOTH_RADIO_INFO& rinfo, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 	{
-		ForgetWiimote(hRadio, btdi);
-		AttachWiimote(hRadio, btdi);
+		ForgetWiimote(btdi);
+		AttachWiimote(hRadio, rinfo, btdi);
 	});
 
 	// Get the device id
@@ -485,31 +493,32 @@ void ProcessWiimotes(bool new_scan, T& callback)
 		BLUETOOTH_RADIO_INFO radioInfo;
 		radioInfo.dwSize = sizeof(radioInfo);
 
-		// TODO: check for SUCCEEDED()
-		Bth_BluetoothGetRadioInfo(hRadio, &radioInfo);
-
-		srch.hRadio = hRadio;
-
-		BLUETOOTH_DEVICE_INFO btdi;
-		btdi.dwSize = sizeof(btdi);
-
-		// Enumerate BT devices
-		HBLUETOOTH_DEVICE_FIND hFindDevice = Bth_BluetoothFindFirstDevice(&srch, &btdi);
-		while (hFindDevice)
+		auto const rinfo_result = Bth_BluetoothGetRadioInfo(hRadio, &radioInfo);
+		if (ERROR_SUCCESS == rinfo_result)
 		{
-			// btdi.szName is sometimes missings it's content - it's a bt feature..
-			DEBUG_LOG(WIIMOTE, "authed %i connected %i remembered %i ",
-					btdi.fAuthenticated, btdi.fConnected, btdi.fRemembered);
+			srch.hRadio = hRadio;
 
-			if (std::regex_match(btdi.szName, wiimote_device_name))
-			{
-				callback(hRadio, btdi);
-			}
+			BLUETOOTH_DEVICE_INFO btdi;
+			btdi.dwSize = sizeof(btdi);
 
-			if (false == Bth_BluetoothFindNextDevice(hFindDevice, &btdi))
+			// Enumerate BT devices
+			HBLUETOOTH_DEVICE_FIND hFindDevice = Bth_BluetoothFindFirstDevice(&srch, &btdi);
+			while (hFindDevice)
 			{
-				Bth_BluetoothFindDeviceClose(hFindDevice);
-				hFindDevice = NULL;
+				// btdi.szName is sometimes missings it's content - it's a bt feature..
+				DEBUG_LOG(WIIMOTE, "authed %i connected %i remembered %i ",
+						btdi.fAuthenticated, btdi.fConnected, btdi.fRemembered);
+
+				if (std::regex_match(btdi.szName, wiimote_device_name))
+				{
+					callback(hRadio, radioInfo, btdi);
+				}
+
+				if (false == Bth_BluetoothFindNextDevice(hFindDevice, &btdi))
+				{
+					Bth_BluetoothFindDeviceClose(hFindDevice);
+					hFindDevice = NULL;
+				}
 			}
 		}
 
@@ -521,7 +530,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
 	}
 }
 
-void RemoveWiimote(HANDLE, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+void RemoveWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 {
 	//if (btdi.fConnected)
 	{
@@ -532,14 +541,26 @@ void RemoveWiimote(HANDLE, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 	}
 }
 
-bool AttachWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO& radio_info, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 {
 	// We don't want "remembered" devices.
 	// SetServiceState will just fail with them..
 	if (!btdi.fConnected && !btdi.fRemembered)
 	{
-		NOTICE_LOG(WIIMOTE, "Found wiimote. Enabling HID service.");
+		auto const& wm_addr = btdi.Address.rgBytes;
 
+		NOTICE_LOG(WIIMOTE, "Found wiimote (%02x:%02x:%02x:%02x:%02x:%02x). Enabling HID service.",
+			wm_addr[0], wm_addr[1], wm_addr[2], wm_addr[3], wm_addr[4], wm_addr[5]);
+
+#if defined(AUTHENTICATE_WIIMOTES)
+		// Authenticate
+		auto const& radio_addr = radio_info.address.rgBytes;
+		const DWORD auth_result = Bth_BluetoothAuthenticateDevice(NULL, hRadio, &btdi,
+			std::vector<WCHAR>(radio_addr, radio_addr + 6).data(), 6);
+
+		if (ERROR_SUCCESS != auth_result)
+			ERROR_LOG(WIIMOTE, "AttachWiimote: BluetoothAuthenticateDevice returned %08x", auth_result);
+#endif
 		// Activate service
 		const DWORD hr = Bth_BluetoothSetServiceState(hRadio, &btdi,
 			&HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
@@ -547,7 +568,7 @@ bool AttachWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 		g_connect_times[btdi.Address.ullLong] = std::time(nullptr);
 
 		if (FAILED(hr))
-			ERROR_LOG(WIIMOTE, "Pair-Up: BluetoothSetServiceState() returned %08x", hr);
+			ERROR_LOG(WIIMOTE, "AttachWiimote: BluetoothSetServiceState returned %08x", hr);
 		else
 			return true;
 	}
@@ -556,7 +577,7 @@ bool AttachWiimote(HANDLE hRadio, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 }
 
 // Removes remembered non-connected devices
-bool ForgetWiimote(HANDLE, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
+bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 {
 	if (!btdi.fConnected && btdi.fRemembered)
 	{
