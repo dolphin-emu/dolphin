@@ -155,7 +155,6 @@ enum HOST_COMM
 	WM_USER_CREATE,
 	WM_USER_SETCURSOR,
 	WM_USER_KEYDOWN,
-	WIIMOTE_DISCONNECT // Disconnect Wiimote
 };
 
 // Used for notification on emulation state

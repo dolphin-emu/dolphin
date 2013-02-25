@@ -34,7 +34,7 @@
 #include "FileSearch.h"
 #include "CompressedBlob.h"
 #include "ChunkFile.h"
-#include "../resources/no_banner.cpp"
+#include "ConfigManager.h"
 
 #define CACHE_REVISION 0x10F
 
@@ -174,10 +174,16 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	}
 	else
 	{
+		std::string theme = SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/";
+		std::string dir = File::GetUserPath(D_THEMES_IDX) + theme;
+
+#if !defined(_WIN32)
+		// If theme does not exist in user's dir load from shared directory
+		if (!File::Exists(dir))
+			dir = SHARED_USER_DIR THEMES_DIR "/" + theme;
+#endif
 		// default banner
-		wxMemoryInputStream istream(no_banner_png, sizeof no_banner_png);
-		wxImage iNoBanner(istream, wxBITMAP_TYPE_PNG);
-		m_Image = iNoBanner;
+		m_Image = wxImage(dir + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 
