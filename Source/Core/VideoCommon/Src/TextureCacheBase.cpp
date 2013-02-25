@@ -133,7 +133,7 @@ void TextureCache::Cleanup()
 		{
 			// EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
 			// TODO: encoding the texture back to RAM here might be a good idea
-			if (g_ActiveConfig.bCopyEFBToTexture && entry->IsEfbCopy())
+			if (g_ActiveConfig.bCopyEFBToTexture && iter->second->IsEfbCopy())
 				continue;
 
 			delete iter->second;
