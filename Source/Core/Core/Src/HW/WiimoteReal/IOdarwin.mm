@@ -195,6 +195,8 @@ bool Wiimote::Connect()
 		ERROR_LOG(WIIMOTE, "Unable to open L2CAP channels "
 			"for wiimote %i", index + 1);
 		Disconnect();
+		
+		[cbt release];
 		return false;
 	}
     
@@ -209,7 +211,6 @@ bool Wiimote::Connect()
 	m_connected = true;
 
 	[cbt release];
-
 	return true;
 }
 

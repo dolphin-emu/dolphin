@@ -51,7 +51,7 @@ WiimoteScanner g_wiimote_scanner;
 Wiimote::Wiimote()
 	: index()
 #ifdef __APPLE__
-	, inputlen(0)
+	, btd(), ichan(), cchan(), inputlen(), m_connected()
 #elif defined(__linux__) && HAVE_BLUEZ
 	, cmd_sock(-1), int_sock(-1)
 #elif defined(_WIN32)
