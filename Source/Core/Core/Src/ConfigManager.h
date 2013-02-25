@@ -41,9 +41,9 @@ struct SConfig : NonCopyable
 	// Wii Devices
 	bool m_WiiSDCard;
 	bool m_WiiKeyboard;
-	bool m_WiiAutoReconnect[4];
-	bool m_WiiAutoUnpair;
 	bool m_WiimoteReconnectOnLoad;
+	bool m_WiimoteContinuousScanning;
+	bool m_WiimoteEnableSpeaker;
 
 	// name of the last used filename
 	std::string m_LastFilename;
@@ -106,9 +106,6 @@ struct SConfig : NonCopyable
 
 	// load settings
 	void LoadSettings();
-
-	//Special load settings
-	void LoadSettingsWii();
 
 	// Return the permanent and somewhat globally used instance of this struct
 	static SConfig& GetInstance() {return(*m_Instance);}

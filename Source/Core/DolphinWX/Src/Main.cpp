@@ -390,10 +390,6 @@ void DolphinApp::InitLanguageSupport()
 int DolphinApp::OnExit()
 {
 	WiimoteReal::Shutdown();
-#ifdef _WIN32
-	if (SConfig::GetInstance().m_WiiAutoUnpair)
-		WiimoteReal::UnPair();
-#endif
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
