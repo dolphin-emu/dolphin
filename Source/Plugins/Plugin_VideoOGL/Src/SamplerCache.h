@@ -73,6 +73,8 @@ private:
 	int m_last_max_anisotropy;
 };
 
+extern SamplerCache *g_sampler_cache;
+
 }
 
 #endif

@@ -129,8 +129,6 @@ static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
-static SamplerCache s_sampler_cache;
-
 int GetNumMSAASamples(int MSAAMode)
 {
 	switch (MSAAMode)
@@ -374,8 +372,6 @@ void Renderer::Shutdown()
 	delete s_pfont;
 	s_pfont = 0;
 	s_ShowEFBCopyRegions.Destroy();
-	
-	s_sampler_cache.Clear();
 }
 
 void Renderer::Init()
@@ -1478,7 +1474,7 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	auto const& tm0 = tex.texMode0[stage];
 	auto const& tm1 = tex.texMode1[stage];
 	
-	s_sampler_cache.SetSamplerState((texindex * 4) + stage, tm0, tm1);
+	g_sampler_cache->SetSamplerState((texindex * 4) + stage, tm0, tm1);
 }
 
 void Renderer::SetInterlacingMode()

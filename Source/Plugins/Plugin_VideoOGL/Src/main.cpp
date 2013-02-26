@@ -91,6 +91,7 @@ Make AA apply instantly during gameplay if possible
 #include "FramebufferManager.h"
 #include "Core.h"
 #include "Host.h"
+#include "SamplerCache.h"
 
 #include "VideoState.h"
 #include "VideoBackend.h"
@@ -195,7 +196,8 @@ void VideoBackend::Video_Prepare()
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
 	ProgramShaderCache::Init();
-	g_texture_cache = new TextureCache;
+	g_texture_cache = new TextureCache();
+	g_sampler_cache = new SamplerCache();
 	PostProcessing::Init();
 	Renderer::Init();
 	GL_REPORT_ERRORD();
@@ -229,6 +231,8 @@ void VideoBackend::Video_Cleanup() {
 		Renderer::Shutdown();
 		TextureConverter::Shutdown();
 		VertexLoaderManager::Shutdown();
+		delete g_sampler_cache;
+		g_sampler_cache = NULL;
 		delete g_texture_cache;
 		g_texture_cache = NULL;
 		ProgramShaderCache::Shutdown();
