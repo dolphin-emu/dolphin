@@ -208,7 +208,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	{
 		WRITE(p, "ATTRIN float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
 		if (components & VB_HAS_POSMTXIDX)
-			WRITE(p, "ATTRIN int posmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+			WRITE(p, "ATTRIN float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 		if (components & VB_HAS_NRM0)
 			WRITE(p, "ATTRIN float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
 		if (components & VB_HAS_NRM1)
@@ -304,6 +304,10 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		else if (ApiType == API_D3D11)
 		{
 			WRITE(p, "int posmtx = blend_indices.x * 255.0f;\n");
+		}
+		else
+		{
+			WRITE(p, "int posmtx = int(fposmtx);\n");
 		}
 
 		WRITE(p, "float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");		
