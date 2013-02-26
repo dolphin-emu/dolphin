@@ -131,7 +131,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	FixupBranch eeDisabled = J_CC(CC_Z);
 
 	MOV(32, R(EAX), M((void*)&PowerPC::ppcState.Exceptions));
-	TEST(32, R(EAX), R(EAX));
+	TEST(32, R(EAX), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
 	FixupBranch noExceptionsPending = J_CC(CC_Z);
 
 	MOV(32, M(&PC), Imm32(js.compilerPC + 4));
