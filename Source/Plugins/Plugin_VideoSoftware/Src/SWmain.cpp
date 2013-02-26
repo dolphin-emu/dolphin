@@ -103,7 +103,8 @@ void VideoSoftware::DoState(PointerWrap& p)
 	if (p.GetMode() == PointerWrap::MODE_READ && software == false)
 		// change mode to abort load of incompatible save state.
 		p.SetMode(PointerWrap::MODE_VERIFY);
-	// TODO: incomplete
+
+	// TODO: incomplete?
 	SWCommandProcessor::DoState(p);
 	SWPixelEngine::DoState(p);
 	EfbInterface::DoState(p);

@@ -55,9 +55,8 @@ void DoState(PointerWrap &p)
 	p.Do(lastPrimCmd);
 	p.Do(streamSize);
 	p.Do(streamAddress);
-	// not sure how to save this... It seems to be the only thing left that is really important. 
-	// uncommenting this will prevent all error messages, and any crashes/hangs on load, but then obviously it'll segfault once you restart dolphin.
-	//p.Do(currentFunction);
+	if (p.GetMode() == PointerWrap::MODE_READ)
+		  ResetDecoding();
 }
 
 void DecodePrimitiveStream(u32 iBufferSize)
