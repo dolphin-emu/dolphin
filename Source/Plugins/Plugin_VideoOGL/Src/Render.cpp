@@ -255,18 +255,13 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsGLBaseVertex = GLEW_ARB_draw_elements_base_vertex;
 
 	UpdateActiveConfig();
-	OSD::AddMessage(StringFromFormat("Supports: %s%s%s%s%s- Missing: %s%s%s%s%s",
-			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "DualSourceBlend " : "",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "UniformBuffer " : "",
-			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "PinnedMemory " : "",
-			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "ShaderCache " : "",
-			g_ActiveConfig.backend_info.bSupportsGLBaseVertex ? "BaseVertex " : "",
-			
+	OSD::AddMessage(StringFromFormat("Missing Extensions: %s%s%s%s%s%s",			
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
 			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
 			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "" : "ShaderCache ",
-			g_ActiveConfig.backend_info.bSupportsGLBaseVertex ? "" : "BaseVertex "
+			g_ActiveConfig.backend_info.bSupportsGLBaseVertex ? "" : "BaseVertex ",
+			g_ActiveConfig.backend_info.bSupportsGLSync ? "" : "Sync "
 			).c_str(), 5000);
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
