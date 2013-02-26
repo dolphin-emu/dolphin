@@ -41,6 +41,7 @@
 #include "Core.h"
 #include "OpcodeDecoder.h"
 #include "SWVertexLoader.h"
+#include "SWStatistics.h"
 
 #define VSYNC_ENABLED 0
 
@@ -97,6 +98,11 @@ bool VideoSoftware::Initialize(void *&window_handle)
 
 void VideoSoftware::DoState(PointerWrap& p)
 {
+	bool software = true;
+	p.Do(software);
+	if (p.GetMode() == PointerWrap::MODE_READ && software == false)
+		// change mode to abort load of incompatible save state.
+		p.SetMode(PointerWrap::MODE_VERIFY);
 	// TODO: incomplete
 	SWCommandProcessor::DoState(p);
 	SWPixelEngine::DoState(p);
@@ -105,6 +111,7 @@ void VideoSoftware::DoState(PointerWrap& p)
 	Clipper::DoState(p);
 	p.Do(swxfregs);
     p.Do(bpmem);
+	p.Do(swstats);
 
 	// CP Memory
     p.DoArray(arraybases, 16);
