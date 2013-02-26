@@ -332,7 +332,7 @@ void SWVertexLoader::DoState(PointerWrap &p)
 {
 	p.DoArray(m_AttributeLoaders, sizeof m_AttributeLoaders);
 	p.Do(m_VertexSize);
-	p.Do(m_CurrentVat);
+	p.Do(*m_CurrentVat);
 	p.Do(m_positionLoader);
 	p.Do(m_normalLoader);
 	p.DoArray(m_colorLoader, sizeof m_colorLoader);

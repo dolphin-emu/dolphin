@@ -35,7 +35,6 @@ typedef void (*DecodingFunction)(u32);
 
 namespace OpcodeDecoder
 {
-
 static DecodingFunction currentFunction = NULL;
 static u32 minCommandSize;
 static u16 streamSize;
@@ -49,12 +48,15 @@ static u8 lastPrimCmd;
 void DoState(PointerWrap &p)
 {
 	p.Do(minCommandSize);
-	vertexLoader.DoState(p);
-	p.Do(streamSize);
-	p.Do(streamAddress);
+	// Not sure what is wrong with this. Something(s) in here is causing dolphin to crash/hang when loading states saved from another run of dolphin. Doesn't seem too important anyway...
+	//vertexLoader.DoState(p);
 	p.Do(readOpcode);
 	p.Do(inObjectStream);
 	p.Do(lastPrimCmd);
+	p.Do(streamSize);
+	p.Do(streamAddress);
+	// not sure how to save this... It seems to be the only thing left that is really important. 
+	// uncommenting this will prevent all error messages, and any crashes/hangs on load, but then obviously it'll segfault once you restart dolphin.
 	//p.Do(currentFunction);
 }
 

@@ -102,6 +102,19 @@ void VideoSoftware::DoState(PointerWrap& p)
 	SWPixelEngine::DoState(p);
 	EfbInterface::DoState(p);
 	OpcodeDecoder::DoState(p);
+	Clipper::DoState(p);
+	p.Do(swxfregs);
+    p.Do(bpmem);
+
+	// CP Memory
+    p.DoArray(arraybases, 16);
+    p.DoArray(arraystrides, 16);
+    p.Do(MatrixIndexA);
+    p.Do(MatrixIndexB);
+    p.Do(g_VtxDesc.Hex);
+	p.DoArray(g_VtxAttr, 8);
+	p.DoMarker("CP Memory");
+
 }
 
 void VideoSoftware::CheckInvalidState()
