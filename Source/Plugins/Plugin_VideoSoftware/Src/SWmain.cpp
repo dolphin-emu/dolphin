@@ -132,9 +132,15 @@ void VideoSoftware::EmuStateChange(EMUSTATE_CHANGE newState)
 
 void VideoSoftware::Shutdown()
 {
+	// TODO: should be in Video_Cleanup
 	HwRasterizer::Shutdown();
 	SWRenderer::Shutdown();
+	
 	GLInterface->Shutdown();
+}
+
+void VideoSoftware::Video_Cleanup()
+{
 }
 
 // This is called after Video_Initialize() from the Core

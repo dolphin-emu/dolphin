@@ -323,6 +323,9 @@ void CpuThread()
 	CCPU::Run();
 
 	g_bStarted = false;
+	
+	if (!_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	return;
 }
@@ -351,6 +354,9 @@ void FifoPlayerThread()
 	}
 
 	g_bStarted = false;
+	
+	if(!_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	return;
 }
@@ -477,6 +483,9 @@ void EmuThread()
 	g_cpu_thread.join();
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
+	
+	if(_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	VolumeHandler::EjectVolume();
 	FileMon::Close();

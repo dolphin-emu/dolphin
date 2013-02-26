@@ -190,6 +190,7 @@ void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
 
+	// TODO: should be in Video_Cleanup
 	if (g_renderer)
 	{
 		s_efbAccessRequested = FALSE;
@@ -215,6 +216,9 @@ void VideoBackend::Shutdown()
 		g_texture_cache = NULL;
 	}
 	D3D::Shutdown();
+}
+
+void VideoBackend::Video_Cleanup() {
 }
 
 }

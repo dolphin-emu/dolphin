@@ -102,6 +102,7 @@ public:
 	virtual void Video_Prepare() = 0;
 	virtual void Video_EnterLoop() = 0;
 	virtual void Video_ExitLoop() = 0;
+	virtual void Video_Cleanup() = 0; // called from gl/d3d thread
 
 	virtual void Video_BeginField(u32, FieldType, u32, u32) = 0;
 	virtual void Video_EndField() = 0;
