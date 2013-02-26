@@ -46,6 +46,18 @@ static bool inObjectStream;
 static u8 lastPrimCmd;
 
 
+void DoState(PointerWrap &p)
+{
+	p.Do(minCommandSize);
+	vertexLoader.DoState(p);
+	p.Do(streamSize);
+	p.Do(streamAddress);
+	p.Do(readOpcode);
+	p.Do(inObjectStream);
+	p.Do(lastPrimCmd);
+	//p.Do(currentFunction);
+}
+
 void DecodePrimitiveStream(u32 iBufferSize)
 {
     u32 vertexSize = vertexLoader.GetVertexSize();

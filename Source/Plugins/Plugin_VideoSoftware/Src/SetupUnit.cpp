@@ -169,3 +169,10 @@ void SetupUnit::SetupLineStrip()
 
 void SetupUnit::SetupPoint()
 {}
+
+void SetupUnit::DoState(PointerWrap &p)
+{
+	p.Do(m_PrimType);
+	p.Do(m_VertexCounter);
+	p.DoArray(m_Vertices, sizeof m_Vertices);
+}

@@ -39,6 +39,8 @@
 #include "FileUtil.h"
 #include "VideoBackend.h"
 #include "Core.h"
+#include "OpcodeDecoder.h"
+#include "SWVertexLoader.h"
 
 #define VSYNC_ENABLED 0
 
@@ -93,9 +95,13 @@ bool VideoSoftware::Initialize(void *&window_handle)
 	return true;
 }
 
-void VideoSoftware::DoState(PointerWrap&)
+void VideoSoftware::DoState(PointerWrap& p)
 {
-	// NYI
+	// TODO: incomplete
+	SWCommandProcessor::DoState(p);
+	SWPixelEngine::DoState(p);
+	EfbInterface::DoState(p);
+	OpcodeDecoder::DoState(p);
 }
 
 void VideoSoftware::CheckInvalidState()

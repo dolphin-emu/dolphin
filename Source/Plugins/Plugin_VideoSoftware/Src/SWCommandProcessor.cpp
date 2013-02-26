@@ -57,6 +57,11 @@ CPReg cpreg; // shared between gfx and emulator thread
 void DoState(PointerWrap &p)
 {
 	p.Do(cpreg);
+	p.Do(readPos);
+	p.Do(writePos);
+	p.Do(et_UpdateInterrupts);
+	p.Do(interruptSet);
+	p.Do(interruptWaiting);
 }
 
 // does it matter that there is no synchronization between threads during writes?
