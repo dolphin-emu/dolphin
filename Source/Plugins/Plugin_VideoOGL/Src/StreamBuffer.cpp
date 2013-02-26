@@ -39,7 +39,9 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 	
 	if(m_uploadtype == STREAM_DETECT)
 	{
-		if(g_Config.backend_info.bSupportsGLSync && g_Config.backend_info.bSupportsGLPinnedMemory)
+		if(!g_Config.backend_info.bSupportsGLBaseVertex)
+			m_uploadtype = BUFFERSUBDATA;
+		else if(g_Config.backend_info.bSupportsGLSync && g_Config.backend_info.bSupportsGLPinnedMemory)
 			m_uploadtype = PINNED_MEMORY;
 		else if(g_Config.backend_info.bSupportsGLSync && g_Config.bHackedBufferUpload)
 			m_uploadtype = MAP_AND_RISK;

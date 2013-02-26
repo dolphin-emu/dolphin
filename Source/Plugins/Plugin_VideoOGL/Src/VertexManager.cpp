@@ -122,20 +122,38 @@ void VertexManager::Draw(u32 stride)
 	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
 	u32 line_index_size = IndexGenerator::GetLineindexLen();
 	u32 point_index_size = IndexGenerator::GetPointindexLen();
-	if (triangle_index_size > 0)
-	{
-		glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-	}
-	if (line_index_size > 0)
-	{
-		glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-	}
-	if (point_index_size > 0)
-	{
-		glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+	if(g_Config.backend_info.bSupportsGLBaseVertex) {
+		if (triangle_index_size > 0)
+		{
+			glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+		if (line_index_size > 0)
+		{
+			glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+		if (point_index_size > 0)
+		{
+			glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+	} else {
+		if (triangle_index_size > 0)
+		{
+			glDrawElements(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+		if (line_index_size > 0)
+		{
+			glDrawElements(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1]);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+		if (point_index_size > 0)
+		{
+			glDrawElements(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
 	}
 }
 

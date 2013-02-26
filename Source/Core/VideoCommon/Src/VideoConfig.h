@@ -167,6 +167,7 @@ struct VideoConfig
 		bool bSupportsGLSLCache;
 		bool bSupportsGLPinnedMemory;
 		bool bSupportsGLSync;
+		bool bSupportsGLBaseVertex;
 	} backend_info;
 
     // Utility

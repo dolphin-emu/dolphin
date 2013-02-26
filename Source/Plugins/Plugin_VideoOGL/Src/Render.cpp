@@ -239,13 +239,6 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLEW_ARB_draw_elements_base_vertex)
-	{
-		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_draw_elements_base_vertex.\n"
-				"GPU: Does your video card support OpenGL 3.2?");
-		bSuccess = false;
-	}
-
 	if (!GLEW_ARB_sampler_objects)
 	{
 		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_sampler_objects.");
@@ -255,25 +248,25 @@ Renderer::Renderer()
 	s_bHaveCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
 	
 	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
-	
 	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
-	
 	g_Config.backend_info.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
-	
 	g_Config.backend_info.bSupportsGLSync = GLEW_ARB_sync;
-	
 	g_Config.backend_info.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
+	g_Config.backend_info.bSupportsGLBaseVertex = GLEW_ARB_draw_elements_base_vertex;
 
 	UpdateActiveConfig();
-	OSD::AddMessage(StringFromFormat("Supports: %s%s%s%s- Missing: %s%s%s%s",
+	OSD::AddMessage(StringFromFormat("Supports: %s%s%s%s%s- Missing: %s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "DualSourceBlend " : "",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "UniformBuffer " : "",
 			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "PinnedMemory " : "",
 			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "ShaderCache " : "",
+			g_ActiveConfig.backend_info.bSupportsGLBaseVertex ? "BaseVertex " : "",
+			
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
 			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
-			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "" : "ShaderCache "
+			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "" : "ShaderCache ",
+			g_ActiveConfig.backend_info.bSupportsGLBaseVertex ? "" : "BaseVertex "
 			).c_str(), 5000);
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
