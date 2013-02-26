@@ -6,6 +6,11 @@ set(SRCS	Src/AudioCommon.cpp
 
 set(LIBS "")
 
+if(ANDROID)
+	set(SRCS ${SRCS} Src/OpenSLESStream.cpp)
+	set(LIBS ${LIBS} OpenSLES)
+endif(ANDROID)
+
 if(ALSA_FOUND)
 	set(SRCS ${SRCS} Src/AlsaSoundStream.cpp)
 	set(LIBS ${LIBS} ${ALSA_LIBRARIES})

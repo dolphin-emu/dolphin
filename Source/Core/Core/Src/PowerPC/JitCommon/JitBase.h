@@ -32,12 +32,9 @@
 
 #define JIT_OPCODE 0
 
-class JitBase : public CPUCoreBase, public EmuCodeBlock
+class JitBase : public CPUCoreBase
 {
 protected:
-	JitBlockCache blocks;
-	TrampolineCache trampolines;
-
 	struct JitOptions
 	{
 		bool optimizeStack;
@@ -85,14 +82,29 @@ public:
 	// This should probably be removed from public:
 	JitOptions jo;
 	JitState js;
-
-	JitBlockCache *GetBlockCache() { return &blocks; }
+	
+	virtual JitBaseBlockCache *GetBlockCache() = 0;
 
 	virtual void Jit(u32 em_address) = 0;
 
+	virtual	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, void *ctx) = 0;
+
+	virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
+
+	virtual bool IsInCodeSpace(u8 *ptr) = 0;
+};
+
+class Jitx86Base : public JitBase, public EmuCodeBlock
+{
+protected:
+	JitBlockCache blocks;
+	TrampolineCache trampolines;	
+public:
+	JitBlockCache *GetBlockCache() { return &blocks; }
+	
 	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, void *ctx);
 
-	virtual const CommonAsmRoutines *GetAsmRoutines() = 0;
+	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
 };
 
 extern JitBase *jit;

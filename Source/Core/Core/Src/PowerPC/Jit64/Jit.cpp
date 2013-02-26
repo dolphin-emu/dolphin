@@ -24,7 +24,7 @@
 
 #include "Common.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 #include "../../HLE/HLE.h"
 #include "../../Core.h"
@@ -357,7 +357,7 @@ void Jit64::WriteExternalExceptionExit()
 	MOV(32, R(EAX), M(&PC));
 	MOV(32, M(&NPC), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.dispatcher, true);
 }
 

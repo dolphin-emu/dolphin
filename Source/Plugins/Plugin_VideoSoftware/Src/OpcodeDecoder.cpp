@@ -125,7 +125,9 @@ void DecodeStandard(u32 bufferSize)
 
     if (Cmd == GX_NOP)
         return;
-
+    // Causes a SIGBUS error on Android
+    // XXX: Investigate
+#ifndef ANDROID
     // check if switching in or out of an object
     // only used for debuggging
     if (inObjectStream && (Cmd & 0x87) != lastPrimCmd)
@@ -139,7 +141,7 @@ void DecodeStandard(u32 bufferSize)
         lastPrimCmd = Cmd & 0x87;
         DebugUtil::OnObjectBegin();
     }
-
+#endif
     switch(Cmd)
     {
     case GX_NOP:

@@ -267,7 +267,7 @@ static GekkoOPTemplate table31[] =
 	{19,  Interpreter::mfcr,        {"mfcr",   OPTYPE_SYSTEM, FL_OUT_D, 0, 0, 0, 0}},
 	{83,  Interpreter::mfmsr,       {"mfmsr",  OPTYPE_SYSTEM, FL_OUT_D, 0, 0, 0, 0}},
 	{144, Interpreter::mtcrf,       {"mtcrf",  OPTYPE_SYSTEM, 0, 0, 0, 0, 0}},
-	{146, Interpreter::mtmsr,       {"mtmsr",  OPTYPE_SYSTEM, FL_ENDBLOCK, 0, 0, 0, 0}},
+	{146, Interpreter::mtmsr,       {"mtmsr",  OPTYPE_SYSTEM, FL_IN_S | FL_ENDBLOCK, 0, 0, 0, 0}},
 	{210, Interpreter::mtsr,        {"mtsr",   OPTYPE_SYSTEM, 0, 0, 0, 0, 0}},
 	{242, Interpreter::mtsrin,      {"mtsrin", OPTYPE_SYSTEM, 0, 0, 0, 0, 0}},
 	{339, Interpreter::mfspr,       {"mfspr",  OPTYPE_SPR, FL_OUT_D, 0, 0, 0, 0}},
