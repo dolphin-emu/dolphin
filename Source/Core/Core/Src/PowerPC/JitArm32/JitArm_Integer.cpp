@@ -193,11 +193,18 @@ void JitArm::cmpi(UGeckoInstruction inst)
 	JITDISABLE(Integer)
 
 	ARMReg RA = gpr.R(inst.RA);
-	ARMReg rA = gpr.GetReg();
 	int crf = inst.CRFD;
-	MOVI2R(rA, inst.SIMM_16);
-	CMP(RA, rA);
-	gpr.Unlock(rA);
+	if (inst.SIMM_16 >= 0 && inst.SIMM_16 < 256)
+	{
+		CMP(RA, inst.SIMM_16);
+	}
+	else
+	{
+		ARMReg rA = gpr.GetReg();
+		MOVI2R(rA, inst.SIMM_16);
+		CMP(RA, rA);
+		gpr.Unlock(rA);
+	}
 	ComputeRC(crf);
 }
 void JitArm::cmpli(UGeckoInstruction inst)
@@ -208,9 +215,16 @@ void JitArm::cmpli(UGeckoInstruction inst)
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg rA = gpr.GetReg();
 	int crf = inst.CRFD;
-	MOVI2R(rA, (u32)inst.UIMM);
-	CMP(RA, rA);
-
+	u32 uimm = (u32)inst.UIMM;
+	if (uimm < 256)
+	{
+		CMP(RA, uimm);
+	}
+	else
+	{
+		MOVI2R(rA, (u32)inst.UIMM);
+		CMP(RA, rA);
+	}
 	// Unsigned GenerateRC()
 	
 	MOV(rA, 0x2); // Result == 0
