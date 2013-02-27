@@ -83,17 +83,17 @@ void VertexManager::Draw()
 {
 	if (IndexGenerator::GetNumTriangles() > 0)
 	{
-		glDrawElements(GL_TRIANGLES, IndexGenerator::GetTriangleindexLen(), GL_UNSIGNED_SHORT, TIBuffer);
+		glDrawElements(GL_TRIANGLES, IndexGenerator::GetTriangleindexLen(), GL_UNSIGNED_SHORT, GetTriangleIndexBuffer());
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if (IndexGenerator::GetNumLines() > 0)
 	{
-		glDrawElements(GL_LINES, IndexGenerator::GetLineindexLen(), GL_UNSIGNED_SHORT, LIBuffer);
+		glDrawElements(GL_LINES, IndexGenerator::GetLineindexLen(), GL_UNSIGNED_SHORT, GetLineIndexBuffer());
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if (IndexGenerator::GetNumPoints() > 0)
 	{
-		glDrawElements(GL_POINTS, IndexGenerator::GetPointindexLen(), GL_UNSIGNED_SHORT, PIBuffer);
+		glDrawElements(GL_POINTS, IndexGenerator::GetPointindexLen(), GL_UNSIGNED_SHORT, GetPointIndexBuffer());
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 }

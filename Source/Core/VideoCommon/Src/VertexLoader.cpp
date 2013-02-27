@@ -517,7 +517,7 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 #endif
 }
 
-void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
+void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const count)
 {
 	m_numLoadedVertices += count;
 
@@ -560,20 +560,10 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
-	if (VertexManager::GetRemainingSize() < count * native_stride)
-	{
-		VertexManager::Flush();
-	
-		if (VertexManager::GetRemainingSize() < count * native_stride)
-			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
-				"Increase MAXVBUFFERSIZE or we need primitive breaking afterall.");
-	}
-	
+	VertexManager::PrepareForAdditionalData(primitive, count, native_stride);
 	ConvertVertices(count);
 	VertexManager::AddVertices(primitive, count);
-	//VertexManager::Flush();
 }
-
 
 void VertexLoader::ConvertVertices ( int count )
 {
@@ -598,7 +588,7 @@ void VertexLoader::ConvertVertices ( int count )
 
 
 
-void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data)
+void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int const count, u8* Data)
 {
 	m_numLoadedVertices += count;
 
@@ -641,15 +631,14 @@ void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int co
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
-	if(VertexManager::GetRemainingSize() < native_stride * count)
-		VertexManager::Flush();
+	VertexManager::PrepareForAdditionalData(primitive, count, native_stride);
+	
 	memcpy_gc(VertexManager::s_pCurBufferPointer, Data, native_stride * count);
 	VertexManager::s_pCurBufferPointer += native_stride * count;
 	DataSkip(count * m_VertexSize);
+	
 	VertexManager::AddVertices(primitive, count);	
 }
-
-
 
 void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2) 
 {

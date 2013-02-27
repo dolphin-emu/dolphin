@@ -136,9 +136,9 @@ void VertexManager::LoadBuffers()
 	m_triangleDrawIndex = m_indexBufferCursor;
 	m_lineDrawIndex = m_triangleDrawIndex + IndexGenerator::GetTriangleindexLen();
 	m_pointDrawIndex = m_lineDrawIndex + IndexGenerator::GetLineindexLen();
-	memcpy((u16*)map.pData + m_triangleDrawIndex, TIBuffer, sizeof(u16) * IndexGenerator::GetTriangleindexLen());
-	memcpy((u16*)map.pData + m_lineDrawIndex, LIBuffer, sizeof(u16) * IndexGenerator::GetLineindexLen());
-	memcpy((u16*)map.pData + m_pointDrawIndex, PIBuffer, sizeof(u16) * IndexGenerator::GetPointindexLen());
+	memcpy((u16*)map.pData + m_triangleDrawIndex, GetTriangleIndexBuffer(), sizeof(u16) * IndexGenerator::GetTriangleindexLen());
+	memcpy((u16*)map.pData + m_lineDrawIndex, GetLineIndexBuffer(), sizeof(u16) * IndexGenerator::GetLineindexLen());
+	memcpy((u16*)map.pData + m_pointDrawIndex, GetPointIndexBuffer(), sizeof(u16) * IndexGenerator::GetPointindexLen());
 	D3D::context->Unmap(m_indexBuffers[m_activeIndexBuffer], 0);
 	m_indexBufferCursor += iCount;
 }

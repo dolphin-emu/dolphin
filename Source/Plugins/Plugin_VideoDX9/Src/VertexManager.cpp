@@ -192,17 +192,17 @@ void VertexManager::PrepareVBuffers(int stride)
 	}
 	if(TdataSize)
 	{		
-		memcpy(pIndices, TIBuffer, TdataSize * sizeof(u16));
+		memcpy(pIndices, GetTriangleIndexBuffer(), TdataSize * sizeof(u16));
 		pIndices += TdataSize;
 	}
 	if(LDataSize)
 	{		
-		memcpy(pIndices, LIBuffer, LDataSize * sizeof(u16));
+		memcpy(pIndices, GetLineIndexBuffer(), LDataSize * sizeof(u16));
 		pIndices += LDataSize;
 	}
 	if(PDataSize)
 	{		
-		memcpy(pIndices, PIBuffer, PDataSize * sizeof(u16));
+		memcpy(pIndices, GetPointIndexBuffer(), PDataSize * sizeof(u16));
 	}
 	IBuffers[CurrentIBuffer]->Unlock();
 	D3D::dev->SetStreamSource( 0, VBuffers[CurrentVBuffer], CurrentVBufferIndex, stride);
@@ -266,7 +266,7 @@ void VertexManager::DrawVA(int stride)
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_TRIANGLELIST, 
 			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(), 
-			TIBuffer, 
+			GetTriangleIndexBuffer(), 
 			D3DFMT_INDEX16, 
 			s_pBaseBufferPointer, 
 			stride)))
@@ -280,7 +280,7 @@ void VertexManager::DrawVA(int stride)
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_LINELIST, 
 			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(), 
-			LIBuffer, 
+			GetLineIndexBuffer(), 
 			D3DFMT_INDEX16, 
 			s_pBaseBufferPointer, 
 			stride)))
@@ -294,7 +294,7 @@ void VertexManager::DrawVA(int stride)
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_POINTLIST, 
 			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(), 
-			PIBuffer, 
+			GetPointIndexBuffer(), 
 			D3DFMT_INDEX16, 
 			s_pBaseBufferPointer, 
 			stride)))

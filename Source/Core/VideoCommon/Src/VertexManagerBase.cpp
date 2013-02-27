@@ -23,38 +23,43 @@ u8 *VertexManager::s_pEndBufferPointer;
 
 VertexManager::VertexManager()
 {
-	LocalVBuffer = new u8[MAXVBUFFERSIZE];
-	s_pCurBufferPointer = s_pBaseBufferPointer = LocalVBuffer;
-	s_pEndBufferPointer = s_pBaseBufferPointer + MAXVBUFFERSIZE;
+	LocalVBuffer.resize(MAXVBUFFERSIZE);
+	s_pCurBufferPointer = s_pBaseBufferPointer = &LocalVBuffer[0];
+	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
 
-	TIBuffer = new u16[MAXIBUFFERSIZE];
-	LIBuffer = new u16[MAXIBUFFERSIZE];
-	PIBuffer = new u16[MAXIBUFFERSIZE];
+	TIBuffer.resize(MAXIBUFFERSIZE);
+	LIBuffer.resize(MAXIBUFFERSIZE);
+	PIBuffer.resize(MAXIBUFFERSIZE);
 
 	ResetBuffer();
 }
 
 VertexManager::~VertexManager()
-{
-	delete[] LocalVBuffer;
-
-	delete[] TIBuffer;
-	delete[] LIBuffer;
-	delete[] PIBuffer;
-
-	// TODO: necessary??
-	ResetBuffer();
-}
+{}
 
 void VertexManager::ResetBuffer()
 {
 	s_pCurBufferPointer = s_pBaseBufferPointer;
-	IndexGenerator::Start(TIBuffer, LIBuffer, PIBuffer);
+	IndexGenerator::Start(GetTriangleIndexBuffer(), GetLineIndexBuffer(), GetPointIndexBuffer());
 }
 
-int VertexManager::GetRemainingSize()
+u32 VertexManager::GetRemainingSize()
 {
-	return (int)(s_pEndBufferPointer - s_pCurBufferPointer);
+	return (u32)(s_pEndBufferPointer - s_pCurBufferPointer);
+}
+
+void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride)
+{	
+	u32 const needed_vertex_bytes = count * stride;
+	
+	if (needed_vertex_bytes > GetRemainingSize() || count > GetRemainingIndices(primitive))
+	{
+		Flush();
+		
+		if (needed_vertex_bytes > GetRemainingSize())
+			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
+				"Increase MAXVBUFFERSIZE or we need primitive breaking afterall.");
+	}
 }
 
 bool VertexManager::IsFlushed() const
@@ -62,10 +67,7 @@ bool VertexManager::IsFlushed() const
 	return s_pBaseBufferPointer == s_pCurBufferPointer;
 }
 
-// Not used anywhere
-// TODO: use this
-#if 0
-int VertexManager::GetRemainingVertices(int primitive)
+u32 VertexManager::GetRemainingIndices(int primitive)
 {
 	switch (primitive)
 	{
@@ -90,7 +92,6 @@ int VertexManager::GetRemainingVertices(int primitive)
 		break;
 	}
 }
-#endif
 
 void VertexManager::AddVertices(int primitive, u32 numVertices)
 {
@@ -252,9 +253,16 @@ void VertexManager::DoState(PointerWrap& p)
 
 void VertexManager::DoStateShared(PointerWrap& p)
 {
-	p.DoPointer(s_pCurBufferPointer, g_vertex_manager->LocalVBuffer);
-	p.DoArray(LocalVBuffer, MAXVBUFFERSIZE);
-	p.DoArray(g_vertex_manager->TIBuffer, MAXIBUFFERSIZE);
-	p.DoArray(g_vertex_manager->LIBuffer, MAXIBUFFERSIZE);
-	p.DoArray(g_vertex_manager->PIBuffer, MAXIBUFFERSIZE);
+	// It seems we half-assume to be flushed here
+	// We update s_pCurBufferPointer yet don't worry about IndexGenerator's outdated pointers
+	// and maybe other things are overlooked
+	
+	p.Do(LocalVBuffer);
+	p.Do(TIBuffer);
+	p.Do(LIBuffer);
+	p.Do(PIBuffer);
+	
+	s_pBaseBufferPointer = &LocalVBuffer[0];
+	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
+	p.DoPointer(s_pCurBufferPointer, s_pBaseBufferPointer);
 }
