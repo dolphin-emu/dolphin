@@ -1218,7 +1218,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 				else
 				{
-					OSD::AddMessage(StromFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
+					OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h).c_str(), 2000);
 				}
 			}
 			if (pFrameDump)
