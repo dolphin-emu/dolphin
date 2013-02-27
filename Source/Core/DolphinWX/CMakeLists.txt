@@ -155,14 +155,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 		)
 
-	# Install Cg framework into application bundle.
-	copy_resolved_framework_into_bundle(
-		# Our framework in "Externals" does not have "Versions/Current/" in
-		# its path; work around the missing directory levels using "././".
-		"${CMAKE_SOURCE_DIR}/Externals/Cg/Cg.framework/././Cg"
-		"${BUNDLE_PATH}/Contents/Frameworks/Cg.framework/././Cg"
-		)
-
 	# Fix up the bundle after it is finished.
 	# There does not seem to be an easy way to run CMake commands post-build,
 	# so we invoke CMake again on a generated script.

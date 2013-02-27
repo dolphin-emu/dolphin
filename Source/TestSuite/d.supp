@@ -105,22 +105,6 @@
 {
    <insert a suppression name here>
    Memcheck:Cond
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   fun:cgCreateProgram
-}
-{
-   <insert a suppression name here>
-   Memcheck:Cond
    obj:/usr/lib/libGLcore.so.169.12
    obj:/usr/lib/libGLcore.so.169.12
    fun:*
@@ -147,29 +131,6 @@
    fun:snd_pcm_wait_nocheck
    fun:snd_pcm_write_areas
    obj:/usr/lib/libasound.so.2.0.0
-   obj:*
-}
-{
-   <insert a suppression name here>
-   Memcheck:Cond
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
-   fun:cgCreateProgram
-   fun:_ZN15PixelShaderMngr18CompilePixelShaderER14FRAGMENTSHADERPKc
-}
-{
-   <insert a suppression name here>
-   Memcheck:Cond
-   obj:/usr/lib/libCg.so
-   obj:/usr/lib/libCg.so
    obj:*
 }
 
