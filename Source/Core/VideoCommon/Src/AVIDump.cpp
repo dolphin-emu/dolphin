@@ -157,9 +157,21 @@ void AVIDump::Stop()
 	NOTICE_LOG(VIDEO, "Stop");
 }
 
-void AVIDump::AddFrame(char *data)
+void AVIDump::AddFrame(const u8* data, int w, int h)
 {
-	AVIStreamWrite(m_streamCompressed, ++m_frameCount, 1, (LPVOID) data, m_bitmap.biSizeImage, AVIIF_KEYFRAME, NULL, &m_byteBuffer);
+	static bool bShownError = false;
+	if ((w != m_bitmap.biWidth || h != m_bitmap.biHeight) && !bShownError)
+	{
+		PanicAlert("You have resized the window while dumping frames.\n"
+			"Nothing sane can be done to handle this.\n"
+			"Your video will likely be broken.");
+		bShownError=true;
+
+		m_bitmap.biWidth = w;
+		m_bitmap.biHeight = h;
+	}
+
+	AVIStreamWrite(m_streamCompressed, ++m_frameCount, 1, const_cast<u8*>(data), m_bitmap.biSizeImage, AVIIF_KEYFRAME, NULL, &m_byteBuffer);
 	m_totalBytes += m_byteBuffer;
 	// Close the recording if the file is more than 2gb
 	// VfW can't properly save files over 2gb in size, but can keep writing to them up to 4gb.
@@ -298,7 +310,7 @@ bool AVIDump::CreateFile()
 	return true;
 }
 
-void AVIDump::AddFrame(uint8_t *data, int width, int height)
+void AVIDump::AddFrame(const u8* data, int width, int height)
 {
 	avpicture_fill((AVPicture *)s_BGRFrame, data, PIX_FMT_BGR24, width, height);
 

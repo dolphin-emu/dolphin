@@ -147,7 +147,7 @@ protected:
 #else
 	File::IOFile pFrameDump;
 #endif
-	char* frame_data;
+	std::vector<u8> frame_data;
 	bool bLastFrameDumped;
 
 	// The framebuffer size

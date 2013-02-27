@@ -956,20 +956,23 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	s_blendMode = newval;
 }
 
+void DumpFrame(const std::vector<u8>& data, int w, int h)
+{
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+		if (g_ActiveConfig.bDumpFrames && !data.empty())
+		{
+			AVIDump::AddFrame(&data[0], w, h);
+		}
+#endif
+}
+
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
-		if (g_ActiveConfig.bDumpFrames && frame_data)
-		{
-#ifdef _WIN32
-			AVIDump::AddFrame(frame_data);
-#elif defined HAVE_LIBAV
-			AVIDump::AddFrame((u8*)frame_data, w, h);
-#endif
-		}
+		DumpFrame(frame_data, w, h);
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -979,14 +982,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if (g_ActiveConfig.VirtualXFBEnabled() && (!xfbSourceList || xfbCount == 0))
 	{
-		if (g_ActiveConfig.bDumpFrames && frame_data)
-		{
-#ifdef _WIN32
-			AVIDump::AddFrame(frame_data);
-#elif defined HAVE_LIBAV
-			AVIDump::AddFrame((u8*)frame_data, w, h);
-#endif
-		}
+		DumpFrame(frame_data, w, h);
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
@@ -1149,16 +1145,15 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		if (!frame_data || w != flipped_trc.GetWidth() ||
+		if (frame_data.empty() || w != flipped_trc.GetWidth() ||
 		             h != flipped_trc.GetHeight())
 		{
-			if (frame_data) delete[] frame_data;
 			w = flipped_trc.GetWidth();
 			h = flipped_trc.GetHeight();
-			frame_data = new char[3 * w * h];
+			frame_data.resize(3 * w * h);
 		}
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
+		glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
 		{
 			if (!bLastFrameDumped)
@@ -1179,12 +1174,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			}
 			if (bAVIDumping)
 			{
-				#ifdef _WIN32
-					AVIDump::AddFrame(frame_data);
-				#else
-					FlipImageData((u8*)frame_data, w, h);
-					AVIDump::AddFrame((u8*)frame_data, w, h);
+				#ifndef _WIN32
+					FlipImageData(&frame_data[0], w, h);
 				#endif
+					
+					AVIDump::AddFrame(&frame_data[0], w, h);
 			}
 
 			bLastFrameDumped = true;
@@ -1196,12 +1190,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		if (bLastFrameDumped && bAVIDumping)
 		{
-			if (frame_data)
-			{
-				delete[] frame_data;
-				frame_data = NULL;
-				w = h = 0;
-			}
+			std::vector<u8>().swap(frame_data);
+			w = h = 0;
 			AVIDump::Stop();
 			bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames", 2000);
@@ -1215,9 +1205,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		std::string movie_file_name;
 		w = GetTargetRectangle().GetWidth();
 		h = GetTargetRectangle().GetHeight();
-		frame_data = new char[3 * w * h];
+		frame_data.resize(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
+		glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR)
 		{
 			if (!bLastFrameDumped)
@@ -1228,21 +1218,17 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 				else
 				{
-					char msg [255];
-					sprintf(msg, "Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h);
-					OSD::AddMessage(msg, 2000);
+					OSD::AddMessage(StromFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h), 2000);
 				}
 			}
 			if (pFrameDump)
 			{
-				FlipImageData((u8*)frame_data, w, h);
-				pFrameDump.WriteBytes(frame_data, w * 3 * h);
+				FlipImageData(&frame_data[0], w, h);
+				pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
 				pFrameDump.Flush();
 			}
 			bLastFrameDumped = true;
 		}
-
-		delete[] frame_data;
 	}
 	else
 	{
