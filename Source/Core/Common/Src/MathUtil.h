@@ -20,8 +20,8 @@
 
 #include "Common.h"
 
-#include <xmmintrin.h>
 #include <vector>
+#include "FPURoundMode.h"
 
 namespace MathUtil
 {
@@ -147,17 +147,6 @@ struct Rectangle
 inline float pow2f(float x) {return x * x;}
 inline double pow2(double x) {return x * x;}
 
-
-/*
-   There are two different flavors of float to int conversion:
-   _mm_cvtps_epi32() and _mm_cvttps_epi32(). The first rounds
-   according to the MXCSR rounding bits. The second one always
-   uses round towards zero.
- */
-
-void SaveSSEState();
-void LoadSSEState();
-void LoadDefaultSSEState();
 float MathFloatVectorSum(const std::vector<float>&);
 
 #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))

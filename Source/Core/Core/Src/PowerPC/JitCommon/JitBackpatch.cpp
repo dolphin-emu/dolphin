@@ -25,7 +25,7 @@
 #include "../../HW/Memmap.h"
 
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 #include "x64Analyzer.h"
 
@@ -160,7 +160,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 // 1) It's really necessary. We don't know anything about the context.
 // 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be 
 //    that many of them in a typical program/game.
-const u8 *JitBase::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ctx_void)
+const u8 *Jitx86Base::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ctx_void)
 {
 #ifdef _M_X64
 	CONTEXT *ctx = (CONTEXT *)ctx_void;

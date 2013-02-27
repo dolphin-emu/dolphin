@@ -111,8 +111,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-	  <OpenMPSupport>false</OpenMPSupport>
-	</ClCompile>
+      <OpenMPSupport>false</OpenMPSupport>
+    </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
@@ -143,7 +143,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>false</OpenMPSupport>
-	</ClCompile>
+    </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -182,7 +182,6 @@
     <ClCompile Include="Src\CommandProcessor.cpp" />
     <ClCompile Include="Src\CPMemory.cpp" />
     <ClCompile Include="Src\Debugger.cpp" />
-    <ClCompile Include="Src\DLCache.cpp" />
     <ClCompile Include="Src\EmuWindow.cpp" />
     <ClCompile Include="Src\Fifo.cpp" />
     <ClCompile Include="Src\FPSCounter.cpp" />
@@ -204,7 +203,6 @@
     <ClCompile Include="Src\Statistics.cpp" />
     <ClCompile Include="Src\TextureCacheBase.cpp" />
     <ClCompile Include="Src\TextureConversionShader.cpp" />
-    <ClCompile Include="Src\TextureDecoder.cpp" />
     <ClCompile Include="Src\VertexLoader.cpp" />
     <ClCompile Include="Src\VertexLoaderManager.cpp" />
     <ClCompile Include="Src\VertexLoader_Color.cpp" />
@@ -216,6 +214,8 @@
     <ClCompile Include="Src\VertexShaderManager.cpp" />
     <ClCompile Include="Src\VideoConfig.cpp" />
     <ClCompile Include="Src\VideoState.cpp" />
+    <ClCompile Include="Src\x64DLCache.cpp" />
+    <ClCompile Include="Src\x64TextureDecoder.cpp" />
     <ClCompile Include="Src\XFMemory.cpp" />
     <ClCompile Include="Src\XFStructs.cpp" />
   </ItemGroup>

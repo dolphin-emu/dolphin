@@ -5,7 +5,7 @@
 #define GCC_VER(x,y,z)	((x) * 10000 + (y) * 100 + (z))
 #define GCC_VERSION GCC_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 
-#if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__
+#if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__ && !ANDROID
 // GCC 4.4 provides <thread>
 #ifndef _GLIBCXX_USE_SCHED_YIELD
 #define _GLIBCXX_USE_SCHED_YIELD

@@ -704,7 +704,7 @@ bool IsHotkey(wxKeyEvent &event, int Id)
 {
 	return (event.GetKeyCode() != WXK_NONE &&
 	        event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
-	        event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
+			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
 }
 
 int GetCmdForHotkey(unsigned int key)
