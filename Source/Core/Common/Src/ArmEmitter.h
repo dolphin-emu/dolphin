@@ -227,7 +227,7 @@ public:
 	}
 	const u32 IMMSR() // IMM shifted register
 	{
-		_assert_msg_(DYNA_REC, Type = TYPE_IMMSREG, "IMMSR must be imm shifted register");
+		_assert_msg_(DYNA_REC, Type == TYPE_IMMSREG, "IMMSR must be imm shifted register");
 		return ((IndexOrShift & 0x1f) << 7 | (Shift << 5) | Value);
 	}
 	const u32 RSR() // Register shifted register
@@ -343,8 +343,9 @@ private:
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, Operand2 op2);
 	void WriteSignedMultiply(u32 Op, u32 Op2, u32 Op3, ARMReg dest, ARMReg r1, ARMReg r2);
 
+
 	void Write4OpMultiply(u32 op, ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
-	
+
 	// New Ops
 	void WriteInstruction(u32 op, ARMReg Rd, ARMReg Rn, Operand2 Rm, bool SetFlags = false);
 
@@ -452,7 +453,7 @@ public:
 
 	void MUL (ARMReg dest,	ARMReg src, ARMReg op2);
 	void MULS(ARMReg dest,	ARMReg src, ARMReg op2);
-	
+
 	void UMULL(ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
 	void SMULL(ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
 
@@ -498,8 +499,8 @@ public:
 	void VSUB(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
 		
 	// VFP Only
-	void VLDR(ARMReg Dest, ARMReg Base, u16 op);
-	void VSTR(ARMReg Src,  ARMReg Base, u16 op);
+	void VLDR(ARMReg Dest, ARMReg Base, u16 offset);
+	void VSTR(ARMReg Src,  ARMReg Base, u16 offset);
 	void VCMP(ARMReg Vd, ARMReg Vm);
 	// Compares against zero
 	void VCMP(ARMReg Vd);
@@ -507,10 +508,11 @@ public:
 	void VSQRT(ARMReg Vd, ARMReg Vm);
 	
 	// NEON and VFP
-	void VABS(ARMReg Vd, ARMReg Vm);
 	void VADD(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VSUB(ARMReg Vd, ARMReg Vn, ARMReg Vm);
-
+	void VABS(ARMReg Vd, ARMReg Vm);
+	void VNEG(ARMReg Vd, ARMReg Vm);
+	void VMUL(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VMOV(ARMReg Dest, ARMReg Src, bool high);
 	void VMOV(ARMReg Dest, ARMReg Src);
 
