@@ -791,7 +791,7 @@ void ARMXEmitter::VABS(ARMReg Vd, ARMReg Vm)
 
 	if (single_reg)
 	{
-		Write32(NO_COND | (0xEB << 20) | ((Vd & 0x1) << 6) | ((Vd & 0x1E) << 11) \
+		Write32(NO_COND | (0xEB << 20) | ((Vd & 0x1) << 22) | ((Vd & 0x1E) << 11) \
 			| (0xAC << 4) | ((Vm & 0x1) << 5) | (Vm >> 1));
 	}
 	else
