@@ -82,7 +82,7 @@ bool Exists(const std::string &filename)
 	std::string copy(filename);
 	StripTailDirSlashes(copy);
 
-	int result = stat64(copy.c_str(), &file_info);
+	int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
 
 	return (result == 0);
 }
@@ -95,7 +95,7 @@ bool IsDirectory(const std::string &filename)
 	std::string copy(filename);
 	StripTailDirSlashes(copy);
 
-	int result = stat64(copy.c_str(), &file_info);
+	int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
 
 	if (result < 0) {
 		WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", 
@@ -344,7 +344,7 @@ u64 GetSize(const std::string &filename)
 		return 0;
 	}
 	struct stat64 buf;
-	if (stat64(filename.c_str(), &buf) == 0)
+	if (_tstat64(UTF8ToTStr(filename).c_str(), &buf) == 0)
 	{
 		DEBUG_LOG(COMMON, "GetSize: %s: %lld",
 				filename.c_str(), (long long)buf.st_size);
@@ -392,13 +392,13 @@ bool CreateEmptyFile(const std::string &filename)
 {
 	INFO_LOG(COMMON, "CreateEmptyFile: %s", filename.c_str()); 
 
-	FILE *pFile = fopen(filename.c_str(), "wb");
-	if (!pFile) {
+	if (!File::IOFile(filename, "wb"))
+	{
 		ERROR_LOG(COMMON, "CreateEmptyFile: failed %s: %s",
 				  filename.c_str(), GetLastErrorMsg());
 		return false;
 	}
-	fclose(pFile);
+
 	return true;
 }
 
@@ -623,14 +623,14 @@ std::string GetBundleDirectory()
 #endif
 
 #ifdef _WIN32
-std::string &GetExeDirectory()
+std::string& GetExeDirectory()
 {
 	static std::string DolphinPath;
 	if (DolphinPath.empty())
 	{
-		char Dolphin_exe_Path[2048];
-		GetModuleFileNameA(NULL, Dolphin_exe_Path, 2048);
-		DolphinPath = Dolphin_exe_Path;
+		TCHAR Dolphin_exe_Path[2048];
+		GetModuleFileName(NULL, Dolphin_exe_Path, 2048);
+		DolphinPath = TStrToUTF8(Dolphin_exe_Path);
 		DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
 	}
 	return DolphinPath;
@@ -731,31 +731,19 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 
 bool WriteStringToFile(bool text_file, const std::string &str, const char *filename)
 {
-	FILE *f = fopen(filename, text_file ? "w" : "wb");
-	if (!f)
-		return false;
-	size_t len = str.size();
-	if (len != fwrite(str.data(), 1, str.size(), f))	// TODO: string::data() may not be contiguous
-	{
-		fclose(f);
-		return false;
-	}
-	fclose(f);
-	return true;
+	return File::IOFile(filename, text_file ? "w" : "wb").WriteBytes(str.data(), str.size());
 }
 
 bool ReadFileToString(bool text_file, const char *filename, std::string &str)
 {
-	FILE *f = fopen(filename, text_file ? "r" : "rb");
+	File::IOFile file(filename, text_file ? "r" : "rb");
+	auto const f = file.GetHandle();
+
 	if (!f)
 		return false;
-	size_t len = (size_t)GetSize(f);
-	char *buf = new char[len + 1];
-	buf[fread(buf, 1, len, f)] = 0;
-	str = std::string(buf, len);
-	fclose(f);
-	delete [] buf;
-	return true;
+
+	str.resize(GetSize(f));
+	return file.ReadArray(&str[0], str.size());
 }
 
 IOFile::IOFile()
@@ -799,7 +787,7 @@ bool IOFile::Open(const std::string& filename, const char openmode[])
 {
 	Close();
 #ifdef _WIN32
-	fopen_s(&m_file, filename.c_str(), openmode);
+	_tfopen_s(&m_file, UTF8ToTStr(filename).c_str(), UTF8ToTStr(openmode).c_str());
 #else
 	m_file = fopen(filename.c_str(), openmode);
 #endif
