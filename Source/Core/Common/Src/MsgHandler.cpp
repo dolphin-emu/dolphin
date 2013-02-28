@@ -106,7 +106,7 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int S
     if (Style == QUESTION) STYLE = MB_ICONQUESTION;
     if (Style == WARNING) STYLE = MB_ICONWARNING;
     
-    return IDYES == MessageBox(0, text, caption, STYLE | (yes_no ? MB_YESNO : MB_OK));
+    return IDYES == MessageBox(0, UTF8ToTStr(text).c_str(), UTF8ToTStr(caption).c_str(), STYLE | (yes_no ? MB_YESNO : MB_OK));
     
 #else
     printf("%s\n", text);

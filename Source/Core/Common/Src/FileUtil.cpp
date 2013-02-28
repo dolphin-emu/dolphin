@@ -41,9 +41,10 @@
 #include <CoreFoundation/CFBundle.h>
 #endif
 
-#include <fstream>
 #include <algorithm>
 #include <sys/stat.h>
+
+#include "StringUtil.h"
 
 #ifndef S_ISDIR
 #define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)
@@ -127,7 +128,7 @@ bool Delete(const std::string &filename)
 	}
 
 #ifdef _WIN32
-	if (!DeleteFile(filename.c_str()))
+	if (!DeleteFile(UTF8ToTStr(filename).c_str()))
 	{
 		WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s", 
 				 filename.c_str(), GetLastErrorMsg());
@@ -149,7 +150,7 @@ bool CreateDir(const std::string &path)
 {
 	INFO_LOG(COMMON, "CreateDir: directory %s", path.c_str());
 #ifdef _WIN32
-	if (::CreateDirectory(path.c_str(), NULL))
+	if (::CreateDirectory(UTF8ToTStr(path).c_str(), NULL))
 		return true;
 	DWORD error = GetLastError();
 	if (error == ERROR_ALREADY_EXISTS)
@@ -228,7 +229,7 @@ bool DeleteDir(const std::string &filename)
 	}
 
 #ifdef _WIN32
-	if (::RemoveDirectory(filename.c_str()))
+	if (::RemoveDirectory(UTF8ToTStr(filename).c_str()))
 		return true;
 #else
 	if (rmdir(filename.c_str()) == 0)
@@ -257,7 +258,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 	INFO_LOG(COMMON, "Copy: %s --> %s", 
 			srcFilename.c_str(), destFilename.c_str());
 #ifdef _WIN32
-	if (CopyFile(srcFilename.c_str(), destFilename.c_str(), FALSE))
+	if (CopyFile(UTF8ToTStr(srcFilename).c_str(), UTF8ToTStr(destFilename).c_str(), FALSE))
 		return true;
 
 	ERROR_LOG(COMMON, "Copy: failed %s --> %s: %s", 
@@ -413,7 +414,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
 
-	HANDLE hFind = FindFirstFile((directory + "\\*").c_str(), &ffd);
+	HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
 	if (hFind == INVALID_HANDLE_VALUE)
 	{
 		FindClose(hFind);
@@ -423,7 +424,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 	do
 	{
 		FSTEntry entry;
-		const std::string virtualName(ffd.cFileName);
+		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = NULL;
 
@@ -480,7 +481,7 @@ bool DeleteDirRecursively(const std::string &directory)
 #ifdef _WIN32
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
-	HANDLE hFind = FindFirstFile((directory + "\\*").c_str(), &ffd);
+	HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
 
 	if (hFind == INVALID_HANDLE_VALUE)
 	{
@@ -491,7 +492,7 @@ bool DeleteDirRecursively(const std::string &directory)
 	// windows loop
 	do
 	{
-		const std::string virtualName = ffd.cFileName;
+		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = NULL;
 	DIR *dirp = opendir(directory.c_str());
