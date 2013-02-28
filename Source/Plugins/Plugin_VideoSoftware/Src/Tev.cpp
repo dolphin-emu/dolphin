@@ -789,14 +789,12 @@ void Tev::Draw()
 	if (late_ztest && bpmem.zmode.testenable)
 	{
 		// TODO: Check against hw if these values get incremented even if depth testing is disabled
-        if (++SWPixelEngine::pereg.perfZcompInputLo == 0)
-			SWPixelEngine::pereg.perfZcompInputHi++;
+        SWPixelEngine::pereg.IncZInputQuadCount(false);
 
-		if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
-			return;
+        if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
+            return;
 
-        if (++SWPixelEngine::pereg.perfZcompOutputLo == 0)
-			SWPixelEngine::pereg.perfZcompOutputHi++;
+        SWPixelEngine::pereg.IncZOutputQuadCount(false);
 	}
 
 #if ALLOW_TEV_DUMPS
@@ -820,9 +818,7 @@ void Tev::Draw()
 #endif
 
     INCSTAT(swstats.thisFrame.tevPixelsOut);
-
-	if (++SWPixelEngine::pereg.perfBlendInputLo == 0)
-		SWPixelEngine::pereg.perfBlendInputHi++;
+	SWPixelEngine::pereg.IncBlendInputQuadCount();
 
     EfbInterface::BlendTev(Position[0], Position[1], output);
 }

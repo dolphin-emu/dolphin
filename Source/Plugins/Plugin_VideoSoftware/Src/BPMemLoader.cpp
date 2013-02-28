@@ -91,7 +91,7 @@ void SWBPWritten(int address, int newvalue)
         SWPixelEngine::pereg.boxTop = newvalue & 0x3ff;
         break;
 	case BPMEM_CLEAR_PIXEL_PERF:
-		// TODO: Parameter?
+		// TODO: I didn't test if the value written to this register affects the amount of cleared registers
 		SWPixelEngine::pereg.perfZcompInputZcomplocLo = 0;
 		SWPixelEngine::pereg.perfZcompInputZcomplocHi = 0;
 		SWPixelEngine::pereg.perfZcompOutputZcomplocLo = 0;

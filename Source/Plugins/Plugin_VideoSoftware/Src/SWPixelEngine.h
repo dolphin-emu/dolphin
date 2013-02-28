@@ -158,6 +158,54 @@ namespace SWPixelEngine
 		u16 perfBlendInputHi;
 		u16 perfEfbCopyClocksLo;
 		u16 perfEfbCopyClocksHi;
+
+		// NOTE: hardware doesn't process individual pixels but quads instead. Current software renderer architecture works on pixels though, so we have this "quad" hack here to only increment the registers on every fourth rendered pixel
+		void IncZInputQuadCount(bool early_ztest)
+		{
+			static int quad = 0;
+			if (++quad != 3)
+				return;
+			quad = 0;
+
+			if (early_ztest)
+			{
+				if (++perfZcompInputZcomplocLo == 0)
+					perfZcompInputZcomplocHi++;
+			}
+			else
+			{
+				if (++perfZcompInputLo == 0)
+					perfZcompInputHi++;
+			}
+		}
+		void IncZOutputQuadCount(bool early_ztest)
+		{
+			static int quad = 0;
+			if (++quad != 3)
+				return;
+			quad = 0;
+
+			if (early_ztest)
+			{
+				if (++perfZcompOutputZcomplocLo == 0)
+					perfZcompOutputZcomplocHi++;
+			}
+			else
+			{
+				if (++perfZcompOutputLo == 0)
+					perfZcompOutputHi++;
+			}
+		}
+		void IncBlendInputQuadCount()
+		{
+			static int quad = 0;
+			if (++quad != 3)
+				return;
+			quad = 0;
+
+			if (++perfBlendInputLo == 0)
+				perfBlendInputHi++;
+		}
     };
 
     extern PEReg pereg;

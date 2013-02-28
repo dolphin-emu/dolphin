@@ -81,17 +81,6 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
     if (address <= 0x2e)
         _uReturnValue = ((u16*)&pereg)[address >> 1];
-
-	if (address > 0x16)
-	{
-		ERROR_LOG(PIXELENGINE, "addr %#08x, ret %#04x; %#04x%04x, %#04x%04x, %#04x%04x, %#04x%04x, %#04x%04x, %#04x%04x\n", address, _uReturnValue,
-					pereg.perfZcompInputZcomplocHi, pereg.perfZcompInputZcomplocLo,
-					pereg.perfZcompOutputZcomplocHi, pereg.perfZcompOutputZcomplocLo,
-					pereg.perfZcompInputHi, pereg.perfZcompInputLo,
-					pereg.perfZcompOutputHi, pereg.perfZcompOutputLo,
-					pereg.perfBlendInputHi, pereg.perfBlendInputLo,
-					pereg.perfEfbCopyClocksHi, pereg.perfEfbCopyClocksLo);
-	}
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
