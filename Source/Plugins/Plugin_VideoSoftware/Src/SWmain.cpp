@@ -39,6 +39,9 @@
 #include "FileUtil.h"
 #include "VideoBackend.h"
 #include "Core.h"
+#include "OpcodeDecoder.h"
+#include "SWVertexLoader.h"
+#include "SWStatistics.h"
 
 #define VSYNC_ENABLED 0
 
@@ -93,9 +96,33 @@ bool VideoSoftware::Initialize(void *&window_handle)
 	return true;
 }
 
-void VideoSoftware::DoState(PointerWrap&)
+void VideoSoftware::DoState(PointerWrap& p)
 {
-	// NYI
+	bool software = true;
+	p.Do(software);
+	if (p.GetMode() == PointerWrap::MODE_READ && software == false)
+		// change mode to abort load of incompatible save state.
+		p.SetMode(PointerWrap::MODE_VERIFY);
+
+	// TODO: incomplete?
+	SWCommandProcessor::DoState(p);
+	SWPixelEngine::DoState(p);
+	EfbInterface::DoState(p);
+	OpcodeDecoder::DoState(p);
+	Clipper::DoState(p);
+	p.Do(swxfregs);
+    p.Do(bpmem);
+	p.Do(swstats);
+
+	// CP Memory
+    p.DoArray(arraybases, 16);
+    p.DoArray(arraystrides, 16);
+    p.Do(MatrixIndexA);
+    p.Do(MatrixIndexB);
+    p.Do(g_VtxDesc.Hex);
+	p.DoArray(g_VtxAttr, 8);
+	p.DoMarker("CP Memory");
+
 }
 
 void VideoSoftware::CheckInvalidState()
