@@ -102,15 +102,13 @@ void InitBackendInfo()
 	if (FAILED(hr))
 		PanicAlert("Failed to create IDXGIFactory object");
 
-	char tmpstr[512] = {};
-	DXGI_ADAPTER_DESC desc;
 	// adapters
 	g_Config.backend_info.Adapters.clear();
 	g_Config.backend_info.AAModes.clear();
 	while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
 	{
+		DXGI_ADAPTER_DESC desc;
 		ad->GetDesc(&desc);
-		WideCharToMultiByte(/*CP_UTF8*/CP_ACP, 0, desc.Description, -1, tmpstr, 512, 0, false);
 
 		// TODO: These don't get updated on adapter change, yet
 		if (g_Config.backend_info.Adapters.size() == g_Config.iAdapter)
@@ -127,7 +125,7 @@ void InitBackendInfo()
 			}
 		}
 
-		g_Config.backend_info.Adapters.push_back(tmpstr);
+		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
 		ad->Release();
 	}
 
