@@ -257,7 +257,7 @@ void CGameListCtrl::BrowseForDirectory()
 
 	if (dialog.ShowModal() == wxID_OK)
 	{
-		std::string sPath(dialog.GetPath().mb_str());
+		std::string sPath(WxStrToStr(dialog.GetPath()));
 		std::vector<std::string>::iterator itResult = std::find(
 				SConfig::GetInstance().m_ISOFolder.begin(),
 				SConfig::GetInstance().m_ISOFolder.end(), sPath);
@@ -402,7 +402,7 @@ wxString NiceSizeFormat(s64 _size)
 	wxString NiceString;
 	char tempstr[32];
 	sprintf(tempstr,"%3.1f %s", f, sizes[s]);
-	NiceString = wxString::FromAscii(tempstr);
+	NiceString = StrToWxStr(tempstr);
 	return(NiceString);
 }
 
@@ -614,7 +614,7 @@ void CGameListCtrl::ScanForISOs()
 
 			// Update with the progress (i) and the message
 			dialog.Update(i, wxString::Format(_("Scanning %s"),
-				wxString(FileName.c_str(), *wxConvCurrent).c_str()));
+				StrToWxStr(FileName).c_str()));
 			if (dialog.WasCancelled())
 				break;
 
@@ -858,7 +858,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 				char temp[2048];
 				sprintf(temp, "^ %s%s%s", emuState[emu_state - 1],
 						issues.size() > 0 ? " :\n" : "", issues.c_str());
-				toolTip = new wxEmuStateTip(this, wxString(temp, *wxConvCurrent), &toolTip);
+				toolTip = new wxEmuStateTip(this, StrToWxStr(temp), &toolTip);
 			}
 			else
 				toolTip = new wxEmuStateTip(this, _("Not Set"), &toolTip);
@@ -1115,9 +1115,9 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
 {
 	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
-	wxString textString(StringFromFormat("%s (%i/%i) - %s",
+	wxString textString(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
 				m_currentFilename.c_str(), (int)m_currentItem+1,
-				(int)m_numberItem, text).c_str(), *wxConvCurrent);
+				(int)m_numberItem, text)));
 
 	((wxProgressDialog*)arg)->Update((int)(percent*1000), textString);
 }
@@ -1170,13 +1170,13 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 				std::string OutputFileName;
 				BuildCompleteFilename(OutputFileName,
-						(const char *)browseDialog.GetPath().mb_str(wxConvUTF8),
+						WxStrToStr(browseDialog.GetPath()),
 						FileName);
 
-				if (wxFileExists(wxString::FromAscii(OutputFileName.c_str())) &&
+				if (wxFileExists(StrToWxStr(OutputFileName.c_str())) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
-								wxString(OutputFileName.c_str(), *wxConvCurrent).c_str()), 
+								StrToWxStr(OutputFileName).c_str()), 
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1198,13 +1198,13 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 				std::string OutputFileName;
 				BuildCompleteFilename(OutputFileName,
-						(const char *)browseDialog.GetPath().mb_str(wxConvUTF8),
+						WxStrToStr(browseDialog.GetPath()),
 						FileName);
 
-				if (wxFileExists(wxString::FromAscii(OutputFileName.c_str())) &&
+				if (wxFileExists(StrToWxStr(OutputFileName.c_str())) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
-								wxString(OutputFileName.c_str(), *wxConvCurrent).c_str()), 
+								StrToWxStr(OutputFileName).c_str()), 
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1225,7 +1225,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
 {
 	((wxProgressDialog*)arg)->
-		Update((int)(percent*1000), wxString(text, *wxConvCurrent));
+		Update((int)(percent*1000), StrToWxStr(text));
 }
 
 void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
@@ -1251,8 +1251,8 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 
 			path = wxFileSelector(
 					_("Save decompressed GCM/ISO"),
-					wxString(FilePath.c_str(), *wxConvCurrent),
-					wxString(FileName.c_str(), *wxConvCurrent) + FileType.After('*'),
+					StrToWxStr(FilePath),
+					StrToWxStr(FileName) + FileType.After('*'),
 					wxEmptyString,
 					FileType + wxT("|") + wxGetTranslation(wxALL_FILES),
 					wxFD_SAVE,
@@ -1262,8 +1262,8 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 		{
 			path = wxFileSelector(
 					_("Save compressed GCM/ISO"),
-					wxString(FilePath.c_str(), *wxConvCurrent),
-					wxString(FileName.c_str(), *wxConvCurrent) + _T(".gcz"),
+					StrToWxStr(FilePath),
+					StrToWxStr(FileName) + _T(".gcz"),
 					wxEmptyString,
 					_("All compressed GC/Wii ISO files (gcz)") + 
 						wxString::Format(wxT("|*.gcz|%s"), wxGetTranslation(wxALL_FILES)),

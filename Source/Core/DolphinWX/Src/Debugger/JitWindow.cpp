@@ -37,6 +37,7 @@
 #include "Core.h"
 #include "StringUtil.h"
 #include "LogManager.h"
+#include "../WxUtils.h"
 
 #include "../Globals.h"
 

@@ -34,7 +34,7 @@ IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& se
 
 VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title, const std::string& _ininame) :
 	wxDialog(parent, -1,
-		wxString(wxT("Dolphin ")).append(wxString::FromAscii(title.c_str())).append(wxT(" Graphics Configuration")),
+		wxString(wxT("Dolphin ")).append(StrToWxStr(title.c_str())).append(wxT(" Graphics Configuration")),
 		wxDefaultPosition, wxDefaultSize),
 	vconfig(g_SWVideoConfig),
 	ininame(_ininame)
@@ -64,10 +64,10 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 			it = g_available_video_backends.begin(),
 			itend = g_available_video_backends.end();
 	for (; it != itend; ++it)
-		choice_backend->AppendString(wxString::FromAscii((*it)->GetName().c_str()));
+		choice_backend->AppendString(StrToWxStr((*it)->GetName()));
 
 	// TODO: How to get the translated plugin name?
-	choice_backend->SetStringSelection(wxString::FromAscii(g_video_backend->GetName().c_str()));
+	choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName()));
 	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDialog::Event_Backend, this);
 
 	szr_rendering->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);

@@ -30,6 +30,7 @@
 #include "CodeWindow.h"
 #include "CodeView.h"
 
+#include "../WxUtils.h"
 #include "FileUtil.h"
 #include "Core.h"
 #include "HW/Memmap.h"
@@ -210,7 +211,7 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(IDM_ADDRBOX);
 	wxString txt = pAddrCtrl->GetValue();
 
-	std::string text(txt.mb_str());
+	std::string text(WxStrToStr(txt));
 	text = StripSpaces(text);
 	if (text.size() == 8)
 	{
@@ -312,7 +313,7 @@ void CCodeWindow::UpdateLists()
 		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
 		if (caller_symbol)
 	   	{
-			int idx = callers->Append(wxString::FromAscii(StringFromFormat
+			int idx = callers->Append(StrToWxStr(StringFromFormat
 						("< %s (%08x)", caller_symbol->name.c_str(), caller_addr).c_str()));
 			callers->SetClientData(idx, (void*)(u64)caller_addr);
 		}
@@ -325,7 +326,7 @@ void CCodeWindow::UpdateLists()
 		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
 		if (call_symbol)
 	   	{
-			int idx = calls->Append(wxString::FromAscii(StringFromFormat
+			int idx = calls->Append(StrToWxStr(StringFromFormat
 						("> %s (%08x)", call_symbol->name.c_str(), call_addr).c_str()));
 			calls->SetClientData(idx, (void*)(u64)call_addr);
 		}
@@ -344,12 +345,12 @@ void CCodeWindow::UpdateCallstack()
 
 	for (size_t i = 0; i < stack.size(); i++)
 	{
-		int idx = callstack->Append(wxString::FromAscii(stack[i].Name.c_str()));
+		int idx = callstack->Append(StrToWxStr(stack[i].Name.c_str()));
 		callstack->SetClientData(idx, (void*)(u64)stack[i].vAddress);
 	}
 
 	if (!ret)
-		callstack->Append(wxString::FromAscii("invalid callstack"));
+		callstack->Append(StrToWxStr("invalid callstack"));
 }
 
 // Create CPU Mode menus
@@ -360,7 +361,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	wxMenu* pCoreMenu = new wxMenu;
 
 	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _("&Interpreter core"), 
-		wxString::FromAscii("This is necessary to get break points"
+		StrToWxStr("This is necessary to get break points"
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
 		" slow, perhaps slower than 1 fps."), 
 		wxITEM_CHECK);
@@ -428,7 +429,7 @@ void CCodeWindow::CreateMenuOptions(wxMenu* pMenu)
 	boottopause->Check(bBootToPause);
 
 	wxMenuItem* automaticstart = pMenu->Append(IDM_AUTOMATICSTART, _("&Automatic start"), 
-		wxString::FromAscii(
+		StrToWxStr(
 		"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
 		" if you have not given it an elf file with the --elf command line. [This can be"
 		" convenient if you are bug-testing with a certain game and want to rebuild"
@@ -515,10 +516,10 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 			for (u32 addr = 0x80000000; addr < 0x80100000; addr += 4)
 		   	{
 				const char *name = PPCTables::GetInstructionName(Memory::ReadUnchecked_U32(addr));
-				if (name && !strcmp((const char *)str.mb_str(), name))
+				auto const wx_name = WxStrToStr(str);
+				if (name && (wx_name == name))
 			   	{
-					std::string mb_str(str.mb_str());
-					NOTICE_LOG(POWERPC, "Found %s at %08x", mb_str.c_str(), addr);
+					NOTICE_LOG(POWERPC, "Found %s at %08x", wx_name.c_str(), addr);
 				}
 			}
 			break;

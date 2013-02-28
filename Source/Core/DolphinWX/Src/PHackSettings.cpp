@@ -17,6 +17,7 @@
 
 #include "PHackSettings.h"
 #include "ConfigManager.h"
+#include "WxUtils.h"
 
 extern PHackData PHack_Data;
 
@@ -97,8 +98,8 @@ void CPHackSettings::LoadPHackData()
 		if (sTemp.empty())
 			sTemp = wxString(_("(UNKNOWN)")).char_str();
 		if (i == 0)
-			PHackChoice->Append(wxString("-------------", *wxConvCurrent));
-		PHackChoice->Append(wxString(sTemp.c_str(), *wxConvCurrent));
+			PHackChoice->Append(StrToWxStr("-------------"));
+		PHackChoice->Append(StrToWxStr(sTemp));
 	}
 	PHackChoice->Select(0);
 
@@ -106,8 +107,8 @@ void CPHackSettings::LoadPHackData()
 	PHackSZFar->Set3StateValue((wxCheckBoxState)PHack_Data.PHackSZFar);
 	PHackExP->Set3StateValue((wxCheckBoxState)PHack_Data.PHackExP);
 
-	PHackZNear->SetValue(wxString(PHack_Data.PHZNear.c_str(), *wxConvCurrent));
-	PHackZFar->SetValue(wxString(PHack_Data.PHZFar.c_str(), *wxConvCurrent));
+	PHackZNear->SetValue(StrToWxStr(PHack_Data.PHZNear));
+	PHackZFar->SetValue(StrToWxStr(PHack_Data.PHZFar));
 }
 
 void CPHackSettings::SetRefresh(wxCommandEvent& event)
@@ -128,9 +129,9 @@ void CPHackSettings::SetRefresh(wxCommandEvent& event)
 		PHPresetsIni.Get(sIndex, "PH_ExtraParam", &bTemp);
 		PHackExP->Set3StateValue((wxCheckBoxState)bTemp);
 		PHPresetsIni.Get(sIndex, "PH_ZNear", &sTemp);
-		PHackZNear->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
+		PHackZNear->SetValue(StrToWxStr(sTemp));
 		PHPresetsIni.Get(sIndex, "PH_ZFar", &sTemp);
-		PHackZFar->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
+		PHackZFar->SetValue(StrToWxStr(sTemp));
 	}
 }
 

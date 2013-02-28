@@ -23,6 +23,7 @@
 #include "CommonPaths.h"
 #include "Globals.h"
 
+#include "WxUtils.h"
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 #include "ISOProperties.h"
@@ -663,10 +664,10 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	{
 		int partitionNum = wxAtoi(File.SubString(10, 11));
 		File.Remove(0, 12); // Remove "Partition x/"
-		WiiDisc.at(partitionNum).FileSystem->ExportFile(File.mb_str(), Path.mb_str());
+		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
 	}
 	else
-		pFileSystem->ExportFile(File.mb_str(), Path.mb_str());
+		pFileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
 }
 
 void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolder, const int partitionNum)
@@ -727,7 +728,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
 		
 		dialog.Update(i, wxString::Format(_("Extracting %s"),
-			wxString(fst[i]->m_FullPath, *wxConvCurrent).c_str()));
+			StrToWxStr(fst[i]->m_FullPath).c_str()));
 
 		if (dialog.WasCancelled())
 			break;
@@ -778,9 +779,9 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 	{
 		if (DiscIO::IsVolumeWiiDisc(OpenISO))
 			for (u32 i = 0; i < WiiDisc.size(); i++)
-				ExportDir(NULL, Path.mb_str(), i);
+				ExportDir(NULL, WxStrToStr(Path).c_str(), i);
 		else
-			ExportDir(NULL, Path.mb_str());
+			ExportDir(NULL, WxStrToStr(Path).c_str());
 
 		return;
 	}
@@ -798,10 +799,10 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 	{
 		int partitionNum = wxAtoi(Directory.SubString(10, 11));
 		Directory.Remove(0, 12); // Remove "Partition x/"
-		ExportDir(Directory.mb_str(), Path.mb_str(), partitionNum);
+		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str(), partitionNum);
 	}
 	else
-		ExportDir(Directory.mb_str(), Path.mb_str());
+		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str());
 }
 
 void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
@@ -821,15 +822,15 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	bool ret = false;
 	if (event.GetId() == IDM_EXTRACTAPPLOADER)
 	{
-		ret = FS->ExportApploader(Path.mb_str());
+		ret = FS->ExportApploader(WxStrToStr(Path).c_str());
 	}
 	else if (event.GetId() == IDM_EXTRACTDOL)
 	{
-		ret = FS->ExportDOL(Path.mb_str());
+		ret = FS->ExportDOL(WxStrToStr(Path).c_str());
 	}
 
 	if (!ret)
-		PanicAlertT("Failed to extract to %s!", (const char *)Path.mb_str());
+		PanicAlertT("Failed to extract to %s!", WxStrToStr(Path).c_str());
 }
 
 class IntegrityCheckThread : public wxThread
@@ -989,7 +990,7 @@ void CISOProperties::LoadGameConfig()
 	GameIni.Get("EmuState", "EmulationIssues", &sTemp);
 	if (!sTemp.empty())
 	{
-		EmuIssues->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
+		EmuIssues->SetValue(StrToWxStr(sTemp.c_str()));
 	}
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
 
@@ -1075,7 +1076,7 @@ bool CISOProperties::SaveGameConfig()
 	GameIni.Get("EmuState","EmulationIssues", &sTemp);
 	if (EmuIssues->GetValue() != sTemp)
 		bRefreshList = true;
-	GameIni.Set("EmuState", "EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(*wxConvCurrent));
+	GameIni.Set("EmuState", "EmulationIssues", WxStrToStr(EmuIssues->GetValue()));
 
 	PatchList_Save();
 	ActionReplayList_Save();
@@ -1156,7 +1157,7 @@ void CISOProperties::PatchList_Load()
 	for (std::vector<PatchEngine::Patch>::const_iterator it = onFrame.begin(); it != onFrame.end(); ++it)
 	{
 		PatchEngine::Patch p = *it;
-		Patches->Append(wxString(p.name.c_str(), *wxConvCurrent));
+		Patches->Append(StrToWxStr(p.name.c_str()));
 		Patches->Check(index, p.active);
 		++index;
 	}
@@ -1209,7 +1210,7 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 		CPatchAddEdit dlg(-1, this, 1, _("Add Patch"));
 		if (dlg.ShowModal() == wxID_OK)
 		{
-			Patches->Append(wxString(onFrame.back().name.c_str(), *wxConvCurrent));
+			Patches->Append(StrToWxStr(onFrame.back().name));
 			Patches->Check((unsigned int)(onFrame.size() - 1), onFrame.back().active);
 		}
 		}
@@ -1238,7 +1239,7 @@ void CISOProperties::ActionReplayList_Load()
 	for (std::vector<ActionReplay::ARCode>::const_iterator it = arCodes.begin(); it != arCodes.end(); ++it)
 	{
 		ActionReplay::ARCode arCode = *it;
-		Cheats->Append(wxString(arCode.name.c_str(), *wxConvCurrent));
+		Cheats->Append(StrToWxStr(arCode.name));
 		Cheats->Check(index, arCode.active);
 		++index;
 	}
@@ -1256,7 +1257,7 @@ void CISOProperties::ActionReplayList_Save()
 
 		for (std::vector<ActionReplay::AREntry>::const_iterator iter2 = code.ops.begin(); iter2 != code.ops.end(); ++iter2)
 		{
-			lines.push_back(std::string(wxString::Format(wxT("%08X %08X"), iter2->cmd_addr, iter2->value).mb_str()));
+			lines.push_back(WxStrToStr(wxString::Format(wxT("%08X %08X"), iter2->cmd_addr, iter2->value)));
 		}
 		++index;
 	}
@@ -1364,5 +1365,6 @@ void CISOProperties::ChangeBannerDetails(int lang)
 	std::string filename, extension;
 	SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
 	// Also sets the window's title
-	SetTitle(wxString(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str(), *wxConvCurrent)+shortName);
+	SetTitle(StrToWxStr(StringFromFormat("%s%s: %s - ", filename.c_str(),
+		extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()) + shortName);
 }

@@ -22,6 +22,7 @@
 
 #include <wx/artprov.h>
 
+#include "../WxUtils.h"
 #include "StringUtil.h"
 #include "DSPDebugWindow.h"
 #include "DSPRegisterView.h"
@@ -220,7 +221,7 @@ void DSPDebuggerLLE::UpdateSymbolMap()
 	for (SymbolDB::XFuncMap::iterator iter = DSPSymbols::g_dsp_symbol_db.GetIterator();
 		 iter != DSPSymbols::g_dsp_symbol_db.End(); ++iter)
 	{
-		int idx = m_SymbolList->Append(wxString::FromAscii(iter->second.name.c_str()));
+		int idx = m_SymbolList->Append(StrToWxStr(iter->second.name.c_str()));
 		m_SymbolList->SetClientData(idx, (void*)&iter->second);
 	}
 	m_SymbolList->Thaw();
@@ -250,8 +251,7 @@ void DSPDebuggerLLE::OnAddrBoxChange(wxCommandEvent& event)
 	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)m_Toolbar->FindControl(ID_ADDRBOX);
 	wxString txt = pAddrCtrl->GetValue();
 
-	std::string text(txt.mb_str());
-	text = StripSpaces(text);
+	auto text = StripSpaces(WxStrToStr(txt));
 	if (text.size())
 	{
 		u32 addr;

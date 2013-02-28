@@ -141,7 +141,7 @@ wxArrayString GetListOfResolutions()
 		if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
 		{
 			resos.push_back(strRes);
-			retlist.Add(wxString::FromAscii(res));
+			retlist.Add(StrToWxStr(res));
 		}
 		ZeroMemory(&dmi, sizeof(dmi));
 	}
@@ -212,9 +212,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			it = g_available_video_backends.begin(),
 			itend = g_available_video_backends.end();
 	for (; it != itend; ++it)
-		choice_backend->AppendString(wxGetTranslation(wxString::FromAscii((*it)->GetName().c_str())));
+		choice_backend->AppendString(wxGetTranslation(StrToWxStr((*it)->GetName().c_str())));
 
-	choice_backend->SetStringSelection(wxGetTranslation(wxString::FromAscii(g_video_backend->GetName().c_str())));
+	choice_backend->SetStringSelection(wxGetTranslation(StrToWxStr(g_video_backend->GetName().c_str())));
 	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_Backend, this);
 
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
@@ -236,7 +236,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			it = vconfig.backend_info.Adapters.begin(),
 			itend = vconfig.backend_info.Adapters.end();
 		for (; it != itend; ++it)
-			choice_adapter->AppendString(wxString::FromAscii(it->c_str()));
+			choice_adapter->AppendString(StrToWxStr(it->c_str()));
 
 		choice_adapter->Select(vconfig.iAdapter);
 
@@ -259,7 +259,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
 		choice_display_resolution->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_DisplayResolution, this);
 
-		choice_display_resolution->SetStringSelection(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str()));
+		choice_display_resolution->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str()));
 
 		szr_display->Add(label_display_resolution, 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_display->Add(choice_display_resolution);
@@ -355,7 +355,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		it = vconfig.backend_info.AAModes.begin(),
 		itend = vconfig.backend_info.AAModes.end();
 	for (; it != itend; ++it)
-		choice_aamode->AppendString(wxGetTranslation(wxString::FromAscii(it->c_str())));
+		choice_aamode->AppendString(wxGetTranslation(StrToWxStr(it->c_str())));
 
 	choice_aamode->Select(vconfig.iMultisampleMode);
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -380,12 +380,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			it = vconfig.backend_info.PPShaders.begin(),
 			itend = vconfig.backend_info.PPShaders.end();
 		for (; it != itend; ++it)
-			choice_ppshader->AppendString(wxString::FromAscii(it->c_str()));
+			choice_ppshader->AppendString(StrToWxStr(it->c_str()));
 
 		if (vconfig.sPostProcessingShader.empty())
 			choice_ppshader->Select(0);
 		else
-			choice_ppshader->SetStringSelection(wxString::FromAscii(vconfig.sPostProcessingShader.c_str()));
+			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader.c_str()));
 
 		choice_ppshader->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_PPShader, this);
 
@@ -595,7 +595,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent &ev)
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
-		choice_display_resolution->GetStringSelection().mb_str();
+		WxStrToStr(choice_display_resolution->GetStringSelection());
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->Update();
 #endif

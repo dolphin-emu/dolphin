@@ -17,6 +17,7 @@
 
 #include "Common.h"
 #include "AboutDolphin.h"
+#include "WxUtils.h"
 #include "../resources/dolphin_logo.cpp"
 #include "scmrev.h"
 
@@ -62,7 +63,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		"and should not be used to play games you do\n"
 		"not legally own.";
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY,
-			wxString::FromAscii(Text.c_str()));
+			StrToWxStr(Text.c_str()));
 	Message->Wrap(GetSize().GetWidth());
 
 	wxBoxSizer* const sInfo = new wxBoxSizer(wxVERTICAL);

@@ -25,6 +25,7 @@
 
 #include "DebuggerUIUtil.h"
 
+#include "../WxUtils.h"
 #include "RegisterWindow.h"
 #include "BreakpointWindow.h"
 #include "MemoryWindow.h"
@@ -65,7 +66,7 @@ void CCodeWindow::Load()
 	std::string fontDesc;
 	ini.Get("General", "DebuggerFont", &fontDesc);
 	if (!fontDesc.empty())
-		DebuggerFont.SetNativeFontInfoUserDesc(wxString::FromAscii(fontDesc.c_str()));
+		DebuggerFont.SetNativeFontInfoUserDesc(StrToWxStr(fontDesc.c_str()));
 
 	// Boot to pause or not
 	ini.Get("General", "AutomaticStart", &bAutomaticStart, false);
@@ -107,7 +108,7 @@ void CCodeWindow::Save()
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	ini.Set("General", "DebuggerFont",
-		   	std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
+		   	WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
 
 	// Boot to pause or not
 	ini.Set("General", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
@@ -154,7 +155,7 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _("Save code"),
-		wxString::FromAscii("Save the entire disassembled code. This may take a several seconds"
+		StrToWxStr("Save the entire disassembled code. This may take a several seconds"
 		" and may require between 50 and 100 MB of hard drive space. It will only save code"
 		" that are in the first 4 MB of memory, if you are debugging a game that load .rel"
 		" files with code to memory you may want to increase that to perhaps 8 MB, you can do"
@@ -284,7 +285,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
 			if (!path.IsEmpty())
 			{
-				std::ifstream f(path.mb_str());
+				std::ifstream f(WxStrToStr(path));
 
 				std::string line;
 				while (std::getline(f, line))
@@ -312,13 +313,13 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 			wxTextEntryDialog input_prefix(
 				this,
-				wxString::FromAscii("Only export symbols with prefix:\n(Blank for all symbols)"),
+				StrToWxStr("Only export symbols with prefix:\n(Blank for all symbols)"),
 				wxGetTextFromUserPromptStr,
 				wxEmptyString);
 
 			if (input_prefix.ShowModal() == wxID_OK)
 			{
-				std::string prefix(input_prefix.GetValue().mb_str());
+				std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
 				wxString path = wxFileSelector(
 					_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
@@ -328,8 +329,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				{
 					SignatureDB db;
 					db.Initialize(&g_symbolDB, prefix.c_str());
-					std::string filename(path.mb_str());
-					db.Save(path.mb_str());
+					db.Save(WxStrToStr(path).c_str());
 				}
 			}
 		}
@@ -343,7 +343,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			if (!path.IsEmpty())
 			{
 				SignatureDB db;
-				db.Load(path.mb_str());
+				db.Load(WxStrToStr(path).c_str());
 				db.Apply(&g_symbolDB);
 			}
 		}
@@ -366,7 +366,7 @@ void CCodeWindow::NotifyMapLoaded()
 	symbols->Clear();
 	for (PPCSymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); ++iter)
 	{
-		int idx = symbols->Append(wxString::FromAscii(iter->second.name.c_str()));
+		int idx = symbols->Append(StrToWxStr(iter->second.name.c_str()));
 		symbols->SetClientData(idx, (void*)&iter->second);
 	}
 	symbols->Thaw();

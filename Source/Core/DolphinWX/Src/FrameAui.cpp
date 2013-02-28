@@ -21,6 +21,7 @@
 #include "Globals.h" // Local
 #include "Frame.h"
 #include "LogWindow.h"
+#include "WxUtils.h"
 
 #include "ConfigManager.h" // Core
 
@@ -548,7 +549,7 @@ void CFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& event)
 			for (u32 i = 0; i < Perspectives.size(); i++)
 			{
 				wxMenuItem* mItem = new wxMenuItem(menuPopup, IDM_PERSPECTIVES_0 + i,
-						wxString::FromAscii(Perspectives[i].Name.c_str()),
+						StrToWxStr(Perspectives[i].Name.c_str()),
 						wxT(""), wxITEM_CHECK);
 				menuPopup->Append(mItem);
 				if (i == ActivePerspective) mItem->Check(true);
@@ -580,7 +581,7 @@ void CFrame::OnToolBar(wxCommandEvent& event)
 				return;
 			}
 			SaveIniPerspectives();
-			GetStatusBar()->SetStatusText(wxString::FromAscii(std::string
+			GetStatusBar()->SetStatusText(StrToWxStr(std::string
 						("Saved " + Perspectives[ActivePerspective].Name).c_str()), 0);
 			break;
 		case IDM_PERSPECTIVES_ADD_PANE:
@@ -633,7 +634,7 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 				}
 
 				SPerspectives Tmp;
-				Tmp.Name = dlg.GetValue().mb_str();
+				Tmp.Name = WxStrToStr(dlg.GetValue());
 				Tmp.Perspective = m_Mgr->SavePerspective();
 
 				ActivePerspective = (u32)Perspectives.size();
@@ -870,7 +871,7 @@ void CFrame::LoadIniPerspectives()
 		ini.Get(_Section.c_str(), "Width", &_Width, "70,25");
 		ini.Get(_Section.c_str(), "Height", &_Height, "80,80");
 
-		Tmp.Perspective = wxString::FromAscii(_Perspective.c_str());
+		Tmp.Perspective = StrToWxStr(_Perspective.c_str());
 
 		SplitString(_Width, ',', _SWidth);
 		SplitString(_Height, ',', _SHeight);
@@ -940,7 +941,7 @@ void CFrame::SaveIniPerspectives()
 	for (u32 i = 0; i < Perspectives.size(); i++)
 	{
 		std::string _Section = "P - " + Perspectives[i].Name;
-		ini.Set(_Section.c_str(), "Perspective", Perspectives[i].Perspective.mb_str());
+		ini.Set(_Section.c_str(), "Perspective", WxStrToStr(Perspectives[i].Perspective));
 
 		std::string SWidth = "", SHeight = "";
 		for (u32 j = 0; j < Perspectives[i].Width.size(); j++)

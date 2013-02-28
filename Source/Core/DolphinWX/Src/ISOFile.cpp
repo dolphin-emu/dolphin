@@ -28,6 +28,7 @@
 #include "StringUtil.h"
 #include "Hash.h"
 #include "IniFile.h"
+#include "WxUtils.h"
 
 #include "Filesystem.h"
 #include "BannerLoader.h"
@@ -331,7 +332,7 @@ const std::string GameListItem::GetWiiFSPath() const
 			File::CreateFullPath(Path);
 
 		if (Path[0] == '.')
-			ret = std::string(wxGetCwd().mb_str()) + std::string(Path).substr(strlen(ROOT_DIR));
+			ret = WxStrToStr(wxGetCwd()) + std::string(Path).substr(strlen(ROOT_DIR));
 		else
 			ret = std::string(Path);
 	}
