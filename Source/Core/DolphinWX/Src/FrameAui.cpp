@@ -549,7 +549,7 @@ void CFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& event)
 			for (u32 i = 0; i < Perspectives.size(); i++)
 			{
 				wxMenuItem* mItem = new wxMenuItem(menuPopup, IDM_PERSPECTIVES_0 + i,
-						StrToWxStr(Perspectives[i].Name.c_str()),
+						StrToWxStr(Perspectives[i].Name),
 						wxT(""), wxITEM_CHECK);
 				menuPopup->Append(mItem);
 				if (i == ActivePerspective) mItem->Check(true);
@@ -871,7 +871,7 @@ void CFrame::LoadIniPerspectives()
 		ini.Get(_Section.c_str(), "Width", &_Width, "70,25");
 		ini.Get(_Section.c_str(), "Height", &_Height, "80,80");
 
-		Tmp.Perspective = StrToWxStr(_Perspective.c_str());
+		Tmp.Perspective = StrToWxStr(_Perspective);
 
 		SplitString(_Width, ',', _SWidth);
 		SplitString(_Height, ',', _SHeight);

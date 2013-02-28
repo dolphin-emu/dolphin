@@ -253,7 +253,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 					debugger->disasm(addr, disasm, 256);
 					text = text + StringFromFormat("%08x: ", addr) + disasm + "\r\n";
 				}
-				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(text.c_str())));
+				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(text)));
 			}
 			}
 			break;
@@ -300,7 +300,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			{
 				wxTextEntryDialog input_symbol(this, StrToWxStr("Rename symbol:"),
 						wxGetTextFromUserPromptStr,
-						StrToWxStr(symbol->name.c_str()));
+						StrToWxStr(symbol->name));
 				if (input_symbol.ShowModal() == wxID_OK)
 				{
 					symbol->name = WxStrToStr(input_symbol.GetValue());

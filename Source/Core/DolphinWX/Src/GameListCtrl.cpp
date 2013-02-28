@@ -614,7 +614,7 @@ void CGameListCtrl::ScanForISOs()
 
 			// Update with the progress (i) and the message
 			dialog.Update(i, wxString::Format(_("Scanning %s"),
-				StrToWxStr(FileName).c_str()));
+				StrToWxStr(FileName)));
 			if (dialog.WasCancelled())
 				break;
 
@@ -1173,10 +1173,10 @@ void CGameListCtrl::CompressSelection(bool _compress)
 						WxStrToStr(browseDialog.GetPath()),
 						FileName);
 
-				if (wxFileExists(StrToWxStr(OutputFileName.c_str())) &&
+				if (wxFileExists(StrToWxStr(OutputFileName)) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
-								StrToWxStr(OutputFileName).c_str()), 
+								StrToWxStr(OutputFileName)), 
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1201,10 +1201,10 @@ void CGameListCtrl::CompressSelection(bool _compress)
 						WxStrToStr(browseDialog.GetPath()),
 						FileName);
 
-				if (wxFileExists(StrToWxStr(OutputFileName.c_str())) &&
+				if (wxFileExists(StrToWxStr(OutputFileName)) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
-								StrToWxStr(OutputFileName).c_str()), 
+								StrToWxStr(OutputFileName)), 
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;

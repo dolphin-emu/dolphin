@@ -728,7 +728,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
 		
 		dialog.Update(i, wxString::Format(_("Extracting %s"),
-			StrToWxStr(fst[i]->m_FullPath).c_str()));
+			StrToWxStr(fst[i]->m_FullPath)));
 
 		if (dialog.WasCancelled())
 			break;
@@ -990,7 +990,7 @@ void CISOProperties::LoadGameConfig()
 	GameIni.Get("EmuState", "EmulationIssues", &sTemp);
 	if (!sTemp.empty())
 	{
-		EmuIssues->SetValue(StrToWxStr(sTemp.c_str()));
+		EmuIssues->SetValue(StrToWxStr(sTemp));
 	}
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
 
@@ -1157,7 +1157,7 @@ void CISOProperties::PatchList_Load()
 	for (std::vector<PatchEngine::Patch>::const_iterator it = onFrame.begin(); it != onFrame.end(); ++it)
 	{
 		PatchEngine::Patch p = *it;
-		Patches->Append(StrToWxStr(p.name.c_str()));
+		Patches->Append(StrToWxStr(p.name));
 		Patches->Check(index, p.active);
 		++index;
 	}
@@ -1366,5 +1366,5 @@ void CISOProperties::ChangeBannerDetails(int lang)
 	SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
 	// Also sets the window's title
 	SetTitle(StrToWxStr(StringFromFormat("%s%s: %s - ", filename.c_str(),
-		extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()) + shortName);
+		extension.c_str(), OpenGameListItem->GetUniqueID().c_str())) + shortName);
 }

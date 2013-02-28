@@ -34,7 +34,7 @@ IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& se
 
 VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title, const std::string& _ininame) :
 	wxDialog(parent, -1,
-		wxString(wxT("Dolphin ")).append(StrToWxStr(title.c_str())).append(wxT(" Graphics Configuration")),
+		wxString(wxT("Dolphin ")).append(StrToWxStr(title)).append(wxT(" Graphics Configuration")),
 		wxDefaultPosition, wxDefaultSize),
 	vconfig(g_SWVideoConfig),
 	ininame(_ininame)

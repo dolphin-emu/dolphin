@@ -66,7 +66,7 @@ void CCodeWindow::Load()
 	std::string fontDesc;
 	ini.Get("General", "DebuggerFont", &fontDesc);
 	if (!fontDesc.empty())
-		DebuggerFont.SetNativeFontInfoUserDesc(StrToWxStr(fontDesc.c_str()));
+		DebuggerFont.SetNativeFontInfoUserDesc(StrToWxStr(fontDesc));
 
 	// Boot to pause or not
 	ini.Get("General", "AutomaticStart", &bAutomaticStart, false);
@@ -366,7 +366,7 @@ void CCodeWindow::NotifyMapLoaded()
 	symbols->Clear();
 	for (PPCSymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); ++iter)
 	{
-		int idx = symbols->Append(StrToWxStr(iter->second.name.c_str()));
+		int idx = symbols->Append(StrToWxStr(iter->second.name));
 		symbols->SetClientData(idx, (void*)&iter->second);
 	}
 	symbols->Thaw();

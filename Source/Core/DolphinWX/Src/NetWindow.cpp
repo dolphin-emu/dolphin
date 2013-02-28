@@ -73,7 +73,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	
 	std::string address;
 	netplay_section.Get("Address", &address, "localhost");
-	m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(address.c_str()));
+	m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(address));
 
 	wxStaticText* const port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port :"),
 			wxDefaultPosition, wxDefaultSize);
@@ -81,7 +81,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	// string? w/e
 	std::string port;
 	netplay_section.Get("ConnectPort", &port, "2626");	
-	m_connect_port_text = new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(port.c_str()));
+	m_connect_port_text = new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(port));
 
 	wxButton* const connect_btn = new wxButton(connect_tab, wxID_ANY, _("Connect"));
 	connect_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlaySetupDiag::OnJoin, this);
@@ -114,7 +114,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	// string? w/e
 	std::string port;
 	netplay_section.Get("HostPort", &port, "2626");	
-	m_host_port_text = new wxTextCtrl(host_tab, wxID_ANY, StrToWxStr(port.c_str()));
+	m_host_port_text = new wxTextCtrl(host_tab, wxID_ANY, StrToWxStr(port));
 
 	wxButton* const host_btn = new wxButton(host_tab, wxID_ANY, _("Host"));
 	host_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlaySetupDiag::OnHost, this);

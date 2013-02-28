@@ -345,7 +345,7 @@ void CCodeWindow::UpdateCallstack()
 
 	for (size_t i = 0; i < stack.size(); i++)
 	{
-		int idx = callstack->Append(StrToWxStr(stack[i].Name.c_str()));
+		int idx = callstack->Append(StrToWxStr(stack[i].Name));
 		callstack->SetClientData(idx, (void*)(u64)stack[i].vAddress);
 	}
 

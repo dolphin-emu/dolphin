@@ -100,7 +100,7 @@ protected:
 			else
 			{
 				// Select current backend again
-				choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName().c_str()));
+				choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName()));
 			}
 		}
 

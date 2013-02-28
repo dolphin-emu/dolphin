@@ -120,9 +120,9 @@ void CJitWindow::Compare(u32 em_address)
 		}
 		// Do not merge this "if" with the above - block_num changes inside it.
 		if (block_num < 0) {
-			ppc_box->SetValue(wxString::FromAscii(StringFromFormat("(non-code address: %08x)",
-						   	em_address).c_str()));
-			x86_box->SetValue(wxString::FromAscii(StringFromFormat("(no translation)").c_str()));
+			ppc_box->SetValue(StrToWxStr(StringFromFormat("(non-code address: %08x)",
+						   	em_address)));
+			x86_box->SetValue(StrToWxStr(StringFromFormat("(no translation)")));
 			delete[] xDis;
 			return;
 		}
@@ -151,7 +151,7 @@ void CJitWindow::Compare(u32 em_address)
 		*sptr++ = 10;
 		num_x86_instructions++;
 	}
-	x86_box->SetValue(wxString::FromAscii((char*)xDis));
+	x86_box->SetValue(StrToWxStr((char*)xDis));
 
 	// == Fill in ppc box
 	u32 ppc_addr = block->originalAddress;
@@ -190,11 +190,11 @@ void CJitWindow::Compare(u32 em_address)
 		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n",
 			   	size * 4, block->codeSize, 100 * (block->codeSize / (4 * size) - 1));
 
-		ppc_box->SetValue(wxString::FromAscii((char*)xDis));
+		ppc_box->SetValue(StrToWxStr((char*)xDis));
 	} else {
-		ppc_box->SetValue(wxString::FromAscii(StringFromFormat(
-						"(non-code address: %08x)", em_address).c_str()));
-		x86_box->SetValue(wxString::FromAscii("---"));
+		ppc_box->SetValue(StrToWxStr(StringFromFormat(
+						"(non-code address: %08x)", em_address)));
+		x86_box->SetValue("---");
 	}
 
 	delete[] xDis;

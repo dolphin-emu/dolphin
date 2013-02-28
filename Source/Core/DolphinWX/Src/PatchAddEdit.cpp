@@ -49,7 +49,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	}
 	else
 	{
-	    currentName = StrToWxStr(onFrame.at(_selection).name.c_str());
+	    currentName = StrToWxStr(onFrame.at(_selection).name);
 	    tempEntries = onFrame.at(_selection).entries;
 	}
 

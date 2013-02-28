@@ -221,7 +221,7 @@ void DSPDebuggerLLE::UpdateSymbolMap()
 	for (SymbolDB::XFuncMap::iterator iter = DSPSymbols::g_dsp_symbol_db.GetIterator();
 		 iter != DSPSymbols::g_dsp_symbol_db.End(); ++iter)
 	{
-		int idx = m_SymbolList->Append(StrToWxStr(iter->second.name.c_str()));
+		int idx = m_SymbolList->Append(StrToWxStr(iter->second.name));
 		m_SymbolList->SetClientData(idx, (void*)&iter->second);
 	}
 	m_SymbolList->Thaw();

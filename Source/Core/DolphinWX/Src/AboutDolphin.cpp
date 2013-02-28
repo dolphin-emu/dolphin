@@ -63,7 +63,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		"and should not be used to play games you do\n"
 		"not legally own.";
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY,
-			StrToWxStr(Text.c_str()));
+			StrToWxStr(Text));
 	Message->Wrap(GetSize().GetWidth());
 
 	wxBoxSizer* const sInfo = new wxBoxSizer(wxVERTICAL);

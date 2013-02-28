@@ -34,7 +34,7 @@ void GamepadPage::ConfigExtension(wxCommandEvent& event)
 	if (ex->switch_extension)
 	{
 		wxDialog dlg(this, -1,
-			StrToWxStr(ex->attachments[ex->switch_extension]->GetName().c_str()),
+			StrToWxStr(ex->attachments[ex->switch_extension]->GetName()),
 			wxDefaultPosition, wxDefaultSize);
 
 		wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
@@ -64,7 +64,7 @@ PadSettingExtension::PadSettingExtension(wxWindow* const parent, ControllerEmu::
 		e = extension->attachments.end();
 
 	for (; i!=e; ++i)
-		((wxChoice*)wxcontrol)->Append(StrToWxStr((*i)->GetName().c_str()));
+		((wxChoice*)wxcontrol)->Append(StrToWxStr((*i)->GetName()));
 
 	UpdateGUI();
 }
@@ -612,7 +612,7 @@ void GamepadPage::DeleteProfile(wxCommandEvent&)
 
 	if (File::Exists(fnamecstr) &&
 			AskYesNoT("Are you sure you want to delete \"%s\"?",
-			WxStrToStr(profile_cbox->GetValue()).c_str()))
+			WxStrToStr(profile_cbox->GetValue())))
 	{
 		File::Delete(fnamecstr);
 
@@ -952,7 +952,7 @@ GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned i
 
 
 InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin, const std::string& name, const int tab_num)
-	: wxDialog(parent, wxID_ANY, StrToWxStr(name.c_str()), wxPoint(128,-1), wxDefaultSize)
+	: wxDialog(parent, wxID_ANY, StrToWxStr(name), wxPoint(128,-1), wxDefaultSize)
 	, m_plugin(plugin)
 {
 	m_pad_notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);

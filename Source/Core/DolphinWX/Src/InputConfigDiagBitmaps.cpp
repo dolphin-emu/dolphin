@@ -228,7 +228,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						// text
 						const char* const name = (*g)->control_group->controls[n]->name;
 						// bit of hax so ZL, ZR show up as L, R
-						dc.DrawText(StrToWxStr((name[1] && name[1] < 'a') ? name[1] : name[0]), n*12 + 2, 1);
+						dc.DrawText(StrToWxStr(std::string(1, (name[1] && name[1] < 'a') ? name[1] : name[0])), n*12 + 2, 1);
 					}
 
 					delete[] bitmasks;
@@ -300,7 +300,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
 						// text
 						dc.DrawText(StrToWxStr((*g)->control_group->controls[n+trigger_count]->name), 3, n*12 + 1);
-						dc.DrawText(StrToWxStr((*g)->control_group->controls[n]->name[0]), 64 + 3, n*12 + 1);
+						dc.DrawText(StrToWxStr(std::string(1, (*g)->control_group->controls[n]->name[0])), 64 + 3, n*12 + 1);
 					}
 
 					// threshold box

@@ -982,9 +982,9 @@ void CConfigMain::AddAudioBackends()
 	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
 		 iter != backends.end(); ++iter)
 	{
-		BackendSelection->Append(StrToWxStr((*iter).c_str()));
+		BackendSelection->Append(StrToWxStr(*iter));
 		int num = BackendSelection->\
-			FindString(StrToWxStr(SConfig::GetInstance().sBackend.c_str()));
+			FindString(StrToWxStr(SConfig::GetInstance().sBackend));
 		BackendSelection->SetSelection(num);
 	}
 }
@@ -1269,8 +1269,9 @@ void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event))
 void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
 	std::string NANDPath =
-	SConfig::GetInstance().m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, WxStrToStr(NANDRoot->GetPath()));
-	NANDRoot->SetPath(wxString(NANDPath));
+		SConfig::GetInstance().m_NANDPath =
+			File::GetUserPath(D_WIIROOT_IDX, WxStrToStr(NANDRoot->GetPath()));
+	NANDRoot->SetPath(StrToWxStr(NANDPath));
 	SConfig::GetInstance().m_SYSCONF->UpdateLocation();
 	DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 	DiscIO::CSharedContent::AccessInstance().UpdateLocation();

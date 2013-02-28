@@ -348,7 +348,7 @@ void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (eve
 	const std::vector<std::string> &arLog = ActionReplay::GetSelfLog();
 	for (u32 i = 0; i < arLog.size(); i++)
 	{
-		m_TextCtrl_Log->AppendText(StrToWxStr(arLog[i].c_str()));
+		m_TextCtrl_Log->AppendText(StrToWxStr(arLog[i]));
 	}
 }
 
