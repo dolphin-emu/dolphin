@@ -22,6 +22,10 @@
 #include "CommonPaths.h"
 #include "StringUtil.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 // faster than sscanf
 bool AsciiToHex(const char* _szValue, u32& result)
 {
@@ -375,3 +379,33 @@ std::string UriEncode(const std::string & sSrc)
 	delete [] pStart;
 	return sResult;
 }
+
+#ifdef _WIN32
+
+std::string UTF16ToUTF8(const std::wstring& input)
+{
+	auto const size = WideCharToMultiByte(CP_UTF8, 0, input.data(), input.size(), nullptr, 0, nullptr, nullptr);
+
+	std::string output;
+	output.resize(size);
+
+	if (size != WideCharToMultiByte(CP_UTF8, 0, input.data(), input.size(), &output[0], output.size(), nullptr, nullptr))
+		output.clear();
+
+	return output;
+}
+
+std::wstring UTF8ToUTF16(const std::string& input)
+{
+	auto const size = MultiByteToWideChar(CP_UTF8, 0, input.data(), input.size(), nullptr, 0);
+
+	std::wstring output;
+	output.resize(size);
+
+	if (size != MultiByteToWideChar(CP_UTF8, 0, input.data(), input.size(), &output[0], output.size()))
+		output.clear();
+
+	return output;
+}
+
+#endif
