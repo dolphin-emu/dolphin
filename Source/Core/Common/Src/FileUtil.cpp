@@ -82,7 +82,11 @@ bool Exists(const std::string &filename)
 	std::string copy(filename);
 	StripTailDirSlashes(copy);
 
+#ifdef _WIN32
 	int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
+#else
+	int result = stat64(copy.c_str(), &file_info);
+#endif
 
 	return (result == 0);
 }
@@ -95,7 +99,11 @@ bool IsDirectory(const std::string &filename)
 	std::string copy(filename);
 	StripTailDirSlashes(copy);
 
+#ifdef _WIN32
 	int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
+#else
+	int result = stat64(copy.c_str(), &file_info);
+#endif
 
 	if (result < 0) {
 		WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", 
@@ -343,8 +351,13 @@ u64 GetSize(const std::string &filename)
 		WARN_LOG(COMMON, "GetSize: failed %s: is a directory", filename.c_str());
 		return 0;
 	}
+	
 	struct stat64 buf;
+#ifdef _WIN32
 	if (_tstat64(UTF8ToTStr(filename).c_str(), &buf) == 0)
+#else
+	if (stat64(filename.c_str(), &buf) == 0)
+#endif
 	{
 		DEBUG_LOG(COMMON, "GetSize: %s: %lld",
 				filename.c_str(), (long long)buf.st_size);
