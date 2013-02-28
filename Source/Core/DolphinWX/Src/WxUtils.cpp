@@ -57,10 +57,11 @@ void Explore(const char *path)
 
 std::string WxStrToStr(const wxString& str)
 {
-	return str.ToUTF8();
+	return str.ToUTF8().data();
 }
 
 wxString StrToWxStr(const std::string& str)
 {
+	//return wxString::FromUTF8Unchecked(str.c_str());
 	return wxString::FromUTF8(str.c_str());
 }

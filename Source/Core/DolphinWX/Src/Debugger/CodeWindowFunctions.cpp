@@ -285,7 +285,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
 			if (!path.IsEmpty())
 			{
-				std::ifstream f(WxStrToStr(path));
+				std::ifstream f(WxStrToStr(path).c_str());
 
 				std::string line;
 				while (std::getline(f, line))

@@ -612,7 +612,7 @@ void GamepadPage::DeleteProfile(wxCommandEvent&)
 
 	if (File::Exists(fnamecstr) &&
 			AskYesNoT("Are you sure you want to delete \"%s\"?",
-			WxStrToStr(profile_cbox->GetValue())))
+			WxStrToStr(profile_cbox->GetValue()).c_str()))
 	{
 		File::Delete(fnamecstr);
 
