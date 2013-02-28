@@ -59,6 +59,7 @@ typedef DWORD (__stdcall *PBth_BluetoothGetRadioInfo)(HANDLE, PBLUETOOTH_RADIO_I
 typedef DWORD (__stdcall *PBth_BluetoothRemoveDevice)(const BLUETOOTH_ADDRESS*);
 typedef DWORD (__stdcall *PBth_BluetoothSetServiceState)(HANDLE, const BLUETOOTH_DEVICE_INFO*, const GUID*, DWORD);
 typedef DWORD (__stdcall *PBth_BluetoothAuthenticateDevice)(HWND, HANDLE, BLUETOOTH_DEVICE_INFO*, PWCHAR, ULONG);
+typedef DWORD (__stdcall *PBth_BluetoothEnumerateInstalledServices)(HANDLE,	BLUETOOTH_DEVICE_INFO*, DWORD*, GUID*);
 
 PHidD_GetHidGuid HidD_GetHidGuid = NULL;
 PHidD_GetAttributes HidD_GetAttributes = NULL;
@@ -74,6 +75,7 @@ PBth_BluetoothGetRadioInfo Bth_BluetoothGetRadioInfo = NULL;
 PBth_BluetoothRemoveDevice Bth_BluetoothRemoveDevice = NULL;
 PBth_BluetoothSetServiceState Bth_BluetoothSetServiceState = NULL;
 PBth_BluetoothAuthenticateDevice Bth_BluetoothAuthenticateDevice = NULL;
+PBth_BluetoothEnumerateInstalledServices Bth_BluetoothEnumerateInstalledServices = NULL;
 
 HINSTANCE hid_lib = NULL;
 HINSTANCE bthprops_lib = NULL;
@@ -119,12 +121,14 @@ inline void init_lib()
 		Bth_BluetoothRemoveDevice = (PBth_BluetoothRemoveDevice)GetProcAddress(bthprops_lib, "BluetoothRemoveDevice");
 		Bth_BluetoothSetServiceState = (PBth_BluetoothSetServiceState)GetProcAddress(bthprops_lib, "BluetoothSetServiceState");
 		Bth_BluetoothAuthenticateDevice = (PBth_BluetoothAuthenticateDevice)GetProcAddress(bthprops_lib, "BluetoothAuthenticateDevice");
+		Bth_BluetoothEnumerateInstalledServices = (PBth_BluetoothEnumerateInstalledServices)GetProcAddress(bthprops_lib, "BluetoothEnumerateInstalledServices");
 
 		if (!Bth_BluetoothFindDeviceClose || !Bth_BluetoothFindFirstDevice ||
 			!Bth_BluetoothFindFirstRadio || !Bth_BluetoothFindNextDevice ||
 			!Bth_BluetoothFindNextRadio || !Bth_BluetoothFindRadioClose ||
 			!Bth_BluetoothGetRadioInfo || !Bth_BluetoothRemoveDevice ||
-			!Bth_BluetoothSetServiceState || !Bth_BluetoothAuthenticateDevice)
+			!Bth_BluetoothSetServiceState || !Bth_BluetoothAuthenticateDevice ||
+			!Bth_BluetoothEnumerateInstalledServices)
 		{
 			PanicAlertT("Failed to load bthprops.cpl");
 			exit(EXIT_FAILURE);
@@ -560,6 +564,14 @@ bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO& radio_info, BLUETO
 
 		if (ERROR_SUCCESS != auth_result)
 			ERROR_LOG(WIIMOTE, "AttachWiimote: BluetoothAuthenticateDevice returned %08x", auth_result);
+
+		DWORD pcServices = 16;
+		GUID guids[16];
+		// If this is not done, the Wii device will not remember the pairing
+		const DWORD srv_result = Bth_BluetoothEnumerateInstalledServices(hRadio, &btdi, &pcServices, guids);
+
+		if (ERROR_SUCCESS != srv_result)
+			ERROR_LOG(WIIMOTE, "AttachWiimote: BluetoothEnumerateInstalledServices returned %08x", srv_result);
 #endif
 		// Activate service
 		const DWORD hr = Bth_BluetoothSetServiceState(hRadio, &btdi,
