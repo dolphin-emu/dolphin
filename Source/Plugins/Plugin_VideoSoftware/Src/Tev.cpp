@@ -20,6 +20,7 @@
 #include "Tev.h"
 #include "EfbInterface.h"
 #include "TextureSampler.h"
+#include "SWPixelEngine.h"
 #include "SWStatistics.h"
 #include "SWVideoConfig.h"
 #include "DebugUtil.h"
@@ -787,8 +788,13 @@ void Tev::Draw()
 	bool late_ztest = !bpmem.zcontrol.early_ztest || !g_SWVideoConfig.bZComploc;
 	if (late_ztest && bpmem.zmode.testenable)
 	{
-		if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
-			return;
+		// TODO: Check against hw if these values get incremented even if depth testing is disabled
+        SWPixelEngine::pereg.IncZInputQuadCount(false);
+
+        if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
+            return;
+
+        SWPixelEngine::pereg.IncZOutputQuadCount(false);
 	}
 
 #if ALLOW_TEV_DUMPS
@@ -812,6 +818,7 @@ void Tev::Draw()
 #endif
 
     INCSTAT(swstats.thisFrame.tevPixelsOut);
+	SWPixelEngine::pereg.IncBlendInputQuadCount();
 
     EfbInterface::BlendTev(Position[0], Position[1], output);
 }

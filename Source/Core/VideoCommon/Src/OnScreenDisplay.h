@@ -22,7 +22,7 @@ namespace OSD
 {
 
 // On-screen message display
-void AddMessage(const char* str, u32 ms);
+void AddMessage(const char* str, u32 ms = 2000);
 void DrawMessages(); // draw the current messages on the screen. Only call once per frame.
 void ClearMessages();
 
