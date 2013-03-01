@@ -86,7 +86,8 @@ bool CheckTitleTIK(u64 _titleID)
 
 static void CreateReplacementFile(std::string &filename)
 {
-	std::ofstream replace(filename.c_str());
+	std::ofstream replace;
+	OpenFStream(replace, filename, std::ios_base::out);
 	replace <<"\" __22__\n";
 	replace << "* __2a__\n";
 	//replace << "/ __2f__\n";
@@ -108,7 +109,8 @@ void ReadReplacements(replace_v& replacements)
 	if (!File::Exists(filename))
 		CreateReplacementFile(filename);
 
-	std::ifstream f(filename.c_str());
+	std::ifstream f;
+	OpenFStream(f, filename, std::ios_base::in);
 	char letter;
 	std::string replacement;
 

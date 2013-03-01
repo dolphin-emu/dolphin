@@ -137,7 +137,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	else
 	{
 		// Will fail out if GameConfig folder doesn't exist
-		std::ofstream f(GameIniFile.c_str());
+		std::ofstream f;
+		OpenFStream(f, GameIniFile, std::ios_base::out);
 		if (f)
 		{
 			f << "# " << OpenISO->GetUniqueID() << " - " << OpenISO->GetName() << '\n'

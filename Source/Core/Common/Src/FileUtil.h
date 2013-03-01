@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "Common.h"
+#include "StringUtil.h"
 
 // User directory indices for GetUserPath
 enum {
@@ -225,5 +226,16 @@ private:
 };
 
 }  // namespace
+
+// To deal with Windows being dumb at unicode:
+template <typename T>
+void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmode openmode)
+{
+#ifdef _WIN32
+	fstream.open(UTF8ToTStr(filename).c_str(), openmode);
+#else
+	fstream.open(filename, openmode);
+#endif
+}
 
 #endif

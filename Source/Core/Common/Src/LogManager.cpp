@@ -186,7 +186,7 @@ void LogContainer::Trigger(LogTypes::LOG_LEVELS level, const char *msg)
 
 FileLogListener::FileLogListener(const char *filename)
 {
-	m_logfile.open(filename, std::ios::app);
+	OpenFStream(m_logfile, filename, std::ios::app);
 	SetEnable(true);
 }
 
