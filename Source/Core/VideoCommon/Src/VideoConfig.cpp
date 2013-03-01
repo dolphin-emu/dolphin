@@ -174,7 +174,6 @@ void VideoConfig::VerifyValidity()
 	if (!backend_info.bSupports3DVision) b3DVision = false;
 	if (!backend_info.bSupportsFormatReinterpretation) bEFBEmulateFormatChanges = false;
 	if (!backend_info.bSupportsPixelLighting) bEnablePixelLighting = false;
-	if (!backend_info.bSupportsPixelPerfQuery) bDisablePixelPerf = true;
 }
 
 void VideoConfig::Save(const char *ini_file)

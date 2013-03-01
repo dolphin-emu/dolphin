@@ -97,9 +97,6 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
-	g_Config.backend_info.bSupportsPixelPerfQuery = false;
-	
-	
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 
 	// adapters
@@ -158,6 +155,12 @@ bool VideoBackend::Initialize(void *&window_handle)
 	}
 
 	s_BackendInitialized = true;
+
+	if (!g_Config.bDisablePixelPerf)
+	{
+		OSD::AddMessage("PE perf metrics enabled although the D3D9 backend doesn't support them!");
+		OSD::AddMessage("Try a different backend when issues arise.");
+	}
 
 	return true;
 }
