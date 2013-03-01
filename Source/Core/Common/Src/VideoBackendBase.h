@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "ChunkFile.h"
-#include "PerfQueryBase.h"
+#include "../../VideoCommon/Src/PerfQueryBase.h"
 
 typedef void (*writeFn16)(const u16,const u32);
 typedef void (*writeFn32)(const u32,const u32);
