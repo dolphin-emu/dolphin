@@ -31,7 +31,7 @@ void Init();
 void Shutdown();	
 void DoState(PointerWrap &p);
 
-void Update();
+void Update(u64 userdata, int cyclesLate);
 
 // Called by DSP emulator
 void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DACSampleRate);

@@ -110,7 +110,6 @@ enum
 int et_Dec;
 int et_VI;
 int et_SI;
-int et_AI;
 int et_CP;
 int et_AudioDMA;
 int et_DSP;
@@ -120,9 +119,6 @@ int et_PatchEngine;	// PatchEngine updates every 1/60th of a second by default
 // These are badly educated guesses
 // Feel free to experiment. Set these in Init below.
 int
-	// This one should simply be determined by the increasing counter in AI.
-	AI_PERIOD,
-
 	// These shouldn't be period controlled either, most likely.
 	DSP_PERIOD,
 
@@ -146,12 +142,6 @@ u32 GetTicksPerSecond()
 u32 ConvertMillisecondsToTicks(u32 _Milliseconds)
 {
 	return GetTicksPerSecond() / 1000 * _Milliseconds;
-}
-
-void AICallback(u64 userdata, int cyclesLate)
-{
-	AudioInterface::Update();
-	CoreTiming::ScheduleEvent(AI_PERIOD - cyclesLate, et_AI);
 }
 
 // DSP/CPU timeslicing.
@@ -277,9 +267,6 @@ void Init()
 	if (DSP::GetDSPEmulator()->IsLLE())
 		DSP_PERIOD = 12000; // TO BE TWEAKED
 
-	// This is the biggest question mark.
-	AI_PERIOD = GetTicksPerSecond() / 80;
-
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
 	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);
 
@@ -295,7 +282,6 @@ void Init()
 	CoreTiming::SetFakeDecStartTicks(CoreTiming::GetTicks());
 
 	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
-	et_AI = CoreTiming::RegisterEvent("AICallback", AICallback);
 	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
 	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
@@ -305,7 +291,6 @@ void Init()
 	et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
 	et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
 
-	CoreTiming::ScheduleEvent(AI_PERIOD, et_AI);
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
 	CoreTiming::ScheduleEvent(DSP_PERIOD, et_DSP);
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);

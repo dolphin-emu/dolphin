@@ -47,6 +47,7 @@
 #include "../PowerPC/PowerPC.h"
 #include "../ConfigManager.h"
 #include "../DSPEmulator.h"
+#include "SystemTimers.h"
 
 namespace DSP
 {
@@ -152,7 +153,7 @@ struct AudioDMA
 		SourceAddress = 0;
 		ReadAddress = 0;
 		AudioDMAControl.Hex = 0;
-		BlocksLeft = 0;
+		BlocksLeft = 1;
 	}
 };
 
@@ -355,7 +356,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 		// AI
 	case AUDIO_DMA_BLOCKS_LEFT:
-		_uReturnValue = g_audioDMA.BlocksLeft > 0 ? g_audioDMA.BlocksLeft - 1 : 0; // AUDIO_DMA_BLOCKS_LEFT is zero based
+		_uReturnValue = g_audioDMA.BlocksLeft;
 		break;
 
 	case AUDIO_DMA_START_LO:
@@ -665,7 +666,7 @@ void UpdateDSPSlice(int cycles) {
 // This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
 void UpdateAudioDMA()
 {
-	if (g_audioDMA.AudioDMAControl.Enable && g_audioDMA.BlocksLeft)
+	if (g_audioDMA.AudioDMAControl.Enable && g_audioDMA.BlocksLeft > -1)
 	{
 		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an
 		// external audio fifo in the emulator, to be mixed with the disc
@@ -675,7 +676,7 @@ void UpdateAudioDMA()
 		g_audioDMA.BlocksLeft--;
 		g_audioDMA.ReadAddress += 32;
 
-		if (g_audioDMA.BlocksLeft == 0)
+		if (g_audioDMA.BlocksLeft == -1)
 		{
 			dsp_emulator->DSP_SendAIBuffer(g_audioDMA.SourceAddress, 8*g_audioDMA.AudioDMAControl.NumBlocks);
 			GenerateDSPInterrupt(DSP::INT_AID);
@@ -687,7 +688,7 @@ void UpdateAudioDMA()
 	{
 		// Send silence. Yeah, it's a bit of a waste to sample rate convert
 		// silence.  or hm. Maybe we shouldn't do this :)
-		//dsp_emulator->DSP_SendAIBuffer(0, AudioInterface::GetAIDSampleRate());
+		dsp_emulator->DSP_SendAIBuffer(0, AudioInterface::GetAIDSampleRate());
 	}
 }
 
