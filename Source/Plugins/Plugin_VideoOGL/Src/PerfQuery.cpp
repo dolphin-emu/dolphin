@@ -67,7 +67,7 @@ void PerfQuery::FlushOne()
 	glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT, &result);
 
 	// NOTE: Reported pixel metrics should be referenced to native resolution
-	m_results[entry.query_type] += result * EFB_WIDTH * EFB_HEIGHT / g_renderer->GetTargetWidth() / g_renderer->GetTargetHeight();
+	m_results[entry.query_type] += (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
 
 	m_query_read_pos = (m_query_read_pos + 1) % ARRAYSIZE(m_query_buffer);
 	--m_query_count;
