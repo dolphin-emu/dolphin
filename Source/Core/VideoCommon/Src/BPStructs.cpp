@@ -269,8 +269,6 @@ void BPWritten(const BPCmd& bp)
 
 			UPE_Copy PE_copy = bpmem.triggerEFBCopy;
 
-			g_renderer->ResumePixelPerf(true);
-
 			// Check if we are to copy from the EFB or draw to the XFB
 			if (PE_copy.copy_to_xfb == 0)
 			{
@@ -308,8 +306,6 @@ void BPWritten(const BPCmd& bp)
 									 (u32)xfbLines,
 									 s_gammaLUT[PE_copy.gamma]);
 			}
-
-			g_renderer->PausePixelPerf(true);
 
 			// Clear the rectangular region after copying it.
 			if (PE_copy.clear)
