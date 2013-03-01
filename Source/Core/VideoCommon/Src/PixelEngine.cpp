@@ -299,7 +299,6 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		// Later builds returned 1 for the high register. That caused the timer to actually count down, but made the challenge unbeatable because the game always thought you didn't clear any goop at all.
 		// Note that currently this functionality is only implemented in the D3D11 backend.
 		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_BLEND_INPUT) & 0xFFFF;
-		//ERROR_LOG(VIDEO, "PQ_BLEND_INPUT: %d", g_video_backend->Video_GetQueryResult(PQ_BLEND_INPUT));
 		break;
 
 	case PE_PERF_BLEND_INPUT_H:

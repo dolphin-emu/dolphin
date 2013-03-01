@@ -28,11 +28,24 @@ public:
 	PerfQueryBase() {};
 	virtual ~PerfQueryBase() {}
 
+	// Begin querying the specified value for the following host GPU commands
 	virtual void EnableQuery(PerfQueryGroup type) {}
+
+	// Stop querying the specified value for the following host GPU commands
 	virtual void DisableQuery(PerfQueryGroup type) {}
+
+	// Reset query counters to zero and drop any pending queries
 	virtual void ResetQuery() {}
+
+	// Return the measured value for the specified query type
+	// NOTE: Called from CPU thread
 	virtual u32 GetQueryResult(PerfQueryType type) { return 0; }
+
+	// Request the value of any pending queries - causes a pipeline flush and thus should be used carefully!
 	virtual void FlushResults() {}
+
+	// True if there are no further pending query results
+	// NOTE: Called from CPU thread
 	virtual bool IsFlushed() const { return true; }
 };
 

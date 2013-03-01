@@ -57,6 +57,7 @@
 
 #include "ConfigManager.h"
 #include "VideoBackend.h"
+#include "PerfQueryBase.h"
 
 namespace DX9
 {
@@ -156,12 +157,6 @@ bool VideoBackend::Initialize(void *&window_handle)
 
 	s_BackendInitialized = true;
 
-	if (!g_Config.bDisablePixelPerf)
-	{
-		OSD::AddMessage("PE perf metrics enabled although the D3D9 backend doesn't support them!");
-		OSD::AddMessage("Try a different backend when issues arise.");
-	}
-
 	return true;
 }
 
@@ -176,6 +171,7 @@ void VideoBackend::Video_Prepare()
 	g_vertex_manager = new VertexManager;
 	g_renderer = new Renderer;
 	g_texture_cache = new TextureCache;		
+	g_perf_query = new PerfQueryBase;
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
@@ -213,6 +209,7 @@ void VideoBackend::Shutdown()
 		// internal interfaces
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
+		delete g_perf_query;
 		delete g_texture_cache;
 		delete g_renderer;
 		delete g_vertex_manager;

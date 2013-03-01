@@ -115,7 +115,7 @@ struct VideoConfig
 	int iAnaglyphStereoSeparation;
 	int iAnaglyphFocalAngle;
 	bool b3DVision;
-	
+
 	// Hacks
 	bool bEFBAccessEnable;
 	bool bDlistCachingEnable;
@@ -133,7 +133,6 @@ struct VideoConfig
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
 	bool bUseBBox;
 	bool bEnablePixelLighting;
-	bool bDisablePixelPerf;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped

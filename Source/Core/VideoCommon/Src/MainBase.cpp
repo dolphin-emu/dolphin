@@ -195,7 +195,7 @@ void VideoFifo_CheckPerfQueryRequest()
 
 u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
 {
-	// Is this check sane?
+	// TODO: Is this check sane?
 	if (!g_perf_query->IsFlushed())
 	{
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
@@ -207,7 +207,7 @@ u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
 		else
 			g_perf_query->FlushResults();
 	}
-	
+
 	return g_perf_query->GetQueryResult(type);
 }
 
