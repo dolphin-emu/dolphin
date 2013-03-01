@@ -24,7 +24,7 @@
 #include "StringUtil.h"
 #include "VideoBackendBase.h"
 
-#define MAX_SLICE_LENGTH 20000
+#define MAX_SLICE_LENGTH 1000
 
 namespace CoreTiming
 {
