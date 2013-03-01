@@ -65,18 +65,6 @@ ID3D11RasterizerState* resetraststate = NULL;
 
 static ID3D11Texture2D* s_screenshot_texture = NULL;
 
-// Using a vector of query objects to avoid flushing the gpu pipeline all the time
-// TODO: Could probably optimized further by using a ring buffer or something
-#define MAX_PIXEL_PERF_QUERIES 20 // 20 is an arbitrary guess
-std::vector<ID3D11Query*> pixel_perf_queries;
-static int pixel_perf_query_index = 0;
-
-static u64 pixel_perf = 0;
-static bool pixel_perf_active = false;
-static bool pixel_perf_dirty = false;
-
-ID3D11Query* gpu_finished_query = NULL;
-
 
 // GX pipeline state
 struct
@@ -170,9 +158,6 @@ void SetupDeviceObjects()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
 
 	s_screenshot_texture = NULL;
-
-	D3D11_QUERY_DESC qdesc = CD3D11_QUERY_DESC(D3D11_QUERY_EVENT, 0);
-	D3D::device->CreateQuery(&qdesc, &gpu_finished_query);
 }
 
 // Kill off all device objects
@@ -180,12 +165,6 @@ void TeardownDeviceObjects()
 {
 	delete g_framebuffer_manager;
 
-	while (!pixel_perf_queries.empty())
-	{
-		SAFE_RELEASE(pixel_perf_queries.back());
-		pixel_perf_queries.pop_back();
-	}
-	SAFE_RELEASE(gpu_finished_query);
 	SAFE_RELEASE(access_efb_cbuf);
 	SAFE_RELEASE(clearblendstates[0]);
 	SAFE_RELEASE(clearblendstates[1]);
@@ -231,11 +210,6 @@ Renderer::Renderer()
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
 	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
-
-	pixel_perf_query_index = 0;
-	pixel_perf = 0;
-	pixel_perf_active = false;
-	pixel_perf_dirty = false;
 
 	SetupDeviceObjects();
 
@@ -658,112 +632,6 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 	FramebufferManager::SwapReinterpretTexture();
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-}
-
-void Renderer::ResetPixelPerf()
-{
-	if (g_ActiveConfig.bDisablePixelPerf)
-		return;
-
-	if (pixel_perf_active)
-		PausePixelPerf(false);
-
-	pixel_perf_query_index = 0;
-	pixel_perf = 0;
-}
-
-void Renderer::ResumePixelPerf(bool efb_copies)
-{
-	if (g_ActiveConfig.bDisablePixelPerf)
-		return;
-
-	if (efb_copies)
-		return;
-
-	if(pixel_perf_active)
-		return;
-
-	if (pixel_perf_queries.size() < pixel_perf_query_index+1 && pixel_perf_query_index < MAX_PIXEL_PERF_QUERIES)
-	{
-		D3D11_QUERY_DESC qdesc = CD3D11_QUERY_DESC(D3D11_QUERY_OCCLUSION, 0);
-		ID3D11Query* tmpquery = NULL;
-		D3D::device->CreateQuery(&qdesc, &tmpquery);
-		pixel_perf_queries.push_back(tmpquery);
-		pixel_perf_query_index = pixel_perf_queries.size() - 1;
-	}
-	else if (pixel_perf_queries.size() < pixel_perf_query_index+1)
-	{
-		StorePixelPerfResult(PP_ZCOMP_OUTPUT);
-		pixel_perf_query_index = 0;
-	}
-	// This will spam the D3D11 debug runtime output with QUERY_BEGIN_ABANDONING_PREVIOUS_RESULTS warnings which safely can be ignored. Mute them in the DX control panel if you need to read the debug runtime output.
-	D3D::context->Begin(pixel_perf_queries[pixel_perf_query_index]);
-	pixel_perf_active = true;
-	pixel_perf_dirty = true;
-}
-
-void Renderer::PausePixelPerf(bool efb_copies)
-{
-	if (g_ActiveConfig.bDisablePixelPerf)
-		return;
-
-	if(!pixel_perf_active)
-		return;
-
-	D3D::context->End(pixel_perf_queries[pixel_perf_query_index]);
-	pixel_perf_query_index++;
-	pixel_perf_active = false;
-}
-
-void Renderer::StorePixelPerfResult(PixelPerfQuery type)
-{
-	// First, make sure the GPU has finished rendering so that query results are valid
-	D3D::context->End(gpu_finished_query);
-	BOOL gpu_finished = FALSE;
-	while (!gpu_finished)
-	{
-		// If nothing goes horribly wrong here, this should complete in finite time...
-		D3D::context->GetData(gpu_finished_query, &gpu_finished, sizeof(gpu_finished), 0);
-	}
-
-	for(int i = 0; i < pixel_perf_query_index; ++i)
-	{
-		UINT64 buf = 0;
-		D3D::context->GetData(pixel_perf_queries[i], &buf, sizeof(buf), 0);
-
-		// Reported pixel metrics should be referenced to native resolution:
-		pixel_perf += buf * EFB_WIDTH * EFB_HEIGHT / GetTargetWidth() / GetTargetHeight();
-	}
-	pixel_perf_dirty = false;
-}
-
-u32 Renderer::GetPixelPerfResult(PixelPerfQuery type)
-{
-	if (g_ActiveConfig.bDisablePixelPerf)
-		return 0;
-
-	if (type == PP_EFB_COPY_CLOCKS)
-	{
-		// not implemented
-		return 0;
-	}
-
-	if (type == PE_PERF_ZCOMP_INPUT_ZCOMPLOC_L ||
-		type == PE_PERF_ZCOMP_INPUT_ZCOMPLOC_H ||
-		type == PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_L ||
-		type == PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_H)
-	{
-		// return zero for now because ZCOMP_OUTPUT_ZCOMPLOC + ZCOMP_OUTPUT should equal BLEND_INPUT
-		// TODO: Instead, should keep separate counters for zcomploc and non-zcomploc registers.
-		return 0;
-	}
-
-	// Basically we only implement PP_ZCOMP_OUTPUT, but we're returning the same value for PP_ZCOMP_INPUT and PP_BLEND_INPUT anyway
-	if (pixel_perf_dirty)
-		StorePixelPerfResult(PP_ZCOMP_OUTPUT);
-
-	// Dividing by 4 because we're expected to return the number of 2x2 quads instead of pixels
-	return std::min(pixel_perf / 4, (u64)0xFFFFFFFF);
 }
 
 void SetSrcBlend(D3D11_BLEND val)

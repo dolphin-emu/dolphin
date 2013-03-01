@@ -128,11 +128,6 @@ public:
 	static unsigned int GetPrevPixelFormat() { return prev_efb_format; }
 	static void StorePixelFormat(unsigned int new_format) { prev_efb_format = new_format; }
 
-	virtual void ResetPixelPerf() {};
-	virtual void ResumePixelPerf(bool efb_copies) {};
-	virtual void PausePixelPerf(bool efb_copies) {};
-	virtual u32 GetPixelPerfResult(PixelPerfQuery type) { return 0; };
-
 	// TODO: doesn't belong here
 	virtual void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4) = 0;
 	virtual void SetPSConstant4fv(unsigned int const_number, const float *f) = 0;

@@ -3,7 +3,7 @@
 
 #include "PerfQueryBase.h"
 
-namespace OGL {
+namespace DX11 {
 
 class PerfQuery : public PerfQueryBase
 {
@@ -21,18 +21,18 @@ public:
 private:
 	struct ActiveQuery
 	{
-		GLuint query_id;
+		ID3D11Query* query;
 		PerfQueryGroup query_type;
 	};
+
+	void WeakFlush();
+
+	// Only use when non-empty
+	void FlushOne();
 
 	// when testing in SMS: 64 was too small, 128 was ok
 	static const int PERF_QUERY_BUFFER_SIZE = 512;
 
-	void WeakFlush();
-	// Only use when non-empty
-	void FlushOne();
-
-	// This contains gl query objects with unretrieved results.
 	ActiveQuery m_query_buffer[PERF_QUERY_BUFFER_SIZE];
 	int m_query_read_pos;
 
