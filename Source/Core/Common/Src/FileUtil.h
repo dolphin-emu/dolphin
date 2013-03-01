@@ -234,7 +234,7 @@ void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmod
 #ifdef _WIN32
 	fstream.open(UTF8ToTStr(filename).c_str(), openmode);
 #else
-	fstream.open(filename, openmode);
+	fstream.open(filename.c_str(), openmode);
 #endif
 }
 
