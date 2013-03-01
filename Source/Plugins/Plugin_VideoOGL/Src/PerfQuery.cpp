@@ -1,3 +1,4 @@
+#include "RenderBase.h"
 #include "GLUtil.h"
 #include "PerfQuery.h"
 
@@ -61,12 +62,13 @@ bool PerfQuery::IsFlushed() const
 void PerfQuery::FlushOne()
 {
 	auto& entry = m_query_buffer[m_query_read_pos];
-	
+
 	GLuint result = 0;
 	glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT, &result);
-	
-	m_results[entry.query_type] += result;
-	
+
+	// NOTE: Reported pixel metrics should be referenced to native resolution
+	m_results[entry.query_type] += result * EFB_WIDTH * EFB_HEIGHT / g_renderer->GetTargetWidth() / g_renderer->GetTargetHeight();
+
 	m_query_read_pos = (m_query_read_pos + 1) % ARRAYSIZE(m_query_buffer);
 	--m_query_count;
 }

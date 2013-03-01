@@ -103,6 +103,7 @@ void PerfQuery::FlushOne()
 		hr = D3D::context->GetData(entry.query, &result, sizeof(result), 0);
 	}
 
+	// NOTE: Reported pixel metrics should be referenced to native resolution
 	m_results[entry.query_type] += result * EFB_WIDTH * EFB_HEIGHT / g_renderer->GetTargetWidth() / g_renderer->GetTargetHeight();
 
 	m_query_read_pos = (m_query_read_pos + 1) % ARRAYSIZE(m_query_buffer);
