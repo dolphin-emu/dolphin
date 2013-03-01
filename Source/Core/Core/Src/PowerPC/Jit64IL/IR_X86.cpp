@@ -472,10 +472,10 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 #else
 			// 64-bit
 			if (Profiled) {
-				RI.Jit->LEA(32, EAX, M((void*)addr));
+				RI.Jit->LEA(32, EAX, M((void*)(u64)addr));
 				return MComplex(RBX, EAX, SCALE_1, 0);
 			}
-			return M((void*)addr);
+			return M((void*)(u64)addr);
 #endif
 		}
 	}
@@ -994,26 +994,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			break;
 		}
 		case StoreMSR: {
-			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
 			regStoreInstToConstLoc(RI, 32, getOp1(I), &MSR);
 			regNormalRegClear(RI, I);
-
-			// If some exceptions are pending and EE are now enabled, force checking
-			// external exceptions when going out of mtmsr in order to execute delayed
-			// interrupts as soon as possible.
-			Jit->MOV(32, R(EAX), M(&MSR));
-			Jit->TEST(32, R(EAX), Imm32(0x8000));
-			FixupBranch eeDisabled = Jit->J_CC(CC_Z);
-
-			Jit->MOV(32, R(EAX), M((void*)&PowerPC::ppcState.Exceptions));
-			Jit->TEST(32, R(EAX), R(EAX));
-			FixupBranch noExceptionsPending = Jit->J_CC(CC_Z);
-
-			Jit->MOV(32, M(&PC), Imm32(InstLoc + 4));
-			Jit->WriteExceptionExit(); // TODO: Implement WriteExternalExceptionExit for JitIL
-
-			Jit->SetJumpTarget(eeDisabled);
-			Jit->SetJumpTarget(noExceptionsPending);
 			break;
 		}
 		case StoreGQR: {
@@ -2009,8 +1991,10 @@ void JitIL::WriteCode() {
 }
 
 void ProfiledReJit() {
-	jit->SetCodePtr(jit->js.rewriteStart);
-	DoWriteCode(&((JitIL *)jit)->ibuild, (JitIL *)jit, true, false);
-	jit->js.curBlock->codeSize = (int)(jit->GetCodePtr() - jit->js.rewriteStart);
-	jit->GetBlockCache()->FinalizeBlock(jit->js.curBlock->blockNum, jit->jo.enableBlocklink, jit->js.curBlock->normalEntry);
+	JitIL *jitil = (JitIL *)jit;
+	jitil->SetCodePtr(jitil->js.rewriteStart);
+	DoWriteCode(&jitil->ibuild, jitil, true, false);
+	jitil->js.curBlock->codeSize = (int)(jitil->GetCodePtr() - jitil->js.rewriteStart);
+	jitil->GetBlockCache()->FinalizeBlock(jitil->js.curBlock->blockNum, jitil->jo.enableBlocklink,
+	jitil->js.curBlock->normalEntry);
 }

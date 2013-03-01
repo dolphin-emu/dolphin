@@ -132,15 +132,15 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	if(Movie::IsPlayingInput())
 	{
 		Movie::PlayController(&PadStatus, ISIDevice::m_iDeviceNumber);
-		if(!Core::g_CoreStartupParameter.bWii)
-			Movie::InputUpdate();
+		Movie::InputUpdate();
 	}
 	else if(Movie::IsRecordingInput())
 	{
 		Movie::RecordInput(&PadStatus, ISIDevice::m_iDeviceNumber);
-		if(!Core::g_CoreStartupParameter.bWii)
-			Movie::InputUpdate();
+		Movie::InputUpdate();
 	}
+	else
+		Movie::CheckPadStatus(&PadStatus, ISIDevice::m_iDeviceNumber);
 
 	// Thankfully changing mode does not change the high bits ;)
 	_Hi  = (u32)((u8)PadStatus.stickY);

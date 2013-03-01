@@ -58,6 +58,8 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "../HW/WII_IPC.h"
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../PowerPC/PowerPC.h"
+#include "../HW/SystemTimers.h"
+#include "CoreTiming.h"
 
 
 namespace WII_IPC_HLE_Interface
@@ -80,8 +82,19 @@ typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue;	// ppc -> arm
 static ipc_msg_queue reply_queue;	// arm -> ppc
 
+static int enque_reply;
+
+static u64 last_reply_time;
+
+void EnqueReplyCallback(u64 userdata, int)
+{
+	reply_queue.push_back(userdata);
+}
+
 void Init()
 {
+	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
+	
     _dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isnt empty on init");
 	CWII_IPC_HLE_Device_es::m_ContentFile = "";
 	u32 i;
@@ -152,6 +165,7 @@ void Reset(bool _bHard)
 	}
 	request_queue.clear();
 	reply_queue.clear();
+	last_reply_time = 0;
 }
 
 void Shutdown()
@@ -235,6 +249,7 @@ void DoState(PointerWrap &p)
 {
 	p.Do(request_queue);
 	p.Do(reply_queue);
+	p.Do(last_reply_time);
 
 	TDeviceMap::const_iterator itr;
 
@@ -253,15 +268,15 @@ void DoState(PointerWrap &p)
 		u32 i;
 		for (i=0; i<IPC_MAX_FDS; i++)
 		{
-			u32 exists;
+			u32 exists = 0;
 			p.Do(exists);
 			if (exists)
 			{
-				u32 isHw;
+				u32 isHw = 0;
 				p.Do(isHw);
 				if (isHw)
 				{
-					u32 hwId;
+					u32 hwId = 0;
 					p.Do(hwId);
 					g_FdMap[i] = AccessDeviceByID(hwId);
 				}
@@ -321,7 +336,7 @@ void ExecuteCommand(u32 _Address)
     bool CmdSuccess = false;
 
     ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
-	volatile int DeviceID = Memory::Read_U32(_Address + 8);
+	volatile s32 DeviceID = Memory::Read_U32(_Address + 8);
 
 	IWII_IPC_HLE_Device* pDevice = (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : NULL;
 
@@ -338,7 +353,7 @@ void ExecuteCommand(u32 _Address)
 		Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
 
 		
-		WARN_LOG(WII_IPC_HLE, "Tried to open %s as %d", DeviceName.c_str(), DeviceID);
+		WARN_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
 		if (DeviceID >= 0)
 		{
 			if (DeviceName.find("/dev/es") == 0)
@@ -382,18 +397,19 @@ void ExecuteCommand(u32 _Address)
 			}
 			else
 			{
-				IWII_IPC_HLE_Device* pDevice = CreateFileIO(DeviceID, DeviceName);
+				pDevice = CreateFileIO(DeviceID, DeviceName);
 				CmdSuccess = pDevice->Open(_Address, Mode);
 
 				INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
 						pDevice->GetDeviceName().c_str(), DeviceID, Mode);
-				if (Memory::Read_U32(_Address + 4) == DeviceID)
+				if (Memory::Read_U32(_Address + 4) == (u32)DeviceID)
 				{
 					g_FdMap[DeviceID] = pDevice;
 				}
 				else
 				{
 					delete pDevice;
+					pDevice = NULL;
 				}
 			}
 
@@ -424,7 +440,10 @@ void ExecuteCommand(u32 _Address)
 
 			// Don't delete hardware
 			if (!pDevice->IsHardware())
+			{
 				delete pDevice;
+				pDevice = NULL;
+			}
 		}
 		else
 		{
@@ -503,8 +522,19 @@ void ExecuteCommand(u32 _Address)
 
     if (CmdSuccess)
     {
+		// Ensure replies happen in order, fairly ugly
+		// Without this, tons of games fail now that DI commads have different reply delays
+		int reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
+		
+		const s64 ticks_til_last_reply = last_reply_time - CoreTiming::GetTicks();
+		
+		if (ticks_til_last_reply > 0)
+			reply_delay = ticks_til_last_reply;
+		
+		last_reply_time = CoreTiming::GetTicks() + reply_delay;
+	
 		// Generate a reply to the IPC command
-		EnqReply(_Address);
+		EnqReply(_Address, reply_delay);
     }
 	else
 	{
@@ -526,9 +556,9 @@ void EnqRequest(u32 _Address)
 }
 
 // Called when IOS module has some reply
-void EnqReply(u32 _Address)
+void EnqReply(u32 _Address, int cycles_in_future)
 {
-	reply_queue.push_back(_Address);
+	CoreTiming::ScheduleEvent(cycles_in_future, enque_reply, _Address);
 }
 
 // This is called every IPC_HLE_PERIOD from SystemTimers.cpp

@@ -290,7 +290,7 @@ bool CEXIETHERNET::IsWriteCommand(u32 const data)
 	return IsMXCommand(data) ? !!(data & (1 << 30)) : !!(data & (1 << 14));
 }
 
-char const * const CEXIETHERNET::GetRegisterName() const
+const char* CEXIETHERNET::GetRegisterName() const
 {
 #define STR_RETURN(x) case x: return #x;
 

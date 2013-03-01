@@ -100,7 +100,7 @@ class ControlDialog : public wxDialog
 public:
 	ControlDialog(GamepadPage* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref);
 	
-	wxStaticBoxSizer* CreateControlChooser(wxWindow* const parent, wxWindow* const eventsink);
+	wxStaticBoxSizer* CreateControlChooser(GamepadPage* const parent);
 
 	void DetectControl(wxCommandEvent& event);
 	void ClearControl(wxCommandEvent& event);
@@ -159,7 +159,7 @@ public:
 class ControlGroupBox : public wxBoxSizer
 {
 public:
-	ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink);
+	ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, GamepadPage* const eventsink);
 	~ControlGroupBox();
 
 	std::vector<PadSetting*>		options;
@@ -172,7 +172,7 @@ public:
 class ControlGroupsSizer : public wxBoxSizer
 {
 public:
-	ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent,  wxWindow* const eventsink, std::vector<ControlGroupBox*>* const groups = NULL);
+	ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent, GamepadPage* const eventsink, std::vector<ControlGroupBox*>* const groups = NULL);
 };
 
 class InputConfigDialog;
@@ -193,8 +193,8 @@ public:
 	void SaveProfile(wxCommandEvent& event);
 	void DeleteProfile(wxCommandEvent& event);
 
-	void ConfigControl(wxCommandEvent& event);
-	void ClearControl(wxCommandEvent& event);
+	void ConfigControl(wxEvent& event);
+	void ClearControl(wxEvent& event);
 	void DetectControl(wxCommandEvent& event);
 
 	void ConfigExtension(wxCommandEvent& event);

@@ -88,7 +88,6 @@ Make AA apply instantly during gameplay if possible
 #include "TextureConverter.h"
 #include "PostProcessing.h"
 #include "OnScreenDisplay.h"
-#include "Setup.h"
 #include "DLCache.h"
 #include "FramebufferManager.h"
 #include "Core.h"
@@ -132,6 +131,7 @@ void InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_OPENGL;
 	g_Config.backend_info.bUseRGBATextures = false;
+	g_Config.backend_info.bUseMinimalMipCount = false;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = false; // supported, but broken
 	g_Config.backend_info.bSupportsFormatReinterpretation = false;
@@ -168,7 +168,8 @@ bool VideoBackend::Initialize(void *&window_handle)
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
-	if (!OpenGL_Create(window_handle))
+	InitInterface();
+	if (!GLInterface->Create(window_handle))
 		return false;
 
 	s_BackendInitialized = true;
@@ -180,7 +181,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 // Run from the graphics thread
 void VideoBackend::Video_Prepare()
 {
-	OpenGL_MakeCurrent();
+	GLInterface->MakeCurrent();
 
 	g_renderer = new Renderer;
 
@@ -206,7 +207,9 @@ void VideoBackend::Video_Prepare()
 	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
+#ifndef _M_GENERIC
 	DLCache::Init();
+#endif
 
 	// Notify the core that the video backend is ready
 	Host_Message(WM_USER_CREATE);
@@ -221,7 +224,9 @@ void VideoBackend::Shutdown()
 		s_efbAccessRequested = false;
 		s_FifoShuttingDown = false;
 		s_swapRequested = false;
+#ifndef _M_GENERIC
 		DLCache::Shutdown();
+#endif
 		Fifo_Shutdown();
 		PostProcessing::Shutdown();
 
@@ -240,7 +245,7 @@ void VideoBackend::Shutdown()
 		g_renderer = NULL;
 		g_texture_cache = NULL;
 	}
-	OpenGL_Shutdown();
+	GLInterface->Shutdown();
 }
 
 }

@@ -432,12 +432,12 @@ static bool AlphaCompare(int alpha, int ref, int comp)
     return true;
 }
 
-static bool AlphaTest(int alpha)
+static bool TevAlphaTest(int alpha)
 {
-    bool comp0 = AlphaCompare(alpha, bpmem.alphaFunc.ref0, bpmem.alphaFunc.comp0);
-    bool comp1 = AlphaCompare(alpha, bpmem.alphaFunc.ref1, bpmem.alphaFunc.comp1);
+    bool comp0 = AlphaCompare(alpha, bpmem.alpha_test.ref0, bpmem.alpha_test.comp0);
+    bool comp1 = AlphaCompare(alpha, bpmem.alpha_test.ref1, bpmem.alpha_test.comp1);
 
-    switch (bpmem.alphaFunc.logic) {
+    switch (bpmem.alpha_test.logic) {
     case 0: return comp0 && comp1; // and
     case 1: return comp0 || comp1; // or
     case 2: return comp0 ^ comp1; // xor
@@ -701,7 +701,7 @@ void Tev::Draw()
     // convert to 8 bits per component
     u8 output[4] = {(u8)Reg[0][ALP_C], (u8)Reg[0][BLU_C], (u8)Reg[0][GRN_C], (u8)Reg[0][RED_C]};
 
-    if (!AlphaTest(output[ALP_C]))
+    if (!TevAlphaTest(output[ALP_C]))
         return;
 
     // z texture
@@ -785,15 +785,16 @@ void Tev::Draw()
 		output[BLU_C] = (output[BLU_C] * invFog + fogInt * bpmem.fog.color.b) >> 8;
 	}
 
-    if (!bpmem.zcontrol.zcomploc)
+	bool late_ztest = !bpmem.zcontrol.early_ztest || !g_SWVideoConfig.bZComploc;
+	if (late_ztest && bpmem.zmode.testenable)
 	{
+		// TODO: Check against hw if these values get incremented even if depth testing is disabled
         if (++SWPixelEngine::pereg.perfZcompInputLo == 0)
 			SWPixelEngine::pereg.perfZcompInputHi++;
-		if (bpmem.zmode.testenable)
-	    {
-	        if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
-	            return;
-	    }
+
+		if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
+			return;
+
         if (++SWPixelEngine::pereg.perfZcompOutputLo == 0)
 			SWPixelEngine::pereg.perfZcompOutputHi++;
 	}
@@ -836,4 +837,32 @@ void Tev::SetRegColor(int reg, int comp, bool konst, s16 color)
     {
         Reg[reg][comp] = color;
     }
+}
+
+void Tev::DoState(PointerWrap &p)
+{
+	p.DoArray(Reg, sizeof(Reg));
+	
+	p.DoArray(KonstantColors, sizeof(KonstantColors));
+	p.DoArray(TexColor,4);
+	p.DoArray(RasColor,4);
+	p.DoArray(StageKonst,4);
+    p.DoArray(Zero16,4);
+    
+	p.DoArray(FixedConstants,9);
+	p.Do(AlphaBump);
+	p.DoArray(IndirectTex, sizeof(IndirectTex));
+	p.Do(TexCoord);
+
+	p.DoArray(m_BiasLUT,4);
+    p.DoArray(m_ScaleLShiftLUT,4);
+    p.DoArray(m_ScaleRShiftLUT,4);
+
+	p.DoArray(Position,3);
+    p.DoArray(Color, sizeof(Color));
+    p.DoArray(Uv, 8);
+    p.DoArray(IndirectLod,4);
+	p.DoArray(IndirectLinear,4);
+	p.DoArray(TextureLod,16);
+	p.DoArray(TextureLinear,16);
 }

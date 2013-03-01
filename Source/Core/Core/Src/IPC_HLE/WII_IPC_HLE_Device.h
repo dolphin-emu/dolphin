@@ -21,8 +21,7 @@
 #include <queue>
 #include "../HW/Memmap.h"
 
-class PointerWrap;
-
+#include "ChunkFile.h"
 
 #define	FS_SUCCESS		(u32)0		// Success
 #define	FS_EACCES		(u32)-1		// Permission denied 
@@ -62,7 +61,11 @@ public:
 
 	virtual ~IWII_IPC_HLE_Device() { }
 
-	virtual void DoState(PointerWrap& p) { DoStateShared(p); }
+	virtual void DoState(PointerWrap& p) 
+	{
+		DoStateShared(p);
+		p.Do(m_Active);
+	}
 	
 	void DoStateShared(PointerWrap& p);
 
@@ -91,6 +94,8 @@ public:
 	virtual bool IOCtl	(u32) { UNIMPLEMENTED_CMD(IOCtl) }
 	virtual bool IOCtlV	(u32) { UNIMPLEMENTED_CMD(IOCtlV) }
 #undef UNIMPLEMENTED_CMD
+
+	virtual int GetCmdDelay(u32) { return 0; }
 
 	virtual u32 Update() { return 0; }
 

@@ -17,7 +17,6 @@
 
 #include <list>
 #include <d3dx9.h>
-#include <strsafe.h>
 
 #include "StringUtil.h"
 #include "Common.h"
@@ -54,6 +53,11 @@
 #include "Core.h"
 #include "Movie.h"
 #include "BPFunctions.h"
+#include "FPSCounter.h"
+#include "ConfigManager.h"
+
+#include <strsafe.h>
+
 
 namespace DX9
 {
@@ -69,148 +73,6 @@ static char *st;
 static LPDIRECT3DSURFACE9 ScreenShootMEMSurface = NULL;
 
 
-// State translation lookup tables
-static const D3DBLEND d3dSrcFactors[8] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_ONE,
-	D3DBLEND_DESTCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_SRCALPHA,
-	D3DBLEND_INVSRCALPHA, 
-	D3DBLEND_DESTALPHA,
-	D3DBLEND_INVDESTALPHA
-};
-
-static const D3DBLEND d3dDestFactors[8] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_ONE,
-	D3DBLEND_SRCCOLOR,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_SRCALPHA,
-	D3DBLEND_INVSRCALPHA, 
-	D3DBLEND_DESTALPHA,
-	D3DBLEND_INVDESTALPHA
-};
-
-//		0	0x00
-//		1	Source & destination
-//		2	Source & ~destination
-//		3	Source
-//		4	~Source & destination
-//		5	Destination
-//		6	Source ^ destination =  Source & ~destination | ~Source & destination
-//		7	Source | destination
-
-//		8	~(Source | destination)
-//		9	~(Source ^ destination) = ~Source & ~destination | Source & destination
-//		10	~Destination
-//		11	Source | ~destination
-//		12	~Source
-//		13	~Source | destination
-//		14	~(Source & destination)
-//		15	0xff
-
-static const D3DBLENDOP d3dLogicOpop[16] =
-{
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_SUBTRACT,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_REVSUBTRACT,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_MAX,
-	D3DBLENDOP_ADD,
-	
-	D3DBLENDOP_MAX,
-	D3DBLENDOP_MAX,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD,
-	D3DBLENDOP_ADD
-};
-
-static const D3DBLEND d3dLogicOpSrcFactors[16] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_DESTCOLOR,
-	D3DBLEND_ONE,
-	D3DBLEND_ONE,
-	D3DBLEND_DESTCOLOR,
-	D3DBLEND_ZERO,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_ONE,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_ONE
-};
-
-static const D3DBLEND d3dLogicOpDestFactors[16] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_ZERO,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_ZERO,
-	D3DBLEND_ONE,
-	D3DBLEND_ONE,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_ONE,
-
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_SRCCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_ONE,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_ONE
-};
-
-static const D3DCULL d3dCullModes[4] =
-{
-	D3DCULL_NONE,
-	D3DCULL_CCW,
-	D3DCULL_CW,
-	D3DCULL_CCW
-};
-
-static const D3DCMPFUNC d3dCmpFuncs[8] =
-{
-	D3DCMP_NEVER,
-	D3DCMP_LESS,
-	D3DCMP_EQUAL,
-	D3DCMP_LESSEQUAL,
-	D3DCMP_GREATER,
-	D3DCMP_NOTEQUAL,
-	D3DCMP_GREATEREQUAL,
-	D3DCMP_ALWAYS
-};
-
-static const D3DTEXTUREFILTERTYPE d3dMipFilters[4] =
-{
-	D3DTEXF_NONE,
-	D3DTEXF_POINT,
-	D3DTEXF_LINEAR,
-	D3DTEXF_NONE, //reserved
-};
-
-static const D3DTEXTUREADDRESS d3dClamps[4] =
-{
-	D3DTADDRESS_CLAMP,
-	D3DTADDRESS_WRAP,
-	D3DTADDRESS_MIRROR,
-	D3DTADDRESS_WRAP //reserved
-};
-
 void SetupDeviceObjects()
 {
 	D3D::font.Init();
@@ -224,6 +86,7 @@ void SetupDeviceObjects()
 	// To avoid shader compilation stutters, read back all shaders from cache.
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
+	g_vertex_manager->CreateDeviceObjects();
 	// Texture cache will recreate themselves over time.
 }
 
@@ -242,11 +105,14 @@ void TeardownDeviceObjects()
 	VertexShaderCache::Shutdown();
 	PixelShaderCache::Shutdown();
 	TextureConverter::Shutdown();
+	g_vertex_manager->DestroyDeviceObjects();
 }
 
 // Init functions
 Renderer::Renderer()
 {
+	InitFPSCounter();
+
 	st = new char[32768];
 
 	int fullScreenRes, x, y, w_temp, h_temp;
@@ -274,19 +140,16 @@ Renderer::Renderer()
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 
-	s_XFB_width = MAX_XFB_WIDTH;
-	s_XFB_height = MAX_XFB_HEIGHT;
+	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
+	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-	CalculateXYScale(dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	int SupersampleCoeficient = (s_LastAA % 3) + 1;
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	CalculateTargetSize(SupersampleCoeficient);
+	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height, SupersampleCoeficient);
 
 	// Make sure to use valid texture sizes
 	D3D::FixTextureSize(s_target_width, s_target_height);
@@ -353,11 +216,11 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 
 }
 
-void formatBufferDump(const char *in, char *out, int w, int h, int p)
+void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 {
 	for (int y = 0; y < h; y++)
 	{
-		const char *line = in + (h - y - 1) * p;
+		auto line = in + (h - y - 1) * p;
 		for (int x = 0; x < w; x++)
 		{
 			memcpy(out, line, 3);
@@ -423,10 +286,13 @@ void Renderer::SetColorMask()
 {
 	// Only enable alpha channel if it's supported by the current EFB format
 	DWORD color_mask = 0;
-	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
-		color_mask = D3DCOLORWRITEENABLE_ALPHA;
-	if (bpmem.blendmode.colorupdate)
-		color_mask |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+	if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
+	{
+		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+			color_mask = D3DCOLORWRITEENABLE_ALPHA;
+		if (bpmem.blendmode.colorupdate)
+			color_mask |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+	}
 	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
 
@@ -701,8 +567,8 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	// If GX viewport is off the render target, we must clamp our viewport
 	// within the bounds. Use the correction matrix to compensate.
 	ViewportCorrectionMatrix(vpCorrection,
-		intendedX, intendedY, intendedWd, intendedHt,
-		X, Y, Wd, Ht);
+		(float)intendedX, (float)intendedY, (float)intendedWd, (float)intendedHt,
+		(float)X, (float)Y, (float)Wd, (float)Ht);
 
 	D3DVIEWPORT9 vp;
 	vp.X = X;
@@ -788,6 +654,32 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
+	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
+	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
+	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	const D3DBLEND d3dSrcFactors[8] =
+	{
+		D3DBLEND_ZERO,
+		D3DBLEND_ONE,
+		D3DBLEND_DESTCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_SRCALPHA,
+		D3DBLEND_INVSRCALPHA, 
+		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
+		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
+	};
+	const D3DBLEND d3dDestFactors[8] =
+	{
+		D3DBLEND_ZERO,
+		D3DBLEND_ONE,
+		D3DBLEND_SRCCOLOR,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_SRCALPHA,
+		D3DBLEND_INVSRCALPHA, 
+		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
+		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
+	};
+
 	if (bpmem.blendmode.logicopenable && !forceUpdate)
 		return;
 
@@ -800,8 +692,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 	else
 	{
-		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)));
-		if (bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)))
+		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
+		if (bpmem.blendmode.blendenable)
 		{
 			D3D::SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
 			D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[bpmem.blendmode.srcfactor]);
@@ -831,25 +723,22 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
-	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
-		if (g_ActiveConfig.bDumpFrames && frame_data)
-			AVIDump::AddFrame(frame_data);
+		if (g_ActiveConfig.bDumpFrames && !frame_data.empty())
+			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
 
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
-	// this function is called after the XFB field is changed, not after
-	// EFB is copied to XFB. In this way, flickering is reduced in games
-	// and seems to also give more FPS in ZTP
 
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
-		if (g_ActiveConfig.bDumpFrames && frame_data)
-			AVIDump::AddFrame(frame_data);
+		if (g_ActiveConfig.bDumpFrames && !frame_data.empty())
+			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
 
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -882,8 +771,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::dev->SetDepthStencilSurface(NULL);
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	D3DVIEWPORT9 vp;
 
 	// Clear full target screen (edges, borders etc)
@@ -903,10 +791,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 	}
 
-	int X = dst_rect.left;
-	int Y = dst_rect.top;
-	int Width  = dst_rect.right - dst_rect.left;
-	int Height = dst_rect.bottom - dst_rect.top;
+	int X = GetTargetRectangle().left;
+	int Y = GetTargetRectangle().top;
+	int Width  = GetTargetRectangle().right - GetTargetRectangle().left;
+	int Height = GetTargetRectangle().bottom - GetTargetRectangle().top;
 
 	// Sanity check
 	if (X < 0) X = 0;
@@ -949,7 +837,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 			MathUtil::Rectangle<float> drawRc;
 
-			if (!g_ActiveConfig.bUseRealXFB)
+			if (g_ActiveConfig.bUseRealXFB)
+			{
+				drawRc.top = -1;
+				drawRc.bottom = 1;
+				drawRc.left = -1;
+				drawRc.right = 1;
+			}
+			else
 			{
 				// use virtual xfb with offset
 				int xfbHeight = xfbSource->srcHeight;
@@ -963,19 +858,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 				// The following code disables auto stretch.  Kept for reference.
 				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				//float vScale = (float)fbHeight / (float)dst_rect.GetHeight();
-				//float hScale = (float)fbWidth / (float)dst_rect.GetWidth();
+				//float vScale = (float)fbHeight / (float)GetTargetRectangle().GetHeight();
+				//float hScale = (float)fbWidth / (float)GetTargetRectangle().GetWidth();
 				//drawRc.top *= vScale;
 				//drawRc.bottom *= vScale;
 				//drawRc.left *= hScale;
 				//drawRc.right *= hScale;
-			}
-			else
-			{
-				drawRc.top = -1;
-				drawRc.bottom = 1;
-				drawRc.left = -1;
-				drawRc.right = 1;
 			}
 
 			xfbSource->Draw(sourceRc, drawRc, Width, Height);
@@ -1013,7 +901,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (s_bScreenshot)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		SaveScreenshot(s_sScreenshotName, dst_rect);
+		SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
 		s_bScreenshot = false;
 	}
 
@@ -1027,8 +915,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		HRESULT hr = D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);
 		if (!bLastFrameDumped)
 		{
-			s_recordWidth = dst_rect.GetWidth();
-			s_recordHeight = dst_rect.GetHeight();
+			s_recordWidth = GetTargetRectangle().GetWidth();
+			s_recordHeight = GetTargetRectangle().GetHeight();
 			bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
 			if (!bAVIDumping)
 			{
@@ -1045,17 +933,16 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		if (bAVIDumping)
 		{
 			D3DLOCKED_RECT rect;
-			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, dst_rect.AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
+			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, GetTargetRectangle().AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
 			{
-				if (!frame_data || w != s_recordWidth || h != s_recordHeight)
+				if (frame_data.empty() || w != s_recordWidth || h != s_recordHeight)
 				{
-					delete[] frame_data;
-					frame_data = new char[3 * s_recordWidth * s_recordHeight];
+					frame_data.resize(3 * s_recordWidth * s_recordHeight);
 					w = s_recordWidth;
 					h = s_recordHeight;
 				}
-				formatBufferDump((const char*)rect.pBits, frame_data, s_recordWidth, s_recordHeight, rect.Pitch);
-				AVIDump::AddFrame(frame_data);
+				formatBufferDump((const u8*)rect.pBits, &frame_data[0], s_recordWidth, s_recordHeight, rect.Pitch);
+				AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
 				ScreenShootMEMSurface->UnlockRect();
 			}
 		}
@@ -1065,12 +952,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		if (bLastFrameDumped && bAVIDumping)
 		{
-			if (frame_data)
-			{
-				delete[] frame_data;
-				frame_data = 0;
-				w = h = 0;
-			}
+			std::vector<u8>().swap(frame_data);
+			w = h = 0;
 			AVIDump::Stop();
 			bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames to AVI", 2000);
@@ -1086,28 +969,36 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::font.DrawTextScaled(0, 0, 20, 20, 0.0f, 0xFF00FFFF, fps);
 	}
 
+	if (SConfig::GetInstance().m_ShowLag)
+	{
+		char lag[10];
+		StringCchPrintfA(lag, 1000, "Lag: %llu\n", Movie::g_currentLagCount);
+		D3D::font.DrawTextScaled(0, 18, 20, 20, 0.0f, 0xFF00FFFF, lag);
+	}
+
 	if (g_ActiveConfig.bShowInputDisplay)
 	{
 		char inputDisplay[1000];
 		StringCchPrintfA(inputDisplay, 1000, Movie::GetInputDisplay().c_str());
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, inputDisplay);
+		D3D::font.DrawTextScaled(0, 36, 20, 20, 0.0f, 0xFF00FFFF, inputDisplay);
 	}
+
 	Renderer::DrawDebugText();
 
 	if (g_ActiveConfig.bOverlayStats)
 	{
 		Statistics::ToString(st);
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, st);
+		D3D::font.DrawTextScaled(0, 36, 20, 20, 0.0f, 0xFF00FFFF, st);
 	}
 	else if (g_ActiveConfig.bOverlayProjStats)
 	{
 		Statistics::ToStringProj(st);
-		D3D::font.DrawTextScaled(0, 30, 20, 20, 0.0f, 0xFF00FFFF, st);
+		D3D::font.DrawTextScaled(0, 36, 20, 20, 0.0f, 0xFF00FFFF, st);
 	}
 
 	OSD::DrawMessages();
 	D3D::EndFrame();
-	frameCount++;
+	++frameCount;
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
@@ -1124,15 +1015,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	bool xfbchanged = false;
 
-	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
+	if (FramebufferManagerBase::LastXfbWidth() != fbWidth || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		s_XFB_width = fbWidth;
-		s_XFB_height = fbHeight;
-		if (s_XFB_width < 1) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_width > MAX_XFB_WIDTH) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_height < 1) s_XFB_height = MAX_XFB_HEIGHT;
-		if (s_XFB_height > MAX_XFB_HEIGHT) s_XFB_height = MAX_XFB_HEIGHT;
+		unsigned int w = (fbWidth < 1 || fbWidth > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbWidth;
+		unsigned int h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+		FramebufferManagerBase::SetLastXfbWidth(w);
+		FramebufferManagerBase::SetLastXfbHeight(h);
 	}
 
 	u32 newAA = g_ActiveConfig.iMultisampleMode;
@@ -1141,14 +1030,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		s_LastAA = newAA;
 
-		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-		CalculateXYScale(dst_rect);
+		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 		
 		int SupersampleCoeficient = (s_LastAA % 3) + 1;
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
-		CalculateTargetSize(SupersampleCoeficient);
+		CalculateTargetSize(s_backbuffer_width, s_backbuffer_height, SupersampleCoeficient);
 
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
@@ -1168,20 +1055,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0,0,0), 1.0f, 0);
 	}
 
-	// Place messages on the picture, then copy it to the screen
-	// ---------------------------------------------------------------------
-	// Count FPS.
-	// -------------
-	static int fpscount = 0;
-	static unsigned long lasttime = 0;
-	if (Common::Timer::GetTimeMs() - lasttime >= 1000)
-	{
-		lasttime = Common::Timer::GetTimeMs();
-		s_fps = fpscount;
-		fpscount = 0;
-	}
 	if (XFBWrited)
-		++fpscount;
+		s_fps = UpdateFPSCounter();
 
 	// Begin new frame
 	// Set default viewport and scissor, for the clear to work correctly
@@ -1205,8 +1080,17 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	if (bUseDstAlpha)
 	{
+		// TODO: WTF is this crap? We're enabling color writing regardless of the actual GPU state here...
 		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
+		if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
+		{
+			//This is needed to draw to the correct pixels in multi-pass algorithms
+			//this avoid z-figthing and grants that you write to the same pixels
+			//affected by the last pass
+			D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);
+			D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_EQUAL);
+		}
 	}
 }
 
@@ -1214,7 +1098,11 @@ void Renderer::RestoreState()
 {
 	D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
 	D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
-
+	if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
+	{
+		D3D::RefreshRenderState(D3DRS_ZWRITEENABLE);
+		D3D::RefreshRenderState(D3DRS_ZFUNC);
+	}
 	// TODO: Enable this code. Caused glitches for me however (neobrain)
 //	for (unsigned int i = 0; i < 8; ++i)
 //		D3D::dev->SetTexture(i, NULL);
@@ -1252,11 +1140,31 @@ void Renderer::RestoreAPIState()
 
 void Renderer::SetGenerationMode()
 {
+	const D3DCULL d3dCullModes[4] =
+	{
+		D3DCULL_NONE,
+		D3DCULL_CCW,
+		D3DCULL_CW,
+		D3DCULL_CCW
+	};
+
 	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 }
 
 void Renderer::SetDepthMode()
 {
+	const D3DCMPFUNC d3dCmpFuncs[8] =
+	{
+		D3DCMP_NEVER,
+		D3DCMP_LESS,
+		D3DCMP_EQUAL,
+		D3DCMP_LESSEQUAL,
+		D3DCMP_GREATER,
+		D3DCMP_NOTEQUAL,
+		D3DCMP_GREATEREQUAL,
+		D3DCMP_ALWAYS
+	};
+
 	if (bpmem.zmode.testenable)
 	{
 		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
@@ -1273,7 +1181,83 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
+	// D3D9 doesn't support logic blending, so this is a huge hack
+
+	//		0	0x00
+	//		1	Source & destination
+	//		2	Source & ~destination
+	//		3	Source
+	//		4	~Source & destination
+	//		5	Destination
+	//		6	Source ^ destination =  Source & ~destination | ~Source & destination
+	//		7	Source | destination
+	//		8	~(Source | destination)
+	//		9	~(Source ^ destination) = ~Source & ~destination | Source & destination
+	//		10	~Destination
+	//		11	Source | ~destination
+	//		12	~Source
+	//		13	~Source | destination
+	//		14	~(Source & destination)
+	//		15	0xff
+	const D3DBLENDOP d3dLogicOpop[16] =
+	{
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_SUBTRACT,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_REVSUBTRACT,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_MAX,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_MAX,
+		D3DBLENDOP_MAX,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD,
+		D3DBLENDOP_ADD
+	};
+	const D3DBLEND d3dLogicOpSrcFactors[16] =
+	{
+		D3DBLEND_ZERO,
+		D3DBLEND_DESTCOLOR,
+		D3DBLEND_ONE,
+		D3DBLEND_ONE,
+		D3DBLEND_DESTCOLOR,
+		D3DBLEND_ZERO,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_ONE,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_ONE
+	};
+	const D3DBLEND d3dLogicOpDestFactors[16] =
+	{
+		D3DBLEND_ZERO,
+		D3DBLEND_ZERO,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_ZERO,
+		D3DBLEND_ONE,
+		D3DBLEND_ONE,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_ONE,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_SRCCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_INVDESTCOLOR,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_ONE,
+		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_ONE
+	};
+
+	if (bpmem.blendmode.logicopenable)
 	{
 		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
 		D3D::SetRenderState(D3DRS_BLENDOP, d3dLogicOpop[bpmem.blendmode.logicmode]);
@@ -1301,6 +1285,21 @@ void Renderer::SetLineWidth()
 
 void Renderer::SetSamplerState(int stage, int texindex)
 {
+	const D3DTEXTUREFILTERTYPE d3dMipFilters[4] =
+	{
+		D3DTEXF_NONE,
+		D3DTEXF_POINT,
+		D3DTEXF_LINEAR,
+		D3DTEXF_NONE, //reserved
+	};
+	const D3DTEXTUREADDRESS d3dClamps[4] =
+	{
+		D3DTADDRESS_CLAMP,
+		D3DTADDRESS_WRAP,
+		D3DTADDRESS_MIRROR,
+		D3DTADDRESS_WRAP //reserved
+	};
+
 	const FourTexUnits &tex = bpmem.tex[texindex];
 	const TexMode0 &tm0 = tex.texMode0[stage];
 	const TexMode1 &tm1 = tex.texMode1[stage];
@@ -1314,13 +1313,11 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	{
 		min = (tm0.min_filter & 4) ? D3DTEXF_LINEAR : D3DTEXF_POINT;
 		mag = tm0.mag_filter ? D3DTEXF_LINEAR : D3DTEXF_POINT;
-		mip = (tm0.min_filter == 8) ? D3DTEXF_NONE : d3dMipFilters[tm0.min_filter & 3];
-		if((tm0.min_filter & 3) && (tm0.min_filter != 8) && ((tm1.max_lod >> 4) == 0))
-			mip = D3DTEXF_NONE;
+		mip = d3dMipFilters[tm0.min_filter & 3];
 	}
 	if (texindex)
 		stage += 4;
-	
+
 	if (mag == D3DTEXF_LINEAR && min == D3DTEXF_LINEAR && g_ActiveConfig.iMaxAnisotropy)
 	{
 		min = D3DTEXF_ANISOTROPIC;
@@ -1331,8 +1328,8 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
-	//float SuperSampleCoeficient = (s_LastAA < 3)? s_LastAA + 1 : s_LastAA - 1;// uncoment this changes to conserve detail when incresing ssaa level
-	float lodbias = (tm0.lod_bias / 32.0f);// + (s_LastAA)?(log(SuperSampleCoeficient) / log(2.0f)):0;
+
+	float lodbias = (s32)tm0.lod_bias / 32.0f;
 	D3D::SetSamplerState(stage, D3DSAMP_MIPMAPLODBIAS, *(DWORD*)&lodbias);
 	D3D::SetSamplerState(stage, D3DSAMP_MAXMIPLEVEL, tm1.min_lod >> 4);
 }

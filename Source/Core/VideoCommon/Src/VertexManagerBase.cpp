@@ -9,6 +9,7 @@
 #include "NativeVertexFormat.h"
 #include "TextureCacheBase.h"
 #include "RenderBase.h"
+#include "BPStructs.h"
 
 #include "VertexManagerBase.h"
 #include "VideoConfig.h"
@@ -159,6 +160,9 @@ void VertexManager::AddVertices(int primitive, int numVertices)
 
 void VertexManager::Flush()
 {
+	// loading a state will invalidate BP, so check for it
+	g_video_backend->CheckInvalidState();
+	
 	g_vertex_manager->vFlush();
 }
 
@@ -198,7 +202,7 @@ void VertexManager::Flush()
 	}
 
 	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphafunc=0x%x", bpmem.genMode.numtevstages+1, bpmem.genMode.numindstages,
-		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alphaFunc.hex>>16)&0xff);
+		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alpha_test.hex>>16)&0xff);
 #endif
 
 	u32 usedtextures = 0;

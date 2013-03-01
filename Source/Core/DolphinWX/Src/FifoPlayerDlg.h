@@ -51,12 +51,13 @@ private:
 	void OnSearchFieldTextChanged(wxCommandEvent& event);
 	void ChangeSearchResult(unsigned int result_idx);
 
-	void OnRecordingFinished(wxCommandEvent& event);
-	void OnFrameWritten(wxCommandEvent& event);
+	void OnRecordingFinished(wxEvent& event);
+	void OnFrameWritten(wxEvent& event);
 
 	void OnFrameListSelectionChanged(wxCommandEvent& event);
 	void OnObjectListSelectionChanged(wxCommandEvent& event);
 	void OnObjectCmdListSelectionChanged(wxCommandEvent& event);
+	void OnObjectCmdListSelectionCopy(wxCommandEvent& WXUNUSED(event));
 
 	void UpdatePlayGui();
 	void UpdateRecorderGui();

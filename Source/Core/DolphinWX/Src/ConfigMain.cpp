@@ -17,10 +17,12 @@
 
 #include <string> // System
 #include <vector>
+#include <algorithm>
 #include <wx/spinbutt.h>
 
 #include "Common.h"
 #include "CommonPaths.h"
+#include "FileSearch.h"
 
 #include "Core.h" // Core
 #include "HW/EXI.h"
@@ -39,6 +41,14 @@
 #include "HotkeyDlg.h"
 #include "Main.h"
 #include "VideoBackendBase.h"
+
+#if defined(__APPLE__)
+#include <tr1/functional>
+using std::tr1::function;
+#else
+#include <functional>
+using std::function;
+#endif
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
 
@@ -79,6 +89,7 @@ static const wxLanguage langIds[] =
 #define DEV_DUMMY_STR		_trans("Dummy")
 
 #define SIDEV_STDCONT_STR	_trans("Standard Controller")
+#define SIDEV_STEERING_STR	_trans("Steering Wheel")
 #define SIDEV_BONGO_STR		_trans("TaruKonga (Bongos)")
 #define SIDEV_GBA_STR		"GBA"
 #define SIDEV_AM_BB_STR		_trans("AM-Baseboard")
@@ -111,7 +122,6 @@ EVT_CHOICE(ID_FRAMELIMIT, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_FRAMELIMIT_USEFPSFORLIMITING, CConfigMain::CoreSettingsChanged)
 
 EVT_RADIOBOX(ID_CPUENGINE, CConfigMain::CoreSettingsChanged)
-EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_NTSCJ, CConfigMain::CoreSettingsChanged)
 
 
@@ -119,13 +129,13 @@ EVT_RADIOBOX(ID_DSPENGINE, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, CConfigMain::AudioSettingsChanged)
 EVT_CHECKBOX(ID_DUMP_AUDIO, CConfigMain::AudioSettingsChanged)
-EVT_CHOICE(ID_FREQUENCY, CConfigMain::AudioSettingsChanged)
+EVT_CHECKBOX(ID_DPL2DECODER, CConfigMain::AudioSettingsChanged)
 EVT_CHOICE(ID_BACKEND, CConfigMain::AudioSettingsChanged)
 EVT_SLIDER(ID_VOLUME, CConfigMain::AudioSettingsChanged)
 
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::DisplaySettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::DisplaySettingsChanged)
-EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::DisplaySettingsChanged)
+EVT_CHECKBOX(ID_INTERFACE_ONSCREENDISPLAYMESSAGES, CConfigMain::DisplaySettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::DisplaySettingsChanged)
 EVT_BUTTON(ID_HOTKEY_CONFIG, CConfigMain::DisplaySettingsChanged)
 
@@ -209,12 +219,13 @@ void CConfigMain::UpdateGUI()
 		EnableCheats->Disable();
 		
 		CPUEngine->Disable();
-		LockThreads->Disable();
 		_NTSCJ->Disable();
 
 		// Disable stuff on AudioPage
 		DSPEngine->Disable();
 		DSPThread->Disable();
+		DPL2Decoder->Disable();
+		Latency->Disable();
 
 		// Disable stuff on GamecubePage
 		GCSystemLang->Disable();
@@ -250,14 +261,6 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_DSPEngine.Add(_("DSP HLE emulation (fast)"));
 	arrayStringFor_DSPEngine.Add(_("DSP LLE recompiler"));
 	arrayStringFor_DSPEngine.Add(_("DSP LLE interpreter (slow)"));
-	
-	
-	// Display page
-	// Themes
-	arrayStringFor_Themes.Add(wxT("Boomy"));
-	arrayStringFor_Themes.Add(wxT("Vista"));
-	arrayStringFor_Themes.Add(wxT("X-Plastik"));
-	arrayStringFor_Themes.Add(wxT("KDE"));
 	
 	// Gamecube page
 	// GC Language arrayStrings
@@ -318,9 +321,6 @@ void CConfigMain::InitializeGUIValues()
 {
 	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	
-	// Load DSP Settings.
-	ac_Config.Load();
-
 	// General - Basic
 	CPUThread->SetValue(startup_params.bCPUThread);
 	SkipIdle->SetValue(startup_params.bSkipIdle);
@@ -330,14 +330,13 @@ void CConfigMain::InitializeGUIValues()
 
 	// General - Advanced
 	CPUEngine->SetSelection(startup_params.iCPUCore);
-	LockThreads->SetValue(startup_params.bLockThreads);
 	_NTSCJ->SetValue(startup_params.bForceNTSCJ);
 
 
 	// Display - Interface
 	ConfirmStop->SetValue(startup_params.bConfirmStop);
 	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
-	Theme->SetSelection(startup_params.iTheme);
+	OnScreenDisplayMessages->SetValue(startup_params.bOnScreenDisplayMessages);
 	// need redesign
 	for (unsigned int i = 0; i < sizeof(langIds) / sizeof(wxLanguage); i++)
 	{
@@ -352,16 +351,18 @@ void CConfigMain::InitializeGUIValues()
 	if (startup_params.bDSPHLE)
 		DSPEngine->SetSelection(0);
 	else
-		DSPEngine->SetSelection(ac_Config.m_EnableJIT ? 1 : 2);
+		DSPEngine->SetSelection(SConfig::GetInstance().m_EnableJIT ? 1 : 2);
 
 	// Audio
-	VolumeSlider->Enable(SupportsVolumeChanges(ac_Config.sBackend));
-	VolumeSlider->SetValue(ac_Config.m_Volume);
-	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), ac_Config.m_Volume));
+	VolumeSlider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
+	VolumeSlider->SetValue(SConfig::GetInstance().m_Volume);
+	VolumeText->SetLabel(wxString::Format(wxT("%d %%"), SConfig::GetInstance().m_Volume));
 	DSPThread->SetValue(startup_params.bDSPThread);
-	DumpAudio->SetValue(ac_Config.m_DumpAudio ? true : false);
-	FrequencySelection->SetSelection(
-		FrequencySelection->FindString(wxString::Format(_("%d Hz"), ac_Config.iFrequency)));
+	DumpAudio->SetValue(SConfig::GetInstance().m_DumpAudio ? true : false);
+	DPL2Decoder->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
+	DPL2Decoder->SetValue(startup_params.bDPL2Decoder);
+	Latency->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
+	Latency->SetValue(startup_params.iLatency);
 	// add backends to the list
 	AddAudioBackends();
 
@@ -389,6 +390,7 @@ void CConfigMain::InitializeGUIValues()
 	wxArrayString SIDevices;
 		SIDevices.Add(_(DEV_NONE_STR));
 		SIDevices.Add(_(SIDEV_STDCONT_STR));
+		SIDevices.Add(_(SIDEV_STEERING_STR));
 		SIDevices.Add(_(SIDEV_BONGO_STR));
 		SIDevices.Add(_(SIDEV_GBA_STR));
 		SIDevices.Add(_(SIDEV_AM_BB_STR));
@@ -441,14 +443,17 @@ void CConfigMain::InitializeGUIValues()
 		case SIDEVICE_GC_CONTROLLER:
 			GCSIDevice[i]->SetStringSelection(SIDevices[1]);
 			break;
-		case SIDEVICE_GC_TARUKONGA:
+		case SIDEVICE_GC_STEERING:
 			GCSIDevice[i]->SetStringSelection(SIDevices[2]);
 			break;
-		case SIDEVICE_GC_GBA:
+		case SIDEVICE_GC_TARUKONGA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[3]);
 			break;
-		case SIDEVICE_AM_BASEBOARD:
+		case SIDEVICE_GC_GBA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[4]);
+			break;
+		case SIDEVICE_AM_BASEBOARD:
+			GCSIDevice[i]->SetStringSelection(SIDevices[5]);
 			break;
 		default:
 			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
@@ -489,19 +494,13 @@ void CConfigMain::InitializeGUITooltips()
 
 	// Display - Interface
 	ConfirmStop->SetToolTip(_("Show a confirmation box before stopping a game."));
-	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occured.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
-
-	// Display - Themes: Copyright notice
-	Theme->SetItemToolTip(0, _("Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"));
-	Theme->SetItemToolTip(1, _("Created by VistaIcons.com"));
-	Theme->SetItemToolTip(2, _("Created by black_rider and published on ForumW.org > Web Developments"));
-	Theme->SetItemToolTip(3, _("Created by KDE-Look.org"));
+	UsePanicHandlers->SetToolTip(_("Show a message box when a potentially serious error has occurred.\nDisabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin suddenly crashes without any explanation at all."));
+	OnScreenDisplayMessages->SetToolTip(_("Show messages on the emulation screen area.\nThese messages include memory card writes, video backend and CPU information, and JIT cache clearing."));
 
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
 	// Audio tooltips
 	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread (not recommended)."));
-	FrequencySelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 
 	// Gamecube - Devices
@@ -509,6 +508,16 @@ void CConfigMain::InitializeGUITooltips()
 
 	// Wii - Devices
 	WiiKeyboard->SetToolTip(_("This could cause slow down in Wii Menu and some games."));
+
+#if defined(__APPLE__)
+	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OSX."));
+#elif defined(__linux__)
+	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."));
+#elif defined(_WIN32)
+	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."));
+#endif
+
+	Latency->SetToolTip(_("Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL backend only."));
 }
 
 void CConfigMain::CreateGUIControls()
@@ -541,7 +550,6 @@ void CConfigMain::CreateGUIControls()
 	UseFPSForLimiting = new wxCheckBox(GeneralPage, ID_FRAMELIMIT_USEFPSFORLIMITING, _("Limit by FPS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	// Core Settings - Advanced
 	CPUEngine = new wxRadioBox(GeneralPage, ID_CPUENGINE, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_CPUEngine, 0, wxRA_SPECIFY_ROWS);
-	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, _("Lock Threads to Cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	_NTSCJ = new wxCheckBox(GeneralPage, ID_NTSCJ, _("Force Console as NTSC-J"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Populate the General settings
@@ -557,7 +565,6 @@ void CConfigMain::CreateGUIControls()
 
 	wxStaticBoxSizer* const sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, _("Advanced Settings"));
 	sbAdvanced->Add(CPUEngine, 0, wxALL, 5);
-	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(_NTSCJ, 0, wxALL, 5);
 
 	wxBoxSizer* const sGeneralPage = new wxBoxSizer(wxVERTICAL);
@@ -571,26 +578,62 @@ void CConfigMain::CreateGUIControls()
 	// Hotkey configuration
 	HotkeyConfig = new wxButton(DisplayPage, ID_HOTKEY_CONFIG, _("Hotkeys"),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
-	// Themes - this should really be a wxChoice...
-	Theme = new wxRadioBox(DisplayPage, ID_INTERFACE_THEME, _("Theme"),
-			wxDefaultPosition, wxDefaultSize, arrayStringFor_Themes, 1, wxRA_SPECIFY_ROWS);
 	// Interface settings
 	ConfirmStop = new wxCheckBox(DisplayPage, ID_INTERFACE_CONFIRMSTOP, _("Confirm on Stop"),
 			wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UsePanicHandlers = new wxCheckBox(DisplayPage, ID_INTERFACE_USEPANICHANDLERS,
 			_("Use Panic Handlers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	OnScreenDisplayMessages = new wxCheckBox(DisplayPage, ID_INTERFACE_ONSCREENDISPLAYMESSAGES,
+			_("On-Screen Display Messages"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	wxBoxSizer* sInterface = new wxBoxSizer(wxHORIZONTAL);
 	sInterface->Add(TEXT_BOX(DisplayPage, _("Language:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterface->Add(InterfaceLang, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sInterface->AddStretchSpacer();
 	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
+
+	// theme selection
+	auto const theme_selection = new wxChoice(DisplayPage, wxID_ANY);
+
+	CFileSearch::XStringVector theme_dirs;
+	theme_dirs.push_back(File::GetUserPath(D_THEMES_IDX));
+#if !defined(_WIN32)
+	theme_dirs.push_back(SHARED_USER_DIR THEMES_DIR);
+#endif
+
+	CFileSearch cfs(CFileSearch::XStringVector(1, "*"), theme_dirs);
+	auto const& sv = cfs.GetFileNames();
+	std::for_each(sv.begin(), sv.end(), [theme_selection](const std::string& filename)
+	{
+		std::string name, ext;
+		SplitPath(filename, NULL, &name, &ext);
+
+		name += ext;
+		if (-1 == theme_selection->FindString(name))
+			theme_selection->Append(name);
+	});
+	
+	theme_selection->SetStringSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name);
+
+	// std::function = avoid error on msvc
+	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, function<void(wxEvent&)>([theme_selection](wxEvent&)
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = theme_selection->GetStringSelection();
+		main_frame->InitBitmaps();
+		main_frame->UpdateGameList();
+	}));
+
+	auto const scInterface = new wxBoxSizer(wxHORIZONTAL);
+	scInterface->Add(TEXT_BOX(DisplayPage, _("Theme:")), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	scInterface->Add(theme_selection, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	scInterface->AddStretchSpacer();
+
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, _("Interface Settings"));
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
-	sbInterface->Add(Theme, 0, wxEXPAND | wxALL, 5);
+	sbInterface->Add(OnScreenDisplayMessages, 0, wxALL, 5);
+	sbInterface->Add(scInterface, 0, wxEXPAND | wxALL, 5);
 	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
-
 	sDisplayPage = new wxBoxSizer(wxVERTICAL);
 	sDisplayPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
 	DisplayPage->SetSizer(sDisplayPage);
@@ -602,21 +645,31 @@ void CConfigMain::CreateGUIControls()
 	DSPThread = new wxCheckBox(AudioPage, ID_DSPTHREAD, _("DSP LLE on Thread"));
 	DumpAudio = new wxCheckBox(AudioPage, ID_DUMP_AUDIO, _("Dump Audio"),
 				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	DPL2Decoder = new wxCheckBox(AudioPage, ID_DPL2DECODER, _("Dolby Pro Logic II decoder"));
 	VolumeSlider = new wxSlider(AudioPage, ID_VOLUME, 0, 1, 100,
 				wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
 	VolumeText = new wxStaticText(AudioPage, wxID_ANY, wxT(""),
 				wxDefaultPosition, wxDefaultSize, 0);
 	BackendSelection = new wxChoice(AudioPage, ID_BACKEND, wxDefaultPosition,
 				wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
-	FrequencySelection = new wxChoice(AudioPage, ID_FREQUENCY);
-	FrequencySelection->Append(wxString::Format(_("%d Hz"), 48000));
-	FrequencySelection->Append(wxString::Format(_("%d Hz"), 32000));
+	Latency = new wxSpinCtrl(AudioPage, ID_LATENCY, "", wxDefaultPosition, wxDefaultSize,
+		wxSP_ARROW_KEYS, 0, 30);
+
+	Latency->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &CConfigMain::AudioSettingsChanged, this);
+
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		Latency->Disable();
+		BackendSelection->Disable();
+		DPL2Decoder->Disable();
+	}
 
 	// Create sizer and add items to dialog
 	wxStaticBoxSizer *sbAudioSettings = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Sound Settings"));
 	sbAudioSettings->Add(DSPEngine, 0, wxALL | wxEXPAND, 5);
 	sbAudioSettings->Add(DSPThread, 0, wxALL, 5);
 	sbAudioSettings->Add(DumpAudio, 0, wxALL, 5);
+	sbAudioSettings->Add(DPL2Decoder, 0, wxALL, 5);
 
 	wxStaticBoxSizer *sbVolume = new wxStaticBoxSizer(wxVERTICAL, AudioPage, _("Volume"));
 	sbVolume->Add(VolumeSlider, 1, wxLEFT|wxRIGHT, 13);
@@ -625,8 +678,8 @@ void CConfigMain::CreateGUIControls()
 	wxGridBagSizer *sBackend = new wxGridBagSizer();
 	sBackend->Add(TEXT_BOX(AudioPage, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBackend->Add(BackendSelection, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
-	sBackend->Add(TEXT_BOX(AudioPage, _("Sample Rate:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBackend->Add(FrequencySelection, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+	sBackend->Add(TEXT_BOX(AudioPage, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBackend->Add(Latency, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
 	wxStaticBoxSizer *sbBackend = new wxStaticBoxSizer(wxHORIZONTAL, AudioPage, _("Backend Settings"));
 	sbBackend->Add(sBackend, 0, wxEXPAND);
 
@@ -809,9 +862,6 @@ void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))
 
 	// Save the config. Dolphin crashes to often to save the settings on closing only
 	SConfig::GetInstance().SaveSettings();
-
-	// Save Audio settings
-	ac_Config.SaveSettings();
 }
 
 // Core settings
@@ -831,7 +881,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = Framelimit->GetSelection();
-		ac_Config.Update();
+		AudioCommon::UpdateSoundStream();
 		break;
 	case ID_FRAMELIMIT_USEFPSFORLIMITING:
 		SConfig::GetInstance().b_UseFPS = UseFPSForLimiting->IsChecked();
@@ -842,9 +892,6 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		if (main_frame->g_pCodeWindow)
 			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore?false:true);
-		break;
-	case ID_LOCKTHREADS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads = LockThreads->IsChecked();
 		break;
 	case ID_NTSCJ:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bForceNTSCJ = _NTSCJ->IsChecked();
@@ -865,9 +912,9 @@ void CConfigMain::DisplaySettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers = UsePanicHandlers->IsChecked();
 		SetEnableAlert(UsePanicHandlers->IsChecked());
 		break;
-	case ID_INTERFACE_THEME:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme = Theme->GetSelection();
-		main_frame->InitBitmaps();
+	case ID_INTERFACE_ONSCREENDISPLAYMESSAGES:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages = OnScreenDisplayMessages->IsChecked();
+		SetEnableAlert(OnScreenDisplayMessages->IsChecked());
 		break;
 	case ID_INTERFACE_LANG:
 		if (SConfig::GetInstance().m_InterfaceLanguage != langIds[InterfaceLang->GetSelection()])
@@ -891,13 +938,14 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 	{
 	case ID_DSPENGINE:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = DSPEngine->GetSelection() == 0;
-		ac_Config.m_EnableJIT = DSPEngine->GetSelection() == 1;
-		ac_Config.Update();
+		if (!DSPEngine->GetSelection() == 0)
+			SConfig::GetInstance().m_EnableJIT = DSPEngine->GetSelection() == 1;
+		AudioCommon::UpdateSoundStream();
 		break;
 
 	case ID_VOLUME:
-		ac_Config.m_Volume = VolumeSlider->GetValue();
-		ac_Config.Update();
+		SConfig::GetInstance().m_Volume = VolumeSlider->GetValue();
+		AudioCommon::UpdateSoundStream();
 		VolumeText->SetLabel(wxString::Format(wxT("%d %%"), VolumeSlider->GetValue()));
 		break;
 
@@ -905,19 +953,24 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = DSPThread->IsChecked();
 		break;
 
+	case ID_DPL2DECODER:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bDPL2Decoder = DPL2Decoder->IsChecked();
+		break;
+
 	case ID_BACKEND:
 		VolumeSlider->Enable(SupportsVolumeChanges(std::string(BackendSelection->GetStringSelection().mb_str())));
-		ac_Config.sBackend = BackendSelection->GetStringSelection().mb_str();
-		ac_Config.Update();
+		Latency->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
+		DPL2Decoder->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
+		SConfig::GetInstance().sBackend = BackendSelection->GetStringSelection().mb_str();
+		AudioCommon::UpdateSoundStream();
+		break;
+
+	case ID_LATENCY:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iLatency = Latency->GetValue();
 		break;
 
 	default:
-		ac_Config.m_DumpAudio = DumpAudio->GetValue();
-
-		long int frequency;
-		FrequencySelection->GetStringSelection().ToLong(&frequency);
-		ac_Config.iFrequency = frequency;
-		ac_Config.Update();
+		SConfig::GetInstance().m_DumpAudio = DumpAudio->GetValue();
 		break;
 	}
 }
@@ -931,7 +984,7 @@ void CConfigMain::AddAudioBackends()
 	{
 		BackendSelection->Append(wxString::FromAscii((*iter).c_str()));
 		int num = BackendSelection->\
-			FindString(wxString::FromAscii(ac_Config.sBackend.c_str()));
+			FindString(wxString::FromAscii(SConfig::GetInstance().sBackend.c_str()));
 		BackendSelection->SetSelection(num);
 	}
 }
@@ -944,8 +997,7 @@ bool CConfigMain::SupportsVolumeChanges(std::string backend)
 	return (backend == BACKEND_DIRECTSOUND ||
 			backend == BACKEND_COREAUDIO ||
 			backend == BACKEND_OPENAL ||
-			backend == BACKEND_XAUDIO2 ||
-			backend == BACKEND_PULSEAUDIO);
+			backend == BACKEND_XAUDIO2);
 }
 
 
@@ -1013,6 +1065,13 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 				return;
 			}
 		}
+		#ifdef _WIN32
+			if (!strncmp(File::GetExeDirectory().c_str(), filename.c_str(), File::GetExeDirectory().size()))
+			{
+				filename.erase(0, File::GetExeDirectory().size() +1);
+				filename = "./" + filename;
+			}
+		#endif
 
 		// also check that the path isn't used for the other memcard...
 		if (filename.compare(isSlotA ? SConfig::GetInstance().m_strMemoryCardB
@@ -1042,6 +1101,8 @@ void CConfigMain::ChooseSIDevice(wxString deviceName, int deviceNum)
 	SIDevices tempType;
 	if (!deviceName.compare(WXSTR_TRANS(SIDEV_STDCONT_STR)))
 		tempType = SIDEVICE_GC_CONTROLLER;
+	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_STEERING_STR)))
+		tempType = SIDEVICE_GC_STEERING;
 	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_BONGO_STR)))
 		tempType = SIDEVICE_GC_TARUKONGA;
 	else if (!deviceName.compare(wxT(SIDEV_GBA_STR)))

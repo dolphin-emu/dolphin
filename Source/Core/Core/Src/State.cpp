@@ -70,8 +70,8 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 
 static std::thread g_save_thread;
 
-// Don't forget to increase this after doing changes on the savestate system 
-static const int STATE_VERSION = 8;
+// Don't forget to increase this after doing changes on the savestate system
+static const u32 STATE_VERSION = 15;
 
 struct StateHeader
 {
@@ -196,10 +196,18 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 	{
 		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
 			File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"));
+		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"))
+			File::Delete((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm"));
 
 		if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
+		else 
+			File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
 	}
+	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
+		Movie::SaveRecording((filename + ".dtm").c_str());
+	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
+		File::Delete(filename + ".dtm");
 
 	File::IOFile f(filename, "wb");
 	if (!f)
@@ -273,10 +281,6 @@ void SaveAs(const std::string& filename)
 	if (p.GetMode() == PointerWrap::MODE_WRITE)
 	{
 		Core::DisplayMessage("Saving State...", 1000);
-		if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
-			Movie::SaveRecording((filename + ".dtm").c_str());
-		else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
-			File::Delete(filename + ".dtm");
 
 		CompressAndDumpState_args save_args;
 		save_args.buffer_vector = &g_current_buffer;
@@ -383,9 +387,14 @@ void LoadAs(const std::string& filename)
 	g_loadDepth++;
 
 	// Save temp buffer for undo load state
+	if (!Movie::IsJustStartingRecordingInputFromSaveState())
 	{
 		std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 		SaveToBuffer(g_undo_load_buffer);
+		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+			Movie::SaveRecording("undo.dtm");
+		else if (File::Exists("undo.dtm"))
+			File::Delete("undo.dtm");
 	}
 
 	bool loaded = false;
@@ -413,7 +422,7 @@ void LoadAs(const std::string& filename)
 			Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()).c_str(), 2000);
 			if (File::Exists(filename + ".dtm"))
 				Movie::LoadInput((filename + ".dtm").c_str());
-			else if (!Movie::IsJustStartingRecordingInputFromSaveState())
+			else if (!Movie::IsJustStartingRecordingInputFromSaveState() && !Movie::IsJustStartingPlayingInputFromSaveState())
 				Movie::EndPlayInput(false);
 		}
 		else
@@ -534,7 +543,16 @@ void UndoLoadState()
 {
 	std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 	if (!g_undo_load_buffer.empty())
-		LoadFromBuffer(g_undo_load_buffer);
+	{
+		if (File::Exists("undo.dtm") || (!Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
+		{
+			LoadFromBuffer(g_undo_load_buffer);
+			if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+				Movie::LoadInput("undo.dtm");
+		}
+		else
+			PanicAlert("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+	}
 	else
 		PanicAlert("There is nothing to undo!");
 }
@@ -542,7 +560,7 @@ void UndoLoadState()
 // Load the state that the last save state overwritten on
 void UndoSaveState()
 {
-	LoadAs((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str());
+		LoadAs((File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav").c_str());
 }
 
 } // namespace State

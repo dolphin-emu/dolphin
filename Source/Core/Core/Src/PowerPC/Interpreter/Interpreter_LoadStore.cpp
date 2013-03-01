@@ -24,8 +24,7 @@
 #include "Interpreter.h"
 #include "../../Core.h"
 
-#include "../JitCommon/JitBase.h"
-#include "../JitCommon/JitCache.h"
+#include "../JitInterface.h"
 
 #include "Interpreter_FPUtils.h"
 
@@ -363,34 +362,24 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 	{
 		NPC = PC + 12;
 	}*/
-	// Invalidate the jit block cache on dcbf
-	if (jit)
-	{
 		u32 address = Helper_Get_EA_X(_inst);
-		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
-	}
+		JitInterface::InvalidateICache(address & ~0x1f, 32);
 }
 
 void Interpreter::dcbi(UGeckoInstruction _inst)
 {
 	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything to the data cache
 	// However, we invalidate the jit block cache on dcbi
-	if (jit)
-	{
 		u32 address = Helper_Get_EA_X(_inst);
-		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
-	}
+		JitInterface::InvalidateICache(address & ~0x1f, 32);
 }
 
 void Interpreter::dcbst(UGeckoInstruction _inst)
 {
 	// Cache line flush. Since we don't emulate the data cache, we don't need to do anything.
 	// Invalidate the jit block cache on dcbst in case new code has been loaded via the data cache
-	if (jit)
-	{
 		u32 address = Helper_Get_EA_X(_inst);
-		jit->GetBlockCache()->InvalidateICache(address & ~0x1f, 32);
-	}
+		JitInterface::InvalidateICache(address & ~0x1f, 32);
 }
 
 void Interpreter::dcbt(UGeckoInstruction _inst)
@@ -407,9 +396,9 @@ void Interpreter::dcbtst(UGeckoInstruction _inst)
 void Interpreter::dcbz(UGeckoInstruction _inst)
 {	
 	// HACK but works... we think
-	if (HID2.WPE || !HID0.DCFA)
+	if (!Core::g_CoreStartupParameter.bDCBZOFF)
 		Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
-	if (!jit)
+	if (!JitInterface::GetCore())
 		PowerPC::CheckExceptions();
 }
 

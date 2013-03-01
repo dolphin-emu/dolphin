@@ -1004,15 +1004,11 @@ wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title,
 
 	m_MainSizer->Add(Child, 1, wxEXPAND);
 
-	Frame->Connect(wxID_ANY, wxEVT_CLOSE_WINDOW,
-		wxCloseEventHandler(CFrame::OnFloatingPageClosed),
-		(wxObject*)0, this);
+	Frame->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnFloatingPageClosed, this);
 
 	if (Id == IDM_CONSOLEWINDOW_PARENT)
 	{
-		Frame->Connect(wxID_ANY, wxEVT_SIZE,
-			wxSizeEventHandler(CFrame::OnFloatingPageSize),
-			(wxObject*)0, this);
+		Frame->Bind(wxEVT_SIZE, &CFrame::OnFloatingPageSize, this);
 	}
 
 	// Main sizer

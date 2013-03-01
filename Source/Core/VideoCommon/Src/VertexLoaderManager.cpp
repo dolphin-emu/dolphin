@@ -19,9 +19,12 @@
 #ifdef _MSC_VER
 #include <hash_map>
 using stdext::hash_map;
-#else
+#elif defined __APPLE__
 #include <ext/hash_map>
 using __gnu_cxx::hash_map;
+#else
+#include <unordered_map>
+using std::unordered_map;
 #endif
 #include <map>
 #include <vector>
@@ -45,7 +48,12 @@ namespace stdext {
 	}
 }
 #else
-namespace __gnu_cxx {
+#ifdef __APPLE__
+namespace __gnu_cxx
+#else
+namespace std
+#endif
+{
 	template<> struct hash<VertexLoaderUID> {
 		size_t operator()(const VertexLoaderUID& uid) const {
 			return uid.GetHash();
@@ -54,10 +62,15 @@ namespace __gnu_cxx {
 }
 #endif
 
+#if defined _MSC_VER || defined __APPLE__
+typedef hash_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
+#else
+typedef unordered_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
+#endif
+
 namespace VertexLoaderManager
 {
 
-typedef hash_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
 static VertexLoaderMap g_VertexLoaderMap;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 

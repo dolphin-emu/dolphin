@@ -23,7 +23,7 @@
 #include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 
 #include "JitIL.h"
@@ -106,7 +106,7 @@ void JitIL::mfspr(UGeckoInstruction inst)
 // --------------
 void JitIL::mtmsr(UGeckoInstruction inst)
 {
-	ibuild.EmitStoreMSR(ibuild.EmitLoadGReg(inst.RS), ibuild.EmitIntConst(js.compilerPC));
+	ibuild.EmitStoreMSR(ibuild.EmitLoadGReg(inst.RS));
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
 }
 // ==============

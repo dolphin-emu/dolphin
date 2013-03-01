@@ -57,6 +57,15 @@ CPReg cpreg; // shared between gfx and emulator thread
 void DoState(PointerWrap &p)
 {
 	p.Do(cpreg);
+	p.DoArray(commandBuffer, commandBufferSize);
+	p.Do(readPos);
+	p.Do(writePos);
+	p.Do(et_UpdateInterrupts);
+	p.Do(interruptSet);
+	p.Do(interruptWaiting);
+
+	// Is this right?
+	p.DoArray(g_pVideoData,writePos);
 }
 
 // does it matter that there is no synchronization between threads during writes?
@@ -115,15 +124,15 @@ void RunGpu()
     if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
     {
         // We are going to do FP math on the main thread so have to save the current state
-        SaveSSEState();
-	    LoadDefaultSSEState();			
+	FPURoundMode::SaveSIMDState();
+	FPURoundMode::LoadDefaultSIMDState();			
         
         // run the opcode decoder
         do {
         RunBuffer();
         } while (cpreg.ctrl.GPReadEnable && !AtBreakpoint() && cpreg.readptr != cpreg.writeptr);
 
-        LoadSSEState();
+	FPURoundMode::LoadSIMDState();
     }
 }
 

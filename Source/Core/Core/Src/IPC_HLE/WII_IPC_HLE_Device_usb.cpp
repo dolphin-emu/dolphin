@@ -38,7 +38,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	// Activate only first Wiimote by default
 
 	_conf_pads BT_DINF;
-
+	SetUsbPointer(this);
 	if (!SConfig::GetInstance().m_SYSCONF->GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
 	{
 		PanicAlertT("Trying to read from invalid SYSCONF\nWiimote bt ids are not available");
@@ -100,18 +100,13 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 {
 	m_WiiMotes.clear();
+	SetUsbPointer(NULL);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 {
-/*
-  //things that do not get saved: (why not?)
-
-	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
-
-	std::deque<SQueuedEvent> m_EventQueue;
- */
-
+	p.Do(m_Active);
+	p.Do(m_ControllerBD);
 	p.Do(m_CtrlSetup);
 	p.Do(m_ACLSetup);
 	p.Do(m_HCIEndpoint);
@@ -119,75 +114,30 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_last_ticks);
 	p.DoArray(m_PacketCount,4);
 	p.Do(m_ScanEnable);
+	p.Do(m_EventQueue);
 	m_acl_pool.DoState(p);
 
-	bool storeFullData = (Movie::IsRecordingInput() || Movie::IsPlayingInput());
-	p.Do(storeFullData);
-	p.DoMarker("storeFullData in CWII_IPC_HLE_Device_usb_oh1_57e_305");
+    for (unsigned int i = 0; i < 4; i++)
+		m_WiiMotes[i].DoState(p);
 
-	if (!storeFullData)
+	// Reset the connection of real and hybrid wiimotes
+	if (p.GetMode() == PointerWrap::MODE_READ && SConfig::GetInstance().m_WiimoteReconnectOnLoad)
 	{
-		if (p.GetMode() == PointerWrap::MODE_READ)
-		{
+        for (unsigned int i = 0; i < 4; i++)
+	    {
+			if (WIIMOTE_SRC_EMU == g_wiimote_sources[i] || WIIMOTE_SRC_NONE == g_wiimote_sources[i])
+				continue;
+			// TODO: Selectively clear real wiimote messages if possible. Or create a real wiimote channel and reporting mode pre-setup to vacate the need for m_WiimoteReconnectOnLoad.
 			m_EventQueue.clear();
-			
-			if (SConfig::GetInstance().m_WiimoteReconnectOnLoad)
-			{
-				// Reset the connection of all connected wiimotes
-				for (unsigned int i = 0; i < 4; i++)
-				{
-					if (!m_WiiMotes[i].IsInactive())
-					{
-						m_WiiMotes[i].Activate(false);
-						m_WiiMotes[i].Activate(true);
-					}
-					else
-					{
-						m_WiiMotes[i].Activate(false);
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		// I'm not sure why these things aren't normally saved, but I think they can affect the emulation state,
-		// so if sync matters (e.g. if a movie is active), we really should save them.
-		// also, it's definitely not safe to do the above auto-reconnect hack either.
-		// (unless we can do it without changing anything that affects emulation state, which is not currently the case)
-
-		p.Do(m_EventQueue);
-		p.DoMarker("m_EventQueue");
-
-		// m_WiiMotes is kind of annoying to save. maybe this could be done in a more general way.
-		u32 vec_size = (u32)m_WiiMotes.size();
-		p.Do(vec_size);
-		for (u32 i = 0; i < vec_size; ++i)
-		{
-			if (i < m_WiiMotes.size())
-			{
-				CWII_IPC_HLE_WiiMote& wiimote = m_WiiMotes[i];
-				wiimote.DoState(p);
-			}
+			if (!m_WiiMotes[i].IsInactive())
+            {
+				m_WiiMotes[i].Activate(false);
+				m_WiiMotes[i].Activate(true);
+	        }
 			else
-			{
-				bdaddr_t tmpBD = BDADDR_ANY;
-				CWII_IPC_HLE_WiiMote wiimote = CWII_IPC_HLE_WiiMote(this, i, tmpBD, false);
-				wiimote.DoState(p);
-				if (p.GetMode() == PointerWrap::MODE_READ)
-				{
-					m_WiiMotes.push_back(wiimote);
-					_dbg_assert_(WII_IPC_WIIMOTE, m_WiiMotes.size() == i);
-				}
-			}
-		}
-		if (p.GetMode() == PointerWrap::MODE_READ)
-			while ((u32)m_WiiMotes.size() > vec_size)
-				m_WiiMotes.pop_back();
-		p.DoMarker("m_WiiMotes");
+				m_WiiMotes[i].Activate(false);
+        }
 	}
-
-	DoStateShared(p);
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::RemoteDisconnect(u16 _connectionHandle)
@@ -386,23 +336,23 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 	pWiiMote->ExecuteL2capCmd(_pData, _Size);
 }
 
-// Here we send ACL packets to CPU. They will consist of header + data.
-// The header is for example 07 00 41 00 which means size 0x0007 and channel 0x0041.
-// ---------------------------------------------------
-// AyuanX: Basically, our WII_IPC_HLE is efficient enough to send the packet immediately
-// rather than enqueue it to some other memory 
-// But...the only exception comes from the Wiimote_Plugin
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::IncDataPacket(u16 _ConnectionHandle)
 {
 	m_PacketCount[_ConnectionHandle & 0xff]++;
 
+	// I don't think this makes sense or should be necessary
+	// m_PacketCount refers to "completed" packets and is not related to some buffer size, yes?
+#if 0
 	if (m_PacketCount[_ConnectionHandle & 0xff] > (unsigned int)m_acl_pkts_num)
 	{
 		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL buffer overflow");
 		m_PacketCount[_ConnectionHandle & 0xff] = m_acl_pkts_num;
 	}
+#endif
 }
 
+// Here we send ACL packets to CPU. They will consist of header + data.
+// The header is for example 07 00 41 00 which means size 0x0007 and channel 0x0041.
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
 	DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet from %x ready to send to stack...", _ConnectionHandle);
@@ -424,8 +374,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 	}
 	else
 	{
-		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint not currently valid, "
-			"queueing(%d)...", m_acl_pool.GetWritePos());
+		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint not currently valid, queueing...");
 		m_acl_pool.Store(_pData, _Size, _ConnectionHandle);
 	}
 }
@@ -536,18 +485,8 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		}
 	}
 
-	// The Real Wiimote sends report every ~6.66ms (150 Hz).
-	// However, we don't actually reach here at dependable intervals, so we
-	// instead just timeslice in such a way that makes the stack think we have
-	// perfect "radio quality" (WPADGetRadioSensitivity) and yet still have some
-	// idle time.
-	// Somehow, Dolphin's Wiimote Speaker support requires using an update interval
-	// of 5ms (200 Hz) for its output to work.  This increased frequency tends to
-	// fill the ACL queue (even) quicker than it can be processed by Dolphin,
-	// especially during simultaneous requests involving many (emulated) Wiimotes...
-	// Thus, we only use that interval when the option is enabled.  See issue 4608.
-	const u64 interval = SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().
-			m_LocalCoreStartupParameter.bDisableWiimoteSpeaker ? 150 : 200);
+	// The Real Wiimote sends report every ~5ms (200 Hz).
+	const u64 interval = SystemTimers::GetTicksPerSecond() / 200;
 	const u64 each_wiimote_interval = interval / m_WiiMotes.size();
 	const u64 now = CoreTiming::GetTicks();
 
@@ -568,25 +507,47 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	return packet_transferred;
 }
 
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u16 size, const u16 conn_handle)
+{
+	if (m_queue.size() >= 100)
+	{
+		// Many simultaneous exchanges of ACL packets tend to cause the queue to fill up.
+		ERROR_LOG(WII_IPC_WIIMOTE, "ACL queue size reached 100 - current packet will be dropped!");
+		return;
+	}
+	
+	_dbg_assert_msg_(WII_IPC_WIIMOTE,
+		size < m_acl_pkt_size, "acl packet too large for pool");
+	
+	m_queue.push_back(Packet());
+	auto& packet = m_queue.back();
+	
+	std::copy(data, data + size, packet.data);
+	packet.size = size;
+	packet.conn_handle = conn_handle;
+}
+
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::WriteToEndpoint(CtrlBuffer& endpoint)
 {
-	const u8 *data = m_pool + m_acl_pkt_size * m_read_ptr;
-	const u16 size = m_info[m_read_ptr].size;
-	const u16 conn_handle = m_info[m_read_ptr].conn_handle;
+	auto& packet = m_queue.front();
+	
+	const u8* const data = packet.data;
+	const u16 size = packet.size;
+	const u16 conn_handle = packet.conn_handle;
 
 	DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet being written from "
-		"queue(%d) to %08x", GetReadPos(),	endpoint.m_address);
+		"queue to %08x", endpoint.m_address);
 
 	hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(endpoint.m_buffer);
 	pHeader->con_handle	= HCI_MK_CON_HANDLE(conn_handle, HCI_PACKET_START, HCI_POINT2POINT);
 	pHeader->length		= size;
 
 	// Write the packet to the buffer
-	memcpy((u8*)pHeader + sizeof(hci_acldata_hdr_t), data, pHeader->length);
+	std::copy(data, data + size, (u8*)pHeader + sizeof(hci_acldata_hdr_t));
 
 	endpoint.SetRetVal(sizeof(hci_acldata_hdr_t) + size);
 
-	m_read_ptr = (m_read_ptr + 1) % m_acl_pkts_num;
+	m_queue.pop_front();
 
 	WII_IPC_HLE_Interface::EnqReply(endpoint.m_address);
 	endpoint.Invalidate();
@@ -1518,9 +1479,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkPolicy(u8* _Input)
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%04x", pLinkPolicy->con_handle);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Policy: 0x%04x", pLinkPolicy->settings);
 
-	hci_write_link_policy_settings_rp Reply;
-	Reply.status = 0x00;
-	Reply.con_handle = pLinkPolicy->con_handle;
+	//hci_write_link_policy_settings_rp Reply;
+	//Reply.status = 0x00;
+	//Reply.con_handle = pLinkPolicy->con_handle;
 
 	SendEventCommandStatus(HCI_CMD_WRITE_LINK_POLICY_SETTINGS);
 

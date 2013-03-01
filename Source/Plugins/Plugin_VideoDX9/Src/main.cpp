@@ -49,7 +49,7 @@
 #include "D3DUtil.h"
 #include "EmuWindow.h"
 #include "VideoState.h"
-#include "render.h"
+#include "Render.h"
 #include "DLCache.h"
 #include "IniFile.h"
 #include "Core.h"
@@ -93,6 +93,7 @@ void InitBackendInfo()
 	const int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);
 	g_Config.backend_info.APIType = shaderModel < 3 ? API_D3D9_SM20 :API_D3D9_SM30;
 	g_Config.backend_info.bUseRGBATextures = false;
+	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
@@ -169,9 +170,9 @@ void VideoBackend::Video_Prepare()
 	s_swapRequested = FALSE;
 
 	// internal interfaces
-	g_renderer = new Renderer;
-	g_texture_cache = new TextureCache;
 	g_vertex_manager = new VertexManager;
+	g_renderer = new Renderer;
+	g_texture_cache = new TextureCache;		
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
@@ -209,9 +210,9 @@ void VideoBackend::Shutdown()
 		// internal interfaces
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
-		delete g_vertex_manager;
 		delete g_texture_cache;
 		delete g_renderer;
+		delete g_vertex_manager;
 		g_renderer = NULL;
 		g_texture_cache = NULL;
 	}

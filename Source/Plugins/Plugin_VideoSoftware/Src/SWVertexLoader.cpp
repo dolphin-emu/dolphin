@@ -72,27 +72,27 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
     tcScale[7] = 1.0f / float(1 << m_CurrentVat->g2.Tex7Frac);
 
     //TexMtx
-    const int tmDesc[8] = {
+    const u32 tmDesc[8] = {
         g_VtxDesc.Tex0MatIdx, g_VtxDesc.Tex1MatIdx, g_VtxDesc.Tex2MatIdx, g_VtxDesc.Tex3MatIdx,
 		g_VtxDesc.Tex4MatIdx, g_VtxDesc.Tex5MatIdx, g_VtxDesc.Tex6MatIdx, g_VtxDesc.Tex7MatIdx
 	};
     // Colors
-	const int colDesc[2] = {g_VtxDesc.Color0, g_VtxDesc.Color1};
+	const u32 colDesc[2] = {g_VtxDesc.Color0, g_VtxDesc.Color1};
     colElements[0] = m_CurrentVat->g0.Color0Elements;
     colElements[1] = m_CurrentVat->g0.Color1Elements;
-    const int colComp[2] = {m_CurrentVat->g0.Color0Comp, m_CurrentVat->g0.Color1Comp};
+    const u32 colComp[2] = {m_CurrentVat->g0.Color0Comp, m_CurrentVat->g0.Color1Comp};
 	// TextureCoord
-	const int tcDesc[8] = {
+	const u32 tcDesc[8] = {
 		g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord,
-		g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const int)((g_VtxDesc.Hex >> 31) & 3)
+		g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const u32)((g_VtxDesc.Hex >> 31) & 3)
 	};
-    const int tcElements[8] = {
+    const u32 tcElements[8] = {
         m_CurrentVat->g0.Tex0CoordElements, m_CurrentVat->g1.Tex1CoordElements, m_CurrentVat->g1.Tex2CoordElements, 
         m_CurrentVat->g1.Tex3CoordElements, m_CurrentVat->g1.Tex4CoordElements, m_CurrentVat->g2.Tex5CoordElements,
         m_CurrentVat->g2.Tex6CoordElements, m_CurrentVat->g2.Tex7CoordElements
     };
 
-    const int tcFormat[8] = {
+    const u32 tcFormat[8] = {
         m_CurrentVat->g0.Tex0CoordFormat, m_CurrentVat->g1.Tex1CoordFormat, m_CurrentVat->g1.Tex2CoordFormat, 
         m_CurrentVat->g1.Tex3CoordFormat, m_CurrentVat->g1.Tex4CoordFormat, m_CurrentVat->g2.Tex5CoordFormat,
         m_CurrentVat->g2.Tex6CoordFormat, m_CurrentVat->g2.Tex7CoordFormat
@@ -328,4 +328,15 @@ void SWVertexLoader::LoadTexCoord(SWVertexLoader *vertexLoader, InputVertexData 
     vertexLoader->m_texCoordLoader[index]();
 }
 
-
+void SWVertexLoader::DoState(PointerWrap &p)
+{
+	p.DoArray(m_AttributeLoaders, sizeof m_AttributeLoaders);
+	p.Do(m_VertexSize);
+	p.Do(*m_CurrentVat);
+	p.Do(m_positionLoader);
+	p.Do(m_normalLoader);
+	p.DoArray(m_colorLoader, sizeof m_colorLoader);
+	p.Do(m_NumAttributeLoaders);
+	m_SetupUnit->DoState(p);
+	p.Do(m_TexGenSpecialCase);
+}

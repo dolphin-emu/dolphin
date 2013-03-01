@@ -119,7 +119,7 @@ int RegisterEvent(const char *name, TimedCallback callback)
 
 	// check for existing type with same name.
 	// we want event type names to remain unique so that we can use them for serialization.
-	for (int i = 0; i < event_types.size(); ++i)
+	for (unsigned int i = 0; i < event_types.size(); ++i)
 	{
 		if (!strcmp(name, event_types[i].name))
 		{
@@ -188,7 +188,7 @@ void EventDoState(PointerWrap &p, BaseEvent* ev)
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		bool foundMatch = false;
-		for (int i = 0; i < event_types.size(); ++i)
+		for (unsigned int i = 0; i < event_types.size(); ++i)
 		{
 			if (!strcmp(name.c_str(), event_types[i].name))
 			{

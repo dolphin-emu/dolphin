@@ -23,7 +23,7 @@
 #include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 
 #include "Jit.h"
@@ -122,25 +122,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	gpr.UnlockAll();
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
-
-	// If some exceptions are pending and EE are now enabled, force checking
-	// external exceptions when going out of mtmsr in order to execute delayed
-	// interrupts as soon as possible.
-	MOV(32, R(EAX), M(&MSR));
-	TEST(32, R(EAX), Imm32(0x8000));
-	FixupBranch eeDisabled = J_CC(CC_Z);
-
-	MOV(32, R(EAX), M((void*)&PowerPC::ppcState.Exceptions));
-	TEST(32, R(EAX), R(EAX));
-	FixupBranch noExceptionsPending = J_CC(CC_Z);
-
-	MOV(32, M(&PC), Imm32(js.compilerPC + 4));
-	WriteExternalExceptionExit();
-
-	SetJumpTarget(eeDisabled);
-	SetJumpTarget(noExceptionsPending);
 	WriteExit(js.compilerPC + 4, 0);
-
 	js.firstFPInstructionFound = false;
 }
 

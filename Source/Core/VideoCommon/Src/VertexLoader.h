@@ -76,7 +76,12 @@ private:
 	}
 };
 
+// ARMTODO: This should be done in a better way
+#ifndef _M_GENERIC
 class VertexLoader : public Gen::XCodeBlock, NonCopyable
+#else
+class VertexLoader
+#endif
 {
 public:
 	VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
@@ -122,8 +127,10 @@ private:
 
 	void WriteCall(TPipelineFunction);
 
+#ifndef _M_GENERIC
 	void WriteGetVariable(int bits, Gen::OpArg dest, void *address);
 	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
+#endif
 };									  
 
 #endif

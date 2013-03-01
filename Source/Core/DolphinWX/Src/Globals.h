@@ -26,8 +26,6 @@
 
 enum
 {
-	Toolbar_DebugGo,
-	Toolbar_DebugPause,
 	Toolbar_Step,
 	Toolbar_StepOver,
 	Toolbar_Skip,
@@ -80,6 +78,8 @@ enum
 	IDM_RECORDEXPORT,
 	IDM_RECORDREADONLY,
 	IDM_TASINPUT,
+	IDM_TOGGLE_PAUSEMOVIE,
+	IDM_SHOWLAG,
 	IDM_FRAMESTEP,
 	IDM_SCREENSHOT,
 	IDM_BROWSE,

@@ -436,6 +436,10 @@ void Write16(const u16 _Value, const u32 _Address)
 			if (tmpControl.ARAM) g_dspState.DSPControl.ARAM = 0;
 			if (tmpControl.DSP)  g_dspState.DSPControl.DSP  = 0;
 
+			// Tracking DMAState fixes Knockout Kings 2003 in DSP HLE mode
+			if (GetDSPEmulator()->IsLLE())
+				g_dspState.DSPControl.DMAState = 0;	// keep g_ARAM DMA State zero
+
 			// unknown
 			g_dspState.DSPControl.unk3	= tmpControl.unk3;
 			g_dspState.DSPControl.pad   = tmpControl.pad;
@@ -693,13 +697,11 @@ void UpdateAudioDMA()
 
 void Do_ARAM_DMA()
 {
-	// Fake the DMA taking time to complete. The delay is not accurate, but
-	// seems like a good estimate
-	CoreTiming::ScheduleEvent_Threadsafe(g_arDMA.Cnt.count >> 1, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
+	// Emulating the DMA wait time fixes Knockout Kings 2003 in DSP HLE mode
+	if (!GetDSPEmulator()->IsLLE())
+		g_dspState.DSPControl.DMAState = 1;
 
-	// Set the "DMA in progress" flag. It will be cleared when the interrupt will
-	// be triggered, after the simulated delay.
-	g_dspState.DSPControl.DMAState = 1;
+	GenerateDSPInterrupt(INT_ARAM, true);
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
@@ -716,6 +718,8 @@ void Do_ARAM_DMA()
 		{
 			while (g_arDMA.Cnt.count)
 			{
+				// These are logically seperated in code to show that a memory map has been set up
+				// See below in the write section for more information
 				if ((g_ARAM_Info.Hex & 0xf) == 3)
 				{
 					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);

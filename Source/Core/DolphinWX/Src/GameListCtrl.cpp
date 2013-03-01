@@ -19,6 +19,7 @@
 
 #include <wx/imaglist.h>
 #include <wx/fontmap.h>
+#include <wx/filename.h>
 
 #include <algorithm>
 #include <memory>
@@ -36,6 +37,7 @@
 #include "Main.h"
 
 #include "../resources/Flag_Europe.xpm"
+#include "../resources/Flag_Germany.xpm"
 #include "../resources/Flag_France.xpm"
 #include "../resources/Flag_Italy.xpm"
 #include "../resources/Flag_Japan.xpm"
@@ -43,6 +45,8 @@
 #include "../resources/Flag_Taiwan.xpm"
 #include "../resources/Flag_Korea.xpm"
 #include "../resources/Flag_Unknown.xpm"
+#include "../resources/Flag_SDK.xpm"
+
 #include "../resources/Platform_Wad.xpm"
 #include "../resources/Platform_Wii.xpm"
 #include "../resources/Platform_Gamecube.xpm"
@@ -51,6 +55,9 @@
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
 std::string CGameListCtrl::m_currentFilename;
+bool sorted = false;
+
+extern CFrame* main_frame;
 
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
                                 long sortData = CGameListCtrl::COLUMN_TITLE)
@@ -89,6 +96,13 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	switch(sortData)
 	{
 		case CGameListCtrl::COLUMN_TITLE:
+			if (!strcasecmp(iso1->GetName(indexOne).c_str(),iso2->GetName(indexOther).c_str()))
+			{
+				if (iso1->IsDiscTwo())
+					return 1 * t;
+				else if (iso2->IsDiscTwo())
+					return -1 * t;
+			}
 			return strcasecmp(iso1->GetName(indexOne).c_str(),
 					iso2->GetName(indexOther).c_str()) * t;
 		case CGameListCtrl::COLUMN_NOTES:
@@ -190,6 +204,8 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE] =
 		m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY] =
+		m_imageListSmall->Add(wxBitmap(Flag_Germany_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE] =
 		m_imageListSmall->Add(wxBitmap(Flag_France_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA] =
@@ -203,7 +219,7 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN] =
 		m_imageListSmall->Add(wxBitmap(Flag_Taiwan_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SDK] =
-		m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm), wxNullBitmap);
+		m_imageListSmall->Add(wxBitmap(Flag_SDK_xpm), wxNullBitmap);
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN] =
 		m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm), wxNullBitmap);
 
@@ -258,6 +274,7 @@ void CGameListCtrl::BrowseForDirectory()
 
 void CGameListCtrl::Update()
 {
+	int scrollPos = wxWindow::GetScrollPos(wxVERTICAL);
 	// Don't let the user refresh it while a game is running
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
@@ -284,6 +301,7 @@ void CGameListCtrl::Update()
 		InitBitmaps();
 
 		// add columns
+		InsertColumn(COLUMN_DUMMY,_T(""));
 		InsertColumn(COLUMN_PLATFORM, _T(""));
 		InsertColumn(COLUMN_BANNER, _("Banner"));
 		InsertColumn(COLUMN_TITLE, _("Title"));
@@ -303,6 +321,7 @@ void CGameListCtrl::Update()
 #endif
 		
 		// set initial sizes for columns
+		SetColumnWidth(COLUMN_DUMMY,0);
 		SetColumnWidth(COLUMN_PLATFORM, 35 + platform_padding);
 		SetColumnWidth(COLUMN_BANNER, 96 + platform_padding);
 		SetColumnWidth(COLUMN_TITLE, 200 + platform_padding);
@@ -319,9 +338,16 @@ void CGameListCtrl::Update()
 		}
 
 		// Sort items by Title
+		if (!sorted)
+			last_column = 0;
+		sorted = false;
 		wxListEvent event;
-		event.m_col = COLUMN_TITLE; last_column = 0;
+		event.m_col = SConfig::GetInstance().m_ListSort2;
 		OnColumnClick(event);
+
+		event.m_col = SConfig::GetInstance().m_ListSort;
+		OnColumnClick(event);
+		sorted = true;
 
 		SetColumnWidth(COLUMN_SIZE, wxLIST_AUTOSIZE);
 	}
@@ -349,10 +375,13 @@ void CGameListCtrl::Update()
 		SetItemFont(index, *wxITALIC_FONT);
 		SetColumnWidth(0, wxLIST_AUTOSIZE);
 	}
-
+	if (GetSelectedISO() == NULL)
+		main_frame->UpdateGUI();
 	Show();
 
 	AutomaticColumnWidth();
+	ScrollLines(scrollPos);
+	SetFocus();
 }
 
 wxString NiceSizeFormat(s64 _size)
@@ -414,9 +443,11 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	GameListItem& rISOFile = *m_ISOFiles[_Index];
 	m_gamePath.append(rISOFile.GetFileName() + '\n');
 
-	// Insert a first row with the platform image, that will be used as the Index
-	long ItemIndex = InsertItem(_Index, wxEmptyString,
-			m_PlatformImageIndex[rISOFile.GetPlatform()]);
+	// Insert a first row with nothing in it, that will be used as the Index
+	long ItemIndex = InsertItem(_Index, wxEmptyString);
+
+	// Insert the platform's image in the first (visible) column
+	SetItemColumnImage(_Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.GetPlatform()]);
 
 	if (rISOFile.GetImage().IsOk())
 		ImageIndex = m_imageListSmall->Add(rISOFile.GetImage());
@@ -452,14 +483,15 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		SelectedLanguage = 0;
 	default:
 		{
-		wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
-		rISOFile.GetName(wstring_name, SelectedLanguage);
+			wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
+			rISOFile.GetName(wstring_name, SelectedLanguage);
 
-		name = wxString(rISOFile.GetName(SelectedLanguage).c_str(), WindowsCP1252);
-		m_gameList.append(StringFromFormat("%s (%c)\n",
-			rISOFile.GetName(SelectedLanguage).c_str(), (rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA)?'U':'E'));
-		description = wxString(company.size() ?	company.c_str() :
-							rISOFile.GetDescription(SelectedLanguage).c_str(), WindowsCP1252);
+			name = wxString(rISOFile.GetName(SelectedLanguage).c_str(), WindowsCP1252);
+			m_gameList.append(StringFromFormat("%s (%c)\n",
+						rISOFile.GetName(SelectedLanguage).c_str(),
+						(rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA) ? 'U' : 'E'));
+			description = wxString(company.size() ?	company.c_str() :
+					rISOFile.GetDescription(SelectedLanguage).c_str(), WindowsCP1252);
 		}
 		break;
 	}
@@ -652,7 +684,11 @@ void CGameListCtrl::ScanForISOs()
 
 		for (std::vector<std::string>::const_iterator iter = drives.begin(); iter != drives.end(); ++iter)
 		{
+			#ifdef __APPLE__
 			std::auto_ptr<GameListItem> gli(new GameListItem(*iter));
+			#else
+			std::unique_ptr<GameListItem> gli(new GameListItem(*iter));
+			#endif
 
 			if (gli->IsValid())
 				m_ISOFiles.push_back(gli.release());
@@ -697,17 +733,25 @@ void CGameListCtrl::OnColumnClick(wxListEvent& event)
 	if(event.GetColumn() != COLUMN_BANNER)
 	{
 		int current_column = event.GetColumn();
-
-		if(last_column == current_column)
+		if (sorted)
 		{
-			last_sort = -last_sort;
+			if (last_column == current_column)
+			{
+				last_sort = -last_sort;
+			}
+			else
+			{
+				SConfig::GetInstance().m_ListSort2 = last_sort;
+				last_column = current_column;
+				last_sort = current_column;
+			}
+			SConfig::GetInstance().m_ListSort = last_sort;
 		}
 		else
 		{
-			last_column = current_column;
 			last_sort = current_column;
+			last_column = current_column;
 		}
-
 		caller = this;
 		SortItems(wxListCompare, last_sort);
 	}
@@ -904,7 +948,8 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			{
 				if (selected_iso->IsCompressed())
 					popupMenu->Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
-				else
+				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" 
+						 && selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
 					popupMenu->Append(IDM_COMPRESSGCM, _("Compress ISO..."));
 			} else
 				popupMenu->Append(IDM_LIST_INSTALLWAD, _("Install to Wii Menu"));
@@ -933,7 +978,7 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 	{
 		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (item == wxNOT_FOUND)
-			return new GameListItem("");	// TODO: wtf is this
+			return NULL;
 		else
 		{
 			// Here is a little workaround for multiselections:
@@ -953,9 +998,11 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
-	std::string path;
-	SplitPath(iso->GetFileName(), &path, 0, 0);
-	WxUtils::Explore(path.c_str());
+
+	wxString strPath(iso->GetFileName().c_str(), wxConvUTF8);
+	wxFileName path = wxFileName::FileName(strPath);
+	path.MakeAbsolute();
+	WxUtils::Explore(path.GetPath().char_str());
 }
 
 void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
@@ -1055,7 +1102,7 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	std::string wikiUrl = "http://api.dolphin-emulator.com/wiki.html?id=[GAME_ID]&name=[GAME_NAME]";
+	std::string wikiUrl = "http://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=[GAME_ID]";
 	wikiUrl = ReplaceAll(wikiUrl, "[GAME_ID]", UriEncode(iso->GetUniqueID()));
 	if (UriEncode(iso->GetName(0)).length() < 100)
 		wikiUrl = ReplaceAll(wikiUrl, "[GAME_NAME]", UriEncode(iso->GetName(0)));
@@ -1095,6 +1142,9 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	if (browseDialog.ShowModal() != wxID_OK)
 		return;
 
+	bool all_good = true;
+
+	{
 	wxProgressDialog progressDialog(
 		_compress ? _("Compressing ISO") : _("Decompressing ISO"),
 		_("Working..."),
@@ -1131,7 +1181,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 							wxYES_NO) == wxNO)
 					continue;
 
-				DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
+				all_good &= DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
 						OutputFileName.c_str(),
 						(iso->GetPlatform() == GameListItem::WII_DISC) ? 1 : 0,
 						16384, &MultiCompressCB, &progressDialog);
@@ -1159,11 +1209,16 @@ void CGameListCtrl::CompressSelection(bool _compress)
 							wxYES_NO) == wxNO)
 					continue;
 
-				DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
+				all_good &= DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
 						OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
 			}
 			m_currentItem++;
 	}
+	}
+
+	if (!all_good)
+		wxMessageBox(_("Dolphin was unable to complete the requested action."));
+
 	Update();
 }
 
@@ -1223,6 +1278,9 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 				_("Confirm File Overwrite"),
 				wxYES_NO) == wxNO);
 
+	bool all_good = false;
+
+	{
 	wxProgressDialog dialog(
 		iso->IsCompressed() ? _("Decompressing ISO") : _("Compressing ISO"),
 		_("Working..."),
@@ -1233,14 +1291,19 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 		wxPD_SMOOTH
 		);
 
+
 	if (iso->IsCompressed())
-		DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
+		all_good = DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
 				path.char_str(), &CompressCB, &dialog);
 	else
-		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
+		all_good = DiscIO::CompressFileToBlob(iso->GetFileName().c_str(),
 				path.char_str(),
 				(iso->GetPlatform() == GameListItem::WII_DISC) ? 1 : 0,
 				16384, &CompressCB, &dialog);
+	}
+
+	if (!all_good)
+		wxMessageBox(_("Dolphin was unable to complete the requested action."));
 
 	Update();
 }

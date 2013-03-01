@@ -21,9 +21,6 @@
 #include "LogWindow.h"
 #include "FileUtil.h"
 
-#define _connect_macro_(b, f, c, s) \
-	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
-
 LogConfigWindow::LogConfigWindow(wxWindow* parent, CLogWindow *log_window, wxWindowID id)
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("Log Configuration"))
 	, m_LogWindow(log_window), enableAll(true)
@@ -53,29 +50,29 @@ void LogConfigWindow::CreateGUIControls()
 	m_verbosity = new wxRadioBox(this, wxID_ANY, _("Verbosity"),
 			wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0,
 			wxRA_SPECIFY_ROWS, wxDefaultValidator);
-	_connect_macro_(m_verbosity, LogConfigWindow::OnVerbosityChange, wxEVT_COMMAND_RADIOBOX_SELECTED, this);
+	m_verbosity->Bind(wxEVT_COMMAND_RADIOBOX_SELECTED, &LogConfigWindow::OnVerbosityChange, this);
 
 	// Options
 	m_writeFileCB = new wxCheckBox(this, wxID_ANY, _("Write to File"));
-	_connect_macro_(m_writeFileCB, LogConfigWindow::OnWriteFileChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	m_writeFileCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteFileChecked, this);
 	m_writeConsoleCB = new wxCheckBox(this, wxID_ANY, _("Write to Console"));
-	_connect_macro_(m_writeConsoleCB, LogConfigWindow::OnWriteConsoleChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	m_writeConsoleCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteConsoleChecked, this);
 	m_writeWindowCB = new wxCheckBox(this, wxID_ANY, _("Write to Window"));
-	_connect_macro_(m_writeWindowCB, LogConfigWindow::OnWriteWindowChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	m_writeWindowCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteWindowChecked, this);
 	m_writeDebuggerCB = NULL;
 #ifdef _MSC_VER
 	if (IsDebuggerPresent())
 	{
 		m_writeDebuggerCB = new wxCheckBox(this, wxID_ANY, _("Write to Debugger"));
-		_connect_macro_(m_writeDebuggerCB, LogConfigWindow::OnWriteDebuggerChecked, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+		m_writeDebuggerCB->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &LogConfigWindow::OnWriteDebuggerChecked, this);
 	}
 #endif
 
 	wxButton *btn_toggle_all = new wxButton(this, wxID_ANY, _("Toggle All Log Types"),
 			wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-	_connect_macro_(btn_toggle_all, LogConfigWindow::OnToggleAll, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	btn_toggle_all->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &LogConfigWindow::OnToggleAll, this);
 	m_checks = new wxCheckListBox(this, wxID_ANY);
-	_connect_macro_(m_checks, LogConfigWindow::OnLogCheck, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, this);
+	m_checks->Bind(wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, &LogConfigWindow::OnLogCheck, this);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 		m_checks->Append(wxString::FromAscii(m_LogManager->GetFullName((LogTypes::LOG_TYPE)i)));
 

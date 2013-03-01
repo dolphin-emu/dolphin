@@ -97,6 +97,7 @@ struct VideoConfig
 	bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
 	bool bShowEFBCopyRegions;
+	bool bLogFPSToFile;
 	
 	// Render
 	bool bWireFrame;
@@ -132,7 +133,6 @@ struct VideoConfig
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
 	bool bUseBBox;
 	bool bEnablePixelLighting;
-	bool bEnablePerPixelDepth;
 	bool bDisablePixelPerf;
 
 	int iLog; // CONF_ bits
@@ -158,12 +158,19 @@ struct VideoConfig
 		std::vector<std::string> PPShaders; // post-processing shaders
 
 		bool bUseRGBATextures; // used for D3D11 in TextureCache
+		bool bUseMinimalMipCount;
 		bool bSupports3DVision;
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
 		bool bSupportsPixelPerfQuery;
 	} backend_info;
+
+    // Utility
+    bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
+    bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
+    bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
+    bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
 };
 
 extern VideoConfig g_Config;
@@ -171,7 +178,5 @@ extern VideoConfig g_ActiveConfig;
 
 // Called every frame.
 void UpdateActiveConfig();
-
-void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip, TargetRectangle *rc);
 
 #endif  // _VIDEO_CONFIG_H_

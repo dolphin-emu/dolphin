@@ -120,8 +120,18 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
     TexImage0& ti0 = texUnit.texImage0[subTexmap];
     TexTLUT& texTlut = texUnit.texTlut[subTexmap];
 
-    u32 imageBase = texUnit.texImage3[subTexmap].image_base << 5;    
-    u8 *imageSrc = Memory::GetPointer(imageBase);
+	u8 *imageSrc, *imageSrcOdd = NULL;
+	if (texUnit.texImage1[subTexmap].image_type)
+	{
+		imageSrc = &texMem[texUnit.texImage1[subTexmap].tmem_even * TMEM_LINE_SIZE];
+		if (ti0.format == GX_TF_RGBA8)
+			imageSrcOdd = &texMem[texUnit.texImage2[subTexmap].tmem_odd * TMEM_LINE_SIZE];
+	}
+	else
+	{
+		u32 imageBase = texUnit.texImage3[subTexmap].image_base << 5;    
+		imageSrc = Memory::GetPointer(imageBase);
+	}
 
 	int imageWidth = ti0.width;
 	int imageHeight = ti0.height;
@@ -182,17 +192,34 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
         WrapCoord(imageSPlus1, tm0.wrap_s, imageWidth);
         WrapCoord(imageTPlus1, tm0.wrap_t, imageHeight);
 
-        TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
-        SetTexel(sampledTex, texel, (128 - fractS) * (128 - fractT));
+		if (!(ti0.format == GX_TF_RGBA8 && texUnit.texImage1[subTexmap].image_type))
+		{
+			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+			SetTexel(sampledTex, texel, (128 - fractS) * (128 - fractT));
 
-        TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
-        AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
+			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+			AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
 
-        TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
-        AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
+			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageS, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+			AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
 
-        TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
-        AddTexel(sampledTex, texel, (fractS) * (fractT));
+			TexDecoder_DecodeTexel(sampledTex, imageSrc, imageSPlus1, imageTPlus1, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);
+			AddTexel(sampledTex, texel, (fractS) * (fractT));
+		}
+		else
+		{
+			TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageS, imageT, imageWidth);
+			SetTexel(sampledTex, texel, (128 - fractS) * (128 - fractT));
+
+			TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageSPlus1, imageT, imageWidth);
+			AddTexel(sampledTex, texel, (fractS) * (128 - fractT));
+
+			TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageS, imageTPlus1, imageWidth);
+			AddTexel(sampledTex, texel, (128 - fractS) * (fractT));
+
+			TexDecoder_DecodeTexelRGBA8FromTmem(sampledTex, imageSrc, imageSrcOdd, imageSPlus1, imageTPlus1, imageWidth);
+			AddTexel(sampledTex, texel, (fractS) * (fractT));
+		}
 
         sample[0] = (u8)(texel[0] >> 14);
         sample[1] = (u8)(texel[1] >> 14);
@@ -209,7 +236,10 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 		WrapCoord(imageS, tm0.wrap_s, imageWidth);
         WrapCoord(imageT, tm0.wrap_t, imageHeight);
 
-        TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);   
+		if (!(ti0.format == GX_TF_RGBA8 && texUnit.texImage1[subTexmap].image_type))
+			TexDecoder_DecodeTexel(sample, imageSrc, imageS, imageT, imageWidth, ti0.format, tlutAddress, texTlut.tlut_format);   
+		else
+			TexDecoder_DecodeTexelRGBA8FromTmem(sample, imageSrc, imageSrcOdd, imageS, imageT, imageWidth);   
     }
 }
 

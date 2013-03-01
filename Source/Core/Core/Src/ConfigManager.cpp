@@ -100,9 +100,6 @@ SConfig::SConfig()
 {
 	// Make sure we have log manager
 	LoadSettings();
-	//Make sure we load any extra settings
-	LoadSettingsWii();
-
 }
 
 void SConfig::Init()
@@ -131,6 +128,7 @@ void SConfig::SaveSettings()
 
 	// General
 	ini.Set("General", "LastFilename",	m_LastFilename);
+	ini.Set("General", "ShowLag", m_ShowLag);
 
 	// ISO folders
 	// clear removed folders
@@ -155,13 +153,14 @@ void SConfig::SaveSettings()
 
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
 	ini.Set("General", "NANDRoot",			m_NANDPath);
+	ini.Set("General", "WirelessMac",		m_WirelessMac);
 
 	// Interface		
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
 	ini.Set("Interface", "UsePanicHandlers",	m_LocalCoreStartupParameter.bUsePanicHandlers);
+	ini.Set("Interface", "OnScreenDisplayMessages",	m_LocalCoreStartupParameter.bOnScreenDisplayMessages);
 	ini.Set("Interface", "HideCursor",			m_LocalCoreStartupParameter.bHideCursor);
 	ini.Set("Interface", "AutoHideCursor",		m_LocalCoreStartupParameter.bAutoHideCursor);
-	ini.Set("Interface", "Theme",				m_LocalCoreStartupParameter.iTheme);
 	ini.Set("Interface", "MainWindowPosX",		(m_LocalCoreStartupParameter.iPosX == -32000) ? 0 : m_LocalCoreStartupParameter.iPosX); // TODO - HAX
 	ini.Set("Interface", "MainWindowPosY",		(m_LocalCoreStartupParameter.iPosY == -32000) ? 0 : m_LocalCoreStartupParameter.iPosY); // TODO - HAX
 	ini.Set("Interface", "MainWindowWidth",		m_LocalCoreStartupParameter.iWidth);
@@ -172,6 +171,7 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "ShowLogWindow",		m_InterfaceLogWindow);
 	ini.Set("Interface", "ShowLogConfigWindow",	m_InterfaceLogConfigWindow);
 	ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
+	ini.Set("Interface", "ThemeName",			m_LocalCoreStartupParameter.theme_name);
 
 	// Hotkeys
 	for (int i = 0; i < NUM_HOTKEYS; i++)
@@ -208,6 +208,8 @@ void SConfig::SaveSettings()
 	ini.Set("GameList", "ListKorea",	m_ListKorea);
 	ini.Set("GameList", "ListTaiwan",	m_ListTaiwan);
 	ini.Set("GameList", "ListUnknown",	m_ListUnknown);
+	ini.Set("GameList", "ListSort",		m_ListSort);
+	ini.Set("GameList", "ListSortSecondary", m_ListSort2);
 
 	// Core
 	ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
@@ -216,12 +218,13 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
 	ini.Set("Core", "DSPHLE",			m_LocalCoreStartupParameter.bDSPHLE);
 	ini.Set("Core", "SkipIdle",			m_LocalCoreStartupParameter.bSkipIdle);
-	ini.Set("Core", "LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
 	ini.Set("Core", "DefaultGCM",		m_LocalCoreStartupParameter.m_strDefaultGCM);
 	ini.Set("Core", "DVDRoot",			m_LocalCoreStartupParameter.m_strDVDRoot);
 	ini.Set("Core", "Apploader",		m_LocalCoreStartupParameter.m_strApploader);
 	ini.Set("Core", "EnableCheats",		m_LocalCoreStartupParameter.bEnableCheats);
 	ini.Set("Core", "SelectedLanguage",	m_LocalCoreStartupParameter.SelectedLanguage);
+	ini.Set("Core", "DPL2Decoder",		m_LocalCoreStartupParameter.bDPL2Decoder);
+	ini.Set("Core", "Latency",			m_LocalCoreStartupParameter.iLatency);
 	ini.Set("Core", "MemcardA",			m_strMemoryCardA);
 	ini.Set("Core", "MemcardB",			m_strMemoryCardB);
 	ini.Set("Core", "SlotA",			m_EXIDevice[0]);
@@ -238,6 +241,8 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "WiiSDCard", m_WiiSDCard);
 	ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
 	ini.Set("Core", "WiimoteReconnectOnLoad", m_WiimoteReconnectOnLoad);
+	ini.Set("Core", "WiimoteContinuousScanning", m_WiimoteContinuousScanning);
+	ini.Set("Core", "WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
 	ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
 	ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
 	ini.Set("Core", "FrameLimit",		m_Framelimit);
@@ -245,6 +250,16 @@ void SConfig::SaveSettings()
 
 	// GFX Backend
 	ini.Set("Core", "GFXBackend",	m_LocalCoreStartupParameter.m_strVideoBackend);
+
+	// Movie
+	ini.Set("Movie", "PauseMovie", m_PauseMovie);
+	ini.Set("Movie", "Author", m_strMovieAuthor);
+
+	// DSP
+	ini.Set("DSP", "EnableJIT", m_EnableJIT);
+	ini.Set("DSP", "DumpAudio", m_DumpAudio);
+	ini.Set("DSP", "Backend", sBackend);
+	ini.Set("DSP", "Volume", m_Volume);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
@@ -260,6 +275,7 @@ void SConfig::LoadSettings()
 	// General
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
+		ini.Get("General", "ShowLag", &m_ShowLag, false);
 
 		m_ISOFolder.clear();
 		int numGCMPaths;
@@ -282,15 +298,16 @@ void SConfig::LoadSettings()
 		m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
 		DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 		DiscIO::CSharedContent::AccessInstance().UpdateLocation();
+		ini.Get("General", "WirelessMac",			&m_WirelessMac);
 	}
 
 	{
 		// Interface
 		ini.Get("Interface", "ConfirmStop",			&m_LocalCoreStartupParameter.bConfirmStop,		false);
 		ini.Get("Interface", "UsePanicHandlers",	&m_LocalCoreStartupParameter.bUsePanicHandlers,	true);
+		ini.Get("Interface", "OnScreenDisplayMessages",	&m_LocalCoreStartupParameter.bOnScreenDisplayMessages,	true);
 		ini.Get("Interface", "HideCursor",			&m_LocalCoreStartupParameter.bHideCursor,		false);
 		ini.Get("Interface", "AutoHideCursor",		&m_LocalCoreStartupParameter.bAutoHideCursor,	false);
-		ini.Get("Interface", "Theme",				&m_LocalCoreStartupParameter.iTheme,			0);
 		ini.Get("Interface", "MainWindowPosX",		&m_LocalCoreStartupParameter.iPosX,				100);
 		ini.Get("Interface", "MainWindowPosY",		&m_LocalCoreStartupParameter.iPosY,				100);
 		ini.Get("Interface", "MainWindowWidth",		&m_LocalCoreStartupParameter.iWidth,			800);
@@ -301,6 +318,7 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowLogWindow",		&m_InterfaceLogWindow,							false);
 		ini.Get("Interface", "ShowLogConfigWindow",	&m_InterfaceLogConfigWindow,					false);
 		ini.Get("Interface", "ShowConsole",			&m_InterfaceConsole,							false);
+		ini.Get("Interface", "ThemeName",			&m_LocalCoreStartupParameter.theme_name,		"Boomy");
 
 		// Hotkeys
 		for (int i = 0; i < NUM_HOTKEYS; i++)
@@ -334,25 +352,32 @@ void SConfig::LoadSettings()
 		ini.Get("GameList", "ListPal",		&m_ListPal,		true);
 		ini.Get("GameList", "ListUsa",		&m_ListUsa,		true);
 
-		ini.Get("GameList", "ListFrance",		&m_ListFrance, true);
-		ini.Get("GameList", "ListItaly",		&m_ListItaly, true);
-		ini.Get("GameList", "ListKorea",		&m_ListKorea, true);
-		ini.Get("GameList", "ListTaiwan",		&m_ListTaiwan, true);
-		ini.Get("GameList", "ListUnknown",		&m_ListUnknown, true);
+		ini.Get("GameList", "ListFrance",	&m_ListFrance,	true);
+		ini.Get("GameList", "ListItaly",	&m_ListItaly,	true);
+		ini.Get("GameList", "ListKorea",	&m_ListKorea,	true);
+		ini.Get("GameList", "ListTaiwan",	&m_ListTaiwan,	true);
+		ini.Get("GameList", "ListUnknown",	&m_ListUnknown,	true);
+		ini.Get("GameList", "ListSort",		&m_ListSort,	3);
+		ini.Get("GameList", "ListSortSecondary",&m_ListSort2,	0);
 
 		// Core
 		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		false);
+#ifdef _M_ARM
+		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		3);
+#else
 		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		1);
+#endif
 		ini.Get("Core", "DSPThread",	&m_LocalCoreStartupParameter.bDSPThread,	false);
 		ini.Get("Core", "DSPHLE",		&m_LocalCoreStartupParameter.bDSPHLE,		true);
 		ini.Get("Core", "CPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);
 		ini.Get("Core", "SkipIdle",		&m_LocalCoreStartupParameter.bSkipIdle,		true);
-		ini.Get("Core", "LockThreads",	&m_LocalCoreStartupParameter.bLockThreads,	false);
 		ini.Get("Core", "DefaultGCM",	&m_LocalCoreStartupParameter.m_strDefaultGCM);
 		ini.Get("Core", "DVDRoot",		&m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Get("Core", "Apploader",	&m_LocalCoreStartupParameter.m_strApploader);
 		ini.Get("Core", "EnableCheats",	&m_LocalCoreStartupParameter.bEnableCheats,				false);
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage,		0);
+		ini.Get("Core", "DPL2Decoder",	&m_LocalCoreStartupParameter.bDPL2Decoder,	false);
+		ini.Get("Core", "Latency",		&m_LocalCoreStartupParameter.iLatency,		14);
 		ini.Get("Core", "MemcardA",		&m_strMemoryCardA);
 		ini.Get("Core", "MemcardB",		&m_strMemoryCardB);
 		ini.Get("Core", "SlotA",		(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
@@ -371,35 +396,40 @@ void SConfig::LoadSettings()
 
 		ini.Get("Core", "WiiSDCard",		&m_WiiSDCard,									false);
 		ini.Get("Core", "WiiKeyboard",		&m_WiiKeyboard,									false);
-		ini.Get("Core", "WiimoteReconnectOnLoad",	&m_WiimoteReconnectOnLoad,							true);
+		ini.Get("Core", "WiimoteReconnectOnLoad",	&m_WiimoteReconnectOnLoad,				true);
+		ini.Get("Core", "WiimoteContinuousScanning", &m_WiimoteContinuousScanning,			false);
+		ini.Get("Core", "WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker,					true);
 		ini.Get("Core", "RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
 		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeam,			false);
 		ini.Get("Core", "FastDiscSpeed",	&m_LocalCoreStartupParameter.bFastDiscSpeed,	false);
-		ini.Get("Core", "BAT",				&m_LocalCoreStartupParameter.bMMUBAT,			false);
+		ini.Get("Core", "DCBZ",				&m_LocalCoreStartupParameter.bDCBZOFF,			false);
 		ini.Get("Core", "FrameLimit",		&m_Framelimit,									1); // auto frame limit by default
 		ini.Get("Core", "UseFPS",			&b_UseFPS,										false); // use vps as default
 
 		// GFX Backend
 		ini.Get("Core", "GFXBackend",  &m_LocalCoreStartupParameter.m_strVideoBackend, "");
+
+		// Movie
+		ini.Get("General", "PauseMovie", &m_PauseMovie, false);
+		ini.Get("Movie", "Author", &m_strMovieAuthor, "");
+
+		// DSP
+		ini.Get("DSP", "EnableJIT", &m_EnableJIT, true);
+		ini.Get("DSP", "DumpAudio", &m_DumpAudio, false);
+	#if defined __linux__ && HAVE_ALSA
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_ALSA);
+	#elif defined __APPLE__
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_COREAUDIO);
+	#elif defined _WIN32
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_DIRECTSOUND);
+	#else
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_NULLSOUND);
+	#endif
+		ini.Get("DSP", "Volume", &m_Volume, 100);
 	}
 
 	m_SYSCONF = new SysConf();
-}
-void SConfig::LoadSettingsWii()
-{
-	IniFile ini;
-	//Wiimote configs
-	ini.Load((File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini"));
-	for (int i = 0; i < 4; i++)
-	{
-		char SectionName[32];
-		sprintf(SectionName, "Wiimote%i", i + 1);
-		ini.Get(SectionName, "AutoReconnectRealWiimote", &m_WiiAutoReconnect[i], false);
-	}
-		ini.Load((File::GetUserPath(D_CONFIG_IDX) + "wiimote.ini"));
-		ini.Get("Real", "Unpair", &m_WiiAutoUnpair, false);
-		
 }

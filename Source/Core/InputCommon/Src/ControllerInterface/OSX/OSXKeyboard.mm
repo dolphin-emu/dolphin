@@ -1,5 +1,7 @@
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
+#include <Cocoa/Cocoa.h>
+#include <wx/wx.h> // wxWidgets
 
 #include "../ControllerInterface.h"
 #include "OSXKeyboard.h"
@@ -9,10 +11,11 @@ namespace ciface
 namespace OSX
 {
 
-Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index)
+Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index, void *window)
 	: m_device(device)
 	, m_device_name(name)
 	, m_index(index)
+	, m_window(window)
 {
 	// This class should only recieve Keyboard or Keypad devices
 	// Now, filter on just the buttons we can handle sanely
@@ -39,10 +42,48 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index)
 		}
 		CFRelease(elements);
 	}
+
+	m_windowid = [[(NSView *)(((wxWindow *)window)->GetHandle()) window] windowNumber];
+
+	// cursor, with a hax for-loop
+	for (unsigned int i=0; i<4; ++i)
+		AddInput(new Cursor(!!(i&2), (&m_cursor.x)[i/2], !!(i&1)));
+
+	for (u8 i = 0; i < sizeof(m_mousebuttons) / sizeof(m_mousebuttons[0]); ++i)
+		AddInput(new Button(i, m_mousebuttons[i]));
 }
 
 bool Keyboard::UpdateInput()
 {
+	CGRect bounds = CGRectZero;
+	uint32_t windowid[1] = { m_windowid };
+	CFArrayRef windowArray = CFArrayCreate(NULL, (const void **) windowid, 1, NULL);
+	CFArrayRef windowDescriptions = CGWindowListCreateDescriptionFromArray(windowArray);
+	CFDictionaryRef windowDescription = (CFDictionaryRef) CFArrayGetValueAtIndex((CFArrayRef) windowDescriptions, 0);
+
+	if (CFDictionaryContainsKey(windowDescription, kCGWindowBounds))
+	{
+		CFDictionaryRef boundsDictionary = (CFDictionaryRef) CFDictionaryGetValue(windowDescription, kCGWindowBounds);
+
+		if (boundsDictionary != NULL)
+			CGRectMakeWithDictionaryRepresentation(boundsDictionary, &bounds);
+	}
+
+	CFRelease(windowArray);
+
+	CGEventRef event = CGEventCreate(nil);
+	CGPoint loc = CGEventGetLocation(event);
+	CFRelease(event);
+
+	loc.x -= bounds.origin.x;
+	loc.y -= bounds.origin.y;
+	m_cursor.x = loc.x / bounds.size.width * 2 - 1.0;
+	m_cursor.y = loc.y / bounds.size.height * 2 - 1.0;
+
+	m_mousebuttons[0] = CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, kCGMouseButtonLeft);
+	m_mousebuttons[1] = CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, kCGMouseButtonRight);
+	m_mousebuttons[2] = CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, kCGMouseButtonCenter);
+
 	return true;
 }
 
@@ -201,10 +242,34 @@ ControlState Keyboard::Key::GetState() const
 		return 0;
 }
 
+ControlState Keyboard::Cursor::GetState() const
+{
+	return std::max(0.0f, ControlState(m_axis) / (m_positive ? 1.0f : -1.0f));
+}
+
+ControlState Keyboard::Button::GetState() const
+{
+	return (m_button != 0);
+}
+
+std::string Keyboard::Cursor::GetName() const
+{
+	static char tmpstr[] = "Cursor ..";
+	tmpstr[7] = (char)('X' + m_index);
+	tmpstr[8] = (m_positive ? '+' : '-');
+	return tmpstr;
+}
+
+std::string Keyboard::Button::GetName() const
+{
+	return std::string("Click ") + char('0' + m_index);
+}
+
 std::string Keyboard::Key::GetName() const
 {
 	return m_name;
 }
+
 
 }
 }

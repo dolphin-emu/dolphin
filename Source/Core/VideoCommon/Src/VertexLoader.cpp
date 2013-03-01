@@ -23,7 +23,7 @@
 #include "MemoryUtil.h"
 #include "StringUtil.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "PixelEngine.h"
 #include "Host.h"
 
@@ -43,8 +43,9 @@
 //BBox
 #include "XFMemory.h"
 extern float GC_ALIGNED16(g_fProjectionMatrix[16]);
-
+#ifndef _M_GENERIC
 #define USE_JIT
+#endif
 
 #define COMPILED_CODE_SIZE 4096
 
@@ -82,8 +83,9 @@ static const float fractionTable[32] = {
 	1.0f / (1U << 24), 1.0f / (1U << 25), 1.0f / (1U << 26), 1.0f / (1U << 27),
 	1.0f / (1U << 28), 1.0f / (1U << 29), 1.0f / (1U << 30), 1.0f / (1U << 31),
 };
-
+#ifdef USE_JIT
 using namespace Gen;
+#endif
 
 void LOADERDECL PosMtx_ReadDirect_UByte()
 {
@@ -182,14 +184,19 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_VtxDesc = vtx_desc;
 	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
 
+	#ifdef USE_JIT
 	AllocCodeSpace(COMPILED_CODE_SIZE);
 	CompileVertexTranslator();
 	WriteProtect();
+	#endif
+
 }
 
 VertexLoader::~VertexLoader() 
 {
+	#ifdef USE_JIT
 	FreeCodeSpace();
+	#endif
 	delete m_NativeFmt;
 }
 
@@ -224,14 +231,14 @@ void VertexLoader::CompileVertexTranslator()
 #endif
 
 	// Colors
-	const int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
+	const u32 col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
 	// TextureCoord
 	// Since m_VtxDesc.Text7Coord is broken across a 32 bit word boundary, retrieve its value manually.
 	// If we didn't do this, the vertex format would be read as one bit offset from where it should be, making
 	// 01 become 00, and 10/11 become 01
-	const int tc[8] = {
+	const u32 tc[8] = {
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
-		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (const int)((m_VtxDesc.Hex >> 31) & 3)
+		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (const u32)((m_VtxDesc.Hex >> 31) & 3)
 	};
 	
 	// Reset pipeline
@@ -474,7 +481,8 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 	m_PipelineStages[m_numPipelineStages++] = func;
 #endif
 }
-
+// ARMTODO: This should be done in a better way
+#ifndef _M_GENERIC
 void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 {
 #ifdef USE_JIT
@@ -498,7 +506,7 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 #endif
 #endif
 }
-
+#endif
 void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 {
 	m_numLoadedVertices += count;
@@ -770,7 +778,7 @@ void VertexLoader::AppendToString(std::string *dest) const
 		dest->append(StringFromFormat("Nrm: %i %s-%s ",
 			m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat]));
 	}
-	int color_mode[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
+	u32 color_mode[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
 	for (int i = 0; i < 2; i++)
 	{
 		if (color_mode[i])
@@ -778,7 +786,7 @@ void VertexLoader::AppendToString(std::string *dest) const
 			dest->append(StringFromFormat("C%i: %i %s-%s ", i, m_VtxAttr.color[i].Elements, posMode[color_mode[i]], colorFormat[m_VtxAttr.color[i].Comp]));
 		}
 	}
-	int tex_mode[8] = {
+	u32 tex_mode[8] = {
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord, 
 		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord
 	};

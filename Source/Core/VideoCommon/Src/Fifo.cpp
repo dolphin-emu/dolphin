@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "VideoConfig.h"
-#include "Setup.h"
 #include "MemoryUtil.h"
 #include "Thread.h"
 #include "Atomic.h"
@@ -223,11 +222,11 @@ void RunGpu()
 		{
 			u8 *uData = Memory::GetPointer(fifo.CPReadPointer);			
 			
-			SaveSSEState();
-			LoadDefaultSSEState();
+			FPURoundMode::SaveSIMDState();
+			FPURoundMode::LoadDefaultSIMDState();
 			ReadDataFromFifo(uData, 32);				
 			OpcodeDecoder_Run(g_bSkipCurrentFrame);	
-			LoadSSEState();
+			FPURoundMode::LoadSIMDState();
 
 			//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
 

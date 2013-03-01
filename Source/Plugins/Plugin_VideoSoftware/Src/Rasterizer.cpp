@@ -63,6 +63,28 @@ s32 scissorBottom = 0;
 Tev tev;
 RasterBlock rasterBlock;
 
+void DoState(PointerWrap &p)
+{
+	ZSlope.DoState(p);
+	WSlope.DoState(p);
+	for (int i=0;i<2;++i)
+		for (int n=0; n<4; ++n)
+			ColorSlopes[i][n].DoState(p);
+	for (int i=0;i<8;++i)
+		for (int n=0; n<3; ++n)
+			TexSlopes[i][n].DoState(p);
+	p.Do(vertex0X);
+	p.Do(vertex0Y);
+	p.Do(vertexOffsetX);
+	p.Do(vertexOffsetY);
+	p.Do(scissorLeft);
+	p.Do(scissorTop);
+	p.Do(scissorRight);
+	p.Do(scissorBottom);
+	tev.DoState(p);
+	p.Do(rasterBlock);
+}
+
 void Init()
 {
 	tev.Init();
@@ -126,7 +148,7 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	if (z < 0 || z > 0x00ffffff)
 		return;
 
-	if (bpmem.zcontrol.zcomploc)
+	if (bpmem.zcontrol.early_ztest && bpmem.zmode.testenable && g_SWVideoConfig.bZComploc)
 	{
 		// TODO: Verify that perf regs are being incremented even if test is disabled
 		if (++SWPixelEngine::pereg.perfZcompInputZcomplocLo == 0)
@@ -379,7 +401,7 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
     float w[3] = { 1.0f / v0->projectedPosition.w, 1.0f / v1->projectedPosition.w, 1.0f / v2->projectedPosition.w };
     InitSlope(&WSlope, w[0], w[1], w[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
-	if (!bpmem.genMode.zfreeze)
+	if (!bpmem.genMode.zfreeze || !g_SWVideoConfig.bZFreeze)
 	    InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
     for(unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)

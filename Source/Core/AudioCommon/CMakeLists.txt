@@ -1,10 +1,15 @@
 set(SRCS	Src/AudioCommon.cpp
-			Src/AudioCommonConfig.cpp
+			Src/DPL2Decoder.cpp
 			Src/Mixer.cpp
 			Src/WaveFile.cpp
 			Src/NullSoundStream.cpp)
 
 set(LIBS "")
+
+if(ANDROID)
+	set(SRCS ${SRCS} Src/OpenSLESStream.cpp)
+	set(LIBS ${LIBS} OpenSLES)
+endif(ANDROID)
 
 if(ALSA_FOUND)
 	set(SRCS ${SRCS} Src/AlsaSoundStream.cpp)
@@ -18,7 +23,7 @@ endif(AO_FOUND)
 
 if(OPENAL_FOUND)
 	set(SRCS ${SRCS} Src/OpenALStream.cpp Src/aldlist.cpp)
-	set(LIBS ${LIBS} ${OPENAL_LIBRARY})
+	set(LIBS ${LIBS} ${OPENAL_LIBRARY} SoundTouch )
 endif(OPENAL_FOUND)
 
 if(PULSEAUDIO_FOUND)

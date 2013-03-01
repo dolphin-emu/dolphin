@@ -19,14 +19,12 @@
 #define _AUDIO_COMMON_H_
 
 #include "Common.h"
-#include "AudioCommonConfig.h"
 #include "SoundStream.h"
 
 
 class CMixer;
 
 extern SoundStream *soundStream;
-extern AudioCommonConfig ac_Config;
 
 // UDSPControl
 union UDSPControl
@@ -60,6 +58,7 @@ namespace AudioCommon
 	std::vector<std::string> GetSoundBackends();
 	bool UseJIT();
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
+	void UpdateSoundStream();
 }
 
 #endif // _AUDIO_COMMON_H_

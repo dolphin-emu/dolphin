@@ -5,9 +5,8 @@
     <ClCompile Include="Src\Console.cpp" />
     <ClCompile Include="Src\Core.cpp" />
     <ClCompile Include="Src\CoreParameter.cpp" />
-    <ClCompile Include="Src\CoreRerecording.cpp" />
     <ClCompile Include="Src\CoreTiming.cpp" />
-    <ClCompile Include="Src\MemTools.cpp" />
+    <ClCompile Include="Src\x64MemTools.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
     <ClCompile Include="Src\DSPEmulator.cpp" />
     <ClCompile Include="Src\State.cpp" />
@@ -197,6 +196,9 @@
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_AXWii.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
+    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_NewAXWii.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_CARD.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
@@ -285,6 +287,9 @@
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClCompile>
     <ClCompile Include="Src\HW\SI_DeviceGCController.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\HW\SI_DeviceGCSteeringWheel.cpp">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClCompile>
     <ClCompile Include="Src\HW\VideoInterface.cpp">
@@ -556,6 +561,9 @@
     <ClCompile Include="Src\HW\GCMemcard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitInterface.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ConfigManager.h" />
@@ -727,16 +735,22 @@
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_ADPCM.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_Voice.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXStructs.h">
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_Structs.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXWii.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXWii_Structs.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXWii_Voice.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_NewAXWii.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_CARD.h">
@@ -803,6 +817,9 @@
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
     <ClInclude Include="Src\HW\SI_DeviceGCController.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HW\SI_DeviceGCSteeringWheel.h">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
     <ClInclude Include="Src\HW\SI.h">
@@ -1032,6 +1049,9 @@
     <ClInclude Include="Src\Movie.h" />
     <ClInclude Include="Src\HW\GCMemcard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PowerPC\JitInterface.h">
+      <Filter>PowerPC</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -90,9 +90,9 @@ void GetTlutLoadData(u32 &tlutAddr, u32 &memAddr, u32 &tlutXferCount, BPMemory &
 
 	// TODO - figure out a cleaner way.
 	if (Core::g_CoreStartupParameter.bWii)
-		memAddr = bpmem.tmem_config.tlut_src << 5;
+		memAddr = bpMem.tmem_config.tlut_src << 5;
 	else
-		memAddr = (bpmem.tmem_config.tlut_src & 0xFFFFF) << 5;
+		memAddr = (bpMem.tmem_config.tlut_src & 0xFFFFF) << 5;
 }
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory &cpMem)

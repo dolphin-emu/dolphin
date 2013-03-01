@@ -25,6 +25,7 @@
 class CWII_IPC_HLE_Device_usb_oh1_57e_305;
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305* GetUsbPointer();
+void SetUsbPointer(CWII_IPC_HLE_Device_usb_oh1_57e_305* ptr);
 
 class CBigEndianBuffer
 {

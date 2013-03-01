@@ -69,7 +69,6 @@ private:
 		ID_FRAMELIMIT_USEFPSFORLIMITING,
 
 		ID_CPUENGINE,
-		ID_LOCKTHREADS,
 		ID_DSPTHREAD,
 
 		ID_NTSCJ,
@@ -79,14 +78,15 @@ private:
 		ID_ENABLE_HLE_AUDIO,
 		ID_ENABLE_THROTTLE,
 		ID_DUMP_AUDIO,
-		ID_FREQUENCY,
+		ID_DPL2DECODER,
+		ID_LATENCY,
 		ID_BACKEND,
 		ID_VOLUME,
 
 		// Interface settings
 		ID_INTERFACE_CONFIRMSTOP,
 		ID_INTERFACE_USEPANICHANDLERS,
-		ID_INTERFACE_THEME,
+		ID_INTERFACE_ONSCREENDISPLAYMESSAGES,
 		ID_INTERFACE_LANG,
 		ID_HOTKEY_CONFIG,
 
@@ -142,7 +142,6 @@ private:
 	wxCheckBox* EnableOpenCL;
 	wxRadioBox* CPUEngine;
 	wxCheckBox* DSPThread;
-	wxCheckBox* LockThreads;
 	wxCheckBox* _NTSCJ;
 
 
@@ -154,16 +153,17 @@ private:
 	wxBoxSizer* sAudioPage; // GC settings
 	wxRadioBox* DSPEngine;
 	wxSlider*	VolumeSlider;
-	wxStaticText* VolumeText;    
+	wxStaticText* VolumeText;
 	wxCheckBox*	DumpAudio;
+	wxCheckBox*	DPL2Decoder;
 	wxArrayString wxArrayBackends;
 	wxChoice*	BackendSelection;
-	wxChoice*	FrequencySelection;
+	wxSpinCtrl*	Latency;
 
 	// Interface
 	wxCheckBox* ConfirmStop;
 	wxCheckBox* UsePanicHandlers;
-	wxRadioBox* Theme;
+	wxCheckBox* OnScreenDisplayMessages;
 	wxChoice* InterfaceLang;
 	wxButton* HotkeyConfig;
 
@@ -225,7 +225,6 @@ private:
 	wxArrayString arrayStringFor_CPUEngine;
 	wxArrayString arrayStringFor_DSPEngine;
 	wxArrayString arrayStringFor_FullscreenResolution;
-	wxArrayString arrayStringFor_Themes;
 	wxArrayString arrayStringFor_InterfaceLang;
 	wxArrayString arrayStringFor_GCSystemLang;
 	wxArrayString arrayStringFor_WiiSensBarPos;

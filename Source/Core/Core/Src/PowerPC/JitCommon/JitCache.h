@@ -18,6 +18,7 @@
 #ifndef _JITCACHE_H
 #define _JITCACHE_H
 
+#include <bitset>
 #include <map>
 #include <vector>
 
@@ -77,13 +78,15 @@ struct JitBlock
 
 typedef void (*CompiledCode)();
 
-class JitBlockCache
+
+class JitBaseBlockCache
 {
 	const u8 **blockCodePointers;
 	JitBlock *blocks;
 	int num_blocks;
 	std::multimap<u32, int> links_to;
 	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
+	std::bitset<0x20000000 / 32> valid_block;
 #ifdef JIT_UNLIMITED_ICACHE
 	u8 *iCache;
 	u8 *iCacheEx;
@@ -95,9 +98,13 @@ class JitBlockCache
 	void LinkBlockExits(int i);
 	void LinkBlock(int i);
 	void UnlinkBlock(int i);
+	
+	// Virtual for overloaded
+	virtual void WriteLinkBlock(u8* location, const u8* address) = 0;
+	virtual void WriteDestroyBlock(const u8* location, u32 address) = 0;
 
 public:
-	JitBlockCache() :
+	JitBaseBlockCache() :
 		blockCodePointers(0), blocks(0), num_blocks(0),
 #ifdef JIT_UNLIMITED_ICACHE	
 		iCache(0), iCacheEx(0), iCacheVMEM(0), 
@@ -144,4 +151,11 @@ public:
 	//void DestroyBlocksWithFlag(BlockFlag death_flag);
 };
 
+// x86 BlockCache
+class JitBlockCache : public JitBaseBlockCache
+{
+private:
+	void WriteLinkBlock(u8* location, const u8* address);
+	void WriteDestroyBlock(const u8* location, u32 address);
+};
 #endif

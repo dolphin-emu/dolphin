@@ -218,13 +218,12 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 	do {
 		movcnt = 0;
 		for(i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++) {
-			if (cache.regs[i].loc.GetSimpleReg() !=
-			    regs[i].loc.GetSimpleReg() &&
-			    xregs[cache.regs[i].loc.GetSimpleReg()].guest_reg ==
-			    DSP_REG_NONE) {
-				movToHostReg(i,
-					     cache.regs[i].loc.GetSimpleReg(),
-					     true);
+			X64Reg simple = regs[i].loc.GetSimpleReg();
+			X64Reg simple_cache = cache.regs[i].loc.GetSimpleReg();
+			if (simple_cache != simple
+				&& xregs[simple_cache].guest_reg == DSP_REG_NONE)
+			{
+				movToHostReg(i, simple_cache, true);
 				movcnt++;
 			}
 		}

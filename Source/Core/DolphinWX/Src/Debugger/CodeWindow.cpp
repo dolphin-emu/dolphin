@@ -38,6 +38,7 @@
 #include "LogManager.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
+#include "PowerPC/JitInterface.h"
 #include "Debugger/PPCDebugInterface.h"
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCAnalyst.h"
@@ -45,17 +46,12 @@
 #include "PowerPC/PPCSymbolDB.h"
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
-#include "PowerPC/JitCommon/JitBase.h"
-#include "PowerPC/JitCommon/JitCache.h" // for ClearCache()
 
 #include "ConfigManager.h"
 
 extern "C"  // Bitmaps
 {
-	#include "../../resources/toolbar_play.c"
-	#include "../../resources/toolbar_pause.c"
 	#include "../../resources/toolbar_add_memorycheck.c"
-	#include "../../resources/toolbar_debugger_delete.c"
 	#include "../../resources/toolbar_add_breakpoint.c"
 }
 
@@ -263,8 +259,7 @@ void CCodeWindow::SingleStep()
 {
 	if (CCPU::IsStepping())
 	{
-		if (jit)
-			jit->GetBlockCache()->InvalidateICache(PC, 4);
+		JitInterface::InvalidateICache(PC, 4);
 		CCPU::StepOpcode(&sync_event);
 		wxThread::Sleep(20);
 		// need a short wait here
@@ -319,7 +314,7 @@ void CCodeWindow::UpdateLists()
 	   	{
 			int idx = callers->Append(wxString::FromAscii(StringFromFormat
 						("< %s (%08x)", caller_symbol->name.c_str(), caller_addr).c_str()));
-			callers->SetClientData(idx, (void*)caller_addr);
+			callers->SetClientData(idx, (void*)(u64)caller_addr);
 		}
 	}
 
@@ -332,7 +327,7 @@ void CCodeWindow::UpdateLists()
 	   	{
 			int idx = calls->Append(wxString::FromAscii(StringFromFormat
 						("> %s (%08x)", call_symbol->name.c_str(), call_addr).c_str()));
-			calls->SetClientData(idx, (void*)call_addr);
+			calls->SetClientData(idx, (void*)(u64)call_addr);
 		}
 	}
 }
@@ -495,10 +490,8 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 	}
 
 	// Clear the JIT cache to enable these changes
-	if (jit)
-	{
-		jit->ClearCache();
-	}
+	JitInterface::ClearCache();
+	
 	// Update
 	UpdateButtonStates();
 }
@@ -512,7 +505,7 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 		   	break;
 
 		case IDM_CLEARCODECACHE:
-			jit->ClearCache();
+			JitInterface::ClearCache();
 		   	break;
 
 		case IDM_SEARCHINSTRUCTION:
@@ -563,23 +556,21 @@ bool CCodeWindow::JITBlockLinking()
 void CCodeWindow::InitBitmaps()
 {
 	// load original size 48x48
-	m_Bitmaps[Toolbar_DebugGo] = wxGetBitmapFromMemory(toolbar_play_png);
 	m_Bitmaps[Toolbar_Step] = wxGetBitmapFromMemory(toolbar_add_breakpoint_png);
 	m_Bitmaps[Toolbar_StepOver] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_Skip] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_GotoPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_DebugPause] = wxGetBitmapFromMemory(toolbar_pause_png);
 
 	// scale to 24x24 for toolbar
-	for (size_t n = Toolbar_DebugGo; n < ToolbarDebugBitmapMax; n++)
+	for (size_t n = 0; n < ToolbarDebugBitmapMax; n++)
 		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(24, 24));
 }
 
 void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 {
-	int w = m_Bitmaps[Toolbar_DebugGo].GetWidth(),
-		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
+	int w = m_Bitmaps[0].GetWidth(),
+		h = m_Bitmaps[0].GetHeight();
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
 	toolBar->AddTool(IDM_STEP,		_("Step"),			m_Bitmaps[Toolbar_Step]);

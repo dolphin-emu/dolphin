@@ -139,6 +139,8 @@ public:
 
 	// the implementation needs not do synchronization logic, because calls to it are surrounded by PauseAndLock now
 	virtual void DoState(PointerWrap &p) = 0;
+	
+	virtual void CheckInvalidState() = 0;
 };
 
 extern std::vector<VideoBackend*> g_available_video_backends;
@@ -180,9 +182,15 @@ class VideoBackendHardware : public VideoBackend
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 	void DoState(PointerWrap &p);
+	
+	bool m_invalid;
+	
+public:
+	 void CheckInvalidState();
 
 protected:
 	void InitializeShared();
+	void InvalidState();
 };
 
 #endif

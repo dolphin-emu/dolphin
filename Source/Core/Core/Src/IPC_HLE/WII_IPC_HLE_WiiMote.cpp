@@ -27,12 +27,18 @@
 #include "l2cap.h" // Local
 #include "WiiMote_HID_Attr.h"
 
-static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb;
+static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = NULL;
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305* GetUsbPointer()
 {
 	return s_Usb;
 }
+
+void SetUsbPointer(CWII_IPC_HLE_Device_usb_oh1_57e_305* ptr)
+{
+	s_Usb = ptr;
+}
+
 
 CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number, bdaddr_t _BD, bool ready)
 	: m_HIDControlChannel_Connected(false)
@@ -48,8 +54,6 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	, m_pHost(_pHost)
 {
 	DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote: #%i Constructed", _Number);
-
-	s_Usb = _pHost;
 
 	m_ConnectionState = (ready) ? CONN_READY : CONN_INACTIVE;
 	m_ConnectionHandle = 0x100 + _Number;
@@ -102,6 +106,7 @@ void CWII_IPC_HLE_WiiMote::DoState(PointerWrap &p)
 	p.Do(uclass);
 	p.Do(features);
 	p.Do(lmp_version);
+	p.Do(lmp_subversion);
 	p.Do(m_LinkKey);
 	p.Do(m_Name);
 
@@ -206,8 +211,7 @@ void CWII_IPC_HLE_WiiMote::EventConnectionAccepted()
 void CWII_IPC_HLE_WiiMote::EventDisconnect()
 {
 	// Send disconnect message to plugin
-	u8 Message = WIIMOTE_DISCONNECT;
-	Wiimote::ControlChannel(m_ConnectionHandle & 0xFF, 99, &Message, 0);
+	Wiimote::ControlChannel(m_ConnectionHandle & 0xFF, 99, NULL, 0);
 
 	m_ConnectionState = CONN_INACTIVE;
 	// Clear channel flags

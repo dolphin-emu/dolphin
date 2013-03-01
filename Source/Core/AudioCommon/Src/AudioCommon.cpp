@@ -26,6 +26,12 @@
 #include "CoreAudioSoundStream.h"
 #include "OpenALStream.h"
 #include "PulseAudioStream.h"
+#include "OpenSLESStream.h"
+#include "../../Core/Src/Movie.h"
+#include "../../Core/Src/ConfigManager.h"
+
+// This shouldn't be a global, at least not here.
+SoundStream *soundStream;
 
 namespace AudioCommon 
 {	
@@ -33,7 +39,7 @@ namespace AudioCommon
 	{
 		// TODO: possible memleak with mixer
 
-		std::string backend = ac_Config.sBackend;
+		std::string backend = SConfig::GetInstance().sBackend;
 		if (backend == BACKEND_OPENAL           && OpenALStream::isValid()) 
 			soundStream = new OpenALStream(mixer);
 		else if (backend == BACKEND_NULLSOUND   && NullSound::isValid()) 
@@ -50,13 +56,14 @@ namespace AudioCommon
 			soundStream = new CoreAudioSound(mixer);
 		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
 			soundStream = new PulseAudio(mixer);
-
+		else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
+			soundStream = new OpenSLESStream(mixer);
 		if (soundStream != NULL)
 		{
-			ac_Config.Update();
+			UpdateSoundStream();
 			if (soundStream->Start())
 			{
-				if (ac_Config.m_DumpAudio)
+				if (SConfig::GetInstance().m_DumpAudio)
 				{
 					std::string audio_file_name = File::GetUserPath(D_DUMPAUDIO_IDX) + "audiodump.wav";
 					File::CreateFullPath(audio_file_name);
@@ -81,7 +88,7 @@ namespace AudioCommon
 		if (soundStream) 
 		{
 			soundStream->Stop();
-			if (ac_Config.m_DumpAudio)
+			if (SConfig::GetInstance().m_DumpAudio)
 				soundStream->GetMixer()->StopLogAudio();
 				//soundStream->StopLogAudio();
 			delete soundStream;
@@ -95,28 +102,34 @@ namespace AudioCommon
 	{
 		std::vector<std::string> backends;
 
-		if (NullSound::isValid())  
+		if (NullSound::isValid())
 			backends.push_back(BACKEND_NULLSOUND);
-		if (DSound::isValid())  
+		if (DSound::isValid())
 			backends.push_back(BACKEND_DIRECTSOUND);
-		if (XAudio2::isValid())  
+		if (XAudio2::isValid())
 			backends.push_back(BACKEND_XAUDIO2);
+		if (AOSound::isValid())
+			backends.push_back(BACKEND_AOSOUND);
+		if (AlsaSound::isValid())
+			backends.push_back(BACKEND_ALSA);
+		if (CoreAudioSound::isValid())
+			backends.push_back(BACKEND_COREAUDIO);
+		if (PulseAudio::isValid())
+			backends.push_back(BACKEND_PULSEAUDIO);
 		if (OpenALStream::isValid())
 			backends.push_back(BACKEND_OPENAL);
-		if (AOSound::isValid())   
-			backends.push_back(BACKEND_AOSOUND);
-		if (AlsaSound::isValid()) 
-			backends.push_back(BACKEND_ALSA);
-		if (CoreAudioSound::isValid())       
-			backends.push_back(BACKEND_COREAUDIO);
-		if (PulseAudio::isValid()) 
-			backends.push_back(BACKEND_PULSEAUDIO);
-	   
+		if (OpenSLESStream::isValid())
+			backends.push_back(BACKEND_OPENSLES);
 		return backends;
 	}
 
-	bool UseJIT() {
-		return ac_Config.m_EnableJIT;
+	bool UseJIT() 
+	{
+		if (!Movie::IsDSPHLE() && Movie::IsPlayingInput() && Movie::IsConfigSaved())
+		{
+			return true;
+		}
+		return SConfig::GetInstance().m_EnableJIT;
 	}
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock)
@@ -135,6 +148,14 @@ namespace AudioCommon
 				else
 					csMixing.unlock();
 			}
+		}
+	}
+	void UpdateSoundStream()
+	{
+		if (soundStream)
+		{
+			soundStream->GetMixer()->SetThrottle(SConfig::GetInstance().m_Framelimit == 2);
+			soundStream->SetVolume(SConfig::GetInstance().m_Volume);
 		}
 	}
 }

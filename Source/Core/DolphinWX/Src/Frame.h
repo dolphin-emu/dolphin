@@ -210,15 +210,6 @@ private:
 		EToolbar_Max
 	};
 
-	enum EBitmapsThemes
-	{
-		BOOMY,
-		VISTA,
-		XPLASTIK,
-		KDE,
-		THEMES_MAX
-	};
-
 	wxBitmap m_Bitmaps[EToolbar_Max];
 	wxBitmap m_BitmapsMenu[EToolbar_Max];
 
@@ -297,6 +288,8 @@ private:
 	void OnRecordExport(wxCommandEvent& event);
 	void OnRecordReadOnly(wxCommandEvent& event);
 	void OnTASInput(wxCommandEvent& event);
+	void OnTogglePauseMovie(wxCommandEvent& event);
+	void OnShowLag(wxCommandEvent& event);
 	void OnChangeDisc(wxCommandEvent& event);
 	void OnScreenshot(wxCommandEvent& event);
 	void OnActive(wxActivateEvent& event);

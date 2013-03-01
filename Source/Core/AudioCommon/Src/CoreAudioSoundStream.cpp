@@ -87,6 +87,13 @@ bool CoreAudioSound::Start()
 		return false;
 	}
 
+    err = AudioUnitSetParameter(audioUnit,
+					kHALOutputParam_Volume,
+					kAudioUnitParameterFlag_Output, 0,
+					m_volume / 100., 0);
+	if (err != noErr)
+		ERROR_LOG(AUDIO, "error setting volume");
+
 	err = AudioUnitInitialize(audioUnit);
 	if (err != noErr) {
 		ERROR_LOG(AUDIO, "error initializing audiounit");
@@ -105,6 +112,7 @@ bool CoreAudioSound::Start()
 void CoreAudioSound::SetVolume(int volume)
 {
 	OSStatus err;
+    m_volume = volume;
 
 	err = AudioUnitSetParameter(audioUnit,
 					kHALOutputParam_Volume,

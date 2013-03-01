@@ -52,6 +52,9 @@ class VideoSoftware : public VideoBackend
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 	void DoState(PointerWrap &p);
+	
+public:
+	void CheckInvalidState();
 };
 
 }

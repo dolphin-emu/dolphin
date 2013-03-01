@@ -50,8 +50,8 @@ public:
 
 	void SetSkipSilence(bool skip) { skip_silence = skip; }
 
-	void AddStereoSamples(const short *sample_data, int count);
-	void AddStereoSamplesBE(const short *sample_data, int count);  // big endian
+	void AddStereoSamples(const short *sample_data, u32 count);
+	void AddStereoSamplesBE(const short *sample_data, u32 count);  // big endian
 	u32 GetAudioSize() { return audio_size; }
 };
 

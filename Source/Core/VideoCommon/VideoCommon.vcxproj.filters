@@ -5,9 +5,6 @@
     <ClCompile Include="Src\memcpy_amd.cpp" />
     <ClCompile Include="Src\PixelEngine.cpp" />
     <ClCompile Include="Src\VideoConfig.cpp" />
-    <ClCompile Include="Src\DLCache.cpp">
-      <Filter>Vertex Loading</Filter>
-    </ClCompile>
     <ClCompile Include="Src\VertexLoader.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
@@ -92,9 +89,6 @@
     <ClCompile Include="Src\OpcodeDecoding.cpp">
       <Filter>Decoding</Filter>
     </ClCompile>
-    <ClCompile Include="Src\TextureDecoder.cpp">
-      <Filter>Decoding</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Debugger.cpp">
       <Filter>Base</Filter>
     </ClCompile>
@@ -121,6 +115,14 @@
     </ClCompile>
     <ClCompile Include="Src\PerfQueryBase.cpp">
       <Filter>Base</Filter>
+    <ClCompile Include="Src\FPSCounter.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\x64TextureDecoder.cpp">
+      <Filter>Decoding</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\x64DLCache.cpp">
+      <Filter>Vertex Loading</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -251,6 +253,8 @@
     </ClInclude>
     <ClInclude Include="Src\PerfQueryBase.h">
       <Filter>Base</Filter>
+    <ClInclude Include="Src\FPSCounter.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

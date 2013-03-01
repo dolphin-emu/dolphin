@@ -34,9 +34,9 @@
 #include "FileSearch.h"
 #include "CompressedBlob.h"
 #include "ChunkFile.h"
-#include "../resources/no_banner.cpp"
+#include "ConfigManager.h"
 
-#define CACHE_REVISION 0x10D
+#define CACHE_REVISION 0x10F
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -91,6 +91,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			m_UniqueID = pVolume->GetUniqueID();
 			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
+			m_IsDiscTwo = pVolume->IsDiscTwo();
 
 			// check if we can get some infos from the banner file too
 			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
@@ -140,8 +141,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 						SplitPath(m_FileName, NULL, &FileName, NULL);
 						int length = FileName.length();
 						wFileName.reserve(length+1);
-						for (int i = 0; i < length; ++i)
-							wFileName.push_back(FileName[i]);
+						for (int j = 0; j < length; ++j)
+							wFileName.push_back(FileName[j]);
 						wFileName.push_back(0);
 					}
 					*i = wFileName;
@@ -173,10 +174,16 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	}
 	else
 	{
+		std::string theme = SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/";
+		std::string dir = File::GetUserPath(D_THEMES_IDX) + theme;
+
+#if !defined(_WIN32)
+		// If theme does not exist in user's dir load from shared directory
+		if (!File::Exists(dir))
+			dir = SHARED_USER_DIR THEMES_DIR "/" + theme;
+#endif
 		// default banner
-		wxMemoryInputStream istream(no_banner_png, sizeof no_banner_png);
-		wxImage iNoBanner(istream, wxBITMAP_TYPE_PNG);
-		m_Image = iNoBanner;
+		m_Image = wxImage(dir + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 
@@ -235,6 +242,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_BlobCompressed);
 	p.Do(m_pImage);
 	p.Do(m_Platform);
+	p.Do(m_IsDiscTwo);
 }
 
 std::string GameListItem::CreateCacheFilename()
@@ -283,9 +291,9 @@ bool GameListItem::GetName(std::wstring& wName, int index) const
 	// This function will only succeed for wii discs with banners or WADs
 	// utilize the same array as for gc discs (-1= Japanese, 0 = English etc
 	index++; 
-	if ((index >=0) && (index < 10))
+	if ((index >= 0) && (index < 10))
 	{
-		if (m_wNames.size() > index)
+		if (m_wNames.size() > (size_t)index)
 		{
 			wName = m_wNames[index];
 			return true;

@@ -21,6 +21,7 @@
 #include "StringUtil.h"
 #include "Interpreter/Interpreter.h"
 #include "../HW/Memmap.h"
+#include "JitInterface.h"
 #include "PPCTables.h"
 #include "PPCSymbolDB.h"
 #include "SignatureDB.h"
@@ -246,17 +247,13 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 		return false;
 	}
 
-	// For now, only integer ops acceptable.
-	switch (b_info->type) {
-	case OPTYPE_INTEGER:
-	case OPTYPE_LOAD:
-	case OPTYPE_STORE:
-	//case OPTYPE_LOADFP:
-	//case OPTYPE_STOREFP:
-		break;
-	default:
+	// For now, only integer ops acceptable. Any instruction which can raise an
+	// interrupt is *not* a possible swap candidate: see [1] for an example of
+	// a crash caused by this error.
+	//
+	// [1] https://code.google.com/p/dolphin-emu/issues/detail?id=5864#c7
+	if (b_info->type != OPTYPE_INTEGER)
 		return false;
-	}
 
 	// Check that we have no register collisions.
 	// That is, check that none of b's outputs matches any of a's inputs,
@@ -372,7 +369,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 			}
 			else
 			{
-				inst = Memory::Read_Opcode_JIT(address);
+				inst = JitInterface::Read_Opcode_JIT(address);
 			}
 		}
 		

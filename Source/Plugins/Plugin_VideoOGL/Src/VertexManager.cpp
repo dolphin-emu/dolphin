@@ -70,6 +70,16 @@ VertexManager::VertexManager()
 	GL_REPORT_ERRORD();
 }
 
+void VertexManager::CreateDeviceObjects()
+{
+	
+
+}
+void VertexManager::DestroyDeviceObjects()
+{
+	
+}
+
 void VertexManager::Draw()
 {
 	if (IndexGenerator::GetNumTriangles() > 0)
@@ -119,8 +129,8 @@ void VertexManager::vFlush()
 			xfregs.postMtxInfo[i].index, xfregs.postMtxInfo[i].normalize);
 	}
 
-	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphafunc=0x%x", bpmem.genMode.numtevstages+1, bpmem.genMode.numindstages,
-		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alphaFunc.hex>>16)&0xff);
+	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphatest=0x%x", bpmem.genMode.numtevstages+1, bpmem.genMode.numindstages,
+		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alpha_test.hex>>16)&0xff);
 #endif
 
 	(void)GL_REPORT_ERROR();
@@ -155,8 +165,8 @@ void VertexManager::vFlush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8),
-				tex.texMode1[i&3].max_lod >> 4,
+				(tex.texMode0[i&3].min_filter & 3),
+				(tex.texMode1[i&3].max_lod + 0xf) / 0x10,
 				tex.texImage1[i&3].image_type);
 
 			if (tentry)

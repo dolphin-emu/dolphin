@@ -60,11 +60,6 @@ private:
 #undef STACKALIGN
 #define STACKALIGN __attribute__((__force_align_arg_pointer__))
 #endif
-// We use wxWidgets on OS X only if it is version 2.9+ with Cocoa support.
-#ifdef __WXOSX_COCOA__
-#define HAVE_WX 1
-#define USE_WX 1	// Use wxGLCanvas
-#endif
 
 #elif defined _WIN32
 
@@ -86,8 +81,9 @@ private:
 	#define GC_ALIGNED16_DECL(x) __declspec(align(16)) x
 	#define GC_ALIGNED64_DECL(x) __declspec(align(64)) x
 
-// Since it is always around on windows
+// Since they are always around on windows
 	#define HAVE_WX 1
+	#define HAVE_OPENAL 1
 
 	#define HAVE_PORTAUDIO 1
 
@@ -137,7 +133,9 @@ private:
 // wxWidgets does not have a true dummy macro for this.
 #define _trans(a) a
 
-#if defined __GNUC__
+#if defined _M_GENERIC
+#  define _M_SSE 0x0
+#elif defined __GNUC__
 # if defined __SSE4_2__
 #  define _M_SSE 0x402
 # elif defined __SSE4_1__
@@ -148,7 +146,7 @@ private:
 #  define _M_SSE 0x300
 # endif
 #elif (_MSC_VER >= 1500) || __INTEL_COMPILER // Visual Studio 2008
-# define _M_SSE 0x402
+#  define _M_SSE 0x402
 #endif
 
 // Host communication.
@@ -159,7 +157,6 @@ enum HOST_COMM
 	WM_USER_CREATE,
 	WM_USER_SETCURSOR,
 	WM_USER_KEYDOWN,
-	WIIMOTE_DISCONNECT // Disconnect Wiimote
 };
 
 // Used for notification on emulation state

@@ -24,6 +24,7 @@
 #include "../Core.h"
 #include "CPU.h"
 #include "DSP.h"
+#include "Movie.h"
 
 #include "VideoBackendBase.h"
 

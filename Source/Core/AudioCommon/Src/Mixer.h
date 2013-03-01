@@ -92,6 +92,9 @@ public:
 
 	std::mutex& MixerCritical() { return m_csMixing; }
 
+	float GetCurrentSpeed() const { return m_speed; }
+	void UpdateSpeed(volatile float val) { m_speed = val; }
+
 protected:
 	unsigned int m_sampleRate;
 	unsigned int m_aiSampleRate;
@@ -113,6 +116,8 @@ protected:
 
 	bool m_AIplaying;
 	std::mutex m_csMixing;
+
+	volatile float m_speed; // Current rate of the emulation (1.0 = 100% speed)
 private:
 
 };

@@ -26,7 +26,6 @@
 #include "Common.h" // Common
 #include "FileUtil.h"
 #include "Timer.h"
-#include "Setup.h"
 
 #include "Globals.h" // Local
 #include "Frame.h"
@@ -53,49 +52,10 @@
 
 extern "C" {
 #include "../resources/Dolphin.c" // Dolphin icon
-#include "../resources/toolbar_browse.c"
-#include "../resources/toolbar_file_open.c"
-#include "../resources/toolbar_fullscreen.c"
-#include "../resources/toolbar_help.c"
-#include "../resources/toolbar_pause.c"
-#include "../resources/toolbar_play.c"
-#include "../resources/toolbar_plugin_dsp.c"
-#include "../resources/toolbar_plugin_gfx.c"
-#include "../resources/toolbar_plugin_options.c"
-#include "../resources/toolbar_plugin_pad.c"
-#include "../resources/toolbar_refresh.c"
-#include "../resources/toolbar_stop.c"
-#include "../resources/Boomy.h" // Theme packages
-#include "../resources/Vista.h"
-#include "../resources/X-Plastik.h"
-#include "../resources/KDE.h"
 };
 
 
-// Windows functions. Setting the cursor with wxSetCursor() did not work in
-// this instance.  Probably because it's somehow reset from the WndProc() in
-// the child window
 #ifdef _WIN32
-// Declare a blank icon and one that will be the normal cursor
-HCURSOR hCursor = NULL, hCursorBlank = NULL;
-
-// Create the default cursor
-void CreateCursor()
-{
-	hCursor = LoadCursor( NULL, IDC_ARROW );
-}
-
-void MSWSetCursor(bool Show)
-{
-	if(Show)
-		SetCursor(hCursor);
-	else
-	{
-		SetCursor(hCursorBlank);
-		//wxSetCursor(wxCursor(wxNullCursor));
-	}
-}
-
 // I could not use FindItemByHWND() instead of this, it crashed on that occation I used it */
 HWND MSWGetParent_(HWND Parent)
 {
@@ -134,42 +94,12 @@ CPanel::CPanel(
 
 			case WM_USER_SETCURSOR:
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
-					MSWSetCursor(!SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
+						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN &&
+						SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+					SetCursor(wxCURSOR_BLANK);
 				else
-					MSWSetCursor(true);
+					SetCursor(wxNullCursor);
 				break;
-
-			case WIIMOTE_DISCONNECT:
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-				{
-					const int wiimote_idx = lParam;
-					const int wiimote_num = wiimote_idx + 1;
-
-					//Auto reconnect if option is turned on.
-					//TODO: Make this only auto reconnect wiimotes that have the option activated.
-					SConfig::GetInstance().LoadSettingsWii();//Make sure we are using the newest settings.
-					if (SConfig::GetInstance().m_WiiAutoReconnect[wiimote_idx])
-					{
-						GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
-						NOTICE_LOG(WIIMOTE, "Wiimote %i has been auto-reconnected...", wiimote_num);
-					}
-					else
-					{
-						// The Wiimote has been disconnected, we offer reconnect here.
-						wxMessageDialog *dlg = new wxMessageDialog(
-							this,
-							wxString::Format(_("Wiimote %i has been disconnected by system.\nMaybe this game doesn't support multi-wiimote,\nor maybe it is due to idle time out or other reason.\nDo you want to reconnect immediately?"), wiimote_num),
-							_("Reconnect Wiimote Confirm"),
-							wxYES_NO | wxSTAY_ON_TOP | wxICON_INFORMATION, //wxICON_QUESTION,
-							wxDefaultPosition);
-
-						if (dlg->ShowModal() == wxID_YES)
-							GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
-
-						dlg->Destroy();
-					}
-				}
 			}
 			break;
 
@@ -244,6 +174,8 @@ EVT_MENU(IDM_PLAYRECORD, CFrame::OnPlayRecording)
 EVT_MENU(IDM_RECORDEXPORT, CFrame::OnRecordExport)
 EVT_MENU(IDM_RECORDREADONLY, CFrame::OnRecordReadOnly)
 EVT_MENU(IDM_TASINPUT, CFrame::OnTASInput)
+EVT_MENU(IDM_TOGGLE_PAUSEMOVIE, CFrame::OnTogglePauseMovie)
+EVT_MENU(IDM_SHOWLAG, CFrame::OnShowLag)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
@@ -350,7 +282,7 @@ CFrame::CFrame(wxFrame* parent,
 	ConsoleListener *Console = LogManager::GetInstance()->GetConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
 
-	// Start debugging mazimized
+	// Start debugging maximized
 	if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
@@ -386,8 +318,6 @@ CFrame::CFrame(wxFrame* parent,
 	// ---------------
 
 	// Manager
-	// wxAUI_MGR_LIVE_RESIZE does not exist in the wxWidgets 2.8.9 that comes with Ubuntu 9.04
-	// Could just check for wxWidgets version if it becomes a problem.
 	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
 	m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
@@ -434,9 +364,7 @@ CFrame::CFrame(wxFrame* parent,
 	// Commit
 	m_Mgr->Update();
 
-	// Create cursors
 	#ifdef _WIN32
-		CreateCursor();
 		SetToolTip(wxT(""));
 		GetToolTip()->SetAutoPop(25000);
 	#endif
@@ -449,20 +377,11 @@ CFrame::CFrame(wxFrame* parent,
 	// -------------------------
 	// Connect event handlers
 
-	m_Mgr->Connect(wxID_ANY, wxEVT_AUI_RENDER, // Resize
-		wxAuiManagerEventHandler(CFrame::OnManagerResize),
-		(wxObject*)0, this);
+	m_Mgr->Bind(wxEVT_AUI_RENDER, &CFrame::OnManagerResize, this);
 	// ----------
 
 	// Update controls
 	UpdateGUI();
-
-	// If we are rerecording create the status bar now instead of later when a game starts
-	#ifdef RERECORDING
-		ModifyStatusBar();
-		// It's to early for the OnHostMessage(), we will update the status when Ctrl or Space is pressed
-		//Core::WriteStatus();
-	#endif
 }
 // Destructor
 CFrame::~CFrame()
@@ -500,20 +419,6 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-			// 32x32, 8bpp b/w image
-			// We want all transparent, so we can just use the same buffer for
-			// the "image" as for the transparency mask
-			static const char cursor_data[32 * 32] = { 0 };
-			
-#ifdef __WXGTK__
-			wxCursor cursor_transparent = wxCursor(cursor_data, 32, 32, 6, 14,
-				cursor_data, wxWHITE, wxBLACK);
-#else
-			wxBitmap cursor_bitmap(cursor_data, 32, 32);
-			cursor_bitmap.SetMask(new wxMask(cursor_bitmap));
-			wxCursor cursor_transparent = wxCursor(cursor_bitmap.ConvertToImage());
-#endif
-
 #ifdef __WXMSW__
 			::SetFocus((HWND)m_RenderParent->GetHandle());
 #else
@@ -522,7 +427,7 @@ void CFrame::OnActive(wxActivateEvent& event)
 			
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
-				m_RenderParent->SetCursor(cursor_transparent);
+				m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		}
 		else
 		{
@@ -652,12 +557,12 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		}
 		break;
 
-#ifdef __WXGTK__
 	case WM_USER_CREATE:
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
 
+#ifdef __WXGTK__
 	case IDM_PANIC:
 		{
 			wxString caption = event.GetString().BeforeFirst(':');
@@ -799,83 +704,112 @@ bool IsHotkey(wxKeyEvent &event, int Id)
 {
 	return (event.GetKeyCode() != WXK_NONE &&
 	        event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
-	        event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
+			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
 }
 
 int GetCmdForHotkey(unsigned int key)
 {
-	if (key == HK_OPEN)
+	switch (key)
+	{
+	case HK_OPEN:
 		return wxID_OPEN;
-	if (key == HK_CHANGE_DISC)
+
+	case HK_CHANGE_DISC:
 		return IDM_CHANGEDISC;
-	if (key == HK_REFRESH_LIST)
+
+	case HK_REFRESH_LIST:
 		return wxID_REFRESH;
 
-	if (key == HK_PLAY_PAUSE)
+	case HK_PLAY_PAUSE:
 		return IDM_PLAY;
-	if (key == HK_STOP)
+
+	case HK_STOP:
 		return IDM_STOP;
-	if (key == HK_RESET)
+
+	case HK_RESET:
 		return IDM_RESET;
-	if (key == HK_FRAME_ADVANCE)
+
+	case HK_FRAME_ADVANCE:
 		return IDM_FRAMESTEP;
 
-	if (key == HK_START_RECORDING)
+	case HK_START_RECORDING:
 		return IDM_RECORD;
-	if (key == HK_PLAY_RECORDING)
+
+	case HK_PLAY_RECORDING:
 		return IDM_PLAYRECORD;
-	if (key == HK_EXPORT_RECORDING)
+
+	case HK_EXPORT_RECORDING:
 		return IDM_RECORDEXPORT;
-	if (key == HK_READ_ONLY_MODE)
+
+	case HK_READ_ONLY_MODE:
 		return IDM_RECORDREADONLY;
 
-	if (key == HK_FULLSCREEN)
+	case HK_FULLSCREEN:
 		return IDM_TOGGLE_FULLSCREEN;
-	if (key == HK_SCREENSHOT)
+
+	case HK_SCREENSHOT:
 		return IDM_SCREENSHOT;
 
-	if (key == HK_WIIMOTE1_CONNECT)
+	case HK_WIIMOTE1_CONNECT:
 		return IDM_CONNECT_WIIMOTE1;
-	if (key == HK_WIIMOTE2_CONNECT)
+
+	case HK_WIIMOTE2_CONNECT:
 		return IDM_CONNECT_WIIMOTE2;
-	if (key == HK_WIIMOTE3_CONNECT)
+
+	case HK_WIIMOTE3_CONNECT:
 		return IDM_CONNECT_WIIMOTE3;
-	if (key == HK_WIIMOTE4_CONNECT)
+
+	case HK_WIIMOTE4_CONNECT:
 		return IDM_CONNECT_WIIMOTE4;
 
-	if (key == HK_LOAD_STATE_SLOT_1)
+	case HK_LOAD_STATE_SLOT_1:
 		return IDM_LOADSLOT1;
-	if (key == HK_LOAD_STATE_SLOT_2)
+
+	case HK_LOAD_STATE_SLOT_2:
 		return IDM_LOADSLOT2;
-	if (key == HK_LOAD_STATE_SLOT_3)
+
+	case HK_LOAD_STATE_SLOT_3:
 		return IDM_LOADSLOT3;
-	if (key == HK_LOAD_STATE_SLOT_4)
+
+	case HK_LOAD_STATE_SLOT_4:
 		return IDM_LOADSLOT4;
-	if (key == HK_LOAD_STATE_SLOT_5)
+
+	case HK_LOAD_STATE_SLOT_5:
 		return IDM_LOADSLOT5;
-	if (key == HK_LOAD_STATE_SLOT_6)
+
+	case HK_LOAD_STATE_SLOT_6:
 		return IDM_LOADSLOT6;
-	if (key == HK_LOAD_STATE_SLOT_7)
+
+	case HK_LOAD_STATE_SLOT_7:
 		return IDM_LOADSLOT7;
-	if (key == HK_LOAD_STATE_SLOT_8)
+
+	case HK_LOAD_STATE_SLOT_8:
 		return IDM_LOADSLOT8;
 
-	if (key == HK_SAVE_STATE_SLOT_1)
+	case HK_SAVE_STATE_SLOT_1:
 		return IDM_SAVESLOT1;
-	if (key == HK_SAVE_STATE_SLOT_2)
+
+	case HK_SAVE_STATE_SLOT_2:
 		return IDM_SAVESLOT2;
-	if (key == HK_SAVE_STATE_SLOT_3)
+
+	case HK_SAVE_STATE_SLOT_3:
 		return IDM_SAVESLOT3;
-	if (key == HK_SAVE_STATE_SLOT_4)
+
+	case HK_SAVE_STATE_SLOT_4:
 		return IDM_SAVESLOT4;
-	if (key == HK_SAVE_STATE_SLOT_5)
+
+	case HK_SAVE_STATE_SLOT_5:
 		return IDM_SAVESLOT5;
-	if (key == HK_SAVE_STATE_SLOT_6)
+
+	case HK_SAVE_STATE_SLOT_6:
 		return IDM_SAVESLOT6;
-	if (key == HK_SAVE_STATE_SLOT_7)
+
+	case HK_SAVE_STATE_SLOT_7:
 		return IDM_SAVESLOT7;
-	if (key == HK_SAVE_STATE_SLOT_8)	
+
+	case HK_SAVE_STATE_SLOT_8:
 		return IDM_SAVESLOT8;
+	}
 
 	return -1;
 }

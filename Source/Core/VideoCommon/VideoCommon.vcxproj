@@ -111,6 +111,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -129,7 +130,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <OpenMPSupport>true</OpenMPSupport>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -141,6 +142,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\Common\Src;..\Core\Src;..\..\..\Externals\SOIL;..\..\..\Externals\CLRun\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -180,9 +182,9 @@
     <ClCompile Include="Src\CommandProcessor.cpp" />
     <ClCompile Include="Src\CPMemory.cpp" />
     <ClCompile Include="Src\Debugger.cpp" />
-    <ClCompile Include="Src\DLCache.cpp" />
     <ClCompile Include="Src\EmuWindow.cpp" />
     <ClCompile Include="Src\Fifo.cpp" />
+    <ClCompile Include="Src\FPSCounter.cpp" />
     <ClCompile Include="Src\FramebufferManagerBase.cpp" />
     <ClCompile Include="Src\HiresTextures.cpp" />
     <ClCompile Include="Src\ImageWrite.cpp" />
@@ -202,7 +204,6 @@
     <ClCompile Include="Src\Statistics.cpp" />
     <ClCompile Include="Src\TextureCacheBase.cpp" />
     <ClCompile Include="Src\TextureConversionShader.cpp" />
-    <ClCompile Include="Src\TextureDecoder.cpp" />
     <ClCompile Include="Src\VertexLoader.cpp" />
     <ClCompile Include="Src\VertexLoaderManager.cpp" />
     <ClCompile Include="Src\VertexLoader_Color.cpp" />
@@ -214,6 +215,8 @@
     <ClCompile Include="Src\VertexShaderManager.cpp" />
     <ClCompile Include="Src\VideoConfig.cpp" />
     <ClCompile Include="Src\VideoState.cpp" />
+    <ClCompile Include="Src\x64DLCache.cpp" />
+    <ClCompile Include="Src\x64TextureDecoder.cpp" />
     <ClCompile Include="Src\XFMemory.cpp" />
     <ClCompile Include="Src\XFStructs.cpp" />
   </ItemGroup>
@@ -229,6 +232,7 @@
     <ClInclude Include="Src\DLCache.h" />
     <ClInclude Include="Src\EmuWindow.h" />
     <ClInclude Include="Src\Fifo.h" />
+    <ClInclude Include="Src\FPSCounter.h" />
     <ClInclude Include="Src\FramebufferManagerBase.h" />
     <ClInclude Include="Src\HiresTextures.h" />
     <ClInclude Include="Src\ImageWrite.h" />

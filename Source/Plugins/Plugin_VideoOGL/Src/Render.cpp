@@ -61,6 +61,8 @@
 #include "Movie.h"
 #include "Host.h"
 #include "BPFunctions.h"
+#include "FPSCounter.h"
+#include "ConfigManager.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
@@ -130,58 +132,6 @@ const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB_CACHE_
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
-static const GLenum glSrcFactors[8] =
-{
-	GL_ZERO,
-	GL_ONE,
-	GL_DST_COLOR,
-	GL_ONE_MINUS_DST_COLOR,
-	GL_SRC_ALPHA,
-	GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
-	GL_DST_ALPHA,
-	GL_ONE_MINUS_DST_ALPHA
-};
-
-static const GLenum glDestFactors[8] = {
-	GL_ZERO,
-	GL_ONE,
-	GL_SRC_COLOR,
-	GL_ONE_MINUS_SRC_COLOR,
-	GL_SRC_ALPHA,
-	GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
-	GL_DST_ALPHA,
-	GL_ONE_MINUS_DST_ALPHA
-};
-
-static const GLenum glCmpFuncs[8] = {
-	GL_NEVER,
-	GL_LESS,
-	GL_EQUAL,
-	GL_LEQUAL,
-	GL_GREATER,
-	GL_NOTEQUAL,
-	GL_GEQUAL,
-	GL_ALWAYS
-};
-
-static const GLenum glLogicOpCodes[16] = {
-	GL_CLEAR,
-	GL_AND,
-	GL_AND_REVERSE,
-	GL_COPY,
-	GL_AND_INVERTED,
-	GL_NOOP,
-	GL_XOR,
-	GL_OR,
-	GL_NOR,
-	GL_EQUIV,
-	GL_INVERT,
-	GL_OR_REVERSE,
-	GL_COPY_INVERTED,
-	GL_OR_INVERTED,
-	GL_NAND,
-	GL_SET
-};
 
 #if defined HAVE_CG && HAVE_CG
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
@@ -251,6 +201,8 @@ Renderer::Renderer()
 	s_fps=0;
 	s_blendMode = 0;
 
+	InitFPSCounter();
+
 #if defined HAVE_CG && HAVE_CG
 	g_cgcontext = cgCreateContext();
 	cgGetError();
@@ -319,29 +271,12 @@ Renderer::Renderer()
 		return;	// TODO: fail
 
 	// Decide frambuffer size
-	s_backbuffer_width = (int)OpenGL_GetBackbufferWidth();
-	s_backbuffer_height = (int)OpenGL_GetBackbufferHeight();
+	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
+	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
-#ifdef __APPLE__
 	int swapInterval = g_ActiveConfig.bVSync ? 1 : 0;
-#if defined USE_WX && USE_WX
-	NSOpenGLContext *ctx = GLWin.glCtxt->GetWXGLContext();
-#else
-	NSOpenGLContext *ctx = GLWin.cocoaCtx;
-#endif
-	[ctx setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
-#elif defined _WIN32
-	if (WGLEW_EXT_swap_control)
-		wglSwapIntervalEXT(g_ActiveConfig.bVSync ? 1 : 0);
-	else
-		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
-#elif defined(HAVE_X11) && HAVE_X11
-	if (glXSwapIntervalSGI)
-		glXSwapIntervalSGI(g_ActiveConfig.bVSync ? 1 : 0);
-	else
-		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
-#endif
+	GLInterface->SwapInterval(swapInterval);
 
 	// check the max texture width and height
 	GLint max_texture_size;
@@ -359,16 +294,14 @@ Renderer::Renderer()
 	if (!GLEW_ARB_texture_non_power_of_two)
 		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
 
-	s_XFB_width = MAX_XFB_WIDTH;
-	s_XFB_height = MAX_XFB_HEIGHT;
+	// TODO: Move these somewhere else?
+	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
+	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-	CalculateXYScale(dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 	s_LastEFBScale = g_ActiveConfig.iEFBScale;
-	CalculateTargetSize();
+	CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
 
 	// Because of the fixed framebuffer size we need to disable the resolution
 	// options while running
@@ -519,7 +452,7 @@ Renderer::~Renderer()
 void Renderer::DrawDebugInfo()
 {
 	// Reset viewport for drawing text
-	glViewport(0, 0, OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight());
+	glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
 	// Draw various messages on the screen, like FPS, statistics, etc.
 	char debugtext_buffer[8192];
 	char *p = debugtext_buffer;
@@ -527,6 +460,9 @@ void Renderer::DrawDebugInfo()
 
 	if (g_ActiveConfig.bShowFPS)
 		p+=sprintf(p, "FPS: %d\n", s_fps);
+
+	if (SConfig::GetInstance().m_ShowLag)
+		p+=sprintf(p, "Lag: %llu\n", Movie::g_currentLagCount);
 
 	if (g_ActiveConfig.bShowInputDisplay)
 		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
@@ -593,11 +529,14 @@ void Renderer::DrawDebugInfo()
 
 void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
-	const int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
-	const int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
+	const int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
+	const int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
 
 	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
 		((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	s_pfont->printMultilineText(text,
 		left * 2.0f / (float)nBackbufferWidth - 1,
@@ -605,6 +544,8 @@ void Renderer::RenderText(const char *text, int left, int top, u32 color)
 		0, nBackbufferWidth, nBackbufferHeight);
 
 	GL_REPORT_ERRORD();
+
+	glDisable(GL_BLEND);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -636,10 +577,13 @@ void Renderer::SetColorMask()
 {
 	// Only enable alpha channel if it's supported by the current EFB format
 	GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
-	if (bpmem.blendmode.colorupdate)
-		ColorMask = GL_TRUE;
-	if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
-		AlphaMask = GL_TRUE;
+	if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
+	{
+		if (bpmem.blendmode.colorupdate)
+			ColorMask = GL_TRUE;
+		if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24))
+			AlphaMask = GL_TRUE;
+	}
 	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
 }
 
@@ -912,6 +856,32 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
+	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
+	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
+    bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	const GLenum glSrcFactors[8] =
+	{
+		GL_ZERO,
+		GL_ONE,
+		GL_DST_COLOR,
+		GL_ONE_MINUS_DST_COLOR,
+		GL_SRC_ALPHA,
+		GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
+		(target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
+		(target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO
+	};
+	const GLenum glDestFactors[8] =
+	{
+		GL_ZERO,
+		GL_ONE,
+		GL_SRC_COLOR,
+		GL_ONE_MINUS_SRC_COLOR,
+		GL_SRC_ALPHA,
+		GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
+		(target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
+		(target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO
+	};
+
 	// blend mode bit mask
 	// 0 - blend enable
 	// 2 - reverse subtract enable (else add)
@@ -955,10 +925,10 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	if (changes & 0x1F8)
 	{
-#ifdef USE_DUAL_SOURCE_BLEND
 		GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
-		GLenum srcFactorAlpha = srcFactor;
 		GLenum dstFactor = glDestFactors[(newval >> 6) & 7];
+#ifdef USE_DUAL_SOURCE_BLEND
+		GLenum srcFactorAlpha = srcFactor;
 		GLenum dstFactorAlpha = dstFactor;
 		if (useDualSource)
 		{
@@ -979,53 +949,53 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		// blend RGB change
 		glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
 #else
-		glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
+		glBlendFunc(srcFactor, dstFactor);
 #endif
 	}
 
 	s_blendMode = newval;
 }
 
+void DumpFrame(const std::vector<u8>& data, int w, int h)
+{
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+		if (g_ActiveConfig.bDumpFrames && !data.empty())
+		{
+			AVIDump::AddFrame(&data[0], w, h);
+		}
+#endif
+}
+
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	static int w = 0, h = 0;
-	if (g_bSkipCurrentFrame || (!XFBWrited && (!g_ActiveConfig.bUseXFB || !g_ActiveConfig.bUseRealXFB)) || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
-		if (g_ActiveConfig.bDumpFrames && frame_data)
-		#ifdef _WIN32
-			AVIDump::AddFrame(frame_data);
-		#elif defined HAVE_LIBAV
-			AVIDump::AddFrame((u8*)frame_data, w, h);
-		#endif
+		DumpFrame(frame_data, w, h);
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
-	// this function is called after the XFB field is changed, not after
-	// EFB is copied to XFB. In this way, flickering is reduced in games
-	// and seems to also give more FPS in ZTP
 
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
-	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
+	if (g_ActiveConfig.VirtualXFBEnabled() && (!xfbSourceList || xfbCount == 0))
 	{
-		if (g_ActiveConfig.bDumpFrames && frame_data)
-		{
-#ifdef _WIN32
-			AVIDump::AddFrame(frame_data);
-#elif defined HAVE_LIBAV
-			AVIDump::AddFrame((u8*)frame_data, w, h);
-#endif
-		}
+		DumpFrame(frame_data, w, h);
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
 
 	ResetAPIState();
 
-	TargetRectangle dst_rect;
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, true, &dst_rect);
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+	TargetRectangle flipped_trc = GetTargetRectangle();
+
+	// Flip top and bottom for some reason; TODO: Fix the code to suck less?
+	int tmp = flipped_trc.top;
+	flipped_trc.top = flipped_trc.bottom;
+	flipped_trc.bottom = tmp;
 
 	// Textured triangles are necessary because of post-processing shaders
 
@@ -1034,7 +1004,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		OGL::TextureCache::DisableStage(i);
 
 	// Update GLViewPort
-	glViewport(dst_rect.left, dst_rect.bottom, dst_rect.GetWidth(), dst_rect.GetHeight());
+	glViewport(flipped_trc.left, flipped_trc.bottom, flipped_trc.GetWidth(), flipped_trc.GetHeight());
 
 	GL_REPORT_ERRORD();
 
@@ -1065,7 +1035,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 			MathUtil::Rectangle<float> drawRc;
 
-			if (!g_ActiveConfig.bUseRealXFB)
+			if (g_ActiveConfig.bUseRealXFB)
+			{
+				drawRc.top = 1;
+				drawRc.bottom = -1;
+				drawRc.left = -1;
+				drawRc.right = 1;
+			}
+			else
 			{
 				// use virtual xfb with offset
 				int xfbHeight = xfbSource->srcHeight;
@@ -1079,21 +1056,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 				// The following code disables auto stretch.  Kept for reference.
 				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				//float vScale = (float)fbHeight / (float)dst_rect.GetHeight();
-				//float hScale = (float)fbWidth / (float)dst_rect.GetWidth();
+				//float vScale = (float)fbHeight / (float)flipped_trc.GetHeight();
+				//float hScale = (float)fbWidth / (float)flipped_trc.GetWidth();
 				//drawRc.top *= vScale;
 				//drawRc.bottom *= vScale;
 				//drawRc.left *= hScale;
 				//drawRc.right *= hScale;
 			}
-			else
-			{
-				drawRc.top = 1;
-				drawRc.bottom = -1;
-				drawRc.left = -1;
-				drawRc.right = 1;
-			}
-
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
 
@@ -1165,7 +1134,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (s_bScreenshot)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		SaveScreenshot(s_sScreenshotName, dst_rect);
+		SaveScreenshot(s_sScreenshotName, flipped_trc);
 		// Reset settings
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;
@@ -1176,16 +1145,15 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_ActiveConfig.bDumpFrames)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		if (!frame_data || w != dst_rect.GetWidth() ||
-		             h != dst_rect.GetHeight())
+		if (frame_data.empty() || w != flipped_trc.GetWidth() ||
+		             h != flipped_trc.GetHeight())
 		{
-			if (frame_data) delete[] frame_data;
-			w = dst_rect.GetWidth();
-			h = dst_rect.GetHeight();
-			frame_data = new char[3 * w * h];
+			w = flipped_trc.GetWidth();
+			h = flipped_trc.GetHeight();
+			frame_data.resize(3 * w * h);
 		}
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
+		glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
 		{
 			if (!bLastFrameDumped)
@@ -1206,12 +1174,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			}
 			if (bAVIDumping)
 			{
-				#ifdef _WIN32
-					AVIDump::AddFrame(frame_data);
-				#else
-					FlipImageData((u8*)frame_data, w, h);
-					AVIDump::AddFrame((u8*)frame_data, w, h);
+				#ifndef _WIN32
+					FlipImageData(&frame_data[0], w, h);
 				#endif
+					
+					AVIDump::AddFrame(&frame_data[0], w, h);
 			}
 
 			bLastFrameDumped = true;
@@ -1223,12 +1190,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		if (bLastFrameDumped && bAVIDumping)
 		{
-			if (frame_data)
-			{
-				delete[] frame_data;
-				frame_data = NULL;
-				w = h = 0;
-			}
+			std::vector<u8>().swap(frame_data);
+			w = h = 0;
 			AVIDump::Stop();
 			bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames", 2000);
@@ -1240,11 +1203,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 		std::string movie_file_name;
-		w = dst_rect.GetWidth();
-		h = dst_rect.GetHeight();
-		frame_data = new char[3 * w * h];
+		w = GetTargetRectangle().GetWidth();
+		h = GetTargetRectangle().GetHeight();
+		frame_data.resize(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(dst_rect.left, dst_rect.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, frame_data);
+		glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
 		if (GL_REPORT_ERROR() == GL_NO_ERROR)
 		{
 			if (!bLastFrameDumped)
@@ -1255,21 +1218,17 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
 				else
 				{
-					char msg [255];
-					sprintf(msg, "Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h);
-					OSD::AddMessage(msg, 2000);
+					OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h).c_str(), 2000);
 				}
 			}
 			if (pFrameDump)
 			{
-				FlipImageData((u8*)frame_data, w, h);
-				pFrameDump.WriteBytes(frame_data, w * 3 * h);
+				FlipImageData(&frame_data[0], w, h);
+				pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
 				pFrameDump.Flush();
 			}
 			bLastFrameDumped = true;
 		}
-
-		delete[] frame_data;
 	}
 	else
 	{
@@ -1283,24 +1242,22 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	SetWindowSize(fbWidth, fbHeight);
 
-	OpenGL_Update(); // just updates the render window position and the backbuffer size
+	GLInterface->Update(); // just updates the render window position and the backbuffer size
 
 	bool xfbchanged = false;
 
-	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
+	if (FramebufferManagerBase::LastXfbWidth() != fbWidth || FramebufferManagerBase::LastXfbHeight() != fbHeight)
 	{
 		xfbchanged = true;
-		s_XFB_width = fbWidth;
-		s_XFB_height = fbHeight;
-		if (s_XFB_width < 1) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_width > MAX_XFB_WIDTH) s_XFB_width = MAX_XFB_WIDTH;
-		if (s_XFB_height < 1) s_XFB_height = MAX_XFB_HEIGHT;
-		if (s_XFB_height > MAX_XFB_HEIGHT) s_XFB_height = MAX_XFB_HEIGHT;
+		unsigned int const last_w = (fbWidth < 1 || fbWidth > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbWidth;
+		unsigned int const last_h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
+		FramebufferManagerBase::SetLastXfbWidth(last_w);
+		FramebufferManagerBase::SetLastXfbHeight(last_h);
 	}
 
 	bool WindowResized = false;
-	int W = (int)OpenGL_GetBackbufferWidth();
-	int H = (int)OpenGL_GetBackbufferHeight();
+	int W = (int)GLInterface->GetBackBufferWidth();
+	int H = (int)GLInterface->GetBackBufferHeight();
 	if (W != s_backbuffer_width || H != s_backbuffer_height || s_LastEFBScale != g_ActiveConfig.iEFBScale)
 	{
 		WindowResized = true;
@@ -1311,11 +1268,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	if (xfbchanged || WindowResized || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
 	{
-		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-		CalculateXYScale(dst_rect);
-
-		if (CalculateTargetSize() || (s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode))
+		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || s_LastMultisampleMode != g_ActiveConfig.iMultisampleMode)
 		{
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
@@ -1328,20 +1283,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		}
 	}
 
-	// Place messages on the picture, then copy it to the screen
-	// ---------------------------------------------------------------------
-	// Count FPS.
-	// -------------
-	static int fpscount = 0;
-	static unsigned long lasttime = 0;
-	if (Common::Timer::GetTimeMs() - lasttime >= 1000)
-	{
-		lasttime = Common::Timer::GetTimeMs();
-		s_fps = fpscount;
-		fpscount = 0;
-	}
 	if (XFBWrited)
-		++fpscount;
+		s_fps = UpdateFPSCounter();
 	// ---------------------------------------------------------------------
 	GL_REPORT_ERRORD();
 
@@ -1359,7 +1302,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	GL_REPORT_ERRORD();
 
 	// Copy the rendered frame to the real window
-	OpenGL_SwapBuffers();
+	GLInterface->Swap();
 
 	GL_REPORT_ERRORD();
 
@@ -1455,6 +1398,18 @@ void Renderer::SetGenerationMode()
 
 void Renderer::SetDepthMode()
 {
+	const GLenum glCmpFuncs[8] =
+	{
+		GL_NEVER,
+		GL_LESS,
+		GL_EQUAL,
+		GL_LEQUAL,
+		GL_GREATER,
+		GL_NOTEQUAL,
+		GL_GEQUAL,
+		GL_ALWAYS
+	};
+
 	if (bpmem.zmode.testenable)
 	{
 		glEnable(GL_DEPTH_TEST);
@@ -1472,7 +1427,27 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
+	const GLenum glLogicOpCodes[16] =
+	{
+		GL_CLEAR,
+		GL_AND,
+		GL_AND_REVERSE,
+		GL_COPY,
+		GL_AND_INVERTED,
+		GL_NOOP,
+		GL_XOR,
+		GL_OR,
+		GL_NOR,
+		GL_EQUIV,
+		GL_INVERT,
+		GL_OR_REVERSE,
+		GL_COPY_INVERTED,
+		GL_OR_INVERTED,
+		GL_NAND,
+		GL_SET
+	};
+
+	if (bpmem.blendmode.logicopenable)
 	{
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);

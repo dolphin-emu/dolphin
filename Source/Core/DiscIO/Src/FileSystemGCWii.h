@@ -38,6 +38,8 @@ public:
 	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename);
 	virtual bool ExportApploader(const char* _rExportFolder) const;
 	virtual bool ExportDOL(const char* _rExportFolder) const;
+	virtual bool GetBootDOL(u8* &buffer, u32 DolSize) const;
+	virtual u32 GetBootDOLSize() const;
 
 private:
 	bool m_Initialized;

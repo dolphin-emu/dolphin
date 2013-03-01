@@ -89,26 +89,13 @@ bool ShouldSkipFrame(int skipped);
 void VideoThrottle();
 void RequestRefreshInfo();
 
+void UpdateTitle();
+
 // waits until all systems are paused and fully idle, and acquires a lock on that state.
 // or, if doLock is false, releases a lock on that state and optionally unpauses.
 // calls must be balanced (once with doLock true, then once with doLock false) but may be recursive.
 // the return value of the first call should be passed in as the second argument of the second call.
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
-
-#ifdef RERECORDING
-
-void FrameUpdate();
-void FrameAdvance();
-void FrameStepOnOff();
-void WriteStatus();
-void RerecordingStart();
-void RerecordingStop();
-void WindBack(int Counter);
-
-extern int g_FrameCounter,g_InputCounter;
-extern bool g_FrameStep;
-
-#endif
 
 }  // namespace
 

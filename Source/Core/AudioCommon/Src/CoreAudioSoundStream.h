@@ -47,6 +47,7 @@ public:
 
 private:
 	AudioUnit audioUnit;
+    int m_volume;
 
 	static OSStatus callback(void *inRefCon,
 		AudioUnitRenderActionFlags *ioActionFlags,

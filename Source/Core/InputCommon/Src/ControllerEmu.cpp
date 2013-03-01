@@ -295,6 +295,7 @@ ControllerEmu::Tilt::Tilt(const char* const _name)
 
 	settings.push_back(new Setting(_trans("Dead Zone"), 0, 0, 50));
 	settings.push_back(new Setting(_trans("Circle Stick"), 0));
+	settings.push_back(new Setting(_trans("Angle"), 0.9f, 0, 180));
 }
 
 ControllerEmu::Cursor::Cursor(const char* const _name)

@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Setup.h"
 #include "Thread.h"
 #include "Common.h"
 
@@ -106,7 +105,7 @@ void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 #ifdef __APPLE__
 	thread_policy_set(pthread_mach_thread_np(thread),
 		THREAD_AFFINITY_POLICY, (integer_t *)&mask, 1);
-#elif defined __linux__ || defined BSD4_4
+#elif (defined __linux__ || defined BSD4_4) && !(defined ANDROID)
 	cpu_set_t cpu_set;
 	CPU_ZERO(&cpu_set);
                 

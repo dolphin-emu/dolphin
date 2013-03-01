@@ -297,7 +297,7 @@ public:
 
 	bool IsMXCommand(u32 const data);
 	bool IsWriteCommand(u32 const data);
-	char const * const GetRegisterName() const;
+	const char* GetRegisterName() const;
 	void MXHardReset();
 	void MXCommandHandler(u32 data, u32 size);
 	void DirectFIFOWrite(u8 *data, u32 size);

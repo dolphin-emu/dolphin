@@ -956,7 +956,7 @@ u32 TranslateAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 	// Check MSR[DR] bit before translating data addresses
 	//if (((_Flag == FLAG_READ) || (_Flag == FLAG_WRITE)) && !(MSR & (1 << (31 - 27)))) return _Address;
 
-	u32 tlb_addr = Core::g_CoreStartupParameter.bMMUBAT?TranslateBlockAddress(_Address, _Flag):0;
+	u32 tlb_addr = TranslateBlockAddress(_Address, _Flag);
 	if (tlb_addr == 0)
 	{
 		tlb_addr = TranslatePageAddress(_Address, _Flag);

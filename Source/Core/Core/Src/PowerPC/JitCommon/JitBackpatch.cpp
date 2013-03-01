@@ -25,7 +25,7 @@
 #include "../../HW/Memmap.h"
 
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 #include "x64Analyzer.h"
 
@@ -90,6 +90,13 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
 	case 4:
 		CALL(thunks.ProtectFunction((void *)&Memory::Read_U32, 1));
 		break;
+	case 2:
+		CALL(thunks.ProtectFunction((void *)&Memory::Read_U16, 1));
+		SHL(32, R(EAX), Imm8(16));
+		break;
+	case 1:
+		CALL(thunks.ProtectFunction((void *)&Memory::Read_U8, 1));
+		break;
 	}
 	ABI_PopAllCallerSavedRegsAndAdjustStack();
 	if (dataReg != EAX) {
@@ -153,7 +160,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 // 1) It's really necessary. We don't know anything about the context.
 // 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be 
 //    that many of them in a typical program/game.
-const u8 *JitBase::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ctx_void)
+const u8 *Jitx86Base::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ctx_void)
 {
 #ifdef _M_X64
 	CONTEXT *ctx = (CONTEXT *)ctx_void;
@@ -176,10 +183,6 @@ const u8 *JitBase::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *c
 					   codePtr, emAddress);
 	}*/
 
-	if (info.operandSize != 4) {
-		BackPatchError(StringFromFormat("BackPatch - no support for operand size %i", info.operandSize), codePtr, emAddress);
-	}
-
 	if (info.otherReg != RBX)
 		PanicAlert("BackPatch : Base reg not RBX."
 		           "\n\nAttempted to access %08x.", emAddress);
@@ -188,7 +191,6 @@ const u8 *JitBase::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *c
 		PanicAlert("BackPatch : Currently only supporting reads."
 		           "\n\nAttempted to write to %08x.", emAddress);
 
-	// In the first iteration, we assume that all accesses are 32-bit. We also only deal with reads.
 	if (accessType == 0)
 	{
 		XEmitter emitter(codePtr);
