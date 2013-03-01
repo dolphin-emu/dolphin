@@ -26,6 +26,7 @@
 #include "CoreAudioSoundStream.h"
 #include "OpenALStream.h"
 #include "PulseAudioStream.h"
+#include "OpenSLESStream.h"
 #include "../../Core/Src/Movie.h"
 #include "../../Core/Src/ConfigManager.h"
 
@@ -55,7 +56,8 @@ namespace AudioCommon
 			soundStream = new CoreAudioSound(mixer);
 		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
 			soundStream = new PulseAudio(mixer);
-
+		else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
+			soundStream = new OpenSLESStream(mixer);
 		if (soundStream != NULL)
 		{
 			UpdateSoundStream();
@@ -116,7 +118,8 @@ namespace AudioCommon
 			backends.push_back(BACKEND_PULSEAUDIO);
 		if (OpenALStream::isValid())
 			backends.push_back(BACKEND_OPENAL);
-	   
+		if (OpenSLESStream::isValid())
+			backends.push_back(BACKEND_OPENSLES);
 		return backends;
 	}
 

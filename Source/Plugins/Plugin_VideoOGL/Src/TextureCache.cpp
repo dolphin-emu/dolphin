@@ -178,6 +178,8 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	entry.pcfmt = pcfmt;
 
 	entry.bHaveMipMaps = tex_levels != 1;
+	
+	entry.Load(width, height, expanded_width, 0);
 
 	return &entry;
 }

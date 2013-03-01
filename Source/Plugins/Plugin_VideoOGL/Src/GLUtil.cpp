@@ -51,7 +51,9 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 }
 void InitInterface()
 {
-	#if defined(USE_EGL) && USE_EGL
+	#ifdef ANDROID
+		GLInterface = new cInterfaceBase;
+	#elif defined(USE_EGL) && USE_EGL
 		GLInterface = new cInterfaceEGL;
 	#elif defined(USE_WX) && USE_WX
 		GLInterface = new cInterfaceWX;

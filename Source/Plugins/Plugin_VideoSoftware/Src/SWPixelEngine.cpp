@@ -53,6 +53,8 @@ void DoState(PointerWrap &p)
     p.Do(pereg);
 	p.Do(g_bSignalTokenInterrupt);
 	p.Do(g_bSignalFinishInterrupt);
+	p.Do(et_SetTokenOnMainThread);
+	p.Do(et_SetFinishOnMainThread);
 }
 
 void UpdateInterrupts();

@@ -38,16 +38,11 @@ void Update(int _number);
 namespace WiimoteReal
 {
 
-unsigned int Initialize();
+void Initialize();
 void Shutdown();
 void Refresh();
 
 void LoadSettings();
-
-#ifdef _WIN32
-int PairUp(bool unpair = false);
-int UnPair();
-#endif
 
 }
 

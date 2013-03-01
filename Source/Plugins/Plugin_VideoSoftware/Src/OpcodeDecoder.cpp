@@ -35,7 +35,6 @@ typedef void (*DecodingFunction)(u32);
 
 namespace OpcodeDecoder
 {
-
 static DecodingFunction currentFunction = NULL;
 static u32 minCommandSize;
 static u16 streamSize;
@@ -45,6 +44,20 @@ static SWVertexLoader vertexLoader;
 static bool inObjectStream;
 static u8 lastPrimCmd;
 
+
+void DoState(PointerWrap &p)
+{
+	p.Do(minCommandSize);
+	// Not sure what is wrong with this. Something(s) in here is causing dolphin to crash/hang when loading states saved from another run of dolphin. Doesn't seem too important anyway...
+	//vertexLoader.DoState(p);
+	p.Do(readOpcode);
+	p.Do(inObjectStream);
+	p.Do(lastPrimCmd);
+	p.Do(streamSize);
+	p.Do(streamAddress);
+	if (p.GetMode() == PointerWrap::MODE_READ)
+		  ResetDecoding();
+}
 
 void DecodePrimitiveStream(u32 iBufferSize)
 {
@@ -125,7 +138,9 @@ void DecodeStandard(u32 bufferSize)
 
     if (Cmd == GX_NOP)
         return;
-
+    // Causes a SIGBUS error on Android
+    // XXX: Investigate
+#ifndef ANDROID
     // check if switching in or out of an object
     // only used for debuggging
     if (inObjectStream && (Cmd & 0x87) != lastPrimCmd)
@@ -139,7 +154,7 @@ void DecodeStandard(u32 bufferSize)
         lastPrimCmd = Cmd & 0x87;
         DebugUtil::OnObjectBegin();
     }
-
+#endif
     switch(Cmd)
     {
     case GX_NOP:

@@ -620,6 +620,7 @@ void CConfigMain::CreateGUIControls()
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = theme_selection->GetStringSelection();
 		main_frame->InitBitmaps();
+		main_frame->UpdateGameList();
 	}));
 
 	auto const scInterface = new wxBoxSizer(wxHORIZONTAL);

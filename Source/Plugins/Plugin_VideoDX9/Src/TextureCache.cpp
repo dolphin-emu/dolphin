@@ -226,6 +226,8 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, u
 	TCacheEntry* entry = new TCacheEntry(D3D::CreateTexture2D(temp, width, height, expanded_width, d3d_fmt, swap_r_b, tex_levels));
 	entry->swap_r_b = swap_r_b;
 	entry->d3d_fmt = d3d_fmt;
+	
+	entry->Load(width, height, expanded_width, 0);
 
 	return entry;
 }

@@ -235,11 +235,11 @@ void RunGpu()
 	{
 		u8 *uData = Memory::GetPointer(fifo.CPReadPointer);
 			
-		SaveSSEState();
-		LoadDefaultSSEState();
-		ReadDataFromFifo(uData, 32);
-		u32 count = OpcodeDecoder_Run(g_bSkipCurrentFrame);
-		LoadSSEState();
+			FPURoundMode::SaveSIMDState();
+			FPURoundMode::LoadDefaultSIMDState();
+			ReadDataFromFifo(uData, 32);				
+			u32 count = OpcodeDecoder_Run(g_bSkipCurrentFrame);	
+			FPURoundMode::LoadSIMDState();
 
 		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
 

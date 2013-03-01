@@ -204,7 +204,9 @@ void VideoBackend::Video_Prepare()
 	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
+#ifndef _M_GENERIC
 	DLCache::Init();
+#endif
 
 	// Notify the core that the video backend is ready
 	Host_Message(WM_USER_CREATE);
@@ -219,7 +221,9 @@ void VideoBackend::Shutdown()
 		s_efbAccessRequested = false;
 		s_FifoShuttingDown = false;
 		s_swapRequested = false;
+#ifndef _M_GENERIC
 		DLCache::Shutdown();
+#endif
 		Fifo_Shutdown();
 		PostProcessing::Shutdown();
 

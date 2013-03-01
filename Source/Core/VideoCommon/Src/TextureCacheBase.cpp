@@ -129,7 +129,11 @@ void TextureCache::Cleanup()
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
-		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount) // TODO: Deleting EFB copies might not be a good idea here...
+		if (	frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount
+			
+			// EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
+			// TODO: encoding the texture back to RAM here might be a good idea
+			&& ! (g_ActiveConfig.bCopyEFBToTexture && iter->second->IsEfbCopy()) )
 		{
 			delete iter->second;
 			textures.erase(iter++);
@@ -481,15 +485,20 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_NEW_TEXTURE, true);
 	}
+	else
+	{
+		// load texture (CreateTexture also loads level 0)
+		entry->Load(width, height, expandedWidth, 0);
+	}
 
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
-	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture) entry->type = TCET_EC_DYNAMIC;
-	else entry->type = TCET_NORMAL;
-
-	// load texture
-	entry->Load(width, height, expandedWidth, 0);
+	
+	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture)
+		entry->type = TCET_EC_DYNAMIC;
+	else
+		entry->type = TCET_NORMAL;
 
 	if (g_ActiveConfig.bDumpTextures && !using_custom_texture)
 		DumpTexture(entry, 0);

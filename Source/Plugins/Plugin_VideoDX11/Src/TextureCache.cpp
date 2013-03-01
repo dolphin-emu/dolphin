@@ -98,6 +98,9 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");	
 
 	SAFE_RELEASE(pTexture);
+	
+	if (tex_levels != 1)
+		entry->Load(width, height, expanded_width, 0);
 
 	return entry;
 }

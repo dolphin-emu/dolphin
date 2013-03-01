@@ -24,6 +24,8 @@
 #include <stdint.h>
 #endif
 
+#include "CommonTypes.h"
+
 class AVIDump
 {
 	private:
@@ -36,11 +38,11 @@ class AVIDump
 	public:
 #ifdef _WIN32
 		static bool Start(HWND hWnd, int w, int h);
-		static void AddFrame(char *data);
 #else
 		static bool Start(int w, int h);
-		static void AddFrame(uint8_t *data, int width, int height);
 #endif
+		static void AddFrame(const u8* data, int width, int height);
+		
 		static void Stop();
 };
 

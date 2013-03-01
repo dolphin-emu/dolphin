@@ -29,12 +29,10 @@
 #include "../HW/SystemTimers.h"
 
 #include "Interpreter/Interpreter.h"
-#include "JitCommon/JitBase.h"
-#include "Jit64IL/JitIL.h"
-#include "Jit64/Jit.h"
 #include "PowerPC.h"
 #include "PPCTables.h"
 #include "CPUCoreBase.h"
+#include "JitInterface.h"
 
 #include "../Host.h"
 #include "HW/EXI.h"
@@ -87,8 +85,7 @@ void DoState(PointerWrap &p)
 //	SystemTimers::DecrementerSet();
 //	SystemTimers::TimeBaseSet();
 
-	if (jit && p.GetMode() == PointerWrap::MODE_READ)
-		jit->GetBlockCache()->ClearSafe();
+	JitInterface::DoState(p);
 }
 
 void ResetRegisters()
@@ -131,28 +128,18 @@ void ResetRegisters()
 
 void Init(int cpu_core)
 {
-	enum {
-		FPU_PREC_24 = 0 << 8,
-		FPU_PREC_53 = 2 << 8,
-		FPU_PREC_64 = 3 << 8,
-		FPU_PREC_MASK = 3 << 8,
-	};
-#ifdef _M_IX86
-	// sets the floating-point lib to 53-bit
-	// PowerPC has a 53bit floating pipeline only
-	// eg: sscanf is very sensitive
-#ifdef _WIN32
-	_control87(_PC_53, MCW_PC);
-#else
-	unsigned short _mode;
-	asm ("fstcw %0" : : "m" (_mode));
-	_mode = (_mode & ~FPU_PREC_MASK) | FPU_PREC_53;
-	asm ("fldcw %0" : : "m" (_mode));
-#endif
-#else
-	//x64 doesn't need this - fpu is done with SSE
-	//but still - set any useful sse options here
-#endif
+	FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
+
+	memset(ppcState.mojs, 0, sizeof(ppcState.mojs));
+	memset(ppcState.sr, 0, sizeof(ppcState.sr));
+	ppcState.DebugCount = 0;
+	ppcState.dtlb_last = 0;
+	ppcState.dtlb_last = 0;
+	memset(ppcState.dtlb_va, 0, sizeof(ppcState.dtlb_va));
+	memset(ppcState.dtlb_pa, 0, sizeof(ppcState.dtlb_pa));
+	ppcState.itlb_last = 0;
+	memset(ppcState.itlb_va, 0, sizeof(ppcState.itlb_va));
+	memset(ppcState.itlb_pa, 0, sizeof(ppcState.itlb_pa));
 
 	memset(ppcState.mojs, 0, sizeof(ppcState.mojs));
 	memset(ppcState.sr, 0, sizeof(ppcState.sr));
@@ -179,27 +166,13 @@ void Init(int cpu_core)
 			cpu_core_base = interpreter;
 			break;
 		}
-	case 1:
-		{
-			cpu_core_base = new Jit64();
-			break;
-		}
-	case 2:
-		{
-			cpu_core_base = new JitIL();
-			break;
-		}
-	default:
-		{
-			PanicAlert("Unrecognizable cpu_core: %d", cpu_core);
-			break;
-		}
+		default:
+			cpu_core_base = JitInterface::InitJitCore(cpu_core);
+		break;
 	}
 
 	if (cpu_core_base != interpreter)
 	{
-		jit = static_cast<JitBase*>(cpu_core_base);
-		jit->Init();
 		mode = MODE_JIT;
 	}
 	else
@@ -213,12 +186,7 @@ void Init(int cpu_core)
 
 void Shutdown()
 {
-	if (jit)
-	{
-		jit->Shutdown();
-		delete jit;
-		jit = NULL;
-	}
+	JitInterface::Shutdown();
 	interpreter->Shutdown();
 	cpu_core_base = NULL;
 	state = CPU_POWERDOWN;
@@ -244,7 +212,7 @@ void SetMode(CoreMode new_mode)
 
 	case MODE_JIT:  // Switching from interpreter to JIT.
 		// Don't really need to do much. It'll work, the cache will refill itself.
-		cpu_core_base = jit;
+		cpu_core_base = JitInterface::GetCore();
 		break;
 	}
 }
