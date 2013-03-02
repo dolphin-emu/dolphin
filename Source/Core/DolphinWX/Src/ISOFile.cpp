@@ -36,7 +36,7 @@
 #include "ChunkFile.h"
 #include "ConfigManager.h"
 
-#define CACHE_REVISION 0x10F
+#define CACHE_REVISION 0x110
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
