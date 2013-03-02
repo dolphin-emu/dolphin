@@ -698,7 +698,10 @@ void Do_ARAM_DMA()
 	if (!GetDSPEmulator()->IsLLE())
 		g_dspState.DSPControl.DMAState = 1;
 
-	CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
+	if (g_arDMA.Cnt.dir)
+		CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
+	else
+		GenerateDSPInterrupt(INT_ARAM);
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
