@@ -319,10 +319,7 @@ u32 Read_Opcode(u32 _Address)
 {
 	// in MMU we trust
 	u32 _var_mmu=0;
-	if(MMUTable::read_instr(MMUTable::EmuPointer(_Address), _var_mmu) < 0)
-	{
-		WARN_LOG(MEMMAP, "Read_Opcode:MMUTable(%08x)=%02hhx", _Address, _var_mmu);
-	}
+	MMUTable::read_instr(MMUTable::EmuPointer(_Address), _var_mmu);
 	return _var_mmu;
 /*
 	if (_Address == 0x00000000)
@@ -367,14 +364,16 @@ u8 Read_U8(const u32 _Address)
 {    
 #ifdef MMUTABLE_CHECK
 	u8 _var_mmu = 0;
-	if(0==MMUTable::read8_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	if(0==MMUTable::read8(MMUTable::EmuPointer(_Address), _var_mmu))
 	{
 		return _var_mmu;
 	}
+	return _var_mmu;
 //	WARN_LOG(MEMMAP, "Read_U8:MMUTable(%08x) miss!", _Address);
 #endif
-	u8 _var = 0;
-	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_READ);
+/*
+//	u8 _var = 0;
+//	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_READ);
 
 #ifdef ENABLE_MEM_CHECK
     TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
@@ -385,20 +384,23 @@ u8 Read_U8(const u32 _Address)
 	}
 #endif
 	return (u8)_var;
+*/
 }
 
 u16 Read_U16(const u32 _Address)
 {
 #ifdef MMUTABLE_CHECK
 	u16 _var_mmu = 0;
-	if(0==MMUTable::read16_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	if(0==MMUTable::read16(MMUTable::EmuPointer(_Address), _var_mmu))
 	{
 		return _var_mmu;
 	}
+	return _var_mmu;
 //	WARN_LOG(MEMMAP, "Read_U16:MMUTable(%08x) miss!", _Address);
 #endif
-	u16 _var = 0;
-	ReadFromHardware<u16>(_var, _Address, _Address, FLAG_READ);
+/*
+//	u16 _var = 0;
+//	ReadFromHardware<u16>(_var, _Address, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
 	if (mc)
@@ -408,20 +410,23 @@ u16 Read_U16(const u32 _Address)
 	}
 #endif
 	return (u16)_var;
+*/
 }
 
 u32 Read_U32(const u32 _Address)
 {
 #ifdef MMUTABLE_CHECK
 	u32 _var_mmu = 0;
-	if(0==MMUTable::read32_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	if(0==MMUTable::read32(MMUTable::EmuPointer(_Address), _var_mmu))
 	{
 		return _var_mmu;
 	}
+	return _var_mmu;
 //	WARN_LOG(MEMMAP, "Read_U32:MMUTable(%08x) miss!", _Address);
 #endif
-	u32 _var = 0;	
-	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_READ);
+/*
+//	u32 _var = 0;	
+//	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_READ);
 
 #ifdef ENABLE_MEM_CHECK
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
@@ -431,19 +436,22 @@ u32 Read_U32(const u32 _Address)
 		mc->Action(&PowerPC::debug_interface, _var, _Address, false, 4, PC);
 	}
 #endif
-	return _var;
+//	return _var;
+*/
 }
 
 u64 Read_U64(const u32 _Address)
 {
 #ifdef MMUTABLE_CHECK
 	u64 _var_mmu = 0;
-	if(0==MMUTable::read64_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	if(0==MMUTable::read64(MMUTable::EmuPointer(_Address), _var_mmu))
 	{
 		return _var_mmu;
 	}
+	return _var_mmu;
 //	WARN_LOG(MEMMAP, "Read_U64:MMUTable(%08x) miss!", _Address);
 #endif
+/*
 	u64 _var = 0;
 	ReadFromHardware<u64>(_var, _Address, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK
@@ -455,6 +463,7 @@ u64 Read_U64(const u32 _Address)
 	}
 #endif
 	return _var;
+*/
 }
 
 u32 Read_U8_ZX(const u32 _Address)
@@ -478,13 +487,13 @@ void Write_U8(const u8 _Data, const u32 _Address)
 	}
 #endif
 #ifdef MMUTABLE_CHECK
-	if(0==MMUTable::write8_ne(MMUTable::EmuPointer(_Address), _Data))
+	if(0==MMUTable::write8(MMUTable::EmuPointer(_Address), _Data))
 	{
 		return;
 	}
-	WARN_LOG(MEMMAP, "Write_U8:MMUTable(%08x) miss @0x%08x!", _Address, PowerPC::ppcState.pc);
+//	WARN_LOG(MEMMAP, "Write_U8:MMUTable(%08x) miss @0x%08x!", _Address, PowerPC::ppcState.pc);
 #endif
-	WriteToHardware<u8>(_Address, _Data, _Address, FLAG_WRITE);
+//	WriteToHardware<u8>(_Address, _Data, _Address, FLAG_WRITE);
 }
 
 
@@ -499,14 +508,14 @@ void Write_U16(const u16 _Data, const u32 _Address)
 	}
 #endif
 #ifdef MMUTABLE_CHECK
-	if(0==MMUTable::write16_ne(MMUTable::EmuPointer(_Address), _Data))
+	if(0==MMUTable::write16(MMUTable::EmuPointer(_Address), _Data))
 	{
 		return;
 	}
 //	WARN_LOG(MEMMAP, "Write_U16:MMUTable(%08x) miss!", _Address);
 #endif
 
-	WriteToHardware<u16>(_Address, _Data, _Address, FLAG_WRITE);
+//	WriteToHardware<u16>(_Address, _Data, _Address, FLAG_WRITE);
 }
 void Write_U16_Swap(const u16 _Data, const u32 _Address) {
 	Write_U16(Common::swap16(_Data), _Address);
@@ -524,13 +533,13 @@ void Write_U32(const u32 _Data, const u32 _Address)
 	}
 #endif
 #ifdef MMUTABLE_CHECK
-	if(0==MMUTable::write32_ne(MMUTable::EmuPointer(_Address), _Data))
+	if(0==MMUTable::write32(MMUTable::EmuPointer(_Address), _Data))
 	{
 		return;
 	}
 //	WARN_LOG(MEMMAP, "Write_U32:MMUTable(%08x) miss!", _Address);
 #endif
-	WriteToHardware<u32>(_Address, _Data, _Address, FLAG_WRITE);
+//	WriteToHardware<u32>(_Address, _Data, _Address, FLAG_WRITE);
 }
 void Write_U32_Swap(const u32 _Data, const u32 _Address) {
 	Write_U32(Common::swap32(_Data), _Address);
@@ -547,14 +556,14 @@ void Write_U64(const u64 _Data, const u32 _Address)
 	}
 #endif
 #ifdef MMUTABLE_CHECK
-	if(0==MMUTable::write64_ne(MMUTable::EmuPointer(_Address), _Data))
+	if(0==MMUTable::write64(MMUTable::EmuPointer(_Address), _Data))
 	{
 		return;
 	}
 //	WARN_LOG(MEMMAP, "Write_U64:MMUTable(%08x) miss!", _Address);
 #endif
 
-	WriteToHardware<u64>(_Address, _Data, _Address + 4, FLAG_WRITE);
+//	WriteToHardware<u64>(_Address, _Data, _Address + 4, FLAG_WRITE);
 }
 void Write_U64_Swap(const u64 _Data, const u32 _Address) {
 	Write_U64(Common::swap64(_Data), _Address);
@@ -564,15 +573,19 @@ u8 ReadUnchecked_U8(const u32 _Address)
 {
 #ifdef MMUTABLE_CHECK
 	u8 _var_mmu = 0;
-	if(0==MMUTable::read8_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	int rv = MMUTable::read8_ne(MMUTable::EmuPointer(_Address), _var_mmu);
+	if(rv != 0)
 	{
-		return _var_mmu;
+		WARN_LOG(MEMMAP, "ReadUnchecked_U8(%08x) miss!", _Address);
 	}
+	
+	return _var_mmu;
+
 #endif
 
-	u8 _var = 0;
-	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_NO_EXCEPTION);
-	return _var;
+//	u8 _var = 0;
+//	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_NO_EXCEPTION);
+//	return _var;
 }
 
 
@@ -580,10 +593,12 @@ u32 ReadUnchecked_U32(const u32 _Address)
 {
 #ifdef MMUTABLE_CHECK
 	u32 _var_mmu = 0;
-	if(0==MMUTable::read32_ne(MMUTable::EmuPointer(_Address), _var_mmu))
+	int rv = MMUTable::read32_ne(MMUTable::EmuPointer(_Address), _var_mmu);
+	if(rv != 0)
 	{
-		return _var_mmu;
+		WARN_LOG(MEMMAP, "ReadUnchecked_U32(%08x) miss!", _Address);
 	}
+	return _var_mmu;
 #endif
 	u32 _var = 0;
 	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_NO_EXCEPTION);
@@ -593,10 +608,12 @@ u32 ReadUnchecked_U32(const u32 _Address)
 void WriteUnchecked_U8(const u8 _iValue, const u32 _Address)
 {
 #ifdef MMUTABLE_CHECK
-	if(0==MMUTable::write8_ne(MMUTable::EmuPointer(_Address), _iValue))
+	int rv = MMUTable::write8_ne(MMUTable::EmuPointer(_Address), _iValue);
+	if(rv != 0)
 	{
-		return;
+		WARN_LOG(MEMMAP, "WriteUnchecked_U8(%08x) miss!", _Address);
 	}
+	return;
 #endif
 	WriteToHardware<u8>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
 }
@@ -605,10 +622,12 @@ void WriteUnchecked_U8(const u8 _iValue, const u32 _Address)
 void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 {
 #ifdef MMUTABLE_CHECK
-	if(0==MMUTable::write32_ne(MMUTable::EmuPointer(_Address), _iValue))
+	int rv = MMUTable::write32_ne(MMUTable::EmuPointer(_Address), _iValue);
+	if(rv != 0)
 	{
-		return;
+		WARN_LOG(MEMMAP, "WriteUnchecked_U32(%08x) miss!", _Address);
 	}
+	return;
 #endif
 	WriteToHardware<u32>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
 }
@@ -708,6 +727,23 @@ union UPTE2
 
 u32 pagetable_base = 0;
 u32 pagetable_hashmask = 0;
+void GenerateDSIExceptionEx(u32 _EffectiveAddress, u32 bits)
+{
+	PowerPC::ppcState.spr[SPR_DSISR] = bits;
+
+	PowerPC::ppcState.spr[SPR_DAR] = _EffectiveAddress;
+
+	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_DSI);
+}
+
+void GenerateISIExceptionEx(u32 _EffectiveAddress, u32 bits)
+{
+	// Address of instruction could not be translated
+	NPC = _EffectiveAddress;
+
+	Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_ISI);
+}
+
 
 void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 {

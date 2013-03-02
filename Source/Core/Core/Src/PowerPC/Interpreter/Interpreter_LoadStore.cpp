@@ -868,8 +868,9 @@ void Interpreter::tlbia(UGeckoInstruction _inst)
 void Interpreter::tlbie(UGeckoInstruction _inst)
 {
 	// Invalidate TLB entry
+//	WARN_LOG(MASTER_LOG, "tlbie @ %08x [%08x]", m_GPR[_inst.RB], PowerPC::ppcState.pc);
 	u32 _Address = m_GPR[_inst.RB];
-	Memory::InvalidateTLBEntry(_Address);
+//	Memory::InvalidateTLBEntry(_Address);
 }
 
 void Interpreter::tlbsync(UGeckoInstruction _inst)

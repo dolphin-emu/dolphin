@@ -453,6 +453,7 @@ void InitHWMemFuncs()
 	WARN_LOG(MASTER_LOG, "MMUTable check enabled for GC");
 #endif
 	MMUTable::map_physical(m_pRAM, RAM_SIZE, 0x00000000);
+	MMUTable::map_physical(m_pL1Cache, L1_CACHE_SIZE, 0xe0000000);
 
 	struct MMUTable::DAccessFuncs daf;
 

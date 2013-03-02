@@ -403,6 +403,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 		break;
 
 	case SPR_DMAL:
+		//WARN_LOG(MASTER_LOG, "SPR_DMAU: %08x SPR_DMAL: %08x", DMAU.Hex, DMAL.Hex);
 		// Locked cache<->Memory DMA
 		// Total fake, we ignore that DMAs take time.
 		if (DMAL.DMA_T) 
@@ -440,28 +441,52 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 		Memory::SDRUpdated();
 		break;
 	case SPR_IBAT0U:
+		MMUTable::on_ibatu_change(0, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
 	case SPR_IBAT1U:
+		MMUTable::on_ibatu_change(1, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
 	case SPR_IBAT2U:
+		MMUTable::on_ibatu_change(2, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
 	case SPR_IBAT3U:
-		MMUTable::on_ibatu_change(oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		MMUTable::on_ibatu_change(3, oldValue, rSPR(iIndex), rSPR(iIndex+1));
 		break;
 	case SPR_IBAT0L:
+		MMUTable::on_ibatl_change(0, rSPR(iIndex-1), rSPR(iIndex));
+		break;
 	case SPR_IBAT1L:
+		MMUTable::on_ibatl_change(1, rSPR(iIndex-1), rSPR(iIndex));
+		break;
 	case SPR_IBAT2L:
+		MMUTable::on_ibatl_change(2, rSPR(iIndex-1), rSPR(iIndex));
+		break;
 	case SPR_IBAT3L:
-		MMUTable::on_ibatl_change(rSPR(iIndex-1), rSPR(iIndex));
+		MMUTable::on_ibatl_change(3, rSPR(iIndex-1), rSPR(iIndex));
 		break;
 	case SPR_DBAT0U:
+		MMUTable::on_dbatu_change(0, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
 	case SPR_DBAT1U:
+		MMUTable::on_dbatu_change(1, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
 	case SPR_DBAT2U:
+		MMUTable::on_dbatu_change(2, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
 	case SPR_DBAT3U:
-		MMUTable::on_dbatu_change(oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		MMUTable::on_dbatu_change(3, oldValue, rSPR(iIndex), rSPR(iIndex+1));
 		break;
 	case SPR_DBAT0L:
+		MMUTable::on_dbatl_change(0, rSPR(iIndex-1), rSPR(iIndex));
+		break;
 	case SPR_DBAT1L:
+		MMUTable::on_dbatl_change(1, rSPR(iIndex-1), rSPR(iIndex));
+		break;
 	case SPR_DBAT2L:
+		MMUTable::on_dbatl_change(2, rSPR(iIndex-1), rSPR(iIndex));
+		break;
 	case SPR_DBAT3L:
-		MMUTable::on_dbatl_change(rSPR(iIndex-1), rSPR(iIndex));
+		MMUTable::on_dbatl_change(3, rSPR(iIndex-1), rSPR(iIndex));
 		break;
 	}
 }

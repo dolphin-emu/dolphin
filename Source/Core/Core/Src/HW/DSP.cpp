@@ -42,6 +42,7 @@
 #include "CPU.h"
 #include "MemoryUtil.h"
 #include "Memmap.h"
+#include "MMUTable.h"
 #include "ProcessorInterface.h"
 #include "AudioInterface.h"
 #include "../PowerPC/PowerPC.h"
@@ -697,18 +698,22 @@ void UpdateAudioDMA()
 
 void Do_ARAM_DMA()
 {
+	u64 tmp;
 	// Emulating the DMA wait time fixes Knockout Kings 2003 in DSP HLE mode
 	if (!GetDSPEmulator()->IsLLE())
 		g_dspState.DSPControl.DMAState = 1;
 
 	GenerateDSPInterrupt(INT_ARAM, true);
 
+//	u32 access_mask = MMUTable::get_access_mask();
+//	if((g_ARAM_Info.Hex & 0x20)==0) access_mask = ACCESS_MASK_PHYSICAL;
+
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
 	{
 		// ARAM -> MRAM
-		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x PC: %08x",
-			g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
+//		WARN_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x PC: %08x",
+//			g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
 
 		// Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
 		g_arDMA.ARAddr &= 0x3ffffff;
@@ -720,6 +725,9 @@ void Do_ARAM_DMA()
 			{
 				// These are logically seperated in code to show that a memory map has been set up
 				// See below in the write section for more information
+				tmp = Common::swap64(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask]);
+				MMUTable::write64(MMUTable::EmuPointer(g_arDMA.MMAddr), tmp, ACCESS_MASK_PHYSICAL);
+/*
 				if ((g_ARAM_Info.Hex & 0xf) == 3)
 				{
 					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);
@@ -730,6 +738,7 @@ void Do_ARAM_DMA()
 				}
 				else
 					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);
+*/
 				g_arDMA.MMAddr += 8;
 				g_arDMA.ARAddr += 8;
 				g_arDMA.Cnt.count -= 8;
@@ -740,7 +749,8 @@ void Do_ARAM_DMA()
 			// Assuming no external ARAM installed; returns zeroes on out of bounds reads (verified on real HW)
 			while (g_arDMA.Cnt.count)
 			{
-				Memory::Write_U64(0, g_arDMA.MMAddr);
+				MMUTable::write64(MMUTable::EmuPointer(g_arDMA.MMAddr), 0, ACCESS_MASK_PHYSICAL);
+//				Memory::Write_U64(0, g_arDMA.MMAddr);
 				g_arDMA.MMAddr += 8;
 				g_arDMA.ARAddr += 8;
 				g_arDMA.Cnt.count -= 8;
@@ -750,10 +760,11 @@ void Do_ARAM_DMA()
 	else
 	{
 		// MRAM -> ARAM
-		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x",
-			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr, PC);
+//		WARN_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x",
+//			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr, PC);
 
 		// Incoming data into ARAM is mirrored every 64MB (verified on real HW)
+
 		g_arDMA.ARAddr &= 0x3ffffff;
 		g_arDMA.MMAddr &= 0x3ffffff;
 
@@ -761,6 +772,9 @@ void Do_ARAM_DMA()
 		{
 			while (g_arDMA.Cnt.count)
 			{
+				MMUTable::read64(MMUTable::EmuPointer(g_arDMA.MMAddr), tmp, ACCESS_MASK_PHYSICAL);
+				*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(tmp);
+/*
 				if ((g_ARAM_Info.Hex & 0xf) == 3)
 				{
 					*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
@@ -775,11 +789,12 @@ void Do_ARAM_DMA()
 				}
 				else
 					*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
-
+*/
 				g_arDMA.MMAddr += 8;
 				g_arDMA.ARAddr += 8;
 				g_arDMA.Cnt.count -= 8;
 			}
+//			WARN_LOG(DSPINTERFACE, "DMA TAIL: %016llx", tmp);
 		}
 		else
 		{

@@ -470,6 +470,7 @@ void Interpreter::ps_cmpo1(UGeckoInstruction _inst)
 // TODO(ector) check docs
 void Interpreter::dcbz_l(UGeckoInstruction _inst)
 {
+	WARN_LOG(MASTER_LOG, "dcbz_l: %08x", Helper_Get_EA_X(_inst));
 	//FAKE: clear memory instead of clearing the cache block
 	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
 }

@@ -433,14 +433,14 @@ void EmuThread()
 	PowerPC::ppcState.spr[SPR_IBAT2L] = 0;
 	PowerPC::ppcState.spr[SPR_IBAT3U] = 0xFFF0001F;
 	PowerPC::ppcState.spr[SPR_IBAT3L] = 0xFFF00001;
-	MMUTable::on_ibatl_change(PowerPC::ppcState.spr[SPR_IBAT0U], PowerPC::ppcState.spr[SPR_IBAT0L]);
-	MMUTable::on_ibatl_change(PowerPC::ppcState.spr[SPR_IBAT1U], PowerPC::ppcState.spr[SPR_IBAT1L]);
-	MMUTable::on_ibatl_change(PowerPC::ppcState.spr[SPR_IBAT2U], PowerPC::ppcState.spr[SPR_IBAT2L]);
-	MMUTable::on_ibatl_change(PowerPC::ppcState.spr[SPR_IBAT3U], PowerPC::ppcState.spr[SPR_IBAT3L]);
-	MMUTable::on_dbatl_change(PowerPC::ppcState.spr[SPR_DBAT0U], PowerPC::ppcState.spr[SPR_DBAT0L]);
-	MMUTable::on_dbatl_change(PowerPC::ppcState.spr[SPR_DBAT1U], PowerPC::ppcState.spr[SPR_DBAT1L]);
-	MMUTable::on_dbatl_change(PowerPC::ppcState.spr[SPR_DBAT2U], PowerPC::ppcState.spr[SPR_DBAT2L]);
-	MMUTable::on_dbatl_change(PowerPC::ppcState.spr[SPR_DBAT3U], PowerPC::ppcState.spr[SPR_DBAT3L]);
+	MMUTable::on_ibatl_change(0, PowerPC::ppcState.spr[SPR_IBAT0U], PowerPC::ppcState.spr[SPR_IBAT0L]);
+	MMUTable::on_ibatl_change(1, PowerPC::ppcState.spr[SPR_IBAT1U], PowerPC::ppcState.spr[SPR_IBAT1L]);
+	MMUTable::on_ibatl_change(2, PowerPC::ppcState.spr[SPR_IBAT2U], PowerPC::ppcState.spr[SPR_IBAT2L]);
+	MMUTable::on_ibatl_change(3, PowerPC::ppcState.spr[SPR_IBAT3U], PowerPC::ppcState.spr[SPR_IBAT3L]);
+	MMUTable::on_dbatl_change(0, PowerPC::ppcState.spr[SPR_DBAT0U], PowerPC::ppcState.spr[SPR_DBAT0L]);
+	MMUTable::on_dbatl_change(1, PowerPC::ppcState.spr[SPR_DBAT1U], PowerPC::ppcState.spr[SPR_DBAT1L]);
+	MMUTable::on_dbatl_change(2, PowerPC::ppcState.spr[SPR_DBAT2U], PowerPC::ppcState.spr[SPR_DBAT2L]);
+	MMUTable::on_dbatl_change(3, PowerPC::ppcState.spr[SPR_DBAT3U], PowerPC::ppcState.spr[SPR_DBAT3L]);
 	for(int i=0;i<16;i++)
 	{
 		PowerPC::ppcState.sr[i]=0xffffffff;
