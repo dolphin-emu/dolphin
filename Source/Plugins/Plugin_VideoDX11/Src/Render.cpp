@@ -65,6 +65,7 @@ ID3D11RasterizerState* resetraststate = NULL;
 
 static ID3D11Texture2D* s_screenshot_texture = NULL;
 
+
 // GX pipeline state
 struct
 {

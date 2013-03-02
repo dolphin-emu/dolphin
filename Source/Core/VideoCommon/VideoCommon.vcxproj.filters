@@ -101,6 +101,9 @@
     <ClCompile Include="Src\MainBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="Src\PerfQueryBase.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
     <ClCompile Include="Src\RenderBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
@@ -235,6 +238,9 @@
       <Filter>Base</Filter>
     </ClInclude>
     <ClInclude Include="Src\MainBase.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PerfQueryBase.h">
       <Filter>Base</Filter>
     </ClInclude>
     <ClInclude Include="Src\RenderBase.h">

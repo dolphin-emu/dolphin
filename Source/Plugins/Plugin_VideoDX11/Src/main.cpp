@@ -42,6 +42,7 @@
 
 #include "D3DUtil.h"
 #include "D3DBase.h"
+#include "PerfQuery.h"
 #include "PixelShaderCache.h"
 #include "TextureCache.h"
 #include "VertexManager.h"
@@ -183,6 +184,7 @@ void VideoBackend::Video_Prepare()
 	g_renderer = new Renderer;
 	g_texture_cache = new TextureCache;
 	g_vertex_manager = new VertexManager;
+	g_perf_query = new PerfQuery;
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
 	D3D::InitUtils();
@@ -225,6 +227,7 @@ void VideoBackend::Shutdown()
 		D3D::ShutdownUtils();
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
+		delete g_perf_query;
 		delete g_vertex_manager;
 		delete g_texture_cache;
 		delete g_renderer;

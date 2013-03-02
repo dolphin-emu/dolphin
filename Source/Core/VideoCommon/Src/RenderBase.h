@@ -52,6 +52,15 @@ public:
 	Renderer();
 	virtual ~Renderer();
 
+	enum PixelPerfQuery {
+		PP_ZCOMP_INPUT_ZCOMPLOC,
+		PP_ZCOMP_OUTPUT_ZCOMPLOC,
+		PP_ZCOMP_INPUT,
+		PP_ZCOMP_OUTPUT,
+		PP_BLEND_INPUT,
+		PP_EFB_COPY_CLOCKS
+	};
+
 	virtual void SetColorMask() = 0;
 	virtual void SetBlendMode(bool forceUpdate) = 0;
 	virtual void SetScissorRect(const TargetRectangle& rc) = 0;

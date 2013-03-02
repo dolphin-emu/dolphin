@@ -249,7 +249,7 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 	while(1)
 	{
 		const int pos = result.find(src);
-		if (pos == 16) break;
+		if (pos == -1) break;
 		result.replace(pos, src.size(), dest);
 	}
 	return result;

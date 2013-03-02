@@ -57,6 +57,7 @@
 
 #include "ConfigManager.h"
 #include "VideoBackend.h"
+#include "PerfQueryBase.h"
 
 namespace DX9
 {
@@ -97,8 +98,6 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
-	
-	
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 
 	// adapters
@@ -172,6 +171,7 @@ void VideoBackend::Video_Prepare()
 	g_vertex_manager = new VertexManager;
 	g_renderer = new Renderer;
 	g_texture_cache = new TextureCache;		
+	g_perf_query = new PerfQueryBase;
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
@@ -209,6 +209,7 @@ void VideoBackend::Shutdown()
 		// internal interfaces
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
+		delete g_perf_query;
 		delete g_texture_cache;
 		delete g_renderer;
 		delete g_vertex_manager;

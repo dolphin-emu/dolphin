@@ -65,6 +65,13 @@ namespace Clipper
     OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
     OutputVertexData *Vertices[NUM_INDICES];
 
+	void DoState(PointerWrap &p)
+	{
+		p.DoArray(m_ViewOffset,2);
+		for (int i = 0; i< NUM_CLIPPED_VERTICES; ++i)
+			ClippedVertices[i].DoState(p);
+	}
+
     void Init()
     {
         for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
