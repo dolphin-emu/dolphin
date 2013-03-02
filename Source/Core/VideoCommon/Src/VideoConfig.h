@@ -115,7 +115,7 @@ struct VideoConfig
 	int iAnaglyphStereoSeparation;
 	int iAnaglyphFocalAngle;
 	bool b3DVision;
-	
+
 	// Hacks
 	bool bEFBAccessEnable;
 	bool bDlistCachingEnable;
@@ -157,6 +157,7 @@ struct VideoConfig
 		std::vector<std::string> PPShaders; // post-processing shaders
 
 		bool bUseRGBATextures; // used for D3D11 in TextureCache
+		bool bUseMinimalMipCount;
 		bool bSupports3DVision;
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;

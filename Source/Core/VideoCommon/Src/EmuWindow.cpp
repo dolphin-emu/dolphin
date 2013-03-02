@@ -205,10 +205,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			OnKeyDown(lParam);
 			FreeLookInput((u32)wParam, lParam);
 		}
-		else if (wParam == WIIMOTE_DISCONNECT)
-		{
-			PostMessage(m_hParent, WM_USER, wParam, lParam);
-		}
 		break;
 
 	// Called when a screensaver wants to show up while this window is active

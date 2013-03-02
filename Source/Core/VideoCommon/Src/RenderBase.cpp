@@ -83,7 +83,9 @@ unsigned int Renderer::efb_scale_denominatorY = 1;
 unsigned int Renderer::ssaa_multiplier = 1;
 
 
-Renderer::Renderer() : frame_data(NULL), bLastFrameDumped(false)
+Renderer::Renderer()
+	: frame_data()
+	, bLastFrameDumped(false)
 {
 	UpdateActiveConfig();
 	TextureCache::OnConfigChanged(g_ActiveConfig);
@@ -110,7 +112,6 @@ Renderer::~Renderer()
 	if (pFrameDump.IsOpen())
 		pFrameDump.Close();
 #endif
-	delete[] frame_data;
 }
 
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)

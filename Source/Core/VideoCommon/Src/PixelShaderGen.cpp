@@ -28,7 +28,7 @@
 #include "NativeVertexFormat.h"
 
 
-static void StageHash(int stage, u32* out)
+static void StageHash(u32 stage, u32* out)
 {
 	out[0] |= bpmem.combiners[stage].colorC.hex & 0xFFFFFF; // 24
 	u32 alphaC = bpmem.combiners[stage].alphaC.hex & 0xFFFFF0; // 24, strip out tswap and rswap for now
@@ -141,7 +141,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	}
 
 	u32* ptr = &uid->values[2];
-	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i)
+	for (unsigned int i = 0; i < bpmem.genMode.numtevstages+1u; ++i)
 	{
 		StageHash(i, ptr);
 		ptr += 4; // max: ptr = &uid->values[66]
@@ -158,10 +158,11 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 
 	if (dstAlphaMode != DSTALPHA_ALPHA_PASS)
 	{
+		ptr[0] |= bpmem.fog.c_proj_fsel.fsel << 13; // 3
 		if (bpmem.fog.c_proj_fsel.fsel != 0)
 		{
-			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 13; // 1
-			ptr[0] |= bpmem.fogRange.Base.Enabled << 14; // 1
+			ptr[0] |= bpmem.fog.c_proj_fsel.proj << 16; // 1
+			ptr[0] |= bpmem.fogRange.Base.Enabled << 17; // 1
 		}
 	}
 	ptr[0] |= bpmem.zcontrol.pixel_format << 15; // 3
@@ -205,7 +206,7 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 
 	*ptr++ = bpmem.tevindref.hex; // 31
 
-	for (int i = 0; i < bpmem.genMode.numtevstages+1; ++i) // up to 16 times
+	for (unsigned int i = 0; i < bpmem.genMode.numtevstages+1u; ++i) // up to 16 times
 	{
 		*ptr++ = bpmem.combiners[i].colorC.hex; // 32+5*i
 		*ptr++ = bpmem.combiners[i].alphaC.hex; // 33+5*i

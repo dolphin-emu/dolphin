@@ -247,7 +247,7 @@ wxTextCtrl* CLogWindow::CreateTextCtrl(wxPanel* parent, wxWindowID id, long Styl
 #else
 	TC->SetBackgroundColour(*wxBLACK);
 #endif
-	if (m_FontChoice && m_FontChoice->GetSelection() < (int)LogFont.size())
+	if (m_FontChoice && m_FontChoice->GetSelection() < (int)LogFont.size() && m_FontChoice->GetSelection() >= 0)
 		TC->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, LogFont[m_FontChoice->GetSelection()]));
 
 	return TC;

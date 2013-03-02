@@ -43,6 +43,7 @@ public:
 	virtual std::string GetApploaderDate() const = 0;
 	virtual bool SupportsIntegrityCheck() const { return false; }
 	virtual bool CheckIntegrity() const { return false; }
+	virtual bool IsDiscTwo() const { return false; }
 
 	enum ECountry
 	{
@@ -56,6 +57,7 @@ public:
 		COUNTRY_TAIWAN,
 		COUNTRY_SDK,
 		COUNTRY_UNKNOWN,
+		COUNTRY_GERMANY,
 		NUMBER_OF_COUNTRIES
 	};
 

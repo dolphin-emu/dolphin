@@ -40,6 +40,7 @@
 #include "OpcodeDecoding.h"
 #include "FileUtil.h"
 #include "Debugger.h"
+#include "PerfQueryBase.h"
 
 #include "main.h"
 
@@ -164,8 +165,8 @@ void VertexManager::vFlush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8),
-				tex.texMode1[i&3].max_lod >> 4,
+				(tex.texMode0[i&3].min_filter & 3),
+				(tex.texMode1[i&3].max_lod + 0xf) / 0x10,
 				tex.texImage1[i&3].image_type);
 
 			if (tentry)
@@ -217,7 +218,10 @@ void VertexManager::vFlush()
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
 
+	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw();
+	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+	//ERROR_LOG(VIDEO, "PerfQuery result: %d", g_perf_query->GetQueryResult(bpmem.zcontrol.early_ztest ? PQ_ZCOMP_OUTPUT_ZCOMPLOC : PQ_ZCOMP_OUTPUT));
 
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)

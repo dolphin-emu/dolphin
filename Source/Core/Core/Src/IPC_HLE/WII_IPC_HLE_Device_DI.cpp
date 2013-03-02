@@ -28,6 +28,7 @@
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 #include "LogManager.h"
+#include "../HW/SystemTimers.h"
 
 #include "../../DiscIO/Src/FileMonitor.h"
 
@@ -459,4 +460,46 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
     // i dunno but prolly 1 is okay all the time :)
     return 1;
+}
+
+int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
+{
+	u32 BufferIn	= Memory::Read_U32(_CommandAddress + 0x10);
+	u32 Command		= Memory::Read_U32(BufferIn) >> 24;
+	
+	// Hacks below
+	
+	switch (Command)
+	{
+	case DVDLowRead:
+	case DVDLowUnencryptedRead:
+	{
+		u32 const Size = Memory::Read_U32(BufferIn + 0x04);
+		// Delay depends on size of read, that makes sense, right?
+		// More than ~1150K "bytes / sec" hangs NSMBWii on boot.
+		// Less than ~800K "bytes / sec" hangs DKCR randomly (ok, probably not true)
+		return SystemTimers::GetTicksPerSecond() / 975000 * Size;
+		break;
+	}
+		
+	case DVDLowClearCoverInterrupt:
+		// Less than ~1/155th of a second hangs Oregon Trail at "loading wheel".
+		// More than ~1/140th of a second hangs Resident Evil Archives: Resident Evil Zero.
+		return SystemTimers::GetTicksPerSecond() / 146;
+		break;
+	
+//	case DVDLowAudioBufferConfig:
+//	case DVDLowInquiry:
+//	case DVDLowReadDiskID:
+//	case DVDLowWaitForCoverClose:
+//	case DVDLowGetCoverReg:
+//	case DVDLowGetCoverStatus:
+//	case DVDLowReset:
+//	case DVDLowClosePartition:
+	default:
+		// ranom numbers here!
+		// More than ~1/2000th of a second hangs DKCR with DSP HLE, maybe.
+		return SystemTimers::GetTicksPerSecond() / 15000;
+		break;
+	}
 }

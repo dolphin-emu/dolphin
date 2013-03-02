@@ -103,15 +103,17 @@ struct SCoreStartupParameter
 	bool bNTSC;
 	bool bForceNTSCJ;
 	bool bHLE_BS2;
-	bool bLockThreads;
 	bool bEnableCheats;
 	bool bMergeBlocks;
+
+	bool bDPL2Decoder;
+	int iLatency;
 
 	bool bRunCompareServer;
 	bool bRunCompareClient;
 
 	bool bMMU;
-	bool bMMUBAT;
+	bool bDCBZOFF;
 	int iTLBHack;
 	bool bVBeam;
 	bool bFastDiscSpeed;
@@ -119,10 +121,10 @@ struct SCoreStartupParameter
 	int SelectedLanguage;
 
 	bool bWii;
-	bool bDisableWiimoteSpeaker;
 
 	// Interface settings
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;
+	std::string theme_name;
 
 	// Hotkeys
 	int iHotkey[NUM_HOTKEYS];
@@ -136,7 +138,6 @@ struct SCoreStartupParameter
 	bool bFullscreen, bRenderToMain;
 	bool bProgressive, bDisableScreenSaver;
 
-	int iTheme;
 	int iPosX, iPosY, iWidth, iHeight;
 
 	enum EBootBS2

@@ -28,7 +28,7 @@
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 
 #include "Jit.h"
 #include "JitAsm.h"
@@ -139,14 +139,13 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
 		
-		gpr.Flush(FLUSH_ALL); 
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 
 		// if it's still 0, we can wait until the next event
 		TEST(32, R(EAX), R(EAX));
 		FixupBranch noIdle = J_CC(CC_NZ);
-
-		gpr.Flush(FLUSH_ALL);
-		fpr.Flush(FLUSH_ALL);
+		
 		ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
 
 		// ! we must continue executing of the loop after exception handling, maybe there is still 0 in r0

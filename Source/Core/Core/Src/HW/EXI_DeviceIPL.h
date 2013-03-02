@@ -78,7 +78,7 @@ private:
 
 	virtual void TransferByte(u8 &_uByte);
 	bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
-	const u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
+	u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
 
 	void LoadFileToIPL(std::string filename, u32 offset);
 };

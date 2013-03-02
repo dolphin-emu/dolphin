@@ -23,6 +23,19 @@
 #include "../GLInterface.h"
 #include "WX.h"
 
+void cInterfaceWX::SwapInterval(int Interval)
+{
+	// WX interface only used on Apple
+#ifdef __APPLE__
+#if defined USE_WX && USE_WX
+	NSOpenGLContext *ctx = GLWin.glCtxt->GetWXGLContext();
+#else
+	NSOpenGLContext *ctx = GLWin.cocoaCtx;
+#endif
+	[ctx setValues: &Interval forParameter: NSOpenGLCPSwapInterval];
+#endif
+}
+
 void cInterfaceWX::Swap()
 {
 	GLWin.glCanvas->SwapBuffers();

@@ -34,9 +34,9 @@
 #include "FileSearch.h"
 #include "CompressedBlob.h"
 #include "ChunkFile.h"
-#include "../resources/no_banner.cpp"
+#include "ConfigManager.h"
 
-#define CACHE_REVISION 0x10D
+#define CACHE_REVISION 0x110
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -91,6 +91,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			m_UniqueID = pVolume->GetUniqueID();
 			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
+			m_IsDiscTwo = pVolume->IsDiscTwo();
 
 			// check if we can get some infos from the banner file too
 			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
@@ -173,10 +174,16 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	}
 	else
 	{
+		std::string theme = SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/";
+		std::string dir = File::GetUserPath(D_THEMES_IDX) + theme;
+
+#if !defined(_WIN32)
+		// If theme does not exist in user's dir load from shared directory
+		if (!File::Exists(dir))
+			dir = SHARED_USER_DIR THEMES_DIR "/" + theme;
+#endif
 		// default banner
-		wxMemoryInputStream istream(no_banner_png, sizeof no_banner_png);
-		wxImage iNoBanner(istream, wxBITMAP_TYPE_PNG);
-		m_Image = iNoBanner;
+		m_Image = wxImage(dir + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 
@@ -235,6 +242,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_BlobCompressed);
 	p.Do(m_pImage);
 	p.Do(m_Platform);
+	p.Do(m_IsDiscTwo);
 }
 
 std::string GameListItem::CreateCacheFilename()

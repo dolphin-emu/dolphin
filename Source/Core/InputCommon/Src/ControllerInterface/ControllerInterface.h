@@ -87,7 +87,7 @@ public:
 
 			Input* ToInput() { return this; }
 		};
-		
+
 		//
 		//		Output
 		//
@@ -122,6 +122,36 @@ public:
 	protected:
 		void AddInput(Input* const i);
 		void AddOutput(Output* const o);
+		
+		class FullAnalogSurface : public Input
+		{
+		public:
+			FullAnalogSurface(Input* low, Input* high)
+				: m_low(*low), m_high(*high)
+			{}
+
+			ControlState GetState() const
+			{
+				return (1 + m_high.GetState() - m_low.GetState()) / 2;
+			}
+
+			std::string GetName() const
+			{
+				return m_low.GetName() + *m_high.GetName().rbegin();
+			}
+
+		private:
+			Input& m_low;
+			Input& m_high;
+		};
+
+		void AddAnalogInputs(Input* low, Input* high)
+		{
+			AddInput(low);
+			AddInput(high);
+			AddInput(new FullAnalogSurface(low, high));
+			AddInput(new FullAnalogSurface(high, low));
+		}
 
 	private:
 		std::vector<Input*>		m_inputs;

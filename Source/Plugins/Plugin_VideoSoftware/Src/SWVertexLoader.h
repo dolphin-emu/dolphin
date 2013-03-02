@@ -22,6 +22,7 @@
 
 #include "NativeVertexFormat.h"
 #include "CPMemLoader.h"
+#include "ChunkFile.h"
 
 class SetupUnit;
 
@@ -69,7 +70,7 @@ public:
     u32 GetVertexSize() { return m_VertexSize; }
 
     void LoadVertex();   
-
+	void DoState(PointerWrap &p);
 };
 
 #endif

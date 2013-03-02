@@ -200,6 +200,7 @@
     <ClCompile Include="Src\GLUtil.cpp" />
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\NativeVertexFormat.cpp" />
+    <ClCompile Include="Src\PerfQuery.cpp" />
     <ClCompile Include="Src\PixelShaderCache.cpp" />
     <ClCompile Include="Src\PostProcessing.cpp" />
     <ClCompile Include="Src\RasterFont.cpp" />
@@ -222,6 +223,7 @@
     <ClInclude Include="Src\Globals.h" />
     <ClInclude Include="Src\GLUtil.h" />
     <ClInclude Include="Src\main.h" />
+    <ClInclude Include="Src\PerfQuery.h" />
     <ClInclude Include="Src\PixelShaderCache.h" />
     <ClInclude Include="Src\PostProcessing.h" />
     <ClInclude Include="Src\RasterFont.h" />

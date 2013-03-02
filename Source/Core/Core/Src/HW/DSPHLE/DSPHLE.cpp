@@ -26,6 +26,8 @@
 #include "DSPHLE.h"
 #include "UCodes/UCodes.h"
 #include "../AudioInterface.h"
+#include "ConfigManager.h"
+#include "Core.h"
 
 DSPHLE::DSPHLE() {
 	m_InitMixer = false;
@@ -129,6 +131,14 @@ void DSPHLE::SwapUCode(u32 _crc)
 
 void DSPHLE::DoState(PointerWrap &p)
 {
+	bool isHLE = true;
+	p.Do(isHLE);
+	if (isHLE != true && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.", 3000);
+		p.SetMode(PointerWrap::MODE_VERIFY);
+		return;
+	}
 	bool prevInitMixer = m_InitMixer;
 	p.Do(m_InitMixer);
 	if (prevInitMixer != m_InitMixer && p.GetMode() == PointerWrap::MODE_READ)
@@ -251,7 +261,7 @@ void DSPHLE::InitMixer()
 	unsigned int AISampleRate, DACSampleRate;
 	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
 	delete soundStream;
-	soundStream = AudioCommon::InitSoundStream(new HLEMixer(this, AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd);
+	soundStream = AudioCommon::InitSoundStream(new HLEMixer(this, AISampleRate, DACSampleRate, 48000), m_hWnd);
 	if(!soundStream) PanicAlert("Error starting up sound stream");
 	// Mixer is initialized
 	m_InitMixer = true;

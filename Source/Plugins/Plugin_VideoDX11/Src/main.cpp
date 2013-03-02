@@ -42,6 +42,7 @@
 
 #include "D3DUtil.h"
 #include "D3DBase.h"
+#include "PerfQuery.h"
 #include "PixelShaderCache.h"
 #include "TextureCache.h"
 #include "VertexManager.h"
@@ -90,6 +91,7 @@ void InitBackendInfo()
 
 	g_Config.backend_info.APIType = API_D3D11;
 	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
+	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
@@ -184,6 +186,7 @@ void VideoBackend::Video_Prepare()
 	g_renderer = new Renderer;
 	g_texture_cache = new TextureCache;
 	g_vertex_manager = new VertexManager;
+	g_perf_query = new PerfQuery;
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
 	D3D::InitUtils();
@@ -226,6 +229,7 @@ void VideoBackend::Shutdown()
 		D3D::ShutdownUtils();
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
+		delete g_perf_query;
 		delete g_vertex_manager;
 		delete g_texture_cache;
 		delete g_renderer;

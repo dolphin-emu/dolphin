@@ -25,8 +25,6 @@
 #include "HW/Memmap.h"
 #include "Frame.h"
 
-#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
-
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY	256
 
 extern std::vector<ActionReplay::ARCode> arCodes;
@@ -80,8 +78,8 @@ void wxCheatsWindow::Init_ChildControls()
 	m_Tab_Cheats = new wxPanel(m_Notebook_Main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 
 	m_CheckListBox_CheatsList = new wxCheckListBox(m_Tab_Cheats, wxID_ANY, wxDefaultPosition, wxSize(300, 0), m_CheatStringList, wxLB_HSCROLL, wxDefaultValidator);
-	_connect_macro_(m_CheckListBox_CheatsList, wxCheatsWindow::OnEvent_CheatsList_ItemSelected, wxEVT_COMMAND_LISTBOX_SELECTED, this);
-	_connect_macro_(m_CheckListBox_CheatsList, wxCheatsWindow::OnEvent_CheatsList_ItemToggled, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, this);
+	m_CheckListBox_CheatsList->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &wxCheatsWindow::OnEvent_CheatsList_ItemSelected, this);
+	m_CheckListBox_CheatsList->Bind(wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, &wxCheatsWindow::OnEvent_CheatsList_ItemToggled, this);
 
 	m_Label_Codename = new wxStaticText(m_Tab_Cheats, wxID_ANY, _("Name: "), wxDefaultPosition, wxDefaultSize);
 	m_GroupBox_Info = new wxStaticBox(m_Tab_Cheats, wxID_ANY, _("Code Info"), wxDefaultPosition, wxDefaultSize);
@@ -107,10 +105,10 @@ void wxCheatsWindow::Init_ChildControls()
 	m_Tab_Log = new wxPanel(m_Notebook_Main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 
 	wxButton* const button_updatelog = new wxButton(m_Tab_Log, wxID_ANY, _("Update"));
-	_connect_macro_(button_updatelog, wxCheatsWindow::OnEvent_ButtonUpdateLog_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	button_updatelog->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &wxCheatsWindow::OnEvent_ButtonUpdateLog_Press, this);
 
 	m_CheckBox_LogAR = new wxCheckBox(m_Tab_Log, wxID_ANY, _("Enable AR Logging"));
-	_connect_macro_(m_CheckBox_LogAR, wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	m_CheckBox_LogAR->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange, this);
 
 	m_CheckBox_LogAR->SetValue(ActionReplay::IsSelfLogging());
 	m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(100, -1), wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
@@ -134,11 +132,11 @@ void wxCheatsWindow::Init_ChildControls()
 
 	// Button Strip
 	wxButton* const button_apply = new wxButton(panel, wxID_APPLY, _("Apply"), wxDefaultPosition, wxDefaultSize);
-	_connect_macro_(button_apply, wxCheatsWindow::OnEvent_ApplyChanges_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	button_apply->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &wxCheatsWindow::OnEvent_ApplyChanges_Press, this);
 	wxButton* const button_cancel = new wxButton(panel, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize);
-	_connect_macro_(button_cancel, wxCheatsWindow::OnEvent_ButtonClose_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	button_cancel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &wxCheatsWindow::OnEvent_ButtonClose_Press, this);
 
-	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(wxCheatsWindow::OnEvent_Close), (wxObject*)0, this);
+	Bind(wxEVT_CLOSE_WINDOW, &wxCheatsWindow::OnEvent_Close, this);
 
 	wxStdDialogButtonSizer* const sButtons = new wxStdDialogButtonSizer();
 	sButtons->AddButton(button_apply);
@@ -160,11 +158,11 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 {
 	// first scan button
 	btnInitScan = new wxButton(this, -1, _("New Scan"));
-	_connect_macro_(btnInitScan, CheatSearchTab::StartNewSearch, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	btnInitScan->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CheatSearchTab::StartNewSearch, this);
 
 	// next scan button
 	btnNextScan = new wxButton(this, -1, _("Next Scan"));
-	_connect_macro_(btnNextScan, CheatSearchTab::FilterCheatSearchResults, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	btnNextScan->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CheatSearchTab::FilterCheatSearchResults, this);
 	btnNextScan->Disable();
 
 	// data size radio buttons
@@ -185,7 +183,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 	// create AR code button
 	wxButton* const button_cheat_search_copy_address = new wxButton(this, -1, _("Create AR Code"));
-	_connect_macro_(button_cheat_search_copy_address, CheatSearchTab::CreateARCode, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	button_cheat_search_copy_address->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CheatSearchTab::CreateARCode, this);
 
 	// results groupbox
 	wxStaticBoxSizer* const sizer_cheat_search_results = new wxStaticBoxSizer(wxVERTICAL, this, _("Results"));
@@ -200,7 +198,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 
 	// search value textbox
 	textctrl_value_x = new wxTextCtrl(this, -1, wxT("0x0"), wxDefaultPosition, wxSize(96,-1));
-	_connect_macro_(textctrl_value_x, CheatSearchTab::ApplyFocus, wxEVT_SET_FOCUS, this);
+	textctrl_value_x->Bind(wxEVT_SET_FOCUS, &CheatSearchTab::ApplyFocus, this);
 
 	wxBoxSizer* const sizer_cheat_filter_text = new wxBoxSizer(wxHORIZONTAL);
 	sizer_cheat_filter_text->Add(value_x_radiobtn.rad_uservalue, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
@@ -495,7 +493,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	UpdateCheatSearchResultsList();
 }
 
-void CheatSearchTab::ApplyFocus(wxCommandEvent& ev)
+void CheatSearchTab::ApplyFocus(wxEvent& ev)
 {
 	ev.Skip(true);
 	value_x_radiobtn.rad_uservalue->SetValue(true);
@@ -590,9 +588,9 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	sizer_main->Add(textctrl_value, 0, wxALL, 5);
 	sizer_main->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxALL, 5); 
 
-	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CreateCodeDialog::PressOK));
-	Connect(wxID_CANCEL, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CreateCodeDialog::PressCancel));
-	Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, wxCloseEventHandler(CreateCodeDialog::OnEvent_Close), (wxObject*)0, this);
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CreateCodeDialog::PressOK, this, wxID_OK);
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CreateCodeDialog::PressCancel, this, wxID_CANCEL);
+	Bind(wxEVT_CLOSE_WINDOW, &CreateCodeDialog::OnEvent_Close, this);
 
 	SetSizerAndFit(sizer_main);
 	SetFocus();

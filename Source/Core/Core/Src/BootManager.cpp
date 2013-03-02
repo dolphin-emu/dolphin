@@ -54,9 +54,9 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bMMUBAT,
-		bVBeam, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bDisableWiimoteSpeaker;
-	int iTLBHack;
+	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF,
+		bVBeam, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2;
+	int iTLBHack, iCPUCore;
 	std::string strBackend;
 };
 static ConfigCache config_cache;
@@ -89,30 +89,32 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.valid = true;
 		config_cache.bCPUThread = StartUp.bCPUThread;
 		config_cache.bSkipIdle = StartUp.bSkipIdle;
+		config_cache.iCPUCore = StartUp.iCPUCore;
 		config_cache.bEnableFPRF = StartUp.bEnableFPRF;
 		config_cache.bMMU = StartUp.bMMU;
-		config_cache.bMMUBAT = StartUp.bMMUBAT;
+		config_cache.bDCBZOFF = StartUp.bDCBZOFF;
 		config_cache.iTLBHack = StartUp.iTLBHack;
 		config_cache.bVBeam = StartUp.bVBeam;
 		config_cache.bFastDiscSpeed = StartUp.bFastDiscSpeed;
 		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
 		config_cache.bDSPHLE = StartUp.bDSPHLE;
-		config_cache.bDisableWiimoteSpeaker = StartUp.bDisableWiimoteSpeaker;
 		config_cache.strBackend = StartUp.m_strVideoBackend;
+		config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
 
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
 		game_ini.Get("Core", "SkipIdle",			&StartUp.bSkipIdle, StartUp.bSkipIdle);
 		game_ini.Get("Core", "EnableFPRF",			&StartUp.bEnableFPRF, StartUp.bEnableFPRF);
 		game_ini.Get("Core", "MMU",					&StartUp.bMMU, StartUp.bMMU);
-		game_ini.Get("Core", "BAT",					&StartUp.bMMUBAT, StartUp.bMMUBAT);
 		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
+		game_ini.Get("Core", "DCBZ",				&StartUp.bDCBZOFF, StartUp.bDCBZOFF);
 		game_ini.Get("Core", "VBeam",				&StartUp.bVBeam, StartUp.bVBeam);
 		game_ini.Get("Core", "FastDiscSpeed",		&StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
 		game_ini.Get("Core", "BlockMerging",		&StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		game_ini.Get("Core", "DSPHLE",				&StartUp.bDSPHLE, StartUp.bDSPHLE);
-		game_ini.Get("Wii", "DisableWiimoteSpeaker",&StartUp.bDisableWiimoteSpeaker, StartUp.bDisableWiimoteSpeaker);
 		game_ini.Get("Core", "GFXBackend", &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend.c_str());
+		game_ini.Get("Core", "CPUCore",				&StartUp.iCPUCore, StartUp.iCPUCore);
+		game_ini.Get("Core", "HLE_BS2",				&StartUp.bHLE_BS2, StartUp.bHLE_BS2);
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 
 		if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
@@ -122,6 +124,7 @@ bool BootCore(const std::string& _rFilename)
 			StartUp.bDSPHLE = Movie::IsDSPHLE();
 			StartUp.bProgressive = Movie::IsProgressive();
 			StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
+			StartUp.iCPUCore = Movie::GetCPUMode();
 			if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
 			{
 				if (File::Exists("Movie.raw"))
@@ -159,17 +162,18 @@ void Stop()
 		config_cache.valid = false;
 		StartUp.bCPUThread = config_cache.bCPUThread;
 		StartUp.bSkipIdle = config_cache.bSkipIdle;
+		StartUp.iCPUCore = config_cache.iCPUCore;
 		StartUp.bEnableFPRF = config_cache.bEnableFPRF;
 		StartUp.bMMU = config_cache.bMMU;
-		StartUp.bMMUBAT = config_cache.bMMUBAT;
+		StartUp.bDCBZOFF = config_cache.bDCBZOFF;
 		StartUp.iTLBHack = config_cache.iTLBHack;
 		StartUp.bVBeam = config_cache.bVBeam;
 		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
 		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
-		StartUp.bDisableWiimoteSpeaker = config_cache.bDisableWiimoteSpeaker;
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
+		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
 	}
 }
 

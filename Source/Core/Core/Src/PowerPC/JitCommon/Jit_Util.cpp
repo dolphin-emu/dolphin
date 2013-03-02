@@ -25,7 +25,7 @@
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "JitBase.h"
 #include "Jit_Util.h"
 
@@ -96,7 +96,11 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 		MOVZX(32, accessSize, EAX, MDisp(EAX, (u32)Memory::base + offset));
 	}
 #endif
-	
+
+	// Add a 2 bytes NOP to have some space for the backpatching
+	if (accessSize == 8)
+		NOP(2);
+
 	if (accessSize == 32)
 	{
 		BSWAP(32, EAX);
@@ -118,14 +122,13 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 
 void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend)
 {
-#if defined(_WIN32) && defined(_M_X64)
+#if defined(_M_X64)
 #ifdef ENABLE_MEM_CHECK
-	if (accessSize == 32 && !Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
+	if (!Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
 #else
-	if (accessSize == 32 && !Core::g_CoreStartupParameter.bMMU)
+	if (!Core::g_CoreStartupParameter.bMMU)
 #endif
 	{
-		// BackPatch only supports 32-bits accesses
 		UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
 	}
 	else
@@ -269,23 +272,18 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 
 void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr)
 {
-	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
-	{
-		mem_mask |= Memory::ADDR_MASK_MEM1;
-	}
-
-#ifdef ENABLE_MEM_CHECK
-	if (Core::g_CoreStartupParameter.bEnableDebugging)
-	{
-		mem_mask |= Memory::EXRAM_MASK;
-	}
-#endif
-
-	TEST(32, R(reg_addr), Imm32(mem_mask));
 	if (false && cpu_info.bSSSE3) {
 		// This path should be faster but for some reason it causes errors so I've disabled it.
+		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+
+		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			mem_mask |= Memory::ADDR_MASK_MEM1;
+
+#ifdef ENABLE_MEM_CHECK
+		if (Core::g_CoreStartupParameter.bEnableDebugging)
+			mem_mask |= Memory::EXRAM_MASK;
+#endif
+		TEST(32, R(reg_addr), Imm32(mem_mask));
 		FixupBranch argh = J_CC(CC_Z);
 		MOVSS(M(&float_buffer), xmm_value);
 		MOV(32, R(EAX), M(&float_buffer));

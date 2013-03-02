@@ -178,12 +178,14 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	entry.pcfmt = pcfmt;
 
 	entry.bHaveMipMaps = tex_levels != 1;
+	
+	entry.Load(width, height, expanded_width, 0);
 
 	return &entry;
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-	unsigned int expanded_width, unsigned int level, bool autogen_mips)
+	unsigned int expanded_width, unsigned int level)
 {
 	//glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -194,16 +196,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	    if (expanded_width != width)
             glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
 
-		if (bHaveMipMaps && autogen_mips)
-		{
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-			glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-		}
-		else
-		{
-			glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
-		}
+		glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
 
 		if (expanded_width != width)
             glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
@@ -312,15 +305,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			srcRect);
 
 		u8* dst = Memory::GetPointer(addr);
-		u64 hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		u64 const new_hash = GetHash64(dst,encoded_size,g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
 		if (!g_ActiveConfig.bEFBCopyCacheEnable)
 			TextureCache::MakeRangeDynamic(addr,encoded_size);
-		else if (!TextureCache::Find(addr, hash))
+		else if (!TextureCache::Find(addr, new_hash))
 			TextureCache::MakeRangeDynamic(addr,encoded_size);
 
-		this->hash = hash;
+		hash = new_hash;
 	}
 
     FramebufferManager::SetFramebuffer(0);
@@ -358,17 +351,16 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 		GL_REPEAT,
 	};
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-					(newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
-
 	int filt = newmode.min_filter;
-	if (g_ActiveConfig.bForceFiltering && filt < 4)
+	if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
 		filt += 4; // take equivalent forced linear
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod / 16.f);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod / 16.f);
-	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, newmode.lod_bias / 32.0f);
+	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (s32)newmode.lod_bias / 32.0f);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
@@ -376,7 +368,7 @@ void TextureCache::TCacheEntry::SetTextureParameters(const TexMode0 &newmode, co
 	// TODO: Reset anisotrop when changed to 1
 	if (g_Config.iMaxAnisotropy >= 1)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-			(float)(1 << g_ActiveConfig.iMaxAnisotropy));
+						(float)(1 << g_ActiveConfig.iMaxAnisotropy));
 }
 
 TextureCache::~TextureCache()

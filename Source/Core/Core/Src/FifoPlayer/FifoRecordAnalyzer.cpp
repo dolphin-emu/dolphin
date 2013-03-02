@@ -151,7 +151,7 @@ void FifoRecordAnalyzer::ProcessLoadTlut1()
 void FifoRecordAnalyzer::ProcessPreloadTexture()
 {
 	BPS_TmemConfig& tmem_cfg = m_BpMem->tmem_config;
-	u32 tmem_addr = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
+	//u32 tmem_addr = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
 	u32 size = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE; // TODO: Should this be half size for RGBA8 preloads?
 
 	FifoRecorder::GetInstance().WriteMemory(tmem_cfg.preload_addr << 5, size, MemoryUpdate::TMEM);

@@ -307,6 +307,7 @@ public:
 
 			ControlState deadzone = settings[0]->value;
 			ControlState circle = settings[1]->value;
+			auto const angle = settings[2]->value / 1.8f;
 			ControlState m = controls[4]->control_ref->State();
 
 			// modifier code
@@ -363,8 +364,8 @@ public:
 					m_tilt[1] = std::max(m_tilt[1] - 0.1f, yy);
 			}
 
-			*y = C(m_tilt[1] * range + base);
-			*x = C(m_tilt[0] * range + base);
+			*y = C(m_tilt[1] * angle * range + base);
+			*x = C(m_tilt[0] * angle * range + base);
 		}
 	private:
 		float	m_tilt[2];

@@ -26,6 +26,7 @@
 #include "IniFile.h"
 #include "ConfigManager.h"
 #include "CPUDetect.h"
+#include "Core.h"
 
 #include "DSPLLEGlobals.h" // Local
 #include "DSP/DSPInterpreter.h"
@@ -56,6 +57,14 @@ Common::Event ppcEvent;
 
 void DSPLLE::DoState(PointerWrap &p)
 {
+	bool isHLE = false;
+	p.Do(isHLE);
+	if (isHLE != false && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.", 3000);
+		p.SetMode(PointerWrap::MODE_VERIFY);
+		return;
+	}
 	p.Do(g_dsp.r);
 	p.Do(g_dsp.pc);
 #if PROFILE
@@ -103,27 +112,6 @@ void DSPLLE::DoState(PointerWrap &p)
 void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 {
 	Common::SetCurrentThreadName("DSP thread");
-
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads)
-	{
-		if (cpu_info.num_cores > 3)
-		{
-			// HACK (delroth): there is no way to know where hyperthreads are in
-			// the current Dolphin version.
-			bool windows = false;
-#ifdef _WIN32
-			windows = true;
-#endif
-
-			u8 core_id;
-			if (windows && cpu_info.num_cores > 4) // Probably HT
-				core_id = 5; // 3rd non HT core
-			else
-				core_id = 3; // 3rd core
-
-			Common::SetCurrentThreadAffinity(1 << (core_id - 1));
-		}
-	}
 
 	while (dsp_lle->m_bIsRunning)
 	{
@@ -204,7 +192,7 @@ void DSPLLE::InitMixer()
 	unsigned int AISampleRate, DACSampleRate;
 	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
 	delete soundStream;
-	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd); 
+	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, 48000), m_hWnd); 
 	if(!soundStream) PanicAlert("Error starting up sound stream");
 	// Mixer is initialized
 	m_InitMixer = true;

@@ -208,7 +208,6 @@ void VertexManager::Draw(UINT stride)
 	if (IndexGenerator::GetNumLines() > 0 || IndexGenerator::GetNumPoints() > 0)
 		((DX11::Renderer*)g_renderer)->RestoreCull();
 }
-
 void VertexManager::vFlush()
 {
 	if (LocalVBuffer == s_pCurBufferPointer) return;
@@ -237,8 +236,8 @@ void VertexManager::vFlush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8),
-				tex.texMode1[i&3].max_lod >> 4,
+				(tex.texMode0[i&3].min_filter & 3),
+				(tex.texMode1[i&3].max_lod + 0xf) / 0x10,
 				tex.texImage1[i&3].image_type);
 
 			if (tentry)
@@ -274,8 +273,10 @@ void VertexManager::vFlush()
 	unsigned int stride = g_nativeVertexFmt->GetVertexStride();
 	g_nativeVertexFmt->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);
-	
+
+	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw(stride);
+	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 

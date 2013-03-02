@@ -21,13 +21,6 @@
 #include <cmath>
 #include <numeric>
 
-namespace {
-
-static u32 saved_sse_state = _mm_getcsr();
-static const u32 default_sse_state = _mm_getcsr();
-
-}
-
 namespace MathUtil
 {
 
@@ -113,23 +106,6 @@ u32 ClassifyFloat(float fvalue)
 
 
 }  // namespace
-
-void LoadDefaultSSEState()
-{
-	_mm_setcsr(default_sse_state);
-}
-
-
-void LoadSSEState()
-{
-	_mm_setcsr(saved_sse_state);
-}
-
-
-void SaveSSEState()
-{
-	saved_sse_state = _mm_getcsr();
-}
 
 inline void MatrixMul(int n, const float *a, const float *b, float *result)
 {    

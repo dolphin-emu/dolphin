@@ -3,7 +3,6 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/BPStructs.cpp
 			Src/CPMemory.cpp
 			Src/CommandProcessor.cpp
-			Src/DLCache.cpp
 			Src/Debugger.cpp
 			Src/Fifo.cpp
 			Src/FPSCounter.cpp
@@ -17,6 +16,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/OpcodeDecoding.cpp
 			Src/OpenCL.cpp
 			Src/OpenCL/OCLTextureDecoder.cpp
+			Src/PerfQueryBase.cpp
 			Src/PixelEngine.cpp
 			Src/PixelShaderGen.cpp
 			Src/PixelShaderManager.cpp
@@ -24,7 +24,6 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/Statistics.cpp
 			Src/TextureCacheBase.cpp
 			Src/TextureConversionShader.cpp
-			Src/TextureDecoder.cpp
 			Src/VertexLoader.cpp
 			Src/VertexLoaderManager.cpp
 			Src/VertexLoader_Color.cpp
@@ -41,6 +40,14 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/memcpy_amd.cpp)
 
 set(LIBS core)
+
+if(NOT _M_GENERIC)
+	set(SRCS ${SRCS}	Src/x64TextureDecoder.cpp
+						Src/x64DLCache.cpp)
+else()
+	set(SRCS ${SRCS}	Src/GenericTextureDecoder.cpp
+						Src/GenericDLCache.cpp)
+endif()
 if(NOT ${CL} STREQUAL CL-NOTFOUND)
 	list(APPEND LIBS ${CL})
 endif()

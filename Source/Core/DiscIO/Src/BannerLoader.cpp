@@ -27,7 +27,9 @@
 #include <Windows.h>
 #else
 #include <sys/param.h>
+#ifndef ANDROID
 #include <iconv.h>
+#endif
 #include <errno.h>
 #endif
 
@@ -132,6 +134,9 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 		}
 	}
 #else
+#ifdef ANDROID
+	return false;
+#else
 	if (_src)
 	{
 		iconv_t conv_desc = iconv_open("UTF-8", "CP932");
@@ -193,6 +198,7 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 		delete[] src_buffer_start;
 		iconv_close(conv_desc);
 	}
+#endif
 #endif
 	return returnCode;
 }

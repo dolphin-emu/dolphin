@@ -39,6 +39,9 @@
 #include "FileUtil.h"
 #include "VideoBackend.h"
 #include "Core.h"
+#include "OpcodeDecoder.h"
+#include "SWVertexLoader.h"
+#include "SWStatistics.h"
 
 #define VSYNC_ENABLED 0
 
@@ -70,7 +73,7 @@ void VideoSoftware::ShowConfig(void *_hParent)
 
 bool VideoSoftware::Initialize(void *&window_handle)
 {
-    g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
+	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
 	InitInterface();
 
 	if (!GLInterface->Create(window_handle))
@@ -79,25 +82,47 @@ bool VideoSoftware::Initialize(void *&window_handle)
 		return false;
 	}
 
-    InitBPMemory();
-    InitXFMemory();
-    SWCommandProcessor::Init();
-    SWPixelEngine::Init();
-    OpcodeDecoder::Init();
-    Clipper::Init();
-    Rasterizer::Init();
-	if (g_SWVideoConfig.bHwRasterizer)
-		HwRasterizer::Init();
-	else
-		SWRenderer::Init();
-    DebugUtil::Init();
+	InitBPMemory();
+	InitXFMemory();
+	SWCommandProcessor::Init();
+	SWPixelEngine::Init();
+	OpcodeDecoder::Init();
+	Clipper::Init();
+	Rasterizer::Init();
+	HwRasterizer::Init();
+	SWRenderer::Init();
+	DebugUtil::Init();
 
 	return true;
 }
 
-void VideoSoftware::DoState(PointerWrap&)
+void VideoSoftware::DoState(PointerWrap& p)
 {
-	// NYI
+	bool software = true;
+	p.Do(software);
+	if (p.GetMode() == PointerWrap::MODE_READ && software == false)
+		// change mode to abort load of incompatible save state.
+		p.SetMode(PointerWrap::MODE_VERIFY);
+
+	// TODO: incomplete?
+	SWCommandProcessor::DoState(p);
+	SWPixelEngine::DoState(p);
+	EfbInterface::DoState(p);
+	OpcodeDecoder::DoState(p);
+	Clipper::DoState(p);
+	p.Do(swxfregs);
+    p.Do(bpmem);
+	p.Do(swstats);
+
+	// CP Memory
+    p.DoArray(arraybases, 16);
+    p.DoArray(arraystrides, 16);
+    p.Do(MatrixIndexA);
+    p.Do(MatrixIndexB);
+    p.Do(g_VtxDesc.Hex);
+	p.DoArray(g_VtxAttr, 8);
+	p.DoMarker("CP Memory");
+
 }
 
 void VideoSoftware::CheckInvalidState()
@@ -134,10 +159,8 @@ void VideoSoftware::EmuStateChange(EMUSTATE_CHANGE newState)
 
 void VideoSoftware::Shutdown()
 {
-	if (g_SWVideoConfig.bHwRasterizer)
-		HwRasterizer::Shutdown();
-	else
-		SWRenderer::Shutdown();
+	HwRasterizer::Shutdown();
+	SWRenderer::Shutdown();
 	GLInterface->Shutdown();
 }
 
@@ -145,35 +168,21 @@ void VideoSoftware::Shutdown()
 void VideoSoftware::Video_Prepare()
 {
 	GLInterface->MakeCurrent();
-    // Init extension support.
-	{
+	// Init extension support.
+	// Required for WGL SwapInterval
 #ifndef USE_GLES
 	if (glewInit() != GLEW_OK) {
-        ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
-        return;
-    }
-
-    // Handle VSync on/off
-#ifdef _WIN32
-	if (WGLEW_EXT_swap_control)
-		wglSwapIntervalEXT(VSYNC_ENABLED);
-	else
-		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)Does your video card support OpenGL 2.x?");
-#elif defined(HAVE_X11) && HAVE_X11
-	if (glXSwapIntervalSGI)
-		glXSwapIntervalSGI(VSYNC_ENABLED);
-	else
-		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)");
-#endif 
-#endif
+		ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
+		return;
 	}
+#endif
+	// Handle VSync on/off
+	GLInterface->SwapInterval(VSYNC_ENABLED);
 
-	if (g_SWVideoConfig.bHwRasterizer)
-	    HwRasterizer::Prepare();
-	else
-		SWRenderer::Prepare();
+	HwRasterizer::Prepare();
+	SWRenderer::Prepare();
 
-    INFO_LOG(VIDEO, "Video backend initialized.");
+	INFO_LOG(VIDEO, "Video backend initialized.");
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -214,6 +223,12 @@ u32 VideoSoftware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputDa
     }
 
     return value;
+}
+
+u32 VideoSoftware::Video_GetQueryResult(PerfQueryType type)
+{
+	// TODO:
+	return 0;
 }
 
 bool VideoSoftware::Video_Screenshot(const char *_szFilename)

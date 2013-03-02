@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "ABI.h"
+#include "x64ABI.h"
 #include "x64Emitter.h"
 
 #include "../../HW/Memmap.h"
@@ -25,7 +25,7 @@
 #include "MemoryUtil.h"
 #include "CPUDetect.h"
 
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 
 #include "../../HW/GPFifo.h"
@@ -71,7 +71,7 @@ void JitILAsmRoutineManager::Generate()
 #endif
 //	INT3();
 
-	const u8 *outerLoop = GetCodePtr();
+	const u8 *outer_loop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
 	
@@ -211,16 +211,16 @@ void JitILAsmRoutineManager::Generate()
 		doTiming = GetCodePtr();
 
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
-
+		
 		testExceptions = GetCodePtr();
 		MOV(32, R(EAX), M(&PC));
 		MOV(32, M(&NPC), R(EAX));
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 		MOV(32, R(EAX), M(&NPC));
 		MOV(32, M(&PC), R(EAX));
-
+		
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-		J_CC(CC_Z, outerLoop, true);
+		J_CC(CC_Z, outer_loop, true);
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();

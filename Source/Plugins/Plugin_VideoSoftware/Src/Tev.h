@@ -19,6 +19,7 @@
 #define _TEV_H_
 
 #include "BPMemLoader.h"
+#include "ChunkFile.h"
 
 class Tev
 { 
@@ -96,6 +97,8 @@ public:
     void SetRegColor(int reg, int comp, bool konst, s16 color);
 
 	enum { ALP_C, BLU_C, GRN_C, RED_C };
+
+	void DoState(PointerWrap &p);
 };
 
 #endif

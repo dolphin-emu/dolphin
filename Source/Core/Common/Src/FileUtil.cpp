@@ -42,6 +42,7 @@
 #endif
 
 #include <fstream>
+#include <algorithm>
 #include <sys/stat.h>
 
 #ifndef S_ISDIR
@@ -196,8 +197,9 @@ bool CreateFullPath(const std::string &fullPath)
 		// we're done, yay!
 		if (position == fullPath.npos)
 			return true;
-			
-		std::string subPath = fullPath.substr(0, position);
+		
+		// Include the '/' so the first call is CreateDir("/") rather than CreateDir("")
+		std::string const subPath(fullPath.substr(0, position + 1));
 		if (!File::IsDirectory(subPath))
 			File::CreateDir(subPath);
 
@@ -512,12 +514,24 @@ bool DeleteDirRecursively(const std::string &directory)
 		if (IsDirectory(newPath))
 		{
 			if (!DeleteDirRecursively(newPath))
+			{
+				#ifndef _WIN32
+				closedir(dirp);
+				#endif
+				
 				return false;
+			}
 		}
 		else
 		{
 			if (!File::Delete(newPath))
+			{
+				#ifndef _WIN32
+				closedir(dirp);
+				#endif
+				
 				return false;
+			}
 		}
 
 #ifdef _WIN32
@@ -654,9 +668,10 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 		if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
 			paths[D_USER_IDX] = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
 		else
-			paths[D_USER_IDX] = std::string(getenv("HOME") ? getenv("HOME") : getenv("PWD")) + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+			paths[D_USER_IDX] = std::string(getenv("HOME") ? 
+				getenv("HOME") : getenv("PWD") ? 
+				getenv("PWD") : "") + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
 #endif
-		INFO_LOG(COMMON, "GetUserPath: Setting user directory to %s:", paths[D_USER_IDX].c_str());
 
 		paths[D_GCUSER_IDX]			= paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
 		paths[D_WIIROOT_IDX]		= paths[D_USER_IDX] + WII_USER_DIR;
@@ -678,9 +693,9 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 		paths[D_DUMPDSP_IDX]		= paths[D_USER_IDX] + DUMP_DSP_DIR DIR_SEP;
 		paths[D_LOGS_IDX]			= paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
 		paths[D_MAILLOGS_IDX]		= paths[D_USER_IDX] + MAIL_LOGS_DIR DIR_SEP;
+		paths[D_THEMES_IDX]			= paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
 		paths[D_WIISYSCONF_IDX]		= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
 		paths[F_DOLPHINCONFIG_IDX]	= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
-		paths[F_DSPCONFIG_IDX]		= paths[D_CONFIG_IDX] + DSP_CONFIG;
 		paths[F_DEBUGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
 		paths[F_LOGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + LOGGER_CONFIG;
 		paths[F_MAINLOG_IDX]		= paths[D_LOGS_IDX] + MAIN_LOG;
@@ -759,6 +774,24 @@ IOFile::IOFile(const std::string& filename, const char openmode[])
 IOFile::~IOFile()
 {
 	Close();
+}
+
+IOFile::IOFile(IOFile&& other)
+	: m_file(NULL), m_good(true)
+{
+	Swap(other);
+}
+
+IOFile& IOFile::operator=(IOFile&& other)
+{
+	IOFile((IOFile&&)other).Swap(*this);
+	return *this;
+}
+
+void IOFile::Swap(IOFile& other)
+{
+	std::swap(m_file, other.m_file);
+	std::swap(m_good, other.m_good);
 }
 
 bool IOFile::Open(const std::string& filename, const char openmode[])

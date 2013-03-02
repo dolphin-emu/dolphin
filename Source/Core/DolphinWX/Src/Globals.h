@@ -26,8 +26,6 @@
 
 enum
 {
-	Toolbar_DebugGo,
-	Toolbar_DebugPause,
 	Toolbar_Step,
 	Toolbar_StepOver,
 	Toolbar_Skip,

@@ -15,16 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <sys/time.h>
-#include <errno.h>
-
-#include <sys/types.h>
-#include <stdlib.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
@@ -32,113 +22,116 @@
 
 #include "Common.h"
 #include "WiimoteReal.h"
-#include "Host.h"
-
-// Identify the wiimote device by its class
-#define WM_DEV_CLASS_0				0x04
-#define WM_DEV_CLASS_1				0x25
-#define WM_DEV_CLASS_2				0x00
 
 namespace WiimoteReal
 {
 
-// Find wiimotes.
-// Does not replace already found wiimotes even if they are disconnected.
-// wm is an array of max_wiimotes wiimotes
-// Returns the total number of found wiimotes.
-int FindWiimotes(Wiimote** wm, int max_wiimotes)
+WiimoteScanner::WiimoteScanner()
+	: m_run_thread()
+	, m_want_wiimotes()
+	, device_id(-1)
+	, device_sock(-1)
 {
-	int device_id;
-	int device_sock;
-	int found_devices;
-	int found_wiimotes = 0;
-	int i;
-
-	// Count the number of already found wiimotes
-	for (i = 0; i < MAX_WIIMOTES; ++i)
-	{
-		if (wm[i])
-			found_wiimotes++;
-	}
-
 	// Get the id of the first bluetooth device.
-	if ((device_id = hci_get_route(NULL)) < 0)
+	device_id = hci_get_route(NULL);
+	if (device_id < 0)
 	{
 		NOTICE_LOG(WIIMOTE, "Bluetooth not found.");
-		return found_wiimotes;
+		return;
 	}
 
 	// Create a socket to the device
-	if ((device_sock = hci_open_dev(device_id)) < 0)
+	device_sock = hci_open_dev(device_id);
+	if (device_sock < 0)
 	{
 		ERROR_LOG(WIIMOTE, "Unable to open bluetooth.");
+		return;
+	}
+}
+
+bool WiimoteScanner::IsReady() const
+{
+	return device_sock > 0;
+}
+
+WiimoteScanner::~WiimoteScanner()
+{
+	if (IsReady())
+		close(device_sock);
+}
+
+void WiimoteScanner::Update()
+{}
+
+std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
+{
+	std::vector<Wiimote*> found_wiimotes;
+
+	// supposedly 1.28 seconds
+	int const wait_len = 1;
+
+	int const max_infos = 255;
+	inquiry_info scan_infos[max_infos] = {};
+	auto* scan_infos_ptr = scan_infos;
+
+	// Scan for bluetooth devices
+	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, NULL, &scan_infos_ptr, IREQ_CACHE_FLUSH);
+	if (found_devices < 0)
+	{
+		ERROR_LOG(WIIMOTE, "Error searching for bluetooth devices.");
 		return found_wiimotes;
 	}
 
-	int try_num = 0;
-	while ((try_num < 5) && (found_wiimotes < max_wiimotes))
-	{
-		inquiry_info scan_info_arr[128];
-		inquiry_info* scan_info = scan_info_arr;
-		memset(&scan_info_arr, 0, sizeof(scan_info_arr));
+	DEBUG_LOG(WIIMOTE, "Found %i bluetooth device(s).", found_devices);
 
-		// Scan for bluetooth devices for approximately one second
-		found_devices = hci_inquiry(device_id, 1, 128, NULL, &scan_info, IREQ_CACHE_FLUSH);
-		if (found_devices < 0)
+	// Display discovered devices
+	for (int i = 0; i < found_devices; ++i)
+	{
+		ERROR_LOG(WIIMOTE, "found a device...");
+		
+		// BT names are a maximum of 248 bytes apparently
+		char name[255] = {};
+		if (hci_read_remote_name(device_sock, &scan_infos[i].bdaddr, sizeof(name), name, 0) < 0)
 		{
-			ERROR_LOG(WIIMOTE, "Error searching for bluetooth devices.");
-			return found_wiimotes;
+			ERROR_LOG(WIIMOTE, "name request failed");
+			continue;
 		}
 
-		DEBUG_LOG(WIIMOTE, "Found %i bluetooth device(s).", found_devices);
-
-		// Display discovered devices
-		for (i = 0; (i < found_devices) && (found_wiimotes < max_wiimotes); ++i)
+		ERROR_LOG(WIIMOTE, "device name %s", name);
+		if (IsValidBluetoothName(name))
 		{
-			if ((scan_info[i].dev_class[0] == WM_DEV_CLASS_0) &&
-					(scan_info[i].dev_class[1] == WM_DEV_CLASS_1) &&
-					(scan_info[i].dev_class[2] == WM_DEV_CLASS_2))
+			bool new_wiimote = true;
+
+			// TODO: do this
+
+			// Determine if this wiimote has already been found.
+			//for (int j = 0; j < MAX_WIIMOTES && new_wiimote; ++j)
+			//{
+			//	if (wm[j] && bacmp(&scan_infos[i].bdaddr,&wm[j]->bdaddr) == 0)
+			//		new_wiimote = false;
+			//}
+
+			if (new_wiimote)
 			{
-				bool new_wiimote = true;
-				// Determine if this wiimote has already been found.
-				for (int j = 0; j < MAX_WIIMOTES && new_wiimote; ++j)
-				{
-					if (wm[j] && bacmp(&scan_info[i].bdaddr,&wm[j]->bdaddr) == 0)
-						new_wiimote = false;
-				}
+				// Found a new device
+				char bdaddr_str[18] = {};
+				ba2str(&scan_infos[i].bdaddr, bdaddr_str);
 
-				if (new_wiimote)
-				{
-					// Find an unused slot
-					unsigned int k = 0;
-					for (; k < MAX_WIIMOTES && !(WIIMOTE_SRC_REAL & g_wiimote_sources[k] && !wm[k]); ++k);
-					wm[k] = new Wiimote(k);
-
-					// Found a new device
-					char bdaddr_str[18];
-					ba2str(&scan_info[i].bdaddr, bdaddr_str);
-
-					NOTICE_LOG(WIIMOTE, "Found wiimote %i, (%s).",
-							wm[k]->index + 1, bdaddr_str);
-
-					wm[k]->bdaddr = scan_info[i].bdaddr;
-					++found_wiimotes;
-				}
+				auto* const wm = new Wiimote;
+				wm->bdaddr = scan_infos[i].bdaddr;
+				found_wiimotes.push_back(wm);
+				
+				NOTICE_LOG(WIIMOTE, "Found wiimote (%s).", bdaddr_str);
 			}
 		}
-		try_num++;
 	}
 
-	close(device_sock);
 	return found_wiimotes;
 }
 
 // Connect to a wiimote with a known address.
 bool Wiimote::Connect()
 {
-	if (IsConnected())
-		return false;
-
 	sockaddr_l2 addr;
 	addr.l2_family = AF_BLUETOOTH;
 	addr.l2_bdaddr = bdaddr;
@@ -146,78 +139,48 @@ bool Wiimote::Connect()
 
 	// Output channel
 	addr.l2_psm = htobs(WM_OUTPUT_CHANNEL);
-	if ((out_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
-			connect(out_sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+	if ((cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
+			connect(cmd_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
 	{
 		DEBUG_LOG(WIIMOTE, "Unable to open output socket to wiimote.");
-		close(out_sock);
-		out_sock = -1;
+		close(cmd_sock);
+		cmd_sock = -1;
 		return false;
 	}
 
 	// Input channel
 	addr.l2_psm = htobs(WM_INPUT_CHANNEL);
-	if ((in_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
-			connect(in_sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+	if ((int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)) == -1 ||
+			connect(int_sock, (sockaddr*)&addr, sizeof(addr)) < 0)
 	{
 		DEBUG_LOG(WIIMOTE, "Unable to open input socket from wiimote.");
-		close(in_sock);
-		close(out_sock);
-		in_sock = out_sock = -1;
+		close(int_sock);
+		close(cmd_sock);
+		int_sock = cmd_sock = -1;
 		return false;
 	}
-
-	NOTICE_LOG(WIIMOTE, "Connected to wiimote %i.", index + 1);
-
-	m_connected = true;
-
-	// Do the handshake
-	Handshake();
-
-	// Set LEDs
-	SetLEDs(WIIMOTE_LED_1 << index);
-
-	m_wiimote_thread = std::thread(std::mem_fun(&Wiimote::ThreadFunc), this);
 
 	return true;
 }
 
-// Disconnect a wiimote.
-void Wiimote::RealDisconnect()
+void Wiimote::Disconnect()
 {
-	if (!IsConnected())
-		return;
+	close(cmd_sock);
+	close(int_sock);
 
-	NOTICE_LOG(WIIMOTE, "Disconnecting wiimote %i.", index + 1);
-
-	m_connected = false;
-
-	if (m_wiimote_thread.joinable())
-		m_wiimote_thread.join();
-
-	Close();
+	cmd_sock = -1;
+	int_sock = -1;
 }
 
-void Wiimote::Close()
+bool Wiimote::IsConnected() const
 {
-	if (IsOpen())
-	{
-		Host_ConnectWiimote(index, false);
-
-		close(out_sock);
-		close(in_sock);
-
-		out_sock = -1;
-		in_sock = -1;
-	}
+	return cmd_sock != -1;// && int_sock != -1;
 }
 
-bool Wiimote::IsOpen() const
-{
-	return out_sock != -1 && in_sock != -1;
-}
-
-int Wiimote::IORead(unsigned char *buf)
+// positive = read packet
+// negative = didn't read packet
+// zero = error
+int Wiimote::IORead(u8* buf)
 {
 	// Block select for 1/2000th of a second
 	timeval tv;
@@ -226,19 +189,19 @@ int Wiimote::IORead(unsigned char *buf)
 
 	fd_set fds;
 	FD_ZERO(&fds);
-	FD_SET(in_sock, &fds);
+	FD_SET(int_sock, &fds);
 
-	if (select(in_sock + 1, &fds, NULL, NULL, &tv) == -1)
+	if (select(int_sock + 1, &fds, NULL, NULL, &tv) == -1)
 	{
 		ERROR_LOG(WIIMOTE, "Unable to select wiimote %i input socket.", index + 1);
-		return 0;
+		return -1;
 	}
 
-	if (!FD_ISSET(in_sock, &fds))
-		return 0;
+	if (!FD_ISSET(int_sock, &fds))
+		return -1;
 
 	// Read the pending message into the buffer
-	int r = read(in_sock, buf, MAX_PAYLOAD);
+	int r = read(int_sock, buf, MAX_PAYLOAD);
 	if (r == -1)
 	{
 		// Error reading data
@@ -249,23 +212,17 @@ int Wiimote::IORead(unsigned char *buf)
 			// This can happen if the bluetooth dongle is disconnected
 			ERROR_LOG(WIIMOTE, "Bluetooth appears to be disconnected.  "
 					"Wiimote %i will be disconnected.", index + 1);
-			Close();
 		}
 
-		return 0;
-	}
-	else if (!r)
-	{
-		// Disconnect
-		Close();
+		r = 0;
 	}
 
 	return r;
 }
 
-int Wiimote::IOWrite(unsigned char* buf, int len)
+int Wiimote::IOWrite(u8 const* buf, int len)
 {
-	return write(out_sock, buf, len);
+	return write(int_sock, buf, len);
 }
 
 }; // WiimoteReal
