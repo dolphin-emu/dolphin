@@ -1339,8 +1339,7 @@ void CISOProperties::ChangeBannerDetails(int lang)
 		else
 			shortName = wxString(OpenGameListItem->GetName(0).c_str(), SJISConv);
 
-		if ((comment = OpenGameListItem->GetDescription().c_str()).size() == 0)
-			comment = wxString(OpenGameListItem->GetDescription(0).c_str(), SJISConv);
+		comment = StrToWxStr(OpenGameListItem->GetDescription());
 		maker = wxString(OpenGameListItem->GetCompany().c_str(), SJISConv);
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
@@ -1352,8 +1351,7 @@ void CISOProperties::ChangeBannerDetails(int lang)
 			shortName = wname.c_str();
 		else
 			shortName = wxString(OpenGameListItem->GetName(lang).c_str(), WindowsCP1252);
-		if ((comment = OpenGameListItem->GetDescription().c_str()).size() == 0)
-			comment = wxString(OpenGameListItem->GetDescription(lang).c_str(), WindowsCP1252);
+		comment = StrToWxStr(OpenGameListItem->GetDescription(lang));
 		maker = wxString(OpenGameListItem->GetCompany().c_str(), WindowsCP1252);
 		}
 		break;

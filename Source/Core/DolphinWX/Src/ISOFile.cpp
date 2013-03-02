@@ -37,7 +37,7 @@
 #include "ChunkFile.h"
 #include "ConfigManager.h"
 
-#define CACHE_REVISION 0x10F
+#define CACHE_REVISION 0x110
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -109,7 +109,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 						pBannerLoader->GetName(m_wNames);
 						pBannerLoader->GetName(m_Name);						
 						pBannerLoader->GetCompany(m_Company);
-						pBannerLoader->GetDescription(m_wDescription);
 						pBannerLoader->GetDescription(m_Description);
 						
 						if (pBannerLoader->GetBanner(g_ImageTemp))
@@ -235,7 +234,6 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_Company);
 	p.Do(m_Description[0]);	p.Do(m_Description[1]);	p.Do(m_Description[2]);
 	p.Do(m_Description[3]);	p.Do(m_Description[4]);	p.Do(m_Description[5]);
-	p.Do(m_wDescription);
 	p.Do(m_UniqueID);
 	p.Do(m_FileSize);
 	p.Do(m_VolumeSize);
@@ -271,11 +269,6 @@ const std::string& GameListItem::GetDescription(int index) const
 		return m_Description[index];
 	} 
 	return m_Description[0];
-}
-
-const std::wstring& GameListItem::GetDescription() const
-{
-	return m_wDescription;
 }
 
 const std::string& GameListItem::GetName(int index) const

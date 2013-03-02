@@ -43,8 +43,6 @@ class CBannerLoaderWii
 
 		virtual bool GetDescription(std::string* _rDescription);
 
-		bool GetDescription(std::wstring& _rDescription);
-
 	private:
 		
 		enum
@@ -82,6 +80,8 @@ class CBannerLoaderWii
 
 		bool GetStringFromComments(const CommentIndex index, std::string& s);
 		bool GetStringFromComments(const CommentIndex index, std::wstring& s);
+
+		bool CopyBeUnicodeToString(std::string& _rDestination, const u16* _src, int length);
 };
 } // namespace
 

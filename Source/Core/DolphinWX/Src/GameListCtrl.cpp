@@ -456,16 +456,9 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 	
 	std::wstring wstring_name;
-	const std::wstring& wstring_description = rISOFile.GetDescription();
-	std::string company;
 
 	wxString name;
-	wxString description;
 
-	// We show the company string on Gamecube only
-	// On Wii we show the description instead as the company string is empty
-	if (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC)
-		company = rISOFile.GetCompany().c_str();
 	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	switch (rISOFile.GetCountry())
 	{
@@ -475,11 +468,10 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			rISOFile.GetName(wstring_name, -1);
 			name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
 			m_gameList.append(StringFromFormat("%s (J)\n", (const char *)name.c_str()));
-			description = wxString(company.size() ?	company.c_str() :
-								rISOFile.GetDescription(0).c_str(),	SJISConv);
 		}
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
+		// Is this sane?
 		SelectedLanguage = 0;
 	default:
 		{
@@ -490,19 +482,21 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			m_gameList.append(StringFromFormat("%s (%c)\n",
 						rISOFile.GetName(SelectedLanguage).c_str(),
 						(rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA) ? 'U' : 'E'));
-			description = wxString(company.size() ?	company.c_str() :
-					rISOFile.GetDescription(SelectedLanguage).c_str(), WindowsCP1252);
+			
 		}
 		break;
 	}
 
 	if (wstring_name.length())
 		name = wstring_name.c_str();
-	if (wstring_description.length())
-		description = wstring_description.c_str();
 		
 	SetItem(_Index, COLUMN_TITLE, name, -1);
-	SetItem(_Index, COLUMN_NOTES, description, -1);
+
+	// We show the company string on Gamecube only
+	// On Wii we show the description instead as the company string is empty
+	std::string const notes = (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC) ?
+		rISOFile.GetCompany() : rISOFile.GetDescription(SelectedLanguage);
+	SetItem(_Index, COLUMN_NOTES, StrToWxStr(notes), -1);
 
 	// Emulation state
 	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[rISOFile.GetEmuState()]);

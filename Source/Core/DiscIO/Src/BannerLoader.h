@@ -43,14 +43,11 @@ class IBannerLoader
 		virtual bool GetCompany(std::string& _rCompany) = 0;
 
 		virtual bool GetDescription(std::string* _rDescription) = 0;
-		virtual bool GetDescription(std::wstring& _rDescription) {return false;};
-
 
 	protected:
 
 		void CopyToStringAndCheck(std::string& _rDestination, const char* _src);
-		
-		bool CopyBeUnicodeToString(std::string& _rDestination, const u16* _src, int length);
+
 	private:
 		u16 swap16(u16 data)
 		{

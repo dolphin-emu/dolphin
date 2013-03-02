@@ -37,8 +37,7 @@ public:
 	const std::string& GetName(int index) const;
 	bool GetName(std::wstring& wName, int index=0) const;
 	const std::string& GetCompany() const {return m_Company;}
-	const std::string& GetDescription(int index) const;
-	const std::wstring& GetDescription() const;
+	const std::string& GetDescription(int index = 0) const;
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
@@ -69,7 +68,6 @@ private:
 	std::vector<std::wstring> m_wNames;
 	std::string m_Company;
 	std::string m_Description[6];
-	std::wstring m_wDescription;
 	std::string m_UniqueID;
 
 	std::string m_issues;
