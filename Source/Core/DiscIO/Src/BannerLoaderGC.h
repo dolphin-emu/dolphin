@@ -19,6 +19,7 @@
 #define _BANNER_LOADER_GC_H_
 
 #include "BannerLoader.h"
+#include "StringUtil.h"
 
 namespace DiscIO
 {
@@ -26,7 +27,7 @@ class CBannerLoaderGC
 	: public IBannerLoader
 {
 	public:
-		CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem);
+		CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume);
 		virtual ~CBannerLoaderGC();
 
 		virtual bool IsValid();
@@ -76,8 +77,12 @@ class CBannerLoaderGC
 		template <u32 N>
 		std::string GetDecodedString(const char (&data)[N])
 		{
-			// Can I always assume SHIFT-JIS?
-			return SHIFTJISToUTF8(std::string(data, strnlen(data, sizeof(data))));
+			auto const string_decoder = (DiscIO::IVolume::COUNTRY_JAPAN == m_country ||
+				DiscIO::IVolume::COUNTRY_TAIWAN == m_country) ?
+					SHIFTJISToUTF8 : CP1252ToUTF8;
+			
+			// strnlen to trim NULLs
+			return string_decoder(std::string(data, strnlen(data, sizeof(data))));
 		}
 
 		u8* m_pBannerFile;
@@ -86,6 +91,8 @@ class CBannerLoaderGC
 
 		void decode5A3image(u32* dst, u16* src, int width, int height);
 		BANNER_TYPE getBannerType();
+		
+		DiscIO::IVolume::ECountry const m_country;
 };
 
 } // namespace

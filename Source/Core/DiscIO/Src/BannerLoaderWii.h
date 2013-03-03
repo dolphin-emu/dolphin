@@ -75,9 +75,6 @@ class CBannerLoaderWii
 		void decode5A3image(u32* dst, u16* src, int width, int height);
 
 		bool GetStringFromComments(const CommentIndex index, std::string& s);
-		bool GetStringFromComments(const CommentIndex index, std::wstring& s);
-
-		bool CopyBeUnicodeToString(std::string& _rDestination, const u16* _src, int length);
 };
 } // namespace
 

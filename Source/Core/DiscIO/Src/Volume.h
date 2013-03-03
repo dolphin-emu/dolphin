@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "Common.h"
+#include "StringUtil.h"
 
 namespace DiscIO
 {
@@ -37,6 +38,7 @@ public:
 	virtual void GetTMD(u8*, u32 *_sz) const { *_sz=0; }
 	virtual std::string GetUniqueID() const = 0;
 	virtual std::string GetMakerID() const = 0;
+	// TODO: eliminate?
 	virtual std::string GetName() const;
 	virtual std::vector<std::string> GetNames() const = 0;
 	virtual u32 GetFSTSize() const = 0;

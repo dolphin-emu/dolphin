@@ -17,13 +17,19 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <algorithm>
 
 #include "Common.h"
 #include "CommonPaths.h"
 #include "StringUtil.h"
 
 #ifdef _WIN32
-#include <Windows.h>
+	#include <Windows.h>
+#elif defined(ANDROID)
+
+#else
+	#include <iconv.h>
+	#include <errno.h>
 #endif
 
 // faster than sscanf
@@ -418,18 +424,80 @@ std::string SHIFTJISToUTF8(const std::string& input)
 	return UTF16ToUTF8(CPToUTF16(932, input));
 }
 
+std::string CP1252ToUTF8(const std::string& input)
+{
+	return UTF16ToUTF8(CPToUTF16(1252, input));
+}
+
 #else
 
-std::string UTF16ToUTF8(const std::wstring& input)
+template <typename T>
+std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 {
-	// TODO: implement
-	return std::string();
+	std::string result;
+	
+#if defined(ANDROID)
+	result = "Not implemented on Android!";
+	
+#else
+	iconv_t const conv_desc = iconv_open("UTF-8", fromcode);
+	if ((iconv_t)-1 == conv_desc)
+	{
+		ERROR_LOG(COMMON, "Iconv initialization failure [%s]: %s", fromcode, strerror(errno));
+	}
+	else
+	{
+		size_t const in_bytes = sizeof(T) * input.size();
+		size_t const out_buffer_size = 4 * in_bytes;
+		
+		std::string out_buffer;
+		out_buffer.resize(out_buffer_size);
+
+		auto src_buffer = &input[0];
+		size_t src_bytes = in_bytes;
+		auto dst_buffer = &out_buffer[0];
+		size_t dst_bytes = out_buffer.size();
+
+		size_t const iconv_size = iconv(conv_desc, (char**)(&src_buffer), &src_bytes,
+			&dst_buffer, &dst_bytes);
+
+		if ((size_t)-1 == iconv_size)
+		{
+			ERROR_LOG(COMMON, "iconv failure [%s]: %s", fromcode, strerror(errno));
+		}
+		else
+		{
+			out_buffer.resize(out_buffer_size - dst_bytes);
+			out_buffer.swap(result);
+			
+			// TODO: why is this needed?
+			result.erase(std::remove(result.begin(), result.end(), 0x00), result.end());
+		}
+		
+		iconv_close(conv_desc);
+	}
+	
+#endif
+	return result;
+}
+
+std::string CP1252ToUTF8(const std::string& input)
+{
+	return CodeToUTF8("CP1252", input);
 }
 
 std::string SHIFTJISToUTF8(const std::string& input)
 {
-	// TODO: implement
-	return std::string();
+	//return CodeToUTF8("CP932", input);
+	return CodeToUTF8("SJIS", input);
+}
+
+std::string UTF16ToUTF8(const std::wstring& input)
+{
+	//return CodeToUTF8("UCS-2", input);
+	//return CodeToUTF8("UCS-2LE", input);
+	//return CodeToUTF8("UTF-16", input);
+	return CodeToUTF8("UTF-16LE", input);
 }
 
 #endif

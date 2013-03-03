@@ -23,9 +23,10 @@
 
 namespace DiscIO
 {
-CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem)
-	: m_pBannerFile(NULL),
-	m_IsValid(false)
+CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume)
+	: m_pBannerFile(NULL)
+	, m_IsValid(false)
+	, m_country(volume->GetCountry())
 {
 	// load the opening.bnr
 	size_t FileSize = (size_t) _rFileSystem.GetFileSize("opening.bnr");
@@ -104,7 +105,7 @@ std::vector<std::string> CBannerLoaderGC::GetNames()
 
 	auto const banner = reinterpret_cast<const DVDBanner*>(m_pBannerFile);
 
-	for (int i = 0; i != name_count; ++i)
+	for (u32 i = 0; i != name_count; ++i)
 	{
 		auto& comment = banner->comment[i];
 
@@ -167,7 +168,7 @@ std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 
 	auto banner = reinterpret_cast<const DVDBanner*>(m_pBannerFile);
 
-	for (int i = 0; i != desc_count; ++i)
+	for (u32 i = 0; i != desc_count; ++i)
 	{
 		auto& data = banner->comment[i].comment;
 		descriptions.push_back(GetDecodedString(data));

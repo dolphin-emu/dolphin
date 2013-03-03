@@ -31,9 +31,9 @@ IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVo
 	{
 		return new CBannerLoaderWii(pVolume);
 	}
-	if (_rFileSystem.IsValid()) 
+	if (_rFileSystem.IsValid())
 	{
-		return new CBannerLoaderGC(_rFileSystem);
+		return new CBannerLoaderGC(_rFileSystem, pVolume);
 	}
 
 	return NULL;

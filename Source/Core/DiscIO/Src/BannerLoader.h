@@ -44,12 +44,6 @@ class IBannerLoader
 		virtual std::vector<std::string> GetNames() = 0;
 		virtual std::string GetCompany() = 0;
 		virtual std::vector<std::string> GetDescriptions() = 0;
-
-	private:
-		u16 swap16(u16 data)
-		{
-			return  ((data & 0xff00) >> 8) | ((data & 0xff) << 8);
-		}
 };
 
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume);
