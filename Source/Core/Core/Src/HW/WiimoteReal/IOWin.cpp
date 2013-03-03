@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <ctime>
+#include <unordered_set>
 
 #include <windows.h>
 #include <dbt.h>
@@ -35,6 +36,7 @@
 #include <BluetoothAPIs.h>
 
 //#define AUTHENTICATE_WIIMOTES
+#define SHARE_WRITE_WIIMOTES
 
 typedef struct _HIDD_ATTRIBUTES
 {
@@ -82,6 +84,11 @@ HINSTANCE bthprops_lib = NULL;
 static int initialized = 0;
 
 std::unordered_map<BTH_ADDR, std::time_t> g_connect_times;
+
+#ifdef SHARE_WRITE_WIIMOTES
+std::unordered_set<std::basic_string<TCHAR>> g_connected_wiimotes;
+std::mutex g_connected_wiimotes_lock;
+#endif
 
 inline void init_lib()
 {
@@ -258,11 +265,22 @@ bool Wiimote::Connect()
 	if (IsConnected())
 		return false;
 
+#ifdef SHARE_WRITE_WIIMOTES
+	std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
+	if (g_connected_wiimotes.count(devicepath) != 0)
+		return false;
+
+	auto const open_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
+#else
+	// Having no FILE_SHARE_WRITE disallows us from connecting to the same wiimote twice.
+	// (And disallows using wiimotes in use by other programs)
+	// This is what "WiiYourself" does.
+	// Apparently this doesn't work for everyone. It might be their fault.
+	auto const open_flags = FILE_SHARE_READ;
+#endif
+
 	dev_handle = CreateFile(devicepath.c_str(),
-		GENERIC_READ | GENERIC_WRITE,
-		// Having no FILE_SHARE_WRITE disallows us from connecting to the same wiimote twice.
-		// This is what "WiiYourself" does.
-		FILE_SHARE_READ,
+		GENERIC_READ | GENERIC_WRITE, open_flags,
 		NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 
 	if (dev_handle == INVALID_HANDLE_VALUE)
@@ -297,6 +315,10 @@ bool Wiimote::Connect()
 		ERROR_LOG(WIIMOTE, "Failed to set wiimote thread priority");
 	}
 */
+#ifdef SHARE_WRITE_WIIMOTES
+	g_connected_wiimotes.insert(devicepath);
+#endif
+
 	return true;
 }
 
@@ -310,6 +332,11 @@ void Wiimote::Disconnect()
 
 	CloseHandle(hid_overlap_read.hEvent);
 	CloseHandle(hid_overlap_write.hEvent);
+
+#ifdef SHARE_WRITE_WIIMOTES
+	std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
+	g_connected_wiimotes.erase(devicepath);
+#endif
 }
 
 bool Wiimote::IsConnected() const
