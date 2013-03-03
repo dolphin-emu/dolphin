@@ -32,7 +32,7 @@
 #include "../Movie.h"
 
 // Disc transfer rate measured in bytes per second
-static const u32 DISC_TRANSFER_RATE_GC = 3125 * 1024;
+static const u32 DISC_TRANSFER_RATE_GC = 4 * 1024 * 1024;
 
 namespace DVDInterface
 {
