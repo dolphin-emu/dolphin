@@ -47,10 +47,6 @@ public:
 
 	void Update();
 
-	// Net Play method 
-	std::string GetGamePaths() const;
-	std::string GetGameNames() const;
-
 	void BrowseForDirectory();
 	const GameListItem *GetSelectedISO();
 	const GameListItem *GetISO(size_t index) const;
@@ -83,10 +79,6 @@ private:
 			m_ISOFiles.pop_back();
 		}
 	}
-
-	// NetPlay string for the gamelist
-	std::string m_gameList;
-	std::string m_gamePath;
 
 	int last_column;
 	int last_sort;

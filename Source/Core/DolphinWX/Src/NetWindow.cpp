@@ -24,6 +24,7 @@
 #include "Frame.h"
 
 #include <sstream>
+#include <string>
 
 #define NETPLAY_TITLEBAR	"Dolphin NetPlay"
 
@@ -34,6 +35,21 @@ END_EVENT_TABLE()
 static NetPlay* netplay_ptr = NULL;
 extern CFrame* main_frame;
 NetPlayDiag *NetPlayDiag::npd = NULL;
+
+std::string BuildGameName(const GameListItem& game)
+{
+	auto const selected_lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	
+	// TODO: this should use the name from the volume not the banner
+	// (I seems banner name can sometimes depend on save contents)
+	return game.GetName(selected_lang) + " (" + game.GetUniqueID() + ")";
+}
+
+void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
+{
+	for (u32 i = 0 ; auto game = game_list.GetISO(i); ++i)
+		game_lbox->Append(StrToWxStr(BuildGameName(*game)));
+}
 
 NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list)
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
@@ -121,11 +137,8 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 
 	m_game_lbox = new wxListBox(host_tab, wxID_ANY);
 	m_game_lbox->Bind(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, &NetPlaySetupDiag::OnHost, this);
-
-	std::istringstream ss(game_list->GetGameNames());
-	std::string game;
-	while (std::getline(ss,game))
-		m_game_lbox->Append(StrToWxStr(game));
+	
+	FillWithGameNames(m_game_lbox, *game_list);
 
 	wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
 	top_szr->Add(port_lbl, 0, wxCENTER | wxRIGHT, 5);
@@ -360,24 +373,17 @@ void NetPlayDiag::OnChat(wxCommandEvent&)
 
 void NetPlayDiag::OnStart(wxCommandEvent&)
 {
-	// find path for selected game
-	std::string ntmp, ptmp, path;
-	std::istringstream nss(m_game_list->GetGameNames()), pss(m_game_list->GetGamePaths());
-
-	while(std::getline(nss,ntmp))
+	// find path for selected game, sloppy..
+	for (u32 i = 0 ; auto game = m_game_list->GetISO(i); ++i)
 	{
-		std::getline(pss,ptmp);
-		if (m_selected_game == ntmp)
+		if (m_selected_game == BuildGameName(*game))
 		{
-			path = ptmp;
-			break;
+			netplay_ptr->StartGame(game->GetFileName());
+			return;
 		}
 	}
-
-	if (path.length())
-		netplay_ptr->StartGame(path);
-	else
-		PanicAlertT("Game not found!!");
+	
+	PanicAlertT("Game not found!");
 }
 
 void NetPlayDiag::OnStop(wxCommandEvent&)
@@ -550,11 +556,7 @@ ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* cons
 	m_game_lbox = new wxListBox(this, wxID_ANY);
 	m_game_lbox->Bind(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, &ChangeGameDiag::OnPick, this);
 
-	// fill list with games
-	std::istringstream ss(game_list->GetGameNames());
-	std::string game;
-	while (std::getline(ss,game))
-		m_game_lbox->Append(StrToWxStr(game));
+	FillWithGameNames(m_game_lbox, *game_list);
 
 	wxButton* const ok_btn = new wxButton(this, wxID_OK, _("Change"));
 	ok_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ChangeGameDiag::OnPick, this);

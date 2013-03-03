@@ -285,10 +285,6 @@ void CGameListCtrl::Update()
 		m_imageListSmall = NULL;
 	}
 
-	// NetPlay : Set/Reset the GameList string
-	m_gameList.clear();
-	m_gamePath.clear();
-
 	Hide();
 
 	ScanForISOs();
@@ -406,15 +402,6 @@ wxString NiceSizeFormat(s64 _size)
 	return(NiceString);
 }
 
-std::string CGameListCtrl::GetGamePaths() const
-{
-	return m_gamePath;
-}
-std::string CGameListCtrl::GetGameNames() const
-{
-	return m_gameList;
-}
-
 void CGameListCtrl::InsertItemInReportView(long _Index)
 {
 	// When using wxListCtrl, there is no hope of per-column text colors.
@@ -424,7 +411,6 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	int ImageIndex = -1;
 
 	GameListItem& rISOFile = *m_ISOFiles[_Index];
-	m_gamePath.append(rISOFile.GetFileName() + '\n');
 
 	// Insert a first row with nothing in it, that will be used as the Index
 	long ItemIndex = InsertItem(_Index, wxEmptyString);
@@ -438,31 +424,25 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 
-	std::string name;
-
 	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	
+	// Is this sane?
 	switch (rISOFile.GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
 	case DiscIO::IVolume::COUNTRY_JAPAN:
-		{
-			name = rISOFile.GetName(-1);
-			m_gameList.append(StringFromFormat("%s (J)\n", name.c_str()));
-		}
+		SelectedLanguage = -1;
 		break;
+		
 	case DiscIO::IVolume::COUNTRY_USA:
-		// Is this sane?
 		SelectedLanguage = 0;
+		break;
+		
 	default:
-		{
-			name = rISOFile.GetName(SelectedLanguage);
-			m_gameList.append(StringFromFormat("%s (%c)\n", name.c_str(),
-				(rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA) ? 'U' : 'E'));
-			
-		}
 		break;
 	}
 	
+	std::string const name = rISOFile.GetName(SelectedLanguage);
 	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
 
 	// We show the company string on Gamecube only
