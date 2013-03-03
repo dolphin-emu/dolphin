@@ -37,8 +37,8 @@ public:
 	virtual void GetTMD(u8*, u32 *_sz) const { *_sz=0; }
 	virtual std::string GetUniqueID() const = 0;
 	virtual std::string GetMakerID() const = 0;
-	virtual std::string GetName() const = 0;
-	virtual bool GetWName(std::vector<std::wstring>& _rwNames) const { return false; }
+	virtual std::string GetName() const;
+	virtual std::vector<std::string> GetNames() const = 0;
 	virtual u32 GetFSTSize() const = 0;
 	virtual std::string GetApploaderDate() const = 0;
 	virtual bool SupportsIntegrityCheck() const { return false; }

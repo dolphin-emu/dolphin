@@ -91,16 +91,15 @@ std::string CVolumeGC::GetMakerID() const
 	return makerID;
 }
 
-std::string CVolumeGC::GetName() const
+std::vector<std::string> CVolumeGC::GetNames() const
 {
-	if (m_pReader == NULL)
-		return "";
+	std::vector<std::string> names;
 
-	char name[128];
-	if (!Read(0x20, 0x60, (u8*)&name))
-		return "";
+	char name[128] = {};
+	if (m_pReader != NULL && Read(0x20, 0x60, (u8*)&name))
+		names.push_back(name);
 
-	return name;
+	return names;
 }
 
 u32 CVolumeGC::GetFSTSize() const

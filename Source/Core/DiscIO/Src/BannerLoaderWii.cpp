@@ -196,28 +196,27 @@ bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::wstr
 	return false;
 }
 
-bool CBannerLoaderWii::GetName(std::string* _rName)
+std::vector<std::string> CBannerLoaderWii::GetNames()
 {
-	return GetStringFromComments(NAME_IDX, *_rName);
-}
+	std::vector<std::string> ret(1);
+	
+	if (!GetStringFromComments(NAME_IDX, ret[0]))
+		ret.clear();
 
-bool CBannerLoaderWii::GetName(std::vector<std::wstring>&  _rNames)
-{
-	std::wstring temp;
-	bool ret = GetStringFromComments(NAME_IDX, temp);
-	_rNames.push_back(temp);
 	return ret;
 }
 
-bool CBannerLoaderWii::GetCompany(std::string& _rCompany)
+std::string CBannerLoaderWii::GetCompany()
 {
-    _rCompany = "N/A";
-    return true;
+	return "";
 }
 
-bool CBannerLoaderWii::GetDescription(std::string* _rDescription)
+std::vector<std::string> CBannerLoaderWii::GetDescriptions()
 {
-	return GetStringFromComments(DESC_IDX, *_rDescription);
+	std::vector<std::string> result(1);
+	if (!GetStringFromComments(DESC_IDX, result[0]))
+		result.clear();
+	return result;
 }
 
 void CBannerLoaderWii::decode5A3image(u32* dst, u16* src, int width, int height)

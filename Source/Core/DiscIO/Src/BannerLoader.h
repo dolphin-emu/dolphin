@@ -18,6 +18,9 @@
 #ifndef _BANNER_LOADER_H_
 #define _BANNER_LOADER_H_
 
+#include <vector>
+#include <string>
+
 #include "Filesystem.h"
 
 namespace DiscIO
@@ -38,15 +41,9 @@ class IBannerLoader
 
 		virtual bool GetBanner(u32* _pBannerImage) = 0;
 
-		virtual bool GetName(std::string* _rName) = 0;
-		virtual bool GetName(std::vector<std::wstring>&  _rNames) {return false;};
-		virtual bool GetCompany(std::string& _rCompany) = 0;
-
-		virtual bool GetDescription(std::string* _rDescription) = 0;
-
-	protected:
-
-		void CopyToStringAndCheck(std::string& _rDestination, const char* _src);
+		virtual std::vector<std::string> GetNames() = 0;
+		virtual std::string GetCompany() = 0;
+		virtual std::vector<std::string> GetDescriptions() = 0;
 
 	private:
 		u16 swap16(u16 data)

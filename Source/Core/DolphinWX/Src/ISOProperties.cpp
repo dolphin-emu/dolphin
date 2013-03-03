@@ -158,15 +158,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// Disk header and apploader
 
-	std::wstring wname;
-	wxString name;
-	if (OpenGameListItem->GetName(wname))
-		name = wname.c_str();
-	else
-		name = wxString(OpenISO->GetName().c_str(), wxConvUTF8);
-	m_Name->SetValue(name);
-
-	m_GameID->SetValue(wxString(OpenISO->GetUniqueID().c_str(), wxConvUTF8));
+	m_Name->SetValue(StrToWxStr(OpenISO->GetName()));
+	m_GameID->SetValue(StrToWxStr(OpenISO->GetUniqueID()));
 	switch (OpenISO->GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_EUROPE:
@@ -1308,54 +1301,29 @@ void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 
 void CISOProperties::ChangeBannerDetails(int lang)
 {
-	std::wstring wname;
+	std::string name;
 	wxString shortName,
 			 comment,
 			 maker;
 
-#ifdef _WIN32
-	wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
-	static bool validCP932 = ::IsValidCodePage(932) != 0;
-	if (validCP932)
-	{
-		SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
-	}
-	else
-	{
-		WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
-	}
-#else
-		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
-		// it returns CP-932, in order to use iconv we need to use CP932
-		wxCSConv SJISConv(wxT("CP932"));
-#endif
 	switch (OpenGameListItem->GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
 	case DiscIO::IVolume::COUNTRY_JAPAN:
-
-		if (OpenGameListItem->GetName(wname, -1))
-			shortName = wname.c_str();
-		else
-			shortName = wxString(OpenGameListItem->GetName(0).c_str(), SJISConv);
-
+		shortName = StrToWxStr(OpenGameListItem->GetName(-1));
 		comment = StrToWxStr(OpenGameListItem->GetDescription());
-		maker = wxString(OpenGameListItem->GetCompany().c_str(), SJISConv);
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
+		// why?
 		lang = 0;
 	default:
-		{
-		wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
-		if (OpenGameListItem->GetName(wname, lang))
-			shortName = wname.c_str();
-		else
-			shortName = wxString(OpenGameListItem->GetName(lang).c_str(), WindowsCP1252);
+		shortName = StrToWxStr(OpenGameListItem->GetName(lang));
 		comment = StrToWxStr(OpenGameListItem->GetDescription(lang));
-		maker = wxString(OpenGameListItem->GetCompany().c_str(), WindowsCP1252);
-		}
 		break;
 	}
+
+	maker = StrToWxStr(OpenGameListItem->GetCompany());
+
 	// Updates the informations shown in the window
 	m_ShortName->SetValue(shortName);
 	m_Comment->SetValue(comment);

@@ -97,9 +97,11 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 std::string UriDecode(const std::string & sSrc);
 std::string UriEncode(const std::string & sSrc);
 
+std::string SHIFTJISToUTF8(const std::string& str);
+std::string UTF16ToUTF8(const std::wstring& str);
+
 #ifdef _WIN32
 
-std::string UTF16ToUTF8(const std::wstring& str);
 std::wstring UTF8ToUTF16(const std::string& str);
 
 #ifdef _UNICODE

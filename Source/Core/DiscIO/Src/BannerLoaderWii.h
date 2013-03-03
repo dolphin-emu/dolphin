@@ -35,13 +35,9 @@ class CBannerLoaderWii
 
 		virtual bool GetBanner(u32* _pBannerImage);
 
-		virtual bool GetName(std::string* _rName);
-
-		bool GetName(std::vector<std::wstring>&  _rNames);
-
-		virtual bool GetCompany(std::string& _rCompany);
-
-		virtual bool GetDescription(std::string* _rDescription);
+		virtual std::vector<std::string> GetNames();
+		virtual std::string GetCompany();
+		virtual std::vector<std::string> GetDescriptions();
 
 	private:
 		

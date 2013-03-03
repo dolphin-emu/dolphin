@@ -38,8 +38,7 @@ public:
 	bool GetTitleID(u8* _pBuffer) const;
 	std::string GetUniqueID() const;
 	std::string GetMakerID() const;
-	std::string GetName() const;
-	bool GetWName(std::vector<std::wstring>& _rwNames) const;
+	std::vector<std::string> GetNames() const;
 	u32 GetFSTSize() const					{ return 0; }
 	std::string GetApploaderDate() const	{ return "0"; }	
 	ECountry GetCountry() const;

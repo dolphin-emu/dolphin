@@ -24,58 +24,6 @@
 
 namespace DiscIO
 {
-void IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char* _src)
-{
-	static bool bValidChars[256];
-	static bool bInitialized = false;
-
-	if (!bInitialized)
-	{
-		for (int i = 0; i < 0x20; i++)
-		{
-			bValidChars[i] = false;
-		}
-
-		// generate valid chars
-		for (int i = 0x20; i < 256; i++)
-		{
-			bValidChars[i] = true;
-		}
-
-		bValidChars[0x0a] = true;
-		//bValidChars[0xa9] = true;
-		//bValidChars[0xe9] = true;
-
-		bInitialized = true;
-	}
-
-	char destBuffer[2048] = {0};
-	char* dest = destBuffer;
-	const char* src = _src;
-
-	// copy the string and check for "unknown" characters
-	while (*src != 0x00)
-	{
-		u8 c = *src;
-
-		if (c == 0x0a){c = 0x20;}
-
-		if (bValidChars[c] == false)
-		{
-			src++;
-			continue;
-		}
-
-		*dest = c;
-		dest++;
-		src++;
-	}
-
-	// finalize the string
-	*dest = 0x00;
-
-	_rDestination = destBuffer;
-}
 
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume)
 {

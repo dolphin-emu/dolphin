@@ -395,17 +395,41 @@ std::string UTF16ToUTF8(const std::wstring& input)
 	return output;
 }
 
-std::wstring UTF8ToUTF16(const std::string& input)
+std::wstring CPToUTF16(u32 code_page, const std::string& input)
 {
-	auto const size = MultiByteToWideChar(CP_UTF8, 0, input.data(), input.size(), nullptr, 0);
+	auto const size = MultiByteToWideChar(code_page, 0, input.data(), input.size(), nullptr, 0);
 
 	std::wstring output;
 	output.resize(size);
 
-	if (size != MultiByteToWideChar(CP_UTF8, 0, input.data(), input.size(), &output[0], output.size()))
+	if (size != MultiByteToWideChar(code_page, 0, input.data(), input.size(), &output[0], output.size()))
 		output.clear();
 
 	return output;
+}
+
+std::wstring UTF8ToUTF16(const std::string& input)
+{
+	return CPToUTF16(CP_UTF8, input);
+}
+
+std::string SHIFTJISToUTF8(const std::string& input)
+{
+	return UTF16ToUTF8(CPToUTF16(932, input));
+}
+
+#else
+
+std::string UTF16ToUTF8(const std::wstring& input)
+{
+	// TODO: implement
+	return std::string();
+}
+
+std::string SHIFTJISToUTF8(const std::string& input)
+{
+	// TODO: implement
+	return std::string();
 }
 
 #endif

@@ -454,10 +454,8 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
-	
-	std::wstring wstring_name;
 
-	wxString name;
+	std::string name;
 
 	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	switch (rISOFile.GetCountry())
@@ -465,9 +463,8 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		{
-			rISOFile.GetName(wstring_name, -1);
-			name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
-			m_gameList.append(StringFromFormat("%s (J)\n", (const char *)name.c_str()));
+			name = rISOFile.GetName(-1);
+			m_gameList.append(StringFromFormat("%s (J)\n", name.c_str()));
 		}
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
@@ -475,22 +472,15 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		SelectedLanguage = 0;
 	default:
 		{
-			wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
-			rISOFile.GetName(wstring_name, SelectedLanguage);
-
-			name = wxString(rISOFile.GetName(SelectedLanguage).c_str(), WindowsCP1252);
-			m_gameList.append(StringFromFormat("%s (%c)\n",
-						rISOFile.GetName(SelectedLanguage).c_str(),
-						(rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA) ? 'U' : 'E'));
+			name = rISOFile.GetName(SelectedLanguage);
+			m_gameList.append(StringFromFormat("%s (%c)\n", name.c_str(),
+				(rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA) ? 'U' : 'E'));
 			
 		}
 		break;
 	}
-
-	if (wstring_name.length())
-		name = wstring_name.c_str();
-		
-	SetItem(_Index, COLUMN_TITLE, name, -1);
+	
+	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
 
 	// We show the company string on Gamecube only
 	// On Wii we show the description instead as the company string is empty

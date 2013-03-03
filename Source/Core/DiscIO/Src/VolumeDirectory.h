@@ -50,7 +50,7 @@ public:
 
 	std::string GetMakerID() const;
 
-	std::string GetName() const;
+	std::vector<std::string> GetNames() const;
 	void SetName(std::string);
 
 	u32 GetFSTSize() const;

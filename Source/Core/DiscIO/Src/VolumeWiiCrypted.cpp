@@ -168,21 +168,17 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 	return makerID;
 }
 
-std::string CVolumeWiiCrypted::GetName() const
+std::vector<std::string> CVolumeWiiCrypted::GetNames() const
 {
-	if (m_pReader == NULL)
+	std::vector<std::string> names;
+
+	char name[0xFF] = {};
+	if (m_pReader != NULL && Read(0x20, 0x60, (u8*)&name))
 	{
-		return std::string();
+		names.push_back(name);
 	}
 
-	char name[0xFF];
-
-	if (!Read(0x20, 0x60, (u8*)&name))
-	{
-		return std::string();
-	}
-
-	return name;
+	return names;
 }
 
 u32 CVolumeWiiCrypted::GetFSTSize() const
