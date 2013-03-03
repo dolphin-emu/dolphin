@@ -209,7 +209,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 						break;
 				}
 				wxString OpenCommand;
-				OpenCommand = filetype->GetOpenCommand(wxString::From8BitData(filename.c_str()));
+				OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
 				if(!OpenCommand.IsEmpty())
 					wxExecute(OpenCommand, wxEXEC_SYNC);
 			}

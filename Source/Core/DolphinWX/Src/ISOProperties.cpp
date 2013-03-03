@@ -152,7 +152,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			LoadGameConfig();
 		else
 			wxMessageBox(wxString::Format(_("Could not create %s"),
-						wxString::From8BitData(GameIniFile.c_str()).c_str()),
+						StrToWxStr(GameIniFile).c_str()),
 					_("Error"), wxOK|wxICON_ERROR, this);
 	}
 
@@ -199,9 +199,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		m_Country->SetValue(_("UNKNOWN"));
 		break;
 	}
-	wxString temp = _T("0x") + wxString::From8BitData(OpenISO->GetMakerID().c_str());
+	wxString temp = _T("0x") + StrToWxStr(OpenISO->GetMakerID());
 	m_MakerID->SetValue(temp);
-	m_Date->SetValue(wxString::From8BitData(OpenISO->GetApploaderDate().c_str()));
+	m_Date->SetValue(StrToWxStr(OpenISO->GetApploaderDate()));
 	m_FST->SetValue(wxString::Format(wxT("%u"), OpenISO->GetFSTSize()));
 
 	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
@@ -266,12 +266,12 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 		// check next index
 		if (rFileInfo->IsDirectory())
 		{
-			wxTreeItemId item = m_Treectrl->AppendItem(parent, wxString::From8BitData(itemName), 1, 1);
+			wxTreeItemId item = m_Treectrl->AppendItem(parent, StrToWxStr(itemName), 1, 1);
 			CurrentIndex = CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo->m_FileSize);
 		}
 		else
 		{
-			m_Treectrl->AppendItem(parent, wxString::From8BitData(itemName), 2, 2);
+			m_Treectrl->AppendItem(parent, StrToWxStr(itemName), 2, 2);
 			CurrentIndex++;
 		}
 	}
@@ -1081,7 +1081,7 @@ bool CISOProperties::SaveGameConfig()
 
 void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 {
-	if (wxFileExists(wxString::From8BitData(GameIniFile.c_str())))
+	if (File::Exists(GameIniFile))
 	{
 		SaveGameConfig();
 
@@ -1102,7 +1102,7 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 			}
 		}
 		wxString OpenCommand;
-		OpenCommand = filetype->GetOpenCommand(wxString::From8BitData(GameIniFile.c_str()));
+		OpenCommand = filetype->GetOpenCommand(StrToWxStr(GameIniFile));
 		if(OpenCommand.IsEmpty())
 			PanicAlertT("Couldn't find open command for extension 'ini'!");
 		else
@@ -1275,7 +1275,7 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 			CARCodeAddEdit dlg(-1, this, 1, _("Add ActionReplay Code"));
 			if (dlg.ShowModal() == wxID_OK)
 			{
-				Cheats->Append(wxString::From8BitData(arCodes.back().name.c_str()));
+				Cheats->Append(StrToWxStr(arCodes.back().name));
 				Cheats->Check((unsigned int)(arCodes.size() - 1), arCodes.back().active);
 			}
 		}
