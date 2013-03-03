@@ -966,8 +966,7 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	wxString strPath(iso->GetFileName().c_str(), wxConvUTF8);
-	wxFileName path = wxFileName::FileName(strPath);
+	wxFileName path = wxFileName::FileName(StrToWxStr(iso->GetFileName()));
 	path.MakeAbsolute();
 	WxUtils::Explore(path.GetPath().char_str());
 }

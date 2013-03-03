@@ -704,26 +704,11 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		std::string title = memoryCard[card]->GetSaveComment1(fileIndex);
 		std::string comment = memoryCard[card]->GetSaveComment2(fileIndex);
 
-		bool ascii = memoryCard[card]->IsAsciiEncoding();
-
-#ifdef _WIN32
-		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
-		static bool validCP932 = ::IsValidCodePage(932) != 0;
-		if (validCP932)
-		{
-			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
-		}
-		else
-		{
-			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
-		}
-#else
-		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
-		// it returns CP-932, in order to use iconv we need to use CP932
-		wxCSConv SJISConv(wxT("CP932"));
-#endif
-		wxTitle  =  wxString(title.c_str(), ascii ? *wxConvCurrent : SJISConv);
-		wxComment = wxString(comment.c_str(), ascii ? *wxConvCurrent : SJISConv);
+		auto const string_decoder = memoryCard[card]->IsAsciiEncoding() ?
+			CP1252ToUTF8 : SHIFTJISToUTF8;
+			
+		wxTitle = StrToWxStr(string_decoder(title));
+		wxComment = StrToWxStr(string_decoder(comment));
 
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxTitle);
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxComment);
