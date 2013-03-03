@@ -21,6 +21,8 @@
 #include "IniFile.h"
 #include "FileUtil.h"
 #include "Debugger/DebuggerUIUtil.h"
+#include "WxUtils.h"
+
 #include <wx/fontmap.h>
 
 // Milliseconds between msgQueue flushes to wxTextCtrl
@@ -41,25 +43,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	, x(0), y(0), winpos(0)
 	, Parent(parent), m_ignoreLogTimer(false), m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
-	, m_SJISConv(wxT(""))
 {
-#ifdef _WIN32
-		static bool validCP932 = ::IsValidCodePage(932) != 0;
-		if (validCP932)
-		{
-			m_SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
-		}
-		else
-		{
-			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
-			m_SJISConv = *(wxCSConv*)wxConvCurrent;
-		}
-#else
-		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
-		// it returns CP-932, in order to use iconv we need to use CP932
-		m_SJISConv = wxCSConv(wxT("CP932"));
-#endif
-
 	m_LogManager = LogManager::GetInstance();
 
 	CreateGUIControls();
@@ -370,5 +354,6 @@ void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
 
 	if (msgQueue.size() >= 100)
 		msgQueue.pop();
-	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString(text, m_SJISConv)));
+
+	msgQueue.push(std::make_pair(u8(level), StrToWxStr(text)));
 }
