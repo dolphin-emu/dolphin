@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "VolumeWiiCrypted.h"
+#include "VolumeGC.h"
 #include "StringUtil.h"
 #include "Crypto/sha1.h"
 
@@ -171,12 +172,12 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 std::vector<std::string> CVolumeWiiCrypted::GetNames() const
 {
 	std::vector<std::string> names;
+	
+	auto const string_decoder = CVolumeGC::GetStringDecoder(GetCountry());
 
 	char name[0xFF] = {};
 	if (m_pReader != NULL && Read(0x20, 0x60, (u8*)&name))
-	{
-		names.push_back(name);
-	}
+		names.push_back(string_decoder(name));
 
 	return names;
 }

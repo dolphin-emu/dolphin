@@ -40,6 +40,10 @@ public:
 	ECountry GetCountry() const;
 	u64 GetSize() const;
 	bool IsDiscTwo() const;
+	
+	typedef std::string(*StringDecoder)(const std::string&);
+	
+	static StringDecoder GetStringDecoder(ECountry country);
 
 private:
 	IBlobReader* m_pReader;

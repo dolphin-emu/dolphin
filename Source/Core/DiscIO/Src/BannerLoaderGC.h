@@ -19,6 +19,7 @@
 #define _BANNER_LOADER_GC_H_
 
 #include "BannerLoader.h"
+#include "VolumeGC.h"
 #include "StringUtil.h"
 
 namespace DiscIO
@@ -77,9 +78,7 @@ class CBannerLoaderGC
 		template <u32 N>
 		std::string GetDecodedString(const char (&data)[N])
 		{
-			auto const string_decoder = (DiscIO::IVolume::COUNTRY_JAPAN == m_country ||
-				DiscIO::IVolume::COUNTRY_TAIWAN == m_country) ?
-					SHIFTJISToUTF8 : CP1252ToUTF8;
+			auto const string_decoder = CVolumeGC::GetStringDecoder(m_country);
 			
 			// strnlen to trim NULLs
 			return string_decoder(std::string(data, strnlen(data, sizeof(data))));

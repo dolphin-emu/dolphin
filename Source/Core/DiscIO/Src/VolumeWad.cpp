@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <algorithm>
 #include <math.h>
 
 #include "VolumeWad.h"
@@ -117,33 +118,32 @@ std::vector<std::string> CVolumeWAD::GetNames() const
 	{
 		return names;
 	}
+	
+	footer_size = Common::swap32(footer_size);
+	
 	//Japanese, English, German, French, Spanish, Italian, Dutch, unknown, unknown, Korean
-
-	// Offset to the english title
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i != 10; ++i)
 	{
-		u16 temp[42];
-		std::wstring out_temp;
+		static const u32 string_length = 42;
+		static const u32 bytes_length = string_length * sizeof(u16);
+		
+		u16 temp[string_length];
 
-		if (!Read(0x9C + (i*84) + OpeningBnrOffset, 84, (u8*)&temp) || Common::swap32(footer_size) < 0xF1
-			|| !temp[0])
+		if (footer_size < 0xF1 || !Read(0x9C + (i * bytes_length) + OpeningBnrOffset, bytes_length, (u8*)&temp))
 		{
 			names.push_back("");
-			continue;
+			ERROR_LOG(COMMON, "added empty WAD name");
 		}
-		for (int j = 0; j < 42; ++j)
+		else
 		{
-			u16 t = Common::swap16(temp[j]);
-			if (t == 0 && j > 0)
-			{
-				if (out_temp.at(out_temp.size()-1) != ' ')
-					out_temp.push_back(' ');			
-			}
-			else
-				out_temp.push_back(t);
+			std::wstring out_temp;
+			out_temp.resize(string_length);
+			std::transform(temp, temp + out_temp.size(), out_temp.begin(), (u16(&)(u16))Common::swap16);
+			out_temp.erase(std::find(out_temp.begin(), out_temp.end(), 0x00), out_temp.end());
+			
+			names.push_back(UTF16ToUTF8(out_temp));
+			ERROR_LOG(COMMON, "decoded WAD name: %s", names.back().c_str());
 		}
-
-		names.push_back(UTF16ToUTF8(out_temp));
 	}
 
 	return names;

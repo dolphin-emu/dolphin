@@ -457,22 +457,33 @@ std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 		size_t src_bytes = in_bytes;
 		auto dst_buffer = &out_buffer[0];
 		size_t dst_bytes = out_buffer.size();
-
-		size_t const iconv_size = iconv(conv_desc, (char**)(&src_buffer), &src_bytes,
-			&dst_buffer, &dst_bytes);
-
-		if ((size_t)-1 == iconv_size)
+		
+		while (src_bytes != 0)
 		{
-			ERROR_LOG(COMMON, "iconv failure [%s]: %s", fromcode, strerror(errno));
-		}
-		else
-		{
-			out_buffer.resize(out_buffer_size - dst_bytes);
-			out_buffer.swap(result);
+			size_t const iconv_result = iconv(conv_desc, (char**)(&src_buffer), &src_bytes,
+				&dst_buffer, &dst_bytes);
 			
-			// TODO: why is this needed?
-			result.erase(std::remove(result.begin(), result.end(), 0x00), result.end());
+			if ((size_t)-1 == iconv_result)
+			{
+				if (EILSEQ == errno || EINVAL == errno)
+				{
+					// Try to skip the bad character
+					if (src_bytes != 0)
+					{
+						--src_bytes;
+						++src_buffer;
+					}
+				}
+				else
+				{
+					ERROR_LOG(COMMON, "iconv failure [%s]: %s", fromcode, strerror(errno));
+					break;
+				}
+			}
 		}
+
+		out_buffer.resize(out_buffer_size - dst_bytes);
+		out_buffer.swap(result);
 		
 		iconv_close(conv_desc);
 	}
@@ -483,6 +494,8 @@ std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 
 std::string CP1252ToUTF8(const std::string& input)
 {
+	//return CodeToUTF8("CP1252//TRANSLIT", input);
+	//return CodeToUTF8("CP1252//IGNORE", input);
 	return CodeToUTF8("CP1252", input);
 }
 
@@ -494,10 +507,15 @@ std::string SHIFTJISToUTF8(const std::string& input)
 
 std::string UTF16ToUTF8(const std::wstring& input)
 {
-	//return CodeToUTF8("UCS-2", input);
-	//return CodeToUTF8("UCS-2LE", input);
-	//return CodeToUTF8("UTF-16", input);
-	return CodeToUTF8("UTF-16LE", input);
+	std::string result =
+	//	CodeToUTF8("UCS-2", input);
+	//	CodeToUTF8("UCS-2LE", input);
+	//	CodeToUTF8("UTF-16", input);
+		CodeToUTF8("UTF-16LE", input);
+	
+	// TODO: why is this needed?
+	result.erase(std::remove(result.begin(), result.end(), 0x00), result.end());
+	return result;
 }
 
 #endif
