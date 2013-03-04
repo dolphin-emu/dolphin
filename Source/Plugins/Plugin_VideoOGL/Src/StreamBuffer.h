@@ -23,6 +23,12 @@
 #include "FramebufferManager.h"
 #include "GLUtil.h"
 
+// glew < 1.8 doesn't support pinned memory
+#ifndef GLEW_AMD_pinned_memory
+#define GLEW_AMD_pinned_memory glewIsSupported("GL_AMD_pinned_memory")
+#define GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD 0x9160
+#endif
+
 namespace OGL
 {
 enum StreamType {
