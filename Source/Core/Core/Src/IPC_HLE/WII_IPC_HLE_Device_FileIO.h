@@ -39,9 +39,9 @@ public:
     bool IOCtl(u32 _CommandAddress);
 	void DoState(PointerWrap &p);
 
-	File::IOFile OpenFile();
-
 private:
+	void PrepareFile();
+	
 	enum
 	{
 		ISFS_OPEN_READ				= 1,
@@ -77,6 +77,7 @@ private:
 
 	u32 m_Mode;
 	u32 m_SeekPos;
+	File::IOFile m_file;
 	
 	std::string m_filepath;
 };
