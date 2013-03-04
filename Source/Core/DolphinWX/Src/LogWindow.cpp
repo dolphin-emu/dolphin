@@ -192,7 +192,7 @@ void CLogWindow::SaveSettings()
 void CLogWindow::OnSubmit(wxCommandEvent& WXUNUSED (event))
 {
 	if (!m_cmdline) return;
-	Console_Submit(m_cmdline->GetValue().To8BitData());
+	Console_Submit(WxStrToStr(m_cmdline->GetValue()).c_str());
 	m_cmdline->SetValue(wxEmptyString);
 }
 

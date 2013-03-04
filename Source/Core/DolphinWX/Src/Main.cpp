@@ -445,7 +445,7 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 
 std::string wxStringTranslator(const char *text)
 {
-	return WxStrToStr(wxGetTranslation(wxString::From8BitData(text)));
+	return WxStrToStr(wxGetTranslation(wxString::FromUTF8(text)));
 }
 
 // Accessor for the main window class

@@ -180,8 +180,7 @@ wxArrayString GetListOfResolutions()
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,
-		wxString::Format(_("Dolphin %s Graphics Configuration"),
-			wxGetTranslation(wxString::From8BitData(title.c_str()))),
+		wxString::Format(_("Dolphin %s Graphics Configuration"), wxGetTranslation(StrToWxStr(title))),
 		wxDefaultPosition, wxDefaultSize)
 	, vconfig(g_Config)
 	, ininame(_ininame)
