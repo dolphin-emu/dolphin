@@ -111,7 +111,6 @@ bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
 std::vector<std::string> CVolumeWAD::GetNames() const
 {
 	std::vector<std::string> names;
-	return names;
 
 	u32 footer_size;
 	if (!Read(0x1C, 4, (u8*)&footer_size))
@@ -132,7 +131,6 @@ std::vector<std::string> CVolumeWAD::GetNames() const
 		if (footer_size < 0xF1 || !Read(0x9C + (i * bytes_length) + OpeningBnrOffset, bytes_length, (u8*)&temp))
 		{
 			names.push_back("");
-			ERROR_LOG(COMMON, "added empty WAD name");
 		}
 		else
 		{
@@ -142,7 +140,6 @@ std::vector<std::string> CVolumeWAD::GetNames() const
 			out_temp.erase(std::find(out_temp.begin(), out_temp.end(), 0x00), out_temp.end());
 			
 			names.push_back(UTF16ToUTF8(out_temp));
-			ERROR_LOG(COMMON, "decoded WAD name: %s", names.back().c_str());
 		}
 	}
 
