@@ -257,7 +257,7 @@ void CGameListCtrl::BrowseForDirectory()
 
 	if (dialog.ShowModal() == wxID_OK)
 	{
-		std::string sPath(dialog.GetPath().mb_str());
+		std::string sPath(WxStrToStr(dialog.GetPath()));
 		std::vector<std::string>::iterator itResult = std::find(
 				SConfig::GetInstance().m_ISOFolder.begin(),
 				SConfig::GetInstance().m_ISOFolder.end(), sPath);
@@ -284,10 +284,6 @@ void CGameListCtrl::Update()
 		delete m_imageListSmall;
 		m_imageListSmall = NULL;
 	}
-
-	// NetPlay : Set/Reset the GameList string
-	m_gameList.clear();
-	m_gamePath.clear();
 
 	Hide();
 
@@ -402,17 +398,8 @@ wxString NiceSizeFormat(s64 _size)
 	wxString NiceString;
 	char tempstr[32];
 	sprintf(tempstr,"%3.1f %s", f, sizes[s]);
-	NiceString = wxString::FromAscii(tempstr);
+	NiceString = StrToWxStr(tempstr);
 	return(NiceString);
-}
-
-std::string CGameListCtrl::GetGamePaths() const
-{
-	return m_gamePath;
-}
-std::string CGameListCtrl::GetGameNames() const
-{
-	return m_gameList;
 }
 
 void CGameListCtrl::InsertItemInReportView(long _Index)
@@ -423,25 +410,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// company: 0x007030
 	int ImageIndex = -1;
 
-#ifdef _WIN32
-		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
-		static bool validCP932 = ::IsValidCodePage(932) != 0;
-		if (validCP932)
-		{
-			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
-		}
-		else
-		{
-			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
-		}
-#else
-		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
-		// it returns CP-932, in order to use iconv we need to use CP932
-		wxCSConv SJISConv(wxT("CP932"));
-#endif
-
 	GameListItem& rISOFile = *m_ISOFiles[_Index];
-	m_gamePath.append(rISOFile.GetFileName() + '\n');
 
 	// Insert a first row with nothing in it, that will be used as the Index
 	long ItemIndex = InsertItem(_Index, wxEmptyString);
@@ -454,55 +423,33 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
-	
-	std::wstring wstring_name;
-	const std::wstring& wstring_description = rISOFile.GetDescription();
-	std::string company;
 
-	wxString name;
-	wxString description;
-
-	// We show the company string on Gamecube only
-	// On Wii we show the description instead as the company string is empty
-	if (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC)
-		company = rISOFile.GetCompany().c_str();
 	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	
+	// Is this sane?
 	switch (rISOFile.GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
 	case DiscIO::IVolume::COUNTRY_JAPAN:
-		{
-			rISOFile.GetName(wstring_name, -1);
-			name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
-			m_gameList.append(StringFromFormat("%s (J)\n", (const char *)name.c_str()));
-			description = wxString(company.size() ?	company.c_str() :
-								rISOFile.GetDescription(0).c_str(),	SJISConv);
-		}
+		SelectedLanguage = -1;
 		break;
+		
 	case DiscIO::IVolume::COUNTRY_USA:
 		SelectedLanguage = 0;
+		break;
+		
 	default:
-		{
-			wxCSConv WindowsCP1252(wxFontMapper::GetEncodingName(wxFONTENCODING_CP1252));
-			rISOFile.GetName(wstring_name, SelectedLanguage);
-
-			name = wxString(rISOFile.GetName(SelectedLanguage).c_str(), WindowsCP1252);
-			m_gameList.append(StringFromFormat("%s (%c)\n",
-						rISOFile.GetName(SelectedLanguage).c_str(),
-						(rISOFile.GetCountry() == DiscIO::IVolume::COUNTRY_USA) ? 'U' : 'E'));
-			description = wxString(company.size() ?	company.c_str() :
-					rISOFile.GetDescription(SelectedLanguage).c_str(), WindowsCP1252);
-		}
 		break;
 	}
+	
+	std::string const name = rISOFile.GetName(SelectedLanguage);
+	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
 
-	if (wstring_name.length())
-		name = wstring_name.c_str();
-	if (wstring_description.length())
-		description = wstring_description.c_str();
-		
-	SetItem(_Index, COLUMN_TITLE, name, -1);
-	SetItem(_Index, COLUMN_NOTES, description, -1);
+	// We show the company string on Gamecube only
+	// On Wii we show the description instead as the company string is empty
+	std::string const notes = (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC) ?
+		rISOFile.GetCompany() : rISOFile.GetDescription(SelectedLanguage);
+	SetItem(_Index, COLUMN_NOTES, StrToWxStr(notes), -1);
 
 	// Emulation state
 	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[rISOFile.GetEmuState()]);
@@ -614,7 +561,7 @@ void CGameListCtrl::ScanForISOs()
 
 			// Update with the progress (i) and the message
 			dialog.Update(i, wxString::Format(_("Scanning %s"),
-				wxString(FileName.c_str(), *wxConvCurrent).c_str()));
+				StrToWxStr(FileName)));
 			if (dialog.WasCancelled())
 				break;
 
@@ -858,7 +805,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 				char temp[2048];
 				sprintf(temp, "^ %s%s%s", emuState[emu_state - 1],
 						issues.size() > 0 ? " :\n" : "", issues.c_str());
-				toolTip = new wxEmuStateTip(this, wxString(temp, *wxConvCurrent), &toolTip);
+				toolTip = new wxEmuStateTip(this, StrToWxStr(temp), &toolTip);
 			}
 			else
 				toolTip = new wxEmuStateTip(this, _("Not Set"), &toolTip);
@@ -999,8 +946,7 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 
-	wxString strPath(iso->GetFileName().c_str(), wxConvUTF8);
-	wxFileName path = wxFileName::FileName(strPath);
+	wxFileName path = wxFileName::FileName(StrToWxStr(iso->GetFileName()));
 	path.MakeAbsolute();
 	WxUtils::Explore(path.GetPath().char_str());
 }
@@ -1115,9 +1061,9 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
 {
 	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
-	wxString textString(StringFromFormat("%s (%i/%i) - %s",
+	wxString textString(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
 				m_currentFilename.c_str(), (int)m_currentItem+1,
-				(int)m_numberItem, text).c_str(), *wxConvCurrent);
+				(int)m_numberItem, text)));
 
 	((wxProgressDialog*)arg)->Update((int)(percent*1000), textString);
 }
@@ -1170,13 +1116,13 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 				std::string OutputFileName;
 				BuildCompleteFilename(OutputFileName,
-						(const char *)browseDialog.GetPath().mb_str(wxConvUTF8),
+						WxStrToStr(browseDialog.GetPath()),
 						FileName);
 
-				if (wxFileExists(wxString::FromAscii(OutputFileName.c_str())) &&
+				if (wxFileExists(StrToWxStr(OutputFileName)) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
-								wxString(OutputFileName.c_str(), *wxConvCurrent).c_str()), 
+								StrToWxStr(OutputFileName)), 
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1198,13 +1144,13 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 				std::string OutputFileName;
 				BuildCompleteFilename(OutputFileName,
-						(const char *)browseDialog.GetPath().mb_str(wxConvUTF8),
+						WxStrToStr(browseDialog.GetPath()),
 						FileName);
 
-				if (wxFileExists(wxString::FromAscii(OutputFileName.c_str())) &&
+				if (wxFileExists(StrToWxStr(OutputFileName)) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
-								wxString(OutputFileName.c_str(), *wxConvCurrent).c_str()), 
+								StrToWxStr(OutputFileName)), 
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1225,7 +1171,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
 {
 	((wxProgressDialog*)arg)->
-		Update((int)(percent*1000), wxString(text, *wxConvCurrent));
+		Update((int)(percent*1000), StrToWxStr(text));
 }
 
 void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
@@ -1251,8 +1197,8 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 
 			path = wxFileSelector(
 					_("Save decompressed GCM/ISO"),
-					wxString(FilePath.c_str(), *wxConvCurrent),
-					wxString(FileName.c_str(), *wxConvCurrent) + FileType.After('*'),
+					StrToWxStr(FilePath),
+					StrToWxStr(FileName) + FileType.After('*'),
 					wxEmptyString,
 					FileType + wxT("|") + wxGetTranslation(wxALL_FILES),
 					wxFD_SAVE,
@@ -1262,8 +1208,8 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 		{
 			path = wxFileSelector(
 					_("Save compressed GCM/ISO"),
-					wxString(FilePath.c_str(), *wxConvCurrent),
-					wxString(FileName.c_str(), *wxConvCurrent) + _T(".gcz"),
+					StrToWxStr(FilePath),
+					StrToWxStr(FileName) + _T(".gcz"),
 					wxEmptyString,
 					_("All compressed GC/Wii ISO files (gcz)") + 
 						wxString::Format(wxT("|*.gcz|%s"), wxGetTranslation(wxALL_FILES)),

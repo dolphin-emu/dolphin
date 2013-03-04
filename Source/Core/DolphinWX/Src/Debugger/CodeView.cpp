@@ -23,6 +23,7 @@
 #include "Host.h"
 #include "CodeView.h"
 #include "SymbolDB.h"
+#include "../WxUtils.h"
 
 #include <wx/event.h>
 #include <wx/clipbrd.h>
@@ -223,7 +224,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			{
 			char disasm[256];
 			debugger->disasm(selection, disasm, 256);
-			wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(disasm)));
+			wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(disasm)));
 			}
 			break;
 
@@ -231,7 +232,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		    {
 		    char temp[24];
 		    sprintf(temp, "%08x", debugger->readInstruction(selection));
-		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(temp)));
+		    wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
 		    }
 		    break;
 
@@ -252,7 +253,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 					debugger->disasm(addr, disasm, 256);
 					text = text + StringFromFormat("%08x: ", addr) + disasm + "\r\n";
 				}
-				wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(text.c_str())));
+				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(text)));
 			}
 			}
 			break;
@@ -297,12 +298,12 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			Symbol *symbol = symbol_db->GetSymbolFromAddr(selection);
 			if (symbol)
 			{
-				wxTextEntryDialog input_symbol(this, wxString::FromAscii("Rename symbol:"),
+				wxTextEntryDialog input_symbol(this, StrToWxStr("Rename symbol:"),
 						wxGetTextFromUserPromptStr,
-						wxString::FromAscii(symbol->name.c_str()));
+						StrToWxStr(symbol->name));
 				if (input_symbol.ShowModal() == wxID_OK)
 				{
-					symbol->name = input_symbol.GetValue().mb_str();
+					symbol->name = WxStrToStr(input_symbol.GetValue());
 					Refresh(); // Redraw to show the renamed symbol
 				}
 				Host_NotifyMapLoaded();
@@ -327,23 +328,23 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 	wxMenu* menu = new wxMenu;
 	//menu->Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
 	menu->Append(IDM_FOLLOWBRANCH,
-			wxString::FromAscii("&Follow branch"))->Enable(AddrToBranch(selection) ? true : false);
+			StrToWxStr("&Follow branch"))->Enable(AddrToBranch(selection) ? true : false);
 	menu->AppendSeparator();
 #if wxUSE_CLIPBOARD
-	menu->Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
-	menu->Append(IDM_COPYFUNCTION, wxString::FromAscii("Copy &function"))->Enable(isSymbol);
-	menu->Append(IDM_COPYCODE, wxString::FromAscii("Copy &code line"));
-	menu->Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
+	menu->Append(IDM_COPYADDRESS, StrToWxStr("Copy &address"));
+	menu->Append(IDM_COPYFUNCTION, StrToWxStr("Copy &function"))->Enable(isSymbol);
+	menu->Append(IDM_COPYCODE, StrToWxStr("Copy &code line"));
+	menu->Append(IDM_COPYHEX, StrToWxStr("Copy &hex"));
 	menu->AppendSeparator();
 #endif
-	menu->Append(IDM_RENAMESYMBOL, wxString::FromAscii("Rename &symbol"))->Enable(isSymbol);
+	menu->Append(IDM_RENAMESYMBOL, StrToWxStr("Rename &symbol"))->Enable(isSymbol);
 	menu->AppendSeparator();
 	menu->Append(IDM_RUNTOHERE, _("&Run To Here"));
 	menu->Append(IDM_ADDFUNCTION, _("&Add function"));
-	menu->Append(IDM_JITRESULTS, wxString::FromAscii("PPC vs X86"));
-	menu->Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
-	menu->Append(IDM_INSERTNOP, wxString::FromAscii("Insert &nop"));
-	menu->Append(IDM_PATCHALERT, wxString::FromAscii("Patch alert"));
+	menu->Append(IDM_JITRESULTS, StrToWxStr("PPC vs X86"));
+	menu->Append(IDM_INSERTBLR, StrToWxStr("Insert &blr"));
+	menu->Append(IDM_INSERTNOP, StrToWxStr("Insert &nop"));
+	menu->Append(IDM_PATCHALERT, StrToWxStr("Patch alert"));
 	PopupMenu(menu);
 	event.Skip(true);
 }
@@ -489,7 +490,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 					dc.SetTextForeground(_T("#000000"));
 				}
 
-				dc.DrawText(wxString::FromAscii(dis2), 17 + 17*charWidth, rowY1);
+				dc.DrawText(StrToWxStr(dis2), 17 + 17*charWidth, rowY1);
 				// ------------
 			}
 
@@ -499,7 +500,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			else
 				dc.SetTextForeground(_T("#8000FF")); // purple
 
-			dc.DrawText(wxString::FromAscii(dis), 17 + (plain ? 1*charWidth : 9*charWidth), rowY1);
+			dc.DrawText(StrToWxStr(dis), 17 + (plain ? 1*charWidth : 9*charWidth), rowY1);
 
 			if (desc[0] == 0)
 			{
@@ -513,7 +514,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 				//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
 				if (strlen(desc))
 				{
-					dc.DrawText(wxString::FromAscii(desc), 17 + 35 * charWidth, rowY1);
+					dc.DrawText(StrToWxStr(desc), 17 + 35 * charWidth, rowY1);
 				}
 			}
 

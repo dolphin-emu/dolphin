@@ -754,7 +754,8 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 {
     int disable_text = 0; // modified by Hermes
 
-	std::ifstream fsrc(fname);
+	std::ifstream fsrc;
+	OpenFStream(fsrc, fname, std::ios_base::in);
 
 	if (fsrc.fail())
 	{

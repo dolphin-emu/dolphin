@@ -35,15 +35,9 @@ class CBannerLoaderWii
 
 		virtual bool GetBanner(u32* _pBannerImage);
 
-		virtual bool GetName(std::string* _rName);
-
-		bool GetName(std::vector<std::wstring>&  _rNames);
-
-		virtual bool GetCompany(std::string& _rCompany);
-
-		virtual bool GetDescription(std::string* _rDescription);
-
-		bool GetDescription(std::wstring& _rDescription);
+		virtual std::vector<std::string> GetNames();
+		virtual std::string GetCompany();
+		virtual std::vector<std::string> GetDescriptions();
 
 	private:
 		
@@ -81,7 +75,6 @@ class CBannerLoaderWii
 		void decode5A3image(u32* dst, u16* src, int width, int height);
 
 		bool GetStringFromComments(const CommentIndex index, std::string& s);
-		bool GetStringFromComments(const CommentIndex index, std::wstring& s);
 };
 } // namespace
 

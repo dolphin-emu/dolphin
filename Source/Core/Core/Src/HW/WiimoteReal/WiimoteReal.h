@@ -91,7 +91,7 @@ public:
 	int int_sock;						// Interrupt socket
 
 #elif defined(_WIN32)
-	std::string devicepath;				// Unique wiimote reference
+	std::basic_string<TCHAR> devicepath;	// Unique wiimote reference
 	//ULONGLONG btaddr;					// Bluetooth address
 	HANDLE dev_handle;					// HID handle
 	OVERLAPPED hid_overlap_read, hid_overlap_write;	// Overlap handle

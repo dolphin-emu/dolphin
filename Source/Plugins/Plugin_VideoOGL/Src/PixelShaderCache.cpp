@@ -264,7 +264,8 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 		static int num_failures = 0;
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sbad_ps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-		std::ofstream file(szTemp);
+		std::ofstream file;
+		OpenFStream(file, szTemp, std::ios_base::out);
 		file << pstrprogram;
 		file.close();
 

@@ -69,7 +69,8 @@ bool SaveTGA(const char* filename, int width, int height, void* pdata)
 
 bool SaveData(const char* filename, const char* data)
 {
-	std::ofstream f(filename, std::ios::binary);
+	std::ofstream f;
+	OpenFStream(f, filename, std::ios::binary);
 	f << data;
 
 	return true;

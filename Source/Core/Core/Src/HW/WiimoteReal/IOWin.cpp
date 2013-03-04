@@ -17,7 +17,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <regex>
 #include <algorithm>
 #include <unordered_map>
 #include <ctime>
@@ -87,7 +86,7 @@ static int initialized = 0;
 std::unordered_map<BTH_ADDR, std::time_t> g_connect_times;
 
 #ifdef SHARE_WRITE_WIIMOTES
-std::unordered_set<std::string> g_connected_wiimotes;
+std::unordered_set<std::basic_string<TCHAR>> g_connected_wiimotes;
 std::mutex g_connected_wiimotes_lock;
 #endif
 
@@ -495,9 +494,6 @@ int Wiimote::IOWrite(const u8* buf, int len)
 template <typename T>
 void ProcessWiimotes(bool new_scan, T& callback)
 {
-	// match strings like "Nintendo RVL-WBC-01", "Nintendo RVL-CNT-01", "Nintendo RVL-CNT-01-TR"
-	const std::wregex wiimote_device_name(L"Nintendo RVL-.*");
-
 	BLUETOOTH_DEVICE_SEARCH_PARAMS srch;
 	srch.dwSize = sizeof(srch);
 	srch.fReturnAuthenticated = true;
@@ -540,7 +536,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
 				DEBUG_LOG(WIIMOTE, "authed %i connected %i remembered %i ",
 						btdi.fAuthenticated, btdi.fConnected, btdi.fRemembered);
 
-				if (std::regex_match(btdi.szName, wiimote_device_name))
+				if (IsValidBluetoothName(UTF16ToUTF8(btdi.szName)))
 				{
 					callback(hRadio, radioInfo, btdi);
 				}

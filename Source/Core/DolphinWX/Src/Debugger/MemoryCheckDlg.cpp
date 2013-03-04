@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "../WxUtils.h"
 #include "MemoryCheckDlg.h"
 #include "Common.h"
 #include "StringUtil.h"
@@ -79,9 +80,9 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
 
 	u32 StartAddress, EndAddress;
 	bool EndAddressOK = EndAddressString.Len() &&
-		AsciiToHex(EndAddressString.mb_str(), EndAddress);
+		AsciiToHex(WxStrToStr(EndAddressString).c_str(), EndAddress);
 
-	if (AsciiToHex(StartAddressString.mb_str(), StartAddress) &&
+	if (AsciiToHex(WxStrToStr(StartAddressString).c_str(), StartAddress) &&
 		(OnRead || OnWrite) && (Log || Break))
 	{
 		TMemCheck MemCheck;

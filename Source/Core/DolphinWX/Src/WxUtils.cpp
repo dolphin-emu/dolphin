@@ -20,12 +20,14 @@
 #include <wx/wx.h>
 #include <wx/string.h>
 
+#include "WxUtils.h"
+
 namespace WxUtils {
 
 // Launch a file according to its mime type
 void Launch(const char *filename)
 {
-	if (! ::wxLaunchDefaultBrowser(wxString(filename, *wxConvCurrent)))
+	if (! ::wxLaunchDefaultBrowser(StrToWxStr(filename)))
 	{
 		// WARN_LOG
 	}
@@ -34,7 +36,7 @@ void Launch(const char *filename)
 // Launch an file explorer window on a certain path
 void Explore(const char *path)
 {
-	wxString wxPath = wxString(path, *wxConvCurrent);
+	wxString wxPath = StrToWxStr(path);
 	// Default to file
 	if (! wxPath.Contains(wxT("://")))
 	{
@@ -52,3 +54,14 @@ void Explore(const char *path)
 }
 
 }  // namespace
+
+std::string WxStrToStr(const wxString& str)
+{
+	return str.ToUTF8().data();
+}
+
+wxString StrToWxStr(const std::string& str)
+{
+	//return wxString::FromUTF8Unchecked(str.c_str());
+	return wxString::FromUTF8(str.c_str());
+}

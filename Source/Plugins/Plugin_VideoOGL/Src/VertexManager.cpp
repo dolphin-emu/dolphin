@@ -253,10 +253,12 @@ void VertexManager::vFlush()
 		// save the shaders
 		char strfile[255];
 		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
-		std::ofstream fps(strfile);
+		std::ofstream fps;
+		OpenFStream(fps, strfile, std::ios_base::out);
 		fps << ps->strprog.c_str();
 		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
-		std::ofstream fvs(strfile);
+		std::ofstream fvs;
+		OpenFStream(fvs, strfile, std::ios_base::out);
 		fvs << vs->strprog.c_str();
 	}
 
