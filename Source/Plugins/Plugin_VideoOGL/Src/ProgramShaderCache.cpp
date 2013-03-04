@@ -20,6 +20,7 @@
 #include "StreamBuffer.h"
 #include "Debugger.h"
 #include "Statistics.h"
+#include "ImageWrite.h"
 
 namespace OGL
 {

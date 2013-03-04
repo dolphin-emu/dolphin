@@ -304,13 +304,14 @@ void VertexManager::vFlush()
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) 
 	{
 		// save the shaders
+		ProgramShaderCache::PCacheEntry prog = ProgramShaderCache::GetShaderProgram();
 		char strfile[255];
 		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fps(strfile);
-		fps << ps->strprog.c_str();
+		fps << prog.shader.strpprog.c_str();
 		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fvs(strfile);
-		fvs << vs->strprog.c_str();
+		fvs << prog.shader.strvprog.c_str();
 	}
 
 	if (g_ActiveConfig.iLog & CONF_SAVETARGETS) 
