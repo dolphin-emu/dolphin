@@ -3,6 +3,7 @@
 #define _WIIMOTE_H_
 
 #include "../../InputCommon/Src/InputConfig.h"
+#include "ChunkFile.h"
 
 #define MAX_WIIMOTES	4
 
@@ -25,7 +26,7 @@ void Shutdown();
 void Initialize(void* const hwnd);
 
 unsigned int GetAttached();
-void DoState(unsigned char **ptr, int mode);
+void DoState(u8 **ptr, PointerWrap::Mode mode);
 void EmuStateChange(EMUSTATE_CHANGE newState);
 InputPlugin *GetPlugin();
 

@@ -32,6 +32,7 @@
 #include "Host.h" // Core
 #include "HW/Wiimote.h"
 
+#include "WxUtils.h"
 #include "Globals.h" // Local
 #include "Main.h"
 #include "ConfigManager.h"
@@ -211,7 +212,7 @@ bool DolphinApp::OnInit()
 	}
 
 #ifdef _WIN32
-	if (!wxSetWorkingDirectory(wxString(File::GetExeDirectory().c_str(), *wxConvCurrent)))
+	if (!wxSetWorkingDirectory(StrToWxStr(File::GetExeDirectory())))
 	{
 		INFO_LOG(CONSOLE, "set working directory failed");
 	}
@@ -246,7 +247,7 @@ bool DolphinApp::OnInit()
 
 	if (selectVideoBackend && videoBackendName != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
-			std::string(videoBackendName.mb_str());
+			WxStrToStr(videoBackendName);
 
 	if (selectAudioEmulation)
 	{
@@ -296,7 +297,7 @@ bool DolphinApp::OnInit()
 #endif
 
 	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY,
-				wxString::FromAscii(scm_rev_str),
+				StrToWxStr(scm_rev_str),
 				wxPoint(x, y), wxSize(w, h),
 				UseDebugger, BatchMode, UseLogger);
 	SetTopWindow(main_frame);
@@ -317,7 +318,7 @@ void DolphinApp::MacOpenFile(const wxString &fileName)
 	LoadFile = true;
 
 	if (m_afterinit == NULL)
-		main_frame->BootGame(std::string(FileToLoad.mb_str()));
+		main_frame->BootGame(WxStrToStr(FileToLoad));
 }
 
 void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
@@ -331,7 +332,7 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 	// First check if we have an exec command line.
 	if (LoadFile && FileToLoad != wxEmptyString)
 	{
-		main_frame->BootGame(std::string(FileToLoad.mb_str()));
+		main_frame->BootGame(WxStrToStr(FileToLoad));
 	}
 	// If we have selected Automatic Start, start the default ISO,
 	// or if no default ISO exists, start the last loaded ISO
@@ -418,7 +419,7 @@ void Host_SysMessage(const char *fmt, ...)
 	va_end(list);
 
 	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
-	//wxMessageBox(wxString::FromAscii(msg));
+	//wxMessageBox(StrToWxStr(msg));
 	PanicAlert("%s", msg);
 }
 
@@ -427,14 +428,13 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 #ifdef __WXGTK__
 	if (wxIsMainThread())
 #endif
-		return wxYES == wxMessageBox(wxString::FromUTF8(text), 
-				wxString::FromUTF8(caption),
+		return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
 				(yes_no) ? wxYES_NO : wxOK, wxGetActiveWindow());
 #ifdef __WXGTK__
 	else
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PANIC);
-		event.SetString(wxString::FromUTF8(caption) + wxT(":") + wxString::FromUTF8(text));
+		event.SetString(StrToWxStr(caption) + wxT(":") + StrToWxStr(text));
 		event.SetInt(yes_no);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 		main_frame->panic_event.Wait();
@@ -445,7 +445,7 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 
 std::string wxStringTranslator(const char *text)
 {
-	return (const char *)wxString(wxGetTranslation(wxString::From8BitData(text))).ToUTF8();
+	return WxStrToStr(wxGetTranslation(wxString::FromUTF8(text)));
 }
 
 // Accessor for the main window class
@@ -536,7 +536,7 @@ void Host_UpdateMainFrame()
 void Host_UpdateTitle(const char* title)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
-	event.SetString(wxString::FromAscii(title));
+	event.SetString(StrToWxStr(title));
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
@@ -603,7 +603,7 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
 	// Set the event string
-	event.SetString(wxString::FromAscii(_pText));
+	event.SetString(StrToWxStr(_pText));
 	// Update statusbar field
 	event.SetInt(Field);
 	// Post message

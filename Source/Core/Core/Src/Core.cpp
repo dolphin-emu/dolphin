@@ -54,7 +54,6 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
 #include "PowerPC/PowerPC.h"
-#include "PowerPC/JitCommon/JitBase.h"
 
 #include "DSPEmulator.h"
 #include "ConfigManager.h"
@@ -140,7 +139,7 @@ void DisplayMessage(const char *message, int time_in_ms)
 	if (_CoreParameter.bRenderToMain &&
 		SConfig::GetInstance().m_InterfaceStatusbar)
 	{
-		Host_UpdateStatusBar(message);
+			Host_UpdateStatusBar(message);
 	}
 	else
 		Host_UpdateTitle(message);
@@ -189,7 +188,7 @@ bool IsGPUThread()
 		return IsCPUThread();
 	}
 }
-	
+
 // This is called from the GUI thread. See the booting call schedule in
 // BootManager.cpp
 bool Init()
@@ -310,7 +309,7 @@ void CpuThread()
 		g_video_backend->Video_Prepare();
 	}
 
-	#if defined(_M_X64)
+	#if defined(_M_X64) || _M_ARM
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
 

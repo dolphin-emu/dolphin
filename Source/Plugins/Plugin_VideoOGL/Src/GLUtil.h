@@ -69,7 +69,7 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #define GL_REPORT_PROGRAM_ERROR() (void)0
 #endif
 
-#if defined __APPLE__ || defined __linux__ || defined _WIN32
+#if (defined __APPLE__ || defined __linux__ || defined _WIN32) && !(defined _M_ARM)
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
 #define HAVE_CG 1

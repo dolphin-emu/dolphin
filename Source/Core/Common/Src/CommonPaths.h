@@ -36,6 +36,9 @@
 	// You can use the File::GetUserPath() util for this
 	#define USERDATA_DIR "Contents/Resources/User"
 	#define DOLPHIN_DATA_DIR "Library/Application Support/Dolphin"
+#elif defined ANDROID
+	#define USERDATA_DIR "user"
+	#define DOLPHIN_DATA_DIR "/sdcard/dolphin-emu"
 #else
 	#define USERDATA_DIR "user"
 	#ifdef USER_DIR
@@ -52,6 +55,8 @@
 	#define SYSDATA_DIR "Contents/Resources/Sys"
 	#define SHARED_USER_DIR	File::GetBundleDirectory() + \
 				DIR_SEP USERDATA_DIR DIR_SEP
+#elif defined ANDROID
+	#define SYSDATA_DIR "/sdcard/dolphin-emu"	
 #else
 	#ifdef DATA_DIR
 		#define SYSDATA_DIR DATA_DIR "sys"

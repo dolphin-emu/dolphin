@@ -27,6 +27,10 @@
 #include <unistd.h>
 #include <cerrno>
 #include <cstring>
+#ifdef ANDROID
+#include <sys/ioctl.h>
+#include <linux/ashmem.h>
+#endif
 #endif
 
 #if defined(__APPLE__)
@@ -34,11 +38,41 @@ static const char* ram_temp_file = "/tmp/gc_mem.tmp";
 #elif !defined(_WIN32) // non OSX unixes
 static const char* ram_temp_file = "/dev/shm/gc_mem.tmp";
 #endif
+#ifdef ANDROID
+#define ASHMEM_DEVICE "/dev/ashmem"
+
+int AshmemCreateFileMapping(const char *name, size_t size)
+{
+	int fd, ret;
+	fd = open(ASHMEM_DEVICE, O_RDWR);
+	if (fd < 0)
+		return fd;
+	
+	// We don't really care if we can't set the name, it is optional	
+	ret = ioctl(fd, ASHMEM_SET_NAME, name);
+	
+	ret = ioctl(fd, ASHMEM_SET_SIZE, size);
+	if (ret < 0)
+	{
+		close(fd);
+		NOTICE_LOG(MEMMAP, "Ashmem returned error: 0x%08x", ret);
+		return ret;
+	}
+	return fd;
+}
+#endif
 
 void MemArena::GrabLowMemSpace(size_t size)
 {
 #ifdef _WIN32
 	hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, (DWORD)(size), NULL);
+#elif defined(ANDROID)
+	fd = AshmemCreateFileMapping("Dolphin-emu", size);
+	if (fd < 0)
+	{
+		NOTICE_LOG(MEMMAP, "Ashmem allocation failed");
+		return;
+	}
 #else
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 	fd = open(ram_temp_file, O_RDWR | O_CREAT, mode);

@@ -69,6 +69,7 @@ bool Keyboard::UpdateInput()
 			CGRectMakeWithDictionaryRepresentation(boundsDictionary, &bounds);
 	}
 
+	CFRelease(windowDescriptions);
 	CFRelease(windowArray);
 
 	CGEventRef event = CGEventCreate(nil);

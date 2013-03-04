@@ -20,6 +20,7 @@
 #include <wx/spinctrl.h>
 
 #include "MsgHandler.h"
+#include "WxUtils.h"
 
 template <typename W>
 class BoolSetting : public W
@@ -99,7 +100,7 @@ protected:
 			else
 			{
 				// Select current backend again
-				choice_backend->SetStringSelection(wxString::FromAscii(g_video_backend->GetName().c_str()));
+				choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName()));
 			}
 		}
 
@@ -129,7 +130,7 @@ protected:
 	{
 		const int sel = ev.GetInt();
 		if (sel)
-			vconfig.sPostProcessingShader = ev.GetString().mb_str();
+			vconfig.sPostProcessingShader = WxStrToStr(ev.GetString());
 		else
 			vconfig.sPostProcessingShader.clear();
 

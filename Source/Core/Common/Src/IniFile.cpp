@@ -25,6 +25,7 @@
 #include <fstream>
 #include <algorithm>
 
+#include "FileUtil.h"
 #include "StringUtil.h"
 #include "IniFile.h"
 
@@ -400,7 +401,7 @@ bool IniFile::Load(const char* filename)
 
 	// Open file
 	std::ifstream in;
-	in.open(filename, std::ios::in);
+	OpenFStream(in, filename, std::ios::in);
 
 	if (in.fail()) return false;
 
@@ -452,7 +453,7 @@ bool IniFile::Load(const char* filename)
 bool IniFile::Save(const char* filename)
 {
 	std::ofstream out;
-	out.open(filename, std::ios::out);
+	OpenFStream(out, filename, std::ios::out);
 
 	if (out.fail())
 	{

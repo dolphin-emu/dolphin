@@ -137,7 +137,7 @@ void SConfig::SaveSettings()
 	ini.Get("General", "GCMPathes", &oldPaths, 0);
 	for (int i = numPaths; i < oldPaths; i++)
 	{
-		TCHAR tmp[16];
+		char tmp[16];
 		sprintf(tmp, "GCMPath%i", i);
 		ini.DeleteKey("General", tmp);
 	}
@@ -146,7 +146,7 @@ void SConfig::SaveSettings()
 
 	for (int i = 0; i < numPaths; i++)
 	{
-		TCHAR tmp[16];
+		char tmp[16];
 		sprintf(tmp, "GCMPath%i", i);
 		ini.Set("General", tmp, m_ISOFolder[i]);
 	}
@@ -284,7 +284,7 @@ void SConfig::LoadSettings()
 		{
 			for (int i = 0; i < numGCMPaths; i++)
 			{
-				TCHAR tmp[16];
+				char tmp[16];
 				sprintf(tmp, "GCMPath%i", i);
 				std::string tmpPath;
 				ini.Get("General", tmp, &tmpPath, "");
@@ -362,7 +362,11 @@ void SConfig::LoadSettings()
 
 		// Core
 		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		false);
+#ifdef _M_ARM
+		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		3);
+#else
 		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		1);
+#endif
 		ini.Get("Core", "DSPThread",	&m_LocalCoreStartupParameter.bDSPThread,	false);
 		ini.Get("Core", "DSPHLE",		&m_LocalCoreStartupParameter.bDSPHLE,		true);
 		ini.Get("Core", "CPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);

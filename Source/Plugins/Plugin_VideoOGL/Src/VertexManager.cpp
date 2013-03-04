@@ -40,6 +40,7 @@
 #include "OpcodeDecoding.h"
 #include "FileUtil.h"
 #include "Debugger.h"
+#include "PerfQueryBase.h"
 
 #include "main.h"
 
@@ -213,7 +214,10 @@ void VertexManager::vFlush()
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
 
+	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw();
+	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+	//ERROR_LOG(VIDEO, "PerfQuery result: %d", g_perf_query->GetQueryResult(bpmem.zcontrol.early_ztest ? PQ_ZCOMP_OUTPUT_ZCOMPLOC : PQ_ZCOMP_OUTPUT));
 
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
@@ -243,10 +247,12 @@ void VertexManager::vFlush()
 		// save the shaders
 		char strfile[255];
 		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
-		std::ofstream fps(strfile);
+		std::ofstream fps;
+		OpenFStream(fps, strfile, std::ios_base::out);
 		fps << ps->strprog.c_str();
 		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
-		std::ofstream fvs(strfile);
+		std::ofstream fvs;
+		OpenFStream(fvs, strfile, std::ios_base::out);
 		fvs << vs->strprog.c_str();
 	}
 

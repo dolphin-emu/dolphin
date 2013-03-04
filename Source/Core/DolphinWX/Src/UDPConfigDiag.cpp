@@ -4,6 +4,8 @@
 #include "Common.h"
 #include "ControllerEmu.h"
 #include "IniFile.h"
+#include "WxUtils.h"
+
 #include <string>
 
 UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
@@ -26,7 +28,7 @@ UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 
 	wxBoxSizer *const port_sizer = new wxBoxSizer(wxHORIZONTAL);
 	port_sizer->Add(new wxStaticText(this, wxID_ANY, _("UDP Port:")), 0, wxALIGN_CENTER);
-	port_tbox = new wxTextCtrl(this, wxID_ANY, wxString::FromUTF8(wrp->port.c_str()));
+	port_tbox = new wxTextCtrl(this, wxID_ANY, StrToWxStr(wrp->port));
 	port_sizer->Add(port_tbox, 1, wxLEFT | wxEXPAND, 5);
 
 	enable->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeState, this);
@@ -71,7 +73,7 @@ void UDPConfigDiag::ChangeUpdateFlags(wxCommandEvent & WXUNUSED(event))
 
 void UDPConfigDiag::ChangeState(wxCommandEvent & WXUNUSED(event))
 {
-	wrp->udpEn=enable->GetValue();
-	wrp->port=port_tbox->GetValue().mb_str(wxConvUTF8);
+	wrp->udpEn = enable->GetValue();
+	wrp->port = WxStrToStr(port_tbox->GetValue());
 	wrp->Refresh();
 }

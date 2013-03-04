@@ -35,7 +35,7 @@
 #define BACKEND_OPENAL		"OpenAL"
 #define BACKEND_PULSEAUDIO	"Pulse"
 #define BACKEND_XAUDIO2		"XAudio2"
-
+#define BACKEND_OPENSLES	"OpenSLES"
 struct SConfig : NonCopyable
 {
 	// Wii Devices

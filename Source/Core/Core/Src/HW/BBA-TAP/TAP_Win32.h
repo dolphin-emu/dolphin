@@ -65,18 +65,18 @@
 // Registry keys
 //=================
 
-#define ADAPTER_KEY "SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}"
+#define ADAPTER_KEY _T("SYSTEM\\CurrentControlSet\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002BE10318}")
 
-#define NETWORK_CONNECTIONS_KEY "SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}"
+#define NETWORK_CONNECTIONS_KEY _T("SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}")
 
 //======================
 // Filesystem prefixes
 //======================
 
-#define USERMODEDEVICEDIR "\\\\.\\Global\\"
-#define SYSDEVICEDIR      "\\Device\\"
-#define USERDEVICEDIR     "\\DosDevices\\Global\\"
-#define TAPSUFFIX         ".tap"
+#define USERMODEDEVICEDIR _T("\\\\.\\Global\\")
+#define SYSDEVICEDIR      _T("\\Device\\")
+#define USERDEVICEDIR     _T("\\DosDevices\\Global\\")
+#define TAPSUFFIX         _T(".tap")
 
 //=========================================================
 // TAP_COMPONENT_ID -- This string defines the TAP driver
@@ -84,4 +84,4 @@
 // simultaneously.
 //=========================================================
 
-#define TAP_COMPONENT_ID "tap0901"
+#define TAP_COMPONENT_ID _T("tap0901")

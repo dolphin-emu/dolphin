@@ -17,6 +17,7 @@
 
 #include "ARCodeAddEdit.h"
 #include "ARDecrypt.h"
+#include "WxUtils.h"
 
 extern std::vector<ActionReplay::ARCode> arCodes;
 
@@ -38,7 +39,7 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 	}
 	else
 	{
-		currentName = wxString(arCodes.at(selection).name.c_str(), *wxConvCurrent);
+		currentName = StrToWxStr(arCodes.at(selection).name);
 		tempEntries = arCodes.at(selection);
 	}
 
@@ -73,7 +74,7 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)
 {
 	ActionReplay::ARCode currentCode = arCodes.at((int)arCodes.size() - event.GetPosition());
-	EditCheatName->SetValue(wxString(currentCode.name.c_str(), *wxConvCurrent));
+	EditCheatName->SetValue(StrToWxStr(currentCode.name));
 	UpdateTextCtrl(currentCode);
 }
 
@@ -84,7 +85,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 
 	// Split the entered cheat into lines.
 	std::vector<std::string> userInputLines;
-	SplitString(std::string(EditCheatCode->GetValue().mb_str()), '\n', userInputLines);
+	SplitString(WxStrToStr(EditCheatCode->GetValue()), '\n', userInputLines);
 
 	for (size_t i = 0;  i < userInputLines.size();  i++)
 	{
@@ -148,7 +149,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 		// Add a new AR cheat code.
 		ActionReplay::ARCode newCheat;
 
-		newCheat.name = std::string(EditCheatName->GetValue().mb_str());
+		newCheat.name = WxStrToStr(EditCheatName->GetValue());
 		newCheat.ops = decryptedLines;
 		newCheat.active = true;
 
@@ -157,7 +158,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 	else
 	{
 		// Update the currently-selected AR cheat code.
-		arCodes.at(selection).name = std::string(EditCheatName->GetValue().mb_str());
+		arCodes.at(selection).name = WxStrToStr(EditCheatName->GetValue());
 		arCodes.at(selection).ops = decryptedLines;
 	}
 

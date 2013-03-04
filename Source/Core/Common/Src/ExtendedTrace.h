@@ -26,15 +26,14 @@
 
 #define EXTENDEDTRACEINITIALIZE( IniSymbolPath )	InitSymInfo( IniSymbolPath )
 #define EXTENDEDTRACEUNINITIALIZE()			        UninitSymInfo()
-#define STACKTRACE(file)							StackTrace( GetCurrentThread(), _T(""), file)
-#define STACKTRACE2(file, eip, esp, ebp) StackTrace(GetCurrentThread(), _T(""), file, eip, esp, ebp)
+#define STACKTRACE(file)							StackTrace( GetCurrentThread(), "", file)
+#define STACKTRACE2(file, eip, esp, ebp) StackTrace(GetCurrentThread(), "", file, eip, esp, ebp)
 // class File;
 
 BOOL InitSymInfo( PCSTR );
 BOOL UninitSymInfo();
-void StackTrace( HANDLE, LPCTSTR, FILE *file);
-void StackTrace( HANDLE, LPCTSTR, FILE *file, DWORD eip, DWORD esp, DWORD ebp);
-void StackTrace( HANDLE hThread, wchar_t const* lpszMessage, FILE *file, DWORD eip, DWORD esp, DWORD ebp);
+void StackTrace(HANDLE, char const* msg, FILE *file);
+void StackTrace(HANDLE, char const* msg, FILE *file, DWORD eip, DWORD esp, DWORD ebp);
 
 // functions by Masken
 void etfprintf(FILE *file, const char *format, ...);

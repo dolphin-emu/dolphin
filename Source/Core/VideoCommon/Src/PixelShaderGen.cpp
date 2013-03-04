@@ -252,7 +252,8 @@ void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::
 			static int num_failures = 0;
 			char szTemp[MAX_PATH];
 			sprintf(szTemp, "%spsuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-			std::ofstream file(szTemp);
+			std::ofstream file;
+			OpenFStream(file, szTemp, std::ios_base::out);
 			file << msg;
 			file << "\n\nOld shader code:\n" << old_code;
 			file << "\n\nNew shader code:\n" << new_code;

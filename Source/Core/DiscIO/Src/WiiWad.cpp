@@ -49,7 +49,8 @@ WiiWAD::WiiWAD(const std::string& _rName)
     if (pReader == NULL || File::IsDirectory(_rName))
 	{
 		m_Valid = false;
-		return;
+        if(pReader) delete pReader;
+        return;
 	}
 
 	m_Valid = ParseWAD(*pReader);

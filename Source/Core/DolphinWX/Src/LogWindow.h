@@ -75,8 +75,6 @@ private:
 
 	std::mutex m_LogSection;
 
-	wxCSConv m_SJISConv;
-
 	DECLARE_EVENT_TABLE()
 
 	wxTextCtrl * CreateTextCtrl(wxPanel* parent, wxWindowID id = wxID_ANY, long Style = NULL);
