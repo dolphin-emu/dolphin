@@ -37,6 +37,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "FileUtil.h"
+
 /*
  * 32-bit integer manipulation macros (little endian)
  */
@@ -301,7 +303,10 @@ int md5_file( char *path, unsigned char output[16] )
     md5_context ctx;
     unsigned char buf[1024];
 
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+	File::IOFile file(path, "rb");
+	f = file.GetHandle();
+
+    if (f == NULL)
         return( 1 );
 
     md5_starts( &ctx );
@@ -315,11 +320,9 @@ int md5_file( char *path, unsigned char output[16] )
 
     if( ferror( f ) != 0 )
     {
-        fclose( f );
         return( 2 );
     }
 
-    fclose( f );
     return( 0 );
 }
 
