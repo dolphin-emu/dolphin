@@ -22,6 +22,7 @@
 #include "NetPlay.h"
 #include "NetWindow.h"
 #include "Frame.h"
+#include "ConfigManager.h"
 
 #include <sstream>
 #include <string>
