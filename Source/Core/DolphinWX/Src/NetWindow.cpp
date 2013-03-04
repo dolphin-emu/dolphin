@@ -22,7 +22,6 @@
 #include "NetPlay.h"
 #include "NetWindow.h"
 #include "Frame.h"
-#include "ConfigManager.h"
 
 #include <sstream>
 #include <string>
@@ -39,11 +38,14 @@ NetPlayDiag *NetPlayDiag::npd = NULL;
 
 std::string BuildGameName(const GameListItem& game)
 {
-	auto const selected_lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	// Lang needs to be consistent
+	auto const lang = 0;
 	
-	// TODO: this should use the name from the volume not the banner
-	// (I seems banner name can sometimes depend on save contents)
-	return game.GetName(selected_lang) + " (" + game.GetUniqueID() + ")";
+	std::string name(game.GetBannerName(lang));
+	if (name.empty())
+		name = game.GetVolumeName(lang);
+	
+	return name + " (" + game.GetUniqueID() + ")";
 }
 
 void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)

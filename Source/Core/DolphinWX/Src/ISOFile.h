@@ -37,6 +37,8 @@ public:
 
 	bool IsValid() const {return m_Valid;}
 	const std::string& GetFileName() const {return m_FileName;}
+	std::string GetBannerName(int index) const;
+	std::string GetVolumeName(int index) const;
 	std::string GetName(int index) const;
 	std::string GetCompany() const;
 	std::string GetDescription(int index = 0) const;

@@ -226,28 +226,50 @@ std::string GameListItem::GetDescription(int _index) const
 }
 
 // (-1 = Japanese, 0 = English, etc)
-std::string GameListItem::GetName(int _index) const
+std::string GameListItem::GetVolumeName(int _index) const
 {
 	u32 const index = _index + 1;
 
-	// banner name
-	if (index < m_names.size() && !m_names[index].empty())
-		return m_names[index];
-	
-	if (!m_names.empty() && !m_names[0].empty())
-		return m_names[0];
-
-	// volume name
 	if (index < m_volume_names.size() && !m_volume_names[index].empty())
 		return m_volume_names[index];
 
-	if (!m_volume_names.empty() && !m_volume_names[0].empty())
+	if (!m_volume_names.empty())
 		return m_volume_names[0];
+	
+	return "";
+}
 
-	// No usable name, return filename (better than nothing)
-	std::string FileName;
-	SplitPath(m_FileName, NULL, &FileName, NULL);
-	return FileName;
+// (-1 = Japanese, 0 = English, etc)
+std::string GameListItem::GetBannerName(int _index) const
+{
+	u32 const index = _index + 1;
+
+	if (index < m_names.size() && !m_names[index].empty())
+		return m_names[index];
+	
+	if (!m_names.empty())
+		return m_names[0];
+
+	return "";
+}
+
+// (-1 = Japanese, 0 = English, etc)
+std::string GameListItem::GetName(int _index) const
+{
+	// Prefer name from banner, fallback to name from volume, fallback to filename
+	
+	std::string name = GetBannerName(_index);
+	
+	if (name.empty())
+		name = GetVolumeName(_index);
+
+	if (name.empty())
+	{
+		// No usable name, return filename (better than nothing)
+		SplitPath(GetFileName(), NULL, &name, NULL);
+	}
+
+	return name;
 }
 
 const std::string GameListItem::GetWiiFSPath() const

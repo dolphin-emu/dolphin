@@ -1301,28 +1301,25 @@ void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 
 void CISOProperties::ChangeBannerDetails(int lang)
 {
-	std::string name;
-	wxString shortName,
-			 comment,
-			 maker;
-
+	// why?
 	switch (OpenGameListItem->GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
 	case DiscIO::IVolume::COUNTRY_JAPAN:
-		shortName = StrToWxStr(OpenGameListItem->GetName(-1));
-		comment = StrToWxStr(OpenGameListItem->GetDescription());
+		lang = -1;
 		break;
+		
 	case DiscIO::IVolume::COUNTRY_USA:
-		// why?
 		lang = 0;
+		break;
+		
 	default:
-		shortName = StrToWxStr(OpenGameListItem->GetName(lang));
-		comment = StrToWxStr(OpenGameListItem->GetDescription(lang));
 		break;
 	}
-
-	maker = StrToWxStr(OpenGameListItem->GetCompany());
+	
+	wxString const shortName = StrToWxStr(OpenGameListItem->GetBannerName(lang));
+	wxString const comment = StrToWxStr(OpenGameListItem->GetDescription(lang));
+	wxString const maker = StrToWxStr(OpenGameListItem->GetCompany());
 
 	// Updates the informations shown in the window
 	m_ShortName->SetValue(shortName);
