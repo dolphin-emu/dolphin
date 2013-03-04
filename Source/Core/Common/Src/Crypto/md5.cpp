@@ -37,7 +37,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "FileUtil.h"
+#include "../FileUtil.h"
 
 /*
  * 32-bit integer manipulation macros (little endian)

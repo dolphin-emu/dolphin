@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "CPUDetect.h"
 #include "StringUtil.h"
+#include "FileUtil.h"
 
 const char procfile[] = "/proc/cpuinfo";
 
@@ -27,9 +28,9 @@ char *GetCPUString()
 	char *cpu_string = 0;
 	// Count the number of processor lines in /proc/cpuinfo
 	char buf[1024];
-	FILE *fp;
 
-	fp = fopen(procfile, "r");
+	File::IOFile file(procfile, "r");
+	auto const fp = file.GetHandle();
 	if (!fp)
 		return 0;
 	
@@ -47,9 +48,9 @@ bool CheckCPUFeature(const char *feature)
 {
 	const char marker[] = "Features\t: ";
 	char buf[1024];
-	FILE *fp;
-
-	fp = fopen(procfile, "r");
+	
+	File::IOFile file(procfile, "r");
+	auto const fp = file.GetHandle();
 	if (!fp)
 		return 0;
 	
@@ -73,9 +74,9 @@ int GetCoreCount()
 	const char marker[] = "processor\t: ";
 	int cores = 0;
 	char buf[1024];
-	FILE *fp;
-
-	fp = fopen(procfile, "r");
+	
+	File::IOFile file(procfile, "r");
+	auto const fp = file.GetHandle();
 	if (!fp)
 		return 0;
 	
