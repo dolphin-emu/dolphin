@@ -152,18 +152,17 @@ float MathFloatVectorSum(const std::vector<float>&);
 #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
 #define ROUND_DOWN(x, a)	((x) & ~((a) - 1))
 
-template <typename T>
-T Log2(T val)
+// Rounds down. 0 -> undefined
+inline u64 Log2(u64 val)
 {
-#if defined(_M_X64)
-	T result;
-	asm
-	(
-		"bsr %1, %0"
-		: "=r"(result)
-		: "r"(val)
-	);
+#if defined(__GNUC__)
+	return 63 - __builtin_clzll(val);
+	
+#elif defined(_MSC_VER)
+	unsigned long result = -1;
+	_BitScanReverse64(&result, val);
 	return result;
+	
 #else
 	T result = -1;
 	while (val != 0)
