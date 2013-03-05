@@ -33,9 +33,6 @@ std::string HLE_IPC_BuildFilename(std::string path_wii, int _size)
 {
 	std::string path_full = File::GetUserPath(D_WIIROOT_IDX);
 
-	if ((path_wii.length() > 0) && (path_wii[1] == '0'))
-		path_full += std::string("/title"); // this looks and feel like a hack...
-
 	// Replaces chars that FAT32 can't support with strings defined in /sys/replace
 	for (auto i = replacements.begin(); i != replacements.end(); ++i)
 	{
@@ -46,39 +43,6 @@ std::string HLE_IPC_BuildFilename(std::string path_wii, int _size)
 	path_full += path_wii;
 
 	return path_full;
-}
-
-void HLE_IPC_CreateVirtualFATFilesystem()
-{
-	const int cdbSize = 0x01400000;
-	const std::string cdbPath = Common::GetTitleDataPath(TITLEID_SYSMENU) + "cdb.vff";
-	if ((int)File::GetSize(cdbPath) < cdbSize)
-	{
-		// cdb.vff is a virtual Fat filesystem created on first launch of sysmenu
-		// we create it here as it is faster ~3 minutes for me when sysmenu does it ~1 second created here
-		const u8 cdbHDR[0x20] = {'V', 'F', 'F', 0x20, 0xfe, 0xff, 1, 0, 1, 0x40, 0, 0, 0, 0x20};
-		const u8 cdbFAT[4] = {0xf0, 0xff, 0xff, 0xff};
-
-		File::IOFile cdbFile(cdbPath, "wb");
-		if (cdbFile)
-		{
-			cdbFile.WriteBytes(cdbHDR, 0x20);
-			cdbFile.WriteBytes(cdbFAT, 0x4);
-			cdbFile.Seek(0x14020, SEEK_SET);
-			cdbFile.WriteBytes(cdbFAT, 0x4);
-			// 20 MiB file
-			cdbFile.Seek(cdbSize - 1, SEEK_SET);
-			// write the final 0 to 0 file from the second FAT to 20 MiB
-			cdbFile.WriteBytes(cdbHDR + 14, 1);
-			if (!cdbFile.IsGood())
-			{
-				cdbFile.Close();
-				File::Delete(cdbPath);
-			}
-			cdbFile.Flush();
-			cdbFile.Close();
-		}
-	}
 }
 
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName)
@@ -139,82 +103,81 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
-File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
+// Opens file if needed.
+// Clears any error state.
+// Seeks to proper position position.
+void CWII_IPC_HLE_Device_FileIO::PrepareFile()
 {
-	const char* open_mode = "";
-	
-	switch (m_Mode)
+	if (!m_file.IsOpen())
 	{
-	case ISFS_OPEN_READ:
-		open_mode = "rb";
-		break;
-	
-	case ISFS_OPEN_WRITE:
-	case ISFS_OPEN_RW:
-		open_mode = "r+b";
-		break;
-	
-	default:
-		PanicAlertT("FileIO: Unknown open mode : 0x%02x", m_Mode);
-		break;
+		const char* open_mode = "";
+		
+		switch (m_Mode)
+		{
+		case ISFS_OPEN_READ:
+			open_mode = "rb";
+			break;
+		
+		case ISFS_OPEN_WRITE:
+		case ISFS_OPEN_RW:
+			open_mode = "r+b";
+			break;
+		
+		default:
+			PanicAlertT("FileIO: Unknown open mode : 0x%02x", m_Mode);
+			break;
+		}
+		
+		m_file.Open(m_filepath, open_mode);
 	}
 	
-	return File::IOFile(m_filepath, open_mode);
+	m_file.Clear();
+	m_file.Seek(m_SeekPos, SEEK_SET);
 }
 
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 {
 	u32 ReturnValue	= FS_RESULT_FATAL;
-	const u32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
+	const u32 SeekOffset = Memory::Read_U32(_CommandAddress + 0xC);
 	const u32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
 
-	if (auto file = OpenFile())
+	PrepareFile();
+	if (m_file)
 	{
 		ReturnValue = FS_RESULT_FATAL;
 
-		const u64 fileSize = file.GetSize();
-		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), fileSize);
+		const u64 fileSize = m_file.GetSize();
+		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekOffset, Mode, m_Name.c_str(), fileSize);
+		u64 wantedPos = 0;
 		switch (Mode)
 		{
-			case 0:
-			{
-				if (SeekPosition <= fileSize)
-				{
-					m_SeekPos = SeekPosition;
-					ReturnValue = m_SeekPos;
-				}
-				break;
-			}
-			case 1:
-			{
-				u32 wantedPos = SeekPosition+m_SeekPos;
-				if (wantedPos <= fileSize)
-				{
-					m_SeekPos = wantedPos;
-					ReturnValue = m_SeekPos;
-				}
-				break;
-			}
-			case 2:
-			{
-				u64 wantedPos = fileSize+m_SeekPos;
-				if (wantedPos <= fileSize)
-				{
-					m_SeekPos = wantedPos;
-					ReturnValue = m_SeekPos;
-				}
-				break;
-			}
-			default:
-			{
-				PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
-				ReturnValue = FS_RESULT_FATAL;
-				break;
-			}
+		case 0:
+			wantedPos = SeekOffset;
+			break;
+			
+		case 1:
+			wantedPos = m_SeekPos + (s32)SeekOffset;
+			break;
+			
+		case 2:
+			wantedPos = fileSize + (s32)SeekOffset;
+			break;
+			
+		default:
+			PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
+			ReturnValue = FS_RESULT_FATAL;
+			break;
+		}
+		
+		if (wantedPos <= fileSize)
+		{
+			m_SeekPos = wantedPos;
+			ReturnValue = m_SeekPos;
 		}
 	}
 	else
 	{
+		// TODO: This can't be right.
 		ReturnValue = FS_FILE_NOT_EXIST;
 	}
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -227,9 +190,9 @@ bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 	u32 ReturnValue = FS_EACCESS;
 	const u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Read to this memory address
 	const u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
-
-
-	if (auto file = OpenFile())
+	
+	PrepareFile();
+	if (m_file)
 	{
 		if (m_Mode == ISFS_OPEN_WRITE)
 		{
@@ -238,9 +201,8 @@ bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 		else
 		{
 			INFO_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address, m_Name.c_str());
-			file.Seek(m_SeekPos, SEEK_SET);
-			ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, file.GetHandle());
-			if (ReturnValue != Size && ferror(file.GetHandle()))
+			ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, m_file.GetHandle());
+			if (ReturnValue != Size && ferror(m_file.GetHandle()))
 			{
 				ReturnValue = FS_EACCESS;
 			}
@@ -267,8 +229,8 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 	const u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Write data from this memory address
 	const u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
 
-
-	if (auto file = OpenFile())
+	PrepareFile();
+	if (m_file)
 	{
 		if (m_Mode == ISFS_OPEN_READ)
 		{
@@ -277,8 +239,7 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 		else
 		{
 			INFO_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", Size, Address, m_Name.c_str());
-			file.Seek(m_SeekPos, SEEK_SET);
-			if (file.WriteBytes(Memory::GetPointer(Address), Size))
+			if (m_file.WriteBytes(Memory::GetPointer(Address), Size))
 			{
 				ReturnValue = Size;
 				m_SeekPos += Size;
@@ -308,9 +269,10 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 	{
 	case ISFS_IOCTL_GETFILESTATS:
 		{
-			if (auto file = OpenFile())
+			PrepareFile();
+			if (m_file)
 			{
-				u32 m_FileLength = (u32)file.GetSize();
+				u32 m_FileLength = (u32)m_file.GetSize();
 
 				const u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 				INFO_LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
@@ -345,6 +307,7 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 
 	p.Do(m_Mode);
 	p.Do(m_SeekPos);
-	
+
+	m_file.Close();
 	m_filepath = HLE_IPC_BuildFilename(m_Name, 64);
 }
