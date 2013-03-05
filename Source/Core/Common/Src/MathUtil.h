@@ -152,6 +152,28 @@ float MathFloatVectorSum(const std::vector<float>&);
 #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
 #define ROUND_DOWN(x, a)	((x) & ~((a) - 1))
 
+template <typename T>
+T Log2(T val)
+{
+#if defined(_M_X64)
+	T result;
+	asm
+	(
+		"bsr %1, %0"
+		: "=r"(result)
+		: "r"(val)
+	);
+	return result;
+#else
+	T result = -1;
+	while (val != 0)
+	{
+		val >>= 1;
+		++result;
+	}
+	return result;
+#endif
+}
 
 // Tiny matrix/vector library.
 // Used for things like Free-Look in the gfx backend.

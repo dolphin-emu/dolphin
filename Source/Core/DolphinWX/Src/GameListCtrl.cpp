@@ -35,6 +35,7 @@
 #include "CDUtils.h"
 #include "WxUtils.h"
 #include "Main.h"
+#include "MathUtil.h"
 
 #include "../resources/Flag_Europe.xpm"
 #include "../resources/Flag_Germany.xpm"
@@ -380,26 +381,18 @@ void CGameListCtrl::Update()
 	SetFocus();
 }
 
-wxString NiceSizeFormat(s64 _size)
+wxString NiceSizeFormat(u64 _size)
 {
-	const char* sizes[] = {"b", "KB", "MB", "GB", "TB", "PB", "EB"};
-	int s = 0;
-	int frac = 0;
+	const char* const unit_symbols[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"};
+	
+	auto const unit = Log2(std::max<u64>(_size, 1)) / 10;
+	auto const unit_size = (1 << (unit * 10));
+	
+	// ugly rounding integer math
+	auto const value = (_size + unit_size / 2) / unit_size;
+	auto const frac = (_size % unit_size * 10 + unit_size / 2) / unit_size % 10;
 
-	while (_size > (s64)1024)
-	{
-		s++;
-		frac   = (int)_size & 1023;
-		_size /= (s64)1024;
-	}
-
-	float f = (float)_size + ((float)frac / 1024.0f);
-
-	wxString NiceString;
-	char tempstr[32];
-	sprintf(tempstr,"%3.1f %s", f, sizes[s]);
-	NiceString = StrToWxStr(tempstr);
-	return(NiceString);
+	return StrToWxStr(StringFromFormat("%llu.%llu %s", value, frac, unit_symbols[unit]));
 }
 
 void CGameListCtrl::InsertItemInReportView(long _Index)
