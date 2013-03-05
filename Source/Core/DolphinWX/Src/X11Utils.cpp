@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "X11Utils.h"
-#include "WxUtils.h"
 
 #include <unistd.h>
 #include <spawn.h>
@@ -27,6 +26,7 @@ extern char **environ;
 #if defined(HAVE_WX) && HAVE_WX
 #include <string>
 #include <algorithm>
+#include "WxUtils.h"
 #endif
 
 namespace X11Utils
