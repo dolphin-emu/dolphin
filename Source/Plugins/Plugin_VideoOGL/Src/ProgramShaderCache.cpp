@@ -497,14 +497,17 @@ void ProgramShaderCache::CreateHeader ( void )
 	// TODO: remove this again when the issue is fixed:
 	// see http://communities.intel.com/thread/36084
 	char *vendor = (char*)glGetString(GL_VENDOR);
-	bool intel_windows_hack = strcmp(vendor, "Intel") == 0;
+	bool glsl140_hack = strcmp(vendor, "Intel") == 0;
+#elif __APPLE__
+	// as apple doesn't support glsl130 at all, we also have to use glsl140
+	bool glsl140_hack = true;
 #else
-	bool intel_windows_hack = false;
+	bool glsl140_hack = false;
 #endif
 	
 	snprintf(s_glsl_header, sizeof(s_glsl_header), 
 		"#version %s\n"
-		"#extension GL_ARB_texture_rectangle : enable\n"
+		"%s\n" // tex_rect
 		"%s\n" // ubo
 		
 		"\n"// A few required defines and ones that will make our lives a lot easier
@@ -524,8 +527,9 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define lerp(x, y, z) mix(x, y, z)\n"
 		
 		
-		, intel_windows_hack ? "140" : "130"
-		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && !intel_windows_hack ? "#extension GL_ARB_uniform_buffer_object : enable" : "// ubo disabled"
+		, glsl140_hack ? "140" : "130"
+		, glsl140_hack ? "#define texture2DRect texture" : "#extension GL_ARB_texture_rectangle : enable"
+		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && !glsl140_hack ? "#extension GL_ARB_uniform_buffer_object : enable" : "// ubo disabled"
 	);
 }
 
