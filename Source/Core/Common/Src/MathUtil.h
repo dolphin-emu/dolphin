@@ -164,7 +164,7 @@ inline u64 Log2(u64 val)
 	return result;
 	
 #else
-	T result = -1;
+	u64 result = -1;
 	while (val != 0)
 	{
 		val >>= 1;
