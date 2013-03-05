@@ -90,7 +90,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		// wait for new slots to end of buffer
 		for(u32 i=SLOT(m_free_iterator)+1; i<=SLOT(iter_end) && i < SYNC_POINTS; i++)
 		{
-			glClientWaitSync(fences[i], 0, GL_TIMEOUT_IGNORED);
+			glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
 			glDeleteSync(fences[i]);
 		}
 		m_free_iterator = iter_end;
@@ -109,7 +109,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 			// wait for space at the start
 			for(u32 i=0; i<=SLOT(iter_end); i++)
 			{
-				glClientWaitSync(fences[i], 0, GL_TIMEOUT_IGNORED);
+				glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
 				glDeleteSync(fences[i]);
 			}
 			m_free_iterator = iter_end;
