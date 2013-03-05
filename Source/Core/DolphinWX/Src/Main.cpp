@@ -202,6 +202,7 @@ bool DolphinApp::OnInit()
 	wxHandleFatalExceptions(true);
 #endif
 
+#ifndef _M_ARM
 	// TODO: if First Boot
 	if (!cpu_info.bSSE2) 
 	{
@@ -210,6 +211,7 @@ bool DolphinApp::OnInit()
 				"Sayonara!\n");
 		return false;
 	}
+#endif
 
 #ifdef _WIN32
 	if (!wxSetWorkingDirectory(StrToWxStr(File::GetExeDirectory())))
