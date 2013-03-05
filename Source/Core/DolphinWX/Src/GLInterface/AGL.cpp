@@ -96,8 +96,8 @@ bool cInterfaceAGL::MakeCurrent()
 
 	width = [[GLWin.cocoaWin contentView] frame].size.width;
 	height = [[GLWin.cocoaWin contentView] frame].size.height;
-	if (width == s_backbuffer_width && height == s_backbuffer_height)
-		return true;
+	//if (width == s_backbuffer_width && height == s_backbuffer_height)
+	//	return true;
 
 	[GLWin.cocoaCtx setView: [GLWin.cocoaWin contentView]];
 	[GLWin.cocoaCtx update];
