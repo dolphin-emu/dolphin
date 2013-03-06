@@ -53,6 +53,21 @@ using std::function;
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
 
+struct CPUCore
+{
+	int CPUid;
+	const char *name;
+};
+const CPUCore CPUCores[] = {
+	{0, "Interpreter (VERY slow)"},
+#ifdef _M_ARM
+	{3, "Arm JIT (experimental)"},
+#else
+	{1, "JIT Recompiler (recommended)"},
+	{2, "JITIL experimental recompiler"},
+#endif
+};
+
 extern CFrame* main_frame;
 
 // keep these in sync with CConfigMain::InitializeGUILists
@@ -241,7 +256,6 @@ void CConfigMain::UpdateGUI()
 		PathsPage->Disable();
 	}
 }
-
 void CConfigMain::InitializeGUILists()
 {
 	// General page
@@ -253,10 +267,9 @@ void CConfigMain::InitializeGUILists()
 		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 
 	// Emulator Engine
-	arrayStringFor_CPUEngine.Add(_("Interpreter (VERY slow)"));
-	arrayStringFor_CPUEngine.Add(_("JIT Recompiler (recommended)"));
-	arrayStringFor_CPUEngine.Add(_("JITIL experimental recompiler"));
-	
+	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
+		arrayStringFor_CPUEngine.Add(_(CPUCores[a].name));
+		
 	// DSP Engine 
 	arrayStringFor_DSPEngine.Add(_("DSP HLE emulation (fast)"));
 	arrayStringFor_DSPEngine.Add(_("DSP LLE recompiler"));
@@ -329,7 +342,9 @@ void CConfigMain::InitializeGUIValues()
 	UseFPSForLimiting->SetValue(SConfig::GetInstance().b_UseFPS);
 
 	// General - Advanced
-	CPUEngine->SetSelection(startup_params.iCPUCore);
+	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
+		if (CPUCores[a].CPUid == startup_params.iCPUCore)
+			CPUEngine->SetSelection(a);
 	_NTSCJ->SetValue(startup_params.bForceNTSCJ);
 
 
@@ -888,7 +903,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	// Core - Advanced
 	case ID_CPUENGINE:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = CPUEngine->GetSelection();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = CPUCores[CPUEngine->GetSelection()].CPUid;
 		if (main_frame->g_pCodeWindow)
 			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore?false:true);
