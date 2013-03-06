@@ -421,12 +421,8 @@ static const char *tevRasTable[] =
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
 };
 
-//static const char *tevTexFunc[] = { "tex2D", "texRECT" };
-
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
-// TODO: Check values below
-static const char *tevIndWrapStart[]  = {"0.0f", "256.0f", "128.0f", "64.0f", "32.0f", "16.0f", "0.001f" };
 
 #define WRITE p+=sprintf
 
@@ -649,6 +645,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 		// The results of the last texenv stage are put onto the screen,
 		// regardless of the used destination register
+		// TODO: Is it really correct to use the last stage? VideoSW just uses the last "prev" value...
 		if(bpmem.combiners[numStages - 1].colorC.dest != 0)
 		{
 			WRITE(p, "prev.rgb = %s;\n", tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
@@ -788,7 +785,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 					tevIndAlphaBumpMask[bpmem.tevind[n].fmt]);
 		}
 		// format
-		const char *tevIndFmtScale[] = {"255.0f", "31.0f", "15.0f", "7.0f" }; // TODO: Check values
+		const char *tevIndFmtScale[] = {"255.0f", "31.0f", "15.0f", "7.0f" };
 		// TODO: Optimize for fmt=0... and optimize in general... -.-
 		WRITE(p, "float3 indtevcrd%d = MASK_U8(indtex%d, %s) * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt], tevIndFmtScale[bpmem.tevind[n].fmt]);
 
@@ -796,29 +793,25 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		if (bpmem.tevind[n].bias != ITB_NONE)
 		{
 			const char *tevIndBiasField[] = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"};
-			const char *tevIndBiasAdd[] = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // TODO: Check values
+			const char *tevIndBiasAdd[] = {"-128.0f", "1.0f", "1.0f", "1.0f" };
 			WRITE(p, "indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 		}
 
 		// multiply by offset matrix and scale
-		if (bpmem.tevind[n].mid != 0)
+		if (bpmem.tevind[n].mid & 3)
 		{
+			int mtxidx = 2*((bpmem.tevind[n].mid&0x3)-1);
 			if (bpmem.tevind[n].mid <= 3)
 			{
-				int mtxidx = 2*(bpmem.tevind[n].mid-1);
 				WRITE(p, "float2 indtevtrans%d = float2(dot(" I_INDTEXMTX"[%d].xyz, indtevcrd%d), dot(" I_INDTEXMTX"[%d].xyz, indtevcrd%d));\n",
 					n, mtxidx, n, mtxidx+1, n);
 			}
 			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord)
 			{ // s matrix
-				_assert_(bpmem.tevind[n].mid >= 5);
-				int mtxidx = 2*(bpmem.tevind[n].mid-5);
 				WRITE(p, "float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
 			}
 			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord)
 			{ // t matrix
-				_assert_(bpmem.tevind[n].mid >= 9);
-				int mtxidx = 2*(bpmem.tevind[n].mid-9);
 				WRITE(p, "float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}
 			else
@@ -830,6 +823,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		// ---------
 		// Wrapping
 		// ---------
+		const char *tevIndWrapStart[]  = {"0.0f", "256.0f", "128.0f", "64.0f", "32.0f", "16.0f", "0.0f" };
 
 		// wrap S
 		if (bpmem.tevind[n].sw == ITW_OFF)
