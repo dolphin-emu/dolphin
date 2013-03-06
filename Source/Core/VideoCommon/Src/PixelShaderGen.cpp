@@ -55,12 +55,7 @@ static void StageHash(u32 stage, u32* out)
 	TevStageCombiner::ColorCombiner& cc = bpmem.combiners[stage].colorC;
 	TevStageCombiner::AlphaCombiner& ac = bpmem.combiners[stage].alphaC;
 
-	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
-		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
-		|| cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC
-		|| cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC
-		|| ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA
-		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
+	if (cc.InputUsed(TEVCOLORARG_RASC) || cc.InputUsed(TEVCOLORARG_RASA) || ac.InputUsed(TEVALPHAARG_RASA))
 	{
 		out[0] |= bpmem.combiners[stage].alphaC.rswap;
 		out[2] |= bpmem.tevksel[bpmem.combiners[stage].alphaC.rswap*2].swap1 << 24; // 2
@@ -84,8 +79,7 @@ static void StageHash(u32 stage, u32* out)
 		out[1] |= bpmem.tevorders[stage/2].getTexMap(stage&1) << 16;
 	}
 
-	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST
-		|| ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST)
+	if (cc.InputUsed(TEVCOLORARG_KONST) ||ac.InputUsed(TEVALPHAARG_KONST))
 	{
 		out[3] |= bpmem.tevksel[stage/2].getKC(stage&1) << 9; // 5
 		out[3] |= bpmem.tevksel[stage/2].getKA(stage&1) << 14; // 5
@@ -835,12 +829,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
 
-	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
-		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
-		|| cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC
-		|| cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC
-		|| ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA
-		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
+	if (cc.InputUsed(TEVCOLORARG_RASC) || cc.InputUsed(TEVCOLORARG_RASA) || ac.InputUsed(TEVALPHAARG_RASA))
 	{
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		WRITE(p, "rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
@@ -866,8 +855,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		WRITE(p, "textemp = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 
 
-	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST
-		|| ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST)
+	if (cc.InputUsed(TEVCOLORARG_KONST) || ac.InputUsed(TEVALPHAARG_KONST))
 	{
 		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
