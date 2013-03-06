@@ -87,9 +87,8 @@ static const float fractionTable[32] = {
 	1.0f / (1U << 24), 1.0f / (1U << 25), 1.0f / (1U << 26), 1.0f / (1U << 27),
 	1.0f / (1U << 28), 1.0f / (1U << 29), 1.0f / (1U << 30), 1.0f / (1U << 31),
 };
-#ifdef USE_JIT
+
 using namespace Gen;
-#endif
 
 void LOADERDECL PosMtx_ReadDirect_UByte()
 {
@@ -205,6 +204,8 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	AllocCodeSpace(COMPILED_CODE_SIZE);
 	CompileVertexTranslator();
 	WriteProtect();
+	#else
+	CompileVertexTranslator();
 	#endif
 
 }
