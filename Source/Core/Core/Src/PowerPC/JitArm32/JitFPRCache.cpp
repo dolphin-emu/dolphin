@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Jit.h"
 #include "JitFPRCache.h"
 
 ArmFPRCache::ArmFPRCache()
@@ -122,7 +123,7 @@ ARMReg ArmFPRCache::GetPPCReg(u32 preg, bool PS1, bool preLoad)
 	for (u8 a = 0; a < NUMPPCREG; ++a)
 		if (ArmCRegs[a].PPCReg == 33)
 		{
-			u16 offset = STRUCT_OFF(PowerPC::ppcState, ps) + (preg * 16) + (PS1 ? 8 : 0);
+			u16 offset = PPCSTATE_OFF(PowerPC::ppcState, ps) + (preg * 16) + (PS1 ? 8 : 0);
 			if (preLoad)
 				emit->VLDR(ArmCRegs[a].Reg, R9, offset);
 			ArmCRegs[a].PPCReg = preg;
@@ -131,10 +132,10 @@ ARMReg ArmFPRCache::GetPPCReg(u32 preg, bool PS1, bool preLoad)
 			return ArmCRegs[a].Reg;
 		}
 	// Alright, we couldn't get a free space, dump that least used register
-	u16 offsetOld = STRUCT_OFF(PowerPC::ppcState, ps) + (ArmCRegs[Num].PPCReg * 16) + (ArmCRegs[Num].PS1 ? 8 : 0);
+	u16 offsetOld = PPCSTATE_OFF(PowerPC::ppcState, ps) + (ArmCRegs[Num].PPCReg * 16) + (ArmCRegs[Num].PS1 ? 8 : 0);
 	emit->VSTR(ArmCRegs[Num].Reg, R9, offsetOld);
 	
-	u16 offsetNew = STRUCT_OFF(PowerPC::ppcState, ps) + (preg * 16) + (PS1 ? 8 : 0);
+	u16 offsetNew = PPCSTATE_OFF(PowerPC::ppcState, ps) + (preg * 16) + (PS1 ? 8 : 0);
 	if (preLoad)
 		emit->VLDR(ArmCRegs[Num].Reg, R9, offsetNew);
 	ArmCRegs[Num].PPCReg = preg;
@@ -159,7 +160,7 @@ void ArmFPRCache::Flush()
 	for(u8 a = 0; a < NUMPPCREG; ++a)
 		if (ArmCRegs[a].PPCReg != 33)
 		{
-			u16 offset =  STRUCT_OFF(PowerPC::ppcState, ps) + (ArmCRegs[a].PPCReg * 16) + (ArmCRegs[a].PS1 ? 8 : 0);
+			u16 offset =  PPCSTATE_OFF(PowerPC::ppcState, ps) + (ArmCRegs[a].PPCReg * 16) + (ArmCRegs[a].PS1 ? 8 : 0);
 			emit->VSTR(ArmCRegs[a].Reg, R9, offset);
 			ArmCRegs[a].PPCReg = 33;
 			ArmCRegs[a].LastLoad = 0;

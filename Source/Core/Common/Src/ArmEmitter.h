@@ -208,7 +208,7 @@ public:
 		Value = base;
 		Type = TYPE_IMMSREG;
 	}
-	const u32 GetData()
+	u32 GetData()
 	{
 		switch(Type)
 		{
@@ -225,45 +225,45 @@ public:
 			return 0;
 		}
 	}
-	const u32 IMMSR() // IMM shifted register
+	u32 IMMSR() // IMM shifted register
 	{
 		_assert_msg_(DYNA_REC, Type == TYPE_IMMSREG, "IMMSR must be imm shifted register");
 		return ((IndexOrShift & 0x1f) << 7 | (Shift << 5) | Value);
 	}
-	const u32 RSR() // Register shifted register
+	u32 RSR() // Register shifted register
 	{
 		_assert_msg_(DYNA_REC, Type == TYPE_RSR, "RSR must be RSR Of Course");
 		return (IndexOrShift << 8) | (Shift << 5) | 0x10 | Value;
 	}
-	const u32 Rm()
+	u32 Rm()
 	{
 		_assert_msg_(DYNA_REC, Type == TYPE_REG, "Rm must be with Reg");
 		return Value;
 	}
 
-	const u32 Imm5()
+	u32 Imm5()
 	{
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm5 not IMM value");
 		return ((Value & 0x0000001F) << 7);
 	}
-	const u32 Imm8()
+	u32 Imm8()
 	{
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm8Rot not IMM value");
 		return Value & 0xFF;
 	}
-	const u32 Imm8Rot() // IMM8 with Rotation
+	u32 Imm8Rot() // IMM8 with Rotation
 	{
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm8Rot not IMM value");
 		_assert_msg_(DYNA_REC, (Rotation & 0xE1) != 0, "Invalid Operand2: immediate rotation %u", Rotation);
 		return (1 << 25) | (Rotation << 7) | (Value & 0x000000FF);
 	}
-	const u32 Imm12()
+	u32 Imm12()
 	{
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm12 not IMM");
 		return (Value & 0x00000FFF);
 	}
 
-	const u32 Imm12Mod()
+	u32 Imm12Mod()
 	{
 		// This is a IMM12 with the top four bits being rotation and the
 		// bottom eight being a IMM. This is for instructions that need to
@@ -273,32 +273,32 @@ public:
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm12Mod not IMM");
 		return ((Rotation & 0xF) << 8) | (Value & 0xFF);
 	}
-	const u32 Imm16()
+	u32 Imm16()
 	{
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm16 not IMM");
 		return ( (Value & 0xF000) << 4) | (Value & 0x0FFF);
 	}
-	const u32 Imm16Low()
+	u32 Imm16Low()
 	{
 		return Imm16();
 	}
-	const u32 Imm16High() // Returns high 16bits
+	u32 Imm16High() // Returns high 16bits
 	{
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm16 not IMM");
 		return ( ((Value >> 16) & 0xF000) << 4) | ((Value >> 16) & 0x0FFF);
 	}
-	const u32 Imm24()
+	u32 Imm24()
 	{
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm16 not IMM");
 		return (Value & 0x0FFFFFFF);	
 	}
 	// NEON and ASIMD specific
-	const u32 Imm8ASIMD()
+	u32 Imm8ASIMD()
 	{
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm8ASIMD not IMM");
 		return  ((Value & 0x80) << 17) | ((Value & 0x70) << 12) | (Value & 0xF);
 	}
-	const u32 Imm8VFP()
+	u32 Imm8VFP()
 	{
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm8VFP not IMM");
 		return ((Value & 0xF0) << 12) | (Value & 0xF);
@@ -337,7 +337,7 @@ private:
 	u8 *lastCacheFlushEnd;
 	u32 condition;
 
-	void WriteStoreOp(u32 op, ARMReg dest, ARMReg src, Operand2 op2);
+	void WriteStoreOp(u32 op, ARMReg dest, ARMReg src, s16 op2);
 	void WriteRegStoreOp(u32 op, ARMReg dest, bool WriteBack, u16 RegList);
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, ARMReg op2);
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, Operand2 op2);
@@ -467,16 +467,16 @@ public:
 	void MRS  (ARMReg dest);
 
 	// Memory load/store operations
-	void LDR (ARMReg dest, ARMReg src, Operand2 op2 = 0);
+	void LDR (ARMReg dest, ARMReg src, s16 op2 = 0);
 	// Offset adds to the base register in LDR
 	void LDR (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add);
 	void LDRH(ARMReg dest, ARMReg src, Operand2 op = 0); 
-	void LDRB(ARMReg dest, ARMReg src, Operand2 op2 = 0);
-	void STR (ARMReg dest, ARMReg src, Operand2 op2 = 0);
+	void LDRB(ARMReg dest, ARMReg src, s16 op2 = 0);
+	void STR (ARMReg dest, ARMReg src, s16 op2 = 0);
 	// Offset adds on to the destination register in STR
 	void STR (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add);
 
-	void STRB(ARMReg dest, ARMReg src, Operand2 op2 = 0);
+	void STRB(ARMReg dest, ARMReg src, s16 op2 = 0);
 	void STMFD(ARMReg dest, bool WriteBack, const int Regnum, ...);
 	void LDMFD(ARMReg dest, bool WriteBack, const int Regnum, ...);
 	
@@ -499,8 +499,8 @@ public:
 	void VSUB(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
 		
 	// VFP Only
-	void VLDR(ARMReg Dest, ARMReg Base, u16 offset);
-	void VSTR(ARMReg Src,  ARMReg Base, u16 offset);
+	void VLDR(ARMReg Dest, ARMReg Base, s16 offset);
+	void VSTR(ARMReg Src,  ARMReg Base, s16 offset);
 	void VCMP(ARMReg Vd, ARMReg Vm);
 	// Compares against zero
 	void VCMP(ARMReg Vd);

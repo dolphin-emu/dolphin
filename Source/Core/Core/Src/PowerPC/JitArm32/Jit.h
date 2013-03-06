@@ -47,7 +47,7 @@
 	if (Core::g_CoreStartupParameter.bJITOff || \
 	Core::g_CoreStartupParameter.bJIT##type##Off) \
 	{Default(inst); return;}
-
+#define PPCSTATE_OFF(str, elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0])) 
 class JitArm : public JitBase, public ArmGen::ARMXCodeBlock 
 {
 private:

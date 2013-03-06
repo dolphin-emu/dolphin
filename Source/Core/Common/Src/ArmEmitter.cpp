@@ -533,15 +533,15 @@ void ARMXEmitter::MRS (ARMReg dest)
 	Write32(condition | (16 << 20) | (15 << 16) | (dest << 12));
 }
 
-void ARMXEmitter::WriteStoreOp(u32 op, ARMReg dest, ARMReg src, Operand2 op2)
+void ARMXEmitter::WriteStoreOp(u32 op, ARMReg dest, ARMReg src, s16 op2)
 {
-	if (op2.GetData() == 0) // set the preindex bit, but not the W bit!
-		Write32(condition | 0x01800000 | (op << 20) | (dest << 16) | (src << 12) | op2.Imm12());
-	else
-		Write32(condition | (op << 20) | (3 << 23) | (dest << 16) | (src << 12) | op2.Imm12()); 
+	bool Index = op2 != 0 ? true : false;
+	bool Add = op2 >= 0 ? true : false;
+	u32 imm = abs(op2);
+	Write32(condition | (op << 20) | (Index << 24) | (Add << 23) | (dest << 16) | (src << 12) | imm);
 }
-void ARMXEmitter::STR (ARMReg dest, ARMReg src, Operand2 op) { WriteStoreOp(0x40, dest, src, op);}
-void ARMXEmitter::STRB(ARMReg dest, ARMReg src, Operand2 op) { WriteStoreOp(0x44, dest, src, op);}
+void ARMXEmitter::STR (ARMReg dest, ARMReg src, s16 op) { WriteStoreOp(0x40, dest, src, op);}
+void ARMXEmitter::STRB(ARMReg dest, ARMReg src, s16 op) { WriteStoreOp(0x44, dest, src, op);}
 void ARMXEmitter::STR (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
 {
 	Write32(condition | (0x60 << 20) | (Index << 24) | (Add << 23) | (dest << 16) | (base << 12) | offset);
@@ -564,13 +564,13 @@ void ARMXEmitter::SVC(Operand2 op)
 	Write32(condition | (0x0F << 24) | op.Imm24());
 }
 
-void ARMXEmitter::LDR (ARMReg dest, ARMReg src, Operand2 op) { WriteStoreOp(0x41, src, dest, op);}
+void ARMXEmitter::LDR (ARMReg dest, ARMReg src, s16 op) { WriteStoreOp(0x41, src, dest, op);}
 void ARMXEmitter::LDRH(ARMReg dest, ARMReg src, Operand2 op)
 {
 	u8 Imm = op.Imm8();
 	Write32(condition | (0x05 << 20) | (src << 16) | (dest << 12) | ((Imm >> 4) << 8) | (0xB << 4) | (Imm & 0x0F));
 }
-void ARMXEmitter::LDRB(ARMReg dest, ARMReg src, Operand2 op) { WriteStoreOp(0x45, src, dest, op);}
+void ARMXEmitter::LDRB(ARMReg dest, ARMReg src, s16 op) { WriteStoreOp(0x45, src, dest, op);}
 
 void ARMXEmitter::LDR (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
 {
@@ -661,14 +661,18 @@ void ARMXEmitter::VSUB(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 
 // VFP Specific
 
-void ARMXEmitter::VLDR(ARMReg Dest, ARMReg Base, u16 offset)
+void ARMXEmitter::VLDR(ARMReg Dest, ARMReg Base, s16 offset)
 {
 	_assert_msg_(DYNA_REC, Dest >= S0 && Dest <= D31, "Passed Invalid dest register to VLDR"); 
 	_assert_msg_(DYNA_REC, Base <= R15, "Passed invalid Base register to VLDR");
-	_assert_msg_(DYNA_REC, (offset & 0xC03) == 0, "VLDR: Offset needs to be word aligned and small enough");
 
-	if (offset & 0xC03) {
-		ERROR_LOG(DYNA_REC, "VLDR: Bad offset %08x", offset);
+	bool Add = offset >= 0 ? true : false;
+	u32 imm = abs(offset);
+
+	_assert_msg_(DYNA_REC, (imm & 0xC03) == 0, "VLDR: Offset needs to be word aligned and small enough");
+
+	if (imm & 0xC03) {
+		ERROR_LOG(DYNA_REC, "VLDR: Bad offset %08x", imm);
 	}
 
 	bool single_reg = Dest < D0;
@@ -677,24 +681,28 @@ void ARMXEmitter::VLDR(ARMReg Dest, ARMReg Base, u16 offset)
 
 	if (single_reg)
 	{
-		Write32(NO_COND | (0x1B << 23) | ((Dest & 0x1) << 22) | (1 << 20) | (Base << 16) \
-			| ((Dest & 0x1E) << 11) | (10 << 8) | (offset >> 2));	
+		Write32(NO_COND | (0xD << 24) | (Add << 23) | ((Dest & 0x1) << 22) | (1 << 20) | (Base << 16) \
+			| ((Dest & 0x1E) << 11) | (10 << 8) | (imm >> 2));	
 
 	}
 	else
 	{
-		Write32(NO_COND | (0x1B << 23) | ((Dest & 0x10) << 18) | (1 << 20) | (Base << 16) \
-			| ((Dest & 0xF) << 12) | (11 << 8) | (offset >> 2));	
+		Write32(NO_COND | (0xD << 24) | (Add << 23) | ((Dest & 0x10) << 18) | (1 << 20) | (Base << 16) \
+			| ((Dest & 0xF) << 12) | (11 << 8) | (imm >> 2));	
 	}
 }
-void ARMXEmitter::VSTR(ARMReg Src, ARMReg Base, u16 offset)
+void ARMXEmitter::VSTR(ARMReg Src, ARMReg Base, s16 offset)
 {
 	_assert_msg_(DYNA_REC, Src >= S0 && Src <= D31, "Passed invalid src register to VSTR");
 	_assert_msg_(DYNA_REC, Base <= R15, "Passed invalid base register to VSTR");
-	_assert_msg_(DYNA_REC, (offset & 0xC03) == 0, "VSTR: Offset needs to be word aligned");
 
-	if (offset & 0xC03) {
-		ERROR_LOG(DYNA_REC, "VSTR: Bad offset %08x", offset);
+	bool Add = offset >= 0 ? true : false;
+	u32 imm = abs(offset);
+
+	_assert_msg_(DYNA_REC, (imm & 0xC03) == 0, "VSTR: Offset needs to be word aligned and small enough");
+
+	if (imm & 0xC03) {
+		ERROR_LOG(DYNA_REC, "VSTR: Bad offset %08x", imm);
 	}
 
 	bool single_reg = Src < D0;
@@ -703,14 +711,14 @@ void ARMXEmitter::VSTR(ARMReg Src, ARMReg Base, u16 offset)
 
 	if (single_reg)
 	{
-		Write32(NO_COND | (0x1B << 23) | ((Src & 0x1) << 22) | (Base << 16) \
-			| ((Src & 0x1E) << 11) | (10 << 8) | (offset >> 2));	
+		Write32(NO_COND | (0xD << 24) | (Add << 23) | ((Src & 0x1) << 22) | (Base << 16) \
+			| ((Src & 0x1E) << 11) | (10 << 8) | (imm >> 2));	
 
 	}
 	else
 	{
-		Write32(NO_COND | (0x1B << 23) | ((Src & 0x10) << 18) | (Base << 16) \
-			| ((Src & 0xF) << 12) | (11 << 8) | (offset >> 2));	
+		Write32(NO_COND | (0xD << 24) | (Add << 23) | ((Src & 0x10) << 18) | (Base << 16) \
+			| ((Src & 0xF) << 12) | (11 << 8) | (imm >> 2));	
 	}
 }
 void ARMXEmitter::VCMP(ARMReg Vd, ARMReg Vm)

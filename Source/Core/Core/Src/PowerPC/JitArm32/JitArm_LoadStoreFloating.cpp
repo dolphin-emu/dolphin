@@ -40,7 +40,7 @@ void JitArm::lfs(UGeckoInstruction inst)
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
-	LDR(rA, R9, STRUCT_OFF(PowerPC::ppcState, Exceptions));
+	LDR(rA, R9, PPCSTATE_OFF(PowerPC::ppcState, Exceptions));
 	CMP(rA, EXCEPTION_DSI);
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
 

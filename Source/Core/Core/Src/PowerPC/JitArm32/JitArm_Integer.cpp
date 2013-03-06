@@ -40,7 +40,7 @@ void JitArm::GenerateRC(int cr) {
 	SetCC(CC_MI); MOV(rB, 0x8); // Result < 0
 	SetCC();
 
-	STRB(R9, rB, STRUCT_OFF(PowerPC::ppcState, cr_fast) + cr);
+	STRB(R9, rB, PPCSTATE_OFF(PowerPC::ppcState, cr_fast) + cr);
 	gpr.Unlock(rB);
 }
 void JitArm::ComputeRC(int cr) {
@@ -51,7 +51,7 @@ void JitArm::ComputeRC(int cr) {
 	SetCC(CC_GT); MOV(rB, 0x4); // Result > 0
 	SetCC();
 
-	STRB(R9, rB, STRUCT_OFF(PowerPC::ppcState, cr_fast) + cr);
+	STRB(R9, rB, PPCSTATE_OFF(PowerPC::ppcState, cr_fast) + cr);
 	gpr.Unlock(rB);
 }
 
@@ -232,7 +232,7 @@ void JitArm::cmpli(UGeckoInstruction inst)
 	SetCC(CC_HI); MOV(rA, 0x4); // Result > 0
 	SetCC();
 
-	STRB(R9, rA, STRUCT_OFF(PowerPC::ppcState, cr_fast) + crf);
+	STRB(R9, rA, PPCSTATE_OFF(PowerPC::ppcState, cr_fast) + crf);
 	gpr.Unlock(rA);
 
 }

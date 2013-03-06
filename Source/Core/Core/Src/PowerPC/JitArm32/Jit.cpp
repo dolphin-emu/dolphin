@@ -100,7 +100,7 @@ void JitArm::HLEFunction(UGeckoInstruction _inst)
 	MOVI2R(R1, _inst.hex);
 	QuickCallFunction(R14, (void*)&HLE::Execute); 
 	ARMReg rA = gpr.GetReg();
-	LDR(rA, R9, STRUCT_OFF(PowerPC::ppcState, npc));
+	LDR(rA, R9, PPCSTATE_OFF(PowerPC::ppcState, npc));
 	WriteExitDestInR(rA);
 }
 
@@ -161,7 +161,7 @@ void JitArm::DoDownCount()
 }
 void JitArm::WriteExitDestInR(ARMReg Reg) 
 {
-	STR(R9, Reg, STRUCT_OFF(PowerPC::ppcState, pc));
+	STR(R9, Reg, PPCSTATE_OFF(PowerPC::ppcState, pc));
 	Cleanup();
 	DoDownCount();
 	MOVI2R(Reg, (u32)asm_routines.dispatcher);
@@ -170,7 +170,7 @@ void JitArm::WriteExitDestInR(ARMReg Reg)
 }
 void JitArm::WriteRfiExitDestInR(ARMReg Reg) 
 {
-	STR(R9, Reg, STRUCT_OFF(PowerPC::ppcState, pc));
+	STR(R9, Reg, PPCSTATE_OFF(PowerPC::ppcState, pc));
 	Cleanup();
 	DoDownCount();
 
@@ -209,7 +209,7 @@ void JitArm::WriteExit(u32 destination, int exit_num)
 	{
 		ARMReg A = gpr.GetReg(false);
 		MOVI2R(A, destination);
-		STR(R9, A, STRUCT_OFF(PowerPC::ppcState, pc));
+		STR(R9, A, PPCSTATE_OFF(PowerPC::ppcState, pc));
 		MOVI2R(A, (u32)asm_routines.dispatcher);
 		B(A);	
 	}
@@ -303,7 +303,6 @@ void JitArm::Break(UGeckoInstruction inst)
 const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
 {
 	int blockSize = code_buf->GetSize();
-
 	// Memory exception on instruction fetch
 	bool memory_exception = false;
 
@@ -382,10 +381,10 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		ARMReg C = gpr.GetReg();
 		Operand2 Shift(2, 10); // 1 << 13
 		MOVI2R(C, js.blockStart); // R3
-		LDR(A, R9, STRUCT_OFF(PowerPC::ppcState, msr));
+		LDR(A, R9, PPCSTATE_OFF(PowerPC::ppcState, msr));
 		TST(A, Shift);
 		FixupBranch b1 = B_CC(CC_NEQ);
-		STR(R9, C, STRUCT_OFF(PowerPC::ppcState, pc));
+		STR(R9, C, PPCSTATE_OFF(PowerPC::ppcState, pc));
 		MOVI2R(A, (u32)asm_routines.fpException);
 		B(A);
 		SetJumpTarget(b1);

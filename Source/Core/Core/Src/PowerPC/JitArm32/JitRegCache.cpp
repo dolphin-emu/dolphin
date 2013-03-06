@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Jit.h"
 #include "JitRegCache.h"
 
 ArmRegCache::ArmRegCache()
@@ -141,14 +142,14 @@ ARMReg ArmRegCache::R(u32 preg)
 	for (u8 a = 0; a < NUMPPCREG; ++a)
 		if (ArmCRegs[a].PPCReg == 33)
 		{
-			emit->LDR(ArmCRegs[a].Reg, R9, STRUCT_OFF(PowerPC::ppcState, gpr) + preg * 4);
+			emit->LDR(ArmCRegs[a].Reg, R9, PPCSTATE_OFF(PowerPC::ppcState, gpr) + preg * 4);
 			ArmCRegs[a].PPCReg = preg;
 			ArmCRegs[a].LastLoad = 0;
 			return ArmCRegs[a].Reg;
 		}
 	// Alright, we couldn't get a free space, dump that least used register
-	emit->STR(R9, ArmCRegs[Num].Reg, STRUCT_OFF(PowerPC::ppcState, gpr) + ArmCRegs[Num].PPCReg * 4);
-	emit->LDR(ArmCRegs[Num].Reg, R9, STRUCT_OFF(PowerPC::ppcState, gpr) + preg * 4);
+	emit->STR(R9, ArmCRegs[Num].Reg, PPCSTATE_OFF(PowerPC::ppcState, gpr) + ArmCRegs[Num].PPCReg * 4);
+	emit->LDR(ArmCRegs[Num].Reg, R9, PPCSTATE_OFF(PowerPC::ppcState, gpr) + preg * 4);
 	ArmCRegs[Num].PPCReg = preg;
 	ArmCRegs[Num].LastLoad = 0;
 	return ArmCRegs[Num].Reg;		 
@@ -159,7 +160,7 @@ void ArmRegCache::Flush()
 	for(u8 a = 0; a < NUMPPCREG; ++a)
 		if (ArmCRegs[a].PPCReg != 33)
 		{
-			emit->STR(R9, ArmCRegs[a].Reg, STRUCT_OFF(PowerPC::ppcState, gpr) + ArmCRegs[a].PPCReg * 4);
+			emit->STR(R9, ArmCRegs[a].Reg, PPCSTATE_OFF(PowerPC::ppcState, gpr) + ArmCRegs[a].PPCReg * 4);
 			ArmCRegs[a].PPCReg = 33;
 			ArmCRegs[a].LastLoad = 0;
 		}

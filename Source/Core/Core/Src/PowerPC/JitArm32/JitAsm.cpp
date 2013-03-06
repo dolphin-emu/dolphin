@@ -47,7 +47,7 @@ void JitArmAsmRoutineManager::Generate()
 	PUSH(2, R11, _LR); // R11 is frame pointer in Debug.
 
 	MOVI2R(R0, (u32)&CoreTiming::downcount);
-	MOVI2R(R9, (u32)&PowerPC::ppcState);
+	MOVI2R(R9, (u32)&PowerPC::ppcState.spr[0]);
 
 	FixupBranch skipToRealDispatcher = B();
 	dispatcher = GetCodePtr();	
@@ -63,7 +63,7 @@ void JitArmAsmRoutineManager::Generate()
 
 		// This block of code gets the address of the compiled block of code
 		// It runs though to the compiling portion if it isn't found
-			LDR(R12, R9, STRUCT_OFF(PowerPC::ppcState, pc));// Load the current PC into R12
+			LDR(R12, R9, PPCSTATE_OFF(PowerPC::ppcState, pc));// Load the current PC into R12
 
 			MOVI2R(R14, JIT_ICACHE_MASK); // Potential for optimization
 			AND(R12, R12, R14); // R12 contains PC & JIT_ICACHE_MASK here.
@@ -92,7 +92,7 @@ void JitArmAsmRoutineManager::Generate()
 		// If we get to this point, that means that we don't have the block cached to execute
 		// So call ArmJit to compile the block and then execute it.
 		MOVI2R(R14, (u32)&Jit);	
-		LDR(R0, R9, STRUCT_OFF(PowerPC::ppcState, pc));
+		LDR(R0, R9, PPCSTATE_OFF(PowerPC::ppcState, pc));
 		BL(R14);
 			
 		B(dispatcherNoCheck);
@@ -100,12 +100,12 @@ void JitArmAsmRoutineManager::Generate()
 		// fpException()
 		// Floating Point Exception Check, Jumped to if false
 		fpException = GetCodePtr();
-			LDR(R0, R9, STRUCT_OFF(PowerPC::ppcState, Exceptions));
+			LDR(R0, R9, PPCSTATE_OFF(PowerPC::ppcState, Exceptions));
 			ORR(R0, R0, EXCEPTION_FPU_UNAVAILABLE);
-			STR(R9, R0, STRUCT_OFF(PowerPC::ppcState, Exceptions));
+			STR(R9, R0, PPCSTATE_OFF(PowerPC::ppcState, Exceptions));
 				QuickCallFunction(R14, (void*)&PowerPC::CheckExceptions);
-			LDR(R0, R9, STRUCT_OFF(PowerPC::ppcState, npc));
-			STR(R9, R0, STRUCT_OFF(PowerPC::ppcState, pc));
+			LDR(R0, R9, PPCSTATE_OFF(PowerPC::ppcState, npc));
+			STR(R9, R0, PPCSTATE_OFF(PowerPC::ppcState, pc));
 		B(dispatcher);
 
 		SetJumpTarget(bail);
@@ -116,11 +116,11 @@ void JitArmAsmRoutineManager::Generate()
 
 		// Does exception checking 
 		testExceptions = GetCodePtr();
-			LDR(R0, R9, STRUCT_OFF(PowerPC::ppcState, pc));
-			STR(R9, R0, STRUCT_OFF(PowerPC::ppcState, npc));
+			LDR(R0, R9, PPCSTATE_OFF(PowerPC::ppcState, pc));
+			STR(R9, R0, PPCSTATE_OFF(PowerPC::ppcState, npc));
 				QuickCallFunction(R14, (void*)&PowerPC::CheckExceptions);
-			LDR(R0, R9, STRUCT_OFF(PowerPC::ppcState, npc));
-			STR(R9, R0, STRUCT_OFF(PowerPC::ppcState, pc));
+			LDR(R0, R9, PPCSTATE_OFF(PowerPC::ppcState, npc));
+			STR(R9, R0, PPCSTATE_OFF(PowerPC::ppcState, pc));
 		// Check the state pointer to see if we are exiting
 		// Gets checked on every exception check
 			MOVI2R(R0, (u32)PowerPC::GetStatePtr());
