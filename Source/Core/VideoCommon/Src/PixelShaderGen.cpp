@@ -79,7 +79,7 @@ static void StageHash(u32 stage, u32* out)
 		out[1] |= bpmem.tevorders[stage/2].getTexMap(stage&1) << 16;
 	}
 
-	if (cc.InputUsed(TEVCOLORARG_KONST) ||ac.InputUsed(TEVALPHAARG_KONST))
+	if (cc.InputUsed(TEVCOLORARG_KONST) || ac.InputUsed(TEVALPHAARG_KONST))
 	{
 		out[3] |= bpmem.tevksel[stage/2].getKC(stage&1) << 9; // 5
 		out[3] |= bpmem.tevksel[stage/2].getKA(stage&1) << 14; // 5
@@ -738,6 +738,24 @@ static const char *TEVCMPAlphaOPTable[8] =
 	"   %s.a + ((%s.a == %s.a) ? %s.a : 0.0f)"//#define TEVCMP_A8_EQ 15
 };
 
+// Emulates 8 bit integer overflow when source value might be bigger than that.
+// In this case a temporary variable with the name "temp_name" will be declared.
+// The returned string is the name of the variable that holds the loaded register value.
+const char* LoadTevColorInput(char *&p, u32 input, const char* temp_name)
+{
+	if (input < 8)
+		WRITE(p, "float3 %s = AS_UNORM8(%s);\n", temp_name, tevCInputTable[input]);
+
+	return (input < 8) ? temp_name : tevCInputTable[input];
+}
+
+const char* LoadTevAlphaInput(char *&p, u32 input, const char* temp_name)
+{
+	if (input < 4)
+		WRITE(p, "float4 %s = AS_UNORM8(%s);\n", temp_name, tevAInputTable[input]);
+
+	return (input < 4) ? temp_name : tevAInputTable[input];
+}
 
 static void WriteStage(char *&p, int n, API_TYPE ApiType)
 {
@@ -860,17 +878,11 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		WRITE(p, "float4 konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 	}
 
-	// 8 bit integer overflow emulation for input registers
-	WRITE(p, "float3 input_ca = AS_UNORM8(%s);\n", tevCInputTable[cc.a]);
-	WRITE(p, "float3 input_cb = AS_UNORM8(%s);\n", tevCInputTable[cc.b]);
-	WRITE(p, "float3 input_cc = AS_UNORM8(%s);\n", tevCInputTable[cc.c]);
-	WRITE(p, "float3 input_cd = %s;\n", tevCInputTable[cc.d]);
-
-	WRITE(p, "float4 input_aa = AS_UNORM8(%s);\n", tevAInputTable[ac.a]);
-	WRITE(p, "float4 input_ab = AS_UNORM8(%s);\n", tevAInputTable[ac.b]);
-	WRITE(p, "float4 input_ac = AS_UNORM8(%s);\n", tevAInputTable[ac.c]);
-	WRITE(p, "float4 input_ad = %s;\n", tevAInputTable[ac.d]);
-
+	// Loading prev or CX into the 8 bit registers (A,B and C) requires integer overflow emulation
+	// NOTE: d register is signed 11 bit which is good enough to store any result of a TEV stage.
+	const char* input_ca = LoadTevColorInput(p, cc.a, "input_cc_a");
+	const char* input_cb = LoadTevColorInput(p, cc.b, "input_cc_b");
+	const char* input_cc = LoadTevColorInput(p, cc.c, "input_cc_c");
 
 	// combine the color channel
 	WRITE(p, "// color combine\n");
@@ -884,22 +896,27 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal color combiner goes here
-		WRITE(p, "FIX_PRECISION_U8(%s * (%s %s FIX_PRECISION_U8(lerp(%s, %s, %s)) %s))", tevScaleTable[cc.shift], "input_cd", tevOpTable[cc.op], "input_ca", "input_cb", "input_cc", tevBiasTable[cc.bias]);
+		// TODO: precision fixing only necessary when scale = 0.5
+		WRITE(p, "FIX_PRECISION_U8(%s * (%s %s FIX_PRECISION_U8(lerp(%s, %s, %s)) %s))", tevScaleTable[cc.shift], tevCInputTable[cc.d], tevOpTable[cc.op], input_ca, input_cb, input_cc, tevBiasTable[cc.bias]);
 	}
 	else
 	{
 		int cmp = (cc.shift<<1)|cc.op; // comparemode stored here
 		WRITE(p, TEVCMPColorOPTable[cmp],//lookup the function from the op table
-				"input_cd",
-				"input_ca",
-				"input_cb",
-				"input_cc");
+				tevCInputTable[cc.d],
+				input_ca,
+				input_cb,
+				input_cc);
 	}
 	if (!cc.clamp)
 		WRITE(p, ", -1024.0f/255.0f, 1023.0f/255.0f");
 	WRITE(p,");\n");
 
 	// combine the alpha channel
+	const char* input_aa = LoadTevAlphaInput(p, ac.a, "input_ac_a");
+	const char* input_ab = LoadTevAlphaInput(p, ac.b, "input_ac_b");
+	const char* input_ac = LoadTevAlphaInput(p, ac.c, "input_ac_c");
+
 	WRITE(p, "// alpha combine\n");
 	WRITE(p, "%s = ", tevAOutputTable[ac.dest]);
 	if (ac.clamp)
@@ -910,17 +927,18 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal alpha combiner goes here
-		WRITE(p, "FIX_PRECISION_U8(%s * (%s.a %s FIX_PRECISION_U8(lerp(%s.a, %s.a, %s.a)) %s))", tevScaleTable[ac.shift], "input_ad", tevOpTable[ac.op], "input_aa", "input_ab", "input_ac", tevBiasTable[ac.bias]);
+		// TODO: precision fixing only necessary when scale = 0.5
+		WRITE(p, "FIX_PRECISION_U8(%s * (%s.a %s FIX_PRECISION_U8(lerp(%s.a, %s.a, %s.a)) %s))", tevScaleTable[ac.shift], tevAInputTable[ac.d], tevOpTable[ac.op], input_aa, input_ab, input_ac, tevBiasTable[ac.bias]);
 	}
 	else
 	{
 		//compare alpha combiner goes here
 		int cmp = (ac.shift<<1)|ac.op; // comparemode stored here
 		WRITE(p, TEVCMPAlphaOPTable[cmp],
-				"input_ad",
-				"input_aa",
-				"input_ab",
-				"input_ac");
+				tevAInputTable[ac.d],
+				input_aa,
+				input_ab,
+				input_ac);
 	}
 	if (!ac.clamp)
 		WRITE(p, ", -1024.0f/255.0f, 1023.0f/255.0f");
