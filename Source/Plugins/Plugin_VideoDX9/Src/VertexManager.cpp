@@ -173,7 +173,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 		DestroyDeviceObjects();
 		return;
 	}
-	memcpy(pVertices, s_pBaseBufferPointer,, datasize);
+	memcpy(pVertices, s_pBaseBufferPointer, datasize);
 	m_vertex_buffers[m_current_vertex_buffer]->Unlock();
 
 	LockMode = D3DLOCK_NOOVERWRITE;
@@ -257,7 +257,7 @@ void VertexManager::DrawVertexBuffer(int stride)
 		{
 			if (FAILED(D3D::dev->DrawPrimitive(
 			D3DPT_POINTLIST, 
-			basevertex + PIBuffer[i],
+			basevertex + GetPointIndexBuffer()[i],
 			1)))
 			{
 				DumpBadShaders();
@@ -280,13 +280,8 @@ void VertexManager::DrawVertexArray(int stride)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_TRIANGLELIST, 
-<<<<<<< HEAD
 			0, numverts, triangles, 
-			TIBuffer, 
-=======
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(), 
 			GetTriangleIndexBuffer(), 
->>>>>>> master
 			D3DFMT_INDEX16, 
 			s_pBaseBufferPointer, 
 			stride)))
@@ -299,13 +294,8 @@ void VertexManager::DrawVertexArray(int stride)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_LINELIST, 
-<<<<<<< HEAD
 			0, numverts, lines, 
-			LIBuffer, 
-=======
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(), 
 			GetLineIndexBuffer(), 
->>>>>>> master
 			D3DFMT_INDEX16, 
 			s_pBaseBufferPointer, 
 			stride)))
@@ -318,13 +308,8 @@ void VertexManager::DrawVertexArray(int stride)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_POINTLIST, 
-<<<<<<< HEAD
 			0, numverts, points, 
-			PIBuffer, 
-=======
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(), 
 			GetPointIndexBuffer(), 
->>>>>>> master
 			D3DFMT_INDEX16, 
 			s_pBaseBufferPointer, 
 			stride)))
@@ -337,10 +322,6 @@ void VertexManager::DrawVertexArray(int stride)
 
 void VertexManager::vFlush()
 {
-<<<<<<< HEAD
-	VideoFifo_CheckEFBAccess();
-=======
->>>>>>> master
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
 		if (bpmem.tevorders[i / 2].getEnable(i & 1))
