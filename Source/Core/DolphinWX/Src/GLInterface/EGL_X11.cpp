@@ -19,7 +19,7 @@
 #include "RenderBase.h"
 
 #include "../GLInterface.h"
-#include "EGL.h"
+#include "EGL_X11.h"
 
 // Show the current FPS
 void cInterfaceEGL::UpdateFPSDisplay(const char *text)
@@ -141,7 +141,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		return false;
 	}
 
-	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.win, NULL);
+	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, (NativeWindowType)GLWin.win, NULL);
 	if (!GLWin.egl_surf) {
 		ERROR_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
 		return false;

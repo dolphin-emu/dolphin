@@ -42,6 +42,7 @@
 
 #include "D3DUtil.h"
 #include "D3DBase.h"
+#include "PerfQuery.h"
 #include "PixelShaderCache.h"
 #include "TextureCache.h"
 #include "VertexManager.h"
@@ -90,6 +91,7 @@ void InitBackendInfo()
 
 	g_Config.backend_info.APIType = API_D3D11;
 	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
+	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
@@ -101,15 +103,13 @@ void InitBackendInfo()
 	if (FAILED(hr))
 		PanicAlert("Failed to create IDXGIFactory object");
 
-	char tmpstr[512] = {};
-	DXGI_ADAPTER_DESC desc;
 	// adapters
 	g_Config.backend_info.Adapters.clear();
 	g_Config.backend_info.AAModes.clear();
 	while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
 	{
+		DXGI_ADAPTER_DESC desc;
 		ad->GetDesc(&desc);
-		WideCharToMultiByte(/*CP_UTF8*/CP_ACP, 0, desc.Description, -1, tmpstr, 512, 0, false);
 
 		// TODO: These don't get updated on adapter change, yet
 		if (g_Config.backend_info.Adapters.size() == g_Config.iAdapter)
@@ -126,7 +126,7 @@ void InitBackendInfo()
 			}
 		}
 
-		g_Config.backend_info.Adapters.push_back(tmpstr);
+		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
 		ad->Release();
 	}
 
@@ -184,6 +184,7 @@ void VideoBackend::Video_Prepare()
 	g_renderer = new Renderer;
 	g_texture_cache = new TextureCache;
 	g_vertex_manager = new VertexManager;
+	g_perf_query = new PerfQuery;
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
 	D3D::InitUtils();
@@ -227,6 +228,7 @@ void VideoBackend::Shutdown()
 		D3D::ShutdownUtils();
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
+		delete g_perf_query;
 		delete g_vertex_manager;
 		delete g_texture_cache;
 		delete g_renderer;

@@ -20,6 +20,7 @@
 #include "PowerPC/PowerPC.h"
 #include "HW/ProcessorInterface.h"
 #include "IniFile.h"
+#include "../WxUtils.h"
 
 // F-zero 80005e60 wtf??
 
@@ -51,9 +52,9 @@ wxString CRegTable::GetValue(int row, int col)
 {
 	if (row < 32) {
 		switch (col) {
-		case 0: return wxString::FromAscii(GetGPRName(row));
+		case 0: return StrToWxStr(GetGPRName(row));
 		case 1: return wxString::Format(wxT("%08x"), GPR(row));
-		case 2: return wxString::FromAscii(GetFPRName(row));
+		case 2: return StrToWxStr(GetFPRName(row));
 		case 3: return wxString::Format(wxT("%016llx"), riPS0(row));
 		case 4: return wxString::Format(wxT("%016llx"), riPS1(row));
 		default: return wxEmptyString;
@@ -61,7 +62,7 @@ wxString CRegTable::GetValue(int row, int col)
 	} else {
 		if (row - 32 < NUM_SPECIALS) {
 			switch (col) {
-			case 0:	return wxString::FromAscii(special_reg_names[row - 32]);
+			case 0:	return StrToWxStr(special_reg_names[row - 32]);
 			case 1: return wxString::Format(wxT("%08x"), GetSpecialRegValue(row - 32));
 			default: return wxEmptyString;
 		    }
@@ -91,7 +92,7 @@ static void SetSpecialRegValue(int reg, u32 value) {
 void CRegTable::SetValue(int row, int col, const wxString& strNewVal)
 {
 	u32 newVal = 0;
-	if (TryParse(std::string(strNewVal.mb_str()), &newVal))
+	if (TryParse(WxStrToStr(strNewVal), &newVal))
 	{
 		if (row < 32) {
 			if (col == 1)

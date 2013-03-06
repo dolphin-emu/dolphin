@@ -14,32 +14,20 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-#ifndef _INTERFACEEGL_H_
-#define _INTERFACEEGL_H_
 
-#include <EGL/egl.h>
-#ifdef USE_GLES
-#include <GLES2/gl2.h>
-#else
-#include <GL/glxew.h>
-#include <GL/gl.h>
-#endif
+#ifndef _JITARMCACHE_H
+#define _JITARMCACHE_H
 
-#include "X11_Util.h"
-#include "InterfaceBase.h"
+#include "../JitCommon/JitCache.h"
 
-class cInterfaceEGL : public cInterfaceBase
+
+typedef void (*CompiledCode)();
+
+class JitArmBlockCache : public JitBaseBlockCache
 {
 private:
-	cX11Window XWindow;
-public:
-	friend class cX11Window;
-	void SwapInterval(int Interval);
-	void Swap();
-	void UpdateFPSDisplay(const char *Text);
-	bool Create(void *&window_handle);
-	bool MakeCurrent();
-	void Shutdown(); 
+	void WriteLinkBlock(u8* location, const u8* address);
+	void WriteDestroyBlock(const u8* location, u32 address);
 };
-#endif
 
+#endif

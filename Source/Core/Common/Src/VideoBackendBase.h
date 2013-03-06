@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "ChunkFile.h"
+#include "../../VideoCommon/Src/PerfQueryBase.h"
 
 typedef void (*writeFn16)(const u16,const u32);
 typedef void (*writeFn32)(const u32,const u32);
@@ -108,6 +109,7 @@ public:
 	virtual void Video_EndField() = 0;
 
 	virtual u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) = 0;
+	virtual u32 Video_GetQueryResult(PerfQueryType type) = 0;
 
 	virtual void Video_AddMessage(const char* pstr, unsigned int milliseconds) = 0;
 	virtual void Video_ClearMessages() = 0;
@@ -157,8 +159,10 @@ class VideoBackendHardware : public VideoBackend
 	void Video_ExitLoop();
 	void Video_BeginField(u32, FieldType, u32, u32);
 	void Video_EndField();
-	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
 
+	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
+	u32 Video_GetQueryResult(PerfQueryType type);
+	
 	void Video_AddMessage(const char* pstr, unsigned int milliseconds);
 	void Video_ClearMessages();
 	bool Video_Screenshot(const char* filename);

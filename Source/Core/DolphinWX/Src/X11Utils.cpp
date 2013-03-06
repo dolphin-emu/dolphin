@@ -26,6 +26,7 @@ extern char **environ;
 #if defined(HAVE_WX) && HAVE_WX
 #include <string>
 #include <algorithm>
+#include "WxUtils.h"
 #endif
 
 namespace X11Utils
@@ -350,7 +351,7 @@ void XRRConfiguration::AddResolutions(wxArrayString& arrayStringFor_FullscreenRe
 						if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
 						{
 							resos.push_back(strRes);
-							arrayStringFor_FullscreenResolution.Add(wxString::FromUTF8(strRes.c_str()));
+							arrayStringFor_FullscreenResolution.Add(StrToWxStr(strRes));
 						}
 					}
 		}

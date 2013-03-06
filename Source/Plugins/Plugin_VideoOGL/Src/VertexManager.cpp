@@ -40,6 +40,7 @@
 #include "FileUtil.h"
 #include "Debugger.h"
 #include "StreamBuffer.h"
+#include "PerfQueryBase.h"
 
 #include "main.h"
 
@@ -99,21 +100,21 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	u32 index_size = (triangle_index_size+line_index_size+point_index_size) * sizeof(u16);
 	
 	s_vertexBuffer->Alloc(vertex_data_size, stride);
-	u32 offset = s_vertexBuffer->Upload(LocalVBuffer, vertex_data_size);
+	u32 offset = s_vertexBuffer->Upload(GetVertexBuffer(), vertex_data_size);
 	s_baseVertex = offset / stride;
 
 	s_indexBuffer->Alloc(index_size);
 	if(triangle_index_size)
 	{
-		s_offset[0] = s_indexBuffer->Upload((u8*)TIBuffer, triangle_index_size * sizeof(u16));
+		s_offset[0] = s_indexBuffer->Upload((u8*)GetTriangleIndexBuffer(), triangle_index_size * sizeof(u16));
 	}
 	if(line_index_size)
 	{
-		s_offset[1] = s_indexBuffer->Upload((u8*)LIBuffer, line_index_size * sizeof(u16));
+		s_offset[1] = s_indexBuffer->Upload((u8*)GetLineIndexBuffer(), line_index_size * sizeof(u16));
 	}
 	if(point_index_size)
 	{
-		s_offset[2] = s_indexBuffer->Upload((u8*)PIBuffer, point_index_size * sizeof(u16));
+		s_offset[2] = s_indexBuffer->Upload((u8*)GetPointIndexBuffer(), point_index_size * sizeof(u16));
 	}
 }
 
@@ -159,7 +160,6 @@ void VertexManager::Draw(u32 stride)
 
 void VertexManager::vFlush()
 {
-	VideoFifo_CheckEFBAccess();
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGen.numTexGens,
 		xfregs.numChan.numColorChans, xfregs.dualTexTrans.enabled, bpmem.ztex2.op,
@@ -215,6 +215,7 @@ void VertexManager::vFlush()
 	{
 		if (usedtextures & (1 << i))
 		{
+			TextureCache::SetNextStage(i);
 			g_renderer->SetSamplerState(i % 4, i / 4);
 			FourTexUnits &tex = bpmem.tex[i >> 2];
 			TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
@@ -271,7 +272,10 @@ void VertexManager::vFlush()
 		g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
 
+	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw(stride);
+	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+	//ERROR_LOG(VIDEO, "PerfQuery result: %d", g_perf_query->GetQueryResult(bpmem.zcontrol.early_ztest ? PQ_ZCOMP_OUTPUT_ZCOMPLOC : PQ_ZCOMP_OUTPUT));
 
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
@@ -299,7 +303,6 @@ void VertexManager::vFlush()
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 	
-	ResetBuffer();
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) 
 	{
@@ -307,10 +310,12 @@ void VertexManager::vFlush()
 		ProgramShaderCache::PCacheEntry prog = ProgramShaderCache::GetShaderProgram();
 		char strfile[255];
 		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
-		std::ofstream fps(strfile);
+		std::ofstream fps;
+		OpenFStream(fps, strfile, std::ios_base::out);
 		fps << prog.shader.strpprog.c_str();
 		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
-		std::ofstream fvs(strfile);
+		std::ofstream fvs;
+		OpenFStream(fvs, strfile, std::ios_base::out);
 		fvs << prog.shader.strvprog.c_str();
 	}
 

@@ -101,7 +101,7 @@ void CFrame::CreateMenu()
 	drives = cdio_get_devices();
 	// Windows Limitation of 24 character drives
 	for (unsigned int i = 0; i < drives.size() && i < 24; i++) {
-		externalDrive->Append(IDM_DRIVE1 + i, wxString::FromAscii(drives[i].c_str()));
+		externalDrive->Append(IDM_DRIVE1 + i, StrToWxStr(drives[i]));
 	}
 
 	fileMenu->AppendSeparator();
@@ -601,12 +601,10 @@ void CFrame::DoOpen(bool Boot)
 
 	// Should we boot a new game or just change the disc?
 	if (Boot && !path.IsEmpty())
-		BootGame(std::string(path.mb_str()));
+		BootGame(WxStrToStr(path));
 	else
 	{
-		char newDiscpath[2048];
-		strncpy(newDiscpath, path.mb_str(), strlen(path.mb_str())+1);
-		DVDInterface::ChangeDisc(newDiscpath);
+		DVDInterface::ChangeDisc(WxStrToStr(path).c_str());
 	}
 }
 
@@ -693,7 +691,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
 	}
 
-	if(Movie::PlayInput(path.mb_str()))
+	if (Movie::PlayInput(WxStrToStr(path).c_str()))
 		BootGame(std::string(""));
 }
 
@@ -1015,7 +1013,7 @@ void CFrame::DoStop()
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), false);
 #endif
-		m_RenderFrame->SetTitle(wxString::FromAscii(scm_rev_str));
+		m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
 
 		// Destroy the renderer frame when not rendering to main
 		m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
@@ -1081,7 +1079,7 @@ void CFrame::DoRecordingSave()
 	if(path.IsEmpty())
 		return;
 	
-	Movie::SaveRecording(path.mb_str());
+	Movie::SaveRecording(WxStrToStr(path).c_str());
 	
 	if (!paused)
 		DoPause();
@@ -1212,7 +1210,7 @@ void CFrame::StatusBarMessage(const char * Text, ...)
 	vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
 	va_end(ArgPtr);
 
-	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(wxString::FromAscii(Str),0);
+	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(StrToWxStr(Str),0);
 }
 
 
@@ -1248,7 +1246,8 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 
 	if (!path.IsEmpty())
 	{
-		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(path.mb_str());
+		// TODO: Does this actually need to be dynamically allocated for some reason?
+		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(WxStrToStr(path).c_str());
 		delete saveFile;
 	}
 }
@@ -1288,7 +1287,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 			_T("Wii WAD file (*.wad)|*.wad"),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
-		fileName = path.mb_str();
+		fileName = WxStrToStr(path);
 		break;
 	}
 	default:
@@ -1354,11 +1353,7 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
 		wxString msg(wxString::Format(wxT("Wiimote %i %s"), wm_idx + 1,
 					connect ? wxT("Connected") : wxT("Disconnected")));
-		Core::DisplayMessage(msg.ToAscii(), 3000);
-
-		// Wait for the wiimote to connect
-		while (GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->IsConnected() != connect)
-		{}
+		Core::DisplayMessage(WxStrToStr(msg), 3000);
 		Host_UpdateMainFrame();
 	}
 }
@@ -1398,7 +1393,7 @@ void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED (event))
 		this);
 
 	if (!path.IsEmpty())
-		State::LoadAs((const char*)path.mb_str());
+		State::LoadAs(WxStrToStr(path));
 }
 
 void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
@@ -1412,7 +1407,7 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 		this);
 
 	if (!path.IsEmpty())
-		State::SaveAs((const char*)path.mb_str());
+		State::SaveAs(WxStrToStr(path));
 }
 
 void CFrame::OnLoadLastState(wxCommandEvent& WXUNUSED (event))

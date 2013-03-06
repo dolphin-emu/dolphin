@@ -104,7 +104,7 @@ void VertexManager::PrepareDrawBuffers()
 {
 	D3D11_MAPPED_SUBRESOURCE map;
 
-	UINT vSize = UINT(s_pCurBufferPointer - LocalVBuffer);
+	UINT vSize = UINT(s_pCurBufferPointer - s_pBaseBufferPointer);
 	D3D11_MAP MapType = D3D11_MAP_WRITE_NO_OVERWRITE;
 	if (m_vertex_buffer_cursor + vSize >= VBUFFER_SIZE)
 	{
@@ -116,7 +116,7 @@ void VertexManager::PrepareDrawBuffers()
 
 	D3D::context->Map(m_vertex_buffers[m_current_vertex_buffer], 0, MapType, 0, &map);
 
-	memcpy((u8*)map.pData + m_vertex_buffer_cursor, LocalVBuffer, vSize);
+	memcpy((u8*)map.pData + m_vertex_buffer_cursor, s_pBaseBufferPointer, vSize);
 	D3D::context->Unmap(m_vertex_buffers[m_current_vertex_buffer], 0);
 	m_vertex_draw_offset = m_vertex_buffer_cursor;
 	m_vertex_buffer_cursor += vSize;
@@ -136,9 +136,9 @@ void VertexManager::PrepareDrawBuffers()
 	m_triangle_draw_index = m_index_buffer_cursor;
 	m_line_draw_index = m_triangle_draw_index + IndexGenerator::GetTriangleindexLen();
 	m_point_draw_index = m_line_draw_index + IndexGenerator::GetLineindexLen();
-	memcpy((u16*)map.pData + m_triangle_draw_index, TIBuffer, sizeof(u16) * IndexGenerator::GetTriangleindexLen());
-	memcpy((u16*)map.pData + m_line_draw_index, LIBuffer, sizeof(u16) * IndexGenerator::GetLineindexLen());
-	memcpy((u16*)map.pData + m_point_draw_index, PIBuffer, sizeof(u16) * IndexGenerator::GetPointindexLen());
+	memcpy((u16*)map.pData + m_triangle_draw_index, GetTriangleIndexBuffer(), sizeof(u16) * IndexGenerator::GetTriangleindexLen());
+	memcpy((u16*)map.pData + m_line_draw_index, GetLineIndexBuffer(), sizeof(u16) * IndexGenerator::GetLineindexLen());
+	memcpy((u16*)map.pData + m_point_draw_index, GetPointIndexBuffer(), sizeof(u16) * IndexGenerator::GetPointindexLen());
 	D3D::context->Unmap(m_index_buffers[m_current_index_buffer], 0);
 	m_index_buffer_cursor += iCount;
 }
@@ -211,8 +211,6 @@ void VertexManager::Draw(UINT stride)
 
 void VertexManager::vFlush()
 {
-	VideoFifo_CheckEFBAccess();
-
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
 		if (bpmem.tevorders[i / 2].getEnable(i & 1))
@@ -260,26 +258,25 @@ void VertexManager::vFlush()
 		g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
-		goto shader_fail;
+		return;
 	}
 	if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
-		goto shader_fail;
+		return;
 	}
 	PrepareDrawBuffers();
 	unsigned int stride = g_nativeVertexFmt->GetVertexStride();
 	g_nativeVertexFmt->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);
-	
+
+	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw(stride);
+	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	g_renderer->RestoreState();
-
-shader_fail:
-	ResetBuffer();
 }
 
 }  // namespace

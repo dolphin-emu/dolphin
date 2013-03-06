@@ -33,8 +33,6 @@
 #define INFINITE 0xffffffff
 #endif
 
-#include <xmmintrin.h>
-
 //for gettimeofday and struct time(spec|val)
 #include <time.h>
 #include <sys/time.h>

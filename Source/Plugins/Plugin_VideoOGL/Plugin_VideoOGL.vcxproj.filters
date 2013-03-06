@@ -42,6 +42,9 @@
     <ClCompile Include="Src\VertexShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="Src\PerfQuery.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Globals.h" />
@@ -73,6 +76,9 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="Src\TextureCache.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PerfQuery.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

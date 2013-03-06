@@ -114,7 +114,8 @@ void ValidateVertexShaderIDs(API_TYPE api, VERTEXSHADERUIDSAFE old_id, const std
 			static int num_failures = 0;
 			char szTemp[MAX_PATH];
 			sprintf(szTemp, "%svsuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-			std::ofstream file(szTemp);
+			std::ofstream file;
+			OpenFStream(file, szTemp, std::ios_base::out);
 			file << msg;
 			file << "\n\nOld shader code:\n" << old_code;
 			file << "\n\nNew shader code:\n" << new_code;
@@ -515,7 +516,6 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
 	//if not early z culling will improve speed
-	// TODO: Can probably be dropped?
 	if (is_d3d)
 	{
 		WRITE(p, "o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");

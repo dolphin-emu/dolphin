@@ -17,6 +17,9 @@
 
 #include <algorithm>
 
+#ifdef ANDROID
+#include "Host.h"
+#endif
 #include "LogManager.h"
 #include "ConsoleListener.h"
 #include "Timer.h"
@@ -132,7 +135,9 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		Common::Timer::GetTimeFormatted().c_str(),
 		file, line, level_to_char[(int)level],
 		log->GetShortName(), temp);
-
+#ifdef ANDROID
+	Host_SysMessage(msg);	
+#endif
 	log->Trigger(level, msg);
 }
 
@@ -181,7 +186,7 @@ void LogContainer::Trigger(LogTypes::LOG_LEVELS level, const char *msg)
 
 FileLogListener::FileLogListener(const char *filename)
 {
-	m_logfile.open(filename, std::ios::app);
+	OpenFStream(m_logfile, filename, std::ios::app);
 	SetEnable(true);
 }
 

@@ -90,6 +90,21 @@ void SWBPWritten(int address, int newvalue)
         SWPixelEngine::pereg.boxBottom = newvalue >> 10;
         SWPixelEngine::pereg.boxTop = newvalue & 0x3ff;
         break;
+	case BPMEM_CLEAR_PIXEL_PERF:
+		// TODO: I didn't test if the value written to this register affects the amount of cleared registers
+		SWPixelEngine::pereg.perfZcompInputZcomplocLo = 0;
+		SWPixelEngine::pereg.perfZcompInputZcomplocHi = 0;
+		SWPixelEngine::pereg.perfZcompOutputZcomplocLo = 0;
+		SWPixelEngine::pereg.perfZcompOutputZcomplocHi = 0;
+		SWPixelEngine::pereg.perfZcompInputLo = 0;
+		SWPixelEngine::pereg.perfZcompInputHi = 0;
+		SWPixelEngine::pereg.perfZcompOutputLo = 0;
+		SWPixelEngine::pereg.perfZcompOutputHi = 0;
+		SWPixelEngine::pereg.perfBlendInputLo = 0;
+		SWPixelEngine::pereg.perfBlendInputHi = 0;
+		SWPixelEngine::pereg.perfEfbCopyClocksLo = 0;
+		SWPixelEngine::pereg.perfEfbCopyClocksHi = 0;
+		break;
     case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.
 		break;
 	case BPMEM_LOADTLUT1: // Load a Texture Look Up Table

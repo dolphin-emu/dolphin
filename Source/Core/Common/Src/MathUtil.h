@@ -20,8 +20,8 @@
 
 #include "Common.h"
 
-#include <xmmintrin.h>
 #include <vector>
+#include "FPURoundMode.h"
 
 namespace MathUtil
 {
@@ -149,22 +149,32 @@ struct Rectangle
 inline float pow2f(float x) {return x * x;}
 inline double pow2(double x) {return x * x;}
 
-
-/*
-   There are two different flavors of float to int conversion:
-   _mm_cvtps_epi32() and _mm_cvttps_epi32(). The first rounds
-   according to the MXCSR rounding bits. The second one always
-   uses round towards zero.
- */
-
-void SaveSSEState();
-void LoadSSEState();
-void LoadDefaultSSEState();
 float MathFloatVectorSum(const std::vector<float>&);
 
 #define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
 #define ROUND_DOWN(x, a)	((x) & ~((a) - 1))
 
+// Rounds down. 0 -> undefined
+inline u64 Log2(u64 val)
+{
+#if defined(__GNUC__)
+	return 63 - __builtin_clzll(val);
+	
+#elif defined(_MSC_VER) && defined(_M_X64)
+	unsigned long result = -1;
+	_BitScanReverse64(&result, val);
+	return result;
+	
+#else
+	u64 result = -1;
+	while (val != 0)
+	{
+		val >>= 1;
+		++result;
+	}
+	return result;
+#endif
+}
 
 // Tiny matrix/vector library.
 // Used for things like Free-Look in the gfx backend.

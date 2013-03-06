@@ -92,6 +92,7 @@ Make AA apply instantly during gameplay if possible
 #include "Core.h"
 #include "Host.h"
 #include "SamplerCache.h"
+#include "PerfQuery.h"
 
 #include "VideoState.h"
 #include "VideoBackend.h"
@@ -130,6 +131,7 @@ void InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_OPENGL;
 	g_Config.backend_info.bUseRGBATextures = true;
+	g_Config.backend_info.bUseMinimalMipCount = false;
 	g_Config.backend_info.bSupports3DVision = false;
 	//g_Config.backend_info.bSupportsDualSourceBlend = true; // is gpu depenend and must be set in renderer
 	g_Config.backend_info.bSupportsFormatReinterpretation = false;
@@ -191,6 +193,7 @@ void VideoBackend::Video_Prepare()
 
 	BPInit();
 	g_vertex_manager = new VertexManager;
+	g_perf_query = new PerfQuery;
 	Fifo_Init(); // must be done before OpcodeDecoder_Init()
 	OpcodeDecoder_Init();
 	VertexShaderManager::Init();
@@ -203,7 +206,9 @@ void VideoBackend::Video_Prepare()
 	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
+#ifndef _M_GENERIC
 	DLCache::Init();
+#endif
 
 	// Notify the core that the video backend is ready
 	Host_Message(WM_USER_CREATE);
@@ -222,7 +227,9 @@ void VideoBackend::Video_Cleanup() {
 		s_efbAccessRequested = false;
 		s_FifoShuttingDown = false;
 		s_swapRequested = false;
+#ifndef _M_GENERIC
 		DLCache::Shutdown();
+#endif
 		Fifo_Shutdown();
 		PostProcessing::Shutdown();
 

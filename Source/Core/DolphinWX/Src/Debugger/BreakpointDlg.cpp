@@ -19,6 +19,7 @@
 #include "StringUtil.h"
 #include "PowerPC/PowerPC.h"
 #include "BreakpointWindow.h"
+#include "../WxUtils.h"
 
 BEGIN_EVENT_TABLE(BreakPointDlg, wxDialog)
 	EVT_BUTTON(wxID_OK, BreakPointDlg::OnOK)
@@ -42,14 +43,14 @@ void BreakPointDlg::OnOK(wxCommandEvent& event)
 {
 	wxString AddressString = m_pEditAddress->GetLineText(0);
 	u32 Address = 0;
-	if (AsciiToHex(AddressString.mb_str(), Address))
+	if (AsciiToHex(WxStrToStr(AddressString).c_str(), Address))
 	{
 		PowerPC::breakpoints.Add(Address);
 		Parent->NotifyUpdate();
 		Close();		
 	}
 	else
-		PanicAlert("The address %s is invalid.", (const char *)AddressString.ToUTF8());
+		PanicAlert("The address %s is invalid.", WxStrToStr(AddressString).c_str());
 
 	event.Skip();
 }

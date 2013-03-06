@@ -65,6 +65,7 @@ static u32 s_DepthCbufid;
 
 static u32 s_Textures[8];
 static u32 s_ActiveTexture;
+static u32 s_NextStage;
 
 struct VBOCache {
 	GLuint vbo;
@@ -204,23 +205,25 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	entry.pcfmt = pcfmt;
 
 	entry.m_tex_levels = tex_levels;
+	
+	entry.Load(width, height, expanded_width, 0);
 
 	return &entry;
 }
 
-void TextureCache::TCacheEntry::Load(unsigned int stage, unsigned int width, unsigned int height,
+void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {
-	if (s_ActiveTexture != stage)
+	if (s_ActiveTexture != s_NextStage)
 	{
-		glActiveTexture(GL_TEXTURE0 + stage);
-		s_ActiveTexture = stage;
+		glActiveTexture(GL_TEXTURE0 + s_NextStage);
+		s_ActiveTexture = s_NextStage;
 	}
 	
-	if (s_Textures[stage] != texture)
+	if (s_Textures[s_NextStage] != texture)
 	{
 		glBindTexture(GL_TEXTURE_2D, texture);
-		s_Textures[stage] = texture;
+		s_Textures[s_NextStage] = texture;
 	}
 	
 	// TODO: sloppy, just do this on creation?
@@ -458,6 +461,7 @@ TextureCache::TextureCache()
 	s_DepthCbufid = -1;
 	
 	s_ActiveTexture = -1;
+	s_NextStage = -1;
 	for(int i=0; i<8; i++)
 		s_Textures[i] = -1;
 }
@@ -489,6 +493,12 @@ void TextureCache::SetStage ()
 {
 	glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
+
+void TextureCache::SetNextStage ( unsigned int stage )
+{
+	s_NextStage = stage;
+}
+
 
 
 }

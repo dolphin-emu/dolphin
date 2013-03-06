@@ -18,9 +18,8 @@
 #include <map>
 
 #include "Common.h"
-#include "x64Emitter.h"
 #include "MemoryUtil.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 
 #define THUNK_ARENA_SIZE 1024*1024*1

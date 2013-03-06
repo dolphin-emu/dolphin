@@ -2,6 +2,7 @@ set(SRCS	Src/FramebufferManager.cpp
 			Src/GLUtil.cpp
 			Src/main.cpp
 			Src/NativeVertexFormat.cpp
+			Src/PerfQuery.cpp
 			Src/PixelShaderCache.cpp
 			Src/PostProcessing.cpp
 			Src/ProgramShaderCache.cpp

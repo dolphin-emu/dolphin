@@ -23,6 +23,7 @@
 #include "BPMemLoader.h"
 #include "XFMemLoader.h"
 #include "Tev.h"
+#include "SWPixelEngine.h"
 #include "SWStatistics.h"
 #include "SWVideoConfig.h"
 
@@ -61,6 +62,28 @@ s32 scissorBottom = 0;
 
 Tev tev;
 RasterBlock rasterBlock;
+
+void DoState(PointerWrap &p)
+{
+	ZSlope.DoState(p);
+	WSlope.DoState(p);
+	for (int i=0;i<2;++i)
+		for (int n=0; n<4; ++n)
+			ColorSlopes[i][n].DoState(p);
+	for (int i=0;i<8;++i)
+		for (int n=0; n<3; ++n)
+			TexSlopes[i][n].DoState(p);
+	p.Do(vertex0X);
+	p.Do(vertex0Y);
+	p.Do(vertexOffsetX);
+	p.Do(vertexOffsetY);
+	p.Do(scissorLeft);
+	p.Do(scissorTop);
+	p.Do(scissorRight);
+	p.Do(scissorBottom);
+	tev.DoState(p);
+	p.Do(rasterBlock);
+}
 
 void Init()
 {
@@ -127,9 +150,15 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 
 	if (bpmem.zcontrol.early_ztest && bpmem.zmode.testenable && g_SWVideoConfig.bZComploc)
 	{
-		// early z
-		if (!EfbInterface::ZCompare(x, y, z))
-			return;
+		// TODO: Test if perf regs are incremented even if test is disabled
+		SWPixelEngine::pereg.IncZInputQuadCount(true);
+		if (bpmem.zmode.testenable)
+		{
+			// early z
+			if (!EfbInterface::ZCompare(x, y, z))
+				return;
+		}
+		SWPixelEngine::pereg.IncZOutputQuadCount(true);
 	}
 
 	RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];

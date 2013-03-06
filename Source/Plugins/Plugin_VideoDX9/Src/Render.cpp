@@ -220,11 +220,11 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 
 }
 
-void formatBufferDump(const char *in, char *out, int w, int h, int p)
+void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 {
 	for (int y = 0; y < h; y++)
 	{
-		const char *line = in + (h - y - 1) * p;
+		auto line = in + (h - y - 1) * p;
 		for (int x = 0; x < w; x++)
 		{
 			memcpy(out, line, 3);
@@ -729,8 +729,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
-		if (g_ActiveConfig.bDumpFrames && frame_data)
-			AVIDump::AddFrame(frame_data);
+		if (g_ActiveConfig.bDumpFrames && !frame_data.empty())
+			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
 
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -741,8 +741,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
-		if (g_ActiveConfig.bDumpFrames && frame_data)
-			AVIDump::AddFrame(frame_data);
+		if (g_ActiveConfig.bDumpFrames && !frame_data.empty())
+			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
 
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -939,15 +939,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			D3DLOCKED_RECT rect;
 			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, GetTargetRectangle().AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
 			{
-				if (!frame_data || w != s_recordWidth || h != s_recordHeight)
+				if (frame_data.empty() || w != s_recordWidth || h != s_recordHeight)
 				{
-					delete[] frame_data;
-					frame_data = new char[3 * s_recordWidth * s_recordHeight];
+					frame_data.resize(3 * s_recordWidth * s_recordHeight);
 					w = s_recordWidth;
 					h = s_recordHeight;
 				}
-				formatBufferDump((const char*)rect.pBits, frame_data, s_recordWidth, s_recordHeight, rect.Pitch);
-				AVIDump::AddFrame(frame_data);
+				formatBufferDump((const u8*)rect.pBits, &frame_data[0], s_recordWidth, s_recordHeight, rect.Pitch);
+				AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
 				ScreenShootMEMSurface->UnlockRect();
 			}
 		}
@@ -957,12 +956,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		if (bLastFrameDumped && bAVIDumping)
 		{
-			if (frame_data)
-			{
-				delete[] frame_data;
-				frame_data = 0;
-				w = h = 0;
-			}
+			std::vector<u8>().swap(frame_data);
+			w = h = 0;
 			AVIDump::Stop();
 			bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames to AVI", 2000);

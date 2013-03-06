@@ -35,7 +35,7 @@
 #include "VertexLoaderManager.h"
 #include "VertexManagerBase.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 
 #include "DLCache.h"
 #include "VideoConfig.h"
@@ -550,8 +550,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 							cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
 							(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 							numVertices);
-						u8* EndAddress = VertexManager::s_pCurBufferPointer;
-						u32 Vdatasize = (u32)(EndAddress - StartAddress);
+						u32 Vdatasize = (u32)(VertexManager::s_pCurBufferPointer - StartAddress);
 						if (Vdatasize > 0)
 						{
 							// Compile

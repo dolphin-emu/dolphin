@@ -28,7 +28,7 @@ namespace DiscIO
 class CFileSystemGCWii : public IFileSystem
 {
 public:
-	CFileSystemGCWii(const IVolume *_rVolume);
+	CFileSystemGCWii(const IVolume* _rVolume);
 	virtual ~CFileSystemGCWii();
 	virtual bool IsValid() const { return m_Valid; }
 	virtual u64 GetFileSize(const char* _rFullPath);
@@ -44,11 +44,11 @@ public:
 private:
 	bool m_Initialized;
 	bool m_Valid;
-
 	u32 m_OffsetShift; // WII offsets are all shifted
+	
 	std::vector <SFileInfo> m_FileInfoVector;
 	u32 Read32(u64 _Offset) const;
-	void GetStringFromOffset(u64 _Offset, char* Filename) const;
+	std::string GetStringFromOffset(u64 _Offset) const;
 	const SFileInfo* FindFileInfo(const char* _rFullPath);
 	bool DetectFileSystem();
 	void InitFileSystem();

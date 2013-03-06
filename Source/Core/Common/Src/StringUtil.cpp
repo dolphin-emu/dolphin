@@ -17,10 +17,20 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <algorithm>
 
 #include "Common.h"
 #include "CommonPaths.h"
 #include "StringUtil.h"
+
+#ifdef _WIN32
+	#include <Windows.h>
+#elif defined(ANDROID)
+
+#else
+	#include <iconv.h>
+	#include <errno.h>
+#endif
 
 // faster than sscanf
 bool AsciiToHex(const char* _szValue, u32& result)
@@ -263,25 +273,25 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 const char HEX2DEC[256] = 
 {
 	/*       0  1  2  3   4  5  6  7   8  9  A  B   C  D  E  F */
-	/* 0 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* 1 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* 2 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* 3 */  0, 1, 2, 3,  4, 5, 6, 7,  8, 9,-1,-1, -1,-1,-1,-1,
+	/* 0 */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
+	/* 1 */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
+	/* 2 */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
+	/* 3 */  0, 1, 2, 3,  4, 5, 6, 7,  8, 9,16,16, 16,16,16,16,
 
-	/* 4 */ -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* 5 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* 6 */ -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* 7 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+	/* 4 */ 16,10,11,12, 13,14,15,16, 16,16,16,16, 16,16,16,16,
+	/* 5 */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
+	/* 6 */ 16,10,11,12, 13,14,15,16, 16,16,16,16, 16,16,16,16,
+	/* 7 */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
 
-	/* 8 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* 9 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* A */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* B */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+	/* 8 */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
+	/* 9 */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
+	/* A */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
+	/* B */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
 
-	/* C */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* D */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* E */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-	/* F */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1
+	/* C */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
+	/* D */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
+	/* E */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
+	/* F */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16
 };
 
 std::string UriDecode(const std::string & sSrc)
@@ -303,8 +313,8 @@ std::string UriDecode(const std::string & sSrc)
 		if (*pSrc == '%')
 		{
 			char dec1, dec2;
-			if (-1 != (dec1 = HEX2DEC[*(pSrc + 1)])
-				&& -1 != (dec2 = HEX2DEC[*(pSrc + 2)]))
+			if (16 != (dec1 = HEX2DEC[*(pSrc + 1)])
+				&& 16 != (dec2 = HEX2DEC[*(pSrc + 2)]))
 			{
 				*pEnd++ = (dec1 << 4) + dec2;
 				pSrc += 3;
@@ -375,3 +385,137 @@ std::string UriEncode(const std::string & sSrc)
 	delete [] pStart;
 	return sResult;
 }
+
+#ifdef _WIN32
+
+std::string UTF16ToUTF8(const std::wstring& input)
+{
+	auto const size = WideCharToMultiByte(CP_UTF8, 0, input.data(), input.size(), nullptr, 0, nullptr, nullptr);
+
+	std::string output;
+	output.resize(size);
+
+	if (size != WideCharToMultiByte(CP_UTF8, 0, input.data(), input.size(), &output[0], output.size(), nullptr, nullptr))
+		output.clear();
+
+	return output;
+}
+
+std::wstring CPToUTF16(u32 code_page, const std::string& input)
+{
+	auto const size = MultiByteToWideChar(code_page, 0, input.data(), input.size(), nullptr, 0);
+
+	std::wstring output;
+	output.resize(size);
+
+	if (size != MultiByteToWideChar(code_page, 0, input.data(), input.size(), &output[0], output.size()))
+		output.clear();
+
+	return output;
+}
+
+std::wstring UTF8ToUTF16(const std::string& input)
+{
+	return CPToUTF16(CP_UTF8, input);
+}
+
+std::string SHIFTJISToUTF8(const std::string& input)
+{
+	return UTF16ToUTF8(CPToUTF16(932, input));
+}
+
+std::string CP1252ToUTF8(const std::string& input)
+{
+	return UTF16ToUTF8(CPToUTF16(1252, input));
+}
+
+#else
+
+template <typename T>
+std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
+{
+	std::string result;
+	
+#if defined(ANDROID)
+	result = "Not implemented on Android!";
+	
+#else
+	iconv_t const conv_desc = iconv_open("UTF-8", fromcode);
+	if ((iconv_t)-1 == conv_desc)
+	{
+		ERROR_LOG(COMMON, "Iconv initialization failure [%s]: %s", fromcode, strerror(errno));
+	}
+	else
+	{
+		size_t const in_bytes = sizeof(T) * input.size();
+		size_t const out_buffer_size = 4 * in_bytes;
+		
+		std::string out_buffer;
+		out_buffer.resize(out_buffer_size);
+
+		auto src_buffer = &input[0];
+		size_t src_bytes = in_bytes;
+		auto dst_buffer = &out_buffer[0];
+		size_t dst_bytes = out_buffer.size();
+		
+		while (src_bytes != 0)
+		{
+			size_t const iconv_result = iconv(conv_desc, (char**)(&src_buffer), &src_bytes,
+				&dst_buffer, &dst_bytes);
+			
+			if ((size_t)-1 == iconv_result)
+			{
+				if (EILSEQ == errno || EINVAL == errno)
+				{
+					// Try to skip the bad character
+					if (src_bytes != 0)
+					{
+						--src_bytes;
+						++src_buffer;
+					}
+				}
+				else
+				{
+					ERROR_LOG(COMMON, "iconv failure [%s]: %s", fromcode, strerror(errno));
+					break;
+				}
+			}
+		}
+
+		out_buffer.resize(out_buffer_size - dst_bytes);
+		out_buffer.swap(result);
+		
+		iconv_close(conv_desc);
+	}
+	
+#endif
+	return result;
+}
+
+std::string CP1252ToUTF8(const std::string& input)
+{
+	//return CodeToUTF8("CP1252//TRANSLIT", input);
+	//return CodeToUTF8("CP1252//IGNORE", input);
+	return CodeToUTF8("CP1252", input);
+}
+
+std::string SHIFTJISToUTF8(const std::string& input)
+{
+	//return CodeToUTF8("CP932", input);
+	return CodeToUTF8("SJIS", input);
+}
+
+std::string UTF16ToUTF8(const std::wstring& input)
+{
+	std::string result =
+	//	CodeToUTF8("UCS-2", input);
+	//	CodeToUTF8("UCS-2LE", input);
+	//	CodeToUTF8("UTF-16", input);
+		CodeToUTF8("UTF-16LE", input);
+	
+	// TODO: why is this needed?
+	result.erase(std::remove(result.begin(), result.end(), 0x00), result.end());
+	return result;
+}
+
+#endif

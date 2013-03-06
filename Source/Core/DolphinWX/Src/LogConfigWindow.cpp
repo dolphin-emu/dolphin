@@ -20,6 +20,7 @@
 #include "ConsoleListener.h"
 #include "LogWindow.h"
 #include "FileUtil.h"
+#include "WxUtils.h"
 
 LogConfigWindow::LogConfigWindow(wxWindow* parent, CLogWindow *log_window, wxWindowID id)
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("Log Configuration"))
@@ -74,7 +75,7 @@ void LogConfigWindow::CreateGUIControls()
 	m_checks = new wxCheckListBox(this, wxID_ANY);
 	m_checks->Bind(wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, &LogConfigWindow::OnLogCheck, this);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
-		m_checks->Append(wxString::FromAscii(m_LogManager->GetFullName((LogTypes::LOG_TYPE)i)));
+		m_checks->Append(StrToWxStr(m_LogManager->GetFullName((LogTypes::LOG_TYPE)i)));
 
 	// Sizers
 	wxStaticBoxSizer* sbOutputs = new wxStaticBoxSizer(wxVERTICAL, this, _("Logger Outputs"));

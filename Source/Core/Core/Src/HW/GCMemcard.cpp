@@ -432,7 +432,6 @@ std::string GCMemcard::DEntry_BIFlags(u8 index) const
 		flags.push_back((x & 0x80) ? '1' : '0');
 		x = x << 1;
 	}
-	flags.push_back(0);
 	return flags;
 }
 
@@ -469,7 +468,6 @@ std::string GCMemcard::DEntry_IconFmt(u8 index) const
 		format.push_back((x & 0x80) ? '1' : '0');
 		x = x << 1;
 	}
-	format.push_back(0);
 	return format;
 }
 
@@ -485,7 +483,6 @@ std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
 		speed.push_back((x & 0x80) ? '1' : '0');
 		x = x << 1;
 	}
-	speed.push_back(0);
 	return speed;
 }
 
@@ -498,7 +495,6 @@ std::string GCMemcard::DEntry_Permissions(u8 index) const
 	permissionsString.push_back((Permissions & 16) ? 'x' : 'M');
 	permissionsString.push_back((Permissions &  8) ? 'x' : 'C');
 	permissionsString.push_back((Permissions &  4) ? 'P' : 'x');
-	permissionsString.push_back(0);
 	return permissionsString;
 }
 

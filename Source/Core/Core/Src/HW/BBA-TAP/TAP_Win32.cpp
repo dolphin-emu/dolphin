@@ -25,7 +25,7 @@
 namespace Win32TAPHelper
 {
 
-bool IsTAPDevice(const char *guid)
+bool IsTAPDevice(const TCHAR *guid)
 {
 	HKEY netcard_key;
 	LONG status;
@@ -39,13 +39,13 @@ bool IsTAPDevice(const char *guid)
 
 	for (;;)
 	{
-		char enum_name[256];
-		char unit_string[256];
+		TCHAR enum_name[256];
+		TCHAR unit_string[256];
 		HKEY unit_key;
-		char component_id_string[] = "ComponentId";
-		char component_id[256];
-		char net_cfg_instance_id_string[] = "NetCfgInstanceId";
-		char net_cfg_instance_id[256];
+		TCHAR component_id_string[] = _T("ComponentId");
+		TCHAR component_id[256];
+		TCHAR net_cfg_instance_id_string[] = _T("NetCfgInstanceId");
+		TCHAR net_cfg_instance_id[256];
 		DWORD data_type;
 
 		len = sizeof(enum_name);
@@ -56,7 +56,7 @@ bool IsTAPDevice(const char *guid)
 		else if (status != ERROR_SUCCESS)
 			return false;
 
-		snprintf(unit_string, sizeof(unit_string), "%s\\%s", ADAPTER_KEY, enum_name);
+		_sntprintf(unit_string, sizeof(unit_string), _T("%s\\%s"), ADAPTER_KEY, enum_name);
 
 		status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, unit_string, 0, KEY_READ, &unit_key);
 
@@ -78,8 +78,8 @@ bool IsTAPDevice(const char *guid)
 
 				if (status == ERROR_SUCCESS && data_type == REG_SZ)
 				{
-					if (!strcmp(component_id, TAP_COMPONENT_ID) &&
-						!strcmp(net_cfg_instance_id, guid))
+					if (!_tcscmp(component_id, TAP_COMPONENT_ID) &&
+						!_tcscmp(net_cfg_instance_id, guid))
 					{
 						RegCloseKey(unit_key);
 						RegCloseKey(netcard_key);
@@ -96,7 +96,7 @@ bool IsTAPDevice(const char *guid)
 	return false;
 }
 
-bool GetGUIDs(std::vector<std::string>& guids)
+bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 {
 	LONG status;
 	HKEY control_net_key;
@@ -111,12 +111,12 @@ bool GetGUIDs(std::vector<std::string>& guids)
 	
 	while (!found_all)
 	{
-		char enum_name[256];
-		char connection_string[256];
+		TCHAR enum_name[256];
+		TCHAR connection_string[256];
 		HKEY connection_key;
-		char name_data[256];
+		TCHAR name_data[256];
 		DWORD name_type;
-		const char name_string[] = "Name";
+		const TCHAR name_string[] = _T("Name");
 
 		len = sizeof(enum_name);
 		status = RegEnumKeyEx(control_net_key, i, enum_name,
@@ -127,8 +127,8 @@ bool GetGUIDs(std::vector<std::string>& guids)
 		else if (status != ERROR_SUCCESS)
 			return false;
 
-		snprintf(connection_string, sizeof(connection_string),
-			"%s\\%s\\Connection", NETWORK_CONNECTIONS_KEY, enum_name);
+		_sntprintf(connection_string, sizeof(connection_string),
+			_T("%s\\%s\\Connection"), NETWORK_CONNECTIONS_KEY, enum_name);
 
 		status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, connection_string,
 			0, KEY_READ, &connection_key);
@@ -165,15 +165,11 @@ bool GetGUIDs(std::vector<std::string>& guids)
 	return true;
 }
 
-bool OpenTAP(HANDLE& adapter, const std::string device_guid)
+bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 {
-	char device_path[256];
+	auto const device_path = USERMODEDEVICEDIR + device_guid + TAPSUFFIX;
 
-	/* Open Windows TAP-Win32 adapter */
-	snprintf(device_path, sizeof(device_path), "%s%s%s",
-		USERMODEDEVICEDIR, device_guid.c_str(), TAPSUFFIX);
-
-	adapter = CreateFile(device_path, GENERIC_READ | GENERIC_WRITE, 0, 0,
+	adapter = CreateFile(device_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, 0,
 		OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED, 0);
 
 	if (adapter == INVALID_HANDLE_VALUE)
@@ -192,7 +188,7 @@ bool CEXIETHERNET::Activate()
 		return true;
 
 	DWORD len;
-	std::vector<std::string> device_guids;
+	std::vector<std::basic_string<TCHAR>> device_guids;
 
 	if (!Win32TAPHelper::GetGUIDs(device_guids))
 	{

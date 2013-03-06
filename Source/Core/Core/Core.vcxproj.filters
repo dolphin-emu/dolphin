@@ -5,9 +5,8 @@
     <ClCompile Include="Src\Console.cpp" />
     <ClCompile Include="Src\Core.cpp" />
     <ClCompile Include="Src\CoreParameter.cpp" />
-    <ClCompile Include="Src\CoreRerecording.cpp" />
     <ClCompile Include="Src\CoreTiming.cpp" />
-    <ClCompile Include="Src\MemTools.cpp" />
+    <ClCompile Include="Src\x64MemTools.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
     <ClCompile Include="Src\DSPEmulator.cpp" />
     <ClCompile Include="Src\State.cpp" />
@@ -562,6 +561,9 @@
     <ClCompile Include="Src\HW\GCMemcard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitInterface.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ConfigManager.h" />
@@ -1047,6 +1049,9 @@
     <ClInclude Include="Src\Movie.h" />
     <ClInclude Include="Src\HW\GCMemcard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PowerPC\JitInterface.h">
+      <Filter>PowerPC</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1991,8 +1991,10 @@ void JitIL::WriteCode() {
 }
 
 void ProfiledReJit() {
-	jit->SetCodePtr(jit->js.rewriteStart);
-	DoWriteCode(&((JitIL *)jit)->ibuild, (JitIL *)jit, true, false);
-	jit->js.curBlock->codeSize = (int)(jit->GetCodePtr() - jit->js.rewriteStart);
-	jit->GetBlockCache()->FinalizeBlock(jit->js.curBlock->blockNum, jit->jo.enableBlocklink, jit->js.curBlock->normalEntry);
+	JitIL *jitil = (JitIL *)jit;
+	jitil->SetCodePtr(jitil->js.rewriteStart);
+	DoWriteCode(&jitil->ibuild, jitil, true, false);
+	jitil->js.curBlock->codeSize = (int)(jitil->GetCodePtr() - jitil->js.rewriteStart);
+	jitil->GetBlockCache()->FinalizeBlock(jitil->js.curBlock->blockNum, jitil->jo.enableBlocklink,
+	jitil->js.curBlock->normalEntry);
 }

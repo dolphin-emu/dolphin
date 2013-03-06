@@ -100,37 +100,6 @@ CPanel::CPanel(
 				else
 					SetCursor(wxNullCursor);
 				break;
-
-			case WIIMOTE_DISCONNECT:
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-				{
-					const int wiimote_idx = lParam;
-					const int wiimote_num = wiimote_idx + 1;
-
-					//Auto reconnect if option is turned on.
-					//TODO: Make this only auto reconnect wiimotes that have the option activated.
-					SConfig::GetInstance().LoadSettingsWii();//Make sure we are using the newest settings.
-					if (SConfig::GetInstance().m_WiiAutoReconnect[wiimote_idx])
-					{
-						GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
-						NOTICE_LOG(WIIMOTE, "Wiimote %i has been auto-reconnected...", wiimote_num);
-					}
-					else
-					{
-						// The Wiimote has been disconnected, we offer reconnect here.
-						wxMessageDialog *dlg = new wxMessageDialog(
-							this,
-							wxString::Format(_("Wiimote %i has been disconnected by system.\nMaybe this game doesn't support multi-wiimote,\nor maybe it is due to idle time out or other reason.\nDo you want to reconnect immediately?"), wiimote_num),
-							_("Reconnect Wiimote Confirm"),
-							wxYES_NO | wxSTAY_ON_TOP | wxICON_INFORMATION, //wxICON_QUESTION,
-							wxDefaultPosition);
-
-						if (dlg->ShowModal() == wxID_YES)
-							GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
-
-						dlg->Destroy();
-					}
-				}
 			}
 			break;
 
@@ -690,7 +659,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 	// 1. Boot the selected iso
 	// 2. Boot the default or last loaded iso.
 	// 3. Call BrowseForDirectory if the gamelist is empty
-	if (!m_GameListCtrl->GetGameNames().size() &&
+	if (!m_GameListCtrl->GetISO(0) &&
 		!((SConfig::GetInstance().m_ListGC &&
 		SConfig::GetInstance().m_ListWii &&
 		SConfig::GetInstance().m_ListWad) &&
@@ -724,7 +693,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 		m_GameListCtrl->Update();
 	}
-	else if (!m_GameListCtrl->GetGameNames().size())
+	else if (!m_GameListCtrl->GetISO(0))
 		m_GameListCtrl->BrowseForDirectory();
 	else
 		// Game started by double click
@@ -735,7 +704,7 @@ bool IsHotkey(wxKeyEvent &event, int Id)
 {
 	return (event.GetKeyCode() != WXK_NONE &&
 	        event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
-	        event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
+			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
 }
 
 int GetCmdForHotkey(unsigned int key)

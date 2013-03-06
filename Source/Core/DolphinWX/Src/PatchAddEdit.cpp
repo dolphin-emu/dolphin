@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "PatchAddEdit.h"
+#include "WxUtils.h"
 
 extern std::vector<PatchEngine::Patch> onFrame;
 
@@ -48,7 +49,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	}
 	else
 	{
-	    currentName = wxString(onFrame.at(_selection).name.c_str(), *wxConvCurrent);
+	    currentName = StrToWxStr(onFrame.at(_selection).name);
 	    tempEntries = onFrame.at(_selection).entries;
 	}
 
@@ -66,7 +67,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	EntrySelection->SetValue((int)tempEntries.size()-1);
 	wxArrayString wxArrayStringFor_EditPatchType;
 	for (int i = 0; i < 3; ++i)
-		wxArrayStringFor_EditPatchType.Add(wxString::FromAscii(PatchEngine::PatchTypeStrings[i]));
+		wxArrayStringFor_EditPatchType.Add(StrToWxStr(PatchEngine::PatchTypeStrings[i]));
 	EditPatchType = new wxRadioBox(this, ID_EDITPATCH_TYPE, _("Type"), wxDefaultPosition, wxDefaultSize, wxArrayStringFor_EditPatchType, 3, wxRA_SPECIFY_COLS);
 	EditPatchType->SetSelection((int)tempEntries.at(0).type);
 	wxStaticText* EditPatchValueText = new wxStaticText(this, ID_EDITPATCH_VALUE_TEXT, _("Value:"));
@@ -121,7 +122,7 @@ void CPatchAddEdit::SavePatchData(wxCommandEvent& event)
 	if (selection == -1)
 	{
 		PatchEngine::Patch newPatch;
-		newPatch.name = std::string(EditPatchName->GetValue().mb_str());
+		newPatch.name = WxStrToStr(EditPatchName->GetValue());
 		newPatch.entries = tempEntries;
 		newPatch.active = true;
 
@@ -129,7 +130,7 @@ void CPatchAddEdit::SavePatchData(wxCommandEvent& event)
 	}
 	else
 	{
-		onFrame.at(selection).name = std::string(EditPatchName->GetValue().mb_str());
+		onFrame.at(selection).name = WxStrToStr(EditPatchName->GetValue());
 		onFrame.at(selection).entries = tempEntries;
 	}
 

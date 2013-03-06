@@ -100,9 +100,6 @@ SConfig::SConfig()
 {
 	// Make sure we have log manager
 	LoadSettings();
-	//Make sure we load any extra settings
-	LoadSettingsWii();
-
 }
 
 void SConfig::Init()
@@ -140,7 +137,7 @@ void SConfig::SaveSettings()
 	ini.Get("General", "GCMPathes", &oldPaths, 0);
 	for (int i = numPaths; i < oldPaths; i++)
 	{
-		TCHAR tmp[16];
+		char tmp[16];
 		sprintf(tmp, "GCMPath%i", i);
 		ini.DeleteKey("General", tmp);
 	}
@@ -149,7 +146,7 @@ void SConfig::SaveSettings()
 
 	for (int i = 0; i < numPaths; i++)
 	{
-		TCHAR tmp[16];
+		char tmp[16];
 		sprintf(tmp, "GCMPath%i", i);
 		ini.Set("General", tmp, m_ISOFolder[i]);
 	}
@@ -244,6 +241,8 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "WiiSDCard", m_WiiSDCard);
 	ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
 	ini.Set("Core", "WiimoteReconnectOnLoad", m_WiimoteReconnectOnLoad);
+	ini.Set("Core", "WiimoteContinuousScanning", m_WiimoteContinuousScanning);
+	ini.Set("Core", "WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
 	ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
 	ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
 	ini.Set("Core", "FrameLimit",		m_Framelimit);
@@ -285,7 +284,7 @@ void SConfig::LoadSettings()
 		{
 			for (int i = 0; i < numGCMPaths; i++)
 			{
-				TCHAR tmp[16];
+				char tmp[16];
 				sprintf(tmp, "GCMPath%i", i);
 				std::string tmpPath;
 				ini.Get("General", tmp, &tmpPath, "");
@@ -363,7 +362,11 @@ void SConfig::LoadSettings()
 
 		// Core
 		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		false);
+#ifdef _M_ARM
+		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		3);
+#else
 		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		1);
+#endif
 		ini.Get("Core", "DSPThread",	&m_LocalCoreStartupParameter.bDSPThread,	false);
 		ini.Get("Core", "DSPHLE",		&m_LocalCoreStartupParameter.bDSPHLE,		true);
 		ini.Get("Core", "CPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);
@@ -393,7 +396,9 @@ void SConfig::LoadSettings()
 
 		ini.Get("Core", "WiiSDCard",		&m_WiiSDCard,									false);
 		ini.Get("Core", "WiiKeyboard",		&m_WiiKeyboard,									false);
-		ini.Get("Core", "WiimoteReconnectOnLoad",	&m_WiimoteReconnectOnLoad,							true);
+		ini.Get("Core", "WiimoteReconnectOnLoad",	&m_WiimoteReconnectOnLoad,				true);
+		ini.Get("Core", "WiimoteContinuousScanning", &m_WiimoteContinuousScanning,			false);
+		ini.Get("Core", "WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker,					true);
 		ini.Get("Core", "RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
@@ -427,19 +432,4 @@ void SConfig::LoadSettings()
 	}
 
 	m_SYSCONF = new SysConf();
-}
-void SConfig::LoadSettingsWii()
-{
-	IniFile ini;
-	//Wiimote configs
-	ini.Load((File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini"));
-	for (int i = 0; i < 4; i++)
-	{
-		char SectionName[32];
-		sprintf(SectionName, "Wiimote%i", i + 1);
-		ini.Get(SectionName, "AutoReconnectRealWiimote", &m_WiiAutoReconnect[i], false);
-	}
-		ini.Load((File::GetUserPath(D_CONFIG_IDX) + "wiimote.ini"));
-		ini.Get("Real", "Unpair", &m_WiiAutoUnpair, false);
-		
 }

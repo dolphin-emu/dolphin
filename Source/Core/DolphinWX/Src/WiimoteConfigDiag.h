@@ -24,20 +24,13 @@ class WiimoteConfigDiag : public wxDialog
 public:
 	WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin);
 
-#ifdef _WIN32
-	void PairUpRealWiimotes(wxCommandEvent& event);
-#endif
 	void RefreshRealWiimotes(wxCommandEvent& event);
 
-
 	void SelectSource(wxCommandEvent& event);
-	void UpdateWiimoteStatus();
 	void RevertSource();
-
 
 	void ConfigEmulatedWiimote(wxCommandEvent& event);
 	void Save(wxCommandEvent& event);
-	void UpdateGUI();
 
 	void OnSensorBarPos(wxCommandEvent& event)
 	{
@@ -64,6 +57,17 @@ public:
 		SConfig::GetInstance().m_WiimoteReconnectOnLoad = event.IsChecked();
 		event.Skip();
 	}
+	void OnContinuousScanning(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_WiimoteContinuousScanning = event.IsChecked();
+		WiimoteReal::Initialize();
+		event.Skip();
+	}
+	void OnEnableSpeaker(wxCommandEvent& event)
+	{
+		SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
+		event.Skip();
+	}
 
 private:
 	void Cancel(wxCommandEvent& event);
@@ -76,8 +80,6 @@ private:
 
 	wxButton* wiimote_configure_bt[4];
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;
-
-	wxStaticText*	connected_wiimotes_txt;
 };
 
 

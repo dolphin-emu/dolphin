@@ -1119,20 +1119,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							_mm_storeu_si128( (__m128i*)( dst+(y + iy+1) * width + x + 4 ), o4 );
 						}
 			}
-#if 0
-			// Reference C implementation:
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, src += 4)
-						for (int ix = 0; ix < 4; ix++)
-						{
-							int val = src[ix];
-							u8 i1 = Convert4To8(val >> 4);
-							u8 i2 = Convert4To8(val & 0xF);
-							memset(dst+(y + iy) * width + x + ix * 2 , i1,4);
-							memset(dst+(y + iy) * width + x + ix * 2 + 1 , i2,4);
-						}
-#endif
 		}
 	   break;
 	case GX_TF_I8:  // speed critical
@@ -1248,26 +1234,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						
 					}
 			}
-#if 0
-			// Reference C implementation
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; ++iy, src += 8)
-					{
-						u32 *  newdst = dst + (y + iy)*width+x;
-						const u8 *  newsrc = src;
-						u8 srcval;
-
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = (newsrc++)[0]; (newdst++)[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-						srcval = newsrc[0]; newdst[0] = srcval | (srcval << 8) | (srcval << 16) | (srcval << 24);
-					}
-#endif
 		}
 		break;
 	case GX_TF_C8:
@@ -1380,20 +1346,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							_mm_storeu_si128( (__m128i*)(dst + (y + iy) * width + x), r1 );
 						}
 			}
-#if 0
-			// Reference C implementation:
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-					{
-						u32 *ptr = dst + (y + iy) * width + x;
-						u16 *s = (u16 *)src;
-						ptr[0] = decodeIA8Swapped(s[0]);
-						ptr[1] = decodeIA8Swapped(s[1]);
-						ptr[2] = decodeIA8Swapped(s[2]);
-						ptr[3] = decodeIA8Swapped(s[3]);
-					}
-#endif
 		}
 		break;
 	case GX_TF_C14X2:
@@ -1493,18 +1445,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						__m128i *ptr = (__m128i *)(dst + (y + iy) * width + x);
 						_mm_storeu_si128(ptr, abgr888x4);
 					}
-#if 0
-			// Reference C implementation.
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-					{
-						u32 *ptr = dst + (y + iy) * width + x;
-						u16 *s = (u16 *)src;
-						for(int j = 0; j < 4; j++)
-							*ptr++ = decode565RGBA(Common::swap16(*s++));
-					}
-#endif
 		}
 		break;
 	case GX_TF_RGB5A3:
@@ -1718,13 +1658,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 							}
 						}
 				}
-#if 0
-			// Reference C implementation:
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						decodebytesRGB5A3rgba(dst+(y+iy)*width+x, (u16*)src);
-#endif
 		}
 		break;
 	case GX_TF_RGBA8:  // speed critical
@@ -1860,16 +1793,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						_mm_storeu_si128(dst128, rgba11);
 					}				
 			}
-#if 0
-			// Reference C implementation.
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-				{
-					for (int iy = 0; iy < 4; iy++)
-						decodebytesARGB8_4ToRgba(dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
-					src += 64;
-				}
-#endif
 		}
 		break;
 	case GX_TF_CMPR:  // speed critical
@@ -2104,22 +2027,6 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 					}					
 				}
 			}
-#if 0
-			for (int y = 0; y < height; y += 8)
-			{
-				for (int x = 0; x < width; x += 8)
-				{
-					decodeDXTBlockRGBA((u32*)dst + y * width + x, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-					decodeDXTBlockRGBA((u32*)dst + y * width + x + 4, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-					decodeDXTBlockRGBA((u32*)dst + (y + 4) * width + x, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-					decodeDXTBlockRGBA((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src, width);
-										src += sizeof(DXTBlock);
-				}
-			}
-#endif
 			break;
 		}
 	}

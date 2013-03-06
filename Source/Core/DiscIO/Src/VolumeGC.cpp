@@ -91,16 +91,17 @@ std::string CVolumeGC::GetMakerID() const
 	return makerID;
 }
 
-std::string CVolumeGC::GetName() const
+std::vector<std::string> CVolumeGC::GetNames() const
 {
-	if (m_pReader == NULL)
-		return "";
+	std::vector<std::string> names;
+	
+	auto const string_decoder = GetStringDecoder(GetCountry());
 
-	char name[128];
-	if (!Read(0x20, 0x60, (u8*)&name))
-		return "";
+	char name[0x60 + 1] = {};
+	if (m_pReader != NULL && Read(0x20, 0x60, (u8*)name))
+		names.push_back(string_decoder(name));
 
-	return name;
+	return names;
 }
 
 u32 CVolumeGC::GetFSTSize() const
@@ -142,6 +143,12 @@ bool CVolumeGC::IsDiscTwo() const
 	bool discTwo;
 	Read(6,1, (u8*) &discTwo);
 	return discTwo;
+}
+
+auto CVolumeGC::GetStringDecoder(ECountry country) -> StringDecoder
+{
+	return (COUNTRY_JAPAN == country || COUNTRY_TAIWAN == country) ?
+		SHIFTJISToUTF8 : CP1252ToUTF8;
 }
 
 } // namespace

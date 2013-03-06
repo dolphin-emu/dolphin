@@ -106,7 +106,7 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 		File::Delete("rmtdump.wav");
 		File::Delete("rmtdump.bin");
 		atexit(stopdamnwav);
-		ofile.open("rmtdump.bin", ofile.binary | ofile.out);
+		OpenFStream(ofile, "rmtdump.bin", ofile.binary | ofile.out);
 		wav.Start("rmtdump.wav", 6000/*Common::swap16(m_reg_speaker.sample_rate)*/);
 	}
 	wav.AddMonoSamples(samples, sd->length*2);

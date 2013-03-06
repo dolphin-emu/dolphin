@@ -19,6 +19,7 @@
 #define _NATIVEVERTEXFORMAT_H
 
 #include "Vec3.h"
+#include "ChunkFile.h"
 
 #ifdef WIN32
 #define LOADERDECL __cdecl
@@ -92,6 +93,18 @@ struct OutputVertexData
         #undef LINTERP
         #undef LINTERP_INT
     }
+	void DoState(PointerWrap &p)
+	{
+		mvPosition.DoState(p);
+		p.Do(projectedPosition);
+		screenPosition.DoState(p);
+		for (int i = 0; i < 3;++i)
+			normal[i].DoState(p);
+		p.DoArray(color, sizeof color);
+		for (int i = 0; i < 8;++i)
+			texCoords[i].DoState(p);
+	}
+
 };
 
 #endif

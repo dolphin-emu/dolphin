@@ -33,6 +33,7 @@
 #include "IPC_HLE/WII_IPC_HLE.h"
 #include "NANDContentLoader.h"
 
+#include "WxUtils.h"
 #include "Globals.h" // Local
 #include "ConfigMain.h"
 #include "ConfigManager.h"
@@ -51,6 +52,21 @@ using std::function;
 #endif
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
+
+struct CPUCore
+{
+	int CPUid;
+	const char *name;
+};
+const CPUCore CPUCores[] = {
+	{0, "Interpreter (VERY slow)"},
+#ifdef _M_ARM
+	{3, "Arm JIT (experimental)"},
+#else
+	{1, "JIT Recompiler (recommended)"},
+	{2, "JITIL experimental recompiler"},
+#endif
+};
 
 extern CFrame* main_frame;
 
@@ -100,7 +116,6 @@ static const wxLanguage langIds[] =
 #define EXIDEV_AM_BB_STR	_trans("AM-Baseboard")
 #define EXIDEV_GECKO_STR	"USBGecko"
 
-#define CSTR_TRANS(a)		wxString(wxGetTranslation(wxT(a))).mb_str()
 #define WXSTR_TRANS(a)		wxString(wxGetTranslation(wxT(a)))
 #ifdef WIN32
 //only used with xgettext to be picked up as translatable string.
@@ -188,7 +203,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	// Update selected ISO paths
 	for(u32 i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); i++)
 	{
-		ISOPaths->Append(wxString(SConfig::GetInstance().m_ISOFolder[i].c_str(), *wxConvCurrent));
+		ISOPaths->Append(StrToWxStr(SConfig::GetInstance().m_ISOFolder[i]));
 	}
 }
 
@@ -241,7 +256,6 @@ void CConfigMain::UpdateGUI()
 		PathsPage->Disable();
 	}
 }
-
 void CConfigMain::InitializeGUILists()
 {
 	// General page
@@ -253,10 +267,9 @@ void CConfigMain::InitializeGUILists()
 		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 
 	// Emulator Engine
-	arrayStringFor_CPUEngine.Add(_("Interpreter (VERY slow)"));
-	arrayStringFor_CPUEngine.Add(_("JIT Recompiler (recommended)"));
-	arrayStringFor_CPUEngine.Add(_("JITIL experimental recompiler"));
-	
+	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
+		arrayStringFor_CPUEngine.Add(_(CPUCores[a].name));
+		
 	// DSP Engine 
 	arrayStringFor_DSPEngine.Add(_("DSP HLE emulation (fast)"));
 	arrayStringFor_DSPEngine.Add(_("DSP LLE recompiler"));
@@ -329,7 +342,9 @@ void CConfigMain::InitializeGUIValues()
 	UseFPSForLimiting->SetValue(SConfig::GetInstance().b_UseFPS);
 
 	// General - Advanced
-	CPUEngine->SetSelection(startup_params.iCPUCore);
+	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
+		if (CPUCores[a].CPUid == startup_params.iCPUCore)
+			CPUEngine->SetSelection(a);
 	_NTSCJ->SetValue(startup_params.bForceNTSCJ);
 
 
@@ -477,10 +492,10 @@ void CConfigMain::InitializeGUIValues()
 
 	// Paths
 	RecursiveISOPath->SetValue(SConfig::GetInstance().m_RecursiveISOFolder);
-	DefaultISO->SetPath(wxString(startup_params.m_strDefaultGCM.c_str(), *wxConvCurrent));
-	DVDRoot->SetPath(wxString(startup_params.m_strDVDRoot.c_str(), *wxConvCurrent));
-	ApploaderPath->SetPath(wxString(startup_params.m_strApploader.c_str(), *wxConvCurrent));
-	NANDRoot->SetPath(wxString(SConfig::GetInstance().m_NANDPath.c_str(), *wxConvCurrent));
+	DefaultISO->SetPath(StrToWxStr(startup_params.m_strDefaultGCM));
+	DVDRoot->SetPath(StrToWxStr(startup_params.m_strDVDRoot));
+	ApploaderPath->SetPath(StrToWxStr(startup_params.m_strApploader));
+	NANDRoot->SetPath(StrToWxStr(SConfig::GetInstance().m_NANDPath));
 }
 
 void CConfigMain::InitializeGUITooltips()
@@ -620,6 +635,7 @@ void CConfigMain::CreateGUIControls()
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = theme_selection->GetStringSelection();
 		main_frame->InitBitmaps();
+		main_frame->UpdateGameList();
 	}));
 
 	auto const scInterface = new wxBoxSizer(wxHORIZONTAL);
@@ -887,7 +903,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	// Core - Advanced
 	case ID_CPUENGINE:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = CPUEngine->GetSelection();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = CPUCores[CPUEngine->GetSelection()].CPUid;
 		if (main_frame->g_pCodeWindow)
 			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore?false:true);
@@ -957,10 +973,10 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		break;
 
 	case ID_BACKEND:
-		VolumeSlider->Enable(SupportsVolumeChanges(std::string(BackendSelection->GetStringSelection().mb_str())));
-		Latency->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
-		DPL2Decoder->Enable(std::string(BackendSelection->GetStringSelection().mb_str()) == BACKEND_OPENAL);
-		SConfig::GetInstance().sBackend = BackendSelection->GetStringSelection().mb_str();
+		VolumeSlider->Enable(SupportsVolumeChanges(WxStrToStr(BackendSelection->GetStringSelection())));
+		Latency->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL);
+		DPL2Decoder->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL);
+		SConfig::GetInstance().sBackend = WxStrToStr(BackendSelection->GetStringSelection());
 		AudioCommon::UpdateSoundStream();
 		break;
 
@@ -981,9 +997,9 @@ void CConfigMain::AddAudioBackends()
 	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
 		 iter != backends.end(); ++iter)
 	{
-		BackendSelection->Append(wxString::FromAscii((*iter).c_str()));
+		BackendSelection->Append(StrToWxStr(*iter));
 		int num = BackendSelection->\
-			FindString(wxString::FromAscii(SConfig::GetInstance().sBackend.c_str()));
+			FindString(StrToWxStr(SConfig::GetInstance().sBackend));
 		BackendSelection->SetSelection(num);
 	}
 }
@@ -1045,12 +1061,12 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 
 void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 {
-	std::string filename = std::string(wxFileSelector(
+	std::string filename = WxStrToStr(wxFileSelector(
 		_("Choose a file to open"),
-		wxString::FromUTF8(File::GetUserPath(D_GCUSER_IDX).c_str()),
+		StrToWxStr(File::GetUserPath(D_GCUSER_IDX)),
 		isSlotA ? wxT(GC_MEMCARDA) : wxT(GC_MEMCARDB),
 		wxEmptyString,
-		_("Gamecube Memory Cards (*.raw,*.gcp)") + wxString(wxT("|*.raw;*.gcp"))).mb_str());
+		_("Gamecube Memory Cards (*.raw,*.gcp)") + wxString(wxT("|*.raw;*.gcp"))));
 
 	if (!filename.empty())
 	{
@@ -1241,7 +1257,7 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 	SConfig::GetInstance().m_ISOFolder.clear();
 
 	for (unsigned int i = 0; i < ISOPaths->GetCount(); i++)
-		SConfig::GetInstance().m_ISOFolder.push_back(std::string(ISOPaths->GetStrings()[i].mb_str()));
+		SConfig::GetInstance().m_ISOFolder.push_back(WxStrToStr(ISOPaths->GetStrings()[i]));
 }
 
 void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
@@ -1252,24 +1268,25 @@ void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
 
 void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = DefaultISO->GetPath().mb_str();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = WxStrToStr(DefaultISO->GetPath());
 }
 
 void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = DVDRoot->GetPath().mb_str();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = WxStrToStr(DVDRoot->GetPath());
 }
 
 void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader = ApploaderPath->GetPath().mb_str();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader = WxStrToStr(ApploaderPath->GetPath());
 }
 
 void CConfigMain::NANDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
 	std::string NANDPath =
-	SConfig::GetInstance().m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, std::string(NANDRoot->GetPath().mb_str()));
-	NANDRoot->SetPath(wxString(NANDPath.c_str(), *wxConvCurrent));
+		SConfig::GetInstance().m_NANDPath =
+			File::GetUserPath(D_WIIROOT_IDX, WxStrToStr(NANDRoot->GetPath()));
+	NANDRoot->SetPath(StrToWxStr(NANDPath));
 	SConfig::GetInstance().m_SYSCONF->UpdateLocation();
 	DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 	DiscIO::CSharedContent::AccessInstance().UpdateLocation();

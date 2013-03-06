@@ -71,7 +71,7 @@ public:
 		m_num_entries = 0;
 
 		// try opening for reading/writing
-		m_file.open(filename, ios_base::in | ios_base::out | ios_base::binary);
+		OpenFStream(m_file, filename, ios_base::in | ios_base::out | ios_base::binary);
 
 		m_file.seekg(0, std::ios::end);
 		std::fstream::pos_type end_pos = m_file.tellg();

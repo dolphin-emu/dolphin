@@ -36,19 +36,20 @@ enum
 	PE_BBOX_TOP		 = 0x14, // Flip Top
 	PE_BBOX_BOTTOM	 = 0x16, // Flip Bottom
 
-	// These have not yet been RE:d. They are the perf counters.
-	PE_PERF_0L       = 0x18, 
-	PE_PERF_0H       = 0x1a, 
-	PE_PERF_1L       = 0x1c, 
-	PE_PERF_1H       = 0x1e, 
-	PE_PERF_2L       = 0x20, 
-	PE_PERF_2H       = 0x22, 
-	PE_PERF_3L       = 0x24, 
-	PE_PERF_3H       = 0x26, 
-	PE_PERF_4L       = 0x28, 
-	PE_PERF_4H       = 0x2a, 
-	PE_PERF_5L       = 0x2c, 
-	PE_PERF_5H       = 0x2e, 
+	// NOTE: Order not verified
+	// These indicate the number of quads that are being used as input/output for each particular stage
+	PE_PERF_ZCOMP_INPUT_ZCOMPLOC_L	= 0x18, 
+	PE_PERF_ZCOMP_INPUT_ZCOMPLOC_H	= 0x1a,
+	PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_L	= 0x1c, 
+	PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_H	= 0x1e, 
+	PE_PERF_ZCOMP_INPUT_L			= 0x20, 
+	PE_PERF_ZCOMP_INPUT_H			= 0x22,
+	PE_PERF_ZCOMP_OUTPUT_L			= 0x24, 
+	PE_PERF_ZCOMP_OUTPUT_H			= 0x26, 
+	PE_PERF_BLEND_INPUT_L			= 0x28, 
+	PE_PERF_BLEND_INPUT_H			= 0x2a, 
+	PE_PERF_EFB_COPY_CLOCKS_L		= 0x2c, 
+	PE_PERF_EFB_COPY_CLOCKS_H		= 0x2e, 
 };
 
 namespace PixelEngine

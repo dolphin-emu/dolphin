@@ -28,6 +28,7 @@ u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
 
 namespace EfbInterface
 {
+
     u8 efbColorTexture[EFB_WIDTH*EFB_HEIGHT*4];
 
     inline u32 GetColorOffset(u16 x, u16 y)
@@ -39,6 +40,12 @@ namespace EfbInterface
     {
         return (x + y * EFB_WIDTH) * 3 + DEPTH_BUFFER_START;
     }
+
+	void DoState(PointerWrap &p)
+	{
+		p.DoArray(efb, EFB_WIDTH*EFB_HEIGHT*6);
+		p.DoArray(efbColorTexture, EFB_WIDTH*EFB_HEIGHT*4);
+	}
 
     void SetPixelAlphaOnly(u32 offset, u8 a)
     {
