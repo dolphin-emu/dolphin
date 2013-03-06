@@ -270,7 +270,7 @@ void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::
 //   tevtemp is set according to swapmodetables and
 
 static void WriteStage(char *&p, int n, API_TYPE ApiType);
-static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
+static void SampleTexture(char *&p, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
 static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode);
 static void WriteFog(char *&p);
@@ -637,9 +637,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			else
 				WRITE(p, "tempcoord = float2(0.0f, 0.0f);\n");
 
-			char buffer[32];
-			sprintf(buffer, "float3 indtex%d", i);
-			SampleTexture(p, buffer, "tempcoord", "abg", bpmem.tevindref.getTexMap(i), ApiType);
+			WRITE(p, "float3 indtex%d = ", i);
+			SampleTexture(p, "tempcoord", "abg", bpmem.tevindref.getTexMap(i), ApiType);
 		}
 	}
 
@@ -878,7 +877,8 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
-		SampleTexture(p, "textemp", "tevcoord", texswap, texmap, ApiType);
+		WRITE(p, "textemp = ");
+		SampleTexture(p, "tevcoord", texswap, texmap, ApiType);
 	}
 	else
 		WRITE(p, "textemp = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
@@ -961,12 +961,12 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	WRITE(p, "}\n");
 }
 
-void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
+void SampleTexture(char *&p, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
 	if (ApiType == API_D3D11)
-		WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
+		WRITE(p, "Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", texmap,texmap, texcoords, texmap, texswap);
 	else
-		WRITE(p, "%s=tex2D(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
+		WRITE(p, "tex2D(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
