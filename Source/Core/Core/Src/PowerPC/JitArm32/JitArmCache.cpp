@@ -38,7 +38,7 @@ using namespace ArmGen;
 		ARMXEmitter emit((u8 *)location);
 		emit.MOVI2R(R11, address);
 		emit.MOVI2R(R12, (u32)jit->GetAsmRoutines()->dispatcher);
-		emit.STR(R9, R11, PPCSTATE_OFF(PowerPC::ppcState, pc));
+		emit.STR(R9, R11, PPCSTATE_OFF(pc));
 		emit.B(R12);
 	}
 
