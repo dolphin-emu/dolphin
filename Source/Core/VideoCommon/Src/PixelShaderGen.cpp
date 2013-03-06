@@ -275,16 +275,25 @@ static void SampleTexture(char *&p, const char *destination, const char *texcoor
 static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode);
 static void WriteFog(char *&p);
 
+#define CONST_31_BY_255 "(31.0f/255.0f)"
+#define CONST_63_BY_255 "(63.0f/255.0f)"
+#define CONST_95_BY_255 "(95.0f/255.0f)"
+#define CONST_127_BY_255 "(127.0f/255.0f)"
+#define CONST_128_BY_255 "(128.0f/255.0f)"
+#define CONST_159_BY_255 "(159.0f/255.0f)"
+#define CONST_191_BY_255 "(191.0f/255.0f)"
+#define CONST_223_BY_255 "(223.0f/255.0f)"
+
 static const char *tevKSelTableC[] = // KCSEL
 {
 	"1.0f,1.0f,1.0f",    // 1   = 0x00
-	"0.875f,0.875f,0.875f", // 7_8 = 0x01
-	"0.75f,0.75f,0.75f",    // 3_4 = 0x02
-	"0.625f,0.625f,0.625f", // 5_8 = 0x03
-	"0.5f,0.5f,0.5f",       // 1_2 = 0x04
-	"0.375f,0.375f,0.375f", // 3_8 = 0x05
-	"0.25f,0.25f,0.25f",    // 1_4 = 0x06
-	"0.125f,0.125f,0.125f", // 1_8 = 0x07
+	CONST_223_BY_255"," CONST_223_BY_255"," CONST_223_BY_255, // 7_8 = 0x01
+	CONST_191_BY_255"," CONST_191_BY_255"," CONST_191_BY_255, // 3_4 = 0x02
+	CONST_159_BY_255"," CONST_159_BY_255"," CONST_159_BY_255, // 5_7 = 0x03
+	CONST_127_BY_255"," CONST_127_BY_255"," CONST_127_BY_255, // 1_2 = 0x04
+	CONST_95_BY_255"," CONST_95_BY_255"," CONST_95_BY_255, // 3_8 = 0x05
+	CONST_63_BY_255"," CONST_63_BY_255"," CONST_63_BY_255, // 1_4 = 0x06
+	CONST_31_BY_255"," CONST_31_BY_255"," CONST_31_BY_255, // 1_8 = 0x07
 	"ERROR1", // 0x08
 	"ERROR2", // 0x09
 	"ERROR3", // 0x0a
@@ -314,13 +323,13 @@ static const char *tevKSelTableC[] = // KCSEL
 static const char *tevKSelTableA[] = // KASEL
 {
 	"1.0f",  // 1   = 0x00
-	"0.875f",// 7_8 = 0x01
-	"0.75f", // 3_4 = 0x02
-	"0.625f",// 5_8 = 0x03
-	"0.5f",  // 1_2 = 0x04
-	"0.375f",// 3_8 = 0x05
-	"0.25f", // 1_4 = 0x06
-	"0.125f",// 1_8 = 0x07
+	CONST_223_BY_255,// 7_8 = 0x01
+	CONST_191_BY_255, // 3_4 = 0x02
+	CONST_159_BY_255,// 5_8 = 0x03
+	CONST_127_BY_255,  // 1_2 = 0x04
+	CONST_95_BY_255,// 3_8 = 0x05
+	CONST_63_BY_255, // 1_4 = 0x06
+	CONST_31_BY_255,// 1_8 = 0x07
 	"ERROR5", // 0x08
 	"ERROR6", // 0x09
 	"ERROR7", // 0x0a
@@ -358,8 +367,8 @@ static const char *tevScaleTable[] = // CS
 static const char *tevBiasTable[] = // TB
 {
 	"",       // ZERO,
-	"+0.5f",  // ADDHALF,
-	"-0.5f",  // SUBHALF,
+	"+" CONST_128_BY_255,  // ADDHALF, TODO: Not sure?
+	"-" CONST_128_BY_255,  // SUBHALF, TODO: Not sure?
 	"",
 };
 
@@ -383,7 +392,7 @@ static const char *tevCInputTable[] = // CC
 	"(rastemp.rgb)",            // RASC,
 	"(rastemp.aaa)",      // RASA,
 	"float3(1.0f, 1.0f, 1.0f)",              // ONE
-	"float3(0.5f, 0.5f, 0.5f)",                 // HALF
+	"float3(" CONST_127_BY_255", " CONST_127_BY_255", " CONST_127_BY_255")", // HALF
 	"(konsttemp.rgb)", //"konsttemp.rgb",        // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
 };
@@ -391,13 +400,13 @@ static const char *tevCInputTable[] = // CC
 static const char *tevAInputTable[] = // CA
 {
 	"prev",            // APREV,
-	"c0",              // A0,//!!
-	"c1",              // A1,//!!
+	"c0",              // A0,
+	"c1",              // A1,
 	"c2",              // A2,
 	"textemp",         // TEXA,
-	"rastemp",         // RASA,//!!
+	"rastemp",         // RASA,
 	"konsttemp",       // KONST,  (hw1 had quarter)
-	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO//!!
+	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO
 };
 
 static const char *tevRasTable[] =
@@ -408,7 +417,7 @@ static const char *tevRasTable[] =
 	"ERROR14", //3
 	"ERROR15", //4
 	"alphabump", // use bump alpha
-	"(alphabump*(255.0f/248.0f))", //normalized
+	"(alphabump*(255.0f/248.0f))", //normalized, TODO: Check value
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
 };
 
@@ -417,7 +426,7 @@ static const char *tevRasTable[] =
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
 static const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
-//static const char *tevIndAlphaScale[] = {"", "*32", "*16", "*8"};
+// TODO: Check values below
 static const char *tevIndAlphaScale[] = {"*(248.0f/255.0f)", "*(224.0f/255.0f)", "*(240.0f/255.0f)", "*(248.0f/255.0f)"};
 static const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
 static const char *tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
