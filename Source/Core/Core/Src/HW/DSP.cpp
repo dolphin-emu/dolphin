@@ -697,7 +697,7 @@ void Do_ARAM_DMA()
 	if (!GetDSPEmulator()->IsLLE())
 		g_dspState.DSPControl.DMAState = 1;
 
-	if (g_arDMA.Cnt.dir)
+	if (g_arDMA.Cnt.dir || g_arDMA.Cnt.count > 10240)
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
 	else
 		GenerateDSPInterrupt(INT_ARAM);
