@@ -417,7 +417,7 @@ static const char *tevRasTable[] =
 	"ERROR14", //3
 	"ERROR15", //4
 	"alphabump", // use bump alpha
-	"(alphabump*(255.0f/248.0f))", //normalized, TODO: Check value
+	"FIX_PRECISION_U8(alphabump*(255.0f/248.0f))", //normalized, TODO: Verify!
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
 };
 
@@ -426,7 +426,6 @@ static const char *tevRasTable[] =
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
 // TODO: Check values below
-static const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
 static const char *tevIndWrapStart[]  = {"0.0f", "256.0f", "128.0f", "64.0f", "32.0f", "16.0f", "0.001f" };
 
 #define WRITE p+=sprintf
@@ -790,13 +789,15 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 					tevIndAlphaBumpMask[bpmem.tevind[n].fmt]);
 		}
 		// format
-		const char *tevIndFmtScale[] = {"255.0f", "31.0f", "15.0f", "7.0f" };
-		WRITE(p, "float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
+		const char *tevIndFmtScale[] = {"255.0f", "31.0f", "15.0f", "7.0f" }; // TODO: Check values
+		// TODO: Optimize for fmt=0... and optimize in general... -.-
+		WRITE(p, "float3 indtevcrd%d = MASK_U8(indtex%d, %s) * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt], tevIndFmtScale[bpmem.tevind[n].fmt]);
 
 		// bias
 		if (bpmem.tevind[n].bias != ITB_NONE)
 		{
-			const char *tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
+			const char *tevIndBiasField[] = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"};
+			const char *tevIndBiasAdd[] = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // TODO: Check values
 			WRITE(p, "indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 		}
 
