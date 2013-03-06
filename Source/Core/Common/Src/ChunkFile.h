@@ -246,9 +246,9 @@ private:
 			break;
 			
 		case MODE_VERIFY:
-			_dbg_assert_msg_(COMMON, (x == *ptr),
+			_dbg_assert_msg_(COMMON, (x == **ptr),
 				"Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n",
-					x, x, &x, *ptr, *ptr, &*ptr);
+					x, x, &x, **ptr, **ptr, *ptr);
 			break;
 			
 		default:
