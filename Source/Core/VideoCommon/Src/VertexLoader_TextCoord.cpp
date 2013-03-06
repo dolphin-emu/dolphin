@@ -28,8 +28,22 @@
 #include <tmmintrin.h>
 #endif
 
-#define LOG_TEX1() // PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0]);
-#define LOG_TEX2() // PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1]);
+template <int N>
+void LOG_TEX();
+
+template <>
+__forceinline void LOG_TEX<1>()
+{
+	// warning: mapping buffer should be disabled to use this
+	// PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-1]);
+}
+
+template <>
+__forceinline void LOG_TEX<2>()
+{
+	// warning: mapping buffer should be disabled to use this
+	// PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-2], ((float*)VertexManager::s_pCurBufferPointer)[-1]);
+}
 
 extern int tcIndex;
 extern float tcScale[8];
@@ -39,279 +53,54 @@ void LOADERDECL TexCoord_Read_Dummy()
 	tcIndex++;
 }
 
-void LOADERDECL TexCoord_ReadDirect_UByte1()
+template <typename T>
+float TCScale(T val)
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)DataReadU8() * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadDirect_UByte2()
-{
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)DataReadU8() * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)DataReadU8() * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
+	return val * tcScale[tcIndex];
 }
 
-void LOADERDECL TexCoord_ReadDirect_Byte1()
+template <>
+float TCScale(float val)
+{ return val; }
+
+template <typename T, int N>
+void LOADERDECL TexCoord_ReadDirect()
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s8)DataReadU8() * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadDirect_Byte2()
-{
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s8)DataReadU8() * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(s8)DataReadU8() * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
+	for (int i = 0; i != N; ++i)
+		DataWrite(TCScale(DataRead<T>()));
+
+	LOG_TEX<N>();
+	
+	++tcIndex;
 }
 
-void LOADERDECL TexCoord_ReadDirect_UShort1()
+template <typename I, typename T, int N>
+void LOADERDECL TexCoord_ReadIndex()
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)DataReadU16() * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadDirect_UShort2()
-{
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)DataReadU16() * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)DataReadU16() * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadDirect_Short1()
-{
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s16)DataReadU16() * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadDirect_Short2()
-{
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s16)DataReadU16() * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(s16)DataReadU16() * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadDirect_Float1()
-{
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = DataReadU32();
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadDirect_Float2()
-{
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = DataReadU32();
-	((u32*)VertexManager::s_pCurBufferPointer)[1] = DataReadU32();
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-// ==================================================================================
-void LOADERDECL TexCoord_ReadIndex8_UByte1()	
-{
-	u8 Index = DataReadU8();
-	const u8 *pData = cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(*pData) * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadIndex8_UByte2()	
-{
-	u8 Index = DataReadU8();
-	const u8 *pData = cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(u8)(pData[0]) * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(u8)(pData[1]) * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadIndex8_Byte1()		
-{
-	u8 Index = DataReadU8();
-	const u8 *pData = cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
-
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s8)(*pData) * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadIndex8_Byte2()		
-{
-	u8 Index = DataReadU8();
-	const u8 *pData = cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s8)(pData[0]) * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(s8)(pData[1]) * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadIndex8_UShort1()	
-{
-	u8 Index = DataReadU8();
-	const u16 *pData = (const u16 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(u16)Common::swap16(*pData) * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadIndex8_UShort2()	
-{
-	u8 Index = DataReadU8();
-	const u16 *pData = (const u16 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(u16)Common::swap16(pData[0]) * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(u16)Common::swap16(pData[1]) * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadIndex8_Short1()	
-{
-	u8 Index = DataReadU8();
-	const u16 *pData = (const u16 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s16)Common::swap16(pData[0]) * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadIndex8_Short2()	
-{
-	u8 Index = DataReadU8();
-	const u16 *pData = (const u16 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s16)Common::swap16(pData[0]) * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(s16)Common::swap16(pData[1]) * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadIndex8_Float1()	
-{
-	u16 Index = DataReadU8(); 
-	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadIndex8_Float2()	
-{
-	u16 Index = DataReadU8(); 
-	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
-	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-// ==================================================================================
-void LOADERDECL TexCoord_ReadIndex16_UByte1()	
-{
-	u16 Index = DataReadU16(); 
-	const u8 *pData = cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
-	((float*)VertexManager::s_pCurBufferPointer)[0] =  (float)(u8)(pData[0]) * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadIndex16_UByte2()	
-{
-	u16 Index = DataReadU16(); 
-	const u8 *pData = cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
-	((float*)VertexManager::s_pCurBufferPointer)[0] =  (float)(u8)(pData[0]) * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] =  (float)(u8)(pData[1]) * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadIndex16_Byte1()	
-{
-	u16 Index = DataReadU16(); 
-	const u8 *pData = cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
-	((float*)VertexManager::s_pCurBufferPointer)[0] =  (float)(s8)(pData[0]) * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadIndex16_Byte2()	
-{
-	u16 Index = DataReadU16(); 
-	const u8 *pData = cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
-	((float*)VertexManager::s_pCurBufferPointer)[0] =  (float)(s8)(pData[0]) * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] =  (float)(s8)(pData[1]) * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadIndex16_UShort1()	
-{
-	u16 Index = DataReadU16(); 
-	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(u16)Common::swap16(pData[0]) * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-void LOADERDECL TexCoord_ReadIndex16_UShort2()	
-{
-	u16 Index = DataReadU16(); 
-	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(u16)Common::swap16(pData[0]) * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(u16)Common::swap16(pData[1]) * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadIndex16_Short1()	
-{
-	u16 Index = DataReadU16(); 
-	const u16 *pData = (const u16 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s16)Common::swap16(*pData) * tcScale[tcIndex];
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadIndex16_Short2()	
-{
-	// Heavy in ZWW
-	u16 Index = DataReadU16();
-	const u16 *pData = (const u16 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s16)Common::swap16(pData[0]) * tcScale[tcIndex];
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)(s16)Common::swap16(pData[1]) * tcScale[tcIndex];
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
+	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
+	
+	auto const index = DataRead<I>();
+	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
+		+ (index * arraystrides[ARRAY_TEXCOORD0 + tcIndex]));
+	
+	for (int i = 0; i != N; ++i)
+		DataWrite(TCScale(Common::FromBigEndian(data[i])));
+	
+	LOG_TEX<N>();
+	++tcIndex;
 }
 
 #if _M_SSE >= 0x401
 static const __m128i kMaskSwap16_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0xFFFFFFFFL, 0x02030001L);
 
-void LOADERDECL TexCoord_ReadIndex16_Short2_SSE4()	
+template <typename I>
+void LOADERDECL TexCoord_ReadIndex_Short2_SSE4()
 {
+	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
+	
 	// Heavy in ZWW
-	u16 Index = DataReadU16();
-	const s32 *pData = (const s32*)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
+	auto const index = DataRead<I>();
+	const s32 *pData = (const s32*)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
 	const __m128i a = _mm_cvtsi32_si128(*pData);
 	const __m128i b = _mm_shuffle_epi8(a, kMaskSwap16_2);
 	const __m128i c = _mm_cvtepi16_epi32(b);
@@ -319,47 +108,27 @@ void LOADERDECL TexCoord_ReadIndex16_Short2_SSE4()
 	const __m128 e = _mm_load1_ps(&tcScale[tcIndex]);
 	const __m128 f = _mm_mul_ps(d, e);
 	_mm_storeu_ps((float*)VertexManager::s_pCurBufferPointer, f);
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
+	VertexManager::s_pCurBufferPointer += sizeof(float) * 2;
+	LOG_TEX<2>();
 	tcIndex++;
 }
 #endif
 
-void LOADERDECL TexCoord_ReadIndex16_Float1()	
-{
-	u16 Index = DataReadU16(); 
-	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
-	LOG_TEX1();
-	VertexManager::s_pCurBufferPointer += 4;
-	tcIndex++;
-}
-
-void LOADERDECL TexCoord_ReadIndex16_Float2()
-{
-	u16 Index = DataReadU16(); 
-	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
-	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
-}
-
 #if _M_SSE >= 0x301
 static const __m128i kMaskSwap32 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
 
-void LOADERDECL TexCoord_ReadIndex16_Float2_SSSE3()
+template <typename I>
+void LOADERDECL TexCoord_ReadIndex_Float2_SSSE3()
 {
-	u16 Index = DataReadU16(); 
-	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
+	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
+	
+	auto const index = DataRead<I>();
+	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
 	GC_ALIGNED128(const __m128i a = _mm_loadl_epi64((__m128i*)pData));
 	GC_ALIGNED128(const __m128i b = _mm_shuffle_epi8(a, kMaskSwap32));
-	u8* p = VertexManager::s_pCurBufferPointer;
-	_mm_storel_epi64((__m128i*)p, b);
-	LOG_TEX2();
-	p += 8;
-	VertexManager::s_pCurBufferPointer = p;
+	_mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, b);
+	VertexManager::s_pCurBufferPointer += sizeof(float) * 2;
+	LOG_TEX<2>();
 	tcIndex++;
 }
 #endif
@@ -373,56 +142,40 @@ static TPipelineFunction tableReadTexCoord[4][8][2] = {
 		{NULL, NULL,},
 	},
 	{
-		{TexCoord_ReadDirect_UByte1,  TexCoord_ReadDirect_UByte2,},
-		{TexCoord_ReadDirect_Byte1,   TexCoord_ReadDirect_Byte2,},
-		{TexCoord_ReadDirect_UShort1, TexCoord_ReadDirect_UShort2,},
-		{TexCoord_ReadDirect_Short1,  TexCoord_ReadDirect_Short2,},
-		{TexCoord_ReadDirect_Float1,  TexCoord_ReadDirect_Float2,},
+		{TexCoord_ReadDirect<u8, 1>,  TexCoord_ReadDirect<u8, 2>,},
+		{TexCoord_ReadDirect<s8, 1>,   TexCoord_ReadDirect<s8, 2>,},
+		{TexCoord_ReadDirect<u16, 1>, TexCoord_ReadDirect<u16, 2>,},
+		{TexCoord_ReadDirect<s16, 1>,  TexCoord_ReadDirect<s16, 2>,},
+		{TexCoord_ReadDirect<float, 1>,  TexCoord_ReadDirect<float, 2>,},
 	},
 	{
-		{TexCoord_ReadIndex8_UByte1,  TexCoord_ReadIndex8_UByte2,},
-		{TexCoord_ReadIndex8_Byte1,   TexCoord_ReadIndex8_Byte2,},
-		{TexCoord_ReadIndex8_UShort1, TexCoord_ReadIndex8_UShort2,},
-		{TexCoord_ReadIndex8_Short1,  TexCoord_ReadIndex8_Short2,},
-		{TexCoord_ReadIndex8_Float1,  TexCoord_ReadIndex8_Float2,},
+		{TexCoord_ReadIndex<u8, u8, 1>,  TexCoord_ReadIndex<u8, u8, 2>,},
+		{TexCoord_ReadIndex<u8, s8, 1>,   TexCoord_ReadIndex<u8, s8, 2>,},
+		{TexCoord_ReadIndex<u8, u16, 1>, TexCoord_ReadIndex<u8, u16, 2>,},
+		{TexCoord_ReadIndex<u8, s16, 1>,  TexCoord_ReadIndex<u8, s16, 2>,},
+		{TexCoord_ReadIndex<u8, float, 1>,  TexCoord_ReadIndex<u8, float, 2>,},
 	},
 	{
-		{TexCoord_ReadIndex16_UByte1,  TexCoord_ReadIndex16_UByte2,},
-		{TexCoord_ReadIndex16_Byte1,   TexCoord_ReadIndex16_Byte2,},
-		{TexCoord_ReadIndex16_UShort1, TexCoord_ReadIndex16_UShort2,},
-		{TexCoord_ReadIndex16_Short1,  TexCoord_ReadIndex16_Short2,},
-		{TexCoord_ReadIndex16_Float1,  TexCoord_ReadIndex16_Float2,},
+		{TexCoord_ReadIndex<u16, u8, 1>,  TexCoord_ReadIndex<u16, u8, 2>,},
+		{TexCoord_ReadIndex<u16, s8, 1>,   TexCoord_ReadIndex<u16, s8, 2>,},
+		{TexCoord_ReadIndex<u16, u16, 1>, TexCoord_ReadIndex<u16, u16, 2>,},
+		{TexCoord_ReadIndex<u16, s16, 1>,  TexCoord_ReadIndex<u16, s16, 2>,},
+		{TexCoord_ReadIndex<u16, float, 1>,  TexCoord_ReadIndex<u16, float, 2>,},
 	},
 };
 
 static int tableReadTexCoordVertexSize[4][8][2] = {
 	{
-		{0, 0,},
-		{0, 0,},
-		{0, 0,},
-		{0, 0,},
-		{0, 0,},
+		{0, 0,}, {0, 0,}, {0, 0,}, {0, 0,}, {0, 0,},
 	},
 	{
-		{1, 2,},
-		{1, 2,},
-		{2, 4,},
-		{2, 4,},
-		{4, 8,},
+		{1, 2,}, {1, 2,}, {2, 4,}, {2, 4,}, {4, 8,},
 	},
 	{
-		{1, 1,},
-		{1, 1,},
-		{1, 1,},
-		{1, 1,},
-		{1, 1,},
+		{1, 1,}, {1, 1,}, {1, 1,}, {1, 1,}, {1, 1,},
 	},
 	{
-		{2, 2,},
-		{2, 2,},
-		{2, 2,},
-		{2, 2,},
-		{2, 2,},
+		{2, 2,}, {2, 2,}, {2, 2,}, {2, 2,}, {2, 2,},
 	},
 };
 
@@ -430,16 +183,20 @@ void VertexLoader_TextCoord::Init(void) {
 
 #if _M_SSE >= 0x301
 
-	if (cpu_info.bSSSE3) {
-		tableReadTexCoord[3][4][1] = TexCoord_ReadIndex16_Float2_SSSE3;
+	if (cpu_info.bSSSE3)
+	{
+		tableReadTexCoord[2][4][1] = TexCoord_ReadIndex_Float2_SSSE3<u8>;
+		tableReadTexCoord[3][4][1] = TexCoord_ReadIndex_Float2_SSSE3<u16>;
 	}
 
 #endif
 
 #if _M_SSE >= 0x401
 
-	if (cpu_info.bSSE4_1) {
-		tableReadTexCoord[3][3][1] = TexCoord_ReadIndex16_Short2_SSE4;
+	if (cpu_info.bSSE4_1)
+	{
+		tableReadTexCoord[2][3][1] = TexCoord_ReadIndex_Short2_SSE4<u8>;
+		tableReadTexCoord[3][3][1] = TexCoord_ReadIndex_Short2_SSE4<u16>;
 	}
 
 #endif

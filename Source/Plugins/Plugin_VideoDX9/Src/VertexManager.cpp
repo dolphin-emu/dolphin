@@ -173,7 +173,7 @@ void VertexManager::PrepareVBuffers(int stride)
 		DestroyDeviceObjects();
 		return;
 	}
-	memcpy(pVertices, LocalVBuffer, datasize);
+	memcpy(pVertices, s_pBaseBufferPointer, datasize);
 	VBuffers[CurrentVBuffer]->Unlock();
 
 	LockMode = D3DLOCK_NOOVERWRITE;
@@ -192,17 +192,17 @@ void VertexManager::PrepareVBuffers(int stride)
 	}
 	if(TdataSize)
 	{		
-		memcpy(pIndices, TIBuffer, TdataSize * sizeof(u16));
+		memcpy(pIndices, GetTriangleIndexBuffer(), TdataSize * sizeof(u16));
 		pIndices += TdataSize;
 	}
 	if(LDataSize)
 	{		
-		memcpy(pIndices, LIBuffer, LDataSize * sizeof(u16));
+		memcpy(pIndices, GetLineIndexBuffer(), LDataSize * sizeof(u16));
 		pIndices += LDataSize;
 	}
 	if(PDataSize)
 	{		
-		memcpy(pIndices, PIBuffer, PDataSize * sizeof(u16));
+		memcpy(pIndices, GetPointIndexBuffer(), PDataSize * sizeof(u16));
 	}
 	IBuffers[CurrentIBuffer]->Unlock();
 	D3D::dev->SetStreamSource( 0, VBuffers[CurrentVBuffer], CurrentVBufferIndex, stride);
@@ -266,9 +266,9 @@ void VertexManager::DrawVA(int stride)
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_TRIANGLELIST, 
 			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(), 
-			TIBuffer, 
+			GetTriangleIndexBuffer(), 
 			D3DFMT_INDEX16, 
-			LocalVBuffer, 
+			s_pBaseBufferPointer, 
 			stride)))
 		{
 			DumpBadShaders();
@@ -280,9 +280,9 @@ void VertexManager::DrawVA(int stride)
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_LINELIST, 
 			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(), 
-			LIBuffer, 
+			GetLineIndexBuffer(), 
 			D3DFMT_INDEX16, 
-			LocalVBuffer, 
+			s_pBaseBufferPointer, 
 			stride)))
 		{
 			DumpBadShaders();
@@ -294,9 +294,9 @@ void VertexManager::DrawVA(int stride)
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_POINTLIST, 
 			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(), 
-			PIBuffer, 
+			GetPointIndexBuffer(), 
 			D3DFMT_INDEX16, 
-			LocalVBuffer, 
+			s_pBaseBufferPointer, 
 			stride)))
 		{
 			DumpBadShaders();
@@ -307,11 +307,6 @@ void VertexManager::DrawVA(int stride)
 
 void VertexManager::vFlush()
 {
-	if (LocalVBuffer == s_pCurBufferPointer) return;
-	if (Flushed) return;
-	Flushed = true;
-	VideoFifo_CheckEFBAccess();
-
 	u32 usedtextures = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
 		if (bpmem.tevorders[i / 2].getEnable(i & 1))
@@ -388,7 +383,6 @@ shader_fail:
 		CurrentIBufferIndex += IndexGenerator::GetTriangleindexLen() + IndexGenerator::GetLineindexLen() + IndexGenerator::GetPointindexLen();
 		CurrentVBufferIndex += IndexGenerator::GetNumVerts() * stride;
 	}
-	ResetBuffer();
 }
 
 }

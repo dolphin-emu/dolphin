@@ -73,6 +73,10 @@ int colElements[2];
 float posScale;
 float tcScale[8];
 
+// bbox must read vertex position, so convert it to this buffer
+static float s_bbox_vertex_buffer[3];
+static u8 *s_bbox_pCurBufferPointer_orig;
+
 static const float fractionTable[32] = {
 	1.0f / (1U << 0), 1.0f / (1U << 1), 1.0f / (1U << 2), 1.0f / (1U << 3),
 	1.0f / (1U << 4), 1.0f / (1U << 5), 1.0f / (1U << 6), 1.0f / (1U << 7),
@@ -95,23 +99,38 @@ void LOADERDECL PosMtx_ReadDirect_UByte()
 
 void LOADERDECL PosMtx_Write()
 {
-	*VertexManager::s_pCurBufferPointer++ = s_curposmtx;
-	*VertexManager::s_pCurBufferPointer++ = 0;
-	*VertexManager::s_pCurBufferPointer++ = 0;
-	*VertexManager::s_pCurBufferPointer++ = 0;
+	DataWrite<u8>(s_curposmtx);
+	DataWrite<u8>(0);
+	DataWrite<u8>(0);
+	DataWrite<u8>(0);
+}
+
+void LOADERDECL UpdateBoundingBoxPrepare() 
+{
+	if (!PixelEngine::bbox_active)
+		return;
+	
+	// set our buffer as videodata buffer, so we will get a copy of the vertex positions
+	// this is a big hack, but so we can use the same converting function then without bbox
+	s_bbox_pCurBufferPointer_orig = VertexManager::s_pCurBufferPointer;
+	VertexManager::s_pCurBufferPointer = (u8*)s_bbox_vertex_buffer;
 }
 
 void LOADERDECL UpdateBoundingBox() 
 {
 	if (!PixelEngine::bbox_active)
 		return;
+	
+	// reset videodata pointer
+	VertexManager::s_pCurBufferPointer = s_bbox_pCurBufferPointer_orig;
+	
+	// copy vertex pointers
+	memcpy(VertexManager::s_pCurBufferPointer, s_bbox_vertex_buffer, 12);
+	VertexManager::s_pCurBufferPointer += 12;
 
-	// Truly evil hack, reading backwards from the write pointer. If we were writing to write-only
-	// memory like we might have been with a D3D vertex buffer, this would have been a bad idea.
-	float *data = (float *)(VertexManager::s_pCurBufferPointer - 12);
 	// We must transform the just loaded point by the current world and projection matrix - in software.
 	// Then convert to screen space and update the bounding box.
-	float p[3] = {data[0], data[1], data[2]};
+	float p[3] = {s_bbox_vertex_buffer[0], s_bbox_vertex_buffer[1], s_bbox_vertex_buffer[2]};
 
 	const float *world_matrix  = (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
 	const float *proj_matrix = &g_fProjectionMatrix[0];
@@ -149,24 +168,22 @@ void LOADERDECL TexMtx_ReadDirect_UByte()
 
 void LOADERDECL TexMtx_Write_Float()
 {
-	*(float*)VertexManager::s_pCurBufferPointer = (float)s_curtexmtx[s_texmtxwrite++];
-	VertexManager::s_pCurBufferPointer += 4;
+	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 }
 
 void LOADERDECL TexMtx_Write_Float2()
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = 0;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)s_curtexmtx[s_texmtxwrite++];
-	VertexManager::s_pCurBufferPointer += 8;
+	DataWrite(0.f);
+	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 }
 
 void LOADERDECL TexMtx_Write_Float4()
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = 0;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = 0;
-	((float*)VertexManager::s_pCurBufferPointer)[2] = s_curtexmtx[s_texmtxwrite++];
-	((float*)VertexManager::s_pCurBufferPointer)[3] = 0;  // Just to fill out with 0.
-	VertexManager::s_pCurBufferPointer += 16;
+	DataWrite(0.f);
+	DataWrite(0.f);
+	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
+	// Just to fill out with 0.
+	DataWrite(0.f);
 }
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr) 
@@ -274,14 +291,15 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
 	// Write vertex position loader
-	WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+	if(g_ActiveConfig.bUseBBox) {
+		WriteCall(UpdateBoundingBoxPrepare);
+		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+		WriteCall(UpdateBoundingBox);
+	} else {
+		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+	}
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
 	nat_offset += 12;
-
-	// OK, so we just got a point. Let's go back and read it for the bounding box.
-	
-	if(g_ActiveConfig.bUseBBox)
-		WriteCall(UpdateBoundingBox);
 
 	// Normals
 	vtx_decl.num_normals = 0;
@@ -507,7 +525,8 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 #endif
 }
 #endif
-void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
+
+int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const count)
 {
 	m_numLoadedVertices += count;
 
@@ -526,7 +545,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	{
 		// if cull mode is none, ignore triangles and quads
 		DataSkip(count * m_VertexSize);
-		return;
+		return 0;
 	}
 
 	m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
@@ -550,157 +569,48 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
-	// if strips or fans, make sure all vertices can fit in buffer, otherwise flush
-	int granularity = 1;
-	switch (primitive) {
-		case 3: // strip .. hm, weird
-		case 4: // fan
-			if (VertexManager::GetRemainingSize() < 3 * native_stride)
-				VertexManager::Flush();
-			break;
-		case 6: // line strip
-			if (VertexManager::GetRemainingSize() < 2 * native_stride)
-				VertexManager::Flush();
-			break;
-		case 0: granularity = 4; break; // quads
-		case 2: granularity = 3; break; // tris
-		case 5: granularity = 2; break; // lines
-	}
-
-	int startv = 0, extraverts = 0;
-	int v = 0;
-
-	//int remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
-	while (v < count)
-	{
-		int remainingVerts = VertexManager::GetRemainingSize() / native_stride;
-		//if (remainingVerts2 - v + startv < remainingVerts)
-		    //remainingVerts = remainingVerts2 - v + startv;
-		if (remainingVerts < granularity) {
-			INCSTAT(stats.thisFrame.numBufferSplits);
-			// This buffer full - break current primitive and flush, to switch to the next buffer.
-			u8* plastptr = VertexManager::s_pCurBufferPointer;
-			if (v - startv > 0)
-				VertexManager::AddVertices(primitive, v - startv + extraverts);
-			VertexManager::Flush();
-			//remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
-			// Why does this need to be so complicated?
-			switch (primitive) {
-				case 3: // triangle strip, copy last two vertices
-					// a little trick since we have to keep track of signs
-					if (v & 1) {
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-2*native_stride, native_stride);
-						memcpy_gc(VertexManager::s_pCurBufferPointer+native_stride, plastptr-native_stride*2, 2*native_stride);
-						VertexManager::s_pCurBufferPointer += native_stride*3;
-						extraverts = 3;
-					}
-					else {
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*2, native_stride*2);
-						VertexManager::s_pCurBufferPointer += native_stride*2;
-						extraverts = 2;
-					}
-					break;
-				case 4: // tri fan, copy first and last vert
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*(v-startv+extraverts), native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					extraverts = 2;
-					break;
-				case 6: // line strip
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					extraverts = 1;
-					break;
-				default:
-					extraverts = 0;
-					break;
-			}
-			startv = v;
-		}
-		int remainingPrims = remainingVerts / granularity;
-		remainingVerts = remainingPrims * granularity;
-		if (count - v < remainingVerts)
-			remainingVerts = count - v;
-
-	#ifdef USE_JIT
-		if (remainingVerts > 0) {
-			loop_counter = remainingVerts;
-			((void (*)())(void*)m_compiledCode)();
-		}
-	#else
-		for (int s = 0; s < remainingVerts; s++)
-		{
-			tcIndex = 0;
-			colIndex = 0;
-			s_texmtxwrite = s_texmtxread = 0;
-			for (int i = 0; i < m_numPipelineStages; i++)
-				m_PipelineStages[i]();
-			PRIM_LOG("\n");
-		}
-	#endif
-		v += remainingVerts;
-	}
-
-	if (startv < count)
-		VertexManager::AddVertices(primitive, count - startv + extraverts);
+	VertexManager::PrepareForAdditionalData(primitive, count, native_stride);
+	
+	return count;
 }
 
-
-
-
-void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data)
+void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const count)
 {
-	m_numLoadedVertices += count;
-
-	// Flush if our vertex format is different from the currently set.
-	if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != m_NativeFmt)
-	{
-		// We really must flush here. It's possible that the native representations
-		// of the two vtx formats are the same, but we have no way to easily check that 
-		// now. 
-		VertexManager::Flush();
-		// Also move the Set() here?
-	}
-	g_nativeVertexFmt = m_NativeFmt;
-
-	if (bpmem.genMode.cullmode == 3 && primitive < 5)
-	{
-		// if cull mode is none, ignore triangles and quads
-		DataSkip(count * m_VertexSize);
-		return;
-	}
-
-	m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
-
-	// Load position and texcoord scale factors.
-	m_VtxAttr.PosFrac				= g_VtxAttr[vtx_attr_group].g0.PosFrac;
-	m_VtxAttr.texCoord[0].Frac		= g_VtxAttr[vtx_attr_group].g0.Tex0Frac;
-	m_VtxAttr.texCoord[1].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex1Frac;
-	m_VtxAttr.texCoord[2].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex2Frac;
-	m_VtxAttr.texCoord[3].Frac      = g_VtxAttr[vtx_attr_group].g1.Tex3Frac;
-	m_VtxAttr.texCoord[4].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex4Frac;
-	m_VtxAttr.texCoord[5].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex5Frac;
-	m_VtxAttr.texCoord[6].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
-	m_VtxAttr.texCoord[7].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
-
-	pVtxAttr = &m_VtxAttr;
-	posScale = fractionTable[m_VtxAttr.PosFrac];
-	if (m_NativeFmt->m_components & VB_HAS_UVALL)
-		for (int i = 0; i < 8; i++)
-			tcScale[i] = fractionTable[m_VtxAttr.texCoord[i].Frac];
-	for (int i = 0; i < 2; i++)
-		colElements[i] = m_VtxAttr.color[i].Elements;
-
-	if(VertexManager::GetRemainingSize() < native_stride * count)
-		VertexManager::Flush();
-	memcpy_gc(VertexManager::s_pCurBufferPointer, Data, native_stride * count);
-	VertexManager::s_pCurBufferPointer += native_stride * count;
-	DataSkip(count * m_VertexSize);
-	VertexManager::AddVertices(primitive, count);	
+	auto const new_count = SetupRunVertices(vtx_attr_group, primitive, count);
+	ConvertVertices(new_count);
+	VertexManager::AddVertices(primitive, new_count);
 }
 
+void VertexLoader::ConvertVertices ( int count )
+{
+#ifdef USE_JIT
+	if (count > 0) {
+		loop_counter = count;
+		((void (*)())(void*)m_compiledCode)();
+	}
+#else
+	for (int s = 0; s < count; s++)
+	{
+		tcIndex = 0;
+		colIndex = 0;
+		s_texmtxwrite = s_texmtxread = 0;
+		for (int i = 0; i < m_numPipelineStages; i++)
+			m_PipelineStages[i]();
+		PRIM_LOG("\n");
+	}
+#endif
+}
 
+void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int const count, u8* Data)
+{
+	auto const new_count = SetupRunVertices(vtx_attr_group, primitive, count);
+	
+	memcpy_gc(VertexManager::s_pCurBufferPointer, Data, native_stride * new_count);
+	VertexManager::s_pCurBufferPointer += native_stride * new_count;
+	DataSkip(new_count * m_VertexSize);
+	
+	VertexManager::AddVertices(primitive, new_count);	
+}
 
 void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2) 
 {
