@@ -55,6 +55,7 @@ Make AA apply instantly during gameplay if possible
 #include "LogManager.h"
 
 #include <cstdarg>
+#include <algorithm>
 
 #ifdef _WIN32
 #include "EmuWindow.h"
@@ -116,10 +117,12 @@ void GetShaders(std::vector<std::string> &shaders)
 		for (u32 i = 0; i < entry.children.size(); i++) 
 		{
 			std::string name = entry.children[i].virtualName.c_str();
-			if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt"))
+			if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt")) {
 				name = name.substr(0, name.size() - 4);
-			shaders.push_back(name);
+				shaders.push_back(name);
+			}
 		}
+		std::sort(shaders.begin(), shaders.end());
 	}
 	else
 	{
