@@ -383,7 +383,10 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 	Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, userdata & 0xffff);
 	INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
 	if (userdata >> 16)
+	{
+		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
 		UpdateInterrupts();
+	}
 	CommandProcessor::interruptTokenWaiting = false;
 	IncrementCheckContextId();
 }
