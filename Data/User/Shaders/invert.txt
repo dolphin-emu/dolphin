@@ -5,5 +5,5 @@ in vec2 uv0;
 
 void main()
 {
-  ocol0 = vec4(1.0, 1.0, 1.0, 1.0) - texture(samp9, uv0);
+	ocol0 = vec4(1.0, 1.0, 1.0, 1.0) - texture(samp9, uv0);
 }
