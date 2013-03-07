@@ -40,7 +40,9 @@ static GLuint s_texture;
 static GLuint s_vao;
 static GLuint s_vbo;
 
-static char* s_vertex_shader =
+static GLuint s_uniform_resolution;
+
+static char s_vertex_shader[] =
 	"in vec2 rawpos;\n"
 	"in vec2 tex0;\n"
 	"out vec2 uv0;\n"
@@ -113,6 +115,9 @@ void BlitToScreen()
 	
 	glBindVertexArray(s_vao);
 	s_shader.Bind();
+	
+	glUniform2f(s_uniform_resolution, (float)s_width, (float)s_height);
+	
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_2D, s_texture);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -167,6 +172,9 @@ void ApplyShader()
 		ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", s_currentShader.c_str());
 		return;
 	}
+	
+	// read uniform locations
+	s_uniform_resolution = glGetUniformLocation(s_shader.glprogid, "resolution");
 	
 	// successful
 	s_enable = true;
