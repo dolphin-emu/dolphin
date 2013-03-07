@@ -70,7 +70,7 @@ void JitArm::mtspr(UGeckoInstruction inst)
 	}
 
 	// OK, this is easy.
-	STR(R9, RD, PPCSTATE_OFF(PowerPC::ppcState, spr) + iIndex * 4);
+	STR(R9, RD, PPCSTATE_OFF(spr) + iIndex * 4);
 }
 
 void JitArm::mfspr(UGeckoInstruction inst)
@@ -89,7 +89,7 @@ void JitArm::mfspr(UGeckoInstruction inst)
 		Default(inst);
 		return;
 	default:
-		LDR(RD, R9, PPCSTATE_OFF(PowerPC::ppcState, spr) + iIndex * 4);
+		LDR(RD, R9, PPCSTATE_OFF(spr) + iIndex * 4);
 		break;
 	}
 }
@@ -99,6 +99,6 @@ void JitArm::mtmsr(UGeckoInstruction inst)
  	// Don't interpret this, if we do we get thrown out
 	//JITDISABLE(SystemRegisters)
 	
-	STR(R9, gpr.R(inst.RS), PPCSTATE_OFF(PowerPC::ppcState, msr));
+	STR(R9, gpr.R(inst.RS), PPCSTATE_OFF(msr));
 	WriteExit(js.compilerPC + 4, 0);
 }

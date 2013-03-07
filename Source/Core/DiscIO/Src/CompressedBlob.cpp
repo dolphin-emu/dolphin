@@ -301,7 +301,10 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 
 	File::IOFile f(outfile, "wb");
 	if (!f)
+    {
+        delete reader;
 		return false;
+    }
 
 	const CompressedBlobHeader &header = reader->GetHeader();
 	u8* buffer = new u8[header.block_size];
