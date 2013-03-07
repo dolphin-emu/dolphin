@@ -279,10 +279,11 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 	glDeleteShader(vsid);
 	glDeleteShader(psid);
 	
-#if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
+	GLint linkStatus;
+	glGetProgramiv(pid, GL_LINK_STATUS, &linkStatus);
 	GLsizei length = 0;
 	glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &length);
-	if (length > 1)
+	if (linkStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
 	{
 		GLsizei charsWritten;
 		GLchar* infoLog = new GLchar[length];
@@ -299,9 +300,6 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		fwrite(pcode, strlen(pcode), 1, fp);
 		fclose(fp);
 	}
-
-	GLint linkStatus;
-	glGetProgramiv(pid, GL_LINK_STATUS, &linkStatus);
 	if (linkStatus != GL_TRUE)
 	{
 		// Compile failed
@@ -311,7 +309,6 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		glDeleteProgram(pid);
 		return false;
 	}
-#endif
 
 	shader.SetProgramVariables();
 	
@@ -326,10 +323,11 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 	
 	glShaderSource(result, 2, src, NULL);
 	glCompileShader(result);
-#if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
+	GLint compileStatus;
+	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
 	GLsizei length = 0;
 	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
-	if (length > 1)
+	if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
 	{
 		GLsizei charsWritten;
 		GLchar* infoLog = new GLchar[length];
@@ -344,9 +342,6 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		fclose(fp);
 		delete[] infoLog;
 	}
-
-	GLint compileStatus;
-	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
 	if (compileStatus != GL_TRUE)
 	{
 		// Compile failed
@@ -356,7 +351,6 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		glDeleteShader(result);
 		return 0;
 	}
-#endif
 	(void)GL_REPORT_ERROR();
 	return result;
 }
