@@ -199,9 +199,9 @@ void VideoBackend::Video_Prepare()
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
 	ProgramShaderCache::Init();
+	PostProcessing::Init();
 	g_texture_cache = new TextureCache();
 	g_sampler_cache = new SamplerCache();
-	PostProcessing::Init();
 	Renderer::Init();
 	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
@@ -231,7 +231,6 @@ void VideoBackend::Video_Cleanup() {
 		DLCache::Shutdown();
 #endif
 		Fifo_Shutdown();
-		PostProcessing::Shutdown();
 
 		// The following calls are NOT Thread Safe
 		// And need to be called from the video thread
@@ -242,6 +241,7 @@ void VideoBackend::Video_Cleanup() {
 		g_sampler_cache = NULL;
 		delete g_texture_cache;
 		g_texture_cache = NULL;
+		PostProcessing::Shutdown();
 		ProgramShaderCache::Shutdown();
 		VertexShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();

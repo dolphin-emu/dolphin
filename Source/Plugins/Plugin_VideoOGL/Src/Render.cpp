@@ -996,6 +996,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	ResetAPIState();
 
+	PostProcessing::Update(s_backbuffer_width, s_backbuffer_height);
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	TargetRectangle flipped_trc = GetTargetRectangle();
 
@@ -1003,31 +1004,17 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	int tmp = flipped_trc.top;
 	flipped_trc.top = flipped_trc.bottom;
 	flipped_trc.bottom = tmp;
-
-	// Textured triangles are necessary because of post-processing shaders
-
-	// Disable all other stages
-	for (int i = 0; i < 8; ++i)
-		OGL::TextureCache::DisableStage(i);
-
-	// Update GLViewPort
-	glViewport(flipped_trc.left, flipped_trc.bottom, flipped_trc.GetWidth(), flipped_trc.GetHeight());
-
+	
 	GL_REPORT_ERRORD();
 
-	// We must call ApplyShader here even if no post proc is selected - it takes
-	// care of disabling it in that case. It returns false in case of no post processing.
-	//bool applyShader = PostProcessing::ApplyShader();
-	// degasus: disabled for blitting
-	
 	// Copy the framebuffer to screen.
 
 	const XFBSourceBase* xfbSource = NULL;
 
 	if(g_ActiveConfig.bUseXFB)
 	{
-		// Render to the real buffer now.
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // switch to the window backbuffer
+		// Render to the real/postprocessing buffer now.
+		PostProcessing::BindTargetFramebuffer();
 		
 		// draw each xfb source
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
@@ -1085,8 +1072,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		// for msaa mode, we must resolve the efb content to non-msaa
 		FramebufferManager::ResolveAndGetRenderTarget(rc);
 		
-		// Render to the real buffer now. (resolve have changed this in msaa mode)
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		// Render to the real/postprocessing buffer now. (resolve have changed this in msaa mode)
+		PostProcessing::BindTargetFramebuffer();
 		
 		// always the non-msaa fbo
 		GLuint fb = s_MSAASamples>1?FramebufferManager::GetResolvedFramebuffer():FramebufferManager::GetEFBFramebuffer();
@@ -1096,6 +1083,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			flipped_trc.left, flipped_trc.bottom, flipped_trc.right, flipped_trc.top,
 			GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
+	
+	PostProcessing::BlitToScreen();
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
