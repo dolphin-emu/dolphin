@@ -290,15 +290,12 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		glGetProgramInfoLog(pid, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "p_%d.txt", pid);
-		FILE *fp = fopen(szTemp, "wb");
-		fwrite(infoLog, length, 1, fp);
-		delete[] infoLog;
-		fwrite(s_glsl_header, strlen(s_glsl_header), 1, fp);
-		fwrite(vcode, strlen(vcode), 1, fp);
-		fwrite(s_glsl_header, strlen(s_glsl_header), 1, fp);
-		fwrite(pcode, strlen(pcode), 1, fp);
-		fclose(fp);
+		sprintf(szTemp, "%sp_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), pid);
+		std::ofstream file;
+		OpenFStream(file, szTemp, std::ios_base::out);
+		file << infoLog << s_glsl_header << vcode << s_glsl_header << pcode;
+		file.close();
+		delete [] infoLog;
 	}
 	if (linkStatus != GL_TRUE)
 	{
@@ -334,12 +331,11 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "PS Shader info log:\n%s", infoLog);
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "ps_%d.txt", result);
-		FILE *fp = fopen(szTemp, "wb");
-		fwrite(infoLog, strlen(infoLog), 1, fp);
-		fwrite(s_glsl_header, strlen(s_glsl_header), 1, fp);
-		fwrite(code, strlen(code), 1, fp);
-		fclose(fp);
+		sprintf(szTemp, "%sps_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), result);
+		std::ofstream file;
+		OpenFStream(file, szTemp, std::ios_base::out);
+		file << infoLog << s_glsl_header << code;
+		file.close();
 		delete[] infoLog;
 	}
 	if (compileStatus != GL_TRUE)
