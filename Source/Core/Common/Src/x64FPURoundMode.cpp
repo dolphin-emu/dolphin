@@ -84,7 +84,7 @@ namespace FPURoundMode
 			};
 			unsigned short _mode;
 			asm ("fstcw %0" : : "m" (_mode));
-			_mode = (_mode & ~table[4]) | table[mode];
+			_mode = (_mode & ~table[3]) | table[mode];
 			asm ("fldcw %0" : : "m" (_mode));
 		#endif
 		#else
