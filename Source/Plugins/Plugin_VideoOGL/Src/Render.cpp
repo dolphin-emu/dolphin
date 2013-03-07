@@ -1260,8 +1260,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	DrawDebugText();
 	DrawDebugInfo();
+	DrawDebugText();
 
 	GL_REPORT_ERRORD();
 
