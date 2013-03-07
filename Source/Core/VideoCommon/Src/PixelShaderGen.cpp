@@ -731,10 +731,10 @@ static const char *TEVCMPAlphaOPTable[8] =
 {
 	"   %s.a + ((%s.r >  %s.r) ? %s.a : 0.0f)",//#define TEVCMP_R8_GT 8
 	"   %s.a + ((%s.r == %s.r) ? %s.a : 0.0f)",//#define TEVCMP_R8_EQ 9
-	"   %s.a + ((dot(%s.rgb, comp16) >  dot(%s.rgb, comp16)) ? %s.a : 0.0f)",//#define TEVCMP_GR16_GT 10
-	"   %s.a + ((dot(%s.rgb, comp16) == dot(%s.rgb, comp16)) ? %s.a : 0.0f)",//#define TEVCMP_GR16_EQ 11
-	"   %s.a + ((dot(%s.rgb, comp24) >  dot(%s.rgb, comp24)) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_GT 12
-	"   %s.a + ((dot(%s.rgb, comp24) == dot(%s.rgb, comp24)) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_EQ 13
+	"   %s.a + ((dot(%s.rgb, " COMP16") >  dot(%s.rgb, " COMP16")) ? %s.a : 0.0f)",//#define TEVCMP_GR16_GT 10
+	"   %s.a + ((dot(%s.rgb, " COMP16") == dot(%s.rgb, " COMP16")) ? %s.a : 0.0f)",//#define TEVCMP_GR16_EQ 11
+	"   %s.a + ((dot(%s.rgb, " COMP24") >  dot(%s.rgb, " COMP24")) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_GT 12
+	"   %s.a + ((dot(%s.rgb, " COMP24") == dot(%s.rgb, " COMP24")) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_EQ 13
 	"   %s.a + ((%s.a >  %s.a) ? %s.a : 0.0f)",//#define TEVCMP_A8_GT 14
 	"   %s.a + ((%s.a == %s.a) ? %s.a : 0.0f)"//#define TEVCMP_A8_EQ 15
 };
