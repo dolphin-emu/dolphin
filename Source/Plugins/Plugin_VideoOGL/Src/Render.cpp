@@ -185,11 +185,15 @@ Renderer::Renderer()
 	s_ShowEFBCopyRegions_VBO = 0;
 	s_blendMode = 0;
 	InitFPSCounter();
+	
+	const char* gl_vendor = (const char*)glGetString(GL_VENDOR);
+	const char* gl_renderer = (const char*)glGetString(GL_RENDERER);
+	const char* gl_version = (const char*)glGetString(GL_VERSION);
 
 	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s",
-				glGetString(GL_VENDOR),
-				glGetString(GL_RENDERER),
-				glGetString(GL_VERSION)).c_str(), 5000);
+				gl_vendor,
+				gl_renderer,
+				gl_version).c_str(), 5000);
 
 	bool bSuccess = true;
 	GLint numvertexattribs = 0;
@@ -254,6 +258,14 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsGLSync = GLEW_ARB_sync;
 	g_Config.backend_info.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
 	g_Config.backend_info.bSupportsGLBaseVertex = GLEW_ARB_draw_elements_base_vertex;
+	
+	if(g_Config.backend_info.bSupportsGLSLUBO && (
+		// hd3000 get corruption, hd4000 also and a big slowdown
+		!strcmp(gl_vendor, "Intel Open Source Technology Center") && (!strcmp(gl_version, "3.0 Mesa 9.0.0") || !strcmp(gl_version, "3.0 Mesa 9.0.1") || !strcmp(gl_version, "3.0 Mesa 9.0.2") || !strcmp(gl_version, "3.0 Mesa 9.0.3") || !strcmp(gl_version, "3.0 Mesa 9.1.0") )
+	)) {
+		g_Config.backend_info.bSupportsGLSLUBO = false;
+		ERROR_LOG(VIDEO, "buggy driver detected. Disable UBO");
+	}
 
 	UpdateActiveConfig();
 	OSD::AddMessage(StringFromFormat("Missing Extensions: %s%s%s%s%s%s",			
