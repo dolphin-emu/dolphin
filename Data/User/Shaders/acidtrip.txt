@@ -1,6 +1,11 @@
-uniform samplerRECT samp0 : register(s0);
+uniform sampler2D samp9;
 
-void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+out vec4 ocol0;
+in vec2 uv0;
+
+uniform vec4 resolution;
+
+void main()
 {
-  ocol0 = (texRECT(samp0, uv0+1).rgba - texRECT(samp0, uv0-1).rgba)*8;
+  ocol0 = (texture(samp9, uv0+resolution.zw) - texture(samp9, uv0-resolution.zw))*8;
 }

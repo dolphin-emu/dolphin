@@ -116,7 +116,7 @@ void BlitToScreen()
 	glBindVertexArray(s_vao);
 	s_shader.Bind();
 	
-	glUniform2f(s_uniform_resolution, (float)s_width, (float)s_height);
+	glUniform4f(s_uniform_resolution, (float)s_width, (float)s_height, 1.0f/(float)s_width, 1.0f/(float)s_height);
 	
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_2D, s_texture);
