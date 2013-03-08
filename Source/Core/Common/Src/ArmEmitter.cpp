@@ -535,7 +535,9 @@ void ARMXEmitter::MRS (ARMReg dest)
 
 void ARMXEmitter::WriteStoreOp(u32 op, ARMReg dest, ARMReg src, s16 op2)
 {
-	bool Index = op2 != 0 ? true : false;
+	// Qualcomm chipsets get /really/ angry if you don't use index, even if the offset is zero.
+	// bool Index = op2 != 0 ? true : false;
+	bool Index = true;
 	bool Add = op2 >= 0 ? true : false;
 	u32 imm = abs(op2);
 	Write32(condition | (op << 20) | (Index << 24) | (Add << 23) | (dest << 16) | (src << 12) | imm);
