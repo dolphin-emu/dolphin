@@ -81,6 +81,7 @@ namespace JitInterface
 			default:
 			{
 				PanicAlert("Unrecognizable cpu_core: %d", core);
+				jit = NULL;
 				return NULL;
 				break;
 			}
