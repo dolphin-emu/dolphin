@@ -1,0 +1,59 @@
+uniform sampler2D samp8; // textures
+uniform sampler2D samp9;
+
+const int char_width = 8;
+const int char_height = 13;
+const int char_count = 95;
+const vec2 char_dim = vec2(char_width, char_height);
+const vec2 font_scale = vec2(1.0/char_width/char_count, 1.0/char_height);
+
+out vec4 ocol0;
+in vec2 uv0;
+
+uniform vec4 resolution;
+
+void main()
+{
+  vec2 char_pos = floor(uv0*resolution.xy/char_dim);
+  vec2 pixel_offset = floor(uv0*resolution.xy) - char_pos*char_dim;
+
+  float minc = 0;
+  float mindiff = char_width*char_height*100;
+  float diffsum[char_count];
+  
+  vec4 color_avg = vec4(0.0, 0.0, 0.0, 0.0);
+  
+  for(int i=0; i<char_count; i++) {
+    diffsum[i] = 0.0;
+  }
+  for(int x=0; x<char_width; x++) {
+    for(int y=0; y<char_height; y++) {
+      vec2 tex_pos = char_pos*char_dim + vec2(x,y) + 0.5;
+      vec4 tex = texture(samp9, tex_pos * resolution.zw);
+      float tex_f = (tex.x + tex.y + tex.z)/3;
+      color_avg += tex;
+      
+      for(int i=0; i<char_count; i++) {
+	vec2 font_pos = vec2(x+i*char_width, y) + 0.5;
+	
+	vec4 font = texture(samp8, font_pos * font_scale);
+	float font_f = font.x;
+	
+	float diff = (font_f-tex_f)*(font_f-tex_f);
+	diffsum[i] = diffsum[i] + diff;
+      }
+    }
+  }
+  for(int i=0; i<char_count; i++) {
+    if(diffsum[i] < mindiff) {
+      mindiff = diffsum[i];
+      minc = i;
+    }
+  }
+  
+  color_avg /= char_width*char_height;
+  
+  vec2 font_pos_res = vec2(minc*char_width, 0) + pixel_offset + 0.5;
+
+  ocol0 = color_avg * texture(samp8, font_pos_res * font_scale);
+}
