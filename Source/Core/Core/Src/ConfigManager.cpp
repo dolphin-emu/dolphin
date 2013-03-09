@@ -413,7 +413,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "GFXBackend",  &m_LocalCoreStartupParameter.m_strVideoBackend, "");
 
 		// Movie
-		ini.Get("General", "PauseMovie", &m_PauseMovie, false);
+		ini.Get("Movie", "PauseMovie", &m_PauseMovie, false);
 		ini.Get("Movie", "Author", &m_strMovieAuthor, "");
 
 		// DSP
