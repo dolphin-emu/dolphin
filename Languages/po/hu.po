@@ -1,21 +1,22 @@
 # Translation of dolphin-emu.pot to Hungarian
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# Delirious <delirious@freemail.hu>, 2011
 #
+# Translators:
+# Delirious <delirious@freemail.hu>, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2013-01-16 21:40-0600\n"
-"Last-Translator: Delirious <delirious@freemail.hu>\n"
-"Language-Team: Delirious <delirious@freemail.hu>\n"
-"Language: Hungarian\n"
+"PO-Revision-Date: 2013-02-02 08:31+0000\n"
+"Last-Translator: delroth <delroth@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Hungarian\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -370,14 +371,11 @@ msgid "A game is not currently running."
 msgstr "A játék jelenleg nem fut."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
-"Nem található támogatott bluetooth eszköz!\n"
-"(Csak Microsoft rangsorolású bluetooth eszköz támogatott.)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -515,11 +513,11 @@ msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Action Replay hiba: érvénytelen érték (%08x) a memória másolásban (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
-msgstr "Action Replay hiba: Mester kód és CCXXXXXX írása nincs beépítve (%s)"
+msgstr ""
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -628,14 +626,12 @@ msgid "Advanced Settings"
 msgstr "Haladó beállítások"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:584
-#, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
-msgstr "Minden GC/Wii fájl (elf, dol, gcm, iso, ciso, gcz, wad)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:800
-#, fuzzy
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
-msgstr "Minden GC/Wii képfájl (gcm, iso, ciso, gcz)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1247
 msgid "All Gamecube GCM files (gcm)"
@@ -659,17 +655,12 @@ msgid "All files (*.*)|*.*"
 msgstr "Minden fájl (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Bizonyos opciók elérhetővé válnak a 3, 4, 5, 6 és 7 gyorsbillentyűkkel az "
-"emulációs ablakon belül.\n"
-"\n"
-"Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "Alternate Wiimote Timing"
@@ -793,9 +784,8 @@ msgid "B"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:752
-#, fuzzy
 msgid "BP register "
-msgstr "&Regiszterek"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -1808,17 +1798,13 @@ msgid "EFB Copies"
 msgstr "EFB másolatok"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
 "version %d.%d -- If you recently upgraded your Dolphin distribution, a "
 "reboot is probably required at this point to get Windows to see the new "
 "driver."
 msgstr ""
-"HIBA:  A Dolphin ezen változatához szükséges a TAP-Win32 driver %d.%d "
-"verziója legalább -- Ha mostanában telepítetted a Dolphin emulátort, akkor "
-"valószínűleg újra kell indítanod a számítógépet, hogy a Windows felismerje "
-"az új illesztőprogramot."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:171
 msgid "EUROPE"
@@ -2333,24 +2319,21 @@ msgid "Failed to load hid.dll"
 msgstr "A hid.dll betöltése sikertelen"
 
 #: Source/Core/Core/Src/Movie.cpp:792
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read %s"
-msgstr "Fejléc írása sikertelen a(z) %s számára"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:151
 msgid "Failed to read banner.bin"
 msgstr "A banner.bin beolvasása sikertelen"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:223
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to read block %d of the save data\n"
 "Memcard may be truncated\n"
 "FilePosition:%llx"
 msgstr ""
-"Mentési adatok visszaolvasása sikertelen\n"
-"(0xA000-)\n"
-"A memóriakártya sérülhetett"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:148
 msgid ""
@@ -2595,9 +2578,8 @@ msgid "Frame Dumps use FFV1"
 msgstr "Képkocka mentések FFV1 használatával"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:226
-#, fuzzy
 msgid "Frame Info"
-msgstr "Képkocka"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:115
 msgid "Frame Range"
@@ -2709,15 +2691,13 @@ msgid "Gecko Codes"
 msgstr "Gecko kódok"
 
 #: Source/Core/Core/Src/GeckoCode.cpp:222
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
 "(either a bad code or the code type is not yet supported. Try using the "
 "native code handler by placing the codehandler.bin file into the Sys "
 "directory and restarting Dolphin.)"
 msgstr ""
-"GeckoCode futtatása sikertelen (CT%i CST%i) (%s)\n"
-"(vagy rossz a kód vagy a kód típus még nem támogatott.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:172
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:172
@@ -2949,15 +2929,11 @@ msgstr ""
 "kompatibilis, KI = gyors)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:490
-#, fuzzy
 msgid ""
 "If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use "
 "Audio to throttle using the DSP (might fix audio clicks but can also cause "
 "constant noise depending on the game)."
 msgstr ""
-"Ha a képkocka korlát értéke magasabb a játék teljes sebességénél (NTSC:60, "
-"PAL:50), akkor a hatékonyság eléréséhez ki kell kapcsolni a hang "
-"szabályozást is a DSP beállításoknál.  "
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:429
 msgid "Ignore Format Changes"
@@ -3224,15 +3200,11 @@ msgid "KOREA"
 msgstr "KOREA"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:74
-#, fuzzy
 msgid ""
 "Keep the game window on top of all other windows.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Elrejti az egérmutatót, ha az megjelenik az emulációs ablakban.\n"
-"\n"
-"Ha bizonytalan vagy, hagyd kijelölve."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:299
 msgid "Keep window on top"
@@ -3419,17 +3391,12 @@ msgid "Log Types"
 msgstr "Napló típus"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
-#, fuzzy
 msgid ""
 "Log the number of frames rendered per second to User/Logs/fps.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"A másodpercenként megjelenített képkockák számát jelzi ki az emuláció "
-"sebességének méréséhez.\n"
-"\n"
-"Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:80
 msgid "Logger Outputs"
@@ -4413,9 +4380,8 @@ msgid "Scroll Lock"
 msgstr "Scroll Lock"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:263
-#, fuzzy
 msgid "Search"
-msgstr "Csalás keresés"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:226
 msgid "Search Filter"
@@ -4426,9 +4392,8 @@ msgid "Search Subfolders"
 msgstr "Keresés az almappákban"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:249
-#, fuzzy
 msgid "Search current Object"
-msgstr "Jelenlegi perspektíva mentése"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:253
 msgid "Search for hex Value:"
@@ -4507,9 +4472,8 @@ msgstr ""
 "Ha bizonytalan vagy, válaszd ezt: Automatikus."
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "A megadott \"%s\" fájl nem létezik"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -4727,9 +4691,8 @@ msgid "Show first block"
 msgstr "Az első blokk megjelenítése"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:130
-#, fuzzy
 msgid "Show lag counter"
-msgstr "Mentendő megjegyzések megjelenítése"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
 msgid ""
@@ -5131,17 +5094,12 @@ msgid "The resulting decrypted AR code doesn't contain any lines."
 msgstr "A kapott kódolatlan AR kód nem tartalmaz sorokat."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:93
-#, fuzzy
 msgid ""
 "The safer you adjust this, the less likely the emulator will be missing any "
 "texture updates from RAM.\n"
 "\n"
 "If unsure, use the rightmost value."
 msgstr ""
-"Minél biztonságosabb a beállítás, annál kevésbé valószínű, hogy az emulátor "
-"textúra frissítést fog a RAM-ból hiányolni.\n"
-"\n"
-"Ha bizonytalan vagy, használd a második leggyorsabb értéket jobbról."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:443
 msgid "The save you are trying to copy has an invalid file size"
@@ -5181,9 +5139,8 @@ msgid "The value is invalid"
 msgstr "Az érték érvénytelen"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:626
-#, fuzzy
 msgid "Theme:"
-msgstr "Kinézet"
+msgstr ""
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
@@ -5214,7 +5171,6 @@ msgid "This could cause slow down in Wii Menu and some games."
 msgstr "Ez lassulást okozhat a Wii menüben és néhány játékban."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5225,14 +5181,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Ez a funkció lehetővé teszi a játék kamera szabad irányítását.\n"
-"Tartsd lenyomva a jobb egér gombot és mozgasd az egeret, hogy körbepásztázz "
-"a kamerával. Tartsd lenyomva a SHIFT billentyűt és a WASD billentyűk "
-"valamelyikével mozgasd a kamerát távolsági léptékenként (SHIFT+0 megduplázza "
-"(x2) és a SHIFT+9 megfelezi (x0.5)).  Nyomd le a SHIFT+R kombinációt a "
-"kamera alapértékre állításához.\n"
-"\n"
-"Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
 msgid ""
@@ -5334,9 +5282,9 @@ msgid "UNKNOWN"
 msgstr "ISMERETLEN"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:753
-#, fuzzy, c-format
+#, c-format
 msgid "UNKNOWN_%02X"
-msgstr "ISMERETLEN"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:183
 msgid "USA"
@@ -5501,9 +5449,8 @@ msgid "WAD installation failed: error creating %s"
 msgstr "WAD telepítési hiba: hiba a(z) %s létrehozása közben"
 
 #: Source/Core/DiscIO/Src/NANDContentLoader.cpp:547
-#, fuzzy
 msgid "WAD installation failed: error creating ticket"
-msgstr "WAD telepítési hiba: hiba a(z) %s létrehozása közben"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:80
 msgid ""
@@ -5725,9 +5672,8 @@ msgid "Write to Console"
 msgstr "Írás a konzolba"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:66
-#, fuzzy
 msgid "Write to Debugger"
-msgstr "Írás fájlba"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:56
 msgid "Write to File"
@@ -5935,792 +5881,3 @@ msgstr "zNear javítás: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| VAGY"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
-
-#~ msgid "%d Hz"
-#~ msgstr "%d Hz"
-
-#~ msgid "&Frame Stepping"
-#~ msgstr "&Képkocka léptetés"
-
-#~ msgid "(Default)"
-#~ msgstr "(Alap)"
-
-#~ msgid "32,000 Hz"
-#~ msgstr "32,000 Hz"
-
-#~ msgid "32-bit platforms do not support fastmem yet. Report this bug."
-#~ msgstr ""
-#~ "A 32 bites platformok nem támogatják még a fastmem funkciót. Jelentsd ezt "
-#~ "a hibát."
-
-#~ msgid "3D Vision (Requires Fullscreen)"
-#~ msgstr "3D Vision (teljes képernyőn működik)"
-
-#~ msgid "48,000 Hz"
-#~ msgstr "48,000 Hz"
-
-#~ msgid "< as Default Profile >"
-#~ msgstr "< mint alapértelmezett profil >"
-
-#~ msgid "ALSA"
-#~ msgstr "ALSA"
-
-#~ msgid "AOSound"
-#~ msgstr "AOSound"
-
-#~ msgid "Accurate Texture Cache"
-#~ msgstr "Pontos textúra gyorsítótár"
-
-#~ msgid "Adjust window size"
-#~ msgstr "Ablak méret beállítása"
-
-#~ msgid ""
-#~ "Allows the CPU to read or write to the EFB (render buffer).\n"
-#~ "This is needed for certain gameplay functionality (e.g. star pointer in "
-#~ "Super Mario Galaxy) as well as for certain visual effects (e.g. Monster "
-#~ "Hunter Tri),\n"
-#~ "but enabling this option can also have a huge negative impact on "
-#~ "performance if the game uses this functionality heavily."
-#~ msgstr ""
-#~ "Engedélyezi, hogy a processzor olvassa vagy írja az EFB-t (megjelenítő "
-#~ "puffer).\n"
-#~ "Ez szükséges bizonyos játék funkciókhoz (pl. csillag mutató a Super Mario "
-#~ "Galaxy játékban) valamint egyes vizuális effektusokhoz (pl. a Monster "
-#~ "Hunter Tri játékban),\n"
-#~ "de ennek az opciónak a használata erős teljesítmény csökkenést okozhat ha "
-#~ "a játék nagymértékben használja ezt a funkciót."
-
-#~ msgid "Alternate RFI"
-#~ msgstr "Változó RFI"
-
-#~ msgid "Auto [recommended]"
-#~ msgstr "Automatikus [ajánlott]"
-
-#~ msgid ""
-#~ "Auto size the window to match the game's output resolution adjusted by "
-#~ "the EFB scale.\n"
-#~ "It is best to set the aspect ratio to stretch when using this."
-#~ msgstr ""
-#~ "Automatikusan beállítja az ablak méretét a játék kimeneti felbontásához "
-#~ "arányosan az EFB méretezés által.\n"
-#~ "Ennek a funkciónak a használatakor legjobb a képarányt nyújtottra "
-#~ "állítani."
-
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Automatikusan létrehozza a mipmapeket, inkább mintsem kikódolná azokat a "
-#~ "memóriából.\n"
-#~ "Egy keveset növel a teljesítményen, de kisebb textúra hiányosságokat "
-#~ "okozhat.\n"
-#~ "\n"
-#~ "Ha bizonytalan vagy, hagyd kijelölve."
-
-#~ msgid "Bad gameini filename"
-#~ msgstr "Rossz gameini fájlnév"
-
-#~ msgid "Bleach Versus Crusade"
-#~ msgstr "Bleach Versus Crusade"
-
-#~ msgid ""
-#~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-#~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-#~ "depth calculations are necessary to properly emulate a small number of "
-#~ "games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "A 3D-s grafika mélységének értékét képpont alapon számolja inkább, "
-#~ "mintsem csúcspont alapon.\n"
-#~ "Ellentétben a képpont megvilágítással (ami pusztán egy finomítás), a "
-#~ "képpont alapú mélység számítás csupán csak néhány játék pontos "
-#~ "emulálásához szükséges.\n"
-#~ "\n"
-#~ "Ha bizonytalan vagy, hagyd kijelölve."
-
-#~ msgid ""
-#~ "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
-#~ "vertex.\n"
-#~ "This is the more accurate behavior but reduces performance."
-#~ msgstr ""
-#~ "A 3D-s grafikai fényhatásokat számolja ki inkább képpont alapon mint "
-#~ "csúcspontonként.\n"
-#~ "Ez sokkal pontosabb viselkedés de csökkenti a teljesítményt."
-
-#~ msgid "Can't find plugin %s"
-#~ msgstr "%s plugin nem található"
-
-#~ msgid "Can't init DSP Plugin"
-#~ msgstr "Hang plugin nem iniciálható"
-
-#~ msgid "Can't init Video Plugin"
-#~ msgstr "Kép plugin nem iniciálható"
-
-#~ msgid "Can't open %s, it has a missing function"
-#~ msgstr "%s nem nyitható meg, hiányzik egy szükséges funkció"
-
-#~ msgid "Cannot record movies in read-only mode."
-#~ msgstr "A mozgások rögzítése nem lehetséges írásvédett módban."
-
-#~ msgid "Clear failed."
-#~ msgstr "Törlés sikertelen."
-
-#~ msgid "Config..."
-#~ msgstr "Beállítások..."
-
-#~ msgid "Configuration profile"
-#~ msgstr "Beállítás profil"
-
-#~ msgid "Configuration profile:"
-#~ msgstr "Beállítás profil:"
-
-#~ msgid "Connected"
-#~ msgstr "Csatlakoztatva"
-
-#~ msgid "Connected to %i Wiimotes"
-#~ msgstr "%i Wiimote csatlakoztatva"
-
-#~ msgid "Copy"
-#~ msgstr "Másolat"
-
-#~ msgid "Could not copy %s to %s"
-#~ msgstr "%s nem másolható ide: %s"
-
-#~ msgid "Could not get info about plugin %s"
-#~ msgstr "%s pluginról nem szerezhető be infó"
-
-#~ msgid "Created by KDE-Look.org"
-#~ msgstr "Készítette: KDE-Look.org"
-
-#~ msgid ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-#~ msgstr ""
-#~ "Készítette: Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-
-#~ msgid "Created by VistaIcons.com"
-#~ msgstr "Készítette: VistaIcons.com"
-
-#~ msgid ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-#~ msgstr ""
-#~ "Készítette: black_rider és közzétette ForumW.org > Web Developments "
-#~ "oldalon"
-
-#~ msgid "DList Cache"
-#~ msgstr "DList gyorsítótár"
-
-#~ msgid "DSound"
-#~ msgstr "DSound"
-
-#~ msgid "Danish"
-#~ msgstr "Dán"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Fényhatások kikapcsolása"
-
-#~ msgid "Disable Per-Pixel Depth"
-#~ msgstr "Képpont mélység kikapcsolása"
-
-#~ msgid "Disable Textures"
-#~ msgstr "Textúrák kikapcsolása"
-
-#~ msgid "Disable Wiimote Speaker"
-#~ msgstr "Wiimote hangszóró kikapcsolása"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Textúrák kikapcsolása.\n"
-#~ "\n"
-#~ "Ha bizonytalan vagy, hagyd kijelöletlenül."
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Kikapcsolja a textúrákat.\n"
-#~ "Csak hibakeresési tevékenységhez hasznos."
-
-#~ msgid ""
-#~ "Disables an alpha-setting pass.\n"
-#~ "Breaks certain effects but might help performance."
-#~ msgstr ""
-#~ "Egy alpha-setting pass kikapcsolása.\n"
-#~ "Tönkretesz bizonyos effektusokat, de növelheti a teljesítményt."
-
-#~ msgid "Distance Alpha Pass"
-#~ msgstr "Distance Alpha Pass"
-
-#~ msgid "Dolphin DSP-HLE Plugin"
-#~ msgstr "Dolphin DSP-HLE plugin"
-
-#~ msgid "Dolphin DSP-HLE Plugin Settings"
-#~ msgstr "Dolphin DSP-HLE plugin beállítások"
-
-#~ msgid "Dolphin DSP-LLE Plugin"
-#~ msgstr "Dolphin DSP-LLE plugin"
-
-#~ msgid "Dolphin DSP-LLE Plugin Settings"
-#~ msgstr "Dolphin DSP-LLE plugin beállítások"
-
-#~ msgid "Dolphin Direct3D11"
-#~ msgstr "Dolphin Direct3D11"
-
-#~ msgid "Dolphin Direct3D9"
-#~ msgstr "Dolphin Direct3D9"
-
-#~ msgid "Dolphin OpenGL"
-#~ msgstr "Dolphin OpenGL"
-
-#~ msgid ""
-#~ "Dolphin has not been configured with an install location,\n"
-#~ "Keep Dolphin portable?"
-#~ msgstr ""
-#~ "A Dolphin telepítési könyvtára nincs beállítva.\n"
-#~ "Maradjon a Dolphin hordozható?"
-
-#~ msgid "EFB"
-#~ msgstr "EFB"
-
-#~ msgid ""
-#~ "Emulate frame buffer copies directly to textures.\n"
-#~ "This is not so accurate, but it's good enough for the way many games use "
-#~ "framebuffer copies."
-#~ msgstr ""
-#~ "Képkocka puffer másolatokat közvetlen textúrába emulálja.\n"
-#~ "Ez nem annyira pontos, de megfelel az eljáráshoz, ahogyan sok játék "
-#~ "használja a képkocka puffer másolatokat."
-
-#~ msgid "Emulator Display Settings"
-#~ msgstr "Emulátor kijelző beállítások"
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "Hang szabályozás használata"
-
-#~ msgid "Enable BAT"
-#~ msgstr "BAT használata"
-
-#~ msgid "Enable CPU Access"
-#~ msgstr "Processzor hozzáférés engedélyezése"
-
-#~ msgid "Enable Copy to EFB"
-#~ msgstr "EFB-be másolás engedélyezése"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "DTK zene bekapcsolása"
-
-#~ msgid "Enable EFB To Texture"
-#~ msgstr "EFB használata textúrákhoz"
-
-#~ msgid "Enable HLE Audio"
-#~ msgstr "HLE Audio használata"
-
-#~ msgid "Enable JIT Dynarec"
-#~ msgstr "JIT Dynarec használata"
-
-#~ msgid "Enable OpenCL"
-#~ msgstr "OpenCL használata"
-
-#~ msgid "Enable Screen Saver (burn-in reduction)"
-#~ msgstr "Képernyővédő használata (besülés elleni védelem)"
-
-#~ msgid ""
-#~ "Enables Block Address Translation (BAT); a function of the Memory "
-#~ "Management Unit. Accurate to the hardware, but slow to emulate. (ON = "
-#~ "Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Bekapcsolja a Blokk cím átvitelt (BAT); a memória vezérlő egység egyik "
-#~ "funkcióját. A hardverhez viszonyítva pontos, de az emulációhoz lassú. (BE "
-#~ "= kompatibilis, KI = gyors)"
-
-#~ msgid ""
-#~ "Enables dynamic recompilation of DSP code.\n"
-#~ "Changing this will have no effect while the emulator is running!"
-#~ msgstr ""
-#~ "Bekapcsolja a DSP kód dinamikus újrafordítását.\n"
-#~ "A változtatás csak az emulátor újraindítását követően fog érvényesülni!"
-
-#~ msgid ""
-#~ "Enables emulation of Embedded Frame Buffer copies, if the game uses "
-#~ "them.\n"
-#~ "Games often need this for post-processing or other things, but if you can "
-#~ "live without it, you can sometimes get a big speedup."
-#~ msgstr ""
-#~ "Bekapcsolja a beágyazott képkocka puffer (EFB) másolatok emulációját, ha "
-#~ "a játék használja azokat.\n"
-#~ "A játékok gyakran használják ezt utófeldolgozáshoz vagy más dolgokhoz, de "
-#~ "ha mellőzni tudod, akkor néha nagy sebesség növekedéshez juthatsz."
-
-#~ msgid ""
-#~ "Enables reinterpreting the data inside the EFB when the pixel format "
-#~ "changes.\n"
-#~ "Some games depend on this function for certain effects, so enable it if "
-#~ "you're having glitches.\n"
-#~ "Depending on how the game uses this function, the speed hits caused by "
-#~ "this option range from none to critical."
-#~ msgstr ""
-#~ "Bekapcsolja az adatok újrafordítását az EFB belsejében, amikor a képpont "
-#~ "formátum változik.\n"
-#~ "Néhány játék számára ez elengedhetetlen bizonyos effektusok végett, ezért "
-#~ "kapcsold be ha képhibákat tapasztalsz.\n"
-#~ "Azon múlik, hogy a játék miként használja ezt a funkciót, a lassulás "
-#~ "intervalluma amit ez eredményezhet a nullától a kritikusig terjedhet."
-
-#~ msgid "Error allocating buffer"
-#~ msgstr "Puffer kiosztási hiba"
-
-#~ msgid ""
-#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
-#~ "Sorry, Wii recording is temporarily broken."
-#~ msgstr ""
-#~ "PlayWiimote hiba. %u != %u, bájt %d.\n"
-#~ "Sajnos a Wii videó rögzítés egyenlőre nem működik."
-
-#~ msgid "Error loading %s: can't read info"
-#~ msgstr "Hiba a(z) %s betöltése közben: az infó nem olvasható"
-
-#~ msgid ""
-#~ "Error loading plugin %s: can't find file. Please re-select your plugins."
-#~ msgstr ""
-#~ "Hiba a(z) %s plugin betöltése közben: a fájl nem található. Válaszd ki "
-#~ "újra a pluginokat."
-
-#~ msgid "Error opening file %s for recording"
-#~ msgstr "Hiba a(z) %s fájl rögzítéshez történő megnyitása közben"
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Kilépés a Dolphin emulátorból"
-
-#~ msgid ""
-#~ "Failed to load DSP ROM:\n"
-#~ "%s\n"
-#~ "This file is required to use DSP LLE"
-#~ msgstr ""
-#~ "DSP ROM betöltése sikertelen:\n"
-#~ "%s\n"
-#~ "Ez a fájl szükséges a DSP LLE használatához"
-
-#~ msgid "Failed to load DSP ROM: %s"
-#~ msgstr "DSP ROM betöltése sikertelen: %s"
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Gyors mipmapek"
-
-#~ msgid ""
-#~ "Faster variants look at fewer pixels and thus have more potential for "
-#~ "errors.\n"
-#~ "Slower variants look at more pixels and thus are safer."
-#~ msgstr ""
-#~ "A gyorsabb változatok kevesebb képpontot vizsgálnak meg és ezért nagyobb "
-#~ "a hibalehetőség is.\n"
-#~ "A lassabb változatok több képpontot vizsgálnak meg és ennélfogva "
-#~ "biztonságosabbak."
-
-#~ msgid "Force Bi/Trilinear Filtering"
-#~ msgstr "Bi/trilineáris szűrés"
-
-#~ msgid "Fractional"
-#~ msgstr "Szakaszos"
-
-#~ msgid ""
-#~ "Fully emulate embedded frame buffer copies.\n"
-#~ "This is more accurate than EFB Copy to Texture, and some games need this "
-#~ "to work properly, but it can also be very slow."
-#~ msgstr ""
-#~ "Teljes egészben emulálja a beágyazott képkocka puffer másolatokat.\n"
-#~ "Ez sokkal pontosabb mint az EFB másolás textúrába, és néhány játékhoz "
-#~ "szükséges a megfelelő működéshez, ugyanakkor nagyon lassú is lehet."
-
-#~ msgid "GFX Config"
-#~ msgstr "GFX beállítások"
-
-#~ msgid "Graphics Plugin"
-#~ msgstr "Grafikai plugin"
-
-#~ msgid "Hide Shader Errors"
-#~ msgstr "Árnyaló hibáinak elrejtése"
-
-#~ msgid ""
-#~ "Hide the cursor when it is over the rendering window and the rendering "
-#~ "window has focus."
-#~ msgstr ""
-#~ "Elrejti az egér mutatót amikor az a megjelenítési ablakon kívül van és a "
-#~ "megjelenítési ablak központosul."
-
-#~ msgid ""
-#~ "If a game hangs, works only in the Interpreter or Dolphin crashes, this "
-#~ "option may fix the game."
-#~ msgstr ""
-#~ "Ha a játék leáll, csak Interpreter módban működik vagy ha a Dolphin "
-#~ "kifagy, akkor ez a beállítás javíthat a játékon."
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Növeli a teljesítményt, de használatával a fényhatások eltűnnek a legtöbb "
-#~ "játékban.\n"
-#~ "\n"
-#~ "Ha bizonytalan vagy, hagyd kijelöletlenül."
-
-#~ msgid "Input Source"
-#~ msgstr "Bemeneti forrás"
-
-#~ msgid "Install directory could not be saved"
-#~ msgstr "Telepítési könyvtár mentése sikertelen"
-
-#~ msgid "Installing WAD to Wii Menu..."
-#~ msgstr "WAD telepítés a Wii menübe..."
-
-#~ msgid "Integral [recommended]"
-#~ msgstr "Teljes [ajánlott]"
-
-#~ msgid ""
-#~ "Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
-#~ "Try verifying the state again"
-#~ msgstr ""
-#~ "Belső LZO hiba - kitömörítés sikertelen (%d) (%ld, %ld) \n"
-#~ "Próbáld újraellenőrizni a mentést"
-
-#~ msgid ""
-#~ "Keeps track of textures based on looking at the actual pixels in the "
-#~ "texture.\n"
-#~ "Can cause slowdown, but some games need this option enabled to work "
-#~ "properly."
-#~ msgstr ""
-#~ "Nyomon követi a textúrákat, amelyek az aktuális képpontok vizsgálatán "
-#~ "alapulnak a textúrában.\n"
-#~ "Lassulást okozhat, de néhány játék megfelelő működéséhez szükséges ennek "
-#~ "az opciónak a bekapcsolása."
-
-#~ msgid "Load Script..."
-#~ msgstr "Parancsfájl betöltése..."
-
-#~ msgid ""
-#~ "Loads native mipmaps instead of generating them.\n"
-#~ "Loading native mipmaps is the more accurate behavior, but might also "
-#~ "decrease performance (your mileage might vary though)."
-#~ msgstr ""
-#~ "Natív mipmapek betöltése létrehozásuk helyett.\n"
-#~ "Natív mipmapek betöltése pontosabb eljárás, de teljesítmény csökkenést "
-#~ "okozhat (azonban adódhatnak eltérő tapasztalatok)."
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "Meghatározott fájlt tölt be (DOL,ELF,GCM,ISO,WAD)"
-
-#~ msgid "Lock Threads to Cores"
-#~ msgstr "Folyamatágak magokhoz zárolása"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Alacsony szintű (LLE) vagy magas szintű (HLE) hang"
-
-#~ msgid "Lua Script Console"
-#~ msgstr "Lua parancsfájl konzol"
-
-#~ msgid "Metroid Other M"
-#~ msgstr "Metroid Other M"
-
-#~ msgid "Mixer: Unsupported sample rate."
-#~ msgstr "Keverő: Nem támogatott mintavételezési frekvencia."
-
-#~ msgid ""
-#~ "Modify textures to show the format they're using.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Módosítja a textúrákat, hogy megjelenítsék az általuk használt "
-#~ "formátumot.\n"
-#~ "Csak hibakeresési tevékenységhez hasznos."
-
-#~ msgid "New &Lua Console"
-#~ msgstr "Új &Lua konzol"
-
-#~ msgid "No audio output"
-#~ msgstr "Nincs hang kimenet"
-
-#~ msgid "Normal"
-#~ msgstr "Normál"
-
-#~ msgid "OK"
-#~ msgstr "Rendben"
-
-#~ msgid "OpenAL"
-#~ msgstr "OpenAL"
-
-#~ msgid "OpenGL"
-#~ msgstr "OpenGL"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "Megnyitja a hibakeresőt"
-
-#~ msgid "Opens the logger"
-#~ msgstr "Megnyitja a naplózót"
-
-#~ msgid "Plugins"
-#~ msgstr "Pluginok"
-
-#~ msgid ""
-#~ "Portable Setting could not be saved\n"
-#~ " Are you running Dolphin from read only media or from a directory that "
-#~ "dolphin is not located in?"
-#~ msgstr ""
-#~ "A hordozható beállítások nem menthetőek el\n"
-#~ " A Dolphin emulátort csak olvasható eszközről futtatod vagy egy olyan "
-#~ "könyvtárból amely nem tartalmazza az emulátort?"
-
-#~ msgid "Projection Stats"
-#~ msgstr "Kivetítési statisztikák"
-
-#~ msgid "Relaunch Dolphin from the install directory and save from there"
-#~ msgstr ""
-#~ "Indítsd újra a Dolphin emulátort a telepítési könyvtárból és ments onnan"
-
-#~ msgid "Render to main window."
-#~ msgstr "Megjelenítés a főablakban."
-
-#~ msgid "Rendering"
-#~ msgstr "Megjelenítés"
-
-#~ msgid "Required for using the Japanese ROM font."
-#~ msgstr "A japán ROM betűtípusok használatához szükséges."
-
-#~ msgid "Run"
-#~ msgstr "Futtatás"
-
-#~ msgid "Running script...\n"
-#~ msgstr "Parancsfájl futtatása...\n"
-
-#~ msgid "Sample Rate:"
-#~ msgstr "Mintavételezési frekvencia:"
-
-#~ msgid "Scale:"
-#~ msgstr "Arányosítás:"
-
-#~ msgid "Select resolution for fullscreen mode"
-#~ msgstr "Teljes kijelzős felbontás kiválasztása"
-
-#~ msgid ""
-#~ "Select the System Menu wad extracted from the update partition of a disc"
-#~ msgstr ""
-#~ "Válassz a lemez frissítési partíciójára kitömörített rendszer menü wad "
-#~ "fájlt"
-
-#~ msgid "Select the script to load"
-#~ msgstr "Válassz betöltendő parancsfájlt"
-
-#~ msgid ""
-#~ "Selects which game should be affected by the configuration changes done "
-#~ "in this dialog.\n"
-#~ "The (Default) profile affects the standard settings used for every game."
-#~ msgstr ""
-#~ "Kiválasztja melyik játékra érvényesüljenek ebben a párbeszédablakban "
-#~ "végzett beállítás változtatások.\n"
-#~ "Az (Alap) profil vonatkozik az összes játékhoz használatos általános "
-#~ "beállításokra."
-
-#~ msgid "Set All to Default"
-#~ msgstr "Minden alapértékre állítása"
-
-#~ msgid ""
-#~ "Set install location to:\n"
-#~ " %s ?"
-#~ msgstr ""
-#~ "Telepítési hely változtatása erre:\n"
-#~ " %s ?"
-
-#~ msgid ""
-#~ "Show projection statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Vetítési statisztikák megjelenítése.\n"
-#~ "Csak hibakeresési tevékenységhez hasznos."
-
-#~ msgid "Show save banner"
-#~ msgstr "Mentendő játék kép megjelenítése"
-
-#~ msgid "Show the number of frames rendered per second."
-#~ msgstr "Kijelzi a másodpercenként megjelenített képkockák számát "
-
-#~ msgid "Show this help message"
-#~ msgstr "A súgó üzenet megjelenítése"
-
-#~ msgid ""
-#~ "Show various statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Különféle statisztikák megjelenítése.\n"
-#~ "Csak hibakeresési tevékenységhez hasznos."
-
-#~ msgid "Skies of Arcadia"
-#~ msgstr "Skies of Arcadia"
-
-#~ msgid "Slot"
-#~ msgstr "Hely"
-
-#~ msgid "Sonic and the Black Knight"
-#~ msgstr "Sonic and the Black Knight"
-
-#~ msgid ""
-#~ "Specifies the resolution used to render at. A high resolution will "
-#~ "improve visual quality but is also quite heavy on performance and might "
-#~ "cause glitches in certain games.\n"
-#~ "Fractional: Uses your display resolution directly instead of the native "
-#~ "resolution. The quality scales with your display/window size, as does the "
-#~ "performance impact.\n"
-#~ "Integral: This is like Fractional, but rounds up to an integer multiple "
-#~ "of the native resolution. Should give a more accurate look but is usually "
-#~ "slower.\n"
-#~ "The other options are fixed resolutions for choosing a visual quality "
-#~ "independent of your display size."
-#~ msgstr ""
-#~ "Meghatározza a megjelenítéshez használatos felbontást. A magas felbontás "
-#~ "növeli a vizuális minőséget, de erősen befolyásolja a teljesítményt és "
-#~ "grafikai hibákat okozhat bizonyos játékokban.\n"
-#~ "Szakaszos: A kijelző felbontását használja közvetlenül a natív felbontás "
-#~ "helyett. A minőség arányos a kijelző/ablak mérettel, ahogyan a "
-#~ "teljesítményre is hatással van.\n"
-#~ "Teljes: Olyan mint a szakaszos, de felkerekíti a natív felbontást egy "
-#~ "egész többszörösére. Pontosabb képet biztosít, de általában lassabb.\n"
-#~ "A többi opció rögzített felbontású a vizuális minőség választásához "
-#~ "függetlenül a kijelző méretétől."
-
-#~ msgid "Specify a video backend"
-#~ msgstr "Válassz videó feldolgozót"
-
-#~ msgid "Specify an audio plugin"
-#~ msgstr "Válassz hang plugint"
-
-#~ msgid "Start Renderer in Fullscreen"
-#~ msgstr "Játék indítása teljes nézetben"
-
-#~ msgid "Start the rendering window in fullscreen mode."
-#~ msgstr "A megjelenítési ablak teljes képernyős módban indul."
-
-#~ msgid "The file "
-#~ msgstr "A fájl"
-
-#~ msgid "Theme selection went wrong"
-#~ msgstr "Kinézet választáskor hiba történt"
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "Ez a játék sebességének szabályozására szolgál a hang szabályozás által.\n"
-#~ "Kikapcsolása rendellenes sebességet okozhat, többnyire túl gyorsat.\n"
-#~ "Viszont néha a bekapcsolása folyamatos zajt eredményezhet.\n"
-#~ "\n"
-#~ "Gyorsbillentyű <TAB>:  Tartsd lenyomva a szabályozás azonnali "
-#~ "kikapcsolásához."
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr "Ez a zenei sávok, mint BGM lejátszásra szolgál."
-
-#~ msgid "This is usually used to play voice and sound effects."
-#~ msgstr "Ez a játék hangok és hang effektusok lejátszásra szolgál."
-
-#~ msgid "Trying to load unsupported type %d"
-#~ msgstr "Próbálkozás egy nem támogatott típus, %d betöltésével"
-
-#~ msgid "Type %d config not supported in plugin %s"
-#~ msgstr "%d beállítás fajta nem támogatott a(z) %s plugin által"
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "Ismeretlen mutató %#08x\n"
-#~ "Folytatod?"
-
-#~ msgid "Use FPS For Limiting"
-#~ msgstr "FPS alapú korlátozás"
-
-#~ msgid "Use XFB"
-#~ msgstr "XFB használata"
-
-#~ msgid "Uses multiple threads to decode the textures in the game."
-#~ msgstr "Több folyamatágat használ a textúrák dekódolásához a játékban."
-
-#~ msgid ""
-#~ "Uses the high-resolution render buffer for EFB copies instead of scaling "
-#~ "them down to native resolution.\n"
-#~ "Vastly improves visual quality in games which use EFB copies but might "
-#~ "cause glitches in some games."
-#~ msgstr ""
-#~ "A nagyfelbontású megjelenítő puffert használja az EFB másolatokhoz "
-#~ "ahelyett, hogy a natív felbontáshoz igazítaná azokat.\n"
-#~ "Hatalmas mértékben növeli a teljesítményt az EFB másolatokat használó "
-#~ "játékokban, de néhány játékban grafikai hibákat okozhat."
-
-#~ msgid "Video Backend:"
-#~ msgstr "Videó feldolgozó:"
-
-#~ msgid ""
-#~ "Wait for vertical blanks.\n"
-#~ "Reduces tearing but might also decrease performance"
-#~ msgstr ""
-#~ "Várakozás a függőleges képkioltásra.\n"
-#~ "Csökkenti a képszakadást de egyben a teljesítményt is."
-
-#~ msgid ""
-#~ "When using EFB to RAM we very often need to decode RAM data to a VRAM "
-#~ "texture, which is a very time-consuming task.\n"
-#~ "With this option enabled, we'll skip decoding a texture if it didn't "
-#~ "change.\n"
-#~ "This results in a nice speedup, but possibly causes glitches.\n"
-#~ "If you have any problems with this option enabled you should either try "
-#~ "increasing the safety of the texture cache or disable this option.\n"
-#~ "(NOTE: The safer the texture cache is adjusted the lower the speedup will "
-#~ "be; accurate texture cache set to \"safe\" might actually be slower!)"
-#~ msgstr ""
-#~ "Az EFB RAM-ba történő használatakor igen gyakran kell kódolni a RAM "
-#~ "adatokat egy VRAM textúrába, ami rendkívül idő igényes feladat.\n"
-#~ "Ennek a beállításnak a használatával, átugorhatjuk a textúra kódolását, "
-#~ "ha az nem változott meg.\n"
-#~ "Nagy sebesség növekedést eredményez, de grafikai hibákat okozhat.\n"
-#~ "Ha a beállítás használatakor problémákat tapasztalsz, akkor próbáld meg "
-#~ "növelni a textúra gyorsítótár biztonságát vagy kapcsold ki ezt a "
-#~ "beállítást.\n"
-#~ "(MEGJEGYZÉS: Minél biztonságosabbra van állítva a textúra gyorsítótár, "
-#~ "annál kisebb lesz a sebesség növekedés; a pontos textúra gyorsítótár a "
-#~ "\"biztonságos\" beállításon valójában lassabb lehet!)"
-
-#~ msgid "Wiimote %i %s"
-#~ msgstr "%i %s Wiimote"
-
-#~ msgid "Wiimote Settings"
-#~ msgstr "Wiimote beállítások"
-
-#~ msgid "Will enable progressive scan option if supported by software."
-#~ msgstr ""
-#~ "Lehetővé teszi a progresszív letapogatást, ha azt a szoftver támogatja."
-
-#~ msgid "Window Size:"
-#~ msgstr "Ablak mérete:"
-
-#~ msgid "Window height for windowed mode"
-#~ msgstr "Ablak magassága az ablakos módban"
-
-#~ msgid "Window width for windowed mode"
-#~ msgstr "Ablak szélessége az ablakos módban"
-
-#~ msgid "XFB"
-#~ msgstr "XFB"
-
-#~ msgid "Zelda Twilight Princess Bloom hack"
-#~ msgstr "Zelda Twilight Princess Bloom hack"
-
-#~ msgid "please someone fill this tooltip i have no idea what to say :D"
-#~ msgstr ""
-#~ "valaki írjon valamit erre a helyre, mert fogalmam sincs mi álljon itt :D"

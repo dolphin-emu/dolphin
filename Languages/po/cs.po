@@ -1,22 +1,23 @@
 # Translation of dolphin-emu.pot to Czech
-# Copyright (C) 2003-2012
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# Zbyněk Schwarz <zbynek.schwarz@gmail.com>, 2011, 2012.
 #
+# Translators:
+# Zbyněk Schwarz <zbynek.schwarz@gmail.com>, 2011-2013.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2013-01-16 21:39-0600\n"
+"PO-Revision-Date: 2013-02-03 17:07+0000\n"
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
-"Language-Team: \n"
-"Language: Czech\n"
+"Language-Team: Czech (http://www.transifex.com/projects/p/dolphin-emu/"
+"language/cs/)\n"
+"Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.4\n"
-"X-Poedit-Basepath: D:\\cygwin\\home\\Administrátor\\dolphin-emu\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -371,14 +372,14 @@ msgid "A game is not currently running."
 msgstr "Hra v současnosti neběží!"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
 "Podporované zařízení bluetooth nebylo nalezeno!\n"
-"(Pouze zásobník Microsoft bluetooth je podporován)"
+"Pokud nepoužíváte zásobník Microsoft bluetooth, musíte ručně spárovat vaše "
+"wiimoty a pouze používat tlačítko \"Obnovit\"."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -514,12 +515,13 @@ msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Chyba Action Replay: Neplatná hodnota (%08x) v Kopii Paměti (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
-"Chyba Action Replay: Hlavní Kód a Zápis do CCXXXXXX nejsou zavedeny (%s)"
+"Chyba Action Replay: Hlavní Kód a Zápis do CCXXXXXX nejsou zavedeny (%s)\n"
+"Hlavní kódy nejsou potřeba, nepoužívejte je."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -655,15 +657,14 @@ msgid "All files (*.*)|*.*"
 msgstr "Všechny soubory (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Umožní přepínání jistých možností pomocí klávesových zkratek 3, 4, 5 a 6 "
-"uvnitř okna emulace.\n"
+"Umožní přepínání jistých možností pomocí klávesových zkratek 3 (Vnitřní "
+"rozlišení), 4(Poměr stran), 5 (Kopie EFB) a 6 (Mlha) uvnitř okna emulace.\n"
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
@@ -677,7 +678,7 @@ msgstr "Analyzovat"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:298
 msgid "Angle"
-msgstr ""
+msgstr "Úhel"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:368
 msgid "Anisotropic Filtering:"
@@ -911,6 +912,8 @@ msgid ""
 "Bypass the clearing of the data cache by the DCBZ instruction. Usually leave "
 "this option disabled."
 msgstr ""
+"Potlačit čištění mezipaměti dat vyvolaných instrukcí DCBZ. Tato volba je "
+"standardně vypnutá. "
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "C"
@@ -1651,7 +1654,7 @@ msgstr "Chcete současnou emulaci zastavit?"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:647
 msgid "Dolby Pro Logic II decoder"
-msgstr ""
+msgstr "Dekodér Dolby Pro Logic II"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:866
 msgid "Dolphin"
@@ -1714,7 +1717,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1217
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1303
 msgid "Dolphin was unable to complete the requested action."
-msgstr ""
+msgstr "Dolhpin nemohl dokončit požadovanou činnost."
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
@@ -2041,17 +2044,24 @@ msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on "
 "OSX."
 msgstr ""
+"Povolí emulaci Dolby Pro Logic II používající prostorový zvuk 5.1. Není "
+"dostupné v OSX."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:515
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."
 msgstr ""
+"Povolí emulaci Dolby Pro Logic II používající prostorový zvuk 5.1. Pouze pro "
+"podpůrnou vrstvu OpenAL."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:517
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
 "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
 msgstr ""
+"Povolí emulaci Dolby Pro Logic II používající prostorový zvuk 5.1. Pouze pro "
+"podpůrnou vrstvu OpenAL. Možná bude třeba přejmenovat soft_oal.dll na "
+"OpenAL32.dll aby toto fungovalo."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:77
 msgid ""
@@ -2322,9 +2332,9 @@ msgid "Failed to load hid.dll"
 msgstr "Nelze nahrát hid.dll"
 
 #: Source/Core/Core/Src/Movie.cpp:792
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read %s"
-msgstr "Zápis hlavičky selhal pro %s"
+msgstr "Nelze přečíst %s"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:151
 msgid "Failed to read banner.bin"
@@ -3261,7 +3271,7 @@ msgstr "Poslední Uložený Stav"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:680
 msgid "Latency:"
-msgstr ""
+msgstr "Zpoždění:"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
@@ -4487,9 +4497,8 @@ msgstr ""
 "Roztáhnout do okna: Roztáhne obraz do velikosti okna."
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "Zadaný soubor \"%s\" neexistuje"
+msgstr "Vybraný profil ovladače neexistuje"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -4574,6 +4583,8 @@ msgid ""
 "Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL "
 "backend only."
 msgstr ""
+"Nastavá zpoždění (v ms). Vyšší hodnoty mohou snížit praskání zvuku. Pouze "
+"pro podpůrnou vrstvu OpenAL."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
 msgid "Settings..."
@@ -4779,7 +4790,7 @@ msgstr "Přeskočit BIOS"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid "Skip DCBZ clearing"
-msgstr ""
+msgstr "Přeskočit čištění DCBZ"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:493
 msgid "Skip Dest. Alpha Pass"
@@ -4891,7 +4902,7 @@ msgid ""
 "\n"
 "If unsure, select 640x528."
 msgstr ""
-"Určuje rozlišení, v kterém bude vykresleno. Vysoké rozlišení vlemi zvýší "
+"Určuje rozlišení, v kterém bude vykresleno. Vysoké rozlišení velmi zvýší "
 "kvalitu obrazu, ale je také o dost náročnější na výkon a může způsobovat v "
 "některých hrách chyby.\n"
 "\"Násobek 640x528\" je o trochu pomalejší než \"Velikost Okna\", ale také "
@@ -4942,7 +4953,7 @@ msgstr "Ukládání stavu"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:92
 msgid "Steering Wheel"
-msgstr ""
+msgstr "Volant"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
@@ -5160,9 +5171,8 @@ msgid "The value is invalid"
 msgstr "Hodnota je neplatná"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:626
-#, fuzzy
 msgid "Theme:"
-msgstr "Vzhled"
+msgstr "Vzhled:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
@@ -5193,7 +5203,6 @@ msgid "This could cause slow down in Wii Menu and some games."
 msgstr "Toto může způsobit zpomalení ve Wii Menu a v některých hrách."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5205,10 +5214,11 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Tato funkce Vám umožňuje si pohrát s herní kamerou.\n"
-"Podržte pravé tlačítko myši a pohybujte s ní pro změnu pohledu kamery. "
-"Podržte SHIFT a zmáčkněte jednu z kláves WASD, abyste kamerou pohnuli v "
-"určité vzdálenosti kroku (SHIFT+0 pro rychlejší pohyb a SHIFT+9 pro "
-"pomalejší). Stiskněte SHIFT+R k resetu kamery.\n"
+"Podržte pravé tlačítko myši a pohybujte s ní pro změnu pohledu kamery, "
+"podržením prostředního tlačítka myši dojde k jejímu přesunu. Podržte SHIFT a "
+"zmáčkněte jednu z kláves WASD, abyste kamerou pohnuli v určité vzdálenosti "
+"kroku (SHIFT+0 pro rychlejší pohyb a SHIFT+9 pro pomalejší). Stiskněte SHIFT"
+"+R pro reset kamery.\n"
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
@@ -5907,632 +5917,3 @@ msgstr "Korekce zNear:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| NEBO"
-
-#~ msgid "%d Hz"
-#~ msgstr "%d Hz"
-
-#~ msgid "(Default)"
-#~ msgstr "(Výchozí)"
-
-#~ msgid "0.375x Native (240x198)"
-#~ msgstr "Původní 0.375x (240x198)"
-
-#~ msgid "0.5x Native (320x264)"
-#~ msgstr "Původní 0.5x (320x264)"
-
-#~ msgid "0.75x Native (480x396)"
-#~ msgstr "Původní 0.75x (480x396)"
-
-#~ msgid "1x Native (640x528)"
-#~ msgstr "Původní 1x (640x528)"
-
-#~ msgid "2x Native (1280x1056)"
-#~ msgstr "Původní 2x (1280x1056)"
-
-#~ msgid "32,000 Hz"
-#~ msgstr "32,000 Hz"
-
-#~ msgid "32-bit platforms do not support fastmem yet. Report this bug."
-#~ msgstr "32-bitové platformy fastmem ještě nepodporují. Tuto chybu nahlašte."
-
-#~ msgid "3D Vision (Requires Fullscreen)"
-#~ msgstr "3D Vision (Vyžaduje režim Celé Obrazovky)"
-
-#~ msgid "3x Native (1920x1584)"
-#~ msgstr "Původní 3x (1920x1584)"
-
-#~ msgid "48,000 Hz"
-#~ msgstr "48,000 Hz"
-
-#~ msgid "< as Default Profile >"
-#~ msgstr "< jako Výchozí Profil >"
-
-#~ msgid "Accurate Texture Cache"
-#~ msgstr "Precizní Vyrovnávací Paměť Textur"
-
-#~ msgid ""
-#~ "Allows the CPU to read or write to the EFB (render buffer).\n"
-#~ "This is needed for certain gameplay functionality (e.g. star pointer in "
-#~ "Super Mario Galaxy) as well as for certain visual effects (e.g. Monster "
-#~ "Hunter Tri),\n"
-#~ "but enabling this option can also have a huge negative impact on "
-#~ "performance if the game uses this functionality heavily."
-#~ msgstr ""
-#~ "Povolí procesoru číst či zapisovat do EFB (vyrovnávací paměť "
-#~ "vykreslování).\n"
-#~ "Toto je potřeba pro některé funkce hraní (např. star pointer v Super "
-#~ "Mario Galaxy) a také pro jisté vizuální efekty (např. Monster Hunter "
-#~ "Tri),\n"
-#~ "ale zapnutí této možnosti může mít také velký negativní dopad na výkon "
-#~ "pokud hra tuto funkci hodně využívá."
-
-#~ msgid "Auto [recommended]"
-#~ msgstr "Auto [doporučeno]"
-
-#~ msgid ""
-#~ "Auto size the window to match the game's output resolution adjusted by "
-#~ "the EFB scale.\n"
-#~ "It is best to set the aspect ratio to stretch when using this."
-#~ msgstr ""
-#~ "Automaticky upravovat velikost okna pro shodu s výstupním rozlišením hry "
-#~ "nastavená pomocí změny velikosti EFB.\n"
-#~ "Při používání tohoto je nejlepší nastavit poměr stran na roztáhnutí."
-
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Automaticky vytvořit mipmapy, raději než dekódovat je z paměti.\n"
-#~ "Trochu zlepší výkon, ale může způsobit malé chyby paměti.\n"
-#~ "\n"
-#~ "Pokud si nejste jisti, nechejte toto zaškrtnuté."
-
-#~ msgid ""
-#~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-#~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-#~ "depth calculations are necessary to properly emulate a small number of "
-#~ "games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Vypočítat hodnoty hloubky 3D grafiky podle pixelu, raději než podle "
-#~ "bodu.\n"
-#~ "Na rozdíl od osvětlení pixelu (což je pouze vylepšen), výpočty hloubky "
-#~ "podle pixelu jsou potřebné ke správné emulaci malého počtu her.\n"
-#~ "\n"
-#~ "Pokud si nejste jisti, nechejte toto zaškrtnuté."
-
-#~ msgid ""
-#~ "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
-#~ "vertex.\n"
-#~ "This is the more accurate behavior but reduces performance."
-#~ msgstr ""
-#~ "Spočítá osvětlení 3D obrazu na základě pixelu, raději než na základě "
-#~ "vertexu.\n"
-#~ "Toto je správnější chování, ale snižuje výkon."
-
-#~ msgid "Cannot record movies in read-only mode."
-#~ msgstr "V režimu pouze pro čtení nelze nahrávát filmy."
-
-#~ msgid "Clear failed."
-#~ msgstr "Vyčištění selhalo"
-
-#~ msgid "Config..."
-#~ msgstr "Nastavení..."
-
-#~ msgid "Configuration profile"
-#~ msgstr "Profil nastavení"
-
-#~ msgid "Configuration profile:"
-#~ msgstr "Profil nastavení:"
-
-#~ msgid "Connected to %i Wiimotes"
-#~ msgstr "Připojen k %i Wiimote"
-
-#~ msgid "Copy"
-#~ msgstr "Kopírovat"
-
-#~ msgid "Could not copy %s to %s"
-#~ msgstr "Nelze kopírovat %s do %s"
-
-#~ msgid "Created by KDE-Look.org"
-#~ msgstr "Vytvořil KDE-look.org"
-
-#~ msgid ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-#~ msgstr ""
-#~ "Vytvořil Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-
-#~ msgid "Created by VistaIcons.com"
-#~ msgstr "Vytvořil VistaIcons.com"
-
-#~ msgid ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-#~ msgstr "Vytvořil black_rider a publikováno na ForumW.org > Web Developments"
-
-#~ msgid "DList Cache"
-#~ msgstr "Vyrovnávací paměť DList"
-
-#~ msgid "Danish"
-#~ msgstr "Dánština"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Zakázat Osvětlení"
-
-#~ msgid "Disable Per-Pixel Depth"
-#~ msgstr "Zakázat Hloubku Podle Pixelu"
-
-#~ msgid "Disable Textures"
-#~ msgstr "Zakázat Textury"
-
-#~ msgid "Disable Wiimote Speaker"
-#~ msgstr "Zakázat Reproduktor Wiimote"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Zakázat texturování.\n"
-#~ "\n"
-#~ "Pokud si nejste jisti, nechejte toto odškrtnuté."
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Zakáže texturování.\n"
-#~ "Toto se používá pouze pro účely ladění"
-
-#~ msgid ""
-#~ "Disables an alpha-setting pass.\n"
-#~ "Breaks certain effects but might help performance."
-#~ msgstr ""
-#~ "Vypne průchod nastavení průhlednosti.\n"
-#~ "Některé efekty budou poškozeny, ale může to zlepšit výkon."
-
-#~ msgid "Distance Alpha Pass"
-#~ msgstr "Průchod Vzdálené Průhlednosti"
-
-#~ msgid "Dolphin OpenGL"
-#~ msgstr "Dolphin OpenGL"
-
-#~ msgid ""
-#~ "Dolphin has not been configured with an install location,\n"
-#~ "Keep Dolphin portable?"
-#~ msgstr ""
-#~ "Umístění instalace nebylo v Dolphinu nastaveno,\n"
-#~ "Ponechat Dolphina přenosného?"
-
-#~ msgid "EFB"
-#~ msgstr "EFB"
-
-#~ msgid ""
-#~ "Emulate frame buffer copies directly to textures.\n"
-#~ "This is not so accurate, but it's good enough for the way many games use "
-#~ "framebuffer copies."
-#~ msgstr ""
-#~ "Emuluje kopie vyrovnávací paměti snímku přímo do textur.\n"
-#~ "Není to precizní, ale pro způsob jakým spousta her používá kopie "
-#~ "vyrovnávací paměti snímku to stačí."
-
-#~ msgid "Emulator Display Settings"
-#~ msgstr "Obrazová Nastavení Emulátoru"
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "Zapnout Přiškrcení Zvuku"
-
-#~ msgid "Enable BAT"
-#~ msgstr "Zapnout BAT"
-
-#~ msgid "Enable CPU Access"
-#~ msgstr "Povolit Přístup k Procesoru"
-
-#~ msgid "Enable Copy to EFB"
-#~ msgstr "Povolit Kopírování do EFB"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "Zapnout DTK Hudbu"
-
-#~ msgid "Enable EFB To Texture"
-#~ msgstr "Povolit EFB do Textury"
-
-#~ msgid "Enable OpenCL"
-#~ msgstr "Zapnout OpenCL"
-
-#~ msgid "Enable Screen Saver (burn-in reduction)"
-#~ msgstr "Povolit Spořič Obrazovky (zmírnění vypálení)"
-
-#~ msgid ""
-#~ "Enables Block Address Translation (BAT); a function of the Memory "
-#~ "Management Unit. Accurate to the hardware, but slow to emulate. (ON = "
-#~ "Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Povolit Překlad Adres Bloků (BAT); funkce Jednotky Správy Paměti. Přesně "
-#~ "napodobuje hardware, ale je emulován pomalu. (ZAPNUTO = Kompatibilní, "
-#~ "VYPNUTO = Rychlé)"
-
-#~ msgid ""
-#~ "Enables emulation of Embedded Frame Buffer copies, if the game uses "
-#~ "them.\n"
-#~ "Games often need this for post-processing or other things, but if you can "
-#~ "live without it, you can sometimes get a big speedup."
-#~ msgstr ""
-#~ "Povolí emulaci Vnořených kopií Vyrovnávací paměti snímků, pokud je hra "
-#~ "používá.\n"
-#~ "Hry toto často potřebují pro následné zpracování nebo jiné věci, ale "
-#~ "pokud toto oželíte, můžete někdy získat velké zrychlení."
-
-#~ msgid ""
-#~ "Enables reinterpreting the data inside the EFB when the pixel format "
-#~ "changes.\n"
-#~ "Some games depend on this function for certain effects, so enable it if "
-#~ "you're having glitches.\n"
-#~ "Depending on how the game uses this function, the speed hits caused by "
-#~ "this option range from none to critical."
-#~ msgstr ""
-#~ "Povoluje reinterpretaci dat uvnitř EFB, když se formát pixelů změní.\n"
-#~ "Některé hry závisejí na této funkci pro jisté efekty, takže pokud máte "
-#~ "chyby, tuto možnost zapněte.\n"
-#~ "V závislosti na tom, jak hra tuto funkci využívá bude mít rychlostní zisk "
-#~ "způsobený touto volbou rozsah od žádný až po kritický."
-
-#~ msgid "Error allocating buffer"
-#~ msgstr "Chyba při alokaci vyrovnávací paměti"
-
-#~ msgid ""
-#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
-#~ "Sorry, Wii recording is temporarily broken."
-#~ msgstr ""
-#~ "Chyba v PlayWiimote. %u != %u, bajt %d.\n"
-#~ "Je nám líto, nahrávání Wii je dočasně nefunkční."
-
-#~ msgid "Error opening file %s for recording"
-#~ msgstr "Chyba při otevírání souboru %s pro nahrávání"
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Ukončit Dolphin s emulátorem"
-
-#~ msgid "Failed to compile ps %s"
-#~ msgstr "Nelze zkompilovat ps %s"
-
-#~ msgid ""
-#~ "Failed to load DSP ROM:\n"
-#~ "%s\n"
-#~ "This file is required to use DSP LLE"
-#~ msgstr ""
-#~ "Nelze načíst DSP ROM:\n"
-#~ "%s\n"
-#~ "Tento soubor je nutný pro použití DSP LLE"
-
-#~ msgid "Failed to load DSP ROM: %s"
-#~ msgstr "Nelze nahrát DSP ROM : %s"
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Rychlé Mipmapy"
-
-#~ msgid ""
-#~ "Faster variants look at fewer pixels and thus have more potential for "
-#~ "errors.\n"
-#~ "Slower variants look at more pixels and thus are safer."
-#~ msgstr ""
-#~ "Rychlejší varianty se dívají na méně pixelů a tudíž mají větší potenciál "
-#~ "k chybám.\n"
-#~ "Pomalejší varianty se dívají na více pixelů a tudíž jsou bezpečnější."
-
-#~ msgid "Force Bi/Trilinear Filtering"
-#~ msgstr "Vynutit Bi/Trilineární Filtrování"
-
-#~ msgid "Fractional"
-#~ msgstr "Zlomkový"
-
-#~ msgid ""
-#~ "Fully emulate embedded frame buffer copies.\n"
-#~ "This is more accurate than EFB Copy to Texture, and some games need this "
-#~ "to work properly, but it can also be very slow."
-#~ msgstr ""
-#~ "Plně emuluje kopie vnořených snímků vyrovnávací paměti.\n"
-#~ "Toto je preciznější než EFB Kopie do Textury, a některé hry toto "
-#~ "potřebují ke správnému fungování, ale může být velmi pomalé."
-
-#~ msgid "GFX Config"
-#~ msgstr "Nastavení GFX"
-
-#~ msgid "Hide Shader Errors"
-#~ msgstr "Skrýt Chyby Shadera"
-
-#~ msgid ""
-#~ "Hide the cursor when it is over the rendering window and the rendering "
-#~ "window has focus."
-#~ msgstr "Skrýt kurzor, když je nad vykreslovacím oknem a okno je aktivní"
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Zlepší výkon, ale způsobí, že ve většině her zmizí osvětlení.\n"
-#~ "\n"
-#~ "Pokud si nejste jisti, nechejte toto odškrtnuté."
-
-#~ msgid "Input Source"
-#~ msgstr "Zdroj Vstupu:"
-
-#~ msgid "Install directory could not be saved"
-#~ msgstr "Instalační adresář nemohl být uložen"
-
-#~ msgid "Installing WAD to Wii Menu..."
-#~ msgstr "Instaluji WAD do Wii Menu..."
-
-#~ msgid "Integral [recommended]"
-#~ msgstr "Celistvý [doporučeno]"
-
-#~ msgid ""
-#~ "Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
-#~ "Try verifying the state again"
-#~ msgstr ""
-#~ "Vnitřní chyba LZO - dekomprimace selhala (%d) (%ld, %ld) \n"
-#~ "Zkuste znovu ověřit stav"
-
-#~ msgid ""
-#~ "Keeps track of textures based on looking at the actual pixels in the "
-#~ "texture.\n"
-#~ "Can cause slowdown, but some games need this option enabled to work "
-#~ "properly."
-#~ msgstr ""
-#~ "Sleduje textury na základě pozorování vlastních pixelů v textuře.\n"
-#~ "Může způsobit zpomalení, ale některé hry tuto volbu potřebují povolit pro "
-#~ "správné fungování."
-
-#~ msgid ""
-#~ "Loads native mipmaps instead of generating them.\n"
-#~ "Loading native mipmaps is the more accurate behavior, but might also "
-#~ "decrease performance (your mileage might vary though)."
-#~ msgstr ""
-#~ "Nahraje původní mipmapy místo jejich vytvoření.\n"
-#~ "Nahrání původních mipmap je správnější chování, ale může také snížit "
-#~ "výkon (Váš užitek se ale může měnit)."
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "Nahraje určený soubor (DOL, ELF, GCM, ISO, WAD)"
-
-#~ msgid "Lock Threads to Cores"
-#~ msgstr "Uzamknout Vlákna do Jader"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Nízkoúrovňový (lle) nebo vysokoúrovňový (hle) zvuk"
-
-#~ msgid "Mixer: Unsupported sample rate."
-#~ msgstr "Mixér: Nepodporovaná vzorkovací frekvence."
-
-#~ msgid ""
-#~ "Modify textures to show the format they're using.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Změní textury tak, aby zobrazovaly formát, který používají.\n"
-#~ "Toto je užitečné pouze pro účely ladění."
-
-#~ msgid "Normal"
-#~ msgstr "Normální"
-
-#~ msgid "OK"
-#~ msgstr "OK"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "Otevřít ladící program"
-
-#~ msgid "Opens the logger"
-#~ msgstr "Otevře protokol"
-
-#~ msgid ""
-#~ "Portable Setting could not be saved\n"
-#~ " Are you running Dolphin from read only media or from a directory that "
-#~ "dolphin is not located in?"
-#~ msgstr ""
-#~ "Přenosná nastavení nemohla být uložena\n"
-#~ "Spouštíte Dolphina z média pro čtení, nebo z adresáře, kde Dolphin není "
-#~ "umístěn?"
-
-#~ msgid "Projection Stats"
-#~ msgstr "Statistiky Projekce"
-
-#~ msgid "Relaunch Dolphin from the install directory and save from there"
-#~ msgstr "Znovu spustit Dolphin z instalačního adresáře a odtamtud ukládat"
-
-#~ msgid "Render to main window."
-#~ msgstr "Vykreslit do hlavního okna"
-
-#~ msgid "Rendering"
-#~ msgstr "Vykreslování"
-
-#~ msgid "Required for using the Japanese ROM font."
-#~ msgstr "Nutné pro použití Japonského písma ROM"
-
-#~ msgid "Sample Rate:"
-#~ msgstr "Vzorkovací frekvence:"
-
-#~ msgid "Scale:"
-#~ msgstr "Změna Velikosti:"
-
-#~ msgid "Select resolution for fullscreen mode"
-#~ msgstr "Vyberte rozlišení v režimu celé obrazovky"
-
-#~ msgid ""
-#~ "Select the System Menu wad extracted from the update partition of a disc"
-#~ msgstr ""
-#~ "Vyberte wad Systémového Menu extrahovaného z aktualizovaného oddílu disku"
-
-#~ msgid ""
-#~ "Selects which game should be affected by the configuration changes done "
-#~ "in this dialog.\n"
-#~ "The (Default) profile affects the standard settings used for every game."
-#~ msgstr ""
-#~ "Zvolí, která hra by měla být změnami nastavení v tomto dialogovém okně "
-#~ "ovlivněna.\n"
-#~ "(Výchozí) profil ovlivní standardní nastavení používané ve všech hrách."
-
-#~ msgid "Set All to Default"
-#~ msgstr "Vše Nastavit na Výchozí"
-
-#~ msgid ""
-#~ "Set install location to:\n"
-#~ " %s ?"
-#~ msgstr ""
-#~ "Nastavit umístění instalace do:\n"
-#~ " %s?"
-
-#~ msgid ""
-#~ "Show projection statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Zobrazí statistiky projekce.\n"
-#~ "Toto je užitečné pouze pro účely ladění."
-
-#~ msgid "Show the number of frames rendered per second."
-#~ msgstr "Zobrazit počet snímků vykreslených za sekundu."
-
-#~ msgid "Show this help message"
-#~ msgstr "Zobrazit tuto zprávu nápovědy"
-
-#~ msgid ""
-#~ "Show various statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Zobrazí různé statistiky.\n"
-#~ "Jsou užitečné pouze pro účely ladění."
-
-#~ msgid "Slot"
-#~ msgstr "Slot"
-
-#~ msgid ""
-#~ "Specifies the resolution used to render at. A high resolution will "
-#~ "improve visual quality but is also quite heavy on performance and might "
-#~ "cause glitches in certain games.\n"
-#~ "Fractional: Uses your display resolution directly instead of the native "
-#~ "resolution. The quality scales with your display/window size, as does the "
-#~ "performance impact.\n"
-#~ "Integral: This is like Fractional, but rounds up to an integer multiple "
-#~ "of the native resolution. Should give a more accurate look but is usually "
-#~ "slower.\n"
-#~ "The other options are fixed resolutions for choosing a visual quality "
-#~ "independent of your display size."
-#~ msgstr ""
-#~ "Určuje rozlišení, v kterém se má vykreslovat. Vysoké rozlišení zlepší "
-#~ "kvalitu obrazu, ale má velké nároky na výkon a může způsobovat v určitých "
-#~ "hrách chyby.\n"
-#~ "Zlomkový: Používá přímo Vaše rozlišení místo původního. Kvalita se mění s "
-#~ "velikosti okna/obrazu spolu s dopadem na výkon.\n"
-#~ "Celistvý: Jako Zlomkový, ale zaokrouhluje nahoru na celé číslo násobku "
-#~ "původního rozlišení. Mělo by dát přesnější zobrazení, ale většinou je "
-#~ "pomalejší.\n"
-#~ "Ostatní volby jsou pevná rozlišení pro volbu kvality obrazu nezávislé na "
-#~ "Vaší velikosti displeje."
-
-#~ msgid "Specify a video backend"
-#~ msgstr "Určit backend videa"
-
-#~ msgid "Start Renderer in Fullscreen"
-#~ msgstr "Spustit vykreslovače v Celé obrazovce"
-
-#~ msgid "Start the rendering window in fullscreen mode."
-#~ msgstr "Spustí vykreslovací okno v režimu celé obrazovky."
-
-#~ msgid "Theme selection went wrong"
-#~ msgstr "Výběr vzhledu se zvrtl"
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "Toto je použito pro kontrolu rychlosti hry pomocí přiškrcení zvuku.\n"
-#~ "Vypnutí tohoto může způsobit nesprávnou rychlost hry, např. příliš "
-#~ "rychle.\n"
-#~ "Ale někdy zapnutím můžete způsobit nepřetržitý hluk.\n"
-#~ "\n"
-#~ "Klávesová Zkratka <TAB>: Podržte pro okamžité vypnutí Zaškrcení."
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr ""
-#~ "Toto se používá pro přehrávání hudebních stop, jako např. hudba v pozadí."
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "Neznámý ukazatel %#08x\n"
-#~ "Pokračovat?"
-
-#~ msgid "Use FPS For Limiting"
-#~ msgstr "Použít SzS pro Omezení"
-
-#~ msgid "Use XFB"
-#~ msgstr "Použít XFB"
-
-#~ msgid "Uses multiple threads to decode the textures in the game."
-#~ msgstr "Používá více vláken k dekódování textur ve hře."
-
-#~ msgid ""
-#~ "Uses the high-resolution render buffer for EFB copies instead of scaling "
-#~ "them down to native resolution.\n"
-#~ "Vastly improves visual quality in games which use EFB copies but might "
-#~ "cause glitches in some games."
-#~ msgstr ""
-#~ "Použít vyrovnávací paměť vykreslování ve vysokém rozlišení pro EFB kopie, "
-#~ "místo zmenšení jejich velikosti do původního rozlišení.\n"
-#~ "Nesmírně zlepší obrazovou kvalitu v hrách, které používají EFB kopie, ale "
-#~ "může způsobit v některých hrách chyby."
-
-#~ msgid "Video Backend:"
-#~ msgstr "Backend Obrazu:"
-
-#~ msgid ""
-#~ "Wait for vertical blanks.\n"
-#~ "Reduces tearing but might also decrease performance"
-#~ msgstr ""
-#~ "Čeká na vertikální prázdná místa.\n"
-#~ "Zmírňuje trhání, ale může také snížit výkon"
-
-#~ msgid ""
-#~ "When using EFB to RAM we very often need to decode RAM data to a VRAM "
-#~ "texture, which is a very time-consuming task.\n"
-#~ "With this option enabled, we'll skip decoding a texture if it didn't "
-#~ "change.\n"
-#~ "This results in a nice speedup, but possibly causes glitches.\n"
-#~ "If you have any problems with this option enabled you should either try "
-#~ "increasing the safety of the texture cache or disable this option.\n"
-#~ "(NOTE: The safer the texture cache is adjusted the lower the speedup will "
-#~ "be; accurate texture cache set to \"safe\" might actually be slower!)"
-#~ msgstr ""
-#~ "Při použítí EFB do Ram často potřebujeme dekódovat data RAM do textury "
-#~ "VRAM, což je časově velmi náročný úkol.\n"
-#~ "Pokud je tato možnost zapnuta, dekódování u textury je přeskočeno, pokud "
-#~ "se nezměnila.\n"
-#~ "To má za výsledek pěkné zrychlení, ale také možnost chyb.\n"
-#~ "Pokud máte problémy s touto možností zapnutou, měli byste buď zvýšit "
-#~ "bezpečnost vyrovnávací paměti textury nebo ji vypnout.\n"
-#~ "POZNÁMKA: Čím bezpečnější vyrovnávací paměť textury je, tím nižší bude "
-#~ "zrychlení; precizní vyrovnávací paměť textury nastavená na \"bezpečná\" "
-#~ "muže být i pomalejší!"
-
-#~ msgid "Wiimote Settings"
-#~ msgstr "Nastavení Wiimote"
-
-#~ msgid "Will enable progressive scan option if supported by software."
-#~ msgstr "Povolí progresivní skenování, pokud je podporováno softwarem."
-
-#~ msgid "Window Size:"
-#~ msgstr "Velikost Okna:"
-
-#~ msgid "Window height for windowed mode"
-#~ msgstr "Výška okna v režimu v okně"
-
-#~ msgid "Window width for windowed mode"
-#~ msgstr "Šířka okna v režimu v okně"
-
-#~ msgid "XFB"
-#~ msgstr "XFB"

@@ -1,22 +1,24 @@
 # Translation of dolphin-emu.pot to Turkish
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# nlgzrgn <nlgzrgn@live.com>, 2011.
 #
+# Translators:
+# Mustafa Can <m.can.elmaci@gmail.com>, 2013.
+# nlgzrgn <nlgzrgn@live.com>, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2013-01-16 21:41-0600\n"
-"Last-Translator: nlgzrgn <nlgzrgn@live.com>\n"
-"Language-Team: nlgzrgn <nlgzrgn@live.com>\n"
-"Language: Turkish\n"
+"PO-Revision-Date: 2013-02-13 15:09+0000\n"
+"Last-Translator: mustafacan <m.can.elmaci@gmail.com>\n"
+"Language-Team: Turkish (http://www.transifex.com/projects/p/dolphin-emu/"
+"language/tr/)\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Turkish\n"
-"X-Poedit-Country: TURKEY\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -372,14 +374,11 @@ msgid "A game is not currently running."
 msgstr "Bir oyun şu anda düzgün çalışmıyor."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
-"Desteklenen bir BlueTooth sürücüsü bulunamadı!\n"
-"(Sadece Microsoft bluetooth stack desteklenir.)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -514,11 +513,13 @@ msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Action Replay Hatası: Hafıza kopyalamada (%08x) hatalı değer (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
-msgstr "Action Replay Hatası: Ana Kod ve CCXXXXXX kodu uygulanamadı (%s)"
+msgstr ""
+"Action Replay Hatası: Ana Kod ve CCXXXXXX kodu uygulanamadı (%s)\n"
+"Ana kodlar gerekli değil. Ana kodları kullanmayın."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -627,12 +628,10 @@ msgid "Advanced Settings"
 msgstr "Gelişmiş Ayarlar"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:584
-#, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "Tüm GC/Wii dosyaları (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:800
-#, fuzzy
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "Tüm GC/Wii kalıpları (gcm, iso, wbfs, ciso, gcz)"
 
@@ -658,17 +657,12 @@ msgid "All files (*.*)|*.*"
 msgstr "Tüm dosyalar (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"3, 4, 5, 6 ve 7 tuşlarıyla emülasyon penceresinde belirli seçeneklere geçişi "
-"sağlar. \n"
-"\n"
-"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "Alternate Wiimote Timing"
@@ -1720,7 +1714,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1217
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1303
 msgid "Dolphin was unable to complete the requested action."
-msgstr ""
+msgstr "Dolphin istenen işlemi gerçekleştiremedi."
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
@@ -1806,7 +1800,7 @@ msgid "EFB Copies"
 msgstr "EFB Kopyaları"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
 "version %d.%d -- If you recently upgraded your Dolphin distribution, a "
@@ -2328,16 +2322,16 @@ msgid "Failed to load hid.dll"
 msgstr "hid.dll yükleme başarısız."
 
 #: Source/Core/Core/Src/Movie.cpp:792
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read %s"
-msgstr "%s için başlık yazılamadı."
+msgstr "%s okunamadı"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:151
 msgid "Failed to read banner.bin"
 msgstr "banner.bin okunamadı."
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:223
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to read block %d of the save data\n"
 "Memcard may be truncated\n"
@@ -3410,17 +3404,12 @@ msgid "Log Types"
 msgstr "Geçmiş Türü"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
-#, fuzzy
 msgid ""
 "Log the number of frames rendered per second to User/Logs/fps.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Emülasyon hızını ölçmek için 1 saniye içerisinde yorumlanan çerçeve sayısını "
-"göster. \n"
-"\n"
-"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:80
 msgid "Logger Outputs"
@@ -4496,9 +4485,8 @@ msgstr ""
 "Emin değilseniz, otomatik seçin."
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "Belirtilen dosya \"%s\" bulunamadı"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -4713,9 +4701,8 @@ msgid "Show first block"
 msgstr "İlk bloğu göster"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:130
-#, fuzzy
 msgid "Show lag counter"
-msgstr "Kayıt yorumunu göster"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
 msgid ""
@@ -5162,9 +5149,8 @@ msgid "The value is invalid"
 msgstr "Değer hatalı"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:626
-#, fuzzy
 msgid "Theme:"
-msgstr "Tema"
+msgstr "Tema:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
@@ -5194,7 +5180,6 @@ msgid "This could cause slow down in Wii Menu and some games."
 msgstr "Bu Wii Menüsünde ve bazı oyunlarda yavaşlamaya neden olabilir."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5906,829 +5891,3 @@ msgstr "zNear Düzeltmesi:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| VEYA"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
-
-#~ msgid "%d Hz"
-#~ msgstr "%d Hz"
-
-#, fuzzy
-#~ msgid "&Frame Stepping"
-#~ msgstr "Çerçeve Atlama(&K)"
-
-#, fuzzy
-#~ msgid "(Default)"
-#~ msgstr "Varsayılan"
-
-#~ msgid "32,000 Hz"
-#~ msgstr "32,000 Hz"
-
-#~ msgid "32-bit platforms do not support fastmem yet. Report this bug."
-#~ msgstr "32-bit sistemler fastmem desteklememektedir. Bu hatayı bildirin."
-
-#~ msgid "3D Vision (Requires Fullscreen)"
-#~ msgstr "3D Vision (Tam Ekran Gerekir)"
-
-#~ msgid "48,000 Hz"
-#~ msgstr "48,000 Hz"
-
-#~ msgid "< as Default Profile >"
-#~ msgstr "< Varsayılan Profil Olarak >"
-
-#~ msgid "ALSA"
-#~ msgstr "ALSA"
-
-#, fuzzy
-#~ msgid "AOSound"
-#~ msgstr "&Ses"
-
-#, fuzzy
-#~ msgid "Accurate Texture Cache"
-#~ msgstr "Doku Ön Belleği"
-
-#, fuzzy
-#~ msgid "Adjust window size"
-#~ msgstr "Pencere Boyutunu Otomatik Ayarla"
-
-#~ msgid ""
-#~ "Allows the CPU to read or write to the EFB (render buffer).\n"
-#~ "This is needed for certain gameplay functionality (e.g. star pointer in "
-#~ "Super Mario Galaxy) as well as for certain visual effects (e.g. Monster "
-#~ "Hunter Tri),\n"
-#~ "but enabling this option can also have a huge negative impact on "
-#~ "performance if the game uses this functionality heavily."
-#~ msgstr ""
-#~ "İşlemcinin EFB'den veri okuyabilmesi ve ona veri yazabilmesini sağlar.\n"
-#~ "Bu bazı oyunlarda gereklidir (Örneğin Super Mario Galaxy'de yıldız "
-#~ "toplamak için); bazı oyunlarda da görsel etkiler için gereklidir(Örneğin "
-#~ "Monster Hunter Tri),\n"
-#~ "ama bazı oyunlarda performansınızı düşürebilir."
-
-#~ msgid "Alternate RFI"
-#~ msgstr "Alternatif RFI"
-
-#~ msgid "Auto [recommended]"
-#~ msgstr "Otomatik [Önerilen]"
-
-#~ msgid ""
-#~ "Auto size the window to match the game's output resolution adjusted by "
-#~ "the EFB scale.\n"
-#~ "It is best to set the aspect ratio to stretch when using this."
-#~ msgstr ""
-#~ "EFB tarafından boyutlandırılan oyunun çözünürlüğünü pencere boyutuna göre "
-#~ "ayarlar.\n"
-#~ "En iyisi bunu kullanırken en-boy oranını \"pencereye göre\" olarak "
-#~ "ayarlamaktır."
-
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "MipMap'leri hafızadan çözmek yerine otomatik olarak oluştur. \n"
-#~ "Performansı artırır ancak küçük doku bozukluklarına neden olur. \n"
-#~ "\n"
-#~ "Emin değilseniz, işaretli bırakın."
-
-#~ msgid "Bad gameini filename"
-#~ msgstr "Kötü oyun .ini dosya adı"
-
-#~ msgid "Bleach Versus Crusade"
-#~ msgstr "Bleach Versus Crusade"
-
-#~ msgid ""
-#~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-#~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-#~ "depth calculations are necessary to properly emulate a small number of "
-#~ "games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "3 Boyutlu görüntülerin derinlik değerlerini vertex yerine piksel olarak "
-#~ "hesapla. \n"
-#~ "Piksel aydınlatmanın tersine (sadece bir donanım olan), oyunların çok "
-#~ "azında piksel başına derinlik hesaplaması gereklidir.\n"
-#~ "\n"
-#~ "Emin değilseniz, işaretli bırakın."
-
-#~ msgid ""
-#~ "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
-#~ "vertex.\n"
-#~ "This is the more accurate behavior but reduces performance."
-#~ msgstr ""
-#~ "3 Boyutlu görüntülerin piksellerinin aydınlatmasını hesaplar. \n"
-#~ "Doğruluğu artırır ama performansı düşürebilir."
-
-#~ msgid "Can't find plugin %s"
-#~ msgstr "Eklenti bulunamadı: %s"
-
-#~ msgid "Can't init DSP Plugin"
-#~ msgstr "Ses eklentisi başlatılamadı."
-
-#~ msgid "Can't init Video Plugin"
-#~ msgstr "Görüntü eklentisi başlatılamadı."
-
-#~ msgid "Can't open %s, it has a missing function"
-#~ msgstr "%s açılamıyor, kayıp bir işleve sahip."
-
-#~ msgid "Cannot record movies in read-only mode."
-#~ msgstr "Salt-okunur modda film çekilemez."
-
-#~ msgid "Clear failed."
-#~ msgstr "Temizleme başarısız."
-
-#, fuzzy
-#~ msgid "Config..."
-#~ msgstr "Yapılandır..."
-
-#, fuzzy
-#~ msgid "Configuration profile"
-#~ msgstr "Geçmiş Yapılandırması"
-
-#, fuzzy
-#~ msgid "Configuration profile:"
-#~ msgstr "Geçmiş Yapılandırması"
-
-#, fuzzy
-#~ msgid "Connected"
-#~ msgstr "Bağlan"
-
-#, fuzzy
-#~ msgid "Connected to %i Wiimotes"
-#~ msgstr "Wiimote 1'i Bağla"
-
-#~ msgid "Copy"
-#~ msgstr "Kopyala"
-
-#, fuzzy
-#~ msgid "CoreAudio"
-#~ msgstr "Ses"
-
-#, fuzzy
-#~ msgid "Could not copy %s to %s"
-#~ msgstr "%s oluşturulamadı."
-
-#, fuzzy
-#~ msgid "Could not get info about plugin %s"
-#~ msgstr "%s oluşturulamadı."
-
-#~ msgid "Created by KDE-Look.org"
-#~ msgstr "KDE-Look.org tarafından oluşturulmuştur."
-
-#~ msgid ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-#~ msgstr ""
-#~ "Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com] tarafından "
-#~ "oluşturulmuştur."
-
-#~ msgid "Created by VistaIcons.com"
-#~ msgstr "VistaIcons.com tarafından oluşturulmuştur."
-
-#~ msgid ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-#~ msgstr ""
-#~ "black_rider tarafından oluşturulup ForumW.org > Web Developments 'da "
-#~ "yayınlanmıştır."
-
-#~ msgid "DList Cache"
-#~ msgstr "D Listesi Önbelleği"
-
-#, fuzzy
-#~ msgid "DSound"
-#~ msgstr "&Ses"
-
-#, fuzzy
-#~ msgid "Danish"
-#~ msgstr "İspanyolca"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Işıklandırmayı İptal Et"
-
-#~ msgid "Disable Per-Pixel Depth"
-#~ msgstr "Piksel Derinliğini İptal Et"
-
-#~ msgid "Disable Textures"
-#~ msgstr "Dokuları İptal Et"
-
-#~ msgid "Disable Wiimote Speaker"
-#~ msgstr "WiiMote Hoparlörünü İptal Et"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Dokulandırmayı iptal et. \n"
-#~ "\n"
-#~ "Emin değilseniz, işaretsiz bırakın."
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Dokulandırmayı iptal et. \n"
-#~ "Sadece hata ayıklamada kullanışlıdır."
-
-#~ msgid ""
-#~ "Disables an alpha-setting pass.\n"
-#~ "Breaks certain effects but might help performance."
-#~ msgstr ""
-#~ "Alpha-ayar geçişini iptal eder. \n"
-#~ "Bazı etkiler iptal olur ama performansı artırabilir."
-
-#, fuzzy
-#~ msgid "Distance Alpha Pass"
-#~ msgstr "Hedef Alpha Geçişini Atla"
-
-#~ msgid "Dolphin DSP-HLE Plugin"
-#~ msgstr "Dolphin DSP-HLE Eklentisi"
-
-#~ msgid "Dolphin DSP-HLE Plugin Settings"
-#~ msgstr "Dolphin DSP-HLE Eklenti Ayarları"
-
-#~ msgid "Dolphin DSP-LLE Plugin"
-#~ msgstr "Dolphin DSP-LLE Eklentisi"
-
-#~ msgid "Dolphin DSP-LLE Plugin Settings"
-#~ msgstr "Dolphin DSP-LLE Eklenti Ayarları"
-
-#, fuzzy
-#~ msgid "Dolphin Direct3D11"
-#~ msgstr "DirectX 10/11"
-
-#, fuzzy
-#~ msgid "Dolphin Direct3D9"
-#~ msgstr "DirectX 9"
-
-#, fuzzy
-#~ msgid "Dolphin OpenGL"
-#~ msgstr "Dolphin FIFO"
-
-#~ msgid ""
-#~ "Dolphin has not been configured with an install location,\n"
-#~ "Keep Dolphin portable?"
-#~ msgstr ""
-#~ "Dolphin bir kurulum yoluyla yapılandırılmamış, \n"
-#~ "Dolphin taşınabilir tutulsun mu?"
-
-#~ msgid "EFB"
-#~ msgstr "EFB"
-
-#~ msgid ""
-#~ "Emulate frame buffer copies directly to textures.\n"
-#~ "This is not so accurate, but it's good enough for the way many games use "
-#~ "framebuffer copies."
-#~ msgstr ""
-#~ "Kare tampon kopyalarını doğrudan dokulara emüle et. \n"
-#~ "Pek doğru olmasa da, bazı oyunlarda bunları kullanmak işe yarar."
-
-#~ msgid "Emulator Display Settings"
-#~ msgstr "Emülatör Görüntü Ayarları"
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "Ses Hızlandırmasına İzin Ver"
-
-#~ msgid "Enable BAT"
-#~ msgstr "BAT'a İzin Ver"
-
-#, fuzzy
-#~ msgid "Enable CPU Access"
-#~ msgstr "Ön Belleğe İzin Ver"
-
-#~ msgid "Enable Copy to EFB"
-#~ msgstr "EFB'ye Kopyalamaya İzin Ver"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "DTK Müziğine İzin Ver"
-
-#, fuzzy
-#~ msgid "Enable EFB To Texture"
-#~ msgstr "Dokuları İptal Et"
-
-#, fuzzy
-#~ msgid "Enable HLE Audio"
-#~ msgstr "Ses Hızlandırmasına İzin Ver"
-
-#, fuzzy
-#~ msgid "Enable JIT Dynarec"
-#~ msgstr "Çift Çekirdeğe İzin Ver"
-
-#, fuzzy
-#~ msgid "Enable OpenCL"
-#~ msgstr "Sayfalara izin ver"
-
-#, fuzzy
-#~ msgid "Enable Screen Saver (burn-in reduction)"
-#~ msgstr "Ekran Koruyucusuna İzin Ver"
-
-#~ msgid ""
-#~ "Enables Block Address Translation (BAT); a function of the Memory "
-#~ "Management Unit. Accurate to the hardware, but slow to emulate. (ON = "
-#~ "Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Blok Adresi Çevirisi'ne (BAT) izin verir. Bu bir Hafıza Yönetim Ünitesi "
-#~ "işlevidir. Gerçekçiliği artırır ama performansı düşürür. (Açık = Uyumlu, "
-#~ "Kapalı = Hızlı)"
-
-#, fuzzy
-#~ msgid ""
-#~ "Enables dynamic recompilation of DSP code.\n"
-#~ "Changing this will have no effect while the emulator is running!"
-#~ msgstr ""
-#~ "Emülatör çalışırken değiştirirseniz herhangi bir etkisini göremezsiniz!"
-
-#~ msgid ""
-#~ "Enables emulation of Embedded Frame Buffer copies, if the game uses "
-#~ "them.\n"
-#~ "Games often need this for post-processing or other things, but if you can "
-#~ "live without it, you can sometimes get a big speedup."
-#~ msgstr ""
-#~ "Eğer oyun kullanıyorsa, Gömülü Kare Tampon kopyalarının emülasyonuna izin "
-#~ "verir. \n"
-#~ "Bazı oyunlar geç işleme vb. şeyler için buna ihtiyaç duyar. Ama bu "
-#~ "olmadan da yaşayabilirseniz, iyi bir hız artışı kapabilirsiniz."
-
-#~ msgid ""
-#~ "Enables reinterpreting the data inside the EFB when the pixel format "
-#~ "changes.\n"
-#~ "Some games depend on this function for certain effects, so enable it if "
-#~ "you're having glitches.\n"
-#~ "Depending on how the game uses this function, the speed hits caused by "
-#~ "this option range from none to critical."
-#~ msgstr ""
-#~ "Piksel biçimi değiştiğinde, EFB'deki veriyi yeniden yorumlamaya izin "
-#~ "verir. \n"
-#~ "Bazı oyunlar etkiler için bu işleve bağımlıdır, bu yüzden hatalar "
-#~ "alıyorsanız bunu etkinleştirin. \n"
-#~ "Hangi oyunun bu işlevi kullandığına bağımlı olarak, hız vuruşlarına neden "
-#~ "olabilir."
-
-#~ msgid "Error allocating buffer"
-#~ msgstr "Tampon ayırma hatası"
-
-#~ msgid ""
-#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
-#~ "Sorry, Wii recording is temporarily broken."
-#~ msgstr ""
-#~ "PlayWiimote'da hata. %u != %u, byte %d.\n"
-#~ "Üzgünüz, Wii kaydında geçici hasar var."
-
-#~ msgid "Error loading %s: can't read info"
-#~ msgstr "%s yüklenirken hata: Bilgi okunamıyor."
-
-#~ msgid ""
-#~ "Error loading plugin %s: can't find file. Please re-select your plugins."
-#~ msgstr ""
-#~ "%s eklentisi yüklenirken hata: Dosya bulunamadı. Lütfen eklentilerinizi "
-#~ "yeniden seçin."
-
-#~ msgid "Error opening file %s for recording"
-#~ msgstr "Kayıt için %s dosyasını açarken hata."
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Dolphin Emülatöründen Çık"
-
-#~ msgid ""
-#~ "Failed to load DSP ROM:\n"
-#~ "%s\n"
-#~ "This file is required to use DSP LLE"
-#~ msgstr ""
-#~ "DSP ROM Yükleme başarısız:\n"
-#~ "%s\n"
-#~ "DSP LLE Kullanabilmek için bu dosya gereklidir."
-
-#, fuzzy
-#~ msgid "Failed to load DSP ROM: %s"
-#~ msgstr "Kod indirme başarısız."
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Hızlı MipMap'ler"
-
-#~ msgid ""
-#~ "Faster variants look at fewer pixels and thus have more potential for "
-#~ "errors.\n"
-#~ "Slower variants look at more pixels and thus are safer."
-#~ msgstr ""
-#~ "Hızlı varyantlar daha az piksele bakar ve hata potansiyeli yüksektir. \n"
-#~ "Yavaş varyantlar daha çok piksele bakar ve daha güvenlidir."
-
-#, fuzzy
-#~ msgid "Force Bi/Trilinear Filtering"
-#~ msgstr "Doku Filtrelemesine Zorla"
-
-#, fuzzy
-#~ msgid "Fractional"
-#~ msgstr "Eylem"
-
-#~ msgid ""
-#~ "Fully emulate embedded frame buffer copies.\n"
-#~ "This is more accurate than EFB Copy to Texture, and some games need this "
-#~ "to work properly, but it can also be very slow."
-#~ msgstr ""
-#~ "Kare tampon kopyalarını tam olarak emüle eder. \n"
-#~ "Dokuya EFB Kopyalamaktan daha doğrudur, ve bazı oyunlar düzgün çalışmak "
-#~ "için buna ihtiyaç duyar, ama çok yavaş olabilir."
-
-#, fuzzy
-#~ msgid "GFX Config"
-#~ msgstr "Yapılandırma"
-
-#, fuzzy
-#~ msgid "Graphics Plugin"
-#~ msgstr "Görüntü"
-
-#, fuzzy
-#~ msgid "Hide Shader Errors"
-#~ msgstr "Disk Okuma Hatası"
-
-#~ msgid ""
-#~ "Hide the cursor when it is over the rendering window and the rendering "
-#~ "window has focus."
-#~ msgstr ""
-#~ "Oyunu oynadığınız pencerede fare imleci gizlenir ve pencereye odaklanılır."
-
-#~ msgid ""
-#~ "If a game hangs, works only in the Interpreter or Dolphin crashes, this "
-#~ "option may fix the game."
-#~ msgstr ""
-#~ "Eğer bir oyun çakılırsa, sadece Interpreter'da çalışıyorsa veya Dolphin "
-#~ "çökerse, bu seçenek oyunu düzeltebilir."
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Performansı artırır ancak bazı oyunların karanlık kalmasına neden "
-#~ "olabilir. \n"
-#~ "\n"
-#~ "Emin değilseniz, işaretsiz bırakın."
-
-#~ msgid "Input Source"
-#~ msgstr "Giriş Kaynağı"
-
-#~ msgid "Install directory could not be saved"
-#~ msgstr "Kurulum konumu kaydedilemedi."
-
-#, fuzzy
-#~ msgid "Installing WAD to Wii Menu..."
-#~ msgstr "Wii Menüsüne kur"
-
-#, fuzzy
-#~ msgid "Integral [recommended]"
-#~ msgstr "JIT Yeniden Derleyici (önerilen)"
-
-#, fuzzy
-#~ msgid ""
-#~ "Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
-#~ "Try verifying the state again"
-#~ msgstr ""
-#~ "İç LZO Hatası - Genişletme başarısız (%d) (%li, %li) \n"
-#~ "Durumu tekrar yüklemeyi deneyin."
-
-#~ msgid ""
-#~ "Keeps track of textures based on looking at the actual pixels in the "
-#~ "texture.\n"
-#~ "Can cause slowdown, but some games need this option enabled to work "
-#~ "properly."
-#~ msgstr ""
-#~ "Dokunun içindeki aktüel piksellere bakarken dokuların izini korur. \n"
-#~ "Yavaşlamaya neden olabilir, ama bazı oyunlar düzgün çalışmak için buna "
-#~ "ihtiyaç duyar."
-
-#, fuzzy
-#~ msgid "Load Script..."
-#~ msgstr "Durumu Yükle..."
-
-#~ msgid ""
-#~ "Loads native mipmaps instead of generating them.\n"
-#~ "Loading native mipmaps is the more accurate behavior, but might also "
-#~ "decrease performance (your mileage might vary though)."
-#~ msgstr ""
-#~ "Mipmap'leri oluşturmak yerine doğal olanlarını yükler. \n"
-#~ "Doğruluğu artırır ama performansı düşürebilir."
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "Belirtilen dosyayı yükler (DOL,ELF,WAD,GCM,ISO)"
-
-#~ msgid "Lock Threads to Cores"
-#~ msgstr "İşlem Birimlerini Çekirdeklere Kilitle"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Düşük düzeyde (LLE) veya Yüksek düzeyde (HLE) ses."
-
-#, fuzzy
-#~ msgid "Lua Script Console"
-#~ msgstr "Konsola Yaz"
-
-#~ msgid "Metroid Other M"
-#~ msgstr "Metroid Other M"
-
-#~ msgid "Mixer: Unsupported sample rate."
-#~ msgstr "Karıştırıcı: Desteklenmeyen örnek oran."
-
-#~ msgid ""
-#~ "Modify textures to show the format they're using.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Dokuların kullandığı biçimi görmek için onları değiştir. \n"
-#~ "Sadece hata ayıklama için kullanışlıdır."
-
-#, fuzzy
-#~ msgid "New &Lua Console"
-#~ msgstr "Konsolu Göster (&C)"
-
-#~ msgid "No audio output"
-#~ msgstr "Ses çıkışı yok"
-
-#~ msgid "Normal"
-#~ msgstr "Normal"
-
-#~ msgid "OK"
-#~ msgstr "Tamam"
-
-#, fuzzy
-#~ msgid "OpenAL"
-#~ msgstr "Aç"
-
-#, fuzzy
-#~ msgid "OpenGL"
-#~ msgstr "Aç"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "Hata ayıklayıcıyı açar"
-
-#~ msgid "Opens the logger"
-#~ msgstr "Geçmişi açar"
-
-#~ msgid "Plugins"
-#~ msgstr "Eklentiler"
-
-#~ msgid ""
-#~ "Portable Setting could not be saved\n"
-#~ " Are you running Dolphin from read only media or from a directory that "
-#~ "dolphin is not located in?"
-#~ msgstr ""
-#~ "Taşınabilirlik ayarı kaydedilemedi\n"
-#~ "Dolphin'i salt okunur bir konumdan veya kurulmadığı yerden mi "
-#~ "çalıştırıyorsunuz?"
-
-#, fuzzy
-#~ msgid "Projection Stats"
-#~ msgstr "Özel Görüntüleme Hilesi Ayarları"
-
-#~ msgid "Pulse"
-#~ msgstr "Vuruş"
-
-#~ msgid "Relaunch Dolphin from the install directory and save from there"
-#~ msgstr "Dolphin'i kurulum konumundan tekrar başlat ve buradan kaydet"
-
-#, fuzzy
-#~ msgid "Render to main window."
-#~ msgstr "Ana pencerede yorumla"
-
-#~ msgid "Rendering"
-#~ msgstr "Yorumlama"
-
-#~ msgid "Required for using the Japanese ROM font."
-#~ msgstr "Japon ROM'lardaki yazıyı kullanmak için gereklidir."
-
-#, fuzzy
-#~ msgid "Run"
-#~ msgstr "Enter"
-
-#~ msgid "Running script...\n"
-#~ msgstr "Script çalıştırılıyor... \n"
-
-#~ msgid "Sample Rate:"
-#~ msgstr "Örnek Oran:"
-
-#~ msgid "Scale:"
-#~ msgstr "Boyut:"
-
-#~ msgid "Select resolution for fullscreen mode"
-#~ msgstr "Tam ekran modu için çözünürlük seçin"
-
-#~ msgid ""
-#~ "Select the System Menu wad extracted from the update partition of a disc"
-#~ msgstr ""
-#~ "Bir diskin güncelleme bölüntüsünden genişletilen Sistem Menüsü WAD'ını "
-#~ "seçin."
-
-#, fuzzy
-#~ msgid "Select the script to load"
-#~ msgstr "Yüklemek için durum seçin"
-
-#~ msgid ""
-#~ "Selects which game should be affected by the configuration changes done "
-#~ "in this dialog.\n"
-#~ "The (Default) profile affects the standard settings used for every game."
-#~ msgstr ""
-#~ "Her oyun için ayrı ayar kullanmak istiyorsanız,bir oyun adı seçin ve onun "
-#~ "ayarlarını yapın. \n"
-#~ "Varsayılan profil seçildiğinde, tüm oyunların ayarı aynı olur."
-
-#~ msgid "Set All to Default"
-#~ msgstr "Tümünü Varsayılana Ayarla"
-
-#~ msgid ""
-#~ "Set install location to:\n"
-#~ " %s ?"
-#~ msgstr ""
-#~ "Kurulum yerini buraya ayarla:\n"
-#~ " %s ?"
-
-#~ msgid ""
-#~ "Show projection statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Projeksiyon durumunu göster. \n"
-#~ "Sadece hata ayıklamada kullanışlıdır."
-
-#, fuzzy
-#~ msgid "Show save banner"
-#~ msgstr "Kayıt simgesini göster"
-
-#~ msgid "Show the number of frames rendered per second."
-#~ msgstr "Saniyede kaç karenin görüntülendiğini göster."
-
-#~ msgid "Show this help message"
-#~ msgstr "Bu yardım mesajını göster."
-
-#~ msgid ""
-#~ "Show various statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Bazı istatistikleri görüntüle. \n"
-#~ "Sadece hata ayıklamada kullanışlıdır."
-
-#~ msgid "Skies of Arcadia"
-#~ msgstr "Skies of Arcadia"
-
-#, fuzzy
-#~ msgid "Slot"
-#~ msgstr "Slot A"
-
-#~ msgid "Sonic and the Black Knight"
-#~ msgstr "Sonic and the Black Knight + NFS Nitro"
-
-#~ msgid ""
-#~ "Specifies the resolution used to render at. A high resolution will "
-#~ "improve visual quality but is also quite heavy on performance and might "
-#~ "cause glitches in certain games.\n"
-#~ "Fractional: Uses your display resolution directly instead of the native "
-#~ "resolution. The quality scales with your display/window size, as does the "
-#~ "performance impact.\n"
-#~ "Integral: This is like Fractional, but rounds up to an integer multiple "
-#~ "of the native resolution. Should give a more accurate look but is usually "
-#~ "slower.\n"
-#~ "The other options are fixed resolutions for choosing a visual quality "
-#~ "independent of your display size."
-#~ msgstr ""
-#~ "Yorumlama çözünürlüğünü ayarlayın. Yüksek çözünürlükler görsel kaliteyi "
-#~ "artırır ancak bazı oyunlarda performansta sorunlar yaşatıp hatalara neden "
-#~ "olabilir. \n"
-#~ "Kesirli: Doğal çözünürlük yerine görüntü çözünürlüğünüzü kullanır. Kalite "
-#~ "sizin görüntünüze göre boyutlanır, ayrıca performansınız da etkilenir. \n"
-#~ "İntegral: Bu da kesirli gibidir, ama doğal çözünürlüğün bir çarpanı "
-#~ "kullanılır. Daha doğrudur ama genellikle yavaştır. \n"
-#~ "Diğer seçenekler görüntü boyutundan bağımsız olarak seçilen düzeltilmiş "
-#~ "çözünürlüklerdir."
-
-#~ msgid "Specify a video backend"
-#~ msgstr "Bir görüntü arka ucu belirtin"
-
-#, fuzzy
-#~ msgid "Specify an audio plugin"
-#~ msgstr "Bir görüntü arka ucu belirtin"
-
-#~ msgid "Start Renderer in Fullscreen"
-#~ msgstr "Görüntüyü Tam Ekran başlat"
-
-#~ msgid "Start the rendering window in fullscreen mode."
-#~ msgstr "Oyununuz tam ekran görüntüyle başlar."
-
-#~ msgid "The file "
-#~ msgstr "Dosya"
-
-#~ msgid "Theme selection went wrong"
-#~ msgstr "Tema seçiminde hata"
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "Bu seçenek oyun hızının sesle denetlenmesini sağlar. \n"
-#~ "İptal ederseniz oyun hızında anormallik olabilir,mesela oyun çok hızlı "
-#~ "çalışabilir. \n"
-#~ "Ama bazen bunu işaretlemek gürültüye neden olabilir. \n"
-#~ "\n"
-#~ "Klavye Kısayolu <TAB>: Hızlandırmayı anında iptal etmek için basılı tutun."
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr "Arka plan müziklerini oynatmak için kullanılır."
-
-#~ msgid "This is usually used to play voice and sound effects."
-#~ msgstr "Ses efektlerini oynatmak için kullanılır."
-
-#, fuzzy
-#~ msgid "Trying to load unsupported type %d"
-#~ msgstr "Bilinmeyen bir dosya türünü yüklemeyi denedi."
-
-#~ msgid "Type %d config not supported in plugin %s"
-#~ msgstr "%d türü yapılandırma %s eklentisinde desteklenmiyor"
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "Bilinmeyen işaretleyici %#08x\n"
-#~ "Devam?"
-
-#~ msgid "Use FPS For Limiting"
-#~ msgstr "Sınırlama için FPS Kullan"
-
-#~ msgid "Use XFB"
-#~ msgstr "XFB Kullan"
-
-#~ msgid "Uses multiple threads to decode the textures in the game."
-#~ msgstr "Oyundaki dokuları çözmek için birden fazla işlem birimi kullan."
-
-#~ msgid ""
-#~ "Uses the high-resolution render buffer for EFB copies instead of scaling "
-#~ "them down to native resolution.\n"
-#~ "Vastly improves visual quality in games which use EFB copies but might "
-#~ "cause glitches in some games."
-#~ msgstr ""
-#~ "EFB kopyalarını doğal çözünürlüğe indireceğine yüksek çözünürlükteki "
-#~ "yorumlayıcı tamponu kullanır. \n"
-#~ "EFB kopyası kullanan oyunların görsel kalitesini artırır ama bazı "
-#~ "oyunlarda hatalara neden olur."
-
-#, fuzzy
-#~ msgid "Video Backend:"
-#~ msgstr "Ses Çözücüsü:"
-
-#~ msgid ""
-#~ "Wait for vertical blanks.\n"
-#~ "Reduces tearing but might also decrease performance"
-#~ msgstr ""
-#~ "Dikey boşlukları bekle. \n"
-#~ "Yırtılmayı azaltır ama performansı da azaltır."
-
-#~ msgid ""
-#~ "When using EFB to RAM we very often need to decode RAM data to a VRAM "
-#~ "texture, which is a very time-consuming task.\n"
-#~ "With this option enabled, we'll skip decoding a texture if it didn't "
-#~ "change.\n"
-#~ "This results in a nice speedup, but possibly causes glitches.\n"
-#~ "If you have any problems with this option enabled you should either try "
-#~ "increasing the safety of the texture cache or disable this option.\n"
-#~ "(NOTE: The safer the texture cache is adjusted the lower the speedup will "
-#~ "be; accurate texture cache set to \"safe\" might actually be slower!)"
-#~ msgstr ""
-#~ "EFB'den RAM'e kullanırken RAM verisinin kodunu VRAM dokusunda çözmemiz "
-#~ "gerekebilir, ki bu çok zaman harcayan bir görevdir.\n"
-#~ "Bu seçenek etkinse, değişmeyen dokunun kod çözme işlemini atlayacağız. \n"
-#~ "Bu hızınızı artıracaktır, ama bazı hatalara neden olabilir. \n"
-#~ "Eğer bu seçenek işaretliyken sorun yaşarsanız, güvenli doku önbelleğini "
-#~ "artırmayı deneyin veya bu seçeneği iptal edin. \n"
-#~ "(NOT: Güvenli doku önbelleklemesi hız artışını azaltır; doğru doku "
-#~ "önbelleklenmesi \"safe\" 'ye ayarlıysa daha yavaş olabilir!)"
-
-#, fuzzy
-#~ msgid "Wiimote %i %s"
-#~ msgstr "Wiimote %i"
-
-#, fuzzy
-#~ msgid "Wiimote Settings"
-#~ msgstr "&Wiimote Ayarları"
-
-#~ msgid "Will enable progressive scan option if supported by software."
-#~ msgstr "Eğer yazılım desteği varsa progresif taramayı etkinleştirir."
-
-#, fuzzy
-#~ msgid "Window Size:"
-#~ msgstr "Otomatik (Pencere Boyutu)"
-
-#~ msgid "Window height for windowed mode"
-#~ msgstr "Pencere modu için yükseklik"
-
-#~ msgid "Window width for windowed mode"
-#~ msgstr "Pencere modu için genişlik"
-
-#~ msgid "XFB"
-#~ msgstr "XFB"
-
-#~ msgid "Zelda Twilight Princess Bloom hack"
-#~ msgstr "Zelda Twilight Princess Bloom Hilesi"
-
-#~ msgid "please someone fill this tooltip i have no idea what to say :D"
-#~ msgstr ""
-#~ "Lütfen birisi bu ipucunu doldursun, ne söyleyeceğim hakkında bir fikrim "
-#~ "yok :D"

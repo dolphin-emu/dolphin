@@ -1,20 +1,22 @@
 # Translation of dolphin-emu.pot to Hebrew
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# Ely <nakeee@gmail.com>, 2011
 #
+# Translators:
+# Ely <nakeee@gmail.com>, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2011-01-08 20:50+0200\n"
-"Last-Translator: Ely <nakeee@gmail.com>\n"
-"Language-Team: \n"
-"Language: Hebrew\n"
+"PO-Revision-Date: 2013-02-02 08:31+0000\n"
+"Last-Translator: delroth <delroth@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: he\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -59,9 +61,9 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:128
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:296
-#, fuzzy, c-format
+#, c-format
 msgid "%s already exists, overwrite?"
-msgstr "כבר קיים.האם אתה רוצה להחליף?"
+msgstr ""
 
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:167
 #, c-format
@@ -133,9 +135,9 @@ msgid "%sImport GCI%s"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:776
-#, fuzzy, c-format
+#, c-format
 msgid "%u Free Blocks; %u Free Dir Entries"
-msgstr "%d בלוקים חופשיים; %d רשומות תיקייה חופשיות"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:509
 msgid "&& AND"
@@ -198,9 +200,8 @@ msgid "&Help"
 msgstr "&עזרה"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:180
-#, fuzzy
 msgid "&Hotkey Settings"
-msgstr "הגדרות קול"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:233
 msgid "&JIT"
@@ -720,9 +721,8 @@ msgid "Back"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:682
-#, fuzzy
 msgid "Backend Settings"
-msgstr "הגדרות קול"
+msgstr ""
 
 #: Source/Plugins/Plugin_VideoSoftware/Src/VideoConfigDialog.cpp:60
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:207
@@ -1535,9 +1535,9 @@ msgid "Dolphin"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:183
-#, fuzzy, c-format
+#, c-format
 msgid "Dolphin %s Graphics Configuration"
-msgstr "הגדרות גרפיקה"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:292
 msgid "Dolphin &Web Site"
@@ -1556,9 +1556,8 @@ msgid "Dolphin FIFO"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1138
-#, fuzzy
 msgid "Dolphin GCPad Configuration"
-msgstr "הגדרות גרפיקה"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:681
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1076
@@ -2399,18 +2398,16 @@ msgid "FullScr"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:257
-#, fuzzy
 msgid "Fullscreen resolution:"
-msgstr "&מסך מלא"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:532
 msgid "GCI File(*.gci)"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/GCMicDlg.h:44
-#, fuzzy
 msgid "GCMic Configuration"
-msgstr "הגדרות גרפיקה"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:432
 msgid "GCPad"
@@ -2453,9 +2450,8 @@ msgid "Gamecube"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:178
-#, fuzzy
 msgid "Gamecube &Pad Settings"
-msgstr "הגדרות קול"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:216
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1053
@@ -2488,9 +2484,8 @@ msgid "General"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:142
-#, fuzzy
 msgid "General Settings"
-msgstr "הגדרות קול"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
@@ -3099,9 +3094,8 @@ msgid "Log"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:25
-#, fuzzy
 msgid "Log Configuration"
-msgstr "הגדרות גרפיקה"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:297
 msgid "Log FPS to file"
@@ -4220,9 +4214,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
-#, fuzzy
 msgid "Settings..."
-msgstr "הגדרות קול"
+msgstr ""
 
 #: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:222
 msgid "SetupWiiMem: Cant find setting file"
@@ -4297,9 +4290,8 @@ msgid "Show Language:"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:216
-#, fuzzy
 msgid "Show Log &Configuration"
-msgstr "הגדרות גרפיקה"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:266
 msgid "Show PAL"
@@ -4676,11 +4668,11 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1175
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1203
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1274
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "The file %s already exists.\n"
 "Do you wish to replace it?"
-msgstr "כבר קיים.האם אתה רוצה להחליף?"
+msgstr ""
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:51
 #, c-format
@@ -4964,9 +4956,8 @@ msgid "Use EuRGB60 Mode (PAL60)"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:287
-#, fuzzy
 msgid "Use Fullscreen"
-msgstr "&מסך מלא"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:574
 msgid "Use Hex"
@@ -5404,14 +5395,3 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr ""
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
-
-#, fuzzy
-#~ msgid "AOSound"
-#~ msgstr "&קול"
-
-#, fuzzy
-#~ msgid "DSound"
-#~ msgstr "&קול"

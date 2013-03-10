@@ -1,21 +1,24 @@
 # Translation of dolphin-emu.pot to Brazilian Portuguese
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# Dante Jr. <danteprojetos@gmail.com>, 2011.
 #
+# Translators:
+# Dante Jr. <danteprojetos@gmail.com>, 2011.
+# Mateus B. Cassiano <jhonn.copperfield@gmail.com>, 2013.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2013-01-17 02:48-0300\n"
-"Last-Translator: Runo <i.am.runo@gmail.com>\n"
-"Language-Team: Portuguese (BR) <dolphinbrtrans@gmail.com>\n"
-"Language: \n"
+"PO-Revision-Date: 2013-02-02 20:54+0000\n"
+"Last-Translator: Jhonn <jhonn.copperfield@gmail.com>\n"
+"Language-Team: Portuguese (Brazil) (http://www.transifex.com/projects/p/"
+"dolphin-emu/language/pt_BR/)\n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.4\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -660,15 +663,14 @@ msgid "All files (*.*)|*.*"
 msgstr "Todos os arquivos (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Permite Ligar/Desligar algumas opções através das teclas 3, 4, 5 e 6 estando "
-"na janela de emulação.\n"
+"Permite mudar algumas opções através das teclas 3 (Resolução Interna), 4 "
+"(Proporção), 5 (Cópias de EFB) e 6 (Neblina) dentro da janela de emulação.\n"
 "\n"
 "Se estiver em dúvida, deixe isto desativado."
 
@@ -682,7 +684,7 @@ msgstr "Analizar"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:298
 msgid "Angle"
-msgstr ""
+msgstr "Ângulo"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:368
 msgid "Anisotropic Filtering:"
@@ -918,6 +920,8 @@ msgid ""
 "Bypass the clearing of the data cache by the DCBZ instruction. Usually leave "
 "this option disabled."
 msgstr ""
+"Pula a limpeza do cache de dados da instrução DCBZ. Normalmente, deixe esta "
+"opção desativada."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "C"
@@ -2339,9 +2343,9 @@ msgid "Failed to load hid.dll"
 msgstr "Falha ao carregar hid.dll"
 
 #: Source/Core/Core/Src/Movie.cpp:792
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read %s"
-msgstr "Falha ao escrever o header para %s"
+msgstr "Falha ao ler %s"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:151
 msgid "Failed to read banner.bin"
@@ -4808,7 +4812,7 @@ msgstr "Pular a BIOS"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid "Skip DCBZ clearing"
-msgstr ""
+msgstr "Pular limpeza DCBZ"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:493
 msgid "Skip Dest. Alpha Pass"
@@ -5223,7 +5227,6 @@ msgstr ""
 "Isto pode causar diminuição da performance no Wii Menu e em alguns jogos."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5234,12 +5237,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Este recurso permite mexer na câmera do jogo.\n"
-"\n"
-"Segure o botão direito e mova o mouse para mover a câmera em qualquer "
-"direção. Segure SHIFT e pressione uma das teclas WASD para mover a câmera em "
-"uma certa distância (SHIFT+0 para movê-la mais rápido e SHIFT+9 para movê-la "
-"mais devagar). Pressione SHIFT+R para voltar a câmera à posição inicial.\n"
+"Este recurso permite mover a câmera do jogo.\n"
+"Mova o mouse segurando o botão direito para alterar o ângulo em qualquer "
+"direção.\n"
+"Segure SHIFT e pressione uma das teclas WASD para mover a câmera em uma "
+"certa distância (SHIFT+0 para mover mais rápido e SHIFT+9 para mover mais "
+"devagar). Pressione SHIFT+R para voltar a câmera para a posição padrão.\n"
 "\n"
 "Se estiver em dúvida, deixe isto desativado."
 
@@ -5944,679 +5947,3 @@ msgstr "Correção do zNear:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
-
-#~ msgid "%d Hz"
-#~ msgstr "%d Hz"
-
-#~ msgid "&Frame Stepping"
-#~ msgstr "&Quadro a Quadro"
-
-#~ msgid "(Default)"
-#~ msgstr "(Padrão)"
-
-#~ msgid "3D Vision (Requires Fullscreen)"
-#~ msgstr "3D Vision (Requer Tela Cheia)"
-
-#~ msgid "< as Default Profile >"
-#~ msgstr "<como Perfil Padrão>"
-
-#~ msgid "Accurate Texture Cache"
-#~ msgstr "Cache de Textura Preciso"
-
-#, fuzzy
-#~ msgid "Adjust window size"
-#~ msgstr "Tamanho da Janela:"
-
-#~ msgid ""
-#~ "Allows the CPU to read or write to the EFB (render buffer).\n"
-#~ "This is needed for certain gameplay functionality (e.g. star pointer in "
-#~ "Super Mario Galaxy) as well as for certain visual effects (e.g. Monster "
-#~ "Hunter Tri),\n"
-#~ "but enabling this option can also have a huge negative impact on "
-#~ "performance if the game uses this functionality heavily."
-#~ msgstr ""
-#~ "Permite ao CPU ler e escrever ao EFP (buffer de renderização).\n"
-#~ "Isso é necessário para certas funcionalidades de jogabilidade (por "
-#~ "exemplo: o ponteiro estrela no Super Mario Galaxy) e também para certos "
-#~ "efeitos visuais (por exemplo: Monster Hunter Tri),\n"
-#~ "mas ativar essa opção pode também ter um grande impacto negativo na "
-#~ "performance se o jogo usa essa funcionalidade fortemente."
-
-#~ msgid "Alternate RFI"
-#~ msgstr "RFI Alternado"
-
-#~ msgid "Auto [recommended]"
-#~ msgstr "Automático (Recomendado)"
-
-#~ msgid ""
-#~ "Auto size the window to match the game's output resolution adjusted by "
-#~ "the EFB scale.\n"
-#~ "It is best to set the aspect ratio to stretch when using this."
-#~ msgstr ""
-#~ "Redimensiona automaticamente a janela para bater com a resolução final do "
-#~ "jogo ajustada pela Escala do EFB.\n"
-#~ "É melhor deixar a Proporção em Redimensionar quando usar isso."
-
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Gera os mipmaps automaticamente ao invés de decodificá-los da memória.\n"
-#~ "Aumenta um pouco a velocidade de emulação mas pode causar pequenos "
-#~ "defeitos nas texturas.\n"
-#~ "\n"
-#~ "Se estiver em dúvida, deixe isto desativado."
-
-#~ msgid "Bleach Versus Crusade"
-#~ msgstr "Bleach Versus Crusade"
-
-#~ msgid ""
-#~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-#~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-#~ "depth calculations are necessary to properly emulate a small number of "
-#~ "games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Calcula os valores de profundidade dos gráficos 3D por Pixel ao invés de "
-#~ "por vetor.\n"
-#~ "Ao contrário da Iluminação por Pixels (que é meramente uma melhoria), o "
-#~ "cálculo da Profundidade por Pixel é necessário para emular própriamente "
-#~ "um pequeno número de jogos.\n"
-#~ "\n"
-#~ "Se estiver em dúvida, deixe isto desativado."
-
-#~ msgid ""
-#~ "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
-#~ "vertex.\n"
-#~ "This is the more accurate behavior but reduces performance."
-#~ msgstr ""
-#~ "Calcula a iluminação de gráficos 3D em uma base per-pixel em vez de por "
-#~ "vértice.\n"
-#~ "Esse é um comportamento mais preciso mas reduz performance."
-
-#~ msgid "Cannot record movies in read-only mode."
-#~ msgstr "Não é possível gravar vídeos no modo Apenas Leitura"
-
-#~ msgid "Clear failed."
-#~ msgstr "Falha na liberação."
-
-#~ msgid "Config..."
-#~ msgstr "Configurar..."
-
-#~ msgid "Configuration profile"
-#~ msgstr "Perfil de Configuração"
-
-#~ msgid "Configuration profile:"
-#~ msgstr "Perfil de Configuração:"
-
-#~ msgid "Connected"
-#~ msgstr "Conectado"
-
-#~ msgid "Connected to %i Wiimotes"
-#~ msgstr "Conectado a %i Wiimotes"
-
-#~ msgid "Copy"
-#~ msgstr "Copiar"
-
-#~ msgid "Could not copy %s to %s"
-#~ msgstr "Não foi possível copiar %s para %s"
-
-#, fuzzy
-#~ msgid "Could not get info about plugin %s"
-#~ msgstr "Não pôde criar %s"
-
-#~ msgid "Created by KDE-Look.org"
-#~ msgstr "Criado por KDE-Look.org"
-
-#~ msgid ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-#~ msgstr ""
-#~ "Criado por Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-
-#~ msgid "Created by VistaIcons.com"
-#~ msgstr "Criado por VistaIcons.com"
-
-#~ msgid ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-#~ msgstr "Criado por black_rider e publicado no ForumW.org > Web Developments"
-
-#~ msgid "DList Cache"
-#~ msgstr "Cache Dlist"
-
-#~ msgid "Danish"
-#~ msgstr "Dinamarquês"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Desativar Iluminação"
-
-#~ msgid "Disable Per-Pixel Depth"
-#~ msgstr "Desativar Profundidade por Pixel"
-
-#~ msgid "Disable Textures"
-#~ msgstr "Desativar Texturas"
-
-#~ msgid "Disable Wiimote Speaker"
-#~ msgstr "Desabilitar o Auto-Falante do Wiimote"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Desabilitar Texturas.\n"
-#~ "\n"
-#~ "Se estiver em dúvida, deixe isto desativado."
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Desativa texturas.\n"
-#~ "Isso é apenas útil para propósitos de depuração."
-
-#~ msgid ""
-#~ "Disables an alpha-setting pass.\n"
-#~ "Breaks certain effects but might help performance."
-#~ msgstr ""
-#~ "Desativa um passe de configuração-alpha.\n"
-#~ "Quebra certos efeitos mas pode melhorar performance."
-
-#~ msgid "Distance Alpha Pass"
-#~ msgstr "Pass de Alpha de Distância"
-
-#, fuzzy
-#~ msgid "Dolphin OpenGL"
-#~ msgstr "Dolphin"
-
-#~ msgid ""
-#~ "Dolphin has not been configured with an install location,\n"
-#~ "Keep Dolphin portable?"
-#~ msgstr ""
-#~ "O Dolphin não foi configurado com um local de instalação,\n"
-#~ "Manter o Dolphin portátil?"
-
-#~ msgid "EFB"
-#~ msgstr "EFB"
-
-#~ msgid ""
-#~ "Emulate frame buffer copies directly to textures.\n"
-#~ "This is not so accurate, but it's good enough for the way many games use "
-#~ "framebuffer copies."
-#~ msgstr ""
-#~ "Emular cópias de buffer de frames diretamente para texturas.\n"
-#~ "Isso não é tão preciso, mas é bom o suficiente para a maneira que muitos "
-#~ "jogos usam as cópias de buffer de frames."
-
-#~ msgid "Emulator Display Settings"
-#~ msgstr "Configurações de Display do Emulador"
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "Ativar Throttle de Áudio"
-
-#~ msgid "Enable BAT"
-#~ msgstr "Ativar BAT"
-
-#~ msgid "Enable CPU Access"
-#~ msgstr "Ativar Acesso da CPU"
-
-#~ msgid "Enable Copy to EFB"
-#~ msgstr "Ativar cópia para o EFB"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "Ativar Música DTK"
-
-#~ msgid "Enable EFB To Texture"
-#~ msgstr "Ativar EFB para textura"
-
-#~ msgid "Enable HLE Audio"
-#~ msgstr "Ativar áudio HLE"
-
-#~ msgid "Enable JIT Dynarec"
-#~ msgstr "Ativar JIT Dynarec"
-
-#~ msgid "Enable OpenCL"
-#~ msgstr "Ativar OpenCL"
-
-#~ msgid "Enable Screen Saver (burn-in reduction)"
-#~ msgstr "Ativar Proteção de tela (redução de \"burn-in\")"
-
-#~ msgid ""
-#~ "Enables Block Address Translation (BAT); a function of the Memory "
-#~ "Management Unit. Accurate to the hardware, but slow to emulate. (ON = "
-#~ "Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Ativar Block Address Translation (BAT); uma função da unidade de "
-#~ "gerenciamento de memoria. Precisão para o hardware, mas devagar para ser "
-#~ "emulado (ON = Compativel, OFF = Rapido)"
-
-#~ msgid ""
-#~ "Enables dynamic recompilation of DSP code.\n"
-#~ "Changing this will have no effect while the emulator is running!"
-#~ msgstr ""
-#~ "Ativar recompilação dinamica do codigo DSP.\n"
-#~ "Mudar isso não tem efeito enquanto o emulador estiver rodando!"
-
-#~ msgid ""
-#~ "Enables emulation of Embedded Frame Buffer copies, if the game uses "
-#~ "them.\n"
-#~ "Games often need this for post-processing or other things, but if you can "
-#~ "live without it, you can sometimes get a big speedup."
-#~ msgstr ""
-#~ "Ativar emulação de copias de frame buffer incorporadas , se o jogo usa-"
-#~ "las.\n"
-#~ "Jogos precisam disso para Pós-Processamento ou outras coisas, mas se você "
-#~ "consegue viver sem isso, as vezes terá um grande ganho de velocidade."
-
-#~ msgid ""
-#~ "Enables reinterpreting the data inside the EFB when the pixel format "
-#~ "changes.\n"
-#~ "Some games depend on this function for certain effects, so enable it if "
-#~ "you're having glitches.\n"
-#~ "Depending on how the game uses this function, the speed hits caused by "
-#~ "this option range from none to critical."
-#~ msgstr ""
-#~ "Ativar re-interpretação da data dentro do EFB quando o formato do pixel "
-#~ "muda.\n"
-#~ "Alguns jogos dependem dessa função para certos efeitos, Ative-a se vocês "
-#~ "estiver tendo glitches.\n"
-#~ "Dependendo de quanto o jogo usa essa função, o impacto na velocidade "
-#~ "causado por ela vai de nenhum a critico."
-
-#~ msgid "Error opening file %s for recording"
-#~ msgstr "Erro ao abrir o arquivo %s para gravação"
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Sair do Dolphin com o emulador"
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Mipmaps Rápidos"
-
-#~ msgid ""
-#~ "Faster variants look at fewer pixels and thus have more potential for "
-#~ "errors.\n"
-#~ "Slower variants look at more pixels and thus are safer."
-#~ msgstr ""
-#~ "Variantes Rápidas aparentam poucos pixels e tem mais potencial para "
-#~ "erros.\n"
-#~ "Variantes lentas tem mais pixel e são mais seguras."
-
-#~ msgid "Force Bi/Trilinear Filtering"
-#~ msgstr "Forçar Filtro Bi/Trilinear"
-
-#~ msgid "Fractional"
-#~ msgstr "Fracional"
-
-#~ msgid ""
-#~ "Fully emulate embedded frame buffer copies.\n"
-#~ "This is more accurate than EFB Copy to Texture, and some games need this "
-#~ "to work properly, but it can also be very slow."
-#~ msgstr ""
-#~ "Completa emulação de cópias de frame buffer incorporadas. \n"
-#~ "Isso é mais preciso que cópias de texturas do EFB, e alguns jogos "
-#~ "precisam disso para funcionar corretamente, mas isso pode ser muito lento."
-
-#~ msgid "GFX Config"
-#~ msgstr "Configurar GFX"
-
-#, fuzzy
-#~ msgid "Graphics Plugin"
-#~ msgstr "Gráficos"
-
-#~ msgid "Hide Shader Errors"
-#~ msgstr "Ocultar Erros de Sombreamento"
-
-#~ msgid ""
-#~ "Hide the cursor when it is over the rendering window and the rendering "
-#~ "window has focus."
-#~ msgstr ""
-#~ "Esconde o cursor quando ele está sobre a janela renderizada e esta está "
-#~ "ativa."
-
-#~ msgid ""
-#~ "If a game hangs, works only in the Interpreter or Dolphin crashes, this "
-#~ "option may fix the game."
-#~ msgstr ""
-#~ "Se o jogo trava, funciona apenas no interpretador ou o dophin dá erro, "
-#~ "essa opção pode corrigir o jogo."
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Melhora a performance mas faz a iluminação desaparecer na maioria dos "
-#~ "jogos.\n"
-#~ "\n"
-#~ "Se estiver em dúvida, deixe esta opção desativada."
-
-#~ msgid "Input Source"
-#~ msgstr "Fonte de Entrada"
-
-#~ msgid "Install directory could not be saved"
-#~ msgstr "O diretório de instalação não pôde ser salvo"
-
-#~ msgid "Installing WAD to Wii Menu..."
-#~ msgstr "Instalando WAD para o menu do WII"
-
-#~ msgid "Integral [recommended]"
-#~ msgstr "Integral [recomendado]"
-
-#~ msgid ""
-#~ "Keeps track of textures based on looking at the actual pixels in the "
-#~ "texture.\n"
-#~ "Can cause slowdown, but some games need this option enabled to work "
-#~ "properly."
-#~ msgstr ""
-#~ "Mantém caminhos das texturas baseados no olhar dos pixels atuais na "
-#~ "textura.\n"
-#~ "Pode causar slowdown, mas alguns jogos necessitam dessa opção para "
-#~ "funcionarem corretamente."
-
-#~ msgid "Load Script..."
-#~ msgstr "Carregar script..."
-
-#~ msgid ""
-#~ "Loads native mipmaps instead of generating them.\n"
-#~ "Loading native mipmaps is the more accurate behavior, but might also "
-#~ "decrease performance (your mileage might vary though)."
-#~ msgstr ""
-#~ "Carregar mipmaps nativos ao invés de gerar eles.\n"
-#~ "Carregar os mipmaps nativos é mais preciso todavia, mas pode diminuir a "
-#~ "perfomance (embora sua mudança possa variar)."
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "Carrega o arquivo especificado (DOL,ELF,GCM,ISO,WAD)"
-
-#~ msgid "Lock Threads to Cores"
-#~ msgstr "Separar tarefas em núcleos"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Emulação do Audio em Low level (LLE) ou high level (HLE)"
-
-#~ msgid "Lua Script Console"
-#~ msgstr "Console de script lua"
-
-#~ msgid "Metroid Other M"
-#~ msgstr "Metroid Other M"
-
-#~ msgid ""
-#~ "Modify textures to show the format they're using.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Modificar texturas para mostrar o formato que elas estão usando.\n"
-#~ "Isso é útil apenas para questões de debug."
-
-#~ msgid "New &Lua Console"
-#~ msgstr "Novo console &Lua"
-
-#~ msgid "Normal"
-#~ msgstr "Normal"
-
-#~ msgid "OK"
-#~ msgstr "OK"
-
-#, fuzzy
-#~ msgid "OpenGL"
-#~ msgstr "Abrir"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "Abrir o debugger"
-
-#~ msgid "Opens the logger"
-#~ msgstr "Abrir o logger"
-
-#~ msgid "Plugins"
-#~ msgstr "Plugins"
-
-#~ msgid ""
-#~ "Portable Setting could not be saved\n"
-#~ " Are you running Dolphin from read only media or from a directory that "
-#~ "dolphin is not located in?"
-#~ msgstr ""
-#~ "A configuração portátil não pôde ser salva\n"
-#~ " Você está executando o Dolphin de uma mídia somente-leitura ou de um "
-#~ "diretório onde o Dolphin não está?"
-
-#~ msgid "Projection Stats"
-#~ msgstr "Status de Projeção"
-
-#~ msgid "Relaunch Dolphin from the install directory and save from there"
-#~ msgstr ""
-#~ "Execute novamente o Dolphin do diretório de instalação e salve de lá"
-
-#~ msgid "Render to main window."
-#~ msgstr "Renderizar na Janela principal"
-
-#~ msgid "Rendering"
-#~ msgstr "Renderizando"
-
-#~ msgid "Required for using the Japanese ROM font."
-#~ msgstr "Necessário para utilizar a fonte de ROM japonesas."
-
-#~ msgid "Run"
-#~ msgstr "Executar"
-
-#~ msgid "Running script...\n"
-#~ msgstr "Running script...\n"
-
-#~ msgid "Sample Rate:"
-#~ msgstr "Taxa de Amostragem:"
-
-#~ msgid "Scale:"
-#~ msgstr "Escala:"
-
-#~ msgid "Select resolution for fullscreen mode"
-#~ msgstr "Selecione a resolução do modo Tela-cheia"
-
-#~ msgid ""
-#~ "Select the System Menu wad extracted from the update partition of a disc"
-#~ msgstr ""
-#~ "Selecione o WAD do system Menu extraído da partição de atualização de um "
-#~ "disco."
-
-#~ msgid "Select the script to load"
-#~ msgstr "Selecione um Script para carregar"
-
-#~ msgid ""
-#~ "Selects which game should be affected by the configuration changes done "
-#~ "in this dialog.\n"
-#~ "The (Default) profile affects the standard settings used for every game."
-#~ msgstr ""
-#~ "Selecione qual jogo deve ser afetado pelas modificações das configurações "
-#~ "feitas nesta janela.\n"
-#~ "O perfil (Padrão)afeta as configurações comuns usadas para todos os jogos."
-
-#~ msgid "Set All to Default"
-#~ msgstr "Mudar tudo para o Padrão"
-
-#~ msgid ""
-#~ "Set install location to:\n"
-#~ " %s ?"
-#~ msgstr ""
-#~ "Estabelecer local de instalação para:\n"
-#~ "%s ?"
-
-#~ msgid ""
-#~ "Show projection statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Mostrar estatísticas de projeção. \n"
-#~ "Isto é útil apenas para a depuração de erros."
-
-#~ msgid "Show save banner"
-#~ msgstr "Mostrar banner do save"
-
-#~ msgid "Show the number of frames rendered per second."
-#~ msgstr "Mostra o número de quadros por segundo."
-
-#~ msgid "Show this help message"
-#~ msgstr "Mostra esta menssagem de ajuda"
-
-#~ msgid ""
-#~ "Show various statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Mostra várias estatísticas. \n"
-#~ "Isto é útil apenas para a depuração de erros."
-
-#~ msgid "Skies of Arcadia"
-#~ msgstr "Skies of Arcadia"
-
-#~ msgid "Slot"
-#~ msgstr "Slot"
-
-#~ msgid "Sonic and the Black Knight"
-#~ msgstr "Sonic and the Black Knight"
-
-#~ msgid ""
-#~ "Specifies the resolution used to render at. A high resolution will "
-#~ "improve visual quality but is also quite heavy on performance and might "
-#~ "cause glitches in certain games.\n"
-#~ "Fractional: Uses your display resolution directly instead of the native "
-#~ "resolution. The quality scales with your display/window size, as does the "
-#~ "performance impact.\n"
-#~ "Integral: This is like Fractional, but rounds up to an integer multiple "
-#~ "of the native resolution. Should give a more accurate look but is usually "
-#~ "slower.\n"
-#~ "The other options are fixed resolutions for choosing a visual quality "
-#~ "independent of your display size."
-#~ msgstr ""
-#~ "Especificar a resolução a ser renderizada. Uma resolução alta irá "
-#~ "melhorar a qualidade visual mas também pesa na performance e pode causar "
-#~ "defeitos em video em alguns jogos.\n"
-#~ "Fracional: Usa a resolução da tela diretamente, em vez da resolução "
-#~ "nativa. A qualidade varia com o monitor/tamanho da janela, assim como o "
-#~ "impacto no desempenho.\n"
-#~ "Integral: É como fracionado, mas arredonda para um número inteiro "
-#~ "múltiplo da resolução nativa. Gera uma imagem mais fiel Ã  original, mas "
-#~ "é geralmente mais lento.\n"
-#~ "As outras opções são resoluções fixas para escolher a qualidade visual "
-#~ "independentemente do tamanho do seu monitor."
-
-#~ msgid "Specify a video backend"
-#~ msgstr "Especifique um Backend de Vídeo"
-
-#~ msgid "Specify an audio plugin"
-#~ msgstr "Especifique um Plugin de Áudio"
-
-#~ msgid "Start Renderer in Fullscreen"
-#~ msgstr "Iniciar o Renderizador em Tela Cheia"
-
-#~ msgid "Start the rendering window in fullscreen mode."
-#~ msgstr "Iniciar a Janela de Renderização em Tela Cheia"
-
-#~ msgid "The file "
-#~ msgstr "O arquivo"
-
-#~ msgid "Theme selection went wrong"
-#~ msgstr "A seleção do tema deu errado"
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "Isto é usado para controlar a velocidade do jogo por throttle de som.\n"
-#~ "Desativar isso pode causar velocidade de jogo anormal, ás vezes muito "
-#~ "rápido.\n"
-#~ "Mas algumas vezes ativar isso pode causar ruído constante.\n"
-#~ "\n"
-#~ "Atalho de Teclado <TAB>: Segure para instantaneamente desativar o "
-#~ "Throttle."
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr "Isto é usado para tocar trilhas sonoras de jogos, como BGM"
-
-#~ msgid "This is usually used to play voice and sound effects."
-#~ msgstr "Isto é geralmente usado para efeitos de som e voz."
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "Ponteiro desconhecido %#08x\n"
-#~ "Continuar?"
-
-#~ msgid "Use FPS For Limiting"
-#~ msgstr "Usar FPS para Limitar"
-
-#~ msgid "Use XFB"
-#~ msgstr "Usar XFB"
-
-#~ msgid "Uses multiple threads to decode the textures in the game."
-#~ msgstr "Usar múltiplos segmentos para decodificar as texturas do jogo."
-
-#~ msgid ""
-#~ "Uses the high-resolution render buffer for EFB copies instead of scaling "
-#~ "them down to native resolution.\n"
-#~ "Vastly improves visual quality in games which use EFB copies but might "
-#~ "cause glitches in some games."
-#~ msgstr ""
-#~ "Utiliza o buffer de renderização de alta resolução para cÃ³pias de EFB, "
-#~ "em vez de escala-los para a resolução nativa.\n"
-#~ "Melhora bastante a qualidade visual em jogos que utilizam cÃ³pias de EFB, "
-#~ "mas pode causar falhas em alguns."
-
-#~ msgid "Video Backend:"
-#~ msgstr "Backend de Vídeo:"
-
-#~ msgid ""
-#~ "Wait for vertical blanks.\n"
-#~ "Reduces tearing but might also decrease performance"
-#~ msgstr ""
-#~ "Espera por espaços brancos verticais.\n"
-#~ "Reduz rasgos na imagem mas também pode diminuir a performance"
-
-#~ msgid ""
-#~ "When using EFB to RAM we very often need to decode RAM data to a VRAM "
-#~ "texture, which is a very time-consuming task.\n"
-#~ "With this option enabled, we'll skip decoding a texture if it didn't "
-#~ "change.\n"
-#~ "This results in a nice speedup, but possibly causes glitches.\n"
-#~ "If you have any problems with this option enabled you should either try "
-#~ "increasing the safety of the texture cache or disable this option.\n"
-#~ "(NOTE: The safer the texture cache is adjusted the lower the speedup will "
-#~ "be; accurate texture cache set to \"safe\" might actually be slower!)"
-#~ msgstr ""
-#~ "Ao utilizar EFB para a RAM muitas vezes precisamos decodificar os dados "
-#~ "RAM para uma textura VRAM, o que é uma tarefa muito demorada.\n"
-#~ "Com esta opção habilitada, vamos pular a decodificação de uma textura, se "
-#~ "esta não mudar.\n"
-#~ "Isso resulta em um bom ganho de velocidade, mas pode causar problema.\n"
-#~ "Se você tiver qualquer problema com essa opção ativada você deve tentar "
-#~ "aumentar a segurança do cache de texturas ou desativar essa opção.\n"
-#~ "(NOTA: Quanto mais seguro for o cache de textura menor será o aumento de "
-#~ "velocidade; Se colocado em \"Seguro\" pode ser até mais lento!)"
-
-#, fuzzy
-#~ msgid "Wiimote %i %s"
-#~ msgstr "Wiimote"
-
-#~ msgid "Wiimote Settings"
-#~ msgstr "Configurações do Wiimote"
-
-#~ msgid "Will enable progressive scan option if supported by software."
-#~ msgstr "Vai ativar a opção Scan Progressivo se suportado pelo Software"
-
-#~ msgid "Window Size:"
-#~ msgstr "Tamanho da Janela:"
-
-#~ msgid "Window height for windowed mode"
-#~ msgstr "Altura da Janela para o Modo Janelado"
-
-#~ msgid "Window width for windowed mode"
-#~ msgstr "Largura da Janela para o Modo Janelado"
-
-#~ msgid "XFB"
-#~ msgstr "XFB"
-
-#~ msgid "Zelda Twilight Princess Bloom hack"
-#~ msgstr "Hack de Brilho do Zelda Twilight Princess"

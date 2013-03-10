@@ -1,21 +1,24 @@
 # Translation of dolphin-emu.pot to Korean
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# Siegfried <iori3000@hanafos.com>, 2011
 #
+# Translators:
+#  <iori3000@hanafos.com>, 2013.
+# Siegfried <iori3000@hanafos.com>, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2013-01-22 03:47+0900\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: Korean\n"
+"PO-Revision-Date: 2013-02-03 22:12+0000\n"
+"Last-Translator: Siegfried <iori3000@hanafos.com>\n"
+"Language-Team: Korean (http://www.transifex.com/projects/p/dolphin-emu/"
+"language/ko/)\n"
+"Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Korean\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -653,15 +656,15 @@ msgid "All files (*.*)|*.*"
 msgstr "모든 파일 (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"에뮬레이션 창안에서 3, 4, 5, 6 핫키들을 통해 특정 옵션들 토글을 허용합니다.\n"
-"\n"
+"에뮬레이션 창안에서 3(내부 해상도), 4(종횡비), 5(EFB 복사), 6(안개) 핫키들을 "
+"통해 특정 옵션들 토글을 허용합니다.\\n\n"
+"\\n\n"
 "모르겠으면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
@@ -674,7 +677,7 @@ msgstr "분석"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:298
 msgid "Angle"
-msgstr ""
+msgstr "각도"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:368
 msgid "Anisotropic Filtering:"
@@ -908,6 +911,7 @@ msgid ""
 "Bypass the clearing of the data cache by the DCBZ instruction. Usually leave "
 "this option disabled."
 msgstr ""
+"DCBZ 명령에 의해 데이터 캐쉬 청소를 우회합니다. 보통은 이 옵션을 꺼둡니다."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "C"
@@ -2314,9 +2318,9 @@ msgid "Failed to load hid.dll"
 msgstr "hid.dll 로드에 실패했습니다"
 
 #: Source/Core/Core/Src/Movie.cpp:792
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read %s"
-msgstr "%s 에 대한 헤더 쓰기에 실패"
+msgstr "%s 읽기에 실패"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:151
 msgid "Failed to read banner.bin"
@@ -4769,7 +4773,7 @@ msgstr "바이오스 스킵"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid "Skip DCBZ clearing"
-msgstr ""
+msgstr "DCBZ 청소 건너뛰기"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:493
 msgid "Skip Dest. Alpha Pass"
@@ -5178,7 +5182,6 @@ msgid "This could cause slow down in Wii Menu and some games."
 msgstr "이것은 Wii 메뉴와 일부 게임들에서 느려짐을 유발할 수 있다."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5189,12 +5192,13 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"이 특성은 당신이 게임의 카메라를 변경하도록 허용합니다.\n"
-"카메라 주위를 회전시키기려면 오른쪽 마우스 버튼을 누른 상태로 마우스를 움직이"
-"세요. 특정 스텝 거리로 카메라 이동을 하려면 쉬프트를 누른 상태로 WASD키들중"
-"에 하나를 누르세요 (쉬프트+0 은 더 빠른 이동이고 쉬프트+9은 더 느린 이동). 카"
-"메라를 리셋하려면 쉬프트+R을 누르세요.\n"
-"\n"
+"이것은 게임의 카메라를 변경하도록 허용합니다.\\n\n"
+"회전하려면 마우스 오른쪽 버튼을 누른 상태로 마우스를 움직이시고 \n"
+"이동하려면 마우스 가운데 버튼을 누른 상태로 마우스를 움직이세요.\\n\n"
+"특정 스텝 거리로 카메라 이동을 하려면 쉬프트를 누른 상태로 WASD키들 중에 하나"
+"를 누르세요 (쉬프트+0 은 더 빠르게 쉬프트+9은 더 느리게 이동). 카메라를 리셋"
+"하려면 쉬프트+R을 누르세요.\\n\n"
+"\\n\n"
 "모르겠으면. 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
@@ -5887,773 +5891,3 @@ msgstr "z근거리 정정:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
-
-#~ msgid "%d Hz"
-#~ msgstr "%d Hz"
-
-#~ msgid "&Frame Stepping"
-#~ msgstr "프레임 스텝(&F)"
-
-#~ msgid "(Default)"
-#~ msgstr "(기본)"
-
-#~ msgid "32,000 Hz"
-#~ msgstr "32,000 Hz"
-
-#~ msgid "32-bit platforms do not support fastmem yet. Report this bug."
-#~ msgstr "32-비트 플랫폼들은 fastmem을 아직 지원안함. 이 버그를 보고하라."
-
-#~ msgid "3D Vision (Requires Fullscreen)"
-#~ msgstr "3D 비전 (전체화면 필요)"
-
-#~ msgid "48,000 Hz"
-#~ msgstr "48,000 Hz"
-
-#~ msgid "< as Default Profile >"
-#~ msgstr "< 기본 프로파일 따름 >"
-
-#~ msgid "ALSA"
-#~ msgstr "ALSA"
-
-#~ msgid "AOSound"
-#~ msgstr "AOSound"
-
-#~ msgid "Accurate Texture Cache"
-#~ msgstr "정확한 텍스처 캐쉬"
-
-#~ msgid "Adjust window size"
-#~ msgstr "윈도우 크기 조정"
-
-#~ msgid ""
-#~ "Allows the CPU to read or write to the EFB (render buffer).\n"
-#~ "This is needed for certain gameplay functionality (e.g. star pointer in "
-#~ "Super Mario Galaxy) as well as for certain visual effects (e.g. Monster "
-#~ "Hunter Tri),\n"
-#~ "but enabling this option can also have a huge negative impact on "
-#~ "performance if the game uses this functionality heavily."
-#~ msgstr ""
-#~ "CPU가 EFB(렌더 버퍼)에 읽거나 쓰도록 허용.\n"
-#~ "이것은 특정 게임플레이 기능(예. Super Mario Galaxy에 별 포인터) 뿐만아니"
-#~ "라 특정 비주얼 효과들(예. Monster Hunter Tri)에 요구됩니다,\n"
-#~ "하지만 이 옵션을 켜는 것은 그 게임이 이 기능을 심하게 사용한다면 성능상에 "
-#~ "거대한 네거티브 효과를 가질 수 있습니다."
-
-#~ msgid "Alternate RFI"
-#~ msgstr "RFI 대안"
-
-#~ msgid "Auto [recommended]"
-#~ msgstr "자동 [권장]"
-
-#~ msgid ""
-#~ "Auto size the window to match the game's output resolution adjusted by "
-#~ "the EFB scale.\n"
-#~ "It is best to set the aspect ratio to stretch when using this."
-#~ msgstr ""
-#~ "EFB 스케일로 조정된 게임의 출력 해상도와 일치되도록 윈도우 크기를 자동 조"
-#~ "정.\n"
-#~ "이것을 사용할 때 종횡비를 늘림으로 설정하는 것이 가장좋다."
-
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "메모리에서 밉맵들을 디코딩하는 대신에 자동적으로 생성합니다.\n"
-#~ "성능향상을 조금 가져옵니다만 미약한 텍스처 결함이 발생할지도 모릅니다.\n"
-#~ "\n"
-#~ "모르겠으면, 이것을 체크상태로 두세요."
-
-#~ msgid "Bad gameini filename"
-#~ msgstr "배드 gameini 파일이름"
-
-#~ msgid "Bleach Versus Crusade"
-#~ msgstr "Bleach Versus Crusade"
-
-#~ msgid ""
-#~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-#~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-#~ "depth calculations are necessary to properly emulate a small number of "
-#~ "games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "버텍스단위 대신에 픽셀단위로 3D 그래픽 깊이 값을 계산합니다.\n"
-#~ "픽셀광원 명암(향상)에서, 픽셀단위 깊이 계산은 소수 게임들을 제대로 에뮬할 "
-#~ "때 필요가 있습니다.\n"
-#~ "\n"
-#~ "모르겠으면, 이것을 체크상태로 두세요."
-
-#~ msgid ""
-#~ "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
-#~ "vertex.\n"
-#~ "This is the more accurate behavior but reduces performance."
-#~ msgstr ""
-#~ "버텍스마다가 아닌 픽셀마다를 기반으로 3D 그래픽의 빛을 계산한다.\n"
-#~ "이것은 더 정확한 행함이지만 성능을 감소시킨다."
-
-#~ msgid "Can't find plugin %s"
-#~ msgstr "플러그인 %s 를 찾을 수 없음"
-
-#~ msgid "Can't init DSP Plugin"
-#~ msgstr "사운드 플러그인을 초기화할 수 없음"
-
-#~ msgid "Can't init Video Plugin"
-#~ msgstr "비디오 플러그인을 초기화할 수 없음"
-
-#~ msgid "Can't open %s, it has a missing function"
-#~ msgstr "%s를 열수 없음, 그것은 놓친 함수를 가진다"
-
-#~ msgid "Cannot record movies in read-only mode."
-#~ msgstr "읽기-전용 모드에서 영상을 기록할 수 없습니다."
-
-#~ msgid "Clear failed."
-#~ msgstr "청소 실패했습니다."
-
-#~ msgid "Config..."
-#~ msgstr "환경설정..."
-
-#~ msgid "Configuration profile"
-#~ msgstr "환경설정 프로파일"
-
-#~ msgid "Configuration profile:"
-#~ msgstr "환경설정 프로파일:"
-
-#~ msgid "Connected"
-#~ msgstr "연결된"
-
-#~ msgid "Connected to %i Wiimotes"
-#~ msgstr "%i개의 위모트에 연결됨"
-
-#~ msgid "Copy"
-#~ msgstr "복사"
-
-#~ msgid "CoreAudio"
-#~ msgstr "CoreAudio"
-
-#~ msgid "Could not copy %s to %s"
-#~ msgstr "%s 를 %s에 복사할 수 없었습니다"
-
-#~ msgid "Could not get info about plugin %s"
-#~ msgstr "플러그인 %s에 대한 정보를 얻을 수 없었습니다"
-
-#~ msgid "Created by KDE-Look.org"
-#~ msgstr "KDE-Look.org에 의해 만들어짐"
-
-#~ msgid ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-#~ msgstr ""
-#~ "Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]에 의해 만들"
-#~ "어짐"
-
-#~ msgid "Created by VistaIcons.com"
-#~ msgstr "VistaIcons.com에 의해 만들어짐"
-
-#~ msgid ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-#~ msgstr ""
-#~ "black_rider에 의해 만들어지고 ForumW.org > Web Developments에서 게시됨 "
-
-#~ msgid "DList Cache"
-#~ msgstr "데이터리스트 캐쉬"
-
-#~ msgid "DSound"
-#~ msgstr "DSound"
-
-#~ msgid "Danish"
-#~ msgstr "덴마크어"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "광원 끔"
-
-#~ msgid "Disable Per-Pixel Depth"
-#~ msgstr "픽셀 깊이 비활성"
-
-#~ msgid "Disable Textures"
-#~ msgstr "텍스처들 끔"
-
-#~ msgid "Disable Wiimote Speaker"
-#~ msgstr "위모트 스피커 비활성"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "텍스처링을 비활성합니다.\n"
-#~ "\n"
-#~ "모르겠으면, 이것을 언체크로 두세요."
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "텍스처링 끔.\n"
-#~ "이것은 디버깅 목적으로만 유용합니다."
-
-#~ msgid ""
-#~ "Disables an alpha-setting pass.\n"
-#~ "Breaks certain effects but might help performance."
-#~ msgstr ""
-#~ "알파-설정 패스 끔\n"
-#~ "특정 효과를 부시지만 성능에는 도움이 될지도."
-
-#~ msgid "Distance Alpha Pass"
-#~ msgstr "디스턴스 알파 패스"
-
-#~ msgid "Dolphin DSP-HLE Plugin"
-#~ msgstr "돌핀 DSP-HLE 플러그인"
-
-#~ msgid "Dolphin DSP-HLE Plugin Settings"
-#~ msgstr "돌핀 DSP-HLE 플러그인 설정"
-
-#~ msgid "Dolphin DSP-LLE Plugin"
-#~ msgstr "돌핀 DSP-LLE 플러그인"
-
-#~ msgid "Dolphin DSP-LLE Plugin Settings"
-#~ msgstr "돌핀 DSP-LLE 플러그인 설정"
-
-#~ msgid "Dolphin Direct3D11"
-#~ msgstr "돌핀 Direct3D11"
-
-#~ msgid "Dolphin Direct3D9"
-#~ msgstr "돌핀 Direct3D9"
-
-#~ msgid "Dolphin OpenGL"
-#~ msgstr "돌핀 OpenGL"
-
-#~ msgid ""
-#~ "Dolphin has not been configured with an install location,\n"
-#~ "Keep Dolphin portable?"
-#~ msgstr ""
-#~ "돌핀이 설치 위치로 환경설정이 되지 않었습니다,\n"
-#~ "돌핀을 포터블로 유지합니까?"
-
-#~ msgid "EFB"
-#~ msgstr "EFB (내장프레임버퍼)"
-
-#~ msgid ""
-#~ "Emulate frame buffer copies directly to textures.\n"
-#~ "This is not so accurate, but it's good enough for the way many games use "
-#~ "framebuffer copies."
-#~ msgstr ""
-#~ "텍스처들에 직접적으로 프레임버퍼 복사들을 에뮬레이트.\n"
-#~ "이것은 그리 정확하지는 않습니다, 하지만 많은 게임들이 프레임버퍼 복사들을 "
-#~ "사용하는 방법으로 충분히 좋다."
-
-#~ msgid "Emulator Display Settings"
-#~ msgstr "에뮬레이터 화면표시 설정"
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "오디오 병목 활성"
-
-#~ msgid "Enable BAT"
-#~ msgstr "BAT 활성"
-
-#~ msgid "Enable CPU Access"
-#~ msgstr "CPU 엑세스 활성"
-
-#~ msgid "Enable Copy to EFB"
-#~ msgstr "EFB에 복사 활성"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "DTK 음악 활성"
-
-#~ msgid "Enable EFB To Texture"
-#~ msgstr "'EFB를 텍스처에' 활성"
-
-#~ msgid "Enable HLE Audio"
-#~ msgstr "HLE 오디오 활성"
-
-#~ msgid "Enable JIT Dynarec"
-#~ msgstr "JIT Dynarec 활성"
-
-#~ msgid "Enable OpenCL"
-#~ msgstr "OpenCL 활성"
-
-#~ msgid "Enable Screen Saver (burn-in reduction)"
-#~ msgstr "스크린 세이버 (열화 줄임) 활성"
-
-#~ msgid ""
-#~ "Enables Block Address Translation (BAT); a function of the Memory "
-#~ "Management Unit. Accurate to the hardware, but slow to emulate. (ON = "
-#~ "Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "블럭 주소 해석 (BAT); 메모리 관리 유닛 함수 활성. 하드웨어에 정확해진다, "
-#~ "하지만 에뮬레이트는 느려진다.(켬 = 호환성, 끔 = 빠름)"
-
-#~ msgid ""
-#~ "Enables dynamic recompilation of DSP code.\n"
-#~ "Changing this will have no effect while the emulator is running!"
-#~ msgstr ""
-#~ "DSP 코드의 다이나믹 재컴파일을 켠다.\n"
-#~ "이 변경은 에뮬레이터가 구동되고 있는 동안에는 효과가 없습니다!"
-
-#~ msgid ""
-#~ "Enables emulation of Embedded Frame Buffer copies, if the game uses "
-#~ "them.\n"
-#~ "Games often need this for post-processing or other things, but if you can "
-#~ "live without it, you can sometimes get a big speedup."
-#~ msgstr ""
-#~ "내장프레임버퍼 복사들의 에뮬레이션을 켭니다, 그 게임이 그것들을 사용하"
-#~ "면 .\n"
-#~ "게임들은 후처리나 다른 것들을 위해 종종 이것이 필요하다, 하지만 그것 없이 "
-#~ "살 수 있다면, 때때로 큰 속도향상을 얻을 수 있다."
-
-#~ msgid ""
-#~ "Enables reinterpreting the data inside the EFB when the pixel format "
-#~ "changes.\n"
-#~ "Some games depend on this function for certain effects, so enable it if "
-#~ "you're having glitches.\n"
-#~ "Depending on how the game uses this function, the speed hits caused by "
-#~ "this option range from none to critical."
-#~ msgstr ""
-#~ "픽셀 포멧이 변경될 때 EFB 안쪽에서 그 데이터를 재해석하기를 켭니다.\n"
-#~ "일부 게임들은 특정 효과들에 대해 이 기능에 의존한다, 그러니 결함들을 겪는"
-#~ "다면 켜라.\n"
-#~ "그 게임이 이 기능을 어떻게 사용하냐에 따라, 속도는 영향없음에서 치명까지 "
-#~ "유발됩니다."
-
-#~ msgid "Error allocating buffer"
-#~ msgstr "버퍼 할당하기 에러"
-
-#~ msgid ""
-#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
-#~ "Sorry, Wii recording is temporarily broken."
-#~ msgstr ""
-#~ "PlayWiimote에 에러발생. %u != %u, byte %d.\n"
-#~ "죄송합니다, Wii 녹화가 일시적으로 깨졌습니다."
-
-#~ msgid "Error loading %s: can't read info"
-#~ msgstr "%s 로딩 에러: 정보를 읽을 수 없음"
-
-#~ msgid ""
-#~ "Error loading plugin %s: can't find file. Please re-select your plugins."
-#~ msgstr ""
-#~ "플러그인 %s 로딩 에러: 파일을 찾을 수 없음. 플러그인을 다시 선택하세요."
-
-#~ msgid "Error opening file %s for recording"
-#~ msgstr "기록하기 위한 %s 파일 열기 에러"
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "에뮬레이터와 함께 돌핀 종료"
-
-#~ msgid ""
-#~ "Failed to load DSP ROM:\n"
-#~ "%s\n"
-#~ "This file is required to use DSP LLE"
-#~ msgstr ""
-#~ "로드 실패했습니다 DSP 롬:\n"
-#~ "%s\n"
-#~ "이 파일은 DSP LLE 사용이 요구됩니다"
-
-#~ msgid "Failed to load DSP ROM: %s"
-#~ msgstr "DSP 롬: %s 로드에 실패했습니다"
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "빠른 밉맵"
-
-#~ msgid ""
-#~ "Faster variants look at fewer pixels and thus have more potential for "
-#~ "errors.\n"
-#~ "Slower variants look at more pixels and thus are safer."
-#~ msgstr ""
-#~ "더 빠른 형태는 더 적은 픽셀들을 살펴보고 그리하여 에러들에 대한 더 많은 잠"
-#~ "재력을를 가진다.\n"
-#~ "더 느린 형태는 더 많은 픽셀들을 살펴봐서 더 안전하다."
-
-#~ msgid "Force Bi/Trilinear Filtering"
-#~ msgstr "이/삼선형 필터링 강제"
-
-#~ msgid "Fractional"
-#~ msgstr "부분"
-
-#~ msgid ""
-#~ "Fully emulate embedded frame buffer copies.\n"
-#~ "This is more accurate than EFB Copy to Texture, and some games need this "
-#~ "to work properly, but it can also be very slow."
-#~ msgstr ""
-#~ "내장프레임버퍼 복사들을 완전히 에뮬레이트한다.\n"
-#~ "이것은 '텍스처에 EFB를 복사'보다 더 정확하다, 그리고 일부 게임들은 올바르"
-#~ "게 작동하기위해 이것이 필요하다, 하지만 매우 느릴 수도 있다."
-
-#~ msgid "GFX Config"
-#~ msgstr "그래픽 환경설정"
-
-#~ msgid "Graphics Plugin"
-#~ msgstr "그래픽 플러그인"
-
-#~ msgid "Hide Shader Errors"
-#~ msgstr "쉐이더 에러들 숨김"
-
-#~ msgid ""
-#~ "Hide the cursor when it is over the rendering window and the rendering "
-#~ "window has focus."
-#~ msgstr ""
-#~ "커서가 렌더링 윈도우 위에 있을 때 숨깁니다 그리고 렌더링 윈도우가 초점을 "
-#~ "가집니다."
-
-#~ msgid ""
-#~ "If a game hangs, works only in the Interpreter or Dolphin crashes, this "
-#~ "option may fix the game."
-#~ msgstr ""
-#~ "만일 게임이 멈추고, 인터프리터로만 작동하거나 돌핀이 깨진다면, 이 옵션은 "
-#~ "그 게임을 고칠지 모른다."
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "성능이 향상되지만 대부분의 게임에서 빛이 사라짐을 유발합니다.\n"
-#~ "\n"
-#~ "모르겠으면, 이것을 언체크로 두세요."
-
-#~ msgid "Input Source"
-#~ msgstr "소스 입력"
-
-#~ msgid "Install directory could not be saved"
-#~ msgstr "설치 디렉토리는 저장될 수 없었다"
-
-#~ msgid "Installing WAD to Wii Menu..."
-#~ msgstr "WAD를 Wii 메뉴에 설치하기..."
-
-#~ msgid "Integral [recommended]"
-#~ msgstr "전체 [권장]"
-
-#~ msgid ""
-#~ "Internal LZO Error - decompression failed (%d) (%ld, %ld) \n"
-#~ "Try verifying the state again"
-#~ msgstr ""
-#~ "내부 LZO 에러 - 압축해제 실패했습니다 (%d) (%ld, %ld) \n"
-#~ "상태를 다시 검사해보세요"
-
-#~ msgid ""
-#~ "Keeps track of textures based on looking at the actual pixels in the "
-#~ "texture.\n"
-#~ "Can cause slowdown, but some games need this option enabled to work "
-#~ "properly."
-#~ msgstr ""
-#~ "텍스처안에 실제 픽셀들을 살피기에 기반해서 텍스처들의 트랙을 유지한다.\n"
-#~ "느려짐을 유발할 수 있다, 하지만 일부 게임들은 올바르게 작동하기위해 이 옵"
-#~ "션이 필요하다."
-
-#~ msgid "Load Script..."
-#~ msgstr "스크립트 로드..."
-
-#~ msgid ""
-#~ "Loads native mipmaps instead of generating them.\n"
-#~ "Loading native mipmaps is the more accurate behavior, but might also "
-#~ "decrease performance (your mileage might vary though)."
-#~ msgstr ""
-#~ "밉맵을 생성하는 대신 원본 밉맵들을 로드한다.\n"
-#~ "원본 밉맵들을 로드하는 것은 좀 더 정확한 행동이다, 하지만 성능을 감소시킬"
-#~ "지도 모른다 (마일리지가 다양할지는 몰라도)."
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "명시된 파일 (DOL,ELF,WAD,GCM,ISO,WAD) 로드"
-
-#~ msgid "Lock Threads to Cores"
-#~ msgstr "코어에 쓰레드 잠그기"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "저수준(LLE) 혹은 고수준(HLE)에뮬 오디오"
-
-#~ msgid "Lua Script Console"
-#~ msgstr "Lua 스크립트 콘솔"
-
-#~ msgid "Metroid Other M"
-#~ msgstr "Metroid Other M"
-
-#~ msgid "Mixer: Unsupported sample rate."
-#~ msgstr "믹서: 지원되지 않는 샘플율."
-
-#~ msgid ""
-#~ "Modify textures to show the format they're using.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "사용하고 있는 포멧을 보여주기위해 텍스처들을 바꿉니다.\n"
-#~ "이것은 단지 디버깅 목적으로만 유용합니다."
-
-#~ msgid "New &Lua Console"
-#~ msgstr "새로운 &Lua 콘솔"
-
-#~ msgid "No audio output"
-#~ msgstr "오디오 출력 없음"
-
-#~ msgid "Normal"
-#~ msgstr "보통"
-
-#~ msgid "OK"
-#~ msgstr "확인"
-
-#~ msgid "OpenAL"
-#~ msgstr "OpenAL"
-
-#~ msgid "OpenGL"
-#~ msgstr "OpenGL"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "디버거 연다"
-
-#~ msgid "Opens the logger"
-#~ msgstr "로거를 연다"
-
-#~ msgid "Plugins"
-#~ msgstr "플러그인"
-
-#~ msgid ""
-#~ "Portable Setting could not be saved\n"
-#~ " Are you running Dolphin from read only media or from a directory that "
-#~ "dolphin is not located in?"
-#~ msgstr ""
-#~ "포터블 설정은 저장되어질 수 없었습니다\n"
-#~ " 돌핀을 읽기 전용 미디어나 돌핀이 위치하지 않은 디렉토리에서 구동하겠습니"
-#~ "까?"
-
-#~ msgid "Projection Stats"
-#~ msgstr "프로젝션 통계"
-
-#~ msgid "Pulse"
-#~ msgstr "진동"
-
-#~ msgid "ROM %s too short : %i/%i"
-#~ msgstr "%s 롬은 너무 짧음 : %i/%i"
-
-#~ msgid "Relaunch Dolphin from the install directory and save from there"
-#~ msgstr "설치 디렉토리에서 돌핀을 다시 불러오고 그곳에서 저장합니다"
-
-#~ msgid "Render to main window."
-#~ msgstr "메인 윈도우에 렌더"
-
-#~ msgid "Rendering"
-#~ msgstr "렌더링"
-
-#~ msgid "Required for using the Japanese ROM font."
-#~ msgstr "일본 롬 폰트를 사용하기 위해서 요구됨."
-
-#~ msgid "Run"
-#~ msgstr "구동"
-
-#~ msgid "Running script...\n"
-#~ msgstr "스크립트 구동중...\n"
-
-#~ msgid "Sample Rate:"
-#~ msgstr "샘플율:"
-
-#~ msgid "Scale:"
-#~ msgstr "스케일:"
-
-#~ msgid "Select resolution for fullscreen mode"
-#~ msgstr "전체화면 모드에 대한 해상도 선택"
-
-#~ msgid ""
-#~ "Select the System Menu wad extracted from the update partition of a disc"
-#~ msgstr "디스크의 업데이트 파티션에서 풀린 '시스템 메뉴' wad를 선택"
-
-#~ msgid "Select the script to load"
-#~ msgstr "로드할 스크립트 선택"
-
-#~ msgid ""
-#~ "Selects which game should be affected by the configuration changes done "
-#~ "in this dialog.\n"
-#~ "The (Default) profile affects the standard settings used for every game."
-#~ msgstr ""
-#~ "이 대화창에서 이루어진 환경설정 변경으로 영향을 줘야할 게임을 선택하세"
-#~ "요.\n"
-#~ "(기본) 프로파일은 모든 게임에 사용되는 표준 설정에 영향을 줍니다."
-
-#~ msgid "Set All to Default"
-#~ msgstr "모두 디폴트로 설정"
-
-#~ msgid ""
-#~ "Set install location to:\n"
-#~ " %s ?"
-#~ msgstr ""
-#~ "설치 위치를\n"
-#~ " %s 로 설정합니까?"
-
-#~ msgid ""
-#~ "Show projection statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "프로젝션(투영) 통계들을 보여주기.\n"
-#~ "이것은 디버깅 목적으로만 유용합니다."
-
-#~ msgid "Show save banner"
-#~ msgstr "저장 배너 보기"
-
-#~ msgid "Show the number of frames rendered per second."
-#~ msgstr "초당 렌더되는 프레임수 보기."
-
-#~ msgid "Show this help message"
-#~ msgstr "이 도움 메시지 보기"
-
-#~ msgid ""
-#~ "Show various statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "다양한 통계들 보여주기\n"
-#~ "이것은 디버깅 목적으로만 유용합니다."
-
-#~ msgid "Skies of Arcadia"
-#~ msgstr "Skies of Arcadia"
-
-#~ msgid "Slot"
-#~ msgstr "슬롯"
-
-#~ msgid "Sonic and the Black Knight"
-#~ msgstr "Sonic and the Black Knight"
-
-#~ msgid ""
-#~ "Specifies the resolution used to render at. A high resolution will "
-#~ "improve visual quality but is also quite heavy on performance and might "
-#~ "cause glitches in certain games.\n"
-#~ "Fractional: Uses your display resolution directly instead of the native "
-#~ "resolution. The quality scales with your display/window size, as does the "
-#~ "performance impact.\n"
-#~ "Integral: This is like Fractional, but rounds up to an integer multiple "
-#~ "of the native resolution. Should give a more accurate look but is usually "
-#~ "slower.\n"
-#~ "The other options are fixed resolutions for choosing a visual quality "
-#~ "independent of your display size."
-#~ msgstr ""
-#~ "렌더에 사용되는 해상도를 명시한다. 고 해상도는 비주얼 품질을 향상시킬 것이"
-#~ "지만 성능상에 꽤 버겁고 특정 게임들에서는 결함들을 일으킬지도 모른다.\n"
-#~ "부분: 원본 해상도 대신에 당신의 화면표시 해상도를 직접적으로 사용한다. 성"
-#~ "능 영향에 따라, 그 품질은 당신의 화면표시/윈도우크기로 스케일한다, .\n"
-#~ "전체: 이것은 '부분'과 비슷하다, 하지만 원본 해상도의 정수 배수로 올림한"
-#~ "다. 더 정확한 모습을 보여 줄 것이지만 보통은 더 느리다.\n"
-#~ "다른 옵션들은 당신의 화면표시 크기의 독립적인 비주얼 품질 선택에대한 해상"
-#~ "도로 고정된다."
-
-#~ msgid "Specify a video backend"
-#~ msgstr "비디오 백엔드 명시"
-
-#~ msgid "Specify an audio plugin"
-#~ msgstr "오디오 플러그인 명시"
-
-#~ msgid "Start Renderer in Fullscreen"
-#~ msgstr "전체화면에서 렌더러 시작"
-
-#~ msgid "Start the rendering window in fullscreen mode."
-#~ msgstr "풀스크린 모드에서 윈도우 렌더링 시작"
-
-#~ msgid "The file "
-#~ msgstr "그 파일"
-
-#~ msgid "Theme selection went wrong"
-#~ msgstr "테마 선택이 잘못되었다"
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "이것은 사운드 병목으로 게임 스피드를 컨트롤하는 데에 쓰인다.\n"
-#~ "이것을 끄는 것은 비정상적인 게임스피드를 유발할 수 있다, 너무 빠르다던"
-#~ "지.\n"
-#~ "\n"
-#~ "키보드 단축키 <TAB>:  병목을 즉각 끄려면 눌러라."
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr "이것은 BGM같은 음악 트랙들을 재생하는 데에 쓰입니다."
-
-#~ msgid "This is usually used to play voice and sound effects."
-#~ msgstr "이것은 보통 음성과 소리 효과들 재생에 사용된다."
-
-#~ msgid "Trying to load unsupported type %d"
-#~ msgstr "지원되지않는 %d 타입 로드하기 시도"
-
-#~ msgid "Type %d config not supported in plugin %s"
-#~ msgstr "%d 타입 환경은 플러그인 %s 에서 지원되지 않습니다"
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "알려지지 않은 포인터 %#08x\n"
-#~ "계속합니까?"
-
-#~ msgid "Use FPS For Limiting"
-#~ msgstr "제한을 위해 FPS 이용"
-
-#~ msgid "Use XFB"
-#~ msgstr "XFB 사용"
-
-#~ msgid "Uses multiple threads to decode the textures in the game."
-#~ msgstr "게임에서 텍스처들을 디코드하기 위해 멀티 쓰레드를 사용합니다."
-
-#~ msgid ""
-#~ "Uses the high-resolution render buffer for EFB copies instead of scaling "
-#~ "them down to native resolution.\n"
-#~ "Vastly improves visual quality in games which use EFB copies but might "
-#~ "cause glitches in some games."
-#~ msgstr ""
-#~ "EFB 복사에 대해 원본해상도로 다운스케일링 하는 대신 고-해상도 렌더 버퍼를 "
-#~ "사용한다.\n"
-#~ "EFB 복사들을 사용하는 게임들에서 비주얼 퀄리티가 대단히 향상되지만 일부 게"
-#~ "임들에서 결함들을 일으킬지 모른다."
-
-#~ msgid "Video Backend:"
-#~ msgstr "비디오 처리기 :"
-
-#~ msgid ""
-#~ "Wait for vertical blanks.\n"
-#~ "Reduces tearing but might also decrease performance"
-#~ msgstr ""
-#~ "수직 주기를 기다립니다.\n"
-#~ "갈라짐을 줄이지만 성능이 감소될지도 모릅니다."
-
-#~ msgid ""
-#~ "When using EFB to RAM we very often need to decode RAM data to a VRAM "
-#~ "texture, which is a very time-consuming task.\n"
-#~ "With this option enabled, we'll skip decoding a texture if it didn't "
-#~ "change.\n"
-#~ "This results in a nice speedup, but possibly causes glitches.\n"
-#~ "If you have any problems with this option enabled you should either try "
-#~ "increasing the safety of the texture cache or disable this option.\n"
-#~ "(NOTE: The safer the texture cache is adjusted the lower the speedup will "
-#~ "be; accurate texture cache set to \"safe\" might actually be slower!)"
-#~ msgstr ""
-#~ "'EFB를 램에'를 사용할 때 우리는 매우 자주 램 데이터를 비디오램 텍스처로 디"
-#~ "코딩할 필요가 있다, 이것은 매우 시간이 소비되는 작업이다.\n"
-#~ "이 옵션이 활성화되면, 텍스처가 변경되지 않었을 때 디코딩을 스킵할 것이"
-#~ "다.\n"
-#~ "이것은 훌륭한 속도향상을 가져온다, 하지만 결함들을 일으킬 수도 있다.\n"
-#~ "이 옵션을 켠 채로 어느 문제들이 생긴다면 텍스처 캐쉬의 안전성 증가시키기"
-#~ "를 시도해보거나 이 옵션을 꺼야한다.\n"
-#~ "(알아두기: 더 안전한 텍스처 캐쉬는 더 적은 속도상승이 생기게 조정된다; "
-#~ "\"안전\"으로 설정된 정확한 텍스처 캐쉬는 실제로 더 느려질 수도 있다!)"
-
-#~ msgid "Wiimote %i %s"
-#~ msgstr "위모트 %i %s"
-
-#~ msgid "Wiimote Settings"
-#~ msgstr "위모트 설정"
-
-#~ msgid "Will enable progressive scan option if supported by software."
-#~ msgstr "소프트에 의해 지원된다면 프로그레시브 스캔을 켭니다."
-
-#~ msgid "Window Size:"
-#~ msgstr "윈도우 크기:"
-
-#~ msgid "Window height for windowed mode"
-#~ msgstr "창모드에 대한 윈도우 높이"
-
-#~ msgid "Window width for windowed mode"
-#~ msgstr "창모드에 대한 윈도우 넓이"
-
-#~ msgid "XFB"
-#~ msgstr "XFB (외부프레임버퍼)"
-
-#~ msgid "Zelda Twilight Princess Bloom hack"
-#~ msgstr "Zelda Twilight Princess Bloom hack"
-
-#~ msgid "please someone fill this tooltip i have no idea what to say :D"
-#~ msgstr "누군가 이 툴팁을 채워주세요. 무엇을 말해야할지 모르겠네요 :D"

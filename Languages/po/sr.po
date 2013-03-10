@@ -1,21 +1,23 @@
 # Translation of dolphin-emu.pot to Serbian
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# nikolassj, 2011
 #
+# Translators:
+# nikolassj, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2011-03-02 21:58+0100\n"
-"Last-Translator: nikolassj\n"
-"Language-Team: \n"
-"Language: Serbian\n"
+"PO-Revision-Date: 2013-02-02 08:31+0000\n"
+"Last-Translator: delroth <delroth@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Serbian\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -594,14 +596,12 @@ msgid "All files (*.*)|*.*"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Onemoguci \"fog\". Poboljsava performans/brzinu ali uzrokuje bagove ..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "Alternate Wiimote Timing"
@@ -707,22 +707,19 @@ msgid "Auto adjust Window Size"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:73
-#, fuzzy
 msgid ""
 "Automatically adjusts the window size to your internal resolution.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Onemoguci \"fog\". Poboljsava performans/brzinu ali uzrokuje bagove ..."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:694
 msgid "B"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:752
-#, fuzzy
 msgid "BP register "
-msgstr "&Registri"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -734,9 +731,8 @@ msgstr ""
 
 #: Source/Plugins/Plugin_VideoSoftware/Src/VideoConfigDialog.cpp:60
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:207
-#, fuzzy
 msgid "Backend:"
-msgstr "Nazad "
+msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:318
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:95
@@ -851,9 +847,8 @@ msgid "C"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:77
-#, fuzzy
 msgid "C Stick"
-msgstr "C-Stick"
+msgstr ""
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:77
 msgid "C-Stick"
@@ -1442,9 +1437,8 @@ msgid "Delete the existing file '%s'?"
 msgstr "Obrisi postojeci fajl '%s'?"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:672
-#, fuzzy
 msgid "Description"
-msgstr "Pitanje "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:488
 msgid "Detect"
@@ -1487,9 +1481,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:434
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:476
-#, fuzzy
 msgid "Disable"
-msgstr "Onemoguci \"Fog\""
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:492
 msgid "Disable Fog"
@@ -1568,9 +1561,8 @@ msgid "Dolphin Emulated Wiimote Configuration"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:393
-#, fuzzy
 msgid "Dolphin FIFO"
-msgstr "Dolphin"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1138
 msgid "Dolphin GCPad Configuration"
@@ -2238,9 +2230,8 @@ msgid "Fifo Player"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:98
-#, fuzzy
 msgid "File Info"
-msgstr "Informacija o kodu "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/GeckoCodeDiag.cpp:303
 msgid "File contained no codes."
@@ -2373,9 +2364,8 @@ msgid "Frame Dumps use FFV1"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:226
-#, fuzzy
 msgid "Frame Info"
-msgstr "Informacija o kodu "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:115
 msgid "Frame Range"
@@ -2417,18 +2407,16 @@ msgid "FullScr"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:257
-#, fuzzy
 msgid "Fullscreen resolution:"
-msgstr "Rezolucija punog ekrana "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:532
 msgid "GCI File(*.gci)"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/GCMicDlg.h:44
-#, fuzzy
 msgid "GCMic Configuration"
-msgstr "Dolphin podesavanja/konfiguracija"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:432
 msgid "GCPad"
@@ -2505,9 +2493,8 @@ msgid "General"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:142
-#, fuzzy
 msgid "General Settings"
-msgstr "Opcije Uredjaja "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
@@ -2606,13 +2593,11 @@ msgid "Hide Mouse Cursor"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:75
-#, fuzzy
 msgid ""
 "Hides the mouse cursor if it's on top of the emulation window.\n"
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"Onemoguci \"fog\". Poboljsava performans/brzinu ali uzrokuje bagove ..."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:54
 msgid "Home"
@@ -2756,14 +2741,12 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:95
-#, fuzzy
 msgid ""
 "Improves performance but causes glitches in most games which rely on proper "
 "fog emulation.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Onemoguci \"fog\". Poboljsava performans/brzinu ali uzrokuje bagove ..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:354
 msgid "In Game"
@@ -2803,9 +2786,8 @@ msgid "Insert name here.."
 msgstr "Ubaci ime ovde..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:196
-#, fuzzy
 msgid "Install WAD"
-msgstr "Instaliraj Wii Meni "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:952
 msgid "Install to Wii Menu"
@@ -2863,9 +2845,8 @@ msgid "Internal LZO Error - lzo_init() failed"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:345
-#, fuzzy
 msgid "Internal Resolution:"
-msgstr "Rezolucija punog ekrana "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:256
 msgid "Interpreter (VERY slow)"
@@ -2953,13 +2934,11 @@ msgid "KOREA"
 msgstr "KOREA "
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:74
-#, fuzzy
 msgid ""
 "Keep the game window on top of all other windows.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Onemoguci \"fog\". Poboljsava performans/brzinu ali uzrokuje bagove ..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:299
 msgid "Keep window on top"
@@ -3048,9 +3027,8 @@ msgid "Load"
 msgstr "Ucitaj "
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:532
-#, fuzzy
 msgid "Load Custom Textures"
-msgstr "Ucitaj Hi-Res Textures "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:200
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:200
@@ -3097,14 +3075,13 @@ msgid "Load State..."
 msgstr "Ucitaj State"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1333
-#, fuzzy
 msgid "Load Wii System Menu"
-msgstr "Ucitaj Wii Sistem Meni (%d %c)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1328
-#, fuzzy, c-format
+#, c-format
 msgid "Load Wii System Menu %d%c"
-msgstr "Ucitaj Wii Sistem Meni (%d %c)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:107
 msgid ""
@@ -3205,9 +3182,8 @@ msgid "Memcard already opened"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:909
-#, fuzzy
 msgid "Memory Byte"
-msgstr "&Memorija"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:223
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:97
@@ -3681,9 +3657,8 @@ msgid "Pause at end of movie"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:398
-#, fuzzy
 msgid "Per-Pixel Lighting"
-msgstr "Onemoguci \"Lighting\""
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:356
 msgid "Perfect"
@@ -3716,9 +3691,8 @@ msgid "Playable"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:153
-#, fuzzy
 msgid "Playback Options"
-msgstr "Opcije "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:284
 msgid "Players"
@@ -3883,14 +3857,12 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:192
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:216
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:788
-#, fuzzy
 msgid "Record"
-msgstr "Pokreni snimanje "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:173
-#, fuzzy
 msgid "Recording Info"
-msgstr "Pokreni snimanje "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:201
 msgid "Recording Options"
@@ -4075,9 +4047,9 @@ msgid "Scaled EFB Copy"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:613
-#, fuzzy, c-format
+#, c-format
 msgid "Scanning %s"
-msgstr "Skeniranje..."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:596
 msgid "Scanning for ISOs"
@@ -4096,9 +4068,8 @@ msgid "Scroll Lock"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:263
-#, fuzzy
 msgid "Search"
-msgstr "Trazi Chit"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:226
 msgid "Search Filter"
@@ -4133,19 +4104,15 @@ msgid "Select The Recording File"
 msgstr "Izaberi Snimani fajl"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1286
-#, fuzzy
 msgid "Select a Wii WAD file to install"
-msgstr "Izaberi \"Snimani fajl/Save file\" za importovanje "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Select a hardware adapter to use.\n"
 "\n"
 "If unsure, use the first one."
 msgstr ""
-"Izaberi hardware adapter za koriscenje.\n"
-"Ako neznas, izaberi prvi"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:518
 msgid "Select a save file to import"
@@ -4272,9 +4239,8 @@ msgid "Short Name:"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:103
-#, fuzzy
 msgid "Shoulder Buttons"
-msgstr "Tasteri"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:217
 msgid "Show &Console"
@@ -4442,9 +4408,8 @@ msgid "Size"
 msgstr "Velicina"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:699
-#, fuzzy
 msgid "Skip BIOS"
-msgstr "Preskoci GC BIOS"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid "Skip DCBZ clearing"
@@ -4682,14 +4647,12 @@ msgid "Test"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:435
-#, fuzzy
 msgid "Texture"
-msgstr "Tacan \"Texture Cache\""
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:452
-#, fuzzy
 msgid "Texture Cache"
-msgstr "Tacan \"Texture Cache\""
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:520
 msgid "Texture Format Overlay"
@@ -4924,9 +4887,9 @@ msgid "UNKNOWN"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:753
-#, fuzzy, c-format
+#, c-format
 msgid "UNKNOWN_%02X"
-msgstr "(NEPOZNAT/O)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:183
 msgid "USA"
@@ -5002,9 +4965,8 @@ msgid "Use EuRGB60 Mode (PAL60)"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:287
-#, fuzzy
 msgid "Use Fullscreen"
-msgstr "&Pun Ekran"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:574
 msgid "Use Hex"
@@ -5207,9 +5169,9 @@ msgid "Wiimote"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:28
-#, fuzzy, c-format
+#, c-format
 msgid "Wiimote %i"
-msgstr "&Wiimote Opcije"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:123
 #, c-format
@@ -5233,9 +5195,8 @@ msgid "Wiimote settings"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:55
-#, fuzzy
 msgid "Wiimotes"
-msgstr "&Wiimote Opcije"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:134
 msgid "Windows Left"
@@ -5448,70 +5409,3 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| ILI"
-
-#~ msgid "(Default)"
-#~ msgstr "(Default) "
-
-#~ msgid "3D Vision (Requires Fullscreen)"
-#~ msgstr "3D Vizija (Treba \"Pun Ekran\")"
-
-#~ msgid "Auto [recommended]"
-#~ msgstr "Auto [preporuceno]"
-
-#~ msgid "Clear failed."
-#~ msgstr "\"Clear\" nije uspeo "
-
-#~ msgid "Copy"
-#~ msgstr "Kopiraj "
-
-#~ msgid "Danish"
-#~ msgstr "Danski"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Onemoguci \"Lighting\""
-
-#~ msgid "Disable Textures"
-#~ msgstr "Onemoguci \"Textures\" "
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Onemoguci texturing.\n"
-#~ "Ovo je samo za developere itd..."
-
-#~ msgid ""
-#~ "Disables an alpha-setting pass.\n"
-#~ "Breaks certain effects but might help performance."
-#~ msgstr ""
-#~ "Onemoguci alpha-setting pass.\n"
-#~ "Onemogucava neke efekte ali moze pomoci performansu/brzini"
-
-#, fuzzy
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Ucitaj Native Mipmaps"
-
-#~ msgid "GFX Config"
-#~ msgstr "GFX podesavanja"
-
-#, fuzzy
-#~ msgid "Hide Shader Errors"
-#~ msgstr "Error tokom ucitavanje diska"
-
-#, fuzzy
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Onemoguci \"lighting\". Poboljsava performans/brzinu ali uzrokuje da "
-#~ "\"lightning\" nestane u igrama koje ga koriste."
-
-#~ msgid "OK"
-#~ msgstr "OK"
-
-#~ msgid "Select resolution for fullscreen mode"
-#~ msgstr "Izaberi rezoluciju za pun ekran "
-
-#~ msgid "XFB"
-#~ msgstr "XFB"

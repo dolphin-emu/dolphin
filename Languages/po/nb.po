@@ -1,23 +1,22 @@
 # Translation of dolphin-emu.pot to Norwegian Bokmaal
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# Knut <e-k-nut@hotmail.com>, 2011
 #
+# Translators:
+# Knut <e-k-nut@hotmail.com>, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2013-01-16 21:40-0600\n"
-"Last-Translator: Knut <e-k-nut@hotmail.com>\n"
-"Language-Team: Norwegian <e-k-nut@hotmail.com>\n"
-"Language: Norwegian Bokmaal\n"
+"PO-Revision-Date: 2013-02-02 08:31+0000\n"
+"Last-Translator: delroth <delroth@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: nb\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Norwegian Bokmal\n"
-"X-Poedit-Country: NORWAY\n"
-"X-Poedit-Bookmarks: -1,-1,-1,-1,-1,-1,24,-1,-1,-1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -58,9 +57,9 @@ msgid "%1$sCopy%1$s"
 msgstr "%1$sKopier%1$s"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:10
-#, fuzzy, c-format
+#, c-format
 msgid "%i connected"
-msgstr "Frakoblet"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:128
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:296
@@ -74,22 +73,18 @@ msgid "%s failed to be scrubbed. Probably the image is corrupt."
 msgstr "%s mislykket i å skrubbe. Sannsynligvis er bildefilen korrupt."
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:95
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
 " Card file size is invalid (0x%x bytes)"
 msgstr ""
-"Minnekort mislyktes i å lastes\n"
-" Kortstørrelse er ugyldig (%04X)"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:110
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
 " Card size is invalid (0x%x bytes)"
 msgstr ""
-"Minnekort mislyktes i å lastes\n"
-" Kortstørrelse er ugyldig (%04X)"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:90
 #, c-format
@@ -369,14 +364,11 @@ msgid "A game is not currently running."
 msgstr "Det kjøres ingen spill nå."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
-"Et støttet bluetooh-device ble ikke funnet!\n"
-"(Kun Microsoft bluetooth stack støttes.)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -440,7 +432,6 @@ msgid "Accurate VBeam emulation"
 msgstr "Nøyaktig VBeam-emulering"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:92
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -448,11 +439,6 @@ msgid ""
 "\n"
 "If unsure, check EFB to Texture instead."
 msgstr ""
-"Nøyaktig emuler EFB-kopier.\n"
-"Noen spill krever dette for visse grafiske effekter eller gameplay-"
-"funksjonalitet.\n"
-"\n"
-"Hvis usikker, velg EFB til tekstur isteden."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:239
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:239
@@ -515,12 +501,11 @@ msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Action Replay Feil: Ugyldig verdi (%08x) i Minnekopi (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
-"Action Replay Feil: Master Code og Skriv Til CCXXXXXXikke implementert (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -627,14 +612,12 @@ msgid "Advanced Settings"
 msgstr "Avanserte Innstillinger"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:584
-#, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
-msgstr "Alle GC/Wii-filer (elf, dol, gcm, iso, ciso, gcz, wad)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:800
-#, fuzzy
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
-msgstr "Alle GC/Wii-bildefiler (gcm, iso, ciso, wad)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1247
 msgid "All Gamecube GCM files (gcm)"
@@ -658,22 +641,16 @@ msgid "All files (*.*)|*.*"
 msgstr "Alle filer (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Tillater flipping av visse alternativer via tastene 3, 4, 5, 6 og 7 innenfor "
-"emulatorvinduet.\n"
-"\n"
-"Hvis usikker, la stå avslått."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
-#, fuzzy
 msgid "Alternate Wiimote Timing"
-msgstr "Emulert Wiimote"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:284
 msgid "Analyze"
@@ -796,9 +773,8 @@ msgid "B"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:752
-#, fuzzy
 msgid "BP register "
-msgstr "&Registre"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -926,9 +902,8 @@ msgid "C"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:77
-#, fuzzy
 msgid "C Stick"
-msgstr "C-joystick"
+msgstr ""
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:77
 msgid "C-Stick"
@@ -977,14 +952,12 @@ msgid "Cannot unregister events with events pending"
 msgstr "Kan ikke avregistrere events med events under behandling"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1062
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
 "%s\n"
 "is not a valid gamecube memory card file"
 msgstr ""
-"Kan ikke bruke den filen som et minnekort.\n"
-"Prøver du å bruke samme fil i begge slotter?"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1092
 msgid ""
@@ -1808,16 +1781,13 @@ msgid "EFB Copies"
 msgstr "EFB-kopier"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
 "version %d.%d -- If you recently upgraded your Dolphin distribution, a "
 "reboot is probably required at this point to get Windows to see the new "
 "driver."
 msgstr ""
-"FEIL: Denne versjonen av Dolphin krever en TAP-Win32-driver som er av siste "
-"versjon %d.%d -- Hvis du nylig oppgraderte din Dolphin-distribusjon, kreves "
-"sannsynligvis en restart for at Windows skal se den nye driveren."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:171
 msgid "EUROPE"
@@ -2326,24 +2296,21 @@ msgid "Failed to load hid.dll"
 msgstr "Kunne ikke laste hid.dll"
 
 #: Source/Core/Core/Src/Movie.cpp:792
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read %s"
-msgstr "Kunne ikke skrive header for %s"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:151
 msgid "Failed to read banner.bin"
 msgstr "Kunne ikke lese banner.bin"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:223
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to read block %d of the save data\n"
 "Memcard may be truncated\n"
 "FilePosition:%llx"
 msgstr ""
-"Kunne ikke lese lagringsdata\n"
-"(0xA000-)\n"
-"Minnekortet kan være trunkert"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:148
 msgid ""
@@ -2587,9 +2554,8 @@ msgid "Frame Dumps use FFV1"
 msgstr "Spillopptak bruker FFV1"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:226
-#, fuzzy
 msgid "Frame Info"
-msgstr "Stillbilde"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:115
 msgid "Frame Range"
@@ -2639,9 +2605,8 @@ msgid "GCI File(*.gci)"
 msgstr "GCI Fil(*.gci)"
 
 #: Source/Core/DolphinWX/Src/GCMicDlg.h:44
-#, fuzzy
 msgid "GCMic Configuration"
-msgstr "Konfigurer Logg"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:432
 msgid "GCPad"
@@ -2702,15 +2667,13 @@ msgid "Gecko Codes"
 msgstr "Gecko-juksekoder"
 
 #: Source/Core/Core/Src/GeckoCode.cpp:222
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
 "(either a bad code or the code type is not yet supported. Try using the "
 "native code handler by placing the codehandler.bin file into the Sys "
 "directory and restarting Dolphin.)"
 msgstr ""
-"GeckoKode mislyktes i å kjøre (CT%i CST%i) (%s)\n"
-"(Enten en dårlig kode, eller så støttes ikke kodeformatet.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:172
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:172
@@ -2747,7 +2710,6 @@ msgid "Greater Than"
 msgstr "Større Enn"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:83
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -2757,12 +2719,6 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"Øker kvaliteten på teksturer generert ved å bruke render-til-tekstur-"
-"effekter.\n"
-"Å øke den interne oppløsningen vil øke effekten av denne innstillingen.\n"
-"Senker ytelsen noe og kan (usannsynligvis) skape små feil.\n"
-"\n"
-"Hvis usikker, la stå på."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:304
 msgid "Greek"
@@ -2937,15 +2893,11 @@ msgstr ""
 "Kompitabelt, AV = Raskt)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:490
-#, fuzzy
 msgid ""
 "If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use "
 "Audio to throttle using the DSP (might fix audio clicks but can also cause "
 "constant noise depending on the game)."
 msgstr ""
-"Hvis du setter Framelimit høyere enn spillets fulle hastighet (NTSC:60, "
-"PAL:50), må du også deaktivere Audio Throttle i DSP-innstillingene for å "
-"gjøre endringen effektiv."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:429
 msgid "Ignore Format Changes"
@@ -3209,15 +3161,11 @@ msgid "KOREA"
 msgstr "KOREA"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:74
-#, fuzzy
 msgid ""
 "Keep the game window on top of all other windows.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Gjemmer musepekeren hvis den er over emulasjonsvinduet.\n"
-"\n"
-"Hvis usikker, la stå på."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:299
 msgid "Keep window on top"
@@ -3404,16 +3352,12 @@ msgid "Log Types"
 msgstr "Loggtyper"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
-#, fuzzy
 msgid ""
 "Log the number of frames rendered per second to User/Logs/fps.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Vis antall bilder rendert per sekund som et mål på emulasjonsfart.\n"
-"\n"
-"Hvis usikker, la stå avslått."
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:80
 msgid "Logger Outputs"
@@ -4164,9 +4108,8 @@ msgid "Real Wiimote"
 msgstr "Ekte Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:79
-#, fuzzy
 msgid "Real Wiimotes"
-msgstr "Ekte Wiimote"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:124
 msgid "Reconnect Wiimote Confirm"
@@ -4399,9 +4342,8 @@ msgid "Scroll Lock"
 msgstr "Scroll Lock"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:263
-#, fuzzy
 msgid "Search"
-msgstr "Juksekodesøk"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:226
 msgid "Search Filter"
@@ -4412,9 +4354,8 @@ msgid "Search Subfolders"
 msgstr "Søk i Undermapper"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:249
-#, fuzzy
 msgid "Search current Object"
-msgstr "Lagre nåværende perspektiv"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:253
 msgid "Search for hex Value:"
@@ -4493,9 +4434,8 @@ msgstr ""
 "Hvis usikker, velg Automatisk."
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "Den spesifiserte filen \"%s\" eksisterer ikke"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -4595,9 +4535,8 @@ msgid "Short Name:"
 msgstr "Kortnavn:"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:103
-#, fuzzy
 msgid "Shoulder Buttons"
-msgstr "Knapper"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:217
 msgid "Show &Console"
@@ -4711,9 +4650,8 @@ msgid "Show first block"
 msgstr "Vis første blokk"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:130
-#, fuzzy
 msgid "Show lag counter"
-msgstr "Vis lagringskommentar"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
 msgid ""
@@ -5005,9 +4943,8 @@ msgstr "TAIWAN"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:127
 #: Source/Core/DolphinWX/Src/TASInputDlg.h:32
-#, fuzzy
 msgid "TAS Input"
-msgstr "Inndata"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:28
 msgid "Tab"
@@ -5111,17 +5048,12 @@ msgid "The resulting decrypted AR code doesn't contain any lines."
 msgstr "Den dekrypterte AR-koden inneholder ingen linjer."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:93
-#, fuzzy
 msgid ""
 "The safer you adjust this, the less likely the emulator will be missing any "
 "texture updates from RAM.\n"
 "\n"
 "If unsure, use the rightmost value."
 msgstr ""
-"Jo tryggere du setter denne, jo mindre sannsynlig er det at emulatoren "
-"mangler noen teksturoppdateringer fra RAM.\n"
-"\n"
-"Hvis usikker, bruk den andre-raskeste verdien fra høyre."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:443
 msgid "The save you are trying to copy has an invalid file size"
@@ -5160,9 +5092,8 @@ msgid "The value is invalid"
 msgstr "Verdien er ugyldig"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:626
-#, fuzzy
 msgid "Theme:"
-msgstr "Tema"
+msgstr ""
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
@@ -5192,7 +5123,6 @@ msgid "This could cause slow down in Wii Menu and some games."
 msgstr "Dette kan føre til ytelsesreduksjon i Wii Meny og noen spill."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5203,13 +5133,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Denne funksjonen tillater deg å endre spillets kameraposisjon.\n"
-"Hold nede høyre museknapp og flytt musen for å snu på kameraet. Hold nede "
-"SHIFT og press en av tastene WASD for å flytte kameraet en viss distanse "
-"(SHIFT + 0 for å flytte raskere og SHIFT + 9 for å flytte saktere). Trykk "
-"SHIFT + R for å resette kameraet.\n"
-"\n"
-"Hvis usikker, la stå avslått."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
 msgid ""
@@ -5311,9 +5234,9 @@ msgid "UNKNOWN"
 msgstr "UKJENT"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:753
-#, fuzzy, c-format
+#, c-format
 msgid "UNKNOWN_%02X"
-msgstr "UKJENT"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:183
 msgid "USA"
@@ -5473,9 +5396,8 @@ msgid "WAD installation failed: error creating %s"
 msgstr "WAD-installasjon feilet: Skaper feil %s"
 
 #: Source/Core/DiscIO/Src/NANDContentLoader.cpp:547
-#, fuzzy
 msgid "WAD installation failed: error creating ticket"
-msgstr "WAD-installasjon feilet: Skaper feil %s"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:80
 msgid ""
@@ -5613,9 +5535,9 @@ msgid "Wiimote"
 msgstr "Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:28
-#, fuzzy, c-format
+#, c-format
 msgid "Wiimote %i"
-msgstr "Wiimote"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:123
 #, c-format
@@ -5643,9 +5565,8 @@ msgid "Wiimote settings"
 msgstr "Innstillinger for Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:55
-#, fuzzy
 msgid "Wiimotes"
-msgstr "Wiimote"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:134
 msgid "Windows Left"
@@ -5675,9 +5596,8 @@ msgid "Write to Console"
 msgstr "Skriv til Konsoll"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:66
-#, fuzzy
 msgid "Write to Debugger"
-msgstr "Skriv til Fil"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:56
 msgid "Write to File"
@@ -5880,697 +5800,3 @@ msgstr "zNear Korreksjon: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| ELLER"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
-
-#~ msgid "%d Hz"
-#~ msgstr "%d Hz"
-
-#~ msgid "&Frame Stepping"
-#~ msgstr "&Bilde-etter-bilde Modus"
-
-#~ msgid "(Default)"
-#~ msgstr "(Standard)"
-
-#~ msgid "3D Vision (Requires Fullscreen)"
-#~ msgstr "3D Vision (Krever fullskjerm)"
-
-#~ msgid "< as Default Profile >"
-#~ msgstr "< som Standardprofil >"
-
-#, fuzzy
-#~ msgid "AOSound"
-#~ msgstr "&Lyd"
-
-#~ msgid "Accurate Texture Cache"
-#~ msgstr "Nøyaktig Tekstur-Cache"
-
-#, fuzzy
-#~ msgid "Adjust window size"
-#~ msgstr "Vindusstørrelse:"
-
-#~ msgid ""
-#~ "Allows the CPU to read or write to the EFB (render buffer).\n"
-#~ "This is needed for certain gameplay functionality (e.g. star pointer in "
-#~ "Super Mario Galaxy) as well as for certain visual effects (e.g. Monster "
-#~ "Hunter Tri),\n"
-#~ "but enabling this option can also have a huge negative impact on "
-#~ "performance if the game uses this functionality heavily."
-#~ msgstr ""
-#~ "Tillater CPU-en å lese og skrive til EFB (renderingsbufferen).\n"
-#~ "Dette trengs for at enkelte funksjoner i spill skal fungere skikkelig (f."
-#~ "eks. stjernesiktet i Super Mario Galaxy) i tillegg til noen spills "
-#~ "visuelle effekter (F.eks. Monster Hunter Tri),\n"
-#~ " men å aktivere dette alternativet kan også ha negativ innvirkning på "
-#~ "ytelsen om spillet bruker funksjonen mye."
-
-#~ msgid "Alternate RFI"
-#~ msgstr "Alternativ RFI"
-
-#~ msgid "Auto [recommended]"
-#~ msgstr "Automatisk [anbefalt]"
-
-#~ msgid ""
-#~ "Auto size the window to match the game's output resolution adjusted by "
-#~ "the EFB scale.\n"
-#~ "It is best to set the aspect ratio to stretch when using this."
-#~ msgstr ""
-#~ "Automatisk juster vindusstørrelsen til å matche spillets oppløsning "
-#~ "justert med EFB-skalering.\n"
-#~ "Det er best å sette aspektratioen til strekk når dette benyttes."
-
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Automatisk generer mipmaps isteden for å dekode dem fra minne.\n"
-#~ "Øker ytelsen litt, men kan forårsake mindre teksturkorrupsjoner.\n"
-#~ "\n"
-#~ "Hvis usikker, la stå på."
-
-#~ msgid "Bleach Versus Crusade"
-#~ msgstr "Bleach Versus Crusade"
-
-#~ msgid ""
-#~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-#~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-#~ "depth calculations are necessary to properly emulate a small number of "
-#~ "games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Kalkuler dybdeverdier for 3D-grafikk per-piksel istedenfor per punkt.\n"
-#~ "I motsetning til pikselbelysning (som er en forbedring), så er per-piksel "
-#~ "dybdekalkuleringer nødvendige for å nøyaktig emulere en liten mengde "
-#~ "spill.\n"
-#~ "\n"
-#~ "Hvis usikker, la stå på."
-
-#~ msgid ""
-#~ "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
-#~ "vertex.\n"
-#~ "This is the more accurate behavior but reduces performance."
-#~ msgstr ""
-#~ "Kalkuler lys for 3D grafikk på et per-pixel nivå istedenfor per hjørne.\n"
-#~ "Dette er mer nøyaktig oppførsel, men reduserer ytelse."
-
-#~ msgid "Clear failed."
-#~ msgstr "Klarering feilet."
-
-#~ msgid "Config..."
-#~ msgstr "Konfigurasjon..."
-
-#~ msgid "Configuration profile"
-#~ msgstr "Konfigurasjonsprofil"
-
-#~ msgid "Configuration profile:"
-#~ msgstr "Konfigurasjonsprofil:"
-
-#~ msgid "Connected"
-#~ msgstr "Tilkoblet"
-
-#~ msgid "Connected to %i Wiimotes"
-#~ msgstr "Koblet til %i Wiimote-er"
-
-#~ msgid "Copy"
-#~ msgstr "Kopier"
-
-#~ msgid "Could not copy %s to %s"
-#~ msgstr "Kunne ikke kopiere %s til %s"
-
-#, fuzzy
-#~ msgid "Could not get info about plugin %s"
-#~ msgstr "Kunne ikke lage %s"
-
-#~ msgid "Created by KDE-Look.org"
-#~ msgstr "Laget av KDE-Look.org"
-
-#~ msgid ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-#~ msgstr ""
-#~ "Laget av Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-
-#~ msgid "Created by VistaIcons.com"
-#~ msgstr "Laget av VistaIcons.com"
-
-#~ msgid ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-#~ msgstr "Laget av black_rider og publisert på ForumW.org > Web Developments"
-
-#~ msgid "DList Cache"
-#~ msgstr "DList Cache"
-
-#, fuzzy
-#~ msgid "DSound"
-#~ msgstr "&Lyd"
-
-#~ msgid "Danish"
-#~ msgstr "Dansk"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Deaktiver lyseffekter"
-
-#~ msgid "Disable Per-Pixel Depth"
-#~ msgstr "Deaktiver Per-Pikseldybde"
-
-#~ msgid "Disable Textures"
-#~ msgstr "Deaktiver teksturer"
-
-#~ msgid "Disable Wiimote Speaker"
-#~ msgstr "Deaktiver Wiimote-høytaler"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Deaktiver teksturer.\n"
-#~ "\n"
-#~ "Hvis usikker, la stå avslått."
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Deaktiverer teksturer.\n"
-#~ "Dette er kun nyttig for feilsøking."
-
-#~ msgid ""
-#~ "Disables an alpha-setting pass.\n"
-#~ "Breaks certain effects but might help performance."
-#~ msgstr ""
-#~ "Deaktiverer alpha-setting pass.\n"
-#~ "ødelegger enkelte effekter, men kan hjelpe på ytelsen."
-
-#~ msgid "Distance Alpha Pass"
-#~ msgstr "Avstand Alpha Pass"
-
-#, fuzzy
-#~ msgid "Dolphin OpenGL"
-#~ msgstr "Dolphin FIFO"
-
-#~ msgid ""
-#~ "Dolphin has not been configured with an install location,\n"
-#~ "Keep Dolphin portable?"
-#~ msgstr ""
-#~ "Dolphin har ikke blitt konfigurert med en innstallasjonsmappe,\n"
-#~ "Behold Dolphin bærbar?"
-
-#~ msgid "EFB"
-#~ msgstr "EFB"
-
-#~ msgid ""
-#~ "Emulate frame buffer copies directly to textures.\n"
-#~ "This is not so accurate, but it's good enough for the way many games use "
-#~ "framebuffer copies."
-#~ msgstr ""
-#~ "Emuler skjermbufferkopiering direkte til teksturer.\n"
-#~ "Dette er ikke så nøyaktig, men det er bra nok for måten mange spill "
-#~ "benytter skjermbufferkopier."
-
-#~ msgid "Emulator Display Settings"
-#~ msgstr "Innstillinger for Emulasjonsvisning"
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "Aktiver Audio Throttle"
-
-#~ msgid "Enable BAT"
-#~ msgstr "Aktiver BAT"
-
-#~ msgid "Enable CPU Access"
-#~ msgstr "Aktiver CPU Access"
-
-#~ msgid "Enable Copy to EFB"
-#~ msgstr "Aktiver kopiering til EFB"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "Aktiver DTK-musikk"
-
-#~ msgid "Enable EFB To Texture"
-#~ msgstr "Aktiver EFB Til Tekstur"
-
-#~ msgid "Enable HLE Audio"
-#~ msgstr "Aktiver HLE Audio"
-
-#~ msgid "Enable JIT Dynarec"
-#~ msgstr "Aktiver JIT Dynarec"
-
-#~ msgid "Enable OpenCL"
-#~ msgstr "Aktiver OpenCL"
-
-#~ msgid "Enable Screen Saver (burn-in reduction)"
-#~ msgstr "Aktiver Skjermsparer (reduserer bildeinnbrenning)"
-
-#~ msgid ""
-#~ "Enables Block Address Translation (BAT); a function of the Memory "
-#~ "Management Unit. Accurate to the hardware, but slow to emulate. (ON = "
-#~ "Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Tillater Block Adress Translation (BAT); en funksjon av Memory Management "
-#~ "Unit (MMU). Nøyaktig for maskinvaren, men treg å emulere. (PÅ = "
-#~ "Kompitabelt, AV = Raskt)"
-
-#~ msgid ""
-#~ "Enables dynamic recompilation of DSP code.\n"
-#~ "Changing this will have no effect while the emulator is running!"
-#~ msgstr ""
-#~ "Tillater dynamisk rekompilering av DSP kode.\n"
-#~ "Endring av dette vil ikke ha noen effekt mens emulatoren er i gang!"
-
-#~ msgid ""
-#~ "Enables emulation of Embedded Frame Buffer copies, if the game uses "
-#~ "them.\n"
-#~ "Games often need this for post-processing or other things, but if you can "
-#~ "live without it, you can sometimes get a big speedup."
-#~ msgstr ""
-#~ "Tillater emulering av Embedded Frame Buffer-kopier, om spillet benytter "
-#~ "dem.\n"
-#~ "Spill trenger dette ofte for postprosessering eller andre ting, men du "
-#~ "kan leve uten, og noen ganger oppleve kraftig økt ytelse."
-
-#~ msgid ""
-#~ "Enables reinterpreting the data inside the EFB when the pixel format "
-#~ "changes.\n"
-#~ "Some games depend on this function for certain effects, so enable it if "
-#~ "you're having glitches.\n"
-#~ "Depending on how the game uses this function, the speed hits caused by "
-#~ "this option range from none to critical."
-#~ msgstr ""
-#~ "Tillater tolkning av dataen i EFB når pikselformatet endres.\n"
-#~ "Noen spill trenger denne funksjonen for enkelte effekter, så aktiver "
-#~ "denne hvis du opplever feil.\n"
-#~ "Avhengig av hvordan spillet bruker denne funksjonen, kan "
-#~ "ytelsespåvirkningen variere fra ingen til kritisk."
-
-#~ msgid "Error opening file %s for recording"
-#~ msgstr "Feil ved åpning av fil %s for opptak"
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Avslutt Dolphin med emulator"
-
-#~ msgid ""
-#~ "Failed to load DSP ROM:\n"
-#~ "%s\n"
-#~ "This file is required to use DSP LLE"
-#~ msgstr ""
-#~ "Lasting av DSP ROM mislyktes:\n"
-#~ "%s\n"
-#~ "Denne filen kreves for å bruke DSP LLE."
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Raske Mipmaps"
-
-#~ msgid ""
-#~ "Faster variants look at fewer pixels and thus have more potential for "
-#~ "errors.\n"
-#~ "Slower variants look at more pixels and thus are safer."
-#~ msgstr ""
-#~ "Raskere variant som ser på færre piksler, men har større potensiell for "
-#~ "feil.\n"
-#~ "Tregere variant som ser på flere piksler, og er dermed mer nøyaktig."
-
-#~ msgid "Force Bi/Trilinear Filtering"
-#~ msgstr "Tving Bi/Trilineær Filtrering"
-
-#~ msgid "Fractional"
-#~ msgstr "Desimal"
-
-#~ msgid ""
-#~ "Fully emulate embedded frame buffer copies.\n"
-#~ "This is more accurate than EFB Copy to Texture, and some games need this "
-#~ "to work properly, but it can also be very slow."
-#~ msgstr ""
-#~ "Fullstendig emuler Embedded Frame Buffer-kopier.\n"
-#~ "Dette er mer nøyaktig enn EFB-kopiering til tekstur, og noen spill krever "
-#~ "dette for å fungere skikkelig, men det kan også være tregt."
-
-#~ msgid "GFX Config"
-#~ msgstr "GFX Konfig"
-
-#, fuzzy
-#~ msgid "Graphics Plugin"
-#~ msgstr "Grafikk"
-
-#~ msgid "Hide Shader Errors"
-#~ msgstr "Gjem Shader-feil"
-
-#~ msgid ""
-#~ "Hide the cursor when it is over the rendering window and the rendering "
-#~ "window has focus."
-#~ msgstr ""
-#~ "Gjem musepekeren når den er over renderingsvinduet, og renderingsvinduet "
-#~ "er i fokus."
-
-#~ msgid ""
-#~ "If a game hangs, works only in the Interpreter or Dolphin crashes, this "
-#~ "option may fix the game."
-#~ msgstr ""
-#~ "Hvis et spill fryser til, fungerer kun i Interpreter-modus, eller Dolphin "
-#~ "krasjer, kan dette alternativet muligens fikse spillet."
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Øker ytelsen, men forårsaker at lys forsvinner i de fleste spill.\n"
-#~ "\n"
-#~ "Hvis usikker, la stå avslått."
-
-#~ msgid "Input Source"
-#~ msgstr "Kilde For Inndata"
-
-#~ msgid "Install directory could not be saved"
-#~ msgstr "Innstallasjonsmappen kunne ikke bli lagret"
-
-#~ msgid "Installing WAD to Wii Menu..."
-#~ msgstr "Installer WAD til Wii Meny..."
-
-#~ msgid "Integral [recommended]"
-#~ msgstr "Heltallig [anbefalt]"
-
-#~ msgid ""
-#~ "Keeps track of textures based on looking at the actual pixels in the "
-#~ "texture.\n"
-#~ "Can cause slowdown, but some games need this option enabled to work "
-#~ "properly."
-#~ msgstr ""
-#~ "Holder orden på teksturer basert på det faktiske antall piksler i "
-#~ "teksturen.\n"
-#~ "Kan skade ytelsen, men noen spill krever dette for å fungere skikkelig."
-
-#~ msgid "Load Script..."
-#~ msgstr "Last Inn Skript..."
-
-#~ msgid ""
-#~ "Loads native mipmaps instead of generating them.\n"
-#~ "Loading native mipmaps is the more accurate behavior, but might also "
-#~ "decrease performance (your mileage might vary though)."
-#~ msgstr ""
-#~ "Laster opprinnelige mipmaps istedenfor å generere dem.\n"
-#~ "Å laste mipmaps er den nøyaktigste oppførserselen i forhold til GC/Wii, "
-#~ "men det kan redusere ytelsen."
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "Laster den spesifiserte filen (DOL,ELF,WAD,GCM,ISO)"
-
-#~ msgid "Lock Threads to Cores"
-#~ msgstr "Lås CPU-tråder til Kjerner"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Lavt level emulert (LLE) eller høyt level (HLE) audio"
-
-#~ msgid "Lua Script Console"
-#~ msgstr "Lua Script-Konsoll"
-
-#~ msgid "Metroid Other M"
-#~ msgstr "Metroid Other M"
-
-#~ msgid ""
-#~ "Modify textures to show the format they're using.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Modifiser teksturer til å vise formatet de benytter.\n"
-#~ "Dette er kun nyttig for feilsøking."
-
-#~ msgid "New &Lua Console"
-#~ msgstr "Ny &Lua-konsoll"
-
-#~ msgid "Normal"
-#~ msgstr "Normal"
-
-#~ msgid "OK"
-#~ msgstr "OK"
-
-#, fuzzy
-#~ msgid "OpenAL"
-#~ msgstr "Åpne"
-
-#, fuzzy
-#~ msgid "OpenGL"
-#~ msgstr "Åpne"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "Åpner debuggeren"
-
-#~ msgid "Opens the logger"
-#~ msgstr "Åpner loggeren"
-
-#~ msgid "Plugins"
-#~ msgstr "Programvareutvidelser"
-
-#~ msgid ""
-#~ "Portable Setting could not be saved\n"
-#~ " Are you running Dolphin from read only media or from a directory that "
-#~ "dolphin is not located in?"
-#~ msgstr ""
-#~ "Bærbare Instillinger kunne ikke lagres\n"
-#~ " Kjører du Dolphin fra et kun-les media, eller fra en mappe som Dolphin "
-#~ "ikke ligger i?"
-
-#~ msgid "Projection Stats"
-#~ msgstr "Projeksjonsstatistikk"
-
-#~ msgid "Relaunch Dolphin from the install directory and save from there"
-#~ msgstr "Restart Dolphin fra installasjonsmappen og lagre derfra"
-
-#~ msgid "Render to main window."
-#~ msgstr "Render til hovedvindu."
-
-#~ msgid "Rendering"
-#~ msgstr "Renderer"
-
-#~ msgid "Required for using the Japanese ROM font."
-#~ msgstr "Kreves for å bruke den japanske ROM-fonten."
-
-#, fuzzy
-#~ msgid "Run"
-#~ msgstr "Tilbake"
-
-#~ msgid "Running script...\n"
-#~ msgstr "Kjører skript...\n"
-
-#~ msgid "Sample Rate:"
-#~ msgstr "Samplingsratio:"
-
-#~ msgid "Scale:"
-#~ msgstr "Skala:"
-
-#~ msgid "Select resolution for fullscreen mode"
-#~ msgstr "Velg oppløsning for fullskjermsmodus"
-
-#~ msgid ""
-#~ "Select the System Menu wad extracted from the update partition of a disc"
-#~ msgstr ""
-#~ "Velg en Wii System Menu WAD-fil ekstraktert fra en oppdateringpartisjon "
-#~ "på en Wii-disk."
-
-#~ msgid "Select the script to load"
-#~ msgstr "Velg et skript å laste"
-
-#~ msgid ""
-#~ "Selects which game should be affected by the configuration changes done "
-#~ "in this dialog.\n"
-#~ "The (Default) profile affects the standard settings used for every game."
-#~ msgstr ""
-#~ "Velg hvilket spill som skal affekteres av konfigurasjonsendringene gjort "
-#~ "i denne dialog.\n"
-#~ "(Standard)profilen affekterer standardinnstillingene brukt for hvert "
-#~ "spill."
-
-#~ msgid "Set All to Default"
-#~ msgstr "Resett Alle Instillinger"
-
-#~ msgid ""
-#~ "Set install location to:\n"
-#~ " %s ?"
-#~ msgstr ""
-#~ "Sett innstallasjonsmappe til:\n"
-#~ " %s?"
-
-#~ msgid ""
-#~ "Show projection statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Vis projeksjonsstatistikker.\n"
-#~ "Dette er kun nyttig for feilsøing."
-
-#~ msgid "Show save banner"
-#~ msgstr "Vis lagringsbanner."
-
-#~ msgid "Show the number of frames rendered per second."
-#~ msgstr "Vis antall bilder rendert per sekund (FPS)."
-
-#~ msgid "Show this help message"
-#~ msgstr "Vis denne hjelpemelding"
-
-#~ msgid ""
-#~ "Show various statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Vis diverse statistikker.\n"
-#~ "Dette er kun nyttig for feilsøking."
-
-#~ msgid "Skies of Arcadia"
-#~ msgstr "Skies of Arcadia"
-
-#, fuzzy
-#~ msgid "Slot"
-#~ msgstr "Slot A"
-
-#~ msgid "Sonic and the Black Knight"
-#~ msgstr "Sonic and the Black Knight"
-
-#~ msgid ""
-#~ "Specifies the resolution used to render at. A high resolution will "
-#~ "improve visual quality but is also quite heavy on performance and might "
-#~ "cause glitches in certain games.\n"
-#~ "Fractional: Uses your display resolution directly instead of the native "
-#~ "resolution. The quality scales with your display/window size, as does the "
-#~ "performance impact.\n"
-#~ "Integral: This is like Fractional, but rounds up to an integer multiple "
-#~ "of the native resolution. Should give a more accurate look but is usually "
-#~ "slower.\n"
-#~ "The other options are fixed resolutions for choosing a visual quality "
-#~ "independent of your display size."
-#~ msgstr ""
-#~ "Spesifiser oppløsning å rendere på. En høy oppløsning vil øke "
-#~ "bildekvaliteten, men krever også mer grafisk ytelse, og kan forårsake "
-#~ "feil i enkelte spill.\n"
-#~ "Desimalmodus: Bruker din skjermoppløsning direkte isteden for den "
-#~ "opprinnelige oppløsningen. Kvaliteten skalerer med din skerm/vindus-"
-#~ "størrelse, dette gjør også ytelseskravet.\n"
-#~ "Helltallmodus: Skalerer som i desimalmodus, men runder opp til et "
-#~ "heltallig forhold til opprinnelig oppløsning. Kan være mer nøyaktig, men "
-#~ "tregere.\n"
-#~ "De andre alternativene er forhåndsbestemte oppløsninger for å velge en "
-#~ "visuell kvalitet uavhengig av din skjermoppløsning."
-
-#~ msgid "Specify a video backend"
-#~ msgstr "Spesifiser en programvareutvidelse for video"
-
-#~ msgid "Specify an audio plugin"
-#~ msgstr "Spesifiser en programvareutvidelse for audio"
-
-#~ msgid "Start Renderer in Fullscreen"
-#~ msgstr "Start rendereren i Fullskjerm"
-
-#~ msgid "Start the rendering window in fullscreen mode."
-#~ msgstr "Start renderingsvinduet i fullskjermsmodus."
-
-#~ msgid "The file "
-#~ msgstr "Filen"
-
-#~ msgid "Theme selection went wrong"
-#~ msgstr "Velging av tema gikk feil"
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "Dette brukes for å kontrollere spillets bildefrekvens via Audio "
-#~ "Throttle.\n"
-#~ "Deaktivering av denne kan forårsake unormal bildefrekvens, kanskje for "
-#~ "høy.\n"
-#~ "Men å aktivere den kan noen ganger foråsake konstant bråk.\n"
-#~ "\n"
-#~ "Tastatursnarvei <TAB>: Hold nede for å deaktivere Audio Throttle."
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr ""
-#~ "Dette formatet brukes for å spille musikkspor, som bakgrunnsmusikk (BGM)."
-
-#~ msgid "This is usually used to play voice and sound effects."
-#~ msgstr ""
-#~ "Dette formatet brukes vanligvis til å spille stemme- og lyd- effekter."
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "Ukjent peker %#08x\n"
-#~ "Fortsett?"
-
-#~ msgid "Use FPS For Limiting"
-#~ msgstr "Bruk FPS (Bilder-per-sekund) For Begrensning"
-
-#~ msgid "Use XFB"
-#~ msgstr "Bruk XFB"
-
-#~ msgid "Uses multiple threads to decode the textures in the game."
-#~ msgstr "Bruker flere CPU-tråder til å dekode teksturene i spillet."
-
-#~ msgid ""
-#~ "Uses the high-resolution render buffer for EFB copies instead of scaling "
-#~ "them down to native resolution.\n"
-#~ "Vastly improves visual quality in games which use EFB copies but might "
-#~ "cause glitches in some games."
-#~ msgstr ""
-#~ "Bruker høyoppløsningsrenderbufferen for EFB-kopier istedenfor å skalere "
-#~ "dem ned til opprinnelig oppløsning.\n"
-#~ "Forbedrer den visuelle kvaliteten meget i spill som bruker EFB-koper, men "
-#~ "kan skape feil i noen spill."
-
-#~ msgid "Video Backend:"
-#~ msgstr "Video Backend:"
-
-#~ msgid ""
-#~ "Wait for vertical blanks.\n"
-#~ "Reduces tearing but might also decrease performance"
-#~ msgstr ""
-#~ "Vent på vertikale mellomrom.\n"
-#~ "Minsker grafiske rifter, men kan også redusere ytelsen"
-
-#~ msgid ""
-#~ "When using EFB to RAM we very often need to decode RAM data to a VRAM "
-#~ "texture, which is a very time-consuming task.\n"
-#~ "With this option enabled, we'll skip decoding a texture if it didn't "
-#~ "change.\n"
-#~ "This results in a nice speedup, but possibly causes glitches.\n"
-#~ "If you have any problems with this option enabled you should either try "
-#~ "increasing the safety of the texture cache or disable this option.\n"
-#~ "(NOTE: The safer the texture cache is adjusted the lower the speedup will "
-#~ "be; accurate texture cache set to \"safe\" might actually be slower!)"
-#~ msgstr ""
-#~ "Når EFB til RAM benyttes, må RAM-data ofte de-kodes til en VRAM-tekstur, "
-#~ "noe som er veldig tidskrevende.\n"
-#~ "Med dette alternativet aktivert, vil de-kodingen hoppes over hvis en "
-#~ "tekstur ikke ble endret.\n"
-#~ "Resultatet er en økning i ytelse, men feil vil muligens oppstå.\n"
-#~ "Hvis du har problemer med denne innstillingen aktivert, bør du enten "
-#~ "prøve å øke nøyaktigheten til tekstur-cache-en, eller deaktivere "
-#~ "alternativet.\n"
-#~ "(MERK: Jo nøyaktigere tekstur-cache-en er innstilt på, jo lavere vil "
-#~ "ytelsesøkningen bli; med tekstur-cache sett til \"sikker\" kan ytelsen "
-#~ "bli dårligere!)"
-
-#, fuzzy
-#~ msgid "Wiimote %i %s"
-#~ msgstr "Wii-kontroll"
-
-#~ msgid "Wiimote Settings"
-#~ msgstr "Innstillinger for Wii-kontroll"
-
-#~ msgid "Will enable progressive scan option if supported by software."
-#~ msgstr "Vil aktivere progressiv skanning, om det støttes av programvaren."
-
-#~ msgid "Window Size:"
-#~ msgstr "Vindusstørrelse:"
-
-#~ msgid "Window height for windowed mode"
-#~ msgstr "Vindushøyde for vindusmodus"
-
-#~ msgid "Window width for windowed mode"
-#~ msgstr "Vinduslengde for vindusmodus"
-
-#~ msgid "XFB"
-#~ msgstr "XFB"
-
-#~ msgid "Zelda Twilight Princess Bloom hack"
-#~ msgstr "Zelda Twilight Princess Bloom-hack"

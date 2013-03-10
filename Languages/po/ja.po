@@ -1,20 +1,23 @@
 # Translation of dolphin-emu.pot to Japanese
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# Danbsky, 2011.
 #
+# Translators:
+# Danbsky, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2013-01-23 10:06+0900\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: Japanese\n"
+"PO-Revision-Date: 2013-02-02 17:47+0000\n"
+"Last-Translator: glennricster <glennricster@gmail.com>\n"
+"Language-Team: Japanese (http://www.transifex.com/projects/p/dolphin-emu/"
+"language/ja/)\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -651,17 +654,12 @@ msgid "All files (*.*)|*.*"
 msgstr "全てのファイル (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"エミュレーション中に3,4,5,6,7キーを押すことで、一部のオプションを リアルタイ"
-"ムに変更することが出来るようになります。\n"
-"\n"
-"よく分からなければ、チェックを入れないでください。"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "Alternate Wiimote Timing"
@@ -1035,14 +1033,12 @@ msgstr ""
 "変更のために再起動が必要です"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:59
-#, fuzzy
 msgid "Changes sign to zFar Parameter (after correction)"
-msgstr "Changes sign to zFar Parameter (after correction)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:54
-#, fuzzy
 msgid "Changes sign to zNear Parameter (after correction)"
-msgstr "Changes sign to zNear Parameter (after correction)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:504
 msgid "Changing this will have no effect while the emulator is running!"
@@ -1542,13 +1538,10 @@ msgstr "検出"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:232
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:327
-#, fuzzy
 msgid ""
 "Detected attempt to read more data from the DVD than fit inside the out "
 "buffer. Clamp."
 msgstr ""
-"Detected attempt to read more data from the DVD than fit inside the out "
-"buffer. Clamp."
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:130
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:901
@@ -2326,9 +2319,9 @@ msgid "Failed to load hid.dll"
 msgstr "Failed to load hid.dll"
 
 #: Source/Core/Core/Src/Movie.cpp:792
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read %s"
-msgstr "Failed to write header for %s"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:151
 msgid "Failed to read banner.bin"
@@ -2942,14 +2935,11 @@ msgstr ""
 "FPSが安定しないゲームで効果があります [有効＝互換性向上／無効＝動作速度向上]"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:490
-#, fuzzy
 msgid ""
 "If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use "
 "Audio to throttle using the DSP (might fix audio clicks but can also cause "
 "constant noise depending on the game)."
 msgstr ""
-"実機(NTSC:60／PAL:50)より高いFPSで制限をかける場合、サウンド設定で「Audio "
-"Throttle」を無効にしないと効果が現れません"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:429
 msgid "Ignore Format Changes"
@@ -5204,7 +5194,6 @@ msgstr ""
 "ます"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5215,14 +5204,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"ゲーム内のカメラに干渉することが出来るようになる機能です。\n"
-"\n"
-"・右クリックを押しながらマウスを移動 - カメラを振る\n"
-"・Shiftキーを押しながらW/A/S/Dキー - カメラの移動\n"
-"　　(Shift+0キーを押すごとに移動距離2倍、Shift+9キーで2分の1)\n"
-"・Shift+Rキー - カメラのリセット\n"
-"\n"
-"よく分からなければ、チェックを入れないでください。"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
 msgid ""
@@ -5383,9 +5364,9 @@ msgid "Unknown message received with id : %d"
 msgstr "次のIDから不明なメッセージを受信 : %d"
 
 #: Source/Core/Core/Src/NetPlayServer.cpp:504
-#, fuzzy, c-format
+#, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
-msgstr "Unknown message with id:%d received from player:%d Kicking player!"
+msgstr ""
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:274
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:56
@@ -5547,30 +5528,23 @@ msgstr ""
 "続けますか？"
 
 #: Source/Core/Core/Src/Movie.cpp:844
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
 "%u > %u) (frame %u > %u). You should load another save before continuing, or "
 "load this state with read-only mode off."
 msgstr ""
-"警告：現在のムービー終了後のセーブをロードしました。(byte %u > %u) (frame %u "
-"> %u)。作業を続行する前に、他のセーブをロード、または読み取り専用モードをオフ"
-"にしてこのステートをロードする必要があります。"
 
 #: Source/Core/Core/Src/Movie.cpp:861
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
 "should load another save before continuing, or load this state with read-"
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
-"警告：ムービーのバイト%d (0x%X)上にミスマッチのあるセーブをロードしました。作"
-"業を続行する前に、他のセーブをロード、または読み取り専用モードをオフにしてこ"
-"のステートをロードする必要があります。無視して続けると、おそらくDesyncしま"
-"す。"
 
 #: Source/Core/Core/Src/Movie.cpp:870
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
 "load another save before continuing, or load this state with read-only mode "
@@ -5587,19 +5561,6 @@ msgid ""
 "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
 "%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 msgstr ""
-"警告：あなたはその映画のフレームの%dの不一致セーブをロードしました。作業を続"
-"行する前に、別のセーブをロード、または読み取り専用モードをオフにしてこの状態"
-"をロードする必要があります。無視して続けると、おそらくDesyncします。\n"
-"\n"
-"詳細：現在のムービーは%dフレームの長さで、ステートセーブの映画は、%dフレーム"
-"の長さです。\n"
-"On frame %d, the current movie presses:\n"
-"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
-"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
-"\n"
-"On frame %d, the savestate's movie presses:\n"
-"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
-"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:106
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:129
@@ -5916,738 +5877,3 @@ msgstr "zNear 補正値："
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| (...もしくは)"
-
-#~ msgid "%d Hz"
-#~ msgstr "%d Hz"
-
-#~ msgid "&Clear JIT cache"
-#~ msgstr "JITキャッシュを消去(&C)"
-
-#~ msgid "&Debug"
-#~ msgstr "デバッグ(&D)"
-
-#~ msgid "&Disable JIT Cache"
-#~ msgstr "JITキャッシュを無効化(&D)"
-
-#~ msgid "&Font..."
-#~ msgstr "フォント(&F)"
-
-#~ msgid "&Open...\tCtrl+O"
-#~ msgstr "開く(&O)\tCtrl+O"
-
-#~ msgid "&Refresh"
-#~ msgstr "再更新(&R)"
-
-#~ msgid "&Run To Here"
-#~ msgstr "ここから実行(&R)"
-
-#~ msgid "(Default)"
-#~ msgstr "(既定の設定)"
-
-#~ msgid "*.*"
-#~ msgstr "*.*"
-
-#~ msgid "32,000 Hz"
-#~ msgstr "32,000 Hz"
-
-#~ msgid "32-bit platforms do not support fastmem yet. Report this bug."
-#~ msgstr "32-bit platforms do not support fastmem yet. Report this bug."
-
-#~ msgid "3D Vision (Requires Fullscreen)"
-#~ msgstr "3D Vision (全画面表示時のみ)"
-
-#~ msgid "48,000 Hz"
-#~ msgstr "48,000 Hz"
-
-#~ msgid "< as Default Profile >"
-#~ msgstr "< 既定の設定を使用 >"
-
-#~ msgid "Accurate Texture Cache"
-#~ msgstr "Accurate Texture Cache"
-
-#~ msgid "Accurate texture cache"
-#~ msgstr "Accurate texture cache"
-
-#~ msgid "Adjust window size"
-#~ msgstr "ウィンドウサイズを調整"
-
-#~ msgid ""
-#~ "Allows the CPU to read or write to the EFB (render buffer).\n"
-#~ "This is needed for certain gameplay functionality (e.g. star pointer in "
-#~ "Super Mario Galaxy) as well as for certain visual effects (e.g. Monster "
-#~ "Hunter Tri),\n"
-#~ "but enabling this option can also have a huge negative impact on "
-#~ "performance if the game uses this functionality heavily."
-#~ msgstr ""
-#~ "CPUのEFBに対する読込／書込処理を許可します\n"
-#~ "特定のゲームの機能（例、マリオギャラクシーのポインタ)や画面効果(例、モンス"
-#~ "ターハンター3)のエミュレートに必要です\n"
-#~ "この処理を多用するゲームでは、このオプションは大きな速度低下を引き起こしま"
-#~ "す"
-
-#~ msgid "Alternate RFI"
-#~ msgstr "Alternate RFI"
-
-#~ msgid "Aspect ratio:"
-#~ msgstr "アスペクト比："
-
-#~ msgid "Auto [recommended]"
-#~ msgstr "自動 [ 推奨 ]"
-
-#~ msgid ""
-#~ "Auto size the window to match the game's output resolution adjusted by "
-#~ "the EFB scale.\n"
-#~ "It is best to set the aspect ratio to stretch when using this."
-#~ msgstr ""
-#~ "内部解像度に合わせてウィンドウサイズの自動調節を行うようにします\n"
-#~ "このオプションは描画設定の【アスペクト比】を『ウィンドウに合わせる』に設定"
-#~ "して使用することをオススメします"
-
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "ミップマップをメモリからデコードせず、自動作成したものを使用します。\n"
-#~ "若干の動作速度向上が望めますが、微妙な描画バグが発生することが ありま"
-#~ "す。\n"
-#~ "\n"
-#~ "よく分からなければ、チェックを外さないでください。"
-
-#~ msgid "Bleach Versus Crusade"
-#~ msgstr "BLEACH バーサス・クルセイド - "
-
-#~ msgid ""
-#~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-#~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-#~ "depth calculations are necessary to properly emulate a small number of "
-#~ "games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "3Dグラフィックスの深度値計算を頂点ごとではなくピクセルごとに行います。\n"
-#~ "Per-Pixel Lightingが単なる画質向上機能だったのとは対照的に、\n"
-#~ "Per-Pixel Depthは特定のゲームを正しくエミュレートするために 必要な機能で"
-#~ "す。\n"
-#~ "\n"
-#~ "よく分からなければ、チェックを外さないでください。"
-
-#~ msgid ""
-#~ "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
-#~ "vertex.\n"
-#~ "This is the more accurate behavior but reduces performance."
-#~ msgstr ""
-#~ "ピクセル単位での光源処理を行うようにします\n"
-#~ "より正確な描画が可能になりますが、動作速度は低下します"
-
-#~ msgid "Can't find plugin %s"
-#~ msgstr "%s プラグインが見つかりません"
-
-#~ msgid "Cannot record movies in read-only mode."
-#~ msgstr "読み込み専用設定のため録画不可"
-
-#~ msgid "Choose the folder where to extract to"
-#~ msgstr "抽出先のフォルダを選択"
-
-#~ msgid "Clear failed."
-#~ msgstr "クリアに失敗"
-
-#, fuzzy
-#~ msgid "Code"
-#~ msgstr "コード："
-
-#~ msgid "Config..."
-#~ msgstr "設定"
-
-#~ msgid "Configuration profile"
-#~ msgstr "タイトル別の設定"
-
-#~ msgid "Configuration profile:"
-#~ msgstr "タイトル別の設定"
-
-#~ msgid "Connected to %i Wiimotes"
-#~ msgstr "%i 個のWii リモコンを検出"
-
-#~ msgid "Copy"
-#~ msgstr "Copy"
-
-#~ msgid "Could not copy %s to %s"
-#~ msgstr "%s を %s へコピーすることができませんでした"
-
-#~ msgid "Could not get info about plugin %s"
-#~ msgstr "%s についての情報を取得することができませんでした"
-
-#~ msgid "Couldn't find GameConfig/BreakPoints.ini file"
-#~ msgstr "GameConfig or BreakPoints.ini ファイルが見つかりませんでした"
-
-#~ msgid "Created by KDE-Look.org"
-#~ msgstr "Created by KDE-Look.org"
-
-#~ msgid ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-#~ msgstr ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-
-#~ msgid "Created by VistaIcons.com"
-#~ msgstr "Created by VistaIcons.com"
-
-#~ msgid ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-#~ msgstr ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-
-#~ msgid "DList Cache"
-#~ msgstr "DList Cache"
-
-#~ msgid "DSound"
-#~ msgstr "DSound"
-
-#~ msgid "Danish"
-#~ msgstr "デンマーク語"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Disable Lighting"
-
-#~ msgid "Disable Per-Pixel Depth"
-#~ msgstr "Disable Per-Pixel Depth"
-
-#~ msgid "Disable Textures"
-#~ msgstr "テクスチャ無効化"
-
-#~ msgid "Disable Wiimote Speaker"
-#~ msgstr "Wii リモコンスピーカー無効 (Disable Wiimote Speaker)"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "テクスチャリングを無効化します。\n"
-#~ "\n"
-#~ "よく分からなければ、チェックを入れないでください。"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "テクスチャリングを無効化します\n"
-#~ "[ デバッグ用の設定項目 ]"
-
-#~ msgid ""
-#~ "Disables an alpha-setting pass.\n"
-#~ "Breaks certain effects but might help performance."
-#~ msgstr ""
-#~ "アルファ透過が設定されているパスを無効化します\n"
-#~ "一部のエフェクト表示が壊れますが、動作速度は向上します"
-
-#~ msgid "Distance Alpha Pass"
-#~ msgstr "Distance Alpha Pass"
-
-#~ msgid "Dolphin DSP-HLE Plugin"
-#~ msgstr "Dolphin DSP-HLE Plugin"
-
-#~ msgid "Dolphin DSP-HLE Plugin Settings"
-#~ msgstr "Dolphin DSP-HLE 設定"
-
-#~ msgid "Dolphin DSP-LLE Plugin"
-#~ msgstr "Dolphin DSP-LLE Plugin"
-
-#~ msgid "Dolphin DSP-LLE Plugin Settings"
-#~ msgstr "Dolphin DSP-LLE 設定"
-
-#~ msgid "Dolphin Direct3D11"
-#~ msgstr "Dolphin Direct3D11"
-
-#~ msgid "Dolphin Direct3D9"
-#~ msgstr "Dolphin Direct3D9"
-
-#~ msgid "Dolphin OpenGL"
-#~ msgstr "Dolphin OpenGL"
-
-#~ msgid "E&xit\tAlt+F4"
-#~ msgstr "終了(E&)\tAlt+F4"
-
-#~ msgid "EFB"
-#~ msgstr "EFB"
-
-#~ msgid ""
-#~ "Emulate frame buffer copies directly to textures.\n"
-#~ "This is not so accurate, but it's good enough for the way many games use "
-#~ "framebuffer copies."
-#~ msgstr ""
-#~ "フレームバッファコピーをテクスチャに落し込みます\n"
-#~ "正確ではありませんが、フレームバッファを使用するゲームの多くで上手く動作し"
-#~ "ます"
-
-#~ msgid "Emulator Display Settings"
-#~ msgstr "エミュレーション画面に関する設定"
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "Enable Audio Throttle"
-
-#~ msgid "Enable BAT"
-#~ msgstr "Enable BAT"
-
-#~ msgid "Enable CPU Access"
-#~ msgstr "Enable CPU Access"
-
-#~ msgid "Enable Copy to EFB"
-#~ msgstr "Enable Copy to EFB"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "Enable DTK Music"
-
-#~ msgid "Enable EFB To Texture"
-#~ msgstr "Enable EFB To Texture"
-
-#~ msgid "Enable HLE Audio"
-#~ msgstr "Enable HLE Audio"
-
-#~ msgid "Enable JIT Dynarec"
-#~ msgstr "Enable JIT Dynarec"
-
-#~ msgid "Enable OpenCL"
-#~ msgstr "OpenCLを使用"
-
-#~ msgid "Enable Screen Saver (burn-in reduction)"
-#~ msgstr "スクリーンセーバーを使用 （画面焼け軽減）"
-
-#~ msgid ""
-#~ "Enables Block Address Translation (BAT); a function of the Memory "
-#~ "Management Unit. Accurate to the hardware, but slow to emulate. (ON = "
-#~ "Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Block Address Translation (BAT)：メモリ管理機構の機能の一つで、有効にする"
-#~ "とハードウェアのエミュレーション精度が向上します[有効＝互換性重視,／無効＝"
-#~ "動作速度向上]"
-
-#~ msgid ""
-#~ "Enables emulation of Embedded Frame Buffer copies, if the game uses "
-#~ "them.\n"
-#~ "Games often need this for post-processing or other things, but if you can "
-#~ "live without it, you can sometimes get a big speedup."
-#~ msgstr ""
-#~ "内蔵フレームバッファコピーのエミュレーションを行います\n"
-#~ "主に後処理などで頻繁に使用されますが、無効にしても気にならないのであれば、"
-#~ "大きな速度向上につながるでしょう"
-
-#~ msgid ""
-#~ "Enables reinterpreting the data inside the EFB when the pixel format "
-#~ "changes.\n"
-#~ "Some games depend on this function for certain effects, so enable it if "
-#~ "you're having glitches.\n"
-#~ "Depending on how the game uses this function, the speed hits caused by "
-#~ "this option range from none to critical."
-#~ msgstr ""
-#~ "ピクセルフォーマットが変更された際に、EFB内部のデータを再解釈するようにし"
-#~ "ます\n"
-#~ "いくつかのゲームではエフェクトにこの機能を使用するので、ゲーム中不具合が出"
-#~ "た場合に有効にしてみると解消されるかもしれません\n"
-#~ "有効にすると動作速度に影響しますが、ゲームがこの機能をどのように使うかに"
-#~ "よって大きな振れ幅があります"
-
-#~ msgid "Error loading %s: can't read info"
-#~ msgstr "%s の読み込みエラー: 情報が読み取れません"
-
-#~ msgid ""
-#~ "Error loading plugin %s: can't find file. Please re-select your plugins."
-#~ msgstr ""
-#~ "%s プラグインの読み込みに失敗： ファイルが見つかりません。再選択してくださ"
-#~ "い"
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Dolphinを終了"
-
-#~ msgid "Failed to load DSP ROM: %s"
-#~ msgstr "DSPロム (%s) の読み込みに失敗"
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Fast Mipmaps"
-
-#~ msgid "Force Bi/Trilinear Filtering"
-#~ msgstr "Force Bi/Trilinear Filtering"
-
-#~ msgid "Fractional"
-#~ msgstr "Fractional"
-
-#~ msgid ""
-#~ "Fully emulate embedded frame buffer copies.\n"
-#~ "This is more accurate than EFB Copy to Texture, and some games need this "
-#~ "to work properly, but it can also be very slow."
-#~ msgstr ""
-#~ "フレームバッファコピーの完全なエミュレーションを試み、より正確な描写を行い"
-#~ "ます\n"
-#~ "いくつかのゲームではこのオプションが必要ですが、たいてい『Texture』よりも"
-#~ "動作速度は低下します"
-
-#~ msgid "GFX Config"
-#~ msgstr "詳細設定"
-
-#~ msgid "Graphics Plugin"
-#~ msgstr "ビデオプラグイン"
-
-#~ msgid "Hide Shader Errors"
-#~ msgstr "シェーダーエラーを隠す"
-
-#~ msgid ""
-#~ "Hide the cursor when it is over the rendering window and the rendering "
-#~ "window has focus."
-#~ msgstr ""
-#~ "動作中はマウスカーソルを表示しないようにします。（フォーカスがある時のみ）"
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "光源処理を無効化します。\n"
-#~ "動作速度が改善されますが、多くのタイトルで画面が正しく表示されなく なりま"
-#~ "す。\n"
-#~ "\n"
-#~ "よく分からなければ、チェックを入れないでください。"
-
-#~ msgid "Input Source"
-#~ msgstr "入力デバイス"
-
-#~ msgid "Installing WAD to Wii Menu..."
-#~ msgstr "WADファイルをWiiメニューに追加"
-
-#~ msgid "Integral [recommended]"
-#~ msgstr "Integral [ 推奨 ]"
-
-#~ msgid ""
-#~ "Keeps track of textures based on looking at the actual pixels in the "
-#~ "texture.\n"
-#~ "Can cause slowdown, but some games need this option enabled to work "
-#~ "properly."
-#~ msgstr ""
-#~ "テクスチャ内に存在するピクセルに基づいてテクスチャを監視します\n"
-#~ "このオプションは速度低下の原因になりますが、有効にしないと正しく動作しない"
-#~ "ゲームがいくつかあります"
-
-#~ msgid "Last Saved State\tF11"
-#~ msgstr "最新のクイックセーブをロード\tF11"
-
-#~ msgid "Load Script..."
-#~ msgstr "スクリプトをロード"
-
-#~ msgid ""
-#~ "Loads native mipmaps instead of generating them.\n"
-#~ "Loading native mipmaps is the more accurate behavior, but might also "
-#~ "decrease performance (your mileage might vary though)."
-#~ msgstr ""
-#~ "ミップマップを作成せず、ネイティブのものを読み込んで使用します\n"
-#~ "より正確な動作が期待できますが、 速度低下を引き起こすこともあります(タイト"
-#~ "ルと環境により左右される)"
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "規定されたファイル (DOL,ELF,GCM,ISO,WAD)"
-
-#~ msgid "Lock Threads to Cores"
-#~ msgstr "スレッドをコア数に合わせて固定"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Low level (LLE) or high level (HLE) audio"
-
-#~ msgid "Lua Script Console"
-#~ msgstr "Luaコンソール"
-
-#~ msgid "Metroid Other M"
-#~ msgstr "メトロイド Other M - カットシーンで暗転してしまう問題を修正"
-
-#~ msgid "Mixer: Unsupported sample rate."
-#~ msgstr "Mixer: サポートされていないサンプルレートです"
-
-#, fuzzy
-#~ msgid ""
-#~ "Modify textures to show the format they're using.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Modify textures to show the format they're using.\n"
-#~ "[ デバッグ用の設定項目 ]"
-
-#~ msgid "New &Lua Console"
-#~ msgstr "Luaコンソールを開始(&L)"
-
-#~ msgid "No audio output"
-#~ msgstr "＜出力しない＞"
-
-#~ msgid "Normal"
-#~ msgstr "Normal"
-
-#~ msgid "OK"
-#~ msgstr "OK"
-
-#~ msgid "OpenAL"
-#~ msgstr "OpenAL"
-
-#~ msgid "OpenGL"
-#~ msgstr "OpenGL"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "デバッガを開く"
-
-#~ msgid "Opens the logger"
-#~ msgstr "ログ画面を開く"
-
-#~ msgid "Plugins"
-#~ msgstr "プラグイン"
-
-#~ msgid ""
-#~ "Portable Setting could not be saved\n"
-#~ " Are you running Dolphin from read only media or from a directory that "
-#~ "dolphin is not located in?"
-#~ msgstr ""
-#~ "ポータブル設定は保存されませんでした\n"
-#~ "Dolphinを読み取り専用メディアか本体のないディレクトリから起動していません"
-#~ "か？"
-
-#~ msgid "Projection Stats"
-#~ msgstr "投影データを表示"
-
-#~ msgid "Relaunch Dolphin from the install directory and save from there"
-#~ msgstr ""
-#~ "Dolphinをインストールしたディレクトリから再起動し、そこから保存してくださ"
-#~ "い"
-
-#~ msgid "Render to main window."
-#~ msgstr "ゲームリスト部分にゲーム画面を表示します"
-
-#~ msgid "Rendering"
-#~ msgstr "レンダリング"
-
-#~ msgid "Required for using the Japanese ROM font."
-#~ msgstr "日本語フォントを使用するタイトルで必要です"
-
-#~ msgid "Run"
-#~ msgstr "実行"
-
-#~ msgid "Running script...\n"
-#~ msgstr "スクリプトを実行中..."
-
-#~ msgid "Sample Rate:"
-#~ msgstr "サンプルレート"
-
-#~ msgid "Scale:"
-#~ msgstr "内部解像度"
-
-#~ msgid "Select resolution for fullscreen mode"
-#~ msgstr "全画面表示時の解像度を設定します"
-
-#~ msgid "Select the script to load"
-#~ msgstr "ロードするスクリプトファイルを選択"
-
-#, fuzzy
-#~ msgid ""
-#~ "Selects which game should be affected by the configuration changes done "
-#~ "in this dialog.\n"
-#~ "The (Default) profile affects the standard settings used for every game."
-#~ msgstr ""
-#~ "Selects which game should be affected by the configuration changes done "
-#~ "in this dialog.\n"
-#~ "(既定の設定) では"
-
-#~ msgid "Set All to Default"
-#~ msgstr "全て設定を既定に戻す"
-
-#~ msgid ""
-#~ "Set install location to:\n"
-#~ " %s ?"
-#~ msgstr ""
-#~ "インストール先:\n"
-#~ " %s ?"
-
-#~ msgid ""
-#~ "Show projection statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "画面上に投影データの統計値を表示します\n"
-#~ "[ デバッグ用の設定項目 ]"
-
-#~ msgid "Show save banner"
-#~ msgstr "バナー欄を表示"
-
-#~ msgid "Show the number of frames rendered per second."
-#~ msgstr "画面左上にFPSを表示します"
-
-#~ msgid "Show this help message"
-#~ msgstr "このヘルプメッセージを表示"
-
-#~ msgid ""
-#~ "Show various statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "画面上にさまざまな統計値を表示します\n"
-#~ "[ デバッグ用の設定項目 ]"
-
-#~ msgid "Skies of Arcadia"
-#~ msgstr "エターナルアルカディア - グラフィックの諸問題を修正"
-
-#~ msgid "Slot"
-#~ msgstr "スロット"
-
-#~ msgid "Sonic and the Black Knight"
-#~ msgstr "ソニックと暗黒の騎士 - "
-
-#~ msgid ""
-#~ "Specifies the resolution used to render at. A high resolution will "
-#~ "improve visual quality but is also quite heavy on performance and might "
-#~ "cause glitches in certain games.\n"
-#~ "Fractional: Uses your display resolution directly instead of the native "
-#~ "resolution. The quality scales with your display/window size, as does the "
-#~ "performance impact.\n"
-#~ "Integral: This is like Fractional, but rounds up to an integer multiple "
-#~ "of the native resolution. Should give a more accurate look but is usually "
-#~ "slower.\n"
-#~ "The other options are fixed resolutions for choosing a visual quality "
-#~ "independent of your display size."
-#~ msgstr ""
-#~ "内部解像度の計算方式を設定します。高解像度設定では非常に綺麗な画面表示にな"
-#~ "りますが、いくつかのゲームで非常に重くなったり表示バグの原因となります\n"
-#~ "Fractional: ソフト側の解像度を無視し、Dolphin本体で設定した表示解像度その"
-#~ "ままで出力します。そのため動作速度に大きな影響がありません\n"
-#~ "Integral: ソフト側の解像度の倍数で出力します。多少重くなりますが正確な描写"
-#~ "が可能です\n"
-#~ "その他のオプションは表示解像度に関係なく固定された倍率で出力するものです"
-
-#~ msgid "Specify a video backend"
-#~ msgstr "ビデオ出力APIを指定"
-
-#~ msgid "Start Renderer in Fullscreen"
-#~ msgstr "全画面表示で開始"
-
-#~ msgid "Start the rendering window in fullscreen mode."
-#~ msgstr "最初から全画面表示で起動します"
-
-#~ msgid "Take Screenshot\t"
-#~ msgstr "スクリーンショット\t"
-
-#~ msgid "Theme selection went wrong"
-#~ msgstr "テーマの選択に誤りがあります"
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "有効にしている間はサウンドスロットルによってゲームスピードがコントロールさ"
-#~ "れるようになります\n"
-#~ "無効にするとゲームスピードが異常に速くなってしまうでしょう\n"
-#~ "有効中には時々、一定のノイズが流れることがあるようです\n"
-#~ "\n"
-#~ "ノート：ゲーム中、<TAB>キーを押し続けている間だけこのオプションを無効にす"
-#~ "ることができます。"
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr "BGMのような音楽トラックの再生に使用されます"
-
-#~ msgid "This is usually used to play voice and sound effects."
-#~ msgstr "音声や効果音の再生によく使用されます"
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-
-#~ msgid "Use FPS For Limiting"
-#~ msgstr "有効化"
-
-#~ msgid "Use XFB"
-#~ msgstr "Use XFB"
-
-#~ msgid "Uses multiple threads to decode the textures in the game."
-#~ msgstr "ゲーム内テクスチャのデコードに分散スレッドを使用します"
-
-#, fuzzy
-#~ msgid ""
-#~ "Uses the high-resolution render buffer for EFB copies instead of scaling "
-#~ "them down to native resolution.\n"
-#~ "Vastly improves visual quality in games which use EFB copies but might "
-#~ "cause glitches in some games."
-#~ msgstr ""
-#~ "Uses the high-resolution render buffer for EFB copies instead of scaling "
-#~ "them down to native resolution.\n"
-#~ "Vastly improves visual quality in games which use EFB copies but might "
-#~ "cause glitches in some games."
-
-#~ msgid "Video Backend:"
-#~ msgstr "描画API"
-
-#~ msgid ""
-#~ "Wait for vertical blanks.\n"
-#~ "Reduces tearing but might also decrease performance"
-#~ msgstr ""
-#~ "ディスプレイの垂直同期を待つようにします\n"
-#~ "チラつき防止に役立ちますが動作速度は落ちます"
-
-#~ msgid ""
-#~ "When using EFB to RAM we very often need to decode RAM data to a VRAM "
-#~ "texture, which is a very time-consuming task.\n"
-#~ "With this option enabled, we'll skip decoding a texture if it didn't "
-#~ "change.\n"
-#~ "This results in a nice speedup, but possibly causes glitches.\n"
-#~ "If you have any problems with this option enabled you should either try "
-#~ "increasing the safety of the texture cache or disable this option.\n"
-#~ "(NOTE: The safer the texture cache is adjusted the lower the speedup will "
-#~ "be; accurate texture cache set to \"safe\" might actually be slower!)"
-#~ msgstr ""
-#~ "EFB to RAM 設定時の動作では、RAMデータをデコードしてVRAMに渡すという、非常"
-#~ "に手間のかかる処理が頻繁に必要です\n"
-#~ "このオプションを有効化すると、このデコード処理を変化のないテクスチャに限っ"
-#~ "てスキップします\n"
-#~ "結果的に動作速度が改善されますが、バグの原因にもなることもあります\n"
-#~ "このオプションを使用中に問題が発生した場合、『Accurate Texture Cache』を有"
-#~ "効にするか、このオプションを無効化することをオススメします\n"
-#~ "(補足：『Accurate Texture Cache』で正確性を重視するほど、効果は弱まってし"
-#~ "まいます。『Safe』に設定してしまうと、このオプションが無効の時より遅くなる"
-#~ "こともあり得るでしょう！)"
-
-#, fuzzy
-#~ msgid "Wiimote %i %s"
-#~ msgstr "Wii リモコン"
-
-#~ msgid "Wiimote Settings"
-#~ msgstr "Wii リモコン設定"
-
-#~ msgid "Will enable progressive scan option if supported by software."
-#~ msgstr "プログレッシブ表示が選択可能になります(サポートタイトルのみ)"
-
-#~ msgid "Window Size:"
-#~ msgstr "ウィンドウ表示解像度"
-
-#~ msgid "Window height for windowed mode"
-#~ msgstr "ウィンドウ表示時の縦の解像度を指定します"
-
-#~ msgid "Window width for windowed mode"
-#~ msgstr "ウィンドウ表示時の横の解像度を指定します"
-
-#~ msgid "XFB"
-#~ msgstr "XFB"
-
-#~ msgid "Zelda Twilight Princess Bloom hack"
-#~ msgstr ""
-#~ "ゼルダの伝説 トワイライトプリンセス - ブルームを正しく処理 (Twilight "
-#~ "Princess Bloom hack)"
-
-#~ msgid "b"
-#~ msgstr "b"
-
-#~ msgid "d"
-#~ msgstr "d"
-
-#~ msgid "e"
-#~ msgstr "e"
-
-#~ msgid "h"
-#~ msgstr "h"
-
-#~ msgid "l"
-#~ msgstr "l"
-
-#~ msgid "please someone fill this tooltip i have no idea what to say :D"
-#~ msgstr "please someone fill this tooltip i have no idea what to say :D"

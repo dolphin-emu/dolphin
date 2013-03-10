@@ -1,22 +1,22 @@
 # Translation of dolphin-emu.pot to Greek
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# Gpower2 <gpower2@yahoo.com>, 2011
 #
+# Translators:
+# Gpower2 <gpower2@yahoo.com>, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2013-01-16 21:39-0600\n"
-"Last-Translator: Linktothepast <kostamarino@hotmail.com>\n"
-"Language-Team: Gpower2 <gpower2@yahoo.com>\n"
-"Language: Greek\n"
+"PO-Revision-Date: 2013-02-02 08:31+0000\n"
+"Last-Translator: delroth <delroth@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: el\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Greek\n"
-"X-Poedit-Country: GREECE\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -375,14 +375,11 @@ msgid "A game is not currently running."
 msgstr "Αυτή τη στιγμή δεν εκτελείται κάπιο παιχνίδι."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
-"Δε βρέθηκε υποστηριζόμενη συσκευή bluetooth!\n"
-"(Υποστηρίζεται μόνο το Microsoft bluetooth stack)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -519,13 +516,11 @@ msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Σφάλμα Action Replay: Μη έγκυρη τιμή (%08x) σε Memory Copy (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
-"Σφάλμα Action Replay: Οι λειτουργίες Master Code και Write To CCXXXXXX δεν "
-"έχουν υλοποιηθεί (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -649,17 +644,12 @@ msgid "All files (*.*)|*.*"
 msgstr "Όλα τα αρχεία (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Επιτρέπει την εναλλαγή ορισμένων επιλογών με τα πλήκτρα συντόμευσης 3, 4, 5, "
-"και 6 μέσα από το παράθυρο εξομοίωσης.\n"
-"\n"
-"Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid "Alternate Wiimote Timing"
@@ -2334,9 +2324,9 @@ msgid "Failed to load hid.dll"
 msgstr "Αποτυχία φόρτωσης hid.dll"
 
 #: Source/Core/Core/Src/Movie.cpp:792
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read %s"
-msgstr "Αποτυχία εγγραφής της κεφαλίδας για το %s"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:151
 msgid "Failed to read banner.bin"
@@ -4521,9 +4511,8 @@ msgstr ""
 "Αν δεν είστε σίγουροι επιλέξτε Αυτόματα."
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "Το επιλεγμένο αρχείο \"%s\" δεν υπάρχει"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -5202,9 +5191,8 @@ msgid "The value is invalid"
 msgstr "Η τιμή είναι άκυρη"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:626
-#, fuzzy
 msgid "Theme:"
-msgstr "Θέμα"
+msgstr ""
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
@@ -5238,7 +5226,6 @@ msgstr ""
 "παιχνίδια."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5249,15 +5236,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Αυτό το χαρακτηριστικό σας επιτρέπει να πειράξετε την κάμερα του "
-"παιχνιδιού.\n"
-"Κρατώντας πατημένο το δεξί πλήκτρο του ποντικιού μετακινήστε το ποντίκι για "
-"να μετακινήσετε τριγύρω την κάμερα. Κρατώντας πατημένο το SHIFT πιέστε ένα "
-"από τα WASD πλήκτρα για να μετακινήσετε την κάμερα κατά μία καθορισμένη "
-"απόσταση (SHIFT+0 για να κινηθεί γρηγορότερα και SHIFT+9 για να κινηθεί πιο "
-"αργά). Πατήστε SHIFT+R για να επαναφέρετε την κάμερα στην αρχική της θέση.\n"
-"\n"
-"Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
 msgid ""
@@ -5964,164 +5942,3 @@ msgstr "zNear Διόρθωση: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "%d Hz"
-#~ msgstr "%d Hz"
-
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Δημιουργεί αυτόματα τα mipmaps αντί να τα αποκωδικοποιεί από την μνήμη.\n"
-#~ "Αυξάνει λίγο τις επιδόσεις, αλλά μπορεί να προκαλέσει μικρά ελαττώματα "
-#~ "στις υφές.\n"
-#~ "\n"
-#~ "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
-
-#~ msgid ""
-#~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-#~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-#~ "depth calculations are necessary to properly emulate a small number of "
-#~ "games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Υπολογισμός των τιμών βάθους των 3D γραφικών ανά pixel αντί ανά vertex.\n"
-#~ "Αντίθετα με τον φωτισμό ανά pixel (που είναι απλά μία βελτίωση), οι "
-#~ "υπολογισμοί του βάθους ανά pixel είναι απαραίτητοι για την σωστή "
-#~ "εξομοίωση ενός μικρού αριθμού παιχνιδιών.\n"
-#~ "\n"
-#~ "Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
-
-#~ msgid "Cannot record movies in read-only mode."
-#~ msgstr ""
-#~ "Δεν μπορεί να γίνει εγγραφή ταινιών σε λειτουργία μόνο για ανάγνωση."
-
-#~ msgid "Clear failed."
-#~ msgstr "Το καθάρισμα απέτυχε."
-
-#~ msgid "Created by KDE-Look.org"
-#~ msgstr "Δημιουργήθηκε από KDE-Look.org"
-
-#~ msgid ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-#~ msgstr ""
-#~ "Δημιουργήθηκε από Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl."
-#~ "deviantart.com]"
-
-#~ msgid "Created by VistaIcons.com"
-#~ msgstr "Δημιουργήθηκε από VistaIcons.com"
-
-#~ msgid ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-#~ msgstr ""
-#~ "Δημιουργήθηκε από black_rider και δημοσιεύθηκε στο ForumW.org > Web "
-#~ "Developments"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Απενεργοποίηση Φωτισμού"
-
-#~ msgid "Disable Per-Pixel Depth"
-#~ msgstr "Απενεργοποίηση Βάθους ανά Pixel"
-
-#~ msgid "Disable Textures"
-#~ msgstr "Απενεργοποίηση Υφών"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Απενεργοποίηση υφών.\n"
-#~ "\n"
-#~ "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "Ενεργοποίηση Throttle Ήχου"
-
-#~ msgid "Enable BAT"
-#~ msgstr "Ενεργοποίηση BAT"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "Ενεργοποίηση Μουσικής DTK"
-
-#~ msgid ""
-#~ "Enables Block Address Translation (BAT); a function of the Memory "
-#~ "Management Unit. Accurate to the hardware, but slow to emulate. (ON = "
-#~ "Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Ενεργοποιεί την Block Address Translation (BAT), μία λειτουργία της "
-#~ "Μονάδας Διαχείρισης Μνήμης. Ακριβές ως προς το υλικό, αλλά αργό στην "
-#~ "εξομοίωση. (Ενεργό = Συμβατό, Ανενεργό = Γρήγορο)"
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Έξοδος από το Dolphin με τον εξομοιωτή"
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Γρήγορα Mipmaps"
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Βελτιώνει τις επιδόσεις αλλά προκαλεί την εξαφάνιση του φωτισμού στα "
-#~ "περισσότερα παιχνίδια.\n"
-#~ "\n"
-#~ "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "Φορτώνει το καθορισμένο αρχείο (DOL,ELF,GCM,ISO,WAD)"
-
-#~ msgid "Lock Threads to Cores"
-#~ msgstr "Κλείδωμα Νημάτων στους Πυρήνες "
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Χαμηλού επιπέδου (LLE) ή υψηλού επιπέδου (HLE) εξομοίωση ήχου"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "Άνοιγμα του debugger"
-
-#~ msgid "Opens the logger"
-#~ msgstr "Άνοιγμα της καταγραφής"
-
-#~ msgid "Sample Rate:"
-#~ msgstr "Ρυθμός Δειγματοληψίας:"
-
-#~ msgid "Show this help message"
-#~ msgstr "Εμφάνιση αυτού του μηνύματος βοήθειας"
-
-#~ msgid "Specify a video backend"
-#~ msgstr "Επιλέξτε ένα backend βίντεο"
-
-#~ msgid "Theme selection went wrong"
-#~ msgstr "Η επιλογή θέματος απέτυχε"
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "Χρησιμοποιείται για τον έλεγχο της ταχύτητας του παιχνιδιού με throttle "
-#~ "ήχου.\n"
-#~ "Απενεργοποιώντας το μπορεί να προκλήθει αφύσικη ταχύτητα σε παιχνίδια, π."
-#~ "χ. πολύ γρήγορη.\n"
-#~ "Όμως ορισμένες φορές η ενεργοποίησή της μπορεί να προκαλέσει μόνιμο "
-#~ "θόρυβο.\n"
-#~ "\n"
-#~ "Συντόμευση πληκτρολογίου <TAB>: Κρατήστε το πατημένο για να "
-#~ "απενεργοποιηθεί η λειτουργία Throttle."
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr "Χρησιμοποιείται για την αναπαραγωγή μουσικών κομματιών, όπως BGM."
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "Άγνωστος δείκτης %#08x\n"
-#~ "Συνέχεια;"

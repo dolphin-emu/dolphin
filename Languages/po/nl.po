@@ -1,32 +1,35 @@
 # Translation of dolphin-emu.pot to Dutch
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# MADCreations <http://www.dpro.freehosting.org>, 2011
 #
+# Translators:
+# Garteal <garteal@gmail.com>, 2013.
+# MADCreations <http://www.dpro.freehosting.org>, 2011.
+# Marinus Schot <marinus@live.com>, 2013.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2013-01-16 21:41-0600\n"
-"Last-Translator: Goost <dont_bother@mailing.me>\n"
-"Language-Team: DevPro Team. <Dpro.madcreations@gmail.com>\n"
-"Language: Dutch\n"
+"PO-Revision-Date: 2013-02-03 20:56+0000\n"
+"Last-Translator: Garteal <garteal@gmail.com>\n"
+"Language-Team: Dutch (http://www.transifex.com/projects/p/dolphin-emu/"
+"language/nl/)\n"
+"Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Dutch\n"
-"X-Poedit-Country: NETHERLANDS\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
-msgstr "(te veel om te weergeven)"
+msgstr "(te veel om weer te geven)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:253
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:481
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:520
 msgid " Game : "
-msgstr " Spel:"
+msgstr " Spel :"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:510
 msgid "! NOT"
@@ -49,7 +52,7 @@ msgstr "\"%s\" is een onjuist GCM/ISO bestand of het is geen GC/Wii ISO."
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:719
 #, c-format
 msgid "%08X:  "
-msgstr ""
+msgstr "%08X:  "
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:194
 #, c-format
@@ -57,9 +60,9 @@ msgid "%1$sCopy%1$s"
 msgstr "%1$sKopieer%1$s"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:10
-#, fuzzy, c-format
+#, c-format
 msgid "%i connected"
-msgstr "Verbinding Verbroken"
+msgstr "%i verbonden"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:128
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:296
@@ -70,25 +73,26 @@ msgstr "%s  bestaat al, wilt u het vervangen?"
 #: Source/Core/DiscIO/Src/CompressedBlob.cpp:167
 #, c-format
 msgid "%s failed to be scrubbed. Probably the image is corrupt."
-msgstr "Het lukte niet om %s te comprimeren. Waarschijnlijk is de image kapot."
+msgstr ""
+"Het lukte niet om %s te comprimeren. Waarschijnlijk is de image corrupt."
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:95
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
 " Card file size is invalid (0x%x bytes)"
 msgstr ""
-"De geheugenkaart kon niet worden geladen\n"
-"Kaart grootte is onjuist (%04X)"
+"%s kon niet worden geladen als een geheugenkaart\\n\n"
+"Bestandsgrootte op kaart is onjuist (0x%x bytes)"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:110
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s failed to load as a memorycard \n"
 " Card size is invalid (0x%x bytes)"
 msgstr ""
-"De geheugenkaart kon niet worden geladen\n"
-"Kaart grootte is onjuist (%04X)"
+"%s kon niet worden geladen als een geheugenkaart\\n\n"
+"Kaartgrootte is onjuist (0x%x bytes)"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:90
 #, c-format
@@ -96,6 +100,9 @@ msgid ""
 "%s failed to load as a memorycard \n"
 "file is not large enough to be a valid memory card file (0x%x bytes)"
 msgstr ""
+"%s kon niet worden geladen als een geheugenkaart \\n\n"
+"Bestand is niet groot genoeg om een geldige geheugenkaart bestand te zijn (0x"
+"%x bytes)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:367
 #, c-format
@@ -111,7 +118,7 @@ msgid ""
 msgstr ""
 "%s heeft een incorrecte hashcode.\n"
 "Wil je nu stoppen om het probleem op te lossen?\n"
-"Als je \"Nee\" selecteert, dan zal het geluid vervormd klinken."
+"Als je \"Nee\" selecteert, zal het geluid vervormd klinken."
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:360
 #, c-format
@@ -144,9 +151,9 @@ msgid "%sImport GCI%s"
 msgstr "%sImporteer GCI%s"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:776
-#, fuzzy, c-format
+#, c-format
 msgid "%u Free Blocks; %u Free Dir Entries"
-msgstr "%d Vrije Blokken; %d Vrije Bestands Ingangen"
+msgstr "%u Vrije Blokken; %u Vrije Bestands Invoer"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:509
 msgid "&& AND"
@@ -166,7 +173,7 @@ msgstr "&Breekpunten"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:110
 msgid "&Browse for ISOs..."
-msgstr "&Zoek voor ISOs..."
+msgstr "&Blader voor ISOs..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:192
 msgid "&Cheats Manager"
@@ -182,7 +189,7 @@ msgstr "&Verwijder ISO..."
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:960
 msgid "&Delete selected ISOs..."
-msgstr "&Verwijder geselecteerde ISOs ..."
+msgstr "&Verwijder geselecteerde ISOs..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:170
 msgid "&Emulation"
@@ -274,7 +281,7 @@ msgstr "&Stop"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:207
 msgid "&Tools"
-msgstr "&Gereedschap"
+msgstr "&Tools"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:235
 msgid "&Video"
@@ -290,19 +297,19 @@ msgstr "&Wiimote Instellingen "
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:925
 msgid "&Wiki"
-msgstr ""
+msgstr "&Wiki"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:504
 msgid "'"
-msgstr ""
+msgstr "'"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:58
 msgid "(-)+zFar"
-msgstr "(-)+zVer"
+msgstr "(-)+zFar"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:53
 msgid "(-)+zNear"
-msgstr "(-)+zDichtbij"
+msgstr "(-)+zNear"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:98
 msgid "(UNKNOWN)"
@@ -314,7 +321,7 @@ msgstr "(uit) "
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:652
 msgid "0x44"
-msgstr ""
+msgstr "0x44"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:170
 msgid "16 bit"
@@ -326,7 +333,7 @@ msgstr "32 bit"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:402
 msgid "3D Vision"
-msgstr ""
+msgstr "3D Vision"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:169
 msgid "8 bit"
@@ -334,7 +341,7 @@ msgstr "8 bit"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:42
 msgid "<Insert name here>"
-msgstr "<naam hier> "
+msgstr "<Vul naam hier in> "
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:256
 msgid "<No resolutions found>"
@@ -347,7 +354,7 @@ msgstr "<Niks>"
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:162
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:162
 msgid "<Press Key>"
-msgstr "<Druk een knop>"
+msgstr "<Druk op een knop>"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
 msgid "<System>"
@@ -355,7 +362,7 @@ msgstr "<Systeem>"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:693
 msgid "A"
-msgstr ""
+msgstr "A"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:184
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:218
@@ -368,14 +375,14 @@ msgid "A game is not currently running."
 msgstr "Er staat geen spel aan."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
-"Er is geen ondersteund bluetooth apparaat gevonden!\n"
-"(Alleen de Microsoft bluetooth stack is ondersteund.)"
+"Er is geen ondersteund bluetooth apparaat gevonden!\\n\n"
+"Als je niet de Microsoft bluetooth stack gebruikt, moet je handmatig je "
+"wiimotes pairen and alleen de \"Refresh\" knop gebruiken."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -433,14 +440,13 @@ msgstr "Acceleratie"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:464
 msgid "Accuracy:"
-msgstr ""
+msgstr "Accuratie:"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:322
 msgid "Accurate VBeam emulation"
-msgstr "Accurate VBeam emulatie"
+msgstr "Nauwkeurige VBeam emulatie"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:92
-#, fuzzy
 msgid ""
 "Accurately emulate EFB copies.\n"
 "Some games depend on this for certain graphical effects or gameplay "
@@ -448,11 +454,11 @@ msgid ""
 "\n"
 "If unsure, check EFB to Texture instead."
 msgstr ""
-"Emuleer EFB kopiën nauwkeurig. \n"
+"Emuleer EFB kopieën nauwkeurig. \\n\n"
 "Sommige spellen zijn hiervan afhankelijk voor een aantal grafische effecten "
-"of gameplay functionaliteit. \n"
-"\n"
-"In geval van twijfel leeg laten."
+"of gameplay functionaliteit. \\n\n"
+"\\n\n"
+"Bij twijfel, markeer EFB to Texture."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:239
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:239
@@ -471,7 +477,7 @@ msgstr ""
 "Action Replay Code Decodering Fout:\n"
 "Pariteitscontrole mislukt\n"
 "\n"
-"Boosdoener Code:\n"
+"Verantwoordelijke code:\n"
 "%s"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:667
@@ -515,13 +521,14 @@ msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Action Replay Fout: Verkeerde waarde  (%08x) in Geheugen Kopie (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
 "Action Replay Fout: Master Code en Schrijf naar CCXXXXXX niet "
-"geimplementeerd (%s)"
+"geimplementeerd (%s)\\n\n"
+"Master codes zijn niet nodig. Gebruik geen master codes."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -559,11 +566,11 @@ msgstr "Voeg toe"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1294
 msgid "Add ActionReplay Code"
-msgstr "Voeg ActionReplay Code toe"
+msgstr "Voeg een ActionReplay Code toe"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1223
 msgid "Add Patch"
-msgstr "Voeg Patch toe"
+msgstr "Voeg een Patch toe"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:506
 msgid "Add new pane"
@@ -589,9 +596,9 @@ msgid ""
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
-"Voegt de specifieke waarde toe aan de zVer parameter. \n"
+"Voegt de specifieke waarde toe aan de zFar parameter. \n"
 "Twee manieren om de floating point values te representeren. \n"
-"Voorbeeld: het direct invoeren van \"200\" of \"0.0002\" levert het zelfde "
+"Voorbeeld: het direct invoeren van \"200\" of \"0.0002\" levert hetzelfde "
 "effect, de uiteindelijke waarde zal \"0.0002\" zijn. \n"
 "Waardes: (0 -> +/- Integer) of (0 -> +/-FP[6 decimalen van precisie])\n"
 "\n"
@@ -607,9 +614,9 @@ msgid ""
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
-"Voegt de specifieke waarde toe aan de zDichtbij parameter. \n"
+"Voegt de specifieke waarde toe aan de zNear parameter. \n"
 "Twee manieren om de floating point values te representeren. \n"
-"Voorbeeld: het direct invoeren van \"200\" of \"0.0002\" levert het zelfde "
+"Voorbeeld: het direct invoeren van \"200\" of \"0.0002\" levert hetzelfde "
 "effect, de uiteindelijke waarde zal \"0.0002\" zijn. \n"
 "Waardes: (0 -> +/- Integer) of (0 -> +/-FP[6 decimalen van precisie])\n"
 "\n"
@@ -617,7 +624,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:758
 msgid "Adjust the analog control pressure required to activate buttons."
-msgstr "Stel de vereiste analoge control druk in om de knop te activeren."
+msgstr ""
+"Stel de vereiste analoge control drukgevoeligheid in om de knop te activeren."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:510
 msgid "Advanced"
@@ -628,14 +636,12 @@ msgid "Advanced Settings"
 msgstr "Geavanceerde Instellingen"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:584
-#, fuzzy
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
-msgstr "Alle GC/Wii bestanden (elf, dol, gcm, iso, ciso, gcz, wad)"
+msgstr "Alle GC/Wii bestanden (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:800
-#, fuzzy
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
-msgstr "Alle GC/Wii images (gcm, iso, ciso, gcz)"
+msgstr "Alle GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1247
 msgid "All Gamecube GCM files (gcm)"
@@ -644,7 +650,7 @@ msgstr "Alle Gamecube GCM bestanden (gcm)"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1395
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1409
 msgid "All Save States (sav, s##)"
-msgstr "Alle Opgeslagen Staten (sav, s##)"
+msgstr "Alle Save Staten (sav, s##)"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1245
 msgid "All Wii ISO files (iso)"
@@ -659,34 +665,33 @@ msgid "All files (*.*)|*.*"
 msgstr "Alle Bestanden (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Stelt je in staat sommige opties via de sneltoetsen 3, 4, 5, 6 en 7 in te "
-"stellen binnen het emulatie venster. \n"
-"\n"
-"In geval van twijfel leeg laten."
+"Laat wisseling van sommige opties toe via de sneltoetsen 3 (Interne "
+"Resolutie ), 4 (Beeldverhouding), 5 (copy EFB) en 6 (Mist) binnen het "
+"emulatie venster.\\n\n"
+"\\n\n"
+"Bij twijfel, ongeselecteerd laten."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
-#, fuzzy
 msgid "Alternate Wiimote Timing"
-msgstr "Geëmuleerde Wiimote"
+msgstr "Alternatieve Wiimote Timing"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:284
 msgid "Analyze"
-msgstr ""
+msgstr "Analyseer"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:298
 msgid "Angle"
-msgstr ""
+msgstr "Hoek"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:368
 msgid "Anisotropic Filtering:"
-msgstr "Anisotropic Filteren:"
+msgstr "Anisotropic Filtering:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:351
 msgid "Anti-Aliasing:"
@@ -694,16 +699,15 @@ msgstr "Anti-Aliasing:"
 
 #: Source/Core/DiscIO/Src/VolumeDirectory.cpp:309
 msgid "Apploader is the wrong size...is it really an apploader?"
-msgstr ""
-"Applader heeft de verkeerde grootte.. is het wel degelijk een applader?"
+msgstr "Apploader heeft de verkeerde grootte.. is het wel echt een Apploader?"
 
 #: Source/Core/DiscIO/Src/VolumeDirectory.cpp:303
 msgid "Apploader unable to load from file"
-msgstr "Applader is niet in staat om van bestand te laden"
+msgstr "Apploader kan het bestand niet laden"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:825
 msgid "Apploader:"
-msgstr "Applader:"
+msgstr "Apploader :"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:134
 msgid "Apply"
@@ -793,12 +797,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:694
 msgid "B"
-msgstr ""
+msgstr "B"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:752
-#, fuzzy
 msgid "BP register "
-msgstr "&Registers"
+msgstr "BP register "
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:27
 msgid "Back"
@@ -920,10 +923,12 @@ msgid ""
 "Bypass the clearing of the data cache by the DCBZ instruction. Usually leave "
 "this option disabled."
 msgstr ""
+"Voorkomt het legen van de data cache door de DCBZ instructie. Laat deze "
+"optie meestal ongeactiveerd. "
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "C"
-msgstr ""
+msgstr "C"
 
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:77
 msgid "C Stick"
@@ -935,7 +940,7 @@ msgstr "C-Stick"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:761
 msgid "CP reg"
-msgstr ""
+msgstr "CP Reg"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:552
 msgid "CPU Emulator Engine"
@@ -978,14 +983,15 @@ msgid "Cannot unregister events with events pending"
 msgstr "Kan geen events afmelden als er events in afwachting zijn"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1062
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
 "%s\n"
 "is not a valid gamecube memory card file"
 msgstr ""
-"Kan dat bestand niet als geheugenkaart gebruiken. \n"
-"Probeer je hetzelfde bestand in beide slots te gebruiken?"
+"Kan dat bestand niet als geheugenkaart gebruiken.\\n\n"
+"%s\\n\n"
+"is geen geldig gamecube geheugenkaart bestand."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1092
 msgid ""
@@ -1077,11 +1083,11 @@ msgstr "Cheats Manager"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:632
 msgid "Check Partition Integrity"
-msgstr ""
+msgstr "Controleer Partitie integriteit"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:873
 msgid "Checking integrity..."
-msgstr ""
+msgstr "Integriteit controleren..."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
 msgid "Chinese (Simplified)"
@@ -1225,9 +1231,8 @@ msgid "Confirm File Overwrite"
 msgstr "Bevestig om bestand over te schrijven."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:582
-#, fuzzy
 msgid "Confirm on Stop"
-msgstr "Bevestiging om te stoppen"
+msgstr "Bevestiging bij Stop"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:63
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:85
@@ -1382,7 +1387,7 @@ msgstr "Auteur:"
 
 #: Source/Core/Common/Src/MsgHandler.cpp:68
 msgid "Critical"
-msgstr ""
+msgstr "Kritiek"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:550
 msgid "Crop"
@@ -1400,7 +1405,7 @@ msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
-msgstr ""
+msgstr "Crossfade"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:597
 #, c-format
@@ -1425,7 +1430,7 @@ msgstr "Tsjechisch"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "D"
-msgstr ""
+msgstr "D"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:89
 msgid "D-Pad"
@@ -1466,11 +1471,11 @@ msgstr "DVD Station:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:238
 msgid "DVDLowRead - Fatal Error: failed to read from volume"
-msgstr ""
+msgstr "DVDLowRead - Fatale Error: kan het volume niet lezen"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:332
 msgid "DVDLowUnencryptedRead - Fatal Error: failed to read from volume"
-msgstr ""
+msgstr "DVDLowUnencryptedRead - Fatale Error: kan het volume niet lezen"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:175
 msgid "Data Size"
@@ -1498,9 +1503,8 @@ msgid "Debug"
 msgstr "Debug"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:522
-#, fuzzy
 msgid "Debugging"
-msgstr "Debug"
+msgstr "Fouthersteller"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:79
 msgid "Decimal"
@@ -1594,9 +1598,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:434
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:476
-#, fuzzy
 msgid "Disable"
-msgstr "Schakel Fog uit"
+msgstr "Uitschakelen"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:492
 msgid "Disable Fog"
@@ -1665,7 +1668,7 @@ msgstr "Wil je de emulatie stoppen?"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:647
 msgid "Dolby Pro Logic II decoder"
-msgstr ""
+msgstr "Dolby Pro Logic II decodering"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:866
 msgid "Dolphin"
@@ -1727,7 +1730,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1217
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1303
 msgid "Dolphin was unable to complete the requested action."
-msgstr ""
+msgstr "Dolphin kan de verzochte actie niet uitvoeren."
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
@@ -1812,7 +1815,7 @@ msgid "EFB Copies"
 msgstr "EFB Regio kopie"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
 "version %d.%d -- If you recently upgraded your Dolphin distribution, a "
@@ -1820,8 +1823,8 @@ msgid ""
 "driver."
 msgstr ""
 "FOUT: Deze versie van Dolphin vereist een TAP-Win32 driver van op zijn minst "
-"versie %d. %d -- Als je recentelijk Dolphin hebt geupgrade is het mogelijk "
-"dat je Windows moet herstarten om deze de driver te laten detecteren."
+"versie %d.%d -- Als je recentelijk Dolphin hebt geupgrade is het mogelijk "
+"dat je Windows moet herstarten om deze de driver te  detecteren."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:171
 msgid "EUROPE"
@@ -1936,10 +1939,9 @@ msgstr "Activeer Block Merging"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:335
 msgid "Enable Bounding Box Calculation"
-msgstr ""
+msgstr "Activeer Bounding Box Berekeningen"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:437
-#, fuzzy
 msgid "Enable Cache"
 msgstr "Activeer Cache"
 
@@ -2054,17 +2056,24 @@ msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on "
 "OSX."
 msgstr ""
+"Activeert Dolby Pro Logic II emulatie met 5.1 surround. Niet beschikbaar met "
+"OSX"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:515
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."
 msgstr ""
+"Activeert Dolby Pro Logic II emulatie met 5.1 surround. Alleen voor OpenAL "
+"backend."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:517
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
 "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
 msgstr ""
+"Activeert Dolby Pro Logic II emulatie met 5.1 surround.  Allen voor OpenAL "
+"backend. Het hernoemen van soft_oal.dll naa OpenAL32.dll kan nodig zijn om "
+"het werkend te maken."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:77
 msgid ""
@@ -2148,6 +2157,8 @@ msgid ""
 "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
 "Aborting savestate load..."
 msgstr ""
+"Fout: Na \\\"%s\\\", gevonden %d (0x%X) in plaats van bewaar punt %d (0x%X). "
+"Bewaarstaat laadactie wordt geannuleerd..."
 
 #: Source/Core/Core/Src/HW/EXI_DeviceIPL.cpp:342
 #, c-format
@@ -2336,24 +2347,24 @@ msgid "Failed to load hid.dll"
 msgstr "Mislukt om hid.dll te laden"
 
 #: Source/Core/Core/Src/Movie.cpp:792
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read %s"
-msgstr "Het schrijven van header voor %s is mislukt"
+msgstr "Kon geen data lezen van %s"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:151
 msgid "Failed to read banner.bin"
 msgstr "Mislukt om banner.bin te lezen"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:223
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to read block %d of the save data\n"
 "Memcard may be truncated\n"
 "FilePosition:%llx"
 msgstr ""
-"Het lezen van de save data is mislukt\n"
-"(0xA000-)\n"
-"De geheugenkaart is wellicht afgeknot"
+"Het lezen van de save data blok %d is mislukt\\n\n"
+"De geheugenkaart is wellicht afgeknot\\n\n"
+"BestandsPositie:%llx"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:148
 msgid ""
@@ -2424,7 +2435,7 @@ msgstr "Het schrijven van header voor bestanden %d is mislukt"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
 msgid "Farsi"
-msgstr ""
+msgstr "Farsi"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:468
 msgid "Fast"
@@ -2439,6 +2450,8 @@ msgstr "Snelle versie van de MMU. Werkt niet voor elk spel."
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
 msgstr ""
+"Fatale desync. Terugspelen wordt geannuleerd. (Fout in SpeelWiimote: %u != "
+"%u, byte %u.)%s"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:199
 msgid "Fifo Player"
@@ -2496,11 +2509,11 @@ msgstr "Bestandstype 'ini' is onbekend! Kan niet openen!"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:264
 msgid "Find next"
-msgstr ""
+msgstr "Zoek volgende"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:265
 msgid "Find previous"
-msgstr ""
+msgstr "Zoek vorige"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:630
 msgid "First Block"
@@ -2519,9 +2532,8 @@ msgid "Force 4:3"
 msgstr "Forceer 4:3"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:553
-#, fuzzy
 msgid "Force Console as NTSC-J"
-msgstr "Stel Console in als NTSC-J"
+msgstr "Forceer Textuur Filtering"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:399
 msgid "Force Texture Filtering"
@@ -2578,16 +2590,16 @@ msgstr "Vooruit"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:504
 #, c-format
 msgid "Found %d results for '"
-msgstr ""
+msgstr "%d resulataten gevonden voor '"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:854
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:922
 msgid "Frame"
-msgstr ""
+msgstr "Frame"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:864
 msgid "Frame "
-msgstr ""
+msgstr "Frame"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:185
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:185
@@ -2599,9 +2611,8 @@ msgid "Frame Dumps use FFV1"
 msgstr "Frame Dumps gebruiken FFV1"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:226
-#, fuzzy
 msgid "Frame Info"
-msgstr "Bestands Info"
+msgstr "Frame Informatie"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:115
 msgid "Frame Range"
@@ -2643,7 +2654,6 @@ msgid "FullScr"
 msgstr "Volledig scherm"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:257
-#, fuzzy
 msgid "Fullscreen resolution:"
 msgstr "Volledige Scherm Resolutie:"
 
@@ -2652,9 +2662,8 @@ msgid "GCI File(*.gci)"
 msgstr "GCI Bestand(*.gci)"
 
 #: Source/Core/DolphinWX/Src/GCMicDlg.h:44
-#, fuzzy
 msgid "GCMic Configuration"
-msgstr "Logboek configuratie"
+msgstr "GCMic configuratie"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:432
 msgid "GCPad"
@@ -2662,7 +2671,7 @@ msgstr "GCPad"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:656
 msgid "GX_CMD_INVL_VC"
-msgstr ""
+msgstr "GX_CMD_INVL_VC"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:457
 msgid "Game ID:"
@@ -2690,7 +2699,7 @@ msgstr "Spel Config"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:523
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
-msgstr ""
+msgstr "GameCube Savegame bestanden(*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:539
 msgid "Gamecube"
@@ -2715,15 +2724,17 @@ msgid "Gecko Codes"
 msgstr "Gecko Codes"
 
 #: Source/Core/Core/Src/GeckoCode.cpp:222
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "GeckoCode failed to run (CT%i CST%i) (%s)\n"
 "(either a bad code or the code type is not yet supported. Try using the "
 "native code handler by placing the codehandler.bin file into the Sys "
 "directory and restarting Dolphin.)"
 msgstr ""
-"GeckoCode kon niet draaien (CT%i CST%i) (%s)\n"
-"(ofwel een onjuiste code of het type code is nog niet ondersteund.)"
+"GeckoCode kon niet starten (CT%i CST%i) (%s)\\n\n"
+"(ofwel door een onjuiste code of het type code is nog niet ondersteund. "
+"Probeer de originele code, door het codehandler.bin bestand in de Sys "
+"directory te plaatsen en Dolphin opnieuw op te starten.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:172
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:172
@@ -2760,7 +2771,6 @@ msgid "Greater Than"
 msgstr "Grooter dan"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:83
-#, fuzzy
 msgid ""
 "Greatly increases quality of textures generated using render to texture "
 "effects.\n"
@@ -2770,12 +2780,14 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"Verbeterd de kwaliteit van textures enorm die gegenereerd zijn met render-"
-"naar-texture effecten.\n"
+"Verbeterd de kwaliteit van texturen enorm wanneer deze gegenereerd zijn met "
+"render-naar-texture effecten.\\n\n"
 "Het ophogen van de interne resolutie zal het effect van deze instelling "
-"verhogen.\n"
-"\n"
-"In geval van twijfel ingevuld laten."
+"verhogen.\\n\n"
+"Verminderd de prestatie enigszins en kan mogelijk problemen veroorzaken "
+"(hoewel onwaarschijnlijk)\\n\n"
+"\\n\n"
+"Bij twijfel, geselecteerd laten."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:304
 msgid "Greek"
@@ -2803,7 +2815,7 @@ msgstr "HCI_CMD_INQUIRY is opgeroepen, rapport dit alstubliefst!"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:422
 msgid "Hacks"
-msgstr ""
+msgstr "Hacks"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:158
 msgid "Header checksum failed"
@@ -2943,6 +2955,8 @@ msgid ""
 "If checked, the bounding box registers will be updated. Used by the Paper "
 "Mario games."
 msgstr ""
+"Wanneer dit geselecteerd is, worden de bounding box registers ge-update. "
+"Gebruikt door de Paper Mario spellen."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid ""
@@ -2952,15 +2966,15 @@ msgstr ""
 "Snel)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:490
-#, fuzzy
 msgid ""
 "If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use "
 "Audio to throttle using the DSP (might fix audio clicks but can also cause "
 "constant noise depending on the game)."
 msgstr ""
 "Als je de Framelimiet hoger zet dan de snelheid van het spel (NTSC: 60, PAL: "
-"50),\n"
-"dan moet je ook Audio Throttle DSP uitschakelen om het effectief te maken."
+"50). Gebruik de Audio om te versnellen met behulp van DSP (kan het klikkend "
+"geluid verhelpen, maar kan ook constant lawaai ten gevolge hebben, "
+"afhankelijk van welk spel gebruikt wordt)."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:429
 msgid "Ignore Format Changes"
@@ -3092,15 +3106,15 @@ msgstr "WAD aan het installeren..."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:894
 msgid "Integrity Check Error"
-msgstr ""
+msgstr "Integriteitscontrole Fout"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:900
 msgid "Integrity check completed"
-msgstr ""
+msgstr "Integriteitscontrole afgerond"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:899
 msgid "Integrity check completed. No errors have been found."
-msgstr ""
+msgstr "Integriteitscontrole afgerond. Geen fouten gevonden."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:891
 #, c-format
@@ -3108,9 +3122,10 @@ msgid ""
 "Integrity check for partition %d failed. Your dump is most likely corrupted "
 "or has been patched incorrectly."
 msgstr ""
+"Integriteitscontrole for partitie %d mislukt. De dump is waarschijnlijk "
+"corrupt or is verkeerd gepatcht. "
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:537
-#, fuzzy
 msgid "Interface"
 msgstr "Interface Instellingen"
 
@@ -3186,15 +3201,15 @@ msgstr "Onjuist opname bestand"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:472
 msgid "Invalid search parameters (no object selected)"
-msgstr ""
+msgstr "Ongeldige zoek-parameters (geen object geselecteerd)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:455
 msgid "Invalid search string (couldn't convert to number)"
-msgstr ""
+msgstr "Ongeldige zoekopdracht (niet in staat naar nummers te converteren)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:443
 msgid "Invalid search string (only even string lengths supported)"
-msgstr ""
+msgstr "Ongeldige zoekopdracht (alleen even string lengte ondersteund)"
 
 #: Source/Core/Core/Src/Core.cpp:514
 msgid "Invalid state"
@@ -3228,19 +3243,18 @@ msgid "KOREA"
 msgstr "KOREA"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:74
-#, fuzzy
 msgid ""
 "Keep the game window on top of all other windows.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Verbergt de cursor als deze boven het emulatie venster is. \n"
-"\n"
-"In geval van twijfel leeg laten."
+"Houdt het spelscherm boven alle andere open schermen.\\n\n"
+"\\n\n"
+"Bij twijfel, ongeselecteerd laten."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:299
 msgid "Keep window on top"
-msgstr ""
+msgstr "Houdt venster bovenop"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:241
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:241
@@ -3255,7 +3269,7 @@ msgstr "Koreaans"
 #. i18n:  Left
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:57
 msgid "L"
-msgstr ""
+msgstr "L"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:39
 msgid "L Button"
@@ -3264,7 +3278,7 @@ msgstr "L Knop"
 #. i18n:  Left-Analog
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:61
 msgid "L-Analog"
-msgstr ""
+msgstr "L-Analoog"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:590
 msgid "Language:"
@@ -3281,7 +3295,7 @@ msgstr "Laatste Opgeslagen Staat"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:680
 msgid "Latency:"
-msgstr ""
+msgstr "Wachttijd:"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
@@ -3290,7 +3304,7 @@ msgstr "Links"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Classic.cpp:60
 msgid "Left Stick"
-msgstr ""
+msgstr "Linker Knuppel"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:257
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:257
@@ -3380,14 +3394,13 @@ msgid "Load State..."
 msgstr "Laad staat..."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1333
-#, fuzzy
 msgid "Load Wii System Menu"
-msgstr "Laad Wii System Menu(%d %c)"
+msgstr "Laad Wii System Menu"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1328
-#, fuzzy, c-format
+#, c-format
 msgid "Load Wii System Menu %d%c"
-msgstr "Laad Wii System Menu(%d %c)"
+msgstr "Laad Wii System Menu %d%c"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:107
 msgid ""
@@ -3417,24 +3430,23 @@ msgstr "Logboek configuratie"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:297
 msgid "Log FPS to file"
-msgstr ""
+msgstr "Log FPS naar bestand"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:95
 msgid "Log Types"
 msgstr "Log Types"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:98
-#, fuzzy
 msgid ""
 "Log the number of frames rendered per second to User/Logs/fps.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Weergeef het aantal frames dat per seconde wordt gerendered als een meting "
-"van de emulatie snelheid,\n"
-"\n"
-"In geval van twijfel leeg laten."
+"Log de hoeveelheid beelden gecreeerd per seconde naar User/Logs/fps.txt. "
+"Gebruik deze optie als je de prestaties van Dolphin wilt meten.\\n\n"
+"\\n\n"
+"Bij twijfel, ongeselecteerd laten."
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:80
 msgid "Logger Outputs"
@@ -3474,7 +3486,7 @@ msgstr "MadCatz Gameshark bestanden(*.gcs)"
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:76
 #: Source/Core/DolphinWX/Src/TASInputDlg.cpp:51
 msgid "Main Stick"
-msgstr ""
+msgstr "Hoofd Knuppel"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:465
 msgid "Maker ID:"
@@ -3487,7 +3499,7 @@ msgstr "Maker:"
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:103
 msgid "Max"
-msgstr ""
+msgstr "Max"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:446
 msgid "Memcard already has a save for this title"
@@ -3534,6 +3546,8 @@ msgstr ""
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:124
 msgid "Memorycard filesize does not match the header size"
 msgstr ""
+"Het formaat van de geheugenkaart komt niet overeen met het formaat van de "
+"header."
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:50
 msgid "Menu"
@@ -3559,7 +3573,7 @@ msgstr "Overige Instellingen"
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:240
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:294
 msgid "Modifier"
-msgstr ""
+msgstr "Aanpasser"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:101
 msgid ""
@@ -3579,12 +3593,12 @@ msgstr "Niet-proportioneel (monospace) lettertype"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:305
 msgid "Motion Plus"
-msgstr ""
+msgstr "Motion Plus"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:309
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:86
 msgid "Motor"
-msgstr ""
+msgstr "Motor"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:655
 msgid ""
@@ -3619,11 +3633,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:648
 msgid "NOP"
-msgstr ""
+msgstr "NOP"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:627
 msgid "NOTE: Stream size doesn't match actual data length\n"
-msgstr ""
+msgstr "Notitie: Steam grootte komt niet overeen met werkelijke lengte\\n\n"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:129
 msgid "NP Add"
@@ -3760,7 +3774,7 @@ msgstr "Geen banner gevonden voor titel  %s"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:758
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:765
 msgid "No description available"
-msgstr ""
+msgstr "Geen omschrijving beschikbaar"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:513
 msgid "No docking"
@@ -3841,7 +3855,7 @@ msgstr "Nunchuk Acceleratie"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:874
 msgid "Object"
-msgstr ""
+msgstr "Object"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:134
 msgid "Object Range"
@@ -3857,7 +3871,7 @@ msgstr "Afstand:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:587
 msgid "On-Screen Display Messages"
-msgstr ""
+msgstr "In-Scherm Berichtgeving"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:434
 #, c-format
@@ -3998,7 +4012,7 @@ msgstr "Pauze"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:128
 msgid "Pause at end of movie"
-msgstr ""
+msgstr "Pauze aan het eind van de film"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:398
 msgid "Per-Pixel Lighting"
@@ -4094,17 +4108,17 @@ msgstr "Post-Processing Effect:"
 #: Source/Core/Core/Src/Movie.cpp:936
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
-msgstr ""
+msgstr "Vroegtijdige beeïndiging van filmpje in PlayController. %u + 8 > %u"
 
 #: Source/Core/Core/Src/Movie.cpp:1055
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
-msgstr ""
+msgstr "Vroegtijdige beeïndiging van filmpje in PlayWiimote. %u + %d > %u"
 
 #: Source/Core/Core/Src/Movie.cpp:1032
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
-msgstr ""
+msgstr "Vroegtijdige beeïndiging van filmpje in PlayWiimote. %u > %u"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:47
 msgid "Presets: "
@@ -4150,7 +4164,7 @@ msgstr "Stoppen"
 #. i18n:  Right
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:59
 msgid "R"
-msgstr ""
+msgstr "R"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:40
 msgid "R Button"
@@ -4159,7 +4173,7 @@ msgstr "R Knop"
 #. i18n:  Right-Analog
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:63
 msgid "R-Analog"
-msgstr ""
+msgstr "R-Analoog"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:436
 msgid "RAM"
@@ -4187,18 +4201,16 @@ msgid "Real Wiimote"
 msgstr "Echte Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:79
-#, fuzzy
 msgid "Real Wiimotes"
-msgstr "Echte Wiimote"
+msgstr "Echte Wiimotes"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:124
 msgid "Reconnect Wiimote Confirm"
 msgstr "Bevestig herverbinding van Wiimote "
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:95
-#, fuzzy
 msgid "Reconnect Wiimote on State Loading"
-msgstr "Herverbind Wiimote Bij Staat Laden"
+msgstr "Herverbind Wiimote bij Staat Laden"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:192
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:216
@@ -4303,7 +4315,7 @@ msgstr "Rechter Stick"
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:308
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:85
 msgid "Rumble"
-msgstr ""
+msgstr "Rumble"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:503
 msgid "Run DSP LLE on a dedicated thread (not recommended)."
@@ -4398,9 +4410,8 @@ msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Save staat film %s is corrupt, het opnemen van de film is gestopt..."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:397
-#, fuzzy
 msgid "Scaled EFB Copy"
-msgstr "EFB Verkleinde Kopie"
+msgstr "Geschaalde EFB Kopie"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:613
 #, c-format
@@ -4424,9 +4435,8 @@ msgid "Scroll Lock"
 msgstr "Scroll Slot"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:263
-#, fuzzy
 msgid "Search"
-msgstr "Cheat Zoeken"
+msgstr "Zoeken"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:226
 msgid "Search Filter"
@@ -4437,13 +4447,12 @@ msgid "Search Subfolders"
 msgstr "Zoeken in submappen"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:249
-#, fuzzy
 msgid "Search current Object"
-msgstr "Sla huidige perspectief op"
+msgstr "Zoek huidige Object"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:253
 msgid "Search for hex Value:"
-msgstr ""
+msgstr "Zoek naar hex Waarde:"
 
 #: Source/Core/Common/Src/SysConf.h:103 Source/Core/Common/Src/SysConf.h:126
 #: Source/Core/Common/Src/SysConf.h:146 Source/Core/Common/Src/SysConf.h:167
@@ -4516,9 +4525,8 @@ msgstr ""
 "Stretch naar het venster: Stretch de afbeelding naar je venster grootte."
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "Het opgegeven bestand \"%s\" bestaat niet"
+msgstr "Geselecteerd controller profiel bestaat niet"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -4603,6 +4611,8 @@ msgid ""
 "Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL "
 "backend only."
 msgstr ""
+"Zet de wachttijd (in ms). Hogere waarden kunnen krakende audio verminderen. "
+"Alleen voor OpenAL instellingen."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
 msgid "Settings..."
@@ -4735,9 +4745,8 @@ msgid "Show first block"
 msgstr "Toon eerste blok"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:130
-#, fuzzy
 msgid "Show lag counter"
-msgstr "Toon save commentaar"
+msgstr "Toon vertragingsteller"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
 msgid ""
@@ -4745,6 +4754,9 @@ msgid ""
 "These messages include memory card writes, video backend and CPU "
 "information, and JIT cache clearing."
 msgstr ""
+"Geef berichten weer op het emulatiescherm.\\n\n"
+"Dit betreft berichten betreffende geheugenkaart schrijven, video "
+"instellingen, CPU informatie, en JIT cache verversing."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:828
 msgid "Show save blocks"
@@ -4806,12 +4818,11 @@ msgstr "Sla BIOS Over"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid "Skip DCBZ clearing"
-msgstr ""
+msgstr "Sla het legen van DCBZ over"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:493
-#, fuzzy
 msgid "Skip Dest. Alpha Pass"
-msgstr "Schakel Dest. Alpha Pass uit"
+msgstr "Sla Dest. Alpha Pass over"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:445
 msgid "Skip EFB Access from CPU"
@@ -4838,6 +4849,13 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Versnelt het EFB naar RAM kopiëren lichtelijk door de nauwkeurigheid van de "
+"emulatie op te offeren.\\n\n"
+"Verbeterd soms ook de beeldkwaliteit.\\n\n"
+"Wanneer er enige problemen optreden, probeer dan de textuur cache precisie "
+"te verhogen of schakel deze optie uit.\\n\n"
+"\\n\n"
+"Bij twijfel, ongeselecteerd laten."
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:374
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:386
@@ -4859,7 +4877,7 @@ msgstr "Snapshot"
 
 #: Source/Plugins/Plugin_VideoSoftware/Src/SWmain.cpp:55
 msgid "Software Renderer"
-msgstr ""
+msgstr "Software Weergever"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.h:83
 msgid ""
@@ -4899,7 +4917,7 @@ msgstr "Spaans"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:101
 msgid "Speaker Volume:"
-msgstr ""
+msgstr "Speaker Volume:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:87
 msgid ""
@@ -4927,11 +4945,11 @@ msgstr "Versnel Disc Transfer Rate"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:243
 msgid "Square Stick"
-msgstr ""
+msgstr "Vierkante knuppel"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:91
 msgid "Standard Controller"
-msgstr ""
+msgstr "Standaard Controller"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:50
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
@@ -4963,11 +4981,11 @@ msgstr "Opgeslage Staten"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:92
 msgid "Steering Wheel"
-msgstr ""
+msgstr "Stuurwiel"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
-msgstr ""
+msgstr "Knuppel"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:419
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:425
@@ -4985,6 +5003,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Sla EFB kopieën op in GPU texture objecten.\\n\n"
+"Dit is niet zo nauwkeurig, maar het werkt goed genoeg voor de meeste spellen "
+"en levert een flinke versnelling op ten op zicht van EFB naar RAM.\\n\n"
+"\\n\n"
+"Bij twijfel, geselecteerd laten."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:276
 msgid "Stretch to Window"
@@ -5009,7 +5032,7 @@ msgstr "Succesvol save games geimporteerd"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:285
 msgid "Swing"
-msgstr ""
+msgstr "Zwaai"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:728
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:776
@@ -5050,7 +5073,7 @@ msgstr "Neem een Schermafdruk"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:93
 msgid "TaruKonga (Bongos)"
-msgstr ""
+msgstr "TaruKonga (Bongos)"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:488
 msgid "Test"
@@ -5061,9 +5084,8 @@ msgid "Texture"
 msgstr "Textuur"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:452
-#, fuzzy
 msgid "Texture Cache"
-msgstr "Zuiveren van de Cache"
+msgstr "Textuur Cache"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:520
 msgid "Texture Format Overlay"
@@ -5135,6 +5157,10 @@ msgid ""
 "\n"
 "If unsure, use the rightmost value."
 msgstr ""
+"Hoe veiliger je deze afstelt, hoe kleiner de kans dat de emulator textuur "
+"updates vanuit RAM mist.\\n\n"
+"\\n\n"
+"Bij twijfel, de meest rechtse waarde gebruiken."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:443
 msgid "The save you are trying to copy has an invalid file size"
@@ -5176,9 +5202,8 @@ msgid "The value is invalid"
 msgstr "De waarde is onjuist"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:626
-#, fuzzy
 msgid "Theme:"
-msgstr "Thema"
+msgstr "Thema:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
@@ -5209,7 +5234,6 @@ msgid "This could cause slow down in Wii Menu and some games."
 msgstr "Dit kan leiden tot vertraging van het Wii-menu en een aantal games."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5220,13 +5244,13 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Deze functie stelt je in staat de camera van het spel te veranderen. \n"
+"Deze functie stelt je in staat de camera van het spel te veranderen. \\n\n"
 "Houd de rechter muisknop ingedrukt en beweeg de muis om de camera te "
-"verschuiven. Houd SHIFT ingedrukt en druk op een van de WASD knoppen om de "
-"camera met een stap afstand te bewegen (SHIFT+0 om sneller te bewegen en "
-"SHIFT+9 om langzamer te bewegen). Druk SHIFT+R om de camera te resetten.\n"
-"\n"
-"In geval van twijfel leeg laten."
+"verschuiven.\\n Houd SHIFT ingedrukt en druk op een van de WASD knoppen om "
+"de camera met een stap afstand te bewegen (SHIFT+0 om sneller- en SHIFT+9 om "
+"langzamer te bewegen). Druk SHIFT+R om de camera te resetten.\\n\n"
+"\\n\n"
+"Bij twijfel, ongeselecteerd laten."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:489
 msgid ""
@@ -5288,7 +5312,7 @@ msgstr "Poging tot het laden van een onbekend bestands type."
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:80
 msgid "Triggers"
-msgstr ""
+msgstr "Trekkers"
 
 #: Source/Core/Common/Src/SysConf.h:91 Source/Core/Common/Src/SysConf.h:114
 msgid "Trying to read from invalid SYSCONF"
@@ -5328,9 +5352,9 @@ msgid "UNKNOWN"
 msgstr "ONBEKEND"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:753
-#, fuzzy, c-format
+#, c-format
 msgid "UNKNOWN_%02X"
-msgstr "ONBEKEND"
+msgstr "ONBEKEND_%02X"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:183
 msgid "USA"
@@ -5341,6 +5365,8 @@ msgid ""
 "Unable to create patch from given values.\n"
 "Entry not modified."
 msgstr ""
+"Niet mogelijk om patch te creëren vanuit de gegeven waardes.\\n\n"
+"Entry niet aangepast."
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:123
 #, c-format
@@ -5365,7 +5391,7 @@ msgstr "Ongedaan maken van Load staat"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:715
 msgid "Unexpected 0x80 call? Aborting..."
-msgstr ""
+msgstr "Onverwachtte 0x80 fout? Annuleren..."
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:214
 msgid "Unknown"
@@ -5493,9 +5519,8 @@ msgid "WAD installation failed: error creating %s"
 msgstr "WAD installatie mislukt: fout bij het creëren van %s"
 
 #: Source/Core/DiscIO/Src/NANDContentLoader.cpp:547
-#, fuzzy
 msgid "WAD installation failed: error creating ticket"
-msgstr "WAD installatie mislukt: fout bij het creëren van %s"
+msgstr "WAD installatie mislukt: fout bij het creëren van ticket"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:80
 msgid ""
@@ -5559,6 +5584,9 @@ msgid ""
 "%u > %u) (frame %u > %u). You should load another save before continuing, or "
 "load this state with read-only mode off."
 msgstr ""
+"Waarschuwing: Je hebt een save geladen van na het huidige filmpje. (byte %u "
+"> %u) (frame %u > %u). Je dient een andere save te laden voordat je verder "
+"gaat, of deze staat laden met alleen-lezen uitgeschakeld. "
 
 #: Source/Core/Core/Src/Movie.cpp:861
 #, c-format
@@ -5567,6 +5595,10 @@ msgid ""
 "should load another save before continuing, or load this state with read-"
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
+"Waarschuwing: Je hebt een save geladen waarvan het filmpje niet overeenkomt "
+"op byte %d (0x%X). Je dient een andere save te laden voordat je verder gaat, "
+"of deze staat laden met alleen-lezen uitgeschakeld. Anders zullen er "
+"waarschijnlijk synchronisatie problemen optreden. "
 
 #: Source/Core/Core/Src/Movie.cpp:870
 #, c-format
@@ -5586,6 +5618,22 @@ msgid ""
 "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
 "%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 msgstr ""
+"Waarschuwing: Je hebt een save geladen waarvan het filmpje niet overeenkomt "
+"op frame %d. Je dient een andere save te laden voordat je verder gaat, of "
+"deze staat laden met alleen-lezen uitgeschakeld. Anders zullen er "
+"waarschijnlijk synchronisatie problemen optreden.\\n\n"
+"\\n\n"
+"Meer informatie: Het huidige filmpje is %d frames lang en het filmpje in de "
+"savestate is %d frames lang.\\n\n"
+"\\n\n"
+" Op frame %d, levert het huidige filmpje:\\n\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DOmhoog=%d, DOmlaag=%d, DLinks=%d, "
+"DRechts=%d, L=%d, R=%d, LT=%d, RT=%d, AnaloogX=%d, AnaloogY=%d, CX=%d, CY=%d"
+"\\n\n"
+"\\n\n"
+"Op frame %d, levert het filmpje in de savestate:\\n\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DOmhoog=%d, DOmlaag=%d, DLinks=%d, "
+"DRechts=%d, L=%d, R=%d, LT=%d, RT=%d, AnaloogX=%d, AnaloogY=%d, CX=%d, CY=%d"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:106
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:129
@@ -5594,7 +5642,7 @@ msgstr "WaveFileWriter - bestand niet open."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:56
 msgid "Whammy"
-msgstr ""
+msgstr "Whammy"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:405
 msgid "Widescreen Hack"
@@ -5634,9 +5682,9 @@ msgid "Wiimote"
 msgstr "Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:28
-#, fuzzy, c-format
+#, c-format
 msgid "Wiimote %i"
-msgstr "Wiimote"
+msgstr "Wiimote %i"
 
 #: Source/Core/DolphinWX/Src/Frame.cpp:123
 #, c-format
@@ -5664,9 +5712,8 @@ msgid "Wiimote settings"
 msgstr "Wiimote instellingen"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:55
-#, fuzzy
 msgid "Wiimotes"
-msgstr "Wiimote"
+msgstr "Wiimotes"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:134
 msgid "Windows Left"
@@ -5696,9 +5743,8 @@ msgid "Write to Console"
 msgstr "Schrijf naar Console"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:66
-#, fuzzy
 msgid "Write to Debugger"
-msgstr "Schrijf naar Bestand"
+msgstr "Schrijf naar Fouthersteller"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:56
 msgid "Write to File"
@@ -5725,7 +5771,7 @@ msgstr "XAudio2 master voice creatie mislukt: %#X"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:763
 msgid "XF reg"
-msgstr ""
+msgstr "XF Reg"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Drums.cpp:21
 msgid "Yellow"
@@ -5736,6 +5782,8 @@ msgid ""
 "You are using free dsp roms made by Dolphin Team.\n"
 "Only Zelda ucode games will work correctly with them.\n"
 msgstr ""
+"Je maakt gebruik van gratis dsp roms gemaakt door het Dolphin Team.\\n\n"
+"Alleen Zelda ucode spellen zullen hier goed mee werken.\\n\n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:72
 msgid "You can't close panes that have pages in them."
@@ -5879,7 +5927,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:932
 msgid "s"
-msgstr ""
+msgstr "s"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:456
 #, c-format
@@ -5901,627 +5949,3 @@ msgstr "zDichtbij correctie:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| OF"
-
-#~ msgid "%d %%"
-#~ msgstr "%d %%"
-
-#~ msgid "%d Hz"
-#~ msgstr "%d Hz"
-
-#~ msgid "&Frame Stepping"
-#~ msgstr "&Frame Stepping"
-
-#~ msgid "(Default)"
-#~ msgstr "(Standaard)"
-
-#~ msgid "3D Vision (Requires Fullscreen)"
-#~ msgstr "3D Vision (Vereist volledig scherm) "
-
-#, fuzzy
-#~ msgid "AOSound"
-#~ msgstr "&Geluid "
-
-#~ msgid "Accurate Texture Cache"
-#~ msgstr "Nauwkeurige Textuur Cache"
-
-#, fuzzy
-#~ msgid "Adjust window size"
-#~ msgstr "Venster Groote:"
-
-#~ msgid ""
-#~ "Allows the CPU to read or write to the EFB (render buffer).\n"
-#~ "This is needed for certain gameplay functionality (e.g. star pointer in "
-#~ "Super Mario Galaxy) as well as for certain visual effects (e.g. Monster "
-#~ "Hunter Tri),\n"
-#~ "but enabling this option can also have a huge negative impact on "
-#~ "performance if the game uses this functionality heavily."
-#~ msgstr ""
-#~ "Hiermee kan de CPU naar de EFB lezen of schrijven (render buffer).\n"
-#~ "Dit is nodig voor bepaalde gameplay-functionaliteit (bijv. sterren "
-#~ "aanwijzer in Super Mario Galaxy), als ook voor bepaalde visuele effecten "
-#~ "(bv Monster Hunter Tri),\n"
-#~ "maar het inschakelen van deze optie kan ook een enorme negatieve invloed "
-#~ "op de prestaties hebben als het spel gebruik maakt van deze "
-#~ "functionaliteit."
-
-#~ msgid "Alternate RFI"
-#~ msgstr "Alternatieve RFI"
-
-#~ msgid "Auto [recommended]"
-#~ msgstr "Auto [aanbevolen]"
-
-#~ msgid "Bleach Versus Crusade"
-#~ msgstr "Bleach Versus Crusade"
-
-#~ msgid ""
-#~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-#~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-#~ "depth calculations are necessary to properly emulate a small number of "
-#~ "games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Bereken diepte waardes van 3D graphics per-pixel, in plaats van per "
-#~ "vertex. \n"
-#~ "In tegenstelling tot pixel verlichting (wat enkel een toevoeging is) zijn "
-#~ "per-pixel berekeningen nodig om een klein aantal spellen goed te "
-#~ "emuleren.\n"
-#~ "\n"
-#~ "In geval van twijfel leeg laten."
-
-#~ msgid ""
-#~ "Calculates lighting of 3D graphics on a per-pixel basis rather than per "
-#~ "vertex.\n"
-#~ "This is the more accurate behavior but reduces performance."
-#~ msgstr ""
-#~ "Berekent verlichting van 3D-graphics op een per-pixel basis in plaats van "
-#~ "per vertex.\n"
-#~ "Dit is nauwkeuriger, maar vermindert de prestaties."
-
-#~ msgid "Clear failed."
-#~ msgstr "Legen mislukt."
-
-#~ msgid "Config..."
-#~ msgstr "Config..."
-
-#~ msgid "Configuration profile"
-#~ msgstr "Configureer Profiel"
-
-#~ msgid "Configuration profile:"
-#~ msgstr "Configureer Profiel:"
-
-#~ msgid "Connected"
-#~ msgstr "Verbonden"
-
-#~ msgid "Connected to %i Wiimotes"
-#~ msgstr "Verbonden met %i Wiimotes"
-
-#~ msgid "Copy"
-#~ msgstr "Kopieer"
-
-#~ msgid "Could not copy %s to %s"
-#~ msgstr "Kan %s niet naar %s kopieeren"
-
-#, fuzzy
-#~ msgid "Could not get info about plugin %s"
-#~ msgstr "Het volgende bestanden kon niet gemaakt worden %s "
-
-#~ msgid "Created by KDE-Look.org"
-#~ msgstr "Gemaakt door KDE-Look.org"
-
-#~ msgid ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-#~ msgstr "Gemaakt door  [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-
-#~ msgid "Created by VistaIcons.com"
-#~ msgstr "Gemaakt door VistaIcons.com"
-
-#~ msgid ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-#~ msgstr ""
-#~ "Gemaakt door black_rider and published on ForumW.org > Web Developments"
-
-#~ msgid "DList Cache"
-#~ msgstr "Dlijst Cache"
-
-#, fuzzy
-#~ msgid "DSound"
-#~ msgstr "&Geluid "
-
-#~ msgid "Danish"
-#~ msgstr "Deens"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "Schakel Lighting uit"
-
-#~ msgid "Disable Per-Pixel Depth"
-#~ msgstr "Schakel Pixel Diepte uit"
-
-#~ msgid "Disable Textures"
-#~ msgstr "Schakel Textures uit"
-
-#~ msgid "Disable Wiimote Speaker"
-#~ msgstr "Schakel Wiimote speaker uit"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Schakel texturing uit.\n"
-#~ "\n"
-#~ "In geval van twijfel leeg laten."
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Uitschakelen texturing.\n"
-#~ "Dit is alleen handig voor debugging doeleinden."
-
-#~ msgid ""
-#~ "Disables an alpha-setting pass.\n"
-#~ "Breaks certain effects but might help performance."
-#~ msgstr ""
-#~ "Deactiveer alfa-instellingen passeren.\n"
-#~ "Breekt bepaalde effecten, maar kan de prestaties helpen."
-
-#~ msgid "Distance Alpha Pass"
-#~ msgstr "Afstand Alpha Pass"
-
-#, fuzzy
-#~ msgid "Dolphin OpenGL"
-#~ msgstr "Dolphin"
-
-#~ msgid "EFB"
-#~ msgstr "EFB"
-
-#~ msgid ""
-#~ "Emulate frame buffer copies directly to textures.\n"
-#~ "This is not so accurate, but it's good enough for the way many games use "
-#~ "framebuffer copies."
-#~ msgstr ""
-#~ "Emuleer frame buffer kopieën rechtstreeks naar texturen.\n"
-#~ "Dit is niet zo nauwkeurig, maar het is goed genoeg voor de manier waarop "
-#~ "veel spellen gebruiken maken van de framebuffer kopieën."
-
-#~ msgid "Emulator Display Settings"
-#~ msgstr "Emulator Scherm Instellingen"
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "Activeer Audio Throttle"
-
-#~ msgid "Enable BAT"
-#~ msgstr "Activeer BAT"
-
-#~ msgid "Enable CPU Access"
-#~ msgstr "Activeer CPU Toegang"
-
-#~ msgid "Enable Copy to EFB"
-#~ msgstr "Activeer Kopie naar EFB"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "Activeer DTK Muziek"
-
-#~ msgid "Enable EFB To Texture"
-#~ msgstr "Activeer EFB To Texture"
-
-#~ msgid "Enable HLE Audio"
-#~ msgstr "Activeer HLE Audio"
-
-#~ msgid "Enable JIT Dynarec"
-#~ msgstr "Activeer JIT Dynarec"
-
-#~ msgid "Enable OpenCL"
-#~ msgstr "Activeer OpenCL"
-
-#~ msgid "Enable Screen Saver (burn-in reduction)"
-#~ msgstr "Activeer Screen Saver (burn-in reduction)"
-
-#~ msgid ""
-#~ "Enables Block Address Translation (BAT); a function of the Memory "
-#~ "Management Unit. Accurate to the hardware, but slow to emulate. (ON = "
-#~ "Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Schakel Block Address Translation (BAT) in, een functie van de Memory "
-#~ "Management Unit. Nauwkeurig voor de hardware, maar langzaam te emuleren. "
-#~ "(AAN = Compatibel, UIT = Snel)"
-
-#~ msgid ""
-#~ "Enables dynamic recompilation of DSP code.\n"
-#~ "Changing this will have no effect while the emulator is running!"
-#~ msgstr ""
-#~ "Schakel dynamische hercompilatie van de DSP-code in.\n"
-#~ "Veranderen zal geen effect hebben terwijl de emulator draait!"
-
-#~ msgid ""
-#~ "Enables emulation of Embedded Frame Buffer copies, if the game uses "
-#~ "them.\n"
-#~ "Games often need this for post-processing or other things, but if you can "
-#~ "live without it, you can sometimes get a big speedup."
-#~ msgstr ""
-#~ "Schakel emulatie van Embedded Frame Buffer exemplaren in, als het spel ze "
-#~ "gebruikt.\n"
-#~ "Games hebben vaak behoefte aan dit voor post-processing of andere dingen, "
-#~ "maar als je kan leven zonder haar, soms vindt je een grote snelheidswinst."
-
-#~ msgid ""
-#~ "Enables reinterpreting the data inside the EFB when the pixel format "
-#~ "changes.\n"
-#~ "Some games depend on this function for certain effects, so enable it if "
-#~ "you're having glitches.\n"
-#~ "Depending on how the game uses this function, the speed hits caused by "
-#~ "this option range from none to critical."
-#~ msgstr ""
-#~ "Schakel herinterpreteren in van de gegevens in de EFB, wanneer de pixel-"
-#~ "formaat verandert.\n"
-#~ "Sommige spellen zijn afhankelijk van deze functie voor bepaalde effecten, "
-#~ "dus inschakelen als je met glitches.\n"
-#~ "Afhankelijk van hoe het spel gebruik maakt van deze functie, hits van de "
-#~ "snelheid veroorzaakt door deze optie variëren van geen tot kritisch."
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "Sluit Dolphin met emulator"
-
-#~ msgid "Failed to load DSP ROM: %s"
-#~ msgstr "Mislukt om DSP ROM te laden vanuit: %s"
-
-#, fuzzy
-#~ msgid "Fast Mipmaps"
-#~ msgstr "Laad  Native Mipmaps"
-
-#~ msgid ""
-#~ "Faster variants look at fewer pixels and thus have more potential for "
-#~ "errors.\n"
-#~ "Slower variants look at more pixels and thus are safer."
-#~ msgstr ""
-#~ "Sneller varianten blik op minder pixels en hebben dus meer kans op "
-#~ "fouten.\n"
-#~ "Langzamer varianten kijken naar meer pixels en dus veiliger zijn."
-
-#~ msgid "Force Bi/Trilinear Filtering"
-#~ msgstr "Forceer Bi/Trilinear Filtering"
-
-#~ msgid "Fractional"
-#~ msgstr "Breuk"
-
-#~ msgid ""
-#~ "Fully emulate embedded frame buffer copies.\n"
-#~ "This is more accurate than EFB Copy to Texture, and some games need this "
-#~ "to work properly, but it can also be very slow."
-#~ msgstr ""
-#~ "Volledig na bootsen van de embedded frame buffer exemplaren.\n"
-#~ "Dit is nauwkeuriger dan EFB Kopiëren naar Textuur, en sommige games "
-#~ "hebben dit nodig om het goed te laten werken, maar het kan ook zeer traag "
-#~ "zijn."
-
-#~ msgid "GFX Config"
-#~ msgstr "GFX Configuratie"
-
-#, fuzzy
-#~ msgid "Graphics Plugin"
-#~ msgstr "Grafische"
-
-#~ msgid "Hide Shader Errors"
-#~ msgstr "Verberg Shader Fouten"
-
-#~ msgid ""
-#~ "Hide the cursor when it is over the rendering window and the rendering "
-#~ "window has focus."
-#~ msgstr ""
-#~ "Verberg de cursor wanneer het voorbij is bij de rendering venster\n"
-#~ " en de rendering venster de focus heeft."
-
-#~ msgid ""
-#~ "If a game hangs, works only in the Interpreter or Dolphin crashes, this "
-#~ "option may fix the game."
-#~ msgstr ""
-#~ "Als een spel hangt, werkt alleen in de Interpreter anders crasht Dolphin, "
-#~ "Deze optie kan het spel fixen"
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Verbeterd performance, maar zorgt ervoor dat belichting in meeste games "
-#~ "verdwijnt. \n"
-#~ "\n"
-#~ "In geval van twijfel leeg laten."
-
-#~ msgid "Input Source"
-#~ msgstr "Invoer bron"
-
-#~ msgid "Installing WAD to Wii Menu..."
-#~ msgstr "Het installeren van WAD naar de Wii Menu ..."
-
-#~ msgid "Integral [recommended]"
-#~ msgstr "Integraal [aanbevolen]"
-
-#~ msgid ""
-#~ "Keeps track of textures based on looking at the actual pixels in the "
-#~ "texture.\n"
-#~ "Can cause slowdown, but some games need this option enabled to work "
-#~ "properly."
-#~ msgstr ""
-#~ "Houdt van texturen op basis om te kijken naar de werkelijke pixels in de "
-#~ "textuur.\n"
-#~ "Kan leiden tot vertraging, maar sommige spellen hebben deze optie nodig "
-#~ "om goed te werken."
-
-#~ msgid "Load Script..."
-#~ msgstr "Laad Script..."
-
-#~ msgid ""
-#~ "Loads native mipmaps instead of generating them.\n"
-#~ "Loading native mipmaps is the more accurate behavior, but might also "
-#~ "decrease performance (your mileage might vary though)."
-#~ msgstr ""
-#~ "Laad native mipmaps in plaats van het genereren van ze.\n"
-#~ "Laden native mipmaps is het nauwkeuriger gedrag, maar kan ook de "
-#~ "prestaties doen afnemen (uw kilometerstand kan zich evenwel verschillen)."
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "Laad het opgegeven bestand (DOL, ELF, GCM, ISO, WAD)"
-
-#~ msgid "Lock Threads to Cores"
-#~ msgstr "Vergrendel Threads aan CPU cores"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "Laag niveau (LLE) of Hoog niveau (HLE) audio"
-
-#~ msgid "Lua Script Console"
-#~ msgstr "Lua Script Console"
-
-#~ msgid "Metroid Other M"
-#~ msgstr "Metroid Other M"
-
-#~ msgid ""
-#~ "Modify textures to show the format they're using.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Het wijzigen van texturen om de de formaat te laten zien die ze "
-#~ "gebruiken.\n"
-#~ "Dit is alleen handig voor debugging doeleinden."
-
-#~ msgid "New &Lua Console"
-#~ msgstr "Nieuwe &Lua Console"
-
-#~ msgid "Normal"
-#~ msgstr "Normaal"
-
-#~ msgid "OK"
-#~ msgstr "Oke"
-
-#, fuzzy
-#~ msgid "OpenAL"
-#~ msgstr "Open"
-
-#, fuzzy
-#~ msgid "OpenGL"
-#~ msgstr "Open"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "Open de debugger"
-
-#~ msgid "Opens the logger"
-#~ msgstr "Open de logger"
-
-#~ msgid "Plugins"
-#~ msgstr "Plugins"
-
-#~ msgid "Projection Stats"
-#~ msgstr "Projectie Staaten"
-
-#~ msgid "Render to main window."
-#~ msgstr "Geef weer op hoofdscherm"
-
-#~ msgid "Rendering"
-#~ msgstr "Weergave"
-
-#~ msgid "Required for using the Japanese ROM font."
-#~ msgstr "Nodig voor de Japanse ROM font."
-
-#~ msgid "Run"
-#~ msgstr "Start"
-
-#~ msgid "Running script...\n"
-#~ msgstr "Draaiend script ...\n"
-
-#~ msgid "Sample Rate:"
-#~ msgstr "Sample Rate:"
-
-#~ msgid "Scale:"
-#~ msgstr "Schaal:"
-
-#~ msgid "Select resolution for fullscreen mode"
-#~ msgstr "Selecteer resolutie voor fullscreen mode"
-
-#~ msgid ""
-#~ "Select the System Menu wad extracted from the update partition of a disc"
-#~ msgstr "Selecteer de System Menu wad uit de update partitie van een schijf"
-
-#~ msgid "Select the script to load"
-#~ msgstr "Selecteer het script om te laden"
-
-#~ msgid ""
-#~ "Show projection statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Toon projectie statistieken.\n"
-#~ "Dit is alleen handig voor debugging doeleinden."
-
-#~ msgid "Show save banner"
-#~ msgstr "Toon save banner"
-
-#~ msgid "Show the number of frames rendered per second."
-#~ msgstr "Toon het aantal frames per seconde."
-
-#~ msgid "Show this help message"
-#~ msgstr "Toon dit help bericht"
-
-#~ msgid ""
-#~ "Show various statistics.\n"
-#~ "This is only useful for debugging purposes."
-#~ msgstr ""
-#~ "Diverse statistieken tonen.\n"
-#~ "Dit is alleen handig voor debugging doeleinden."
-
-#~ msgid "Skies of Arcadia"
-#~ msgstr "Skies of Arcadia"
-
-#, fuzzy
-#~ msgid "Slot"
-#~ msgstr "Slot A"
-
-#~ msgid "Sonic and the Black Knight"
-#~ msgstr "Sonic and the Black Knight"
-
-#~ msgid ""
-#~ "Specifies the resolution used to render at. A high resolution will "
-#~ "improve visual quality but is also quite heavy on performance and might "
-#~ "cause glitches in certain games.\n"
-#~ "Fractional: Uses your display resolution directly instead of the native "
-#~ "resolution. The quality scales with your display/window size, as does the "
-#~ "performance impact.\n"
-#~ "Integral: This is like Fractional, but rounds up to an integer multiple "
-#~ "of the native resolution. Should give a more accurate look but is usually "
-#~ "slower.\n"
-#~ "The other options are fixed resolutions for choosing a visual quality "
-#~ "independent of your display size."
-#~ msgstr ""
-#~ "Hiermee geeft u de resolutie die wordt gebruikt op te maken. Een hoge "
-#~ "resolutie zal verbeteren visuele kwaliteit, maar is ook vrij zwaar op de "
-#~ "prestaties en kan leiden tot storingen in bepaalde spellen.\n"
-#~ "Fractionele: Gebruikt uw beeldscherm resolutie direct in plaats van de "
-#~ "native resolutie. De kwaliteit schalen met uw scherm / venster grootte, "
-#~ "evenals de invloed op de prestaties.\n"
-#~ "Integraal: Dit is hetzelfde als Fractional, maar rondes tot een geheel "
-#~ "veelvoud van de native resolutie. Moeten een nauwkeurige blik geven, maar "
-#~ "is meestal langzamer.\n"
-#~ "De andere opties zijn vaste resoluties voor het kiezen van een visuele "
-#~ "kwaliteit, onafhankelijk van uw beeldscherm grootte."
-
-#~ msgid "Specify a video backend"
-#~ msgstr "Geef een video-plugin aan"
-
-#~ msgid "Specify an audio plugin"
-#~ msgstr "Geef een audio-plugin"
-
-#~ msgid "Start Renderer in Fullscreen"
-#~ msgstr "Start de weergave-venster in volledige scherm"
-
-#~ msgid "Start the rendering window in fullscreen mode."
-#~ msgstr "Start de weergave-venster in volledige scherm modus."
-
-#~ msgid "The file "
-#~ msgstr "Het bestand"
-
-#~ msgid "Theme selection went wrong"
-#~ msgstr "Thema selectie ging fout"
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "Dit wordt gebruikt om de snelheid van het spel te bepalen via geluids "
-#~ "throttle. \n"
-#~ "Als je dit uitschakelt kan het abnormale snelheden veroorzaken, waardoor "
-#~ "het spel te snel afspeelt. \n"
-#~ "Maar soms veroorzaakt dit constante noise.\n"
-#~ "\n"
-#~ "Sneltoets <TAB>: Houd ingedrukt om throttle gelijk uit te zetten."
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr "Dit wordt gebruikt om muziek af te spelen, zoals achtergrondmuziek."
-
-#~ msgid "This is usually used to play voice and sound effects."
-#~ msgstr ""
-#~ "Dit wordt meestal gebruikt om spraak-en geluidseffecten af te spelen."
-
-#~ msgid ""
-#~ "Unknown pointer %#08x\n"
-#~ "Continue?"
-#~ msgstr ""
-#~ "Onbekende pointer %#08x\n"
-#~ "Doorgaan?"
-
-#~ msgid "Use FPS For Limiting"
-#~ msgstr "Gebruik fps voor Beperkingen."
-
-#~ msgid "Use XFB"
-#~ msgstr "Gebruik XFB"
-
-#~ msgid ""
-#~ "Uses the high-resolution render buffer for EFB copies instead of scaling "
-#~ "them down to native resolution.\n"
-#~ "Vastly improves visual quality in games which use EFB copies but might "
-#~ "cause glitches in some games."
-#~ msgstr ""
-#~ "Maakt gebruik van de hoge-resolutie render buffer voor EFB kopieen in "
-#~ "plaats van schaalvergroting ze naar native resolutie.\n"
-#~ "Sterk verbetert visuele kwaliteit van games die EFB kopieën gebruiken, "
-#~ "maar kan misschien glitches veroorzaken in sommige games."
-
-#~ msgid "Video Backend:"
-#~ msgstr "Geluid terug halend:"
-
-#~ msgid ""
-#~ "Wait for vertical blanks.\n"
-#~ "Reduces tearing but might also decrease performance"
-#~ msgstr ""
-#~ "Wachten op verticale spaties.\n"
-#~ "Vermindert scheuren maar kans op vermindering van de prestaties"
-
-#~ msgid ""
-#~ "When using EFB to RAM we very often need to decode RAM data to a VRAM "
-#~ "texture, which is a very time-consuming task.\n"
-#~ "With this option enabled, we'll skip decoding a texture if it didn't "
-#~ "change.\n"
-#~ "This results in a nice speedup, but possibly causes glitches.\n"
-#~ "If you have any problems with this option enabled you should either try "
-#~ "increasing the safety of the texture cache or disable this option.\n"
-#~ "(NOTE: The safer the texture cache is adjusted the lower the speedup will "
-#~ "be; accurate texture cache set to \"safe\" might actually be slower!)"
-#~ msgstr ""
-#~ "Bij het gebruik van EFB naar RAM moeten de RAM gegevens gedecodeerd "
-#~ "worden naar een VRAM textuur, dat is een zeer tijdrovende taak.\n"
-#~ "Met deze optie ingeschakeld, slaan we het decoderen van de textuur over "
-#~ "als het niet veranderd.\n"
-#~ "Dit resulteert in een mooie versnelling, maar veroorzaakt mogelijk "
-#~ "glitches.\n"
-#~ "Als je problemen hebt met deze optie, dan zou je de texture cache "
-#~ "veiliger moeten zetten of deze optie uitzetten.\n"
-#~ "(PASOP: Hoe veiliger de texture cashe is ingesteld hoe trager de speedup "
-#~ "is; nauwkeurige texture cache ingesteld op \"veilige \" is misschien wel "
-#~ "langzamer!)"
-
-#, fuzzy
-#~ msgid "Wiimote %i %s"
-#~ msgstr "Wiimote"
-
-#~ msgid "Wiimote Settings"
-#~ msgstr "Wiimote Instellingen"
-
-#~ msgid "Will enable progressive scan option if supported by software."
-#~ msgstr ""
-#~ "In staat om zelf de optie progressive scan in te schakelen als dit wordt "
-#~ "ondersteund door de software."
-
-#~ msgid "Window Size:"
-#~ msgstr "Venster Groote:"
-
-#~ msgid "Window height for windowed mode"
-#~ msgstr "Vensterhoogte voor windowed modus"
-
-#~ msgid "Window width for windowed mode"
-#~ msgstr "Vensterbreedte voor windowed modus"
-
-#~ msgid "XFB"
-#~ msgstr "XFB"
-
-#~ msgid "Zelda Twilight Princess Bloom hack"
-#~ msgstr "Zelda Twilight Princess Bloom hack"

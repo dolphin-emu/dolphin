@@ -1,20 +1,23 @@
 # Translation of dolphin-emu.pot to Farsi
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2013
 # This file is distributed under the same license as the dolphin-emu package.
-# Hamed Khakbiz <hamed.khakbiz@gmail.com>, 2011
 #
+# Translators:
+# Hamed Khakbiz <hamed.khakbiz@gmail.com>, 2011.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dolphin Emu\n"
+"Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-01 21:43-0600\n"
-"PO-Revision-Date: 2013-01-16 21:40-0600\n"
-"Last-Translator: H.Khakbiz\n"
-"Language-Team: H.Khakbiz\n"
-"Language: Farsi\n"
+"PO-Revision-Date: 2013-02-17 11:21+0000\n"
+"Last-Translator: Delayline <hamed.khakbiz@gmail.com>\n"
+"Language-Team: Persian (http://www.transifex.com/projects/p/dolphin-emu/"
+"language/fa/)\n"
+"Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:510
 msgid " (too many to display)"
@@ -59,7 +62,7 @@ msgstr "%1$sکپی%1$s"
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:10
 #, c-format
 msgid "%i connected"
-msgstr "%i ارتباط برقرار شده"
+msgstr "%i  متصل شده است"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:128
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:296
@@ -300,11 +303,11 @@ msgstr "'"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:58
 msgid "(-)+zFar"
-msgstr "دورz+(-)"
+msgstr "z دور+(-)"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:53
 msgid "(-)+zNear"
-msgstr "نزدیکz+(-)"
+msgstr "z نزدیک+(-)"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:98
 msgid "(UNKNOWN)"
@@ -370,14 +373,14 @@ msgid "A game is not currently running."
 msgstr "بازی در حال حاضر اجرا نشده است."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:208
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found!\n"
 "If you are not using Microsoft's bluetooth stack you must manually pair your "
 "wiimotes and use only the \"Refresh\" button."
 msgstr ""
 "دستگاه بلوتوث مورد پشتیبانی پیدا نشد!\n"
-"(فقط نرم افزار پیاده سازی بلوتوث ماکروسافت پشتیبانی میشود.)"
+"اگر شما از نرم افزار پیاده سازی بلوتوث ماکروسافت استفاده نمی کنید شما باید "
+"ویموت خود را دستی جفت کنید و فقط از دکمه \"به روز کردن\" استفاده کنید."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:89
 msgid ""
@@ -512,11 +515,13 @@ msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "خطای اکشن ریپلی: مقدار نامعتبر (%08x) در کپی حافظه (%s)"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
-msgstr "خطای اکشن ریپلی: کد مستر و نوشتن در CCXXXXXX تکمیل نشده است (%s)"
+msgstr ""
+"خطای اکشن ریپلی: کد مستر و نوشتن به CCXXXXXX تکمیل نشده است (%s)\n"
+"به کدهای مستر نیاز نیست. از کدهای مستر استفاده نکنید."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -584,7 +589,7 @@ msgid ""
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
-"اضافه کنید مقدار مشخص شده را به پارامتر zدور.\n"
+"اضافه کنید مقدار مشخص شده را به پارامتر z دور.\n"
 "دو راه ابراز مقادیر ممیز شناور.\n"
 "نمونه: مستقیما وارد کنید \"۲۰۰\" یا \"۰.۰۰۰۲\"، اثر تولید شده یکسان است، "
 "مقدار بدست آمده \"۰.۰۰۰۲\" خواهد بود.\n"
@@ -602,7 +607,7 @@ msgid ""
 "\n"
 "NOTE: Check LogWindow/Console for the acquired values."
 msgstr ""
-"اضافه کنید مقدار مشخص شده را به پارامتر zنزدیک.\n"
+"اضافه کنید مقدار مشخص شده را به پارامتر z نزدیک.\n"
 "دو راه ابراز مقادیر ممیز شناور.\n"
 "نمونه: مستقیما وارد کنید \"۲۰۰\" یا \"۰.۰۰۰۲\"، اثر تولید شده یکسان است، "
 "مقدار بدست آمده \"۰.۰۰۰۲\" خواهد بود.\n"
@@ -652,15 +657,14 @@ msgid "All files (*.*)|*.*"
 msgstr "همه فایل ها  (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:118
-#, fuzzy
 msgid ""
 "Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 "
 "(Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"اجازه کنترل برخی گزینه ها توسط کلیدهای میانبر ۳، ۴، ۵ و ۶ در داخل پنجره "
-"برابرساز را میدهد.\n"
+"اجازه کنترل برخی گزینه ها توسط کلیدهای میانبر  ۳ (وضوح داخلی)، ۴ (نسبت طول "
+"به عرض)، ۵ (کپی ای اف بی) و ۶ (مه) در داخل پنجره برابرساز را میدهد.\n"
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
@@ -674,7 +678,7 @@ msgstr "تحلیل کردن"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:298
 msgid "Angle"
-msgstr ""
+msgstr "زاویه"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:368
 msgid "Anisotropic Filtering:"
@@ -910,6 +914,8 @@ msgid ""
 "Bypass the clearing of the data cache by the DCBZ instruction. Usually leave "
 "this option disabled."
 msgstr ""
+"گذشتن از پاکسازی حافظه ميانى دادها توسط دستور DCBZ. معمولا این گزینه را غیر "
+"فعال رها کنید."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:695
 msgid "C"
@@ -1039,11 +1045,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:59
 msgid "Changes sign to zFar Parameter (after correction)"
-msgstr "تغییرات علامت به پارامتر z-دور (بعد از تصحیح)"
+msgstr "تغییرات علامت به پارامتر z دور (بعد از تصحیح)"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:54
 msgid "Changes sign to zNear Parameter (after correction)"
-msgstr "تغییرات علامت به پارامتر z-نزدیک (بعد از تصحیح)"
+msgstr "تغییرات علامت به پارامتر z نزدیک (بعد از تصحیح)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:504
 msgid "Changing this will have no effect while the emulator is running!"
@@ -1617,10 +1623,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"از کارانداختن برابرسازی کپی های ای اف بی (EFB).\n"
+"از کارانداختن برابرسازی کپی های ای اف بی.\n"
 "کپی های ای اف بی اغلب برای افکت های اعمال شده به بافت اشیاء یا پس پردازی "
-"استفاده می شوند، بنابراین در حالیکه بررسی کردن این تنظیمات افزایش سرعت "
-"بالایی می دهد تقریبا همیشه سبب مشکلاتی نیز می شود.\n"
+"استفاده می شوند، بنابراین در حالیکه تیک زدن این تنظیم سرعت بالایی ایجاد می "
+"کند این تنظیم تقریبا همیشه سبب مشکلاتی نیز می شود.\n"
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را رها کنید."
 
@@ -1657,7 +1663,7 @@ msgstr "آیا می خواهید برابرسازی فعلی را متوقف ک�
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:647
 msgid "Dolby Pro Logic II decoder"
-msgstr ""
+msgstr "کدبردار دالبی پرو لاجیک دو"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:866
 msgid "Dolphin"
@@ -1720,7 +1726,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1217
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1303
 msgid "Dolphin was unable to complete the requested action."
-msgstr ""
+msgstr "دلفین نتوانست عمل خواسته شده را تکمیل کند."
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:275
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:58
@@ -1750,7 +1756,7 @@ msgstr "نسخه برداری صدا"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:533
 msgid "Dump EFB Target"
-msgstr "نسخه برداری نشان حافظه میانجی فریم جاساز شده (EFB)"
+msgstr "نسخه برداری مقصد ای اف بی"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:534
 msgid "Dump Frames"
@@ -1788,8 +1794,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"نسخه برداری محتوی کپی های حافظه میانجی فریم جاساز شده (EFB) در پوشه User/"
-"Dump/Textures/\n"
+"نسخه برداری محتوی کپی های ای اف بی در پوشه User/Dump/Textures/\n"
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
@@ -1805,7 +1810,7 @@ msgstr "خ&روج"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:432
 msgid "EFB Copies"
-msgstr "کپی های حافظه میانجی فریم جاساز شده (EFB)"
+msgstr "کپی های ای اف بی"
 
 #: Source/Core/Core/Src/HW/BBA-TAP/TAP_Win32.cpp:227
 #, c-format
@@ -1859,7 +1864,7 @@ msgstr "افکت"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:426
 msgid "Embedded Frame Buffer"
-msgstr "حافظه میانجی فریم جاساز شده (EFB)"
+msgstr "حافظه میانجی فریم جاساز شده"
 
 #: Source/Core/Core/Src/Core.cpp:202
 msgid "Emu Thread already running"
@@ -2051,17 +2056,24 @@ msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on "
 "OSX."
 msgstr ""
+"فعال کردن برابر سازی دالبی پرو لاجیک دو توسط خروجی فراگیر 5.1 (Surround). در "
+"OSX موجود نیست."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:515
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."
 msgstr ""
+"فعال کردن برابر سازی دالبی پرو لاجیک دو توسط خروجی فراگیر 5.1 (Surround). "
+"فقط پشتوانه اپن ای ال (OpenAL)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:517
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
 "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
 msgstr ""
+"فعال کردن برابر سازی دالبی پرو لاجیک دو توسط خروجی فراگیر 5.1 (Surround). "
+"فقط پشتوانه اپن ای ال (OpenAL). شاید تغییر نام soft_oal.dll به OpenAL32.dll "
+"برای به کار انداختن این امکان احتیاج باشد."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:77
 msgid ""
@@ -2332,9 +2344,9 @@ msgid "Failed to load hid.dll"
 msgstr "بارگذاری hid.dll با شکست مواجه شد"
 
 #: Source/Core/Core/Src/Movie.cpp:792
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read %s"
-msgstr "نوشتن سرخط برای %s با شکست مواجه شد"
+msgstr "خواندن %s با شکست مواجه شد"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:151
 msgid "Failed to read banner.bin"
@@ -2591,7 +2603,7 @@ msgstr "پيشروى فریم"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:537
 msgid "Frame Dumps use FFV1"
-msgstr "نسخه برداری فریم از FFV1 استفاده می کند"
+msgstr "نسخه برداری فریم با استفاده از FFV1"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:226
 msgid "Frame Info"
@@ -2969,7 +2981,7 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"همه تغییرات قالب بندی حافظه میانجی فریم جاساز شده (EFB) را نادیده بگیر.\n"
+"همه تغییرات قالب بندی ای اف بی نادیده گرفته شود.\n"
 "کارآئى را در بسیاری از بازی ها بدون اثری منفی بالا می برد. گرچه سبب نقص های "
 "گرافیکی در تعداد کمی از بازی های دیگر می شود.\n"
 "\n"
@@ -2983,8 +2995,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"نادیده گرفتن هر درخواستی از پردازنده برای خواندن و یا نوشتن به حافظه میانجی "
-"فریم جاساز شده (EFB).\n"
+"نادیده گرفتن هر درخواستی از پردازنده برای خواندن و یا نوشتن به ای اف بی.\n"
 "کارآئى را در بعضی از بازی ها را بالا می برد، اما سبب از کار افتادن برخی "
 "امکانات بازی و یا نقص های گرافیکی می شود.\n"
 "\n"
@@ -3236,7 +3247,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:299
 msgid "Keep window on top"
-msgstr "پنجره را بر راس نگه دار"
+msgstr "بر راس نگه داشتن پنجره"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:241
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:241
@@ -3277,7 +3288,7 @@ msgstr "آخرین وضعیت ذخیره شده"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:680
 msgid "Latency:"
-msgstr ""
+msgstr "زمان بيکارى:"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:276
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:55
@@ -4392,7 +4403,7 @@ msgstr "ذخیره وضعیت فیلم %s خراب است، ضبط فیلم می
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:397
 msgid "Scaled EFB Copy"
-msgstr "کپی حافظه میانجی فریم جاساز شده (EFB) تغییر سایز یافته"
+msgstr "کپی ای اف بی تغییر سایز یافته"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:613
 #, c-format
@@ -4509,9 +4520,8 @@ msgstr ""
 "اگر در این مورد اطمینان ندارید، اتوماتیک را انتخاب کنید."
 
 #: Source/Core/InputCommon/Src/InputConfig.cpp:61
-#, fuzzy
 msgid "Selected controller profile does not exist"
-msgstr "فایل مشخص شده \"%s\" وجود ندارد"
+msgstr "پروفایل انتخاب شده وجود ندارد"
 
 #: Source/Core/DolphinWX/Src/LogWindow.cpp:132
 msgid "Selected font"
@@ -4599,6 +4609,8 @@ msgid ""
 "Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL "
 "backend only."
 msgstr ""
+"ست کردن زمان بيکارى (بر حسب میلی ثانیه). مقادیر بالاتر این زمان می تواند "
+"صدای ترق و تروق را کاهش دهد. فقط پشتوانه اپن ای ال (OpenAL)."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:345
 msgid "Settings..."
@@ -4642,7 +4654,7 @@ msgstr "نمایش درایوها"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:518
 msgid "Show EFB Copy Regions"
-msgstr "نمایش مناطق کپی حافظه میانجی فریم جاساز شده (EFB)"
+msgstr "نمایش مناطق کپی ای اف بی"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:296
 msgid "Show FPS"
@@ -4804,7 +4816,7 @@ msgstr "جهش از روی بایوس"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid "Skip DCBZ clearing"
-msgstr ""
+msgstr "از قلم انداختن پاکسازی DCBZ"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:493
 msgid "Skip Dest. Alpha Pass"
@@ -4812,7 +4824,7 @@ msgstr "از قلم انداختن مقصد آلفا پاس"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:445
 msgid "Skip EFB Access from CPU"
-msgstr "از قلم انداختن دسترسی حافظه میانجی فریم جاساز شده (EFB) به پردازنده"
+msgstr "از قلم انداختن دسترسی ای اف بی از پردازنده"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:96
 msgid ""
@@ -4835,8 +4847,8 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"سرعت کپی های حافظه میانجی فریم جاساز شده (EFB) به رم را از طریق فدا کردن دقت "
-"برابرسازی اندکی بالا می برد.\n"
+"سرعت کپی های ای اف بی به رم را از طریق فدا کردن دقت برابرسازی اندکی بالا می "
+"برد.\n"
 "همچنین بعضی اوقات کیفیت بصری را بالا می برد.\n"
 "اگر شما با مسئله ای مواجه شدید، بالا بردن دقت حافظه میانی بافت اشیاء را "
 "امتحان کنید یا این گزینه را غیر فعال کنید.\n"
@@ -4967,7 +4979,7 @@ msgstr "ذخیره های وضعیت"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:92
 msgid "Steering Wheel"
-msgstr ""
+msgstr "چرخ فرمان"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
@@ -4989,7 +5001,7 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"نگهداری کپی های حافظه میانجی فریم جاساز شده در بافت اشیاء پردازشگر گرافیک.\n"
+"نگهداری کپی های ای اف بی در بافت اشیاء پردازشگر گرافیک.\n"
 "این گزینه دقیق نیست، اما برای اکثر بازی ها به خوبی کار می کند و نسبت به کپی "
 "ای اف بی به رم سرعت را به شدت افزایش می دهد.\n"
 "\n"
@@ -5184,9 +5196,8 @@ msgid "The value is invalid"
 msgstr "مقدار بی اعتبار است"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:626
-#, fuzzy
 msgid "Theme:"
-msgstr "تم"
+msgstr "تم:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:475
 msgid ""
@@ -5217,7 +5228,6 @@ msgid "This could cause slow down in Wii Menu and some games."
 msgstr "این مورد میتواند سبب کند شدن منوی وی و تعدادی از بازی ها شود."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:113
-#, fuzzy
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5229,10 +5239,11 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "این امکان به شما اجاز می دهد تا جای دوربین در بازی را تغيير دهید.\n"
-"کلید سمت راست ماوس را نگه دارید و با حرکت ماوس دوربین را بگردانید. کلید شیفت "
-"را نگه دارید و با فشار یکی از کلید های ص/ش/س/ی دوربین را پله پله حرکت دهید "
-"(شیفت+۰ برای حرکت سریع تر و شیفت+۹ برای حرکت کندتر) فشار کلید شیفت+ق برای "
-"بازنشاندن دوربین.\n"
+"برای حرکت افقی تصویر در حالی که دکمه سمت راست ماس را نگه داشتده اید آن را "
+"حرکت دهید و برای حرکت دادن دوربین کلید وسط را نگه دارید.\n"
+"کلید شیفت را نگه دارید و با فشار یکی از کلید های ص/ش/س/ی دوربین را پله پله "
+"حرکت دهید (شیفت+۰ برای حرکت سریع تر و شیفت+۹ برای حرکت کندتر) فشار کلید شیفت"
+"+ق برای بازنشاندن دوربین.\n"
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
@@ -5832,7 +5843,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "[خراب]\n"
-"مشخص کردن مناطقی که حافظه میانجی فریم جاساز شده از آن کپی شده است.\n"
+"مشخص کردن مناطقی که ای اف بی از آن کپی شده است.\n"
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
@@ -5928,176 +5939,3 @@ msgstr "اصلاح z نزدیک:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:496
 msgid "| OR"
 msgstr "| یا"
-
-#~ msgid "%d Hz"
-#~ msgstr "%d Hz"
-
-#~ msgid ""
-#~ "Automatically generate mipmaps rather than decoding them from memory.\n"
-#~ "Increases performance a bit but might cause minor texture defects.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "تولید میپ مپ بطور خودکار نسبت به کدگشایی آنها از حافظه.\n"
-#~ "کارائى را اندکی افزایش می دهد اما ممکن است سبب نقص بافت اشیاء شود.\n"
-#~ "\n"
-#~ "اگر در این مورد اطمینان ندارید، این گزینه را رها کنید."
-
-#~ msgid ""
-#~ "Calculate depth values of 3D graphics per-pixel rather than per vertex.\n"
-#~ "In contrast to pixel lighting (which is merely an enhancement), per-pixel "
-#~ "depth calculations are necessary to properly emulate a small number of "
-#~ "games.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "محاسبه مقادیر عمق هر پیکسل گرافیک سه بعدی به جای هر ورتکس.\n"
-#~ "در تضاد با نورپردازی پیکسل (که صرفا یک بهبود است)، محاسبات عمق هر پیکسل "
-#~ "برای به طور صحیح برابرسازی کردن تعداد کمی از بازی ها لازم است.\n"
-#~ "\n"
-#~ "اگر در این مورد اطمینان ندارید، این گزینه را رها کنید."
-
-#~ msgid "Clear failed."
-#~ msgstr "پاک کردن با شکست مواجه شد."
-
-#~ msgid "Connected to %i Wiimotes"
-#~ msgstr "اتصال به ویموت ها %i"
-
-#~ msgid "Created by KDE-Look.org"
-#~ msgstr "ساخته شده توسط KDE-Look.org"
-
-#~ msgid ""
-#~ "Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"
-#~ msgstr ""
-#~ "ساخته شده توسط Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart."
-#~ "com]"
-
-#~ msgid "Created by VistaIcons.com"
-#~ msgstr "ساخته شده توسط VistaIcons.com"
-
-#~ msgid ""
-#~ "Created by black_rider and published on ForumW.org > Web Developments"
-#~ msgstr ""
-#~ "ساخته شده توسط black_rider و منتشر شده در ForumW.org > Web Developments"
-
-#~ msgid "Danish"
-#~ msgstr "دانمارکی"
-
-#~ msgid "Disable Lighting"
-#~ msgstr "از کارانداختن روشنایی"
-
-#~ msgid "Disable Per-Pixel Depth"
-#~ msgstr "از کارانداختن Per-Pixel Depth"
-
-#~ msgid "Disable Textures"
-#~ msgstr "از کارانداختن بافت اشیاء"
-
-#~ msgid ""
-#~ "Disable texturing.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "از کارانداختن بافت اشیاء.\n"
-#~ "\n"
-#~ "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
-
-#~ msgid ""
-#~ "Dolphin has not been configured with an install location,\n"
-#~ "Keep Dolphin portable?"
-#~ msgstr ""
-#~ "دلفین با مکان نصب شده پيکربندى نشده است.\n"
-#~ "دلفین را سبک نگاه دارم؟"
-
-#~ msgid "Enable Audio Throttle"
-#~ msgstr "فعال کردن دریچه صدا"
-
-#~ msgid "Enable BAT"
-#~ msgstr "فعال کردن انتقال آدرس بلوک"
-
-#~ msgid "Enable DTK Music"
-#~ msgstr "فعال کردن موزیک دی تی کی"
-
-#~ msgid ""
-#~ "Enables Block Address Translation (BAT); a function of the Memory "
-#~ "Management Unit. Accurate to the hardware, but slow to emulate. (ON = "
-#~ "Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "انتقال آدرس بلوک را فعال می کند; کارایی واحد مدیریت حافظه. بالا بردن دقت "
-#~ "سخت افزار، اما سبب کند شدن برابرسازی میگردد. (روشن = سازگار، خاموش = سریع)"
-
-#~ msgid ""
-#~ "Error in PlayWiimote. %u != %u, byte %d.\n"
-#~ "Sorry, Wii recording is temporarily broken."
-#~ msgstr ""
-#~ "خطا در ویموت پخش. %u != %u، بایت %d.\n"
-#~ "ببخشید، ضبط وی بطور موقتی خراب است."
-
-#~ msgid "Exit Dolphin with emulator"
-#~ msgstr "خروج دلفین با برابرساز"
-
-#~ msgid "Fast Mipmaps"
-#~ msgstr "میپ مپ های سریع"
-
-#~ msgid "Hide Shader Errors"
-#~ msgstr "مخفی کردن خطاهای سایه زن"
-
-#~ msgid ""
-#~ "Improves performance but causes lighting to disappear in most games.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "کارآئى را بالا می برد اما سبب از بین رفتن روشنایی در اکثر بازی ها می "
-#~ "شود.\n"
-#~ "\n"
-#~ "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
-
-#~ msgid "Input Source"
-#~ msgstr "منبع ورودی"
-
-#~ msgid "Install directory could not be saved"
-#~ msgstr "نصب پوشه قابل ذخیره شدن نیست"
-
-#~ msgid "Loads the specified file (DOL,ELF,GCM,ISO,WAD)"
-#~ msgstr "بارگذاری فایل مشخص شده (DOL,ELF,GCM,ISO,WAD)"
-
-#~ msgid "Lock Threads to Cores"
-#~ msgstr "قفل کردن ریسمان ها به هسته های پردازنده (اینتل اچ تی)"
-
-#~ msgid "Low level (LLE) or high level (HLE) audio"
-#~ msgstr "صدای سطح پائین (ال ال ای) و یا سطح بالا (اچ ال ای)"
-
-#~ msgid "Opens the debugger"
-#~ msgstr "باز کردن اشکال یاب"
-
-#~ msgid "Opens the logger"
-#~ msgstr "باز کردن واقعه نگار"
-
-#~ msgid "Sample Rate:"
-#~ msgstr "نرخ نمونه برداری:"
-
-#~ msgid "Show this help message"
-#~ msgstr "نمایش این پیام کمکی"
-
-#~ msgid "Specify a video backend"
-#~ msgstr "مشخص کردن یک پشتوانه ویدیو"
-
-#~ msgid "Theme selection went wrong"
-#~ msgstr "انتخاب تم اشتباه شد"
-
-#~ msgid ""
-#~ "This is used to control game speed by sound throttle.\n"
-#~ "Disabling this could cause abnormal game speed, such as too fast.\n"
-#~ "But sometimes enabling this could cause constant noise.\n"
-#~ "\n"
-#~ "Keyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."
-#~ msgstr ""
-#~ "این گزینه استفاده می شود برای کنترل سرعت بازی توسط دریچه صدا.\n"
-#~ "از کار انداختن این گزینه سبب سرعت نابهنجار بازی میگردد، از قبیل سرعت خیلی "
-#~ "زیاد.\n"
-#~ "اما گاهی اوقات فعال کردن این گزینه سبب بروز نویز ثابت می شود.\n"
-#~ "\n"
-#~ "میان بر کیبورد <TAB>: فشار دهید برای از کار انداختن فوری دریچه صدا."
-
-#~ msgid "This is used to play music tracks, like BGM."
-#~ msgstr ""
-#~ "این گزینه استفاده می شود برای پخش ترک های موزیک، مانند موزیک پس زمینه."
