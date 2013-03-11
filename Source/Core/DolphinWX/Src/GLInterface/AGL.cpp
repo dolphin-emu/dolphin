@@ -48,7 +48,7 @@ bool cInterfaceAGL::Create(void *&window_handle)
 
 	NSRect size;
 	NSUInteger style = NSMiniaturizableWindowMask;
-	NSOpenGLPixelFormatAttribute attr[4] = { NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core, 0 };
+	NSOpenGLPixelFormatAttribute attr[] = { NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core, NSOpenGLPFAAccelerated, 0 };
 	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]
 		initWithAttributes: attr];
 	if (fmt == nil) {
