@@ -148,7 +148,7 @@ ARMReg ArmRegCache::R(u32 preg)
 			return ArmCRegs[a].Reg;
 		}
 	// Alright, we couldn't get a free space, dump that least used register
-	emit->STR(R9, ArmCRegs[Num].Reg, PPCSTATE_OFF(gpr) + ArmCRegs[Num].PPCReg * 4);
+	emit->STR(ArmCRegs[Num].Reg, R9, PPCSTATE_OFF(gpr) + ArmCRegs[Num].PPCReg * 4);
 	emit->LDR(ArmCRegs[Num].Reg, R9, PPCSTATE_OFF(gpr) + preg * 4);
 	ArmCRegs[Num].PPCReg = preg;
 	ArmCRegs[Num].LastLoad = 0;
@@ -160,7 +160,7 @@ void ArmRegCache::Flush()
 	for(u8 a = 0; a < NUMPPCREG; ++a)
 		if (ArmCRegs[a].PPCReg != 33)
 		{
-			emit->STR(R9, ArmCRegs[a].Reg, PPCSTATE_OFF(gpr) + ArmCRegs[a].PPCReg * 4);
+			emit->STR(ArmCRegs[a].Reg, R9, PPCSTATE_OFF(gpr) + ArmCRegs[a].PPCReg * 4);
 			ArmCRegs[a].PPCReg = 33;
 			ArmCRegs[a].LastLoad = 0;
 		}

@@ -141,7 +141,7 @@ void JitArm::StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
 	switch (accessSize)
 	{
 		case 32:
-			STR(dest, value); // 8
+			STR(value, dest); // 8
 		break;
 		case 16:
 			// Not implemented

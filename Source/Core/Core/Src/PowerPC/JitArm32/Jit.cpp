@@ -148,20 +148,20 @@ void JitArm::DoDownCount()
 	if(js.downcountAmount < 255) // We can enlarge this if we used rotations
 	{
 		SUBS(rB, rB, js.downcountAmount);
-		STR(rA, rB);
+		STR(rB, rA);
 	}
 	else
 	{
 		ARMReg rC = gpr.GetReg(false);
 		MOVI2R(rC, js.downcountAmount);
 		SUBS(rB, rB, rC);
-		STR(rA, rB);
+		STR(rB, rA);
 	}
 	gpr.Unlock(rA, rB);
 }
 void JitArm::WriteExitDestInR(ARMReg Reg) 
 {
-	STR(R9, Reg, PPCSTATE_OFF(pc));
+	STR(Reg, R9, PPCSTATE_OFF(pc));
 	Cleanup();
 	DoDownCount();
 	MOVI2R(Reg, (u32)asm_routines.dispatcher);
@@ -170,7 +170,7 @@ void JitArm::WriteExitDestInR(ARMReg Reg)
 }
 void JitArm::WriteRfiExitDestInR(ARMReg Reg) 
 {
-	STR(R9, Reg, PPCSTATE_OFF(pc));
+	STR(Reg, R9, PPCSTATE_OFF(pc));
 	Cleanup();
 	DoDownCount();
 
@@ -209,7 +209,7 @@ void JitArm::WriteExit(u32 destination, int exit_num)
 	{
 		ARMReg A = gpr.GetReg(false);
 		MOVI2R(A, destination);
-		STR(R9, A, PPCSTATE_OFF(pc));
+		STR(A, R9, PPCSTATE_OFF(pc));
 		MOVI2R(A, (u32)asm_routines.dispatcher);
 		B(A);	
 	}
@@ -384,7 +384,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		LDR(A, R9, PPCSTATE_OFF(msr));
 		TST(A, Shift);
 		FixupBranch b1 = B_CC(CC_NEQ);
-		STR(R9, C, PPCSTATE_OFF(pc));
+		STR(C, R9, PPCSTATE_OFF(pc));
 		MOVI2R(A, (u32)asm_routines.fpException);
 		B(A);
 		SetJumpTarget(b1);
@@ -397,7 +397,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		MOVI2R(rA, (u32)&b->runCount); // Load in to register
 		LDR(rB, rA); // Load the actual value in to R11.
 		ADD(rB, rB, 1); // Add one to the value
-		STR(rA, rB); // Now store it back in the memory location 
+		STR(rB, rA); // Now store it back in the memory location 
 		// get start tic
 		PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStart);
 		gpr.Unlock(rA, rB);
@@ -461,7 +461,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			MOVI2R(RA, (u32)&opinfo->runCount);
 			LDR(RB, RA);
 			ADD(RB, RB, 1);
-			STR(RA, RB);
+			STR(RB, RA);
 			gpr.Unlock(RA, RB);
 		}
 		if (!ops[i].skip)
