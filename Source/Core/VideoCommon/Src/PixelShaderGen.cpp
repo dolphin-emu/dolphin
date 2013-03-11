@@ -1066,7 +1066,7 @@ static void WriteFog(char *&p)
 
 	if(bpmem.fog.c_proj_fsel.fsel > 3)
 	{
-		WRITE(p, "%s", tevFogFuncsTable[bpmem.fog.c_proj_fsel.fsel]);
+		WRITE (p, "%s", tevFogFuncsTable[bpmem.fog.c_proj_fsel.fsel]);
 	}
 	else
 	{
@@ -1074,7 +1074,6 @@ static void WriteFog(char *&p)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 
-	WRITE(p, "  prev.rgb = lerp(prev.rgb," I_FOG"[0].rgb,fog);\n");
-
-
+	WRITE (p, "  fog = FIX_PRECISION_U8(fog);\n");
+	WRITE (p, "  prev.rgb = lerp(prev.rgb," I_FOG"[0].rgb,fog);\n");
 }
