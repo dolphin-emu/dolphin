@@ -23,7 +23,7 @@
 
 class PointerWrap;
 
-#define FIFO_SIZE (1024*1024)
+#define FIFO_SIZE (2*1024*1024)
 
 extern volatile bool g_bSkipCurrentFrame;
 

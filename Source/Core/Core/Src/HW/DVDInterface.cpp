@@ -32,11 +32,7 @@
 #include "../Movie.h"
 
 // Disc transfer rate measured in bytes per second
-static const u32 DISC_TRANSFER_RATE_GC = 3125 * 1024;
-static const u32 DISC_TRANSFER_RATE_WII = 7926 * 1024;
-
-// Disc access time measured in milliseconds
-static const u32 DISC_ACCESS_TIME_MS = 128;
+static const u32 DISC_TRANSFER_RATE_GC = 4 * 1024 * 1024;
 
 namespace DVDInterface
 {
@@ -501,8 +497,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
 				{
 					u64 ticksUntilTC = m_DILENGTH.Length * 
-						(SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii?DISC_TRANSFER_RATE_WII:DISC_TRANSFER_RATE_GC)) + 
-						(SystemTimers::GetTicksPerSecond() * DISC_ACCESS_TIME_MS / 1000);
+						(SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 1 : DISC_TRANSFER_RATE_GC));
 					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
 				}
 				else

@@ -33,7 +33,6 @@
 #include "HW/ProcessorInterface.h"
 #include "DLCache.h"
 #include "State.h"
-#include "PerfQueryBase.h"
 
 namespace PixelEngine
 {
@@ -113,14 +112,14 @@ static UPEAlphaReadReg		m_AlphaRead;
 static UPECtrlReg			m_Control;
 //static u16					m_Token; // token value most recently encountered
 
-static bool g_bSignalTokenInterrupt;
-static bool g_bSignalFinishInterrupt;
+volatile u32 g_bSignalTokenInterrupt;
+volatile u32 g_bSignalFinishInterrupt;
 
 static int et_SetTokenOnMainThread;
 static int et_SetFinishOnMainThread;
 
-volatile bool interruptSetToken = false;
-volatile bool interruptSetFinish = false;
+volatile u32 interruptSetToken = 0;
+volatile u32 interruptSetFinish = 0;
 
 u16 bbox[4];
 bool bbox_active;
@@ -164,10 +163,10 @@ void Init()
 	m_AlphaModeConf.Hex = 0;
 	m_AlphaRead.Hex = 0;
 
-	g_bSignalTokenInterrupt = false;
-	g_bSignalFinishInterrupt = false;
-	interruptSetToken = false;
-	interruptSetFinish = false;
+	g_bSignalTokenInterrupt = 0;
+	g_bSignalFinishInterrupt = 0;
+	interruptSetToken = 0;
+	interruptSetFinish = 0;
 
 	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
 	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
@@ -214,7 +213,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 	case PE_TOKEN_REG:
-		_uReturnValue = CommandProcessor::fifo.PEToken;
+		_uReturnValue = Common::AtomicLoad(*(volatile u32*)&CommandProcessor::fifo.PEToken);
 		INFO_LOG(PIXELENGINE, "(r16) TOKEN_REG : %04x", _uReturnValue);
 		break;
 
@@ -351,8 +350,8 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		{
 			UPECtrlReg tmpCtrl(_iValue);
 
-			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = false;
-			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = false;
+			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = 0;
+			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = 0;
 
 			m_Control.PETokenEnable  = tmpCtrl.PETokenEnable;
 			m_Control.PEFinishEnable = tmpCtrl.PEFinishEnable;
@@ -398,14 +397,14 @@ void UpdateInterrupts()
 
 void UpdateTokenInterrupt(bool active)
 {
-		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
-		interruptSetToken = active;
+	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
+	Common::AtomicStore(interruptSetToken, active ? 1 : 0);
 }
 
 void UpdateFinishInterrupt(bool active)
 {
-		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
-		interruptSetFinish = active;
+	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
+	Common::AtomicStore(interruptSetFinish, active ? 1 : 0);
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
@@ -415,20 +414,23 @@ void UpdateFinishInterrupt(bool active)
 // Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
 void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 {
-	//if (userdata >> 16)
-	//{
-		g_bSignalTokenInterrupt = true;	
-		//_dbg_assert_msg_(PIXELENGINE, (CommandProcessor::fifo.PEToken == (userdata&0xFFFF)), "WTF? BPMEM_PE_TOKEN_INT_ID's token != BPMEM_PE_TOKEN_ID's token" );
-		INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
+	// XXX: No 16-bit atomic store available, so cheat and use 32-bit.
+	// That's what we've always done. We're counting on fifo.PEToken to be
+	// 4-byte padded.
+	Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, userdata & 0xffff);
+	INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
+	if (userdata >> 16)
+	{
+		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
 		UpdateInterrupts();
-		CommandProcessor::interruptTokenWaiting = false;
-		IncrementCheckContextId();
-	//}
+	}
+	CommandProcessor::interruptTokenWaiting = false;
+	IncrementCheckContextId();
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
-	g_bSignalFinishInterrupt = 1;	
+	Common::AtomicStore(*(volatile u32*)&g_bSignalFinishInterrupt, 1);
 	UpdateInterrupts();
 	CommandProcessor::interruptFinishWaiting = false;
 	CommandProcessor::isPossibleWaitingSetDrawDone = false;
@@ -438,23 +440,13 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 // THIS IS EXECUTED FROM VIDEO THREAD
 void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 {
-	// TODO?: set-token-value and set-token-INT could be merged since set-token-INT own the token value.
 	if (_bSetTokenAcknowledge) // set token INT
 	{
+		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
+	}
 
-		Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
-		CommandProcessor::interruptTokenWaiting = true;
-		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
-	}
-	else // set token value
-	{
-		// we do it directly from videoThread because of
-		// Super Monkey Ball
-		// XXX: No 16-bit atomic store available, so cheat and use 32-bit.
-		// That's what we've always done. We're counting on fifo.PEToken to be
-		// 4-byte padded.
-        Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
-	}
+	CommandProcessor::interruptTokenWaiting = true;
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 	IncrementCheckContextId();
 }
 
@@ -477,7 +469,6 @@ void ResetSetFinish()
 	{
 		UpdateFinishInterrupt(false);
 		g_bSignalFinishInterrupt = false;
-		
 	}
 	else
 	{
@@ -491,26 +482,12 @@ void ResetSetToken()
 	if (g_bSignalTokenInterrupt)
 	{
 		UpdateTokenInterrupt(false);
-		g_bSignalTokenInterrupt = false;
-		
+		g_bSignalTokenInterrupt = 0;
 	}
 	else
 	{
 		CoreTiming::RemoveEvent(et_SetTokenOnMainThread);
 	}
-	CommandProcessor::interruptTokenWaiting = false;
-}
-
-bool WaitingForPEInterrupt()
-{
-	return !CommandProcessor::waitingForPEInterruptDisable && (CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || interruptSetFinish || interruptSetToken);
-}
-
-void ResumeWaitingForPEInterrupt()
-{
-	interruptSetFinish = false;
-	interruptSetToken = false;
-	CommandProcessor::interruptFinishWaiting = false;
 	CommandProcessor::interruptTokenWaiting = false;
 }
 } // end of namespace PixelEngine
