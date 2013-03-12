@@ -99,7 +99,7 @@ void Init()
 	m_ResetCode = 0x80000000; // Cold reset
 	m_InterruptCause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
 
-	toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", &ToggleResetButtonCallback);
+	toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)

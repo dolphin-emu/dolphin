@@ -26,6 +26,7 @@
 #include "Fifo.h"
 #include "HW/Memmap.h"
 #include "Core.h"
+#include "CoreTiming.h"
 
 volatile bool g_bSkipCurrentFrame = false;
 extern u8* g_pVideoData;
@@ -72,6 +73,7 @@ void Fifo_Init()
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
 	size = 0;
 	GpuRunningState = false;
+	Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
 }
 
 void Fifo_Shutdown()
@@ -123,7 +125,7 @@ void ReadDataFromFifo(u8* _uData, u32 len)
 		size -= pos;
         if (size + len > FIFO_SIZE)
         {
-            PanicAlert("FIFO out of bounds (sz = %i, at %08x)", size, pos);
+            PanicAlert("FIFO out of bounds (sz = %i, len = %i at %08x)", size, len, pos);
         }
         memmove(&videoBuffer[0], &videoBuffer[pos], size);
 		g_pVideoData = videoBuffer;
@@ -147,6 +149,7 @@ void RunGpuLoop()
 	std::lock_guard<std::mutex> lk(m_csHWVidOccupied);
 	GpuRunningState = true;
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
+	u32 cyclesExecuted = 0;
 
 	while (GpuRunningState)
 	{
@@ -155,31 +158,41 @@ void RunGpuLoop()
 		VideoFifo_CheckAsyncRequest();
 				
 		CommandProcessor::SetCpStatus();
+
+		Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
+
 		// check if we are able to run this buffer	
-		while (GpuRunningState && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() && !PixelEngine::WaitingForPEInterrupt())
+		while (GpuRunningState && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 		{
 			if (!GpuRunningState) break;
 
 			fifo.isGpuReadingData = true;
 			CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable ? true : false;
-			
-			u32 readPtr = fifo.CPReadPointer;
-			u8 *uData = Memory::GetPointer(readPtr);
 
-			if (readPtr == fifo.CPEnd) readPtr = fifo.CPBase;
+			if (Common::AtomicLoad(CommandProcessor::VITicks) > CommandProcessor::m_cpClockOrigin || !Core::g_CoreStartupParameter.bSyncGPU)
+			{
+				u32 readPtr = fifo.CPReadPointer;
+				u8 *uData = Memory::GetPointer(readPtr);
+
+				if (readPtr == fifo.CPEnd) readPtr = fifo.CPBase;
 				else readPtr += 32;
-			
-			_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
-			"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce inestabilty in the game. Please report it.", fifo.CPReadWriteDistance - 32);
-			
-			ReadDataFromFifo(uData, 32);	
-			
-			OpcodeDecoder_Run(g_bSkipCurrentFrame);	
 
-			Common::AtomicStore(fifo.CPReadPointer, readPtr);
-			Common::AtomicAdd(fifo.CPReadWriteDistance, -32);						
-			if((GetVideoBufferEndPtr() - g_pVideoData) == 0)
-				Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
+				_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
+					"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instabilty in the game. Please report it.", fifo.CPReadWriteDistance - 32);
+
+				ReadDataFromFifo(uData, 32);
+
+				cyclesExecuted = OpcodeDecoder_Run(g_bSkipCurrentFrame);
+
+				if (Common::AtomicLoad(CommandProcessor::VITicks) > cyclesExecuted && Core::g_CoreStartupParameter.bSyncGPU)
+					Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
+
+				Common::AtomicStore(fifo.CPReadPointer, readPtr);
+				Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
+				if((GetVideoBufferEndPtr() - g_pVideoData) == 0)
+					Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
+			}
+
 			CommandProcessor::SetCpStatus();
 		
 			// This call is pretty important in DualCore mode and must be called in the FIFO Loop.
@@ -188,7 +201,7 @@ void RunGpuLoop()
 			VideoFifo_CheckAsyncRequest();		
 			CommandProcessor::isPossibleWaitingSetDrawDone = false;
 		}
-		
+
 		fifo.isGpuReadingData = false;
 		
 
@@ -217,23 +230,23 @@ bool AtBreakpoint()
 
 void RunGpu()
 {
-		SCPFifoStruct &fifo = CommandProcessor::fifo;
-		while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
-		{
-			u8 *uData = Memory::GetPointer(fifo.CPReadPointer);			
+	SCPFifoStruct &fifo = CommandProcessor::fifo;
+	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
+	{
+		u8 *uData = Memory::GetPointer(fifo.CPReadPointer);
 			
 			FPURoundMode::SaveSIMDState();
 			FPURoundMode::LoadDefaultSIMDState();
 			ReadDataFromFifo(uData, 32);				
-			OpcodeDecoder_Run(g_bSkipCurrentFrame);	
+			u32 count = OpcodeDecoder_Run(g_bSkipCurrentFrame);	
 			FPURoundMode::LoadSIMDState();
 
-			//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
+		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
 
-			if (fifo.CPReadPointer == fifo.CPEnd) fifo.CPReadPointer = fifo.CPBase;
-				else fifo.CPReadPointer += 32;
+		if (fifo.CPReadPointer == fifo.CPEnd) fifo.CPReadPointer = fifo.CPBase;
+			else fifo.CPReadPointer += 32;
 
-			fifo.CPReadWriteDistance -= 32;											
-		}
-		CommandProcessor::SetCpStatus();
+		fifo.CPReadWriteDistance -= 32;
+	}
+	CommandProcessor::SetCpStatus();
 }

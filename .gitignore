@@ -37,3 +37,5 @@ Source/Core/Common/Src/scmrev.h
 Externals/scons-local/*
 .DS_Store
 *~
+#Ignore transifix configuration directory
+.tx

@@ -875,7 +875,7 @@ void CConfigMain::OnOk(wxCommandEvent& WXUNUSED (event))
 {
 	Close();
 
-	// Save the config. Dolphin crashes to often to save the settings on closing only
+	// Save the config. Dolphin crashes too often to only save the settings on closing
 	SConfig::GetInstance().SaveSettings();
 }
 

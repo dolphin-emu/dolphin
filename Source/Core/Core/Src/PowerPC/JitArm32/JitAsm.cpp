@@ -102,10 +102,10 @@ void JitArmAsmRoutineManager::Generate()
 		fpException = GetCodePtr();
 			LDR(R0, R9, PPCSTATE_OFF(Exceptions));
 			ORR(R0, R0, EXCEPTION_FPU_UNAVAILABLE);
-			STR(R9, R0, PPCSTATE_OFF(Exceptions));
+			STR(R0, R9, PPCSTATE_OFF(Exceptions));
 				QuickCallFunction(R14, (void*)&PowerPC::CheckExceptions);
 			LDR(R0, R9, PPCSTATE_OFF(npc));
-			STR(R9, R0, PPCSTATE_OFF(pc));
+			STR(R0, R9, PPCSTATE_OFF(pc));
 		B(dispatcher);
 
 		SetJumpTarget(bail);
@@ -117,10 +117,10 @@ void JitArmAsmRoutineManager::Generate()
 		// Does exception checking 
 		testExceptions = GetCodePtr();
 			LDR(R0, R9, PPCSTATE_OFF(pc));
-			STR(R9, R0, PPCSTATE_OFF(npc));
+			STR(R0, R9, PPCSTATE_OFF(npc));
 				QuickCallFunction(R14, (void*)&PowerPC::CheckExceptions);
 			LDR(R0, R9, PPCSTATE_OFF(npc));
-			STR(R9, R0, PPCSTATE_OFF(pc));
+			STR(R0, R9, PPCSTATE_OFF(pc));
 		// Check the state pointer to see if we are exiting
 		// Gets checked on every exception check
 			MOVI2R(R0, (u32)PowerPC::GetStatePtr());

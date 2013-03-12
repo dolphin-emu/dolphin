@@ -136,29 +136,38 @@ void ExecuteDisplayList(u32 address, u32 size)
 		InterpretDisplayList(address, size);
 }
 
-bool FifoCommandRunnable()
+u32 FifoCommandRunnable(u32 &command_size)
 {
+	u32 cycleTime = 0;
 	u32 buffer_size = (u32)(GetVideoBufferEndPtr() - g_pVideoData);
     if (buffer_size == 0)
-		return false;  // can't peek
+		return 0;  // can't peek
 
 	u8 cmd_byte = DataPeek8(0);	
-    u32 command_size = 0;
 
     switch (cmd_byte)
     {
     case GX_NOP: // Hm, this means that we scan over nop streams pretty slowly...
+		command_size = 1;
+		cycleTime = 6;
+		break;
 	case GX_CMD_INVL_VC: // Invalidate Vertex Cache - no parameters
+		command_size = 1;
+		cycleTime = 6;
+		break;
     case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
         command_size = 1;
+		cycleTime = 6;
         break;
 
 	case GX_LOAD_BP_REG:	
         command_size = 5;
+		cycleTime = 12;
         break;
 
     case GX_LOAD_CP_REG:
         command_size = 6;
+		cycleTime = 12;
         break;
 
     case GX_LOAD_INDX_A:
@@ -166,10 +175,39 @@ bool FifoCommandRunnable()
     case GX_LOAD_INDX_C:
     case GX_LOAD_INDX_D:
         command_size = 5;
+		cycleTime = 6; // TODO
         break;
 
-    case GX_CMD_CALL_DL:	
-        command_size = 9;
+    case GX_CMD_CALL_DL:
+		{
+			// FIXME: Calculate the cycle time of the display list.
+			//u32 address = DataPeek32(1);
+			//u32 size = DataPeek32(5);
+			//u8* old_pVideoData = g_pVideoData;
+			//u8* startAddress = Memory::GetPointer(address);
+
+			//// Avoid the crash if Memory::GetPointer failed ..
+			//if (startAddress != 0)
+			//{
+			//	g_pVideoData = startAddress;
+			//	u8 *end = g_pVideoData + size;
+			//	u32 step = 0;
+			//	while (g_pVideoData < end)
+			//	{
+			//		cycleTime += FifoCommandRunnable(step);
+			//		g_pVideoData += step;
+			//	}
+			//}
+			//else
+			//{
+			//	cycleTime = 45;
+			//}
+
+			//// reset to the old pointer
+			//g_pVideoData = old_pVideoData;
+			command_size = 9;
+			cycleTime = 45;  // This is unverified
+		}
         break;
 
     case GX_LOAD_XF_REG:
@@ -180,11 +218,12 @@ bool FifoCommandRunnable()
                 command_size = 1 + 4;
                 u32 Cmd2 = DataPeek32(1);
                 int transfer_size = ((Cmd2 >> 16) & 15) + 1;
-                command_size += transfer_size * 4;				
+                command_size += transfer_size * 4;
+				cycleTime = 18 + 6 * transfer_size;
             }
             else
 			{
-                return false;
+                return 0;
             }			
         }
         break;
@@ -198,10 +237,11 @@ bool FifoCommandRunnable()
                 command_size = 1 + 2;
                 u16 numVertices = DataPeek16(1);
 				command_size += numVertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK);
+				cycleTime = 1600; // This depends on the number of pixels rendered
             }
 			else
 			{				
-                return false;
+                return 0;
             }
         }
 		else
@@ -248,11 +288,19 @@ bool FifoCommandRunnable()
     }
     
     if (command_size > buffer_size)
-        return false;
+        return 0;
 
     // INFO_LOG("OP detected: cmd_byte 0x%x  size %i  buffer %i",cmd_byte, command_size, buffer_size);
+	if (cycleTime == 0)
+		cycleTime = 6;
 
-    return true;
+    return cycleTime;
+}
+
+u32 FifoCommandRunnable()
+{
+	u32 command_size = 0;
+	return FifoCommandRunnable(command_size);
 }
 
 static void Decode()
@@ -461,16 +509,15 @@ void OpcodeDecoder_Shutdown()
 	}
 }
 
-void OpcodeDecoder_Run(bool skipped_frame)
+u32 OpcodeDecoder_Run(bool skipped_frame)
 {
-	if (!skipped_frame)
+	u32 totalCycles = 0;
+	u32 cycles = FifoCommandRunnable();
+	while (cycles > 0)
 	{
-		while (FifoCommandRunnable())
-			Decode();
+		skipped_frame ? DecodeSemiNop() : Decode();
+		totalCycles += cycles;
+		cycles = FifoCommandRunnable();
 	}
-	else
-	{
-		while (FifoCommandRunnable())
-			DecodeSemiNop();
-	}
+	return totalCycles;
 }

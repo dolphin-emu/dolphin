@@ -161,13 +161,18 @@ void Init(int cpu_core)
 
 	switch (cpu_core)
 	{
-	case 0:
+		case 0:
 		{
 			cpu_core_base = interpreter;
 			break;
 		}
 		default:
 			cpu_core_base = JitInterface::InitJitCore(cpu_core);
+			if (!cpu_core_base) // Handle Situations where JIT core isn't available
+			{
+				WARN_LOG(POWERPC, "Jit core %d not available. Defaulting to interpreter.", cpu_core);
+				cpu_core_base = interpreter;
+			}
 		break;
 	}
 
@@ -213,6 +218,8 @@ void SetMode(CoreMode new_mode)
 	case MODE_JIT:  // Switching from interpreter to JIT.
 		// Don't really need to do much. It'll work, the cache will refill itself.
 		cpu_core_base = JitInterface::GetCore();
+		if (!cpu_core_base) // Has a chance to not get a working JIT core if one isn't active on host
+			cpu_core_base = interpreter;
 		break;
 	}
 }

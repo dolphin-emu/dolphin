@@ -98,12 +98,17 @@ void STACKALIGN CheckGatherPipe()
 		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
 		
 		// Profile where the FIFO writes are occurring.
-		if (jit && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
+		if (jit && PC != 0 && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
 		{
-			jit->js.fifoWriteAddresses.insert(PC);
+			// Log only stores, fp stores and ps stores, filtering out other instructions arrived via optimizeGatherPipe
+			int type = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
+			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || (type == OPTYPE_PS && GetOpInfo(Memory::ReadUnchecked_U32(PC))->opname=="psq_st"))
+			{
+				jit->js.fifoWriteAddresses.insert(PC);
 
-			// Invalidate the JIT block so that it gets recompiled with the external exception check included.
-			jit->GetBlockCache()->InvalidateICache(PC, 4);
+				// Invalidate the JIT block so that it gets recompiled with the external exception check included.
+				jit->GetBlockCache()->InvalidateICache(PC, 4);
+			}
 		}
 	}
 }
