@@ -48,8 +48,9 @@ void JitArm::sc(UGeckoInstruction inst)
 	gpr.Flush();
 	fpr.Flush();
 
-	ARMABI_MOVI2M((u32)&PC, js.compilerPC + 4); // Destroys R12 and R14
 	ARMReg rA = gpr.GetReg();
+	MOVI2R(rA, js.compilerPC + 4);
+	STR(rA, R9, PPCSTATE_OFF(pc));
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 	ORR(rA, rA, EXCEPTION_SYSCALL);
 	STR(rA, R9, PPCSTATE_OFF(Exceptions));

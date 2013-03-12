@@ -23,6 +23,7 @@
 // locating performance issues.
 
 #include "../JitInterface.h"
+#include "Jit.h"
 #include "JitArmCache.h"
 
 

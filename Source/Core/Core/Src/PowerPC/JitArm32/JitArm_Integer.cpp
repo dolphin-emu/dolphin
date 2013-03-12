@@ -40,7 +40,7 @@ void JitArm::GenerateRC(int cr) {
 	SetCC(CC_MI); MOV(rB, 0x8); // Result < 0
 	SetCC();
 
-	STRB(R9, rB, PPCSTATE_OFF(cr_fast) + cr);
+	STRB(rB, R9, PPCSTATE_OFF(cr_fast) + cr);
 	gpr.Unlock(rB);
 }
 void JitArm::ComputeRC(int cr) {
@@ -51,7 +51,7 @@ void JitArm::ComputeRC(int cr) {
 	SetCC(CC_GT); MOV(rB, 0x4); // Result > 0
 	SetCC();
 
-	STRB(R9, rB, PPCSTATE_OFF(cr_fast) + cr);
+	STRB(rB, R9, PPCSTATE_OFF(cr_fast) + cr);
 	gpr.Unlock(rB);
 }
 
@@ -232,7 +232,7 @@ void JitArm::cmpli(UGeckoInstruction inst)
 	SetCC(CC_HI); MOV(rA, 0x4); // Result > 0
 	SetCC();
 
-	STRB(R9, rA, PPCSTATE_OFF(cr_fast) + crf);
+	STRB(rA, R9, PPCSTATE_OFF(cr_fast) + crf);
 	gpr.Unlock(rA);
 
 }
@@ -269,7 +269,7 @@ void JitArm::rlwimix(UGeckoInstruction inst)
 	ARMReg rB = gpr.GetReg();
 	MOVI2R(rA, mask);
 
-	Operand2 Shift(32 - inst.SH, ST_ROR, RS); // This rotates left, while ARM has only rotate right, so swap it.
+	Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
 	if (inst.Rc)
 	{
 		BIC (rB, RA, rA); // RA & ~mask
@@ -296,7 +296,7 @@ void JitArm::rlwinmx(UGeckoInstruction inst)
 	ARMReg rA = gpr.GetReg();
 	MOVI2R(rA, mask);
 
-	Operand2 Shift(32 - inst.SH, ST_ROR, RS); // This rotates left, while ARM has only rotate right, so swap it.
+	Operand2 Shift(RS, ST_ROR, 32 - inst.SH); // This rotates left, while ARM has only rotate right, so swap it.
 	if (inst.Rc)
 	{
 		ANDS(RA, rA, Shift);

@@ -616,7 +616,7 @@ void ARMXEmitter::WriteStoreOp(u32 op, ARMReg src, ARMReg dest, s16 op2)
        bool Index = true;
        bool Add = op2 >= 0 ? true : false;
        u32 imm = abs(op2);
-       Write32(condition | (op << 20) | (Index << 24) | (Add << 23) | (dest << 16) | (src << 12) | imm);
+       Write32(condition | (op << 20) | (Index << 24) | (Add << 23) | (src << 16) | (dest << 12) | imm);
 }
 void ARMXEmitter::STR  (ARMReg result, ARMReg base, s16 op) { WriteStoreOp(0x40, base, result, op);}
 void ARMXEmitter::STRH (ARMReg result, ARMReg base, Operand2 op)

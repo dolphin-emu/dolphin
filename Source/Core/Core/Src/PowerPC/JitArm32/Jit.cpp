@@ -361,8 +361,9 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	// Downcount flag check, Only valid for linked blocks
 	{
 		FixupBranch skip = B_CC(CC_PL);
-		ARMABI_MOVI2M((u32)&PC, js.blockStart);
 		ARMReg rA = gpr.GetReg(false);
+		MOVI2R(rA, js.blockStart);
+		STR(rA, R9, PPCSTATE_OFF(pc));
 		MOVI2R(rA, (u32)asm_routines.doTiming);
 		B(rA);
 		SetJumpTarget(skip);
