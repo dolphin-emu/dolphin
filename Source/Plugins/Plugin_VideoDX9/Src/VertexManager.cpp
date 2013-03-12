@@ -42,8 +42,8 @@ extern NativeVertexFormat *g_nativeVertexFmt;
 namespace DX9
 {
 //This are the initially requeted size for the buffers expresed in elements
-const u32 IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * 16;
-const u32 VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 16;
+const u32 IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 8;
+const u32 VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE;
 const u32 MAXVBUFFER_COUNT = 2;
 
 inline void DumpBadShaders()

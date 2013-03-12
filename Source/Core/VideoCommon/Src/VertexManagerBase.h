@@ -2,6 +2,7 @@
 #ifndef _VERTEXMANAGERBASE_H
 #define _VERTEXMANAGERBASE_H
 
+#include "Common.h"
 #include <vector>
 
 class NativeVertexFormat;
@@ -10,17 +11,16 @@ class PointerWrap;
 class VertexManager
 {
 private:
-	// What are the actual values?
-	static const u32 SMALLEST_POSSIBLE_VERTEX = 1;
-	static const u32 LARGEST_POSSIBLE_VERTEX = 188;
+	static const u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float)*3;                 // 3 pos
+	static const u32 LARGEST_POSSIBLE_VERTEX = sizeof(float)*45 + sizeof(u32)*2; // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat 
 	
 	static const u32 MAX_PRIMITIVES_PER_COMMAND = (u16)-1;
 	
 public:
-	static const u32 MAXVBUFFERSIZE = MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX;
+	static const u32 MAXVBUFFERSIZE = ROUND_UP_POW2 (MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
 	
 	// We may convert triangle-fans to triangle-lists, almost 3x as many indices.
-	static const u32 MAXIBUFFERSIZE = MAX_PRIMITIVES_PER_COMMAND * 3;
+	static const u32 MAXIBUFFERSIZE = ROUND_UP_POW2 (MAX_PRIMITIVES_PER_COMMAND * 3);
 
 	VertexManager();
 	// needs to be virtual for DX11's dtor
