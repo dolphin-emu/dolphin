@@ -153,10 +153,10 @@ void RunGpuLoop()
 
 	while (GpuRunningState)
 	{
-		g_video_backend->PeekMessages();
+        g_video_backend->PeekMessages();
 
 		VideoFifo_CheckAsyncRequest();
-				
+
 		CommandProcessor::SetCpStatus();
 
 		Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
@@ -203,10 +203,16 @@ void RunGpuLoop()
 		}
 
 		fifo.isGpuReadingData = false;
-		
 
 		if (EmuRunningState)
+		{
+			// NOTE(jsd): Calling SwitchToThread() on Windows 7 x64 is a hot spot, according to profiler.
+			// See https://docs.google.com/spreadsheet/ccc?key=0Ah4nh0yGtjrgdFpDeF9pS3V6RUotRVE3S3J4TGM1NlE#gid=0
+			// for benchmark details.
+#if 0
 			Common::YieldCPU();
+#endif
+		}
 		else
 		{
 			// While the emu is paused, we still handle async requests then sleep.
