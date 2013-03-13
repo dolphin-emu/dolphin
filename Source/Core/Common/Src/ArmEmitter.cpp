@@ -659,6 +659,103 @@ void ARMXEmitter::SVC(Operand2 op)
 	Write32(condition | (0x0F << 24) | op.Imm24());
 }
 
+// IMM, REG, IMMSREG, RSR
+// -1 for invalid if the instruction doesn't support that
+const s32 LoadStoreOps[][4] = { {0x40, 0x60, 0x60, -1}, // STR
+				{0x41, 0x61, 0x61, -1}, // LDR
+				{0x44, 0x64, 0x64, -1}, // STRB
+				{0x45, 0x65, 0x65, -1}, // LDRB
+				// Special encodings
+				{ 0x4,  0x0,  -1, -1}, // STRH
+				{ 0x5,  0x1,  -1, -1}, // LDRH
+				{ 0x5,  0x1,  -1, -1}, // LDRSB
+				{ 0x5,  0x1,  -1, -1}, // LDRSH
+				};
+const char *LoadStoreNames[] = { "STR",
+				 "LDR",
+				 "STRB",
+				 "LDRB",
+				 "STRH",
+				 "LDRH",
+				 "LDRSB",
+				 "LDRSH",
+				};
+
+void ARMXEmitter::WriteNewStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 op2, bool RegAdd)
+{
+	s32 op = LoadStoreOps[Op][Rm.GetType()]; // Type always decided by last operand
+	u32 Data;
+	
+	// Qualcomm chipsets get /really/ angry if you don't use index, even if the offset is zero.
+	// Some of these encodings require Index at all times anyway. Doesn't really matter.
+	// bool Index = op2 != 0 ? true : false;
+	bool Index = true;
+	bool Add = false; 	
+
+	// Special Encoding	
+	bool SpecialOp = false;
+	bool Half = false;
+	bool SignedLoad = false;
+
+	if (op == -1)
+		_assert_msg_(DYNA_REC, false, "%s does not support %d", LoadStoreNames[Op], Rm.GetType()); 
+
+	switch (Op)
+	{
+		case 4: // STRH
+			SpecialOp = true;
+			Half = true;
+			SignedLoad = false;
+		break;
+		case 5: // LDRH
+			SpecialOp = true;
+			Half = true;
+			SignedLoad = false;
+		break;
+		case 6: // LDRSB
+			SpecialOp = true;
+			Half = false;
+			SignedLoad = true;
+		break;
+		case 7: // LDRSH
+			SpecialOp = true;
+			Half = true;
+			SignedLoad = true;
+		break;
+	}
+	switch (Rm.GetType())
+	{
+		case TYPE_IMM:
+			s32 Temp = (s32)Rm.Value;
+			Data = abs(Temp);
+			// The offset is encoded differently on this one.
+			if (SpecialOp)
+				Data = (Data & 0xF0 << 4) | (Data & 0xF);
+			if (Temp >= 0) ImmAdd = true;	
+		break;
+		case TYPE_REG:
+		case TYPE_IMMSREG:
+			if (!SpecialOp)
+			{
+				Data = Rm.GetData();
+				Add = RegAdd;
+				break;
+			}
+		default:
+			// RSR not supported for any of these
+			// We already have the warning above
+			BKPT(0x2);
+			return;
+		break;  
+	}
+	if (SpecialOp)
+	{
+		// Add SpecialOp things
+		Data = (0x5 << 4) | (SignedLoad << 6) | (Half << 5) | Data;
+	}
+	Write32(condition | (op << 20) | (Index << 24) | (Add << 23) | (Rn << 16) | (Rt << 12) | Data);
+}
+
 void ARMXEmitter::LDR (ARMReg dest, ARMReg src, s16 op) { WriteStoreOp(0x41, src, dest, op);}
 void ARMXEmitter::LDRH(ARMReg dest, ARMReg src, Operand2 op)
 {

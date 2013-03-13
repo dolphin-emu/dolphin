@@ -353,6 +353,8 @@ private:
 	std::vector<LiteralPool> currentLitPool;
 
 	void WriteStoreOp(u32 op, ARMReg src, ARMReg dest, s16 op2);
+	void WriteNewStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 op2, bool RegAdd);
+
 	void WriteRegStoreOp(u32 op, ARMReg dest, bool WriteBack, u16 RegList);
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, ARMReg op2);
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, Operand2 op2);
