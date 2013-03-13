@@ -40,7 +40,9 @@ private:
 	wxTimer *m_afterinit;
 	bool BatchMode;
 	bool LoadFile;
+	bool playMovie;
 	wxString FileToLoad;
+	wxString movieFile;
 	wxLocale *m_locale;
 
 	void AfterInit(wxTimerEvent& WXUNUSED(event));
