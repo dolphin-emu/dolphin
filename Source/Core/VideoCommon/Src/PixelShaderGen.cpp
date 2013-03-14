@@ -276,7 +276,7 @@ void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::
 static void WriteStage(char *&p, int n, API_TYPE ApiType);
 static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
-static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool depthTextureEnable);
+static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
 static void WriteFog(char *&p);
 
 static const char *tevKSelTableC[] = // KCSEL
@@ -493,8 +493,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	BuildSwapModeTable(); // Needed for WriteStage
 	int numStages = bpmem.genMode.numtevstages + 1;
 	int numTexgen = bpmem.genMode.numtexgens;
-	
-	bool depthTextureEnable = bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable;
+
+	bool per_pixel_depth = bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable;
 
 	char *p = text;
 	WRITE(p, "//Pixel Shader for TEV stages\n");
@@ -565,14 +565,14 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	{
 		WRITE(p, "  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
-			depthTextureEnable ? "\n  out float depth : DEPTH," : "",
+			per_pixel_depth ? "\n  out float depth : DEPTH," : "",
 			ApiType & API_OPENGL ? "WPOS" : ApiType & API_D3D9_SM20 ? "POSITION" : "VPOS");
 	}
 	else
 	{
 		WRITE(p, "  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
-			depthTextureEnable ? "\n  out float depth : SV_Depth," : "");
+			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 	}
 
 	WRITE(p, "  in float4 colors_0 : COLOR0,\n");
@@ -712,7 +712,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	if (Pretest == AlphaTest::UNDETERMINED)
-		WriteAlphaTest(p, ApiType, dstAlphaMode, depthTextureEnable);
+		WriteAlphaTest(p, ApiType, dstAlphaMode, per_pixel_depth);
 
 	
 	// the screen space depth value = far z + (clip z / clip w) * z range
@@ -721,9 +721,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	else
 		// dx9 doesn't support 4 component position, so we have to calculate it again
 		WRITE(p, "float zCoord = " I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS"[1].y;\n");
-	
-	// Note: depth textures are disabled if early depth test is enabled
-	if (depthTextureEnable)
+
+	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
+	bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
+	if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !skip_ztexture)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
 		WRITE(p, "zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
@@ -733,8 +734,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
 		WRITE(p, "zCoord = frac(zCoord);\n");
 		WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
-	
-		WRITE(p, "depth = zCoord;\n");
+
+		// Note: depth texture out put is only written to depth buffer if late depth test is used
+		if (per_pixel_depth)
+			WRITE(p, "depth = zCoord;\n");
 	}
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
@@ -1146,7 +1149,7 @@ static const char *tevAlphaFunclogicTable[] =
 	" == "  // xnor
 };
 
-static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool depthTextureEnable)
+static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth)
 {
 	static const char *alphaRef[2] =
 	{
@@ -1169,7 +1172,7 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	WRITE(p, "ocol0 = 0;\n");
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 		WRITE(p, "ocol1 = 0;\n");
-	if(depthTextureEnable)
+	if(per_pixel_depth)
 		WRITE(p, "depth = 1.f;\n");
 
 	// HAXX: zcomploc (aka early_ztest) is a way to control whether depth test is done before
