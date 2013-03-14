@@ -818,6 +818,100 @@ void ARMXEmitter::VSUB(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 }
 
 // VFP Specific
+struct VFPEnc
+{
+	u16 opc1;
+	u16 opc2;
+};
+// Double/single, Neon
+const VFPEnc VFPOps[][2] = {
+	{{0xE0, 0xA0}, {0x20, 0xD1}}, // VMLA
+	{{0xE0, 0xA4}, {0x22, 0xD1}}, // VMLS
+	{{0xE3, 0xA0}, {0x20, 0xD0}}, // VADD
+	{{0xE3, 0xA4}, {0x22, 0xD0}}, // VSUB
+	{{0xE2, 0xA0}, {0x30, 0xD1}}, // VMUL
+	{{0xEB, 0xAC}, {0x3B, 0x30}}, // VABS	
+	{{0xE8, 0xA0}, {  -1,   -1}}, // VDIV
+	{{0xEB, 0xA4}, {  -1,   -1}}, // VNEG
+	{{0xEB, 0xAC}, {  -1,   -1}}, // VSQRT
+	{{0xED, 0xA2}, {  -1,   -1}}, // VCMP
+	{{0xED, 0xAA}, {  -1,   -1}}, // VCMPE
+	{{  -1,   -1}, {0x3B, 0x70}}, // VABSi
+	};
+const char *VFPOps[] = {
+	"VMLA",
+	"VMLS",
+	"VADD",
+	"VSUB",
+	"VMUL",
+	"VABS",
+	"VDIV",
+	"VNEG",
+	"VSQRT",
+	"VCMP",
+	"VCMPE",
+	"VABSi",
+};
+
+u32 ARMXEmitter::EncodeVd(ARMReg Vd)
+{
+	bool quad_reg = Vd >= Q0;
+	bool double_reg = Vd >= D0;
+
+	ARMReg Reg = SubBase(Vd);
+
+	if (quad_reg)
+		((Reg & 0x10) << 18) | ((Reg & 0xF) << 12);
+	else
+		if (double_reg)
+			return ((Reg & 0x10) << 18) | ((Reg & 0xF) << 16);
+		else
+			return ((Reg & 0x1) << 22) | ((Reg & 0x1E) << 11);
+}
+u32 ARMXEmitter::EncodeVn(ARMReg Vn)
+{
+	bool quad_reg = Vn >= Q0;
+	bool double_reg = Vn >= D0;
+	
+	ARMReg Reg = SubBase(Vn);
+	if (quad_reg)
+		((Reg & 0xF) << 16) | ((Reg & 0x10) << 3);
+	else
+		if (double_reg)
+			return ((Reg & 0xF) << 16) | ((Reg & 0x10) << 3);
+		else
+			return ((Reg & 0x1E) << 15) | ((Reg & 0x1) << 7);
+}
+u32 ARMXEmitter::EncodeVm(ARMReg Vm)
+{
+	bool quad_reg = Vm >= Q0;
+	bool double_reg = Vm >= D0;
+
+	ARMReg Reg = SubBase(Vm);
+
+	if (quad_reg)
+		((Reg & 0x10) << 2) | (Reg & 0xF);
+	else
+		if (double_reg)
+			return ((Reg & 0x10) << 2) | (Reg & 0xF);
+		else
+			return ((Reg & 0x1) << 5) | (Reg >> 1);
+}
+void ARMXEmitter::WriteVFPDataOp(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	bool quad_reg = Vd >= Q0;
+	bool double_reg = Vd >= D0;
+
+	VFPEnc enc = VFPOps[Op][quad_reg];
+	if (enc.opc1 == (u16)-1 && enc.opc1 == (u16)-1)
+		_assert_msg_(DYNA_REC, false, "%s does not support %s", VFPOps[Op], quad_reg ? "NEON" : "VFP"); 
+	u32 VdEnc = EncodeVd(Vd);
+	u32 VnEnc = EncodeVn(Vn);
+	u32 VmEnc = EncodeVm(Vm);
+	u32 cond = quad_reg ? (0xF << 28) : condition;
+
+	Write32(cond | enc.opc1 | VnEnc | VdEnc | enc.opc2 | VmEnc);
+}
 
 void ARMXEmitter::VLDR(ARMReg Dest, ARMReg Base, s16 offset)
 {
