@@ -176,7 +176,7 @@ void ARMXEmitter::MOVI2R(ARMReg reg, u32 val, bool optimize)
 		} else {
 			// Use literal pool for ARMv6.
 			AddNewLit(val);
-			LDRLIT(reg, 0, 0); // To be backpatched later
+			LDR(reg, _PC); // To be backpatched later
 		}
 	}
 }
@@ -608,39 +608,6 @@ void ARMXEmitter::MRS (ARMReg dest)
 {
 	Write32(condition | (16 << 20) | (15 << 16) | (dest << 12));
 }
-
-void ARMXEmitter::WriteStoreOp(u32 op, ARMReg src, ARMReg dest, s16 op2)
-{
-       // Qualcomm chipsets get /really/ angry if you don't use index, even if the offset is zero.
-       // bool Index = op2 != 0 ? true : false;
-       bool Index = true;
-       bool Add = op2 >= 0 ? true : false;
-       u32 imm = abs(op2);
-       Write32(condition | (op << 20) | (Index << 24) | (Add << 23) | (src << 16) | (dest << 12) | imm);
-}
-void ARMXEmitter::STR  (ARMReg result, ARMReg base, s16 op) { WriteStoreOp(0x40, base, result, op);}
-void ARMXEmitter::STRH (ARMReg result, ARMReg base, Operand2 op)
-{
-	u8 Imm = op.Imm8();
-	Write32(condition | (0x04 << 20) | (base << 16) | (result << 12) | ((Imm >> 4) << 8) | (0xB << 4) | (Imm & 0x0F));
-}
-void ARMXEmitter::STRB (ARMReg result, ARMReg base, s16 op) { WriteStoreOp(0x44, base, result, op);}
-void ARMXEmitter::STR  (ARMReg result, ARMReg base, Operand2 op2, bool Index, bool Add)
-{
-	Write32(condition | (0x60 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (result << 12) | op2.IMMSR());
-}
-void ARMXEmitter::STR  (ARMReg result, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x60 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (result << 12) | offset);
-}
-void ARMXEmitter::STRH (ARMReg result, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x00 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (result << 12) | (0xB << 4) | offset);
-}
-void ARMXEmitter::STRB (ARMReg result, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x64 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (result << 12) | offset);
-}
 void ARMXEmitter::LDREX(ARMReg dest, ARMReg base)
 {
 	Write32(condition | (25 << 20) | (base << 16) | (dest << 12) | 0xF9F);
@@ -681,7 +648,7 @@ const char *LoadStoreNames[] = { "STR",
 				 "LDRSH",
 				};
 
-void ARMXEmitter::WriteNewStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 op2, bool RegAdd)
+void ARMXEmitter::WriteStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 Rm, bool RegAdd)
 {
 	s32 op = LoadStoreOps[Op][Rm.GetType()]; // Type always decided by last operand
 	u32 Data;
@@ -726,12 +693,14 @@ void ARMXEmitter::WriteNewStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 op2, bo
 	switch (Rm.GetType())
 	{
 		case TYPE_IMM:
+		{
 			s32 Temp = (s32)Rm.Value;
 			Data = abs(Temp);
 			// The offset is encoded differently on this one.
 			if (SpecialOp)
 				Data = (Data & 0xF0 << 4) | (Data & 0xF);
-			if (Temp >= 0) ImmAdd = true;	
+			if (Temp >= 0) Add = true;	
+		}
 		break;
 		case TYPE_REG:
 		case TYPE_IMMSREG:
@@ -756,49 +725,14 @@ void ARMXEmitter::WriteNewStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 op2, bo
 	Write32(condition | (op << 20) | (Index << 24) | (Add << 23) | (Rn << 16) | (Rt << 12) | Data);
 }
 
-void ARMXEmitter::LDR (ARMReg dest, ARMReg src, s16 op) { WriteStoreOp(0x41, src, dest, op);}
-void ARMXEmitter::LDRH(ARMReg dest, ARMReg src, Operand2 op)
-{
-	u8 Imm = op.Imm8();
-	Write32(condition | (0x05 << 20) | (src << 16) | (dest << 12) | ((Imm >> 4) << 8) | (0xB << 4) | (Imm & 0x0F));
-}
-void ARMXEmitter::LDRSH(ARMReg dest, ARMReg src, Operand2 op)
-{
-	u8 Imm = op.Imm8();
-	Write32(condition | (0x05 << 20) | (src << 16) | (dest << 12) | ((Imm >> 4) << 8) | (0xF << 4) | (Imm & 0x0F));
-}
-void ARMXEmitter::LDRB(ARMReg dest, ARMReg src, s16 op) { WriteStoreOp(0x45, src, dest, op);}
-void ARMXEmitter::LDRSB(ARMReg dest, ARMReg src, Operand2 op)
-{
-	u8 Imm = op.Imm8();
-	Write32(condition | (0x05 << 20) | (src << 16) | (dest << 12) | ((Imm >> 4) << 8) | (0xD << 4) | (Imm & 0x0F));
-}
-
-void ARMXEmitter::LDR  (ARMReg dest, ARMReg base, Operand2 op2, bool Index, bool Add)
-{
-	Write32(condition | (0x61 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | op2.IMMSR());
-}
-void ARMXEmitter::LDR  (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x61 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | offset);
-}
-void ARMXEmitter::LDRH (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x01 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | (0xB << 4) | offset);
-}
-void ARMXEmitter::LDRSH(ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x01 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | (0xF << 4) | offset);
-}
-void ARMXEmitter::LDRB (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x65 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | offset);
-}
-void ARMXEmitter::LDRSB(ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x01 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | (0xD << 4) | offset);
-}
-void ARMXEmitter::LDRLIT (ARMReg dest, u32 offset, bool Add) { Write32(condition | 0x05 << 24 | Add << 23 | 0x1F << 16 | dest << 12 | offset);}
+void ARMXEmitter::LDR (ARMReg dest, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(1, dest, base, op2, RegAdd);}
+void ARMXEmitter::LDRB(ARMReg dest, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(3, dest, base, op2, RegAdd);}
+void ARMXEmitter::LDRH(ARMReg dest, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(5, dest, base, op2, RegAdd);}
+void ARMXEmitter::LDRSB(ARMReg dest, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(6, dest, base, op2, RegAdd);}
+void ARMXEmitter::LDRSH(ARMReg dest, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(7, dest, base, op2, RegAdd);}
+void ARMXEmitter::STR  (ARMReg result, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(0, result, base, op2, RegAdd);}
+void ARMXEmitter::STRH (ARMReg result, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(4, result, base, op2, RegAdd);}
+void ARMXEmitter::STRB (ARMReg result, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(2, result, base, op2, RegAdd);}
 
 void ARMXEmitter::WriteRegStoreOp(u32 op, ARMReg dest, bool WriteBack, u16 RegList)
 {

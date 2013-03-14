@@ -72,7 +72,7 @@ void JitArmAsmRoutineManager::Generate()
 			MOVI2R(R14, (u32)jit->GetBlockCache()->GetICache());
 			// Confirmed That this loads the base iCache Location correctly 08-04-12
 
-			LDR(R12, R14, R12, true, true); // R12 contains iCache[PC & JIT_ICACHE_MASK] here
+			LDR(R12, R14, R12); // R12 contains iCache[PC & JIT_ICACHE_MASK] here
 			// R12 Confirmed this is the correct iCache Location loaded.
 			TST(R12, 0xFC); // Test  to see if it is a JIT block.
 
@@ -82,7 +82,7 @@ void JitArmAsmRoutineManager::Generate()
 			// LDR R14 right here to get CodePointers()[0] pointer.
 			REV(R12, R12); // Reversing this gives us our JITblock.
 			LSL(R12, R12, 2); // Multiply by four because address locations are u32 in size 
-			LDR(R14, R14, R12, true, true); // Load the block address in to R14 
+			LDR(R14, R14, R12); // Load the block address in to R14 
 
 			B(R14);
 			
