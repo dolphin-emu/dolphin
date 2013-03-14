@@ -51,7 +51,7 @@
 #endif
 
 #ifdef __APPLE__
-#include <CarbonCore/OSUtils.h>
+#import <AppKit/AppKit.h>
 #endif
 
 // Nvidia drivers >= v302 will check if the application exports a global
@@ -217,14 +217,12 @@ bool DolphinApp::OnInit()
 	}
 #endif
 #ifdef __APPLE__
-	SInt32 versMaj, versMin;
-	Gestalt(gestaltSystemVersionMajor, &versMaj);
-	Gestalt(gestaltSystemVersionMinor, &versMin);
-	if (!(versMaj >= 10 && versMin >= 7))
+	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_7)
 	{
 		PanicAlertT("Hi,\n\nDolphin requires OS X 10.7 or greater.\n"
 				"Unfortunately you're running an old version of OS X.\n"
-				"Please upgrade to 10.7 or greater to use Dolphin.\n\n"
+				"The last Dolphin version to support OS X 10.6 is Dolphin 3.5\n"
+				"Please upgrade to 10.7 or greater to use the newest Dolphin version.\n\n"
 				"Sayonara!\n");
 		return false;
 	}
