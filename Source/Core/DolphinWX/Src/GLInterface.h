@@ -50,7 +50,7 @@ typedef struct {
 	int x, y;
 	unsigned int width, height;
 #elif defined(__APPLE__)
-	NSWindow *cocoaWin;
+	NSView *cocoaWin;
 	NSOpenGLContext *cocoaCtx;
 #elif defined(HAVE_X11) && HAVE_X11
 	int screen;

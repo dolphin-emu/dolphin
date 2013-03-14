@@ -20,6 +20,8 @@
 #include "RenderBase.h"
 #include "ConfigManager.h"
 
+#include <wx/panel.h>
+
 #include "VertexShaderManager.h"
 #include "../GLInterface.h"
 #include "AGL.h"
@@ -32,7 +34,7 @@ void cInterfaceAGL::Swap()
 // Show the current FPS
 void cInterfaceAGL::UpdateFPSDisplay(const char *text)
 {
-	[GLWin.cocoaWin setTitle: [NSString stringWithUTF8String: text]];
+	[[GLWin.cocoaWin window] setTitle: [NSString stringWithUTF8String: text]];
 }
 
 // Create rendering window.
@@ -72,8 +74,7 @@ bool cInterfaceAGL::Create(void *&window_handle)
 		style |= NSResizableWindowMask | NSTitledWindowMask;
 	}
 
-	GLWin.cocoaWin = [[NSWindow alloc] initWithContentRect: size
-		styleMask: style backing: NSBackingStoreBuffered defer: NO];
+	GLWin.cocoaWin = (NSView*)(((wxPanel*)window_handle)->GetHandle());;
 	if (GLWin.cocoaWin == nil) {
 		ERROR_LOG(VIDEO, "failed to create window");
 		return NULL;
@@ -84,8 +85,8 @@ bool cInterfaceAGL::Create(void *&window_handle)
 		[GLWin.cocoaWin setLevel: CGShieldingWindowLevel()];
 	}
 
-	[GLWin.cocoaCtx setView: [GLWin.cocoaWin contentView]];
-	[GLWin.cocoaWin makeKeyAndOrderFront: nil];
+	[GLWin.cocoaCtx setView: GLWin.cocoaWin];
+	[[GLWin.cocoaWin window] makeKeyAndOrderFront: nil];
 
 	return true;
 }
@@ -94,12 +95,12 @@ bool cInterfaceAGL::MakeCurrent()
 {
 	int width, height;
 
-	width = [[GLWin.cocoaWin contentView] frame].size.width;
-	height = [[GLWin.cocoaWin contentView] frame].size.height;
+	width = [GLWin.cocoaWin frame].size.width;
+	height = [GLWin.cocoaWin frame].size.height;
 	//if (width == s_backbuffer_width && height == s_backbuffer_height)
 	//	return true;
 
-	[GLWin.cocoaCtx setView: [GLWin.cocoaWin contentView]];
+	[GLWin.cocoaCtx setView: GLWin.cocoaWin];
 	[GLWin.cocoaCtx update];
 	[GLWin.cocoaCtx makeCurrentContext];
 	s_backbuffer_width = width;
@@ -110,7 +111,6 @@ bool cInterfaceAGL::MakeCurrent()
 // Close backend
 void cInterfaceAGL::Shutdown()
 {
-	[GLWin.cocoaWin close];
 	[GLWin.cocoaCtx clearDrawable];
 	[GLWin.cocoaCtx release];
 }
