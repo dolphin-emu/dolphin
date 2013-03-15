@@ -55,8 +55,6 @@ void InitInterface()
 		GLInterface = new cInterfaceBase;
 	#elif defined(USE_EGL) && USE_EGL
 		GLInterface = new cInterfaceEGL;
-	#elif defined(USE_WX) && USE_WX
-		GLInterface = new cInterfaceWX;
 	#elif defined(__APPLE__)
 		GLInterface = new cInterfaceAGL;
 	#elif defined(_WIN32)
@@ -72,14 +70,14 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 	GLuint programID = glCreateProgram();
-	GLint Result = GL_FALSE;
-	char stringBuffer[1024];
-	GLsizei stringBufferUsage = 0;
 	
 	// compile vertex shader
 	glShaderSource(vertexShaderID, 1, &vertexShader, NULL);
 	glCompileShader(vertexShaderID);
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
+	GLint Result = GL_FALSE;
+	char stringBuffer[1024];
+	GLsizei stringBufferUsage = 0;
 	glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &Result);
 	glGetShaderInfoLog(vertexShaderID, 1024, &stringBufferUsage, stringBuffer);
 	if(Result && stringBufferUsage) {
@@ -159,32 +157,26 @@ void OpenGL_ReportARBProgramError()
 bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 {
 #ifndef USE_GLES
-	unsigned int fbo_status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-	if (fbo_status != GL_FRAMEBUFFER_COMPLETE_EXT)
+	unsigned int fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (fbo_status != GL_FRAMEBUFFER_COMPLETE)
 	{
-		const char *error = "-";
+		const char *error = "unknown error";
 		switch (fbo_status)
 		{
-			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
-				error = "INCOMPLETE_ATTACHMENT_EXT";
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+				error = "INCOMPLETE_ATTACHMENT";
 				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
-				error = "INCOMPLETE_MISSING_ATTACHMENT_EXT";
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+				error = "INCOMPLETE_MISSING_ATTACHMENT";
 				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
-				error = "INCOMPLETE_DIMENSIONS_EXT";
+			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+				error = "INCOMPLETE_DRAW_BUFFER";
 				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
-				error = "INCOMPLETE_FORMATS_EXT";
+			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+				error = "INCOMPLETE_READ_BUFFER";
 				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
-				error = "INCOMPLETE_DRAW_BUFFER_EXT";
-				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
-				error = "INCOMPLETE_READ_BUFFER_EXT";
-				break;
-			case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-				error = "UNSUPPORTED_EXT";
+			case GL_FRAMEBUFFER_UNSUPPORTED:
+				error = "UNSUPPORTED";
 				break;
 		}
 		ERROR_LOG(VIDEO, "%s:%d: (%s) OpenGL FBO error - %s\n",

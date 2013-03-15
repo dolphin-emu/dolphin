@@ -394,7 +394,7 @@ static void Decode()
 
 	// Display lists get added directly into the FIFO stream
 	if (g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
-		FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, g_pVideoData - opcodeStart);
+		FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(g_pVideoData - opcodeStart));
 }
 
 static void DecodeSemiNop()
@@ -477,7 +477,7 @@ static void DecodeSemiNop()
     }
 
 	if (g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
-		FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, g_pVideoData - opcodeStart);
+		FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(g_pVideoData - opcodeStart));
 }
 
 void OpcodeDecoder_Init()

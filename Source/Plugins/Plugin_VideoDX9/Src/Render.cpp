@@ -67,6 +67,7 @@ static int s_fps = 0;
 static u32 s_blendMode;
 static u32 s_LastAA;
 static bool IS_AMD;
+static float m_fMaxPointSize;
 
 static char *st;
 
@@ -187,6 +188,9 @@ Renderer::Renderer()
 	D3D::BeginFrame();
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, true);
 	D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );
+	D3D::SetRenderState(D3DRS_POINTSCALEENABLE,false);
+	m_fMaxPointSize = D3D::GetCaps().MaxPointSize;
+
 }
 
 Renderer::~Renderer()
@@ -1280,7 +1284,15 @@ void Renderer::SetLineWidth()
 	// We can't change line width in D3D unless we use ID3DXLine
 	float fratio = xfregs.viewport.wd != 0 ? Renderer::EFBToScaledXf(1.f) : 1.0f;
 	float psize = bpmem.lineptwidth.linesize * fratio / 6.0f;
+	//little hack to compensate scalling problems in dx9 must be taken out when scalling is fixed.
+	psize *= 2.0f;
+	if (psize > m_fMaxPointSize)
+	{
+		psize = m_fMaxPointSize;
+	}
 	D3D::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
+	D3D::SetRenderState(D3DRS_POINTSIZE_MIN, *((DWORD*)&psize));
+	D3D::SetRenderState(D3DRS_POINTSIZE_MAX, *((DWORD*)&psize));
 }
 
 void Renderer::SetSamplerState(int stage, int texindex)

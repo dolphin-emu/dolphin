@@ -100,12 +100,23 @@ void ChangeSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
 
 void RefreshVertexDeclaration();
 void SetVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl);
+void ChangeVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl);
 
 void RefreshVertexShader();
 void SetVertexShader(LPDIRECT3DVERTEXSHADER9 shader);
+void ChangeVertexShader(LPDIRECT3DVERTEXSHADER9 shader);
 
 void RefreshPixelShader();
 void SetPixelShader(LPDIRECT3DPIXELSHADER9 shader);
+void ChangePixelShader(LPDIRECT3DPIXELSHADER9 shader);
+
+void SetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9* pStreamData,UINT OffsetInBytes,UINT Stride);
+void ChangeStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9* pStreamData,UINT OffsetInBytes,UINT Stride);
+void RefreshStreamSource(UINT StreamNumber);
+
+void SetIndices(LPDIRECT3DINDEXBUFFER9 pIndexData);
+void ChangeIndices(LPDIRECT3DINDEXBUFFER9 pIndexData);
+void RefreshIndices();
 
 void ApplyCachedState();
 

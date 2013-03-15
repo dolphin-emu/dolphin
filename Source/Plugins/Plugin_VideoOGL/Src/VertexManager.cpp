@@ -29,10 +29,9 @@
 #include "ImageWrite.h"
 #include "BPMemory.h"
 #include "TextureCache.h"
-#include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
-#include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
+#include "ProgramShaderCache.h"
 #include "VertexShaderGen.h"
 #include "VertexLoader.h"
 #include "VertexManager.h"
@@ -40,6 +39,7 @@
 #include "OpcodeDecoding.h"
 #include "FileUtil.h"
 #include "Debugger.h"
+#include "StreamBuffer.h"
 #include "PerfQueryBase.h"
 
 #include "main.h"
@@ -49,53 +49,112 @@ extern NativeVertexFormat *g_nativeVertexFmt;
 
 namespace OGL
 {
+//This are the initially requeted size for the buffers expresed in bytes
+const u32 MAX_IBUFFER_SIZE =  2*1024*1024;
+const u32 MAX_VBUFFER_SIZE = 16*1024*1024;
 
-//static GLint max_Index_size = 0;
-
-//static GLuint s_vboBuffers[MAXVBOBUFFERCOUNT] = {0};
-//static int s_nCurVBOIndex = 0; // current free buffer
+static StreamBuffer *s_vertexBuffer;
+static StreamBuffer *s_indexBuffer;
+static u32 s_baseVertex;
+static u32 s_offset[3];
 
 VertexManager::VertexManager()
 {
-	// TODO: doesn't seem to be used anywhere
+	CreateDeviceObjects();
+}
 
-	//glGetIntegerv(GL_MAX_ELEMENTS_INDICES, (GLint*)&max_Index_size);
-	//
-	//if (max_Index_size > MAXIBUFFERSIZE)
-	//	max_Index_size = MAXIBUFFERSIZE;
-	//
-	//GL_REPORT_ERRORD();
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	GL_REPORT_ERRORD();
+VertexManager::~VertexManager()
+{
+	DestroyDeviceObjects();
 }
 
 void VertexManager::CreateDeviceObjects()
 {
+	s_vertexBuffer = new StreamBuffer(GL_ARRAY_BUFFER, MAX_VBUFFER_SIZE);
+	m_vertex_buffers = s_vertexBuffer->getBuffer();
+	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
+	m_index_buffers = s_indexBuffer->getBuffer();
 	
-
+	m_CurrentVertexFmt = NULL;
+	m_last_vao = 0;
 }
+
 void VertexManager::DestroyDeviceObjects()
 {
+	GL_REPORT_ERRORD();
+	glBindBuffer(GL_ARRAY_BUFFER, 0 );
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0 );
+	GL_REPORT_ERROR();
 	
+	delete s_vertexBuffer;
+	delete s_indexBuffer;
+	GL_REPORT_ERROR();
 }
 
-void VertexManager::Draw()
+void VertexManager::PrepareDrawBuffers(u32 stride)
 {
-	if (IndexGenerator::GetNumTriangles() > 0)
+	u32 vertex_data_size = IndexGenerator::GetNumVerts() * stride;
+	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
+	u32 line_index_size = IndexGenerator::GetLineindexLen();
+	u32 point_index_size = IndexGenerator::GetPointindexLen();
+	u32 index_size = (triangle_index_size+line_index_size+point_index_size) * sizeof(u16);
+	
+	s_vertexBuffer->Alloc(vertex_data_size, stride);
+	u32 offset = s_vertexBuffer->Upload(GetVertexBuffer(), vertex_data_size);
+	s_baseVertex = offset / stride;
+
+	s_indexBuffer->Alloc(index_size);
+	if(triangle_index_size)
 	{
-		glDrawElements(GL_TRIANGLES, IndexGenerator::GetTriangleindexLen(), GL_UNSIGNED_SHORT, GetTriangleIndexBuffer());
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		s_offset[0] = s_indexBuffer->Upload((u8*)GetTriangleIndexBuffer(), triangle_index_size * sizeof(u16));
 	}
-	if (IndexGenerator::GetNumLines() > 0)
+	if(line_index_size)
 	{
-		glDrawElements(GL_LINES, IndexGenerator::GetLineindexLen(), GL_UNSIGNED_SHORT, GetLineIndexBuffer());
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		s_offset[1] = s_indexBuffer->Upload((u8*)GetLineIndexBuffer(), line_index_size * sizeof(u16));
 	}
-	if (IndexGenerator::GetNumPoints() > 0)
+	if(point_index_size)
 	{
-		glDrawElements(GL_POINTS, IndexGenerator::GetPointindexLen(), GL_UNSIGNED_SHORT, GetPointIndexBuffer());
-		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		s_offset[2] = s_indexBuffer->Upload((u8*)GetPointIndexBuffer(), point_index_size * sizeof(u16));
+	}
+}
+
+void VertexManager::Draw(u32 stride)
+{
+	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
+	u32 line_index_size = IndexGenerator::GetLineindexLen();
+	u32 point_index_size = IndexGenerator::GetPointindexLen();
+	if(g_Config.backend_info.bSupportsGLBaseVertex) {
+		if (triangle_index_size > 0)
+		{
+			glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+		if (line_index_size > 0)
+		{
+			glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+		if (point_index_size > 0)
+		{
+			glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+	} else {
+		if (triangle_index_size > 0)
+		{
+			glDrawElements(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+		if (line_index_size > 0)
+		{
+			glDrawElements(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1]);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+		if (point_index_size > 0)
+		{
+			glDrawElements(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
 	}
 }
 
@@ -131,13 +190,15 @@ void VertexManager::vFlush()
 
 	(void)GL_REPORT_ERROR();
 	
-	//glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
-	//glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - s_pBaseBufferPointer, s_pBaseBufferPointer, GL_STREAM_DRAW);
-	GL_REPORT_ERRORD();
+	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)g_nativeVertexFmt;
+	u32 stride  = nativeVertexFmt->GetVertexStride();
+	
+	if(m_last_vao != nativeVertexFmt->VAO) {
+		glBindVertexArray(nativeVertexFmt->VAO);
+		m_last_vao = nativeVertexFmt->VAO;
+	}
 
-	// setup the pointers
-	if (g_nativeVertexFmt)
-		g_nativeVertexFmt->SetupVertexPointers();
+	PrepareDrawBuffers(stride);
 	GL_REPORT_ERRORD();
 
 	u32 usedtextures = 0;
@@ -150,11 +211,12 @@ void VertexManager::vFlush()
 			if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 				usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 
-	for (int i = 0; i < 8; i++)
+	for (u32 i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i))
 		{
-			glActiveTexture(GL_TEXTURE0 + i);
+			TextureCache::SetNextStage(i);
+			g_renderer->SetSamplerState(i % 4, i / 4);
 			FourTexUnits &tex = bpmem.tex[i >> 2];
 			TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
 				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
@@ -175,62 +237,64 @@ void VertexManager::vFlush()
 		}
 	}
 
-	// set global constants
-	VertexShaderManager::SetConstants();
-	PixelShaderManager::SetConstants();
-
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
-#ifdef USE_DUAL_SOURCE_BLEND
-	bool dualSourcePossible = GLEW_ARB_blend_func_extended;
+	// Makes sure we can actually do Dual source blending
+	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
 	// finally bind
-	FRAGMENTSHADER* ps;
 	if (dualSourcePossible)
 	{
 		if (useDstAlpha)
 		{
 			// If host supports GL_ARB_blend_func_extended, we can do dst alpha in
 			// the same pass as regular rendering.
-			g_renderer->SetBlendMode(true);
-			ps = PixelShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
+			ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, g_nativeVertexFmt->m_components);
 		}
 		else
 		{
-			g_renderer->SetBlendMode(true);
-			ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
+			ProgramShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
 		}
 	}
 	else
 	{
-		ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
+		ProgramShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
 	}
-#else
-	bool dualSourcePossible = false;
-	FRAGMENTSHADER* ps = PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components);
-#endif
-	VERTEXSHADER* vs = VertexShaderCache::SetShader(g_nativeVertexFmt->m_components);
-	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
-	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
+
+	// set global constants
+	VertexShaderManager::SetConstants();
+	PixelShaderManager::SetConstants();
+	ProgramShaderCache::UploadConstants();
+	
+	// setup the pointers
+	if (g_nativeVertexFmt)
+		g_nativeVertexFmt->SetupVertexPointers();
+	GL_REPORT_ERRORD();
 
 	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-	Draw();
+	Draw(stride);
 	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	//ERROR_LOG(VIDEO, "PerfQuery result: %d", g_perf_query->GetQueryResult(bpmem.zcontrol.early_ztest ? PQ_ZCOMP_OUTPUT_ZCOMPLOC : PQ_ZCOMP_OUTPUT));
 
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
 	{
-		ps = PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
-		if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid);
-
+		ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
+		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		{
+			// Need to set these again, if we don't support UBO
+			VertexShaderManager::SetConstants();
+			PixelShaderManager::SetConstants();
+		}
+	
 		// only update alpha
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 
 		glDisable(GL_BLEND);
 
-		Draw();
+		Draw(stride);
+		
 		// restore color mask
 		g_renderer->SetColorMask();
 
@@ -238,22 +302,21 @@ void VertexManager::vFlush()
 			glEnable(GL_BLEND);
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
-
-	//s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
-
+	
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) 
 	{
 		// save the shaders
+		ProgramShaderCache::PCacheEntry prog = ProgramShaderCache::GetShaderProgram();
 		char strfile[255];
 		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fps;
 		OpenFStream(fps, strfile, std::ios_base::out);
-		fps << ps->strprog.c_str();
+		fps << prog.shader.strpprog.c_str();
 		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fvs;
 		OpenFStream(fvs, strfile, std::ios_base::out);
-		fvs << vs->strprog.c_str();
+		fvs << prog.shader.strvprog.c_str();
 	}
 
 	if (g_ActiveConfig.iLog & CONF_SAVETARGETS) 

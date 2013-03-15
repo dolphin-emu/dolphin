@@ -50,3 +50,5 @@ const char *netplay_dolphin_ver = SCM_DESC_STR " M" NP_ARCH;
 #else
 const char *netplay_dolphin_ver = SCM_DESC_STR " L" NP_ARCH;
 #endif
+
+const char *scm_rev_git_str = SCM_REV_STR;

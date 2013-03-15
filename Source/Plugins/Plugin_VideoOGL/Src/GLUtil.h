@@ -33,7 +33,7 @@
 #define TEX2D	GL_TEXTURE_2D
 #define PREC	"highp"
 #define TEXTYPE "sampler2D"
-#define TEXFUNC "texture2D"
+#define TEXFUNC "texture"
 #else
 #define TEX2D	GL_TEXTURE_RECTANGLE_ARB
 #define PREC 
@@ -69,20 +69,16 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #define GL_REPORT_PROGRAM_ERROR() (void)0
 #endif
 
-#if (defined __APPLE__ || defined __linux__ || defined _WIN32) && !(defined _M_ARM)
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
-#define HAVE_CG 1
-extern CGcontext g_cgcontext;
-extern CGprofile g_cgvProf, g_cgfProf;
+// this should be removed in future, but as long as glsl is unstable, we should really read this messages
+#if defined(_DEBUG) || defined(DEBUGFAST) 
+#define DEBUG_GLSL 1
+#else
+#define DEBUG_GLSL 0
 #endif
 
-// XXX: Dual-source blending in OpenGL does not work correctly yet. To make it
-// work, we may need to use glBindFragDataLocation. To use that, we need to
-// use GLSL shaders across the whole pipeline. Yikes!
-//#define USE_DUAL_SOURCE_BLEND
-
-// TODO: should be removed if we use glsl a lot
-#define DEBUG_GLSL
+// Isn't defined if we aren't using GLEW 1.6
+#ifndef GL_ONE_MINUS_SRC1_ALPHA 
+#define GL_ONE_MINUS_SRC1_ALPHA 0x88FB
+#endif
 
 #endif  // _GLINIT_H_

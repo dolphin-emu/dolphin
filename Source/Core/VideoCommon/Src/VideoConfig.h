@@ -133,6 +133,7 @@ struct VideoConfig
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
 	bool bUseBBox;
 	bool bEnablePixelLighting;
+	bool bHackedBufferUpload;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
@@ -162,6 +163,12 @@ struct VideoConfig
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
+		
+		bool bSupportsGLSLUBO;
+		bool bSupportsGLSLCache;
+		bool bSupportsGLPinnedMemory;
+		bool bSupportsGLSync;
+		bool bSupportsGLBaseVertex;
 	} backend_info;
 
     // Utility

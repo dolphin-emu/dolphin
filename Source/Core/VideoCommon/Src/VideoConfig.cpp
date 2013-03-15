@@ -76,6 +76,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation, 200);
 	iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
 	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
+	iniFile.Get("Settings", "HackedBufferUpload", &bHackedBufferUpload, 0);
 	
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
 	iniFile.Get("Settings", "EFBScale", &iEFBScale, 2); // native
@@ -134,6 +135,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation);
 	iniFile.GetIfExists("Video_Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle);
 	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
+	iniFile.GetIfExists("Video_Settings", "HackedBufferUpload", &bHackedBufferUpload);
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
 	iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale); // integral
 	iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass);
@@ -172,6 +174,7 @@ void VideoConfig::VerifyValidity()
 	if (!backend_info.bSupports3DVision) b3DVision = false;
 	if (!backend_info.bSupportsFormatReinterpretation) bEFBEmulateFormatChanges = false;
 	if (!backend_info.bSupportsPixelLighting) bEnablePixelLighting = false;
+	if (backend_info.APIType != API_OPENGL) backend_info.bSupportsGLSLUBO = false;
 }
 
 void VideoConfig::Save(const char *ini_file)
@@ -202,7 +205,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	iniFile.Set("Settings", "EnablePixelLighting", bEnablePixelLighting);
-	
+	iniFile.Set("Settings", "HackedBufferUpload", bHackedBufferUpload);
 
 	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
 	iniFile.Set("Settings", "MSAA", iMultisampleMode);

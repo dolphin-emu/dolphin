@@ -23,8 +23,6 @@
 #include <GLInterface/InterfaceBase.h>
 #elif defined(USE_EGL) && USE_EGL
 #include "GLInterface/EGL_X11.h"
-#elif defined(USE_WX) && USE_WX
-#include "GLInterface/WX.h"
 #elif defined(__APPLE__)
 #include "GLInterface/AGL.h"
 #elif defined(_WIN32)
@@ -51,12 +49,8 @@ typedef struct {
 	std::thread xEventThread;
 	int x, y;
 	unsigned int width, height;
-#elif defined(USE_WX) && USE_WX
-	wxGLCanvas *glCanvas;
-	wxGLContext *glCtxt;
-	wxPanel *panel;
 #elif defined(__APPLE__)
-	NSWindow *cocoaWin;
+	NSView *cocoaWin;
 	NSOpenGLContext *cocoaCtx;
 #elif defined(HAVE_X11) && HAVE_X11
 	int screen;

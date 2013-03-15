@@ -64,6 +64,10 @@
 
 #endif
 
+#ifdef __APPLE__
+#import <AppKit/AppKit.h>
+#endif
+
 // Nvidia drivers >= v302 will check if the application exports a global
 // variable named NvOptimusEnablement to know if it should run the app in high
 // performance graphics mode or using the IGP.
@@ -228,6 +232,17 @@ bool DolphinApp::OnInit()
 	{
 		PanicAlertT("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
 				"Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
+				"Sayonara!\n");
+		return false;
+	}
+#endif
+#ifdef __APPLE__
+	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_7)
+	{
+		PanicAlertT("Hi,\n\nDolphin requires OS X 10.7 or greater.\n"
+				"Unfortunately you're running an old version of OS X.\n"
+				"The last Dolphin version to support OS X 10.6 is Dolphin 3.5\n"
+				"Please upgrade to 10.7 or greater to use the newest Dolphin version.\n\n"
 				"Sayonara!\n");
 		return false;
 	}

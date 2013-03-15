@@ -36,5 +36,6 @@ Source/Core/Common/Src/scmrev.h
 .sconsign.dblite
 Externals/scons-local/*
 .DS_Store
+*~
 #Ignore transifix configuration directory
 .tx

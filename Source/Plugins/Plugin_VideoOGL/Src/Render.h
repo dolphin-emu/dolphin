@@ -14,6 +14,9 @@ class Renderer : public ::Renderer
 public:
 	Renderer();
 	~Renderer();
+	
+	static void Init();
+	static void Shutdown();
 
 	void SetColorMask();
 	void SetBlendMode(bool forceUpdate);

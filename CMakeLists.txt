@@ -655,6 +655,7 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/scmrev.h
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
 
+
 ########################################
 # Start compiling our code
 #

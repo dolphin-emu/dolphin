@@ -32,7 +32,10 @@ namespace OGL
 class TextureCache : public ::TextureCache
 {
 public:
+	TextureCache();
 	static void DisableStage(unsigned int stage);
+	static void SetStage();
+	static void SetNextStage(unsigned int stage);
 
 private:
 	struct TCacheEntry : TCacheEntryBase
@@ -45,7 +48,7 @@ private:
 		int gl_iformat;
 		int gl_type;
 
-		bool bHaveMipMaps;
+		int m_tex_levels;
 
 		//TexMode0 mode; // current filter and clamp modes that texture is set to
 		//TexMode1 mode1; // current filter and clamp modes that texture is set to
@@ -63,9 +66,6 @@ private:
 
 		void Bind(unsigned int stage);
 		bool Save(const char filename[], unsigned int level);
-
-	private:
-		void SetTextureParameters(const TexMode0 &newmode, const TexMode1 &newmode1);
 	};
 
 	~TextureCache();

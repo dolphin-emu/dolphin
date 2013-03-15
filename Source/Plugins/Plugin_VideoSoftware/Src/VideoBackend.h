@@ -21,6 +21,7 @@ class VideoSoftware : public VideoBackend
 	void ShowConfig(void* parent);
 
 	void Video_Prepare();
+	void Video_Cleanup();
 
 	void Video_EnterLoop();
 	void Video_ExitLoop();

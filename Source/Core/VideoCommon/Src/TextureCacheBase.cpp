@@ -831,9 +831,5 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 	entry->frameCount = frameCount;
 
-	g_renderer->ResetAPIState(); // reset any game specific settings
-
 	entry->FromRenderTarget(dstAddr, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf, cbufid, colmat);
-
-	g_renderer->RestoreAPIState();
 }

@@ -55,6 +55,7 @@ Make AA apply instantly during gameplay if possible
 #include "LogManager.h"
 
 #include <cstdarg>
+#include <algorithm>
 
 #ifdef _WIN32
 #include "EmuWindow.h"
@@ -79,10 +80,9 @@ Make AA apply instantly during gameplay if possible
 #include "VertexLoader.h"
 #include "VertexLoaderManager.h"
 #include "VertexManager.h"
-#include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
-#include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
+#include "ProgramShaderCache.h"
 #include "CommandProcessor.h"
 #include "PixelEngine.h"
 #include "TextureConverter.h"
@@ -92,6 +92,7 @@ Make AA apply instantly during gameplay if possible
 #include "FramebufferManager.h"
 #include "Core.h"
 #include "Host.h"
+#include "SamplerCache.h"
 #include "PerfQuery.h"
 
 #include "VideoState.h"
@@ -108,32 +109,34 @@ std::string VideoBackend::GetName()
 
 void GetShaders(std::vector<std::string> &shaders)
 {
-        shaders.clear();
-        if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX)))
-        {
-                File::FSTEntry entry;
-                File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
-                for (u32 i = 0; i < entry.children.size(); i++) 
-                {
-                        std::string name = entry.children[i].virtualName.c_str();
-                        if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt"))
-                                name = name.substr(0, name.size() - 4);
-                        shaders.push_back(name);
-                }
-        }
-        else
-        {
-                File::CreateDir(File::GetUserPath(D_SHADERS_IDX).c_str());
-        }
+	shaders.clear();
+	if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX)))
+	{
+		File::FSTEntry entry;
+		File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
+		for (u32 i = 0; i < entry.children.size(); i++) 
+		{
+			std::string name = entry.children[i].virtualName.c_str();
+			if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt")) {
+				name = name.substr(0, name.size() - 4);
+				shaders.push_back(name);
+			}
+		}
+		std::sort(shaders.begin(), shaders.end());
+	}
+	else
+	{
+		File::CreateDir(File::GetUserPath(D_SHADERS_IDX).c_str());
+	}
 }
 
 void InitBackendInfo()
 {
 	g_Config.backend_info.APIType = API_OPENGL;
-	g_Config.backend_info.bUseRGBATextures = false;
+	g_Config.backend_info.bUseRGBATextures = true;
 	g_Config.backend_info.bUseMinimalMipCount = false;
 	g_Config.backend_info.bSupports3DVision = false;
-	g_Config.backend_info.bSupportsDualSourceBlend = false; // supported, but broken
+	//g_Config.backend_info.bSupportsDualSourceBlend = true; // is gpu depenend and must be set in renderer
 	g_Config.backend_info.bSupportsFormatReinterpretation = false;
 	g_Config.backend_info.bSupportsPixelLighting = true;
 
@@ -191,18 +194,18 @@ void VideoBackend::Video_Prepare()
 	CommandProcessor::Init();
 	PixelEngine::Init();
 
-	g_texture_cache = new TextureCache;
-
 	BPInit();
 	g_vertex_manager = new VertexManager;
 	g_perf_query = new PerfQuery;
 	Fifo_Init(); // must be done before OpcodeDecoder_Init()
 	OpcodeDecoder_Init();
-	VertexShaderCache::Init();
 	VertexShaderManager::Init();
-	PixelShaderCache::Init();
 	PixelShaderManager::Init();
+	ProgramShaderCache::Init();
 	PostProcessing::Init();
+	g_texture_cache = new TextureCache();
+	g_sampler_cache = new SamplerCache();
+	Renderer::Init();
 	GL_REPORT_ERRORD();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
@@ -217,7 +220,11 @@ void VideoBackend::Video_Prepare()
 void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
+	GLInterface->Shutdown();
+}
 
+void VideoBackend::Video_Cleanup() {
+	
 	if (g_renderer)
 	{
 		s_efbAccessRequested = false;
@@ -227,24 +234,26 @@ void VideoBackend::Shutdown()
 		DLCache::Shutdown();
 #endif
 		Fifo_Shutdown();
-		PostProcessing::Shutdown();
 
 		// The following calls are NOT Thread Safe
 		// And need to be called from the video thread
+		Renderer::Shutdown();
 		TextureConverter::Shutdown();
 		VertexLoaderManager::Shutdown();
-		VertexShaderCache::Shutdown();
+		delete g_sampler_cache;
+		g_sampler_cache = NULL;
+		delete g_texture_cache;
+		g_texture_cache = NULL;
+		PostProcessing::Shutdown();
+		ProgramShaderCache::Shutdown();
 		VertexShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();
-		PixelShaderCache::Shutdown();
 		delete g_vertex_manager;
-		delete g_texture_cache;
+		g_vertex_manager = NULL;
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
 		g_renderer = NULL;
-		g_texture_cache = NULL;
 	}
-	GLInterface->Shutdown();
 }
 
 }
