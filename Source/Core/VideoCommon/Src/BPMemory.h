@@ -93,7 +93,7 @@
 #define BPMEM_TEV_ALPHA_ENV    0xC1 // 0xC1 + (2 * 16)
 #define BPMEM_TEV_REGISTER_L   0xE0 // 0xE0 + (2 * 4)
 #define BPMEM_TEV_REGISTER_H   0xE1 // 0xE1 + (2 * 4)
-#define BPMEM_FOGRANGE         0xE8
+#define BPMEM_FOGRANGE         0xE8 // 0xE8 + 6
 #define BPMEM_FOGPARAM0        0xEE
 #define BPMEM_FOGBMAGNITUDE    0xEF
 #define BPMEM_FOGBEXPONENT     0xF0
@@ -988,7 +988,7 @@ struct BPMemory
     FourTexUnits tex[2]; //80-bf
     TevStageCombiner combiners[16]; //0xC0-0xDF
     TevReg tevregs[4];  //0xE0
-    FogRangeParams fogRange;
+    FogRangeParams fogRange;  // 0xE8
     FogParams fog; //0xEE,0xEF,0xF0,0xF1,0xF2
     AlphaTest alpha_test; //0xF3
     ZTex1 ztex1; //0xf4,0xf5

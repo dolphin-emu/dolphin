@@ -413,6 +413,7 @@ void PixelShaderManager::SetZTextureBias(u32 bias)
 void PixelShaderManager::SetViewportChanged()
 {
 	s_bDepthRangeChanged = true;
+	s_bFogRangeAdjustChanged = true; // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
 }
 
 void PixelShaderManager::SetIndTexScaleChanged(u8 stagemask)
