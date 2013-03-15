@@ -107,7 +107,7 @@ public:
 
 	void* GetRenderHandle()
 	{
-		#if defined(_WIN32) || defined(__APPLE__)
+		#ifdef _WIN32
 			return (void *)m_RenderParent->GetHandle();
 		#elif defined(HAVE_X11) && HAVE_X11
 			return (void *)X11Utils::XWindowFromHandle(m_RenderParent->GetHandle());

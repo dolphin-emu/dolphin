@@ -20,6 +20,8 @@
 #include "RenderBase.h"
 #include "ConfigManager.h"
 
+#include <wx/panel.h>
+
 #include "VertexShaderManager.h"
 #include "../GLInterface.h"
 #include "AGL.h"
@@ -72,7 +74,7 @@ bool cInterfaceAGL::Create(void *&window_handle)
 		style |= NSResizableWindowMask | NSTitledWindowMask;
 	}
 
-	GLWin.cocoaWin = (NSView*)window_handle;
+	GLWin.cocoaWin = (NSView*)(((wxPanel*)window_handle)->GetHandle());;
 	if (GLWin.cocoaWin == nil) {
 		ERROR_LOG(VIDEO, "failed to create window");
 		return NULL;
@@ -95,6 +97,8 @@ bool cInterfaceAGL::MakeCurrent()
 
 	width = [GLWin.cocoaWin frame].size.width;
 	height = [GLWin.cocoaWin frame].size.height;
+	//if (width == s_backbuffer_width && height == s_backbuffer_height)
+	//	return true;
 
 	[GLWin.cocoaCtx setView: GLWin.cocoaWin];
 	[GLWin.cocoaCtx update];
