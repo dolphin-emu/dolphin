@@ -960,10 +960,10 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 				WRITE(p, "float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}
 			else
-				WRITE(p, "float2 indtevtrans%d = float2(0.0f);\n", n);
+				WRITE(p, "float2 indtevtrans%d = float2(0.0f, 0.0f);\n", n);
 		}
 		else
-			WRITE(p, "float2 indtevtrans%d = float2(0.0f);\n", n);
+			WRITE(p, "float2 indtevtrans%d = float2(0.0f, 0.0f);\n", n);
 
 		// ---------
 		// Wrapping
