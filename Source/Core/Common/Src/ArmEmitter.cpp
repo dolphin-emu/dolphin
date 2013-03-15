@@ -176,7 +176,7 @@ void ARMXEmitter::MOVI2R(ARMReg reg, u32 val, bool optimize)
 		} else {
 			// Use literal pool for ARMv6.
 			AddNewLit(val);
-			LDRLIT(reg, 0, 0); // To be backpatched later
+			LDR(reg, _PC); // To be backpatched later
 		}
 	}
 }
@@ -608,39 +608,6 @@ void ARMXEmitter::MRS (ARMReg dest)
 {
 	Write32(condition | (16 << 20) | (15 << 16) | (dest << 12));
 }
-
-void ARMXEmitter::WriteStoreOp(u32 op, ARMReg src, ARMReg dest, s16 op2)
-{
-       // Qualcomm chipsets get /really/ angry if you don't use index, even if the offset is zero.
-       // bool Index = op2 != 0 ? true : false;
-       bool Index = true;
-       bool Add = op2 >= 0 ? true : false;
-       u32 imm = abs(op2);
-       Write32(condition | (op << 20) | (Index << 24) | (Add << 23) | (src << 16) | (dest << 12) | imm);
-}
-void ARMXEmitter::STR  (ARMReg result, ARMReg base, s16 op) { WriteStoreOp(0x40, base, result, op);}
-void ARMXEmitter::STRH (ARMReg result, ARMReg base, Operand2 op)
-{
-	u8 Imm = op.Imm8();
-	Write32(condition | (0x04 << 20) | (base << 16) | (result << 12) | ((Imm >> 4) << 8) | (0xB << 4) | (Imm & 0x0F));
-}
-void ARMXEmitter::STRB (ARMReg result, ARMReg base, s16 op) { WriteStoreOp(0x44, base, result, op);}
-void ARMXEmitter::STR  (ARMReg result, ARMReg base, Operand2 op2, bool Index, bool Add)
-{
-	Write32(condition | (0x60 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (result << 12) | op2.IMMSR());
-}
-void ARMXEmitter::STR  (ARMReg result, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x60 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (result << 12) | offset);
-}
-void ARMXEmitter::STRH (ARMReg result, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x00 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (result << 12) | (0xB << 4) | offset);
-}
-void ARMXEmitter::STRB (ARMReg result, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x64 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (result << 12) | offset);
-}
 void ARMXEmitter::LDREX(ARMReg dest, ARMReg base)
 {
 	Write32(condition | (25 << 20) | (base << 16) | (dest << 12) | 0xF9F);
@@ -659,49 +626,113 @@ void ARMXEmitter::SVC(Operand2 op)
 	Write32(condition | (0x0F << 24) | op.Imm24());
 }
 
-void ARMXEmitter::LDR (ARMReg dest, ARMReg src, s16 op) { WriteStoreOp(0x41, src, dest, op);}
-void ARMXEmitter::LDRH(ARMReg dest, ARMReg src, Operand2 op)
+// IMM, REG, IMMSREG, RSR
+// -1 for invalid if the instruction doesn't support that
+const s32 LoadStoreOps[][4] = { {0x40, 0x60, 0x60, -1}, // STR
+				{0x41, 0x61, 0x61, -1}, // LDR
+				{0x44, 0x64, 0x64, -1}, // STRB
+				{0x45, 0x65, 0x65, -1}, // LDRB
+				// Special encodings
+				{ 0x4,  0x0,  -1, -1}, // STRH
+				{ 0x5,  0x1,  -1, -1}, // LDRH
+				{ 0x5,  0x1,  -1, -1}, // LDRSB
+				{ 0x5,  0x1,  -1, -1}, // LDRSH
+				};
+const char *LoadStoreNames[] = { "STR",
+				 "LDR",
+				 "STRB",
+				 "LDRB",
+				 "STRH",
+				 "LDRH",
+				 "LDRSB",
+				 "LDRSH",
+				};
+
+void ARMXEmitter::WriteStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 Rm, bool RegAdd)
 {
-	u8 Imm = op.Imm8();
-	Write32(condition | (0x05 << 20) | (src << 16) | (dest << 12) | ((Imm >> 4) << 8) | (0xB << 4) | (Imm & 0x0F));
-}
-void ARMXEmitter::LDRSH(ARMReg dest, ARMReg src, Operand2 op)
-{
-	u8 Imm = op.Imm8();
-	Write32(condition | (0x05 << 20) | (src << 16) | (dest << 12) | ((Imm >> 4) << 8) | (0xF << 4) | (Imm & 0x0F));
-}
-void ARMXEmitter::LDRB(ARMReg dest, ARMReg src, s16 op) { WriteStoreOp(0x45, src, dest, op);}
-void ARMXEmitter::LDRSB(ARMReg dest, ARMReg src, Operand2 op)
-{
-	u8 Imm = op.Imm8();
-	Write32(condition | (0x05 << 20) | (src << 16) | (dest << 12) | ((Imm >> 4) << 8) | (0xD << 4) | (Imm & 0x0F));
+	s32 op = LoadStoreOps[Op][Rm.GetType()]; // Type always decided by last operand
+	u32 Data;
+	
+	// Qualcomm chipsets get /really/ angry if you don't use index, even if the offset is zero.
+	// Some of these encodings require Index at all times anyway. Doesn't really matter.
+	// bool Index = op2 != 0 ? true : false;
+	bool Index = true;
+	bool Add = false; 	
+
+	// Special Encoding	
+	bool SpecialOp = false;
+	bool Half = false;
+	bool SignedLoad = false;
+
+	if (op == -1)
+		_assert_msg_(DYNA_REC, false, "%s does not support %d", LoadStoreNames[Op], Rm.GetType()); 
+
+	switch (Op)
+	{
+		case 4: // STRH
+			SpecialOp = true;
+			Half = true;
+			SignedLoad = false;
+		break;
+		case 5: // LDRH
+			SpecialOp = true;
+			Half = true;
+			SignedLoad = false;
+		break;
+		case 6: // LDRSB
+			SpecialOp = true;
+			Half = false;
+			SignedLoad = true;
+		break;
+		case 7: // LDRSH
+			SpecialOp = true;
+			Half = true;
+			SignedLoad = true;
+		break;
+	}
+	switch (Rm.GetType())
+	{
+		case TYPE_IMM:
+		{
+			s32 Temp = (s32)Rm.Value;
+			Data = abs(Temp);
+			// The offset is encoded differently on this one.
+			if (SpecialOp)
+				Data = (Data & 0xF0 << 4) | (Data & 0xF);
+			if (Temp >= 0) Add = true;	
+		}
+		break;
+		case TYPE_REG:
+		case TYPE_IMMSREG:
+			if (!SpecialOp)
+			{
+				Data = Rm.GetData();
+				Add = RegAdd;
+				break;
+			}
+		default:
+			// RSR not supported for any of these
+			// We already have the warning above
+			BKPT(0x2);
+			return;
+		break;  
+	}
+	if (SpecialOp)
+	{
+		// Add SpecialOp things
+		Data = (0x5 << 4) | (SignedLoad << 6) | (Half << 5) | Data;
+	}
+	Write32(condition | (op << 20) | (Index << 24) | (Add << 23) | (Rn << 16) | (Rt << 12) | Data);
 }
 
-void ARMXEmitter::LDR  (ARMReg dest, ARMReg base, Operand2 op2, bool Index, bool Add)
-{
-	Write32(condition | (0x61 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | op2.IMMSR());
-}
-void ARMXEmitter::LDR  (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x61 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | offset);
-}
-void ARMXEmitter::LDRH (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x01 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | (0xB << 4) | offset);
-}
-void ARMXEmitter::LDRSH(ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x01 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | (0xF << 4) | offset);
-}
-void ARMXEmitter::LDRB (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x65 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | offset);
-}
-void ARMXEmitter::LDRSB(ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add)
-{
-	Write32(condition | (0x01 << 20) | (Index << 24) | (Add << 23) | (base << 16) | (dest << 12) | (0xD << 4) | offset);
-}
-void ARMXEmitter::LDRLIT (ARMReg dest, u32 offset, bool Add) { Write32(condition | 0x05 << 24 | Add << 23 | 0x1F << 16 | dest << 12 | offset);}
+void ARMXEmitter::LDR (ARMReg dest, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(1, dest, base, op2, RegAdd);}
+void ARMXEmitter::LDRB(ARMReg dest, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(3, dest, base, op2, RegAdd);}
+void ARMXEmitter::LDRH(ARMReg dest, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(5, dest, base, op2, RegAdd);}
+void ARMXEmitter::LDRSB(ARMReg dest, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(6, dest, base, op2, RegAdd);}
+void ARMXEmitter::LDRSH(ARMReg dest, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(7, dest, base, op2, RegAdd);}
+void ARMXEmitter::STR  (ARMReg result, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(0, result, base, op2, RegAdd);}
+void ARMXEmitter::STRH (ARMReg result, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(4, result, base, op2, RegAdd);}
+void ARMXEmitter::STRB (ARMReg result, ARMReg base, Operand2 op2, bool RegAdd) { WriteStoreOp(2, result, base, op2, RegAdd);}
 
 void ARMXEmitter::WriteRegStoreOp(u32 op, ARMReg dest, bool WriteBack, u16 RegList)
 {
@@ -787,6 +818,100 @@ void ARMXEmitter::VSUB(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 }
 
 // VFP Specific
+struct VFPEnc
+{
+	u16 opc1;
+	u16 opc2;
+};
+// Double/single, Neon
+const VFPEnc VFPOps[][2] = {
+	{{0xE0, 0xA0}, {0x20, 0xD1}}, // VMLA
+	{{0xE0, 0xA4}, {0x22, 0xD1}}, // VMLS
+	{{0xE3, 0xA0}, {0x20, 0xD0}}, // VADD
+	{{0xE3, 0xA4}, {0x22, 0xD0}}, // VSUB
+	{{0xE2, 0xA0}, {0x30, 0xD1}}, // VMUL
+	{{0xEB, 0xAC}, {0x3B, 0x30}}, // VABS	
+	{{0xE8, 0xA0}, {  -1,   -1}}, // VDIV
+	{{0xEB, 0xA4}, {  -1,   -1}}, // VNEG
+	{{0xEB, 0xAC}, {  -1,   -1}}, // VSQRT
+	{{0xED, 0xA2}, {  -1,   -1}}, // VCMP
+	{{0xED, 0xAA}, {  -1,   -1}}, // VCMPE
+	{{  -1,   -1}, {0x3B, 0x70}}, // VABSi
+	};
+const char *VFPOps[] = {
+	"VMLA",
+	"VMLS",
+	"VADD",
+	"VSUB",
+	"VMUL",
+	"VABS",
+	"VDIV",
+	"VNEG",
+	"VSQRT",
+	"VCMP",
+	"VCMPE",
+	"VABSi",
+};
+
+u32 ARMXEmitter::EncodeVd(ARMReg Vd)
+{
+	bool quad_reg = Vd >= Q0;
+	bool double_reg = Vd >= D0;
+
+	ARMReg Reg = SubBase(Vd);
+
+	if (quad_reg)
+		((Reg & 0x10) << 18) | ((Reg & 0xF) << 12);
+	else
+		if (double_reg)
+			return ((Reg & 0x10) << 18) | ((Reg & 0xF) << 16);
+		else
+			return ((Reg & 0x1) << 22) | ((Reg & 0x1E) << 11);
+}
+u32 ARMXEmitter::EncodeVn(ARMReg Vn)
+{
+	bool quad_reg = Vn >= Q0;
+	bool double_reg = Vn >= D0;
+	
+	ARMReg Reg = SubBase(Vn);
+	if (quad_reg)
+		((Reg & 0xF) << 16) | ((Reg & 0x10) << 3);
+	else
+		if (double_reg)
+			return ((Reg & 0xF) << 16) | ((Reg & 0x10) << 3);
+		else
+			return ((Reg & 0x1E) << 15) | ((Reg & 0x1) << 7);
+}
+u32 ARMXEmitter::EncodeVm(ARMReg Vm)
+{
+	bool quad_reg = Vm >= Q0;
+	bool double_reg = Vm >= D0;
+
+	ARMReg Reg = SubBase(Vm);
+
+	if (quad_reg)
+		((Reg & 0x10) << 2) | (Reg & 0xF);
+	else
+		if (double_reg)
+			return ((Reg & 0x10) << 2) | (Reg & 0xF);
+		else
+			return ((Reg & 0x1) << 5) | (Reg >> 1);
+}
+void ARMXEmitter::WriteVFPDataOp(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	bool quad_reg = Vd >= Q0;
+	bool double_reg = Vd >= D0;
+
+	VFPEnc enc = VFPOps[Op][quad_reg];
+	if (enc.opc1 == (u16)-1 && enc.opc1 == (u16)-1)
+		_assert_msg_(DYNA_REC, false, "%s does not support %s", VFPOps[Op], quad_reg ? "NEON" : "VFP"); 
+	u32 VdEnc = EncodeVd(Vd);
+	u32 VnEnc = EncodeVn(Vn);
+	u32 VmEnc = EncodeVm(Vm);
+	u32 cond = quad_reg ? (0xF << 28) : condition;
+
+	Write32(cond | enc.opc1 | VnEnc | VdEnc | enc.opc2 | VmEnc);
+}
 
 void ARMXEmitter::VLDR(ARMReg Dest, ARMReg Base, s16 offset)
 {

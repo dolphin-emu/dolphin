@@ -461,10 +461,11 @@ namespace EfbInterface
             SetPixelAlphaOnly(offset, color[ALP_C]);
     }
 
-    void SetDepth(u16 x, u16 y, u32 depth)
-    {
-        SetPixelDepth(GetDepthOffset(x, y), depth);
-    }
+	void SetDepth(u16 x, u16 y, u32 depth)
+	{
+		if (bpmem.zmode.updateenable)
+			SetPixelDepth(GetDepthOffset(x, y), depth);
+	}
 
     void GetColor(u16 x, u16 y, u8 *color)
     {

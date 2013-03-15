@@ -316,7 +316,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	DCBZOFF->SetToolTip(_("Bypass the clearing of the data cache by the DCBZ instruction. Usually leave this option disabled."));
 	VBeam = new wxCheckBox(m_GameConfig, ID_VBEAM, _("Accurate VBeam emulation"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	VBeam->SetToolTip(_("If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"));
-	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Sychronise GPU thread"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Synchronise GPU thread"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SyncGPU->SetToolTip(_("Synchonises the GPU and CPU threads to help prevent random freezes in Dual Core mode. (ON = Compatible, OFF = Fast)"));
 	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	FastDiscSpeed->SetToolTip(_("Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"));
@@ -659,8 +659,8 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
-		int partitionNum = wxAtoi(File.SubString(10, 11));
-		File.Remove(0, 12); // Remove "Partition x/"
+		int partitionNum = wxAtoi(File.Mid(File.find_first_of("/"), 1));
+		File.Remove(0, File.find_first_of("/") +1); // Remove "Partition x/"
 		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
 	}
 	else
@@ -794,8 +794,8 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
-		int partitionNum = wxAtoi(Directory.SubString(10, 11));
-		Directory.Remove(0, 12); // Remove "Partition x/"
+		int partitionNum = wxAtoi(Directory.Mid(Directory.find_first_of("/"), 1));
+		Directory.Remove(0, Directory.find_first_of("/") +1); // Remove "Partition x/"
 		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str(), partitionNum);
 	}
 	else
@@ -860,7 +860,7 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 		return;
 
 	// Get the partition number from the item text ("Partition N")
-	int PartitionNum = wxAtoi(PartitionName.SubString(10, 11));
+	int PartitionNum = wxAtoi(PartitionName.Mid(PartitionName.find_first_of("0123456789"), 1));
 	const WiiPartition& Partition = WiiDisc[PartitionNum];
 
 	wxProgressDialog* dialog = new wxProgressDialog(

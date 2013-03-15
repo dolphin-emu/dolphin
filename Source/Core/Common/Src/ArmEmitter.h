@@ -352,7 +352,7 @@ private:
 	u32 condition;
 	std::vector<LiteralPool> currentLitPool;
 
-	void WriteStoreOp(u32 op, ARMReg src, ARMReg dest, s16 op2);
+	void WriteStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 op2, bool RegAdd);
 	void WriteRegStoreOp(u32 op, ARMReg dest, bool WriteBack, u16 RegList);
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, ARMReg op2);
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, Operand2 op2);
@@ -495,28 +495,14 @@ public:
 	void MRS  (ARMReg dest);
 
 	// Memory load/store operations
-	void LDR  (ARMReg dest, ARMReg src, s16 op2 = 0);
-	void LDRH (ARMReg dest, ARMReg src, Operand2 op2 = 0);
-	void LDRSH(ARMReg dest, ARMReg src, Operand2 op2 = 0);
-	void LDRB (ARMReg dest, ARMReg src, s16 op2 = 0);
-	void LDRSB(ARMReg dest, ARMReg src, Operand2 op2 = 0);
-	// Offset adds to the base register in LDR
-	void LDR  (ARMReg dest, ARMReg base, Operand2 op2, bool Index, bool Add);
-	void LDR  (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add);
-	void LDRH (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add);
-	void LDRSH(ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add);
-	void LDRB (ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add);
-	void LDRSB(ARMReg dest, ARMReg base, ARMReg offset, bool Index, bool Add);
-	void LDRLIT(ARMReg dest, u32 offset, bool Add);
-
-	void STR  (ARMReg result, ARMReg base, s16 op2 = 0);
-	void STRH (ARMReg result, ARMReg base, Operand2 op2 = 0);
-	void STRB (ARMReg result, ARMReg base, s16 op2 = 0);
-	// Offset adds on to the destination register in STR
-	void STR  (ARMReg result, ARMReg base, Operand2 op2, bool Index, bool Add);
-	void STR  (ARMReg result, ARMReg base, ARMReg offset, bool Index, bool Add);
-	void STRH (ARMReg result, ARMReg base, ARMReg offset, bool Index, bool Add);
-	void STRB (ARMReg result, ARMReg base, ARMReg offset, bool Index, bool Add);
+	void LDR  (ARMReg dest, ARMReg base, Operand2 op2 = 0, bool RegAdd = true);
+	void LDRB (ARMReg dest, ARMReg base, Operand2 op2 = 0, bool RegAdd = true);
+	void LDRH (ARMReg dest, ARMReg base, Operand2 op2 = 0, bool RegAdd = true);
+	void LDRSB(ARMReg dest, ARMReg base, Operand2 op2 = 0, bool RegAdd = true);
+	void LDRSH(ARMReg dest, ARMReg base, Operand2 op2 = 0, bool RegAdd = true);
+	void STR  (ARMReg result, ARMReg base, Operand2 op2 = 0, bool RegAdd = true);
+	void STRB (ARMReg result, ARMReg base, Operand2 op2 = 0, bool RegAdd = true);
+	void STRH (ARMReg result, ARMReg base, Operand2 op2 = 0, bool RegAdd = true);
 
 	void STMFD(ARMReg dest, bool WriteBack, const int Regnum, ...);
 	void LDMFD(ARMReg dest, bool WriteBack, const int Regnum, ...);

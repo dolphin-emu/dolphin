@@ -174,7 +174,7 @@
       <CompileAs>Default</CompileAs>
     </ClCompile>
     <Lib>
-      <OutputFile>Win32\SoundTouch.lib</OutputFile>
+      <OutputFile>Win32\SoundTouchD.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
     <PostBuildEvent>

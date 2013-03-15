@@ -48,6 +48,20 @@
 
 #ifdef _WIN32
 #include <shellapi.h>
+
+#ifndef SM_YVIRTUALSCREEN
+#define SM_YVIRTUALSCREEN 77
+#endif
+#ifndef SM_XVIRTUALSCREEN
+#define SM_XVIRTUALSCREEN 76
+#endif
+#ifndef SM_CXVIRTUALSCREEN
+#define SM_CXVIRTUALSCREEN 78
+#endif
+#ifndef SM_CYVIRTUALSCREEN
+#define SM_CYVIRTUALSCREEN 79
+#endif
+
 #endif
 
 #ifdef __APPLE__
@@ -167,6 +181,11 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
+			wxCMD_LINE_OPTION, "m", "movie",
+			"Play a movie file",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
 			wxCMD_LINE_NONE, NULL, NULL, NULL, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
@@ -186,6 +205,7 @@ bool DolphinApp::OnInit()
 		&videoBackendName);
 	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
 		&audioEmulationName);
+	playMovie = parser.Found(wxT("movie"), &movieFile);
 #endif // wxUSE_CMDLINE_PARSER
 
 #if defined _DEBUG && defined _WIN32
@@ -303,10 +323,11 @@ bool DolphinApp::OnInit()
 	// do not allow windows to be created off the desktop.
 #ifdef _WIN32
 	// Out of desktop check
-	HWND hDesktop = GetDesktopWindow();
-	RECT rc;
-	GetWindowRect(hDesktop, &rc);
-	if (rc.right < x + w || rc.bottom < y + h)
+	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+	int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
+	int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
+	if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
 		x = y = wxDefaultCoord;
 #elif defined __APPLE__
 	if (y < 1)
@@ -346,8 +367,21 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 	if (!BatchMode)
 		main_frame->UpdateGameList();
 
+	if (playMovie && movieFile != wxEmptyString)
+	{
+		if (Movie::PlayInput(movieFile.char_str()))
+		{
+			if (LoadFile && FileToLoad != wxEmptyString)
+			{
+				main_frame->BootGame(WxStrToStr(FileToLoad));
+			}
+			else
+				main_frame->BootGame(std::string(""));
+		}
+	}
+
 	// First check if we have an exec command line.
-	if (LoadFile && FileToLoad != wxEmptyString)
+	else if (LoadFile && FileToLoad != wxEmptyString)
 	{
 		main_frame->BootGame(WxStrToStr(FileToLoad));
 	}
@@ -357,17 +391,7 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 	{
 		if (main_frame->g_pCodeWindow->AutomaticStart())
 		{
-			if(!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty()
-					&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM))
-			{
-				main_frame->BootGame(SConfig::GetInstance().m_LocalCoreStartupParameter.
-						m_strDefaultGCM);
-			}
-			else if(!SConfig::GetInstance().m_LastFilename.empty()
-					&& File::Exists(SConfig::GetInstance().m_LastFilename))
-			{
-				main_frame->BootGame(SConfig::GetInstance().m_LastFilename);
-			}	
+			main_frame->BootGame("");
 		}
 	}
 }

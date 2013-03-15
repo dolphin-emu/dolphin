@@ -3,8 +3,9 @@
 #
 cmake_minimum_required(VERSION 2.6)
 
-option(USE_GLES "Enables GLES And EGL, disables OGL" OFF)
+option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
+option(USE_GLES "Enables GLES And EGL, disables OGL" OFF)
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 
 option(FASTLOG "Enable all logs" OFF)
@@ -271,7 +272,6 @@ if(USE_EGL)
 endif()
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
-option(ANDROID "Enables a build for Android" OFF)
 if(ANDROID)
 	message("Building for Android")
 	add_definitions(-DANDROID)
@@ -394,7 +394,6 @@ if(NOT ANDROID)
 		set(PORTAUDIO_FOUND FALSE)
 	endif(PORTAUDIO)
 
-	option(OPROFILING "Enable profiling" OFF)
 	if(OPROFILING)
 		check_lib(OPROFILE opagent opagent.h)
 		check_lib(BFD bfd bfd.h)

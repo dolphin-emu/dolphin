@@ -28,6 +28,7 @@
 
 #include "../IPC_HLE/WII_IPC_HLE.h"
 #include "WII_IPC.h"
+#include "CoreTiming.h"
 
 
 // This is the intercommunication between ARM and PPC. Currently only PPC actually uses it, because of the IOS HLE
@@ -104,6 +105,8 @@ static u32 arm_irq_masks;
 
 static u32 sensorbar_power; // do we need to care about this?
 
+int updateInterrupts;
+
 void DoState(PointerWrap &p)
 {
 	p.Do(ppc_msg);
@@ -130,6 +133,8 @@ void Init()
 	sensorbar_power = 0;
 
 	ppc_irq_masks |= INT_CAUSE_IPC_BROADWAY;
+
+	updateInterrupts = CoreTiming::RegisterEvent("IPCInterrupt", UpdateInterrupts);
 }
 
 void Reset()
@@ -222,10 +227,10 @@ void Write32(const u32 _Value, const u32 _Address)
 	}	
 
 	WII_IPC_HLE_Interface::Update();
-	UpdateInterrupts();
+	CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
 }
 
-void UpdateInterrupts()
+void UpdateInterrupts(u64 userdata, int cyclesLate)
 {
 	if ((ctrl.Y1 & ctrl.IY1) || (ctrl.Y2 & ctrl.IY2))
 	{
@@ -247,7 +252,7 @@ void GenerateAck(u32 _Address)
 	ctrl.Y2 = 1;
 	INFO_LOG(WII_IPC, "GenerateAck: %08x | %08x [R:%i A:%i E:%i]",
 		ppc_msg,_Address, ctrl.Y1, ctrl.Y2, ctrl.X1);
-	UpdateInterrupts();
+	CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
 }
 
 void GenerateReply(u32 _Address)
