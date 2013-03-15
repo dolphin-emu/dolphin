@@ -41,7 +41,7 @@ namespace DX11
 // TODO: Find sensible values for these two
 const UINT IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 8;
 const UINT VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE;
-const UINT MAXVBUFFER_COUNT = 2;
+const UINT MAX_VBUFFER_COUNT = 2;
 
 void VertexManager::CreateDeviceObjects()
 {
