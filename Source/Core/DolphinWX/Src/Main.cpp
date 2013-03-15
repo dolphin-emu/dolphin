@@ -294,10 +294,11 @@ bool DolphinApp::OnInit()
 	// do not allow windows to be created off the desktop.
 #ifdef _WIN32
 	// Out of desktop check
-	HWND hDesktop = GetDesktopWindow();
-	RECT rc;
-	GetWindowRect(hDesktop, &rc);
-	if (rc.right < x + w || rc.bottom < y + h)
+	int height = GetSystemMetrics(79);
+	int width =  GetSystemMetrics(78);
+	int leftPos = GetSystemMetrics(76);
+	int topPos = GetSystemMetrics(77);
+	if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
 		x = y = wxDefaultCoord;
 #elif defined __APPLE__
 	if (y < 1)

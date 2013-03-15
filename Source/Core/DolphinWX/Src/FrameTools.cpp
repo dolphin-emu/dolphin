@@ -865,10 +865,11 @@ void CFrame::StartGame(const std::string& filename)
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 #ifdef _WIN32
 		// Out of desktop check
-		HWND hDesktop = GetDesktopWindow();
-		RECT rc;
-		GetWindowRect(hDesktop, &rc);
-		if (rc.right < position.x + size.GetWidth() || rc.bottom < position.y + size.GetHeight())
+		int height = GetSystemMetrics(79);
+		int width =  GetSystemMetrics(78);
+		int leftPos = GetSystemMetrics(76);
+		int topPos = GetSystemMetrics(77);
+		if ((leftPos + width) < (position.x + size.GetWidth()) || leftPos > position.x || (topPos + height) < (position.y + size.GetHeight()) || topPos > position.y)
 			position.x = position.y = wxDefaultCoord;
 #endif
 		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position);
