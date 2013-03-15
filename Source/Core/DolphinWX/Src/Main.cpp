@@ -48,6 +48,20 @@
 
 #ifdef _WIN32
 #include <shellapi.h>
+
+#ifndef SM_YVIRTUALSCREEN
+#define SM_YVIRTUALSCREEN 77
+#endif
+#ifndef SM_XVIRTUALSCREEN
+#define SM_XVIRTUALSCREEN 76
+#endif
+#ifndef SM_CXVIRTUALSCREEN
+#define SM_CXVIRTUALSCREEN 78
+#endif
+#ifndef SM_CYVIRTUALSCREEN
+#define SM_CYVIRTUALSCREEN 79
+#endif
+
 #endif
 
 // Nvidia drivers >= v302 will check if the application exports a global
@@ -294,10 +308,10 @@ bool DolphinApp::OnInit()
 	// do not allow windows to be created off the desktop.
 #ifdef _WIN32
 	// Out of desktop check
-	int height = GetSystemMetrics(79);
-	int width =  GetSystemMetrics(78);
-	int leftPos = GetSystemMetrics(76);
-	int topPos = GetSystemMetrics(77);
+	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+	int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
+	int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
 	if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
 		x = y = wxDefaultCoord;
 #elif defined __APPLE__
