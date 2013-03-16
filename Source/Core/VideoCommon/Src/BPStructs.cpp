@@ -213,7 +213,7 @@ void BPWritten(const BPCmd& bp)
 				if (bp.changes & 4)
 					SetDitherMode();
 				// Set Blending Mode
-				if (bp.changes & 0xFE1)
+				if (bp.changes & 0xFF1)
 					SetBlendMode();
 				// Set Color Mask
 				if (bp.changes & 0x18)
@@ -458,11 +458,11 @@ void BPWritten(const BPCmd& bp)
 		break;
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
-		g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
-		g_renderer->SetBlendMode(true);
 		OnPixelFormatChange();
-		if(bp.changes & 3)
+		if(bp.changes & 7) {
 			SetBlendMode(); // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
+			g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
+		}
 		break;
 
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
