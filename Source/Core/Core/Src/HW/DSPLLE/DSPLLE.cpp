@@ -144,13 +144,13 @@ bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 	m_bDSPThread = bDSPThread;
 	m_InitMixer = false;
 
-	std::string irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
-	std::string coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
+	std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
+	std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
 
 	if (!File::Exists(irom_file))
-		irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
+		irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
 	if (!File::Exists(coef_file))
-		coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
+		coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
 	if (!DSPCore_Init(irom_file.c_str(), coef_file.c_str(), AudioCommon::UseJIT()))
 		return false;
 
