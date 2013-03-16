@@ -28,6 +28,7 @@
 
 #include "Common.h"
 #include "WiimoteReal.h"
+#include "StringUtil.h"
 
 // Used for pair up
 #undef NTDDI_VERSION
@@ -49,6 +50,7 @@ typedef struct _HIDD_ATTRIBUTES
 typedef VOID (__stdcall *PHidD_GetHidGuid)(LPGUID);
 typedef BOOLEAN (__stdcall *PHidD_GetAttributes)(HANDLE, PHIDD_ATTRIBUTES);
 typedef BOOLEAN (__stdcall *PHidD_SetOutputReport)(HANDLE, PVOID, ULONG);
+typedef BOOLEAN (__stdcall *PHidD_GetProductString)(HANDLE, PVOID, ULONG);
 
 typedef BOOL (__stdcall *PBth_BluetoothFindDeviceClose)(HBLUETOOTH_DEVICE_FIND);
 typedef HBLUETOOTH_DEVICE_FIND (__stdcall *PBth_BluetoothFindFirstDevice)(const BLUETOOTH_DEVICE_SEARCH_PARAMS*, BLUETOOTH_DEVICE_INFO*);
@@ -65,6 +67,7 @@ typedef DWORD (__stdcall *PBth_BluetoothEnumerateInstalledServices)(HANDLE,	BLUE
 PHidD_GetHidGuid HidD_GetHidGuid = NULL;
 PHidD_GetAttributes HidD_GetAttributes = NULL;
 PHidD_SetOutputReport HidD_SetOutputReport = NULL;
+PHidD_GetProductString HidD_GetProductString = NULL;
 
 PBth_BluetoothFindDeviceClose Bth_BluetoothFindDeviceClose = NULL;
 PBth_BluetoothFindFirstDevice Bth_BluetoothFindFirstDevice = NULL;
@@ -104,7 +107,9 @@ inline void init_lib()
 		HidD_GetHidGuid = (PHidD_GetHidGuid)GetProcAddress(hid_lib, "HidD_GetHidGuid");
 		HidD_GetAttributes = (PHidD_GetAttributes)GetProcAddress(hid_lib, "HidD_GetAttributes");
 		HidD_SetOutputReport = (PHidD_SetOutputReport)GetProcAddress(hid_lib, "HidD_SetOutputReport");
-		if (!HidD_GetHidGuid || !HidD_GetAttributes || !HidD_SetOutputReport)
+		HidD_GetProductString = (PHidD_GetProductString)GetProcAddress(hid_lib, "HidD_GetProductString");
+		if (!HidD_GetHidGuid || !HidD_GetAttributes ||
+			!HidD_SetOutputReport || !HidD_GetProductString)
 		{
 			PanicAlertT("Failed to load hid.dll");
 			exit(EXIT_FAILURE);
@@ -285,6 +290,18 @@ bool Wiimote::Connect()
 
 	if (dev_handle == INVALID_HANDLE_VALUE)
 	{
+		dev_handle = 0;
+		return false;
+	}
+
+	TCHAR name[128] = {};
+	HidD_GetProductString(dev_handle, name, 128);
+
+	//ERROR_LOG(WIIMOTE, "product string: %s", TStrToUTF8(name).c_str());
+
+	if (!IsValidBluetoothName(TStrToUTF8(name)))
+	{
+		CloseHandle(dev_handle);
 		dev_handle = 0;
 		return false;
 	}

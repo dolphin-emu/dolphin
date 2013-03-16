@@ -649,9 +649,9 @@ void StateChange(EMUSTATE_CHANGE newState)
 
 bool IsValidBluetoothName(const std::string& name)
 {
-	std::string const prefix("Nintendo RVL-");
-	return name.size() > prefix.size() &&
-		std::equal(prefix.begin(), prefix.end(), name.begin());
+	return
+		"Nintendo RVL-CNT-01" == name ||
+		"Nintendo RVL-CNT-01-TR" == name;
 }
 
 }; // end of namespace
