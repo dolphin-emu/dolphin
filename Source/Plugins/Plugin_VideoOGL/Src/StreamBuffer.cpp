@@ -37,10 +37,10 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 	{
 		if(!g_Config.backend_info.bSupportsGLBaseVertex)
 			m_uploadtype = BUFFERSUBDATA;
-		else if(g_Config.backend_info.bSupportsGLSync && g_Config.backend_info.bSupportsGLPinnedMemory)
-			m_uploadtype = PINNED_MEMORY;
 		else if(g_Config.backend_info.bSupportsGLSync && g_Config.bHackedBufferUpload)
 			m_uploadtype = MAP_AND_RISK;
+		else if(g_Config.backend_info.bSupportsGLSync && g_Config.backend_info.bSupportsGLPinnedMemory)
+			m_uploadtype = PINNED_MEMORY;
 		else if(nvidia)
 			m_uploadtype = BUFFERSUBDATA;
 		else if(g_Config.backend_info.bSupportsGLSync)
@@ -176,15 +176,24 @@ void StreamBuffer::Init()
 		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
 		break;
 	case PINNED_MEMORY:
+		glGetError(); // errors before this allocation should be ignored
 		fences = new GLsync[SYNC_POINTS];
 		for(u32 i=0; i<SYNC_POINTS; i++)
 			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		
 		pointer = (u8*)AllocateAlignedMemory(ROUND_UP(m_size,ALIGN_PINNED_MEMORY), ALIGN_PINNED_MEMORY );
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_buffer);
-		glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_size, pointer, GL_STREAM_COPY);
+		glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, ROUND_UP(m_size,ALIGN_PINNED_MEMORY), pointer, GL_STREAM_COPY);
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, 0);
 		glBindBuffer(m_buffertype, m_buffer);
+		
+		// on error, switch to another backend. some old catalyst seems to have broken pinned memory support
+		if(glGetError() != GL_NO_ERROR) {
+			ERROR_LOG(VIDEO, "pinned memory detected, but not working. Please report this: %s, %s, %s", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
+			Shutdown();
+			m_uploadtype = MAP_AND_SYNC;
+			Init();
+		}
 		break;
 	case MAP_AND_RISK:
 		glBindBuffer(m_buffertype, m_buffer);
