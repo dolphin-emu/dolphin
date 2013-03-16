@@ -63,7 +63,7 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #define GL_REPORT_FBO_ERROR()     OpenGL_ReportFBOError(__FUNCTION__, __FILE__, __LINE__)
 #define GL_REPORT_PROGRAM_ERROR() OpenGL_ReportARBProgramError()
 #else
-#define GL_REPORT_ERROR() GL_NO_ERROR
+__forceinline GLenum GL_REPORT_ERROR() { return GL_NO_ERROR; }
 #define GL_REPORT_ERRORD() (void)GL_NO_ERROR
 #define GL_REPORT_FBO_ERROR() (void)true
 #define GL_REPORT_PROGRAM_ERROR() (void)0
