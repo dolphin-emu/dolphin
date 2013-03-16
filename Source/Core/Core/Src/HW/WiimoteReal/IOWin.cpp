@@ -169,10 +169,12 @@ WiimoteScanner::WiimoteScanner()
 WiimoteScanner::~WiimoteScanner()
 {
 	// TODO: what do we want here?
+#if 0
 	ProcessWiimotes(false, [](HANDLE, BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 	{
 		RemoveWiimote(btdi);
 	});
+#endif
 }
 
 void WiimoteScanner::Update()
