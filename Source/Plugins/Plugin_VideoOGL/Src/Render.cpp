@@ -244,9 +244,11 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLEW_ARB_sampler_objects)
+	if (!GLEW_ARB_sampler_objects && bSuccess)
 	{
-		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_sampler_objects.");
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_sampler_objects."
+				"GPU: Does your video card support OpenGL 3.2?"
+				"Please report this issue, then there will be a workaround");
 		bSuccess = false;
 	}
 
@@ -266,6 +268,13 @@ Renderer::Renderer()
 		g_Config.backend_info.bSupportsGLSLUBO = false;
 		ERROR_LOG(VIDEO, "buggy driver detected. Disable UBO");
 	}
+	
+#ifndef _WIN32
+	if(g_Config.backend_info.bSupportsGLPinnedMemory && !strcmp(gl_vendor, "Advanced Micro Devices, Inc.")) {
+		g_Config.backend_info.bSupportsGLPinnedMemory = false;
+		ERROR_LOG(VIDEO, "some fglrx versions have broken pinned memory support, so it's disabled for fglrx");
+	}
+#endif
 
 	UpdateActiveConfig();
 	OSD::AddMessage(StringFromFormat("Missing Extensions: %s%s%s%s%s%s",			
