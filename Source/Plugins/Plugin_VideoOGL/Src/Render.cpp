@@ -132,47 +132,62 @@ static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 
 
 int GetNumMSAASamples(int MSAAMode)
 {
+	int samples, maxSamples;
 	switch (MSAAMode)
 	{
 		case MULTISAMPLE_OFF:
-			return 1;
+			samples = 1;
+			break;
 
 		case MULTISAMPLE_2X:
-			return 2;
+			samples = 2;
+			break;
 
 		case MULTISAMPLE_4X:
 		case MULTISAMPLE_CSAA_8X:
 		case MULTISAMPLE_CSAA_16X:
-			return 4;
+			samples = 4;
+			break;
 
 		case MULTISAMPLE_8X:
 		case MULTISAMPLE_CSAA_8XQ:
 		case MULTISAMPLE_CSAA_16XQ:
-			return 8;
+			samples = 8;
+			break;
 
 		default:
-			return 1;
+			samples = 1;
 	}
+	glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
+	
+	if(samples <= maxSamples) return samples;
+	
+	ERROR_LOG(VIDEO, "MSAA Bug: %d samples selected, but only %d supported by gpu.", samples, maxSamples);
+	return maxSamples;
 }
 
 int GetNumMSAACoverageSamples(int MSAAMode)
 {
-	if (!s_bHaveCoverageMSAA)
-		return 0;
-
+	int samples;
 	switch (g_ActiveConfig.iMultisampleMode)
 	{
 		case MULTISAMPLE_CSAA_8X:
 		case MULTISAMPLE_CSAA_8XQ:
-			return 8;
+			samples = 8;
+			break;
 
 		case MULTISAMPLE_CSAA_16X:
 		case MULTISAMPLE_CSAA_16XQ:
-			return 16;
+			samples = 16;
+			break;
 
 		default:
-			return 0;
+			samples = 0;
 	}
+	if(s_bHaveCoverageMSAA || samples == 0) return samples;
+	
+	ERROR_LOG(VIDEO, "MSAA Bug: CSAA selected, but not supported by gpu.");
+	return 0;
 }
 
 // Init functions
@@ -285,13 +300,13 @@ Renderer::Renderer()
 			g_ActiveConfig.backend_info.bSupportsGLBaseVertex ? "" : "BaseVertex ",
 			g_ActiveConfig.backend_info.bSupportsGLSync ? "" : "Sync "
 			).c_str(), 5000);
+
+	if (!bSuccess)
+		return;	// TODO: fail
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 	s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
-
-	if (!bSuccess)
-		return;	// TODO: fail
 
 	// Decide frambuffer size
 	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
