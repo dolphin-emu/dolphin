@@ -65,6 +65,7 @@
 #include "ConfigManager.h"
 #include "VertexManager.h"
 #include "SamplerCache.h"
+#include "StreamBuffer.h"
 
 #include "main.h" // Local
 #ifdef _WIN32
