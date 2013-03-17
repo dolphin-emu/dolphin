@@ -71,8 +71,6 @@
 #include "State.h"
 #include "Movie.h"
 
-#include "VideoConfig.h"
-
 // TODO: ugly, remove
 bool g_aspect_wide;
 
@@ -605,25 +603,6 @@ void VideoThrottle()
 	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 2) ?
 		(SConfig::GetInstance().m_Framelimit - 1) * 5 : VideoInterface::TargetRefreshRate;
 
-	static bool isUnthrottling = false;
-	static bool wasVSync = g_ActiveConfig.bVSync;
-
-	// Disable vsync while holding tab to disable the frame limit.
-	if (Host_GetKeyState('\t'))
-	{
-		if (!isUnthrottling)
-			wasVSync = g_ActiveConfig.bVSync;
-		if (g_ActiveConfig.bVSync)
-			g_Config.bVSync = false;
-		isUnthrottling = true;
-	}
-	else if (isUnthrottling)
-	{
-		isUnthrottling = false;
-		if (wasVSync)
-			g_Config.bVSync = true;
-	}
-
 	// Disable the frame-limiter when the throttle (Tab) key is held down. Audio throttle: m_Framelimit = 2
 	if (SConfig::GetInstance().m_Framelimit && SConfig::GetInstance().m_Framelimit != 2 && !Host_GetKeyState('\t'))
 	{
@@ -675,6 +654,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 {
 	if(video_update)
 		Common::AtomicIncrement(DrawnFrame);
+	Movie::FrameUpdate();
 }
 
 // Callback_ISOName: Let the DSP emulator get the game name
