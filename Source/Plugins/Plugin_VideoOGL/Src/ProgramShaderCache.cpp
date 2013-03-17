@@ -27,6 +27,8 @@ namespace OGL
 
 static const u32 UBO_LENGTH = 32*1024*1024;
 
+GLintptr ProgramShaderCache::s_vs_data_size;
+GLintptr ProgramShaderCache::s_ps_data_size;
 GLintptr ProgramShaderCache::s_vs_data_offset;
 u8 *ProgramShaderCache::s_ubo_buffer;
 u32 ProgramShaderCache::s_ubo_buffer_size;
@@ -169,8 +171,8 @@ void ProgramShaderCache::UploadConstants()
 	if(s_ubo_dirty) {
 		s_buffer->Alloc(s_ubo_buffer_size);
 		size_t offset = s_buffer->Upload(s_ubo_buffer, s_ubo_buffer_size);
-		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, s_vs_data_offset);
-		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset + s_vs_data_offset, s_ubo_buffer_size - s_vs_data_offset);
+		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, s_ps_data_size);
+		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset + s_vs_data_offset, s_vs_data_size);
 		s_ubo_dirty = false;
 	}
 }
@@ -388,10 +390,10 @@ void ProgramShaderCache::Init(void)
 		GLint Align;
 		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &Align);
 
-		GLintptr const ps_data_size = ROUND_UP(C_PENVCONST_END * sizeof(float) * 4, Align);
-		GLintptr const vs_data_size = ROUND_UP(C_VENVCONST_END * sizeof(float) * 4, Align);
-		s_vs_data_offset = ps_data_size;
-		s_ubo_buffer_size = ps_data_size + vs_data_size;
+		s_ps_data_size = C_PENVCONST_END * sizeof(float) * 4;
+		s_vs_data_size = C_VENVCONST_END * sizeof(float) * 4;
+		s_vs_data_offset = ROUND_UP(s_ps_data_size, Align);
+		s_ubo_buffer_size = ROUND_UP(s_ps_data_size, Align) + ROUND_UP(s_vs_data_size, Align);
 
 		// We multiply by *4*4 because we need to get down to basic machine units.
 		// So multiply by four to get how many floats we have from vec4s
