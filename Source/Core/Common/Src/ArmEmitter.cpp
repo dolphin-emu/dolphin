@@ -903,7 +903,7 @@ void ARMXEmitter::WriteVFPDataOp(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 	bool double_reg = Vd >= D0 && Vd < Q0;
 
 	VFPEnc enc = VFPOps[Op][quad_reg];
-	if (enc.opc1 == -1 && enc.opc1 == -1)
+	if (enc.opc1 == -1 && enc.opc2 == -1)
 		_assert_msg_(DYNA_REC, false, "%s does not support %s", VFPOpNames[Op], quad_reg ? "NEON" : "VFP"); 
 	u32 VdEnc = EncodeVd(Vd);
 	u32 VnEnc = EncodeVn(Vn);
