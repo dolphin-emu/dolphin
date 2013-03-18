@@ -31,12 +31,6 @@ void cInterfaceAGL::Swap()
 	[GLWin.cocoaCtx flushBuffer];
 }
 
-// Show the current FPS
-void cInterfaceAGL::UpdateFPSDisplay(const char *text)
-{
-
-}
-
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceAGL::Create(void *&window_handle)
@@ -48,8 +42,6 @@ bool cInterfaceAGL::Create(void *&window_handle)
 	s_backbuffer_width = _twidth;
 	s_backbuffer_height = _theight;
 
-	NSRect size;
-	NSUInteger style = NSMiniaturizableWindowMask;
 	NSOpenGLPixelFormatAttribute attr[] = { NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core, NSOpenGLPFAAccelerated, 0 };
 	NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc]
 		initWithAttributes: attr];
@@ -66,14 +58,7 @@ bool cInterfaceAGL::Create(void *&window_handle)
 		return NULL;
 	}
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen) {
-		size = [[NSScreen mainScreen] frame];
-		style |= NSBorderlessWindowMask;
-	} else {
-		size = NSMakeRect(_tx, _ty, _twidth, _theight);
-		style |= NSResizableWindowMask | NSTitledWindowMask;
-	}
-
+	
 	GLWin.cocoaWin = (NSView*)(((wxPanel*)window_handle)->GetHandle());;
 	if (GLWin.cocoaWin == nil) {
 		ERROR_LOG(VIDEO, "failed to create window");
@@ -89,19 +74,8 @@ bool cInterfaceAGL::Create(void *&window_handle)
 
 bool cInterfaceAGL::MakeCurrent()
 {
-	int width, height;
-
-	width = [GLWin.cocoaWin frame].size.width;
-	height = [GLWin.cocoaWin frame].size.height;
-	//if (width == s_backbuffer_width && height == s_backbuffer_height)
-	//	return true;
-
-	[GLWin.cocoaCtx setView: GLWin.cocoaWin];
-	[GLWin.cocoaCtx update];
 	[GLWin.cocoaCtx makeCurrentContext];
-	s_backbuffer_width = width;
-	s_backbuffer_height = height;
-  return true;
+	return true;
 }
 
 // Close backend
@@ -109,6 +83,7 @@ void cInterfaceAGL::Shutdown()
 {
 	[GLWin.cocoaCtx clearDrawable];
 	[GLWin.cocoaCtx release];
+	GLWin.cocoaCtx = nil;
 }
 
 void cInterfaceAGL::Update()
