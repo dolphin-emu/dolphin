@@ -33,7 +33,7 @@
 #define TEX2D	GL_TEXTURE_2D
 #define PREC	"highp"
 #define TEXTYPE "sampler2D"
-#define TEXFUNC "texture"
+#define TEXFUNC "texture2D"
 #else
 #define TEX2D	GL_TEXTURE_RECTANGLE_ARB
 #define PREC 
