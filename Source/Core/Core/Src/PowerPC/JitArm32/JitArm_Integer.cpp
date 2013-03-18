@@ -99,13 +99,11 @@ void JitArm::addx(UGeckoInstruction inst)
 	ADDS(RD, RA, RB);
 	if (inst.Rc) ComputeRC();
 }
-// Wrong - 28/10/2012
 void JitArm::mulli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 
-	Default(inst); return;
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RD = gpr.R(inst.RD);
 	ARMReg rA = gpr.GetReg();
@@ -242,7 +240,6 @@ void JitArm::negx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 
-	Default(inst);return;
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RD = gpr.R(inst.RD);
 
