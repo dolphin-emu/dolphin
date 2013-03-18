@@ -34,7 +34,7 @@ void cInterfaceAGL::Swap()
 // Show the current FPS
 void cInterfaceAGL::UpdateFPSDisplay(const char *text)
 {
-	[[GLWin.cocoaWin window] setTitle: [NSString stringWithUTF8String: text]];
+
 }
 
 // Create rendering window.
@@ -80,11 +80,7 @@ bool cInterfaceAGL::Create(void *&window_handle)
 		return NULL;
 	}
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen) {
-		CGDisplayCapture(CGMainDisplayID());
-		[GLWin.cocoaWin setLevel: CGShieldingWindowLevel()];
-	}
-
+	[[GLWin.cocoaWin window] makeFirstResponder:GLWin.cocoaWin];
 	[GLWin.cocoaCtx setView: GLWin.cocoaWin];
 	[[GLWin.cocoaWin window] makeKeyAndOrderFront: nil];
 
@@ -113,6 +109,18 @@ void cInterfaceAGL::Shutdown()
 {
 	[GLWin.cocoaCtx clearDrawable];
 	[GLWin.cocoaCtx release];
+}
+
+void cInterfaceAGL::Update()
+{
+	if( s_backbuffer_width == [GLWin.cocoaWin frame].size.width
+	   && s_backbuffer_height == [GLWin.cocoaWin frame].size.height)
+		return;
+	
+	s_backbuffer_width = [GLWin.cocoaWin frame].size.width;
+	s_backbuffer_height = [GLWin.cocoaWin frame].size.height;
+	
+	[GLWin.cocoaCtx update];
 }
 
 
