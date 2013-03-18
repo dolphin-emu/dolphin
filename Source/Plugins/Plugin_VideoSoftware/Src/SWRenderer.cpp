@@ -20,6 +20,7 @@
 
 #include "../../Plugin_VideoOGL/Src/GLUtil.h"
 #include "../../Plugin_VideoOGL/Src/RasterFont.h"
+#include "../../Plugin_VideoOGL/Src/ProgramShaderCache.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
 
@@ -30,6 +31,7 @@ static GLint uni_tex = -1;
 static GLuint program;
 
 // Rasterfont isn't compatible with GLES
+// degasus: I think it does, but I can't test it
 #ifndef USE_GLES
 OGL::RasterFont* s_pfont = NULL;
 #endif
@@ -45,6 +47,7 @@ void SWRenderer::Shutdown()
 #ifndef USE_GLES
 	delete s_pfont;
 	s_pfont = 0;
+	OGL::ProgramShaderCache::Shutdown();
 #endif
 }
 
@@ -87,6 +90,8 @@ void SWRenderer::Prepare()
 	CreateShaders();
 	// TODO: Enable for GLES once RasterFont supports GLES
 #ifndef USE_GLES
+	// ogl rasterfont depends on ogl programshadercache
+	OGL::ProgramShaderCache::Init();
 	s_pfont = new OGL::RasterFont();
 	glEnable(GL_TEXTURE_2D);
 #endif
@@ -103,6 +108,9 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 		left * 2.0f / (float)nBackbufferWidth - 1,
 		1 - top * 2.0f / (float)nBackbufferHeight,
 		0, nBackbufferWidth, nBackbufferHeight, color);
+	
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 #endif
 }
 

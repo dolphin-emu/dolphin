@@ -491,7 +491,9 @@ void TextureCache::DisableStage(unsigned int stage)
 
 void TextureCache::SetStage ()
 {
-	glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
+	// -1 is the initial value as we don't know which testure should be bound
+	if(s_ActiveTexture != (u32)-1)
+		glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
 
 void TextureCache::SetNextStage ( unsigned int stage )

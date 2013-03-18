@@ -395,7 +395,7 @@ std::string UTF16ToUTF8(const std::wstring& input)
 	std::string output;
 	output.resize(size);
 
-	if (size != WideCharToMultiByte(CP_UTF8, 0, input.data(), input.size(), &output[0], output.size(), nullptr, nullptr))
+	if (size == 0 || size != WideCharToMultiByte(CP_UTF8, 0, input.data(), input.size(), &output[0], output.size(), nullptr, nullptr))
 		output.clear();
 
 	return output;
@@ -408,7 +408,7 @@ std::wstring CPToUTF16(u32 code_page, const std::string& input)
 	std::wstring output;
 	output.resize(size);
 
-	if (size != MultiByteToWideChar(code_page, 0, input.data(), input.size(), &output[0], output.size()))
+	if (size == 0 || size != MultiByteToWideChar(code_page, 0, input.data(), input.size(), &output[0], output.size()))
 		output.clear();
 
 	return output;

@@ -125,6 +125,8 @@ private:
 	static PCacheEntry* last_entry;
 	static SHADERUID last_uid;
 
+	static GLintptr s_vs_data_size;
+	static GLintptr s_ps_data_size;
 	static GLintptr s_vs_data_offset;
 	static u8 *s_ubo_buffer;
 	static u32 s_ubo_buffer_size;

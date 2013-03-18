@@ -357,8 +357,12 @@ private:
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, ARMReg op2);
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, Operand2 op2);
 	void WriteSignedMultiply(u32 Op, u32 Op2, u32 Op3, ARMReg dest, ARMReg r1, ARMReg r2);
-
-
+	
+	u32 EncodeVd(ARMReg Vd);
+	u32 EncodeVn(ARMReg Vn);
+	u32 EncodeVm(ARMReg Vm);
+	void WriteVFPDataOp(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	
 	void Write4OpMultiply(u32 op, ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
 
 	// New Ops
@@ -528,9 +532,11 @@ public:
 	// VFP Only
 	void VLDR(ARMReg Dest, ARMReg Base, s16 offset);
 	void VSTR(ARMReg Src,  ARMReg Base, s16 offset);
-	void VCMP(ARMReg Vd, ARMReg Vm, bool E);
+	void VCMP(ARMReg Vd, ARMReg Vm);
+	void VCMPE(ARMReg Vd, ARMReg Vm);
 	// Compares against zero
-	void VCMP(ARMReg Vd, bool E);
+	void VCMP(ARMReg Vd);
+	void VCMPE(ARMReg Vd);
 	void VDIV(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VSQRT(ARMReg Vd, ARMReg Vm);
 	
@@ -541,6 +547,7 @@ public:
 	void VNEG(ARMReg Vd, ARMReg Vm);
 	void VMUL(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VMLA(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMLS(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VMOV(ARMReg Dest, ARMReg Src, bool high);
 	void VMOV(ARMReg Dest, ARMReg Src);
 	void VCVT(ARMReg Dest, ARMReg Src, int flags);
