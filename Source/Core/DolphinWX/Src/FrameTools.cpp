@@ -808,9 +808,11 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 	if (!bFullscreen) {
 		CGRestorePermanentDisplayConfiguration();
 		CGDisplayRelease(CGMainDisplayID());
+		CGDisplayShowCursor(CGMainDisplayID());
 		return;
 	}
 
+	CGDisplayHideCursor(CGMainDisplayID());
 	CFArrayRef modes = CGDisplayAvailableModes(CGMainDisplayID());
 	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
 	{
