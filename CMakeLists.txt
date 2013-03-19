@@ -197,8 +197,6 @@ if(APPLE)
 	# This avoids a warning when linking with QuickTime.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
 	# Specify target CPUs.
-	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -msse3")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -march=prescott")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -mssse3")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -march=core2")
 	# Target flags apply to both C and C++ compilation.
