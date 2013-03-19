@@ -35,7 +35,7 @@ Core::GetWindowHandle().
 #include "VideoBackendBase.h"
 
 #ifdef __APPLE__
-#include <ApplicationServices/ApplicationServices.h>
+#include <AppKit/AppKit.h>
 #endif
 
 #include "Globals.h" // Local
@@ -805,41 +805,13 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	m_XRRConfig->ToggleDisplayMode(bFullscreen);
 #elif defined __APPLE__
-	if (!bFullscreen) {
-		CGRestorePermanentDisplayConfiguration();
-		CGDisplayRelease(CGMainDisplayID());
+	NSView* view = (NSView *)m_RenderFrame->GetHandle();
+	[[view window] toggleFullScreen:[view window]];
+	
+	if(bFullscreen)
+		CGDisplayHideCursor(CGMainDisplayID());
+	else
 		CGDisplayShowCursor(CGMainDisplayID());
-		return;
-	}
-
-	CGDisplayHideCursor(CGMainDisplayID());
-	CFArrayRef modes = CGDisplayAvailableModes(CGMainDisplayID());
-	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
-	{
-		CFDictionaryRef mode;
-		CFNumberRef ref;
-		int x, y, w, h, d;
-
-		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.\
-			strFullscreenResolution.c_str(), "%dx%d", &x, &y);
-
-		mode = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, i);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayWidth);
-		CFNumberGetValue(ref, kCFNumberIntType, &w);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayHeight);
-		CFNumberGetValue(ref, kCFNumberIntType, &h);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode,
-			kCGDisplayBitsPerPixel);
-		CFNumberGetValue(ref, kCFNumberIntType, &d);
-
-		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsStretched))
-			continue;
-		if (w != x || h != y || d != 32)
-			continue;;
-
-		CGDisplaySwitchToMode(CGMainDisplayID(), mode);
-	}
-
 #endif
 }
 
