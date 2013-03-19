@@ -505,8 +505,8 @@ void ProgramShaderCache::CreateHeader ( void )
 		"\n"// A few required defines and ones that will make our lives a lot easier
 		"#define ATTRIN in\n"
 		"#define ATTROUT out\n"
-		"#define VARYIN in\n"
-		"#define VARYOUT out\n"
+		"#define VARYIN centroid in\n"
+		"#define VARYOUT centroid out\n"
 
 		// Silly differences
 		"#define float2 vec2\n"
