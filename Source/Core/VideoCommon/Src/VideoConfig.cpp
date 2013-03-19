@@ -22,6 +22,7 @@
 #include "VideoConfig.h"
 #include "VideoCommon.h"
 #include "FileUtil.h"
+#include "Core.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
@@ -291,4 +292,9 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
 	iniFile.Save(game_ini);
+}
+
+bool VideoConfig::IsVSync()
+{
+	return Core::isTabPressed ? false : bVSync;
 }

@@ -314,7 +314,7 @@ Renderer::Renderer()
 	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
-	int swapInterval = g_ActiveConfig.bVSync ? 1 : 0;
+	int swapInterval = g_ActiveConfig.IsVSync() ? 1 : 0;
 	GLInterface->SwapInterval(swapInterval);
 
 	// check the max texture width and height
@@ -1306,6 +1306,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	GL_REPORT_ERRORD();
+
+	GLInterface->SwapInterval(g_ActiveConfig.IsVSync() ? 1 : 0);
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	DLCache::ProgressiveCleanup();

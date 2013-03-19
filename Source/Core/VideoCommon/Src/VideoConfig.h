@@ -67,6 +67,7 @@ struct VideoConfig
 	void Save(const char *ini_file);
 	void GameIniSave(const char* default_ini, const char* game_ini);
 	void UpdateProjectionHack();
+	bool IsVSync();
 
 	// General
 	bool bVSync;
