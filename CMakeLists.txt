@@ -174,8 +174,8 @@ if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -x none")
 
 	# Identify the target system:
-	# Ask for 32/64-bit fat binary.
-	set(TARGET_FLAGS "-arch x86_64 -arch i386")
+	# Ask for 64-bit binary.
+	set(TARGET_FLAGS "-arch x86_64")
 	# Minimum OS X version.
 	# This is inserted into the Info.plist as well.
 	# Note that the SDK determines the maximum version of which optional
