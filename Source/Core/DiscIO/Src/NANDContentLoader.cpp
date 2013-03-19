@@ -273,7 +273,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		continue;
 		}
 
-		rContent.m_pData = NULL;		 
+		rContent.m_pData = NULL;
 		char szFilename[1024];
 
 		if (rContent.m_Type & 0x8000)  // shared app

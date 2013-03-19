@@ -63,7 +63,7 @@ class WbfsFileReader : public IBlobReader
 
 	u16* m_wlba_table;
 	u64 m_blocks_per_disc;
-	
+
 	bool m_good;
 
 public:

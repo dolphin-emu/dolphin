@@ -59,7 +59,7 @@ public:
 
 	ECountry GetCountry() const;
 
-	u64 GetSize() const;		
+	u64 GetSize() const;
 
 	void BuildFST();
 

@@ -32,14 +32,14 @@ namespace DiscIO
 	bool Add_Ticket(u64 TitleID, const u8 *p_tik, u32 tikSize);
 struct SNANDContent
 {
-    u32 m_ContentID;	
-    u16 m_Index;
-    u16 m_Type;
-    u32 m_Size;
-    u8 m_SHA1Hash[20];
-    u8 m_Header[36]; //all of the above
+	u32 m_ContentID;
+	u16 m_Index;
+	u16 m_Type;
+	u32 m_Size;
+	u8 m_SHA1Hash[20];
+	u8 m_Header[36]; //all of the above
 
-    u8* m_pData;
+	u8* m_pData;
 };
 
 // pure virtual interface so just the NANDContentManager can create these files only
@@ -47,34 +47,34 @@ class INANDContentLoader
 {
 public:
 
-    INANDContentLoader() {}
+	INANDContentLoader() {}
 
-    virtual ~INANDContentLoader()  {}
+	virtual ~INANDContentLoader()  {}
 
-    virtual bool IsValid() const = 0;
+	virtual bool IsValid() const = 0;
 	virtual void RemoveTitle() const = 0;
-    virtual u64 GetTitleID() const = 0;
-    virtual u16 GetIosVersion() const = 0;
-    virtual u32 GetBootIndex() const = 0;
-    virtual size_t GetContentSize() const = 0;
-    virtual const SNANDContent* GetContentByIndex(int _Index) const = 0;
+	virtual u64 GetTitleID() const = 0;
+	virtual u16 GetIosVersion() const = 0;
+	virtual u32 GetBootIndex() const = 0;
+	virtual size_t GetContentSize() const = 0;
+	virtual const SNANDContent* GetContentByIndex(int _Index) const = 0;
 	virtual const u8* GetTMDView() const = 0;
 	virtual const u8* GetTMDHeader() const = 0;
 	virtual u32 GetTIKSize() const = 0;
 	virtual const u8* GetTIK() const = 0;
-    virtual const std::vector<SNANDContent>& GetContent() const = 0;    
-    virtual u16 GetTitleVersion() const = 0;
-    virtual u16 GetNumEntries() const = 0;
-    virtual DiscIO::IVolume::ECountry GetCountry() const = 0;
+	virtual const std::vector<SNANDContent>& GetContent() const = 0;    
+	virtual u16 GetTitleVersion() const = 0;
+	virtual u16 GetNumEntries() const = 0;
+	virtual DiscIO::IVolume::ECountry GetCountry() const = 0;
 	virtual u8 GetCountryChar() const = 0;
 
-    enum
-    {
-        TMD_VIEW_SIZE = 0x58,
-        TMD_HEADER_SIZE = 0x1e4,
+	enum
+	{
+		TMD_VIEW_SIZE = 0x58,
+		TMD_HEADER_SIZE = 0x1e4,
 		CONTENT_HEADER_SIZE = 0x24,
 		TICKET_SIZE = 0x2A4
-    };
+	};
 };
 
 
@@ -83,22 +83,22 @@ class CNANDContentManager
 {
 public:
 
-    static CNANDContentManager& Access() { return m_Instance; }
+	static CNANDContentManager& Access() { return m_Instance; }
 	u64 Install_WiiWAD(std::string &fileName);
 
-    const INANDContentLoader& GetNANDLoader(const std::string& _rName, bool forceReload = false);
+	const INANDContentLoader& GetNANDLoader(const std::string& _rName, bool forceReload = false);
 	const INANDContentLoader& GetNANDLoader(u64 _titleId, bool forceReload = false);
 	bool RemoveTitle(u64 _titleID);
 private:
 
-    CNANDContentManager() {};
+	CNANDContentManager() {};
 
-    ~CNANDContentManager();
+	~CNANDContentManager();
 
-    static CNANDContentManager m_Instance;
+	static CNANDContentManager m_Instance;
 
-    typedef std::map<std::string, INANDContentLoader*> CNANDContentMap;
-    CNANDContentMap m_Map;
+	typedef std::map<std::string, INANDContentLoader*> CNANDContentMap;
+	CNANDContentMap m_Map;
 
 };
 
