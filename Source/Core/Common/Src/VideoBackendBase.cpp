@@ -29,6 +29,7 @@
 
 std::vector<VideoBackend*> g_available_video_backends;
 VideoBackend* g_video_backend = NULL;
+static VideoBackend* s_default_backend = NULL;
 
 #ifdef _WIN32
 // http://msdn.microsoft.com/en-us/library/ms725491.aspx
@@ -49,17 +50,27 @@ static bool IsGteVista()
 
 void VideoBackend::PopulateList()
 {
+	VideoBackend* backends[4] = { NULL };
+
+	// D3D11 > OGL > D3D9 > SW
 #ifdef _WIN32
-	g_available_video_backends.push_back(new DX9::VideoBackend);
+	g_available_video_backends.push_back(backends[2] = new DX9::VideoBackend);
 	if (IsGteVista())
-		g_available_video_backends.push_back(new DX11::VideoBackend);
+		g_available_video_backends.push_back(backends[0] = new DX11::VideoBackend);
 #endif
 #ifndef USE_GLES
-	g_available_video_backends.push_back(new OGL::VideoBackend);
+	g_available_video_backends.push_back(backends[1] = new OGL::VideoBackend);
 #endif
-	g_available_video_backends.push_back(new SW::VideoSoftware);
+	g_available_video_backends.push_back(backends[3] = new SW::VideoSoftware);
 
-	g_video_backend = g_available_video_backends.front();
+	for (int i = 0; i < 4; ++i)
+	{
+		if (backends[i])
+		{
+			s_default_backend = g_video_backend = backends[i];
+			break;
+		}
+	}
 }
 
 void VideoBackend::ClearList()
@@ -73,8 +84,8 @@ void VideoBackend::ClearList()
 
 void VideoBackend::ActivateBackend(const std::string& name)
 {
-	if (name.length() == 0) // If NULL, set it to the first one in the list. Expected behavior
-		g_video_backend = g_available_video_backends.front();
+	if (name.length() == 0) // If NULL, set it to the default backend (expected behavior)
+		g_video_backend = s_default_backend;
 
 	for (std::vector<VideoBackend*>::const_iterator it = g_available_video_backends.begin(); it != g_available_video_backends.end(); ++it)
 		if (name == (*it)->GetName())
