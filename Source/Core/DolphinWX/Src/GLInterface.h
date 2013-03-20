@@ -20,6 +20,8 @@
 #include "Thread.h"
 #ifdef ANDROID
 #include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#include <EGL/egl.h>
 #include <GLInterface/InterfaceBase.h>
 #elif defined(USE_EGL) && USE_EGL
 #include "GLInterface/EGL_X11.h"

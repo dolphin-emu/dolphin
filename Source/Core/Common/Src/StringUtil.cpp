@@ -437,8 +437,7 @@ std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 	std::string result;
 
 #if defined(ANDROID)
-	result = "Not implemented on Android!";
-
+	result = (char*)input.c_str();
 #else
 	iconv_t const conv_desc = iconv_open("UTF-8", fromcode);
 	if ((iconv_t)-1 == conv_desc)

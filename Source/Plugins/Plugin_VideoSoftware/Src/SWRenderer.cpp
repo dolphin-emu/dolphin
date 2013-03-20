@@ -77,13 +77,10 @@ void CreateShaders()
 	uni_tex = glGetUniformLocation(program, "Texture");
 	attr_pos = glGetAttribLocation(program, "pos");
 	attr_tex = glGetAttribLocation(program, "TexCoordIn"); 
-	
-	
 }
-
-void SWRenderer::Prepare()
+#include <EGL/egl.h>
+void PrepareShit()
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 	glGenTextures(1, &s_RenderTarget);
 
@@ -96,6 +93,9 @@ void SWRenderer::Prepare()
 	glEnable(GL_TEXTURE_2D);
 #endif
 	GL_REPORT_ERRORD();
+}
+void SWRenderer::Prepare()
+{
 }
 
 void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
@@ -141,19 +141,65 @@ void SWRenderer::DrawDebugText()
 	SWRenderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
 }
-
-void SWRenderer::DrawTexture(u8 *texture, int width, int height)
+u8 image[1024*1024*4];
+float ButtonCoords[8 * 2];
+int gW, gH;
+bool once = false;
+std::recursive_mutex section;
+void SetButtonCoords(float *Coords)
 {
-	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
-	GLsizei glHeight = (GLsizei)GLInterface->GetBackBufferHeight();
+	memcpy(ButtonCoords, Coords, sizeof(float) * 8 * 2);
+}
+void DrawButton(int tex, int ID)
+{
+	//Texture rectangle uses pixel coordinates
+#ifndef USE_GLES
+	GLfloat u_max = (GLfloat)width;
+	GLfloat v_max = (GLfloat)height;
 
-	// Update GLViewPort
-	glViewport(0, 0, glWidth, glHeight);
-	glScissor(0, 0, glWidth, glHeight);
+	static const GLfloat texverts[4][2] = {
+		{0, v_max},
+		{0, 0},
+		{u_max, 0},
+		{u_max, v_max}
+	};
+#else
+	static const GLfloat texverts[4][2] = {
+		{0, 1},
+		{0, 0},
+		{1, 0},
+		{1, 1}
+	};
+#endif
+	glBindTexture(TEX2D, tex);
+
+	glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, &ButtonCoords[ID * 8]);
+	glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
+	glEnableVertexAttribArray(attr_pos);
+	glEnableVertexAttribArray(attr_tex);
+		glActiveTexture(GL_TEXTURE0); 
+		glUniform1i(uni_tex, 0);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glDisableVertexAttribArray(attr_pos);
+	glDisableVertexAttribArray(attr_tex);
+
+	glBindTexture(TEX2D, 0); 
+
+}
+void DrawReal()
+{
+	section.lock();
+	if (!once)
+	{
+		section.unlock();
+		return;
+	}
+	int width = gW;
+	int height = gH;
 
 	glBindTexture(GL_TEXTURE_2D, s_RenderTarget);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	 
@@ -182,20 +228,19 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	glDisableVertexAttribArray(attr_tex);
 
 	glBindTexture(GL_TEXTURE_2D, 0); 
+	section.unlock();
 	GL_REPORT_ERRORD();
+}
+void SWRenderer::DrawTexture(u8 *texture, int width, int height)
+{
+	section.lock();
+	memcpy(image, texture, width * height * 4);
+	gW = width;
+	gH = height;
+	once = true;
+	section.unlock();
 }
 
 void SWRenderer::SwapBuffer()
 {
-	DrawDebugText();
-
-	glFlush();
-
-	GLInterface->Swap();
-    
-	swstats.ResetFrame();
-	
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	GL_REPORT_ERRORD();
 }

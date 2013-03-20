@@ -23,6 +23,7 @@
 #include "../ConfigManager.h"
 
 #include "../../InputCommon/Src/InputConfig.h"
+#include "Host.h"
 
 namespace Pad
 {
@@ -86,6 +87,16 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	
 	// get input
 	((GCPad*)g_plugin.controllers[_numPAD])->GetInput(_pPADStatus);
+	if (Host_GetKeyState(0))
+	{
+		_pPADStatus->button |= PAD_BUTTON_A;
+		_pPADStatus->analogA = 255;
+	}
+	if (Host_GetKeyState(1))
+	{
+		_pPADStatus->button |= PAD_BUTTON_START;
+	}
+
 }
 
 // __________________________________________________________________________________________________

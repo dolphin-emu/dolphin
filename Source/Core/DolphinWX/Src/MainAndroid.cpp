@@ -36,10 +36,14 @@
 
 #include <jni.h>
 #include <android/log.h>
+#include <android/native_window_jni.h>
+JNIEnv *g_env = NULL;
+ANativeWindow* surf;
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "Dolphinemu", __VA_ARGS__))
 
 bool rendererHasFocus = true;
 bool running = true;
+bool KeyStates[15];
 
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
@@ -53,7 +57,7 @@ void Host_Message(int Id)
 
 void* Host_GetRenderHandle()
 {
-	return NULL;
+	return surf;
 }
 
 void* Host_GetInstance() { return NULL; }
@@ -72,7 +76,7 @@ void Host_UpdateBreakPointView(){}
 
 bool Host_GetKeyState(int keycode)
 {
-	return false;
+	return KeyStates[keycode];
 }
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
@@ -118,25 +122,73 @@ void Host_SysMessage(const char *fmt, ...)
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
+extern void DrawReal();
+extern void PrepareShit();
+extern void DrawButton(int tex, int ID);
+extern void SetButtonCoords(float *Coords);
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_dolphinemuactivity_main(JNIEnv *env, jobject obj)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeRenderer_PrepareME(JNIEnv *env, jobject obj)
 {
+	PrepareShit();
+}
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeRenderer_SetButtonCoords(JNIEnv *env, jobject obj, jfloatArray Coords)
+{
+	jfloat* flt1 = env->GetFloatArrayElements(Coords, 0);
+	SetButtonCoords((float*)flt1);
+	env->ReleaseFloatArrayElements(Coords, flt1, 0);
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeRenderer_DrawButton(JNIEnv *env, jobject obj, 
+	jint GLTex, jint ID
+	)
+{
+	DrawButton((int)GLTex, (int)ID);
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeRenderer_UnPauseEmulation(JNIEnv *env, jobject obj)
+{
+	PowerPC::Start();
+}
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeRenderer_PauseEmulation(JNIEnv *env, jobject obj) 
+{
+	PowerPC::Pause();
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeRenderer_StopEmulation(JNIEnv *env, jobject obj) 
+{
+	PowerPC::Stop();
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeRenderer_DrawME(JNIEnv *env, jobject obj)
+{
+	DrawReal();
+}
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_DolphinEmulator_SetKey(JNIEnv *env, jobject obj, jint Value, jint Key)
+{
+	WARN_LOG(COMMON, "Key %d with action %d\n", (int)Key, (int)Value);
+	KeyStates[(int)Key] = (int)Value == 0 ? true : false;	
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeGLSurfaceView_main(JNIEnv *env, jobject obj, jstring jFile, jobject _surf)
+{
+	surf = ANativeWindow_fromSurface(env, _surf);
+	g_env = env;
+	
 	LogManager::Init();
 	SConfig::Init();
 	VideoBackend::PopulateList();
 	VideoBackend::ActivateBackend(SConfig::GetInstance().
 		m_LocalCoreStartupParameter.m_strVideoBackend);
 	WiimoteReal::LoadSettings();
-
+	
+	const char *File  = env->GetStringUTFChars(jFile, NULL);
 	// No use running the loop when booting fails
-	if (BootManager::BootCore(""))
-	{
+	if ( BootManager::BootCore( File ) )
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 			updateMainFrameEvent.Wait();
-	}
 
 	WiimoteReal::Shutdown();
 	VideoBackend::ClearList();
