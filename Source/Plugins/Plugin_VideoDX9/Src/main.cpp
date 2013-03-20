@@ -87,6 +87,11 @@ std::string VideoBackend::GetName()
 	return "Direct3D9";
 }
 
+std::string VideoBackend::GetDisplayName()
+{
+	return "Direct3D9 (deprecated)";
+}
+
 void InitBackendInfo()
 {
 	DX9::D3D::Init();

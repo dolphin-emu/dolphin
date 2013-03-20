@@ -212,9 +212,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			it = g_available_video_backends.begin(),
 			itend = g_available_video_backends.end();
 	for (; it != itend; ++it)
-		choice_backend->AppendString(wxGetTranslation(StrToWxStr((*it)->GetName())));
+		choice_backend->AppendString(wxGetTranslation(StrToWxStr((*it)->GetDisplayName())));
 
-	choice_backend->SetStringSelection(wxGetTranslation(StrToWxStr(g_video_backend->GetName())));
+	choice_backend->SetStringSelection(wxGetTranslation(StrToWxStr(g_video_backend->GetDisplayName())));
 	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_Backend, this);
 
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
