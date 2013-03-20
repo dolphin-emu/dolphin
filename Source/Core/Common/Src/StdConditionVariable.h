@@ -133,7 +133,7 @@ public:
 	//	bool wait_for(unique_lock<mutex>& lock,
 	//	const chrono::duration<Rep, Period>& rel_time,
 	//	Predicate pred);
-	
+
 	native_handle_type native_handle()
 	{
 #ifdef USE_EVENTS

@@ -63,7 +63,7 @@ void IndexGenerator::AddIndices(int primitive, u32 numVerts)
 	//case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVerts);		break;
 	//case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVerts);		break;
 	//case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVerts);		break;
-	//case GX_DRAW_LINES:		   IndexGenerator::AddLineList(numVerts);	break;
+	//case GX_DRAW_LINES:          IndexGenerator::AddLineList(numVerts);	break;
 	//case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVerts);	break;
 	//case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVerts);		break;
 	//}

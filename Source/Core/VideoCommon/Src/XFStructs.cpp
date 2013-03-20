@@ -36,37 +36,37 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 	u32 address = baseAddress;
 	u32 dataIndex = 0;
 
-    while (transferSize > 0 && address < 0x1058)
-    {
-  		u32 newValue = pData[dataIndex];
+	while (transferSize > 0 && address < 0x1058)
+	{
+		u32 newValue = pData[dataIndex];
 		u32 nextAddress = address + 1;
 
-        switch (address)
-        {
-        case XFMEM_ERROR:
-        case XFMEM_DIAG:
-        case XFMEM_STATE0: // internal state 0
-        case XFMEM_STATE1: // internal state 1
-        case XFMEM_CLOCK:
+		switch (address)
+		{
+		case XFMEM_ERROR:
+		case XFMEM_DIAG:
+		case XFMEM_STATE0: // internal state 0
+		case XFMEM_STATE1: // internal state 1
+		case XFMEM_CLOCK:
 		case XFMEM_SETGPMETRIC:
 			nextAddress = 0x1007;
-            break;
+			break;
 
-        case XFMEM_CLIPDISABLE:
+		case XFMEM_CLIPDISABLE:
 			//if (data & 1) {} // disable clipping detection
 			//if (data & 2) {} // disable trivial rejection
 			//if (data & 4) {} // disable cpoly clipping acceleration
-            break;
+			break;
 
-        case XFMEM_VTXSPECS: //__GXXfVtxSpecs, wrote 0004
-            break;
+		case XFMEM_VTXSPECS: //__GXXfVtxSpecs, wrote 0004
+			break;
 
-        case XFMEM_SETNUMCHAN:
+		case XFMEM_SETNUMCHAN:
 			if (xfregs.numChan.numColorChans != (newValue & 3))
-                VertexManager::Flush();
-            break;
+				VertexManager::Flush();
+			break;
 
-        case XFMEM_SETCHAN0_AMBCOLOR: // Channel Ambient Color
+		case XFMEM_SETCHAN0_AMBCOLOR: // Channel Ambient Color
 		case XFMEM_SETCHAN1_AMBCOLOR:
 			{
 				u8 chan = address - XFMEM_SETCHAN0_AMBCOLOR;
@@ -75,11 +75,11 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 					VertexManager::Flush();
 					VertexShaderManager::SetMaterialColorChanged(chan);
 					PixelShaderManager::SetMaterialColorChanged(chan);
-				}				
+				}
 				break;
 			}
 
-        case XFMEM_SETCHAN0_MATCOLOR: // Channel Material Color
+		case XFMEM_SETCHAN0_MATCOLOR: // Channel Material Color
 		case XFMEM_SETCHAN1_MATCOLOR:
 			{
 				u8 chan = address - XFMEM_SETCHAN0_MATCOLOR;
@@ -92,28 +92,28 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 				break;
 			}
 
-        case XFMEM_SETCHAN0_COLOR: // Channel Color
+		case XFMEM_SETCHAN0_COLOR: // Channel Color
 		case XFMEM_SETCHAN1_COLOR:
 		case XFMEM_SETCHAN0_ALPHA: // Channel Alpha
-		case XFMEM_SETCHAN1_ALPHA:			
+		case XFMEM_SETCHAN1_ALPHA:
 			if (((u32*)&xfregs)[address - 0x1000] != (newValue & 0x7fff))
-				VertexManager::Flush();				
+				VertexManager::Flush();
 			break;
 
-        case XFMEM_DUALTEX:
+		case XFMEM_DUALTEX:
 			if (xfregs.dualTexTrans.enabled != (newValue & 1))
-                VertexManager::Flush();
-            break;
+				VertexManager::Flush();
+			break;
 
 
-        case XFMEM_SETMATRIXINDA:
-            //_assert_msg_(GX_XF, 0, "XF matrixindex0");
+		case XFMEM_SETMATRIXINDA:
+			//_assert_msg_(GX_XF, 0, "XF matrixindex0");
 			VertexShaderManager::SetTexMatrixChangedA(newValue);
-            break;
-        case XFMEM_SETMATRIXINDB:
-            //_assert_msg_(GX_XF, 0, "XF matrixindex1");
-            VertexShaderManager::SetTexMatrixChangedB(newValue);
-            break;
+			break;
+		case XFMEM_SETMATRIXINDB:
+			//_assert_msg_(GX_XF, 0, "XF matrixindex1");
+			VertexShaderManager::SetTexMatrixChangedB(newValue);
+			break;
 
 		case XFMEM_SETVIEWPORT:
 		case XFMEM_SETVIEWPORT+1:
@@ -135,16 +135,16 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 		case XFMEM_SETPROJECTION+4:
 		case XFMEM_SETPROJECTION+5:
 		case XFMEM_SETPROJECTION+6:
-			VertexManager::Flush();			
+			VertexManager::Flush();
 			VertexShaderManager::SetProjectionChanged();
 
 			nextAddress = XFMEM_SETPROJECTION + 7;
 			break;
 
-        case XFMEM_SETNUMTEXGENS: // GXSetNumTexGens
+		case XFMEM_SETNUMTEXGENS: // GXSetNumTexGens
 			if (xfregs.numTexGen.numTexGens != (newValue & 15))
 				VertexManager::Flush();
-            break;
+			break;
 
 		case XFMEM_SETTEXMTXINFO:
 		case XFMEM_SETTEXMTXINFO+1:
@@ -178,47 +178,47 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 
 		// Maybe these are for Normals?
 		case 0x1048: //xfregs.texcoords[0].nrmmtxinfo.hex = data; break; ??
-        case 0x1049:
-        case 0x104a:
-        case 0x104b:
-        case 0x104c:
-        case 0x104d:
-        case 0x104e:
-        case 0x104f:
+		case 0x1049:
+		case 0x104a:
+		case 0x104b:
+		case 0x104c:
+		case 0x104d:
+		case 0x104e:
+		case 0x104f:
 			DEBUG_LOG(VIDEO, "Possible Normal Mtx XF reg?: %x=%x\n", address, newValue);
 			break;
 
 		case 0x1013:
-        case 0x1014:
-        case 0x1015:
-        case 0x1016:
-        case 0x1017:
+		case 0x1014:
+		case 0x1015:
+		case 0x1016:
+		case 0x1017:
 
-        default:
-            WARN_LOG(VIDEO, "Unknown XF Reg: %x=%x\n", address, newValue);
-            break;
-        }
+		default:
+			WARN_LOG(VIDEO, "Unknown XF Reg: %x=%x\n", address, newValue);
+			break;
+		}
 
 		int transferred = nextAddress - address;
 		address = nextAddress;
 
 		transferSize -= transferred;
 		dataIndex += transferred;
-    }
+	}
 }
 
 void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 {
-    // do not allow writes past registers
-    if (baseAddress + transferSize > 0x1058)
-    {
-        INFO_LOG(VIDEO, "xf load exceeds address space: %x %d bytes\n", baseAddress, transferSize);
+	// do not allow writes past registers
+	if (baseAddress + transferSize > 0x1058)
+	{
+		INFO_LOG(VIDEO, "xf load exceeds address space: %x %d bytes\n", baseAddress, transferSize);
 
-        if (baseAddress >= 0x1058)
-            transferSize = 0;
-        else
-            transferSize = 0x1058 - baseAddress;
-    }
+		if (baseAddress >= 0x1058)
+			transferSize = 0;
+		else
+			transferSize = 0x1058 - baseAddress;
+	}
 
 	// write to XF mem
 	if (baseAddress < 0x1000 && transferSize > 0)
@@ -247,11 +247,11 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 	}
 
 	// write to XF regs
-    if (transferSize > 0)
+	if (transferSize > 0)
 	{	
 		XFRegWritten(transferSize, baseAddress, pData);
 		memcpy_gc((u32*)(&xfregs) + (baseAddress - 0x1000), pData, transferSize * 4);        
-    }	
+	}
 }
 
 // TODO - verify that it is correct. Seems to work, though.

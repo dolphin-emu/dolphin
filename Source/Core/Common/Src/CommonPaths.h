@@ -56,7 +56,7 @@
 	#define SHARED_USER_DIR	File::GetBundleDirectory() + \
 				DIR_SEP USERDATA_DIR DIR_SEP
 #elif defined ANDROID
-	#define SYSDATA_DIR "/sdcard/dolphin-emu"	
+	#define SYSDATA_DIR "/sdcard/dolphin-emu"
 #else
 	#ifdef DATA_DIR
 		#define SYSDATA_DIR DATA_DIR "sys"
@@ -127,9 +127,9 @@
 #define GC_MEMCARDA	"MemoryCardA"
 #define GC_MEMCARDB	"MemoryCardB"
 
-#define WII_STATE 	"state.dat"
+#define WII_STATE	"state.dat"
 
-#define WII_SETTING 	"setting.txt"
+#define WII_SETTING		"setting.txt"
 #define WII_EUR_SETTING "setting-eur.txt"
 #define WII_USA_SETTING "setting-usa.txt"
 #define WII_JAP_SETTING "setting-jpn.txt"

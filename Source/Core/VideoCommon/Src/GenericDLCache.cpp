@@ -23,7 +23,7 @@
 
 namespace DLCache
 {
-	
+
 void Init()
 {
 }
@@ -33,7 +33,7 @@ void Shutdown()
 }
 
 void Clear() 
-{	
+{
 }
 
 void ProgressiveCleanup()

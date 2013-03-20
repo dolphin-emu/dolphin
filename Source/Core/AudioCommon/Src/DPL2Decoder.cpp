@@ -130,15 +130,15 @@ returns 0 if OK, -1 if fail
 */
 float* design_fir(unsigned int *n, float* fc, float opt)
 {
-	unsigned int  o   = *n & 1;            // Indicator for odd filter length
-	unsigned int  end = ((*n + 1) >> 1) - o;       // Loop end
-	unsigned int  i;                      // Loop index
+	unsigned int  o   = *n & 1;              // Indicator for odd filter length
+	unsigned int  end = ((*n + 1) >> 1) - o; // Loop end
+	unsigned int  i;                         // Loop index
 
-	float k1 = 2 * float(M_PI);             // 2*pi*fc1
-	float k2 = 0.5f * (float)(1 - o);// Constant used if the filter has even length
-	float g  = 0.0f;                    // Gain
-	float t1;                     // Temporary variables
-	float fc1;                      // Cutoff frequencies
+	float k1 = 2 * float(M_PI);              // 2*pi*fc1
+	float k2 = 0.5f * (float)(1 - o);        // Constant used if the filter has even length
+	float g  = 0.0f;                         // Gain
+	float t1;                                // Temporary variables
+	float fc1;                               // Cutoff frequencies
 
 	// Sanity check
 	if(*n==0) return NULL;
@@ -241,18 +241,18 @@ void matrix_decode(const float *in, const int k, const int il,
 	float *_rr, float *_cf)
 {
 	static const float M9_03DB = 0.3535533906f;
-	static const float MATAGCTRIG = 8.0f;  /* (Fuzzy) AGC trigger */
-	static const float MATAGCDECAY = 1.0f; /* AGC baseline decay rate (1/samp.) */
+	static const float MATAGCTRIG = 8.0f;   /* (Fuzzy) AGC trigger */
+	static const float MATAGCDECAY = 1.0f;  /* AGC baseline decay rate (1/samp.) */
 	static const float MATCOMPGAIN = 0.37f; /* Cross talk compensation gain,  0.50 - 0.55 is full cancellation. */
 
 	const int kr = (k + olddelay) % _dlbuflen;
 	float l_gain = (_l_fwr + _r_fwr) / (1 + _l_fwr + _l_fwr);
 	float r_gain = (_l_fwr + _r_fwr) / (1 + _r_fwr + _r_fwr);
-	/* The 2nd axis has strong gain fluctuations, and therefore require
-	limits.  The factor corresponds to the 1 / amplification of (Lt
-	- Rt) when (Lt, Rt) is strongly correlated. (e.g. during
-	dialogues).  It should be bigger than -12 dB to prevent
-	distortion. */
+	// The 2nd axis has strong gain fluctuations, and therefore require
+	// limits.  The factor corresponds to the 1 / amplification of (Lt
+	// - Rt) when (Lt, Rt) is strongly correlated. (e.g. during
+	// dialogues).  It should be bigger than -12 dB to prevent
+	// distortion.
 	float lmr_lim_fwr = _lmr_fwr > M9_03DB * _lpr_fwr ? _lmr_fwr : M9_03DB * _lpr_fwr;
 	float lpr_gain = (_lpr_fwr + lmr_lim_fwr) / (1 + _lpr_fwr + _lpr_fwr);
 	float lmr_gain = (_lpr_fwr + lmr_lim_fwr) / (1 + lmr_lim_fwr + lmr_lim_fwr);
@@ -275,9 +275,9 @@ void matrix_decode(const float *in, const int k, const int il,
 	if (decode_rear)
 	{
 		_lr[kr] = _rr[kr] = (l_agc - r_agc) * (float)M_SQRT1_2;
-		/* Stereo rear channel is steered with the same AGC steering as
-		the decoding matrix. Note this requires a fast updating AGC
-		at the order of 20 ms (which is the case here). */
+		// Stereo rear channel is steered with the same AGC steering as
+		// the decoding matrix. Note this requires a fast updating AGC
+		// at the order of 20 ms (which is the case here).
 		_lr[kr] *= (_l_fwr + _l_fwr) / (1 + _l_fwr + _r_fwr);
 		_rr[kr] *= (_r_fwr + _r_fwr) / (1 + _l_fwr + _r_fwr);
 	}
@@ -298,16 +298,16 @@ void matrix_decode(const float *in, const int k, const int il,
 	_rf[k] = (lpr_agc - lmr_agc) * (float)M_SQRT1_2;
 
 	/*** CENTER FRONT CANCELLATION ***/
-	/* A heuristic approach exploits that Lt + Rt gain contains the
-	information about Lt, Rt correlation.  This effectively reshapes
-	the front and rear "cones" to concentrate Lt + Rt to C and
-	introduce Lt - Rt in L, R. */
+	// A heuristic approach exploits that Lt + Rt gain contains the
+	// information about Lt, Rt correlation.  This effectively reshapes
+	// the front and rear "cones" to concentrate Lt + Rt to C and
+	// introduce Lt - Rt in L, R.
 	/* 0.67677 is the empirical lower bound for lpr_gain. */
 	c_gain = 8 * (*_adapt_lpr_gain - 0.67677f);
 	c_gain = c_gain > 0 ? c_gain : 0;
-	/* c_gain should not be too high, not even reaching full
-	cancellation (~ 0.50 - 0.55 at current AGC implementation), or
-	the center will sound too narrow. */
+	// c_gain should not be too high, not even reaching full
+	// cancellation (~ 0.50 - 0.55 at current AGC implementation), or
+	// the center will sound too narrow. */
 	c_gain = MATCOMPGAIN / (1 + c_gain * c_gain);
 	c_agc_cfk = c_gain * _cf[k];
 	_lf[k] -= c_agc_cfk;
@@ -317,7 +317,7 @@ void matrix_decode(const float *in, const int k, const int il,
 
 void dpl2decode(float *samples, int numsamples, float *out)
 {
-	static const unsigned int FWRDURATION = 240;    /* FWR average duration (samples) */
+	static const unsigned int FWRDURATION = 240; // FWR average duration (samples)
 	static const int cfg_delay = 0;
 	static const unsigned int fmt_freq = 48000;
 	static const unsigned int fmt_nchannels = 2; // input channels

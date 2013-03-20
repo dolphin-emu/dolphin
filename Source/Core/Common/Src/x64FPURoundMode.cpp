@@ -68,7 +68,7 @@ namespace FPURoundMode
 	}
 
 	void SetPrecisionMode(u32 mode)
-	{	
+	{
 		#ifdef _M_IX86
 			// sets the floating-point lib to 53-bit
 			// PowerPC has a 53bit floating pipeline only
@@ -104,7 +104,7 @@ namespace FPURoundMode
 		u32 csr = ssetable[mode];
 		_mm_setcsr(csr);
 	}
-	
+
 	void SaveSIMDState()
 	{
 		saved_sse_state = _mm_getcsr();

@@ -295,7 +295,6 @@ void OpenALStream::SoundLoop()
 						{
 							ERROR_LOG(AUDIO, "Error occurred while buffering float32 data: %08x", err);
 						}
-
 					}
 #endif
 					if (!float32_capable)
@@ -308,7 +307,6 @@ void OpenALStream::SoundLoop()
 							stereo[i * 2 + 1] = (short)((float)sampleBuffer[i * 2 + 1] * (1 << 16));
 						}
 						alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * 2 * 2, ulFrequency);
-
 					}
 				}
 

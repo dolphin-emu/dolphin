@@ -25,43 +25,43 @@ class VertexLoader_Normal
 {
 public:
 
-    // Init
-    static void Init(void);
+	// Init
+	static void Init(void);
 
-    // GetSize
-    static unsigned int GetSize(unsigned int _type, unsigned int _format,
+	// GetSize
+	static unsigned int GetSize(unsigned int _type, unsigned int _format,
 		unsigned int _elements, unsigned int _index3);
 
-    // GetFunction
-    static TPipelineFunction GetFunction(unsigned int _type,
+	// GetFunction
+	static TPipelineFunction GetFunction(unsigned int _type,
 		unsigned int _format, unsigned int _elements, unsigned int _index3);
 
 private:
-    enum ENormalType
-    {
-        NRM_NOT_PRESENT		= 0,
-        NRM_DIRECT			= 1,
-        NRM_INDEX8			= 2,
-        NRM_INDEX16			= 3,
-        NUM_NRM_TYPE
-    };
+	enum ENormalType
+	{
+		NRM_NOT_PRESENT		= 0,
+		NRM_DIRECT			= 1,
+		NRM_INDEX8			= 2,
+		NRM_INDEX16			= 3,
+		NUM_NRM_TYPE
+	};
 
-    enum ENormalFormat
-    {
-        FORMAT_UBYTE		= 0,
-        FORMAT_BYTE			= 1,
-        FORMAT_USHORT		= 2,
-        FORMAT_SHORT		= 3,
-        FORMAT_FLOAT		= 4,
-        NUM_NRM_FORMAT
-    };
+	enum ENormalFormat
+	{
+		FORMAT_UBYTE		= 0,
+		FORMAT_BYTE			= 1,
+		FORMAT_USHORT		= 2,
+		FORMAT_SHORT		= 3,
+		FORMAT_FLOAT		= 4,
+		NUM_NRM_FORMAT
+	};
 
-    enum ENormalElements
-    {
-        NRM_NBT				= 0,
-        NRM_NBT3			= 1,
-        NUM_NRM_ELEMENTS
-    };
+	enum ENormalElements
+	{
+		NRM_NBT				= 0,
+		NRM_NBT3			= 1,
+		NUM_NRM_ELEMENTS
+	};
 
 	enum ENormalIndices
 	{

@@ -46,7 +46,7 @@ __forceinline float FracAdjust(T val)
 	//auto const U8FRAC = 1.f / (1u << 7);
 	//auto const S16FRAC = 1.f / (1u << 14);
 	//auto const U16FRAC = 1.f / (1u << 15);
-	
+
 	// TODO: is this right?
 	return val / float(1u << (sizeof(T) * 8 - std::numeric_limits<T>::is_signed - 1));
 }
@@ -64,7 +64,7 @@ __forceinline void ReadIndirect(const T* data)
 	{
 		DataWrite(FracAdjust(Common::FromBigEndian(data[i])));
 	}
-	
+
 	LOG_NORM();
 }
 
@@ -77,7 +77,7 @@ struct Normal_Direct
 		ReadIndirect<T, N * 3>(source);
 		DataSkip<N * 3 * sizeof(T)>();
 	}
-	
+
 	static const int size = sizeof(T) * N * 3;
 };
 
@@ -99,7 +99,7 @@ struct Normal_Index
 	{
 		Normal_Index_Offset<I, T, N, 0>();
 	}
-	
+
 	static const int size = sizeof(I);
 };
 
@@ -112,7 +112,7 @@ struct Normal_Index_Indices3
 		Normal_Index_Offset<I, T, 1, 1>();
 		Normal_Index_Offset<I, T, 1, 2>();
 	}
-	
+
 	static const int size = sizeof(I) * 3;
 };
 

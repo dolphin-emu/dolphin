@@ -121,10 +121,10 @@ void LOADERDECL UpdateBoundingBox()
 {
 	if (!PixelEngine::bbox_active)
 		return;
-	
+
 	// reset videodata pointer
 	VertexManager::s_pCurBufferPointer = s_bbox_pCurBufferPointer_orig;
-	
+
 	// copy vertex pointers
 	memcpy(VertexManager::s_pCurBufferPointer, s_bbox_vertex_buffer, 12);
 	VertexManager::s_pCurBufferPointer += 12;
@@ -335,7 +335,7 @@ void VertexLoader::CompileVertexTranslator()
 			nat_offset += 12;
 			vtx_decl.normal_offset[2] = nat_offset;
 			nat_offset += 12;
-		}	
+		}
 
 		int numNormals = (m_VtxAttr.NormalElements == 1) ? NRM_THREE : NRM_ONE;
 		m_NativeFmt->m_components |= VB_HAS_NRM0;
@@ -367,7 +367,7 @@ void VertexLoader::CompileVertexTranslator()
 			default: _assert_(0); break;
 			}
 			break;
-		case INDEX8:	
+		case INDEX8:
 			m_VertexSize += 1;
 			switch (m_VtxAttr.color[i].Comp)
 			{
@@ -558,7 +558,7 @@ int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const 
 	m_VtxAttr.texCoord[0].Frac		= g_VtxAttr[vtx_attr_group].g0.Tex0Frac;
 	m_VtxAttr.texCoord[1].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex1Frac;
 	m_VtxAttr.texCoord[2].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex2Frac;
-	m_VtxAttr.texCoord[3].Frac      = g_VtxAttr[vtx_attr_group].g1.Tex3Frac;
+	m_VtxAttr.texCoord[3].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex3Frac;
 	m_VtxAttr.texCoord[4].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex4Frac;
 	m_VtxAttr.texCoord[5].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex5Frac;
 	m_VtxAttr.texCoord[6].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
@@ -607,11 +607,11 @@ void VertexLoader::ConvertVertices ( int count )
 void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int const count, u8* Data)
 {
 	auto const new_count = SetupRunVertices(vtx_attr_group, primitive, count);
-	
+
 	memcpy_gc(VertexManager::s_pCurBufferPointer, Data, native_stride * new_count);
 	VertexManager::s_pCurBufferPointer += native_stride * new_count;
 	DataSkip(new_count * m_VertexSize);
-	
+
 	VertexManager::AddVertices(primitive, new_count);	
 }
 
@@ -645,7 +645,7 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 	m_VtxAttr.texCoord[2].Frac		= vat.g1.Tex2Frac;
 	m_VtxAttr.texCoord[3].Elements	= vat.g1.Tex3CoordElements;
 	m_VtxAttr.texCoord[3].Format	= vat.g1.Tex3CoordFormat;
-	m_VtxAttr.texCoord[3].Frac      = vat.g1.Tex3Frac;
+	m_VtxAttr.texCoord[3].Frac		= vat.g1.Tex3Frac;
 	m_VtxAttr.texCoord[4].Elements	= vat.g1.Tex4CoordElements;
 	m_VtxAttr.texCoord[4].Format	= vat.g1.Tex4CoordFormat;
 

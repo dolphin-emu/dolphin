@@ -136,7 +136,7 @@ protected:
 	u32 Value;
 
 private:
-	OpType Type;	
+	OpType Type;
 
 	// IMM types
 	u8	Rotation; // Only for u8 values
@@ -154,7 +154,7 @@ public:
 	{ 
 		Type = type; 
 		Value = imm; 
-		Rotation = 0;		
+		Rotation = 0;
 	}
 
 	Operand2(ARMReg Reg)
@@ -297,7 +297,7 @@ public:
 	u32 Imm24()
 	{
 		_assert_msg_(DYNA_REC, (Type == TYPE_IMM), "Imm16 not IMM");
-		return (Value & 0x0FFFFFFF);	
+		return (Value & 0x0FFFFFFF);
 	}
 	// NEON and ASIMD specific
 	u32 Imm8ASIMD()
@@ -336,9 +336,9 @@ struct FixupBranch
 
 struct LiteralPool
 {
-    s32 loc;
-    u8* ldr_address;
-    u32 val;
+	s32 loc;
+	u8* ldr_address;
+	u32 val;
 };
 
 typedef const u8* JumpTarget;
@@ -357,7 +357,7 @@ private:
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, ARMReg op2);
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, Operand2 op2);
 	void WriteSignedMultiply(u32 Op, u32 Op2, u32 Op3, ARMReg dest, ARMReg r1, ARMReg r2);
-	
+
 	u32 EncodeVd(ARMReg Vd);
 	u32 EncodeVn(ARMReg Vn);
 	u32 EncodeVm(ARMReg Vm);
@@ -407,10 +407,10 @@ public:
 
 	// Hint instruction
 	void YIELD();
-	
+
 	// Do nothing
 	void NOP(int count = 1); //nop padding - TODO: fast nop slides, for amd and intel (check their manuals)
-	
+
 #ifdef CALL
 #undef CALL
 #endif
@@ -422,7 +422,7 @@ public:
 	FixupBranch BL();
 	FixupBranch BL_CC(CCFlags Cond);
 	void SetJumpTarget(FixupBranch const &branch);
-	
+
 	void B (const void *fnptr);
 	void B (ARMReg src);
 	void BL(const void *fnptr);
@@ -468,7 +468,7 @@ public:
 	void BICS(ARMReg dest, ARMReg src, Operand2 op2);
 	void MVN (ARMReg dest,             Operand2 op2);
 	void MVNS(ARMReg dest,             Operand2 op2);
-	void MOVW(ARMReg dest, 			   Operand2 op2);
+	void MOVW(ARMReg dest,             Operand2 op2);
 	void MOVT(ARMReg dest, Operand2 op2, bool TopBits = false);
 
 	// UDIV and SDIV are only available on CPUs that have 
@@ -510,7 +510,7 @@ public:
 
 	void STMFD(ARMReg dest, bool WriteBack, const int Regnum, ...);
 	void LDMFD(ARMReg dest, bool WriteBack, const int Regnum, ...);
-	
+
 	// Exclusive Access operations
 	void LDREX(ARMReg dest, ARMReg base);
 	// result contains the result if the instruction managed to store the value
@@ -528,7 +528,7 @@ public:
 	// NEON Only
 	void VADD(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VSUB(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-		
+
 	// VFP Only
 	void VLDR(ARMReg Dest, ARMReg Base, s16 offset);
 	void VSTR(ARMReg Src,  ARMReg Base, s16 offset);
@@ -539,7 +539,7 @@ public:
 	void VCMPE(ARMReg Vd);
 	void VDIV(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VSQRT(ARMReg Vd, ARMReg Vm);
-	
+
 	// NEON and VFP
 	void VADD(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VSUB(ARMReg Vd, ARMReg Vn, ARMReg Vm);

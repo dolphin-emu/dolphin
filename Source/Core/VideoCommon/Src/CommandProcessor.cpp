@@ -325,7 +325,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	case CLEAR_REGISTER:
 		{
 			UCPClearReg tmpCtrl(_Value);
-			m_CPClearReg.Hex = tmpCtrl.Hex;					
+			m_CPClearReg.Hex = tmpCtrl.Hex;
 			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x", _Value);
 			SetCpClearRegister();
 		}
@@ -414,7 +414,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		}
 		else
 		{
-			ResetVideoBuffer();		
+			ResetVideoBuffer();
 		}
 		IncrementCheckContextId();
 		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_HI : %04x", _Value);
@@ -462,7 +462,6 @@ void STACKALIGN GatherPipeBursted()
 				ProcessFifoAllDistance();
 				waitingForPEInterruptDisable = false;
 			}
-		
 		}
 		return;
 	}
@@ -492,11 +491,11 @@ void STACKALIGN GatherPipeBursted()
 
 void UpdateInterrupts(u64 userdata)
 {
-    if (userdata)
+	if (userdata)
 	{
 		interruptSet = true;
-        INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
-        ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);        
+		INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
+		ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);        
 	}
 	else
 	{
@@ -504,7 +503,7 @@ void UpdateInterrupts(u64 userdata)
 		INFO_LOG(COMMANDPROCESSOR,"Interrupt cleared");
 		ProcessorInterface::SetInterrupt(INT_CAUSE_CP, false);        
 	}
-    interruptWaiting = false;
+	interruptWaiting = false;
 }
 
 void UpdateInterruptsFromVideoBackend(u64 userdata)
@@ -520,11 +519,11 @@ void AbortFrame()
 
 void SetCpStatus(bool isCPUThread)
 {
-    // overflow & underflow check
+	// overflow & underflow check
 	fifo.bFF_HiWatermark = (fifo.CPReadWriteDistance > fifo.CPHiWatermark);
-    fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
+	fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
 
-    // breakpoint     
+	// breakpoint     
 	if (!isCPUThread)
 	{
 		if (fifo.bFF_BPEnable)
@@ -562,12 +561,12 @@ void SetCpStatus(bool isCPUThread)
 	isHiWatermarkActive = ovfInt && m_CPCtrlReg.GPReadEnable;
 	isLoWatermarkActive = undfInt && m_CPCtrlReg.GPReadEnable;
 
-    if (interrupt != interruptSet && !interruptWaiting)
-    {
-        u64 userdata = interrupt?1:0;
-        if (IsOnThread())
-        {
-            if (!interrupt || bpInt || undfInt || ovfInt)
+	if (interrupt != interruptSet && !interruptWaiting)
+	{
+		u64 userdata = interrupt?1:0;
+		if (IsOnThread())
+		{
+			if (!interrupt || bpInt || undfInt || ovfInt)
 			{
 				if (!isCPUThread)
 				{
@@ -579,14 +578,14 @@ void SetCpStatus(bool isCPUThread)
 				{
 					// CPU thread:
 					interruptSet = interrupt;
-				    INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
-				    ProcessorInterface::SetInterrupt(INT_CAUSE_CP, interrupt);
+					INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
+					ProcessorInterface::SetInterrupt(INT_CAUSE_CP, interrupt);
 				}
 			}
-        }
-        else
-            CommandProcessor::UpdateInterrupts(userdata);
-    }
+		}
+		else
+			CommandProcessor::UpdateInterrupts(userdata);
+	}
 }
 
 void ProcessFifoToLoWatermark()

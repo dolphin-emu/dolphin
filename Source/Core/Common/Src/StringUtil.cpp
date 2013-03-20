@@ -435,10 +435,10 @@ template <typename T>
 std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 {
 	std::string result;
-	
+
 #if defined(ANDROID)
 	result = "Not implemented on Android!";
-	
+
 #else
 	iconv_t const conv_desc = iconv_open("UTF-8", fromcode);
 	if ((iconv_t)-1 == conv_desc)
@@ -449,7 +449,7 @@ std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 	{
 		size_t const in_bytes = sizeof(T) * input.size();
 		size_t const out_buffer_size = 4 * in_bytes;
-		
+
 		std::string out_buffer;
 		out_buffer.resize(out_buffer_size);
 
@@ -457,12 +457,12 @@ std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 		size_t src_bytes = in_bytes;
 		auto dst_buffer = &out_buffer[0];
 		size_t dst_bytes = out_buffer.size();
-		
+
 		while (src_bytes != 0)
 		{
 			size_t const iconv_result = iconv(conv_desc, (char**)(&src_buffer), &src_bytes,
 				&dst_buffer, &dst_bytes);
-			
+
 			if ((size_t)-1 == iconv_result)
 			{
 				if (EILSEQ == errno || EINVAL == errno)
@@ -512,7 +512,7 @@ std::string UTF16ToUTF8(const std::wstring& input)
 	//	CodeToUTF8("UCS-2LE", input);
 	//	CodeToUTF8("UTF-16", input);
 		CodeToUTF8("UTF-16LE", input);
-	
+
 	// TODO: why is this needed?
 	result.erase(std::remove(result.begin(), result.end(), 0x00), result.end());
 	return result;

@@ -134,6 +134,6 @@ private:
 	void WriteGetVariable(int bits, Gen::OpArg dest, void *address);
 	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
 #endif
-};									  
+};
 
 #endif

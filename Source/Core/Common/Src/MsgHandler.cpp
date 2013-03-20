@@ -102,15 +102,14 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style)
 {
 #ifdef _WIN32
-    int STYLE = MB_ICONINFORMATION;
-    if (Style == QUESTION) STYLE = MB_ICONQUESTION;
-    if (Style == WARNING) STYLE = MB_ICONWARNING;
-    
-    return IDYES == MessageBox(0, UTF8ToTStr(text).c_str(), UTF8ToTStr(caption).c_str(), STYLE | (yes_no ? MB_YESNO : MB_OK));
-    
+	int STYLE = MB_ICONINFORMATION;
+	if (Style == QUESTION) STYLE = MB_ICONQUESTION;
+	if (Style == WARNING) STYLE = MB_ICONWARNING;
+
+	return IDYES == MessageBox(0, UTF8ToTStr(text).c_str(), UTF8ToTStr(caption).c_str(), STYLE | (yes_no ? MB_YESNO : MB_OK));
 #else
-    printf("%s\n", text);
-    return true;
+	printf("%s\n", text);
+	return true;
 #endif
 }
 

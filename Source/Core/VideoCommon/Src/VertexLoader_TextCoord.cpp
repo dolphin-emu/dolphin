@@ -70,7 +70,7 @@ void LOADERDECL TexCoord_ReadDirect()
 		DataWrite(TCScale(DataRead<T>()));
 
 	LOG_TEX<N>();
-	
+
 	++tcIndex;
 }
 
@@ -82,10 +82,10 @@ void LOADERDECL TexCoord_ReadIndex()
 	auto const index = DataRead<I>();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
 		+ (index * arraystrides[ARRAY_TEXCOORD0 + tcIndex]));
-	
+
 	for (int i = 0; i != N; ++i)
 		DataWrite(TCScale(Common::FromBigEndian(data[i])));
-	
+
 	LOG_TEX<N>();
 	++tcIndex;
 }
@@ -97,7 +97,7 @@ template <typename I>
 void LOADERDECL TexCoord_ReadIndex_Short2_SSE4()
 {
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
-	
+
 	// Heavy in ZWW
 	auto const index = DataRead<I>();
 	const s32 *pData = (const s32*)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
@@ -121,7 +121,7 @@ template <typename I>
 void LOADERDECL TexCoord_ReadIndex_Float2_SSSE3()
 {
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
-	
+
 	auto const index = DataRead<I>();
 	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
 	GC_ALIGNED128(const __m128i a = _mm_loadl_epi64((__m128i*)pData));

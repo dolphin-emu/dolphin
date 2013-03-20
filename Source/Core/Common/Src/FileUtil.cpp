@@ -190,7 +190,7 @@ bool CreateFullPath(const std::string &fullPath)
 {
 	int panicCounter = 100;
 	INFO_LOG(COMMON, "CreateFullPath: path %s", fullPath.c_str());
-		
+
 	if (File::Exists(fullPath))
 	{
 		INFO_LOG(COMMON, "CreateFullPath: path exists %s", fullPath.c_str());
@@ -206,7 +206,7 @@ bool CreateFullPath(const std::string &fullPath)
 		// we're done, yay!
 		if (position == fullPath.npos)
 			return true;
-		
+
 		// Include the '/' so the first call is CreateDir("/") rather than CreateDir("")
 		std::string const subPath(fullPath.substr(0, position + 1));
 		if (!File::IsDirectory(subPath))
@@ -486,7 +486,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 	return foundEntries;
 }
 
-	
+
 // Deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string &directory)
 {
@@ -501,7 +501,7 @@ bool DeleteDirRecursively(const std::string &directory)
 		FindClose(hFind);
 		return false;
 	}
-		
+
 	// windows loop
 	do
 	{
@@ -532,7 +532,7 @@ bool DeleteDirRecursively(const std::string &directory)
 				#ifndef _WIN32
 				closedir(dirp);
 				#endif
-				
+
 				return false;
 			}
 		}
@@ -543,7 +543,7 @@ bool DeleteDirRecursively(const std::string &directory)
 				#ifndef _WIN32
 				closedir(dirp);
 				#endif
-				
+
 				return false;
 			}
 		}
@@ -605,7 +605,7 @@ std::string GetCurrentDir()
 	if (!(dir = __getcwd(NULL, 0))) {
 
 		ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s",
-				  GetLastErrorMsg());
+				GetLastErrorMsg());
 		return NULL;
 	}
 	std::string strDir = dir;
@@ -849,7 +849,7 @@ bool IOFile::Seek(s64 off, int origin)
 }
 
 u64 IOFile::Tell()
-{	
+{
 	if (IsOpen())
 		return ftello(m_file);
 	else

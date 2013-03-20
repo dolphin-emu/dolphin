@@ -122,7 +122,7 @@ void DSound::SoundLoop()
 bool DSound::Start()
 {
 	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
-        return false;
+		return false;
 	if (hWnd)
 	{
 		HRESULT hr = ds->SetCooperativeLevel((HWND)hWnd, DSSCL_PRIORITY);

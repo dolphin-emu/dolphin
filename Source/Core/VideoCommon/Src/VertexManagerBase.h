@@ -45,10 +45,10 @@ public:
 	virtual void DestroyDeviceObjects(){};
 	
 protected:
- 	u16* GetTriangleIndexBuffer() { return &TIBuffer[0]; }
- 	u16* GetLineIndexBuffer() { return &LIBuffer[0]; }
- 	u16* GetPointIndexBuffer() { return &PIBuffer[0]; }
- 	u8* GetVertexBuffer() { return &s_pBaseBufferPointer[0]; }
+	u16* GetTriangleIndexBuffer() { return &TIBuffer[0]; }
+	u16* GetLineIndexBuffer() { return &LIBuffer[0]; }
+	u16* GetPointIndexBuffer() { return &PIBuffer[0]; }
+	u8* GetVertexBuffer() { return &s_pBaseBufferPointer[0]; }
 
 	virtual void vDoState(PointerWrap& p) { DoStateShared(p); }
 	void DoStateShared(PointerWrap& p);

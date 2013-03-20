@@ -60,12 +60,12 @@ const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr
 	m_realXFBSource->texHeight = fbHeight;
 
 	// TODO: stuff only used by OGL... :/
-    // OpenGL texture coordinates originate at the lower left, which is why
-    // sourceRc.top = fbHeight and sourceRc.bottom = 0.
-    m_realXFBSource->sourceRc.left = 0;
-    m_realXFBSource->sourceRc.top = fbHeight;
-    m_realXFBSource->sourceRc.right = fbWidth;
-    m_realXFBSource->sourceRc.bottom = 0;
+	// OpenGL texture coordinates originate at the lower left, which is why
+	// sourceRc.top = fbHeight and sourceRc.bottom = 0.
+	m_realXFBSource->sourceRc.left = 0;
+	m_realXFBSource->sourceRc.top = fbHeight;
+	m_realXFBSource->sourceRc.right = fbWidth;
+	m_realXFBSource->sourceRc.bottom = 0;
 
 	// Decode YUYV data from GameCube RAM
 	m_realXFBSource->DecodeToTexture(xfbAddr, fbWidth, fbHeight);

@@ -126,8 +126,8 @@ bool bbox_active;
 
 enum
 {
-    INT_CAUSE_PE_TOKEN    =  0x200, // GP Token
-    INT_CAUSE_PE_FINISH   =  0x400, // GP Finished
+	INT_CAUSE_PE_TOKEN    =  0x200, // GP Token
+	INT_CAUSE_PE_FINISH   =  0x400, // GP Finished
 };
 
 void DoState(PointerWrap &p)

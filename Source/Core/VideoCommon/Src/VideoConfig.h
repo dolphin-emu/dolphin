@@ -99,12 +99,12 @@ struct VideoConfig
 	bool bTexFmtOverlayCenter;
 	bool bShowEFBCopyRegions;
 	bool bLogFPSToFile;
-	
+
 	// Render
 	bool bWireFrame;
 	bool bDstAlphaPass;
 	bool bDisableFog;
-	
+
 	// Utility
 	bool bDumpTextures;
 	bool bHiresTextures;
@@ -164,7 +164,7 @@ struct VideoConfig
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
-		
+
 		bool bSupportsGLSLUBO;
 		bool bSupportsGLSLCache;
 		bool bSupportsGLPinnedMemory;
@@ -172,11 +172,11 @@ struct VideoConfig
 		bool bSupportsGLBaseVertex;
 	} backend_info;
 
-    // Utility
-    bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
-    bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
-    bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
-    bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
+	// Utility
+	bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
+	bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
+	bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
+	bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
 };
 
 extern VideoConfig g_Config;

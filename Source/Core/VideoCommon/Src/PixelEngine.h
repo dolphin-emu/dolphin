@@ -24,13 +24,13 @@ class PointerWrap;
 // internal hardware addresses
 enum
 {
-	PE_ZCONF         = 0x00, // Z Config
-	PE_ALPHACONF     = 0x02, // Alpha Config
-	PE_DSTALPHACONF  = 0x04, // Destination Alpha Config
-	PE_ALPHAMODE     = 0x06, // Alpha Mode Config
-	PE_ALPHAREAD     = 0x08, // Alpha Read
+	PE_ZCONF		 = 0x00, // Z Config
+	PE_ALPHACONF	 = 0x02, // Alpha Config
+	PE_DSTALPHACONF	 = 0x04, // Destination Alpha Config
+	PE_ALPHAMODE	 = 0x06, // Alpha Mode Config
+	PE_ALPHAREAD	 = 0x08, // Alpha Read
 	PE_CTRL_REGISTER = 0x0a, // Control
-	PE_TOKEN_REG     = 0x0e, // Token
+	PE_TOKEN_REG	 = 0x0e, // Token
 	PE_BBOX_LEFT	 = 0x10, // Flip Left
 	PE_BBOX_RIGHT	 = 0x12, // Flip Right
 	PE_BBOX_TOP		 = 0x14, // Flip Top

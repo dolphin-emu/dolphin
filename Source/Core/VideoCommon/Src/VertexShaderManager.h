@@ -43,7 +43,7 @@ public:
 	static void Dirty();
 	static void Shutdown();
 	static void DoState(PointerWrap &p);
-;
+
 	// constant management
 	static void SetConstants();
 

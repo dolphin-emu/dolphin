@@ -111,17 +111,17 @@ struct CachedDisplayList
 	u32 num_cp_reg;
 	u32 num_bp_reg; 
 	u32 num_index_xf;
-	u32 num_draw_call;	
+	u32 num_draw_call;
 	u32 pass;
 	u32 check;
-	int frame_count;	
+	int frame_count;
 	u32 BufferCount;
 
 	void InsertRegion(ReferencedDataRegion* NewRegion)
 	{
 		if(LastRegion)
 		{
-			LastRegion->NextRegion = NewRegion;			
+			LastRegion->NextRegion = NewRegion;
 		}
 		LastRegion = NewRegion;
 		if(!Regions)
@@ -174,7 +174,7 @@ struct CachedDisplayList
 			Current = Current->NextRegion;
 		}
 		return true;
-	}	
+	}
 
 	ReferencedDataRegion* FindOverlapingRegion(u8* RegionStart, u32 Regionsize)
 	{
@@ -182,7 +182,7 @@ struct CachedDisplayList
 		while(Current)
 		{
 			if(!Current->IntersectsMemoryRange(RegionStart, Regionsize))
-					return Current;			
+					return Current;
 			Current = Current->NextRegion;
 		}
 		return Current;
@@ -330,7 +330,7 @@ u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 					u32 addr = DataReadU32();
 					u32 count = DataReadU32();
 					ExecuteDisplayList(addr, count);
-				}			
+				}
 				break;
 			case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
 				DEBUG_LOG(VIDEO, "GX 0x44: %08x", cmd_byte);
@@ -392,7 +392,7 @@ u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 	dl->num_draw_call = num_draw_call;
 	dl->num_index_xf = num_index_xf;
 	dl->num_xf_reg = num_xf_reg;
-    // reset to the old pointer
+	// reset to the old pointer
 	g_pVideoData = old_pVideoData;	
 	return result;
 }
@@ -458,7 +458,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 					NewRegion->MustClean = true;
 					NewRegion->size = transfer_size * 4;
 					NewRegion->start_address = (u8*) new u8[NewRegion->size+15+12];  // alignment and guaranteed space
-					NewRegion->hash = 0;					
+					NewRegion->hash = 0;
 					dl->InsertRegion(NewRegion);
 					u32 *data_buffer = (u32*)(u8*)(((size_t)NewRegion->start_address+0xf)&~0xf);
 					DataReadU32xFuncs[transfer_size-1](data_buffer);
@@ -539,7 +539,6 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 				if (cmd_byte & 0x80)
 				{
 					// load vertices (use computed vertex size from FifoCommandRunnable above)
-					
 					u16 numVertices = DataReadU16();
 					if(numVertices > 0)
 					{
@@ -558,7 +557,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 							NewRegion->MustClean = true;
 							NewRegion->size = Vdatasize;
 							NewRegion->start_address = (u8*)new u8[Vdatasize]; 
-							NewRegion->hash = 0;					
+							NewRegion->hash = 0;
 							dl->InsertRegion(NewRegion);
 							memcpy(NewRegion->start_address, StartAddress, Vdatasize);
 							emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices, cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewRegion->start_address);
@@ -577,7 +576,6 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 							}
 						}
 					}
-					
 				}
 				else
 				{
@@ -626,7 +624,7 @@ void Clear()
 	}
 	dl_map.clear();
 	// Reset the cache pointers.
-	emitter.SetCodePtr(dlcode_cache);	
+	emitter.SetCodePtr(dlcode_cache);
 }
 
 void ProgressiveCleanup()
@@ -684,14 +682,14 @@ bool HandleDisplayList(u32 address, u32 size)
 	{
 		vhash = DLCache::CreateVMapId(Parentiter->second.VATUsed);
 		iter = 	Parentiter->second.dl_map.find(vhash);
-		childexist = iter != Parentiter->second.dl_map.end();		
+		childexist = iter != Parentiter->second.dl_map.end();
 	}
 	if (Parentiter != DLCache::dl_map.end() && childexist)
 	{
 		DLCache::CachedDisplayList &dl = iter->second;
 		if (dl.uncachable)
 		{
-			return false;			
+			return false;
 		}
 
 		switch (dl.pass)
@@ -700,7 +698,7 @@ bool HandleDisplayList(u32 address, u32 size)
 			// First, check that the hash is the same as the last time.
 			if (dl.dl_hash != GetHash64(Memory::GetPointer(address), size, 0))
 			{
-				dl.uncachable = true;				
+				dl.uncachable = true;
 				return false;
 			}
 			DLCache::CompileAndRunDisplayList(address, size, &dl);
@@ -717,7 +715,7 @@ bool HandleDisplayList(u32 address, u32 size)
 				if (DlistChanged) 
 				{
 					dl.uncachable = true;
-					dl.ClearRegions();						
+					dl.ClearRegions();
 					return false;
 				}
 				dl.frame_count= frameCount;
@@ -764,10 +762,9 @@ bool HandleDisplayList(u32 address, u32 size)
 		vdl.VATUsed = dlvatused; 
 		vdl.count = 1;
 		DLCache::dl_map[dl_id] = vdl;
-
 	}
+
 	return true;
-	
 }
 
 void IncrementCheckContextId()

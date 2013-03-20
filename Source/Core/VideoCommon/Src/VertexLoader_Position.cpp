@@ -87,10 +87,10 @@ template <typename T, int N>
 void LOADERDECL Pos_ReadDirect()
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
-	
+
 	for (int i = 0; i < 3; ++i)
 		DataWrite(i<N ? PosScale(DataRead<T>()) : 0.f);
-	
+
 	LOG_VTX();
 }
 
@@ -99,15 +99,15 @@ void LOADERDECL Pos_ReadIndex()
 {
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
 	static_assert(N <= 3, "N > 3 is not sane!");
-	
+
 	auto const index = DataRead<I>();
 	if (index < std::numeric_limits<I>::max())
 	{
 		auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
-		
+
 		for (int i = 0; i < 3; ++i)
 			DataWrite(i<N ? PosScale(Common::FromBigEndian(data[i])) : 0.f);
-		
+
 		LOG_VTX();
 	}
 }

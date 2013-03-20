@@ -374,38 +374,38 @@ static const char *tevOpTable[] = { // TEV
 
 static const char *tevCInputTable[] = // CC
 {
-	"(prev.rgb)",               // CPREV,
+	"(prev.rgb)",         // CPREV,
 	"(prev.aaa)",         // APREV,
-	"(c0.rgb)",                 // C0,
+	"(c0.rgb)",           // C0,
 	"(c0.aaa)",           // A0,
-	"(c1.rgb)",                 // C1,
+	"(c1.rgb)",           // C1,
 	"(c1.aaa)",           // A1,
-	"(c2.rgb)",                 // C2,
+	"(c2.rgb)",           // C2,
 	"(c2.aaa)",           // A2,
-	"(textemp.rgb)",            // TEXC,
+	"(textemp.rgb)",      // TEXC,
 	"(textemp.aaa)",      // TEXA,
-	"(rastemp.rgb)",            // RASC,
+	"(rastemp.rgb)",      // RASC,
 	"(rastemp.aaa)",      // RASA,
 	"float3(1.0f, 1.0f, 1.0f)",              // ONE
-	"float3(0.5f, 0.5f, 0.5f)",                 // HALF
-	"(konsttemp.rgb)", //"konsttemp.rgb",        // KONST
+	"float3(0.5f, 0.5f, 0.5f)",              // HALF
+	"(konsttemp.rgb)", //"konsttemp.rgb",    // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
 	///aded extra values to map clamped values
-	"(cprev.rgb)",               // CPREV,
-	"(cprev.aaa)",         // APREV,
-	"(cc0.rgb)",                 // C0,
-	"(cc0.aaa)",           // A0,
-	"(cc1.rgb)",                 // C1,
-	"(cc1.aaa)",           // A1,
-	"(cc2.rgb)",                 // C2,
-	"(cc2.aaa)",           // A2,
-	"(textemp.rgb)",            // TEXC,
+	"(cprev.rgb)",        // CPREV,
+	"(cprev.aaa)",        // APREV,
+	"(cc0.rgb)",          // C0,
+	"(cc0.aaa)",          // A0,
+	"(cc1.rgb)",          // C1,
+	"(cc1.aaa)",          // A1,
+	"(cc2.rgb)",          // C2,
+	"(cc2.aaa)",          // A2,
+	"(textemp.rgb)",      // TEXC,
 	"(textemp.aaa)",      // TEXA,
-	"(crastemp.rgb)",            // RASC,
-	"(crastemp.aaa)",      // RASA,
+	"(crastemp.rgb)",     // RASC,
+	"(crastemp.aaa)",     // RASA,
 	"float3(1.0f, 1.0f, 1.0f)",              // ONE
-	"float3(0.5f, 0.5f, 0.5f)",                 // HALF
-	"(ckonsttemp.rgb)", //"konsttemp.rgb",        // KONST
+	"float3(0.5f, 0.5f, 0.5f)",              // HALF
+	"(ckonsttemp.rgb)", //"konsttemp.rgb",   // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
 	"PADERROR1", "PADERROR2", "PADERROR3", "PADERROR4"
 };
@@ -425,7 +425,7 @@ static const char *tevAInputTable[] = // CA
 	"cc0",              // A0,
 	"cc1",              // A1,
 	"cc2",              // A2,
-	"textemp",         // TEXA,
+	"textemp",          // TEXA,
 	"crastemp",         // RASA,
 	"ckonsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO

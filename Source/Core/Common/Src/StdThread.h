@@ -88,7 +88,7 @@ public:
 		{
 			return !(*this == rhs);
 		}
-		
+
 		bool operator<(const id& rhs) const
 		{
 			return m_thread < rhs.m_thread;

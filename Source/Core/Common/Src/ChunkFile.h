@@ -69,7 +69,7 @@ public:
 	{
 		u32 count = (u32)x.size();
 		Do(count);
-		
+
 		switch (mode)
 		{
 		case MODE_READ:
@@ -81,7 +81,7 @@ public:
 				x.insert(pair);
 			}
 			break;
-		
+
 		case MODE_WRITE:
 		case MODE_MEASURE:
 		case MODE_VERIFY:
@@ -93,14 +93,14 @@ public:
 			break;
 		}
 	}
-	
+
 	template <typename T>
 	void DoContainer(T& x)
 	{
 		u32 size = (u32)x.size();
 		Do(size);
 		x.resize(size);
-		
+
 		for (auto itr = x.begin(); itr != x.end(); ++itr)
 			Do(*itr);
 	}
@@ -110,32 +110,32 @@ public:
 	{
 		DoContainer(x);
 	}
-	
+
 	template <typename T>
 	void Do(std::list<T>& x)
 	{
 		DoContainer(x);
 	}
-	
+
 	template <typename T>
 	void Do(std::deque<T>& x)
 	{
 		DoContainer(x);
 	}
-	
+
 	template <typename T>
 	void Do(std::basic_string<T>& x)
 	{
 		DoContainer(x);
 	}
 
-    template <typename T>
+	template <typename T>
 	void DoArray(T* x, u32 count)
 	{
 		for (u32 i = 0; i != count; ++i)
 			Do(x[i]);
-    }
-	
+	}
+
 	template <typename T>
 	void Do(T& x)
 	{
@@ -220,7 +220,7 @@ public:
 	{
 		u32 cookie = arbitraryNumber;
 		Do(cookie);
-		
+
 		if (mode == PointerWrap::MODE_READ && cookie != arbitraryNumber)
 		{
 			PanicAlertT("Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load...",
@@ -228,7 +228,7 @@ public:
 			mode = PointerWrap::MODE_MEASURE;
 		}
 	}
-	
+
 private:
 	__forceinline void DoByte(u8& x)
 	{
@@ -237,27 +237,27 @@ private:
 		case MODE_READ:
 			x = **ptr;
 			break;
-			
+
 		case MODE_WRITE:
 			**ptr = x;
 			break;
-			
+
 		case MODE_MEASURE:
 			break;
-			
+
 		case MODE_VERIFY:
 			_dbg_assert_msg_(COMMON, (x == **ptr),
 				"Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n",
 					x, x, &x, **ptr, **ptr, *ptr);
 			break;
-			
+
 		default:
 			break;
 		}
-			
+
 		++(*ptr);
 	}
-	
+
 	void DoVoid(void *data, u32 size)
 	{
 		for(u32 i = 0; i != size; ++i)
@@ -300,7 +300,7 @@ public:
 			ERROR_LOG(COMMON,"ChunkReader: Bad header size");
 			return false;
 		}
-		
+
 		// Check revision
 		if (header.Revision != _Revision)
 		{
@@ -308,7 +308,7 @@ public:
 				header.Revision, _Revision);
 			return false;
 		}
-		
+
 		// get size
 		const u32 sz = (u32)(fileSize - headerSize);
 		if (header.ExpectedSize != sz)
@@ -317,7 +317,7 @@ public:
 				sz, header.ExpectedSize);
 			return false;
 		}
-		
+
 		// read the state
 		std::vector<u8> buffer(sz);
 		if (!pFile.ReadArray(&buffer[0], sz))
@@ -333,7 +333,7 @@ public:
 		INFO_LOG(COMMON, "ChunkReader: Done loading %s" , _rFilename.c_str());
 		return true;
 	}
-	
+
 	// Save file template
 	template<class T>
 	static bool Save(const std::string& _rFilename, u32 _Revision, T& _class)
@@ -355,12 +355,12 @@ public:
 		ptr = &buffer[0];
 		p.SetMode(PointerWrap::MODE_WRITE);
 		_class.DoState(p);
-		
+
 		// Create header
 		SChunkHeader header;
 		header.Revision = _Revision;
 		header.ExpectedSize = (u32)sz;
-		
+
 		// Write to file
 		if (!pFile.WriteArray(&header, 1))
 		{
@@ -373,11 +373,11 @@ public:
 			ERROR_LOG(COMMON,"ChunkReader: Failed writing data");
 			return false;
 		}
-		
+
 		INFO_LOG(COMMON,"ChunkReader: Done writing %s", _rFilename.c_str());
 		return true;
 	}
-	
+
 private:
 	struct SChunkHeader
 	{

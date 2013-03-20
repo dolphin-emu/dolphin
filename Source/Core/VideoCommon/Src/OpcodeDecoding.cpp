@@ -123,7 +123,7 @@ void InterpretDisplayList(u32 address, u32 size)
 		Statistics::SwapDL();
 	}
 
-    // reset to the old pointer
+	// reset to the old pointer
 	g_pVideoData = old_pVideoData;
 }
 
@@ -140,14 +140,14 @@ u32 FifoCommandRunnable(u32 &command_size)
 {
 	u32 cycleTime = 0;
 	u32 buffer_size = (u32)(GetVideoBufferEndPtr() - g_pVideoData);
-    if (buffer_size == 0)
+	if (buffer_size == 0)
 		return 0;  // can't peek
 
 	u8 cmd_byte = DataPeek8(0);	
 
-    switch (cmd_byte)
-    {
-    case GX_NOP: // Hm, this means that we scan over nop streams pretty slowly...
+	switch (cmd_byte)
+	{
+	case GX_NOP: // Hm, this means that we scan over nop streams pretty slowly...
 		command_size = 1;
 		cycleTime = 6;
 		break;
@@ -155,30 +155,30 @@ u32 FifoCommandRunnable(u32 &command_size)
 		command_size = 1;
 		cycleTime = 6;
 		break;
-    case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
-        command_size = 1;
+	case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
+		command_size = 1;
 		cycleTime = 6;
-        break;
+		break;
 
-	case GX_LOAD_BP_REG:	
-        command_size = 5;
+	case GX_LOAD_BP_REG:
+		command_size = 5;
 		cycleTime = 12;
-        break;
+		break;
 
-    case GX_LOAD_CP_REG:
-        command_size = 6;
+	case GX_LOAD_CP_REG:
+		command_size = 6;
 		cycleTime = 12;
-        break;
+		break;
 
-    case GX_LOAD_INDX_A:
-    case GX_LOAD_INDX_B:
-    case GX_LOAD_INDX_C:
-    case GX_LOAD_INDX_D:
-        command_size = 5;
+	case GX_LOAD_INDX_A:
+	case GX_LOAD_INDX_B:
+	case GX_LOAD_INDX_C:
+	case GX_LOAD_INDX_D:
+		command_size = 5;
 		cycleTime = 6; // TODO
-        break;
+		break;
 
-    case GX_CMD_CALL_DL:
+	case GX_CMD_CALL_DL:
 		{
 			// FIXME: Calculate the cycle time of the display list.
 			//u32 address = DataPeek32(1);
@@ -208,42 +208,42 @@ u32 FifoCommandRunnable(u32 &command_size)
 			command_size = 9;
 			cycleTime = 45;  // This is unverified
 		}
-        break;
+		break;
 
-    case GX_LOAD_XF_REG:
-        {
-            // check if we can read the header
-            if (buffer_size >= 5)
-			{				
-                command_size = 1 + 4;
-                u32 Cmd2 = DataPeek32(1);
-                int transfer_size = ((Cmd2 >> 16) & 15) + 1;
-                command_size += transfer_size * 4;
+	case GX_LOAD_XF_REG:
+		{
+			// check if we can read the header
+			if (buffer_size >= 5)
+			{
+				command_size = 1 + 4;
+				u32 Cmd2 = DataPeek32(1);
+				int transfer_size = ((Cmd2 >> 16) & 15) + 1;
+				command_size += transfer_size * 4;
 				cycleTime = 18 + 6 * transfer_size;
-            }
-            else
+			}
+			else
 			{
-                return 0;
-            }			
-        }
-        break;
+				return 0;
+			}
+		}
+		break;
 
-    default:
-        if (cmd_byte & 0x80)
-        {				
-            // check if we can read the header
-            if (buffer_size >= 3)
+	default:
+		if (cmd_byte & 0x80)
+		{
+			// check if we can read the header
+			if (buffer_size >= 3)
 			{
-                command_size = 1 + 2;
-                u16 numVertices = DataPeek16(1);
+				command_size = 1 + 2;
+				u16 numVertices = DataPeek16(1);
 				command_size += numVertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK);
 				cycleTime = 1600; // This depends on the number of pixels rendered
-            }
+			}
 			else
-			{				
-                return 0;
-            }
-        }
+			{
+				return 0;
+			}
+		}
 		else
 		{
 			// TODO(Omega): Maybe dump FIFO to file on this error
@@ -258,7 +258,7 @@ u32 FifoCommandRunnable(u32 &command_size)
 			Host_SysMessage(szTemp);
 			INFO_LOG(VIDEO, "%s", szTemp);
 			{
-                SCPFifoStruct &fifo = CommandProcessor::fifo;
+				SCPFifoStruct &fifo = CommandProcessor::fifo;
 
 				char szTmp[512];
 				// sprintf(szTmp, "Illegal command %02x (at %08x)",cmd_byte,g_pDataReader->GetPtr());
@@ -283,18 +283,18 @@ u32 FifoCommandRunnable(u32 &command_size)
 				Host_SysMessage(szTmp);
 				INFO_LOG(VIDEO, "%s", szTmp);
 			}
-        }
-        break;
-    }
-    
-    if (command_size > buffer_size)
-        return 0;
+		}
+		break;
+	}
 
-    // INFO_LOG("OP detected: cmd_byte 0x%x  size %i  buffer %i",cmd_byte, command_size, buffer_size);
+	if (command_size > buffer_size)
+		return 0;
+
+	// INFO_LOG("OP detected: cmd_byte 0x%x  size %i  buffer %i",cmd_byte, command_size, buffer_size);
 	if (cycleTime == 0)
 		cycleTime = 6;
 
-    return cycleTime;
+	return cycleTime;
 }
 
 u32 FifoCommandRunnable()
@@ -305,92 +305,92 @@ u32 FifoCommandRunnable()
 
 static void Decode()
 {
-    u8 *opcodeStart = g_pVideoData;
+	u8 *opcodeStart = g_pVideoData;
 
-    int cmd_byte = DataReadU8();
-    switch (cmd_byte)
-    {
-    case GX_NOP:
-        break;
+	int cmd_byte = DataReadU8();
+	switch (cmd_byte)
+	{
+	case GX_NOP:
+		break;
 
-    case GX_LOAD_CP_REG: //0x08
-        {
-            u8 sub_cmd = DataReadU8();
-            u32 value = DataReadU32();
-            LoadCPReg(sub_cmd, value);
+	case GX_LOAD_CP_REG: //0x08
+		{
+			u8 sub_cmd = DataReadU8();
+			u32 value = DataReadU32();
+			LoadCPReg(sub_cmd, value);
 			INCSTAT(stats.thisFrame.numCPLoads);
-        }
-        break;
+		}
+		break;
 
-    case GX_LOAD_XF_REG:
-        {
-            u32 Cmd2 = DataReadU32();
-            int transfer_size = ((Cmd2 >> 16) & 15) + 1;
+	case GX_LOAD_XF_REG:
+		{
+			u32 Cmd2 = DataReadU32();
+			int transfer_size = ((Cmd2 >> 16) & 15) + 1;
 			u32 xf_address = Cmd2 & 0xFFFF;
 			GC_ALIGNED128(u32 data_buffer[16]);
 			DataReadU32xFuncs[transfer_size-1](data_buffer);
-            LoadXFReg(transfer_size, xf_address, data_buffer);
+			LoadXFReg(transfer_size, xf_address, data_buffer);
 
 			INCSTAT(stats.thisFrame.numXFLoads);
-        }
-        break;
+		}
+		break;
 
-    case GX_LOAD_INDX_A: //used for position matrices
-        LoadIndexedXF(DataReadU32(), 0xC);
-        break;
-    case GX_LOAD_INDX_B: //used for normal matrices
-        LoadIndexedXF(DataReadU32(), 0xD);
-        break;
-    case GX_LOAD_INDX_C: //used for postmatrices
-        LoadIndexedXF(DataReadU32(), 0xE);
-        break;
-    case GX_LOAD_INDX_D: //used for lights
-        LoadIndexedXF(DataReadU32(), 0xF);
-        break;
+	case GX_LOAD_INDX_A: //used for position matrices
+		LoadIndexedXF(DataReadU32(), 0xC);
+		break;
+	case GX_LOAD_INDX_B: //used for normal matrices
+		LoadIndexedXF(DataReadU32(), 0xD);
+		break;
+	case GX_LOAD_INDX_C: //used for postmatrices
+		LoadIndexedXF(DataReadU32(), 0xE);
+		break;
+	case GX_LOAD_INDX_D: //used for lights
+		LoadIndexedXF(DataReadU32(), 0xF);
+		break;
 
-    case GX_CMD_CALL_DL:
-        {
-            u32 address = DataReadU32();
-            u32 count = DataReadU32();
-            ExecuteDisplayList(address, count);
-        }			
-        break;
+	case GX_CMD_CALL_DL:
+		{
+			u32 address = DataReadU32();
+			u32 count = DataReadU32();
+			ExecuteDisplayList(address, count);
+		}			
+		break;
 
-    case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
+	case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
 		DEBUG_LOG(VIDEO, "GX 0x44: %08x", cmd_byte);
-        break;
+		break;
 
-    case GX_CMD_INVL_VC: // Invalidate Vertex Cache	
-        DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
-        break;
+	case GX_CMD_INVL_VC: // Invalidate Vertex Cache	
+		DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
+		break;
 
-    case GX_LOAD_BP_REG: //0x61
-        {
+	case GX_LOAD_BP_REG: //0x61
+		{
 			u32 bp_cmd = DataReadU32();
-            LoadBPReg(bp_cmd);
+			LoadBPReg(bp_cmd);
 			INCSTAT(stats.thisFrame.numBPLoads);
-        }
-        break;
+		}
+		break;
 
-    // draw primitives 
-    default:
-        if (cmd_byte & 0x80)
-        {
-            // load vertices (use computed vertex size from FifoCommandRunnable above)
+	// draw primitives 
+	default:
+		if (cmd_byte & 0x80)
+		{
+			// load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();
 
 			VertexLoaderManager::RunVertices(
 				cmd_byte & GX_VAT_MASK,   // Vertex loader index (0 - 7)
 				(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 				numVertices);
-        }
-        else
-        {
+		}
+		else
+		{
 			ERROR_LOG(VIDEO, "OpcodeDecoding::Decode: Illegal command %02x", cmd_byte);
-            break;
-        }
-        break;
-    }
+			break;
+		}
+		break;
+	}
 
 	// Display lists get added directly into the FIFO stream
 	if (g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
@@ -399,89 +399,89 @@ static void Decode()
 
 static void DecodeSemiNop()
 {
-    u8 *opcodeStart = g_pVideoData;
+	u8 *opcodeStart = g_pVideoData;
 
-    int cmd_byte = DataReadU8();
-    switch (cmd_byte)
-    {
-    case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
-    case GX_CMD_INVL_VC: // Invalidate Vertex Cache	
-    case GX_NOP:
+	int cmd_byte = DataReadU8();
+	switch (cmd_byte)
+	{
+	case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
+	case GX_CMD_INVL_VC: // Invalidate Vertex Cache	
+	case GX_NOP:
 		break;
 
 	case GX_LOAD_CP_REG: //0x08
 		// We have to let CP writes through because they determine the size of vertices.
-        {
-            u8 sub_cmd = DataReadU8();
-            u32 value = DataReadU32();
-            LoadCPReg(sub_cmd, value);
-            INCSTAT(stats.thisFrame.numCPLoads);
-        }
-        break;
+		{
+			u8 sub_cmd = DataReadU8();
+			u32 value = DataReadU32();
+			LoadCPReg(sub_cmd, value);
+			INCSTAT(stats.thisFrame.numCPLoads);
+		}
+		break;
 
-    case GX_LOAD_XF_REG:
-        {
-            u32 Cmd2 = DataReadU32();
-            int transfer_size = ((Cmd2 >> 16) & 15) + 1;
-            u32 address = Cmd2 & 0xFFFF;
-            GC_ALIGNED128(u32 data_buffer[16]);
-            DataReadU32xFuncs[transfer_size-1](data_buffer);
-            LoadXFReg(transfer_size, address, data_buffer);
-            INCSTAT(stats.thisFrame.numXFLoads);
-        }
-        break;
+	case GX_LOAD_XF_REG:
+		{
+			u32 Cmd2 = DataReadU32();
+			int transfer_size = ((Cmd2 >> 16) & 15) + 1;
+			u32 address = Cmd2 & 0xFFFF;
+			GC_ALIGNED128(u32 data_buffer[16]);
+			DataReadU32xFuncs[transfer_size-1](data_buffer);
+			LoadXFReg(transfer_size, address, data_buffer);
+			INCSTAT(stats.thisFrame.numXFLoads);
+		}
+		break;
 
-    case GX_LOAD_INDX_A: //used for position matrices
-        LoadIndexedXF(DataReadU32(), 0xC);
-        break;
-    case GX_LOAD_INDX_B: //used for normal matrices
-        LoadIndexedXF(DataReadU32(), 0xD);
-        break;
-    case GX_LOAD_INDX_C: //used for postmatrices
-        LoadIndexedXF(DataReadU32(), 0xE);
-        break;
-    case GX_LOAD_INDX_D: //used for lights
-        LoadIndexedXF(DataReadU32(), 0xF);
-        break;
+	case GX_LOAD_INDX_A: //used for position matrices
+		LoadIndexedXF(DataReadU32(), 0xC);
+		break;
+	case GX_LOAD_INDX_B: //used for normal matrices
+		LoadIndexedXF(DataReadU32(), 0xD);
+		break;
+	case GX_LOAD_INDX_C: //used for postmatrices
+		LoadIndexedXF(DataReadU32(), 0xE);
+		break;
+	case GX_LOAD_INDX_D: //used for lights
+		LoadIndexedXF(DataReadU32(), 0xF);
+		break;
 
-    case GX_CMD_CALL_DL:
+	case GX_CMD_CALL_DL:
 		// Hm, wonder if any games put tokens in display lists - in that case, 
 		// we'll have to parse them too.
-        DataSkip(8);
-        break;
+		DataSkip(8);
+		break;
 
-    case GX_LOAD_BP_REG: //0x61
+	case GX_LOAD_BP_REG: //0x61
 		// We have to let BP writes through because they set tokens and stuff.
 		// TODO: Call a much simplified LoadBPReg instead.
-        {
+		{
 			u32 bp_cmd = DataReadU32();
-            LoadBPReg(bp_cmd);
+			LoadBPReg(bp_cmd);
 			INCSTAT(stats.thisFrame.numBPLoads);
-        }
-        break;
+		}
+		break;
 
-    // draw primitives 
-    default:
-        if (cmd_byte & 0x80)
-        {
-            // load vertices (use computed vertex size from FifoCommandRunnable above)
+	// draw primitives 
+	default:
+		if (cmd_byte & 0x80)
+		{
+			// load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();
 			DataSkip(numVertices * VertexLoaderManager::GetVertexSize(cmd_byte & GX_VAT_MASK));
-        }
-        else
-        {
+		}
+		else
+		{
 			ERROR_LOG(VIDEO, "OpcodeDecoding::Decode: Illegal command %02x", cmd_byte);
-            break;
-        }
-        break;
-    }
+			break;
+		}
+		break;
+	}
 
 	if (g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
 		FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(g_pVideoData - opcodeStart));
 }
 
 void OpcodeDecoder_Init()
-{	
+{
 	g_pVideoData = GetVideoBufferStartPtr();
 
 #if _M_SSE >= 0x301
@@ -494,8 +494,8 @@ void OpcodeDecoder_Init()
 
 	if (g_Config.bEnableOpenCL)
 	{
-	    OpenCL::Initialize();
-	    TexDecoder_OpenCL_Initialize();
+		OpenCL::Initialize();
+		TexDecoder_OpenCL_Initialize();
 	}
 }
 
@@ -504,8 +504,8 @@ void OpcodeDecoder_Shutdown()
 {
 	if (g_Config.bEnableOpenCL)
 	{
-	    TexDecoder_OpenCL_Shutdown();
-	    OpenCL::Destroy();
+		TexDecoder_OpenCL_Shutdown();
+		OpenCL::Destroy();
 	}
 }
 

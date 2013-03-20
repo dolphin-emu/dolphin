@@ -174,7 +174,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 
 	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
-	
+
 	bool is_d3d = (ApiType & API_D3D9 || ApiType == API_D3D11);
 	u32 lightMask = 0;
 	if (xfregs.numChan.numColorChans > 0)
@@ -184,11 +184,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 
 	char *p = text;
 	WRITE(p, "//Vertex Shader: comp:%x, \n", components);
-	
+
 	// uniforms
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140) uniform VSBlock {\n");
-		
+
 	WRITE(p, "%sfloat4 " I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
 	WRITE(p, "%sfloat4 " I_PROJECTION"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PROJECTION));	
 	WRITE(p, "%sfloat4 " I_MATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_MATERIALS));
@@ -198,10 +198,9 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	WRITE(p, "%sfloat4 " I_NORMALMATRICES"[32] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_NORMALMATRICES));
 	WRITE(p, "%sfloat4 " I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
 	WRITE(p, "%sfloat4 " I_DEPTHPARAMS" %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_DEPTHPARAMS));
-		
+
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
-	
 
 	p = GenerateVSOutputStruct(p, components, ApiType);
 
@@ -221,7 +220,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 			WRITE(p, "ATTRIN float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
 		if (components & VB_HAS_COL1)
 			WRITE(p, "ATTRIN float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
-		
+
 		for (int i = 0; i < 8; ++i) {
 			u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
 			if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
@@ -258,8 +257,8 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	}
 	else
 	{
-		WRITE(p, "VS_OUTPUT main(\n");	
-		
+		WRITE(p, "VS_OUTPUT main(\n");
+
 		// inputs
 		if (components & VB_HAS_NRM0)
 			WRITE(p, "  float3 rawnorm0 : NORMAL0,\n");
@@ -334,8 +333,6 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 
 	if (!(components & VB_HAS_NRM0))
 		WRITE(p, "float3 _norm0 = float3(0.0f, 0.0f, 0.0f);\n");
-
-	
 
 	WRITE(p, "o.pos = float4(dot(" I_PROJECTION"[0], pos), dot(" I_PROJECTION"[1], pos), dot(" I_PROJECTION"[2], pos), dot(" I_PROJECTION"[3], pos));\n");
 
@@ -506,9 +503,9 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 				WRITE(p, "o.tex7 = pos.xyzz;\n");
 			else
 				WRITE(p, "o.tex7.w = pos.z;\n");
-		}		
+		}
 		if (components & VB_HAS_COL0)
-			WRITE(p, "o.colors_0 = color0;\n");		
+			WRITE(p, "o.colors_0 = color0;\n");
 
 		if (components & VB_HAS_COL1)
 			WRITE(p, "o.colors_1 = color1;\n");
@@ -522,26 +519,26 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	}
 	else
 	{
-	    // this results in a scale from -1..0 to -1..1 after perspective
-	    // divide
-	    WRITE(p, "o.pos.z = o.pos.w + o.pos.z * 2.0f;\n");
+		// this results in a scale from -1..0 to -1..1 after perspective
+		// divide
+		WRITE(p, "o.pos.z = o.pos.w + o.pos.z * 2.0f;\n");
 
-	    // Sonic Unleashed puts its final rendering at the near or
-	    // far plane of the viewing frustrum(actually box, they use
-	    // orthogonal projection for that), and we end up putting it
-	    // just beyond, and the rendering gets clipped away. (The
-	    // primitive gets dropped)
-	    WRITE(p, "o.pos.z = o.pos.z * 1048575.0f/1048576.0f;\n");
+		// Sonic Unleashed puts its final rendering at the near or
+		// far plane of the viewing frustrum(actually box, they use
+		// orthogonal projection for that), and we end up putting it
+		// just beyond, and the rendering gets clipped away. (The
+		// primitive gets dropped)
+		WRITE(p, "o.pos.z = o.pos.z * 1048575.0f/1048576.0f;\n");
 
-	    // the next steps of the OGL pipeline are:
-	    // (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
-	    // clipping to -w_c <= (x_c,y_c,z_c) <= w_c
-	    // (x_d,y_d,z_d) = (x_c,y_c,z_c)/w_c//perspective divide
-	    // z_w = (f-n)/2*z_d + (n+f)/2
-	    // z_w now contains the value to go to the 0..1 depth buffer
-	    
-	    //trying to get the correct semantic while not using glDepthRange
-	    //seems to get rather complicated
+		// the next steps of the OGL pipeline are:
+		// (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
+		// clipping to -w_c <= (x_c,y_c,z_c) <= w_c
+		// (x_d,y_d,z_d) = (x_c,y_c,z_c)/w_c//perspective divide
+		// z_w = (f-n)/2*z_d + (n+f)/2
+		// z_w now contains the value to go to the 0..1 depth buffer
+
+		//trying to get the correct semantic while not using glDepthRange
+		//seems to get rather complicated
 	}
 
 	if (ApiType & API_D3D9)
@@ -579,7 +576,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 					WRITE(p, "  uv%d_2%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
 			}
-		}               
+		}
 		WRITE(p, "colors_02 = o.colors_0;\n");
 		WRITE(p, "colors_12 = o.colors_1;\n");
 		WRITE(p, "gl_Position = o.pos;\n");

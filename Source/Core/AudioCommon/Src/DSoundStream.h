@@ -31,33 +31,33 @@
 class DSound : public SoundStream
 {
 #ifdef _WIN32
-    std::thread thread;
-    Common::Event soundSyncEvent;
-    void  *hWnd;
+	std::thread thread;
+	Common::Event soundSyncEvent;
+	void  *hWnd;
 
-    IDirectSound8* ds;
-    IDirectSoundBuffer* dsBuffer;
-    
-    int bufferSize;     //i bytes
+	IDirectSound8* ds;
+	IDirectSoundBuffer* dsBuffer;
+
+	int bufferSize;     //i bytes
 	int m_volume;
-    
-    // playback position
-    int currentPos;
-    int lastPos;
-    short realtimeBuffer[BUFSIZE / sizeof(short)];
-    
-    inline int FIX128(int x)
+
+	// playback position
+	int currentPos;
+	int lastPos;
+	short realtimeBuffer[BUFSIZE / sizeof(short)];
+
+	inline int FIX128(int x)
 	{
 		return x & (~127);
-    }
+	}
 
-    inline int ModBufferSize(int x)
+	inline int ModBufferSize(int x)
 	{
 		return (x + bufferSize) % bufferSize;
-    }
+	}
 
-    bool CreateBuffer();
-    bool WriteDataToBuffer(DWORD dwOffset, char* soundData, DWORD dwSoundBytes);
+	bool CreateBuffer();
+	bool WriteDataToBuffer(DWORD dwOffset, char* soundData, DWORD dwSoundBytes);
 
 public:
 	DSound(CMixer *mixer, void *_hWnd = NULL)
@@ -70,16 +70,16 @@ public:
 		, hWnd(_hWnd)
 	{}
 
-    virtual ~DSound() {}
+	virtual ~DSound() {}
  
 	virtual bool Start();
-    virtual void SoundLoop();
+	virtual void SoundLoop();
 	virtual void SetVolume(int volume);
-    virtual void Stop();
+	virtual void Stop();
 	virtual void Clear(bool mute);
-    static bool isValid() { return true; }
-    virtual bool usesMixer() const { return true; }
-    virtual void Update();
+	static bool isValid() { return true; }
+	virtual bool usesMixer() const { return true; }
+	virtual void Update();
 
 #else
 public:

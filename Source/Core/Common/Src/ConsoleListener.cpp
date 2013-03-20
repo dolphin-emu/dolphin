@@ -227,7 +227,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	LetterSpace(LBufWidth, LBufHeight);
 
 
-	ClearScreen(true);	
+	ClearScreen(true);
 	coordScreen.Y = 0;
 	coordScreen.X = 0;
 	DWORD cCharsWritten = 0;
@@ -270,7 +270,7 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 	*/
 	DWORD cCharsWritten;
 	WORD Color;
-	
+
 	switch (Level)
 	{
 	case NOTICE_LEVEL: // light green
@@ -334,9 +334,9 @@ void ConsoleListener::ClearScreen(bool Cursor)
 	DWORD cCharsWritten; 
 	CONSOLE_SCREEN_BUFFER_INFO csbi; 
 	DWORD dwConSize; 
-	
+
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); 
-	
+
 	GetConsoleScreenBufferInfo(hConsole, &csbi); 
 	dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
 	// Write space to the entire console

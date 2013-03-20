@@ -157,7 +157,7 @@ void ARMXEmitter::MOVI2R(ARMReg reg, u32 val, bool optimize)
 {
 	Operand2 op2;
 	bool inverse;
-	
+
 	if (cpu_info.bArmV7 && !optimize)
 	{
 		// For backpatching on ARMv7

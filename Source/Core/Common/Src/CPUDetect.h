@@ -32,13 +32,13 @@ enum CPUVendor
 struct CPUInfo
 {
 	CPUVendor vendor;
-	
+
 	char cpu_string[0x21];
 	char brand_string[0x41];
 	bool OS64bit;
 	bool CPU64bit;
 	bool Mode64bit;
-	
+
 	bool HTT;
 	int num_cores;
 	int logical_cpu_count;
@@ -56,7 +56,7 @@ struct CPUInfo
 	bool bAES;
 	bool bLAHFSAHF64;
 	bool bLongMode;
-	
+
 	// ARM specific CPUInfo
 	bool bSwp;
 	bool bHalf;
@@ -72,14 +72,14 @@ struct CPUInfo
 	bool bIDIVa;
 	bool bIDIVt;
 	bool bArmV7;  // enable MOVT, MOVW etc
-	
+
 	// ARMv8 specific
 	bool bFP;
 	bool bASIMD;
 
 	// Call Detect()
 	explicit CPUInfo();
-	
+
 	// Turn the cpu info into a string we can show
 	std::string Summarize();
 

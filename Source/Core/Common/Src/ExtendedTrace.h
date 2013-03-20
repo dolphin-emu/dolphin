@@ -25,7 +25,7 @@
 #pragma comment( lib, "imagehlp.lib" )
 
 #define EXTENDEDTRACEINITIALIZE( IniSymbolPath )	InitSymInfo( IniSymbolPath )
-#define EXTENDEDTRACEUNINITIALIZE()			        UninitSymInfo()
+#define EXTENDEDTRACEUNINITIALIZE()					UninitSymInfo()
 #define STACKTRACE(file)							StackTrace( GetCurrentThread(), "", file)
 #define STACKTRACE2(file, eip, esp, ebp) StackTrace(GetCurrentThread(), "", file, eip, esp, ebp)
 // class File;
@@ -43,10 +43,10 @@ extern char g_uefbuf[UEFBUFSIZE];
 
 #else	// not WIN32
 
-#define EXTENDEDTRACEINITIALIZE( IniSymbolPath )   ((void)0)
-#define EXTENDEDTRACEUNINITIALIZE()			         ((void)0)
-#define STACKTRACE(file)						         	   ((void)0)
-#define STACKTRACE2(file, eip, esp, ebp) ((void)0)
+#define EXTENDEDTRACEINITIALIZE( IniSymbolPath )	((void)0)
+#define EXTENDEDTRACEUNINITIALIZE()					((void)0)
+#define STACKTRACE(file)							((void)0)
+#define STACKTRACE2(file, eip, esp, ebp)			((void)0)
 
 #endif	// WIN32
 

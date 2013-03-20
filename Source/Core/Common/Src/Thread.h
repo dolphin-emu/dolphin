@@ -62,7 +62,7 @@ public:
 			m_condvar.notify_one();
 		}
 	}
-	
+
 	void Wait()
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);

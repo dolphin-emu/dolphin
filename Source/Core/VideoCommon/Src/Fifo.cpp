@@ -43,10 +43,10 @@ static int size = 0;
 
 void Fifo_DoState(PointerWrap &p) 
 {
-    p.DoArray(videoBuffer, FIFO_SIZE);
-    p.Do(size);
-    p.DoPointer(g_pVideoData, videoBuffer);
-    p.Do(g_bSkipCurrentFrame);
+	p.DoArray(videoBuffer, FIFO_SIZE);
+	p.Do(size);
+	p.DoPointer(g_pVideoData, videoBuffer);
+	p.Do(g_bSkipCurrentFrame);
 }
 
 void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
@@ -69,8 +69,8 @@ void Fifo_PauseAndLock(bool doLock, bool unpauseOnUnlock)
 
 
 void Fifo_Init()
-{	
-    videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
+{
+	videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
 	size = 0;
 	GpuRunningState = false;
 	Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
@@ -79,12 +79,12 @@ void Fifo_Init()
 void Fifo_Shutdown()
 {
 	if (GpuRunningState) PanicAlert("Fifo shutting down while active");
-    FreeMemoryPages(videoBuffer, FIFO_SIZE);
+	FreeMemoryPages(videoBuffer, FIFO_SIZE);
 }
 
 u8* GetVideoBufferStartPtr()
 {
-    return videoBuffer;
+	return videoBuffer;
 }
 
 u8* GetVideoBufferEndPtr()
@@ -119,20 +119,20 @@ void EmulatorState(bool running)
 // Description: RunGpuLoop() sends data through this function.
 void ReadDataFromFifo(u8* _uData, u32 len)
 {
-    if (size + len >= FIFO_SIZE)
-    {
+	if (size + len >= FIFO_SIZE)
+	{
 		int pos = (int)(g_pVideoData - videoBuffer);
 		size -= pos;
-        if (size + len > FIFO_SIZE)
-        {
-            PanicAlert("FIFO out of bounds (sz = %i, len = %i at %08x)", size, len, pos);
-        }
-        memmove(&videoBuffer[0], &videoBuffer[pos], size);
+		if (size + len > FIFO_SIZE)
+		{
+			PanicAlert("FIFO out of bounds (sz = %i, len = %i at %08x)", size, len, pos);
+		}
+		memmove(&videoBuffer[0], &videoBuffer[pos], size);
 		g_pVideoData = videoBuffer;
-    }
+	}
 	// Copy new video instructions to videoBuffer for future use in rendering the new picture
-    memcpy(videoBuffer + size, _uData, len);
-    size += len;
+	memcpy(videoBuffer + size, _uData, len);
+	size += len;
 }
 
 void ResetVideoBuffer()
@@ -153,7 +153,7 @@ void RunGpuLoop()
 
 	while (GpuRunningState)
 	{
-        g_video_backend->PeekMessages();
+		g_video_backend->PeekMessages();
 
 		VideoFifo_CheckAsyncRequest();
 
@@ -240,7 +240,7 @@ void RunGpu()
 	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
 	{
 		u8 *uData = Memory::GetPointer(fifo.CPReadPointer);
-			
+
 		FPURoundMode::SaveSIMDState();
 		FPURoundMode::LoadDefaultSIMDState();
 		ReadDataFromFifo(uData, 32);

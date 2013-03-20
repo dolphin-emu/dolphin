@@ -102,7 +102,7 @@ float PHackValue(std::string sValue)
 		c[i] = (cStr[i] == ',') ? '.' : *(cStr+i);
 		if (c[i] == '.')
 			fp = true;
-	}	
+	}
 	cStr = c;
 	sTof.str(cStr);
 	sTof >> f;
@@ -119,22 +119,22 @@ void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 	float fhacksign1 = 1.0, fhacksign2 = 1.0;
 	bool bProjHack3 = false;
 	const char *sTemp[2];
-	
+
 	if (iPhackvalue[0] == 1)
 	{
 		NOTICE_LOG(VIDEO, "\t\t--- Ortographic Projection Hack ON ---");
-		
+
 		fhacksign1 *= (iPhackvalue[1] == 1) ? -1.0f : fhacksign1;
 		sTemp[0] = (iPhackvalue[1] == 1) ? " * (-1)" : "";
 		fhacksign2 *= (iPhackvalue[2] == 1) ? -1.0f : fhacksign2;
 		sTemp[1] = (iPhackvalue[2] == 1) ? " * (-1)" : "";
-		
+
 		fhackvalue1 = PHackValue(sPhackvalue[0]);
 		NOTICE_LOG(VIDEO, "- zNear Correction = (%f + zNear)%s", fhackvalue1, sTemp[0]);
 
 		fhackvalue2 = PHackValue(sPhackvalue[1]);
 		NOTICE_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", fhackvalue2, sTemp[1]);
-		
+
 		sTemp[0] = "DISABLED";
 		bProjHack3 = (iPhackvalue[3] == 1) ? true : bProjHack3;
 		if (bProjHack3)
@@ -171,22 +171,22 @@ void VertexShaderManager::Dirty()
 {
 	nTransformMatricesChanged[0] = 0; 
 	nTransformMatricesChanged[1] = 256;
-	
+
 	nNormalMatricesChanged[0] = 0;
 	nNormalMatricesChanged[1] = 96;
-	
+
 	nPostTransformMatricesChanged[0] = 0; 
 	nPostTransformMatricesChanged[1] = 256;
-	
+
 	nLightsChanged[0] = 0; 
 	nLightsChanged[1] = 0x80;
-	
+
 	bPosNormalMatrixChanged = true;
 	bTexMatricesChanged[0] = true;
 	bTexMatricesChanged[1] = true;
-	
+
 	bProjectionChanged = true;
-	
+
 	nMaterialsChanged = 15;
 }
 
@@ -358,7 +358,7 @@ void VertexShaderManager::SetConstants()
 		switch(xfregs.projection.type)
 		{
 		case GX_PERSPECTIVE:
-			
+
 			g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
 			g_fProjectionMatrix[1] = 0.0f;
 			g_fProjectionMatrix[2] = rawProjection[1];
@@ -374,7 +374,7 @@ void VertexShaderManager::SetConstants()
 			g_fProjectionMatrix[10] = rawProjection[4];
 
 			g_fProjectionMatrix[11] = rawProjection[5];
- 			
+
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
 			// donkopunchstania: GC GPU rounds differently?
@@ -399,9 +399,9 @@ void VertexShaderManager::SetConstants()
 			SETSTAT_FT(stats.gproj_14, g_fProjectionMatrix[14]);
 			SETSTAT_FT(stats.gproj_15, g_fProjectionMatrix[15]);
 			break;
-			
+
 		case GX_ORTHOGRAPHIC:
-			
+
 			g_fProjectionMatrix[0] = rawProjection[0];
 			g_fProjectionMatrix[1] = 0.0f;
 			g_fProjectionMatrix[2] = 0.0f;
@@ -426,10 +426,10 @@ void VertexShaderManager::SetConstants()
 			this hack was added...setting g_fProjectionMatrix[14] to -1 might make the hack more stable, needs more testing.
 			Only works for OGL and DX9...this is not helping DX11
 			*/
-			
+
 			g_fProjectionMatrix[14] = 0.0f;
 			g_fProjectionMatrix[15] = (g_ProjHack3 && rawProjection[0] == 2.0f ? 0.0f : 1.0f);  //causes either the efb copy or bloom layer not to show if proj hack enabled
-		
+
 			SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
 			SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
 			SETSTAT_FT(stats.g2proj_2, g_fProjectionMatrix[2]);
@@ -453,7 +453,7 @@ void VertexShaderManager::SetConstants()
 			SETSTAT_FT(stats.proj_4, rawProjection[4]);
 			SETSTAT_FT(stats.proj_5, rawProjection[5]);
 			break;
-			
+
 		default:
 			ERROR_LOG(VIDEO, "unknown projection type: %d", xfregs.projection.type);
 		}

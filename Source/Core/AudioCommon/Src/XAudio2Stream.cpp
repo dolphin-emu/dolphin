@@ -95,10 +95,10 @@ void StreamingVoiceContext::OnBufferEnd(void* context)
 
 	if (!m_source_voice || !context)
 		return;
-	
+
 	//m_sound_sync_event->Wait(); // sync
 	//m_sound_sync_event->Spin(); // or tight sync
-		
+
 	m_mixer->Mix(static_cast<short*>(context), SAMPLES_PER_BUFFER);
 	SubmitBuffer(static_cast<BYTE*>(context));
 }
@@ -183,6 +183,6 @@ void XAudio2::Stop()
 		m_mastering_voice->DestroyVoice();
 		m_mastering_voice = nullptr;
 	}
-	
+
 	m_xaudio2.reset();	// release interface
 }

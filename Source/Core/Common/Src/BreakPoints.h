@@ -27,9 +27,9 @@ class DebugInterface;
 
 struct TBreakPoint
 {
-	u32     iAddress;
+	u32		iAddress;
 	bool	bOn;
-	bool    bTemporary;
+	bool	bTemporary;
 };
 
 struct TMemCheck
@@ -96,9 +96,9 @@ public:
 	typedef std::vector<std::string> TMemChecksStr;
 
 	TMemChecks m_MemChecks;
-	
+
 	const TMemChecks& GetMemChecks() { return m_MemChecks; }
-	
+
 	TMemChecksStr GetStrings() const;
 	void AddFromStrings(const TMemChecksStr& mcs);
 

@@ -33,7 +33,7 @@ char *GetCPUString()
 	auto const fp = file.GetHandle();
 	if (!fp)
 		return 0;
-	
+
 	while (fgets(buf, sizeof(buf), fp))
 	{
 		if (strncmp(buf, marker, sizeof(marker) - 1))
@@ -74,12 +74,12 @@ int GetCoreCount()
 	const char marker[] = "processor\t: ";
 	int cores = 0;
 	char buf[1024];
-	
+
 	File::IOFile file(procfile, "r");
 	auto const fp = file.GetHandle();
 	if (!fp)
 		return 0;
-	
+
 	while (fgets(buf, sizeof(buf), fp))
 	{
 		if (strncmp(buf, marker, sizeof(marker) - 1))
@@ -103,12 +103,12 @@ void CPUInfo::Detect()
 	HTT = false;
 	OS64bit = false;
 	CPU64bit = false;
-	Mode64bit = false;				 
+	Mode64bit = false;
 	vendor = VENDOR_ARM;
-	
+
 	// Get the information about the CPU 
 	strncpy(cpu_string, GetCPUString(), sizeof(cpu_string));
-	num_cores = GetCoreCount();	
+	num_cores = GetCoreCount();
 	bSwp = CheckCPUFeature("swp");
 	bHalf = CheckCPUFeature("half");
 	bThumb = CheckCPUFeature("thumb");
@@ -122,7 +122,7 @@ void CPUInfo::Detect()
 	bVFPv4 = CheckCPUFeature("vfpv4");
 	bIDIVa = CheckCPUFeature("idiva");
 	bIDIVt = CheckCPUFeature("idivt");
-	
+
 	// On some buggy kernels(Qualcomm) they show that they support VFPv4 but not IDIVa
 	// All VFPv4 CPUs will support IDIVa
 	if (bVFPv4)

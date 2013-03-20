@@ -56,7 +56,7 @@ TextureCache::TextureCache()
 	if (!temp)
 		temp = (u8*)AllocateAlignedMemory(temp_size, 16);
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
-    if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
+	if(g_ActiveConfig.bHiresTextures && !g_ActiveConfig.bDumpTextures)
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 }
@@ -725,7 +725,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		case 1: // R8
 		case 8: // R8
 			colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-			cbufid = 13;			
+			cbufid = 13;
 			break;
 
 		case 2: // RA4
@@ -746,11 +746,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 		case 9: // G8
 			colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
-			cbufid = 17;			
+			cbufid = 17;
 			break;
 		case 10: // B8
 			colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
-			cbufid = 18;			
+			cbufid = 18;
 			break;
 
 		case 11: // RG8
@@ -759,7 +759,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			break;
 
 		case 12: // GB8
-			colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;			
+			colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
 			cbufid = 20;
 			break;
 

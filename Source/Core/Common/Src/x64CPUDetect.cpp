@@ -39,7 +39,7 @@
 #include <machine/cpufunc.h>
 #else
 static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
-						    unsigned int *ecx, unsigned int *edx)
+							unsigned int *ecx, unsigned int *edx)
 {
 #if defined _M_GENERIC
 	(*eax) = (*ebx) = (*ecx) = (*edx) = 0;

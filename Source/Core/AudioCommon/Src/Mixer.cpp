@@ -67,7 +67,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 			{
 				static const __m128i sr_mask =
 					_mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL,
-						      0x04050607L, 0x00010203L);
+								  0x04050607L, 0x00010203L);
 
 				for (unsigned int i = 0; i < numLeft * 2; i += 8)
 				{
@@ -99,12 +99,11 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 				if ((m_indexR2 & INDEX_MASK) == (m_indexW & INDEX_MASK)) //..if it exists
 					m_indexR2 = m_indexR;
 
-				
 				s16 l1 = Common::swap16(m_buffer[m_indexR & INDEX_MASK]); //current
 				s16 l2 = Common::swap16(m_buffer[m_indexR2 & INDEX_MASK]); //next
-				int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;	
-				samples[i+1] = sampleL;			
-				
+				int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
+				samples[i+1] = sampleL;
+
 				s16 r1 = Common::swap16(m_buffer[(m_indexR + 1) & INDEX_MASK]); //current
 				s16 r2 = Common::swap16(m_buffer[(m_indexR2 + 1) & INDEX_MASK]); //next
 				int sampleR = ((r1 << 16) + (r2 - r1) * (u16)frac)  >> 16;
@@ -115,8 +114,6 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 				frac &= 0xffff;
 			}
 		}
-
-
 
 	} else {
 		numLeft = 0;
