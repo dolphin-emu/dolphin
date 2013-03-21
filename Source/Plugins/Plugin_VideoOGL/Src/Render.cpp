@@ -279,14 +279,16 @@ Renderer::Renderer()
 	
 	if(g_Config.backend_info.bSupportsGLSLUBO && (
 		// hd3000 get corruption, hd4000 also and a big slowdown
-		!strcmp(gl_vendor, "Intel Open Source Technology Center") && (!strcmp(gl_version, "3.0 Mesa 9.0.0") || !strcmp(gl_version, "3.0 Mesa 9.0.1") || !strcmp(gl_version, "3.0 Mesa 9.0.2") || !strcmp(gl_version, "3.0 Mesa 9.0.3") || !strcmp(gl_version, "3.0 Mesa 9.1.0") )
+		!strcmp(gl_vendor, "Intel Open Source Technology Center") && (!strcmp(gl_version, "3.0 Mesa 9.0.0") || !strcmp(gl_version, "3.0 Mesa 9.0.1") || !strcmp(gl_version, "3.0 Mesa 9.0.2") || !strcmp(gl_version, "3.0 Mesa 9.0.3") || !strcmp(gl_version, "3.0 Mesa 9.1.0") || !strcmp(gl_version, "3.0 Mesa 9.1.1") )
 	)) {
 		g_Config.backend_info.bSupportsGLSLUBO = false;
 		ERROR_LOG(VIDEO, "buggy driver detected. Disable UBO");
 	}
 	
 #ifndef _WIN32
-	if(g_Config.backend_info.bSupportsGLPinnedMemory && !strcmp(gl_vendor, "Advanced Micro Devices, Inc.")) {
+	if(g_Config.backend_info.bSupportsGLPinnedMemory) {
+		// some fglrx versions have a broken pinned memory implementation, so disable it on non-windows plattforms.
+		// everywhere else it isn't supported at all :-(
 		g_Config.backend_info.bSupportsGLPinnedMemory = false;
 		ERROR_LOG(VIDEO, "some fglrx versions have broken pinned memory support, so it's disabled for fglrx");
 	}
