@@ -52,16 +52,18 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 {	
 	u32 const needed_vertex_bytes = count * stride;
 	
-	if (needed_vertex_bytes > GetRemainingSize() || count > GetRemainingIndices(primitive))
+	if (count > IndexGenerator::GetRemainingIndices() || count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize())
 	{
 		Flush();
 		
-		if (needed_vertex_bytes > GetRemainingSize())
-			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
-				"Increase MAXVBUFFERSIZE or we need primitive breaking afterall.");
+		if(count > IndexGenerator::GetRemainingIndices())
+			ERROR_LOG(VIDEO, "Too less index values. Use 32bit or reset them on flush.");
 		if (count > GetRemainingIndices(primitive))
 			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all indices! "
 				"Increase MAXIBUFFERSIZE or we need primitive breaking afterall.");
+		if (needed_vertex_bytes > GetRemainingSize())
+			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
+				"Increase MAXVBUFFERSIZE or we need primitive breaking afterall.");
 	}
 }
 

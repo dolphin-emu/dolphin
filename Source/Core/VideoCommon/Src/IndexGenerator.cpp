@@ -166,3 +166,10 @@ void IndexGenerator::AddPoints(u32 numVerts)
 		++numP;
 	}
 }
+
+
+u32 IndexGenerator::GetRemainingIndices()
+{
+	u32 max_index = 65535;
+	return max_index - index;
+}
