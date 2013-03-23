@@ -24,7 +24,9 @@
 #include <cstdio>
 
 #include "GLUtil.h"
+#if defined(HAVE_WX) && HAVE_WX
 #include "WxUtils.h"
+#endif
 
 #include "FileUtil.h"
 
