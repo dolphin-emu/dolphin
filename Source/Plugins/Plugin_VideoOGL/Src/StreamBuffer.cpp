@@ -33,17 +33,17 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 	
 	bool nvidia = !strcmp((const char*)glGetString(GL_VENDOR), "NVIDIA Corporation");
 	
-	if(m_uploadtype == STREAM_DETECT)
+	if(m_uploadtype & STREAM_DETECT)
 	{
-		if(!g_Config.backend_info.bSupportsGLBaseVertex)
+		if(!g_Config.backend_info.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA))
 			m_uploadtype = BUFFERSUBDATA;
-		else if(g_Config.backend_info.bSupportsGLSync && g_Config.bHackedBufferUpload)
+		else if(g_Config.backend_info.bSupportsGLSync && g_Config.bHackedBufferUpload && (m_uploadtype & MAP_AND_RISK))
 			m_uploadtype = MAP_AND_RISK;
-		else if(g_Config.backend_info.bSupportsGLSync && g_Config.backend_info.bSupportsGLPinnedMemory)
+		else if(g_Config.backend_info.bSupportsGLSync && g_Config.backend_info.bSupportsGLPinnedMemory && (m_uploadtype & PINNED_MEMORY))
 			m_uploadtype = PINNED_MEMORY;
-		else if(nvidia)
+		else if(nvidia && (m_uploadtype & BUFFERSUBDATA))
 			m_uploadtype = BUFFERSUBDATA;
-		else if(g_Config.backend_info.bSupportsGLSync)
+		else if(g_Config.backend_info.bSupportsGLSync && (m_uploadtype & MAP_AND_SYNC))
 			m_uploadtype = MAP_AND_SYNC;
 		else 
 			m_uploadtype = MAP_AND_ORPHAN;
@@ -124,6 +124,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		m_iterator_aligned = 0;
 		break;
 	case STREAM_DETECT:
+	case DETECT_MASK: // Just to shutup warnings
 		break;
 	}
 	m_iterator = m_iterator_aligned;
@@ -151,6 +152,7 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 		glBufferSubData(m_buffertype, m_iterator, size, data);
 		break;
 	case STREAM_DETECT:
+	case DETECT_MASK: // Just to shutup warnings
 		break;
 	}
 	size_t ret = m_iterator;
@@ -204,6 +206,7 @@ void StreamBuffer::Init()
 			ERROR_LOG(VIDEO, "buffer allocation failed");
 		
 	case STREAM_DETECT:
+	case DETECT_MASK: // Just to shutup warnings
 		break;
 	}
 }
@@ -230,6 +233,7 @@ void StreamBuffer::Shutdown()
 		FreeAlignedMemory(pointer);
 		break;
 	case STREAM_DETECT:
+	case DETECT_MASK: // Just to shutup warnings
 		break;
 	}
 }

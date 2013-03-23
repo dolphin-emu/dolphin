@@ -32,18 +32,19 @@
 namespace OGL
 {
 enum StreamType {
-	STREAM_DETECT,
-	MAP_AND_ORPHAN,
-	MAP_AND_SYNC,
-	MAP_AND_RISK,
-	PINNED_MEMORY,
-	BUFFERSUBDATA
+	DETECT_MASK = 0x1F,
+	STREAM_DETECT = (1 << 0),
+	MAP_AND_ORPHAN = (1 << 1),
+	MAP_AND_SYNC = (1 << 2),
+	MAP_AND_RISK = (1 << 3),
+	PINNED_MEMORY = (1 << 4),
+	BUFFERSUBDATA = (1 << 5)
 };
 
 class StreamBuffer {
 
 public:
-	StreamBuffer(u32 type, size_t size, StreamType uploadType = STREAM_DETECT);
+	StreamBuffer(u32 type, size_t size, StreamType uploadType = DETECT_MASK);
 	~StreamBuffer();
 	
 	void Alloc(size_t size, u32 stride = 0);

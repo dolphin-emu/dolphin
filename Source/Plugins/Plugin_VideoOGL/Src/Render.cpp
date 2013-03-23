@@ -287,15 +287,6 @@ Renderer::Renderer()
 		ERROR_LOG(VIDEO, "buggy driver detected. Disable UBO");
 	}
 	
-#ifndef _WIN32
-	if(g_Config.backend_info.bSupportsGLPinnedMemory) {
-		// some fglrx versions have a broken pinned memory implementation, so disable it on non-windows plattforms.
-		// everywhere else it isn't supported at all :-(
-		g_Config.backend_info.bSupportsGLPinnedMemory = false;
-		ERROR_LOG(VIDEO, "some fglrx versions have broken pinned memory support, so it's disabled for fglrx");
-	}
-#endif
-
 	UpdateActiveConfig();
 	OSD::AddMessage(StringFromFormat("Missing Extensions: %s%s%s%s%s%s",			
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",

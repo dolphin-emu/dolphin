@@ -72,7 +72,7 @@ void VertexManager::CreateDeviceObjects()
 {
 	s_vertexBuffer = new StreamBuffer(GL_ARRAY_BUFFER, MAX_VBUFFER_SIZE);
 	m_vertex_buffers = s_vertexBuffer->getBuffer();
-	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
+	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE, (StreamType)(DETECT_MASK & ~PINNED_MEMORY));
 	m_index_buffers = s_indexBuffer->getBuffer();
 	
 	m_CurrentVertexFmt = NULL;
