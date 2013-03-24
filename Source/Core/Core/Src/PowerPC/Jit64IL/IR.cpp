@@ -1269,7 +1269,7 @@ static const unsigned alwaysUsedList[] = {
 	Store16, Store32, StoreSingle, StoreDouble, StorePaired, StoreFReg, FDCmpCR,
 	BlockStart, BlockEnd, IdleBranch, BranchCond, BranchUncond, ShortIdleLoop,
 	SystemCall, InterpreterBranch, RFIExit, FPExceptionCheck,
-	DSIExceptionCheck, ISIException, ExtExceptionCheck, BreakPointCheck,
+	DSIExceptionCheck, ISIException, BreakPointCheck,
 	Int3, Tramp, Nop
 };
 static const unsigned extra8RegList[] = {

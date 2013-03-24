@@ -679,11 +679,6 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				ibuild.EmitFPExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
 
-			if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
-			{
-				ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
-			}
-
 			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
 			{
 				ibuild.EmitBreakPointCheck(ibuild.EmitIntConst(ops[i].address));

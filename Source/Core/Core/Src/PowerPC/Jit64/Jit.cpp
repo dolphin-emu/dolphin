@@ -611,30 +611,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				js.firstFPInstructionFound = true;
 			}
 
-			// Add an external exception check if the instruction writes to the FIFO.
-			if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end())
-			{
-				gpr.Flush(FLUSH_ALL);
-				fpr.Flush(FLUSH_ALL);
-
-				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
-				FixupBranch clearInt = J_CC(CC_NZ, true);
-				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
-				FixupBranch noExtException = J_CC(CC_Z, true);
-				TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
-				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
-				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
-				FixupBranch noCPInt = J_CC(CC_Z, true);
-
-				MOV(32, M(&PC), Imm32(ops[i].address));
-				WriteExternalExceptionExit();
-
-				SetJumpTarget(noCPInt);
-				SetJumpTarget(noExtIntEnable);
-				SetJumpTarget(noExtException);
-				SetJumpTarget(clearInt);
-			}
-
 			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
 			{
 				gpr.Flush(FLUSH_ALL);
