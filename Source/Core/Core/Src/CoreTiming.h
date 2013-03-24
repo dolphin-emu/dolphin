@@ -92,6 +92,8 @@ void SetFakeTBStartValue(u64 val);
 u64 GetFakeTBStartTicks();
 void SetFakeTBStartTicks(u64 val);
 
+void SetDowncount(int event_type, int cycles);
+
 extern int downcount;
 extern int slicelength;
 

@@ -144,7 +144,7 @@ void Init()
 	isHiWatermarkActive = false;
 	isLoWatermarkActive = false;
 
-    et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
+    et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
 
 void Read16(u16& _rReturnValue, const u32 _Address)

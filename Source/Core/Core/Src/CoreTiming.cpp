@@ -250,6 +250,8 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 	if(tsLast)
 		tsLast->next = ne;
 	tsLast = ne;
+
+	SetDowncount(ne->type, cyclesIntoFuture);
 }
 
 // Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the CPU thread
@@ -260,6 +262,7 @@ void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 	{
 		std::lock_guard<std::recursive_mutex> lk(externalEventSection);
 		event_types[event_type].callback(userdata, 0);
+		SetDowncount(event_type, 0);
 	}
 	else
 		ScheduleEvent_Threadsafe(0, event_type, userdata);
@@ -411,6 +414,21 @@ void RemoveAllEvents(int event_type)
 void SetMaximumSlice(int maximumSliceLength)
 {
 	maxSliceLength = maximumSliceLength;
+}
+
+void SetDowncount(int event_type, int cycles)
+{
+	if (event_types[event_type].name == "SetToken")
+		return;
+
+	if (cycles == 0)
+		cycles = 100; // External Exception latency.  Paper Mario TTYD freezes in fight scenes if this is zero.
+
+	if (downcount > cycles)
+	{
+		slicelength -= (downcount - cycles); // Account for cycles already executed by adjusting the slicelength
+		downcount = cycles;
+	}
 }
 
 void ResetSliceLength()
