@@ -25,7 +25,7 @@
 #include "SWVideoConfig.h"
 #include "DebugUtil.h"
 
-#include <math.h>
+#include <cmath>
 
 #ifdef _DEBUG
 #define ALLOW_TEV_DUMPS 1
@@ -752,7 +752,7 @@ void Tev::Draw()
 		{
 			// TODO: Check if this is correct (especially the magic values)
 			float offset = Position[0] - bpmem.fogRange.Base.Center + 324.f;
-			int index = 9 - abs(Position[0] - bpmem.fogRange.Base.Center + 324) / (162/5);
+			int index = 9 - std::abs(Position[0] - bpmem.fogRange.Base.Center + 324) / (162/5);
 			float k = bpmem.fogRange.K[index/2].GetValue(index%2);
 			float x_adjust = sqrt(offset*offset/162.f/162.f + k*k)/k;
 			ze *= x_adjust;
