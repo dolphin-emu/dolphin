@@ -686,8 +686,9 @@ union FogRangeKElement
 		u32 LO : 12;
 		u32 regid : 8;
 	};
+
 	// TODO: Which scaling coefficient should we use here? This is just a guess!
-	float GetValue(int i) { return (i ? HI : LO) / 32.f; }
+	float GetValue(int i) { return (i ? HI : LO) / 256.f; }
 	u32 HEX;
 };
 
@@ -697,7 +698,7 @@ struct FogRangeParams
 	{
 		struct
 		{
-			u32 Center : 10;
+			u32 Center : 10; // viewport center + 342
 			u32 Enabled : 1;
 			u32 unused : 13;
 			u32 regid : 8;

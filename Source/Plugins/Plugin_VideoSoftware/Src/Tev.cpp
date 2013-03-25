@@ -20,6 +20,7 @@
 #include "Tev.h"
 #include "EfbInterface.h"
 #include "TextureSampler.h"
+#include "XFMemLoader.h"
 #include "SWPixelEngine.h"
 #include "SWStatistics.h"
 #include "SWVideoConfig.h"
@@ -750,12 +751,19 @@ void Tev::Draw()
 
 		if(bpmem.fogRange.Base.Enabled)
 		{
-			// TODO: Check if this is correct (especially the magic values)
-			float offset = Position[0] - bpmem.fogRange.Base.Center + 324.f;
-			int index = 9 - std::abs(Position[0] - bpmem.fogRange.Base.Center + 324) / (162/5);
-			float k = bpmem.fogRange.K[index/2].GetValue(index%2);
-			float x_adjust = sqrt(offset*offset/162.f/162.f + k*k)/k;
-			ze *= x_adjust;
+			// TODO: This is untested and should definitely be checked against real hw.
+			// - No idea if offset is really normalized against the viewport width or against the projection matrix or yet something else
+			// - scaling of the "k" coefficient isn't clear either.
+
+			// First, calculate the offset from the viewport center (normalized to 0..1)
+			float offset = (Position[0] - (bpmem.fogRange.Base.Center - 342)) / (float)swxfregs.viewport.wd;
+			// Based on that, choose the index such that points which are far away from the z-axis use the 10th "k" value and such that central points use the first value.
+			int index = 9 - std::abs(offset) * 9.f;
+			index = (index < 0) ? 0 : (index > 9) ? 9 : 0; // TODO: Shouldn't be necessary!
+			// Look up coefficient... Seems like multiplying by 4 makes Fortune Street work properly (fog is too strong without the factor)
+			float k = bpmem.fogRange.K[index/2].GetValue(index%2) * 4.f;
+			float x_adjust = sqrt(offset*offset + k*k)/k;
+			ze *= x_adjust; // NOTE: This is basically dividing by a cosine (hidden behind GXInitFogAdjTable): 1/cos = c/b = sqrt(a^2+b^2)/b
 		}
 
 		ze -= bpmem.fog.c_proj_fsel.GetC();
