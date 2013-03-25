@@ -104,6 +104,20 @@ int OSDInternalW, OSDInternalH;
 
 namespace OGL
 {
+
+enum MultisampleMode {
+	MULTISAMPLE_OFF,
+	MULTISAMPLE_2X,
+	MULTISAMPLE_4X,
+	MULTISAMPLE_8X,
+	MULTISAMPLE_CSAA_8X,
+	MULTISAMPLE_CSAA_8XQ,
+	MULTISAMPLE_CSAA_16X,
+	MULTISAMPLE_CSAA_16XQ,
+	MULTISAMPLE_SSAA_4X,
+};
+
+
 VideoConfig g_ogl_config;
 
 // Declarations and definitions
@@ -149,6 +163,7 @@ int GetNumMSAASamples(int MSAAMode)
 		case MULTISAMPLE_4X:
 		case MULTISAMPLE_CSAA_8X:
 		case MULTISAMPLE_CSAA_16X:
+		case MULTISAMPLE_SSAA_4X:
 			samples = 4;
 			break;
 
@@ -190,6 +205,19 @@ int GetNumMSAACoverageSamples(int MSAAMode)
 	
 	ERROR_LOG(VIDEO, "MSAA Bug: CSAA selected, but not supported by gpu.");
 	return 0;
+}
+
+void ApplySSAASettings() {
+	if(g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X) {
+		if(g_ogl_config.bSupportSampleShading) {
+			glEnable(GL_SAMPLE_SHADING_ARB);
+			glMinSampleShadingARB(s_MSAASamples);
+		} else {
+			ERROR_LOG(VIDEO, "MSAA Bug: SSAA selected, but not supported by gpu.");
+		}
+	} else if(g_ogl_config.bSupportSampleShading) {
+		glDisable(GL_SAMPLE_SHADING_ARB);
+	}
 }
 
 // Init functions
@@ -271,6 +299,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLSync = GLEW_ARB_sync;
 	g_ogl_config.bSupportsGLBaseVertex = GLEW_ARB_draw_elements_base_vertex;
 	g_ogl_config.bSupportCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
+	g_ogl_config.bSupportSampleShading = GLEW_ARB_sample_shading;
 	
 	g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
 	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
@@ -299,20 +328,22 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version).c_str(), 5000);
 	
-	OSD::AddMessage(StringFromFormat("Missing Extensions: %s%s%s%s%s%s%s",
+	OSD::AddMessage(StringFromFormat("Missing Extensions: %s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
 			g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
 			g_ogl_config.bSupportsGLSLCache ? "" : "ShaderCache ",
 			g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
-			g_ogl_config.bSupportCoverageMSAA ? "" : "CSAA "
+			g_ogl_config.bSupportCoverageMSAA ? "" : "CSAA ",
+			g_ogl_config.bSupportSampleShading ? "" : "SSAA "
 			).c_str(), 5000);
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 	s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
-
+	ApplySSAASettings();
+	
 	// Decide frambuffer size
 	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
 	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
@@ -1270,7 +1301,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 			s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
 			s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
-
+			ApplySSAASettings();
+			
 			delete g_framebuffer_manager;
 			g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
 				s_MSAASamples, s_MSAACoverageSamples);
