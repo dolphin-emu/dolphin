@@ -168,7 +168,7 @@ enum Opcode {
 	// used for exception checking, at least until someone
 	// has a better idea of integrating it
 	FPExceptionCheck, DSIExceptionCheck,
-	ISIException, ExtExceptionCheck, BreakPointCheck,
+	ISIException, BreakPointCheck,
 	// "Opcode" representing a register too far away to
 	// reference directly; this is a size optimization
 	Tramp,
@@ -410,9 +410,6 @@ public:
 	}
 	InstLoc EmitISIException(InstLoc dest) {
 		return EmitUOp(ISIException, dest);
-	}
-	InstLoc EmitExtExceptionCheck(InstLoc pc) {
-		return EmitUOp(ExtExceptionCheck, pc);
 	}
 	InstLoc EmitBreakPointCheck(InstLoc pc) {
 		return EmitUOp(BreakPointCheck, pc);

@@ -144,7 +144,7 @@ void Init()
 	isHiWatermarkActive = false;
 	isLoWatermarkActive = false;
 
-    et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
+    et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
 
 void Read16(u16& _rReturnValue, const u32 _Address)
@@ -642,14 +642,11 @@ void SetCpStatusRegister()
 
 void SetCpControlRegister()
 {
-	// If the new fifo is being attached We make sure there wont be SetFinish event pending.
-	// This protection fix eternal darkness booting, because the second SetFinish event when it is booting
-	// seems invalid or has a bug and hang the game.
-
+	// If the new fifo is being attached, force an exception check
+	// This fixes the hang while booting Eternal Darkness
 	if (!fifo.bFF_GPReadEnable && m_CPCtrlReg.GPReadEnable && !m_CPCtrlReg.BPEnable)
 	{
-		ProcessFifoEvents();
-		PixelEngine::ResetSetFinish();
+		CoreTiming::ForceExceptionCheck(0);
 	}
 
 	fifo.bFF_BPInt = m_CPCtrlReg.BPInt;

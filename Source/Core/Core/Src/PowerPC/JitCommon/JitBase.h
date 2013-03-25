@@ -74,8 +74,6 @@ protected:
 		u8* rewriteStart;
 
 		JitBlock *curBlock;
-
-		std::set<u32> fifoWriteAddresses;
 	};
 
 public:
