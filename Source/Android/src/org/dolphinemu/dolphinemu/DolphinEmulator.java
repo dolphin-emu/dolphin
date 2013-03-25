@@ -18,7 +18,6 @@ import android.view.WindowManager;
 public class DolphinEmulator<MainActivity> extends Activity {
 	
 	static private NativeGLSurfaceView GLview = null;
-	static private NativeRenderer Renderer = null;
 	static private boolean Running = false;
 	
 	private float screenWidth;
@@ -42,21 +41,21 @@ public class DolphinEmulator<MainActivity> extends Activity {
 	{
 		super.onStop();
 		if (Running)
-			Renderer.StopEmulation();
+			NativeGLSurfaceView.StopEmulation();
 	}
 	@Override
 	public void onPause()
 	{
 		super.onPause();
 		if (Running)
-			Renderer.PauseEmulation();
+			NativeGLSurfaceView.PauseEmulation();
 	}
 	@Override
 	public void onResume()
 	{
 		super.onResume();
 		if (Running)
-			Renderer.UnPauseEmulation();
+			NativeGLSurfaceView.UnPauseEmulation();
 	}
 
     /** Called when the activity is first created. */
@@ -84,15 +83,10 @@ public class DolphinEmulator<MainActivity> extends Activity {
 			screenWidth = displayMetrics.widthPixels;
 			screenHeight = displayMetrics.heightPixels;
 			
-			
 			String FileName = data.getStringExtra("Select");
-			Renderer = new NativeRenderer();
-			Renderer.setContext(getApplicationContext());
-			
 			GLview = new NativeGLSurfaceView(this);
-			GLview.setEGLContextClientVersion(2);
-			GLview.setRenderer(Renderer);
 			
+			GLview.SetDimensions(screenWidth, screenHeight);
 			GLview.SetFileName(FileName);
 			setContentView(GLview);
 			Running = true;
@@ -108,10 +102,10 @@ public class DolphinEmulator<MainActivity> extends Activity {
 		Y = event.getY();
 		Action = event.getActionMasked();
 		
-		int Button = Renderer.ButtonPressed(Action, ((X / screenWidth) * 2.0f) - 1.0f, ((Y / screenHeight) * 2.0f) - 1.0f);
+		//int Button = Renderer.ButtonPressed(Action, ((X / screenWidth) * 2.0f) - 1.0f, ((Y / screenHeight) * 2.0f) - 1.0f);
 		
-		if (Button != -1)
-			SetKey(Action, Button);
+		//if (Button != -1)
+			//SetKey(Action, Button);
 		
 		return false;
 	}

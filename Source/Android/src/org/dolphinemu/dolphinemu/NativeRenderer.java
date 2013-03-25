@@ -33,9 +33,6 @@ public class NativeRenderer implements GLSurfaceView.Renderer {
 	public static native void DrawButton(int GLTex, int ID);
 	public static native void SetButtonCoords(float[] Coords);
 	public static native void PrepareME();
-	public static native void UnPauseEmulation();
-	public static native void PauseEmulation();
-	public static native void StopEmulation();
 	
 	// Texture loading
 	private static int buttonA = -1;

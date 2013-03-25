@@ -24,6 +24,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity 
+            android:name=".NativeListView"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme"
+            android:configChanges="orientation|locale|keyboard|keyboardHidden|navigation|fontScale|uiMode" >
+        </activity>
     </application>
 
 </manifest>

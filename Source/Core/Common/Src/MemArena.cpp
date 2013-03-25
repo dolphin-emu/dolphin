@@ -153,7 +153,12 @@ u8* MemArena::Find4GBBase()
 	}
 	return base;
 #else
-	void* base = mmap(0, 0x31000000, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+#ifdef ANDROID
+	const u32 MemSize = 0x04000000;
+#else
+	const u32 MemSize = 0x31000000; 
+#endif
+	void* base = mmap(0, MemSize, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
 	if (base == MAP_FAILED) {
 		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
 		return 0;
