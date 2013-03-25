@@ -21,6 +21,7 @@
 #include "Debugger.h"
 #include "Statistics.h"
 #include "ImageWrite.h"
+#include "Render.h"
 
 namespace OGL
 {
@@ -270,7 +271,7 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 	glAttachShader(pid, vsid);
 	glAttachShader(pid, psid);
 
-	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
+	if (g_ogl_config.bSupportsGLSLCache)
 		glProgramParameteri(pid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 
 	shader.SetProgramBindings();
@@ -406,14 +407,14 @@ void ProgramShaderCache::Init(void)
 	}
 
 	// Read our shader cache, only if supported
-	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
+	if (g_ogl_config.bSupportsGLSLCache)
 	{
 		GLint Supported;
 		glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
 		if(!Supported)
 		{
 			ERROR_LOG(VIDEO, "GL_ARB_get_program_binary is supported, but no binary format is known. So disable shader cache.");
-			g_ActiveConfig.backend_info.bSupportsGLSLCache = false;
+			g_ogl_config.bSupportsGLSLCache = false;
 		}
 		else
 		{
@@ -439,7 +440,7 @@ void ProgramShaderCache::Init(void)
 void ProgramShaderCache::Shutdown(void)
 {
 	// store all shaders in cache on disk
-	if (g_ActiveConfig.backend_info.bSupportsGLSLCache)
+	if (g_ogl_config.bSupportsGLSLCache)
 	{
 		PCache::iterator iter = pshaders.begin();
 		for (; iter != pshaders.end(); ++iter)
@@ -488,8 +489,7 @@ void ProgramShaderCache::CreateHeader ( void )
 	// as sandy do ogl3.1, glsl 140 is supported, so force it in this way. 
 	// TODO: remove this again when the issue is fixed:
 	// see http://communities.intel.com/thread/36084
-	char *vendor = (char*)glGetString(GL_VENDOR);
-	bool glsl140_hack = strcmp(vendor, "Intel") == 0;
+	bool glsl140_hack = strcmp(g_ogl_config.gl_vendor, "Intel") == 0;
 #elif __APPLE__
 	// as apple doesn't support glsl130 at all, we also have to use glsl140
 	bool glsl140_hack = true;

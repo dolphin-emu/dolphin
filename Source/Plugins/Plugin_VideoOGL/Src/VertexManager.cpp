@@ -41,6 +41,7 @@
 #include "Debugger.h"
 #include "StreamBuffer.h"
 #include "PerfQueryBase.h"
+#include "Render.h"
 
 #include "main.h"
 
@@ -123,7 +124,7 @@ void VertexManager::Draw(u32 stride)
 	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
 	u32 line_index_size = IndexGenerator::GetLineindexLen();
 	u32 point_index_size = IndexGenerator::GetPointindexLen();
-	if(g_Config.backend_info.bSupportsGLBaseVertex) {
+	if(g_ogl_config.bSupportsGLBaseVertex) {
 		if (triangle_index_size > 0)
 		{
 			glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);

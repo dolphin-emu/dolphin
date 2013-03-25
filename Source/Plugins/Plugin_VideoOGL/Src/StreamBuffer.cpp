@@ -19,6 +19,7 @@
 #include "GLUtil.h"
 #include "StreamBuffer.h"
 #include "MemoryUtil.h"
+#include "Render.h"
 
 namespace OGL
 {
@@ -31,19 +32,19 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 {
 	glGenBuffers(1, &m_buffer);
 	
-	bool nvidia = !strcmp((const char*)glGetString(GL_VENDOR), "NVIDIA Corporation");
+	bool nvidia = !strcmp(g_ogl_config.gl_vendor, "NVIDIA Corporation");
 	
 	if(m_uploadtype & STREAM_DETECT)
 	{
-		if(!g_Config.backend_info.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA))
+		if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA))
 			m_uploadtype = BUFFERSUBDATA;
-		else if(g_Config.backend_info.bSupportsGLSync && g_Config.bHackedBufferUpload && (m_uploadtype & MAP_AND_RISK))
+		else if(g_ogl_config.bSupportsGLSync && g_Config.bHackedBufferUpload && (m_uploadtype & MAP_AND_RISK))
 			m_uploadtype = MAP_AND_RISK;
-		else if(g_Config.backend_info.bSupportsGLSync && g_Config.backend_info.bSupportsGLPinnedMemory && (m_uploadtype & PINNED_MEMORY))
+		else if(g_ogl_config.bSupportsGLSync && g_ogl_config.bSupportsGLPinnedMemory && (m_uploadtype & PINNED_MEMORY))
 			m_uploadtype = PINNED_MEMORY;
 		else if(nvidia && (m_uploadtype & BUFFERSUBDATA))
 			m_uploadtype = BUFFERSUBDATA;
-		else if(g_Config.backend_info.bSupportsGLSync && (m_uploadtype & MAP_AND_SYNC))
+		else if(g_ogl_config.bSupportsGLSync && (m_uploadtype & MAP_AND_SYNC))
 			m_uploadtype = MAP_AND_SYNC;
 		else 
 			m_uploadtype = MAP_AND_ORPHAN;
@@ -191,7 +192,7 @@ void StreamBuffer::Init()
 		
 		// on error, switch to another backend. some old catalyst seems to have broken pinned memory support
 		if(glGetError() != GL_NO_ERROR) {
-			ERROR_LOG(VIDEO, "pinned memory detected, but not working. Please report this: %s, %s, %s", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
+			ERROR_LOG(VIDEO, "pinned memory detected, but not working. Please report this: %s, %s, %s", g_ogl_config.gl_vendor, g_ogl_config.gl_renderer, g_ogl_config.gl_version);
 			Shutdown();
 			m_uploadtype = MAP_AND_SYNC;
 			Init();

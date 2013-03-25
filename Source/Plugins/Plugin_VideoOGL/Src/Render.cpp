@@ -104,6 +104,7 @@ int OSDInternalW, OSDInternalH;
 
 namespace OGL
 {
+VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
@@ -119,7 +120,6 @@ static int s_MSAASamples = 1;
 static int s_MSAACoverageSamples = 0;
 static int s_LastMultisampleMode = 0;
 
-static bool s_bHaveCoverageMSAA = false;
 static u32 s_blendMode;
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -135,7 +135,7 @@ static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 
 
 int GetNumMSAASamples(int MSAAMode)
 {
-	int samples, maxSamples;
+	int samples;
 	switch (MSAAMode)
 	{
 		case MULTISAMPLE_OFF:
@@ -161,12 +161,11 @@ int GetNumMSAASamples(int MSAAMode)
 		default:
 			samples = 1;
 	}
-	glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
 	
-	if(samples <= maxSamples) return samples;
+	if(samples <= g_ogl_config.max_samples) return samples;
 	
-	ERROR_LOG(VIDEO, "MSAA Bug: %d samples selected, but only %d supported by gpu.", samples, maxSamples);
-	return maxSamples;
+	ERROR_LOG(VIDEO, "MSAA Bug: %d samples selected, but only %d supported by gpu.", samples, g_ogl_config.max_samples);
+	return g_ogl_config.max_samples;
 }
 
 int GetNumMSAACoverageSamples(int MSAAMode)
@@ -187,7 +186,7 @@ int GetNumMSAACoverageSamples(int MSAAMode)
 		default:
 			samples = 0;
 	}
-	if(s_bHaveCoverageMSAA || samples == 0) return samples;
+	if(g_ogl_config.bSupportCoverageMSAA || samples == 0) return samples;
 	
 	ERROR_LOG(VIDEO, "MSAA Bug: CSAA selected, but not supported by gpu.");
 	return 0;
@@ -203,15 +202,6 @@ Renderer::Renderer()
 	s_ShowEFBCopyRegions_VBO = 0;
 	s_blendMode = 0;
 	InitFPSCounter();
-	
-	const char* gl_vendor = (const char*)glGetString(GL_VENDOR);
-	const char* gl_renderer = (const char*)glGetString(GL_RENDERER);
-	const char* gl_version = (const char*)glGetString(GL_VERSION);
-
-	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s",
-				gl_vendor,
-				gl_renderer,
-				gl_version).c_str(), 5000);
 
 	bool bSuccess = true;
 	GLint numvertexattribs = 0;
@@ -270,35 +260,54 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	s_bHaveCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
+	if (!bSuccess)
+		return;	// TODO: fail
 	
 	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
 	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
-	g_Config.backend_info.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
-	g_Config.backend_info.bSupportsGLSync = GLEW_ARB_sync;
-	g_Config.backend_info.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
-	g_Config.backend_info.bSupportsGLBaseVertex = GLEW_ARB_draw_elements_base_vertex;
+	
+	g_ogl_config.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
+	g_ogl_config.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
+	g_ogl_config.bSupportsGLSync = GLEW_ARB_sync;
+	g_ogl_config.bSupportsGLBaseVertex = GLEW_ARB_draw_elements_base_vertex;
+	g_ogl_config.bSupportCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
+	
+	g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
+	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
+	g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
+	
+	glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
 	
 	if(g_Config.backend_info.bSupportsGLSLUBO && (
 		// hd3000 get corruption, hd4000 also and a big slowdown
-		!strcmp(gl_vendor, "Intel Open Source Technology Center") && (!strcmp(gl_version, "3.0 Mesa 9.0.0") || !strcmp(gl_version, "3.0 Mesa 9.0.1") || !strcmp(gl_version, "3.0 Mesa 9.0.2") || !strcmp(gl_version, "3.0 Mesa 9.0.3") || !strcmp(gl_version, "3.0 Mesa 9.1.0") || !strcmp(gl_version, "3.0 Mesa 9.1.1") )
+		!strcmp(g_ogl_config.gl_vendor, "Intel Open Source Technology Center") && (
+			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.0.0") || 
+			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.0.1") || 
+			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.0.2") || 
+			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.0.3") || 
+			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.1.0") || 
+			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.1.1") )
 	)) {
 		g_Config.backend_info.bSupportsGLSLUBO = false;
 		ERROR_LOG(VIDEO, "buggy driver detected. Disable UBO");
 	}
 	
 	UpdateActiveConfig();
-	OSD::AddMessage(StringFromFormat("Missing Extensions: %s%s%s%s%s%s",			
+
+	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s",
+				g_ogl_config.gl_vendor,
+				g_ogl_config.gl_renderer,
+				g_ogl_config.gl_version).c_str(), 5000);
+	
+	OSD::AddMessage(StringFromFormat("Missing Extensions: %s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
-			g_ActiveConfig.backend_info.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
-			g_ActiveConfig.backend_info.bSupportsGLSLCache ? "" : "ShaderCache ",
-			g_ActiveConfig.backend_info.bSupportsGLBaseVertex ? "" : "BaseVertex ",
-			g_ActiveConfig.backend_info.bSupportsGLSync ? "" : "Sync "
+			g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
+			g_ogl_config.bSupportsGLSLCache ? "" : "ShaderCache ",
+			g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
+			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
+			g_ogl_config.bSupportCoverageMSAA ? "" : "CSAA "
 			).c_str(), 5000);
-
-	if (!bSuccess)
-		return;	// TODO: fail
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
@@ -445,10 +454,6 @@ void Renderer::DrawDebugInfo()
 
 	if (g_ActiveConfig.bShowEFBCopyRegions)
 	{
-		// Store Line Size
-		GLfloat lSize;
-		glGetFloatv(GL_LINE_WIDTH, &lSize);
-
 		// Set Line Size
 		glLineWidth(3.0f);
 
@@ -561,7 +566,7 @@ void Renderer::DrawDebugInfo()
 		glDrawArrays(GL_LINES, 0, stats.efb_regions.size() * 2*6);
 
 		// Restore Line Size
-		glLineWidth(lSize);
+		SetLineWidth();
 
 		// Clear stored regions
 		stats.efb_regions.clear();

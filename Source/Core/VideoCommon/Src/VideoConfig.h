@@ -165,11 +165,7 @@ struct VideoConfig
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
 
-		bool bSupportsGLSLUBO;
-		bool bSupportsGLSLCache;
-		bool bSupportsGLPinnedMemory;
-		bool bSupportsGLSync;
-		bool bSupportsGLBaseVertex;
+		bool bSupportsGLSLUBO; // needed by pixelShaderGen, so must stay in videoCommon
 	} backend_info;
 
 	// Utility
