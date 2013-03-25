@@ -19,8 +19,7 @@
 #include <math.h>
 
 #include "../../Plugin_VideoOGL/Src/GLUtil.h"
-#include "../../Plugin_VideoOGL/Src/RasterFont.h"
-#include "../../Plugin_VideoOGL/Src/ProgramShaderCache.h"
+#include "RasterFont.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
 
@@ -33,7 +32,7 @@ static GLuint program;
 // Rasterfont isn't compatible with GLES
 // degasus: I think it does, but I can't test it
 #ifndef USE_GLES
-OGL::RasterFont* s_pfont = NULL;
+RasterFont* s_pfont = NULL;
 #endif
 
 void SWRenderer::Init()
@@ -47,7 +46,6 @@ void SWRenderer::Shutdown()
 #ifndef USE_GLES
 	delete s_pfont;
 	s_pfont = 0;
-	OGL::ProgramShaderCache::Shutdown();
 #endif
 }
 
@@ -90,9 +88,7 @@ void SWRenderer::Prepare()
 	CreateShaders();
 	// TODO: Enable for GLES once RasterFont supports GLES
 #ifndef USE_GLES
-	// ogl rasterfont depends on ogl programshadercache
-	OGL::ProgramShaderCache::Init();
-	s_pfont = new OGL::RasterFont();
+	s_pfont = new RasterFont();
 	glEnable(GL_TEXTURE_2D);
 #endif
 	GL_REPORT_ERRORD();
@@ -103,14 +99,12 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 #ifndef USE_GLES
 	int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
-	
+	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
+			((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
 	s_pfont->printMultilineText(pstr,
-		left * 2.0f / (float)nBackbufferWidth - 1,
-		1 - top * 2.0f / (float)nBackbufferHeight,
-		0, nBackbufferWidth, nBackbufferHeight, color);
-	
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+			left * 2.0f / (float)nBackbufferWidth - 1,
+			1 - top * 2.0f / (float)nBackbufferHeight,
+			0, nBackbufferWidth, nBackbufferHeight);
 #endif
 }
 
