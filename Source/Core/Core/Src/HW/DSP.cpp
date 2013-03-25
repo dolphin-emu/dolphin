@@ -696,6 +696,10 @@ void Do_ARAM_DMA()
 	g_dspState.DSPControl.DMAState = 1;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
 
+	// Force an early exception check. Fixes RE2 audio.
+	if (g_arDMA.Cnt.count == 4096)
+		CoreTiming::ForceExceptionCheck(100);
+
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
 	{
