@@ -26,7 +26,18 @@
 #include <vector>
 
 template<class uid_data>
-class ShaderUid
+class ShaderGeneratorInterface
+{
+public:
+	void Write(const char* fmt, ...) {}
+	const char* GetBuffer() { return NULL; }
+	void SetBuffer(char* buffer) { }
+	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
+    uid_data& GetUidData() { return *(uid_data*)NULL; }
+};
+
+template<class uid_data>
+class ShaderUid : public ShaderGeneratorInterface<uid_data>
 {
 public:
 	ShaderUid()
@@ -34,11 +45,6 @@ public:
 		// TODO: Move to Shadergen => can be optimized out
 		memset(values, 0, sizeof(values));
 	}
-
-	void Write(const char* fmt, ...) {}
-	const char* GetBuffer() { return NULL; }
-	void SetBuffer(char* buffer) { }
-	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
 
 	bool operator == (const ShaderUid& obj) const
 	{
@@ -70,7 +76,7 @@ private:
 
 // Needs to be a template for hacks...
 template<class uid_data>
-class ShaderCode
+class ShaderCode : public ShaderGeneratorInterface<uid_data>
 {
 public:
 	ShaderCode() : buf(NULL), write_ptr(NULL)
@@ -88,8 +94,6 @@ public:
 
 	const char* GetBuffer() { return buf; }
 	void SetBuffer(char* buffer) { buf = buffer; write_ptr = buffer; }
-	uid_data& GetUidData() { return *(uid_data*)NULL; }
-	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
 
 private:
 	const char* buf;
@@ -97,15 +101,10 @@ private:
 };
 
 template<class uid_data>
-class ShaderConstantProfile
+class ShaderConstantProfile : public ShaderGeneratorInterface<uid_data>
 {
 public:
 	ShaderConstantProfile(int num_constants) { constant_usage.resize(num_constants); }
-
-	void Write(const char* fmt, ...) {}
-	const char* GetBuffer() { return NULL; }
-	void SetBuffer(char* buffer) { }
-	uid_data& GetUidData() { return *(uid_data*)NULL; }
 
 	// has room for optimization (if it matters at all...)
 	void NumConstants() { return constant_usage.size(); }
