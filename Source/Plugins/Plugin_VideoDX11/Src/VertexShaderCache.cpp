@@ -37,14 +37,14 @@ namespace DX11 {
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
-VERTEXSHADERUID VertexShaderCache::last_uid;
+VertexShaderUid VertexShaderCache::last_uid;
 
 static ID3D11VertexShader* SimpleVertexShader = NULL;
 static ID3D11VertexShader* ClearVertexShader = NULL;
 static ID3D11InputLayout* SimpleLayout = NULL;
 static ID3D11InputLayout* ClearLayout = NULL;
 
-LinearDiskCache<VERTEXSHADERUID, u8> g_vs_disk_cache;
+LinearDiskCache<VertexShaderUid, u8> g_vs_disk_cache;
 
 ID3D11VertexShader* VertexShaderCache::GetSimpleVertexShader() { return SimpleVertexShader; }
 ID3D11VertexShader* VertexShaderCache::GetClearVertexShader() { return ClearVertexShader; }
@@ -68,10 +68,10 @@ ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 }
 
 // this class will load the precompiled shaders into our cache
-class VertexShaderCacheInserter : public LinearDiskCacheReader<VERTEXSHADERUID, u8>
+class VertexShaderCacheInserter : public LinearDiskCacheReader<VertexShaderUid, u8>
 {
 public:
-	void Read(const VERTEXSHADERUID &key, const u8 *value, u32 value_size)
+	void Read(const VertexShaderUid &key, const u8 *value, u32 value_size)
 	{
 		D3DBlob* blob = new D3DBlob(value_size, value);
 		VertexShaderCache::InsertByteCode(key, blob);
@@ -208,14 +208,13 @@ void VertexShaderCache::Shutdown()
 
 bool VertexShaderCache::SetShader(u32 components)
 {
-	VERTEXSHADERUID uid;
-	GetVertexShaderId(&uid, components);
+	VertexShaderUid uid;
+	GetVertexShaderUid(uid, components, API_D3D11);
 	if (last_entry)
 	{
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-			ValidateVertexShaderIDs(API_D3D11, last_entry->safe_uid, last_entry->code, components);
 			return (last_entry->shader != NULL);
 		}
 	}
@@ -229,14 +228,14 @@ bool VertexShaderCache::SetShader(u32 components)
 		last_entry = &entry;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-		ValidateVertexShaderIDs(API_D3D11, entry.safe_uid, entry.code, components);
 		return (entry.shader != NULL);
 	}
 
-	const char *code = GenerateVertexShaderCode(components, API_D3D11);
+	VertexShaderCode code;
+	GenerateVertexShaderCode(code, components, API_D3D11);
 
 	D3DBlob* pbytecode = NULL;
-	D3D::CompileVertexShader(code, (int)strlen(code), &pbytecode);
+	D3D::CompileVertexShader(code.GetBuffer(), (int)strlen(code.GetBuffer()), &pbytecode);
 
 	if (pbytecode == NULL)
 	{
@@ -250,15 +249,14 @@ bool VertexShaderCache::SetShader(u32 components)
 
 	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
-		vshaders[uid].code = code;
-		GetSafeVertexShaderId(&vshaders[uid].safe_uid, components);
+		vshaders[uid].code = code.GetBuffer();
 	}
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 	return success;
 }
 
-bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, D3DBlob* bcodeblob)
+bool VertexShaderCache::InsertByteCode(const VertexShaderUid &uid, D3DBlob* bcodeblob)
 {
 	ID3D11VertexShader* shader = D3D::CreateVertexShaderFromByteCode(bcodeblob);
 	if (shader == NULL)

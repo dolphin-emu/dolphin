@@ -41,7 +41,6 @@ private:
 		LPDIRECT3DPIXELSHADER9 shader;
 		bool owns_shader;
 
-		PIXELSHADERUIDSAFE safe_uid;
 		std::string code;
 
 		PSCacheEntry() : shader(NULL), owns_shader(true) {}
@@ -53,18 +52,18 @@ private:
 		}
 	};
 
-	typedef std::map<PIXELSHADERUID, PSCacheEntry> PSCache;
+	typedef std::map<PixelShaderUid, PSCacheEntry> PSCache;
 
 	static PSCache PixelShaders;
 	static const PSCacheEntry *last_entry;
-	static PIXELSHADERUID last_uid;
+	static PixelShaderUid last_uid;
 	static void Clear();
 
 public:
 	static void Init();
 	static void Shutdown();
 	static bool SetShader(DSTALPHA_MODE dstAlphaMode, u32 componets);
-	static bool InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate);
+	static bool InsertByteCode(const PixelShaderUid &uid, const u8 *bytecode, int bytecodelen, bool activate);
 	static LPDIRECT3DPIXELSHADER9 GetColorMatrixProgram(int SSAAMode);
 	static LPDIRECT3DPIXELSHADER9 GetColorCopyProgram(int SSAAMode);
 	static LPDIRECT3DPIXELSHADER9 GetDepthMatrixProgram(int SSAAMode, bool depthConversion);
