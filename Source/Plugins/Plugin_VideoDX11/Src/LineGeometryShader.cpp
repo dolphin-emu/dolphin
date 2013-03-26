@@ -182,11 +182,12 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 	if (shaderIt == m_shaders.end())
 	{
 		// Generate new shader. Warning: not thread-safe.
-		static char code[16384];
-		char* p = code;
-		p = GenerateVSOutputStruct(p, components, API_D3D11);
-		p += sprintf(p, "\n%s", LINE_GS_COMMON);
-		
+		static char buffer[16384];
+		ShaderCode<u32> code;
+		code.SetBuffer(buffer);
+		GenerateVSOutputStruct(code, components, API_D3D11);
+		code.Write("\n%s", LINE_GS_COMMON);
+
 		std::stringstream numTexCoordsStream;
 		numTexCoordsStream << xfregs.numTexGen.numTexGens;
 		
@@ -198,7 +199,7 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 			{ "NUM_TEXCOORDS", numTexCoordsStr.c_str() },
 			{ NULL, NULL }
 		};
-		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code, unsigned int(strlen(code)), macros);
+		ID3D11GeometryShader* newShader = D3D::CompileAndCreateGeometryShader(code.GetBuffer(), unsigned int(strlen(code.GetBuffer())), macros);
 		if (!newShader)
 		{
 			WARN_LOG(VIDEO, "Line geometry shader for components 0x%.08X failed to compile", components);
