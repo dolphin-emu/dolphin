@@ -536,3 +536,8 @@ void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE
 {
 	GenerateVertexShader<VertexShaderCode>(object, components, api_type);
 }
+
+void GenerateVSOutputStructForGS(ShaderCode<u32>& object, u32 components, API_TYPE api_type)
+{
+	GenerateVSOutputStruct<ShaderCode<u32> >(object, components, api_type);
+}
