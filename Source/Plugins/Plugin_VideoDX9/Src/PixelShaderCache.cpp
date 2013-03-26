@@ -334,7 +334,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	const API_TYPE api = ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF) < 3 ? API_D3D9_SM20 : API_D3D9_SM30;
 	PixelShaderUid uid;
-	GetPixelShaderUid(uid, dstAlphaMode, components);
+	GetPixelShaderUid(uid, dstAlphaMode, API_D3D9, components);
 
 	// Check if the shader is already set
 	if (last_entry)

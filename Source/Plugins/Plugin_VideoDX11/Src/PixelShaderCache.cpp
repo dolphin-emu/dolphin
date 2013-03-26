@@ -462,7 +462,7 @@ void PixelShaderCache::Shutdown()
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	PixelShaderUid uid;
-	GetPixelShaderUid(uid, dstAlphaMode, components);
+	GetPixelShaderUid(uid, dstAlphaMode, API_D3D11, components);
 
 	// Check if the shader is already set
 	if (last_entry)
@@ -508,7 +508,6 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
 		PixelShaders[uid].code = code.GetBuffer();
-		GetSafePixelShaderId(&PixelShaders[uid].safe_uid, dstAlphaMode, components);
 	}
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);

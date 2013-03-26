@@ -189,7 +189,7 @@ void VertexShaderCache::Shutdown()
 bool VertexShaderCache::SetShader(u32 components)
 {
 	VertexShaderUid uid;
-	GetVertexShaderUid(uid, components);
+	GetVertexShaderUid(uid, components, API_D3D9);
 	if (last_entry)
 	{
 		if (uid == last_uid)
