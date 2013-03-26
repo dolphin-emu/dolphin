@@ -47,6 +47,7 @@ namespace EfbInterface
 
     void UpdateColorTexture();
     extern u8 efbColorTexture[EFB_WIDTH*EFB_HEIGHT*4]; // RGBA format
+	void DoState(PointerWrap &p);
 }
     
 #endif

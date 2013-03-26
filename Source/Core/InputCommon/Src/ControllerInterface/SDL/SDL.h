@@ -5,22 +5,14 @@
 
 #include <list>
 
-#ifdef _WIN32
-	#include <SDL.h>
-#else
-	#include <SDL/SDL.h>
-#endif
+#include <SDL.h>
 
 #if SDL_VERSION_ATLEAST(1, 3, 0)
 	#define USE_SDL_HAPTIC
 #endif
 
 #ifdef USE_SDL_HAPTIC
-	#ifdef _WIN32
-		#include <SDL_haptic.h>
-	#else
-		#include <SDL/SDL_haptic.h>
-	#endif
+	#include <SDL_haptic.h>
 	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
 #else
 	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK

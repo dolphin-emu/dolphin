@@ -26,6 +26,7 @@
 #include "IniFile.h"
 #include "ConfigManager.h"
 #include "CPUDetect.h"
+#include "Core.h"
 
 #include "DSPLLEGlobals.h" // Local
 #include "DSP/DSPInterpreter.h"
@@ -56,6 +57,14 @@ Common::Event ppcEvent;
 
 void DSPLLE::DoState(PointerWrap &p)
 {
+	bool isHLE = false;
+	p.Do(isHLE);
+	if (isHLE != false && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.", 3000);
+		p.SetMode(PointerWrap::MODE_VERIFY);
+		return;
+	}
 	p.Do(g_dsp.r);
 	p.Do(g_dsp.pc);
 #if PROFILE
@@ -135,13 +144,13 @@ bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 	m_bDSPThread = bDSPThread;
 	m_InitMixer = false;
 
-	std::string irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
-	std::string coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
+	std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
+	std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
 
 	if (!File::Exists(irom_file))
-		irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
+		irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
 	if (!File::Exists(coef_file))
-		coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
+		coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
 	if (!DSPCore_Init(irom_file.c_str(), coef_file.c_str(), AudioCommon::UseJIT()))
 		return false;
 

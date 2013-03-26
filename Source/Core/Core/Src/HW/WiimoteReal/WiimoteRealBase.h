@@ -41,6 +41,7 @@
 #define WM_SET_REPORT				0xA0
 #endif
 
+// TODO: duplicated in WiimoteHid.h
 // Commands
 #define WM_CMD_RUMBLE				0x10
 #define WM_CMD_LED					0x11
@@ -66,8 +67,9 @@
 
 // End Wiimote internal codes
 
-#define MAX_PAYLOAD					32
-#define WIIMOTE_DEFAULT_TIMEOUT		30
+// It's 23. NOT 32!
+#define MAX_PAYLOAD					23
+#define WIIMOTE_DEFAULT_TIMEOUT		1000
 
 #ifdef _WIN32
 // Available bluetooth stacks for Windows.

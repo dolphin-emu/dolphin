@@ -20,11 +20,13 @@
 #include "Tev.h"
 #include "EfbInterface.h"
 #include "TextureSampler.h"
+#include "XFMemLoader.h"
+#include "SWPixelEngine.h"
 #include "SWStatistics.h"
 #include "SWVideoConfig.h"
 #include "DebugUtil.h"
 
-#include <math.h>
+#include <cmath>
 
 #ifdef _DEBUG
 #define ALLOW_TEV_DUMPS 1
@@ -431,7 +433,7 @@ static bool AlphaCompare(int alpha, int ref, int comp)
     return true;
 }
 
-static bool AlphaTest(int alpha)
+static bool TevAlphaTest(int alpha)
 {
     bool comp0 = AlphaCompare(alpha, bpmem.alpha_test.ref0, bpmem.alpha_test.comp0);
     bool comp1 = AlphaCompare(alpha, bpmem.alpha_test.ref1, bpmem.alpha_test.comp1);
@@ -700,7 +702,7 @@ void Tev::Draw()
     // convert to 8 bits per component
     u8 output[4] = {(u8)Reg[0][ALP_C], (u8)Reg[0][BLU_C], (u8)Reg[0][GRN_C], (u8)Reg[0][RED_C]};
 
-    if (!AlphaTest(output[ALP_C]))
+    if (!TevAlphaTest(output[ALP_C]))
         return;
 
     // z texture
@@ -747,10 +749,22 @@ void Tev::Draw()
 
 		}
 
-		// stuff to do!
-		// here, where we'll have to add/handle x range adjustment (if related BP register it's enabled)
-		// x_adjust = sqrt((x-center)^2 + k^2)/k
-		// ze *= x_adjust
+		if(bpmem.fogRange.Base.Enabled)
+		{
+			// TODO: This is untested and should definitely be checked against real hw.
+			// - No idea if offset is really normalized against the viewport width or against the projection matrix or yet something else
+			// - scaling of the "k" coefficient isn't clear either.
+
+			// First, calculate the offset from the viewport center (normalized to 0..1)
+			float offset = (Position[0] - (bpmem.fogRange.Base.Center - 342)) / (float)swxfregs.viewport.wd;
+			// Based on that, choose the index such that points which are far away from the z-axis use the 10th "k" value and such that central points use the first value.
+			int index = 9 - std::abs(offset) * 9.f;
+			index = (index < 0) ? 0 : (index > 9) ? 9 : 0; // TODO: Shouldn't be necessary!
+			// Look up coefficient... Seems like multiplying by 4 makes Fortune Street work properly (fog is too strong without the factor)
+			float k = bpmem.fogRange.K[index/2].GetValue(index%2) * 4.f;
+			float x_adjust = sqrt(offset*offset + k*k)/k;
+			ze *= x_adjust; // NOTE: This is basically dividing by a cosine (hidden behind GXInitFogAdjTable): 1/cos = c/b = sqrt(a^2+b^2)/b
+		}
 
 		ze -= bpmem.fog.c_proj_fsel.GetC();
 
@@ -784,11 +798,17 @@ void Tev::Draw()
 		output[BLU_C] = (output[BLU_C] * invFog + fogInt * bpmem.fog.color.b) >> 8;
 	}
 
-    if (!bpmem.zcontrol.early_ztest && bpmem.zmode.testenable)
-    {
+	bool late_ztest = !bpmem.zcontrol.early_ztest || !g_SWVideoConfig.bZComploc;
+	if (late_ztest && bpmem.zmode.testenable)
+	{
+		// TODO: Check against hw if these values get incremented even if depth testing is disabled
+        SWPixelEngine::pereg.IncZInputQuadCount(false);
+
         if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))
             return;
-    }
+
+        SWPixelEngine::pereg.IncZOutputQuadCount(false);
+	}
 
 #if ALLOW_TEV_DUMPS
 	if (g_SWVideoConfig.bDumpTevStages)
@@ -811,6 +831,7 @@ void Tev::Draw()
 #endif
 
     INCSTAT(swstats.thisFrame.tevPixelsOut);
+	SWPixelEngine::pereg.IncBlendInputQuadCount();
 
     EfbInterface::BlendTev(Position[0], Position[1], output);
 }
@@ -825,4 +846,32 @@ void Tev::SetRegColor(int reg, int comp, bool konst, s16 color)
     {
         Reg[reg][comp] = color;
     }
+}
+
+void Tev::DoState(PointerWrap &p)
+{
+	p.DoArray(Reg, sizeof(Reg));
+	
+	p.DoArray(KonstantColors, sizeof(KonstantColors));
+	p.DoArray(TexColor,4);
+	p.DoArray(RasColor,4);
+	p.DoArray(StageKonst,4);
+    p.DoArray(Zero16,4);
+    
+	p.DoArray(FixedConstants,9);
+	p.Do(AlphaBump);
+	p.DoArray(IndirectTex, sizeof(IndirectTex));
+	p.Do(TexCoord);
+
+	p.DoArray(m_BiasLUT,4);
+    p.DoArray(m_ScaleLShiftLUT,4);
+    p.DoArray(m_ScaleRShiftLUT,4);
+
+	p.DoArray(Position,3);
+    p.DoArray(Color, sizeof(Color));
+    p.DoArray(Uv, 8);
+    p.DoArray(IndirectLod,4);
+	p.DoArray(IndirectLinear,4);
+	p.DoArray(TextureLod,16);
+	p.DoArray(TextureLinear,16);
 }

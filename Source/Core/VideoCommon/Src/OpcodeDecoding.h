@@ -44,12 +44,12 @@
 #define GX_DRAW_LINES               0x5   // 0xA8
 #define GX_DRAW_LINE_STRIP          0x6   // 0xB0
 #define GX_DRAW_POINTS              0x7   // 0xB8
-#define GX_DRAW_NONE				0x1;  //Tis is a fake value to used in the backends
+#define GX_DRAW_NONE                0x1;  //Tis is a fake value to used in the backends
 
 extern bool g_bRecordFifoData;
 
 void OpcodeDecoder_Init();
 void OpcodeDecoder_Shutdown();
-void OpcodeDecoder_Run(bool skipped_frame);
+u32 OpcodeDecoder_Run(bool skipped_frame);
 void ExecuteDisplayList(u32 address, u32 size);
 #endif // _OPCODE_DECODING_H

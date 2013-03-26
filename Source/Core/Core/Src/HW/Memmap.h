@@ -119,11 +119,6 @@ inline u32 ReadFast32(const u32 _Address)
 
 // used by interpreter to read instructions, uses iCache
 u32 Read_Opcode(const u32 _Address);
-// used by JIT to read instructions
-u32 Read_Opcode_JIT(const u32 _Address);
-// used by JIT. uses iCacheJIT. Reads in the "Locked cache" mode
-u32 Read_Opcode_JIT_LC(const u32 _Address);
-void Write_Opcode_JIT(const u32 _Address, const u32 _Value);
 // this is used by Debugger a lot. 
 // For now, just reads from memory!
 u32 Read_Instruction(const u32 _Address);

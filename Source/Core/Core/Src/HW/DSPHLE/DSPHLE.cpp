@@ -27,6 +27,7 @@
 #include "UCodes/UCodes.h"
 #include "../AudioInterface.h"
 #include "ConfigManager.h"
+#include "Core.h"
 
 DSPHLE::DSPHLE() {
 	m_InitMixer = false;
@@ -130,6 +131,14 @@ void DSPHLE::SwapUCode(u32 _crc)
 
 void DSPHLE::DoState(PointerWrap &p)
 {
+	bool isHLE = true;
+	p.Do(isHLE);
+	if (isHLE != true && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.", 3000);
+		p.SetMode(PointerWrap::MODE_VERIFY);
+		return;
+	}
 	bool prevInitMixer = m_InitMixer;
 	p.Do(m_InitMixer);
 	if (prevInitMixer != m_InitMixer && p.GetMode() == PointerWrap::MODE_READ)

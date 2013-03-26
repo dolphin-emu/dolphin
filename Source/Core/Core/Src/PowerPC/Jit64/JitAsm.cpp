@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "ABI.h"
+#include "x64ABI.h"
 #include "x64Emitter.h"
 
 #include "../../HW/Memmap.h"
@@ -24,7 +24,7 @@
 #include "../../CoreTiming.h"
 #include "MemoryUtil.h"
 
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Jit.h"
 #include "../JitCommon/JitCache.h"
 
@@ -204,7 +204,7 @@ void Jit64AsmRoutineManager::Generate()
 		MOV(32, M(&NPC), R(EAX));
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
 		SetJumpTarget(noExtException);
-
+		
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop, true);
 

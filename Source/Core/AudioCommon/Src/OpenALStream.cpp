@@ -200,6 +200,7 @@ void OpenALStream::SoundLoop()
 		u64 num_samples_to_render = (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
 
 		unsigned int numSamples = (unsigned int)num_samples_to_render;
+		unsigned int minSamples = surround_capable ? 240 : 0; // DPL2 accepts 240 samples minimum (FWRDURATION)
 
 		numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
 		numSamples = m_mixer->Mix(realtimeBuffer, numSamples);
@@ -236,9 +237,15 @@ void OpenALStream::SoundLoop()
 				// Adjust SETTING_SEQUENCE_MS to balance between lag vs hollow audio
 				soundTouch.setSetting(SETTING_SEQUENCE_MS, (int)(1 / (rate * rate)));
 				soundTouch.setTempo(rate);
+				if (rate > 10)
+				{
+					soundTouch.clear();
+				}
 			}
-			unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_MAX_BUFFERS);
-			if (nSamples > 0)
+
+			unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * SIZE_FLOAT * OAL_MAX_BUFFERS);
+
+			if (nSamples > minSamples)
 			{
 				// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
 				if (iBuffersFilled == 0)
@@ -288,7 +295,6 @@ void OpenALStream::SoundLoop()
 						{
 							ERROR_LOG(AUDIO, "Error occurred while buffering float32 data: %08x", err);
 						}
-
 					}
 #endif
 					if (!float32_capable)
@@ -301,7 +307,6 @@ void OpenALStream::SoundLoop()
 							stereo[i * 2 + 1] = (short)((float)sampleBuffer[i * 2 + 1] * (1 << 16));
 						}
 						alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * 2 * 2, ulFrequency);
-
 					}
 				}
 
@@ -316,7 +321,7 @@ void OpenALStream::SoundLoop()
 				if (iBuffersFilled == numBuffers)
 				{
 					alSourcePlay(uiSource);
-					ALenum err = alGetError();
+					err = alGetError();
 					if (err != 0)
 					{
 						ERROR_LOG(AUDIO, "Error occurred during playback: %08x", err);
@@ -328,7 +333,7 @@ void OpenALStream::SoundLoop()
 				{
 					// Buffer underrun occurred, resume playback
 					alSourcePlay(uiSource);
-					ALenum err = alGetError();
+					err = alGetError();
 					if (err != 0)
 					{
 						ERROR_LOG(AUDIO, "Error occurred resuming playback: %08x", err);

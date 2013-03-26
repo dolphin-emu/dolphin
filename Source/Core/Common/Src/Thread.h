@@ -33,8 +33,6 @@
 #define INFINITE 0xffffffff
 #endif
 
-#include <xmmintrin.h>
-
 //for gettimeofday and struct time(spec|val)
 #include <time.h>
 #include <sys/time.h>
@@ -64,7 +62,7 @@ public:
 			m_condvar.notify_one();
 		}
 	}
-	
+
 	void Wait()
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);

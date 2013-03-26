@@ -20,6 +20,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "FileSystemGCWii.h"
 #include "StringUtil.h"
@@ -27,10 +28,10 @@
 namespace DiscIO
 {
 CFileSystemGCWii::CFileSystemGCWii(const IVolume *_rVolume)
-	: IFileSystem(_rVolume),
-	m_Initialized(false),
-	m_Valid(false),
-	m_OffsetShift(0)
+	: IFileSystem(_rVolume)
+	, m_Initialized(false)
+	, m_Valid(false)
+	, m_OffsetShift(0)
 {
 	m_Valid = DetectFileSystem();
 }
@@ -213,9 +214,16 @@ u32 CFileSystemGCWii::Read32(u64 _Offset) const
 	return Common::swap32(Temp);
 }
 
-void CFileSystemGCWii::GetStringFromOffset(u64 _Offset, char* Filename) const
+std::string CFileSystemGCWii::GetStringFromOffset(u64 _Offset) const
 {
-	m_rVolume->Read(_Offset, 255, (u8*)Filename);
+	std::string data;
+	data.resize(255);
+	m_rVolume->Read(_Offset, data.size(), (u8*)&data[0]);
+	data.erase(std::find(data.begin(), data.end(), 0x00), data.end());
+	
+	// TODO: Should we really always use SHIFT-JIS?
+	// It makes some filenames in Pikmin (NTSC-U) sane, but is it correct?
+	return SHIFTJISToUTF8(data);
 }
 
 size_t CFileSystemGCWii::GetFileList(std::vector<const SFileInfo *> &_rFilenames)
@@ -311,18 +319,16 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 	{
 		SFileInfo *rFileInfo = &m_FileInfoVector[CurrentIndex];
 		u64 uOffset = _NameTableOffset + (rFileInfo->m_NameOffset & 0xFFFFFF);
-		char filename[512];
-		memset(filename, 0, sizeof(filename));
-		GetStringFromOffset(uOffset, filename);
+		std::string filename = GetStringFromOffset(uOffset);
 
 		// check next index
 		if (rFileInfo->IsDirectory())
 		{
 			// this is a directory, build up the new szDirectory
 			if (_szDirectory != NULL)
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s/", _szDirectory, filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s/", _szDirectory, filename.c_str());
 			else
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s/", filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s/", filename.c_str());
 
 			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo->m_FileSize, rFileInfo->m_FullPath, _NameTableOffset);
 		}
@@ -330,9 +336,9 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 		{
 			// this is a filename
 			if (_szDirectory != NULL)
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s", _szDirectory, filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s", _szDirectory, filename.c_str());
 			else
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s", filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s", filename.c_str());
 
 			CurrentIndex++;
 		}

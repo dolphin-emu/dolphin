@@ -111,5 +111,13 @@ u8 GetSysMenuRegion(u16 _TitleVersion)
 	}
 }
 
-};
+std::string IVolume::GetName() const
+{
+	auto names = GetNames();
+	if (names.empty())
+		return "";
+	else
+		return names[0];
+}
 
+}

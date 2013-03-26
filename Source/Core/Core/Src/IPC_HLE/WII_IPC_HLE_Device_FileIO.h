@@ -21,8 +21,7 @@
 #include "WII_IPC_HLE_Device.h"
 #include "FileUtil.h"
 
-std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size);
-void HLE_IPC_CreateVirtualFATFilesystem();
+std::string HLE_IPC_BuildFilename(std::string _pFilename, int _size);
 
 class CWII_IPC_HLE_Device_FileIO : public IWII_IPC_HLE_Device
 {
@@ -39,10 +38,9 @@ public:
     bool IOCtl(u32 _CommandAddress);
 	void DoState(PointerWrap &p);
 
-	bool OpenFile();
-	void CloseFile();
-
 private:
+	void PrepareFile();
+	
 	enum
 	{
 		ISFS_OPEN_READ				= 1,
@@ -76,12 +74,11 @@ private:
         ISFS_IOCTL_SHUTDOWN
     };
 
-    File::IOFile m_pFileHandle;
 	u32 m_Mode;
-
 	u32 m_SeekPos;
-
-	std::string m_Filename;
+	File::IOFile m_file;
+	
+	std::string m_filepath;
 };
 
 #endif

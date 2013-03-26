@@ -145,6 +145,8 @@ static void GenerateAudioInterrupt();
 static void UpdateInterrupts();
 static void IncreaseSampleCount(const u32 _uAmount);
 void ReadStreamBlock(s16* _pPCM);
+u64 GetAIPeriod();
+int et_AI;
 
 void Init()
 {
@@ -159,6 +161,8 @@ void Init()
 
 	g_AISSampleRate = 48000;
 	g_AIDSampleRate = 32000;
+
+	et_AI = CoreTiming::RegisterEvent("AICallback", Update);
 }
 
 void Shutdown()
@@ -178,11 +182,8 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 		break;
 
 	case AI_SAMPLE_COUNTER:
+		Update(0, 0);
         _rReturnValue = m_SampleCounter;
-		// HACK - AI SRC init will do while (oldval == sample_counter) {}
-		// in order to pass this, we need to increment the counter whenever read
-		if (m_Control.PSTAT)
-			m_SampleCounter++;
 		break;
 
 	case AI_INTERRUPT_TIMING:
@@ -236,6 +237,9 @@ void Write32(const u32 _Value, const u32 _Address)
 
 				// Tell Drive Interface to start/stop streaming
 				DVDInterface::g_bStream = tmpAICtrl.PSTAT;
+
+				CoreTiming::RemoveEvent(et_AI);
+				CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2), et_AI);
             }
 
             // AI Interrupt
@@ -271,6 +275,8 @@ void Write32(const u32 _Value, const u32 _Address)
 
 	case AI_INTERRUPT_TIMING:		
 		m_InterruptTiming = _Value;
+		CoreTiming::RemoveEvent(et_AI);
+		CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2), et_AI);
 		DEBUG_LOG(AUDIO_INTERFACE, "Set interrupt: %08x samples", m_InterruptTiming);
 		break;
 
@@ -448,7 +454,7 @@ unsigned int GetAIDSampleRate()
 	return g_AIDSampleRate;
 }
 
-void Update()
+void Update(u64 userdata, int cyclesLate)
 {
     if (m_Control.PSTAT)
     {
@@ -458,8 +464,17 @@ void Update()
             const u32 Samples = static_cast<u32>(Diff / g_CPUCyclesPerSample);
             g_LastCPUTime += Samples * g_CPUCyclesPerSample;
 			IncreaseSampleCount(Samples);
-        } 
+        }
+		CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2) - cyclesLate, et_AI);
     }
+}
+
+u64 GetAIPeriod()
+{
+	u64 period = g_CPUCyclesPerSample * m_InterruptTiming;
+	if (period == 0)
+		period = 32000 * g_CPUCyclesPerSample;
+	return period;
 }
 
 } // end of namespace AudioInterface

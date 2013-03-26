@@ -30,9 +30,13 @@ namespace PostProcessing
 void Init();
 void Shutdown();
 
+void BindTargetFramebuffer();
+void BlitToScreen();
+void Update(u32 width, u32 height);
+
 void ReloadShader();
-// Returns false if no shader was applied.
-bool ApplyShader();
+
+void ApplyShader();
 
 }  // namespace
 

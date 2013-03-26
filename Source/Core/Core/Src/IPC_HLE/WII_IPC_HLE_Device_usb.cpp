@@ -336,23 +336,23 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 	pWiiMote->ExecuteL2capCmd(_pData, _Size);
 }
 
-// Here we send ACL packets to CPU. They will consist of header + data.
-// The header is for example 07 00 41 00 which means size 0x0007 and channel 0x0041.
-// ---------------------------------------------------
-// AyuanX: Basically, our WII_IPC_HLE is efficient enough to send the packet immediately
-// rather than enqueue it to some other memory 
-// But...the only exception comes from the Wiimote_Plugin
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::IncDataPacket(u16 _ConnectionHandle)
 {
 	m_PacketCount[_ConnectionHandle & 0xff]++;
 
+	// I don't think this makes sense or should be necessary
+	// m_PacketCount refers to "completed" packets and is not related to some buffer size, yes?
+#if 0
 	if (m_PacketCount[_ConnectionHandle & 0xff] > (unsigned int)m_acl_pkts_num)
 	{
 		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL buffer overflow");
 		m_PacketCount[_ConnectionHandle & 0xff] = m_acl_pkts_num;
 	}
+#endif
 }
 
+// Here we send ACL packets to CPU. They will consist of header + data.
+// The header is for example 07 00 41 00 which means size 0x0007 and channel 0x0041.
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
 	DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet from %x ready to send to stack...", _ConnectionHandle);
@@ -374,8 +374,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 	}
 	else
 	{
-		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint not currently valid, "
-			"queueing(%d)...", m_acl_pool.GetWritePos());
+		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint not currently valid, queueing...");
 		m_acl_pool.Store(_pData, _Size, _ConnectionHandle);
 	}
 }
@@ -486,18 +485,8 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		}
 	}
 
-	// The Real Wiimote sends report every ~6.66ms (150 Hz).
-	// However, we don't actually reach here at dependable intervals, so we
-	// instead just timeslice in such a way that makes the stack think we have
-	// perfect "radio quality" (WPADGetRadioSensitivity) and yet still have some
-	// idle time.
-	// Somehow, Dolphin's Wiimote Speaker support requires using an update interval
-	// of 5ms (200 Hz) for its output to work.  This increased frequency tends to
-	// fill the ACL queue (even) quicker than it can be processed by Dolphin,
-	// especially during simultaneous requests involving many (emulated) Wiimotes...
-	// Thus, we only use that interval when the option is enabled.  See issue 4608.
-	const u64 interval = SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().
-			m_LocalCoreStartupParameter.bDisableWiimoteSpeaker ? 150 : 200);
+	// The Real Wiimote sends report every ~5ms (200 Hz).
+	const u64 interval = SystemTimers::GetTicksPerSecond() / 200;
 	const u64 each_wiimote_interval = interval / m_WiiMotes.size();
 	const u64 now = CoreTiming::GetTicks();
 
@@ -518,25 +507,47 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	return packet_transferred;
 }
 
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u16 size, const u16 conn_handle)
+{
+	if (m_queue.size() >= 100)
+	{
+		// Many simultaneous exchanges of ACL packets tend to cause the queue to fill up.
+		ERROR_LOG(WII_IPC_WIIMOTE, "ACL queue size reached 100 - current packet will be dropped!");
+		return;
+	}
+	
+	_dbg_assert_msg_(WII_IPC_WIIMOTE,
+		size < m_acl_pkt_size, "acl packet too large for pool");
+	
+	m_queue.push_back(Packet());
+	auto& packet = m_queue.back();
+	
+	std::copy(data, data + size, packet.data);
+	packet.size = size;
+	packet.conn_handle = conn_handle;
+}
+
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::WriteToEndpoint(CtrlBuffer& endpoint)
 {
-	const u8 *data = m_pool + m_acl_pkt_size * m_read_ptr;
-	const u16 size = m_info[m_read_ptr].size;
-	const u16 conn_handle = m_info[m_read_ptr].conn_handle;
+	auto& packet = m_queue.front();
+	
+	const u8* const data = packet.data;
+	const u16 size = packet.size;
+	const u16 conn_handle = packet.conn_handle;
 
 	DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet being written from "
-		"queue(%d) to %08x", GetReadPos(),	endpoint.m_address);
+		"queue to %08x", endpoint.m_address);
 
 	hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(endpoint.m_buffer);
 	pHeader->con_handle	= HCI_MK_CON_HANDLE(conn_handle, HCI_PACKET_START, HCI_POINT2POINT);
 	pHeader->length		= size;
 
 	// Write the packet to the buffer
-	memcpy((u8*)pHeader + sizeof(hci_acldata_hdr_t), data, pHeader->length);
+	std::copy(data, data + size, (u8*)pHeader + sizeof(hci_acldata_hdr_t));
 
 	endpoint.SetRetVal(sizeof(hci_acldata_hdr_t) + size);
 
-	m_read_ptr = (m_read_ptr + 1) % m_acl_pkts_num;
+	m_queue.pop_front();
 
 	WII_IPC_HLE_Interface::EnqReply(endpoint.m_address);
 	endpoint.Invalidate();

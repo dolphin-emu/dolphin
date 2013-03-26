@@ -13,6 +13,7 @@
     <ClCompile Include="Src\OpcodeDecoder.cpp" />
     <ClCompile Include="Src\SWPixelEngine.cpp" />
     <ClCompile Include="Src\Rasterizer.cpp" />
+    <ClCompile Include="Src\RasterFont.cpp" />
     <ClCompile Include="Src\SWRenderer.cpp" />
     <ClCompile Include="Src\SetupUnit.cpp" />
     <ClCompile Include="Src\SWStatistics.cpp" />
@@ -39,6 +40,7 @@
     <ClInclude Include="Src\OpcodeDecoder.h" />
     <ClInclude Include="Src\SWPixelEngine.h" />
     <ClInclude Include="Src\Rasterizer.h" />
+    <ClInclude Include="Src\RasterFont.h" />
     <ClInclude Include="Src\SWRenderer.h" />
     <ClInclude Include="Src\SetupUnit.h" />
     <ClInclude Include="Src\SWStatistics.h" />

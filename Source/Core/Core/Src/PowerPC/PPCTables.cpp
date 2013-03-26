@@ -24,11 +24,7 @@
 #include "FileUtil.h"
 #include "Interpreter/Interpreter.h"
 #include "Interpreter/Interpreter_Tables.h"
-#include "Jit64IL/JitIL_Tables.h"
-#include "Jit64/Jit64_Tables.h"
-
-#include "Jit64IL/JitIL.h"
-#include "Jit64/Jit.h"
+#include "JitInterface.h"
 
 struct op_inf
 {
@@ -165,19 +161,9 @@ void InitTables(int cpu_core)
 			// Interpreter
 			break;
 		}
-	case 1:
-		{
-			Jit64Tables::InitTables();
-			break;
-		}
-	case 2:
-		{
-			JitILTables::InitTables();
-			break;
-		}
 	default:
 		{
-			PanicAlert("Unrecognizable cpu_core: %d", cpu_core);
+			JitInterface::InitTables(cpu_core);
 			break;
 		}
 	}

@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "DriveBlob.h"
+#include "StringUtil.h"
 
 namespace DiscIO
 {
@@ -23,12 +24,9 @@ namespace DiscIO
 DriveReader::DriveReader(const char *drive)
 {
 #ifdef _WIN32
-	char path[MAX_PATH];
-	strncpy(path, drive, 3);
-	path[2] = 0;
-	sprintf(path, "\\\\.\\%s", drive);
 	SectorReader::SetSectorSize(2048);
-	hDisc = CreateFile(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+	auto const path = UTF8ToTStr(std::string("\\\\.\\") + drive);
+	hDisc = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
 						NULL, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, NULL);
 	if (hDisc != INVALID_HANDLE_VALUE)
 	{

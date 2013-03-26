@@ -44,7 +44,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -54,7 +54,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -332,7 +332,7 @@
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
-    <ClCompile Include="Src\MemTools.cpp" />
+    <ClCompile Include="Src\x64MemTools.cpp" />
     <ClCompile Include="Src\Movie.cpp" />
     <ClCompile Include="Src\NetPlay.cpp" />
     <ClCompile Include="Src\NetPlayClient.cpp" />
@@ -378,6 +378,7 @@
     <ClCompile Include="Src\PowerPC\JitCommon\JitBase.cpp" />
     <ClCompile Include="Src\PowerPC\JitCommon\JitCache.cpp" />
     <ClCompile Include="Src\PowerPC\JitCommon\Jit_Util.cpp" />
+    <ClCompile Include="Src\PowerPC\JitInterface.cpp" />
     <ClCompile Include="Src\PowerPC\LUT_frsqrtex.cpp" />
     <ClCompile Include="Src\PowerPC\PowerPC.cpp" />
     <ClCompile Include="Src\PowerPC\PPCAnalyst.cpp" />
@@ -387,10 +388,10 @@
     <ClCompile Include="Src\PowerPC\Profiler.cpp" />
     <ClCompile Include="Src\PowerPC\SignatureDB.cpp" />
     <ClCompile Include="Src\State.cpp">
-	  <OpenMPSupport Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">false</OpenMPSupport>
-	  <OpenMPSupport Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</OpenMPSupport>
-	  <OpenMPSupport Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</OpenMPSupport>
-	</ClCompile>
+      <OpenMPSupport Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">false</OpenMPSupport>
+      <OpenMPSupport Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</OpenMPSupport>
+      <OpenMPSupport Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</OpenMPSupport>
+    </ClCompile>
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -563,6 +564,7 @@
     <ClInclude Include="Src\PowerPC\JitCommon\JitBase.h" />
     <ClInclude Include="Src\PowerPC\JitCommon\JitCache.h" />
     <ClInclude Include="Src\PowerPC\JitCommon\Jit_Util.h" />
+    <ClInclude Include="Src\PowerPC\JitInterface.h" />
     <ClInclude Include="Src\PowerPC\LUT_frsqrtex.h" />
     <ClInclude Include="Src\PowerPC\PowerPC.h" />
     <ClInclude Include="Src\PowerPC\PPCAnalyst.h" />

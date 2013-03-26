@@ -19,6 +19,8 @@
 #define _BANNER_LOADER_GC_H_
 
 #include "BannerLoader.h"
+#include "VolumeGC.h"
+#include "StringUtil.h"
 
 namespace DiscIO
 {
@@ -26,15 +28,16 @@ class CBannerLoaderGC
 	: public IBannerLoader
 {
 	public:
-		CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem);
+		CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume);
 		virtual ~CBannerLoaderGC();
 
 		virtual bool IsValid();
 
 		virtual bool GetBanner(u32* _pBannerImage);
-		virtual bool GetName(std::string* _rName);
-		virtual bool GetCompany(std::string& _rCompany);
-		virtual bool GetDescription(std::string* _rDescription);
+
+		virtual std::vector<std::string> GetNames();
+		virtual std::string GetCompany();
+		virtual std::vector<std::string> GetDescriptions();
 
 	private:
 		enum
@@ -60,23 +63,26 @@ class CBannerLoaderGC
 			char comment[128]; // Game description shown in IPL game start screen in two lines.
 		};
 
-		// "opening.bnr" file format for JP/US console
-		struct DVDBanner
-		{
-			u32 id; // 'BNR1'
-			u32 padding[7];
-			u16 image[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT]; // RGB5A3 96x32 texture image
-			DVDBannerComment comment;
-		};
-
 		// "opening.bnr" file format for EU console
-		struct DVDBanner2
+		struct DVDBanner
 		{
 			u32 id; // 'BNR2'
 			u32 padding[7];
 			u16 image[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT]; // RGB5A3 96x32 texture image
-			DVDBannerComment comment[6]; // Comments in six languages
+			DVDBannerComment comment[6]; // Comments in six languages (only 1 for BNR1 type)
 		};
+
+		static const u32 BNR1_SIZE = sizeof(DVDBanner) - sizeof(DVDBannerComment) * 5;
+		static const u32 BNR2_SIZE = sizeof(DVDBanner);
+
+		template <u32 N>
+		std::string GetDecodedString(const char (&data)[N])
+		{
+			auto const string_decoder = CVolumeGC::GetStringDecoder(m_country);
+			
+			// strnlen to trim NULLs
+			return string_decoder(std::string(data, strnlen(data, sizeof(data))));
+		}
 
 		u8* m_pBannerFile;
 		bool m_IsValid;
@@ -84,6 +90,8 @@ class CBannerLoaderGC
 
 		void decode5A3image(u32* dst, u16* src, int width, int height);
 		BANNER_TYPE getBannerType();
+		
+		DiscIO::IVolume::ECountry const m_country;
 };
 
 } // namespace

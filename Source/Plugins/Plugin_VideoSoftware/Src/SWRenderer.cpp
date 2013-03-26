@@ -19,7 +19,7 @@
 #include <math.h>
 
 #include "../../Plugin_VideoOGL/Src/GLUtil.h"
-#include "../../Plugin_VideoOGL/Src/RasterFont.h"
+#include "RasterFont.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
 
@@ -30,6 +30,7 @@ static GLint uni_tex = -1;
 static GLuint program;
 
 // Rasterfont isn't compatible with GLES
+// degasus: I think it does, but I can't test it
 #ifndef USE_GLES
 RasterFont* s_pfont = NULL;
 #endif
@@ -99,11 +100,11 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 	int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
 	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
-	          ((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
+			((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
 	s_pfont->printMultilineText(pstr,
-		left * 2.0f / (float)nBackbufferWidth - 1,
-		1 - top * 2.0f / (float)nBackbufferHeight,
-		0, nBackbufferWidth, nBackbufferHeight);
+			left * 2.0f / (float)nBackbufferWidth - 1,
+			1 - top * 2.0f / (float)nBackbufferHeight,
+			0, nBackbufferWidth, nBackbufferHeight);
 #endif
 }
 

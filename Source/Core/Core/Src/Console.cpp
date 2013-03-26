@@ -98,8 +98,8 @@ void Console_Submit(const char *cmd)
 	}
 	CASE("dump")
 	{
-		TCHAR temp[256];
-		TCHAR filename[256];
+		char temp[256];
+		char filename[256];
 		u32 start;
 		u32 end;
 		sscanf(cmd, "%s %08x %08x %s", temp, &start, &end, filename);

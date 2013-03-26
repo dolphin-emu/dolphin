@@ -28,41 +28,57 @@
 
 static char text[16768];
 
+template<class T>
+void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
+{
+	object.Write("  %s %s", type, name);
+	if (var_index != -1)
+		object.Write("%d", var_index);
+
+	if (api_type == API_OPENGL)
+		object.Write(";\n");
+	else
+	{
+		if (semantic_index != -1)
+			object.Write(" : %s%d;\n", semantic, semantic_index);
+		else
+			object.Write(" : %s;\n", semantic);
+	}
+}
+
 // TODO: Check if something goes wrong if the cached shaders used pixel lighting but it's disabled later??
 template<class T>
 void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
 {
 	object.Write("struct VS_OUTPUT {\n");
-	object.Write("  float4 pos : POSITION;\n");
-	object.Write("  float4 colors_0 : COLOR0;\n");
-	object.Write("  float4 colors_1 : COLOR1;\n");
+	DefineVSOutputStructMember(object, api_type, "float4", "pos", -1, "POSITION");
+	DefineVSOutputStructMember(object, api_type, "float4", "colors_", 0, "COLOR", 0);
+	DefineVSOutputStructMember(object, api_type, "float4", "colors_", 1, "COLOR", 1);
 
 	if (xfregs.numTexGen.numTexGens < 7)
 	{
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			object.Write("  float3 tex%d : TEXCOORD%d;\n", i, i);
+			DefineVSOutputStructMember(object, api_type, "float3", "tex", i, "TEXCOORD", i);
 
-		object.Write("  float4 clipPos : TEXCOORD%d;\n", xfregs.numTexGen.numTexGens);
-///		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-///			object.Write("  float4 Normal : TEXCOORD%d;\n", xfregs.numTexGen.numTexGens + 1);
+		DefineVSOutputStructMember(object, api_type, "float4", "clipPos", -1, "TEXCOORD", xfregs.numTexGen.numTexGens);
+
+		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			DefineVSOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfregs.numTexGen.numTexGens + 1);
 	}
 	else
 	{
-		// clip position is in w of first 4 texcoords
-///		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-///		{
-///			for (int i = 0; i < 8; ++i)
-///				object.Write("  float4 tex%d : TEXCOORD%d;\n", i, i);
-///		}
-///		else
-		{
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				object.Write("  float%d tex%d : TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, i);
-		}
+		// Store clip position in the w component of first 4 texcoords
+		bool ppl = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+		int num_texcoords = ppl ? 8 : xfregs.numTexGen.numTexGens;
+		for (int i = 0; i < num_texcoords; ++i)
+			DefineVSOutputStructMember(object, api_type, (ppl || i < 4) ? "float4" : "float3", "tex", i, "TEXCOORD", i);
 	}
 	object.Write("};\n");
 }
 
+// TODO: Seriously? -.-
+extern const char *WriteRegister(API_TYPE api_type, const char *prefix, const u32 num);
+extern const char *WriteLocation(API_TYPE api_type);
 
 template<class T, GenOutput type>
 void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
@@ -76,7 +92,11 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 		setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	}
 
-	///	text[sizeof(text) - 1] = 0x7C;  // canary
+
+//	text[sizeof(text) - 1] = 0x7C;  // canary
+
+	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGen.numTexGens);
+	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
 
 	bool is_d3d = (api_type & API_D3D9 || api_type == API_D3D11);
 	u32 lightMask = 0;
@@ -85,74 +105,117 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	if (xfregs.numChan.numColorChans > 1)
 		lightMask |= xfregs.color[1].GetFullLightMask() | xfregs.alpha[1].GetFullLightMask();
 
-	out.Write("//Vertex Shader: comp:%x, \n", components);
-	out.Write("typedef struct { float4 T0, T1, T2; float4 N0, N1, N2; } s_" I_POSNORMALMATRIX";\n"
-			"typedef struct { float4 t; } FLT4;\n"
-			"typedef struct { FLT4 T[24]; } s_" I_TEXMATRICES";\n"
-			"typedef struct { FLT4 T[64]; } s_" I_TRANSFORMMATRICES";\n"
-			"typedef struct { FLT4 T[32]; } s_" I_NORMALMATRICES";\n"
-			"typedef struct { FLT4 T[64]; } s_" I_POSTTRANSFORMMATRICES";\n"
-			"typedef struct { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; } Light;\n"
-			"typedef struct { Light lights[8]; } s_" I_LIGHTS";\n"
-			"typedef struct { float4 C0, C1, C2, C3; } s_" I_MATERIALS";\n"
-			"typedef struct { float4 T0, T1, T2, T3; } s_" I_PROJECTION";\n"
-			);
-
-///	p = GenerateVSOutputStruct(p, components, api_type);
-	GenerateVSOutputStruct(out, components, api_type);
-
 	// uniforms
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		out.Write("layout(std140) uniform VSBlock {\n");
 
-	out.Write("uniform s_" I_TRANSFORMMATRICES" " I_TRANSFORMMATRICES" : register(c%d);\n", C_TRANSFORMMATRICES);
-	out.Write("uniform s_" I_TEXMATRICES" " I_TEXMATRICES" : register(c%d);\n", C_TEXMATRICES);
-	out.Write("uniform s_" I_NORMALMATRICES" " I_NORMALMATRICES" : register(c%d);\n", C_NORMALMATRICES);
-	out.Write("uniform s_" I_POSNORMALMATRIX" " I_POSNORMALMATRIX" : register(c%d);\n", C_POSNORMALMATRIX);
-	out.Write("uniform s_" I_POSTTRANSFORMMATRICES" " I_POSTTRANSFORMMATRICES" : register(c%d);\n", C_POSTTRANSFORMMATRICES);
-	out.Write("uniform s_" I_LIGHTS" " I_LIGHTS" : register(c%d);\n", C_LIGHTS);
-	out.Write("uniform s_" I_MATERIALS" " I_MATERIALS" : register(c%d);\n", C_MATERIALS);
-	out.Write("uniform s_" I_PROJECTION" " I_PROJECTION" : register(c%d);\n", C_PROJECTION);
-	out.Write("uniform float4 " I_DEPTHPARAMS" : register(c%d);\n", C_DEPTHPARAMS);
+	out.Write("%sfloat4 " I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_POSNORMALMATRIX));
+	out.Write("%sfloat4 " I_PROJECTION"[4] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_PROJECTION));	
+	out.Write("%sfloat4 " I_MATERIALS"[4] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_MATERIALS));
+	out.Write("struct Light { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; };\n");
+	out.Write("%sLight " I_LIGHTS"[8] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_LIGHTS));
+	out.Write("%sfloat4 " I_TEXMATRICES"[24] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_TEXMATRICES)); // also using tex matrices
+	out.Write("%sfloat4 " I_TRANSFORMMATRICES"[64] %s;\n", WriteLocation(api_type),WriteRegister(api_type, "c", C_TRANSFORMMATRICES));
+	out.Write("%sfloat4 " I_NORMALMATRICES"[32] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_NORMALMATRICES));
+	out.Write("%sfloat4 " I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_POSTTRANSFORMMATRICES));
+	out.Write("%sfloat4 " I_DEPTHPARAMS" %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_DEPTHPARAMS));
 
-	out.Write("VS_OUTPUT main(\n");
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		out.Write("};\n");
+
+	GenerateVSOutputStruct(out, components, api_type);
 
 	SetUidField(numTexGens, xfregs.numTexGen.numTexGens);
 	SetUidField(components, components);
-	// inputs
-	if (components & VB_HAS_NRM0)
-		out.Write("  float3 rawnorm0 : NORMAL0,\n");
-	if (components & VB_HAS_NRM1)
+
+	if(api_type == API_OPENGL)
 	{
-		if (is_d3d)
-			out.Write("  float3 rawnorm1 : NORMAL1,\n");
-		else
-			out.Write("  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
-	}
-	if (components & VB_HAS_NRM2)
-	{
-		if (is_d3d)
-			out.Write("  float3 rawnorm2 : NORMAL2,\n");
-		else
-			out.Write("  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
-	}
-	if (components & VB_HAS_COL0)
-		out.Write("  float4 color0 : COLOR0,\n");
-	if (components & VB_HAS_COL1)
-		out.Write("  float4 color1 : COLOR1,\n");
-	for (int i = 0; i < 8; ++i) {
-		u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
-		if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
-			out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
-	}
-	if (components & VB_HAS_POSMTXIDX) {
-		if (is_d3d)
+		out.Write("ATTRIN float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
+		if (components & VB_HAS_POSMTXIDX)
+			out.Write("ATTRIN int posmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		if (components & VB_HAS_NRM0)
+			out.Write("ATTRIN float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
+		if (components & VB_HAS_NRM1)
+			out.Write("ATTRIN float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
+		if (components & VB_HAS_NRM2)
+			out.Write("ATTRIN float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
+
+		if (components & VB_HAS_COL0)
+			out.Write("ATTRIN float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
+		if (components & VB_HAS_COL1)
+			out.Write("ATTRIN float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
+
+		for (int i = 0; i < 8; ++i) {
+			u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
+			if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
+				out.Write("ATTRIN float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
+		}
+
+		// Let's set up attributes
+		if (xfregs.numTexGen.numTexGens < 7)
 		{
-			out.Write("  float4 blend_indices : BLENDINDICES,\n");
+			for (int i = 0; i < 8; ++i)
+				out.Write("VARYOUT  float3 uv%d_2;\n", i);
+			out.Write("VARYOUT   float4 clipPos_2;\n");
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+				out.Write("VARYOUT   float4 Normal_2;\n");
 		}
 		else
-			out.Write("  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		{
+			// wpos is in w of first 4 texcoords
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				for (int i = 0; i < 8; ++i)
+					out.Write("VARYOUT   float4 uv%d_2;\n", i);
+			}
+			else
+			{
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+					out.Write("VARYOUT   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
+			}
+		}
+		out.Write("VARYOUT   float4 colors_02;\n");
+		out.Write("VARYOUT   float4 colors_12;\n");
+
+		out.Write("void main()\n{\n");
 	}
-	out.Write("  float4 rawpos : POSITION) {\n");
-	out.Write("VS_OUTPUT o;\n");
+	else
+	{
+		out.Write("VS_OUTPUT main(\n");
+
+		// inputs
+		if (components & VB_HAS_NRM0)
+			out.Write("  float3 rawnorm0 : NORMAL0,\n");
+		if (components & VB_HAS_NRM1) {
+			if (is_d3d)
+				out.Write("  float3 rawnorm1 : NORMAL1,\n");
+			else
+				out.Write("  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
+		}
+		if (components & VB_HAS_NRM2) {
+			if (is_d3d)
+				out.Write("  float3 rawnorm2 : NORMAL2,\n");
+			else
+				out.Write("  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
+		}
+		if (components & VB_HAS_COL0)
+			out.Write("  float4 color0 : COLOR0,\n");
+		if (components & VB_HAS_COL1)
+			out.Write("  float4 color1 : COLOR1,\n");
+		for (int i = 0; i < 8; ++i) {
+			u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
+			if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
+				out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
+		}
+		if (components & VB_HAS_POSMTXIDX) {
+			if (is_d3d)
+				out.Write("  float4 blend_indices : BLENDINDICES,\n");
+			else
+				out.Write("  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		}
+		out.Write("  float4 rawpos : POSITION) {\n");
+	}
+	out.Write("VS_OUTPUT o;\n");	
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
@@ -166,16 +229,12 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 		{
 			out.Write("int posmtx = blend_indices.x * 255.0f;\n");
 		}
-		else
-		{
-			out.Write("int posmtx = fposmtx;\n");
-		}
 
-		out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot(" I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot(" I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos), 1);\n");
+		out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");		
 
 		if (components & VB_HAS_NRMALL) {
 			out.Write("int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
-			out.Write("float3 N0 = " I_NORMALMATRICES".T[normidx].t.xyz, N1 = " I_NORMALMATRICES".T[normidx+1].t.xyz, N2 = " I_NORMALMATRICES".T[normidx+2].t.xyz;\n");
+			out.Write("float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
 		}
 
 		if (components & VB_HAS_NRM0)
@@ -187,28 +246,27 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	}
 	else
 	{
-		out.Write("float4 pos = float4(dot(" I_POSNORMALMATRIX".T0, rawpos), dot(" I_POSNORMALMATRIX".T1, rawpos), dot(" I_POSNORMALMATRIX".T2, rawpos), 1.0f);\n");
+		out.Write("float4 pos = float4(dot(" I_POSNORMALMATRIX"[0], rawpos), dot(" I_POSNORMALMATRIX"[1], rawpos), dot(" I_POSNORMALMATRIX"[2], rawpos), 1.0f);\n");
 		if (components & VB_HAS_NRM0)
-			out.Write("float3 _norm0 = normalize(float3(dot(" I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot(" I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot(" I_POSNORMALMATRIX".N2.xyz, rawnorm0)));\n");
+			out.Write("float3 _norm0 = normalize(float3(dot(" I_POSNORMALMATRIX"[3].xyz, rawnorm0), dot(" I_POSNORMALMATRIX"[4].xyz, rawnorm0), dot(" I_POSNORMALMATRIX"[5].xyz, rawnorm0)));\n");
 		if (components & VB_HAS_NRM1)
-			out.Write("float3 _norm1 = float3(dot(" I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot(" I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot(" I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");
+			out.Write("float3 _norm1 = float3(dot(" I_POSNORMALMATRIX"[3].xyz, rawnorm1), dot(" I_POSNORMALMATRIX"[4].xyz, rawnorm1), dot(" I_POSNORMALMATRIX"[5].xyz, rawnorm1));\n");
 		if (components & VB_HAS_NRM2)
-			out.Write("float3 _norm2 = float3(dot(" I_POSNORMALMATRIX".N0.xyz, rawnorm2), dot(" I_POSNORMALMATRIX".N1.xyz, rawnorm2), dot(" I_POSNORMALMATRIX".N2.xyz, rawnorm2));\n");
+			out.Write("float3 _norm2 = float3(dot(" I_POSNORMALMATRIX"[3].xyz, rawnorm2), dot(" I_POSNORMALMATRIX"[4].xyz, rawnorm2), dot(" I_POSNORMALMATRIX"[5].xyz, rawnorm2));\n");
 	}
 
 	if (!(components & VB_HAS_NRM0))
 		out.Write("float3 _norm0 = float3(0.0f, 0.0f, 0.0f);\n");
 
 
-
-	out.Write("o.pos = float4(dot(" I_PROJECTION".T0, pos), dot(" I_PROJECTION".T1, pos), dot(" I_PROJECTION".T2, pos), dot(" I_PROJECTION".T3, pos));\n");
+	out.Write("o.pos = float4(dot(" I_PROJECTION"[0], pos), dot(" I_PROJECTION"[1], pos), dot(" I_PROJECTION"[2], pos), dot(" I_PROJECTION"[3], pos));\n");
 
 	out.Write("float4 mat, lacc;\n"
 			"float3 ldir, h;\n"
 			"float dist, dist2, attn;\n");
 
 	SetUidField(numColorChans, xfregs.numChan.numColorChans);
-	if(xfregs.numChan.numColorChans == 0)
+	if (xfregs.numChan.numColorChans == 0)
 	{
 		if (components & VB_HAS_COL0)
 			out.Write("o.colors_0 = color0;\n");
@@ -219,7 +277,7 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	// TODO: This probably isn't necessary if pixel lighting is enabled.
 	GenerateLightingShader<T,type>(out, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
-	if(xfregs.numChan.numColorChans < 2)
+	if (xfregs.numChan.numColorChans < 2)
 	{
 		if (components & VB_HAS_COL1)
 			out.Write("o.colors_1 = color1;\n");
@@ -285,7 +343,7 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 					// transform the light dir into tangent space
 					SetUidField(texMtxInfo[i].embosslightshift, xfregs.texMtxInfo[i].embosslightshift);
 					SetUidField(texMtxInfo[i].embosssourceshift, xfregs.texMtxInfo[i].embosssourceshift);
-					out.Write("ldir = normalize(" I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift);
+					out.Write("ldir = normalize(" I_LIGHTS"[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift);
 					out.Write("o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
 				}
 				else
@@ -307,18 +365,20 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 			case XF_TEXGEN_REGULAR:
 			default:
 				SetUidField(texMtxInfo[i].projection, xfregs.texMtxInfo[i].projection);
-				if (components & (VB_HAS_TEXMTXIDX0<<i)) {
+				if (components & (VB_HAS_TEXMTXIDX0<<i))
+				{
+					out.Write("int tmp = int(tex%d.z);\n", i);
 					if (texinfo.projection == XF_TEXPROJ_STQ)
-						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+1].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+2].t));\n", i, i, i, i);
+						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), dot(coord, " I_TRANSFORMMATRICES"[tmp+2]));\n", i);
 					else {
-						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, " I_TRANSFORMMATRICES".T[tex%d.z+1].t), 1);\n", i, i, i);
+						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), 1);\n", i);
 					}
 				}
 				else {
 					if (texinfo.projection == XF_TEXPROJ_STQ)
-						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES".T[%d].t), dot(coord, " I_TEXMATRICES".T[%d].t), dot(coord, " I_TEXMATRICES".T[%d].t));\n", i, 3*i, 3*i+1, 3*i+2);
+						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]));\n", i, 3*i, 3*i+1, 3*i+2);
 					else
-						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES".T[%d].t), dot(coord, " I_TEXMATRICES".T[%d].t), 1);\n", i, 3*i, 3*i+1);
+						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), 1);\n", i, 3*i, 3*i+1);
 				}
 				break;
 		}
@@ -329,10 +389,10 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 
 			SetUidField(postMtxInfo[i].index, xfregs.postMtxInfo[i].index);
 			int postidx = postInfo.index;
-			out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES".T[%d].t;\n"
-					"float4 P1 = " I_POSTTRANSFORMMATRICES".T[%d].t;\n"
-					"float4 P2 = " I_POSTTRANSFORMMATRICES".T[%d].t;\n",
-					postidx&0x3f, (postidx+1)&0x3f, (postidx+2)&0x3f);
+			out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES"[%d];\n"
+				"float4 P1 = " I_POSTTRANSFORMMATRICES"[%d];\n"
+				"float4 P2 = " I_POSTTRANSFORMMATRICES"[%d];\n",
+				postidx&0x3f, (postidx+1)&0x3f, (postidx+2)&0x3f);
 
 			if (texGenSpecialCase) {
 				// no normalization
@@ -388,33 +448,32 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
 	//if not early z culling will improve speed
-	// TODO: Can probably be dropped?
 	if (is_d3d)
 	{
 		out.Write("o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
 	}
 	else
 	{
-	    // this results in a scale from -1..0 to -1..1 after perspective
-	    // divide
-	    out.Write("o.pos.z = o.pos.w + o.pos.z * 2.0f;\n");
+		// this results in a scale from -1..0 to -1..1 after perspective
+		// divide
+		out.Write("o.pos.z = o.pos.w + o.pos.z * 2.0f;\n");
 
-	    // Sonic Unleashed puts its final rendering at the near or
-	    // far plane of the viewing frustrum(actually box, they use
-	    // orthogonal projection for that), and we end up putting it
-	    // just beyond, and the rendering gets clipped away. (The
-	    // primitive gets dropped)
-	    out.Write("o.pos.z = o.pos.z * 1048575.0f/1048576.0f;\n");
+		// Sonic Unleashed puts its final rendering at the near or
+		// far plane of the viewing frustrum(actually box, they use
+		// orthogonal projection for that), and we end up putting it
+		// just beyond, and the rendering gets clipped away. (The
+		// primitive gets dropped)
+		out.Write("o.pos.z = o.pos.z * 1048575.0f/1048576.0f;\n");
 
-	    // the next steps of the OGL pipeline are:
-	    // (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
-	    // clipping to -w_c <= (x_c,y_c,z_c) <= w_c
-	    // (x_d,y_d,z_d) = (x_c,y_c,z_c)/w_c//perspective divide
-	    // z_w = (f-n)/2*z_d + (n+f)/2
-	    // z_w now contains the value to go to the 0..1 depth buffer
+		// the next steps of the OGL pipeline are:
+		// (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
+		// clipping to -w_c <= (x_c,y_c,z_c) <= w_c
+		// (x_d,y_d,z_d) = (x_c,y_c,z_c)/w_c//perspective divide
+		// z_w = (f-n)/2*z_d + (n+f)/2
+		// z_w now contains the value to go to the 0..1 depth buffer
 
-	    //trying to get the correct semantic while not using glDepthRange
-	    //seems to get rather complicated
+		//trying to get the correct semantic while not using glDepthRange
+		//seems to get rather complicated
 	}
 
 	if (api_type & API_D3D9)
@@ -424,8 +483,42 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 		out.Write("o.pos = o.pos + float4(" I_DEPTHPARAMS".z, " I_DEPTHPARAMS".w, 0.f, 0.f);\n");
 	}
 
-	out.Write("return o;\n}\n");
+	if(api_type == API_OPENGL)
+	{
+		// Bit ugly here
+		// TODO: Make pretty
+		// Will look better when we bind uniforms in GLSL 1.3
+		// clipPos/w needs to be done in pixel shader, not here
 
+		if (xfregs.numTexGen.numTexGens < 7) {
+			for (unsigned int i = 0; i < 8; ++i)
+				if(i < xfregs.numTexGen.numTexGens)
+					out.Write(" uv%d_2.xyz =  o.tex%d;\n", i, i);
+				else
+					out.Write(" uv%d_2.xyz =  float3(0.0f, 0.0f, 0.0f);\n", i);
+			out.Write("  clipPos_2 = o.clipPos;\n");
+			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+				out.Write("  Normal_2 = o.Normal;\n");
+		} else {
+			// clip position is in w of first 4 texcoords
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				for (int i = 0; i < 8; ++i)
+					out.Write(" uv%d_2 = o.tex%d;\n", i, i);
+			}
+			else
+			{
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+					out.Write("  uv%d_2%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
+			}
+		}
+		out.Write("colors_02 = o.colors_0;\n");
+		out.Write("colors_12 = o.colors_1;\n");
+		out.Write("gl_Position = o.pos;\n");
+		out.Write("}\n");
+	}
+	else
+		out.Write("return o;\n}\n");
 
 ///	if (text[sizeof(text) - 1] != 0x7C)
 ///		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");

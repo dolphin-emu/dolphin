@@ -44,7 +44,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -54,7 +54,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -158,12 +158,10 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Src\ABI.cpp" />
     <ClCompile Include="Src\BreakPoints.cpp" />
     <ClCompile Include="Src\CDUtils.cpp" />
     <ClCompile Include="Src\ColorUtil.cpp" />
     <ClCompile Include="Src\ConsoleListener.cpp" />
-    <ClCompile Include="Src\CPUDetect.cpp" />
     <ClCompile Include="Src\Crypto\aes_cbc.cpp" />
     <ClCompile Include="Src\Crypto\aes_core.cpp" />
     <ClCompile Include="Src\Crypto\bn.cpp" />
@@ -195,15 +193,17 @@
     <ClCompile Include="Src\SymbolDB.cpp" />
     <ClCompile Include="Src\SysConf.cpp" />
     <ClCompile Include="Src\Thread.cpp" />
-    <ClCompile Include="Src\Thunk.cpp" />
     <ClCompile Include="Src\Timer.cpp" />
     <ClCompile Include="Src\Version.cpp" />
     <ClCompile Include="Src\VideoBackendBase.cpp" />
+    <ClCompile Include="Src\x64ABI.cpp" />
     <ClCompile Include="Src\x64Analyzer.cpp" />
+    <ClCompile Include="Src\x64CPUDetect.cpp" />
     <ClCompile Include="Src\x64Emitter.cpp" />
+    <ClCompile Include="Src\x64FPURoundMode.cpp" />
+    <ClCompile Include="Src\x64Thunk.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\ABI.h" />
     <ClInclude Include="Src\Atomic.h" />
     <ClInclude Include="Src\Atomic_GCC.h" />
     <ClInclude Include="Src\Atomic_Win32.h" />
@@ -251,6 +251,7 @@
     <ClInclude Include="Src\Thunk.h" />
     <ClInclude Include="Src\Timer.h" />
     <ClInclude Include="Src\VideoBackendBase.h" />
+    <ClInclude Include="Src\x64ABI.h" />
     <ClInclude Include="Src\x64Analyzer.h" />
     <ClInclude Include="Src\x64Emitter.h" />
   </ItemGroup>

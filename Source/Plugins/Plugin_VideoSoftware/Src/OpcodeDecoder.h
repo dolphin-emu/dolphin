@@ -20,6 +20,7 @@
 #define _OPCODEDECODER_H_
 
 #include "CommonTypes.h"
+#include "ChunkFile.h"
 
 namespace OpcodeDecoder
 {
@@ -57,6 +58,8 @@ namespace OpcodeDecoder
     bool CommandRunnable(u32 iBufferSize);
 
     void Run(u32 iBufferSize);
+
+	void DoState(PointerWrap &p);
 }
 
 #endif

@@ -10,6 +10,11 @@ compile: genclrun gencl.c genclgl.c
 genclrun: ../include/CL/cl.h ../include/CL/cl_gl.h
 	./generateClRun.pl ../include/CL/cl.h > gencl.c
 	./generateClRun.pl ../include/CL/cl_gl.h > genclgl.c
+	./generateClRun.pl ../include/CL/cl_ext.h > genclext.c
+	./generateClRun.pl ../include/CL/cl_gl_ext.h > genclglext.c
+	./generateClRun.pl ../include/CL/cl_d3d10.h > gencld3d10.c
+	./generateClRun.pl ../include/CL/cl_d3d11.h > gencld3d11.c
+	./generateClRun.pl ../include/CL/cl_dx9_media_sharing.h > gencldx9.c
 
 
 clean:

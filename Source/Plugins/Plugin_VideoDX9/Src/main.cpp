@@ -57,6 +57,7 @@
 
 #include "ConfigManager.h"
 #include "VideoBackend.h"
+#include "PerfQueryBase.h"
 
 namespace DX9
 {
@@ -86,6 +87,11 @@ std::string VideoBackend::GetName()
 	return "Direct3D9";
 }
 
+std::string VideoBackend::GetDisplayName()
+{
+	return "Direct3D9 (deprecated)";
+}
+
 void InitBackendInfo()
 {
 	DX9::D3D::Init();
@@ -93,11 +99,10 @@ void InitBackendInfo()
 	const int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);
 	g_Config.backend_info.APIType = shaderModel < 3 ? API_D3D9_SM20 :API_D3D9_SM30;
 	g_Config.backend_info.bUseRGBATextures = false;
+	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
-	
-	
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 
 	// adapters
@@ -171,6 +176,7 @@ void VideoBackend::Video_Prepare()
 	g_vertex_manager = new VertexManager;
 	g_renderer = new Renderer;
 	g_texture_cache = new TextureCache;		
+	g_perf_query = new PerfQueryBase;
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
@@ -190,6 +196,7 @@ void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
 
+	// TODO: should be in Video_Cleanup
 	if (g_renderer)
 	{
 		s_efbAccessRequested = FALSE;
@@ -208,6 +215,7 @@ void VideoBackend::Shutdown()
 		// internal interfaces
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
+		delete g_perf_query;
 		delete g_texture_cache;
 		delete g_renderer;
 		delete g_vertex_manager;
@@ -215,6 +223,9 @@ void VideoBackend::Shutdown()
 		g_texture_cache = NULL;
 	}
 	D3D::Shutdown();
+}
+
+void VideoBackend::Video_Cleanup() {
 }
 
 }

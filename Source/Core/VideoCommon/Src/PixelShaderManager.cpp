@@ -67,7 +67,7 @@ inline void SetPSConstant4fv(unsigned int const_number, const float *f)
 	s_constant_cache[const_number*4] = f[0];
 	s_constant_cache[const_number*4+1] = f[1];
 	s_constant_cache[const_number*4+2] = f[2];
-	s_constant_cache[const_number*4+3] == f[3];
+	s_constant_cache[const_number*4+3] = f[3];
 }
 
 inline void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
@@ -112,6 +112,10 @@ void PixelShaderManager::Shutdown()
 
 void PixelShaderManager::SetConstants(u32 components)
 {
+	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		Dirty();
+
+	// TODO: Probably broken in the non-UBO path
 	PixelShaderConstantProfile constant_profile(C_PENVCONST_END);
 	/// TODO: dst alpha/api/components type parameter...
 	GetPixelShaderConstantProfile(constant_profile, DSTALPHA_DUAL_SOURCE_BLEND, API_OPENGL, components);
@@ -143,11 +147,11 @@ void PixelShaderManager::SetConstants(u32 components)
 
     if (s_nTexDimsChanged)
 	{
-        for (int i = 0; i < 8; ++i)
+		for (int i = 0; i < 8; ++i)
 		{
             if (s_nTexDimsChanged & (1<<i) && constant_profile.ConstantIsUsed(C_TEXDIMS+i))
 			{
-					++necessary_updates;
+				++necessary_updates;
 				SetPSTextureDims(i);
 				s_nTexDimsChanged &= ~(1<<i);
 			}else if (s_nTexDimsChanged & (1<<i)) IncStuff();
@@ -156,37 +160,37 @@ void PixelShaderManager::SetConstants(u32 components)
 
     if (s_bAlphaChanged && constant_profile.ConstantIsUsed(C_ALPHA))
 	{
-					++necessary_updates;
+		++necessary_updates;
 		SetPSConstant4f(C_ALPHA, (lastAlpha&0xff)/255.0f, ((lastAlpha>>8)&0xff)/255.0f, 0, ((lastAlpha>>16)&0xff)/255.0f);
 		s_bAlphaChanged = false;
     } else if (s_bAlphaChanged) IncStuff();
 
 	if (s_bZTextureTypeChanged && constant_profile.ConstantIsUsed(C_ZBIAS))
 	{
-        float ftemp[4];
-        switch (bpmem.ztex2.type)
+		float ftemp[4];
+		switch (bpmem.ztex2.type)
 		{
-             case 0:
-                // 8 bits
-                ftemp[0] = 0; ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 255.0f/16777215.0f;
-                break;
-            case 1:
-                // 16 bits
-                ftemp[0] = 255.0f/16777215.0f; ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 65280.0f/16777215.0f;
-                break;
-            case 2:
-                // 24 bits
+			 case 0:
+				// 8 bits
+				ftemp[0] = 0; ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 255.0f/16777215.0f;
+				break;
+			case 1:
+				// 16 bits
+				ftemp[0] = 255.0f/16777215.0f; ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 65280.0f/16777215.0f;
+				break;
+			case 2:
+				// 24 bits
 				ftemp[0] = 16711680.0f/16777215.0f; ftemp[1] = 65280.0f/16777215.0f; ftemp[2] = 255.0f/16777215.0f; ftemp[3] = 0;
                 break;
         }
-					++necessary_updates;
+		++necessary_updates;
 		SetPSConstant4fv(C_ZBIAS, ftemp);
 		s_bZTextureTypeChanged = false;
 	} else if (s_bZTextureTypeChanged) IncStuff();
 
 	if ((s_bZBiasChanged || s_bDepthRangeChanged) && constant_profile.ConstantIsUsed(C_ZBIAS+1))
 	{
-        // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
+		// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 		// [0] = width/2
 		// [1] = height/2
 		// [2] = 16777215 * (farz - nearz)
@@ -200,21 +204,21 @@ void PixelShaderManager::SetConstants(u32 components)
 		s_bZBiasChanged = s_bDepthRangeChanged = false;
     }else if ((s_bZBiasChanged || s_bDepthRangeChanged)) IncStuff();
 
-    // indirect incoming texture scales
-    if (s_nIndTexScaleChanged)
+	// indirect incoming texture scales
+	if (s_nIndTexScaleChanged)
 	{
 		// set as two sets of vec4s, each containing S and T of two ind stages.
-        float f[8];
+		float f[8];
 
         if ((s_nIndTexScaleChanged & 0x03) && constant_profile.ConstantIsUsed(C_INDTEXSCALE))
 		{
-            for (u32 i = 0; i < 2; ++i)
+			for (u32 i = 0; i < 2; ++i)
 			{
                 f[2 * i] = bpmem.texscale[0].getScaleS(i & 1);
                 f[2 * i + 1] = bpmem.texscale[0].getScaleT(i & 1);
                 PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
             }
-					++necessary_updates;
+			++necessary_updates;
 			SetPSConstant4fv(C_INDTEXSCALE, f);
 			s_nIndTexScaleChanged &= ~0x03;
         }
@@ -226,16 +230,16 @@ void PixelShaderManager::SetConstants(u32 components)
                 f[2 * i + 1] = bpmem.texscale[1].getScaleT(i & 1);
                 PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
             }
-					++necessary_updates;
+			++necessary_updates;
 			SetPSConstant4fv(C_INDTEXSCALE+1, &f[4]);
 			s_nIndTexScaleChanged &= ~0x0c;
         }
         else if ((s_nIndTexScaleChanged & 0x0c)) IncStuff();
     }
 
-    if (s_nIndTexMtxChanged)
+	if (s_nIndTexMtxChanged)
 	{
-        for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < 3; ++i)
 		{
             if ((s_nIndTexMtxChanged & (1 << i)) && (constant_profile.ConstantIsUsed(C_INDTEXMTX+2*i) || constant_profile.ConstantIsUsed(C_INDTEXMTX+2*i+1)))
 			{
@@ -250,12 +254,12 @@ void PixelShaderManager::SetConstants(u32 components)
 					++necessary_updates;
 					++necessary_updates;
 				SetPSConstant4f(C_INDTEXMTX + 2 * i,
-                    bpmem.indmtx[i].col0.ma * fscale,
+					bpmem.indmtx[i].col0.ma * fscale,
 					bpmem.indmtx[i].col1.mc * fscale,
 					bpmem.indmtx[i].col2.me * fscale,
 					fscale * 4.0f);
-                SetPSConstant4f(C_INDTEXMTX + 2 * i + 1,
-                    bpmem.indmtx[i].col0.mb * fscale,
+				SetPSConstant4f(C_INDTEXMTX + 2 * i + 1,
+					bpmem.indmtx[i].col0.mb * fscale,
 					bpmem.indmtx[i].col1.md * fscale,
 					bpmem.indmtx[i].col2.mf * fscale,
 					fscale * 4.0f);
@@ -398,11 +402,11 @@ void PixelShaderManager::SetConstants(u32 components)
 
 void PixelShaderManager::SetPSTextureDims(int texid)
 {
-    // texdims.xy are reciprocals of the real texture dimensions
-    // texdims.zw are the scaled dimensions
-    float fdims[4];
+	// texdims.xy are reciprocals of the real texture dimensions
+	// texdims.zw are the scaled dimensions
+	float fdims[4];
 
-    TCoordInfo& tc = bpmem.texcoords[texid];
+	TCoordInfo& tc = bpmem.texcoords[texid];
 	fdims[0] = 1.0f / (float)(lastTexDims[texid] & 0xffff);
 	fdims[1] = 1.0f / (float)((lastTexDims[texid] >> 16) & 0xfff);
 	fdims[2] = (float)(tc.s.scale_minus_1 + 1);
@@ -417,7 +421,7 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 // and update it when the shader constant is set, only.
 void PixelShaderManager::SetColorChanged(int type, int num, bool high)
 {
-    float *pf = &lastRGBAfull[type][num][0];
+	float *pf = &lastRGBAfull[type][num][0];
 	if (!high) {
 		int r = bpmem.tevregs[num].low.a;
 		int a = bpmem.tevregs[num].low.b;
@@ -429,60 +433,61 @@ void PixelShaderManager::SetColorChanged(int type, int num, bool high)
 		pf[1] = (float)g * (1.0f / 255.0f);
 		pf[2] = (float)b * (1.0f / 255.0f);
 	}
-    s_nColorsChanged[type] |= 1 << num;
-    PRIM_LOG("pixel %scolor%d: %f %f %f %f\n", type?"k":"", num, pf[0], pf[1], pf[2], pf[3]);
+	s_nColorsChanged[type] |= 1 << num;
+	PRIM_LOG("pixel %scolor%d: %f %f %f %f\n", type?"k":"", num, pf[0], pf[1], pf[2], pf[3]);
 }
 
 void PixelShaderManager::SetAlpha(const AlphaTest& alpha)
 {
-    if ((alpha.hex & 0xffff) != lastAlpha)
+	if ((alpha.hex & 0xffff) != lastAlpha)
 	{
-        lastAlpha = (lastAlpha & ~0xffff) | (alpha.hex & 0xffff);
-        s_bAlphaChanged = true;
-    }
+		lastAlpha = (lastAlpha & ~0xffff) | (alpha.hex & 0xffff);
+		s_bAlphaChanged = true;
+	}
 }
 
 void PixelShaderManager::SetDestAlpha(const ConstantAlpha& alpha)
 {
-    if (alpha.alpha != (lastAlpha >> 16))
+	if (alpha.alpha != (lastAlpha >> 16))
 	{
-        lastAlpha = (lastAlpha & ~0xff0000) | ((alpha.hex & 0xff) << 16);
-        s_bAlphaChanged = true;
-    }
+		lastAlpha = (lastAlpha & ~0xff0000) | ((alpha.hex & 0xff) << 16);
+		s_bAlphaChanged = true;
+	}
 }
 
 void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt)
 {
-    u32 wh = width | (height << 16) | (wraps << 28) | (wrapt << 30);
-    if (lastTexDims[texmapid] != wh)
+	u32 wh = width | (height << 16) | (wraps << 28) | (wrapt << 30);
+	if (lastTexDims[texmapid] != wh)
 	{
-        lastTexDims[texmapid] = wh;
+		lastTexDims[texmapid] = wh;
 		s_nTexDimsChanged |= 1 << texmapid;
-    }
+	}
 }
 
 void PixelShaderManager::SetZTextureBias(u32 bias)
 {
-    if (lastZBias != bias)
+	if (lastZBias != bias)
 	{
-        s_bZBiasChanged = true;
-        lastZBias = bias;
-    }
+		s_bZBiasChanged = true;
+		lastZBias = bias;
+	}
 }
 
 void PixelShaderManager::SetViewportChanged()
 {
 	s_bDepthRangeChanged = true;
+	s_bFogRangeAdjustChanged = true; // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
 }
 
 void PixelShaderManager::SetIndTexScaleChanged(u8 stagemask)
 {
-    s_nIndTexScaleChanged |= stagemask;
+	s_nIndTexScaleChanged |= stagemask;
 }
 
 void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
 {
-    s_nIndTexMtxChanged |= 1 << matrixidx;
+	s_nIndTexMtxChanged |= 1 << matrixidx;
 }
 
 void PixelShaderManager::SetZTextureTypeChanged()
@@ -492,22 +497,22 @@ void PixelShaderManager::SetZTextureTypeChanged()
 
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
 {
-    s_nTexDimsChanged |= 1 << texmapid;
+	s_nTexDimsChanged |= 1 << texmapid;
 }
 
 void PixelShaderManager::SetFogColorChanged()
 {
-    s_bFogColorChanged = true;
+	s_bFogColorChanged = true;
 }
 
 void PixelShaderManager::SetFogParamChanged()
 {
-    s_bFogParamChanged = true;
+	s_bFogParamChanged = true;
 }
 
 void PixelShaderManager::SetFogRangeAdjustChanged()
 {
-    s_bFogRangeAdjustChanged = true;
+	s_bFogRangeAdjustChanged = true;
 }
 
 void PixelShaderManager::SetColorMatrix(const float* pmatrix)

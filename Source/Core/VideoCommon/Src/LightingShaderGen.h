@@ -38,12 +38,12 @@ void GenerateLightShader(T& object, int index, int litchan_index, const char* li
 		// atten disabled
 		switch (chan.diffusefunc) {
 			case LIGHTDIF_NONE:
-				object.Write("lacc.%s += %s.lights[%d].col.%s;\n", swizzle, lightsName, index, swizzle);
+				object.Write("lacc.%s += %s[%d].col.%s;\n", swizzle, lightsName, index, swizzle);
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				object.Write("ldir = normalize(%s.lights[%d].pos.xyz - pos.xyz);\n", lightsName, index);
-				object.Write("lacc.%s += %sdot(ldir, _norm0)) * %s.lights[%d].col.%s;\n",
+				object.Write("ldir = normalize(%s[%d].pos.xyz - pos.xyz);\n", lightsName, index);
+				object.Write("lacc.%s += %sdot(ldir, _norm0)) * %s[%d].col.%s;\n",
 					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", lightsName, index, swizzle);
 				break;
 			default: _assert_(0);
@@ -53,28 +53,28 @@ void GenerateLightShader(T& object, int index, int litchan_index, const char* li
 
 		if (chan.attnfunc == 3)
 		{ // spot
-			object.Write("ldir = %s.lights[%d].pos.xyz - pos.xyz;\n", lightsName, index);
+			object.Write("ldir = %s[%d].pos.xyz - pos.xyz;\n", lightsName, index);
 			object.Write("dist2 = dot(ldir, ldir);\n"
 						"dist = sqrt(dist2);\n"
 						"ldir = ldir / dist;\n"
-						"attn = max(0.0f, dot(ldir, %s.lights[%d].dir.xyz));\n", lightsName, index);
-			object.Write("attn = max(0.0f, dot(%s.lights[%d].cosatt.xyz, float3(1.0f, attn, attn*attn))) / dot(%s.lights[%d].distatt.xyz, float3(1.0f,dist,dist2));\n", lightsName, index, lightsName, index);
+						"attn = max(0.0f, dot(ldir, %s[%d].dir.xyz));\n", lightsName, index);
+			object.Write("attn = max(0.0f, dot(%s[%d].cosatt.xyz, float3(1.0f, attn, attn*attn))) / dot(%s[%d].distatt.xyz, float3(1.0f,dist,dist2));\n", lightsName, index, lightsName, index);
 		}
 		else if (chan.attnfunc == 1)
 		{ // specular
-			object.Write("ldir = normalize(%s.lights[%d].pos.xyz);\n", lightsName, index);
-			object.Write("attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, %s.lights[%d].dir.xyz)) : 0.0f;\n", lightsName, index);
-			object.Write("attn = max(0.0f, dot(%s.lights[%d].cosatt.xyz, float3(1,attn,attn*attn))) / dot(%s.lights[%d].distatt.xyz, float3(1,attn,attn*attn));\n", lightsName, index, lightsName, index);
+			object.Write("ldir = normalize(%s[%d].pos.xyz);\n", lightsName, index);
+			object.Write("attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, %s[%d].dir.xyz)) : 0.0f;\n", lightsName, index);
+			object.Write("attn = max(0.0f, dot(%s[%d].cosatt.xyz, float3(1,attn,attn*attn))) / dot(%s[%d].distatt.xyz, float3(1,attn,attn*attn));\n", lightsName, index, lightsName, index);
 		}
 
 		switch (chan.diffusefunc)
 		{
 			case LIGHTDIF_NONE:
-				object.Write("lacc.%s += attn * %s.lights[%d].col.%s;\n", swizzle, lightsName, index, swizzle);
+				object.Write("lacc.%s += attn * %s[%d].col.%s;\n", swizzle, lightsName, index, swizzle);
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				object.Write("lacc.%s += attn * %sdot(ldir, _norm0)) * %s.lights[%d].col.%s;\n",
+				object.Write("lacc.%s += attn * %sdot(ldir, _norm0)) * %s[%d].col.%s;\n",
 					swizzle,
 					chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(",
 					lightsName,
@@ -112,7 +112,7 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 				object.Write("mat = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 		}
 		else // from color
-			object.Write("mat = %s.C%d;\n", materialsName, j+2);
+			object.Write("mat = %s[%d];\n", materialsName, j+2);
 
 		SetUidField(lit_chans[j].enablelighting, xfregs.color[j].enablelighting);
 		if (color.enablelighting) {
@@ -126,7 +126,7 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 					object.Write("lacc = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
 			}
 			else // from color
-				object.Write("lacc = %s.C%d;\n", materialsName, j);
+				object.Write("lacc = %s[%d];\n", materialsName, j);
 		}
 		else
 		{
@@ -144,7 +144,7 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 				else object.Write("mat.w = 1.0f;\n");
 			}
 			else // from color
-				object.Write("mat.w = %s.C%d.w;\n", materialsName, j+2);
+				object.Write("mat.w = %s[%d].w;\n", materialsName, j+2);
 		}
 
 		SetUidField(lit_chans[j+2].enablelighting, xfregs.alpha[j].enablelighting);
@@ -160,7 +160,7 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 					object.Write("lacc.w = 0.0f;\n");
 			}
 			else // from color
-				object.Write("lacc.w = %s.C%d.w;\n", materialsName, j);
+				object.Write("lacc.w = %s[%d].w;\n", materialsName, j);
 		}
 		else
 		{

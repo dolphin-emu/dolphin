@@ -1099,8 +1099,8 @@ wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
 	y = y/2;
     
 	wxMemoryDC memDC;
-    wxBitmap bitmap(127, 127);
-    memDC.SelectObject(bitmap);
+    wxBitmap stick_bitmap(127, 127);
+    memDC.SelectObject(stick_bitmap);
     memDC.SetBackground(*wxLIGHT_GREY_BRUSH);
     memDC.Clear();
     memDC.SetBrush(*wxWHITE_BRUSH);
@@ -1116,5 +1116,5 @@ wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
 	memDC.SetBrush(*wxBLUE_BRUSH);
 	memDC.DrawCircle(x,y,5);
     memDC.SelectObject(wxNullBitmap);
-    return bitmap;
+    return stick_bitmap;
 }

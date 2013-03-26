@@ -28,8 +28,6 @@
 #undef _interlockedbittestandreset
 #undef _interlockedbittestandset64
 #undef _interlockedbittestandreset64
-#else
-#include <xmmintrin.h>
 #endif
 
 #include "../../Core.h"

@@ -222,7 +222,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 		// u64 size = header.block_size;
 		std::fill(in_buf, in_buf + header.block_size, 0);
 		if (scrubbing)
-			DiscScrubber::GetNextBlock(inf.GetHandle(), in_buf);
+			DiscScrubber::GetNextBlock(inf, in_buf);
 		else
 			inf.ReadBytes(in_buf, header.block_size);
 		z_stream z;
@@ -301,7 +301,10 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 
 	File::IOFile f(outfile, "wb");
 	if (!f)
+    {
+        delete reader;
 		return false;
+    }
 
 	const CompressedBlobHeader &header = reader->GetHeader();
 	u8* buffer = new u8[header.block_size];

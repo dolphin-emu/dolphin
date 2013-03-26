@@ -31,6 +31,7 @@
 #include "VertexShaderManager.h"
 #include "Thread.h"
 #include "HW/Memmap.h"
+#include "PerfQueryBase.h"
 
 using namespace BPFunctions;
 
@@ -62,7 +63,6 @@ void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xf
 {
 	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, rc, gamma);
 }
-
 void BPWritten(const BPCmd& bp)
 {
 	/*
@@ -144,7 +144,8 @@ void BPWritten(const BPCmd& bp)
 					|| bp.address == BPMEM_LOADTLUT0
 					|| bp.address == BPMEM_LOADTLUT1
 					|| bp.address == BPMEM_TEXINVALIDATE
-					|| bp.address == BPMEM_PRELOAD_MODE))
+					|| bp.address == BPMEM_PRELOAD_MODE
+					|| bp.address == BPMEM_CLEAR_PIXEL_PERF))
 			{
 				return;
 			}
@@ -212,7 +213,7 @@ void BPWritten(const BPCmd& bp)
 				if (bp.changes & 4)
 					SetDitherMode();
 				// Set Blending Mode
-				if (bp.changes & 0xFE1)
+				if (bp.changes & 0xFF1)
 					SetBlendMode();
 				// Set Color Mask
 				if (bp.changes & 0x18)
@@ -224,6 +225,8 @@ void BPWritten(const BPCmd& bp)
 		{
 			PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
 			PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
+			if(bp.changes & 0x100)
+				SetBlendMode();
 			break;
 		}
 	// This is called when the game is done drawing the new frame (eg: like in DX: Begin(); Draw(); End();)
@@ -455,8 +458,11 @@ void BPWritten(const BPCmd& bp)
 		break;
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
-		g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
 		OnPixelFormatChange();
+		if(bp.changes & 7) {
+			SetBlendMode(); // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
+			g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
+		}
 		break;
 
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
@@ -483,9 +489,10 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_IND_IMASK: // Index Mask ?
 	case BPMEM_REVBITS: // Always set to 0x0F when GX_InitRevBits() is called.
 		break;
-
-	case BPMEM_UNKNOWN_57: // Sunshine alternates this register between values 0x000 and 0xAAA
-		DEBUG_LOG(VIDEO, "Unknown BP Reg 0x57: %08x", bp.newvalue);
+ 
+	case BPMEM_CLEAR_PIXEL_PERF:
+		// GXClearPixMetric writes 0xAAA here, Sunshine alternates this register between values 0x000 and 0xAAA
+		g_perf_query->ResetQuery();
 		break;
 
 	case BPMEM_PRELOAD_ADDR:
@@ -573,8 +580,6 @@ void BPWritten(const BPCmd& bp)
 		// ------------------------
 		case BPMEM_TX_SETMODE0: // (0x90 for linear)
 		case BPMEM_TX_SETMODE0_4:
-			// Shouldn't need to call this here, we call it for each active texture right before rendering
-			SetTextureMode(bp);
 			break;
 
 		case BPMEM_TX_SETMODE1:
@@ -716,14 +721,6 @@ void BPReload()
 	SetBlendMode();
 	SetColorMask();
 	OnPixelFormatChange();
-	{
-		BPCmd bp = {BPMEM_TX_SETMODE0, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_TX_SETMODE0])};
-		SetTextureMode(bp);
-	}
-	{
-		BPCmd bp = {BPMEM_TX_SETMODE0_4, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_TX_SETMODE0_4])};
-		SetTextureMode(bp);
-	}
 	{
 		BPCmd bp = {BPMEM_FIELDMASK, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMASK])};
 		SetInterlacingMode(bp);

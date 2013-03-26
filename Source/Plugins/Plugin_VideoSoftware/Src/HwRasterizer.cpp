@@ -33,7 +33,7 @@ namespace HwRasterizer
 	float efbHalfHeight;
 	bool hasTexture;
 
-	u8 *temp;   
+	u8 *temp;
 
 	// Programs
 	static GLuint colProg, texProg, clearProg;
@@ -61,7 +61,7 @@ namespace HwRasterizer
 			"	gl_FragColor = " TEXFUNC "(Texture, TexCoordOut.xy);\n"
 			"}\n";
 		// Clear shader
-		static const char *fragclearText = 
+		static const char *fragclearText =
 			"uniform " PREC " vec4 Color;\n"
 			"void main() {\n"
 			"	gl_FragColor = Color;\n"
@@ -75,7 +75,7 @@ namespace HwRasterizer
 			"	gl_Position = pos;\n"
 			"	TexCoordOut = TexCoordIn;\n"
 			"}\n";
-		static const char *vertclearText = 
+		static const char *vertclearText =
 			"attribute vec4 pos;\n"
 			"void main() {\n"
 			"	gl_Position = pos;\n"
@@ -92,11 +92,11 @@ namespace HwRasterizer
 
 		// Color attributes
 		col_apos = glGetAttribLocation(colProg, "pos");
-		col_atex = glGetAttribLocation(colProg, "TexCoordIn"); 
+		col_atex = glGetAttribLocation(colProg, "TexCoordIn");
 		// Texture attributes
 		tex_apos = glGetAttribLocation(texProg, "pos");
-		tex_atex = glGetAttribLocation(texProg, "TexCoordIn"); 
-		tex_utex = glGetUniformLocation(texProg, "Texture"); 
+		tex_atex = glGetAttribLocation(texProg, "TexCoordIn");
+		tex_utex = glGetUniformLocation(texProg, "Texture");
 		// Clear attributes
 		clear_apos = glGetAttribLocation(clearProg, "pos");
 		clear_ucol = glGetUniformLocation(clearProg, "Color");
@@ -131,7 +131,7 @@ namespace HwRasterizer
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		glClientActiveTexture(GL_TEXTURE0); 
+		glClientActiveTexture(GL_TEXTURE0);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glEnable(GL_TEXTURE_RECTANGLE_ARB);
@@ -179,7 +179,7 @@ namespace HwRasterizer
 		hasTexture = bpmem.tevorders[0].enable0;
 
 		if (hasTexture)
-			LoadTexture();        
+			LoadTexture();
 	}
 
 	void EndTriangles()
@@ -204,15 +204,15 @@ namespace HwRasterizer
 		float z2 = v2->screenPosition.z / (float)0x00ffffff;
 
 		float r0 = v0->color[0][OutputVertexData::RED_C] / 255.0f;
-		float g0 = v0->color[0][OutputVertexData::GRN_C] / 255.0f; 
+		float g0 = v0->color[0][OutputVertexData::GRN_C] / 255.0f;
 		float b0 = v0->color[0][OutputVertexData::BLU_C] / 255.0f;
 
 		float r1 = v1->color[0][OutputVertexData::RED_C] / 255.0f;
-		float g1 = v1->color[0][OutputVertexData::GRN_C] / 255.0f; 
+		float g1 = v1->color[0][OutputVertexData::GRN_C] / 255.0f;
 		float b1 = v1->color[0][OutputVertexData::BLU_C] / 255.0f;
 
 		float r2 = v2->color[0][OutputVertexData::RED_C] / 255.0f;
-		float g2 = v2->color[0][OutputVertexData::GRN_C] / 255.0f; 
+		float g2 = v2->color[0][OutputVertexData::GRN_C] / 255.0f;
 		float b2 = v2->color[0][OutputVertexData::BLU_C] / 255.0f;
 
 		static const GLfloat verts[3][3] = {
@@ -339,17 +339,17 @@ namespace HwRasterizer
 		texImage3.hex = texUnit.texImage3[0].hex;
 		texTlut.hex = texUnit.texTlut[0].hex;
 
-		int width = texImage0.width;
-		int height = texImage0.height;
+		int image_width = texImage0.width;
+		int image_height = texImage0.height;
 
-		DebugUtil::GetTextureBGRA(temp, 0, 0, width, height);
+		DebugUtil::GetTextureBGRA(temp, 0, 0, image_width, image_height);
 
 		glGenTextures(1, (GLuint *)&texture);
 		glBindTexture(TEX2D, texture);
 #ifdef USE_GLES
-		glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);        
+		glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)image_width, (GLsizei)image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 #else
-		glTexImage2D(TEX2D, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_BGRA, GL_UNSIGNED_BYTE, temp);        
+		glTexImage2D(TEX2D, 0, GL_RGBA8, (GLsizei)image_width, (GLsizei)image_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, temp);
 #endif
 		GL_REPORT_ERRORD();
 	}

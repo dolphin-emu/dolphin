@@ -62,7 +62,7 @@ void UpdateDevices();
 void ExecuteCommand(u32 _Address);
 
 void EnqRequest(u32 _Address);
-void EnqReply(u32 _Address);
+void EnqReply(u32 _Address, int cycles_in_future = 0);
 
 enum ECommandType
 {

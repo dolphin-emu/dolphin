@@ -77,36 +77,49 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 // Returns false iff the hash fails and the user hits "Yes"
 static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
 {
-	static const u32 hash[] = { 0x66f334fe, 0xf3b93527 };
-	static const u32 hash_mini[] = { 0x9c8f593c, 0x10000001 };
-	static const int size[] = { DSP_IROM_BYTE_SIZE, DSP_COEF_BYTE_SIZE };
-	const u16 *data[] = { g_dsp.irom, g_dsp.coef };
-	u32 h = 0;
-	u8 count = 0;
-
-	for (int i = 0; i < 2; i++)
+	struct DspRomHashes
 	{
-		h = HashAdler32((u8*)data[i], size[i]);
+		u32 hash_irom;		// dsp_rom.bin
+		u32 hash_drom;		// dsp_coef.bin
+	} KNOWN_ROMS[] = {
+		// Official Nintendo ROM
+		{ 0x66f334fe, 0xf3b93527 },
 
-		if (h == hash_mini[i])
-		{
-			count++;
-		}
-		else if (h != hash[i])
-		{
-			if (AskYesNoT("%s has an incorrect hash.\n"
-				"Would you like to stop now to fix the problem?\n"
-				"If you select \"No\", audio will be garbled.",
-				(i == 0) ? irom_filename : coef_filename))
-				return false;
-		}
+		// LM1234 replacement ROM (Zelda UCode only)
+		{ 0x9c8f593c, 0x10000001 },
+
+		// delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
+        // IPL/Card/GBA still broken)
+		{ 0xd9907f71, 0xb019c2fb }
+	};
+
+	u32 hash_irom = HashAdler32((u8*)g_dsp.irom, DSP_IROM_BYTE_SIZE);
+	u32 hash_drom = HashAdler32((u8*)g_dsp.coef, DSP_COEF_BYTE_SIZE);
+	int rom_idx = -1;
+
+	for (u32 i = 0; i < sizeof (KNOWN_ROMS) / sizeof (KNOWN_ROMS[0]); ++i)
+	{
+		DspRomHashes& rom = KNOWN_ROMS[i];
+		if (hash_irom == rom.hash_irom && hash_drom == rom.hash_drom)
+			rom_idx = i;
 	}
 
-	if (count == 2)
+	if (rom_idx < 0)
 	{
-		PanicAlertT("You are using free dsp roms made by Dolphin Team.\n"
-					"Only Zelda ucode games will work correctly with them.\n");
+		if (AskYesNoT("Your DSP ROMs have incorrect hashes.\n"
+			"Would you like to stop now to fix the problem?\n"
+			"If you select \"No\", audio might be garbled."))
+			return false;
 	}
+
+	if (rom_idx == 1)
+		PanicAlertT("You are using an old free DSP ROM made by the Dolphin Team.\n"
+					"Only games using the Zelda UCode will work correctly.\n");
+
+	if (rom_idx == 2)
+		PanicAlertT("You are using a free DSP ROM made by the Dolphin Team.\n"
+					"All Wii games will work correctly, and most GC games should "
+					"also work fine, but the GBA/IPL/CARD UCodes will not work.\n");
 
 	return true;
 }

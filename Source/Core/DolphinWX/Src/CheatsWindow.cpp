@@ -24,6 +24,7 @@
 #include "ISOProperties.h"
 #include "HW/Memmap.h"
 #include "Frame.h"
+#include "WxUtils.h"
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY	256
 
@@ -273,7 +274,7 @@ void wxCheatsWindow::Load_ARCodes()
 	{
 		ARCode code = GetARCode(i);
 		ARCodeIndex ind;
-		u32 index = m_CheckListBox_CheatsList->Append(wxString(code.name.c_str(), *wxConvCurrent));
+		u32 index = m_CheckListBox_CheatsList->Append(StrToWxStr(code.name));
 		m_CheckListBox_CheatsList->Check(index, code.active);
 		ind.index = i;
 		ind.uiIndex = index;
@@ -291,18 +292,18 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 		if ((int)indexList[i].uiIndex == index)
 		{
 			ARCode code = GetARCode(i);
-			m_Label_Codename->SetLabel(_("Name: ") + wxString(code.name.c_str(), *wxConvCurrent));
+			m_Label_Codename->SetLabel(_("Name: ") + StrToWxStr(code.name));
 			char text[CHAR_MAX];
 			char* numcodes = text;
 			sprintf(numcodes, "Number of Codes: %lu", (unsigned long)code.ops.size());
-			m_Label_NumCodes->SetLabel(wxString::FromAscii(numcodes));
+			m_Label_NumCodes->SetLabel(StrToWxStr(numcodes));
 			m_ListBox_CodesList->Clear();
 			for (size_t j = 0; j < code.ops.size(); j++)
 			{
 				char text2[CHAR_MAX];
 			    char* ops = text2;
 				sprintf(ops, "%08x %08x", code.ops[j].cmd_addr, code.ops[j].value);
-				m_ListBox_CodesList->Append(wxString::FromAscii(ops));
+				m_ListBox_CodesList->Append(StrToWxStr(ops));
 			}
 		}
 	}
@@ -347,7 +348,7 @@ void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (eve
 	const std::vector<std::string> &arLog = ActionReplay::GetSelfLog();
 	for (u32 i = 0; i < arLog.size(); i++)
 	{
-		m_TextCtrl_Log->AppendText(wxString::FromAscii(arLog[i].c_str()));
+		m_TextCtrl_Log->AppendText(StrToWxStr(arLog[i]));
 	}
 }
 
@@ -619,7 +620,7 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	// create the new code
 	ActionReplay::ARCode new_cheat;
 	new_cheat.active = false;
-	new_cheat.name = std::string(code_name.ToAscii());
+	new_cheat.name = WxStrToStr(code_name);
 	const ActionReplay::AREntry new_entry(code_address, code_value);
 	new_cheat.ops.push_back(new_entry);
 

@@ -24,20 +24,20 @@
 
 struct Statistics
 {
-    int numPixelShadersCreated;
-    int numPixelShadersAlive;
-    int numVertexShadersCreated;
-    int numVertexShadersAlive;
+	int numPixelShadersCreated;
+	int numPixelShadersAlive;
+	int numVertexShadersCreated;
+	int numVertexShadersAlive;
 
-    int numTexturesCreated;
-    int numTexturesAlive;
+	int numTexturesCreated;
+	int numTexturesAlive;
 
-    int numRenderTargetsCreated;
-    int numRenderTargetsAlive;
-    
-    int numDListsCalled;
-    int numDListsCreated;
-    int numDListsAlive;
+	int numRenderTargetsCreated;
+	int numRenderTargetsAlive;
+	
+	int numDListsCalled;
+	int numDListsCreated;
+	int numDListsAlive;
 
 	int numVertexLoaders;
 
@@ -52,30 +52,30 @@ struct Statistics
 
 	std::vector<EFBRectangle> efb_regions;
 
-    struct ThisFrame
-    {
-        int numBPLoads;
-        int numCPLoads;
-        int numXFLoads;
-        
-        int numBPLoadsInDL;
-        int numCPLoadsInDL;
-        int numXFLoadsInDL;
-        
-        int numDLs;
-        int numPrims;
-        int numDLPrims;
-        int numShaderChanges;
+	struct ThisFrame
+	{
+		int numBPLoads;
+		int numCPLoads;
+		int numXFLoads;
+		
+		int numBPLoadsInDL;
+		int numCPLoadsInDL;
+		int numXFLoadsInDL;
+		
+		int numDLs;
+		int numPrims;
+		int numDLPrims;
+		int numShaderChanges;
 
-	    int numPrimitiveJoins;
-	    int numDrawCalls;
-	    int numIndexedDrawCalls;
-	    int numBufferSplits;
+		int numPrimitiveJoins;
+		int numDrawCalls;
+		int numIndexedDrawCalls;
+		int numBufferSplits;
 
 		int numDListsCalled;
-    };
-    ThisFrame thisFrame;
-    void ResetFrame();
+	};
+	ThisFrame thisFrame;
+	void ResetFrame();
 	static void SwapDL();
 
 	// Yeah, this is unsafe, but we really don't wanna faff around allocating

@@ -34,6 +34,9 @@
 	// from the real context.
 	struct CONTEXT
 	{
+	#ifdef _M_ARM
+		u32 reg_pc;
+	#else
 	#ifdef _M_X64
 		u64 Rip;
 		u64 Rax;
@@ -41,6 +44,7 @@
 		u32 Eip;
 		u32 Eax;
 	#endif 
+	#endif
 	};
 
 #endif

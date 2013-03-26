@@ -413,6 +413,15 @@ void SetMaximumSlice(int maximumSliceLength)
 	maxSliceLength = maximumSliceLength;
 }
 
+void ForceExceptionCheck(int cycles)
+{
+	if (downcount > cycles)
+	{
+		slicelength -= (downcount - cycles); // Account for cycles already executed by adjusting the slicelength
+		downcount = cycles;
+	}
+}
+
 void ResetSliceLength()
 {
 	maxSliceLength = MAX_SLICE_LENGTH;
@@ -468,7 +477,6 @@ void MoveEvents()
 
 void Advance()
 {	
-
 	MoveEvents();		
 
 	int cyclesExecuted = slicelength - downcount;

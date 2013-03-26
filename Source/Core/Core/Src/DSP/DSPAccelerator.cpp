@@ -168,9 +168,11 @@ u16 dsp_read_accelerator()
 	if (Address >= EndAddress)
 	{
 		// Set address back to start address.
-		if ((Address & ~0x1f) == (EndAddress & ~0x1f))
+		if (DSPHost_Wii() || (Address == EndAddress))
+		{
 			Address = (g_dsp.ifx_regs[DSP_ACSAH] << 16) | g_dsp.ifx_regs[DSP_ACSAL];
-		DSPCore_SetException(EXP_ACCOV);
+			DSPCore_SetException(EXP_ACCOV);
+		}
 	}
 
 	g_dsp.ifx_regs[DSP_ACCAH] = Address >> 16;

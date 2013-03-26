@@ -144,8 +144,8 @@ void Preset(bool _bNTSC)
 	m_HorizontalStepping.FbSteps = 40;
 	m_HorizontalStepping.FieldSteps = 40;
 
-	m_HBeamPos = 0;
-	m_VBeamPos = 0;
+	m_HBeamPos = -1; // NTSC-U N64 VC games check for a non-zero HBeamPos
+	m_VBeamPos = 0; // RG4JC0 checks for a zero VBeamPos
 
 	// 54MHz, capable of progressive scan
 	m_Clock = Core::g_CoreStartupParameter.bProgressive;
