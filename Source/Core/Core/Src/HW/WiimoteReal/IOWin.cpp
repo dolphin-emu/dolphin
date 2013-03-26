@@ -296,6 +296,7 @@ bool Wiimote::Connect()
 		return false;
 	}
 
+#if 0
 	TCHAR name[128] = {};
 	HidD_GetProductString(dev_handle, name, 128);
 
@@ -307,6 +308,7 @@ bool Wiimote::Connect()
 		dev_handle = 0;
 		return false;
 	}
+#endif
 
 #if 0
 	HIDD_ATTRIBUTES attr;
