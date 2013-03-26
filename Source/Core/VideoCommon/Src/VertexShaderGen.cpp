@@ -131,33 +131,49 @@ static char text[16384];
 
 #define WRITE p+=sprintf
 
+char* DefineVSOutputStructMember(char* p, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
+{
+	WRITE(p, "  %s %s", type, name);
+	if (var_index != -1)
+		WRITE(p, "%d", var_index);
+
+	if (api_type == API_OPENGL)
+		WRITE(p, ";\n");
+	else
+	{
+		if (semantic_index != -1)
+			WRITE(p, " : %s%d;\n", semantic, semantic_index);
+		else
+			WRITE(p, " : %s;\n", semantic);
+	}
+
+	return p;
+}
+
 char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 {
-	// GLSL makes this ugly
-	// TODO: Make pretty
 	WRITE(p, "struct VS_OUTPUT {\n");
-	WRITE(p, "  float4 pos %s POSITION;\n", ApiType == API_OPENGL ? ";//" : ":");
-	WRITE(p, "  float4 colors_0 %s COLOR0;\n", ApiType == API_OPENGL ? ";//" : ":");
-	WRITE(p, "  float4 colors_1 %s COLOR1;\n", ApiType == API_OPENGL ? ";//" : ":");
+	p = DefineVSOutputStructMember(p, ApiType, "float4", "pos", -1, "POSITION");
+	p = DefineVSOutputStructMember(p, ApiType, "float4", "colors_", 0, "COLOR", 0);
+	p = DefineVSOutputStructMember(p, ApiType, "float4", "colors_", 1, "COLOR", 1);
 
-	if (xfregs.numTexGen.numTexGens < 7) {
+	if (xfregs.numTexGen.numTexGens < 7)
+	{
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			WRITE(p, "  float3 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL ? ";//" : ":", i);
-		WRITE(p, "  float4 clipPos %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens);
+			p = DefineVSOutputStructMember(p, ApiType, "float3", "tex", i, "TEXCOORD", i);
+
+		p = DefineVSOutputStructMember(p, ApiType, "float4", "clipPos", -1, "TEXCOORD", xfregs.numTexGen.numTexGens);
+
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			WRITE(p, "  float4 Normal %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
-	} else {
-		// clip position is in w of first 4 texcoords
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-		{
-			for (int i = 0; i < 8; ++i)
-				WRITE(p, "  float4 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL? ";//" : ":", i);
-		}
-		else
-		{
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, "  float%d tex%d %s TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, ApiType == API_OPENGL ? ";//" : ":", i);
-		}
+			p = DefineVSOutputStructMember(p, ApiType, "float4", "Normal", -1, "TEXCOORD", xfregs.numTexGen.numTexGens + 1);
+	}
+	else
+	{
+		// Store clip position in the w component of first 4 texcoords
+		bool ppl = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+		int num_texcoords = ppl ? 8 : xfregs.numTexGen.numTexGens;
+		for (int i = 0; i < num_texcoords; ++i)
+			p = DefineVSOutputStructMember(p, ApiType, (ppl || i < 4) ? "float4" : "float3", "tex", i, "TEXCOORD", i);
 	}
 	WRITE(p, "};\n");
 
