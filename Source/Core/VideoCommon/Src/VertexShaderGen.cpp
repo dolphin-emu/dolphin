@@ -17,6 +17,7 @@
 
 #include <math.h>
 #include <locale.h>
+#include <typeinfo>
 
 #include "NativeVertexFormat.h"
 
@@ -80,13 +81,13 @@ void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
 extern const char *WriteRegister(API_TYPE api_type, const char *prefix, const u32 num);
 extern const char *WriteLocation(API_TYPE api_type);
 
-template<class T, GenOutput type>
+template<class T>
 void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 {
 #undef SetUidField
-#define SetUidField(name, value) if (type == GO_ShaderUid) {out.GetUidData().name = value; };
+#define SetUidField(name, value) if (typeid(T) == typeid(VertexShaderUid)) {out.GetUidData().name = value; };
 
-	if (type == GO_ShaderCode)
+	if (typeid(T) == typeid(VertexShaderCode))
 	{
 		out.SetBuffer(text);
 		setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
@@ -275,7 +276,7 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	}
 
 	// TODO: This probably isn't necessary if pixel lighting is enabled.
-	GenerateLightingShader<T,type>(out, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
+	GenerateLightingShader<T,VertexShaderUid>(out, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
 	if (xfregs.numChan.numColorChans < 2)
 	{
@@ -522,16 +523,16 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 
 ///	if (text[sizeof(text) - 1] != 0x7C)
 ///		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
-	if (type == GO_ShaderCode)
+	if (typeid(T) == typeid(VertexShaderCode))
 		setlocale(LC_NUMERIC, ""); // restore locale
 }
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type)
 {
-	GenerateVertexShader<VertexShaderUid, GO_ShaderUid>(object, components, api_type);
+	GenerateVertexShader<VertexShaderUid>(object, components, api_type);
 }
 
 void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type)
 {
-	GenerateVertexShader<VertexShaderCode, GO_ShaderCode>(object, components, api_type);
+	GenerateVertexShader<VertexShaderCode>(object, components, api_type);
 }

@@ -19,6 +19,7 @@
 #include <cmath>
 #include <assert.h>
 #include <locale.h>
+#include <typeinfo>
 
 #include "LightingShaderGen.h"
 #include "PixelShaderGen.h"
@@ -37,10 +38,10 @@
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and
 
-template<class T, GenOutput type> static void WriteStage(char *&p, int n, API_TYPE ApiType);
-template<class T, GenOutput type> static void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
-template<class T, GenOutput type> static void WriteAlphaTest(T& out, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
-template<class T, GenOutput type> static void WriteFog(T& out);
+template<class T> static void WriteStage(char *&p, int n, API_TYPE ApiType);
+template<class T> static void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
+template<class T> static void WriteAlphaTest(T& out, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
+template<class T> static void WriteFog(T& out);
 
 static const char *tevKSelTableC[] = // KCSEL
 {
@@ -266,13 +267,13 @@ const char *WriteLocation(API_TYPE ApiType)
 	return result;
 }
 
-template<class T, GenOutput type>
+template<class T>
 void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
 	// TODO: Can be optimized if using alpha pass
-#define SetUidField(name, value) if (type == GO_ShaderUid) {out.GetUidData().name = value; };
-#define OR_UidField(name, value) if (type == GO_ShaderUid) {out.GetUidData().name |= value; };
-	if (type == GO_ShaderCode)
+#define SetUidField(name, value) if (typeid(T) == typeid(PixelShaderUid)) {out.GetUidData().name = value; };
+#define OR_UidField(name, value) if (typeid(T) == typeid(PixelShaderUid)) {out.GetUidData().name |= value; };
+	if (typeid(T) == typeid(PixelShaderCode))
 	{
 		setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 		out.SetBuffer(text);
@@ -558,7 +559,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 
 			char buffer[32];
 			sprintf(buffer, "float3 indtex%d", i);
-			SampleTexture<T, type>(out, buffer, "tempcoord", "abg", texmap, ApiType);
+			SampleTexture<T>(out, buffer, "tempcoord", "abg", texmap, ApiType);
 		}
 	}
 
@@ -575,7 +576,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	// Uid fields for BuildSwapModeTable are set in WriteStage
 	BuildSwapModeTable();
 	for (unsigned int i = 0; i < numStages; i++)
-		WriteStage<T, type>(out, i, ApiType); // build the equation for this stage
+		WriteStage<T>(out, i, ApiType); // build the equation for this stage
 
 	if (numStages)
 	{
@@ -604,7 +605,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	SetUidField(Pretest, Pretest);
 	if (Pretest == AlphaTest::UNDETERMINED)
-		WriteAlphaTest<T, type>(out, ApiType, dstAlphaMode, per_pixel_depth);
+		WriteAlphaTest<T>(out, ApiType, dstAlphaMode, per_pixel_depth);
 
 	
 	// the screen space depth value = far z + (clip z / clip w) * z range
@@ -648,7 +649,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	}
 	else
 	{
-		WriteFog<T, type>(out);
+		WriteFog<T>(out);
 		out.Write("\tocol0 = prev;\n");
 	}
 
@@ -716,7 +717,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 };
 
 
-template<class T, GenOutput type>
+template<class T>
 static void WriteStage(T& out, int n, API_TYPE ApiType)
 {
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
@@ -865,7 +866,7 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
-		SampleTexture<T, type>(out, "textemp", "tevcoord", texswap, texmap, ApiType);
+		SampleTexture<T>(out, "textemp", "tevcoord", texswap, texmap, ApiType);
 	}
 	else
 		out.Write("textemp = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
@@ -1090,7 +1091,7 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 	out.Write("// TEV done\n");
 }
 
-template<class T, GenOutput type>
+template<class T>
 void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
@@ -1120,7 +1121,7 @@ static const char *tevAlphaFunclogicTable[] =
 	" == "  // xnor
 };
 
-template<class T, GenOutput type>
+template<class T>
 static void WriteAlphaTest(T& out, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth)
 {
 	static const char *alphaRef[2] =
@@ -1188,7 +1189,7 @@ static const char *tevFogFuncsTable[] =
 	"\tfog = 1.0f - fog;\n   fog = pow(2.0f, -8.0f * fog * fog);\n"	//backward exp2
 };
 
-template<class T, GenOutput type>
+template<class T>
 static void WriteFog(T& out)
 {
 	SetUidField(fog.fsel, bpmem.fog.c_proj_fsel.fsel);
@@ -1240,16 +1241,16 @@ static void WriteFog(T& out)
 
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	GeneratePixelShader<PixelShaderUid, GO_ShaderUid>(object, dstAlphaMode, ApiType, components);
+	GeneratePixelShader<PixelShaderUid>(object, dstAlphaMode, ApiType, components);
 }
 
 void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	GeneratePixelShader<PixelShaderCode, GO_ShaderCode>(object, dstAlphaMode, ApiType, components);
+	GeneratePixelShader<PixelShaderCode>(object, dstAlphaMode, ApiType, components);
 }
 
 void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	GeneratePixelShader<PixelShaderConstantProfile, GO_ShaderCode>(object, dstAlphaMode, ApiType, components);
+	GeneratePixelShader<PixelShaderConstantProfile>(object, dstAlphaMode, ApiType, components);
 }
 

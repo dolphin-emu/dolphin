@@ -18,15 +18,17 @@
 #ifndef _LIGHTINGSHADERGEN_H_
 #define _LIGHTINGSHADERGEN_H_
 
+#include <typeinfo>
+
 #include "ShaderGenCommon.h"
 #include "NativeVertexFormat.h"
 #include "XFMemory.h"
 
 // T.uid_data needs to have a struct named lighting_uid
-template<class T, GenOutput type>
+template<class T,class UidType>
 void GenerateLightShader(T& object, int index, int litchan_index, const char* lightsName, int coloralpha)
 {
-#define SetUidField(name, value) if (type == GO_ShaderUid) { object.GetUidData().name = value; };
+#define SetUidField(name, value) if (typeid(T) == typeid(UidType)) { object.GetUidData().name = value; };
 	const LitChannel& chan = (litchan_index > 1) ? xfregs.alpha[litchan_index-2] : xfregs.color[litchan_index];
 	const char* swizzle = "xyzw";
 	if (coloralpha == 1 ) swizzle = "xyz";
@@ -92,7 +94,7 @@ void GenerateLightShader(T& object, int index, int litchan_index, const char* li
 // materials name is I_MATERIALS in vs and I_PMATERIALS in ps
 // inColorName is color in vs and colors_ in ps
 // dest is o.colors_ in vs and colors_ in ps
-template<class T, GenOutput type>
+template<class T, class UidType>
 void GenerateLightingShader(T& object, int components, const char* materialsName, const char* lightsName, const char* inColorName, const char* dest)
 {
 	for (unsigned int j = 0; j < xfregs.numChan.numColorChans; j++)
@@ -186,7 +188,7 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 					{
 						if (mask & (1<<i))
 						{
-							GenerateLightShader<T,type>(object, i, j, lightsName, 3);
+							GenerateLightShader<T,UidType>(object, i, j, lightsName, 3);
 						}
 					}
 				}
@@ -196,9 +198,9 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 			for (int i = 0; i < 8; ++i)
 			{
 				if (!(mask&(1<<i)) && (color.GetFullLightMask() & (1<<i)))
-					GenerateLightShader<T,type>(object, i, j, lightsName, 1);
+					GenerateLightShader<T,UidType>(object, i, j, lightsName, 1);
 				if (!(mask&(1<<i)) && (alpha.GetFullLightMask() & (1<<i)))
-					GenerateLightShader<T,type>(object, i, j+2, lightsName, 2);
+					GenerateLightShader<T,UidType>(object, i, j+2, lightsName, 2);
 			}
 		}
 		else if (color.enablelighting || alpha.enablelighting)
@@ -212,7 +214,7 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 			for (int i = 0; i < 8; ++i)
 			{
 				if (workingchannel.GetFullLightMask() & (1<<i))
-					GenerateLightShader<T,type>(object, i, lit_index, lightsName, coloralpha);
+					GenerateLightShader<T,UidType>(object, i, lit_index, lightsName, coloralpha);
 			}
 		}
 		object.Write("%s%d = mat * saturate(lacc);\n", dest, j);

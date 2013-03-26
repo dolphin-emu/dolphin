@@ -123,11 +123,4 @@ private:
 	std::vector<bool> constant_usage; // TODO: Is vector<bool> appropriate here?
 };
 
-enum GenOutput
-{
-	GO_ShaderCode,
-	GO_ShaderUid,
-	GO_ShaderConstantProfile,
-};
-
 #endif // _SHADERGENCOMMON_H
