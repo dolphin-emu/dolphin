@@ -192,7 +192,8 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	WRITE(p, "%sfloat4 " I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
 	WRITE(p, "%sfloat4 " I_PROJECTION"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PROJECTION));	
 	WRITE(p, "%sfloat4 " I_MATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_MATERIALS));
-	WRITE(p, "%sfloat4 " I_LIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_LIGHTS));
+	WRITE(p, "struct Light { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; };\n");
+	WRITE(p, "%sLight " I_LIGHTS"[8] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_LIGHTS));
 	WRITE(p, "%sfloat4 " I_TEXMATRICES"[24] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
 	WRITE(p, "%sfloat4 " I_TRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType),WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));
 	WRITE(p, "%sfloat4 " I_NORMALMATRICES"[32] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_NORMALMATRICES));
@@ -413,7 +414,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 
 				if (components & (VB_HAS_NRM1|VB_HAS_NRM2)) {
 					// transform the light dir into tangent space
-					WRITE(p, "ldir = normalize(" I_LIGHTS"[%d + 3].xyz - pos.xyz);\n", texinfo.embosslightshift);
+					WRITE(p, "ldir = normalize(" I_LIGHTS"[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift);
 					WRITE(p, "o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
 				}
 				else

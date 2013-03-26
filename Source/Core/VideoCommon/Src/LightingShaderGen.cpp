@@ -47,13 +47,13 @@ char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char
 		// atten disabled
 		switch (chan.diffusefunc) {
 			case LIGHTDIF_NONE:
-				WRITE(p, "lacc.%s += %s[%d].%s;\n", swizzle, lightsName, index * 5, swizzle);
+				WRITE(p, "lacc.%s += %s[%d].col.%s;\n", swizzle, lightsName, index, swizzle);
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				WRITE(p, "ldir = normalize(%s[%d + 3].xyz - pos.xyz);\n", lightsName, index * 5);
-				WRITE(p, "lacc.%s += %sdot(ldir, _norm0)) * %s[%d].%s;\n",
-					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", lightsName, index * 5, swizzle);
+				WRITE(p, "ldir = normalize(%s[%d].pos.xyz - pos.xyz);\n", lightsName, index);
+				WRITE(p, "lacc.%s += %sdot(ldir, _norm0)) * %s[%d].col.%s;\n",
+					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", lightsName, index, swizzle);
 				break;
 			default: _assert_(0);
 		}
@@ -62,32 +62,32 @@ char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char
 		
 		if (chan.attnfunc == 3) 
 		{ // spot
-			WRITE(p, "ldir = %s[%d + 3].xyz - pos.xyz;\n", lightsName, index * 5);
+			WRITE(p, "ldir = %s[%d].pos.xyz - pos.xyz;\n", lightsName, index);
 			WRITE(p, "dist2 = dot(ldir, ldir);\n"
 				"dist = sqrt(dist2);\n"
 				"ldir = ldir / dist;\n"
-				"attn = max(0.0f, dot(ldir, %s[%d + 4].xyz));\n", lightsName, index * 5);
-			WRITE(p, "attn = max(0.0f, dot(%s[%d + 1].xyz, float3(1.0f, attn, attn*attn))) / dot(%s[%d + 2].xyz, float3(1.0f,dist,dist2));\n", lightsName, index * 5, lightsName, index * 5);
+				"attn = max(0.0f, dot(ldir, %s[%d].dir.xyz));\n", lightsName, index);
+			WRITE(p, "attn = max(0.0f, dot(%s[%d].cosatt.xyz, float3(1.0f, attn, attn*attn))) / dot(%s[%d].distatt.xyz, float3(1.0f,dist,dist2));\n", lightsName, index, lightsName, index);
 		}
 		else if (chan.attnfunc == 1) 
 		{ // specular
-			WRITE(p, "ldir = normalize(%s[%d + 3].xyz);\n", lightsName, index * 5);
-			WRITE(p, "attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, %s[%d + 4].xyz)) : 0.0f;\n", lightsName, index * 5);
-			WRITE(p, "attn = max(0.0f, dot(%s[%d + 1].xyz, float3(1,attn,attn*attn))) / dot(%s[%d + 2].xyz, float3(1,attn,attn*attn));\n", lightsName, index * 5, lightsName, index * 5);
+			WRITE(p, "ldir = normalize(%s[%d].pos.xyz);\n", lightsName, index);
+			WRITE(p, "attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, %s[%d].dir.xyz)) : 0.0f;\n", lightsName, index);
+			WRITE(p, "attn = max(0.0f, dot(%s[%d].cosatt.xyz, float3(1,attn,attn*attn))) / dot(%s[%d].distatt.xyz, float3(1,attn,attn*attn));\n", lightsName, index, lightsName, index);
 		}
 
 		switch (chan.diffusefunc)
 		{
 			case LIGHTDIF_NONE:
-				WRITE(p, "lacc.%s += attn * %s[%d].%s;\n", swizzle, lightsName, index * 5, swizzle);
+				WRITE(p, "lacc.%s += attn * %s[%d].col.%s;\n", swizzle, lightsName, index, swizzle);
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				WRITE(p, "lacc.%s += attn * %sdot(ldir, _norm0)) * %s[%d].%s;\n",
+				WRITE(p, "lacc.%s += attn * %sdot(ldir, _norm0)) * %s[%d].col.%s;\n",
 					swizzle, 
 					chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(",
 					lightsName,
-					index * 5, 
+					index, 
 					swizzle);
 				break;
 			default: _assert_(0);
