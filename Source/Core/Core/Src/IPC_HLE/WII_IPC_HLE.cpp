@@ -535,14 +535,14 @@ void ExecuteCommand(u32 _Address)
 	}
     }
 
+    // It seems that the original hardware overwrites the command after it has been
+	// executed. We write 8 which is not any valid command, and what IOS does 
+	Memory::Write_U32(8, _Address);
+	// IOS seems to write back the command that was responded to
+	Memory::Write_U32(Command, _Address + 8);
+
     if (CmdSuccess)
     {
-		// It seems that the original hardware overwrites the command after it has been
-		// executed. We write 8 which is not any valid command, and what IOS does 
-		Memory::Write_U32(8, _Address);
-		// IOS seems to write back the command that was responded to
-		Memory::Write_U32(Command, _Address + 8);
-		
 		// Ensure replies happen in order, fairly ugly
 		// Without this, tons of games fail now that DI commads have different reply delays
 		int reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
