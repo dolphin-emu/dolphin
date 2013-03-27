@@ -314,7 +314,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	{
 		// Declare samplers
 		for (int i = 0; i < 8; ++i)
-			out.Write("%s samp%d %s;\n", (ApiType == API_D3D11) ? "sampler" : "uniform sampler2D", (i==0)?"":",", i, WriteRegister(ApiType, "s", i));
+			out.Write("%s samp%d %s;\n", (ApiType == API_D3D11) ? "sampler" : "uniform sampler2D", i, WriteRegister(ApiType, "s", i));
 
 		if (ApiType == API_D3D11)
 		{
