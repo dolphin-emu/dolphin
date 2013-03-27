@@ -94,8 +94,7 @@ CPanel::CPanel(
 
 			case WM_USER_SETCURSOR:
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN &&
-						SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
 					SetCursor(wxCURSOR_BLANK);
 				else
 					SetCursor(wxNullCursor);
