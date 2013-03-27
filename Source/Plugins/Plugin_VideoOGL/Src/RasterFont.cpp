@@ -17,12 +17,18 @@
 
 #include "GLUtil.h"
 
-#include <string.h>
-
 #include "RasterFont.h"
+#include "ProgramShaderCache.h"
 // globals
 
-const GLubyte rasters[][13] = {
+namespace OGL {
+
+static const u32 char_width = 8;
+static const u32 char_height = 13;
+static const u32 char_offset = 32;
+static const u32 char_count = 95;
+
+const u8 rasters[char_count][char_height] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 
     {0x00, 0x00, 0x18, 0x18, 0x00, 0x00, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18}, 
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x36, 0x36, 0x36, 0x36}, 
@@ -120,104 +126,159 @@ const GLubyte rasters[][13] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x8f, 0xf1, 0x60, 0x00, 0x00, 0x00} 
 };
 
+static const char *s_vertexShaderSrc = 
+	"uniform vec2 charSize;\n"
+	"in vec2 rawpos;\n"
+	"in vec2 tex0;\n"
+	"out vec2 uv0;\n"
+	"void main(void) {\n"
+	"	gl_Position = vec4(rawpos,0,1);\n"
+	"	uv0 = tex0 * charSize;\n"
+	"}\n"; 
+
+static const char *s_fragmentShaderSrc =
+	"uniform sampler2D samp8;\n"
+	"uniform vec4 color;\n"
+	"in vec2 uv0;\n"
+	"out vec4 ocol0;\n"
+	"void main(void) {\n"
+	"	ocol0 = texture(samp8,uv0) * color;\n"
+	"}\n";
+	
+static SHADER s_shader;
+	
 RasterFont::RasterFont()
 {
-	// set GL modes
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	// create the raster font
-	fontOffset = glGenLists(128);
-	for (int i = 32; i < 127; i++) {
-		glNewList(i + fontOffset, GL_COMPILE);
-		glBitmap(8, 13, 0.0f, 2.0f, 10.0f, 0.0f, rasters[i - 32]);
-		glEndList();
+	// generate the texture
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0+8);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	u32* texture_data = new u32[char_width*char_count*char_height];
+	for(u32 y=0; y<char_height; y++) {
+		for(u32 c=0; c<char_count; c++) {
+			for(u32 x=0; x<char_width; x++) {
+				bool pixel = rasters[c][y] & (1<<(char_width-x-1));
+				texture_data[char_width*char_count*y+char_width*c+x] = pixel ? -1 : 0;
+			}
+		}
 	}
-
-	temp_buffer = new char[TEMP_BUFFER_SIZE];
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, char_width*char_count, char_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data);
+	delete [] texture_data;
+	
+	// generate shader
+	ProgramShaderCache::CompileShader(s_shader, s_vertexShaderSrc, s_fragmentShaderSrc);
+	
+	// bound uniforms
+	glUniform2f(glGetUniformLocation(s_shader.glprogid,"charSize"), 1.0f / GLfloat(char_count), 1.0f);
+	uniform_color_id = glGetUniformLocation(s_shader.glprogid,"color");
+	glUniform4f(uniform_color_id, 1.0f, 1.0f, 1.0f, 1.0f);
+	cached_color = -1;
+	
+	// generate VBO & VAO
+	glGenBuffers(1, &VBO);
+	glGenVertexArrays(1, &VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindVertexArray(VAO);
+	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, NULL);
+	glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
+	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 }
 
 RasterFont::~RasterFont()
 {
-	glDeleteLists(fontOffset, 128);
-	delete [] temp_buffer;
+	glDeleteTextures(1, &texture);
+	glDeleteBuffers(1, &VBO);
+	glDeleteVertexArrays(1, &VAO);
+	s_shader.Destroy();
 }
 
-void RasterFont::printString(const char *s, double x, double y, double z)
+void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
 {
-	int length = (int)strlen(s);
-	if (!length)
-		return;
-	if (length >= TEMP_BUFFER_SIZE)
-		length = TEMP_BUFFER_SIZE - 1;
-
-	// Sanitize string to avoid GL errors.
-	char *s2 = temp_buffer;
-	memcpy(s2, s, length);
-	s2[length] = 0;
-	for (int i = 0; i < length; i++) {
-		if (s2[i] < 32 || s2[i] > 126)
-			s2[i] = '!';
-	}
-
-	// go to the right spot
-	glRasterPos3d(x, y, z);
-	GL_REPORT_ERRORD();
-
-	glPushAttrib (GL_LIST_BIT);
-	glListBase(fontOffset);
-	glCallLists((GLsizei)strlen(s2), GL_UNSIGNED_BYTE, (GLubyte *) s2);
-	GL_REPORT_ERRORD();
-	glPopAttrib();
-	GL_REPORT_ERRORD();
-}
-
-void RasterFont::printCenteredString(const char *s, double y, int screen_width, double z)
-{
-	int length = (int)strlen(s);
-	int x = (int)(screen_width/2.0 - (length/2.0)*char_width);
-	printString(s, x, y, z);
-}
-
-void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight)
-{
-	double x = start_x;
-	double y = start_y;
-	char temp[1024];
-	char *t = temp;
-	while (*text)
-	{
-		if (*text == '\n')
-		{
-			*t = 0;
-			printString(temp, x, y, z);
-			y -= char_height * 2.0f / bbHeight;
+	size_t length = strlen(text);
+	GLfloat *vertices = new GLfloat[length*6*4];
+	
+	int usage = 0;
+	GLfloat delta_x = GLfloat(2*char_width)/GLfloat(bbWidth);
+	GLfloat delta_y = GLfloat(2*char_height)/GLfloat(bbHeight);
+	GLfloat border_x = 2.0/GLfloat(bbWidth);
+	GLfloat border_y = 4.0/GLfloat(bbHeight);
+	
+	GLfloat x = GLfloat(start_x);
+	GLfloat y = GLfloat(start_y);
+	
+	for(size_t i=0; i<length; i++) {
+		u8 c = text[i];
+		
+		if(c == '\n') {
 			x = start_x;
-			t = temp;
+			y -= delta_y + border_y;
+			continue;
 		}
-		else if (*text == '\r')
-		{
-			t = temp;
+		
+		// do not print spaces, they can be skipped easyly
+		if(c == ' ') {
+			x += delta_x + border_x;
+			continue;
 		}
-		else if (*text == '\t')
-		{
-			//todo: add tabs every something like 4*char_width
-			*t = 0;
-			int cpos = (int)strlen(temp);
-			int newpos = (cpos + 4) & (~3);
-			printString(temp, x, y, z);
-			x = start_x + (char_width*newpos) * 2.0f / bbWidth;
-			t = temp;
-			*t++ = ' ';
-		}
-		else
-			*t++ = *text;
-
-		text++;
+		
+		if(c < char_offset || c >= char_count+char_offset) continue;
+		
+		vertices[usage++] = x;
+		vertices[usage++] = y;
+		vertices[usage++] = GLfloat(c-char_offset);
+		vertices[usage++] = 0.0f;
+		
+		vertices[usage++] = x+delta_x;
+		vertices[usage++] = y;
+		vertices[usage++] = GLfloat(c-char_offset+1);
+		vertices[usage++] = 0.0f;
+		
+		vertices[usage++] = x+delta_x;
+		vertices[usage++] = y+delta_y;
+		vertices[usage++] = GLfloat(c-char_offset+1);
+		vertices[usage++] = 1.0f;
+		
+		vertices[usage++] = x;
+		vertices[usage++] = y;
+		vertices[usage++] = GLfloat(c-char_offset);
+		vertices[usage++] = 0.0f;
+		
+		vertices[usage++] = x+delta_x;
+		vertices[usage++] = y+delta_y;
+		vertices[usage++] = GLfloat(c-char_offset+1);
+		vertices[usage++] = 1.0f;
+		
+		vertices[usage++] = x;
+		vertices[usage++] = y+delta_y;
+		vertices[usage++] = GLfloat(c-char_offset);
+		vertices[usage++] = 1.0f;
+		
+		x += delta_x + border_x;
 	}
-
-	// ????
-	if (t != text)
-	{
-		*t = 0;
-		printString(temp, x, y, z);
+	
+	if(!usage) {
+		delete [] vertices;
+		return;
 	}
+	
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, usage*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
+	
+	delete [] vertices;
+
+	s_shader.Bind();
+	
+	if(color != cached_color) {
+		glUniform4f(uniform_color_id, GLfloat((color>>16)&0xff)/255.f,GLfloat((color>>8)&0xff)/255.f,GLfloat((color>>0)&0xff)/255.f,GLfloat((color>>24)&0xff)/255.f);
+		cached_color = color;
+	}
+	
+	glActiveTexture(GL_TEXTURE0+8);
+	glDrawArrays(GL_TRIANGLES, 0, usage/4);
+}
+
 }

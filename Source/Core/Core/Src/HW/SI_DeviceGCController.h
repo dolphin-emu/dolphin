@@ -31,6 +31,7 @@ private:
 	enum EBufferCommands
 	{
 		CMD_RESET		= 0x00,
+		CMD_DIRECT		= 0x40,
 		CMD_ORIGIN		= 0x41,
 		CMD_RECALIBRATE	= 0x42,
 	};

@@ -41,9 +41,10 @@
 #include <CoreFoundation/CFBundle.h>
 #endif
 
-#include <fstream>
 #include <algorithm>
 #include <sys/stat.h>
+
+#include "StringUtil.h"
 
 #ifndef S_ISDIR
 #define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)
@@ -81,7 +82,11 @@ bool Exists(const std::string &filename)
 	std::string copy(filename);
 	StripTailDirSlashes(copy);
 
+#ifdef _WIN32
+	int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
+#else
 	int result = stat64(copy.c_str(), &file_info);
+#endif
 
 	return (result == 0);
 }
@@ -94,7 +99,11 @@ bool IsDirectory(const std::string &filename)
 	std::string copy(filename);
 	StripTailDirSlashes(copy);
 
+#ifdef _WIN32
+	int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
+#else
 	int result = stat64(copy.c_str(), &file_info);
+#endif
 
 	if (result < 0) {
 		WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", 
@@ -127,7 +136,7 @@ bool Delete(const std::string &filename)
 	}
 
 #ifdef _WIN32
-	if (!DeleteFile(filename.c_str()))
+	if (!DeleteFile(UTF8ToTStr(filename).c_str()))
 	{
 		WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s", 
 				 filename.c_str(), GetLastErrorMsg());
@@ -149,7 +158,7 @@ bool CreateDir(const std::string &path)
 {
 	INFO_LOG(COMMON, "CreateDir: directory %s", path.c_str());
 #ifdef _WIN32
-	if (::CreateDirectory(path.c_str(), NULL))
+	if (::CreateDirectory(UTF8ToTStr(path).c_str(), NULL))
 		return true;
 	DWORD error = GetLastError();
 	if (error == ERROR_ALREADY_EXISTS)
@@ -181,7 +190,7 @@ bool CreateFullPath(const std::string &fullPath)
 {
 	int panicCounter = 100;
 	INFO_LOG(COMMON, "CreateFullPath: path %s", fullPath.c_str());
-		
+
 	if (File::Exists(fullPath))
 	{
 		INFO_LOG(COMMON, "CreateFullPath: path exists %s", fullPath.c_str());
@@ -197,7 +206,7 @@ bool CreateFullPath(const std::string &fullPath)
 		// we're done, yay!
 		if (position == fullPath.npos)
 			return true;
-		
+
 		// Include the '/' so the first call is CreateDir("/") rather than CreateDir("")
 		std::string const subPath(fullPath.substr(0, position + 1));
 		if (!File::IsDirectory(subPath))
@@ -228,7 +237,7 @@ bool DeleteDir(const std::string &filename)
 	}
 
 #ifdef _WIN32
-	if (::RemoveDirectory(filename.c_str()))
+	if (::RemoveDirectory(UTF8ToTStr(filename).c_str()))
 		return true;
 #else
 	if (rmdir(filename.c_str()) == 0)
@@ -257,7 +266,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 	INFO_LOG(COMMON, "Copy: %s --> %s", 
 			srcFilename.c_str(), destFilename.c_str());
 #ifdef _WIN32
-	if (CopyFile(srcFilename.c_str(), destFilename.c_str(), FALSE))
+	if (CopyFile(UTF8ToTStr(srcFilename).c_str(), UTF8ToTStr(destFilename).c_str(), FALSE))
 		return true;
 
 	ERROR_LOG(COMMON, "Copy: failed %s --> %s: %s", 
@@ -342,8 +351,13 @@ u64 GetSize(const std::string &filename)
 		WARN_LOG(COMMON, "GetSize: failed %s: is a directory", filename.c_str());
 		return 0;
 	}
+	
 	struct stat64 buf;
+#ifdef _WIN32
+	if (_tstat64(UTF8ToTStr(filename).c_str(), &buf) == 0)
+#else
 	if (stat64(filename.c_str(), &buf) == 0)
+#endif
 	{
 		DEBUG_LOG(COMMON, "GetSize: %s: %lld",
 				filename.c_str(), (long long)buf.st_size);
@@ -391,13 +405,13 @@ bool CreateEmptyFile(const std::string &filename)
 {
 	INFO_LOG(COMMON, "CreateEmptyFile: %s", filename.c_str()); 
 
-	FILE *pFile = fopen(filename.c_str(), "wb");
-	if (!pFile) {
+	if (!File::IOFile(filename, "wb"))
+	{
 		ERROR_LOG(COMMON, "CreateEmptyFile: failed %s: %s",
 				  filename.c_str(), GetLastErrorMsg());
 		return false;
 	}
-	fclose(pFile);
+
 	return true;
 }
 
@@ -413,7 +427,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
 
-	HANDLE hFind = FindFirstFile((directory + "\\*").c_str(), &ffd);
+	HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
 	if (hFind == INVALID_HANDLE_VALUE)
 	{
 		FindClose(hFind);
@@ -423,7 +437,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 	do
 	{
 		FSTEntry entry;
-		const std::string virtualName(ffd.cFileName);
+		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = NULL;
 
@@ -472,7 +486,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 	return foundEntries;
 }
 
-	
+
 // Deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string &directory)
 {
@@ -480,18 +494,18 @@ bool DeleteDirRecursively(const std::string &directory)
 #ifdef _WIN32
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
-	HANDLE hFind = FindFirstFile((directory + "\\*").c_str(), &ffd);
+	HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
 
 	if (hFind == INVALID_HANDLE_VALUE)
 	{
 		FindClose(hFind);
 		return false;
 	}
-		
+
 	// windows loop
 	do
 	{
-		const std::string virtualName = ffd.cFileName;
+		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = NULL;
 	DIR *dirp = opendir(directory.c_str());
@@ -518,7 +532,7 @@ bool DeleteDirRecursively(const std::string &directory)
 				#ifndef _WIN32
 				closedir(dirp);
 				#endif
-				
+
 				return false;
 			}
 		}
@@ -529,7 +543,7 @@ bool DeleteDirRecursively(const std::string &directory)
 				#ifndef _WIN32
 				closedir(dirp);
 				#endif
-				
+
 				return false;
 			}
 		}
@@ -591,7 +605,7 @@ std::string GetCurrentDir()
 	if (!(dir = __getcwd(NULL, 0))) {
 
 		ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s",
-				  GetLastErrorMsg());
+				GetLastErrorMsg());
 		return NULL;
 	}
 	std::string strDir = dir;
@@ -622,14 +636,14 @@ std::string GetBundleDirectory()
 #endif
 
 #ifdef _WIN32
-std::string &GetExeDirectory()
+std::string& GetExeDirectory()
 {
 	static std::string DolphinPath;
 	if (DolphinPath.empty())
 	{
-		char Dolphin_exe_Path[2048];
-		GetModuleFileNameA(NULL, Dolphin_exe_Path, 2048);
-		DolphinPath = Dolphin_exe_Path;
+		TCHAR Dolphin_exe_Path[2048];
+		GetModuleFileName(NULL, Dolphin_exe_Path, 2048);
+		DolphinPath = TStrToUTF8(Dolphin_exe_Path);
 		DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
 	}
 	return DolphinPath;
@@ -668,9 +682,10 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 		if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
 			paths[D_USER_IDX] = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
 		else
-			paths[D_USER_IDX] = std::string(getenv("HOME") ? getenv("HOME") : getenv("PWD")) + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
+			paths[D_USER_IDX] = std::string(getenv("HOME") ? 
+				getenv("HOME") : getenv("PWD") ? 
+				getenv("PWD") : "") + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP;
 #endif
-		INFO_LOG(COMMON, "GetUserPath: Setting user directory to %s:", paths[D_USER_IDX].c_str());
 
 		paths[D_GCUSER_IDX]			= paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
 		paths[D_WIIROOT_IDX]		= paths[D_USER_IDX] + WII_USER_DIR;
@@ -731,31 +746,19 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 
 bool WriteStringToFile(bool text_file, const std::string &str, const char *filename)
 {
-	FILE *f = fopen(filename, text_file ? "w" : "wb");
-	if (!f)
-		return false;
-	size_t len = str.size();
-	if (len != fwrite(str.data(), 1, str.size(), f))	// TODO: string::data() may not be contiguous
-	{
-		fclose(f);
-		return false;
-	}
-	fclose(f);
-	return true;
+	return File::IOFile(filename, text_file ? "w" : "wb").WriteBytes(str.data(), str.size());
 }
 
 bool ReadFileToString(bool text_file, const char *filename, std::string &str)
 {
-	FILE *f = fopen(filename, text_file ? "r" : "rb");
+	File::IOFile file(filename, text_file ? "r" : "rb");
+	auto const f = file.GetHandle();
+
 	if (!f)
 		return false;
-	size_t len = (size_t)GetSize(f);
-	char *buf = new char[len + 1];
-	buf[fread(buf, 1, len, f)] = 0;
-	str = std::string(buf, len);
-	fclose(f);
-	delete [] buf;
-	return true;
+
+	str.resize(GetSize(f));
+	return file.ReadArray(&str[0], str.size());
 }
 
 IOFile::IOFile()
@@ -799,7 +802,7 @@ bool IOFile::Open(const std::string& filename, const char openmode[])
 {
 	Close();
 #ifdef _WIN32
-	fopen_s(&m_file, filename.c_str(), openmode);
+	_tfopen_s(&m_file, UTF8ToTStr(filename).c_str(), UTF8ToTStr(openmode).c_str());
 #else
 	m_file = fopen(filename.c_str(), openmode);
 #endif
@@ -848,7 +851,7 @@ bool IOFile::Seek(s64 off, int origin)
 }
 
 u64 IOFile::Tell()
-{	
+{
 	if (IsOpen())
 		return ftello(m_file);
 	else

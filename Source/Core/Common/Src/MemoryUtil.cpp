@@ -117,9 +117,12 @@ void* AllocateAlignedMemory(size_t size,size_t alignment)
 	void* ptr =  _aligned_malloc(size,alignment);
 #else
 	void* ptr = NULL;
+#ifdef ANDROID
+	ptr = memalign(alignment, size);
+#else
 	if (posix_memalign(&ptr, alignment, size) != 0)
 		ERROR_LOG(MEMMAP, "Failed to allocate aligned memory");
-;
+#endif
 #endif
 
 	// printf("Mapped memory at %p (size %ld)\n", ptr,
@@ -152,9 +155,7 @@ void FreeAlignedMemory(void* ptr)
 	if (ptr)
 	{
 #ifdef _WIN32
-	
-		_aligned_free(ptr);
-	
+	_aligned_free(ptr);
 #else
 	free(ptr);
 #endif

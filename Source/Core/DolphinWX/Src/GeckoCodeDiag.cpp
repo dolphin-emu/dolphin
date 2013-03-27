@@ -13,6 +13,7 @@
 // If not, see http://www.gnu.org/licenses/
 
 #include "GeckoCodeDiag.h"
+#include "WxUtils.h"
 
 #include <SFML/Network/Http.hpp>
 
@@ -76,7 +77,7 @@ void CodeConfigPanel::UpdateCodeList()
 		gcodes_end = m_gcodes.end();
 	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
 	{
-		m_listbox_gcodes->Append(wxString(gcodes_iter->name.c_str(), *wxConvCurrent));
+		m_listbox_gcodes->Append(StrToWxStr(gcodes_iter->name));
 		if (gcodes_iter->enabled)
 			m_listbox_gcodes->Check(m_listbox_gcodes->GetCount()-1, true);
 	}
@@ -109,7 +110,7 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 
 	if (sel > -1)
 	{
-		m_infobox.label_name->SetLabel(wxGetTranslation(wxstr_name) + wxString(m_gcodes[sel].name.c_str(),  *wxConvCurrent));
+		m_infobox.label_name->SetLabel(wxGetTranslation(wxstr_name) + StrToWxStr(m_gcodes[sel].name));
 
 		// notes textctrl
 		m_infobox.textctrl_notes->Clear();
@@ -117,10 +118,10 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 			notes_iter = m_gcodes[sel].notes.begin(),
 			notes_end = m_gcodes[sel].notes.end();
 		for (; notes_iter!=notes_end; ++notes_iter)
-			m_infobox.textctrl_notes->AppendText(wxString(notes_iter->c_str(),  *wxConvCurrent));
+			m_infobox.textctrl_notes->AppendText(StrToWxStr(*notes_iter));
 		m_infobox.textctrl_notes->ScrollLines(-99);	// silly
 
-		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator) + wxString(m_gcodes[sel].creator.c_str(),  *wxConvCurrent));
+		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator) + StrToWxStr(m_gcodes[sel].creator));
 
 		// add codes to info listbox
 		std::vector<GeckoCode::Code>::const_iterator

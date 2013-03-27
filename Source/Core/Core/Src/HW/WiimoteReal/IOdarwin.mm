@@ -40,8 +40,11 @@
 {
 	IOBluetoothDevice *device = [l2capChannel getDevice];
 	WiimoteReal::Wiimote *wm = NULL;
+	
+	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
 
-	for (int i = 0; i < MAX_WIIMOTES; i++) {
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
 		if (WiimoteReal::g_wiimotes[i] == NULL)
 			continue;
 		if ([device isEqual: WiimoteReal::g_wiimotes[i]->btd] == TRUE)
@@ -77,8 +80,11 @@
 {
 	IOBluetoothDevice *device = [l2capChannel getDevice];
 	WiimoteReal::Wiimote *wm = NULL;
+	
+	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
 
-	for (int i = 0; i < MAX_WIIMOTES; i++) {
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
 		if (WiimoteReal::g_wiimotes[i] == NULL)
 			continue;
 		if ([device isEqual: WiimoteReal::g_wiimotes[i]->btd] == TRUE)
@@ -92,41 +98,47 @@
 
 	WARN_LOG(WIIMOTE, "Lost channel to wiimote %i", wm->index + 1);
 
-	wm->RealDisconnect();
+	wm->Disconnect();
 }
 @end
 
 namespace WiimoteReal
 {
 
-// Find wiimotes.
-// wm is an array of max_wiimotes wiimotes
-// Returns the total number of found wiimotes.
-int FindWiimotes(Wiimote **wm, int max_wiimotes)
+WiimoteScanner::WiimoteScanner()
+	: m_run_thread()
+	, m_want_wiimotes()
+{}
+
+WiimoteScanner::~WiimoteScanner()
+{}
+
+void WiimoteScanner::Update()
+{}
+
+std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 {
+	// TODO: find the device in the constructor and save it for later
+	
+	std::vector<Wiimote*> wiimotes;
 	IOBluetoothHostController *bth;
 	IOBluetoothDeviceInquiry *bti;
 	SearchBT *sbt;
 	NSEnumerator *en;
-	int found_devices = 0, found_wiimotes = 0;
-
-	// Count the number of already found wiimotes
-	for (int i = 0; i < MAX_WIIMOTES; ++i)
-		if (wm[i])
-			found_wiimotes++;
 
 	bth = [[IOBluetoothHostController alloc] init];
-	if ([bth addressAsString] == nil) {
+	if ([bth addressAsString] == nil)
+	{
 		WARN_LOG(WIIMOTE, "No bluetooth host controller");
 		[bth release];
-		return found_wiimotes;
+		return wiimotes;
 	}
 
 	sbt = [[SearchBT alloc] init];
-	sbt->maxDevices = max_wiimotes - found_wiimotes;
+	sbt->maxDevices = 32;
 	bti = [[IOBluetoothDeviceInquiry alloc] init];
 	[bti setDelegate: sbt];
-	[bti setInquiryLength: 5];
+	[bti setInquiryLength: 2];
 
 	if ([bti start] == kIOReturnSuccess)
 		[bti retain];
@@ -136,10 +148,10 @@ int FindWiimotes(Wiimote **wm, int max_wiimotes)
 	CFRunLoopRun();
 
 	[bti stop];
-	found_devices = [[bti foundDevices] count];
+	int found_devices = [[bti foundDevices] count];
 
-	NOTICE_LOG(WIIMOTE, "Found %i bluetooth device%c", found_devices,
-		found_devices == 1 ? '\0' : 's');
+	if (found_devices)
+		NOTICE_LOG(WIIMOTE, "Found %i bluetooth devices", found_devices);
 
 	en = [[bti foundDevices] objectEnumerator];
 	for (int i = 0; i < found_devices; i++)
@@ -147,42 +159,44 @@ int FindWiimotes(Wiimote **wm, int max_wiimotes)
 		IOBluetoothDevice *dev = [en nextObject];
 		if (!IsValidBluetoothName([[dev name] UTF8String]))
 			continue;
-		// Find an unused slot
-		for (int k = 0; k < MAX_WIIMOTES; k++) {
-			if (wm[k] != NULL ||
-				!(g_wiimote_sources[k] & WIIMOTE_SRC_REAL))
-				continue;
 
-			wm[k] = new Wiimote(k);
-			wm[k]->btd = dev;
-			found_wiimotes++;
-			break;
-		}
+		Wiimote *wm = new Wiimote();
+		wm->btd = dev;
+		wiimotes.push_back(wm);
 	}
 
 	[bth release];
 	[bti release];
 	[sbt release];
 
-	return found_wiimotes;
+	return wiimotes;
+}
+
+bool WiimoteScanner::IsReady() const
+{
+	// TODO: only return true when a BT device is present
+	return true;
 }
 
 // Connect to a wiimote with a known address.
 bool Wiimote::Connect()
 {
-	ConnectBT *cbt = [[ConnectBT alloc] init];
-
 	if (IsConnected())
 		return false;
+
+	ConnectBT *cbt = [[ConnectBT alloc] init];
 
 	[btd openL2CAPChannelSync: &cchan
 		withPSM: kBluetoothL2CAPPSMHIDControl delegate: cbt];
 	[btd openL2CAPChannelSync: &ichan
 		withPSM: kBluetoothL2CAPPSMHIDInterrupt delegate: cbt];
-	if (ichan == NULL || cchan == NULL) {
+	if (ichan == NULL || cchan == NULL)
+	{
 		ERROR_LOG(WIIMOTE, "Unable to open L2CAP channels "
 			"for wiimote %i", index + 1);
-		RealDisconnect();
+		Disconnect();
+		
+		[cbt release];
 		return false;
 	}
     
@@ -196,40 +210,37 @@ bool Wiimote::Connect()
 
 	m_connected = true;
 
-	Handshake();
-	SetLEDs(WIIMOTE_LED_1 << index);
-
-	m_wiimote_thread = std::thread(std::mem_fun(&Wiimote::ThreadFunc), this);
-
 	[cbt release];
-
 	return true;
 }
 
 // Disconnect a wiimote.
-void Wiimote::RealDisconnect()
+void Wiimote::Disconnect()
 {
+	if (btd != NULL)
+		[btd closeConnection];
+
+	if (ichan != NULL)
+		[ichan release];
+
+	if (cchan != NULL)
+		[cchan release];
+
+	btd = NULL;
+	cchan = NULL;
+	ichan = NULL;
+
 	if (!IsConnected())
 		return;
 
 	NOTICE_LOG(WIIMOTE, "Disconnecting wiimote %i", index + 1);
 
 	m_connected = false;
-
-	if (m_wiimote_thread.joinable())
-		m_wiimote_thread.join();
-
-	[btd closeConnection];
-    [ichan release];
-    [cchan release];
-	btd = NULL;
-	cchan = NULL;
-	ichan = NULL;
 }
 
-bool Wiimote::IsOpen() const
+bool Wiimote::IsConnected() const
 {
-	return IsConnected();
+	return m_connected;
 }
 
 int Wiimote::IORead(unsigned char *buf)
@@ -246,14 +257,14 @@ int Wiimote::IORead(unsigned char *buf)
 	return bytes;
 }
 
-int Wiimote::IOWrite(unsigned char *buf, int len)
+int Wiimote::IOWrite(const unsigned char *buf, int len)
 {
 	IOReturn ret;
 
 	if (!IsConnected())
 		return 0;
 
-	ret = [ichan writeAsync: buf length: len refcon: nil];
+	ret = [ichan writeAsync: const_cast<void*>((void *)buf) length: len refcon: nil];
 
 	if (ret == kIOReturnSuccess)
 		return len;

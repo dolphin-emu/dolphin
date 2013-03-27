@@ -377,7 +377,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 				u32 Addr = _BufferOut;
 				Memory::Write_U32(OwnerID, Addr);										Addr += 4;
 				Memory::Write_U16(GroupID, Addr);										Addr += 2;
-				memcpy(Memory::GetPointer(Addr), Filename.c_str(), Filename.size());	Addr += 64;
+				memcpy(Memory::GetPointer(Addr), Memory::GetPointer(_BufferIn), 64);	Addr += 64;
 				Memory::Write_U8(OwnerPerm, Addr);										Addr += 1;
 				Memory::Write_U8(GroupPerm, Addr);										Addr += 1;
 				Memory::Write_U8(OtherPerm, Addr);										Addr += 1;

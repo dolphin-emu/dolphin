@@ -37,17 +37,6 @@
 #define CONF_SAVETARGETS	8
 #define CONF_SAVESHADERS	16
 
-enum MultisampleMode {
-	MULTISAMPLE_OFF,
-	MULTISAMPLE_2X,
-	MULTISAMPLE_4X,
-	MULTISAMPLE_8X,
-	MULTISAMPLE_CSAA_8X,
-	MULTISAMPLE_CSAA_8XQ,
-	MULTISAMPLE_CSAA_16X,
-	MULTISAMPLE_CSAA_16XQ,
-};
-
 enum AspectMode {
 	ASPECT_AUTO = 0,
 	ASPECT_FORCE_16_9 = 1,
@@ -67,6 +56,7 @@ struct VideoConfig
 	void Save(const char *ini_file);
 	void GameIniSave(const char* default_ini, const char* game_ini);
 	void UpdateProjectionHack();
+	bool IsVSync();
 
 	// General
 	bool bVSync;
@@ -98,12 +88,12 @@ struct VideoConfig
 	bool bTexFmtOverlayCenter;
 	bool bShowEFBCopyRegions;
 	bool bLogFPSToFile;
-	
+
 	// Render
 	bool bWireFrame;
 	bool bDstAlphaPass;
 	bool bDisableFog;
-	
+
 	// Utility
 	bool bDumpTextures;
 	bool bHiresTextures;
@@ -115,7 +105,7 @@ struct VideoConfig
 	int iAnaglyphStereoSeparation;
 	int iAnaglyphFocalAngle;
 	bool b3DVision;
-	
+
 	// Hacks
 	bool bEFBAccessEnable;
 	bool bDlistCachingEnable;
@@ -133,6 +123,7 @@ struct VideoConfig
 	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
 	bool bUseBBox;
 	bool bEnablePixelLighting;
+	bool bHackedBufferUpload;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
@@ -162,13 +153,15 @@ struct VideoConfig
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
+
+		bool bSupportsGLSLUBO; // needed by pixelShaderGen, so must stay in videoCommon
 	} backend_info;
 
-    // Utility
-    bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
-    bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
-    bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
-    bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
+	// Utility
+	bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
+	bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
+	bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bCopyEFBToTexture; }
+	bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bCopyEFBToTexture; }
 };
 
 extern VideoConfig g_Config;

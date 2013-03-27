@@ -762,7 +762,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case FPExceptionCheck:
 		case DSIExceptionCheck:
 		case ISIException:
-		case ExtExceptionCheck:
 		case BreakPointCheck:
 		case Int3:
 		case Tramp:
@@ -994,8 +993,26 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			break;
 		}
 		case StoreMSR: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
 			regStoreInstToConstLoc(RI, 32, getOp1(I), &MSR);
 			regNormalRegClear(RI, I);
+
+			// If some exceptions are pending and EE are now enabled, force checking
+			// external exceptions when going out of mtmsr in order to execute delayed
+			// interrupts as soon as possible.
+			Jit->MOV(32, R(EAX), M(&MSR));
+			Jit->TEST(32, R(EAX), Imm32(0x8000));
+			FixupBranch eeDisabled = Jit->J_CC(CC_Z);
+
+			Jit->MOV(32, R(EAX), M((void*)&PowerPC::ppcState.Exceptions));
+			Jit->TEST(32, R(EAX), R(EAX));
+			FixupBranch noExceptionsPending = Jit->J_CC(CC_Z);
+
+			Jit->MOV(32, M(&PC), Imm32(InstLoc + 4));
+			Jit->WriteExceptionExit(); // TODO: Implement WriteExternalExceptionExit for JitIL
+
+			Jit->SetJumpTarget(eeDisabled);
+			Jit->SetJumpTarget(noExceptionsPending);
 			break;
 		}
 		case StoreGQR: {
@@ -1923,27 +1940,6 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->WriteExceptionExit();
 			break;
 		}
-		case ExtExceptionCheck: {
-			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
-
-			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
-			FixupBranch clearInt = Jit->J_CC(CC_NZ);
-			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
-			FixupBranch noExtException = Jit->J_CC(CC_Z);
-			Jit->TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
-			FixupBranch noExtIntEnable = Jit->J_CC(CC_Z);
-			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
-			FixupBranch noCPInt = Jit->J_CC(CC_Z);
-
-			Jit->MOV(32, M(&PC), Imm32(InstLoc));
-			Jit->WriteExceptionExit();
-
-			Jit->SetJumpTarget(noCPInt);
-			Jit->SetJumpTarget(noExtIntEnable);
-			Jit->SetJumpTarget(noExtException);
-			Jit->SetJumpTarget(clearInt);
-			break;
-		}
 		case BreakPointCheck: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 
@@ -1991,8 +1987,10 @@ void JitIL::WriteCode() {
 }
 
 void ProfiledReJit() {
-	jit->SetCodePtr(jit->js.rewriteStart);
-	DoWriteCode(&((JitIL *)jit)->ibuild, (JitIL *)jit, true, false);
-	jit->js.curBlock->codeSize = (int)(jit->GetCodePtr() - jit->js.rewriteStart);
-	jit->GetBlockCache()->FinalizeBlock(jit->js.curBlock->blockNum, jit->jo.enableBlocklink, jit->js.curBlock->normalEntry);
+	JitIL *jitil = (JitIL *)jit;
+	jitil->SetCodePtr(jitil->js.rewriteStart);
+	DoWriteCode(&jitil->ibuild, jitil, true, false);
+	jitil->js.curBlock->codeSize = (int)(jitil->GetCodePtr() - jitil->js.rewriteStart);
+	jitil->GetBlockCache()->FinalizeBlock(jitil->js.curBlock->blockNum, jitil->jo.enableBlocklink,
+	jitil->js.curBlock->normalEntry);
 }

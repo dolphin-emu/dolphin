@@ -85,6 +85,9 @@ struct Light
 #define LIGHTATTN_NONE 2
 #define LIGHTATTN_DIR 3
 
+#define GX_PERSPECTIVE  0
+#define GX_ORTHOGRAPHIC 1
+
 union LitChannel
 {
     struct
@@ -160,6 +163,12 @@ struct Viewport
 	float farZ;
 };
 
+struct Projection
+{
+	float rawProjection[6];
+	u32 type;                      // only GX_PERSPECTIVE or GX_ORTHOGRAPHIC are allowed
+};
+
 union TexMtxInfo
 {
     struct 
@@ -218,7 +227,7 @@ struct XFRegisters
     TXFMatrixIndexA MatrixIndexA;   // 0x1018
     TXFMatrixIndexB MatrixIndexB;   // 0x1019
     Viewport viewport;              // 0x101a - 0x101f
-    float projection[7];            // 0x1020 - 0x1026
+    Projection projection;          // 0x1020 - 0x1026
     u32 unk8[24];                   // 0x1027 - 0x103e
     u32 numTexGens;                 // 0x103f
     TexMtxInfo texMtxInfo[8];       // 0x1040 - 0x1047

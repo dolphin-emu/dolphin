@@ -25,9 +25,9 @@
 #define EXI_WRITE		1
 #define EXI_READWRITE	2
 
-
 #include "ProcessorInterface.h"
 #include "../PowerPC/PowerPC.h"
+#include "CoreTiming.h"
 
 CEXIChannel::CEXIChannel(u32 ChannelId) :
 	m_DMAMemoryAddress(0),
@@ -45,6 +45,8 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 
 	for (int i = 0; i < NUM_DEVICES; i++)
 		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId);
+
+	updateInterrupts = CoreTiming::RegisterEvent("EXIInterrupt", UpdateInterrupts);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -88,12 +90,12 @@ void CEXIChannel::AddDevice(IEXIDevice* pDevice, const int device_num, bool noti
 		if (m_ChannelId != 2)
 		{
 			m_Status.EXTINT = 1;
-			UpdateInterrupts();
+			CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
 		}
 	}
 }
 
-void CEXIChannel::UpdateInterrupts()
+void CEXIChannel::UpdateInterrupts(u64 userdata, int cyclesLate)
 {
 	ExpansionInterface::UpdateInterrupts();
 }
@@ -149,7 +151,9 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 			if (m_ChannelId == 2)
 				m_Status.EXT = 0;
 			else
+			{
 				m_Status.EXT = GetDevice(1)->IsPresent() ? 1 : 0;
+			}
 
 			_uReturnValue = m_Status.Hex;
 			break;
@@ -213,7 +217,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 			if (pDevice != NULL)
 				pDevice->SetCS(m_Status.CHIP_SELECT);
 
-			UpdateInterrupts();
+			CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
 		}
 		break;
 
@@ -264,7 +268,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 			if(!m_Control.TSTART) // completed !
 			{
 				m_Status.TCINT = 1;
-				UpdateInterrupts();
+				CoreTiming::ScheduleEvent_Threadsafe_Immediate(updateInterrupts, 0);
 			}
 		}
 		break;

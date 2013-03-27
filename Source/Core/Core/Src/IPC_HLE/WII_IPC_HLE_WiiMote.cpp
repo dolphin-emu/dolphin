@@ -211,8 +211,7 @@ void CWII_IPC_HLE_WiiMote::EventConnectionAccepted()
 void CWII_IPC_HLE_WiiMote::EventDisconnect()
 {
 	// Send disconnect message to plugin
-	u8 Message = WIIMOTE_DISCONNECT;
-	Wiimote::ControlChannel(m_ConnectionHandle & 0xFF, 99, &Message, 0);
+	Wiimote::ControlChannel(m_ConnectionHandle & 0xFF, 99, NULL, 0);
 
 	m_ConnectionState = CONN_INACTIVE;
 	// Clear channel flags

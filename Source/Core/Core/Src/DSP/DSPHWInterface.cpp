@@ -252,7 +252,9 @@ static void gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
 	ERROR_LOG(DSPLLE, "*** idma_out IRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2, addr, size);
 }
 
+#if _M_SSE >= 0x301
 static const __m128i s_mask = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405L, 0x02030001L);
+#endif
 
 // TODO: These should eat clock cycles.
 static void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)

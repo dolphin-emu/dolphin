@@ -25,13 +25,13 @@
 
 void SetupUnit::Init(u8 primitiveType)
 {
-    m_PrimType = primitiveType;
+	m_PrimType = primitiveType;
 
-    m_VertexCounter = 0;    
-    m_VertPointer[0] = &m_Vertices[0];
-    m_VertPointer[1] = &m_Vertices[1];
-    m_VertPointer[2] = &m_Vertices[2];
-    m_VertWritePointer = m_VertPointer[0];
+	m_VertexCounter = 0;    
+	m_VertPointer[0] = &m_Vertices[0];
+	m_VertPointer[1] = &m_Vertices[1];
+	m_VertPointer[2] = &m_Vertices[2];
+	m_VertWritePointer = m_VertPointer[0];
 }
 
 void SetupUnit::SetupVertex()
@@ -169,3 +169,21 @@ void SetupUnit::SetupLineStrip()
 
 void SetupUnit::SetupPoint()
 {}
+
+void SetupUnit::DoState(PointerWrap &p)
+{
+	// TODO: some or all of this is making the save states stop working once dolphin is closed...sometimes (usually)
+	// I have no idea what specifically is wrong, or if this is even important. Disabling it doesn't seem to make any noticible difference...
+/*	p.Do(m_PrimType);
+	p.Do(m_VertexCounter);
+	for (int i = 0; i < 3; ++i)
+		m_Vertices[i].DoState(p);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		m_VertPointer[0] = &m_Vertices[0];
+		m_VertPointer[1] = &m_Vertices[1];
+		m_VertPointer[2] = &m_Vertices[2];
+		m_VertWritePointer = m_VertPointer[0];
+	}*/
+}

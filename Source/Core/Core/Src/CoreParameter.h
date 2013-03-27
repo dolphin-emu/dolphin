@@ -119,6 +119,7 @@ struct SCoreStartupParameter
 	bool bDCBZOFF;
 	int iTLBHack;
 	bool bVBeam;
+	bool bSyncGPU;
 	bool bFastDiscSpeed;
 
 	int SelectedLanguage;

@@ -57,7 +57,7 @@
 #define DISABLE64
 #endif
 
-class JitIL : public JitBase
+class JitIL : public Jitx86Base
 {
 private:
 

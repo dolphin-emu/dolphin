@@ -82,6 +82,7 @@ wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual q
 wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis makes the rendered picture look less blocky.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select None.");
 wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render to texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly decreases performance and possibly causes issues (although unlikely).\n\nIf unsure, leave this checked.");
 wxString pixel_lighting_desc = wxTRANSLATE("Calculate lighting of 3D graphics per-pixel rather than per vertex.\nDecreases emulation speed by some percent (depending on your GPU).\nThis usually is a safe enhancement, but might cause issues sometimes.\n\nIf unsure, leave this unchecked.");
+wxString hacked_buffer_upload_desc = wxTRANSLATE("Use a hacked upload strategy to stream vertices.\nThis usually speed up, but is forbidden by OpenGL specification and may causes heavy glitches.\n\nIf unsure, leave this unchecked.");
 wxString force_filtering_desc = wxTRANSLATE("Force texture filtering even if the emulated game explicitly disabled it.\nImproves texture quality slightly but causes glitches in some games.\n\nIf unsure, leave this unchecked.");
 wxString _3d_vision_desc = wxTRANSLATE("Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's supported by your GPU.\nPossibly causes issues.\nRequires fullscreen to work.\n\nIf unsure, leave this unchecked.");
 wxString internal_res_desc = wxTRANSLATE("Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.\n\"Multiple of 640x528\" is a bit slower than \"Window Size\" but yields less issues. Generally speaking, the lower the internal resolution is, the better your performance will be.\n\nIf unsure, select 640x528.");
@@ -92,7 +93,7 @@ wxString efb_copy_texture_desc = wxTRANSLATE("Store EFB copies in GPU texture ob
 wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nSome games depend on this for certain graphical effects or gameplay functionality.\n\nIf unsure, check EFB to Texture instead.");
 wxString stc_desc = wxTRANSLATE("The safer you adjust this, the less likely the emulator will be missing any texture updates from RAM.\n\nIf unsure, use the rightmost value.");
 wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
-wxString disable_fog_desc = wxTRANSLATE("Improves performance but causes glitches in most games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
+wxString disable_fog_desc = wxTRANSLATE("Makes distant objects more visible by removing fog, thus increasing the overall detail.\nDisabling fog will break some games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
 wxString disable_alphapass_desc = wxTRANSLATE("Skip the destination alpha pass used in many games for various graphical effects.\n\nIf unsure, leave this unchecked.");
 wxString show_fps_desc = wxTRANSLATE("Show the number of frames rendered per second as a measure of emulation speed.\n\nIf unsure, leave this unchecked.");
 wxString log_fps_to_file_desc = wxTRANSLATE("Log the number of frames rendered per second to User/Logs/fps.txt. Use this feature when you want to measure the performance of Dolphin.\n\nIf unsure, leave this unchecked."); 
@@ -141,7 +142,7 @@ wxArrayString GetListOfResolutions()
 		if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
 		{
 			resos.push_back(strRes);
-			retlist.Add(wxString::FromAscii(res));
+			retlist.Add(StrToWxStr(res));
 		}
 		ZeroMemory(&dmi, sizeof(dmi));
 	}
@@ -180,8 +181,7 @@ wxArrayString GetListOfResolutions()
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,
-		wxString::Format(_("Dolphin %s Graphics Configuration"),
-			wxGetTranslation(wxString::From8BitData(title.c_str()))),
+		wxString::Format(_("Dolphin %s Graphics Configuration"), wxGetTranslation(StrToWxStr(title))),
 		wxDefaultPosition, wxDefaultSize)
 	, vconfig(g_Config)
 	, ininame(_ininame)
@@ -212,9 +212,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			it = g_available_video_backends.begin(),
 			itend = g_available_video_backends.end();
 	for (; it != itend; ++it)
-		choice_backend->AppendString(wxGetTranslation(wxString::FromAscii((*it)->GetName().c_str())));
+		choice_backend->AppendString(wxGetTranslation(StrToWxStr((*it)->GetDisplayName())));
 
-	choice_backend->SetStringSelection(wxGetTranslation(wxString::FromAscii(g_video_backend->GetName().c_str())));
+	choice_backend->SetStringSelection(wxGetTranslation(StrToWxStr(g_video_backend->GetDisplayName())));
 	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_Backend, this);
 
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
@@ -236,7 +236,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			it = vconfig.backend_info.Adapters.begin(),
 			itend = vconfig.backend_info.Adapters.end();
 		for (; it != itend; ++it)
-			choice_adapter->AppendString(wxString::FromAscii(it->c_str()));
+			choice_adapter->AppendString(StrToWxStr(*it));
 
 		choice_adapter->Select(vconfig.iAdapter);
 
@@ -259,7 +259,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
 		choice_display_resolution->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_DisplayResolution, this);
 
-		choice_display_resolution->SetStringSelection(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str()));
+		choice_display_resolution->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution));
 
 		szr_display->Add(label_display_resolution, 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_display->Add(choice_display_resolution);
@@ -355,7 +355,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		it = vconfig.backend_info.AAModes.begin(),
 		itend = vconfig.backend_info.AAModes.end();
 	for (; it != itend; ++it)
-		choice_aamode->AppendString(wxGetTranslation(wxString::FromAscii(it->c_str())));
+		choice_aamode->AppendString(wxGetTranslation(StrToWxStr(*it)));
 
 	choice_aamode->Select(vconfig.iMultisampleMode);
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -380,12 +380,12 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			it = vconfig.backend_info.PPShaders.begin(),
 			itend = vconfig.backend_info.PPShaders.end();
 		for (; it != itend; ++it)
-			choice_ppshader->AppendString(wxString::FromAscii(it->c_str()));
+			choice_ppshader->AppendString(StrToWxStr(*it));
 
 		if (vconfig.sPostProcessingShader.empty())
 			choice_ppshader->Select(0);
 		else
-			choice_ppshader->SetStringSelection(wxString::FromAscii(vconfig.sPostProcessingShader.c_str()));
+			choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
 
 		choice_ppshader->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_PPShader, this);
 
@@ -398,11 +398,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(pixel_lighting = CreateCheckBox(page_enh, _("Per-Pixel Lighting"), wxGetTranslation(pixel_lighting_desc), vconfig.bEnablePixelLighting));
 	szr_enh->Add(CreateCheckBox(page_enh, _("Force Texture Filtering"), wxGetTranslation(force_filtering_desc), vconfig.bForceFiltering));
 
+	szr_enh->Add(CreateCheckBox(page_enh, _("Widescreen Hack"), wxGetTranslation(ws_hack_desc), vconfig.bWidescreenHack));
+	szr_enh->Add(CreateCheckBox(page_enh, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
+
 	// 3D Vision
 	_3d_vision = CreateCheckBox(page_enh, _("3D Vision"), wxGetTranslation(_3d_vision_desc), vconfig.b3DVision);
 	_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
 	szr_enh->Add(_3d_vision);
-	szr_enh->Add(CreateCheckBox(page_enh, _("Widescreen Hack"), wxGetTranslation(ws_hack_desc), vconfig.bWidescreenHack));
 	// TODO: Add anaglyph 3d here
 
 	wxStaticBoxSizer* const group_enh = new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Enhancements"));
@@ -487,13 +489,16 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// - other hacks
 	{
 	wxGridSizer* const szr_other = new wxGridSizer(2, 5, 5);
-
+	SettingCheckBox* hacked_buffer_upload_cb;
 	szr_other->Add(CreateCheckBox(page_hacks, _("Cache Display Lists"), wxGetTranslation(dlc_desc), vconfig.bDlistCachingEnable));
-	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Skip Dest. Alpha Pass"), wxGetTranslation(disable_alphapass_desc), vconfig.bDstAlphaPass));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenCL Texture Decoder"), wxGetTranslation(opencl_desc), vconfig.bEnableOpenCL));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_desc), vconfig.bOMPDecoder));
+	szr_other->Add(hacked_buffer_upload_cb = CreateCheckBox(page_hacks, _("Hacked Buffer Upload"), wxGetTranslation(hacked_buffer_upload_desc), vconfig.bHackedBufferUpload));
 
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		hacked_buffer_upload_cb->Disable();
+	
 	wxStaticBoxSizer* const group_other = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Other"));
 	group_other->Add(szr_other, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	szr_hacks->Add(group_other, 0, wxEXPAND | wxALL, 5);
@@ -565,7 +570,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_misc->Add(cb_prog_scan);
 	}
 
-
 	wxStaticBoxSizer* const group_misc = new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Misc"));
 	szr_advanced->Add(group_misc, 0, wxEXPAND | wxALL, 5);
 	group_misc->Add(szr_misc, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -595,7 +599,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent &ev)
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
-		choice_display_resolution->GetStringSelection().mb_str();
+		WxStrToStr(choice_display_resolution->GetStringSelection());
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->Update();
 #endif

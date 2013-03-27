@@ -98,7 +98,7 @@ void TexDecoder_OpenCL_Initialize()
 		size_t nDevices = 0;
 		cl_device_id *devices = NULL;
 		size_t *binary_sizes = NULL;
-		char **binaries = NULL;		
+		char **binaries = NULL;
 		std::string filename;
 		char dolphin_rev[HEADER_SIZE];
 
@@ -132,7 +132,7 @@ void TexDecoder_OpenCL_Initialize()
 					{
 						OpenCL::HandleCLError(err, "clCreateProgramWithBinary");
 					}
-				
+
 					if (!err)
 					{
 						err = clBuildProgram(g_program, 1, &OpenCL::device_id, NULL, NULL, NULL);

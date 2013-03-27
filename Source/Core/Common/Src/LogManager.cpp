@@ -17,6 +17,9 @@
 
 #include <algorithm>
 
+#ifdef ANDROID
+#include "Host.h"
+#endif
 #include "LogManager.h"
 #include "ConsoleListener.h"
 #include "Timer.h"
@@ -42,9 +45,9 @@ LogManager::LogManager()
 	m_Log[LogTypes::MASTER_LOG]			= new LogContainer("*",				"Master Log");
 	m_Log[LogTypes::BOOT]				= new LogContainer("BOOT",			"Boot");
 	m_Log[LogTypes::COMMON]				= new LogContainer("COMMON",		"Common");
-	m_Log[LogTypes::DISCIO]				= new LogContainer("DIO",	    	"Disc IO");
+	m_Log[LogTypes::DISCIO]				= new LogContainer("DIO",			"Disc IO");
 	m_Log[LogTypes::FILEMON]			= new LogContainer("FileMon",		"File Monitor");
-	m_Log[LogTypes::PAD]		        = new LogContainer("PAD",			"Pad");
+	m_Log[LogTypes::PAD]				= new LogContainer("PAD",			"Pad");
 	m_Log[LogTypes::PIXELENGINE]		= new LogContainer("PE",			"PixelEngine");
 	m_Log[LogTypes::COMMANDPROCESSOR]	= new LogContainer("CP",			"CommandProc");
 	m_Log[LogTypes::VIDEOINTERFACE]		= new LogContainer("VI",			"VideoInt");
@@ -61,15 +64,15 @@ LogManager::LogManager()
 	m_Log[LogTypes::AUDIO_INTERFACE]	= new LogContainer("AI",			"AudioInt");
 	m_Log[LogTypes::POWERPC]			= new LogContainer("PowerPC",		"IBM CPU");
 	m_Log[LogTypes::OSHLE]				= new LogContainer("HLE",			"HLE");
-	m_Log[LogTypes::DSPHLE]			    = new LogContainer("DSPHLE",		"DSP HLE");
-	m_Log[LogTypes::DSPLLE]			    = new LogContainer("DSPLLE",		"DSP LLE");
-	m_Log[LogTypes::DSP_MAIL]		    = new LogContainer("DSPMails",		"DSP Mails");
-	m_Log[LogTypes::VIDEO]			    = new LogContainer("Video",			"Video Backend");
-	m_Log[LogTypes::AUDIO]			    = new LogContainer("Audio",			"Audio Emulator");
+	m_Log[LogTypes::DSPHLE]				= new LogContainer("DSPHLE",		"DSP HLE");
+	m_Log[LogTypes::DSPLLE]				= new LogContainer("DSPLLE",		"DSP LLE");
+	m_Log[LogTypes::DSP_MAIL]			= new LogContainer("DSPMails",		"DSP Mails");
+	m_Log[LogTypes::VIDEO]				= new LogContainer("Video",			"Video Backend");
+	m_Log[LogTypes::AUDIO]				= new LogContainer("Audio",			"Audio Emulator");
 	m_Log[LogTypes::DYNA_REC]			= new LogContainer("JIT",			"Dynamic Recompiler");
 	m_Log[LogTypes::CONSOLE]			= new LogContainer("CONSOLE",		"Dolphin Console");
-	m_Log[LogTypes::OSREPORT]			= new LogContainer("OSREPORT",		"OSReport");			
-	m_Log[LogTypes::WIIMOTE]			= new LogContainer("Wiimote",		"Wiimote");			
+	m_Log[LogTypes::OSREPORT]			= new LogContainer("OSREPORT",		"OSReport");
+	m_Log[LogTypes::WIIMOTE]			= new LogContainer("Wiimote",		"Wiimote");
 	m_Log[LogTypes::WII_IOB]			= new LogContainer("WII_IOB",		"WII IO Bridge");
 	m_Log[LogTypes::WII_IPC]			= new LogContainer("WII_IPC",		"WII IPC");
 	m_Log[LogTypes::WII_IPC_HID]		= new LogContainer("WII_IPC_HID",	"WII IPC HID");
@@ -83,7 +86,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::WII_IPC_WC24]		= new LogContainer("WII_IPC_WC24",	"WII IPC WC24");
 	m_Log[LogTypes::WII_IPC_SSL]		= new LogContainer("WII_IPC_SSL",	"WII IPC SSL");
 	m_Log[LogTypes::WII_IPC_WIIMOTE]	= new LogContainer("WII_IPC_WIIMOTE","WII IPC WIIMOTE");
-	m_Log[LogTypes::ACTIONREPLAY]		= new LogContainer("ActionReplay",	"ActionReplay");	
+	m_Log[LogTypes::ACTIONREPLAY]		= new LogContainer("ActionReplay",	"ActionReplay");
 	m_Log[LogTypes::MEMCARD_MANAGER]	= new LogContainer("MemCard Manager", "MemCard Manager");
 	m_Log[LogTypes::NETPLAY]			= new LogContainer("NETPLAY",		"Netplay");
 
@@ -136,7 +139,9 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		Common::Timer::GetTimeFormatted().c_str(),
 		file, line, level_to_char[(int)level],
 		log->GetShortName(), temp);
-
+#ifdef ANDROID
+	Host_SysMessage(msg);	
+#endif
 	log->Trigger(level, msg);
 }
 
@@ -185,7 +190,7 @@ void LogContainer::Trigger(LogTypes::LOG_LEVELS level, const char *msg)
 
 FileLogListener::FileLogListener(const char *filename)
 {
-	m_logfile.open(filename, std::ios::app);
+	OpenFStream(m_logfile, filename, std::ios::app);
 	SetEnable(true);
 }
 

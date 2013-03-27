@@ -59,6 +59,7 @@
 #include "CommonPaths.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "../Movie.h"
+#include "StringUtil.h"
 
 #include "ec_wii.h"
 
@@ -966,7 +967,7 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 			else
 			{
 				#ifdef _WIN32
-					MoveFile(savePath.c_str(), (savePath + "../backup/").c_str());
+					MoveFile(UTF8ToTStr(savePath).c_str(), UTF8ToTStr(savePath + "../backup/").c_str());
 				#else
 					File::CopyDir(savePath.c_str(),(savePath + "../backup/").c_str());
 					File::DeleteDirRecursively(savePath.c_str());
@@ -980,7 +981,7 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 		if (File::Exists((savePath + "banner.bin").c_str()))
 			File::DeleteDirRecursively(savePath);
 		#ifdef _WIN32
-			MoveFile((savePath + "../backup/").c_str(), savePath.c_str());
+			MoveFile(UTF8ToTStr(savePath + "../backup/").c_str(), UTF8ToTStr(savePath).c_str());
 		#else
 			File::CopyDir((savePath + "../backup/").c_str(), savePath.c_str());
 			File::DeleteDirRecursively((savePath + "../backup/").c_str());

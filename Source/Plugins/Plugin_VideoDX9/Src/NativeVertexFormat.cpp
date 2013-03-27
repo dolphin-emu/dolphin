@@ -19,7 +19,7 @@
 #include "D3DBase.h"
 
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "MemoryUtil.h"
 #include "VertexShaderGen.h"
 

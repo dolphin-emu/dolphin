@@ -90,8 +90,8 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, ##__VA_ARGS__)
 #endif
 
-
-// #define LOG_VTX() DEBUG_LOG(VIDEO, "vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1], ((float*)VertexManager::s_pCurBufferPointer)[2]);
+// warning: mapping buffer should be disabled to use this
+// #define LOG_VTX() DEBUG_LOG(VIDEO, "vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-3], ((float*)VertexManager::s_pCurBufferPointer)[-2], ((float*)VertexManager::s_pCurBufferPointer)[-1]);
 
 #define LOG_VTX()
 
@@ -102,8 +102,7 @@ typedef enum
 	API_D3D9_SM20 = 4,
 	API_D3D9 = 6,	
 	API_D3D11 = 8,
-	API_GLSL = 16,
-	API_NONE = 32
+	API_NONE = 16
 } API_TYPE;
 
 inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
@@ -149,5 +148,11 @@ inline unsigned int GetPow2(unsigned int val)
 		++ret;
 	return ret;
 }
+struct s_svar
+{
+	const char *name;
+	const unsigned int reg;
+	const unsigned int size;
+};
 
 #endif  // _VIDEOCOMMON_H

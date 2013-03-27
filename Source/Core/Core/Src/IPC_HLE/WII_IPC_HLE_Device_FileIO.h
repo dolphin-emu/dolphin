@@ -22,7 +22,6 @@
 #include "FileUtil.h"
 
 std::string HLE_IPC_BuildFilename(std::string _pFilename, int _size);
-void HLE_IPC_CreateVirtualFATFilesystem();
 
 class CWII_IPC_HLE_Device_FileIO : public IWII_IPC_HLE_Device
 {

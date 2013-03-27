@@ -57,6 +57,15 @@
 #define PROFILER_VPOP
 #endif
 
+struct BlockStat
+{
+	BlockStat(int bn, u64 c) : blockNum(bn), cost(c) {}
+	int blockNum;
+	u64 cost;
+
+	bool operator <(const BlockStat &other) const
+	{ return cost > other.cost; }
+};
 
 namespace Profiler
 {

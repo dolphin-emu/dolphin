@@ -22,7 +22,7 @@
 #include "../DSPEmitter.h"
 #include "DSPJitUtil.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 using namespace Gen;
 
 // SRS @M, $(0x18+S)

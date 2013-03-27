@@ -22,6 +22,8 @@
 #include "HW/Memmap.h"
 
 #include "MemoryView.h"
+#include "../WxUtils.h"
+
 #include <wx/event.h>
 #include <wx/clipbrd.h>
 
@@ -149,7 +151,7 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 	    {
 		    char temp[24];
 		    sprintf(temp, "%08x", debugger->readExtraMemory(memory, selection));
-		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(temp)));
+		    wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
 	    }
 	    break;
 #endif
@@ -186,16 +188,16 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 	wxMenu* menu = new wxMenu;
 	//menu.Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
 #if wxUSE_CLIPBOARD
-	menu->Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
-	menu->Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
+	menu->Append(IDM_COPYADDRESS, StrToWxStr("Copy &address"));
+	menu->Append(IDM_COPYHEX, StrToWxStr("Copy &hex"));
 #endif
-	menu->Append(IDM_TOGGLEMEMORY, wxString::FromAscii("Toggle &memory"));
+	menu->Append(IDM_TOGGLEMEMORY, StrToWxStr("Toggle &memory"));
 
 	wxMenu* viewAsSubMenu = new wxMenu;
-	viewAsSubMenu->Append(IDM_VIEWASFP, wxString::FromAscii("FP value"));
-	viewAsSubMenu->Append(IDM_VIEWASASCII, wxString::FromAscii("ASCII"));
-	viewAsSubMenu->Append(IDM_VIEWASHEX, wxString::FromAscii("Hex"));
- 	menu->AppendSubMenu(viewAsSubMenu, wxString::FromAscii("View As:"));
+	viewAsSubMenu->Append(IDM_VIEWASFP, StrToWxStr("FP value"));
+	viewAsSubMenu->Append(IDM_VIEWASASCII, StrToWxStr("ASCII"));
+	viewAsSubMenu->Append(IDM_VIEWASHEX, StrToWxStr("Hex"));
+ 	menu->AppendSubMenu(viewAsSubMenu, StrToWxStr("View As:"));
 
 	PopupMenu(menu);
 }
@@ -285,7 +287,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			char mem[256];
 			debugger->getRawMemoryString(memory, address, mem, 256);
 			dc.SetTextForeground(_T("#000080"));
-			dc.DrawText(wxString::FromAscii(mem), 17+fontSize*(8), rowY1);
+			dc.DrawText(StrToWxStr(mem), 17+fontSize*(8), rowY1);
 			dc.SetTextForeground(_T("#000000"));
 		}
 
@@ -361,9 +363,9 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 
 			char desc[256] = "";
 			if (viewAsType != VIEWAS_HEX)
-				dc.DrawText(wxString::FromAscii(dis), textPlacement + fontSize*(8 + 8), rowY1);
+				dc.DrawText(StrToWxStr(dis), textPlacement + fontSize*(8 + 8), rowY1);
 			else
-				dc.DrawText(wxString::FromAscii(dis), textPlacement, rowY1);
+				dc.DrawText(StrToWxStr(dis), textPlacement, rowY1);
 
 			if (desc[0] == 0)
 				strcpy(desc, debugger->getDescription(address).c_str());
@@ -371,7 +373,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			dc.SetTextForeground(_T("#0000FF"));
 
 			if (strlen(desc))
-				dc.DrawText(wxString::FromAscii(desc), 17+fontSize*((8+8+8+30)*2), rowY1);
+				dc.DrawText(StrToWxStr(desc), 17+fontSize*((8+8+8+30)*2), rowY1);
 
 			// Show blue memory check dot
 			if (debugger->isMemCheck(address))

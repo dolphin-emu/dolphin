@@ -168,7 +168,7 @@ enum Opcode {
 	// used for exception checking, at least until someone
 	// has a better idea of integrating it
 	FPExceptionCheck, DSIExceptionCheck,
-	ISIException, ExtExceptionCheck, BreakPointCheck,
+	ISIException, BreakPointCheck,
 	// "Opcode" representing a register too far away to
 	// reference directly; this is a size optimization
 	Tramp,
@@ -276,8 +276,8 @@ public:
 	InstLoc EmitLoadMSR() {
 		return FoldZeroOp(LoadMSR, 0);
 	}
-	InstLoc EmitStoreMSR(InstLoc val) {
-		return FoldUOp(StoreMSR, val);
+	InstLoc EmitStoreMSR(InstLoc val, InstLoc pc) {
+		return FoldBiOp(StoreMSR, val, pc);
 	}
 	InstLoc EmitStoreFPRF(InstLoc value) {
 		return FoldUOp(StoreFPRF, value);
@@ -410,9 +410,6 @@ public:
 	}
 	InstLoc EmitISIException(InstLoc dest) {
 		return EmitUOp(ISIException, dest);
-	}
-	InstLoc EmitExtExceptionCheck(InstLoc pc) {
-		return EmitUOp(ExtExceptionCheck, pc);
 	}
 	InstLoc EmitBreakPointCheck(InstLoc pc) {
 		return EmitUOp(BreakPointCheck, pc);

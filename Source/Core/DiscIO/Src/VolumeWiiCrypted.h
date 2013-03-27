@@ -37,7 +37,7 @@ public:
 	void GetTMD(u8* _pBuffer, u32* _sz) const;
 	std::string GetUniqueID() const;
 	std::string GetMakerID() const;
-	std::string GetName() const;
+	std::vector<std::string> GetNames() const;
 	u32 GetFSTSize() const;
 	std::string GetApploaderDate() const;
 	ECountry GetCountry() const;

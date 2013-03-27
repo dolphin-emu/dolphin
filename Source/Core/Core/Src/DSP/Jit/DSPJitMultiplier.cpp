@@ -27,7 +27,7 @@
 #include "DSPJitUtil.h"
 #endif
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 using namespace Gen;
 
 // Returns s64 in RAX

@@ -18,6 +18,9 @@
 #ifndef __ISOFILE_H_
 #define __ISOFILE_H_
 
+#include <vector>
+#include <string>
+
 #include "Volume.h"
 #include "VolumeCreator.h"
 
@@ -34,11 +37,11 @@ public:
 
 	bool IsValid() const {return m_Valid;}
 	const std::string& GetFileName() const {return m_FileName;}
-	const std::string& GetName(int index) const;
-	bool GetName(std::wstring& wName, int index=0) const;
-	const std::string& GetCompany() const {return m_Company;}
-	const std::string& GetDescription(int index) const;
-	const std::wstring& GetDescription() const;
+	std::string GetBannerName(int index) const;
+	std::string GetVolumeName(int index) const;
+	std::string GetName(int index) const;
+	std::string GetCompany() const;
+	std::string GetDescription(int index = 0) const;
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
@@ -65,11 +68,15 @@ public:
 
 private:
 	std::string m_FileName;
-	std::string m_Name[6];
-	std::vector<std::wstring> m_wNames;
-	std::string m_Company;
-	std::string m_Description[6];
-	std::wstring m_wDescription;
+
+	// TODO: eliminate this and overwrite with names from banner when available?
+	std::vector<std::string> m_volume_names;
+
+	// Stuff from banner
+	std::string m_company;
+	std::vector<std::string> m_names;
+	std::vector<std::string> m_descriptions;
+
 	std::string m_UniqueID;
 
 	std::string m_issues;

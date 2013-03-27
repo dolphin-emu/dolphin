@@ -67,6 +67,7 @@ static int s_fps = 0;
 static u32 s_blendMode;
 static u32 s_LastAA;
 static bool IS_AMD;
+static float m_fMaxPointSize;
 
 static char *st;
 
@@ -187,6 +188,9 @@ Renderer::Renderer()
 	D3D::BeginFrame();
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, true);
 	D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );
+	D3D::SetRenderState(D3DRS_POINTSCALEENABLE,false);
+	m_fMaxPointSize = D3D::GetCaps().MaxPointSize;
+
 }
 
 Renderer::~Renderer()
@@ -216,11 +220,11 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 
 }
 
-void formatBufferDump(const char *in, char *out, int w, int h, int p)
+void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 {
 	for (int y = 0; y < h; y++)
 	{
-		const char *line = in + (h - y - 1) * p;
+		auto line = in + (h - y - 1) * p;
 		for (int x = 0; x < w; x++)
 		{
 			memcpy(out, line, 3);
@@ -725,8 +729,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
-		if (g_ActiveConfig.bDumpFrames && frame_data)
-			AVIDump::AddFrame(frame_data);
+		if (g_ActiveConfig.bDumpFrames && !frame_data.empty())
+			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
 
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -737,8 +741,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	const XFBSourceBase* const* xfbSourceList = FramebufferManager::GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
-		if (g_ActiveConfig.bDumpFrames && frame_data)
-			AVIDump::AddFrame(frame_data);
+		if (g_ActiveConfig.bDumpFrames && !frame_data.empty())
+			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
 
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
@@ -935,15 +939,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			D3DLOCKED_RECT rect;
 			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, GetTargetRectangle().AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
 			{
-				if (!frame_data || w != s_recordWidth || h != s_recordHeight)
+				if (frame_data.empty() || w != s_recordWidth || h != s_recordHeight)
 				{
-					delete[] frame_data;
-					frame_data = new char[3 * s_recordWidth * s_recordHeight];
+					frame_data.resize(3 * s_recordWidth * s_recordHeight);
 					w = s_recordWidth;
 					h = s_recordHeight;
 				}
-				formatBufferDump((const char*)rect.pBits, frame_data, s_recordWidth, s_recordHeight, rect.Pitch);
-				AVIDump::AddFrame(frame_data);
+				formatBufferDump((const u8*)rect.pBits, &frame_data[0], s_recordWidth, s_recordHeight, rect.Pitch);
+				AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
 				ScreenShootMEMSurface->UnlockRect();
 			}
 		}
@@ -953,12 +956,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		if (bLastFrameDumped && bAVIDumping)
 		{
-			if (frame_data)
-			{
-				delete[] frame_data;
-				frame_data = 0;
-				w = h = 0;
-			}
+			std::vector<u8>().swap(frame_data);
+			w = h = 0;
 			AVIDump::Stop();
 			bAVIDumping = false;
 			OSD::AddMessage("Stop dumping frames to AVI", 2000);
@@ -1285,7 +1284,15 @@ void Renderer::SetLineWidth()
 	// We can't change line width in D3D unless we use ID3DXLine
 	float fratio = xfregs.viewport.wd != 0 ? Renderer::EFBToScaledXf(1.f) : 1.0f;
 	float psize = bpmem.lineptwidth.linesize * fratio / 6.0f;
+	//little hack to compensate scalling problems in dx9 must be taken out when scalling is fixed.
+	psize *= 2.0f;
+	if (psize > m_fMaxPointSize)
+	{
+		psize = m_fMaxPointSize;
+	}
 	D3D::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
+	D3D::SetRenderState(D3DRS_POINTSIZE_MIN, *((DWORD*)&psize));
+	D3D::SetRenderState(D3DRS_POINTSIZE_MAX, *((DWORD*)&psize));
 }
 
 void Renderer::SetSamplerState(int stage, int texindex)

@@ -187,6 +187,8 @@ void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, c
 
 void XFBSource::CopyEFB(float Gamma)
 {
+	g_renderer->ResetAPIState(); // reset any game specific settings
+	
 	// Copy EFB data to XFB and restore render target again
 	LPDIRECT3DSURFACE9 Rendersurf = NULL;
 	texture->GetSurfaceLevel(0, &Rendersurf);
@@ -229,6 +231,8 @@ void XFBSource::CopyEFB(float Gamma)
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 
 	Rendersurf->Release();
+	
+	g_renderer->RestoreAPIState();
 }
 
 }  // namespace DX9

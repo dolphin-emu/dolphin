@@ -29,6 +29,8 @@
 #include "Common.h"
 #include "UCode_AX_Structs.h"
 #include "../../DSP.h"
+#include "CoreTiming.h"
+#include "Core.h"
 
 #ifdef AX_GC
 # define PB_TYPE AXPB
@@ -205,9 +207,8 @@ u16 AcceleratorGetSample()
 	// UCode. We simulate what this interrupt does here.
 	if (*acc_cur_addr >= acc_end_addr)
 	{
-		// If we are really at the end (and we don't simply have cur_addr >
-		// end_addr all the time), loop back to loop_addr.
-		if ((*acc_cur_addr & ~0x1F) == (acc_end_addr & ~0x1F))
+		// loop back to loop_addr.
+		if (Core::g_CoreStartupParameter.bWii || *acc_cur_addr == acc_end_addr)
 			*acc_cur_addr = acc_loop_addr;
 
 		if (acc_pb->audio_addr.looping)
