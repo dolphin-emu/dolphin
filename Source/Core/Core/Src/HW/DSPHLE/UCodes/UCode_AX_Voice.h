@@ -205,11 +205,10 @@ u16 AcceleratorGetSample()
 	//
 	// On real hardware, this would raise an interrupt that is handled by the
 	// UCode. We simulate what this interrupt does here.
-	if (*acc_cur_addr >= acc_end_addr)
+	if ((*acc_cur_addr & ~1) == (acc_end_addr & ~1))
 	{
 		// loop back to loop_addr.
-		if (Core::g_CoreStartupParameter.bWii || *acc_cur_addr == acc_end_addr)
-			*acc_cur_addr = acc_loop_addr;
+		*acc_cur_addr = acc_loop_addr;
 
 		if (acc_pb->audio_addr.looping)
 		{
