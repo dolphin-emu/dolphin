@@ -951,8 +951,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		GL_ONE,
 		GL_DST_COLOR,
 		GL_ONE_MINUS_DST_COLOR,
-		GL_SRC_ALPHA,
-		GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
+		(useDualSource)  ? GL_SRC1_ALPHA : GL_SRC_ALPHA,
+		(useDualSource)  ? GL_ONE_MINUS_SRC1_ALPHA : GL_ONE_MINUS_SRC_ALPHA,
 		(target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
 		(target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO
 	};
@@ -962,8 +962,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		GL_ONE,
 		GL_SRC_COLOR,
 		GL_ONE_MINUS_SRC_COLOR,
-		GL_SRC_ALPHA,
-		GL_ONE_MINUS_SRC_ALPHA, // NOTE: If dual-source blending is enabled, use SRC1_ALPHA
+		(useDualSource)  ? GL_SRC1_ALPHA : GL_SRC_ALPHA,
+		(useDualSource)  ? GL_ONE_MINUS_SRC1_ALPHA : GL_ONE_MINUS_SRC_ALPHA,
 		(target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
 		(target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO
 	};
@@ -1004,30 +1004,33 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	if (changes & 0x1FA)
 	{
-		GLenum srcFactor = glSrcFactors[(newval >> 3) & 7];
-		GLenum dstFactor = glDestFactors[(newval >> 6) & 7];
-		GLenum srcFactorAlpha = srcFactor;
-		GLenum dstFactorAlpha = dstFactor;
+		u32 srcidx = (newval >> 3) & 7;
+		u32 dstidx = (newval >> 6) & 7;
+		GLenum srcFactor = glSrcFactors[srcidx];
+		GLenum dstFactor = glDestFactors[dstidx];
 		if (useDualSource)
 		{
-			srcFactorAlpha = GL_ONE;
-			dstFactorAlpha = GL_ZERO;
-
-			if (srcFactor == GL_SRC_ALPHA)
-				srcFactor = GL_SRC1_ALPHA;
-			else if (srcFactor == GL_ONE_MINUS_SRC_ALPHA)
-				srcFactor = GL_ONE_MINUS_SRC1_ALPHA;
-
-			if (dstFactor == GL_SRC_ALPHA)
-				dstFactor = GL_SRC1_ALPHA;
-			else if (dstFactor == GL_ONE_MINUS_SRC_ALPHA)
-				dstFactor = GL_ONE_MINUS_SRC1_ALPHA;
-		}
-		
+			srcidx = 1;
+			dstidx = 0;			
+		}	
+		else
+		{
+			// we can't use GL_DST_COLOR or GL_ONE_MINUS_DST_COLOR for source in alpha channel so use their alpha equivalent instead
+			if (srcidx == 2 || srcidx == 3)
+			{
+				srcidx += 4;
+			}
+			// we can't use GL_SRC_COLOR or GL_ONE_MINUS_SRC_COLOR for destination in alpha channel so use their alpha equivalent instead
+			if (dstidx == 2 || dstidx == 3)
+			{
+				dstidx += 2;
+			}
+		}		
+		GLenum srcFactorAlpha = glSrcFactors[srcidx];
+		GLenum dstFactorAlpha = glDestFactors[dstidx];
 		// blend RGB change
 		glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
 	}
-
 	s_blendMode = newval;
 }
 
