@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "Common.h"
+#include "StringUtil.h"
 
 // User directory indices for GetUserPath
 enum {
@@ -150,7 +151,7 @@ bool ReadFileToString(bool text_file, const char *filename, std::string &str);
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
 // and make forgetting an fclose() harder
-class IOFile : NonCopyable
+class IOFile
 {
 public:
 	IOFile();
@@ -158,6 +159,11 @@ public:
 	IOFile(const std::string& filename, const char openmode[]);
 
 	~IOFile();
+	
+	IOFile(IOFile&& other);
+	IOFile& operator=(IOFile&& other);
+	
+	void Swap(IOFile& other);
 
 	bool Open(const std::string& filename, const char openmode[]);
 	bool Close();
@@ -212,6 +218,7 @@ public:
 	void Clear() { m_good = true; std::clearerr(m_file); }
 
 private:
+	IOFile(const IOFile&) /*= delete*/;
 	IOFile& operator=(const IOFile&) /*= delete*/;
 
 	std::FILE* m_file;
@@ -219,5 +226,16 @@ private:
 };
 
 }  // namespace
+
+// To deal with Windows being dumb at unicode:
+template <typename T>
+void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmode openmode)
+{
+#ifdef _WIN32
+	fstream.open(UTF8ToTStr(filename).c_str(), openmode);
+#else
+	fstream.open(filename.c_str(), openmode);
+#endif
+}
 
 #endif

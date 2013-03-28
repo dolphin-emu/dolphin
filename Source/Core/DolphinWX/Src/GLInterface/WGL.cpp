@@ -27,6 +27,13 @@
 static HDC hDC = NULL;       // Private GDI Device Context
 static HGLRC hRC = NULL;     // Permanent Rendering Context
 
+void cInterfaceWGL::SwapInterval(int Interval)
+{
+	if (WGLEW_EXT_swap_control)
+		wglSwapIntervalEXT(Interval);
+	else
+		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
+}
 void cInterfaceWGL::Swap()
 {
 	SwapBuffers(hDC);

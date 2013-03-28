@@ -113,15 +113,15 @@ struct SCoreStartupParameter
 	bool bRunCompareClient;
 
 	bool bMMU;
-	bool bMMUBAT;
+	bool bDCBZOFF;
 	int iTLBHack;
 	bool bVBeam;
+	bool bSyncGPU;
 	bool bFastDiscSpeed;
 
 	int SelectedLanguage;
 
 	bool bWii;
-	bool bDisableWiimoteSpeaker;
 
 	// Interface settings
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;

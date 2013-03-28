@@ -34,7 +34,7 @@ void AOSound::SoundLoop()
 	format.channels = 2;
 	format.rate = m_mixer->GetSampleRate();
 	format.byte_format = AO_FMT_LITTLE;
-	
+
 	device = ao_open_live(default_driver, &format, NULL /* no options */);
 	if (!device)
 	{
@@ -49,7 +49,7 @@ void AOSound::SoundLoop()
 	while (!threadData)
 	{
 		m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
-		
+
 		{
 		std::lock_guard<std::mutex> lk(soundCriticalSection);
 		ao_play(device, (char*)realtimeBuffer, numBytesToRender);
@@ -62,7 +62,7 @@ void AOSound::SoundLoop()
 bool AOSound::Start()
 {
 	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
-	
+
 	thread = std::thread(std::mem_fun(&AOSound::SoundLoop), this);
 	return true;
 }

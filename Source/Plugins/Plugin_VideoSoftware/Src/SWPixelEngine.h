@@ -38,6 +38,21 @@ namespace SWPixelEngine
 	    PE_BBOX_RIGHT	 = 0x012, // Flip Right
 	    PE_BBOX_TOP		 = 0x014, // Flip Top
 	    PE_BBOX_BOTTOM	 = 0x016, // Flip Bottom
+
+		// NOTE: Order not verified
+		// These indicate the number of quads that are being used as input/output for each particular stage
+		PE_PERF_ZCOMP_INPUT_ZCOMPLOC_L  = 0x18,
+		PE_PERF_ZCOMP_INPUT_ZCOMPLOC_H  = 0x1a,
+		PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_L = 0x1c,
+		PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_H = 0x1e,
+		PE_PERF_ZCOMP_INPUT_L           = 0x20,
+		PE_PERF_ZCOMP_INPUT_H           = 0x22,
+		PE_PERF_ZCOMP_OUTPUT_L          = 0x24,
+		PE_PERF_ZCOMP_OUTPUT_H          = 0x26,
+		PE_PERF_BLEND_INPUT_L           = 0x28,
+		PE_PERF_BLEND_INPUT_H           = 0x2a,
+		PE_PERF_EFB_COPY_CLOCKS_L       = 0x2c,
+		PE_PERF_EFB_COPY_CLOCKS_H       = 0x2e,
     };
 
     union UPEZConfReg
@@ -125,10 +140,72 @@ namespace SWPixelEngine
         UPECtrlReg ctrl;
         u16 unk0;
         u16 token;
+
         u16 boxLeft;
         u16 boxRight;
         u16 boxTop;
         u16 boxBottom;
+
+		u16 perfZcompInputZcomplocLo;
+		u16 perfZcompInputZcomplocHi;
+		u16 perfZcompOutputZcomplocLo;
+		u16 perfZcompOutputZcomplocHi;
+		u16 perfZcompInputLo;
+		u16 perfZcompInputHi;
+		u16 perfZcompOutputLo;
+		u16 perfZcompOutputHi;
+		u16 perfBlendInputLo;
+		u16 perfBlendInputHi;
+		u16 perfEfbCopyClocksLo;
+		u16 perfEfbCopyClocksHi;
+
+		// NOTE: hardware doesn't process individual pixels but quads instead. Current software renderer architecture works on pixels though, so we have this "quad" hack here to only increment the registers on every fourth rendered pixel
+		void IncZInputQuadCount(bool early_ztest)
+		{
+			static int quad = 0;
+			if (++quad != 3)
+				return;
+			quad = 0;
+
+			if (early_ztest)
+			{
+				if (++perfZcompInputZcomplocLo == 0)
+					perfZcompInputZcomplocHi++;
+			}
+			else
+			{
+				if (++perfZcompInputLo == 0)
+					perfZcompInputHi++;
+			}
+		}
+		void IncZOutputQuadCount(bool early_ztest)
+		{
+			static int quad = 0;
+			if (++quad != 3)
+				return;
+			quad = 0;
+
+			if (early_ztest)
+			{
+				if (++perfZcompOutputZcomplocLo == 0)
+					perfZcompOutputZcomplocHi++;
+			}
+			else
+			{
+				if (++perfZcompOutputLo == 0)
+					perfZcompOutputHi++;
+			}
+		}
+		void IncBlendInputQuadCount()
+		{
+			static int quad = 0;
+			if (++quad != 3)
+				return;
+			quad = 0;
+
+			if (++perfBlendInputLo == 0)
+				perfBlendInputHi++;
+		}
     };
 
     extern PEReg pereg;

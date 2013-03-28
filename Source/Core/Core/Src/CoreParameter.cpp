@@ -49,10 +49,10 @@ SCoreStartupParameter::SCoreStartupParameter()
   bMergeBlocks(false),
   bDPL2Decoder(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
-  bMMU(false), bMMUBAT(false), iTLBHack(0), bVBeam(false),
-  bFastDiscSpeed(false),
-  SelectedLanguage(0), bWii(false), bDisableWiimoteSpeaker(false),
-  bConfirmStop(false), bHideCursor(false), 
+  bMMU(false), bDCBZOFF(false), iTLBHack(0), bVBeam(false),
+  bSyncGPU(false), bFastDiscSpeed(false),
+  SelectedLanguage(0), bWii(false),
+  bConfirmStop(false), bHideCursor(false),
   bAutoHideCursor(false), bUsePanicHandlers(true), bOnScreenDisplayMessages(true),
   iRenderWindowXPos(-1), iRenderWindowYPos(-1),
   iRenderWindowWidth(640), iRenderWindowHeight(480),
@@ -75,9 +75,10 @@ void SCoreStartupParameter::LoadDefaults()
 	bDSPThread = true;
 	bEnableFPRF = false;
 	bMMU = false;
-	bMMUBAT = false;
+	bDCBZOFF = false;
 	iTLBHack = 0;
 	bVBeam = false;
+	bSyncGPU = false;
 	bFastDiscSpeed = false;
 	bMergeBlocks = false;
 	SelectedLanguage = 0;
@@ -98,8 +99,6 @@ void SCoreStartupParameter::LoadDefaults()
 	bJITIntegerOff = false;
 	bJITPairedOff = false;
 	bJITSystemRegistersOff = false;
-
-	bDisableWiimoteSpeaker = false;
 
 	m_strName = "NONE";
 	m_strUniqueID = "00000000";
@@ -348,7 +347,11 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 	{
 		// Use default memcard path if there is no user defined name
 		std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
-		memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+		#ifdef _WIN32
+			memcardPath = "." + File::GetUserPath(D_GCUSER_IDX).substr(File::GetExeDirectory().size()) + defaultFilename + ext;
+		#else
+			memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+		#endif
 	}
 	else
 	{

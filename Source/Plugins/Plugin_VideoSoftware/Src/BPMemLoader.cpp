@@ -90,6 +90,21 @@ void SWBPWritten(int address, int newvalue)
         SWPixelEngine::pereg.boxBottom = newvalue >> 10;
         SWPixelEngine::pereg.boxTop = newvalue & 0x3ff;
         break;
+	case BPMEM_CLEAR_PIXEL_PERF:
+		// TODO: I didn't test if the value written to this register affects the amount of cleared registers
+		SWPixelEngine::pereg.perfZcompInputZcomplocLo = 0;
+		SWPixelEngine::pereg.perfZcompInputZcomplocHi = 0;
+		SWPixelEngine::pereg.perfZcompOutputZcomplocLo = 0;
+		SWPixelEngine::pereg.perfZcompOutputZcomplocHi = 0;
+		SWPixelEngine::pereg.perfZcompInputLo = 0;
+		SWPixelEngine::pereg.perfZcompInputHi = 0;
+		SWPixelEngine::pereg.perfZcompOutputLo = 0;
+		SWPixelEngine::pereg.perfZcompOutputHi = 0;
+		SWPixelEngine::pereg.perfBlendInputLo = 0;
+		SWPixelEngine::pereg.perfBlendInputHi = 0;
+		SWPixelEngine::pereg.perfEfbCopyClocksLo = 0;
+		SWPixelEngine::pereg.perfEfbCopyClocksHi = 0;
+		break;
     case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.
 		break;
 	case BPMEM_LOADTLUT1: // Load a Texture Look Up Table
@@ -135,10 +150,10 @@ void SWBPWritten(int address, int newvalue)
 				// AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for everything
 				u32 tmem_addr_odd = tmem_cfg.preload_tmem_odd * TMEM_LINE_SIZE;
 
-				for (int i = 0; i < tmem_cfg.preload_tile_info.count; ++i)
+				for (unsigned int i = 0; i < tmem_cfg.preload_tile_info.count; ++i)
 				{
 					if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE ||
-						tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE)
+						tmem_addr_odd  + TMEM_LINE_SIZE > TMEM_SIZE)
 						break;
 
 					memcpy(texMem + tmem_addr_even, src_ptr, TMEM_LINE_SIZE);

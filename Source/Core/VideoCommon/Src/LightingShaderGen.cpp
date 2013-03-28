@@ -47,13 +47,13 @@ char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char
 		// atten disabled
 		switch (chan.diffusefunc) {
 			case LIGHTDIF_NONE:
-				WRITE(p, "lacc.%s += %s.lights[%d].col.%s;\n", swizzle, lightsName, index, swizzle);
+				WRITE(p, "lacc.%s += %s[%d].%s;\n", swizzle, lightsName, index * 5, swizzle);
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				WRITE(p, "ldir = normalize(%s.lights[%d].pos.xyz - pos.xyz);\n", lightsName, index);
-				WRITE(p, "lacc.%s += %sdot(ldir, _norm0)) * %s.lights[%d].col.%s;\n",
-					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", lightsName, index, swizzle);
+				WRITE(p, "ldir = normalize(%s[%d + 3].xyz - pos.xyz);\n", lightsName, index * 5);
+				WRITE(p, "lacc.%s += %sdot(ldir, _norm0)) * %s[%d].%s;\n",
+					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", lightsName, index * 5, swizzle);
 				break;
 			default: _assert_(0);
 		}
@@ -62,32 +62,32 @@ char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char
 		
 		if (chan.attnfunc == 3) 
 		{ // spot
-			WRITE(p, "ldir = %s.lights[%d].pos.xyz - pos.xyz;\n", lightsName, index);
+			WRITE(p, "ldir = %s[%d + 3].xyz - pos.xyz;\n", lightsName, index * 5);
 			WRITE(p, "dist2 = dot(ldir, ldir);\n"
 				"dist = sqrt(dist2);\n"
 				"ldir = ldir / dist;\n"
-				"attn = max(0.0f, dot(ldir, %s.lights[%d].dir.xyz));\n", lightsName, index);
-			WRITE(p, "attn = max(0.0f, dot(%s.lights[%d].cosatt.xyz, float3(1.0f, attn, attn*attn))) / dot(%s.lights[%d].distatt.xyz, float3(1.0f,dist,dist2));\n", lightsName, index, lightsName, index);
+				"attn = max(0.0f, dot(ldir, %s[%d + 4].xyz));\n", lightsName, index * 5);
+			WRITE(p, "attn = max(0.0f, dot(%s[%d + 1].xyz, float3(1.0f, attn, attn*attn))) / dot(%s[%d + 2].xyz, float3(1.0f,dist,dist2));\n", lightsName, index * 5, lightsName, index * 5);
 		}
 		else if (chan.attnfunc == 1) 
 		{ // specular
-			WRITE(p, "ldir = normalize(%s.lights[%d].pos.xyz);\n", lightsName, index);
-			WRITE(p, "attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, %s.lights[%d].dir.xyz)) : 0.0f;\n", lightsName, index);
-			WRITE(p, "attn = max(0.0f, dot(%s.lights[%d].cosatt.xyz, float3(1,attn,attn*attn))) / dot(%s.lights[%d].distatt.xyz, float3(1,attn,attn*attn));\n", lightsName, index, lightsName, index);
+			WRITE(p, "ldir = normalize(%s[%d + 3].xyz);\n", lightsName, index * 5);
+			WRITE(p, "attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, %s[%d + 4].xyz)) : 0.0f;\n", lightsName, index * 5);
+			WRITE(p, "attn = max(0.0f, dot(%s[%d + 1].xyz, float3(1,attn,attn*attn))) / dot(%s[%d + 2].xyz, float3(1,attn,attn*attn));\n", lightsName, index * 5, lightsName, index * 5);
 		}
 
 		switch (chan.diffusefunc)
 		{
 			case LIGHTDIF_NONE:
-				WRITE(p, "lacc.%s += attn * %s.lights[%d].col.%s;\n", swizzle, lightsName, index, swizzle);
+				WRITE(p, "lacc.%s += attn * %s[%d].%s;\n", swizzle, lightsName, index * 5, swizzle);
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				WRITE(p, "lacc.%s += attn * %sdot(ldir, _norm0)) * %s.lights[%d].col.%s;\n",
+				WRITE(p, "lacc.%s += attn * %sdot(ldir, _norm0)) * %s[%d].%s;\n",
 					swizzle, 
 					chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(",
 					lightsName,
-					index, 
+					index * 5, 
 					swizzle);
 				break;
 			default: _assert_(0);
@@ -120,7 +120,7 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 				WRITE(p, "mat = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 		}
 		else // from color
-			WRITE(p, "mat = %s.C%d;\n", materialsName, j+2);
+			WRITE(p, "mat = %s[%d];\n", materialsName, j+2);
 
 		if (color.enablelighting) {
 			if (color.ambsource) { // from vertex
@@ -132,7 +132,7 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 					WRITE(p, "lacc = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
 			}
 			else // from color
-				WRITE(p, "lacc = %s.C%d;\n", materialsName, j);
+				WRITE(p, "lacc = %s[%d];\n", materialsName, j);
 		}
 		else
 		{
@@ -149,7 +149,7 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 				else WRITE(p, "mat.w = 1.0f;\n");
 			}
 			else // from color
-				WRITE(p, "mat.w = %s.C%d.w;\n", materialsName, j+2);
+				WRITE(p, "mat.w = %s[%d].w;\n", materialsName, j+2);
 		}
 
 		if (alpha.enablelighting)
@@ -163,7 +163,7 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 					WRITE(p, "lacc.w = 0.0f;\n");
 			}
 			else // from color
-				WRITE(p, "lacc.w = %s.C%d.w;\n", materialsName, j);
+				WRITE(p, "lacc.w = %s[%d].w;\n", materialsName, j);
 		}
 		else
 		{

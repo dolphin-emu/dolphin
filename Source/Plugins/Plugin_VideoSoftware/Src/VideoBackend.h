@@ -21,12 +21,15 @@ class VideoSoftware : public VideoBackend
 	void ShowConfig(void* parent);
 
 	void Video_Prepare();
+	void Video_Cleanup();
 
 	void Video_EnterLoop();
 	void Video_ExitLoop();
 	void Video_BeginField(u32, FieldType, u32, u32);
 	void Video_EndField();
+	
 	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
+	u32 Video_GetQueryResult(PerfQueryType type);
 
 	void Video_AddMessage(const char* pstr, unsigned int milliseconds);
 	void Video_ClearMessages();

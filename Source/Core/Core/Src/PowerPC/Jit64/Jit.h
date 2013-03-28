@@ -62,7 +62,7 @@
 	if (js.memcheck) \
 		SetJumpTarget(memException);
 
-class Jit64 : public JitBase
+class Jit64 : public Jitx86Base
 {
 private:
 	GPRRegCache gpr;

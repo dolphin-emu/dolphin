@@ -38,7 +38,7 @@ namespace DiscScrubber
 {
 
 bool SetupScrub(const char* filename, int block_size);
-void GetNextBlock(FILE* in, u8* buffer);
+void GetNextBlock(File::IOFile& in, u8* buffer);
 void Cleanup();
 
 } // namespace DiscScrubber

@@ -520,7 +520,7 @@ void EndFrame()
 void Present()
 {
 	// TODO: Is 1 the correct value for vsyncing?
-	swapchain->Present((UINT)g_ActiveConfig.bVSync, 0);
+	swapchain->Present((UINT)g_ActiveConfig.IsVSync(), 0);
 }
 
 }  // namespace D3D

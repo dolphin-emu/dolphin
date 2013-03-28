@@ -54,7 +54,6 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
 #include "PowerPC/PowerPC.h"
-#include "PowerPC/JitCommon/JitBase.h"
 
 #include "DSPEmulator.h"
 #include "ConfigManager.h"
@@ -105,6 +104,7 @@ static bool g_requestRefreshInfo = false;
 static int g_pauseAndLockDepth = 0;
 
 SCoreStartupParameter g_CoreStartupParameter;
+bool isTabPressed = false;
 
 std::string GetStateFileName() { return g_stateFileName; }
 void SetStateFileName(std::string val) { g_stateFileName = val; }
@@ -140,7 +140,7 @@ void DisplayMessage(const char *message, int time_in_ms)
 	if (_CoreParameter.bRenderToMain &&
 		SConfig::GetInstance().m_InterfaceStatusbar)
 	{
-		Host_UpdateStatusBar(message);
+			Host_UpdateStatusBar(message);
 	}
 	else
 		Host_UpdateTitle(message);
@@ -189,7 +189,7 @@ bool IsGPUThread()
 		return IsCPUThread();
 	}
 }
-	
+
 // This is called from the GUI thread. See the booting call schedule in
 // BootManager.cpp
 bool Init()
@@ -310,9 +310,7 @@ void CpuThread()
 		g_video_backend->Video_Prepare();
 	}
 
-	Common::SetCurrentThreadAffinity(1);  // Force to first core
-
-	#if defined(_M_X64)
+	#if defined(_M_X64) || _M_ARM
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
 
@@ -325,6 +323,9 @@ void CpuThread()
 	CCPU::Run();
 
 	g_bStarted = false;
+	
+	if (!_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	return;
 }
@@ -343,8 +344,6 @@ void FifoPlayerThread()
 		Common::SetCurrentThreadName("FIFO-GPU thread");
 	}
 
-	Common::SetCurrentThreadAffinity(1);  // Force to first core
-
 	g_bStarted = true;
 
 	// Enter CPU run loop. When we leave it - we are done.
@@ -355,6 +354,9 @@ void FifoPlayerThread()
 	}
 
 	g_bStarted = false;
+	
+	if(!_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	return;
 }
@@ -368,13 +370,6 @@ void EmuThread()
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
-
-	{
-		if (cpu_info.num_cores > 3)	// Force to third, non-HT core
-			Common::SetCurrentThreadAffinity(4);
-		else				// Force to second core
-			Common::SetCurrentThreadAffinity(2);
-	}
 
 	DisplayMessage(cpu_info.brand_string, 8000);
 	DisplayMessage(cpu_info.Summarize(), 8000);
@@ -488,6 +483,9 @@ void EmuThread()
 	g_cpu_thread.join();
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
+	
+	if(_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
@@ -606,9 +604,13 @@ void VideoThrottle()
 	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 2) ?
 		(SConfig::GetInstance().m_Framelimit - 1) * 5 : VideoInterface::TargetRefreshRate;
 
+	if (Host_GetKeyState('\t'))
+		isTabPressed = true;
+
 	// Disable the frame-limiter when the throttle (Tab) key is held down. Audio throttle: m_Framelimit = 2
 	if (SConfig::GetInstance().m_Framelimit && SConfig::GetInstance().m_Framelimit != 2 && !Host_GetKeyState('\t'))
 	{
+		isTabPressed = false;
 		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
 
 		u32 timeDifference = (u32)Timer.GetTimeDifference();

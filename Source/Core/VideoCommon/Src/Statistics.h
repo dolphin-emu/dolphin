@@ -24,26 +24,26 @@
 
 struct Statistics
 {
-    int numPixelShadersCreated;
-    int numPixelShadersAlive;
-    int numVertexShadersCreated;
-    int numVertexShadersAlive;
+	int numPixelShadersCreated;
+	int numPixelShadersAlive;
+	int numVertexShadersCreated;
+	int numVertexShadersAlive;
 
-    int numTexturesCreated;
-    int numTexturesAlive;
+	int numTexturesCreated;
+	int numTexturesAlive;
 
-    int numRenderTargetsCreated;
-    int numRenderTargetsAlive;
-    
-    int numDListsCalled;
-    int numDListsCreated;
-    int numDListsAlive;
+	int numRenderTargetsCreated;
+	int numRenderTargetsAlive;
+	
+	int numDListsCalled;
+	int numDListsCreated;
+	int numDListsAlive;
 
 	int numVertexLoaders;
 
 	int numUniquePixelShaders;
 
-	float proj_0, proj_1, proj_2, proj_3, proj_4, proj_5, proj_6;
+	float proj_0, proj_1, proj_2, proj_3, proj_4, proj_5;
 	float gproj_0, gproj_1, gproj_2, gproj_3, gproj_4, gproj_5;
 	float gproj_6, gproj_7, gproj_8, gproj_9, gproj_10, gproj_11, gproj_12, gproj_13, gproj_14, gproj_15;
 
@@ -52,30 +52,30 @@ struct Statistics
 
 	std::vector<EFBRectangle> efb_regions;
 
-    struct ThisFrame
-    {
-        int numBPLoads;
-        int numCPLoads;
-        int numXFLoads;
-        
-        int numBPLoadsInDL;
-        int numCPLoadsInDL;
-        int numXFLoadsInDL;
-        
-        int numDLs;
-        int numPrims;
-        int numDLPrims;
-        int numShaderChanges;
+	struct ThisFrame
+	{
+		int numBPLoads;
+		int numCPLoads;
+		int numXFLoads;
+		
+		int numBPLoadsInDL;
+		int numCPLoadsInDL;
+		int numXFLoadsInDL;
+		
+		int numDLs;
+		int numPrims;
+		int numDLPrims;
+		int numShaderChanges;
 
-	    int numPrimitiveJoins;
-	    int numDrawCalls;
-	    int numIndexedDrawCalls;
-	    int numBufferSplits;
+		int numPrimitiveJoins;
+		int numDrawCalls;
+		int numIndexedDrawCalls;
+		int numBufferSplits;
 
 		int numDListsCalled;
-    };
-    ThisFrame thisFrame;
-    void ResetFrame();
+	};
+	ThisFrame thisFrame;
+	void ResetFrame();
 	static void SwapDL();
 
 	// Yeah, this is unsafe, but we really don't wanna faff around allocating

@@ -127,7 +127,7 @@ bool SetupScrub(const char* filename, int block_size)
 	return success;
 }
 
-void GetNextBlock(FILE* in, u8* buffer)
+void GetNextBlock(File::IOFile& in, u8* buffer)
 {
 	u64 CurrentOffset = m_BlockCount * m_BlockSize;
 	u64 i = CurrentOffset / CLUSTER_SIZE;
@@ -136,12 +136,12 @@ void GetNextBlock(FILE* in, u8* buffer)
 	{
 		DEBUG_LOG(DISCIO, "Freeing 0x%016llx", CurrentOffset);
 		std::fill(buffer, buffer + m_BlockSize, 0xFF);
-		fseeko(in, m_BlockSize, SEEK_CUR);
+		in.Seek(m_BlockSize, SEEK_CUR);
 	}
 	else
 	{
 		DEBUG_LOG(DISCIO, "Used    0x%016llx", CurrentOffset);
-		fread(buffer, m_BlockSize, 1, in);
+		in.ReadBytes(buffer, m_BlockSize);
 	}
 
 	m_BlockCount++;

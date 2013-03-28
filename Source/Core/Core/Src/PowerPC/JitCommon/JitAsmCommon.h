@@ -21,16 +21,8 @@
 #include "../JitCommon/Jit_Util.h"
 #include "Thunk.h"
 
-class CommonAsmRoutines : public EmuCodeBlock {
-protected:
-	void GenQuantizedLoads();
-	void GenQuantizedStores();
-	void GenQuantizedSingleStores();
-
+class CommonAsmRoutinesBase  {
 public:
-	void GenFifoWrite(int size);
-	void GenFifoXmm64Write();
-	void GenFifoFloatWrite();
 
 	const u8 *fifoDirectWrite8;
 	const u8 *fifoDirectWrite16;
@@ -72,8 +64,23 @@ public:
 	// In: XMM0: Bottom 32-bit slot holds the float to be written.
 	const u8 **singleStoreQuantized;
 
+};
+
+class CommonAsmRoutines : public CommonAsmRoutinesBase, public EmuCodeBlock
+{
+protected:
+	void GenQuantizedLoads();
+	void GenQuantizedStores();
+	void GenQuantizedSingleStores();
+
+public:
+	void GenFifoWrite(int size);
+	void GenFifoXmm64Write();
+	void GenFifoFloatWrite();
+
 private:
 	ThunkManager thunks;
+
 };
 
 #endif

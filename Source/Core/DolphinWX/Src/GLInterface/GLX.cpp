@@ -27,6 +27,15 @@ void cInterfaceGLX::UpdateFPSDisplay(const char *text)
 {
 	XStoreName(GLWin.dpy, GLWin.win, text);
 }
+
+void cInterfaceGLX::SwapInterval(int Interval)
+{
+	if (glXSwapIntervalSGI)
+		glXSwapIntervalSGI(Interval);
+	else
+		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
+}
+
 void cInterfaceGLX::Swap()
 {
 	glXSwapBuffers(GLWin.dpy, GLWin.win);
@@ -60,8 +69,6 @@ bool cInterfaceGLX::Create(void *&window_handle)
 		GLX_GREEN_SIZE, 8,
 		GLX_BLUE_SIZE, 8,
 		GLX_DEPTH_SIZE, 24,
-		GLX_SAMPLE_BUFFERS_ARB, g_Config.iMultisampleMode != MULTISAMPLE_OFF?1:0,
-		GLX_SAMPLES_ARB, g_Config.iMultisampleMode != MULTISAMPLE_OFF?1:0, 
 		None };
 
 	int attrListDefault[] = {

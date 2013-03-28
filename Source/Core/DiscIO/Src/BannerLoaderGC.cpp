@@ -23,13 +23,14 @@
 
 namespace DiscIO
 {
-CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem)
-	: m_pBannerFile(NULL),
-	m_IsValid(false)
+CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume)
+	: m_pBannerFile(NULL)
+	, m_IsValid(false)
+	, m_country(volume->GetCountry())
 {
 	// load the opening.bnr
 	size_t FileSize = (size_t) _rFileSystem.GetFileSize("opening.bnr");
-	if (FileSize == sizeof(DVDBanner) || FileSize == sizeof(DVDBanner2))
+	if (FileSize == BNR1_SIZE || FileSize == BNR2_SIZE)
 	{
 		m_pBannerFile = new u8[FileSize];
 		if (m_pBannerFile)
@@ -62,7 +63,6 @@ bool CBannerLoaderGC::IsValid()
 	return m_IsValid;
 }
 
-
 bool CBannerLoaderGC::GetBanner(u32* _pBannerImage)
 {
 	if (!IsValid())
@@ -70,132 +70,111 @@ bool CBannerLoaderGC::GetBanner(u32* _pBannerImage)
 		return false;
 	}
 
-	DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
+	auto const pBanner = (DVDBanner*)m_pBannerFile;
 	decode5A3image(_pBannerImage, pBanner->image, DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT);
 
 	return true;
 }
 
 
-bool CBannerLoaderGC::GetName(std::string _rName[])
+std::vector<std::string> CBannerLoaderGC::GetNames()
 {
-	bool returnCode = false;
+	std::vector<std::string> names;
 
 	if (!IsValid())
 	{
-		return false;
+		return names;
 	}
+
+	u32 name_count = 0;
 
 	// find Banner type
 	switch (m_BNRType)
 	{
 	case CBannerLoaderGC::BANNER_BNR1:
-		{
-			DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
-			char tempBuffer[65] = {0};
-			if (pBanner->comment.longTitle[0])
-			{
-				memcpy(tempBuffer, pBanner->comment.longTitle, 64);
-			}
-			else
-			{
-				memcpy(tempBuffer, pBanner->comment.shortTitle, 32);
-			}
-			for (int i = 0; i < 6; i++)
-			{
-				CopyToStringAndCheck(_rName[i], tempBuffer);
-			}
-			returnCode = true;
-		}
+		name_count = 1;
 		break;
+
 	case CBannerLoaderGC::BANNER_BNR2:
-		{
-			DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
-
-			for (int i = 0; i < 6; i++)
-			{
-				char tempBuffer[65] = {0};
-				if (pBanner->comment[i].longTitle[0])
-				{
-					memcpy(tempBuffer, pBanner->comment[i].longTitle, 64);
-				}
-				else
-				{
-					memcpy(tempBuffer, pBanner->comment[i].shortTitle, 32);
-				}
-				CopyToStringAndCheck(_rName[i], tempBuffer);
-			}
-
-			returnCode = true;
-
-		}
+		name_count = 6;
 		break;
+
 	default:
 		break;
+	}
+
+	auto const banner = reinterpret_cast<const DVDBanner*>(m_pBannerFile);
+
+	for (u32 i = 0; i != name_count; ++i)
+	{
+		auto& comment = banner->comment[i];
+
+		if (comment.longTitle[0])
+		{
+			auto& data = comment.longTitle;
+			names.push_back(GetDecodedString(data));
+		}
+		else
+		{
+			auto& data = comment.shortTitle;
+			names.push_back(GetDecodedString(data));
+		}
 	}
 	
-	return returnCode;
+	return names;
 }
 
 
-bool CBannerLoaderGC::GetCompany(std::string& _rCompany)
+std::string CBannerLoaderGC::GetCompany()
 {
-	_rCompany = "N/A";
+	std::string company;
 
-	if (!IsValid())
+	if (IsValid())
 	{
-		return(false);
+		auto const pBanner = (DVDBanner*)m_pBannerFile;
+		auto& data = pBanner->comment[0].shortMaker;
+		company = GetDecodedString(data);
 	}
 
-	DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
-
-	CopyToStringAndCheck(_rCompany, pBanner->comment[0].shortMaker);
-
-	return true;
+	return company;
 }
 
 
-bool CBannerLoaderGC::GetDescription(std::string* _rDescription)
+std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 {
-	bool returnCode = false;
+	std::vector<std::string> descriptions;
 
 	if (!IsValid())
 	{
-		return false;
+		return descriptions;
 	}
+
+	u32 desc_count = 0;
 
 	// find Banner type
 	switch (m_BNRType)
 	{
 	case CBannerLoaderGC::BANNER_BNR1:
-		{
-			DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
-			char tempBuffer[129] = {0};
-			memcpy(tempBuffer, pBanner->comment.comment, 128);
-			for (int i = 0; i < 6; i++)
-			{
-				CopyToStringAndCheck(_rDescription[i], tempBuffer);
-			}
-			returnCode = true;
-		}
+		desc_count = 1;
 		break;
-	case CBannerLoaderGC::BANNER_BNR2:
-		{
-			DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
 
-			for (int i = 0; i< 6; i++)
-			{
-				char tempBuffer[129] = {0};
-				memcpy(tempBuffer, pBanner->comment[i].comment, 128);
-				CopyToStringAndCheck(_rDescription[i], tempBuffer);
-			}
-			returnCode = true;
-		}
+	case CBannerLoaderGC::BANNER_BNR2:
+		desc_count = 6;
 		break;
+
 	default:
 		break;
 	}
-	return returnCode;
+
+	auto banner = reinterpret_cast<const DVDBanner*>(m_pBannerFile);
+
+	for (u32 i = 0; i != desc_count; ++i)
+	{
+		auto& data = banner->comment[i].comment;
+		descriptions.push_back(GetDecodedString(data));
+	}
+
+	return descriptions;
 }
 
 
@@ -223,13 +202,17 @@ CBannerLoaderGC::BANNER_TYPE CBannerLoaderGC::getBannerType()
 	CBannerLoaderGC::BANNER_TYPE type = CBannerLoaderGC::BANNER_UNKNOWN;
 	switch (bannerSignature)
 	{
+	// "BNR1"
 	case 0x31524e42:
 		type = CBannerLoaderGC::BANNER_BNR1;
 		break;
+
+	// "BNR2"
 	case 0x32524e42:
 		type = CBannerLoaderGC::BANNER_BNR2;
 		break;
 	}
 	return type;
 }
+
 } // namespace

@@ -21,6 +21,7 @@
 
 #include "Common.h"
 #include "NativeVertexFormat.h"
+#include "ChunkFile.h"
 
 class SetupUnit
 {
@@ -45,6 +46,7 @@ public:
     OutputVertexData* GetVertex() { return m_VertWritePointer; }
 
     void SetupVertex();
+	void DoState(PointerWrap &p);
 };
 
 #endif

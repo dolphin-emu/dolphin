@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include "ExtendedTrace.h"
+#include "StringUtil.h"
 using namespace std;
 
 #include <tchar.h>
@@ -274,13 +275,21 @@ static BOOL GetSourceInfoFromAddress( UINT address, LPTSTR lpszSourceInfo )
 	return ret;
 }
 
-void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file )
+void PrintFunctionAndSourceInfo(FILE* file, const STACKFRAME& callstack)
+{
+	TCHAR symInfo[BUFFERSIZE] = _T("?");
+	TCHAR srcInfo[BUFFERSIZE] = _T("?");
+
+	GetFunctionInfoFromAddresses((ULONG)callstack.AddrPC.Offset, (ULONG)callstack.AddrFrame.Offset, symInfo);
+	GetSourceInfoFromAddress((ULONG)callstack.AddrPC.Offset, srcInfo);
+	etfprint(file, "     " + TStrToUTF8(srcInfo) + " : " + TStrToUTF8(symInfo) + "\n");
+}
+
+void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
 {
 	STACKFRAME     callStack;
 	BOOL           bResult;
 	CONTEXT        context;
-	TCHAR          symInfo[BUFFERSIZE] = _T("?");
-	TCHAR          srcInfo[BUFFERSIZE] = _T("?");
 	HANDLE         hProcess = GetCurrentProcess();
 
 	// If it's not this thread, let's suspend it, and resume it at the end
@@ -318,9 +327,7 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file )
 		etfprint(file, "Call stack info: \n");
 		etfprint(file, lpszMessage);
 
-		GetFunctionInfoFromAddresses( (ULONG)callStack.AddrPC.Offset, (ULONG)callStack.AddrFrame.Offset, symInfo );
-		GetSourceInfoFromAddress( (ULONG)callStack.AddrPC.Offset, srcInfo );
-		etfprint(file, string("     ") + srcInfo + string(" : ") + symInfo + string("\n"));
+		PrintFunctionAndSourceInfo(file, callStack);
 
 		for( ULONG index = 0; ; index++ ) 
 		{
@@ -341,9 +348,7 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file )
 			if( !bResult || callStack.AddrFrame.Offset == 0 ) 
 				break;
 
-			GetFunctionInfoFromAddresses( (ULONG)callStack.AddrPC.Offset, (ULONG)callStack.AddrFrame.Offset, symInfo );
-			GetSourceInfoFromAddress( (UINT)callStack.AddrPC.Offset, srcInfo );
-			etfprint(file, string("     ") + srcInfo + string(" : ") + symInfo + string("\n"));
+			PrintFunctionAndSourceInfo(file, callStack);
 
 		}
 
@@ -351,19 +356,7 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file )
 			ResumeThread( hThread );
 }
 
-void StackTrace( HANDLE hThread,  wchar_t const*lpszMessage, FILE *file, DWORD eip, DWORD esp, DWORD ebp )
-{
-	// TODO: remove when Common builds as unicode
-	size_t origsize = wcslen(lpszMessage) + 1;
-	const size_t newsize = 100;
-	size_t convertedChars = 0;
-	char nstring[newsize];
-	wcstombs_s(&convertedChars, nstring, origsize, lpszMessage, _TRUNCATE);
-
-	StackTrace(hThread, nstring, file, eip, esp, ebp );
-}
-
-void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file, DWORD eip, DWORD esp, DWORD ebp )
+void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, DWORD esp, DWORD ebp )
 {
 	STACKFRAME     callStack;
 	BOOL           bResult;
@@ -391,9 +384,7 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file, DWORD eip, DWO
 		etfprint(file, "Call stack info: \n");
 		etfprint(file, lpszMessage);
 
-		GetFunctionInfoFromAddresses( (ULONG)callStack.AddrPC.Offset, (ULONG)callStack.AddrFrame.Offset, symInfo );
-		GetSourceInfoFromAddress( (UINT)callStack.AddrPC.Offset, srcInfo );
-		etfprint(file, string("     ") + srcInfo + string(" : ") + symInfo + string("\n"));
+		PrintFunctionAndSourceInfo(file, callStack);
 
 		for( ULONG index = 0; ; index++ ) 
 		{
@@ -414,10 +405,7 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file, DWORD eip, DWO
 			if( !bResult || callStack.AddrFrame.Offset == 0 ) 
 				break;
 
-			GetFunctionInfoFromAddresses( (ULONG)callStack.AddrPC.Offset, (ULONG)callStack.AddrFrame.Offset, symInfo );
-			GetSourceInfoFromAddress( (UINT)callStack.AddrPC.Offset, srcInfo );
-			etfprint(file, string("     ") + srcInfo + string(" : ") + symInfo + string("\n"));
-
+			PrintFunctionAndSourceInfo(file, callStack);
 		}
 
 		if ( hThread != GetCurrentThread() )
@@ -426,7 +414,8 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file, DWORD eip, DWO
 
 char g_uefbuf[2048];
 
-void etfprintf(FILE *file, const char *format, ...) {
+void etfprintf(FILE *file, const char *format, ...)
+{
 	va_list ap;
 	va_start(ap, format);
 	int len = vsprintf(g_uefbuf, format, ap);
@@ -434,7 +423,8 @@ void etfprintf(FILE *file, const char *format, ...) {
 	va_end(ap);
 }
 
-void etfprint(FILE *file, const std::string &text) {
+void etfprint(FILE *file, const std::string &text)
+{
 	size_t len = text.length();
 	fwrite(text.data(), 1, len, file);
 }

@@ -248,13 +248,12 @@ void Wiimote::RequestStatus(const wm_request_status* const rs)
 	{
 		using namespace WiimoteReal;
 
-		std::lock_guard<std::mutex> lk(g_refresh_lock);
+		std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
 		if (g_wiimotes[m_index])
 		{
-			wm_request_status rpt;
-			rpt.rumble = 0;
-			g_wiimotes[m_index]->SendPacket(WM_REQUEST_STATUS, &rpt, sizeof(rpt));
+			wm_request_status rpt = {};
+			g_wiimotes[m_index]->QueueReport(WM_REQUEST_STATUS, &rpt, sizeof(rpt));
 		}
 
 		return;
@@ -298,7 +297,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			{
 				// writing the whole mii block each write :/
 				std::ofstream file;
-				file.open((File::GetUserPath(D_WIIUSER_IDX) + "mii.bin").c_str(), std::ios::binary | std::ios::out);
+				OpenFStream(file, File::GetUserPath(D_WIIUSER_IDX) + "mii.bin", std::ios::binary | std::ios::out);
 				file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
 				file.close();
 			}

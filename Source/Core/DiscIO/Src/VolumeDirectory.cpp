@@ -207,11 +207,10 @@ std::string CVolumeDirectory::GetMakerID() const
 	return "VOID";
 }
 
-std::string CVolumeDirectory::GetName() const
+std::vector<std::string> CVolumeDirectory::GetNames() const
 {
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
-	std::string name = (char*)(m_diskHeader + 0x20);
-	return name;
+	return std::vector<std::string>(1, (char*)(m_diskHeader + 0x20));
 }
 
 void CVolumeDirectory::SetName(std::string _Name)

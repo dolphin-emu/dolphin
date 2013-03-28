@@ -60,26 +60,26 @@ public:
 		int frameCount;
 
 
-		void SetGeneralParameters(u32 addr, u32 size, u32 format, unsigned int num_mipmaps)
+		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format, unsigned int _num_mipmaps)
 		{
-			this->addr = addr;
-			this->size_in_bytes = size;
-			this->format = format;
-			this->num_mipmaps = num_mipmaps;
+			addr = _addr;
+			size_in_bytes = _size;
+			format = _format;
+			num_mipmaps = _num_mipmaps;
 		}
 
-		void SetDimensions(unsigned int native_width, unsigned int native_height, unsigned int virtual_width, unsigned int virtual_height)
+		void SetDimensions(unsigned int _native_width, unsigned int _native_height, unsigned int _virtual_width, unsigned int _virtual_height)
 		{
-			this->native_width = native_width;
-			this->native_height = native_height;
-			this->virtual_width = virtual_width;
-			this->virtual_height = virtual_height;
+			native_width = _native_width;
+			native_height = _native_height;
+			virtual_width = _virtual_width;
+			virtual_height = _virtual_height;
 		}
 
-		void SetHashes(u64 hash/*, u32 pal_hash*/)
+		void SetHashes(u64 _hash/*, u32 _pal_hash*/)
 		{
-			this->hash = hash;
-			//this->pal_hash = pal_hash;
+			hash = _hash;
+			//pal_hash = _pal_hash;
 		}
 
 
@@ -89,7 +89,7 @@ public:
 		virtual bool Save(const char filename[], unsigned int level) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int level, bool autogen_mips) = 0;
+			unsigned int expanded_width, unsigned int level) = 0;
 		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 			unsigned int srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
@@ -116,7 +116,7 @@ public:
 	virtual TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) = 0;
 
 	static TCacheEntryBase* Load(unsigned int stage, u32 address, unsigned int width, unsigned int height,
-		int format, unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem);
+		int format, unsigned int tlutaddr, int tlutfmt, bool use_mipmaps, unsigned int maxlevel, bool from_tmem);
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 

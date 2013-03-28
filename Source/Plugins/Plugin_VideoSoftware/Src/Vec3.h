@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include "ChunkFile.h"
 
 class Vec3
 {
@@ -110,6 +111,12 @@ public:
 	void setZero()
 	{
 		memset((void *)this,0,sizeof(float)*3);
+	}
+	void DoState(PointerWrap &p)
+	{
+		p.Do(x);
+		p.Do(y);
+		p.Do(z);
 	}
 };
 

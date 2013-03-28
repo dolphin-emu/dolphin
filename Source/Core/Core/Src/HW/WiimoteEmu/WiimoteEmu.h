@@ -30,13 +30,6 @@
 #include <vector>
 #include <queue>
 
-namespace
-{
-// :)
-auto const TAU = 6.28318530717958647692;
-auto const PI = TAU / 2.0;
-}
-
 // Registry sizes 
 #define WIIMOTE_EEPROM_SIZE			(16*1024)
 #define WIIMOTE_EEPROM_FREE_SIZE	0x1700

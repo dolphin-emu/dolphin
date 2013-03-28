@@ -69,6 +69,19 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER;
 		break;
 
+	case CMD_DIRECT:
+		{
+			INFO_LOG(SERIALINTERFACE, "PAD - Direct (Length: %d)", _iLength);
+			u32 high, low;
+			GetData(high, low);
+			for (int i = 0; i < (_iLength - 1) / 2; i++)
+			{
+				_pBuffer[0 + i] = (high >> (i * 8)) & 0xff;
+				_pBuffer[4 + i] = (low >> (i * 8)) & 0xff;
+			}
+		}
+		break;
+
 	case CMD_ORIGIN:
 		{
 			INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
@@ -96,7 +109,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	default:
 		{
 			ERROR_LOG(SERIALINTERFACE, "unknown SI command     (0x%x)", command);
-			PanicAlert("SI: Unknown command");
+			PanicAlert("SI: Unknown command (0x%x)", command);
 		}			
 		break;
 	}

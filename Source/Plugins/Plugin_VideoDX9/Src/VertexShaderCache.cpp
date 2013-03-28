@@ -111,8 +111,7 @@ void VertexShaderCache::Init()
 						"{\n"
 							"VSOUTPUT OUT;"
 							"OUT.vPosition = inPosition;\n"
-							// HACK: Scale the texture coordinate range from (0,width) to (0,width-1), otherwise the linear filter won't average our samples correctly
-							"OUT.vTexCoord  = inTEX0 * (float2(1.f,1.f) / inInvTexSize - float2(1.f,1.f)) * inInvTexSize;\n"
+							"OUT.vTexCoord  = inTEX0;\n"
 							"OUT.vTexCoord1 = inTEX2;\n"
 							"return OUT;\n"
 						"}\n");

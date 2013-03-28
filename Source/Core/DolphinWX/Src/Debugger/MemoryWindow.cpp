@@ -20,6 +20,8 @@
 #include <wx/listctrl.h>
 #include <wx/thread.h>
 #include <wx/listctrl.h>
+
+#include "../WxUtils.h"
 #include "MemoryWindow.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
@@ -152,8 +154,8 @@ void CMemoryWindow::JumpToAddress(u32 _Address)
 
 void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 {
-	std::string str_addr = std::string(addrbox->GetValue().mb_str());
-	std::string str_val = std::string(valbox->GetValue().mb_str());
+	std::string str_addr = WxStrToStr(addrbox->GetValue());
+	std::string str_val = WxStrToStr(valbox->GetValue());
 	u32 addr;
 	u32 val;
 
@@ -179,7 +181,7 @@ void CMemoryWindow::OnAddrBoxChange(wxCommandEvent& event)
 	if (txt.size())
 	{
 		u32 addr;
-		sscanf(txt.mb_str(), "%08x", &addr);
+		sscanf(WxStrToStr(txt).c_str(), "%08x", &addr);
 		memview->Center(addr & ~3);
 	}
 
@@ -349,10 +351,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 			tmpstr = new char[newsize + 1];
 			memset(tmpstr, 0, newsize + 1);
 		}
-		//sprintf(tmpstr, "%s%s", tmpstr, rawData.c_str());
-		//strcpy(&tmpstr[1], rawData.ToAscii());
-		//memcpy(&tmpstr[1], &rawData.c_str()[0], rawData.size());
-		sprintf(tmpstr, "%s%s", tmpstr, (const char *)rawData.mb_str());
+		sprintf(tmpstr, "%s%s", tmpstr, WxStrToStr(rawData).c_str());
 		tmp2 = &Dest.front();
 		count = 0;
 		for(i = 0; i < strlen(tmpstr); i++)
@@ -376,7 +375,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 		tmpstr = new char[size+1];
 
 		tmp2 = &Dest.front();
-		sprintf(tmpstr, "%s", (const char *)rawData.mb_str());
+		sprintf(tmpstr, "%s", WxStrToStr(rawData).c_str());
 
 		for(i = 0; i < size; i++)
 			tmp2[i] = tmpstr[i];
@@ -393,7 +392,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 		u32 addr = 0;
 		if (txt.size())
 		{
-			sscanf(txt.mb_str(), "%08x", &addr);
+			sscanf(WxStrToStr(txt).c_str(), "%08x", &addr);
 		}
 		i = addr+4;
 		for( ; i < szRAM; i++)

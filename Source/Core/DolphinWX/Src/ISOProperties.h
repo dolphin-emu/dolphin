@@ -69,10 +69,10 @@ private:
 	DECLARE_EVENT_TABLE();
 
 	// Core
-	wxCheckBox *CPUThread, *SkipIdle, *MMU, *MMUBAT, *TLBHack;
-	wxCheckBox *VBeam, *FastDiscSpeed, *BlockMerging, *DSPHLE;
+	wxCheckBox *CPUThread, *SkipIdle, *MMU, *DCBZOFF, *TLBHack;
+	wxCheckBox *VBeam, *SyncGPU, *FastDiscSpeed, *BlockMerging, *DSPHLE;
 	// Wii
-	wxCheckBox *EnableWideScreen, *DisableWiimoteSpeaker;
+	wxCheckBox *EnableWideScreen;
 	// Video
 	wxCheckBox *UseZTPSpeedupHack, *PHackEnable, *UseBBox;
 	wxButton *PHSettings;
@@ -127,9 +127,10 @@ private:
 		ID_USEDUALCORE,
 		ID_IDLESKIP,
 		ID_MMU,
-		ID_MMUBAT,
+		ID_DCBZOFF,
 		ID_TLBHACK,
 		ID_VBEAM,
+		ID_SYNCGPU,
 		ID_DISCSPEED,
 		ID_MERGEBLOCKS,
 		ID_AUDIO_DSP_HLE,
@@ -139,7 +140,6 @@ private:
 		ID_PHSETTINGS,
 		ID_ENABLEPROGRESSIVESCAN,
 		ID_ENABLEWIDESCREEN,
-		ID_DISABLEWIIMOTESPEAKER,
 		ID_EDITCONFIG,
 		ID_EMUSTATE,
 		ID_EMU_ISSUES,

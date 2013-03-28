@@ -122,14 +122,10 @@ FunctionEnd
 Section "Base" SEC01
   SetShellVarContext all
   ; Dolphin exe and dlls
-  ; TODO: cg is only for OGL, SDL is only for nJoy
   ; TODO: Make a nice subsection-ized display
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File "${BASE_DIR}\Dolphin.exe"
-  File "..\Externals\Cg\cg.dll"
-  File "..\Externals\Cg\cgGL.dll"
-  ; File "..\Externals\Cg\cgD3D9.dll"
   File "..\Externals\WiiUse\Win32\wiiuse.dll"
   File "..\Externals\SDL\win32\SDL.dll"
   File "..\Externals\OpenAL\win32\OpenAL32.dll"

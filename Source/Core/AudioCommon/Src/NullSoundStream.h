@@ -25,24 +25,24 @@
 
 class NullSound : public SoundStream
 {
-    // playback position
-    short realtimeBuffer[BUF_SIZE / sizeof(short)];
+	// playback position
+	short realtimeBuffer[BUF_SIZE / sizeof(short)];
 
 public:
 	NullSound(CMixer *mixer, void *hWnd = NULL)
 		: SoundStream(mixer)
 	{}
 
-    virtual ~NullSound() {}
- 
+	virtual ~NullSound() {}
+
 	virtual bool Start();
-    virtual void SoundLoop();
+	virtual void SoundLoop();
 	virtual void SetVolume(int volume);
-    virtual void Stop();
+	virtual void Stop();
 	virtual void Clear(bool mute);
-    static bool isValid() { return true; }
-    virtual bool usesMixer() const { return true; }
-    virtual void Update();
+	static bool isValid() { return true; }
+	virtual bool usesMixer() const { return true; }
+	virtual void Update();
 };
 
 #endif //_NULLSOUNDSTREAM_H_

@@ -36,6 +36,10 @@ struct SWVideoConfig : NonCopyable
 
 	bool bHwRasterizer;
 
+	// Emulation features
+	bool bZComploc;
+	bool bZFreeze;
+
     bool bShowStats;
 
     bool bDumpTextures;

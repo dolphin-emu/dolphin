@@ -26,6 +26,7 @@
 #include "IniFile.h"
 #include "ConfigManager.h"
 #include "CPUDetect.h"
+#include "Core.h"
 
 #include "DSPLLEGlobals.h" // Local
 #include "DSP/DSPInterpreter.h"
@@ -56,6 +57,14 @@ Common::Event ppcEvent;
 
 void DSPLLE::DoState(PointerWrap &p)
 {
+	bool isHLE = false;
+	p.Do(isHLE);
+	if (isHLE != false && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.", 3000);
+		p.SetMode(PointerWrap::MODE_VERIFY);
+		return;
+	}
 	p.Do(g_dsp.r);
 	p.Do(g_dsp.pc);
 #if PROFILE
@@ -104,26 +113,6 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 {
 	Common::SetCurrentThreadName("DSP thread");
 
-	{
-		if (cpu_info.num_cores > 3)
-		{
-			// HACK (delroth): there is no way to know where hyperthreads are in
-			// the current Dolphin version.
-			bool windows = false;
-#ifdef _WIN32
-			windows = true;
-#endif
-
-			u8 core_id;
-			if (windows && cpu_info.num_cores > 4) // Probably HT
-				core_id = 5; // 3rd non HT core
-			else
-				core_id = 3; // 3rd core
-
-			Common::SetCurrentThreadAffinity(1 << (core_id - 1));
-		}
-	}
-
 	while (dsp_lle->m_bIsRunning)
 	{
 		int cycles = (int)dsp_lle->m_cycle_count;
@@ -155,13 +144,13 @@ bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 	m_bDSPThread = bDSPThread;
 	m_InitMixer = false;
 
-	std::string irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
-	std::string coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
+	std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
+	std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
 
 	if (!File::Exists(irom_file))
-		irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
+		irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
 	if (!File::Exists(coef_file))
-		coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
+		coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
 	if (!DSPCore_Init(irom_file.c_str(), coef_file.c_str(), AudioCommon::UseJIT()))
 		return false;
 

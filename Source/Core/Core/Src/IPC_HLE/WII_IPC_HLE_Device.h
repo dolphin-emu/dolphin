@@ -95,6 +95,8 @@ public:
 	virtual bool IOCtlV	(u32) { UNIMPLEMENTED_CMD(IOCtlV) }
 #undef UNIMPLEMENTED_CMD
 
+	virtual int GetCmdDelay(u32) { return 0; }
+
 	virtual u32 Update() { return 0; }
 
 	virtual bool IsHardware() { return m_Hardware; }

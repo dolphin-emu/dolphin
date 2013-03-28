@@ -75,47 +75,47 @@ bool WbfsFileReader::OpenFiles(const char* filename)
 			delete new_entry;
 			return 0 != m_total_files;
 		}
-		
+
 		new_entry->base_address = m_size;
 		new_entry->size = new_entry->file.GetSize();
 		m_size += new_entry->size;
 
 		m_total_files ++;
-		m_files.push_back(new_entry);		
+		m_files.push_back(new_entry);
 	}
 }
 
 bool WbfsFileReader::ReadHeader()
 {
 	m_files[0]->file.Seek(4, SEEK_SET);
-	
+
 	// Read hd size info
 	m_files[0]->file.ReadBytes(&hd_sector_count, 4);
 	hd_sector_count = Common::swap32(hd_sector_count);
-	
+
 	m_files[0]->file.ReadBytes(&hd_sector_shift, 1);
 	hd_sector_size = 1 << hd_sector_shift;
-	
+
 	if(m_size != hd_sector_count * hd_sector_size)
 	{
 		//printf("File size doesn't match expected size\n");
 		return false;
 	}
-	
+
 	// Read wbfs cluster info
 	m_files[0]->file.ReadBytes(&wbfs_sector_shift, 1);
 	wbfs_sector_size = 1 << wbfs_sector_shift;
 	wbfs_sector_count = m_size / wbfs_sector_size;
-	
+
 	if(wbfs_sector_size < wii_sector_size)
 	{
 		//Setting this too low would case a very large memory allocation
 		return false;
 	}
-	
+
 	m_blocks_per_disc = (wii_sector_count * wii_sector_size) / wbfs_sector_size;
 	m_disc_info_size = align(wii_disc_header_size + m_blocks_per_disc * 2, hd_sector_size);
-	
+
 	// Read disc table
 	m_files[0]->file.Seek(2, SEEK_CUR);
 	m_files[0]->file.ReadBytes(disc_table, 500);
@@ -125,7 +125,7 @@ bool WbfsFileReader::ReadHeader()
 		//printf("Game must be in 'slot 0'\n");
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -143,7 +143,7 @@ bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 		nbytes -= read_size;
 		offset += read_size;
 	}
-		
+
 	return true;
 }
 
@@ -172,16 +172,16 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
 			}
 		}
 	}
-	
+
 	PanicAlert("Read beyond end of disc");
 	m_files[0]->file.Seek(0, SEEK_SET);
 	return m_files[0]->file;
 }
 
 WbfsFileReader* WbfsFileReader::Create(const char* filename)
-{	
+{
 	WbfsFileReader* reader = new WbfsFileReader(filename);
-		
+
 	if(reader->IsGood())
 	{
 		return reader;

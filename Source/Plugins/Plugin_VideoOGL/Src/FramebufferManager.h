@@ -57,15 +57,15 @@ namespace OGL {
 
 struct XFBSource : public XFBSourceBase
 {
-	XFBSource(GLuint tex) : texture(tex) {}
-	~XFBSource() { glDeleteTextures(1, &texture); }
+	XFBSource(GLuint rbuf) : renderbuf(rbuf) {}
+	~XFBSource();
 
 	void CopyEFB(float Gamma);
 	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 	void Draw(const MathUtil::Rectangle<float> &sourcerc,
 		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
 
-	const GLuint texture;
+	const GLuint renderbuf;
 };
 
 class FramebufferManager : public FramebufferManagerBase

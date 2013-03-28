@@ -10,6 +10,7 @@ set(SRCS	Src/BPMemLoader.cpp
 			Src/OpcodeDecoder.cpp
 			Src/SWPixelEngine.cpp
 			Src/Rasterizer.cpp
+			Src/RasterFont.cpp
 			Src/SWRenderer.cpp
 			Src/SetupUnit.cpp
 			Src/SWStatistics.cpp

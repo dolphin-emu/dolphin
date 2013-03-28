@@ -88,13 +88,13 @@ void TransformPosition(const InputVertexData *src, OutputVertexData *dst)
     const float* mat = (const float*)&swxfregs.posMatrices[src->posMtx * 4];    
     MultiplyVec3Mat34(src->position, mat, dst->mvPosition);
 
-    if (swxfregs.projection[6] == 0)
+    if (swxfregs.projection.type == GX_PERSPECTIVE)
     {
-        MultipleVec3Perspective(dst->mvPosition, swxfregs.projection, dst->projectedPosition);
+        MultipleVec3Perspective(dst->mvPosition, swxfregs.projection.rawProjection, dst->projectedPosition);
     }
     else
     {
-        MultipleVec3Ortho(dst->mvPosition, swxfregs.projection, dst->projectedPosition);
+        MultipleVec3Ortho(dst->mvPosition, swxfregs.projection.rawProjection, dst->projectedPosition);
     }
 }
 

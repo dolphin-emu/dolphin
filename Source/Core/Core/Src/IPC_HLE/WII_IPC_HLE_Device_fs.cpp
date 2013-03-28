@@ -26,6 +26,7 @@
 #include "FileUtil.h"
 #include "NandPaths.h"
 #include "ChunkFile.h"
+#include "../HW/SystemTimers.h"
 
 #include "../VolumeHandler.h"
 
@@ -376,7 +377,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 				u32 Addr = _BufferOut;
 				Memory::Write_U32(OwnerID, Addr);										Addr += 4;
 				Memory::Write_U16(GroupID, Addr);										Addr += 2;
-				memcpy(Memory::GetPointer(Addr), Filename.c_str(), Filename.size());	Addr += 64;
+				memcpy(Memory::GetPointer(Addr), Memory::GetPointer(_BufferIn), 64);	Addr += 64;
 				Memory::Write_U8(OwnerPerm, Addr);										Addr += 1;
 				Memory::Write_U8(GroupPerm, Addr);										Addr += 1;
 				Memory::Write_U8(OtherPerm, Addr);										Addr += 1;
@@ -427,7 +428,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			File::CreateFullPath(FilenameRename);
 
 			// if there is already a file, delete it
-			if (File::Exists(FilenameRename))
+			if (File::Exists(Filename) && File::Exists(FilenameRename))
 			{
 				File::Delete(FilenameRename);
 			}
@@ -497,6 +498,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 	}
 
 	return FS_RESULT_FATAL;
+}
+
+int CWII_IPC_HLE_Device_fs::GetCmdDelay(u32)
+{
+	// ~1/1000th of a second is too short and causes hangs in Wii Party
+	// Play it safe at 1/500th
+	return SystemTimers::GetTicksPerSecond() / 500;
 }
 
 void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)

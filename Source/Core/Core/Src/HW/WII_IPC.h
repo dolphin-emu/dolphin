@@ -52,7 +52,7 @@ void DoState(PointerWrap &p);
 void Read32(u32& _rReturnValue, const u32 _Address);
 void Write32(const u32 _Value, const u32 _Address);
 
-void UpdateInterrupts();
+void UpdateInterrupts(u64 userdata = 0, int cyclesLate = 0);
 void GenerateAck(u32 _Address);
 void GenerateReply(u32 _Address);
 

@@ -31,6 +31,7 @@ private:
 	cX11Window XWindow;
 public:
 	friend class cX11Window;
+	void SwapInterval(int Interval);
 	void Swap();
 	void UpdateFPSDisplay(const char *Text);
 	bool Create(void *&window_handle);

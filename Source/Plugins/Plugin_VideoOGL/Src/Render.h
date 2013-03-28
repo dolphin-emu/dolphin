@@ -9,11 +9,30 @@ namespace OGL
 
 void ClearEFBCache();
 
+// ogl-only config, so not in VideoConfig.h
+extern struct VideoConfig {
+	bool bSupportsGLSLCache;
+	bool bSupportsGLPinnedMemory;
+	bool bSupportsGLSync;
+	bool bSupportsGLBaseVertex;
+	bool bSupportCoverageMSAA;
+	bool bSupportSampleShading;
+	
+	const char *gl_vendor;
+	const char *gl_renderer;
+	const char* gl_version;
+	
+	s32 max_samples;
+} g_ogl_config;
+
 class Renderer : public ::Renderer
 {
 public:
 	Renderer();
 	~Renderer();
+	
+	static void Init();
+	static void Shutdown();
 
 	void SetColorMask();
 	void SetBlendMode(bool forceUpdate);

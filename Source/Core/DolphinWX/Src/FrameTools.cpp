@@ -35,7 +35,7 @@ Core::GetWindowHandle().
 #include "VideoBackendBase.h"
 
 #ifdef __APPLE__
-#include <ApplicationServices/ApplicationServices.h>
+#include <AppKit/AppKit.h>
 #endif
 
 #include "Globals.h" // Local
@@ -74,6 +74,20 @@ Core::GetWindowHandle().
 
 #include <wx/datetime.h> // wxWidgets
 
+#ifdef _WIN32
+#ifndef SM_XVIRTUALSCREEN
+#define SM_XVIRTUALSCREEN 76
+#endif
+#ifndef SM_YVIRTUALSCREEN
+#define SM_YVIRTUALSCREEN 77
+#endif
+#ifndef SM_CXVIRTUALSCREEN
+#define SM_CXVIRTUALSCREEN 78
+#endif
+#ifndef SM_CYVIRTUALSCREEN
+#define SM_CYVIRTUALSCREEN 79
+#endif
+#endif
 
 // Resources
 extern "C" {
@@ -101,7 +115,7 @@ void CFrame::CreateMenu()
 	drives = cdio_get_devices();
 	// Windows Limitation of 24 character drives
 	for (unsigned int i = 0; i < drives.size() && i < 24; i++) {
-		externalDrive->Append(IDM_DRIVE1 + i, wxString::FromAscii(drives[i].c_str()));
+		externalDrive->Append(IDM_DRIVE1 + i, StrToWxStr(drives[i]));
 	}
 
 	fileMenu->AppendSeparator();
@@ -601,12 +615,10 @@ void CFrame::DoOpen(bool Boot)
 
 	// Should we boot a new game or just change the disc?
 	if (Boot && !path.IsEmpty())
-		BootGame(std::string(path.mb_str()));
+		BootGame(WxStrToStr(path));
 	else
 	{
-		char newDiscpath[2048];
-		strncpy(newDiscpath, path.mb_str(), strlen(path.mb_str())+1);
-		DVDInterface::ChangeDisc(newDiscpath);
+		DVDInterface::ChangeDisc(WxStrToStr(path).c_str());
 	}
 }
 
@@ -693,7 +705,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
 	}
 
-	if(Movie::PlayInput(path.mb_str()))
+	if (Movie::PlayInput(WxStrToStr(path).c_str()))
 		BootGame(std::string(""));
 }
 
@@ -793,39 +805,13 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	m_XRRConfig->ToggleDisplayMode(bFullscreen);
 #elif defined __APPLE__
-	if (!bFullscreen) {
-		CGRestorePermanentDisplayConfiguration();
-		CGDisplayRelease(CGMainDisplayID());
-		return;
-	}
-
-	CFArrayRef modes = CGDisplayAvailableModes(CGMainDisplayID());
-	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
-	{
-		CFDictionaryRef mode;
-		CFNumberRef ref;
-		int x, y, w, h, d;
-
-		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.\
-			strFullscreenResolution.c_str(), "%dx%d", &x, &y);
-
-		mode = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, i);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayWidth);
-		CFNumberGetValue(ref, kCFNumberIntType, &w);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayHeight);
-		CFNumberGetValue(ref, kCFNumberIntType, &h);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode,
-			kCGDisplayBitsPerPixel);
-		CFNumberGetValue(ref, kCFNumberIntType, &d);
-
-		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsStretched))
-			continue;
-		if (w != x || h != y || d != 32)
-			continue;;
-
-		CGDisplaySwitchToMode(CGMainDisplayID(), mode);
-	}
-
+	NSView* view = (NSView *)m_RenderFrame->GetHandle();
+	[[view window] toggleFullScreen:[view window]];
+	
+	if(bFullscreen)
+		CGDisplayHideCursor(CGMainDisplayID());
+	else
+		CGDisplayShowCursor(CGMainDisplayID());
 #endif
 }
 
@@ -863,14 +849,23 @@ void CFrame::StartGame(const std::string& filename)
 			position = wxDefaultPosition;
 #endif
 
+		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+#ifdef _WIN32
+		// Out of desktop check
+		int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
+		int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
+		int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		if ((leftPos + width) < (position.x + size.GetWidth()) || leftPos > position.x || (topPos + height) < (position.y + size.GetHeight()) || topPos > position.y)
+			position.x = position.y = wxDefaultCoord;
+#endif
 		m_RenderFrame = new CRenderFrame((wxFrame*)this, wxID_ANY, _("Dolphin"), position);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bKeepWindowOnTop)
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
 		else
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
 
-		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 		m_RenderFrame->SetClientSize(size.GetWidth(), size.GetHeight());
 		m_RenderFrame->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnRenderParentClose, this);
 		m_RenderFrame->Bind(wxEVT_ACTIVATE, &CFrame::OnActive, this);
@@ -1015,7 +1010,7 @@ void CFrame::DoStop()
 		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
 				X11Utils::XWindowFromHandle(GetHandle()), false);
 #endif
-		m_RenderFrame->SetTitle(wxString::FromAscii(scm_rev_str));
+		m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
 
 		// Destroy the renderer frame when not rendering to main
 		m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
@@ -1081,7 +1076,7 @@ void CFrame::DoRecordingSave()
 	if(path.IsEmpty())
 		return;
 	
-	Movie::SaveRecording(path.mb_str());
+	Movie::SaveRecording(WxStrToStr(path).c_str());
 	
 	if (!paused)
 		DoPause();
@@ -1212,7 +1207,7 @@ void CFrame::StatusBarMessage(const char * Text, ...)
 	vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
 	va_end(ArgPtr);
 
-	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(wxString::FromAscii(Str),0);
+	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(StrToWxStr(Str),0);
 }
 
 
@@ -1248,7 +1243,8 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 
 	if (!path.IsEmpty())
 	{
-		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(path.mb_str());
+		// TODO: Does this actually need to be dynamically allocated for some reason?
+		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(WxStrToStr(path).c_str());
 		delete saveFile;
 	}
 }
@@ -1288,7 +1284,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 			_T("Wii WAD file (*.wad)|*.wad"),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
-		fileName = path.mb_str();
+		fileName = WxStrToStr(path);
 		break;
 	}
 	default:
@@ -1354,11 +1350,7 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
 		wxString msg(wxString::Format(wxT("Wiimote %i %s"), wm_idx + 1,
 					connect ? wxT("Connected") : wxT("Disconnected")));
-		Core::DisplayMessage(msg.ToAscii(), 3000);
-
-		// Wait for the wiimote to connect
-		while (GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->IsConnected() != connect)
-		{}
+		Core::DisplayMessage(WxStrToStr(msg), 3000);
 		Host_UpdateMainFrame();
 	}
 }
@@ -1398,7 +1390,7 @@ void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED (event))
 		this);
 
 	if (!path.IsEmpty())
-		State::LoadAs((const char*)path.mb_str());
+		State::LoadAs(WxStrToStr(path));
 }
 
 void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
@@ -1412,7 +1404,7 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 		this);
 
 	if (!path.IsEmpty())
-		State::SaveAs((const char*)path.mb_str());
+		State::SaveAs(WxStrToStr(path));
 }
 
 void CFrame::OnLoadLastState(wxCommandEvent& WXUNUSED (event))
@@ -1566,6 +1558,8 @@ void CFrame::UpdateGUI()
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+				GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(true);
 			}
 			// Prepare to load last selected file, enable play button
 			else if (!SConfig::GetInstance().m_LastFilename.empty()
@@ -1574,6 +1568,8 @@ void CFrame::UpdateGUI()
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+				GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(true);
 			}
 			else
 			{
@@ -1581,6 +1577,8 @@ void CFrame::UpdateGUI()
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, false);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
+				GetMenuBar()->FindItem(IDM_RECORD)->Enable(false);
+				GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(false);
 			}
 		}
 
@@ -1596,6 +1594,8 @@ void CFrame::UpdateGUI()
 			if (m_ToolBar)
 				m_ToolBar->EnableTool(IDM_PLAY, true);
 			GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+			GetMenuBar()->FindItem(IDM_RECORD)->Enable(true);
+			GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(true);
 		}
 	}
 	else if (Initialized)

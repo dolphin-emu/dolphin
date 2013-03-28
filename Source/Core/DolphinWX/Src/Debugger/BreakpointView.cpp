@@ -23,6 +23,7 @@
 #include "PowerPC/PPCSymbolDB.h"
 #include "PowerPC/PowerPC.h"
 #include "HW/Memmap.h"
+#include "../WxUtils.h"
 
 CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id)
 	: wxListCtrl(parent, id, wxDefaultPosition, wxDefaultSize,
@@ -50,20 +51,20 @@ void CBreakPointView::Update()
 		if (!rBP.bTemporary)
 		{
 			wxString temp;
-			temp = wxString::FromAscii(rBP.bOn ? "on" : " ");
+			temp = StrToWxStr(rBP.bOn ? "on" : " ");
 			int Item = InsertItem(0, temp);
-			temp = wxString::FromAscii("BP");
+			temp = StrToWxStr("BP");
 			SetItem(Item, 1, temp);
 			
 			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(rBP.iAddress);
 			if (symbol)
 			{
-				temp = wxString::FromAscii(g_symbolDB.GetDescription(rBP.iAddress));
+				temp = StrToWxStr(g_symbolDB.GetDescription(rBP.iAddress));
 				SetItem(Item, 2, temp);
 			}
 			
             sprintf(szBuffer, "%08x", rBP.iAddress);
-            temp = wxString::FromAscii(szBuffer);
+            temp = StrToWxStr(szBuffer);
 			SetItem(Item, 3, temp);
 
             SetItemData(Item, rBP.iAddress);
@@ -76,27 +77,27 @@ void CBreakPointView::Update()
 		const TMemCheck& rMemCheck = rMemChecks[i];
 
 		wxString temp;
-		temp = wxString::FromAscii((rMemCheck.Break || rMemCheck.Log) ? "on" : " ");
+		temp = StrToWxStr((rMemCheck.Break || rMemCheck.Log) ? "on" : " ");
 		int Item = InsertItem(0, temp);
-		temp = wxString::FromAscii("MC");
+		temp = StrToWxStr("MC");
 		SetItem(Item, 1, temp);
 
 		Symbol *symbol = g_symbolDB.GetSymbolFromAddr(rMemCheck.StartAddress);
 		if (symbol)
 		{
-			temp = wxString::FromAscii(g_symbolDB.GetDescription(rMemCheck.StartAddress));
+			temp = StrToWxStr(g_symbolDB.GetDescription(rMemCheck.StartAddress));
 			SetItem(Item, 2, temp);
 		}
 
 		sprintf(szBuffer, "%08x to %08x", rMemCheck.StartAddress, rMemCheck.EndAddress);
-		temp = wxString::FromAscii(szBuffer);
+		temp = StrToWxStr(szBuffer);
 		SetItem(Item, 3, temp);
 
 		size_t c = 0;
 		if (rMemCheck.OnRead) szBuffer[c++] = 'r';
 		if (rMemCheck.OnWrite) szBuffer[c++] = 'w';
 		szBuffer[c] = 0x00;
-		temp = wxString::FromAscii(szBuffer);
+		temp = StrToWxStr(szBuffer);
 		SetItem(Item, 4, temp);
 
 		SetItemData(Item, rMemCheck.StartAddress);

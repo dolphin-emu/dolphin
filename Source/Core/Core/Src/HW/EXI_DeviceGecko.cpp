@@ -98,8 +98,8 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 			client_running = false;
 			clientThread.join();
 
-			recv_fifo = std::queue<u8>();
-			send_fifo = std::queue<u8>();
+			recv_fifo = std::deque<u8>();
+			send_fifo = std::deque<u8>();
 		}
 		clientThread = std::thread(std::mem_fun(&GeckoSockServer::ClientThread), this);
 		client_count++;
@@ -120,28 +120,39 @@ void GeckoSockServer::ClientThread()
 
 	while (client_running)
 	{
-		u8 data;
-		std::size_t	got = 0;
+		bool did_nothing = true;
 		
 		{
 		std::lock_guard<std::mutex> lk(transfer_lock);
 
-		if (client.Receive((char*)&data, sizeof(data), got)
-			== sf::Socket::Disconnected)
+		// what's an ideal buffer size?
+		char data[128];
+		std::size_t got = 0;
+		
+		if (client.Receive(&data[0], ARRAYSIZE(data), got) == sf::Socket::Disconnected)
 			client_running = false;
-		if (got)
-			recv_fifo.push(data);
-
-		if (send_fifo.size())
+		
+		if (got != 0)
 		{
-			if (client.Send((char*)&send_fifo.front(), sizeof(u8))
-				== sf::Socket::Disconnected)
+			did_nothing = false;
+			
+			recv_fifo.insert(recv_fifo.end(), &data[0], &data[got]);
+		}
+
+		if (!send_fifo.empty())
+		{
+			did_nothing = false;
+			
+			std::vector<char> packet(send_fifo.begin(), send_fifo.end());
+			send_fifo.clear();
+			
+			if (client.Send(&packet[0], packet.size()) == sf::Socket::Disconnected)
 				client_running = false;
-			send_fifo.pop();
 		}
 		}	// unlock transfer
 
-		SLEEP(1);
+		if (did_nothing)
+			Common::YieldCPU();
 	}
 
 	client.Close();
@@ -180,7 +191,7 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 		if (!recv_fifo.empty())
 		{
 			_uData = 0x08000000 | (recv_fifo.front() << 16);
-			recv_fifo.pop();
+			recv_fifo.pop_front();
 		}
 		break;
 		}
@@ -190,7 +201,7 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 	case CMD_SEND:
 		{
 		std::lock_guard<std::mutex> lk(transfer_lock);
-		send_fifo.push(_uData >> 20);
+		send_fifo.push_back(_uData >> 20);
 		_uData = 0x04000000;
 		break;
 		}
