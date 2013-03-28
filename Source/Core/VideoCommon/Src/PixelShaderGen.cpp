@@ -848,8 +848,17 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	// single pass
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 	{
-		// Colors will be blended against the alpha from ocol1...
-		WRITE(p, "\tocol1 = prev;\n");
+		if(ApiType & API_D3D9)
+		{
+			//Colors will be blended against the color from ocol1 in D3D 9...
+			//ALPHA must be 0 or the shader will not compile( direct3d9 ex resriction)
+			WRITE(p, "\tocol1 = float4(prev.a, prev.a, prev.a, 0.0f);\n");			
+		}
+		else
+		{
+			// Colors will be blended against the alpha from ocol1...
+			WRITE(p, "\tocol1 = prev;\n");
+		}
 		// ...and the alpha from ocol0 will be written to the framebuffer.
 		WRITE(p, "\tocol0.a = " I_ALPHA"[0].a;\n");	
 	}

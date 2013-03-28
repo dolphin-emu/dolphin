@@ -661,49 +661,73 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
 	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
 	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
+	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 	const D3DBLEND d3dSrcFactors[8] =
-	{
-		D3DBLEND_ZERO,
-		D3DBLEND_ONE,
-		D3DBLEND_DESTCOLOR,
-		D3DBLEND_INVDESTCOLOR,
-		D3DBLEND_SRCALPHA,
-		D3DBLEND_INVSRCALPHA, 
-		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
-		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
-	};
+ 	{
+ 		D3DBLEND_ZERO,
+ 		D3DBLEND_ONE,
+ 		D3DBLEND_DESTCOLOR,
+ 		D3DBLEND_INVDESTCOLOR,
+		(useDualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
+		(useDualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
+ 		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
+ 		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
+ 	};
 	const D3DBLEND d3dDestFactors[8] =
 	{
 		D3DBLEND_ZERO,
 		D3DBLEND_ONE,
-		D3DBLEND_SRCCOLOR,
-		D3DBLEND_INVSRCCOLOR,
-		D3DBLEND_SRCALPHA,
-		D3DBLEND_INVSRCALPHA, 
-		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
-		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
-	};
+ 		D3DBLEND_SRCCOLOR,
+ 		D3DBLEND_INVSRCCOLOR,
+		(useDualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
+		(useDualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
+ 		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
+ 		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
+ 	};
 
 	if (bpmem.blendmode.logicopenable && !forceUpdate)
+	{
+		D3D::SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE , false);
 		return;
+	}
 
-	if (bpmem.blendmode.subtract && bpmem.blendmode.blendenable)
-	{
-		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
-		D3D::SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_REVSUBTRACT);
-		D3D::SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-		D3D::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-	}
-	else
-	{
-		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
-		if (bpmem.blendmode.blendenable)
-		{
-			D3D::SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
-			D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[bpmem.blendmode.srcfactor]);
-			D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[bpmem.blendmode.dstfactor]);
+	bool BlendEnable = bpmem.blendmode.subtract || bpmem.blendmode.blendenable;
+	D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, BlendEnable);
+	D3D::SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE , BlendEnable);
+	if (BlendEnable)
+ 	{
+		D3DBLENDOP op = D3DBLENDOP_ADD;
+		u32 srcidx = bpmem.blendmode.srcfactor;
+		u32 dstidx = bpmem.blendmode.dstfactor;
+		if (bpmem.blendmode.subtract)
+ 		{
+			op = D3DBLENDOP_REVSUBTRACT;
+			srcidx = GX_BL_ONE;
+			dstidx = GX_BL_ONE;
+ 		}
+		D3D::SetRenderState(D3DRS_BLENDOP, op);
+		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[srcidx]);
+		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[dstidx]);
+		if (useDualSource)
+		{			
+			op = D3DBLENDOP_ADD;
+			srcidx = GX_BL_ONE;
+			dstidx = GX_BL_ZERO;
 		}
-	}
+		else
+		{
+			// we can't use D3DBLEND_DESTCOLOR or D3DBLEND_INVDESTCOLOR for source in alpha channel so use their alpha equivalent instead
+			if (srcidx == GX_BL_DSTCLR) srcidx = GX_BL_DSTALPHA;
+			if (srcidx == GX_BL_INVDSTCLR) srcidx = GX_BL_INVDSTALPHA;
+			// we can't use D3DBLEND_SRCCOLOR or D3DBLEND_INVSRCCOLOR for destination in alpha channel so use their alpha equivalent instead
+			if (dstidx == GX_BL_SRCCLR) dstidx = GX_BL_SRCALPHA;
+			if (dstidx == GX_BL_INVSRCCLR) dstidx = GX_BL_INVSRCALPHA;
+		}
+		D3D::SetRenderState(D3DRS_BLENDOPALPHA, op);
+		D3D::SetRenderState(D3DRS_SRCBLENDALPHA, d3dSrcFactors[srcidx]);
+		D3D::SetRenderState(D3DRS_DESTBLENDALPHA, d3dDestFactors[dstidx]);
+	}	
 }
 
 bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &dst_rect)

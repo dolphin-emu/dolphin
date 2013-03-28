@@ -89,7 +89,7 @@ std::string VideoBackend::GetName()
 
 std::string VideoBackend::GetDisplayName()
 {
-	return "Direct3D9 (deprecated)";
+	return "Direct3D9";
 }
 
 void InitBackendInfo()
@@ -97,11 +97,24 @@ void InitBackendInfo()
 	DX9::D3D::Init();
 	const int shaderModel = ((DX9::D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
 	const int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);
-	g_Config.backend_info.APIType = shaderModel < 3 ? API_D3D9_SM20 :API_D3D9_SM30;
+	g_Config.backend_info.APIType = shaderModel < 3 ? API_D3D9_SM20 : API_D3D9_SM30;
 	g_Config.backend_info.bUseRGBATextures = false;
 	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = true;
-	g_Config.backend_info.bSupportsDualSourceBlend = false;
+	OSVERSIONINFO info;
+    ZeroMemory(&info, sizeof(OSVERSIONINFO));
+    info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    if (GetVersionEx(&info))
+    {
+		// dual source blending is only supported in windows 7 o newer. sorry xp users
+		g_Config.backend_info.bSupportsDualSourceBlend = info.dwPlatformId == VER_PLATFORM_WIN32_NT && info.dwMajorVersion > 5;
+	}
+	else
+	{
+		g_Config.backend_info.bSupportsDualSourceBlend = false;
+	}
+	
+	
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 
