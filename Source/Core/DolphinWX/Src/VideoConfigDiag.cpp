@@ -66,7 +66,11 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	EndModal(wxID_OK);
 }
 
-wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nDirect3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\nNote that the Direct3D backends are only available on Windows.\n\nIf unsure, use Direct3D 9.");
+#if defined(_WIN32)
+wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nDirect3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\nNote that the Direct3D backends are only available on Windows.\n\nIf unsure, use Direct3D 11.");
+#else
+wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nDirect3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\nNote that the Direct3D backends are only available on Windows.\n\nIf unsure, use OpenGL.");
+#endif
 wxString adapter_desc = wxTRANSLATE("Select a hardware adapter to use.\n\nIf unsure, use the first one.");
 wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, use your desktop resolution.\nIf still unsure, use the highest resolution which works for you.");
 wxString use_fullscreen_desc = wxTRANSLATE("Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a render window will be created instead.\n\nIf unsure, leave this unchecked.");
