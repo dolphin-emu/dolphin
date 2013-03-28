@@ -951,8 +951,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		GL_ONE,
 		GL_DST_COLOR,
 		GL_ONE_MINUS_DST_COLOR,
-		(useDualSource)  ? GL_SRC1_ALPHA : GL_SRC_ALPHA,
-		(useDualSource)  ? GL_ONE_MINUS_SRC1_ALPHA : GL_ONE_MINUS_SRC_ALPHA,
+		(useDualSource)  ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+		(useDualSource)  ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
 		(target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
 		(target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO
 	};
@@ -962,8 +962,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		GL_ONE,
 		GL_SRC_COLOR,
 		GL_ONE_MINUS_SRC_COLOR,
-		(useDualSource)  ? GL_SRC1_ALPHA : GL_SRC_ALPHA,
-		(useDualSource)  ? GL_ONE_MINUS_SRC1_ALPHA : GL_ONE_MINUS_SRC_ALPHA,
+		(useDualSource)  ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+		(useDualSource)  ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
 		(target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
 		(target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO
 	};
