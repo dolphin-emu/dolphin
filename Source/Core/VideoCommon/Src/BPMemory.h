@@ -621,6 +621,17 @@ union X10Y10
 
 // Framebuffer/pixel stuff (incl fog)
 
+#define GX_BL_ZERO         0
+#define GX_BL_ONE          1
+#define GX_BL_SRCCLR       2 // for dst factor
+#define GX_BL_INVSRCCLR    3 // for dst factor
+#define GX_BL_SRCALPHA     4
+#define GX_BL_INVSRCALPHA  5
+#define GX_BL_DSTALPHA     6
+#define GX_BL_INVDSTALPHA  7
+#define GX_BL_DSTCLR       GX_BL_SRCCLR // for src factor
+#define GX_BL_INVDSTCLR    GX_BL_INVSRCCLR // for src factor
+
 union BlendMode
 {
 	struct 

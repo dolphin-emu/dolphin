@@ -1008,23 +1008,22 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		u32 dstidx = (newval >> 6) & 7;
 		GLenum srcFactor = glSrcFactors[srcidx];
 		GLenum dstFactor = glDestFactors[dstidx];
+
+		// adjust alpha factors
 		if (useDualSource)
 		{
-			srcidx = 1;
-			dstidx = 0;			
+			srcidx = GX_BL_ONE;
+			dstidx = GX_BL_ZERO;
 		}	
 		else
 		{
 			// we can't use GL_DST_COLOR or GL_ONE_MINUS_DST_COLOR for source in alpha channel so use their alpha equivalent instead
-			if (srcidx == 2 || srcidx == 3)
-			{
-				srcidx += 4;
-			}
+			if (srcidx == GX_BL_DSTCLR) srcidx = GX_BL_DSTALPHA;
+			if (srcidx == GX_BL_INVDSTCLR) srcidx = GX_BL_INVDSTALPHA;
+
 			// we can't use GL_SRC_COLOR or GL_ONE_MINUS_SRC_COLOR for destination in alpha channel so use their alpha equivalent instead
-			if (dstidx == 2 || dstidx == 3)
-			{
-				dstidx += 2;
-			}
+			if (dstidx == GX_BL_SRCCLR) dstidx = GX_BL_SRCALPHA;
+			if (dstidx == GX_BL_INVSRCCLR) dstidx = GX_BL_INVSRCALPHA;
 		}		
 		GLenum srcFactorAlpha = glSrcFactors[srcidx];
 		GLenum dstFactorAlpha = glDestFactors[dstidx];

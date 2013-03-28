@@ -691,8 +691,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	{
 		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
 		D3D::SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_REVSUBTRACT);
-		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[1]);
-		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[1]);
+		D3D::SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
+		D3D::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 	}
 	else
 	{
