@@ -116,6 +116,7 @@ LogManager::~LogManager()
 
 	delete m_fileLog;
 	delete m_consoleLog;
+	delete m_debuggerLog;
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
