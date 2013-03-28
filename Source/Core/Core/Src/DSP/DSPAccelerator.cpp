@@ -21,7 +21,6 @@
 #include "DSPHost.h"
 #include "DSPHWInterface.h"
 #include "DSPInterpreter.h"
-#include "CoreTiming.h"
 
 // The hardware adpcm decoder :)
 static s16 ADPCM_Step(u32& _rSamplePos)
@@ -171,7 +170,6 @@ u16 dsp_read_accelerator()
 		// Set address back to start address.
 		Address = (g_dsp.ifx_regs[DSP_ACSAH] << 16) | g_dsp.ifx_regs[DSP_ACSAL];
 		DSPCore_SetException(EXP_ACCOV);
-		CoreTiming::ForceExceptionCheck(0);
 	}
 
 	g_dsp.ifx_regs[DSP_ACCAH] = Address >> 16;

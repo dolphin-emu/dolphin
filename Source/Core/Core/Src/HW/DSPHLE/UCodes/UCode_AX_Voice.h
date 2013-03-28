@@ -29,8 +29,6 @@
 #include "Common.h"
 #include "UCode_AX_Structs.h"
 #include "../../DSP.h"
-#include "CoreTiming.h"
-#include "Core.h"
 
 #ifdef AX_GC
 # define PB_TYPE AXPB
