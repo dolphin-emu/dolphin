@@ -59,12 +59,12 @@ struct CPUCore
 	const char *name;
 };
 const CPUCore CPUCores[] = {
-	{0, "Interpreter (VERY slow)"},
+	{0, wxTRANSLATE("Interpreter (VERY slow)")},
 #ifdef _M_ARM
-	{3, "Arm JIT (experimental)"},
+	{3, wxTRANSLATE("Arm JIT (experimental)")},
 #else
-	{1, "JIT Recompiler (recommended)"},
-	{2, "JITIL experimental recompiler"},
+	{1, wxTRANSLATE("JIT Recompiler (recommended)")},
+	{2, wxTRANSLATE("JITIL experimental recompiler")},
 #endif
 };
 
@@ -268,7 +268,7 @@ void CConfigMain::InitializeGUILists()
 
 	// Emulator Engine
 	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
-		arrayStringFor_CPUEngine.Add(_(CPUCores[a].name));
+		arrayStringFor_CPUEngine.Add(wxGetTranslation(CPUCores[a].name));
 		
 	// DSP Engine 
 	arrayStringFor_DSPEngine.Add(_("DSP HLE emulation (fast)"));
@@ -998,7 +998,7 @@ void CConfigMain::AddAudioBackends()
 		 iter != backends.end(); ++iter)
 	{
 		BackendSelection->Append(StrToWxStr(*iter));
-		int num = BackendSelection->\
+		int num = BackendSelection->
 			FindString(StrToWxStr(SConfig::GetInstance().sBackend));
 		BackendSelection->SetSelection(num);
 	}
