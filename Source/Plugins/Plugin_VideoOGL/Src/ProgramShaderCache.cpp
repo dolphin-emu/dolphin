@@ -24,7 +24,7 @@
 #include "Render.h"
 
 #include <algorithm>
-#include <type_traits>
+#include <typeinfo>
 
 namespace OGL
 {
@@ -386,7 +386,7 @@ void CheckForUidMismatch(const ProgramShaderCache::PCache& cache, CodeT& new_cod
 
 			char szTemp[MAX_PATH];
 			sprintf(szTemp, "%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-					std::is_same<UidT,PixelShaderUid>::value ? "p" : std::is_same<UidT,VertexShaderUid>::value ? "v" : "o",
+					(typeid(UidT) == typeid(PixelShaderUid)) ? "p" : (typeid(UidT) == typeid(VertexShaderUid)) ? "v" : "o",
 					++num_failures);
 
 			// TODO: Should also dump uids
@@ -398,7 +398,7 @@ void CheckForUidMismatch(const ProgramShaderCache::PCache& cache, CodeT& new_cod
 
 			// TODO: Make this more idiot-proof
 			ERROR_LOG(VIDEO, "%s shader uid mismatch!",
-					  std::is_same<UidT,PixelShaderUid>::value ? "Pixel" : std::is_same<UidT,VertexShaderUid>::value ? "Vertex" : "Other");
+					  (typeid(UidT) == typeid(PixelShaderUid)) ? "Pixel" : (typeid(UidT) == typeid(VertexShaderUid)) ? "Vertex" : "Other");
 		}
 	}
 }
