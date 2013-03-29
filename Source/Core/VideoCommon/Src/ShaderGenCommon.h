@@ -51,6 +51,11 @@ public:
 		return memcmp(this->values, obj.values, sizeof(values)) == 0;
 	}
 
+	bool operator != (const ShaderUid& obj) const
+	{
+		return memcmp(this->values, obj.values, sizeof(values)) != 0;
+	}
+
 	// TODO: Store last frame used and order by that? makes much more sense anyway...
 	bool operator < (const ShaderUid& obj) const
 	{
