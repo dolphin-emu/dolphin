@@ -44,13 +44,20 @@ protected:
 	int m_samples_wm3[6 * 3];
 	int m_samples_aux3[6 * 3];
 
-	// Last MixAUXSamples volume value. Used to generate volume ramps.
-	u16 m_last_aux_volume;
+	// Last volume values for MAIN and AUX. Used to generate volume ramps to
+	// interpolate nicely between old and new volume values.
+	u16 m_last_main_volume;
+	u16 m_last_aux_volumes[3];
 
 	// Convert a mixer_control bitfield to our internal representation for that
 	// value. Required because that bitfield has a different meaning in some
 	// versions of AX.
 	AXMixControl ConvertMixerControl(u32 mixer_control);
+
+	// Generate a volume ramp from vol1 to vol2, interpolating n volume values.
+	// Uses floating point arithmetic, which isn't exactly what the UCode does,
+	// but this gives better precision and nicer code.
+	void GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals);
 
 	virtual void HandleCommandList();
 

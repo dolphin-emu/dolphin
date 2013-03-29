@@ -30,8 +30,10 @@
 
 CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
 	: CUCode_AX(dsp_hle, l_CRC),
-	  m_last_aux_volume(0x8000)
+	  m_last_main_volume(0x8000)
 {
+	for (int i = 0; i < 3; ++i)
+		m_last_aux_volumes[i] = 0x8000;
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AXWii");
 }
 
@@ -228,6 +230,16 @@ AXMixControl CUCode_AXWii::ConvertMixerControl(u32 mixer_control)
 	return (AXMixControl)ret;
 }
 
+void CUCode_AXWii::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nvals)
+{
+	float curr = vol1;
+	for (size_t i = 0; i < nvals; ++i)
+	{
+		curr += (vol2 - vol1) / (float)nvals;
+		output[i] = curr;
+	}
+}
+
 void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 {
 	AXPBWii pb;
@@ -270,21 +282,9 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 
 void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume)
 {
-	u16 prev_volume = m_last_aux_volume;
-
-	// Generate a volume ramp going from prev_volume to volume.
-	//
-	// The AXWii UCode uses integer arithmetic with 2 multipliers because it
-	// can't get enough precision to represent 1 / 96. We can use floating
-	// point arithmetic, so we will - it makes the code more readable and more
-	// precise.
 	u16 volume_ramp[96];
-	float curr_volume = prev_volume;
-	for (int i = 0; i < 96; ++i)
-	{
-		volume_ramp[i] = (u16)curr_volume;
-		curr_volume += (volume - prev_volume) / 96.0;
-	}
+	GenerateVolumeRamp(volume_ramp, m_last_aux_volumes[aux_id], volume, 96);
+	m_last_aux_volumes[aux_id] = volume;
 
 	int* buffers[3] = { 0 };
 	int* main_buffers[3] = {
@@ -332,12 +332,14 @@ void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 
 			sample *= volume_ramp[j];
 			main_buffers[i][j] += (s32)(sample >> 15);
 		}
-
-	m_last_aux_volume = volume;
 }
 
 void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume)
 {
+	u16 volume_ramp[96];
+	GenerateVolumeRamp(volume_ramp, m_last_main_volume, volume, 96);
+	m_last_main_volume = volume;
+
 	int surround_buffer[3 * 32] = { 0 };
 
 	for (u32 i = 0; i < 3 * 32; ++i)
@@ -353,8 +355,8 @@ void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume)
 		int right = m_samples_right[i];
 
 		// Apply global volume. Cast to s64 to avoid overflow.
-		left = ((s64)left * volume) >> 15;
-		right = ((s64)right * volume) >> 15;
+		left = ((s64)left * volume_ramp[i]) >> 15;
+		right = ((s64)right * volume_ramp[i]) >> 15;
 
 		if (left < -32767)  left = -32767;
 		if (left > 32767)   left = 32767;
@@ -418,5 +420,6 @@ void CUCode_AXWii::DoState(PointerWrap &p)
 	p.Do(m_samples_aux2);
 	p.Do(m_samples_aux3);
 
-	p.Do(m_last_aux_volume);
+	p.Do(m_last_main_volume);
+	p.Do(m_last_aux_volumes);
 }
