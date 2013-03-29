@@ -243,38 +243,52 @@ u16 AcceleratorGetSample()
 	return ret;
 }
 
-// Read SAMPLES_PER_FRAME input samples from ARAM, decoding and converting rate
-// if required.
-void GetInputSamples(PB_TYPE& pb, s16* samples, const s16* coeffs)
+// Reads samples from the input callback, resamples them to <count> samples at
+// the wanted sample rate (computed from the ratio, see below).
+//
+// If srctype is SRCTYPE_POLYPHASE, coefficients need to be provided as well
+// (or the srctype will automatically be changed to LINEAR).
+//
+// Returns the current position after resampling (including fractional part).
+//
+// The input to output ratio is set in <ratio>, which is a floating point num
+// stored as a 32b integer:
+//  * Upper 16 bits of the ratio are the integer part
+//  * Lower 16 bits are the decimal part
+//
+// <curr_pos> is a 32b integer structured in the same way as the ratio: the
+// upper 16 bits are the integer part of the current position in the input
+// stream, and the lower 16 bits are the decimal part.
+//
+// We start getting samples not from sample 0, but 0.<curr_pos_frac>. This
+// avoids discontinuties in the audio stream, especially with very low ratios
+// which interpolate a lot of values between two "real" samples.
+u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count,
+                  s16* last_samples, u32 curr_pos, u32 ratio, int srctype,
+                  const s16* coeffs)
 {
-	u32 cur_addr = HILO_TO_32(pb.audio_addr.cur_addr);
-	AcceleratorSetup(&pb, &cur_addr);
-
 	// If DSP DROM coefficients are available, support polyphase resampling.
-	if (coeffs && pb.src_type == SRCTYPE_POLYPHASE)
+	if (coeffs && srctype == SRCTYPE_POLYPHASE)
 	{
 		s16 temp[4];
 		u32 idx = 0;
 
-		u32 ratio = HILO_TO_32(pb.src.ratio);
-		u32 curr_pos = pb.src.cur_addr_frac;
+		temp[idx++ & 3] = last_samples[0];
+		temp[idx++ & 3] = last_samples[1];
+		temp[idx++ & 3] = last_samples[2];
+		temp[idx++ & 3] = last_samples[3];
 
-		temp[idx++ & 3] = pb.src.last_samples[0];
-		temp[idx++ & 3] = pb.src.last_samples[1];
-		temp[idx++ & 3] = pb.src.last_samples[2];
-		temp[idx++ & 3] = pb.src.last_samples[3];
-
-		for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)
+		for (u32 i = 0; i < count; ++i)
 		{
 			curr_pos += ratio;
 			while (curr_pos >= 0x10000)
 			{
-				temp[idx++ & 3] = AcceleratorGetSample();
+				temp[idx++ & 3] = input_callback(curr_pos >> 16);
 				curr_pos -= 0x10000;
 			}
 
 			u16 curr_pos_frac = ((curr_pos & 0xFFFF) >> 9) << 2;
-			const s16* c = &coeffs[pb.coef_select * 0x200 + curr_pos_frac];
+			const s16* c = &coeffs[curr_pos_frac];
 
 			s64 t0 = temp[idx++ & 3];
 			s64 t1 = temp[idx++ & 3];
@@ -283,42 +297,28 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, const s16* coeffs)
 
 			s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
 
-			samples[i] = (s16)samp;
+			output[i] = (s16)samp;
 		}
 
-		pb.src.last_samples[3] = temp[--idx & 3];
-		pb.src.last_samples[2] = temp[--idx & 3];
-		pb.src.last_samples[1] = temp[--idx & 3];
-		pb.src.last_samples[0] = temp[--idx & 3];
-		pb.src.cur_addr_frac = curr_pos & 0xFFFF;
+		last_samples[3] = temp[--idx & 3];
+		last_samples[2] = temp[--idx & 3];
+		last_samples[1] = temp[--idx & 3];
+		last_samples[0] = temp[--idx & 3];
 	}
-	else if (pb.src_type == SRCTYPE_LINEAR || (!coeffs && pb.src_type == SRCTYPE_POLYPHASE))
+	else if (srctype == SRCTYPE_LINEAR || (!coeffs && srctype == SRCTYPE_POLYPHASE))
 	{
-		// Convert the input to a higher or lower sample rate using a linear
-		// interpolation algorithm. The input to output ratio is set in
-		// pb.src.ratio, which is a floating point num stored as a 32b integer:
-		//  * Upper 16 bits of the ratio are the integer part
-		//  * Lower 16 bits are the decimal part
-		u32 ratio = HILO_TO_32(pb.src.ratio);
-
-		// We start getting samples not from sample 0, but 0.<cur_addr_frac>.
-		// This avoids discontinuties in the audio stream, especially with very
-		// low ratios which interpolate a lot of values between two "real"
-		// samples.
-		u32 curr_pos = pb.src.cur_addr_frac;
-
 		// This is the circular buffer containing samples to use for the
 		// interpolation. It is initialized with the values from the PB, and it
 		// will be stored back to the PB at the end.
 		s16 temp[4];
 		u32 idx = 0;
 
-		temp[idx++ & 3] = pb.src.last_samples[0];
-		temp[idx++ & 3] = pb.src.last_samples[1];
-		temp[idx++ & 3] = pb.src.last_samples[2];
-		temp[idx++ & 3] = pb.src.last_samples[3];
+		temp[idx++ & 3] = last_samples[0];
+		temp[idx++ & 3] = last_samples[1];
+		temp[idx++ & 3] = last_samples[2];
+		temp[idx++ & 3] = last_samples[3];
 
-		for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)
+		for (u32 i = 0; i < count; ++i)
 		{
 			curr_pos += ratio;
 
@@ -326,7 +326,7 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, const s16* coeffs)
 			// circular buffer.
 			while (curr_pos >= 0x10000)
 			{
-				temp[idx++ & 3] = AcceleratorGetSample();
+				temp[idx++ & 3] = input_callback(curr_pos >> 16);
 				curr_pos -= 0x10000;
 			}
 
@@ -352,26 +352,42 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, const s16* coeffs)
 				idx += 3;
 			}
 
-			samples[i] = sample;
+			output[i] = sample;
 		}
 
-		// Update the four last_samples values in the PB as well as the current
-		// position.
-		pb.src.last_samples[3] = temp[--idx & 3];
-		pb.src.last_samples[2] = temp[--idx & 3];
-		pb.src.last_samples[1] = temp[--idx & 3];
-		pb.src.last_samples[0] = temp[--idx & 3];
-		pb.src.cur_addr_frac = curr_pos & 0xFFFF;
+		// Update the four last_samples values.
+		last_samples[3] = temp[--idx & 3];
+		last_samples[2] = temp[--idx & 3];
+		last_samples[1] = temp[--idx & 3];
+		last_samples[0] = temp[--idx & 3];
 	}
 	else // SRCTYPE_NEAREST
 	{
 		// No sample rate conversion here: simply read samples from the
 		// accelerator to the output buffer.
-		for (u32 i = 0; i < SAMPLES_PER_FRAME; ++i)
-			samples[i] = AcceleratorGetSample();
+		for (u32 i = 0; i < count; ++i)
+			output[i] = input_callback(i);
 
-		memcpy(pb.src.last_samples, samples + SAMPLES_PER_FRAME - 4, 4 * sizeof (u16));
+		memcpy(last_samples, output + count - 4, 4 * sizeof (u16));
 	}
+
+	return curr_pos;
+}
+
+// Read SAMPLES_PER_FRAME input samples from ARAM, decoding and converting rate
+// if required.
+void GetInputSamples(PB_TYPE& pb, s16* samples, const s16* coeffs)
+{
+	u32 cur_addr = HILO_TO_32(pb.audio_addr.cur_addr);
+	AcceleratorSetup(&pb, &cur_addr);
+
+	if (coeffs)
+		coeffs += pb.coef_select * 0x200;
+	u32 curr_pos = ResampleAudio([](u32) { return AcceleratorGetSample(); },
+	                             samples, SAMPLES_PER_FRAME, pb.src.last_samples,
+	                             pb.src.cur_addr_frac, HILO_TO_32(pb.src.ratio),
+	                             pb.src_type, coeffs);
+	pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
 
 	// Update current position in the PB.
 	pb.audio_addr.cur_addr_hi = (u16)(cur_addr >> 16);
@@ -478,28 +494,15 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl, con
 	// Wiimote mixing.
 	if (pb.remote)
 	{
-		// Interpolate 18 samples from the 96 samples we read before. The real
-		// DSP code does it using a polyphase interpolation, we just use a
-		// linear interpolation here.
+		// Interpolate 18 samples from the 96 samples we read before.
 		s16 wm_samples[18];
 
-		s16 curr0 = pb.remote_src.last_samples[2];
-		s16 curr1 = pb.remote_src.last_samples[3];
-
-		u32 ratio = 0x55555; // about 96/18 = 5.33333
-		u32 curr_pos = pb.remote_src.cur_addr_frac;
-		for (u32 i = 0; i < 18; ++i)
-		{
-			s32 curr_frac_pos = curr_pos & 0xFFFF;
-			s16 sample = curr0 + (s16)(((curr1 - curr0) * (s32)curr_frac_pos) >> 16);
-			wm_samples[i] = sample;
-
-			curr_pos += ratio;
-			curr0 = curr1;
-			curr1 = samples[curr_pos >> 16];
-		}
-		pb.remote_src.last_samples[2] = curr0;
-		pb.remote_src.last_samples[3] = curr1;
+		// We use ratio 0x55555 == (5 * 65536 + 21845) / 65536 == 5.3333 which
+		// is the nearest we can get to 96/18
+		u32 curr_pos = ResampleAudio([&samples](u32 i) { return samples[i]; },
+		                             wm_samples, 18, pb.remote_src.last_samples,
+		                             pb.remote_src.cur_addr_frac, 0x55555,
+		                             SRCTYPE_POLYPHASE, coeffs);
 		pb.remote_src.cur_addr_frac = curr_pos & 0xFFFF;
 
 		// Mix to main[0-3] and aux[0-3]

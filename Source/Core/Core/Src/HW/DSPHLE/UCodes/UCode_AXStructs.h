@@ -211,13 +211,13 @@ struct PBSampleRateConverter
 	u16 ratio_hi; // integer part of sampling ratio
 	u16 ratio_lo; // fraction part of sampling ratio
 	u16 cur_addr_frac;
-	u16 last_samples[4];
+	s16 last_samples[4];
 };
 
 struct PBSampleRateConverterWM
 {
 	u16 cur_addr_frac;
-	u16 last_samples[4];
+	s16 last_samples[4];
 };
 
 struct PBADPCMLoopInfo
