@@ -18,16 +18,9 @@
 #ifndef _THREAD_H_
 #define _THREAD_H_
 
-// <condition_variable> has a bug in some versions of libc++: it uses _ as a variable.
-// This conflicts with gettext's use of _ as a macro.
-#undef _
-
 #include "StdConditionVariable.h"
-#include <mutex>
-#include <thread>
-
-// Restore _
-#define _(s) wxGetTranslation((s))
+#include "StdMutex.h"
+#include "StdThread.h"
 
 // Don't include common.h here as it will break LogManager
 #include "CommonTypes.h"

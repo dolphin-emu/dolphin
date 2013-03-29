@@ -85,7 +85,7 @@
     <ClInclude Include="Src\SDCardUtil.h" />
     <ClInclude Include="Src\Setup.h" />
     <ClInclude Include="Src\stdafx.h" />
-    <ClInclude Include="Src\StdConditionVariable.h" />
+    <ClInclude Include="Src\StdThread.h" />
     <ClInclude Include="Src\StringUtil.h" />
     <ClInclude Include="Src\SymbolDB.h" />
     <ClInclude Include="Src\SysConf.h" />
@@ -119,6 +119,8 @@
     <ClInclude Include="Src\Crypto\tools.h">
       <Filter>Crypto</Filter>
     </ClInclude>
+    <ClInclude Include="Src\StdMutex.h" />
+    <ClInclude Include="Src\StdConditionVariable.h" />
     <ClInclude Include="Src\x64ABI.h" />
   </ItemGroup>
   <ItemGroup>

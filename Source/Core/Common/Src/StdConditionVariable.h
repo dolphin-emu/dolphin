@@ -5,12 +5,16 @@
 #define GCC_VER(x,y,z)	((x) * 10000 + (y) * 100 + (z))
 #define GCC_VERSION GCC_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 
+#ifndef __has_include
+#define __has_include(s) 0
+#endif
+
 #if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__ && !ANDROID
 
 // GCC 4.4 provides <condition_variable>
 #include <condition_variable>
 
-#elif defined(__has_include) && __has_include(<condition_variable>)
+#elif __has_include(<condition_variable>)
 
 // clang and libc++ provide <condition_variable> on OSX. However, the version
 // of libc++ bundled with OSX 10.7 and 10.8 is buggy: it uses _ as a variable.
