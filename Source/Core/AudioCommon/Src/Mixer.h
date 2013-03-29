@@ -18,9 +18,8 @@
 #ifndef _MIXER_H_
 #define _MIXER_H_
 
-#include <mutex>
-
 #include "WaveFile.h"
+#include "StdMutex.h"
 
 // 16 bit Stereo
 #define MAX_SAMPLES			(1024 * 8)
