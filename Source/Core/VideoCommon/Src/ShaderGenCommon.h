@@ -71,7 +71,7 @@ public:
 	}
 
 	template<class T>
-	inline T& GetUidData() override { return data; }
+	inline T& GetUidData() { return data; }
 
 private:
 	union
