@@ -163,6 +163,7 @@ struct pixel_shader_uid_data
 		u32 comp1 : 3;
 		u32 logic : 2;
 		// TODO: ref???
+		u32 use_zcomploc_hack : 1;
 	} alpha_test;
 
 	union {
@@ -182,9 +183,7 @@ struct pixel_shader_uid_data
 		u32 hex : 2;
 	} ztex;
 
-	u32 early_z : 1;
-	u32 ztestenable : 1;
-
+	u32 per_pixel_depth : 1;
 	u32 bHasIndStage : 16;
 
 	u32 xfregs_numTexGen_numTexGens : 4;

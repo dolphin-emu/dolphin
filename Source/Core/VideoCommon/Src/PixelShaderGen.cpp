@@ -289,7 +289,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	out.Write("//%i TEV stages, %i texgens, XXX IND stages\n",
 		numStages, numTexgen/*, bpmem.genMode.numindstages*/);
 
-	SetUidField(components, components);
+//	SetUidField(components, components); // TODO: Enable once per pixel lighting is implemented again
 	SetUidField(dstAlphaMode, dstAlphaMode);
 
 	SetUidField(genMode.numindstages, bpmem.genMode.numindstages);
@@ -620,8 +620,8 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 
 	// Note: depth textures are disabled if early depth test is enabled
 	SetUidField(ztex.op, bpmem.ztex2.op);
-	SetUidField(early_z, bpmem.zcontrol.early_ztest); // TODO: Should be per_pixel_depth instead...
-	SetUidField(ztestenable, bpmem.zmode.testenable); // TODO: Should be fog instead...
+	SetUidField(per_pixel_depth, per_pixel_depth);
+	SetUidField(fog.fsel, bpmem.fog.c_proj_fsel.fsel);
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
 	bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
@@ -632,12 +632,13 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		out.Write("zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
 									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
 
-		// scale to make result from frac correct
+		// U24 overflow emulation
 		out.Write("zCoord = zCoord * (16777215.0f/16777216.0f);\n");
 		out.Write("zCoord = frac(zCoord);\n");
 		out.Write("zCoord = zCoord * (16777216.0f/16777215.0f);\n");
+
 		// Note: depth texture output is only written to depth buffer if late depth test is used
-		// TODO: Should this be outside the ztex if-block?
+		// final depth value is used for fog calculation, though
 		if (per_pixel_depth)
 			out.Write("depth = zCoord;\n");
 	}
@@ -1167,6 +1168,7 @@ static void WriteAlphaTest(T& out, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode,
 	// when the alpha test fail. This is not a correct implementation because
 	// even if the depth test fails the fragment could be alpha blended, but
 	// we don't have a choice.
+	SetUidField(alpha_test.use_zcomploc_hack, bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable);
 	if (!(bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable))
 	{
 		out.Write("\t\tdiscard;\n");
