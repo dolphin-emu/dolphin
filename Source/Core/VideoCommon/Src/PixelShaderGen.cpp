@@ -269,7 +269,9 @@ const char *WriteLocation(API_TYPE ApiType)
 template<class T>
 void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
+	// TODO: Where does this TODO belong again...?
 	// TODO: Can be optimized if using alpha pass
+
 #define SetUidField(name, value) if (&out.GetUidData() != NULL) {out.GetUidData().name = value; };
 #define OR_UidField(name, value) if (&out.GetUidData() != NULL) {out.GetUidData().name |= value; };
 	out.SetBuffer(text);
@@ -915,7 +917,6 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 	|| cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0
 	|| ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 || ac.c == TEVALPHAARG_A0)
 	{
-		// TODO: WTF?
 		out.SetConstantsUsed(C_COLORS+1,C_COLORS+1);
 		if(RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
 		{
@@ -971,26 +972,19 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 	RegisterStates[cc.dest].ColorNeedOverflowControl = (cc.clamp == 0);
 	RegisterStates[cc.dest].AuxStored = false;
 
-/*	if (cc.d == TEVCOLORARG_C0 || cc.d == TEVCOLORARG_A0 || ac.d == TEVALPHAARG_A0)
-	{
+	if (cc.d == TEVCOLORARG_C0 || cc.d == TEVCOLORARG_A0 || ac.d == TEVALPHAARG_A0)
 		out.SetConstantsUsed(C_COLORS+1,C_COLORS+1);
-		// TODO: 11 bit signed overflow..
-	}
-	if (cc.d == TEVCOLORARG_C1 || cc.d == TEVCOLORARG_A1 || ac.d == TEVALPHAARG_A1)
-	{
-		out.SetConstantsUsed(C_COLORS+2,C_COLORS+2);
-		// TODO: 11 bit signed overflow..
-	}
-	if (cc.d == TEVCOLORARG_C2 || cc.d == TEVCOLORARG_A2 || ac.d == TEVALPHAARG_A2)
-	{
-		out.SetConstantsUsed(C_COLORS+3,C_COLORS+3);
-		// TODO: 11 bit signed overflow..
-	}*/
 
-	// TODO: Are there enums for this?
-	if (cc.dest >= 1 && cc.dest <= 3)
+	if (cc.d == TEVCOLORARG_C1 || cc.d == TEVCOLORARG_A1 || ac.d == TEVALPHAARG_A1)
+		out.SetConstantsUsed(C_COLORS+2,C_COLORS+2);
+
+	if (cc.d == TEVCOLORARG_C2 || cc.d == TEVCOLORARG_A2 || ac.d == TEVALPHAARG_A2)
+		out.SetConstantsUsed(C_COLORS+3,C_COLORS+3);
+
+	if (cc.dest >= GX_TEVREG0 && cc.dest <= GX_TEVREG2)
 		out.SetConstantsUsed(C_COLORS+cc.dest, C_COLORS+cc.dest);
-	if (ac.dest >= 1 && ac.dest <= 3)
+
+	if (ac.dest >= GX_TEVREG0 && ac.dest <= GX_TEVREG2)
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
 	out.Write("// color combine\n");
@@ -1103,14 +1097,14 @@ void SampleTexture(T& out, const char *destination, const char *texcoords, const
 
 static const char *tevAlphaFuncsTable[] =
 {
-	"(false)",									//ALPHACMP_NEVER 0, TODO: Not safe?
-	"(prev.a <= %s - (0.25f/255.0f))",			//ALPHACMP_LESS 1
-	"(abs( prev.a - %s ) < (0.5f/255.0f))",		//ALPHACMP_EQUAL 2
-	"(prev.a < %s + (0.25f/255.0f))",			//ALPHACMP_LEQUAL 3
-	"(prev.a >= %s + (0.25f/255.0f))",			//ALPHACMP_GREATER 4
-	"(abs( prev.a - %s ) >= (0.5f/255.0f))",	//ALPHACMP_NEQUAL 5
-	"(prev.a > %s - (0.25f/255.0f))",			//ALPHACMP_GEQUAL 6
-	"(true)"									//ALPHACMP_ALWAYS 7
+	"(false)",									// NEVER
+	"(prev.a <= %s - (0.25f/255.0f))",			// LESS
+	"(abs( prev.a - %s ) < (0.5f/255.0f))",		// EQUAL
+	"(prev.a < %s + (0.25f/255.0f))",			// LEQUAL
+	"(prev.a >= %s + (0.25f/255.0f))",			// GREATER
+	"(abs( prev.a - %s ) >= (0.5f/255.0f))",	// NEQUAL
+	"(prev.a > %s - (0.25f/255.0f))",			// GEQUAL
+	"(true)"									// ALWAYS
 };
 
 static const char *tevAlphaFunclogicTable[] =
@@ -1131,7 +1125,6 @@ static void WriteAlphaTest(T& out, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode,
 	};
 
 	out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-
 
 	// using discard then return works the same in cg and dx9 but not in dx11
 	out.Write("\tif(!( ");

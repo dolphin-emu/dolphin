@@ -419,6 +419,7 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 // This one is high in profiles (0.5%).
 // TODO: Move conversion out, only store the raw color value
 // and update it when the shader constant is set, only.
+// TODO: Conversion should be checked in the context of tev_fixes..
 void PixelShaderManager::SetColorChanged(int type, int num, bool high)
 {
 	float *pf = &lastRGBAfull[type][num][0];
