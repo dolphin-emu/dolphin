@@ -75,7 +75,7 @@ public:
 	virtual void DoState(PointerWrap& p);
 
 	// Needed because StdThread.h std::thread implem does not support member
-	// pointers.
+	// pointers. TODO(delroth): obsolete.
 	static void SpawnAXThread(CUCode_AX* self);
 
 protected:
