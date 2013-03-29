@@ -500,7 +500,7 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl, con
 		}
 		pb.remote_src.last_samples[2] = curr0;
 		pb.remote_src.last_samples[3] = curr1;
-		pb.src.cur_addr_frac = curr_pos & 0xFFFF;
+		pb.remote_src.cur_addr_frac = curr_pos & 0xFFFF;
 
 		// Mix to main[0-3] and aux[0-3]
 #define WMCHAN_MIX_ON(n) ((pb.remote_mixer_control >> (2 * n)) & 3)
@@ -523,7 +523,6 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, AXMixControl mctrl, con
 		if (WMCHAN_MIX_ON(7))
 			MixAdd(buffers.wm_aux3, wm_samples, 18, &pb.remote_mixer.aux3, &pb.remote_dpop.aux3, WMCHAN_MIX_RAMP(7));
 	}
-
 #endif
 }
 
