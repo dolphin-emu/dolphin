@@ -37,10 +37,10 @@
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and
 
-template<class T> static void WriteStage(char *&p, int n, API_TYPE ApiType);
+template<class T> static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType);
 template<class T> static void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
-template<class T> static void WriteAlphaTest(T& out, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
-template<class T> static void WriteFog(T& out);
+template<class T> static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
+template<class T> static void WriteFog(T& out, pixel_shader_uid_data& uid_data);
 
 static const char *tevKSelTableC[] = // KCSEL
 {
@@ -272,13 +272,15 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	// TODO: Where does this TODO belong again...?
 	// TODO: Can be optimized if using alpha pass
 
-#define SetUidField(name, value) if (&out.GetUidData() != NULL) {out.GetUidData().name = value; };
-#define OR_UidField(name, value) if (&out.GetUidData() != NULL) {out.GetUidData().name |= value; };
+	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
+	pixel_shader_uid_data dummy_data;
+	pixel_shader_uid_data& uid_data = (&out.GetUidData() != NULL) ? out.GetUidData() : dummy_data;
+
 	out.SetBuffer(text);
 	if (out.GetBuffer() != NULL)
 		setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 
-///	text[sizeof(text) - 1] = 0x7C;  // canary
+	text[sizeof(text) - 1] = 0x7C;  // canary
 
 	unsigned int numStages = bpmem.genMode.numtevstages + 1;
 	unsigned int numTexgen = bpmem.genMode.numtexgens;
@@ -289,12 +291,12 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	out.Write("//%i TEV stages, %i texgens, XXX IND stages\n",
 		numStages, numTexgen/*, bpmem.genMode.numindstages*/);
 
-//	SetUidField(components, components); // TODO: Enable once per pixel lighting is implemented again
-	SetUidField(dstAlphaMode, dstAlphaMode);
+//	uid_data.components = components; // TODO: Enable once per pixel lighting is implemented again
+	uid_data.dstAlphaMode = dstAlphaMode;
 
-	SetUidField(genMode.numindstages, bpmem.genMode.numindstages);
-	SetUidField(genMode.numtevstages, bpmem.genMode.numtevstages);
-	SetUidField(genMode.numtexgens, bpmem.genMode.numtexgens);
+	uid_data.genMode.numindstages = bpmem.genMode.numindstages;
+	uid_data.genMode.numtevstages = bpmem.genMode.numtevstages;
+	uid_data.genMode.numtexgens = bpmem.genMode.numtexgens;
 
 	if (ApiType == API_OPENGL)
 	{
@@ -461,7 +463,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		SetUidField(xfregs_numTexGen_numTexGens, xfregs.numTexGen.numTexGens);
+		uid_data.xfregs_numTexGen_numTexGens = xfregs.numTexGen.numTexGens;
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
 			out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
@@ -498,7 +500,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
 			// optional perspective divides
-			SetUidField(texMtxInfo[i].projection, xfregs.texMtxInfo[i].projection);
+			uid_data.texMtxInfo[i].projection = xfregs.texMtxInfo[i].projection;
 			if (xfregs.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
 			{
 				out.Write("\tif (uv%d.z != 0.0f)", i);
@@ -520,7 +522,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		}
 	}
 
-	SetUidField(nIndirectStagesUsed, nIndirectStagesUsed);
+	uid_data.nIndirectStagesUsed = nIndirectStagesUsed;
 	for (u32 i = 0; i < bpmem.genMode.numindstages; ++i)
 	{
 		if (nIndirectStagesUsed & (1 << i))
@@ -531,23 +533,23 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 			/// TODO: Cleanup...
 			if (i == 0)
 			{
-				SetUidField(tevindref.bc0, texcoord);
-				SetUidField(tevindref.bi0, texmap);
+				uid_data.tevindref.bc0 = texcoord;
+				uid_data.tevindref.bi0 = texmap;
 			}
 			else if (i == 1)
 			{
-				SetUidField(tevindref.bc1, texcoord);
-				SetUidField(tevindref.bi1, texmap);
+				uid_data.tevindref.bc1 = texcoord;
+				uid_data.tevindref.bi1 = texmap;
 			}
 			else if (i == 2)
 			{
-				SetUidField(tevindref.bc3, texcoord);
-				SetUidField(tevindref.bi2, texmap);
+				uid_data.tevindref.bc3 = texcoord;
+				uid_data.tevindref.bi2 = texmap;
 			}
 			else
 			{
-				SetUidField(tevindref.bc4, texcoord);
-				SetUidField(tevindref.bi4, texmap);
+				uid_data.tevindref.bc4 = texcoord;
+				uid_data.tevindref.bi4 = texmap;
 			}
 			if (texcoord < numTexgen)
 			{
@@ -576,17 +578,17 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	// Uid fields for BuildSwapModeTable are set in WriteStage
 	BuildSwapModeTable();
 	for (unsigned int i = 0; i < numStages; i++)
-		WriteStage<T>(out, i, ApiType); // build the equation for this stage
+		WriteStage<T>(out, uid_data, i, ApiType); // build the equation for this stage
 
 	if (numStages)
 	{
 		// The results of the last texenv stage are put onto the screen,
 		// regardless of the used destination register
-		SetUidField(combiners[numStages-1].colorC.dest, bpmem.combiners[numStages-1].colorC.dest); // TODO: These probably don't need to be set anymore here...
-		SetUidField(combiners[numStages-1].alphaC.dest, bpmem.combiners[numStages-1].alphaC.dest);
+		uid_data.combiners[numStages-1].colorC.dest = bpmem.combiners[numStages-1].colorC.dest; // TODO: These probably don't need to be set anymore here...
+		uid_data.combiners[numStages-1].alphaC.dest = bpmem.combiners[numStages-1].alphaC.dest;
 		if(bpmem.combiners[numStages - 1].colorC.dest != 0)
 		{
-///			SetUidField(combiners[numStages-1].colorC.dest, bpmem.combiners[numStages-1].colorC.dest);
+///			uid_data.combiners[numStages-1].colorC.dest = bpmem.combiners[numStages-1].colorC.dest;
 			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].AuxStored;
 			out.Write("\tprev.rgb = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
 			RegisterStates[0].ColorNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl;
@@ -603,9 +605,9 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		out.Write("\tprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
-	SetUidField(Pretest, Pretest);
+	uid_data.Pretest = Pretest;
 	if (Pretest == AlphaTest::UNDETERMINED)
-		WriteAlphaTest<T>(out, ApiType, dstAlphaMode, per_pixel_depth);
+		WriteAlphaTest<T>(out, uid_data, ApiType, dstAlphaMode, per_pixel_depth);
 
 	
 	// the screen space depth value = far z + (clip z / clip w) * z range
@@ -619,9 +621,9 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	}
 
 	// Note: depth textures are disabled if early depth test is enabled
-	SetUidField(ztex.op, bpmem.ztex2.op);
-	SetUidField(per_pixel_depth, per_pixel_depth);
-	SetUidField(fog.fsel, bpmem.fog.c_proj_fsel.fsel);
+	uid_data.ztex.op = bpmem.ztex2.op;
+	uid_data.per_pixel_depth = per_pixel_depth;
+	uid_data.fog.fsel = bpmem.fog.c_proj_fsel.fsel;
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
 	bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
@@ -650,7 +652,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	}
 	else
 	{
-		WriteFog<T>(out);
+		WriteFog<T>(out, uid_data);
 		out.Write("\tocol0 = prev;\n");
 	}
 
@@ -666,8 +668,9 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	}
 	
 	out.Write("}\n");
-///	if (text[sizeof(text) - 1] != 0x7C)
-///		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
+
+	if (text[sizeof(text) - 1] != 0x7C)
+		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
 
 	if (out.GetBuffer() != NULL)
 		setlocale(LC_NUMERIC, ""); // restore locale
@@ -720,7 +723,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 
 
 template<class T>
-static void WriteStage(T& out, int n, API_TYPE ApiType)
+static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType)
 {
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
 	bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
@@ -732,14 +735,14 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 
 	out.Write("// TEV stage %d\n", n);
 
-	OR_UidField(bHasIndStage, bHasIndStage << n);
-	if (n < 8) { OR_UidField(tevorders_n_texcoord1, texcoord << (3 * n)); }
-	else OR_UidField(tevorders_n_texcoord2, texcoord << (3 * n - 24));
+	uid_data.bHasIndStage |= bHasIndStage << n;
+	if (n < 8) { uid_data.tevorders_n_texcoord1 |= texcoord << (3 * n); }
+	else uid_data.tevorders_n_texcoord2 |= texcoord << (3 * n - 24);
 	if (bHasIndStage)
 	{
-		OR_UidField(tevind_n_bs, bpmem.tevind[n].bs << (2*n));
-		OR_UidField(tevind_n_bt, bpmem.tevind[n].bt << (2*n));
-		OR_UidField(tevind_n_fmt, bpmem.tevind[n].fmt << (2*n));
+		uid_data.tevind_n_bs |= bpmem.tevind[n].bs << (2*n);
+		uid_data.tevind_n_bt |= bpmem.tevind[n].bt << (2*n);
+		uid_data.tevind_n_fmt |= bpmem.tevind[n].fmt << (2*n);
 
 		out.Write("// indirect op\n");
 		// perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
@@ -754,14 +757,14 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 		out.Write("float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
 
 		// bias
-		if (n < 8) { OR_UidField(tevind_n_bias1, bpmem.tevind[n].bias << (3*n)); } /// XXX: brackets?
-		else OR_UidField(tevind_n_bias2, bpmem.tevind[n].bias << (3*n - 24));
+		if (n < 8) { uid_data.tevind_n_bias1 |= bpmem.tevind[n].bias << (3*n); } /// XXX: brackets?
+		else uid_data.tevind_n_bias2 |= bpmem.tevind[n].bias << (3*n - 24);
 		if (bpmem.tevind[n].bias != ITB_NONE )
 			out.Write("indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 
 		// multiply by offset matrix and scale
-		if (n < 8) { OR_UidField(tevind_n_mid1, bpmem.tevind[n].mid << (4*n)); } /// XXX: brackets?
-		else OR_UidField(tevind_n_mid2, bpmem.tevind[n].mid << (4*n - 32));
+		if (n < 8) { uid_data.tevind_n_mid1 |= bpmem.tevind[n].mid << (4*n); } /// XXX: brackets?
+		else uid_data.tevind_n_mid2 |= bpmem.tevind[n].mid << (4*n - 32);
 		if (bpmem.tevind[n].mid != 0)
 		{
 			if (bpmem.tevind[n].mid <= 3)
@@ -795,12 +798,12 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 		// Wrapping
 		// ---------
 
-		if (n < 8) { OR_UidField(tevind_n_sw1, bpmem.tevind[n].sw << (3 * n)); }
-		else OR_UidField(tevind_n_sw2, bpmem.tevind[n].sw << (3 * n - 24));
-		if (n < 8) { OR_UidField(tevind_n_tw1, bpmem.tevind[n].tw << (3 * n)); }
-		else OR_UidField(tevind_n_tw2, bpmem.tevind[n].tw << (3 * n - 24));
+		if (n < 8) { uid_data.tevind_n_sw1 |= bpmem.tevind[n].sw << (3 * n); }
+		else uid_data.tevind_n_sw2 |= bpmem.tevind[n].sw << (3 * n - 24);
+		if (n < 8) { uid_data.tevind_n_tw1 |= bpmem.tevind[n].tw << (3 * n); }
+		else uid_data.tevind_n_tw2 |= bpmem.tevind[n].tw << (3 * n - 24);
 
-		OR_UidField(tevind_n_fb_addprev, bpmem.tevind[n].fb_addprev << n);
+		uid_data.tevind_n_fb_addprev |= bpmem.tevind[n].fb_addprev << n;
 
 		// wrap S
 		if (bpmem.tevind[n].sw == ITW_OFF)
@@ -827,8 +830,8 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
-	SetUidField(combiners[n].colorC.hex, cc.hex&0xFFFFFF);
-	SetUidField(combiners[n].alphaC.hex, ac.hex&0xFFFFFF);
+	uid_data.combiners[n].colorC.hex = cc.hex & 0xFFFFFF;
+	uid_data.combiners[n].alphaC.hex = ac.hex & 0xFFFFFF;
 
 	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
 		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
@@ -838,10 +841,10 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
 	{
 		const int i = bpmem.combiners[n].alphaC.rswap;
-		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2  ].swap1 << (i*2));
-		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2+1].swap1 << (i*2 + 1));
-		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2  ].swap2 << (i*2 + 16));
-		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2+1].swap2 << (i*2 + 17));
+		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2  ].swap1 << (i*2);
+		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2+1].swap1 << (i*2 + 1);
+		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2  ].swap2 << (i*2 + 16);
+		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2+1].swap2 << (i*2 + 17);
 
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		out.Write("rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
@@ -861,10 +864,10 @@ static void WriteStage(T& out, int n, API_TYPE ApiType)
 		}
 
 		const int i = bpmem.combiners[n].alphaC.tswap;
-		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2  ].swap1 << (i*2));
-		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2+1].swap1 << (i*2 + 1));
-		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2  ].swap2 << (i*2 + 16));
-		OR_UidField(tevksel_n_swap, bpmem.tevksel[i*2+1].swap2 << (i*2 + 17));
+		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2  ].swap1 << (i*2);
+		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2+1].swap1 << (i*2 + 1);
+		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2  ].swap2 << (i*2 + 16);
+		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2+1].swap2 << (i*2 + 17);
 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
@@ -1116,7 +1119,7 @@ static const char *tevAlphaFunclogicTable[] =
 };
 
 template<class T>
-static void WriteAlphaTest(T& out, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth)
+static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth)
 {
 	static const char *alphaRef[2] =
 	{
@@ -1129,9 +1132,9 @@ static void WriteAlphaTest(T& out, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode,
 	// using discard then return works the same in cg and dx9 but not in dx11
 	out.Write("\tif(!( ");
 
-	SetUidField(alpha_test.comp0, bpmem.alpha_test.comp0);
-	SetUidField(alpha_test.logic, bpmem.alpha_test.comp1);
-	SetUidField(alpha_test.logic, bpmem.alpha_test.logic);
+	uid_data.alpha_test.comp0 = bpmem.alpha_test.comp0;
+	uid_data.alpha_test.logic = bpmem.alpha_test.comp1;
+	uid_data.alpha_test.logic = bpmem.alpha_test.logic;
 
 	// Lookup the first component from the alpha function table
 	int compindex = bpmem.alpha_test.comp0;
@@ -1160,7 +1163,7 @@ static void WriteAlphaTest(T& out, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode,
 	// when the alpha test fail. This is not a correct implementation because
 	// even if the depth test fails the fragment could be alpha blended, but
 	// we don't have a choice.
-	SetUidField(alpha_test.use_zcomploc_hack, bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable);
+	uid_data.alpha_test.use_zcomploc_hack = bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable;
 	if (!(bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable))
 	{
 		out.Write("\t\tdiscard;\n");
@@ -1184,13 +1187,13 @@ static const char *tevFogFuncsTable[] =
 };
 
 template<class T>
-static void WriteFog(T& out)
+static void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 {
-	SetUidField(fog.fsel, bpmem.fog.c_proj_fsel.fsel);
+	uid_data.fog.fsel = bpmem.fog.c_proj_fsel.fsel;
 	if(bpmem.fog.c_proj_fsel.fsel == 0)
 		return; // no Fog
 
-	SetUidField(fog.proj, bpmem.fog.c_proj_fsel.proj);
+	uid_data.fog.proj = bpmem.fog.c_proj_fsel.proj;
 
 	out.SetConstantsUsed(C_FOG, C_FOG+1);
 	if (bpmem.fog.c_proj_fsel.proj == 0)
@@ -1209,7 +1212,7 @@ static void WriteFog(T& out)
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
 	// ze *= x_adjust
 	// this is completely theoretical as the real hardware seems to use a table intead of calculating the values.
-	SetUidField(fog.RangeBaseEnabled, bpmem.fogRange.Base.Enabled);
+	uid_data.fog.RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
 	if(bpmem.fogRange.Base.Enabled)
 	{
 		out.SetConstantsUsed(C_FOG+2, C_FOG+2);

@@ -24,18 +24,17 @@
 #include "NativeVertexFormat.h"
 #include "XFMemory.h"
 
-// T.uid_data needs to have a struct named lighting_uid
-template<class T,class UidType>
-void GenerateLightShader(T& object, int index, int litchan_index, const char* lightsName, int coloralpha)
+// uid_data needs to have a struct named lighting_uid
+template<class T,class UidDataT>
+void GenerateLightShader(T& object, UidDataT& uid_data, int index, int litchan_index, const char* lightsName, int coloralpha)
 {
-#define SetUidField(name, value) if (&object.GetUidData() != NULL) { object.GetUidData().name = value; };
 	const LitChannel& chan = (litchan_index > 1) ? xfregs.alpha[litchan_index-2] : xfregs.color[litchan_index];
 	const char* swizzle = "xyzw";
 	if (coloralpha == 1 ) swizzle = "xyz";
 	else if (coloralpha == 2 ) swizzle = "w";
 
-	SetUidField(lit_chans[litchan_index].attnfunc, chan.attnfunc);
-	SetUidField(lit_chans[litchan_index].diffusefunc, chan.diffusefunc);
+	uid_data.lit_chans[litchan_index].attnfunc = chan.attnfunc;
+	uid_data.lit_chans[litchan_index].diffusefunc = chan.diffusefunc;
 	if (!(chan.attnfunc & 1)) {
 		// atten disabled
 		switch (chan.diffusefunc) {
@@ -94,8 +93,8 @@ void GenerateLightShader(T& object, int index, int litchan_index, const char* li
 // materials name is I_MATERIALS in vs and I_PMATERIALS in ps
 // inColorName is color in vs and colors_ in ps
 // dest is o.colors_ in vs and colors_ in ps
-template<class T, class UidType>
-void GenerateLightingShader(T& object, int components, const char* materialsName, const char* lightsName, const char* inColorName, const char* dest)
+template<class T, class UidDataT>
+void GenerateLightingShader(T& object, UidDataT& uid_data, int components, const char* materialsName, const char* lightsName, const char* inColorName, const char* dest)
 {
 	for (unsigned int j = 0; j < xfregs.numChan.numColorChans; j++)
 	{
@@ -104,7 +103,7 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 
 		object.Write("{\n");
 
-		SetUidField(lit_chans[j].matsource, xfregs.color[j].matsource);
+		uid_data.lit_chans[j].matsource = xfregs.color[j].matsource;
 		if (color.matsource) {// from vertex
 			if (components & (VB_HAS_COL0 << j))
 				object.Write("mat = %s%d;\n", inColorName, j);
@@ -116,9 +115,9 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 		else // from color
 			object.Write("mat = %s[%d];\n", materialsName, j+2);
 
-		SetUidField(lit_chans[j].enablelighting, xfregs.color[j].enablelighting);
+		uid_data.lit_chans[j].enablelighting = xfregs.color[j].enablelighting;
 		if (color.enablelighting) {
-			SetUidField(lit_chans[j].ambsource, xfregs.color[j].ambsource);
+			uid_data.lit_chans[j].ambsource = xfregs.color[j].ambsource;
 			if (color.ambsource) { // from vertex
 				if (components & (VB_HAS_COL0<<j) )
 					object.Write("lacc = %s%d;\n", inColorName, j);
@@ -136,7 +135,7 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 		}
 
 		// check if alpha is different
-		SetUidField(lit_chans[j+2].matsource, xfregs.alpha[j].matsource);
+		uid_data.lit_chans[j+2].matsource = xfregs.alpha[j].matsource;
 		if (alpha.matsource != color.matsource) {
 			if (alpha.matsource) {// from vertex
 				if (components & (VB_HAS_COL0<<j))
@@ -149,10 +148,10 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 				object.Write("mat.w = %s[%d].w;\n", materialsName, j+2);
 		}
 
-		SetUidField(lit_chans[j+2].enablelighting, xfregs.alpha[j].enablelighting);
+		uid_data.lit_chans[j+2].enablelighting = xfregs.alpha[j].enablelighting;
 		if (alpha.enablelighting)
 		{
-			SetUidField(lit_chans[j+2].ambsource, xfregs.alpha[j].ambsource);
+			uid_data.lit_chans[j+2].ambsource = xfregs.alpha[j].ambsource;
 			if (alpha.ambsource) {// from vertex
 				if (components & (VB_HAS_COL0<<j) )
 					object.Write("lacc.w = %s%d.w;\n", inColorName, j);
@@ -173,12 +172,12 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 		{
 			// both have lighting, test if they use the same lights
 			int mask = 0;
-			SetUidField(lit_chans[j].attnfunc, color.attnfunc);
-			SetUidField(lit_chans[j+2].attnfunc, alpha.attnfunc);
-			SetUidField(lit_chans[j].diffusefunc, color.diffusefunc);
-			SetUidField(lit_chans[j+2].diffusefunc, alpha.diffusefunc);
-			SetUidField(lit_chans[j].light_mask, color.GetFullLightMask());
-			SetUidField(lit_chans[j+2].light_mask, alpha.GetFullLightMask());
+			uid_data.lit_chans[j].attnfunc = color.attnfunc;
+			uid_data.lit_chans[j+2].attnfunc = alpha.attnfunc;
+			uid_data.lit_chans[j].diffusefunc = color.diffusefunc;
+			uid_data.lit_chans[j+2].diffusefunc = alpha.diffusefunc;
+			uid_data.lit_chans[j].light_mask = color.GetFullLightMask();
+			uid_data.lit_chans[j+2].light_mask = alpha.GetFullLightMask();
 			if(color.lightparams == alpha.lightparams)
 			{
 				mask = color.GetFullLightMask() & alpha.GetFullLightMask();
@@ -188,7 +187,7 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 					{
 						if (mask & (1<<i))
 						{
-							GenerateLightShader<T,UidType>(object, i, j, lightsName, 3);
+							GenerateLightShader<T,UidDataT>(object, uid_data, i, j, lightsName, 3);
 						}
 					}
 				}
@@ -198,9 +197,9 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 			for (int i = 0; i < 8; ++i)
 			{
 				if (!(mask&(1<<i)) && (color.GetFullLightMask() & (1<<i)))
-					GenerateLightShader<T,UidType>(object, i, j, lightsName, 1);
+					GenerateLightShader<T,UidDataT>(object, uid_data, i, j, lightsName, 1);
 				if (!(mask&(1<<i)) && (alpha.GetFullLightMask() & (1<<i)))
-					GenerateLightShader<T,UidType>(object, i, j+2, lightsName, 2);
+					GenerateLightShader<T,UidDataT>(object, uid_data, i, j+2, lightsName, 2);
 			}
 		}
 		else if (color.enablelighting || alpha.enablelighting)
@@ -210,17 +209,16 @@ void GenerateLightingShader(T& object, int components, const char* materialsName
 			const int lit_index = color.enablelighting ? j : (j+2);
 			int coloralpha = color.enablelighting ? 1 : 2;
 
-			SetUidField(lit_chans[lit_index].light_mask, workingchannel.GetFullLightMask());
+			uid_data.lit_chans[lit_index].light_mask = workingchannel.GetFullLightMask();
 			for (int i = 0; i < 8; ++i)
 			{
 				if (workingchannel.GetFullLightMask() & (1<<i))
-					GenerateLightShader<T,UidType>(object, i, lit_index, lightsName, coloralpha);
+					GenerateLightShader<T,UidDataT>(object, uid_data, i, lit_index, lightsName, coloralpha);
 			}
 		}
 		object.Write("%s%d = mat * saturate(lacc);\n", dest, j);
 		object.Write("}\n");
 	}
 }
-#undef SetUidField
 
 #endif // _LIGHTINGSHADERGEN_H_
