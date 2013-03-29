@@ -29,6 +29,7 @@ public:
 	virtual void DoState(PointerWrap &p);
 
 protected:
+	// Additional AUX buffers
 	int m_samples_auxC_left[32 * 3];
 	int m_samples_auxC_right[32 * 3];
 	int m_samples_auxC_surround[32 * 3];
@@ -42,6 +43,9 @@ protected:
 	int m_samples_aux2[6 * 3];
 	int m_samples_wm3[6 * 3];
 	int m_samples_aux3[6 * 3];
+
+	// Last MixAUXSamples volume value. Used to generate volume ramps.
+	u16 m_last_aux_volume;
 
 	// Convert a mixer_control bitfield to our internal representation for that
 	// value. Required because that bitfield has a different meaning in some

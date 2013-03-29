@@ -29,7 +29,8 @@
 
 
 CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
-	: CUCode_AX(dsp_hle, l_CRC)
+	: CUCode_AX(dsp_hle, l_CRC),
+	  m_last_aux_volume(0x8000)
 {
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AXWii");
 }
@@ -269,6 +270,22 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 
 void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume)
 {
+	u16 prev_volume = m_last_aux_volume;
+
+	// Generate a volume ramp going from prev_volume to volume.
+	//
+	// The AXWii UCode uses integer arithmetic with 2 multipliers because it
+	// can't get enough precision to represent 1 / 96. We can use floating
+	// point arithmetic, so we will - it makes the code more readable and more
+	// precise.
+	u16 volume_ramp[96];
+	float curr_volume = prev_volume;
+	for (int i = 0; i < 96; ++i)
+	{
+		volume_ramp[i] = (u16)curr_volume;
+		curr_volume += (volume - prev_volume) / 96.0;
+	}
+
 	int* buffers[3] = { 0 };
 	int* main_buffers[3] = {
 		m_samples_left,
@@ -311,9 +328,12 @@ void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 
 	for (u32 i = 0; i < 3; ++i)
 		for (u32 j = 0; j < 3 * 32; ++j)
 		{
-			s64 new_val = main_buffers[i][j] + Common::swap32(*ptr++);
-			main_buffers[i][j] = (new_val * volume) >> 15;
+			s64 sample = (s64)(s32)Common::swap32(*ptr++);
+			sample *= volume_ramp[j];
+			main_buffers[i][j] += (s32)(sample >> 15);
 		}
+
+	m_last_aux_volume = volume;
 }
 
 void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume)
@@ -397,4 +417,6 @@ void CUCode_AXWii::DoState(PointerWrap &p)
 	p.Do(m_samples_aux1);
 	p.Do(m_samples_aux2);
 	p.Do(m_samples_aux3);
+
+	p.Do(m_last_aux_volume);
 }
