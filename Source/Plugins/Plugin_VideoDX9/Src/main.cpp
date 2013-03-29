@@ -102,19 +102,19 @@ void InitBackendInfo()
 	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = true;
 	OSVERSIONINFO info;
-    ZeroMemory(&info, sizeof(OSVERSIONINFO));
-    info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-    if (GetVersionEx(&info))
-    {
+	ZeroMemory(&info, sizeof(OSVERSIONINFO));
+	info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+	if (GetVersionEx(&info))
+	{
 		// dual source blending is only supported in windows 7 o newer. sorry xp users
+		// we cannot test for device caps because most drivers just declare the minimun caps
+		// and don't expose their support for some functionalities		
 		g_Config.backend_info.bSupportsDualSourceBlend = info.dwPlatformId == VER_PLATFORM_WIN32_NT && info.dwMajorVersion > 5;
 	}
 	else
 	{
 		g_Config.backend_info.bSupportsDualSourceBlend = false;
 	}
-	
-	
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 

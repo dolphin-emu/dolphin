@@ -661,6 +661,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
 	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
 	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	//bDstAlphaPass is taked in account because the ability of disabling alpha composition is
+	//really usefull for debuging shader and blending errors
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
 	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 	const D3DBLEND d3dSrcFactors[8] =
@@ -692,10 +694,10 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		return;
 	}
 
-	bool BlendEnable = bpmem.blendmode.subtract || bpmem.blendmode.blendenable;
-	D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, BlendEnable);
-	D3D::SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE , BlendEnable);
-	if (BlendEnable)
+	bool blend_enable = bpmem.blendmode.subtract || bpmem.blendmode.blendenable;
+	D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, blend_enable);
+	D3D::SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, blend_enable);
+	if (blend_enable)
  	{
 		D3DBLENDOP op = D3DBLENDOP_ADD;
 		u32 srcidx = bpmem.blendmode.srcfactor;

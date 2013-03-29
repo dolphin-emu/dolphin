@@ -844,14 +844,14 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "\tocol0 = prev;\n");
 	}
 
-	// On D3D11, use dual-source color blending to perform dst alpha in a
+	// Use dual-source color blending to perform dst alpha in a
 	// single pass
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 	{
 		if(ApiType & API_D3D9)
 		{
-			//Colors will be blended against the color from ocol1 in D3D 9...
-			//ALPHA must be 0 or the shader will not compile( direct3d9 ex resriction)
+			// alpha component must be 0 or the shader will not compile (Direct3D 9Ex restriction)
+			// Colors will be blended against the color from ocol1 in D3D 9...			
 			WRITE(p, "\tocol1 = float4(prev.a, prev.a, prev.a, 0.0f);\n");			
 		}
 		else
