@@ -360,9 +360,9 @@ template<class UidT> UidT GetPartialUid(const SHADERUID& uid);
 template<> PixelShaderUid GetPartialUid(const SHADERUID& uid) { return uid.puid; }
 template<> VertexShaderUid GetPartialUid(const SHADERUID& uid) { return uid.vuid; }
 
-template<class CodeT> const std::string& GetShaderCode(const SHADER& shader);
-template<> const std::string& GetShaderCode<PixelShaderCode>(const SHADER& shader) { return shader.strpprog; }
-template<> const std::string& GetShaderCode<VertexShaderCode>(const SHADER& shader) { return shader.strvprog; }
+template<class UidT> const std::string& GetShaderCode(const SHADER& shader);
+template<> const std::string& GetShaderCode<PixelShaderUid>(const SHADER& shader) { return shader.strpprog; }
+template<> const std::string& GetShaderCode<VertexShaderUid>(const SHADER& shader) { return shader.strvprog; }
 
 template<class UidT, class CodeT>
 void CheckForUidMismatch(const ProgramShaderCache::PCache& cache, CodeT& new_code, const UidT& new_uid)

@@ -274,7 +274,8 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
-	pixel_shader_uid_data& uid_data = (&out.GetUidData() != NULL) ? out.GetUidData() : dummy_data;
+	pixel_shader_uid_data& uid_data = (&out.template GetUidData<pixel_shader_uid_data>() != NULL)
+										? out.template GetUidData<pixel_shader_uid_data>() : dummy_data;
 
 	out.SetBuffer(text);
 	if (out.GetBuffer() != NULL)

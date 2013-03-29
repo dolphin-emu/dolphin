@@ -183,7 +183,7 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 	{
 		// Generate new shader. Warning: not thread-safe.
 		static char buffer[16384];
-		ShaderCode<u32> code;
+		ShaderCode code;
 		code.SetBuffer(buffer);
 		GenerateVSOutputStructForGS(code, components, API_D3D11);
 		code.Write("\n%s", LINE_GS_COMMON);

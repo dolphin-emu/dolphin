@@ -85,7 +85,8 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	vertex_shader_uid_data dummy_data;
-	vertex_shader_uid_data& uid_data = (&out.GetUidData() != NULL) ? out.GetUidData() : dummy_data;
+	vertex_shader_uid_data& uid_data = (&out.template GetUidData<vertex_shader_uid_data>() != NULL)
+											? out.template GetUidData<vertex_shader_uid_data>() : dummy_data;
 
 	out.SetBuffer(text);
 	if (out.GetBuffer() != NULL)
@@ -535,7 +536,7 @@ void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE
 	GenerateVertexShader<VertexShaderCode>(object, components, api_type);
 }
 
-void GenerateVSOutputStructForGS(ShaderCode<u32>& object, u32 components, API_TYPE api_type)
+void GenerateVSOutputStructForGS(ShaderCode& object, u32 components, API_TYPE api_type)
 {
-	GenerateVSOutputStruct<ShaderCode<u32> >(object, components, api_type);
+	GenerateVSOutputStruct<ShaderCode>(object, components, api_type);
 }

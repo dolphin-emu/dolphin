@@ -190,8 +190,8 @@ struct pixel_shader_uid_data
 };
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
-typedef ShaderCode<pixel_shader_uid_data> PixelShaderCode;
-typedef ShaderConstantProfile<pixel_shader_uid_data> PixelShaderConstantProfile;
+typedef ShaderCode PixelShaderCode; // TODO: Obsolete
+typedef ShaderConstantProfile PixelShaderConstantProfile; // TODO: Obsolete
 
 
 void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);

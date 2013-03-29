@@ -177,7 +177,7 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 	{
 		// Generate new shader. Warning: not thread-safe.
 		static char buffer[16384];
-		ShaderCode<u32> code;
+		ShaderCode code;
 		code.SetBuffer(buffer);
 		GenerateVSOutputStructForGS(code, components, API_D3D11);
 		code.Write("\n%s", POINT_GS_COMMON);
