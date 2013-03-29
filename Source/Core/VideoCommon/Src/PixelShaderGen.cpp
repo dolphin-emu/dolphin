@@ -19,7 +19,6 @@
 #include <cmath>
 #include <assert.h>
 #include <locale.h>
-#include <typeinfo>
 
 #include "LightingShaderGen.h"
 #include "PixelShaderGen.h"
@@ -271,13 +270,12 @@ template<class T>
 void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
 	// TODO: Can be optimized if using alpha pass
-#define SetUidField(name, value) if (typeid(T) == typeid(PixelShaderUid)) {out.GetUidData().name = value; };
-#define OR_UidField(name, value) if (typeid(T) == typeid(PixelShaderUid)) {out.GetUidData().name |= value; };
-	if (typeid(T) == typeid(PixelShaderCode))
-	{
+#define SetUidField(name, value) if (&out.GetUidData() != NULL) {out.GetUidData().name = value; };
+#define OR_UidField(name, value) if (&out.GetUidData() != NULL) {out.GetUidData().name |= value; };
+	out.SetBuffer(text);
+	if (out.GetBuffer() != NULL)
 		setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
-		out.SetBuffer(text);
-	}
+
 ///	text[sizeof(text) - 1] = 0x7C;  // canary
 
 	unsigned int numStages = bpmem.genMode.numtevstages + 1;
@@ -669,7 +667,8 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 ///	if (text[sizeof(text) - 1] != 0x7C)
 ///		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
 
-	setlocale(LC_NUMERIC, ""); // restore locale
+	if (out.GetBuffer() != NULL)
+		setlocale(LC_NUMERIC, ""); // restore locale
 }
 
 

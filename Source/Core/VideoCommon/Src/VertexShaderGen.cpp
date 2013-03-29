@@ -17,7 +17,6 @@
 
 #include <math.h>
 #include <locale.h>
-#include <typeinfo>
 
 #include "NativeVertexFormat.h"
 
@@ -85,14 +84,11 @@ template<class T>
 void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 {
 #undef SetUidField
-#define SetUidField(name, value) if (typeid(T) == typeid(VertexShaderUid)) {out.GetUidData().name = value; };
+#define SetUidField(name, value) if (&out.GetUidData() != NULL) {out.GetUidData().name = value; };
 
-	if (typeid(T) == typeid(VertexShaderCode))
-	{
-		out.SetBuffer(text);
+	out.SetBuffer(text);
+	if (out.GetBuffer() != NULL)
 		setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
-	}
-
 
 //	text[sizeof(text) - 1] = 0x7C;  // canary
 
@@ -523,7 +519,7 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 
 ///	if (text[sizeof(text) - 1] != 0x7C)
 ///		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
-	if (typeid(T) == typeid(VertexShaderCode))
+	if (out.GetBuffer() != NULL)
 		setlocale(LC_NUMERIC, ""); // restore locale
 }
 

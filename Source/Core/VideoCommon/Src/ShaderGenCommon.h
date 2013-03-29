@@ -33,7 +33,7 @@ public:
 	const char* GetBuffer() { return NULL; }
 	void SetBuffer(char* buffer) { }
 	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
-    uid_data& GetUidData() { return *(uid_data*)NULL; }
+	uid_data& GetUidData() { return *(uid_data*)NULL; } // TODO: can be moved out, just make this GetUidData<T> instead
 };
 
 template<class uid_data>
@@ -122,7 +122,8 @@ public:
 
 	inline bool ConstantIsUsed(unsigned int index)
 	{
-		return constant_usage[index];
+		return true;
+//		return constant_usage[index];
 	}
 private:
 	std::vector<bool> constant_usage; // TODO: Is vector<bool> appropriate here?

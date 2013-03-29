@@ -28,7 +28,7 @@
 template<class T,class UidType>
 void GenerateLightShader(T& object, int index, int litchan_index, const char* lightsName, int coloralpha)
 {
-#define SetUidField(name, value) if (typeid(T) == typeid(UidType)) { object.GetUidData().name = value; };
+#define SetUidField(name, value) if (&object.GetUidData() != NULL) { object.GetUidData().name = value; };
 	const LitChannel& chan = (litchan_index > 1) ? xfregs.alpha[litchan_index-2] : xfregs.color[litchan_index];
 	const char* swizzle = "xyzw";
 	if (coloralpha == 1 ) swizzle = "xyz";

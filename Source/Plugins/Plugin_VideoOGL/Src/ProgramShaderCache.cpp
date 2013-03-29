@@ -201,9 +201,9 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 			return &last_entry->shader;
 		}
 	}
-	
+
 	last_uid = uid;
-	
+
 	// Check if shader is already in cache
 	PCache::iterator iter = pshaders.find(uid);
 	if (iter != pshaders.end())
@@ -215,17 +215,17 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 		last_entry->shader.Bind();
 		return &last_entry->shader;
 	}
-	
+
 	// Make an entry in the table
 	PCacheEntry& newentry = pshaders[uid];
 	last_entry = &newentry;
 	newentry.in_cache = 0;
-	
+
 	VertexShaderCode vcode;
 	PixelShaderCode pcode;
 	GenerateVertexShaderCode(vcode, components, API_OPENGL);
 	GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
-	
+
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
 		newentry.shader.strvprog = vcode.GetBuffer();
@@ -260,7 +260,7 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 {
 	GLuint vsid = CompileSingleShader(GL_VERTEX_SHADER, vcode);
 	GLuint psid = CompileSingleShader(GL_FRAGMENT_SHADER, pcode);
-	
+
 	if(!vsid || !psid)
 	{
 		glDeleteShader(vsid);

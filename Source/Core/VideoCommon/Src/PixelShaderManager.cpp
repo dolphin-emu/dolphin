@@ -46,9 +46,9 @@ static float s_constant_cache[C_PENVCONST_END*4];
 
 inline void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	if (s_constant_cache[const_number*4] == f1 && s_constant_cache[const_number*4+1] == f2 &&
-	    s_constant_cache[const_number*4+2] == f3 && s_constant_cache[const_number*4+3] == f4)
-		return;
+//	if (s_constant_cache[const_number*4] == f1 && s_constant_cache[const_number*4+1] == f2 &&
+//	    s_constant_cache[const_number*4+2] == f3 && s_constant_cache[const_number*4+3] == f4)
+//		return;
 
 	g_renderer->SetPSConstant4f(const_number, f1, f2, f3, f4);
 	s_constant_cache[const_number*4] = f1;
@@ -59,9 +59,9 @@ inline void SetPSConstant4f(unsigned int const_number, float f1, float f2, float
 
 inline void SetPSConstant4fv(unsigned int const_number, const float *f)
 {
-	if (s_constant_cache[const_number*4] == f[0] && s_constant_cache[const_number*4+1] == f[1] &&
-	    s_constant_cache[const_number*4+2] == f[2] && s_constant_cache[const_number*4+3] == f[3])
-		return;
+//	if (s_constant_cache[const_number*4] == f[0] && s_constant_cache[const_number*4+1] == f[1] &&
+//	    s_constant_cache[const_number*4+2] == f[2] && s_constant_cache[const_number*4+3] == f[3])
+//		return;
 
 	g_renderer->SetPSConstant4fv(const_number, f);
 	s_constant_cache[const_number*4] = f[0];
@@ -72,11 +72,11 @@ inline void SetPSConstant4fv(unsigned int const_number, const float *f)
 
 inline void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	for (unsigned int i = 0; i < 4*count; ++i)
-		if (s_constant_cache[const_number*4+i] != f[i])
-			break;
-		else if (i == 4*count-1)
-			return;
+//	for (unsigned int i = 0; i < 4*count; ++i)
+//		if (s_constant_cache[const_number*4+i] != f[i])
+//			break;
+//		else if (i == 4*count-1)
+//			return;
 
 	g_renderer->SetMultiPSConstant4fv(const_number, count, f);
 	for (unsigned int i = 0; i < 4*count; ++i)
@@ -149,7 +149,7 @@ void PixelShaderManager::SetConstants(u32 components)
 	{
 		for (int i = 0; i < 8; ++i)
 		{
-            if (s_nTexDimsChanged & (1<<i) && constant_profile.ConstantIsUsed(C_TEXDIMS+i))
+            if ((s_nTexDimsChanged & (1<<i)) && constant_profile.ConstantIsUsed(C_TEXDIMS+i))
 			{
 				++necessary_updates;
 				SetPSTextureDims(i);
