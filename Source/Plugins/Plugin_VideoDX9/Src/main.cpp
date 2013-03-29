@@ -101,6 +101,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bUseRGBATextures = false;
 	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = true;
+	g_Config.backend_info.bSupportsPrimitiveRestart = false; // TODO: figure out if it does
 	OSVERSIONINFO info;
 	ZeroMemory(&info, sizeof(OSVERSIONINFO));
 	info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);

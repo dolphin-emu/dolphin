@@ -18,6 +18,7 @@
 #include <cstddef>
 
 #include "Common.h"
+#include "VideoConfig.h"
 #include "IndexGenerator.h"
 
 /*
@@ -90,7 +91,9 @@ __forceinline void IndexGenerator::WriteTriangle(u32 index1, u32 index2, u32 ind
 	*Tptr++ = index1;
 	*Tptr++ = index2;
 	*Tptr++ = index3;
-
+	if(g_Config.backend_info.bSupportsPrimitiveRestart)
+		*Tptr++ = 65535;
+	
 	++numT;
 }
 
@@ -105,15 +108,25 @@ void IndexGenerator::AddList(u32 const numVerts)
 
 void IndexGenerator::AddStrip(u32 const numVerts)
 {
-	bool wind = false;
-	for (u32 i = 2; i < numVerts; ++i)
-	{
-		WriteTriangle(
-			index + i - 2,
-			index + i - !wind,
-			index + i - wind);
+	if(g_Config.backend_info.bSupportsPrimitiveRestart) {
+		for (u32 i = 0; i < numVerts; ++i)
+		{
+			*Tptr++ = index + i;
+		}
+		*Tptr++ = 65535;
+		numT += numVerts - 2;
+		
+	} else {
+		bool wind = false;
+		for (u32 i = 2; i < numVerts; ++i)
+		{
+			WriteTriangle(
+				index + i - 2,
+				index + i - !wind,
+				index + i - wind);
 
-		wind ^= true;
+			wind ^= true;
+		}
 	}
 }
 
@@ -130,8 +143,17 @@ void IndexGenerator::AddQuads(u32 numVerts)
 	auto const numQuads = numVerts / 4;
 	for (u32 i = 0; i != numQuads; ++i)
 	{
-		WriteTriangle(index + i * 4, index + i * 4 + 1, index + i * 4 + 2);
-		WriteTriangle(index + i * 4, index + i * 4 + 2, index + i * 4 + 3);
+		if(g_Config.backend_info.bSupportsPrimitiveRestart) {
+			*Tptr++ = index + i * 4 + 0;
+			*Tptr++ = index + i * 4 + 1;
+			*Tptr++ = index + i * 4 + 3;
+			*Tptr++ = index + i * 4 + 2;
+			*Tptr++ = 65535;
+			numT += 2;
+		} else {
+			WriteTriangle(index + i * 4, index + i * 4 + 1, index + i * 4 + 2);
+			WriteTriangle(index + i * 4, index + i * 4 + 2, index + i * 4 + 3);
+		}
 	}
 }
 

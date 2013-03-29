@@ -74,28 +74,54 @@ bool VertexManager::IsFlushed() const
 
 u32 VertexManager::GetRemainingIndices(int primitive)
 {
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 6 * 4;
-	case GX_DRAW_TRIANGLES:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen());
-	case GX_DRAW_TRIANGLE_STRIP:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
-	case GX_DRAW_TRIANGLE_FAN:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
+	
+	if(g_Config.backend_info.bSupportsPrimitiveRestart) {
+		switch (primitive)
+		{
+		case GX_DRAW_QUADS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 5 * 4;
+		case GX_DRAW_TRIANGLES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 4 * 3;
+		case GX_DRAW_TRIANGLE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 1 - 1;
+		case GX_DRAW_TRIANGLE_FAN:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 4 + 2;
 
-	case GX_DRAW_LINES:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
-	case GX_DRAW_LINE_STRIP:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2 + 1;
+		case GX_DRAW_LINES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
+		case GX_DRAW_LINE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2 + 1;
 
-	case GX_DRAW_POINTS:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
+		case GX_DRAW_POINTS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
 
-	default:
-		return 0;
-	}
+		default:
+			return 0;
+		}
+	} else {
+		switch (primitive)
+		{
+		case GX_DRAW_QUADS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 6 * 4;
+		case GX_DRAW_TRIANGLES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen());
+		case GX_DRAW_TRIANGLE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
+		case GX_DRAW_TRIANGLE_FAN:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
+
+		case GX_DRAW_LINES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
+		case GX_DRAW_LINE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2 + 1;
+
+		case GX_DRAW_POINTS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
+
+		default:
+			return 0;
+		}
+	} 
 }
 
 void VertexManager::AddVertices(int primitive, u32 numVertices)

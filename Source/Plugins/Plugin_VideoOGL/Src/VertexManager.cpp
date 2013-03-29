@@ -127,7 +127,7 @@ void VertexManager::Draw(u32 stride)
 	if(g_ogl_config.bSupportsGLBaseVertex) {
 		if (triangle_index_size > 0)
 		{
-			glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
+			glDrawElementsBaseVertex(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart?GL_TRIANGLE_STRIP:GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
@@ -143,7 +143,7 @@ void VertexManager::Draw(u32 stride)
 	} else {
 		if (triangle_index_size > 0)
 		{
-			glDrawElements(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
+			glDrawElements(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart?GL_TRIANGLE_STRIP:GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
