@@ -30,6 +30,8 @@
 #include "UCode_AXStructs.h"
 #include "../../DSP.h"
 
+#include <functional>
+
 #ifdef AX_GC
 # define PB_TYPE AXPB
 # define SAMPLES_PER_FRAME 32
