@@ -22,7 +22,7 @@
 // This conflicts with gettext's use of _ as a macro.
 #undef _
 
-#include <condition_variable>
+#include "StdConditionVariable.h"
 #include <mutex>
 #include <thread>
 
