@@ -70,18 +70,19 @@ MOVUPS(MOffset(EDI, 0), XMM0);
 
 									 */
 
-template <typename T, int N, int frac>
+template <typename F, typename T, int N, int frac>
 void LOADERDECL Pos_ReadDirect()
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
 
 	for (int i = 0; i < 3; ++i)
-		DataWrite(i<N ? float(DataRead<T>()) / (1u << frac) : 0.f);
+		DataWrite<F>(i<N ? DataRead<T>() : 0);
 
+	DataWrite<F>(frac);
 	LOG_VTX();
 }
 
-template <typename I, typename T, int N, int frac>
+template <typename F, typename I, typename T, int N, int frac>
 void LOADERDECL Pos_ReadIndex()
 {
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
@@ -93,8 +94,9 @@ void LOADERDECL Pos_ReadIndex()
 		auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
 
 		for (int i = 0; i < 3; ++i)
-			DataWrite(i<N ? float(Common::FromBigEndian(data[i])) / (1u << frac) : 0.f);
+			DataWrite<F>(i<N ? Common::FromBigEndian(data[i]) : 0);
 
+		DataWrite<F>(frac);
 		LOG_VTX();
 	}
 }
@@ -114,6 +116,7 @@ void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 		GC_ALIGNED128(__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2));
 		_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
 		VertexManager::s_pCurBufferPointer += sizeof(float) * 3;
+		DataWrite<float>(0);
 		LOG_VTX();
 	}
 }
@@ -130,9 +133,9 @@ void VertexLoader_Position::Init(void) {
 	// ugly as hell, but all other ways are even uglier
 	
 	#define set_table(format, formatnr, formatsize, elements, frac, fracnr) \
-		tableReadPosition[1][formatnr][elements-2][fracnr] = Pos_ReadDirect<format, elements, frac>; \
-		tableReadPosition[2][formatnr][elements-2][fracnr] = Pos_ReadIndex<u8, format, elements, frac>; \
-		tableReadPosition[3][formatnr][elements-2][fracnr] = Pos_ReadIndex<u16, format, elements, frac>; \
+		tableReadPosition[1][formatnr][elements-2][fracnr] = Pos_ReadDirect<float, format, elements, frac>; \
+		tableReadPosition[2][formatnr][elements-2][fracnr] = Pos_ReadIndex<float, u8, format, elements, frac>; \
+		tableReadPosition[3][formatnr][elements-2][fracnr] = Pos_ReadIndex<float, u16, format, elements, frac>; \
 		tableReadPositionVertexSize[1][formatnr][elements-2][fracnr] = formatsize*elements; \
 		tableReadPositionVertexSize[2][formatnr][elements-2][fracnr] = 1; \
 		tableReadPositionVertexSize[3][formatnr][elements-2][fracnr] = 2;
@@ -158,7 +161,6 @@ void VertexLoader_Position::Init(void) {
 
 	set_table_frac_16(0);
 
-
 #if _M_SSE >= 0x301
 
 	if (cpu_info.bSSSE3) {
@@ -172,7 +174,6 @@ void VertexLoader_Position::Init(void) {
 	}
 
 #endif
-
 
 }
 

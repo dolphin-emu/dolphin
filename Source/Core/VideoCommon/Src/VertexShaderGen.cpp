@@ -291,7 +291,10 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		}
 		WRITE(p, "  float4 rawpos : POSITION) {\n");
 	}
-	WRITE(p, "VS_OUTPUT o;\n");	
+	WRITE(p, "VS_OUTPUT o;\n");
+	
+	// normalization & shifting
+	WRITE(p, "float4 rawpos_norm = float4(rawpos.xyz * exp2(-rawpos.w), 1.0f);\n");
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
@@ -306,7 +309,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 			WRITE(p, "int posmtx = blend_indices.x * 255.0f;\n");
 		}
 
-		WRITE(p, "float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");		
+		WRITE(p, "float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos_norm), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos_norm), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos_norm), 1);\n");		
 
 		if (components & VB_HAS_NRMALL) {
 			WRITE(p, "int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
@@ -322,7 +325,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	}
 	else
 	{
-		WRITE(p, "float4 pos = float4(dot(" I_POSNORMALMATRIX"[0], rawpos), dot(" I_POSNORMALMATRIX"[1], rawpos), dot(" I_POSNORMALMATRIX"[2], rawpos), 1.0f);\n");
+		WRITE(p, "float4 pos = float4(dot(" I_POSNORMALMATRIX"[0], rawpos_norm), dot(" I_POSNORMALMATRIX"[1], rawpos_norm), dot(" I_POSNORMALMATRIX"[2], rawpos_norm), 1.0f);\n");
 		if (components & VB_HAS_NRM0)
 			WRITE(p, "float3 _norm0 = normalize(float3(dot(" I_POSNORMALMATRIX"[3].xyz, rawnorm0), dot(" I_POSNORMALMATRIX"[4].xyz, rawnorm0), dot(" I_POSNORMALMATRIX"[5].xyz, rawnorm0)));\n");
 		if (components & VB_HAS_NRM1)
@@ -377,7 +380,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 		switch (texinfo.sourcerow) {
 		case XF_SRCGEOM_INROW:
 			_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
-			WRITE(p, "coord = rawpos;\n"); // pos.w is 1
+			WRITE(p, "coord = rawpos_norm;\n"); // pos.w is 1
 			break;
 		case XF_SRCNORMAL_INROW:
 			if (components & VB_HAS_NRM0) {

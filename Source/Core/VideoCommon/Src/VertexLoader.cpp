@@ -301,7 +301,7 @@ void VertexLoader::CompileVertexTranslator()
 		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac));
 	}
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
-	nat_offset += 12;
+	nat_offset += 16;
 
 	// Normals
 	vtx_decl.num_normals = 0;

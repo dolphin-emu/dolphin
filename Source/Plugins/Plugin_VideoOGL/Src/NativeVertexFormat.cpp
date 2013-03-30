@@ -74,7 +74,7 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
 
 	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE, vtx_decl.stride, (u8*)NULL);
+	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 4, GL_FLOAT, GL_FALSE, vtx_decl.stride, (u8*)NULL);
 	
 	for (int i = 0; i < 3; i++) {
 		if (vtx_decl.num_normals > i) {
