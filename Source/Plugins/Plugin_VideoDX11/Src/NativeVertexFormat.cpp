@@ -84,7 +84,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	m_elems[m_num_elems].SemanticName = "POSITION";
 	m_elems[m_num_elems].AlignedByteOffset = 0;
-	m_elems[m_num_elems].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	m_elems[m_num_elems].Format = VarToD3D(_vtx_decl.position_gl_type, 4);
 	m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	++m_num_elems;
 

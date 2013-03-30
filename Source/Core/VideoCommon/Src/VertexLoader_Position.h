@@ -18,6 +18,8 @@
 #ifndef VERTEXLOADER_POSITION_H
 #define VERTEXLOADER_POSITION_H
 
+#include "NativeVertexFormat.h"
+
 class VertexLoader_Position {
 public:
 
@@ -29,6 +31,12 @@ public:
 
 	// GetFunction
 	static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
+
+	// GetGLType
+	static int GetGLType(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
+
+	// GetGLSize
+	static int GetGLSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
 };
 
 #endif

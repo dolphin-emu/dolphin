@@ -117,7 +117,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	// So, here we go. First position:
 	int elem_idx = 0;
 	elems[elem_idx].Offset = 0;  // Positions are always first, at position 0. Always float3.
-	elems[elem_idx].Type = D3DDECLTYPE_FLOAT4;
+	elems[elem_idx].Type = VarToD3D(_vtx_decl.position_gl_type, 4);
 	elems[elem_idx].Usage = D3DDECLUSAGE_POSITION;
 	++elem_idx;
 

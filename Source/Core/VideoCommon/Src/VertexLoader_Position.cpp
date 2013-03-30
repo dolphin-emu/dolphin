@@ -19,6 +19,7 @@
 
 #include "Common.h"
 #include "VideoCommon.h"
+#include "VideoConfig.h"
 #include "VertexLoader.h"
 #include "VertexLoader_Position.h"
 #include "VertexManagerBase.h"
@@ -101,29 +102,10 @@ void LOADERDECL Pos_ReadIndex()
 	}
 }
 
-#if _M_SSE >= 0x301
-static const __m128i kMaskSwap32_3 = _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x04050607L, 0x00010203L);
-static const __m128i kMaskSwap32_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
-
-template <typename I, bool three>
-void LOADERDECL Pos_ReadIndex_Float_SSSE3()
-{
-	auto const index = DataRead<I>();
-	if (index < std::numeric_limits<I>::max())
-	{
-		const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
-		GC_ALIGNED128(const __m128i a = _mm_loadu_si128((__m128i*)pData));
-		GC_ALIGNED128(__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2));
-		_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
-		VertexManager::s_pCurBufferPointer += sizeof(float) * 3;
-		DataWrite<float>(0);
-		LOG_VTX();
-	}
-}
-#endif
-
 static TPipelineFunction tableReadPosition[4][5][2][32];
 static int tableReadPositionVertexSize[4][5][2][32];
+static VarType tableReadPositionGLType[4][5][2][32];
+static int tableReadPositionGLSize[4][5][2][32];
 
 void VertexLoader_Position::Init(void) {
 	memset(tableReadPosition, 0, sizeof(tableReadPosition));
@@ -132,20 +114,31 @@ void VertexLoader_Position::Init(void) {
 	// c++ templates can't be created in usual c++ loops, so we have to this per preprocessor
 	// ugly as hell, but all other ways are even uglier
 	
-	#define set_table(format, formatnr, formatsize, elements, frac, fracnr) \
-		tableReadPosition[1][formatnr][elements-2][fracnr] = Pos_ReadDirect<float, format, elements, frac>; \
-		tableReadPosition[2][formatnr][elements-2][fracnr] = Pos_ReadIndex<float, u8, format, elements, frac>; \
-		tableReadPosition[3][formatnr][elements-2][fracnr] = Pos_ReadIndex<float, u16, format, elements, frac>; \
+	#define set_table(format, formatnr, formatsize, elements, frac, fracnr, gltype, format_out) \
+		tableReadPosition[1][formatnr][elements-2][fracnr] = Pos_ReadDirect<format_out, format, elements, frac>; \
+		tableReadPosition[2][formatnr][elements-2][fracnr] = Pos_ReadIndex<format_out, u8, format, elements, frac>; \
+		tableReadPosition[3][formatnr][elements-2][fracnr] = Pos_ReadIndex<format_out, u16, format, elements, frac>; \
 		tableReadPositionVertexSize[1][formatnr][elements-2][fracnr] = formatsize*elements; \
 		tableReadPositionVertexSize[2][formatnr][elements-2][fracnr] = 1; \
-		tableReadPositionVertexSize[3][formatnr][elements-2][fracnr] = 2;
+		tableReadPositionVertexSize[3][formatnr][elements-2][fracnr] = 2; \
+		tableReadPositionGLType[1][formatnr][elements-2][fracnr] = gltype; \
+		tableReadPositionGLType[2][formatnr][elements-2][fracnr] = gltype; \
+		tableReadPositionGLType[3][formatnr][elements-2][fracnr] = gltype; \
+		tableReadPositionGLSize[1][formatnr][elements-2][fracnr] = sizeof(format_out)*4; \
+		tableReadPositionGLSize[2][formatnr][elements-2][fracnr] = sizeof(format_out)*4; \
+		tableReadPositionGLSize[3][formatnr][elements-2][fracnr] = sizeof(format_out)*4;
 
+	// dx9 doesn't support signed bytes, so we have to convert them to shorts
 	#define set_table_formats(elements, frac) \
-		set_table(u8, 0, 1, elements, frac, frac); \
-		set_table(s8, 1, 1, elements, frac, frac); \
-		set_table(u16, 2, 2, elements, frac, frac); \
-		set_table(s16, 3, 2, elements, frac, frac); \
-		set_table(float, 4, 4, elements, 0, frac);
+		set_table(u8, 0, 1, elements, frac, frac, VAR_UNSIGNED_BYTE, u8); \
+		if(g_ActiveConfig.backend_info.APIType & API_D3D9) { \
+			set_table(s8, 1, 1, elements, frac, frac, VAR_SHORT, s16); \
+		} else { \
+			set_table(s8, 1, 1, elements, frac, frac, VAR_BYTE, s8); \
+		} \
+		set_table(u16, 2, 2, elements, frac, frac, VAR_UNSIGNED_SHORT, u16); \
+		set_table(s16, 3, 2, elements, frac, frac, VAR_SHORT, s16); \
+		set_table(float, 4, 4, elements, 0, frac, VAR_FLOAT, float);
 		
 	#define set_table_elements(frac) \
 		set_table_formats(2, frac); \
@@ -160,21 +153,6 @@ void VertexLoader_Position::Init(void) {
 	#define set_table_frac_16(frac) set_table_frac_8(frac); set_table_frac_8(frac+16);
 
 	set_table_frac_16(0);
-
-#if _M_SSE >= 0x301
-
-	if (cpu_info.bSSSE3) {
-		for(int frac=0; frac<32; frac++)
-		{
-			tableReadPosition[2][4][0][frac] = Pos_ReadIndex_Float_SSSE3<u8, false>;
-			tableReadPosition[2][4][1][frac] = Pos_ReadIndex_Float_SSSE3<u8, true>;
-			tableReadPosition[3][4][0][frac] = Pos_ReadIndex_Float_SSSE3<u16, false>;
-			tableReadPosition[3][4][1][frac] = Pos_ReadIndex_Float_SSSE3<u16, true>;
-		}
-	}
-
-#endif
-
 }
 
 unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac) {
@@ -183,4 +161,12 @@ unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _fo
 
 TPipelineFunction VertexLoader_Position::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac) {
 	return tableReadPosition[_type][_format][_elements][_frac];
+}
+
+int VertexLoader_Position::GetGLType(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac) {
+	return tableReadPositionGLType[_type][_format][_elements][_frac];
+}
+
+int VertexLoader_Position::GetGLSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac) {
+	return tableReadPositionGLSize[_type][_format][_elements][_frac];
 }

@@ -75,16 +75,21 @@ struct PortableVertexDeclaration
 {
 	int stride;
 
+	VarType position_gl_type;
+	
 	int num_normals;
 	int normal_offset[3];
 	VarType normal_gl_type;
 	int normal_gl_size;
+	
 	VarType color_gl_type;  // always GL_UNSIGNED_BYTE
 	int color_offset[2];
+	
 	VarType texcoord_gl_type[8];
 	//int texcoord_gl_size[8];
 	int texcoord_offset[8];
 	int texcoord_size[8];
+	
 	int posmtx_offset;
 };
 
