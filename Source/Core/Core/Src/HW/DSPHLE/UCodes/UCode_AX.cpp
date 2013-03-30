@@ -55,12 +55,29 @@ void CUCode_AX::LoadResamplingCoefficients()
 {
 	m_coeffs_available = false;
 
-	std::string filename = File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin";
-	if (!File::Exists(filename))
+	std::string filenames[] = {
+		File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin",
+		File::GetSysDirectory() + "/GC/dsp_coef.bin"
+	};
+
+	size_t fidx;
+	std::string filename;
+	for (fidx = 0; fidx < sizeof (filenames) / sizeof (filenames[0]); ++fidx)
+	{
+		filename = filenames[fidx];
+		if (!File::Exists(filename))
+			continue;
+
+		if (File::GetSize(filename) != 0x1000)
+			continue;
+
+		break;
+	}
+
+	if (fidx >= sizeof (filenames) / sizeof (filenames[0]))
 		return;
 
-	if (File::GetSize(filename) != 0x1000)
-		return;
+	WARN_LOG(DSPHLE, "Loading polyphase resampling coeffs from %s", filename.c_str());
 
 	FILE* fp = fopen(filename.c_str(), "rb");
 	fread(m_coeffs, 1, 0x1000, fp);
