@@ -134,6 +134,9 @@ protected:
 	// versions of AX.
 	AXMixControl ConvertMixerControl(u32 mixer_control);
 
+	// Apply updates to a PB. Generic, used in AX GC and AX Wii.
+	void ApplyUpdatesForMs(int curr_ms, u16* pb, u16* num_updates, u16* updates);
+
 	// Signal that we should start handling a command list. Dispatches to the
 	// AX thread if using a thread, else just sets a boolean flag.
 	void StartWorking();

@@ -35,6 +35,8 @@ CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
 	for (int i = 0; i < 3; ++i)
 		m_last_aux_volumes[i] = 0x8000;
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AXWii");
+
+	m_old_axwii = (l_CRC == 0xfa450138);
 }
 
 CUCode_AXWii::~CUCode_AXWii()
@@ -100,6 +102,8 @@ void CUCode_AXWii::HandleCommandList()
 			case CMD_UNK_08: curr_idx += 13; break;
 			case CMD_UNK_09: curr_idx += 13; break;
 
+			// TODO(delroth): figure this one out, it's used by almost every
+			// game I've tested so far.
 			case CMD_UNK_0A: curr_idx += 4; break;
 
 			case CMD_OUTPUT:
@@ -240,6 +244,43 @@ void CUCode_AXWii::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nv
 	}
 }
 
+bool CUCode_AXWii::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates)
+{
+	u16* pb_mem = (u16*)&pb;
+
+	if (!m_old_axwii)
+		return false;
+
+	// Copy the num_updates field.
+	memcpy(num_updates, pb_mem + 41, 6);
+
+	// Get the address of the updates data
+	u16 addr_hi = pb_mem[44];
+	u16 addr_lo = pb_mem[45];
+	u32 addr = HILO_TO_32(addr);
+	u16* ptr = (u16*)HLEMemory_Get_Pointer(addr);
+
+	// Copy the updates data and change the offset to match a PB without
+	// updates data.
+	u32 updates_count = num_updates[0] + num_updates[1] + num_updates[2];
+	for (u32 i = 0; i < updates_count; ++i)
+	{
+		u16 update_off = Common::swap16(ptr[2 * i]);
+		u16 update_val = Common::swap16(ptr[2 * i + 1]);
+
+		if (update_off > 45)
+			update_off -= 5;
+
+		updates[2 * i] = update_off;
+		updates[2 * i + 1] = update_val;
+	}
+
+	// Remove the updates data from the PB
+	memmove(pb_mem + 41, pb_mem + 45, sizeof (pb) - 2 * 45);
+
+	return true;
+}
+
 void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 {
 	AXPBWii pb;
@@ -272,8 +313,28 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 		if (!ReadPB(pb_addr, pb))
 			break;
 
-		ProcessVoice(pb, buffers, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
-		             m_coeffs_available ? m_coeffs : NULL);
+		u16 num_updates[3];
+		u16 updates[1024];
+		if (ExtractUpdatesFields(pb, num_updates, updates))
+		{
+			for (int curr_ms = 0; curr_ms < 3; ++curr_ms)
+			{
+				ApplyUpdatesForMs(curr_ms, (u16*)&pb, num_updates, updates);
+				ProcessVoice(pb, buffers, 32,
+				             ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+				             m_coeffs_available ? m_coeffs : NULL);
+
+				// Forward the buffers
+				for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)
+					buffers.ptrs[i] += 32;
+			}
+		}
+		else
+		{
+			ProcessVoice(pb, buffers, 96,
+			             ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+			             m_coeffs_available ? m_coeffs : NULL);
+		}
 
 		WritePB(pb_addr, pb);
 		pb_addr = HILO_TO_32(pb.next_pb);

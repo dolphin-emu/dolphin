@@ -324,52 +324,6 @@ struct AXPBWii
 	u16 pad[12]; // align us, captain! (32B)
 };
 
-// Seems like nintendo used an early version of AXWii and forgot to remove the update functionality ;p
-struct PBUpdatesWiiSports
-{
-	u16 num_updates[3];
-	u16 data_hi;
-	u16 data_lo;
-};
-
-struct AXPBWiiSports
-{
-	u16 next_pb_hi;
-	u16 next_pb_lo;
-	u16 this_pb_hi;
-	u16 this_pb_lo;
-
-	u16 src_type;		// Type of sample rate converter (none, 4-tap, linear)
-	u16 coef_select;	// coef for the 4-tap src
-	u32 mixer_control;
-
-	u16 running;		// 1=RUN   0=STOP
-	u16 is_stream;		// 1 = stream, 0 = one shot
-
-	PBMixerWii mixer;
-	PBInitialTimeDelay initial_time_delay;
-	PBUpdatesWiiSports updates;
-	PBDpopWii dpop;
-	PBVolumeEnvelope vol_env;
-	PBAudioAddr audio_addr;
-	PBADPCMInfo adpcm;
-	PBSampleRateConverter src;
-	PBADPCMLoopInfo adpcm_loop_info;
-	PBLowPassFilter lpf;
-	PBBiquadFilter biquad;
-
-	// WIIMOTE :D
-	u16 remote;
-	u16 remote_mixer_control;
-
-	PBMixerWM remote_mixer;
-	PBDpopWM remote_dpop;
-	PBSampleRateConverterWM remote_src;
-	PBInfImpulseResponseWM remote_iir;
-
-	u16 pad[7]; // align us, captain! (32B)
-};
-
 // TODO: All these enums have changed a lot for wii
 enum {
     AUDIOFORMAT_ADPCM = 0,

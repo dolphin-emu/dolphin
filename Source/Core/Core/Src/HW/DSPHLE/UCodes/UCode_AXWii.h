@@ -44,10 +44,16 @@ protected:
 	int m_samples_wm3[6 * 3];
 	int m_samples_aux3[6 * 3];
 
+	// Are we implementing an old version of AXWii which still has updates?
+	bool m_old_axwii;
+
 	// Last volume values for MAIN and AUX. Used to generate volume ramps to
 	// interpolate nicely between old and new volume values.
 	u16 m_last_main_volume;
 	u16 m_last_aux_volumes[3];
+
+	// If needed, extract the updates related fields from a PB.
+	bool ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates);
 
 	// Convert a mixer_control bitfield to our internal representation for that
 	// value. Required because that bitfield has a different meaning in some

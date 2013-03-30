@@ -307,19 +307,18 @@ void CUCode_AX::HandleCommandList()
 	}
 }
 
-static void ApplyUpdatesForMs(AXPB& pb, int curr_ms)
+void CUCode_AX::ApplyUpdatesForMs(int curr_ms, u16* pb, u16* num_updates, u16* updates)
 {
 	u32 start_idx = 0;
 	for (int i = 0; i < curr_ms; ++i)
-		start_idx += pb.updates.num_updates[i];
+		start_idx += num_updates[i];
 
-	u32 update_addr = HILO_TO_32(pb.updates.data);
-	for (u32 i = start_idx; i < start_idx + pb.updates.num_updates[curr_ms]; ++i)
+	for (u32 i = start_idx; i < start_idx + num_updates[curr_ms]; ++i)
 	{
-		u16 update_off = HLEMemory_Read_U16(update_addr + 4 * i);
-		u16 update_val = HLEMemory_Read_U16(update_addr + 4 * i + 2);
+		u16 update_off = Common::swap16(updates[2 * i]);
+		u16 update_val = Common::swap16(updates[2 * i + 1]);
 
-		((u16*)&pb)[update_off] = update_val;
+		pb[update_off] = update_val;
 	}
 }
 
@@ -462,11 +461,14 @@ void CUCode_AX::ProcessPBList(u32 pb_addr)
 		if (!ReadPB(pb_addr, pb))
 			break;
 
+		u32 updates_addr = HILO_TO_32(pb.updates.data);
+		u16* updates = (u16*)HLEMemory_Get_Pointer(updates_addr);
+
 		for (int curr_ms = 0; curr_ms < 5; ++curr_ms)
 		{
-			ApplyUpdatesForMs(pb, curr_ms);
+			ApplyUpdatesForMs(curr_ms, (u16*)&pb, pb.updates.num_updates, updates);
 
-			ProcessVoice(pb, buffers, ConvertMixerControl(pb.mixer_control),
+			ProcessVoice(pb, buffers, spms, ConvertMixerControl(pb.mixer_control),
 			             m_coeffs_available ? m_coeffs : NULL);
 
 			// Forward the buffers
