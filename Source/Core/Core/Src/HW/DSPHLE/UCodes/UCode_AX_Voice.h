@@ -291,6 +291,8 @@ u32 ResampleAudio(function<s16(u32)> input_callback, s16* output, u32 count,
                   s16* last_samples, u32 curr_pos, u32 ratio, int srctype,
                   const s16* coeffs)
 {
+	int read_samples_count = 0;
+
 	// If DSP DROM coefficients are available, support polyphase resampling.
 	if (coeffs && srctype == SRCTYPE_POLYPHASE)
 	{
@@ -307,7 +309,7 @@ u32 ResampleAudio(function<s16(u32)> input_callback, s16* output, u32 count,
 			curr_pos += ratio;
 			while (curr_pos >= 0x10000)
 			{
-				temp[idx++ & 3] = input_callback(curr_pos >> 16);
+				temp[idx++ & 3] = input_callback(read_samples_count++);
 				curr_pos -= 0x10000;
 			}
 
@@ -350,7 +352,7 @@ u32 ResampleAudio(function<s16(u32)> input_callback, s16* output, u32 count,
 			// circular buffer.
 			while (curr_pos >= 0x10000)
 			{
-				temp[idx++ & 3] = input_callback(curr_pos >> 16);
+				temp[idx++ & 3] = input_callback(read_samples_count++);
 				curr_pos -= 0x10000;
 			}
 
