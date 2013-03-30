@@ -50,8 +50,10 @@ void CUCode_AXWii::HandleCommandList()
 	u16 addr2_hi, addr2_lo;
 	u16 volume;
 
+	u32 pb_addr = 0;
+
 //	WARN_LOG(DSPHLE, "Command list:");
-//	for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
+//	for (u32 i = 0; m_cmdlist[i] != CMD_END_OLD; ++i)
 //		WARN_LOG(DSPHLE, "%04x", m_cmdlist[i]);
 //	WARN_LOG(DSPHLE, "-------------");
 
@@ -61,78 +63,160 @@ void CUCode_AXWii::HandleCommandList()
 	{
 		u16 cmd = m_cmdlist[curr_idx++];
 
-		switch (cmd)
+		if (m_old_axwii)
 		{
-			// Some of these commands are unknown, or unused in this AX HLE.
-			// We still need to skip their arguments using "curr_idx += N".
-
-			case CMD_SETUP:
-				addr_hi = m_cmdlist[curr_idx++];
-				addr_lo = m_cmdlist[curr_idx++];
-				SetupProcessing(HILO_TO_32(addr));
-				break;
-
-			case CMD_ADD_TO_LR:
-				addr_hi = m_cmdlist[curr_idx++];
-				addr_lo = m_cmdlist[curr_idx++];
-				AddToLR(HILO_TO_32(addr));
-				break;
-
-			case CMD_UNK_02: curr_idx += 2; break;
-			case CMD_UNK_03: curr_idx += 2; break;
-
-			case CMD_PROCESS:
-				addr_hi = m_cmdlist[curr_idx++];
-				addr_lo = m_cmdlist[curr_idx++];
-				ProcessPBList(HILO_TO_32(addr));
-				break;
-
-			case CMD_MIX_AUXA:
-			case CMD_MIX_AUXB:
-			case CMD_MIX_AUXC:
-				volume = m_cmdlist[curr_idx++];
-				addr_hi = m_cmdlist[curr_idx++];
-				addr_lo = m_cmdlist[curr_idx++];
-				addr2_hi = m_cmdlist[curr_idx++];
-				addr2_lo = m_cmdlist[curr_idx++];
-				MixAUXSamples(cmd - CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2), volume);
-				break;
-
-			// These two go together and manipulate some AUX buffers.
-			case CMD_UNK_08: curr_idx += 13; break;
-			case CMD_UNK_09: curr_idx += 13; break;
-
-			// TODO(delroth): figure this one out, it's used by almost every
-			// game I've tested so far.
-			case CMD_UNK_0A: curr_idx += 4; break;
-
-			case CMD_OUTPUT:
-				volume = m_cmdlist[curr_idx++];
-				addr_hi = m_cmdlist[curr_idx++];
-				addr_lo = m_cmdlist[curr_idx++];
-				addr2_hi = m_cmdlist[curr_idx++];
-				addr2_lo = m_cmdlist[curr_idx++];
-				OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), volume);
-				break;
-
-			case CMD_UNK_0C: curr_idx += 5; break;
-
-			case CMD_WM_OUTPUT:
+			switch (cmd)
 			{
-				u32 addresses[4] = {
-					(u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
-					(u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
-					(u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
-					(u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
-				};
-				curr_idx += 8;
-				OutputWMSamples(addresses);
-				break;
-			}
+				// Some of these commands are unknown, or unused in this AX HLE.
+				// We still need to skip their arguments using "curr_idx += N".
 
-			case CMD_END:
-				end = true;
-				break;
+				case CMD_SETUP_OLD:
+					addr_hi = m_cmdlist[curr_idx++];
+					addr_lo = m_cmdlist[curr_idx++];
+					SetupProcessing(HILO_TO_32(addr));
+					break;
+
+				case CMD_ADD_TO_LR_OLD:
+					addr_hi = m_cmdlist[curr_idx++];
+					addr_lo = m_cmdlist[curr_idx++];
+					AddToLR(HILO_TO_32(addr));
+					break;
+
+				case CMD_UNK_02_OLD: curr_idx += 2; break;
+				case CMD_UNK_03_OLD: curr_idx += 2; break;
+
+				case CMD_PB_ADDR_OLD:
+					addr_hi = m_cmdlist[curr_idx++];
+					addr_lo = m_cmdlist[curr_idx++];
+					pb_addr = HILO_TO_32(addr);
+					break;
+
+				case CMD_PROCESS_OLD:
+					ProcessPBList(pb_addr);
+					break;
+
+				case CMD_MIX_AUXA_OLD:
+				case CMD_MIX_AUXB_OLD:
+				case CMD_MIX_AUXC_OLD:
+					volume = m_cmdlist[curr_idx++];
+					addr_hi = m_cmdlist[curr_idx++];
+					addr_lo = m_cmdlist[curr_idx++];
+					addr2_hi = m_cmdlist[curr_idx++];
+					addr2_lo = m_cmdlist[curr_idx++];
+					MixAUXSamples(cmd - CMD_MIX_AUXA_OLD, HILO_TO_32(addr), HILO_TO_32(addr2), volume);
+					break;
+
+				// These two go together and manipulate some AUX buffers.
+				case CMD_UNK_09_OLD: curr_idx += 13; break;
+				case CMD_UNK_0A_OLD: curr_idx += 13; break;
+
+				// TODO(delroth): figure this one out, it's used by almost every
+				// game I've tested so far.
+				case CMD_UNK_0B_OLD: curr_idx += 4; break;
+
+				case CMD_OUTPUT_OLD:
+					addr_hi = m_cmdlist[curr_idx++];
+					addr_lo = m_cmdlist[curr_idx++];
+					addr2_hi = m_cmdlist[curr_idx++];
+					addr2_lo = m_cmdlist[curr_idx++];
+					OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), 0x8000);
+					break;
+
+				case CMD_UNK_0D_OLD: curr_idx += 5; break;
+
+				case CMD_WM_OUTPUT_OLD:
+				{
+					u32 addresses[4] = {
+						(u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+						(u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+						(u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+						(u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+					};
+					curr_idx += 8;
+					OutputWMSamples(addresses);
+					break;
+				}
+
+				case CMD_END_OLD:
+					end = true;
+					break;
+			}
+		}
+		else
+		{
+			switch (cmd)
+			{
+				// Some of these commands are unknown, or unused in this AX HLE.
+				// We still need to skip their arguments using "curr_idx += N".
+
+				case CMD_SETUP:
+					addr_hi = m_cmdlist[curr_idx++];
+					addr_lo = m_cmdlist[curr_idx++];
+					SetupProcessing(HILO_TO_32(addr));
+					break;
+
+				case CMD_ADD_TO_LR:
+					addr_hi = m_cmdlist[curr_idx++];
+					addr_lo = m_cmdlist[curr_idx++];
+					AddToLR(HILO_TO_32(addr));
+					break;
+
+				case CMD_UNK_02: curr_idx += 2; break;
+				case CMD_UNK_03: curr_idx += 2; break;
+
+				case CMD_PROCESS:
+					addr_hi = m_cmdlist[curr_idx++];
+					addr_lo = m_cmdlist[curr_idx++];
+					ProcessPBList(HILO_TO_32(addr));
+					break;
+
+				case CMD_MIX_AUXA:
+				case CMD_MIX_AUXB:
+				case CMD_MIX_AUXC:
+					volume = m_cmdlist[curr_idx++];
+					addr_hi = m_cmdlist[curr_idx++];
+					addr_lo = m_cmdlist[curr_idx++];
+					addr2_hi = m_cmdlist[curr_idx++];
+					addr2_lo = m_cmdlist[curr_idx++];
+					MixAUXSamples(cmd - CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2), volume);
+					break;
+
+				// These two go together and manipulate some AUX buffers.
+				case CMD_UNK_08: curr_idx += 13; break;
+				case CMD_UNK_09: curr_idx += 13; break;
+
+				// TODO(delroth): figure this one out, it's used by almost every
+				// game I've tested so far.
+				case CMD_UNK_0A: curr_idx += 4; break;
+
+				case CMD_OUTPUT:
+					volume = m_cmdlist[curr_idx++];
+					addr_hi = m_cmdlist[curr_idx++];
+					addr_lo = m_cmdlist[curr_idx++];
+					addr2_hi = m_cmdlist[curr_idx++];
+					addr2_lo = m_cmdlist[curr_idx++];
+					OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), volume);
+					break;
+
+				case CMD_UNK_0C: curr_idx += 5; break;
+
+				case CMD_WM_OUTPUT:
+				{
+					u32 addresses[4] = {
+						(u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+						(u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+						(u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+						(u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+					};
+					curr_idx += 8;
+					OutputWMSamples(addresses);
+					break;
+				}
+
+				case CMD_END:
+					end = true;
+					break;
+			}
 		}
 	}
 }
@@ -244,7 +328,8 @@ void CUCode_AXWii::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nv
 	}
 }
 
-bool CUCode_AXWii::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates)
+bool CUCode_AXWii::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates,
+                                        u32* updates_addr)
 {
 	u16* pb_mem = (u16*)&pb;
 
@@ -259,6 +344,8 @@ bool CUCode_AXWii::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* upda
 	u16 addr_lo = pb_mem[45];
 	u32 addr = HILO_TO_32(addr);
 	u16* ptr = (u16*)HLEMemory_Get_Pointer(addr);
+
+	*updates_addr = addr;
 
 	// Copy the updates data and change the offset to match a PB without
 	// updates data.
@@ -276,9 +363,24 @@ bool CUCode_AXWii::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* upda
 	}
 
 	// Remove the updates data from the PB
-	memmove(pb_mem + 41, pb_mem + 45, sizeof (pb) - 2 * 45);
+	memmove(pb_mem + 41, pb_mem + 46, sizeof (pb) - 2 * 46);
 
 	return true;
+}
+
+void CUCode_AXWii::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 updates_addr)
+{
+	u16* pb_mem = (u16*)&pb;
+
+	// Make some space
+	memmove(pb_mem + 46, pb_mem + 41, sizeof (pb) - 2 * 46);
+
+	// Reinsert previous values
+	pb_mem[41] = num_updates[0];
+	pb_mem[42] = num_updates[1];
+	pb_mem[43] = num_updates[2];
+	pb_mem[44] = updates_addr >> 16;
+	pb_mem[45] = updates_addr & 0xFFFF;
 }
 
 void CUCode_AXWii::ProcessPBList(u32 pb_addr)
@@ -315,7 +417,8 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 
 		u16 num_updates[3];
 		u16 updates[1024];
-		if (ExtractUpdatesFields(pb, num_updates, updates))
+		u32 updates_addr;
+		if (ExtractUpdatesFields(pb, num_updates, updates, &updates_addr))
 		{
 			for (int curr_ms = 0; curr_ms < 3; ++curr_ms)
 			{
@@ -328,6 +431,7 @@ void CUCode_AXWii::ProcessPBList(u32 pb_addr)
 				for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)
 					buffers.ptrs[i] += 32;
 			}
+			ReinjectUpdatesFields(pb, num_updates, updates_addr);
 		}
 		else
 		{
