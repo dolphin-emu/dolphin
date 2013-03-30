@@ -136,6 +136,8 @@ static int s_LastMultisampleMode = 0;
 
 static u32 s_blendMode;
 
+static bool s_vsync;
+
 #if defined(HAVE_WX) && HAVE_WX
 static std::thread scrshotThread;
 #endif
@@ -349,8 +351,8 @@ Renderer::Renderer()
 	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
-	int swapInterval = g_ActiveConfig.IsVSync() ? 1 : 0;
-	GLInterface->SwapInterval(swapInterval);
+	s_vsync = g_ActiveConfig.IsVSync();
+	GLInterface->SwapInterval(s_vsync);
 
 	// check the max texture width and height
 	GLint max_texture_size;
@@ -1341,7 +1343,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	GL_REPORT_ERRORD();
 
-	GLInterface->SwapInterval(g_ActiveConfig.IsVSync() ? 1 : 0);
+	if(s_vsync != g_ActiveConfig.IsVSync())
+	{
+		s_vsync = g_ActiveConfig.IsVSync();
+		GLInterface->SwapInterval(s_vsync);
+	}
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	DLCache::ProgressiveCleanup();
