@@ -18,27 +18,35 @@
 #include "UCode_AX.h"
 #include "../../DSP.h"
 #include "FileUtil.h"
+#include "ConfigManager.h"
 
 #define AX_GC
 #include "UCode_AX_Voice.h"
 
 CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
+	, m_work_available(false)
 	, m_cmdlist_size(0)
-	, m_axthread(&SpawnAXThread, this)
+	, m_run_on_thread(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread)
 {
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AX: crc=%08x", crc);
 	m_rMailHandler.PushMail(DSP_INIT);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
 	LoadResamplingCoefficients();
+
+	if (m_run_on_thread)
+		m_axthread = std::thread(SpawnAXThread, this);
 }
 
 CUCode_AX::~CUCode_AX()
 {
-	m_cmdlist_size = (u16)-1;	// Special value to signal end
-	NotifyAXThread();
-	m_axthread.join();
+	if (m_run_on_thread)
+	{
+		m_cmdlist_size = (u16)-1;	// Special value to signal end
+		NotifyAXThread();
+		m_axthread.join();
+	}
 
 	m_rMailHandler.Clear();
 }
@@ -85,18 +93,30 @@ void CUCode_AX::AXThread()
 		m_processing.lock();
 		HandleCommandList();
 		m_cmdlist_size = 0;
-
-		// Signal end of processing
-		m_rMailHandler.PushMail(DSP_YIELD);
-		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+		SignalWorkEnd();
 		m_processing.unlock();
 	}
+}
+
+void CUCode_AX::SignalWorkEnd()
+{
+	// Signal end of processing
+	m_rMailHandler.PushMail(DSP_YIELD);
+	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
 void CUCode_AX::NotifyAXThread()
 {
 	std::unique_lock<std::mutex> lk(m_cmdlist_mutex);
 	m_cmdlist_cv.notify_one();
+}
+
+void CUCode_AX::StartWorking()
+{
+	if (m_run_on_thread)
+		NotifyAXThread();
+	else
+		m_work_available = true;
 }
 
 void CUCode_AX::HandleCommandList()
@@ -620,6 +640,7 @@ void CUCode_AX::HandleMail(u32 mail)
 	if (next_is_cmdlist)
 	{
 		CopyCmdList(mail, cmdlist_size);
+		StartWorking();
 		NotifyAXThread();
 	}
 	else if (m_UploadSetupInProgress)
@@ -687,6 +708,12 @@ void CUCode_AX::Update(int cycles)
 	{
 		m_rMailHandler.PushMail(DSP_RESUME);
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+	}
+	else if (m_work_available)
+	{
+		HandleCommandList();
+		m_cmdlist_size = 0;
+		SignalWorkEnd();
 	}
 }
 

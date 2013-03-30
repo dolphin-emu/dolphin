@@ -102,11 +102,15 @@ protected:
 	int m_samples_auxB_right[32 * 5];
 	int m_samples_auxB_surround[32 * 5];
 
+	// This flag is set if there is anything to process.
+	bool m_work_available;
+
 	// Volatile because it's set by HandleMail and accessed in
 	// HandleCommandList, which are running in two different threads.
 	volatile u16 m_cmdlist[512];
 	volatile u32 m_cmdlist_size;
 
+	bool m_run_on_thread;
 	std::thread m_axthread;
 
 	// Sync objects
@@ -130,13 +134,18 @@ protected:
 	// versions of AX.
 	AXMixControl ConvertMixerControl(u32 mixer_control);
 
-	// Send a notification to the AX thread to tell him a new cmdlist addr is
+	// Signal that we should start handling a command list. Dispatches to the
+	// AX thread if using a thread, else just sets a boolean flag.
+	void StartWorking();
+
+	// Send a notification to the AX thread to tell it a new cmdlist addr is
 	// available for processing.
 	void NotifyAXThread();
 
 	void AXThread();
 
 	virtual void HandleCommandList();
+	void SignalWorkEnd();
 
 	void SetupProcessing(u32 init_addr);
 	void DownloadAndMixWithVolume(u32 addr, u16 vol_main, u16 vol_auxa, u16 vol_auxb);
