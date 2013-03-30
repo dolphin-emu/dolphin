@@ -36,7 +36,6 @@
 extern int tcIndex;
 extern int colIndex;
 extern int colElements[2];
-extern float posScale;
 extern float tcScale[8];
 
 
@@ -61,7 +60,6 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 {
     m_CurrentVat = &g_VtxAttr[attributeIndex];
 
-    posScale = 1.0f / float(1 << m_CurrentVat->g0.PosFrac);
     tcScale[0] = 1.0f / float(1 << m_CurrentVat->g0.Tex0Frac);
     tcScale[1] = 1.0f / float(1 << m_CurrentVat->g1.Tex1Frac);
     tcScale[2] = 1.0f / float(1 << m_CurrentVat->g1.Tex2Frac);
@@ -161,8 +159,8 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
     }
 
 	// Write vertex position loader
-	m_positionLoader = VertexLoader_Position::GetFunction(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements);
-	m_VertexSize += VertexLoader_Position::GetSize(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements);
+	m_positionLoader = VertexLoader_Position::GetFunction(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements, m_CurrentVat->g0.PosFrac);
+	m_VertexSize += VertexLoader_Position::GetSize(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements, m_CurrentVat->g0.PosFrac);
 	AddAttributeLoader(LoadPosition);
 
 	// Normals

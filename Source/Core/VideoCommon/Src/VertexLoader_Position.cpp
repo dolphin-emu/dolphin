@@ -24,9 +24,6 @@
 #include "VertexManagerBase.h"
 #include "CPUDetect.h"
 
-extern float posScale;
-extern TVtxAttr *pVtxAttr;
-
 // Thoughts on the implementation of a vertex loader compiler.
 // s_pCurBufferPointer should definitely be in a register.
 // Could load the position scale factor in XMM7, for example.
@@ -73,28 +70,18 @@ MOVUPS(MOffset(EDI, 0), XMM0);
 
 									 */
 
-template <typename T>
-float PosScale(T val)
-{
-	return val * posScale;
-}
-
-template <>
-float PosScale(float val)
-{ return val; }
-
-template <typename T, int N>
+template <typename T, int N, int frac>
 void LOADERDECL Pos_ReadDirect()
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
 
 	for (int i = 0; i < 3; ++i)
-		DataWrite(i<N ? PosScale(DataRead<T>()) : 0.f);
+		DataWrite(i<N ? float(DataRead<T>()) / (1u << frac) : 0.f);
 
 	LOG_VTX();
 }
 
-template <typename I, typename T, int N>
+template <typename I, typename T, int N, int frac>
 void LOADERDECL Pos_ReadIndex()
 {
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
@@ -106,7 +93,7 @@ void LOADERDECL Pos_ReadIndex()
 		auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
 
 		for (int i = 0; i < 3; ++i)
-			DataWrite(i<N ? PosScale(Common::FromBigEndian(data[i])) : 0.f);
+			DataWrite(i<N ? float(Common::FromBigEndian(data[i])) / (1u << frac) : 0.f);
 
 		LOG_VTX();
 	}
@@ -132,72 +119,67 @@ void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 }
 #endif
 
-static TPipelineFunction tableReadPosition[4][8][2] = {
-	{
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-		{NULL, NULL,},
-	},
-	{
-		{Pos_ReadDirect<u8, 2>, Pos_ReadDirect<u8, 3>,},
-		{Pos_ReadDirect<s8, 2>, Pos_ReadDirect<s8, 3>,},
-		{Pos_ReadDirect<u16, 2>, Pos_ReadDirect<u16, 3>,},
-		{Pos_ReadDirect<s16, 2>, Pos_ReadDirect<s16, 3>,},
-		{Pos_ReadDirect<float, 2>, Pos_ReadDirect<float, 3>,},
-	},
-	{
-		{Pos_ReadIndex<u8, u8, 2>, Pos_ReadIndex<u8, u8, 3>,},
-		{Pos_ReadIndex<u8, s8, 2>, Pos_ReadIndex<u8, s8, 3>,},
-		{Pos_ReadIndex<u8, u16, 2>, Pos_ReadIndex<u8, u16, 3>,},
-		{Pos_ReadIndex<u8, s16, 2>, Pos_ReadIndex<u8, s16, 3>,},
-		{Pos_ReadIndex<u8, float, 2>, Pos_ReadIndex<u8, float, 3>,},
-	},
-	{
-		{Pos_ReadIndex<u16, u8, 2>, Pos_ReadIndex<u16, u8, 3>,},
-		{Pos_ReadIndex<u16, s8, 2>, Pos_ReadIndex<u16, s8, 3>,},
-		{Pos_ReadIndex<u16, u16, 2>, Pos_ReadIndex<u16, u16, 3>,},
-		{Pos_ReadIndex<u16, s16, 2>, Pos_ReadIndex<u16, s16, 3>,},
-		{Pos_ReadIndex<u16, float, 2>, Pos_ReadIndex<u16, float, 3>,},
-	},
-};
-
-static int tableReadPositionVertexSize[4][8][2] = {
-	{
-		{0, 0,}, {0, 0,}, {0, 0,}, {0, 0,}, {0, 0,},
-	},
-	{
-		{2, 3,}, {2, 3,}, {4, 6,}, {4, 6,}, {8, 12,},
-	},
-	{
-		{1, 1,}, {1, 1,}, {1, 1,}, {1, 1,}, {1, 1,},
-	},
-	{
-		{2, 2,}, {2, 2,}, {2, 2,}, {2, 2,}, {2, 2,},
-	},
-};
-
+static TPipelineFunction tableReadPosition[4][5][2][32];
+static int tableReadPositionVertexSize[4][5][2][32];
 
 void VertexLoader_Position::Init(void) {
+	memset(tableReadPosition, 0, sizeof(tableReadPosition));
+	memset(tableReadPositionVertexSize, 0, sizeof(tableReadPositionVertexSize));
+
+	// c++ templates can't be created in usual c++ loops, so we have to this per preprocessor
+	// ugly as hell, but all other ways are even uglier
+	
+	#define set_table(format, formatnr, formatsize, elements, frac, fracnr) \
+		tableReadPosition[1][formatnr][elements-2][fracnr] = Pos_ReadDirect<format, elements, frac>; \
+		tableReadPosition[2][formatnr][elements-2][fracnr] = Pos_ReadIndex<u8, format, elements, frac>; \
+		tableReadPosition[3][formatnr][elements-2][fracnr] = Pos_ReadIndex<u16, format, elements, frac>; \
+		tableReadPositionVertexSize[1][formatnr][elements-2][fracnr] = formatsize*elements; \
+		tableReadPositionVertexSize[2][formatnr][elements-2][fracnr] = 1; \
+		tableReadPositionVertexSize[3][formatnr][elements-2][fracnr] = 2;
+
+	#define set_table_formats(elements, frac) \
+		set_table(u8, 0, 1, elements, frac, frac); \
+		set_table(s8, 1, 1, elements, frac, frac); \
+		set_table(u16, 2, 2, elements, frac, frac); \
+		set_table(s16, 3, 2, elements, frac, frac); \
+		set_table(float, 4, 4, elements, 0, frac);
+		
+	#define set_table_elements(frac) \
+		set_table_formats(2, frac); \
+		set_table_formats(3, frac);
+	
+	// preprocessor don't support looping, so do it by binary recursion
+	// next lines are the same as: set_table_frac_16(n) := {for(int i=n; i<n+32; i++) set_table_elements(i);}
+	#define set_table_frac_1(frac) set_table_elements(frac); set_table_elements(frac+1);
+	#define set_table_frac_2(frac) set_table_frac_1(frac); set_table_frac_1(frac+2);
+	#define set_table_frac_4(frac) set_table_frac_2(frac); set_table_frac_2(frac+4);
+	#define set_table_frac_8(frac) set_table_frac_4(frac); set_table_frac_4(frac+8);
+	#define set_table_frac_16(frac) set_table_frac_8(frac); set_table_frac_8(frac+16);
+
+	set_table_frac_16(0);
+
 
 #if _M_SSE >= 0x301
 
 	if (cpu_info.bSSSE3) {
-		tableReadPosition[2][4][0] = Pos_ReadIndex_Float_SSSE3<u8, false>;
-		tableReadPosition[2][4][1] = Pos_ReadIndex_Float_SSSE3<u8, true>;
-		tableReadPosition[3][4][0] = Pos_ReadIndex_Float_SSSE3<u16, false>;
-		tableReadPosition[3][4][1] = Pos_ReadIndex_Float_SSSE3<u16, true>;
+		for(int frac=0; frac<32; frac++)
+		{
+			tableReadPosition[2][4][0][frac] = Pos_ReadIndex_Float_SSSE3<u8, false>;
+			tableReadPosition[2][4][1][frac] = Pos_ReadIndex_Float_SSSE3<u8, true>;
+			tableReadPosition[3][4][0][frac] = Pos_ReadIndex_Float_SSSE3<u16, false>;
+			tableReadPosition[3][4][1][frac] = Pos_ReadIndex_Float_SSSE3<u16, true>;
+		}
 	}
 
 #endif
 
+
 }
 
-unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements) {
-	return tableReadPositionVertexSize[_type][_format][_elements];
+unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac) {
+	return tableReadPositionVertexSize[_type][_format][_elements][_frac];
 }
 
-TPipelineFunction VertexLoader_Position::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements) {
-	return tableReadPosition[_type][_format][_elements];
+TPipelineFunction VertexLoader_Position::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac) {
+	return tableReadPosition[_type][_format][_elements][_frac];
 }

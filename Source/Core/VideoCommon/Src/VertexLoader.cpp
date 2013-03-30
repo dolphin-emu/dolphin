@@ -72,7 +72,6 @@ int tcIndex;
 int colIndex;
 TVtxAttr* pVtxAttr;
 int colElements[2];
-float posScale;
 float tcScale[8];
 
 // bbox must read vertex position, so convert it to this buffer
@@ -296,12 +295,12 @@ void VertexLoader::CompileVertexTranslator()
 	// Write vertex position loader
 	if(g_ActiveConfig.bUseBBox) {
 		WriteCall(UpdateBoundingBoxPrepare);
-		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac));
 		WriteCall(UpdateBoundingBox);
 	} else {
-		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac));
 	}
-	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
+	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
 	nat_offset += 12;
 
 	// Normals
@@ -554,7 +553,6 @@ int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const 
 	m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
 
 	// Load position and texcoord scale factors.
-	m_VtxAttr.PosFrac				= g_VtxAttr[vtx_attr_group].g0.PosFrac;
 	m_VtxAttr.texCoord[0].Frac		= g_VtxAttr[vtx_attr_group].g0.Tex0Frac;
 	m_VtxAttr.texCoord[1].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex1Frac;
 	m_VtxAttr.texCoord[2].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex2Frac;
@@ -565,7 +563,6 @@ int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const 
 	m_VtxAttr.texCoord[7].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
 
 	pVtxAttr = &m_VtxAttr;
-	posScale = fractionTable[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components & VB_HAS_UVALL)
 		for (int i = 0; i < 8; i++)
 			tcScale[i] = fractionTable[m_VtxAttr.texCoord[i].Frac];

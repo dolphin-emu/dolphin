@@ -60,7 +60,7 @@ enum
 
 enum
 {
-	VAT_0_FRACBITS = 0x3e0001f0,
+	VAT_0_FRACBITS = 0x3e000000,
 	VAT_1_FRACBITS = 0x07c3e1f0,
 	VAT_2_FRACBITS = 0xf87c3e1f,
 };

@@ -25,10 +25,10 @@ public:
 	static void Init(void);
 
 	// GetSize
-	static unsigned int GetSize(unsigned int _type, unsigned int _format, unsigned int _elements);
+	static unsigned int GetSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
 
 	// GetFunction
-	static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements);
+	static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
 };
 
 #endif
