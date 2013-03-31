@@ -26,7 +26,7 @@
 
 // uid_data needs to have a struct named lighting_uid
 template<class T,class UidDataT>
-void GenerateLightShader(T& object, UidDataT& uid_data, int index, int litchan_index, const char* lightsName, int coloralpha)
+static void GenerateLightShader(T& object, UidDataT& uid_data, int index, int litchan_index, const char* lightsName, int coloralpha)
 {
 	const LitChannel& chan = (litchan_index > 1) ? xfregs.alpha[litchan_index-2] : xfregs.color[litchan_index];
 	const char* swizzle = "xyzw";
@@ -94,7 +94,7 @@ void GenerateLightShader(T& object, UidDataT& uid_data, int index, int litchan_i
 // inColorName is color in vs and colors_ in ps
 // dest is o.colors_ in vs and colors_ in ps
 template<class T, class UidDataT>
-void GenerateLightingShader(T& object, UidDataT& uid_data, int components, const char* materialsName, const char* lightsName, const char* inColorName, const char* dest)
+static void GenerateLightingShader(T& object, UidDataT& uid_data, int components, const char* materialsName, const char* lightsName, const char* inColorName, const char* dest)
 {
 	for (unsigned int j = 0; j < xfregs.numChan.numColorChans; j++)
 	{

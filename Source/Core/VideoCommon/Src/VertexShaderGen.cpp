@@ -29,7 +29,7 @@
 static char text[16768];
 
 template<class T>
-void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
+static void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
 {
 	object.Write("  %s %s", type, name);
 	if (var_index != -1)
@@ -48,7 +48,7 @@ void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char* type, 
 
 // TODO: Check if something goes wrong if the cached shaders used pixel lighting but it's disabled later??
 template<class T>
-void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
+static void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
 {
 	object.Write("struct VS_OUTPUT {\n");
 	DefineVSOutputStructMember(object, api_type, "float4", "pos", -1, "POSITION");
@@ -76,12 +76,8 @@ void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
 	object.Write("};\n");
 }
 
-// TODO: Seriously? -.-
-extern const char *WriteRegister(API_TYPE api_type, const char *prefix, const u32 num);
-extern const char *WriteLocation(API_TYPE api_type);
-
 template<class T>
-void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
+static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	vertex_shader_uid_data dummy_data;
@@ -108,16 +104,16 @@ void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		out.Write("layout(std140) uniform VSBlock {\n");
 
-	out.Write("%sfloat4 " I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_POSNORMALMATRIX));
-	out.Write("%sfloat4 " I_PROJECTION"[4] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_PROJECTION));	
-	out.Write("%sfloat4 " I_MATERIALS"[4] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_MATERIALS));
+	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_POSNORMALMATRIX, "float4", I_POSNORMALMATRIX"[6]");
+	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_PROJECTION, "float4", I_PROJECTION"[4]");
+	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_MATERIALS, "float4", I_MATERIALS"[4]");
 	out.Write("struct Light { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; };\n");
-	out.Write("%sLight " I_LIGHTS"[8] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_LIGHTS));
-	out.Write("%sfloat4 " I_TEXMATRICES"[24] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_TEXMATRICES)); // also using tex matrices
-	out.Write("%sfloat4 " I_TRANSFORMMATRICES"[64] %s;\n", WriteLocation(api_type),WriteRegister(api_type, "c", C_TRANSFORMMATRICES));
-	out.Write("%sfloat4 " I_NORMALMATRICES"[32] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_NORMALMATRICES));
-	out.Write("%sfloat4 " I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_POSTTRANSFORMMATRICES));
-	out.Write("%sfloat4 " I_DEPTHPARAMS" %s;\n", WriteLocation(api_type), WriteRegister(api_type, "c", C_DEPTHPARAMS));
+	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_LIGHTS,  "Light", I_LIGHTS"[8]");
+	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_TEXMATRICES, "float4", I_TEXMATRICES"[24]");
+	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_TRANSFORMMATRICES, "float4", I_TRANSFORMMATRICES"[64]");
+	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_NORMALMATRICES, "float4", I_NORMALMATRICES"[32]");
+	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_POSTTRANSFORMMATRICES, "float4", I_POSTTRANSFORMMATRICES"[64]");
+	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_DEPTHPARAMS, "float4", I_DEPTHPARAMS);
 
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		out.Write("};\n");

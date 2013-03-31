@@ -21,9 +21,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include "CommonTypes.h"
-
 #include <vector>
+
+#include "CommonTypes.h"
+#include "VideoCommon.h"
 
 class ShaderGeneratorInterface
 {
@@ -124,5 +125,32 @@ public:
 private:
 	std::vector<bool> constant_usage; // TODO: Is vector<bool> appropriate here?
 };
+
+template<class T>
+static void WriteRegister(T& object, API_TYPE ApiType, const char *prefix, const u32 num)
+{
+	if (ApiType == API_OPENGL)
+		return; // Nothing to do here
+
+	object.Write(" : register(%s%d)", prefix, num);
+}
+
+template<class T>
+static void WriteLocation(T& object, API_TYPE ApiType, bool using_ubos)
+{
+	if (using_ubos)
+		return;
+
+	object.Write("uniform ");
+}
+
+template<class T>
+static void DeclareUniform(T& object, API_TYPE api_type, bool using_ubos, const u32 num, const char* type, const char* name)
+{
+	WriteLocation(object, api_type, using_ubos);
+	object.Write("%s %s ", type, name);
+	WriteRegister(object, api_type, "c", num);
+	object.Write(";\n");
+}
 
 #endif // _SHADERGENCOMMON_H

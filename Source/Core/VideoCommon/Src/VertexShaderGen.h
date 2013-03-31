@@ -76,7 +76,8 @@ const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
 						{I_DEPTHPARAMS, C_DEPTHPARAMS, 1 },
 						};                                            
 
-// TODO: Need packing?
+#pragma pack(4)
+
 struct vertex_shader_uid_data
 
 {
@@ -108,6 +109,7 @@ struct vertex_shader_uid_data
 		u32 light_mask : 8;
 	} lit_chans[4];
 };
+#pragma pack()
 
 typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
 typedef ShaderCode VertexShaderCode; // TODO: Obsolete..
