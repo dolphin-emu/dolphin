@@ -253,6 +253,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxFlexGridSizer* const szr_display = new wxFlexGridSizer(2, 5, 5);
 
 	{
+
+#if !defined(__APPLE__)
 	// display resolution
 	{
 		wxArrayString res_list = GetListOfResolutions();
@@ -274,6 +276,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			choice_display_resolution->Disable();
 		}
 	}
+#endif
 
 	// aspect-ratio
 	{

@@ -398,11 +398,24 @@ CFrame::~CFrame()
 
 bool CFrame::RendererIsFullscreen()
 {
+	bool fullscreen = false;
+
 	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 	{
-		return m_RenderFrame->IsFullScreen();
+		fullscreen = m_RenderFrame->IsFullScreen();
 	}
-	return false;
+
+#if defined(__APPLE__)
+	if (m_RenderFrame != NULL)
+	{
+		NSView *view = (NSView *) m_RenderFrame->GetHandle();
+		NSWindow *window = [view window];
+
+		fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
+	}
+#endif
+
+	return fullscreen;
 }
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
@@ -979,7 +992,18 @@ void CFrame::DoFullscreen(bool bF)
 {
 	ToggleDisplayMode(bF);
 
+#if defined(__APPLE__)
+	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSWindow *window = [view window];
+
+	if (bF != RendererIsFullscreen())
+	{
+		[window toggleFullScreen:nil];
+	}
+#else
 	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
+#endif
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		if (bF)
