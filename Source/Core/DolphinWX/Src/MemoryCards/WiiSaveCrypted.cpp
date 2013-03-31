@@ -94,7 +94,7 @@ void CWiiSaveCrypted::ReadHDR()
 	}
 	if (!fpData_bin.ReadBytes(&_encryptedHeader, HEADER_SZ))
 	{
-		PanicAlertT("failed to read header");
+		PanicAlertT("Failed to read header");
 		b_valid = false;
 		return;
 	}
@@ -105,7 +105,7 @@ void CWiiSaveCrypted::ReadHDR()
 	if ((_bannerSize < FULL_BNR_MIN) || (_bannerSize > FULL_BNR_MAX) ||
 		(((_bannerSize - BNR_SZ) % ICON_SZ) != 0))
 	{
-		PanicAlertT("not a wii save or read failure for file header size %x", _bannerSize);
+		PanicAlertT("Not a Wii save or read failure for file header size %x", _bannerSize);
 		b_valid = false;
 		return;
 	}
@@ -127,7 +127,7 @@ void CWiiSaveCrypted::ReadHDR()
 	}
 	if (!File::Exists(BannerFilePath) || AskYesNoT("%s already exists, overwrite?", BannerFilePath.c_str()))
 	{
-		INFO_LOG(CONSOLE, "creating file %s", BannerFilePath.c_str());
+		INFO_LOG(CONSOLE, "Creating file %s", BannerFilePath.c_str());
 		File::IOFile fpBanner_bin(BannerFilePath, "wb");
 		fpBanner_bin.WriteBytes(_header.BNR, _bannerSize);
 	}
@@ -182,7 +182,7 @@ void CWiiSaveCrypted::ReadBKHDR()
 	fpData_bin.Seek(HEADER_SZ, SEEK_SET);
 	if (!fpData_bin.ReadBytes(&bkhdr, BK_SZ))
 	{
-		PanicAlertT("failed to read bk header");
+		PanicAlertT("Failed to read bk header");
 		b_valid = false;
 		return;
 	}
@@ -203,7 +203,7 @@ void CWiiSaveCrypted::ReadBKHDR()
 	if (_sizeOfFiles + FULL_CERT_SZ != _totalSize)
 		WARN_LOG(CONSOLE, "Size(%x) + cert(%x) does not equal totalsize(%x)", _sizeOfFiles, FULL_CERT_SZ, _totalSize);
 	if (m_TitleID != Common::swap64(bkhdr.SaveGameTitle))
-		WARN_LOG(CONSOLE, "encrypted title (%llx) does not match unencrypted title (%llx)", m_TitleID,  Common::swap64(bkhdr.SaveGameTitle));
+		WARN_LOG(CONSOLE, "Encrypted title (%llx) does not match unencrypted title (%llx)", m_TitleID,  Common::swap64(bkhdr.SaveGameTitle));
 }
 
 void CWiiSaveCrypted::WriteBKHDR()
@@ -295,7 +295,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 	
 				if (!File::Exists(fullFilePath) || AskYesNoT("%s already exists, overwrite?", fullFilePath.c_str()))
 				{
-					INFO_LOG(CONSOLE, "creating file %s", fullFilePath.c_str());
+					INFO_LOG(CONSOLE, "Creating file %s", fullFilePath.c_str());
 	
 					File::IOFile fpRawSaveFile(fullFilePath, "wb");
 					fpRawSaveFile.WriteBytes(_data, _fileSize);
@@ -372,7 +372,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 			memset(__data, 0, _roundedfileSize);
 			if (!fpRawSaveFile.ReadBytes(__data, _fileSize))
 			{
-				PanicAlertT("failed to read data from file: %s", FilesList[i].c_str());
+				PanicAlertT("Failed to read data from file: %s", FilesList[i].c_str());
 				b_valid = false;
 			}
 

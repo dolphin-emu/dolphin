@@ -181,7 +181,7 @@ int GetNumMSAASamples(int MSAAMode)
 	
 	if(samples <= g_ogl_config.max_samples) return samples;
 	
-	ERROR_LOG(VIDEO, "MSAA Bug: %d samples selected, but only %d supported by gpu.", samples, g_ogl_config.max_samples);
+	ERROR_LOG(VIDEO, "MSAA Bug: %d samples selected, but only %d supported by GPU.", samples, g_ogl_config.max_samples);
 	return g_ogl_config.max_samples;
 }
 
@@ -205,7 +205,7 @@ int GetNumMSAACoverageSamples(int MSAAMode)
 	}
 	if(g_ogl_config.bSupportCoverageMSAA || samples == 0) return samples;
 	
-	ERROR_LOG(VIDEO, "MSAA Bug: CSAA selected, but not supported by gpu.");
+	ERROR_LOG(VIDEO, "MSAA Bug: CSAA selected, but not supported by GPU.");
 	return 0;
 }
 
@@ -215,7 +215,7 @@ void ApplySSAASettings() {
 			glEnable(GL_SAMPLE_SHADING_ARB);
 			glMinSampleShadingARB(s_MSAASamples);
 		} else {
-			ERROR_LOG(VIDEO, "MSAA Bug: SSAA selected, but not supported by gpu.");
+			ERROR_LOG(VIDEO, "MSAA Bug: SSAA selected, but not supported by GPU.");
 		}
 	} else if(g_ogl_config.bSupportSampleShading) {
 		glDisable(GL_SAMPLE_SHADING_ARB);
@@ -320,7 +320,7 @@ Renderer::Renderer()
 			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.1.1") )
 	)) {
 		g_Config.backend_info.bSupportsGLSLUBO = false;
-		ERROR_LOG(VIDEO, "buggy driver detected. Disable UBO");
+		ERROR_LOG(VIDEO, "Buggy driver detected. Disable UBO");
 	}
 	
 	UpdateActiveConfig();

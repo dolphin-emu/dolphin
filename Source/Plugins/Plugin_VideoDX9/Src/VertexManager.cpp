@@ -353,7 +353,7 @@ void VertexManager::vFlush()
 				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+				ERROR_LOG(VIDEO, "Error loading texture");
 		}
 	}
 

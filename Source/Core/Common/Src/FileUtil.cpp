@@ -723,7 +723,7 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 	if (!newPath.empty())
 	{
 		if(DirIDX != D_WIIROOT_IDX)
-			PanicAlert("trying to change user path other than wii root");
+			PanicAlert("Trying to change user path other than Wii root");
 
 		if (!File::IsDirectory(newPath))
 		{

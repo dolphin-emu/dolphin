@@ -376,7 +376,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 				{
 					Memory::Write_U8((u8)buffer[i], req.addr++);
 				}
-				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i got %i", _rwBufferSize, i);
+				DEBUG_LOG(WII_IPC_SD, "Outbuffer size %i got %i", _rwBufferSize, i);
 			}
 			else
 			{

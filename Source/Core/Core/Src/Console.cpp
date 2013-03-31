@@ -38,12 +38,12 @@ void Console_Submit(const char *cmd)
 	CASE1("r")
 	{
 		Core::StartTrace(false);
-		INFO_LOG(CONSOLE, "read tracing started.");
+		INFO_LOG(CONSOLE, "Read tracing started.");
 	}
 	CASE1("w")
 	{
 		Core::StartTrace(true);
-		INFO_LOG(CONSOLE, "write tracing started.");
+		INFO_LOG(CONSOLE, "Write tracing started.");
 	}
 	CASE("trans")
 	{

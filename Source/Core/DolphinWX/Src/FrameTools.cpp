@@ -608,7 +608,7 @@ void CFrame::DoOpen(bool Boot)
 
 	if (currentDir != currentDir2)
 	{
-		PanicAlertT("Current dir changed from %s to %s after wxFileSelector!",
+		PanicAlertT("Current directory changed from %s to %s after wxFileSelector!",
 				currentDir.c_str(), currentDir2.c_str());
 		File::SetCurrentDir(currentDir);
 	}

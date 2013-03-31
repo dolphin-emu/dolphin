@@ -178,7 +178,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForc
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 {
-	//ERROR_LOG(WII_IPC_WIIMOTE, "passing ioctl to ioctlv");
+	//ERROR_LOG(WII_IPC_WIIMOTE, "Passing ioctl to ioctlv");
 	return IOCtlV(_CommandAddress);	//hack
 }
 
@@ -1823,7 +1823,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4F(u8* _Input,
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: CommandVendorSpecific_FC4F: (callstack WUDiRemovePatch)");
-	INFO_LOG(WII_IPC_WIIMOTE, "input (size 0x%x):", _Size);
+	INFO_LOG(WII_IPC_WIIMOTE, "Input (size 0x%x):", _Size);
 
 	Dolphin_Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
 
@@ -1836,7 +1836,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4C(u8* _Input,
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: CommandVendorSpecific_FC4C:");
-	INFO_LOG(WII_IPC_WIIMOTE, "input (size 0x%x):", _Size);
+	INFO_LOG(WII_IPC_WIIMOTE, "Input (size 0x%x):", _Size);
 	Dolphin_Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
 
 	SendEventCommandComplete(0xFC4C, &Reply, sizeof(hci_status_rp));
@@ -1862,9 +1862,9 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const b
 			return &m_WiiMotes[i];
 	}
 
-	ERROR_LOG(WII_IPC_WIIMOTE,"Cant find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
+	ERROR_LOG(WII_IPC_WIIMOTE,"Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		_rAddr.b[0], _rAddr.b[1], _rAddr.b[2], _rAddr.b[3], _rAddr.b[4], _rAddr.b[5]); 
-	PanicAlertT("Cant find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
+	PanicAlertT("Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		_rAddr.b[0], _rAddr.b[1], _rAddr.b[2], _rAddr.b[3], _rAddr.b[4], _rAddr.b[5]);
 	return NULL;
 }
@@ -1877,8 +1877,8 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _Co
 			return &m_WiiMotes[i];
 	}
 
-	ERROR_LOG(WII_IPC_WIIMOTE, "Cant find WiiMote by connection handle %02x", _ConnectionHandle);
-	PanicAlertT("Cant find WiiMote by connection handle %02x", _ConnectionHandle);
+	ERROR_LOG(WII_IPC_WIIMOTE, "Can't find WiiMote by connection handle %02x", _ConnectionHandle);
+	PanicAlertT("Can't find WiiMote by connection handle %02x", _ConnectionHandle);
 	return NULL;
 }
 

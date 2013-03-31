@@ -251,7 +251,7 @@ bool DolphinApp::OnInit()
 #ifdef _WIN32
 	if (!wxSetWorkingDirectory(StrToWxStr(File::GetExeDirectory())))
 	{
-		INFO_LOG(CONSOLE, "set working directory failed");
+		INFO_LOG(CONSOLE, "Set working directory failed");
 	}
 #else
 	//create all necessary directories in user directory

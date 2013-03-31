@@ -334,7 +334,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 		// ARAM
 	case AR_INFO:
-		//PanicAlert("read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
+		//PanicAlert("Read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
 		_uReturnValue = g_ARAM_Info.Hex;
 		break;
 

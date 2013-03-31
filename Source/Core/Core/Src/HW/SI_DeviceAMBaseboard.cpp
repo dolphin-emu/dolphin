@@ -414,7 +414,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 					log += sprintf(log, "%02x ", ptr(i));
 				}
 				ptr(0x7f) = ~csum;
-				DEBUG_LOG(AMBASEBOARDDEBUG, "command send back: %s", logptr);
+				DEBUG_LOG(AMBASEBOARDDEBUG, "Command send back: %s", logptr);
 #undef ptr
 
 
@@ -438,7 +438,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 			// DEFAULT
 		default:
 			{
-				ERROR_LOG(SERIALINTERFACE, "unknown SI command     (0x%x)", command);
+				ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
 				PanicAlert("SI: Unknown command");
 				iPosition = _iLength;
 			}			
@@ -460,6 +460,6 @@ bool CSIDevice_AMBaseboard::GetData(u32& _Hi, u32& _Low)
 
 void CSIDevice_AMBaseboard::SendCommand(u32 _Cmd, u8 _Poll)
 {
-	ERROR_LOG(SERIALINTERFACE, "unknown direct command     (0x%x)", _Cmd);
+	ERROR_LOG(SERIALINTERFACE, "Unknown direct command     (0x%x)", _Cmd);
 	PanicAlert("SI: (GCAM) Unknown direct command");
 }

@@ -326,7 +326,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 		{
 			if (!File::Exists(m_strBootROM))
 			{
-				WARN_LOG(BOOT, "bootrom file %s not found - using HLE.", m_strBootROM.c_str());
+				WARN_LOG(BOOT, "Bootrom file %s not found - using HLE.", m_strBootROM.c_str());
 				bHLE_BS2 = true;
 			}
 		}

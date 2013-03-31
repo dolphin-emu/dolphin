@@ -434,7 +434,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 	default:
-		ERROR_LOG(VIDEOINTERFACE, "(r16) unk reg %x", _iAddress & 0xfff);
+		ERROR_LOG(VIDEOINTERFACE, "(r16) unknown reg %x", _iAddress & 0xfff);
 		_uReturnValue = 0x0;
 		break;
 	}
@@ -686,7 +686,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	default:
-		ERROR_LOG(VIDEOINTERFACE, "(w16) %04x to unk reg %x", _iValue, _iAddress & 0xfff);
+		ERROR_LOG(VIDEOINTERFACE, "(w16) %04x to unknown reg %x", _iValue, _iAddress & 0xfff);
 		break;
 	}
 }

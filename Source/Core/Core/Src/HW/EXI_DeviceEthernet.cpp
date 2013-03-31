@@ -382,7 +382,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 	case BBA_NCRA:
 		if (data & NCRA_RESET)
 		{
-			DEBUG_LOG(SP1, "software reset");
+			DEBUG_LOG(SP1, "Software reset");
 			//MXSoftReset();
 			Activate();
 		}

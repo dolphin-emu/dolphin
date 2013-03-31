@@ -552,7 +552,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			std::string gciFilename;
 			if (!memoryCard[slot]->GCI_FileName(index, gciFilename))
 			{
-				PanicAlert("invalid index");
+				PanicAlert("Invalid index");
 				return;
 			}
 			wxString fileName = wxFileSelector(
