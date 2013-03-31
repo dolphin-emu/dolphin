@@ -270,7 +270,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	}
 
 	// TODO: This probably isn't necessary if pixel lighting is enabled.
-	GenerateLightingShader<T,vertex_shader_uid_data>(out, uid_data, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
+	GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
 	if (xfregs.numChan.numColorChans < 2)
 	{

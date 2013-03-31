@@ -135,7 +135,7 @@ struct VideoConfig
 	int iAdapter;
 
 	// Debugging
-	bool bEnableShaderDebugging; // TODO: Obsolete?
+	bool bEnableShaderDebugging;
 
 	// Static config per API
 	// TODO: Move this out of VideoConfig

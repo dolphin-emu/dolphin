@@ -79,7 +79,6 @@ const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
 #pragma pack(4)
 
 struct vertex_shader_uid_data
-
 {
 	u32 components;
 	u32 numColorChans : 2;
@@ -100,14 +99,8 @@ struct vertex_shader_uid_data
 	struct {
 		u32 enabled : 1;
 	} dualTexTrans;
-	struct {
-		u32 matsource : 1;
-		u32 enablelighting : 1;
-		u32 ambsource : 1;
-        u32 diffusefunc : 2;
-        u32 attnfunc : 2;
-		u32 light_mask : 8;
-	} lit_chans[4];
+
+	LightingUidData lighting;
 };
 #pragma pack()
 

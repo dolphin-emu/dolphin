@@ -341,12 +341,12 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	out.Write("\t%sfloat4 " I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType),  WriteRegister(ApiType, "c", C_INDTEXSCALE));
 	out.Write("\t%sfloat4 " I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_INDTEXMTX));
 	out.Write("\t%sfloat4 " I_FOG"[3] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_FOG));
-	
+
 	// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
     out.Write("struct Light { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; };\n");
 	out.Write("\t%sLight " I_PLIGHTS"[8] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
 	out.Write("\t%sfloat4 " I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PMATERIALS));
-		
+
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		out.Write("};\n");
 
@@ -366,7 +366,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		out.Write("float4 colors_1 = colors_12;\n");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
-				// Let's set up attributes
+		// Let's set up attributes
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
 			for (int i = 0; i < 8; ++i)
@@ -479,10 +479,10 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		out.Write("\tfloat4 mat, lacc;\n"
 				"\tfloat3 ldir, h;\n"
 				"\tfloat dist, dist2, attn;\n");
-/// TODO
+
 		out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+39); // TODO: Can be optimized further
 		out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
-///		p = GenerateLightingShader(p, components, I_PMATERIALS, I_PLIGHTS, "colors_", "colors_");
+		GenerateLightingShader<T>(out, uid_data.lighting, components, I_PMATERIALS, I_PLIGHTS, "colors_", "colors_");
 	}
 
 	if (numTexgen < 7)

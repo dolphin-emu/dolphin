@@ -187,6 +187,8 @@ struct pixel_shader_uid_data
 	u32 bHasIndStage : 16;
 
 	u32 xfregs_numTexGen_numTexGens : 4;
+
+	LightingUidData lighting;
 };
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
