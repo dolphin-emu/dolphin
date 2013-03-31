@@ -663,16 +663,16 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 	//bDstAlphaPass is taked in account because the ability of disabling alpha composition is
 	//really usefull for debuging shader and blending errors
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
-	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+	bool use_DstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
+	bool use_DualSource = use_DstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 	const D3DBLEND d3dSrcFactors[8] =
  	{
  		D3DBLEND_ZERO,
  		D3DBLEND_ONE,
  		D3DBLEND_DESTCOLOR,
  		D3DBLEND_INVDESTCOLOR,
-		(useDualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
-		(useDualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
+		(use_DualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
+		(use_DualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
  		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
  		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
  	};
@@ -682,8 +682,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		D3DBLEND_ONE,
  		D3DBLEND_SRCCOLOR,
  		D3DBLEND_INVSRCCOLOR,
-		(useDualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
-		(useDualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
+		(use_DualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
+		(use_DualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
  		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
  		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
  	};
@@ -696,7 +696,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	bool blend_enable = bpmem.blendmode.subtract || bpmem.blendmode.blendenable;
 	D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, blend_enable);
-	D3D::SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, blend_enable);
+	D3D::SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, blend_enable && g_ActiveConfig.backend_info.bSupportsSeparateAlphaFunction);
 	if (blend_enable)
  	{
 		D3DBLENDOP op = D3DBLENDOP_ADD;
@@ -711,24 +711,27 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		D3D::SetRenderState(D3DRS_BLENDOP, op);
 		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[srcidx]);
 		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[dstidx]);
-		if (useDualSource)
-		{			
-			op = D3DBLENDOP_ADD;
-			srcidx = GX_BL_ONE;
-			dstidx = GX_BL_ZERO;
-		}
-		else
+		if (g_ActiveConfig.backend_info.bSupportsSeparateAlphaFunction)
 		{
-			// we can't use D3DBLEND_DESTCOLOR or D3DBLEND_INVDESTCOLOR for source in alpha channel so use their alpha equivalent instead
-			if (srcidx == GX_BL_DSTCLR) srcidx = GX_BL_DSTALPHA;
-			if (srcidx == GX_BL_INVDSTCLR) srcidx = GX_BL_INVDSTALPHA;
-			// we can't use D3DBLEND_SRCCOLOR or D3DBLEND_INVSRCCOLOR for destination in alpha channel so use their alpha equivalent instead
-			if (dstidx == GX_BL_SRCCLR) dstidx = GX_BL_SRCALPHA;
-			if (dstidx == GX_BL_INVSRCCLR) dstidx = GX_BL_INVSRCALPHA;
-		}
-		D3D::SetRenderState(D3DRS_BLENDOPALPHA, op);
-		D3D::SetRenderState(D3DRS_SRCBLENDALPHA, d3dSrcFactors[srcidx]);
-		D3D::SetRenderState(D3DRS_DESTBLENDALPHA, d3dDestFactors[dstidx]);
+			if (use_DualSource)
+			{			
+				op = D3DBLENDOP_ADD;
+				srcidx = GX_BL_ONE;
+				dstidx = GX_BL_ZERO;
+			}
+			else
+			{
+				// we can't use D3DBLEND_DESTCOLOR or D3DBLEND_INVDESTCOLOR for source in alpha channel so use their alpha equivalent instead
+				if (srcidx == GX_BL_DSTCLR) srcidx = GX_BL_DSTALPHA;
+				if (srcidx == GX_BL_INVDSTCLR) srcidx = GX_BL_INVDSTALPHA;
+				// we can't use D3DBLEND_SRCCOLOR or D3DBLEND_INVSRCCOLOR for destination in alpha channel so use their alpha equivalent instead
+				if (dstidx == GX_BL_SRCCLR) dstidx = GX_BL_SRCALPHA;
+				if (dstidx == GX_BL_INVSRCCLR) dstidx = GX_BL_INVSRCALPHA;
+			}
+			D3D::SetRenderState(D3DRS_BLENDOPALPHA, op);
+			D3D::SetRenderState(D3DRS_SRCBLENDALPHA, d3dSrcFactors[srcidx]);
+			D3D::SetRenderState(D3DRS_DESTBLENDALPHA, d3dDestFactors[dstidx]);
+		}		
 	}	
 }
 

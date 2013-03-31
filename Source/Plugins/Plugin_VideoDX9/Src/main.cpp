@@ -95,26 +95,16 @@ std::string VideoBackend::GetDisplayName()
 void InitBackendInfo()
 {
 	DX9::D3D::Init();
-	const int shaderModel = ((DX9::D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
+	D3DCAPS9 device_caps = DX9::D3D::GetCaps();
+	const int shaderModel = ((device_caps.PixelShaderVersion >> 8) & 0xFF);
 	const int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);
 	g_Config.backend_info.APIType = shaderModel < 3 ? API_D3D9_SM20 : API_D3D9_SM30;
 	g_Config.backend_info.bUseRGBATextures = false;
 	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = true;
-	OSVERSIONINFO info;
-	ZeroMemory(&info, sizeof(OSVERSIONINFO));
-	info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	if (GetVersionEx(&info))
-	{
-		// dual source blending is only supported in windows 7 o newer. sorry xp users
-		// we cannot test for device caps because most drivers just declare the minimun caps
-		// and don't expose their support for some functionalities		
-		g_Config.backend_info.bSupportsDualSourceBlend = info.dwPlatformId == VER_PLATFORM_WIN32_NT && info.dwMajorVersion > 5;
-	}
-	else
-	{
-		g_Config.backend_info.bSupportsDualSourceBlend = false;
-	}
+	g_Config.backend_info.bSupportsSeparateAlphaFunction = device_caps.PrimitiveMiscCaps & D3DPMISCCAPS_SEPARATEALPHABLEND;
+	// Dual source blend  will be tested later because in most devices the support is not declared in the device caps
+	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 
@@ -200,7 +190,44 @@ void VideoBackend::Video_Prepare()
 	CommandProcessor::Init();
 	PixelEngine::Init();
 	DLCache::Init();
+	// Test fo dual source blend support
+	// We can only support dual source blend if we first suport a separate alpha function
+	g_Config.backend_info.bSupportsDualSourceBlend = g_Config.backend_info.bSupportsSeparateAlphaFunction;
+	if(g_Config.backend_info.bSupportsDualSourceBlend)
+	{
+		// Test all the belnding modes that dual source blend requires
+		DWORD d3d_state = 0;
+		DWORD d3d_old_state = 0;
+		D3D::dev->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
+		D3D::dev->GetRenderState(D3DRS_SRCBLEND, &d3d_old_state);
+		// Test for source D3DBLEND_SRCCOLOR2 support
+		D3D::dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCCOLOR2);
+		D3D::dev->GetRenderState(D3DRS_SRCBLEND, &d3d_state);
+		g_Config.backend_info.bSupportsDualSourceBlend = (d3d_state == D3DBLEND_SRCCOLOR2);
+		// Test for source D3DBLEND_INVSRCCOLOR2 support
+		d3d_state = 0;
+		D3D::dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_INVSRCCOLOR2);
+		D3D::dev->GetRenderState(D3DRS_SRCBLEND, &d3d_state);
+		g_Config.backend_info.bSupportsDualSourceBlend = g_Config.backend_info.bSupportsDualSourceBlend && d3d_state == D3DBLEND_INVSRCCOLOR2;
+		// Restore original state
+		D3D::dev->SetRenderState(D3DRS_SRCBLEND, d3d_old_state);
+	
+		d3d_old_state = 0;
+		D3D::dev->GetRenderState(D3DRS_DESTBLEND, &d3d_old_state);
+		// Test for destination D3DBLEND_SRCCOLOR2 support
+		D3D::dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_SRCCOLOR2);
+		D3D::dev->GetRenderState(D3DRS_DESTBLEND, &d3d_state);
+		g_Config.backend_info.bSupportsDualSourceBlend = g_Config.backend_info.bSupportsDualSourceBlend && d3d_state == D3DBLEND_SRCCOLOR2;
+		// test for destination D3DBLEND_INVSRCCOLOR2 support
+		d3d_state = 0;
+		D3D::dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCCOLOR2);
+		D3D::dev->GetRenderState(D3DRS_DESTBLEND, &d3d_state);
+		g_Config.backend_info.bSupportsDualSourceBlend = g_Config.backend_info.bSupportsDualSourceBlend && d3d_state == D3DBLEND_INVSRCCOLOR2;
+		// Restore original state
+		D3D::dev->SetRenderState(D3DRS_DESTBLEND, d3d_old_state);
 
+		D3D::dev->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
+	}
 	// Notify the core that the video backend is ready
 	Host_Message(WM_USER_CREATE);
 }
