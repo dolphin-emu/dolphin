@@ -99,23 +99,54 @@ struct pixel_shader_uid_data
         u32 bc3 : 3;
         u32 bi4 : 3;
         u32 bc4 : 3;
+		void SetValues(int index, u32 texcoord, u32 texmap)
+		{
+			if (index == 0) { bc0 = texcoord; bi0 = texmap; }
+			else if (index == 1) { bc1 = texcoord; bi1 = texmap; }
+			else if (index == 2) { bc3 = texcoord; bi2 = texmap; }
+			else if (index == 3) { bc4 = texcoord; bi4 = texmap; }
+		}
 	} tevindref;
 
 	u32 tevorders_n_texcoord1 : 24; // 8 x 3 bit
 	u32 tevorders_n_texcoord2 : 24; // 8 x 3 bit
-	u32 tevind_n_sw1 : 24; // 8 x 3 bit
-	u32 tevind_n_sw2 : 24; // 8 x 3 bit
-	u32 tevind_n_tw1 : 24; // 8 x 3 bit
-	u32 tevind_n_tw2 : 24; // 8 x 3 bit
-	u32 tevind_n_fb_addprev : 16; // 16 x 1 bit
+	struct
+	{
+		u32 sw1 : 24;        // 8 x 3 bit
+		u32 sw2 : 24;        // 8 x 3 bit
+		u32 tw1 : 24;        // 8 x 3 bit
+		u32 tw2 : 24;        // 8 x 3 bit
+		u32 fb_addprev : 16; // 16 x 1 bit
+		u32 bs : 32;         // 16 x 2 bit
+		u32 fmt : 32;        // 16 x 2 bit
+		u32 bt : 32;         // 16 x 2 bit
+		u32 bias1 : 24;      // 8 x 3 bit
+		u32 bias2 : 24;      // 8 x 3 bit
+		u32 mid1 : 32;       // 8 x 4 bit
+		u32 mid2 : 32;       // 8 x 4 bit
 
-	u32 tevind_n_bs : 32; // 16 x 2 bit
-	u32 tevind_n_fmt : 32; // 16 x 2 bit
-	u32 tevind_n_bt : 32; // 16 x 2 bit
-	u32 tevind_n_bias1 : 24; // 8 x 3 bit
-	u32 tevind_n_bias2 : 24; // 8 x 3 bit
-	u32 tevind_n_mid1 : 32; // 8 x 4 bit
-	u32 tevind_n_mid2 : 32; // 8 x 4 bit
+		// NOTE: These assume that the affected bits are zero before calling
+		void Set_sw(int index, u32 val)
+		{
+			if (index < 8) sw1 |= val << (3*index);
+			else sw2 |= val << (3*index - 24);
+		}
+		void Set_tw(int index, u32 val)
+		{
+			if (index < 8) tw1 |= val << (3*index);
+			else tw2 |= val << (3*index - 24);
+		}
+		void Set_bias(int index, u32 val)
+		{
+			if (index < 8) bias1 |= val << (3*index);
+			else bias2 |= val << (3*index - 24);
+		}
+		void Set_mid(int index, u32 val)
+		{
+			if (index < 8) mid1 |= val << (4*index);
+			else mid2 |= val << (4*index - 32);
+		}
+	} tevind_n;
 
 	u32 tevksel_n_swap : 32; // 8 x 2 bit (swap1) + 8 x 2 bit (swap2)
 	struct

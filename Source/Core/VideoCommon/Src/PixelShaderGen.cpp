@@ -531,27 +531,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 			unsigned int texcoord = bpmem.tevindref.getTexCoord(i);
 			unsigned int texmap = bpmem.tevindref.getTexMap(i);
 
-			/// TODO: Cleanup...
-			if (i == 0)
-			{
-				uid_data.tevindref.bc0 = texcoord;
-				uid_data.tevindref.bi0 = texmap;
-			}
-			else if (i == 1)
-			{
-				uid_data.tevindref.bc1 = texcoord;
-				uid_data.tevindref.bi1 = texmap;
-			}
-			else if (i == 2)
-			{
-				uid_data.tevindref.bc3 = texcoord;
-				uid_data.tevindref.bi2 = texmap;
-			}
-			else
-			{
-				uid_data.tevindref.bc4 = texcoord;
-				uid_data.tevindref.bi4 = texmap;
-			}
+			uid_data.tevindref.SetValues(i, texcoord, texmap);
 			if (texcoord < numTexgen)
 			{
 				out.SetConstantsUsed(C_INDTEXSCALE+i/2,C_INDTEXSCALE+i/2);
@@ -585,11 +565,8 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	{
 		// The results of the last texenv stage are put onto the screen,
 		// regardless of the used destination register
-		uid_data.combiners[numStages-1].colorC.dest = bpmem.combiners[numStages-1].colorC.dest; // TODO: These probably don't need to be set anymore here...
-		uid_data.combiners[numStages-1].alphaC.dest = bpmem.combiners[numStages-1].alphaC.dest;
 		if(bpmem.combiners[numStages - 1].colorC.dest != 0)
 		{
-///			uid_data.combiners[numStages-1].colorC.dest = bpmem.combiners[numStages-1].colorC.dest;
 			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].AuxStored;
 			out.Write("\tprev.rgb = %s%s;\n", retrieveFromAuxRegister ? "c" : "" , tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
 			RegisterStates[0].ColorNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl;
@@ -741,9 +718,9 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	else uid_data.tevorders_n_texcoord2 |= texcoord << (3 * n - 24);
 	if (bHasIndStage)
 	{
-		uid_data.tevind_n_bs |= bpmem.tevind[n].bs << (2*n);
-		uid_data.tevind_n_bt |= bpmem.tevind[n].bt << (2*n);
-		uid_data.tevind_n_fmt |= bpmem.tevind[n].fmt << (2*n);
+		uid_data.tevind_n.bs |= bpmem.tevind[n].bs << (2*n);
+		uid_data.tevind_n.bt |= bpmem.tevind[n].bt << (2*n);
+		uid_data.tevind_n.fmt |= bpmem.tevind[n].fmt << (2*n);
 
 		out.Write("// indirect op\n");
 		// perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
@@ -758,14 +735,12 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		out.Write("float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
 
 		// bias
-		if (n < 8) { uid_data.tevind_n_bias1 |= bpmem.tevind[n].bias << (3*n); } /// XXX: brackets?
-		else uid_data.tevind_n_bias2 |= bpmem.tevind[n].bias << (3*n - 24);
+		uid_data.tevind_n.Set_bias(n, bpmem.tevind[n].bias);
 		if (bpmem.tevind[n].bias != ITB_NONE )
 			out.Write("indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 
 		// multiply by offset matrix and scale
-		if (n < 8) { uid_data.tevind_n_mid1 |= bpmem.tevind[n].mid << (4*n); } /// XXX: brackets?
-		else uid_data.tevind_n_mid2 |= bpmem.tevind[n].mid << (4*n - 32);
+		uid_data.tevind_n.Set_mid(n, bpmem.tevind[n].mid);
 		if (bpmem.tevind[n].mid != 0)
 		{
 			if (bpmem.tevind[n].mid <= 3)
@@ -798,13 +773,9 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		// ---------
 		// Wrapping
 		// ---------
-
-		if (n < 8) { uid_data.tevind_n_sw1 |= bpmem.tevind[n].sw << (3 * n); }
-		else uid_data.tevind_n_sw2 |= bpmem.tevind[n].sw << (3 * n - 24);
-		if (n < 8) { uid_data.tevind_n_tw1 |= bpmem.tevind[n].tw << (3 * n); }
-		else uid_data.tevind_n_tw2 |= bpmem.tevind[n].tw << (3 * n - 24);
-
-		uid_data.tevind_n_fb_addprev |= bpmem.tevind[n].fb_addprev << n;
+		uid_data.tevind_n.Set_sw(n, bpmem.tevind[n].sw);
+		uid_data.tevind_n.Set_tw(n, bpmem.tevind[n].tw);
+		uid_data.tevind_n.fb_addprev |= bpmem.tevind[n].fb_addprev << n;
 
 		// wrap S
 		if (bpmem.tevind[n].sw == ITW_OFF)
