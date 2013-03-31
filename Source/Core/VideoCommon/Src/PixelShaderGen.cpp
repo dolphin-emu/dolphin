@@ -269,9 +269,6 @@ const char *WriteLocation(API_TYPE ApiType)
 template<class T>
 void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
-	// TODO: Where does this TODO belong again...?
-	// TODO: Can be optimized if using alpha pass
-
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
 	pixel_shader_uid_data& uid_data = (&out.template GetUidData<pixel_shader_uid_data>() != NULL)
@@ -292,9 +289,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	out.Write("//%i TEV stages, %i texgens, XXX IND stages\n",
 		numStages, numTexgen/*, bpmem.genMode.numindstages*/);
 
-//	uid_data.components = components; // TODO: Enable once per pixel lighting is implemented again
 	uid_data.dstAlphaMode = dstAlphaMode;
-
 	uid_data.genMode.numindstages = bpmem.genMode.numindstages;
 	uid_data.genMode.numtevstages = bpmem.genMode.numtevstages;
 	uid_data.genMode.numtexgens = bpmem.genMode.numtexgens;
@@ -482,6 +477,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 
 		out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+39); // TODO: Can be optimized further
 		out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
+		uid_data.components = components;
 		GenerateLightingShader<T>(out, uid_data.lighting, components, I_PMATERIALS, I_PLIGHTS, "colors_", "colors_");
 	}
 

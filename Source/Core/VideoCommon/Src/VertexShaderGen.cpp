@@ -46,7 +46,6 @@ static void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char*
 	}
 }
 
-// TODO: Check if something goes wrong if the cached shaders used pixel lighting but it's disabled later??
 template<class T>
 static void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
 {
