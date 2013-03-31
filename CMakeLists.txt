@@ -114,6 +114,8 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
 	add_definitions(-marm -march=armv7-a)
 	add_definitions(-D_M_ARM=1)
 	add_definitions(-D_M_GENERIC=1)
+# Set generic options so you don't have to pass anything to cmake to build ARM
+	set(USE_GLES 1)
 endif()
 
 # Set these next two lines to test generic
