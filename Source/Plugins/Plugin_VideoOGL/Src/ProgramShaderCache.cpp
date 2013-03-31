@@ -496,6 +496,10 @@ void ProgramShaderCache::CreateHeader ( void )
 #else
 	bool glsl140_hack = false;
 #endif
+	// Intel HD Graphics on the Ironlake chipset has been abandoned by Intel
+	// It supports every feature we need but not GLSL 1.3
+	// This is to check if it is Ironlake then drop to GLSL 1.2
+	bool glsl120_hack = strstr(g_ogl_config.gl_renderer, "Ironlake") != 0;
 	
 	snprintf(s_glsl_header, sizeof(s_glsl_header), 
 		"#version %s\n"
@@ -519,7 +523,7 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define lerp(x, y, z) mix(x, y, z)\n"
 		
 		
-		, glsl140_hack ? "140" : "130"
+		, glsl120_hack ? "120" : glsl140_hack ? "140" : "130"
 		, glsl140_hack ? "#define texture2DRect texture" : "#extension GL_ARB_texture_rectangle : enable"
 		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && !glsl140_hack ? "#extension GL_ARB_uniform_buffer_object : enable" : "// ubo disabled"
 	);
