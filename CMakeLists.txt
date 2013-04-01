@@ -249,7 +249,7 @@ endif(CMAKE_BUILD_TYPE STREQUAL Debug)
 
 if(CMAKE_BUILD_TYPE STREQUAL Release AND NOT APPLE)
 	add_definitions(-fomit-frame-pointer)
-endif(CMAKE_BUILD_TYPE STREQUAL Release)
+endif()
 
 if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
