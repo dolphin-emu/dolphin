@@ -202,7 +202,7 @@ void Write32(const u32 _uValue, const u32 _iAddress)
 		break;
 
 	case PI_FLIPPER_UNK:
-		DEBUG_LOG(PROCESSORINTERFACE, "Write %08x to unknown PI reg %08x", _uValue, _iAddress);
+		DEBUG_LOG(PROCESSORINTERFACE, "Write %08x to unknown PI register %08x", _uValue, _iAddress);
 		break;
 
 	default:

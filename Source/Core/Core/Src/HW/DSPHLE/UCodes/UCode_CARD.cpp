@@ -48,11 +48,11 @@ void CUCode_CARD::HandleMail(u32 _uMail)
 {
 	if (_uMail == 0xFF000000) // unlock card
 	{
-		//	m_Mails.push(0x00000001); // ACK (actualy anything != 0)
+		//	m_Mails.push(0x00000001); // ACK (actually anything != 0)
 	}
 	else
 	{
-		DEBUG_LOG(DSPHLE, "CUCode_CARD - unknown cmd: %x", _uMail);
+		DEBUG_LOG(DSPHLE, "CUCode_CARD - unknown command: %x", _uMail);
 	}
 
 	m_rMailHandler.PushMail(DSP_DONE);

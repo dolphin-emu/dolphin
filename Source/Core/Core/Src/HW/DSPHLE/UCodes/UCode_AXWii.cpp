@@ -173,7 +173,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	{
 		u16 iCommand = HLEMemory_Read_U16(uAddress);
 		uAddress += 2;
-		//NOTICE_LOG(DSPHLE,"AXWII - AXLIST CMD %X",iCommand);
+		//NOTICE_LOG(DSPHLE,"AXWII - AXLIST Command %X",iCommand);
 
 		switch (iCommand)
 		{
@@ -245,7 +245,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 			break;
 
 	    default:
-			INFO_LOG(DSPHLE,"DSPHLE - AXwii - AXLIST - Unknown CMD: %x",iCommand);
+			INFO_LOG(DSPHLE,"DSPHLE - AXwii - AXLIST - Unknown Command: %x",iCommand);
 		    // unknown command so stop the execution of this TaskList
 		    bExecuteList = false;
 			break;

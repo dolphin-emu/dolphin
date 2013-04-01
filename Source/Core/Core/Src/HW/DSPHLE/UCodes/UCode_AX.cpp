@@ -243,7 +243,7 @@ void CUCode_AX::HandleCommandList()
 			}
 
 			default:
-				ERROR_LOG(DSPHLE, "Unknown command in AX cmdlist: %04x", cmd);
+				ERROR_LOG(DSPHLE, "Unknown command in AX command list: %04x", cmd);
 				end = true;
 				break;
 		}
