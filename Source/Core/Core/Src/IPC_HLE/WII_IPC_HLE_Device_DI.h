@@ -17,6 +17,8 @@
 #ifndef _WII_IPC_HLE_DEVICE_DI_H_
 #define _WII_IPC_HLE_DEVICE_DI_H_
 
+#include <memory>
+
 #include "WII_IPC_HLE_Device.h"
 
 namespace DiscIO
@@ -45,7 +47,7 @@ private:
 
 	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
 
-    DiscIO::IFileSystem* m_pFileSystem;
+    std::unique_ptr<DiscIO::IFileSystem> m_pFileSystem;
 	u32 m_ErrorStatus;
 	// This flag seems to only be reset with poweron/off, not sure
 	u32 m_CoverStatus;

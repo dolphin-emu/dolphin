@@ -21,6 +21,7 @@
 #include <memory>
 
 #include "Volume.h"
+#include "UtilityFuncs.h"
 
 namespace DiscIO
 {
@@ -67,7 +68,7 @@ protected:
 	std::shared_ptr<const IVolume> m_rVolume;
 };
 
-IFileSystem* CreateFileSystem(std::shared_ptr<const IVolume> _rVolume);
+std::unique_ptr<IFileSystem> CreateFileSystem(std::shared_ptr<const IVolume> _rVolume);
 
 } // namespace
 

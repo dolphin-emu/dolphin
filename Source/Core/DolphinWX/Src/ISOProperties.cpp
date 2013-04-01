@@ -41,14 +41,14 @@
 struct WiiPartition
 {
 	std::shared_ptr<DiscIO::IVolume> Partition;
-	DiscIO::IFileSystem *FileSystem;
+	std::shared_ptr<DiscIO::IFileSystem> FileSystem;
 	std::vector<const DiscIO::SFileInfo *> Files;
 };
 std::vector<WiiPartition> WiiDisc;
 
 // Why is this global?
 std::shared_ptr<DiscIO::IVolume> OpenISO;
-DiscIO::IFileSystem *pFileSystem = NULL;
+std::shared_ptr<DiscIO::IFileSystem> pFileSystem;
 
 std::vector<PatchEngine::Patch> onFrame;
 std::vector<ActionReplay::ARCode> arCodes;
@@ -235,8 +235,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 CISOProperties::~CISOProperties()
 {
-	if (!IsVolumeWiiDisc(*OpenISO) && !IsVolumeWadFile(*OpenISO) && pFileSystem)
-		delete pFileSystem;
+	pFileSystem.reset();
 	// two vector's items are no longer valid after deleting filesystem
 	WiiDisc.clear();
 	GCFiles.clear();
@@ -673,14 +672,10 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	char exportName[512];
 	u32 index[2] = {0, 0};
 	std::vector<const DiscIO::SFileInfo *> fst;
-	DiscIO::IFileSystem *FS = 0;
-
-	if (DiscIO::IsVolumeWiiDisc(*OpenISO))
-	{
-		FS = WiiDisc.at(partitionNum).FileSystem;
-	}
-	else
-		FS = pFileSystem;
+	
+	auto const FS = (DiscIO::IsVolumeWiiDisc(*OpenISO)) ?
+		WiiDisc.at(partitionNum).FileSystem :
+		pFileSystem;
 
 	FS->GetFileList(fst);
 
@@ -806,16 +801,14 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 {
 	std::vector<const DiscIO::SFileInfo *> fst;
-	DiscIO::IFileSystem *FS = 0;
 	wxString Path = wxDirSelector(_("Choose the folder to extract to"));
 
 	if (Path.empty())
 		return;
 
-	if (DiscIO::IsVolumeWiiDisc(*OpenISO))
-		FS = WiiDisc.at(1).FileSystem;
-	else
-		FS = pFileSystem;
+	auto const FS = (DiscIO::IsVolumeWiiDisc(*OpenISO)) ?
+		WiiDisc.at(1).FileSystem :
+		pFileSystem;
 
 	bool ret = false;
 	if (event.GetId() == IDM_EXTRACTAPPLOADER)

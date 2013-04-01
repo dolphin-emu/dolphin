@@ -34,7 +34,7 @@ namespace FileMon
 {
 
 std::shared_ptr<DiscIO::IVolume> OpenISO;
-DiscIO::IFileSystem *pFileSystem = NULL;
+std::unique_ptr<DiscIO::IFileSystem> pFileSystem;
 std::vector<const DiscIO::SFileInfo *> GCFiles;
 std::string ISOFile = "", CurrentFile = "";
 bool FileAccess = true;
@@ -67,12 +67,8 @@ void ReadGC(std::string FileName)
 {
 	// Should have an actual Shutdown procedure or something
 	OpenISO.reset();
+	pFileSystem.reset();
 	
-	if (pFileSystem != NULL)
-	{
-		delete pFileSystem;
-		pFileSystem = NULL;
-	}
 	// GCFiles' pointers are no longer valid after pFileSystem is cleared
 	GCFiles.clear();
 	OpenISO = DiscIO::CreateVolumeFromFilename(FileName);
@@ -82,7 +78,8 @@ void ReadGC(std::string FileName)
 	if (!DiscIO::IsVolumeWiiDisc(*OpenISO) && !DiscIO::IsVolumeWadFile(*OpenISO))
 	{
 		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
-		if(!pFileSystem) return;
+		if (!pFileSystem)
+			return;
 		pFileSystem->GetFileList(GCFiles);
 	}
 	FileAccess = true;
@@ -144,12 +141,7 @@ void FindFilename(u64 offset)
 void Close()
 {
 	OpenISO.reset();
-
-	if(pFileSystem != NULL)
-	{
-		delete pFileSystem;
-		pFileSystem = NULL;
-	}
+	pFileSystem.reset();
 
 	// GCFiles' pointers are no longer valid after pFileSystem is cleared
 	GCFiles.clear();

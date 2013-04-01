@@ -279,7 +279,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 
 	// Ready some stuff
 	m_Disc = CreateVolumeFromFilename(m_Filename.c_str(), _rPartition.GroupNumber, _rPartition.Number);
-	IFileSystem *FileSystem = CreateFileSystem(m_Disc);
+	auto const FileSystem = CreateFileSystem(m_Disc);
 
 	if (!FileSystem)
 	{
@@ -333,8 +333,6 @@ bool ParsePartitionData(SPartition& _rPartition)
 				, (*Files.at(currentFile)).m_Offset, (*Files.at(currentFile)).m_FileSize);
 		}
 	}
-
-	delete FileSystem;
 
 	// Swap back
 	m_Disc = std::move(OldVolume);

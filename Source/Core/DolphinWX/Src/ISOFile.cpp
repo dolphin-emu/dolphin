@@ -79,7 +79,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_IsDiscTwo = pVolume->IsDiscTwo();
 
 			// check if we can get some infos from the banner file too
-			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
+			auto const pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
 			if (pFileSystem != NULL || m_Platform == WII_WAD)
 			{
@@ -108,8 +108,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 					}
 					delete pBannerLoader;
 				}
-
-				delete pFileSystem;
 			}
 
 			m_Valid = true;

@@ -40,19 +40,13 @@ using namespace DVDInterface;
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-    , m_pFileSystem(NULL)
+    , m_pFileSystem()
 	, m_ErrorStatus(0)
 	, m_CoverStatus(DI_COVER_REG_NO_DISC)
 {}
 
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
-{
-	if (m_pFileSystem)
-	{
-		delete m_pFileSystem;
-		m_pFileSystem = NULL;
-	}
-}
+{}
 
 bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 {
@@ -69,11 +63,7 @@ bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 {
-	if (m_pFileSystem)
-	{
-		delete m_pFileSystem;
-		m_pFileSystem = NULL;
-	}
+	m_pFileSystem.reset();
 	m_ErrorStatus = 0;
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
@@ -169,8 +159,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	// De-initializing a filesystem if the volume was unmounted
 	if(m_pFileSystem && !VolumeHandler::IsValid())
 	{
-		delete m_pFileSystem;
-		m_pFileSystem = NULL;
+		m_pFileSystem.reset();
 		m_CoverStatus |= DI_COVER_REG_NO_DISC;
 	}
 

@@ -32,20 +32,17 @@ IFileSystem::~IFileSystem()
 {}
 
 
-IFileSystem* CreateFileSystem(std::shared_ptr<const IVolume> _rVolume)
+std::unique_ptr<IFileSystem> CreateFileSystem(std::shared_ptr<const IVolume> _rVolume)
 {
-	IFileSystem* pFileSystem = new CFileSystemGCWii(std::move(_rVolume));
+	auto pFileSystem = make_unique<CFileSystemGCWii>(_rVolume);
 
 	if (!pFileSystem)
-		return 0;
+		return nullptr;
 
 	if (!pFileSystem->IsValid())
-	{
-		delete pFileSystem;
-		pFileSystem = NULL;
-	}
+		pFileSystem.reset();
 
-	return pFileSystem;
+	return std::move(pFileSystem);
 }
 
 } // namespace
