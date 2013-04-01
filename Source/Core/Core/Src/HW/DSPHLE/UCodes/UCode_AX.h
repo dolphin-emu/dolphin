@@ -75,7 +75,7 @@ public:
 	virtual void DoState(PointerWrap& p);
 
 	// Needed because StdThread.h std::thread implem does not support member
-	// pointers.
+	// pointers. TODO(delroth): obsolete.
 	static void SpawnAXThread(CUCode_AX* self);
 
 protected:
@@ -107,12 +107,12 @@ protected:
 	volatile u16 m_cmdlist[512];
 	volatile u32 m_cmdlist_size;
 
-	std::thread m_axthread;
-
 	// Sync objects
 	std::mutex m_processing;
 	std::condition_variable m_cmdlist_cv;
 	std::mutex m_cmdlist_mutex;
+
+	std::thread m_axthread;
 
 	// Copy a command list from memory to our temp buffer
 	void CopyCmdList(u32 addr, u16 size);
