@@ -387,7 +387,7 @@ void DSPJitRegCache::loadRegs(bool emit)
 {
 	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++) {
 		if (regs[i].host_reg != INVALID_REG)
-			movToHostReg(i,regs[i].host_reg);
+			movToHostReg(i,regs[i].host_reg, emit);
 	}
 
 	if (emit) {
@@ -503,7 +503,7 @@ void DSPJitRegCache::popRegs() {
 
 	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++) {
 		if (regs[i].host_reg != INVALID_REG)
-			movToHostReg(i,regs[i].host_reg);
+			movToHostReg(i,regs[i].host_reg, true);
 	}
 }
 
