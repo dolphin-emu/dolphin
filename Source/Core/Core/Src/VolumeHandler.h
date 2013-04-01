@@ -22,6 +22,8 @@
 #define _VOLUMEHANDLER_H_
 
 #include <string>
+#include <memory>
+
 #include "CommonTypes.h"
 #include "Volume.h"
 
@@ -38,7 +40,7 @@ bool RAWReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength);
 bool IsValid();
 bool IsWii();
 
-DiscIO::IVolume *GetVolume();
+std::shared_ptr<DiscIO::IVolume> GetVolume();
 
 void EjectVolume();
 

@@ -20,6 +20,7 @@
 
 #include "Blob.h"
 #include "FileUtil.h"
+#include "UtilityFuncs.h"
 
 namespace DiscIO
 {
@@ -28,9 +29,11 @@ struct wbfs_head_t;
 
 class WbfsFileReader : public IBlobReader
 {
+public:
 	WbfsFileReader(const char* filename);
 	~WbfsFileReader();
-
+	
+private:
 	bool OpenFiles(const char* filename);	
 	bool ReadHeader();
 
@@ -67,7 +70,7 @@ class WbfsFileReader : public IBlobReader
 	bool m_good;
 
 public:
-	static WbfsFileReader* Create(const char* filename);
+	static std::unique_ptr<WbfsFileReader> Create(const char* filename);
 
 	u64 GetDataSize() const { return m_size; }
 	u64 GetRawSize() const { return m_size; }

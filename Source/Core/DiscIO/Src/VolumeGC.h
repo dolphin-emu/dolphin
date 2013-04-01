@@ -28,7 +28,7 @@ namespace DiscIO
 class CVolumeGC	: public IVolume
 {
 public:
-	CVolumeGC(IBlobReader* _pReader);
+	CVolumeGC(std::unique_ptr<IBlobReader> _pReader);
 	~CVolumeGC();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
 	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const;
@@ -46,7 +46,7 @@ public:
 	static StringDecoder GetStringDecoder(ECountry country);
 
 private:
-	IBlobReader* m_pReader;
+	std::unique_ptr<IBlobReader> m_pReader;
 };
 
 } // namespace

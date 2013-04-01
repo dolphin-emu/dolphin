@@ -59,12 +59,12 @@ CompressedBlobReader::CompressedBlobReader(const char *filename)
 	memset(zlib_buffer, 0, zlib_buffer_size);
 }
 
-CompressedBlobReader* CompressedBlobReader::Create(const char* filename)
+std::unique_ptr<CompressedBlobReader> CompressedBlobReader::Create(const char* filename)
 {
 	if (IsCompressedBlob(filename))
-		return new CompressedBlobReader(filename);
+		return make_unique<CompressedBlobReader>(filename);
 	else
-		return 0;
+		return nullptr;
 }
 
 CompressedBlobReader::~CompressedBlobReader()
@@ -295,16 +295,13 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 		return false;
 	}
 
-	CompressedBlobReader* reader = CompressedBlobReader::Create(infile);
+	auto const reader = CompressedBlobReader::Create(infile);
 	if (!reader)
 		return false;
 
 	File::IOFile f(outfile, "wb");
 	if (!f)
-    {
-        delete reader;
 		return false;
-    }
 
 	const CompressedBlobHeader &header = reader->GetHeader();
 	u8* buffer = new u8[header.block_size];
@@ -323,8 +320,6 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 	delete[] buffer;
 
 	f.Resize(header.data_size);
-
-	delete reader;
 
 	return true;
 }

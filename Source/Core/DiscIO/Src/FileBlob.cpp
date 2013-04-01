@@ -26,13 +26,13 @@ PlainFileReader::PlainFileReader(std::FILE* file)
 	m_size = m_file.GetSize();
 }
 
-PlainFileReader* PlainFileReader::Create(const char* filename)
+std::unique_ptr<PlainFileReader> PlainFileReader::Create(const char* filename)
 {
 	File::IOFile f(filename, "rb");
 	if (f)
-		return new PlainFileReader(f.ReleaseHandle());
+		return make_unique<PlainFileReader>(f.ReleaseHandle());
 	else
-		return NULL;
+		return nullptr;
 }
 
 bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)

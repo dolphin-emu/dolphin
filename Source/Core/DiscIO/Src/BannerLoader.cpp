@@ -25,7 +25,7 @@
 namespace DiscIO
 {
 
-IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume)
+IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume& pVolume)
 {
 	if (IsVolumeWiiDisc(pVolume) || IsVolumeWadFile(pVolume))
 	{

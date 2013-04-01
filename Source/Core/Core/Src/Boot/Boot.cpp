@@ -211,11 +211,11 @@ bool CBoot::BootUp()
 	// GCM and Wii
 	case SCoreStartupParameter::BOOT_ISO:
 	{
-		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename);
-		if (pVolume == NULL)
+		auto const pVolume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename);
+		if (pVolume == nullptr)
 			break;
 
-		bool isoWii = DiscIO::IsVolumeWiiDisc(pVolume);
+		bool isoWii = DiscIO::IsVolumeWiiDisc(*pVolume);
 		if (isoWii != _StartupPara.bWii)
 		{
 			PanicAlertT("Warning - starting ISO in wrong console mode!");
@@ -274,9 +274,7 @@ bool CBoot::BootUp()
 			and eventually replace code */
 		if (LoadMapFromFilename(_StartupPara.m_strFilename, gameID))
 			HLE::PatchFunctions();
-
-		// We don't need the volume any more
-		delete pVolume;
+		
 		break;
 	}
 

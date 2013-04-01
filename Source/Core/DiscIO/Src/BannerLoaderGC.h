@@ -28,7 +28,7 @@ class CBannerLoaderGC
 	: public IBannerLoader
 {
 	public:
-		CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume);
+		CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume& volume);
 		virtual ~CBannerLoaderGC();
 
 		virtual bool IsValid();

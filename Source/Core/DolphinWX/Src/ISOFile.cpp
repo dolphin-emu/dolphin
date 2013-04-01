@@ -57,12 +57,12 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	}
 	else
 	{
-		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_rFileName);
+		auto const pVolume = ToSharedPtr(DiscIO::CreateVolumeFromFilename(_rFileName));
 
-		if (pVolume != NULL)
+		if (pVolume != nullptr)
 		{
-			if (!DiscIO::IsVolumeWadFile(pVolume))
-				m_Platform = DiscIO::IsVolumeWiiDisc(pVolume) ? WII_DISC : GAMECUBE_DISC;
+			if (!DiscIO::IsVolumeWadFile(*pVolume))
+				m_Platform = DiscIO::IsVolumeWiiDisc(*pVolume) ? WII_DISC : GAMECUBE_DISC;
 			else
 			{
 				m_Platform = WII_WAD;
@@ -83,7 +83,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			if (pFileSystem != NULL || m_Platform == WII_WAD)
 			{
-				DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, pVolume);
+				DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, *pVolume);
 
 				if (pBannerLoader != NULL)
 				{
@@ -111,8 +111,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 				delete pFileSystem;
 			}
-
-			delete pVolume;
 
 			m_Valid = true;
 
@@ -274,13 +272,13 @@ std::string GameListItem::GetName(int _index) const
 
 const std::string GameListItem::GetWiiFSPath() const
 {
-	DiscIO::IVolume *Iso = DiscIO::CreateVolumeFromFilename(m_FileName);
+	auto const Iso = DiscIO::CreateVolumeFromFilename(m_FileName);
 	std::string ret;
 
 	if (Iso == NULL)
 		return ret;
 
-	if (DiscIO::IsVolumeWiiDisc(Iso) || DiscIO::IsVolumeWadFile(Iso))
+	if (DiscIO::IsVolumeWiiDisc(*Iso) || DiscIO::IsVolumeWadFile(*Iso))
 	{
 		char Path[250];
 		u64 Title;
@@ -299,7 +297,6 @@ const std::string GameListItem::GetWiiFSPath() const
 		else
 			ret = std::string(Path);
 	}
-	delete Iso;
 
 	return ret;
 }

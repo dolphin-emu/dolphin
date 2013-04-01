@@ -23,7 +23,7 @@
 namespace DiscIO
 {
 
-IFileSystem::IFileSystem(const IVolume *_rVolume)
+IFileSystem::IFileSystem(std::shared_ptr<const IVolume> _rVolume)
 	: m_rVolume(_rVolume)
 {}
 
@@ -32,9 +32,9 @@ IFileSystem::~IFileSystem()
 {}
 
 
-IFileSystem* CreateFileSystem(const IVolume* _rVolume)
+IFileSystem* CreateFileSystem(std::shared_ptr<const IVolume> _rVolume)
 {
-	IFileSystem* pFileSystem = new CFileSystemGCWii(_rVolume);
+	IFileSystem* pFileSystem = new CFileSystemGCWii(std::move(_rVolume));
 
 	if (!pFileSystem)
 		return 0;

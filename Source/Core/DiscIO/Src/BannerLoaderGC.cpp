@@ -23,10 +23,10 @@
 
 namespace DiscIO
 {
-CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume* volume)
+CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume& volume)
 	: m_pBannerFile(NULL)
 	, m_IsValid(false)
-	, m_country(volume->GetCountry())
+	, m_country(volume.GetCountry())
 {
 	// load the opening.bnr
 	size_t FileSize = (size_t) _rFileSystem.GetFileSize("opening.bnr");

@@ -29,6 +29,7 @@
 // automatically do the right thing.
 
 #include "Common.h"
+#include "UtilityFuncs.h"
 
 namespace DiscIO
 {
@@ -77,7 +78,7 @@ public:
 };
 
 // Factory function - examines the path to choose the right type of IBlobReader, and returns one.
-IBlobReader* CreateBlobReader(const char *filename);
+std::unique_ptr<IBlobReader> CreateBlobReader(const char *filename);
 
 typedef void (*CompressCB)(const char *text, float percent, void* arg);
 

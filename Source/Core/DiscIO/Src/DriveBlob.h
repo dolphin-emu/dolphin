@@ -20,6 +20,7 @@
 
 #include "Blob.h"
 #include "FileUtil.h"
+#include "UtilityFuncs.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -32,7 +33,6 @@ namespace DiscIO
 class DriveReader : public SectorReader
 {
 private:
-	DriveReader(const char *drive);
 	void GetBlock(u64 block_num, u8 *out_ptr);
 
 #ifdef _WIN32
@@ -47,8 +47,10 @@ private:
 	u64 *block_pointers;
 
 public:
-	static DriveReader *Create(const char *drive);
+	static std::unique_ptr<DriveReader> Create(const char *drive);
+	DriveReader(const char *drive);
 	~DriveReader();
+	
 	u64 GetDataSize() const { return size; }
 	u64 GetRawSize() const { return size; }
 

@@ -29,7 +29,7 @@ namespace DiscIO
 class CVolumeWiiCrypted	: public IVolume
 {
 public:
-	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
+	CVolumeWiiCrypted(std::unique_ptr<IBlobReader> _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
 	~CVolumeWiiCrypted();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
 	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const;
@@ -47,7 +47,7 @@ public:
 	bool CheckIntegrity() const;
 
 private:
-	IBlobReader* m_pReader;
+	std::unique_ptr<IBlobReader> m_pReader;
 
 	u8* m_pBuffer;
 	AES_KEY m_AES_KEY;

@@ -131,8 +131,8 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				bootDrive)
 			{
 				m_BootType = BOOT_ISO;
-				DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
-				if (pVolume == NULL)
+				auto const pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
+				if (pVolume == nullptr)
 				{
 					if (bootDrive)
 						PanicAlertT("Could not read \"%s\".  "
@@ -148,7 +148,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				m_strUniqueID = pVolume->GetUniqueID();
 				
 				// Check if we have a Wii disc
-				bWii = DiscIO::IsVolumeWiiDisc(pVolume);
+				bWii = DiscIO::IsVolumeWiiDisc(*pVolume);
 				switch (pVolume->GetCountry())
 				{
 				case DiscIO::IVolume::COUNTRY_USA:
@@ -181,8 +181,6 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 						break;
 					}else return false;
 				}
-				
-				delete pVolume;
 			}
 			else if (!strcasecmp(Extension.c_str(), ".elf"))
 			{
@@ -216,7 +214,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 			}
 			else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
 			{
-				const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
+				auto const pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
 				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
 		
 				if (ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex()) == NULL)
@@ -264,7 +262,6 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				{
 					m_strName = pVolume->GetName();
 					m_strUniqueID = pVolume->GetUniqueID();
-					delete pVolume;
 				}
 				else
 				{	// null pVolume means that we are loading from nand folder (Most Likely Wii Menu)

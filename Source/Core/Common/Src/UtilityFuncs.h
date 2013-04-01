@@ -20,6 +20,12 @@
 
 #include <memory>
 
+template <typename T>
+std::shared_ptr<T> ToSharedPtr(std::unique_ptr<T> ptr)
+{
+	return std::move(ptr);
+}
+
 // Something they forgot to add to the stdlib that will probably be in C++1x
 template <typename T>
 std::unique_ptr<T> make_unique()
@@ -44,6 +50,13 @@ template <typename T, typename Arg1, typename Arg2, typename Arg3>
 std::unique_ptr<T> make_unique(Arg1&& arg1, Arg2&& arg2, Arg3&& arg3)
 {
 	return std::unique_ptr<T>(new T(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2), std::forward<Arg3>(arg3)));
+}
+
+template <typename T, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+std::unique_ptr<T> make_unique(Arg1&& arg1, Arg2&& arg2, Arg3&& arg3, Arg4&& arg4)
+{
+	return std::unique_ptr<T>(new T(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2),
+		std::forward<Arg3>(arg3), std::forward<Arg4>(arg4)));
 }
 
 #endif

@@ -41,15 +41,15 @@ CISOFileReader::CISOFileReader(std::FILE* file)
 		m_ciso_map[idx] = (1 == header.map[idx]) ? count++ : UNUSED_BLOCK_ID;
 }
 
-CISOFileReader* CISOFileReader::Create(const char* filename)
+std::unique_ptr<CISOFileReader> CISOFileReader::Create(const char* filename)
 {
 	if (IsCISOBlob(filename))
 	{
 		File::IOFile f(filename, "rb");
-		return new CISOFileReader(f.ReleaseHandle());
+		return make_unique<CISOFileReader>(f.ReleaseHandle());
 	}
 	else
-		return NULL;
+		return nullptr;
 }
 
 u64 CISOFileReader::GetDataSize() const

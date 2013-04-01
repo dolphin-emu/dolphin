@@ -960,16 +960,17 @@ void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 	u64 title;
-	DiscIO::IVolume *Iso = DiscIO::CreateVolumeFromFilename(iso->GetFileName());
+	auto const Iso = DiscIO::CreateVolumeFromFilename(iso->GetFileName());
 	if (Iso)
 	{
 		if (Iso->GetTitleID((u8*)&title))
 		{
 			title = Common::swap64(title);
+			
+			// does this actually do something?
 			CWiiSaveCrypted* exportSave = new CWiiSaveCrypted("", title);
 			delete exportSave;
 		}
-		delete Iso;
 	}
 }
 

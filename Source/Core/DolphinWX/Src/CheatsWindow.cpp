@@ -47,7 +47,7 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 
 	// Load Gecko Codes :/
 	{
-	const DiscIO::IVolume* const vol = VolumeHandler::GetVolume();
+	auto const vol = VolumeHandler::GetVolume();
 	if (vol)
 	{
 		m_gameini_path = File::GetUserPath(D_GAMECONFIG_IDX) + vol->GetUniqueID() + ".ini";

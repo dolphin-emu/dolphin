@@ -23,9 +23,9 @@
 namespace DiscIO
 {
 
-CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
+CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> _pReader, u64 _VolumeOffset,
 									 const unsigned char* _pVolumeKey)
-	: m_pReader(_pReader),
+	: m_pReader(std::move(_pReader)),
 	m_pBuffer(0),
 	m_VolumeOffset(_VolumeOffset),
 	dataOffset(0x20000),
@@ -38,8 +38,6 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
 
 CVolumeWiiCrypted::~CVolumeWiiCrypted()
 {
-	delete m_pReader; // is this really our responsibility?
-	m_pReader = NULL;
 	delete[] m_pBuffer;
 	m_pBuffer = NULL;
 }

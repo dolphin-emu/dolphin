@@ -30,13 +30,12 @@ CARCFile::CARCFile(const std::string& _rFilename)
 	: m_pBuffer(NULL)
 	, m_Initialized(false)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rFilename.c_str());
-	if (pReader != NULL)
+	auto const pReader = DiscIO::CreateBlobReader(_rFilename.c_str());
+	if (pReader != nullptr)
 	{
 		u64 FileSize = pReader->GetDataSize();
 		m_pBuffer = new u8[(u32)FileSize];
 		pReader->Read(0, FileSize, m_pBuffer);
-		delete pReader;
 
 		m_Initialized = ParseBuffer();
 	}
@@ -46,13 +45,12 @@ CARCFile::CARCFile(const std::string& _rFilename, u32 offset)
 	: m_pBuffer(NULL)
 	, m_Initialized(false)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rFilename.c_str());
-	if (pReader != NULL)
+	auto const pReader = DiscIO::CreateBlobReader(_rFilename.c_str());
+	if (pReader != nullptr)
 	{
 		u64 FileSize = pReader->GetDataSize() - offset;
 		m_pBuffer = new u8[(u32)FileSize];
 		pReader->Read(offset, FileSize, m_pBuffer);
-		delete pReader;
 
 		m_Initialized = ParseBuffer();
 	}

@@ -18,6 +18,8 @@
 #ifndef _FILESYSTEM_H
 #define _FILESYSTEM_H
 
+#include <memory>
+
 #include "Volume.h"
 
 namespace DiscIO
@@ -46,7 +48,7 @@ struct SFileInfo
 class IFileSystem
 {
 public:
-	IFileSystem(const IVolume *_rVolume);
+	IFileSystem(std::shared_ptr<const IVolume> _rVolume);
 
 	virtual ~IFileSystem();
 	virtual bool IsValid() const = 0;
@@ -60,12 +62,12 @@ public:
 	virtual bool GetBootDOL(u8* &buffer, u32 DolSize) const = 0;
 	virtual u32 GetBootDOLSize() const = 0;
 
-	virtual const IVolume *GetVolume() const { return m_rVolume; }
+	virtual std::shared_ptr<const IVolume> GetVolume() const { return m_rVolume; }
 protected:
-	const IVolume *m_rVolume;
+	std::shared_ptr<const IVolume> m_rVolume;
 };
 
-IFileSystem* CreateFileSystem(const IVolume *_rVolume);
+IFileSystem* CreateFileSystem(std::shared_ptr<const IVolume> _rVolume);
 
 } // namespace
 

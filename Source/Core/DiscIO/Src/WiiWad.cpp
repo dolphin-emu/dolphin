@@ -45,16 +45,14 @@ private:
 
 WiiWAD::WiiWAD(const std::string& _rName)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName.c_str());
-	if (pReader == NULL || File::IsDirectory(_rName))
+	auto const pReader = DiscIO::CreateBlobReader(_rName.c_str());
+	if (pReader == nullptr || File::IsDirectory(_rName))
 	{
 		m_Valid = false;
-		if(pReader) delete pReader;
 		return;
 	}
 
 	m_Valid = ParseWAD(*pReader);
-	delete pReader;
 }
 
 WiiWAD::~WiiWAD()
@@ -130,8 +128,8 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 
 bool WiiWAD::IsWiiWAD(const std::string& _rName)
 {
-	DiscIO::IBlobReader* pReader = DiscIO::CreateBlobReader(_rName.c_str());
-	if (pReader == NULL)
+	auto const pReader = DiscIO::CreateBlobReader(_rName.c_str());
+	if (pReader == nullptr)
 		return false;
 
 	CBlobBigEndianReader Reader(*pReader);
@@ -148,8 +146,6 @@ bool WiiWAD::IsWiiWAD(const std::string& _rName)
 			Result = true;
 		}
 	}
-
-	delete pReader;
 
 	return Result;
 }

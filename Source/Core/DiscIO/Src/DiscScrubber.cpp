@@ -36,7 +36,7 @@ int m_BlocksPerCluster;
 bool m_isScrubbing = false;
 
 std::string m_Filename;
-IVolume* m_Disc = NULL;
+std::shared_ptr<IVolume> m_Disc;
 
 struct SPartitionHeader
 {
@@ -115,8 +115,7 @@ bool SetupScrub(const char* filename, int block_size)
 	// Fill out table of free blocks
 	success = ParseDisc();
 	// Done with it; need it closed for the next part
-	delete m_Disc;
-	m_Disc = NULL;
+	m_Disc.reset();
 	m_BlockCount = 0;
 
 	// Let's not touch the file if we've failed up to here :p
@@ -276,7 +275,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 	bool ParsedOK = true;
 
 	// Switch out the main volume temporarily
-	IVolume *OldVolume = m_Disc;
+	auto OldVolume = std::move(m_Disc);
 
 	// Ready some stuff
 	m_Disc = CreateVolumeFromFilename(m_Filename.c_str(), _rPartition.GroupNumber, _rPartition.Number);
@@ -338,8 +337,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 	delete FileSystem;
 
 	// Swap back
-	delete m_Disc;
-	m_Disc = OldVolume;
+	m_Disc = std::move(OldVolume);
 
 	return ParsedOK;
 }

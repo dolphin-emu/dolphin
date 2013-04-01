@@ -27,7 +27,7 @@
 
 namespace DiscIO
 {
-CFileSystemGCWii::CFileSystemGCWii(const IVolume *_rVolume)
+CFileSystemGCWii::CFileSystemGCWii(std::shared_ptr<const IVolume> _rVolume)
 	: IFileSystem(_rVolume)
 	, m_Initialized(false)
 	, m_Valid(false)

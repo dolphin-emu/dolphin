@@ -178,19 +178,14 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
 	return m_files[0]->file;
 }
 
-WbfsFileReader* WbfsFileReader::Create(const char* filename)
+std::unique_ptr<WbfsFileReader> WbfsFileReader::Create(const char* filename)
 {
-	WbfsFileReader* reader = new WbfsFileReader(filename);
+	auto reader = make_unique<WbfsFileReader>(filename);
 
-	if(reader->IsGood())
-	{
-		return reader;
-	}
-	else
-	{
-		delete reader;
-		return NULL;
-	}
+	if (!reader->IsGood())
+		reader.reset();
+	
+	return reader;
 }
 
 bool IsWbfsBlob(const char* filename)

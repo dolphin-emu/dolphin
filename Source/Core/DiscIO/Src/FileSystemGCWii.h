@@ -28,7 +28,7 @@ namespace DiscIO
 class CFileSystemGCWii : public IFileSystem
 {
 public:
-	CFileSystemGCWii(const IVolume* _rVolume);
+	CFileSystemGCWii(std::shared_ptr<const IVolume> _rVolume);
 	virtual ~CFileSystemGCWii();
 	virtual bool IsValid() const { return m_Valid; }
 	virtual u64 GetFileSize(const char* _rFullPath);

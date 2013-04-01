@@ -28,14 +28,14 @@
 namespace DiscIO
 {
 
-CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)	
+CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume& pVolume)	
 	: m_pBannerFile(NULL)
 	, m_IsValid(false)
 {
 	char Filename[260];
 	u64 TitleID;
 
-	pVolume->GetTitleID((u8*)&TitleID);
+	pVolume.GetTitleID((u8*)&TitleID);
 
 	TitleID = Common::swap64(TitleID);
 

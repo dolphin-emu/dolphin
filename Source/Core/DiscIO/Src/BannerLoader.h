@@ -46,7 +46,7 @@ class IBannerLoader
 		virtual std::vector<std::string> GetDescriptions() = 0;
 };
 
-IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume);
+IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume& pVolume);
 } // namespace
 
 #endif

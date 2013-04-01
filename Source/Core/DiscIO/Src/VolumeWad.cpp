@@ -26,8 +26,8 @@
 
 namespace DiscIO
 {
-CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
-	: m_pReader(_pReader), OpeningBnrOffset(0), hdr_size(0), cert_size(0), tick_size(0), tmd_size(0), data_size(0)
+CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> _pReader)
+	: m_pReader(std::move(_pReader)), OpeningBnrOffset(0), hdr_size(0), cert_size(0), tick_size(0), tmd_size(0), data_size(0)
 {
 	Read(0x00, 4, (u8*)&hdr_size);
 	Read(0x08, 4, (u8*)&cert_size);
@@ -48,13 +48,11 @@ CVolumeWAD::CVolumeWAD(IBlobReader* _pReader)
 }
 
 CVolumeWAD::~CVolumeWAD()
-{
-	delete m_pReader;
-}
+{}
 
 bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 {
-	if (m_pReader == NULL)
+	if (m_pReader == nullptr)
 		return false;
 
 	return m_pReader->Read(_Offset, _Length, _pBuffer);

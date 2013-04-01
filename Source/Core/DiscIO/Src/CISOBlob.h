@@ -20,6 +20,7 @@
 
 #include "Blob.h"
 #include "FileUtil.h"
+#include "UtilityFuncs.h"
 
 namespace DiscIO
 {
@@ -44,15 +45,14 @@ struct CISOHeader
 class CISOFileReader : public IBlobReader
 {
 public:
-	static CISOFileReader* Create(const char* filename);
-
+	static std::unique_ptr<CISOFileReader> Create(const char* filename);
+	CISOFileReader(std::FILE* file);
+	
 	u64 GetDataSize() const;
 	u64 GetRawSize() const;
 	bool Read(u64 offset, u64 nbytes, u8* out_ptr);
 
-private:
-	CISOFileReader(std::FILE* file);
-	
+private:	
 	typedef u16 MapType;
 	static const MapType UNUSED_BLOCK_ID = -1;
 	

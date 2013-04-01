@@ -83,14 +83,13 @@ DriveReader::~DriveReader()
 #endif	
 }
 
-DriveReader *DriveReader::Create(const char *drive)
+std::unique_ptr<DriveReader> DriveReader::Create(const char *drive)
 {
-	DriveReader *reader = new DriveReader(drive);
+	auto reader = make_unique<DriveReader>(drive);
+	
 	if (!reader->IsOK())
-	{
-		delete reader;
-		return 0;
-	}
+		reader.reset();
+	
 	return reader;
 }
 

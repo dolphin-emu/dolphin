@@ -121,13 +121,13 @@ bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *
 	return true;
 }
 
-IBlobReader* CreateBlobReader(const char* filename)
+std::unique_ptr<IBlobReader> CreateBlobReader(const char* filename)
 {
 	if (cdio_is_cdrom(std::string(filename)))
 		return DriveReader::Create(filename);
 
 	if (!File::Exists(filename))
-		return 0;
+		return nullptr;
 
 	if (IsWbfsBlob(filename))
 		return WbfsFileReader::Create(filename);

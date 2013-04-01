@@ -369,8 +369,8 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 
 void LoadDOLFromDisc(std::string dol)
 {
-	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
-	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
+	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(
+		DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str()));
 
 	if (dol.length() > 1 && dol.compare(0, 1, "/") == 0)
 		dol = dol.substr(1);
@@ -387,8 +387,8 @@ void LoadDOLFromDisc(std::string dol)
 
 void LoadBootDOLFromDisc()
 {
-	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
-	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
+	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(
+		DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str()));
 	u32 fileSize = pFileSystem->GetBootDOLSize();
 	u8* dolFile = new u8[fileSize];
 	if (fileSize > 0)
@@ -401,8 +401,8 @@ void LoadBootDOLFromDisc()
 
 u32 GetDolFileSize(std::string dol)
 {
-	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str());
-	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
+	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(
+		DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str()));
 
 	std::string dolFile;
 

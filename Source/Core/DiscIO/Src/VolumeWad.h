@@ -31,7 +31,7 @@ namespace DiscIO
 class CVolumeWAD : public IVolume
 {
 public:
-	CVolumeWAD(IBlobReader* _pReader);
+	CVolumeWAD(std::unique_ptr<IBlobReader> _pReader);
 	~CVolumeWAD();
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
 	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const { return false; }
@@ -45,7 +45,7 @@ public:
 	u64 GetSize() const;
 
 private:
-	IBlobReader* m_pReader;
+	std::unique_ptr<IBlobReader> m_pReader;
 	u64 m_titleID;
 	u32 OpeningBnrOffset, hdr_size, cert_size, tick_size, tmd_size, data_size;
 	u8 m_Country;
