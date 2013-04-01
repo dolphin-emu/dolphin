@@ -25,18 +25,18 @@
 namespace DiscIO
 {
 
-IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume& pVolume)
+std::unique_ptr<IBannerLoader> CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume& pVolume)
 {
 	if (IsVolumeWiiDisc(pVolume) || IsVolumeWadFile(pVolume))
 	{
-		return new CBannerLoaderWii(pVolume);
+		return make_unique<CBannerLoaderWii>(pVolume);
 	}
 	if (_rFileSystem.IsValid())
 	{
-		return new CBannerLoaderGC(_rFileSystem, pVolume);
+		return make_unique<CBannerLoaderGC>(_rFileSystem, pVolume);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 } // namespace

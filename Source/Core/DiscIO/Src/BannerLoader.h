@@ -22,6 +22,7 @@
 #include <string>
 
 #include "Filesystem.h"
+#include "UtilityFuncs.h"
 
 namespace DiscIO
 {
@@ -32,10 +33,8 @@ class IBannerLoader
 		IBannerLoader()
 		{}
 
-
 		virtual ~IBannerLoader()
 		{}
-
 
 		virtual bool IsValid() = 0;
 
@@ -46,7 +45,7 @@ class IBannerLoader
 		virtual std::vector<std::string> GetDescriptions() = 0;
 };
 
-IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume& pVolume);
+std::unique_ptr<IBannerLoader> CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume& pVolume);
 } // namespace
 
 #endif

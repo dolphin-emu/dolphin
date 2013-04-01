@@ -83,9 +83,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			if (pFileSystem != NULL || m_Platform == WII_WAD)
 			{
-				DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, *pVolume);
+				auto const pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem, *pVolume);
 
-				if (pBannerLoader != NULL)
+				if (pBannerLoader != nullptr)
 				{
 					if (pBannerLoader->IsValid())
 					{
@@ -106,7 +106,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 							}
 						}
 					}
-					delete pBannerLoader;
 				}
 			}
 
