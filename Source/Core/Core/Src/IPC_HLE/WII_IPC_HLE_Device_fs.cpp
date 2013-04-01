@@ -136,7 +136,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
 				size_t numFile = FileSearch.GetFileNames().size();
-				INFO_LOG(WII_IPC_FILEIO, "\t%lu Files found", (unsigned long)numFile);
+				INFO_LOG(WII_IPC_FILEIO, "\t%lu files found", (unsigned long)numFile);
 
 				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}
@@ -227,7 +227,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 				fsBlocks = 0;
 				iNodes = 0;
 				ReturnValue = FS_RESULT_OK;
-				WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directoy: %s", path.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directory: %s", path.c_str());
 			}
 
 			Memory::Write_U32(fsBlocks, CommandBuffer.PayloadBuffer[0].m_Address);

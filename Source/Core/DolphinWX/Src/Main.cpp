@@ -218,7 +218,7 @@ bool DolphinApp::OnInit()
 	RegisterMsgAlertHandler(&wxMsgAlert);
 	RegisterStringTranslator(&wxStringTranslator);
 
-	// "ExtendedTrace" looks freakin dangerous!!!
+	// "ExtendedTrace" looks freakin' dangerous!!!
 #ifdef _WIN32
 	EXTENDEDTRACEINITIALIZE(".");
 	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
@@ -239,7 +239,7 @@ bool DolphinApp::OnInit()
 #ifdef __APPLE__
 	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_7)
 	{
-		PanicAlertT("Hi,\n\nDolphin requires OS X 10.7 or greater.\n"
+		PanicAlertT("Hi,\n\nDolphin requires Mac OS X 10.7 or greater.\n"
 				"Unfortunately you're running an old version of OS X.\n"
 				"The last Dolphin version to support OS X 10.6 is Dolphin 3.5\n"
 				"Please upgrade to 10.7 or greater to use the newest Dolphin version.\n\n"

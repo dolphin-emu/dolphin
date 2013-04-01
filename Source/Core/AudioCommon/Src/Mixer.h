@@ -76,7 +76,7 @@ public:
 			g_wave_writer.SetSkipSilence(false);
 			NOTICE_LOG(DSPHLE, "Starting Audio logging");
 		} else {
-			WARN_LOG(DSPHLE, "Audio logging already started");
+			WARN_LOG(DSPHLE, "Audio logging has already been started");
 		}
 	}
 
@@ -86,7 +86,7 @@ public:
 			g_wave_writer.Stop();
 			NOTICE_LOG(DSPHLE, "Stopping Audio logging");
 		} else {
-			WARN_LOG(DSPHLE, "Audio logging already stopped");
+			WARN_LOG(DSPHLE, "Audio logging has already been stopped");
 		}
 	}
 

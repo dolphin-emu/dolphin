@@ -163,7 +163,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
  	}
  	
  	// Disallow games from turning off all of the LEDs.
- 	// It makes wiimote connection status confusing.
+ 	// It makes Wiimote connection status confusing.
  	if (rpt.first[1] == WM_LEDS)
 	{
 		auto& leds_rpt = *reinterpret_cast<wm_leds*>(&rpt.first[2]);
@@ -195,7 +195,7 @@ bool Wiimote::Read()
 
 	if (0 == rpt.second)
 	{
-		WARN_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting wiimote %d.", index + 1);
+		WARN_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wiimote %d.", index + 1);
 		Disconnect();
 	}
 
@@ -308,12 +308,12 @@ void Wiimote::EmuStop()
 
 	DisableDataReporting();
 
-	NOTICE_LOG(WIIMOTE, "Stopping wiimote data reporting");
+	NOTICE_LOG(WIIMOTE, "Stopping Wiimote data reporting.");
 }
 
 unsigned int CalculateWantedWiimotes()
 {
-	// Figure out how many real wiimotes are required
+	// Figure out how many real Wiimotes are required
 	unsigned int wanted_wiimotes = 0;
 	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
 		if (WIIMOTE_SRC_REAL & g_wiimote_sources[i] && !g_wiimotes[i])
@@ -358,13 +358,13 @@ void WiimoteScanner::ThreadFunc()
 {
 	Common::SetCurrentThreadName("Wiimote Scanning Thread");
 
-	NOTICE_LOG(WIIMOTE, "Wiimote scanning has started");
+	NOTICE_LOG(WIIMOTE, "Wiimote scanning has started.");
 
 	while (m_run_thread)
 	{
 		std::vector<Wiimote*> found_wiimotes;
 
-		//NOTICE_LOG(WIIMOTE, "in loop");
+		//NOTICE_LOG(WIIMOTE, "In loop");
 
 		if (m_want_wiimotes)
 			found_wiimotes = FindWiimotes();
@@ -374,7 +374,7 @@ void WiimoteScanner::ThreadFunc()
 			Update();
 		}
 
-		//NOTICE_LOG(WIIMOTE, "after update");
+		//NOTICE_LOG(WIIMOTE, "After update");
 
 		// TODO: this is a fairly lame place for this
 		CheckForDisconnectedWiimotes();
@@ -385,7 +385,7 @@ void WiimoteScanner::ThreadFunc()
 		Common::SleepCurrentThread(500);
 	}
 	
-	NOTICE_LOG(WIIMOTE, "Wiimote scanning has stopped");
+	NOTICE_LOG(WIIMOTE, "Wiimote scanning has stopped.");
 }
 
 void Wiimote::StartThread()
@@ -485,7 +485,7 @@ void ChangeWiimoteSource(unsigned int index, int source)
 	DoneWithWiimote(index);
 	}
 
-	// reconnect to emu
+	// reconnect to the emulator
 	Host_ConnectWiimote(index, false);
 	if (WIIMOTE_SRC_EMU & source)
 		Host_ConnectWiimote(index, true);
@@ -502,7 +502,7 @@ void TryToConnectWiimote(Wiimote* wm)
 		{
 			if (wm->Connect() && wm->Prepare(i))
 			{
-				NOTICE_LOG(WIIMOTE, "Connected to wiimote %i.", i + 1);
+				NOTICE_LOG(WIIMOTE, "Connected to Wiimote %i.", i + 1);
 				
 				std::swap(g_wiimotes[i], wm);
 				g_wiimotes[i]->StartThread();
@@ -528,7 +528,7 @@ void DoneWithWiimote(int index)
 	{
 		g_wiimotes[index]->StopThread();
 		
-		// First see if we can use this real wiimote in another slot.
+		// First see if we can use this real Wiimote in another slot.
 		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
 		{
 			if (WIIMOTE_SRC_REAL & g_wiimote_sources[i]
@@ -546,7 +546,7 @@ void DoneWithWiimote(int index)
 		}
 	}
 	
-	// else, just disconnect the wiimote
+	// else, just disconnect the Wiimote
 	HandleWiimoteDisconnect(index);
 }
 
@@ -563,7 +563,7 @@ void HandleWiimoteDisconnect(int index)
 	if (wm)
 	{
 		delete wm;
-		NOTICE_LOG(WIIMOTE, "Disconnected wiimote %i.", index + 1);
+		NOTICE_LOG(WIIMOTE, "Disconnected Wiimote %i.", index + 1);
 	}
 }
 
@@ -583,7 +583,7 @@ void Refresh()
 	
 	if (0 != CalculateWantedWiimotes())
 	{
-		// Don't hang dolphin when searching
+		// Don't hang Dolphin when searching
 		lk.unlock();
 		found_wiimotes = g_wiimote_scanner.FindWiimotes();
 		lk.lock();
@@ -591,7 +591,7 @@ void Refresh()
 
 	CheckForDisconnectedWiimotes();
 
-	// Brief rumble for already connected wiimotes.
+	// Brief rumble for already connected Wiimotes.
 	for (int i = 0; i != MAX_WIIMOTES; ++i)
 	{
 		if (g_wiimotes[i])
@@ -633,7 +633,7 @@ void Update(int _WiimoteNumber)
 	if (g_wiimotes[_WiimoteNumber])
 		g_wiimotes[_WiimoteNumber]->Update();
 
-	// Wiimote::Update() may remove the wiimote if it was disconnected.
+	// Wiimote::Update() may remove the Wiimote if it was disconnected.
 	if (!g_wiimotes[_WiimoteNumber])
 	{
 		Host_ConnectWiimote(_WiimoteNumber, false);

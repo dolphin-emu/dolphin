@@ -679,7 +679,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			char ppcInst[256];
 			DisassembleGekko(ops[i].inst.hex, em_address, ppcInst, 256);
-			NOTICE_LOG(DYNA_REC, "Unflushed reg: %s", ppcInst);
+			NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppcInst);
 		}
 #endif
 		if (js.skipnext) {

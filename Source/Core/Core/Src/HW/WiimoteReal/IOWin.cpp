@@ -333,7 +333,7 @@ bool Wiimote::Connect()
 /*
 	if (!SetThreadPriority(m_wiimote_thread.native_handle(), THREAD_PRIORITY_TIME_CRITICAL))
 	{
-		ERROR_LOG(WIIMOTE, "Failed to set wiimote thread priority");
+		ERROR_LOG(WIIMOTE, "Failed to set Wiimote thread priority");
 	}
 */
 #ifdef SHARE_WRITE_WIIMOTES
@@ -386,7 +386,7 @@ int Wiimote::IORead(u8* buf)
 			{
 				// Timeout - cancel and continue
 				if (*buf)
-					WARN_LOG(WIIMOTE, "Packet ignored.  This may indicate a problem (timeout is %i ms).",
+					WARN_LOG(WIIMOTE, "Packet ignored. This may indicate a problem (timeout is %i ms).",
 							WIIMOTE_DEFAULT_TIMEOUT);
 
 				CancelIo(dev_handle);
@@ -394,14 +394,14 @@ int Wiimote::IORead(u8* buf)
 			}
 			else if (WAIT_FAILED == r)
 			{
-				WARN_LOG(WIIMOTE, "A wait error occurred on reading from wiimote %i.", index + 1);
+				WARN_LOG(WIIMOTE, "A wait error occurred on reading from Wiimote %i.", index + 1);
 				bytes = 0;
 			}
 			else if (WAIT_OBJECT_0 == r)
 			{
 				if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, TRUE))
 				{
-					WARN_LOG(WIIMOTE, "GetOverlappedResult failed on wiimote %i.", index + 1);
+					WARN_LOG(WIIMOTE, "GetOverlappedResult failed on Wiimote %i.", index + 1);
 					bytes = 0;
 				}
 			}
@@ -468,7 +468,7 @@ int Wiimote::IOWrite(const u8* buf, int len)
 			if (err == 121)
 			{
 				// Semaphore timeout
-				NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to wiimote");
+				NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to the Wiimote");
 			}
 			else
 			{
@@ -647,7 +647,7 @@ bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 		{
 			// Make Windows forget about device so it will re-find it if visible.
 			// This is also required to detect a disconnect for some reason..
-			NOTICE_LOG(WIIMOTE, "Removing remembered wiimote.");
+			NOTICE_LOG(WIIMOTE, "Removing remembered Wiimote.");
 			Bth_BluetoothRemoveDevice(&btdi.Address);
 			return true;
 		}

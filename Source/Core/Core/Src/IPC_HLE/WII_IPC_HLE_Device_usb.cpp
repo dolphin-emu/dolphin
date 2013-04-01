@@ -422,7 +422,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 	else
 	{
 		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, "
-			"queueing(%lu)...", (unsigned long)m_EventQueue.size());
+			"queuing(%lu)...", (unsigned long)m_EventQueue.size());
 		m_EventQueue.push_back(_event);
 	}
 }
@@ -431,7 +431,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
 	bool packet_transferred = false;
 
-	// check hci queue
+	// check HCI queue
 	if (!m_EventQueue.empty() && m_HCIEndpoint.IsValid())
 	{
 		// an endpoint has become available, and we have a stored response.
@@ -450,7 +450,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		packet_transferred = true;
 	}
 
-	// check acl queue
+	// check ACL queue
 	if (!m_acl_pool.IsEmpty() && m_ACLEndpoint.IsValid() && m_EventQueue.empty())
 	{
 		m_acl_pool.WriteToEndpoint(m_ACLEndpoint);
@@ -517,7 +517,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u
 	}
 	
 	_dbg_assert_msg_(WII_IPC_WIIMOTE,
-		size < m_acl_pkt_size, "acl packet too large for pool");
+		size < m_acl_pkt_size, "ACL packet too large for pool");
 	
 	m_queue.push_back(Packet());
 	auto& packet = m_queue.back();
@@ -602,7 +602,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 		pResponse->page_scan_mode = 0;
 		pResponse->clock_offset = 0x3818;
 
-		INFO_LOG(WII_IPC_WIIMOTE, "Event: Send Fake Inquriy of one controller");
+		INFO_LOG(WII_IPC_WIIMOTE, "Event: Send Fake Inquiry of one controller");
 		INFO_LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
 			pResponse->bdaddr.b[0], pResponse->bdaddr.b[1], pResponse->bdaddr.b[2],
 			pResponse->bdaddr.b[3], pResponse->bdaddr.b[4], pResponse->bdaddr.b[5]);
@@ -1778,7 +1778,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadBufferSize(u8* _Input)
 	hci_read_buffer_size_rp Reply;
 	Reply.status = 0x00;
 	Reply.max_acl_size = m_acl_pkt_size;
-	// Due to how the widcomm stack which nintendo uses is coded, we must never
+	// Due to how the widcomm stack which Nintendo uses is coded, we must never
 	// let the stack think the controller is buffering more than 10 data packets
 	// - it will cause a u8 underflow and royally screw things up.
 	Reply.num_acl_pkts = m_acl_pkts_num;

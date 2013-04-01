@@ -124,7 +124,7 @@ bool Delete(const std::string &filename)
 	// being there, not the actual delete.
 	if (!Exists(filename))
 	{
-		WARN_LOG(COMMON, "Delete: %s does not exists", filename.c_str());
+		WARN_LOG(COMMON, "Delete: %s does not exist", filename.c_str());
 		return true;
 	}
 
@@ -216,7 +216,7 @@ bool CreateFullPath(const std::string &fullPath)
 		panicCounter--;
 		if (panicCounter <= 0)
 		{
-			ERROR_LOG(COMMON, "CreateFullPath: directory structure too deep");
+			ERROR_LOG(COMMON, "CreateFullPath: directory structure is too deep");
 			return false;
 		}
 		position++;
@@ -324,7 +324,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 			goto bail;
 		}
 	}
-	// close flushs
+	// close files
 	fclose(input);
 	fclose(output);
 	return true;
@@ -727,7 +727,7 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 
 		if (!File::IsDirectory(newPath))
 		{
-			WARN_LOG(COMMON, "Invalid path specified %s, wii user path will be set to default", newPath.c_str());
+			WARN_LOG(COMMON, "Invalid path specified %s, Wii user path will be set to default", newPath.c_str());
 			paths[D_WIIROOT_IDX] = paths[D_USER_IDX] + WII_USER_DIR;
 		}
 		else
