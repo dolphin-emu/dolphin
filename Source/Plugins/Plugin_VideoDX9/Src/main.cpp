@@ -103,7 +103,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = true;
 	g_Config.backend_info.bSupportsSeparateAlphaFunction = device_caps.PrimitiveMiscCaps & D3DPMISCCAPS_SEPARATEALPHABLEND;
-	// Dual source blend  will be tested later because in most devices the support is not declared in the device caps
+	// Dual source blend disabled by default until a proper method to test for support is found	
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
@@ -189,45 +189,7 @@ void VideoBackend::Video_Prepare()
 	PixelShaderManager::Init();
 	CommandProcessor::Init();
 	PixelEngine::Init();
-	DLCache::Init();
-	// Test fo dual source blend support
-	// We can only support dual source blend if we first suport a separate alpha function
-	g_Config.backend_info.bSupportsDualSourceBlend = g_Config.backend_info.bSupportsSeparateAlphaFunction;
-	if(g_Config.backend_info.bSupportsDualSourceBlend)
-	{
-		// Test all the belnding modes that dual source blend requires
-		DWORD d3d_state = 0;
-		DWORD d3d_old_state = 0;
-		D3D::dev->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
-		D3D::dev->GetRenderState(D3DRS_SRCBLEND, &d3d_old_state);
-		// Test for source D3DBLEND_SRCCOLOR2 support
-		D3D::dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCCOLOR2);
-		D3D::dev->GetRenderState(D3DRS_SRCBLEND, &d3d_state);
-		g_Config.backend_info.bSupportsDualSourceBlend = (d3d_state == D3DBLEND_SRCCOLOR2);
-		// Test for source D3DBLEND_INVSRCCOLOR2 support
-		d3d_state = 0;
-		D3D::dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_INVSRCCOLOR2);
-		D3D::dev->GetRenderState(D3DRS_SRCBLEND, &d3d_state);
-		g_Config.backend_info.bSupportsDualSourceBlend = g_Config.backend_info.bSupportsDualSourceBlend && d3d_state == D3DBLEND_INVSRCCOLOR2;
-		// Restore original state
-		D3D::dev->SetRenderState(D3DRS_SRCBLEND, d3d_old_state);
-	
-		d3d_old_state = 0;
-		D3D::dev->GetRenderState(D3DRS_DESTBLEND, &d3d_old_state);
-		// Test for destination D3DBLEND_SRCCOLOR2 support
-		D3D::dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_SRCCOLOR2);
-		D3D::dev->GetRenderState(D3DRS_DESTBLEND, &d3d_state);
-		g_Config.backend_info.bSupportsDualSourceBlend = g_Config.backend_info.bSupportsDualSourceBlend && d3d_state == D3DBLEND_SRCCOLOR2;
-		// test for destination D3DBLEND_INVSRCCOLOR2 support
-		d3d_state = 0;
-		D3D::dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCCOLOR2);
-		D3D::dev->GetRenderState(D3DRS_DESTBLEND, &d3d_state);
-		g_Config.backend_info.bSupportsDualSourceBlend = g_Config.backend_info.bSupportsDualSourceBlend && d3d_state == D3DBLEND_INVSRCCOLOR2;
-		// Restore original state
-		D3D::dev->SetRenderState(D3DRS_DESTBLEND, d3d_old_state);
-
-		D3D::dev->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
-	}
+	DLCache::Init();	
 	// Notify the core that the video backend is ready
 	Host_Message(WM_USER_CREATE);
 }
