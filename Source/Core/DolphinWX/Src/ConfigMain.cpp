@@ -617,16 +617,17 @@ void CConfigMain::CreateGUIControls()
 		SplitPath(filename, NULL, &name, &ext);
 
 		name += ext;
-		if (-1 == theme_selection->FindString(name))
-			theme_selection->Append(name);
+		auto const wxname = StrToWxStr(name);
+		if (-1 == theme_selection->FindString(wxname))
+			theme_selection->Append(wxname);
 	});
 	
-	theme_selection->SetStringSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name);
+	theme_selection->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
 
 	// std::function = avoid error on msvc
 	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, std::function<void(wxEvent&)>([theme_selection](wxEvent&)
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = theme_selection->GetStringSelection();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = WxStrToStr(theme_selection->GetStringSelection());
 		main_frame->InitBitmaps();
 		main_frame->UpdateGameList();
 	}));

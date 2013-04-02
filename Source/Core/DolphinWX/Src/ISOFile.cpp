@@ -137,16 +137,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	}
 	else
 	{
-		std::string theme = SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/";
-		std::string dir = File::GetUserPath(D_THEMES_IDX) + theme;
-
-#if !defined(_WIN32)
-		// If theme does not exist in user's dir load from shared directory
-		if (!File::Exists(dir))
-			dir = SHARED_USER_DIR THEMES_DIR "/" + theme;
-#endif
 		// default banner
-		m_Image = wxImage(dir + "nobanner.png", wxBITMAP_TYPE_PNG);
+		m_Image = wxImage(StrToWxStr(File::GetThemeDir()) + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 
