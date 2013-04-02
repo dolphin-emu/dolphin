@@ -30,14 +30,7 @@
 #include "UCode_AXStructs.h"
 #include "../../DSP.h"
 
-// I hate OSX.
-#if defined(__APPLE__)
-# include <tr1/functional>
-using std::tr1::function;
-#else
-# include <functional>
-using std::function;
-#endif
+#include <functional>
 
 #ifdef AX_GC
 # define PB_TYPE AXPB
@@ -287,7 +280,7 @@ u16 AcceleratorGetSample()
 // We start getting samples not from sample 0, but 0.<curr_pos_frac>. This
 // avoids discontinuties in the audio stream, especially with very low ratios
 // which interpolate a lot of values between two "real" samples.
-u32 ResampleAudio(function<s16(u32)> input_callback, s16* output, u32 count,
+u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count,
                   s16* last_samples, u32 curr_pos, u32 ratio, int srctype,
                   const s16* coeffs)
 {
