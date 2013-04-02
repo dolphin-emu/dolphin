@@ -273,7 +273,7 @@ u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
 	UDSPControl Temp(_Value);
 	if (!m_InitMixer)
 	{
-		if (!Temp.DSPHalt && Temp.DSPInit)
+		if (!Temp.DSPHalt)
 		{
 			InitMixer();
 		}
