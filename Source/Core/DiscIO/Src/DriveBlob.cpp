@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <algorithm>
+
 #include "DriveBlob.h"
 #include "StringUtil.h"
 
@@ -33,16 +35,14 @@ DriveReader::DriveReader(const char *drive)
 		// Do a test read to make sure everything is OK, since it seems you can get
 		// handles to empty drives.
 		DWORD not_used;
-		u8 *buffer = new u8[m_blocksize];
-		if (!ReadFile(hDisc, buffer, m_blocksize, (LPDWORD)&not_used, NULL))
+		std::vector<u8> buffer(m_blocksize);
+		if (!ReadFile(hDisc, buffer.data(), m_blocksize, (LPDWORD)&not_used, NULL))
 		{
-			delete [] buffer;
 			// OK, something is wrong.
 			CloseHandle(hDisc);
 			hDisc = INVALID_HANDLE_VALUE;
 			return;
 		}
-		delete [] buffer;
 		
 	#ifdef _LOCKDRIVE // Do we want to lock the drive?
 		// Lock the compact disc in the CD-ROM drive to prevent accidental
@@ -95,21 +95,20 @@ std::unique_ptr<DriveReader> DriveReader::Create(const char *drive)
 
 void DriveReader::GetBlock(u64 block_num, u8 *out_ptr)
 {
-	u8* const lpSector = new u8[m_blocksize];
+	std::vector<u8> lpSector(m_blocksize);
 #ifdef _WIN32
 	u32 NotUsed;
 	u64 offset = m_blocksize * block_num;
 	LONG off_low = (LONG)offset & 0xFFFFFFFF;
 	LONG off_high = (LONG)(offset >> 32);
 	SetFilePointer(hDisc, off_low, &off_high, FILE_BEGIN);
-	if (!ReadFile(hDisc, lpSector, m_blocksize, (LPDWORD)&NotUsed, NULL))
+	if (!ReadFile(hDisc, lpSector.data(), m_blocksize, (LPDWORD)&NotUsed, NULL))
 		PanicAlertT("Disc Read Error");
 #else
 	file_.Seek(m_blocksize * block_num, SEEK_SET);
-	file_.ReadBytes(lpSector, m_blocksize);
+	file_.ReadBytes(lpSector.data(), m_blocksize);
 #endif
-	memcpy(out_ptr, lpSector, m_blocksize);
-	delete[] lpSector;
+	std::copy_n(lpSector.begin(), m_blocksize, out_ptr);
 }
 
 bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr)

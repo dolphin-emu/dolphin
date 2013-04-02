@@ -29,7 +29,7 @@ namespace DiscIO
 {
 
 CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume& pVolume)	
-	: m_pBannerFile(NULL)
+	: m_pBannerFile()
 	, m_IsValid(false)
 {
 	char Filename[260];
@@ -87,24 +87,18 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume& pVolume)
 
 	if (FileSize > 0)
 	{
-		m_pBannerFile = new u8[FileSize];
+		m_pBannerFile.resize(FileSize);
 		File::IOFile pFile(Filename, "rb");
 		if (pFile)
 		{
-			pFile.ReadBytes(m_pBannerFile, FileSize);
+			pFile.ReadBytes(m_pBannerFile.data(), FileSize);
 			m_IsValid = true;
 		}
 	}
 }
 
 CBannerLoaderWii::~CBannerLoaderWii()
-{
-	if (m_pBannerFile)
-	{
-		delete [] m_pBannerFile;
-		m_pBannerFile = NULL;
-	}
-}
+{}
 
 bool CBannerLoaderWii::IsValid()
 {
@@ -126,21 +120,20 @@ bool CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 {
 	if (IsValid())
 	{
-		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
-		u32* Buffer = new u32[192 * 64];
-		decode5A3image(Buffer, (u16*)pBanner->m_BannerTexture, 192, 64);
+		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile.data();
+		std::vector<u32> Buffer(192 * 64);
+		decode5A3image(Buffer.data(), (u16*)pBanner->m_BannerTexture, 192, 64);
 		for (int y = 0; y < 32; y++)
 		{
 			for (int x = 0; x < 96; x++)
 			{
 				// simplified plus-shaped "gaussian"
 				u32 surround = Average32(
-					Average32(GetPixel(Buffer, x*2 - 1, y*2), GetPixel(Buffer, x*2 + 1, y*2)),
-					Average32(GetPixel(Buffer, x*2, y*2 - 1), GetPixel(Buffer, x*2, y*2 + 1)));
-				_pBannerImage[y * 96 + x] = Average32(GetPixel(Buffer, x*2, y*2), surround);
+					Average32(GetPixel(Buffer.data(), x*2 - 1, y*2), GetPixel(Buffer.data(), x*2 + 1, y*2)),
+					Average32(GetPixel(Buffer.data(), x*2, y*2 - 1), GetPixel(Buffer.data(), x*2, y*2 + 1)));
+				_pBannerImage[y * 96 + x] = Average32(GetPixel(Buffer.data(), x*2, y*2), surround);
 			}
 		}
-		delete[] Buffer;
 	}
 	return true;
 }
@@ -149,7 +142,7 @@ bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::stri
 {
 	if (IsValid())
 	{
-		auto const banner = reinterpret_cast<const SWiiBanner*>(m_pBannerFile);
+		auto const banner = reinterpret_cast<const SWiiBanner*>(m_pBannerFile.data());
 		auto const src_ptr = banner->m_Comment[index];
 		
 		// Trim at first NULL

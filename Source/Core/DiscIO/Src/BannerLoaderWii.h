@@ -68,7 +68,7 @@ class CBannerLoaderWii
 			u8  m_IconTexture[8][ICON_SIZE];
 		} ;
 
-		u8* m_pBannerFile;
+		std::vector<u8> m_pBannerFile;
 
 		bool m_IsValid;
 
