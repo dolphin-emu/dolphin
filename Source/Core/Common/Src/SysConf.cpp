@@ -68,7 +68,7 @@ bool SysConf::LoadFromFile(const char *filename)
 	File::IOFile f(filename, "rb");
 	if (f.IsOpen())
 	{
-		if (LoadFromFileInternal(f.ReleaseHandle()))
+		if (LoadFromFileInternal(std::move(f)))
 		{
 			m_Filename = filename;
 			return true;
@@ -78,9 +78,8 @@ bool SysConf::LoadFromFile(const char *filename)
 	return false;
 }
 
-bool SysConf::LoadFromFileInternal(FILE *fh)
+bool SysConf::LoadFromFileInternal(File::IOFile f)
 {
-	File::IOFile f(fh);
 	// Fill in infos
 	SSysConfHeader s_Header;
 	f.ReadArray(s_Header.version, 4);

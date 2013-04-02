@@ -20,8 +20,8 @@
 namespace DiscIO
 {
 
-PlainFileReader::PlainFileReader(std::FILE* file)
-	: m_file(file)
+PlainFileReader::PlainFileReader(File::IOFile file)
+	: m_file(std::move(file))
 {
 	m_size = m_file.GetSize();
 }
@@ -30,7 +30,7 @@ std::unique_ptr<PlainFileReader> PlainFileReader::Create(const char* filename)
 {
 	File::IOFile f(filename, "rb");
 	if (f)
-		return make_unique<PlainFileReader>(f.ReleaseHandle());
+		return make_unique<PlainFileReader>(std::move(f));
 	else
 		return nullptr;
 }

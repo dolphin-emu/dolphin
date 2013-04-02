@@ -180,7 +180,7 @@ public:
 	void UpdateLocation();
 
 private:
-	bool LoadFromFileInternal(FILE *fh);
+	bool LoadFromFileInternal(File::IOFile f);
 	void GenerateSysConf();
 	void Clear();
 

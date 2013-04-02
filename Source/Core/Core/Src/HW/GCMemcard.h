@@ -179,7 +179,7 @@ private:
 	};
 #pragma pack(pop)
 
-	u32 ImportGciInternal(FILE* gcih, const char *inputFile, const std::string &outputFile);
+	u32 ImportGciInternal(File::IOFile gcih, const char *inputFile, const std::string &outputFile);
 	static void FormatInternal(GCMC_Header &GCP);
 public:
 

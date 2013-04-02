@@ -32,7 +32,7 @@ class PlainFileReader : public IBlobReader
 
 public:
 	static std::unique_ptr<PlainFileReader> Create(const char* filename);
-	PlainFileReader(std::FILE* file);
+	PlainFileReader(File::IOFile file);
 
 	u64 GetDataSize() const { return m_size; }
 	u64 GetRawSize() const { return m_size; }

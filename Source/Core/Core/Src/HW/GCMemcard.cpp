@@ -826,14 +826,13 @@ u32 GCMemcard::ImportGci(const char *inputFile, const std::string &outputFile)
 	if (!gci)
 		return OPENFAIL;
 
-	u32 result = ImportGciInternal(gci.ReleaseHandle(), inputFile, outputFile);
+	u32 result = ImportGciInternal(std::move(gci), inputFile, outputFile);
 
 	return result;
 }
 
-u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::string &outputFile)
+u32 GCMemcard::ImportGciInternal(File::IOFile gci, const char *inputFile, const std::string &outputFile)
 {
-	File::IOFile gci(gcih);
 	unsigned int offset;
 	char tmp[0xD];
 	std::string fileType;

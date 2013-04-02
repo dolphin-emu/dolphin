@@ -46,7 +46,7 @@ class CISOFileReader : public IBlobReader
 {
 public:
 	static std::unique_ptr<CISOFileReader> Create(const char* filename);
-	CISOFileReader(std::FILE* file);
+	CISOFileReader(File::IOFile file);
 	
 	u64 GetDataSize() const;
 	u64 GetRawSize() const;
