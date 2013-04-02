@@ -67,7 +67,8 @@ std::string StringFromFormat(const char* format, ...)
 #ifdef _WIN32
 	va_start(args, format);
 	int const required = _vscprintf(format, args);
-	std::string buf(required);
+	std::string buf;
+	buf.resize(required);
 	vsnprintf(&buf[0], required, format, args);
 	va_end(args);
 
@@ -81,8 +82,8 @@ std::string StringFromFormat(const char* format, ...)
 
 	std::string temp = buf;
 	free(buf);
-#endif
 	return temp;
+#endif
 }
 
 // For Debugging. Read out an u8 array.
