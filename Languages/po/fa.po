@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-17 11:21+0000\n"
+"PO-Revision-Date: 2013-03-30 08:13+0000\n"
 "Last-Translator: Delayline <hamed.khakbiz@gmail.com>\n"
 "Language-Team: Persian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/fa/)\n"
@@ -391,14 +391,10 @@ msgid "A game is not currently running."
 msgstr "بازی در حال حاضر اجرا نشده است."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found.\n"
 "You must manually connect your wiimotes."
 msgstr ""
-"دستگاه بلوتوث مورد پشتیبانی پیدا نشد!\n"
-"اگر شما از نرم افزار پیاده سازی بلوتوث ماکروسافت استفاده نمی کنید شما باید "
-"ویموت خود را دستی جفت کنید و فقط از دکمه \"به روز کردن\" استفاده کنید."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:109
 msgid ""
@@ -752,9 +748,8 @@ msgstr ""
 "از بین خواهند رفت!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "ری کامپایلر آزمایشی جیتیل"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -2011,9 +2006,8 @@ msgid "Enable Screen Saver"
 msgstr "فعال کردن اسکیرین سیور"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "فعال کردن صفحات"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2731,9 +2725,8 @@ msgid "Game isn't running!"
 msgstr "بازی اجرا نشده است!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "بازی پیدا نشد!"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -3204,7 +3197,7 @@ msgstr "وضوح داخلی:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:55
 msgid "Interpreter (VERY slow)"
-msgstr "مفسر (بسیار کند)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Intro"
@@ -3275,11 +3268,11 @@ msgstr "ژاپن"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:59
 msgid "JIT Recompiler (recommended)"
-msgstr "ری کامپایلر جیت (تایید شده)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:60
 msgid "JITIL experimental recompiler"
-msgstr "ری کامپایلر آزمایشی جیتیل"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
@@ -3545,7 +3538,6 @@ msgid "Maker:"
 msgstr "سازنده"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
-#, fuzzy
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3553,10 +3545,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"کارآئى را بالا می برد اما سبب نقص های گرافیکی در اکثر بازی هایی که بر "
-"برابرسازی مه تکیه می کنند می شود.\n"
-"\n"
-"اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:97
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
@@ -4608,7 +4596,6 @@ msgstr ""
 "کنید."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4617,16 +4604,8 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 11."
 msgstr ""
-"انتخاب کنید که چه رابط گرافیکی به طور داخلی بکار گرفته شود.\n"
-"معمولا Direct3D ۹ سریع ترین است. گرچه OpenGL دقیق تر است. Direct3D ۱۱ چیزی "
-"است بین این دو.\n"
-"توجه داشته باشید که پشتوانه Direct3D فقط در ویندوز موجود است.\n"
-"\n"
-"اگر در این مورد اطمینان ندارید، از Direct3D ۹ برای ویندوز و از OpenGL برای "
-"گینو لینوکس/مکینتاش استفاده کنید."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:72
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4635,13 +4614,6 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
-"انتخاب کنید که چه رابط گرافیکی به طور داخلی بکار گرفته شود.\n"
-"معمولا Direct3D ۹ سریع ترین است. گرچه OpenGL دقیق تر است. Direct3D ۱۱ چیزی "
-"است بین این دو.\n"
-"توجه داشته باشید که پشتوانه Direct3D فقط در ویندوز موجود است.\n"
-"\n"
-"اگر در این مورد اطمینان ندارید، از Direct3D ۹ برای ویندوز و از OpenGL برای "
-"گینو لینوکس/مکینتاش استفاده کنید."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Send"
@@ -5866,14 +5838,10 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:116
-#, fuzzy
 msgid ""
 "You are using an old free DSP ROM made by the Dolphin Team.\n"
 "Only games using the Zelda UCode will work correctly.\n"
 msgstr ""
-"شما از رام های پردازشگر صدای دلفین مجانی که توسط تیم دلفین ساخته شده استفاده "
-"می کنید.\n"
-"فقط بازی های ماکرو کد زلدا درست با این رام ها کار می کنند.\n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:73
 msgid "You can't close panes that have pages in them."
@@ -5900,15 +5868,11 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "برای اعمال تغییرات شما باید دلفین را از نو اجرا کنید."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s دارای یک درهم‌ساز نا درست است.\n"
-"آیا مایل هستید برابرسازی حالا متوقف شود تا مشکل را اصلاح کنید؟اگر شما \"نه\" "
-"را انتخاب کنید، صدا مغشوش خواهد شد."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -6028,33 +5992,3 @@ msgstr "اصلاح z نزدیک:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| یا"
-
-#~ msgid "%i connected"
-#~ msgstr "%i  متصل شده است"
-
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "زمان بندی جایگزین برای ویموت"
-
-#~ msgid ""
-#~ "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. "
-#~ "No effect on emulated wiimotes."
-#~ msgstr ""
-#~ "خفه کردن اسپیکر ویموت. درست کردن قطعی های تصادفی ویموت های واقعی. هیچ "
-#~ "تاثیری بر ویموت های برابرسازی شده ندارد."
-
-#~ msgid "Pair Up"
-#~ msgstr "جفت شدن"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "تایید اتصال ویموت"
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "ویموت %i توسط سیستم قطع شد.\n"
-#~ "شاید این بازی از مولتی ویموت پشتیبانی نمی کند،\n"
-#~ "یا شاید این قطعی ناشی از وقفه بیهوده یا دلیلی دیگر باشد.\n"
-#~ "آیا می خواهید بی درنگ از نو متصل شوید؟"

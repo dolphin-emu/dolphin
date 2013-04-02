@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-02 08:31+0000\n"
+"PO-Revision-Date: 2013-03-30 08:13+0000\n"
 "Last-Translator: delroth <delroth@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: it\n"
@@ -738,9 +738,8 @@ msgstr ""
 "Sei sicuro di voler eliminare questo file? Sarà cancellato definitivamente!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "Ricompilatore JITIL sperimentale"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -1931,9 +1930,8 @@ msgid "Enable Screen Saver"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "Attiva pagine"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2611,9 +2609,8 @@ msgid "Game isn't running!"
 msgstr "Il gioco non è avviato"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "Gioco non trovato!!"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -3056,7 +3053,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:55
 msgid "Interpreter (VERY slow)"
-msgstr "Interprete (molto lento)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Intro"
@@ -3127,11 +3124,11 @@ msgstr "GIAPPONE"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:59
 msgid "JIT Recompiler (recommended)"
-msgstr "Ricompilatore JIT (consigliato)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:60
 msgid "JITIL experimental recompiler"
-msgstr "Ricompilatore JITIL sperimentale"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
@@ -5603,15 +5600,11 @@ msgstr ""
 "E' necessario il riavvio di Dolphin affinché le modifiche abbiano effetto."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s possiede un hash non corretto.\n"
-"Vorresti interrompere adesso per tentare di risolvere il problema?\n"
-"Se si seleziona \"No\", l'audio potrebbe risultare confuso e incomprensibile."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -5714,20 +5707,3 @@ msgstr "Correzione zNear: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "Pair Up"
-#~ msgstr "Abbina"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "Conferma Ricollegamento Wiimote"
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "Wiimote %i è stato disconnesso dal sistema. \n"
-#~ " Forse questo gioco non supporta il multi-wiimote, \n"
-#~ " o forse è dovuto ad altri motivi. \n"
-#~ "Vuoi riconnettersi immediatamente?"

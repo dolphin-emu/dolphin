@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-03-02 19:42+0000\n"
+"PO-Revision-Date: 2013-03-30 08:13+0000\n"
 "Last-Translator: DefenderX <darkmodx@gmail.com>\n"
 "Language-Team: German (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/de/)\n"
@@ -396,14 +396,10 @@ msgid "A game is not currently running."
 msgstr "Es wird derzeit kein Spiel ausgeführt."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found.\n"
 "You must manually connect your wiimotes."
 msgstr ""
-"Es wurde kein unterstütztes Bluetoothgerät gefunden!\n"
-"Wenn du den Bluetooth Stack von Microsoft nutzt musst du deine Wiimotes "
-"manuell Paaren und dann nur den \"Refresh\" Knopf drücken"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:109
 msgid ""
@@ -757,9 +753,8 @@ msgstr ""
 "Soll die Datei gelöscht werden? Löschen kann nicht Rückgängig gemacht werden."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "JITIL experimenteller Recompiler"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -1961,9 +1956,8 @@ msgid "Enable Screen Saver"
 msgstr "Aktiviere Bildschirmschoner"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "Blättern verwenden"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2634,9 +2628,8 @@ msgid "Game isn't running!"
 msgstr "Spiel wird nicht emuliert!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "Spiel nicht gefunden!"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -3078,7 +3071,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:55
 msgid "Interpreter (VERY slow)"
-msgstr "Interpreter (SEHR langsam)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Intro"
@@ -3149,11 +3142,11 @@ msgstr "JAPAN"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:59
 msgid "JIT Recompiler (recommended)"
-msgstr "JIT Recompiler (empfohlen)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:60
 msgid "JITIL experimental recompiler"
-msgstr "JITIL experimenteller Recompiler"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
@@ -5618,15 +5611,11 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Sie müssen Dolphin neu starten, damit die Änderungen wirksam werden."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s besitzt einen fehlerhaften Hash.\n"
-"Möchten Sie jetzt abbrechen, um das Problem zu beheben?\n"
-"Wenn Sie \"Nein\" wählen, wird der Ton verzerrt."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -5726,26 +5715,3 @@ msgstr "zNear Korrektion: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| ODER"
-
-#~ msgid "%i connected"
-#~ msgstr "%i verbunden"
-
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "Alternatives Wiimote Timing"
-
-#~ msgid "Pair Up"
-#~ msgstr "Verbinden"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "Wiimote Wiederverbindung Bestätigen"
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "Verbindung zu Wiimote %i wurde vom System unterbrochen.\n"
-#~ "Vielleicht unterstützt das Spiel nicht mehrere Wiimotes,\n"
-#~ "oder die Wiimote war zulange inaktiv oder andere Ursachen.\n"
-#~ "Soll die Wiimote jetzt wieder verbunden werden?"

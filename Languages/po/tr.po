@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-13 15:09+0000\n"
+"PO-Revision-Date: 2013-03-30 08:13+0000\n"
 "Last-Translator: mustafacan <m.can.elmaci@gmail.com>\n"
 "Language-Team: Turkish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/tr/)\n"
@@ -18,7 +18,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:511
 msgid " (too many to display)"
@@ -747,9 +747,8 @@ msgstr ""
 "geri döndüremezsiniz!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "JITIL Deneysel Yeniden Derleyici"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -1995,9 +1994,8 @@ msgid "Enable Screen Saver"
 msgstr "Ekran Koruyucusuna İzin Ver"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "Sayfalara izin ver"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2708,9 +2706,8 @@ msgid "Game isn't running!"
 msgstr "Oyun çalışmıyor!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "Oyun bulunamadı!!"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -3177,7 +3174,7 @@ msgstr "İç Çözünürlük:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:55
 msgid "Interpreter (VERY slow)"
-msgstr "Yorumlayıcı (Çok Yavaş)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Intro"
@@ -3248,11 +3245,11 @@ msgstr "JAPONYA"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:59
 msgid "JIT Recompiler (recommended)"
-msgstr "JIT Yeniden Derleyici (önerilen)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:60
 msgid "JITIL experimental recompiler"
-msgstr "JITIL Deneysel Yeniden Derleyici"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
@@ -3514,7 +3511,6 @@ msgid "Maker:"
 msgstr "Yapımcı:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
-#, fuzzy
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3522,10 +3518,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Performansı artırır ancak sis emülasyonu gereken bazı oyunlarda hatalara "
-"neden olabilir. \n"
-"\n"
-"Emin değilseniz, işaretsiz bırakır."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:97
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
@@ -4571,7 +4563,6 @@ msgstr ""
 "Hala emin değilseniz, kullanabildiğiniz en yüksek çözünürlüğü seçin."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4580,15 +4571,8 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 11."
 msgstr ""
-"Hangi görüntü API'sinin kullanılacağını seçer.\n"
-"DirectX 9 genelde en hızlı olanlarıdır. OpenGL gerçekçiliğe önem verir. "
-"DirectX 10/11 ikisinin arasıdır.\n"
-"Şunu unutmayın, DirectX 9 sadece Windows'da kullanılabilir.\n"
-"\n"
-"Emin değilseniz, DirectX 9 seçin."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:72
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4597,12 +4581,6 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
-"Hangi görüntü API'sinin kullanılacağını seçer.\n"
-"DirectX 9 genelde en hızlı olanlarıdır. OpenGL gerçekçiliğe önem verir. "
-"DirectX 10/11 ikisinin arasıdır.\n"
-"Şunu unutmayın, DirectX 9 sadece Windows'da kullanılabilir.\n"
-"\n"
-"Emin değilseniz, DirectX 9 seçin."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Send"
@@ -5818,13 +5796,10 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:116
-#, fuzzy
 msgid ""
 "You are using an old free DSP ROM made by the Dolphin Team.\n"
 "Only games using the Zelda UCode will work correctly.\n"
 msgstr ""
-"Dolphin Takımı tarafından yapılan bedava dsp ROM'ları kullanıyorsunuz. \n"
-"Sadece Zelda ucode oyunları bunlarla düzgün çalışabilir. \n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:73
 msgid "You can't close panes that have pages in them."
@@ -5851,15 +5826,11 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Değişikliğin etkili olması için Dolphin'i yeniden başlatmalısınız."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s nin hash değerleri hatalı.\n"
-"Sorunu düzeltmek için durdurmak istiyor musunuz?\n"
-"Eğer \"Hayır\", seçerseniz,seste sorun oluşabilir."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -5978,33 +5949,3 @@ msgstr "zNear Düzeltmesi:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| VEYA"
-
-#~ msgid "%i connected"
-#~ msgstr "%i bağlandı"
-
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "Alternatif Wiimote Zamanlaması"
-
-#~ msgid ""
-#~ "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. "
-#~ "No effect on emulated wiimotes."
-#~ msgstr ""
-#~ "WiiMote hoparlörünün sesini kapatır. Gerçek WiiMote'lardaki rastgele "
-#~ "bağlantı kesilmelerini önler. Taklit WiiMote'ları etkilemez."
-
-#~ msgid "Pair Up"
-#~ msgstr "Eşleştir"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "Wiimote Tekrar Bağlama Onayı"
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "Wiimote %i 'nin sistemdeki bağlantısı kesildi. \n"
-#~ "Bu oyun birden fazla Wiimote'u desteklemiyor olabilir,\n"
-#~ "bir zaman aşımı olabilir veya başka bir şey olabilir. \n"
-#~ "Tekrar bağlamak istiyor musunuz?"

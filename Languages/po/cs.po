@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-03 17:07+0000\n"
+"PO-Revision-Date: 2013-04-02 17:52+0000\n"
 "Last-Translator: Zbyněk Schwarz <zbynek.schwarz@gmail.com>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/cs/)\n"
@@ -390,14 +390,12 @@ msgid "A game is not currently running."
 msgstr "Hra v současnosti neběží!"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found.\n"
 "You must manually connect your wiimotes."
 msgstr ""
 "Podporované zařízení bluetooth nebylo nalezeno!\n"
-"Pokud nepoužíváte zásobník Microsoft bluetooth, musíte ručně spárovat vaše "
-"wiimoty a pouze používat tlačítko \"Obnovit\"."
+"Vaše wiimoty musíte připojit ručně."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:109
 msgid ""
@@ -750,9 +748,8 @@ msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "Opravdu chcete smazat tento soubor? Bude navždy ztracen!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "JITIL experimentální rekompilátor"
+msgstr "Arm JIT (experimentální)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -1285,7 +1282,7 @@ msgstr "Konzole"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:71
 msgid "Continuous Scanning"
-msgstr ""
+msgstr "Průběžné skenování"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:46
 msgid "Control"
@@ -1998,9 +1995,8 @@ msgid "Enable Screen Saver"
 msgstr "Povolit Spořič Obrazovky"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "Zapnout stránky"
+msgstr "Povolit data reproduktorů"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2719,9 +2715,8 @@ msgid "Game isn't running!"
 msgstr "Hra neběží!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "Hra nenalezena!!"
+msgstr "Hra nenalezena!"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -2868,6 +2863,7 @@ msgid "Help"
 msgstr "Nápověda"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:242
+#, fuzzy
 msgid ""
 "Hi,\n"
 "\n"
@@ -2878,6 +2874,16 @@ msgid ""
 "\n"
 "Sayonara!\n"
 msgstr ""
+"Ahoj,\n"
+"\n"
+"Dolphin vyžaduje, OS X 10.7 nebo lepší.\n"
+"Bohužel máte příliš starou verzi OS X.\n"
+"Poslední verze Dolphin podporující OS X 10.6 je Dolphin 3.5\n"
+"Prosím aktualizujte na 10.7 nebo lepší, abyste mohli použít nejnovější verzi "
+"Dolphin.\n"
+"\n"
+"\n"
+"Sajonara!\n"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:233
 msgid ""
@@ -3528,7 +3534,6 @@ msgid "Maker:"
 msgstr "Výrobce:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
-#, fuzzy
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3536,7 +3541,8 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Zlepší výkon, ale způsobuje chyby ve většině her, které závisejí na správné "
+"Odstraněním mlhy budou vzdálenější objekty budou viditelnější.\n"
+"Zakázání může způsobit chyby v některých hrách, které závisejí na správné "
 "emulaci mlhy.\n"
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
@@ -4585,7 +4591,6 @@ msgstr ""
 "funguje."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4594,15 +4599,14 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 11."
 msgstr ""
-"Zvolí jaké bude vnitřně grafické API použito.\n"
-"Direct3D 9 je většinou nejrychlejší. OpenGL je ale nejpřesnější. Direct3D 11 "
-"je někde mezi nimi.\n"
+"Zvolí jaké grafické API bude vnitřně použito.\n"
+"Direct3D 9 je většinou nejrychlejší. OpenGL je ale přesnější. Direct3D 11 je "
+"někde mezi nimi.\n"
 "Nezapomeňte, že podpůrné vrstvy Direct3D jsou dostupné pouze ve Windows.\n"
 "\n"
-"Pokud si nejste jisti, použijte Direct3D 9"
+"Pokud si nejste jisti, použijte Direct3D 11."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:72
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4611,12 +4615,12 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
-"Zvolí jaké bude vnitřně grafické API použito.\n"
-"Direct3D 9 je většinou nejrychlejší. OpenGL je ale nejpřesnější. Direct3D 11 "
-"je někde mezi nimi.\n"
+"Zvolí jaké grafické API bude vnitřně použito.\n"
+"Direct3D 9 je většinou nejrychlejší. OpenGL je ale přesnější. Direct3D 11 je "
+"někde mezi nimi.\n"
 "Nezapomeňte, že podpůrné vrstvy Direct3D jsou dostupné pouze ve Windows.\n"
 "\n"
-"Pokud si nejste jisti, použijte Direct3D 9"
+"Pokud si nejste jisti, použijte OpenGL."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Send"
@@ -5089,13 +5093,15 @@ msgstr "Švihnutí"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
 msgid "Synchronize GPU thread"
-msgstr ""
+msgstr "Synchronizovat vlákno GPU"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid ""
 "Synchronizes the GPU and CPU threads to help prevent random freezes in Dual "
 "Core mode. (ON = Compatible, OFF = Fast)"
 msgstr ""
+"Synchronizuje vlákna GPU a CPU, aby se zabránilo náhodným zasekáváním v "
+"režimu dvojitého jádra. (ZAPNUTO = Kompatibilní, VYPNUTO = Rychlé)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:786
@@ -5839,15 +5845,17 @@ msgid ""
 "All Wii games will work correctly, and most GC games should also work fine, "
 "but the GBA/IPL/CARD UCodes will not work.\n"
 msgstr ""
+"Používáte volný ROM DSP, který vytvořil Tým Dolphin.\n"
+"Všechny hri Wii budou správně pracovat a většina her na GC by také měla "
+"fungovat dobře, ale UKódy GBA/IPL/CARD nebudou fungovat.\n"
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:116
-#, fuzzy
 msgid ""
 "You are using an old free DSP ROM made by the Dolphin Team.\n"
 "Only games using the Zelda UCode will work correctly.\n"
 msgstr ""
-"Používáte volné romy dsp vytvořené Týmem Doplhin.\n"
-"Správně s nimi bude fungovat pouze Zelda ucode.\n"
+"Používáte starý volný ROM DSP, který vytvořil Tým Doplhin.\n"
+"Správně pracovat budou pouze hry používající Zelda UCode.\n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:73
 msgid "You can't close panes that have pages in them."
@@ -5876,15 +5884,14 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Pro uplatnění změn musíte Dolphin restartovat."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s má nesprávný otisk.\n"
-"Chtěli byste hned teď zastavit a opravit problém?\n"
-"Pokud vyberete \"Ne\", zvuk bude zkomolený."
+"Váš ROM DSP má nesprávné haše.\n"
+"Chtěli byste nyní přestat a problém opravit?\n"
+"Pokud zvolíte \"Ne\", mlže být zvuk poškozený."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -6005,33 +6012,3 @@ msgstr "Korekce zNear:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| NEBO"
-
-#~ msgid "%i connected"
-#~ msgstr "Připojeno %i"
-
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "Střídat časování Wiimote"
-
-#~ msgid ""
-#~ "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. "
-#~ "No effect on emulated wiimotes."
-#~ msgstr ""
-#~ "Ztlumí reproduktor Wiimote. Spravuje náhodná odpojování u opravdových "
-#~ "Wiimote. Žádný efekt na emulovaná Wiimote."
-
-#~ msgid "Pair Up"
-#~ msgstr "Spárovat"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "Potvrzení o znovupřipojení Wiimote"
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "Wiimote %i byl odpojen systémem.\n"
-#~ "Možná tato hra nepodporuje více wiimotů,\n"
-#~ "nebo je to vypršení limitu neaktivity, nebo z jiného důvodu.\n"
-#~ "Chcete ho hned znovu připojit?"

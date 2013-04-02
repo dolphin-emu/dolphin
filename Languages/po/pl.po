@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-06 12:58+0000\n"
+"PO-Revision-Date: 2013-03-30 08:13+0000\n"
 "Last-Translator: Robert202 <Robert@10g.pl>\n"
 "Language-Team: Polish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/pl/)\n"
@@ -395,14 +395,10 @@ msgid "A game is not currently running."
 msgstr "Gra nie jest aktualnie uruchomiona."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found.\n"
 "You must manually connect your wiimotes."
 msgstr ""
-"Kompatybilny adapter bluetooth nie został znaleziony!\n"
-"Jeśli nie używasz bluetooth stack Microsoftu, musisz ręcznie sparować "
-"wiiloty oraz używać tylko przycisku \\\"Odśwież\\\"."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:109
 msgid ""
@@ -756,9 +752,8 @@ msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "Czy jesteś pewny by usunąc ten plik? Przepadnie na zawsze!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "Eksperymentalny rekompilator JITIL"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -2005,9 +2000,8 @@ msgid "Enable Screen Saver"
 msgstr "Włącz wygaszacz ekranu"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "Włącz strony"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2721,9 +2715,8 @@ msgid "Game isn't running!"
 msgstr "Gra nie jest uruchomiona!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "Gry nie odnaleziono!"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -3191,7 +3184,7 @@ msgstr "Wewnętrzna rozdzielczość:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:55
 msgid "Interpreter (VERY slow)"
-msgstr "Interpreter (BARDZO wolny)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Intro"
@@ -3264,11 +3257,11 @@ msgstr "Japonia"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:59
 msgid "JIT Recompiler (recommended)"
-msgstr "Rekompilator JIT (zalecany)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:60
 msgid "JITIL experimental recompiler"
-msgstr "Eksperymentalny rekompilator JITIL"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
@@ -3534,7 +3527,6 @@ msgid "Maker:"
 msgstr "Twórca:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
-#, fuzzy
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3542,10 +3534,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Zwiększa wydajność, ale powoduje błędy w grach, które wymagają właściwej "
-"emulacji mgły.\n"
-"\n"
-"W razie wątpliwości, pozostaw wyłączone."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:97
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
@@ -4592,7 +4580,6 @@ msgstr ""
 "Jeśli nadal masz wątpliwości, użyj najwyższej działającej rozdzielczości."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4601,14 +4588,8 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 11."
 msgstr ""
-"Wybiera, które graficzne API ma być użyte wewnętrznie.\n"
-"Direct3D 9 zazwyczaj jest najszybsze. OpenGL jest bardziej dokładne. "
-"Direct3D 11 jest pomiędzy tymi opcjami.\n"
-"\n"
-"W razie wątpliwości, użyj Direct3D 9."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:72
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4617,11 +4598,6 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
-"Wybiera, które graficzne API ma być użyte wewnętrznie.\n"
-"Direct3D 9 zazwyczaj jest najszybsze. OpenGL jest bardziej dokładne. "
-"Direct3D 11 jest pomiędzy tymi opcjami.\n"
-"\n"
-"W razie wątpliwości, użyj Direct3D 9."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Send"
@@ -5840,13 +5816,10 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:116
-#, fuzzy
 msgid ""
 "You are using an old free DSP ROM made by the Dolphin Team.\n"
 "Only games using the Zelda UCode will work correctly.\n"
 msgstr ""
-"Używasz darmowych romów dsp stowrzonych przez Zespół Dolphin'a.\n"
-"Tylko gry Zelda ucode będą działały poprawnie.\n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:73
 msgid "You can't close panes that have pages in them."
@@ -5874,15 +5847,11 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Musisz ponownie uruchomić program w celu zaaplikowania zmian."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s ma niewłaściwy hash.\n"
-"Czy chcesz zatrzymac i naprawić problem?\n"
-"Jeśli wybierzesz \"Nie\", audio będzie zniekształcone."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -6002,33 +5971,3 @@ msgstr "zNear Correction: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "%i connected"
-#~ msgstr "%i połączony"
-
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "Alternate Wiimote Timing"
-
-#~ msgid ""
-#~ "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. "
-#~ "No effect on emulated wiimotes."
-#~ msgstr ""
-#~ " Wycisza głośnik Wiilota. Naprawia losowe rozłączenia z prawdziwymi "
-#~ "Wiilotami. Brak efektu na emulowanych Wiilotach."
-
-#~ msgid "Pair Up"
-#~ msgstr "Parowanie"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "Potwierdzenie ponownego połączenia Wiilota"
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "Wiilot %i rozłączony przez system.\n"
-#~ "Może ta gra nie wpsiera kilku wiilotów,\n"
-#~ "lub zbyt długi czas nieobecności lub coś innego.\n"
-#~ "Połączyć ponownie?"

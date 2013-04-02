@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-02 17:46+0000\n"
+"PO-Revision-Date: 2013-03-30 08:13+0000\n"
 "Last-Translator: glennricster <glennricster@gmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ar/)\n"
@@ -386,13 +386,10 @@ msgid "A game is not currently running."
 msgstr "اللعبة ليست قيد التشغيل حاليا."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found.\n"
 "You must manually connect your wiimotes."
 msgstr ""
-"لم يتم العثور على جهاز بلوتوث!\n"
-"(فقط بلوتوث مايكروسوفت معتمد.)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:109
 msgid ""
@@ -708,9 +705,8 @@ msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "هل أنت متأكد أنك تريد حذف هذه الملفات؟"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "JITIL recompiler (تجريبي )"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -1941,9 +1937,8 @@ msgid "Enable Screen Saver"
 msgstr "تمكين شاشة التوقف"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "تمكين صفحات"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2624,9 +2619,8 @@ msgid "Game isn't running!"
 msgstr "اللعبة ليست على التوالي!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "لم يتم العثور على لعبة"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -3077,7 +3071,7 @@ msgstr "الدقة الداخلية :"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:55
 msgid "Interpreter (VERY slow)"
-msgstr "Interpreter (بطيئة جدا)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Intro"
@@ -3145,11 +3139,11 @@ msgstr "اليابان"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:59
 msgid "JIT Recompiler (recommended)"
-msgstr "JIT Recompiler (موصى به)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:60
 msgid "JITIL experimental recompiler"
-msgstr "JITIL recompiler (تجريبي )"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
@@ -3408,7 +3402,6 @@ msgid "Maker:"
 msgstr "المنتج :"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
-#, fuzzy
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3416,10 +3409,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"تحسين الأداء لكن يسبب الخلل في معظم الألعاب التي تعتمد على المضاهاة الضباب "
-"الصحيح.\n"
-"\n"
-"إذا لم تكن متأكدا ترك هذا غير محددة."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:97
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
@@ -4463,7 +4452,6 @@ msgstr ""
 "إذا لم تكن متأكدا من ذلك ، استخدم أعلى دقة."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4472,15 +4460,8 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 11."
 msgstr ""
-"حدد الجرافيك لاستخدام داخليا.\n"
-"ديركت 9 هو عادة أسرع واحد. اوبن جل هو أكثر دقة على الرغم من. ديركت 11 هو في "
-"مكان ما بين الاثنين.\n"
-"تتوفر فقط على ويندوز Direct3D علما بأن.\n"
-"\n"
-"Direct3D إذا لم تكن متأكدا استخدام ."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:72
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4489,12 +4470,6 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
-"حدد الجرافيك لاستخدام داخليا.\n"
-"ديركت 9 هو عادة أسرع واحد. اوبن جل هو أكثر دقة على الرغم من. ديركت 11 هو في "
-"مكان ما بين الاثنين.\n"
-"تتوفر فقط على ويندوز Direct3D علما بأن.\n"
-"\n"
-"Direct3D إذا لم تكن متأكدا استخدام ."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Send"
@@ -5695,15 +5670,11 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "يجب إعادة تشغيل دولفين من أجل التغيير نافذ المفعول."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s لديه التجزئة غير صحيحة.\n"
-"تريد أن تتوقف الآن لإصلاح المشكلة?\n"
-"سيتم تشويش الصوت \"لا\", إذا قمت باختيار."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -5820,33 +5791,3 @@ msgstr "zNear تصحيح: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "أو"
-
-#~ msgid "%i connected"
-#~ msgstr "%i متصل"
-
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "بديل ويموت"
-
-#~ msgid ""
-#~ "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. "
-#~ "No effect on emulated wiimotes."
-#~ msgstr ""
-#~ "كتم صوت الويموت بإصلاح الانقطاع العشوائي على الويموت الحقيقي. أي تأثير "
-#~ "على الويموت يحتذى به."
-
-#~ msgid "Pair Up"
-#~ msgstr "اقتران"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "إعادة توصيل تأكيد ويموت"
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "ويموت  %i تم قطع الاتصال من قبل النظام.\n"
-#~ "ربما هذه اللعبة لا تدعم متعددة ييموت,\n"
-#~ "أو ربما هو بسبب الخمول وقت مستقطع أو لسبب آخر.\n"
-#~ "هل تريد إعادة الاتصال على الفور?"

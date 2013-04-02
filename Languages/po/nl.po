@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-03 20:56+0000\n"
+"PO-Revision-Date: 2013-03-30 08:13+0000\n"
 "Last-Translator: Garteal <garteal@gmail.com>\n"
 "Language-Team: Dutch (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/nl/)\n"
@@ -393,14 +393,10 @@ msgid "A game is not currently running."
 msgstr "Er staat geen spel aan."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found.\n"
 "You must manually connect your wiimotes."
 msgstr ""
-"Er is geen ondersteund bluetooth apparaat gevonden!\\n\n"
-"Als je niet de Microsoft bluetooth stack gebruikt, moet je handmatig je "
-"wiimotes pairen and alleen de \"Refresh\" knop gebruiken."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:109
 msgid ""
@@ -761,9 +757,8 @@ msgstr ""
 "terug te halen!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "JITIL experimentele recompiler"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -2011,9 +2006,8 @@ msgid "Enable Screen Saver"
 msgstr "Activeer Schermbeveiliger"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "Activeer Pagina's"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2736,9 +2730,8 @@ msgid "Game isn't running!"
 msgstr "Het spel draait niet!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "Spel niet gevonden!!"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -3211,7 +3204,7 @@ msgstr "Interne Resolutie:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:55
 msgid "Interpreter (VERY slow)"
-msgstr "Interpreteer (Behoorlijk langzaam)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Intro"
@@ -3282,11 +3275,11 @@ msgstr "JAPAN"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:59
 msgid "JIT Recompiler (recommended)"
-msgstr "JIT Recompiler (aanbevolen)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:60
 msgid "JITIL experimental recompiler"
-msgstr "JITIL experimentele recompiler"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
@@ -3552,7 +3545,6 @@ msgid "Maker:"
 msgstr "Maker:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
-#, fuzzy
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3560,10 +3552,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Verbeterd prestaties, maar kan grafische glitches veroorzaken in spellen die "
-"afhankelijk zijn van juiste mist emulatie. \n"
-"\n"
-"In geval van twijfel leeg laten."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:97
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
@@ -4614,7 +4602,6 @@ msgstr ""
 "Als je nog steeds twijfelt, gebruik de hoogste resolutie die voor jou werkt."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4623,15 +4610,8 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 11."
 msgstr ""
-"Selecteer de intern te gebruiken grafische API.\n"
-"Direct3D 9 is meestal de snelste. OpenGL is echter nauwkeuriger. Direct3D 11 "
-"zit ergens tussenin.\n"
-"Let erop dat de Direct3D backends alleen op Windows beschikbaar zijn.\n"
-"\n"
-"In geval van twijfel gebruik Direct3D 9."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:72
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4640,12 +4620,6 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
-"Selecteer de intern te gebruiken grafische API.\n"
-"Direct3D 9 is meestal de snelste. OpenGL is echter nauwkeuriger. Direct3D 11 "
-"zit ergens tussenin.\n"
-"Let erop dat de Direct3D backends alleen op Windows beschikbaar zijn.\n"
-"\n"
-"In geval van twijfel gebruik Direct3D 9."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Send"
@@ -5878,13 +5852,10 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:116
-#, fuzzy
 msgid ""
 "You are using an old free DSP ROM made by the Dolphin Team.\n"
 "Only games using the Zelda UCode will work correctly.\n"
 msgstr ""
-"Je maakt gebruik van gratis dsp roms gemaakt door het Dolphin Team.\\n\n"
-"Alleen Zelda ucode spellen zullen hier goed mee werken.\\n\n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:73
 msgid "You can't close panes that have pages in them."
@@ -5911,15 +5882,11 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Je moet Dolphin herstarten voordat deze optie effect zal hebben."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s heeft een incorrecte hashcode.\n"
-"Wil je nu stoppen om het probleem op te lossen?\n"
-"Als je \"Nee\" selecteert, zal het geluid vervormd klinken."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -6037,33 +6004,3 @@ msgstr "zDichtbij correctie:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| OF"
-
-#~ msgid "%i connected"
-#~ msgstr "%i verbonden"
-
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "Alternatieve Wiimote Timing"
-
-#~ msgid ""
-#~ "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. "
-#~ "No effect on emulated wiimotes."
-#~ msgstr ""
-#~ "Dempt de Wiimote speaker. Fixt willekeurige loskoppelingen van echte "
-#~ "wiimotes. Heeft geen effect op geëmuleerde wiimotes."
-
-#~ msgid "Pair Up"
-#~ msgstr "Verbinden"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "Bevestig herverbinding van Wiimote "
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "Wiimote %i is losgekoppeld door het systeem.\n"
-#~ "Wellicht ondersteunt dit spel geen multi-Wiimote,\n"
-#~ "of misschien is het te wijten aan een time-out of een andere reden.\n"
-#~ "Wilt u meteen opnieuw verbinden?"

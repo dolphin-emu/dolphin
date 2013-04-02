@@ -5,13 +5,14 @@
 # Translators:
 # Jordi Coma, 2011.
 # Jordi Coma <jordicoma22@gmail.com>, 2011.
+#  <puniasterus@gmail.com>, 2013.
 #  <roger---92@hotmail.com>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-27 12:02+0000\n"
+"PO-Revision-Date: 2013-04-02 19:26+0000\n"
 "Last-Translator: Puniasterus <puniasterus@gmail.com>\n"
 "Language-Team: Catalan (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ca/)\n"
@@ -23,7 +24,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:511
 msgid " (too many to display)"
-msgstr " (massa per ensenyar)"
+msgstr "(massa per ensenyar)"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:270
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:491
@@ -394,14 +395,12 @@ msgid "A game is not currently running."
 msgstr "No s'està executant cap joc actualment."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found.\n"
 "You must manually connect your wiimotes."
 msgstr ""
-"No s'ha trobat cap dispositiu bluetooth compatible!\n"
-"Si no estàs fent servir un dispositiu Microsoft bluetooth hauràs de "
-"sincronitzar els wiimotes manualment fent servir el botó \"Refrescar\"."
+"No s'ha trobat cap dispositiu bluetooth compatible.\n"
+"Has de connectar manualment els wiimotes."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:109
 msgid ""
@@ -759,9 +758,8 @@ msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "Estàs segur d'eliminar aquest fitxer? Aquesta acció serà definitiva!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "Recompilador JITIL experimental"
+msgstr "Arm JIT (experimental)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -1295,7 +1293,7 @@ msgstr "Consola"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:71
 msgid "Continuous Scanning"
-msgstr ""
+msgstr "Escaneig continu"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:46
 msgid "Control"
@@ -2012,9 +2010,8 @@ msgid "Enable Screen Saver"
 msgstr "Habilitar el protector de pantalla"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "Habilitar pàgines"
+msgstr "Activar altaveu de dades"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2732,7 +2729,6 @@ msgid "Game isn't running!"
 msgstr "El joc no està funcionant!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
 msgstr "Joc no trobat!"
 
@@ -3208,7 +3204,7 @@ msgstr "Resolució Interna:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:55
 msgid "Interpreter (VERY slow)"
-msgstr "Intèrpret (molt lent)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Intro"
@@ -3279,11 +3275,11 @@ msgstr "JAPÓ"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:59
 msgid "JIT Recompiler (recommended)"
-msgstr "Recompilador JIT (recomanat)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:60
 msgid "JITIL experimental recompiler"
-msgstr "Recompilador JITIL experimental"
+msgstr "Recompilador experimental JITIL"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
@@ -3549,7 +3545,6 @@ msgid "Maker:"
 msgstr "Fabricant:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
-#, fuzzy
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3557,10 +3552,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Millora el rendiment en molts jocs, però causa errors gràfics en els jocs "
-"que es basen en l'emulació de boira\n"
-"\n"
-"Si no n'estàs segur, deixa-ho desactivat."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:97
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
@@ -4612,7 +4603,6 @@ msgstr ""
 "Si encara no n'estàs segurs, utilitza la resolució més alta que et funcioni."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4621,15 +4611,8 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 11."
 msgstr ""
-"Escull la API gràfica que utilitza internament.\n"
-"Direct3D 9 normalment és la més ràpida. Però OpenGL és la més exacta. "
-"Direct3D 11 és en un punt entre mig.\n"
-"Tingues en compte que Direct3D només funciona a Windows.\n"
-"\n"
-"Si no n'estàs segur, utilitza Direct3D 9."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:72
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4638,12 +4621,6 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
-"Escull la API gràfica que utilitza internament.\n"
-"Direct3D 9 normalment és la més ràpida. Però OpenGL és la més exacta. "
-"Direct3D 11 és en un punt entre mig.\n"
-"Tingues en compte que Direct3D només funciona a Windows.\n"
-"\n"
-"Si no n'estàs segur, utilitza Direct3D 9."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Send"
@@ -5876,13 +5853,10 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:116
-#, fuzzy
 msgid ""
 "You are using an old free DSP ROM made by the Dolphin Team.\n"
 "Only games using the Zelda UCode will work correctly.\n"
 msgstr ""
-"Estàs utilitzant roms dsp creades per l'equip Dolphin.\n"
-"Només els jocs Zelda ucode funcionaran correctament.\n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:73
 msgid "You can't close panes that have pages in them."
@@ -5909,15 +5883,11 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Ha de reiniciar Dolphin perquè el canvi tingui efecte."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s té un hash incorrecte.\n"
-"T'agradaria parar ara per solucionar el problema?\n"
-"Si selecciones \"No\", el so serà distorsionat."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -6038,33 +6008,3 @@ msgstr "Correcció ZAprop"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| O"
-
-#~ msgid "%i connected"
-#~ msgstr "%i connectat"
-
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "Sincronització alternativa del Wiimote"
-
-#~ msgid ""
-#~ "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. "
-#~ "No effect on emulated wiimotes."
-#~ msgstr ""
-#~ "Silencia l'altaveu del «Wiimote». Arregla desconnexions aleatòries en "
-#~ "«wiimotes» reals. No afecta els «wiimotes» emulats."
-
-#~ msgid "Pair Up"
-#~ msgstr "Aparellar"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "Confirmar tornar a connectar el Wiimote"
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "Wiimote %i ha estat desconnectat pel sistema. \n"
-#~ "Potser aquest joc no és compatible amb múltiples wiimote, \n"
-#~ "o potser és perquè l'estàs fent servir fora de temps o una altra raó. \n"
-#~ "Vols tornar a connectar-lo immediatament?"

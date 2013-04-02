@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-11 13:34+0000\n"
+"PO-Revision-Date: 2013-03-30 08:13+0000\n"
 "Last-Translator: N69 <69@no-spam.ws>\n"
 "Language-Team: Russian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ru/)\n"
@@ -719,9 +719,8 @@ msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "Вы уверены, что хотите удалить этот файл? Он исчезнет навсегда!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "JITIL-рекомпилятор (экспериментальный)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -1901,9 +1900,8 @@ msgid "Enable Screen Saver"
 msgstr "Включить режим \"Сохранения экрана\""
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "Включить страницы"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2566,9 +2564,8 @@ msgid "Game isn't running!"
 msgstr "Игра не запущена!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "Игра не найдена!"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -3006,7 +3003,7 @@ msgstr "Внутреннее разрешение:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:55
 msgid "Interpreter (VERY slow)"
-msgstr "Интерпретатор (ОЧЕНЬ медленный)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Intro"
@@ -3077,11 +3074,11 @@ msgstr "ЯПОНИЯ"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:59
 msgid "JIT Recompiler (recommended)"
-msgstr "JIT-рекомпилятор (рекомендуется)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:60
 msgid "JITIL experimental recompiler"
-msgstr "JITIL-рекомпилятор (экспериментальный)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
@@ -5517,15 +5514,11 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Необходимо перезапустить Dolphin, чтобы изменения вступили в силу."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s содержит не верный хэш.\n"
-"Хотите остановить эмуляцию для исправления ошибки?\n"
-"Если вы выбрете \"Нет\", то звук будет испорчен."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -5627,15 +5620,3 @@ msgstr "zNear Коррекция: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| ИЛИ"
-
-#~ msgid "%i connected"
-#~ msgstr "%i подключен"
-
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "Альтернативный тайминг Wiimote"
-
-#~ msgid "Pair Up"
-#~ msgstr "Объединить"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "Подтверждение переподключения Wiimote"

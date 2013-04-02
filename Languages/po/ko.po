@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-03 22:12+0000\n"
+"PO-Revision-Date: 2013-03-31 00:03+0000\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: Korean (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ko/)\n"
@@ -390,14 +390,12 @@ msgid "A game is not currently running."
 msgstr "현재 게임이 구동되고 있지 않습니다."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:68
-#, fuzzy
 msgid ""
 "A supported bluetooth device could not be found.\n"
 "You must manually connect your wiimotes."
 msgstr ""
-"지원되는 블루투스 장치를 찾을 수 없습니다!\n"
-"마이크로소프트 블루투스 스택을 사용하고 있지 않다면 위모트들과 수동으로 짝을 "
-"지으셔야하고 \"갱신\" 버튼 만을 이용하세요."
+"지원되는 블루투스 장치를 찾을 수 없습니다.\n"
+"위모트를 수동으로 연결해야합니다."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:109
 msgid ""
@@ -470,7 +468,7 @@ msgstr ""
 "정확하게 EFB 복사를 에뮬합니다.\n"
 "일부 게임들은 그래픽 효과나 게임플레이 기능을 이것에 의존합니다.\n"
 "\n"
-"확신 없으면, 텍스처에 EFB를 체크로 두세요."
+"모르겠으면, 텍스처에 EFB를 체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:239
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:239
@@ -725,7 +723,7 @@ msgid ""
 msgstr ""
 "프레임을 마친후 후처리 효과를 적용합니다.\n"
 "\n"
-"확신 없으면, (끄기)를 선택하세요."
+"모르겠으면, (끄기)를 선택하세요."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
 msgid "Arabic"
@@ -749,9 +747,8 @@ msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr "이 파일을 정말로 지우고 싶습니까? 그것은 영원히 사라집니다!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "JITIL 실험적 리컴파일러"
+msgstr "Arm JIT (실험적)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -1282,7 +1279,7 @@ msgstr "콘솔"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:71
 msgid "Continuous Scanning"
-msgstr ""
+msgstr "반복 스캔하기"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:46
 msgid "Control"
@@ -1992,9 +1989,8 @@ msgid "Enable Screen Saver"
 msgstr "스크린 세이버 활성"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "페이지 활성"
+msgstr "스피커 데이터를 켭니다"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2705,9 +2701,8 @@ msgid "Game isn't running!"
 msgstr "게임이 구동중이지 않습니다!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "게임이 찾을 수 없습니다!!"
+msgstr "게임이 없습니다!"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -2832,7 +2827,7 @@ msgstr "HCI_CMD_INQUIRY가 호출됨, 보고해주세요!"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:501
 msgid "Hacked Buffer Upload"
-msgstr ""
+msgstr "핵 버퍼 업로드"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:428
 msgid "Hacks"
@@ -2855,6 +2850,7 @@ msgid "Help"
 msgstr "도움"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:242
+#, fuzzy
 msgid ""
 "Hi,\n"
 "\n"
@@ -2865,6 +2861,14 @@ msgid ""
 "\n"
 "Sayonara!\n"
 msgstr ""
+"하이,\n"
+"\n"
+"돌핀은 OS X 10.7나 이상이 필요합니다.\n"
+"불행하게도 당신은 OS X의 옛 버전을 구동하고 계십니다.\n"
+"OS X 10.6을 지원하는 최종 돌핀 버전은 돌핀3.5 입니다\n"
+"최신 돌핀 버전을 사용하시려면 10.7이나 이상으로 업그레이드해주세요.\n"
+"\n"
+"사요나라!\n"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:233
 msgid ""
@@ -3518,7 +3522,6 @@ msgid "Maker:"
 msgstr "제작사:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
-#, fuzzy
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3526,8 +3529,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"성능이 향상되지만 올바른 안개 에뮬레이션에 의존한 대부분의 게임에서 결함을 유"
-"발합니다.\n"
+"안개를 제거해서 멀리 있는 물체들을 더 잘보이게 만듭니다, 그리하여 전반적인 디"
+"테일을 향상시킵니다.\n"
+"안개 끄기는 적절한 안개 에뮬레이션과 관련된 일부 게임들을 망가뜨릴 것입니"
+"다.\n"
+"\n"
 "모르겠으면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:97
@@ -4571,7 +4577,6 @@ msgstr ""
 "그래도 모르겠으면, 작동하는 최고 해상도를 사용하세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4580,15 +4585,14 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 11."
 msgstr ""
-"내부적으로 어떤 그래픽 API를 사용할지 선택하세요.\n"
-"Direct3D 9은 보통 가장 빠릅니다. OpenGL은 더 정확하긴 합니다. Dirct3D 11은 "
-"둘 사이 어딘가입니다.\n"
-"Direct3D 백엔드들은 윈도우즈 상에서만 사용할 수 있다는 것을 알아두세요.\n"
+"내부적으로 사용할 그래픽 API를 선택합니다.\n"
+"Direct3D 9은 보통 가장 빠릅니다. OpenGL이 더 정확하긴합니다. Direct3D 11은 "
+"둘 사이쯤 입니다.\n"
+"Direct3D 백엔드들은 윈도우즈들에서만 이용할 수 있다는 것을 알아두세요.\n"
 "\n"
-"모르겠으면, Direct3D 9을 사용하세요."
+"모르겠으면, Direct3D 11을 사용하세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:72
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4597,10 +4601,10 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
-"내부적으로 어떤 그래픽 API를 사용할지 선택하세요.\n"
+"내부적으로 어떤 그래픽 API를 사용할지 선택합니다.\n"
 "Direct3D 9은 보통 가장 빠릅니다. OpenGL은 더 정확하긴 합니다. Dirct3D 11은 "
 "둘 사이 어딘가입니다.\n"
-"Direct3D 백엔드들은 윈도우즈 상에서만 사용할 수 있다는 것을 알아두세요.\n"
+"Direct3D 백엔드들은 윈도우즈들에서만 이용할 수 있다는 것을 알아두세요.\n"
 "\n"
 "모르겠으면, Direct3D 9을 사용하세요."
 
@@ -5069,13 +5073,15 @@ msgstr "스윙"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
 msgid "Synchronize GPU thread"
-msgstr ""
+msgstr "GPU 쓰레드 동기화"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid ""
 "Synchronizes the GPU and CPU threads to help prevent random freezes in Dual "
 "Core mode. (ON = Compatible, OFF = Fast)"
 msgstr ""
+"듀얼 코어 모드에서 랜덤 프리징들 막기를 돕기위해 GPU와 CPU 쓰레드들을 동기화"
+"합니다. (켬 = 호환성, 끔 = 빠름)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:786
@@ -5500,6 +5506,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"버텍스들을 스트림하기 위해 핵 업로드를 사용합니다.\n"
+"이것은 보통 스피드가 올라갑니다, 하지만 OpenGL 사양에 의해 금지되고 엄청난 결"
+"함들을 유발할지도 모릅니다.\n"
+"\n"
+"모르겠으면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:122
 msgid ""
@@ -5817,15 +5828,17 @@ msgid ""
 "All Wii games will work correctly, and most GC games should also work fine, "
 "but the GBA/IPL/CARD UCodes will not work.\n"
 msgstr ""
+"당신은 돌핀팀에 의해 만들어진 무료 DSP 롬을 사용하고 있습니다.\n"
+"모든 Wii 게임들은 올바르게 작동할 것입니다, 그리고 대부분의 GC 게임들도 잘 작"
+"동할 겁니다, 하지만 GBA/IPL/CARD UCode들은 작동하지 않을 겁니다.\n"
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:116
-#, fuzzy
 msgid ""
 "You are using an old free DSP ROM made by the Dolphin Team.\n"
 "Only games using the Zelda UCode will work correctly.\n"
 msgstr ""
-"당신은 돌핀 팀에 의해 만들어진 공짜 dsp 롬들을 사용하고 있습니다.\n"
-"Zelda ucode 게임들만이 그것들로 올바르게 작동할 것입니다.\n"
+"당신은 돌핀 팀에 의해 만들어진 무료 dsp 롬을 사용하고 있습니다.\n"
+"Zelda Ucode를 사용하는 게임들만이 올바르게 작동할 것입니다.\n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:73
 msgid "You can't close panes that have pages in them."
@@ -5852,15 +5865,14 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "변경이 적용되려면 돌핀을 재시작 해야 합니다."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s가 잘못된 해쉬를 지녔습니다.\n"
+"당신의 DSP 롬들이 잘못된 해쉬를 지녔습니다.\n"
 "문제를 고치기위해 지금 중단하시겠습니까?\n"
-"\"아니오\"를 선택하면, 오디오가 알아듣기 힘들겁니다."
+"\"아니오\"를 선택하면, 오디오가 왜곡될 지도 모릅니다."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -5979,33 +5991,3 @@ msgstr "z근거리 정정:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "%i connected"
-#~ msgstr "%i 연결되었습니다"
-
-#~ msgid "Alternate Wiimote Timing"
-#~ msgstr "위모트 타이밍 대안"
-
-#~ msgid ""
-#~ "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. "
-#~ "No effect on emulated wiimotes."
-#~ msgstr ""
-#~ "위모트 스피커를 음소거합니다. 실제 위모트 상에서 랜덤 연결해제들을 고칩니"
-#~ "다. 에뮬된 위모트 상에서는 효과 없음."
-
-#~ msgid "Pair Up"
-#~ msgstr "연결하기"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "위모트 재연결 확인"
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "위모트 %i 가 시스템에 의해 연결해제되었습니다.\n"
-#~ "아마도 이 게임은 멀티-위모트를 지원하지 않습니다.\n"
-#~ "혹은 아마도 아이들 타임 아웃이거나 다른 원인 때문인 것 같습니다.\n"
-#~ "당신은 즉시 재연결 하고 싶습니까?"

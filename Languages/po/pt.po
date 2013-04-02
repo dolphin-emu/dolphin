@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-04-02 17:34-0500\n"
-"PO-Revision-Date: 2013-02-02 08:31+0000\n"
+"PO-Revision-Date: 2013-03-30 08:13+0000\n"
 "Last-Translator: delroth <delroth@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: pt\n"
@@ -733,9 +733,8 @@ msgstr ""
 "permanentemente!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:57
-#, fuzzy
 msgid "Arm JIT (experimental)"
-msgstr "Recompilador experimental JITIL"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:282
@@ -1979,9 +1978,8 @@ msgid "Enable Screen Saver"
 msgstr "Activar Protector de Ecrã"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:75
-#, fuzzy
 msgid "Enable Speaker Data"
-msgstr "Activar Páginas"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 msgid "Enable WideScreen"
@@ -2690,9 +2688,8 @@ msgid "Game isn't running!"
 msgstr "O jogo não está a correr!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:389
-#, fuzzy
 msgid "Game not found!"
-msgstr "Jogo não encontrado"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:388
 msgid "Game-Specific Settings"
@@ -3144,7 +3141,7 @@ msgstr "Resolução Interna:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:55
 msgid "Interpreter (VERY slow)"
-msgstr "Interpretador (Muito lento)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Intro"
@@ -3215,11 +3212,11 @@ msgstr "JAPÃO"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:59
 msgid "JIT Recompiler (recommended)"
-msgstr "Recompilador JIT (recomendado)"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:60
 msgid "JITIL experimental recompiler"
-msgstr "Recompilador experimental JITIL"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
@@ -3478,7 +3475,6 @@ msgid "Maker:"
 msgstr "Fabricante:"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:100
-#, fuzzy
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3486,10 +3482,6 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Aumenta o desempenho mas provoca falhas na maioria dos jogos que necessitem "
-"da emulação correcta de nevoeiro.\n"
-"\n"
-"Em caso de dúvida, manteha esta opção desactivada."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:97
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
@@ -4538,7 +4530,6 @@ msgstr ""
 "Se ainda tiver dúvidas, utilize a resolução mais alta que funcione melhor."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:70
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4547,15 +4538,8 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 11."
 msgstr ""
-"Selecciona qual a  API a utilizar internamente.\n"
-"Direct3D 9 normalmente é a mais rápida. OpenGL no entanto é mais precisa. "
-"Direct3D 11 está algures entre as duas.\n"
-"Tenha atenção que os backends Direct3D só estão disponíveis no Windows.\n"
-"\n"
-"Em caso de dúvida, utilize o Direct3D 9."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:72
-#, fuzzy
 msgid ""
 "Selects what graphics API to use internally.\n"
 "Direct3D 9 usually is the fastest one. OpenGL is more accurate though. "
@@ -4564,12 +4548,6 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
-"Selecciona qual a  API a utilizar internamente.\n"
-"Direct3D 9 normalmente é a mais rápida. OpenGL no entanto é mais precisa. "
-"Direct3D 11 está algures entre as duas.\n"
-"Tenha atenção que os backends Direct3D só estão disponíveis no Windows.\n"
-"\n"
-"Em caso de dúvida, utilize o Direct3D 9."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Send"
@@ -5793,15 +5771,11 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Tem que reiniciar o Dolphin para que as alterações sejam efectuadas"
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
-#, fuzzy
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"%s tem um hash incorrecto.\n"
-"Gostaria de parar agora para resolver o problema?\n"
-"Se seleccionar \"Não\", o áudio terá falhas."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
@@ -5922,28 +5896,3 @@ msgstr "Correcção zNear: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:493
 msgid "| OR"
 msgstr "| OU"
-
-#~ msgid ""
-#~ "Mutes the Wiimote speaker. Fixes random disconnections on real wiimotes. "
-#~ "No effect on emulated wiimotes."
-#~ msgstr ""
-#~ "Silencía o altifalante Wiimote. Corrige desconexões aleatórias em "
-#~ "wiimotes reais. Sem efeito em wiimotes emulados."
-
-#~ msgid "Pair Up"
-#~ msgstr "Emparelhar"
-
-#~ msgid "Reconnect Wiimote Confirm"
-#~ msgstr "Confirmação de Reconexão de Wiimote"
-
-#~ msgid ""
-#~ "Wiimote %i has been disconnected by system.\n"
-#~ "Maybe this game doesn't support multi-wiimote,\n"
-#~ "or maybe it is due to idle time out or other reason.\n"
-#~ "Do you want to reconnect immediately?"
-#~ msgstr ""
-#~ "Wiimote %ifoi desligado do sistema.\n"
-#~ "Talvez este jogo não suporte Wiimotes multiplos,\n"
-#~ "ou talvez poderá ser por ter estado inactivo por algum tempo ou por outra "
-#~ "razão.\n"
-#~ "Quer reconectar imediatamente?"
