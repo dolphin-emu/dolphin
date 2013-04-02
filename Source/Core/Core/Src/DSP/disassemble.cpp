@@ -343,17 +343,16 @@ bool DSPDisassembler::DisFile(const char* name, int base_addr, int pass, std::st
 	}
 
 	const int size = ((int)in.GetSize() & ~1) / 2;
-	u16 *const binbuf = new u16[size];
-	in.ReadArray(binbuf, size);
+	std::vector<u16> binbuf(size);
+	in.ReadArray(binbuf.data(), size);
 	in.Close();
 
 	// Actually do the disassembly.
 	for (u16 pc = 0; pc < size;)
 	{
-		DisOpcode(binbuf, base_addr, pass, &pc, output);
+		DisOpcode(binbuf.data(), base_addr, pass, &pc, output);
 		if (pass == 2)
 			output.append("\n");
 	}
-	delete[] binbuf;
 	return true;
 }

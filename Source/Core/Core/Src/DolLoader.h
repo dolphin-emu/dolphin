@@ -49,15 +49,13 @@ public:
 			{
 				if(m_dolheader.textOffset[i] != 0)
 				{
-					u8* pTemp = new u8[m_dolheader.textSize[i]];
+					std::vector<u8> pTemp(m_dolheader.textSize[i]);
 
 					pStream.Seek(m_dolheader.textOffset[i], SEEK_SET);
-					pStream.ReadArray(pTemp, m_dolheader.textSize[i]);
+					pStream.ReadArray(pTemp.data(), m_dolheader.textSize[i]);
 
 					for (size_t num=0; num<m_dolheader.textSize[i]; num++)
 						CMemory::Write_U8(pTemp[num], m_dolheader.textAddress[i] + num);
-
-					delete[] pTemp;
 				}
 			}
 
@@ -66,15 +64,13 @@ public:
 			{
 				if(m_dolheader.dataOffset[i] != 0)
 				{
-					u8* pTemp = new u8[m_dolheader.dataSize[i]];
+					std::vector<u8> pTemp(m_dolheader.dataSize[i]);
 
 					pStream.Seek(m_dolheader.dataOffset[i], SEEK_SET);
-					pStream.ReadArray(pTemp, m_dolheader.dataSize[i]);
+					pStream.ReadArray(pTemp.data(), m_dolheader.dataSize[i]);
 
 					for (size_t num=0; num<m_dolheader.dataSize[i]; num++)
 						CMemory::Write_U8(pTemp[num], m_dolheader.dataAddress[i] + num);
-
-					delete[] pTemp;
 				}
 			}
 
