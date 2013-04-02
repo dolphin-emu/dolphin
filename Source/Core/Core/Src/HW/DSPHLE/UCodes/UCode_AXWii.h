@@ -75,6 +75,7 @@ protected:
 	void AddSubToLR(u32 val_addr);
 	void ProcessPBList(u32 pb_addr);
 	void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume);
+	void UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume);
 	void OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume,
 	                   bool upload_auxc);
 	void OutputWMSamples(u32* addresses);	// 4 addresses
@@ -90,8 +91,8 @@ private:
 		CMD_MIX_AUXA = 0x05,
 		CMD_MIX_AUXB = 0x06,
 		CMD_MIX_AUXC = 0x07,
-		CMD_UNK_08 = 0x08,
-		CMD_UNK_09 = 0x09,
+		CMD_UPL_AUXA_MIX_LRSC = 0x08,
+		CMD_UPL_AUXB_MIX_LRSC = 0x09,
 		CMD_UNK_0A = 0x0A,
 		CMD_OUTPUT = 0x0B,
 		CMD_OUTPUT_DPL2 = 0x0C,
@@ -113,8 +114,8 @@ private:
 		CMD_MIX_AUXA_OLD = 0x06,
 		CMD_MIX_AUXB_OLD = 0x07,
 		CMD_MIX_AUXC_OLD = 0x08,
-		CMD_UNK_09_OLD = 0x09,
-		CMD_UNK_0A_OLD = 0x0A,
+		CMD_UPL_AUXA_MIX_LRSC_OLD = 0x09,
+		CMD_UPL_AUXB_MIX_LRSC_OLD = 0x0a,
 		CMD_UNK_0B_OLD = 0x0B,
 		CMD_OUTPUT_OLD = 0x0C,	// no volume!
 		CMD_OUTPUT_DPL2_OLD = 0x0D,

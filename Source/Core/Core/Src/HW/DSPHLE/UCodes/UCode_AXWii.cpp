@@ -110,9 +110,22 @@ void CUCode_AXWii::HandleCommandList()
 					MixAUXSamples(cmd - CMD_MIX_AUXA_OLD, HILO_TO_32(addr), HILO_TO_32(addr2), volume);
 					break;
 
-				// These two go together and manipulate some AUX buffers.
-				case CMD_UNK_09_OLD: curr_idx += 13; break;
-				case CMD_UNK_0A_OLD: curr_idx += 13; break;
+				case CMD_UPL_AUXA_MIX_LRSC_OLD:
+				case CMD_UPL_AUXB_MIX_LRSC_OLD:
+				{
+					volume = m_cmdlist[curr_idx++];
+					u32 addresses[6] = {
+						(u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+						(u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+						(u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+						(u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+						(u32)(m_cmdlist[curr_idx + 8] << 16) | m_cmdlist[curr_idx + 9],
+						(u32)(m_cmdlist[curr_idx + 10] << 16) | m_cmdlist[curr_idx + 11],
+					};
+					curr_idx += 12;
+					UploadAUXMixLRSC(cmd == CMD_UPL_AUXB_MIX_LRSC_OLD, addresses, volume);
+					break;
+				}
 
 				// TODO(delroth): figure this one out, it's used by almost every
 				// game I've tested so far.
@@ -189,9 +202,22 @@ void CUCode_AXWii::HandleCommandList()
 					MixAUXSamples(cmd - CMD_MIX_AUXA, HILO_TO_32(addr), HILO_TO_32(addr2), volume);
 					break;
 
-				// These two go together and manipulate some AUX buffers.
-				case CMD_UNK_08: curr_idx += 13; break;
-				case CMD_UNK_09: curr_idx += 13; break;
+				case CMD_UPL_AUXA_MIX_LRSC:
+				case CMD_UPL_AUXB_MIX_LRSC:
+				{
+					volume = m_cmdlist[curr_idx++];
+					u32 addresses[6] = {
+						(u32)(m_cmdlist[curr_idx + 0] << 16) | m_cmdlist[curr_idx + 1],
+						(u32)(m_cmdlist[curr_idx + 2] << 16) | m_cmdlist[curr_idx + 3],
+						(u32)(m_cmdlist[curr_idx + 4] << 16) | m_cmdlist[curr_idx + 5],
+						(u32)(m_cmdlist[curr_idx + 6] << 16) | m_cmdlist[curr_idx + 7],
+						(u32)(m_cmdlist[curr_idx + 8] << 16) | m_cmdlist[curr_idx + 9],
+						(u32)(m_cmdlist[curr_idx + 10] << 16) | m_cmdlist[curr_idx + 11],
+					};
+					curr_idx += 12;
+					UploadAUXMixLRSC(cmd == CMD_UPL_AUXB_MIX_LRSC, addresses, volume);
+					break;
+				}
 
 				// TODO(delroth): figure this one out, it's used by almost every
 				// game I've tested so far.
@@ -522,6 +548,50 @@ void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 
 			sample *= volume_ramp[j];
 			main_buffers[i][j] += (s32)(sample >> 15);
 		}
+}
+
+void CUCode_AXWii::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
+{
+	int* aux_left = aux_id ? m_samples_auxB_left : m_samples_auxA_left;
+	int* aux_right = aux_id ? m_samples_auxB_right : m_samples_auxA_right;
+	int* aux_surround = aux_id ? m_samples_auxB_surround : m_samples_auxA_surround;
+	int* auxc_buffer = aux_id ? m_samples_auxC_surround : m_samples_auxC_right;
+
+	int* upload_ptr = (int*)HLEMemory_Get_Pointer(addresses[0]);
+	for (u32 i = 0; i < 96; ++i)
+		*upload_ptr++ = Common::swap32(aux_left[i]);
+	for (u32 i = 0; i < 96; ++i)
+		*upload_ptr++ = Common::swap32(aux_right[i]);
+	for (u32 i = 0; i < 96; ++i)
+		*upload_ptr++ = Common::swap32(aux_surround[i]);
+
+	upload_ptr = (int*)HLEMemory_Get_Pointer(addresses[1]);
+	for (u32 i = 0; i < 96; ++i)
+		*upload_ptr++ = Common::swap32(auxc_buffer[i]);
+
+	u16 volume_ramp[96];
+	GenerateVolumeRamp(volume_ramp, m_last_aux_volumes[aux_id], volume, 96);
+	m_last_aux_volumes[aux_id] = volume;
+
+	int* mix_dest[4] = {
+		m_samples_left,
+		m_samples_right,
+		m_samples_surround,
+		m_samples_auxC_left
+	};
+	for (u32 mix_i = 0; mix_i < 4; ++mix_i)
+	{
+		int* dl_ptr = (int*)HLEMemory_Get_Pointer(addresses[2 + mix_i]);
+		for (u32 i = 0; i < 96; ++i)
+			aux_left[i] = Common::swap32(dl_ptr[i]);
+
+		for (u32 i = 0; i < 96; ++i)
+		{
+			s64 sample = (s64)(s32)aux_left[i];
+			sample *= volume_ramp[i];
+			mix_dest[mix_i][i] += (s32)(sample >> 15);
+		}
+	}
 }
 
 void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume,
