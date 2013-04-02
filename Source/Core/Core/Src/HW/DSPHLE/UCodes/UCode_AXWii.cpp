@@ -53,7 +53,7 @@ void CUCode_AXWii::HandleCommandList()
 	u32 pb_addr = 0;
 
 //	WARN_LOG(DSPHLE, "Command list:");
-//	for (u32 i = 0; m_cmdlist[i] != CMD_END_OLD; ++i)
+//	for (u32 i = 0; m_cmdlist[i] != CMD_END; ++i)
 //		WARN_LOG(DSPHLE, "%04x", m_cmdlist[i]);
 //	WARN_LOG(DSPHLE, "-------------");
 
@@ -115,14 +115,14 @@ void CUCode_AXWii::HandleCommandList()
 				case CMD_UNK_0B_OLD: curr_idx += 4; break;
 
 				case CMD_OUTPUT_OLD:
+				case CMD_OUTPUT_DPL2_OLD:
 					addr_hi = m_cmdlist[curr_idx++];
 					addr_lo = m_cmdlist[curr_idx++];
 					addr2_hi = m_cmdlist[curr_idx++];
 					addr2_lo = m_cmdlist[curr_idx++];
-					OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), 0x8000);
+					OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), 0x8000,
+					              cmd == CMD_OUTPUT_DPL2_OLD);
 					break;
-
-				case CMD_UNK_0D_OLD: curr_idx += 5; break;
 
 				case CMD_WM_OUTPUT_OLD:
 				{
@@ -190,15 +190,15 @@ void CUCode_AXWii::HandleCommandList()
 				case CMD_UNK_0A: curr_idx += 4; break;
 
 				case CMD_OUTPUT:
+				case CMD_OUTPUT_DPL2:
 					volume = m_cmdlist[curr_idx++];
 					addr_hi = m_cmdlist[curr_idx++];
 					addr_lo = m_cmdlist[curr_idx++];
 					addr2_hi = m_cmdlist[curr_idx++];
 					addr2_lo = m_cmdlist[curr_idx++];
-					OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), volume);
+					OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), volume,
+					              cmd == CMD_OUTPUT_DPL2);
 					break;
-
-				case CMD_UNK_0C: curr_idx += 5; break;
 
 				case CMD_WM_OUTPUT:
 				{
@@ -499,17 +499,26 @@ void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 
 		}
 }
 
-void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume)
+void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume,
+                                 bool upload_auxc)
 {
 	u16 volume_ramp[96];
 	GenerateVolumeRamp(volume_ramp, m_last_main_volume, volume, 96);
 	m_last_main_volume = volume;
 
-	int surround_buffer[3 * 32] = { 0 };
+	int upload_buffer[3 * 32] = { 0 };
 
 	for (u32 i = 0; i < 3 * 32; ++i)
-		surround_buffer[i] = Common::swap32(m_samples_surround[i]);
-	memcpy(HLEMemory_Get_Pointer(surround_addr), surround_buffer, sizeof (surround_buffer));
+		upload_buffer[i] = Common::swap32(m_samples_surround[i]);
+	memcpy(HLEMemory_Get_Pointer(surround_addr), upload_buffer, sizeof (upload_buffer));
+
+	if (upload_auxc)
+	{
+		surround_addr += sizeof (upload_buffer);
+		for (u32 i = 0; i < 3 * 32; ++i)
+			upload_buffer[i] = Common::swap32(m_samples_auxC_left[i]);
+		memcpy(HLEMemory_Get_Pointer(surround_addr), upload_buffer, sizeof (upload_buffer));
+	}
 
 	short buffer[3 * 32 * 2];
 
@@ -539,6 +548,10 @@ void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume)
 	}
 
 	memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof (buffer));
+
+	// There should be a DSP_SYNC message sent here. However, it looks like not
+	// sending it does not cause any issue, and sending it actually causes some
+	// sounds to go at half speed. I have no idea why.
 }
 
 void CUCode_AXWii::OutputWMSamples(u32* addresses)
