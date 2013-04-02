@@ -145,7 +145,7 @@ private:
 
 	bool Initialize(const std::string& _rName);
 
-	void AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest);
+	void AESDecode(const u8* _pKey, u8* _IV, const u8* _pSrc, u32 _Size, u8* _pDest);
 
 	void GetKeyFromTicket(u8* pTicket, u8* pTicketKey);
 };
@@ -195,7 +195,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		return false;
 	m_Path = _rName;
 	WiiWAD Wad(_rName);
-	u8* pDataApp = NULL;
+	const u8* pDataApp = NULL;
 	u8* pTMD = NULL;
 	u8 DecryptTitleKey[16];
 	u8 IV[16];
@@ -307,7 +307,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 	delete [] pTMD;
 	return true;
 }
-void CNANDContentLoader::AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest)
+void CNANDContentLoader::AESDecode(const u8* _pKey, u8* _IV, const u8* _pSrc, u32 _Size, u8* _pDest)
 {
 	AES_KEY AESKey;
 

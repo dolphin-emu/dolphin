@@ -56,32 +56,24 @@ WiiWAD::WiiWAD(const std::string& _rName)
 }
 
 WiiWAD::~WiiWAD()
-{
-	if (m_Valid)
-	{
-		delete m_pCertificateChain;
-		delete m_pTicket;
-		delete m_pTMD;
-		delete m_pDataApp;
-		delete m_pFooter;
-	}
-}
+{}
 
-u8* WiiWAD::CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset)
+std::vector<u8> WiiWAD::CreateWADEntry(DiscIO::IBlobReader& _rReader, u32 _Size, u64 _Offset)
 {
+	std::vector<u8> pTmpBuffer;
+	
 	if (_Size > 0)
 	{
-		u8* pTmpBuffer = new u8[_Size];
-		_dbg_assert_msg_(BOOT, pTmpBuffer!=0, "WiiWAD: Cant allocate memory for WAD entry");
+		pTmpBuffer.resize(_Size);
 
-		if (!_rReader.Read(_Offset, _Size, pTmpBuffer))
+		if (!_rReader.Read(_Offset, _Size, pTmpBuffer.data()))
 		{
 			ERROR_LOG(DISCIO, "WiiWAD: Could not read from file");
 			PanicAlertT("WiiWAD: Could not read from file");
 		}
-		return pTmpBuffer;
 	}
-	return NULL;
+	
+	return pTmpBuffer;
 }
 
 
