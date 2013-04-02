@@ -33,7 +33,7 @@ void UpdateDevices();
 
 void RemoveDevice(int _iDeviceNumber);
 void AddDevice(const SIDevices _device, int _iDeviceNumber);
-void AddDevice(ISIDevice* pDevice);
+void AddDevice(std::unique_ptr<ISIDevice> pDevice);
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate);
 void ChangeDevice(SIDevices device, int channel);

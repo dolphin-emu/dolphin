@@ -19,6 +19,7 @@
 #define _SIDEVICE_H
 
 #include "Common.h"
+#include "UtilityFuncs.h"
 
 class PointerWrap;
 
@@ -107,6 +108,6 @@ public:
 	}
 };
 
-extern ISIDevice* SIDevice_Create(const SIDevices device, const int port_number);
+std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number);
 
 #endif

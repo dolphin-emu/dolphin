@@ -69,33 +69,33 @@ public:
 
 
 // F A C T O R Y 
-ISIDevice* SIDevice_Create(const SIDevices device, const int port_number)
+std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number)
 {
 	switch (device)
 	{
 	case SIDEVICE_GC_CONTROLLER:
-		return new CSIDevice_GCController(device, port_number);
+		return make_unique<CSIDevice_GCController>(device, port_number);
 		break;
 
 	case SIDEVICE_GC_STEERING:
-		return new CSIDevice_GCSteeringWheel(device, port_number);
+		return make_unique<CSIDevice_GCSteeringWheel>(device, port_number);
 		break;
 
 	case SIDEVICE_GC_TARUKONGA:
-		return new CSIDevice_TaruKonga(device, port_number);
+		return make_unique<CSIDevice_TaruKonga>(device, port_number);
 		break;
 
 	case SIDEVICE_GC_GBA:
-		return new CSIDevice_GBA(device, port_number);
+		return make_unique<CSIDevice_GBA>(device, port_number);
 		break;
 
 	case SIDEVICE_AM_BASEBOARD:
-		return new CSIDevice_AMBaseboard(device, port_number);
+		return make_unique<CSIDevice_AMBaseboard>(device, port_number);
 		break;
 
 	case SIDEVICE_NONE:
 	default:
-		return new CSIDevice_Null(device, port_number);
+		return make_unique<CSIDevice_Null>(device, port_number);
 		break;
 	}
 }
