@@ -77,12 +77,12 @@ void CUCode_AXWii::HandleCommandList()
 					break;
 
 				case CMD_ADD_TO_LR_OLD:
+				case CMD_SUB_TO_LR_OLD:
 					addr_hi = m_cmdlist[curr_idx++];
 					addr_lo = m_cmdlist[curr_idx++];
-					AddToLR(HILO_TO_32(addr));
+					AddToLR(HILO_TO_32(addr), cmd == CMD_SUB_TO_LR_OLD);
 					break;
 
-				case CMD_UNK_02_OLD: curr_idx += 2; break;
 				case CMD_UNK_03_OLD: curr_idx += 2; break;
 
 				case CMD_PB_ADDR_OLD:
@@ -156,12 +156,12 @@ void CUCode_AXWii::HandleCommandList()
 					break;
 
 				case CMD_ADD_TO_LR:
+				case CMD_SUB_TO_LR:
 					addr_hi = m_cmdlist[curr_idx++];
 					addr_lo = m_cmdlist[curr_idx++];
-					AddToLR(HILO_TO_32(addr));
+					AddToLR(HILO_TO_32(addr), cmd == CMD_SUB_TO_LR);
 					break;
 
-				case CMD_UNK_02: curr_idx += 2; break;
 				case CMD_UNK_03: curr_idx += 2; break;
 
 				case CMD_PROCESS:
@@ -278,12 +278,14 @@ void CUCode_AXWii::SetupProcessing(u32 init_addr)
 	}
 }
 
-void CUCode_AXWii::AddToLR(u32 val_addr)
+void CUCode_AXWii::AddToLR(u32 val_addr, bool neg)
 {
 	int* ptr = (int*)HLEMemory_Get_Pointer(val_addr);
 	for (int i = 0; i < 32 * 3; ++i)
 	{
 		int val = (int)Common::swap32(*ptr++);
+		if (neg)
+			val = -val;
 
 		m_samples_left[i] += val;
 		m_samples_right[i] += val;
