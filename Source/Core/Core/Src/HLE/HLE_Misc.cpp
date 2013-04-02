@@ -325,9 +325,10 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 	PowerPC::ppcState.iCache.Reset();
 
 	CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
-	size_t size = s_Usb->m_WiiMotes.size();
-	bool* wiiMoteConnected = new bool[size];
-	for (unsigned int i = 0; i < size; i++)
+	
+	std::vector<bool> wiiMoteConnected(s_Usb->m_WiiMotes.size());
+	
+	for (unsigned int i = 0; i < wiiMoteConnected.size(); i++)
 		wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
 
 	WII_IPC_HLE_Interface::Reset(true);
@@ -345,8 +346,6 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 			s_Usb->m_WiiMotes[i].Activate(false);
 		}
 	}
-
-	delete[] wiiMoteConnected;
 
 	if (argsPtr)
 	{
@@ -376,13 +375,12 @@ void LoadDOLFromDisc(std::string dol)
 		dol = dol.substr(1);
 
 	u32 fileSize = (u32) pFileSystem->GetFileSize(dol.c_str());
-	u8* dolFile = new u8[fileSize];
+	std::vector<u8> dolFile(fileSize);
 	if (fileSize > 0)
 	{
-		pFileSystem->ReadFile(dol.c_str(), dolFile, fileSize);
-		ExecuteDOL(dolFile, fileSize);
+		pFileSystem->ReadFile(dol.c_str(), dolFile.data(), dolFile.size());
+		ExecuteDOL(dolFile.data(), dolFile.size());
 	}
-	delete[] dolFile;
 }
 
 void LoadBootDOLFromDisc()
@@ -390,13 +388,12 @@ void LoadBootDOLFromDisc()
 	auto const pFileSystem = DiscIO::CreateFileSystem(
 		DiscIO::CreateVolumeFromFilename(SConfig::GetInstance().m_LastFilename.c_str()));
 	u32 fileSize = pFileSystem->GetBootDOLSize();
-	u8* dolFile = new u8[fileSize];
+	std::vector<u8> dolFile(fileSize);
 	if (fileSize > 0)
 	{
-		pFileSystem->GetBootDOL(dolFile, fileSize);
-		ExecuteDOL(dolFile, fileSize);
+		pFileSystem->GetBootDOL(dolFile.data(), dolFile.size());
+		ExecuteDOL(dolFile.data(), dolFile.size());
 	}
-	delete[] dolFile;
 }
 
 u32 GetDolFileSize(std::string dol)

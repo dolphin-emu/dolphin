@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <vector>
+
 #include "../PowerPC/PowerPC.h"
 #include "Boot.h"
 #include "../HLE/HLE.h"
@@ -28,11 +30,11 @@ bool CBoot::IsElfWii(const char *filename)
 	   there is no need for another check, just read the file right away */
 
 	const u64 filesize = File::GetSize(filename);
-	u8 *const mem = new u8[(size_t)filesize];
+	std::vector<u8> mem((size_t)filesize);
 
 	{
 	File::IOFile f(filename, "rb");
-	f.ReadBytes(mem, (size_t)filesize);
+	f.ReadBytes(mem.data(), mem.size());
 	}
 	
 	// Use the same method as the DOL loader uses: search for mfspr from HID4,
@@ -43,7 +45,7 @@ bool CBoot::IsElfWii(const char *filename)
 
 	u32 HID4_pattern = 0x7c13fba6;
 	u32 HID4_mask = 0xfc1fffff;
-	ElfReader reader(mem);
+	ElfReader reader(mem.data());
 	bool isWii = false;
 
 	for (int i = 0; i < reader.GetNumSections(); ++i)
@@ -62,7 +64,6 @@ bool CBoot::IsElfWii(const char *filename)
 		}
 	}
 
-	delete[] mem;
     return isWii;
 }
 
@@ -70,14 +71,14 @@ bool CBoot::IsElfWii(const char *filename)
 bool CBoot::Boot_ELF(const char *filename)
 {
 	const u64 filesize = File::GetSize(filename);
-	u8 *mem = new u8[(size_t)filesize];
+	std::vector<u8> mem((size_t)filesize);
 
 	{
 	File::IOFile f(filename, "rb");
-	f.ReadBytes(mem, (size_t)filesize);
+	f.ReadBytes(mem.data(), mem.size());
 	}
 	
-	ElfReader reader(mem);
+	ElfReader reader(mem.data());
 	reader.LoadInto(0x80000000);
 	if (!reader.LoadSymbols())
 	{
@@ -90,7 +91,6 @@ bool CBoot::Boot_ELF(const char *filename)
 	}
 	
 	PC = reader.GetEntryPoint();
-	delete[] mem;
 
     return true;
 }

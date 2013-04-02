@@ -179,7 +179,7 @@ u32 CFileSystemGCWii::GetBootDOLSize() const
 	return DolSize;
 }
 
-bool CFileSystemGCWii::GetBootDOL(u8* &buffer, u32 DolSize) const
+bool CFileSystemGCWii::GetBootDOL(u8* buffer, u32 DolSize) const
 {
 	u32 DolOffset = Read32(0x420) << m_OffsetShift;
 	return m_rVolume->Read(DolOffset, DolSize, buffer);
