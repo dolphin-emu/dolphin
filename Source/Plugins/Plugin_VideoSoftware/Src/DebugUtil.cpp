@@ -65,13 +65,11 @@ void SaveTexture(const char* filename, u32 texmap, s32 mip)
 	u32 width = ti0.width + 1;
 	u32 height = ti0.height + 1;
 
-	u8 *data = new u8[width * height * 4];
+	std::vector<u8> data(width * height * 4);
     
-    GetTextureBGRA(data, texmap, mip, width, height);
+    GetTextureBGRA(data.data(), texmap, mip, width, height);
 
-    (void)SaveTGA(filename, width, height, data);
-
-    delete []data;
+    (void)SaveTGA(filename, width, height, data.data());
 }
 
 void GetTextureBGRA(u8 *dst, u32 texmap, s32 mip, u32 width, u32 height)
@@ -143,8 +141,8 @@ void DumpActiveTextures()
 
 void DumpEfb(const char* filename)
 {
-    u8 *data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
-    u8 *writePtr = data;
+    std::vector<u8> data(EFB_WIDTH * EFB_HEIGHT * 4);
+    u8 *writePtr = data.data();
     u8 sample[4];    
 
     for (int y = 0; y < EFB_HEIGHT; y++)
@@ -157,15 +155,13 @@ void DumpEfb(const char* filename)
             *(writePtr++) = sample[0];
         }
 
-    (void)SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);
-
-    delete []data;
+    (void)SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data.data());
 }
 
 void DumpDepth(const char* filename)
 {
-    u8 *data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
-    u8 *writePtr = data;
+    std::vector<u8> data(EFB_WIDTH * EFB_HEIGHT * 4);
+    u8 *writePtr = data.data();
 
     for (int y = 0; y < EFB_HEIGHT; y++)
         for (int x = 0; x < EFB_WIDTH; x++) {
@@ -177,9 +173,7 @@ void DumpDepth(const char* filename)
             *(writePtr++) = 255;
         }
 
-    (void)SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);
-
-    delete []data;
+    (void)SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data.data());
 }
 
 void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char *name)

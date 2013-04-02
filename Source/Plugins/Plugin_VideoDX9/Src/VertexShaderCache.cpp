@@ -69,7 +69,9 @@ public:
 
 void VertexShaderCache::Init()
 {
-	char* vProg = new char[2048];
+	std::vector<char> v_prog_vec(2048);
+	char* vProg = v_prog_vec.data();
+	
 	sprintf(vProg,"struct VSOUTPUT\n"
 						"{\n"
 							"float4 vPosition : POSITION;\n"
@@ -138,7 +140,6 @@ void VertexShaderCache::Init()
 	SimpleVertexShader[2] = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));	
 	
 	Clear();
-	delete [] vProg;
 
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());

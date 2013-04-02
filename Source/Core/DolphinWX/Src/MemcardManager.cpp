@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <algorithm>
+
 #include "MemcardManager.h"
 #include "Common.h"
 
@@ -49,26 +51,22 @@ wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, u32 width, u32 height
 
 	bytes = (bytes+3)&(~3);
 
-	u8 *pdata = new u8[bytes];
+	std::vector<u8> pdata(bytes);
+	std::copy_n(hdr, sizeof(hdr), pdata.begin());
 
-	memset(pdata,0,bytes);
-	memcpy(pdata,hdr,sizeof(hdr));
-
-	u8 *pixelData = pdata + sizeof(hdr);
+	u8 *pixelData = pdata.data() + sizeof(hdr);
 
 	for (u32 y=0;y<height;y++)
 	{
 		memcpy(pixelData+y*stride,data+(height-y-1)*stride,stride);
 	}
 
-	*(u32*)(pdata+18) = width;
-	*(u32*)(pdata+22) = height;
-	*(u32*)(pdata+34) = bytes-sizeof(hdr);
+	*(u32*)(pdata.data() + 18) = width;
+	*(u32*)(pdata.data() + 22) = height;
+	*(u32*)(pdata.data() + 34) = bytes-sizeof(hdr);
 
-	wxMemoryInputStream is(pdata, bytes);
+	wxMemoryInputStream is(pdata.data(), bytes);
 	wxBitmap map(wxImage(is, wxBITMAP_TYPE_BMP, -1), -1);
-
-	delete [] pdata;
 
 	return map;
 }
@@ -635,7 +633,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	list->RemoveAll();
 
 	u8 nFiles = memoryCard[card]->GetNumFiles();
-	int *images = new int[nFiles*2];
+	std::vector<int> images(nFiles * 2);
 
 	for (u8 i = 0;i < nFiles;i++)
 	{
@@ -749,7 +747,6 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		}
 	}
 
-	delete[] images;
 	// Automatic column width and then show the list
 	for (int i = COLUMN_BANNER; i <= COLUMN_FIRSTBLOCK; i++)
 	{

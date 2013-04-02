@@ -758,15 +758,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
 				}
 
-				u32* depthMap = new u32[targetPixelRcWidth * targetPixelRcHeight];
+				std::vector<u32> depthMap(targetPixelRcWidth * targetPixelRcHeight);
 
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-				             GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depthMap);
+				             GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, depthMap.data());
 				GL_REPORT_ERRORD();
 
-				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, depthMap);
-
-				delete[] depthMap;
+				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, depthMap.data());
 			}
 
 			u32 xRect = x % EFB_CACHE_RECT_SIZE;
@@ -807,15 +805,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 					glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
 				}
 
-				u32* colorMap = new u32[targetPixelRcWidth * targetPixelRcHeight];
+				std::vector<u32> colorMap(targetPixelRcWidth * targetPixelRcHeight);
 
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-				             GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap);
+				             GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap.data());
 				GL_REPORT_ERRORD();
 
-				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, colorMap);
-
-				delete[] colorMap;
+				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, colorMap.data());
 			}
 
 			u32 xRect = x % EFB_CACHE_RECT_SIZE;

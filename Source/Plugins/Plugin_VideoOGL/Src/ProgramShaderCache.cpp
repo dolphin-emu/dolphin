@@ -289,16 +289,14 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 	if (linkStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
 	{
 		GLsizei charsWritten;
-		GLchar* infoLog = new GLchar[length];
-		glGetProgramInfoLog(pid, length, &charsWritten, infoLog);
-		ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
+		std::vector<GLchar> infoLog(length);
+		glGetProgramInfoLog(pid, length, &charsWritten, infoLog.data());
+		ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog.data());
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sp_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), pid);
 		std::ofstream file;
 		OpenFStream(file, szTemp, std::ios_base::out);
-		file << infoLog << s_glsl_header << vcode << s_glsl_header << pcode;
-		file.close();
-		delete [] infoLog;
+		file << infoLog.data() << s_glsl_header << vcode << s_glsl_header << pcode;
 	}
 	if (linkStatus != GL_TRUE)
 	{
@@ -330,16 +328,14 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 	if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
 	{
 		GLsizei charsWritten;
-		GLchar* infoLog = new GLchar[length];
-		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-		ERROR_LOG(VIDEO, "PS Shader info log:\n%s", infoLog);
+		std::vector<GLchar> infoLog(length);
+		glGetShaderInfoLog(result, length, &charsWritten, infoLog.data());
+		ERROR_LOG(VIDEO, "PS Shader info log:\n%s", infoLog.data());
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sps_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), result);
 		std::ofstream file;
 		OpenFStream(file, szTemp, std::ios_base::out);
-		file << infoLog << s_glsl_header << code;
-		file.close();
-		delete[] infoLog;
+		file << infoLog.data() << s_glsl_header << code;
 	}
 	if (compileStatus != GL_TRUE)
 	{
@@ -451,13 +447,12 @@ void ProgramShaderCache::Shutdown(void)
 			glGetProgramiv(iter->second.shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
 			if(!binary_size) continue;
 			
-			u8 *data = new u8[binary_size+sizeof(GLenum)];
-			u8 *binary = data + sizeof(GLenum);
-			GLenum *prog_format = (GLenum*)data;
+			std::vector<u8> data(binary_size+sizeof(GLenum));
+			u8 *binary = data.data() + sizeof(GLenum);
+			GLenum *prog_format = (GLenum*)data.data();
 			glGetProgramBinary(iter->second.shader.glprogid, binary_size, NULL, prog_format, binary);
 			
-			g_program_disk_cache.Append(iter->first, data, binary_size+sizeof(GLenum));
-			delete [] data;
+			g_program_disk_cache.Append(iter->first, data.data(), binary_size+sizeof(GLenum));
 		}
 
 		g_program_disk_cache.Sync();

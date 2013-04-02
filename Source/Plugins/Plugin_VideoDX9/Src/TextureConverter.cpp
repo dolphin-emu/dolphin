@@ -61,7 +61,9 @@ static bool s_encodingProgramsFailed[NUM_ENCODING_PROGRAMS];
 void CreateRgbToYuyvProgram()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
-	char* FProgram = new char[2048];
+	std::vector<char> f_program_vec(2048);
+	char* FProgram = f_program_vec.data();
+	
 	sprintf(FProgram,"uniform float4 blkDims : register(c%d);\n"
 	"uniform float4 textureDims : register(c%d);\n"
 	"uniform sampler samp0 : register(s0);\n"	
@@ -87,12 +89,13 @@ void CreateRgbToYuyvProgram()
 	if (!s_rgbToYuyvProgram) {
         ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program");
     }
-	delete [] FProgram;
 }
 
 void CreateYuyvToRgbProgram()
 {
-	char* FProgram = new char[2048];
+	std::vector<char> f_program_vec(2048);
+	char* FProgram = f_program_vec.data();
+	
 	sprintf(FProgram,"uniform float4 blkDims : register(c%d);\n"
 	"uniform float4 textureDims : register(c%d);\n"
 	"uniform sampler samp0 : register(s0);\n"	
@@ -116,7 +119,6 @@ void CreateYuyvToRgbProgram()
 	if (!s_yuyvToRgbProgram) {
         ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program");
     }
-	delete [] FProgram;
 }
 
 LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)

@@ -153,7 +153,7 @@ RasterFont::RasterFont()
 	glGenTextures(1, &texture);
 	glActiveTexture(GL_TEXTURE0+8);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	u32* texture_data = new u32[char_width*char_count*char_height];
+	std::vector<u32> texture_data(char_width * char_count * char_height);
 	for(u32 y=0; y<char_height; y++) {
 		for(u32 c=0; c<char_count; c++) {
 			for(u32 x=0; x<char_width; x++) {
@@ -164,8 +164,7 @@ RasterFont::RasterFont()
 	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, char_width*char_count, char_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data);
-	delete [] texture_data;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, char_width*char_count, char_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data.data());
 	
 	// generate shader
 	ProgramShaderCache::CompileShader(s_shader, s_vertexShaderSrc, s_fragmentShaderSrc);
@@ -198,7 +197,7 @@ RasterFont::~RasterFont()
 void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight, u32 color)
 {
 	size_t length = strlen(text);
-	GLfloat *vertices = new GLfloat[length*6*4];
+	std::vector<GLfloat> vertices(length * 6 * 4);
 	
 	int usage = 0;
 	GLfloat delta_x = GLfloat(2*char_width)/GLfloat(bbWidth);
@@ -259,16 +258,14 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 		x += delta_x + border_x;
 	}
 	
-	if(!usage) {
-		delete [] vertices;
+	if (!usage)
+	{
 		return;
 	}
 	
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, usage*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-	
-	delete [] vertices;
+	glBufferData(GL_ARRAY_BUFFER, usage*sizeof(GLfloat), vertices.data(), GL_STREAM_DRAW);
 
 	s_shader.Bind();
 	
