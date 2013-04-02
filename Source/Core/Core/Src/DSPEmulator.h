@@ -20,6 +20,7 @@
 
 #include "ChunkFile.h"
 #include "SoundStream.h"
+#include "UtilityFuncs.h"
 
 class DSPEmulator
 {
@@ -49,6 +50,6 @@ protected:
 	SoundStream *soundStream;
 };
 
-DSPEmulator *CreateDSPEmulator(bool LLE);
+std::unique_ptr<DSPEmulator> CreateDSPEmulator(bool LLE);
 
 #endif // _DSPEMULATOR_H_

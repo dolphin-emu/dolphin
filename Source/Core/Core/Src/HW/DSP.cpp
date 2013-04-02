@@ -211,7 +211,7 @@ static ARAM_Info g_ARAM_Info;
 static u16 g_AR_MODE;
 static u16 g_AR_REFRESH;
 
-DSPEmulator *dsp_emulator;
+std::unique_ptr<DSPEmulator> dsp_emulator;
 
 static int dsp_slice = 0;
 static bool dsp_is_lle = false;
@@ -250,7 +250,7 @@ void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
 
 DSPEmulator *GetDSPEmulator()
 {
-	return dsp_emulator;
+	return dsp_emulator.get();
 }
 
 void Init(bool hle)
@@ -294,8 +294,7 @@ void Shutdown()
 	g_ARAM.ptr = NULL;
 
 	dsp_emulator->Shutdown();
-	delete dsp_emulator;
-	dsp_emulator = NULL;
+	dsp_emulator.reset();
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)

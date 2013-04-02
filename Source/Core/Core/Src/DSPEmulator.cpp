@@ -19,15 +19,16 @@
 
 #include "HW/DSPLLE/DSPLLE.h"
 #include "HW/DSPHLE/DSPHLE.h"
+#include "HW/DSPHLE/UCodes/UCodes.h"
 
-DSPEmulator *CreateDSPEmulator(bool HLE) 
+std::unique_ptr<DSPEmulator> CreateDSPEmulator(bool HLE) 
 {
 	if (HLE)
 	{
-		return new DSPHLE();
+		return make_unique<DSPHLE>();
 	}
 	else
 	{
-		return new DSPLLE();
+		return make_unique<DSPLLE>();
 	}
 }
