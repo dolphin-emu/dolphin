@@ -262,6 +262,8 @@ void CUCode_AX::HandleCommandList()
 				addr_hi = m_cmdlist[curr_idx++];
 				addr_lo = m_cmdlist[curr_idx++];
 				// TODO
+				// suppress warnings:
+				(void)samp_val; (void)idx;
 				break;
 			}
 
