@@ -19,7 +19,7 @@
 #include "CommonPaths.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
-#include "ConfigManager.h"
+#include "../../Core/Src/ConfigManager.h"
 
 #ifdef _WIN32
 #include <windows.h>
