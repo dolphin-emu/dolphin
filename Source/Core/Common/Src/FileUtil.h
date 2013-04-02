@@ -135,7 +135,7 @@ bool SetCurrentDir(const std::string &directory);
 const std::string& GetUserPath(const unsigned int DirIDX, const std::string &newPath="");
 
 // probably doesn't belong here
-std::string GetThemeDir();
+std::string GetThemeDir(const std::string& theme_name);
 
 // Returns the path to where the sys file are
 std::string GetSysDirectory();

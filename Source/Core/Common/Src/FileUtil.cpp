@@ -19,7 +19,6 @@
 #include "CommonPaths.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
-#include "../../Core/Src/ConfigManager.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -743,15 +742,14 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 	return paths[DirIDX];
 }
 
-std::string GetThemeDir()
+std::string GetThemeDir(const std::string& theme_name)
 {
-	std::string theme = SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/";
-	std::string dir = File::GetUserPath(D_THEMES_IDX) + theme;
+	std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
 
 #if !defined(_WIN32)
 	// If theme does not exist in user's dir load from shared directory
 	if (!File::Exists(dir))
-		dir = SHARED_USER_DIR THEMES_DIR "/" + theme;
+		dir = SHARED_USER_DIR THEMES_DIR "/" + theme_name + "/";
 #endif
 	
 	return dir;
