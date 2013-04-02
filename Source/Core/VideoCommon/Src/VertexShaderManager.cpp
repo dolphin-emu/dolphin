@@ -89,7 +89,7 @@ float PHackValue(std::string sValue)
 	float f = 0;
 	bool fp = false;
 	const char *cStr = sValue.c_str();
-	char *c = new char[strlen(cStr)+1];
+	std::vector<char> c(strlen(cStr)+1);
 	std::istringstream sTof("");
 
 	for (unsigned int i=0; i<=strlen(cStr); ++i)
@@ -103,13 +103,12 @@ float PHackValue(std::string sValue)
 		if (c[i] == '.')
 			fp = true;
 	}
-	cStr = c;
+	cStr = c.data();
 	sTof.str(cStr);
 	sTof >> f;
 
 	if (!fp) f /= 0xF4240;
 
-	delete [] c;
 	return f;
 }
 

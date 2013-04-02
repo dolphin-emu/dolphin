@@ -64,21 +64,17 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 std::string StringFromFormat(const char* format, ...)
 {
 	va_list args;
-	char *buf = NULL;
 #ifdef _WIN32
-	int required = 0;
-
 	va_start(args, format);
-	required = _vscprintf(format, args);
-	buf = new char[required + 1];
-	vsnprintf(buf, required, format, args);
+	int const required = _vscprintf(format, args);
+	std::string buf(required);
+	vsnprintf(&buf[0], required, format, args);
 	va_end(args);
 
-	buf[required] = '\0';
-	std::string temp = buf;
-	delete[] buf;
+	return buf;
 #else
 	va_start(args, format);
+	char* buf = nullptr;
 	if (vasprintf(&buf, format, args) < 0)
 		ERROR_LOG(COMMON, "Unable to allocate memory for string");
 	va_end(args);
@@ -305,8 +301,9 @@ std::string UriDecode(const std::string & sSrc)
 	const unsigned char * const SRC_END = pSrc + SRC_LEN;
 	const unsigned char * const SRC_LAST_DEC = SRC_END - 2;   // last decodable '%' 
 
-	char * const pStart = new char[SRC_LEN];
-	char * pEnd = pStart;
+	std::string data;
+	data.resize(SRC_LEN);
+	auto pEnd = data.begin();
 
 	while (pSrc < SRC_LAST_DEC)
 	{
@@ -329,9 +326,8 @@ std::string UriDecode(const std::string & sSrc)
 	while (pSrc < SRC_END)
 		*pEnd++ = *pSrc++;
 
-	std::string sResult(pStart, pEnd);
-	delete [] pStart;
-	return sResult;
+	data.erase(pEnd, data.end());
+	return data;
 }
 
 // Only alphanum is safe.

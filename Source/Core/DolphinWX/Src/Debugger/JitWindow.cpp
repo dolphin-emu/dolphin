@@ -98,9 +98,6 @@ void CJitWindow::ViewAddr(u32 em_address)
 
 void CJitWindow::Compare(u32 em_address)
 {
-	u8 *xDis = new u8[1<<18];
-	memset(xDis, 0, 1<<18);
-
 	disassembler x64disasm;
 	x64disasm.set_syntax_intel();
 
@@ -123,7 +120,6 @@ void CJitWindow::Compare(u32 em_address)
 			ppc_box->SetValue(StrToWxStr(StringFromFormat("(non-code address: %08x)",
 						   	em_address)));
 			x86_box->SetValue(StrToWxStr(StringFromFormat("(no translation)")));
-			delete[] xDis;
 			return;
 		}
 	}
@@ -136,7 +132,9 @@ void CJitWindow::Compare(u32 em_address)
 	u64 disasmPtr = (u64)code;
 	int size = block->codeSize;
 	const u8 *end = code + size;
-	char *sptr = (char*)xDis;
+	
+	std::vector<char> xDis(1 << 18);
+	char *sptr = xDis.data();
 
 	int num_x86_instructions = 0;
 	while ((u8*)disasmPtr < end)
@@ -147,11 +145,11 @@ void CJitWindow::Compare(u32 em_address)
 		disasmPtr += x64disasm.disasm32(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
 #endif
 		sptr += strlen(sptr);
-		*sptr++ = 13;
-		*sptr++ = 10;
+		*sptr++ = '\r';
+		*sptr++ = '\n';
 		num_x86_instructions++;
 	}
-	x86_box->SetValue(StrToWxStr((char*)xDis));
+	x86_box->SetValue(StrToWxStr(xDis.data()));
 
 	// == Fill in ppc box
 	u32 ppc_addr = block->originalAddress;
@@ -165,7 +163,7 @@ void CJitWindow::Compare(u32 em_address)
 	int size_of_merged_addresses;
 	if (PPCAnalyst::Flatten(ppc_addr, &size, &st, &gpa, &fpa, broken_block, &code_buffer, size, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses) != 0xffffffff)
 	{
-		sptr = (char*)xDis;
+		sptr = xDis.data();
 		for (int i = 0; i < size; i++)
 		{
 			const PPCAnalyst::CodeOp &op = code_buffer.codebuffer[i];
@@ -190,14 +188,12 @@ void CJitWindow::Compare(u32 em_address)
 		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n",
 			   	size * 4, block->codeSize, 100 * (block->codeSize / (4 * size) - 1));
 
-		ppc_box->SetValue(StrToWxStr((char*)xDis));
+		ppc_box->SetValue(StrToWxStr(xDis.data()));
 	} else {
 		ppc_box->SetValue(StrToWxStr(StringFromFormat(
 						"(non-code address: %08x)", em_address)));
 		x86_box->SetValue("---");
 	}
-
-	delete[] xDis;
 }
 
 void CJitWindow::Update()

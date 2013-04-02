@@ -17,6 +17,8 @@
 
 // TODO: Make a more centralized version of this (for now every backend that will use it will create its own context, which is weird). An object maybe?
 
+#include <vector>
+
 #include "OpenCL.h"
 #include "Common.h"
 #include "Timer.h"
@@ -62,8 +64,8 @@ bool Initialize()
 
 	if (0 < numPlatforms)
 	{
-		cl_platform_id* platforms = new cl_platform_id[numPlatforms];
-		err = clGetPlatformIDs(numPlatforms, platforms, NULL);
+		std::vector<cl_platform_id> platforms(numPlatforms);
+		err = clGetPlatformIDs(numPlatforms, platforms.data(), NULL);
 
 		if (err != CL_SUCCESS)
 		{
@@ -82,7 +84,6 @@ bool Initialize()
 		}
 
 		platform = platforms[0];
-		delete[] platforms;
 	}
 	else
 	{
