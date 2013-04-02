@@ -669,7 +669,7 @@ std::string GetSysDirectory()
 
 // Returns a string with a Dolphin data dir or file in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
-std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
+const std::string& GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 {
 	static std::string paths[NUM_PATH_INDICES];
 
@@ -740,6 +740,19 @@ std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath)
 		paths[F_WIISYSCONF_IDX]	= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
 	}
 	return paths[DirIDX];
+}
+
+std::string GetThemeDir(const std::string& theme_name)
+{
+	std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
+
+#if !defined(_WIN32)
+	// If theme does not exist in user's dir load from shared directory
+	if (!File::Exists(dir))
+		dir = SHARED_USER_DIR THEMES_DIR "/" + theme_name + "/";
+#endif
+	
+	return dir;
 }
 
 bool WriteStringToFile(bool text_file, const std::string &str, const char *filename)

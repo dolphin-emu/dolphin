@@ -509,14 +509,7 @@ void CFrame::RecreateToolbar()
 
 void CFrame::InitBitmaps()
 {
-	std::string theme(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/");
-	std::string dir(File::GetUserPath(D_THEMES_IDX) + theme);
-
-#if !defined(_WIN32)
-	// If theme does not exist in user's dir load from shared directory
-	if (!File::Exists(dir))
-		dir = SHARED_USER_DIR THEMES_DIR "/" + theme;
-#endif
+	auto const dir = StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
 
 	m_Bitmaps[Toolbar_FileOpen].LoadFile(dir + "open.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Refresh].LoadFile(dir + "refresh.png", wxBITMAP_TYPE_PNG);
