@@ -412,8 +412,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 		return;
 	}
 
-	ReadRequest rr;
-	u8 *const block = new u8[size];
+	std::vector<u8> block(size);
 
 	switch (rd->space)
 	{
@@ -426,7 +425,6 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 				if (address + size > WIIMOTE_EEPROM_SIZE) 
 				{
 					PanicAlert("ReadData: address + size out of bounds");
-					delete [] block;
 					return;
 				}
 				// generate a read error
@@ -445,7 +443,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 			}
 
 			// read mem to be sent to wii
-			memcpy(block, m_eeprom + address, size);
+			std::copy_n(m_eeprom + address, size, block.begin());
 		}
 		break;
 
@@ -495,7 +493,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 
 			if (region_ptr && (region_offset + size <= region_size))
 			{
-				memcpy(block, (u8*)region_ptr + region_offset, size);
+				std::copy_n((u8*)region_ptr + region_offset, size, block.begin());
 			}
 			else
 				size = 0;	// generate read error
@@ -505,7 +503,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 				// Encrypt data read from extension register
 				// Check if encrypted reads is on
 				if (0xaa == m_reg_ext.encryption)
-					wiimote_encrypt(&m_ext_key, block, address & 0xffff, (u8)size);
+					wiimote_encrypt(&m_ext_key, block.data(), address & 0xffff, (u8)size);
 			}
 		}
 		break;
@@ -515,21 +513,19 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 		break;
 	}
 
+	ReadRequest rr;
 	// want the requested address, not the above modified one
 	rr.address = swap24(rd->address);
 	rr.size = size;
-	//rr.channel = _channelID;
 	rr.position = 0;
-	rr.data = block;
+	rr.data = std::move(block);
 
 	// send up to 16 bytes
 	SendReadDataReply(rr);
 
 	// if there is more data to be sent, add it to the queue
 	if (rr.size)
-		m_read_requests.push( rr );
-	else
-		delete[] rr.data;
+		m_read_requests.push(rr);
 }
 
 // old comment
@@ -561,7 +557,7 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
 		reply->size = 0x0f;
 		reply->error = 0x08;
 
-		memset(reply->data, 0, sizeof(reply->data));
+		std::fill_n(reply->data, sizeof(reply->data), 0);
 	}
 	else
 	{
@@ -576,10 +572,10 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
 		reply->size = amt - 1;
 
 		// Clear the mem first
-		memset(reply->data, 0, sizeof(reply->data));
+		std::fill_n(reply->data, sizeof(reply->data), 0);
 
 		// copy piece of mem
-		memcpy(reply->data, _request.data + _request.position, amt);
+		std::copy_n(_request.data.begin() + _request.position, amt, reply->data);
 
 		// update request struct
 		_request.size -= amt;
@@ -618,6 +614,7 @@ void Wiimote::DoState(PointerWrap& p)
 	p.Do(m_reg_ext);
 	p.Do(m_reg_speaker);
 
+	// TODO: just make m_read_requests a deque, simplify this!
 	//Do 'm_read_requests' queue
 	{
 		u32 size = 0;
@@ -634,8 +631,7 @@ void Wiimote::DoState(PointerWrap& p)
 				p.Do(tmp.address);
 				p.Do(tmp.position);
 				p.Do(tmp.size);
-				tmp.data = new u8[tmp.size];
-				p.DoArray(tmp.data, tmp.size);
+				p.Do(tmp.data);
 				m_read_requests.push(tmp);
 			}
 		}
@@ -650,7 +646,7 @@ void Wiimote::DoState(PointerWrap& p)
 				p.Do(tmp.address);
 				p.Do(tmp.position);
 				p.Do(tmp.size);
-				p.DoArray(tmp.data, tmp.size);
+				p.Do(tmp.data);
 				tmp_queue.pop();
 			}
 		}

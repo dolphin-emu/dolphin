@@ -77,7 +77,7 @@ void stopdamnwav(){wav.Stop();ofile.close();}
 void Wiimote::SpeakerData(wm_speaker_data* sd)
 {
 	// TODO consider using static max size instead of new
-	s16 *samples = new s16[sd->length * 2];
+	std::vector<s16> samples(sd->length * 2);
 
 	if (m_reg_speaker.format == 0x40)
 	{
@@ -109,7 +109,7 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 		OpenFStream(ofile, "rmtdump.bin", ofile.binary | ofile.out);
 		wav.Start("rmtdump.wav", 6000/*Common::swap16(m_reg_speaker.sample_rate)*/);
 	}
-	wav.AddMonoSamples(samples, sd->length*2);
+	wav.AddMonoSamples(samples.data(), sd->length*2);
 	if (ofile.good())
 	{
 		for (int i = 0; i < sd->length; i++)
@@ -119,8 +119,6 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 	}
 	num++;
 #endif
-
-	delete[] samples;
 }
 
 }

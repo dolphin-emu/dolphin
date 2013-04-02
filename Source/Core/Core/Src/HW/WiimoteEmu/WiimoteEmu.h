@@ -124,9 +124,8 @@ protected:
 private:
 	struct ReadRequest
 	{
-		//u16		channel;
 		unsigned int	address, size, position;
-		u8*		data;
+		std::vector<u8> data;
 	};
 
 	void Reset();

@@ -254,10 +254,9 @@ void Wiimote::Reset()
 
 	memset(m_shake_step, 0, sizeof(m_shake_step));
 
-	// clear read request queue
-	while (m_read_requests.size())
+	// clear read request queue, sloppy
+	while (!m_read_requests.empty())
 	{
-		delete[] m_read_requests.front().data;
 		m_read_requests.pop();
 	}
 }
@@ -364,7 +363,6 @@ bool Wiimote::Step()
 		// if there is no more data, remove from queue
 		if (0 == rr.size)
 		{
-			delete[] rr.data;
 			m_read_requests.pop();
 		}
 
