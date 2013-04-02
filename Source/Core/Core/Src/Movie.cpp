@@ -56,8 +56,11 @@ u32 g_framesToSkip = 0, g_frameSkipCounter = 0;
 u8 g_numPads = 0;
 ControllerState g_padState;
 DTMHeader tmpHeader;
-u8* tmpInput = NULL;
+std::vector<u8> tmpInput;
+
+// TODO: this can be removed, use tmpInput.size()
 size_t tmpInputAllocated = 0;
+
 u64 g_currentByte = 0, g_totalBytes = 0;
 u64 g_currentFrame = 0, g_totalFrames = 0; // VI
 u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
@@ -94,15 +97,9 @@ void EnsureTmpInputSize(size_t bound)
 	size_t newAlloc = DTM_BASE_LENGTH;
 	while (newAlloc < bound)
 		newAlloc *= 2;
-	u8* newTmpInput = new u8[newAlloc];
+	
+	tmpInput.resize(newAlloc);
 	tmpInputAllocated = newAlloc;
-	if (tmpInput != NULL)
-	{
-		if (g_totalBytes > 0)
-			memcpy(newTmpInput, tmpInput, (size_t)g_totalBytes);
-		delete[] tmpInput;
-	}
-	tmpInput = newTmpInput;
 }
 
 std::string GetInputDisplay()
@@ -748,7 +745,7 @@ bool PlayInput(const char *filename)
 	
 	g_totalBytes = g_recordfd.GetSize() - 256;
 	EnsureTmpInputSize((size_t)g_totalBytes);
-	g_recordfd.ReadArray(tmpInput, (size_t)g_totalBytes);
+	g_recordfd.ReadArray(tmpInput.data(), (size_t)g_totalBytes);
 	g_currentByte = 0;
 	g_recordfd.Close();
 
@@ -824,7 +821,7 @@ void LoadInput(const char *filename)
 		afterEnd = true;
 	}
 
-	if (!g_bReadOnly || tmpInput == NULL)
+	if (!g_bReadOnly || tmpInput.empty())
 	{
 		g_totalFrames = tmpHeader.frameCount;
 		g_totalLagCount = tmpHeader.lagCount;
@@ -832,7 +829,7 @@ void LoadInput(const char *filename)
 
 		EnsureTmpInputSize((size_t)totalSavedBytes);
 		g_totalBytes = totalSavedBytes;
-		t_record.ReadArray(tmpInput, (size_t)g_totalBytes);
+		t_record.ReadArray(tmpInput.data(), (size_t)g_totalBytes);
 	}
 	else if (g_currentByte > 0)
 	{
@@ -847,8 +844,8 @@ void LoadInput(const char *filename)
 		{
 			// verify identical from movie start to the save's current frame
 			u32 len = (u32)g_currentByte;
-			u8* movInput = new u8[len];
-			t_record.ReadArray(movInput, (size_t)len);
+			std::vector<u8> movInput(len);
+			t_record.ReadArray(movInput.data(), (size_t)len);
 			for (u32 i = 0; i < len; ++i)
 			{
 				if (movInput[i] != tmpInput[i])
@@ -884,7 +881,6 @@ void LoadInput(const char *filename)
 					break;
 				}
 			}
-			delete [] movInput;
 		}
 	}
 	t_record.Close();
@@ -928,7 +924,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 {
 	// Correct playback is entirely dependent on the emulator polling the controllers
 	// in the same order done during recording
-	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == NULL)
+	if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput.empty())
 		return;
 
 	if (g_currentByte + 8 > g_totalBytes)
@@ -1024,7 +1020,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 
 bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int irMode)
 {
-	if(!IsPlayingInput() || !IsUsingWiimote(wiimote) || tmpInput == NULL)
+	if(!IsPlayingInput() || !IsUsingWiimote(wiimote) || tmpInput.empty())
 		return false;
 
 	if (g_currentByte > g_totalBytes)
@@ -1137,7 +1133,7 @@ void SaveRecording(const char *filename)
 
 	save_record.WriteArray(&header, 1);
 
-	bool success = save_record.WriteArray(tmpInput, (size_t)g_totalBytes);
+	bool success = save_record.WriteArray(tmpInput.data(), (size_t)g_totalBytes);
 
 	if (success && g_bRecordingFromSaveState)
 	{
@@ -1234,8 +1230,7 @@ void GetMD5()
 void Shutdown()
 {
 	g_currentInputCount = g_totalInputCount = g_totalFrames = g_totalBytes = 0;
-	delete [] tmpInput;
-	tmpInput = NULL;
+	std::vector<u8>().swap(tmpInput);
 	tmpInputAllocated = 0;
 }
 };
