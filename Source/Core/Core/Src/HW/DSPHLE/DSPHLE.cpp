@@ -55,8 +55,8 @@ bool DSPHLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 {
 	m_hWnd = hWnd;
 	m_bWii = bWii;
-	m_pUCode = NULL;
-	m_lastUCode = NULL;
+	m_pUCode.reset();
+	m_lastUCode.reset();
 	m_bHalt = false;
 	m_bAssertInt = false;
 
@@ -83,13 +83,13 @@ void DSPHLE::DSP_Update(int cycles)
 {
 	// This is called OFTEN - better not do anything expensive!
 	// ~1/6th as many cycles as the period PPC-side.
-	if (m_pUCode != NULL)
+	if (m_pUCode != nullptr)
 		m_pUCode->Update(cycles / 6);
 }
 
 void DSPHLE::SendMailToDSP(u32 _uMail)
 {
-	if (m_pUCode != NULL) {
+	if (m_pUCode != nullptr) {
 		DEBUG_LOG(DSP_MAIL, "CPU writes 0x%08x", _uMail);
 		m_pUCode->HandleMail(_uMail);
 	}
@@ -97,14 +97,11 @@ void DSPHLE::SendMailToDSP(u32 _uMail)
 
 IUCode* DSPHLE::GetUCode()
 {
-	return m_pUCode;
+	return m_pUCode.get();
 }
 
 void DSPHLE::SetUCode(u32 _crc)
 {
-	delete m_pUCode;
-
-	m_pUCode = NULL;
 	m_MailHandler.Clear();
 	m_pUCode = UCodeFactory(_crc, this, m_bWii);
 }
@@ -116,16 +113,14 @@ void DSPHLE::SwapUCode(u32 _crc)
 {
 	m_MailHandler.Clear();
 
-	if (m_lastUCode == NULL)
+	if (m_lastUCode == nullptr)
 	{
-		m_lastUCode = m_pUCode;
+		m_lastUCode = std::move(m_pUCode);
 		m_pUCode = UCodeFactory(_crc, this, m_bWii);
 	}
 	else
 	{
-		delete m_pUCode;
-		m_pUCode = m_lastUCode;
-		m_lastUCode = NULL;
+		m_pUCode = std::move(m_lastUCode);
 	}
 }
 
@@ -160,46 +155,28 @@ void DSPHLE::DoState(PointerWrap &p)
 	p.Do(m_DSPControl);
 	p.Do(m_dspState);
 
-	int ucode_crc = IUCode::GetCRC(m_pUCode);
-	int ucode_crc_beforeLoad = ucode_crc;
-	int lastucode_crc = IUCode::GetCRC(m_lastUCode);
-	int lastucode_crc_beforeLoad = lastucode_crc;
+	int ucode_crc = IUCode::GetCRC(m_pUCode.get());
+	int const ucode_crc_beforeLoad = ucode_crc;
+	
+	int lastucode_crc = IUCode::GetCRC(m_lastUCode.get());
+	int const lastucode_crc_beforeLoad = lastucode_crc;
 
 	p.Do(ucode_crc);
 	p.Do(lastucode_crc);
 
 	// if a different type of ucode was being used when the savestate was created,
 	// we have to reconstruct the old type of ucode so that we have a valid thing to call DoState on.
-	IUCode*     ucode =     (ucode_crc ==     ucode_crc_beforeLoad) ?    m_pUCode : UCodeFactory(    ucode_crc, this, m_bWii);
-	IUCode* lastucode = (lastucode_crc != lastucode_crc_beforeLoad) ? m_lastUCode : UCodeFactory(lastucode_crc, this, m_bWii);
+	if (ucode_crc != ucode_crc_beforeLoad)
+		m_pUCode = UCodeFactory(ucode_crc, this, m_bWii);
+	
+	if (lastucode_crc != lastucode_crc_beforeLoad)
+		m_lastUCode = UCodeFactory(lastucode_crc, this, m_bWii);
 
-	if (ucode)
-		ucode->DoState(p);
-	if (lastucode)
-		lastucode->DoState(p);
-
-	// if a different type of ucode was being used when the savestate was created,
-	// discard it if we're not loading, otherwise discard the old one and keep the new one.
-	if (ucode != m_pUCode)
-	{
-		if (p.GetMode() != PointerWrap::MODE_READ)
-			delete ucode;
-		else
-		{
-			delete m_pUCode;
-			m_pUCode = ucode;
-		}
-	}
-	if (lastucode != m_lastUCode)
-	{
-		if (p.GetMode() != PointerWrap::MODE_READ)
-			delete lastucode;
-		else
-		{
-			delete m_lastUCode;
-			m_lastUCode = lastucode;
-		}
-	}
+	if (m_pUCode)
+		m_pUCode->DoState(p);
+	
+	if (m_lastUCode)
+		m_lastUCode->DoState(p);
 
 	m_MailHandler.DoState(p);
 }

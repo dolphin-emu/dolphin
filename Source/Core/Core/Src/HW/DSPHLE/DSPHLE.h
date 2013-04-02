@@ -18,6 +18,8 @@
 #ifndef _DSPHLE_H
 #define _DSPHLE_H
 
+#include <memory>
+
 #include "AudioCommon.h"
 #include "SoundStream.h"
 #include "MailHandler.h"
@@ -82,8 +84,8 @@ private:
 	};
 	DSPState m_dspState;
 
-	IUCode* m_pUCode;
-	IUCode* m_lastUCode;
+	std::unique_ptr<IUCode> m_pUCode;
+	std::unique_ptr<IUCode> m_lastUCode;
 
 	UDSPControl m_DSPControl;
 	CMailHandler m_MailHandler;

@@ -21,6 +21,7 @@
 #include "Common.h"
 #include "ChunkFile.h"
 #include "Thread.h"
+#include "UtilityFuncs.h"
 
 #include "../DSPHLE.h"
 #include "../../Memmap.h"
@@ -151,6 +152,6 @@ private:
 	bool m_NeedsResumeMail;
 };
 
-extern IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii);
+std::unique_ptr<IUCode> UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii);
 
 #endif
