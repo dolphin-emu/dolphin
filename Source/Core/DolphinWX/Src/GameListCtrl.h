@@ -69,15 +69,11 @@ private:
 	std::vector<int> m_FlagImageIndex;
 	std::vector<int> m_PlatformImageIndex;
 	std::vector<int> m_EmuStateImageIndex;
-	std::vector<GameListItem*> m_ISOFiles;
+	std::vector<std::unique_ptr<GameListItem>> m_ISOFiles;
 
 	void ClearIsoFiles()
 	{
-		while (!m_ISOFiles.empty())	// so lazy
-		{
-			delete m_ISOFiles.back();
-			m_ISOFiles.pop_back();
-		}
+		m_ISOFiles.clear();
 	}
 
 	int last_column;

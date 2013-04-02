@@ -36,6 +36,7 @@
 #include "JitIL.h"
 #include "JitILAsm.h"
 #include "JitIL_Tables.h"
+#include "UtilityFuncs.h"
 
 using namespace Gen;
 using namespace PowerPC;
@@ -240,11 +241,14 @@ namespace JitILProfiler
 			}
 		}
 	};
-	std::auto_ptr<JitILProfilerFinalizer> finalizer;
+	
+	std::unique_ptr<JitILProfilerFinalizer> finalizer;
+	
 	static void Init()
 	{
-		finalizer = std::auto_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
+		finalizer = make_unique<JitILProfilerFinalizer>();
 	}
+	
 	static void Shutdown()
 	{
 		finalizer.reset();

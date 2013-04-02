@@ -36,6 +36,7 @@
 #include "WxUtils.h"
 #include "Main.h"
 #include "MathUtil.h"
+#include "UtilityFuncs.h"
 
 #include "../resources/Flag_Europe.xpm"
 #include "../resources/Flag_Germany.xpm"
@@ -558,7 +559,7 @@ void CGameListCtrl::ScanForISOs()
 			if (dialog.WasCancelled())
 				break;
 
-			std::auto_ptr<GameListItem> iso_file(new GameListItem(rFilenames[i]));
+			auto iso_file = make_unique<GameListItem>(rFilenames[i]);
 			const GameListItem& ISOFile = *iso_file;
 
 			if (ISOFile.IsValid())
@@ -613,7 +614,7 @@ void CGameListCtrl::ScanForISOs()
 				}
 
 				if (list)
-					m_ISOFiles.push_back(iso_file.release());
+					m_ISOFiles.push_back(std::move(iso_file));
 			}
 		}
 	}
@@ -624,18 +625,12 @@ void CGameListCtrl::ScanForISOs()
 
 		for (std::vector<std::string>::const_iterator iter = drives.begin(); iter != drives.end(); ++iter)
 		{
-			#ifdef __APPLE__
-			std::auto_ptr<GameListItem> gli(new GameListItem(*iter));
-			#else
-			std::unique_ptr<GameListItem> gli(new GameListItem(*iter));
-			#endif
+			auto gli = make_unique<GameListItem>(*iter);
 
 			if (gli->IsValid())
-				m_ISOFiles.push_back(gli.release());
+				m_ISOFiles.push_back(std::move(gli));
 		}
 	}
-
-	std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
 }
 
 void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
@@ -647,9 +642,9 @@ void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 const GameListItem *CGameListCtrl::GetISO(size_t index) const
 {
 	if (index < m_ISOFiles.size())
-		return m_ISOFiles[index];
+		return m_ISOFiles[index].get();
 	else
-		return NULL;
+		return nullptr;
 }
 
 CGameListCtrl *caller;
@@ -908,17 +903,17 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 	}
 }
 
-const GameListItem * CGameListCtrl::GetSelectedISO()
+const GameListItem* CGameListCtrl::GetSelectedISO()
 {
 	if (m_ISOFiles.size() == 0)
-		return NULL;
+		return nullptr;
 	else if (GetSelectedItemCount() == 0)
-		return NULL;
+		return nullptr;
 	else
 	{
 		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (item == wxNOT_FOUND)
-			return NULL;
+			return nullptr;
 		else
 		{
 			// Here is a little workaround for multiselections:
@@ -928,7 +923,7 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 			if (GetSelectedItemCount() > 1)
 				SetItemState(item, 0, wxLIST_STATE_SELECTED);
 
-			return m_ISOFiles[GetItemData(item)];
+			return m_ISOFiles[GetItemData(item)].get();
 		}
 	}
 }
