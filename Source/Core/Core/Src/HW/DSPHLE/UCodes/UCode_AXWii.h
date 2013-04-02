@@ -44,8 +44,8 @@ private:
 
 	bool wiisportsHack;
 
-	int *templbuffer;
-	int *temprbuffer;
+	std::vector<int> templbuffer;
+	std::vector<int> temprbuffer;
 
 	// ax task message handler
 	bool AXTask(u32& _uMail);

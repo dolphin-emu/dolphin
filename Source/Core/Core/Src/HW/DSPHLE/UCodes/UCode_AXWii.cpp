@@ -30,12 +30,11 @@
 CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
 	: IUCode(dsp_hle, l_CRC)
 	, m_addressPBs(0xFFFFFFFF)
+	, templbuffer(1024 * 1024)
+	, temprbuffer(1024 * 1024)
 {
 	// we got loaded
 	m_rMailHandler.PushMail(DSP_INIT);
-
-	templbuffer = new int[1024 * 1024];
-	temprbuffer = new int[1024 * 1024];
 
 	wiisportsHack = m_CRC == 0xfa450138;
 }
@@ -43,8 +42,6 @@ CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
 CUCode_AXWii::~CUCode_AXWii()
 {
 	m_rMailHandler.Clear();
-	delete [] templbuffer;
-	delete [] temprbuffer;
 }
 
 void CUCode_AXWii::HandleMail(u32 _uMail)
@@ -94,8 +91,8 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 	if (_iSize > 1024 * 1024)
 		_iSize = 1024 * 1024;
 
-	memset(templbuffer, 0, _iSize * sizeof(int));
-	memset(temprbuffer, 0, _iSize * sizeof(int));
+	std::fill_n(templbuffer.begin(), _iSize, 0);
+	std::fill_n(temprbuffer.begin(), _iSize, 0);
 
 	u32 blockAddr = m_addressPBs;
 	if (!blockAddr)
@@ -107,9 +104,9 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 			break;
 
 		if (wiisportsHack)
-			MixAddVoice(*(AXPBWiiSports*)&PB, templbuffer, temprbuffer, _iSize);
+			MixAddVoice(*(AXPBWiiSports*)&PB, templbuffer.data(), temprbuffer.data(), _iSize);
 		else
-			MixAddVoice(PB, templbuffer, temprbuffer, _iSize);
+			MixAddVoice(PB, templbuffer.data(), temprbuffer.data(), _iSize);
 
 		if (!WritePB(blockAddr, PB))
 			break;

@@ -509,18 +509,18 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 	{
 	case 0x0005:		// AFC with extra low bitrate (32:5 compression).
 	case 0x0009:		// AFC with normal bitrate (32:9 compression).
-		RenderVoice_AFC(PB, m_ResampleBuffer + 4, _Size);
-		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
+		RenderVoice_AFC(PB, m_ResampleBuffer.data() + 4, _Size);
+		Resample(PB, _Size, m_ResampleBuffer.data() + 4, m_VoiceBuffer.data(), true);
 		break;
 
 	case 0x0008:        // PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD + very little in Zelda WW.
-		RenderVoice_PCM8(PB, m_ResampleBuffer + 4, _Size);
-		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
+		RenderVoice_PCM8(PB, m_ResampleBuffer.data() + 4, _Size);
+		Resample(PB, _Size, m_ResampleBuffer.data() + 4, m_VoiceBuffer.data(), true);
 		break;
 
 	case 0x0010:		// PCM16 - normal PCM 16-bit audio.
-		RenderVoice_PCM16(PB, m_ResampleBuffer + 4, _Size);
-		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
+		RenderVoice_PCM16(PB, m_ResampleBuffer.data() + 4, _Size);
+		Resample(PB, _Size, m_ResampleBuffer.data() + 4, m_VoiceBuffer.data(), true);
 		break;
 
 	case 0x0020:
@@ -528,15 +528,15 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		// to the output buffer. However, (if we ever see this sound type), we'll
 		// have to resample anyway since we're running at a different sample rate.
 
-		RenderVoice_Raw(PB, m_ResampleBuffer + 4, _Size);
-		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
+		RenderVoice_Raw(PB, m_ResampleBuffer.data() + 4, _Size);
+		Resample(PB, _Size, m_ResampleBuffer.data() + 4, m_VoiceBuffer.data(), true);
 		break;
 
 	case 0x0021:
 		// Raw sound from RAM. Important for Zelda WW. Cutscenes use the music 
 		// to let the game know they ended
-		RenderVoice_Raw(PB, m_ResampleBuffer + 4, _Size);
-		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
+		RenderVoice_Raw(PB, m_ResampleBuffer.data() + 4, _Size);
+		Resample(PB, _Size, m_ResampleBuffer.data() + 4, m_VoiceBuffer.data(), true);
 		break;
 	
 	default:
@@ -551,17 +551,17 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		// Synthesized sounds
 		case 0x0003: WARN_LOG(DSPHLE, "PB Format 0x03 used!");
 		case 0x0000: // Example: Magic meter filling up in ZWW
-			RenderSynth_RectWave(PB, m_VoiceBuffer, _Size);
+			RenderSynth_RectWave(PB, m_VoiceBuffer.data(), _Size);
 			break;
 
 		case 0x0001: // Example: "Denied" sound when trying to pull out a sword 
 					 // indoors in ZWW
-			RenderSynth_SawWave(PB, m_VoiceBuffer, _Size);
+			RenderSynth_SawWave(PB, m_VoiceBuffer.data(), _Size);
 			break;
 
 		case 0x0006:
 			WARN_LOG(DSPHLE, "Synthesizing 0x0006 (constant sound)");
-			RenderSynth_Constant(PB, m_VoiceBuffer, _Size);
+			RenderSynth_Constant(PB, m_VoiceBuffer.data(), _Size);
 			break;
                         
   		// These are more "synth" formats - square wave, saw wave etc.
@@ -573,12 +573,12 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		case 0x0007: // Example: "success" SFX in Pikmin 1, Pikmin 2 in a cave, not sure what sound it is.
 		case 0x000b: // Example: SFX in area selection menu in Pikmin
 		case 0x000c: // Example: beam of death/yellow force-field in Temple of the Gods, ZWW
-			RenderSynth_WaveTable(PB, m_VoiceBuffer, _Size);
+			RenderSynth_WaveTable(PB, m_VoiceBuffer.data(), _Size);
 			break;
 
 		default:
 			// TODO: Implement general decoder here
-			memset(m_VoiceBuffer, 0, _Size * sizeof(s32));
+			std::fill_n(m_VoiceBuffer.begin(), _Size, 0);
 			ERROR_LOG(DSPHLE, "Unknown MixAddVoice format in zelda %04x", PB.Format);
 			break;
 		}
@@ -749,8 +749,8 @@ void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 		_Size = 256 * 1024 - 8;
 
 	// Final mix buffers
-	memset(m_LeftBuffer, 0, _Size * sizeof(s32));
-	memset(m_RightBuffer, 0, _Size * sizeof(s32));
+	std::fill_n(m_LeftBuffer.begin(), _Size, 0);
+	std::fill_n(m_RightBuffer.begin(), _Size, 0);
 
 	// For each PB...
 	for (u32 i = 0; i < m_NumVoices; i++)
@@ -770,7 +770,7 @@ void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 		if (pb.KeyOff != 0)
 			continue;
 
-		RenderAddVoice(pb, m_LeftBuffer, m_RightBuffer, _Size);
+		RenderAddVoice(pb, m_LeftBuffer.data(), m_RightBuffer.data(), _Size);
 		WritebackVoicePB(m_VoicePBsAddr + (i * 0x180), pb);
 	}
 

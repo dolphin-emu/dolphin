@@ -81,10 +81,10 @@ CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
 		m_rMailHandler.PushMail(0xF3551111); // handshake
 	}
 
-	m_VoiceBuffer = new s32[256 * 1024];
-	m_ResampleBuffer = new s16[256 * 1024];
-	m_LeftBuffer = new s32[256 * 1024];
-	m_RightBuffer = new s32[256 * 1024];
+	m_VoiceBuffer.resize(256 * 1024);
+	m_ResampleBuffer.resize(256 * 1024);
+	m_LeftBuffer.resize(256 * 1024);
+	m_RightBuffer.resize(256 * 1024);
 
 	memset(m_Buffer, 0, sizeof(m_Buffer));
 	memset(m_SyncFlags, 0, sizeof(m_SyncFlags));
@@ -95,11 +95,6 @@ CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
 CUCode_Zelda::~CUCode_Zelda()
 {
 	m_rMailHandler.Clear();
-
-	delete [] m_VoiceBuffer;
-	delete [] m_ResampleBuffer;
-	delete [] m_LeftBuffer;
-	delete [] m_RightBuffer;
 }
 
 u8 *CUCode_Zelda::GetARAMPointer(u32 address)

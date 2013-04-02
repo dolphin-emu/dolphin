@@ -213,11 +213,10 @@ private:
 	}
 
 	// These are the only dynamically allocated things allowed in the ucode.
-	s32* m_VoiceBuffer;
-	s16* m_ResampleBuffer;
-	s32* m_LeftBuffer;
-	s32* m_RightBuffer;
-
+	std::vector<s32> m_VoiceBuffer;
+	std::vector<s16> m_ResampleBuffer;
+	std::vector<s32> m_LeftBuffer;
+	std::vector<s32> m_RightBuffer;
 
 	// If you add variables, remember to keep DoState() and the constructor up to date.
 
