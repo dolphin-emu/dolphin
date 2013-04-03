@@ -28,10 +28,8 @@
 
 #include "ConfigManager.h"
 
-// See comment near the bottom of this file
-static unsigned int vs_constant_offset_table[C_VENVCONST_END];
 float vsconstants[C_VENVCONST_END*4];
-bool vscbufchanged = true;
+bool vscbufchanged[NUM_VS_CONSTANT_BUFFERS];
 
 namespace DX11 {
 
@@ -51,18 +49,20 @@ ID3D11VertexShader* VertexShaderCache::GetClearVertexShader() { return ClearVert
 ID3D11InputLayout* VertexShaderCache::GetSimpleInputLayout() { return SimpleLayout; }
 ID3D11InputLayout* VertexShaderCache::GetClearInputLayout() { return ClearLayout; }
 
-ID3D11Buffer* vscbuf = NULL;
+ID3D11Buffer* vscbuf[NUM_VS_CONSTANT_BUFFERS] = {NULL};
 
-ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
+ID3D11Buffer** VertexShaderCache::GetConstantBuffers()
 {
-	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
-	if (vscbufchanged)
+	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
 	{
-		D3D11_MAPPED_SUBRESOURCE map;
-		D3D::context->Map(vscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, vsconstants, sizeof(vsconstants));
-		D3D::context->Unmap(vscbuf, 0);
-		vscbufchanged = false;
+		if (vscbufchanged[i])
+		{
+			D3D11_MAPPED_SUBRESOURCE map;
+			D3D::context->Map(vscbuf[i], 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+			memcpy(map.pData, &vsconstants[cb_offsets[i]*4], sizeof(float)*4 * (cb_offsets[i+1] - cb_offsets[i]));
+			D3D::context->Unmap(vscbuf[i], 0);
+			vscbufchanged[i] = false;
+		}
 	}
 	return vscbuf;
 }
@@ -126,11 +126,16 @@ void VertexShaderCache::Init()
 		{ "COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	unsigned int cbsize = ((sizeof(vsconstants))&(~0xf))+0x10; // must be a multiple of 16
-	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-	HRESULT hr = D3D::device->CreateBuffer(&cbdesc, NULL, &vscbuf);
-	CHECK(hr==S_OK, "Create vertex shader constant buffer (size=%u)", cbsize);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)vscbuf, "vertex shader constant buffer used to emulate the GX pipeline");
+	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
+	{
+		unsigned int cbsize = ((sizeof(float)*4* (cb_offsets[i+1]-cb_offsets[i]))&(~0xf))+0x10; // must be a multiple of 16
+		D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		HRESULT hr = D3D::device->CreateBuffer(&cbdesc, NULL, &vscbuf[i]);
+		CHECK(hr==S_OK, "Create vertex shader constant buffer (size=%u)", cbsize);
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)vscbuf[i], "vertex shader constant buffer used to emulate the GX pipeline");
+
+		vscbufchanged[i] = true;
+	}
 
 	D3DBlob* blob;
 	D3D::CompileVertexShader(simple_shader_code, sizeof(simple_shader_code), &blob);
@@ -150,19 +155,6 @@ void VertexShaderCache::Init()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearLayout, "clear input layout");
 
 	Clear();
-
-	// these values are hardcoded, they depend on internal D3DCompile behavior
-	// TODO: Do this with D3DReflect or something instead
-	unsigned int k;
-	for (k = 0;k <  6;k++) vs_constant_offset_table[C_POSNORMALMATRIX+k]       =   0+4*k;
-	for (k = 0;k <  4;k++) vs_constant_offset_table[C_PROJECTION+k]            =  24+4*k;
-	for (k = 0;k <  4;k++) vs_constant_offset_table[C_MATERIALS+k]             =  40+4*k;
-	for (k = 0;k < 40;k++) vs_constant_offset_table[C_LIGHTS+k]                =  56+4*k;
-	for (k = 0;k < 24;k++) vs_constant_offset_table[C_TEXMATRICES+k]           = 216+4*k;
-	for (k = 0;k < 64;k++) vs_constant_offset_table[C_TRANSFORMMATRICES+k]     = 312+4*k;	
-	for (k = 0;k < 32;k++) vs_constant_offset_table[C_NORMALMATRICES+k]        = 568+4*k;	
-	for (k = 0;k < 64;k++) vs_constant_offset_table[C_POSTTRANSFORMMATRICES+k] = 696+4*k;
-	vs_constant_offset_table[C_DEPTHPARAMS] = 952;
 
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());
@@ -193,7 +185,8 @@ void VertexShaderCache::Clear()
 
 void VertexShaderCache::Shutdown()
 {
-	SAFE_RELEASE(vscbuf);
+	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
+		SAFE_RELEASE(vscbuf[i]);
 
 	SAFE_RELEASE(SimpleVertexShader);
 	SAFE_RELEASE(ClearVertexShader);
@@ -287,33 +280,45 @@ bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, D3DBlob* bcod
 // maps the constant numbers to float indices in the constant buffer
 void Renderer::SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	vsconstants[vs_constant_offset_table[const_number]  ] = f1;
-	vsconstants[vs_constant_offset_table[const_number]+1] = f2;
-	vsconstants[vs_constant_offset_table[const_number]+2] = f3;
-	vsconstants[vs_constant_offset_table[const_number]+3] = f4;
-	vscbufchanged = true;
+	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
+		if (const_number >= cb_offsets[i] && const_number < cb_offsets[i+1])
+			vscbufchanged[i] = true;
+
+	vsconstants[4*const_number  ] = f1;
+	vsconstants[4*const_number+1] = f2;
+	vsconstants[4*const_number+2] = f3;
+	vsconstants[4*const_number+3] = f4;
 }
 
 void Renderer::SetVSConstant4fv(unsigned int const_number, const float* f)
 {
-	memcpy(&vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4);
-	vscbufchanged = true;
+	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
+		if (const_number >= cb_offsets[i] && const_number < cb_offsets[i+1])
+			vscbufchanged[i] = true;
+
+	memcpy(&vsconstants[4*const_number], f, sizeof(float)*4);
 }
 
 void Renderer::SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float* f)
 {
+	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
+		if (const_number+count >= cb_offsets[i] && const_number < cb_offsets[i+1])
+			vscbufchanged[i] = true;
+
 	for (unsigned int i = 0; i < count; i++)
 	{
-		memcpy(&vsconstants[vs_constant_offset_table[const_number+i]], f+3*i, sizeof(float)*3);
-		vsconstants[vs_constant_offset_table[const_number+i]+3] = 0.f;		
+		memcpy(&vsconstants[4*(const_number+i)], f+3*i, sizeof(float)*3);
+		vsconstants[4*(const_number+i)+3] = 0.f;		
 	}
-	vscbufchanged = true;
 }
 
 void Renderer::SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
-	memcpy(&vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4*count);
-	vscbufchanged = true;
+	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
+		if (const_number+count >= cb_offsets[i] && const_number < cb_offsets[i+1])
+			vscbufchanged[i] = true;
+
+	memcpy(&vsconstants[4*const_number], f, sizeof(float)*4*count);
 }
 
 }  // namespace DX11

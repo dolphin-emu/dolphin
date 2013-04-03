@@ -37,7 +37,7 @@ public:
 
 	static ID3D11VertexShader* GetActiveShader() { return last_entry->shader; }
 	static D3DBlob* GetActiveShaderBytecode() { return last_entry->bytecode; }
-	static ID3D11Buffer* &GetConstantBuffer();
+	static ID3D11Buffer** GetConstantBuffers();
 
 	static ID3D11VertexShader* GetSimpleVertexShader();
 	static ID3D11VertexShader* GetClearVertexShader();

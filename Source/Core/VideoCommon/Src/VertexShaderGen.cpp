@@ -164,8 +164,53 @@ char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 	return p;
 }
 
-extern const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num);
+extern const char* WriteOffset(API_TYPE ApiType, const char *prefix, const u32 num, bool inside_buffer);
 extern const char *WriteLocation(API_TYPE ApiType);
+
+char* WriteSingleUniform(char* p, const char* type, const char* name, const char* prefix, u32 num, int buffer_index, API_TYPE api_type)
+{
+	bool inside_buffer = (api_type == API_OPENGL && g_ActiveConfig.backend_info.bSupportsGLSLUBO) || api_type == API_D3D11;
+	int offset = (buffer_index != -1) ? num-cb_offsets[buffer_index] : num;
+	if (buffer_index == -1 || (num >= cb_offsets[buffer_index] && num < cb_offsets[buffer_index+1]))
+		WRITE(p, "%s%s %s %s;\n", WriteLocation(api_type), type, name, WriteOffset(api_type, "c", offset, inside_buffer));
+
+	return p;
+}
+
+char* WriteUniforms(char* p, API_TYPE api_type)
+{
+	// Multiple constant buffer support only implemented for D3D11
+	unsigned int num_buffers = (api_type == API_D3D11) ? NUM_VS_CONSTANT_BUFFERS : 1;
+	bool multiple_buffers = (num_buffers != 1);
+
+	for (unsigned int i = 0; i < num_buffers; ++i)
+	{
+		int buf_idx = multiple_buffers ? i : -1;
+
+		if (api_type == API_OPENGL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+			WRITE(p, "layout(std140) uniform VSBlock {\n");
+		else if (api_type == API_D3D11)
+			WRITE(p, "cbuffer mybuf%d : register(b%d) {\n", i, i);
+
+		p = WriteSingleUniform(p, "float4", I_POSNORMALMATRIX"[6]", "c", C_POSNORMALMATRIX, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_PROJECTION"[4]", "c", C_PROJECTION, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_MATERIALS"[4]", "c", C_MATERIALS, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_LIGHTS"[40]", "c", C_LIGHTS, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_TEXMATRICES"[24]", "c", C_TEXMATRICES, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_TRANSFORMMATRICES"[64]", "c", C_TRANSFORMMATRICES, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_NORMALMATRICES"[32]", "c", C_NORMALMATRICES, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_POSTTRANSFORMMATRICES"[64]", "c", C_POSTTRANSFORMMATRICES, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_DEPTHPARAMS, "c", C_DEPTHPARAMS, buf_idx, api_type);
+
+		if ((api_type == API_OPENGL && g_ActiveConfig.backend_info.bSupportsGLSLUBO) || api_type == API_D3D11)
+			WRITE(p, "}\n");
+
+		if (!multiple_buffers)
+			break;
+	}
+
+	return p;
+}
 
 const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 {
@@ -185,23 +230,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	char *p = text;
 	WRITE(p, "//Vertex Shader: comp:%x, \n", components);
 
-	// uniforms
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140) uniform VSBlock {\n");
-
-	WRITE(p, "%sfloat4 " I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
-	WRITE(p, "%sfloat4 " I_PROJECTION"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PROJECTION));	
-	WRITE(p, "%sfloat4 " I_MATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_MATERIALS));
-	WRITE(p, "%sfloat4 " I_LIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_LIGHTS));
-	WRITE(p, "%sfloat4 " I_TEXMATRICES"[24] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
-	WRITE(p, "%sfloat4 " I_TRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType),WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));
-	WRITE(p, "%sfloat4 " I_NORMALMATRICES"[32] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_NORMALMATRICES));
-	WRITE(p, "%sfloat4 " I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
-	WRITE(p, "%sfloat4 " I_DEPTHPARAMS" %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_DEPTHPARAMS));
-
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "};\n");
-
+	p = WriteUniforms(p, ApiType);
 	p = GenerateVSOutputStruct(p, components, ApiType);
 
 	if(ApiType == API_OPENGL)

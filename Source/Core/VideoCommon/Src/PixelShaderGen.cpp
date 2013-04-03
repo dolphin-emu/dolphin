@@ -485,12 +485,12 @@ static void BuildSwapModeTable()
 	}
 }
 
-const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
+const char* WriteOffset(API_TYPE ApiType, const char *prefix, const u32 num, bool inside_buffer = false)
 {
 	if (ApiType == API_OPENGL)
 		return ""; // Nothing to do here
 	static char result[64];
-	sprintf(result, " : register(%s%d)", prefix, num);
+	sprintf(result, " : %s(%s%d)", inside_buffer ? "packoffset" : "register", prefix, num);
 	return result;
 }
 
@@ -559,7 +559,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		bool bfirst = true;
 		for (int i = 0; i < 8; ++i)
 		{
-			WRITE(p, "%s samp%d %s", bfirst?"":",", i, WriteRegister(ApiType, "s", i));
+			WRITE(p, "%s samp%d %s", bfirst?"":",", i, WriteOffset(ApiType, "s", i));
 			bfirst = false;
 		}
 		WRITE(p, ";\n");
@@ -580,18 +580,18 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140) uniform PSBlock {\n");
 	
-	WRITE(p, "\t%sfloat4 " I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS));
-	WRITE(p, "\t%sfloat4 " I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_KCOLORS));
-	WRITE(p, "\t%sfloat4 " I_ALPHA"[1] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_ALPHA));
-	WRITE(p, "\t%sfloat4 " I_TEXDIMS"[8] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXDIMS));
-	WRITE(p, "\t%sfloat4 " I_ZBIAS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_ZBIAS));
-	WRITE(p, "\t%sfloat4 " I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType),  WriteRegister(ApiType, "c", C_INDTEXSCALE));
-	WRITE(p, "\t%sfloat4 " I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_INDTEXMTX));
-	WRITE(p, "\t%sfloat4 " I_FOG"[3] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_FOG));
+	WRITE(p, "\t%sfloat4 " I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_COLORS));
+	WRITE(p, "\t%sfloat4 " I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_KCOLORS));
+	WRITE(p, "\t%sfloat4 " I_ALPHA"[1] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_ALPHA));
+	WRITE(p, "\t%sfloat4 " I_TEXDIMS"[8] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_TEXDIMS));
+	WRITE(p, "\t%sfloat4 " I_ZBIAS"[2] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_ZBIAS));
+	WRITE(p, "\t%sfloat4 " I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType),  WriteOffset(ApiType, "c", C_INDTEXSCALE));
+	WRITE(p, "\t%sfloat4 " I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_INDTEXMTX));
+	WRITE(p, "\t%sfloat4 " I_FOG"[3] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_FOG));
 	
 	// For pixel lighting
-	WRITE(p, "\t%sfloat4 " I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
-	WRITE(p, "\t%sfloat4 " I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PMATERIALS));
+	WRITE(p, "\t%sfloat4 " I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_PLIGHTS));
+	WRITE(p, "\t%sfloat4 " I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_PMATERIALS));
 		
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "};\n");
