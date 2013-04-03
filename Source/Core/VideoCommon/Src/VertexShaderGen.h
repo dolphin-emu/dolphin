@@ -63,8 +63,8 @@
 #define C_DEPTHPARAMS           (C_POSTTRANSFORMMATRICES + 64)
 #define C_VENVCONST_END         (C_DEPTHPARAMS + 1)
 
-const unsigned int cb_offsets[] = {0, C_VENVCONST_END};
-#define NUM_VS_CONSTANT_BUFFERS (sizeof(cb_offsets)/sizeof(unsigned int)-1)
+const unsigned int vs_cb_offsets[] = {0, C_VENVCONST_END};
+#define NUM_VS_CONSTANT_BUFFERS (sizeof(vs_cb_offsets)/sizeof(unsigned int)-1)
 
 const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
 						{I_PROJECTION , C_PROJECTION, 4  },

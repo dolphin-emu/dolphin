@@ -59,7 +59,7 @@ ID3D11Buffer** VertexShaderCache::GetConstantBuffers()
 		{
 			D3D11_MAPPED_SUBRESOURCE map;
 			D3D::context->Map(vscbuf[i], 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-			memcpy(map.pData, &vsconstants[cb_offsets[i]*4], sizeof(float)*4 * (cb_offsets[i+1] - cb_offsets[i]));
+			memcpy(map.pData, &vsconstants[vs_cb_offsets[i]*4], sizeof(float)*4 * (vs_cb_offsets[i+1] - vs_cb_offsets[i]));
 			D3D::context->Unmap(vscbuf[i], 0);
 			vscbufchanged[i] = false;
 		}
@@ -128,7 +128,7 @@ void VertexShaderCache::Init()
 
 	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
 	{
-		unsigned int cbsize = ((sizeof(float)*4* (cb_offsets[i+1]-cb_offsets[i]))&(~0xf))+0x10; // must be a multiple of 16
+		unsigned int cbsize = ((sizeof(float)*4* (vs_cb_offsets[i+1]-vs_cb_offsets[i]))&(~0xf))+0x10; // must be a multiple of 16
 		D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 		HRESULT hr = D3D::device->CreateBuffer(&cbdesc, NULL, &vscbuf[i]);
 		CHECK(hr==S_OK, "Create vertex shader constant buffer (size=%u)", cbsize);
@@ -281,7 +281,7 @@ bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, D3DBlob* bcod
 void Renderer::SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
-		if (const_number >= cb_offsets[i] && const_number < cb_offsets[i+1])
+		if (const_number >= vs_cb_offsets[i] && const_number < vs_cb_offsets[i+1])
 			vscbufchanged[i] = true;
 
 	vsconstants[4*const_number  ] = f1;
@@ -293,7 +293,7 @@ void Renderer::SetVSConstant4f(unsigned int const_number, float f1, float f2, fl
 void Renderer::SetVSConstant4fv(unsigned int const_number, const float* f)
 {
 	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
-		if (const_number >= cb_offsets[i] && const_number < cb_offsets[i+1])
+		if (const_number >= vs_cb_offsets[i] && const_number < vs_cb_offsets[i+1])
 			vscbufchanged[i] = true;
 
 	memcpy(&vsconstants[4*const_number], f, sizeof(float)*4);
@@ -302,7 +302,7 @@ void Renderer::SetVSConstant4fv(unsigned int const_number, const float* f)
 void Renderer::SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float* f)
 {
 	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
-		if (const_number+count >= cb_offsets[i] && const_number < cb_offsets[i+1])
+		if (const_number+count >= vs_cb_offsets[i] && const_number < vs_cb_offsets[i+1])
 			vscbufchanged[i] = true;
 
 	for (unsigned int i = 0; i < count; i++)
@@ -315,7 +315,7 @@ void Renderer::SetMultiVSConstant3fv(unsigned int const_number, unsigned int cou
 void Renderer::SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
 	for (unsigned int i = 0; i < NUM_VS_CONSTANT_BUFFERS; ++i)
-		if (const_number+count >= cb_offsets[i] && const_number < cb_offsets[i+1])
+		if (const_number+count >= vs_cb_offsets[i] && const_number < vs_cb_offsets[i+1])
 			vscbufchanged[i] = true;
 
 	memcpy(&vsconstants[4*const_number], f, sizeof(float)*4*count);

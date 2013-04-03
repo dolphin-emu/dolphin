@@ -503,6 +503,54 @@ const char *WriteLocation(API_TYPE ApiType)
 	return result;
 }
 
+static char* WriteSingleUniform(char* p, const char* type, const char* name, const char* prefix, u32 num, int buffer_index, API_TYPE api_type)
+{
+	bool inside_buffer = (api_type == API_OPENGL && g_ActiveConfig.backend_info.bSupportsGLSLUBO) || api_type == API_D3D11;
+	int offset = (buffer_index != -1) ? num-ps_cb_offsets[buffer_index] : num;
+	if (buffer_index == -1 || (num >= ps_cb_offsets[buffer_index] && num < ps_cb_offsets[buffer_index+1]))
+		WRITE(p, "%s%s %s %s;\n", WriteLocation(api_type), type, name, WriteOffset(api_type, "c", offset, inside_buffer));
+
+	return p;
+}
+
+static char* WriteUniforms(char* p, API_TYPE api_type)
+{
+	// Multiple constant buffer support only implemented for D3D11
+	unsigned int num_buffers = (api_type == API_D3D11) ? NUM_PS_CONSTANT_BUFFERS : 1;
+	bool multiple_buffers = (num_buffers != 1);
+
+	for (unsigned int i = 0; i < num_buffers; ++i)
+	{
+		int buf_idx = multiple_buffers ? i : -1;
+
+		if (api_type == API_OPENGL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+			WRITE(p, "layout(std140) uniform PSBlock {\n");
+		else if (api_type == API_D3D11)
+			WRITE(p, "cbuffer PSBlock%d : register(b%d) {\n", i, i);
+
+		p = WriteSingleUniform(p, "float4", I_COLORS"[4]", "c", C_COLORS, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_KCOLORS"[4]", "c", C_KCOLORS, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_ALPHA"[1]", "c", C_ALPHA, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_TEXDIMS"[8]", "c", C_TEXDIMS, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_ZBIAS"[2]", "c", C_ZBIAS, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_INDTEXSCALE"[2]", "c", C_INDTEXSCALE, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_INDTEXMTX"[6]", "c", C_INDTEXMTX, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_FOG"[3]", "c", C_FOG, buf_idx, api_type);
+
+		// For pixel lighting
+		p = WriteSingleUniform(p, "float4", I_PLIGHTS"[40]", "c", C_PLIGHTS, buf_idx, api_type);
+		p = WriteSingleUniform(p, "float4", I_PMATERIALS"[3]", "c", C_PMATERIALS, buf_idx, api_type);
+
+		if ((api_type == API_OPENGL && g_ActiveConfig.backend_info.bSupportsGLSLUBO) || api_type == API_D3D11)
+			WRITE(p, "}\n");
+
+		if (!multiple_buffers)
+			break;
+	}
+
+	return p;
+}
+
 const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
@@ -577,24 +625,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 
 	WRITE(p, "\n");
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "layout(std140) uniform PSBlock {\n");
-	
-	WRITE(p, "\t%sfloat4 " I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_COLORS));
-	WRITE(p, "\t%sfloat4 " I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_KCOLORS));
-	WRITE(p, "\t%sfloat4 " I_ALPHA"[1] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_ALPHA));
-	WRITE(p, "\t%sfloat4 " I_TEXDIMS"[8] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_TEXDIMS));
-	WRITE(p, "\t%sfloat4 " I_ZBIAS"[2] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_ZBIAS));
-	WRITE(p, "\t%sfloat4 " I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType),  WriteOffset(ApiType, "c", C_INDTEXSCALE));
-	WRITE(p, "\t%sfloat4 " I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_INDTEXMTX));
-	WRITE(p, "\t%sfloat4 " I_FOG"[3] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_FOG));
-	
-	// For pixel lighting
-	WRITE(p, "\t%sfloat4 " I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_PLIGHTS));
-	WRITE(p, "\t%sfloat4 " I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteOffset(ApiType, "c", C_PMATERIALS));
-		
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		WRITE(p, "};\n");
+	p = WriteUniforms(p, ApiType);
 
 	if (ApiType == API_OPENGL)
 	{

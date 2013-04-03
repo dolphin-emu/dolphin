@@ -18,8 +18,6 @@
 #ifndef _VERTEXSHADERMANAGER_H
 #define _VERTEXSHADERMANAGER_H
 
-#include "VertexShaderGen.h"
-
 class PointerWrap;
 
 struct ProjectionHack

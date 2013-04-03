@@ -167,17 +167,17 @@ char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 extern const char* WriteOffset(API_TYPE ApiType, const char *prefix, const u32 num, bool inside_buffer);
 extern const char *WriteLocation(API_TYPE ApiType);
 
-char* WriteSingleUniform(char* p, const char* type, const char* name, const char* prefix, u32 num, int buffer_index, API_TYPE api_type)
+static char* WriteSingleUniform(char* p, const char* type, const char* name, const char* prefix, u32 num, int buffer_index, API_TYPE api_type)
 {
 	bool inside_buffer = (api_type == API_OPENGL && g_ActiveConfig.backend_info.bSupportsGLSLUBO) || api_type == API_D3D11;
-	int offset = (buffer_index != -1) ? num-cb_offsets[buffer_index] : num;
-	if (buffer_index == -1 || (num >= cb_offsets[buffer_index] && num < cb_offsets[buffer_index+1]))
+	int offset = (buffer_index != -1) ? num-vs_cb_offsets[buffer_index] : num;
+	if (buffer_index == -1 || (num >= vs_cb_offsets[buffer_index] && num < vs_cb_offsets[buffer_index+1]))
 		WRITE(p, "%s%s %s %s;\n", WriteLocation(api_type), type, name, WriteOffset(api_type, "c", offset, inside_buffer));
 
 	return p;
 }
 
-char* WriteUniforms(char* p, API_TYPE api_type)
+static char* WriteUniforms(char* p, API_TYPE api_type)
 {
 	// Multiple constant buffer support only implemented for D3D11
 	unsigned int num_buffers = (api_type == API_D3D11) ? NUM_VS_CONSTANT_BUFFERS : 1;
@@ -190,7 +190,7 @@ char* WriteUniforms(char* p, API_TYPE api_type)
 		if (api_type == API_OPENGL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 			WRITE(p, "layout(std140) uniform VSBlock {\n");
 		else if (api_type == API_D3D11)
-			WRITE(p, "cbuffer mybuf%d : register(b%d) {\n", i, i);
+			WRITE(p, "cbuffer VSBlock%d : register(b%d) {\n", i, i);
 
 		p = WriteSingleUniform(p, "float4", I_POSNORMALMATRIX"[6]", "c", C_POSNORMALMATRIX, buf_idx, api_type);
 		p = WriteSingleUniform(p, "float4", I_PROJECTION"[4]", "c", C_PROJECTION, buf_idx, api_type);

@@ -32,9 +32,8 @@
 
 extern int frameCount;
 
-// See comment near the bottom of this file.
 float psconstants[C_PENVCONST_END*4];
-bool pscbufchanged = true;
+bool pscbufchanged[NUM_PS_CONSTANT_BUFFERS];
 
 namespace DX11
 {
@@ -51,7 +50,7 @@ ID3D11PixelShader* s_DepthMatrixProgram[2] = {NULL};
 ID3D11PixelShader* s_ClearProgram = NULL;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {NULL};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {NULL};
-ID3D11Buffer* pscbuf = NULL;
+ID3D11Buffer* pscbuf[NUM_PS_CONSTANT_BUFFERS] = {NULL};
 
 const char clear_program_code[] = {
 	"void main(\n"
@@ -348,16 +347,18 @@ ID3D11PixelShader* PixelShaderCache::GetClearProgram()
 	return s_ClearProgram;
 }
 
-ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
+ID3D11Buffer** PixelShaderCache::GetConstantBuffers()
 {
-	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
-	if (pscbufchanged)
+	for (unsigned int i = 0; i < NUM_PS_CONSTANT_BUFFERS; ++i)
 	{
-		D3D11_MAPPED_SUBRESOURCE map;
-		D3D::context->Map(pscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, psconstants, sizeof(psconstants));
-		D3D::context->Unmap(pscbuf, 0);
-		pscbufchanged = false;
+		if (pscbufchanged[i])
+		{
+			D3D11_MAPPED_SUBRESOURCE map;
+			D3D::context->Map(pscbuf[i], 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+			memcpy(map.pData, &psconstants[ps_cb_offsets[i]*4], sizeof(float)*4 * (ps_cb_offsets[i+1] - ps_cb_offsets[i]));
+			D3D::context->Unmap(pscbuf[i], 0);
+			pscbufchanged[i] = false;
+		}
 	}
 	return pscbuf;
 }
@@ -374,11 +375,16 @@ public:
 
 void PixelShaderCache::Init()
 {
-	unsigned int cbsize = ((sizeof(psconstants))&(~0xf))+0x10; // must be a multiple of 16
-	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-	D3D::device->CreateBuffer(&cbdesc, NULL, &pscbuf);
-	CHECK(pscbuf!=NULL, "Create pixel shader constant buffer");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)pscbuf, "pixel shader constant buffer used to emulate the GX pipeline");
+	for (unsigned int i = 0; i < NUM_PS_CONSTANT_BUFFERS; ++i)
+	{
+		unsigned int cbsize = ((sizeof(float)*4 * (ps_cb_offsets[i+1]-ps_cb_offsets[i]))&(~0xf))+0x10; // must be a multiple of 16
+		D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+		D3D::device->CreateBuffer(&cbdesc, NULL, &pscbuf[i]);
+		CHECK(pscbuf[i]!=NULL, "Create pixel shader constant buffer");
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)pscbuf[i], "pixel shader constant buffer used to emulate the GX pipeline");
+
+		pscbufchanged[i] = true;
+	}
 
 	// used when drawing clear quads
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code, sizeof(clear_program_code));	
@@ -442,7 +448,8 @@ void PixelShaderCache::InvalidateMSAAShaders()
 
 void PixelShaderCache::Shutdown()
 {
-	SAFE_RELEASE(pscbuf);
+	for (unsigned int i = 0; i < NUM_PS_CONSTANT_BUFFERS; ++i)
+		SAFE_RELEASE(pscbuf[i]);
 
 	SAFE_RELEASE(s_ClearProgram);
 	for (int i = 0; i < 2; ++i)
@@ -543,48 +550,34 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const void* byt
 
 // These are "callbacks" from VideoCommon and thus must be outside namespace DX11.
 // This will have to be changed when we merge.
-
-// HACK to avoid some invasive VideoCommon changes
-// these values are hardcoded, they depend on internal D3DCompile behavior; TODO: Solve this with D3DReflect or something
-// offset given in floats, table index is float4
-static const unsigned int ps_constant_offset_table[] = {
-	0, 4, 8, 12,					// C_COLORS, 16
-	16, 20, 24, 28,					// C_KCOLORS, 16
-	32,								// C_ALPHA, 4
-	36, 40, 44, 48, 52, 56, 60, 64,	// C_TEXDIMS, 32
-	68, 72,							// C_ZBIAS, 8
-	76, 80,							// C_INDTEXSCALE, 8
-	84, 88, 92, 96, 100, 104,		// C_INDTEXMTX, 24
-	108, 112, 116,					// C_FOG, 12
-	120, 124, 128, 132, 136,		// C_PLIGHTS0, 20
-	140, 144, 148, 152, 156,		// C_PLIGHTS1, 20
-	160, 164, 168, 172,	176,		// C_PLIGHTS2, 20
-	180, 184, 188, 192, 196,		// C_PLIGHTS3, 20		
-	200, 204, 208, 212, 216,		// C_PLIGHTS4, 20
-	220, 224, 228, 232, 236,		// C_PLIGHTS5, 20
-	240, 244, 248, 252,	256,		// C_PLIGHTS6, 20
-	260, 264, 268, 272, 276,		// C_PLIGHTS7, 20
-	280, 284, 288, 292				// C_PMATERIALS, 16	
-};
 void Renderer::SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	psconstants[ps_constant_offset_table[const_number]  ] = f1;
-	psconstants[ps_constant_offset_table[const_number]+1] = f2;
-	psconstants[ps_constant_offset_table[const_number]+2] = f3;
-	psconstants[ps_constant_offset_table[const_number]+3] = f4;
-	pscbufchanged = true;
+	for (unsigned int i = 0; i < NUM_PS_CONSTANT_BUFFERS; ++i)
+		if (const_number >= ps_cb_offsets[i] && const_number < ps_cb_offsets[i+1])
+			pscbufchanged[i] = true;
+
+	psconstants[4*const_number  ] = f1;
+	psconstants[4*const_number+1] = f2;
+	psconstants[4*const_number+2] = f3;
+	psconstants[4*const_number+3] = f4;
 }
 
 void Renderer::SetPSConstant4fv(unsigned int const_number, const float* f)
 {
-	memcpy(&psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4);
-	pscbufchanged = true;
+	for (unsigned int i = 0; i < NUM_PS_CONSTANT_BUFFERS; ++i)
+		if (const_number >= ps_cb_offsets[i] && const_number < ps_cb_offsets[i+1])
+			pscbufchanged[i] = true;
+
+	memcpy(&psconstants[4*const_number], f, sizeof(float)*4);
 }
 
 void Renderer::SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
-	memcpy(&psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count);
-	pscbufchanged = true;
+	for (unsigned int i = 0; i < NUM_PS_CONSTANT_BUFFERS; ++i)
+		if (const_number+count >= ps_cb_offsets[i] && const_number < ps_cb_offsets[i+1])
+			pscbufchanged[i] = true;
+
+	memcpy(&psconstants[4*const_number], f, sizeof(float)*4*count);
 }
 
 }  // DX11
