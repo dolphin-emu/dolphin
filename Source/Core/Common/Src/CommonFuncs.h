@@ -66,7 +66,11 @@ _mm_shuffle_epi8(__m128i a, __m128i mask)
 		#define Crash() {asm ("int $3");}
 	#endif
 	#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
-
+// GCC 4.8 defines all the rotate functions now
+#ifdef _rotl
+#define _rotl64 _lrotl
+#define _rotr64 _lrotr
+#else
 inline u32 _rotl(u32 x, int shift) {
 	shift &= 31;
 	if (!shift) return x;
@@ -88,6 +92,7 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 	unsigned int n = shift % 64;
 	return (x >> n) | (x << (64 - n));
 }
+#endif
 
 #else // WIN32
 // Function Cross-Compatibility
