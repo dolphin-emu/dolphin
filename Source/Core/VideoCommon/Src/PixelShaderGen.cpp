@@ -668,17 +668,17 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 		}
 
-		WRITE(p, "  in float4 colors_0 : COLOR0,\n");
-		WRITE(p, "  in float4 colors_1 : COLOR1");
+		WRITE(p, "  in centroid float4 colors_0 : COLOR0,\n");
+		WRITE(p, "  in centroid float4 colors_1 : COLOR1");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		if (numTexgen < 7)
 		{
 			for (int i = 0; i < numTexgen; ++i)
-				WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
-			WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
+				WRITE(p, ",\n  in centroid float3 uv%d : TEXCOORD%d", i, i);
+			WRITE(p, ",\n  in centroid float4 clipPos : TEXCOORD%d", numTexgen);
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
+				WRITE(p, ",\n  in centroid float4 Normal : TEXCOORD%d", numTexgen + 1);
 			WRITE(p, "        ) {\n");
 		}
 		else
