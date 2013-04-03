@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-04-02 17:34-0500\n"
+"POT-Creation-Date: 2013-04-03 09:22-0500\n"
 "PO-Revision-Date: 2013-03-30 08:13+0000\n"
 "Last-Translator: Garteal <garteal@gmail.com>\n"
 "Language-Team: Dutch (http://www.transifex.com/projects/p/dolphin-emu/"
@@ -1012,7 +1012,7 @@ msgstr "Kan %s niet openen"
 msgid "Cannot unregister events with events pending"
 msgstr "Kan geen events afmelden als er events in afwachting zijn"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1072
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1074
 #, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
@@ -1023,7 +1023,7 @@ msgstr ""
 "%s\\n\n"
 "is geen geldig gamecube geheugenkaart bestand."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1102
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1104
 msgid ""
 "Cannot use that file as a memory card.\n"
 "Are you trying to use the same file in both slots?"
@@ -1124,11 +1124,11 @@ msgstr "Kies een NAND basismap:"
 msgid "Choose a default ISO:"
 msgstr "Kies een standaard ISO:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1230
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1232
 msgid "Choose a directory to add"
 msgstr "Kies een folder om toe te voegen"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1059
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1061
 msgid "Choose a file to open"
 msgstr "Kies een bestand om te openen"
 
@@ -2169,7 +2169,7 @@ msgstr "Gelijk"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:45
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:156
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1236
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1238
 msgid "Error"
 msgstr "Error (Fout)"
 
@@ -2754,7 +2754,7 @@ msgid "Gamecube &Pad Settings"
 msgstr "Gamecube &Pad Instellingen"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:218
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1063
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1065
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "Gamecube Memory Kaarten (*.raw,*.gcp)"
 
@@ -3814,6 +3814,10 @@ msgstr "Geen land (SDK)"
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:370
 msgid "No ISOs or WADS found"
 msgstr "Geen ISOs of WADS gevonden."
+
+#: Source/Core/Core/Src/ConfigManager.h:30
+msgid "No audio output"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:508
 #, c-format
@@ -5169,7 +5173,7 @@ msgstr "Het adres is onjuist"
 msgid "The checksum was successfully fixed"
 msgstr "De checksum was met succes gefixt"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1236
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1238
 msgid "The chosen directory is already in the list"
 msgstr "De gekozen map  is al in de lijst"
 

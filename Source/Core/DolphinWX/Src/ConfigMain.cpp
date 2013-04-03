@@ -970,7 +970,9 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		VolumeSlider->Enable(SupportsVolumeChanges(WxStrToStr(BackendSelection->GetStringSelection())));
 		Latency->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL);
 		DPL2Decoder->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL);
-		SConfig::GetInstance().sBackend = WxStrToStr(BackendSelection->GetStringSelection());
+		// Don't save the translated BACKEND_NULLSOUND string
+		SConfig::GetInstance().sBackend = BackendSelection->GetSelection() ?
+			WxStrToStr(BackendSelection->GetStringSelection()) : BACKEND_NULLSOUND;
 		AudioCommon::UpdateSoundStream();
 		break;
 
@@ -991,7 +993,7 @@ void CConfigMain::AddAudioBackends()
 	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
 		 iter != backends.end(); ++iter)
 	{
-		BackendSelection->Append(StrToWxStr(*iter));
+		BackendSelection->Append(wxGetTranslation(StrToWxStr(*iter)));
 		int num = BackendSelection->
 			FindString(StrToWxStr(SConfig::GetInstance().sBackend));
 		BackendSelection->SetSelection(num);

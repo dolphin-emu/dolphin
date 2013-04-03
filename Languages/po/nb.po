@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-04-02 17:34-0500\n"
+"POT-Creation-Date: 2013-04-03 09:22-0500\n"
 "PO-Revision-Date: 2013-04-02 18:16-0500\n"
 "Last-Translator: KHRZ <e-k-nut@hotmail.com>\n"
 "Language-Team: Norwegian Bokmål (http://www.transifex.com/projects/p/dolphin-"
@@ -85,8 +85,8 @@ msgid ""
 "%s failed to load as a memorycard \n"
 " Card file size is invalid (0x%x bytes)"
 msgstr ""
-"%s mislyktes i å laste som et minnekort \n Minnekortstørrelse er ugyldig (0x"
-"%x byte)"
+"%s mislyktes i å laste som et minnekort \n"
+" Minnekortstørrelse er ugyldig (0x%x byte)"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:110
 #, c-format
@@ -94,8 +94,8 @@ msgid ""
 "%s failed to load as a memorycard \n"
 " Card size is invalid (0x%x bytes)"
 msgstr ""
-"%s mislyktes i å laste som et minnekort \n Minnekortstørrelse ugyldig (0x%x "
-"byte)"
+"%s mislyktes i å laste som et minnekort \n"
+" Minnekortstørrelse ugyldig (0x%x byte)"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:90
 #, c-format
@@ -103,8 +103,8 @@ msgid ""
 "%s failed to load as a memorycard \n"
 "file is not large enough to be a valid memory card file (0x%x bytes)"
 msgstr ""
-"%s mislyktes i å laste som et minnekort \n Minnekortstørrelse er for liten "
-"til å være et gyldig minnekort (0x%x byte)"
+"%s mislyktes i å laste som et minnekort \n"
+" Minnekortstørrelse er for liten til å være et gyldig minnekort (0x%x byte)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:367
 #, c-format
@@ -394,8 +394,8 @@ msgid ""
 "A supported bluetooth device could not be found.\n"
 "You must manually connect your wiimotes."
 msgstr ""
-"En støttet bluetooth-enhet kunne ikke finnes.\n Du må manuelt koble til "
-"dine WiiMote-er."
+"En støttet bluetooth-enhet kunne ikke finnes.\n"
+" Du må manuelt koble til dine WiiMote-er."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:109
 msgid ""
@@ -466,9 +466,11 @@ msgid ""
 "\n"
 "If unsure, check EFB to Texture instead."
 msgstr ""
-"Emuler EFB-kopier nøyaktig.\n Noen spill avhenger av dette for visse "
-"grafiske effekter eller gameplay-funksjonaliteter.\n \n Hvis usikker, velg "
-"EFB-til-tekstur isteden."
+"Emuler EFB-kopier nøyaktig.\n"
+" Noen spill avhenger av dette for visse grafiske effekter eller gameplay-"
+"funksjonaliteter.\n"
+" \n"
+" Hvis usikker, velg EFB-til-tekstur isteden."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:239
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:239
@@ -537,7 +539,8 @@ msgid ""
 "Master codes are not needed. Do not use master codes."
 msgstr ""
 "Action Replay feil: Master koder og skriving til CCXXXXXX ikke implementert "
-"(%s)\n Master koder behøves ikke. Ikke bruk master koder."
+"(%s)\n"
+" Master koder behøves ikke. Ikke bruk master koder."
 
 #: Source/Core/Core/Src/ActionReplay.cpp:196
 #, c-format
@@ -681,7 +684,9 @@ msgid ""
 msgstr ""
 "Tillater bytting mellom visse innstilliner via snarveistastene 3 (intern "
 "oppløsning), 4 (Aspekt ratio), 5 (Kopier EFB) og 6 (Tåke) i "
-"emuleringsvinduet.\n \n Hvis usikker, la stå uaktivert."
+"emuleringsvinduet.\n"
+" \n"
+" Hvis usikker, la stå uaktivert."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:285
 msgid "Analyze"
@@ -1004,17 +1009,18 @@ msgstr "Kan ikke åpne %s"
 msgid "Cannot unregister events with events pending"
 msgstr "Kan ikke avregistrere events med events under behandling"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1072
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1074
 #, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
 "%s\n"
 "is not a valid gamecube memory card file"
 msgstr ""
-"Kan ikke bruke den filen som et minnekort.\n %s\n er ikke en gyldig "
-"GameCube-minnekortfil."
+"Kan ikke bruke den filen som et minnekort.\n"
+" %s\n"
+" er ikke en gyldig GameCube-minnekortfil."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1102
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1104
 msgid ""
 "Cannot use that file as a memory card.\n"
 "Are you trying to use the same file in both slots?"
@@ -1115,11 +1121,11 @@ msgstr "Velg en NAND-rotmappe"
 msgid "Choose a default ISO:"
 msgstr "Velg en standard-ISO:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1230
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1232
 msgid "Choose a directory to add"
 msgstr "Velg en mappe å legge til"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1059
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1061
 msgid "Choose a file to open"
 msgstr "Velg en fil å åpne"
 
@@ -2159,7 +2165,7 @@ msgstr "Lik"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:45
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:156
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1236
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1238
 msgid "Error"
 msgstr "Feil"
 
@@ -2382,8 +2388,8 @@ msgid ""
 "Memcard may be truncated\n"
 "FilePosition:%llx"
 msgstr ""
-"Mislyktes i å lese blokk %d av lagringsdataen\n Minnekortet kan ha blitt "
-"trunktert⏎ Filposisjon:%llx"
+"Mislyktes i å lese blokk %d av lagringsdataen\n"
+" Minnekortet kan ha blitt trunktert⏎ Filposisjon:%llx"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:148
 msgid ""
@@ -2738,7 +2744,7 @@ msgid "Gamecube &Pad Settings"
 msgstr "Innstillinger for &GameCube-kontroll"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:218
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1063
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1065
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "GameCube-minnekort (*.raw,*.gcp)"
 
@@ -2759,9 +2765,10 @@ msgid ""
 "native code handler by placing the codehandler.bin file into the Sys "
 "directory and restarting Dolphin.)"
 msgstr ""
-"GeckoCode mislyktes i å kjøre (CT%i CST%i) (%s)\n (Enten en dårlig kode, "
-"eller så støttes ikke kodetypen. Prøv å bruke den medbragte kodehandleren "
-"ved å plassere codehandler.bin-filen i Sys-mappen og restart Dolphin.)"
+"GeckoCode mislyktes i å kjøre (CT%i CST%i) (%s)\n"
+" (Enten en dårlig kode, eller så støttes ikke kodetypen. Prøv å bruke den "
+"medbragte kodehandleren ved å plassere codehandler.bin-filen i Sys-mappen og "
+"restart Dolphin.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:172
 #: Source/Core/DolphinWX/Src/GCMicDlg.cpp:172
@@ -2808,9 +2815,12 @@ msgid ""
 "If unsure, leave this checked."
 msgstr ""
 "Øker kvaliteten drastisk på teksturer generert ved rendering-til-tekstur-"
-"ekkekter.\n Å øke den interne oppløsningen vil øke effekten av denne "
-"innstillingen.\n Senker ytelsen noe og kan muligens forårsake problemer "
-"(men mest sannsyling ikke)\n \n Hvis usikker, la stå deaktivert."
+"ekkekter.\n"
+" Å øke den interne oppløsningen vil øke effekten av denne innstillingen.\n"
+" Senker ytelsen noe og kan muligens forårsake problemer (men mest sannsyling "
+"ikke)\n"
+" \n"
+" Hvis usikker, la stå deaktivert."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
 msgid "Greek"
@@ -2872,10 +2882,15 @@ msgid ""
 "\n"
 "Sayonara!\n"
 msgstr ""
-"Hei,\n \n Dolphin krever OS X 10.7 eller høyere.\n Dessverre kjører du en "
-"gammel versjon av OS X.\n Den siste Dolphin-versjonen som støtter OS X 10.6 "
-"er Dolphin 3.5\n Venligst oppgrader til 10.7 eller høyere for å bruke den "
-"nyeste versjonen av Dolphin.\n \n Sayonara!\n"
+"Hei,\n"
+" \n"
+" Dolphin krever OS X 10.7 eller høyere.\n"
+" Dessverre kjører du en gammel versjon av OS X.\n"
+" Den siste Dolphin-versjonen som støtter OS X 10.6 er Dolphin 3.5\n"
+" Venligst oppgrader til 10.7 eller høyere for å bruke den nyeste versjonen "
+"av Dolphin.\n"
+" \n"
+" Sayonara!\n"
 
 #: Source/Core/DolphinWX/Src/Main.cpp:233
 msgid ""
@@ -3275,8 +3290,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Hold spillvinduet på toppen av alle andre vinduer.\n \n Hvis usikker, la "
-"stå uaktivert."
+"Hold spillvinduet på toppen av alle andre vinduer.\n"
+" \n"
+" Hvis usikker, la stå uaktivert."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:303
 msgid "Keep window on top"
@@ -3529,9 +3545,11 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Gjør objekter langt unna mer synlige ved å fjerne tåke, slik at det "
-"generelle detaljenivået øker.\n  Å deaktivere tåke vil ødelegge noen spill "
-"som avhenger av skikkelig tåkeemulering.\n \n Hvis usikker, la stå "
-"deaktivert."
+"generelle detaljenivået øker.\n"
+"  Å deaktivere tåke vil ødelegge noen spill som avhenger av skikkelig "
+"tåkeemulering.\n"
+" \n"
+" Hvis usikker, la stå deaktivert."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:97
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:100
@@ -3791,6 +3809,10 @@ msgstr "Intet Land (SDK)"
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:370
 msgid "No ISOs or WADS found"
 msgstr "Ingen ISO- eller WAD-filer funnet"
+
+#: Source/Core/Core/Src/ConfigManager.h:30
+msgid "No audio output"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:508
 #, c-format
@@ -4586,10 +4608,12 @@ msgid ""
 "\n"
 "If unsure, use Direct3D 11."
 msgstr ""
-"Velg hvilken grafikk-API som skal brukes internt.\n Direct3D 9 er vanligvis "
-"den raskeste. OpenGL er mer nøyaktig. Direct3D 11 ligger et sted imellom de "
-"to.⏎ Merk at Direct3D bakendene kun er tilgjengelig på Windows.\n \n Hvis "
-"usikker, benytt Direct3D 11."
+"Velg hvilken grafikk-API som skal brukes internt.\n"
+" Direct3D 9 er vanligvis den raskeste. OpenGL er mer nøyaktig. Direct3D 11 "
+"ligger et sted imellom de to.⏎ Merk at Direct3D bakendene kun er "
+"tilgjengelig på Windows.\n"
+" \n"
+" Hvis usikker, benytt Direct3D 11."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:72
 msgid ""
@@ -4600,10 +4624,12 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
-"Velg hvilken grafikk-API som skal brukes internt.\n Direct3D 9 er vanligvis "
-"den raskeste. OpenGL er mer nøyaktig. Direct3D 11 ligger et sted imellom de "
-"to.\n Merk at Direct3D bakendene kun er tilgjengelig på Windows.\n \n "
-"Hvis usikker, benytt OpenGL."
+"Velg hvilken grafikk-API som skal brukes internt.\n"
+" Direct3D 9 er vanligvis den raskeste. OpenGL er mer nøyaktig. Direct3D 11 "
+"ligger et sted imellom de to.\n"
+" Merk at Direct3D bakendene kun er tilgjengelig på Windows.\n"
+" \n"
+" Hvis usikker, benytt OpenGL."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:288
 msgid "Send"
@@ -4793,9 +4819,9 @@ msgid ""
 "These messages include memory card writes, video backend and CPU "
 "information, and JIT cache clearing."
 msgstr ""
-"Vis meldinger på emulasjonsområdet av skjermen.\n Disse meldingene "
-"innkluderer minnekortskrivninger, Video-backend- og CPU-informasjon, og JIT "
-"cache-tømninger."
+"Vis meldinger på emulasjonsområdet av skjermen.\n"
+" Disse meldingene innkluderer minnekortskrivninger, Video-backend- og CPU-"
+"informasjon, og JIT cache-tømninger."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:815
 msgid "Show save blocks"
@@ -5150,7 +5176,7 @@ msgstr "Adressen er ugyldig"
 msgid "The checksum was successfully fixed"
 msgstr "Fiksing av sjekksummen var vellykket"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1236
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1238
 msgid "The chosen directory is already in the list"
 msgstr "Den valgte mappen finnes allerede i listen"
 
@@ -5204,8 +5230,9 @@ msgid ""
 "If unsure, use the rightmost value."
 msgstr ""
 "Jo tryggere denne settes, jo mindre sannsynlig er det at emulatoren vil "
-"mangle noen teksturoppdateringer fra RAM.\n \n Hvis usikker, bruk verdien "
-"mest til høyre."
+"mangle noen teksturoppdateringer fra RAM.\n"
+" \n"
+" Hvis usikker, bruk verdien mest til høyre."
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:445
 msgid "The save you are trying to copy has an invalid file size"
@@ -5404,7 +5431,8 @@ msgid ""
 "Unable to create patch from given values.\n"
 "Entry not modified."
 msgstr ""
-"Kunne ikke lage patch fra gitte verdier.\n Modifiseringen ble ikke gjort."
+"Kunne ikke lage patch fra gitte verdier.\n"
+" Modifiseringen ble ikke gjort."
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:124
 #, c-format
@@ -5497,9 +5525,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Bruk en hacket opplastningsstrategi for å streame punkter.\n Dette vil "
-"vanligvis øke ytelsen, men er forbudt av OpenGL spesifikasjonen og kan "
-"forårsake store bugs.\n \n Hvis usikker, la stå deaktivert."
+"Bruk en hacket opplastningsstrategi for å streame punkter.\n"
+" Dette vil vanligvis øke ytelsen, men er forbudt av OpenGL spesifikasjonen "
+"og kan forårsake store bugs.\n"
+" \n"
+" Hvis usikker, la stå deaktivert."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:122
 msgid ""
@@ -5672,13 +5702,18 @@ msgstr ""
 "Advarsel: Du forsøkte å laste en savestate der filmen ikke matcher på bilde "
 "%d. Du burde laste en annen savestate før du forsetter, eller laste denne "
 "savestate-en med les-kun modus av. Ellers får du sannsynligvis en "
-"desynkronisering.\n \n Mer informasjon: Den nåværende filmen er %d bilder "
-"lang, og savestate'ens film er %d bilder lang.\n \n På bilde %d, trykker "
-"filmen på:\n Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DOpp=%d, DNed=%d, "
-"DVenstre=%d, DHøyre=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX="
-"%d, CY=%d\n \n På bilde %d, trykker savestate'ens film:\n Start=%d, A=%d, "
-"B=%d, X=%d, Y=%d, Z=%d, DOpp=%d, DNed=%d, DVenstre=%d, DHøyre=%d, L=%d, R="
-"%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
+"desynkronisering.\n"
+" \n"
+" Mer informasjon: Den nåværende filmen er %d bilder lang, og savestate'ens "
+"film er %d bilder lang.\n"
+" \n"
+" På bilde %d, trykker filmen på:\n"
+" Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DOpp=%d, DNed=%d, DVenstre=%d, "
+"DHøyre=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d\n"
+" \n"
+" På bilde %d, trykker savestate'ens film:\n"
+" Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DOpp=%d, DNed=%d, DVenstre=%d, "
+"DHøyre=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:106
 #: Source/Core/AudioCommon/Src/WaveFile.cpp:129
@@ -5815,17 +5850,17 @@ msgid ""
 "All Wii games will work correctly, and most GC games should also work fine, "
 "but the GBA/IPL/CARD UCodes will not work.\n"
 msgstr ""
-"Du bruker en gratis DSP ROM laget av Dolphin-teamet.\n Alle Wii-spill vil "
-"fungere korret, og de fleste GameCube-spill burde også fungere fint, men GBA/"
-"IPL/CARD UKoder vil ikke fungere.\n"
+"Du bruker en gratis DSP ROM laget av Dolphin-teamet.\n"
+" Alle Wii-spill vil fungere korret, og de fleste GameCube-spill burde også "
+"fungere fint, men GBA/IPL/CARD UKoder vil ikke fungere.\n"
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:116
 msgid ""
 "You are using an old free DSP ROM made by the Dolphin Team.\n"
 "Only games using the Zelda UCode will work correctly.\n"
 msgstr ""
-"Du bruker en gammel gratis DSP ROM laget av Dolphin-teamet.\n Kun spill som "
-"bruker Zelda UCode vil fungere korrekt.\n"
+"Du bruker en gammel gratis DSP ROM laget av Dolphin-teamet.\n"
+" Kun spill som bruker Zelda UCode vil fungere korrekt.\n"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:73
 msgid "You can't close panes that have pages in them."
@@ -5857,8 +5892,9 @@ msgid ""
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
-"Dine DSP ROM-er har feil hash-verdier.\n Vil du stoppe nå for å fikse "
-"problemet=\n Hvis du velger \"Nei\", kan audio ha knasing."
+"Dine DSP ROM-er har feil hash-verdier.\n"
+" Vil du stoppe nå for å fikse problemet=\n"
+" Hvis du velger \"Nei\", kan audio ha knasing."
 
 #: Source/Core/Core/Src/CoreParameter.cpp:176
 msgid ""
