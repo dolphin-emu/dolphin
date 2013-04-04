@@ -47,7 +47,6 @@ SWVideoConfig::SWVideoConfig()
 
 void SWVideoConfig::Load(const char* ini_file)
 {
-	std::string temp;
 	IniFile iniFile;
 	iniFile.Load(ini_file);
 
