@@ -23,6 +23,7 @@ extern struct VideoConfig {
 	const char* gl_version;
 	
 	s32 max_samples;
+	s32 ubo_align;
 } g_ogl_config;
 
 class Renderer : public ::Renderer

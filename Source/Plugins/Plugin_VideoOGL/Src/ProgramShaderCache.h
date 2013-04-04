@@ -130,7 +130,8 @@ private:
 	static GLintptr s_vs_data_offset;
 	static u8 *s_ubo_buffer;
 	static u32 s_ubo_buffer_size;
-	static bool s_ubo_dirty;
+	static bool s_ps_ubo_dirty[NUM_PS_CONSTANT_BUFFERS];
+	static bool s_vs_ubo_dirty[NUM_VS_CONSTANT_BUFFERS];
 };
 
 }  // namespace OGL

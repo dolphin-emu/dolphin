@@ -33,7 +33,8 @@ GLintptr ProgramShaderCache::s_ps_data_size;
 GLintptr ProgramShaderCache::s_vs_data_offset;
 u8 *ProgramShaderCache::s_ubo_buffer;
 u32 ProgramShaderCache::s_ubo_buffer_size;
-bool ProgramShaderCache::s_ubo_dirty;
+bool ProgramShaderCache::s_ps_ubo_dirty[NUM_PS_CONSTANT_BUFFERS];
+bool ProgramShaderCache::s_vs_ubo_dirty[NUM_VS_CONSTANT_BUFFERS];
 
 static StreamBuffer *s_buffer;
 
@@ -78,13 +79,25 @@ void SHADER::SetProgramVariables()
 	// Bind UBO 
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
-		GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
+		for(u32 i=0; i<NUM_PS_CONSTANT_BUFFERS; i++)
+		{
+			char name[10];
+			snprintf(name, 10, "PSBlock%d", i);
+			GLint PSBlock_id = glGetUniformBlockIndex(glprogid, name);
+			
+			if(PSBlock_id != -1)
+				glUniformBlockBinding(glprogid, PSBlock_id, i+1);
+		}
 		
-		if(PSBlock_id != -1)
-			glUniformBlockBinding(glprogid, PSBlock_id, 1);
-		if(VSBlock_id != -1)
-			glUniformBlockBinding(glprogid, VSBlock_id, 2);
+		for(u32 i=0; i<NUM_VS_CONSTANT_BUFFERS; i++)
+		{
+			char name[10];
+			snprintf(name, 10, "VSBlock%d", i);
+			GLint VSBlock_id = glGetUniformBlockIndex(glprogid, name);
+			
+			if(VSBlock_id != -1)
+				glUniformBlockBinding(glprogid, VSBlock_id, i+1+NUM_PS_CONSTANT_BUFFERS);
+		}
 	}
 	
 	// We cache our uniform locations for now
@@ -157,24 +170,40 @@ void SHADER::Bind()
 
 void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
 {
-	s_ubo_dirty = true;
+	for(u32 i=0; i<NUM_PS_CONSTANT_BUFFERS; i++)
+		if(!(offset >= ps_cb_offsets[i+1] || offset+count <= ps_cb_offsets[i]))
+			s_ps_ubo_dirty[i] = true;
+	
 	memcpy(s_ubo_buffer+(offset*4*sizeof(float)), f, count*4*sizeof(float));
 }
 
 void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
 {
-	s_ubo_dirty = true;
+	for(u32 i=0; i<NUM_VS_CONSTANT_BUFFERS; i++)
+		if(!(offset >= vs_cb_offsets[i+1] || offset+count <= vs_cb_offsets[i]))
+			s_vs_ubo_dirty[i] = true;
+	
 	memcpy(s_ubo_buffer+(offset*4*sizeof(float))+s_vs_data_offset, f, count*4*sizeof(float));
 }
 
 void ProgramShaderCache::UploadConstants()
 {
-	if(s_ubo_dirty) {
-		s_buffer->Alloc(s_ubo_buffer_size);
-		size_t offset = s_buffer->Upload(s_ubo_buffer, s_ubo_buffer_size);
-		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, s_ps_data_size);
-		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset + s_vs_data_offset, s_vs_data_size);
-		s_ubo_dirty = false;
+	s_buffer->Alloc(s_ubo_buffer_size + (NUM_PS_CONSTANT_BUFFERS+NUM_VS_CONSTANT_BUFFERS) * g_ogl_config.ubo_align);
+	
+	for(u32 i=0; i<NUM_PS_CONSTANT_BUFFERS; i++) if(s_ps_ubo_dirty[i])
+	{
+		size_t size = ROUND_UP((ps_cb_offsets[i+1]-ps_cb_offsets[i])*16 , g_ogl_config.ubo_align);
+		size_t offset = s_buffer->Upload(s_ubo_buffer+ps_cb_offsets[i]*16, size);
+		glBindBufferRange(GL_UNIFORM_BUFFER, i+1, s_buffer->getBuffer(), offset, size);
+		s_ps_ubo_dirty[i] = false;
+	}
+	
+	for(u32 i=0; i<NUM_VS_CONSTANT_BUFFERS; i++) if(s_vs_ubo_dirty[i])
+	{
+		size_t size = ROUND_UP((vs_cb_offsets[i+1]-vs_cb_offsets[i])*16, g_ogl_config.ubo_align);
+		size_t offset = s_buffer->Upload(s_ubo_buffer+s_vs_data_offset+ vs_cb_offsets[i]*16, size);
+		glBindBufferRange(GL_UNIFORM_BUFFER, i+1+NUM_PS_CONSTANT_BUFFERS, s_buffer->getBuffer(), offset, size);
+		s_vs_ubo_dirty[i] = false;
 	}
 }
 
@@ -388,13 +417,12 @@ void ProgramShaderCache::Init(void)
 	// then the UBO will fail.
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		GLint Align;
-		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &Align);
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &g_ogl_config.ubo_align);
 
 		s_ps_data_size = C_PENVCONST_END * sizeof(float) * 4;
 		s_vs_data_size = C_VENVCONST_END * sizeof(float) * 4;
-		s_vs_data_offset = ROUND_UP(s_ps_data_size, Align);
-		s_ubo_buffer_size = ROUND_UP(s_ps_data_size, Align) + ROUND_UP(s_vs_data_size, Align);
+		s_vs_data_offset = s_ps_data_size;
+		s_ubo_buffer_size = s_ps_data_size + s_vs_data_size;
 
 		// We multiply by *4*4 because we need to get down to basic machine units.
 		// So multiply by four to get how many floats we have from vec4s
@@ -403,7 +431,11 @@ void ProgramShaderCache::Init(void)
 		
 		s_ubo_buffer = new u8[s_ubo_buffer_size];
 		memset(s_ubo_buffer, 0, s_ubo_buffer_size);
-		s_ubo_dirty = true;
+		
+		for(u32 i=0; i<NUM_PS_CONSTANT_BUFFERS; i++)
+			s_ps_ubo_dirty[i] = true;
+		for(u32 i=0; i<NUM_VS_CONSTANT_BUFFERS; i++)
+			s_vs_ubo_dirty[i] = true;
 	}
 
 	// Read our shader cache, only if supported

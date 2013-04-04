@@ -516,7 +516,7 @@ static char* WriteSingleUniform(char* p, const char* type, const char* name, con
 static char* WriteUniforms(char* p, API_TYPE api_type)
 {
 	// Multiple constant buffer support only implemented for D3D11
-	unsigned int num_buffers = (api_type == API_D3D11) ? NUM_PS_CONSTANT_BUFFERS : 1;
+	unsigned int num_buffers = (api_type == API_D3D11 || api_type == API_OPENGL) ? NUM_PS_CONSTANT_BUFFERS : 1;
 	bool multiple_buffers = (num_buffers != 1);
 
 	for (unsigned int i = 0; i < num_buffers; ++i)
@@ -524,7 +524,7 @@ static char* WriteUniforms(char* p, API_TYPE api_type)
 		int buf_idx = multiple_buffers ? i : -1;
 
 		if (api_type == API_OPENGL && g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-			WRITE(p, "layout(std140) uniform PSBlock {\n");
+			WRITE(p, "layout(std140) uniform PSBlock%d {\n", i);
 		else if (api_type == API_D3D11)
 			WRITE(p, "cbuffer PSBlock%d : register(b%d) {\n", i, i);
 
@@ -542,7 +542,7 @@ static char* WriteUniforms(char* p, API_TYPE api_type)
 		p = WriteSingleUniform(p, "float4", I_PMATERIALS"[3]", "c", C_PMATERIALS, buf_idx, api_type);
 
 		if ((api_type == API_OPENGL && g_ActiveConfig.backend_info.bSupportsGLSLUBO) || api_type == API_D3D11)
-			WRITE(p, "}\n");
+			WRITE(p, "};\n");
 
 		if (!multiple_buffers)
 			break;

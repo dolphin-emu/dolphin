@@ -47,7 +47,7 @@
 #define PIXELSHADERUID_MAX_VALUES 70
 #define PIXELSHADERUID_MAX_VALUES_SAFE 115
 
-const unsigned int ps_cb_offsets[] = {0, C_PENVCONST_END};
+const unsigned int ps_cb_offsets[] = {0, C_ALPHA, C_PENVCONST_END};
 #define NUM_PS_CONSTANT_BUFFERS (sizeof(ps_cb_offsets)/sizeof(unsigned int)-1)
 
 // Annoying sure, can be removed once we get up to GLSL ~1.3
