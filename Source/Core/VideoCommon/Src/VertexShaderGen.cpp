@@ -136,27 +136,27 @@ char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 	// GLSL makes this ugly
 	// TODO: Make pretty
 	WRITE(p, "struct VS_OUTPUT {\n");
-	WRITE(p, "  centroid float4 pos %s POSITION;\n", ApiType == API_OPENGL ? ";//" : ":");
-	WRITE(p, "  centroid float4 colors_0 %s COLOR0;\n", ApiType == API_OPENGL ? ";//" : ":");
-	WRITE(p, "  centroid float4 colors_1 %s COLOR1;\n", ApiType == API_OPENGL ? ";//" : ":");
+	WRITE(p, "  float4 pos %s POSITION;\n", ApiType == API_OPENGL ? ";//" : ":");
+	WRITE(p, "  float4 colors_0 %s COLOR0;\n", ApiType == API_OPENGL ? ";//" : ":");
+	WRITE(p, "  float4 colors_1 %s COLOR1;\n", ApiType == API_OPENGL ? ";//" : ":");
 
 	if (xfregs.numTexGen.numTexGens < 7) {
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			WRITE(p, "  centroid float3 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL ? ";//" : ":", i);
-		WRITE(p, "  centroid float4 clipPos %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens);
+			WRITE(p, "  float3 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL ? ";//" : ":", i);
+		WRITE(p, "  float4 clipPos %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens);
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			WRITE(p, "  centroid float4 Normal %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
+			WRITE(p, "  float4 Normal %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
 	} else {
 		// clip position is in w of first 4 texcoords
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
 			for (int i = 0; i < 8; ++i)
-				WRITE(p, "  centroid float4 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL? ";//" : ":", i);
+				WRITE(p, "  float4 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL? ";//" : ":", i);
 		}
 		else
 		{
 			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, "  centroid float%d tex%d %s TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, ApiType == API_OPENGL ? ";//" : ":", i);
+				WRITE(p, "  float%d tex%d %s TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, ApiType == API_OPENGL ? ";//" : ":", i);
 		}
 	}
 	WRITE(p, "};\n");
