@@ -373,7 +373,7 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version).c_str(), 5000);
 	
-	OSD::AddMessage(StringFromFormat("Missing Extensions: %s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
 			g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
@@ -382,7 +382,7 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
 			g_ogl_config.bSupportCoverageMSAA ? "" : "CSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA "
-			).c_str(), 5000);
+			);
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
