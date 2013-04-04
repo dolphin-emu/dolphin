@@ -88,7 +88,7 @@ void SetupDeviceObjects()
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
 	g_vertex_manager->CreateDeviceObjects();
-	g_perf_query = new PerfQuery;
+	((PerfQuery*)g_perf_query)->CreateDeviceObjects();
 	// Texture cache will recreate themselves over time.
 }
 
@@ -101,7 +101,7 @@ void TeardownDeviceObjects()
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 	delete g_framebuffer_manager;
-	delete g_perf_query;
+	((PerfQuery*)g_perf_query)->DestroyDeviceObjects();
 	D3D::font.Shutdown();
 	TextureCache::Invalidate();
 	VertexLoaderManager::Shutdown();

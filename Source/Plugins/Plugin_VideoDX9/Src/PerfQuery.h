@@ -17,6 +17,8 @@ public:
 	u32 GetQueryResult(PerfQueryType type);
 	void FlushResults();
 	bool IsFlushed() const;
+	void CreateDeviceObjects();
+	void DestroyDeviceObjects();
 
 private:
 	struct ActiveQuery
@@ -25,8 +27,7 @@ private:
 		PerfQueryGroup query_type;
 	};
 
-	void WeakFlush();
-
+	void WeakFlush();	
 	// Only use when non-empty
 	void FlushOne();
 

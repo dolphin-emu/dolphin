@@ -57,6 +57,7 @@
 
 #include "ConfigManager.h"
 #include "VideoBackend.h"
+#include "PerfQuery.h"
 
 namespace DX9
 {
@@ -176,8 +177,9 @@ void VideoBackend::Video_Prepare()
 
 	// internal interfaces
 	g_vertex_manager = new VertexManager;
+	g_perf_query = new PerfQuery;
 	g_renderer = new Renderer;
-	g_texture_cache = new TextureCache;
+	g_texture_cache = new TextureCache;	
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
@@ -215,9 +217,9 @@ void VideoBackend::Shutdown()
 		// internal interfaces
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
-		delete g_perf_query;
 		delete g_texture_cache;
 		delete g_renderer;
+		delete g_perf_query;
 		delete g_vertex_manager;
 		g_renderer = NULL;
 		g_texture_cache = NULL;
