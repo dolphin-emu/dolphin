@@ -73,6 +73,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 	switch(m_uploadtype) {
 	case MAP_AND_ORPHAN:
 		if(iter_end >= m_size) {
+			glBindBuffer(m_buffertype, m_buffer);
 			glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
 			m_iterator_aligned = 0;
 		}
@@ -136,6 +137,7 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 	switch(m_uploadtype) {
 	case MAP_AND_SYNC:
 	case MAP_AND_ORPHAN:
+		glBindBuffer(m_buffertype, m_buffer);
 		pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 		if(pointer) {
 			memcpy(pointer, data, size);
@@ -150,6 +152,7 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 			memcpy(pointer+m_iterator, data, size);
 		break;
 	case BUFFERSUBDATA:
+		glBindBuffer(m_buffertype, m_buffer);
 		glBufferSubData(m_buffertype, m_iterator, size, data);
 		break;
 	case STREAM_DETECT:
