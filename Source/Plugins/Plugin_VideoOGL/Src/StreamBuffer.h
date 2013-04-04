@@ -53,6 +53,9 @@ public:
 	u32 getBuffer() { return m_buffer; }
 	
 private:
+	StreamBuffer( const StreamBuffer& other ); 
+     StreamBuffer& operator=( const StreamBuffer& );
+	
 	void Init();
 	void Shutdown();
 	
