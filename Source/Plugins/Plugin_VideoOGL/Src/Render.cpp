@@ -351,6 +351,8 @@ Renderer::Renderer()
 	g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
 	
 	glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
+	if(g_ogl_config.max_samples < 1) 
+		g_ogl_config.max_samples = 1;
 	
 	if(g_Config.backend_info.bSupportsGLSLUBO && (
 		// hd3000 get corruption, hd4000 also and a big slowdown
