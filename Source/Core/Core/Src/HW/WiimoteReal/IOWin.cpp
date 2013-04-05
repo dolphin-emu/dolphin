@@ -370,70 +370,52 @@ bool Wiimote::IsConnected() const
 // zero = error
 int Wiimote::IORead(u8* buf)
 {
-	// used below for a warning
-	*buf = 0;
+	// Add data report indicator byte (here, 0xa1)
+	buf[0] = 0xa1;
+	// Used below for a warning
+	buf[1] = 0;
 	
-	DWORD bytes;
+	DWORD bytes = 0;
 	ResetEvent(hid_overlap_read.hEvent);
-	if (!ReadFile(dev_handle, buf, MAX_PAYLOAD - 1, &bytes, &hid_overlap_read))
+	if (!ReadFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap_read))
 	{
-		auto const err = GetLastError();
+		auto const read_err = GetLastError();
 
-		if (ERROR_IO_PENDING == err)
+		if (ERROR_IO_PENDING == read_err)
 		{
-			auto const r = WaitForSingleObject(hid_overlap_read.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
-			if (WAIT_TIMEOUT == r)
+			auto const wait_result = WaitForSingleObject(hid_overlap_read.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
+			if (WAIT_TIMEOUT == wait_result)
 			{
-				// Timeout - cancel and continue
-				if (*buf)
-					WARN_LOG(WIIMOTE, "Packet ignored. This may indicate a problem (timeout is %i ms).",
-							WIIMOTE_DEFAULT_TIMEOUT);
-
 				CancelIo(dev_handle);
-				bytes = -1;
 			}
-			else if (WAIT_FAILED == r)
+			else if (WAIT_FAILED == wait_result)
 			{
 				WARN_LOG(WIIMOTE, "A wait error occurred on reading from Wiimote %i.", index + 1);
-				bytes = 0;
+				CancelIo(dev_handle);
 			}
-			else if (WAIT_OBJECT_0 == r)
+
+			if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, TRUE))
 			{
-				if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, TRUE))
+				auto const overlapped_err = GetLastError();
+
+				if (ERROR_OPERATION_ABORTED == overlapped_err)
 				{
-					WARN_LOG(WIIMOTE, "GetOverlappedResult failed on Wiimote %i.", index + 1);
-					bytes = 0;
+					if (buf[1] != 0)
+						WARN_LOG(WIIMOTE, "Packet ignored. This may indicate a problem (timeout is %i ms).",
+							WIIMOTE_DEFAULT_TIMEOUT);
+
+					return -1;
 				}
+
+				WARN_LOG(WIIMOTE, "GetOverlappedResult error %d on Wiimote %i.", overlapped_err, index + 1);
+				return 0;
 			}
-			else
-			{
-				bytes =  0;
-			}
-		}
-		else if (ERROR_HANDLE_EOF == err)
-		{
-			// Remote disconnect
-			bytes = 0;
-		}
-		else if (ERROR_DEVICE_NOT_CONNECTED == err)
-		{
-			// Remote disconnect
-			bytes = 0;
 		}
 		else
 		{
-			bytes = 0;
+			WARN_LOG(WIIMOTE, "ReadFile error %d on Wiimote %i.", read_err, index + 1);
+			return 0;
 		}
-	}
-
-	if (bytes > 0)
-	{
-		// Move the data over one, so we can add back in data report indicator byte (here, 0xa1)
-		std::copy_n(buf, MAX_PAYLOAD - 1, buf + 1);
-		buf[0] = 0xa1;
-
-		// TODO: is this really needed?
-		bytes = MAX_PAYLOAD;
 	}
 
 	return bytes;
