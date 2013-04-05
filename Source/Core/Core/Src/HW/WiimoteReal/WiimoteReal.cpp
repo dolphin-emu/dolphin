@@ -86,7 +86,7 @@ void Wiimote::QueueReport(u8 rpt_id, const void* _data, unsigned int size)
 	rpt[0] = WM_SET_REPORT | WM_BT_OUTPUT;
 	rpt[1] = rpt_id;
 	std::copy_n(data, size, rpt.begin() + 2);
-	m_write_reports.Push(rpt);
+	m_write_reports.Push(std::move(rpt));
 }
 
 void Wiimote::DisableDataReporting()
@@ -163,13 +163,13 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 		&& !SConfig::GetInstance().m_WiimoteEnableSpeaker)
 	{
 		// Translate speaker data reports into rumble reports.
-		rpt[1] = WM_CMD_RUMBLE;
+		rpt[1] = WM_RUMBLE;
 		// Keep only the rumble bit.
 		rpt[2] &= 0x1;
 		rpt.resize(3);
 	}
 
-	m_write_reports.Push(rpt);
+	m_write_reports.Push(std::move(rpt));
 }
 
 bool Wiimote::Read()
@@ -273,13 +273,13 @@ bool Wiimote::Prepare(int _index)
 	index = _index;
 
 	// core buttons, no continuous reporting
-	u8 const mode_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_REPORT_TYPE, 0, 0x30};
+	u8 const mode_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REPORT_MODE, 0, WM_REPORT_CORE};
 	
 	// Set the active LEDs and turn on rumble.
-	u8 const led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_LED, u8(WIIMOTE_LED_1 << index | 0x1)};
+	u8 const led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_LEDS, u8(WIIMOTE_LED_1 << index | 0x1)};
 
 	// Turn off rumble
-	u8 rumble_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_RUMBLE, 0};
+	u8 rumble_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_RUMBLE, 0};
 	
 	// Request status report
 	u8 const req_status_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REQUEST_STATUS, 0};
