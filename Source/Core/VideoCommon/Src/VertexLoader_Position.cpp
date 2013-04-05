@@ -104,6 +104,26 @@ void LOADERDECL Pos_ReadIndex()
 	}
 }
 
+#if _M_SSE >= 0x301
+static const __m128i kMaskSwap32_3 = _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x04050607L, 0x00010203L);
+static const __m128i kMaskSwap32_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
+
+template <typename I, bool three>
+void LOADERDECL Pos_ReadIndex_Float_SSSE3()
+{
+	auto const index = DataRead<I>();
+	if (index < std::numeric_limits<I>::max())
+	{
+		const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
+		GC_ALIGNED128(const __m128i a = _mm_loadu_si128((__m128i*)pData));
+		GC_ALIGNED128(__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2));
+		_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
+		VertexManager::s_pCurBufferPointer += sizeof(float) * 3;
+		LOG_VTX();
+	}
+}
+#endif
+
 static AttributeLoaderDeclaration table[3][5][2][32];
 
 template <typename F, int formatnr, int formatsize, int N, int frac, int fracnr, VarType gltype, typename T, bool has_frac> void set_table()
@@ -136,6 +156,15 @@ template <int N, int frac> void set_table_formats()
 	set_table<u16, 2, 2, N, frac, frac, VAR_UNSIGNED_SHORT, u16, 1>();
 	set_table<s16, 3, 2, N, frac, frac, VAR_SHORT, s16, 1>();
 	set_table<float, 4, 4, N, 0, frac, VAR_FLOAT, float, 0>();
+	
+	#if _M_SSE >= 0x301
+	if (cpu_info.bSSSE3) {
+		table[1][4][0][frac].func = Pos_ReadIndex_Float_SSSE3<u8, false>;
+		table[1][4][1][frac].func = Pos_ReadIndex_Float_SSSE3<u8, true>;
+		table[2][4][0][frac].func = Pos_ReadIndex_Float_SSSE3<u16, false>;
+		table[2][4][1][frac].func = Pos_ReadIndex_Float_SSSE3<u16, true>;
+	}
+	#endif
 }
 
 template <int frac> void set_table_elements()
