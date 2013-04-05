@@ -146,6 +146,8 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	{
 		switch (iEFBScale)
 		{
+		case 0:
+			iEFBScale = 1;
 		case 3: // 1.5x
 			iEFBScale = 2;
 			break;
