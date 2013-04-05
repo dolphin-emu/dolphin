@@ -18,7 +18,7 @@
 #ifndef _RASTERIZER_H_
 #define _RASTERIZER_H_
 
-#include "NativeVertexFormat.h"
+#include "SWNativeVertexFormat.h"
 #include "ChunkFile.h"
 
 namespace Rasterizer

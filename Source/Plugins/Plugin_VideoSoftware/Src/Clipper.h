@@ -20,7 +20,7 @@
 
 
 #include "Common.h"
-#include "NativeVertexFormat.h"
+#include "SWNativeVertexFormat.h"
 #include "ChunkFile.h"
 
 

@@ -23,7 +23,7 @@
 #include "XFMemLoader.h"
 #include "CPMemLoader.h"
 #include "BPMemLoader.h"
-#include "NativeVertexFormat.h"
+#include "SWNativeVertexFormat.h"
 
 #include "Vec3.h"
 

@@ -22,7 +22,7 @@
 
 #include "BPMemLoader.h"
 #include "HwRasterizer.h"
-#include "NativeVertexFormat.h"
+#include "SWNativeVertexFormat.h"
 #include "DebugUtil.h"
 
 #define TEMP_SIZE (1024*1024*4)

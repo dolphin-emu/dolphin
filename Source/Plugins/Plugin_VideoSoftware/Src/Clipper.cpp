@@ -50,7 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "Clipper.h"
 #include "Rasterizer.h"
-#include "NativeVertexFormat.h"
+#include "SWNativeVertexFormat.h"
 #include "XFMemLoader.h"
 #include "BPMemLoader.h"
 #include "SWStatistics.h"

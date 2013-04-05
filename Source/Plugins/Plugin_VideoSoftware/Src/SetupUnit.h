@@ -20,7 +20,7 @@
 #define _SETUPUNIT_H_
 
 #include "Common.h"
-#include "NativeVertexFormat.h"
+#include "SWNativeVertexFormat.h"
 #include "ChunkFile.h"
 
 class SetupUnit
