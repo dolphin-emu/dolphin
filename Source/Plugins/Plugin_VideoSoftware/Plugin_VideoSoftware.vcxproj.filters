@@ -36,7 +36,7 @@
     <ClInclude Include="Src\EfbCopy.h" />
     <ClInclude Include="Src\EfbInterface.h" />
     <ClInclude Include="Src\HwRasterizer.h" />
-    <ClInclude Include="Src\NativeVertexFormat.h" />
+    <ClInclude Include="Src\SWNativeVertexFormat.h" />
     <ClInclude Include="Src\OpcodeDecoder.h" />
     <ClInclude Include="Src\SWPixelEngine.h" />
     <ClInclude Include="Src\Rasterizer.h" />

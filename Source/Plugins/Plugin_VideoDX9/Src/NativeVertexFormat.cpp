@@ -26,7 +26,6 @@
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
 #include "VertexManager.h"
-#include <../../Data/User/OpenCL/TextureDecoder.cl>
 
 namespace DX9
 {
