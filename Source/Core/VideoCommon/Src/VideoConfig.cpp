@@ -137,7 +137,26 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
 	iniFile.GetIfExists("Video_Settings", "HackedBufferUpload", &bHackedBufferUpload);
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
-	iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale); // integral
+	int tmp = 0;
+	iniFile.GetIfExists("Video_Settings", "EFBScale", &tmp); // integral
+	if (tmp != -1)
+		iEFBScale = tmp;
+	// Round down to multiple of native IR
+	else
+	{
+		switch (iEFBScale)
+		{
+		case 3: // 1.5x
+			iEFBScale = 2;
+			break;
+		case 5: // 2.5x
+			iEFBScale = 4;
+			break;
+		default:
+			break;
+		}
+	}
+
 	iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass);
 	iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog);
 	iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL);
