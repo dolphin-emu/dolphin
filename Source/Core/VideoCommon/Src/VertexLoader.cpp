@@ -303,6 +303,7 @@ void VertexLoader::CompileVertexTranslator()
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
 	nat_offset += VertexLoader_Position::GetGLSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
 	vtx_decl.position_gl_type = (VarType)VertexLoader_Position::GetGLType(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
+	vtx_decl.position_count = VertexLoader_Position::GetCount(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
 
 	// Normals
 	vtx_decl.num_normals = 0;

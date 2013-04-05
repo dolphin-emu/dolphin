@@ -76,6 +76,7 @@ struct PortableVertexDeclaration
 	int stride;
 
 	VarType position_gl_type;
+	int position_count;
 	
 	int num_normals;
 	int normal_offset[3];

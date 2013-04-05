@@ -37,6 +37,9 @@ public:
 
 	// GetGLSize
 	static int GetGLSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
+	
+	// GetCount
+	static int GetCount(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
 };
 
 #endif

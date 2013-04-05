@@ -294,7 +294,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	WRITE(p, "VS_OUTPUT o;\n");
 	
 	// normalization & shifting
-	WRITE(p, "float4 rawpos_norm = float4(rawpos.xyz * exp2(-rawpos.w), 1.0f);\n");
+	WRITE(p, "float4 rawpos_norm = float4(rawpos.xyz * exp2(1.0f-rawpos.w), 1.0f);\n");
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
