@@ -186,7 +186,7 @@ bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 	{
 		if (m_Mode == ISFS_OPEN_WRITE)
 		{
-			WARN_LOG(WII_IPC_FILEIO, "FileIO: Attempted to read 0x%x bytes to 0x%08x on write-only file %s", Size, Address, m_Name.c_str());
+			WARN_LOG(WII_IPC_FILEIO, "FileIO: Attempted to read 0x%x bytes to 0x%08x on a write-only file %s", Size, Address, m_Name.c_str());
 		}
 		else
 		{
@@ -225,7 +225,7 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 	{
 		if (m_Mode == ISFS_OPEN_READ)
 		{
-			WARN_LOG(WII_IPC_FILEIO, "FileIO: Attempted to write 0x%x bytes from 0x%08x to read-only file %s", Size, Address, m_Name.c_str());
+			WARN_LOG(WII_IPC_FILEIO, "FileIO: Attempted to write 0x%x bytes from 0x%08x to a read-only file %s", Size, Address, m_Name.c_str());
 		}
 		else
 		{

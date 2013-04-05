@@ -269,7 +269,7 @@ void AutoDisassembly(u16 start_addr, u16 end_addr)
 			break;
 		}
 
-		//NOTICE_LOG(DSPLLE, "added %04x %i %s", addr, line_counter, buf.c_str());
+		//NOTICE_LOG(DSPLLE, "Added %04x %i %s", addr, line_counter, buf.c_str());
 		lines.push_back(buf);
 		line_counter++;
 	}

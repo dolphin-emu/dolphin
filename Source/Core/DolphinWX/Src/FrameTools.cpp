@@ -509,14 +509,7 @@ void CFrame::RecreateToolbar()
 
 void CFrame::InitBitmaps()
 {
-	std::string theme(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/");
-	std::string dir(File::GetUserPath(D_THEMES_IDX) + theme);
-
-#if !defined(_WIN32)
-	// If theme does not exist in user's dir load from shared directory
-	if (!File::Exists(dir))
-		dir = SHARED_USER_DIR THEMES_DIR "/" + theme;
-#endif
+	auto const dir = StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
 
 	m_Bitmaps[Toolbar_FileOpen].LoadFile(dir + "open.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Refresh].LoadFile(dir + "refresh.png", wxBITMAP_TYPE_PNG);
@@ -608,7 +601,7 @@ void CFrame::DoOpen(bool Boot)
 
 	if (currentDir != currentDir2)
 	{
-		PanicAlertT("Current dir changed from %s to %s after wxFileSelector!",
+		PanicAlertT("Current directory changed from %s to %s after wxFileSelector!",
 				currentDir.c_str(), currentDir2.c_str());
 		File::SetCurrentDir(currentDir);
 	}
@@ -805,9 +798,6 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	m_XRRConfig->ToggleDisplayMode(bFullscreen);
 #elif defined __APPLE__
-	NSView* view = (NSView *)m_RenderFrame->GetHandle();
-	[[view window] toggleFullScreen:[view window]];
-	
 	if(bFullscreen)
 		CGDisplayHideCursor(CGMainDisplayID());
 	else
@@ -873,6 +863,13 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderParent = new CPanel(m_RenderFrame, wxID_ANY);
 		m_RenderFrame->Show();
 	}
+
+#if defined(__APPLE__)
+	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSWindow *window = [view window];
+
+	[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+#endif
 
 	wxBeginBusyCursor();
 
@@ -1029,10 +1026,22 @@ void CFrame::DoStop()
 			m_RenderParent->SetCursor(wxNullCursor);
 		DoFullscreen(false);
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+		{
 			m_RenderFrame->Destroy();
+		}
 		else
+		{
+#if defined(__APPLE__)
+			// Disable the full screen button when not in a game.
+			NSView *view = (NSView *) m_RenderFrame->GetHandle();
+			NSWindow *window = [view window];
+
+			[window setCollectionBehavior:NSWindowCollectionBehaviorDefault];
+#endif
+
 			// Make sure the window is not longer set to stay on top
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
+		}
 		m_RenderParent = NULL;
 
 		// Clean framerate indications from the status bar.

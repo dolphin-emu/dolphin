@@ -671,7 +671,7 @@ void ExecuteCommand(UDICR& _DICR)
 					// Here is the actual Disk Reading
 					if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
 					{
-						PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+						PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
 					}
 				}
 				break;
@@ -681,7 +681,7 @@ void ExecuteCommand(UDICR& _DICR)
 				_dbg_assert_(DVDINTERFACE, m_DICMDBUF[2].Hex == m_DILENGTH.Length);
 				_dbg_assert_(DVDINTERFACE, m_DILENGTH.Length == 0x20);
 				if (!DVDRead(m_DICMDBUF[1].Hex, m_DIMAR.Address, m_DILENGTH.Length))
-					PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+					PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
 				WARN_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(m_DIMAR.Address));
 				break;
 
@@ -712,7 +712,7 @@ void ExecuteCommand(UDICR& _DICR)
 			/*
 			if (iDVDOffset == 0x84800000)
 			{
-				ERROR_LOG(DVDINTERFACE, "firmware upload");
+				ERROR_LOG(DVDINTERFACE, "Firmware upload");
 			}
 			else*/
 			if ((offset < 0) || ((offset + len) > 0x40) || len > 0x40)

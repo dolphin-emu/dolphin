@@ -153,7 +153,7 @@ struct VideoConfig
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
-
+		bool bSupportsSeparateAlphaFunction;
 		bool bSupportsGLSLUBO; // needed by pixelShaderGen, so must stay in videoCommon
 	} backend_info;
 

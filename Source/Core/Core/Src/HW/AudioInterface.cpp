@@ -191,7 +191,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 		break;
 
 	default:
-        ERROR_LOG(AUDIO_INTERFACE, "unknown read 0x%08x", _Address);
+        ERROR_LOG(AUDIO_INTERFACE, "Unknown read 0x%08x", _Address);
 		_dbg_assert_msg_(AUDIO_INTERFACE, 0, "AudioInterface - Read from 0x%08x", _Address);
 		_rReturnValue = 0;
 		return;
@@ -212,13 +212,13 @@ void Write32(const u32 _Value, const u32 _Address)
 
             // Set frequency of streaming audio
             if (tmpAICtrl.AISFR != m_Control.AISFR)
-            {	
+            {
                 DEBUG_LOG(AUDIO_INTERFACE, "Change AISFR to %s", tmpAICtrl.AISFR ? "48khz":"32khz");
                 m_Control.AISFR = tmpAICtrl.AISFR;
             }
 			// Set frequency of DMA
             if (tmpAICtrl.AIDFR != m_Control.AIDFR)
-            {	
+            {
                 DEBUG_LOG(AUDIO_INTERFACE, "Change AIDFR to %s", tmpAICtrl.AIDFR ? "32khz":"48khz");
                 m_Control.AIDFR = tmpAICtrl.AIDFR;
             }
@@ -281,7 +281,7 @@ void Write32(const u32 _Value, const u32 _Address)
 		break;
 
 	default:
-		ERROR_LOG(AUDIO_INTERFACE, "unknown write %08x @ %08x", _Value, _Address);
+		ERROR_LOG(AUDIO_INTERFACE, "Unknown write %08x @ %08x", _Value, _Address);
 		_dbg_assert_msg_(AUDIO_INTERFACE,0,"AIS - Write %08x to %08x", _Value, _Address);
 		break;
 	}
@@ -294,7 +294,7 @@ static void UpdateInterrupts()
 }
 
 static void GenerateAudioInterrupt()
-{		
+{
 	m_Control.AIINT = 1;
 	UpdateInterrupts();
 }
@@ -315,7 +315,7 @@ void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DACSampl
 unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples, unsigned int _sampleRate)
 {
 	if (m_Control.PSTAT && !CCPU::IsStepping())
-	{		
+	{
 		static int pos = 0;
 		static short pcm[NGCADPCM::SAMPLES_PER_BLOCK*2];
 		const int lvolume = m_Volume.left;
@@ -443,7 +443,7 @@ static void IncreaseSampleCount(const u32 _iAmount)
 	{
 		m_SampleCounter += _iAmount;
 		if (m_Control.AIINTVLD && (m_SampleCounter >= m_InterruptTiming))
-		{			
+		{
 			GenerateAudioInterrupt();
 		}
 	}
@@ -460,7 +460,7 @@ void Update(u64 userdata, int cyclesLate)
     {
         const u64 Diff = CoreTiming::GetTicks() - g_LastCPUTime;
         if (Diff > g_CPUCyclesPerSample)
-        {            
+        {
             const u32 Samples = static_cast<u32>(Diff / g_CPUCyclesPerSample);
             g_LastCPUTime += Samples * g_CPUCyclesPerSample;
 			IncreaseSampleCount(Samples);

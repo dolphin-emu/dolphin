@@ -49,7 +49,6 @@ VideoConfig::VideoConfig()
 
 void VideoConfig::Load(const char *ini_file)
 {
-	std::string temp;
 	IniFile iniFile;
 	iniFile.Load(ini_file);
 

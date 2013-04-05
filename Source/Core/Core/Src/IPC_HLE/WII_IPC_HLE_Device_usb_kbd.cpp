@@ -227,7 +227,7 @@ u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {
 	0x55, // Multiply
 	0x57, // Add
 	0x00, // Separator
-	0x56, // Substract
+	0x56, // Subtract
 	0x63, // Decimal
 	0x54, // Divide
 	// F1 -> F12

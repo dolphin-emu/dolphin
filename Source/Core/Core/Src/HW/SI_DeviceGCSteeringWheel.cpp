@@ -99,7 +99,7 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* _pBuffer, int _iLength)
 	// DEFAULT
 	default:
 		{
-			ERROR_LOG(SERIALINTERFACE, "unknown SI command     (0x%x)", command);
+			ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
 		}			
 		break;
 	}
@@ -297,7 +297,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 _Cmd, u8 _Poll)
 
 	default:
 		{
-			ERROR_LOG(SERIALINTERFACE, "unknown direct command     (0x%x)", _Cmd);
+			ERROR_LOG(SERIALINTERFACE, "Unknown direct command     (0x%x)", _Cmd);
 		}			
 		break;
 	}

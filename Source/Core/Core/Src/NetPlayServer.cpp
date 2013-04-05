@@ -52,7 +52,7 @@ void NetPlayServer::ThreadFunc()
 		// update pings every so many seconds
 		if ((m_ping_timer.GetTimeElapsed() > (10 * 1000)) || m_update_pings)
 		{
-			//PanicAlertT("sending pings");
+			//PanicAlertT("Sending pings");
 
 			m_ping_key = Common::Timer::GetTimeMs();
 
@@ -487,7 +487,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 
 			if (m_ping_key == ping_key)
 			{
-				//PanicAlertT("good pong");
+				//PanicAlertT("Good pong");
 				player.ping = ping;
 			}
 			m_dialog->Update();

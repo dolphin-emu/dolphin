@@ -300,7 +300,7 @@ bool Wiimote::Connect()
 	TCHAR name[128] = {};
 	HidD_GetProductString(dev_handle, name, 128);
 
-	//ERROR_LOG(WIIMOTE, "product string: %s", TStrToUTF8(name).c_str());
+	//ERROR_LOG(WIIMOTE, "Product string: %s", TStrToUTF8(name).c_str());
 
 	if (!IsValidBluetoothName(TStrToUTF8(name)))
 	{
@@ -333,7 +333,7 @@ bool Wiimote::Connect()
 /*
 	if (!SetThreadPriority(m_wiimote_thread.native_handle(), THREAD_PRIORITY_TIME_CRITICAL))
 	{
-		ERROR_LOG(WIIMOTE, "Failed to set wiimote thread priority");
+		ERROR_LOG(WIIMOTE, "Failed to set Wiimote thread priority");
 	}
 */
 #ifdef SHARE_WRITE_WIIMOTES
@@ -386,7 +386,7 @@ int Wiimote::IORead(u8* buf)
 			{
 				// Timeout - cancel and continue
 				if (*buf)
-					WARN_LOG(WIIMOTE, "Packet ignored.  This may indicate a problem (timeout is %i ms).",
+					WARN_LOG(WIIMOTE, "Packet ignored. This may indicate a problem (timeout is %i ms).",
 							WIIMOTE_DEFAULT_TIMEOUT);
 
 				CancelIo(dev_handle);
@@ -394,14 +394,14 @@ int Wiimote::IORead(u8* buf)
 			}
 			else if (WAIT_FAILED == r)
 			{
-				WARN_LOG(WIIMOTE, "A wait error occured on reading from wiimote %i.", index + 1);
+				WARN_LOG(WIIMOTE, "A wait error occurred on reading from Wiimote %i.", index + 1);
 				bytes = 0;
 			}
 			else if (WAIT_OBJECT_0 == r)
 			{
 				if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, TRUE))
 				{
-					WARN_LOG(WIIMOTE, "GetOverlappedResult failed on wiimote %i.", index + 1);
+					WARN_LOG(WIIMOTE, "GetOverlappedResult failed on Wiimote %i.", index + 1);
 					bytes = 0;
 				}
 			}
@@ -468,7 +468,7 @@ int Wiimote::IOWrite(const u8* buf, int len)
 			if (err == 121)
 			{
 				// Semaphore timeout
-				NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to wiimote");
+				NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to the Wiimote");
 			}
 			else
 			{
@@ -553,8 +553,8 @@ void ProcessWiimotes(bool new_scan, T& callback)
 			HBLUETOOTH_DEVICE_FIND hFindDevice = Bth_BluetoothFindFirstDevice(&srch, &btdi);
 			while (hFindDevice)
 			{
-				// btdi.szName is sometimes missings it's content - it's a bt feature..
-				DEBUG_LOG(WIIMOTE, "authed %i connected %i remembered %i ",
+				// btdi.szName is sometimes missing it's content - it's a bt feature..
+				DEBUG_LOG(WIIMOTE, "Authenticated %i connected %i remembered %i ",
 						btdi.fAuthenticated, btdi.fConnected, btdi.fRemembered);
 
 				if (IsValidBluetoothName(UTF16ToUTF8(btdi.szName)))
@@ -597,7 +597,7 @@ bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO& radio_info, BLUETO
 	{
 		auto const& wm_addr = btdi.Address.rgBytes;
 
-		NOTICE_LOG(WIIMOTE, "Found wiimote (%02x:%02x:%02x:%02x:%02x:%02x). Enabling HID service.",
+		NOTICE_LOG(WIIMOTE, "Found Wiimote (%02x:%02x:%02x:%02x:%02x:%02x). Enabling HID service.",
 			wm_addr[0], wm_addr[1], wm_addr[2], wm_addr[3], wm_addr[4], wm_addr[5]);
 
 #if defined(AUTHENTICATE_WIIMOTES)
@@ -647,7 +647,7 @@ bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 		{
 			// Make Windows forget about device so it will re-find it if visible.
 			// This is also required to detect a disconnect for some reason..
-			NOTICE_LOG(WIIMOTE, "Removing remembered wiimote.");
+			NOTICE_LOG(WIIMOTE, "Removing remembered Wiimote.");
 			Bth_BluetoothRemoveDevice(&btdi.Address);
 			return true;
 		}

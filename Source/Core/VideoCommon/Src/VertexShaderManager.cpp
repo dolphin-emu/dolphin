@@ -455,7 +455,7 @@ void VertexShaderManager::SetConstants()
 			break;
 
 		default:
-			ERROR_LOG(VIDEO, "unknown projection type: %d", xfregs.projection.type);
+			ERROR_LOG(VIDEO, "Unknown projection type: %d", xfregs.projection.type);
 		}
 
 		PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);

@@ -698,13 +698,13 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		{
 			if (!strcmp(fst.at(index[0])->m_FullPath, _rFullPath))
 			{
-				DEBUG_LOG(DISCIO, "Found the Dir at %u", index[0]);
+				DEBUG_LOG(DISCIO, "Found the directory at %u", index[0]);
 				index[1] = (u32)fst.at(index[0])->m_FileSize;
 				break;
 			}
 		}
 
-		DEBUG_LOG(DISCIO,"Dir found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
+		DEBUG_LOG(DISCIO,"Directory found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
 	}
 
 	wxString dialogTitle = index[0] ? _("Extracting Directory") : _("Extracting All Files");
@@ -744,7 +744,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 				if (!File::IsDirectory(exportName))
 					ERROR_LOG(DISCIO, "%s already exists and is not a directory", exportName);
 
-				DEBUG_LOG(DISCIO, "folder %s already exists", exportName);
+				DEBUG_LOG(DISCIO, "Folder %s already exists", exportName);
 			}
 		}
 		else

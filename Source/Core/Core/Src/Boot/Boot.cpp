@@ -176,7 +176,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 
 	std::string BootRegion = _rBootROMFilename.substr(_rBootROMFilename.find_last_of(DIR_SEP) - 3, 3);
 	if (BootRegion != ipl_region)
-		PanicAlert("%s ipl found in %s directory, the disc may not be recognized", ipl_region.c_str(), BootRegion.c_str());
+		PanicAlert("%s IPL found in %s directory. The disc may not be recognized", ipl_region.c_str(), BootRegion.c_str());
 
 	// Run the descrambler over the encrypted section containing BS1/BS2
 	CEXIIPL::Descrambler((u8*)data.data()+0x100, 0x1AFE00);

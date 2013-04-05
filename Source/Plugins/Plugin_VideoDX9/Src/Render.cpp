@@ -55,7 +55,7 @@
 #include "BPFunctions.h"
 #include "FPSCounter.h"
 #include "ConfigManager.h"
-
+#include "PerfQuery.h"
 #include <strsafe.h>
 
 
@@ -68,7 +68,7 @@ static u32 s_blendMode;
 static u32 s_LastAA;
 static bool IS_AMD;
 static float m_fMaxPointSize;
-
+static bool s_vsync;
 static char *st;
 
 static LPDIRECT3DSURFACE9 ScreenShootMEMSurface = NULL;
@@ -88,6 +88,7 @@ void SetupDeviceObjects()
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
 	g_vertex_manager->CreateDeviceObjects();
+	((PerfQuery*)g_perf_query)->CreateDeviceObjects();
 	// Texture cache will recreate themselves over time.
 }
 
@@ -100,6 +101,7 @@ void TeardownDeviceObjects()
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 	delete g_framebuffer_manager;
+	((PerfQuery*)g_perf_query)->DestroyDeviceObjects();
 	D3D::font.Shutdown();
 	TextureCache::Invalidate();
 	VertexLoaderManager::Shutdown();
@@ -190,7 +192,8 @@ Renderer::Renderer()
 	D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );
 	D3D::SetRenderState(D3DRS_POINTSCALEENABLE,false);
 	m_fMaxPointSize = D3D::GetCaps().MaxPointSize;
-
+	// Handle VSync on/off 
+	s_vsync = g_ActiveConfig.IsVSync();
 }
 
 Renderer::~Renderer()
@@ -452,7 +455,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	}
 	else if(type == PEEK_COLOR)
 	{
-		// TODO: Can't we directly StretchRect to System buf?
+		// We can't directly StretchRect to System buf because is not suported by all implementations
+		// this is the only safe path that works in most cases
 		hr = D3D::dev->StretchRect(pEFBSurf, &RectToLock, pBufferRT, NULL, D3DTEXF_NONE);
 		D3D::dev->GetRenderTargetData(pBufferRT, pSystemBuf);
 
@@ -663,16 +667,16 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 	//bDstAlphaPass is taked in account because the ability of disabling alpha composition is
 	//really usefull for debuging shader and blending errors
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
-	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+	bool use_DstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
+	bool use_DualSource = use_DstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 	const D3DBLEND d3dSrcFactors[8] =
  	{
  		D3DBLEND_ZERO,
  		D3DBLEND_ONE,
  		D3DBLEND_DESTCOLOR,
  		D3DBLEND_INVDESTCOLOR,
-		(useDualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
-		(useDualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
+		(use_DualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
+		(use_DualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
  		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
  		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
  	};
@@ -682,8 +686,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		D3DBLEND_ONE,
  		D3DBLEND_SRCCOLOR,
  		D3DBLEND_INVSRCCOLOR,
-		(useDualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
-		(useDualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
+		(use_DualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
+		(use_DualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
  		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
  		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
  	};
@@ -696,7 +700,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	bool blend_enable = bpmem.blendmode.subtract || bpmem.blendmode.blendenable;
 	D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, blend_enable);
-	D3D::SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, blend_enable);
+	D3D::SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, blend_enable && g_ActiveConfig.backend_info.bSupportsSeparateAlphaFunction);
 	if (blend_enable)
  	{
 		D3DBLENDOP op = D3DBLENDOP_ADD;
@@ -711,24 +715,27 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		D3D::SetRenderState(D3DRS_BLENDOP, op);
 		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[srcidx]);
 		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[dstidx]);
-		if (useDualSource)
-		{			
-			op = D3DBLENDOP_ADD;
-			srcidx = GX_BL_ONE;
-			dstidx = GX_BL_ZERO;
-		}
-		else
+		if (g_ActiveConfig.backend_info.bSupportsSeparateAlphaFunction)
 		{
-			// we can't use D3DBLEND_DESTCOLOR or D3DBLEND_INVDESTCOLOR for source in alpha channel so use their alpha equivalent instead
-			if (srcidx == GX_BL_DSTCLR) srcidx = GX_BL_DSTALPHA;
-			if (srcidx == GX_BL_INVDSTCLR) srcidx = GX_BL_INVDSTALPHA;
-			// we can't use D3DBLEND_SRCCOLOR or D3DBLEND_INVSRCCOLOR for destination in alpha channel so use their alpha equivalent instead
-			if (dstidx == GX_BL_SRCCLR) dstidx = GX_BL_SRCALPHA;
-			if (dstidx == GX_BL_INVSRCCLR) dstidx = GX_BL_INVSRCALPHA;
-		}
-		D3D::SetRenderState(D3DRS_BLENDOPALPHA, op);
-		D3D::SetRenderState(D3DRS_SRCBLENDALPHA, d3dSrcFactors[srcidx]);
-		D3D::SetRenderState(D3DRS_DESTBLENDALPHA, d3dDestFactors[dstidx]);
+			if (use_DualSource)
+			{			
+				op = D3DBLENDOP_ADD;
+				srcidx = GX_BL_ONE;
+				dstidx = GX_BL_ZERO;
+			}
+			else
+			{
+				// we can't use D3DBLEND_DESTCOLOR or D3DBLEND_INVDESTCOLOR for source in alpha channel so use their alpha equivalent instead
+				if (srcidx == GX_BL_DSTCLR) srcidx = GX_BL_DSTALPHA;
+				if (srcidx == GX_BL_INVDSTCLR) srcidx = GX_BL_INVDSTALPHA;
+				// we can't use D3DBLEND_SRCCOLOR or D3DBLEND_INVSRCCOLOR for destination in alpha channel so use their alpha equivalent instead
+				if (dstidx == GX_BL_SRCCLR) dstidx = GX_BL_SRCALPHA;
+				if (dstidx == GX_BL_INVSRCCLR) dstidx = GX_BL_INVSRCALPHA;
+			}
+			D3D::SetRenderState(D3DRS_BLENDOPALPHA, op);
+			D3D::SetRenderState(D3DRS_SRCBLENDALPHA, d3dSrcFactors[srcidx]);
+			D3D::SetRenderState(D3DRS_DESTBLENDALPHA, d3dDestFactors[dstidx]);
+		}		
 	}	
 }
 
@@ -1034,7 +1041,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
-
+	// Flip/present backbuffer to frontbuffer here
+	D3D::Present();
 	// Enable configuration changes
 	UpdateActiveConfig();
 	TextureCache::OnConfigChanged(g_ActiveConfig);
@@ -1093,8 +1101,15 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// New frame
 	stats.ResetFrame();
 
-	// Flip/present backbuffer to frontbuffer here
-	D3D::Present();
+	// Handle vsync changes during execution
+	if(s_vsync != g_ActiveConfig.IsVSync())
+	{
+		s_vsync = g_ActiveConfig.IsVSync();
+		TeardownDeviceObjects();
+		D3D::Reset();
+		// device objects lost, so recreate all of them
+		SetupDeviceObjects();
+	}
 	D3D::BeginFrame();
 	RestoreAPIState();
 
@@ -1110,14 +1125,16 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	if (bUseDstAlpha)
 	{
-		// TODO: WTF is this crap? We're enabling color writing regardless of the actual GPU state here...
+		// If we get here we are sure that we are using dst alpha pass. (bpmem.dstalpha.enable)
+		// Alpha write is enabled. (because bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+		// We must disable blend because we want to write alpha value directly to the alpha channel without modifications.
 		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
 		if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
 		{
-			//This is needed to draw to the correct pixels in multi-pass algorithms
-			//this avoid z-figthing and grants that you write to the same pixels
-			//affected by the last pass
+			// This is needed to draw to the correct pixels in multi-pass algorithms
+			// to avoid z-figthing and grants that you write to the same pixels
+			// affected by the last pass
 			D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);
 			D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_EQUAL);
 		}

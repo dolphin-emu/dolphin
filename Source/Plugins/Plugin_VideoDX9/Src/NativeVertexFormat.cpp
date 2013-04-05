@@ -187,7 +187,7 @@ void D3DVertexFormat::SetupVertexPointers()
 	if (d3d_decl)
 		DX9::D3D::SetVertexDeclaration(d3d_decl);
 	else
-		ERROR_LOG(VIDEO, "invalid d3d decl");
+		ERROR_LOG(VIDEO, "Invalid D3D decl");
 }
 
 } // namespace DX9

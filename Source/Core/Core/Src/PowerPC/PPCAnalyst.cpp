@@ -290,7 +290,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 			int capacity_of_merged_addresses, int& size_of_merged_addresses)
 {
 	if (capacity_of_merged_addresses < FUNCTION_FOLLOWING_THRESHOLD) {
-		PanicAlert("capacity of merged_addresses is too small!");
+		PanicAlert("Capacity of merged_addresses is too small!");
 	}
 	std::fill_n(merged_addresses, capacity_of_merged_addresses, 0);
 	merged_addresses[0] = address;
@@ -697,7 +697,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 	{
 		if (iter->second.address == 4)
 		{
-			WARN_LOG(OSHLE, "weird function");
+			WARN_LOG(OSHLE, "Weird function");
 			continue;
 		}
 		AnalyzeFunction2(&(iter->second));

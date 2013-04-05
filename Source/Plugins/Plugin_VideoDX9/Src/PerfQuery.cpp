@@ -3,25 +3,32 @@
 #include "D3DBase.h"
 #include "PerfQuery.h"
 
-namespace DX11 {
+namespace DX9 {
 
 PerfQuery::PerfQuery()
 	: m_query_read_pos()
 	, m_query_count()
 {
-	for (int i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
-	{
-		D3D11_QUERY_DESC qdesc = CD3D11_QUERY_DESC(D3D11_QUERY_OCCLUSION, 0);
-		D3D::device->CreateQuery(&qdesc, &m_query_buffer[i].query);
-	}
-	ResetQuery();
+	
 }
 
 PerfQuery::~PerfQuery()
 {
+	
+}
+
+void PerfQuery::CreateDeviceObjects()
+{
 	for (int i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
 	{
-		// TODO: EndQuery?
+		D3D::dev->CreateQuery(D3DQUERYTYPE_OCCLUSION, &m_query_buffer[i].query);
+	}
+	ResetQuery();
+}
+void PerfQuery::DestroyDeviceObjects()
+{
+	for (int i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
+	{
 		m_query_buffer[i].query->Release();
 	}
 }
@@ -43,10 +50,8 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 	if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
 	{
 		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count) % ARRAYSIZE(m_query_buffer)];
-
-		D3D::context->Begin(entry.query);
+		entry.query->Issue(D3DISSUE_BEGIN);
 		entry.query_type = type;
-
 		++m_query_count;
 	}
 }
@@ -57,7 +62,7 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
 	if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
 	{
 		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count + ARRAYSIZE(m_query_buffer)-1) % ARRAYSIZE(m_query_buffer)];
-		D3D::context->End(entry.query);
+		entry.query->Issue(D3DISSUE_END);
 	}
 }
 
@@ -95,16 +100,16 @@ void PerfQuery::FlushOne()
 {
 	auto& entry = m_query_buffer[m_query_read_pos];
 
-	UINT64 result = 0;
+	DWORD result = 0;
 	HRESULT hr = S_FALSE;
-	while (hr != S_OK)
+	while (hr != S_OK && hr != D3DERR_DEVICELOST)
 	{
 		// TODO: Might cause us to be stuck in an infinite loop!
-		hr = D3D::context->GetData(entry.query, &result, sizeof(result), 0);
+		hr = entry.query->GetData(&result, sizeof(result), D3DGETDATA_FLUSH);
 	}
 
 	// NOTE: Reported pixel metrics should be referenced to native resolution
-	m_results[entry.query_type] += (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
+	m_results[entry.query_type] += (u32)((u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight());
 
 	m_query_read_pos = (m_query_read_pos + 1) % ARRAYSIZE(m_query_buffer);
 	--m_query_count;
@@ -123,13 +128,13 @@ void PerfQuery::WeakFlush()
 	{
 		auto& entry = m_query_buffer[m_query_read_pos];
 
-		UINT64 result = 0;
-		HRESULT hr = D3D::context->GetData(entry.query, &result, sizeof(result), D3D11_ASYNC_GETDATA_DONOTFLUSH);
+		DWORD result = 0;
+		HRESULT hr = entry.query->GetData(&result, sizeof(result), 0);
 
 		if (hr == S_OK)
 		{
 			// NOTE: Reported pixel metrics should be referenced to native resolution
-			m_results[entry.query_type] += (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
+			m_results[entry.query_type] += (u32)((u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight());
 
 			m_query_read_pos = (m_query_read_pos + 1) % ARRAYSIZE(m_query_buffer);
 			--m_query_count;
