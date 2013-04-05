@@ -33,8 +33,7 @@
 
 #include "../../InputCommon/Src/InputConfig.h"
 
-// Pointer to data, and size of data
-typedef std::pair<u8*,u8> Report;
+typedef std::vector<u8> Report;
 
 namespace WiimoteReal
 {
@@ -50,7 +49,7 @@ public:
 	void InterruptChannel(const u16 channel, const void* const data, const u32 size);
 	void Update();
 
-	Report ProcessReadQueue();
+	const Report& ProcessReadQueue();
 
 	bool Read();
 	bool Write();
@@ -99,7 +98,8 @@ public:
 #endif
 
 protected:
-	Report	m_last_data_report;
+	Report m_last_data_report;
+	Report m_current_report;
 	u16	m_channel;
 
 private:
