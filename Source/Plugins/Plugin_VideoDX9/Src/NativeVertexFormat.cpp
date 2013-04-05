@@ -26,6 +26,7 @@
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
 #include "VertexManager.h"
+#include <../../Data/User/OpenCL/TextureDecoder.cl>
 
 namespace DX9
 {
@@ -104,22 +105,31 @@ D3DDECLTYPE VarToD3D(VarType t, int size)
 	return retval;
 }
 
+D3DDECLTYPE VarToD3D(PortableAttributeDeclaration attr)
+{
+	// TODO: implement a better way
+	return VarToD3D(attr.type, attr.count);
+}
+
 void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
 	vertex_stride = _vtx_decl.stride;
 
 	D3DVERTEXELEMENT9 elems[32];
 	memset(elems, 0, sizeof(elems));
+	int elem_idx = 0;
 
 	// There's only one stream and it's 0, so the above memset takes care of that - no need to set Stream.
 	// Same for method.
 	
 	// So, here we go. First position:
-	int elem_idx = 0;
-	elems[elem_idx].Offset = 0;  // Positions are always first, at position 0. Always float3.
-	elems[elem_idx].Type = VarToD3D(_vtx_decl.position_gl_type, _vtx_decl.position_count);
-	elems[elem_idx].Usage = D3DDECLUSAGE_POSITION;
-	++elem_idx;
+	if(_vtx_decl.position.offset >= 0)
+	{
+		elems[elem_idx].Offset = _vtx_decl.position.offset;
+		elems[elem_idx].Type = VarToD3D(_vtx_decl.position);
+		elems[elem_idx].Usage = D3DDECLUSAGE_POSITION;
+		++elem_idx;
+	}
 
 	for (int i = 0; i < 3; i++)
 	{

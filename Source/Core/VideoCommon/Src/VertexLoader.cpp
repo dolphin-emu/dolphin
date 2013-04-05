@@ -269,6 +269,7 @@ void VertexLoader::CompileVertexTranslator()
 	// Position in pc vertex format.
 	int nat_offset = 0;
 	PortableVertexDeclaration vtx_decl;
+	AttributeLoaderDeclaration loader;
 	memset(&vtx_decl, 0, sizeof(vtx_decl));
 	for (int i = 0; i < 8; i++) {
 		vtx_decl.texcoord_offset[i] = -1;
@@ -293,18 +294,19 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
 	// Write vertex position loader
+	loader = VertexLoader_Position::GetLoader(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
 	if(g_ActiveConfig.bUseBBox) {
 		WriteCall(UpdateBoundingBoxPrepare);
-		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac));
+		WriteCall(loader.func);
 		WriteCall(UpdateBoundingBox);
 	} else {
-		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac));
+		WriteCall(loader.func);
 	}
-	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
-	nat_offset += VertexLoader_Position::GetGLSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
-	vtx_decl.position_gl_type = (VarType)VertexLoader_Position::GetGLType(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
-	vtx_decl.position_count = VertexLoader_Position::GetCount(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements, m_VtxAttr.PosFrac);
-
+	m_VertexSize += loader.native_size;
+	vtx_decl.position = loader.attr;
+	vtx_decl.position.offset = nat_offset;
+	nat_offset += loader.gl_size;
+	
 	// Normals
 	vtx_decl.num_normals = 0;
 	if (m_VtxDesc.Normal != NOT_PRESENT)

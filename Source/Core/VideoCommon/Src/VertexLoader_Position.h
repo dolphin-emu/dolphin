@@ -25,21 +25,9 @@ public:
 
 	// Init
 	static void Init(void);
-
-	// GetSize
-	static unsigned int GetSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
-
-	// GetFunction
-	static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
-
-	// GetGLType
-	static int GetGLType(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
-
-	// GetGLSize
-	static int GetGLSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
 	
-	// GetCount
-	static int GetCount(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _frac);
+	// GetLoader
+	static AttributeLoaderDeclaration GetLoader(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int has_frac);
 };
 
 #endif

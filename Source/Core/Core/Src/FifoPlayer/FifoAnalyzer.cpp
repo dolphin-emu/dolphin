@@ -179,7 +179,7 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	}
 
 	// Position
-	sizes[9] = VertexLoader_Position::GetSize(vtxDesc.Position, vtxAttr.g0.PosFormat, vtxAttr.g0.PosElements, vtxAttr.g0.PosFrac);
+	sizes[9] = VertexLoader_Position::GetLoader(vtxDesc.Position, vtxAttr.g0.PosFormat, vtxAttr.g0.PosElements, vtxAttr.g0.PosFrac).native_size;
 
 	// Normals
 	if (vtxDesc.Normal != NOT_PRESENT)

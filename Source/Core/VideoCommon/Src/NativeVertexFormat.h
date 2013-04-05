@@ -71,12 +71,19 @@ enum VarType
 	VAR_FLOAT,
 };
 
+struct PortableAttributeDeclaration
+{
+	int count;
+	int offset;
+	VarType type;
+	bool normalized;
+};
+
 struct PortableVertexDeclaration
 {
 	int stride;
 
-	VarType position_gl_type;
-	int position_count;
+	PortableAttributeDeclaration position;
 	
 	int num_normals;
 	int normal_offset[3];
@@ -92,6 +99,14 @@ struct PortableVertexDeclaration
 	int texcoord_size[8];
 	
 	int posmtx_offset;
+};
+
+struct AttributeLoaderDeclaration
+{
+	TPipelineFunction func;
+	PortableAttributeDeclaration attr;
+	int native_size;
+	int gl_size;
 };
 
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp

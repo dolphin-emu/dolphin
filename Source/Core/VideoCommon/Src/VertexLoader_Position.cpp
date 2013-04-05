@@ -104,26 +104,24 @@ void LOADERDECL Pos_ReadIndex()
 	}
 }
 
-static TPipelineFunction tableReadPosition[3][5][2][32];
-static int tableReadPositionVertexSize[3][5][2][32];
-static VarType tableReadPositionGLType[3][5][2][32];
-static int tableReadPositionGLSize[3][5][2][32];
-static int tableReadPositionCount[3][5][2][32];
+static AttributeLoaderDeclaration table[3][5][2][32];
 
 template <typename F, int formatnr, int formatsize, int N, int frac, int fracnr, VarType gltype, typename T, bool has_frac> void set_table()
 {
+	table[0][formatnr][N-2][fracnr].func = Pos_ReadDirect<F, T, N, frac, has_frac>;
+	table[1][formatnr][N-2][fracnr].func = Pos_ReadIndex<F, u8, T, N, frac, has_frac>;
+	table[2][formatnr][N-2][fracnr].func = Pos_ReadIndex<F, u16, T, N, frac, has_frac>;
+	
 	for(u32 i=0; i<3; i++)
 	{
-		tableReadPositionVertexSize[i][formatnr][N-2][fracnr] = i;
-		tableReadPositionGLType[i][formatnr][N-2][fracnr] = gltype;
-		tableReadPositionGLSize[i][formatnr][N-2][fracnr] = sizeof(F)*(3+has_frac);
-		tableReadPositionCount[i][formatnr][N-2][fracnr] = 3+has_frac;
+		table[i][formatnr][N-2][fracnr].attr.count = 3+has_frac;
+		table[i][formatnr][N-2][fracnr].attr.type = gltype;
+		table[i][formatnr][N-2][fracnr].attr.normalized = false;
+		table[i][formatnr][N-2][fracnr].native_size = i;
+		table[i][formatnr][N-2][fracnr].gl_size = sizeof(F)*(3+has_frac);
 	}
-	tableReadPosition[0][formatnr][N-2][fracnr] = Pos_ReadDirect<F, T, N, frac, has_frac>;
-	tableReadPosition[1][formatnr][N-2][fracnr] = Pos_ReadIndex<F, u8, T, N, frac, has_frac>;
-	tableReadPosition[2][formatnr][N-2][fracnr] = Pos_ReadIndex<F, u16, T, N, frac, has_frac>;
 	
-	tableReadPositionVertexSize[0][formatnr][N-2][fracnr] = formatsize*N;
+	table[0][formatnr][N-2][fracnr].native_size = formatsize*N;
 }
 
 // dx9 doesn't support signed bytes, so we have to convert them to shorts
@@ -154,29 +152,13 @@ template <int frac> void set_table_frac_4() {set_table_frac_2<frac>(); set_table
 template <int frac> void set_table_frac_8() {set_table_frac_4<frac>(); set_table_frac_4<frac+8>();}
 template <int frac> void set_table_frac_16() {set_table_frac_8<frac>(); set_table_frac_8<frac+16>();}
 
-void VertexLoader_Position::Init(void) {
-	memset(tableReadPosition, 0, sizeof(tableReadPosition));
-	memset(tableReadPositionVertexSize, 0, sizeof(tableReadPositionVertexSize));
-
+void VertexLoader_Position::Init(void)
+{
 	set_table_frac_16<0>();
 }
-
-unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int has_frac) {
-	return tableReadPositionVertexSize[_type-1][_format][_elements][has_frac];
-}
-
-TPipelineFunction VertexLoader_Position::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int has_frac) {
-	return tableReadPosition[_type-1][_format][_elements][has_frac];
-}
-
-int VertexLoader_Position::GetGLType(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int has_frac) {
-	return tableReadPositionGLType[_type-1][_format][_elements][has_frac];
-}
-
-int VertexLoader_Position::GetGLSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int has_frac) {
-	return tableReadPositionGLSize[_type-1][_format][_elements][has_frac];
-}
-
-int VertexLoader_Position::GetCount(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int has_frac) {
-	return tableReadPositionCount[_type-1][_format][_elements][has_frac];
+	
+// GetLoader
+AttributeLoaderDeclaration VertexLoader_Position::GetLoader(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int has_frac)
+{
+	return table[_type-1][_format][_elements][has_frac];
 }

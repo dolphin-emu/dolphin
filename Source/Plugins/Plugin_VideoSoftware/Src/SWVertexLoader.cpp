@@ -159,8 +159,8 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
     }
 
 	// Write vertex position loader
-	m_positionLoader = VertexLoader_Position::GetFunction(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements, m_CurrentVat->g0.PosFrac);
-	m_VertexSize += VertexLoader_Position::GetSize(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements, m_CurrentVat->g0.PosFrac);
+	m_positionLoader = VertexLoader_Position::GetLoader(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements, m_CurrentVat->g0.PosFrac).func;
+	m_VertexSize += VertexLoader_Position::GetLoader(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements, m_CurrentVat->g0.PosFrac).native_size;
 	AddAttributeLoader(LoadPosition);
 
 	// Normals

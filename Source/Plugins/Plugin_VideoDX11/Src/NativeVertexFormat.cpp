@@ -77,16 +77,25 @@ DXGI_FORMAT VarToD3D(VarType t, int size)
 	return retval;
 }
 
+DXGI_FORMAT VarToD3D(PortableAttributeDeclaration attr)
+{
+	// TODO: implement a better way
+	return VarToD3D(attr.type, attr.count);
+}
+
 void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
 	vertex_stride = _vtx_decl.stride;
 	memset(m_elems, 0, sizeof(m_elems));
 
-	m_elems[m_num_elems].SemanticName = "POSITION";
-	m_elems[m_num_elems].AlignedByteOffset = 0;
-	m_elems[m_num_elems].Format = VarToD3D(_vtx_decl.position_gl_type, _vtx_decl.position_count);
-	m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	++m_num_elems;
+	if(_vtx_decl.position.offset >= 0)
+	{
+		m_elems[m_num_elems].SemanticName = "POSITION";
+		m_elems[m_num_elems].AlignedByteOffset = _vtx_decl.position.offset;
+		m_elems[m_num_elems].Format = VarToD3D(_vtx_decl.position);
+		m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		++m_num_elems;
+	}
 
 	for (int i = 0; i < 3; i++)
 	{

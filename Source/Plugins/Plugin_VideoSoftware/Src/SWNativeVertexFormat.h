@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _NATIVEVERTEXFORMAT_H
-#define _NATIVEVERTEXFORMAT_H
+#ifndef _SWNATIVEVERTEXFORMAT_H
+#define _SWNATIVEVERTEXFORMAT_H
 
 #include "Vec3.h"
 #include "ChunkFile.h"
