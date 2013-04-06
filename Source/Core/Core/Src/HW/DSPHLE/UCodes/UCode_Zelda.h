@@ -218,7 +218,6 @@ private:
 	s32* m_LeftBuffer;
 	s32* m_RightBuffer;
 
-
 	// If you add variables, remember to keep DoState() and the constructor up to date.
 
 	s16 m_AFCCoefTable[32];
@@ -275,6 +274,8 @@ private:
     u32 m_NumPBs;
     u32 m_PBAddress;   // The main param block array
     u32 m_PBAddress2;  // 4 smaller param blocks
+
+	u32 m_cycles;
 
 	void ExecuteList();
 

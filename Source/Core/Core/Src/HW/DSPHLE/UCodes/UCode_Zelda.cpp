@@ -112,16 +112,23 @@ u8 *CUCode_Zelda::GetARAMPointer(u32 address)
 
 void CUCode_Zelda::Update(int cycles)
 {
-	if (!IsLightVersion()) 
-	{
-		if (m_rMailHandler.GetNextMail() == DSP_FRAME_END)
-			DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-	}
+	m_cycles += cycles;
 
-	if (NeedsResumeMail())
+	if (m_cycles >= 243000)
 	{
-		m_rMailHandler.PushMail(DSP_RESUME);
-		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+		m_cycles = 0;
+
+		if (!IsLightVersion())
+		{
+			if (m_rMailHandler.GetNextMail() == DSP_FRAME_END)
+				DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+		}
+
+		if (NeedsResumeMail())
+		{
+			m_rMailHandler.PushMail(DSP_RESUME);
+			DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+		}
 	}
 }
 
