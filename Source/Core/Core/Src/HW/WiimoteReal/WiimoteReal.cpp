@@ -57,8 +57,7 @@ Wiimote::Wiimote()
 #elif defined(_WIN32)
 	, dev_handle(0), stack(MSBT_STACK_UNKNOWN)
 #endif
-	, m_last_data_report()
-	, m_current_report()
+	, m_last_input_report()
 	, m_channel(0), m_run_thread(false)
 {
 #if defined(__linux__) && HAVE_BLUEZ
@@ -91,6 +90,9 @@ void Wiimote::QueueReport(u8 rpt_id, const void* _data, unsigned int size)
 
 void Wiimote::DisableDataReporting()
 {
+	m_last_input_report.clear();
+	
+	// This probably accomplishes nothing.
 	wm_report_mode rpt = {};
 	rpt.mode = WM_REPORT_CORE;
 	rpt.all_the_time = 0;
@@ -216,39 +218,35 @@ bool Wiimote::Write()
 	return false;
 }
 
+bool IsDataReport(const Report& rpt)
+{
+	return rpt.size() >= 2 && rpt[1] >= WM_REPORT_CORE;
+}
+
 // Returns the next report that should be sent
 const Report& Wiimote::ProcessReadQueue()
 {
 	// Pop through the queued reports
-	while (m_read_reports.Pop(m_current_report))
+	while (m_read_reports.Pop(m_last_input_report))
 	{
-		if (m_current_report[1] >= WM_REPORT_CORE)
+		if (!IsDataReport(m_last_input_report))
 		{
-			// A data report
-			m_last_data_report.swap(m_current_report);
-		}
-		else
-		{
-			// Some other kind of report
+			// A non-data report, use it.
+			return m_last_input_report;
 			
-			// If this input report is an "ack" for setting the data reporting mode,
-			// then drop m_last_data_report as it may be of the wrong type
-			if (WM_ACK_DATA == m_current_report[1] && WM_REPORT_MODE == m_current_report[4])
-			{
-				m_last_data_report.clear();
-			}
-			
-			// Copy button data (which is included in every input report except WM_REPORT_EXT21)
-			// needed to prevent rare spurious presses/releases.
-			if (m_last_data_report.size() >= 4 && m_last_data_report[1] != WM_REPORT_EXT21)
-				std::copy_n(m_current_report.begin() + 2, 2, m_last_data_report.begin() + 2);
-			
-			return m_current_report;
+			// Forget the last data report as it may be of the wrong type
+			// or contain outdated button data
+			// or it's not supposed to be sent at this time
+			// It's just easier to be correct this way and it's probably not horrible.
 		}
 	}
 
-	// The queue was empty, or there were only data reports
-	return m_last_data_report;
+	// If the last report wasn't a data report it's irrelevant.
+	if (!IsDataReport(m_last_input_report))
+		m_last_input_report.clear();
+	
+	// If it was a data report, we repeat that until something else comes in.
+	return m_last_input_report;
 }
 
 void Wiimote::Update()

@@ -98,8 +98,7 @@ public:
 #endif
 
 protected:
-	Report m_last_data_report;
-	Report m_current_report;
+	Report m_last_input_report;
 	u16	m_channel;
 
 private:
