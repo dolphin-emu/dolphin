@@ -79,7 +79,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "HackedBufferUpload", &bHackedBufferUpload, 0);
 
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-	iniFile.Get("Settings", "EFBScale", &iEFBScale, 2); // native
+	iniFile.Get("Settings", "EFBScale", &iEFBScale, (int) SCALE_1X); // native
 
 	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
 
@@ -139,21 +139,21 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
 	int tmp = 0;
 	iniFile.GetIfExists("Video_Settings", "EFBScale", &tmp); // integral
-	if (tmp != -1)
+	if (tmp != SCALE_FORCE_INTEGRAL)
 		iEFBScale = tmp;
 	// Round down to multiple of native IR
 	else
 	{
 		switch (iEFBScale)
 		{
-		case 0:
-			iEFBScale = 1;
+		case SCALE_AUTO:
+			iEFBScale = SCALE_AUTO_INTEGRAL;
 			break;
-		case 3: // 1.5x
-			iEFBScale = 2;
+		case SCALE_1_5X:
+			iEFBScale = SCALE_1X;
 			break;
-		case 5: // 2.5x
-			iEFBScale = 4;
+		case SCALE_2_5X:
+			iEFBScale = SCALE_2X;
 			break;
 		default:
 			break;
