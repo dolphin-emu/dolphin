@@ -57,7 +57,7 @@ Wiimote::Wiimote()
 #elif defined(_WIN32)
 	, dev_handle(0), stack(MSBT_STACK_UNKNOWN)
 #endif
-	, m_last_data_report(Report((u8 *)NULL, 0))
+	, m_last_input_report()
 	, m_channel(0), m_run_thread(false)
 {
 #if defined(__linux__) && HAVE_BLUEZ
@@ -73,11 +73,7 @@ Wiimote::~Wiimote()
 		Disconnect();
 	
 	ClearReadQueue();
-
-	// clear write queue
-	Report rpt;
-	while (m_write_reports.Pop(rpt))
-		delete[] rpt.first;
+	m_write_reports.Clear();
 }
 
 // to be called from CPU thread
@@ -85,17 +81,18 @@ void Wiimote::QueueReport(u8 rpt_id, const void* _data, unsigned int size)
 {
 	auto const data = static_cast<const u8*>(_data);
 	
-	Report rpt;
-	rpt.second = size + 2;
-	rpt.first = new u8[rpt.second];
-	rpt.first[0] = WM_SET_REPORT | WM_BT_OUTPUT;
-	rpt.first[1] = rpt_id;
-	std::copy(data, data + size, rpt.first + 2);
-	m_write_reports.Push(rpt);
+	Report rpt(size + 2);
+	rpt[0] = WM_SET_REPORT | WM_BT_OUTPUT;
+	rpt[1] = rpt_id;
+	std::copy_n(data, size, rpt.begin() + 2);
+	m_write_reports.Push(std::move(rpt));
 }
 
 void Wiimote::DisableDataReporting()
 {
+	m_last_input_report.clear();
+	
+	// This probably accomplishes nothing.
 	wm_report_mode rpt = {};
 	rpt.mode = WM_REPORT_CORE;
 	rpt.all_the_time = 0;
@@ -107,15 +104,10 @@ void Wiimote::DisableDataReporting()
 void Wiimote::ClearReadQueue()
 {
 	Report rpt;
-
-	if (m_last_data_report.first)
-	{
-		delete[] m_last_data_report.first;
-		m_last_data_report.first = NULL;
-	}
-
+	
+	// The "Clear" function isn't thread-safe :/
 	while (m_read_reports.Pop(rpt))
-		delete[] rpt.first;
+	{}
 }
 
 void Wiimote::ControlChannel(const u16 channel, const void* const data, const u32 size)
@@ -148,65 +140,58 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 	}
 	
 	auto const data = static_cast<const u8*>(_data);
-
-	Report rpt;
-	rpt.first = new u8[size];
-	rpt.second = (u8)size;
-	std::copy(data, data + size, rpt.first);
+	Report rpt(data, data + size);
 
 	// Convert output DATA packets to SET_REPORT packets.
 	// Nintendo Wiimotes work without this translation, but 3rd
 	// party ones don't.
- 	if (rpt.first[0] == 0xa2)
+ 	if (rpt[0] == 0xa2)
 	{
-		rpt.first[0] = WM_SET_REPORT | WM_BT_OUTPUT;
+		rpt[0] = WM_SET_REPORT | WM_BT_OUTPUT;
  	}
  	
  	// Disallow games from turning off all of the LEDs.
  	// It makes Wiimote connection status confusing.
- 	if (rpt.first[1] == WM_LEDS)
+ 	if (rpt[1] == WM_LEDS)
 	{
-		auto& leds_rpt = *reinterpret_cast<wm_leds*>(&rpt.first[2]);
+		auto& leds_rpt = *reinterpret_cast<wm_leds*>(&rpt[2]);
 		if (0 == leds_rpt.leds)
 		{
 			// Turn on ALL of the LEDs.
 			leds_rpt.leds = 0xf;
 		}
 	}
-	else if (rpt.first[1] == WM_WRITE_SPEAKER_DATA
+	else if (rpt[1] == WM_WRITE_SPEAKER_DATA
 		&& !SConfig::GetInstance().m_WiimoteEnableSpeaker)
 	{
 		// Translate speaker data reports into rumble reports.
-		rpt.first[1] = WM_CMD_RUMBLE;
+		rpt[1] = WM_RUMBLE;
 		// Keep only the rumble bit.
-		rpt.first[2] &= 0x1;
-		rpt.second = 3;
+		rpt[2] &= 0x1;
+		rpt.resize(3);
 	}
 
-	m_write_reports.Push(rpt);
+	m_write_reports.Push(std::move(rpt));
 }
 
 bool Wiimote::Read()
 {
-	Report rpt;
-	
-	rpt.first = new unsigned char[MAX_PAYLOAD];
-	rpt.second = IORead(rpt.first);
+	Report rpt(MAX_PAYLOAD);
+	auto const result = IORead(rpt.data());
 
-	if (0 == rpt.second)
+	if (result > 0 && m_channel > 0)
+	{
+		// Add it to queue
+		rpt.resize(result);
+		m_read_reports.Push(std::move(rpt));
+		return true;
+	}
+	else if (0 == result)
 	{
 		WARN_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wiimote %d.", index + 1);
 		Disconnect();
 	}
 
-	if (rpt.second > 0 && m_channel > 0)
-	{
-		// Add it to queue
-		m_read_reports.Push(rpt);
-		return true;
-	}
-
-	delete[] rpt.first;
 	return false;
 }
 
@@ -216,16 +201,15 @@ bool Wiimote::Write()
 	{
 		Report const& rpt = m_write_reports.Front();
 		
-		bool const is_speaker_data = rpt.first[1] == WM_WRITE_SPEAKER_DATA;
+		bool const is_speaker_data = rpt[1] == WM_WRITE_SPEAKER_DATA;
 		
 		if (!is_speaker_data || m_last_audio_report.GetTimeDifference() > 5)
 		{
-			IOWrite(rpt.first, rpt.second);
+			IOWrite(rpt.data(), rpt.size());
 			
 			if (is_speaker_data)
 				m_last_audio_report.Update();
 			
-			delete[] rpt.first;
 			m_write_reports.Pop();
 			return true;
 		}
@@ -234,23 +218,35 @@ bool Wiimote::Write()
 	return false;
 }
 
+bool IsDataReport(const Report& rpt)
+{
+	return rpt.size() >= 2 && rpt[1] >= WM_REPORT_CORE;
+}
+
 // Returns the next report that should be sent
-Report Wiimote::ProcessReadQueue()
+const Report& Wiimote::ProcessReadQueue()
 {
 	// Pop through the queued reports
-	Report rpt = m_last_data_report;
-	while (m_read_reports.Pop(rpt))
+	while (m_read_reports.Pop(m_last_input_report))
 	{
-		if (rpt.first[1] >= WM_REPORT_CORE)
-			// A data report
-			m_last_data_report = rpt;
-		else
-			// Some other kind of report
-			return rpt;
+		if (!IsDataReport(m_last_input_report))
+		{
+			// A non-data report, use it.
+			return m_last_input_report;
+			
+			// Forget the last data report as it may be of the wrong type
+			// or contain outdated button data
+			// or it's not supposed to be sent at this time
+			// It's just easier to be correct this way and it's probably not horrible.
+		}
 	}
 
-	// The queue was empty, or there were only data reports
-	return rpt;
+	// If the last report wasn't a data report it's irrelevant.
+	if (!IsDataReport(m_last_input_report))
+		m_last_input_report.clear();
+	
+	// If it was a data report, we repeat that until something else comes in.
+	return m_last_input_report;
 }
 
 void Wiimote::Update()
@@ -262,16 +258,12 @@ void Wiimote::Update()
 	}
 
 	// Pop through the queued reports
-	Report const rpt = ProcessReadQueue();
+	const Report& rpt = ProcessReadQueue();
 
 	// Send the report
-	if (rpt.first != NULL && m_channel > 0)
+	if (!rpt.empty() && m_channel > 0)
 		Core::Callback_WiimoteInterruptChannel(index, m_channel,
-			rpt.first, rpt.second);
-
-	// Delete the data if it isn't also the last data rpt
-	if (rpt != m_last_data_report)
-		delete[] rpt.first;
+			rpt.data(), rpt.size());
 }
 
 bool Wiimote::Prepare(int _index)
@@ -279,13 +271,13 @@ bool Wiimote::Prepare(int _index)
 	index = _index;
 
 	// core buttons, no continuous reporting
-	u8 const mode_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_REPORT_TYPE, 0, 0x30};
+	u8 const mode_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REPORT_MODE, 0, WM_REPORT_CORE};
 	
 	// Set the active LEDs and turn on rumble.
-	u8 const led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_LED, u8(WIIMOTE_LED_1 << index | 0x1)};
+	u8 const led_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_LEDS, u8(WIIMOTE_LED_1 << index | 0x1)};
 
 	// Turn off rumble
-	u8 rumble_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_CMD_RUMBLE, 0};
+	u8 rumble_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_RUMBLE, 0};
 	
 	// Request status report
 	u8 const req_status_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REQUEST_STATUS, 0};

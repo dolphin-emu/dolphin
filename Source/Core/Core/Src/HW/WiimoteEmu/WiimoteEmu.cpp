@@ -707,10 +707,10 @@ void Wiimote::Update()
 			std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 			if (g_wiimotes[m_index])
 			{
-				Report rpt = g_wiimotes[m_index]->ProcessReadQueue();
-				const u8 *real_data = rpt.first;
-				if (real_data)
+				const Report& rpt = g_wiimotes[m_index]->ProcessReadQueue();
+				if (!rpt.empty())
 				{
+					const u8 *real_data = rpt.data();
 					switch (real_data[1])
 					{
 						// use data reports
@@ -770,13 +770,9 @@ void Wiimote::Update()
 					// copy over report from real-wiimote
 					if (-1 == rptf_size)
 					{
-						memcpy(data, real_data, rpt.second);
-						rptf_size = rpt.second;
+						std::copy(rpt.begin(), rpt.end(), data);
+						rptf_size = rpt.size();
 					}
-	
-					if (real_data != g_wiimotes[m_index]->\
-						m_last_data_report.first)
-						delete[] real_data;
 				}
 			}
 		}

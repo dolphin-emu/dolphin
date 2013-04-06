@@ -36,15 +36,16 @@ public:
 		return (0 == m_size);
 	}
 
-	const T& Front() const
+	T& Front() const
 	{
 		return *m_read_ptr->current;
 	}
 
-	void Push(const T& t)
+	template <typename Arg>
+	void Push(Arg&& t)
 	{
 		// create the element, add it to the queue
-		m_write_ptr->current = new T(t);
+		m_write_ptr->current = new T(std::forward<Arg>(t));
 		// set the next pointer to a new element ptr
 		// then advance the write pointer 
 		m_write_ptr = m_write_ptr->next = new ElementPtr();
@@ -67,7 +68,7 @@ public:
 		if (Empty())
 			return false;
 
-		t = Front();
+		t = std::move(Front());
 		Pop();
 
 		return true;
