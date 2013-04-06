@@ -418,7 +418,7 @@ int Wiimote::IORead(u8* buf)
 		}
 	}
 
-	return bytes;
+	return bytes + 1;
 }
 
 int Wiimote::IOWrite(const u8* buf, int len)
