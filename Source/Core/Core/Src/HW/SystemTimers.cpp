@@ -258,7 +258,7 @@ void Init()
 
 	if (DSP::GetDSPEmulator()->IsLLE())
 	{
-		DSP_PERIOD = 12000; // TO BE TWEAKED
+		DSP_PERIOD = 12600; // TO BE TWEAKED
 	}
 	else
 	{
