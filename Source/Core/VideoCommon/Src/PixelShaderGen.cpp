@@ -668,17 +668,20 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 		}
 
-		WRITE(p, "  in float4 colors_0 : COLOR0,\n");
-		WRITE(p, "  in float4 colors_1 : COLOR1");
+		// "centroid" attribute is only supported by D3D11
+		const char* optCentroid = (ApiType == API_D3D11 ? "centroid" : "");
+
+		WRITE(p, "  in %s float4 colors_0 : COLOR0,\n", optCentroid);
+		WRITE(p, "  in %s float4 colors_1 : COLOR1", optCentroid);
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		if (numTexgen < 7)
 		{
 			for (int i = 0; i < numTexgen; ++i)
-				WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
-			WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
+				WRITE(p, ",\n  in %s float3 uv%d : TEXCOORD%d", optCentroid, i, i);
+			WRITE(p, ",\n  in %s float4 clipPos : TEXCOORD%d", optCentroid, numTexgen);
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
+				WRITE(p, ",\n  in %s float4 Normal : TEXCOORD%d", optCentroid, numTexgen + 1);
 			WRITE(p, "        ) {\n");
 		}
 		else
