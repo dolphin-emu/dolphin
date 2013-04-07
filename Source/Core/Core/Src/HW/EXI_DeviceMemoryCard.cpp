@@ -150,6 +150,9 @@ void CEXIMemoryCard::Flush(bool exiting)
 	if(!m_bDirty)
 		return;
 
+	if (!Core::g_CoreStartupParameter.bEnableMemcardSaving)
+		return;
+
 	if (flushThread.joinable())
 	{
 		flushThread.join();
