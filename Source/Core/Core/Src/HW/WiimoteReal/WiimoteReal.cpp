@@ -321,7 +321,7 @@ void WiimoteScanner::WantWiimotes(bool do_want)
 
 void WiimoteScanner::StartScanning()
 {
-	if (!m_run_thread && IsReady())
+	if (!m_run_thread)
 	{
 		m_run_thread = true;
 		m_scan_thread = std::thread(std::mem_fun(&WiimoteScanner::ThreadFunc), this);
