@@ -698,9 +698,13 @@ void Tev::Draw()
         }
 #endif
     }
-    
-    // convert to 8 bits per component
-    u8 output[4] = {(u8)Reg[0][ALP_C], (u8)Reg[0][BLU_C], (u8)Reg[0][GRN_C], (u8)Reg[0][RED_C]};
+
+	// convert to 8 bits per component
+	// the results of the last tev stage are put onto the screen,
+	// regardless of the used destination register - TODO: Verify!
+	u32 color_index = bpmem.combiners[bpmem.genMode.numtevstages].colorC.dest;
+	u32 alpha_index = bpmem.combiners[bpmem.genMode.numtevstages].alphaC.dest;
+	u8 output[4] = {(u8)Reg[alpha_index][ALP_C], (u8)Reg[color_index][BLU_C], (u8)Reg[color_index][GRN_C], (u8)Reg[color_index][RED_C]};
 
     if (!TevAlphaTest(output[ALP_C]))
         return;
