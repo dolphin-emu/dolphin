@@ -275,8 +275,6 @@ private:
     u32 m_PBAddress;   // The main param block array
     u32 m_PBAddress2;  // 4 smaller param blocks
 
-	u32 m_cycles;
-
 	void ExecuteList();
 
 	u8 *GetARAMPointer(u32 address);

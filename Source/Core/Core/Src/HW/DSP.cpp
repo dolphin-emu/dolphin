@@ -647,6 +647,7 @@ void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, bool _bSet)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
 		0, et_GenerateDSPInterrupt, type | (_bSet<<16));
+	CoreTiming::ForceExceptionCheck(100);
 }
 
 // called whenever SystemTimers thinks the dsp deserves a few more cycles
