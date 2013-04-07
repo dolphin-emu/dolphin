@@ -88,6 +88,8 @@ public:
 	~VertexLoader();
 
 	int GetVertexSize() const {return m_VertexSize;}
+	
+	int SetupRunVertices(int vtx_attr_group, int primitive, int const count);
 	void RunVertices(int vtx_attr_group, int primitive, int count);
 	void RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data);
 
@@ -124,6 +126,7 @@ private:
 	void SetVAT(u32 _group0, u32 _group1, u32 _group2);
 
 	void CompileVertexTranslator();
+	void ConvertVertices(int count);
 
 	void WriteCall(TPipelineFunction);
 
@@ -131,6 +134,6 @@ private:
 	void WriteGetVariable(int bits, Gen::OpArg dest, void *address);
 	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
 #endif
-};									  
+};
 
 #endif

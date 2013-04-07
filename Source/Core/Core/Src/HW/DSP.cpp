@@ -334,7 +334,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 		// ARAM
 	case AR_INFO:
-		//PanicAlert("read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
+		//PanicAlert("Read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
 		_uReturnValue = g_ARAM_Info.Hex;
 		break;
 
@@ -435,10 +435,6 @@ void Write16(const u16 _Value, const u32 _Address)
 			if (tmpControl.AID)  g_dspState.DSPControl.AID  = 0;
 			if (tmpControl.ARAM) g_dspState.DSPControl.ARAM = 0;
 			if (tmpControl.DSP)  g_dspState.DSPControl.DSP  = 0;
-
-			// Tracking DMAState fixes Knockout Kings 2003 in DSP HLE mode
-			if (GetDSPEmulator()->IsLLE())
-				g_dspState.DSPControl.DMAState = 0;	// keep g_ARAM DMA State zero
 
 			// unknown
 			g_dspState.DSPControl.unk3	= tmpControl.unk3;
@@ -651,6 +647,7 @@ void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, bool _bSet)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
 		0, et_GenerateDSPInterrupt, type | (_bSet<<16));
+	CoreTiming::ForceExceptionCheck(100);
 }
 
 // called whenever SystemTimers thinks the dsp deserves a few more cycles
@@ -691,17 +688,18 @@ void UpdateAudioDMA()
 	{
 		// Send silence. Yeah, it's a bit of a waste to sample rate convert
 		// silence.  or hm. Maybe we shouldn't do this :)
-		//dsp_emulator->DSP_SendAIBuffer(0, AudioInterface::GetAIDSampleRate());
+		dsp_emulator->DSP_SendAIBuffer(0, AudioInterface::GetAIDSampleRate());
 	}
 }
 
 void Do_ARAM_DMA()
 {
-	// Emulating the DMA wait time fixes Knockout Kings 2003 in DSP HLE mode
-	if (!GetDSPEmulator()->IsLLE())
-		g_dspState.DSPControl.DMAState = 1;
+	g_dspState.DSPControl.DMAState = 1;
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
 
-	GenerateDSPInterrupt(INT_ARAM, true);
+	// Force an early exception check on large transfers. Fixes RE2 audio.
+	if (g_arDMA.Cnt.count > 2048 && g_arDMA.Cnt.count <= 10240)
+		CoreTiming::ForceExceptionCheck(100);
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)

@@ -104,6 +104,7 @@ static bool g_requestRefreshInfo = false;
 static int g_pauseAndLockDepth = 0;
 
 SCoreStartupParameter g_CoreStartupParameter;
+bool isTabPressed = false;
 
 std::string GetStateFileName() { return g_stateFileName; }
 void SetStateFileName(std::string val) { g_stateFileName = val; }
@@ -322,6 +323,9 @@ void CpuThread()
 	CCPU::Run();
 
 	g_bStarted = false;
+	
+	if (!_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	return;
 }
@@ -350,6 +354,9 @@ void FifoPlayerThread()
 	}
 
 	g_bStarted = false;
+	
+	if(!_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	return;
 }
@@ -476,6 +483,9 @@ void EmuThread()
 	g_cpu_thread.join();
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
+	
+	if(_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
@@ -594,9 +604,13 @@ void VideoThrottle()
 	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 2) ?
 		(SConfig::GetInstance().m_Framelimit - 1) * 5 : VideoInterface::TargetRefreshRate;
 
+	if (Host_GetKeyState('\t'))
+		isTabPressed = true;
+
 	// Disable the frame-limiter when the throttle (Tab) key is held down. Audio throttle: m_Framelimit = 2
 	if (SConfig::GetInstance().m_Framelimit && SConfig::GetInstance().m_Framelimit != 2 && !Host_GetKeyState('\t'))
 	{
+		isTabPressed = false;
 		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
 
 		u32 timeDifference = (u32)Timer.GetTimeDifference();

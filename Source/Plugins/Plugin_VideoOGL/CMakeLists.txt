@@ -5,8 +5,11 @@ set(SRCS	Src/FramebufferManager.cpp
 			Src/PerfQuery.cpp
 			Src/PixelShaderCache.cpp
 			Src/PostProcessing.cpp
+			Src/ProgramShaderCache.cpp
 			Src/RasterFont.cpp
 			Src/Render.cpp
+			Src/SamplerCache.cpp
+			Src/StreamBuffer.cpp
 			Src/TextureCache.cpp
 			Src/TextureConverter.cpp
 			Src/VertexShaderCache.cpp
@@ -33,12 +36,6 @@ endif()
 if(wxWidgets_FOUND)
 	set(LIBS	${LIBS} ${wxWidgets_LIBRARIES})
 endif(wxWidgets_FOUND)
-
-if(WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	set(LIBS	${LIBS} Cg CgGL)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	list(APPEND LIBS "${CMAKE_SOURCE_DIR}/Externals/Cg/Cg.framework")
-endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(LIBS	${LIBS} clrun)

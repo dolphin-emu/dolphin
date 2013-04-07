@@ -42,6 +42,7 @@ const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10,
 #if 0
 static void WriteDual32(u64 value, u32 address)
 {
+	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 	Memory::Write_U32((u32)(value >> 32), address);
 	Memory::Write_U32((u32)value, address + 4);
 }

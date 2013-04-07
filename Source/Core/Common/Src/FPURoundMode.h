@@ -38,11 +38,12 @@ namespace FPURoundMode
 	
 	void SetSIMDMode(u32 mode);
 
-	/*
-   There are two different flavors of float to int conversion:
-   _mm_cvtps_epi32() and _mm_cvttps_epi32(). The first rounds
-   according to the MXCSR rounding bits. The second one always
-   uses round towards zero.
+/*
+ * There are two different flavors of float to int conversion:
+ * _mm_cvtps_epi32() and _mm_cvttps_epi32(). 
+ *
+ * The first rounds according to the MXCSR rounding bits.
+ * The second one always uses round towards zero.
  */
 	void SaveSIMDState();
 	void LoadSIMDState();

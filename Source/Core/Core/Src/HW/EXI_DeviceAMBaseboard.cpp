@@ -111,7 +111,7 @@ void CEXIAMBaseboard::TransferByte(u8& _byte)
 				_byte = m_have_irq ? 0xFF : 0;
 				break;
 			default:
-				_dbg_assert_msg_(SP1, 0, "Unknown AM-BB cmd");
+				_dbg_assert_msg_(SP1, 0, "Unknown AM-BB command");
 				break;
 			}
 		}

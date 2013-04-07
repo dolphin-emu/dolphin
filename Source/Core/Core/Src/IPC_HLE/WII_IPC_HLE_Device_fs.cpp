@@ -136,7 +136,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
 				size_t numFile = FileSearch.GetFileNames().size();
-				INFO_LOG(WII_IPC_FILEIO, "\t%lu Files found", (unsigned long)numFile);
+				INFO_LOG(WII_IPC_FILEIO, "\t%lu files found", (unsigned long)numFile);
 
 				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}
@@ -227,7 +227,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 				fsBlocks = 0;
 				iNodes = 0;
 				ReturnValue = FS_RESULT_OK;
-				WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directoy: %s", path.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directory: %s", path.c_str());
 			}
 
 			Memory::Write_U32(fsBlocks, CommandBuffer.PayloadBuffer[0].m_Address);
@@ -377,7 +377,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 				u32 Addr = _BufferOut;
 				Memory::Write_U32(OwnerID, Addr);										Addr += 4;
 				Memory::Write_U16(GroupID, Addr);										Addr += 2;
-				memcpy(Memory::GetPointer(Addr), Filename.c_str(), Filename.size());	Addr += 64;
+				memcpy(Memory::GetPointer(Addr), Memory::GetPointer(_BufferIn), 64);	Addr += 64;
 				Memory::Write_U8(OwnerPerm, Addr);										Addr += 1;
 				Memory::Write_U8(GroupPerm, Addr);										Addr += 1;
 				Memory::Write_U8(OtherPerm, Addr);										Addr += 1;

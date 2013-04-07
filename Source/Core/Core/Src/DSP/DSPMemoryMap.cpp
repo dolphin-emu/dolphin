@@ -52,7 +52,7 @@ u16 dsp_dmem_read(u16 addr)
 		return g_dsp.dram[addr & DSP_DRAM_MASK];
 		
 	case 0x1:  // 1xxx COEF
-		DEBUG_LOG(DSPLLE, "%04x : Coef Read @ %04x", g_dsp.pc, addr);
+		DEBUG_LOG(DSPLLE, "%04x : Coefficient Read @ %04x", g_dsp.pc, addr);
 		return g_dsp.coef[addr & DSP_COEF_MASK];
 
 	case 0xf:  // Fxxx HW regs

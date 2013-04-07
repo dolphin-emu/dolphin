@@ -47,10 +47,10 @@ int AshmemCreateFileMapping(const char *name, size_t size)
 	fd = open(ASHMEM_DEVICE, O_RDWR);
 	if (fd < 0)
 		return fd;
-	
+
 	// We don't really care if we can't set the name, it is optional	
 	ret = ioctl(fd, ASHMEM_SET_NAME, name);
-	
+
 	ret = ioctl(fd, ASHMEM_SET_SIZE, size);
 	if (ret < 0)
 	{

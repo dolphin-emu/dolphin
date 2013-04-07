@@ -46,6 +46,12 @@ bool DSPHost_OnThread()
 	return  _CoreParameter.bDSPThread;
 }
 
+bool DSPHost_Wii()
+{
+	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	return  _CoreParameter.bWii;
+}
+
 void DSPHost_InterruptRequest()
 {
 	// Fire an interrupt on the PPC ASAP.

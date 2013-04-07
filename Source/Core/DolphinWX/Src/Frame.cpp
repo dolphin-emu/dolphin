@@ -94,8 +94,7 @@ CPanel::CPanel(
 
 			case WM_USER_SETCURSOR:
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN &&
-						SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
 					SetCursor(wxCURSOR_BLANK);
 				else
 					SetCursor(wxNullCursor);
@@ -399,11 +398,24 @@ CFrame::~CFrame()
 
 bool CFrame::RendererIsFullscreen()
 {
+	bool fullscreen = false;
+
 	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 	{
-		return m_RenderFrame->IsFullScreen();
+		fullscreen = m_RenderFrame->IsFullScreen();
 	}
-	return false;
+
+#if defined(__APPLE__)
+	if (m_RenderFrame != NULL)
+	{
+		NSView *view = (NSView *) m_RenderFrame->GetHandle();
+		NSWindow *window = [view window];
+
+		fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
+	}
+#endif
+
+	return fullscreen;
 }
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
@@ -659,7 +671,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 	// 1. Boot the selected iso
 	// 2. Boot the default or last loaded iso.
 	// 3. Call BrowseForDirectory if the gamelist is empty
-	if (!m_GameListCtrl->GetGameNames().size() &&
+	if (!m_GameListCtrl->GetISO(0) &&
 		!((SConfig::GetInstance().m_ListGC &&
 		SConfig::GetInstance().m_ListWii &&
 		SConfig::GetInstance().m_ListWad) &&
@@ -693,7 +705,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 		m_GameListCtrl->Update();
 	}
-	else if (!m_GameListCtrl->GetGameNames().size())
+	else if (!m_GameListCtrl->GetISO(0))
 		m_GameListCtrl->BrowseForDirectory();
 	else
 		// Game started by double click
@@ -980,7 +992,18 @@ void CFrame::DoFullscreen(bool bF)
 {
 	ToggleDisplayMode(bF);
 
+#if defined(__APPLE__)
+	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSWindow *window = [view window];
+
+	if (bF != RendererIsFullscreen())
+	{
+		[window toggleFullScreen:nil];
+	}
+#else
 	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
+#endif
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		if (bF)

@@ -213,7 +213,7 @@ void BPWritten(const BPCmd& bp)
 				if (bp.changes & 4)
 					SetDitherMode();
 				// Set Blending Mode
-				if (bp.changes & 0xFE1)
+				if (bp.changes & 0xFF1)
 					SetBlendMode();
 				// Set Color Mask
 				if (bp.changes & 0x18)
@@ -225,6 +225,8 @@ void BPWritten(const BPCmd& bp)
 		{
 			PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
 			PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
+			if(bp.changes & 0x100)
+				SetBlendMode();
 			break;
 		}
 	// This is called when the game is done drawing the new frame (eg: like in DX: Begin(); Draw(); End();)
@@ -456,9 +458,11 @@ void BPWritten(const BPCmd& bp)
 		break;
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
-		g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
-		g_renderer->SetBlendMode(true);
 		OnPixelFormatChange();
+		if(bp.changes & 7) {
+			SetBlendMode(); // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
+			g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
+		}
 		break;
 
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
@@ -576,8 +580,6 @@ void BPWritten(const BPCmd& bp)
 		// ------------------------
 		case BPMEM_TX_SETMODE0: // (0x90 for linear)
 		case BPMEM_TX_SETMODE0_4:
-			// Shouldn't need to call this here, we call it for each active texture right before rendering
-			SetTextureMode(bp);
 			break;
 
 		case BPMEM_TX_SETMODE1:
@@ -719,14 +721,6 @@ void BPReload()
 	SetBlendMode();
 	SetColorMask();
 	OnPixelFormatChange();
-	{
-		BPCmd bp = {BPMEM_TX_SETMODE0, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_TX_SETMODE0])};
-		SetTextureMode(bp);
-	}
-	{
-		BPCmd bp = {BPMEM_TX_SETMODE0_4, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_TX_SETMODE0_4])};
-		SetTextureMode(bp);
-	}
 	{
 		BPCmd bp = {BPMEM_FIELDMASK, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMASK])};
 		SetInterlacingMode(bp);

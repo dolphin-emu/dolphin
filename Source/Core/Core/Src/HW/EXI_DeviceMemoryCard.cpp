@@ -40,11 +40,19 @@
 
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
-	// note that userdata is forbidden to be a pointer, due to the implemenation of EventDoState
+	// note that userdata is forbidden to be a pointer, due to the implementation of EventDoState
 	int card_index = (int)userdata;
 	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
 	if (pThis)
 		pThis->Flush();
+}
+
+void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
+{
+	int card_index = (int)userdata;
+	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+	if (pThis)
+		pThis->CmdDone();
 }
 
 CEXIMemoryCard::CEXIMemoryCard(const int index)
@@ -56,7 +64,8 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 		m_strFilename = "Movie.raw";
 
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
-	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardA" : "memcardB", FlushCallback);
+	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
+	et_cmd_done = CoreTiming::RegisterEvent((card_index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
  
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -77,7 +86,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	//0x00000510 16Mb "bigben" card
 	//card_id = 0xc243;
  
-	card_id = 0xc221; // It's a nintendo brand memcard
+	card_id = 0xc221; // It's a Nintendo brand memcard
  
 	File::IOFile pFile(m_strFilename, "rb");
 	if (pFile)
@@ -101,7 +110,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 		memory_card_content = new u8[memory_card_size];
 		GCMemcard::Format(memory_card_content, m_strFilename.find(".JAP.raw") != std::string::npos, nintendo_card_id);
 		memset(memory_card_content+MC_HDR_SIZE, 0xFF, memory_card_size-MC_HDR_SIZE); 
-		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
+		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create a new one.");
 	}
 	SetCardFlashID(memory_card_content, card_index);
 }
@@ -121,7 +130,9 @@ void innerFlush(FlushData* data)
 	if (!pFile) // Note - pFile changed inside above if
 	{
 		PanicAlertT("Could not write memory card file %s.\n\n"
-			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", data->filename.c_str());
+			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?\n\n"
+			"Are you receiving this after moving the emulator directory?\nIf so, then you may "
+			"need to re-specify your memory card location in the options.", data->filename.c_str());
 		return;
 	}
 
@@ -178,6 +189,21 @@ bool CEXIMemoryCard::IsPresent()
 	return true;
 }
 
+void CEXIMemoryCard::CmdDone()
+{
+	status |= MC_STATUS_READY;
+	status &= ~MC_STATUS_BUSY;
+
+	m_bInterruptSet = 1;
+	m_bDirty = true;
+}
+
+void CEXIMemoryCard::CmdDoneLater(u64 cycles)
+{
+	CoreTiming::RemoveEvent(et_cmd_done);
+	CoreTiming::ScheduleEvent(cycles, et_cmd_done, (u64)card_index);
+}
+
 void CEXIMemoryCard::SetCS(int cs)
 {
 	// So that memory card won't be invalidated during flushing
@@ -201,11 +227,7 @@ void CEXIMemoryCard::SetCS(int cs)
 
 				//???
 
-				status |= MC_STATUS_READY;
-				status &= ~MC_STATUS_BUSY;
-
-				m_bInterruptSet = 1;
-				m_bDirty = true;
+				CmdDoneLater(5000);
 			}
 			break;
 
@@ -232,11 +254,7 @@ void CEXIMemoryCard::SetCS(int cs)
 					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
 				}
 
-				status |= MC_STATUS_READY;
-				status &= ~MC_STATUS_BUSY;
-
-				m_bInterruptSet = 1;
-				m_bDirty = true;
+				CmdDoneLater(5000);
 			}
 			
 			// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
@@ -321,11 +339,11 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 		{
 		case cmdNintendoID:
 			//
-			// nintendo card:
+			// Nintendo card:
 			// 00 | 80 00 00 00 10 00 00 00 
 			// "bigben" card:
 			// 00 | ff 00 00 05 10 00 00 00 00 00 00 00 00 00 00
-			// we do it the nintendo way.
+			// we do it the Nintendo way.
 			if (m_uPosition == 1)
 				byte = 0x80; // dummy cycle
 			else

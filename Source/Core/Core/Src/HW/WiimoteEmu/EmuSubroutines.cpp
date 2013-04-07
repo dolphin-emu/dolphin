@@ -297,7 +297,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			{
 				// writing the whole mii block each write :/
 				std::ofstream file;
-				file.open((File::GetUserPath(D_WIIUSER_IDX) + "mii.bin").c_str(), std::ios::binary | std::ios::out);
+				OpenFStream(file, File::GetUserPath(D_WIIUSER_IDX) + "mii.bin", std::ios::binary | std::ios::out);
 				file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
 				file.close();
 			}
@@ -360,7 +360,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			/* TODO?
 			if (region_ptr == &m_reg_speaker)
 			{
-				ERROR_LOG(WIIMOTE, "Write to speaker reg %x %s", address,
+				ERROR_LOG(WIIMOTE, "Write to speaker register %x %s", address,
 					ArrayToString(wd->data, wd->size, 100, false).c_str());
 			}
 			*/
@@ -511,7 +511,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 		break;
 
 	default :
-		PanicAlert("WmReadData: unimplemented parameters (size: %i, addr: 0x%x)!", size, rd->space);
+		PanicAlert("WmReadData: unimplemented parameters (size: %i, address: 0x%x)!", size, rd->space);
 		break;
 	}
 

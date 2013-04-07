@@ -97,4 +97,28 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 std::string UriDecode(const std::string & sSrc);
 std::string UriEncode(const std::string & sSrc);
 
+std::string CP1252ToUTF8(const std::string& str);
+std::string SHIFTJISToUTF8(const std::string& str);
+std::string UTF16ToUTF8(const std::wstring& str);
+
+#ifdef _WIN32
+
+std::wstring UTF8ToUTF16(const std::string& str);
+
+#ifdef _UNICODE
+inline std::string TStrToUTF8(const std::wstring& str)
+{ return UTF16ToUTF8(str); }
+
+inline std::wstring UTF8ToTStr(const std::string& str)
+{ return UTF8ToUTF16(str); }
+#else
+inline std::string TStrToUTF8(const std::string& str)
+{ return str; }
+
+inline std::string UTF8ToTStr(const std::string& str)
+{ return str; }
+#endif
+
+#endif
+
 #endif // _STRINGUTIL_H_

@@ -18,7 +18,11 @@
 #ifndef WXUTILS_H
 #define WXUTILS_H
 
-namespace WxUtils {
+#include <string>
+#include <wx/string.h>
+
+namespace WxUtils
+{
 
 // Launch a file according to its mime type
 void Launch(const char *filename);
@@ -27,5 +31,8 @@ void Launch(const char *filename);
 void Explore(const char *path);
 
 }  // namespace
+
+std::string WxStrToStr(const wxString& str);
+wxString StrToWxStr(const std::string& str);
 
 #endif // WXUTILS

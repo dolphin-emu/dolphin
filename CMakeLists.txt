@@ -3,8 +3,9 @@
 #
 cmake_minimum_required(VERSION 2.6)
 
-option(USE_GLES "Enables GLES And EGL, disables OGL" OFF)
+option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
+option(USE_GLES "Enables GLES And EGL, disables OGL" OFF)
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 
 option(FASTLOG "Enable all logs" OFF)
@@ -113,6 +114,8 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
 	add_definitions(-marm -march=armv7-a)
 	add_definitions(-D_M_ARM=1)
 	add_definitions(-D_M_GENERIC=1)
+# Set generic options so you don't have to pass anything to cmake to build ARM
+	set(USE_GLES 1)
 endif()
 
 # Set these next two lines to test generic
@@ -167,22 +170,22 @@ if(APPLE)
 	set(ENV{PATH} /usr/bin:/bin:/usr/sbin:/sbin)
 
 	# Some of our code contains Objective C constructs.
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c -stdlib=libc++")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++ -stdlib=libc++")
 	# Avoid mistaking an object file for a source file on the link command line.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -x none")
 
 	# Identify the target system:
-	# Ask for 32/64-bit fat binary.
-	set(TARGET_FLAGS "-arch x86_64 -arch i386")
+	# Ask for 64-bit binary.
+	set(TARGET_FLAGS "-arch x86_64")
 	# Minimum OS X version.
 	# This is inserted into the Info.plist as well.
 	# Note that the SDK determines the maximum version of which optional
 	# features can be used, not the minimum required version to run.
-	set(OSX_MIN_VERSION "10.5.4")
+	set(OSX_MIN_VERSION "10.7")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
-	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.6.sdk")
-	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk")
+	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.7.sdk")
+	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk")
 	if(EXISTS "${SYSROOT_PATH}/")
         set(TARGET_SYSROOT ${SYSROOT_PATH})
 	elseif(EXISTS "${SYSROOT_LEGACY_PATH}/")
@@ -196,10 +199,8 @@ if(APPLE)
 	# This avoids a warning when linking with QuickTime.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
 	# Specify target CPUs.
-	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -msse3")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_i386 -march=prescott")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -mssse3")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -march=core2")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -mssse3")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -march=core2")
 	# Target flags apply to both C and C++ compilation.
 	# CMake passes these to the compiler on the link command line as well.
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_FLAGS}")
@@ -248,9 +249,9 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	set(wxWidgets_USE_DEBUG ON CACHE BOOL "Use wxWidgets Debugging")
 endif(CMAKE_BUILD_TYPE STREQUAL Debug)
 
-if(CMAKE_BUILD_TYPE STREQUAL Release)
+if(CMAKE_BUILD_TYPE STREQUAL Release AND NOT APPLE)
 	add_definitions(-fomit-frame-pointer)
-endif(CMAKE_BUILD_TYPE STREQUAL Release)
+endif()
 
 if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
@@ -271,7 +272,6 @@ if(USE_EGL)
 endif()
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
-option(ANDROID "Enables a build for Android" OFF)
 if(ANDROID)
 	message("Building for Android")
 	add_definitions(-DANDROID)
@@ -331,7 +331,7 @@ if(NOT ANDROID)
 		message("bluez NOT found, disabling bluetooth support")
 	endif(BLUEZ_FOUND)
 
-	check_lib(PULSEAUDIO libpulse QUIET)
+	check_lib(PULSEAUDIO libpulse-simple QUIET)
 	if(PULSEAUDIO_FOUND)
 		add_definitions(-DHAVE_PULSEAUDIO=1)
 		message("PulseAudio found, enabling PulseAudio sound backend")
@@ -394,7 +394,6 @@ if(NOT ANDROID)
 		set(PORTAUDIO_FOUND FALSE)
 	endif(PORTAUDIO)
 
-	option(OPROFILING "Enable profiling" OFF)
 	if(OPROFILING)
 		check_lib(OPROFILE opagent opagent.h)
 		check_lib(BFD bfd bfd.h)
@@ -655,6 +654,7 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/Src/scmrev.h
 	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_MASTER} "\n"
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common/Src")
+
 
 ########################################
 # Start compiling our code

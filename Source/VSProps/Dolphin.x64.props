@@ -8,8 +8,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\Externals\SDL\$(PlatformName);..\..\..\Externals\GLew;..\..\..\Externals\Cg64;..\..\..\Externals\portaudio\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>portaudio.lib;dsound.lib;dxerr.lib;iphlpapi.lib;winmm.lib;setupapi.lib;xinput.lib;vfw32.lib;cg.lib;cgGL.lib;opengl32.lib;glew64s.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\SDL\$(PlatformName);..\..\..\Externals\GLew;..\..\..\Externals\portaudio\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>portaudio.lib;dsound.lib;dxerr.lib;iphlpapi.lib;winmm.lib;setupapi.lib;xinput.lib;vfw32.lib;opengl32.lib;glew64s.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

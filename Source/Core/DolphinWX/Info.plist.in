@@ -57,6 +57,8 @@
 	<string>${OSX_MIN_VERSION}</string>
 	<key>LSRequiresCarbon</key>
 	<true/>
+	<key>NSHighResolutionCapable</key>
+	<true/>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 </dict>

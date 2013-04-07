@@ -465,8 +465,8 @@ End:
 
 void * memcpy_amd(void *dest, const void *src, size_t n)
 {
-memcpy(dest, src, n);
-return dest;
+	memcpy(dest, src, n);
+	return dest;
 }
 
 

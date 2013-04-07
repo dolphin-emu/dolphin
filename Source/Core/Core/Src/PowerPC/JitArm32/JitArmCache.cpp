@@ -23,6 +23,7 @@
 // locating performance issues.
 
 #include "../JitInterface.h"
+#include "Jit.h"
 #include "JitArmCache.h"
 
 
@@ -36,10 +37,9 @@ using namespace ArmGen;
 	void JitArmBlockCache::WriteDestroyBlock(const u8* location, u32 address)
 	{
 		ARMXEmitter emit((u8 *)location);
-		emit.MOVI2R(R10, (u32)&PC);
 		emit.MOVI2R(R11, address);
 		emit.MOVI2R(R12, (u32)jit->GetAsmRoutines()->dispatcher);
-		emit.STR(R10, R11);
+		emit.STR(R11, R9, PPCSTATE_OFF(pc));
 		emit.B(R12);
 	}
 

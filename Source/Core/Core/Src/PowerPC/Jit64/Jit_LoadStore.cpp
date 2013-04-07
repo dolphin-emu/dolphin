@@ -302,6 +302,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			addr += offset;
 			if ((addr & 0xFFFFF000) == 0xCC008000 && jo.optimizeGatherPipe)
 			{
+				MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 				gpr.FlushLockX(ABI_PARAM1);
 				MOV(32, R(ABI_PARAM1), gpr.R(s));
 				if (update)
@@ -329,6 +330,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			}
 			else
 			{
+				MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 				switch (accessSize)
 				{
 				case 32: ABI_CallFunctionAC(thunks.ProtectFunction(true ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), 2), gpr.R(s), addr); break;

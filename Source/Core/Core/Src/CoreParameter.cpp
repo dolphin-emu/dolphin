@@ -50,7 +50,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bDPL2Decoder(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
   bMMU(false), bDCBZOFF(false), iTLBHack(0), bVBeam(false),
-  bFastDiscSpeed(false),
+  bSyncGPU(false), bFastDiscSpeed(false),
   SelectedLanguage(0), bWii(false),
   bConfirmStop(false), bHideCursor(false),
   bAutoHideCursor(false), bUsePanicHandlers(true), bOnScreenDisplayMessages(true),
@@ -78,6 +78,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bDCBZOFF = false;
 	iTLBHack = 0;
 	bVBeam = false;
+	bSyncGPU = false;
 	bFastDiscSpeed = false;
 	bMergeBlocks = false;
 	SelectedLanguage = 0;
@@ -325,7 +326,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 		{
 			if (!File::Exists(m_strBootROM))
 			{
-				WARN_LOG(BOOT, "bootrom file %s not found - using HLE.", m_strBootROM.c_str());
+				WARN_LOG(BOOT, "Bootrom file %s not found - using HLE.", m_strBootROM.c_str());
 				bHLE_BS2 = true;
 			}
 		}

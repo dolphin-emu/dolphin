@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "Common.h"
+#include "StringUtil.h"
 
 // User directory indices for GetUserPath
 enum {
@@ -131,7 +132,10 @@ bool SetCurrentDir(const std::string &directory);
 
 // Returns a pointer to a string with a Dolphin data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
-std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath="");
+const std::string& GetUserPath(const unsigned int DirIDX, const std::string &newPath="");
+
+// probably doesn't belong here
+std::string GetThemeDir(const std::string& theme_name);
 
 // Returns the path to where the sys file are
 std::string GetSysDirectory();
@@ -225,5 +229,16 @@ private:
 };
 
 }  // namespace
+
+// To deal with Windows being dumb at unicode:
+template <typename T>
+void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmode openmode)
+{
+#ifdef _WIN32
+	fstream.open(UTF8ToTStr(filename).c_str(), openmode);
+#else
+	fstream.open(filename.c_str(), openmode);
+#endif
+}
 
 #endif

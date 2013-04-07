@@ -51,13 +51,13 @@ static const NormalOpDef nops[11] =
 
 enum NormalSSEOps
 {
-	sseCMP =         0xC2, 
-	sseADD =         0x58, //ADD
+	sseCMP =		 0xC2, 
+	sseADD =		 0x58, //ADD
 	sseSUB =		 0x5C, //SUB
 	sseAND =		 0x54, //AND
 	sseANDN =		 0x55, //ANDN
-	sseOR  =         0x56, 
-	sseXOR  =        0x57,
+	sseOR  =		 0x56, 
+	sseXOR  =		 0x57,
 	sseMUL =		 0x59, //MUL,
 	sseDIV =		 0x5E, //DIV
 	sseMIN =		 0x5D, //MIN
@@ -143,18 +143,18 @@ void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 	if (indexReg & 8)         op |= 2;
 	if (offsetOrBaseReg & 8)  op |= 1; //TODO investigate if this is dangerous
 	if (op != 0x40 ||
-	    (bits == 8 && (offsetOrBaseReg & 0x10c) == 4) ||
-	    (opBits == 8 && (customOp & 0x10c) == 4)) {
+		(bits == 8 && (offsetOrBaseReg & 0x10c) == 4) ||
+		(opBits == 8 && (customOp & 0x10c) == 4)) {
 		emit->Write8(op);
 		_dbg_assert_(DYNA_REC, (offsetOrBaseReg & 0x100) == 0 || bits != 8);
 		_dbg_assert_(DYNA_REC, (customOp & 0x100) == 0 || opBits != 8);
 	} else {
 		_dbg_assert_(DYNA_REC, (offsetOrBaseReg & 0x10c) == 0 ||
-			     (offsetOrBaseReg & 0x10c) == 0x104 ||
-			     bits != 8);
+				(offsetOrBaseReg & 0x10c) == 0x104 ||
+				bits != 8);
 		_dbg_assert_(DYNA_REC, (customOp & 0x10c) == 0 ||
-			     (customOp & 0x10c) == 0x104 ||
-			     opBits != 8);
+				(customOp & 0x10c) == 0x104 ||
+				opBits != 8);
 	}
 
 #else
@@ -969,15 +969,15 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 			immToWrite = 8;
 		}
 		else if ((operand.scale == SCALE_IMM16 && bits == 16) ||
-                             (operand.scale == SCALE_IMM32 && bits == 32) || 
-                             (operand.scale == SCALE_IMM32 && bits == 64))
+				 (operand.scale == SCALE_IMM32 && bits == 32) || 
+				 (operand.scale == SCALE_IMM32 && bits == 64))
 		{
 			emit->Write8(nops[op].imm32);
 			immToWrite = bits == 16 ? 16 : 32;
 		}
 		else if ((operand.scale == SCALE_IMM8 && bits == 16) ||
-                             (operand.scale == SCALE_IMM8 && bits == 32) ||
-                             (operand.scale == SCALE_IMM8 && bits == 64))
+				 (operand.scale == SCALE_IMM8 && bits == 32) ||
+				 (operand.scale == SCALE_IMM8 && bits == 64))
 		{
 			emit->Write8(nops[op].simm8);
 			immToWrite = 8;
@@ -1471,142 +1471,142 @@ void XEmitter::RTDSC() { Write8(0x0F); Write8(0x31); }
 // helper routines for setting pointers
 void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 {
-    using namespace Gen;
+	using namespace Gen;
 #ifdef _M_X64
 
 #ifdef _MSC_VER
-    MOV(32, R(RCX), Imm32(arg0));
-    MOV(32, R(RDX), Imm32(arg1));
-    MOV(32, R(R8),  Imm32(arg2));
-    CALL(fnptr);
+	MOV(32, R(RCX), Imm32(arg0));
+	MOV(32, R(RDX), Imm32(arg1));
+	MOV(32, R(R8),  Imm32(arg2));
+	CALL(fnptr);
 #else
-    MOV(32, R(RDI), Imm32(arg0));
-    MOV(32, R(RSI), Imm32(arg1));
-    MOV(32, R(RDX), Imm32(arg2));
-    CALL(fnptr);
+	MOV(32, R(RDI), Imm32(arg0));
+	MOV(32, R(RSI), Imm32(arg1));
+	MOV(32, R(RDX), Imm32(arg2));
+	CALL(fnptr);
 #endif
 
 #else
-    ABI_AlignStack(3 * 4);
-    PUSH(32, Imm32(arg2));
-    PUSH(32, Imm32(arg1));
-    PUSH(32, Imm32(arg0));
-    CALL(fnptr);
+	ABI_AlignStack(3 * 4);
+	PUSH(32, Imm32(arg2));
+	PUSH(32, Imm32(arg1));
+	PUSH(32, Imm32(arg0));
+	CALL(fnptr);
 #ifdef _WIN32
-    // don't inc stack
+	// don't inc stack
 #else
-    ABI_RestoreStack(3 * 4);
+	ABI_RestoreStack(3 * 4);
 #endif
 #endif
 }
 
 void XEmitter::CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3)
 {
-    using namespace Gen;
+	using namespace Gen;
 #ifdef _M_X64
 
 #ifdef _MSC_VER
-    MOV(32, R(RCX), Imm32(arg0));
-    MOV(32, R(RDX), Imm32(arg1));
-    MOV(32, R(R8), Imm32(arg2));
-    MOV(32, R(R9), Imm32(arg3));
-    CALL(fnptr);
+	MOV(32, R(RCX), Imm32(arg0));
+	MOV(32, R(RDX), Imm32(arg1));
+	MOV(32, R(R8), Imm32(arg2));
+	MOV(32, R(R9), Imm32(arg3));
+	CALL(fnptr);
 #else
-    MOV(32, R(RDI), Imm32(arg0));
-    MOV(32, R(RSI), Imm32(arg1));
-    MOV(32, R(RDX), Imm32(arg2));
-    MOV(32, R(RCX), Imm32(arg3));
-    CALL(fnptr);
+	MOV(32, R(RDI), Imm32(arg0));
+	MOV(32, R(RSI), Imm32(arg1));
+	MOV(32, R(RDX), Imm32(arg2));
+	MOV(32, R(RCX), Imm32(arg3));
+	CALL(fnptr);
 #endif
 
 #else
-    ABI_AlignStack(4 * 4);
-    PUSH(32, Imm32(arg3));
-    PUSH(32, Imm32(arg2));
-    PUSH(32, Imm32(arg1));
-    PUSH(32, Imm32(arg0));
-    CALL(fnptr);
+	ABI_AlignStack(4 * 4);
+	PUSH(32, Imm32(arg3));
+	PUSH(32, Imm32(arg2));
+	PUSH(32, Imm32(arg1));
+	PUSH(32, Imm32(arg0));
+	CALL(fnptr);
 #ifdef _WIN32
-    // don't inc stack
+	// don't inc stack
 #else
-    ABI_RestoreStack(4 * 4);
+	ABI_RestoreStack(4 * 4);
 #endif
 #endif
 }
 
 void XEmitter::CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4)
 {
-    using namespace Gen;
+	using namespace Gen;
 #ifdef _M_X64
 
 #ifdef _MSC_VER
-    MOV(32, R(RCX), Imm32(arg0));
-    MOV(32, R(RDX), Imm32(arg1));
-    MOV(32, R(R8),  Imm32(arg2));
-    MOV(32, R(R9),  Imm32(arg3));
+	MOV(32, R(RCX), Imm32(arg0));
+	MOV(32, R(RDX), Imm32(arg1));
+	MOV(32, R(R8),  Imm32(arg2));
+	MOV(32, R(R9),  Imm32(arg3));
 	MOV(32, MDisp(RSP, 0x20), Imm32(arg4));
-    CALL(fnptr);
+	CALL(fnptr);
 #else
-    MOV(32, R(RDI), Imm32(arg0));
-    MOV(32, R(RSI), Imm32(arg1));
-    MOV(32, R(RDX), Imm32(arg2));
-    MOV(32, R(RCX), Imm32(arg3));
-    MOV(32, R(R8),  Imm32(arg4));
-    CALL(fnptr);
+	MOV(32, R(RDI), Imm32(arg0));
+	MOV(32, R(RSI), Imm32(arg1));
+	MOV(32, R(RDX), Imm32(arg2));
+	MOV(32, R(RCX), Imm32(arg3));
+	MOV(32, R(R8),  Imm32(arg4));
+	CALL(fnptr);
 #endif
 
 #else
-    ABI_AlignStack(5 * 4);
-    PUSH(32, Imm32(arg4));
-    PUSH(32, Imm32(arg3));
-    PUSH(32, Imm32(arg2));
-    PUSH(32, Imm32(arg1));
-    PUSH(32, Imm32(arg0));
-    CALL(fnptr);
+	ABI_AlignStack(5 * 4);
+	PUSH(32, Imm32(arg4));
+	PUSH(32, Imm32(arg3));
+	PUSH(32, Imm32(arg2));
+	PUSH(32, Imm32(arg1));
+	PUSH(32, Imm32(arg0));
+	CALL(fnptr);
 #ifdef _WIN32
-    // don't inc stack
+	// don't inc stack
 #else
-    ABI_RestoreStack(5 * 4);
+	ABI_RestoreStack(5 * 4);
 #endif
 #endif
 }
 
 void XEmitter::CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5)
 {
-    using namespace Gen;
+	using namespace Gen;
 #ifdef _M_X64
 
 #ifdef _MSC_VER
-    MOV(32, R(RCX), Imm32(arg0));
-    MOV(32, R(RDX), Imm32(arg1));
-    MOV(32, R(R8), Imm32(arg2));
-    MOV(32, R(R9), Imm32(arg3));
+	MOV(32, R(RCX), Imm32(arg0));
+	MOV(32, R(RDX), Imm32(arg1));
+	MOV(32, R(R8), Imm32(arg2));
+	MOV(32, R(R9), Imm32(arg3));
 	MOV(32, MDisp(RSP, 0x20), Imm32(arg4));
 	MOV(32, MDisp(RSP, 0x28), Imm32(arg5));
-    CALL(fnptr);
+	CALL(fnptr);
 #else
-    MOV(32, R(RDI), Imm32(arg0));
-    MOV(32, R(RSI), Imm32(arg1));
-    MOV(32, R(RDX), Imm32(arg2));
-    MOV(32, R(RCX), Imm32(arg3));
-    MOV(32, R(R8), Imm32(arg4));
-    MOV(32, R(R9), Imm32(arg5));
-    CALL(fnptr);
+	MOV(32, R(RDI), Imm32(arg0));
+	MOV(32, R(RSI), Imm32(arg1));
+	MOV(32, R(RDX), Imm32(arg2));
+	MOV(32, R(RCX), Imm32(arg3));
+	MOV(32, R(R8), Imm32(arg4));
+	MOV(32, R(R9), Imm32(arg5));
+	CALL(fnptr);
 #endif
 
 #else
-    ABI_AlignStack(6 * 4);
-    PUSH(32, Imm32(arg5));
-    PUSH(32, Imm32(arg4));
-    PUSH(32, Imm32(arg3));
-    PUSH(32, Imm32(arg2));
-    PUSH(32, Imm32(arg1));
-    PUSH(32, Imm32(arg0));
-    CALL(fnptr);
+	ABI_AlignStack(6 * 4);
+	PUSH(32, Imm32(arg5));
+	PUSH(32, Imm32(arg4));
+	PUSH(32, Imm32(arg3));
+	PUSH(32, Imm32(arg2));
+	PUSH(32, Imm32(arg1));
+	PUSH(32, Imm32(arg0));
+	CALL(fnptr);
 #ifdef _WIN32
-    // don't inc stack
+	// don't inc stack
 #else
-    ABI_RestoreStack(6 * 4);
+	ABI_RestoreStack(6 * 4);
 #endif
 #endif
 }
@@ -1615,31 +1615,31 @@ void XEmitter::CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32
 
 // See header
 void XEmitter::___CallCdeclImport3(void* impptr, u32 arg0, u32 arg1, u32 arg2) {
-    MOV(32, R(RCX), Imm32(arg0));
-    MOV(32, R(RDX), Imm32(arg1));
-    MOV(32, R(R8), Imm32(arg2));
+	MOV(32, R(RCX), Imm32(arg0));
+	MOV(32, R(RDX), Imm32(arg1));
+	MOV(32, R(R8), Imm32(arg2));
 	CALLptr(M(impptr));
 }
 void XEmitter::___CallCdeclImport4(void* impptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3) {
-    MOV(32, R(RCX), Imm32(arg0));
-    MOV(32, R(RDX), Imm32(arg1));
-    MOV(32, R(R8), Imm32(arg2));
-    MOV(32, R(R9), Imm32(arg3));
+	MOV(32, R(RCX), Imm32(arg0));
+	MOV(32, R(RDX), Imm32(arg1));
+	MOV(32, R(R8), Imm32(arg2));
+	MOV(32, R(R9), Imm32(arg3));
 	CALLptr(M(impptr));
 }
 void XEmitter::___CallCdeclImport5(void* impptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4) {
-    MOV(32, R(RCX), Imm32(arg0));
-    MOV(32, R(RDX), Imm32(arg1));
-    MOV(32, R(R8), Imm32(arg2));
-    MOV(32, R(R9), Imm32(arg3));
+	MOV(32, R(RCX), Imm32(arg0));
+	MOV(32, R(RDX), Imm32(arg1));
+	MOV(32, R(R8), Imm32(arg2));
+	MOV(32, R(R9), Imm32(arg3));
 	MOV(32, MDisp(RSP, 0x20), Imm32(arg4));
 	CALLptr(M(impptr));
 }
 void XEmitter::___CallCdeclImport6(void* impptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5) {
-    MOV(32, R(RCX), Imm32(arg0));
-    MOV(32, R(RDX), Imm32(arg1));
-    MOV(32, R(R8), Imm32(arg2));
-    MOV(32, R(R9), Imm32(arg3));
+	MOV(32, R(RCX), Imm32(arg0));
+	MOV(32, R(RDX), Imm32(arg1));
+	MOV(32, R(R8), Imm32(arg2));
+	MOV(32, R(R9), Imm32(arg3));
 	MOV(32, MDisp(RSP, 0x20), Imm32(arg4));
 	MOV(32, MDisp(RSP, 0x28), Imm32(arg5));
 	CALLptr(M(impptr));

@@ -50,7 +50,8 @@ bool CompileVertexShader(const char *code, int len, u8 **bytecode, int *bytecode
 		static int num_failures = 0;
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sbad_vs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-		std::ofstream file(szTemp);
+		std::ofstream file;
+		OpenFStream(file, szTemp, std::ios_base::out);
 		file << code;
 		file.close();
 
@@ -105,7 +106,8 @@ bool CompilePixelShader(const char *code, int len, u8 **bytecode, int *bytecodel
 		static int num_failures = 0;
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sbad_ps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-		std::ofstream file(szTemp);
+		std::ofstream file;
+		OpenFStream(file, szTemp, std::ios_base::out);
 		file << code;
 		file.close();
 

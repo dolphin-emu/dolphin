@@ -26,7 +26,7 @@
 #include <set>
 #include <string.h>
 
-#define	MAX_MESSAGES 8000   
+#define MAX_MESSAGES 8000
 #define MAX_MSGLEN  1024
 
 
@@ -46,7 +46,7 @@ public:
 
 	void Log(LogTypes::LOG_LEVELS, const char *msg);
 
-	bool IsValid() { return (m_logfile != NULL); }
+	bool IsValid() { return (bool)m_logfile; }
 	bool IsEnabled() const { return m_enable; }
 	void SetEnable(bool enable) { m_enable = enable; }
 

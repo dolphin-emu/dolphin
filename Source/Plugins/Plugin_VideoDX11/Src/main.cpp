@@ -103,15 +103,13 @@ void InitBackendInfo()
 	if (FAILED(hr))
 		PanicAlert("Failed to create IDXGIFactory object");
 
-	char tmpstr[512] = {};
-	DXGI_ADAPTER_DESC desc;
 	// adapters
 	g_Config.backend_info.Adapters.clear();
 	g_Config.backend_info.AAModes.clear();
 	while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
 	{
+		DXGI_ADAPTER_DESC desc;
 		ad->GetDesc(&desc);
-		WideCharToMultiByte(/*CP_UTF8*/CP_ACP, 0, desc.Description, -1, tmpstr, 512, 0, false);
 
 		// TODO: These don't get updated on adapter change, yet
 		if (g_Config.backend_info.Adapters.size() == g_Config.iAdapter)
@@ -121,14 +119,14 @@ void InitBackendInfo()
 			modes = DX11::D3D::EnumAAModes(ad);
 			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
-				if (i == 0) sprintf_s(buf, 32, "None");
-				else if (modes[i].Quality) sprintf_s(buf, 32, "%d samples (quality level %d)", modes[i].Count, modes[i].Quality);
-				else sprintf_s(buf, 32, "%d samples", modes[i].Count);
+				if (i == 0) sprintf_s(buf, 32, _trans("None"));
+				else if (modes[i].Quality) sprintf_s(buf, 32, _trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
+				else sprintf_s(buf, 32, _trans("%d samples"), modes[i].Count);
 				g_Config.backend_info.AAModes.push_back(buf);
 			}
 		}
 
-		g_Config.backend_info.Adapters.push_back(tmpstr);
+		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
 		ad->Release();
 	}
 
@@ -210,6 +208,7 @@ void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
 
+	// TODO: should be in Video_Cleanup
 	if (g_renderer)
 	{
 		s_efbAccessRequested = FALSE;
@@ -236,6 +235,9 @@ void VideoBackend::Shutdown()
 		g_renderer = NULL;
 		g_texture_cache = NULL;
 	}
+}
+
+void VideoBackend::Video_Cleanup() {
 }
 
 }

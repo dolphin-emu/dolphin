@@ -318,11 +318,11 @@ static void gdsp_do_dma()
 
 	if (len > 0x4000)
 	{
-		ERROR_LOG(DSPLLE, "DMA ERROR pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
+		ERROR_LOG(DSPLLE, "DMA ERROR: PC: %04x, Control: %04x, Address: %08x, DSP Address: %04x, Size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 		exit(0);
 	}
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	DEBUG_LOG(DSPLLE, "DMA pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
+	DEBUG_LOG(DSPLLE, "DMA pc: %04x, Control: %04x, Address: %08x, DSP Address: %04x, Size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 #endif
 	switch (ctl & 0x3)
 	{

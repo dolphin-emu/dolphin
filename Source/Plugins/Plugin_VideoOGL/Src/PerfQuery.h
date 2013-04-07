@@ -26,7 +26,7 @@ private:
 	};
 
 	// when testing in SMS: 64 was too small, 128 was ok
-	static const int PERF_QUERY_BUFFER_SIZE = 512;
+	static const u32 PERF_QUERY_BUFFER_SIZE = 512;
 
 	void WeakFlush();
 	// Only use when non-empty
@@ -34,10 +34,10 @@ private:
 
 	// This contains gl query objects with unretrieved results.
 	ActiveQuery m_query_buffer[PERF_QUERY_BUFFER_SIZE];
-	int m_query_read_pos;
+	u32 m_query_read_pos;
 
 	// TODO: sloppy
-	volatile int m_query_count;
+	volatile u32 m_query_count;
 	volatile u32 m_results[PQG_NUM_MEMBERS];
 };
 

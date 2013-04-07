@@ -41,20 +41,6 @@
 #define WM_SET_REPORT				0xA0
 #endif
 
-// TODO: duplicated in WiimoteHid.h
-// Commands
-#define WM_CMD_RUMBLE				0x10
-#define WM_CMD_LED					0x11
-#define WM_CMD_REPORT_TYPE			0x12
-#define WM_CMD_IR					0x13
-#define WM_CMD_SPEAKER_ENABLE		0x14
-#define WM_CMD_CTRL_STATUS			0x15
-#define WM_CMD_WRITE_DATA			0x16
-#define WM_CMD_READ_DATA			0x17
-#define WM_CMD_SPEAKER_DATA			0x18
-#define WM_CMD_SPEAKER_MUTE			0x19
-#define WM_CMD_IR_2					0x1A
-
 #define WM_BT_INPUT					0x01
 #define WM_BT_OUTPUT				0x02
 
@@ -73,12 +59,12 @@
 
 #ifdef _WIN32
 // Available bluetooth stacks for Windows.
-typedef enum win_bt_stack_t
+enum win_bt_stack_t
 {
 	MSBT_STACK_UNKNOWN,
 	MSBT_STACK_MS,
 	MSBT_STACK_BLUESOLEIL
-} win_bt_stack_t;
+};
 #endif
 
 #endif // WIIMOTE_COMM_H

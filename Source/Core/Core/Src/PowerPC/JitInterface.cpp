@@ -81,6 +81,7 @@ namespace JitInterface
 			default:
 			{
 				PanicAlert("Unrecognizable cpu_core: %d", core);
+				jit = NULL;
 				return NULL;
 				break;
 			}
@@ -158,7 +159,7 @@ namespace JitInterface
 		File::IOFile f(filename, "w");
 		if (!f)
 		{
-			PanicAlert("failed to open %s", filename);
+			PanicAlert("Failed to open %s", filename);
 			return;
 		}
 		fprintf(f.GetHandle(), "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");

@@ -73,7 +73,7 @@ bool WaveFileWriter::Start(const char *filename, unsigned int HLESampleRate)
 
 	// We are now at offset 44
 	if (file.Tell() != 44)
-		PanicAlert("wrong offset: %lld", (long long)file.Tell());
+		PanicAlert("Wrong offset: %lld", (long long)file.Tell());
 
 	return true;
 }
@@ -104,21 +104,21 @@ void WaveFileWriter::AddStereoSamples(const short *sample_data, u32 count)
 {
 	if (!file)
 		PanicAlertT("WaveFileWriter - file not open.");
-	
+
 	if (skip_silence)
 	{
 		bool all_zero = true;
-		
+
 		for (u32 i = 0; i < count * 2; i++)
 		{
 			if (sample_data[i])
 				all_zero = false;
 		}
-		
+
 		if (all_zero)
 			return;
 	}
-	
+
 	file.WriteBytes(sample_data, count * 4);
 	audio_size += count * 4;
 }
@@ -134,7 +134,7 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count)
 	if (skip_silence) 
 	{
 		bool all_zero = true;
-		
+
 		for (u32 i = 0; i < count * 2; i++)
 		{
 			if (sample_data[i])

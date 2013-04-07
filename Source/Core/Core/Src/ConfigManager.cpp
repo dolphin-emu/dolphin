@@ -137,7 +137,7 @@ void SConfig::SaveSettings()
 	ini.Get("General", "GCMPathes", &oldPaths, 0);
 	for (int i = numPaths; i < oldPaths; i++)
 	{
-		TCHAR tmp[16];
+		char tmp[16];
 		sprintf(tmp, "GCMPath%i", i);
 		ini.DeleteKey("General", tmp);
 	}
@@ -146,7 +146,7 @@ void SConfig::SaveSettings()
 
 	for (int i = 0; i < numPaths; i++)
 	{
-		TCHAR tmp[16];
+		char tmp[16];
 		sprintf(tmp, "GCMPath%i", i);
 		ini.Set("General", tmp, m_ISOFolder[i]);
 	}
@@ -284,7 +284,7 @@ void SConfig::LoadSettings()
 		{
 			for (int i = 0; i < numGCMPaths; i++)
 			{
-				TCHAR tmp[16];
+				char tmp[16];
 				sprintf(tmp, "GCMPath%i", i);
 				std::string tmpPath;
 				ini.Get("General", tmp, &tmpPath, "");
@@ -404,6 +404,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
 		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeam,			false);
+		ini.Get("Core", "SyncGPU",			&m_LocalCoreStartupParameter.bSyncGPU,			false);
 		ini.Get("Core", "FastDiscSpeed",	&m_LocalCoreStartupParameter.bFastDiscSpeed,	false);
 		ini.Get("Core", "DCBZ",				&m_LocalCoreStartupParameter.bDCBZOFF,			false);
 		ini.Get("Core", "FrameLimit",		&m_Framelimit,									1); // auto frame limit by default
@@ -413,7 +414,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "GFXBackend",  &m_LocalCoreStartupParameter.m_strVideoBackend, "");
 
 		// Movie
-		ini.Get("General", "PauseMovie", &m_PauseMovie, false);
+		ini.Get("Movie", "PauseMovie", &m_PauseMovie, false);
 		ini.Get("Movie", "Author", &m_strMovieAuthor, "");
 
 		// DSP

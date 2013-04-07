@@ -99,7 +99,7 @@ void Init()
 	m_ResetCode = 0x80000000; // Cold reset
 	m_InterruptCause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
 
-	toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", &ToggleResetButtonCallback);
+	toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
@@ -124,28 +124,28 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case PI_FIFO_BASE:
-		DEBUG_LOG(PROCESSORINTERFACE, "read cpu fifo base, value = %08x", Fifo_CPUBase);
+		DEBUG_LOG(PROCESSORINTERFACE, "Read CPU FIFO base, value = %08x", Fifo_CPUBase);
 		_uReturnValue = Fifo_CPUBase;
 		return;
 
 	case PI_FIFO_END:
-		DEBUG_LOG(PROCESSORINTERFACE, "read cpu fifo end, value = %08x", Fifo_CPUEnd);
+		DEBUG_LOG(PROCESSORINTERFACE, "Read CPU FIFO end, value = %08x", Fifo_CPUEnd);
 		_uReturnValue = Fifo_CPUEnd;
 		return;
 
 	case PI_FIFO_WPTR:
-		DEBUG_LOG(PROCESSORINTERFACE, "read writepointer, value = %08x", Fifo_CPUWritePointer);
+		DEBUG_LOG(PROCESSORINTERFACE, "Read writepointer, value = %08x", Fifo_CPUWritePointer);
 		_uReturnValue = Fifo_CPUWritePointer;  //really writes in 32-byte chunks
 		// Monk's gcube does some crazy align trickery here.
 		return;
 
 	case PI_RESET_CODE:
-		INFO_LOG(PROCESSORINTERFACE, "read reset code, 0x%08x", m_ResetCode);
+		INFO_LOG(PROCESSORINTERFACE, "Read reset code, 0x%08x", m_ResetCode);
 		_uReturnValue = m_ResetCode;
 		return;
 
 	case PI_FLIPPER_REV:
-		INFO_LOG(PROCESSORINTERFACE, "read flipper rev, 0x%08x", m_FlipperRev);
+		INFO_LOG(PROCESSORINTERFACE, "Read flipper rev, 0x%08x", m_FlipperRev);
 		_uReturnValue = m_FlipperRev;
 		return;
 		
@@ -202,7 +202,7 @@ void Write32(const u32 _uValue, const u32 _iAddress)
 		break;
 
 	case PI_FLIPPER_UNK:
-		DEBUG_LOG(PROCESSORINTERFACE, "write %08x to unknown PI reg %08x", _uValue, _iAddress);
+		DEBUG_LOG(PROCESSORINTERFACE, "Write %08x to unknown PI register %08x", _uValue, _iAddress);
 		break;
 
 	default:

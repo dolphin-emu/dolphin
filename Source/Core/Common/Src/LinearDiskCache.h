@@ -21,11 +21,8 @@
 #include "Common.h"
 #include <fstream>
 
-// Increment this every time you change shader generation code.
-enum
-{
-	LINEAR_DISKCACHE_VER = 6982
-};
+// defined in Version.cpp
+extern const char *scm_rev_git_str;
 
 // On disk format:
 //header{
@@ -74,7 +71,7 @@ public:
 		m_num_entries = 0;
 
 		// try opening for reading/writing
-		m_file.open(filename, ios_base::in | ios_base::out | ios_base::binary);
+		OpenFStream(m_file, filename, ios_base::in | ios_base::out | ios_base::binary);
 
 		m_file.seekg(0, std::ios::end);
 		std::fstream::pos_type end_pos = m_file.tellg();
@@ -187,13 +184,15 @@ private:
 	{
 		Header()
 			: id(*(u32*)"DCAC")
-			, ver(LINEAR_DISKCACHE_VER)
 			, key_t_size(sizeof(K))
 			, value_t_size(sizeof(V))
-		{}
+		{
+			memcpy(ver, scm_rev_git_str, 40);
+		}
 
-		const u32 id, ver;
+		const u32 id;
 		const u16 key_t_size, value_t_size;
+		char ver[40];
 
 	} m_header;
 

@@ -9,7 +9,7 @@ PerfQuery::PerfQuery()
 	: m_query_read_pos()
 	, m_query_count()
 {
-	for (int i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
+	for (u32 i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
 		glGenQueries(1, &m_query_buffer[i].query_id);
 	
 	ResetQuery();
@@ -17,7 +17,7 @@ PerfQuery::PerfQuery()
 
 PerfQuery::~PerfQuery()
 {
-	for (int i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
+	for (u32 i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
 		glDeleteQueries(1, &m_query_buffer[i].query_id);
 }
 
@@ -30,7 +30,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 	if (ARRAYSIZE(m_query_buffer) == m_query_count)
 	{
 		FlushOne();
-		//ERROR_LOG(VIDEO, "flushed query buffer early!");
+		//ERROR_LOG(VIDEO, "Flushed query buffer early!");
 	}
 	
 	// start query

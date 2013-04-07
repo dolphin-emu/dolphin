@@ -53,8 +53,8 @@ char *Statistics::ToString(char *ptr)
 	ptr+=sprintf(ptr,"pshaders (unique, delete cache first): %i\n",stats.numUniquePixelShaders);
 	ptr+=sprintf(ptr,"vshaders created: %i\n",stats.numVertexShadersCreated);
 	ptr+=sprintf(ptr,"vshaders alive: %i\n",stats.numVertexShadersAlive);
-    ptr+=sprintf(ptr,"dlists called:    %i\n",stats.numDListsCalled);
-    ptr+=sprintf(ptr,"dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
+	ptr+=sprintf(ptr,"dlists called:    %i\n",stats.numDListsCalled);
+	ptr+=sprintf(ptr,"dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
 	ptr+=sprintf(ptr,"dlists alive:     %i\n",stats.numDListsAlive);
 	ptr+=sprintf(ptr,"primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
 	ptr+=sprintf(ptr,"draw calls:       %i\n",stats.thisFrame.numDrawCalls);

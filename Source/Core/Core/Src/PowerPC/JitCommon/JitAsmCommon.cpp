@@ -32,6 +32,7 @@
 #include "../../HW/GPFifo.h"
 #include "../../Core.h"
 #include "JitAsmCommon.h"
+#include "JitBase.h"
 
 using namespace Gen;
 

@@ -159,9 +159,15 @@ void VideoSoftware::EmuStateChange(EMUSTATE_CHANGE newState)
 
 void VideoSoftware::Shutdown()
 {
+	// TODO: should be in Video_Cleanup
 	HwRasterizer::Shutdown();
 	SWRenderer::Shutdown();
+	
 	GLInterface->Shutdown();
+}
+
+void VideoSoftware::Video_Cleanup()
+{
 }
 
 // This is called after Video_Initialize() from the Core
@@ -169,8 +175,10 @@ void VideoSoftware::Video_Prepare()
 {
 	GLInterface->MakeCurrent();
 	// Init extension support.
-	// Required for WGL SwapInterval
 #ifndef USE_GLES
+#ifdef __APPLE__
+	glewExperimental = 1;
+#endif
 	if (glewInit() != GLEW_OK) {
 		ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
 		return;

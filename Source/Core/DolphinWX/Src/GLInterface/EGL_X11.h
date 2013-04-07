@@ -20,6 +20,7 @@
 #include <EGL/egl.h>
 #ifdef USE_GLES
 #include <GLES2/gl2.h>
+#include <X11/Xutil.h>
 #else
 #include <GL/glxew.h>
 #include <GL/gl.h>

@@ -22,6 +22,7 @@
 #include "FifoPlayer/FifoPlayer.h"
 #include "FifoPlayer/FifoRecorder.h"
 #include "OpcodeDecoding.h"
+#include "WxUtils.h"
 
 #include <wx/spinctrl.h>
 #include <wx/clipbrd.h>
@@ -395,7 +396,7 @@ void FifoPlayerDlg::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 		if (!path.empty())
 		{
 			wxBeginBusyCursor();
-			bool result = file->Save(path.mb_str());
+			bool result = file->Save(WxStrToStr(path).c_str());
 			wxEndBusyCursor();
 			
 			if (!result)
@@ -752,10 +753,10 @@ void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
 		char name[64]="\0", desc[512]="\0";
 		GetBPRegInfo(cmddata+1, name, sizeof(name), desc, sizeof(desc));
 		newLabel = _("BP register ");
-		newLabel += (name[0] != '\0') ? wxString(name, *wxConvCurrent) : wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1));
+		newLabel += (name[0] != '\0') ? StrToWxStr(name) : wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1));
 		newLabel += wxT(":\n");
 		if (desc[0] != '\0')
-			newLabel += wxString(desc, *wxConvCurrent);
+			newLabel += StrToWxStr(desc);
 		else
 			newLabel += _("No description available");
 	}

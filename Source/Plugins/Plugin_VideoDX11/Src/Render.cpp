@@ -715,12 +715,12 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	if (bpmem.blendmode.logicopenable && !forceUpdate)
 		return;
 
-	if (bpmem.blendmode.subtract)  // enable blending src 1 dst 1
+	if (bpmem.blendmode.subtract)
 	{
 		gx_state.blenddc.RenderTarget[0].BlendEnable = true;
 		SetBlendOp(D3D11_BLEND_OP_REV_SUBTRACT);
-		SetSrcBlend(d3dSrcFactors[1]);
-		SetDestBlend(d3dDestFactors[1]);
+		SetSrcBlend(D3D11_BLEND_ONE);
+		SetDestBlend(D3D11_BLEND_ONE);
 	}
 	else
 	{

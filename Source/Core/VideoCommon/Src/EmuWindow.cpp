@@ -80,7 +80,7 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 	static bool mouseLookEnabled = false;
 	static bool mouseMoveEnabled = false;
 	static float lastMouse[2];
-	POINT point;	
+	POINT point;
 	switch(iMsg)
 	{
 	case WM_USER_KEYDOWN:
@@ -133,7 +133,7 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 		lastMouse[1] = (float)point.y;
 		mouseLookEnabled= true;
 		break;
-	case WM_MBUTTONDOWN:		
+	case WM_MBUTTONDOWN:
 		GetCursorPos(&point);
 		lastMouse[0] = (float)point.x;
 		lastMouse[1] = (float)point.y;
@@ -247,7 +247,7 @@ void OSDMenu(WPARAM wParam)
 		OSDChoice = 1;
 		// Toggle native resolution
 		g_Config.iEFBScale = g_Config.iEFBScale + 1;
-		if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
+		if (g_Config.iEFBScale > SCALE_4X) g_Config.iEFBScale = SCALE_AUTO;
 		break;
 	case '4':
 		OSDChoice = 2;

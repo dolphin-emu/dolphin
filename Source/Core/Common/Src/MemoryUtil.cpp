@@ -155,9 +155,7 @@ void FreeAlignedMemory(void* ptr)
 	if (ptr)
 	{
 #ifdef _WIN32
-	
-		_aligned_free(ptr);
-	
+	_aligned_free(ptr);
 #else
 	free(ptr);
 #endif

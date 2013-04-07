@@ -517,7 +517,7 @@ inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 * src2)
 {
 #if 0
 	for (int x = 0; x < 4; x++) {
-		dst[x] =  ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00)>>8)  | (src2[x] << 8);		
+		dst[x] =  ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00)>>8)  | (src2[x] << 8);
 	}
 #else
 	dst[0] =  ((src[0] & 0xFF) << 24) | ((src[0] & 0xFF00)>>8)  | (src2[0] << 8);
@@ -556,7 +556,7 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 	{
 		int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
 		int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
-		int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);        
+		int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);
 		colors[2] = makecol(red1 + red3, green1 + green3, blue1 + blue3, 255);
 		colors[3] = makecol(red2 - red3, green2 - green3, blue2 - blue3, 255); 
 	}
@@ -2140,7 +2140,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 	u32 base = (tBlk * widthBlks + sBlk) * blockWidth * blockHeight;
 	u16 blkS = s & (blockWidth - 1);
 	u16 blkT =  t & (blockHeight - 1);
-	u32 blkOff = blkT * blockWidth + blkS;    
+	u32 blkOff = blkT * blockWidth + blkS;
 	*/
 
 	switch (texformat)
@@ -2154,9 +2154,9 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u16 blkS = s & 7;
 			u16 blkT =  t & 7;
 			u32 blkOff = (blkT << 3) + blkS;
-			
+
 			int rs = (blkOff & 1)?0:4;
-			u32 offset = base + (blkOff >> 1);            
+			u32 offset = base + (blkOff >> 1);
 
 			u8 val = (*(src + offset) >> rs) & 0xF;
 			u16 *tlut = (u16*)(texMem + tlutaddr);
@@ -2166,7 +2166,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			case 0:
 				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
 				break;
-			case 1:                
+			case 1:
 				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
 				break;
 			case 2:
@@ -2184,9 +2184,9 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u16 blkS = s & 7;
 			u16 blkT =  t & 7;
 			u32 blkOff = (blkT << 3) + blkS;
-			
+
 			int rs = (blkOff & 1)?0:4;
-			u32 offset = base + (blkOff >> 1);            
+			u32 offset = base + (blkOff >> 1);
 
 			u8 val = (*(src + offset) >> rs) & 0xF;
 			val = Convert4To8(val);
@@ -2205,7 +2205,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u16 blkS = s & 7;
 			u16 blkT =  t & 3;
 			u32 blkOff = (blkT << 3) + blkS;
-			
+
 			u8 val = *(src + base + blkOff);
 			dst[0] = val;
 			dst[1] = val;
@@ -2222,7 +2222,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u16 blkS = s & 7;
 			u16 blkT =  t & 3;
 			u32 blkOff = (blkT << 3) + blkS;
-			
+
 			u8 val = *(src + base + blkOff);
 			u16 *tlut = (u16*)(texMem + tlutaddr);
 
@@ -2231,7 +2231,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			case 0:
 				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
 				break;
-			case 1:                
+			case 1:
 				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
 				break;
 			case 2:
@@ -2249,7 +2249,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u16 blkS = s & 7;
 			u16 blkT =  t & 3;
 			u32 blkOff = (blkT << 3) + blkS;
-			
+
 			u8 val = *(src + base + blkOff);
 			const u8 a = Convert4To8(val>>4);
 			const u8 l = Convert4To8(val&0xF);
@@ -2268,7 +2268,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u16 blkS = s & 3;
 			u16 blkT =  t & 3;
 			u32 blkOff = (blkT << 2) + blkS;
-			
+
 			u32 offset = (base + blkOff) << 1;
 			const u16* valAddr = (u16*)(src + offset);
 
@@ -2284,7 +2284,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u16 blkS = s & 3;
 			u16 blkT =  t & 3;
 			u32 blkOff = (blkT << 2) + blkS;
-			
+
 			u32 offset = (base + blkOff) << 1;
 			const u16* valAddr = (u16*)(src + offset);
 
@@ -2296,7 +2296,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			case 0:
 				*((u32*)dst) = decodeIA8Swapped(tlut[val]);
 				break;
-			case 1:                
+			case 1:
 				*((u32*)dst) = decode565RGBA(Common::swap16(tlut[val]));
 				break;
 			case 2:
@@ -2314,7 +2314,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u16 blkS = s & 3;
 			u16 blkT =  t & 3;
 			u32 blkOff = (blkT << 2) + blkS;
-			
+
 			u32 offset = (base + blkOff) << 1;
 			const u16* valAddr = (u16*)(src + offset);
 
@@ -2372,7 +2372,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			u32 offset = (base + blkOff) << 3;
 
 			const DXTBlock* dxtBlock = (const DXTBlock*)(src + offset);
-				
+
 			u16 c1 = Common::swap16(dxtBlock->color1);
 			u16 c2 = Common::swap16(dxtBlock->color2);
 			int blue1 = Convert5To8(c1 & 0x1F);
@@ -2391,7 +2391,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			colorSel |= c1 > c2?0:4;
 
 			u32 color = 0;
-			
+
 			switch (colorSel)
 			{
 				case 0:
