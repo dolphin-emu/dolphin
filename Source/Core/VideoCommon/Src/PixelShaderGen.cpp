@@ -390,7 +390,7 @@ static const char *tevCInputTable[] = // CC
 	"float3(0.5f, 0.5f, 0.5f)",              // HALF
 	"(konsttemp.rgb)", //"konsttemp.rgb",    // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
-	///aded extra values to map clamped values
+	///added extra values to map clamped values
 	"(cprev.rgb)",        // CPREV,
 	"(cprev.aaa)",        // APREV,
 	"(cc0.rgb)",          // C0,
@@ -1336,7 +1336,7 @@ static void WriteFog(char *&p)
 
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
 	// ze *= x_adjust
-	//this is complitly teorical as the real hard seems to use a table intead of calculate the values.
+	//this is completely theoretical as the real hardware seems to use a table instead of calculating the values.
 	if (bpmem.fogRange.Base.Enabled)
 	{
 		WRITE (p, "\tfloat x_adjust = (2.0f * (clipPos.x / " I_FOG"[2].y)) - 1.0f - " I_FOG"[2].x;\n");

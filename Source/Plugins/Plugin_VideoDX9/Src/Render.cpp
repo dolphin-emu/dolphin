@@ -455,7 +455,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	}
 	else if(type == PEEK_COLOR)
 	{
-		// We can't directly StretchRect to System buf because is not suported by all implementations
+		// We can't directly StretchRect to System buf because is not supported by all implementations
 		// this is the only safe path that works in most cases
 		hr = D3D::dev->StretchRect(pEFBSurf, &RectToLock, pBufferRT, NULL, D3DTEXF_NONE);
 		D3D::dev->GetRenderTargetData(pBufferRT, pSystemBuf);
@@ -665,8 +665,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
 	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
 	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
-	//bDstAlphaPass is taked in account because the ability of disabling alpha composition is
-	//really usefull for debuging shader and blending errors
+	//bDstAlphaPass is taken into account because the ability to disable alpha composition is
+	//really useful for debugging shader and blending errors
 	bool use_DstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
 	bool use_DualSource = use_DstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 	const D3DBLEND d3dSrcFactors[8] =
@@ -1133,7 +1133,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 		if(bpmem.zmode.testenable && bpmem.zmode.updateenable)
 		{
 			// This is needed to draw to the correct pixels in multi-pass algorithms
-			// to avoid z-figthing and grants that you write to the same pixels
+			// to avoid z-fighting and grants that you write to the same pixels
 			// affected by the last pass
 			D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);
 			D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_EQUAL);
@@ -1327,7 +1327,7 @@ void Renderer::SetLineWidth()
 	// We can't change line width in D3D unless we use ID3DXLine
 	float fratio = xfregs.viewport.wd != 0 ? Renderer::EFBToScaledXf(1.f) : 1.0f;
 	float psize = bpmem.lineptwidth.linesize * fratio / 6.0f;
-	//little hack to compensate scalling problems in dx9 must be taken out when scalling is fixed.
+	//little hack to compensate scaling problems in dx9 must be taken out when scaling is fixed.
 	psize *= 2.0f;
 	if (psize > m_fMaxPointSize)
 	{
