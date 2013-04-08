@@ -71,37 +71,46 @@ MOVUPS(MOffset(EDI, 0), XMM0);
 
 									 */
 
-template <typename F, typename T, int N, int frac, bool has_frac>
+template <typename F, typename T, int N, int frac, bool has_frac, bool apply_frac>
 void LOADERDECL Pos_ReadDirect()
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
+	static_assert(!has_frac || !apply_frac, "calculating frac on cpu and gpu doesn't make sense");
 
 	for (int i = 0; i < 3; ++i)
-		DataWrite<F>(i<N ? DataRead<T>() : 0);
+	{
+		F raw_value = i<N ? DataRead<T>() : 0;
+		if(apply_frac)
+			raw_value /= (1u<<frac);
+		DataWrite<F>(raw_value);
+	}
 	
 	if(has_frac)
 		DataWrite<F>(frac+1);
 	LOG_VTX();
 }
 
-template <typename F, typename I, typename T, int N, int frac, bool has_frac>
+template <typename F, typename I, typename T, int N, int frac, bool has_frac, bool apply_frac>
 void LOADERDECL Pos_ReadIndex()
 {
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
 	static_assert(N <= 3, "N > 3 is not sane!");
+	static_assert(!has_frac || !apply_frac, "calculating frac on cpu and gpu doesn't make sense");
 
 	auto const index = DataRead<I>();
-	if (index < std::numeric_limits<I>::max())
+	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
+
+	for (int i = 0; i < 3; ++i)
 	{
-		auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
-
-		for (int i = 0; i < 3; ++i)
-			DataWrite<F>(i<N ? Common::FromBigEndian(data[i]) : 0);
-
-		if(has_frac)
-			DataWrite<F>(frac+1);
-		LOG_VTX();
+		F raw_value = i<N ? Common::FromBigEndian(data[i]) : 0;
+		if(apply_frac)
+			raw_value /= (1u<<frac);
+		DataWrite<F>(raw_value);
 	}
+
+	if(has_frac)
+		DataWrite<F>(frac+1);
+	LOG_VTX();
 }
 
 #if _M_SSE >= 0x301
@@ -126,37 +135,51 @@ void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 
 static AttributeLoaderDeclaration table[3][5][2][32];
 
-template <typename F, int formatnr, int formatsize, int N, int frac, int fracnr, VarType gltype, typename T, bool has_frac> void set_table()
+template <typename F, int formatnr, int N, int frac, typename T, bool has_frac, bool apply_frac> void set_table()
 {
-	table[0][formatnr][N-2][fracnr].func = Pos_ReadDirect<F, T, N, frac, has_frac>;
-	table[1][formatnr][N-2][fracnr].func = Pos_ReadIndex<F, u8, T, N, frac, has_frac>;
-	table[2][formatnr][N-2][fracnr].func = Pos_ReadIndex<F, u16, T, N, frac, has_frac>;
+	// if frac isn't used (float->float), we don't have to generate all template function
+	const int frac_factor = (has_frac || apply_frac) ? frac : 0;
+	
+	table[0][formatnr][N-2][frac].func = Pos_ReadDirect<F, T, N, frac_factor, has_frac, apply_frac>;
+	table[1][formatnr][N-2][frac].func = Pos_ReadIndex<F, u8, T, N, frac_factor, has_frac, apply_frac>;
+	table[2][formatnr][N-2][frac].func = Pos_ReadIndex<F, u16, T, N, frac_factor, has_frac, apply_frac>;
 	
 	for(u32 i=0; i<3; i++)
 	{
-		table[i][formatnr][N-2][fracnr].attr.count = 3+has_frac;
-		table[i][formatnr][N-2][fracnr].attr.type = gltype;
-		table[i][formatnr][N-2][fracnr].attr.normalized = false;
-		table[i][formatnr][N-2][fracnr].native_size = i;
-		table[i][formatnr][N-2][fracnr].gl_size = sizeof(F)*(3+has_frac);
+		table[i][formatnr][N-2][frac].attr.count = 3+has_frac;
+		table[i][formatnr][N-2][frac].attr.type = getVarType<F>();
+		table[i][formatnr][N-2][frac].attr.normalized = false;
+		table[i][formatnr][N-2][frac].native_size = i;
+		table[i][formatnr][N-2][frac].gl_size = sizeof(F)*(3+has_frac);
 	}
 	
-	table[0][formatnr][N-2][fracnr].native_size = formatsize*N;
+	table[0][formatnr][N-2][frac].native_size = sizeof(T)*N;
 }
 
 // dx9 doesn't support signed bytes, so we have to convert them to shorts
 template <int N, int frac> void set_table_formats()
 {
-	set_table<u8, 0, 1, N, frac, frac, VAR_UNSIGNED_BYTE, u8, 1>();
-	if(g_ActiveConfig.backend_info.APIType & API_D3D9) {
-		set_table<s8, 1, 1, N, frac, frac, VAR_SHORT, s16, 1>();
-	} else {
-		set_table<s8, 1, 1, N, frac, frac, VAR_BYTE, s8, 1>();
+	if(!g_ActiveConfig.backend_info.APIType) // video software
+	{
+		// videosoftware only supports floats, so convert ...
+		set_table<float, 0, N, frac, u8, 0, 1>();
+		set_table<float, 1, N, frac, s8, 0, 1>();
+		set_table<float, 2, N, frac, u16, 0, 1>();
+		set_table<float, 3, N, frac, s16, 0, 1>();
 	}
-	set_table<u16, 2, 2, N, frac, frac, VAR_UNSIGNED_SHORT, u16, 1>();
-	set_table<s16, 3, 2, N, frac, frac, VAR_SHORT, s16, 1>();
-	set_table<float, 4, 4, N, 0, frac, VAR_FLOAT, float, 0>();
-	
+	else
+	{
+		set_table<u8, 0, N, frac, u8, 1, 0>();
+		if(g_ActiveConfig.backend_info.APIType & API_D3D9) {
+			// dx9 doesn't support s8, so convert it to s16
+			set_table<s16, 1, N, frac, s8, 1, 0>();
+		} else {
+			set_table<s8, 1, N, frac, s8, 1, 0>();
+		}
+		set_table<u16, 2, N, frac, u16, 1, 0>();
+		set_table<s16, 3, N, frac, s16, 1, 0>();
+	}
+	set_table<float, 4, N, frac, float, 0, 0>();
 	#if _M_SSE >= 0x301
 	if (cpu_info.bSSSE3) {
 		table[1][4][0][frac].func = Pos_ReadIndex_Float_SSSE3<u8, false>;
