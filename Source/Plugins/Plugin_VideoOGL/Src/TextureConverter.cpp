@@ -66,9 +66,9 @@ static int s_cached_srcWidth = 0;
 static int s_cached_srcHeight = 0;
 
 static const char *VProgram =
-	"in vec2 rawpos;\n"
-	"in vec2 tex0;\n"
-	"out vec2 uv0;\n"
+	"ATTRIN vec2 rawpos;\n"
+	"ATTRIN vec2 tex0;\n"
+	"VARYOUT vec2 uv0;\n"
 	"void main()\n"
 	"{\n"
 	"	uv0 = tex0;\n"
@@ -80,8 +80,8 @@ void CreatePrograms()
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *FProgramRgbToYuyv =
 		"uniform sampler2DRect samp9;\n"
-		"in vec2 uv0;\n"
-		"out vec4 ocol0;\n"
+		"VARYIN vec2 uv0;\n"
+		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
 		"	vec3 c0 = texture2DRect(samp9, uv0).rgb;\n"
@@ -96,8 +96,8 @@ void CreatePrograms()
 
 	const char *FProgramYuyvToRgb =
 		"uniform sampler2DRect samp9;\n"
-		"in vec2 uv0;\n"
-		"out vec4 ocol0;\n"
+		"VARYIN vec2 uv0;\n"
+		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
 		"	vec4 c0 = texture2DRect(samp9, uv0).rgba;\n"

@@ -349,6 +349,28 @@ Renderer::Renderer()
 	g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
 	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
 	g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
+	g_ogl_config.glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+	
+	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10"))
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need at least GLSL 1.20\n"
+				"GPU: Does your video card support OpenGL 2.1?\n"
+				"GPU: Your driver supports glsl %s", g_ogl_config.glsl_version);
+		bSuccess = false;
+	}
+	else if(strstr(g_ogl_config.glsl_version, "1.20"))
+	{
+		g_ogl_config.eSupportedGLSLVersion = GLSL_120;
+		g_Config.backend_info.bSupportsDualSourceBlend = false; //TODO: implemenet dual source blend
+	}
+	else if(strstr(g_ogl_config.glsl_version, "1.30"))
+	{
+		g_ogl_config.eSupportedGLSLVersion = GLSL_130;
+	}
+	else
+	{
+		g_ogl_config.eSupportedGLSLVersion = GLSL_140;
+	}
 	
 	glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
 	if(g_ogl_config.max_samples < 1) 
@@ -487,15 +509,15 @@ void Renderer::Init()
 	s_pfont = new RasterFont();
 	
 	ProgramShaderCache::CompileShader(s_ShowEFBCopyRegions, 
-		"in vec2 rawpos;\n"
-		"in vec3 color0;\n"
-		"out vec4 c;\n"
+		"ATTRIN vec2 rawpos;\n"
+		"ATTRIN vec3 color0;\n"
+		"VARYOUT vec4 c;\n"
 		"void main(void) {\n"
 		"	gl_Position = vec4(rawpos,0,1);\n"
 		"	c = vec4(color0, 1.0);\n"
 		"}\n",
-		"in vec4 c;\n"
-		"out vec4 ocol0;\n"
+		"VARYIN vec4 c;\n"
+		"COLOROUT(ocol0)\n"
 		"void main(void) {\n"
 		"	ocol0 = c;\n"
 		"}\n");

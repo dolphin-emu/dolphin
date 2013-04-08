@@ -598,9 +598,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	if (ApiType == API_OPENGL)
 	{
-		WRITE(p, "out float4 ocol0;\n");
+		WRITE(p, "COLOROUT(ocol0)\n");
 		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-			WRITE(p, "out float4 ocol1;\n");
+			WRITE(p, "COLOROUT(ocol1)\n");
 		
 		if (per_pixel_depth)
 			WRITE(p, "#define depth gl_FragDepth\n");
