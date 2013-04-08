@@ -137,9 +137,9 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
 	iniFile.GetIfExists("Video_Settings", "HackedBufferUpload", &bHackedBufferUpload);
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
-	int tmp = 0;
+	int tmp = -9000;
 	iniFile.GetIfExists("Video_Settings", "EFBScale", &tmp); // integral
-	if (tmp != SCALE_FORCE_INTEGRAL)
+	if (tmp != -9000 && tmp != SCALE_FORCE_INTEGRAL)
 		iEFBScale = tmp;
 	// Round down to multiple of native IR
 	else
