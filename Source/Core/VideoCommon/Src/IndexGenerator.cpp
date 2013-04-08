@@ -21,15 +21,6 @@
 #include "VideoConfig.h"
 #include "IndexGenerator.h"
 
-/*
-*
-QUAD simulator
-
-0   1   4   5
-3   2   7   6
-012023 147172 ...
-*/
-
 //Init
 u16 *IndexGenerator::Tptr;
 u16 *IndexGenerator::BASETptr;
@@ -130,24 +121,80 @@ void IndexGenerator::AddStrip(u32 const numVerts)
 	}
 }
 
+/**
+ * FAN simulator:
+ * 
+ *   2---3
+ *  / \ / \
+ * 1---0---4
+ * 
+ * would generate this triangles:
+ * 012, 023, 034
+ * 
+ * rotated (for better striping):
+ * 120, 302, 034
+ * 
+ * as odd ones have to winded, following strip is fine:
+ * 12034
+ * 
+ * so we use 6 indices for 3 triangles
+ */
+
 void IndexGenerator::AddFan(u32 numVerts)
 {
-	for (u32 i = 2; i < numVerts; ++i)
+	ERROR_LOG(VIDEO, "addfan: %d vertices", numVerts);
+	u32 i = 2;
+	
+	if(g_Config.backend_info.bSupportsPrimitiveRestart) {
+		for(; i<=numVerts-3; i+=3) {
+			*Tptr++ = index + i - 1;
+			*Tptr++ = index + i + 0;
+			*Tptr++ = index;
+			*Tptr++ = index + i + 1;
+			*Tptr++ = index + i + 2;
+			*Tptr++ = 65535;
+			numT += 3;
+		}
+		
+		for(; i<=numVerts-2; i+=2) {
+			*Tptr++ = index + i - 1;
+			*Tptr++ = index + i + 0;
+			*Tptr++ = index;
+			*Tptr++ = index + i + 1;
+			*Tptr++ = 65535;
+			numT += 2;
+		}
+	}
+	
+	for (; i < numVerts; ++i)
 	{
 		WriteTriangle(index, index + i - 1, index + i);
 	}
 }
 
+/*
+ * QUAD simulator
+ * 
+ * 0---1   4---5
+ * |\  |   |\  |
+ * | \ |   | \ |
+ * |  \|   |  \|
+ * 3---2   7---6
+ * 
+ * 012,023, 456,467 ...
+ * or 120,302, 564,746
+ * or as strip: 1203, 5647
+ */
 void IndexGenerator::AddQuads(u32 numVerts)
 {
 	auto const numQuads = numVerts / 4;
 	for (u32 i = 0; i != numQuads; ++i)
 	{
 		if(g_Config.backend_info.bSupportsPrimitiveRestart) {
-			*Tptr++ = index + i * 4 + 0;
 			*Tptr++ = index + i * 4 + 1;
-			*Tptr++ = index + i * 4 + 3;
 			*Tptr++ = index + i * 4 + 2;
+			*Tptr++ = index + i * 4 + 0;
+			*Tptr++ = index + i * 4 + 3;
 			*Tptr++ = 65535;
 			numT += 2;
 		} else {
