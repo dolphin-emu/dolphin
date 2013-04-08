@@ -41,6 +41,7 @@ private:
 	struct TCacheEntry : TCacheEntryBase
 	{
 		GLuint texture;
+		GLuint framebuffer;
 
 		PC_TexFormat pcfmt;
 

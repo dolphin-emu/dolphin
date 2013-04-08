@@ -74,8 +74,6 @@ struct VBOCache {
 };
 static std::map<u64,VBOCache> s_VBO;
 
-static u32 s_TempFramebuffer = 0;
-
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
 	int width = std::max(virtual_width >> level, 1);
@@ -107,12 +105,20 @@ TextureCache::TCacheEntry::~TCacheEntry()
 		glDeleteTextures(1, &texture);
 		texture = 0;
 	}
+	
+	if (framebuffer)
+	{
+		glDeleteFramebuffers(1, &framebuffer);
+		framebuffer = 0;
+	}
 }
 
 TextureCache::TCacheEntry::TCacheEntry()
 {
 	glGenTextures(1, &texture);
 	GL_REPORT_ERRORD();
+	
+	framebuffer = 0;
 }
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
@@ -268,8 +274,12 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 	entry->m_tex_levels = 1;
 
 	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
-	
 	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	glGenFramebuffers(1, &entry->framebuffer);
+	FramebufferManager::SetFramebuffer(entry->framebuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, entry->texture, 0);
+	GL_REPORT_FBO_ERROR();
 	
 	SetStage();
 	
@@ -290,17 +300,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
 		FramebufferManager::ResolveAndGetRenderTarget(srcRect);
 
-    GL_REPORT_ERRORD();
+	GL_REPORT_ERRORD();
 
 	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
-		if (s_TempFramebuffer == 0)
-			glGenFramebuffers(1, (GLuint*)&s_TempFramebuffer);
+		FramebufferManager::SetFramebuffer(framebuffer);
 
-		FramebufferManager::SetFramebuffer(s_TempFramebuffer);
-		// Bind texture to temporary framebuffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-		GL_REPORT_FBO_ERROR();
 		GL_REPORT_ERRORD();
 		
 		glActiveTexture(GL_TEXTURE0+9);
@@ -371,9 +376,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 
 		GL_REPORT_ERRORD();
-
-		// Unbind texture from temporary framebuffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
 	}
 
 	if (false == g_ActiveConfig.bCopyEFBToTexture)
@@ -477,12 +479,6 @@ TextureCache::~TextureCache()
 		glDeleteVertexArrays(1, &it->second.vao);
 	}
 	s_VBO.clear();
-	
-	if (s_TempFramebuffer)
-	{
-		glDeleteFramebuffers(1, (GLuint*)&s_TempFramebuffer);
-		s_TempFramebuffer = 0;
-	}
 }
 
 void TextureCache::DisableStage(unsigned int stage)
