@@ -33,6 +33,8 @@ u32 IndexGenerator::numL;
 u32 IndexGenerator::numP;
 u32 IndexGenerator::index;
 
+static const u16 s_primitive_restart = -1;
+
 void IndexGenerator::Start(u16* Triangleptr, u16* Lineptr, u16* Pointptr)
 {
 	Tptr = Triangleptr;
@@ -83,7 +85,7 @@ __forceinline void IndexGenerator::WriteTriangle(u32 index1, u32 index2, u32 ind
 	*Tptr++ = index2;
 	*Tptr++ = index3;
 	if(g_Config.backend_info.bSupportsPrimitiveRestart)
-		*Tptr++ = 65535;
+		*Tptr++ = s_primitive_restart;
 	
 	++numT;
 }
@@ -104,7 +106,7 @@ void IndexGenerator::AddStrip(u32 const numVerts)
 		{
 			*Tptr++ = index + i;
 		}
-		*Tptr++ = 65535;
+		*Tptr++ = s_primitive_restart;
 		numT += numVerts - 2;
 		
 	} else {
@@ -142,7 +144,6 @@ void IndexGenerator::AddStrip(u32 const numVerts)
 
 void IndexGenerator::AddFan(u32 numVerts)
 {
-	ERROR_LOG(VIDEO, "addfan: %d vertices", numVerts);
 	u32 i = 2;
 	
 	if(g_Config.backend_info.bSupportsPrimitiveRestart) {
@@ -152,7 +153,7 @@ void IndexGenerator::AddFan(u32 numVerts)
 			*Tptr++ = index;
 			*Tptr++ = index + i + 1;
 			*Tptr++ = index + i + 2;
-			*Tptr++ = 65535;
+			*Tptr++ = s_primitive_restart;
 			numT += 3;
 		}
 		
@@ -161,7 +162,7 @@ void IndexGenerator::AddFan(u32 numVerts)
 			*Tptr++ = index + i + 0;
 			*Tptr++ = index;
 			*Tptr++ = index + i + 1;
-			*Tptr++ = 65535;
+			*Tptr++ = s_primitive_restart;
 			numT += 2;
 		}
 	}
@@ -195,7 +196,7 @@ void IndexGenerator::AddQuads(u32 numVerts)
 			*Tptr++ = index + i * 4 + 2;
 			*Tptr++ = index + i * 4 + 0;
 			*Tptr++ = index + i * 4 + 3;
-			*Tptr++ = 65535;
+			*Tptr++ = s_primitive_restart;
 			numT += 2;
 		} else {
 			WriteTriangle(index + i * 4, index + i * 4 + 1, index + i * 4 + 2);
@@ -216,6 +217,8 @@ void IndexGenerator::AddLineList(u32 numVerts)
 	}
 }
 
+// shouldn't be used as strips as LineLists are much more common
+// so converting them to lists
 void IndexGenerator::AddLineStrip(u32 numVerts)
 {
 	for (u32 i = 1; i < numVerts; ++i)
@@ -239,6 +242,6 @@ void IndexGenerator::AddPoints(u32 numVerts)
 
 u32 IndexGenerator::GetRemainingIndices()
 {
-	u32 max_index = 65535;
+	u32 max_index = 65534; // -1 is reserved for primitive restart (ogl + dx11)
 	return max_index - index;
 }
