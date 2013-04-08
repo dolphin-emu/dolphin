@@ -96,7 +96,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
-	g_Config.backend_info.bSupportsPrimitiveRestart = false; // TODO: dx11 does support it, but it isn't implemented
+	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
