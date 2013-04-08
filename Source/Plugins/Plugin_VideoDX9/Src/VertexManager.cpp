@@ -353,7 +353,7 @@ void VertexManager::vFlush()
 				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+				ERROR_LOG(VIDEO, "Error loading texture");
 		}
 	}
 
@@ -378,7 +378,8 @@ void VertexManager::vFlush()
 
 	}
 	PrepareDrawBuffers(stride);
-	g_nativeVertexFmt->SetupVertexPointers();	
+	g_nativeVertexFmt->SetupVertexPointers();
+	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	if(m_buffers_count)
 	{
 		DrawVertexBuffer(stride);
@@ -387,7 +388,7 @@ void VertexManager::vFlush()
 	{ 
 		DrawVertexArray(stride);
 	}
-
+	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	if (useDstAlpha && !useDualSource)
 	{
 		if (!PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS, g_nativeVertexFmt->m_components))

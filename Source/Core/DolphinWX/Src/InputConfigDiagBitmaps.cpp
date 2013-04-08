@@ -111,7 +111,9 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						dc.DrawCircle( 32, 32, 32);
 					}
 					else
+					{
 						dc.DrawRectangle( 16, 16, 32, 32 );
+					}
 
 					if ( GROUP_TYPE_CURSOR != (*g)->control_group->type )
 					{
@@ -217,7 +219,9 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					for (unsigned int n = 0; n<button_count; ++n)
 					{
 						if ( buttons & bitmasks[n] )
+						{
 							dc.SetBrush( *wxRED_BRUSH );
+						}
 						else
 						{
 							unsigned char amt = 255 - (*g)->control_group->controls[n]->control_ref->State() * 128;

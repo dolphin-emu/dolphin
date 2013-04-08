@@ -178,7 +178,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForc
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 {
-	//ERROR_LOG(WII_IPC_WIIMOTE, "passing ioctl to ioctlv");
+	//ERROR_LOG(WII_IPC_WIIMOTE, "Passing ioctl to ioctlv");
 	return IOCtlV(_CommandAddress);	//hack
 }
 
@@ -422,7 +422,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 	else
 	{
 		DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint not currently valid, "
-			"queueing(%lu)...", (unsigned long)m_EventQueue.size());
+			"queuing(%lu)...", (unsigned long)m_EventQueue.size());
 		m_EventQueue.push_back(_event);
 	}
 }
@@ -431,7 +431,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
 	bool packet_transferred = false;
 
-	// check hci queue
+	// check HCI queue
 	if (!m_EventQueue.empty() && m_HCIEndpoint.IsValid())
 	{
 		// an endpoint has become available, and we have a stored response.
@@ -450,7 +450,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		packet_transferred = true;
 	}
 
-	// check acl queue
+	// check ACL queue
 	if (!m_acl_pool.IsEmpty() && m_ACLEndpoint.IsValid() && m_EventQueue.empty())
 	{
 		m_acl_pool.WriteToEndpoint(m_ACLEndpoint);
@@ -517,7 +517,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u
 	}
 	
 	_dbg_assert_msg_(WII_IPC_WIIMOTE,
-		size < m_acl_pkt_size, "acl packet too large for pool");
+		size < m_acl_pkt_size, "ACL packet too large for pool");
 	
 	m_queue.push_back(Packet());
 	auto& packet = m_queue.back();
@@ -602,7 +602,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 		pResponse->page_scan_mode = 0;
 		pResponse->clock_offset = 0x3818;
 
-		INFO_LOG(WII_IPC_WIIMOTE, "Event: Send Fake Inquriy of one controller");
+		INFO_LOG(WII_IPC_WIIMOTE, "Event: Send Fake Inquiry of one controller");
 		INFO_LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
 			pResponse->bdaddr.b[0], pResponse->bdaddr.b[1], pResponse->bdaddr.b[2],
 			pResponse->bdaddr.b[3], pResponse->bdaddr.b[4], pResponse->bdaddr.b[5]);
@@ -1778,7 +1778,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadBufferSize(u8* _Input)
 	hci_read_buffer_size_rp Reply;
 	Reply.status = 0x00;
 	Reply.max_acl_size = m_acl_pkt_size;
-	// Due to how the widcomm stack which nintendo uses is coded, we must never
+	// Due to how the widcomm stack which Nintendo uses is coded, we must never
 	// let the stack think the controller is buffering more than 10 data packets
 	// - it will cause a u8 underflow and royally screw things up.
 	Reply.num_acl_pkts = m_acl_pkts_num;
@@ -1823,7 +1823,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4F(u8* _Input,
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: CommandVendorSpecific_FC4F: (callstack WUDiRemovePatch)");
-	INFO_LOG(WII_IPC_WIIMOTE, "input (size 0x%x):", _Size);
+	INFO_LOG(WII_IPC_WIIMOTE, "Input (size 0x%x):", _Size);
 
 	Dolphin_Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
 
@@ -1836,7 +1836,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4C(u8* _Input,
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: CommandVendorSpecific_FC4C:");
-	INFO_LOG(WII_IPC_WIIMOTE, "input (size 0x%x):", _Size);
+	INFO_LOG(WII_IPC_WIIMOTE, "Input (size 0x%x):", _Size);
 	Dolphin_Debugger::PrintDataBuffer(LogTypes::WII_IPC_WIIMOTE, _Input, _Size, "Data: ");
 
 	SendEventCommandComplete(0xFC4C, &Reply, sizeof(hci_status_rp));
@@ -1862,9 +1862,9 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const b
 			return &m_WiiMotes[i];
 	}
 
-	ERROR_LOG(WII_IPC_WIIMOTE,"Cant find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
+	ERROR_LOG(WII_IPC_WIIMOTE,"Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		_rAddr.b[0], _rAddr.b[1], _rAddr.b[2], _rAddr.b[3], _rAddr.b[4], _rAddr.b[5]); 
-	PanicAlertT("Cant find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
+	PanicAlertT("Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		_rAddr.b[0], _rAddr.b[1], _rAddr.b[2], _rAddr.b[3], _rAddr.b[4], _rAddr.b[5]);
 	return NULL;
 }
@@ -1877,8 +1877,8 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _Co
 			return &m_WiiMotes[i];
 	}
 
-	ERROR_LOG(WII_IPC_WIIMOTE, "Cant find WiiMote by connection handle %02x", _ConnectionHandle);
-	PanicAlertT("Cant find WiiMote by connection handle %02x", _ConnectionHandle);
+	ERROR_LOG(WII_IPC_WIIMOTE, "Can't find WiiMote by connection handle %02x", _ConnectionHandle);
+	PanicAlertT("Can't find WiiMote by connection handle %02x", _ConnectionHandle);
 	return NULL;
 }
 

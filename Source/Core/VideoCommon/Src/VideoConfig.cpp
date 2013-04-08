@@ -49,7 +49,6 @@ VideoConfig::VideoConfig()
 
 void VideoConfig::Load(const char *ini_file)
 {
-	std::string temp;
 	IniFile iniFile;
 	iniFile.Load(ini_file);
 
@@ -80,7 +79,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "HackedBufferUpload", &bHackedBufferUpload, 0);
 
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-	iniFile.Get("Settings", "EFBScale", &iEFBScale, 2); // native
+	iniFile.Get("Settings", "EFBScale", &iEFBScale, (int) SCALE_1X); // native
 
 	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
 
@@ -138,7 +137,32 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
 	iniFile.GetIfExists("Video_Settings", "HackedBufferUpload", &bHackedBufferUpload);
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
-	iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale); // integral
+	int tmp = -9000;
+	iniFile.GetIfExists("Video_Settings", "EFBScale", &tmp); // integral
+	if (tmp != -9000)
+	{
+		if (tmp != SCALE_FORCE_INTEGRAL)
+			iEFBScale = tmp;
+		// Round down to multiple of native IR
+		else
+		{
+			switch (iEFBScale)
+			{
+			case SCALE_AUTO:
+				iEFBScale = SCALE_AUTO_INTEGRAL;
+				break;
+			case SCALE_1_5X:
+				iEFBScale = SCALE_1X;
+				break;
+			case SCALE_2_5X:
+				iEFBScale = SCALE_2X;
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
 	iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass);
 	iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog);
 	iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL);

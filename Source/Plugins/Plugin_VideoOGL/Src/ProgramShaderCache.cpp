@@ -123,8 +123,15 @@ void SHADER::SetProgramBindings()
 		glBindFragDataLocationIndexed(glprogid, 0, 0, "ocol0");
 		glBindFragDataLocationIndexed(glprogid, 0, 1, "ocol1");
 	}
-	else
+	else if(g_ogl_config.eSupportedGLSLVersion > GLSL_120)
+	{
 		glBindFragDataLocation(glprogid, 0, "ocol0");
+	}
+	else
+	{
+		// ogl2 shaders don't need to bind output colors.
+		// gl_FragColor already point to color channel
+	}
 
 	// Need to set some attribute locations
 	glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
@@ -482,31 +489,17 @@ void ProgramShaderCache::Shutdown(void)
 
 void ProgramShaderCache::CreateHeader ( void )
 {
-#ifdef _WIN32
-	// Intel Windows driver has a issue:
-	// their glsl doesn't know about the ubo extension, so we can't load it.
-	// but as version 140, ubo is in core and don't have to be loaded in glsl.
-	// as sandy do ogl3.1, glsl 140 is supported, so force it in this way. 
-	// TODO: remove this again when the issue is fixed:
-	// see http://communities.intel.com/thread/36084
-	bool glsl140_hack = strcmp(g_ogl_config.gl_vendor, "Intel") == 0;
-#elif __APPLE__
-	// as apple doesn't support glsl130 at all, we also have to use glsl140
-	bool glsl140_hack = true;
-#else
-	bool glsl140_hack = false;
-#endif
-	
+	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
 	snprintf(s_glsl_header, sizeof(s_glsl_header), 
 		"#version %s\n"
 		"%s\n" // tex_rect
 		"%s\n" // ubo
 		
 		"\n"// A few required defines and ones that will make our lives a lot easier
-		"#define ATTRIN in\n"
-		"#define ATTROUT out\n"
-		"#define VARYIN centroid in\n"
-		"#define VARYOUT centroid out\n"
+		"#define ATTRIN %s\n"
+		"#define ATTROUT %s\n"
+		"#define VARYIN %s\n"
+		"#define VARYOUT %s\n"
 
 		// Silly differences
 		"#define float2 vec2\n"
@@ -518,10 +511,27 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define saturate(x) clamp(x, 0.0f, 1.0f)\n"
 		"#define lerp(x, y, z) mix(x, y, z)\n"
 		
+		// glsl 120 hack
+		"%s\n"
+		"%s\n"
+		"%s\n"
+		"%s\n"
+		"%s\n"
+		"#define COLOROUT(name) %s\n"
 		
-		, glsl140_hack ? "140" : "130"
-		, glsl140_hack ? "#define texture2DRect texture" : "#extension GL_ARB_texture_rectangle : enable"
-		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && !glsl140_hack ? "#extension GL_ARB_uniform_buffer_object : enable" : "// ubo disabled"
+		, v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : "140"
+		, v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
+		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v!=GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
+		, v==GLSL_120 ? "attribute" : "in"
+		, v==GLSL_120 ? "attribute" : "out"
+		, v==GLSL_120 ? "varying" : "centroid in"
+		, v==GLSL_120 ? "varying" : "centroid out"
+		, v==GLSL_120 ? "#define texture texture2D" : ""
+		, v==GLSL_120 ? "#define round(x) floor((x)+0.5f)" : ""
+		, v==GLSL_120 ? "#define out " : ""
+		, v==GLSL_120 ? "#define ocol0 gl_FragColor" : ""
+		, v==GLSL_120 ? "#define ocol1 gl_FragColor" : "" //TODO: implemenet dual source blend
+		, v==GLSL_120 ? "" : "out vec4 name;"
 	);
 }
 

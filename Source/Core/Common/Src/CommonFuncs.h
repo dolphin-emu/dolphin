@@ -66,22 +66,25 @@ _mm_shuffle_epi8(__m128i a, __m128i mask)
 		#define Crash() {asm ("int $3");}
 	#endif
 	#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
-
+// GCC 4.8 defines all the rotate functions now
+// Small issue with GCC's lrotl/lrotr intrinsics is they are still 32bit while we require 64bit
+#ifndef _rotl
 inline u32 _rotl(u32 x, int shift) {
 	shift &= 31;
 	if (!shift) return x;
 	return (x << shift) | (x >> (32 - shift));
 }
 
-inline u64 _rotl64(u64 x, unsigned int shift){
-	unsigned int n = shift % 64;
-	return (x << n) | (x >> (64 - n));
-}
-
 inline u32 _rotr(u32 x, int shift) {
 	shift &= 31;
 	if (!shift) return x;
 	return (x >> shift) | (x << (32 - shift));
+}
+#endif
+
+inline u64 _rotl64(u64 x, unsigned int shift){
+	unsigned int n = shift % 64;
+	return (x << n) | (x >> (64 - n));
 }
 
 inline u64 _rotr64(u64 x, unsigned int shift){

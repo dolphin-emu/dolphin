@@ -44,6 +44,18 @@ enum AspectMode {
 	ASPECT_STRETCH = 3,
 };
 
+enum EFBScale {
+	SCALE_FORCE_INTEGRAL = -1,
+	SCALE_AUTO,
+	SCALE_AUTO_INTEGRAL,
+	SCALE_1X,
+	SCALE_1_5X,
+	SCALE_2X,
+	SCALE_2_5X,
+	SCALE_3X,
+	SCALE_4X,
+};
+
 class IniFile;
 
 // NEVER inherit from this class.
@@ -154,7 +166,7 @@ struct VideoConfig
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
 		bool bSupportsPrimitiveRestart;
-
+		bool bSupportsSeparateAlphaFunction;
 		bool bSupportsGLSLUBO; // needed by pixelShaderGen, so must stay in videoCommon
 	} backend_info;
 

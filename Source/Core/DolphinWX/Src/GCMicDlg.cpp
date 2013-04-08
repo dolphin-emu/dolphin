@@ -22,7 +22,7 @@
 
 BEGIN_EVENT_TABLE(GCMicDialog,wxDialog)
 	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1,
-		   	wxEVT_COMMAND_BUTTON_CLICKED, GCMicDialog::OnButtonClick)
+			wxEVT_COMMAND_BUTTON_CLICKED, GCMicDialog::OnButtonClick)
 	EVT_TIMER(wxID_ANY, GCMicDialog::OnButtonTimer)
 END_EVENT_TABLE()
 
@@ -86,8 +86,8 @@ void GCMicDialog::OnKeyDown(wxKeyEvent& event)
 		else
 		{
 			SetButtonText(ClickedButton->GetId(),
-				   	InputCommon::WXKeyToString(g_Pressed),
-				   	InputCommon::WXKeymodToString(g_Modkey));
+					InputCommon::WXKeyToString(g_Pressed),
+					InputCommon::WXKeymodToString(g_Modkey));
 			SaveButtonMapping(ClickedButton->GetId(), g_Pressed, g_Modkey);
 		}
 		EndGetButtons();
@@ -112,7 +112,7 @@ void GCMicDialog::DoGetButtons(int _GetId)
 		if(m_ButtonMappingTimer->IsRunning())
 			m_ButtonMappingTimer->Stop();
 
-		 // Save the button Id
+		// Save the button Id
 		GetButtonWaitingID = _GetId;
 		GetButtonWaitingTimer = 0;
 
@@ -149,7 +149,8 @@ void GCMicDialog::OnButtonClick(wxCommandEvent& event)
 {
 	event.Skip();
 
-	if (m_ButtonMappingTimer->IsRunning()) return;
+	if (m_ButtonMappingTimer->IsRunning())
+		return;
 
 	wxTheApp->Bind(wxEVT_KEY_DOWN, &GCMicDialog::OnKeyDown, this);
 

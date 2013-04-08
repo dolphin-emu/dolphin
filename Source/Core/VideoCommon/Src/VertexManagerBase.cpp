@@ -57,13 +57,13 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 		Flush();
 		
 		if(count > IndexGenerator::GetRemainingIndices())
-			ERROR_LOG(VIDEO, "Too less index values. Use 32bit or reset them on flush.");
+			ERROR_LOG(VIDEO, "Too little remaining index values. Use 32-bit or reset them on flush.");
 		if (count > GetRemainingIndices(primitive))
 			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all indices! "
-				"Increase MAXIBUFFERSIZE or we need primitive breaking afterall.");
+				"Increase MAXIBUFFERSIZE or we need primitive breaking after all.");
 		if (needed_vertex_bytes > GetRemainingSize())
 			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
-				"Increase MAXVBUFFERSIZE or we need primitive breaking afterall.");
+				"Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
 	}
 }
 
@@ -216,7 +216,7 @@ void VertexManager::Flush()
 				PixelShaderManager::SetTexDims(i, tentry->nativeW, tentry->nativeH, 0, 0);
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+				ERROR_LOG(VIDEO, "Error loading texture");
 		}
 	}
 

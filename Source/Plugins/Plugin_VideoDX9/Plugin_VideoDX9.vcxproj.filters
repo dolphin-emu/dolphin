@@ -39,6 +39,9 @@
     <ClCompile Include="Src\TextureConverter.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
+    <ClCompile Include="Src\PerfQuery.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Globals.h" />
@@ -77,6 +80,9 @@
     </ClInclude>
     <ClInclude Include="Src\TextureConverter.h">
       <Filter>D3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PerfQuery.h">
+      <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

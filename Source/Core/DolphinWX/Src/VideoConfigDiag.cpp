@@ -98,7 +98,7 @@ wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nSome g
 wxString stc_desc = wxTRANSLATE("The safer you adjust this, the less likely the emulator will be missing any texture updates from RAM.\n\nIf unsure, use the rightmost value.");
 wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
 wxString disable_fog_desc = wxTRANSLATE("Makes distant objects more visible by removing fog, thus increasing the overall detail.\nDisabling fog will break some games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
-wxString disable_alphapass_desc = wxTRANSLATE("Skip the destination alpha pass used in many games for various graphical effects.\n\nIf unsure, leave this unchecked.");
+wxString disable_dstalpha_desc = wxTRANSLATE("Disables emulation of a hardware feature called destination alpha, which is used in many games for various graphical effects.\n\nIf unsure, leave this unchecked.");
 wxString show_fps_desc = wxTRANSLATE("Show the number of frames rendered per second as a measure of emulation speed.\n\nIf unsure, leave this unchecked.");
 wxString log_fps_to_file_desc = wxTRANSLATE("Log the number of frames rendered per second to User/Logs/fps.txt. Use this feature when you want to measure the performance of Dolphin.\n\nIf unsure, leave this unchecked."); 
 wxString show_input_display_desc = wxTRANSLATE("Display the inputs read by the emulator.\n\nIf unsure, leave this unchecked.");
@@ -253,6 +253,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxFlexGridSizer* const szr_display = new wxFlexGridSizer(2, 5, 5);
 
 	{
+
+#if !defined(__APPLE__)
 	// display resolution
 	{
 		wxArrayString res_list = GetListOfResolutions();
@@ -274,6 +276,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			choice_display_resolution->Disable();
 		}
 	}
+#endif
 
 	// aspect-ratio
 	{
@@ -340,8 +343,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// Internal resolution
 	{
 	const wxString efbscale_choices[] = { _("Auto (Window Size)"), _("Auto (Multiple of 640x528)"),
-		wxT("1x Native (640x528)"), wxT("1.5x Native (960x792)"), wxT("2x Native (1280x1056)"), 
-		wxT("2.5x Native (1600x1320)"), wxT("3x Native (1920x1584)"), wxT("4x Native (2560x2112)") };
+		_("1x Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056)"), 
+		_("2.5x Native (1600x1320)"), _("3x Native (1920x1584)"), _("4x Native (2560x2112)") };
 
 	wxChoice *const choice_efbscale = CreateChoice(page_enh,
 		vconfig.iEFBScale, wxGetTranslation(internal_res_desc), sizeof(efbscale_choices)/sizeof(*efbscale_choices), efbscale_choices);
@@ -495,7 +498,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxGridSizer* const szr_other = new wxGridSizer(2, 5, 5);
 	SettingCheckBox* hacked_buffer_upload_cb;
 	szr_other->Add(CreateCheckBox(page_hacks, _("Cache Display Lists"), wxGetTranslation(dlc_desc), vconfig.bDlistCachingEnable));
-	szr_other->Add(CreateCheckBox(page_hacks, _("Skip Dest. Alpha Pass"), wxGetTranslation(disable_alphapass_desc), vconfig.bDstAlphaPass));
+	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Destination Alpha"), wxGetTranslation(disable_dstalpha_desc), vconfig.bDstAlphaPass));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenCL Texture Decoder"), wxGetTranslation(opencl_desc), vconfig.bEnableOpenCL));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_desc), vconfig.bOMPDecoder));
 	szr_other->Add(hacked_buffer_upload_cb = CreateCheckBox(page_hacks, _("Hacked Buffer Upload"), wxGetTranslation(hacked_buffer_upload_desc), vconfig.bHackedBufferUpload));

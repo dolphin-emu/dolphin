@@ -90,7 +90,7 @@ void CMemoryView::OnMouseDownL(wxMouseEvent& event)
 	}
 	else
 	{
- 		debugger->toggleMemCheck(YToAddress(y));
+		debugger->toggleMemCheck(YToAddress(y));
 
 		Refresh();
 		Host_UpdateBreakPointView();
@@ -143,17 +143,17 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 #if wxUSE_CLIPBOARD
-	    case IDM_COPYADDRESS:
+		case IDM_COPYADDRESS:
 			wxTheClipboard->SetData(new wxTextDataObject(wxString::Format(_T("%08x"), selection)));
-	    break;
+			break;
 
-	    case IDM_COPYHEX:
-	    {
-		    char temp[24];
-		    sprintf(temp, "%08x", debugger->readExtraMemory(memory, selection));
-		    wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
-	    }
-	    break;
+		case IDM_COPYHEX:
+			{
+			char temp[24];
+			sprintf(temp, "%08x", debugger->readExtraMemory(memory, selection));
+			wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
+			}
+			break;
 #endif
 
 		case IDM_TOGGLEMEMORY:
@@ -197,7 +197,7 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 	viewAsSubMenu->Append(IDM_VIEWASFP, StrToWxStr("FP value"));
 	viewAsSubMenu->Append(IDM_VIEWASASCII, StrToWxStr("ASCII"));
 	viewAsSubMenu->Append(IDM_VIEWASHEX, StrToWxStr("Hex"));
- 	menu->AppendSubMenu(viewAsSubMenu, StrToWxStr("View As:"));
+	menu->AppendSubMenu(viewAsSubMenu, StrToWxStr("View As:"));
 
 	PopupMenu(menu);
 }
@@ -212,10 +212,10 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	wxCoord w,h;
 	dc.GetTextExtent(_T("0WJyq"),&w,&h,NULL,NULL,&hFont);
 	if (h > rowHeight)
-	    rowHeight = h;
+		rowHeight = h;
 	dc.GetTextExtent(_T("0WJyq"),&w,&h,NULL,NULL,&DebuggerFont);
 	if (h > rowHeight)
-	    rowHeight = h;
+		rowHeight = h;
 
 	if (viewAsType==VIEWAS_HEX)
 		dc.SetFont(hFont);
@@ -359,7 +359,9 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 				curAddress += 32;
 			}
 			else
+			{
 				sprintf(dis, "INVALID VIEWAS TYPE");
+			}
 
 			char desc[256] = "";
 			if (viewAsType != VIEWAS_HEX)

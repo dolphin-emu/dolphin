@@ -59,15 +59,15 @@ BEGIN_EVENT_TABLE(CJitWindow, wxPanel)
 END_EVENT_TABLE()
 
 CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
-	   	const wxSize& size, long style, const wxString& name)
+		const wxSize& size, long style, const wxString& name)
 : wxPanel(parent, id, pos, size, style, name)
 {
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* sizerSplit = new wxBoxSizer(wxHORIZONTAL);
 	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, _T("(ppc)"),
-			   	wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
+				wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
 	sizerSplit->Add(x86_box = new wxTextCtrl(this, IDM_X86_BOX, _T("(x86)"),
-			   	wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
+				wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
 	sizerBig->Add(block_list = new JitBlockList(this, IDM_BLOCKLIST,
 				wxDefaultPosition, wxSize(100, 140),
 				wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING),
@@ -107,21 +107,26 @@ void CJitWindow::Compare(u32 em_address)
 	int block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(em_address);
 	if (block_num < 0)
 	{
-		for (int i = 0; i < 500; i++) {
+		for (int i = 0; i < 500; i++)
+		{
 			block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(em_address - 4 * i);
 			if (block_num >= 0)
 				break;
 		}
-		if (block_num >= 0) {
+
+		if (block_num >= 0)
+		{
 			JitBlock *block = jit->GetBlockCache()->GetBlock(block_num);
 			if (!(block->originalAddress <= em_address &&
-					   	block->originalSize + block->originalAddress >= em_address))
+						block->originalSize + block->originalAddress >= em_address))
 				block_num = -1;
 		}
+
 		// Do not merge this "if" with the above - block_num changes inside it.
-		if (block_num < 0) {
+		if (block_num < 0)
+		{
 			ppc_box->SetValue(StrToWxStr(StringFromFormat("(non-code address: %08x)",
-						   	em_address)));
+							em_address)));
 			x86_box->SetValue(StrToWxStr(StringFromFormat("(no translation)")));
 			delete[] xDis;
 			return;
@@ -186,12 +191,14 @@ void CJitWindow::Compare(u32 em_address)
 		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
 
 		sptr += sprintf(sptr, "Num instr: PPC: %i  x86: %i  (blowup: %i%%)\n",
-			   	size, num_x86_instructions, 100 * (num_x86_instructions / size - 1));
+				size, num_x86_instructions, 100 * (num_x86_instructions / size - 1));
 		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n",
-			   	size * 4, block->codeSize, 100 * (block->codeSize / (4 * size) - 1));
+				size * 4, block->codeSize, 100 * (block->codeSize / (4 * size) - 1));
 
 		ppc_box->SetValue(StrToWxStr((char*)xDis));
-	} else {
+	}
+	else
+	{
 		ppc_box->SetValue(StrToWxStr(StringFromFormat(
 						"(non-code address: %08x)", em_address)));
 		x86_box->SetValue("---");
@@ -209,9 +216,9 @@ void CJitWindow::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	    case IDM_NOTIFYMAPLOADED:
-		    //NotifyMapLoaded();
-		    break;
+		case IDM_NOTIFYMAPLOADED:
+			//NotifyMapLoaded();
+			break;
 	}
 }
 
@@ -229,7 +236,7 @@ enum {
 };
 
 JitBlockList::JitBlockList(wxWindow* parent, const wxWindowID id,
-	   	const wxPoint& pos, const wxSize& size, long style)
+		const wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style) // | wxLC_VIRTUAL)
 {
 	Init();

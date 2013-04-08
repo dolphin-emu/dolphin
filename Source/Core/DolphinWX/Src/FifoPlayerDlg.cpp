@@ -387,18 +387,23 @@ void FifoPlayerDlg::OnCheckEarlyMemoryUpdates(wxCommandEvent& event)
 
 void FifoPlayerDlg::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 {
+	// Pointer to the file data that was created as a result of recording.
 	FifoDataFile *file = FifoRecorder::GetInstance().GetRecordedFile();
 
 	if (file)
-		{
+	{
+		// Bring up a save file dialog. The location the user chooses will be assigned to this variable.
 		wxString path = wxSaveFileSelector(_("Dolphin FIFO"), wxT("dff"), wxEmptyString, this);
 
+		// Has a valid file path
 		if (!path.empty())
 		{
+			// Attempt to save the file to the path the user chose
 			wxBeginBusyCursor();
 			bool result = file->Save(WxStrToStr(path).c_str());
 			wxEndBusyCursor();
 			
+			// Wasn't able to save the file, shit's whack, yo.
 			if (!result)
 				PanicAlert("Error saving file");
 		}
@@ -409,14 +414,21 @@ void FifoPlayerDlg::OnRecordStop(wxCommandEvent& WXUNUSED(event))
 {
 	FifoRecorder& recorder = FifoRecorder::GetInstance();
 
+	// Recorder is still recording
 	if (recorder.IsRecording())
 	{
+		// Then stop recording
 		recorder.StopRecording();
+
+		// and disable the button to stop recording
 		m_RecordStop->Disable();
 	}
-	else
+	else // Recorder is actually about to start recording
 	{
+		// So start recording
 		recorder.StartRecording(m_FramesToRecord, RecordingFinished);
+
+		// and change the button label accordingly.
 		m_RecordStop->SetLabel(_("Stop"));
 	}
 }
@@ -839,10 +851,12 @@ void FifoPlayerDlg::UpdateAnalyzerGui()
 	if ((int)m_framesList->GetCount() != num_frames)
 	{
 		m_framesList->Clear();
+
 		for (int i = 0; i < num_frames; ++i)
 		{
 			m_framesList->Append(wxString::Format(wxT("Frame %i"), i));
 		}
+
 		wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
 		ev.SetInt(-1);
 		OnFrameListSelectionChanged(ev);

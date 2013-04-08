@@ -158,7 +158,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_SENDCMD:
-		INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD %x ipc:%08x",
+		INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD %x IPC:%08x",
 			Memory::Read_U32(BufferIn), _CommandAddress);
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, 0, 0, BufferOut, BufferOutSize);
 		break;
@@ -242,7 +242,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 		break;
 
 	default:
-		ERROR_LOG(WII_IPC_SD, "unknown SD IOCtlV command 0x%08x", CommandBuffer.Parameter);
+		ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtlV command 0x%08x", CommandBuffer.Parameter);
 		break;
 	}
 
@@ -376,7 +376,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 				{
 					Memory::Write_U8((u8)buffer[i], req.addr++);
 				}
-				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i got %i", _rwBufferSize, i);
+				DEBUG_LOG(WII_IPC_SD, "Outbuffer size %i got %i", _rwBufferSize, i);
 			}
 			else
 			{

@@ -141,7 +141,7 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 			memcpy(pointer, data, size);
 			glUnmapBuffer(m_buffertype);
 		} else {
-			ERROR_LOG(VIDEO, "buffer mapping failed");
+			ERROR_LOG(VIDEO, "Buffer mapping failed");
 		}
 		break;
 	case PINNED_MEMORY:
@@ -192,7 +192,7 @@ void StreamBuffer::Init()
 		
 		// on error, switch to another backend. some old catalyst seems to have broken pinned memory support
 		if(glGetError() != GL_NO_ERROR) {
-			ERROR_LOG(VIDEO, "pinned memory detected, but not working. Please report this: %s, %s, %s", g_ogl_config.gl_vendor, g_ogl_config.gl_renderer, g_ogl_config.gl_version);
+			ERROR_LOG(VIDEO, "Pinned memory detected, but not working. Please report this: %s, %s, %s", g_ogl_config.gl_vendor, g_ogl_config.gl_renderer, g_ogl_config.gl_version);
 			Shutdown();
 			m_uploadtype = MAP_AND_SYNC;
 			Init();
@@ -204,7 +204,7 @@ void StreamBuffer::Init()
 		pointer = (u8*)glMapBuffer(m_buffertype, GL_WRITE_ONLY);
 		glUnmapBuffer(m_buffertype);
 		if(!pointer)
-			ERROR_LOG(VIDEO, "buffer allocation failed");
+			ERROR_LOG(VIDEO, "Buffer allocation failed");
 		
 	case STREAM_DETECT:
 	case DETECT_MASK: // Just to shutup warnings

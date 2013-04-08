@@ -301,10 +301,14 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 			UpdateCodeList();
 		}
 		else
+		{
 			PanicAlertT("File contained no codes.");
+		}
 	}
 	else
+	{
 		PanicAlertT("Failed to download codes.");
+	}
 }
 
 }

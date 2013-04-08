@@ -22,6 +22,7 @@
 #include "NetPlay.h"
 #include "NetWindow.h"
 #include "Frame.h"
+#include "Core.h"
 
 #include <sstream>
 #include <string>
@@ -334,7 +335,11 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
 		bottom_szr->Add(padbuf_btn);
 	}
-		
+
+	m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write memcards (GC)"));
+	m_memcard_write->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &NetPlayDiag::OnMemcardWriteCheck, this);
+	bottom_szr->Add(m_memcard_write, 0, wxCENTER);
+
 	bottom_szr->AddStretchSpacer(1);
 	bottom_szr->Add(quit_btn);
 
@@ -397,6 +402,8 @@ void NetPlayDiag::OnStop(wxCommandEvent&)
 void NetPlayDiag::BootGame(const std::string& filename)
 {
 	main_frame->BootGame(filename);
+
+	Core::g_CoreStartupParameter.bEnableMemcardSaving = m_memcard_write->GetValue();
 }
 
 void NetPlayDiag::StopGame()
@@ -447,6 +454,11 @@ void NetPlayDiag::OnPadBuffHelp(wxCommandEvent&)
 		<< time * (50.0f/1000) << "(50fps) >\n";
 
 	m_chat_text->AppendText(StrToWxStr(ss.str()));
+}
+
+void NetPlayDiag::OnMemcardWriteCheck(wxCommandEvent &event)
+{
+	netplay_ptr->SetMemcardWriteEnabled(m_memcard_write->GetValue());
 }
 
 void NetPlayDiag::OnAdjustBuffer(wxCommandEvent& event)

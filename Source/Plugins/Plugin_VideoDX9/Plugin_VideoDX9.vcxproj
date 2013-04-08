@@ -199,6 +199,7 @@
     <ClCompile Include="Src\FramebufferManager.cpp" />
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\NativeVertexFormat.cpp" />
+    <ClCompile Include="Src\PerfQuery.cpp" />
     <ClCompile Include="Src\PixelShaderCache.cpp" />
     <ClCompile Include="Src\Render.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
@@ -222,6 +223,7 @@
     <ClInclude Include="Src\FramebufferManager.h" />
     <ClInclude Include="Src\Globals.h" />
     <ClInclude Include="Src\main.h" />
+    <ClInclude Include="Src\PerfQuery.h" />
     <ClInclude Include="Src\PixelShaderCache.h" />
     <ClInclude Include="Src\Render.h" />
     <ClInclude Include="Src\stdafx.h" />

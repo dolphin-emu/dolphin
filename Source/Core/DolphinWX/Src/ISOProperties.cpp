@@ -98,7 +98,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 				}
 			}
 			else
+			{
 				break;
+			}
 		}
 	}
 	else
@@ -131,9 +133,13 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			_iniFilename = tmp;
 		}
 	}
+
 	GameIniFile = File::GetUserPath(D_GAMECONFIG_IDX) + _iniFilename + ".ini";
+
 	if (GameIni.Load(GameIniFile.c_str()))
+	{
 		LoadGameConfig();
+	}
 	else
 	{
 		// Will fail out if GameConfig folder doesn't exist
@@ -148,6 +154,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 				<< "[ActionReplay] Add action replay cheats here.\n";
 			f.close();
 		}
+
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();
 		else
@@ -226,7 +233,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			}
 		}
 		else if (!GCFiles.empty())
+		{
 			CreateDirectoryTree(RootId, GCFiles, 1, GCFiles.at(0)->m_FileSize);
+		}
 
 		m_Treectrl->Expand(RootId);
 	}
@@ -255,7 +264,11 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 		const DiscIO::SFileInfo *rFileInfo = fileInfos[CurrentIndex];
 		char *name = (char*)rFileInfo->m_FullPath;
 
-		if (rFileInfo->IsDirectory()) name[strlen(name) - 1] = '\0';
+		if (rFileInfo->IsDirectory())
+		{
+			name[strlen(name) - 1] = '\0';
+		}
+
 		char *itemName = strrchr(name, DIR_SEP_CHR);
 
 		if(!itemName)
@@ -316,8 +329,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	DCBZOFF->SetToolTip(_("Bypass the clearing of the data cache by the DCBZ instruction. Usually leave this option disabled."));
 	VBeam = new wxCheckBox(m_GameConfig, ID_VBEAM, _("Accurate VBeam emulation"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	VBeam->SetToolTip(_("If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"));
-	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Synchronise GPU thread"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	SyncGPU->SetToolTip(_("Synchonises the GPU and CPU threads to help prevent random freezes in Dual Core mode. (ON = Compatible, OFF = Fast)"));
+	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Synchronize GPU thread"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	SyncGPU->SetToolTip(_("Synchronizes the GPU and CPU threads to help prevent random freezes in Dual Core mode. (ON = Compatible, OFF = Fast)"));
 	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	FastDiscSpeed->SetToolTip(_("Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"));
 	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -664,7 +677,9 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
 	}
 	else
+	{
 		pFileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
+	}
 }
 
 void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolder, const int partitionNum)
@@ -679,7 +694,9 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		FS = WiiDisc.at(partitionNum).FileSystem;
 	}
 	else
+	{
 		FS = pFileSystem;
+	}
 
 	FS->GetFileList(fst);
 
@@ -698,13 +715,13 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		{
 			if (!strcmp(fst.at(index[0])->m_FullPath, _rFullPath))
 			{
-				DEBUG_LOG(DISCIO, "Found the Dir at %u", index[0]);
+				DEBUG_LOG(DISCIO, "Found the directory at %u", index[0]);
 				index[1] = (u32)fst.at(index[0])->m_FileSize;
 				break;
 			}
 		}
 
-		DEBUG_LOG(DISCIO,"Dir found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
+		DEBUG_LOG(DISCIO,"Directory found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
 	}
 
 	wxString dialogTitle = index[0] ? _("Extracting Directory") : _("Extracting All Files");
@@ -744,7 +761,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 				if (!File::IsDirectory(exportName))
 					ERROR_LOG(DISCIO, "%s already exists and is not a directory", exportName);
 
-				DEBUG_LOG(DISCIO, "folder %s already exists", exportName);
+				DEBUG_LOG(DISCIO, "Folder %s already exists", exportName);
 			}
 		}
 		else
@@ -799,7 +816,9 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str(), partitionNum);
 	}
 	else
+	{
 		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str());
+	}
 }
 
 void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)

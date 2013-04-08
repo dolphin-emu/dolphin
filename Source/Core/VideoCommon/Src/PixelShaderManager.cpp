@@ -245,14 +245,14 @@ void PixelShaderManager::SetConstants()
 		{
 			//bpmem.fogRange.Base.Center : center of the viewport in x axis. observation: bpmem.fogRange.Base.Center = realcenter + 342;
 			int center = ((u32)bpmem.fogRange.Base.Center) - 342;
-			// normalice center to make calculations easy
+			// normalize center to make calculations easy
 			float ScreenSpaceCenter = center / (2.0f * xfregs.viewport.wd);
 			ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
-			//bpmem.fogRange.K seems to be  a table of precalculated coeficients for the adjust factor
-			//observations: bpmem.fogRange.K[0].LO apears to be the lowest value and bpmem.fogRange.K[4].HI the largest
-			// they always seems to be larger than 256 so my teory is :
-			// they are the coeficients from the center to th e border of the screen
-			// so to simplify i use the hi coeficient as K in the shader taking 256 as the scale
+			//bpmem.fogRange.K seems to be  a table of precalculated coefficients for the adjust factor
+			//observations: bpmem.fogRange.K[0].LO appears to be the lowest value and bpmem.fogRange.K[4].HI the largest
+			// they always seems to be larger than 256 so my theory is :
+			// they are the coefficients from the center to the border of the screen
+			// so to simplify I use the hi coefficient as K in the shader taking 256 as the scale
 			SetPSConstant4f(C_FOG + 2, ScreenSpaceCenter, (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.viewport.wd)), bpmem.fogRange.K[4].HI / 256.0f,0.0f);
 		}
 		else

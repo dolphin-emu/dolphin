@@ -227,7 +227,7 @@ void VertexLoader::CompileVertexTranslator()
 
 #ifdef USE_JIT
 	if (m_compiledCode)
-		PanicAlert("trying to recompile a vtx translator");
+		PanicAlert("Trying to recompile a vtx translator");
 
 	m_compiledCode = GetCodePtr();
 	ABI_EmitPrologue(4);

@@ -136,6 +136,8 @@ static int s_LastMultisampleMode = 0;
 
 static u32 s_blendMode;
 
+static bool s_vsync;
+
 #if defined(HAVE_WX) && HAVE_WX
 static std::thread scrshotThread;
 #endif
@@ -179,7 +181,7 @@ int GetNumMSAASamples(int MSAAMode)
 	
 	if(samples <= g_ogl_config.max_samples) return samples;
 	
-	ERROR_LOG(VIDEO, "MSAA Bug: %d samples selected, but only %d supported by gpu.", samples, g_ogl_config.max_samples);
+	ERROR_LOG(VIDEO, "MSAA Bug: %d samples selected, but only %d supported by GPU.", samples, g_ogl_config.max_samples);
 	return g_ogl_config.max_samples;
 }
 
@@ -203,7 +205,7 @@ int GetNumMSAACoverageSamples(int MSAAMode)
 	}
 	if(g_ogl_config.bSupportCoverageMSAA || samples == 0) return samples;
 	
-	ERROR_LOG(VIDEO, "MSAA Bug: CSAA selected, but not supported by gpu.");
+	ERROR_LOG(VIDEO, "MSAA Bug: CSAA selected, but not supported by GPU.");
 	return 0;
 }
 
@@ -213,10 +215,44 @@ void ApplySSAASettings() {
 			glEnable(GL_SAMPLE_SHADING_ARB);
 			glMinSampleShadingARB(s_MSAASamples);
 		} else {
-			ERROR_LOG(VIDEO, "MSAA Bug: SSAA selected, but not supported by gpu.");
+			ERROR_LOG(VIDEO, "MSAA Bug: SSAA selected, but not supported by GPU.");
 		}
 	} else if(g_ogl_config.bSupportSampleShading) {
 		glDisable(GL_SAMPLE_SHADING_ARB);
+	}
+}
+
+void ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, void* userParam)
+{
+	const char *s_source;
+	const char *s_type;
+	
+	switch(source)
+	{
+		case GL_DEBUG_SOURCE_API_ARB:             s_source = "API"; break;
+		case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB:   s_source = "Window System"; break;
+		case GL_DEBUG_SOURCE_SHADER_COMPILER_ARB: s_source = "Shader Compiler"; break;
+		case GL_DEBUG_SOURCE_THIRD_PARTY_ARB:     s_source = "Third Party"; break;
+		case GL_DEBUG_SOURCE_APPLICATION_ARB:     s_source = "Application"; break;
+		case GL_DEBUG_SOURCE_OTHER_ARB:           s_source = "Other"; break;
+		default:                                  s_source = "Unknown"; break;
+	}
+	switch(type)
+	{
+		case GL_DEBUG_TYPE_ERROR_ARB:               s_type = "Error"; break;
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB: s_type = "Deprecated"; break;
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB:  s_type = "Undefined"; break;
+		case GL_DEBUG_TYPE_PORTABILITY_ARB:         s_type = "Portability"; break;
+		case GL_DEBUG_TYPE_PERFORMANCE_ARB:         s_type = "Performance"; break;
+		case GL_DEBUG_TYPE_OTHER_ARB:               s_type = "Other"; break;
+		default:                                    s_type = "Unknown"; break;
+	}
+	switch(severity)
+	{
+		case GL_DEBUG_SEVERITY_HIGH_ARB:   ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
+		case GL_DEBUG_SEVERITY_MEDIUM_ARB: WARN_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
+		case GL_DEBUG_SEVERITY_LOW_ARB:    WARN_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
+		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
 }
 
@@ -251,6 +287,15 @@ Renderer::Renderer()
 		ERROR_LOG(VIDEO, "glewInit() failed! Does your video card support OpenGL 2.x?");
 		return;	// TODO: fail
 	}
+	
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (GLEW_ARB_debug_output)
+	{
+		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
+		glDebugMessageCallbackARB( ErrorCallback, NULL );
+		glEnable( GL_DEBUG_OUTPUT );
+	}
+#endif
 
 	if (!GLEW_EXT_secondary_color)
 	{
@@ -305,8 +350,32 @@ Renderer::Renderer()
 	g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
 	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
 	g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
+	g_ogl_config.glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+	
+	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10"))
+	{
+		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need at least GLSL 1.20\n"
+				"GPU: Does your video card support OpenGL 2.1?\n"
+				"GPU: Your driver supports glsl %s", g_ogl_config.glsl_version);
+		bSuccess = false;
+	}
+	else if(strstr(g_ogl_config.glsl_version, "1.20"))
+	{
+		g_ogl_config.eSupportedGLSLVersion = GLSL_120;
+		g_Config.backend_info.bSupportsDualSourceBlend = false; //TODO: implemenet dual source blend
+	}
+	else if(strstr(g_ogl_config.glsl_version, "1.30"))
+	{
+		g_ogl_config.eSupportedGLSLVersion = GLSL_130;
+	}
+	else
+	{
+		g_ogl_config.eSupportedGLSLVersion = GLSL_140;
+	}
 	
 	glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
+	if(g_ogl_config.max_samples < 1) 
+		g_ogl_config.max_samples = 1;
 	
 	if(g_Config.backend_info.bSupportsGLSLUBO && (
 		// hd3000 get corruption, hd4000 also and a big slowdown
@@ -319,7 +388,7 @@ Renderer::Renderer()
 			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.1.1") )
 	)) {
 		g_Config.backend_info.bSupportsGLSLUBO = false;
-		ERROR_LOG(VIDEO, "buggy driver detected. Disable UBO");
+		ERROR_LOG(VIDEO, "Buggy driver detected. Disable UBO");
 	}
 	
 	UpdateActiveConfig();
@@ -329,7 +398,7 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version).c_str(), 5000);
 	
-	OSD::AddMessage(StringFromFormat("Missing Extensions: %s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
@@ -339,7 +408,7 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
 			g_ogl_config.bSupportCoverageMSAA ? "" : "CSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA "
-			).c_str(), 5000);
+			);
 			
 	s_LastMultisampleMode = g_ActiveConfig.iMultisampleMode;
 	s_MSAASamples = GetNumMSAASamples(s_LastMultisampleMode);
@@ -351,8 +420,8 @@ Renderer::Renderer()
 	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
 	// Handle VSync on/off
-	int swapInterval = g_ActiveConfig.IsVSync() ? 1 : 0;
-	GLInterface->SwapInterval(swapInterval);
+	s_vsync = g_ActiveConfig.IsVSync();
+	GLInterface->SwapInterval(s_vsync);
 
 	// check the max texture width and height
 	GLint max_texture_size;
@@ -442,15 +511,15 @@ void Renderer::Init()
 	s_pfont = new RasterFont();
 	
 	ProgramShaderCache::CompileShader(s_ShowEFBCopyRegions, 
-		"in vec2 rawpos;\n"
-		"in vec3 color0;\n"
-		"out vec4 c;\n"
+		"ATTRIN vec2 rawpos;\n"
+		"ATTRIN vec3 color0;\n"
+		"VARYOUT vec4 c;\n"
 		"void main(void) {\n"
 		"	gl_Position = vec4(rawpos,0,1);\n"
 		"	c = vec4(color0, 1.0);\n"
 		"}\n",
-		"in vec4 c;\n"
-		"out vec4 ocol0;\n"
+		"VARYIN vec4 c;\n"
+		"COLOROUT(ocol0)\n"
 		"void main(void) {\n"
 		"	ocol0 = c;\n"
 		"}\n");
@@ -1343,7 +1412,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	GL_REPORT_ERRORD();
 
-	GLInterface->SwapInterval(g_ActiveConfig.IsVSync() ? 1 : 0);
+	if(s_vsync != g_ActiveConfig.IsVSync())
+	{
+		s_vsync = g_ActiveConfig.IsVSync();
+		GLInterface->SwapInterval(s_vsync);
+	}
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	DLCache::ProgressiveCleanup();

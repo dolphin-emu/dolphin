@@ -125,7 +125,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 	// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a 
 	// hardware access - we can take shortcuts.
 	//if (emAddress == 0xCC008000)
-	//	PanicAlert("caught a fifo write");
+	//	PanicAlert("Caught a FIFO write");
 	CMP(32, R(addrReg), Imm32(0xCC008000));
 	FixupBranch skip_fast = J_CC(CC_NE, false);
 	MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
@@ -215,7 +215,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void
 		emitter.CALL((void *)trampoline);
 		emitter.NOP((int)info.instructionSize - 3);
 		if (info.instructionSize < 3)
-			PanicAlert("instruction too small");
+			PanicAlert("Instruction too small");
 		// We entered here with a BSWAP-ed EAX. We'll have to swap it back.
 		ctx->Rax = Common::swap32((u32)ctx->Rax);
 		return codePtr - 2;
