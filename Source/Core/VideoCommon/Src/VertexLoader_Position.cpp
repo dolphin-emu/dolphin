@@ -79,9 +79,9 @@ void LOADERDECL Pos_ReadDirect()
 
 	for (int i = 0; i < 3; ++i)
 	{
-		F raw_value = i<N ? DataRead<T>() : 0;
+		F raw_value = F(i<N ? DataRead<T>() : 0);
 		if(apply_frac)
-			raw_value /= (1u<<frac);
+			raw_value /= F(1u<<frac);
 		DataWrite<F>(raw_value);
 	}
 	
@@ -102,9 +102,9 @@ void LOADERDECL Pos_ReadIndex()
 
 	for (int i = 0; i < 3; ++i)
 	{
-		F raw_value = i<N ? Common::FromBigEndian(data[i]) : 0;
+		F raw_value = F(i<N ? Common::FromBigEndian(data[i]) : 0);
 		if(apply_frac)
-			raw_value /= (1u<<frac);
+			raw_value /= F(1u<<frac);
 		DataWrite<F>(raw_value);
 	}
 

@@ -72,11 +72,11 @@ enum VarType
 };
 
 template<typename F> static inline VarType getVarType();
-template<> VarType getVarType<s8>() { return VAR_BYTE; }
-template<> VarType getVarType<u8>() { return VAR_UNSIGNED_BYTE; }
-template<> VarType getVarType<s16>() { return VAR_SHORT; }
-template<> VarType getVarType<u16>() { return VAR_UNSIGNED_SHORT; }
-template<> VarType getVarType<float>() { return VAR_FLOAT; }
+template<> inline VarType getVarType<s8>() { return VAR_BYTE; }
+template<> inline VarType getVarType<u8>() { return VAR_UNSIGNED_BYTE; }
+template<> inline VarType getVarType<s16>() { return VAR_SHORT; }
+template<> inline VarType getVarType<u16>() { return VAR_UNSIGNED_SHORT; }
+template<> inline VarType getVarType<float>() { return VAR_FLOAT; }
 
 
 struct PortableAttributeDeclaration
