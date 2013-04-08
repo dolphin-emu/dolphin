@@ -139,24 +139,27 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
 	int tmp = -9000;
 	iniFile.GetIfExists("Video_Settings", "EFBScale", &tmp); // integral
-	if (tmp != -9000 && tmp != SCALE_FORCE_INTEGRAL)
-		iEFBScale = tmp;
-	// Round down to multiple of native IR
-	else
+	if (tmp != -9000)
 	{
-		switch (iEFBScale)
+		if (tmp != SCALE_FORCE_INTEGRAL)
+			iEFBScale = tmp;
+		// Round down to multiple of native IR
+		else
 		{
-		case SCALE_AUTO:
-			iEFBScale = SCALE_AUTO_INTEGRAL;
-			break;
-		case SCALE_1_5X:
-			iEFBScale = SCALE_1X;
-			break;
-		case SCALE_2_5X:
-			iEFBScale = SCALE_2X;
-			break;
-		default:
-			break;
+			switch (iEFBScale)
+			{
+			case SCALE_AUTO:
+				iEFBScale = SCALE_AUTO_INTEGRAL;
+				break;
+			case SCALE_1_5X:
+				iEFBScale = SCALE_1X;
+				break;
+			case SCALE_2_5X:
+				iEFBScale = SCALE_2X;
+				break;
+			default:
+				break;
+			}
 		}
 	}
 
