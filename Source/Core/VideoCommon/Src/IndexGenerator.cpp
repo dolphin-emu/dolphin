@@ -35,6 +35,30 @@ u32 IndexGenerator::index;
 
 static const u16 s_primitive_restart = -1;
 
+static void (*primitive_table[8])(u32);
+
+void IndexGenerator::Init()
+{
+	if(g_Config.backend_info.bSupportsPrimitiveRestart)
+	{
+		primitive_table[0] = IndexGenerator::AddQuads<true>;
+		primitive_table[2] = IndexGenerator::AddList<true>;
+		primitive_table[3] = IndexGenerator::AddStrip<true>;
+		primitive_table[4] = IndexGenerator::AddFan<true>;
+	}
+	else
+	{
+		primitive_table[0] = IndexGenerator::AddQuads<false>;
+		primitive_table[2] = IndexGenerator::AddList<false>;
+		primitive_table[3] = IndexGenerator::AddStrip<false>;
+		primitive_table[4] = IndexGenerator::AddFan<false>;
+	}
+	primitive_table[1] = NULL;
+	primitive_table[5] = &IndexGenerator::AddLineList;
+	primitive_table[6] = &IndexGenerator::AddLineStrip;
+	primitive_table[7] = &IndexGenerator::AddPoints;
+}
+
 void IndexGenerator::Start(u16* Triangleptr, u16* Lineptr, u16* Pointptr)
 {
 	Tptr = Triangleptr;
@@ -51,57 +75,34 @@ void IndexGenerator::Start(u16* Triangleptr, u16* Lineptr, u16* Pointptr)
 
 void IndexGenerator::AddIndices(int primitive, u32 numVerts)
 {
-	//switch (primitive)
-	//{
-	//case GX_DRAW_QUADS:          IndexGenerator::AddQuads(numVerts);		break;
-	//case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVerts);		break;
-	//case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVerts);		break;
-	//case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVerts);		break;
-	//case GX_DRAW_LINES:          IndexGenerator::AddLineList(numVerts);	break;
-	//case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVerts);	break;
-	//case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVerts);		break;
-	//}
-
-	static void (*const primitive_table[])(u32) =
-	{
-		IndexGenerator::AddQuads,
-		NULL,
-		IndexGenerator::AddList,
-		IndexGenerator::AddStrip,
-		IndexGenerator::AddFan,
-		IndexGenerator::AddLineList,
-		IndexGenerator::AddLineStrip,
-		IndexGenerator::AddPoints,
-	};
-
 	primitive_table[primitive](numVerts);
 	index += numVerts;
 }
 
 // Triangles
-__forceinline void IndexGenerator::WriteTriangle(u32 index1, u32 index2, u32 index3)
+template <bool pr> __forceinline void IndexGenerator::WriteTriangle(u32 index1, u32 index2, u32 index3)
 {
 	*Tptr++ = index1;
 	*Tptr++ = index2;
 	*Tptr++ = index3;
-	if(g_Config.backend_info.bSupportsPrimitiveRestart)
+	if(pr)
 		*Tptr++ = s_primitive_restart;
 	
 	++numT;
 }
 
-void IndexGenerator::AddList(u32 const numVerts)
+template <bool pr> void IndexGenerator::AddList(u32 const numVerts)
 {
 	auto const numTris = numVerts / 3;
 	for (u32 i = 0; i != numTris; ++i)
 	{
-		WriteTriangle(index + i * 3, index + i * 3 + 1, index + i * 3 + 2);
+		WriteTriangle<pr>(index + i * 3, index + i * 3 + 1, index + i * 3 + 2);
 	}
 }
 
-void IndexGenerator::AddStrip(u32 const numVerts)
+template <bool pr> void IndexGenerator::AddStrip(u32 const numVerts)
 {
-	if(g_Config.backend_info.bSupportsPrimitiveRestart) {
+	if(pr) {
 		for (u32 i = 0; i < numVerts; ++i)
 		{
 			*Tptr++ = index + i;
@@ -113,7 +114,7 @@ void IndexGenerator::AddStrip(u32 const numVerts)
 		bool wind = false;
 		for (u32 i = 2; i < numVerts; ++i)
 		{
-			WriteTriangle(
+			WriteTriangle<pr>(
 				index + i - 2,
 				index + i - !wind,
 				index + i - wind);
@@ -142,11 +143,11 @@ void IndexGenerator::AddStrip(u32 const numVerts)
  * so we use 6 indices for 3 triangles
  */
 
-void IndexGenerator::AddFan(u32 numVerts)
+template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
 {
 	u32 i = 2;
 	
-	if(g_Config.backend_info.bSupportsPrimitiveRestart) {
+	if(pr) {
 		for(; i<=numVerts-3; i+=3) {
 			*Tptr++ = index + i - 1;
 			*Tptr++ = index + i + 0;
@@ -169,7 +170,7 @@ void IndexGenerator::AddFan(u32 numVerts)
 	
 	for (; i < numVerts; ++i)
 	{
-		WriteTriangle(index, index + i - 1, index + i);
+		WriteTriangle<pr>(index, index + i - 1, index + i);
 	}
 }
 
@@ -186,12 +187,12 @@ void IndexGenerator::AddFan(u32 numVerts)
  * or 120,302, 564,746
  * or as strip: 1203, 5647
  */
-void IndexGenerator::AddQuads(u32 numVerts)
+template <bool pr> void IndexGenerator::AddQuads(u32 numVerts)
 {
 	auto const numQuads = numVerts / 4;
 	for (u32 i = 0; i != numQuads; ++i)
 	{
-		if(g_Config.backend_info.bSupportsPrimitiveRestart) {
+		if(pr) {
 			*Tptr++ = index + i * 4 + 1;
 			*Tptr++ = index + i * 4 + 2;
 			*Tptr++ = index + i * 4 + 0;
@@ -199,8 +200,8 @@ void IndexGenerator::AddQuads(u32 numVerts)
 			*Tptr++ = s_primitive_restart;
 			numT += 2;
 		} else {
-			WriteTriangle(index + i * 4, index + i * 4 + 1, index + i * 4 + 2);
-			WriteTriangle(index + i * 4, index + i * 4 + 2, index + i * 4 + 3);
+			WriteTriangle<pr>(index + i * 4, index + i * 4 + 1, index + i * 4 + 2);
+			WriteTriangle<pr>(index + i * 4, index + i * 4 + 2, index + i * 4 + 3);
 		}
 	}
 }

@@ -35,6 +35,7 @@
 #include "Debugger/DebuggerPanel.h"
 #include "DLCache.h"
 #include "EmuWindow.h"
+#include "IndexGenerator.h"
 #include "FileUtil.h"
 #include "Globals.h"
 #include "IniFile.h"
@@ -193,6 +194,7 @@ void VideoBackend::Video_Prepare()
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
+	IndexGenerator::Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
 	VertexShaderManager::Init();

@@ -338,7 +338,7 @@ Renderer::Renderer()
 	
 	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
 	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
-	g_Config.backend_info.bSupportsPrimitiveRestart = false; //GLEW_VERSION_3_1;
+	g_Config.backend_info.bSupportsPrimitiveRestart = GLEW_VERSION_3_1;
 	
 	g_ogl_config.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
 	g_ogl_config.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;

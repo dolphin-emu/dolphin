@@ -51,6 +51,7 @@
 #include "VideoState.h"
 #include "Render.h"
 #include "DLCache.h"
+#include "IndexGenerator.h"
 #include "IniFile.h"
 #include "Core.h"
 #include "Host.h"
@@ -184,6 +185,7 @@ void VideoBackend::Video_Prepare()
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
+	IndexGenerator::Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
 	VertexShaderManager::Init();
