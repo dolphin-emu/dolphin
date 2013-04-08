@@ -58,7 +58,9 @@ Wiimote::Wiimote()
 	, dev_handle(0), stack(MSBT_STACK_UNKNOWN)
 #endif
 	, m_last_input_report()
-	, m_channel(0), m_run_thread(false)
+	, m_channel(0)
+	, m_rumble_state()
+	, m_run_thread(false)
 {
 #if defined(__linux__) && HAVE_BLUEZ
 	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
@@ -77,6 +79,26 @@ Wiimote::~Wiimote()
 }
 
 // to be called from CPU thread
+void Wiimote::WriteReport(Report rpt)
+{
+	if (rpt.size() >= 3)
+	{
+		bool const new_rumble_state = (rpt[2] & 0x1) != 0;
+		
+		if (WM_RUMBLE == rpt[1] && new_rumble_state == m_rumble_state)
+		{
+			// If this is a rumble report and the rumble state didn't change, ignore
+			//ERROR_LOG(WIIMOTE, "Ignoring rumble report.");
+			return;
+		}
+		
+		m_rumble_state = new_rumble_state;
+	}
+
+	m_write_reports.Push(std::move(rpt));
+}
+
+// to be called from CPU thread
 void Wiimote::QueueReport(u8 rpt_id, const void* _data, unsigned int size)
 {
 	auto const data = static_cast<const u8*>(_data);
@@ -85,7 +107,7 @@ void Wiimote::QueueReport(u8 rpt_id, const void* _data, unsigned int size)
 	rpt[0] = WM_SET_REPORT | WM_BT_OUTPUT;
 	rpt[1] = rpt_id;
 	std::copy_n(data, size, rpt.begin() + 2);
-	m_write_reports.Push(std::move(rpt));
+	WriteReport(std::move(rpt));
 }
 
 void Wiimote::DisableDataReporting()
@@ -171,7 +193,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 		rpt.resize(3);
 	}
 
-	m_write_reports.Push(std::move(rpt));
+	WriteReport(std::move(rpt));
 }
 
 bool Wiimote::Read()

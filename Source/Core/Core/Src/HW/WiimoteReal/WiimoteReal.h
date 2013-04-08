@@ -103,12 +103,15 @@ protected:
 
 private:
 	void ClearReadQueue();
+	void WriteReport(Report rpt);
 	
 	int IORead(u8* buf);
 	int IOWrite(u8 const* buf, int len);
 
 	void ThreadFunc();
 
+	bool m_rumble_state;
+	
 	bool				m_run_thread;
 	std::thread			m_wiimote_thread;
 	
