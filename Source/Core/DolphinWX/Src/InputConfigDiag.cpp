@@ -600,7 +600,9 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 		m_config_dialog->UpdateProfileComboBox();
 	}
 	else
+	{
 		PanicAlertT("You must enter a valid profile name.");
+	}
 }
 
 void GamepadPage::DeleteProfile(wxCommandEvent&)
@@ -872,7 +874,9 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 			col_size = grp_size;
 		}
 		else
+		{
 			stacked_groups->Add(control_group, 0, wxEXPAND);
+		}
 
 		if (groups)
 			groups->push_back(control_group_box);

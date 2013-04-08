@@ -1,3 +1,4 @@
+
 // Copyright (C) 2003 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
@@ -22,7 +23,7 @@
 
 BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
 	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1,
-		   	wxEVT_COMMAND_BUTTON_CLICKED, HotkeyConfigDialog::OnButtonClick)
+			wxEVT_COMMAND_BUTTON_CLICKED, HotkeyConfigDialog::OnButtonClick)
 	EVT_TIMER(wxID_ANY, HotkeyConfigDialog::OnButtonTimer)
 END_EVENT_TABLE()
 
@@ -86,8 +87,8 @@ void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
 		else
 		{
 			SetButtonText(ClickedButton->GetId(),
-				   	InputCommon::WXKeyToString(g_Pressed),
-				   	InputCommon::WXKeymodToString(g_Modkey));
+					InputCommon::WXKeyToString(g_Pressed),
+					InputCommon::WXKeymodToString(g_Modkey));
 			SaveButtonMapping(ClickedButton->GetId(), g_Pressed, g_Modkey);
 		}
 		EndGetButtons();
@@ -112,7 +113,7 @@ void HotkeyConfigDialog::DoGetButtons(int _GetId)
 		if(m_ButtonMappingTimer->IsRunning())
 			m_ButtonMappingTimer->Stop();
 
-		 // Save the button Id
+		// Save the button Id
 		GetButtonWaitingID = _GetId;
 		GetButtonWaitingTimer = 0;
 
@@ -149,7 +150,8 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
 	event.Skip();
 
-	if (m_ButtonMappingTimer->IsRunning()) return;
+	if (m_ButtonMappingTimer->IsRunning())
+		return;
 
 	wxTheApp->Bind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
 

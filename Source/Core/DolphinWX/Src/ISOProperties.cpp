@@ -98,7 +98,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 				}
 			}
 			else
+			{
 				break;
+			}
 		}
 	}
 	else
@@ -131,9 +133,13 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			_iniFilename = tmp;
 		}
 	}
+
 	GameIniFile = File::GetUserPath(D_GAMECONFIG_IDX) + _iniFilename + ".ini";
+
 	if (GameIni.Load(GameIniFile.c_str()))
+	{
 		LoadGameConfig();
+	}
 	else
 	{
 		// Will fail out if GameConfig folder doesn't exist
@@ -148,6 +154,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 				<< "[ActionReplay] Add action replay cheats here.\n";
 			f.close();
 		}
+
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();
 		else
@@ -226,7 +233,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			}
 		}
 		else if (!GCFiles.empty())
+		{
 			CreateDirectoryTree(RootId, GCFiles, 1, GCFiles.at(0)->m_FileSize);
+		}
 
 		m_Treectrl->Expand(RootId);
 	}
@@ -255,7 +264,11 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 		const DiscIO::SFileInfo *rFileInfo = fileInfos[CurrentIndex];
 		char *name = (char*)rFileInfo->m_FullPath;
 
-		if (rFileInfo->IsDirectory()) name[strlen(name) - 1] = '\0';
+		if (rFileInfo->IsDirectory())
+		{
+			name[strlen(name) - 1] = '\0';
+		}
+
 		char *itemName = strrchr(name, DIR_SEP_CHR);
 
 		if(!itemName)
@@ -664,7 +677,9 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
 	}
 	else
+	{
 		pFileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
+	}
 }
 
 void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolder, const int partitionNum)
@@ -679,7 +694,9 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		FS = WiiDisc.at(partitionNum).FileSystem;
 	}
 	else
+	{
 		FS = pFileSystem;
+	}
 
 	FS->GetFileList(fst);
 
@@ -799,7 +816,9 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str(), partitionNum);
 	}
 	else
+	{
 		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str());
+	}
 }
 
 void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)

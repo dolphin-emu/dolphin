@@ -313,7 +313,7 @@ bool DolphinApp::OnInit()
 		MessageBox(NULL,
 				   L"This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
 				   L"download Dolphin from the official website instead: http://dolphin-emu.org/",
-                   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
+				   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
 		ShellExecute(NULL, L"open", L"http://dolphin-emu.org/?ref=badver", NULL, NULL, SW_SHOWDEFAULT);
 		exit(0);
 	}
@@ -376,7 +376,9 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 				main_frame->BootGame(WxStrToStr(FileToLoad));
 			}
 			else
+			{
 				main_frame->BootGame(std::string(""));
+			}
 		}
 	}
 
@@ -516,7 +518,7 @@ void* Host_GetInstance()
 
 void* Host_GetRenderHandle()
 {
-    return main_frame->GetRenderHandle();
+	return main_frame->GetRenderHandle();
 }
 
 // OK, this thread boundary is DANGEROUS on linux
@@ -627,7 +629,7 @@ void Host_SetStartupDebuggingParameters()
 {
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	if (main_frame->g_pCodeWindow)
-	{    
+	{
 		StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
 		StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
 		StartUp.bJITNoBlockCache = main_frame->g_pCodeWindow->JITNoBlockCache();

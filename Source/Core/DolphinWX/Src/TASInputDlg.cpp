@@ -73,7 +73,7 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	main_yslider_box->Add(wx_mainY_s, 0, wxALIGN_CENTER_VERTICAL);
 	main_yslider_box->Add(wx_mainY_t, 0, wxALIGN_CENTER_VERTICAL);
 	main_box->Add(main_yslider_box);
-    
+
 	wxStaticBoxSizer* const c_box = new wxStaticBoxSizer(wxHORIZONTAL, this, _("C Stick"));
 	wxBoxSizer* const c_xslider_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const c_yslider_box = new wxBoxSizer(wxVERTICAL);
@@ -686,13 +686,13 @@ bool TASInputDlg::HasFocus()
 	if(TextBoxHasFocus())
 		return false;
 
-    if (wxWindow::FindFocus() == this)
-        return true;
-    else if (wxWindow::FindFocus() != NULL &&
-             wxWindow::FindFocus()->GetParent() == this)
-        return true;
-    else
-        return false;
+	if (wxWindow::FindFocus() == this)
+		return true;
+	else if (wxWindow::FindFocus() != NULL &&
+				wxWindow::FindFocus()->GetParent() == this)
+		return true;
+	else
+		return false;
 }
 
 bool TASInputDlg::TextBoxHasFocus()
@@ -825,6 +825,7 @@ void TASInputDlg::SetTurboFalse(wxMouseEvent& event)
 		case ID_A:
 				A_turbo = false;
 			break;
+
 		case ID_B:
 				B_turbo = false;
 			break;
@@ -868,6 +869,7 @@ void TASInputDlg::SetTurboFalse(wxMouseEvent& event)
 		case ID_RIGHT:
 				DR_turbo = false;
 			break;
+
 		default:
 			return;
 	}
@@ -989,7 +991,6 @@ void TASInputDlg::ButtonTurbo()
 	{
 		if(wx_a_button->GetValue())
 			wx_a_button->SetValue(false);
-		
 		else
 			wx_a_button->SetValue(true);
 	}
@@ -998,42 +999,38 @@ void TASInputDlg::ButtonTurbo()
 	{
 		if(wx_b_button->GetValue())
 			wx_b_button->SetValue(false);
-		
 		else
 			wx_b_button->SetValue(true);
 	}
-	
+
 	if(X_turbo)
 	{
 		if(wx_x_button->GetValue())
 			wx_x_button->SetValue(false);
-		
 		else
 			wx_x_button->SetValue(true);
 	}
-	
+
 	if(Y_turbo)
 	{
 		if(wx_y_button->GetValue())
 			wx_y_button->SetValue(false);
-		
 		else
 			wx_y_button->SetValue(true);
 	}
-	
+
 	if(Z_turbo)
 	{
 		if(wx_z_button->GetValue())
 			wx_z_button->SetValue(false);
-	
 		else
 			wx_z_button->SetValue(true);
 	}
-			if(L_turbo)
+
+	if(L_turbo)
 	{
 		if(wx_l_button->GetValue())
 			wx_l_button->SetValue(false);
-	
 		else
 			wx_l_button->SetValue(true);
 	}
@@ -1042,7 +1039,6 @@ void TASInputDlg::ButtonTurbo()
 	{
 		if(wx_r_button->GetValue())
 			wx_r_button->SetValue(false);
-			
 		else
 			wx_r_button->SetValue(true);
 	}
@@ -1051,7 +1047,6 @@ void TASInputDlg::ButtonTurbo()
 	{
 		if(wx_start_button->GetValue())
 			wx_start_button->SetValue(false);
-		
 		else
 			wx_start_button->SetValue(true);
 		}
@@ -1060,7 +1055,6 @@ void TASInputDlg::ButtonTurbo()
 	{
 		if(wx_up_button->GetValue())
 			wx_up_button->SetValue(false);
-			
 		else
 			wx_up_button->SetValue(true);
 	}
@@ -1069,7 +1063,6 @@ void TASInputDlg::ButtonTurbo()
 	{
 		if(wx_down_button->GetValue())
 			wx_down_button->SetValue(false);
-		
 		else
 			wx_down_button->SetValue(true);
 	}
@@ -1078,7 +1071,6 @@ void TASInputDlg::ButtonTurbo()
 	{
 		if(wx_left_button->GetValue())
 			wx_left_button->SetValue(false);
-			
 		else
 			wx_left_button->SetValue(true);
 	}
@@ -1087,7 +1079,6 @@ void TASInputDlg::ButtonTurbo()
 	{
 		if(wx_right_button->GetValue())
 			wx_right_button->SetValue(false);
-	
 		else
 			wx_right_button->SetValue(true);
 	}
@@ -1097,13 +1088,13 @@ wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
 {
 	x = x/2;
 	y = y/2;
-    
+
 	wxMemoryDC memDC;
-    wxBitmap stick_bitmap(127, 127);
-    memDC.SelectObject(stick_bitmap);
-    memDC.SetBackground(*wxLIGHT_GREY_BRUSH);
-    memDC.Clear();
-    memDC.SetBrush(*wxWHITE_BRUSH);
+	wxBitmap stick_bitmap(127, 127);
+	memDC.SelectObject(stick_bitmap);
+	memDC.SetBackground(*wxLIGHT_GREY_BRUSH);
+	memDC.Clear();
+	memDC.SetBrush(*wxWHITE_BRUSH);
 	memDC.DrawCircle(65,65,64);
 	memDC.SetBrush(*wxRED_BRUSH);
 	memDC.DrawLine(64,64,x,y);
@@ -1115,6 +1106,6 @@ wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
 	memDC.CrossHair(64,64);
 	memDC.SetBrush(*wxBLUE_BRUSH);
 	memDC.DrawCircle(x,y,5);
-    memDC.SelectObject(wxNullBitmap);
-    return stick_bitmap;
+	memDC.SelectObject(wxNullBitmap);
+	return stick_bitmap;
 }

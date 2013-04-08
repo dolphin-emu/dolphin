@@ -170,8 +170,12 @@ void CARCodeAddEdit::UpdateTextCtrl(ActionReplay::ARCode arCode)
 	EditCheatCode->Clear();
 
 	if (arCode.name != "")
+	{
 		for (u32 i = 0; i < arCode.ops.size(); i++)
 			EditCheatCode->AppendText(wxString::Format(wxT("%08X %08X\n"), arCode.ops.at(i).cmd_addr, arCode.ops.at(i).value));
+	}
 	else
+	{
 		EditCheatCode->SetValue(_("Insert Encrypted or Decrypted code here..."));
+	}
 }

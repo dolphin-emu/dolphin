@@ -120,7 +120,7 @@ public:
 		#endif
 	}
 
-	// These have to be public		
+	// These have to be public
 	CCodeWindow* g_pCodeWindow;
 	NetPlaySetupDiag* g_NetPlaySetupDiag;
 	wxCheatsWindow* g_CheatsWindow;
@@ -134,7 +134,7 @@ public:
 	void UpdateGameList();
 	void ToggleLogWindow(bool bShow);
 	void ToggleLogConfigWindow(bool bShow);
-	void ToggleConsole(bool bShow);		
+	void ToggleConsole(bool bShow);
 	void PostEvent(wxCommandEvent& event);
 	void StatusBarMessage(const char * Text, ...);
 	void ClearStatusBar();
@@ -209,7 +209,7 @@ private:
 		Toolbar_ConfigGFX,
 		Toolbar_ConfigDSP,
 		Toolbar_ConfigPAD,
-		Toolbar_Wiimote,			
+		Toolbar_Wiimote,
 		Toolbar_Help,
 		EToolbar_Max
 	};
@@ -305,10 +305,10 @@ private:
 	void OnLoadLastState(wxCommandEvent& event);
 	void OnUndoLoadState(wxCommandEvent& event);
 	void OnUndoSaveState(wxCommandEvent& event);
-		
+
 	void OnFrameSkip(wxCommandEvent& event);
 	void OnFrameStep(wxCommandEvent& event);
-		
+
 	void OnConfigMain(wxCommandEvent& event); // Options
 	void OnConfigGFX(wxCommandEvent& event);
 	void OnConfigDSP(wxCommandEvent& event);
@@ -332,7 +332,7 @@ private:
 	void OnKeyUp(wxKeyEvent& event);
 
 	void OnMouse(wxMouseEvent& event); // Mouse
-		
+
 	void OnHostMessage(wxCommandEvent& event);
 
 	void OnMemcard(wxCommandEvent& event); // Misc

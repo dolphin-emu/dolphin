@@ -36,13 +36,13 @@ BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
 	EVT_MENU_RANGE(ID_RUNTOOL, ID_SHOWPCTOOL, DSPDebuggerLLE::OnChangeState)
 	EVT_TEXT_ENTER(ID_ADDRBOX, DSPDebuggerLLE::OnAddrBoxChange)
-    EVT_LISTBOX(ID_SYMBOLLIST, DSPDebuggerLLE::OnSymbolListChange)
+	EVT_LISTBOX(ID_SYMBOLLIST, DSPDebuggerLLE::OnSymbolListChange)
 END_EVENT_TABLE()
 
 
 DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize,
-		   	wxTAB_TRAVERSAL, _("DSP LLE Debugger"))
+			wxTAB_TRAVERSAL, _("DSP LLE Debugger"))
 	, m_CachedStepCounter(-1)
 {
 	m_DebuggerFrame = this;
@@ -184,14 +184,14 @@ void DSPDebuggerLLE::FocusOnPC()
 void DSPDebuggerLLE::UpdateState()
 {
 	if (DSPCore_GetState() == DSPCORE_RUNNING)
-   	{
+	{
 		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Pause"));
 		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
 			wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10,10)));
 		m_Toolbar->EnableTool(ID_STEPTOOL, false);
 	}
-   	else
-   	{
+	else
+	{
 		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Run"));
 		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
 			wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_OTHER, wxSize(10,10)));

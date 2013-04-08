@@ -1235,7 +1235,9 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 		if (dialog.ShowModal() == wxID_OK)
 		{
 			if (ISOPaths->FindString(dialog.GetPath()) != -1)
+			{
 				wxMessageBox(_("The chosen directory is already in the list"), _("Error"), wxOK);
+			}
 			else
 			{
 				bRefreshList = true;
