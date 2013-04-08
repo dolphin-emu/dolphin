@@ -71,7 +71,7 @@ enum VarType
 	VAR_FLOAT,
 };
 
-template<typename F> static inline VarType getVarType();
+template<typename dest_format> static inline VarType getVarType();
 template<> inline VarType getVarType<s8>() { return VAR_BYTE; }
 template<> inline VarType getVarType<u8>() { return VAR_UNSIGNED_BYTE; }
 template<> inline VarType getVarType<s16>() { return VAR_SHORT; }

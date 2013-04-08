@@ -71,7 +71,7 @@ MOVUPS(MOffset(EDI, 0), XMM0);
 
 									 */
 
-template <typename F, typename T, int N, int frac, bool has_frac, bool apply_frac>
+template <typename dest_format, typename src_format, int N, int frac, bool has_frac, bool apply_frac>
 void LOADERDECL Pos_ReadDirect()
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
@@ -79,37 +79,43 @@ void LOADERDECL Pos_ReadDirect()
 
 	for (int i = 0; i < 3; ++i)
 	{
-		F raw_value = F(i<N ? DataRead<T>() : 0);
-		if(apply_frac)
-			raw_value /= F(1u<<frac);
-		DataWrite<F>(raw_value);
+		dest_format raw_value = dest_format(i<N ? DataRead<src_format>() : 0);
+		dest_format divisor = dest_format(1u<<frac);
+		if(apply_frac && divisor > 1)
+		{
+			raw_value /= divisor;
+		}
+		DataWrite<dest_format>(raw_value);
 	}
 	
 	if(has_frac)
-		DataWrite<F>(frac+1);
+		DataWrite<dest_format>(frac+1);
 	LOG_VTX();
 }
 
-template <typename F, typename I, typename T, int N, int frac, bool has_frac, bool apply_frac>
+template <typename dest_format, typename index_format, typename src_format, int N, int frac, bool has_frac, bool apply_frac>
 void LOADERDECL Pos_ReadIndex()
 {
-	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
+	static_assert(!std::numeric_limits<index_format>::is_signed, "Only unsigned index_format is sane!");
 	static_assert(N <= 3, "N > 3 is not sane!");
 	static_assert(!has_frac || !apply_frac, "calculating frac on cpu and gpu doesn't make sense");
 
-	auto const index = DataRead<I>();
-	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
+	auto const index = DataRead<index_format>();
+	auto const data = reinterpret_cast<const src_format*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
 
 	for (int i = 0; i < 3; ++i)
 	{
-		F raw_value = F(i<N ? Common::FromBigEndian(data[i]) : 0);
-		if(apply_frac)
-			raw_value /= F(1u<<frac);
-		DataWrite<F>(raw_value);
+		dest_format raw_value = dest_format(i<N ? Common::FromBigEndian(data[i]) : 0);
+		dest_format divisor = dest_format(1u<<frac);
+		if(apply_frac && divisor > 1)
+		{
+			raw_value /= divisor;
+		}
+		DataWrite<dest_format>(raw_value);
 	}
 
 	if(has_frac)
-		DataWrite<F>(frac+1);
+		DataWrite<dest_format>(frac+1);
 	LOG_VTX();
 }
 
@@ -117,11 +123,11 @@ void LOADERDECL Pos_ReadIndex()
 static const __m128i kMaskSwap32_3 = _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x04050607L, 0x00010203L);
 static const __m128i kMaskSwap32_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
 
-template <typename I, bool three>
+template <typename index_format, bool three>
 void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 {
-	auto const index = DataRead<I>();
-	if (index < std::numeric_limits<I>::max())
+	auto const index = DataRead<index_format>();
+	if (index < std::numeric_limits<index_format>::max())
 	{
 		const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
 		GC_ALIGNED128(const __m128i a = _mm_loadu_si128((__m128i*)pData));
@@ -135,25 +141,25 @@ void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 
 static AttributeLoaderDeclaration table[3][5][2][32];
 
-template <typename F, int formatnr, int N, int frac, typename T, bool has_frac, bool apply_frac> void set_table()
+template <typename dest_format, int formatnr, int N, int frac, typename src_format, bool has_frac, bool apply_frac> void set_table()
 {
 	// if frac isn't used (float->float), we don't have to generate all template function
 	const int frac_factor = (has_frac || apply_frac) ? frac : 0;
 	
-	table[0][formatnr][N-2][frac].func = Pos_ReadDirect<F, T, N, frac_factor, has_frac, apply_frac>;
-	table[1][formatnr][N-2][frac].func = Pos_ReadIndex<F, u8, T, N, frac_factor, has_frac, apply_frac>;
-	table[2][formatnr][N-2][frac].func = Pos_ReadIndex<F, u16, T, N, frac_factor, has_frac, apply_frac>;
+	table[0][formatnr][N-2][frac].func = Pos_ReadDirect<dest_format, src_format, N, frac_factor, has_frac, apply_frac>;
+	table[1][formatnr][N-2][frac].func = Pos_ReadIndex<dest_format, u8, src_format, N, frac_factor, has_frac, apply_frac>;
+	table[2][formatnr][N-2][frac].func = Pos_ReadIndex<dest_format, u16, src_format, N, frac_factor, has_frac, apply_frac>;
 	
 	for(u32 i=0; i<3; i++)
 	{
 		table[i][formatnr][N-2][frac].attr.count = 3+has_frac;
-		table[i][formatnr][N-2][frac].attr.type = getVarType<F>();
+		table[i][formatnr][N-2][frac].attr.type = getVarType<dest_format>();
 		table[i][formatnr][N-2][frac].attr.normalized = false;
 		table[i][formatnr][N-2][frac].native_size = i;
-		table[i][formatnr][N-2][frac].gl_size = sizeof(F)*(3+has_frac);
+		table[i][formatnr][N-2][frac].gl_size = sizeof(dest_format)*(3+has_frac);
 	}
 	
-	table[0][formatnr][N-2][frac].native_size = sizeof(T)*N;
+	table[0][formatnr][N-2][frac].native_size = sizeof(src_format)*N;
 }
 
 // dx9 doesn't support signed bytes, so we have to convert them to shorts
