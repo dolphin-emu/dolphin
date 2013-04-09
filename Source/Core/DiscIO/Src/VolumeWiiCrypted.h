@@ -42,6 +42,7 @@ public:
 	std::string GetApploaderDate() const;
 	ECountry GetCountry() const;
 	u64 GetSize() const;
+	u64 GetRawSize() const;
 
 	bool SupportsIntegrityCheck() const { return true; }
 	bool CheckIntegrity() const;

@@ -240,6 +240,10 @@ u64 CVolumeDirectory::GetSize() const
 	return 0;
 }
 
+u64 CVolumeDirectory::GetRawSize() const
+{
+	return GetSize();
+}
 
 std::string CVolumeDirectory::ExtractDirectoryName(const std::string& _rDirectory)
 {

@@ -71,7 +71,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_volume_names = pVolume->GetNames();
 
 			m_Country  = pVolume->GetCountry();
-			m_FileSize = File::GetSize(_rFileName);
+			m_FileSize = pVolume->GetRawSize();
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
