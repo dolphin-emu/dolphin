@@ -109,8 +109,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_ControllerBD);
 	p.Do(m_CtrlSetup);
 	p.Do(m_ACLSetup);
-	p.Do(m_HCIEndpoint);
-	p.Do(m_ACLEndpoint);
+	p.DoPOD(m_HCIEndpoint);
+	p.DoPOD(m_ACLEndpoint);
 	p.Do(m_last_ticks);
 	p.DoArray(m_PacketCount,4);
 	p.Do(m_ScanEnable);

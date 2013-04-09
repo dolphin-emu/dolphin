@@ -157,8 +157,8 @@ void DSPHLE::DoState(PointerWrap &p)
 		}
 	}
 
-	p.Do(m_DSPControl);
-	p.Do(m_dspState);
+	p.DoPOD(m_DSPControl);
+	p.DoPOD(m_dspState);
 
 	int ucode_crc = IUCode::GetCRC(m_pUCode);
 	int ucode_crc_beforeLoad = ucode_crc;

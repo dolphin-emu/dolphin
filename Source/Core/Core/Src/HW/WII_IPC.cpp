@@ -111,7 +111,7 @@ void DoState(PointerWrap &p)
 {
 	p.Do(ppc_msg);
 	p.Do(arm_msg);
-	p.Do(ctrl);
+	p.DoPOD(ctrl);
 	p.Do(ppc_irq_flags);
 	p.Do(ppc_irq_masks);
 	p.Do(arm_irq_flags);

@@ -223,9 +223,9 @@ void DoState(PointerWrap &p)
 {
 	if (!g_ARAM.wii_mode)
 		p.DoArray(g_ARAM.ptr, g_ARAM.size);
-	p.Do(g_dspState);
-	p.Do(g_audioDMA);
-	p.Do(g_arDMA);
+	p.DoPOD(g_dspState);
+	p.DoPOD(g_audioDMA);
+	p.DoPOD(g_arDMA);
 	p.Do(g_ARAM_Info);
 	p.Do(g_AR_MODE);
 	p.Do(g_AR_REFRESH);

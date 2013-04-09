@@ -229,14 +229,14 @@ void ExecuteCommand(UDICR& _DICR);
 
 void DoState(PointerWrap &p)
 {
-	p.Do(m_DISR);
-	p.Do(m_DICVR);
+	p.DoPOD(m_DISR);
+	p.DoPOD(m_DICVR);
 	p.DoArray(m_DICMDBUF, 3);
 	p.Do(m_DIMAR);
 	p.Do(m_DILENGTH);
 	p.Do(m_DICR);
 	p.Do(m_DIIMMBUF);
-	p.Do(m_DICFG);
+	p.DoPOD(m_DICFG);
 
 	p.Do(LoopStart);
 	p.Do(AudioPos);

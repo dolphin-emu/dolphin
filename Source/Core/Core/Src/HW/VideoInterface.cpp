@@ -72,8 +72,8 @@ static int fields = 2;
 
 void DoState(PointerWrap &p)
 {
-	p.Do(m_VerticalTimingRegister);
-	p.Do(m_DisplayControlRegister);
+	p.DoPOD(m_VerticalTimingRegister);
+	p.DoPOD(m_DisplayControlRegister);
 	p.Do(m_HTiming0);
 	p.Do(m_HTiming1);
 	p.Do(m_VBlankTimingOdd);
@@ -89,7 +89,7 @@ void DoState(PointerWrap &p)
 	p.DoArray(m_InterruptRegister, 4);
 	p.DoArray(m_LatchRegister, 2);
 	p.Do(m_HorizontalStepping);
-	p.Do(m_HorizontalScaling);
+	p.DoPOD(m_HorizontalScaling);
 	p.Do(m_FilterCoefTables);
 	p.Do(m_UnkAARegister);
 	p.Do(m_Clock);

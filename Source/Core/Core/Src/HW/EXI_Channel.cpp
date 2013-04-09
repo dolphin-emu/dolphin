@@ -282,7 +282,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 
 void CEXIChannel::DoState(PointerWrap &p)
 {
-	p.Do(m_Status);
+	p.DoPOD(m_Status);
 	p.Do(m_DMAMemoryAddress);
 	p.Do(m_DMALength);
 	p.Do(m_Control);

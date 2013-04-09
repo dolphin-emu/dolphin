@@ -131,8 +131,8 @@ static unsigned int g_AIDSampleRate = 32000;
 
 void DoState(PointerWrap &p)
 {
-	p.Do(m_Control);
-	p.Do(m_Volume);
+	p.DoPOD(m_Control);
+	p.DoPOD(m_Volume);
 	p.Do(m_SampleCounter);
 	p.Do(m_InterruptTiming);
 	p.Do(g_LastCPUTime);
