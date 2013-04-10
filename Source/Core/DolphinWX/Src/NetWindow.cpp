@@ -22,6 +22,7 @@
 #include "NetPlay.h"
 #include "NetWindow.h"
 #include "Frame.h"
+#include "Core.h"
 
 #include <sstream>
 #include <string>
@@ -106,8 +107,20 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	connect_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlaySetupDiag::OnJoin, this);
 
 	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY,
-			_("ALERT:\n\nNetPlay will currently only work properly when using the following settings:\n - Dual Core [OFF]\n - Audio Throttle [OFF]\n - DSP-HLE with \"Null Audio\" or DSP-LLE\n - Manually set the exact number of controllers that will be used to [Standard Controller]\n\nAll players should try to use the same Dolphin version and settings.\nDisable all memory cards or send them to all players before starting.\nWiimote support has not been implemented.\n\nYou must forward TCP port to host!!"),
-			wxDefaultPosition, wxDefaultSize);
+		_("ALERT:\n\n"
+		"Netplay will only work with the following settings:\n"
+		" - Enable Dual Core [OFF]\n"
+		" - DSP Emulator Engine Must be the same on all computers!\n"
+		" - DSP on Dedicated Thread [OFF]\n"
+		" - Framelimit NOT set to [Audio]\n"
+		" - Manually set the exact number of controllers to be used to [Standard Controller]\n"
+		"\n"
+		"All players should use the same Dolphin version and settings.\n"
+		"All memory cards must be identical between players or disabled.\n"
+		"Wiimote support has not been implemented!\n"
+		"\n"
+		"The host must have the chosen TCP port open/forwarded!\n"),
+		wxDefaultPosition, wxDefaultSize);
 
 	wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
 	top_szr->Add(ip_lbl, 0, wxCENTER | wxRIGHT, 5);
@@ -138,7 +151,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	wxButton* const host_btn = new wxButton(host_tab, wxID_ANY, _("Host"));
 	host_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlaySetupDiag::OnHost, this);
 
-	m_game_lbox = new wxListBox(host_tab, wxID_ANY);
+	m_game_lbox = new wxListBox(host_tab, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SORT);
 	m_game_lbox->Bind(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, &NetPlaySetupDiag::OnHost, this);
 	
 	FillWithGameNames(m_game_lbox, *game_list);
@@ -296,7 +309,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	chat_szr->Add(m_chat_text, 1, wxEXPAND);
 	chat_szr->Add(chat_msg_szr, 0, wxEXPAND | wxTOP, 5);
 
-	m_player_lbox = new wxListBox(panel, wxID_ANY, wxDefaultPosition, wxSize(192,-1));
+	m_player_lbox = new wxListBox(panel, wxID_ANY, wxDefaultPosition, wxSize(256, -1));
 
 	wxStaticBoxSizer* const player_szr = new wxStaticBoxSizer(wxVERTICAL, panel, _("Players"));
 	player_szr->Add(m_player_lbox, 1, wxEXPAND);
@@ -329,12 +342,13 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, wxT("20")
 			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, 20);
 		padbuf_spin->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &NetPlayDiag::OnAdjustBuffer, this);
-		wxButton* const padbuf_btn = new wxButton(panel, wxID_ANY, wxT("?"), wxDefaultPosition, wxSize(22, -1));
-		padbuf_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDiag::OnPadBuffHelp, this);
 		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
-		bottom_szr->Add(padbuf_btn);
 	}
-		
+
+	m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write memcards (GC)"));
+	m_memcard_write->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &NetPlayDiag::OnMemcardWriteCheck, this);
+	bottom_szr->Add(m_memcard_write, 0, wxCENTER);
+
 	bottom_szr->AddStretchSpacer(1);
 	bottom_szr->Add(quit_btn);
 
@@ -397,6 +411,8 @@ void NetPlayDiag::OnStop(wxCommandEvent&)
 void NetPlayDiag::BootGame(const std::string& filename)
 {
 	main_frame->BootGame(filename);
+
+	Core::g_CoreStartupParameter.bEnableMemcardSaving = m_memcard_write->GetValue();
 }
 
 void NetPlayDiag::StopGame()
@@ -438,15 +454,9 @@ void NetPlayDiag::OnMsgStopGame()
 	GetEventHandler()->AddPendingEvent(evt);
 }
 
-void NetPlayDiag::OnPadBuffHelp(wxCommandEvent&)
+void NetPlayDiag::OnMemcardWriteCheck(wxCommandEvent &event)
 {
-	const u64 time = ((NetPlayServer*)netplay_ptr)->CalculateMinimumBufferTime();
-	std::ostringstream ss;
-	ss << "< Calculated from pings: required buffer: "
-		<< time * (60.0f/1000) << "(60fps) / "
-		<< time * (50.0f/1000) << "(50fps) >\n";
-
-	m_chat_text->AppendText(StrToWxStr(ss.str()));
+	netplay_ptr->SetMemcardWriteEnabled(m_memcard_write->GetValue());
 }
 
 void NetPlayDiag::OnAdjustBuffer(wxCommandEvent& event)
@@ -556,7 +566,7 @@ ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* cons
 	: wxDialog(parent, wxID_ANY, _("Change Game"), wxDefaultPosition, wxDefaultSize)
 	, m_game_name(game_name)
 {
-	m_game_lbox = new wxListBox(this, wxID_ANY);
+	m_game_lbox = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SORT);
 	m_game_lbox->Bind(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, &ChangeGameDiag::OnPick, this);
 
 	FillWithGameNames(m_game_lbox, *game_list);

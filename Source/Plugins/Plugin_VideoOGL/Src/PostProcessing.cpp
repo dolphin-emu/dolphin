@@ -165,7 +165,7 @@ void ApplyShader()
 	std::string code;
 	std::string path = File::GetUserPath(D_SHADERS_IDX) + g_ActiveConfig.sPostProcessingShader + ".txt";
 	if(!File::ReadFileToString(true, path.c_str(), code)) {
-		ERROR_LOG(VIDEO, "post-processing shader not found: %s", path.c_str());
+		ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
 		return;
 	}
 	

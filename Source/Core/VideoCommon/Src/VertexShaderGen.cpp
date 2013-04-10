@@ -133,7 +133,10 @@ static char text[16384];
 
 char* DefineVSOutputStructMember(char* p, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
 {
-	WRITE(p, "  %s %s", type, name);
+	// "centroid" attribute is only supported by D3D11
+	const char* optCentroid = (api_type == API_D3D11 ? "centroid" : "");
+
+	WRITE(p, "  %s %s %s", optCentroid, type, name);
 	if (var_index != -1)
 		WRITE(p, "%d", var_index);
 

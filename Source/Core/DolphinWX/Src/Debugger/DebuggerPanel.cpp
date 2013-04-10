@@ -79,9 +79,10 @@ void GFXDebuggerPanel::SaveSettings() const
 
 	// TODO: make this work when we close the entire program too, currently on total close we get
 	// weird values, perhaps because of some conflict with the rendering window
+
 	// TODO: get the screen resolution and make limits from that
 	if (GetPosition().x < 1000 && GetPosition().y < 1000
-		                       && GetSize().GetWidth() < 1000 
+							   && GetSize().GetWidth() < 1000 
 							   && GetSize().GetHeight() < 1000)
 	{
 		file.Set("VideoWindow", "x", GetPosition().x);

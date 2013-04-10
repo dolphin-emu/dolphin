@@ -50,7 +50,7 @@ static int et_SetFinishOnMainThread;
 
 void DoState(PointerWrap &p)
 {
-    p.Do(pereg);
+    p.DoPOD(pereg);
 	p.Do(g_bSignalTokenInterrupt);
 	p.Do(g_bSignalFinishInterrupt);
 	p.Do(et_SetTokenOnMainThread);

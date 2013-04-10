@@ -171,14 +171,14 @@ void cInterfaceWGL::Shutdown()
 			NOTICE_LOG(VIDEO, "Could not release drawing context.");
 
 		if (!wglDeleteContext(hRC))
-			ERROR_LOG(VIDEO, "Release Rendering Context Failed.");
+			ERROR_LOG(VIDEO, "Attempt to release rendering context failed.");
 
 		hRC = NULL;
 	}
 
 	if (hDC && !ReleaseDC(EmuWindow::GetWnd(), hDC))
 	{
-		ERROR_LOG(VIDEO, "Release Device Context Failed.");
+		ERROR_LOG(VIDEO, "Attempt to release device context failed.");
 		hDC = NULL;
 	}
 }

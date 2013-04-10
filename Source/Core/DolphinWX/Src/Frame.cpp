@@ -94,8 +94,7 @@ CPanel::CPanel(
 
 			case WM_USER_SETCURSOR:
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
-						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN &&
-						SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
 					SetCursor(wxCURSOR_BLANK);
 				else
 					SetCursor(wxNullCursor);
@@ -399,11 +398,24 @@ CFrame::~CFrame()
 
 bool CFrame::RendererIsFullscreen()
 {
+	bool fullscreen = false;
+
 	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 	{
-		return m_RenderFrame->IsFullScreen();
+		fullscreen = m_RenderFrame->IsFullScreen();
 	}
-	return false;
+
+#if defined(__APPLE__)
+	if (m_RenderFrame != NULL)
+	{
+		NSView *view = (NSView *) m_RenderFrame->GetHandle();
+		NSWindow *window = [view window];
+
+		fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
+	}
+#endif
+
+	return fullscreen;
 }
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
@@ -456,10 +468,13 @@ void CFrame::OnClose(wxCloseEvent& event)
 	event.Skip();
 
 	// Save GUI settings
-	if (g_pCodeWindow) SaveIniPerspectives();
-	// Close the log window now so that its settings are saved
+	if (g_pCodeWindow)
+	{
+		SaveIniPerspectives();
+	}
 	else
 	{
+		// Close the log window now so that its settings are saved
 		m_LogWindow->Close();
 		m_LogWindow = NULL;
 	}
@@ -482,7 +497,9 @@ void CFrame::PostEvent(wxCommandEvent& event)
 		g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 	else
+	{
 		event.Skip();
+	}
 }
 
 void CFrame::OnMove(wxMoveEvent& event)
@@ -694,16 +711,20 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		m_GameListCtrl->Update();
 	}
 	else if (!m_GameListCtrl->GetISO(0))
+	{
 		m_GameListCtrl->BrowseForDirectory();
+	}
 	else
+	{
 		// Game started by double click
 		BootGame(std::string(""));
+	}
 }
 
 bool IsHotkey(wxKeyEvent &event, int Id)
 {
 	return (event.GetKeyCode() != WXK_NONE &&
-	        event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
+			event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
 			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
 }
 
@@ -841,7 +862,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			DoFullscreen(!RendererIsFullscreen());
 		// Send Debugger keys to CodeWindow
 		else if (g_pCodeWindow && (event.GetKeyCode() >= WXK_F9 && event.GetKeyCode() <= WXK_F11))
- 			event.Skip();
+			event.Skip();
 		// Pause and Unpause
 		else if (IsHotkey(event, HK_PLAY_PAUSE))
 			DoPause();
@@ -952,7 +973,9 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		}
 	}
 	else
+	{
 		event.Skip();
+	}
 }
 
 void CFrame::OnKeyUp(wxKeyEvent& event)
@@ -980,7 +1003,18 @@ void CFrame::DoFullscreen(bool bF)
 {
 	ToggleDisplayMode(bF);
 
+#if defined(__APPLE__)
+	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSWindow *window = [view window];
+
+	if (bF != RendererIsFullscreen())
+	{
+		[window toggleFullScreen:nil];
+	}
+#else
 	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
+#endif
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		if (bF)
@@ -996,7 +1030,9 @@ void CFrame::DoFullscreen(bool bF)
 		}
 	}
 	else
+	{
 		m_RenderFrame->Raise();
+	}
 }
 
 const CGameListCtrl *CFrame::GetGameListCtrl() const

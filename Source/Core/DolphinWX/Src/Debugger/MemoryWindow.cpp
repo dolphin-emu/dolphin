@@ -341,13 +341,13 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 		newsize = rawData.size();
 
 		if (pad)
-	   	{
+		{
 			tmpstr = new char[newsize + 2];
 			memset(tmpstr, 0, newsize + 2);
 			tmpstr[0] = '0';
 		}
-	   	else
-	   	{
+		else
+		{
 			tmpstr = new char[newsize + 1];
 			memset(tmpstr, 0, newsize + 1);
 		}
@@ -368,7 +368,9 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 			i += 1;
 		}
 		delete[] tmpstr;
-	} else {
+	}
+	else
+	{
 		//Looking for an ascii string
 		size = rawData.size();
 		Dest.resize(size+1);

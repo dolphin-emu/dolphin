@@ -72,8 +72,8 @@ static int fields = 2;
 
 void DoState(PointerWrap &p)
 {
-	p.Do(m_VerticalTimingRegister);
-	p.Do(m_DisplayControlRegister);
+	p.DoPOD(m_VerticalTimingRegister);
+	p.DoPOD(m_DisplayControlRegister);
 	p.Do(m_HTiming0);
 	p.Do(m_HTiming1);
 	p.Do(m_VBlankTimingOdd);
@@ -89,7 +89,7 @@ void DoState(PointerWrap &p)
 	p.DoArray(m_InterruptRegister, 4);
 	p.DoArray(m_LatchRegister, 2);
 	p.Do(m_HorizontalStepping);
-	p.Do(m_HorizontalScaling);
+	p.DoPOD(m_HorizontalScaling);
 	p.Do(m_FilterCoefTables);
 	p.Do(m_UnkAARegister);
 	p.Do(m_Clock);
@@ -407,11 +407,11 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	case VI_UNK_AA_REG_HI:
 		_uReturnValue = (m_UnkAARegister & 0xffff0000) >> 16;
-		WARN_LOG(VIDEOINTERFACE, "(r16) unknown AA reg, not sure what it does :)");
+		WARN_LOG(VIDEOINTERFACE, "(r16) unknown AA register, not sure what it does :)");
 		break;
 	case VI_UNK_AA_REG_LO:
 		_uReturnValue = m_UnkAARegister & 0x0000ffff;
-		WARN_LOG(VIDEOINTERFACE, "(r16) unknown AA reg, not sure what it does :)");
+		WARN_LOG(VIDEOINTERFACE, "(r16) unknown AA register, not sure what it does :)");
 		break;
 
 	case VI_CLOCK:
@@ -434,7 +434,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 	default:
-		ERROR_LOG(VIDEOINTERFACE, "(r16) unk reg %x", _iAddress & 0xfff);
+		ERROR_LOG(VIDEOINTERFACE, "(r16) unknown reg %x", _iAddress & 0xfff);
 		_uReturnValue = 0x0;
 		break;
 	}
@@ -659,11 +659,11 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	case VI_UNK_AA_REG_HI:
 		m_UnkAARegister = (m_UnkAARegister & 0x0000ffff) | (u32)(_iValue << 16);
-		WARN_LOG(VIDEOINTERFACE, "(w16) to unknown AA reg, not sure what it does :)");
+		WARN_LOG(VIDEOINTERFACE, "(w16) to unknown AA register, not sure what it does :)");
 		break;
 	case VI_UNK_AA_REG_LO:
 		m_UnkAARegister = (m_UnkAARegister & 0xffff0000) | _iValue;
-		WARN_LOG(VIDEOINTERFACE, "(w16) to unknown AA reg, not sure what it does :)");
+		WARN_LOG(VIDEOINTERFACE, "(w16) to unknown AA register, not sure what it does :)");
 		break;
 
 	case VI_CLOCK:
@@ -686,7 +686,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	default:
-		ERROR_LOG(VIDEOINTERFACE, "(w16) %04x to unk reg %x", _iValue, _iAddress & 0xfff);
+		ERROR_LOG(VIDEOINTERFACE, "(w16) %04x to unknown register %x", _iValue, _iAddress & 0xfff);
 		break;
 	}
 }
@@ -812,7 +812,7 @@ static void BeginField(FieldType field)
 
 	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
 
-	DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): addr: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
+	DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): Address: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
 		xfbAddr, m_HorizontalStepping.FieldSteps, m_HorizontalStepping.FbSteps, m_VerticalTimingRegister.ACV,
 		fieldTypeNames[field]
 	);

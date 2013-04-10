@@ -138,6 +138,14 @@ u64 CVolumeGC::GetSize() const
 		return 0;
 }
 
+u64 CVolumeGC::GetRawSize() const
+{
+	if (m_pReader)
+		return m_pReader->GetRawSize();
+	else
+		return 0;
+}
+
 bool CVolumeGC::IsDiscTwo() const
 {
 	bool discTwo;

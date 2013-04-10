@@ -107,7 +107,7 @@ void GBASockServer::Transfer(char* si_buffer)
 	else
 		client.Send(current_data, 1);
 
-	DEBUG_LOG(SERIALINTERFACE, "> cmd %02x %02x%02x%02x%02x",
+	DEBUG_LOG(SERIALINTERFACE, "> command %02x %02x%02x%02x%02x",
 		(u8)current_data[0], (u8)current_data[1], (u8)current_data[2],
 		(u8)current_data[3], (u8)current_data[4]);
 

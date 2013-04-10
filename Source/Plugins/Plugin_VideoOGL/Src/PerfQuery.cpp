@@ -30,7 +30,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 	if (ARRAYSIZE(m_query_buffer) == m_query_count)
 	{
 		FlushOne();
-		//ERROR_LOG(VIDEO, "flushed query buffer early!");
+		//ERROR_LOG(VIDEO, "Flushed query buffer early!");
 	}
 	
 	// start query

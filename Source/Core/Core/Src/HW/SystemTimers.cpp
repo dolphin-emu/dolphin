@@ -243,29 +243,29 @@ void PreInit()
 
 void Init()
 {
+	const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam ? 2 : 1;
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		if (!DSP::GetDSPEmulator()->IsLLE())
-			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
-
 		// AyuanX: TO BE TWEAKED
 		// Now the 1500 is a pure assumption
 		// We need to figure out the real frequency though
 
 		// FYI, WII_IPC_HLE_Interface::Update is also called in WII_IPCInterface::Write32
 		const int freq = 1500;
-		const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.
-				bVBeam ? 2 : 1;
 		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * fields);
-	}
-	else
-	{
-		if (!DSP::GetDSPEmulator()->IsLLE())
-			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
 	}
 
 	if (DSP::GetDSPEmulator()->IsLLE())
-		DSP_PERIOD = 12000; // TO BE TWEAKED
+	{
+		DSP_PERIOD = 12600; // TO BE TWEAKED
+	}
+	else
+	{
+		// AX HLE uses 3ms (Wii) or 5ms (GC) timing period
+		int ms_to_process = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
+		DSP_PERIOD = (int)(GetTicksPerSecond() / 1000) * ms_to_process / fields;
+	}
 
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
 	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);

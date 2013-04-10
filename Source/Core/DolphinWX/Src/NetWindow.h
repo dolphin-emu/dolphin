@@ -95,7 +95,7 @@ private:
 
 	void OnChat(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
-	void OnPadBuffHelp(wxCommandEvent& event);
+	void OnMemcardWriteCheck(wxCommandEvent& event);
 	void OnThread(wxCommandEvent& event);
 	void OnChangeGame(wxCommandEvent& event);
 	void OnAdjustBuffer(wxCommandEvent& event);
@@ -104,6 +104,7 @@ private:
 	wxListBox*		m_player_lbox;
 	wxTextCtrl*		m_chat_text;
 	wxTextCtrl*		m_chat_msg_text;
+	wxCheckBox*		m_memcard_write;
 
 	std::string		m_selected_game;
 	wxButton*		m_game_btn;

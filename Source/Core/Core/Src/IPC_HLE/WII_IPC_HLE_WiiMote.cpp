@@ -309,7 +309,7 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 					break;
 
 				default:
-					ERROR_LOG(WII_IPC_WIIMOTE, "channel 0x04%x has unknown PSM %x", pHeader->dcid, rChannel.PSM);
+					ERROR_LOG(WII_IPC_WIIMOTE, "Channel 0x04%x has unknown PSM %x", pHeader->dcid, rChannel.PSM);
 					break;
 				}
 			}
@@ -751,8 +751,8 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 Transact
 {
 	if (ServiceHandle != 0x10000)
 	{
-		ERROR_LOG(WII_IPC_WIIMOTE, "unknown service handle %x" , ServiceHandle);
-		PanicAlert("unknown service handle %x" , ServiceHandle);
+		ERROR_LOG(WII_IPC_WIIMOTE, "Unknown service handle %x" , ServiceHandle);
+		PanicAlert("Unknown service handle %x" , ServiceHandle);
 	}
 
 

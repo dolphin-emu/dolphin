@@ -157,8 +157,8 @@ void DSPHLE::DoState(PointerWrap &p)
 		}
 	}
 
-	p.Do(m_DSPControl);
-	p.Do(m_dspState);
+	p.DoPOD(m_DSPControl);
+	p.DoPOD(m_dspState);
 
 	int ucode_crc = IUCode::GetCRC(m_pUCode);
 	int ucode_crc_beforeLoad = ucode_crc;
@@ -273,7 +273,7 @@ u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
 	UDSPControl Temp(_Value);
 	if (!m_InitMixer)
 	{
-		if (!Temp.DSPHalt && Temp.DSPInit)
+		if (!Temp.DSPHalt)
 		{
 			InitMixer();
 		}

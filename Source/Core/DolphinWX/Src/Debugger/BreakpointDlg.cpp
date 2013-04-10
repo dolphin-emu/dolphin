@@ -47,10 +47,12 @@ void BreakPointDlg::OnOK(wxCommandEvent& event)
 	{
 		PowerPC::breakpoints.Add(Address);
 		Parent->NotifyUpdate();
-		Close();		
+		Close();
 	}
 	else
+	{
 		PanicAlert("The address %s is invalid.", WxStrToStr(AddressString).c_str());
+	}
 
 	event.Skip();
 }

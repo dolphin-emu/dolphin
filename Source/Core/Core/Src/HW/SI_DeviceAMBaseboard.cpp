@@ -143,7 +143,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 					{
 					case 0x10:
 						{
-							DEBUG_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 10, %02x (READ STATUS&SWITCHES)", ptr(1));
+							DEBUG_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 10, %02x (READ STATUS&SWITCHES)", ptr(1));
 							SPADStatus PadStatus;
 							memset(&PadStatus, 0 ,sizeof(PadStatus));
 							Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
@@ -161,13 +161,13 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							break;
 						}
 					case 0x12:
-						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 12, %02x %02x", ptr(1), ptr(2));
+						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 12, %02x %02x", ptr(1), ptr(2));
 						res[resp++] = 0x12;
 						res[resp++] = 0x00;
 						break;
 					case 0x11:
 						{
-							ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 11, %02x (READ SERIAL NR)", ptr(1));
+							ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 11, %02x (READ SERIAL NR)", ptr(1));
 							char string[] = "AADE-01A14964511";
 							res[resp++] = 0x11;
 							res[resp++] = 0x10;
@@ -183,7 +183,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 						res[resp++] = 0x29; // FIRM VERSION
 						break;
 					case 0x16:
-						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 16, %02x (READ FPGA VERSION)", ptr(1));
+						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 16, %02x (READ FPGA VERSION)", ptr(1));
 						res[resp++] = 0x16;
 						res[resp++] = 0x02;
 						res[resp++] = 0x07;
@@ -196,7 +196,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 						break;
 					case 0x1f:
 						{
-							ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 1f, %02x %02x %02x %02x %02x (REGION)", ptr(1), ptr(2), ptr(3), ptr(4), ptr(5));
+							ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 1f, %02x %02x %02x %02x %02x (REGION)", ptr(1), ptr(2), ptr(3), ptr(4), ptr(5));
 							unsigned char string[] =  
 								"\x00\x00\x30\x00"
 								//"\x01\xfe\x00\x00" // JAPAN
@@ -211,14 +211,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							break;
 						}
 					case 0x31:
-						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 31 (UNKNOWN)");
+						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 31 (UNKNOWN)");
 						res[resp++] = 0x31;
 						res[resp++] = 0x02;
 						res[resp++] = 0x00;
 						res[resp++] = 0x00;
 						break;
 					case 0x32:
-						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 32 (UNKNOWN)");
+						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 32 (UNKNOWN)");
 						res[resp++] = 0x32;
 						res[resp++] = 0x02;
 						res[resp++] = 0x00;
@@ -241,7 +241,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 					case 0x4e:
 					case 0x4f:
 						{
-							DEBUG_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD %02x, %02x %02x %02x %02x %02x %02x %02x (JVS IO)", 
+							DEBUG_LOG(AMBASEBOARDDEBUG, "GC-AM: Command %02x, %02x %02x %02x %02x %02x %02x %02x (JVS IO)", 
 								ptr(0), ptr(1), ptr(2), ptr(3), ptr(4), ptr(5), ptr(6), ptr(7));
 							int pptr = 2;
 							JVSIOMessage msg;
@@ -262,7 +262,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							{
 
 								int cmd = *jvs_io++;
-								DEBUG_LOG(AMBASEBOARDDEBUG, "JVS IO, node=%d, cmd=%02x", node, cmd);
+								DEBUG_LOG(AMBASEBOARDDEBUG, "JVS IO, node=%d, command=%02x", node, cmd);
 
 								switch (cmd)
 								{
@@ -391,10 +391,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							break;
 						}
 					case 0x60:
-						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD 60, %02x %02x %02x", ptr(1), ptr(2), ptr(3));
+						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 60, %02x %02x %02x", ptr(1), ptr(2), ptr(3));
 						break;
 					default:
-						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD %02x (unknown) %02x %02x %02x %02x %02x", ptr(0), ptr(1), ptr(2), ptr(3), ptr(4), ptr(5));
+						ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: Command %02x (unknown) %02x %02x %02x %02x %02x", ptr(0), ptr(1), ptr(2), ptr(3), ptr(4), ptr(5));
 						break;
 					}
 					p += ptr(1) + 2;
@@ -414,7 +414,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 					log += sprintf(log, "%02x ", ptr(i));
 				}
 				ptr(0x7f) = ~csum;
-				DEBUG_LOG(AMBASEBOARDDEBUG, "command send back: %s", logptr);
+				DEBUG_LOG(AMBASEBOARDDEBUG, "Command send back: %s", logptr);
 #undef ptr
 
 
@@ -438,7 +438,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 			// DEFAULT
 		default:
 			{
-				ERROR_LOG(SERIALINTERFACE, "unknown SI command     (0x%x)", command);
+				ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
 				PanicAlert("SI: Unknown command");
 				iPosition = _iLength;
 			}			
@@ -460,6 +460,6 @@ bool CSIDevice_AMBaseboard::GetData(u32& _Hi, u32& _Low)
 
 void CSIDevice_AMBaseboard::SendCommand(u32 _Cmd, u8 _Poll)
 {
-	ERROR_LOG(SERIALINTERFACE, "unknown direct command     (0x%x)", _Cmd);
+	ERROR_LOG(SERIALINTERFACE, "Unknown direct command     (0x%x)", _Cmd);
 	PanicAlert("SI: (GCAM) Unknown direct command");
 }

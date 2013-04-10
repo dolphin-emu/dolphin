@@ -43,6 +43,7 @@ public:
 	std::string GetApploaderDate() const	{ return "0"; }	
 	ECountry GetCountry() const;
 	u64 GetSize() const;
+	u64 GetRawSize() const;
 
 private:
 	IBlobReader* m_pReader;

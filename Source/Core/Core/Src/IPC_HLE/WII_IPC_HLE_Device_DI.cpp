@@ -223,7 +223,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				}
 				else
 				{
-					INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unkw - (DVDAddr: 0x%llx, Size: 0x%x)",
+					INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unknown - (DVDAddr: 0x%llx, Size: 0x%x)",
 						DVDAddress, Size);
 				}
 			}
@@ -360,7 +360,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			}
 			else
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: file unkw - (DVDAddr: 0x%llx)",
+				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: file unknown - (DVDAddr: 0x%llx)",
 					DVDAddress);
 			}
 		}
@@ -446,15 +446,15 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	// but it seems we don't need to implement anything
 	case 0x95:
 	case 0x96:
-		WARN_LOG(WII_IPC_DVD, "unimplemented cmd 0x%08x (Buffer 0x%08x, 0x%x)",
+		WARN_LOG(WII_IPC_DVD, "Unimplemented command 0x%08x (Buffer 0x%08x, 0x%x)",
 			Command, _BufferOut, _BufferOutSize);
 		break;
 
 	default:
-		ERROR_LOG(WII_IPC_DVD, "unknown cmd 0x%08x (Buffer 0x%08x, 0x%x)",
+		ERROR_LOG(WII_IPC_DVD, "Unknown command 0x%08x (Buffer 0x%08x, 0x%x)",
 			Command, _BufferOut, _BufferOutSize);
 
-        PanicAlertT("unknown cmd 0x%08x", Command);
+        PanicAlertT("Unknown command 0x%08x", Command);
 		break;
 	}
 
@@ -497,7 +497,7 @@ int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 //	case DVDLowReset:
 //	case DVDLowClosePartition:
 	default:
-		// ranom numbers here!
+		// random numbers here!
 		// More than ~1/2000th of a second hangs DKCR with DSP HLE, maybe.
 		return SystemTimers::GetTicksPerSecond() / 15000;
 		break;

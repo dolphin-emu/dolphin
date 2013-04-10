@@ -112,7 +112,7 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	if (m_Active)
-		INFO_LOG(WII_IPC_ES, "Device was ReOpened");
+		INFO_LOG(WII_IPC_ES, "Device was re-opened.");
 	m_Active = true;
     return true;
 }
@@ -314,7 +314,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				}
             }
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_READCONTENT: CFD %x, Addr 0x%x, Size %i -> stream pos %i (Index %i)", CFD, Addr, Size, rContent.m_Position, rContent.m_pContent->m_Index);
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)", CFD, Addr, Size, rContent.m_Position, rContent.m_pContent->m_Index);
 
             Memory::Write_U32(Size, _CommandAddress + 0x4);
             return true;
@@ -365,7 +365,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
                 break;
             }
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_SEEKCONTENT: CFD %x, Addr 0x%x, Mode %i -> Pos %i", CFD, Addr, Mode, rContent.m_Position);
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_SEEKCONTENT: CFD %x, Address 0x%x, Mode %i -> Pos %i", CFD, Addr, Mode, rContent.m_Position);
 
             Memory::Write_U32(rContent.m_Position, _CommandAddress + 0x4);
             return true;
@@ -575,7 +575,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			const DiscIO::INANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffer size: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
             if (Loader.IsValid())
             {
@@ -682,7 +682,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			const DiscIO::INANDContentLoader& Loader = AccessContentDevice(TitleID);
 
 
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffer size: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
             if (Loader.IsValid() && Buffer.NumberPayloadBuffer)
             {
@@ -777,14 +777,14 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			{
 				//TODO: fixme
 				// The following is obviously a hack
-				// Lie to mem about loading a different ios
+				// Lie to mem about loading a different IOS
 				// someone with an affected game should test
 				IOSv = TitleID & 0xffff;
 			}
 			if (!bSuccess && IOSv >= 30 && IOSv != 0xffff)
 			{
-				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload ios or a title that is not available in your nand dump\n"
-					"TitleID %016llx.\n Dolphin will likely hang now", TitleID);
+				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload an IOS or a title that is not available in your NAND dump\n"
+					"TitleID %016llx.\n Dolphin will likely hang now.", TitleID);
 			}
 			else
 			{
@@ -835,8 +835,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 	case IOCTL_ES_CHECKKOREAREGION: //note by DacoTaco : name is unknown, i just tried to name it SOMETHING
 		//IOS70 has this to let system menu 4.2 check if the console is region changed. it returns -1017
-		//if the IOS didn't find the korean keys and 0 if it does. 0 leads to a error 003
-		WARN_LOG(WII_IPC_ES,"IOCTL_ES_CHECKKOREAREGION: Title Checked for korean Keys");
+		//if the IOS didn't find the Korean keys and 0 if it does. 0 leads to a error 003
+		WARN_LOG(WII_IPC_ES,"IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
 		Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT , _CommandAddress + 0x4);
 		return true;
 
@@ -952,7 +952,7 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	{
 		File::IOFile _pTMDFile(tmdPath, "wb");
 		if (!_pTMDFile.WriteBytes(_pTMD, _sz))
-			ERROR_LOG(WII_IPC_ES, "DIVerify failed to write disc tmd to nand");
+			ERROR_LOG(WII_IPC_ES, "DIVerify failed to write disc TMD to NAND.");
 	}
 	DiscIO::cUIDsys::AccessInstance().AddTitle(tmdTitleID);
 	return 0;

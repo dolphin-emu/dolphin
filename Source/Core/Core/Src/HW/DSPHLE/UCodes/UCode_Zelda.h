@@ -218,7 +218,6 @@ private:
 	s32* m_LeftBuffer;
 	s32* m_RightBuffer;
 
-
 	// If you add variables, remember to keep DoState() and the constructor up to date.
 
 	s16 m_AFCCoefTable[32];

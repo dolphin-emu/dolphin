@@ -61,7 +61,7 @@ bool sorted = false;
 extern CFrame* main_frame;
 
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
-                                long sortData = CGameListCtrl::COLUMN_TITLE)
+								long sortData = CGameListCtrl::COLUMN_TITLE)
 {
 	int t = 1;
 
@@ -732,7 +732,9 @@ void CGameListCtrl::OnKeyPress(wxListEvent& event)
 				continue;
 			}
 			else if (lastKey != event.GetKeyCode())
+			{
 				sLoop = 0;
+			}
 
 			lastKey = event.GetKeyCode();
 			sLoop++;
@@ -801,7 +803,9 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 				toolTip = new wxEmuStateTip(this, StrToWxStr(temp), &toolTip);
 			}
 			else
+			{
 				toolTip = new wxEmuStateTip(this, _("Not Set"), &toolTip);
+			}
 
 			// Get item Coords
 			GetItemRect(item, Rect);
@@ -891,8 +895,11 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" 
 						 && selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
 					popupMenu->Append(IDM_COMPRESSGCM, _("Compress ISO..."));
-			} else
+			}
+			else
+			{
 				popupMenu->Append(IDM_LIST_INSTALLWAD, _("Install to Wii Menu"));
+			}
 
 			PopupMenu(popupMenu);
 		}
@@ -911,14 +918,20 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 const GameListItem * CGameListCtrl::GetSelectedISO()
 {
 	if (m_ISOFiles.size() == 0)
+	{
 		return NULL;
+	}
 	else if (GetSelectedItemCount() == 0)
+	{
 		return NULL;
+	}
 	else
 	{
 		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (item == wxNOT_FOUND)
+		{
 			return NULL;
+		}
 		else
 		{
 			// Here is a little workaround for multiselections:
@@ -1030,6 +1043,7 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
+
 	CISOProperties ISOProperties(iso->GetFileName(), this);
 	if(ISOProperties.ShowModal() == wxID_OK)
 		Update();
@@ -1249,7 +1263,9 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnSize(wxSizeEvent& event)
 {
-	if (lastpos == event.GetSize()) return;
+	if (lastpos == event.GetSize())
+		return;
+
 	lastpos = event.GetSize();
 	AutomaticColumnWidth();
 
@@ -1261,7 +1277,9 @@ void CGameListCtrl::AutomaticColumnWidth()
 	wxRect rc(GetClientRect());
 
 	if (GetColumnCount() == 1)
+	{
 		SetColumnWidth(0, rc.GetWidth());
+	}
 	else if (GetColumnCount() > 4)
 	{
 		int resizable = rc.GetWidth() - (
@@ -1291,7 +1309,6 @@ void CGameListCtrl::UnselectAll()
 	{
 		SetItemState(i, 0, wxLIST_STATE_SELECTED);
 	}
-
 }
 
 

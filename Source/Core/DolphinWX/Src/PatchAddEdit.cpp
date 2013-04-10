@@ -49,8 +49,8 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	}
 	else
 	{
-	    currentName = StrToWxStr(onFrame.at(_selection).name);
-	    tempEntries = onFrame.at(_selection).entries;
+		currentName = StrToWxStr(onFrame.at(_selection).name);
+		tempEntries = onFrame.at(_selection).entries;
 	}
 
 	itCurEntry = tempEntries.begin();
@@ -218,7 +218,9 @@ bool CPatchAddEdit::UpdateTempEntryData(std::vector<PatchEngine::PatchEntry>::it
 			parsed_ok = false;
 	}
 	else
+	{
 		parsed_ok = false;
+	}
 
 	if (!parsed_ok)
 	{

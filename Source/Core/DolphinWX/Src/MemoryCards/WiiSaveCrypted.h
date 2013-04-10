@@ -26,7 +26,6 @@
 // --- this is used for encrypted Wii save files
 
 
-	
 class CWiiSaveCrypted
 {
 public:
@@ -40,8 +39,7 @@ public:
 	void ImportWiiSaveFiles();
 	void ExportWiiSaveFiles(); // To data.bin
 	void do_sig();
-	void make_ec_cert(u8 *cert, u8 *sig, char *signer, char *name, u8 *priv,
-                         u32 key_id);
+	void make_ec_cert(u8 *cert, u8 *sig, char *signer, char *name, u8 *priv, u32 key_id);
 	bool getPaths(bool forExport = false);
 	void ScanForFiles(std::string savDir, std::vector<std::string>&FilesList, u32 *_numFiles, u32 *_sizeFiles);
 
@@ -49,7 +47,7 @@ private:
 	AES_KEY m_AES_KEY;
 	u8 SD_IV[0x10];
 	std::vector<std::string> FilesList;
-		 
+
 	char pathData_bin[2048];
 
 	std::string BannerFilePath,
@@ -85,13 +83,12 @@ private:
 		BK_LISTED_SZ = 0x70,	// Size before rounding to nearest block
 		BK_SZ  = 0x80,
 		FILE_HDR_SZ = 0x80,
-		
+
 		SIG_SZ = 0x40,
 		NG_CERT_SZ = 0x180,
 		AP_CERT_SZ = 0x180,
 		FULL_CERT_SZ =  0x3C0,	// SIG_SZ +	NG_CERT_SZ + AP_CERT_SZ + 0x80?
-	
-	
+
 		BK_HDR_MAGIC   = 0x426B0001,
 		FILE_HDR_MAGIC = 0x03adf17e
 	};
@@ -107,7 +104,7 @@ private:
 		u8 Md5[0x10]; // md5 of plaintext header with md5 blanker applied
 		u16 unk2;
 	};
-	
+
 	struct HEADER
 	{
 		Data_Bin_HDR hdr;
