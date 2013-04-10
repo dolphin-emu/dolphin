@@ -191,8 +191,8 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
  * or as strip: 1203, 5647
  * 
  * Warning: 
- * A simple triangle have to be rendered for three vertices.
- * SMS do this for sun rays
+ * A simple triangle has to be rendered for three vertices.
+ * ZWW do this for sun rays
  */
 template <bool pr> void IndexGenerator::AddQuads(u32 numVerts)
 {

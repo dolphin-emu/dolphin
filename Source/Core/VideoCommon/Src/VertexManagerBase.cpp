@@ -85,7 +85,7 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 		case GX_DRAW_TRIANGLE_STRIP:
 			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 1 - 1;
 		case GX_DRAW_TRIANGLE_FAN:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 4 + 2;
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 6 * 4 + 1;
 
 		case GX_DRAW_LINES:
 			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
