@@ -250,6 +250,7 @@
     <ClInclude Include="Src\PixelShaderGen.h" />
     <ClInclude Include="Src\PixelShaderManager.h" />
     <ClInclude Include="Src\RenderBase.h" />
+    <ClInclude Include="Src\ShaderGenCommon.h" />
     <ClInclude Include="Src\Statistics.h" />
     <ClInclude Include="Src\TextureCacheBase.h" />
     <ClInclude Include="Src\TextureConversionShader.h" />
