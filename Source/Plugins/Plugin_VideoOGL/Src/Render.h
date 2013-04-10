@@ -24,6 +24,7 @@ extern struct VideoConfig {
 	bool bSupportCoverageMSAA;
 	bool bSupportSampleShading;
 	GLSL_VERSION eSupportedGLSLVersion;
+	bool bSupportOGL31;
 	
 	const char *gl_vendor;
 	const char *gl_renderer;

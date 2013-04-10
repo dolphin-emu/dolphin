@@ -338,7 +338,7 @@ Renderer::Renderer()
 	
 	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
 	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
-	g_Config.backend_info.bSupportsPrimitiveRestart = GLEW_VERSION_3_1;
+	g_Config.backend_info.bSupportsPrimitiveRestart = GLEW_VERSION_3_1 || GLEW_NV_primitive_restart;
 	
 	g_ogl_config.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
 	g_ogl_config.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
@@ -346,6 +346,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLBaseVertex = GLEW_ARB_draw_elements_base_vertex;
 	g_ogl_config.bSupportCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
 	g_ogl_config.bSupportSampleShading = GLEW_ARB_sample_shading;
+	g_ogl_config.bSupportOGL31 = GLEW_VERSION_3_1;
 	
 	g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
 	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
@@ -477,6 +478,20 @@ Renderer::Renderer()
 	glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 	glBlendColor(0, 0, 0, 0.5f);
 	glClearDepth(1.0f);
+	
+	if(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
+	{
+		if(g_ogl_config.bSupportOGL31)
+		{
+			glEnable(GL_PRIMITIVE_RESTART);
+			glPrimitiveRestartIndex(65535);
+		}
+		else
+		{
+			glEnableClientState(GL_PRIMITIVE_RESTART_NV);
+			glPrimitiveRestartIndexNV(65535);
+		}
+	}
 
 	UpdateActiveConfig();
 }
@@ -1466,12 +1481,6 @@ void Renderer::ResetAPIState()
 	glDisable(GL_BLEND);
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	
-	
-	if(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-	{
-		glDisable(GL_PRIMITIVE_RESTART);
-	}
 }
 
 void Renderer::RestoreAPIState()
@@ -1492,12 +1501,6 @@ void Renderer::RestoreAPIState()
 	vm->m_last_vao = 0;
 	
 	TextureCache::SetStage();
-	
-	if(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-	{
-		glEnable(GL_PRIMITIVE_RESTART);
-		glPrimitiveRestartIndex(65535);
-	}
 }
 
 void Renderer::SetGenerationMode()
