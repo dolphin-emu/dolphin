@@ -22,6 +22,41 @@
 #include "NativeVertexFormat.h"
 #include "XFMemory.h"
 
+static const char* LightCol(const char* lightsName, unsigned int index, const char* swizzle)
+{
+	static char result[16];
+	snprintf(result, sizeof(result), "%s[%d].col.%s", lightsName, index, swizzle);
+	return result;
+}
+
+static const char* LightCosAtt(const char* lightsName, unsigned int index)
+{
+	static char result[16];
+	snprintf(result, sizeof(result), "%s[%d].cosatt", lightsName, index);
+	return result;
+}
+
+static const char* LightDistAtt(const char* lightsName, unsigned int index)
+{
+	static char result[16];
+	snprintf(result, sizeof(result), "%s[%d].distatt", lightsName, index);
+	return result;
+}
+
+static const char* LightPos(const char* lightsName, unsigned int index)
+{
+	static char result[16];
+	snprintf(result, sizeof(result), "%s[%d].pos", lightsName, index);
+	return result;
+}
+
+static const char* LightDir(const char* lightsName, unsigned int index)
+{
+	static char result[16];
+	snprintf(result, sizeof(result), "%s[%d].dir", lightsName, index);
+	return result;
+}
+
 template<class T>
 static void GenerateLightShader(T& object, LightingUidData& uid_data, int index, int litchan_index, const char* lightsName, int coloralpha)
 {
@@ -36,13 +71,13 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 		// atten disabled
 		switch (chan.diffusefunc) {
 			case LIGHTDIF_NONE:
-				object.Write("lacc.%s += %s[%d].col.%s;\n", swizzle, lightsName, index, swizzle);
+				object.Write("lacc.%s += %s;\n", swizzle, LightCol(lightsName, index, swizzle));
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				object.Write("ldir = normalize(%s[%d].pos.xyz - pos.xyz);\n", lightsName, index);
-				object.Write("lacc.%s += %sdot(ldir, _norm0)) * %s[%d].col.%s;\n",
-					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", lightsName, index, swizzle);
+				object.Write("ldir = normalize(%s.xyz - pos.xyz);\n", LightPos(lightsName, index));
+				object.Write("lacc.%s += %sdot(ldir, _norm0)) * %s;\n",
+					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", LightCol(lightsName, index, swizzle));
 				break;
 			default: _assert_(0);
 		}
@@ -51,33 +86,31 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 
 		if (chan.attnfunc == 3)
 		{ // spot
-			object.Write("ldir = %s[%d].pos.xyz - pos.xyz;\n", lightsName, index);
+			object.Write("ldir = %s.xyz - pos.xyz;\n", LightPos(lightsName, index));
 			object.Write("dist2 = dot(ldir, ldir);\n"
 						"dist = sqrt(dist2);\n"
 						"ldir = ldir / dist;\n"
-						"attn = max(0.0f, dot(ldir, %s[%d].dir.xyz));\n", lightsName, index);
-			object.Write("attn = max(0.0f, dot(%s[%d].cosatt.xyz, float3(1.0f, attn, attn*attn))) / dot(%s[%d].distatt.xyz, float3(1.0f,dist,dist2));\n", lightsName, index, lightsName, index);
+						"attn = max(0.0f, dot(ldir, %s.xyz));\n", LightDir(lightsName, index));
+			object.Write("attn = max(0.0f, dot(%s.xyz, float3(1.0f, attn, attn*attn))) / dot(%s.xyz, float3(1.0f,dist,dist2));\n", LightCosAtt(lightsName, index), LightDistAtt(lightsName, index));
 		}
 		else if (chan.attnfunc == 1)
 		{ // specular
-			object.Write("ldir = normalize(%s[%d].pos.xyz);\n", lightsName, index);
-			object.Write("attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, %s[%d].dir.xyz)) : 0.0f;\n", lightsName, index);
-			object.Write("attn = max(0.0f, dot(%s[%d].cosatt.xyz, float3(1,attn,attn*attn))) / dot(%s[%d].distatt.xyz, float3(1,attn,attn*attn));\n", lightsName, index, lightsName, index);
+			object.Write("ldir = normalize(%s.xyz);\n", LightPos(lightsName, index));
+			object.Write("attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, %s.xyz)) : 0.0f;\n", LightDir(lightsName, index));
+			object.Write("attn = max(0.0f, dot(%s.xyz, float3(1,attn,attn*attn))) / dot(%s.xyz, float3(1,attn,attn*attn));\n", LightCosAtt(lightsName, index), LightDistAtt(lightsName, index));
 		}
 
 		switch (chan.diffusefunc)
 		{
 			case LIGHTDIF_NONE:
-				object.Write("lacc.%s += attn * %s[%d].col.%s;\n", swizzle, lightsName, index, swizzle);
+				object.Write("lacc.%s += attn * %s;\n", swizzle, LightCol(lightsName, index, swizzle));
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				object.Write("lacc.%s += attn * %sdot(ldir, _norm0)) * %s[%d].col.%s;\n",
+				object.Write("lacc.%s += attn * %sdot(ldir, _norm0)) * %s;\n",
 					swizzle,
 					chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(",
-					lightsName,
-					index,
-					swizzle);
+					LightCol(lightsName, index, swizzle));
 				break;
 			default: _assert_(0);
 		}
