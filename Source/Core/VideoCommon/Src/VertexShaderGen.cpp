@@ -420,7 +420,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 		out.Write("o.tex3.w = o.pos.w;\n");
 	}
 
-/*	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		if (xfregs.numTexGen.numTexGens < 7) {
 			out.Write("o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
@@ -438,7 +438,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 
 		if (components & VB_HAS_COL1)
 			out.Write("o.colors_1 = color1;\n");
-	}*/
+	}
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
 	//if not early z culling will improve speed
