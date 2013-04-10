@@ -204,6 +204,8 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	char *p = text;
 	WRITE(p, "//Vertex Shader: comp:%x, \n", components);
 
+	WRITE(p, "struct Light { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; };\n");
+	
 	// uniforms
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		WRITE(p, "layout(std140) uniform VSBlock {\n");
@@ -211,7 +213,6 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 	WRITE(p, "%sfloat4 " I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
 	WRITE(p, "%sfloat4 " I_PROJECTION"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PROJECTION));	
 	WRITE(p, "%sfloat4 " I_MATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_MATERIALS));
-	WRITE(p, "struct Light { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; };\n");
 	WRITE(p, "%sLight " I_LIGHTS"[8] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_LIGHTS));
 	WRITE(p, "%sfloat4 " I_TEXMATRICES"[24] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
 	WRITE(p, "%sfloat4 " I_TRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType),WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));

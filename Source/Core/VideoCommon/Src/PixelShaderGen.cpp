@@ -575,6 +575,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 			WRITE(p, ";\n");
 		}
 	}
+	
+	// For pixel lighting
+	WRITE(p, "struct Light { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; };\n");
 
 	WRITE(p, "\n");
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
@@ -588,9 +591,6 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	WRITE(p, "\t%sfloat4 " I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType),  WriteRegister(ApiType, "c", C_INDTEXSCALE));
 	WRITE(p, "\t%sfloat4 " I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_INDTEXMTX));
 	WRITE(p, "\t%sfloat4 " I_FOG"[3] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_FOG));
-	
-	// For pixel lighting
-    WRITE(p, "struct Light { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; };\n");
 	WRITE(p, "\t%sLight " I_PLIGHTS"[8] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
 	WRITE(p, "\t%sfloat4 " I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PMATERIALS));
 		
