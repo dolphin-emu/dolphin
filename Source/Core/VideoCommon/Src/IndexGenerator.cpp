@@ -98,6 +98,9 @@ template <bool pr> void IndexGenerator::AddList(u32 const numVerts)
 	{
 		WriteTriangle<pr>(index + i * 3, index + i * 3 + 1, index + i * 3 + 2);
 	}
+	u32 remainingVerts = numVerts - numTris*3;
+	if(remainingVerts)
+		ERROR_LOG(VIDEO, "AddList: unknown count of vertices found");
 }
 
 template <bool pr> void IndexGenerator::AddStrip(u32 const numVerts)
@@ -186,6 +189,10 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
  * 012,023, 456,467 ...
  * or 120,302, 564,746
  * or as strip: 1203, 5647
+ * 
+ * Warning: 
+ * A simple triangle have to be rendered for three vertices.
+ * SMS do this for sun rays
  */
 template <bool pr> void IndexGenerator::AddQuads(u32 numVerts)
 {
@@ -204,6 +211,14 @@ template <bool pr> void IndexGenerator::AddQuads(u32 numVerts)
 			WriteTriangle<pr>(index + i * 4, index + i * 4 + 2, index + i * 4 + 3);
 		}
 	}
+	// three vertices remaining, so render a triangle
+	u32 remainingVerts = numVerts - numQuads*4;
+	if(remainingVerts == 3)
+	{
+		WriteTriangle<pr>(index+numVerts-3, index+numVerts-2, index+numVerts-1);
+	}
+	else if(remainingVerts)
+		ERROR_LOG(VIDEO, "AddQuads: unknown count of vertices found");
 }
 
 // Lines
@@ -216,6 +231,10 @@ void IndexGenerator::AddLineList(u32 numVerts)
 		*Lptr++ = index + i * 2 + 1;
 		++numL;
 	}
+	u32 remainingVerts = numVerts - numLines*2;
+	if(remainingVerts)
+		ERROR_LOG(VIDEO, "AddLineList: unknown count of vertices found");
+	
 }
 
 // shouldn't be used as strips as LineLists are much more common
