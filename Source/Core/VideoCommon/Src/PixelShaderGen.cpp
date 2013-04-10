@@ -1207,6 +1207,13 @@ static void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
 	GeneratePixelShader<PixelShaderUid>(object, dstAlphaMode, ApiType, components);
+
+	if (g_ActiveConfig.bEnableShaderDebugging)
+	{
+		PixelShaderCode code;
+		GeneratePixelShaderCode(code, dstAlphaMode, API_OPENGL, components);
+		CheckForUidMismatch<PixelShaderUid,PixelShaderCode>(code, object);
+	}
 }
 
 void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)

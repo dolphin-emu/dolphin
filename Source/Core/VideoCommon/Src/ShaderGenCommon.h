@@ -22,6 +22,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <vector>
+#include <algorithm>
+#include <typeinfo>
 
 #include "CommonTypes.h"
 #include "VideoCommon.h"
@@ -165,5 +167,50 @@ struct LightingUidData
 		u32 light_mask : 8;
 	} lit_chans[4];
 };
+
+struct pixel_shader_uid_data;
+struct vertex_shader_uid_data;
+
+typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
+typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
+
+template<class UidT, class CodeT>
+void CheckForUidMismatch(CodeT& new_code, const UidT& new_uid)
+{
+	static std::map<UidT,std::string> s_shaders;
+	static std::vector<UidT> s_uids;
+
+	bool uid_is_indexed = std::find(s_uids.begin(), s_uids.end(), new_uid) != s_uids.end();
+	if (!uid_is_indexed)
+	{
+		s_uids.push_back(new_uid);
+		s_shaders[new_uid] = new_code.GetBuffer();
+	}
+	else
+	{
+		// uid is already in the index => check if there's a shader with the same uid but different code
+		auto& old_code = s_shaders[new_uid];
+		if (strcmp(old_code.c_str(), new_code.GetBuffer()) != 0)
+		{
+			static int num_failures = 0;
+
+			char szTemp[MAX_PATH];
+			sprintf(szTemp, "%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
+					(typeid(UidT) == typeid(PixelShaderUid)) ? "p" : (typeid(UidT) == typeid(VertexShaderUid)) ? "v" : "o",
+					++num_failures);
+
+			// TODO: Should also dump uids
+			std::ofstream file;
+			OpenFStream(file, szTemp, std::ios_base::out);
+			file << "Old shader code:\n" << old_code;
+			file << "\n\nNew shader code:\n" << new_code.GetBuffer();
+			file.close();
+
+			// TODO: Make this more idiot-proof
+			ERROR_LOG(VIDEO, "%s shader uid mismatch!",
+					  (typeid(UidT) == typeid(PixelShaderUid)) ? "Pixel" : (typeid(UidT) == typeid(VertexShaderUid)) ? "Vertex" : "Other");
+		}
+	}
+}
 
 #endif // _SHADERGENCOMMON_H

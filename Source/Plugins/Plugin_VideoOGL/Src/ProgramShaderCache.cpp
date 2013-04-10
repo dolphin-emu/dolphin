@@ -23,9 +23,6 @@
 #include "ImageWrite.h"
 #include "Render.h"
 
-#include <algorithm>
-#include <typeinfo>
-
 namespace OGL
 {
 
@@ -356,72 +353,11 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 	return result;
 }
 
-template<class UidT> UidT GetPartialUid(const SHADERUID& uid);
-template<> PixelShaderUid GetPartialUid(const SHADERUID& uid) { return uid.puid; }
-template<> VertexShaderUid GetPartialUid(const SHADERUID& uid) { return uid.vuid; }
-
-template<class UidT> const std::string& GetShaderCode(const SHADER& shader);
-template<> const std::string& GetShaderCode<PixelShaderUid>(const SHADER& shader) { return shader.strpprog; }
-template<> const std::string& GetShaderCode<VertexShaderUid>(const SHADER& shader) { return shader.strvprog; }
-
-template<class UidT, class CodeT>
-void CheckForUidMismatch(const ProgramShaderCache::PCache& cache, CodeT& new_code, const UidT& new_uid)
-{
-	static std::map<UidT,std::string> s_shaders;
-	static std::vector<UidT> s_uids;
-
-	bool uid_is_indexed = std::find(s_uids.begin(), s_uids.end(), new_uid) != s_uids.end();
-	if (!uid_is_indexed)
-	{
-		s_uids.push_back(new_uid);
-		s_shaders[new_uid] = new_code.GetBuffer();
-	}
-	else
-	{
-		// uid is already in the index => check if there's a shader with the same uid but different code
-		auto& old_code = s_shaders[new_uid];
-		if (strcmp(old_code.c_str(), new_code.GetBuffer()) != 0)
-		{
-			static int num_failures = 0;
-
-			char szTemp[MAX_PATH];
-			sprintf(szTemp, "%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-					(typeid(UidT) == typeid(PixelShaderUid)) ? "p" : (typeid(UidT) == typeid(VertexShaderUid)) ? "v" : "o",
-					++num_failures);
-
-			// TODO: Should also dump uids
-			std::ofstream file;
-			OpenFStream(file, szTemp, std::ios_base::out);
-			file << "Old shader code:\n" << old_code;
-			file << "\n\nNew shader code:\n" << new_code.GetBuffer();
-			file.close();
-
-			// TODO: Make this more idiot-proof
-			ERROR_LOG(VIDEO, "%s shader uid mismatch!",
-					  (typeid(UidT) == typeid(PixelShaderUid)) ? "Pixel" : (typeid(UidT) == typeid(VertexShaderUid)) ? "Vertex" : "Other");
-		}
-	}
-}
-
-
 void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 components)
 {
 	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL, components);
 	GetVertexShaderUid(uid->vuid, components, API_OPENGL);
-
-	if (g_ActiveConfig.bEnableShaderDebugging)
-	{
-		PixelShaderCode pcode;
-		VertexShaderCode vcode;
-
-		GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
-		GenerateVertexShaderCode(vcode, components, API_OPENGL);
-
-		CheckForUidMismatch<PixelShaderUid,PixelShaderCode>(pshaders, pcode, uid->puid);
-		CheckForUidMismatch<VertexShaderUid,VertexShaderCode>(pshaders, vcode, uid->vuid);
-	}
 }
-
 
 ProgramShaderCache::PCacheEntry ProgramShaderCache::GetShaderProgram(void)
 {
