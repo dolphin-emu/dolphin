@@ -95,7 +95,6 @@ private:
 
 	void OnChat(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
-	void OnPadBuffHelp(wxCommandEvent& event);
 	void OnMemcardWriteCheck(wxCommandEvent& event);
 	void OnThread(wxCommandEvent& event);
 	void OnChangeGame(wxCommandEvent& event);
