@@ -338,8 +338,7 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 	out.Write("\t%sfloat4 " I_FOG"[3] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_FOG));
 
 	// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
-    out.Write("struct Light { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; };\n");
-	out.Write("\t%sLight " I_PLIGHTS"[8] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
+	out.Write("\t%sfloat4 " I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
 	out.Write("\t%sfloat4 " I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PMATERIALS));
 
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)

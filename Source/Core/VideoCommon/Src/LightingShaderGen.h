@@ -24,36 +24,36 @@
 
 static const char* LightCol(const char* lightsName, unsigned int index, const char* swizzle)
 {
-	static char result[16];
-	snprintf(result, sizeof(result), "%s[%d].col.%s", lightsName, index, swizzle);
+	static char result[32];
+	snprintf(result, sizeof(result), "%s[5*%d].%s", lightsName, index, swizzle);
 	return result;
 }
 
 static const char* LightCosAtt(const char* lightsName, unsigned int index)
 {
-	static char result[16];
-	snprintf(result, sizeof(result), "%s[%d].cosatt", lightsName, index);
+	static char result[32];
+	snprintf(result, sizeof(result), "%s[5*%d+1]", lightsName, index);
 	return result;
 }
 
 static const char* LightDistAtt(const char* lightsName, unsigned int index)
 {
-	static char result[16];
-	snprintf(result, sizeof(result), "%s[%d].distatt", lightsName, index);
+	static char result[32];
+	snprintf(result, sizeof(result), "%s[5*%d+2]", lightsName, index);
 	return result;
 }
 
 static const char* LightPos(const char* lightsName, unsigned int index)
 {
-	static char result[16];
-	snprintf(result, sizeof(result), "%s[%d].pos", lightsName, index);
+	static char result[32];
+	snprintf(result, sizeof(result), "%s[5*%d+3]", lightsName, index);
 	return result;
 }
 
 static const char* LightDir(const char* lightsName, unsigned int index)
 {
-	static char result[16];
-	snprintf(result, sizeof(result), "%s[%d].dir", lightsName, index);
+	static char result[32];
+	snprintf(result, sizeof(result), "%s[5*%d+4]", lightsName, index);
 	return result;
 }
 
