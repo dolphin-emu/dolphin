@@ -23,7 +23,6 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <typeinfo>
 
 #include "CommonTypes.h"
 #include "VideoCommon.h"
@@ -167,12 +166,6 @@ struct LightingUidData
 		u32 light_mask : 8;
 	} lit_chans[4];
 };
-
-struct pixel_shader_uid_data;
-struct vertex_shader_uid_data;
-
-typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
-typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
 
 template<class UidT, class CodeT>
 void CheckForUidMismatch(CodeT& new_code, const UidT& new_uid, const char* shader_type, const char* dump_prefix)
