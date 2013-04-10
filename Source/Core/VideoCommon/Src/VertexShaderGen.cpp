@@ -528,7 +528,7 @@ void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_ty
 	{
 		VertexShaderCode code;
 		GenerateVertexShaderCode(code, components, API_OPENGL);
-		CheckForUidMismatch<VertexShaderUid,VertexShaderCode>(code, object);
+		CheckForUidMismatch<VertexShaderUid,VertexShaderCode>(code, object, "Vertex", "v");
 	}
 }
 

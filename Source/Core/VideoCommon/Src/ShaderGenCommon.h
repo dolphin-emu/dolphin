@@ -175,7 +175,7 @@ typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
 
 template<class UidT, class CodeT>
-void CheckForUidMismatch(CodeT& new_code, const UidT& new_uid)
+void CheckForUidMismatch(CodeT& new_code, const UidT& new_uid, const char* shader_type, const char* dump_prefix)
 {
 	static std::map<UidT,std::string> s_shaders;
 	static std::vector<UidT> s_uids;
@@ -196,7 +196,7 @@ void CheckForUidMismatch(CodeT& new_code, const UidT& new_uid)
 
 			char szTemp[MAX_PATH];
 			sprintf(szTemp, "%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-					(typeid(UidT) == typeid(PixelShaderUid)) ? "p" : (typeid(UidT) == typeid(VertexShaderUid)) ? "v" : "o",
+					dump_prefix,
 					++num_failures);
 
 			// TODO: Should also dump uids
@@ -207,8 +207,7 @@ void CheckForUidMismatch(CodeT& new_code, const UidT& new_uid)
 			file.close();
 
 			// TODO: Make this more idiot-proof
-			ERROR_LOG(VIDEO, "%s shader uid mismatch!",
-					  (typeid(UidT) == typeid(PixelShaderUid)) ? "Pixel" : (typeid(UidT) == typeid(VertexShaderUid)) ? "Vertex" : "Other");
+			ERROR_LOG(VIDEO, "%s shader uid mismatch!", shader_type);
 		}
 	}
 }

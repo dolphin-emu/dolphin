@@ -1211,7 +1211,7 @@ void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		PixelShaderCode code;
 		GeneratePixelShaderCode(code, dstAlphaMode, API_OPENGL, components);
-		CheckForUidMismatch<PixelShaderUid,PixelShaderCode>(code, object);
+		CheckForUidMismatch<PixelShaderUid,PixelShaderCode>(code, object, "Pixel", "p");
 	}
 }
 
