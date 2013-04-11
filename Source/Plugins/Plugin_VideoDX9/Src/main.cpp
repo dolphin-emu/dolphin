@@ -51,6 +51,7 @@
 #include "VideoState.h"
 #include "Render.h"
 #include "DLCache.h"
+#include "IndexGenerator.h"
 #include "IniFile.h"
 #include "Core.h"
 #include "Host.h"
@@ -102,6 +103,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bUseRGBATextures = false;
 	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = true;
+	g_Config.backend_info.bSupportsPrimitiveRestart = false; // TODO: figure out if it does
 	g_Config.backend_info.bSupportsSeparateAlphaFunction = device_caps.PrimitiveMiscCaps & D3DPMISCCAPS_SEPARATEALPHABLEND;
 	// Dual source blend disabled by default until a proper method to test for support is found	
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
@@ -183,6 +185,7 @@ void VideoBackend::Video_Prepare()
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
+	IndexGenerator::Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
 	VertexShaderManager::Init();

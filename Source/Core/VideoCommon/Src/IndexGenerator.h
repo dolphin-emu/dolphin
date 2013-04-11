@@ -26,6 +26,7 @@ class IndexGenerator
 {
 public:
 	// Init
+	static void Init();
 	static void Start(u16 *Triangleptr,u16 *Lineptr,u16 *Pointptr);
 
 	static void AddIndices(int primitive, u32 numVertices);
@@ -54,10 +55,10 @@ public:
 */
 private:
 	// Triangles
-	static void AddList(u32 numVerts);
-	static void AddStrip(u32 numVerts);
-	static void AddFan(u32 numVerts);
-	static void AddQuads(u32 numVerts);
+	template <bool pr> static void AddList(u32 numVerts);
+	template <bool pr> static void AddStrip(u32 numVerts);
+	template <bool pr> static void AddFan(u32 numVerts);
+	template <bool pr> static void AddQuads(u32 numVerts);
 
 	// Lines
 	static void AddLineList(u32 numVerts);
@@ -66,7 +67,7 @@ private:
 	// Points
 	static void AddPoints(u32 numVerts);
 
-	static void WriteTriangle(u32 index1, u32 index2, u32 index3);
+	template <bool pr> static void WriteTriangle(u32 index1, u32 index2, u32 index3);
 
 	static u16 *Tptr;
 	static u16 *BASETptr;
