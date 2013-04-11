@@ -253,6 +253,7 @@ void VideoBackend::Video_Cleanup() {
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
 		g_renderer = NULL;
+		GLInterface->ClearCurrent();
 	}
 }
 

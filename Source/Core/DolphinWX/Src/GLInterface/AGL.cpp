@@ -87,6 +87,13 @@ bool cInterfaceAGL::MakeCurrent()
 	return true;
 }
 
+bool cInterfaceAGL::ClearCurrent()
+{
+	// not tested at all
+	//clearCurrentContext();
+	return true;
+}
+
 // Close backend
 void cInterfaceAGL::Shutdown()
 {

@@ -36,6 +36,7 @@ public:
 	void UpdateFPSDisplay(const char *Text);
 	bool Create(void *&window_handle);
 	bool MakeCurrent();
+	bool ClearCurrent();
 	void Shutdown(); 
 };
 #endif

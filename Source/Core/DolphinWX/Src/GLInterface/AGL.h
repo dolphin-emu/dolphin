@@ -30,6 +30,7 @@ public:
 	void Swap();
 	bool Create(void *&window_handle);
 	bool MakeCurrent();
+	bool ClearCurrent();
 	void Shutdown();
 	void Update();
 

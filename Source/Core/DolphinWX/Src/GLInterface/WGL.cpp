@@ -131,6 +131,11 @@ bool cInterfaceWGL::MakeCurrent()
 	return wglMakeCurrent(hDC, hRC) ? true : false;
 }
 
+bool cInterfaceWGL::ClearCurrent()
+{
+	return wglMakeCurrent(hDC, NULL) ? true : false;
+}
+
 // Update window width, size and etc. Called from Render.cpp
 void cInterfaceWGL::Update()
 {
