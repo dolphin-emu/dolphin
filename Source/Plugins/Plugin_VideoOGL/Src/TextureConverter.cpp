@@ -250,10 +250,10 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 			(float)sourceRc.left, (float)sourceRc.top,
 			-1.f, 1.f,
 			(float)sourceRc.left, (float)sourceRc.bottom,
-			1.f, 1.f,
-			(float)sourceRc.right, (float)sourceRc.bottom,
 			1.f, -1.f,
-			(float)sourceRc.right, (float)sourceRc.top
+			(float)sourceRc.right, (float)sourceRc.top,
+			1.f, 1.f,
+			(float)sourceRc.right, (float)sourceRc.bottom
 		};
 		glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
 		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
@@ -262,7 +262,7 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	} 
 
 	glBindVertexArray( s_encode_VAO );
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	
@@ -426,10 +426,10 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 			(float)srcFmtWidth, (float)srcHeight,
 			1.f, 1.f,
 			(float)srcFmtWidth, 0.f,
-			-1.f, 1.f,
-			0.f, 0.f,
 			-1.f, -1.f,
-			0.f, (float)srcHeight
+			0.f, (float)srcHeight,
+			-1.f, 1.f,
+			0.f, 0.f
 		};
 		
 		glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
@@ -440,7 +440,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 	}
 	
 	glBindVertexArray( s_decode_VAO );
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 	GL_REPORT_ERRORD();
 
