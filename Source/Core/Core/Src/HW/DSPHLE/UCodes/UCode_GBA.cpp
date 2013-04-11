@@ -122,8 +122,8 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 		*(u32*)HLEMemory_Get_Pointer(sec_params.dest_addr+4) = Common::swap32((x22 << 16) | x23);
 
 		// Done!
-		DEBUG_LOG(DSPHLE, "\n%08x -> key %08x len %08x dest_addr %08x unk1 %08x unk2 %08x"
-			" 22 %04x 23 %04x",
+		DEBUG_LOG(DSPHLE, "\n%08x -> key: %08x, len: %08x, dest_addr: %08x, unk1: %08x, unk2: %08x"
+			" 22: %04x, 23: %04x",
 			mramaddr,
 			*(u32*)sec_params.key, sec_params.length, sec_params.dest_addr,
 			*(u32*)sec_params.unk1, *(u32*)sec_params.unk2,
@@ -143,12 +143,12 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 			m_DSPHLE->SetUCode(UCODE_ROM);
 			break;
 		default:
-			DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown 0xcdd1 cmd: %08x", _uMail);
+			DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown 0xcdd1 command: %08x", _uMail);
 			break;
 		}
 	}
 	else
 	{
-		DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown cmd: %08x", _uMail);
+		DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown command: %08x", _uMail);
 	}
 }

@@ -32,7 +32,7 @@
 namespace OGL
 {
 enum StreamType {
-	DETECT_MASK = 0x1F,
+	DETECT_MASK = 0x3F,
 	STREAM_DETECT = (1 << 0),
 	MAP_AND_ORPHAN = (1 << 1),
 	MAP_AND_SYNC = (1 << 2),

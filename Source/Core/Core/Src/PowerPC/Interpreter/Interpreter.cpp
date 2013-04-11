@@ -320,7 +320,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 		DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc, disasm, 256);
 		NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm);
 		Dolphin_Debugger::PrintCallstack();
-		_dbg_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instr %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
+		_dbg_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
 	}
 
 }

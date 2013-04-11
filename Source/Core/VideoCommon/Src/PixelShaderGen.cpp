@@ -390,7 +390,7 @@ static const char *tevCInputTable[] = // CC
 	"float3(0.5f, 0.5f, 0.5f)",              // HALF
 	"(konsttemp.rgb)", //"konsttemp.rgb",    // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
-	///aded extra values to map clamped values
+	///added extra values to map clamped values
 	"(cprev.rgb)",        // CPREV,
 	"(cprev.aaa)",        // APREV,
 	"(cc0.rgb)",          // C0,
@@ -598,9 +598,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	if (ApiType == API_OPENGL)
 	{
-		WRITE(p, "out float4 ocol0;\n");
+		WRITE(p, "COLOROUT(ocol0)\n");
 		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-			WRITE(p, "out float4 ocol1;\n");
+			WRITE(p, "COLOROUT(ocol1)\n");
 		
 		if (per_pixel_depth)
 			WRITE(p, "#define depth gl_FragDepth\n");
@@ -668,17 +668,20 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 				per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 		}
 
-		WRITE(p, "  in float4 colors_0 : COLOR0,\n");
-		WRITE(p, "  in float4 colors_1 : COLOR1");
+		// "centroid" attribute is only supported by D3D11
+		const char* optCentroid = (ApiType == API_D3D11 ? "centroid" : "");
+
+		WRITE(p, "  in %s float4 colors_0 : COLOR0,\n", optCentroid);
+		WRITE(p, "  in %s float4 colors_1 : COLOR1", optCentroid);
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		if (numTexgen < 7)
 		{
 			for (int i = 0; i < numTexgen; ++i)
-				WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
-			WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
+				WRITE(p, ",\n  in %s float3 uv%d : TEXCOORD%d", optCentroid, i, i);
+			WRITE(p, ",\n  in %s float4 clipPos : TEXCOORD%d", optCentroid, numTexgen);
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				WRITE(p, ",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
+				WRITE(p, ",\n  in %s float4 Normal : TEXCOORD%d", optCentroid, numTexgen + 1);
 			WRITE(p, "        ) {\n");
 		}
 		else
@@ -844,12 +847,21 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "\tocol0 = prev;\n");
 	}
 
-	// On D3D11, use dual-source color blending to perform dst alpha in a
+	// Use dual-source color blending to perform dst alpha in a
 	// single pass
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 	{
-		// Colors will be blended against the alpha from ocol1...
-		WRITE(p, "\tocol1 = prev;\n");
+		if(ApiType & API_D3D9)
+		{
+			// alpha component must be 0 or the shader will not compile (Direct3D 9Ex restriction)
+			// Colors will be blended against the color from ocol1 in D3D 9...			
+			WRITE(p, "\tocol1 = float4(prev.a, prev.a, prev.a, 0.0f);\n");			
+		}
+		else
+		{
+			// Colors will be blended against the alpha from ocol1...
+			WRITE(p, "\tocol1 = prev;\n");
+		}
 		// ...and the alpha from ocol0 will be written to the framebuffer.
 		WRITE(p, "\tocol0.a = " I_ALPHA"[0].a;\n");	
 	}
@@ -1324,7 +1336,7 @@ static void WriteFog(char *&p)
 
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
 	// ze *= x_adjust
-	//this is complitly teorical as the real hard seems to use a table intead of calculate the values.
+	//this is completely theoretical as the real hardware seems to use a table instead of calculating the values.
 	if (bpmem.fogRange.Base.Enabled)
 	{
 		WRITE (p, "\tfloat x_adjust = (2.0f * (clipPos.x / " I_FOG"[2].y)) - 1.0f - " I_FOG"[2].x;\n");

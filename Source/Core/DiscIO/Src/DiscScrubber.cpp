@@ -93,7 +93,7 @@ bool SetupScrub(const char* filename, int block_size)
 
 	if (CLUSTER_SIZE % m_BlockSize != 0)
 	{
-		ERROR_LOG(DISCIO, "block size %i is not a factor of 0x8000, scrubbing not possible", m_BlockSize);
+		ERROR_LOG(DISCIO, "Block size %i is not a factor of 0x8000, scrubbing not possible", m_BlockSize);
 		return false;
 	}
 
@@ -106,7 +106,7 @@ bool SetupScrub(const char* filename, int block_size)
 
 	// Warn if not DVD5 or DVD9 size
 	if (numClusters != 0x23048 && numClusters != 0x46090)
-		WARN_LOG(DISCIO, "%s is not a standard sized wii disc! (%x blocks)", filename, numClusters);
+		WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename, numClusters);
 
 	// Table of free blocks
 	m_FreeTable = new u8[numClusters];

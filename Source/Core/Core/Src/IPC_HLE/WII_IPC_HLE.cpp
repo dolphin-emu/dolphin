@@ -544,7 +544,7 @@ void ExecuteCommand(u32 _Address)
     if (CmdSuccess)
     {
 		// Ensure replies happen in order, fairly ugly
-		// Without this, tons of games fail now that DI commads have different reply delays
+		// Without this, tons of games fail now that DI commands have different reply delays
 		int reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
 		
 		const s64 ticks_til_last_reply = last_reply_time - CoreTiming::GetTicks();

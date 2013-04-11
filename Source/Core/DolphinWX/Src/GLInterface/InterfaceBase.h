@@ -27,6 +27,7 @@ public:
 	virtual void UpdateFPSDisplay(const char *Text) {}
 	virtual bool Create(void *&window_handle) { return true; }
 	virtual bool MakeCurrent() { return true; }
+	virtual bool ClearCurrent() { return true; }
 	virtual void Shutdown() {} 
 
 	virtual void SwapInterval(int Interval) { }

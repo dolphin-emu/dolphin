@@ -38,6 +38,17 @@ bool cInterfaceAGL::Create(void *&window_handle)
 	int _tx, _ty, _twidth, _theight;
 	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
 
+	GLWin.cocoaWin = (NSView*)(((wxPanel*)window_handle)->GetHandle());
+
+	// Enable high-resolution display support.
+	[GLWin.cocoaWin setWantsBestResolutionOpenGLSurface:YES];
+
+	NSWindow *window = [GLWin.cocoaWin window];
+
+	float scale = [window backingScaleFactor];
+	_twidth *= scale;
+	_theight *= scale;
+
 	// Control window size and picture scaling
 	s_backbuffer_width = _twidth;
 	s_backbuffer_height = _theight;
@@ -58,16 +69,14 @@ bool cInterfaceAGL::Create(void *&window_handle)
 		return NULL;
 	}
 
-	
-	GLWin.cocoaWin = (NSView*)(((wxPanel*)window_handle)->GetHandle());;
 	if (GLWin.cocoaWin == nil) {
 		ERROR_LOG(VIDEO, "failed to create window");
 		return NULL;
 	}
 
-	[[GLWin.cocoaWin window] makeFirstResponder:GLWin.cocoaWin];
+	[window makeFirstResponder:GLWin.cocoaWin];
 	[GLWin.cocoaCtx setView: GLWin.cocoaWin];
-	[[GLWin.cocoaWin window] makeKeyAndOrderFront: nil];
+	[window makeKeyAndOrderFront: nil];
 
 	return true;
 }
@@ -75,6 +84,13 @@ bool cInterfaceAGL::Create(void *&window_handle)
 bool cInterfaceAGL::MakeCurrent()
 {
 	[GLWin.cocoaCtx makeCurrentContext];
+	return true;
+}
+
+bool cInterfaceAGL::ClearCurrent()
+{
+	// not tested at all
+	//clearCurrentContext();
 	return true;
 }
 
@@ -88,12 +104,19 @@ void cInterfaceAGL::Shutdown()
 
 void cInterfaceAGL::Update()
 {
-	if( s_backbuffer_width == [GLWin.cocoaWin frame].size.width
-	   && s_backbuffer_height == [GLWin.cocoaWin frame].size.height)
+	NSWindow *window = [GLWin.cocoaWin window];
+	NSSize size = [GLWin.cocoaWin frame].size;
+
+	float scale = [window backingScaleFactor];
+	size.width *= scale;
+	size.height *= scale;
+
+	if( s_backbuffer_width == size.width
+	   && s_backbuffer_height == size.height)
 		return;
 	
-	s_backbuffer_width = [GLWin.cocoaWin frame].size.width;
-	s_backbuffer_height = [GLWin.cocoaWin frame].size.height;
+	s_backbuffer_width = size.width;
+	s_backbuffer_height = size.height;
 	
 	[GLWin.cocoaCtx update];
 }

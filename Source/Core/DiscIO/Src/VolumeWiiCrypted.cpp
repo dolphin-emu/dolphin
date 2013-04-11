@@ -230,6 +230,18 @@ u64 CVolumeWiiCrypted::GetSize() const
 	}
 }
 
+u64 CVolumeWiiCrypted::GetRawSize() const
+{
+	if (m_pReader)
+	{
+		return m_pReader->GetRawSize();
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 bool CVolumeWiiCrypted::CheckIntegrity() const
 {
 	// Get partition data size

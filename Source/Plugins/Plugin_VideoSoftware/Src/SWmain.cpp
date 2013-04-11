@@ -112,7 +112,7 @@ void VideoSoftware::DoState(PointerWrap& p)
 	Clipper::DoState(p);
 	p.Do(swxfregs);
     p.Do(bpmem);
-	p.Do(swstats);
+	p.DoPOD(swstats);
 
 	// CP Memory
     p.DoArray(arraybases, 16);

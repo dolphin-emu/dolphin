@@ -177,10 +177,12 @@ void CFrame::CreateMenu()
 	loadMenu->Append(IDM_UNDOLOADSTATE, _("Undo Load State") + wxString(wxT("\tShift+F12")));
 	loadMenu->AppendSeparator();
 
-	for (int i = 1; i <= 8; i++) {
+	for (int i = 1; i <= 8; i++)
+	{
 		loadMenu->Append(IDM_LOADSLOT1 + i - 1, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i - 1));
 		saveMenu->Append(IDM_SAVESLOT1 + i - 1, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i - 1));
 	}
+
 	m_MenuBar->Append(emulationMenu, _("&Emulation"));
 
 	// Options menu
@@ -297,7 +299,10 @@ void CFrame::CreateMenu()
 	viewMenu->Append(IDM_PURGECACHE, _("Purge Cache"));
 	m_MenuBar->Append(viewMenu, _("&View"));
 
-	if (g_pCodeWindow) g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, m_MenuBar);
+	if (g_pCodeWindow)
+	{
+		g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, m_MenuBar);
+	}
 
 	// Help menu
 	wxMenu* helpMenu = new wxMenu;
@@ -428,8 +433,8 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
 		h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
-		ToolBar->SetToolBitmapSize(wxSize(w, h));
-		
+	ToolBar->SetToolBitmapSize(wxSize(w, h));
+
 
 	ToolBar->AddTool(wxID_OPEN,    _("Open"),    m_Bitmaps[Toolbar_FileOpen], _("Open file..."));
 	ToolBar->AddTool(wxID_REFRESH, _("Refresh"), m_Bitmaps[Toolbar_Refresh], _("Refresh game list"));
@@ -509,14 +514,7 @@ void CFrame::RecreateToolbar()
 
 void CFrame::InitBitmaps()
 {
-	std::string theme(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/");
-	std::string dir(File::GetUserPath(D_THEMES_IDX) + theme);
-
-#if !defined(_WIN32)
-	// If theme does not exist in user's dir load from shared directory
-	if (!File::Exists(dir))
-		dir = SHARED_USER_DIR THEMES_DIR "/" + theme;
-#endif
+	auto const dir = StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
 
 	m_Bitmaps[Toolbar_FileOpen].LoadFile(dir + "open.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Refresh].LoadFile(dir + "refresh.png", wxBITMAP_TYPE_PNG);
@@ -565,12 +563,16 @@ void CFrame::BootGame(const std::string& filename)
 		}
 		else if (!StartUp.m_strDefaultGCM.empty()
 				&&	wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
+		{
 			bootfile = StartUp.m_strDefaultGCM;
+		}
 		else
 		{
 			if (!SConfig::GetInstance().m_LastFilename.empty()
 					&& wxFileExists(wxSafeConvertMB2WX(SConfig::GetInstance().m_LastFilename.c_str())))
+			{
 				bootfile = SConfig::GetInstance().m_LastFilename;
+			}
 			else
 			{
 				m_GameListCtrl->BrowseForDirectory();
@@ -608,14 +610,16 @@ void CFrame::DoOpen(bool Boot)
 
 	if (currentDir != currentDir2)
 	{
-		PanicAlertT("Current dir changed from %s to %s after wxFileSelector!",
+		PanicAlertT("Current directory changed from %s to %s after wxFileSelector!",
 				currentDir.c_str(), currentDir2.c_str());
 		File::SetCurrentDir(currentDir);
 	}
 
 	// Should we boot a new game or just change the disc?
 	if (Boot && !path.IsEmpty())
+	{
 		BootGame(WxStrToStr(path));
+	}
 	else
 	{
 		DVDInterface::ChangeDisc(WxStrToStr(path).c_str());
@@ -673,7 +677,8 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 		GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(false);
 	}
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++)
+	{
 		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			controllers |= (1 << i);
 
@@ -733,11 +738,15 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 			UpdateGUI();
 		}
 		else
+		{
 			DoPause();
+		}
 	}
 	else
+	{
 		// Core is uninitialized, start the game
 		BootGame(std::string(""));
+	}
 }
 
 void CFrame::OnRenderParentClose(wxCloseEvent& event)
@@ -764,7 +773,7 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 	{
 		int width, height;
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-		    !RendererIsFullscreen() && !m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
+			!RendererIsFullscreen() && !m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
 		{
 			m_RenderFrame->GetClientSize(&width, &height);
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
@@ -805,9 +814,6 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	m_XRRConfig->ToggleDisplayMode(bFullscreen);
 #elif defined __APPLE__
-	NSView* view = (NSView *)m_RenderFrame->GetHandle();
-	[[view window] toggleFullScreen:[view window]];
-	
 	if(bFullscreen)
 		CGDisplayHideCursor(CGMainDisplayID());
 	else
@@ -874,6 +880,13 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderFrame->Show();
 	}
 
+#if defined(__APPLE__)
+	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSWindow *window = [view window];
+
+	[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+#endif
+
 	wxBeginBusyCursor();
 
 	DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
@@ -923,13 +936,19 @@ void CFrame::OnBootDrive(wxCommandEvent& event)
 // Refresh the file list and browse for a favorites directory
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 {
-	if (m_GameListCtrl) m_GameListCtrl->Update();
+	if (m_GameListCtrl)
+	{
+		m_GameListCtrl->Update();
+	}
 }
 
 
 void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 {
-	if (m_GameListCtrl) m_GameListCtrl->BrowseForDirectory();
+	if (m_GameListCtrl)
+	{
+		m_GameListCtrl->BrowseForDirectory();
+	}
 }
 
 // Create screenshot
@@ -1029,10 +1048,22 @@ void CFrame::DoStop()
 			m_RenderParent->SetCursor(wxNullCursor);
 		DoFullscreen(false);
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+		{
 			m_RenderFrame->Destroy();
+		}
 		else
+		{
+#if defined(__APPLE__)
+			// Disable the full screen button when not in a game.
+			NSView *view = (NSView *) m_RenderFrame->GetHandle();
+			NSWindow *window = [view window];
+
+			[window setCollectionBehavior:NSWindowCollectionBehaviorDefault];
+#endif
+
 			// Make sure the window is not longer set to stay on top
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
+		}
 		m_RenderParent = NULL;
 
 		// Clean framerate indications from the status bar.
@@ -1118,7 +1149,9 @@ void CFrame::OnConfigPAD(wxCommandEvent& WXUNUSED (event))
 	InputPlugin *const pad_plugin = Pad::GetPlugin();
 	bool was_init = false;
 	if (g_controller_interface.IsInit())	// check if game is running
+	{
 		was_init = true;
+	}
 	else
 	{
 #if defined(HAVE_X11) && HAVE_X11
@@ -1144,7 +1177,9 @@ void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
 	InputPlugin *const wiimote_plugin = Wiimote::GetPlugin();
 	bool was_init = false;
 	if (g_controller_interface.IsInit())	// check if game is running
+	{
 		was_init = true;
+	}
 	else
 	{
 #if defined(HAVE_X11) && HAVE_X11
@@ -1195,7 +1230,10 @@ void CFrame::OnHelp(wxCommandEvent& event)
 
 void CFrame::ClearStatusBar()
 {
-	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(wxT(""),0);
+	if (this->GetStatusBar()->IsEnabled())
+	{
+		this->GetStatusBar()->SetStatusText(wxT(""),0);
+	}
 }
 
 void CFrame::StatusBarMessage(const char * Text, ...)
@@ -1207,7 +1245,10 @@ void CFrame::StatusBarMessage(const char * Text, ...)
 	vsnprintf(Str, MAX_BYTES, Text, ArgPtr);
 	va_end(ArgPtr);
 
-	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(StrToWxStr(Str),0);
+	if (this->GetStatusBar()->IsEnabled())
+	{
+		this->GetStatusBar()->SetStatusText(StrToWxStr(Str),0);
+	}
 }
 
 
@@ -1224,7 +1265,9 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 			g_NetPlaySetupDiag = new NetPlaySetupDiag(this, m_GameListCtrl);
 	}
 	else
+	{
 		g_NetPlaySetupDiag->Raise();
+	}
 }
 
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
@@ -1609,7 +1652,11 @@ void CFrame::UpdateGUI()
 		m_bGameLoading = false;
 	}
 
-	if (m_ToolBar) m_ToolBar->Refresh();
+	// Refresh toolbar
+	if (m_ToolBar)
+	{
+		m_ToolBar->Refresh();
+	}
 
 	// Commit changes to manager
 	m_Mgr->Update();
@@ -1676,7 +1723,11 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	}
 	
-	if (m_GameListCtrl) m_GameListCtrl->Update();
+	// Update gamelist
+	if (m_GameListCtrl)
+	{
+		m_GameListCtrl->Update();
+	}
 }
 
 // Enable and disable the toolbar

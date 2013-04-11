@@ -1351,7 +1351,7 @@ bool PSTextureEncoder::InitDynamicMode()
 	var = reflect->GetVariableByName("g_generator");
 	m_generatorSlot = var->GetInterfaceSlot(0);
 
-	INFO_LOG(VIDEO, "fetch slot %d, scaledFetch slot %d, intensity slot %d, generator slot %d",
+	INFO_LOG(VIDEO, "Fetch slot %d, scaledFetch slot %d, intensity slot %d, generator slot %d",
 		m_fetchSlot, m_scaledFetchSlot, m_intensitySlot, m_generatorSlot);
 
 	// Class instances will be created at the time they are used

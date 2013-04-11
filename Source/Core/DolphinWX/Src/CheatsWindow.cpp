@@ -298,10 +298,11 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 			sprintf(numcodes, "Number of Codes: %lu", (unsigned long)code.ops.size());
 			m_Label_NumCodes->SetLabel(StrToWxStr(numcodes));
 			m_ListBox_CodesList->Clear();
+
 			for (size_t j = 0; j < code.ops.size(); j++)
 			{
 				char text2[CHAR_MAX];
-			    char* ops = text2;
+				char* ops = text2;
 				sprintf(ops, "%08x %08x", code.ops[j].cmd_addr, code.ops[j].value);
 				m_ListBox_CodesList->Append(StrToWxStr(ops));
 			}
@@ -332,7 +333,7 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 	// Apply Gecko Code changes
 	Gecko::SetActiveCodes(m_geckocode_panel->GetCodes());
 
-	// save gameini, with changed gecko codes
+	// Save gameini, with changed gecko codes
 	if (m_gameini_path.size())
 	{
 		Gecko::SaveCodes(m_gameini, m_geckocode_panel->GetCodes());
@@ -409,7 +410,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	filtered_results.reserve(search_results.size());
 
 
-	// determine the selected filter
+	// Determine the selected filter
 	// 1 : equal
 	// 2 : greater-than
 	// 4 : less-than

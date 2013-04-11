@@ -122,7 +122,7 @@ void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 
 	if (iPhackvalue[0] == 1)
 	{
-		NOTICE_LOG(VIDEO, "\t\t--- Ortographic Projection Hack ON ---");
+		NOTICE_LOG(VIDEO, "\t\t--- Orthographic Projection Hack ON ---");
 
 		fhacksign1 *= (iPhackvalue[1] == 1) ? -1.0f : fhacksign1;
 		sTemp[0] = (iPhackvalue[1] == 1) ? " * (-1)" : "";
@@ -191,7 +191,7 @@ void VertexShaderManager::Dirty()
 }
 
 // Syncs the shader constant buffers with xfmem
-// TODO: A cleaner way to control the matricies without making a mess in the parameters field
+// TODO: A cleaner way to control the matrices without making a mess in the parameters field
 void VertexShaderManager::SetConstants()
 {
 	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
@@ -455,7 +455,7 @@ void VertexShaderManager::SetConstants()
 			break;
 
 		default:
-			ERROR_LOG(VIDEO, "unknown projection type: %d", xfregs.projection.type);
+			ERROR_LOG(VIDEO, "Unknown projection type: %d", xfregs.projection.type);
 		}
 
 		PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);

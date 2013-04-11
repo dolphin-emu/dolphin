@@ -111,7 +111,7 @@ void DoState(PointerWrap &p)
 {
 	p.Do(ppc_msg);
 	p.Do(arm_msg);
-	p.Do(ctrl);
+	p.DoPOD(ctrl);
 	p.Do(ppc_irq_flags);
 	p.Do(ppc_irq_masks);
 	p.Do(arm_irq_flags);
@@ -194,7 +194,7 @@ void Write32(const u32 _Value, const u32 _Address)
 				_Value, ctrl.ppc(), ctrl.Y1, ctrl.Y2, ctrl.X1);
 			if (ctrl.X1)
 			{
-				INFO_LOG(WII_IPC, "new pointer available: %08x", ppc_msg);
+				INFO_LOG(WII_IPC, "New pointer available: %08x", ppc_msg);
 				// Let the HLE handle the request on it's own time
 				WII_IPC_HLE_Interface::EnqRequest(ppc_msg);
 			}

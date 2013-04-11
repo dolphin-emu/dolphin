@@ -388,7 +388,7 @@ void RegCache::Flush(FlushMode mode)
 	{
 		if (locks[i])
 		{
-			PanicAlert("Somebody forgot to unlock PPC reg %i.", i);
+			PanicAlert("Someone forgot to unlock PPC reg %i.", i);
 		}
 		if (regs[i].away)
 		{

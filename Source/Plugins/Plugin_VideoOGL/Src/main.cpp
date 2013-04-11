@@ -141,7 +141,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsPixelLighting = true;
 
 	// aamodes
-	const char* caamodes[] = {"None", "2x", "4x", "8x", "8x CSAA", "8xQ CSAA", "16x CSAA", "16xQ CSAA", "4x SSAA"};
+	const char* caamodes[] = {_trans("None"), "2x", "4x", "8x", "8x CSAA", "8xQ CSAA", "16x CSAA", "16xQ CSAA", "4x SSAA"};
 	g_Config.backend_info.AAModes.assign(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
 
 	// pp shaders
@@ -253,6 +253,7 @@ void VideoBackend::Video_Cleanup() {
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
 		g_renderer = NULL;
+		GLInterface->ClearCurrent();
 	}
 }
 

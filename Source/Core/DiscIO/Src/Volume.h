@@ -65,6 +65,9 @@ public:
 
 	virtual ECountry GetCountry() const = 0;
 	virtual u64 GetSize() const = 0;
+	
+	// Size on disc (compressed size)
+	virtual u64 GetRawSize() const = 0;
 };
 
 // Generic Switch function for all volumes

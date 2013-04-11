@@ -18,9 +18,9 @@
 #ifndef _THREAD_H_
 #define _THREAD_H_
 
-#include "StdThread.h"
-#include "StdMutex.h"
 #include "StdConditionVariable.h"
+#include "StdMutex.h"
+#include "StdThread.h"
 
 // Don't include common.h here as it will break LogManager
 #include "CommonTypes.h"

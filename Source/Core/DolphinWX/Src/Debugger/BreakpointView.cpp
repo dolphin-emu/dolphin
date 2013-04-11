@@ -40,10 +40,10 @@ void CBreakPointView::Update()
 	InsertColumn(0, wxT("Active"));
 	InsertColumn(1, wxT("Type"));
 	InsertColumn(2, wxT("Function"));
-    InsertColumn(3, wxT("Address"));
-    InsertColumn(4, wxT("Flags"));
+	InsertColumn(3, wxT("Address"));
+	InsertColumn(4, wxT("Flags"));
 
-    char szBuffer[64];
+	char szBuffer[64];
 	const BreakPoints::TBreakPoints& rBreakPoints = PowerPC::breakpoints.GetBreakPoints();
 	for (size_t i = 0; i < rBreakPoints.size(); i++)
 	{
@@ -63,11 +63,11 @@ void CBreakPointView::Update()
 				SetItem(Item, 2, temp);
 			}
 			
-            sprintf(szBuffer, "%08x", rBP.iAddress);
-            temp = StrToWxStr(szBuffer);
+			sprintf(szBuffer, "%08x", rBP.iAddress);
+			temp = StrToWxStr(szBuffer);
 			SetItem(Item, 3, temp);
 
-            SetItemData(Item, rBP.iAddress);
+			SetItemData(Item, rBP.iAddress);
 		}
 	}
 
@@ -108,12 +108,12 @@ void CBreakPointView::Update()
 
 void CBreakPointView::DeleteCurrentSelection()
 {
-    int Item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if (Item >= 0)
-    {
-        u32 Address = (u32)GetItemData(Item);
-        PowerPC::breakpoints.Remove(Address);
-        PowerPC::memchecks.Remove(Address);
+	int Item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	if (Item >= 0)
+	{
+		u32 Address = (u32)GetItemData(Item);
+		PowerPC::breakpoints.Remove(Address);
+		PowerPC::memchecks.Remove(Address);
 		Update();
-    }
+	}
 }

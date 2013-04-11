@@ -43,7 +43,7 @@ bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 	}
 	else
 	{
-		PanicAlert("Cant open file (%s) to dump UCode!!", binFile);
+		PanicAlert("Can't open file (%s) to dump UCode!!", binFile);
 		return false;
 	}
 

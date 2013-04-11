@@ -114,9 +114,9 @@ private:
 				color_surface_Format(D3DFMT_UNKNOWN), depth_surface_Format(D3DFMT_UNKNOWN),
 				depth_ReadBuffer_Format(D3DFMT_UNKNOWN) {}
 
-		LPDIRECT3DTEXTURE9 color_texture;//Texture thats contains the color data of the render target
+		LPDIRECT3DTEXTURE9 color_texture;//Texture that contains the color data of the render target
 		LPDIRECT3DTEXTURE9 colorRead_texture;//1 pixel texture for temporal data store
-		LPDIRECT3DTEXTURE9 depth_texture;//Texture thats contains the depth data of the render target
+		LPDIRECT3DTEXTURE9 depth_texture;//Texture that contains the depth data of the render target
 		LPDIRECT3DTEXTURE9 depthRead_texture;//4 pixel texture for temporal data store
 
 		LPDIRECT3DTEXTURE9 color_reinterpret_texture;//buffer used for ReinterpretPixelData
@@ -126,8 +126,8 @@ private:
 		LPDIRECT3DSURFACE9 color_surface;//Color Surface
 		LPDIRECT3DSURFACE9 color_ReadBuffer;//Surface 0 of colorRead_texture
 		LPDIRECT3DSURFACE9 depth_ReadBuffer;//Surface 0 of depthRead_texture
-		LPDIRECT3DSURFACE9 color_OffScreenReadBuffer;//System memory Surface that can be locked to retriebe the data
-		LPDIRECT3DSURFACE9 depth_OffScreenReadBuffer;//System memory Surface that can be locked to retriebe the data
+		LPDIRECT3DSURFACE9 color_OffScreenReadBuffer;//System memory Surface that can be locked to retrieve the data
+		LPDIRECT3DSURFACE9 depth_OffScreenReadBuffer;//System memory Surface that can be locked to retrieve the data
 
 		D3DFORMAT color_surface_Format;//Format of the color Surface
 		D3DFORMAT depth_surface_Format;//Format of the Depth Surface

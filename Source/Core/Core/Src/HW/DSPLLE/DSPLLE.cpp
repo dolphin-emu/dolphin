@@ -270,7 +270,7 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, u16 _uHighMail)
 	}
 	else
 	{
-		ERROR_LOG(DSPLLE, "CPU cant write to DSP mailbox");
+		ERROR_LOG(DSPLLE, "CPU can't write to DSP mailbox");
 	}
 }
 
@@ -282,7 +282,7 @@ void DSPLLE::DSP_WriteMailBoxLow(bool _CPUMailbox, u16 _uLowMail)
 	}
 	else
 	{
-		ERROR_LOG(DSPLLE, "CPU cant write to DSP mailbox");
+		ERROR_LOG(DSPLLE, "CPU can't write to DSP mailbox");
 	}
 }
 

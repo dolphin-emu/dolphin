@@ -117,7 +117,7 @@ void SWRenderer::DrawDebugText()
 	if (g_SWVideoConfig.bShowStats) 
 	{
         p+=sprintf(p,"Objects: %i\n",swstats.thisFrame.numDrawnObjects);
-        p+=sprintf(p,"Primatives: %i\n",swstats.thisFrame.numPrimatives);
+        p+=sprintf(p,"Primitives: %i\n",swstats.thisFrame.numPrimatives);
         p+=sprintf(p,"Vertices Loaded: %i\n",swstats.thisFrame.numVerticesLoaded);
 
         p+=sprintf(p,"Triangles Input:   %i\n",swstats.thisFrame.numTrianglesIn);

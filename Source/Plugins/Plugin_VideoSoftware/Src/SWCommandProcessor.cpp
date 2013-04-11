@@ -56,7 +56,7 @@ CPReg cpreg; // shared between gfx and emulator thread
 
 void DoState(PointerWrap &p)
 {
-	p.Do(cpreg);
+	p.DoPOD(cpreg);
 	p.DoArray(commandBuffer, commandBufferSize);
 	p.Do(readPos);
 	p.Do(writePos);

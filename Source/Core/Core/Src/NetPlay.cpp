@@ -271,6 +271,16 @@ bool NetPlay::StopGame()
 	return true;
 }
 
+void NetPlay::SetMemcardWriteEnabled(bool enabled)
+{
+	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+
+	if (m_is_running)
+	{
+		Core::g_CoreStartupParameter.bEnableMemcardSaving = enabled;
+	}
+}
+
 // called from ---CPU--- thread
 u8 NetPlay::GetPadNum(u8 numPAD)
 {

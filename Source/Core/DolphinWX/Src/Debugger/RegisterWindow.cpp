@@ -28,8 +28,8 @@ END_EVENT_TABLE()
 
 
 CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id,
-	   	const wxPoint& position, const wxSize& size,
-	   	long style, const wxString& name)
+		const wxPoint& position, const wxSize& size,
+		long style, const wxString& name)
 	: wxPanel(parent, id, position, size, style, name)
 	, m_GPRGridView(NULL)
 {

@@ -223,9 +223,9 @@ void DoState(PointerWrap &p)
 {
 	if (!g_ARAM.wii_mode)
 		p.DoArray(g_ARAM.ptr, g_ARAM.size);
-	p.Do(g_dspState);
-	p.Do(g_audioDMA);
-	p.Do(g_arDMA);
+	p.DoPOD(g_dspState);
+	p.DoPOD(g_audioDMA);
+	p.DoPOD(g_arDMA);
 	p.Do(g_ARAM_Info);
 	p.Do(g_AR_MODE);
 	p.Do(g_AR_REFRESH);
@@ -334,7 +334,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 		// ARAM
 	case AR_INFO:
-		//PanicAlert("read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
+		//PanicAlert("Read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
 		_uReturnValue = g_ARAM_Info.Hex;
 		break;
 
@@ -647,6 +647,7 @@ void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, bool _bSet)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
 		0, et_GenerateDSPInterrupt, type | (_bSet<<16));
+	CoreTiming::ForceExceptionCheck(100);
 }
 
 // called whenever SystemTimers thinks the dsp deserves a few more cycles
@@ -696,8 +697,8 @@ void Do_ARAM_DMA()
 	g_dspState.DSPControl.DMAState = 1;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
 
-	// Force an early exception check. Fixes RE2 audio.
-	if (g_arDMA.Cnt.count == 4096)
+	// Force an early exception check on large transfers. Fixes RE2 audio.
+	if (g_arDMA.Cnt.count > 2048 && g_arDMA.Cnt.count <= 10240)
 		CoreTiming::ForceExceptionCheck(100);
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks

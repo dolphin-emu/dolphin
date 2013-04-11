@@ -80,7 +80,7 @@ void DoState(PointerWrap &p)
 //	rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
 //	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
 
-	p.Do(ppcState);
+	p.DoPOD(ppcState);
 
 //	SystemTimers::DecrementerSet();
 //	SystemTimers::TimeBaseSet();

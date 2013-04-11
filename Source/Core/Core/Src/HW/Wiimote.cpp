@@ -55,11 +55,16 @@ void Initialize(void* const hwnd)
 }
 
 // __________________________________________________________________________________________________
-// Function: Wiimote_Output
+// Function: ControlChannel
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
 //           on the HID CONTROL channel.
-// input:    Da pakket.
-// output:   none
+//
+// Inputs:   _number    [Description needed]
+//           _channelID [Description needed]
+//           _pData     [Description needed]
+//           _Size      [Description needed]
+//
+// Output:   none
 //
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
@@ -71,11 +76,16 @@ void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 }
 
 // __________________________________________________________________________________________________
-// Function: Wiimote_InterruptChannel
+// Function: InterruptChannel
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
 //           on the HID INTERRUPT channel.
-// input:    Da pakket.
-// output:   none
+//
+// Inputs:   _number    [Description needed]
+//           _channelID [Description needed]
+//           _pData     [Description needed]
+//           _Size      [Description needed]
+//
+// Output:   none
 //
 void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
@@ -86,9 +96,9 @@ void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size
 }
 
 // __________________________________________________________________________________________________
-// Function: Wiimote_Update
-// Purpose:  This function is called periodically by the Core.
-// input:    none
+// Function: Update
+// Purpose:  This function is called periodically by the Core. // TODO: Explain why.
+// input:    _number: [Description needed]
 // output:   none
 //
 void Update(int _number)
@@ -113,10 +123,10 @@ void Update(int _number)
 }
 
 // __________________________________________________________________________________________________
-// Function: PAD_GetAttachedPads
+// Function: GetAttached
 // Purpose:  Get mask of attached pads (eg: controller 1 & 4 -> 0x9)
-// input:	 none
-// output:   number of pads
+// input:    none
+// output:   The number of attached pads
 //
 unsigned int GetAttached()
 {
@@ -130,8 +140,8 @@ unsigned int GetAttached()
 // ___________________________________________________________________________
 // Function: DoState
 // Purpose:  Saves/load state
-// input/output: ptr
-// input: mode
+// input/output: ptr: [Description Needed]
+// input: mode        [Description needed]
 //
 void DoState(u8 **ptr, PointerWrap::Mode mode)
 {
@@ -145,7 +155,7 @@ void DoState(u8 **ptr, PointerWrap::Mode mode)
 // ___________________________________________________________________________
 // Function: EmuStateChange
 // Purpose: Notifies the plugin of a change in emulation state
-// input:    newState
+// input:    newState - The new state for the Wiimote to change to.
 // output:   none
 //
 void EmuStateChange(EMUSTATE_CHANGE newState)
