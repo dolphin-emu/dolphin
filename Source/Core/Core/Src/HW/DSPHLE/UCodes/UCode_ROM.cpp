@@ -19,6 +19,7 @@
 #include "UCode_ROM.h"
 #include "Hash.h"
 #include "../../Memmap.h"
+#include "ConfigManager.h"
 
 CUCode_Rom::CUCode_Rom(DSPHLE *dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
@@ -115,6 +116,11 @@ void CUCode_Rom::BootUCode()
 	DEBUG_LOG(DSPHLE, "BootTask - done");
 
 	m_DSPHLE->SetUCode(ector_crc);
+}
+
+u32 CUCode_Rom::GetUpdateMs()
+{
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
 void CUCode_Rom::DoState(PointerWrap &p)

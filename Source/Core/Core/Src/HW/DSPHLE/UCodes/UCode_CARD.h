@@ -25,6 +25,7 @@ class CUCode_CARD : public IUCode
 public:
 	CUCode_CARD(DSPHLE *dsp_hle, u32 crc);
 	virtual ~CUCode_CARD();
+	u32 GetUpdateMs();
 
 	void HandleMail(u32 _uMail);
 	void Update(int cycles);

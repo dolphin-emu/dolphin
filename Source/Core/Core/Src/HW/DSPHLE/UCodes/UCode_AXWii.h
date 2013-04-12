@@ -25,6 +25,7 @@ class CUCode_AXWii : public CUCode_AX
 public:
 	CUCode_AXWii(DSPHLE *dsp_hle, u32 _CRC);
 	virtual ~CUCode_AXWii();
+	u32 GetUpdateMs();
 
 	virtual void DoState(PointerWrap &p);
 

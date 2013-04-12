@@ -672,6 +672,11 @@ void CUCode_AXWii::OutputWMSamples(u32* addresses)
 	}
 }
 
+u32 CUCode_AXWii::GetUpdateMs()
+{
+	return 3;
+}
+
 void CUCode_AXWii::DoState(PointerWrap &p)
 {
 	std::lock_guard<std::mutex> lk(m_processing);

@@ -19,6 +19,7 @@
 #include "UCodes.h"
 #include "UCode_CARD.h"
 #include "../../DSP.h"
+#include "ConfigManager.h"
 
 
 CUCode_CARD::CUCode_CARD(DSPHLE *dsp_hle, u32 crc)
@@ -42,6 +43,11 @@ void CUCode_CARD::Update(int cycles)
 	{
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
+}
+
+u32 CUCode_CARD::GetUpdateMs()
+{
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
 void CUCode_CARD::HandleMail(u32 _uMail)

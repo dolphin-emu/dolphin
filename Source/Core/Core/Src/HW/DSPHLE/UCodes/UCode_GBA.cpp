@@ -19,6 +19,7 @@
 #include "UCode_GBA.h"
 
 #include "../../DSP.h"
+#include "ConfigManager.h"
 
 CUCode_GBA::CUCode_GBA(DSPHLE *dsp_hle, u32 crc)
 : IUCode(dsp_hle, crc)
@@ -38,6 +39,11 @@ void CUCode_GBA::Update(int cycles)
 	{
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
+}
+
+u32 CUCode_GBA::GetUpdateMs()
+{
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
 }
 
 void CUCode_GBA::HandleMail(u32 _uMail)

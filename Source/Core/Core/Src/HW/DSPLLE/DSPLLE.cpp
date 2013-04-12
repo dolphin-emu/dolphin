@@ -326,6 +326,11 @@ void DSPLLE::DSP_Update(int cycles)
 	}
 }
 
+u32 DSPLLE::DSP_UpdateRate()
+{
+	return 12600; // TO BE TWEAKED
+}
+
 void DSPLLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 {
 	if (!soundStream)

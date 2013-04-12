@@ -25,6 +25,7 @@ class CUCode_InitAudioSystem : public IUCode
 public:
 	CUCode_InitAudioSystem(DSPHLE *dsp_hle, u32 crc);
 	virtual ~CUCode_InitAudioSystem();
+	u32 GetUpdateMs();
 
 	void HandleMail(u32 _uMail);
 	void Update(int cycles);

@@ -133,6 +133,7 @@ class CUCode_Zelda : public IUCode
 public:
 	CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC);
 	virtual ~CUCode_Zelda();
+	u32 GetUpdateMs();
 
 	void HandleMail(u32 _uMail);
 	void HandleMail_LightVersion(u32 _uMail);

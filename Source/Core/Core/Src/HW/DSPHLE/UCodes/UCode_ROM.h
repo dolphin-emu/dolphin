@@ -25,6 +25,7 @@ class CUCode_Rom : public IUCode
 public:
 	CUCode_Rom(DSPHLE *dsp_hle, u32 _crc);
 	virtual ~CUCode_Rom();
+	u32 GetUpdateMs();
 
 	void HandleMail(u32 _uMail);
 	void Update(int cycles);
