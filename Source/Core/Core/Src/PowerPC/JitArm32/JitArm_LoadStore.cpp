@@ -34,7 +34,7 @@
 #ifdef ANDROID
 #define FASTMEM 0
 #else
-#define FASTMEM 0
+#define FASTMEM 1
 #endif
 void JitArm::stw(UGeckoInstruction inst)
 {

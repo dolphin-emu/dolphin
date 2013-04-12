@@ -50,33 +50,32 @@ static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) 
 bool DisamLoadStore(const u32 inst, ARMReg &rD, u8 &accessSize, bool &Store)
 {
 	u8 op = (inst >> 20) & 0xFF;
-	printf("op: 0x%08x\n", op);
 	switch (op)
 	{
 		case 0x58: // STR
 		{
-			rD = (ARMReg)((inst >> 16) & 0xF);
+			rD = (ARMReg)((inst >> 12) & 0xF);
 			Store = true;
 			accessSize = 32;
 		}
 		break;
 		case 0x59: // LDR
 		{
-			rD = (ARMReg)((inst >> 16) & 0xF);
+			rD = (ARMReg)((inst >> 12) & 0xF);
 			Store = false;
 			accessSize = 32;
 		}
 		break;
 		case 0x05: // LDRH
 		{
-			rD = (ARMReg)((inst >> 16) & 0xF);
+			rD = (ARMReg)((inst >> 12) & 0xF);
 			Store = false;
 			accessSize = 16;
 		}
 		break;
 		case 0x45 + 0x18: // LDRB
 		{
-			rD = (ARMReg)((inst >> 16) & 0xF);
+			rD = (ARMReg)((inst >> 12) & 0xF);
 			Store = false;
 			accessSize  = 8;
 		}
