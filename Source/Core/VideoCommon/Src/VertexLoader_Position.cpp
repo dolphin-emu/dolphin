@@ -71,42 +71,52 @@ MOVUPS(MOffset(EDI, 0), XMM0);
 
 									 */
 
-template <typename dest_format, typename src_format, int N, int frac, bool has_frac, bool apply_frac>
-void LOADERDECL Pos_ReadDirect()
+// Reads indirect data
+template <typename index_format, typename src_format>
+class DataReader
 {
-	static_assert(N <= 3, "N > 3 is not sane!");
-	static_assert(!has_frac || !apply_frac, "calculating frac on cpu and gpu doesn't make sense");
-
-	for (int i = 0; i < 3; ++i)
+public:
+	DataReader()
 	{
-		dest_format raw_value = dest_format(i<N ? DataRead<src_format>() : 0);
-		dest_format divisor = dest_format(1u<<frac);
-		if(apply_frac && divisor > 1)
-		{
-			raw_value /= divisor;
-		}
-		DataWrite<dest_format>(raw_value);
+		static_assert(!std::numeric_limits<index_format>::is_signed, "Only unsigned index_format is sane!");
+		
+		auto const index = DataRead<index_format>();
+		m_data = reinterpret_cast<const src_format*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
 	}
 	
-	if(has_frac)
-		DataWrite<dest_format>(frac+1);
-	LOG_VTX();
-}
+	__forceinline src_format Read()
+	{
+		return Common::FromBigEndian(*(m_data++));
+	}
 
-template <typename dest_format, typename index_format, typename src_format, int N, int frac, bool has_frac, bool apply_frac>
-void LOADERDECL Pos_ReadIndex()
+private:
+	const src_format* m_data;
+};
+
+// Reads direct data
+template <typename src_format>
+struct DataReader<void, src_format>
 {
-	static_assert(!std::numeric_limits<index_format>::is_signed, "Only unsigned index_format is sane!");
+public:
+	__forceinline static src_format Read()
+	{
+		return DataRead<src_format>();
+	}
+};
+
+// void index_format == Read Direct
+template <typename dest_format, typename index_format, typename src_format, int N, int frac, bool has_frac, bool apply_frac>
+void LOADERDECL Pos_Read()
+{
 	static_assert(N <= 3, "N > 3 is not sane!");
 	static_assert(!has_frac || !apply_frac, "calculating frac on cpu and gpu doesn't make sense");
 
-	auto const index = DataRead<index_format>();
-	auto const data = reinterpret_cast<const src_format*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
+	DataReader<index_format, src_format> reader;
 
 	for (int i = 0; i < 3; ++i)
 	{
-		dest_format raw_value = dest_format(i<N ? Common::FromBigEndian(data[i]) : 0);
-		dest_format divisor = dest_format(1u<<frac);
+		dest_format raw_value = dest_format(i < N ? reader.Read() : 0);
+		dest_format divisor = dest_format(1u << frac);
 		if(apply_frac && divisor > 1)
 		{
 			raw_value /= divisor;
@@ -114,7 +124,7 @@ void LOADERDECL Pos_ReadIndex()
 		DataWrite<dest_format>(raw_value);
 	}
 
-	if(has_frac)
+	if (has_frac)
 		DataWrite<dest_format>(frac+1);
 	LOG_VTX();
 }
@@ -146,9 +156,9 @@ template <typename dest_format, int formatnr, int N, int frac, typename src_form
 	// if frac isn't used (float->float), we don't have to generate all template function
 	const int frac_factor = (has_frac || apply_frac) ? frac : 0;
 	
-	table[0][formatnr][N-2][frac].func = Pos_ReadDirect<dest_format, src_format, N, frac_factor, has_frac, apply_frac>;
-	table[1][formatnr][N-2][frac].func = Pos_ReadIndex<dest_format, u8, src_format, N, frac_factor, has_frac, apply_frac>;
-	table[2][formatnr][N-2][frac].func = Pos_ReadIndex<dest_format, u16, src_format, N, frac_factor, has_frac, apply_frac>;
+	table[0][formatnr][N-2][frac].func = Pos_Read<dest_format, void, src_format, N, frac_factor, has_frac, apply_frac>;
+	table[1][formatnr][N-2][frac].func = Pos_Read<dest_format, u8, src_format, N, frac_factor, has_frac, apply_frac>;
+	table[2][formatnr][N-2][frac].func = Pos_Read<dest_format, u16, src_format, N, frac_factor, has_frac, apply_frac>;
 	
 	for(u32 i=0; i<3; i++)
 	{
