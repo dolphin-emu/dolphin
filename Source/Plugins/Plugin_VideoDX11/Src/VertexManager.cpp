@@ -154,7 +154,7 @@ void VertexManager::Draw(UINT stride)
 	
 	if (IndexGenerator::GetNumTriangles() > 0)
 	{
-		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		D3D::context->DrawIndexed(IndexGenerator::GetTriangleindexLen(), m_triangle_draw_index, 0);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}

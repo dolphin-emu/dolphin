@@ -738,6 +738,11 @@ void CUCode_AX::Update(int cycles)
 	}
 }
 
+u32 CUCode_AX::GetUpdateMs()
+{
+	return 5;
+}
+
 void CUCode_AX::DoAXState(PointerWrap& p)
 {
 	p.Do(m_cmdlist);

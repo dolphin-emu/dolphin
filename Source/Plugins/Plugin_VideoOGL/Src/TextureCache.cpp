@@ -358,10 +358,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 				(GLfloat)targetSource.left, (GLfloat)targetSource.bottom,
 				-1.f, -1.f,
 				(GLfloat)targetSource.left, (GLfloat)targetSource.top,
-				1.f, -1.f,
-				(GLfloat)targetSource.right, (GLfloat)targetSource.top,
 				1.f, 1.f,
-				(GLfloat)targetSource.right, (GLfloat)targetSource.bottom
+				(GLfloat)targetSource.right, (GLfloat)targetSource.bottom,
+				1.f, -1.f,
+				(GLfloat)targetSource.right, (GLfloat)targetSource.top
 			};
 			
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
@@ -371,7 +371,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		} 
 
 		glBindVertexArray(vbo_it->second.vao);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 

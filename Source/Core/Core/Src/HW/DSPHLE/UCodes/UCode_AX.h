@@ -73,6 +73,7 @@ public:
 	virtual void MixAdd(short* out_buffer, int nsamples);
 	virtual void Update(int cycles);
 	virtual void DoState(PointerWrap& p);
+	u32 GetUpdateMs();
 
 	// Needed because StdThread.h std::thread implem does not support member
 	// pointers. TODO(delroth): obsolete.

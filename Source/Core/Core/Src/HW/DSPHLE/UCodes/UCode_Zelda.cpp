@@ -27,6 +27,7 @@
 
 #include "WaveFile.h"
 #include "../../DSP.h"
+#include "ConfigManager.h"
 
 
 CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
@@ -565,6 +566,10 @@ void CUCode_Zelda::ExecuteList()
 	}
 }
 
+u32 CUCode_Zelda::GetUpdateMs()
+{
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
+}
 
 void CUCode_Zelda::DoState(PointerWrap &p)
 {

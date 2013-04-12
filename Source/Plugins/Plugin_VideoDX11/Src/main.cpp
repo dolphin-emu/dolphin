@@ -35,6 +35,7 @@
 #include "Debugger/DebuggerPanel.h"
 #include "DLCache.h"
 #include "EmuWindow.h"
+#include "IndexGenerator.h"
 #include "FileUtil.h"
 #include "Globals.h"
 #include "IniFile.h"
@@ -96,6 +97,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
+	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -192,6 +194,7 @@ void VideoBackend::Video_Prepare()
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
+	IndexGenerator::Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
 	VertexShaderManager::Init();
