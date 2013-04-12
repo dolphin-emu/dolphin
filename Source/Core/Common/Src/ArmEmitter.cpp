@@ -83,6 +83,40 @@ bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool *negated)
 	}
 }
 
+Operand2 AssumeMakeOperand2(u32 imm) {
+	Operand2 op2;
+	bool result = TryMakeOperand2(imm, op2);
+	_dbg_assert_msg_(JIT, result, "Could not make assumed Operand2.");
+	return op2;
+}
+
+bool ARMXEmitter::TrySetValue_TwoOp(ARMReg reg, u32 val)
+{
+	int ops = 0;
+	for (int i = 0; i < 16; i++)
+	{
+		if ((val >> (i*2)) & 0x3)
+		{
+			ops++;
+			i+=3;
+		}
+	}
+	if (ops > 2)
+		return false;
+	
+	bool first = true;
+	for (int i = 0; i < 16; i++, val >>=2) {
+		if (val & 0x3) {
+			first ? MOV(reg, Operand2((u8)val, (u8)((16-i) & 0xF)))
+				  : ORR(reg, reg, Operand2((u8)val, (u8)((16-i) & 0xF)));
+			first = false;
+			i+=3;
+			val >>= 6;
+		}
+	}
+	return true;
+}
+
 void ARMXEmitter::MOVI2F(ARMReg dest, float val, ARMReg tempReg)
 {
 	union {float f; u32 u;} conv;
@@ -91,6 +125,21 @@ void ARMXEmitter::MOVI2F(ARMReg dest, float val, ARMReg tempReg)
 	VMOV(dest, tempReg);
 	// TODO: VMOV an IMM directly if possible
 	// Otherwise, use a literal pool and VLDR directly (+- 1020)
+}
+
+void ARMXEmitter::ADDI2R(ARMReg rd, ARMReg rs, u32 val, ARMReg scratch)
+{
+	Operand2 op2;
+	bool negated;
+	if (TryMakeOperand2_AllowNegation(val, op2, &negated)) {
+		if (!negated)
+			ADD(rd, rs, op2);
+		else
+			SUB(rd, rs, op2);
+	} else {
+		MOVI2R(scratch, val);
+		ADD(rd, rs, scratch);
+	}
 }
 
 void ARMXEmitter::ANDI2R(ARMReg rd, ARMReg rs, u32 val, ARMReg scratch)
@@ -106,6 +155,21 @@ void ARMXEmitter::ANDI2R(ARMReg rd, ARMReg rs, u32 val, ARMReg scratch)
 	} else {
 		MOVI2R(scratch, val);
 		AND(rd, rs, scratch);
+	}
+}
+
+void ARMXEmitter::CMPI2R(ARMReg rs, u32 val, ARMReg scratch)
+{
+	Operand2 op2;
+	bool negated;
+	if (TryMakeOperand2_AllowNegation(val, op2, &negated)) {
+		if (!negated)
+			CMP(rs, op2);
+		else
+			CMN(rs, op2);
+	} else {
+		MOVI2R(scratch, val);
+		CMP(rs, scratch);
 	}
 }
 
@@ -173,7 +237,7 @@ void ARMXEmitter::MOVI2R(ARMReg reg, u32 val, bool optimize)
 			MOVW(reg, val & 0xFFFF);
 			if(val & 0xFFFF0000)
 				MOVT(reg, val, true);
-		} else {
+		} else if (!TrySetValue_TwoOp(reg,val)) {
 			// Use literal pool for ARMv6.
 			AddNewLit(val);
 			LDR(reg, _PC); // To be backpatched later
@@ -190,9 +254,7 @@ void ARMXEmitter::SetCodePtr(u8 *ptr)
 {
 	code = ptr;
 	startcode = code;
-#ifdef IOS
 	lastCacheFlushEnd = ptr;
-#endif
 }
 
 const u8 *ARMXEmitter::GetCodePtr() const
@@ -236,12 +298,9 @@ void ARMXEmitter::FlushIcacheSection(u8 *start, u8 *end)
 #elif defined(BLACKBERRY)
 	msync(start, end - start, MS_SYNC | MS_INVALIDATE_ICACHE);
 #elif defined(IOS)
-	if (start != NULL)
-		sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
+	// Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
+	sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
 #elif !defined(_WIN32)
-#ifndef ANDROID
-	start = startcode; // Should be Linux Only
-#endif
 	__builtin___clear_cache(start, end);
 #endif
 }
@@ -628,38 +687,40 @@ void ARMXEmitter::SVC(Operand2 op)
 
 // IMM, REG, IMMSREG, RSR
 // -1 for invalid if the instruction doesn't support that
-const s32 LoadStoreOps[][4] = { {0x40, 0x60, 0x60, -1}, // STR
-				{0x41, 0x61, 0x61, -1}, // LDR
-				{0x44, 0x64, 0x64, -1}, // STRB
-				{0x45, 0x65, 0x65, -1}, // LDRB
-				// Special encodings
-				{ 0x4,  0x0,  -1, -1}, // STRH
-				{ 0x5,  0x1,  -1, -1}, // LDRH
-				{ 0x5,  0x1,  -1, -1}, // LDRSB
-				{ 0x5,  0x1,  -1, -1}, // LDRSH
-				};
-const char *LoadStoreNames[] = { "STR",
-				 "LDR",
-				 "STRB",
-				 "LDRB",
-				 "STRH",
-				 "LDRH",
-				 "LDRSB",
-				 "LDRSH",
-				};
+const s32 LoadStoreOps[][4] = {
+	{0x40, 0x60, 0x60, -1}, // STR
+	{0x41, 0x61, 0x61, -1}, // LDR
+	{0x44, 0x64, 0x64, -1}, // STRB
+	{0x45, 0x65, 0x65, -1}, // LDRB
+	// Special encodings
+	{ 0x4,  0x0,  -1, -1}, // STRH
+	{ 0x5,  0x1,  -1, -1}, // LDRH
+	{ 0x5,  0x1,  -1, -1}, // LDRSB
+	{ 0x5,  0x1,  -1, -1}, // LDRSH
+};
+const char *LoadStoreNames[] = {
+	"STR",
+	"LDR",
+	"STRB",
+	"LDRB",
+	"STRH",
+	"LDRH",
+	"LDRSB",
+	"LDRSH",
+};
 
 void ARMXEmitter::WriteStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 Rm, bool RegAdd)
 {
 	s32 op = LoadStoreOps[Op][Rm.GetType()]; // Type always decided by last operand
 	u32 Data;
-	
+
 	// Qualcomm chipsets get /really/ angry if you don't use index, even if the offset is zero.
 	// Some of these encodings require Index at all times anyway. Doesn't really matter.
 	// bool Index = op2 != 0 ? true : false;
 	bool Index = true;
-	bool Add = false; 	
+	bool Add = false;
 
-	// Special Encoding	
+	// Special Encoding (misc addressing mode)
 	bool SpecialOp = false;
 	bool Half = false;
 	bool SignedLoad = false;
@@ -699,10 +760,13 @@ void ARMXEmitter::WriteStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 Rm, bool R
 			// The offset is encoded differently on this one.
 			if (SpecialOp)
 				Data = (Data & 0xF0 << 4) | (Data & 0xF);
-			if (Temp >= 0) Add = true;	
+			if (Temp >= 0) Add = true;
 		}
 		break;
 		case TYPE_REG:
+			Data = Rm.GetData();
+			Add = RegAdd;
+			break;
 		case TYPE_IMMSREG:
 			if (!SpecialOp)
 			{
@@ -710,17 +774,18 @@ void ARMXEmitter::WriteStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 Rm, bool R
 				Add = RegAdd;
 				break;
 			}
+			// Intentional fallthrough: TYPE_IMMSREG not supported for misc addressing.
 		default:
 			// RSR not supported for any of these
 			// We already have the warning above
 			BKPT(0x2);
 			return;
-		break;  
+		break;
 	}
 	if (SpecialOp)
 	{
 		// Add SpecialOp things
-		Data = (0x5 << 4) | (SignedLoad << 6) | (Half << 5) | Data;
+		Data = (0x9 << 4) | (SignedLoad << 6) | (Half << 5) | Data;
 	}
 	Write32(condition | (op << 20) | (Index << 24) | (Add << 23) | (Rn << 16) | (Rt << 12) | Data);
 }
@@ -947,7 +1012,6 @@ void ARMXEmitter::VLDR(ARMReg Dest, ARMReg Base, s16 offset)
 	{
 		Write32(condition | (0xD << 24) | (Add << 23) | ((Dest & 0x1) << 22) | (1 << 20) | (Base << 16) \
 			| ((Dest & 0x1E) << 11) | (10 << 8) | (imm >> 2));	
-
 	}
 	else
 	{
