@@ -72,16 +72,16 @@ MOVUPS(MOffset(EDI, 0), XMM0);
 									 */
 
 // Reads indirect data
-template <typename index_format, typename src_format>
+template <typename index_format, typename src_format, int array>
 class DataReader
 {
 public:
-	DataReader()
+	__forceinline DataReader()
 	{
 		static_assert(!std::numeric_limits<index_format>::is_signed, "Only unsigned index_format is sane!");
 		
 		auto const index = DataRead<index_format>();
-		m_data = reinterpret_cast<const src_format*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
+		m_data = reinterpret_cast<const src_format*>(cached_arraybases[array] + (index * arraystrides[array]));
 	}
 	
 	__forceinline src_format Read()
@@ -94,8 +94,8 @@ private:
 };
 
 // Reads direct data
-template <typename src_format>
-struct DataReader<void, src_format>
+template <typename src_format, int array>
+struct DataReader<void, src_format, array>
 {
 public:
 	__forceinline static src_format Read()
@@ -111,7 +111,7 @@ void LOADERDECL Pos_Read()
 	static_assert(N <= 3, "N > 3 is not sane!");
 	static_assert(!has_frac || !apply_frac, "calculating frac on cpu and gpu doesn't make sense");
 
-	DataReader<index_format, src_format> reader;
+	DataReader<index_format, src_format, ARRAY_POSITION> reader;
 
 	for (int i = 0; i < 3; ++i)
 	{
