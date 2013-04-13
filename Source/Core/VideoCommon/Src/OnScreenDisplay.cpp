@@ -41,14 +41,14 @@ struct MESSAGE
 	u32 dwTimeStamp;
 };
 
-class CALLBACK
+class OSDCALLBACK
 {
 private:
 	CallbackPtr m_functionptr;
 	CallbackType m_type;
 	u32 m_data;
 public:
-	CALLBACK(CallbackType OnType, CallbackPtr FuncPtr, u32 UserData)
+	OSDCALLBACK(CallbackType OnType, CallbackPtr FuncPtr, u32 UserData)
 	{
 		m_type = OnType;
 		m_functionptr = FuncPtr;
@@ -60,7 +60,7 @@ public:
 	}
 	CallbackType Type() { return m_type; }
 };
-std::vector<CALLBACK> m_callbacks;
+std::vector<OSDCALLBACK> m_callbacks;
 static std::list<MESSAGE> s_listMsgs;
 
 void AddMessage(const char* pstr, u32 ms)
@@ -111,7 +111,7 @@ void ClearMessages()
 // On-Screen Display Callbacks
 void AddCallback(CallbackType OnType, CallbackPtr FuncPtr, u32 UserData)
 {
-	m_callbacks.push_back(CALLBACK(OnType, FuncPtr, UserData));
+	m_callbacks.push_back(OSDCALLBACK(OnType, FuncPtr, UserData));
 }
 
 void DoCallbacks(CallbackType OnType)
