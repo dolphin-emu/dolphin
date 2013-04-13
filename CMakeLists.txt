@@ -482,6 +482,13 @@ else()
 	set(LZO lzo2)
 endif()
 
+if(ANDROID)
+	message("Using static libpng from Externals")
+	add_subdirectory(Externals/libpng)
+	include_directories(Externals/libpng)
+	set(PNG libpng)
+endif()
+
 if(OPENAL_FOUND)
 	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		check_lib(SOUNDTOUCH SoundTouch soundtouch/soundtouch.h QUIET)
