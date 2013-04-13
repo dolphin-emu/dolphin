@@ -137,7 +137,7 @@ void DoState(PointerWrap &p)
 	p.Do(m_DstAlphaConf);
 	p.Do(m_AlphaModeConf);
 	p.Do(m_AlphaRead);
-	p.Do(m_Control);
+	p.DoPOD(m_Control);
 
 	p.Do(g_bSignalTokenInterrupt);
 	p.Do(g_bSignalFinishInterrupt);

@@ -341,7 +341,7 @@ void Jit64::WriteRfiExitDestInEAX()
 	Cleanup();
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
-	JMP(asm_routines.outerLoop, true);
+	JMP(asm_routines.dispatcher, true);
 }
 
 void Jit64::WriteExceptionExit()
@@ -679,7 +679,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			char ppcInst[256];
 			DisassembleGekko(ops[i].inst.hex, em_address, ppcInst, 256);
-			NOTICE_LOG(DYNA_REC, "Unflushed reg: %s", ppcInst);
+			NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppcInst);
 		}
 #endif
 		if (js.skipnext) {

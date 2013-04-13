@@ -44,6 +44,7 @@ public:
 	virtual void DSP_Update(int cycles) = 0;
 	virtual void DSP_StopSoundStream() = 0;
 	virtual void DSP_ClearAudioBuffer(bool mute) = 0;
+	virtual u32 DSP_UpdateRate() = 0;
 
 protected:
 	SoundStream *soundStream;

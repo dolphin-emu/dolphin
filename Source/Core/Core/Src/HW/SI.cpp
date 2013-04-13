@@ -257,8 +257,8 @@ void DoState(PointerWrap &p)
 		}
 	}
 	p.Do(g_Poll);
-	p.Do(g_ComCSR);
-	p.Do(g_StatusReg);
+	p.DoPOD(g_ComCSR);
+	p.DoPOD(g_StatusReg);
 	p.Do(g_EXIClockCount);
 	p.Do(g_SIBuffer);
 }	

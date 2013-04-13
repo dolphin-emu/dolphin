@@ -9,6 +9,31 @@ namespace OGL
 
 void ClearEFBCache();
 
+enum GLSL_VERSION {
+	GLSL_120,
+	GLSL_130,
+	GLSL_140 // and above
+};
+
+// ogl-only config, so not in VideoConfig.h
+extern struct VideoConfig {
+	bool bSupportsGLSLCache;
+	bool bSupportsGLPinnedMemory;
+	bool bSupportsGLSync;
+	bool bSupportsGLBaseVertex;
+	bool bSupportCoverageMSAA;
+	bool bSupportSampleShading;
+	GLSL_VERSION eSupportedGLSLVersion;
+	bool bSupportOGL31;
+	
+	const char *gl_vendor;
+	const char *gl_renderer;
+	const char* gl_version;
+	const char* glsl_version;
+	
+	s32 max_samples;
+} g_ogl_config;
+
 class Renderer : public ::Renderer
 {
 public:

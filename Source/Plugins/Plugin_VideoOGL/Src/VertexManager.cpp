@@ -41,6 +41,7 @@
 #include "Debugger.h"
 #include "StreamBuffer.h"
 #include "PerfQueryBase.h"
+#include "Render.h"
 
 #include "main.h"
 
@@ -72,7 +73,7 @@ void VertexManager::CreateDeviceObjects()
 {
 	s_vertexBuffer = new StreamBuffer(GL_ARRAY_BUFFER, MAX_VBUFFER_SIZE);
 	m_vertex_buffers = s_vertexBuffer->getBuffer();
-	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
+	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE, (StreamType)(DETECT_MASK & ~PINNED_MEMORY));
 	m_index_buffers = s_indexBuffer->getBuffer();
 	
 	m_CurrentVertexFmt = NULL;
@@ -123,10 +124,12 @@ void VertexManager::Draw(u32 stride)
 	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
 	u32 line_index_size = IndexGenerator::GetLineindexLen();
 	u32 point_index_size = IndexGenerator::GetPointindexLen();
-	if(g_Config.backend_info.bSupportsGLBaseVertex) {
+	GLenum triangle_mode = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart?GL_TRIANGLE_STRIP:GL_TRIANGLES;
+	
+	if(g_ogl_config.bSupportsGLBaseVertex) {
 		if (triangle_index_size > 0)
 		{
-			glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
+			glDrawElementsBaseVertex(triangle_mode, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
@@ -142,7 +145,7 @@ void VertexManager::Draw(u32 stride)
 	} else {
 		if (triangle_index_size > 0)
 		{
-			glDrawElements(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
+			glDrawElements(triangle_mode, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
@@ -233,7 +236,7 @@ void VertexManager::vFlush()
 				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+				ERROR_LOG(VIDEO, "Error loading texture");
 		}
 	}
 

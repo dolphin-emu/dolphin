@@ -238,7 +238,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		const int elements = tcElements[i];
 		_assert_msg_(VIDEO, NOT_PRESENT <= desc && desc <= INDEX16, "Invalid texture coordinates description!\n(desc = %d)", desc);
 		_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
-		_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elemnts!\n(elements = %d)", elements);
+		_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elements!\n(elements = %d)", elements);
 
 		m_texCoordLoader[i] = VertexLoader_TextCoord::GetFunction(desc, format, elements);
 		m_VertexSize += VertexLoader_TextCoord::GetSize(desc, format, elements);

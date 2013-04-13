@@ -96,6 +96,7 @@ Make AA apply instantly during gameplay if possible
 #include "PerfQuery.h"
 
 #include "VideoState.h"
+#include "IndexGenerator.h"
 #include "VideoBackend.h"
 #include "ConfigManager.h"
 
@@ -141,7 +142,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsPixelLighting = true;
 
 	// aamodes
-	const char* caamodes[] = {"None", "2x", "4x", "8x", "8x CSAA", "8xQ CSAA", "16x CSAA", "16xQ CSAA"};
+	const char* caamodes[] = {_trans("None"), "2x", "4x", "8x", "8x CSAA", "8xQ CSAA", "16x CSAA", "16xQ CSAA", "4x SSAA"};
 	g_Config.backend_info.AAModes.assign(caamodes, caamodes + sizeof(caamodes)/sizeof(*caamodes));
 
 	// pp shaders
@@ -156,7 +157,10 @@ void VideoBackend::ShowConfig(void *_hParent)
 	diag.ShowModal();
 #endif
 }
-
+void Test(u32 Data)
+{
+	printf("Data: %d\n", Data);
+}
 bool VideoBackend::Initialize(void *&window_handle)
 {
 	InitializeShared();
@@ -173,6 +177,9 @@ bool VideoBackend::Initialize(void *&window_handle)
 	InitInterface();
 	if (!GLInterface->Create(window_handle))
 		return false;
+
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_INIT);
 
 	s_BackendInitialized = true;
 
@@ -199,6 +206,7 @@ void VideoBackend::Video_Prepare()
 	g_perf_query = new PerfQuery;
 	Fifo_Init(); // must be done before OpcodeDecoder_Init()
 	OpcodeDecoder_Init();
+	IndexGenerator::Init();
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
 	ProgramShaderCache::Init();
@@ -220,6 +228,10 @@ void VideoBackend::Video_Prepare()
 void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
+
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
+
 	GLInterface->Shutdown();
 }
 
@@ -253,6 +265,7 @@ void VideoBackend::Video_Cleanup() {
 		OpcodeDecoder_Shutdown();
 		delete g_renderer;
 		g_renderer = NULL;
+		GLInterface->ClearCurrent();
 	}
 }
 

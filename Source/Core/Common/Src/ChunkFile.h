@@ -32,6 +32,7 @@
 #include <list>
 #include <deque>
 #include <string>
+#include <type_traits>
 
 #include "Common.h"
 #include "FileUtil.h"
@@ -139,9 +140,15 @@ public:
 	template <typename T>
 	void Do(T& x)
 	{
-		// TODO: Bad, Do(some_non_POD) will compile and fail at runtime
-		// type_traits are not fully supported everywhere yet
+		// Ideally this would be std::is_trivially_copyable, but not enough support yet
+		static_assert(std::is_pod<T>::value, "Only sane for POD types");
 		
+		DoVoid((void*)&x, sizeof(x));
+	}
+	
+	template <typename T>
+	void DoPOD(T& x)
+	{
 		DoVoid((void*)&x, sizeof(x));
 	}
 

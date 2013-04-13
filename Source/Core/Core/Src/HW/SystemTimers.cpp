@@ -119,9 +119,6 @@ int et_PatchEngine;	// PatchEngine updates every 1/60th of a second by default
 // These are badly educated guesses
 // Feel free to experiment. Set these in Init below.
 int
-	// These shouldn't be period controlled either, most likely.
-	DSP_PERIOD,
-
 	// This is a fixed value, don't change it 
 	AUDIO_DMA_PERIOD,
 
@@ -149,8 +146,8 @@ void DSPCallback(u64 userdata, int cyclesLate)
 {
 	//splits up the cycle budget in case lle is used
 	//for hle, just gives all of the slice to hle
-	DSP::UpdateDSPSlice(DSP_PERIOD - cyclesLate);
-	CoreTiming::ScheduleEvent(DSP_PERIOD - cyclesLate, et_DSP);
+	DSP::UpdateDSPSlice(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate);
+	CoreTiming::ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
 }
 
 void AudioDMACallback(u64 userdata, int cyclesLate)
@@ -243,29 +240,18 @@ void PreInit()
 
 void Init()
 {
+	const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam ? 2 : 1;
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		if (!DSP::GetDSPEmulator()->IsLLE())
-			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
-
 		// AyuanX: TO BE TWEAKED
 		// Now the 1500 is a pure assumption
 		// We need to figure out the real frequency though
 
 		// FYI, WII_IPC_HLE_Interface::Update is also called in WII_IPCInterface::Write32
 		const int freq = 1500;
-		const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.
-				bVBeam ? 2 : 1;
 		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * fields);
 	}
-	else
-	{
-		if (!DSP::GetDSPEmulator()->IsLLE())
-			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
-	}
-
-	if (DSP::GetDSPEmulator()->IsLLE())
-		DSP_PERIOD = 12000; // TO BE TWEAKED
 
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
 	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);
@@ -292,7 +278,7 @@ void Init()
 	et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
-	CoreTiming::ScheduleEvent(DSP_PERIOD, et_DSP);
+	CoreTiming::ScheduleEvent(0, et_DSP);
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)

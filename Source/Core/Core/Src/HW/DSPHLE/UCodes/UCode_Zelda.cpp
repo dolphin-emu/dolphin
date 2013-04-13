@@ -27,6 +27,7 @@
 
 #include "WaveFile.h"
 #include "../../DSP.h"
+#include "ConfigManager.h"
 
 
 CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
@@ -112,7 +113,7 @@ u8 *CUCode_Zelda::GetARAMPointer(u32 address)
 
 void CUCode_Zelda::Update(int cycles)
 {
-	if (!IsLightVersion()) 
+	if (!IsLightVersion())
 	{
 		if (m_rMailHandler.GetNextMail() == DSP_FRAME_END)
 			DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
@@ -445,7 +446,7 @@ void CUCode_Zelda::ExecuteList()
 		Sync = CmdMail >> 16;
 
 	DEBUG_LOG(DSPHLE, "==============================================================================");
-	DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (cmd: 0x%04x : sync: 0x%04x)", Command, Sync);
+	DEBUG_LOG(DSPHLE, "Zelda UCode - execute dlist (command: 0x%04x : sync: 0x%04x)", Command, Sync);
 
 	switch (Command)
 	{
@@ -545,7 +546,7 @@ void CUCode_Zelda::ExecuteList()
 
 		// default ... zelda ww jumps to 0x0043
 	    default:
-		    PanicAlert("Zelda UCode - unknown cmd: %x (size %i)", Command, m_numSteps);
+		    PanicAlert("Zelda UCode - unknown command: %x (size %i)", Command, m_numSteps);
 		    break;
 	}
 
@@ -565,6 +566,10 @@ void CUCode_Zelda::ExecuteList()
 	}
 }
 
+u32 CUCode_Zelda::GetUpdateMs()
+{
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
+}
 
 void CUCode_Zelda::DoState(PointerWrap &p)
 {

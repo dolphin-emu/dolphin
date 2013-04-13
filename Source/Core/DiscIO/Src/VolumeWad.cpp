@@ -149,7 +149,15 @@ std::vector<std::string> CVolumeWAD::GetNames() const
 u64 CVolumeWAD::GetSize() const
 {
 	if (m_pReader)
-		return (size_t)m_pReader->GetDataSize();
+		return m_pReader->GetDataSize();
+	else
+		return 0;
+}
+
+u64 CVolumeWAD::GetRawSize() const
+{
+	if (m_pReader)
+		return m_pReader->GetRawSize();
 	else
 		return 0;
 }

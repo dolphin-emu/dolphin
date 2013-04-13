@@ -34,7 +34,7 @@ void GamepadPage::ConfigExtension(wxCommandEvent& event)
 	if (ex->switch_extension)
 	{
 		wxDialog dlg(this, -1,
-			StrToWxStr(ex->attachments[ex->switch_extension]->GetName()),
+			wxGetTranslation(StrToWxStr(ex->attachments[ex->switch_extension]->GetName())),
 			wxDefaultPosition, wxDefaultSize);
 
 		wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
@@ -64,7 +64,7 @@ PadSettingExtension::PadSettingExtension(wxWindow* const parent, ControllerEmu::
 		e = extension->attachments.end();
 
 	for (; i!=e; ++i)
-		((wxChoice*)wxcontrol)->Append(StrToWxStr((*i)->GetName()));
+		((wxChoice*)wxcontrol)->Append(wxGetTranslation(StrToWxStr((*i)->GetName())));
 
 	UpdateGUI();
 }
@@ -80,7 +80,7 @@ void PadSettingExtension::UpdateValue()
 }
 
 PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const char* const label)
-	: PadSetting(new wxCheckBox(parent, -1, StrToWxStr(label), wxDefaultPosition))
+	: PadSetting(new wxCheckBox(parent, -1, wxGetTranslation(StrToWxStr(label)), wxDefaultPosition))
 	, value(_value)
 {
 	UpdateGUI();
@@ -600,7 +600,9 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 		m_config_dialog->UpdateProfileComboBox();
 	}
 	else
+	{
 		PanicAlertT("You must enter a valid profile name.");
+	}
 }
 
 void GamepadPage::DeleteProfile(wxCommandEvent&)
@@ -677,7 +679,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 	for (; ci != ce; ++ci)
 	{
 
-		wxStaticText* const label = new wxStaticText(parent, -1, StrToWxStr((*ci)->name));
+		wxStaticText* const label = new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr((*ci)->name)));
 		
 		ControlButton* const control_button = new ControlButton(parent, (*ci)->control_ref, 80);
 		control_button->SetFont(m_SmallFont);
@@ -731,7 +733,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 				PadSettingSpin* setting = new PadSettingSpin(parent, *i);
 				setting->wxcontrol->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &GamepadPage::AdjustSetting, eventsink);
 				options.push_back(setting);
-				szr->Add(new wxStaticText(parent, -1, StrToWxStr((*i)->name)));
+				szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr((*i)->name))));
 				szr->Add(setting->wxcontrol, 0, wxLEFT, 0);
 			}
 
@@ -757,7 +759,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			options.push_back(threshold_cbox);
 
 			wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-			szr->Add(new wxStaticText(parent, -1, StrToWxStr(group->settings[0]->name)),
+			szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr(group->settings[0]->name))),
 					0, wxCENTER|wxRIGHT, 3);
 			szr->Add(threshold_cbox->wxcontrol, 0, wxRIGHT, 3);
 
@@ -792,7 +794,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 				setting->wxcontrol->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &GamepadPage::AdjustSetting, eventsink);
 				options.push_back(setting);
 				wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-				szr->Add(new wxStaticText(parent, -1, StrToWxStr((*i)->name)), 0, wxCENTER|wxRIGHT, 3);
+				szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr((*i)->name))), 0, wxCENTER|wxRIGHT, 3);
 				szr->Add(setting->wxcontrol, 0, wxRIGHT, 3);
 				Add(szr, 0, wxALL|wxCENTER, 3);
 			}
@@ -856,7 +858,7 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 	{
 		ControlGroupBox* control_group_box = new ControlGroupBox(controller->groups[i], parent, eventsink);
 		wxStaticBoxSizer *control_group =
-			new wxStaticBoxSizer(wxVERTICAL, parent, StrToWxStr(controller->groups[i]->name));
+			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(controller->groups[i]->name)));
 		control_group->Add(control_group_box);
 
 		const size_t grp_size = controller->groups[i]->controls.size() + controller->groups[i]->settings.size();
@@ -872,7 +874,9 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 			col_size = grp_size;
 		}
 		else
+		{
 			stacked_groups->Add(control_group, 0, wxEXPAND);
+		}
 
 		if (groups)
 			groups->push_back(control_group_box);
@@ -952,7 +956,7 @@ GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned i
 
 
 InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin, const std::string& name, const int tab_num)
-	: wxDialog(parent, wxID_ANY, StrToWxStr(name), wxPoint(128,-1), wxDefaultSize)
+	: wxDialog(parent, wxID_ANY, wxGetTranslation(StrToWxStr(name)), wxPoint(128,-1), wxDefaultSize)
 	, m_plugin(plugin)
 {
 	m_pad_notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);
@@ -960,7 +964,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	{
 		GamepadPage* gp = new GamepadPage(m_pad_notebook, m_plugin, i, this);
 		m_padpages.push_back(gp);
-		m_pad_notebook->AddPage(gp, wxString::Format(wxT("%s %u"), StrToWxStr(m_plugin.gui_name), 1+i));
+		m_pad_notebook->AddPage(gp, wxString::Format(wxT("%s %u"), wxGetTranslation(StrToWxStr(m_plugin.gui_name)), 1+i));
 	}
 
 	m_pad_notebook->SetSelection(tab_num);

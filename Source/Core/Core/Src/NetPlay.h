@@ -111,6 +111,7 @@ public:
 	virtual bool StartGame(const std::string &path);
 	virtual bool StopGame();
 
+	virtual void SetMemcardWriteEnabled(bool enabled);
 	//void PushPadStates(unsigned int count);
 
 	u8 GetPadNum(u8 numPAD);

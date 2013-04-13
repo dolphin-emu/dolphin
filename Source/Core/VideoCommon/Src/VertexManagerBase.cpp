@@ -52,16 +52,18 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 {	
 	u32 const needed_vertex_bytes = count * stride;
 	
-	if (needed_vertex_bytes > GetRemainingSize() || count > GetRemainingIndices(primitive))
+	if (count > IndexGenerator::GetRemainingIndices() || count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize())
 	{
 		Flush();
 		
-		if (needed_vertex_bytes > GetRemainingSize())
-			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
-				"Increase MAXVBUFFERSIZE or we need primitive breaking afterall.");
+		if(count > IndexGenerator::GetRemainingIndices())
+			ERROR_LOG(VIDEO, "Too little remaining index values. Use 32-bit or reset them on flush.");
 		if (count > GetRemainingIndices(primitive))
 			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all indices! "
-				"Increase MAXIBUFFERSIZE or we need primitive breaking afterall.");
+				"Increase MAXIBUFFERSIZE or we need primitive breaking after all.");
+		if (needed_vertex_bytes > GetRemainingSize())
+			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
+				"Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
 	}
 }
 
@@ -72,28 +74,54 @@ bool VertexManager::IsFlushed() const
 
 u32 VertexManager::GetRemainingIndices(int primitive)
 {
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 6 * 4;
-	case GX_DRAW_TRIANGLES:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen());
-	case GX_DRAW_TRIANGLE_STRIP:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
-	case GX_DRAW_TRIANGLE_FAN:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
+	
+	if(g_Config.backend_info.bSupportsPrimitiveRestart) {
+		switch (primitive)
+		{
+		case GX_DRAW_QUADS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 5 * 4;
+		case GX_DRAW_TRIANGLES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 4 * 3;
+		case GX_DRAW_TRIANGLE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 1 - 1;
+		case GX_DRAW_TRIANGLE_FAN:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 6 * 4 + 1;
 
-	case GX_DRAW_LINES:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
-	case GX_DRAW_LINE_STRIP:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2 + 1;
+		case GX_DRAW_LINES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
+		case GX_DRAW_LINE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2 + 1;
 
-	case GX_DRAW_POINTS:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
+		case GX_DRAW_POINTS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
 
-	default:
-		return 0;
-	}
+		default:
+			return 0;
+		}
+	} else {
+		switch (primitive)
+		{
+		case GX_DRAW_QUADS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 6 * 4;
+		case GX_DRAW_TRIANGLES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen());
+		case GX_DRAW_TRIANGLE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
+		case GX_DRAW_TRIANGLE_FAN:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
+
+		case GX_DRAW_LINES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
+		case GX_DRAW_LINE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2 + 1;
+
+		case GX_DRAW_POINTS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
+
+		default:
+			return 0;
+		}
+	} 
 }
 
 void VertexManager::AddVertices(int primitive, u32 numVertices)
@@ -188,7 +216,7 @@ void VertexManager::Flush()
 				PixelShaderManager::SetTexDims(i, tentry->nativeW, tentry->nativeH, 0, 0);
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+				ERROR_LOG(VIDEO, "Error loading texture");
 		}
 	}
 

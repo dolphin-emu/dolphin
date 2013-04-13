@@ -44,6 +44,7 @@ public:
 	virtual void DSP_Update(int cycles);
 	virtual void DSP_StopSoundStream();
 	virtual void DSP_ClearAudioBuffer(bool mute);
+	virtual u32 DSP_UpdateRate();
 
 private:
 	static void dsp_thread(DSPLLE* lpParameter);

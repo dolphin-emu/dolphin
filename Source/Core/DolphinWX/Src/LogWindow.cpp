@@ -38,7 +38,7 @@ BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
 END_EVENT_TABLE()
 
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
-	   	const wxSize& size, long style, const wxString& name)
+		const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, pos, size, style, name)
 	, x(0), y(0), winpos(0)
 	, Parent(parent), m_ignoreLogTimer(false), m_LogAccess(true)
@@ -64,9 +64,14 @@ void CLogWindow::CreateGUIControls()
 	// Set up log listeners
 	int verbosity;
 	ini.Get("Options", "Verbosity", &verbosity, 0);
-	if (verbosity < 1) verbosity = 1;
-	if (verbosity > MAX_LOGLEVEL) verbosity = MAX_LOGLEVEL;
+	
+	// Ensure the verbosity level is valid
+	if (verbosity < 1)
+		verbosity = 1;
+	if (verbosity > MAX_LOGLEVEL)
+		verbosity = MAX_LOGLEVEL;
 
+	// Get the logger output settings from the config ini file.
 	ini.Get("Options", "WriteToFile", &m_writeFile, false);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
 	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
@@ -80,6 +85,7 @@ void CLogWindow::CreateGUIControls()
 	{
 		m_writeDebugger = false;
 	}
+
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;

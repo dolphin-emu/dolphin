@@ -37,7 +37,7 @@
 #include "ChunkFile.h"
 #include "ConfigManager.h"
 
-#define CACHE_REVISION 0x112
+static const u32 CACHE_REVISION = 0x113;
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -71,7 +71,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_volume_names = pVolume->GetNames();
 
 			m_Country  = pVolume->GetCountry();
-			m_FileSize = File::GetSize(_rFileName);
+			m_FileSize = pVolume->GetRawSize();
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
@@ -137,16 +137,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	}
 	else
 	{
-		std::string theme = SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/";
-		std::string dir = File::GetUserPath(D_THEMES_IDX) + theme;
-
-#if !defined(_WIN32)
-		// If theme does not exist in user's dir load from shared directory
-		if (!File::Exists(dir))
-			dir = SHARED_USER_DIR THEMES_DIR "/" + theme;
-#endif
 		// default banner
-		m_Image = wxImage(dir + "nobanner.png", wxBITMAP_TYPE_PNG);
+		m_Image = wxImage(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 
@@ -211,10 +203,10 @@ std::string GameListItem::GetCompany() const
 		return m_company;
 }
 
-// (-1 = Japanese, 0 = English, etc)
+// (-1 = Japanese, 0 = English, etc)?
 std::string GameListItem::GetDescription(int _index) const
 {
-	const u32 index = _index + 1;
+	const u32 index = _index;
 
 	if (index < m_descriptions.size())
 		return m_descriptions[index];
@@ -225,10 +217,10 @@ std::string GameListItem::GetDescription(int _index) const
 	return "";
 }
 
-// (-1 = Japanese, 0 = English, etc)
+// (-1 = Japanese, 0 = English, etc)?
 std::string GameListItem::GetVolumeName(int _index) const
 {
-	u32 const index = _index + 1;
+	u32 const index = _index;
 
 	if (index < m_volume_names.size() && !m_volume_names[index].empty())
 		return m_volume_names[index];
@@ -239,10 +231,10 @@ std::string GameListItem::GetVolumeName(int _index) const
 	return "";
 }
 
-// (-1 = Japanese, 0 = English, etc)
+// (-1 = Japanese, 0 = English, etc)?
 std::string GameListItem::GetBannerName(int _index) const
 {
-	u32 const index = _index + 1;
+	u32 const index = _index;
 
 	if (index < m_names.size() && !m_names[index].empty())
 		return m_names[index];
@@ -253,7 +245,7 @@ std::string GameListItem::GetBannerName(int _index) const
 	return "";
 }
 
-// (-1 = Japanese, 0 = English, etc)
+// (-1 = Japanese, 0 = English, etc)?
 std::string GameListItem::GetName(int _index) const
 {
 	// Prefer name from banner, fallback to name from volume, fallback to filename

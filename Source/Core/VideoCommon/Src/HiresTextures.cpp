@@ -148,7 +148,7 @@ PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned in
 		break;
 	}
 
-	INFO_LOG(VIDEO, "loading custom texture from %s", textureMap[key].c_str());
+	INFO_LOG(VIDEO, "Loading custom texture from %s", textureMap[key].c_str());
 cleanup:
 	SOIL_free_image_data(temp);
 	return returnTex;

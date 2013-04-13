@@ -133,30 +133,34 @@ static char text[16384];
 
 char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 {
+
+	// "centroid" attribute is only supported by D3D11
+	const char* optCentroid = (ApiType == API_D3D11 ? "centroid" : "");
+
 	// GLSL makes this ugly
 	// TODO: Make pretty
 	WRITE(p, "struct VS_OUTPUT {\n");
-	WRITE(p, "  float4 pos %s POSITION;\n", ApiType == API_OPENGL ? ";//" : ":");
-	WRITE(p, "  float4 colors_0 %s COLOR0;\n", ApiType == API_OPENGL ? ";//" : ":");
-	WRITE(p, "  float4 colors_1 %s COLOR1;\n", ApiType == API_OPENGL ? ";//" : ":");
+	WRITE(p, "  %s float4 pos %s POSITION;\n", optCentroid, ApiType == API_OPENGL ? ";//" : ":");
+	WRITE(p, "  %s float4 colors_0 %s COLOR0;\n", optCentroid, ApiType == API_OPENGL ? ";//" : ":");
+	WRITE(p, "  %s float4 colors_1 %s COLOR1;\n", optCentroid, ApiType == API_OPENGL ? ";//" : ":");
 
 	if (xfregs.numTexGen.numTexGens < 7) {
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			WRITE(p, "  float3 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL ? ";//" : ":", i);
-		WRITE(p, "  float4 clipPos %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens);
+			WRITE(p, "  %s float3 tex%d %s TEXCOORD%d;\n", optCentroid, i, ApiType == API_OPENGL ? ";//" : ":", i);
+		WRITE(p, "  %s float4 clipPos %s TEXCOORD%d;\n", optCentroid, ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens);
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			WRITE(p, "  float4 Normal %s TEXCOORD%d;\n", ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
+			WRITE(p, "  %s float4 Normal %s TEXCOORD%d;\n", optCentroid, ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
 	} else {
 		// clip position is in w of first 4 texcoords
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
 			for (int i = 0; i < 8; ++i)
-				WRITE(p, "  float4 tex%d %s TEXCOORD%d;\n", i, ApiType == API_OPENGL? ";//" : ":", i);
+				WRITE(p, "  %s float4 tex%d %s TEXCOORD%d;\n", optCentroid, i, ApiType == API_OPENGL? ";//" : ":", i);
 		}
 		else
 		{
 			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, "  float%d tex%d %s TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, ApiType == API_OPENGL ? ";//" : ":", i);
+				WRITE(p, "  %s float%d tex%d %s TEXCOORD%d;\n", optCentroid, i < 4 ? 4 : 3 , i, ApiType == API_OPENGL ? ";//" : ":", i);
 		}
 	}
 	WRITE(p, "};\n");
@@ -413,7 +417,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 
 				if (components & (VB_HAS_NRM1|VB_HAS_NRM2)) {
 					// transform the light dir into tangent space
-					WRITE(p, "ldir = normalize(" I_LIGHTS"[%d + 3].xyz - pos.xyz);\n", texinfo.embosslightshift);
+					WRITE(p, "ldir = normalize(" I_LIGHTS"[5*%d + 3].xyz - pos.xyz);\n", texinfo.embosslightshift);
 					WRITE(p, "o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
 				}
 				else

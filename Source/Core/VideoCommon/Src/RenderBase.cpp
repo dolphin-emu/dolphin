@@ -144,7 +144,7 @@ int Renderer::EFBToScaledX(int x)
 {
 	switch (g_ActiveConfig.iEFBScale)
 	{
-		case 0: // fractional
+	case SCALE_AUTO: // fractional
 			return (int)ssaa_multiplier * FramebufferManagerBase::ScaleToVirtualXfbWidth(x, s_backbuffer_width);
 
 		default:
@@ -156,7 +156,7 @@ int Renderer::EFBToScaledY(int y)
 {
 	switch (g_ActiveConfig.iEFBScale)
 	{
-		case 0: // fractional
+		case SCALE_AUTO: // fractional
 			return (int)ssaa_multiplier * FramebufferManagerBase::ScaleToVirtualXfbHeight(y, s_backbuffer_height);
 
 		default:
@@ -166,7 +166,7 @@ int Renderer::EFBToScaledY(int y)
 
 void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
 {
-	if (g_ActiveConfig.iEFBScale == 0 || g_ActiveConfig.iEFBScale == 1)
+	if (g_ActiveConfig.iEFBScale == SCALE_AUTO || g_ActiveConfig.iEFBScale == SCALE_AUTO_INTEGRAL)
 	{
 		scaledX = x;
 		scaledY = y;
@@ -283,28 +283,28 @@ void Renderer::DrawDebugText()
 	const char* res_text = "";
 	switch (g_ActiveConfig.iEFBScale)
 	{
-	case 0:
+	case SCALE_AUTO:
 		res_text = "Auto (fractional)";
 		break;
-	case 1:
+	case SCALE_AUTO_INTEGRAL:
 		res_text = "Auto (integral)";
 		break;
-	case 2:
+	case SCALE_1X:
 		res_text = "Native";
 		break;
-	case 3:
+	case SCALE_1_5X:
 		res_text = "1.5x";
 		break;
-	case 4:
+	case SCALE_2X:
 		res_text = "2x";
 		break;
-	case 5:
+	case SCALE_2_5X:
 		res_text = "2.5x";
 		break;
-	case 6:
+	case SCALE_3X:
 		res_text = "3x";
 		break;
-	case 7:
+	case SCALE_4X:
 		res_text = "4x";
 		break;
 	}

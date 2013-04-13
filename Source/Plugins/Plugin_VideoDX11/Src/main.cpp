@@ -35,6 +35,7 @@
 #include "Debugger/DebuggerPanel.h"
 #include "DLCache.h"
 #include "EmuWindow.h"
+#include "IndexGenerator.h"
 #include "FileUtil.h"
 #include "Globals.h"
 #include "IniFile.h"
@@ -96,6 +97,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
+	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -119,9 +121,9 @@ void InitBackendInfo()
 			modes = DX11::D3D::EnumAAModes(ad);
 			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
-				if (i == 0) sprintf_s(buf, 32, "None");
-				else if (modes[i].Quality) sprintf_s(buf, 32, "%d samples (quality level %d)", modes[i].Count, modes[i].Quality);
-				else sprintf_s(buf, 32, "%d samples", modes[i].Count);
+				if (i == 0) sprintf_s(buf, 32, _trans("None"));
+				else if (modes[i].Quality) sprintf_s(buf, 32, _trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
+				else sprintf_s(buf, 32, _trans("%d samples"), modes[i].Count);
 				g_Config.backend_info.AAModes.push_back(buf);
 			}
 		}
@@ -192,6 +194,7 @@ void VideoBackend::Video_Prepare()
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
+	IndexGenerator::Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
 	VertexShaderManager::Init();

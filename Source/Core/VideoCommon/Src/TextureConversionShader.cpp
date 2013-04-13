@@ -105,8 +105,8 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	if (ApiType == API_OPENGL)
 	{
-		WRITE(p, "  out float4 ocol0;\n");
-		WRITE(p, "  in float2 uv0;\n");
+		WRITE(p, "  COLOROUT(ocol0)\n");
+		WRITE(p, "  VARYIN float2 uv0;\n");
 		WRITE(p, "void main()\n");
 	}
 	else
@@ -187,7 +187,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "  out float4 ocol0;\n");
-		WRITE(p, "  in float2 uv0;\n");
+		WRITE(p, "  VARYIN float2 uv0;\n");
 		WRITE(p, "void main()\n");
 	}
 	else

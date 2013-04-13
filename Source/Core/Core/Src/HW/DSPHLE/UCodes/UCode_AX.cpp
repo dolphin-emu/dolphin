@@ -17,27 +17,76 @@
 
 #include "UCode_AX.h"
 #include "../../DSP.h"
+#include "FileUtil.h"
+#include "ConfigManager.h"
 
 #define AX_GC
 #include "UCode_AX_Voice.h"
 
 CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
+	, m_work_available(false)
 	, m_cmdlist_size(0)
-	, m_axthread(&SpawnAXThread, this)
+	, m_run_on_thread(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread)
 {
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AX: crc=%08x", crc);
 	m_rMailHandler.PushMail(DSP_INIT);
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+
+	LoadResamplingCoefficients();
+
+	if (m_run_on_thread)
+		m_axthread = std::thread(SpawnAXThread, this);
 }
 
 CUCode_AX::~CUCode_AX()
 {
-	m_cmdlist_size = (u16)-1;	// Special value to signal end
-	NotifyAXThread();
-	m_axthread.join();
+	if (m_run_on_thread)
+	{
+		m_cmdlist_size = (u16)-1;	// Special value to signal end
+		NotifyAXThread();
+		m_axthread.join();
+	}
 
 	m_rMailHandler.Clear();
+}
+
+void CUCode_AX::LoadResamplingCoefficients()
+{
+	m_coeffs_available = false;
+
+	std::string filenames[] = {
+		File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin",
+		File::GetSysDirectory() + "/GC/dsp_coef.bin"
+	};
+
+	size_t fidx;
+	std::string filename;
+	for (fidx = 0; fidx < sizeof (filenames) / sizeof (filenames[0]); ++fidx)
+	{
+		filename = filenames[fidx];
+		if (!File::Exists(filename))
+			continue;
+
+		if (File::GetSize(filename) != 0x1000)
+			continue;
+
+		break;
+	}
+
+	if (fidx >= sizeof (filenames) / sizeof (filenames[0]))
+		return;
+
+	WARN_LOG(DSPHLE, "Loading polyphase resampling coeffs from %s", filename.c_str());
+
+	FILE* fp = fopen(filename.c_str(), "rb");
+	fread(m_coeffs, 1, 0x1000, fp);
+	fclose(fp);
+
+	for (u32 i = 0; i < 0x800; ++i)
+		m_coeffs[i] = Common::swap16(m_coeffs[i]);
+
+	m_coeffs_available = true;
 }
 
 void CUCode_AX::SpawnAXThread(CUCode_AX* self)
@@ -61,18 +110,30 @@ void CUCode_AX::AXThread()
 		m_processing.lock();
 		HandleCommandList();
 		m_cmdlist_size = 0;
-
-		// Signal end of processing
-		m_rMailHandler.PushMail(DSP_YIELD);
-		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+		SignalWorkEnd();
 		m_processing.unlock();
 	}
+}
+
+void CUCode_AX::SignalWorkEnd()
+{
+	// Signal end of processing
+	m_rMailHandler.PushMail(DSP_YIELD);
+	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
 void CUCode_AX::NotifyAXThread()
 {
 	std::unique_lock<std::mutex> lk(m_cmdlist_mutex);
 	m_cmdlist_cv.notify_one();
+}
+
+void CUCode_AX::StartWorking()
+{
+	if (m_run_on_thread)
+		NotifyAXThread();
+	else
+		m_work_available = true;
 }
 
 void CUCode_AX::HandleCommandList()
@@ -200,11 +261,9 @@ void CUCode_AX::HandleCommandList()
 				u16 idx = m_cmdlist[curr_idx++];
 				addr_hi = m_cmdlist[curr_idx++];
 				addr_lo = m_cmdlist[curr_idx++];
-
 				// TODO
-				(void)samp_val;
-				(void)idx;
-
+				// suppress warnings:
+				(void)samp_val; (void)idx;
 				break;
 			}
 
@@ -243,26 +302,25 @@ void CUCode_AX::HandleCommandList()
 			}
 
 			default:
-				ERROR_LOG(DSPHLE, "Unknown command in AX cmdlist: %04x", cmd);
+				ERROR_LOG(DSPHLE, "Unknown command in AX command list: %04x", cmd);
 				end = true;
 				break;
 		}
 	}
 }
 
-static void ApplyUpdatesForMs(AXPB& pb, int curr_ms)
+void CUCode_AX::ApplyUpdatesForMs(int curr_ms, u16* pb, u16* num_updates, u16* updates)
 {
 	u32 start_idx = 0;
 	for (int i = 0; i < curr_ms; ++i)
-		start_idx += pb.updates.num_updates[i];
+		start_idx += num_updates[i];
 
-	u32 update_addr = HILO_TO_32(pb.updates.data);
-	for (u32 i = start_idx; i < start_idx + pb.updates.num_updates[curr_ms]; ++i)
+	for (u32 i = start_idx; i < start_idx + num_updates[curr_ms]; ++i)
 	{
-		u16 update_off = HLEMemory_Read_U16(update_addr + 4 * i);
-		u16 update_val = HLEMemory_Read_U16(update_addr + 4 * i + 2);
+		u16 update_off = Common::swap16(updates[2 * i]);
+		u16 update_val = Common::swap16(updates[2 * i + 1]);
 
-		((u16*)&pb)[update_off] = update_val;
+		pb[update_off] = update_val;
 	}
 }
 
@@ -405,11 +463,15 @@ void CUCode_AX::ProcessPBList(u32 pb_addr)
 		if (!ReadPB(pb_addr, pb))
 			break;
 
+		u32 updates_addr = HILO_TO_32(pb.updates.data);
+		u16* updates = (u16*)HLEMemory_Get_Pointer(updates_addr);
+
 		for (int curr_ms = 0; curr_ms < 5; ++curr_ms)
 		{
-			ApplyUpdatesForMs(pb, curr_ms);
+			ApplyUpdatesForMs(curr_ms, (u16*)&pb, pb.updates.num_updates, updates);
 
-			Process1ms(pb, buffers, ConvertMixerControl(pb.mixer_control));
+			ProcessVoice(pb, buffers, spms, ConvertMixerControl(pb.mixer_control),
+			             m_coeffs_available ? m_coeffs : NULL);
 
 			// Forward the buffers
 			for (u32 i = 0; i < sizeof (buffers.ptrs) / sizeof (buffers.ptrs[0]); ++i)
@@ -599,6 +661,7 @@ void CUCode_AX::HandleMail(u32 mail)
 	if (next_is_cmdlist)
 	{
 		CopyCmdList(mail, cmdlist_size);
+		StartWorking();
 		NotifyAXThread();
 	}
 	else if (m_UploadSetupInProgress)
@@ -667,6 +730,17 @@ void CUCode_AX::Update(int cycles)
 		m_rMailHandler.PushMail(DSP_RESUME);
 		DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 	}
+	else if (m_work_available)
+	{
+		HandleCommandList();
+		m_cmdlist_size = 0;
+		SignalWorkEnd();
+	}
+}
+
+u32 CUCode_AX::GetUpdateMs()
+{
+	return 5;
 }
 
 void CUCode_AX::DoAXState(PointerWrap& p)

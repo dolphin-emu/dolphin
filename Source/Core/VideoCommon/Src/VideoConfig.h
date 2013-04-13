@@ -37,22 +37,23 @@
 #define CONF_SAVETARGETS	8
 #define CONF_SAVESHADERS	16
 
-enum MultisampleMode {
-	MULTISAMPLE_OFF,
-	MULTISAMPLE_2X,
-	MULTISAMPLE_4X,
-	MULTISAMPLE_8X,
-	MULTISAMPLE_CSAA_8X,
-	MULTISAMPLE_CSAA_8XQ,
-	MULTISAMPLE_CSAA_16X,
-	MULTISAMPLE_CSAA_16XQ,
-};
-
 enum AspectMode {
 	ASPECT_AUTO = 0,
 	ASPECT_FORCE_16_9 = 1,
 	ASPECT_FORCE_4_3 = 2,
 	ASPECT_STRETCH = 3,
+};
+
+enum EFBScale {
+	SCALE_FORCE_INTEGRAL = -1,
+	SCALE_AUTO,
+	SCALE_AUTO_INTEGRAL,
+	SCALE_1X,
+	SCALE_1_5X,
+	SCALE_2X,
+	SCALE_2_5X,
+	SCALE_3X,
+	SCALE_4X,
 };
 
 class IniFile;
@@ -164,12 +165,9 @@ struct VideoConfig
 		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
-
-		bool bSupportsGLSLUBO;
-		bool bSupportsGLSLCache;
-		bool bSupportsGLPinnedMemory;
-		bool bSupportsGLSync;
-		bool bSupportsGLBaseVertex;
+		bool bSupportsPrimitiveRestart;
+		bool bSupportsSeparateAlphaFunction;
+		bool bSupportsGLSLUBO; // needed by pixelShaderGen, so must stay in videoCommon
 	} backend_info;
 
 	// Utility

@@ -97,6 +97,7 @@ public:
 	virtual void RunLoop(bool enable) = 0;
 
 	virtual std::string GetName() = 0;
+	virtual std::string GetDisplayName() { return GetName(); }
 
 	virtual void ShowConfig(void*) {}
 

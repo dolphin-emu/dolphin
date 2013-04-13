@@ -66,9 +66,9 @@ static int s_cached_srcWidth = 0;
 static int s_cached_srcHeight = 0;
 
 static const char *VProgram =
-	"in vec2 rawpos;\n"
-	"in vec2 tex0;\n"
-	"out vec2 uv0;\n"
+	"ATTRIN vec2 rawpos;\n"
+	"ATTRIN vec2 tex0;\n"
+	"VARYOUT vec2 uv0;\n"
 	"void main()\n"
 	"{\n"
 	"	uv0 = tex0;\n"
@@ -80,8 +80,8 @@ void CreatePrograms()
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *FProgramRgbToYuyv =
 		"uniform sampler2DRect samp9;\n"
-		"in vec2 uv0;\n"
-		"out vec4 ocol0;\n"
+		"VARYIN vec2 uv0;\n"
+		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
 		"	vec3 c0 = texture2DRect(samp9, uv0).rgb;\n"
@@ -96,8 +96,8 @@ void CreatePrograms()
 
 	const char *FProgramYuyvToRgb =
 		"uniform sampler2DRect samp9;\n"
-		"in vec2 uv0;\n"
-		"out vec4 ocol0;\n"
+		"VARYIN vec2 uv0;\n"
+		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
 		"	vec4 c0 = texture2DRect(samp9, uv0).rgba;\n"
@@ -250,10 +250,10 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 			(float)sourceRc.left, (float)sourceRc.top,
 			-1.f, 1.f,
 			(float)sourceRc.left, (float)sourceRc.bottom,
-			1.f, 1.f,
-			(float)sourceRc.right, (float)sourceRc.bottom,
 			1.f, -1.f,
-			(float)sourceRc.right, (float)sourceRc.top
+			(float)sourceRc.right, (float)sourceRc.top,
+			1.f, 1.f,
+			(float)sourceRc.right, (float)sourceRc.bottom
 		};
 		glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
 		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
@@ -262,7 +262,7 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	} 
 
 	glBindVertexArray( s_encode_VAO );
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	
@@ -426,10 +426,10 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 			(float)srcFmtWidth, (float)srcHeight,
 			1.f, 1.f,
 			(float)srcFmtWidth, 0.f,
-			-1.f, 1.f,
-			0.f, 0.f,
 			-1.f, -1.f,
-			0.f, (float)srcHeight
+			0.f, (float)srcHeight,
+			-1.f, 1.f,
+			0.f, 0.f
 		};
 		
 		glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
@@ -440,7 +440,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 	}
 	
 	glBindVertexArray( s_decode_VAO );
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 	GL_REPORT_ERRORD();
 

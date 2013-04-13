@@ -66,7 +66,11 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 	EndModal(wxID_OK);
 }
 
-wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nDirect3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\nNote that the Direct3D backends are only available on Windows.\n\nIf unsure, use Direct3D 9.");
+#if defined(_WIN32)
+wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nDirect3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\nNote that the Direct3D backends are only available on Windows.\n\nIf unsure, use Direct3D 11.");
+#else
+wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nDirect3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\nNote that the Direct3D backends are only available on Windows.\n\nIf unsure, use OpenGL.");
+#endif
 wxString adapter_desc = wxTRANSLATE("Select a hardware adapter to use.\n\nIf unsure, use the first one.");
 wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, use your desktop resolution.\nIf still unsure, use the highest resolution which works for you.");
 wxString use_fullscreen_desc = wxTRANSLATE("Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a render window will be created instead.\n\nIf unsure, leave this unchecked.");
@@ -93,8 +97,8 @@ wxString efb_copy_texture_desc = wxTRANSLATE("Store EFB copies in GPU texture ob
 wxString efb_copy_ram_desc = wxTRANSLATE("Accurately emulate EFB copies.\nSome games depend on this for certain graphical effects or gameplay functionality.\n\nIf unsure, check EFB to Texture instead.");
 wxString stc_desc = wxTRANSLATE("The safer you adjust this, the less likely the emulator will be missing any texture updates from RAM.\n\nIf unsure, use the rightmost value.");
 wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
-wxString disable_fog_desc = wxTRANSLATE("Improves performance but causes glitches in most games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
-wxString disable_alphapass_desc = wxTRANSLATE("Skip the destination alpha pass used in many games for various graphical effects.\n\nIf unsure, leave this unchecked.");
+wxString disable_fog_desc = wxTRANSLATE("Makes distant objects more visible by removing fog, thus increasing the overall detail.\nDisabling fog will break some games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
+wxString disable_dstalpha_desc = wxTRANSLATE("Disables emulation of a hardware feature called destination alpha, which is used in many games for various graphical effects.\n\nIf unsure, leave this unchecked.");
 wxString show_fps_desc = wxTRANSLATE("Show the number of frames rendered per second as a measure of emulation speed.\n\nIf unsure, leave this unchecked.");
 wxString log_fps_to_file_desc = wxTRANSLATE("Log the number of frames rendered per second to User/Logs/fps.txt. Use this feature when you want to measure the performance of Dolphin.\n\nIf unsure, leave this unchecked."); 
 wxString show_input_display_desc = wxTRANSLATE("Display the inputs read by the emulator.\n\nIf unsure, leave this unchecked.");
@@ -212,9 +216,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			it = g_available_video_backends.begin(),
 			itend = g_available_video_backends.end();
 	for (; it != itend; ++it)
-		choice_backend->AppendString(wxGetTranslation(StrToWxStr((*it)->GetName())));
+		choice_backend->AppendString(wxGetTranslation(StrToWxStr((*it)->GetDisplayName())));
 
-	choice_backend->SetStringSelection(wxGetTranslation(StrToWxStr(g_video_backend->GetName())));
+	choice_backend->SetStringSelection(wxGetTranslation(StrToWxStr(g_video_backend->GetDisplayName())));
 	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_Backend, this);
 
 	szr_basic->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);
@@ -249,6 +253,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxFlexGridSizer* const szr_display = new wxFlexGridSizer(2, 5, 5);
 
 	{
+
+#if !defined(__APPLE__)
 	// display resolution
 	{
 		wxArrayString res_list = GetListOfResolutions();
@@ -270,6 +276,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 			choice_display_resolution->Disable();
 		}
 	}
+#endif
 
 	// aspect-ratio
 	{
@@ -336,8 +343,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// Internal resolution
 	{
 	const wxString efbscale_choices[] = { _("Auto (Window Size)"), _("Auto (Multiple of 640x528)"),
-		wxT("1x Native (640x528)"), wxT("1.5x Native (960x792)"), wxT("2x Native (1280x1056)"), 
-		wxT("2.5x Native (1600x1320)"), wxT("3x Native (1920x1584)"), wxT("4x Native (2560x2112)") };
+		_("1x Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056)"), 
+		_("2.5x Native (1600x1320)"), _("3x Native (1920x1584)"), _("4x Native (2560x2112)") };
 
 	wxChoice *const choice_efbscale = CreateChoice(page_enh,
 		vconfig.iEFBScale, wxGetTranslation(internal_res_desc), sizeof(efbscale_choices)/sizeof(*efbscale_choices), efbscale_choices);
@@ -398,11 +405,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_enh->Add(pixel_lighting = CreateCheckBox(page_enh, _("Per-Pixel Lighting"), wxGetTranslation(pixel_lighting_desc), vconfig.bEnablePixelLighting));
 	szr_enh->Add(CreateCheckBox(page_enh, _("Force Texture Filtering"), wxGetTranslation(force_filtering_desc), vconfig.bForceFiltering));
 
+	szr_enh->Add(CreateCheckBox(page_enh, _("Widescreen Hack"), wxGetTranslation(ws_hack_desc), vconfig.bWidescreenHack));
+	szr_enh->Add(CreateCheckBox(page_enh, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
+
 	// 3D Vision
 	_3d_vision = CreateCheckBox(page_enh, _("3D Vision"), wxGetTranslation(_3d_vision_desc), vconfig.b3DVision);
 	_3d_vision->Show(vconfig.backend_info.bSupports3DVision);
 	szr_enh->Add(_3d_vision);
-	szr_enh->Add(CreateCheckBox(page_enh, _("Widescreen Hack"), wxGetTranslation(ws_hack_desc), vconfig.bWidescreenHack));
 	// TODO: Add anaglyph 3d here
 
 	wxStaticBoxSizer* const group_enh = new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Enhancements"));
@@ -489,8 +498,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxGridSizer* const szr_other = new wxGridSizer(2, 5, 5);
 	SettingCheckBox* hacked_buffer_upload_cb;
 	szr_other->Add(CreateCheckBox(page_hacks, _("Cache Display Lists"), wxGetTranslation(dlc_desc), vconfig.bDlistCachingEnable));
-	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Fog"), wxGetTranslation(disable_fog_desc), vconfig.bDisableFog));
-	szr_other->Add(CreateCheckBox(page_hacks, _("Skip Dest. Alpha Pass"), wxGetTranslation(disable_alphapass_desc), vconfig.bDstAlphaPass));
+	szr_other->Add(CreateCheckBox(page_hacks, _("Disable Destination Alpha"), wxGetTranslation(disable_dstalpha_desc), vconfig.bDstAlphaPass));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenCL Texture Decoder"), wxGetTranslation(opencl_desc), vconfig.bEnableOpenCL));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_desc), vconfig.bOMPDecoder));
 	szr_other->Add(hacked_buffer_upload_cb = CreateCheckBox(page_hacks, _("Hacked Buffer Upload"), wxGetTranslation(hacked_buffer_upload_desc), vconfig.bHackedBufferUpload));

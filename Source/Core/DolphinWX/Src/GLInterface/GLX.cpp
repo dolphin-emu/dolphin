@@ -141,12 +141,17 @@ bool cInterfaceGLX::MakeCurrent()
 	#endif
 	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 }
+
+bool cInterfaceGLX::ClearCurrent()
+{
+	return glXMakeCurrent(GLWin.dpy, None, NULL);
+}
+
+
 // Close backend
 void cInterfaceGLX::Shutdown()
 {
 	XWindow.DestroyXWindow();
-	if (GLWin.ctx && !glXMakeCurrent(GLWin.dpy, None, NULL))
-		NOTICE_LOG(VIDEO, "Could not release drawing context.");
 	if (GLWin.ctx)
 	{
 		glXDestroyContext(GLWin.dpy, GLWin.ctx);

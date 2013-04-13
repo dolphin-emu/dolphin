@@ -227,7 +227,7 @@ void VertexLoader::CompileVertexTranslator()
 
 #ifdef USE_JIT
 	if (m_compiledCode)
-		PanicAlert("trying to recompile a vtx translator");
+		PanicAlert("Trying to recompile a vtx translator");
 
 	m_compiledCode = GetCodePtr();
 	ABI_EmitPrologue(4);
@@ -659,6 +659,10 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 	m_VtxAttr.texCoord[7].Elements	= vat.g2.Tex7CoordElements;
 	m_VtxAttr.texCoord[7].Format	= vat.g2.Tex7CoordFormat;
 	m_VtxAttr.texCoord[7].Frac		= vat.g2.Tex7Frac;
+	
+	if(!m_VtxAttr.ByteDequant) {
+		ERROR_LOG(VIDEO, "ByteDequant is set to zero");
+	}
 };
 
 void VertexLoader::AppendToString(std::string *dest) const
