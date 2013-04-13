@@ -36,6 +36,118 @@
 #else
 #define FASTMEM 1
 #endif
+void JitArm::stbu(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+	ARMReg RA = gpr.R(inst.RA);
+	ARMReg RS = gpr.R(inst.RS);
+	ARMReg ValueReg = gpr.GetReg();
+	ARMReg Addr = gpr.GetReg();
+	ARMReg Function = gpr.GetReg();
+	
+	MOVI2R(Addr, inst.SIMM_16);
+	ADD(Addr, Addr, RA);
+
+	// Check for DSI exception prior to writing back address
+	LDR(Function, R9, PPCSTATE_OFF(Exceptions));
+	CMP(Function, EXCEPTION_DSI);
+	FixupBranch DoNotWrite = B_CC(CC_EQ);
+	MOV(RA, Addr);
+	SetJumpTarget(DoNotWrite);
+
+	MOV(ValueReg, RS);
+	
+	MOVI2R(Function, (u32)&Memory::Write_U8);	
+	PUSH(4, R0, R1, R2, R3);
+	MOV(R0, ValueReg);
+	MOV(R1, Addr);
+	BL(Function);
+	POP(4, R0, R1, R2, R3);
+
+	gpr.Unlock(ValueReg, Addr, Function);
+}
+void JitArm::sth(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
+	ARMReg RS = gpr.R(inst.RS);
+#if 0 // FASTMEM
+	// R10 contains the dest address
+	ARMReg Value = R11;
+	ARMReg RA;
+	if (inst.RA)
+		RA = gpr.R(inst.RA);
+	MOV(Value, RS);
+	if (inst.RA)
+	{
+		MOVI2R(R10, inst.SIMM_16, false);
+		ADD(R10, R10, RA);
+	}
+	else
+	{
+		MOVI2R(R10, (u32)inst.SIMM_16, false);
+		NOP(1);
+	}
+	StoreFromReg(R10, Value, 16, 0);
+#else
+	ARMReg ValueReg = gpr.GetReg();
+	ARMReg Addr = gpr.GetReg();
+	ARMReg Function = gpr.GetReg();
+
+	MOV(ValueReg, RS);
+	if (inst.RA)
+	{
+		MOVI2R(Addr, inst.SIMM_16);
+		ARMReg RA = gpr.R(inst.RA);
+		ADD(Addr, Addr, RA);
+	}
+	else
+		MOVI2R(Addr, (u32)inst.SIMM_16);
+	
+	MOVI2R(Function, (u32)&Memory::Write_U16);	
+	PUSH(4, R0, R1, R2, R3);
+	MOV(R0, ValueReg);
+	MOV(R1, Addr);
+	BL(Function);
+	POP(4, R0, R1, R2, R3);
+	gpr.Unlock(ValueReg, Addr, Function);
+#endif
+}
+void JitArm::sthu(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
+	ARMReg RA = gpr.R(inst.RA);
+	ARMReg RS = gpr.R(inst.RS);
+	ARMReg ValueReg = gpr.GetReg();
+	ARMReg Addr = gpr.GetReg();
+	ARMReg Function = gpr.GetReg();
+	
+	MOVI2R(Addr, inst.SIMM_16);
+	ADD(Addr, Addr, RA);
+
+	// Check for DSI exception prior to writing back address
+	LDR(Function, R9, PPCSTATE_OFF(Exceptions));
+	CMP(Function, EXCEPTION_DSI);
+	FixupBranch DoNotWrite = B_CC(CC_EQ);
+	MOV(RA, Addr);
+	SetJumpTarget(DoNotWrite);
+
+	MOV(ValueReg, RS);
+	
+	MOVI2R(Function, (u32)&Memory::Write_U16);	
+	PUSH(4, R0, R1, R2, R3);
+	MOV(R0, ValueReg);
+	MOV(R1, Addr);
+	BL(Function);
+	POP(4, R0, R1, R2, R3);
+
+	gpr.Unlock(ValueReg, Addr, Function);
+}
+
 void JitArm::stw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -98,8 +210,7 @@ void JitArm::stwu(UGeckoInstruction inst)
 	MOVI2R(Addr, inst.SIMM_16);
 	ADD(Addr, Addr, RA);
 
-	// Check and set the update before writing since calling a function can
-	// mess with the "special registers R11+ which may cause some issues.
+	// Check for DSI exception prior to writing back address
 	LDR(Function, R9, PPCSTATE_OFF(Exceptions));
 	CMP(Function, EXCEPTION_DSI);
 	FixupBranch DoNotWrite = B_CC(CC_EQ);
@@ -144,10 +255,10 @@ void JitArm::StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
 			STR(value, dest); // 8
 		break;
 		case 16:
-			// Not implemented
+			STRH(value, dest);
 		break;
 		case 8:
-			// Not implemented
+			STRB(value, dest);
 		break;
 	}
 	gpr.Unlock(rA);
@@ -256,14 +367,11 @@ void JitArm::lhz(UGeckoInstruction inst)
 	if (inst.RA)
 	{
 		ARMReg RA = gpr.R(inst.RA);
-		printf("lhz jump to here: 0x%08x\n", (u32)GetCodePtr());
 		MOV(R10, RA); // - 4
 	}
 	else
-	{
-		printf("lhz jump to here: 0x%08x\n", (u32)GetCodePtr());
 		MOV(R10, 0); // - 4
-	}
+
 	LoadToReg(RD, R10, 16, (u32)inst.SIMM_16);	
 #else
 

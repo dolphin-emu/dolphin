@@ -171,6 +171,9 @@ public:
 	void lhz(UGeckoInstruction _inst);
 	void lwz(UGeckoInstruction _inst);
 	void lwzx(UGeckoInstruction _inst);
+	void stbu(UGeckoInstruction _inst);
+	void sth(UGeckoInstruction _inst);
+	void sthu(UGeckoInstruction _inst);
 	void stw(UGeckoInstruction _inst);
 	void stwu(UGeckoInstruction _inst);
 
