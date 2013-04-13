@@ -157,7 +157,10 @@ void VideoBackend::ShowConfig(void *_hParent)
 	diag.ShowModal();
 #endif
 }
-
+void Test(u32 Data)
+{
+	printf("Data: %d\n", Data);
+}
 bool VideoBackend::Initialize(void *&window_handle)
 {
 	InitializeShared();
@@ -174,6 +177,9 @@ bool VideoBackend::Initialize(void *&window_handle)
 	InitInterface();
 	if (!GLInterface->Create(window_handle))
 		return false;
+
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_INIT);
 
 	s_BackendInitialized = true;
 
@@ -222,6 +228,10 @@ void VideoBackend::Video_Prepare()
 void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
+
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
+
 	GLInterface->Shutdown();
 }
 

@@ -43,6 +43,7 @@
 #include "SWVertexLoader.h"
 #include "SWStatistics.h"
 
+#include "OnScreenDisplay.h"
 #define VSYNC_ENABLED 0
 
 namespace SW
@@ -81,6 +82,8 @@ bool VideoSoftware::Initialize(void *&window_handle)
 		INFO_LOG(VIDEO, "%s", "SWRenderer::Create failed\n");
 		return false;
 	}
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_INIT);
 
 	InitBPMemory();
 	InitXFMemory();
@@ -111,15 +114,15 @@ void VideoSoftware::DoState(PointerWrap& p)
 	OpcodeDecoder::DoState(p);
 	Clipper::DoState(p);
 	p.Do(swxfregs);
-    p.Do(bpmem);
+	p.Do(bpmem);
 	p.DoPOD(swstats);
 
 	// CP Memory
-    p.DoArray(arraybases, 16);
-    p.DoArray(arraystrides, 16);
-    p.Do(MatrixIndexA);
-    p.Do(MatrixIndexB);
-    p.Do(g_VtxDesc.Hex);
+	p.DoArray(arraybases, 16);
+	p.DoArray(arraystrides, 16);
+	p.Do(MatrixIndexA);
+	p.Do(MatrixIndexB);
+	p.Do(g_VtxDesc.Hex);
 	p.DoArray(g_VtxAttr, 8);
 	p.DoMarker("CP Memory");
 
@@ -162,7 +165,10 @@ void VideoSoftware::Shutdown()
 	// TODO: should be in Video_Cleanup
 	HwRasterizer::Shutdown();
 	SWRenderer::Shutdown();
-	
+
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
+
 	GLInterface->Shutdown();
 }
 

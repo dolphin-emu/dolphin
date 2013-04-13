@@ -23,6 +23,8 @@
 #include "SWRenderer.h"
 #include "SWStatistics.h"
 
+#include "OnScreenDisplay.h"
+
 static GLuint s_RenderTarget = 0;
 
 static GLint attr_pos = -1, attr_tex = -1;
@@ -181,6 +183,9 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 
 void SWRenderer::SwapBuffer()
 {
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_ONFRAME);
+
 	DrawDebugText();
 
 	glFlush();

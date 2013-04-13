@@ -24,6 +24,8 @@
 #include "RenderBase.h"
 #include "Timer.h"
 
+#include <vector>
+
 namespace OSD
 {
 
@@ -39,6 +41,26 @@ struct MESSAGE
 	u32 dwTimeStamp;
 };
 
+class CALLBACK
+{
+private:
+	CallbackPtr m_functionptr;
+	CallbackType m_type;
+	u32 m_data;
+public:
+	CALLBACK(CallbackType OnType, CallbackPtr FuncPtr, u32 UserData)
+	{
+		m_type = OnType;
+		m_functionptr = FuncPtr;
+		m_data = UserData; 
+	}
+	void Call()
+	{
+		m_functionptr(m_data);
+	}
+	CallbackType Type() { return m_type; }
+};
+std::vector<CALLBACK> m_callbacks;
 static std::list<MESSAGE> s_listMsgs;
 
 void AddMessage(const char* pstr, u32 ms)
@@ -84,6 +106,19 @@ void ClearMessages()
 	std::list<MESSAGE>::iterator it = s_listMsgs.begin();
 	while (it != s_listMsgs.end()) 
 		it = s_listMsgs.erase(it);
+}
+
+// On-Screen Display Callbacks
+void AddCallback(CallbackType OnType, CallbackPtr FuncPtr, u32 UserData)
+{
+	m_callbacks.push_back(CALLBACK(OnType, FuncPtr, UserData));
+}
+
+void DoCallbacks(CallbackType OnType)
+{
+	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
+		if (it->Type() == OnType)
+			it->Call();
 }
 
 }  // namespace
