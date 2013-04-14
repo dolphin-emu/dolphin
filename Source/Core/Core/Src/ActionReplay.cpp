@@ -535,7 +535,7 @@ bool Subtype_RamWriteAndFill(const ARAddr addr, const u32 data)
 
 	case DATATYPE_32BIT_FLOAT:
 	case DATATYPE_32BIT: // Dword write
-		LogInfo("32bit Write");
+		LogInfo("32-bit Write");
 		LogInfo("--------");
 		Memory::Write_U32(data, new_addr);
 		LogInfo("Wrote %08x to address %08x", data, new_addr);
