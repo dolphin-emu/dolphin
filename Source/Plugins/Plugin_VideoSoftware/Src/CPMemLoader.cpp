@@ -22,10 +22,10 @@
 
 void SWLoadCPReg(u32 sub_cmd, u32 value)
 {
-    switch (sub_cmd & 0xF0)
+	switch (sub_cmd & 0xF0)
 	{
 	case 0x30:
-        MatrixIndexA.Hex = value;
+		MatrixIndexA.Hex = value;
 		break;
 
 	case 0x40:
@@ -60,7 +60,7 @@ void SWLoadCPReg(u32 sub_cmd, u32 value)
 	// Pointers to vertex arrays in GC RAM
 	case 0xA0:
 		arraybases[sub_cmd & 0xF] = value;
-        cached_arraybases[sub_cmd & 0xF] = Memory::GetPointer(value);
+		cached_arraybases[sub_cmd & 0xF] = Memory::GetPointer(value);
 		break;
 
 	case 0xB0:

@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _RASTERIZER_H_
@@ -23,19 +23,19 @@
 
 namespace Rasterizer
 {
-    void Init();
+	void Init();
 
-    void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2);
+	void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2);
 
-    void SetScissor();
+	void SetScissor();
 
-    void SetTevReg(int reg, int comp, bool konst, s16 color);
+	void SetTevReg(int reg, int comp, bool konst, s16 color);
 
-    struct Slope
-    {
-        float dfdx;
-        float dfdy;
-        float f0;
+	struct Slope
+	{
+		float dfdx;
+		float dfdy;
+		float f0;
 
 		float GetValue(float dx, float dy) { return f0 + (dfdx * dx) + (dfdy * dy); }
 		void DoState(PointerWrap &p)
@@ -44,7 +44,7 @@ namespace Rasterizer
 			p.Do(dfdy);
 			p.Do(f0);
 		}
-    };
+	};
 
 	struct RasterBlockPixel
 	{
@@ -62,7 +62,6 @@ namespace Rasterizer
 	};
 
 	void DoState(PointerWrap &p);
-    
 }
 
 #endif

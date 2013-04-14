@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _CLIPPER_H_
@@ -26,17 +26,17 @@
 
 namespace Clipper
 {
-    void Init();
+	void Init();
 
-    void SetViewOffset();
+	void SetViewOffset();
 
-    void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2);
+	void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2);
 
 	void ProcessLine(OutputVertexData *v0, OutputVertexData *v1);
 
-    bool CullTest(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2, bool &backface);
+	bool CullTest(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2, bool &backface);
 
-    void PerspectiveDivide(OutputVertexData *vertex);
+	void PerspectiveDivide(OutputVertexData *vertex);
 
 	void DoState(PointerWrap &p);
 }

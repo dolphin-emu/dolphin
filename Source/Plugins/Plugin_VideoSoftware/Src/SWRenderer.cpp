@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -118,20 +118,20 @@ void SWRenderer::DrawDebugText()
 
 	if (g_SWVideoConfig.bShowStats) 
 	{
-        p+=sprintf(p,"Objects: %i\n",swstats.thisFrame.numDrawnObjects);
-        p+=sprintf(p,"Primitives: %i\n",swstats.thisFrame.numPrimatives);
-        p+=sprintf(p,"Vertices Loaded: %i\n",swstats.thisFrame.numVerticesLoaded);
+		p+=sprintf(p,"Objects: %i\n",swstats.thisFrame.numDrawnObjects);
+		p+=sprintf(p,"Primitives: %i\n",swstats.thisFrame.numPrimatives);
+		p+=sprintf(p,"Vertices Loaded: %i\n",swstats.thisFrame.numVerticesLoaded);
 
-        p+=sprintf(p,"Triangles Input:   %i\n",swstats.thisFrame.numTrianglesIn);
-        p+=sprintf(p,"Triangles Rejected:   %i\n",swstats.thisFrame.numTrianglesRejected);
-        p+=sprintf(p,"Triangles Culled:   %i\n",swstats.thisFrame.numTrianglesCulled);
-        p+=sprintf(p,"Triangles Clipped:  %i\n",swstats.thisFrame.numTrianglesClipped);
-        p+=sprintf(p,"Triangles Drawn:   %i\n",swstats.thisFrame.numTrianglesDrawn);
+		p+=sprintf(p,"Triangles Input:   %i\n",swstats.thisFrame.numTrianglesIn);
+		p+=sprintf(p,"Triangles Rejected:   %i\n",swstats.thisFrame.numTrianglesRejected);
+		p+=sprintf(p,"Triangles Culled:   %i\n",swstats.thisFrame.numTrianglesCulled);
+		p+=sprintf(p,"Triangles Clipped:  %i\n",swstats.thisFrame.numTrianglesClipped);
+		p+=sprintf(p,"Triangles Drawn:   %i\n",swstats.thisFrame.numTrianglesDrawn);
 
-        p+=sprintf(p,"Rasterized Pix:   %i\n",swstats.thisFrame.rasterizedPixels);
-        p+=sprintf(p,"TEV Pix In:   %i\n",swstats.thisFrame.tevPixelsIn);
-        p+=sprintf(p,"TEV Pix Out:   %i\n",swstats.thisFrame.tevPixelsOut);        
-    }
+		p+=sprintf(p,"Rasterized Pix:   %i\n",swstats.thisFrame.rasterizedPixels);
+		p+=sprintf(p,"TEV Pix In:   %i\n",swstats.thisFrame.tevPixelsIn);
+		p+=sprintf(p,"TEV Pix Out:   %i\n",swstats.thisFrame.tevPixelsOut);
+	}
 
 	// Render a shadow, and then the text.
 	SWRenderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
@@ -171,9 +171,9 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
 	glEnableVertexAttribArray(attr_pos);
 	glEnableVertexAttribArray(attr_tex);
-		glUniform1i(uni_tex, 0);
-		glActiveTexture(GL_TEXTURE0); 
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glUniform1i(uni_tex, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	glDisableVertexAttribArray(attr_pos);
 	glDisableVertexAttribArray(attr_tex);
 
@@ -191,7 +191,7 @@ void SWRenderer::SwapBuffer()
 	glFlush();
 
 	GLInterface->Swap();
-    
+
 	swstats.ResetFrame();
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

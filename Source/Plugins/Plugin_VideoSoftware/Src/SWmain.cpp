@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 
@@ -213,30 +213,32 @@ u32 VideoSoftware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputDa
 {
 	u32 value = 0;
 
-    switch (type)
-    {
-    case PEEK_Z:
-        {
-            value = EfbInterface::GetDepth(x, y);
-            break;
-        }
-    case POKE_Z:
-        break;
-    case PEEK_COLOR:
-        {
-            u32 color = 0;
-            EfbInterface::GetColor(x, y, (u8*)&color);
+	switch (type)
+	{
+	case PEEK_Z:
+		{
+			value = EfbInterface::GetDepth(x, y);
+			break;
+		}
 
-            // rgba to argb
-            value = (color >> 8) | (color & 0xff) << 24;
-            break;
-        }
-        
-    case POKE_COLOR:
-        break;
-    }
+	case POKE_Z:
+		break;
 
-    return value;
+	case PEEK_COLOR:
+		{
+			u32 color = 0;
+			EfbInterface::GetColor(x, y, (u8*)&color);
+
+			// rgba to argb
+			value = (color >> 8) | (color & 0xff) << 24;
+			break;
+		}
+
+	case POKE_COLOR:
+		break;
+	}
+
+	return value;
 }
 
 u32 VideoSoftware::Video_GetQueryResult(PerfQueryType type)
@@ -256,7 +258,7 @@ bool VideoSoftware::Video_Screenshot(const char *_szFilename)
 void VideoSoftware::Video_EnterLoop()
 {
 	std::lock_guard<std::mutex> lk(m_csSWVidOccupied);
-    fifoStateRun = true;
+	fifoStateRun = true;
 
 	while (fifoStateRun)
 	{
@@ -279,7 +281,7 @@ void VideoSoftware::Video_EnterLoop()
 
 void VideoSoftware::Video_ExitLoop()
 {
-    fifoStateRun = false;
+	fifoStateRun = false;
 }
 
 // TODO : could use the OSD class in video common, we would need to implement the Renderer class
