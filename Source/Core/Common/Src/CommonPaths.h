@@ -57,6 +57,7 @@
 				DIR_SEP USERDATA_DIR DIR_SEP
 #elif defined ANDROID
 	#define SYSDATA_DIR "/sdcard/dolphin-emu"
+	#define SHARED_USER_DIR SYSDATA_DIR
 #else
 	#ifdef DATA_DIR
 		#define SYSDATA_DIR DATA_DIR "sys"

@@ -1,29 +1,29 @@
 package org.dolphinemu.dolphinemu;
 
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.egl.EGLDisplay;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 
-public class DolphinEmulator<MainActivity> extends Activity {
-	
+public class DolphinEmulator<MainActivity> extends Activity 
+{	
 	static private NativeGLSurfaceView GLview = null;
 	static private boolean Running = false;
 	
 	private float screenWidth;
 	private float screenHeight;
 	
-	public static native void SetKey(int Value, int Key);
+	public static native void onTouchEvent(int Action, float X, float Y);
 	
 	static
 	{
@@ -35,6 +35,29 @@ public class DolphinEmulator<MainActivity> extends Activity {
 		{
 			Log.w("me", ex.toString());
 		}
+	}
+	private void CopyAsset(String asset, String output) {
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+          in = getAssets().open(asset);
+          out = new FileOutputStream(output);
+          copyFile(in, out);
+          in.close();
+          in = null;
+          out.flush();
+          out.close();
+          out = null;
+        } catch(IOException e) {
+            Log.e("tag", "Failed to copy asset file: " + asset, e);
+        }       
+	}
+	private void copyFile(InputStream in, OutputStream out) throws IOException {
+	    byte[] buffer = new byte[1024];
+	    int read;
+	    while((read = in.read(buffer)) != -1){
+	      out.write(buffer, 0, read);
+	    }
 	}
 	@Override
 	public void onStop()
@@ -67,6 +90,30 @@ public class DolphinEmulator<MainActivity> extends Activity {
 		{
 			Intent ListIntent = new Intent(this, NativeListView.class);
 			startActivityForResult(ListIntent, 1);
+			
+			// Make the assets directory
+			try
+			{
+				File directory = new File(Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu");
+				directory.mkdirs();
+			}		
+			catch (Exception ex)
+			{
+				Log.w("me", ex.toString());
+			}
+			
+			// Copy assets if needed
+			java.io.File file = new java.io.File(
+					Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "ButtonStart.png");
+			if(!file.exists())
+			{
+				CopyAsset("ButtonA.png", 
+						Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "ButtonA.png");
+				CopyAsset("ButtonB.png", 
+						Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "ButtonB.png");
+				CopyAsset("ButtonStart.png", 
+						Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "ButtonStart.png");
+			}
 		}
 	}
 	
@@ -85,7 +132,7 @@ public class DolphinEmulator<MainActivity> extends Activity {
 			
 			String FileName = data.getStringExtra("Select");
 			GLview = new NativeGLSurfaceView(this);
-			
+			//this.getWindow().setUiOptions(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN, View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
 			GLview.SetDimensions(screenWidth, screenHeight);
 			GLview.SetFileName(FileName);
 			setContentView(GLview);
@@ -102,10 +149,11 @@ public class DolphinEmulator<MainActivity> extends Activity {
 		Y = event.getY();
 		Action = event.getActionMasked();
 		
-		//int Button = Renderer.ButtonPressed(Action, ((X / screenWidth) * 2.0f) - 1.0f, ((Y / screenHeight) * 2.0f) - 1.0f);
-		
-		//if (Button != -1)
-			//SetKey(Action, Button);
+		// Converts button locations 0 - 1 to OGL screen coords -1.0 - 1.0
+		float ScreenX = ((X / screenWidth) * 2.0f) - 1.0f;
+		float ScreenY = ((Y / screenHeight) * -2.0f) + 1.0f;
+
+		onTouchEvent(Action, ScreenX, ScreenY);
 		
 		return false;
 	}

@@ -87,6 +87,9 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	
 	// get input
 	((GCPad*)g_plugin.controllers[_numPAD])->GetInput(_pPADStatus);
+
+#ifdef ANDROID
+	// XXX: This /really/ needs to be moved to a controller interface
 	if (Host_GetKeyState(0))
 	{
 		_pPADStatus->button |= PAD_BUTTON_A;
@@ -94,9 +97,14 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	}
 	if (Host_GetKeyState(1))
 	{
+		_pPADStatus->button |= PAD_BUTTON_B;
+		_pPADStatus->analogB = 255;
+	}
+	if (Host_GetKeyState(2))
+	{
 		_pPADStatus->button |= PAD_BUTTON_START;
 	}
-
+#endif
 }
 
 // __________________________________________________________________________________________________

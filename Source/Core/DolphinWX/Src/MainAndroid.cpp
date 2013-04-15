@@ -33,18 +33,16 @@
 #include "ConfigManager.h"
 #include "LogManager.h"
 #include "BootManager.h"
+#include "OnScreenDisplay.h"
+
+#include "Android/ButtonManager.h"
 
 #include <jni.h>
 #include <android/log.h>
 #include <android/native_window_jni.h>
-JNIEnv *g_env = NULL;
 ANativeWindow* surf;
 int g_width, g_height;
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "Dolphinemu", __VA_ARGS__))
-
-bool rendererHasFocus = true;
-bool running = true;
-bool KeyStates[15];
 
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
@@ -77,7 +75,7 @@ void Host_UpdateBreakPointView(){}
 
 bool Host_GetKeyState(int keycode)
 {
-	return KeyStates[keycode];
+	return ButtonManager::GetButtonPressed((ButtonManager::ButtonType)keycode);
 }
 
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
@@ -123,26 +121,29 @@ void Host_SysMessage(const char *fmt, ...)
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
-extern void DrawButton(int tex, int ID);
-extern void SetButtonCoords(float *Coords);
+void OSDCallbacks(u32 UserData)
+{
+	switch(UserData)
+	{
+		case 0: // Init
+			ButtonManager::Init();
+		break;
+		case 1: // Draw
+			ButtonManager::DrawButtons();
+		break;
+		case 2: // Shutdown
+			ButtonManager::Shutdown();
+		break;
+		default:
+			WARN_LOG(COMMON, "Error, wrong OSD type");
+		break;
+	}
+}
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeRenderer_SetButtonCoords(JNIEnv *env, jobject obj, jfloatArray Coords)
-{
-	jfloat* flt1 = env->GetFloatArrayElements(Coords, 0);
-	SetButtonCoords((float*)flt1);
-	env->ReleaseFloatArrayElements(Coords, flt1, 0);
-}
-
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeRenderer_DrawButton(JNIEnv *env, jobject obj, 
-	jint GLTex, jint ID
-	)
-{
-	DrawButton((int)GLTex, (int)ID);
-}
-
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeGLSurfaceView_UnPauseEmulation(JNIEnv *env, jobject obj)
 {
 	PowerPC::Start();
@@ -156,10 +157,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeGLSurfaceView_StopEm
 {
 	PowerPC::Stop();
 }
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_DolphinEmulator_SetKey(JNIEnv *env, jobject obj, jint Value, jint Key)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_DolphinEmulator_onTouchEvent(JNIEnv *env, jobject obj, jint Action, jfloat X, jfloat Y)
 {
-	WARN_LOG(COMMON, "Key %d with action %d\n", (int)Key, (int)Value);
-	KeyStates[(int)Key] = (int)Value == 0 ? true : false;	
+	ButtonManager::TouchEvent(Action, X, Y);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeGLSurfaceView_main(JNIEnv *env, jobject obj, jstring jFile, jobject _surf, jint _width, jint _height)
@@ -167,16 +167,19 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeGLSurfaceView_main(J
 	surf = ANativeWindow_fromSurface(env, _surf);
 	g_width = (int)_width;
 	g_height = (int)_height;
-	g_env = env;
-	
+
+	// Install our callbacks
+	OSD::AddCallback(OSD::OSD_INIT, OSDCallbacks, 0);
+	OSD::AddCallback(OSD::OSD_ONFRAME, OSDCallbacks, 1);
+	OSD::AddCallback(OSD::OSD_SHUTDOWN, OSDCallbacks, 2);
+
 	LogManager::Init();
 	SConfig::Init();
 	VideoBackend::PopulateList();
-	VideoBackend::ActivateBackend(SConfig::GetInstance().
-		m_LocalCoreStartupParameter.m_strVideoBackend);
+	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
 	WiimoteReal::LoadSettings();
 	
-	const char *File  = env->GetStringUTFChars(jFile, NULL);
+	const char *File = env->GetStringUTFChars(jFile, NULL);
 	// No use running the loop when booting fails
 	if ( BootManager::BootCore( File ) )
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)

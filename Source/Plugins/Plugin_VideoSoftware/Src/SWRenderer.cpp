@@ -77,8 +77,6 @@ void CreateShaders()
 	uni_tex = glGetUniformLocation(program, "Texture");
 	attr_pos = glGetAttribLocation(program, "pos");
 	attr_tex = glGetAttribLocation(program, "TexCoordIn"); 
-	
-	
 }
 
 void SWRenderer::Prepare()
@@ -138,12 +136,8 @@ void SWRenderer::DrawDebugText()
 	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
 }
 #ifdef ANDROID
-float ButtonCoords[8 * 2];
-void SetButtonCoords(float *Coords)
-{
-        memcpy(ButtonCoords, Coords, sizeof(float) * 8 * 2);
-}
-void DrawButton(int tex, int ID)
+
+void DrawButton(GLuint tex, float *coords)
 {
         //Texture rectangle uses pixel coordinates
 #ifndef USE_GLES
@@ -166,7 +160,7 @@ void DrawButton(int tex, int ID)
 #endif
         glBindTexture(TEX2D, tex);
 
-        glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, &ButtonCoords[ID * 8]);
+        glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, coords);
         glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
         glEnableVertexAttribArray(attr_pos);
         glEnableVertexAttribArray(attr_tex);

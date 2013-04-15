@@ -16,7 +16,6 @@ public class NativeGLSurfaceView extends SurfaceView {
 	static private float height;
 	
 	public static native void main(String File, Surface surf, int width, int height);
-	
 	public static native void UnPauseEmulation();
 	public static native void PauseEmulation();
 	public static native void StopEmulation();
@@ -32,7 +31,6 @@ public class NativeGLSurfaceView extends SurfaceView {
 			Log.w("me", ex.toString());
 		}
 	}
-	
 
 	public NativeGLSurfaceView(Context context) {
 		super(context);
@@ -46,11 +44,13 @@ public class NativeGLSurfaceView extends SurfaceView {
 	      		}	
 			};
 			getHolder().addCallback(new SurfaceHolder.Callback() {
-
-
 		            public void surfaceCreated(SurfaceHolder holder) {
 		                // TODO Auto-generated method stub
-		            	myRun.start();
+		            	if (!Running)
+		            	{
+		            		myRun.start();
+		            		Running = true;
+		            	}
 		            }
 
 					public void surfaceChanged(SurfaceHolder arg0, int arg1,
@@ -72,11 +72,10 @@ public class NativeGLSurfaceView extends SurfaceView {
 	{
 		FileName = file;
 	}
+	
 	public void SetDimensions(float screenWidth, float screenHeight)
 	{
 		width = screenWidth;
 		height = screenHeight;
 	}
-	
-
 }
