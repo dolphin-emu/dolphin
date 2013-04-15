@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _CONTROLLEREMU_H_
@@ -196,11 +196,15 @@ public:
 		template <typename C>
 		void GetState(C* const buttons, const C* bitmasks)
 		{
-			std::vector<Control*>::iterator i = controls.begin(),
+			std::vector<Control*>::iterator
+				i = controls.begin(),
 				e = controls.end();
+
 			for (; i!=e; ++i, ++bitmasks)
+			{
 				if ((*i)->control_ref->State() > settings[0]->value) // threshold
 					*buttons |= *bitmasks;
+			}
 		}
 
 	};
@@ -221,8 +225,9 @@ public:
 					*digital |= *bitmasks;
 				}
 				else
+				{
 					*analog = S(controls[i+trig_count]->control_ref->State() * range);
-					
+				}
 			}
 		}
 

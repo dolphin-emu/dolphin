@@ -78,7 +78,10 @@ bool InputPlugin::LoadConfig(bool isGC)
 				(*i)->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
 			}
 			else
+			{
 				(*i)->LoadConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
+			}
+
 			// update refs
 			(*i)->UpdateReferences(g_controller_interface);
 		}

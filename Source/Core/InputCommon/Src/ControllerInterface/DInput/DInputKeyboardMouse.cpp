@@ -56,15 +56,19 @@ void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<ControllerInterfac
 	if (SUCCEEDED(idi8->CreateDevice( GUID_SysKeyboard, &kb_device, NULL)))
 	{
 		if (SUCCEEDED(kb_device->SetDataFormat(&c_dfDIKeyboard)))
-		if (SUCCEEDED(kb_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 		{
-			if (SUCCEEDED(idi8->CreateDevice( GUID_SysMouse, &mo_device, NULL )))
+			if (SUCCEEDED(kb_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 			{
-				if (SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)))
-				if (SUCCEEDED(mo_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
+				if (SUCCEEDED(idi8->CreateDevice( GUID_SysMouse, &mo_device, NULL )))
 				{
-					devices.push_back(new KeyboardMouse(kb_device, mo_device));
-					return;
+					if (SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)))
+					{
+						if (SUCCEEDED(mo_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
+						{
+							devices.push_back(new KeyboardMouse(kb_device, mo_device));
+							return;
+						}
+					}
 				}
 			}
 		}
@@ -203,7 +207,9 @@ bool KeyboardMouse::UpdateOutput()
 			memset( this, 0, sizeof(*this) );
 			type = INPUT_KEYBOARD;
 			ki.wVk = key;
-			if (up) ki.dwFlags = KEYEVENTF_KEYUP;
+
+			if (up)
+				ki.dwFlags = KEYEVENTF_KEYUP;
 		}
 	};
 

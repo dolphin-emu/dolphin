@@ -319,9 +319,13 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 				eff.lpvTypeSpecificParams = &diCF;
 			}
 			else if (1 == f)
+			{
 				eff.cbTypeSpecificParams = sizeof(DIRAMPFORCE);
+			}
 			else
+			{
 				eff.cbTypeSpecificParams = sizeof(DIPERIODIC);
+			}
 			
 			LPDIRECTINPUTEFFECT pEffect;
 			if (SUCCEEDED(m_device->CreateEffect(force_type_names[f].guid, &eff, &pEffect, NULL)))
@@ -427,7 +431,9 @@ bool Joystick::UpdateInput()
 		}
 	}
 	else
+	{
 		hr = m_device->GetDeviceState(sizeof(m_state_in), &m_state_in);
+	}
 
 	// try reacquire if input lost
 	if (DIERR_INPUTLOST == hr || DIERR_NOTACQUIRED == hr)
@@ -460,12 +466,16 @@ bool Joystick::UpdateOutput()
 				ok_count += SUCCEEDED(i->iface->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START));
 			}
 			else
+			{
 				ok_count += SUCCEEDED(i->iface->Stop());
+			}
 
 			i->params = NULL;
 		}
 		else
+		{
 			++ok_count;
+		}
 	}
 
 	return (m_state_out.size() == ok_count);
@@ -492,7 +502,9 @@ std::string Joystick::Axis::GetName() const
 	}
 	// slider
 	else
+	{
 		ss << "Slider " << (int)(m_index - 6);
+	}
 
 	ss << (m_range < 0 ? '-' : '+');
 	return ss.str();
