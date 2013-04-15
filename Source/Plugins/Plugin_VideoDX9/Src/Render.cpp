@@ -611,6 +611,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	else
 	{
 		D3D::ChangeRenderState(D3DRS_ZENABLE, FALSE);
+	}
 
 	// Update the viewport for clearing the target EFB rect
 	TargetRectangle targetRc = ConvertEFBRectangle(rc);
