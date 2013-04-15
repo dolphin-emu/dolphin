@@ -16,7 +16,7 @@ import android.widget.Toast;
 
 public class NativeListView extends ListActivity {
 	private FileArrayAdapter adapter;
-	static private File currentDir = null;
+	private static File currentDir = null;
 	
 	private void Fill(File f)
     {
@@ -33,12 +33,12 @@ public class NativeListView extends ListActivity {
 					if(ff.isDirectory())
 						dir.add(new Option(ff.getName(),"Folder",ff.getAbsolutePath()));
 					else
-	                	if (ff.getName().toLowerCase().indexOf(".gcm") >= 0  ||
-	                		ff.getName().toLowerCase().indexOf(".iso") >= 0  ||
-	                		ff.getName().toLowerCase().indexOf(".wbfs") >= 0 ||
-	                		ff.getName().toLowerCase().indexOf(".gcz") >= 0	 ||
-	                		ff.getName().toLowerCase().indexOf(".dol") >= 0  ||
-	                		ff.getName().toLowerCase().indexOf(".elf") >= 0)
+	                	if (ff.getName().toLowerCase().contains(".gcm") ||
+	                		ff.getName().toLowerCase().contains(".iso") ||
+	                		ff.getName().toLowerCase().contains(".wbfs") ||
+	                		ff.getName().toLowerCase().contains(".gcz") ||
+	                		ff.getName().toLowerCase().contains(".dol") ||
+	                		ff.getName().toLowerCase().contains(".elf"))
 	                			fls.add(new Option(ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
              }
          }
