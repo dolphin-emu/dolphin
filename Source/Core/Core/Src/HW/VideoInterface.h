@@ -359,6 +359,8 @@ union UVIDTVStatus
 
 	unsigned int GetTicksPerLine();
 	unsigned int GetTicksPerFrame();
+
+	int GetNumFields();
 };
 
 #endif // _VIDEOINTERFACE_H
