@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _FRAMEBUFFERMANAGER_H_
@@ -95,7 +95,7 @@ public:
 
 	// Same as above but for the depth Target.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
-    static GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
+	static GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
 
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);

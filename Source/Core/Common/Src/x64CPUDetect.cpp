@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <memory.h>
@@ -74,7 +74,7 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 static void __cpuid(int info[4], int x)
 {
 #if defined __FreeBSD__
-    do_cpuid((unsigned int)x, (unsigned int*)info);
+	do_cpuid((unsigned int)x, (unsigned int*)info);
 #else
 	unsigned int eax = x, ebx = 0, ecx = 0, edx = 0;
 	do_cpuid(&eax, &ebx, &ecx, &edx);

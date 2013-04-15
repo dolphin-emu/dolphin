@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <d3dx9.h>
@@ -43,7 +43,7 @@ bool CompileVertexShader(const char *code, int len, u8 **bytecode, int *bytecode
 {
 	LPD3DXBUFFER shaderBuffer = NULL;
 	LPD3DXBUFFER errorBuffer = NULL;
- 	HRESULT hr = PD3DXCompileShader(code, len, 0, 0, "main", D3D::VertexShaderVersionString(),
+	HRESULT hr = PD3DXCompileShader(code, len, 0, 0, "main", D3D::VertexShaderVersionString(),
 						           0, &shaderBuffer, &errorBuffer, 0);
 	if (FAILED(hr))
 	{

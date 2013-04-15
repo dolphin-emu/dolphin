@@ -12,13 +12,13 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // Dolby Pro Logic 2 decoder from ffdshow-tryout
 //  * Copyright 2001 Anders Johansson ajh@atri.curtin.edu.au
 //  * Copyright (c) 2004-2006 Milan Cutka
-//	* based on mplayer HRTF plugin by ylai
+//  * based on mplayer HRTF plugin by ylai
 
 #include <functional>
 #include <vector>

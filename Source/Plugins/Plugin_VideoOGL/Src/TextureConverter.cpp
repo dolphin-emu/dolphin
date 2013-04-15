@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // Fast image conversion using OpenGL shaders.
@@ -111,7 +111,7 @@ void CreatePrograms()
 		"		yComp + (2.018f * uComp),\n"
 		"		1.0f);\n"
 		"}\n";
-		
+
 	ProgramShaderCache::CompileShader(s_rgbToYuyvProgram, VProgram, FProgramRgbToYuyv);
 	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgram, FProgramYuyvToRgb);
 }
@@ -140,14 +140,14 @@ SHADER &GetOrCreateEncodingShader(u32 format)
 #endif
 
 		ProgramShaderCache::CompileShader(s_encodingPrograms[format], VProgram, shader);
-    }
+	}
 	return s_encodingPrograms[format];
 }
 
 void Init()
 {
 	glGenFramebuffers(1, &s_texConvFrameBuffer);
-	
+
 	glGenBuffers(1, &s_encode_VBO );
 	glGenVertexArrays(1, &s_encode_VAO );
 	glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
@@ -160,7 +160,7 @@ void Init()
 	s_cached_sourceRc.bottom = -1;
 	s_cached_sourceRc.left = -1;
 	s_cached_sourceRc.right = -1;
-	
+
 	glGenBuffers(1, &s_decode_VBO );
 	glGenVertexArrays(1, &s_decode_VAO );
 	glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
@@ -211,8 +211,8 @@ void Shutdown()
 }
 
 void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
-					    u8* destAddr, int dstWidth, int dstHeight, int readStride,
-						   	bool toTexture, bool linearFilter)
+						u8* destAddr, int dstWidth, int dstHeight, int readStride,
+							bool toTexture, bool linearFilter)
 {
 
 
@@ -369,7 +369,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	FramebufferManager::SetFramebuffer(0);
 	VertexShaderManager::SetViewportChanged();
-    TextureCache::DisableStage(0);
+	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
 	GL_REPORT_ERRORD();
 }

@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "x64Analyzer.h"
@@ -33,7 +33,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 
 	u8 modRMbyte = 0;
 	u8 sibByte = 0;
-    bool hasModRM = false;
+	bool hasModRM = false;
 
 	int displacementSize = 0;
 
@@ -63,10 +63,10 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	// Skip two-byte opcode byte 
 	bool twoByte = false; 
 	if(codeByte == 0x0F) 
-	{ 
+	{
 		twoByte = true; 
 		codeByte2 = *codePtr++;
-	} 
+	}
 
 	if (!twoByte)
 	{
