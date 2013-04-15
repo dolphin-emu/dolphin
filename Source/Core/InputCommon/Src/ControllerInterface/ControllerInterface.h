@@ -29,7 +29,10 @@
 #if defined(__APPLE__)
 	#define CIFACE_USE_OSX
 #endif
-
+#ifdef ANDROID
+	#define CIFACE_USE_ANDROID
+#endif
+		
 // idk in case i wanted to change it to double or somethin, idk what's best
 typedef float ControlState;
 

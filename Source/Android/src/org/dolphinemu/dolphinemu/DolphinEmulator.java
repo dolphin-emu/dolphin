@@ -59,6 +59,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 	      out.write(buffer, 0, read);
 	    }
 	}
+	
 	@Override
 	public void onStop()
 	{
@@ -85,22 +86,15 @@ public class DolphinEmulator<MainActivity> extends Activity
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
 		if (savedInstanceState == null)
 		{
 			Intent ListIntent = new Intent(this, NativeListView.class);
 			startActivityForResult(ListIntent, 1);
 			
 			// Make the assets directory
-			try
-			{
-				File directory = new File(Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu");
-				directory.mkdirs();
-			}		
-			catch (Exception ex)
-			{
-				Log.w("me", ex.toString());
-			}
+			File directory = new File(
+					Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu"+File.separator+"Config");
+			directory.mkdirs();
 			
 			// Copy assets if needed
 			java.io.File file = new java.io.File(
@@ -108,11 +102,17 @@ public class DolphinEmulator<MainActivity> extends Activity
 			if(!file.exists())
 			{
 				CopyAsset("ButtonA.png", 
-						Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "ButtonA.png");
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "ButtonA.png");
 				CopyAsset("ButtonB.png", 
-						Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "ButtonB.png");
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "ButtonB.png");
 				CopyAsset("ButtonStart.png", 
-						Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "ButtonStart.png");
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "ButtonStart.png");
+				CopyAsset("GCPadNew.ini", 
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator +"Config"+ File.separator +"GCPadNew.ini");
 			}
 		}
 	}
