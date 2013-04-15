@@ -77,8 +77,6 @@ void CreateShaders()
 	uni_tex = glGetUniformLocation(program, "Texture");
 	attr_pos = glGetAttribLocation(program, "pos");
 	attr_tex = glGetAttribLocation(program, "TexCoordIn"); 
-	
-	
 }
 
 void SWRenderer::Prepare()
@@ -137,7 +135,46 @@ void SWRenderer::DrawDebugText()
 	SWRenderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
 }
+#ifdef ANDROID
+// XXX: This /really/ shouldn't be here
+// But for now, we don't have a generic way for all backends to draw the buttons on screen.
+// Once that is implemented, we can remove this
+void DrawButton(GLuint tex, float *coords)
+{
+        //Texture rectangle uses pixel coordinates
+#ifndef USE_GLES
+        GLfloat u_max = (GLfloat)width;
+        GLfloat v_max = (GLfloat)height;
 
+        static const GLfloat texverts[4][2] = {
+                {0, v_max},
+                {0, 0},
+                {u_max, 0},
+                {u_max, v_max}
+        };
+#else
+        static const GLfloat texverts[4][2] = {
+                {0, 1},
+                {0, 0},
+                {1, 0},
+                {1, 1}
+        };
+#endif
+        glBindTexture(TEX2D, tex);
+
+        glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, coords);
+        glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
+        glEnableVertexAttribArray(attr_pos);
+        glEnableVertexAttribArray(attr_tex);
+                glActiveTexture(GL_TEXTURE0); 
+                glUniform1i(uni_tex, 0);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDisableVertexAttribArray(attr_pos);
+        glDisableVertexAttribArray(attr_tex);
+
+        glBindTexture(TEX2D, 0); 
+}
+#endif
 void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 {
 	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();

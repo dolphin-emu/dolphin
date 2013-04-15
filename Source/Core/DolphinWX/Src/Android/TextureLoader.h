@@ -14,33 +14,8 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-#ifndef _INTERFACEEGL_H_
-#define _INTERFACEEGL_H_
 
-#include <EGL/egl.h>
-#ifdef USE_GLES
-#include <GLES2/gl2.h>
-#include <X11/Xutil.h>
-#else
-#include <GL/glxew.h>
-#include <GL/gl.h>
-#endif
+#include "GLInterface.h"
 
-#include "X11_Util.h"
-#include "InterfaceBase.h"
-
-class cInterfaceEGL : public cInterfaceBase
-{
-private:
-	cX11Window XWindow;
-public:
-	friend class cX11Window;
-	void SwapInterval(int Interval);
-	void Swap();
-	void UpdateFPSDisplay(const char *Text);
-	bool Create(void *&window_handle);
-	bool MakeCurrent();
-	void Shutdown(); 
-};
-#endif
+GLuint LoadPNG(const char *filename);
 

@@ -426,6 +426,8 @@ void SConfig::LoadSettings()
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_COREAUDIO);
 	#elif defined _WIN32
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_DIRECTSOUND);
+	#elif defined ANDROID
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_OPENSLES);
 	#else
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_NULLSOUND);
 	#endif

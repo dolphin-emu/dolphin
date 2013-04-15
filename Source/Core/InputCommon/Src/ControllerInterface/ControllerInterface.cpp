@@ -15,6 +15,9 @@
 #ifdef CIFACE_USE_SDL
 	#include "SDL/SDL.h"
 #endif
+#ifdef CIFACE_USE_ANDROID
+	#include "Android/Android.h"
+#endif
 
 #include "Thread.h"
 
@@ -49,6 +52,9 @@ void ControllerInterface::Initialize()
 #endif
 #ifdef CIFACE_USE_SDL
 	ciface::SDL::Init(m_devices);
+#endif
+#ifdef CIFACE_USE_ANDROID
+	ciface::Android::Init(m_devices);
 #endif
 
 	m_is_init = true;
@@ -99,6 +105,9 @@ void ControllerInterface::Shutdown()
 #ifdef CIFACE_USE_SDL
 	// TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
 	SDL_Quit();
+#endif
+#ifdef CIFACE_USE_ANDROID
+	// nothing needed
 #endif
 
 	m_is_init = false;

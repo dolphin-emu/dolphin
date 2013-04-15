@@ -17,12 +17,18 @@
 #ifndef _GLINTERFACE_H_
 #define _GLINTERFACE_H_
 
+#if USE_EGL
+#include "GLInterface/Platform.h"
+#else
+
 #include "Thread.h"
 #ifdef ANDROID
 #include <GLES2/gl2.h>
-#include <GLInterface/InterfaceBase.h>
+#include <GLES2/gl2ext.h>
+#include <EGL/egl.h>
+#include "GLInterface/EGL.h"
 #elif defined(USE_EGL) && USE_EGL
-#include "GLInterface/EGL_X11.h"
+#include "GLInterface/EGL.h"
 #elif defined(__APPLE__)
 #include "GLInterface/AGL.h"
 #elif defined(_WIN32)
@@ -34,19 +40,11 @@
 #endif
 
 typedef struct {
-#ifdef ANDROID
-#elif defined(USE_EGL) && USE_EGL // This is currently a X11/EGL implementation for desktop
+#if defined(USE_EGL) && USE_EGL // This is currently a X11/EGL implementation for desktop
 	int screen;
-	Display *dpy;
-	Display *evdpy;
-	Window win;
-	Window parent;
 	EGLSurface egl_surf;
 	EGLContext egl_ctx;
 	EGLDisplay egl_dpy;
-	XVisualInfo *vi;
-	XSetWindowAttributes attr;
-	std::thread xEventThread;
 	int x, y;
 	unsigned int width, height;
 #elif defined(__APPLE__)
@@ -71,4 +69,5 @@ typedef struct {
 extern cInterfaceBase *GLInterface;
 extern GLWindow GLWin;
 
+#endif
 #endif
