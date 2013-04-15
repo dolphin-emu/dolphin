@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -369,10 +369,10 @@ namespace HwRasterizer
 
 		// extra checks cause textures to be reloaded much more
 		if (texUnit.texImage0[0].hex != texImage0.hex ||
-		//texUnit.texImage1[0].hex != texImage1.hex ||
-		//texUnit.texImage2[0].hex != texImage2.hex ||
-		texUnit.texImage3[0].hex != texImage3.hex ||
-		texUnit.texTlut[0].hex   != texTlut.hex)
+		//	texUnit.texImage1[0].hex != texImage1.hex ||
+		//	texUnit.texImage2[0].hex != texImage2.hex ||
+			texUnit.texImage3[0].hex != texImage3.hex ||
+			texUnit.texTlut[0].hex   != texTlut.hex)
 		{
 			Destroy();
 			Create();

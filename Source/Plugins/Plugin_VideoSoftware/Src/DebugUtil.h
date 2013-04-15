@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _DEBUGUTIL_H
@@ -20,18 +20,18 @@
 
 namespace DebugUtil
 {
-    void Init();
+	void Init();
 
-    void GetTextureBGRA(u8 *dst, u32 texmap, s32 mip, u32 width, u32 height);
+	void GetTextureBGRA(u8 *dst, u32 texmap, s32 mip, u32 width, u32 height);
 
-    void DumpActiveTextures();
+	void DumpActiveTextures();
 
-    void OnObjectBegin();
-    void OnObjectEnd();
+	void OnObjectBegin();
+	void OnObjectEnd();
 
-    void OnFrameEnd();
+	void OnFrameEnd();
 
-    void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char *name);
+	void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char *name);
 
 	void DrawTempBuffer(u8 *color, int buffer);
 	void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char *name);

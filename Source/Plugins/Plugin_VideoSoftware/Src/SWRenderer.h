@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _RENDERER_H_
@@ -22,16 +22,16 @@
 
 namespace SWRenderer
 {
-    void Init();
-    void Prepare();
-    void Shutdown();
+	void Init();
+	void Prepare();
+	void Shutdown();
 
-    void RenderText(const char* pstr, int left, int top, u32 color);
-    void DrawDebugText();
+	void RenderText(const char* pstr, int left, int top, u32 color);
+	void DrawDebugText();
 
-    void DrawTexture(u8 *texture, int width, int height);
+	void DrawTexture(u8 *texture, int width, int height);
 
-    void SwapBuffer();
+	void SwapBuffer();
 }
 
 #endif

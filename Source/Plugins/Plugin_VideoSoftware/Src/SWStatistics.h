@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "CommonTypes.h"
@@ -23,29 +23,29 @@
 
 struct SWStatistics
 {
-    struct ThisFrame
-    {
-        u32 numDrawnObjects;
-        u32 numPrimatives;
-        u32 numVerticesLoaded;
-        u32 numVerticesOut;
+	struct ThisFrame
+	{
+		u32 numDrawnObjects;
+		u32 numPrimatives;
+		u32 numVerticesLoaded;
+		u32 numVerticesOut;
 
-        u32 numTrianglesIn;
-        u32 numTrianglesRejected;
-        u32 numTrianglesCulled;
-        u32 numTrianglesClipped;
-        u32 numTrianglesDrawn;
+		u32 numTrianglesIn;
+		u32 numTrianglesRejected;
+		u32 numTrianglesCulled;
+		u32 numTrianglesClipped;
+		u32 numTrianglesDrawn;
 
-        u32 rasterizedPixels;
-        u32 tevPixelsIn;
-        u32 tevPixelsOut;        
-    };
+		u32 rasterizedPixels;
+		u32 tevPixelsIn;
+		u32 tevPixelsOut;
+	};
 
-    u32 frameCount;
-    SWStatistics();
+	u32 frameCount;
+	SWStatistics();
 
-    ThisFrame thisFrame;
-    void ResetFrame();
+	ThisFrame thisFrame;
+	void ResetFrame();
 };
 
 extern SWStatistics swstats;
