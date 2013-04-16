@@ -240,8 +240,6 @@ void PreInit()
 
 void Init()
 {
-	const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam ? 2 : 1;
-
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		// AyuanX: TO BE TWEAKED
@@ -250,7 +248,7 @@ void Init()
 
 		// FYI, WII_IPC_HLE_Interface::Update is also called in WII_IPCInterface::Write32
 		const int freq = 1500;
-		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * fields);
+		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * VideoInterface::GetNumFields());
 	}
 
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA

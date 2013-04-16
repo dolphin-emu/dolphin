@@ -403,7 +403,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
-		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeam,			false);
+		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeamSpeedHack,			false);
 		ini.Get("Core", "SyncGPU",			&m_LocalCoreStartupParameter.bSyncGPU,			false);
 		ini.Get("Core", "FastDiscSpeed",	&m_LocalCoreStartupParameter.bFastDiscSpeed,	false);
 		ini.Get("Core", "DCBZ",				&m_LocalCoreStartupParameter.bDCBZOFF,			false);

@@ -786,7 +786,7 @@ void UpdateParameters()
 
 int GetNumFields()
 {
-	if (Core::g_CoreStartupParameter.bVBeam)
+	if (Core::g_CoreStartupParameter.bVBeamSpeedHack)
 		return (2 / fields);
 	else
 		return 1;
@@ -800,7 +800,7 @@ unsigned int GetTicksPerLine()
 	}
 	else
 	{
-		if (Core::g_CoreStartupParameter.bVBeam)
+		if (Core::g_CoreStartupParameter.bVBeamSpeedHack)
 			return TicksPerFrame / s_lineCount;
 		else
 			return TicksPerFrame / (s_lineCount / (2 / fields)) ;
