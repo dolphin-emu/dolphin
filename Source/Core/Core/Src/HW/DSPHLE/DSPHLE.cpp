@@ -29,6 +29,7 @@
 #include "ConfigManager.h"
 #include "Core.h"
 #include "HW/SystemTimers.h"
+#include "HW/VideoInterface.h"
 
 DSPHLE::DSPHLE() {
 	m_InitMixer = false;
@@ -91,7 +92,7 @@ void DSPHLE::DSP_Update(int cycles)
 u32 DSPHLE::DSP_UpdateRate()
 {
 	// AX HLE uses 3ms (Wii) or 5ms (GC) timing period
-	int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam ? 2 : 1;
+	int fields = VideoInterface::GetNumFields();
 	if (m_pUCode != NULL)
 		return (SystemTimers::GetTicksPerSecond() / 1000) * m_pUCode->GetUpdateMs() / fields;
 	else
