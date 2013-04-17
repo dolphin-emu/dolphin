@@ -208,6 +208,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	}
 	wxString temp = _T("0x") + StrToWxStr(OpenISO->GetMakerID());
 	m_MakerID->SetValue(temp);
+	m_Revision->SetValue(wxString::Format(wxT("%u"), OpenISO->GetRevision()));
 	m_Date->SetValue(StrToWxStr(OpenISO->GetApploaderDate()));
 	m_FST->SetValue(wxString::Format(wxT("%u"), OpenISO->GetFSTSize()));
 
@@ -472,6 +473,10 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 		new wxStaticText(m_Information, wxID_ANY, _("Maker ID:"));
 	m_MakerID = new wxTextCtrl(m_Information, ID_MAKERID, wxEmptyString,
 			wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+	wxStaticText * const m_RevisionText =
+		new wxStaticText(m_Information, wxID_ANY, _("Revision:"));
+	m_Revision = new wxTextCtrl(m_Information, ID_REVISION, wxEmptyString,
+			 wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText * const m_DateText =
 		new wxStaticText(m_Information, wxID_ANY, _("Date:"));
 	m_Date = new wxTextCtrl(m_Information, ID_DATE, wxEmptyString,
@@ -509,10 +514,12 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sISODetails->Add(m_Country, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_MakerIDText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_MakerID, wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_DateText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_Date, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_FSTText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_FST, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_RevisionText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sISODetails->Add(m_Revision, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_DateText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sISODetails->Add(m_Date, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_FSTText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sISODetails->Add(m_FST, wxGBPosition(6, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->AddGrowableCol(1);
 	wxStaticBoxSizer * const sbISODetails =
 		new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));

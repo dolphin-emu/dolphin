@@ -45,8 +45,11 @@ std::string BuildGameName(const GameListItem& game)
 	std::string name(game.GetBannerName(lang));
 	if (name.empty())
 		name = game.GetVolumeName(lang);
-	
-	return name + " (" + game.GetUniqueID() + ")";
+
+	if (game.GetRevision() != 0)
+		return name + " (" + game.GetUniqueID() + ", Revision " + std::to_string((long long)game.GetRevision()) + ")";
+	else
+		return name + " (" + game.GetUniqueID() + ")";
 }
 
 void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)

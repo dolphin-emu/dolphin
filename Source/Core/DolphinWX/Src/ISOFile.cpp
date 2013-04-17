@@ -37,7 +37,7 @@
 #include "ChunkFile.h"
 #include "ConfigManager.h"
 
-static const u32 CACHE_REVISION = 0x113;
+static const u32 CACHE_REVISION = 0x114;
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -48,6 +48,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName)
 	, m_emu_state(0)
 	, m_FileSize(0)
+	, m_Revision(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
 {
@@ -77,6 +78,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_UniqueID = pVolume->GetUniqueID();
 			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
 			m_IsDiscTwo = pVolume->IsDiscTwo();
+			m_Revision = pVolume->GetRevision();
 
 			// check if we can get some infos from the banner file too
 			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
@@ -175,6 +177,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_pImage);
 	p.Do(m_Platform);
 	p.Do(m_IsDiscTwo);
+	p.Do(m_Revision);
 }
 
 std::string GameListItem::CreateCacheFilename()

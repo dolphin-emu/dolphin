@@ -42,6 +42,7 @@ public:
 	std::string GetName(int index) const;
 	std::string GetCompany() const;
 	std::string GetDescription(int index = 0) const;
+	int GetRevision() const { return m_Revision; }
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
@@ -87,6 +88,7 @@ private:
 
 	DiscIO::IVolume::ECountry m_Country;
 	int m_Platform;
+	int m_Revision;
 
 #if defined(HAVE_WX) && HAVE_WX
 	wxImage m_Image;

@@ -98,6 +98,7 @@ private:
 	wxTextCtrl *m_GameID;
 	wxTextCtrl *m_Country;
 	wxTextCtrl *m_MakerID;
+	wxTextCtrl *m_Revision;
 	wxTextCtrl *m_Date;
 	wxTextCtrl *m_FST;
 	wxArrayString arrayStringFor_Lang;
@@ -156,6 +157,7 @@ private:
 		ID_GAMEID,
 		ID_COUNTRY,
 		ID_MAKERID,
+		ID_REVISION,
 		ID_DATE,
 		ID_FST,
 		ID_VERSION,

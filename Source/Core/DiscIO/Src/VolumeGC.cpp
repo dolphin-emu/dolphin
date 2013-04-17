@@ -91,6 +91,18 @@ std::string CVolumeGC::GetMakerID() const
 	return makerID;
 }
 
+int CVolumeGC::GetRevision() const
+{
+	if (!m_pReader)
+		return 0;
+
+	u8 Revision;
+	if (!Read(7, 1, &Revision))
+		return 0;
+
+	return Revision;
+}
+
 std::vector<std::string> CVolumeGC::GetNames() const
 {
 	std::vector<std::string> names;
