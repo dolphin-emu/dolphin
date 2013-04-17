@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Movie.h"
@@ -94,6 +94,7 @@ void EnsureTmpInputSize(size_t bound)
 	size_t newAlloc = DTM_BASE_LENGTH;
 	while (newAlloc < bound)
 		newAlloc *= 2;
+	
 	u8* newTmpInput = new u8[newAlloc];
 	tmpInputAllocated = newAlloc;
 	if (tmpInput != NULL)
@@ -118,10 +119,12 @@ std::string GetInputDisplay()
 				g_numPads |= (1 << (i + 4));
 		}
 	}
+
 	std::string inputDisplay = "";
 	for (int i = 0; i < 8; ++i)
 		if ((g_numPads & (1 << i)) != 0)
 			inputDisplay.append(g_InputDisplay[i]);
+	
 	return inputDisplay; 
 }
 
@@ -177,6 +180,7 @@ void Init()
 			EndPlayInput(false);
 		}
 	}
+
 	if (IsRecordingInput())
 	{
 		GetSettings();

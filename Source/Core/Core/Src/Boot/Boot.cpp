@@ -53,7 +53,8 @@
 
 void CBoot::Load_FST(bool _bIsWii)
 {
-	if (!VolumeHandler::IsValid()) return;
+	if (!VolumeHandler::IsValid())
+		return;
 
 	// copy first 20 bytes of disc to start of Mem 1
 	VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20);		
@@ -108,7 +109,7 @@ std::string CBoot::GenerateMapFilename()
 		return File::GetUserPath(D_MAPS_IDX) + _StartupPara.GetUniqueID() + ".map";
 	}
 
-    return std::string("unknown map");
+	return std::string("unknown map");
 }
 
 bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_gameID)
@@ -119,7 +120,7 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 	std::string strMapFilename = GenerateMapFilename();
 
 	bool success = false;
-    if (!g_symbolDB.LoadMap(strMapFilename.c_str()))
+	if (!g_symbolDB.LoadMap(strMapFilename.c_str()))
 	{
 		if (_gameID != NULL)
 		{
@@ -184,7 +185,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 	Memory::WriteBigEData((const u8*)data.data() + 0x100, 0x81200000, 0x700);
 	Memory::WriteBigEData((const u8*)data.data() + 0x820, 0x81300000, 0x1AFE00);
 	PC = 0x81200000;
-    return true;
+	return true;
 }
 
 
@@ -321,7 +322,7 @@ bool CBoot::BootUp()
 		if (LoadMapFromFilename(_StartupPara.m_strFilename))
 			HLE::PatchFunctions();
 
-        break;
+		break;
 	}
 
 	// ELF

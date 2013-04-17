@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <algorithm>
@@ -28,12 +28,12 @@
 
 struct op_inf
 {
-    const char *name;
-    int count;
-    bool operator < (const op_inf &o) const
-    {
+	const char *name;
+	int count;
+	bool operator < (const op_inf &o) const
+	{
 		return count > o.count;
-    }
+	}
 };
  GekkoOPInfo *m_infoTable[64];
  GekkoOPInfo *m_infoTable4[1024];
@@ -212,7 +212,7 @@ void PrintInstructionRunCounts()
 	{
 		if (temp[i].count == 0) 
 			break;
-        DEBUG_LOG(POWERPC, "%s : %i", temp[i].name,temp[i].count);
+		DEBUG_LOG(POWERPC, "%s : %i", temp[i].name,temp[i].count);
 		//PanicAlert("%s : %i", temp[i].name,temp[i].count);
 	}
 }
@@ -224,7 +224,8 @@ void LogCompiledInstructions()
 	File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
-		if (m_allInstructions[i]->compileCount > 0) {
+		if (m_allInstructions[i]->compileCount > 0)
+		{
 			fprintf(f.GetHandle(), "%s\t%i\t%i\t%08x\n", m_allInstructions[i]->opname,
 				m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount, m_allInstructions[i]->lastUse);
 		}
@@ -233,7 +234,8 @@ void LogCompiledInstructions()
 	f.Open(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
-		if (m_allInstructions[i]->compileCount == 0) {
+		if (m_allInstructions[i]->compileCount == 0)
+		{
 			fprintf(f.GetHandle(), "%s\t%i\t%i\n", m_allInstructions[i]->opname,
 				m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount);
 		}
@@ -241,7 +243,8 @@ void LogCompiledInstructions()
 
 #ifdef OPLOG
 	f.Open(StringFromFormat("%s" OP_TO_LOG "_at.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
-	for (size_t i = 0; i < rsplocations.size(); i++) {
+	for (size_t i = 0; i < rsplocations.size(); i++)
+	{
 		fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocations[i]);
 	}
 #endif

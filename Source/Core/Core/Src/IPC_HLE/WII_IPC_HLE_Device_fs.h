@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #ifndef _WII_IPC_HLE_DEVICE_FS_H_
 #define _WII_IPC_HLE_DEVICE_FS_H_
@@ -45,7 +45,7 @@ class CWII_IPC_HLE_Device_fs : public IWII_IPC_HLE_Device
 {
 public:
 
-    CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName);
 	virtual ~CWII_IPC_HLE_Device_fs();
 
 	virtual void DoState(PointerWrap& p);
@@ -60,7 +60,7 @@ public:
 
 private:
 
-	enum 
+	enum
 	{
 		IOCTL_GET_STATS		= 0x02,
 		IOCTL_CREATE_DIR	= 0x03,

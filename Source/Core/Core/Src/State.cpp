@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -97,7 +97,7 @@ void DoState(PointerWrap &p)
 {
 	u32 version = STATE_VERSION;
 	{
- 		static const u32 COOKIE_BASE = 0xBAADBABE;
+		static const u32 COOKIE_BASE = 0xBAADBABE;
 		u32 cookie = version + COOKIE_BASE;
 		p.Do(cookie);
 		version = cookie - COOKIE_BASE;
@@ -204,6 +204,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 		else 
 			File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
 	}
+
 	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
 		Movie::SaveRecording((filename + ".dtm").c_str());
 	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
@@ -551,10 +552,14 @@ void UndoLoadState()
 				Movie::LoadInput("undo.dtm");
 		}
 		else
+		{
 			PanicAlert("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+		}
 	}
 	else
+	{
 		PanicAlert("There is nothing to undo!");
+	}
 }
 
 // Load the state that the last save state overwritten on

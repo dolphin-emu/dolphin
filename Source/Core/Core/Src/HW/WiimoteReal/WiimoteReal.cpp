@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <queue>
@@ -136,7 +136,9 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
 {
 	// Check for custom communication
 	if (99 == channel)
+	{
 		EmuStop();
+	}
 	else
 	{
 		InterruptChannel(channel, data, size);
@@ -167,14 +169,14 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 	// Convert output DATA packets to SET_REPORT packets.
 	// Nintendo Wiimotes work without this translation, but 3rd
 	// party ones don't.
- 	if (rpt[0] == 0xa2)
+	if (rpt[0] == 0xa2)
 	{
 		rpt[0] = WM_SET_REPORT | WM_BT_OUTPUT;
- 	}
- 	
- 	// Disallow games from turning off all of the LEDs.
- 	// It makes Wiimote connection status confusing.
- 	if (rpt[1] == WM_LEDS)
+	}
+	
+	// Disallow games from turning off all of the LEDs.
+	// It makes Wiimote connection status confusing.
+	if (rpt[1] == WM_LEDS)
 	{
 		auto& leds_rpt = *reinterpret_cast<wm_leds*>(&rpt[2]);
 		if (0 == leds_rpt.leds)
@@ -381,7 +383,9 @@ void WiimoteScanner::ThreadFunc()
 		//NOTICE_LOG(WIIMOTE, "In loop");
 
 		if (m_want_wiimotes)
+		{
 			found_wiimotes = FindWiimotes();
+		}
 		else
 		{
 			// Does stuff needed to detect disconnects on Windows

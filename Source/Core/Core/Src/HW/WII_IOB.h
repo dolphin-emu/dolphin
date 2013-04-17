@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #ifndef _WII_IOBRIDGE_H_
 #define _WII_IOBRIDGE_H_
@@ -24,7 +24,7 @@ namespace WII_IOBridge
 {
 
 void Init();
-void Shutdown();	
+void Shutdown();
 void DoState(PointerWrap &p);
 
 void Update();

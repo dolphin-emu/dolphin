@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _DSPINTERPRETER_H
@@ -48,9 +48,9 @@ typedef void (*DSPInterpreterFunc)(const UDSPInstruction opc);
 void call(const UDSPInstruction opc);
 void callr(const UDSPInstruction opc);
 void ifcc(const UDSPInstruction opc);
-void jcc(const UDSPInstruction opc);	
+void jcc(const UDSPInstruction opc);
 void jmprcc(const UDSPInstruction opc);
-void ret(const UDSPInstruction opc);	
+void ret(const UDSPInstruction opc);
 void halt(const UDSPInstruction opc);
 void loop(const UDSPInstruction opc);
 void loopi(const UDSPInstruction opc);

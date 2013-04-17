@@ -260,17 +260,18 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		rContent.m_Size= (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
 		memcpy(rContent.m_SHA1Hash, pTMD + 0x01f4 + 0x24*i, 20);
 		memcpy(rContent.m_Header, pTMD + 0x01e4 + 0x24*i, 36);
+
 		if (m_isWAD)
 		{
-		u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
-		rContent.m_pData = new u8[RoundedSize];
+			u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
+			rContent.m_pData = new u8[RoundedSize];
 		
-		memset(IV, 0, sizeof IV);
-		memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
-		AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
+			memset(IV, 0, sizeof IV);
+			memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
+			AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
 
-		pDataApp += RoundedSize;
-		continue;
+			pDataApp += RoundedSize;
+			continue;
 		}
 
 		rContent.m_pData = NULL;
@@ -282,7 +283,9 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 			strcpy(szFilename, Filename.c_str());
 		}
 		else
+		{
 			sprintf(szFilename, "%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
+		}
 
 		INFO_LOG(DISCIO, "NANDContentLoader: load %s", szFilename);
 

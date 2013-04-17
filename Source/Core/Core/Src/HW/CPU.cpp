@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -78,7 +78,8 @@ reswitch:
 			PowerPC::SingleStep();
 
 			//4: update disasm dialog
-			if (m_SyncEvent) {
+			if (m_SyncEvent)
+			{
 				m_SyncEvent->Set();
 				m_SyncEvent = 0;
 			}
@@ -106,7 +107,7 @@ bool CCPU::IsStepping()
 void CCPU::Reset()
 {
 
-} 
+}
 
 void CCPU::StepOpcode(Common::Event *event) 
 {
@@ -157,6 +158,7 @@ bool CCPU::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 			PowerPC::Start();
 			m_StepEvent.Set();
 		}
+
 		if (!Core::IsCPUThread())
 			m_csCpuOccupied.unlock();
 	}

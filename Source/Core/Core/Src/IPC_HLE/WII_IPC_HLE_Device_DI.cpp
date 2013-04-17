@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -39,8 +39,8 @@ using namespace DVDInterface;
 #define DI_COVER_REG_NO_DISC		1
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-    , m_pFileSystem(NULL)
+	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+	, m_pFileSystem(NULL)
 	, m_ErrorStatus(0)
 	, m_CoverStatus(DI_COVER_REG_NO_DISC)
 {}
@@ -58,13 +58,13 @@ bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 {
 	if (VolumeHandler::IsValid())
 	{
-        m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
+		m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
 		m_CoverStatus |= DI_COVER_REG_INITIALIZED;
 		m_CoverStatus &= ~DI_COVER_REG_NO_DISC;
 	}
 	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
-    m_Active = true;
-    return true;
+	m_Active = true;
+	return true;
 }
 
 bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
@@ -77,29 +77,29 @@ bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 	m_ErrorStatus = 0;
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
-    m_Active = false;
-    return true;
+	m_Active = false;
+	return true;
 }
 
 bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress) 
 {
 	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-    u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-    u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 	u32 Command			= Memory::Read_U32(BufferIn) >> 24;
 
-    DEBUG_LOG(WII_IPC_DVD, "IOCtl Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
+	DEBUG_LOG(WII_IPC_DVD, "IOCtl Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
 		Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);
-    Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
-    return true;
+	return true;
 }
 
 bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress) 
-{  
+{
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
 	// Prepare the out buffer(s) with zeros as a safety precaution
@@ -143,12 +143,12 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-    return true;
+	return true;
 }
 
 u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
-{    
-    u32 Command = Memory::Read_U32(_BufferIn) >> 24;
+{
+	u32 Command = Memory::Read_U32(_BufferIn) >> 24;
 
 	// TATSUNOKO VS CAPCOM: Gets here with _BufferOut == 0!!!
 	if (_BufferOut != 0)
@@ -241,13 +241,13 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		}
 		break;
 
-    case DVDLowWaitForCoverClose:
-        {
+	case DVDLowWaitForCoverClose:
+		{
 			INFO_LOG(WII_IPC_DVD, "DVDLowWaitForCoverClose (Buffer 0x%08x, 0x%x)",
 				_BufferOut, _BufferOutSize);
 			return 4; // ???
-        }
-        break;
+		}
+		break;
 
 	case DVDLowGetCoverReg:
 		Memory::Write_U32(m_CoverStatus, _BufferOut);
@@ -347,7 +347,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		return 2;
 		break;
 
-    case DVDLowSeek:
+	case DVDLowSeek:
 		{
 			u64 DVDAddress = Memory::Read_U32(_BufferIn + 0x4) << 2;
 			const char *pFilename = NULL;
@@ -364,7 +364,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 					DVDAddress);
 			}
 		}
-        break;
+		break;
 
 	case DVDLowReadDvd:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvd");
@@ -454,12 +454,12 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		ERROR_LOG(WII_IPC_DVD, "Unknown command 0x%08x (Buffer 0x%08x, 0x%x)",
 			Command, _BufferOut, _BufferOutSize);
 
-        PanicAlertT("Unknown command 0x%08x", Command);
+		PanicAlertT("Unknown command 0x%08x", Command);
 		break;
 	}
 
-    // i dunno but prolly 1 is okay all the time :)
-    return 1;
+	// i dunno but prolly 1 is okay all the time :)
+	return 1;
 }
 
 int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)

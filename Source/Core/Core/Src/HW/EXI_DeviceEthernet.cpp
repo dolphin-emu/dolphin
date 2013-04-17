@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Memmap.h"
@@ -87,11 +87,16 @@ CEXIETHERNET::CEXIETHERNET()
 		for (size_t i = 0; i < mac_addr_setting.size() && x < 12; i++)
 		{
 			char c = mac_addr_setting.at(i);
-			if (c >= '0' && c <= '9') {
+			if (c >= '0' && c <= '9')
+			{
 				mac_addr[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4); x++;
-			} else if (c >= 'A' && c <= 'F') {
+			}
+			else if (c >= 'A' && c <= 'F')
+			{
 				mac_addr[x / 2] |= (c - 'A' + 10) << ((x & 1) ? 0 : 4); x++;
-			} else if (c >= 'a' && c <= 'f') {
+			}
+			else if (c >= 'a' && c <= 'f')
+			{
 				mac_addr[x / 2] |= (c - 'a' + 10) << ((x & 1) ? 0 : 4); x++;
 			}
 		}
@@ -496,7 +501,7 @@ inline u8 CEXIETHERNET::HashIndex(u8 *dest_eth_addr)
 			crc <<= 1;
 			cur_byte >>= 1;
 			if (carry)
-				crc = (crc ^ 0x4c11db6) | carry;			
+				crc = (crc ^ 0x4c11db6) | carry;
 		}
 	}
 

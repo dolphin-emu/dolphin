@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -59,6 +59,7 @@ namespace HW
 		ExpansionInterface::Init();
 		CCPU::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore);
 		SystemTimers::Init();
+
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
 			WII_IPCInterface::Init();
@@ -70,7 +71,7 @@ namespace HW
 	{
 		SystemTimers::Shutdown();
 		CCPU::Shutdown();
-		ExpansionInterface::Shutdown();		
+		ExpansionInterface::Shutdown();
 		DVDInterface::Shutdown();
 		DSP::Shutdown();
 		Memory::Shutdown();
@@ -82,7 +83,7 @@ namespace HW
 			WII_IPCInterface::Shutdown();
 			WII_IPC_HLE_Interface::Shutdown();
 		}
-		
+
 		State::Shutdown();
 		CoreTiming::Shutdown();
 	}
@@ -107,6 +108,7 @@ namespace HW
 		p.DoMarker("ExpansionInterface");
 		AudioInterface::DoState(p);
 		p.DoMarker("AudioInterface");
+
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
 			WII_IPCInterface::DoState(p);
@@ -114,6 +116,7 @@ namespace HW
 			WII_IPC_HLE_Interface::DoState(p);
 			p.DoMarker("WII_IPC_HLE_Interface");
 		}
+
 		p.DoMarker("WIIHW");
 	}
 }

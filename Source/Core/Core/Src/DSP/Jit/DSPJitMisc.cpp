@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 
@@ -207,7 +207,8 @@ void DSPEmitter::dsp_conditional_extend_accum_imm(int reg, u16 val)
 
 void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExtend extend)
 {
-	switch (reg & 0x1f) {
+	switch (reg & 0x1f)
+	{
 	case DSP_REG_ST0:
 	case DSP_REG_ST1:
 	case DSP_REG_ST2:
@@ -424,13 +425,14 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
 	//	g_dsp.r[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 
 	// From looking around it is always called with the matching index register
-    increase_addr_reg(opc & 0x3, (opc >> 2) & 0x3);
+	increase_addr_reg(opc & 0x3, (opc >> 2) & 0x3);
 }
 
 //----
 
 
-void DSPEmitter::setCompileSR(u16 bit) {
+void DSPEmitter::setCompileSR(u16 bit)
+{
 	
 	//	g_dsp.r[DSP_REG_SR] |= bit
 	OpArg sr_reg;
@@ -441,7 +443,8 @@ void DSPEmitter::setCompileSR(u16 bit) {
 	compileSR |= bit;
 }
 
-void DSPEmitter::clrCompileSR(u16 bit) {
+void DSPEmitter::clrCompileSR(u16 bit)
+{
 	
 	//	g_dsp.r[DSP_REG_SR] &= bit
 	OpArg sr_reg;
@@ -498,7 +501,7 @@ void DSPEmitter::srbith(const UDSPInstruction opc)
 		break;
 
 	// Automatic 40-bit sign extension when loading ACx.M.
-    // SET40 changes something very important: see the LRI instruction above.
+	// SET40 changes something very important: see the LRI instruction above.
 	case 0xe:  // SET16 (CLR40)
 		clrCompileSR(SR_40_MODE_BIT);
 		break;

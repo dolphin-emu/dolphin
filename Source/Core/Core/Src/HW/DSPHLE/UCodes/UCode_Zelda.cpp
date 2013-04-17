@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // Games that uses this UCode:
@@ -228,7 +228,7 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 		}
 
 		return;
-    }
+	}
 
 	if (m_bListInProgress)
 	{
@@ -358,7 +358,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 		}
 
 		return;
-    }
+	}
 
 	if (m_bListInProgress)
 	{
@@ -454,8 +454,8 @@ void CUCode_Zelda::ExecuteList()
 		case 0x00: break;
 
 		// DsetupTable ... zelda ww jumps to 0x0095
-	    case 0x01:
-	    {
+		case 0x01:
+		{
 			m_NumVoices = ExtraData;
 			m_VoicePBsAddr = Read32() & 0x7FFFFFFF;
 			m_UnkTableAddr = Read32() & 0x7FFFFFFF;
@@ -472,17 +472,17 @@ void CUCode_Zelda::ExecuteList()
 			for (int i = 0; i < 32; i++)
 				m_AFCCoefTable[i] = (s16)Common::swap16(TempPtr[i]);
 
-		    DEBUG_LOG(DSPHLE, "DsetupTable");
+			DEBUG_LOG(DSPHLE, "DsetupTable");
 			DEBUG_LOG(DSPHLE, "Num voice param blocks:             %i", m_NumVoices);
 			DEBUG_LOG(DSPHLE, "Voice param blocks address:         0x%08x", m_VoicePBsAddr);
 
 			// This points to some strange data table. Don't know yet what it's for. Reverb coefs?
-		    DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):       0x%08x", m_UnkTableAddr);
+			DEBUG_LOG(DSPHLE, "DSPRES_FILTER   (size: 0x40):       0x%08x", m_UnkTableAddr);
 
 			// Zelda WW: This points to a 64-byte array of coefficients, which are EXACTLY the same
 			// as the AFC ADPCM coef array in decode.c of the in_cube winamp plugin,
 			// which can play Zelda audio. So, these should definitely be used when decoding AFC.
-		    DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500):      0x%08x", m_AFCCoefTableAddr);
+			DEBUG_LOG(DSPHLE, "DSPADPCM_FILTER (size: 0x500):      0x%08x", m_AFCCoefTableAddr);
 			DEBUG_LOG(DSPHLE, "Reverb param blocks address:        0x%08x", m_ReverbPBsAddr);
 		}
 			break;
@@ -501,11 +501,11 @@ void CUCode_Zelda::ExecuteList()
 			m_RightBuffersAddr = Read32() & 0x7FFFFFFF;
 			m_LeftBuffersAddr = Read32() & 0x7FFFFFFF;
 
-		    DEBUG_LOG(DSPHLE, "DsyncFrame");
+			DEBUG_LOG(DSPHLE, "DsyncFrame");
 			// These alternate between three sets of mixing buffers. They are all three fairly near,
 			// but not at, the ADMA read addresses.
-		    DEBUG_LOG(DSPHLE, "Right buffer address:               0x%08x", m_RightBuffersAddr);
-		    DEBUG_LOG(DSPHLE, "Left buffer address:                0x%08x", m_LeftBuffersAddr);
+			DEBUG_LOG(DSPHLE, "Right buffer address:               0x%08x", m_RightBuffersAddr);
+			DEBUG_LOG(DSPHLE, "Left buffer address:                0x%08x", m_LeftBuffersAddr);
 
 			if (IsLightVersion())
 				break;
@@ -526,28 +526,28 @@ void CUCode_Zelda::ExecuteList()
  */
 
 		// DsetDolbyDelay ... zelda ww jumps to 0x00b2
-	    case 0x0d:
-	    {
-		    u32 tmp = Read32();
-		    DEBUG_LOG(DSPHLE, "DSetDolbyDelay");
-		    DEBUG_LOG(DSPHLE, "DOLBY2_DELAY_BUF (size 0x960):      0x%08x", tmp);
-	    }
-		    break;
+		case 0x0d:
+		{
+			u32 tmp = Read32();
+			DEBUG_LOG(DSPHLE, "DSetDolbyDelay");
+			DEBUG_LOG(DSPHLE, "DOLBY2_DELAY_BUF (size 0x960):      0x%08x", tmp);
+		}
+			break;
 
 			// This opcode, in the SMG ucode, sets the base address for audio data transfers from main memory (using DMA).
 			// In the Zelda ucode, it is dummy, because this ucode uses accelerator for audio data transfers.
-	    case 0x0e:
+		case 0x0e:
 			{
 				m_DMABaseAddr = Read32() & 0x7FFFFFFF;
 				DEBUG_LOG(DSPHLE, "DsetDMABaseAddr");
 				DEBUG_LOG(DSPHLE, "DMA base address:                   0x%08x", m_DMABaseAddr);
 			}
-		    break;
+			break;
 
 		// default ... zelda ww jumps to 0x0043
-	    default:
-		    PanicAlert("Zelda UCode - unknown command: %x (size %i)", Command, m_numSteps);
-		    break;
+		default:
+			PanicAlert("Zelda UCode - unknown command: %x (size %i)", Command, m_numSteps);
+			break;
 	}
 
 	// sync, we are ready

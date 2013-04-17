@@ -46,7 +46,7 @@ bool ShowSound(std::string FileName)
 	SplitPath(FileName, NULL, NULL, &Ending);
 	std::transform(Ending.begin(),Ending.end(),Ending.begin(),::tolower);
 
-	if (  
+	if (
 		   (Ending == ".adp") // 1080 Avalanche, Crash Bandicoot, etc
 		|| (Ending == ".afc") // Zelda WW
 		|| (Ending == ".ast") // Zelda TP, Mario Kart
@@ -76,6 +76,7 @@ void ReadGC(std::string FileName)
 		delete pFileSystem;
 		pFileSystem = NULL;
 	}
+
 	// GCFiles' pointers are no longer valid after pFileSystem is cleared
 	GCFiles.clear();
 	OpenISO = DiscIO::CreateVolumeFromFilename(FileName);
@@ -99,7 +100,9 @@ void CheckFile(std::string File, u64 Size)
 	if (CurrentFile == File)
 		return;
 
-	if (Size > 0) Size = (Size / 1000);
+	if (Size > 0)
+		Size = (Size / 1000);
+
 	std::string Str = StringFromFormat("%s kB %s", ThousandSeparate(Size, 7).c_str(), File.c_str());
 	if (ShowSound(File))
 	{
@@ -119,10 +122,16 @@ void CheckFile(std::string File, u64 Size)
 void FindFilename(u64 offset)
 {
 	// Don't do anything if a game is not running
-	if (Core::GetState() != Core::CORE_RUN) return;
+	if (Core::GetState() != Core::CORE_RUN)
+		return;
+
 	// Or if the log is unselected
-	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON)) return;
-	if (!FileAccess) return;
+	if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON))
+		return;
+
+	// Or if we don't have file access
+	if (!FileAccess)
+		return;
 
 	if (!pFileSystem || ISOFile != SConfig::GetInstance().m_LastFilename)
 	{

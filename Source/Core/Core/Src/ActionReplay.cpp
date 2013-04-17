@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // -----------------------------------------------------------------------------------------
@@ -191,14 +191,16 @@ void LoadCodes(IniFile &ini, bool forceLoad)
 		{
 			AREntry op;
 			bool success_addr = TryParse(std::string("0x") + pieces[0], &op.cmd_addr);
-   			bool success_val = TryParse(std::string("0x") + pieces[1], &op.value);
+			bool success_val = TryParse(std::string("0x") + pieces[1], &op.value);
 			if (!(success_addr | success_val)) {
 				PanicAlertT("Action Replay Error: invalid AR code line: %s", line.c_str());
 				if (!success_addr) PanicAlertT("The address is invalid");
 				if (!success_val) PanicAlertT("The value is invalid");
 			}
 			else
+			{
 				currentCode.ops.push_back(op);
+			}
 		}
 		else
 		{

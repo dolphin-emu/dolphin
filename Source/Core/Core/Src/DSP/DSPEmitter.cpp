@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <cstring>
@@ -147,28 +147,38 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	bool ext_is_jit = false;
 
 	// Call extended
-	if (tinst->extended) {
-		if ((inst >> 12) == 0x3) {
-			if (! extOpTable[inst & 0x7F]->jitFunc) {
+	if (tinst->extended)
+	{
+		if ((inst >> 12) == 0x3)
+		{
+			if (! extOpTable[inst & 0x7F]->jitFunc)
+			{
 				// Fall back to interpreter
 				gpr.pushRegs();
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0x7F]->intFunc, inst);
 				gpr.popRegs();
 				INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x\n", inst);
 				ext_is_jit = false;
-			} else {
+			}
+			else
+			{
 				(this->*extOpTable[inst & 0x7F]->jitFunc)(inst);
 				ext_is_jit = true;
 			}
-		} else {
-			if (!extOpTable[inst & 0xFF]->jitFunc) {
+		}
+		else
+		{
+			if (!extOpTable[inst & 0xFF]->jitFunc)
+			{
 				// Fall back to interpreter
 				gpr.pushRegs();
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0xFF]->intFunc, inst);
 				gpr.popRegs();
 				INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x\n", inst);
 				ext_is_jit = false;
-			} else {
+			}
+			else
+			{
 				(this->*extOpTable[inst & 0xFF]->jitFunc)(inst);
 				ext_is_jit = true;
 			}
@@ -176,7 +186,8 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	}
 	
 	// Main instruction
-	if (!opTable[inst]->jitFunc) {
+	if (!opTable[inst]->jitFunc)
+	{
 		Default(inst);
 		INFO_LOG(DSPLLE, "Instruction not JITed(main part): %04x\n", inst);
 	}
@@ -186,14 +197,18 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 	}
 
 	// Backlog
-	if (tinst->extended) {
-		if (!ext_is_jit) {
+	if (tinst->extended)
+	{
+		if (!ext_is_jit)
+		{
 			//need to call the online cleanup function because
 			//the writeBackLog gets populated at runtime
 			gpr.pushRegs();
 			ABI_CallFunction((void*)::applyWriteBackLog);
 			gpr.popRegs();
-		} else {
+		}
+		else
+		{
 			popExtValueToReg();
 		}
 	}
@@ -322,7 +337,8 @@ void DSPEmitter::Compile(u16 start_addr)
 		}
 	}
 
-	if (fixup_pc) {
+	if (fixup_pc)
+	{
 		MOV(16, M(&(g_dsp.pc)), Imm16(compilePC));
 	}
 

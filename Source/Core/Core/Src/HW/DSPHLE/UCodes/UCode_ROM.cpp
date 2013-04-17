@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "UCodes.h"
@@ -57,32 +57,32 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 	{
 		switch (m_NextParameter)
 		{
-		    case 0x80F3A001:
-			    m_CurrentUCode.m_RAMAddress = _uMail;
-			    break;
+			case 0x80F3A001:
+				m_CurrentUCode.m_RAMAddress = _uMail;
+				break;
 
-		    case 0x80F3A002:
-			    m_CurrentUCode.m_Length = _uMail & 0xffff;
-			    break;
+			case 0x80F3A002:
+				m_CurrentUCode.m_Length = _uMail & 0xffff;
+				break;
 
-		    case 0x80F3C002:
-			    m_CurrentUCode.m_IMEMAddress = _uMail & 0xffff;
-			    break;
+			case 0x80F3C002:
+				m_CurrentUCode.m_IMEMAddress = _uMail & 0xffff;
+				break;
 
-		    case 0x80F3B002:
-			    m_CurrentUCode.m_DMEMLength = _uMail & 0xffff;
+			case 0x80F3B002:
+				m_CurrentUCode.m_DMEMLength = _uMail & 0xffff;
 				if (m_CurrentUCode.m_DMEMLength) {
 					NOTICE_LOG(DSPHLE,"m_CurrentUCode.m_DMEMLength = 0x%04x.", m_CurrentUCode.m_DMEMLength);
 				}
-			    break;
+				break;
 
-		    case 0x80F3D001:
-		    {
-			    m_CurrentUCode.m_StartPC = _uMail & 0xffff;
-			    BootUCode();
+			case 0x80F3D001:
+			{
+				m_CurrentUCode.m_StartPC = _uMail & 0xffff;
+				BootUCode();
 				return;  // Important! BootUCode indirectly does "delete this;". Must exit immediately.
-		    }
-		    break;
+			}
+			break;
 
 			default:
 			break;

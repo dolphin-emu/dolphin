@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "FifoDataFile.h"
@@ -194,7 +194,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo 
 			WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
 
 			position = info.objectEnds[objectNum];
-			++objectNum;		
+			++objectNum;
 		}
 
 		// Write objects in draw range
@@ -290,7 +290,7 @@ void FifoPlayer::WriteFifo(u8 *data, u32 start, u32 end)
 		u32 burstEnd = std::min(written + 255, lastBurstEnd);
 
 		while (written < burstEnd)
-			GPFifo::FastWrite8(data[written++]);			
+			GPFifo::FastWrite8(data[written++]);
 
 		GPFifo::Write8(data[written++], 0);
 

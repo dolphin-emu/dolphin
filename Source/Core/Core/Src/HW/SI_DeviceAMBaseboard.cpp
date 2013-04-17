@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 
@@ -76,8 +76,12 @@ public:
 			{
 				m_msg[m_ptr++] = 0xD0;
 				m_msg[m_ptr++] = c - 1;
-			} else
+			}
+			else
+			{
 				m_msg[m_ptr++] = c;
+			}
+
 			if (!sync)
 				m_csum += c;
 			sync = 0;
@@ -104,7 +108,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 	{	
 		// read the command
 		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
-		iPosition ++;
+		iPosition++;
 
 		// handle it
 		switch(command)
@@ -342,7 +346,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 										}
 										break;
 									}
-								case 0x21: // coin	
+								case 0x21: // coin
 									{
 										int slots = *jvs_io++;
 										msg.addData(1);
@@ -441,7 +445,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 				ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
 				PanicAlert("SI: Unknown command");
 				iPosition = _iLength;
-			}			
+			}
 			break;
 		}
 	}

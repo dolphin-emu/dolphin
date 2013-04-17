@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #ifndef _WII_IPC_HLE_DEVICE_DI_H_
 #define _WII_IPC_HLE_DEVICE_DI_H_
@@ -21,8 +21,8 @@
 
 namespace DiscIO
 {
-    class IVolume;
-    class IFileSystem;
+	class IVolume;
+	class IFileSystem;
 }
 
 class CWII_IPC_HLE_Device_di : public IWII_IPC_HLE_Device
@@ -33,7 +33,7 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_di();
 
-    bool Open(u32 _CommandAddress, u32 _Mode);
+	bool Open(u32 _CommandAddress, u32 _Mode);
 	bool Close(u32 _CommandAddress, bool _bForce);
 
 	bool IOCtl(u32 _CommandAddress); 
@@ -45,7 +45,7 @@ private:
 
 	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 _BufferOut, u32 BufferOutSize);
 
-    DiscIO::IFileSystem* m_pFileSystem;
+	DiscIO::IFileSystem* m_pFileSystem;
 	u32 m_ErrorStatus;
 	// This flag seems to only be reset with poweron/off, not sure
 	u32 m_CoverStatus;

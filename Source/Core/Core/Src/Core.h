@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 
@@ -44,9 +44,9 @@ void Callback_VideoCopiedToXFB(bool video_update);
 
 enum EState
 {
-    CORE_UNINITIALIZED,
-    CORE_PAUSE,
-    CORE_RUN,
+	CORE_UNINITIALIZED,
+	CORE_PAUSE,
+	CORE_RUN,
 	CORE_STOPPING
 };
 
@@ -69,7 +69,7 @@ void SaveScreenShot();
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
 void* GetWindowHandle();
-    
+
 void StartTrace(bool write);
 
 // This displays messages in a user-visible way.
@@ -82,7 +82,7 @@ inline void DisplayMessage(const std::string &message, int time_in_ms)
 	
 std::string GetStateFileName();
 void SetStateFileName(std::string val);
-    
+
 int SyncTrace();
 void SetBlockStart(u32 addr);
 void StopTrace();

@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _BOOT_H
@@ -43,10 +43,10 @@ private:
 	static bool EmulatedBS2_GC();
 	static bool EmulatedBS2_Wii();
 	static bool EmulatedBS2(bool _bIsWii);
-    static bool Load_BS2(const std::string& _rBootROMFilename);
+	static bool Load_BS2(const std::string& _rBootROMFilename);
 	static void Load_FST(bool _bIsWii);
 
-    static bool SetupWiiMemory(unsigned int _CountryCode);
+	static bool SetupWiiMemory(unsigned int _CountryCode);
 };
 
 #endif

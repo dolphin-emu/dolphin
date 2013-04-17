@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -60,7 +60,7 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 
 	_rSamplePos++;
 
-    // The advanced interpolation (linear, polyphase,...) is done by the UCode,
+	// The advanced interpolation (linear, polyphase,...) is done by the UCode,
 	// so we don't need to bother with it here.
 	return val;
 }
@@ -78,7 +78,7 @@ u16 dsp_read_aram_d3()
 			Address++;
 			break;
 		case 0x6:   // u16 reads
-		    val = (DSPHost_ReadHostMemory(Address*2) << 8) | DSPHost_ReadHostMemory(Address*2 + 1);
+			val = (DSPHost_ReadHostMemory(Address*2) << 8) | DSPHost_ReadHostMemory(Address*2 + 1);
 			Address++;
 			break;
 		default:
@@ -134,25 +134,25 @@ u16 dsp_read_accelerator()
 	// address" and 0xd3.
 	switch (g_dsp.ifx_regs[DSP_FORMAT])
 	{
-	    case 0x00:  // ADPCM audio
-		    val = ADPCM_Step(Address);
-		    break;
-	    case 0x0A:  // 16-bit PCM audio
-		    val = (DSPHost_ReadHostMemory(Address*2) << 8) | DSPHost_ReadHostMemory(Address*2 + 1);
-		    g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
-		    g_dsp.ifx_regs[DSP_YN1] = val;
-		    Address++;
-		    break;
-	    case 0x19:  // 8-bit PCM audio
-		    val = DSPHost_ReadHostMemory(Address) << 8; 
-		    g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
-		    g_dsp.ifx_regs[DSP_YN1] = val;
-		    Address++;
+		case 0x00:  // ADPCM audio
+			val = ADPCM_Step(Address);
 			break;
-	    default:
-		    ERROR_LOG(DSPLLE, "dsp_read_accelerator() - unknown format 0x%x", g_dsp.ifx_regs[DSP_FORMAT]);
-		    Address++;
-		    val = 0;
+		case 0x0A:  // 16-bit PCM audio
+			val = (DSPHost_ReadHostMemory(Address*2) << 8) | DSPHost_ReadHostMemory(Address*2 + 1);
+			g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
+			g_dsp.ifx_regs[DSP_YN1] = val;
+			Address++;
+			break;
+		case 0x19:  // 8-bit PCM audio
+			val = DSPHost_ReadHostMemory(Address) << 8; 
+			g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
+			g_dsp.ifx_regs[DSP_YN1] = val;
+			Address++;
+			break;
+		default:
+			ERROR_LOG(DSPLLE, "dsp_read_accelerator() - unknown format 0x%x", g_dsp.ifx_regs[DSP_FORMAT]);
+			Address++;
+			val = 0;
 			break;
 	}
 

@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "PPCCache.h"
@@ -122,11 +122,11 @@ namespace PowerPC
 		u32 t;
 		if (addr & ICACHE_VMEM_BIT)
 		{
-			t = lookup_table_vmem[(addr>>5) & 0xfffff];			
+			t = lookup_table_vmem[(addr>>5) & 0xfffff];
 		}
 		else if (addr & ICACHE_EXRAM_BIT)
 		{
-			t = lookup_table_ex[(addr>>5) & 0x1fffff];			
+			t = lookup_table_ex[(addr>>5) & 0x1fffff];
 		}
 		else
 		{
@@ -163,6 +163,7 @@ namespace PowerPC
 				else
 					lookup_table[((tags[set][t] << 7) | set) & 0xfffff] = 0xff;
 			}
+
 			if (addr & ICACHE_VMEM_BIT)
 				lookup_table_vmem[(addr>>5) & 0xfffff] = t;
 			else if (addr & ICACHE_EXRAM_BIT)

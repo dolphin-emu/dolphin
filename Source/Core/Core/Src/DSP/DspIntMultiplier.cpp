@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
@@ -203,7 +203,7 @@ void mulaxh(const UDSPInstruction opc)
 
 	zeroWriteBackLog();
 	
-	dsp_set_long_prod(prod);		
+	dsp_set_long_prod(prod);
 }
 
 //----
@@ -241,7 +241,7 @@ void mulac(const UDSPInstruction opc)
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
 	s64 prod = dsp_multiply(axl, axh);
-												
+
 	zeroWriteBackLog();
 
 	dsp_set_long_prod(prod);
@@ -265,7 +265,7 @@ void mulmv(const UDSPInstruction opc)
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
 	s64 prod = dsp_multiply(axl, axh);
-												
+
 	zeroWriteBackLog();
 
 	dsp_set_long_prod(prod);
@@ -335,7 +335,7 @@ void mulxac(const UDSPInstruction opc)
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
 	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
-	
+
 	zeroWriteBackLog();
 
 	dsp_set_long_prod(prod);
@@ -408,7 +408,7 @@ void mulc(const UDSPInstruction opc)
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
 	s64 prod = dsp_multiply(accm, axh);
-												
+
 	zeroWriteBackLog();
 
 	dsp_set_long_prod(prod);
@@ -484,7 +484,7 @@ void mulcmvz(const UDSPInstruction opc)
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
 	s64 prod = dsp_multiply(accm, axh);
-											
+
 	zeroWriteBackLog();
 
 	dsp_set_long_prod(prod);
@@ -582,7 +582,7 @@ void madd(const UDSPInstruction opc)
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
 	s64 prod = dsp_multiply_add(axl, axh);
-												
+
 	zeroWriteBackLog();
 
 	dsp_set_long_prod(prod);
@@ -600,7 +600,7 @@ void msub(const UDSPInstruction opc)
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
 	s64 prod = dsp_multiply_sub(axl, axh);
-												
+
 	zeroWriteBackLog();
 
 	dsp_set_long_prod(prod);

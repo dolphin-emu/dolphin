@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <string>
@@ -264,15 +264,15 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 		int regInA = a.regsIn[j];
 		int regInB = b.regsIn[j];
 		if (regInA >= 0 && 
-		    (b.regsOut[0] == regInA ||
-		     b.regsOut[1] == regInA))
+			(b.regsOut[0] == regInA ||
+			 b.regsOut[1] == regInA))
 		{
 			// reg collision! don't swap
 			return false;
 		}
 		if (regInB >= 0 &&
-		    (a.regsOut[0] == regInB ||
-		     a.regsOut[1] == regInB))
+			(a.regsOut[0] == regInB ||
+			 a.regsOut[1] == regInB))
 		{
 			// reg collision! don't swap
 			return false;
@@ -740,7 +740,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 	if (numNice == 0)
 		niceSize = 0;
 	else
-        niceSize /= numNice;
+		niceSize /= numNice;
 
 	if (numUnNice == 0)
 		unniceSize = 0;

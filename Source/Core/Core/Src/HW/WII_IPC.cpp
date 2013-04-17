@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <map>
@@ -152,7 +152,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 {
 	switch(_Address & 0xFFFF)
 	{
-	case IPC_PPCCTRL:	
+	case IPC_PPCCTRL:
 		_rReturnValue = ctrl.ppc();
 		DEBUG_LOG(WII_IPC, "r32 IPC_PPCCTRL %03x [R:%i A:%i E:%i]",
 			ctrl.ppc(), ctrl.Y1, ctrl.Y2, ctrl.X1);
@@ -199,7 +199,7 @@ void Write32(const u32 _Value, const u32 _Address)
 				WII_IPC_HLE_Interface::EnqRequest(ppc_msg);
 			}
 		}
-		break;  
+		break;
 
 	case PPC_IRQFLAG:	// ACR REGISTER IT IS CALLED IN DEBUG
 		{

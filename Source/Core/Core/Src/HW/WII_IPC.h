@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #ifndef _WII_IPC_H_
 #define _WII_IPC_H_
@@ -46,7 +46,7 @@ enum StarletInterruptCause
 
 void Init();
 void Reset();
-void Shutdown();	
+void Shutdown();
 void DoState(PointerWrap &p);
 
 void Read32(u32& _rReturnValue, const u32 _Address);

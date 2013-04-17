@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // File description
@@ -78,7 +78,8 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.hInstance = Host_GetInstance();
 
 	// If for example the ISO file is bad we return here
-	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT)) return false;
+	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT))
+		return false;
 
 	// Load game specific settings
 	IniFile game_ini;

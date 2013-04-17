@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 
@@ -74,9 +74,12 @@ void DSPLLE::DoState(PointerWrap &p)
 	p.Do(g_dsp.reg_stack_ptr);
 	p.Do(g_dsp.exceptions);
 	p.Do(g_dsp.external_interrupt_waiting);
-	for (int i = 0; i < 4; i++) {
+
+	for (int i = 0; i < 4; i++)
+	{
 		p.Do(g_dsp.reg_stack[i]);
 	}
+
 	p.Do(g_dsp.iram_crc);
 	p.Do(g_dsp.step_counter);
 	p.Do(g_dsp.ifx_regs);

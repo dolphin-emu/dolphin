@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <stdio.h>
@@ -88,7 +88,7 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* _pBuffer, int _iLength)
 			for (int i = 0; i < (int)sizeof(SOrigin); i++)
 			{
 				_pBuffer[i ^ 3] = *pCalibration++;
-			}				
+			}
 		}
 		break;
 
@@ -100,7 +100,7 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* _pBuffer, int _iLength)
 	default:
 		{
 			ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
-		}			
+		}
 		break;
 	}
 
@@ -143,7 +143,9 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 		Movie::InputUpdate();
 	}
 	else
+	{
 		Movie::CheckPadStatus(&PadStatus, ISIDevice::m_iDeviceNumber);
+	}
 
 	// Thankfully changing mode does not change the high bits ;)
 	_Hi  = (u32)((u8)PadStatus.stickX); // Steering
@@ -228,7 +230,9 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 		if ((m_TButtonCombo - m_TButtonComboStart) > SystemTimers::GetTicksPerSecond() * 3)
 		{
 			if (m_LastButtonCombo == COMBO_RESET)
+			{
 				ProcessorInterface::ResetButton_Tap();
+			}
 			else if (m_LastButtonCombo == COMBO_ORIGIN)
 			{
 				m_Origin.uOriginStickX		= PadStatus.stickX;
@@ -298,7 +302,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 _Cmd, u8 _Poll)
 	default:
 		{
 			ERROR_LOG(SERIALINTERFACE, "Unknown direct command     (0x%x)", _Cmd);
-		}			
+		}
 		break;
 	}
 }

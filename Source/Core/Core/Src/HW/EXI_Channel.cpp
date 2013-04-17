@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "EXI_Channel.h"
@@ -149,7 +149,9 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 			// check if external device is present
 			// pretty sure it is memcard only, not entirely sure
 			if (m_ChannelId == 2)
+			{
 				m_Status.EXT = 0;
+			}
 			else
 			{
 				m_Status.EXT = GetDevice(1)->IsPresent() ? 1 : 0;
@@ -195,25 +197,29 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 		{
 			UEXI_STATUS newStatus(_iValue);
 
-			m_Status.EXIINTMASK		= newStatus.EXIINTMASK;
-			if (newStatus.EXIINT)	m_Status.EXIINT = 0;
+			m_Status.EXIINTMASK = newStatus.EXIINTMASK;
+			if (newStatus.EXIINT)
+				m_Status.EXIINT = 0;
 
-			m_Status.TCINTMASK		= newStatus.TCINTMASK;
-			if (newStatus.TCINT)	m_Status.TCINT = 0;
+			m_Status.TCINTMASK = newStatus.TCINTMASK;
+			if (newStatus.TCINT)
+				m_Status.TCINT = 0;
 
-			m_Status.CLK			= newStatus.CLK;
+			m_Status.CLK = newStatus.CLK;
 
 			if (m_ChannelId == 0 || m_ChannelId == 1)
 			{
-				m_Status.EXTINTMASK	= newStatus.EXTINTMASK;
-				if (newStatus.EXTINT)	m_Status.EXTINT = 0;
+				m_Status.EXTINTMASK = newStatus.EXTINTMASK;
+
+				if (newStatus.EXTINT)
+					m_Status.EXTINT = 0;
 			}
 
 			if (m_ChannelId == 0)
-				m_Status.ROMDIS		= newStatus.ROMDIS;
+				m_Status.ROMDIS = newStatus.ROMDIS;
 
 			IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT ^ newStatus.CHIP_SELECT);
-			m_Status.CHIP_SELECT	= newStatus.CHIP_SELECT;
+			m_Status.CHIP_SELECT = newStatus.CHIP_SELECT;
 			if (pDevice != NULL)
 				pDevice->SetCS(m_Status.CHIP_SELECT);
 

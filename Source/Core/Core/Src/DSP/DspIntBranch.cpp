@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
@@ -194,7 +194,9 @@ void loop(const UDSPInstruction opc)
 		dsp_reg_store_stack(3, cnt);
 	}
 	else
+	{
 		dsp_skip_inst();
+	}
 }
 
 // LOOPI #I
@@ -217,7 +219,9 @@ void loopi(const UDSPInstruction opc)
 		dsp_reg_store_stack(3, cnt);
 	}
 	else
+	{
 		dsp_skip_inst();
+	}
 }
 
 

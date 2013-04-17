@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -176,10 +176,13 @@ void Jit64::mfcr(UGeckoInstruction inst)
 	gpr.Lock(d);
 	gpr.KillImmediate(d, false, true);
 	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[0]));
-	for (int i = 1; i < 8; i++) {
+
+	for (int i = 1; i < 8; i++)
+	{
 		SHL(32, R(EAX), Imm8(4));
 		OR(8, R(EAX), M(&PowerPC::ppcState.cr_fast[i]));
 	}
+
 	MOV(32, gpr.R(d), R(EAX));
 	gpr.UnlockAll();
 }

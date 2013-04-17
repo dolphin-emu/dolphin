@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #pragma once
@@ -102,7 +102,7 @@ private:
 
 	enum USBEndpoint
 	{
-		HCI_CTRL		= 0x00,	
+		HCI_CTRL		= 0x00,
 		HCI_EVENT		= 0x81,
 		ACL_DATA_IN		= 0x82,
 		ACL_DATA_OUT	= 0x02
@@ -253,7 +253,7 @@ private:
 	void CommandDisconnect(u8* _Input);
 	void CommandLinkKeyNegRep(u8* _Input);
 	void CommandLinkKeyRep(u8* _Input);
-    void CommandDeleteStoredLinkKey(u8* _Input);
+	void CommandDeleteStoredLinkKey(u8* _Input);
 	void CommandChangeConPacketType(u8* _Input);
 
 	// OGF 0x02	Link policy commands and return parameters

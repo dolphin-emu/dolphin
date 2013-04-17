@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "UCodes.h"
@@ -27,11 +27,13 @@ CUCode_InitAudioSystem::CUCode_InitAudioSystem(DSPHLE *dsp_hle, u32 crc)
 
 
 CUCode_InitAudioSystem::~CUCode_InitAudioSystem()
-{}
+{
+}
 
 
 void CUCode_InitAudioSystem::Init()
-{}
+{
+}
 
 
 void CUCode_InitAudioSystem::Update(int cycles)
@@ -49,6 +51,7 @@ u32 CUCode_InitAudioSystem::GetUpdateMs()
 }
 
 void CUCode_InitAudioSystem::HandleMail(u32 _uMail)
-{}
+{
+}
 
 

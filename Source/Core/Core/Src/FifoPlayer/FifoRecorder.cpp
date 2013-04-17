@@ -9,7 +9,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "ConfigManager.h"
@@ -182,11 +182,11 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 
 		m_FifoData.reserve(1024 * 1024 * 4);
 		m_FifoData.clear();
-	}	
+	}
 
 	if (m_RequestedRecordingEnd)
 	{
-		// Skip data after the next time WriteFifoData is called		
+		// Skip data after the next time WriteFifoData is called
 		m_SkipFutureData = true;
 		// Signal video backend that it should not call this function when the next frame ends
 		m_IsRecording = false;

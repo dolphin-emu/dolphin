@@ -401,7 +401,9 @@ void CUCode_AX::SetupProcessing(u32 init_addr)
 		init_idx += 3;
 
 		if (!init_val)
+		{
 			memset(buffers[i], 0, 5 * 32 * sizeof (int));
+		}
 		else
 		{
 			for (u32 j = 0; j < 32 * 5; ++j)

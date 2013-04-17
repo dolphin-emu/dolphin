@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _SI_DEVICEGBA_H
@@ -38,7 +38,7 @@ private:
 		CMD_RESET	= 0xff,
 		CMD_STATUS	= 0x00,
 		CMD_READ	= 0x14,
-		CMD_WRITE	= 0x15		
+		CMD_WRITE	= 0x15
 	};
 
 	sf::SocketTCP client;

@@ -12,13 +12,14 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "MailHandler.h"
 
 CMailHandler::CMailHandler()
-{}
+{
+}
 
 CMailHandler::~CMailHandler()
 {
@@ -48,7 +49,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
 	if (!m_Mails.empty())
 	{
 		u16 result = m_Mails.front() & 0xFFFF;
-        m_Mails.pop();
+		m_Mails.pop();
 		return result;
 	}
 	return 0x00;

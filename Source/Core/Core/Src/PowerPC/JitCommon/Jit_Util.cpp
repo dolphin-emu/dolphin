@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -57,7 +57,7 @@ void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int acc
 	else if (signExtend)
 	{
 		// TODO: bake 8-bit into the original load.
-		MOVSX(32, accessSize, reg_value, R(reg_value));   
+		MOVSX(32, accessSize, reg_value, R(reg_value));
 	}
 }
 
@@ -116,7 +116,7 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 	else if (signExtend)
 	{
 		// TODO: bake 8-bit into the original load.
-		MOVSX(32, accessSize, EAX, R(EAX));   
+		MOVSX(32, accessSize, EAX, R(EAX));
 	}
 }
 

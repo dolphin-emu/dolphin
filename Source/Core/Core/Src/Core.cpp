@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 
@@ -143,7 +143,9 @@ void DisplayMessage(const char *message, int time_in_ms)
 			Host_UpdateStatusBar(message);
 	}
 	else
+	{
 		Host_UpdateTitle(message);
+	}
 }
 
 void Callback_DebuggerBreak()
@@ -555,7 +557,9 @@ static std::string GenerateScreenshotName()
 
 	std::string name;
 	for (int i = 1; File::Exists(name = StringFromFormat("%s-%d.png", path.c_str(), i)); ++i)
-	{}
+	{
+		// TODO?
+	}
 
 	return name;
 }
@@ -614,7 +618,8 @@ void VideoThrottle()
 		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
 
 		u32 timeDifference = (u32)Timer.GetTimeDifference();
-		if (timeDifference < frametime) {
+		if (timeDifference < frametime)
+		{
 			Common::SleepCurrentThread(frametime - timeDifference - 1);
 		}
 
@@ -670,7 +675,7 @@ const char *Callback_ISOName()
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 	if (params.m_strName.length() > 0)
 		return params.m_strName.c_str();
-	else	
+	else
 		return "";
 }
 
@@ -742,10 +747,12 @@ void UpdateTitle()
 	}
 
 	if (_CoreParameter.bRenderToMain &&
-		SConfig::GetInstance().m_InterfaceStatusbar) {
+		SConfig::GetInstance().m_InterfaceStatusbar)
+	{
 		Host_UpdateStatusBar(SMessage.c_str());
 		Host_UpdateTitle(scm_rev_str);
-	} else
+	}
+	else
 		Host_UpdateTitle(TMessage.c_str());
 	}
 

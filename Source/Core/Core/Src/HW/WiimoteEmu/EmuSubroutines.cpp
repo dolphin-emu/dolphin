@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 
@@ -163,7 +163,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 	case WM_IR_LOGIC: // 0x1a
 		// comment from old plugin:
 		// This enables or disables the IR lights, we update the global variable g_IR
-	    // so that WmRequestStatus() knows about it
+		// so that WmRequestStatus() knows about it
 		//INFO_LOG(WIIMOTE, "WM IR Enable: 0x%02x", sr->data[0]);
 		m_status.ir = sr->enable;
 		if (false == sr->ack)

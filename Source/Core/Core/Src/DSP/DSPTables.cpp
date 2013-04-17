@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // Additional copyrights go to Duddie (c) 2005 (duddie@walla.com)
@@ -27,7 +27,8 @@
 void nop(const UDSPInstruction opc)
 {
 	// The real nop is 0. Anything else is bad.
-	if (opc) {
+	if (opc)
+	{
 		ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x", opc);
 	}
 }
@@ -536,7 +537,7 @@ void InitInstructionTable()
 		extOpTable[i] = &cw;
 
 	for (int i = 0; i < EXT_OPTABLE_SIZE; i++)
-    {
+	{
 		for (int j = 0; j < opcodes_ext_size; j++)
 		{
 			u16 mask = opcodes_ext[j].opcode_mask;
@@ -576,4 +577,4 @@ void InitInstructionTable()
 
 	for (int i=0; i < WRITEBACKLOGSIZE; i++)
 		writeBackLogIdx[i] = -1;
-}	
+}

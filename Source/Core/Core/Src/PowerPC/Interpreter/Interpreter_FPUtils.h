@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _INTERPRETER_FPUTILS_H
@@ -70,8 +70,8 @@ inline void SetFI(int FI)
 {
 	if (FI)
 	{
-		SetFPException(FPSCR_XX);		
-	}	
+		SetFPException(FPSCR_XX);
+	}
 	FPSCR.FI = FI;
 }
 
@@ -112,13 +112,13 @@ inline double ForceDouble(double d)
 // also, these may be used to set flags like FR, FI, OX, UX
 
 inline double NI_mul(const double a, const double b)
-{	
+{
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
 	double t = a * b;
 	if (t != t)
-	{		
+	{
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
@@ -248,7 +248,7 @@ inline u32 ConvertToSingleFTZ(u64 x)
 	}
 	else
 	{
-		return (x >> 32) & 0x80000000;		
+		return (x >> 32) & 0x80000000;
 	}
 }
 

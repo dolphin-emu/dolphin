@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <stdlib.h>
@@ -101,11 +101,11 @@ int SyncTrace()
 			LOG(GEKKO, "DIFFERENCE - PC (local %08x, remote %08x)", PowerPC::ppcState.pc, state.pc);
 			difference = true;
 		}
-		//if (PowerPC::ppcState.npc != state.npc)
-		///{
-		//	LOG(GEKKO, "DIFFERENCE - NPC (local %08x, remote %08x)", PowerPC::ppcState.npc, state.npc);
-		//	difference = true;
-		//}
+		if (PowerPC::ppcState.npc != state.npc)
+		{
+			LOG(GEKKO, "DIFFERENCE - NPC (local %08x, remote %08x)", PowerPC::ppcState.npc, state.npc);
+			difference = true;
+		}
 		if (PowerPC::ppcState.msr != state.msr)
 		{
 			LOG(GEKKO, "DIFFERENCE - MSR (local %08x, remote %08x)", PowerPC::ppcState.msr, state.msr);

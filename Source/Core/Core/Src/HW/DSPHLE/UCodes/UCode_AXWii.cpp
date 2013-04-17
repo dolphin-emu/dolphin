@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "StringUtil.h"
@@ -138,7 +138,7 @@ void CUCode_AXWii::HandleCommandList()
 					addr2_hi = m_cmdlist[curr_idx++];
 					addr2_lo = m_cmdlist[curr_idx++];
 					OutputSamples(HILO_TO_32(addr2), HILO_TO_32(addr), 0x8000,
-					              cmd == CMD_OUTPUT_DPL2_OLD);
+					             cmd == CMD_OUTPUT_DPL2_OLD);
 					break;
 
 				case CMD_WM_OUTPUT_OLD:
@@ -300,7 +300,9 @@ void CUCode_AXWii::SetupProcessing(u32 init_addr)
 		init_idx += 3;
 
 		if (!init_val)
+		{
 			memset(buffers[i].ptr, 0, 3 * buffers[i].samples * sizeof (int));
+		}
 		else
 		{
 			for (u32 j = 0; j < 3 * buffers[i].samples; ++j)

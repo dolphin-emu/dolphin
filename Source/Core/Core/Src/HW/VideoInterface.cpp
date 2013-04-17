@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -304,11 +304,11 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 	case VI_VERTICAL_BEAM_POSITION:
-    	_uReturnValue = m_VBeamPos;
+		_uReturnValue = m_VBeamPos;
 		return;
 
 	case VI_HORIZONTAL_BEAM_POSITION:
-        _uReturnValue = m_HBeamPos;
+		_uReturnValue = m_HBeamPos;
 		return;
 
 	// RETRACE STUFF ...
@@ -748,9 +748,9 @@ void UpdateParameters()
 {
 	fields = m_DisplayControlRegister.NIN ? 2 : 1;
 
-    switch (m_DisplayControlRegister.FMT)
-    {
-    case 0: // NTSC
+	switch (m_DisplayControlRegister.FMT)
+	{
+	case 0: // NTSC
 		TargetRefreshRate = NTSC_FIELD_RATE;
 		TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
 		s_lineCount = NTSC_LINE_COUNT;
@@ -758,30 +758,30 @@ void UpdateParameters()
 		s_lowerFieldBegin = NTSC_LOWER_BEGIN;
 		break;
 
-    case 2: // PAL-M
+	case 2: // PAL-M
 		TargetRefreshRate = NTSC_FIELD_RATE;
 		TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
 		s_lineCount = PAL_LINE_COUNT;
 		s_upperFieldBegin = PAL_UPPER_BEGIN;
 		s_lowerFieldBegin = PAL_LOWER_BEGIN;
-        break;
+		break;
 
-    case 1: // PAL
+	case 1: // PAL
 		TargetRefreshRate = PAL_FIELD_RATE;
 		TicksPerFrame = SystemTimers::GetTicksPerSecond() / PAL_FIELD_RATE;
 		s_lineCount = PAL_LINE_COUNT;
 		s_upperFieldBegin = PAL_UPPER_BEGIN;
 		s_lowerFieldBegin = PAL_LOWER_BEGIN;
-        break;
+		break;
 
 	case 3: // Debug
 		PanicAlert("Debug video mode not implemented");
 		break;
 
-    default:
-        PanicAlert("Unknown Video Format - CVideoInterface");
-        break;
-    }
+	default:
+		PanicAlert("Unknown Video Format - CVideoInterface");
+		break;
+	}
 }
 
 int GetNumFields()

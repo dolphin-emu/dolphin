@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -89,7 +89,8 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 		default: success = false; break;
 	}
 
-	if (!success) {
+	if (!success)
+	{
 		DSPSymbols::AutoDisassembly(0x0, 0x1000);
 	}
 

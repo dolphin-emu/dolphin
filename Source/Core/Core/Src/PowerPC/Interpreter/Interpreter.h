@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _INTERPRETER_H
@@ -27,9 +27,9 @@ class Interpreter : public CPUCoreBase
 public:
 	void Init();
 	void Shutdown();
-	void Reset();	
-	void SingleStep();	
-	int SingleStepInner();	
+	void Reset();
+	void SingleStep();
+	int SingleStepInner();
 
 	void Run();
 	void ClearCache();

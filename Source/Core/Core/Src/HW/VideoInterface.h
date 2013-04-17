@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #ifndef _VIDEOINTERFACE_H
 #define _VIDEOINTERFACE_H
@@ -33,8 +33,8 @@ namespace VideoInterface
 // These line numbers indicate the beginning of the "active video" in a frame.
 // An NTSC frame has the lower field first followed by the upper field.
 // TODO: Is this true for PAL-M? Is this true for EURGB60?
-#define NTSC_LOWER_BEGIN		21
-#define NTSC_UPPER_BEGIN		283
+#define NTSC_LOWER_BEGIN	21
+#define NTSC_UPPER_BEGIN	283
 
 //#define PAL_FIELD_RATE		50.0f
 #define PAL_FIELD_RATE		50
@@ -48,7 +48,7 @@ namespace VideoInterface
 enum
 {
 	VI_VERTICAL_TIMING					= 0x00,
-	VI_CONTROL_REGISTER	                = 0x02,
+	VI_CONTROL_REGISTER					= 0x02,
 	VI_HORIZONTAL_TIMING_0_HI			= 0x04,
 	VI_HORIZONTAL_TIMING_0_LO			= 0x06,
 	VI_HORIZONTAL_TIMING_1_HI			= 0x08,
@@ -83,8 +83,8 @@ enum
 	VI_DISPLAY_LATCH_0_LO				= 0x42,
 	VI_DISPLAY_LATCH_1_HI				= 0x44,
 	VI_DISPLAY_LATCH_1_LO				= 0x46,
-	VI_HSCALEW                          = 0x48,
-	VI_HSCALER                          = 0x4a,
+	VI_HSCALEW							= 0x48,
+	VI_HSCALER							= 0x4a,
 	VI_FILTER_COEF_0_HI					= 0x4c,
 	VI_FILTER_COEF_0_LO					= 0x4e,
 	VI_FILTER_COEF_1_HI					= 0x50,
@@ -340,7 +340,7 @@ union UVIDTVStatus
 	void Read8(u8& _uReturnValue, const u32 _uAddress);
 	void Read16(u16& _uReturnValue, const u32 _uAddress);
 	void Read32(u32& _uReturnValue, const u32 _uAddress);
-				
+
 	void Write16(const u16 _uValue, const u32 _uAddress);
 	void Write32(const u32 _uValue, const u32 _uAddress);
 
@@ -348,14 +348,14 @@ union UVIDTVStatus
 	u8* GetXFBPointerTop();
 	u8* GetXFBPointerBottom();
 
-    // Update and draw framebuffer
-    void Update();
+	// Update and draw framebuffer
+	void Update();
 
 	// UpdateInterrupts: check if we have to generate a new VI Interrupt
 	void UpdateInterrupts();
 
-    // Change values pertaining to video mode
-    void UpdateParameters();
+	// Change values pertaining to video mode
+	void UpdateParameters();
 
 	unsigned int GetTicksPerLine();
 	unsigned int GetTicksPerFrame();

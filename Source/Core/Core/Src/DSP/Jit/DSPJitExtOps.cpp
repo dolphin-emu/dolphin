@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #include "../DSPMemoryMap.h"
 #include "../DSPEmitter.h"
@@ -41,21 +41,24 @@ using namespace Gen;
 // DR $arR
 // xxxx xxxx 0000 01rr
 // Decrement addressing register $arR.
-void DSPEmitter::dr(const UDSPInstruction opc) {
+void DSPEmitter::dr(const UDSPInstruction opc)
+{
 	decrement_addr_reg(opc & 0x3);
 }
 
 // IR $arR
 // xxxx xxxx 0000 10rr
 // Increment addressing register $arR.
-void DSPEmitter::ir(const UDSPInstruction opc) {
+void DSPEmitter::ir(const UDSPInstruction opc)
+{
 	increment_addr_reg(opc & 0x3);
 }
 
 // NR $arR
 // xxxx xxxx 0000 11rr
 // Add corresponding indexing register $ixR to addressing register $arR.
-void DSPEmitter::nr(const UDSPInstruction opc) {
+void DSPEmitter::nr(const UDSPInstruction opc)
+{
 	u8 reg = opc & 0x3;	
 	
 	increase_addr_reg(reg, reg);
@@ -66,7 +69,7 @@ void DSPEmitter::nr(const UDSPInstruction opc) {
 // Move value of $acS.S to the $axD.D.
 void DSPEmitter::mv(const UDSPInstruction opc)
 {
- 	u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
+	u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
 	u8 dreg = ((opc >> 2) & 0x3);
 	if (sreg >= DSP_REG_ACM0) {
 		dsp_op_read_reg_and_saturate(sreg, RBX, ZERO);
@@ -74,7 +77,7 @@ void DSPEmitter::mv(const UDSPInstruction opc)
 	} else
 		pushExtValueFromReg(dreg + DSP_REG_AXL0, sreg);
 }
-	
+
 // S @$arD, $acS.S
 // xxxx xxxx 001s s0dd
 // Store value of $acS.S in the memory pointed by register $arD.
@@ -652,12 +655,14 @@ void DSPEmitter::ldaxnm(const UDSPInstruction opc)
 
 // Push value from g_dsp.r[sreg] into EBX and stores the destinationindex in
 // storeIndex
-void DSPEmitter::pushExtValueFromReg(u16 dreg, u16 sreg) {
+void DSPEmitter::pushExtValueFromReg(u16 dreg, u16 sreg)
+{
 	dsp_op_read_reg(sreg, RBX, ZERO);
 	storeIndex = dreg;
 }
 
-void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
+void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg)
+{
 	//	u16 addr = g_dsp.r[addr];
 
 	X64Reg tmp1;
@@ -673,7 +678,8 @@ void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
 	storeIndex = dreg;
 }
 
-void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg) {
+void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg)
+{
 	//	u16 addr = g_dsp.r[addr];
 
 	X64Reg tmp1;
@@ -690,7 +696,8 @@ void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg) {
 	storeIndex2 = dreg;
 }
 
-void DSPEmitter::popExtValueToReg() {
+void DSPEmitter::popExtValueToReg()
+{
 	// in practise, we rarely ever have a non-NX main op
 	// with an extended op, so the OR here is either
 	// not run (storeIndex == -1) or ends up OR'ing
@@ -698,9 +705,11 @@ void DSPEmitter::popExtValueToReg() {
 	// nakee wants to keep it clean, so lets do that.
 	// [nakeee] the or case never happens in real
 	// [nakeee] it's just how the hardware works so we added it
-	if (storeIndex != -1) {
+	if (storeIndex != -1)
+	{
 		dsp_op_write_reg(storeIndex, RBX);
-		if (storeIndex  >= DSP_REG_ACM0 && storeIndex2 == -1) {
+		if (storeIndex  >= DSP_REG_ACM0 && storeIndex2 == -1)
+		{
 			TEST(32, R(EBX), Imm32(SR_40_MODE_BIT << 16));
 			FixupBranch not_40bit = J_CC(CC_Z, true);
 			DSPJitRegCache c(gpr);
@@ -722,9 +731,11 @@ void DSPEmitter::popExtValueToReg() {
 
 	storeIndex = -1;
 
-	if (storeIndex2 != -1) {
+	if (storeIndex2 != -1)
+	{
 		SHR(32, R(EBX), Imm8(16));
 		dsp_op_write_reg(storeIndex2, RBX);
 	}
+
 	storeIndex2 = -1;
 }

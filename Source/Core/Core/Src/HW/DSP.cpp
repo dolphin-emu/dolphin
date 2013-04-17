@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // AID / AUDIO_DMA controls pushing audio out to the SRC and then the speakers.
@@ -59,7 +59,7 @@ enum
 	DSP_MAIL_FROM_DSP_HI	= 0x5004,
 	DSP_MAIL_FROM_DSP_LO	= 0x5006,
 	DSP_CONTROL				= 0x500A,
-	DSP_INTERRUPT_CONTROL   = 0x5010,
+	DSP_INTERRUPT_CONTROL	= 0x5010,
 	AR_INFO					= 0x5012,  // These names are a good guess at best
 	AR_MODE					= 0x5016,  //
 	AR_REFRESH				= 0x501a,
@@ -128,15 +128,15 @@ struct DSPState
 // Blocks are 32 bytes.
 union UAudioDMAControl
 {
-    u16 Hex;
-    struct  
-    {        
-        u16 NumBlocks  : 15;
+	u16 Hex;
+	struct
+	{
+		u16 NumBlocks  : 15;
 		u16 Enable     : 1;
-    };
+	};
 
-    UAudioDMAControl(u16 _Hex = 0) : Hex(_Hex)
-    {}
+	UAudioDMAControl(u16 _Hex = 0) : Hex(_Hex)
+	{}
 };
 
 // AudioDMA
@@ -160,7 +160,7 @@ struct AudioDMA
 struct ARAM_DMA
 {
 	u32 MMAddr;
-	u32 ARAddr;		
+	u32 ARAddr;
 	UARAMCount Cnt;
 
 	ARAM_DMA()
@@ -180,7 +180,8 @@ struct ARAMInfo
 	u8* ptr; // aka audio ram, auxiliary ram, MEM2, EXRAM, etc...
 
 	// Default to GC mode
-	ARAMInfo() {
+	ARAMInfo()
+	{
 		wii_mode = false;
 		size = ARAM_SIZE;
 		mask = ARAM_MASK;
@@ -278,8 +279,8 @@ void Init(bool hle)
 	memset(&g_arDMA, 0, sizeof(g_arDMA));
 
 	g_dspState.DSPControl.Hex = 0;
-    g_dspState.DSPControl.DSPHalt = 1;
-	
+	g_dspState.DSPControl.DSPHalt = 1;
+
 	g_ARAM_Info.Hex = 0;
 	g_AR_MODE = 1; // ARAM Controller has init'd
 	g_AR_REFRESH = 156; // 156MHz
@@ -424,7 +425,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			g_dspState.DSPControl.DSPReset		= tmpControl.DSPReset;
 			g_dspState.DSPControl.DSPAssertInt	= tmpControl.DSPAssertInt;
 			g_dspState.DSPControl.DSPHalt		= tmpControl.DSPHalt;
-			g_dspState.DSPControl.DSPInit       = tmpControl.DSPInit;
+			g_dspState.DSPControl.DSPInit		= tmpControl.DSPInit;
 
 			// Interrupt (mask)
 			g_dspState.DSPControl.AID_mask	= tmpControl.AID_mask;
@@ -438,14 +439,14 @@ void Write16(const u16 _Value, const u32 _Address)
 
 			// unknown
 			g_dspState.DSPControl.unk3	= tmpControl.unk3;
-			g_dspState.DSPControl.pad   = tmpControl.pad;
+			g_dspState.DSPControl.pad	= tmpControl.pad;
 			if (g_dspState.DSPControl.pad != 0)
 			{
 				PanicAlert("DSPInterface (w) g_dspState.DSPControl (CC00500A) gets a value with junk in the padding %08x", _Value);
 			}
 
 			UpdateInterrupts();
-		}			
+		}
 		break;
 
 	// ARAM
@@ -635,7 +636,7 @@ void GenerateDSPInterrupt(DSPInterruptType type, bool _bSet)
 	switch (type)
 	{
 	case INT_DSP:	g_dspState.DSPControl.DSP		= _bSet ? 1 : 0; break;
-	case INT_ARAM:	g_dspState.DSPControl.ARAM	    = _bSet ? 1 : 0; if (_bSet) g_dspState.DSPControl.DMAState = 0; break;
+	case INT_ARAM:	g_dspState.DSPControl.ARAM		= _bSet ? 1 : 0; if (_bSet) g_dspState.DSPControl.DMAState = 0; break;
 	case INT_AID:	g_dspState.DSPControl.AID		= _bSet ? 1 : 0; break;
 	}
 
@@ -651,14 +652,18 @@ void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, bool _bSet)
 }
 
 // called whenever SystemTimers thinks the dsp deserves a few more cycles
-void UpdateDSPSlice(int cycles) {
-	if (dsp_is_lle) {
+void UpdateDSPSlice(int cycles)
+{
+	if (dsp_is_lle)
+	{
 		//use up the rest of the slice(if any)
 		dsp_emulator->DSP_Update(dsp_slice);
 		dsp_slice %= 6;
 		//note the new budget
 		dsp_slice += cycles;
-	} else {
+	}
+	else
+	{
 		dsp_emulator->DSP_Update(cycles);
 	}
 }
@@ -727,7 +732,10 @@ void Do_ARAM_DMA()
 					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);
 				}
 				else
+				{
 					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);
+				}
+
 				g_arDMA.MMAddr += 8;
 				g_arDMA.ARAddr += 8;
 				g_arDMA.Cnt.count -= 8;
@@ -772,7 +780,9 @@ void Do_ARAM_DMA()
 					*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
 				}
 				else
+				{
 					*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
+				}
 
 				g_arDMA.MMAddr += 8;
 				g_arDMA.ARAddr += 8;
@@ -803,7 +813,9 @@ u8 ReadARAM(u32 _iAddress)
 			return Memory::Read_U8(_iAddress & Memory::RAM_MASK);
 	}
 	else
+	{
 		return g_ARAM.ptr[_iAddress & g_ARAM.mask];
+	}
 }
 
 void WriteARAM(u8 value, u32 _uAddress)

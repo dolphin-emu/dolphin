@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _UCODE_AX_STRUCTS_H
@@ -325,20 +325,23 @@ struct AXPBWii
 };
 
 // TODO: All these enums have changed a lot for wii
-enum {
-    AUDIOFORMAT_ADPCM = 0,
-    AUDIOFORMAT_PCM8  = 0x19,
+enum
+{
+	AUDIOFORMAT_ADPCM = 0,
+	AUDIOFORMAT_PCM8  = 0x19,
 	AUDIOFORMAT_PCM16 = 0xA,
 };
 
-enum {
+enum
+{
 	SRCTYPE_POLYPHASE = 0,
 	SRCTYPE_LINEAR  = 1,
 	SRCTYPE_NEAREST = 2,
 };
 
 // Both may be used at once
-enum {
+enum
+{
 	FILTER_LOWPASS = 1,
 	FILTER_BIQUAD = 2,
 };

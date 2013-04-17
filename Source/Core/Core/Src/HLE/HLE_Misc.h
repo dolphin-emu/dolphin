@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef HLE_MISC_H
@@ -20,19 +20,19 @@
 
 namespace HLE_Misc
 {
-    void Pass();
-    void HLEPanicAlert();
-    void UnimplementedFunction();
-    void UnimplementedFunctionTrue();
-    void UnimplementedFunctionFalse();
-    void GXPeekZ();
-    void GXPeekARGB();
-    void SMB_EvilVecCosine();
-    void SMB_EvilNormalize();
-    void SMB_sqrt_internal();
-    void SMB_rsqrt_internal();
-    void SMB_atan2();
-    void SMB_evil_vec_setlength();
+	void Pass();
+	void HLEPanicAlert();
+	void UnimplementedFunction();
+	void UnimplementedFunctionTrue();
+	void UnimplementedFunctionFalse();
+	void GXPeekZ();
+	void GXPeekARGB();
+	void SMB_EvilVecCosine();
+	void SMB_EvilNormalize();
+	void SMB_sqrt_internal();
+	void SMB_rsqrt_internal();
+	void SMB_atan2();
+	void SMB_evil_vec_setlength();
 	void FZero_kill_infinites();
 	void FZero_evil_vec_normalize();
 	void FZ_sqrt();

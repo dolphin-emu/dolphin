@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // PRELIMINARY - seems to fully work with libogc, writing has yet to be tested
@@ -28,8 +28,8 @@ public:
 
 	CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName);
 
-    bool Open(u32 _CommandAddress, u32 _Mode);
-    bool Close(u32 _CommandAddress, bool _bForce);
+	bool Open(u32 _CommandAddress, u32 _Mode);
+	bool Close(u32 _CommandAddress, bool _bForce);
 	bool IOCtl(u32 _CommandAddress); 
 	bool IOCtlV(u32 _CommandAddress);
 

@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -74,14 +74,14 @@ void STACKALIGN CheckGatherPipe()
 		u32 cnt;
 		u8* curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
 		for (cnt = 0; m_gatherPipeCount >= GATHER_PIPE_SIZE; cnt += GATHER_PIPE_SIZE)
-		{	
+		{
 			// copy the GatherPipe
 			memcpy(curMem, m_gatherPipe + cnt, GATHER_PIPE_SIZE);
 			m_gatherPipeCount -= GATHER_PIPE_SIZE;
 
 			// increase the CPUWritePointer
 			if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
-			{				
+			{
 				ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
 				curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
 			}

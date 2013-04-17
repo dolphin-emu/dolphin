@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <cmath>
@@ -74,27 +74,27 @@ static const u8 eeprom_data_16D0[] = {
 
 const ReportFeatures reporting_mode_features[] = 
 {
-    //0x30: Core Buttons
+	//0x30: Core Buttons
 	{ 2, 0, 0, 0, 4 },
-    //0x31: Core Buttons and Accelerometer
+	//0x31: Core Buttons and Accelerometer
 	{ 2, 4, 0, 0, 7 },
-    //0x32: Core Buttons with 8 Extension bytes
+	//0x32: Core Buttons with 8 Extension bytes
 	{ 2, 0, 0, 4, 12 },
-    //0x33: Core Buttons and Accelerometer with 12 IR bytes
+	//0x33: Core Buttons and Accelerometer with 12 IR bytes
 	{ 2, 4, 7, 0, 19 },
-    //0x34: Core Buttons with 19 Extension bytes
+	//0x34: Core Buttons with 19 Extension bytes
 	{ 2, 0, 0, 4, 23 },
-    //0x35: Core Buttons and Accelerometer with 16 Extension Bytes
+	//0x35: Core Buttons and Accelerometer with 16 Extension Bytes
 	{ 2, 4, 0, 7, 23 },
-    //0x36: Core Buttons with 10 IR bytes and 9 Extension Bytes
+	//0x36: Core Buttons with 10 IR bytes and 9 Extension Bytes
 	{ 2, 0, 4, 14, 23 },
-    //0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
+	//0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
 	{ 2, 4, 7, 17, 23 },
 
 	// UNSUPPORTED:
-    //0x3d: 21 Extension Bytes
+	//0x3d: 21 Extension Bytes
 	{ 0, 0, 0, 2, 23 },
-    //0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
+	//0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
 	{ 0, 0, 0, 0, 23 },
 };
 
@@ -478,7 +478,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 				az/=len; //normalizing the vector
 				nsin=ax;
 				ncos=az;
-			} else
+			}
+			else
 			{
 				nsin=0;
 				ncos=1;
@@ -486,7 +487,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		//	PanicAlert("%d %d %d\nx:%f\nz:%f\nsin:%f\ncos:%f",accel->x,accel->y,accel->z,ax,az,sin,cos);
 			//PanicAlert("%d %d %d\n%d %d %d\n%d %d %d",accel->x,accel->y,accel->z,calib->zero_g.x,calib->zero_g.y,calib->zero_g.z,
 			//	calib->one_g.x,calib->one_g.y,calib->one_g.z);
-		} else
+		}
+		else
 		{
 			nsin=0; //m_tilt stuff here (can't figure it out yet....)
 			ncos=1;
@@ -930,14 +932,14 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 	// DPad
 #ifdef _WIN32
-	set_control(m_dpad, 0, "UP");			// Up
+	set_control(m_dpad, 0, "UP");		// Up
 	set_control(m_dpad, 1, "DOWN");		// Down
 	set_control(m_dpad, 2, "LEFT");		// Left
-	set_control(m_dpad, 3, "RIGHT");		// Right
+	set_control(m_dpad, 3, "RIGHT");	// Right
 #elif __APPLE__
 	set_control(m_dpad, 0, "Up Arrow");		// Up
-	set_control(m_dpad, 1, "Down Arrow");		// Down
-	set_control(m_dpad, 2, "Left Arrow");		// Left
+	set_control(m_dpad, 1, "Down Arrow");	// Down
+	set_control(m_dpad, 2, "Left Arrow");	// Left
 	set_control(m_dpad, 3, "Right Arrow");	// Right
 #else
 	set_control(m_dpad, 0, "Up");		// Up

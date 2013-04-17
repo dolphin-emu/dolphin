@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <stdio.h>
@@ -153,7 +153,9 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		Movie::InputUpdate();
 	}
 	else
+	{
 		Movie::CheckPadStatus(&PadStatus, ISIDevice::m_iDeviceNumber);
+	}
 
 	// Thankfully changing mode does not change the high bits ;)
 	_Hi  = (u32)((u8)PadStatus.stickY);
@@ -277,7 +279,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 		{
 			ERROR_LOG(SERIALINTERFACE, "Unknown direct command     (0x%x)", _Cmd);
 			PanicAlert("SI: Unknown direct command");
-		}			
+		}
 		break;
 	}
 }

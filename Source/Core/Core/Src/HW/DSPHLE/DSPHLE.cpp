@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <iostream>
@@ -31,7 +31,8 @@
 #include "HW/SystemTimers.h"
 #include "HW/VideoInterface.h"
 
-DSPHLE::DSPHLE() {
+DSPHLE::DSPHLE()
+{
 	m_InitMixer = false;
 	soundStream = NULL;
 }
@@ -42,7 +43,8 @@ struct DSPState
 	u32 CPUMailbox;
 	u32 DSPMailbox;
 
-	void Reset() {
+	void Reset()
+	{
 		CPUMailbox = 0x00000000;
 		DSPMailbox = 0x00000000;
 	}
@@ -195,7 +197,9 @@ void DSPHLE::DoState(PointerWrap &p)
 	if (ucode != m_pUCode)
 	{
 		if (p.GetMode() != PointerWrap::MODE_READ)
+		{
 			delete ucode;
+		}
 		else
 		{
 			delete m_pUCode;
@@ -205,7 +209,9 @@ void DSPHLE::DoState(PointerWrap &p)
 	if (lastucode != m_lastUCode)
 	{
 		if (p.GetMode() != PointerWrap::MODE_READ)
+		{
 			delete lastucode;
+		}
 		else
 		{
 			delete m_lastUCode;

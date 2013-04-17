@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "../../HW/Memmap.h"
@@ -82,14 +82,16 @@ void Trace( UGeckoInstruction &instCode )
 {
 	char reg[25]="";
 	std::string regs = "";
-	for (int i=0; i<32; i++) {
+	for (int i=0; i<32; i++)
+	{
 		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
 		regs.append(reg);
 	}
 
 	char freg[25]="";
 	std::string fregs = "";
-	for (int i=0; i<32; i++) {
+	for (int i=0; i<32; i++)
+	{
 		sprintf(freg, "f%02d: %08llx %08llx ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
 		fregs.append(freg);
 	}
@@ -182,7 +184,7 @@ int Interpreter::SingleStepInner(void)
 	}
 	PowerPC::ppcState.DebugCount++;
 #endif
-    patches();
+	patches();
 
 	GekkoOPInfo *opinfo = GetOpInfo(instCode);
 	return opinfo->numCyclesMinusOne + 1;

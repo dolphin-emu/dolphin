@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 /*
@@ -129,10 +129,13 @@ void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illega
 #define PAGE_SIZE (1 << PAGE_SHIFT)
 #define PAGE_MASK (PAGE_SHIFT - 1)
 
-template <class T, u8 *P> void HW_Read_Memory(T &_Data, const u32 _Address) {
+template <class T, u8 *P> void HW_Read_Memory(T &_Data, const u32 _Address)
+{
 	_Data = *(T *)&P[_Address & PAGE_MASK];
 }
-template <class T, u8 *P> void HW_Write_Memory(T _Data, const u32 _Address) {
+
+template <class T, u8 *P> void HW_Write_Memory(T _Data, const u32 _Address)
+{
 	*(T *)&P[_Address & PAGE_MASK] = _Data;
 }
 
@@ -181,7 +184,7 @@ void InitHWMemFuncs()
 	{
 		hwRead16 [CP_START+i] = g_video_backend->Video_CPRead16();
 		hwWrite16[CP_START+i] = g_video_backend->Video_CPWrite16();
- 
+
 		hwRead16 [PE_START+i] = g_video_backend->Video_PERead16();
 		hwWrite16[PE_START+i] = g_video_backend->Video_PEWrite16();
 		hwWrite32[PE_START+i] = g_video_backend->Video_PEWrite32();
@@ -254,7 +257,7 @@ void InitHWMemFuncsWii()
 	{
 		hwRead16 [CP_START+i] = g_video_backend->Video_CPRead16();
 		hwWrite16[CP_START+i] = g_video_backend->Video_CPWrite16();
- 
+
 		hwRead16 [PE_START+i] = g_video_backend->Video_PERead16();
 		hwWrite16[PE_START+i] = g_video_backend->Video_PEWrite16();
 		hwWrite32[PE_START+i] = g_video_backend->Video_PEWrite32();
@@ -425,17 +428,17 @@ void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 _iSize)
 }
 
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
-{	
-    u8 *ptr = GetPointer(_Address);
-    if (ptr != NULL)
-    {
-	    memset(ptr,_iValue,_iLength);
-    }
-    else
-    {
-        for (u32 i = 0; i < _iLength; i++)
-            Write_U8(_iValue, _Address + i);
-    }
+{
+	u8 *ptr = GetPointer(_Address);
+	if (ptr != NULL)
+	{
+		memset(ptr,_iValue,_iLength);
+	}
+	else
+	{
+		for (u32 i = 0; i < _iLength; i++)
+			Write_U8(_iValue, _Address + i);
+	}
 }
 
 void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
@@ -443,18 +446,18 @@ void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlo
 	const u8 *src = GetCachePtr() + (_CacheAddr & 0x3FFFF);
 	u8 *dst = GetPointer(_MemAddr);
 
-    if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
-    {
-	    memcpy(dst, src, 32 * _iNumBlocks);
-    }
-    else
-    {
-        for (u32 i = 0; i < 32 * _iNumBlocks; i++)
-        {
-            u8 Temp = Read_U8(_CacheAddr + i);
-            Write_U8(Temp, _MemAddr + i);
-        }
-    }
+	if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	{
+		memcpy(dst, src, 32 * _iNumBlocks);
+	}
+	else
+	{
+		for (u32 i = 0; i < 32 * _iNumBlocks; i++)
+		{
+			u8 Temp = Read_U8(_CacheAddr + i);
+			Write_U8(Temp, _MemAddr + i);
+		}
+	}
 }
 
 void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlocks)
@@ -462,18 +465,18 @@ void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlo
 	const u8 *src = GetPointer(_MemAddr);
 	u8 *dst = GetCachePtr() + (_CacheAddr & 0x3FFFF);
 
-    if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
-    {
-        memcpy(dst, src, 32 * _iNumBlocks);
-    }
-    else
-    {
-        for (u32 i = 0; i < 32 * _iNumBlocks; i++)
-        {
-            u8 Temp = Read_U8(_MemAddr + i);
-            Write_U8(Temp, _CacheAddr + i);
-        }
-    }
+	if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	{
+		memcpy(dst, src, 32 * _iNumBlocks);
+	}
+	else
+	{
+		for (u32 i = 0; i < 32 * _iNumBlocks; i++)
+		{
+			u8 Temp = Read_U8(_MemAddr + i);
+			Write_U8(Temp, _CacheAddr + i);
+		}
+	}
 }
 
 void ReadBigEData(u8 *data, const u32 em_address, const u32 size)

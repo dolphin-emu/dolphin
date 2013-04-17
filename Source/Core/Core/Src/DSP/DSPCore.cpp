@@ -89,7 +89,7 @@ static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
 		{ 0x9c8f593c, 0x10000001 },
 
 		// delroth's improvement on LM1234 replacement ROM (Zelda and AX only,
-        // IPL/Card/GBA still broken)
+		// IPL/Card/GBA still broken)
 		{ 0xd9907f71, 0xb019c2fb }
 	};
 
@@ -220,7 +220,7 @@ void DSPCore_Shutdown()
 
 void DSPCore_Reset()
 {
-    g_dsp.pc = DSP_RESET_VECTOR;
+	g_dsp.pc = DSP_RESET_VECTOR;
 
 	g_dsp.r.wr[0] = 0xffff;
 	g_dsp.r.wr[1] = 0xffff;
@@ -260,11 +260,13 @@ void DSPCore_CheckExceptions()
 	if (g_dsp.exceptions == 0)
 		return;
 
-	for (int i = 7; i > 0; i--) {
+	for (int i = 7; i > 0; i--)
+	{
 		// Seems exp int are not masked by sr_int_enable
-		if (g_dsp.exceptions & (1 << i)) {
-			if (dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT)) {
-
+		if (g_dsp.exceptions & (1 << i))
+		{
+			if (dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT))
+			{
 				// store pc and sr until RTI
 				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
 				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r.sr);
@@ -276,7 +278,9 @@ void DSPCore_CheckExceptions()
 				else
 					g_dsp.r.sr &= ~SR_INT_ENABLE;
 				break;
-			} else {
+			}
+			else
+			{
 #if defined(_DEBUG) || defined(DEBUGFAST)
 				ERROR_LOG(DSPLLE, "Firing exception %d failed", i);
 #endif
@@ -381,8 +385,10 @@ void CompileCurrent()
 	}
 }
 
-u16 DSPCore_ReadRegister(int reg) {
-	switch(reg) {
+u16 DSPCore_ReadRegister(int reg)
+{
+	switch(reg)
+	{
 	case DSP_REG_AR0:
 	case DSP_REG_AR1:
 	case DSP_REG_AR2:
@@ -430,8 +436,10 @@ u16 DSPCore_ReadRegister(int reg) {
 	}
 }
 
-void DSPCore_WriteRegister(int reg, u16 val) {
-	switch(reg) {
+void DSPCore_WriteRegister(int reg, u16 val)
+{
+	switch(reg)
+	{
 	case DSP_REG_AR0:
 	case DSP_REG_AR1:
 	case DSP_REG_AR2:

@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "GCPadEmu.h"
@@ -56,11 +56,11 @@ const char* const named_triggers[] =
 	// i18n:  Left
 	_trans("L"),
 	// i18n:  Right
-   	_trans("R"),
+	_trans("R"),
 	// i18n:  Left-Analog
-   	_trans("L-Analog"),
+	_trans("L-Analog"),
 	// i18n:  Right-Analog
-   	_trans("R-Analog")
+	_trans("R-Analog")
 };
 
 GCPad::GCPad(const unsigned int index) : m_index(index)
@@ -93,7 +93,6 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 	// options
 	groups.push_back(m_options = new ControlGroup(_trans("Options")));
 	m_options->settings.push_back(new ControlGroup::Setting(_trans("Background Input"), false));
-
 }
 
 std::string GCPad::GetName() const

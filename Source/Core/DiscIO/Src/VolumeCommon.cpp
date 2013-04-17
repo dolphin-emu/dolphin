@@ -69,7 +69,7 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		case 'T': // Korea with English language
 		case 'Q': // Korea with Japanese language
 			return IVolume::COUNTRY_KOREA;
-			break;			
+			break;
 
 		case 'O':
 			return IVolume::COUNTRY_SDK;

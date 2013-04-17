@@ -112,10 +112,11 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 	m_TMDSize                 = ReaderBig.Read32(0x14);
 	m_DataAppSize             = ReaderBig.Read32(0x18);
 	m_FooterSize              = ReaderBig.Read32(0x1C);
+
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
-    _dbg_assert_msg_(BOOT, Reserved==0x00, "WiiWAD: Reserved must be 0x00");
+	_dbg_assert_msg_(BOOT, Reserved==0x00, "WiiWAD: Reserved must be 0x00");
 #else
-    (void)Reserved;
+	(void)Reserved;
 #endif
 
 	u32 Offset = 0x40;

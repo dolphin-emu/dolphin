@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -45,15 +45,15 @@ bool SignatureDB::Load(const char *filename)
 	for (size_t i = 0; i < fcount; i++)
 	{
 		FuncDesc temp;
-        memset(&temp, 0, sizeof(temp));
+		memset(&temp, 0, sizeof(temp));
 
-        f.ReadArray(&temp, 1);
+		f.ReadArray(&temp, 1);
 		temp.name[sizeof(temp.name)-1] = 0;
 
 		DBFunc dbf;
 		dbf.name = temp.name;
 		dbf.size = temp.size;
-	    database[temp.checkSum] = dbf;
+		database[temp.checkSum] = dbf;
 	}
 
 	return true;

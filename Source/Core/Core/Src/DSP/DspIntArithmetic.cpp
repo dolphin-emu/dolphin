@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
@@ -695,7 +695,7 @@ void dec(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 8) & 0x01;
 
-	s64 acc = dsp_get_long_acc(dreg); 
+	s64 acc = dsp_get_long_acc(dreg);
 	s64 res = acc - 1;
 
 	zeroWriteBackLog();
@@ -734,7 +734,7 @@ void abs(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 11) & 0x1;
 
-	s64 acc = dsp_get_long_acc(dreg); 	
+	s64 acc = dsp_get_long_acc(dreg);
 
 	if (acc < 0)
 		acc = 0 - acc;
@@ -756,9 +756,10 @@ void movr(const UDSPInstruction opc)
 {
 	u8 areg = (opc >> 8) & 0x1;
 	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
- 		
+
 	s64 ax = 0;
-	switch(sreg) {
+	switch(sreg)
+	{
 	case DSP_REG_AXL0:
 	case DSP_REG_AXL1:
 		ax = (s16)g_dsp.r.ax[sreg-DSP_REG_AXL0].l;
@@ -973,9 +974,12 @@ void lsrn(const UDSPInstruction opc)
 	else
 		shift = accm & 0x3f;
 
-	if (shift > 0) {
+	if (shift > 0)
+	{
 		acc >>= shift;
-	} else if (shift < 0) {
+	}
+	else if (shift < 0)
+	{
 		acc <<= -shift;
 	}
 
@@ -1002,9 +1006,12 @@ void asrn(const UDSPInstruction opc)
 	else
 		shift = accm & 0x3f;
 
-	if (shift > 0) {
+	if (shift > 0)
+	{
 		acc >>= shift;
-	} else if (shift < 0) {
+	}
+	else if (shift < 0)
+	{
 		acc <<= -shift;
 	}
 
@@ -1035,9 +1042,12 @@ void lsrnrx(const UDSPInstruction opc)
 	else
 		shift = axh & 0x3f;
 
-	if (shift > 0) {
+	if (shift > 0)
+	{
 		acc <<= shift;
-	} else if (shift < 0) {
+	}
+	else if (shift < 0)
+	{
 		acc >>= -shift;
 	}
 
@@ -1069,9 +1079,12 @@ void asrnrx(const UDSPInstruction opc)
 	else
 		shift = axh & 0x3f;
 
-	if (shift > 0) {
+	if (shift > 0)
+	{
 		acc <<= shift;
-	} else if (shift < 0) {
+	}
+	else if (shift < 0)
+	{
 		acc >>= -shift;
 	}
 

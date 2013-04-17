@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include <map>
@@ -99,9 +99,12 @@ Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
 	if (!Memory::IsRAMAddress(addr))
 		return 0;
+
 	XFuncMap::iterator it = functions.find(addr);
 	if (it != functions.end())
+	{
 		return &it->second;
+	}
 	else
 	{
 		for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
@@ -133,22 +136,22 @@ void PPCSymbolDB::FillInCallers()
 	{
 		Symbol &f = iter->second;
 		for (size_t i = 0; i < f.calls.size(); i++)
-        {
-            SCall NewCall(iter->first, f.calls[i].callAddress);
-            u32 FunctionAddress = f.calls[i].function;
+		{
+			SCall NewCall(iter->first, f.calls[i].callAddress);
+			u32 FunctionAddress = f.calls[i].function;
 
-            XFuncMap::iterator FuncIterator = functions.find(FunctionAddress);
-            if (FuncIterator != functions.end())
-            {
-                Symbol& rCalledFunction = FuncIterator->second;
-                rCalledFunction.callers.push_back(NewCall);
-            }
-            else
-            {
-                //LOG(OSHLE, "FillInCallers tries to fill data in an unknown function 0x%08x.", FunctionAddress);
+			XFuncMap::iterator FuncIterator = functions.find(FunctionAddress);
+			if (FuncIterator != functions.end())
+			{
+				Symbol& rCalledFunction = FuncIterator->second;
+				rCalledFunction.callers.push_back(NewCall);
+			}
+			else
+			{
+				//LOG(OSHLE, "FillInCallers tries to fill data in an unknown function 0x%08x.", FunctionAddress);
 				// TODO - analyze the function instead.
-            }
-        }
+			}
+		}
 	}
 }
 
@@ -241,27 +244,27 @@ bool PPCSymbolDB::LoadMap(const char *filename)
 
 		if (!started) continue;
 
-        u32 address, vaddress, size, unknown;
-        char name[512];
-        sscanf(line, "%08x %08x %08x %i %s", &address, &size, &vaddress, &unknown, name);
+		u32 address, vaddress, size, unknown;
+		char name[512];
+		sscanf(line, "%08x %08x %08x %i %s", &address, &size, &vaddress, &unknown, name);
 
-        const char *namepos = strstr(line, name);
-        if (namepos != 0) //would be odd if not :P
-            strcpy(name, namepos);
-        name[strlen(name) - 1] = 0;
-        
-        // we want the function names only .... TODO: or do we really? aren't we wasting information here?
-        for (size_t i = 0; i < strlen(name); i++)
-        {
-            if (name[i] == ' ') name[i] = 0x00;
-            if (name[i] == '(') name[i] = 0x00;
-        }
+		const char *namepos = strstr(line, name);
+		if (namepos != 0) //would be odd if not :P
+			strcpy(name, namepos);
+		name[strlen(name) - 1] = 0;
 
-        // Check if this is a valid entry.
-        if (strcmp(name, ".text") != 0 || strcmp(name, ".init") != 0 || strlen(name) > 0)
-        {            
-            AddKnownSymbol(vaddress | 0x80000000, size, name); // ST_FUNCTION
-        }
+		// we want the function names only .... TODO: or do we really? aren't we wasting information here?
+		for (size_t i = 0; i < strlen(name); i++)
+		{
+			if (name[i] == ' ') name[i] = 0x00;
+			if (name[i] == '(') name[i] = 0x00;
+		}
+
+		// Check if this is a valid entry.
+		if (strcmp(name, ".text") != 0 || strcmp(name, ".init") != 0 || strlen(name) > 0)
+		{
+			AddKnownSymbol(vaddress | 0x80000000, size, name); // ST_FUNCTION
+		}
 	}
 
 	Index();
@@ -297,13 +300,13 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 	// Walk through every code row
 	// -------------------------
 	fprintf(f.GetHandle(), ".text\n"); // Write ".text" at the top
-    XFuncMap::const_iterator itr = functions.begin();
+	XFuncMap::const_iterator itr = functions.begin();
 	u32 LastAddress = 0x80004000;
 	std::string LastSymbolName;
-    while (itr != functions.end())
-    {
+	while (itr != functions.end())
+	{
 		// Save a map file
-        const Symbol &rSymbol = itr->second;
+		const Symbol &rSymbol = itr->second;
 		if (!WithCodes)
 		{
 			fprintf(f.GetHandle(),"%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size, rSymbol.address,
@@ -323,7 +326,7 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 			   all names longer than 25 letters */
 			std::string TempSym;
 			for (u32 i = 0; i < 25; i++)
-			{			
+			{
 				if (i < LastSymbolName.size())
 					TempSym += LastSymbolName[i];
 				else
@@ -347,7 +350,7 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 			// Write a blank line after each block
 			fprintf(f.GetHandle(), "\n");
 		}
-    }
+	}
 	// ---------------
 	Host_UpdateStatusBar(StringFromFormat("Saved %s", mapFile.c_str()).c_str());
 

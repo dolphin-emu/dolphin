@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -75,8 +75,8 @@ enum
 union USIChannelOut
 {
 	u32 Hex;
-	struct  
-	{		
+	struct
+	{
 		u32 OUTPUT1	:	8;
 		u32 OUTPUT0	:	8;
 		u32 CMD		:	8;
@@ -88,8 +88,8 @@ union USIChannelOut
 union USIChannelIn_Hi
 {
 	u32 Hex;
-	struct  
-	{		
+	struct
+	{
 		u32 INPUT3		:	8;
 		u32 INPUT2		:	8;
 		u32 INPUT1		:	8;
@@ -103,7 +103,7 @@ union USIChannelIn_Hi
 union USIChannelIn_Lo
 {
 	u32 Hex;
-	struct  
+	struct
 	{
 		u32 INPUT7		:	8;
 		u32 INPUT6		:	8;
@@ -115,7 +115,7 @@ union USIChannelIn_Lo
 // SI Channel
 struct SSIChannel
 {
-	USIChannelOut	m_Out;		
+	USIChannelOut	m_Out;
 	USIChannelIn_Hi m_InHi;
 	USIChannelIn_Lo m_InLo;
 	ISIDevice*		m_pDevice;
@@ -127,16 +127,16 @@ union USIPoll
 	u32 Hex;
 	struct
 	{
-		u32 VBCPY3	:	1; // 1: write to output buffer only on vblank
+		u32 VBCPY3	:	1;  // 1: write to output buffer only on vblank
 		u32 VBCPY2	:	1;
 		u32 VBCPY1	:	1;
 		u32 VBCPY0	:	1;
-		u32 EN3		:	1; // Enable polling of channel
-		u32 EN2		:	1; //  does not affect communication RAM transfers
+		u32 EN3		:	1;  // Enable polling of channel
+		u32 EN2		:	1;  //  does not affect communication RAM transfers
 		u32 EN1		:	1;
 		u32 EN0		:	1;
-		u32 Y		:   8; // Polls per frame
-		u32 X		:  10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
+		u32 Y		:	8;  // Polls per frame
+		u32 X		:	10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
 		u32			:	6;
 	};
 };
@@ -220,12 +220,12 @@ union USIEXIClockCount
 };
 
 // STATE_TO_SAVE
-static SSIChannel         g_Channel[NUMBER_OF_CHANNELS];
-static USIPoll            g_Poll;
-static USIComCSR          g_ComCSR;
-static USIStatusReg       g_StatusReg;
-static USIEXIClockCount   g_EXIClockCount;
-static u8                 g_SIBuffer[128];
+static SSIChannel			g_Channel[NUMBER_OF_CHANNELS];
+static USIPoll				g_Poll;
+static USIComCSR			g_ComCSR;
+static USIStatusReg			g_StatusReg;
+static USIEXIClockCount		g_EXIClockCount;
+static u8					g_SIBuffer[128];
 
 void DoState(PointerWrap &p)
 {
@@ -318,7 +318,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 0
 	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_0_OUT:		
+	case SI_CHANNEL_0_OUT:
 		_uReturnValue = g_Channel[0].m_Out.Hex;
 		break;
 
@@ -337,7 +337,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 1
 	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_1_OUT:		
+	case SI_CHANNEL_1_OUT:
 		_uReturnValue = g_Channel[1].m_Out.Hex;
 		break;
 
@@ -356,7 +356,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 2
 	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_2_OUT:		
+	case SI_CHANNEL_2_OUT:
 		_uReturnValue = g_Channel[2].m_Out.Hex;
 		break;
 
@@ -375,7 +375,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 3
 	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_3_OUT:		
+	case SI_CHANNEL_3_OUT:
 		_uReturnValue = g_Channel[3].m_Out.Hex;
 		break;
 
@@ -402,7 +402,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 
 	default:
 		INFO_LOG(SERIALINTERFACE, "(r32-unk): 0x%08x", _iAddress);
-		_dbg_assert_(SERIALINTERFACE,0);			
+		_dbg_assert_(SERIALINTERFACE,0);
 		break;
 	}
 
@@ -447,7 +447,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		g_Poll.Hex = _iValue;
 		break;
 
-	case SI_COM_CSR:			
+	case SI_COM_CSR:
 		{
 			USIComCSR tmpComCSR(_iValue);
 

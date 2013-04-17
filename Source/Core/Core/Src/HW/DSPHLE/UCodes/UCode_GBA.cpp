@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "UCodes.h"
@@ -64,7 +64,8 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 		nextmail_is_mramaddr = false;
 		u32 mramaddr = _uMail;
 
-		struct sec_params_t {
+		struct sec_params_t
+		{
 			u16 key[2];
 			u16 unk1[2];
 			u16 unk2[2];

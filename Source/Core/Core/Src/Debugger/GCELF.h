@@ -43,12 +43,12 @@
 
 typedef struct
 {
-  	unsigned char ID[4];
-  	unsigned char clazz;
-  	unsigned char data;
-  	unsigned char version;
-  	unsigned char pad[9];
-  	unsigned short e_type; // ELF file type
+	unsigned char ID[4];
+	unsigned char clazz;
+	unsigned char data;
+	unsigned char version;
+	unsigned char pad[9];
+	unsigned short e_type; // ELF file type
 	unsigned short e_machine; // ELF target machine
 	unsigned int e_version; // ELF file version number
 	unsigned int e_entry;
@@ -63,15 +63,16 @@ typedef struct
 	unsigned short e_shtrndx;
 } ELF_Header;
 
-typedef struct {
-  unsigned int type;
-  unsigned int offset;
-  unsigned int vaddr;
-  unsigned int paddr;
-  unsigned int filesz;
-  unsigned int memsz;
-  unsigned int flags;
-  unsigned int align;
+typedef struct
+{
+	unsigned int type;
+	unsigned int offset;
+	unsigned int vaddr;
+	unsigned int paddr;
+	unsigned int filesz;
+	unsigned int memsz;
+	unsigned int flags;
+	unsigned int align;
 } Program_Header;
 
 typedef struct
@@ -88,16 +89,18 @@ typedef struct
 	unsigned int entsize;
 } Section_Header;
 
-typedef struct {
-  unsigned int name;
-  unsigned int value;
-  unsigned int size;
-  unsigned char info;
-  unsigned char other;
-  unsigned short shndx;
+typedef struct
+{
+	unsigned int name;
+	unsigned int value;
+	unsigned int size;
+	unsigned char info;
+	unsigned char other;
+	unsigned short shndx;
 } Symbol_Header;
 
-typedef struct {
+typedef struct
+{
 	unsigned int offset;
 	unsigned int info;
 	signed int addend;

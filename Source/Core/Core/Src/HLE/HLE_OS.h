@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef HLE_OS_H
@@ -22,9 +22,9 @@
 
 namespace HLE_OS
 {
-    void HLE_GeneralDebugPrint();
+	void HLE_GeneralDebugPrint();
 	void HLE_write_console();
-    void HLE_OSPanic();
+	void HLE_OSPanic();
 }
 
 #endif

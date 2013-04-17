@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "LabelMap.h"
@@ -68,10 +68,13 @@ bool LabelMap::GetLabelValue(const std::string &label, u16 *value, LabelType typ
 	{
 		if (!label.compare(labels[i].name))
 		{
-			if (type & labels[i].type) {
+			if (type & labels[i].type)
+			{
 				*value = labels[i].addr;
 				return true;
-			} else {
+			}
+			else
+			{
 				printf("WARNING: Wrong label type requested. %s\n", label.c_str());
 			}
 		}
