@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="DebugFast|Win32">
@@ -420,7 +420,6 @@
     <ClInclude Include="Src\Debugger\Dump.h" />
     <ClInclude Include="Src\Debugger\GCELF.h" />
     <ClInclude Include="Src\Debugger\PPCDebugInterface.h" />
-    <ClInclude Include="Src\DolLoader.h" />
     <ClInclude Include="Src\DSP\assemble.h" />
     <ClInclude Include="Src\DSP\disassemble.h" />
     <ClInclude Include="Src\DSP\DSPAccelerator.h" />

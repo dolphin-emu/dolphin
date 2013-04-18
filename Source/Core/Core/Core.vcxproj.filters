@@ -1008,7 +1008,6 @@
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
-    <ClInclude Include="Src\DolLoader.h" />
     <ClInclude Include="Src\NetPlay.h">
       <Filter>NetPlay</Filter>
     </ClInclude>

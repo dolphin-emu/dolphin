@@ -1,3 +1,7 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
 #ifndef _WII_IPC_HLE_DEVICE_USB_KBD_H_
 #define _WII_IPC_HLE_DEVICE_USB_KBD_H_
 
