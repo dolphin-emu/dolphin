@@ -111,9 +111,9 @@ void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s
 {
 #if defined(_M_X64)
 #ifdef ENABLE_MEM_CHECK
-	if (!Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
+	if (!Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging && Core::g_CoreStartupParameter.bFastmem)
 #else
-	if (!Core::g_CoreStartupParameter.bMMU)
+	if (!Core::g_CoreStartupParameter.bMMU && Core::g_CoreStartupParameter.bFastmem)
 #endif
 	{
 		UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);

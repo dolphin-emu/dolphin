@@ -60,6 +60,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bRunCompareServer = false;
 	bDSPHLE = true;
 	bDSPThread = true;
+	bFastmem = true;
 	bEnableFPRF = false;
 	bMMU = false;
 	bDCBZOFF = false;

@@ -82,6 +82,7 @@ struct SCoreStartupParameter
 	bool bJITILTimeProfiling;
 	bool bJITILOutputIR;
 
+	bool bFastmem;
 	bool bEnableFPRF;
 
 	bool bCPUThread;

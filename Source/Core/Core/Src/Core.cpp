@@ -299,6 +299,7 @@ void CpuThread()
 	}
 
 	#if defined(_M_X64) || _M_ARM
+	if (_CoreParameter.bFastmem)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
 

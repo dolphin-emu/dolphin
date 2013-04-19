@@ -201,6 +201,7 @@ void SConfig::SaveSettings()
 	// Core
 	ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
 	ini.Set("Core", "CPUCore",			m_LocalCoreStartupParameter.iCPUCore);
+	ini.Set("Core", "Fastmem",			m_LocalCoreStartupParameter.bFastmem);
 	ini.Set("Core", "CPUThread",		m_LocalCoreStartupParameter.bCPUThread);
 	ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
 	ini.Set("Core", "DSPHLE",			m_LocalCoreStartupParameter.bDSPHLE);
@@ -354,6 +355,7 @@ void SConfig::LoadSettings()
 #else
 		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		1);
 #endif
+		ini.Get("Core", "Fastmem",		&m_LocalCoreStartupParameter.bFastmem,		true);
 		ini.Get("Core", "DSPThread",	&m_LocalCoreStartupParameter.bDSPThread,	false);
 		ini.Get("Core", "DSPHLE",		&m_LocalCoreStartupParameter.bDSPHLE,		true);
 		ini.Get("Core", "CPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);
