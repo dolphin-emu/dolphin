@@ -301,7 +301,11 @@ void ARMXEmitter::FlushIcacheSection(u8 *start, u8 *end)
 	// Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
 	sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
 #elif !defined(_WIN32)
+#ifdef __clang__
+	__clear_cache(start, end);
+#else
 	__builtin___clear_cache(start, end);
+#endif
 #endif
 }
 
