@@ -12,7 +12,7 @@
 #if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__ && !ANDROID
 // GCC 4.4 provides <mutex>
 #include <mutex>
-#elif __has_include(<mutex>)
+#elif __has_include(<mutex>) && !ANDROID
 // Clang + libc++
 #include <mutex>
 #else
