@@ -161,11 +161,8 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/Interpreter/Interpreter_Paired.cpp
 			Src/PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
 			Src/PowerPC/Interpreter/Interpreter_Tables.cpp
-			Src/PowerPC/JitCommon/JitAsmCommon.cpp
-			Src/PowerPC/JitCommon/JitBackpatch.cpp
 			Src/PowerPC/JitCommon/JitBase.cpp
-			Src/PowerPC/JitCommon/JitCache.cpp
-			Src/PowerPC/JitCommon/Jit_Util.cpp)
+			Src/PowerPC/JitCommon/JitCache.cpp)
 
 if(NOT _M_GENERIC)
 	set(SRCS ${SRCS}
@@ -194,7 +191,10 @@ if(NOT _M_GENERIC)
 			Src/PowerPC/Jit64/Jit_LoadStorePaired.cpp
 			Src/PowerPC/Jit64/Jit_Paired.cpp
 			Src/PowerPC/Jit64/JitRegCache.cpp
-			Src/PowerPC/Jit64/Jit_SystemRegisters.cpp)
+			Src/PowerPC/Jit64/Jit_SystemRegisters.cpp
+			Src/PowerPC/JitCommon/JitBackpatch.cpp
+			Src/PowerPC/JitCommon/JitAsmCommon.cpp
+			Src/PowerPC/JitCommon/Jit_Util.cpp)
 endif()
 if(_M_ARM)
 	set(SRCS ${SRCS}
