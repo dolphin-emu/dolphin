@@ -1,8 +1,8 @@
 
 /* pngwio.c - functions for data output
  *
- * Last changed in libpng 1.5.0 [January 6, 2011]
- * Copyright (c) 1998-2011 Glenn Randers-Pehrson
+ * Last changed in libpng 1.2.41 [December 3, 2009]
+ * Copyright (c) 1998-2009 Glenn Randers-Pehrson
  * (Version 0.96 Copyright (c) 1996, 1997 Andreas Dilger)
  * (Version 0.88 Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.)
  *
@@ -18,8 +18,9 @@
  * them at run time with png_set_write_fn(...).
  */
 
-#include "pngpriv.h"
-
+#define PNG_INTERNAL
+#define PNG_NO_PEDANTIC_WARNINGS
+#include "png.h"
 #ifdef PNG_WRITE_SUPPORTED
 
 /* Write the data to whatever output you are using.  The default routine
@@ -30,12 +31,10 @@
  */
 
 void /* PRIVATE */
-png_write_data(png_structp png_ptr, png_const_bytep data, png_size_t length)
+png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
-   /* NOTE: write_data_fn must not change the buffer! */
    if (png_ptr->write_data_fn != NULL )
-      (*(png_ptr->write_data_fn))(png_ptr, (png_bytep)data, length);
-
+      (*(png_ptr->write_data_fn))(png_ptr, data, length);
    else
       png_error(png_ptr, "Call to NULL write function");
 }
@@ -47,16 +46,19 @@ png_write_data(png_structp png_ptr, png_const_bytep data, png_size_t length)
  * than changing the library.
  */
 #ifndef USE_FAR_KEYWORD
-void PNGCBAPI
+void PNGAPI
 png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
-   png_size_t check;
+   png_uint_32 check;
 
    if (png_ptr == NULL)
       return;
-
+#ifdef _WIN32_WCE
+   if ( !WriteFile((HANDLE)(png_ptr->io_ptr), data, length, &check, NULL) )
+      check = 0;
+#else
    check = fwrite(data, 1, length, (png_FILE_p)(png_ptr->io_ptr));
-
+#endif
    if (check != length)
       png_error(png_ptr, "Write Error");
 }
@@ -69,7 +71,7 @@ png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 #define NEAR_BUF_SIZE 1024
 #define MIN(a,b) (a <= b ? a : b)
 
-void PNGCBAPI
+void PNGAPI
 png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
    png_uint_32 check;
@@ -78,29 +80,34 @@ png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 
    if (png_ptr == NULL)
       return;
-
    /* Check if data really is near. If so, use usual code. */
    near_data = (png_byte *)CVT_PTR_NOCHECK(data);
    io_ptr = (png_FILE_p)CVT_PTR(png_ptr->io_ptr);
-
    if ((png_bytep)near_data == data)
    {
+#ifdef _WIN32_WCE
+      if ( !WriteFile(io_ptr, near_data, length, &check, NULL) )
+         check = 0;
+#else
       check = fwrite(near_data, 1, length, io_ptr);
+#endif
    }
-
    else
    {
       png_byte buf[NEAR_BUF_SIZE];
       png_size_t written, remaining, err;
       check = 0;
       remaining = length;
-
       do
       {
          written = MIN(NEAR_BUF_SIZE, remaining);
          png_memcpy(buf, data, written); /* Copy far buffer to near buffer */
+#ifdef _WIN32_WCE
+         if ( !WriteFile(io_ptr, buf, written, &err, NULL) )
+            err = 0;
+#else
          err = fwrite(buf, 1, written, io_ptr);
-
+#endif
          if (err != written)
             break;
 
@@ -112,7 +119,6 @@ png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
       }
       while (remaining != 0);
    }
-
    if (check != length)
       png_error(png_ptr, "Write Error");
 }
@@ -132,19 +138,21 @@ png_flush(png_structp png_ptr)
       (*(png_ptr->output_flush_fn))(png_ptr);
 }
 
-#  ifdef PNG_STDIO_SUPPORTED
-void PNGCBAPI
+#ifdef PNG_STDIO_SUPPORTED
+void PNGAPI
 png_default_flush(png_structp png_ptr)
 {
+#ifndef _WIN32_WCE
    png_FILE_p io_ptr;
-
+#endif
    if (png_ptr == NULL)
       return;
-
+#ifndef _WIN32_WCE
    io_ptr = (png_FILE_p)CVT_PTR((png_ptr->io_ptr));
    fflush(io_ptr);
+#endif
 }
-#  endif
+#endif
 #endif
 
 /* This function allows the application to supply new output functions for
@@ -178,7 +186,7 @@ png_default_flush(png_structp png_ptr)
  */
 void PNGAPI
 png_set_write_fn(png_structp png_ptr, png_voidp io_ptr,
-    png_rw_ptr write_data_fn, png_flush_ptr output_flush_fn)
+   png_rw_ptr write_data_fn, png_flush_ptr output_flush_fn)
 {
    if (png_ptr == NULL)
       return;
@@ -196,32 +204,30 @@ png_set_write_fn(png_structp png_ptr, png_voidp io_ptr,
 #endif
 
 #ifdef PNG_WRITE_FLUSH_SUPPORTED
-#  ifdef PNG_STDIO_SUPPORTED
-
+#ifdef PNG_STDIO_SUPPORTED
    if (output_flush_fn != NULL)
       png_ptr->output_flush_fn = output_flush_fn;
 
    else
       png_ptr->output_flush_fn = png_default_flush;
-
-#  else
+#else
    png_ptr->output_flush_fn = output_flush_fn;
-#  endif
+#endif
 #endif /* PNG_WRITE_FLUSH_SUPPORTED */
 
    /* It is an error to read while writing a png file */
    if (png_ptr->read_data_fn != NULL)
    {
       png_ptr->read_data_fn = NULL;
-
       png_warning(png_ptr,
-          "Can't set both read_data_fn and write_data_fn in the"
-          " same structure");
+         "Attempted to set both read_data_fn and write_data_fn in");
+      png_warning(png_ptr,
+         "the same structure.  Resetting read_data_fn to NULL.");
    }
 }
 
 #ifdef USE_FAR_KEYWORD
-#  ifdef _MSC_VER
+#ifdef _MSC_VER
 void *png_far_to_near(png_structp png_ptr, png_voidp ptr, int check)
 {
    void *near_ptr;
@@ -249,6 +255,6 @@ void *png_far_to_near(png_structp png_ptr, png_voidp ptr, int check)
 
    return(near_ptr);
 }
-#  endif
-#endif
+#   endif
+#   endif
 #endif /* PNG_WRITE_SUPPORTED */
