@@ -4,13 +4,16 @@
     <target name="-pre-build">
         <exec executable="${ndk.dir}/ndk-build" failonerror="true">
             <arg line="-j4 ${ndkbuildopt}"/>
-            <env key="NDK_MODULE_PATH" path="..:../native/ext"/>
         </exec>
+	<copy todir="${jar.libs.dir}/armeabi-v7a">
+		<fileset
+			dir="../../libs/armeabi-v7a"
+			includes="libdolphin-emu-nogui.so" />
+	</copy>
     </target>
     <target name="clean" depends="android_rules.clean">
         <exec executable="${ndk.dir}/ndk-build" failonerror="true">
             <arg value="clean"/>
-            <env key="NDK_MODULE_PATH" path="..:../native/ext"/>
         </exec>
     </target>
 </project>
