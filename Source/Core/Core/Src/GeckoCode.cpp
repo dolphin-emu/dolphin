@@ -916,14 +916,14 @@ bool SpecialIf()
 
 // CT6 ASM Codes, On/Off switch and Address Range Check
 // NOT COMPLETE, asm stuff not started
-// fix the uglyness
+// TODO: Fix the ugliness
 bool AsmSwitchRange()
 {
 	// the switch subtype modifies the code :/
 	GeckoCode::Code& code = *current_code;
 
 	// only run if code_execution is set or this code is a switch or rangecheck subtype
-	// the switch and rangecheck run if exectution_counter is 1 (directly inside the failed if) if they are an endif
+	// the switch and rangecheck run if execution_counter is 1 (directly inside the failed if) if they are an endif
 	if (false == CodeExecution())
 	{
 		if (code.subtype < 0x6)
@@ -962,7 +962,7 @@ bool AsmSwitchRange()
 			}
 
 			// Though the next code starts at current_code+number_of_codes+1,
-			// we add only number_of_codes. It is because the for statemet in
+			// we add only number_of_codes. It is because the for statement in
 			// RunGeckoCode() increments current_code.
 			current_code += number_of_codes;
 

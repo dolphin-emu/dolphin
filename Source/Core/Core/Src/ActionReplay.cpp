@@ -14,7 +14,7 @@
 
 // -------------------------------------------------------------------------------------------------------------
 // Code Types:
-// (Unconditonal) Normal Codes (0): this one has subtypes inside
+// (Unconditional) Normal Codes (0): this one has subtypes inside
 // (Conditional) Normal Codes (1 - 7): these just compare values and set the line skip info
 // Zero Codes: any code with no address.  These codes are used to do special operations like memory copy, etc
 // -------------------------------------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ enum
 	ZCODE_ROW	= 0x03, 
 	ZCODE_04	= 0x04,
 
-	// Conditonal Codes
+	// Conditional Codes
 	CONDTIONAL_EQUAL				= 0x01,
 	CONDTIONAL_NOT_EQUAL			= 0x02, 
 	CONDTIONAL_LESS_THAN_SIGNED		= 0x03,

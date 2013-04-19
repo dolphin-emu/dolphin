@@ -23,7 +23,7 @@
 of frames. So if a game runs slow, on a slow computer for example, these updates will occur
 less frequently. This makes sense because almost all console games are controlled by frames
 rather than time, so if a game can't keep up with the normal framerate all animations and
-actions slows down and the game runs to slow. This is different from PC games that are are
+actions slows down and the game runs to slow. This is different from PC games that are
 often controlled by time instead and may not have maximum framerates.
 
 However, I'm not sure if the Bluetooth communication for the Wiimote is entirely frame

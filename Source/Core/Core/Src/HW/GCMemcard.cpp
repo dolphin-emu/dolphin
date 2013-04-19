@@ -1333,8 +1333,11 @@ void GCMemcard::CARD_GetSerialNo(u32 *serial1,u32 *serial2)
 /* FZEROGX_MakeSaveGameValid                                 */
 /* (use just before writing a F-Zero GX system .gci file)    */
 /*                                                           */
-/* chn: Destination memory card port                         */
-/* ret: Error code                                           */
+/* Parameters:                                               */
+/*    direntry:   [Description needed]                       */
+/*    FileBuffer: [Description needed]                       */
+/*                                                           */
+/* Returns: Error code                                       */
 /*************************************************************/
 
 s32 GCMemcard::FZEROGX_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &FileBuffer)
@@ -1351,7 +1354,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock>
 	CARD_GetSerialNo(&serial1,&serial2);
 
 	// set new serial numbers
-	*(u16*)&FileBuffer[1].block[0x0066] = BE16(BE32(serial1) >> 16);			
+	*(u16*)&FileBuffer[1].block[0x0066] = BE16(BE32(serial1) >> 16);
 	*(u16*)&FileBuffer[3].block[0x1580] = BE16(BE32(serial2) >> 16);
 	*(u16*)&FileBuffer[1].block[0x0060] = BE16(BE32(serial1) & 0xFFFF);
 	*(u16*)&FileBuffer[1].block[0x0200] = BE16(BE32(serial2) & 0xFFFF);
@@ -1378,8 +1381,11 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock>
 /* PSO_MakeSaveGameValid                                   */
 /* (use just before writing a PSO system .gci file)        */
 /*                                                         */
-/* chn: Destination memory card port                       */
-/* ret: Error code                                         */
+/* Parameters:                                             */
+/*    direntry:   [Description needed]                     */
+/*    FileBuffer: [Description needed]                     */
+/*                                                         */
+/* Returns: Error code                                     */
 /***********************************************************/
 
 s32 GCMemcard::PSO_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &FileBuffer)

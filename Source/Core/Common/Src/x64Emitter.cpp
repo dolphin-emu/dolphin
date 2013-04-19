@@ -1315,7 +1315,7 @@ void XEmitter::MOVDDUP(X64Reg regOp, OpArg arg)
 
 //There are a few more left
 
-// Also some integer instrucitons are missing
+// Also some integer instructions are missing
 void XEmitter::PACKSSDW(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x6B, true, dest, arg);}
 void XEmitter::PACKSSWB(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x63, true, dest, arg);}
 //void PACKUSDW(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x66, true, dest, arg);} // WRONG

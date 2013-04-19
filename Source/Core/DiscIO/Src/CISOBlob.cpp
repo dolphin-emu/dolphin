@@ -59,7 +59,7 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 		auto const bytes_to_read = std::min(m_block_size - data_offset, nbytes);
 		if (block < CISO_MAP_SIZE && UNUSED_BLOCK_ID != m_ciso_map[block])
 		{
-			// calcualte the base address
+			// calculate the base address
 			auto const file_off = CISO_HEADER_SIZE + m_ciso_map[block] * m_block_size + data_offset;
 
 			if (!(m_file.Seek(file_off, SEEK_SET) && m_file.ReadArray(out_ptr, bytes_to_read)))

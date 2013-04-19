@@ -93,7 +93,7 @@ struct CachedDisplayList
 	// Compile the commands themselves down to native code.
 	const u8* compiled_code;
 	u32 uncachable;  // if set, this DL will always be interpreted. This gets set if hash ever changes.
-	// Analitic data
+	// Analytic data
 	u32 num_xf_reg;
 	u32 num_cp_reg;
 	u32 num_bp_reg; 

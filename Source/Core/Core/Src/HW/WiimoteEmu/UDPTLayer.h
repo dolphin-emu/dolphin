@@ -45,7 +45,7 @@ namespace UDPTLayer
 	{
 		if (!(m->inst)) return;
 		if (!(m->updIR)) return;
-		if ((*x >= -0.999) && (*x <= 0.999) && (*y >= -0.999) && (*y <= 0.999)) return; //the recieved values are used ONLY when the normal pointer is offscreen
+		if ((*x >= -0.999) && (*x <= 0.999) && (*y >= -0.999) && (*y <= 0.999)) return; //the received values are used ONLY when the normal pointer is offscreen
 		float _x, _y;
 		m->inst->getIR(_x, _y);
 		*x = _x * 2 - 1;

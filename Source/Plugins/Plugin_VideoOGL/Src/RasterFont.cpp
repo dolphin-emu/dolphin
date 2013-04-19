@@ -205,7 +205,7 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 			continue;
 		}
 
-		// do not print spaces, they can be skipped easyly
+		// do not print spaces, they can be skipped easily
 		if(c == ' ') {
 			x += delta_x + border_x;
 			continue;

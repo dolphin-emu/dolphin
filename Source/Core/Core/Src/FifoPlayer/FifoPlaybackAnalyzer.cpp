@@ -64,7 +64,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 
 		while (cmdStart < frame.fifoDataSize)
 		{
-			// Add memory updates that have occured before this point in the frame
+			// Add memory updates that have occurred before this point in the frame
 			while (nextMemUpdate < frame.memoryUpdates.size() && frame.memoryUpdates[nextMemUpdate].fifoPosition <= cmdStart)
 			{
 				AddMemoryUpdate(frame.memoryUpdates[nextMemUpdate], analyzed);

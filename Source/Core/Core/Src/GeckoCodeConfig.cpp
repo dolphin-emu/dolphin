@@ -45,7 +45,7 @@ void LoadCodes(const IniFile& inifile, std::vector<GeckoCode>& gcodes)
 			gcode.enabled = (1 == ss.tellg());	// silly
 			ss.seekg(1, std::ios_base::cur);
 			// read the code name
-			std::getline(ss, gcode.name, '[');	// stop at [ character (begining of contributer name)
+			std::getline(ss, gcode.name, '[');	// stop at [ character (beginning of contributor name)
 			gcode.name = StripSpaces(gcode.name);
 			// read the code creator name
 			std::getline(ss, gcode.creator, ']');

@@ -33,8 +33,8 @@ void Statistics::SwapDL()
 char *Statistics::ToString(char *ptr)
 {
 	char *p = ptr;
-	ptr+=sprintf(ptr,"textures created: %i\n",stats.numTexturesCreated);
-	ptr+=sprintf(ptr,"textures alive: %i\n",stats.numTexturesAlive);
+	ptr+=sprintf(ptr,"Textures created: %i\n",stats.numTexturesCreated);
+	ptr+=sprintf(ptr,"Textures alive: %i\n",stats.numTexturesAlive);
 	ptr+=sprintf(ptr,"pshaders created: %i\n",stats.numPixelShadersCreated);
 	ptr+=sprintf(ptr,"pshaders alive: %i\n",stats.numPixelShadersAlive);
 	ptr+=sprintf(ptr,"pshaders (unique, delete cache first): %i\n",stats.numUniquePixelShaders);
@@ -43,12 +43,12 @@ char *Statistics::ToString(char *ptr)
 	ptr+=sprintf(ptr,"dlists called:    %i\n",stats.numDListsCalled);
 	ptr+=sprintf(ptr,"dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
 	ptr+=sprintf(ptr,"dlists alive:     %i\n",stats.numDListsAlive);
-	ptr+=sprintf(ptr,"primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
-	ptr+=sprintf(ptr,"draw calls:       %i\n",stats.thisFrame.numDrawCalls);
-	ptr+=sprintf(ptr,"indexed draw calls: %i\n",stats.thisFrame.numIndexedDrawCalls);
-	ptr+=sprintf(ptr,"buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
-	ptr+=sprintf(ptr,"primitives: %i\n",stats.thisFrame.numPrims);
-	ptr+=sprintf(ptr,"primitives (DL): %i\n",stats.thisFrame.numDLPrims);
+	ptr+=sprintf(ptr,"Primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
+	ptr+=sprintf(ptr,"Draw calls:       %i\n",stats.thisFrame.numDrawCalls);
+	ptr+=sprintf(ptr,"Indexed draw calls: %i\n",stats.thisFrame.numIndexedDrawCalls);
+	ptr+=sprintf(ptr,"Buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
+	ptr+=sprintf(ptr,"Primitives: %i\n",stats.thisFrame.numPrims);
+	ptr+=sprintf(ptr,"Primitives (DL): %i\n",stats.thisFrame.numDLPrims);
 	ptr+=sprintf(ptr,"XF loads: %i\n",stats.thisFrame.numXFLoads);
 	ptr+=sprintf(ptr,"XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
 	ptr+=sprintf(ptr,"CP loads: %i\n",stats.thisFrame.numCPLoads);

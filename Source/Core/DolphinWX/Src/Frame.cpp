@@ -43,7 +43,7 @@ extern "C" {
 
 
 #ifdef _WIN32
-// I could not use FindItemByHWND() instead of this, it crashed on that occation I used it */
+// I could not use FindItemByHWND() instead of this, it crashed on that occasion I used it */
 HWND MSWGetParent_(HWND Parent)
 {
 	return GetParent(Parent);

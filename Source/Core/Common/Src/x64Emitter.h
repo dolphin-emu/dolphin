@@ -107,7 +107,7 @@ struct OpArg
 		scale = (u8)_scale;
 		offsetOrBaseReg = (u16)rmReg;
 		indexReg = (u16)scaledReg;
-		//if scale == 0 never mind offseting
+		//if scale == 0 never mind offsetting
 		offset = _offset;
 	}
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
@@ -637,7 +637,7 @@ public:
 	void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2);
 	void ABI_CallFunctionA(void *func, const Gen::OpArg &arg1);
 
-	// Pass a register as a paremeter.
+	// Pass a register as a parameter.
 	void ABI_CallFunctionR(void *func, Gen::X64Reg reg1);
 	void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2);
 

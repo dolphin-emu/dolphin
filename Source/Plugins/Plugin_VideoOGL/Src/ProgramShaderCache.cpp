@@ -517,7 +517,7 @@ void ProgramShaderCache::CreateHeader ( void )
 		, v==GLSL_120 ? "#define round(x) floor((x)+0.5f)" : ""
 		, v==GLSL_120 ? "#define out " : ""
 		, v==GLSL_120 ? "#define ocol0 gl_FragColor" : ""
-		, v==GLSL_120 ? "#define ocol1 gl_FragColor" : "" //TODO: implemenet dual source blend
+		, v==GLSL_120 ? "#define ocol1 gl_FragColor" : "" //TODO: implement dual source blend
 		, v==GLSL_120 ? "" : "out vec4 name;"
 	);
 }

@@ -675,7 +675,7 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
 inline void SetOpenMPThreadCount(int width, int height)
 {
 #ifdef _OPENMP
-	// Dont use multithreading in small Textures
+	// Don't use multithreading in small Textures
 	if (g_ActiveConfig.bOMPDecoder && width > 127 && height > 127)
 	{
 		// don't span to many threads they will kill the rest of the emu :)

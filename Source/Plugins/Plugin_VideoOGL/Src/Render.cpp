@@ -293,7 +293,7 @@ Renderer::Renderer()
 
 	if (!GLEW_ARB_framebuffer_object)
 	{
-		ERROR_LOG(VIDEO, "GPU: ERROR: Need GL_ARB_framebufer_object for multiple render targets.\n"
+		ERROR_LOG(VIDEO, "GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
 				"GPU: Does your video card support OpenGL 3.0?");
 		bSuccess = false;
 	}
@@ -344,13 +344,13 @@ Renderer::Renderer()
 	{
 		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need at least GLSL 1.20\n"
 				"GPU: Does your video card support OpenGL 2.1?\n"
-				"GPU: Your driver supports glsl %s", g_ogl_config.glsl_version);
+				"GPU: Your driver supports GLSL %s", g_ogl_config.glsl_version);
 		bSuccess = false;
 	}
 	else if(strstr(g_ogl_config.glsl_version, "1.20"))
 	{
 		g_ogl_config.eSupportedGLSLVersion = GLSL_120;
-		g_Config.backend_info.bSupportsDualSourceBlend = false; //TODO: implemenet dual source blend
+		g_Config.backend_info.bSupportsDualSourceBlend = false; //TODO: implement dual source blend
 	}
 	else if(strstr(g_ogl_config.glsl_version, "1.30"))
 	{
@@ -403,7 +403,7 @@ Renderer::Renderer()
 	s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
 	ApplySSAASettings();
 	
-	// Decide frambuffer size
+	// Decide framebuffer size
 	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
 	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 

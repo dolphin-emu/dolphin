@@ -537,7 +537,7 @@ inline void CEXIETHERNET::inc_rwp()
 		(*rwp)++;
 }
 
-// This function is on the critical path for recving data.
+// This function is on the critical path for receiving data.
 // Be very careful about calling into the logger and other slow things
 bool CEXIETHERNET::RecvHandlePacket()
 {

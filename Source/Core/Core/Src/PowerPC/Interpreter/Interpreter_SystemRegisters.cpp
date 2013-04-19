@@ -433,7 +433,7 @@ void Interpreter::mcrf(UGeckoInstruction _inst)
 
 void Interpreter::isync(UGeckoInstruction _inst)
 {
-	//shouldnt do anything
+	//shouldn't do anything
 }
 
 // the following commands read from FPSCR

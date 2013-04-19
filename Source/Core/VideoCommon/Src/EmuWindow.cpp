@@ -160,8 +160,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		s_sizing = false;
 		break;
 
-	/* Post the mouse events to the main window, it's nessesary because in difference to the
-	   keyboard inputs these events only appear here, not in the parent window or any other WndProc()*/
+	/* Post the mouse events to the main window, it's necessary, because the difference between the
+	   keyboard inputs is that these events only appear here, not in the parent window or any other WndProc()*/
 	case WM_LBUTTONDOWN:
 		if(g_ActiveConfig.backend_info.bSupports3DVision && g_ActiveConfig.b3DVision)
 		{

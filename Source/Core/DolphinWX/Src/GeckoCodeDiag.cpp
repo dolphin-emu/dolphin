@@ -207,7 +207,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 			case 0 :
 			{
 				std::istringstream ssline(line);
-				// stop at [ character (begining of contributer name)
+				// stop at [ character (beginning of contributor name)
 				std::getline(ssline, gcode.name, '[');
 				gcode.name = StripSpaces(gcode.name);
 				// read the code creator name

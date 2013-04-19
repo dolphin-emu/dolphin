@@ -126,7 +126,7 @@ Renderer::Renderer()
 
 	IS_AMD = D3D::IsATIDevice();
 
-	// Decide frambuffer size
+	// Decide framebuffer size
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 

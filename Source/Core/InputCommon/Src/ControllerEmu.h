@@ -140,7 +140,7 @@ public:
 			// deadzone / square stick code
 			if (deadzone || square)
 			{
-				// this section might be all wrong, but its working good enough, i think
+				// this section might be all wrong, but its working good enough, I think
 
 				ControlState ang = atan2(yy, xx); 
 				ControlState ang_sin = sin(ang);
@@ -150,7 +150,7 @@ public:
 				ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
 
 				// the amt a full stick would have that was ( user setting squareness) at current angle
-				// i think this is more like a pointed circle rather than a rounded square like it should be
+				// I think this is more like a pointed circle rather than a rounded square like it should be
 				ControlState stick_full = (1 + (square_full - 1) * square);
 
 				ControlState dist = sqrt(xx*xx + yy*yy);
@@ -312,7 +312,7 @@ public:
 			// deadzone / circle stick code
 			if (deadzone || circle)
 			{
-				// this section might be all wrong, but its working good enough, i think
+				// this section might be all wrong, but its working good enough, I think
 
 				ControlState ang = atan2(yy, xx); 
 				ControlState ang_sin = sin(ang);
@@ -322,7 +322,7 @@ public:
 				ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
 
 				// the amt a full stick would have that was (user setting circular) at current angle
-				// i think this is more like a pointed circle rather than a rounded square like it should be
+				// I think this is more like a pointed circle rather than a rounded square like it should be
 				ControlState stick_full = (square_full * (1 - circle)) + (circle);
 
 				ControlState dist = sqrt(xx*xx + yy*yy);

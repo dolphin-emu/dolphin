@@ -161,7 +161,7 @@ void l(const UDSPInstruction opc)
 // LN $axD.D, @$arS
 // xxxx xxxx 01dd d0ss
 // Load $axD.D/$acD.D with value from memory pointed by register $arS. 
-// Add indexing register register $ixS to register $arS.
+// Add indexing register $ixS to register $arS.
 void ln(const UDSPInstruction opc)
 {
 	u8 sreg = opc & 0x3;
@@ -531,7 +531,7 @@ void applyWriteBackLog()
 // apply the ext command output, because if the main op didn't change the value
 // then 0 | ext output = ext output and if it did then bitwise or is still the
 // right thing to do
-// Only needed for cases when when mainop and extended are modifying the same ACC
+// Only needed for cases when mainop and extended are modifying the same ACC
 // Games are not doing that + in motorola (similar dsp) dox this is forbidden to do.
 void zeroWriteBackLog()
 {

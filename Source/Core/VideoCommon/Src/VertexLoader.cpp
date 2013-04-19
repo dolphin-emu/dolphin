@@ -399,7 +399,7 @@ void VertexLoader::CompileVertexTranslator()
 		} else {
 			_assert_msg_(VIDEO, DIRECT <= tc[i] && tc[i] <= INDEX16, "Invalid texture coordinates!\n(tc[i] = %d)", tc[i]);
 			_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
-			_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elemnts!\n(elements = %d)", elements);
+			_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elements!\n(elements = %d)", elements);
 
 			m_NativeFmt->m_components |= VB_HAS_UV0 << i;
 			WriteCall(VertexLoader_TextCoord::GetFunction(tc[i], format, elements));

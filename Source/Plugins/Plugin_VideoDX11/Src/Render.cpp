@@ -554,7 +554,7 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 		(float)X, (float)Y,
 		(float)Wd, (float)Ht);
 
-	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
+	// Some games set invalid values for z-min and z-max so fix them to the max and min allowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y,
 										(float)Wd, (float)Ht,
 										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;

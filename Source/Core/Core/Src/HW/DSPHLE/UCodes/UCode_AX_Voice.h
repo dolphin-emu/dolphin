@@ -265,7 +265,7 @@ u16 AcceleratorGetSample()
 // stream, and the lower 16 bits are the decimal part.
 //
 // We start getting samples not from sample 0, but 0.<curr_pos_frac>. This
-// avoids discontinuties in the audio stream, especially with very low ratios
+// avoids discontinuities in the audio stream, especially with very low ratios
 // which interpolate a lot of values between two "real" samples.
 u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count,
                   s16* last_samples, u32 curr_pos, u32 ratio, int srctype,

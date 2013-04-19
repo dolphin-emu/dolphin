@@ -1347,7 +1347,7 @@ void CISOProperties::ChangeBannerDetails(int lang)
 	wxString const comment = StrToWxStr(OpenGameListItem->GetDescription(lang));
 	wxString const maker = StrToWxStr(OpenGameListItem->GetCompany());
 
-	// Updates the informations shown in the window
+	// Updates the information shown in the window
 	m_ShortName->SetValue(shortName);
 	m_Comment->SetValue(comment);
 	m_Maker->SetValue(maker);//dev too

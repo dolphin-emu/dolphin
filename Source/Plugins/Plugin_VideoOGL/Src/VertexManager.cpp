@@ -37,7 +37,7 @@ extern NativeVertexFormat *g_nativeVertexFmt;
 
 namespace OGL
 {
-//This are the initially requeted size for the buffers expresed in bytes
+//This are the initially requested size for the buffers expressed in bytes
 const u32 MAX_IBUFFER_SIZE =  2*1024*1024;
 const u32 MAX_VBUFFER_SIZE = 16*1024*1024;
 

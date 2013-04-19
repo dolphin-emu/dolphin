@@ -311,7 +311,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (ev
 
 void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 {
-	// Appply AR Code changes
+	// Apply AR Code changes
 	for (size_t i = 0; i < indexList.size(); i++)
 	{
 		ActionReplay::SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(indexList[i].uiIndex), indexList[i].index);

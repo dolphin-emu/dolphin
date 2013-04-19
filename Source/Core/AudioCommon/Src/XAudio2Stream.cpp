@@ -94,7 +94,7 @@ bool XAudio2::Start()
 {
 	HRESULT hr;
 
-	// callback dosent seem to run on a speecific cpu anyways
+	// callback doesn't seem to run on a specific cpu anyways
 	IXAudio2* xaudptr;
 	if (FAILED(hr = XAudio2Create(&xaudptr, 0, XAUDIO2_DEFAULT_PROCESSOR)))
 	{

@@ -66,7 +66,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 {
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerRight = new wxBoxSizer(wxVERTICAL);
-	// Didn't see anything usefull in the left part
+	// Didn't see anything useful in the left part
 	//wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
 
 	DebugInterface* di = &PowerPC::debug_interface;

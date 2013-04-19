@@ -382,7 +382,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 
 			// TODO: Print a warning if the format changes! In this case,
 			// we could reinterpret the internal texture object data to the new pixel format
-			// (similiar to what is already being done in Renderer::ReinterpretPixelFormat())
+			// (similar to what is already being done in Renderer::ReinterpretPixelFormat())
 			return ReturnEntry(stage, entry);
 		}
 

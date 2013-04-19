@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
-// Should give a very noticable speed boost to paired single heavy code.
+// Should give a very noticeable speed boost to paired single heavy code.
 
 #include "Common.h"
  

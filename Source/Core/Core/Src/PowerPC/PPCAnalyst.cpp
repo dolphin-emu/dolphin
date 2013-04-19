@@ -329,7 +329,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 		if (!cst1_instructions.empty())
 		{
 			// If the Gecko CST1 instruction queue is not empty,
-			// we comsume the first instruction.
+			// we consume the first instruction.
 			inst = UGeckoInstruction(cst1_instructions.front());
 			cst1_instructions.pop();
 			address -= 4;

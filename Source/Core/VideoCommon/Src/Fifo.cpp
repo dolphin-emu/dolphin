@@ -112,7 +112,7 @@ void ReadDataFromFifo(u8* _uData, u32 len)
 		size -= pos;
 		if (size + len > FIFO_SIZE)
 		{
-			PanicAlert("FIFO out of bounds (sz = %i, len = %i at %08x)", size, len, pos);
+			PanicAlert("FIFO out of bounds (size = %i, len = %i at %08x)", size, len, pos);
 		}
 		memmove(&videoBuffer[0], &videoBuffer[pos], size);
 		g_pVideoData = videoBuffer;
@@ -165,7 +165,7 @@ void RunGpuLoop()
 				else readPtr += 32;
 
 				_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
-					"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instabilty in the game. Please report it.", fifo.CPReadWriteDistance - 32);
+					"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instability in the game. Please report it.", fifo.CPReadWriteDistance - 32);
 
 				ReadDataFromFifo(uData, 32);
 

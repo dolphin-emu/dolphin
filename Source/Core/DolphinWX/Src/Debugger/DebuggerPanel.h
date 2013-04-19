@@ -79,7 +79,7 @@ private:
 
 	void GeneralSettings(wxCommandEvent& event);
 
-	// These set GFXDebuggerPauseFlag to true (either immediately or once the specified event has occured)
+	// These set GFXDebuggerPauseFlag to true (either immediately or once the specified event has occurred)
 	void OnPauseButton(wxCommandEvent& event);
 	void OnPauseAtNextButton(wxCommandEvent& event);
 

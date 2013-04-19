@@ -1116,7 +1116,7 @@ void lsrnr(const UDSPInstruction opc)
 
 // ASRNR  $acD
 // 0011 111d 1xxx xxxx
-// Arithmeticaly shift left/right accumulator $ACC[D] by lower 7-bit (signed) value in $AC[1-D].M
+// Arithmetically shift left/right accumulator $ACC[D] by lower 7-bit (signed) value in $AC[1-D].M
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00

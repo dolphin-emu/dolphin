@@ -126,7 +126,7 @@ wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copi
 wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, an error message is displayed.\nHowever, one may skip the popups to allow interruption free gameplay by checking this option.\n\nIf unsure, leave this unchecked.");
 
 
-// Search for avaliable resolutions - TODO: Move to Common?
+// Search for available resolutions - TODO: Move to Common?
 wxArrayString GetListOfResolutions()
 {
 	wxArrayString retlist;

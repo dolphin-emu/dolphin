@@ -6,7 +6,7 @@
 #include "DInput.h"
 
 	// (lower would be more sensitive) user can lower sensitivity by setting range
-	// seems decent here ( at 8 ), I dont think anyone would need more sensitive than this
+	// seems decent here ( at 8 ), I don't think anyone would need more sensitive than this
 	// and user can lower it much farther than they would want to with the range
 #define MOUSE_AXIS_SENSITIVITY		8
 
@@ -47,7 +47,7 @@ void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<ControllerInterfac
 	hwnd = _hwnd;
 
 	// mouse and keyboard are a combined device, to allow shift+click and stuff
-	// if thats dumb, i will make a VirtualDevice class that just uses ranges of inputs/outputs from other devices
+	// if that's dumb, I will make a VirtualDevice class that just uses ranges of inputs/outputs from other devices
 	// so there can be a separated Keyboard and mouse, as well as combined KeyboardMouse
 
 	LPDIRECTINPUTDEVICE8 kb_device = NULL;
@@ -181,7 +181,7 @@ bool KeyboardMouse::UpdateInput()
 
 	if (SUCCEEDED(kb_hr) && SUCCEEDED(mo_hr))
 	{
-		// need to smooth out the axes, otherwise it doesnt work for shit
+		// need to smooth out the axes, otherwise it doesn't work for shit
 		for (unsigned int i = 0; i < 3; ++i)
 			((&m_state_in.mouse.lX)[i] += (&tmp_mouse.lX)[i]) /= 2;
 

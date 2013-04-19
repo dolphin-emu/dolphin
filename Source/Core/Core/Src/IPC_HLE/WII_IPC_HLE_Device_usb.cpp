@@ -363,7 +363,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 	}
 	else
 	{
-		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint not currently valid, queueing...");
+		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint not currently valid, queuing...");
 		m_acl_pool.Store(_pData, _Size, _ConnectionHandle);
 	}
 }

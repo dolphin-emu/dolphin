@@ -59,7 +59,7 @@ bool OpenALStream::Start()
 		PanicAlertT("OpenAL: can't find sound devices");
 	}
 
-	// Initialise DPL2 parameters
+	// Initialize DPL2 parameters
 	dpl2reset();
 
 	soundTouch.clear();

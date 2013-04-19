@@ -78,7 +78,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 	// get supported triggers
 	for (int i = 0; i != sizeof(named_triggers)/sizeof(*named_triggers); ++i)
 	{
-		//BYTE val = (&caps.Gamepad.bLeftTrigger)[i];	// should be max value / msdn lies
+		//BYTE val = (&caps.Gamepad.bLeftTrigger)[i];	// should be max value / MSDN lies
 		if ((&caps.Gamepad.bLeftTrigger)[i])
 			AddInput(new Trigger(i, (&m_state_in.Gamepad.bLeftTrigger)[i], 255 ));
 	}
@@ -86,7 +86,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 	// get supported axes
 	for (int i = 0; i != sizeof(named_axes)/sizeof(*named_axes); ++i)
 	{
-		//SHORT val = (&caps.Gamepad.sThumbLX)[i];  // xinput doesnt give the range / msdn is lier
+		//SHORT val = (&caps.Gamepad.sThumbLX)[i];  // xinput doesn't give the range / MSDN is a liar
 		if ((&caps.Gamepad.sThumbLX)[i])
 		{
 			const SHORT& ax = (&m_state_in.Gamepad.sThumbLX)[i];

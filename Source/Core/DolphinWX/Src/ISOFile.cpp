@@ -67,7 +67,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_IsDiscTwo = pVolume->IsDiscTwo();
 			m_Revision = pVolume->GetRevision();
 
-			// check if we can get some infos from the banner file too
+			// check if we can get some info from the banner file too
 			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
 			if (pFileSystem != NULL || m_Platform == WII_WAD)

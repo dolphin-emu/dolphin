@@ -143,7 +143,7 @@ void DSPEmitter::l(const UDSPInstruction opc)
 // LN $axD.D, @$arS
 // xxxx xxxx 01dd d0ss
 // Load $axD.D/$acD.D with value from memory pointed by register $arS. 
-// Add indexing register register $ixS to register $arS.
+// Add indexing register $ixS to register $arS.
 void DSPEmitter::ln(const UDSPInstruction opc)
 {
 	u8 sreg = opc & 0x3;
@@ -686,7 +686,7 @@ void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg)
 
 void DSPEmitter::popExtValueToReg()
 {
-	// in practise, we rarely ever have a non-NX main op
+	// in practice, we rarely ever have a non-NX main op
 	// with an extended op, so the OR here is either
 	// not run (storeIndex == -1) or ends up OR'ing
 	// EBX with 0 (becoming the MOV we have here)

@@ -397,7 +397,7 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 		DebuggerFont = dialog.GetFontData().GetChosenFont();
 }
 
-// Toogle windows
+// Toggle windows
 
 void CCodeWindow::OpenPages()
 {

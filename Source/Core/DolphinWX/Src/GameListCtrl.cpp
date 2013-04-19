@@ -988,7 +988,7 @@ void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& event)
 	}
 	else
 	{
-		// Othwerise blank the value and save it
+		// Otherwise blank the value and save it
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = "";
 		SConfig::GetInstance().SaveSettings();
 	}

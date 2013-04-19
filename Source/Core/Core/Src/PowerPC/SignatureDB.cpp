@@ -191,7 +191,7 @@ void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const char *prefix)
 			break;
 		}
 		// Checksum only uses opcode, not opcode data, because opcode data changes 
-		// in all compilations, but opcodes dont!
+		// in all compilations, but opcodes don't!
 		sum = ( ( (sum << 17 ) & 0xFFFE0000 ) | ( (sum >> 15) & 0x0001FFFF ) );
 		sum = sum ^ (op | op2 | op3);
 	}

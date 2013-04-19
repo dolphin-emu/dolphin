@@ -286,7 +286,7 @@ void DSPEmitter::cmpi(const UDSPInstruction opc)
 
 // CMPIS $acD, #I
 // 0000 011d iiii iiii
-// Compares accumulator with short immediate. Comaprison is executed
+// Compares accumulator with short immediate. Comparison is executed
 // by subtracting short immediate (8bit sign extended) from mid accumulator
 // $acD.hm and computing flags based on whole accumulator $acD.
 //

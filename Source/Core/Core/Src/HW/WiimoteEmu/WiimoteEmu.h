@@ -163,7 +163,7 @@ private:
 	ADPCMState m_adpcm_state;
 
 	// read data request queue
-	// maybe it isn't actualy a queue
+	// maybe it isn't actually a queue
 	// maybe read requests cancel any current requests
 	std::queue< ReadRequest >	m_read_requests;
 

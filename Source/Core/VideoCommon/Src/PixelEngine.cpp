@@ -450,7 +450,7 @@ void SetFinish()
 void ResetSetFinish()
 {
 	//if SetFinish happened but PE_CTRL_REGISTER not, I reset the interrupt else
-	//remove event from the queque
+	//remove event from the queue
 	if (g_bSignalFinishInterrupt)
 	{
 		UpdateFinishInterrupt(false);

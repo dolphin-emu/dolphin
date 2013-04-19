@@ -259,12 +259,12 @@ void Write16(const u16 _Value, const u32 _Address)
 void Read32(u32& _rReturnValue, const u32 _Address)
 {
 	_rReturnValue = 0;
-	_dbg_assert_msg_(COMMANDPROCESSOR, 0, "Read32 from CommandProccessor at 0x%08x", _Address);
+	_dbg_assert_msg_(COMMANDPROCESSOR, 0, "Read32 from CommandProcessor at 0x%08x", _Address);
 }
 
 void Write32(const u32 _Data, const u32 _Address)
 {
-	_dbg_assert_msg_(COMMANDPROCESSOR, 0, "Write32 at CommandProccessor at 0x%08x", _Address);
+	_dbg_assert_msg_(COMMANDPROCESSOR, 0, "Write32 at CommandProcessor at 0x%08x", _Address);
 }
 
 void STACKALIGN GatherPipeBursted()
@@ -424,7 +424,7 @@ bool RunBuffer()
 
 	bool ranDecoder = false;
 
-	// move data remaing in command buffer
+	// move data remaining in the command buffer
 	if (readPos > 0)
 	{
 		memmove(&commandBuffer[0], &commandBuffer[readPos], availableBytes);

@@ -171,7 +171,7 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	// tex coords
 	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
 	{
-		// multiply by 128 because TEV stores stores UVs as s17.7
+		// multiply by 128 because TEV stores UVs as s17.7
 		tev.Uv[i].s = (s32)(pixel.Uv[i][0] * 128);
 		tev.Uv[i].t = (s32)(pixel.Uv[i][1] * 128);
 	}

@@ -129,7 +129,7 @@ void DecodeStandard(u32 bufferSize)
 	// XXX: Investigate
 #ifndef ANDROID
 	// check if switching in or out of an object
-	// only used for debuggging
+	// only used for debugging
 	if (inObjectStream && (Cmd & 0x87) != lastPrimCmd)
 	{
 		inObjectStream = false;
