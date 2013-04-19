@@ -4,7 +4,8 @@
 
 #include "Common.h"
 
-#ifdef __APPLE__
+// Neither Android nor OS X support TLS
+#if  defined(__APPLE__) || (ANDROID && __clang__)
 #define __thread
 #endif
 
