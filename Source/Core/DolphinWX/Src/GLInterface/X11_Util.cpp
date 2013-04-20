@@ -21,6 +21,115 @@
 #include "../GLInterface.h"
 #include "VertexShaderManager.h"
 
+#if USE_EGL
+bool cXInterface::ServerConnect(void)
+{
+	GLWin.evdpy = XOpenDisplay(NULL);
+
+	if (!GLWin.evdpy)
+		return false;
+
+	return true;
+}
+
+bool cXInterface::Initialize(void *config)
+{
+	int _tx, _ty, _twidth, _theight;
+	XVisualInfo  visTemplate;
+	int num_visuals;
+	EGLint vid;
+
+	if (!GLWin.evdpy) {
+		printf("Error: couldn't open X display\n");
+		return false;
+	}
+
+	if (!eglGetConfigAttrib(GLWin.egl_dpy, config, EGL_NATIVE_VISUAL_ID, &vid)) {
+		printf("Error: eglGetConfigAttrib() failed\n");
+		exit(1);
+	}
+
+	/* The X window visual must match the EGL config */
+	visTemplate.visualid = vid;
+	GLWin.vi = XGetVisualInfo(GLWin.evdpy, VisualIDMask, &visTemplate, &num_visuals);
+	if (!GLWin.vi) {
+		printf("Error: couldn't get X visual\n");
+		exit(1);
+	}
+
+	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
+
+	GLWin.x = _tx;
+	GLWin.y = _ty;
+	GLWin.width = _twidth;
+	GLWin.height = _theight;
+
+	GLWin.dpy = XOpenDisplay(NULL);
+	GLWin.parent = GLWin.win;
+	GLWin.screen = DefaultScreen(GLWin.evdpy);
+
+	if (GLWin.parent == 0)
+		GLWin.parent = RootWindow(GLWin.evdpy, GLWin.screen);
+
+	/* Set initial projection/viewing transformation.
+	 * We can't be sure we'll get a ConfigureNotify event when the window
+	 * first appears.
+	 */
+	glViewport(0, 0, (GLint) GLWin.width, (GLint) GLWin.height);
+
+	return true;
+}
+
+void *cXInterface::EGLGetDisplay(void)
+{
+	return eglGetDisplay(GLWin.evdpy);
+}
+
+void *cXInterface::CreateWindow(void)
+{
+	Atom wmProtocols[1];
+
+	// Setup window attributes
+	GLWin.attr.colormap = XCreateColormap(GLWin.dpy,
+			GLWin.parent, GLWin.vi->visual, AllocNone);
+	GLWin.attr.event_mask = KeyPressMask | StructureNotifyMask | FocusChangeMask;
+	GLWin.attr.background_pixel = BlackPixel(GLWin.dpy, GLWin.screen);
+	GLWin.attr.border_pixel = 0;
+
+	// Create the window
+	GLWin.win = XCreateWindow(GLWin.dpy, GLWin.parent,
+			GLWin.x, GLWin.y, GLWin.width, GLWin.height, 0,
+			GLWin.vi->depth, InputOutput, GLWin.vi->visual,
+			CWBorderPixel | CWBackPixel | CWColormap | CWEventMask, &GLWin.attr);
+	wmProtocols[0] = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);
+	XSetWMProtocols(GLWin.dpy, GLWin.win, wmProtocols, 1);
+	XSetStandardProperties(GLWin.dpy, GLWin.win, "GPU", "GPU", None, NULL, 0, NULL);
+	XMapRaised(GLWin.dpy, GLWin.win);
+	XSync(GLWin.dpy, True);
+
+	GLWin.xEventThread = std::thread(&cXInterface::XEventThread, this);
+	// Control window size and picture scaling
+	GLInterface->SetBackBufferDimensions(GLWin.width, GLWin.height);
+
+	return (void *) GLWin.win;
+}
+
+void cXInterface::DestroyWindow(void)
+{
+	XDestroyWindow(GLWin.dpy, GLWin.win);
+	GLWin.win = 0;
+	if (GLWin.xEventThread.joinable())
+		GLWin.xEventThread.join();
+	XFreeColormap(GLWin.dpy, GLWin.attr.colormap);
+}
+
+void cXInterface::UpdateFPSDisplay(const char *text)
+{
+	XStoreName(GLWin.dpy, GLWin.win, text);
+}
+
+void cXInterface::XEventThread()
+#else
 void cX11Window::CreateXWindow(void)
 {
 	Atom wmProtocols[1];
@@ -56,6 +165,7 @@ void cX11Window::DestroyXWindow(void)
 }
 
 void cX11Window::XEventThread()
+#endif
 {
 	// Free look variables
 	static bool mouseLookEnabled = false;
@@ -65,9 +175,9 @@ void cX11Window::XEventThread()
 	{
 		XEvent event;
 		KeySym key;
-		for (int num_events = XPending(GLWin.evdpy); num_events > 0; num_events--)
+		for (int num_events = XPending(GLWin.dpy); num_events > 0; num_events--)
 		{
-			XNextEvent(GLWin.evdpy, &event);
+			XNextEvent(GLWin.dpy, &event);
 			switch(event.type) {
 				case KeyPress:
 					key = XLookupKeysym((XKeyEvent*)&event, 0);
@@ -195,17 +305,17 @@ void cX11Window::XEventThread()
 				case ConfigureNotify:
 					Window winDummy;
 					unsigned int borderDummy, depthDummy;
-					XGetGeometry(GLWin.evdpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
+					XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
 							&GLWin.width, &GLWin.height, &borderDummy, &depthDummy);
 					GLInterface->SetBackBufferDimensions(GLWin.width, GLWin.height);
 					break;
 				case ClientMessage:
 					if ((unsigned long) event.xclient.data.l[0] ==
-							XInternAtom(GLWin.evdpy, "WM_DELETE_WINDOW", False))
+							XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
 						Host_Message(WM_USER_STOP);
 					if ((unsigned long) event.xclient.data.l[0] ==
-							XInternAtom(GLWin.evdpy, "RESIZE", False))
-						XMoveResizeWindow(GLWin.evdpy, GLWin.win,
+							XInternAtom(GLWin.dpy, "RESIZE", False))
+						XMoveResizeWindow(GLWin.dpy, GLWin.win,
 								event.xclient.data.l[1], event.xclient.data.l[2],
 								event.xclient.data.l[3], event.xclient.data.l[4]);
 					break;
@@ -216,5 +326,3 @@ void cX11Window::XEventThread()
 		Common::SleepCurrentThread(20);
 	}
 }
-
-
