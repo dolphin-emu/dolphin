@@ -92,13 +92,17 @@ public class DolphinEmulator<MainActivity> extends Activity
 			startActivityForResult(ListIntent, 1);
 			
 			// Make the assets directory
-			File directory = new File(
-					Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu"+File.separator+"Config");
+			String strDir = Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu";
+			File directory = new File(strDir);
+			directory.mkdirs();
+			
+			strDir += File.separator+"Config";
+			directory = new File(strDir);
 			directory.mkdirs();
 			
 			// Copy assets if needed
 			java.io.File file = new java.io.File(
-					Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "ButtonStart.png");
+					Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "NoBanner.png");
 			if(!file.exists())
 			{
 				CopyAsset("ButtonA.png", 
@@ -110,6 +114,12 @@ public class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("ButtonStart.png", 
 						Environment.getExternalStorageDirectory()+File.separator+
 						"dolphin-emu" + File.separator + "ButtonStart.png");
+				CopyAsset("NoBanner.png", 
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "NoBanner.png");
+				CopyAsset("Dolphin.png", 
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "Dolphin.png");
 				CopyAsset("GCPadNew.ini", 
 						Environment.getExternalStorageDirectory()+File.separator+
 						"dolphin-emu" + File.separator +"Config"+ File.separator +"GCPadNew.ini");
