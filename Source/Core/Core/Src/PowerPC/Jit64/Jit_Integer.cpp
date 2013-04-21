@@ -1997,7 +1997,7 @@ void Jit64::slwx(UGeckoInstruction inst)
 		}
 		else
 		{
-			MOV(32, gpr.R(a), gpr.R(a));
+			MOVZX(64, 32, gpr.R(a).GetSimpleReg(), gpr.R(a));
 		}
 		gpr.UnlockAll();
 		gpr.UnlockAllX();

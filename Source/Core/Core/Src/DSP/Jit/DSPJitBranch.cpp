@@ -322,7 +322,8 @@ void DSPEmitter::loop(const UDSPInstruction opc)
 {
 	u16 reg = opc & 0x1f;
 //	u16 cnt = g_dsp.r[reg];
-	dsp_op_read_reg(reg, RDX, ZERO);
+//todo: check if we can use normal variant here
+	dsp_op_read_reg_dont_saturate(reg, RDX, ZERO);
 	u16 loop_pc = compilePC + 1;
 
 	CMP(16, R(EDX), Imm16(0));
@@ -391,7 +392,8 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
 {
 	u16 reg = opc & 0x1f;
 //	u16 cnt = g_dsp.r[reg];
-	dsp_op_read_reg(reg, RDX, ZERO);
+//todo: check if we can use normal variant here
+	dsp_op_read_reg_dont_saturate(reg, RDX, ZERO);
 	u16 loop_pc = dsp_imem_read(compilePC + 1);
 
 	CMP(16, R(EDX), Imm16(0));

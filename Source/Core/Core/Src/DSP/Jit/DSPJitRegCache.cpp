@@ -255,6 +255,18 @@ void DSPJitRegCache::flushRegs(DSPJitRegCache &cache, bool emit)
 		regs[i].last_use_ctr = cache.regs[i].last_use_ctr;
 	}
 
+	//sync the freely used xregs
+	if (!emit) {
+		for(i = 0; i < NUMXREGS; i++) {
+			if (cache.xregs[i].guest_reg == DSP_REG_USED &&
+			    xregs[i].guest_reg == DSP_REG_NONE)
+				xregs[i].guest_reg = DSP_REG_USED;
+			if (cache.xregs[i].guest_reg == DSP_REG_NONE &&
+			    xregs[i].guest_reg == DSP_REG_USED)
+				xregs[i].guest_reg = DSP_REG_NONE;
+		}
+	}
+
 	//consistency checks
 	for(i = 0; i < NUMXREGS; i++)
 	{
@@ -389,7 +401,7 @@ void DSPJitRegCache::loadRegs(bool emit)
 	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		if (regs[i].host_reg != INVALID_REG)
-			movToHostReg(i,regs[i].host_reg);
+			movToHostReg(i,regs[i].host_reg, emit);
 	}
 
 	if (emit)
@@ -519,7 +531,7 @@ void DSPJitRegCache::popRegs() {
 	for(unsigned int i = 0; i <= DSP_REG_MAX_MEM_BACKED; i++)
 	{
 		if (regs[i].host_reg != INVALID_REG)
-			movToHostReg(i,regs[i].host_reg);
+			movToHostReg(i,regs[i].host_reg, true);
 	}
 }
 
@@ -916,17 +928,38 @@ void DSPJitRegCache::writeReg(int dreg, OpArg arg)
 {
 	OpArg reg;
 	getReg(dreg, reg, false);
-
-	switch(regs[dreg].size)
+	if (arg.IsImm())
 	{
-	case 2: emitter.MOV(16, reg, arg); break;
-	case 4: emitter.MOV(32, reg, arg); break;
+		switch(regs[dreg].size)
+		{
+		case 2: emitter.MOV(16, reg, Imm16(arg.offset)); break;
+		case 4: emitter.MOV(32, reg, Imm32(arg.offset)); break;
 #ifdef _M_X64
-	case 8: emitter.MOV(64, reg, arg); break;
+		case 8:
+			if ((s32)arg.offset == (s64)arg.offset)
+				emitter.MOV(64, reg, Imm32(arg.offset));
+			else
+				emitter.MOV(64, reg, Imm64(arg.offset));
+			break;
 #endif
-	default:
-		_assert_msg_(DSPLLE, 0, "unsupported memory size");
-		break;
+		default:
+			_assert_msg_(DSPLLE, 0, "unsupported memory size");
+			break;
+		}
+	}
+	else
+	{
+		switch(regs[dreg].size)
+		{
+		case 2: emitter.MOV(16, reg, arg); break;
+		case 4: emitter.MOV(32, reg, arg); break;
+#ifdef _M_X64
+		case 8: emitter.MOV(64, reg, arg); break;
+#endif
+		default:
+			_assert_msg_(DSPLLE, 0, "unsupported memory size");
+			break;
+		}
 	}
 	putReg(dreg, true);
 }
@@ -1042,8 +1075,7 @@ void DSPJitRegCache::getXReg(X64Reg reg)
 
 	if (xregs[reg].guest_reg != DSP_REG_NONE)
 		spillXReg(reg);
-
-	_assert_msg_(DSPLLE, xregs[reg].guest_reg != DSP_REG_NONE, "register already in use");
+	_assert_msg_(DSPLLE, xregs[reg].guest_reg == DSP_REG_NONE, "register already in use");
 	xregs[reg].guest_reg = DSP_REG_USED;
 }
 

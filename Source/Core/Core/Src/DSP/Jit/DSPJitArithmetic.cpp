@@ -737,12 +737,12 @@ void DSPEmitter::addp(const UDSPInstruction opc)
 	ADD(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
-//	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, prod, res));
+//	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, prod, res));
 	if (FlagsNeeded())
 	{
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1);
 	}
 	else
 	{
@@ -1557,16 +1557,17 @@ void DSPEmitter::lsrn(const UDSPInstruction opc)
 	//		acc <<= -shift;
 	//	}
 
-	CMP(64, R(RDX), Imm8(0));
+	CMP(64, R(RDX), Imm8(0));//is this actually worth the branch cost?
 	FixupBranch zero = J_CC(CC_E);
-	TEST(16, R(RAX), Imm16(0x3f));
+	TEST(16, R(RAX), Imm16(0x3f));//is this actually worth the branch cost?
 	FixupBranch noShift = J_CC(CC_Z);
-	MOVZX(64, 16, RCX, R(RAX));
-	AND(16, R(RCX), Imm16(0x3f));
+//CL gets automatically masked with 0x3f on IA32/AMD64
+	//MOVZX(64, 16, RCX, R(RAX));
+	//AND(16, R(RCX), Imm16(0x3f));
 	TEST(16, R(RAX), Imm16(0x40));
 	FixupBranch shiftLeft = J_CC(CC_Z);
 	NEG(16, R(RCX));
-	ADD(16, R(RCX), Imm16(0x40));
+	//ADD(16, R(RCX), Imm16(0x40));
 	SHL(64, R(RDX), R(RCX));
 	FixupBranch exit = J();
 	SetJumpTarget(shiftLeft);

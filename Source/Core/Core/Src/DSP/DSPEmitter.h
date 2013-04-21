@@ -107,8 +107,8 @@ public:
 	void dsp_op_write_reg_imm(int reg, u16 val);
 	void dsp_conditional_extend_accum(int reg);
 	void dsp_conditional_extend_accum_imm(int reg, u16 val);
+	void dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg, DSPJitSignExtend extend = NONE);
 	void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExtend extend = NONE);
-	void dsp_op_read_reg_and_saturate(int reg, Gen::X64Reg host_dreg, DSPJitSignExtend extend = NONE);
 
 	// Commands
 	void dar(const UDSPInstruction opc);

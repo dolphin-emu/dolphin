@@ -755,6 +755,10 @@ void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
 		Write8(0x0F);
 		Write8(0xB7);
 	}
+	else if (sbits == 32 && dbits == 64)
+	{
+		Write8(0x8B);
+	}
 	else
 	{
 		Crash();
@@ -1055,10 +1059,8 @@ void XEmitter::XOR (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(t
 void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2) 
 {
 #ifdef _DEBUG
-#ifndef _M_X64
 	_assert_msg_(DYNA_REC, !a1.IsSimpleReg() || !a2.IsSimpleReg() || a1.GetSimpleReg() != a2.GetSimpleReg(), "Redundant MOV @ %p - bug in JIT?", 
-				 code);
-#endif
+				 code); 
 #endif
 	WriteNormalOp(this, bits, nrmMOV, a1, a2);
 }
