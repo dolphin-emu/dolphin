@@ -90,7 +90,48 @@ void StreamingVoiceContext::OnBufferEnd(void* context)
 	SubmitBuffer(static_cast<BYTE*>(context));
 }
 
-bool XAudio2::Start()
+XAudio2SoundStream::XAudio2SoundStream(CMixer *mixer):
+	CBaseSoundStream(mixer),
+	m_xaudio2(nullptr),
+	m_voice_context(nullptr),
+	m_mastering_voice(nullptr),
+	m_cleanup_com(SUCCEEDED(CoInitializeEx(NULL, COINIT_MULTITHREADED)))
+{
+}
+
+XAudio2SoundStream::~XAudio2SoundStream()
+{
+	Stop();
+	if (m_cleanup_com)
+	{
+		CoUninitialize();
+	}
+}
+
+void XAudio2SoundStream::OnSetVolume(u32 volume)
+{
+	if (m_mastering_voice)
+	{
+		m_mastering_voice->SetVolume(ConvertVolume(volume));
+	}
+}
+
+void XAudio2SoundStream::OnFlushBuffers(bool mute)
+{
+	if (m_voice_context)
+	{
+		if (mute)
+		{
+			m_voice_context->Stop();
+		}
+		else
+		{
+			m_voice_context->Play();
+		}
+	}
+}
+
+bool XAudio2SoundStream::OnPreThreadStart()
 {
 	HRESULT hr;
 
@@ -104,9 +145,10 @@ bool XAudio2::Start()
 	}
 	m_xaudio2 = std::unique_ptr<IXAudio2, Releaser>(xaudptr);
 
+	CMixer *mixer = CBaseSoundStream::GetMixer();
 	// XAudio2 master voice
 	// XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
-	if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate())))
+	if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, mixer->GetSampleRate())))
 	{
 		PanicAlertT("XAudio2 master voice creation failed: %#X", hr);
 		Stop();
@@ -114,52 +156,21 @@ bool XAudio2::Start()
 	}
 
 	// Volume
-	m_mastering_voice->SetVolume(m_volume);
+	u32 vol = CBaseSoundStream::GetVolume();
+	m_mastering_voice->SetVolume(ConvertVolume(vol));
 
 	m_voice_context = std::unique_ptr<StreamingVoiceContext>
-		(new StreamingVoiceContext(m_xaudio2.get(), m_mixer, m_sound_sync_event));
+		(new StreamingVoiceContext(m_xaudio2.get(), mixer, m_sound_sync_event));
 
 	return true;
 }
 
-void XAudio2::SetVolume(int volume)
+void XAudio2SoundStream::OnPreThreadJoin()
 {
-	//linear 1- .01
-	m_volume = (float)volume / 100.f;
-
-	if (m_mastering_voice)
-		m_mastering_voice->SetVolume(m_volume);
+	Stop();
 }
 
-void XAudio2::Update()
-{
-	//m_sound_sync_event.Set();
-
-	//static int xi = 0;
-	//if (100000 == ++xi)
-	//{
-	//	xi = 0;
-	//	XAUDIO2_PERFORMANCE_DATA perfData;
-	//	pXAudio2->GetPerformanceData(&perfData);
-	//	NOTICE_LOG(DSPHLE, "XAudio2 latency (samples): %i", perfData.CurrentLatencyInSamples);
-	//	NOTICE_LOG(DSPHLE, "XAudio2	total glitches: %i", perfData.GlitchesSinceEngineStarted);
-	//}
-}
-
-void XAudio2::Clear(bool mute)
-{
-	m_muted = mute;
-
-	if (m_voice_context)
-	{
-		if (m_muted)
-			m_voice_context->Stop();
-		else
-			m_voice_context->Play();
-	}
-}
-
-void XAudio2::Stop()
+void XAudio2SoundStream::Stop()
 {
 	//m_sound_sync_event.Set();
 

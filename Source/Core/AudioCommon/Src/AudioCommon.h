@@ -11,7 +11,7 @@
 
 class CMixer;
 
-extern SoundStream *soundStream;
+extern CBaseSoundStream *soundStream;
 
 // UDSPControl
 union UDSPControl
@@ -40,7 +40,7 @@ union UDSPControl
 
 namespace AudioCommon 
 {
-	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd);
+	CBaseSoundStream *InitSoundStream(CMixer *mixer, void *hWnd);
 	void ShutdownSoundStream();
 	std::vector<std::string> GetSoundBackends();
 	bool UseJIT();

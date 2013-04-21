@@ -6,30 +6,23 @@
 #define _NULLSOUNDSTREAM_H_
 
 #include "SoundStream.h"
-#include "Thread.h"
 
 #define BUF_SIZE (48000 * 4 / 32)
 
-class NullSound : public SoundStream
+class NullSoundStream: public CBaseSoundStream
 {
-	// playback position
-	short realtimeBuffer[BUF_SIZE / sizeof(short)];
-
 public:
-	NullSound(CMixer *mixer, void *hWnd = NULL)
-		: SoundStream(mixer)
-	{}
+	NullSoundStream(CMixer *mixer, void *hWnd = NULL);
+	virtual ~NullSoundStream();
 
-	virtual ~NullSound() {}
+	static inline bool IsValid() { return true; }
 
-	virtual bool Start();
-	virtual void SoundLoop();
-	virtual void SetVolume(int volume);
-	virtual void Stop();
-	virtual void Clear(bool mute);
-	static bool isValid() { return true; }
-	virtual bool usesMixer() const { return true; }
-	virtual void Update();
+private:
+	virtual void OnUpdate() override;
+
+private:
+	// playback position
+	short m_realtimeBuffer[BUF_SIZE / sizeof(short)];
 };
 
 #endif //_NULLSOUNDSTREAM_H_

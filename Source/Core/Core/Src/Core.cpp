@@ -729,8 +729,7 @@ void UpdateTitle()
 	// Update the audio timestretcher with the current speed
 	if (soundStream)
 	{
-		CMixer* pMixer = soundStream->GetMixer();
-		pMixer->UpdateSpeed((float)Speed / 100);
+		soundStream->SetMixSpeed((float)Speed / 100.0f);
 	}
 
 	if (_CoreParameter.bRenderToMain &&

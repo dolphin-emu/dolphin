@@ -5,11 +5,12 @@
 #ifndef _OPENALSTREAM_H_
 #define _OPENALSTREAM_H_
 
+// needs to be before HAVE_OPENAL check!!!
 #include "Common.h"
 #include "SoundStream.h"
-#include "Thread.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
+
 #ifdef _WIN32
 #include <OpenAL/include/al.h>
 #include <OpenAL/include/alc.h>
@@ -35,42 +36,52 @@
 #define OAL_MAX_SAMPLES		256
 #define SURROUND_CHANNELS	6	// number of channels in surround mode
 #define SIZE_FLOAT			4   // size of a float in bytes
+
 #endif
 
-class OpenALStream: public SoundStream
+class OpenALSoundStream: public CBaseSoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
 public:
-	OpenALStream(CMixer *mixer, void *hWnd = NULL)
-		: SoundStream(mixer)
-		, uiSource(0)
-	{};
+	OpenALSoundStream(CMixer *mixer, void *hWnd = NULL);
+	virtual ~OpenALSoundStream();
 
-	virtual ~OpenALStream() {};
-
-	virtual bool Start();
-	virtual void SoundLoop();
-	virtual void SetVolume(int volume);
-	virtual void Stop();
-	virtual void Clear(bool mute);
-	static bool isValid() { return true; }
-	virtual bool usesMixer() const { return true; }
-	virtual void Update();
+	static inline bool IsValid() { return true; }
 
 private:
-	std::thread thread;
+	virtual void OnSetVolume(u32 volume) override;
+
+	virtual void OnUpdate() override;
+	virtual void OnFlushBuffers(bool mute) override;
+
+	virtual bool OnPreThreadStart() override;
+	virtual void SoundLoop() override;
+	virtual void OnPreThreadJoin() override;
+	virtual void OnPostThreadJoin() override;
+
+private:
+	static inline ALfloat ConvertVolume(u32 volume)
+	{
+		return (ALfloat)volume / 100.0f;
+	}
+
+private:
 	Common::Event soundSyncEvent;
 
 	short realtimeBuffer[OAL_MAX_SAMPLES * 2];
 	soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
 	ALuint uiBuffers[OAL_MAX_BUFFERS];
 	ALuint uiSource;
-	ALfloat fVolume;
 
 	u8 numBuffers;
+	volatile bool m_join;
+
 #else
 public:
-	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}
+	OpenALSoundStream(CMixer *mixer, void *hWnd = NULL):
+		CBaseSoundStream(mixer)
+	{
+	}
 #endif // HAVE_OPENAL
 };
 

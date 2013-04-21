@@ -135,7 +135,7 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 
 		if (m_CurBuffer == m_NumBuffers)
 		{
-			soundStream->GetMixer()->SetHLEReady(true);
+			soundStream->SetHLEReady(true);
 			m_bSyncCmdPending = false;
 			DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 		}
@@ -201,7 +201,7 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 					m_rMailHandler.PushMail(DSP_FRAME_END);
 					//	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
-					soundStream->GetMixer()->SetHLEReady(true);
+					soundStream->SetHLEReady(true);
 					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 //					soundStream->Update(); //do it in this thread to avoid sync problems
 
@@ -331,7 +331,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 						m_rMailHandler.PushMail(DSP_FRAME_END);
 					//g_dspInitialize.pGenerateDSPInterrupt();
 
-					soundStream->GetMixer()->SetHLEReady(true);
+					soundStream->SetHLEReady(true);
 					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 //					soundStream->Update(); //do it in this thread to avoid sync problems
 
@@ -393,7 +393,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 
 		case 0x0001:	// accepts params to either dma to iram and/or dram (used for hotbooting a new ucode)
 			// TODO find a better way to protect from HLEMixer?
-			soundStream->GetMixer()->SetHLEReady(false);
+			soundStream->SetHLEReady(false);
 			m_UploadSetupInProgress = true;
 			return;
 

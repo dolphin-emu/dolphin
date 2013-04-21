@@ -18,37 +18,37 @@
 #include "../../Core/Src/ConfigManager.h"
 
 // This shouldn't be a global, at least not here.
-SoundStream *soundStream;
+CBaseSoundStream *soundStream;
 
 namespace AudioCommon 
 {	
-	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd) 
+	CBaseSoundStream *InitSoundStream(CMixer *mixer, void *hWnd) 
 	{
 		// TODO: possible memleak with mixer
 
 		std::string backend = SConfig::GetInstance().sBackend;
-		if (backend == BACKEND_OPENAL           && OpenALStream::isValid()) 
-			soundStream = new OpenALStream(mixer);
-		else if (backend == BACKEND_NULLSOUND   && NullSound::isValid()) 
-			soundStream = new NullSound(mixer, hWnd);
-		else if (backend == BACKEND_DIRECTSOUND && DSound::isValid()) 
-			soundStream = new DSound(mixer, hWnd);
-		else if (backend == BACKEND_XAUDIO2     && XAudio2::isValid()) 
-			soundStream = new XAudio2(mixer);
-		else if (backend == BACKEND_AOSOUND     && AOSound::isValid()) 
-			soundStream = new AOSound(mixer);
-		else if (backend == BACKEND_ALSA        && AlsaSound::isValid())
-			soundStream = new AlsaSound(mixer);
-		else if (backend == BACKEND_COREAUDIO   && CoreAudioSound::isValid()) 
+		if (backend == BACKEND_OPENAL           && OpenALSoundStream::IsValid()) 
+			soundStream = new OpenALSoundStream(mixer);
+		else if (backend == BACKEND_NULLSOUND   && NullSoundStream::IsValid()) 
+			soundStream = new NullSoundStream(mixer, hWnd);
+		else if (backend == BACKEND_DIRECTSOUND && DSoundStream::IsValid()) 
+			soundStream = new DSoundStream(mixer, hWnd);
+		else if (backend == BACKEND_XAUDIO2     && XAudio2SoundStream::IsValid()) 
+			soundStream = new XAudio2SoundStream(mixer);
+		else if (backend == BACKEND_AOSOUND     && AOSoundStream::IsValid()) 
+			soundStream = new AOSoundStream(mixer);
+		else if (backend == BACKEND_ALSA        && AlsaSoundStream::IsValid())
+			soundStream = new AlsaSoundStream(mixer);
+		else if (backend == BACKEND_COREAUDIO   && CoreAudioSound::IsValid()) 
 			soundStream = new CoreAudioSound(mixer);
-		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
-			soundStream = new PulseAudio(mixer);
-		else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
-			soundStream = new OpenSLESStream(mixer);
+		else if (backend == BACKEND_PULSEAUDIO  && PulseAudioStream::IsValid())
+			soundStream = new PulseAudioStream(mixer);
+		else if (backend == BACKEND_OPENSLES	&& OpenSLESSoundStream::IsValid())
+			soundStream = new OpenSLESSoundStream(mixer);
 		if (soundStream != NULL)
 		{
 			UpdateSoundStream();
-			if (soundStream->Start())
+			if (soundStream->StartThread())
 			{
 				if (SConfig::GetInstance().m_DumpAudio)
 				{
@@ -74,10 +74,9 @@ namespace AudioCommon
 
 		if (soundStream) 
 		{
-			soundStream->Stop();
+			soundStream->StopThread();
 			if (SConfig::GetInstance().m_DumpAudio)
-				soundStream->GetMixer()->StopLogAudio();
-				//soundStream->StopLogAudio();
+				soundStream->StopRecordAudio();
 			delete soundStream;
 			soundStream = NULL;
 		}
@@ -89,23 +88,23 @@ namespace AudioCommon
 	{
 		std::vector<std::string> backends;
 
-		if (NullSound::isValid())
+		if (NullSoundStream::IsValid())
 			backends.push_back(BACKEND_NULLSOUND);
-		if (DSound::isValid())
+		if (DSoundStream::IsValid())
 			backends.push_back(BACKEND_DIRECTSOUND);
-		if (XAudio2::isValid())
+		if (XAudio2SoundStream::IsValid())
 			backends.push_back(BACKEND_XAUDIO2);
-		if (AOSound::isValid())
+		if (AOSoundStream::IsValid())
 			backends.push_back(BACKEND_AOSOUND);
-		if (AlsaSound::isValid())
+		if (AlsaSoundStream::IsValid())
 			backends.push_back(BACKEND_ALSA);
-		if (CoreAudioSound::isValid())
+		if (CoreAudioSound::IsValid())
 			backends.push_back(BACKEND_COREAUDIO);
-		if (PulseAudio::isValid())
+		if (PulseAudioStream::IsValid())
 			backends.push_back(BACKEND_PULSEAUDIO);
-		if (OpenALStream::isValid())
+		if (OpenALSoundStream::IsValid())
 			backends.push_back(BACKEND_OPENAL);
-		if (OpenSLESStream::isValid())
+		if (OpenSLESSoundStream::IsValid())
 			backends.push_back(BACKEND_OPENSLES);
 		return backends;
 	}
@@ -126,22 +125,14 @@ namespace AudioCommon
 			// audio typically doesn't maintain its own "paused" state
 			// (that's already handled by the CPU and whatever else being paused)
 			// so it should be good enough to only lock/unlock here.
-			CMixer* pMixer = soundStream->GetMixer();
-			if (pMixer)
-			{
-				std::mutex& csMixing = pMixer->MixerCritical();
-				if (doLock)
-					csMixing.lock();
-				else
-					csMixing.unlock();
-			}
+			soundStream->SetPaused(doLock);
 		}
 	}
 	void UpdateSoundStream()
 	{
 		if (soundStream)
 		{
-			soundStream->GetMixer()->SetThrottle(SConfig::GetInstance().m_Framelimit == 2);
+			soundStream->SetThrottle(SConfig::GetInstance().m_Framelimit == 2);
 			soundStream->SetVolume(SConfig::GetInstance().m_Volume);
 		}
 	}

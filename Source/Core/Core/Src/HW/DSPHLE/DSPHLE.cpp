@@ -152,7 +152,7 @@ void DSPHLE::DoState(PointerWrap &p)
 		else
 		{
 			AudioCommon::PauseAndLock(false);
-			soundStream->Stop();
+			soundStream->StopThread();
 			delete soundStream;
 			soundStream = NULL;
 		}
@@ -311,24 +311,22 @@ u16 DSPHLE::DSP_ReadControlRegister()
 // again once the game has started.
 void DSPHLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 {
-	if (!soundStream)
-		return;
-
-	CMixer* pMixer = soundStream->GetMixer();
-
-	if (pMixer && address)
+	if (soundStream)
 	{
-		short* samples = (short*)HLEMemory_Get_Pointer(address);
-		pMixer->PushSamples(samples, num_samples);
-	}
+		if (address)
+		{
+			short* samples = (short*)HLEMemory_Get_Pointer(address);
+			soundStream->PushSamples(samples, num_samples);
+		}
 
-	soundStream->Update();
+		soundStream->Update();
+	}
 }
 
 void DSPHLE::DSP_ClearAudioBuffer(bool mute)
 {
 	if (soundStream)
-		soundStream->Clear(mute);
+		soundStream->FlushBuffers(mute);
 }
 
 void DSPHLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)

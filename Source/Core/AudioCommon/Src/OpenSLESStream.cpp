@@ -15,68 +15,53 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "OpenSLESStream.h"
+
 #ifdef ANDROID
+
 #include "Common.h"
 #include <assert.h>
-#include "OpenSLESStream.h"
 
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 
-// engine interfaces
-static SLObjectItf engineObject;
-static SLEngineItf engineEngine;
-static SLObjectItf outputMixObject;
-
-// buffer queue player interfaces
-static SLObjectItf bqPlayerObject = NULL;
-static SLPlayItf bqPlayerPlay;
-static SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
-static SLMuteSoloItf bqPlayerMuteSolo;
-static SLVolumeItf bqPlayerVolume;
-static CMixer *g_mixer; 
-#define BUFFER_SIZE 512
-#define BUFFER_SIZE_IN_SAMPLES (BUFFER_SIZE / 2)
-
-// Double buffering.
-static short buffer[2][BUFFER_SIZE];
-static int curBuffer = 0;
-
-static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
-	assert(bq == bqPlayerBufferQueue);
-	assert(NULL == context);
-
-	short *nextBuffer = buffer[curBuffer];
-	int nextSize = sizeof(buffer[0]);
-
-	SLresult result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, nextBuffer, nextSize);
-
-	// Comment from sample code:
-	// the most likely other result is SL_RESULT_BUFFER_INSUFFICIENT,
-	// which for this code example would indicate a programming error
-	assert(SL_RESULT_SUCCESS == result);
-
-	curBuffer ^= 1;	// Switch buffer
-	// Render to the fresh buffer
-	g_mixer->Mix(reinterpret_cast<short *>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
+OpenSLESSoundStream::OpenSLESSoundStream(CMixer *mixer, void *hWnd /*= NULL*/):
+	CBaseSoundStream(mixer),
+	m_engineObject(NULL),
+	m_engineEngine(NULL),
+	m_outputMixObject(NULL),
+	m_bqPlayerObject(NULL),
+	m_bqPlayerPlay(NULL),
+	m_bqPlayerBufferQueue(NULL),
+	m_bqPlayerMuteSolo(NULL),
+	m_bqPlayerVolume(NULL),
+	m_buffer(),
+	m_curBuffer(0)
+{
 }
-bool OpenSLESStream::Start()
+
+OpenSLESSoundStream::~OpenSLESSoundStream()
+{
+}
+
+bool OpenSLESSoundStream::OnPreThreadStart()
 {
 	SLresult result;
 	// create engine
-	result = slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL);
+	result = slCreateEngine(&m_engineObject, 0, NULL, 0, NULL, NULL);
 	assert(SL_RESULT_SUCCESS == result);
-	result = (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
+	result = (*m_engineObject)->Realize(m_engineObject, SL_BOOLEAN_FALSE);
 	assert(SL_RESULT_SUCCESS == result);
-	result = (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
+	result = (*m_engineObject)->GetInterface(m_engineObject, SL_IID_ENGINE, &m_engineEngine);
 	assert(SL_RESULT_SUCCESS == result);
-	result = (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 0, 0, 0);
+	result = (*m_engineEngine)->CreateOutputMix(m_engineEngine, &m_outputMixObject, 0, 0, 0);
 	assert(SL_RESULT_SUCCESS == result);
-	result = (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
+	result = (*m_outputMixObject)->Realize(m_outputMixObject, SL_BOOLEAN_FALSE);
 	assert(SL_RESULT_SUCCESS == result);
 
 	SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
-	SLDataFormat_PCM format_pcm = {
+	SLDataFormat_PCM format_pcm =
+	{
 		SL_DATAFORMAT_PCM,
 		2,
 		SL_SAMPLINGRATE_44_1,
@@ -95,51 +80,77 @@ bool OpenSLESStream::Start()
 	// create audio player
 	const SLInterfaceID ids[2] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
 	const SLboolean req[2] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
-	result = (*engineEngine)->CreateAudioPlayer(engineEngine, &bqPlayerObject, &audioSrc, &audioSnk, 2, ids, req);
+	result = (*m_engineEngine)->CreateAudioPlayer(m_engineEngine, &m_bqPlayerObject, &audioSrc, &audioSnk, 2, ids, req);
 	assert(SL_RESULT_SUCCESS == result);
 
-	result = (*bqPlayerObject)->Realize(bqPlayerObject, SL_BOOLEAN_FALSE);
+	result = (*m_bqPlayerObject)->Realize(m_bqPlayerObject, SL_BOOLEAN_FALSE);
 	assert(SL_RESULT_SUCCESS == result);
-	result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_PLAY, &bqPlayerPlay);
+	result = (*m_bqPlayerObject)->GetInterface(m_bqPlayerObject, SL_IID_PLAY, &m_bqPlayerPlay);
 	assert(SL_RESULT_SUCCESS == result);
-	result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE,
-		&bqPlayerBufferQueue);
+	result = (*m_bqPlayerObject)->GetInterface(m_bqPlayerObject, SL_IID_BUFFERQUEUE, &m_bqPlayerBufferQueue);
 	assert(SL_RESULT_SUCCESS == result);
-	result = (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue, bqPlayerCallback, NULL);
+	result = (*m_bqPlayerBufferQueue)->RegisterCallback(m_bqPlayerBufferQueue, &OpenSLESSoundStream::bqPlayerCallback, this);
 	assert(SL_RESULT_SUCCESS == result);
-	result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
+	result = (*m_bqPlayerPlay)->SetPlayState(m_bqPlayerPlay, SL_PLAYSTATE_PLAYING);
 	assert(SL_RESULT_SUCCESS == result);
 
 	// Render and enqueue a first buffer. (or should we just play the buffer empty?)
-	curBuffer = 0;
-
-	result = (*bqPlayerBufferQueue)->Enqueue(bqPlayerBufferQueue, buffer[curBuffer], sizeof(buffer[curBuffer]));
-	if (SL_RESULT_SUCCESS != result) {
+	m_curBuffer = 0;
+	result = (*m_bqPlayerBufferQueue)->Enqueue(m_bqPlayerBufferQueue, m_buffer[m_curBuffer], sizeof(m_buffer[m_curBuffer]));
+	if (SL_RESULT_SUCCESS != result)
+	{
 		return false;
 	}
-	curBuffer ^= 1;
-	g_mixer = m_mixer;
+	m_curBuffer ^= 1;
+
 	return true;
 }
 
-void OpenSLESStream::Stop()
+void OpenSLESSoundStream::OnPreThreadJoin()
 {
-	if (bqPlayerObject != NULL) {
-		(*bqPlayerObject)->Destroy(bqPlayerObject);
-		bqPlayerObject = NULL;
-		bqPlayerPlay = NULL;
-		bqPlayerBufferQueue = NULL;
-		bqPlayerMuteSolo = NULL;
-		bqPlayerVolume = NULL;
+	if (m_bqPlayerObject)
+	{
+		(*m_bqPlayerObject)->Destroy(m_bqPlayerObject);
+		m_bqPlayerObject = NULL;
+		m_bqPlayerPlay = NULL;
+		m_bqPlayerBufferQueue = NULL;
+		m_bqPlayerMuteSolo = NULL;
+		m_bqPlayerVolume = NULL;
 	}
-	if (outputMixObject != NULL) {
-		(*outputMixObject)->Destroy(outputMixObject);
-		outputMixObject = NULL;
+	if (m_outputMixObject)
+	{
+		(*m_outputMixObject)->Destroy(m_outputMixObject);
+		m_outputMixObject = NULL;
 	}
-	if (engineObject != NULL) {
-		(*engineObject)->Destroy(engineObject);
-		engineObject = NULL;
-		engineEngine = NULL;
+	if (m_engineObject)
+	{
+		(*m_engineObject)->Destroy(m_engineObject);
+		m_engineObject = NULL;
+		m_engineEngine = NULL;
 	}
 }
+
+void OpenSLESSoundStream::bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
+{
+	assert(NULL != bq);
+	assert(NULL != context);
+
+	OpenSLESSoundStream *this_obj = static_cast<OpenSLESSoundStream*>(context);
+
+	short *nextBuffer = this_obj->m_buffer[this_obj->m_curBuffer];
+	int nextSize = sizeof(this_obj->m_buffer[0]);
+
+	SLresult result = (*bq)->Enqueue(bq, nextBuffer, nextSize);
+
+	// Comment from sample code:
+	// the most likely other result is SL_RESULT_BUFFER_INSUFFICIENT,
+	// which for this code example would indicate a programming error
+	assert(SL_RESULT_SUCCESS == result);
+
+	this_obj->m_curBuffer ^= 1;	// Switch buffer
+	// Render to the fresh buffer
+	CMixer *mixer = this_obj->GetMixer();
+	mixer->Mix(reinterpret_cast<short *>(this_obj->m_buffer[this_obj->m_curBuffer]), BUFFER_SIZE_IN_SAMPLES);
+}
+
 #endif

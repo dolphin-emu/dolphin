@@ -18,31 +18,51 @@
 #ifndef _OPENSLSTREAM_H_
 #define _OPENSLSTREAM_H_
 
-#include "Thread.h"
 #include "SoundStream.h"
 
-class OpenSLESStream : public SoundStream
+class OpenSLESSoundStream: public CBaseSoundStream
 {
 #ifdef ANDROID
 public:
-	OpenSLESStream(CMixer *mixer, void *hWnd = NULL)
-		: SoundStream(mixer)
-	{};
+	OpenSLESSoundStream(CMixer *mixer, void *hWnd = NULL);
+	virtual ~OpenSLESSoundStream();
 
-	virtual ~OpenSLESStream() {};
-
-	virtual bool Start();
-	virtual void Stop();
-	static bool isValid() { return true; }
-	virtual bool usesMixer() const { return true; }
+	static inline bool IsValid() { return true; }
 
 private:
-	std::thread thread;
-	Common::Event soundSyncEvent;
+	virtual bool OnPreThreadStart() override;
+	virtual void OnPreThreadJoin() override;
+
+	static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
+	
+private:
+	Common::Event m_soundSyncEvent;
+
+	// engine interfaces
+	SLObjectItf m_engineObject;
+	SLEngineItf m_engineEngine;
+	SLObjectItf m_outputMixObject;
+
+	// buffer queue player interfaces
+	SLObjectItf m_bqPlayerObject;
+	SLPlayItf m_bqPlayerPlay;
+	SLAndroidSimpleBufferQueueItf m_bqPlayerBufferQueue;
+	SLMuteSoloItf m_bqPlayerMuteSolo;
+	SLVolumeItf m_bqPlayerVolume;
+
+	static const int BUFFER_SIZE = 512;
+	static const int BUFFER_SIZE_IN_SAMPLES = (BUFFER_SIZE / 2);
+
+	// Double buffering.
+	short m_buffer[2][BUFFER_SIZE];
+	int m_curBuffer;
 #else
 public:
-	OpenSLESStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}
-#endif // HAVE_OPENSL
+	OpenSLESSoundStream(CMixer *mixer, void *hWnd = NULL):
+		CBaseSoundStream(mixer)
+	{
+	}
+#endif // ANDROID
 };
 
-#endif
+#endif // _OPENSLSTREAM_H_

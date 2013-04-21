@@ -21,6 +21,18 @@
       <Filter>SoundStreams</Filter>
     </ClCompile>
     <ClCompile Include="Src\DPL2Decoder.cpp" />
+    <ClCompile Include="Src\AlsaSoundStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CoreAudioSoundStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\OpenSLESStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PulseAudioStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\aldlist.h" />
@@ -44,6 +56,18 @@
       <Filter>SoundStreams</Filter>
     </ClInclude>
     <ClInclude Include="Src\DPL2Decoder.h" />
+    <ClInclude Include="Src\AlsaSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\CoreAudioSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\OpenSLESStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PulseAudioStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

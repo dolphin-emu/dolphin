@@ -34,7 +34,7 @@ public:
 	virtual u32 DSP_UpdateRate() = 0;
 
 protected:
-	SoundStream *soundStream;
+	CBaseSoundStream *soundStream;
 };
 
 DSPEmulator *CreateDSPEmulator(bool LLE);

@@ -7,20 +7,17 @@
 #include "../../Core/Src/HW/SystemTimers.h"
 #include "../../Core/Src/HW/AudioInterface.h"
 
-void NullSound::SoundLoop()
+NullSoundStream::NullSoundStream(CMixer *mixer, void *hWnd /*= NULL*/):
+	CBaseSoundStream(mixer),
+	m_realtimeBuffer()
 {
 }
 
-bool NullSound::Start()
-{
-	return true;
-}
-
-void NullSound::SetVolume(int volume)
+NullSoundStream::~NullSoundStream()
 {
 }
 
-void NullSound::Update()
+void NullSoundStream::OnUpdate()
 {
 	// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
 	const u32 stereo_16_bit_size = 4;
@@ -29,14 +26,5 @@ void NullSound::Update()
 	const u64 ais_samples_per_second = 48000 * stereo_16_bit_size;
 	const u64 num_samples_to_render = (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
 
-	m_mixer->Mix(realtimeBuffer, (unsigned int)num_samples_to_render);
-}
-
-void NullSound::Clear(bool mute)
-{
-	m_muted = mute;
-}
-
-void NullSound::Stop()
-{
+	CBaseSoundStream::GetMixer()->Mix(m_realtimeBuffer, (unsigned int)num_samples_to_render);
 }

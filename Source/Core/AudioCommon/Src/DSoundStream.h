@@ -6,7 +6,6 @@
 #define _DSOUNDSTREAM_H_
 
 #include "SoundStream.h"
-#include "Thread.h"
 
 #ifdef _WIN32
 #include <mmsystem.h>
@@ -15,65 +14,68 @@
 #define BUFSIZE (1024 * 8 * 4)
 #endif
 
-class DSound : public SoundStream
+class DSoundStream: public CBaseSoundStream
 {
 #ifdef _WIN32
-	std::thread thread;
-	Common::Event soundSyncEvent;
-	void  *hWnd;
+public:
+	DSoundStream(CMixer *mixer, void *hWnd = NULL);
+	virtual ~DSoundStream();
 
-	IDirectSound8* ds;
-	IDirectSoundBuffer* dsBuffer;
+	static inline bool IsValid() { return true; }
 
-	int bufferSize;     //i bytes
-	int m_volume;
+private:
+	virtual void OnSetVolume(u32 volume) override;
 
-	// playback position
-	int currentPos;
-	int lastPos;
-	short realtimeBuffer[BUFSIZE / sizeof(short)];
+	virtual void OnUpdate() override;
+	virtual void OnFlushBuffers(bool mute) override;
 
-	inline int FIX128(int x)
+	virtual bool OnPreThreadStart() override;
+	virtual void SoundLoop() override;
+	virtual void OnPreThreadJoin() override;
+	virtual void OnPostThreadJoin() override;
+
+private:
+	bool CreateBuffer();
+	bool WriteDataToBuffer(DWORD dwOffset, char* soundData, DWORD dwSoundBytes);
+	
+	static inline u32 ConvertVolume(u32 volume)
+	{
+		// This is in "dBA attenuation" from 0 to -10000, logarithmic
+		return (u32)floor(log10((float)volume) * 5000.0f) - 10000;
+	}
+
+	static inline int FIX128(int x)
 	{
 		return x & (~127);
 	}
 
 	inline int ModBufferSize(int x)
 	{
-		return (x + bufferSize) % bufferSize;
+		return (x + m_bufferSize) % m_bufferSize;
 	}
 
-	bool CreateBuffer();
-	bool WriteDataToBuffer(DWORD dwOffset, char* soundData, DWORD dwSoundBytes);
+private:
+	Common::Event m_soundSyncEvent;
+	void *m_hWnd;
 
-public:
-	DSound(CMixer *mixer, void *_hWnd = NULL)
-		: SoundStream(mixer)
-		, bufferSize(0)
-		, currentPos(0)
-		, lastPos(0)
-		, dsBuffer(0)
-		, ds(0)
-		, hWnd(_hWnd)
-	{}
+	IDirectSound8 *m_ds;
+	IDirectSoundBuffer *m_dsBuffer;
 
-	virtual ~DSound() {}
- 
-	virtual bool Start();
-	virtual void SoundLoop();
-	virtual void SetVolume(int volume);
-	virtual void Stop();
-	virtual void Clear(bool mute);
-	static bool isValid() { return true; }
-	virtual bool usesMixer() const { return true; }
-	virtual void Update();
+	int m_bufferSize;     //i bytes
+	volatile bool m_join;
+
+	// playback position
+	int m_currentPos;
+	int m_lastPos;
+	short m_realtimeBuffer[BUFSIZE / sizeof(short)];
 
 #else
 public:
-	DSound(CMixer *mixer, void *hWnd = NULL)
-		: SoundStream(mixer)
-	{}
-#endif
+	DSoundStream(CMixer *mixer, void *hWnd = NULL):
+		CBaseSoundStream(mixer)
+	{
+	}
+#endif // _WIN32
 };
 
 #endif //_DSOUNDSTREAM_H_

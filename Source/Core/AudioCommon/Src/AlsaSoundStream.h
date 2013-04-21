@@ -25,46 +25,36 @@
 #include "Common.h"
 #include "SoundStream.h"
 
-#include "Thread.h"
-
-class AlsaSound : public SoundStream
+class AlsaSoundStream : public CBaseSoundStream
 {
 #if defined(HAVE_ALSA) && HAVE_ALSA
 public:
-	AlsaSound(CMixer *mixer);
-	virtual ~AlsaSound();
+	AlsaSoundStream(CMixer *mixer);
+	virtual ~AlsaSoundStream();
 
-	virtual bool Start();
-	virtual void SoundLoop();
-	virtual void Stop();
+	static inline bool IsValid() { return true; }
 
-	static bool isValid() {
-		return true;
-	}
-	virtual bool usesMixer() const { 
-		return true; 
-	}
-
-	virtual void Update();
+private:
+	virtual bool OnPreThreadStart() override;
+	virtual void SoundLoop() override;
+	virtual void OnPreThreadJoin() override;
 
 private:
 	bool AlsaInit();
 	void AlsaShutdown();
 
-	u8 *mix_buffer;
-	std::thread thread;
-	// 0 = continue
-	// 1 = shutdown
-	// 2 = done shutting down.
-	volatile int thread_data;
-
-	snd_pcm_t *handle;
-	int frames_to_deliver;
+private:
+	std::unique_ptr<u8[]> m_mix_buffer;
+	snd_pcm_t *m_handle;
+	snd_pcm_uframes_t m_frames_to_deliver;
+	volatile bool m_join;
 #else
 public:
-	AlsaSound(CMixer *mixer) : SoundStream(mixer) {}
+	AlsaSoundStream(CMixer *mixer):
+		CBaseSoundStream(mixer)
+	{
+	}
 #endif
 };
 
 #endif
-

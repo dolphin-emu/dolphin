@@ -665,7 +665,7 @@ void CUCode_AX::HandleMail(u32 mail)
 	}
 	else if (mail == MAIL_NEW_UCODE)
 	{
-		soundStream->GetMixer()->SetHLEReady(false);
+		soundStream->SetHLEReady(false);
 		m_UploadSetupInProgress = true;
 	}
 	else if (mail == MAIL_RESET)

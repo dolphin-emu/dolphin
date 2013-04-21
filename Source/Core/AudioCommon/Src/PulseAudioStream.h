@@ -18,49 +18,47 @@
 #ifndef _PULSE_AUDIO_STREAM_H
 #define _PULSE_AUDIO_STREAM_H
 
+#include "Common.h"
+#include "SoundStream.h"
+
 #if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
 #include <pulse/simple.h>
 #include <pulse/error.h>
 #endif
 
-#include "Common.h"
-#include "SoundStream.h"
-
-#include "Thread.h"
-
 #include <vector>
 
-class PulseAudio : public SoundStream
+class PulseAudioStream: public CBaseSoundStream
 {
 #if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
 public:
-	PulseAudio(CMixer *mixer);
+	PulseAudioStream(CMixer *mixer);
+	virtual ~PulseAudioStream();
 
-	virtual bool Start();
-	virtual void Stop(); 
-
-	static bool isValid() {return true;}
-
-	virtual bool usesMixer() const {return true;}
-
-	virtual void Update();
+	static inline bool IsValid() { return true; }
 
 private:
-	virtual void SoundLoop();
+	virtual bool OnPreThreadStart() override;
+	virtual void SoundLoop() override;
+	virtual void OnPreThreadJoin() override;
 
+private:
 	bool PulseInit();
 	void PulseShutdown();
 	void Write(const void *data, size_t bytes);
 
-	std::vector<s16> mix_buffer;
-	std::thread thread;
-	volatile bool run_thread;
+private:
+	pa_simple *m_pa;
+	volatile bool m_join;
+	std::vector<s16> m_mix_buffer;
 
-	pa_simple* pa;
 #else
 public:
-	PulseAudio(CMixer *mixer) : SoundStream(mixer) {}
-#endif
+	PulseAudioStream(CMixer *mixer):
+		CBaseSoundStream(mixer)
+	{
+	}
+#endif // HAVE_PULSEAUDIO
 };
 
-#endif
+#endif // _PULSE_AUDIO_STREAM_H

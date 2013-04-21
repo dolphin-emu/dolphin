@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
+
 #include <functional>
 
 #include "Common.h"
@@ -29,84 +31,80 @@ const size_t CHANNEL_COUNT = 2;
 const size_t BUFFER_SIZE = BUFFER_SAMPLES * CHANNEL_COUNT;
 }
 
-PulseAudio::PulseAudio(CMixer *mixer)
-	: SoundStream(mixer)
-	, mix_buffer(BUFFER_SIZE)
-	, thread()
-	, run_thread()
-	, pa()
-{}
-
-bool PulseAudio::Start()
+PulseAudioStream::PulseAudioStream(CMixer *mixer):
+	CBaseSoundStream(mixer),
+	m_pa(nullptr),
+	m_join(false),
+	m_mix_buffer(BUFFER_SIZE)
 {
-	run_thread = true;
-	thread = std::thread(std::mem_fun(&PulseAudio::SoundLoop), this);
+}
+
+bool PulseAudioStream::OnPreThreadStart()
+{
+	m_join = false;
 	return true;
 }
 
-void PulseAudio::Stop()
-{
-	run_thread = false;
-	thread.join();
-}
-
-void PulseAudio::Update()
-{
-	// don't need to do anything here.
-}
-
 // Called on audio thread.
-void PulseAudio::SoundLoop()
+void PulseAudioStream::SoundLoop()
 {
 	Common::SetCurrentThreadName("Audio thread - pulse");
 
 	if (PulseInit())
 	{
-		while (run_thread)
+		CMixer *mixer = CBaseSoundStream::GetMixer();
+		while (!m_join)
 		{
-			m_mixer->Mix(&mix_buffer[0], mix_buffer.size() / CHANNEL_COUNT);
-			Write(&mix_buffer[0], mix_buffer.size() * sizeof(s16));
+			mixer->Mix(&m_mix_buffer[0], m_mix_buffer.size() / CHANNEL_COUNT);
+			Write(&m_mix_buffer[0], m_mix_buffer.size() * sizeof(s16));
 		}
 
 		PulseShutdown();
 	}
 }
 
-bool PulseAudio::PulseInit()
+void PulseAudioStream::OnPreThreadJoin()
+{
+	m_join = true;
+}
+
+bool PulseAudioStream::PulseInit()
 {
 	pa_sample_spec ss = {};
 	ss.format = PA_SAMPLE_S16LE;
 	ss.channels = 2;
-	ss.rate = m_mixer->GetSampleRate();
+	ss.rate = CBaseSoundStream::GetMixer()->GetSampleRate();
 
 	int error;
-	pa = pa_simple_new(nullptr, "dolphin-emu", PA_STREAM_PLAYBACK,
+	m_pa = pa_simple_new(nullptr, "dolphin-emu", PA_STREAM_PLAYBACK,
 		nullptr, "audio", &ss, nullptr, nullptr, &error);
 
-	if (!pa)
+	if (m_pa)
+	{
+		NOTICE_LOG(AUDIO, "Pulse successfully initialized.");
+		return true;
+	}
+	else
 	{
 		ERROR_LOG(AUDIO, "PulseAudio failed to initialize: %s",
 			pa_strerror(error));
 		return false;
 	}
-	else
-	{
-		NOTICE_LOG(AUDIO, "Pulse successfully initialized.");
-		return true;
-	}
 }
 
-void PulseAudio::PulseShutdown()
+void PulseAudioStream::PulseShutdown()
 {
-	pa_simple_free(pa);
+	pa_simple_free(m_pa);
 }
 
-void PulseAudio::Write(const void *data, size_t length)
+void PulseAudioStream::Write(const void *data, size_t length)
 {
 	int error;
-	if (pa_simple_write(pa, data, length, &error) < 0)
+	if (pa_simple_write(m_pa, data, length, &error) < 0)
 	{
 		ERROR_LOG(AUDIO, "PulseAudio failed to write data: %s",
 			pa_strerror(error));
 	}
 }
+
+#endif // HAVE_PULSEAUDIO

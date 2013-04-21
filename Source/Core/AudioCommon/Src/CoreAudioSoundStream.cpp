@@ -15,24 +15,15 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <CoreServices/CoreServices.h>
-
 #include "CoreAudioSoundStream.h"
 
-OSStatus CoreAudioSound::callback(void *inRefCon,
-	AudioUnitRenderActionFlags *ioActionFlags,
-	const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
-	UInt32 inNumberFrames, AudioBufferList *ioData)
-{
-	for (UInt32 i = 0; i < ioData->mNumberBuffers; i++)
-		((CoreAudioSound *)inRefCon)->m_mixer->
-			Mix((short *)ioData->mBuffers[i].mData,
-				ioData->mBuffers[i].mDataByteSize / 4);
+#ifdef __APPLE__
 
-	return noErr;
-}
+#include <CoreServices/CoreServices.h>
 
-CoreAudioSound::CoreAudioSound(CMixer *mixer) : SoundStream(mixer)
+CoreAudioSound::CoreAudioSound(CMixer *mixer):
+	CBaseSoundStream(mixer),
+	m_audioUnit(NULL)
 {
 }
 
@@ -40,109 +31,140 @@ CoreAudioSound::~CoreAudioSound()
 {
 }
 
-bool CoreAudioSound::Start()
+void CoreAudioSound::OnSetVolume(u32 volume)
 {
-	OSStatus err;
-	AURenderCallbackStruct callback_struct;
-	AudioStreamBasicDescription format;
-	ComponentDescription desc;
-	Component component;
+	OSStatus err = AudioUnitSetParameter(m_audioUnit,
+					kHALOutputParam_Volume,
+					kAudioUnitParameterFlag_Output, 0,
+					ConvertVolume(volume), 0);
+	if (err != noErr)
+	{
+		ERROR_LOG(AUDIO, "error setting volume\n");
+	}
+}
 
+bool CoreAudioSound::OnPreThreadStart()
+{
+	ComponentDescription desc;
 	desc.componentType = kAudioUnitType_Output;
 	desc.componentSubType = kAudioUnitSubType_DefaultOutput;
 	desc.componentFlags = 0;
 	desc.componentFlagsMask = 0;
 	desc.componentManufacturer = kAudioUnitManufacturer_Apple;
-	component = FindNextComponent(NULL, &desc);
-	if (component == NULL) {
-		ERROR_LOG(AUDIO, "error finding audio component");
+
+	Component component = FindNextComponent(NULL, &desc);
+	if (component == NULL)
+	{
+		ERROR_LOG(AUDIO, "error finding audio component\n");
 		return false;
 	}
 
-	err = OpenAComponent(component, &audioUnit);
-	if (err != noErr) {
-		ERROR_LOG(AUDIO, "error opening audio component");
+	OSStatus err = OpenAComponent(component, &m_audioUnit);
+	if (err != noErr)
+	{
+		ERROR_LOG(AUDIO, "error opening audio component\n");
 		return false;
 	}
 
-	FillOutASBDForLPCM(format, m_mixer->GetSampleRate(),
+	AudioStreamBasicDescription format;
+	unsigned int sample_rate = CBaseSoundStream::GetMixer()->GetSampleRate();
+	FillOutASBDForLPCM(format, sample_rate,
 				2, 16, 16, false, false, false);
-	err = AudioUnitSetProperty(audioUnit,
+	err = AudioUnitSetProperty(m_audioUnit,
 				kAudioUnitProperty_StreamFormat,
 				kAudioUnitScope_Input, 0, &format,
 				sizeof(AudioStreamBasicDescription));
-	if (err != noErr) {
-		ERROR_LOG(AUDIO, "error setting audio format");
+	if (err != noErr)
+	{
+		ERROR_LOG(AUDIO, "error setting audio format\n");
 		return false;
 	}
 
-	callback_struct.inputProc = callback;
+	AURenderCallbackStruct callback_struct;
+	callback_struct.inputProc = &CoreAudioSound::callback;
 	callback_struct.inputProcRefCon = this;
-	err = AudioUnitSetProperty(audioUnit,
+	err = AudioUnitSetProperty(m_audioUnit,
 				kAudioUnitProperty_SetRenderCallback,
 				kAudioUnitScope_Input, 0, &callback_struct,
 				sizeof callback_struct);
-	if (err != noErr) {
-		ERROR_LOG(AUDIO, "error setting audio callback");
+	if (err != noErr)
+	{
+		ERROR_LOG(AUDIO, "error setting audio callback\n");
 		return false;
 	}
 
-    err = AudioUnitSetParameter(audioUnit,
+	u32 vol = CBaseSoundStream::GetVolume();
+    err = AudioUnitSetParameter(m_audioUnit,
 					kHALOutputParam_Volume,
 					kAudioUnitParameterFlag_Output, 0,
-					m_volume / 100., 0);
+					ConvertVolume(vol), 0);
 	if (err != noErr)
-		ERROR_LOG(AUDIO, "error setting volume");
+	{
+		ERROR_LOG(AUDIO, "error setting volume\n");
+	}
 
-	err = AudioUnitInitialize(audioUnit);
-	if (err != noErr) {
-		ERROR_LOG(AUDIO, "error initializing audiounit");
+	err = AudioUnitInitialize(m_audioUnit);
+	if (err != noErr)
+	{
+		ERROR_LOG(AUDIO, "error initializing audiounit\n");
 		return false;
 	}
 
-	err = AudioOutputUnitStart(audioUnit);
-	if (err != noErr) {
-		ERROR_LOG(AUDIO, "error starting audiounit");
+	err = AudioOutputUnitStart(m_audioUnit);
+	if (err != noErr)
+	{
+		ERROR_LOG(AUDIO, "error starting audiounit\n");
 		return false;
 	}
 
 	return true;
 }
 
-void CoreAudioSound::SetVolume(int volume)
+void CoreAudioSound::OnPreThreadJoin()
 {
-	OSStatus err;
-    m_volume = volume;
-
-	err = AudioUnitSetParameter(audioUnit,
-					kHALOutputParam_Volume,
-					kAudioUnitParameterFlag_Output, 0,
-					volume / 100., 0);
+	OSStatus err = AudioOutputUnitStop(m_audioUnit);
 	if (err != noErr)
-		ERROR_LOG(AUDIO, "error setting volume");
+	{
+		ERROR_LOG(AUDIO, "error stopping audiounit\n");
+	}
+
+	err = AudioUnitUninitialize(m_audioUnit);
+	if (err != noErr)
+	{
+		ERROR_LOG(AUDIO, "error uninitializing audiounit\n");
+	}
+
+	err = CloseComponent(m_audioUnit);
+	if (err != noErr)
+	{
+		ERROR_LOG(AUDIO, "error closing audio component\n");
+	}	
 }
 
-void CoreAudioSound::SoundLoop()
+AudioUnitParameterValue CoreAudioSound::ConvertVolume(u32 volume)
 {
+	return (AudioUnitParameterValue)volume / 100.0f;
 }
 
-void CoreAudioSound::Stop()
+OSStatus CoreAudioSound::callback(
+	void *inRefCon,
+	AudioUnitRenderActionFlags *ioActionFlags,
+	const AudioTimeStamp *inTimeStamp,
+	UInt32 inBusNumber,
+	UInt32 inNumberFrames,
+	AudioBufferList *ioData)
 {
-	OSStatus err;
+	CoreAudioSound *this_obj = static_cast<CoreAudioSound*>(inRefCon);
+	CMixer *mixer = this_obj->GetMixer();
+	for (UInt32 i = 0; i < ioData->mNumberBuffers; ++i)
+	{
+		short *buffers = (short*)ioData->mBuffers[i].mData;
+		// TODO, FIXME: shouldn't this be / 2??
+		int num_samples = ioData->mBuffers[i].mDataByteSize / 4;
+		mixer->Mix(buffers, num_samples);
+	}
 
-	err = AudioOutputUnitStop(audioUnit);
-	if (err != noErr)
-		ERROR_LOG(AUDIO, "error stopping audiounit");
-
-	err = AudioUnitUninitialize(audioUnit);
-	if (err != noErr)
-		ERROR_LOG(AUDIO, "error uninitializing audiounit");
-
-	err = CloseComponent(audioUnit);
-	if (err != noErr)
-		ERROR_LOG(AUDIO, "error closing audio component");
+	return noErr;
 }
 
-void CoreAudioSound::Update()
-{
-}
+#endif

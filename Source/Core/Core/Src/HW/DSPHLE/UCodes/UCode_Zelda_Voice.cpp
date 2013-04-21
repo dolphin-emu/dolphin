@@ -48,7 +48,7 @@ void CUCode_Zelda::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 
 int CUCode_Zelda::ConvertRatio(int pb_ratio)
 {
-	float _ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
+	float _ratioFactor = 32000.0f / (float)soundStream->GetSampleRate();
 	u32 _ratio = (pb_ratio << 16);
 	return (u64)((_ratio * _ratioFactor) * 16) >> 16;
 }

@@ -15,148 +15,147 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "AlsaSoundStream.h"
+
+#if defined(HAVE_ALSA) && HAVE_ALSA
+
 #include <functional>
 
 #include "Common.h"
 #include "Thread.h"
-#include "AlsaSoundStream.h"
 
 #define FRAME_COUNT_MIN 256
 #define BUFFER_SIZE_MAX 8192
 #define BUFFER_SIZE_BYTES (BUFFER_SIZE_MAX*2*2)
 
-AlsaSound::AlsaSound(CMixer *mixer) : SoundStream(mixer), thread_data(0), handle(NULL), frames_to_deliver(FRAME_COUNT_MIN)
+AlsaSoundStream::AlsaSoundStream(CMixer *mixer):
+	CBaseSoundStream(mixer),
+	m_mix_buffer(new u8[BUFFER_SIZE_BYTES]),
+	m_handle(NULL),
+	m_frames_to_deliver(FRAME_COUNT_MIN),
+	m_join(false)
 {
-	mix_buffer = new u8[BUFFER_SIZE_BYTES];
 }
 
-AlsaSound::~AlsaSound()
+AlsaSoundStream::~AlsaSoundStream()
 {
-	delete [] mix_buffer;
 }
 
-bool AlsaSound::Start()
+bool AlsaSoundStream::OnPreThreadStart()
 {
-	thread = std::thread(std::mem_fun(&AlsaSound::SoundLoop), this);
-	thread_data = 0;
+	m_join = false;
 	return true;
 }
 
-void AlsaSound::Stop()
-{
-	thread_data = 1;
-	thread.join();
-}
-
-void AlsaSound::Update()
-{
-	// don't need to do anything here.
-}
-
 // Called on audio thread.
-void AlsaSound::SoundLoop()
+void AlsaSoundStream::SoundLoop()
 {
-	if (!AlsaInit()) {
-		thread_data = 2;
+	if (!AlsaInit())
+	{
 		return;
 	}
+
 	Common::SetCurrentThreadName("Audio thread - alsa");
-	while (!thread_data)
+
+	CMixer *mixer = CBaseSoundStream::GetMixer();
+	while (!m_join)
 	{
-		m_mixer->Mix(reinterpret_cast<short *>(mix_buffer), frames_to_deliver);
-		int rc = m_muted ? 1337 : snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
-		if (rc == -EPIPE)
+		mixer->Mix(reinterpret_cast<short*>(m_mix_buffer.get()), m_frames_to_deliver);
+		if (!CBaseSoundStream::IsMuted())
 		{
-			// Underrun
-			snd_pcm_prepare(handle);
-		}
-		else if (rc < 0) 
-		{
-			ERROR_LOG(AUDIO, "writei fail: %s", snd_strerror(rc));
+			snd_pcm_sframes_t frames_written = snd_pcm_writei(m_handle, m_mix_buffer.get(), m_frames_to_deliver);
+			if (frames_written == -EPIPE)
+			{
+				// Underrun
+				snd_pcm_prepare(m_handle);
+			}
+			else if (frames_written < 0)
+			{
+				ERROR_LOG(AUDIO, "writei fail: %s\n", snd_strerror(frames_written));
+			}
 		}
 	}
 	AlsaShutdown();
-	thread_data = 2;
 }
 
-bool AlsaSound::AlsaInit()
+void AlsaSoundStream::OnPreThreadJoin()
 {
-	unsigned int sample_rate = m_mixer->GetSampleRate();
-	int err;
-	int dir;
-	snd_pcm_sw_params_t *swparams;
-	snd_pcm_hw_params_t *hwparams;
-	snd_pcm_uframes_t buffer_size,buffer_size_max;
-	unsigned int periods;
+	m_join = true;
+}
 
-	err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
+bool AlsaSoundStream::AlsaInit()
+{
+	int err = snd_pcm_open(&m_handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Audio open error: %s\n", snd_strerror(err));
 		return false;
 	}
 
+	snd_pcm_hw_params_t *hwparams = NULL;
 	snd_pcm_hw_params_alloca(&hwparams);
 
-	err = snd_pcm_hw_params_any(handle, hwparams);
+	err = snd_pcm_hw_params_any(m_handle, hwparams);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Broken configuration for this PCM: %s\n", snd_strerror(err));
 		return false;
 	}
 	
-	err = snd_pcm_hw_params_set_access(handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED);
+	err = snd_pcm_hw_params_set_access(m_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Access type not available: %s\n", snd_strerror(err));
 		return false;
 	}
 
-	err = snd_pcm_hw_params_set_format(handle, hwparams, SND_PCM_FORMAT_S16_LE);
+	err = snd_pcm_hw_params_set_format(m_handle, hwparams, SND_PCM_FORMAT_S16_LE);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Sample format not available: %s\n", snd_strerror(err));
 		return false;
 	}
 
-	dir = 0;
-	err = snd_pcm_hw_params_set_rate_near(handle, hwparams, &sample_rate, &dir);
+	int dir = 0;
+	unsigned int sample_rate = CBaseSoundStream::GetMixer()->GetSampleRate();
+	err = snd_pcm_hw_params_set_rate_near(m_handle, hwparams, &sample_rate, &dir);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Rate not available: %s\n", snd_strerror(err));
 		return false;
 	}
 
-	err = snd_pcm_hw_params_set_channels(handle, hwparams, 2);
+	err = snd_pcm_hw_params_set_channels(m_handle, hwparams, 2);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Channels count not available: %s\n", snd_strerror(err));
 		return false;
 	}
 
-	periods = BUFFER_SIZE_MAX / FRAME_COUNT_MIN;
-	err = snd_pcm_hw_params_set_periods_max(handle, hwparams, &periods, &dir);
+	unsigned int periods = BUFFER_SIZE_MAX / FRAME_COUNT_MIN;
+	err = snd_pcm_hw_params_set_periods_max(m_handle, hwparams, &periods, &dir);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Cannot set Minimum periods: %s\n", snd_strerror(err));
 		return false;
 	}
 
-	buffer_size_max = BUFFER_SIZE_MAX;
-	err = snd_pcm_hw_params_set_buffer_size_max(handle, hwparams, &buffer_size_max);
+	snd_pcm_uframes_t buffer_size_max = BUFFER_SIZE_MAX;
+	err = snd_pcm_hw_params_set_buffer_size_max(m_handle, hwparams, &buffer_size_max);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Cannot set minimum buffer size: %s\n", snd_strerror(err));
 		return false;
 	}
 
-	err = snd_pcm_hw_params(handle, hwparams);
+	err = snd_pcm_hw_params(m_handle, hwparams);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Unable to install hw params: %s\n", snd_strerror(err));
 		return false;
 	}
 
+	snd_pcm_uframes_t buffer_size = 0;
 	err = snd_pcm_hw_params_get_buffer_size(hwparams, &buffer_size);
 	if (err < 0) 
 	{
@@ -173,15 +172,20 @@ bool AlsaSound::AlsaInit()
 
 	//periods is the number of fragments alsa can wait for during one 
 	//buffer_size
-	frames_to_deliver = buffer_size / periods;
+	m_frames_to_deliver = buffer_size / periods;
 	//limit the minimum size. pulseaudio advertises a minimum of 32 samples.
-	if (frames_to_deliver < FRAME_COUNT_MIN)
-		frames_to_deliver = FRAME_COUNT_MIN;
+	if (m_frames_to_deliver < FRAME_COUNT_MIN)
+	{
+		m_frames_to_deliver = FRAME_COUNT_MIN;
+	}
 	//it is probably a bad idea to try to send more than one buffer of data
-	if ((unsigned int)frames_to_deliver > buffer_size)
+	if (frames_to_deliver > buffer_size)
+	{
 		frames_to_deliver = buffer_size;
+	}
 	NOTICE_LOG(AUDIO, "ALSA gave us a %ld sample \"hardware\" buffer with %d periods. Will send %d samples per fragments.\n", buffer_size, periods, frames_to_deliver);
 
+	snd_pcm_sw_params_t *swparams = NULL;
 	snd_pcm_sw_params_alloca(&swparams);
 
 	err = snd_pcm_sw_params_current(handle, swparams);
@@ -198,14 +202,14 @@ bool AlsaSound::AlsaInit()
 		return false;
 	}
 
-	err = snd_pcm_sw_params(handle, swparams);
+	err = snd_pcm_sw_params(m_handle, swparams);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "cannot set sw params: %s\n", snd_strerror(err));
 		return false;
 	}
 
-	err = snd_pcm_prepare(handle);
+	err = snd_pcm_prepare(m_handle);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Unable to prepare: %s\n", snd_strerror(err));
@@ -215,13 +219,14 @@ bool AlsaSound::AlsaInit()
 	return true;
 }
 
-void AlsaSound::AlsaShutdown()
+void AlsaSoundStream::AlsaShutdown()
 {
-	if (handle != NULL)
+	if (m_handle)
 	{
-		snd_pcm_drop(handle);
-		snd_pcm_close(handle);
-		handle = NULL;
+		snd_pcm_drop(m_handle);
+		snd_pcm_close(m_handle);
+		m_handle = NULL;
 	}
 }
 
+#endif

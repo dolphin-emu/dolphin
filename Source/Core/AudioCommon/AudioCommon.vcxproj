@@ -189,25 +189,33 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Src\aldlist.cpp" />
+    <ClCompile Include="Src\AlsaSoundStream.cpp" />
     <ClCompile Include="Src\AOSoundStream.cpp" />
     <ClCompile Include="Src\AudioCommon.cpp" />
+    <ClCompile Include="Src\CoreAudioSoundStream.cpp" />
     <ClCompile Include="Src\DPL2Decoder.cpp" />
     <ClCompile Include="Src\DSoundStream.cpp" />
     <ClCompile Include="Src\Mixer.cpp" />
     <ClCompile Include="Src\NullSoundStream.cpp" />
     <ClCompile Include="Src\OpenALStream.cpp" />
+    <ClCompile Include="Src\OpenSLESStream.cpp" />
+    <ClCompile Include="Src\PulseAudioStream.cpp" />
     <ClCompile Include="Src\WaveFile.cpp" />
     <ClCompile Include="Src\XAudio2Stream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\aldlist.h" />
+    <ClInclude Include="Src\AlsaSoundStream.h" />
     <ClInclude Include="Src\AOSoundStream.h" />
     <ClInclude Include="Src\AudioCommon.h" />
+    <ClInclude Include="Src\CoreAudioSoundStream.h" />
     <ClInclude Include="Src\DPL2Decoder.h" />
     <ClInclude Include="Src\DSoundStream.h" />
     <ClInclude Include="Src\Mixer.h" />
     <ClInclude Include="Src\NullSoundStream.h" />
     <ClInclude Include="Src\OpenALStream.h" />
+    <ClInclude Include="Src\OpenSLESStream.h" />
+    <ClInclude Include="Src\PulseAudioStream.h" />
     <ClInclude Include="Src\SoundStream.h" />
     <ClInclude Include="Src\WaveFile.h" />
     <ClInclude Include="Src\XAudio2Stream.h" />

@@ -24,39 +24,40 @@
 
 #include "SoundStream.h"
 
-class CoreAudioSound : public SoundStream
+class CoreAudioSound: public CBaseSoundStream
 {
 #ifdef __APPLE__
 public:
 	CoreAudioSound(CMixer *mixer);
 	virtual ~CoreAudioSound();
 
-	virtual bool Start();
-	virtual void SetVolume(int volume);
-	virtual void SoundLoop();
-	virtual void Stop();
-
-	static bool isValid() {
-		return true;
-	}
-	virtual bool usesMixer() const {
-		return true;
-	}
-
-	virtual void Update();
+	static inline bool IsValid() { return true; }
 
 private:
-	AudioUnit audioUnit;
-    int m_volume;
+	virtual void OnSetVolume(u32 volume) override;
 
-	static OSStatus callback(void *inRefCon,
+	virtual bool OnPreThreadStart() override;
+	virtual void OnPreThreadJoin() override;
+
+private:
+	static AudioUnitParameterValue ConvertVolume(u32 volume);
+	static OSStatus callback(
+		void *inRefCon, 
 		AudioUnitRenderActionFlags *ioActionFlags,
 		const AudioTimeStamp *inTimeStamp,
-		UInt32 inBusNumber, UInt32 inNumberFrames,
+		UInt32 inBusNumber,
+		UInt32 inNumberFrames,
 		AudioBufferList *ioData);
+
+private:
+	AudioUnit m_audioUnit;
+
 #else
 public:
-	CoreAudioSound(CMixer *mixer) : SoundStream(mixer) {}
+	CoreAudioSound(CMixer *mixer):
+		CBaseSoundStream(mixer)
+	{
+	}
 #endif
 };
 

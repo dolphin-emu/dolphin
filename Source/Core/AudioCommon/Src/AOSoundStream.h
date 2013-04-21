@@ -11,48 +11,43 @@
 #include <ao/ao.h>
 #endif
 
-#include "Thread.h"
-
-class AOSound : public SoundStream
+class AOSoundStream: public CBaseSoundStream
 {
 #if defined(HAVE_AO) && HAVE_AO
-	std::thread thread;
-	std::mutex soundCriticalSection;
-	Common::Event soundSyncEvent;
-
-	int buf_size;
-
-	ao_device *device;
-	ao_sample_format format;
-	int default_driver;
-
-	short realtimeBuffer[1024 * 1024];
-
 public:
-	AOSound(CMixer *mixer) : SoundStream(mixer) {}
+	AOSoundStream(CMixer *mixer);
+	virtual ~AOSoundStream();
 
-	virtual ~AOSound();
+	static inline bool IsValid() { return true; }
 
-	virtual bool Start();
+private:
+	virtual void OnUpdate() override;
 
-	virtual void SoundLoop();
+	virtual bool OnPreThreadStart() override;
+	virtual void SoundLoop() override;
+	virtual void OnPreThreadJoin() override;
+	virtual void OnPostThreadJoin() override;
 
-	virtual void Stop();
+private:
+	std::mutex m_soundCriticalSection;
+	Common::Event m_soundSyncEvent;
 
-	static bool isValid() {
-		return true;
-	}
+	int m_buf_size;
+	volatile bool m_join;
 
-	virtual bool usesMixer() const { 
-		return true; 
-	}
+	ao_device *m_device;
+	ao_sample_format m_format;
+	int m_default_driver;
 
-	virtual void Update();
+	short m_realtimeBuffer[1024 * 1024];
 
 #else
 public:
-	AOSound(CMixer *mixer) : SoundStream(mixer) {}
-#endif
+	AOSoundStream(CMixer *mixer):
+		CBaseSoundStream(mixer)
+	{
+	}
+#endif // defined(HAVE_AO) && HAVE_AO
 };
 
 #endif //_AOSOUNDSTREAM_H_

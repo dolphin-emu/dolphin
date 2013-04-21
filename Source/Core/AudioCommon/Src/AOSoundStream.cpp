@@ -2,83 +2,89 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#if defined(HAVE_AO) && HAVE_AO
+
 #include <functional>
 #include <string.h>
 
 #include "AOSoundStream.h"
 #include "Mixer.h"
 
-#if defined(HAVE_AO) && HAVE_AO
-
-void AOSound::SoundLoop()
+AOSoundStream::AOSoundStream(CMixer *mixer):
+	CBaseSoundStream(mixer),
+	m_buf_size(0),
+	m_join(false),
+	m_device(NULL),
+	m_default_driver(0)
 {
-	Common::SetCurrentThreadName("Audio thread - ao");
-
-	uint_32 numBytesToRender = 256;
-	ao_initialize();
-	default_driver = ao_default_driver_id();
-	format.bits = 16;
-	format.channels = 2;
-	format.rate = m_mixer->GetSampleRate();
-	format.byte_format = AO_FMT_LITTLE;
-
-	device = ao_open_live(default_driver, &format, NULL /* no options */);
-	if (!device)
-	{
-		PanicAlertT("AudioCommon: Error opening AO device.\n");
-		ao_shutdown();
-		Stop();
-		return;
-	}
-
-	buf_size = format.bits/8 * format.channels * format.rate;
-
-	while (!threadData)
-	{
-		m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
-
-		{
-		std::lock_guard<std::mutex> lk(soundCriticalSection);
-		ao_play(device, (char*)realtimeBuffer, numBytesToRender);
-		}
-
-		soundSyncEvent.Wait();
-	}
 }
 
-bool AOSound::Start()
+AOSoundStream::~AOSoundStream()
 {
-	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
+}
 
-	thread = std::thread(std::mem_fun(&AOSound::SoundLoop), this);
+void AOSoundStream::OnUpdate()
+{
+	m_soundSyncEvent.Set();
+}
+
+bool AOSoundStream::OnPreThreadStart()
+{
+	memset(m_realtimeBuffer, 0, sizeof(m_realtimeBuffer));
 	return true;
 }
 
-void AOSound::Update()
+void AOSoundStream::SoundLoop()
 {
-	soundSyncEvent.Set();
-}
+	Common::SetCurrentThreadName("Audio thread - ao");
 
-void AOSound::Stop()
-{
-	threadData = 1;
-	soundSyncEvent.Set();
+	CMixer *mixer = CBaseSoundStream::GetMixer();
+	
+	ao_initialize();
+	default_driver = ao_default_driver_id();
+	m_format.bits = 16;
+	m_format.channels = 2;
+	m_format.rate = mixer->GetSampleRate();
+	m_format.byte_format = AO_FMT_LITTLE;
 
+	m_device = ao_open_live(default_driver, &m_format, NULL /* no options */);
+	if (!m_device)
 	{
-	std::lock_guard<std::mutex> lk(soundCriticalSection);
-	thread.join();
+		PanicAlertT("AudioCommon: Error opening AO device.\n");
+		ao_shutdown();
+		return;
+	}
 
-	if (device)
-		ao_close(device);
+	m_buf_size = m_format.bits/8 * m_format.channels * m_format.rate;
+	uint_32 numBytesToRender = 256;
+	while (!m_join)
+	{
+		mixer->Mix(m_realtimeBuffer, numBytesToRender >> 2);
 
-	ao_shutdown();
+		{
+			std::lock_guard<std::mutex> lk(m_soundCriticalSection);
+			ao_play(m_device, (char*)m_realtimeBuffer, numBytesToRender);
+		}
 
-	device = NULL;
+		m_soundSyncEvent.Wait();
 	}
 }
 
-AOSound::~AOSound()
+void AOSoundStream::OnPreThreadJoin()
 {
+	m_join = true;
+	m_soundSyncEvent.Set();
 }
 
-#endif
+void AOSoundStream::OnPostThreadJoin()
+{
+	std::lock_guard<std::mutex> lk(m_soundCriticalSection);
+	if (m_device)
+	{
+		ao_close(m_device);
+		m_device = NULL;
+	}
+	ao_shutdown();
+}
+
+#endif // defined(HAVE_AO) && HAVE_AO

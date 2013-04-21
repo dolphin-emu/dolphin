@@ -2,19 +2,69 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "aldlist.h"
 #include "OpenALStream.h"
-#include "DPL2Decoder.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
-soundtouch::SoundTouch soundTouch;
+#include "aldlist.h"
+#include "DPL2Decoder.h"
+
+static soundtouch::SoundTouch soundTouch;
+
+#pragma warning( push )
+#pragma warning( disable : 4351 )
+
+OpenALSoundStream::OpenALSoundStream(CMixer *mixer, void *hWnd /*= NULL*/):
+	CBaseSoundStream(mixer),
+	realtimeBuffer(),
+	sampleBuffer(),
+	uiBuffers(),
+	uiSource(0),
+	numBuffers(0),
+	m_join(false)
+{
+}
+
+#pragma warning( pop )
+
+OpenALSoundStream::~OpenALSoundStream()
+{
+}
+
+void OpenALSoundStream::OnSetVolume(u32 volume)
+{
+	if (uiSource > 0)
+	{
+		alSourcef(uiSource, AL_GAIN, ConvertVolume(volume));
+	}
+}
+
+void OpenALSoundStream::OnUpdate()
+{
+	soundSyncEvent.Set();
+}
+
+void OpenALSoundStream::OnFlushBuffers(bool mute)
+{
+	CBaseSoundStream::SetMuted(mute);
+
+	if (mute)
+	{
+		soundTouch.clear();
+		alSourceStop(uiSource);
+	}
+	else
+	{
+		alSourcePlay(uiSource);
+	}
+}
 
 //
 // AyuanX: Spec says OpenAL1.1 is thread safe already
 //
-bool OpenALStream::Start()
+bool OpenALSoundStream::OnPreThreadStart()
 {
+	m_join = false;
 	ALDeviceList *pDeviceList = NULL;
 	ALCcontext *pContext = NULL;
 	ALCdevice *pDevice = NULL;
@@ -39,7 +89,6 @@ bool OpenALStream::Start()
 				//period_size_in_millisec = 1000 / refresh;
 
 				alcMakeContextCurrent(pContext);
-				thread = std::thread(std::mem_fun(&OpenALStream::SoundLoop), this);
 				bReturn = true;
 			}
 			else
@@ -66,65 +115,12 @@ bool OpenALStream::Start()
 	return bReturn;
 }
 
-void OpenALStream::Stop()
-{
-	threadData = 1;
-	// kick the thread if it's waiting
-	soundSyncEvent.Set();
-
-	soundTouch.clear();
-
-	thread.join();
-
-	alSourceStop(uiSource);
-	alSourcei(uiSource, AL_BUFFER, 0);
-
-	// Clean up buffers and sources
-	alDeleteSources(1, &uiSource);
-	uiSource = 0;
-	alDeleteBuffers(numBuffers, uiBuffers);
-
-	ALCcontext *pContext = alcGetCurrentContext();
-	ALCdevice *pDevice = alcGetContextsDevice(pContext);
-
-	alcMakeContextCurrent(NULL);
-	alcDestroyContext(pContext);
-	alcCloseDevice(pDevice);
-}
-
-void OpenALStream::SetVolume(int volume)
-{
-	fVolume = (float)volume / 100.0f;
-
-	if (uiSource)
-		alSourcef(uiSource, AL_GAIN, fVolume); 
-}
-
-void OpenALStream::Update()
-{
-	soundSyncEvent.Set();
-}
-
-void OpenALStream::Clear(bool mute)
-{
-	m_muted = mute;
-
-	if(m_muted)
-	{
-		soundTouch.clear();
-		alSourceStop(uiSource);
-	}
-	else
-	{
-		alSourcePlay(uiSource);
-	}
-}
-
-void OpenALStream::SoundLoop()
+void OpenALSoundStream::SoundLoop()
 {
 	Common::SetCurrentThreadName("Audio thread - openal");
-
-	u32 ulFrequency = m_mixer->GetSampleRate();
+	
+	CMixer *mixer = CBaseSoundStream::GetMixer();
+	u32 ulFrequency = mixer->GetSampleRate();
 	numBuffers = Core::g_CoreStartupParameter.iLatency + 2; // OpenAL requires a minimum of two buffers
 
 	memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
@@ -151,7 +147,8 @@ void OpenALStream::SoundLoop()
 	alSourcePlay(uiSource);
 	
 	// Set the default sound volume as saved in the config file.
-	alSourcef(uiSource, AL_GAIN, fVolume); 
+	u32 vol = CBaseSoundStream::GetVolume();
+	alSourcef(uiSource, AL_GAIN, ConvertVolume(vol)); 
 
 	// TODO: Error handling
 	//ALenum err = alGetError();
@@ -177,7 +174,7 @@ void OpenALStream::SoundLoop()
 	bool float32_capable = true;
 #endif
 
-	while (!threadData) 
+	while (!m_join)
 	{
 		// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
 		const u32 stereo_16_bit_size = 4;
@@ -190,7 +187,7 @@ void OpenALStream::SoundLoop()
 		unsigned int minSamples = surround_capable ? 240 : 0; // DPL2 accepts 240 samples minimum (FWRDURATION)
 
 		numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
-		numSamples = m_mixer->Mix(realtimeBuffer, numSamples);
+		numSamples = mixer->Mix(realtimeBuffer, numSamples);
 
 		// Convert the samples from short to float
 		float dest[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
@@ -210,11 +207,11 @@ void OpenALStream::SoundLoop()
 
 		if (iBuffersProcessed)
 		{
-			float rate = m_mixer->GetCurrentSpeed();
+			float rate = mixer->GetCurrentSpeed();
 			if (rate <= 0)
 			{
 				Core::RequestRefreshInfo();
-				rate = m_mixer->GetCurrentSpeed();
+				rate = mixer->GetCurrentSpeed();
 			}
 
 			// Place a lower limit of 10% speed.  When a game boots up, there will be
@@ -335,5 +332,30 @@ void OpenALStream::SoundLoop()
 	}
 }
 
-#endif //HAVE_OPENAL
+void OpenALSoundStream::OnPreThreadJoin()
+{
+	m_join = true;
+	// kick the thread if it's waiting
+	soundSyncEvent.Set();
+	soundTouch.clear();
+}
 
+void OpenALSoundStream::OnPostThreadJoin()
+{
+	alSourceStop(uiSource);
+	alSourcei(uiSource, AL_BUFFER, 0);
+
+	// Clean up buffers and sources
+	alDeleteSources(1, &uiSource);
+	uiSource = 0;
+	alDeleteBuffers(numBuffers, uiBuffers);
+
+	ALCcontext *pContext = alcGetCurrentContext();
+	ALCdevice *pDevice = alcGetContextsDevice(pContext);
+
+	alcMakeContextCurrent(NULL);
+	alcDestroyContext(pContext);
+	alcCloseDevice(pDevice);
+}
+
+#endif //HAVE_OPENAL

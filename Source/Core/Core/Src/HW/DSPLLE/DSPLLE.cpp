@@ -91,7 +91,7 @@ void DSPLLE::DoState(PointerWrap &p)
 		else
 		{
 			AudioCommon::PauseAndLock(false);
-			soundStream->Stop();
+			soundStream->StopThread();
 			delete soundStream;
 			soundStream = NULL;
 		}
@@ -323,25 +323,23 @@ u32 DSPLLE::DSP_UpdateRate()
 
 void DSPLLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 {
-	if (!soundStream)
-		return;
-
-	CMixer *pMixer = soundStream->GetMixer();
-
-	if (pMixer && address)
+	if (soundStream)
 	{
-		address &= (address & 0x10000000) ? 0x13ffffff : 0x01ffffff;
-		const short *samples = (const short *)&g_dsp.cpu_ram[address];
-		pMixer->PushSamples(samples, num_samples);
-	}
+		if (address)
+		{
+			address &= (address & 0x10000000) ? 0x13ffffff : 0x01ffffff;
+			const short *samples = (const short *)&g_dsp.cpu_ram[address];
+			soundStream->PushSamples(samples, num_samples);
+		}
 
-	soundStream->Update();
+		soundStream->Update();
+	}
 }
 
 void DSPLLE::DSP_ClearAudioBuffer(bool mute)
 {
 	if (soundStream)
-		soundStream->Clear(mute);
+		soundStream->FlushBuffers(mute);
 }
 
 void DSPLLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)

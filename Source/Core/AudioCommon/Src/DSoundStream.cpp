@@ -11,7 +11,110 @@
 #include "AudioCommon.h"
 #include "DSoundStream.h"
 
-bool DSound::CreateBuffer()
+DSoundStream::DSoundStream(CMixer *mixer, void *hWnd /*= NULL*/):
+	CBaseSoundStream(mixer),
+	m_hWnd(hWnd),
+	m_ds(NULL),
+	m_dsBuffer(NULL),
+	m_bufferSize(0),
+	m_join(false),
+	m_currentPos(0),
+	m_lastPos(0)
+{
+}
+
+DSoundStream::~DSoundStream()
+{
+}
+
+void DSoundStream::OnSetVolume(u32 volume)
+{
+	if (m_dsBuffer)
+	{
+		m_dsBuffer->SetVolume(ConvertVolume(volume));
+	}
+}
+
+void DSoundStream::OnUpdate()
+{
+	m_soundSyncEvent.Set();
+}
+
+void DSoundStream::OnFlushBuffers(bool mute)
+{
+	if (m_dsBuffer)
+	{
+		if (mute)
+		{
+			m_dsBuffer->Stop();
+		}
+		else
+		{
+			m_dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
+		}
+	}
+}
+
+bool DSoundStream::OnPreThreadStart()
+{
+	m_join = false;
+	if (FAILED(DirectSoundCreate8(0, &m_ds, 0)))
+		return false;
+	if (m_hWnd)
+	{
+		HRESULT hr = m_ds->SetCooperativeLevel((HWND)m_hWnd, DSSCL_PRIORITY);
+	}
+	if (!CreateBuffer())
+		return false;
+
+	DWORD num1;
+	short* p1;
+	m_dsBuffer->Lock(0, m_bufferSize, (void**)&p1, &num1, 0, 0, DSBLOCK_ENTIREBUFFER);
+	memset(p1, 0, num1);
+	m_dsBuffer->Unlock(p1, num1, 0, 0);
+	return true;
+}
+
+// The audio thread.
+void DSoundStream::SoundLoop()
+{
+	Common::SetCurrentThreadName("Audio thread - dsound");
+
+	m_currentPos = 0;
+	m_lastPos = 0;
+	m_dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
+
+	while (!m_join)
+	{
+		// No blocking inside the csection
+		m_dsBuffer->GetCurrentPosition((DWORD*)&m_currentPos, 0);
+		int numBytesToRender = FIX128(ModBufferSize(m_currentPos - m_lastPos));
+		if (numBytesToRender >= 256)
+		{
+			if (numBytesToRender > sizeof(m_realtimeBuffer))
+				PanicAlert("soundThread: too big render call");
+			CBaseSoundStream::GetMixer()->Mix(m_realtimeBuffer, numBytesToRender / 4);
+			WriteDataToBuffer(m_lastPos, (char*)m_realtimeBuffer, numBytesToRender);
+			m_lastPos = ModBufferSize(m_lastPos + numBytesToRender);
+		}
+		m_soundSyncEvent.Wait();
+	}
+}
+
+void DSoundStream::OnPreThreadJoin()
+{
+	m_join = true;
+	m_soundSyncEvent.Set();
+}
+
+void DSoundStream::OnPostThreadJoin()
+{
+	m_dsBuffer->Stop();
+	m_dsBuffer->Release();
+	m_ds->Release();
+}
+
+bool DSoundStream::CreateBuffer()
 {
 	PCMWAVEFORMAT pcmwf;
 	DSBUFFERDESC dsbdesc;
@@ -21,7 +124,7 @@ bool DSound::CreateBuffer()
 
 	pcmwf.wf.wFormatTag = WAVE_FORMAT_PCM;
 	pcmwf.wf.nChannels = 2;
-	pcmwf.wf.nSamplesPerSec = m_mixer->GetSampleRate();
+	pcmwf.wf.nSamplesPerSec = CBaseSoundStream::GetMixer()->GetSampleRate();
 	pcmwf.wf.nBlockAlign = 4;
 	pcmwf.wf.nAvgBytesPerSec = pcmwf.wf.nSamplesPerSec * pcmwf.wf.nBlockAlign;
 	pcmwf.wBitsPerSample = 16;
@@ -29,27 +132,28 @@ bool DSound::CreateBuffer()
 	// Fill out DSound buffer description.
 	dsbdesc.dwSize  = sizeof(DSBUFFERDESC);
 	dsbdesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_STICKYFOCUS | DSBCAPS_CTRLVOLUME;
-	dsbdesc.dwBufferBytes = bufferSize = BUFSIZE;
+	dsbdesc.dwBufferBytes = m_bufferSize = BUFSIZE;
 	dsbdesc.lpwfxFormat = (WAVEFORMATEX *)&pcmwf;
 	dsbdesc.guid3DAlgorithm = DS3DALG_DEFAULT;
 
-	HRESULT res = ds->CreateSoundBuffer(&dsbdesc, &dsBuffer, NULL);
+	HRESULT res = m_ds->CreateSoundBuffer(&dsbdesc, &m_dsBuffer, NULL);
 	if (SUCCEEDED(res))
 	{
-		dsBuffer->SetCurrentPosition(0);
-		dsBuffer->SetVolume(m_volume);
+		m_dsBuffer->SetCurrentPosition(0);
+		u32 vol = CBaseSoundStream::GetVolume();
+		m_dsBuffer->SetVolume(ConvertVolume(vol));
 		return true;
 	}
 	else
 	{
 		// Failed.
 		PanicAlertT("Sound buffer creation failed: %s", DXGetErrorString(res)); 
-		dsBuffer = NULL;
+		m_dsBuffer = NULL;
 		return false;
 	}
 }
 
-bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write cursor.
+bool DSoundStream::WriteDataToBuffer(DWORD dwOffset,                  // Our own write cursor.
 		char* soundData, // Start of our data.
 		DWORD dwSoundBytes) // Size of block to copy.
 {
@@ -58,114 +162,26 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 	void *ptr1, *ptr2;
 	DWORD numBytes1, numBytes2;
 	// Obtain memory address of write block. This will be in two parts if the block wraps around.
-	HRESULT hr = dsBuffer->Lock(dwOffset, dwSoundBytes, &ptr1, &numBytes1, &ptr2, &numBytes2, 0);
+	HRESULT hr = m_dsBuffer->Lock(dwOffset, dwSoundBytes, &ptr1, &numBytes1, &ptr2, &numBytes2, 0);
 
 	// If the buffer was lost, restore and retry lock.
 	if (DSERR_BUFFERLOST == hr)
 	{
-		dsBuffer->Restore();
-		hr = dsBuffer->Lock(dwOffset, dwSoundBytes, &ptr1, &numBytes1, &ptr2, &numBytes2, 0);
+		m_dsBuffer->Restore();
+		hr = m_dsBuffer->Lock(dwOffset, dwSoundBytes, &ptr1, &numBytes1, &ptr2, &numBytes2, 0);
 	}
 	if (SUCCEEDED(hr))
 	{
 		memcpy(ptr1, soundData, numBytes1);
-		if (ptr2 != 0)
+		if (ptr2)
+		{
 			memcpy(ptr2, soundData + numBytes1, numBytes2);
+		}
 
 		// Release the data back to DirectSound.
-		dsBuffer->Unlock(ptr1, numBytes1, ptr2, numBytes2);
+		m_dsBuffer->Unlock(ptr1, numBytes1, ptr2, numBytes2);
 		return true;
 	}
 
 	return false;
 }
-
-// The audio thread.
-void DSound::SoundLoop()
-{
-	Common::SetCurrentThreadName("Audio thread - dsound");
-
-	currentPos = 0;
-	lastPos = 0;
-	dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
-
-	while (!threadData)
-	{
-		// No blocking inside the csection
-		dsBuffer->GetCurrentPosition((DWORD*)&currentPos, 0);
-		int numBytesToRender = FIX128(ModBufferSize(currentPos - lastPos));
-		if (numBytesToRender >= 256)
-		{
-			if (numBytesToRender > sizeof(realtimeBuffer))
-				PanicAlert("soundThread: too big render call");
-			m_mixer->Mix(realtimeBuffer, numBytesToRender / 4);
-			WriteDataToBuffer(lastPos, (char*)realtimeBuffer, numBytesToRender);
-			lastPos = ModBufferSize(lastPos + numBytesToRender);
-		}
-		soundSyncEvent.Wait();
-	}
-}
-
-bool DSound::Start()
-{
-	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
-		return false;
-	if (hWnd)
-	{
-		HRESULT hr = ds->SetCooperativeLevel((HWND)hWnd, DSSCL_PRIORITY);
-	}
-	if (!CreateBuffer())
-		return false;
-
-	DWORD num1;
-	short* p1;
-	dsBuffer->Lock(0, bufferSize, (void* *)&p1, &num1, 0, 0, DSBLOCK_ENTIREBUFFER);
-	memset(p1, 0, num1);
-	dsBuffer->Unlock(p1, num1, 0, 0);
-	thread = std::thread(std::mem_fun(&DSound::SoundLoop), this);
-	return true;
-}
-
-void DSound::SetVolume(int volume)
-{
-	// This is in "dBA attenuation" from 0 to -10000, logarithmic
-	m_volume = (int)floor(log10((float)volume) * 5000.0f) - 10000;
-
-	if (dsBuffer != NULL)
-		dsBuffer->SetVolume(m_volume);
-}
-
-void DSound::Update()
-{
-	soundSyncEvent.Set();
-}
-
-void DSound::Clear(bool mute)
-{
-	m_muted = mute;
-
-	if (dsBuffer != NULL)
-	{
-		if (m_muted)
-		{
-			dsBuffer->Stop();
-		}
-		else
-		{
-			dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
-		}
-	}
-}
-
-void DSound::Stop()
-{
-	threadData = 1;
-	// kick the thread if it's waiting
-	soundSyncEvent.Set();
-
-	thread.join();
-	dsBuffer->Stop();
-	dsBuffer->Release();
-	ds->Release();
-}
-
