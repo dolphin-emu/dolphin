@@ -9,9 +9,6 @@
 #include "Common.h"
 #include <assert.h>
 
-#include <SLES/OpenSLES.h>
-#include <SLES/OpenSLES_Android.h>
-
 OpenSLESSoundStream::OpenSLESSoundStream(CMixer *mixer, void *hWnd /*= NULL*/):
 	CBaseSoundStream(mixer),
 	m_engineObject(NULL),

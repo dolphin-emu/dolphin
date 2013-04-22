@@ -166,23 +166,23 @@ bool AlsaSoundStream::AlsaInit()
 		m_frames_to_deliver = FRAME_COUNT_MIN;
 	}
 	//it is probably a bad idea to try to send more than one buffer of data
-	if (frames_to_deliver > buffer_size)
+	if (m_frames_to_deliver > buffer_size)
 	{
-		frames_to_deliver = buffer_size;
+		m_frames_to_deliver = buffer_size;
 	}
 	NOTICE_LOG(AUDIO, "ALSA gave us a %ld sample \"hardware\" buffer with %d periods. Will send %d samples per fragments.\n", buffer_size, periods, frames_to_deliver);
 
 	snd_pcm_sw_params_t *swparams = NULL;
 	snd_pcm_sw_params_alloca(&swparams);
 
-	err = snd_pcm_sw_params_current(handle, swparams);
+	err = snd_pcm_sw_params_current(m_handle, swparams);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "cannot init sw params: %s\n", snd_strerror(err));
 		return false;
 	}
 
-	err = snd_pcm_sw_params_set_start_threshold(handle, swparams, 0U);
+	err = snd_pcm_sw_params_set_start_threshold(m_handle, swparams, 0U);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "cannot set start thresh: %s\n", snd_strerror(err));

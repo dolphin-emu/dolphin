@@ -7,6 +7,11 @@
 
 #include "SoundStream.h"
 
+#ifdef ANDROID
+#include <SLES/OpenSLES.h>
+#include <SLES/OpenSLES_Android.h>
+#endif
+
 class OpenSLESSoundStream: public CBaseSoundStream
 {
 #ifdef ANDROID

@@ -10,6 +10,7 @@
 #include "WaveFile.h"
 
 #include "Thread.h"
+#include <memory>
 #include <assert.h>
 
 class CBaseSoundStream: public NonCopyable
