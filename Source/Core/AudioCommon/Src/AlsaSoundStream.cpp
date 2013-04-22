@@ -170,7 +170,7 @@ bool AlsaSoundStream::AlsaInit()
 	{
 		m_frames_to_deliver = buffer_size;
 	}
-	NOTICE_LOG(AUDIO, "ALSA gave us a %ld sample \"hardware\" buffer with %d periods. Will send %d samples per fragments.\n", buffer_size, periods, frames_to_deliver);
+	NOTICE_LOG(AUDIO, "ALSA gave us a %ld sample \"hardware\" buffer with %d periods. Will send %d samples per fragments.\n", buffer_size, periods, m_frames_to_deliver);
 
 	snd_pcm_sw_params_t *swparams = NULL;
 	snd_pcm_sw_params_alloca(&swparams);

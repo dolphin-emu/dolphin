@@ -58,7 +58,7 @@ bool OpenSLESSoundStream::OnPreThreadStart()
 	SLDataSource audioSrc = {&loc_bufq, &format_pcm};
 
 	// configure audio sink
-	SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, outputMixObject};
+	SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, m_outputMixObject};
 	SLDataSink audioSnk = {&loc_outmix, NULL};
 
 	// create audio player
