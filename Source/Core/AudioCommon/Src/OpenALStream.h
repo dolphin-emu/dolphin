@@ -66,14 +66,14 @@ private:
 	}
 
 private:
-	Common::Event soundSyncEvent;
+	Common::Event m_soundSyncEvent;
 
-	short realtimeBuffer[OAL_MAX_SAMPLES * 2];
-	soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-	ALuint uiBuffers[OAL_MAX_BUFFERS];
-	ALuint uiSource;
+	short m_realtimeBuffer[OAL_MAX_SAMPLES * 2];
+	soundtouch::SAMPLETYPE m_sampleBuffer[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
+	ALuint m_uiBuffers[OAL_MAX_BUFFERS];
+	ALuint m_uiSource;
 
-	u8 numBuffers;
+	u8 m_numBuffers;
 	volatile bool m_join;
 
 #else

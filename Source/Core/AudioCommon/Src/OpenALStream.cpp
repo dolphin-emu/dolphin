@@ -16,11 +16,11 @@ static soundtouch::SoundTouch soundTouch;
 
 OpenALSoundStream::OpenALSoundStream(CMixer *mixer, void *hWnd /*= NULL*/):
 	CBaseSoundStream(mixer),
-	realtimeBuffer(),
-	sampleBuffer(),
-	uiBuffers(),
-	uiSource(0),
-	numBuffers(0),
+	m_realtimeBuffer(),
+	m_sampleBuffer(),
+	m_uiBuffers(),
+	m_uiSource(0),
+	m_numBuffers(0),
 	m_join(false)
 {
 }
@@ -33,15 +33,15 @@ OpenALSoundStream::~OpenALSoundStream()
 
 void OpenALSoundStream::OnSetVolume(u32 volume)
 {
-	if (uiSource > 0)
+	if (m_uiSource > 0)
 	{
-		alSourcef(uiSource, AL_GAIN, ConvertVolume(volume));
+		alSourcef(m_uiSource, AL_GAIN, ConvertVolume(volume));
 	}
 }
 
 void OpenALSoundStream::OnUpdate()
 {
-	soundSyncEvent.Set();
+	m_soundSyncEvent.Set();
 }
 
 void OpenALSoundStream::OnFlushBuffers(bool mute)
@@ -51,11 +51,11 @@ void OpenALSoundStream::OnFlushBuffers(bool mute)
 	if (mute)
 	{
 		soundTouch.clear();
-		alSourceStop(uiSource);
+		alSourceStop(m_uiSource);
 	}
 	else
 	{
-		alSourcePlay(uiSource);
+		alSourcePlay(m_uiSource);
 	}
 }
 
@@ -121,34 +121,34 @@ void OpenALSoundStream::SoundLoop()
 	
 	CMixer *mixer = CBaseSoundStream::GetMixer();
 	u32 ulFrequency = mixer->GetSampleRate();
-	numBuffers = Core::g_CoreStartupParameter.iLatency + 2; // OpenAL requires a minimum of two buffers
+	m_numBuffers = Core::g_CoreStartupParameter.iLatency + 2; // OpenAL requires a minimum of two buffers
 
-	memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
-	uiSource = 0;
+	memset(m_uiBuffers, 0, m_numBuffers * sizeof(ALuint));
+	m_uiSource = 0;
 
 	// Generate some AL Buffers for streaming
-	alGenBuffers(numBuffers, (ALuint *)uiBuffers);
+	alGenBuffers(m_numBuffers, (ALuint *)m_uiBuffers);
 	// Generate a Source to playback the Buffers
-	alGenSources(1, &uiSource);
+	alGenSources(1, &m_uiSource);
 
 	// Short Silence
-	memset(sampleBuffer, 0, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * numBuffers);
-	memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * 4);
-	for (int i = 0; i < numBuffers; i++)
+	memset(m_sampleBuffer, 0, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * m_numBuffers);
+	memset(m_realtimeBuffer, 0, OAL_MAX_SAMPLES * 4);
+	for (int i = 0; i < m_numBuffers; i++)
 	{
 #if !defined(__APPLE__)
 		if (Core::g_CoreStartupParameter.bDPL2Decoder)
-			alBufferData(uiBuffers[i], AL_FORMAT_51CHN32, sampleBuffer, 4 * SIZE_FLOAT * SURROUND_CHANNELS, ulFrequency);
+			alBufferData(m_uiBuffers[i], AL_FORMAT_51CHN32, m_sampleBuffer, 4 * SIZE_FLOAT * SURROUND_CHANNELS, ulFrequency);
 		else
 #endif
-			alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, 4 * 2 * 2, ulFrequency);
+			alBufferData(m_uiBuffers[i], AL_FORMAT_STEREO16, m_realtimeBuffer, 4 * 2 * 2, ulFrequency);
 	}
-	alSourceQueueBuffers(uiSource, numBuffers, uiBuffers);
-	alSourcePlay(uiSource);
+	alSourceQueueBuffers(m_uiSource, m_numBuffers, m_uiBuffers);
+	alSourcePlay(m_uiSource);
 	
 	// Set the default sound volume as saved in the config file.
 	u32 vol = CBaseSoundStream::GetVolume();
-	alSourcef(uiSource, AL_GAIN, ConvertVolume(vol)); 
+	alSourcef(m_uiSource, AL_GAIN, ConvertVolume(vol)); 
 
 	// TODO: Error handling
 	//ALenum err = alGetError();
@@ -183,25 +183,25 @@ void OpenALSoundStream::SoundLoop()
 		u64 audio_dma_period = SystemTimers::GetTicksPerSecond() / (AudioInterface::GetAIDSampleRate() * stereo_16_bit_size / dma_length);
 		u64 num_samples_to_render = (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
 
-		unsigned int numSamples = (unsigned int)num_samples_to_render;
+		unsigned int num_samples = (unsigned int)num_samples_to_render;
 		unsigned int minSamples = surround_capable ? 240 : 0; // DPL2 accepts 240 samples minimum (FWRDURATION)
 
-		numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
-		numSamples = mixer->Mix(realtimeBuffer, numSamples);
+		num_samples = (num_samples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : num_samples;
+		num_samples = mixer->Mix(m_realtimeBuffer, num_samples);
 
 		// Convert the samples from short to float
 		float dest[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
-		for (u32 i = 0; i < numSamples; ++i)
+		for (u32 i = 0; i < num_samples; ++i)
 		{
-			dest[i * 2 + 0] = (float)realtimeBuffer[i * 2 + 0] / (1 << 16);
-			dest[i * 2 + 1] = (float)realtimeBuffer[i * 2 + 1] / (1 << 16);
+			dest[i * 2 + 0] = (float)m_realtimeBuffer[i * 2 + 0] / (1 << 16);
+			dest[i * 2 + 1] = (float)m_realtimeBuffer[i * 2 + 1] / (1 << 16);
 		}
 
-		soundTouch.putSamples(dest, numSamples);
+		soundTouch.putSamples(dest, num_samples);
 
 		if (iBuffersProcessed == iBuffersFilled)
 		{
-			alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
+			alGetSourcei(m_uiSource, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
 			iBuffersFilled = 0;
 		}
 
@@ -227,14 +227,14 @@ void OpenALSoundStream::SoundLoop()
 				}
 			}
 
-			unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * SIZE_FLOAT * OAL_MAX_BUFFERS);
+			unsigned int nSamples = soundTouch.receiveSamples(m_sampleBuffer, OAL_MAX_SAMPLES * SIZE_FLOAT * OAL_MAX_BUFFERS);
 
 			if (nSamples > minSamples)
 			{
 				// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
 				if (iBuffersFilled == 0)
 				{
-					alSourceUnqueueBuffers(uiSource, iBuffersProcessed, uiBufferTemp);
+					alSourceUnqueueBuffers(m_uiSource, iBuffersProcessed, uiBufferTemp);
 					ALenum err = alGetError();
 					if (err != 0)
 					{
@@ -248,7 +248,7 @@ void OpenALSoundStream::SoundLoop()
 				if (surround_capable)
 				{
 					float dpl2[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-					dpl2decode(sampleBuffer, nSamples, dpl2);
+					dpl2decode(m_sampleBuffer, nSamples, dpl2);
 
 					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * SIZE_FLOAT * SURROUND_CHANNELS, ulFrequency);
 					ALenum err = alGetError();
@@ -269,7 +269,7 @@ void OpenALSoundStream::SoundLoop()
 #if !defined(__APPLE__)
 					if (float32_capable)
 					{
-						alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO_FLOAT32, sampleBuffer, nSamples * 4 * 2, ulFrequency);
+						alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO_FLOAT32, m_sampleBuffer, nSamples * 4 * 2, ulFrequency);
 						ALenum err = alGetError();
 						if (err == AL_INVALID_ENUM)
 						{
@@ -287,14 +287,14 @@ void OpenALSoundStream::SoundLoop()
 						short stereo[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
 						for (u32 i = 0; i < nSamples; ++i)
 						{
-							stereo[i * 2 + 0] = (short)((float)sampleBuffer[i * 2 + 0] * (1 << 16));
-							stereo[i * 2 + 1] = (short)((float)sampleBuffer[i * 2 + 1] * (1 << 16));
+							stereo[i * 2 + 0] = (short)((float)m_sampleBuffer[i * 2 + 0] * (1 << 16));
+							stereo[i * 2 + 1] = (short)((float)m_sampleBuffer[i * 2 + 1] * (1 << 16));
 						}
 						alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * 2 * 2, ulFrequency);
 					}
 				}
 
-				alSourceQueueBuffers(uiSource, 1, &uiBufferTemp[iBuffersFilled]);
+				alSourceQueueBuffers(m_uiSource, 1, &uiBufferTemp[iBuffersFilled]);
 				ALenum err = alGetError();
 				if (err != 0)
 				{
@@ -302,9 +302,9 @@ void OpenALSoundStream::SoundLoop()
 				}
 				iBuffersFilled++;
 
-				if (iBuffersFilled == numBuffers)
+				if (iBuffersFilled == m_numBuffers)
 				{
-					alSourcePlay(uiSource);
+					alSourcePlay(m_uiSource);
 					err = alGetError();
 					if (err != 0)
 					{
@@ -312,11 +312,11 @@ void OpenALSoundStream::SoundLoop()
 					}
 				}
 
-				alGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
+				alGetSourcei(m_uiSource, AL_SOURCE_STATE, &iState);
 				if (iState != AL_PLAYING)
 				{
 					// Buffer underrun occurred, resume playback
-					alSourcePlay(uiSource);
+					alSourcePlay(m_uiSource);
 					err = alGetError();
 					if (err != 0)
 					{
@@ -327,7 +327,7 @@ void OpenALSoundStream::SoundLoop()
 		}
 		else
 		{
-			soundSyncEvent.Wait();
+			m_soundSyncEvent.Wait();
 		}
 	}
 }
@@ -336,19 +336,19 @@ void OpenALSoundStream::OnPreThreadJoin()
 {
 	m_join = true;
 	// kick the thread if it's waiting
-	soundSyncEvent.Set();
+	m_soundSyncEvent.Set();
 	soundTouch.clear();
 }
 
 void OpenALSoundStream::OnPostThreadJoin()
 {
-	alSourceStop(uiSource);
-	alSourcei(uiSource, AL_BUFFER, 0);
+	alSourceStop(m_uiSource);
+	alSourcei(m_uiSource, AL_BUFFER, 0);
 
 	// Clean up buffers and sources
-	alDeleteSources(1, &uiSource);
-	uiSource = 0;
-	alDeleteBuffers(numBuffers, uiBuffers);
+	alDeleteSources(1, &m_uiSource);
+	m_uiSource = 0;
+	alDeleteBuffers(m_numBuffers, m_uiBuffers);
 
 	ALCcontext *pContext = alcGetCurrentContext();
 	ALCdevice *pDevice = alcGetContextsDevice(pContext);
