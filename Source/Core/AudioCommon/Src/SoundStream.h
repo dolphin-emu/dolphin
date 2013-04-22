@@ -79,10 +79,7 @@ inline CBaseSoundStream::CBaseSoundStream(CMixer *mixer):
 	m_volume(0),
 	m_muted(false)
 {
-	if (!mixer)
-	{
-		throw;
-	}
+	assert(mixer);
 }
 
 inline CBaseSoundStream::~CBaseSoundStream()
