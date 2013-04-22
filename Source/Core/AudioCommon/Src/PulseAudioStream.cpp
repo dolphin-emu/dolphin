@@ -26,6 +26,10 @@ PulseAudioStream::PulseAudioStream(CMixer *mixer):
 {
 }
 
+PulseAudioStream::~PulseAudioStream()
+{
+}
+
 bool PulseAudioStream::OnPreThreadStart()
 {
 	m_join = false;

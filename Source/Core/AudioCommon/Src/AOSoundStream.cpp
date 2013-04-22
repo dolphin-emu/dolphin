@@ -41,13 +41,13 @@ void AOSoundStream::SoundLoop()
 	CMixer *mixer = CBaseSoundStream::GetMixer();
 	
 	ao_initialize();
-	default_driver = ao_default_driver_id();
+	m_default_driver = ao_default_driver_id();
 	m_format.bits = 16;
 	m_format.channels = 2;
 	m_format.rate = mixer->GetSampleRate();
 	m_format.byte_format = AO_FMT_LITTLE;
 
-	m_device = ao_open_live(default_driver, &m_format, NULL /* no options */);
+	m_device = ao_open_live(m_default_driver, &m_format, NULL /* no options */);
 	if (!m_device)
 	{
 		PanicAlertT("AudioCommon: Error opening AO device.\n");
