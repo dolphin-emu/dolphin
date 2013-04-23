@@ -1,3 +1,7 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
 #ifndef _NETPLAY_H
 #define _NETPLAY_H
 
@@ -34,7 +38,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<Rpt>	NetWiimote;
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2013-03-03"
+#define NETPLAY_VERSION		"Dolphin NetPlay 2013-04-11"
 
 // messages
 enum

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <list>
 #include <d3dx9.h>
@@ -139,7 +126,7 @@ Renderer::Renderer()
 
 	IS_AMD = D3D::IsATIDevice();
 
-	// Decide frambuffer size
+	// Decide framebuffer size
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 
@@ -233,7 +220,7 @@ void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 			memcpy(out, line, 3);
 			out += 3;
 			line += 4;
-		}			
+		}
 	}
 }
 
@@ -583,7 +570,7 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	vp.Y = Y;
 	vp.Width = Wd;
 	vp.Height = Ht;
-	
+
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	vp.MinZ = 0.0f; // (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
 	vp.MaxZ = 1.0f; // xfregs.viewport.farZ / 16777216.0f;
@@ -609,7 +596,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
 	}
 	else
+	{
 		D3D::ChangeRenderState(D3DRS_ZENABLE, FALSE);
+	}
 
 	// Update the viewport for clearing the target EFB rect
 	TargetRectangle targetRc = ConvertEFBRectangle(rc);
@@ -670,27 +659,27 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	bool use_DstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
 	bool use_DualSource = use_DstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 	const D3DBLEND d3dSrcFactors[8] =
- 	{
- 		D3DBLEND_ZERO,
- 		D3DBLEND_ONE,
- 		D3DBLEND_DESTCOLOR,
- 		D3DBLEND_INVDESTCOLOR,
+	{
+		D3DBLEND_ZERO,
+		D3DBLEND_ONE,
+		D3DBLEND_DESTCOLOR,
+		D3DBLEND_INVDESTCOLOR,
 		(use_DualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
 		(use_DualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
- 		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
- 		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
- 	};
+		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
+		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
+	};
 	const D3DBLEND d3dDestFactors[8] =
 	{
 		D3DBLEND_ZERO,
 		D3DBLEND_ONE,
- 		D3DBLEND_SRCCOLOR,
- 		D3DBLEND_INVSRCCOLOR,
+		D3DBLEND_SRCCOLOR,
+		D3DBLEND_INVSRCCOLOR,
 		(use_DualSource) ? D3DBLEND_SRCCOLOR2 : D3DBLEND_SRCALPHA,
 		(use_DualSource) ? D3DBLEND_INVSRCCOLOR2 : D3DBLEND_INVSRCALPHA,
- 		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
- 		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
- 	};
+		(target_has_alpha) ? D3DBLEND_DESTALPHA : D3DBLEND_ONE,
+		(target_has_alpha) ? D3DBLEND_INVDESTALPHA : D3DBLEND_ZERO
+	};
 
 	if (bpmem.blendmode.logicopenable && !forceUpdate)
 	{
@@ -702,16 +691,16 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, blend_enable);
 	D3D::SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, blend_enable && g_ActiveConfig.backend_info.bSupportsSeparateAlphaFunction);
 	if (blend_enable)
- 	{
+	{
 		D3DBLENDOP op = D3DBLENDOP_ADD;
 		u32 srcidx = bpmem.blendmode.srcfactor;
 		u32 dstidx = bpmem.blendmode.dstfactor;
 		if (bpmem.blendmode.subtract)
- 		{
+		{
 			op = D3DBLENDOP_REVSUBTRACT;
 			srcidx = GX_BL_ONE;
 			dstidx = GX_BL_ONE;
- 		}
+		}
 		D3D::SetRenderState(D3DRS_BLENDOP, op);
 		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[srcidx]);
 		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[dstidx]);

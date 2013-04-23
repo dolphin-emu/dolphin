@@ -1,3 +1,7 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
 #ifndef _DSPDEBUGINTERFACE_H
 #define _DSPDEBUGINTERFACE_H
 

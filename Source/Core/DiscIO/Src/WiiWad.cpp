@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "NANDContentLoader.h"
 
@@ -112,10 +99,11 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 	m_TMDSize                 = ReaderBig.Read32(0x14);
 	m_DataAppSize             = ReaderBig.Read32(0x18);
 	m_FooterSize              = ReaderBig.Read32(0x1C);
+
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
-    _dbg_assert_msg_(BOOT, Reserved==0x00, "WiiWAD: Reserved must be 0x00");
+	_dbg_assert_msg_(BOOT, Reserved==0x00, "WiiWAD: Reserved must be 0x00");
 #else
-    (void)Reserved;
+	(void)Reserved;
 #endif
 
 	u32 Offset = 0x40;

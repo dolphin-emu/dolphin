@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "PPCAnalyst.h"
@@ -45,15 +32,15 @@ bool SignatureDB::Load(const char *filename)
 	for (size_t i = 0; i < fcount; i++)
 	{
 		FuncDesc temp;
-        memset(&temp, 0, sizeof(temp));
+		memset(&temp, 0, sizeof(temp));
 
-        f.ReadArray(&temp, 1);
+		f.ReadArray(&temp, 1);
 		temp.name[sizeof(temp.name)-1] = 0;
 
 		DBFunc dbf;
 		dbf.name = temp.name;
 		dbf.size = temp.size;
-	    database[temp.checkSum] = dbf;
+		database[temp.checkSum] = dbf;
 	}
 
 	return true;
@@ -204,7 +191,7 @@ void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const char *prefix)
 			break;
 		}
 		// Checksum only uses opcode, not opcode data, because opcode data changes 
-		// in all compilations, but opcodes dont!
+		// in all compilations, but opcodes don't!
 		sum = ( ( (sum << 17 ) & 0xFFFE0000 ) | ( (sum >> 15) & 0x0001FFFF ) );
 		sum = sum ^ (op | op2 | op3);
 	}

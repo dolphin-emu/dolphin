@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <iostream>
 
@@ -29,8 +16,10 @@
 #include "ConfigManager.h"
 #include "Core.h"
 #include "HW/SystemTimers.h"
+#include "HW/VideoInterface.h"
 
-DSPHLE::DSPHLE() {
+DSPHLE::DSPHLE()
+{
 	m_InitMixer = false;
 	soundStream = NULL;
 }
@@ -41,7 +30,8 @@ struct DSPState
 	u32 CPUMailbox;
 	u32 DSPMailbox;
 
-	void Reset() {
+	void Reset()
+	{
 		CPUMailbox = 0x00000000;
 		DSPMailbox = 0x00000000;
 	}
@@ -91,7 +81,7 @@ void DSPHLE::DSP_Update(int cycles)
 u32 DSPHLE::DSP_UpdateRate()
 {
 	// AX HLE uses 3ms (Wii) or 5ms (GC) timing period
-	int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam ? 2 : 1;
+	int fields = VideoInterface::GetNumFields();
 	if (m_pUCode != NULL)
 		return (SystemTimers::GetTicksPerSecond() / 1000) * m_pUCode->GetUpdateMs() / fields;
 	else
@@ -194,7 +184,9 @@ void DSPHLE::DoState(PointerWrap &p)
 	if (ucode != m_pUCode)
 	{
 		if (p.GetMode() != PointerWrap::MODE_READ)
+		{
 			delete ucode;
+		}
 		else
 		{
 			delete m_pUCode;
@@ -204,7 +196,9 @@ void DSPHLE::DoState(PointerWrap &p)
 	if (lastucode != m_lastUCode)
 	{
 		if (p.GetMode() != PointerWrap::MODE_READ)
+		{
 			delete lastucode;
+		}
 		else
 		{
 			delete m_lastUCode;

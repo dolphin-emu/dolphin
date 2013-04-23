@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Globals.h"
 #include "Thread.h"
@@ -306,7 +293,7 @@ Renderer::Renderer()
 
 	if (!GLEW_ARB_framebuffer_object)
 	{
-		ERROR_LOG(VIDEO, "GPU: ERROR: Need GL_ARB_framebufer_object for multiple render targets.\n"
+		ERROR_LOG(VIDEO, "GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
 				"GPU: Does your video card support OpenGL 3.0?");
 		bSuccess = false;
 	}
@@ -357,13 +344,13 @@ Renderer::Renderer()
 	{
 		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need at least GLSL 1.20\n"
 				"GPU: Does your video card support OpenGL 2.1?\n"
-				"GPU: Your driver supports glsl %s", g_ogl_config.glsl_version);
+				"GPU: Your driver supports GLSL %s", g_ogl_config.glsl_version);
 		bSuccess = false;
 	}
 	else if(strstr(g_ogl_config.glsl_version, "1.20"))
 	{
 		g_ogl_config.eSupportedGLSLVersion = GLSL_120;
-		g_Config.backend_info.bSupportsDualSourceBlend = false; //TODO: implemenet dual source blend
+		g_Config.backend_info.bSupportsDualSourceBlend = false; //TODO: implement dual source blend
 	}
 	else if(strstr(g_ogl_config.glsl_version, "1.30"))
 	{
@@ -416,7 +403,7 @@ Renderer::Renderer()
 	s_MSAACoverageSamples = GetNumMSAACoverageSamples(s_LastMultisampleMode);
 	ApplySSAASettings();
 	
-	// Decide frambuffer size
+	// Decide framebuffer size
 	s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
 	s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
 
@@ -1409,7 +1396,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	DrawDebugText();
 
 	GL_REPORT_ERRORD();
-
+	
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_ONFRAME);
 	OSD::DrawMessages();
 	GL_REPORT_ERRORD();
 

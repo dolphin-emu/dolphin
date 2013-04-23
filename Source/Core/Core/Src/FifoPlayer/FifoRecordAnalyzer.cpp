@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "FifoAnalyzer.h"
 #include "FifoRecordAnalyzer.h"
@@ -63,7 +50,7 @@ void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
 	case GX_NOP:
 	case 0x44:
 	case GX_CMD_INVL_VC:
-        break;
+		break;
 
 	case GX_LOAD_CP_REG:
 		{
@@ -84,28 +71,28 @@ void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
 		m_DrawingObject = false;
 		ProcessLoadIndexedXf(ReadFifo32(data), 0xc);
 		break;
-    case GX_LOAD_INDX_B:
+	case GX_LOAD_INDX_B:
 		m_DrawingObject = false;
 		ProcessLoadIndexedXf(ReadFifo32(data), 0xd);
 		break;
-    case GX_LOAD_INDX_C:
+	case GX_LOAD_INDX_C:
 		m_DrawingObject = false;
 		ProcessLoadIndexedXf(ReadFifo32(data), 0xe);
 		break;
-    case GX_LOAD_INDX_D:
+	case GX_LOAD_INDX_D:
 		m_DrawingObject = false;
 		ProcessLoadIndexedXf(ReadFifo32(data), 0xf);
-        break;
+		break;
 
-    case GX_CMD_CALL_DL:
+	case GX_CMD_CALL_DL:
 		{
 			// The recorder should have expanded display lists into the fifo stream and skipped the call to start them
 			// That is done to make it easier to track where memory is updated
 			_assert_(false);
 		}
-        break;
+		break;
 
-    case GX_LOAD_BP_REG:
+	case GX_LOAD_BP_REG:
 		{
 			m_DrawingObject = false;
 
@@ -117,10 +104,10 @@ void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
 			if (bp.address == BPMEM_PRELOAD_MODE)
 				ProcessPreloadTexture();
 		}
-        break;
+		break;
 
-    default:
-        if (cmd & 0x80)
+	default:
+		if (cmd & 0x80)
 		{
 			if (!m_DrawingObject)
 			{
@@ -131,9 +118,9 @@ void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
 			ProcessVertexArrays(data, cmd & GX_VAT_MASK);
 		}
 		else
-        {
-            PanicAlert("FifoRecordAnalyzer: Unknown Opcode (0x%x).\n", cmd);
-        }
+		{
+			PanicAlert("FifoRecordAnalyzer: Unknown Opcode (0x%x).\n", cmd);
+		}
 	}
 }
 
@@ -160,7 +147,7 @@ void FifoRecordAnalyzer::ProcessPreloadTexture()
 void FifoRecordAnalyzer::ProcessLoadIndexedXf(u32 val, int array)
 {
 	int index = val >> 16;
-    int size = ((val >> 12) & 0xF) + 1;
+	int size = ((val >> 12) & 0xF) + 1;
 
 	u32 address = m_CpMem.arrayBases[array] + m_CpMem.arrayStrides[array] * index;
 
@@ -216,7 +203,7 @@ void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, u8 *vertexData, int ve
 				if (index > maxIndex)
 					maxIndex = index;
 			}
-		}		
+		}
 	}
 	else
 	{
@@ -257,8 +244,8 @@ void FifoRecordAnalyzer::ProcessTexMaps()
 	{
 		int stageNum2 = i >> 1;
 		int stageOdd = i & 1;
-        TwoTevStageOrders &order = m_BpMem->tevorders[stageNum2];
-        int texMap = order.getTexMap(stageOdd);
+		TwoTevStageOrders &order = m_BpMem->tevorders[stageNum2];
+		int texMap = order.getTexMap(stageOdd);
 
 		if (order.getEnable(stageOdd))
 			WriteTexMapMemory(texMap, writtenTexMaps);
@@ -301,7 +288,7 @@ void FifoRecordAnalyzer::WriteTexMapMemory(int texMap, u32 &writtenTexMaps)
 	while (mip)
 	{
 		width >>= 1;
-		height >>= 1;		
+		height >>= 1;
 
 		width = max(width, fmtWidth);
 		height = max(height, fmtHeight);

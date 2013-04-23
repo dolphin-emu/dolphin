@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "x64Emitter.h"
@@ -768,6 +755,10 @@ void XEmitter::MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
 		Write8(0x0F);
 		Write8(0xB7);
 	}
+	else if (sbits == 32 && dbits == 64)
+	{
+		Write8(0x8B);
+	}
 	else
 	{
 		Crash();
@@ -1068,10 +1059,8 @@ void XEmitter::XOR (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(t
 void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2) 
 {
 #ifdef _DEBUG
-#ifndef _M_X64
 	_assert_msg_(DYNA_REC, !a1.IsSimpleReg() || !a2.IsSimpleReg() || a1.GetSimpleReg() != a2.GetSimpleReg(), "Redundant MOV @ %p - bug in JIT?", 
-				 code);
-#endif
+				 code); 
 #endif
 	WriteNormalOp(this, bits, nrmMOV, a1, a2);
 }
@@ -1328,7 +1317,7 @@ void XEmitter::MOVDDUP(X64Reg regOp, OpArg arg)
 
 //There are a few more left
 
-// Also some integer instrucitons are missing
+// Also some integer instructions are missing
 void XEmitter::PACKSSDW(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x6B, true, dest, arg);}
 void XEmitter::PACKSSWB(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x63, true, dest, arg);}
 //void PACKUSDW(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x66, true, dest, arg);} // WRONG

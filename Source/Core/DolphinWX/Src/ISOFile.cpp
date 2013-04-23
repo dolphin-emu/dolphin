@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <string>
 #include <vector>
@@ -37,7 +24,7 @@
 #include "ChunkFile.h"
 #include "ConfigManager.h"
 
-static const u32 CACHE_REVISION = 0x113;
+static const u32 CACHE_REVISION = 0x114;
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -48,6 +35,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName)
 	, m_emu_state(0)
 	, m_FileSize(0)
+	, m_Revision(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
 {
@@ -77,8 +65,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_UniqueID = pVolume->GetUniqueID();
 			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
 			m_IsDiscTwo = pVolume->IsDiscTwo();
+			m_Revision = pVolume->GetRevision();
 
-			// check if we can get some infos from the banner file too
+			// check if we can get some info from the banner file too
 			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
 			if (pFileSystem != NULL || m_Platform == WII_WAD)
@@ -175,6 +164,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_pImage);
 	p.Do(m_Platform);
 	p.Do(m_IsDiscTwo);
+	p.Do(m_Revision);
 }
 
 std::string GameListItem::CreateCacheFilename()

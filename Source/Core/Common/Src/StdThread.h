@@ -15,7 +15,7 @@
 #define _GLIBCXX_USE_SCHED_YIELD
 #endif
 #include <thread>
-#elif __has_include(<thread>)
+#elif __has_include(<thread>) && !ANDROID
 // Clang + libc++
 #include <thread>
 #else

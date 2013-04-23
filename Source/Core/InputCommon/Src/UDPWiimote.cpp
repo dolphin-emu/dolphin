@@ -96,32 +96,39 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_flags = AI_PASSIVE; // use my IP
 	
-	if (!int_port){
+	if (!int_port)
+	{
 		cleanup;
 		err=-1;
 		return;
 	}
 	
-	if ((rv = getaddrinfo(NULL, _port, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo(NULL, _port, &hints, &servinfo)) != 0)
+	{
 		cleanup;
 		err=-1;
 		return;
 	}
 
 	// loop through all the results and bind to everything we can
-	for(p = servinfo; p != NULL; p = p->ai_next) {
+	for(p = servinfo; p != NULL; p = p->ai_next)
+	{
 		sock_t sock;
-		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == BAD_SOCK) {
+		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == BAD_SOCK)
+		{
 			continue;
 		}
-		if (bind(sock, p->ai_addr, (int)p->ai_addrlen) == -1) {
+
+		if (bind(sock, p->ai_addr, (int)p->ai_addrlen) == -1)
+		{
 			close(sock);
 			continue;
 		}
 		d->sockfds.push_back(sock);
 	}
 	
-	if (d->sockfds.empty()) {
+	if (d->sockfds.empty())
+	{
 		cleanup;
 		err=-2;
 		return;
@@ -170,7 +177,9 @@ void UDPWiimote::mainThread()
 			timeout.tv_sec=1;
 			timeout.tv_usec=500000;
 			broadcastPresence();
-		} else {
+		}
+		else
+		{
 			tleft-=telapsed;
 			timeout.tv_sec=(long)(tleft/1000);
 			timeout.tv_usec=(tleft%1000)*1000;
@@ -186,6 +195,7 @@ void UDPWiimote::mainThread()
 		if (rt)
 		{
 			for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)
+			{
 				if (FD_ISSET(*i,&fds))
 				{
 					sock_t fd=*i;
@@ -206,11 +216,14 @@ void UDPWiimote::mainThread()
 						if (pharsePacket(bf,size)==0)
 						{
 							//NOTICE_LOG(WIIMOTE,"UDPWII New pack");
-						} else {
+						}
+						else
+						{
 							//NOTICE_LOG(WIIMOTE,"UDPWII Wrong pack format... ignoring");
 						}
 					}
 				}
+			}
 		}
 	} while (!(d->exit));
 }
@@ -230,16 +243,18 @@ UDPWiimote::~UDPWiimote()
 	delete d;
 }
 
-#define ACCEL_FLAG (1<<0)
-#define BUTT_FLAG (1<<1)
-#define IR_FLAG (1<<2)
-#define NUN_FLAG (1<<3)
-#define NUNACCEL_FLAG (1<<4)
+#define ACCEL_FLAG    (1 << 0)
+#define BUTT_FLAG     (1 << 1)
+#define IR_FLAG       (1 << 2)
+#define NUN_FLAG      (1 << 3)
+#define NUNACCEL_FLAG (1 << 4)
 
 int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 {
-	if (size<3) return -1;
-	if (bf[0]!=0xde)
+	if (size < 3)
+		return -1;
+
+	if (bf[0] != 0xde)
 		return -1;
 	//if (bf[1]==0)
 	//	time=0;
@@ -247,9 +262,11 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 	//	return -1;
 	//time=bf[1];
 	u32 *p=(u32*)(&bf[3]);
-	if (bf[2]&ACCEL_FLAG)
+	if (bf[2] & ACCEL_FLAG)
 	{
-		if ((size-(((u8*)p)-bf))<12) return -1;
+		if ((size-(((u8*)p)-bf)) < 12)
+			return -1;
+
 		double ux,uy,uz;
 		ux=(double)((s32)ntohl(*p)); p++;
 		uy=(double)((s32)ntohl(*p)); p++;
@@ -258,27 +275,39 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 		y=uy/1048576;
 		z=uz/1048576;
 	}
-	if (bf[2]&BUTT_FLAG)
+
+	if (bf[2] & BUTT_FLAG)
 	{
-		if ((size-(((u8*)p)-bf))<4) return -1;
+		if ((size-(((u8*)p)-bf)) < 4)
+			return -1;
+
 		mask=ntohl(*p); p++;
 	}
-	if (bf[2]&IR_FLAG)
+
+	if (bf[2] & IR_FLAG)
 	{
-		if ((size-(((u8*)p)-bf))<8) return -1;
+		if ((size-(((u8*)p)-bf)) < 8)
+			return -1;
+
 		pointerX=((double)((s32)ntohl(*p)))/1048576; p++;
 		pointerY=((double)((s32)ntohl(*p)))/1048576; p++;
 	}
-	if (bf[2]&NUN_FLAG)
+
+	if (bf[2] & NUN_FLAG)
 	{
-		if ((size-(((u8*)p)-bf))<9) return -1;
+		if ((size-(((u8*)p)-bf)) < 9)
+			return -1;
+
 		nunMask=*((u8*)p); p=(u32*)(((u8*)p)+1);
 		nunX=((double)((s32)ntohl(*p)))/1048576; p++;
 		nunY=((double)((s32)ntohl(*p)))/1048576; p++;
 	}
-	if (bf[2]&NUNACCEL_FLAG)
+
+	if (bf[2] & NUNACCEL_FLAG)
 	{
-		if ((size-(((u8*)p)-bf))<12) return -1;
+		if ((size-(((u8*)p)-bf)) < 12)
+			return -1;
+
 		double ux,uy,uz;
 		ux=(double)((s32)ntohl(*p)); p++;
 		uy=(double)((s32)ntohl(*p)); p++;
@@ -287,6 +316,7 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 		naY=uy/1048576;
 		naZ=uz/1048576;
 	}
+
 	return 0;
 }
 
@@ -314,7 +344,7 @@ void UDPWiimote::broadcastIPv4(const void * data, size_t size)
 	their_addr.sin_family = AF_INET;
 	their_addr.sin_port = htons(4431);
 	their_addr.sin_addr.s_addr = INADDR_BROADCAST;
-    memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
+	memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
 	
 	int num;
 	if ((num=sendto(d->bipv4_fd,(const dataz)data,(int)size,0,(struct sockaddr *) &their_addr, sizeof their_addr)) == -1)

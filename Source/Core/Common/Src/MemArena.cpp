@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
 #include "MemoryUtil.h"
@@ -153,7 +141,12 @@ u8* MemArena::Find4GBBase()
 	}
 	return base;
 #else
-	void* base = mmap(0, 0x31000000, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+#ifdef ANDROID
+	const u32 MemSize = 0x04000000;
+#else
+	const u32 MemSize = 0x31000000; 
+#endif
+	void* base = mmap(0, MemSize, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
 	if (base == MAP_FAILED) {
 		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
 		return 0;

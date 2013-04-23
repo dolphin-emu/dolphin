@@ -14,7 +14,7 @@
 // GCC 4.4 provides <condition_variable>
 #include <condition_variable>
 
-#elif __has_include(<condition_variable>)
+#elif __has_include(<condition_variable>) && !ANDROID
 
 // clang and libc++ provide <condition_variable> on OSX. However, the version
 // of libc++ bundled with OSX 10.7 and 10.8 is buggy: it uses _ as a variable.

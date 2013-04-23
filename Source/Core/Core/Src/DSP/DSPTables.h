@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // Additional copyrights go to Duddie (c) 2005 (duddie@walla.com)
 
@@ -34,14 +21,14 @@
 enum partype_t
 {
 	P_NONE		= 0x0000,
-	P_VAL       = 0x0001,
+	P_VAL		= 0x0001,
 	P_IMM		= 0x0002,
 	P_MEM		= 0x0003,
 	P_STR		= 0x0004,
 	P_ADDR_I	= 0x0005,
 	P_ADDR_D	= 0x0006,
 	P_REG		= 0x8000,
-	P_REG04     = P_REG | 0x0400, // IX
+	P_REG04		= P_REG | 0x0400, // IX
 	P_REG08		= P_REG | 0x0800, 
 	P_REG18		= P_REG | 0x1800,
 	P_REGM18	= P_REG | 0x1810, // used in multiply instructions
@@ -58,8 +45,8 @@ enum partype_t
 	P_ACC_D		= P_REG | 0x2080,
 	P_AX		= P_REG | 0x2200,
 	P_REGS_MASK	= 0x03f80, // gcdsptool's value = 0x01f80
-	P_REF       = P_REG | 0x4000,
-	P_PRG       = P_REF | P_REG,
+	P_REF		= P_REG | 0x4000,
+	P_PRG		= P_REF | P_REG,
 
 	// The following seem like junk:
 	//	P_REG10		= P_REG | 0x1000,
@@ -143,14 +130,18 @@ inline void ExecuteInstruction(const UDSPInstruction inst)
 {
 	const DSPOPCTemplate *tinst = GetOpTemplate(inst);
 
-	if (tinst->extended) {
+	if (tinst->extended)
+	{
 		if ((inst >> 12) == 0x3)
 			extOpTable[inst & 0x7F]->intFunc(inst);
 		else
 			extOpTable[inst & 0xFF]->intFunc(inst);
 	}
+
 	tinst->intFunc(inst);
-	if (tinst->extended) {
+
+	if (tinst->extended)
+	{
 		applyWriteBackLog();
 	}
 }

@@ -50,39 +50,48 @@ static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) 
 bool DisamLoadStore(const u32 inst, ARMReg &rD, u8 &accessSize, bool &Store)
 {
 	u8 op = (inst >> 20) & 0xFF;
-	printf("op: 0x%08x\n", op);
+	rD = (ARMReg)((inst >> 12) & 0xF);
+
 	switch (op)
 	{
 		case 0x58: // STR
 		{
-			rD = (ARMReg)((inst >> 16) & 0xF);
 			Store = true;
 			accessSize = 32;
 		}
 		break;
 		case 0x59: // LDR
 		{
-			rD = (ARMReg)((inst >> 16) & 0xF);
 			Store = false;
 			accessSize = 32;
 		}
 		break;
-		case 0x05: // LDRH
+		case 0x1D: // LDRH
 		{
-			rD = (ARMReg)((inst >> 16) & 0xF);
 			Store = false;
 			accessSize = 16;
 		}
 		break;
 		case 0x45 + 0x18: // LDRB
 		{
-			rD = (ARMReg)((inst >> 16) & 0xF);
 			Store = false;
-			accessSize  = 8;
+			accessSize = 8;
 		}
 		break;
-		case 0x44 + 0x18: // STRB
+		case 0x5C: // STRB
+		{
+			Store = true;
+			accessSize = 8;
+		}
+		break;
+		case 0x1C: // STRH
+		{
+			Store = true;
+			accessSize = 16;
+		}
+		break;
 		default:
+			printf("Op is 0x%02x\n", op);
 			return false;
 	}
 	return true;
@@ -111,11 +120,11 @@ const u8 *JitArm::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ct
 		switch (accessSize)
 		{
 			case 8: // 8bit
-				//emitter.MOVI2R(R14, (u32)&Memory::Write_U8, false); // 1-2
+				emitter.MOVI2R(R14, (u32)&Memory::Write_U8, false); // 1-2
 				return 0;
 			break;
 			case 16: // 16bit
-				//emitter.MOVI2R(R14, (u32)&Memory::Write_U16, false); // 1-2
+				emitter.MOVI2R(R14, (u32)&Memory::Write_U16, false); // 1-2
 				return 0;
 			break;
 			case 32: // 32bit

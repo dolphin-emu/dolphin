@@ -1,19 +1,6 @@
-// Copyright (C) 2003-2009 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include <math.h>
@@ -22,6 +9,8 @@
 #include "RasterFont.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
+
+#include "OnScreenDisplay.h"
 
 static GLuint s_RenderTarget = 0;
 
@@ -75,8 +64,6 @@ void CreateShaders()
 	uni_tex = glGetUniformLocation(program, "Texture");
 	attr_pos = glGetAttribLocation(program, "pos");
 	attr_tex = glGetAttribLocation(program, "TexCoordIn"); 
-	
-	
 }
 
 void SWRenderer::Prepare()
@@ -116,26 +103,65 @@ void SWRenderer::DrawDebugText()
 
 	if (g_SWVideoConfig.bShowStats) 
 	{
-        p+=sprintf(p,"Objects: %i\n",swstats.thisFrame.numDrawnObjects);
-        p+=sprintf(p,"Primitives: %i\n",swstats.thisFrame.numPrimatives);
-        p+=sprintf(p,"Vertices Loaded: %i\n",swstats.thisFrame.numVerticesLoaded);
+		p+=sprintf(p,"Objects: %i\n",swstats.thisFrame.numDrawnObjects);
+		p+=sprintf(p,"Primitives: %i\n",swstats.thisFrame.numPrimatives);
+		p+=sprintf(p,"Vertices Loaded: %i\n",swstats.thisFrame.numVerticesLoaded);
 
-        p+=sprintf(p,"Triangles Input:   %i\n",swstats.thisFrame.numTrianglesIn);
-        p+=sprintf(p,"Triangles Rejected:   %i\n",swstats.thisFrame.numTrianglesRejected);
-        p+=sprintf(p,"Triangles Culled:   %i\n",swstats.thisFrame.numTrianglesCulled);
-        p+=sprintf(p,"Triangles Clipped:  %i\n",swstats.thisFrame.numTrianglesClipped);
-        p+=sprintf(p,"Triangles Drawn:   %i\n",swstats.thisFrame.numTrianglesDrawn);
+		p+=sprintf(p,"Triangles Input:   %i\n",swstats.thisFrame.numTrianglesIn);
+		p+=sprintf(p,"Triangles Rejected:   %i\n",swstats.thisFrame.numTrianglesRejected);
+		p+=sprintf(p,"Triangles Culled:   %i\n",swstats.thisFrame.numTrianglesCulled);
+		p+=sprintf(p,"Triangles Clipped:  %i\n",swstats.thisFrame.numTrianglesClipped);
+		p+=sprintf(p,"Triangles Drawn:   %i\n",swstats.thisFrame.numTrianglesDrawn);
 
-        p+=sprintf(p,"Rasterized Pix:   %i\n",swstats.thisFrame.rasterizedPixels);
-        p+=sprintf(p,"TEV Pix In:   %i\n",swstats.thisFrame.tevPixelsIn);
-        p+=sprintf(p,"TEV Pix Out:   %i\n",swstats.thisFrame.tevPixelsOut);        
-    }
+		p+=sprintf(p,"Rasterized Pix:   %i\n",swstats.thisFrame.rasterizedPixels);
+		p+=sprintf(p,"TEV Pix In:   %i\n",swstats.thisFrame.tevPixelsIn);
+		p+=sprintf(p,"TEV Pix Out:   %i\n",swstats.thisFrame.tevPixelsOut);
+	}
 
 	// Render a shadow, and then the text.
 	SWRenderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
 }
+#ifdef ANDROID
+// XXX: This /really/ shouldn't be here
+// But for now, we don't have a generic way for all backends to draw the buttons on screen.
+// Once that is implemented, we can remove this
+void DrawButton(GLuint tex, float *coords)
+{
+        //Texture rectangle uses pixel coordinates
+#ifndef USE_GLES
+        GLfloat u_max = (GLfloat)width;
+        GLfloat v_max = (GLfloat)height;
 
+        static const GLfloat texverts[4][2] = {
+                {0, v_max},
+                {0, 0},
+                {u_max, 0},
+                {u_max, v_max}
+        };
+#else
+        static const GLfloat texverts[4][2] = {
+                {0, 1},
+                {0, 0},
+                {1, 0},
+                {1, 1}
+        };
+#endif
+        glBindTexture(TEX2D, tex);
+
+        glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, coords);
+        glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
+        glEnableVertexAttribArray(attr_pos);
+        glEnableVertexAttribArray(attr_tex);
+                glActiveTexture(GL_TEXTURE0); 
+                glUniform1i(uni_tex, 0);
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDisableVertexAttribArray(attr_pos);
+        glDisableVertexAttribArray(attr_tex);
+
+        glBindTexture(TEX2D, 0); 
+}
+#endif
 void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 {
 	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
@@ -169,9 +195,9 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
 	glEnableVertexAttribArray(attr_pos);
 	glEnableVertexAttribArray(attr_tex);
-		glUniform1i(uni_tex, 0);
-		glActiveTexture(GL_TEXTURE0); 
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glUniform1i(uni_tex, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	glDisableVertexAttribArray(attr_pos);
 	glDisableVertexAttribArray(attr_tex);
 
@@ -181,12 +207,15 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 
 void SWRenderer::SwapBuffer()
 {
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_ONFRAME);
+
 	DrawDebugText();
 
 	glFlush();
 
 	GLInterface->Swap();
-    
+
 	swstats.ResetFrame();
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

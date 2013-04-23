@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "ChunkFile.h"
@@ -68,7 +55,7 @@ static u32 TicksPerFrame = 0;
 static u32 s_lineCount = 0;
 static u32 s_upperFieldBegin = 0;
 static u32 s_lowerFieldBegin = 0;
-static int fields = 2;
+static int fields = 1;
 
 void DoState(PointerWrap &p)
 {
@@ -181,7 +168,7 @@ void Init()
 	m_BorderHBlank.Hex = 0;
 	memset(&m_FilterCoefTables, 0, sizeof(m_FilterCoefTables));
 
-	fields = Core::g_CoreStartupParameter.bVBeam ? 1 : 2;
+	fields = 1;
 
 	m_DTVStatus.ntsc_j = Core::g_CoreStartupParameter.bForceNTSCJ;
 
@@ -304,11 +291,11 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 	case VI_VERTICAL_BEAM_POSITION:
-    	_uReturnValue = m_VBeamPos;
+		_uReturnValue = m_VBeamPos;
 		return;
 
 	case VI_HORIZONTAL_BEAM_POSITION:
-        _uReturnValue = m_HBeamPos;
+		_uReturnValue = m_HBeamPos;
 		return;
 
 	// RETRACE STUFF ...
@@ -746,40 +733,50 @@ u32 GetXFBAddressBottom()
 
 void UpdateParameters()
 {
-    switch (m_DisplayControlRegister.FMT)
-    {
-    case 0: // NTSC
+	fields = m_DisplayControlRegister.NIN ? 2 : 1;
+
+	switch (m_DisplayControlRegister.FMT)
+	{
+	case 0: // NTSC
 		TargetRefreshRate = NTSC_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE / fields);
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
 		s_lineCount = NTSC_LINE_COUNT;
 		s_upperFieldBegin = NTSC_UPPER_BEGIN;
 		s_lowerFieldBegin = NTSC_LOWER_BEGIN;
 		break;
 
-    case 2: // PAL-M
+	case 2: // PAL-M
 		TargetRefreshRate = NTSC_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE / fields);
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
 		s_lineCount = PAL_LINE_COUNT;
 		s_upperFieldBegin = PAL_UPPER_BEGIN;
 		s_lowerFieldBegin = PAL_LOWER_BEGIN;
-        break;
+		break;
 
-    case 1: // PAL
+	case 1: // PAL
 		TargetRefreshRate = PAL_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE / fields);
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / PAL_FIELD_RATE;
 		s_lineCount = PAL_LINE_COUNT;
 		s_upperFieldBegin = PAL_UPPER_BEGIN;
 		s_lowerFieldBegin = PAL_LOWER_BEGIN;
-        break;
+		break;
 
 	case 3: // Debug
 		PanicAlert("Debug video mode not implemented");
 		break;
 
-    default:
-        PanicAlert("Unknown Video Format - CVideoInterface");
-        break;
-    }
+	default:
+		PanicAlert("Unknown Video Format - CVideoInterface");
+		break;
+	}
+}
+
+int GetNumFields()
+{
+	if (Core::g_CoreStartupParameter.bVBeamSpeedHack)
+		return (2 / fields);
+	else
+		return 1;
 }
 
 unsigned int GetTicksPerLine()
@@ -790,7 +787,10 @@ unsigned int GetTicksPerLine()
 	}
 	else
 	{
-		return TicksPerFrame / (s_lineCount * fields);
+		if (Core::g_CoreStartupParameter.bVBeamSpeedHack)
+			return TicksPerFrame / s_lineCount;
+		else
+			return TicksPerFrame / (s_lineCount / (2 / fields)) ;
 	}
 }
 
@@ -831,39 +831,27 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update()
 {
-	u16 NewVBeamPos = 0;
-
 	if (m_DisplayControlRegister.NIN)
 	{
 		// Progressive
-		NewVBeamPos = s_lineCount + 1;
 		if (m_VBeamPos == 1)
 			BeginField(FIELD_PROGRESSIVE);
 	}
 	else if (m_VBeamPos == s_upperFieldBegin)
 	{
 		// Interlace Upper
-		NewVBeamPos = s_lineCount * 2;
 		BeginField(FIELD_UPPER);
 	}
 	else if (m_VBeamPos == s_lowerFieldBegin)
 	{
 		// Interlace Lower
-		NewVBeamPos = s_lineCount;
 		BeginField(FIELD_LOWER);
 	}
 
-	if (m_DisplayControlRegister.NIN)
+	if (m_VBeamPos == s_upperFieldBegin + m_VerticalTimingRegister.ACV)
 	{
-		// Progressive
-		if (m_VBeamPos == s_lineCount)
-			EndField();
-	}
-	else if (m_VBeamPos == s_upperFieldBegin + m_VerticalTimingRegister.ACV)
-	{
-		// Interlace Upper.  Do not EndField (swapBuffer) at the end of the upper field.
-		if (Core::g_CoreStartupParameter.bVBeam)
-			EndField();
+		// Interlace Upper.
+		EndField();
 	}
 	else if (m_VBeamPos == s_lowerFieldBegin + m_VerticalTimingRegister.ACV)
 	{
@@ -871,8 +859,8 @@ void Update()
 		EndField();
 	}
 
-	if (++m_VBeamPos > s_lineCount)
-		m_VBeamPos = (NewVBeamPos > s_lineCount || Core::g_CoreStartupParameter.bVBeam) ? 1 : NewVBeamPos;
+	if (++m_VBeamPos > s_lineCount * fields)
+		m_VBeamPos = 1;
 
 	for (int i = 0; i < 4; i++)
 	{

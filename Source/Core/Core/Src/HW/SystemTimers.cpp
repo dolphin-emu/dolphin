@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 
@@ -23,7 +23,7 @@
 of frames. So if a game runs slow, on a slow computer for example, these updates will occur
 less frequently. This makes sense because almost all console games are controlled by frames
 rather than time, so if a game can't keep up with the normal framerate all animations and
-actions slows down and the game runs to slow. This is different from PC games that are are
+actions slows down and the game runs to slow. This is different from PC games that are
 often controlled by time instead and may not have maximum framerates.
 
 However, I'm not sure if the Bluetooth communication for the Wiimote is entirely frame
@@ -152,7 +152,7 @@ void DSPCallback(u64 userdata, int cyclesLate)
 
 void AudioDMACallback(u64 userdata, int cyclesLate)
 {
-	int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam?2:1;
+	int fields = VideoInterface::GetNumFields();
 	int period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32 * fields);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
@@ -240,8 +240,6 @@ void PreInit()
 
 void Init()
 {
-	const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam ? 2 : 1;
-
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		// AyuanX: TO BE TWEAKED
@@ -250,7 +248,7 @@ void Init()
 
 		// FYI, WII_IPC_HLE_Interface::Update is also called in WII_IPCInterface::Write32
 		const int freq = 1500;
-		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * fields);
+		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * VideoInterface::GetNumFields());
 	}
 
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA

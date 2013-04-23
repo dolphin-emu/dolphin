@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official Git repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // This file is UGLY (full of #ifdef) so that it can be used with both GC and
 // Wii version of AX. Maybe it would be better to abstract away the parts that
@@ -278,7 +265,7 @@ u16 AcceleratorGetSample()
 // stream, and the lower 16 bits are the decimal part.
 //
 // We start getting samples not from sample 0, but 0.<curr_pos_frac>. This
-// avoids discontinuties in the audio stream, especially with very low ratios
+// avoids discontinuities in the audio stream, especially with very low ratios
 // which interpolate a lot of values between two "real" samples.
 u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count,
                   s16* last_samples, u32 curr_pos, u32 ratio, int srctype,

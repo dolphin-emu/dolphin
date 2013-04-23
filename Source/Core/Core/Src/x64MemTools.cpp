@@ -1,20 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifdef _WIN32
 #include <windows.h>
@@ -79,7 +65,8 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			PVOID codeAddr = pPtrs->ExceptionRecord->ExceptionAddress;
 			unsigned char *codePtr = (unsigned char*)codeAddr;
 			
-			if (!JitInterface::IsInCodeSpace(codePtr)) {
+			if (!JitInterface::IsInCodeSpace(codePtr))
+			{
 				// Let's not prevent debugging.
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
@@ -94,7 +81,8 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 #else
 			u64 memspaceTop = memspaceBottom + 0x40000000;
 #endif
-			if (badAddress < memspaceBottom || badAddress >= memspaceTop) {
+			if (badAddress < memspaceBottom || badAddress >= memspaceTop)
+			{
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 				//PanicAlert("Exception handler - access outside memory space. %08x%08x",
 				//	badAddress >> 32, badAddress);
@@ -206,7 +194,8 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 #else
 	u8 *fault_instruction_ptr = (u8 *)CREG_EIP(ctx);
 #endif
-	if (!JitInterface::IsInCodeSpace(fault_instruction_ptr)) {
+	if (!JitInterface::IsInCodeSpace(fault_instruction_ptr))
+	{
 		// Let's not prevent debugging.
 		return;
 	}
@@ -234,7 +223,8 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	fake_ctx.Eip = CREG_EIP(ctx);
 #endif
 	const u8 *new_rip = jit->BackPatch(fault_instruction_ptr, access_type, em_address, &fake_ctx);
-	if (new_rip) {
+	if (new_rip)
+	{
 #ifdef _M_X64
 		CREG_RAX(ctx) = fake_ctx.Rax;
 		CREG_RIP(ctx) = fake_ctx.Rip;

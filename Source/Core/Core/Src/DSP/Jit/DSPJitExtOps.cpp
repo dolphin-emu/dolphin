@@ -1,19 +1,7 @@
-// Copyright (C) 2010 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 #include "../DSPMemoryMap.h"
 #include "../DSPEmitter.h"
 #include "DSPJitUtil.h"
@@ -41,21 +29,24 @@ using namespace Gen;
 // DR $arR
 // xxxx xxxx 0000 01rr
 // Decrement addressing register $arR.
-void DSPEmitter::dr(const UDSPInstruction opc) {
+void DSPEmitter::dr(const UDSPInstruction opc)
+{
 	decrement_addr_reg(opc & 0x3);
 }
 
 // IR $arR
 // xxxx xxxx 0000 10rr
 // Increment addressing register $arR.
-void DSPEmitter::ir(const UDSPInstruction opc) {
+void DSPEmitter::ir(const UDSPInstruction opc)
+{
 	increment_addr_reg(opc & 0x3);
 }
 
 // NR $arR
 // xxxx xxxx 0000 11rr
 // Add corresponding indexing register $ixR to addressing register $arR.
-void DSPEmitter::nr(const UDSPInstruction opc) {
+void DSPEmitter::nr(const UDSPInstruction opc)
+{
 	u8 reg = opc & 0x3;	
 	
 	increase_addr_reg(reg, reg);
@@ -66,15 +57,12 @@ void DSPEmitter::nr(const UDSPInstruction opc) {
 // Move value of $acS.S to the $axD.D.
 void DSPEmitter::mv(const UDSPInstruction opc)
 {
- 	u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
+	u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
 	u8 dreg = ((opc >> 2) & 0x3);
-	if (sreg >= DSP_REG_ACM0) {
-		dsp_op_read_reg_and_saturate(sreg, RBX, ZERO);
-		storeIndex = dreg + DSP_REG_AXL0;
-	} else
-		pushExtValueFromReg(dreg + DSP_REG_AXL0, sreg);
+	dsp_op_read_reg(sreg, RBX, ZERO);
+	storeIndex = dreg + DSP_REG_AXL0;
 }
-	
+
 // S @$arD, $acS.S
 // xxxx xxxx 001s s0dd
 // Store value of $acS.S in the memory pointed by register $arD.
@@ -89,10 +77,7 @@ void DSPEmitter::s(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg, tmp1, ZERO);
-	else
-		dsp_op_read_reg(sreg, tmp1, ZERO);
+	dsp_op_read_reg(sreg, tmp1, ZERO);
 	//	u16 val = g_dsp.r[src];
 	dmem_write(tmp1);
 
@@ -114,10 +99,7 @@ void DSPEmitter::sn(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg, tmp1, ZERO);
-	else
-		dsp_op_read_reg(sreg, tmp1, ZERO);
+	dsp_op_read_reg(sreg, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -152,7 +134,7 @@ void DSPEmitter::l(const UDSPInstruction opc)
 // LN $axD.D, @$arS
 // xxxx xxxx 01dd d0ss
 // Load $axD.D/$acD.D with value from memory pointed by register $arS. 
-// Add indexing register register $ixS to register $arS.
+// Add indexing register $ixS to register $arS.
 void DSPEmitter::ln(const UDSPInstruction opc)
 {
 	u8 sreg = opc & 0x3;
@@ -187,7 +169,7 @@ void DSPEmitter::ls(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -214,7 +196,7 @@ void DSPEmitter::lsn(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -240,7 +222,7 @@ void DSPEmitter::lsm(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -267,7 +249,7 @@ void DSPEmitter::lsnm(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -292,7 +274,7 @@ void DSPEmitter::sl(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -318,7 +300,7 @@ void DSPEmitter::sln(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -344,7 +326,7 @@ void DSPEmitter::slm(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -370,7 +352,7 @@ void DSPEmitter::slnm(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	dsp_op_read_reg_and_saturate(sreg + DSP_REG_ACM0, tmp1, ZERO);
+	dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
@@ -649,15 +631,10 @@ void DSPEmitter::ldaxnm(const UDSPInstruction opc)
 	increase_addr_reg(DSP_REG_AR3, DSP_REG_AR3);
 }
 
-
-// Push value from g_dsp.r[sreg] into EBX and stores the destinationindex in
-// storeIndex
-void DSPEmitter::pushExtValueFromReg(u16 dreg, u16 sreg) {
-	dsp_op_read_reg(sreg, RBX, ZERO);
-	storeIndex = dreg;
-}
-
-void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
+// Push value from address in g_dsp.r[sreg] into EBX and stores the
+// destinationindex in storeIndex
+void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg)
+{
 	//	u16 addr = g_dsp.r[addr];
 
 	X64Reg tmp1;
@@ -673,7 +650,8 @@ void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
 	storeIndex = dreg;
 }
 
-void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg) {
+void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg)
+{
 	//	u16 addr = g_dsp.r[addr];
 
 	X64Reg tmp1;
@@ -690,17 +668,20 @@ void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg) {
 	storeIndex2 = dreg;
 }
 
-void DSPEmitter::popExtValueToReg() {
-	// in practise, we rarely ever have a non-NX main op
+void DSPEmitter::popExtValueToReg()
+{
+	// in practice, we rarely ever have a non-NX main op
 	// with an extended op, so the OR here is either
 	// not run (storeIndex == -1) or ends up OR'ing
 	// EBX with 0 (becoming the MOV we have here)
 	// nakee wants to keep it clean, so lets do that.
 	// [nakeee] the or case never happens in real
 	// [nakeee] it's just how the hardware works so we added it
-	if (storeIndex != -1) {
+	if (storeIndex != -1)
+	{
 		dsp_op_write_reg(storeIndex, RBX);
-		if (storeIndex  >= DSP_REG_ACM0 && storeIndex2 == -1) {
+		if (storeIndex  >= DSP_REG_ACM0 && storeIndex2 == -1)
+		{
 			TEST(32, R(EBX), Imm32(SR_40_MODE_BIT << 16));
 			FixupBranch not_40bit = J_CC(CC_Z, true);
 			DSPJitRegCache c(gpr);
@@ -722,9 +703,11 @@ void DSPEmitter::popExtValueToReg() {
 
 	storeIndex = -1;
 
-	if (storeIndex2 != -1) {
+	if (storeIndex2 != -1)
+	{
 		SHR(32, R(EBX), Imm8(16));
 		dsp_op_write_reg(storeIndex2, RBX);
 	}
+
 	storeIndex2 = -1;
 }

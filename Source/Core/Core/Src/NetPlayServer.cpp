@@ -1,3 +1,7 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
 #include "NetPlay.h"
 
 // called from ---GUI--- thread
@@ -103,7 +107,7 @@ void NetPlayServer::ThreadFunc()
 				switch (ready_socket.Receive(rpac))
 				{
 				case sf::Socket::Done :
-					// if a bad packet is recieved, disconnect the client
+					// if a bad packet is received, disconnect the client
 					if (0 == OnData(rpac, ready_socket))
 						break;
 
@@ -263,7 +267,7 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 
 		sf::Packet spac;
 		spac << (MessageId)NP_MSG_DISABLE_GAME;
-		// this thread doesnt need players lock
+		// this thread doesn't need players lock
 		std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 		SendToClients(spac);
 	}
@@ -461,7 +465,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 				map = -1;
 			
 			// if not, they are hacking, so disconnect them
-			// this could happen right after a pad map change, but that isn't implimented yet
+			// this could happen right after a pad map change, but that isn't implemented yet
 			if (map < 0)
 				return 1;
 				

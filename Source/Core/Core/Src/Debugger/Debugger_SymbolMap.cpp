@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "StringUtil.h"
@@ -40,7 +27,7 @@ void AddAutoBreakpoints()
 	{
 		Symbol *symbol = g_symbolDB.GetSymbolFromName(bps[i]);
 		if (symbol)
-		    PowerPC::breakpoints.Add(symbol->address, false);
+			PowerPC::breakpoints.Add(symbol->address, false);
 	}
 #endif
 #endif
@@ -54,15 +41,15 @@ bool GetCallstack(std::vector<CallstackEntry> &output)
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 		return false;
 
-    if (!Memory::IsRAMAddress(PowerPC::ppcState.gpr[1]))
-        return false;
+	if (!Memory::IsRAMAddress(PowerPC::ppcState.gpr[1]))
+		return false;
 
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
 	if (LR == 0)
 	{
-        CallstackEntry entry;
-        entry.Name = "(error: LR=0)";
-        entry.vAddress = 0x0;
+		CallstackEntry entry;
+		entry.Name = "(error: LR=0)";
+		entry.vAddress = 0x0;
 		output.push_back(entry);
 		return false;
 	}
@@ -78,31 +65,31 @@ bool GetCallstack(std::vector<CallstackEntry> &output)
 	//walk the stack chain
 	while ((addr != 0xFFFFFFFF) && (addr != 0) && (count++ < 20) && (PowerPC::ppcState.gpr[1] != 0))
 	{
-        if (!Memory::IsRAMAddress(addr + 4))
-            return false;
+		if (!Memory::IsRAMAddress(addr + 4))
+			return false;
 
 		u32 func = Memory::ReadUnchecked_U32(addr + 4);
 		const char *str = g_symbolDB.GetDescription(func);
 		if (!str || strlen(str) == 0 || !strcmp(str, "Invalid"))
 			str = "(unknown)";
 
-        entry.Name = StringFromFormat(" * %s [ addr = %08x ]\n", str, func - 4);
-        entry.vAddress = func - 4;
+		entry.Name = StringFromFormat(" * %s [ addr = %08x ]\n", str, func - 4);
+		entry.vAddress = func - 4;
 		output.push_back(entry);
 
-        if (!Memory::IsRAMAddress(addr))
-            return false;
+		if (!Memory::IsRAMAddress(addr))
+			return false;
 
-	    addr = Memory::ReadUnchecked_U32(addr);
+		addr = Memory::ReadUnchecked_U32(addr);
 	}
 
-    return true;
+	return true;
 }
 
 void PrintCallstack()
 {
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
-	
+
 	printf("== STACK TRACE - SP = %08x ==", PowerPC::ppcState.gpr[1]);
 	
 	if (LR == 0) {
@@ -114,7 +101,7 @@ void PrintCallstack()
 		printf(" * %s  [ LR = %08x ]", g_symbolDB.GetDescription(LR), LR);
 		count++;
 	}
-	
+
 	//walk the stack chain
 	while ((addr != 0xFFFFFFFF) && (addr != 0) && (count++ < 20) && (PowerPC::ppcState.gpr[1] != 0))
 	{

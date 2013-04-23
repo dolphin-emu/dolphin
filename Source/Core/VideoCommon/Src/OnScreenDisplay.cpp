@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <list>
 
@@ -23,6 +10,8 @@
 #include "OnScreenDisplay.h"
 #include "RenderBase.h"
 #include "Timer.h"
+
+#include <vector>
 
 namespace OSD
 {
@@ -39,6 +28,26 @@ struct MESSAGE
 	u32 dwTimeStamp;
 };
 
+class OSDCALLBACK
+{
+private:
+	CallbackPtr m_functionptr;
+	CallbackType m_type;
+	u32 m_data;
+public:
+	OSDCALLBACK(CallbackType OnType, CallbackPtr FuncPtr, u32 UserData)
+	{
+		m_type = OnType;
+		m_functionptr = FuncPtr;
+		m_data = UserData; 
+	}
+	void Call()
+	{
+		m_functionptr(m_data);
+	}
+	CallbackType Type() { return m_type; }
+};
+std::vector<OSDCALLBACK> m_callbacks;
 static std::list<MESSAGE> s_listMsgs;
 
 void AddMessage(const char* pstr, u32 ms)
@@ -84,6 +93,19 @@ void ClearMessages()
 	std::list<MESSAGE>::iterator it = s_listMsgs.begin();
 	while (it != s_listMsgs.end()) 
 		it = s_listMsgs.erase(it);
+}
+
+// On-Screen Display Callbacks
+void AddCallback(CallbackType OnType, CallbackPtr FuncPtr, u32 UserData)
+{
+	m_callbacks.push_back(OSDCALLBACK(OnType, FuncPtr, UserData));
+}
+
+void DoCallbacks(CallbackType OnType)
+{
+	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
+		if (it->Type() == OnType)
+			it->Call();
 }
 
 }  // namespace

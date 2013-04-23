@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _MEMMAP_H
@@ -70,11 +70,11 @@ enum
 	FAKEVMEM_MASK	= FAKEVMEM_SIZE - 1,
 	L1_CACHE_SIZE	= 0x40000,
 	L1_CACHE_MASK	= L1_CACHE_SIZE - 1,
-	EFB_SIZE	    = 0x200000,
-	EFB_MASK	    = EFB_SIZE - 1,
-	IO_SIZE         = 0x10000,
-	EXRAM_SIZE      = 0x4000000,
-	EXRAM_MASK      = EXRAM_SIZE - 1,
+	EFB_SIZE		= 0x200000,
+	EFB_MASK		= EFB_SIZE - 1,
+	IO_SIZE			= 0x10000,
+	EXRAM_SIZE		= 0x4000000,
+	EXRAM_MASK		= EXRAM_SIZE - 1,
 
 	ADDR_MASK_HW_ACCESS	= 0x0c000000,
 	ADDR_MASK_MEM1		= 0x20000000,
