@@ -77,6 +77,7 @@ static const wxLanguage langIds[] =
 	wxLANGUAGE_RUSSIAN,
 	wxLANGUAGE_SERBIAN,
 	wxLANGUAGE_SPANISH,
+	wxLANGUAGE_SWEDISH,
 	wxLANGUAGE_TURKISH,
 };
 
@@ -307,6 +308,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_InterfaceLang.Add(_("Russian"));
 	arrayStringFor_InterfaceLang.Add(_("Serbian"));
 	arrayStringFor_InterfaceLang.Add(_("Spanish"));
+	arrayStringFor_InterfaceLang.Add(_("Swedish"));
 	arrayStringFor_InterfaceLang.Add(_("Turkish"));
 }
 
