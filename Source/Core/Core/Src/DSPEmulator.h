@@ -37,6 +37,6 @@ protected:
 	SoundStream *soundStream;
 };
 
-DSPEmulator *CreateDSPEmulator(bool LLE);
+DSPEmulator *CreateDSPEmulator(bool HLE);
 
 #endif // _DSPEMULATOR_H_
