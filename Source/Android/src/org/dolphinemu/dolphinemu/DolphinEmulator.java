@@ -120,18 +120,6 @@ public class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("NoBanner.png", 
 						Environment.getExternalStorageDirectory()+File.separator+
 						"dolphin-emu" + File.separator + "NoBanner.png");
-				CopyAsset("Dolphin.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Dolphin.png");
-				CopyAsset("Back.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Back.png");
-				CopyAsset("Folder.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Folder.png");
-				CopyAsset("Background.glsl", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Background.glsl");
 				CopyAsset("GCPadNew.ini", 
 						Environment.getExternalStorageDirectory()+File.separator+
 						"dolphin-emu" + File.separator +"Config"+ File.separator +"GCPadNew.ini");
