@@ -71,14 +71,14 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	GLWin.egl_dpy = Platform.EGLGetDisplay();
 
 	if (!GLWin.egl_dpy) {
-		printf("Error: eglGetDisplay() failed\n");
+		INFO_LOG(VIDEO, "Error: eglGetDisplay() failed\n");
 		return false;
 	}
 
 	GLWin.platform = Platform.platform;
 
 	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor)) {
-		printf("Error: eglInitialize() failed\n");
+		INFO_LOG(VIDEO, "Error: eglInitialize() failed\n");
 		return false;
 	}
 
@@ -89,7 +89,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 #endif
 
 	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs)) {
-		printf("Error: couldn't get an EGL visual config\n");
+		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
 		exit(1);
 	}
 
@@ -97,20 +97,20 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		return false;
 
 	s = eglQueryString(GLWin.egl_dpy, EGL_VERSION);
-	printf("EGL_VERSION = %s\n", s);
+	INFO_LOG(VIDEO, "EGL_VERSION = %s\n", s);
 
 	s = eglQueryString(GLWin.egl_dpy, EGL_VENDOR);
-	printf("EGL_VENDOR = %s\n", s);
+	INFO_LOG(VIDEO, "EGL_VENDOR = %s\n", s);
 
 	s = eglQueryString(GLWin.egl_dpy, EGL_EXTENSIONS);
-	printf("EGL_EXTENSIONS = %s\n", s);
+	INFO_LOG(VIDEO, "EGL_EXTENSIONS = %s\n", s);
 
 	s = eglQueryString(GLWin.egl_dpy, EGL_CLIENT_APIS);
-	printf("EGL_CLIENT_APIS = %s\n", s);
+	INFO_LOG(VIDEO, "EGL_CLIENT_APIS = %s\n", s);
 
 	GLWin.egl_ctx = eglCreateContext(GLWin.egl_dpy, config, EGL_NO_CONTEXT, ctx_attribs );
 	if (!GLWin.egl_ctx) {
-		printf("Error: eglCreateContext failed\n");
+		INFO_LOG(VIDEO, "Error: eglCreateContext failed\n");
 		exit(1);
 	}
 
@@ -119,20 +119,20 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config,
 				GLWin.native_window, NULL);
 	if (!GLWin.egl_surf) {
-		printf("Error: eglCreateWindowSurface failed\n");
+		INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
 		exit(1);
 	}
 
 	if (!eglMakeCurrent(GLWin.egl_dpy, GLWin.egl_surf, GLWin.egl_surf, GLWin.egl_ctx)) {
 
-		printf("Error: eglMakeCurrent() failed\n");
+		INFO_LOG(VIDEO, "Error: eglMakeCurrent() failed\n");
 		return false;
 	}
 
-	printf("GL_VENDOR: %s\n", glGetString(GL_VENDOR));
-	printf("GL_RENDERER: %s\n", glGetString(GL_RENDERER));
-	printf("GL_VERSION: %s\n", glGetString(GL_VERSION));
-	printf("GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
+	INFO_LOG(VIDEO, "GL_VENDOR: %s\n", glGetString(GL_VENDOR));
+	INFO_LOG(VIDEO, "GL_RENDERER: %s\n", glGetString(GL_RENDERER));
+	INFO_LOG(VIDEO, "GL_VERSION: %s\n", glGetString(GL_VERSION));
+	INFO_LOG(VIDEO, "GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
 
 	Platform.ToggleFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 
@@ -152,9 +152,13 @@ void cInterfaceEGL::Shutdown()
 		NOTICE_LOG(VIDEO, "Could not release drawing context.");
 	if (GLWin.egl_ctx)
 	{
-		eglDestroyContext(GLWin.egl_dpy, GLWin.egl_ctx);
-		eglDestroySurface(GLWin.egl_dpy, GLWin.egl_surf);
-		eglTerminate(GLWin.egl_dpy);
+		eglMakeCurrent(GLWin.egl_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		if(!eglDestroyContext(GLWin.egl_dpy, GLWin.egl_ctx))
+			NOTICE_LOG(VIDEO, "Could not destroy drawing context.");
+		if(!eglDestroySurface(GLWin.egl_dpy, GLWin.egl_surf))
+			NOTICE_LOG(VIDEO, "Could not destroy window surface.");
+		if(!eglTerminate(GLWin.egl_dpy))
+			NOTICE_LOG(VIDEO, "Could not destroy display connection.");
 		GLWin.egl_ctx = NULL;
 	}
 }
