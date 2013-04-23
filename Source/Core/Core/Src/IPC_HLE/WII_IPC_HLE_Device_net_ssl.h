@@ -24,12 +24,14 @@
 #endif
 
 #include "WII_IPC_HLE_Device.h"
-#include <openssl/ssl.h>
-#include <openssl/evp.h>
-#include <openssl/pkcs12.h>
-#include <openssl/x509v3.h>
 
+#include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
+
+#define MAX_HOSTNAME_LEN 256
 #define NET_SSL_MAXINSTANCES 4
+
+#define SSLID_VALID(x) (x >= 0 && x < NET_SSL_MAXINSTANCES && _SSL[x].session != NULL)
 
 class CWII_IPC_HLE_Device_net_ssl : public IWII_IPC_HLE_Device
 {
@@ -48,26 +50,31 @@ public:
 	int getSSLFreeID();
 
 private:
-	SSL * sslfds[NET_SSL_MAXINSTANCES]; 
-    enum
+	struct _SSL{
+		gnutls_session_t session;
+		gnutls_certificate_credentials_t xcred;
+		char hostname[MAX_HOSTNAME_LEN];
+	} _SSL[NET_SSL_MAXINSTANCES];
+	
+	enum
     {
         IOCTLV_NET_SSL_NEW							= 0x01,
         IOCTLV_NET_SSL_CONNECT						= 0x02,
         IOCTLV_NET_SSL_DOHANDSHAKE					= 0x03,
         IOCTLV_NET_SSL_READ							= 0x04,
         IOCTLV_NET_SSL_WRITE						= 0x05,
-        IOCTLV_NET_SSL_SHUTDOWN						= 0x06,
+        IOCTLV_NET_SSL_SHUTDOWN					= 0x06,
         IOCTLV_NET_SSL_SETCLIENTCERT				= 0x07,
-        IOCTLV_NET_SSL_SETCLIENTCERTDEFAULT			= 0x08,
-        IOCTLV_NET_SSL_REMOVECLIENTCERT				= 0x09,
+        IOCTLV_NET_SSL_SETCLIENTCERTDEFAULT		= 0x08,
+        IOCTLV_NET_SSL_REMOVECLIENTCERT			= 0x09,
         IOCTLV_NET_SSL_SETROOTCA					= 0x0A,
-        IOCTLV_NET_SSL_SETROOTCADEFAULT				= 0x0B,
+        IOCTLV_NET_SSL_SETROOTCADEFAULT			= 0x0B,
         IOCTLV_NET_SSL_DOHANDSHAKEEX				= 0x0C,
-        IOCTLV_NET_SSL_SETBUILTINROOTCA				= 0x0D,
-        IOCTLV_NET_SSL_SETBUILTINCLIENTCERT			= 0x0E,
+        IOCTLV_NET_SSL_SETBUILTINROOTCA			= 0x0D,
+        IOCTLV_NET_SSL_SETBUILTINCLIENTCERT		= 0x0E,
         IOCTLV_NET_SSL_DISABLEVERIFYOPTIONFORDEBUG	= 0x0F,
         IOCTLV_NET_SSL_DEBUGGETVERSION				= 0x14,
-        IOCTLV_NET_SSL_DEBUGGETTIME					= 0x15,
+        IOCTLV_NET_SSL_DEBUGGETTIME				= 0x15,
     };
 
 	
