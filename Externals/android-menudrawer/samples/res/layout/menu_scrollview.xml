@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/item1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_action_refresh_dark"
+            android:text="Item 1"
+            style="@style/MenuDrawer.Widget.Title" />
+
+        <TextView
+            android:id="@+id/item2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_action_select_all_dark"
+            android:text="Item 2"
+            style="@style/MenuDrawer.Widget.Title" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cat 1"
+            style="@style/MenuDrawer.Widget.Category" />
+
+        <TextView
+            android:id="@+id/item3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_action_refresh_dark"
+            android:text="Item 3"
+            style="@style/MenuDrawer.Widget.Title" />
+
+        <TextView
+            android:id="@+id/item4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_action_select_all_dark"
+            android:text="Item 4"
+            style="@style/MenuDrawer.Widget.Title" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cat 2"
+            style="@style/MenuDrawer.Widget.Category" />
+
+        <TextView
+            android:id="@+id/item5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_action_refresh_dark"
+            android:text="Item 5"
+            style="@style/MenuDrawer.Widget.Title" />
+
+        <TextView
+            android:id="@+id/item6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_action_select_all_dark"
+            android:text="Item 6"
+            style="@style/MenuDrawer.Widget.Title" />
+
+    </LinearLayout>
+</ScrollView>

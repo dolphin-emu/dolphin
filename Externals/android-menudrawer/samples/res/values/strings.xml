@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">MenuDrawerSamples</string>
+
+    <string name="sample_content">Sample of dragging the content.\nThe menu consists of a ListView, for which the
+        active position is saved through configuration changes.\nAdditionally, if the menu is open, a back press will
+        close it.
+    </string>
+
+    <string name="sample_window">Sample of dragging the entire window.\nThe menu is a simple ScrollView, with a click
+        listener set on each item.\nThe drawer will animate slightly open, to make it more discoverable.\nAdditionally,
+        if the menu is open, a back press will close it.
+    </string>
+
+    <string name="sample_listactivity">Sample of how to use the drawer with ListActivity.\nWhen running on ICS or
+        greater, the ActionBar up button will blink until clicked by the user. This is done to make the menu more
+        discoverable.\nAdditionally, if the menu is open, a back press will close it.
+    </string>
+
+    <string name="sample_rightmenu">This sample shows how to position the menu to the right of the content.\nRun on
+        an API14+ device to see how it interacts with the overflow button.
+    </string>
+
+    <string name="sample_topmenu">This sample shows how to position the menu above the content.</string>
+
+    <string name="sample_bottommenu">This sample shows how to position the menu below the content.</string>
+
+    <string name="sample_layout">This sample shows how to use the drawer in a layout file.
+        \nThe top drawer is used in this sample.
+    </string>
+
+    <string name="sample_static">This sample shows how to attach a drawer that is always visible.</string>
+</resources>
