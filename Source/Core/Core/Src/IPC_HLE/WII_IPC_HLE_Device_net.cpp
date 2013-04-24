@@ -33,8 +33,8 @@ it failed)
 #pragma optimize("",off)
 #endif
 
-#include "WII_IPC_HLE_Device_net.h"
 #include "WII_IPC_HLE_Device_es.h"
+#include "WII_IPC_HLE_Device_net.h"
 #include "../ConfigManager.h"
 #include "FileUtil.h"
 #include <stdio.h>
@@ -1442,7 +1442,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 
 			switch (param2)
 			{
-			case 0xb003:
+				case 0xb003: // dns server table
 				{
 					u32 address = 0;
 					/*fd=socket(PF_INET,SOCK_STREAM,0);
@@ -1512,34 +1512,27 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommandV(SIOCtlVBuffer& CommandBuffer
 					Memory::Write_U32(0x08080808, _BufferOut+4);
 					break;
 				}
-
-			case 0x1003:
-				Memory::Write_U32(0, _BufferOut);
-				break;
-
-			case 0x1004:
-				Memory::WriteBigEData(default_address, _BufferOut, 6);
-				break;
-				
-			case 0x1005:
-				Memory::Write_U32(1, _BufferOut);
-				Memory::Write_U32(4, _BufferOut2);
-				break;
-			case 0x4002:
-				Memory::Write_U32(2, _BufferOut);
-				break;
-
-			case 0x4003:
-				Memory::Write_U32(0xC, _BufferOut2);
-				Memory::Write_U32(10 << 24 | 1 << 8 | 30, _BufferOut);
-				Memory::Write_U32(255 << 24 | 255 << 16  | 255 << 8 | 0, _BufferOut+4);
-				Memory::Write_U32(10 << 24 | 0 << 16  | 255 << 8 | 255, _BufferOut+8);
-				break;
-
-			default:
-				ERROR_LOG(WII_IPC_NET, "Unknown param2: %08X", param2);
-				break;
-
+				case 0x1003: // error
+					Memory::Write_U32(0, _BufferOut);
+					break;
+				case 0x1004: // mac address
+					Memory::WriteBigEData(default_address, _BufferOut, 6);
+					break;
+				case 0x1005: // link state
+					Memory::Write_U32(1, _BufferOut);
+					break;
+				case 0x4002: // ip addr number
+					Memory::Write_U32(1, _BufferOut);
+					break;
+				case 0x4003: // ip addr table
+					Memory::Write_U32(0xC, _BufferOut2);
+					Memory::Write_U32(10 << 24 | 1 << 8 | 30, _BufferOut);
+					Memory::Write_U32(255 << 24 | 255 << 16  | 255 << 8 | 0, _BufferOut+4);
+					Memory::Write_U32(10 << 24 | 0 << 16  | 255 << 8 | 255, _BufferOut+8);
+					break;
+				default:
+					ERROR_LOG(WII_IPC_NET, "Unknown param2: %08X", param2);
+					break;
 			}
 
 			return 0;

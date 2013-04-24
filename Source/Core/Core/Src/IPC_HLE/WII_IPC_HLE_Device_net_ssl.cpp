@@ -137,7 +137,6 @@ _verify_certificate_callback (gnutls_session_t session)
 	return 0;
 }
 
-
 u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer CommandBuffer) 
 {
 	s32 returnValue = 0;
@@ -201,13 +200,6 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 				
 				gnutls_session_t session = _SSL[sslID].session;
 				
-				memcpy(_SSL[sslID].hostname, hostname, min((int)BufferOutSize2, MAX_HOSTNAME_LEN));
-				_SSL[sslID].hostname[MAX_HOSTNAME_LEN-1] = '\0';
-				
-				gnutls_session_set_ptr (session, (void *) _SSL[sslID].hostname);
-				gnutls_server_name_set (session, GNUTLS_NAME_DNS, _SSL[sslID].hostname, 
-										strnlen(_SSL[sslID].hostname, MAX_HOSTNAME_LEN));
-				
 				const char *err = NULL;
 				ret = gnutls_priority_set_direct (session, "NORMAL", &err);
 				if(ret)
@@ -237,12 +229,20 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer C
 					goto _SSL_NEW_ERROR;
 				}
 				
+				
+				memcpy(_SSL[sslID].hostname, hostname, min((int)BufferOutSize2, MAX_HOSTNAME_LEN));
+				_SSL[sslID].hostname[MAX_HOSTNAME_LEN-1] = '\0';
+				
+				gnutls_session_set_ptr (session, (void *) _SSL[sslID].hostname);
+				gnutls_server_name_set (session, GNUTLS_NAME_DNS, _SSL[sslID].hostname, 
+										strnlen(_SSL[sslID].hostname, MAX_HOSTNAME_LEN));
+				
 				Memory::Write_U32(freeSSL, _BufferIn);
 			}
 			else
 			{
 _SSL_NEW_ERROR:
-				Memory::Write_U32(-1, _BufferIn);
+				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 			}
 
 			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_NEW (%d, %s) "
@@ -270,11 +270,11 @@ _SSL_NEW_ERROR:
 				_SSL[sslID].xcred = NULL;
 				memset(_SSL[sslID].hostname, 0, MAX_HOSTNAME_LEN);
 				
-				Memory::Write_U32(0, _BufferIn);
+				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 			else
 			{
-				Memory::Write_U32(-8, _BufferIn);
+				Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 			}
 			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SHUTDOWN "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -298,20 +298,27 @@ _SSL_NEW_ERROR:
 
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
 			if (SSLID_VALID(sslID))
-			{
-				std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
-				int ret = gnutls_certificate_set_x509_trust_file (_SSL[sslID].xcred, 
-														(cert_base_path + "rootca.pem").c_str(), 
-														GNUTLS_X509_FMT_PEM);
+			{				
+				gnutls_datum_t rootca = {
+					Memory::GetPointer(_BufferOut2),
+					BufferOutSize2
+				};
+				
+				int ret = gnutls_certificate_set_x509_trust_mem (
+					_SSL[sslID].xcred, 
+					&rootca, 
+					GNUTLS_X509_FMT_DER
+				);
+				
 				if(ret < 1)
-					Memory::Write_U32(-1, _BufferIn);
+					Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 				else
-					Memory::Write_U32(0, _BufferIn);	
+					Memory::Write_U32(SSL_OK, _BufferIn);	
 				WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCA = %d", ret);	
 			}
 			else
 			{
-				Memory::Write_U32(-8, _BufferIn);
+				Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 			}
 			break;
 		}
@@ -332,20 +339,23 @@ _SSL_NEW_ERROR:
 			{
 				std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
 				
-				int ret = gnutls_certificate_set_x509_key_file (_SSL[sslID].xcred, 
-													  (cert_base_path + "clientca.pem").c_str(), 
-													  (cert_base_path + "clientcakey.pem").c_str(), 
-													  GNUTLS_X509_FMT_PEM);
+				int ret = gnutls_certificate_set_x509_key_file (
+					_SSL[sslID].xcred, 
+					(cert_base_path + "clientca.pem").c_str(), 
+					(cert_base_path + "clientcakey.pem").c_str(), 
+					GNUTLS_X509_FMT_PEM
+				);
+				
 				if(ret)
-					Memory::Write_U32(-1, _BufferIn);
+					Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 				else
-					Memory::Write_U32(0, _BufferIn);	
+					Memory::Write_U32(SSL_OK, _BufferIn);	
 					
 				WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = %d", ret);
 			}
 			else
 			{
-				Memory::Write_U32(-8, _BufferIn);
+				Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 			}
 			break;
 		}
@@ -356,18 +366,22 @@ _SSL_NEW_ERROR:
 			if (SSLID_VALID(sslID))
 			{
 				std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
-				int ret = gnutls_certificate_set_x509_trust_file (_SSL[sslID].xcred, 
-																  (cert_base_path + "rootca.pem").c_str(), 
-																  GNUTLS_X509_FMT_PEM);
+				
+				int ret = gnutls_certificate_set_x509_trust_file (
+					_SSL[sslID].xcred, 
+					(cert_base_path + "rootca.pem").c_str(), 
+					GNUTLS_X509_FMT_PEM
+				);
+				
 				if(ret < 1)
-					Memory::Write_U32(-1, _BufferIn);
+					Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 				else
-					Memory::Write_U32(0, _BufferIn);	
+					Memory::Write_U32(SSL_OK, _BufferIn);	
 				WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);
 			}
 			else
 			{
-				Memory::Write_U32(-8, _BufferIn);
+				Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 			}
 			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -388,15 +402,17 @@ _SSL_NEW_ERROR:
 				gnutls_session_t session = _SSL[sslID].session;
 				
 				gnutls_transport_set_int (session, sock);
-				gnutls_handshake_set_timeout (session, GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT);
-				
-				returnValue = 1;
-				Memory::Write_U32(0, _BufferIn);
+				gnutls_handshake_set_timeout (
+					session, 
+					GNUTLS_DEFAULT_HANDSHAKE_TIMEOUT
+				);
+				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 			else
 			{
-				Memory::Write_U32(-8, _BufferIn);
+				Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 			}
+			
 			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
@@ -413,25 +429,24 @@ _SSL_NEW_ERROR:
 			if (SSLID_VALID(sslID))
 			{
 				gnutls_session_t session = _SSL[sslID].session;
+				int ret = 0;
 				do
 				{
-					returnValue = gnutls_handshake (session);
+					ret = gnutls_handshake (session);
 				}
-				while (returnValue < 0 && gnutls_error_is_fatal (returnValue) == 0);
+				while (ret < 0 && gnutls_error_is_fatal (ret) == 0);
 				
-				gnutls_alert_description_t alert = gnutls_alert_get (session);
+				WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE = %d", ret);
 				
-				WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE "
-				"%d %d", returnValue, alert);
-				returnValue = returnValue == GNUTLS_E_SUCCESS;
-				if (returnValue)
-					Memory::Write_U32(0, _BufferIn);
+				ret = ret == GNUTLS_E_SUCCESS;
+				if (ret)
+					Memory::Write_U32(SSL_OK, _BufferIn);
 				else
-					Memory::Write_U32(-1, _BufferIn);
+					Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 			}
 			else
 			{
-				Memory::Write_U32(-8, _BufferIn);
+				Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 			}
 			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -451,15 +466,31 @@ _SSL_NEW_ERROR:
 			{
 				gnutls_session_t session = _SSL[sslID].session;
 								
-				returnValue = gnutls_record_send(session, Memory::GetPointer(_BufferOut2), BufferOutSize2);
+				int ret = gnutls_record_send(session, Memory::GetPointer(_BufferOut2), BufferOutSize2);
 				
 				File::IOFile("ssl_write.bin", "ab").WriteBytes(Memory::GetPointer(_BufferOut2), BufferOutSize2);
 				
-				Memory::Write_U32(returnValue, _BufferIn);
+				switch(ret)
+				{
+					case 0:
+						ret = SSL_ERR_ZERO;
+						break;
+					case GNUTLS_E_LARGE_PACKET:
+					case GNUTLS_E_INTERRUPTED:
+						ret = SSL_ERR_FAILED;
+						break;
+					case GNUTLS_E_AGAIN:
+						ret = SSL_ERR_WAGAIN;
+						break;
+					default:
+						break;
+				}
+				
+				Memory::Write_U32(ret, _BufferIn);
 			}
 			else
 			{
-				Memory::Write_U32(-8, _BufferIn);
+				Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 			}
 			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_WRITE "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -475,26 +506,44 @@ _SSL_NEW_ERROR:
 		case IOCTLV_NET_SSL_READ:
 		{
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
+			int ret = 0;
 			if (SSLID_VALID(sslID))
 			{
 				gnutls_session_t session = _SSL[sslID].session;
-				returnValue = gnutls_record_recv(session, Memory::GetPointer(_BufferIn2), BufferInSize2);
-				if (returnValue > 0)
+				ret = gnutls_record_recv(session, Memory::GetPointer(_BufferIn2), BufferInSize2);
+				if (ret > 0)
 				{
-					File::IOFile("ssl_read.bin", "ab").WriteBytes(Memory::GetPointer(_BufferIn2), returnValue);
+					File::IOFile("ssl_read.bin", "ab").WriteBytes(Memory::GetPointer(_BufferIn2), ret);
 				}
-				Memory::Write_U32(returnValue, _BufferIn);
+				
+				switch(ret)
+				{
+					case 0:
+						ret = SSL_ERR_ZERO;
+						break;
+					case GNUTLS_E_LARGE_PACKET:
+					case GNUTLS_E_INTERRUPTED:
+						ret = SSL_ERR_FAILED;
+						break;
+					case GNUTLS_E_AGAIN:
+						ret = SSL_ERR_RAGAIN;
+						break;
+					default:
+						break;
+				}
+				
+				Memory::Write_U32(ret, _BufferIn);
 			}
 			else
 			{
-				Memory::Write_U32(-8, _BufferIn);
+				Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 			}
 			
 			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_READ(%d)"
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 				"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 				"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
-				returnValue,
+				ret,
 				_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
 				_BufferIn3, BufferInSize3, _BufferOut, BufferOutSize,
 				_BufferOut2, BufferOutSize2, _BufferOut3, BufferOutSize3);
@@ -505,12 +554,12 @@ _SSL_NEW_ERROR:
 			int sslID = Memory::Read_U32(_BufferOut) - 1;
 			if (SSLID_VALID(sslID))
 			{
-				
-				Memory::Write_U32(0, _BufferIn);
+				//gnutls_session_t session = _SSL[sslID].session;
+				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 			else
 			{
-				Memory::Write_U32(-8, _BufferIn);
+				Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 			}
 			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCADEFAULT "
 				"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
@@ -536,11 +585,11 @@ _SSL_NEW_ERROR:
 			if (SSLID_VALID(sslID))
 			{
 				//gnutls_session_t session = _SSL[sslID].session;
-				Memory::Write_U32(0, _BufferIn);				
+				Memory::Write_U32(SSL_OK, _BufferIn);				
 			}
 			else
 			{
-				Memory::Write_U32(-8, _BufferIn);
+				Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 			}
 			break;
 		}

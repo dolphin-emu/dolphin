@@ -76,7 +76,23 @@ private:
         IOCTLV_NET_SSL_DEBUGGETVERSION				= 0x14,
         IOCTLV_NET_SSL_DEBUGGETTIME				= 0x15,
     };
-
+	
+	enum ssl_err_t
+	{
+		SSL_OK 					=   0,
+		SSL_ERR_FAILED			=  -1,
+		SSL_ERR_RAGAIN			=  -2,
+		SSL_ERR_WAGAIN			=  -3,
+		SSL_ERR_SYSCALL			=  -5,
+		SSL_ERR_ZERO			=  -6,  // read or write returned 0
+		SSL_ERR_CAGAIN			=  -7,  // BIO not connected
+		SSL_ERR_ID				=  -8,  // invalid SSL id
+		SSL_ERR_VCOMMONNAME		=  -9,  // verify failed: common name
+		SSL_ERR_VROOTCA			=  -10, // verify failed: root ca
+		SSL_ERR_VCHAIN			=  -11, // verify failed: certificate chain
+		SSL_ERR_VDATE			=  -12, // verify failed: date invalid
+		SSL_ERR_SERVER_CERT		=  -13, // certificate cert invalid
+	};	
 	
 	u32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
 	u32 ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer CommandBuffer);
