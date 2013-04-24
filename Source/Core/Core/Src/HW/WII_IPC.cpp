@@ -213,7 +213,7 @@ void Write32(const u32 _Value, const u32 _Address)
 		break;
 	}	
 
-	WII_IPC_HLE_Interface::Update();
+	//WII_IPC_HLE_Interface::Update();
 	CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
 }
 
