@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="net.simonvt.menudrawer.samples"
+    android:versionCode="3"
+    android:versionName="2.0.1">
+
+    <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="17" />
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@drawable/ic_launcher"
+        android:theme="@style/SampleTheme">
+
+        <activity
+            android:name="SamplesActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="net.simonvt.menudrawer.samples.WindowSample" />
+        <activity android:name="net.simonvt.menudrawer.samples.ContentSample" />
+        <activity android:name="net.simonvt.menudrawer.samples.ListActivitySample" />
+        <activity android:name="net.simonvt.menudrawer.samples.ActionBarOverlaySample" />
+        <activity android:name="net.simonvt.menudrawer.samples.ViewPagerSample" />
+        <activity
+            android:name="net.simonvt.menudrawer.samples.RightMenuSample"
+            android:theme="@style/SampleTheme.RightDrawer" />
+        <activity
+            android:name="net.simonvt.menudrawer.samples.TopMenuSample"
+            android:theme="@style/SampleTheme.TopDrawer">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="net.simonvt.menudrawer.samples.SamplesActivity" />
+        </activity>
+        <activity
+            android:name="net.simonvt.menudrawer.samples.BottomMenuSample"
+            android:theme="@style/SampleTheme.BottomDrawer" />
+        <activity
+            android:name="net.simonvt.menudrawer.samples.LayoutSample"
+            android:theme="@style/SampleTheme.TopDrawer" />
+        <activity android:name="net.simonvt.menudrawer.samples.StaticDrawerSample" />
+    </application>
+
+</manifest>

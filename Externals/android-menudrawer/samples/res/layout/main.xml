@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/windowSample"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Window sample" />
+
+    <Button
+        android:id="@+id/overlayWindowSample"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Action Bar overlay window sample" />
+
+    <Button
+        android:id="@+id/contentSample"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Content sample" />
+
+    <Button
+        android:id="@+id/listActivitySample"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ListActivity sample" />
+
+</LinearLayout>
+

@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import net.simonvt.menudrawer.MenuDrawer;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -88,7 +90,8 @@ public class DolphinEmulator<MainActivity> extends Activity
 		super.onCreate(savedInstanceState);
 		if (savedInstanceState == null)
 		{
-			Intent ListIntent = new Intent(this, NativeListView.class);
+
+			Intent ListIntent = new Intent(this, GameListView.class);
 			startActivityForResult(ListIntent, 1);
 			
 			// Make the assets directory
@@ -117,16 +120,13 @@ public class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("NoBanner.png", 
 						Environment.getExternalStorageDirectory()+File.separator+
 						"dolphin-emu" + File.separator + "NoBanner.png");
-				CopyAsset("Dolphin.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Dolphin.png");
 				CopyAsset("GCPadNew.ini", 
 						Environment.getExternalStorageDirectory()+File.separator+
 						"dolphin-emu" + File.separator +"Config"+ File.separator +"GCPadNew.ini");
 			}
 		}
 	}
-	
+
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
