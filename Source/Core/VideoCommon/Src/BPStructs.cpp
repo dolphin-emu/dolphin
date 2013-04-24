@@ -102,7 +102,9 @@ void BPWritten(const BPCmd& bp)
 		if (!mapTexFound)
 		{
 			if (bp.address != BPMEM_TEV_COLOR_ENV && bp.address != BPMEM_TEV_ALPHA_ENV)
+			{
 				numWrites = 0;
+			}
 			else if (++numWrites >= 100)	// seem that if 100 consecutive BP writes are called to either of these addresses in ZTP, 
 			{								// then it is safe to assume the map texture address is currently loaded into the BP memory
 				mapTexAddress = bpmem.tex[0].texImage3[0].hex << 5;
@@ -193,15 +195,19 @@ void BPWritten(const BPCmd& bp)
 				PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d", 
 					bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
 					bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
+
 				// Set LogicOp Blending Mode
 				if (bp.changes & 2)
 					SetLogicOpMode();
+
 				// Set Dithering Mode
 				if (bp.changes & 4)
 					SetDitherMode();
+
 				// Set Blending Mode
 				if (bp.changes & 0xFF1)
 					SetBlendMode();
+
 				// Set Color Mask
 				if (bp.changes & 0x18)
 					SetColorMask();
@@ -413,31 +419,34 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_CLEARBBOX1:
 	case BPMEM_CLEARBBOX2:
 		{
-		if(g_ActiveConfig.bUseBBox)
-		{
-			// Don't compute bounding box if this frame is being skipped!
-			// Wrong but valid values are better than bogus values...
-			if(g_bSkipCurrentFrame)
-				break;
+			if(g_ActiveConfig.bUseBBox)
+			{
+				// Don't compute bounding box if this frame is being skipped!
+				// Wrong but valid values are better than bogus values...
+				if(g_bSkipCurrentFrame)
+					break;
 
-			if (bp.address == BPMEM_CLEARBBOX1) {
-				int right = bp.newvalue >> 10;
-				int left = bp.newvalue & 0x3ff;
+				if (bp.address == BPMEM_CLEARBBOX1)
+				{
+					int right = bp.newvalue >> 10;
+					int left = bp.newvalue & 0x3ff;
 			
-				// We should only set these if bbox is calculated properly.
-				PixelEngine::bbox[0] = left;
-				PixelEngine::bbox[1] = right;
-				PixelEngine::bbox_active = true;
-			} else {
-				int bottom = bp.newvalue >> 10;
-				int top = bp.newvalue & 0x3ff;
+					// We should only set these if bbox is calculated properly.
+					PixelEngine::bbox[0] = left;
+					PixelEngine::bbox[1] = right;
+					PixelEngine::bbox_active = true;
+				}
+				else
+				{
+					int bottom = bp.newvalue >> 10;
+					int top = bp.newvalue & 0x3ff;
 
-				// We should only set these if bbox is calculated properly.
-				PixelEngine::bbox[2] = top;
-				PixelEngine::bbox[3] = bottom;
-				PixelEngine::bbox_active = true;
+					// We should only set these if bbox is calculated properly.
+					PixelEngine::bbox[2] = top;
+					PixelEngine::bbox[3] = bottom;
+					PixelEngine::bbox_active = true;
+				}
 			}
-		}
 		}
 		break;
 	case BPMEM_TEXINVALIDATE:
@@ -446,7 +455,8 @@ void BPWritten(const BPCmd& bp)
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
 		OnPixelFormatChange();
-		if(bp.changes & 7) {
+		if(bp.changes & 7)
+		{
 			SetBlendMode(); // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
 			g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
 		}

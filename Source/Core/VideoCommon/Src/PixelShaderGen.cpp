@@ -61,7 +61,8 @@ static void StageHash(u32 stage, u32* out)
 	out[3] |= bpmem.tevorders[stage/2].getEnable(stage&1);
 	if (bpmem.tevorders[stage/2].getEnable(stage&1))
 	{
-		if (bHasIndStage) needstexcoord = true;
+		if (bHasIndStage)
+			needstexcoord = true;
 
 		out[0] |= bpmem.combiners[stage].alphaC.tswap;
 		out[3] |= bpmem.tevksel[bpmem.combiners[stage].alphaC.tswap*2].swap1 << 1; // 2
@@ -98,20 +99,27 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	bool enablePL = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
 	uid->values[0] |= enablePL << 10; // 1
 
-	if (!enablePL) uid->values[0] |= xfregs.numTexGen.numTexGens << 11; // 4
+	if (!enablePL)
+	{
+		uid->values[0] |= xfregs.numTexGen.numTexGens << 11; // 4
+	}
 
 	AlphaTest::TEST_RESULT alphaPreTest = bpmem.alpha_test.TestResult();
 	uid->values[0] |= alphaPreTest << 15; // 2
 
 	// numtexgens should be <= 8
 	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
+	{
 		uid->values[0] |= xfregs.texMtxInfo[i].projection << (17+i); // 1
+	}
 
 	uid->values[1] = bpmem.genMode.numindstages; // 3
 	u32 indirectStagesUsed = 0;
 	for (unsigned int i = 0; i < bpmem.genMode.numindstages; ++i)
+	{
 		if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 			indirectStagesUsed |= (1 << bpmem.tevind[i].bt);
+	}
 
 	assert(indirectStagesUsed == (indirectStagesUsed & 0xF));
 
@@ -255,7 +263,7 @@ void ValidatePixelShaderIDs(API_TYPE api, PIXELSHADERUIDSAFE old_id, const std::
 //
 //   color for this stage (alpha, color) is given by bpmem.tevorders[0].colorchan0
 //   konstant for this stage (alpha, color) is given by bpmem.tevksel
-//   inputs are given by bpmem.combiners[0].colorC.a/b/c/d     << could be current chan color
+//   inputs are given by bpmem.combiners[0].colorC.a/b/c/d     << could be current channel color
 //   according to GXTevColorArg table above
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and
@@ -268,7 +276,7 @@ static void WriteFog(char *&p);
 
 static const char *tevKSelTableC[] = // KCSEL
 {
-	"1.0f,1.0f,1.0f",    // 1   = 0x00
+	"1.0f,1.0f,1.0f",       // 1   = 0x00
 	"0.875f,0.875f,0.875f", // 7_8 = 0x01
 	"0.75f,0.75f,0.75f",    // 3_4 = 0x02
 	"0.625f,0.625f,0.625f", // 5_8 = 0x03
@@ -407,7 +415,7 @@ static const char *tevAInputTable[] = // CA
 	"rastemp",         // RASA,
 	"konsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO
-	///aded extra values to map clamped values
+	///added extra values to map clamped values
 	"cprev",            // APREV,
 	"cc0",              // A0,
 	"cc1",              // A1,
@@ -827,7 +835,9 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
+	{
 		WRITE(p, "\tocol0 = float4(prev.rgb, " I_ALPHA"[0].a);\n");
+	}
 	else
 	{
 		WriteFog(p);
@@ -959,10 +969,14 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 				WRITE(p, "float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}
 			else
+			{
 				WRITE(p, "float2 indtevtrans%d = float2(0.0f, 0.0f);\n", n);
+			}
 		}
 		else
+		{
 			WRITE(p, "float2 indtevtrans%d = float2(0.0f, 0.0f);\n", n);
+		}
 
 		// ---------
 		// Wrapping
@@ -1022,7 +1036,9 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		SampleTexture(p, "textemp", "tevcoord", texswap, texmap, ApiType);
 	}
 	else
+	{
 		WRITE(p, "textemp = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
+	}
 
 
 	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST
@@ -1226,14 +1242,14 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 
 static const char *tevAlphaFuncsTable[] =
 {
-	"(false)",									//ALPHACMP_NEVER 0
-	"(prev.a <= %s - (0.25f/255.0f))",			//ALPHACMP_LESS 1
-	"(abs( prev.a - %s ) < (0.5f/255.0f))",		//ALPHACMP_EQUAL 2
-	"(prev.a < %s + (0.25f/255.0f))",			//ALPHACMP_LEQUAL 3
+	"(false)",									//ALPHACMP_NEVER   0
+	"(prev.a <= %s - (0.25f/255.0f))",			//ALPHACMP_LESS    1
+	"(abs( prev.a - %s ) < (0.5f/255.0f))",		//ALPHACMP_EQUAL   2
+	"(prev.a < %s + (0.25f/255.0f))",			//ALPHACMP_LEQUAL  3
 	"(prev.a >= %s + (0.25f/255.0f))",			//ALPHACMP_GREATER 4
-	"(abs( prev.a - %s ) >= (0.5f/255.0f))",	//ALPHACMP_NEQUAL 5
-	"(prev.a > %s - (0.25f/255.0f))",			//ALPHACMP_GEQUAL 6
-	"(true)"									//ALPHACMP_ALWAYS 7
+	"(abs( prev.a - %s ) >= (0.5f/255.0f))",		//ALPHACMP_NEQUAL  5
+	"(prev.a > %s - (0.25f/255.0f))",			//ALPHACMP_GEQUAL  6
+	"(true)"									//ALPHACMP_ALWAYS  7
 };
 
 static const char *tevAlphaFunclogicTable[] =
@@ -1250,7 +1266,7 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	{
 		I_ALPHA"[0].r",
 		I_ALPHA"[0].g"
-	};	
+	};
 
 
 	// using discard then return works the same in cg and dx9 but not in dx11
@@ -1275,7 +1291,7 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 	// or after texturing and alpha test. PC GPUs have no way to support this
 	// feature properly as of 2012: depth buffer and depth test are not
 	// programmable and the depth test is always done after texturing.
-	// Most importantly, PC GPUs do not allow writing to the z buffer without
+	// Most importantly, PC GPUs do not allow writing to the z-buffer without
 	// writing a color value (unless color writing is disabled altogether).
 	// We implement "depth test before texturing" by discarding the fragment
 	// when the alpha test fail. This is not a correct implementation because
@@ -1293,14 +1309,14 @@ static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode
 
 static const char *tevFogFuncsTable[] =
 {
-	"",																//No Fog
-	"",																//?
-	"",																//Linear
-	"",																//?
-	"\tfog = 1.0f - pow(2.0f, -8.0f * fog);\n",						//exp
-	"\tfog = 1.0f - pow(2.0f, -8.0f * fog * fog);\n",					//exp2
-	"\tfog = pow(2.0f, -8.0f * (1.0f - fog));\n",						//backward exp
-	"\tfog = 1.0f - fog;\n   fog = pow(2.0f, -8.0f * fog * fog);\n"	//backward exp2
+	"",																// No Fog
+	"",																// ?
+	"",																// Linear
+	"",																// ?
+	"\tfog = 1.0f - pow(2.0f, -8.0f * fog);\n",						// exp
+	"\tfog = 1.0f - pow(2.0f, -8.0f * fog * fog);\n",				// exp2
+	"\tfog = pow(2.0f, -8.0f * (1.0f - fog));\n",					// backward exp
+	"\tfog = 1.0f - fog;\n   fog = pow(2.0f, -8.0f * fog * fog);\n"	// backward exp2
 };
 
 static void WriteFog(char *&p)

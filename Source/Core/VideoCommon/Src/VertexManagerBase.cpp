@@ -35,7 +35,8 @@ VertexManager::VertexManager()
 }
 
 VertexManager::~VertexManager()
-{}
+{
+}
 
 void VertexManager::ResetBuffer()
 {
@@ -75,7 +76,8 @@ bool VertexManager::IsFlushed() const
 u32 VertexManager::GetRemainingIndices(int primitive)
 {
 	
-	if(g_Config.backend_info.bSupportsPrimitiveRestart) {
+	if(g_Config.backend_info.bSupportsPrimitiveRestart)
+	{
 		switch (primitive)
 		{
 		case GX_DRAW_QUADS:
@@ -98,7 +100,9 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 		default:
 			return 0;
 		}
-	} else {
+	}
+	else
+	{
 		switch (primitive)
 		{
 		case GX_DRAW_QUADS:
@@ -216,7 +220,9 @@ void VertexManager::Flush()
 				PixelShaderManager::SetTexDims(i, tentry->nativeW, tentry->nativeH, 0, 0);
 			}
 			else
+			{
 				ERROR_LOG(VIDEO, "Error loading texture");
+			}
 		}
 	}
 

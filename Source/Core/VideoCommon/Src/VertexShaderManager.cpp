@@ -86,15 +86,18 @@ float PHackValue(std::string sValue)
 			c[i] = '\0';
 			break;
 		}
+
 		c[i] = (cStr[i] == ',') ? '.' : *(cStr+i);
 		if (c[i] == '.')
 			fp = true;
 	}
+
 	cStr = c;
 	sTof.str(cStr);
 	sTof >> f;
 
-	if (!fp) f /= 0xF4240;
+	if (!fp)
+		f /= 0xF4240;
 
 	delete [] c;
 	return f;
@@ -183,6 +186,7 @@ void VertexShaderManager::SetConstants()
 {
 	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		Dirty();
+
 	if (nTransformMatricesChanged[0] >= 0)
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
@@ -191,6 +195,7 @@ void VertexShaderManager::SetConstants()
 		SetMultiVSConstant4fv(C_TRANSFORMMATRICES + startn, endn - startn, pstart);
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
 	}
+
 	if (nNormalMatricesChanged[0] >= 0)
 	{
 		int startn = nNormalMatricesChanged[0] / 3;
@@ -238,7 +243,9 @@ void VertexShaderManager::SetConstants()
 					SetVSConstant4f(C_LIGHTS+5*i+j+1, 0.00001f, xfmemptr[1], xfmemptr[2], 0);
 				}
 				else
+				{
 					SetVSConstant4fv(C_LIGHTS+5*i+j+1, xfmemptr);
+				}
 			}
 		}
 
@@ -479,21 +486,24 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 	if (((u32)start >= (u32)MatrixIndexA.PosNormalMtxIdx * 4 &&
 		 (u32)start <  (u32)MatrixIndexA.PosNormalMtxIdx * 4 + 12) ||
 		((u32)start >= XFMEM_NORMALMATRICES + ((u32)MatrixIndexA.PosNormalMtxIdx & 31) * 3 &&
-		 (u32)start <  XFMEM_NORMALMATRICES + ((u32)MatrixIndexA.PosNormalMtxIdx & 31) * 3 + 9)) {
+		 (u32)start <  XFMEM_NORMALMATRICES + ((u32)MatrixIndexA.PosNormalMtxIdx & 31) * 3 + 9))
+	{
 		bPosNormalMatrixChanged = true;
 	}
 
 	if (((u32)start >= (u32)MatrixIndexA.Tex0MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex0MtxIdx*4+12) ||
 		((u32)start >= (u32)MatrixIndexA.Tex1MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex1MtxIdx*4+12) ||
 		((u32)start >= (u32)MatrixIndexA.Tex2MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex2MtxIdx*4+12) ||
-		((u32)start >= (u32)MatrixIndexA.Tex3MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex3MtxIdx*4+12)) {
+		((u32)start >= (u32)MatrixIndexA.Tex3MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex3MtxIdx*4+12))
+	{
 		bTexMatricesChanged[0] = true;
 	}
 
 	if (((u32)start >= (u32)MatrixIndexB.Tex4MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex4MtxIdx*4+12) ||
 		((u32)start >= (u32)MatrixIndexB.Tex5MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex5MtxIdx*4+12) ||
 		((u32)start >= (u32)MatrixIndexB.Tex6MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex6MtxIdx*4+12) ||
-		((u32)start >= (u32)MatrixIndexB.Tex7MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex7MtxIdx*4+12)) {
+		((u32)start >= (u32)MatrixIndexB.Tex7MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex7MtxIdx*4+12))
+	{
 		bTexMatricesChanged[1] = true;
 	}
 

@@ -68,7 +68,9 @@ float PosScale(T val)
 
 template <>
 float PosScale(float val)
-{ return val; }
+{
+	return val;
+}
 
 template <typename T, int N>
 void LOADERDECL Pos_ReadDirect()
@@ -166,11 +168,13 @@ static int tableReadPositionVertexSize[4][8][2] = {
 };
 
 
-void VertexLoader_Position::Init(void) {
+void VertexLoader_Position::Init(void)
+{
 
 #if _M_SSE >= 0x301
 
-	if (cpu_info.bSSSE3) {
+	if (cpu_info.bSSSE3)
+	{
 		tableReadPosition[2][4][0] = Pos_ReadIndex_Float_SSSE3<u8, false>;
 		tableReadPosition[2][4][1] = Pos_ReadIndex_Float_SSSE3<u8, true>;
 		tableReadPosition[3][4][0] = Pos_ReadIndex_Float_SSSE3<u16, false>;
@@ -181,10 +185,12 @@ void VertexLoader_Position::Init(void) {
 
 }
 
-unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements) {
+unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements)
+{
 	return tableReadPositionVertexSize[_type][_format][_elements];
 }
 
-TPipelineFunction VertexLoader_Position::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements) {
+TPipelineFunction VertexLoader_Position::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements)
+{
 	return tableReadPosition[_type][_format][_elements];
 }

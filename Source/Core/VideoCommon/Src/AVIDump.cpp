@@ -89,8 +89,10 @@ bool AVIDump::CreateFile()
 		return false;
 	}
 
-	if (!m_fileCount) {
-		if (!SetCompressionOptions()) {
+	if (!m_fileCount)
+	{
+		if (!SetCompressionOptions())
+		{
 			NOTICE_LOG(VIDEO, "SetCompressionOptions failed");
 			Stop();
 			return false;

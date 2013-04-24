@@ -26,7 +26,8 @@ namespace TextureConversionShader
 
 u16 GetEncodedSampleCount(u32 format)
 {
-	switch (format) {
+	switch (format)
+	{
 	case GX_TF_I4: return 8;
 	case GX_TF_I8: return 4;
 	case GX_TF_IA4: return 4;

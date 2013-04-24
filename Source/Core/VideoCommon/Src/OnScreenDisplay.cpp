@@ -19,7 +19,8 @@ namespace OSD
 struct MESSAGE
 {
 	MESSAGE() {}
-	MESSAGE(const char* p, u32 dw) {
+	MESSAGE(const char* p, u32 dw)
+	{
 		strncpy(str, p, 255);
 		str[255] = '\0';
 		dwTimeStamp = dw;
@@ -45,8 +46,10 @@ public:
 	{
 		m_functionptr(m_data);
 	}
+
 	CallbackType Type() { return m_type; }
 };
+
 std::vector<OSDCALLBACK> m_callbacks;
 static std::list<MESSAGE> s_listMsgs;
 
@@ -57,7 +60,8 @@ void AddMessage(const char* pstr, u32 ms)
 
 void DrawMessages()
 {
-	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages) return;
+	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages)
+		return;
 
 	if (s_listMsgs.size() > 0)
 	{
@@ -71,7 +75,8 @@ void DrawMessages()
 			if (time_left < 1024)
 			{
 				alpha = time_left >> 2;
-				if (time_left < 0) alpha = 0;
+				if (time_left < 0)
+					alpha = 0;
 			}
 
 			alpha <<= 24;
@@ -91,8 +96,11 @@ void DrawMessages()
 void ClearMessages()
 {
 	std::list<MESSAGE>::iterator it = s_listMsgs.begin();
-	while (it != s_listMsgs.end()) 
+
+	while (it != s_listMsgs.end())
+	{
 		it = s_listMsgs.erase(it);
+	}
 }
 
 // On-Screen Display Callbacks
@@ -104,8 +112,10 @@ void AddCallback(CallbackType OnType, CallbackPtr FuncPtr, u32 UserData)
 void DoCallbacks(CallbackType OnType)
 {
 	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
+	{
 		if (it->Type() == OnType)
 			it->Call();
+	}
 }
 
 }  // namespace

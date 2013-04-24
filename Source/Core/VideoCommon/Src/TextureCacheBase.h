@@ -124,7 +124,8 @@ private:
 	static TexCache textures;
 
 	// Backup configuration values
-	static struct BackupConfig {
+	static struct BackupConfig
+	{
 		int s_colorsamples;
 		bool s_copy_efb_to_texture;
 		bool s_copy_efb_scaled;

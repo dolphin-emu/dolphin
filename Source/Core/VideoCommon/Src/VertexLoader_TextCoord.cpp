@@ -48,7 +48,9 @@ float TCScale(T val)
 
 template <>
 float TCScale(float val)
-{ return val; }
+{
+	return val;
+}
 
 template <typename T, int N>
 void LOADERDECL TexCoord_ReadDirect()
@@ -166,7 +168,8 @@ static int tableReadTexCoordVertexSize[4][8][2] = {
 	},
 };
 
-void VertexLoader_TextCoord::Init(void) {
+void VertexLoader_TextCoord::Init(void)
+{
 
 #if _M_SSE >= 0x301
 
@@ -190,14 +193,17 @@ void VertexLoader_TextCoord::Init(void) {
 
 }
 
-unsigned int VertexLoader_TextCoord::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements) {
+unsigned int VertexLoader_TextCoord::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements)
+{
 	return tableReadTexCoordVertexSize[_type][_format][_elements];
 }
 
-TPipelineFunction VertexLoader_TextCoord::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements) {
+TPipelineFunction VertexLoader_TextCoord::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements)
+{
 	return tableReadTexCoord[_type][_format][_elements];
 }
 
-TPipelineFunction VertexLoader_TextCoord::GetDummyFunction() {
+TPipelineFunction VertexLoader_TextCoord::GetDummyFunction()
+{
 	return TexCoord_Read_Dummy;
 }

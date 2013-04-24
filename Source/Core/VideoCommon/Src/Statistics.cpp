@@ -72,7 +72,8 @@ char *Statistics::ToString(char *ptr)
 }
 
 // Is this really needed?
-char *Statistics::ToStringProj(char *ptr) {
+char *Statistics::ToStringProj(char *ptr)
+{
 	char *p = ptr;
 	p+=sprintf(p,"Projection #: X for Raw 6=0 (X for Raw 6!=0)\n\n");
 	p+=sprintf(p,"Projection 0: %f (%f) Raw 0: %f\n", stats.gproj_0, stats.g2proj_0, stats.proj_0);
