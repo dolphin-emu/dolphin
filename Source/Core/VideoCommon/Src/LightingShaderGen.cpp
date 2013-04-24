@@ -27,12 +27,17 @@ int GetLightingShaderId(u32* out)
 char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char* lightsName, int coloralpha)
 {
 	const char* swizzle = "xyzw";
-	if (coloralpha == 1 ) swizzle = "xyz";
-	else if (coloralpha == 2 ) swizzle = "w";
 
-	if (!(chan.attnfunc & 1)) {
-		// atten disabled
-		switch (chan.diffusefunc) {
+	if (coloralpha == 1 )
+		swizzle = "xyz";
+	else if (coloralpha == 2 )
+		swizzle = "w";
+
+	if (!(chan.attnfunc & 1))
+	{
+		// attenuation disabled
+		switch (chan.diffusefunc)
+		{
 			case LIGHTDIF_NONE:
 				WRITE(p, "lacc.%s += %s[%d].%s;\n", swizzle, lightsName, index * 5, swizzle);
 				break;
@@ -45,8 +50,8 @@ char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char
 			default: _assert_(0);
 		}
 	}
-	else { // spec and spot
-		
+	else // spec and spot
+	{
 		if (chan.attnfunc == 3) 
 		{ // spot
 			WRITE(p, "ldir = %s[%d + 3].xyz - pos.xyz;\n", lightsName, index * 5);
@@ -74,13 +79,13 @@ char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char
 					swizzle, 
 					chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(",
 					lightsName,
-					index * 5, 
+					index * 5,
 					swizzle);
 				break;
 			default: _assert_(0);
 		}
 	}
-	WRITE(p, "\n");	
+	WRITE(p, "\n");
 	return p;
 }
 
@@ -98,7 +103,8 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 
 		WRITE(p, "{\n");
 		
-		if (color.matsource) {// from vertex
+		if (color.matsource) // from vertex
+		{
 			if (components & (VB_HAS_COL0 << j))
 				WRITE(p, "mat = %s%d;\n", inColorName, j);
 			else if (components & VB_HAS_COL0)
@@ -107,10 +113,14 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 				WRITE(p, "mat = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 		}
 		else // from color
+		{
 			WRITE(p, "mat = %s[%d];\n", materialsName, j+2);
+		}
 
-		if (color.enablelighting) {
-			if (color.ambsource) { // from vertex
+		if (color.enablelighting)
+		{
+			if (color.ambsource) // from vertex
+			{
 				if (components & (VB_HAS_COL0<<j) )
 					WRITE(p, "lacc = %s%d;\n", inColorName, j);
 				else if (components & VB_HAS_COL0 )
@@ -119,7 +129,9 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 					WRITE(p, "lacc = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
 			}
 			else // from color
+			{
 				WRITE(p, "lacc = %s[%d];\n", materialsName, j);
+			}
 		}
 		else
 		{
@@ -127,8 +139,10 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 		}
 
 		// check if alpha is different
-		if (alpha.matsource != color.matsource) {
-			if (alpha.matsource) {// from vertex
+		if (alpha.matsource != color.matsource)
+		{
+			if (alpha.matsource) // from vertex
+			{
 				if (components & (VB_HAS_COL0<<j))
 					WRITE(p, "mat.w = %s%d.w;\n", inColorName, j);
 				else if (components & VB_HAS_COL0)
@@ -136,12 +150,15 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 				else WRITE(p, "mat.w = 1.0f;\n");
 			}
 			else // from color
+			{
 				WRITE(p, "mat.w = %s[%d].w;\n", materialsName, j+2);
+			}
 		}
 
 		if (alpha.enablelighting)
 		{
-			if (alpha.ambsource) {// from vertex
+			if (alpha.ambsource) // from vertex
+			{
 				if (components & (VB_HAS_COL0<<j) )
 					WRITE(p, "lacc.w = %s%d.w;\n", inColorName, j);
 				else if (components & VB_HAS_COL0 )
@@ -150,12 +167,14 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 					WRITE(p, "lacc.w = 0.0f;\n");
 			}
 			else // from color
+			{
 				WRITE(p, "lacc.w = %s[%d].w;\n", materialsName, j);
+			}
 		}
 		else
 		{
 			WRITE(p, "lacc.w = 1.0f;\n");
-		}	
+		}
 		
 		if(color.enablelighting && alpha.enablelighting)
 		{

@@ -62,23 +62,30 @@ public:
 	_PIXELSHADERUID(const _PIXELSHADERUID& r)
 	{
 		num_values = r.num_values;
-		if (safe) memcpy(values, r.values, PIXELSHADERUID_MAX_VALUES_SAFE);
-		else memcpy(values, r.values, r.GetNumValues() * sizeof(values[0]));
+
+		if (safe)
+			memcpy(values, r.values, PIXELSHADERUID_MAX_VALUES_SAFE);
+		else
+			memcpy(values, r.values, r.GetNumValues() * sizeof(values[0]));
 	}
 
 	int GetNumValues() const
 	{
-		if (safe) return (sizeof(values) / sizeof(u32));
-		else return num_values;
+		if (safe)
+			return (sizeof(values) / sizeof(u32));
+		else
+			return num_values;
 	}
 
 	bool operator <(const _PIXELSHADERUID& _Right) const
 	{
 		int N = GetNumValues();
+
 		if (N < _Right.GetNumValues())
 			return true;
 		else if (N > _Right.GetNumValues())
 			return false;
+
 		for (int i = 0; i < N; ++i)
 		{
 			if (values[i] < _Right.values[i])
@@ -86,22 +93,27 @@ public:
 			else if (values[i] > _Right.values[i])
 				return false;
 		}
+
 		return false;
 	}
 
 	bool operator ==(const _PIXELSHADERUID& _Right) const
 	{
 		int N = GetNumValues();
+
 		if (N != _Right.GetNumValues())
 			return false;
+
 		for (int i = 0; i < N; ++i)
 		{
 			if (values[i] != _Right.values[i])
 				return false;
 		}
+
 		return true;
 	}
 };
+
 typedef _PIXELSHADERUID<false> PIXELSHADERUID;
 typedef _PIXELSHADERUID<true> PIXELSHADERUIDSAFE;
 

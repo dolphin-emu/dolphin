@@ -115,13 +115,13 @@ void Init()
 	fifo.CPCmdIdle  = 1;
 	fifo.CPReadIdle = 1;
 	fifo.bFF_Breakpoint = 0;
-	fifo.bFF_HiWatermark = 0;    
+	fifo.bFF_HiWatermark = 0;
 	fifo.bFF_HiWatermarkInt = 0;
-	fifo.bFF_LoWatermark = 0;    
+	fifo.bFF_LoWatermark = 0;
 	fifo.bFF_LoWatermarkInt = 0;
 
 	interruptSet = false;
-    interruptWaiting = false;
+	interruptWaiting = false;
 	interruptFinishWaiting = false;
 	interruptTokenWaiting = false;
 
@@ -131,7 +131,7 @@ void Init()
 	isHiWatermarkActive = false;
 	isLoWatermarkActive = false;
 
-    et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
+	et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
 
 void Read16(u16& _rReturnValue, const u32 _Address)
@@ -139,7 +139,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 	INFO_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
 	switch (_Address & 0xFFF)
 	{
-	case STATUS_REGISTER:		
+	case STATUS_REGISTER:
 		SetCpStatusRegister();
 		_rReturnValue = m_CPStatusReg.Hex;
 		return;
@@ -166,22 +166,30 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 
 	case FIFO_RW_DISTANCE_LO:
 		if (IsOnThread())
+		{
 			if(fifo.CPWritePointer >= fifo.SafeCPReadPointer)
 				_rReturnValue = ReadLow (fifo.CPWritePointer - fifo.SafeCPReadPointer);
 			else
 				_rReturnValue = ReadLow (fifo.CPEnd - fifo.SafeCPReadPointer + fifo.CPWritePointer - fifo.CPBase + 32);
+		}
 		else
+		{
 			_rReturnValue = ReadLow (fifo.CPReadWriteDistance);
+		}
 		DEBUG_LOG(COMMANDPROCESSOR, "Read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
 		return;
 	case FIFO_RW_DISTANCE_HI:
 		if (IsOnThread())
+		{
 			if(fifo.CPWritePointer >= fifo.SafeCPReadPointer)
 				_rReturnValue = ReadHigh (fifo.CPWritePointer - fifo.SafeCPReadPointer);
 			else
 				_rReturnValue = ReadHigh (fifo.CPEnd - fifo.SafeCPReadPointer + fifo.CPWritePointer - fifo.CPBase + 32);
+		}
 		else
+		{
 			_rReturnValue = ReadHigh(fifo.CPReadWriteDistance);
+		}
 		DEBUG_LOG(COMMANDPROCESSOR, "Read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
 		return;
 	case FIFO_WRITE_POINTER_LO:
@@ -437,7 +445,9 @@ void STACKALIGN GatherPipeBursted()
 	if (!m_CPCtrlReg.GPLinkEnable)
 	{
 		if (!IsOnThread())
+		{
 			RunGpu();
+		}
 		else
 		{
 			// In multibuffer mode is not allowed write in the same FIFO attached to the GPU.
@@ -467,7 +477,7 @@ void STACKALIGN GatherPipeBursted()
 	if (!IsOnThread())
 		RunGpu();
 
-	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance	<= fifo.CPEnd - fifo.CPBase,
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase,
 	"FIFO is overflowed by GatherPipe !\nCPU thread is too fast!");
 
 	// check if we are in sync
@@ -482,13 +492,13 @@ void UpdateInterrupts(u64 userdata)
 	{
 		interruptSet = true;
 		INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
-		ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);        
+		ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);
 	}
 	else
 	{
 		interruptSet = false;
 		INFO_LOG(COMMANDPROCESSOR,"Interrupt cleared");
-		ProcessorInterface::SetInterrupt(INT_CAUSE_CP, false);        
+		ProcessorInterface::SetInterrupt(INT_CAUSE_CP, false);
 	}
 	interruptWaiting = false;
 }
@@ -510,7 +520,7 @@ void SetCpStatus(bool isCPUThread)
 	fifo.bFF_HiWatermark = (fifo.CPReadWriteDistance > fifo.CPHiWatermark);
 	fifo.bFF_LoWatermark = (fifo.CPReadWriteDistance < fifo.CPLoWatermark);
 
-	// breakpoint     
+	// breakpoint
 	if (!isCPUThread)
 	{
 		if (fifo.bFF_BPEnable)
@@ -571,7 +581,9 @@ void SetCpStatus(bool isCPUThread)
 			}
 		}
 		else
+		{
 			CommandProcessor::UpdateInterrupts(userdata);
+		}
 	}
 }
 

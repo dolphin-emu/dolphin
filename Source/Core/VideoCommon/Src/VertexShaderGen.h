@@ -58,7 +58,7 @@ const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
 						{I_NORMALMATRICES , C_NORMALMATRICES, 32  },
 						{I_POSTTRANSFORMMATRICES, C_POSTTRANSFORMMATRICES, 64 },
 						{I_DEPTHPARAMS, C_DEPTHPARAMS, 1 },
-						};                                            
+						};
 template<bool safe>
 class _VERTEXSHADERUID
 {
@@ -88,6 +88,7 @@ public:
 			return true;
 		else if (values[0] > _Right.values[0])
 			return false;
+
 		int N = GetNumValues();
 		for (int i = 1; i < N; ++i) 
 		{
@@ -96,6 +97,7 @@ public:
 			else if (values[i] > _Right.values[i])
 				return false;
 		}
+
 		return false;
 	}
 
@@ -103,12 +105,14 @@ public:
 	{
 		if (values[0] != _Right.values[0])
 			return false;
+
 		int N = GetNumValues();
 		for (int i = 1; i < N; ++i)
 		{
 			if (values[i] != _Right.values[i])
 				return false;
 		}
+
 		return true;
 	}
 };

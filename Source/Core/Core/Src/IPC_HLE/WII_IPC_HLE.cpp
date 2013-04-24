@@ -88,7 +88,6 @@ void EnqueReplyCallback(u64 userdata, int)
 
 void Init()
 {
-	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
 	
 	_dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isn't empty on init");
 	CWII_IPC_HLE_Device_es::m_ContentFile = "";
@@ -130,11 +129,15 @@ void Init()
 	#endif
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/oh1")); i++;
 	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, std::string("_Unimplemented_Device_")); i++;
+	
+	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
 }
 
 void Reset(bool _bHard)
 {
-
+	
+	CoreTiming::RemoveAllEvents(enque_reply);
+	
 	u32 i;
 	for (i=0; i<IPC_MAX_FDS; i++)
 	{

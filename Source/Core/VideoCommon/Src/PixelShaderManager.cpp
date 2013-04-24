@@ -74,6 +74,7 @@ void PixelShaderManager::SetConstants()
 {
 	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		Dirty();
+
 	for (int i = 0; i < 2; ++i)
 	{
 		if (s_nColorsChanged[i])
@@ -158,8 +159,10 @@ void PixelShaderManager::SetConstants()
 			SetPSConstant4fv(C_INDTEXSCALE, f);
 		}
 
-		if (s_nIndTexScaleChanged & 0x0c) {
-			for (u32 i = 2; i < 4; ++i) {
+		if (s_nIndTexScaleChanged & 0x0c)
+		{
+			for (u32 i = 2; i < 4; ++i)
+			{
 				f[2 * i] = bpmem.texscale[1].getScaleS(i & 1);
 				f[2 * i + 1] = bpmem.texscale[1].getScaleT(i & 1);
 				PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
@@ -243,7 +246,9 @@ void PixelShaderManager::SetConstants()
 			SetPSConstant4f(C_FOG + 2, ScreenSpaceCenter, (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.viewport.wd)), bpmem.fogRange.K[4].HI / 256.0f,0.0f);
 		}
 		else
+		{
 			SetPSConstant4f(C_FOG + 2, 0.0f, 1.0f, 1.0f, 0.0f); // Need to update these values for older hardware that fails to divide by zero in shaders.
+		}
 
 		s_bFogRangeAdjustChanged = false;
 	}
@@ -279,7 +284,9 @@ void PixelShaderManager::SetConstants()
 						SetPSConstant4f(C_PLIGHTS+5*i+j+1, 0.00001f, xfmemptr[1], xfmemptr[2], 0);
 					}
 					else
+					{
 						SetPSConstant4fv(C_PLIGHTS+5*i+j+1, xfmemptr);
+					}
 				}
 			}
 
@@ -347,17 +354,22 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 void PixelShaderManager::SetColorChanged(int type, int num, bool high)
 {
 	float *pf = &lastRGBAfull[type][num][0];
-	if (!high) {
+
+	if (!high)
+	{
 		int r = bpmem.tevregs[num].low.a;
 		int a = bpmem.tevregs[num].low.b;
 		pf[0] = (float)r * (1.0f / 255.0f);
 		pf[3] = (float)a * (1.0f / 255.0f);
-	} else {
+	}
+	else
+	{
 		int b = bpmem.tevregs[num].high.a;
 		int g = bpmem.tevregs[num].high.b;
 		pf[1] = (float)g * (1.0f / 255.0f);
 		pf[2] = (float)b * (1.0f / 255.0f);
 	}
+
 	s_nColorsChanged[type] |= 1 << num;
 	PRIM_LOG("pixel %scolor%d: %f %f %f %f\n", type?"k":"", num, pf[0], pf[1], pf[2], pf[3]);
 }

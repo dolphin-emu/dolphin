@@ -129,9 +129,10 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	if (tmp != -9000)
 	{
 		if (tmp != SCALE_FORCE_INTEGRAL)
+		{
 			iEFBScale = tmp;
-		// Round down to multiple of native IR
-		else
+		}
+		else // Round down to multiple of native IR
 		{
 			switch (iEFBScale)
 			{

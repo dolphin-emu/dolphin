@@ -36,7 +36,8 @@ FramebufferManagerBase::~FramebufferManagerBase()
 
 const XFBSourceBase* const* FramebufferManagerBase::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
 {
-	if (!g_ActiveConfig.bUseXFB) return NULL;
+	if (!g_ActiveConfig.bUseXFB)
+		return NULL;
 
 	if (g_ActiveConfig.bUseRealXFB)
 		return GetRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
@@ -237,7 +238,9 @@ int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x, unsigned int backbuffe
 		return x * (int)backbuffer_width / (int)FramebufferManagerBase::LastXfbWidth();
 	}
 	else
+	{
 		return x * (int)Renderer::GetTargetRectangle().GetWidth() / (int)FramebufferManagerBase::LastXfbWidth();
+	}
 }
 
 int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y, unsigned int backbuffer_height)
@@ -251,5 +254,7 @@ int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y, unsigned int backbuff
 		return y * (int)backbuffer_height / (int)FramebufferManagerBase::LastXfbHeight();
 	}
 	else
+	{
 		return y * (int)Renderer::GetTargetRectangle().GetHeight() / (int)FramebufferManagerBase::LastXfbHeight();
+	}
 }

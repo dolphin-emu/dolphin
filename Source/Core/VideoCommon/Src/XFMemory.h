@@ -195,20 +195,24 @@ union DualTexInfo
 struct Light
 {
 	u32 useless[3]; 
-	u32 color;    //rgba
-	float a0;  //attenuation
+	u32 color; // rgba
+	float a0;  // attenuation
 	float a1; 
 	float a2; 
-	float k0;  //k stuff
+	float k0;  // k stuff
 	float k1; 
 	float k2; 
+
 	union
 	{
-		struct {
+		struct
+		{
 			float dpos[3];
 			float ddir[3]; // specular lights only
 		};
-		struct {
+
+		struct
+		{
 			float sdir[3];
 			float shalfangle[3]; // specular lights only
 		};

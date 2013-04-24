@@ -40,7 +40,9 @@ __forceinline float FracAdjust(T val)
 
 template <>
 __forceinline float FracAdjust(float val)
-{ return val; }
+{
+	return val;
+}
 
 template <typename T, int N>
 __forceinline void ReadIndirect(const T* data)
@@ -187,5 +189,5 @@ TPipelineFunction VertexLoader_Normal::GetFunction(unsigned int _type,
 	unsigned int _format, unsigned int _elements, unsigned int _index3)
 {
 	TPipelineFunction pFunc = m_Table[_type][_index3][_elements][_format].function;
-    return pFunc;
+	return pFunc;
 }

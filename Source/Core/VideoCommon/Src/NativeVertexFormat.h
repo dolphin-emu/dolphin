@@ -21,7 +21,8 @@
 #include "Common.h"
 
 // m_components
-enum {
+enum
+{
 	VB_HAS_POSMTXIDX =(1<<1),
 	VB_HAS_TEXMTXIDX0=(1<<2),
 	VB_HAS_TEXMTXIDX1=(1<<3),

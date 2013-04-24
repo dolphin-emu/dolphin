@@ -57,11 +57,14 @@ void Shutdown()
 	g_VertexLoaderMap.clear();
 }
 
-namespace {
-struct entry {
+namespace
+{
+struct entry
+{
 	std::string text;
 	u64 num_verts;
-	bool operator < (const entry &other) const {
+	bool operator < (const entry &other) const
+	{
 		return num_verts > other.num_verts;
 	}
 };
@@ -82,7 +85,8 @@ void AppendListToString(std::string *dest)
 	}
 	sort(entries.begin(), entries.end());
 	dest->reserve(dest->size() + total_size);
-	for (std::vector<entry>::const_iterator iter = entries.begin(); iter != entries.end(); ++iter) {
+	for (std::vector<entry>::const_iterator iter = entries.begin(); iter != entries.end(); ++iter)
+	{
 		dest->append(iter->text);
 	}
 }

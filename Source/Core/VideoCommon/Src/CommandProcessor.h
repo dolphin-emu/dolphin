@@ -75,7 +75,7 @@ enum
 enum
 {
 	GATHER_PIPE_SIZE = 32,
-    INT_CAUSE_CP =  0x800
+	INT_CAUSE_CP =  0x800
 };
 
 // Fifo Status Register
