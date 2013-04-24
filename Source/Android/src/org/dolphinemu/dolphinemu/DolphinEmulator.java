@@ -136,8 +136,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 		if (resultCode == Activity.RESULT_OK)
 		{
 			DisplayMetrics displayMetrics = new DisplayMetrics();
-			getApplicationContext();
-            WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE); // the results will be higher than using the activity context object or the getWindowManager() shortcut
+			WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE); // the results will be higher than using the activity context object or the getWindowManager() shortcut
 			wm.getDefaultDisplay().getMetrics(displayMetrics);
 			screenWidth = displayMetrics.widthPixels;
 			screenHeight = displayMetrics.heightPixels;
