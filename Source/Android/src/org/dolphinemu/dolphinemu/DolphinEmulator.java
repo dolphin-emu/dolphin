@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import net.simonvt.menudrawer.MenuDrawer;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
@@ -135,7 +136,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 		if (resultCode == Activity.RESULT_OK)
 		{
 			DisplayMetrics displayMetrics = new DisplayMetrics();
-			WindowManager wm = (WindowManager) getApplicationContext().getSystemService(getApplicationContext().WINDOW_SERVICE); // the results will be higher than using the activity context object or the getWindowManager() shortcut
+			WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE); // the results will be higher than using the activity context object or the getWindowManager() shortcut
 			wm.getDefaultDisplay().getMetrics(displayMetrics);
 			screenWidth = displayMetrics.widthPixels;
 			screenHeight = displayMetrics.heightPixels;
