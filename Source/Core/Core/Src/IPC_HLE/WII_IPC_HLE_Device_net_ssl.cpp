@@ -40,6 +40,18 @@ CWII_IPC_HLE_Device_net_ssl::CWII_IPC_HLE_Device_net_ssl(u32 _DeviceID, const st
 
 CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl() 
 {
+	// Cleanup sessions
+	for (int i = 0; i < NET_SSL_MAXINSTANCES; i++)
+	{
+		gnutls_session_t session = _SSL[i].session;
+		if(session)
+		{
+			gnutls_bye (session, GNUTLS_SHUT_RDWR);
+			gnutls_deinit(session);
+			gnutls_certificate_free_credentials (_SSL[i].xcred);
+		}
+	}
+	
 	gnutls_global_deinit();
 }
 
