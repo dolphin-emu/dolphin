@@ -782,6 +782,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
 				
 				std::string tContentFile(m_ContentFile.c_str());
+				
 				WII_IPC_HLE_Interface::Reset(true);
 				WII_IPC_HLE_Interface::Init();
 				s_Usb = GetUsbPointer();
@@ -816,7 +817,19 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016llx %08x %016llx %08x %016llx %04x", TitleID,view,ticketid,devicetype,titleid,access);
 			//					   IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000 0001000248414341 ffff
 
-			return true;
+			//We have to handle the reply ourselves as this handle is not valid anymore
+			
+			
+			// It seems that the original hardware overwrites the command after it has been
+			// executed. We write 8 which is not any valid command, and what IOS does 
+			Memory::Write_U32(8, _CommandAddress);
+			// IOS seems to write back the command that was responded to
+			Memory::Write_U32(6, _CommandAddress + 8);
+			
+			// Generate a reply to the IPC command
+			WII_IPC_HLE_Interface::EnqReply(_CommandAddress, 0);
+			
+			return false;
 		}
 		break;
 
