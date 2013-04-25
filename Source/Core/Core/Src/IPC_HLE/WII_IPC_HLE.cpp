@@ -566,7 +566,8 @@ void Update()
 		INFO_LOG(WII_IPC_HLE, "||-- Acknowledge IPC Request @ 0x%08x", request_queue.front());
 
 		ExecuteCommand(request_queue.front());
-		request_queue.pop_front();
+		if(request_queue.size())
+			request_queue.pop_front();
 
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 		Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);

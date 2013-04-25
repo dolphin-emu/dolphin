@@ -212,8 +212,11 @@ void Write32(const u32 _Value, const u32 _Address)
 		_dbg_assert_msg_(WII_IPC, 0, "w32 %08x @ %08x", _Value, _Address);
 		break;
 	}	
-
-	//WII_IPC_HLE_Interface::Update();
+	
+	if((_Address & 0xFFFF) != IPC_PPCCTRL)
+	{
+		WII_IPC_HLE_Interface::Update();	
+	}
 	CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
 }
 
