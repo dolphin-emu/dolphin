@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "FileUtil.h"
@@ -353,7 +340,7 @@ void VertexManager::vFlush()
 				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+				ERROR_LOG(VIDEO, "Error loading texture");
 		}
 	}
 
@@ -361,7 +348,12 @@ void VertexManager::vFlush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants(g_nativeVertexFmt->m_components);
 	u32 stride = g_nativeVertexFmt->GetVertexStride();
-	if (!PixelShaderCache::SetShader(DSTALPHA_NONE,g_nativeVertexFmt->m_components))
+	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+						bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+	DSTALPHA_MODE AlphaMode = useDualSource ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE;	
+
+	if (!PixelShaderCache::SetShader(AlphaMode ,g_nativeVertexFmt->m_components))
 	{
 		GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 		goto shader_fail;
@@ -373,7 +365,8 @@ void VertexManager::vFlush()
 
 	}
 	PrepareDrawBuffers(stride);
-	g_nativeVertexFmt->SetupVertexPointers();	
+	g_nativeVertexFmt->SetupVertexPointers();
+	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	if(m_buffers_count)
 	{
 		DrawVertexBuffer(stride);
@@ -382,10 +375,8 @@ void VertexManager::vFlush()
 	{ 
 		DrawVertexArray(stride);
 	}
-
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-						bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
-	if (useDstAlpha)
+	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+	if (useDstAlpha && !useDualSource)
 	{
 		if (!PixelShaderCache::SetShader(DSTALPHA_ALPHA_PASS, g_nativeVertexFmt->m_components))
 		{

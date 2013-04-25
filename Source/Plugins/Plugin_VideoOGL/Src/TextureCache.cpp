@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <vector>
 #include <cmath>
@@ -74,8 +61,6 @@ struct VBOCache {
 };
 static std::map<u64,VBOCache> s_VBO;
 
-static u32 s_TempFramebuffer = 0;
-
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
 	int width = std::max(virtual_width >> level, 1);
@@ -86,7 +71,7 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width
 	glGetTexImage(textarget, level, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
 	glBindTexture(textarget, 0);
 	TextureCache::SetStage();
-	
+
 	const GLenum err = GL_REPORT_ERROR();
 	if (GL_NO_ERROR != err)
 	{
@@ -94,7 +79,7 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width
 		return false;
 	}
 
-    return SaveTGA(filename, width, height, &data[0]);
+	return SaveTGA(filename, width, height, &data[0]);
 }
 
 TextureCache::TCacheEntry::~TCacheEntry()
@@ -107,12 +92,20 @@ TextureCache::TCacheEntry::~TCacheEntry()
 		glDeleteTextures(1, &texture);
 		texture = 0;
 	}
+
+	if (framebuffer)
+	{
+		glDeleteFramebuffers(1, &framebuffer);
+		framebuffer = 0;
+	}
 }
 
 TextureCache::TCacheEntry::TCacheEntry()
 {
 	glGenTextures(1, &texture);
 	GL_REPORT_ERRORD();
+
+	framebuffer = 0;
 }
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
@@ -219,13 +212,13 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 		glActiveTexture(GL_TEXTURE0 + s_NextStage);
 		s_ActiveTexture = s_NextStage;
 	}
-	
+
 	if (s_Textures[s_NextStage] != texture)
 	{
 		glBindTexture(GL_TEXTURE_2D, texture);
 		s_Textures[s_NextStage] = texture;
 	}
-	
+
 	// TODO: sloppy, just do this on creation?
 	if (level == 0)
 	{
@@ -234,7 +227,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 
 	if (pcfmt != PC_TEX_FMT_DXT1)
 	{
-	    if (expanded_width != width)
+		if (expanded_width != width)
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
 
 		glTexImage2D(GL_TEXTURE_2D, level, gl_iformat, width, height, 0, gl_format, gl_type, temp);
@@ -263,16 +256,20 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 		gl_format = GL_RGBA,
 		gl_iformat = GL_RGBA,
 		gl_type = GL_UNSIGNED_BYTE;
-		
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	entry->m_tex_levels = 1;
 
 	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
-	
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
+	glGenFramebuffers(1, &entry->framebuffer);
+	FramebufferManager::SetFramebuffer(entry->framebuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, entry->texture, 0);
+	GL_REPORT_FBO_ERROR();
+
 	SetStage();
-	
+
 	GL_REPORT_ERRORD();
 
 	return entry;
@@ -284,25 +281,20 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	const float *colmat)
 {
 	g_renderer->ResetAPIState(); // reset any game specific settings
-	
+
 	// Make sure to resolve anything we need to read from.
 	const GLuint read_texture = (srcFormat == PIXELFMT_Z24) ?
 		FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
 		FramebufferManager::ResolveAndGetRenderTarget(srcRect);
 
-    GL_REPORT_ERRORD();
+	GL_REPORT_ERRORD();
 
 	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
-		if (s_TempFramebuffer == 0)
-			glGenFramebuffers(1, (GLuint*)&s_TempFramebuffer);
+		FramebufferManager::SetFramebuffer(framebuffer);
 
-		FramebufferManager::SetFramebuffer(s_TempFramebuffer);
-		// Bind texture to temporary framebuffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-		GL_REPORT_FBO_ERROR();
 		GL_REPORT_ERRORD();
-		
+
 		glActiveTexture(GL_TEXTURE0+9);
 		glBindTexture(GL_TEXTURE_RECTANGLE, read_texture);
 
@@ -323,11 +315,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 		GL_REPORT_ERRORD();
-		
+
 		// should be unique enough, if not, vbo will "only" be uploaded to much
 		u64 targetSourceHash = u64(targetSource.left)<<48 | u64(targetSource.top)<<32 | u64(targetSource.right)<<16 | u64(targetSource.bottom);
 		std::map<u64, VBOCache>::iterator vbo_it = s_VBO.find(targetSourceHash);
-		
+
 		if(vbo_it == s_VBO.end()) {
 			VBOCache item;
 			item.targetSource.bottom = -1;
@@ -336,15 +328,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			item.targetSource.right = -1;
 			glGenBuffers(1, &item.vbo);
 			glGenVertexArrays(1, &item.vao);
-			
+
 			glBindBuffer(GL_ARRAY_BUFFER, item.vbo);
 			glBindVertexArray(item.vao);
-			
+
 			glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
 			glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL);
 			glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
 			glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
-			
+
 			vbo_it = s_VBO.insert(std::pair<u64,VBOCache>(targetSourceHash, item)).first;
 		}
 		if(!(vbo_it->second.targetSource == targetSource)) {
@@ -353,27 +345,24 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 				(GLfloat)targetSource.left, (GLfloat)targetSource.bottom,
 				-1.f, -1.f,
 				(GLfloat)targetSource.left, (GLfloat)targetSource.top,
-				1.f, -1.f,
-				(GLfloat)targetSource.right, (GLfloat)targetSource.top,
 				1.f, 1.f,
-				(GLfloat)targetSource.right, (GLfloat)targetSource.bottom
+				(GLfloat)targetSource.right, (GLfloat)targetSource.bottom,
+				1.f, -1.f,
+				(GLfloat)targetSource.right, (GLfloat)targetSource.top
 			};
-			
+
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
 			glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
 			
 			vbo_it->second.targetSource = targetSource;
-		} 
+		}
 
 		glBindVertexArray(vbo_it->second.vao);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 
 		GL_REPORT_ERRORD();
-
-		// Unbind texture from temporary framebuffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
 	}
 
 	if (false == g_ActiveConfig.bCopyEFBToTexture)
@@ -399,17 +388,17 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		hash = new_hash;
 	}
 
-    FramebufferManager::SetFramebuffer(0);
-    VertexShaderManager::SetViewportChanged();
+	FramebufferManager::SetFramebuffer(0);
+	VertexShaderManager::SetViewportChanged();
 
-    GL_REPORT_ERRORD();
+	GL_REPORT_ERRORD();
 
-    if (g_ActiveConfig.bDumpEFBTarget)
-    {
+	if (g_ActiveConfig.bDumpEFBTarget)
+	{
 		static int count = 0;
 		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
 			count++).c_str(), GL_TEXTURE_2D, texture, virtual_width, virtual_height, 0);
-    }
+	}
 
 	g_renderer->RestoreAPIState();
 }
@@ -419,8 +408,8 @@ TextureCache::TextureCache()
 	const char *pColorMatrixProg = 
 		"uniform sampler2DRect samp9;\n"
 		"uniform vec4 colmat[7];\n"
-		"in vec2 uv0;\n"
-		"out vec4 ocol0;\n"
+		"VARYIN vec2 uv0;\n"
+		"COLOROUT(ocol0)\n"
 		"\n"
 		"void main(){\n"
 		"	vec4 texcol = texture2DRect(samp9, uv0);\n"
@@ -431,8 +420,8 @@ TextureCache::TextureCache()
 	const char *pDepthMatrixProg =
 		"uniform sampler2DRect samp9;\n"
 		"uniform vec4 colmat[5];\n"
-		"in vec2 uv0;\n"
-		"out vec4 ocol0;\n"
+		"VARYIN vec2 uv0;\n"
+		"COLOROUT(ocol0)\n"
 		"\n"
 		"void main(){\n"
 		"	vec4 texcol = texture2DRect(samp9, uv0);\n"
@@ -441,25 +430,24 @@ TextureCache::TextureCache()
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];"
 		"}\n";
 
-	
 	const char *VProgram =
-		"in vec2 rawpos;\n"
-		"in vec2 tex0;\n"
-		"out vec2 uv0;\n"
+		"ATTRIN vec2 rawpos;\n"
+		"ATTRIN vec2 tex0;\n"
+		"VARYOUT vec2 uv0;\n"
 		"void main()\n"
 		"{\n"
 		"	uv0 = tex0;\n"
 		"	gl_Position = vec4(rawpos,0,1);\n"
 		"}\n";
-		
+
 	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, VProgram, pColorMatrixProg);
 	ProgramShaderCache::CompileShader(s_DepthMatrixProgram, VProgram, pDepthMatrixProg);
-	
+
 	s_ColorMatrixUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "colmat");
 	s_DepthMatrixUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "colmat");
 	s_ColorCbufid = -1;
 	s_DepthCbufid = -1;
-	
+
 	s_ActiveTexture = -1;
 	s_NextStage = -1;
 	for(int i=0; i<8; i++)
@@ -477,12 +465,6 @@ TextureCache::~TextureCache()
 		glDeleteVertexArrays(1, &it->second.vao);
 	}
 	s_VBO.clear();
-	
-	if (s_TempFramebuffer)
-	{
-		glDeleteFramebuffers(1, (GLuint*)&s_TempFramebuffer);
-		s_TempFramebuffer = 0;
-	}
 }
 
 void TextureCache::DisableStage(unsigned int stage)

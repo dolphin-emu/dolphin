@@ -5,8 +5,15 @@
 #define GCC_VER(x,y,z)	((x) * 10000 + (y) * 100 + (z))
 #define GCC_VERSION GCC_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 
+#ifndef __has_include
+#define __has_include(s) 0
+#endif
+
 #if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__ && !ANDROID
 // GCC 4.4 provides <mutex>
+#include <mutex>
+#elif __has_include(<mutex>) && !ANDROID
+// Clang + libc++
 #include <mutex>
 #else
 

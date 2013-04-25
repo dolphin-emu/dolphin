@@ -1,32 +1,9 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <algorithm>
-#ifdef _MSC_VER
-#include <hash_map>
-using stdext::hash_map;
-#elif defined __APPLE__
-#include <ext/hash_map>
-using __gnu_cxx::hash_map;
-#else
 #include <unordered_map>
-using std::unordered_map;
-#endif
-#include <map>
 #include <vector>
 
 #include "VideoCommon.h"
@@ -41,32 +18,21 @@ static int s_attr_dirty;  // bitfield
 
 static VertexLoader *g_VertexLoaders[8];
 
-#ifdef _MSC_VER
-namespace stdext {
-	inline size_t hash_value(const VertexLoaderUID& uid) {
+namespace std
+{
+
+template <>
+struct hash<VertexLoaderUID>
+{
+	size_t operator()(const VertexLoaderUID& uid) const
+	{
 		return uid.GetHash();
 	}
-}
-#else
-#ifdef __APPLE__
-namespace __gnu_cxx
-#else
-namespace std
-#endif
-{
-	template<> struct hash<VertexLoaderUID> {
-		size_t operator()(const VertexLoaderUID& uid) const {
-			return uid.GetHash();
-		}
-	};
-}
-#endif
+};
 
-#if defined _MSC_VER || defined __APPLE__
-typedef hash_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
-#else
-typedef unordered_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
-#endif
+}
+
+typedef std::unordered_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
 
 namespace VertexLoaderManager
 {
@@ -91,11 +57,14 @@ void Shutdown()
 	g_VertexLoaderMap.clear();
 }
 
-namespace {
-struct entry {
+namespace
+{
+struct entry
+{
 	std::string text;
 	u64 num_verts;
-	bool operator < (const entry &other) const {
+	bool operator < (const entry &other) const
+	{
 		return num_verts > other.num_verts;
 	}
 };
@@ -116,7 +85,8 @@ void AppendListToString(std::string *dest)
 	}
 	sort(entries.begin(), entries.end());
 	dest->reserve(dest->size() + total_size);
-	for (std::vector<entry>::const_iterator iter = entries.begin(); iter != entries.end(); ++iter) {
+	for (std::vector<entry>::const_iterator iter = entries.begin(); iter != entries.end(); ++iter)
+	{
 		dest->append(iter->text);
 	}
 }

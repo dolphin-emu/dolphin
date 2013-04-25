@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Globals.h"
 #include "CheatsWindow.h"
@@ -298,10 +285,11 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 			sprintf(numcodes, "Number of Codes: %lu", (unsigned long)code.ops.size());
 			m_Label_NumCodes->SetLabel(StrToWxStr(numcodes));
 			m_ListBox_CodesList->Clear();
+
 			for (size_t j = 0; j < code.ops.size(); j++)
 			{
 				char text2[CHAR_MAX];
-			    char* ops = text2;
+				char* ops = text2;
 				sprintf(ops, "%08x %08x", code.ops[j].cmd_addr, code.ops[j].value);
 				m_ListBox_CodesList->Append(StrToWxStr(ops));
 			}
@@ -323,7 +311,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (ev
 
 void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 {
-	// Appply AR Code changes
+	// Apply AR Code changes
 	for (size_t i = 0; i < indexList.size(); i++)
 	{
 		ActionReplay::SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(indexList[i].uiIndex), indexList[i].index);
@@ -332,7 +320,7 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 	// Apply Gecko Code changes
 	Gecko::SetActiveCodes(m_geckocode_panel->GetCodes());
 
-	// save gameini, with changed gecko codes
+	// Save gameini, with changed gecko codes
 	if (m_gameini_path.size())
 	{
 		Gecko::SaveCodes(m_gameini, m_geckocode_panel->GetCodes());
@@ -409,7 +397,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	filtered_results.reserve(search_results.size());
 
 
-	// determine the selected filter
+	// Determine the selected filter
 	// 1 : equal
 	// 2 : greater-than
 	// 4 : less-than

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
@@ -39,17 +26,13 @@ void DSPEmitter::srs(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (reg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(reg, tmp1, ZERO);
-	else
-		dsp_op_read_reg(reg, tmp1, ZERO);
+	dsp_op_read_reg(reg, tmp1, ZERO);
 	dsp_op_read_reg(DSP_REG_CR, RAX, ZERO);
 	SHL(16, R(EAX), Imm8(8));
 	OR(16, R(EAX), Imm16(opc & 0xFF));
 	dmem_write(tmp1);
 
 	gpr.putXReg(tmp1);
-
 }
 
 // LRS $(0x18+D), @M
@@ -101,10 +84,7 @@ void DSPEmitter::sr(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (reg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(reg, tmp1);
-	else
-		dsp_op_read_reg(reg, tmp1);
+	dsp_op_read_reg(reg, tmp1);
 	dmem_write_imm(address, tmp1);
 
 	gpr.putXReg(tmp1);
@@ -227,10 +207,7 @@ void DSPEmitter::srr(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg, tmp1);
-	else
-		dsp_op_read_reg(sreg, tmp1);
+	dsp_op_read_reg(sreg, tmp1);
 	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write(tmp1);
 
@@ -249,10 +226,7 @@ void DSPEmitter::srrd(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg, tmp1);
-	else
-		dsp_op_read_reg(sreg, tmp1);
+	dsp_op_read_reg(sreg, tmp1);
 	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write(tmp1);
 
@@ -273,10 +247,7 @@ void DSPEmitter::srri(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg, tmp1);
-	else
-		dsp_op_read_reg(sreg, tmp1);
+	dsp_op_read_reg(sreg, tmp1);
 	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write(tmp1);
 
@@ -297,10 +268,7 @@ void DSPEmitter::srrn(const UDSPInstruction opc)
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
 
-	if (sreg >= DSP_REG_ACM0)
-		dsp_op_read_reg_and_saturate(sreg, tmp1);
-	else
-		dsp_op_read_reg(sreg, tmp1);
+	dsp_op_read_reg(sreg, tmp1);
 	dsp_op_read_reg(dreg, RAX, ZERO);
 	dmem_write(tmp1);
 

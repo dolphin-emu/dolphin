@@ -1,19 +1,6 @@
-// Copyright (C) 2003-2009 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 /*
 Portions of this file are based off work by Markus Trenkwalder.
@@ -62,8 +49,8 @@ namespace Clipper
 
 	float m_ViewOffset[2];
 
-    OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
-    OutputVertexData *Vertices[NUM_INDICES];
+	OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
+	OutputVertexData *Vertices[NUM_INDICES];
 
 	void DoState(PointerWrap &p)
 	{
@@ -72,94 +59,94 @@ namespace Clipper
 			ClippedVertices[i].DoState(p);
 	}
 
-    void Init()
-    {
-        for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
-            Vertices[i+3] = &ClippedVertices[i];
-    }
+	void Init()
+	{
+		for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
+			Vertices[i+3] = &ClippedVertices[i];
+	}
 
-    void SetViewOffset()
-    {
-        m_ViewOffset[0] = swxfregs.viewport.xOrig - 342;
-        m_ViewOffset[1] = swxfregs.viewport.yOrig - 342;
-    }
+	void SetViewOffset()
+	{
+		m_ViewOffset[0] = swxfregs.viewport.xOrig - 342;
+		m_ViewOffset[1] = swxfregs.viewport.yOrig - 342;
+	}
 
-        
-    enum {
-	    SKIP_FLAG = -1,
-        CLIP_POS_X_BIT = 0x01,
-	    CLIP_NEG_X_BIT = 0x02,
-	    CLIP_POS_Y_BIT = 0x04,
-	    CLIP_NEG_Y_BIT = 0x08,
-	    CLIP_POS_Z_BIT = 0x10,
-	    CLIP_NEG_Z_BIT = 0x20
-    };
 
-    static inline int CalcClipMask(OutputVertexData *v)
-    {
-	    int cmask = 0;
-        Vec4 pos = v->projectedPosition;
-	    if (pos.w - pos.x < 0) cmask |= CLIP_POS_X_BIT;
-	    if (pos.x + pos.w < 0) cmask |= CLIP_NEG_X_BIT;
-	    if (pos.w - pos.y < 0) cmask |= CLIP_POS_Y_BIT;
-	    if (pos.y + pos.w < 0) cmask |= CLIP_NEG_Y_BIT;
-	    if (pos.w * pos.z > 0) cmask |= CLIP_POS_Z_BIT;
-	    if (pos.z + pos.w < 0) cmask |= CLIP_NEG_Z_BIT;
-	    return cmask;
-    }
+	enum {
+		SKIP_FLAG = -1,
+		CLIP_POS_X_BIT = 0x01,
+		CLIP_NEG_X_BIT = 0x02,
+		CLIP_POS_Y_BIT = 0x04,
+		CLIP_NEG_Y_BIT = 0x08,
+		CLIP_POS_Z_BIT = 0x10,
+		CLIP_NEG_Z_BIT = 0x20
+	};
 
-    static inline void AddInterpolatedVertex(float t, int out, int in, int& numVertices)
-    {
-        Vertices[numVertices]->Lerp(t, Vertices[out], Vertices[in]);
-        numVertices++;
-    }
+	static inline int CalcClipMask(OutputVertexData *v)
+	{
+		int cmask = 0;
+		Vec4 pos = v->projectedPosition;
+		if (pos.w - pos.x < 0) cmask |= CLIP_POS_X_BIT;
+		if (pos.x + pos.w < 0) cmask |= CLIP_NEG_X_BIT;
+		if (pos.w - pos.y < 0) cmask |= CLIP_POS_Y_BIT;
+		if (pos.y + pos.w < 0) cmask |= CLIP_NEG_Y_BIT;
+		if (pos.w * pos.z > 0) cmask |= CLIP_POS_Z_BIT;
+		if (pos.z + pos.w < 0) cmask |= CLIP_NEG_Z_BIT;
+		return cmask;
+	}
 
-    #define DIFFERENT_SIGNS(x,y) ((x <= 0 && y > 0) || (x > 0 && y <= 0))
+	static inline void AddInterpolatedVertex(float t, int out, int in, int& numVertices)
+	{
+		Vertices[numVertices]->Lerp(t, Vertices[out], Vertices[in]);
+		numVertices++;
+	}
 
-    #define CLIP_DOTPROD(I, A, B, C, D) \
-	    (Vertices[I]->projectedPosition.x * A + Vertices[I]->projectedPosition.y * B + Vertices[I]->projectedPosition.z * C + Vertices[I]->projectedPosition.w * D)
+	#define DIFFERENT_SIGNS(x,y) ((x <= 0 && y > 0) || (x > 0 && y <= 0))
 
-    #define POLY_CLIP( PLANE_BIT, A, B, C, D )                          \
-    {                                                                   \
-	    if (mask & PLANE_BIT) {                                         \
-		    int idxPrev = inlist[0];                                    \
-		    float dpPrev = CLIP_DOTPROD(idxPrev, A, B, C, D );            \
-		    int outcount = 0;                                           \
-                                                                        \
-		    inlist[n] = inlist[0];                                      \
-		    for (int j = 1; j <= n; j++) { 		                            \
-			    int idx = inlist[j];                                    \
-			    float dp = CLIP_DOTPROD(idx, A, B, C, D );                \
-			    if (dpPrev >= 0) {                                      \
-				    outlist[outcount++] = idxPrev;                      \
-			    }                                                       \
-                                                                        \
-			    if (DIFFERENT_SIGNS(dp, dpPrev)) {				        \
-				    if (dp < 0) {					                    \
-					    float t = dp / (dp - dpPrev);                   \
-					    AddInterpolatedVertex(t, idx, idxPrev, numVertices);         \
-				    } else {							                \
-					    float t = dpPrev / (dpPrev - dp);               \
-					    AddInterpolatedVertex(t, idxPrev, idx, numVertices);         \
-				    }								                    \
-				    outlist[outcount++] = numVertices - 1;              \
-			    }								                        \
-                                                                        \
-			    idxPrev = idx;							                \
-			    dpPrev = dp;							                \
-		    }									                        \
-                                                                        \
-		    if (outcount < 3)							                \
-			    continue;							                    \
-                                                                        \
-	 	    {									                        \
-			    int *tmp = inlist;				  	                    \
-			    inlist = outlist;				  	                    \
-			    outlist = tmp;					  	                    \
-			    n = outcount;					  	                    \
-		    }									                        \
-	    }									                            \
-    }
+	#define CLIP_DOTPROD(I, A, B, C, D) \
+		(Vertices[I]->projectedPosition.x * A + Vertices[I]->projectedPosition.y * B + Vertices[I]->projectedPosition.z * C + Vertices[I]->projectedPosition.w * D)
+
+	#define POLY_CLIP( PLANE_BIT, A, B, C, D )							\
+	{																	\
+		if (mask & PLANE_BIT) {											\
+			int idxPrev = inlist[0];									\
+			float dpPrev = CLIP_DOTPROD(idxPrev, A, B, C, D );			\
+			int outcount = 0;											\
+																		\
+			inlist[n] = inlist[0];										\
+			for (int j = 1; j <= n; j++) { 								\
+				int idx = inlist[j];									\
+				float dp = CLIP_DOTPROD(idx, A, B, C, D );				\
+				if (dpPrev >= 0) {										\
+					outlist[outcount++] = idxPrev;						\
+				}														\
+																		\
+				if (DIFFERENT_SIGNS(dp, dpPrev)) {						\
+					if (dp < 0) {										\
+						float t = dp / (dp - dpPrev);					\
+						AddInterpolatedVertex(t, idx, idxPrev, numVertices);		\
+					} else {											\
+						float t = dpPrev / (dpPrev - dp);				\
+						AddInterpolatedVertex(t, idxPrev, idx, numVertices);		\
+					}													\
+					outlist[outcount++] = numVertices - 1;				\
+				}														\
+																		\
+				idxPrev = idx;											\
+				dpPrev = dp;											\
+			}															\
+																		\
+			if (outcount < 3)											\
+				continue;												\
+																		\
+	 		{															\
+				int *tmp = inlist;										\
+				inlist = outlist;										\
+				outlist = tmp;											\
+				n = outcount;											\
+			}															\
+		}																\
+	}
 
 	#define LINE_CLIP(PLANE_BIT, A, B, C, D )					\
 	{															\
@@ -173,63 +160,63 @@ namespace Clipper
 				return;											\
 																\
 			if (neg_dp1) {										\
-				float t = dp1 / (dp1 - dp0);					\
+				float t = dp1 / (dp1 - dp0);						\
 				if (t > t1) t1 = t;								\
 			} else if (neg_dp0) {								\
-				float t = dp0 / (dp0 - dp1);					\
+				float t = dp0 / (dp0 - dp1);						\
 				if (t > t0) t0 = t;								\
 			}													\
 		}														\
 	}
 
-    void ClipTriangle(int *indices, int &numIndices)
-    {
-	    int mask = 0;
-    	
-	    mask |= CalcClipMask(Vertices[0]);
-        mask |= CalcClipMask(Vertices[1]);
-        mask |= CalcClipMask(Vertices[2]);
+	void ClipTriangle(int *indices, int &numIndices)
+	{
+		int mask = 0;
 
-        if (mask != 0)
-        {
-		    for(int i = 0; i < 3; i += 3)
-            {
-                int vlist[2][2*6+1];
-		        int *inlist = vlist[0], *outlist = vlist[1];
-                int n = 3;
-                int numVertices = 3;
+		mask |= CalcClipMask(Vertices[0]);
+		mask |= CalcClipMask(Vertices[1]);
+		mask |= CalcClipMask(Vertices[2]);
 
-		        inlist[0] = 0;
-		        inlist[1] = 1;
-		        inlist[2] = 2;
+		if (mask != 0)
+		{
+			for(int i = 0; i < 3; i += 3)
+			{
+				int vlist[2][2*6+1];
+				int *inlist = vlist[0], *outlist = vlist[1];
+				int n = 3;
+				int numVertices = 3;
 
-		        // mark this triangle as unused in case it should be completely 
-		        // clipped
-		        indices[0] = SKIP_FLAG;
-		        indices[1] = SKIP_FLAG;
-		        indices[2] = SKIP_FLAG;
+				inlist[0] = 0;
+				inlist[1] = 1;
+				inlist[2] = 2;
 
-		        POLY_CLIP(CLIP_POS_X_BIT, -1,  0,  0, 1);
-		        POLY_CLIP(CLIP_NEG_X_BIT,  1,  0,  0, 1);
-		        POLY_CLIP(CLIP_POS_Y_BIT,  0, -1,  0, 1);
-		        POLY_CLIP(CLIP_NEG_Y_BIT,  0,  1,  0, 1);
-		        POLY_CLIP(CLIP_POS_Z_BIT,  0,  0,  0, 1);
-		        POLY_CLIP(CLIP_NEG_Z_BIT,  0,  0,  1, 1);
+				// mark this triangle as unused in case it should be completely 
+				// clipped
+				indices[0] = SKIP_FLAG;
+				indices[1] = SKIP_FLAG;
+				indices[2] = SKIP_FLAG;
 
-                INCSTAT(swstats.thisFrame.numTrianglesClipped);
+				POLY_CLIP(CLIP_POS_X_BIT, -1,  0,  0, 1);
+				POLY_CLIP(CLIP_NEG_X_BIT,  1,  0,  0, 1);
+				POLY_CLIP(CLIP_POS_Y_BIT,  0, -1,  0, 1);
+				POLY_CLIP(CLIP_NEG_Y_BIT,  0,  1,  0, 1);
+				POLY_CLIP(CLIP_POS_Z_BIT,  0,  0,  0, 1);
+				POLY_CLIP(CLIP_NEG_Z_BIT,  0,  0,  1, 1);
 
-		        // transform the poly in inlist into triangles
-		        indices[0] = inlist[0];
-		        indices[1] = inlist[1];
-		        indices[2] = inlist[2];
-		        for (int j = 3; j < n; ++j) {
-			        indices[numIndices++] = inlist[0];
-			        indices[numIndices++] = inlist[j - 1];
-			        indices[numIndices++] = inlist[j];
-		        }
-            }
-	    }
-    }
+				INCSTAT(swstats.thisFrame.numTrianglesClipped);
+
+				// transform the poly in inlist into triangles
+				indices[0] = inlist[0];
+				indices[1] = inlist[1];
+				indices[2] = inlist[2];
+				for (int j = 3; j < n; ++j) {
+					indices[numIndices++] = inlist[0];
+					indices[numIndices++] = inlist[j - 1];
+					indices[numIndices++] = inlist[j];
+				}
+			}
+		}
+	}
 
 	void ClipLine(int *indices)
 	{
@@ -267,59 +254,61 @@ namespace Clipper
 
 		int numVertices = 2;
 
-		if (clip_mask[0]) {
+		if (clip_mask[0])
+		{
 			indices[0] = numVertices;
 			AddInterpolatedVertex(t0, 0, 1, numVertices);
 		}
 
-		if (clip_mask[1]) {
+		if (clip_mask[1])
+		{
 			indices[1] = numVertices;
 			AddInterpolatedVertex(t1, 1, 0, numVertices);
 		}
 	}
 
-    void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
-    {
-        INCSTAT(swstats.thisFrame.numTrianglesIn)
+	void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
+	{
+		INCSTAT(swstats.thisFrame.numTrianglesIn)
 
-        bool backface;
+		bool backface;
 
-        if(!CullTest(v0, v1, v2, backface))
-            return;
-        
-        int indices[NUM_INDICES] = { 0, 1, 2, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-                                     SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-                                     SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG };
-        int numIndices = 3;
+		if(!CullTest(v0, v1, v2, backface))
+			return;
 
-        if (backface)
-        {
-            Vertices[0] = v0;
-            Vertices[1] = v2;
-            Vertices[2] = v1;
-        }
-        else
-        {
-            Vertices[0] = v0;
-            Vertices[1] = v1;
-            Vertices[2] = v2;
-        }
+		int indices[NUM_INDICES] = { 0, 1, 2, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+										SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+										SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG };
+		int numIndices = 3;
 
-        ClipTriangle(indices, numIndices);
+		if (backface)
+		{
+			Vertices[0] = v0;
+			Vertices[1] = v2;
+			Vertices[2] = v1;
+		}
+		else
+		{
+			Vertices[0] = v0;
+			Vertices[1] = v1;
+			Vertices[2] = v2;
+		}
 
-        for(int i = 0; i+3 <= numIndices; i+=3)
-        {
+		ClipTriangle(indices, numIndices);
+
+		for(int i = 0; i+3 <= numIndices; i+=3)
+		{
 			_assert_(i < NUM_INDICES);
 			if(indices[i] != SKIP_FLAG)
-            {
-                PerspectiveDivide(Vertices[indices[i]]);
-                PerspectiveDivide(Vertices[indices[i+1]]);
-                PerspectiveDivide(Vertices[indices[i+2]]);
+			{
+				PerspectiveDivide(Vertices[indices[i]]);
+				PerspectiveDivide(Vertices[indices[i+1]]);
+				PerspectiveDivide(Vertices[indices[i+2]]);
 
-                Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]], Vertices[indices[i+1]], Vertices[indices[i+2]]);                
-            }
-        }
-    }
+				Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]], Vertices[indices[i+1]], Vertices[indices[i+2]]);                
+			}
+		}
+	}
 
 	void CopyVertex(OutputVertexData *dst, OutputVertexData *src, float dx, float dy, unsigned int sOffset)
 	{
@@ -343,7 +332,7 @@ namespace Clipper
 		int indices[4] = { 0, 1, SKIP_FLAG, SKIP_FLAG };
 
 		Vertices[0] = lineV0;
-        Vertices[1] = lineV1;
+		Vertices[1] = lineV1;
 
 		// point to a valid vertex to store to when clipping
 		Vertices[2] = &ClippedVertices[17];
@@ -356,7 +345,7 @@ namespace Clipper
 			OutputVertexData *v1 = Vertices[indices[1]];
 
 			PerspectiveDivide(v0);
-            PerspectiveDivide(v1);
+			PerspectiveDivide(v1);
 
 			float dx = v1->screenPosition.x - v0->screenPosition.x;
 			float dy = v1->screenPosition.y - v0->screenPosition.y;
@@ -393,57 +382,57 @@ namespace Clipper
 			Rasterizer::DrawTriangleFrontFace(&triangle[0], &triangle[1], &triangle[2]);
 		}
 	}
-        
-    bool CullTest(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2, bool &backface)
-    {
-        int mask = CalcClipMask(v0);
-        mask &= CalcClipMask(v1);
-        mask &= CalcClipMask(v2);
 
-        if(mask)
-        {
-            INCSTAT(swstats.thisFrame.numTrianglesRejected)
-            return false;
-        }
+	bool CullTest(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2, bool &backface)
+	{
+		int mask = CalcClipMask(v0);
+		mask &= CalcClipMask(v1);
+		mask &= CalcClipMask(v2);
 
-        float x0 = v0->projectedPosition.x;
-        float x1 = v1->projectedPosition.x;
-        float x2 = v2->projectedPosition.x;
-        float y1 = v1->projectedPosition.y;
-        float y0 = v0->projectedPosition.y;
-        float y2 = v2->projectedPosition.y;
-        float w0 = v0->projectedPosition.w;
-        float w1 = v1->projectedPosition.w;
-        float w2 = v2->projectedPosition.w;
+		if(mask)
+		{
+			INCSTAT(swstats.thisFrame.numTrianglesRejected)
+			return false;
+		}
 
-        float normalZDir = (x0*w2 - x2*w0)*y1 + (x2*y0 - x0*y2)*w1 + (y2*w0 - y0*w2)*x1; 
+		float x0 = v0->projectedPosition.x;
+		float x1 = v1->projectedPosition.x;
+		float x2 = v2->projectedPosition.x;
+		float y1 = v1->projectedPosition.y;
+		float y0 = v0->projectedPosition.y;
+		float y2 = v2->projectedPosition.y;
+		float w0 = v0->projectedPosition.w;
+		float w1 = v1->projectedPosition.w;
+		float w2 = v2->projectedPosition.w;
 
-        backface = normalZDir <= 0.0f;
+		float normalZDir = (x0*w2 - x2*w0)*y1 + (x2*y0 - x0*y2)*w1 + (y2*w0 - y0*w2)*x1; 
 
-        if ((bpmem.genMode.cullmode & 1) && !backface) // cull frontfacing
-        {
-            INCSTAT(swstats.thisFrame.numTrianglesCulled)
-            return false;
-        }
+		backface = normalZDir <= 0.0f;
 
-        if ((bpmem.genMode.cullmode & 2) && backface) // cull backfacing
-        {
-            INCSTAT(swstats.thisFrame.numTrianglesCulled)
-            return false;
-        }
+		if ((bpmem.genMode.cullmode & 1) && !backface) // cull frontfacing
+		{
+			INCSTAT(swstats.thisFrame.numTrianglesCulled)
+			return false;
+		}
 
-        return true;
-    }
+		if ((bpmem.genMode.cullmode & 2) && backface) // cull backfacing
+		{
+			INCSTAT(swstats.thisFrame.numTrianglesCulled)
+			return false;
+		}
 
-    void PerspectiveDivide(OutputVertexData *vertex)
-    {
-        Vec4 &projected = vertex->projectedPosition;
-        Vec3 &screen = vertex->screenPosition;
+		return true;
+	}
 
-        float wInverse = 1.0f/projected.w;
-        screen.x = projected.x * wInverse * swxfregs.viewport.wd + m_ViewOffset[0];
-        screen.y = projected.y * wInverse * swxfregs.viewport.ht + m_ViewOffset[1];
-        screen.z = projected.z * wInverse * swxfregs.viewport.zRange + swxfregs.viewport.farZ;
-    }
-    
+	void PerspectiveDivide(OutputVertexData *vertex)
+	{
+		Vec4 &projected = vertex->projectedPosition;
+		Vec3 &screen = vertex->screenPosition;
+
+		float wInverse = 1.0f/projected.w;
+		screen.x = projected.x * wInverse * swxfregs.viewport.wd + m_ViewOffset[0];
+		screen.y = projected.y * wInverse * swxfregs.viewport.ht + m_ViewOffset[1];
+		screen.z = projected.z * wInverse * swxfregs.viewport.zRange + swxfregs.viewport.farZ;
+	}
+
 }

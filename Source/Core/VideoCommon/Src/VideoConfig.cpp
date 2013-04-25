@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <cmath>
 
@@ -49,7 +36,6 @@ VideoConfig::VideoConfig()
 
 void VideoConfig::Load(const char *ini_file)
 {
-	std::string temp;
 	IniFile iniFile;
 	iniFile.Load(ini_file);
 
@@ -80,7 +66,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "HackedBufferUpload", &bHackedBufferUpload, 0);
 
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-	iniFile.Get("Settings", "EFBScale", &iEFBScale, 2); // native
+	iniFile.Get("Settings", "EFBScale", &iEFBScale, (int) SCALE_1X); // native
 
 	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
 
@@ -138,7 +124,33 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
 	iniFile.GetIfExists("Video_Settings", "HackedBufferUpload", &bHackedBufferUpload);
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
-	iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale); // integral
+	int tmp = -9000;
+	iniFile.GetIfExists("Video_Settings", "EFBScale", &tmp); // integral
+	if (tmp != -9000)
+	{
+		if (tmp != SCALE_FORCE_INTEGRAL)
+		{
+			iEFBScale = tmp;
+		}
+		else // Round down to multiple of native IR
+		{
+			switch (iEFBScale)
+			{
+			case SCALE_AUTO:
+				iEFBScale = SCALE_AUTO_INTEGRAL;
+				break;
+			case SCALE_1_5X:
+				iEFBScale = SCALE_1X;
+				break;
+			case SCALE_2_5X:
+				iEFBScale = SCALE_2X;
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
 	iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass);
 	iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog);
 	iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL);

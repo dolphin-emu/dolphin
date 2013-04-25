@@ -16,7 +16,7 @@
 #endif /* __cplusplus */
 
 /* fill in with the string wxGetOsDescription() will return */
-#define WXWIN_OS_DESCRIPTION "Darwin 11.3.0 i386"
+#define WXWIN_OS_DESCRIPTION "Darwin 11.4.2 x86_64"
 
 /* the installation location prefix from configure */
 #define wxINSTALL_PREFIX "/usr/local"
@@ -205,7 +205,7 @@
 
 
 
-#define wxUSE_STL 0
+#define wxUSE_STL 1
 
 #if defined(__DMC__) || defined(__WATCOMC__) \
         || (defined(_MSC_VER) && _MSC_VER < 1200)
@@ -214,7 +214,7 @@
     #define wxUSE_STD_DEFAULT  0
 #endif
 
-#define wxUSE_STD_CONTAINERS 0
+#define wxUSE_STD_CONTAINERS 1
 
 #define wxUSE_STD_IOSTREAM 1
 
@@ -715,7 +715,7 @@
 /*
  * Define if your compiler has compliant std::string::compare
  */
-/* #undef HAVE_STD_STRING_COMPARE */
+#define HAVE_STD_STRING_COMPARE 1
 /*
  * Define if your compiler has <hash_map>
  */
@@ -736,12 +736,12 @@
 /*
  * Define if your compiler has std::unordered_map
  */
-/* #undef HAVE_STD_UNORDERED_MAP */
+#define HAVE_STD_UNORDERED_MAP 1
 
 /*
  * Define if your compiler has std::unordered_set
  */
-/* #undef HAVE_STD_UNORDERED_SET */
+#define HAVE_STD_UNORDERED_SET 1
 
 /*
  * Define if your compiler has std::tr1::unordered_map
@@ -756,12 +756,12 @@
 /*
  * Define if your compiler has <tr1/type_traits>
  */
-#define HAVE_TR1_TYPE_TRAITS 1
+/* #undef HAVE_TR1_TYPE_TRAITS */
 
 /*
  * Define if your compiler has <type_traits>
  */
-/* #undef HAVE_TYPE_TRAITS */
+#define HAVE_TYPE_TRAITS 1
 
 /*
  * Define if the compiler supports simple visibility declarations.
@@ -830,7 +830,7 @@
 /*
  * Define if compiler has __thread keyword.
  */
-/* #undef HAVE___THREAD_KEYWORD */
+#define HAVE___THREAD_KEYWORD 1
 /*
  * Define if large (64 bit file offsets) files are supported.
  */
@@ -996,25 +996,25 @@
 #define HAVE_USLEEP 1
 
 /* Define if you have wcscasecmp() function  */
-/* #undef HAVE_WCSCASECMP 1 */
+#define HAVE_WCSCASECMP 1
 
 /* Define if you have wcsncasecmp() function  */
-/* #undef HAVE_WCSNCASECMP 1 */
+#define HAVE_WCSNCASECMP 1
 
 /* Define if you have wcslen function  */
 #define HAVE_WCSLEN 1
 
 /* Define if you have wcsdup function  */
-/* #undef HAVE_WCSDUP 1 */
+#define HAVE_WCSDUP 1
 
 /* Define if you have wcsftime() function  */
 #define HAVE_WCSFTIME 1
 
 /* Define if you have strnlen() function */
-/* #undef HAVE_STRNLEN 1 */
+#define HAVE_STRNLEN 1
 
 /* Define if you have wcsnlen() function */
-/* #undef HAVE_WCSNLEN 1 */
+#define HAVE_WCSNLEN 1
 
 /* Define if you have wcstoull() and wcstoll() */
 /* #undef HAVE_WCSTOULL */

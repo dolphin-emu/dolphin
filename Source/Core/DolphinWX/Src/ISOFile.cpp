@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <string>
 #include <vector>
@@ -37,7 +24,7 @@
 #include "ChunkFile.h"
 #include "ConfigManager.h"
 
-#define CACHE_REVISION 0x112
+static const u32 CACHE_REVISION = 0x114;
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -48,6 +35,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName)
 	, m_emu_state(0)
 	, m_FileSize(0)
+	, m_Revision(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
 {
@@ -71,14 +59,15 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_volume_names = pVolume->GetNames();
 
 			m_Country  = pVolume->GetCountry();
-			m_FileSize = File::GetSize(_rFileName);
+			m_FileSize = pVolume->GetRawSize();
 			m_VolumeSize = pVolume->GetSize();
 
 			m_UniqueID = pVolume->GetUniqueID();
 			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
 			m_IsDiscTwo = pVolume->IsDiscTwo();
+			m_Revision = pVolume->GetRevision();
 
-			// check if we can get some infos from the banner file too
+			// check if we can get some info from the banner file too
 			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
 			if (pFileSystem != NULL || m_Platform == WII_WAD)
@@ -137,16 +126,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	}
 	else
 	{
-		std::string theme = SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name + "/";
-		std::string dir = File::GetUserPath(D_THEMES_IDX) + theme;
-
-#if !defined(_WIN32)
-		// If theme does not exist in user's dir load from shared directory
-		if (!File::Exists(dir))
-			dir = SHARED_USER_DIR THEMES_DIR "/" + theme;
-#endif
 		// default banner
-		m_Image = wxImage(dir + "nobanner.png", wxBITMAP_TYPE_PNG);
+		m_Image = wxImage(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 
@@ -183,6 +164,7 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_pImage);
 	p.Do(m_Platform);
 	p.Do(m_IsDiscTwo);
+	p.Do(m_Revision);
 }
 
 std::string GameListItem::CreateCacheFilename()
@@ -211,10 +193,10 @@ std::string GameListItem::GetCompany() const
 		return m_company;
 }
 
-// (-1 = Japanese, 0 = English, etc)
+// (-1 = Japanese, 0 = English, etc)?
 std::string GameListItem::GetDescription(int _index) const
 {
-	const u32 index = _index + 1;
+	const u32 index = _index;
 
 	if (index < m_descriptions.size())
 		return m_descriptions[index];
@@ -225,10 +207,10 @@ std::string GameListItem::GetDescription(int _index) const
 	return "";
 }
 
-// (-1 = Japanese, 0 = English, etc)
+// (-1 = Japanese, 0 = English, etc)?
 std::string GameListItem::GetVolumeName(int _index) const
 {
-	u32 const index = _index + 1;
+	u32 const index = _index;
 
 	if (index < m_volume_names.size() && !m_volume_names[index].empty())
 		return m_volume_names[index];
@@ -239,10 +221,10 @@ std::string GameListItem::GetVolumeName(int _index) const
 	return "";
 }
 
-// (-1 = Japanese, 0 = English, etc)
+// (-1 = Japanese, 0 = English, etc)?
 std::string GameListItem::GetBannerName(int _index) const
 {
-	u32 const index = _index + 1;
+	u32 const index = _index;
 
 	if (index < m_names.size() && !m_names[index].empty())
 		return m_names[index];
@@ -253,7 +235,7 @@ std::string GameListItem::GetBannerName(int _index) const
 	return "";
 }
 
-// (-1 = Japanese, 0 = English, etc)
+// (-1 = Japanese, 0 = English, etc)?
 std::string GameListItem::GetName(int _index) const
 {
 	// Prefer name from banner, fallback to name from volume, fallback to filename

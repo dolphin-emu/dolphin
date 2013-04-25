@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 #include <stdio.h>
 
 #include "Common.h"
@@ -34,13 +22,13 @@ namespace ProcessorInterface
 enum
 {
 	PI_INTERRUPT_CAUSE		= 0x00,
-	PI_INTERRUPT_MASK       = 0x04,
-	PI_FIFO_BASE            = 0x0C,
-	PI_FIFO_END             = 0x10,
-	PI_FIFO_WPTR            = 0x14,
-	PI_FIFO_RESET           = 0x18, // ??? - GXAbortFrame writes to it
-	PI_RESET_CODE           = 0x24,
-	PI_FLIPPER_REV          = 0x2C,
+	PI_INTERRUPT_MASK		= 0x04,
+	PI_FIFO_BASE			= 0x0C,
+	PI_FIFO_END				= 0x10,
+	PI_FIFO_WPTR			= 0x14,
+	PI_FIFO_RESET			= 0x18, // ??? - GXAbortFrame writes to it
+	PI_RESET_CODE			= 0x24,
+	PI_FLIPPER_REV			= 0x2C,
 	PI_FLIPPER_UNK			= 0x30 // BS1 writes 0x0245248A to it - prolly some bootstrap thing
 };
 
@@ -74,9 +62,9 @@ void DoState(PointerWrap &p)
 	p.Do(Fifo_CPUBase);
 	p.Do(Fifo_CPUEnd);
 	p.Do(Fifo_CPUWritePointer);
- 	p.Do(m_Fifo_Reset);
- 	p.Do(m_ResetCode);
- 	p.Do(m_FlipperRev);
+	p.Do(m_Fifo_Reset);
+	p.Do(m_ResetCode);
+	p.Do(m_FlipperRev);
 	p.Do(m_Unknown);
 }
 
@@ -124,28 +112,28 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case PI_FIFO_BASE:
-		DEBUG_LOG(PROCESSORINTERFACE, "read cpu fifo base, value = %08x", Fifo_CPUBase);
+		DEBUG_LOG(PROCESSORINTERFACE, "Read CPU FIFO base, value = %08x", Fifo_CPUBase);
 		_uReturnValue = Fifo_CPUBase;
 		return;
 
 	case PI_FIFO_END:
-		DEBUG_LOG(PROCESSORINTERFACE, "read cpu fifo end, value = %08x", Fifo_CPUEnd);
+		DEBUG_LOG(PROCESSORINTERFACE, "Read CPU FIFO end, value = %08x", Fifo_CPUEnd);
 		_uReturnValue = Fifo_CPUEnd;
 		return;
 
 	case PI_FIFO_WPTR:
-		DEBUG_LOG(PROCESSORINTERFACE, "read writepointer, value = %08x", Fifo_CPUWritePointer);
+		DEBUG_LOG(PROCESSORINTERFACE, "Read writepointer, value = %08x", Fifo_CPUWritePointer);
 		_uReturnValue = Fifo_CPUWritePointer;  //really writes in 32-byte chunks
 		// Monk's gcube does some crazy align trickery here.
 		return;
 
 	case PI_RESET_CODE:
-		INFO_LOG(PROCESSORINTERFACE, "read reset code, 0x%08x", m_ResetCode);
+		INFO_LOG(PROCESSORINTERFACE, "Read reset code, 0x%08x", m_ResetCode);
 		_uReturnValue = m_ResetCode;
 		return;
 
 	case PI_FLIPPER_REV:
-		INFO_LOG(PROCESSORINTERFACE, "read flipper rev, 0x%08x", m_FlipperRev);
+		INFO_LOG(PROCESSORINTERFACE, "Read flipper rev, 0x%08x", m_FlipperRev);
 		_uReturnValue = m_FlipperRev;
 		return;
 		
@@ -188,13 +176,13 @@ void Write32(const u32 _uValue, const u32 _iAddress)
 		DEBUG_LOG(PROCESSORINTERFACE,"Fifo writeptr = %08x", _uValue);
 		break;
 
-    case PI_FIFO_RESET:
+	case PI_FIFO_RESET:
 		//Abort the actual frame
 		//g_video_backend->Video_AbortFrame();
-        //Fifo_CPUWritePointer = Fifo_CPUBase; ??
+		//Fifo_CPUWritePointer = Fifo_CPUBase; ??
 		//PanicAlert("Unknown write to PI_FIFO_RESET (%08x)", _uValue);
 		WARN_LOG(PROCESSORINTERFACE, "Fifo reset (%08x)", _uValue);
-        break;
+		break;
 
 	case PI_RESET_CODE:
 		DEBUG_LOG(PROCESSORINTERFACE, "Write %08x to PI_RESET_CODE", _uValue);
@@ -202,7 +190,7 @@ void Write32(const u32 _uValue, const u32 _iAddress)
 		break;
 
 	case PI_FLIPPER_UNK:
-		DEBUG_LOG(PROCESSORINTERFACE, "write %08x to unknown PI reg %08x", _uValue, _iAddress);
+		DEBUG_LOG(PROCESSORINTERFACE, "Write %08x to unknown PI register %08x", _uValue, _iAddress);
 		break;
 
 	default:
@@ -237,9 +225,9 @@ static const char *Debug_GetInterruptName(u32 _causemask)
 	case INT_CAUSE_PE_FINISH:		return "INT_CAUSE_PE_FINISH";
 	case INT_CAUSE_CP:				return "INT_CAUSE_CP";
 	case INT_CAUSE_DEBUG:			return "INT_CAUSE_DEBUG";
-    case INT_CAUSE_WII_IPC:			return "INT_CAUSE_WII_IPC";
+	case INT_CAUSE_WII_IPC:			return "INT_CAUSE_WII_IPC";
 	case INT_CAUSE_HSP:				return "INT_CAUSE_HSP";
-	case INT_CAUSE_RST_BUTTON:      return "INT_CAUSE_RST_BUTTON";
+	case INT_CAUSE_RST_BUTTON:		return "INT_CAUSE_RST_BUTTON";
 	default:						return "!!! ERROR-unknown Interrupt !!!";
 	}
 }
@@ -248,15 +236,15 @@ void SetInterrupt(u32 _causemask, bool _bSet)
 {
 	// TODO(ector): add sanity check that current thread id is cpu thread
 
-    if (_bSet && !(m_InterruptCause & _causemask))
-    {
-        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (set)", Debug_GetInterruptName(_causemask));
-    }
+	if (_bSet && !(m_InterruptCause & _causemask))
+	{
+		DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (set)", Debug_GetInterruptName(_causemask));
+	}
 
 	if (!_bSet && (m_InterruptCause & _causemask))
-    {
-        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (clear)", Debug_GetInterruptName(_causemask));
-    }
+	{
+		DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (clear)", Debug_GetInterruptName(_causemask));
+	}
 	
 	if (_bSet)
 		Common::AtomicOr(m_InterruptCause, _causemask);

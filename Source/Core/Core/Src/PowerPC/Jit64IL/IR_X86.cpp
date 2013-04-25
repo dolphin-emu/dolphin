@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 /*
 For a more general explanation of the IR, see IR.cpp.
@@ -762,6 +749,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case FPExceptionCheck:
 		case DSIExceptionCheck:
 		case ISIException:
+		case ExtExceptionCheck:
 		case BreakPointCheck:
 		case Int3:
 		case Tramp:
@@ -1938,6 +1926,27 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->MOV(32, MatR(RAX), Imm32(JIT_ICACHE_INVALID_WORD));
 #endif
 			Jit->WriteExceptionExit();
+			break;
+		}
+		case ExtExceptionCheck: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
+			FixupBranch clearInt = Jit->J_CC(CC_NZ);
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+			FixupBranch noExtException = Jit->J_CC(CC_Z);
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
+			FixupBranch noExtIntEnable = Jit->J_CC(CC_Z);
+			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
+			FixupBranch noCPInt = Jit->J_CC(CC_Z);
+
+			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->WriteExceptionExit();
+
+			Jit->SetJumpTarget(noCPInt);
+			Jit->SetJumpTarget(noExtIntEnable);
+			Jit->SetJumpTarget(noExtException);
+			Jit->SetJumpTarget(clearInt);
 			break;
 		}
 		case BreakPointCheck: {

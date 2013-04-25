@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -300,7 +287,7 @@ bool Wiimote::Connect()
 	TCHAR name[128] = {};
 	HidD_GetProductString(dev_handle, name, 128);
 
-	//ERROR_LOG(WIIMOTE, "product string: %s", TStrToUTF8(name).c_str());
+	//ERROR_LOG(WIIMOTE, "Product string: %s", TStrToUTF8(name).c_str());
 
 	if (!IsValidBluetoothName(TStrToUTF8(name)))
 	{
@@ -333,7 +320,7 @@ bool Wiimote::Connect()
 /*
 	if (!SetThreadPriority(m_wiimote_thread.native_handle(), THREAD_PRIORITY_TIME_CRITICAL))
 	{
-		ERROR_LOG(WIIMOTE, "Failed to set wiimote thread priority");
+		ERROR_LOG(WIIMOTE, "Failed to set Wiimote thread priority");
 	}
 */
 #ifdef SHARE_WRITE_WIIMOTES
@@ -370,73 +357,55 @@ bool Wiimote::IsConnected() const
 // zero = error
 int Wiimote::IORead(u8* buf)
 {
-	// used below for a warning
-	*buf = 0;
+	// Add data report indicator byte (here, 0xa1)
+	buf[0] = 0xa1;
+	// Used below for a warning
+	buf[1] = 0;
 	
-	DWORD bytes;
+	DWORD bytes = 0;
 	ResetEvent(hid_overlap_read.hEvent);
-	if (!ReadFile(dev_handle, buf, MAX_PAYLOAD - 1, &bytes, &hid_overlap_read))
+	if (!ReadFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap_read))
 	{
-		auto const err = GetLastError();
+		auto const read_err = GetLastError();
 
-		if (ERROR_IO_PENDING == err)
+		if (ERROR_IO_PENDING == read_err)
 		{
-			auto const r = WaitForSingleObject(hid_overlap_read.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
-			if (WAIT_TIMEOUT == r)
+			auto const wait_result = WaitForSingleObject(hid_overlap_read.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
+			if (WAIT_TIMEOUT == wait_result)
 			{
-				// Timeout - cancel and continue
-				if (*buf)
-					WARN_LOG(WIIMOTE, "Packet ignored.  This may indicate a problem (timeout is %i ms).",
+				CancelIo(dev_handle);
+			}
+			else if (WAIT_FAILED == wait_result)
+			{
+				WARN_LOG(WIIMOTE, "A wait error occurred on reading from Wiimote %i.", index + 1);
+				CancelIo(dev_handle);
+			}
+
+			if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, TRUE))
+			{
+				auto const overlapped_err = GetLastError();
+
+				if (ERROR_OPERATION_ABORTED == overlapped_err)
+				{
+					if (buf[1] != 0)
+						WARN_LOG(WIIMOTE, "Packet ignored. This may indicate a problem (timeout is %i ms).",
 							WIIMOTE_DEFAULT_TIMEOUT);
 
-				CancelIo(dev_handle);
-				bytes = -1;
-			}
-			else if (WAIT_FAILED == r)
-			{
-				WARN_LOG(WIIMOTE, "A wait error occured on reading from wiimote %i.", index + 1);
-				bytes = 0;
-			}
-			else if (WAIT_OBJECT_0 == r)
-			{
-				if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, TRUE))
-				{
-					WARN_LOG(WIIMOTE, "GetOverlappedResult failed on wiimote %i.", index + 1);
-					bytes = 0;
+					return -1;
 				}
+
+				WARN_LOG(WIIMOTE, "GetOverlappedResult error %d on Wiimote %i.", overlapped_err, index + 1);
+				return 0;
 			}
-			else
-			{
-				bytes =  0;
-			}
-		}
-		else if (ERROR_HANDLE_EOF == err)
-		{
-			// Remote disconnect
-			bytes = 0;
-		}
-		else if (ERROR_DEVICE_NOT_CONNECTED == err)
-		{
-			// Remote disconnect
-			bytes = 0;
 		}
 		else
 		{
-			bytes = 0;
+			WARN_LOG(WIIMOTE, "ReadFile error %d on Wiimote %i.", read_err, index + 1);
+			return 0;
 		}
 	}
 
-	if (bytes > 0)
-	{
-		// Move the data over one, so we can add back in data report indicator byte (here, 0xa1)
-		std::copy_n(buf, MAX_PAYLOAD - 1, buf + 1);
-		buf[0] = 0xa1;
-
-		// TODO: is this really needed?
-		bytes = MAX_PAYLOAD;
-	}
-
-	return bytes;
+	return bytes + 1;
 }
 
 int Wiimote::IOWrite(const u8* buf, int len)
@@ -468,7 +437,7 @@ int Wiimote::IOWrite(const u8* buf, int len)
 			if (err == 121)
 			{
 				// Semaphore timeout
-				NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to wiimote");
+				NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to the Wiimote");
 			}
 			else
 			{
@@ -553,8 +522,8 @@ void ProcessWiimotes(bool new_scan, T& callback)
 			HBLUETOOTH_DEVICE_FIND hFindDevice = Bth_BluetoothFindFirstDevice(&srch, &btdi);
 			while (hFindDevice)
 			{
-				// btdi.szName is sometimes missings it's content - it's a bt feature..
-				DEBUG_LOG(WIIMOTE, "authed %i connected %i remembered %i ",
+				// btdi.szName is sometimes missing it's content - it's a bt feature..
+				DEBUG_LOG(WIIMOTE, "Authenticated %i connected %i remembered %i ",
 						btdi.fAuthenticated, btdi.fConnected, btdi.fRemembered);
 
 				if (IsValidBluetoothName(UTF16ToUTF8(btdi.szName)))
@@ -597,7 +566,7 @@ bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO& radio_info, BLUETO
 	{
 		auto const& wm_addr = btdi.Address.rgBytes;
 
-		NOTICE_LOG(WIIMOTE, "Found wiimote (%02x:%02x:%02x:%02x:%02x:%02x). Enabling HID service.",
+		NOTICE_LOG(WIIMOTE, "Found Wiimote (%02x:%02x:%02x:%02x:%02x:%02x). Enabling HID service.",
 			wm_addr[0], wm_addr[1], wm_addr[2], wm_addr[3], wm_addr[4], wm_addr[5]);
 
 #if defined(AUTHENTICATE_WIIMOTES)
@@ -647,7 +616,7 @@ bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 		{
 			// Make Windows forget about device so it will re-find it if visible.
 			// This is also required to detect a disconnect for some reason..
-			NOTICE_LOG(WIIMOTE, "Removing remembered wiimote.");
+			NOTICE_LOG(WIIMOTE, "Removing remembered Wiimote.");
 			Bth_BluetoothRemoveDevice(&btdi.Address);
 			return true;
 		}

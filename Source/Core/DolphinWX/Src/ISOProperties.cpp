@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifdef __APPLE__
 #import <Cocoa/Cocoa.h>
@@ -98,7 +85,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 				}
 			}
 			else
+			{
 				break;
+			}
 		}
 	}
 	else
@@ -131,9 +120,13 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			_iniFilename = tmp;
 		}
 	}
+
 	GameIniFile = File::GetUserPath(D_GAMECONFIG_IDX) + _iniFilename + ".ini";
+
 	if (GameIni.Load(GameIniFile.c_str()))
+	{
 		LoadGameConfig();
+	}
 	else
 	{
 		// Will fail out if GameConfig folder doesn't exist
@@ -148,6 +141,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 				<< "[ActionReplay] Add action replay cheats here.\n";
 			f.close();
 		}
+
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();
 		else
@@ -201,6 +195,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	}
 	wxString temp = _T("0x") + StrToWxStr(OpenISO->GetMakerID());
 	m_MakerID->SetValue(temp);
+	m_Revision->SetValue(wxString::Format(wxT("%u"), OpenISO->GetRevision()));
 	m_Date->SetValue(StrToWxStr(OpenISO->GetApploaderDate()));
 	m_FST->SetValue(wxString::Format(wxT("%u"), OpenISO->GetFSTSize()));
 
@@ -226,7 +221,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 			}
 		}
 		else if (!GCFiles.empty())
+		{
 			CreateDirectoryTree(RootId, GCFiles, 1, GCFiles.at(0)->m_FileSize);
+		}
 
 		m_Treectrl->Expand(RootId);
 	}
@@ -255,7 +252,11 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 		const DiscIO::SFileInfo *rFileInfo = fileInfos[CurrentIndex];
 		char *name = (char*)rFileInfo->m_FullPath;
 
-		if (rFileInfo->IsDirectory()) name[strlen(name) - 1] = '\0';
+		if (rFileInfo->IsDirectory())
+		{
+			name[strlen(name) - 1] = '\0';
+		}
+
 		char *itemName = strrchr(name, DIR_SEP_CHR);
 
 		if(!itemName)
@@ -314,10 +315,10 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	TLBHack->SetToolTip(_("Fast version of the MMU.  Does not work for every game."));
 	DCBZOFF = new wxCheckBox(m_GameConfig, ID_DCBZOFF, _("Skip DCBZ clearing"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DCBZOFF->SetToolTip(_("Bypass the clearing of the data cache by the DCBZ instruction. Usually leave this option disabled."));
-	VBeam = new wxCheckBox(m_GameConfig, ID_VBEAM, _("Accurate VBeam emulation"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	VBeam->SetToolTip(_("If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"));
-	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Synchronise GPU thread"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	SyncGPU->SetToolTip(_("Synchonises the GPU and CPU threads to help prevent random freezes in Dual Core mode. (ON = Compatible, OFF = Fast)"));
+	VBeam = new wxCheckBox(m_GameConfig, ID_VBEAM, _("VBeam Speed Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	VBeam->SetToolTip(_("Doubles the emulated GPU clock rate. May speed up some games (ON = Fast, OFF = Compatible)"));
+	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Synchronize GPU thread"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	SyncGPU->SetToolTip(_("Synchronizes the GPU and CPU threads to help prevent random freezes in Dual Core mode. (ON = Compatible, OFF = Fast)"));
 	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	FastDiscSpeed->SetToolTip(_("Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = Compatible)"));
 	BlockMerging = new wxCheckBox(m_GameConfig, ID_MERGEBLOCKS, _("Enable Block Merging"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -459,6 +460,10 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 		new wxStaticText(m_Information, wxID_ANY, _("Maker ID:"));
 	m_MakerID = new wxTextCtrl(m_Information, ID_MAKERID, wxEmptyString,
 			wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+	wxStaticText * const m_RevisionText =
+		new wxStaticText(m_Information, wxID_ANY, _("Revision:"));
+	m_Revision = new wxTextCtrl(m_Information, ID_REVISION, wxEmptyString,
+			 wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText * const m_DateText =
 		new wxStaticText(m_Information, wxID_ANY, _("Date:"));
 	m_Date = new wxTextCtrl(m_Information, ID_DATE, wxEmptyString,
@@ -496,10 +501,12 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sISODetails->Add(m_Country, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_MakerIDText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_MakerID, wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_DateText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_Date, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_FSTText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_FST, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_RevisionText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sISODetails->Add(m_Revision, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_DateText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sISODetails->Add(m_Date, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_FSTText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sISODetails->Add(m_FST, wxGBPosition(6, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->AddGrowableCol(1);
 	wxStaticBoxSizer * const sbISODetails =
 		new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));
@@ -664,7 +671,9 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 		WiiDisc.at(partitionNum).FileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
 	}
 	else
+	{
 		pFileSystem->ExportFile(WxStrToStr(File).c_str(), WxStrToStr(Path).c_str());
+	}
 }
 
 void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolder, const int partitionNum)
@@ -679,7 +688,9 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		FS = WiiDisc.at(partitionNum).FileSystem;
 	}
 	else
+	{
 		FS = pFileSystem;
+	}
 
 	FS->GetFileList(fst);
 
@@ -698,13 +709,13 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		{
 			if (!strcmp(fst.at(index[0])->m_FullPath, _rFullPath))
 			{
-				DEBUG_LOG(DISCIO, "Found the Dir at %u", index[0]);
+				DEBUG_LOG(DISCIO, "Found the directory at %u", index[0]);
 				index[1] = (u32)fst.at(index[0])->m_FileSize;
 				break;
 			}
 		}
 
-		DEBUG_LOG(DISCIO,"Dir found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
+		DEBUG_LOG(DISCIO,"Directory found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
 	}
 
 	wxString dialogTitle = index[0] ? _("Extracting Directory") : _("Extracting All Files");
@@ -744,7 +755,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 				if (!File::IsDirectory(exportName))
 					ERROR_LOG(DISCIO, "%s already exists and is not a directory", exportName);
 
-				DEBUG_LOG(DISCIO, "folder %s already exists", exportName);
+				DEBUG_LOG(DISCIO, "Folder %s already exists", exportName);
 			}
 		}
 		else
@@ -799,7 +810,9 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str(), partitionNum);
 	}
 	else
+	{
 		ExportDir(WxStrToStr(Directory).c_str(), WxStrToStr(Path).c_str());
+	}
 }
 
 void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
@@ -1334,7 +1347,7 @@ void CISOProperties::ChangeBannerDetails(int lang)
 	wxString const comment = StrToWxStr(OpenGameListItem->GetDescription(lang));
 	wxString const maker = StrToWxStr(OpenGameListItem->GetCompany());
 
-	// Updates the informations shown in the window
+	// Updates the information shown in the window
 	m_ShortName->SetValue(shortName);
 	m_Comment->SetValue(comment);
 	m_Maker->SetValue(maker);//dev too

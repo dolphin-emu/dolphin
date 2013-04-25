@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "StringUtil.h"
@@ -62,20 +49,20 @@ END_EVENT_TABLE()
 CCodeView::CCodeView(DebugInterface* debuginterface, SymbolDB *symboldb,
 		wxWindow* parent, wxWindowID Id)
 	: wxControl(parent, Id),
-      debugger(debuginterface),
+	  debugger(debuginterface),
 	  symbol_db(symboldb),
 	  plain(false),
 	  curAddress(debuginterface->getPC()),
 	  align(debuginterface->getInstructionSize(0)),
-      rowHeight(13),
-      selection(0),
-      oldSelection(0),
-      selectionChanged(false),
-      selecting(false),
-      hasFocus(false),
-      showHex(false),
-      lx(-1),
-      ly(-1)
+	  rowHeight(13),
+	  selection(0),
+	  oldSelection(0),
+	  selectionChanged(false),
+	  selecting(false),
+	  hasFocus(false),
+	  showHex(false),
+	  lx(-1),
+	  ly(-1)
 {
 }
 
@@ -104,7 +91,9 @@ void CCodeView::OnMouseDown(wxMouseEvent& event)
 			Refresh();
 	}
 	else
+	{
 		ToggleBreakpoint(YToAddress(y));
+	}
 
 	event.Skip(true);
 }
@@ -133,7 +122,9 @@ void CCodeView::OnMouseMove(wxMouseEvent& event)
 			Refresh();
 		}
 		else
+		{
 			OnMouseDown(event);
+		}
 	}
 
 	event.Skip(true);
@@ -176,14 +167,17 @@ u32 CCodeView::AddrToBranch(u32 addr)
 void CCodeView::InsertBlrNop(int Blr)
 {
 	// Check if this address has been modified
-	int find = -1;				
+	int find = -1;
 	for(u32 i = 0; i < BlrList.size(); i++)
 	{
 		if(BlrList.at(i).Address == selection)
-		{ find = i; break;  }					
+		{
+			find = i;
+			break;
+		}
 	}
 
-	// Save the old value				
+	// Save the old value
 	if (find >= 0)
 	{
 		debugger->writeExtraMemory(0, BlrList.at(find).OldValue, selection);
@@ -196,11 +190,11 @@ void CCodeView::InsertBlrNop(int Blr)
 		Temp.OldValue = debugger->readMemory(selection);
 		BlrList.push_back(Temp);
 		if (Blr == 0)
-			debugger->insertBLR(selection, 0x4e800020);			
+			debugger->insertBLR(selection, 0x4e800020);
 		else
-			debugger->insertBLR(selection, 0x60000000);	
+			debugger->insertBLR(selection, 0x60000000);
 	}
-	Refresh();	
+	Refresh();
 }
 
 void CCodeView::OnPopupMenu(wxCommandEvent& event)
@@ -211,14 +205,14 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 	switch (event.GetId())
 	{
-	    case IDM_GOTOINMEMVIEW:
-		    // CMemoryDlg::Goto(selection);
-		    break;
+		case IDM_GOTOINMEMVIEW:
+			// CMemoryDlg::Goto(selection);
+			break;
 
 #if wxUSE_CLIPBOARD
-	    case IDM_COPYADDRESS:
-		    wxTheClipboard->SetData(new wxTextDataObject(wxString::Format(_T("%08x"), selection)));
-		    break;
+		case IDM_COPYADDRESS:
+			wxTheClipboard->SetData(new wxTextDataObject(wxString::Format(_T("%08x"), selection)));
+			break;
 
 		case IDM_COPYCODE:
 			{
@@ -228,13 +222,13 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			}
 			break;
 
-	    case IDM_COPYHEX:
-		    {
-		    char temp[24];
-		    sprintf(temp, "%08x", debugger->readInstruction(selection));
-		    wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
-		    }
-		    break;
+		case IDM_COPYHEX:
+			{
+			char temp[24];
+			sprintf(temp, "%08x", debugger->readInstruction(selection));
+			wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
+			}
+			break;
 
 
 		case IDM_COPYFUNCTION:
@@ -259,11 +253,11 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			break;
 #endif
 
-	    case IDM_RUNTOHERE:
-		    debugger->setBreakpoint(selection);
-		    debugger->runToBreakpoint();
-		    Refresh();
-		    break;
+		case IDM_RUNTOHERE:
+			debugger->setBreakpoint(selection);
+			debugger->runToBreakpoint();
+			Refresh();
+			break;
 
 		// Insert blr or restore old value
 		case IDM_INSERTBLR:
@@ -275,9 +269,9 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			Refresh();
 			break;
 
-	    case IDM_JITRESULTS:
+		case IDM_JITRESULTS:
 			debugger->showJitResults(selection);
-		    break;
+			break;
 			
 		case IDM_FOLLOWBRANCH:
 			{
@@ -366,7 +360,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	dc.GetTextExtent(_T("0WJyq"),&w,&h);
 
 	if (h > rowHeight)
-	    rowHeight = h;
+		rowHeight = h;
 
 	dc.GetTextExtent(_T("W"),&w,&h);
 	int charWidth = w;
@@ -507,7 +501,8 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 				strcpy(desc, debugger->getDescription(address).c_str());
 			}
 
-			if (!plain) {
+			if (!plain)
+			{
 				dc.SetTextForeground(_T("#0000FF")); // blue
 
 				//char temp[256];
@@ -535,11 +530,11 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	
 	for (int i = 0; i < numBranches; i++)
 	{
-	    int x = 17 + 49 * charWidth + (branches[i].srcAddr % 9) * 8;
-	    _MoveTo(x-2, branches[i].src);
+		int x = 17 + 49 * charWidth + (branches[i].srcAddr % 9) * 8;
+		_MoveTo(x-2, branches[i].src);
 
 		if (branches[i].dst < rc.height + 400 && branches[i].dst > -400)
-	    {
+		{
 			_LineTo(dc, x+2, branches[i].src);
 			_LineTo(dc, x+2, branches[i].dst);
 			_LineTo(dc, x-4, branches[i].dst);
@@ -547,7 +542,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			_MoveTo(x, branches[i].dst - 4);
 			_LineTo(dc, x-4, branches[i].dst);
 			_LineTo(dc, x+1, branches[i].dst+5);
-	    }
+		}
 		//else
 		//{
 			// This can be re-enabled when there is a scrollbar or

@@ -7,10 +7,19 @@ set(LIBS	core
 			audiocommon
 			z
 			sfml-network
-			${GTK2_LIBRARIES}
-			${XRANDR_LIBRARIES}
-			${X11_LIBRARIES})
+			${GTK2_LIBRARIES})
 if(NOT ANDROID)
+	if(USE_X11)
+	  set(LIBS  ${LIBS} ${X11_LIBRARIES}
+	      ${XRANDR_LIBRARIES})
+	endif()
+	if(USE_WAYLAND)
+	  set(LIBS  ${LIBS} ${WAYLAND_LIBRARIES}
+		${XKBCOMMON_LIBRARIES})
+	endif()
+
+	link_directories(${CMAKE_PREFIX_PATH}/lib)
+
 	if(SDL2_FOUND)
 		# Using shared SDL2
 		set(LIBS	${LIBS} ${SDL2_LIBRARY})
@@ -23,6 +32,8 @@ if(NOT ANDROID)
 			set(LIBS	${LIBS} SDL)
 		endif()
 	endif()
+else()
+	set(LIBS ${LIBS} png)
 endif()
 
 if(LIBAV_FOUND)
@@ -80,20 +91,25 @@ if(wxWidgets_FOUND)
 	set(WXLIBS ${wxWidgets_LIBRARIES})
 else()
 	if(ANDROID)
-		set(SRCS Src/MainAndroid.cpp)
+		set(SRCS Src/Android/TextureLoader.cpp
+			 Src/MainAndroid.cpp)
 	else()
 		set(SRCS Src/MainNoGUI.cpp)
 	endif()
 endif()
 
 if(USE_EGL)
-	if(NOT ANDROID)
-		set(SRCS ${SRCS} Src/GLInterface/EGL_X11.cpp
-			Src/GLInterface/X11_Util.cpp)
+	set(SRCS ${SRCS} Src/GLInterface/Platform.cpp
+		Src/GLInterface/EGL.cpp)	
+	if(USE_WAYLAND)
+		set(SRCS ${SRCS} Src/GLInterface/Wayland_Util.cpp)
+	endif()
+	if(USE_X11)
+		set(SRCS ${SRCS} Src/GLInterface/X11_Util.cpp)
 	endif()
 else()
 	if(WIN32)
-		set(SRCS ${SRCS} Src/GLInterface/GLW.cpp)
+		set(SRCS ${SRCS} Src/GLInterface/WGL.cpp)
 	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set(SRCS ${SRCS} Src/GLInterface/AGL.cpp)
 	else()
@@ -127,10 +143,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	list(APPEND SRCS ${RESOURCES})
 	set_source_files_properties(${RESOURCES} PROPERTIES
 		MACOSX_PACKAGE_LOCATION Resources)
-else()
-	if(NOT ANDROID)
-		set(SRCS ${SRCS} Src/X11Utils.cpp)
-	endif()
+elseif(USE_X11)
+	set(SRCS ${SRCS} Src/X11Utils.cpp)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR

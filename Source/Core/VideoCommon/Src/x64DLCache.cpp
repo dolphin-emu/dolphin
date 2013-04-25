@@ -1,19 +1,6 @@
-// Copyright (C) 2003-2009 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // TODO: Handle cache-is-full condition :p
 
@@ -106,7 +93,7 @@ struct CachedDisplayList
 	// Compile the commands themselves down to native code.
 	const u8* compiled_code;
 	u32 uncachable;  // if set, this DL will always be interpreted. This gets set if hash ever changes.
-	// Analitic data
+	// Analytic data
 	u32 num_xf_reg;
 	u32 num_cp_reg;
 	u32 num_bp_reg; 
@@ -182,7 +169,7 @@ struct CachedDisplayList
 		while(Current)
 		{
 			if(!Current->IntersectsMemoryRange(RegionStart, Regionsize))
-					return Current;
+				return Current;
 			Current = Current->NextRegion;
 		}
 		return Current;
@@ -611,14 +598,17 @@ void Shutdown()
 void Clear() 
 {
 	VDLMap::iterator iter = dl_map.begin();
-	while (iter != dl_map.end()) {
+	while (iter != dl_map.end())
+	{
 		VDlist &ParentEntry = iter->second;
 		DLMap::iterator childiter = ParentEntry.dl_map.begin();
-		while (childiter != ParentEntry.dl_map.end()) {
+		while (childiter != ParentEntry.dl_map.end())
+		{
 			CachedDisplayList &entry = childiter->second;
 			entry.ClearRegions();
 			childiter++;
 		}
+
 		ParentEntry.dl_map.clear();
 		iter++;
 	}
@@ -630,26 +620,33 @@ void Clear()
 void ProgressiveCleanup()
 {
 	VDLMap::iterator iter = dl_map.begin();
-	while (iter != dl_map.end()) {
+	while (iter != dl_map.end())
+	{
 		VDlist &ParentEntry = iter->second;
 		DLMap::iterator childiter = ParentEntry.dl_map.begin();
 		while (childiter != ParentEntry.dl_map.end()) 
 		{
 			CachedDisplayList &entry = childiter->second;
 			int limit = 3600;
-			if (entry.frame_count < frameCount - limit) {
+			if (entry.frame_count < frameCount - limit)
+			{
 				entry.ClearRegions();
 				ParentEntry.dl_map.erase(childiter++);  // (this is gcc standard!)
 			}
 			else
+			{
 				++childiter;
+			}
 		}
+
 		if(ParentEntry.dl_map.empty())
 		{
 			dl_map.erase(iter++);
 		}
 		else
+		{
 			iter++;
+		}
 	}
 }
 
@@ -666,10 +663,12 @@ bool HandleDisplayList(u32 address, u32 size)
 	//Fixed DlistCaching now is fully functional still some things to workout
 	if(!g_ActiveConfig.bDlistCachingEnable)
 		return false;
-	if(size == 0) return false;
+	if(size == 0)
+		return false;
 
-	// Is this thread safe?
-	if (DLCache::GetSpaceLeft() < DL_CODE_CLEAR_THRESHOLD) {
+	// TODO: Is this thread safe?
+	if (DLCache::GetSpaceLeft() < DL_CODE_CLEAR_THRESHOLD)
+	{
 		DLCache::Clear();
 	}
 
@@ -678,12 +677,14 @@ bool HandleDisplayList(u32 address, u32 size)
 	DLCache::VDLMap::iterator Parentiter = DLCache::dl_map.find(dl_id);
 	DLCache::DLMap::iterator iter;
 	bool childexist = false;
+
 	if (Parentiter != DLCache::dl_map.end())
 	{
 		vhash = DLCache::CreateVMapId(Parentiter->second.VATUsed);
 		iter = 	Parentiter->second.dl_map.find(vhash);
 		childexist = iter != Parentiter->second.dl_map.end();
 	}
+
 	if (Parentiter != DLCache::dl_map.end() && childexist)
 	{
 		DLCache::CachedDisplayList &dl = iter->second;

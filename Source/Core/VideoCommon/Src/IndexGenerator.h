@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // This is currently only used by the DX backend, but it may make sense to
 // use it in the GL backend or a future DX10 backend too.
@@ -26,6 +13,7 @@ class IndexGenerator
 {
 public:
 	// Init
+	static void Init();
 	static void Start(u16 *Triangleptr,u16 *Lineptr,u16 *Pointptr);
 
 	static void AddIndices(int primitive, u32 numVertices);
@@ -54,10 +42,10 @@ public:
 */
 private:
 	// Triangles
-	static void AddList(u32 numVerts);
-	static void AddStrip(u32 numVerts);
-	static void AddFan(u32 numVerts);
-	static void AddQuads(u32 numVerts);
+	template <bool pr> static void AddList(u32 numVerts);
+	template <bool pr> static void AddStrip(u32 numVerts);
+	template <bool pr> static void AddFan(u32 numVerts);
+	template <bool pr> static void AddQuads(u32 numVerts);
 
 	// Lines
 	static void AddLineList(u32 numVerts);
@@ -66,7 +54,7 @@ private:
 	// Points
 	static void AddPoints(u32 numVerts);
 
-	static void WriteTriangle(u32 index1, u32 index2, u32 index3);
+	template <bool pr> static void WriteTriangle(u32 index1, u32 index2, u32 index3);
 
 	static u16 *Tptr;
 	static u16 *BASETptr;

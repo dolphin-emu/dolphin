@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // Fast image conversion using OpenGL shaders.
 // This kind of stuff would be a LOT nicer with OpenCL.
@@ -66,9 +53,9 @@ static int s_cached_srcWidth = 0;
 static int s_cached_srcHeight = 0;
 
 static const char *VProgram =
-	"in vec2 rawpos;\n"
-	"in vec2 tex0;\n"
-	"out vec2 uv0;\n"
+	"ATTRIN vec2 rawpos;\n"
+	"ATTRIN vec2 tex0;\n"
+	"VARYOUT vec2 uv0;\n"
 	"void main()\n"
 	"{\n"
 	"	uv0 = tex0;\n"
@@ -80,8 +67,8 @@ void CreatePrograms()
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *FProgramRgbToYuyv =
 		"uniform sampler2DRect samp9;\n"
-		"in vec2 uv0;\n"
-		"out vec4 ocol0;\n"
+		"VARYIN vec2 uv0;\n"
+		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
 		"	vec3 c0 = texture2DRect(samp9, uv0).rgb;\n"
@@ -96,8 +83,8 @@ void CreatePrograms()
 
 	const char *FProgramYuyvToRgb =
 		"uniform sampler2DRect samp9;\n"
-		"in vec2 uv0;\n"
-		"out vec4 ocol0;\n"
+		"VARYIN vec2 uv0;\n"
+		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
 		"	vec4 c0 = texture2DRect(samp9, uv0).rgba;\n"
@@ -111,7 +98,7 @@ void CreatePrograms()
 		"		yComp + (2.018f * uComp),\n"
 		"		1.0f);\n"
 		"}\n";
-		
+
 	ProgramShaderCache::CompileShader(s_rgbToYuyvProgram, VProgram, FProgramRgbToYuyv);
 	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgram, FProgramYuyvToRgb);
 }
@@ -140,14 +127,14 @@ SHADER &GetOrCreateEncodingShader(u32 format)
 #endif
 
 		ProgramShaderCache::CompileShader(s_encodingPrograms[format], VProgram, shader);
-    }
+	}
 	return s_encodingPrograms[format];
 }
 
 void Init()
 {
 	glGenFramebuffers(1, &s_texConvFrameBuffer);
-	
+
 	glGenBuffers(1, &s_encode_VBO );
 	glGenVertexArrays(1, &s_encode_VAO );
 	glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
@@ -160,7 +147,7 @@ void Init()
 	s_cached_sourceRc.bottom = -1;
 	s_cached_sourceRc.left = -1;
 	s_cached_sourceRc.right = -1;
-	
+
 	glGenBuffers(1, &s_decode_VBO );
 	glGenVertexArrays(1, &s_decode_VAO );
 	glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
@@ -211,8 +198,8 @@ void Shutdown()
 }
 
 void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
-					    u8* destAddr, int dstWidth, int dstHeight, int readStride,
-						   	bool toTexture, bool linearFilter)
+						u8* destAddr, int dstWidth, int dstHeight, int readStride,
+							bool toTexture, bool linearFilter)
 {
 
 
@@ -250,10 +237,10 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 			(float)sourceRc.left, (float)sourceRc.top,
 			-1.f, 1.f,
 			(float)sourceRc.left, (float)sourceRc.bottom,
-			1.f, 1.f,
-			(float)sourceRc.right, (float)sourceRc.bottom,
 			1.f, -1.f,
-			(float)sourceRc.right, (float)sourceRc.top
+			(float)sourceRc.right, (float)sourceRc.top,
+			1.f, 1.f,
+			(float)sourceRc.right, (float)sourceRc.bottom
 		};
 		glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
 		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
@@ -262,7 +249,7 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	} 
 
 	glBindVertexArray( s_encode_VAO );
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	
@@ -369,7 +356,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	FramebufferManager::SetFramebuffer(0);
 	VertexShaderManager::SetViewportChanged();
-    TextureCache::DisableStage(0);
+	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
 	GL_REPORT_ERRORD();
 }
@@ -426,10 +413,10 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 			(float)srcFmtWidth, (float)srcHeight,
 			1.f, 1.f,
 			(float)srcFmtWidth, 0.f,
-			-1.f, 1.f,
-			0.f, 0.f,
 			-1.f, -1.f,
-			0.f, (float)srcHeight
+			0.f, (float)srcHeight,
+			-1.f, 1.f,
+			0.f, 0.f
 		};
 		
 		glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
@@ -440,7 +427,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 	}
 	
 	glBindVertexArray( s_decode_VAO );
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 	GL_REPORT_ERRORD();
 

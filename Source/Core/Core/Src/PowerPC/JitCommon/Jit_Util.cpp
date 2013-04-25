@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "Thunk.h"
@@ -57,7 +44,7 @@ void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int acc
 	else if (signExtend)
 	{
 		// TODO: bake 8-bit into the original load.
-		MOVSX(32, accessSize, reg_value, R(reg_value));   
+		MOVSX(32, accessSize, reg_value, R(reg_value));
 	}
 }
 
@@ -116,7 +103,7 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 	else if (signExtend)
 	{
 		// TODO: bake 8-bit into the original load.
-		MOVSX(32, accessSize, EAX, R(EAX));   
+		MOVSX(32, accessSize, EAX, R(EAX));
 	}
 }
 
@@ -124,9 +111,9 @@ void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s
 {
 #if defined(_M_X64)
 #ifdef ENABLE_MEM_CHECK
-	if (!Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging)
+	if (!Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging && Core::g_CoreStartupParameter.bFastmem)
 #else
-	if (!Core::g_CoreStartupParameter.bMMU)
+	if (!Core::g_CoreStartupParameter.bMMU && Core::g_CoreStartupParameter.bFastmem)
 #endif
 	{
 		UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);

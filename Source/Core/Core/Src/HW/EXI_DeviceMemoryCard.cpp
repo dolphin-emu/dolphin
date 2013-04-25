@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "FileUtil.h"
@@ -40,7 +27,7 @@
 
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
-	// note that userdata is forbidden to be a pointer, due to the implemenation of EventDoState
+	// note that userdata is forbidden to be a pointer, due to the implementation of EventDoState
 	int card_index = (int)userdata;
 	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
 	if (pThis)
@@ -86,7 +73,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	//0x00000510 16Mb "bigben" card
 	//card_id = 0xc243;
  
-	card_id = 0xc221; // It's a nintendo brand memcard
+	card_id = 0xc221; // It's a Nintendo brand memcard
  
 	File::IOFile pFile(m_strFilename, "rb");
 	if (pFile)
@@ -110,7 +97,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 		memory_card_content = new u8[memory_card_size];
 		GCMemcard::Format(memory_card_content, m_strFilename.find(".JAP.raw") != std::string::npos, nintendo_card_id);
 		memset(memory_card_content+MC_HDR_SIZE, 0xFF, memory_card_size-MC_HDR_SIZE); 
-		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
+		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create a new one.");
 	}
 	SetCardFlashID(memory_card_content, card_index);
 }
@@ -130,7 +117,9 @@ void innerFlush(FlushData* data)
 	if (!pFile) // Note - pFile changed inside above if
 	{
 		PanicAlertT("Could not write memory card file %s.\n\n"
-			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", data->filename.c_str());
+			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?\n\n"
+			"Are you receiving this after moving the emulator directory?\nIf so, then you may "
+			"need to re-specify your memory card location in the options.", data->filename.c_str());
 		return;
 	}
 
@@ -146,6 +135,9 @@ void innerFlush(FlushData* data)
 void CEXIMemoryCard::Flush(bool exiting)
 {
 	if(!m_bDirty)
+		return;
+
+	if (!Core::g_CoreStartupParameter.bEnableMemcardSaving)
 		return;
 
 	if (flushThread.joinable())
@@ -211,7 +203,9 @@ void CEXIMemoryCard::SetCS(int cs)
 	}
 
 	if (cs)  // not-selected to selected
+	{
 		m_uPosition = 0;
+	}
 	else
 	{	
 		switch (command)
@@ -337,11 +331,11 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 		{
 		case cmdNintendoID:
 			//
-			// nintendo card:
+			// Nintendo card:
 			// 00 | 80 00 00 00 10 00 00 00 
 			// "bigben" card:
 			// 00 | ff 00 00 05 10 00 00 00 00 00 00 00 00 00 00
-			// we do it the nintendo way.
+			// we do it the Nintendo way.
 			if (m_uPosition == 1)
 				byte = 0x80; // dummy cycle
 			else

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Globals.h"
 #include "VideoConfig.h"
@@ -51,9 +38,7 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 }
 void InitInterface()
 {
-	#ifdef ANDROID
-		GLInterface = new cInterfaceBase;
-	#elif defined(USE_EGL) && USE_EGL
+	#if defined(USE_EGL) && USE_EGL
 		GLInterface = new cInterfaceEGL;
 	#elif defined(__APPLE__)
 		GLInterface = new cInterfaceAGL;
@@ -147,7 +132,7 @@ void OpenGL_ReportARBProgramError()
 	{
 		GLint loc = 0;
 		glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &loc);
-		ERROR_LOG(VIDEO, "program error at %d: ", loc);
+		ERROR_LOG(VIDEO, "Program error at %d: ", loc);
 		ERROR_LOG(VIDEO, "%s", (char*)pstr);
 		ERROR_LOG(VIDEO, "\n");
 	}

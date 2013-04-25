@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
 #ifndef WIIMOTE_REAL_H
@@ -33,8 +20,7 @@
 
 #include "../../InputCommon/Src/InputConfig.h"
 
-// Pointer to data, and size of data
-typedef std::pair<u8*,u8> Report;
+typedef std::vector<u8> Report;
 
 namespace WiimoteReal
 {
@@ -50,7 +36,7 @@ public:
 	void InterruptChannel(const u16 channel, const void* const data, const u32 size);
 	void Update();
 
-	Report ProcessReadQueue();
+	const Report& ProcessReadQueue();
 
 	bool Read();
 	bool Write();
@@ -99,17 +85,20 @@ public:
 #endif
 
 protected:
-	Report	m_last_data_report;
+	Report m_last_input_report;
 	u16	m_channel;
 
 private:
 	void ClearReadQueue();
+	void WriteReport(Report rpt);
 	
 	int IORead(u8* buf);
 	int IOWrite(u8 const* buf, int len);
 
 	void ThreadFunc();
 
+	bool m_rumble_state;
+	
 	bool				m_run_thread;
 	std::thread			m_wiimote_thread;
 	

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -108,7 +95,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	// DEFAULT
 	default:
 		{
-			ERROR_LOG(SERIALINTERFACE, "unknown SI command     (0x%x)", command);
+			ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
 			PanicAlert("SI: Unknown command (0x%x)", command);
 		}			
 		break;
@@ -153,7 +140,9 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		Movie::InputUpdate();
 	}
 	else
+	{
 		Movie::CheckPadStatus(&PadStatus, ISIDevice::m_iDeviceNumber);
+	}
 
 	// Thankfully changing mode does not change the high bits ;)
 	_Hi  = (u32)((u8)PadStatus.stickY);
@@ -275,9 +264,9 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 
 	default:
 		{
-			ERROR_LOG(SERIALINTERFACE, "unknown direct command     (0x%x)", _Cmd);
+			ERROR_LOG(SERIALINTERFACE, "Unknown direct command     (0x%x)", _Cmd);
 			PanicAlert("SI: Unknown direct command");
-		}			
+		}
 		break;
 	}
 }

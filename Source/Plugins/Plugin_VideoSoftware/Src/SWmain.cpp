@@ -1,19 +1,6 @@
-// Copyright (C) 2003-2009 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
 #include "Common.h"
@@ -43,6 +30,7 @@
 #include "SWVertexLoader.h"
 #include "SWStatistics.h"
 
+#include "OnScreenDisplay.h"
 #define VSYNC_ENABLED 0
 
 namespace SW
@@ -81,6 +69,8 @@ bool VideoSoftware::Initialize(void *&window_handle)
 		INFO_LOG(VIDEO, "%s", "SWRenderer::Create failed\n");
 		return false;
 	}
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_INIT);
 
 	InitBPMemory();
 	InitXFMemory();
@@ -111,15 +101,15 @@ void VideoSoftware::DoState(PointerWrap& p)
 	OpcodeDecoder::DoState(p);
 	Clipper::DoState(p);
 	p.Do(swxfregs);
-    p.Do(bpmem);
-	p.Do(swstats);
+	p.Do(bpmem);
+	p.DoPOD(swstats);
 
 	// CP Memory
-    p.DoArray(arraybases, 16);
-    p.DoArray(arraystrides, 16);
-    p.Do(MatrixIndexA);
-    p.Do(MatrixIndexB);
-    p.Do(g_VtxDesc.Hex);
+	p.DoArray(arraybases, 16);
+	p.DoArray(arraystrides, 16);
+	p.Do(MatrixIndexA);
+	p.Do(MatrixIndexB);
+	p.Do(g_VtxDesc.Hex);
 	p.DoArray(g_VtxAttr, 8);
 	p.DoMarker("CP Memory");
 
@@ -162,7 +152,10 @@ void VideoSoftware::Shutdown()
 	// TODO: should be in Video_Cleanup
 	HwRasterizer::Shutdown();
 	SWRenderer::Shutdown();
-	
+
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
+
 	GLInterface->Shutdown();
 }
 
@@ -207,30 +200,32 @@ u32 VideoSoftware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputDa
 {
 	u32 value = 0;
 
-    switch (type)
-    {
-    case PEEK_Z:
-        {
-            value = EfbInterface::GetDepth(x, y);
-            break;
-        }
-    case POKE_Z:
-        break;
-    case PEEK_COLOR:
-        {
-            u32 color = 0;
-            EfbInterface::GetColor(x, y, (u8*)&color);
+	switch (type)
+	{
+	case PEEK_Z:
+		{
+			value = EfbInterface::GetDepth(x, y);
+			break;
+		}
 
-            // rgba to argb
-            value = (color >> 8) | (color & 0xff) << 24;
-            break;
-        }
-        
-    case POKE_COLOR:
-        break;
-    }
+	case POKE_Z:
+		break;
 
-    return value;
+	case PEEK_COLOR:
+		{
+			u32 color = 0;
+			EfbInterface::GetColor(x, y, (u8*)&color);
+
+			// rgba to argb
+			value = (color >> 8) | (color & 0xff) << 24;
+			break;
+		}
+
+	case POKE_COLOR:
+		break;
+	}
+
+	return value;
 }
 
 u32 VideoSoftware::Video_GetQueryResult(PerfQueryType type)
@@ -250,7 +245,7 @@ bool VideoSoftware::Video_Screenshot(const char *_szFilename)
 void VideoSoftware::Video_EnterLoop()
 {
 	std::lock_guard<std::mutex> lk(m_csSWVidOccupied);
-    fifoStateRun = true;
+	fifoStateRun = true;
 
 	while (fifoStateRun)
 	{
@@ -273,7 +268,7 @@ void VideoSoftware::Video_EnterLoop()
 
 void VideoSoftware::Video_ExitLoop()
 {
-    fifoStateRun = false;
+	fifoStateRun = false;
 }
 
 // TODO : could use the OSD class in video common, we would need to implement the Renderer class

@@ -23,7 +23,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 		const wxString src_choices[] = { _("None"),
 		_("Emulated Wiimote"), _("Real Wiimote"), _("Hybrid Wiimote") };
 
-		// reserve four ids, so that we can calculate the index from the ids lateron
+		// reserve four ids, so that we can calculate the index from the ids later on
 		// Stupid wx 2.8 doesn't support reserving sequential IDs, so we need to do that more complicated..
 		int source_ctrl_id =  wxWindow::NewControlId();
 		m_wiimote_index_from_ctrl_id.insert(std::pair<wxWindowID, unsigned int>(source_ctrl_id, i));

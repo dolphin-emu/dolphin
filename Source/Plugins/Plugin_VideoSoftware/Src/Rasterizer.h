@@ -1,19 +1,6 @@
-// Copyright (C) 2003-2009 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _RASTERIZER_H_
 #define _RASTERIZER_H_
@@ -23,19 +10,19 @@
 
 namespace Rasterizer
 {
-    void Init();
+	void Init();
 
-    void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2);
+	void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2);
 
-    void SetScissor();
+	void SetScissor();
 
-    void SetTevReg(int reg, int comp, bool konst, s16 color);
+	void SetTevReg(int reg, int comp, bool konst, s16 color);
 
-    struct Slope
-    {
-        float dfdx;
-        float dfdy;
-        float f0;
+	struct Slope
+	{
+		float dfdx;
+		float dfdy;
+		float f0;
 
 		float GetValue(float dx, float dy) { return f0 + (dfdx * dx) + (dfdy * dy); }
 		void DoState(PointerWrap &p)
@@ -44,7 +31,7 @@ namespace Rasterizer
 			p.Do(dfdy);
 			p.Do(f0);
 		}
-    };
+	};
 
 	struct RasterBlockPixel
 	{
@@ -62,7 +49,6 @@ namespace Rasterizer
 	};
 
 	void DoState(PointerWrap &p);
-    
 }
 
 #endif

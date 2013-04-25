@@ -1,19 +1,6 @@
-// Copyright (C) 2011 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef __TASINPUT_H__
 #define __TASINPUT_H__
@@ -93,7 +80,7 @@ class TASInputDlg : public wxDialog
 		bool A_turbo,B_turbo, X_turbo, Y_turbo, Z_turbo, L_turbo, R_turbo, START_turbo,DL_turbo,DR_turbo,DD_turbo,DU_turbo;
 		bool A_cont,B_cont, X_cont, Y_cont, Z_cont, L_cont, R_cont, START_cont,DL_cont,DR_cont,DD_cont,DU_cont,mstickx,msticky,cstickx,csticky;
 		int xaxis,yaxis,c_xaxis,c_yaxis,update,update_axis;
-				
+
 		DECLARE_EVENT_TABLE();
 };
 

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Filesystem.h"
 #include "VolumeCreator.h"
@@ -93,7 +80,7 @@ bool SetupScrub(const char* filename, int block_size)
 
 	if (CLUSTER_SIZE % m_BlockSize != 0)
 	{
-		ERROR_LOG(DISCIO, "block size %i is not a factor of 0x8000, scrubbing not possible", m_BlockSize);
+		ERROR_LOG(DISCIO, "Block size %i is not a factor of 0x8000, scrubbing not possible", m_BlockSize);
 		return false;
 	}
 
@@ -106,7 +93,7 @@ bool SetupScrub(const char* filename, int block_size)
 
 	// Warn if not DVD5 or DVD9 size
 	if (numClusters != 0x23048 && numClusters != 0x46090)
-		WARN_LOG(DISCIO, "%s is not a standard sized wii disc! (%x blocks)", filename, numClusters);
+		WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename, numClusters);
 
 	// Table of free blocks
 	m_FreeTable = new u8[numClusters];

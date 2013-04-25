@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "CommonPaths.h"
@@ -49,8 +36,8 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	// clear tmp folder
 	{
 		std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";
-	    File::DeleteDirRecursively(Path);
-	    File::CreateDir(Path.c_str());
+		File::DeleteDirRecursively(Path);
+		File::CreateDir(Path.c_str());
 	}
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -136,7 +123,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
 				size_t numFile = FileSearch.GetFileNames().size();
-				INFO_LOG(WII_IPC_FILEIO, "\t%lu Files found", (unsigned long)numFile);
+				INFO_LOG(WII_IPC_FILEIO, "\t%lu files found", (unsigned long)numFile);
 
 				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}
@@ -227,7 +214,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 				fsBlocks = 0;
 				iNodes = 0;
 				ReturnValue = FS_RESULT_OK;
-				WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directoy: %s", path.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directory: %s", path.c_str());
 			}
 
 			Memory::Write_U32(fsBlocks, CommandBuffer.PayloadBuffer[0].m_Address);

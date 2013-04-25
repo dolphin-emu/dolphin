@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <stdio.h>
 #include <cmath>
@@ -32,7 +19,7 @@
 //
 //   color for this stage (alpha, color) is given by bpmem.tevorders[0].colorchan0
 //   konstant for this stage (alpha, color) is given by bpmem.tevksel
-//   inputs are given by bpmem.combiners[0].colorC.a/b/c/d     << could be current chan color
+//   inputs are given by bpmem.combiners[0].colorC.a/b/c/d     << could be current channel color
 //   according to GXTevColorArg table above
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and
@@ -44,7 +31,7 @@ template<class T> static void WriteFog(T& out, pixel_shader_uid_data& uid_data);
 
 static const char *tevKSelTableC[] = // KCSEL
 {
-	"1.0f,1.0f,1.0f",    // 1   = 0x00
+	"1.0f,1.0f,1.0f",       // 1   = 0x00
 	"0.875f,0.875f,0.875f", // 7_8 = 0x01
 	"0.75f,0.75f,0.75f",    // 3_4 = 0x02
 	"0.625f,0.625f,0.625f", // 5_8 = 0x03
@@ -153,7 +140,7 @@ static const char *tevCInputTable[] = // CC
 	"float3(0.5f, 0.5f, 0.5f)",              // HALF
 	"(konsttemp.rgb)", //"konsttemp.rgb",    // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
-	///aded extra values to map clamped values
+	///added extra values to map clamped values
 	"(cprev.rgb)",        // CPREV,
 	"(cprev.aaa)",        // APREV,
 	"(cc0.rgb)",          // C0,
@@ -183,7 +170,7 @@ static const char *tevAInputTable[] = // CA
 	"rastemp",         // RASA,
 	"konsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // ZERO
-	///aded extra values to map clamped values
+	///added extra values to map clamped values
 	"cprev",            // APREV,
 	"cc0",              // A0,
 	"cc1",              // A1,
@@ -346,10 +333,10 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 
 	if (ApiType == API_OPENGL)
 	{
-		out.Write("out float4 ocol0;\n");
+		out.Write("COLOROUT(ocol0);\n");
 		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-			out.Write("out float4 ocol1;\n");
-		
+			out.Write("COLOROUT(ocol1);\n");
+
 		if (per_pixel_depth)
 			out.Write("#define depth gl_FragDepth\n");
 		out.Write("float4 rawpos = gl_FragCoord;\n");
@@ -416,17 +403,20 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 				per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 		}
 
-		out.Write("  in float4 colors_0 : COLOR0,\n");
-		out.Write("  in float4 colors_1 : COLOR1");
+		// "centroid" attribute is only supported by D3D11
+		const char* optCentroid = (ApiType == API_D3D11 ? "centroid" : "");
+
+		out.Write("  in %s float4 colors_0 : COLOR0,\n", optCentroid);
+		out.Write("  in %s float4 colors_1 : COLOR1", optCentroid);
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		if (numTexgen < 7)
 		{
-			for (unsigned int i = 0; i < numTexgen; ++i)
-				out.Write(",\n  in float3 uv%d : TEXCOORD%d", i, i);
-			out.Write(",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
+			for (int i = 0; i < numTexgen; ++i)
+				out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", optCentroid, i, i);
+			out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", optCentroid, numTexgen);
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				out.Write(",\n  in float4 Normal : TEXCOORD%d", numTexgen + 1);
+				out.Write(",\n  in %s float4 Normal : TEXCOORD%d", optCentroid, numTexgen + 1);
 			out.Write("        ) {\n");
 		}
 		else
@@ -629,17 +619,25 @@ void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u
 		out.Write("\tocol0 = prev;\n");
 	}
 
-	// On D3D11, use dual-source color blending to perform dst alpha in a
-	// single pass
+	// Use dual-source color blending to perform dst alpha in a single pass
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 	{
 		out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-		// Colors will be blended against the alpha from ocol1...
-		out.Write("\tocol1 = prev;\n");
+		if(ApiType & API_D3D9)
+		{
+			// alpha component must be 0 or the shader will not compile (Direct3D 9Ex restriction)
+			// Colors will be blended against the color from ocol1 in D3D 9...
+			out.Write("\tocol1 = float4(prev.a, prev.a, prev.a, 0.0f);\n");
+		}
+		else
+		{
+			// Colors will be blended against the alpha from ocol1...
+			out.Write("\tocol1 = prev;\n");
+		}
 		// ...and the alpha from ocol0 will be written to the framebuffer.
 		out.Write("\tocol0.a = " I_ALPHA"[0].a;\n");
 	}
-	
+
 	out.Write("}\n");
 
 	if (text[sizeof(text) - 1] != 0x7C)
@@ -760,10 +758,14 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 				out.Write("float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}
 			else
+			{
 				out.Write("float2 indtevtrans%d = float2(0.0f, 0.0f);\n", n);
+			}
 		}
 		else
+		{
 			out.Write("float2 indtevtrans%d = float2(0.0f, 0.0f);\n", n);
+		}
 
 		// ---------
 		// Wrapping
@@ -841,7 +843,9 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		SampleTexture<T>(out, "textemp", "tevcoord", texswap, texmap, ApiType);
 	}
 	else
+	{
 		out.Write("textemp = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
+	}
 
 
 	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST
@@ -1124,7 +1128,7 @@ static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE Api
 	// or after texturing and alpha test. PC GPUs have no way to support this
 	// feature properly as of 2012: depth buffer and depth test are not
 	// programmable and the depth test is always done after texturing.
-	// Most importantly, PC GPUs do not allow writing to the z buffer without
+	// Most importantly, PC GPUs do not allow writing to the z-buffer without
 	// writing a color value (unless color writing is disabled altogether).
 	// We implement "depth test before texturing" by discarding the fragment
 	// when the alpha test fail. This is not a correct implementation because
@@ -1143,14 +1147,14 @@ static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE Api
 
 static const char *tevFogFuncsTable[] =
 {
-	"",																//No Fog
-	"",																//?
-	"",																//Linear
-	"",																//?
-	"\tfog = 1.0f - pow(2.0f, -8.0f * fog);\n",						//exp
-	"\tfog = 1.0f - pow(2.0f, -8.0f * fog * fog);\n",					//exp2
-	"\tfog = pow(2.0f, -8.0f * (1.0f - fog));\n",						//backward exp
-	"\tfog = 1.0f - fog;\n   fog = pow(2.0f, -8.0f * fog * fog);\n"	//backward exp2
+	"",																// No Fog
+	"",																// ?
+	"",																// Linear
+	"",																// ?
+	"\tfog = 1.0f - pow(2.0f, -8.0f * fog);\n",						// exp
+	"\tfog = 1.0f - pow(2.0f, -8.0f * fog * fog);\n",				// exp2
+	"\tfog = pow(2.0f, -8.0f * (1.0f - fog));\n",					// backward exp
+	"\tfog = 1.0f - fog;\n   fog = pow(2.0f, -8.0f * fog * fog);\n"	// backward exp2
 };
 
 template<class T>
@@ -1180,7 +1184,7 @@ static void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	// ze *= x_adjust
 	// this is completely theoretical as the real hardware seems to use a table intead of calculating the values.
 	uid_data.fog.RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
-	if(bpmem.fogRange.Base.Enabled)
+	if (bpmem.fogRange.Base.Enabled)
 	{
 		out.SetConstantsUsed(C_FOG+2, C_FOG+2);
 		out.Write("\tfloat x_adjust = (2.0f * (clipPos.x / " I_FOG"[2].y)) - 1.0f - " I_FOG"[2].x;\n");

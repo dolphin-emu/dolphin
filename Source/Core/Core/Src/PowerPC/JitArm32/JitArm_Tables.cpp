@@ -87,12 +87,12 @@ static GekkoOPTemplate primarytable[] =
 	{42, &JitArm::Default}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{43, &JitArm::Default}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 
-	{44, &JitArm::Default}, //"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
-	{45, &JitArm::Default}, //"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
+	{44, &JitArm::sth}, //"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
+	{45, &JitArm::sthu}, //"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
 	{36, &JitArm::stw}, //"stw",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
 	{37, &JitArm::stwu}, //"stwu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
 	{38, &JitArm::Default}, //"stb",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
-	{39, &JitArm::Default}, //"stbu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
+	{39, &JitArm::stbu}, //"stbu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
 
 	{46, &JitArm::Default}, //"lmw",   OPTYPE_SYSTEM, FL_EVIL, 10}},
 	{47, &JitArm::Default}, //"stmw",  OPTYPE_SYSTEM, FL_EVIL, 10}},

@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 
@@ -23,7 +23,7 @@
 of frames. So if a game runs slow, on a slow computer for example, these updates will occur
 less frequently. This makes sense because almost all console games are controlled by frames
 rather than time, so if a game can't keep up with the normal framerate all animations and
-actions slows down and the game runs to slow. This is different from PC games that are are
+actions slows down and the game runs to slow. This is different from PC games that are
 often controlled by time instead and may not have maximum framerates.
 
 However, I'm not sure if the Bluetooth communication for the Wiimote is entirely frame
@@ -119,9 +119,6 @@ int et_PatchEngine;	// PatchEngine updates every 1/60th of a second by default
 // These are badly educated guesses
 // Feel free to experiment. Set these in Init below.
 int
-	// These shouldn't be period controlled either, most likely.
-	DSP_PERIOD,
-
 	// This is a fixed value, don't change it 
 	AUDIO_DMA_PERIOD,
 
@@ -149,13 +146,13 @@ void DSPCallback(u64 userdata, int cyclesLate)
 {
 	//splits up the cycle budget in case lle is used
 	//for hle, just gives all of the slice to hle
-	DSP::UpdateDSPSlice(DSP_PERIOD - cyclesLate);
-	CoreTiming::ScheduleEvent(DSP_PERIOD - cyclesLate, et_DSP);
+	DSP::UpdateDSPSlice(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate);
+	CoreTiming::ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
 }
 
 void AudioDMACallback(u64 userdata, int cyclesLate)
 {
-	int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.bVBeam?2:1;
+	int fields = VideoInterface::GetNumFields();
 	int period = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32 * fields);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
@@ -245,27 +242,14 @@ void Init()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		if (!DSP::GetDSPEmulator()->IsLLE())
-			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
-
 		// AyuanX: TO BE TWEAKED
 		// Now the 1500 is a pure assumption
 		// We need to figure out the real frequency though
 
 		// FYI, WII_IPC_HLE_Interface::Update is also called in WII_IPCInterface::Write32
 		const int freq = 1500;
-		const int fields = SConfig::GetInstance().m_LocalCoreStartupParameter.
-				bVBeam ? 2 : 1;
-		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * fields);
+		IPC_HLE_PERIOD = GetTicksPerSecond() / (freq * VideoInterface::GetNumFields());
 	}
-	else
-	{
-		if (!DSP::GetDSPEmulator()->IsLLE())
-			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
-	}
-
-	if (DSP::GetDSPEmulator()->IsLLE())
-		DSP_PERIOD = 12000; // TO BE TWEAKED
 
 	// System internal sample rate is fixed at 32KHz * 4 (16bit Stereo) / 32 bytes DMA
 	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (AudioInterface::GetAIDSampleRate() * 4 / 32);
@@ -292,7 +276,7 @@ void Init()
 	et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
-	CoreTiming::ScheduleEvent(DSP_PERIOD, et_DSP);
+	CoreTiming::ScheduleEvent(0, et_DSP);
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)

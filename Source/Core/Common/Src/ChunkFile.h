@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 #ifndef _POINTERWRAP_H_
 #define _POINTERWRAP_H_
@@ -32,6 +20,7 @@
 #include <list>
 #include <deque>
 #include <string>
+#include <type_traits>
 
 #include "Common.h"
 #include "FileUtil.h"
@@ -139,9 +128,15 @@ public:
 	template <typename T>
 	void Do(T& x)
 	{
-		// TODO: Bad, Do(some_non_POD) will compile and fail at runtime
-		// type_traits are not fully supported everywhere yet
+		// Ideally this would be std::is_trivially_copyable, but not enough support yet
+		static_assert(std::is_pod<T>::value, "Only sane for POD types");
 		
+		DoVoid((void*)&x, sizeof(x));
+	}
+	
+	template <typename T>
+	void DoPOD(T& x)
+	{
 		DoVoid((void*)&x, sizeof(x));
 	}
 

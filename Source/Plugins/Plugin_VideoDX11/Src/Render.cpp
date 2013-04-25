@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <math.h>
 
@@ -567,7 +554,7 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 		(float)X, (float)Y,
 		(float)Wd, (float)Ht);
 
-	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
+	// Some games set invalid values for z-min and z-max so fix them to the max and min allowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y,
 										(float)Wd, (float)Ht,
 										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
@@ -688,7 +675,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 {
 	// Our render target always uses an alpha channel, so we need to override the blend functions to assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
 	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel is assumed to always be 1.
-    bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+	bool target_has_alpha = bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 	const D3D11_BLEND d3dSrcFactors[8] =
 	{
 		D3D11_BLEND_ZERO,
@@ -715,12 +702,12 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	if (bpmem.blendmode.logicopenable && !forceUpdate)
 		return;
 
-	if (bpmem.blendmode.subtract)  // enable blending src 1 dst 1
+	if (bpmem.blendmode.subtract)
 	{
 		gx_state.blenddc.RenderTarget[0].BlendEnable = true;
 		SetBlendOp(D3D11_BLEND_OP_REV_SUBTRACT);
-		SetSrcBlend(d3dSrcFactors[1]);
-		SetDestBlend(d3dDestFactors[1]);
+		SetSrcBlend(D3D11_BLEND_ONE);
+		SetDestBlend(D3D11_BLEND_ONE);
 	}
 	else
 	{

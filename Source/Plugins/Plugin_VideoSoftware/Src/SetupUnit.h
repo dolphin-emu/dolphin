@@ -1,19 +1,6 @@
-// Copyright (C) 2003-2009 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
 #ifndef _SETUPUNIT_H_
@@ -25,27 +12,27 @@
 
 class SetupUnit
 {
-    u8 m_PrimType;
-    int m_VertexCounter;
+	u8 m_PrimType;
+	int m_VertexCounter;
 
-    OutputVertexData m_Vertices[3];
-    OutputVertexData *m_VertPointer[3];
-    OutputVertexData *m_VertWritePointer;
-    
-    void SetupQuad();
-    void SetupTriangle();
-    void SetupTriStrip();
-    void SetupTriFan();
-    void SetupLine();
-    void SetupLineStrip();
-    void SetupPoint();
+	OutputVertexData m_Vertices[3];
+	OutputVertexData *m_VertPointer[3];
+	OutputVertexData *m_VertWritePointer;
+
+	void SetupQuad();
+	void SetupTriangle();
+	void SetupTriStrip();
+	void SetupTriFan();
+	void SetupLine();
+	void SetupLineStrip();
+	void SetupPoint();
 
 public:
-    void Init(u8 primitiveType);
+	void Init(u8 primitiveType);
 
-    OutputVertexData* GetVertex() { return m_VertWritePointer; }
+	OutputVertexData* GetVertex() { return m_VertWritePointer; }
 
-    void SetupVertex();
+	void SetupVertex();
 	void DoState(PointerWrap &p);
 };
 

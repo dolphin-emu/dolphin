@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "LogWindow.h"
 #include "ConsoleListener.h"
@@ -38,7 +25,7 @@ BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
 END_EVENT_TABLE()
 
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
-	   	const wxSize& size, long style, const wxString& name)
+		const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, pos, size, style, name)
 	, x(0), y(0), winpos(0)
 	, Parent(parent), m_ignoreLogTimer(false), m_LogAccess(true)
@@ -64,9 +51,14 @@ void CLogWindow::CreateGUIControls()
 	// Set up log listeners
 	int verbosity;
 	ini.Get("Options", "Verbosity", &verbosity, 0);
-	if (verbosity < 1) verbosity = 1;
-	if (verbosity > MAX_LOGLEVEL) verbosity = MAX_LOGLEVEL;
+	
+	// Ensure the verbosity level is valid
+	if (verbosity < 1)
+		verbosity = 1;
+	if (verbosity > MAX_LOGLEVEL)
+		verbosity = MAX_LOGLEVEL;
 
+	// Get the logger output settings from the config ini file.
 	ini.Get("Options", "WriteToFile", &m_writeFile, false);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
 	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
@@ -80,6 +72,7 @@ void CLogWindow::CreateGUIControls()
 	{
 		m_writeDebugger = false;
 	}
+
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;

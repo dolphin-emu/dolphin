@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 /*
@@ -97,7 +97,7 @@ union AICR
 		u32 AIINTVLD	: 1;  // This bit controls whether AIINT is affected by the Interrupt Timing register 
                               // matching the sample counter. Once set, AIINT will hold its last value
 		u32 SCRESET		: 1;  // write to reset counter
-        u32 AIDFR		: 1;  // AID Frequency (0=48khz 1=32khz)
+		u32 AIDFR		: 1;  // AID Frequency (0=48khz 1=32khz)
 		u32				:25;
 	};
 	u32 hex;
@@ -131,8 +131,8 @@ static unsigned int g_AIDSampleRate = 32000;
 
 void DoState(PointerWrap &p)
 {
-	p.Do(m_Control);
-	p.Do(m_Volume);
+	p.DoPOD(m_Control);
+	p.DoPOD(m_Volume);
 	p.Do(m_SampleCounter);
 	p.Do(m_InterruptTiming);
 	p.Do(g_LastCPUTime);
@@ -183,7 +183,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 
 	case AI_SAMPLE_COUNTER:
 		Update(0, 0);
-        _rReturnValue = m_SampleCounter;
+		_rReturnValue = m_SampleCounter;
 		break;
 
 	case AI_INTERRUPT_TIMING:
@@ -191,7 +191,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 		break;
 
 	default:
-        ERROR_LOG(AUDIO_INTERFACE, "unknown read 0x%08x", _Address);
+		ERROR_LOG(AUDIO_INTERFACE, "Unknown read 0x%08x", _Address);
 		_dbg_assert_msg_(AUDIO_INTERFACE, 0, "AudioInterface - Read from 0x%08x", _Address);
 		_rReturnValue = 0;
 		return;
@@ -210,18 +210,18 @@ void Write32(const u32 _Value, const u32 _Address)
 			m_Control.AIINTMSK	= tmpAICtrl.AIINTMSK;
 			m_Control.AIINTVLD	= tmpAICtrl.AIINTVLD;
 
-            // Set frequency of streaming audio
-            if (tmpAICtrl.AISFR != m_Control.AISFR)
-            {	
-                DEBUG_LOG(AUDIO_INTERFACE, "Change AISFR to %s", tmpAICtrl.AISFR ? "48khz":"32khz");
-                m_Control.AISFR = tmpAICtrl.AISFR;
-            }
+			// Set frequency of streaming audio
+			if (tmpAICtrl.AISFR != m_Control.AISFR)
+			{
+				DEBUG_LOG(AUDIO_INTERFACE, "Change AISFR to %s", tmpAICtrl.AISFR ? "48khz":"32khz");
+				m_Control.AISFR = tmpAICtrl.AISFR;
+			}
 			// Set frequency of DMA
-            if (tmpAICtrl.AIDFR != m_Control.AIDFR)
-            {	
-                DEBUG_LOG(AUDIO_INTERFACE, "Change AIDFR to %s", tmpAICtrl.AIDFR ? "32khz":"48khz");
-                m_Control.AIDFR = tmpAICtrl.AIDFR;
-            }
+			if (tmpAICtrl.AIDFR != m_Control.AIDFR)
+			{
+				DEBUG_LOG(AUDIO_INTERFACE, "Change AIDFR to %s", tmpAICtrl.AIDFR ? "32khz":"48khz");
+				m_Control.AIDFR = tmpAICtrl.AIDFR;
+			}
 
 			g_AISSampleRate = tmpAICtrl.AISFR ? 48000 : 32000;
 			g_AIDSampleRate = tmpAICtrl.AIDFR ? 32000 : 48000;
@@ -229,36 +229,36 @@ void Write32(const u32 _Value, const u32 _Address)
 			g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_AISSampleRate;
 
 			// Streaming counter
-            if (tmpAICtrl.PSTAT != m_Control.PSTAT)
-            {
-                DEBUG_LOG(AUDIO_INTERFACE, "%s streaming audio", tmpAICtrl.PSTAT ? "start":"stop");
-                m_Control.PSTAT	= tmpAICtrl.PSTAT;
-                g_LastCPUTime = CoreTiming::GetTicks();
+			if (tmpAICtrl.PSTAT != m_Control.PSTAT)
+			{
+				DEBUG_LOG(AUDIO_INTERFACE, "%s streaming audio", tmpAICtrl.PSTAT ? "start":"stop");
+				m_Control.PSTAT	= tmpAICtrl.PSTAT;
+				g_LastCPUTime = CoreTiming::GetTicks();
 
 				// Tell Drive Interface to start/stop streaming
 				DVDInterface::g_bStream = tmpAICtrl.PSTAT;
 
 				CoreTiming::RemoveEvent(et_AI);
 				CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2), et_AI);
-            }
+			}
 
-            // AI Interrupt
+			// AI Interrupt
 			if (tmpAICtrl.AIINT)
-            {
-                DEBUG_LOG(AUDIO_INTERFACE, "Clear AIS Interrupt");
-                m_Control.AIINT = 0;
-            }
+			{
+				DEBUG_LOG(AUDIO_INTERFACE, "Clear AIS Interrupt");
+				m_Control.AIINT = 0;
+			}
 
-            // Sample Count Reset
-            if (tmpAICtrl.SCRESET)	
-            {
-                DEBUG_LOG(AUDIO_INTERFACE, "Reset AIS sample counter");
-                m_SampleCounter = 0;
+			// Sample Count Reset
+			if (tmpAICtrl.SCRESET)	
+			{
+				DEBUG_LOG(AUDIO_INTERFACE, "Reset AIS sample counter");
+				m_SampleCounter = 0;
 
-                g_LastCPUTime = CoreTiming::GetTicks();
-            }
+				g_LastCPUTime = CoreTiming::GetTicks();
+			}
 
-            UpdateInterrupts();
+			UpdateInterrupts();
 		}
 		break;
 
@@ -273,7 +273,7 @@ void Write32(const u32 _Value, const u32 _Address)
 		m_SampleCounter = _Value;
 		break;
 
-	case AI_INTERRUPT_TIMING:		
+	case AI_INTERRUPT_TIMING:
 		m_InterruptTiming = _Value;
 		CoreTiming::RemoveEvent(et_AI);
 		CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2), et_AI);
@@ -281,7 +281,7 @@ void Write32(const u32 _Value, const u32 _Address)
 		break;
 
 	default:
-		ERROR_LOG(AUDIO_INTERFACE, "unknown write %08x @ %08x", _Value, _Address);
+		ERROR_LOG(AUDIO_INTERFACE, "Unknown write %08x @ %08x", _Value, _Address);
 		_dbg_assert_msg_(AUDIO_INTERFACE,0,"AIS - Write %08x to %08x", _Value, _Address);
 		break;
 	}
@@ -294,7 +294,7 @@ static void UpdateInterrupts()
 }
 
 static void GenerateAudioInterrupt()
-{		
+{
 	m_Control.AIINT = 1;
 	UpdateInterrupts();
 }
@@ -315,7 +315,7 @@ void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DACSampl
 unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples, unsigned int _sampleRate)
 {
 	if (m_Control.PSTAT && !CCPU::IsStepping())
-	{		
+	{
 		static int pos = 0;
 		static short pcm[NGCADPCM::SAMPLES_PER_BLOCK*2];
 		const int lvolume = m_Volume.left;
@@ -390,12 +390,12 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 			else //1:1 no resampling
 			{ 
 				pcm_l = (((int)pcm[pos*2] * lvolume) >> 8) + (int)(*_pDestBuffer);
-				if (pcm_l > 32767)			pcm_l = 32767;
+				if (pcm_l > 32767)		pcm_l = 32767;
 				else if (pcm_l < -32767)	pcm_l = -32767;
 				*_pDestBuffer++ = pcm_l;
 
 				pcm_r = (((int)pcm[pos*2+1] * rvolume) >> 8) + (int)(*_pDestBuffer);
-				if (pcm_r > 32767)			pcm_r = 32767;
+				if (pcm_r > 32767)		pcm_r = 32767;
 				else if (pcm_r < -32767)	pcm_r = -32767;
 				*_pDestBuffer++ = pcm_r;
 				
@@ -443,7 +443,7 @@ static void IncreaseSampleCount(const u32 _iAmount)
 	{
 		m_SampleCounter += _iAmount;
 		if (m_Control.AIINTVLD && (m_SampleCounter >= m_InterruptTiming))
-		{			
+		{
 			GenerateAudioInterrupt();
 		}
 	}
@@ -456,17 +456,17 @@ unsigned int GetAIDSampleRate()
 
 void Update(u64 userdata, int cyclesLate)
 {
-    if (m_Control.PSTAT)
-    {
-        const u64 Diff = CoreTiming::GetTicks() - g_LastCPUTime;
-        if (Diff > g_CPUCyclesPerSample)
-        {            
-            const u32 Samples = static_cast<u32>(Diff / g_CPUCyclesPerSample);
-            g_LastCPUTime += Samples * g_CPUCyclesPerSample;
+	if (m_Control.PSTAT)
+	{
+		const u64 Diff = CoreTiming::GetTicks() - g_LastCPUTime;
+		if (Diff > g_CPUCyclesPerSample)
+		{
+			const u32 Samples = static_cast<u32>(Diff / g_CPUCyclesPerSample);
+			g_LastCPUTime += Samples * g_CPUCyclesPerSample;
 			IncreaseSampleCount(Samples);
-        }
+		}
 		CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2) - cyclesLate, et_AI);
-    }
+	}
 }
 
 u64 GetAIPeriod()

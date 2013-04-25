@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "VideoConfig.h"
 #include "MemoryUtil.h"
@@ -125,7 +112,7 @@ void ReadDataFromFifo(u8* _uData, u32 len)
 		size -= pos;
 		if (size + len > FIFO_SIZE)
 		{
-			PanicAlert("FIFO out of bounds (sz = %i, len = %i at %08x)", size, len, pos);
+			PanicAlert("FIFO out of bounds (size = %i, len = %i at %08x)", size, len, pos);
 		}
 		memmove(&videoBuffer[0], &videoBuffer[pos], size);
 		g_pVideoData = videoBuffer;
@@ -164,7 +151,8 @@ void RunGpuLoop()
 		// check if we are able to run this buffer	
 		while (GpuRunningState && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 		{
-			if (!GpuRunningState) break;
+			if (!GpuRunningState)
+				break;
 
 			fifo.isGpuReadingData = true;
 			CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable ? true : false;
@@ -174,11 +162,13 @@ void RunGpuLoop()
 				u32 readPtr = fifo.CPReadPointer;
 				u8 *uData = Memory::GetPointer(readPtr);
 
-				if (readPtr == fifo.CPEnd) readPtr = fifo.CPBase;
-				else readPtr += 32;
+				if (readPtr == fifo.CPEnd)
+					readPtr = fifo.CPBase;
+				else
+					readPtr += 32;
 
 				_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
-					"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instabilty in the game. Please report it.", fifo.CPReadWriteDistance - 32);
+					"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instability in the game. Please report it.", fifo.CPReadWriteDistance - 32);
 
 				ReadDataFromFifo(uData, 32);
 
@@ -249,8 +239,10 @@ void RunGpu()
 
 		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
 
-		if (fifo.CPReadPointer == fifo.CPEnd) fifo.CPReadPointer = fifo.CPBase;
-			else fifo.CPReadPointer += 32;
+		if (fifo.CPReadPointer == fifo.CPEnd)
+			fifo.CPReadPointer = fifo.CPBase;
+		else
+			fifo.CPReadPointer += 32;
 
 		fifo.CPReadWriteDistance -= 32;
 	}

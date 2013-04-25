@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "EXI_Channel.h"
 #include "EXI_Device.h"
@@ -149,7 +136,9 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 			// check if external device is present
 			// pretty sure it is memcard only, not entirely sure
 			if (m_ChannelId == 2)
+			{
 				m_Status.EXT = 0;
+			}
 			else
 			{
 				m_Status.EXT = GetDevice(1)->IsPresent() ? 1 : 0;
@@ -180,13 +169,13 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 		_uReturnValue = 0xDEADBEEF;
 	}
 
-	DEBUG_LOG(EXPANSIONINTERFACE, "(r32) 0x%08x channel: %i  reg: %s",
+	DEBUG_LOG(EXPANSIONINTERFACE, "(r32) 0x%08x channel: %i  register: %s",
 		_uReturnValue, m_ChannelId, Debug_GetRegisterName(_iRegister));
 }
 
 void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 {
-	DEBUG_LOG(EXPANSIONINTERFACE, "(w32) 0x%08x channel: %i  reg: %s",
+	DEBUG_LOG(EXPANSIONINTERFACE, "(w32) 0x%08x channel: %i  register: %s",
 		_iValue, m_ChannelId, Debug_GetRegisterName(_iRegister));
 
 	switch (_iRegister)
@@ -195,25 +184,29 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 		{
 			UEXI_STATUS newStatus(_iValue);
 
-			m_Status.EXIINTMASK		= newStatus.EXIINTMASK;
-			if (newStatus.EXIINT)	m_Status.EXIINT = 0;
+			m_Status.EXIINTMASK = newStatus.EXIINTMASK;
+			if (newStatus.EXIINT)
+				m_Status.EXIINT = 0;
 
-			m_Status.TCINTMASK		= newStatus.TCINTMASK;
-			if (newStatus.TCINT)	m_Status.TCINT = 0;
+			m_Status.TCINTMASK = newStatus.TCINTMASK;
+			if (newStatus.TCINT)
+				m_Status.TCINT = 0;
 
-			m_Status.CLK			= newStatus.CLK;
+			m_Status.CLK = newStatus.CLK;
 
 			if (m_ChannelId == 0 || m_ChannelId == 1)
 			{
-				m_Status.EXTINTMASK	= newStatus.EXTINTMASK;
-				if (newStatus.EXTINT)	m_Status.EXTINT = 0;
+				m_Status.EXTINTMASK = newStatus.EXTINTMASK;
+
+				if (newStatus.EXTINT)
+					m_Status.EXTINT = 0;
 			}
 
 			if (m_ChannelId == 0)
-				m_Status.ROMDIS		= newStatus.ROMDIS;
+				m_Status.ROMDIS = newStatus.ROMDIS;
 
 			IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT ^ newStatus.CHIP_SELECT);
-			m_Status.CHIP_SELECT	= newStatus.CHIP_SELECT;
+			m_Status.CHIP_SELECT = newStatus.CHIP_SELECT;
 			if (pDevice != NULL)
 				pDevice->SetCS(m_Status.CHIP_SELECT);
 
@@ -222,17 +215,17 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 		break;
 
 	case EXI_DMAADDR:
-		INFO_LOG(EXPANSIONINTERFACE, "Wrote DMAAddr, chan %i", m_ChannelId);
+		INFO_LOG(EXPANSIONINTERFACE, "Wrote DMAAddr, channel %i", m_ChannelId);
 		m_DMAMemoryAddress = _iValue;
 		break;
 
 	case EXI_DMALENGTH:
-		INFO_LOG(EXPANSIONINTERFACE, "Wrote DMALength, chan %i", m_ChannelId);
+		INFO_LOG(EXPANSIONINTERFACE, "Wrote DMALength, channel %i", m_ChannelId);
 		m_DMALength = _iValue;
 		break;
 
 	case EXI_DMACONTROL:
-		INFO_LOG(EXPANSIONINTERFACE, "Wrote DMAControl, chan %i", m_ChannelId);
+		INFO_LOG(EXPANSIONINTERFACE, "Wrote DMAControl, channel %i", m_ChannelId);
 		m_Control.Hex = _iValue;
 
 		if (m_Control.TSTART)
@@ -274,7 +267,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 		break;
 
 	case EXI_IMMDATA:
-		INFO_LOG(EXPANSIONINTERFACE, "Wrote IMMData, chan %i", m_ChannelId);
+		INFO_LOG(EXPANSIONINTERFACE, "Wrote IMMData, channel %i", m_ChannelId);
 		m_ImmData = _iValue;
 		break;
 	}
@@ -282,7 +275,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 
 void CEXIChannel::DoState(PointerWrap &p)
 {
-	p.Do(m_Status);
+	p.DoPOD(m_Status);
 	p.Do(m_DMAMemoryAddress);
 	p.Do(m_DMALength);
 	p.Do(m_Control);

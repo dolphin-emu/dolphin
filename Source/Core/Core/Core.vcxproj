@@ -34,12 +34,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -49,7 +49,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -59,7 +59,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -261,7 +261,6 @@
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCodes.cpp" />
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_AX.cpp" />
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_AXWii.cpp" />
-    <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_NewAXWii.cpp" />
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_CARD.cpp" />
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_GBA.cpp" />
     <ClCompile Include="Src\HW\DSPHLE\UCodes\UCode_InitAudioSystem.cpp" />
@@ -421,7 +420,6 @@
     <ClInclude Include="Src\Debugger\Dump.h" />
     <ClInclude Include="Src\Debugger\GCELF.h" />
     <ClInclude Include="Src\Debugger\PPCDebugInterface.h" />
-    <ClInclude Include="Src\DolLoader.h" />
     <ClInclude Include="Src\DSP\assemble.h" />
     <ClInclude Include="Src\DSP\disassemble.h" />
     <ClInclude Include="Src\DSP\DSPAccelerator.h" />
@@ -465,11 +463,8 @@
     <ClInclude Include="Src\HW\DSPHLE\MailHandler.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCodes.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX.h" />
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_Structs.h" />
+    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXStructs.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXWii.h" />
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXWii_Structs.h" />
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AXWii_Voice.h" />
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_NewAXWii.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_Voice.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_CARD.h" />
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_GBA.h" />

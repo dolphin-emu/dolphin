@@ -1,23 +1,11 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <string> // System
 #include <vector>
 #include <algorithm>
+#include <functional>
 #include <wx/spinbutt.h>
 
 #include "Common.h"
@@ -43,14 +31,6 @@
 #include "Main.h"
 #include "VideoBackendBase.h"
 
-#if defined(__APPLE__)
-#include <tr1/functional>
-using std::tr1::function;
-#else
-#include <functional>
-using std::function;
-#endif
-
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
 
 struct CPUCore
@@ -59,12 +39,12 @@ struct CPUCore
 	const char *name;
 };
 const CPUCore CPUCores[] = {
-	{0, "Interpreter (VERY slow)"},
+	{0, wxTRANSLATE("Interpreter (VERY slow)")},
 #ifdef _M_ARM
-	{3, "Arm JIT (experimental)"},
+	{3, wxTRANSLATE("Arm JIT (experimental)")},
 #else
-	{1, "JIT Recompiler (recommended)"},
-	{2, "JITIL experimental recompiler"},
+	{1, wxTRANSLATE("JIT Recompiler (recommended)")},
+	{2, wxTRANSLATE("JITIL experimental recompiler")},
 #endif
 };
 
@@ -97,6 +77,7 @@ static const wxLanguage langIds[] =
 	wxLANGUAGE_RUSSIAN,
 	wxLANGUAGE_SERBIAN,
 	wxLANGUAGE_SPANISH,
+	wxLANGUAGE_SWEDISH,
 	wxLANGUAGE_TURKISH,
 };
 
@@ -268,7 +249,7 @@ void CConfigMain::InitializeGUILists()
 
 	// Emulator Engine
 	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
-		arrayStringFor_CPUEngine.Add(_(CPUCores[a].name));
+		arrayStringFor_CPUEngine.Add(wxGetTranslation(CPUCores[a].name));
 		
 	// DSP Engine 
 	arrayStringFor_DSPEngine.Add(_("DSP HLE emulation (fast)"));
@@ -327,6 +308,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_InterfaceLang.Add(_("Russian"));
 	arrayStringFor_InterfaceLang.Add(_("Serbian"));
 	arrayStringFor_InterfaceLang.Add(_("Spanish"));
+	arrayStringFor_InterfaceLang.Add(_("Swedish"));
 	arrayStringFor_InterfaceLang.Add(_("Turkish"));
 }
 
@@ -502,7 +484,7 @@ void CConfigMain::InitializeGUITooltips()
 {
 	// General - Basic
 	CPUThread->SetToolTip(_("This splits the Video and CPU threads, so they can be run on separate cores.\nCauses major speed improvements on PCs with more than one core, but can also cause occasional crashes/glitches."));
-	Framelimit->SetToolTip(_("If you set Framelimit higher than game full speed (NTSC:60, PAL:50). Use Audio to throttle using the DSP (might fix audio clicks but can also cause constant noise depending on the game)."));
+	Framelimit->SetToolTip(_("This limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL). Alternatively, use Audio to throttle using the DSP (might fix audio clicks but can also cause constant noise depending on the game)."));
 
 	// General - Advanced
 	_NTSCJ->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nLeft unchecked, dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
@@ -515,7 +497,7 @@ void CConfigMain::InitializeGUITooltips()
 	InterfaceLang->SetToolTip(_("Change the language of the user interface.\nRequires restart."));
 
 	// Audio tooltips
-	DSPThread->SetToolTip(_("Run DSP LLE on a dedicated thread (not recommended)."));
+	DSPThread->SetToolTip(_("Run DSP HLE and LLE on a dedicated thread (not recommended: might cause audio glitches with HLE and freezes with LLE)."));
 	BackendSelection->SetToolTip(_("Changing this will have no effect while the emulator is running!"));
 
 	// Gamecube - Devices
@@ -624,16 +606,17 @@ void CConfigMain::CreateGUIControls()
 		SplitPath(filename, NULL, &name, &ext);
 
 		name += ext;
-		if (-1 == theme_selection->FindString(name))
-			theme_selection->Append(name);
+		auto const wxname = StrToWxStr(name);
+		if (-1 == theme_selection->FindString(wxname))
+			theme_selection->Append(wxname);
 	});
 	
-	theme_selection->SetStringSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name);
+	theme_selection->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
 
 	// std::function = avoid error on msvc
-	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, function<void(wxEvent&)>([theme_selection](wxEvent&)
+	theme_selection->Bind(wxEVT_COMMAND_CHOICE_SELECTED, std::function<void(wxEvent&)>([theme_selection](wxEvent&)
 	{
-		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = theme_selection->GetStringSelection();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name = WxStrToStr(theme_selection->GetStringSelection());
 		main_frame->InitBitmaps();
 		main_frame->UpdateGameList();
 	}));
@@ -657,7 +640,7 @@ void CConfigMain::CreateGUIControls()
 	// Audio page
 	DSPEngine = new wxRadioBox(AudioPage, ID_DSPENGINE, _("DSP Emulator Engine"),
 				wxDefaultPosition, wxDefaultSize, arrayStringFor_DSPEngine, 0, wxRA_SPECIFY_ROWS);
-	DSPThread = new wxCheckBox(AudioPage, ID_DSPTHREAD, _("DSP LLE on Thread"));
+	DSPThread = new wxCheckBox(AudioPage, ID_DSPTHREAD, _("DSP on Dedicated Thread"));
 	DumpAudio = new wxCheckBox(AudioPage, ID_DUMP_AUDIO, _("Dump Audio"),
 				wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DPL2Decoder = new wxCheckBox(AudioPage, ID_DPL2DECODER, _("Dolby Pro Logic II decoder"));
@@ -976,7 +959,9 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 		VolumeSlider->Enable(SupportsVolumeChanges(WxStrToStr(BackendSelection->GetStringSelection())));
 		Latency->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL);
 		DPL2Decoder->Enable(WxStrToStr(BackendSelection->GetStringSelection()) == BACKEND_OPENAL);
-		SConfig::GetInstance().sBackend = WxStrToStr(BackendSelection->GetStringSelection());
+		// Don't save the translated BACKEND_NULLSOUND string
+		SConfig::GetInstance().sBackend = BackendSelection->GetSelection() ?
+			WxStrToStr(BackendSelection->GetStringSelection()) : BACKEND_NULLSOUND;
 		AudioCommon::UpdateSoundStream();
 		break;
 
@@ -997,8 +982,8 @@ void CConfigMain::AddAudioBackends()
 	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
 		 iter != backends.end(); ++iter)
 	{
-		BackendSelection->Append(StrToWxStr(*iter));
-		int num = BackendSelection->\
+		BackendSelection->Append(wxGetTranslation(StrToWxStr(*iter)));
+		int num = BackendSelection->
 			FindString(StrToWxStr(SConfig::GetInstance().sBackend));
 		BackendSelection->SetSelection(num);
 	}
@@ -1239,7 +1224,9 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 		if (dialog.ShowModal() == wxID_OK)
 		{
 			if (ISOPaths->FindString(dialog.GetPath()) != -1)
+			{
 				wxMessageBox(_("The chosen directory is already in the list"), _("Error"), wxOK);
+			}
 			else
 			{
 				bRefreshList = true;

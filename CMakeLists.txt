@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.6)
 
 option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
+option(USE_X11 "Enables X11 Support" ON)
+option(USE_WAYLAND "Enables Wayland Support" OFF)
 option(USE_GLES "Enables GLES And EGL, disables OGL" OFF)
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 
@@ -114,6 +116,8 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
 	add_definitions(-marm -march=armv7-a)
 	add_definitions(-D_M_ARM=1)
 	add_definitions(-D_M_GENERIC=1)
+# Set generic options so you don't have to pass anything to cmake to build ARM
+	set(USE_GLES 1)
 endif()
 
 # Set these next two lines to test generic
@@ -168,8 +172,8 @@ if(APPLE)
 	set(ENV{PATH} /usr/bin:/bin:/usr/sbin:/sbin)
 
 	# Some of our code contains Objective C constructs.
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c -stdlib=libc++")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++ -stdlib=libc++")
 	# Avoid mistaking an object file for a source file on the link command line.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -x none")
 
@@ -180,10 +184,10 @@ if(APPLE)
 	# This is inserted into the Info.plist as well.
 	# Note that the SDK determines the maximum version of which optional
 	# features can be used, not the minimum required version to run.
-	set(OSX_MIN_VERSION "10.5.4")
+	set(OSX_MIN_VERSION "10.7")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
-	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.6.sdk")
-	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk")
+	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.7.sdk")
+	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk")
 	if(EXISTS "${SYSROOT_PATH}/")
         set(TARGET_SYSROOT ${SYSROOT_PATH})
 	elseif(EXISTS "${SYSROOT_LEGACY_PATH}/")
@@ -197,8 +201,8 @@ if(APPLE)
 	# This avoids a warning when linking with QuickTime.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
 	# Specify target CPUs.
-	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -mssse3")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -Xarch_x86_64 -march=core2")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -mssse3")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -march=core2")
 	# Target flags apply to both C and C++ compilation.
 	# CMake passes these to the compiler on the link command line as well.
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_FLAGS}")
@@ -247,9 +251,9 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	set(wxWidgets_USE_DEBUG ON CACHE BOOL "Use wxWidgets Debugging")
 endif(CMAKE_BUILD_TYPE STREQUAL Debug)
 
-if(CMAKE_BUILD_TYPE STREQUAL Release)
+if(CMAKE_BUILD_TYPE STREQUAL Release AND NOT APPLE)
 	add_definitions(-fomit-frame-pointer)
-endif(CMAKE_BUILD_TYPE STREQUAL Release)
+endif()
 
 if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
@@ -263,16 +267,28 @@ if(USE_GLES)
 	add_definitions(-DUSE_EGL=1)
 	set(USE_EGL True)
 endif()
+# For now Wayland and EGL are tied to each other.
+# The alternative would be an shm path
+if(USE_WAYLAND)
+	add_definitions(-DUSE_EGL)
+	set(USE_EGL 1)
+endif()
 
 if(USE_EGL)
 	message("EGL OpenGL interface enabled")
 	add_definitions(-DUSE_EGL=1)
+else()
+# Using GLX
+	set(USE_X11 1)
+	set(USE_WAYLAND 0)
 endif()
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
 if(ANDROID)
 	message("Building for Android")
 	add_definitions(-DANDROID)
+	set(USE_X11 0)
+	set(USE_WAYLAND 0)
 endif()
 ########################################
 # Dependency checking
@@ -348,29 +364,53 @@ if(NOT ANDROID)
 		message("OpenAL NOT found, disabling OpenAL sound backend")
 	endif(OPENAL_FOUND)
 
+	if(UNIX AND NOT APPLE)
+# Note: The convention is to check USE_X11 or USE_WAYLAND where needed.
+# This is where we detect platforms and set the variables accordingly.
+		pkg_check_modules(WAYLAND wayland-egl wayland-client wayland-cursor)
+		if(USE_WAYLAND AND WAYLAND_FOUND)
+			pkg_check_modules(XKBCOMMON xkbcommon)
+			if(XKBCOMMON_FOUND)
+				set(USE_WAYLAND 1)
+				add_definitions(-DHAVE_WAYLAND)
+				include_directories(${WAYLAND_INCLUDE_DIR})
+				message("Wayland support enabled")
+			endif(XKBCOMMON_FOUND)
+		else()
+			set(USE_WAYLAND 0)
+			message("Wayland support disabled")
+			add_definitions(-DHAVE_WAYLAND=0)
+		endif(USE_WAYLAND AND WAYLAND_FOUND)
+
 # Note: We do not need to explicitly check for X11 as it is done in the cmake
 # FindOpenGL module on linux.
-	if(UNIX AND NOT APPLE)
-		if(X11_FOUND)
+		if(USE_X11 AND X11_FOUND)
+			set(USE_X11 1)
 			add_definitions(-DHAVE_X11=1)
 			include_directories(${X11_INCLUDE_DIR})
-			message("X11 found")
+			message("X11 support enabled")
 		else()
-			message(FATAL_ERROR "X11 is required but not found")
-		endif(X11_FOUND)
-	else()
-		add_definitions(-DHAVE_X11=0)
+			set(USE_X11 0)
+			SET(X11_FOUND "")
+			message("X11 support disabled")
+			add_definitions(-DHAVE_X11=0)
+		endif(USE_X11 AND X11_FOUND)
+	
+		if (NOT USE_WAYLAND AND NOT USE_X11)
+			message(FATAL_ERROR "\n"
+			"No suitable display platform found\n"
+			"Requires wayland or x11 to run")
+		endif()
 	endif()
 
-	if(X11_FOUND)
+	if(USE_X11)
 		check_lib(XRANDR Xrandr)
+		if(XRANDR_FOUND)
+			add_definitions(-DHAVE_XRANDR=1)
+		else()
+			add_definitions(-DHAVE_XRANDR=0)
+		endif(XRANDR_FOUND)
 	endif()
-	if(XRANDR_FOUND)
-		add_definitions(-DHAVE_XRANDR=1)
-	else()
-		add_definitions(-DHAVE_XRANDR=0)
-	endif(XRANDR_FOUND)
-
 	if(ENCODE_FRAMEDUMPS)
 		check_libav()
 	endif()
@@ -440,6 +480,13 @@ else()
 	add_subdirectory(Externals/LZO)
 	include_directories(Externals/LZO)
 	set(LZO lzo2)
+endif()
+
+if(ANDROID)
+	message("Using static libpng from Externals")
+	add_subdirectory(Externals/libpng)
+	include_directories(Externals/libpng)
+	set(PNG libpng)
 endif()
 
 if(OPENAL_FOUND)

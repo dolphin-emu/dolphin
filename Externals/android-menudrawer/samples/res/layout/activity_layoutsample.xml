@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<net.simonvt.menudrawer.TopDrawer xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:mdMenuSize="64dp">
+
+    <LinearLayout
+        android:id="@id/mdMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp" >
+
+        <TextView
+            android:id="@+id/item1"
+            style="@style/MenuDrawer.Widget.Title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:drawableLeft="@drawable/ic_action_refresh_dark"
+            android:onClick="onDrawerItemClick"
+            android:tag="Item no. 1"
+            android:text="Item 1" />
+
+        <TextView
+            android:id="@+id/item2"
+            style="@style/MenuDrawer.Widget.Title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:drawableLeft="@drawable/ic_action_select_all_dark"
+            android:onClick="onDrawerItemClick"
+            android:tag="Item no. 2"
+            android:text="Item 2" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@id/mdContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp" >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sample_layout" />
+
+        <TextView
+            android:id="@+id/contentText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</net.simonvt.menudrawer.TopDrawer>

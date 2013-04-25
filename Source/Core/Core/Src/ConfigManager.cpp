@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <string>
 
@@ -37,17 +24,17 @@ static const struct {
 	{ "RefreshList",	0,			0 /* wxMOD_NONE */ },
 
 	{ "PlayPause",		80 /* 'P' */,		2 /* wxMOD_CMD */ },
-	{ "Stop",		87 /* 'W' */,		2 /* wxMOD_CMD */ },
-	{ "Reset",		0,			0 /* wxMOD_NONE */ },
+	{ "Stop",			87 /* 'W' */,		2 /* wxMOD_CMD */ },
+	{ "Reset",			0,			0 /* wxMOD_NONE */ },
 	{ "FrameAdvance",	0,			0 /* wxMOD_NONE */ },
 
 	{ "StartRecording",	0,			0 /* wxMOD_NONE */ },
 	{ "PlayRecording",	0,			0 /* wxMOD_NONE */ },
-	{ "ExportRecording",	0,			0 /* wxMOD_NONE */ },
+	{ "ExportRecording",	0,		0 /* wxMOD_NONE */ },
 	{ "Readonlymode",	0,			0 /* wxMOD_NONE */ },
 
 	{ "ToggleFullscreen",	70 /* 'F' */,		2 /* wxMOD_CMD */ },
-	{ "Screenshot",		83 /* 'S' */,		2 /* wxMOD_CMD */ },
+	{ "Screenshot",			83 /* 'S' */,		2 /* wxMOD_CMD */ },
 
 	{ "Wiimote1Connect",	49 /* '1' */,		2 /* wxMOD_CMD */ },
 	{ "Wiimote2Connect",	50 /* '2' */,		2 /* wxMOD_CMD */ },
@@ -60,12 +47,12 @@ static const struct {
 
 	{ "PlayPause",		349 /* WXK_F10 */,	0 /* wxMOD_NONE */ },
 	{ "Stop",		27 /* WXK_ESCAPE */,	0 /* wxMOD_NONE */ },
-	{ "Reset",		0,			0 /* wxMOD_NONE */ },
+	{ "Reset",			0,			0 /* wxMOD_NONE */ },
 	{ "FrameAdvance",	0,			0 /* wxMOD_NONE */ },
 
 	{ "StartRecording",	0,			0 /* wxMOD_NONE */ },
 	{ "PlayRecording",	0,			0 /* wxMOD_NONE */ },
-	{ "ExportRecording",	0,			0 /* wxMOD_NONE */ },
+	{ "ExportRecording",0,			0 /* wxMOD_NONE */ },
 	{ "Readonlymode",	0,			0 /* wxMOD_NONE */ },
 
 	{ "ToggleFullscreen",	13 /* WXK_RETURN */,	1 /* wxMOD_ALT */ },
@@ -155,7 +142,7 @@ void SConfig::SaveSettings()
 	ini.Set("General", "NANDRoot",			m_NANDPath);
 	ini.Set("General", "WirelessMac",		m_WirelessMac);
 
-	// Interface		
+	// Interface
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
 	ini.Set("Interface", "UsePanicHandlers",	m_LocalCoreStartupParameter.bUsePanicHandlers);
 	ini.Set("Interface", "OnScreenDisplayMessages",	m_LocalCoreStartupParameter.bOnScreenDisplayMessages);
@@ -214,6 +201,7 @@ void SConfig::SaveSettings()
 	// Core
 	ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
 	ini.Set("Core", "CPUCore",			m_LocalCoreStartupParameter.iCPUCore);
+	ini.Set("Core", "Fastmem",			m_LocalCoreStartupParameter.bFastmem);
 	ini.Set("Core", "CPUThread",		m_LocalCoreStartupParameter.bCPUThread);
 	ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
 	ini.Set("Core", "DSPHLE",			m_LocalCoreStartupParameter.bDSPHLE);
@@ -367,6 +355,7 @@ void SConfig::LoadSettings()
 #else
 		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		1);
 #endif
+		ini.Get("Core", "Fastmem",		&m_LocalCoreStartupParameter.bFastmem,		true);
 		ini.Get("Core", "DSPThread",	&m_LocalCoreStartupParameter.bDSPThread,	false);
 		ini.Get("Core", "DSPHLE",		&m_LocalCoreStartupParameter.bDSPHLE,		true);
 		ini.Get("Core", "CPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);
@@ -403,7 +392,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
-		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeam,			false);
+		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeamSpeedHack,			false);
 		ini.Get("Core", "SyncGPU",			&m_LocalCoreStartupParameter.bSyncGPU,			false);
 		ini.Get("Core", "FastDiscSpeed",	&m_LocalCoreStartupParameter.bFastDiscSpeed,	false);
 		ini.Get("Core", "DCBZ",				&m_LocalCoreStartupParameter.bDCBZOFF,			false);
@@ -426,6 +415,8 @@ void SConfig::LoadSettings()
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_COREAUDIO);
 	#elif defined _WIN32
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_DIRECTSOUND);
+	#elif defined ANDROID
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_OPENSLES);
 	#else
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_NULLSOUND);
 	#endif

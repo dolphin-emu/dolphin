@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _BPMEMORY_H
 #define _BPMEMORY_H
@@ -100,17 +87,17 @@
 #define BPMEM_FOGPARAM3        0xF1
 #define BPMEM_FOGCOLOR         0xF2
 #define BPMEM_ALPHACOMPARE     0xF3
-#define BPMEM_BIAS			   0xF4
-#define BPMEM_ZTEX2			   0xF5
+#define BPMEM_BIAS             0xF4
+#define BPMEM_ZTEX2            0xF5
 #define BPMEM_TEV_KSEL         0xF6 // 0xF6 + 8
 #define BPMEM_BP_MASK          0xFE
 
 
 // Tev/combiner things
 
-#define TEVSCALE_1 0
-#define TEVSCALE_2 1
-#define TEVSCALE_4 2
+#define TEVSCALE_1  0
+#define TEVSCALE_2  1
+#define TEVSCALE_4  2
 #define TEVDIVIDE_2 3
 
 #define TEVCMP_R8    0
@@ -149,27 +136,27 @@
 #define TEVCOLORARG_ZERO 15
 
 #define TEVALPHAARG_APREV 0
-#define TEVALPHAARG_A0 1
-#define TEVALPHAARG_A1 2
-#define TEVALPHAARG_A2 3
-#define TEVALPHAARG_TEXA 4
-#define TEVALPHAARG_RASA 5
+#define TEVALPHAARG_A0    1
+#define TEVALPHAARG_A1    2
+#define TEVALPHAARG_A2    3
+#define TEVALPHAARG_TEXA  4
+#define TEVALPHAARG_RASA  5
 #define TEVALPHAARG_KONST 6
-#define TEVALPHAARG_ZERO 7
+#define TEVALPHAARG_ZERO  7
 
-#define GX_TEVPREV              0
-#define GX_TEVREG0              1
-#define GX_TEVREG1              2
-#define GX_TEVREG2              3
+#define GX_TEVPREV       0
+#define GX_TEVREG0       1
+#define GX_TEVREG1       2
+#define GX_TEVREG2       3
 
-#define ALPHACMP_NEVER 0
-#define ALPHACMP_LESS 1
-#define ALPHACMP_EQUAL 2
-#define ALPHACMP_LEQUAL 3
+#define ALPHACMP_NEVER   0
+#define ALPHACMP_LESS    1
+#define ALPHACMP_EQUAL   2
+#define ALPHACMP_LEQUAL  3
 #define ALPHACMP_GREATER 4
-#define ALPHACMP_NEQUAL 5
-#define ALPHACMP_GEQUAL 6
-#define ALPHACMP_ALWAYS 7
+#define ALPHACMP_NEQUAL  5
+#define ALPHACMP_GEQUAL  6
+#define ALPHACMP_ALWAYS  7
 
 enum Compare
 {
@@ -331,26 +318,26 @@ struct TevStageCombiner
 #define ITF_3 3
 
 #define ITB_NONE 0
-#define ITB_S 1
-#define ITB_T 2
-#define ITB_ST 3
-#define ITB_U 4
-#define ITB_SU 5
-#define ITB_TU 6
-#define ITB_STU 7
+#define ITB_S    1
+#define ITB_T    2
+#define ITB_ST   3
+#define ITB_U    4
+#define ITB_SU   5
+#define ITB_TU   6
+#define ITB_STU  7
 
 #define ITBA_OFF 0
-#define ITBA_S 1
-#define ITBA_T 2
-#define ITBA_U 3
+#define ITBA_S   1
+#define ITBA_T   2
+#define ITBA_U   3
 
 #define ITW_OFF 0
 #define ITW_256 1
 #define ITW_128 2
-#define ITW_64 3
-#define ITW_32 4
-#define ITW_16 5
-#define ITW_0 6
+#define ITW_64  3
+#define ITW_32  4
+#define ITW_16  5
+#define ITW_0   6
 
 // several discoveries:
 // GXSetTevIndBumpST(tevstage, indstage, matrixind)
@@ -384,7 +371,7 @@ struct TevStageCombiner
 			u32 unused : 11;
 		};
 
-		bool IsActive() { return (hex&0x17fe00)!=0; }
+		bool IsActive() { return (hex & 0x17fe00) != 0; }
 	};
 
 	union TwoTevStageOrders
@@ -482,7 +469,7 @@ union TexImage0
 {
 	struct 
 	{
-		u32 width : 10; //actually w-1
+		u32 width  : 10; //actually w-1
 		u32 height : 10; //actually h-1
 		u32 format : 4;
 	};
@@ -560,14 +547,14 @@ union ZTex2
 
 struct FourTexUnits
 {
-	TexMode0 texMode0[4]; 
-	TexMode1 texMode1[4]; 
-	TexImage0 texImage0[4]; 
-	TexImage1 texImage1[4]; 
-	TexImage2 texImage2[4]; 
-	TexImage3 texImage3[4]; 
-	TexTLUT texTlut[4];   
-	u32 unknown[4];   
+	TexMode0 texMode0[4];
+	TexMode1 texMode1[4];
+	TexImage0 texImage0[4];
+	TexImage1 texImage1[4];
+	TexImage2 texImage2[4];
+	TexImage3 texImage3[4];
+	TexTLUT texTlut[4];
+	u32 unknown[4];
 };
 
 
@@ -626,6 +613,17 @@ union X10Y10
 
 // Framebuffer/pixel stuff (incl fog)
 
+#define GX_BL_ZERO         0
+#define GX_BL_ONE          1
+#define GX_BL_SRCCLR       2 // for dst factor
+#define GX_BL_INVSRCCLR    3 // for dst factor
+#define GX_BL_SRCALPHA     4
+#define GX_BL_INVSRCALPHA  5
+#define GX_BL_DSTALPHA     6
+#define GX_BL_INVDSTALPHA  7
+#define GX_BL_DSTCLR       GX_BL_SRCCLR // for src factor
+#define GX_BL_INVDSTCLR    GX_BL_INVSRCCLR // for src factor
+
 union BlendMode
 {
 	struct 
@@ -653,7 +651,8 @@ union FogParam0
 		u32 sign : 1;
 	};
 
-	float GetA() {
+	float GetA()
+	{
 		union { u32 i; float f; } dummy;
 		dummy.i = ((u32)sign << 31) | ((u32)exponent << 23) | ((u32)mantissa << 12); // scale mantissa from 11 to 23 bits
 		return dummy.f;
@@ -674,7 +673,8 @@ union FogParam3
 	};
 
 	// amount to subtract from eyespacez after range adjustment
-	float GetC() { 
+	float GetC()
+	{ 
 		union { u32 i; float f; } dummy;
 		dummy.i = ((u32)c_sign << 31) | ((u32)c_exp << 23) | ((u32)c_mant << 12); // scale mantissa from 11 to 23 bits
 		return dummy.f;
@@ -913,7 +913,8 @@ union UPE_Copy
 union BPU_PreloadTileInfo
 {
 	u32 hex;
-	struct {
+	struct
+	{
 		u32 count : 15;
 		u32 type : 2;
 	};

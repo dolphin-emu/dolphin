@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 // -----------------------------------------------------------------------------------------
 // Partial Action Replay code system implementation.
@@ -26,7 +14,7 @@
 
 // -------------------------------------------------------------------------------------------------------------
 // Code Types:
-// (Unconditonal) Normal Codes (0): this one has subtypes inside
+// (Unconditional) Normal Codes (0): this one has subtypes inside
 // (Conditional) Normal Codes (1 - 7): these just compare values and set the line skip info
 // Zero Codes: any code with no address.  These codes are used to do special operations like memory copy, etc
 // -------------------------------------------------------------------------------------------------------------
@@ -54,7 +42,7 @@ enum
 	ZCODE_ROW	= 0x03, 
 	ZCODE_04	= 0x04,
 
-	// Conditonal Codes
+	// Conditional Codes
 	CONDTIONAL_EQUAL				= 0x01,
 	CONDTIONAL_NOT_EQUAL			= 0x02, 
 	CONDTIONAL_LESS_THAN_SIGNED		= 0x03,
@@ -191,14 +179,16 @@ void LoadCodes(IniFile &ini, bool forceLoad)
 		{
 			AREntry op;
 			bool success_addr = TryParse(std::string("0x") + pieces[0], &op.cmd_addr);
-   			bool success_val = TryParse(std::string("0x") + pieces[1], &op.value);
+			bool success_val = TryParse(std::string("0x") + pieces[1], &op.value);
 			if (!(success_addr | success_val)) {
 				PanicAlertT("Action Replay Error: invalid AR code line: %s", line.c_str());
 				if (!success_addr) PanicAlertT("The address is invalid");
 				if (!success_val) PanicAlertT("The value is invalid");
 			}
 			else
+			{
 				currentCode.ops.push_back(op);
+			}
 		}
 		else
 		{
@@ -535,7 +525,7 @@ bool Subtype_RamWriteAndFill(const ARAddr addr, const u32 data)
 
 	case DATATYPE_32BIT_FLOAT:
 	case DATATYPE_32BIT: // Dword write
-		LogInfo("32bit Write");
+		LogInfo("32-bit Write");
 		LogInfo("--------");
 		Memory::Write_U32(data, new_addr);
 		LogInfo("Wrote %08x to address %08x", data, new_addr);

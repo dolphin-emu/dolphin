@@ -1,16 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "GeckoCode.h"
 
@@ -28,14 +18,14 @@ namespace Gecko
 enum
 {
 	// Code Types
-	CODETYPE_WRITE_FILL =	0x0,
-	CODETYPE_IF =			0x1,
-	CODETYPE_BA_PO_OPS =	0x2,
-	CODETYPE_FLOW_CONTROL =	0x3,
-	CODETYPE_REGISTER_OPS =	0x4,
-	CODETYPE_SPECIAL_IF =	0x5,
+	CODETYPE_WRITE_FILL =		0x0,
+	CODETYPE_IF =				0x1,
+	CODETYPE_BA_PO_OPS =		0x2,
+	CODETYPE_FLOW_CONTROL =		0x3,
+	CODETYPE_REGISTER_OPS =		0x4,
+	CODETYPE_SPECIAL_IF =		0x5,
 	CODETYPE_ASM_SWITCH_RANGE =	0x6,
-	CODETYPE_END_CODES =	0x7,
+	CODETYPE_END_CODES =		0x7,
 
 	// Data Types
 	DATATYPE_8BIT =		0x0,
@@ -104,12 +94,14 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 		gcodes_iter = gcodes.begin(),
 		gcodes_end = gcodes.end();
 	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	{
 		if (gcodes_iter->enabled)
 		{
 			// TODO: apply modifiers
 			// TODO: don't need description or creator string, just takin up memory
 			active_codes.push_back(*gcodes_iter);
 		}
+	}
 
 	inserted_asm_codes.clear();
 
@@ -289,7 +281,8 @@ void RunCodeHandler()
 	}
 }
 
-const std::map<u32, std::vector<u32> >& GetInsertedAsmCodes() {
+const std::map<u32, std::vector<u32> >& GetInsertedAsmCodes()
+{
 	return inserted_asm_codes;
 }
 
@@ -365,7 +358,7 @@ bool RamWriteAndFill()
 		const u8 data_type = current_code->address >> 28;
 		const u32 data_inc = current_code->data;	// amount to increment the data
 		const u16 addr_inc = (u16)current_code->address;	// amount to increment the address
-		count =	((current_code->address >> 16) & 0xFFF) + 1;	// count is different from the other subtypes, note: +1
+		count = ((current_code->address >> 16) & 0xFFF) + 1;	// count is different from the other subtypes, note: +1
 		while (count--)
 		{
 			// switch inside the loop, :/ o well
@@ -470,7 +463,7 @@ bool RegularIf()
 			// CST7 : 16bits (endif, then) If lower
 		case 0x3 :
 			result = (read_value < data_value);
-			break;	
+			break;
 		}
 	}
 
@@ -591,7 +584,9 @@ bool FlowControl()
 				current_code = target_code - 1;
 			}
 			else
+			{
 				return false;	// trying to GOTO to bad address
+			}
 		}
 		break;
 
@@ -608,7 +603,9 @@ bool FlowControl()
 				current_code = target_code - 1;
 			}
 			else
+			{
 				return false;	// trying to GOSUB to bad address
+			}
 		}
 		break;
 
@@ -919,14 +916,14 @@ bool SpecialIf()
 
 // CT6 ASM Codes, On/Off switch and Address Range Check
 // NOT COMPLETE, asm stuff not started
-// fix the uglyness
+// TODO: Fix the ugliness
 bool AsmSwitchRange()
 {
 	// the switch subtype modifies the code :/
 	GeckoCode::Code& code = *current_code;
 
 	// only run if code_execution is set or this code is a switch or rangecheck subtype
-	// the switch and rangecheck run if exectution_counter is 1 (directly inside the failed if) if they are an endif
+	// the switch and rangecheck run if execution_counter is 1 (directly inside the failed if) if they are an endif
 	if (false == CodeExecution())
 	{
 		if (code.subtype < 0x6)
@@ -965,7 +962,7 @@ bool AsmSwitchRange()
 			}
 
 			// Though the next code starts at current_code+number_of_codes+1,
-			// we add only number_of_codes. It is because the for statemet in
+			// we add only number_of_codes. It is because the for statement in
 			// RunGeckoCode() increments current_code.
 			current_code += number_of_codes;
 

@@ -34,7 +34,7 @@ void Init( std::vector<ControllerInterface::Device*>& devices )
 	std::map<std::string, int>	name_counts;
 
 	if (SDL_Init( SDL_INIT_FLAGS ) >= 0)
-    {
+	{
 		// joysticks
 		for(int i = 0; i < SDL_NumJoysticks(); ++i)
 		{
@@ -49,7 +49,7 @@ void Init( std::vector<ControllerInterface::Device*>& devices )
 					delete js;
 			}
 		}
-    }
+	}
 }
 
 Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index)
@@ -63,7 +63,7 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	// "why don't my 360 gamepad triggers/rumble work correctly"
 #ifdef _WIN32
 	// checking the name is probably good (and hacky) enough
-	// but i'll double check with the num of buttons/axes
+	// but I'll double check with the num of buttons/axes
 	std::string lcasename = GetName();
 	std::transform(lcasename.begin(), lcasename.end(), lcasename.begin(), tolower);
 
@@ -204,7 +204,9 @@ void Joystick::ConstantEffect::SetState(const ControlState state)
 		m_effect.effect.constant.length = SDL_HAPTIC_INFINITY;
 	}
 	else
+	{
 		m_effect.effect.type = 0;
+	}
 
 	const Sint16 old = m_effect.effect.constant.level;
 	m_effect.effect.constant.level = state * 0x7FFF;
@@ -220,7 +222,9 @@ void Joystick::RampEffect::SetState(const ControlState state)
 		m_effect.effect.ramp.length = SDL_HAPTIC_INFINITY;
 	}
 	else
+	{
 		m_effect.effect.type = 0;
+	}
 
 	const Sint16 old = m_effect.effect.ramp.start;
 	m_effect.effect.ramp.start = state * 0x7FFF;
@@ -235,15 +239,17 @@ void Joystick::SineEffect::SetState(const ControlState state)
 		m_effect.effect.type = SDL_HAPTIC_SINE;
 		m_effect.effect.periodic.length = 250;
 	}
-	else {
+	else
+	{
 		m_effect.effect.type = 0;
 	}
 
 	const Sint16 old = m_effect.effect.periodic.magnitude;
-        m_effect.effect.periodic.period = 5;
+	m_effect.effect.periodic.period = 5;
 	m_effect.effect.periodic.magnitude = state * 0x5000;
-        m_effect.effect.periodic.attack_length = 0;
-        m_effect.effect.periodic.fade_length = 500;
+	m_effect.effect.periodic.attack_length = 0;
+	m_effect.effect.periodic.fade_length = 500;
+
 	if (old != m_effect.effect.periodic.magnitude)
 		m_effect.changed = true;
 }
@@ -255,15 +261,17 @@ void Joystick::SquareEffect::SetState(const ControlState state)
 		m_effect.effect.type = SDL_HAPTIC_SQUARE;
 		m_effect.effect.periodic.length = 250;
 	}
-	else {
+	else
+	{
 		m_effect.effect.type = 0;
 	}
 
 	const Sint16 old = m_effect.effect.periodic.magnitude;
-        m_effect.effect.periodic.period = 5;
+	m_effect.effect.periodic.period = 5;
 	m_effect.effect.periodic.magnitude = state * 0x5000;
-        m_effect.effect.periodic.attack_length = 0;
-        m_effect.effect.periodic.fade_length = 100;
+	m_effect.effect.periodic.attack_length = 0;
+	m_effect.effect.periodic.fade_length = 100;
+
 	if (old != m_effect.effect.periodic.magnitude)
 		m_effect.changed = true;
 }
@@ -275,15 +283,17 @@ void Joystick::TriangleEffect::SetState(const ControlState state)
 		m_effect.effect.type = SDL_HAPTIC_TRIANGLE;
 		m_effect.effect.periodic.length = 250;
 	}
-	else {
+	else
+	{
 		m_effect.effect.type = 0;
 	}
 
 	const Sint16 old = m_effect.effect.periodic.magnitude;
-        m_effect.effect.periodic.period = 5;
+	m_effect.effect.periodic.period = 5;
 	m_effect.effect.periodic.magnitude = state * 0x5000;
-        m_effect.effect.periodic.attack_length = 0;
-        m_effect.effect.periodic.fade_length = 100;
+	m_effect.effect.periodic.attack_length = 0;
+	m_effect.effect.periodic.fade_length = 100;
+
 	if (old != m_effect.effect.periodic.magnitude)
 		m_effect.changed = true;
 }
@@ -316,7 +326,9 @@ bool Joystick::UpdateOutput()
 			else	// effect is already uploaded
 			{
 				if (i->effect.type)	// if ouputstate >0
+				{
 					SDL_HapticUpdateEffect(m_haptic, i->id, &i->effect);	// update the effect
+				}
 				else
 				{
 					SDL_HapticStopEffect(m_haptic, i->id);	// else, stop and remove the effect

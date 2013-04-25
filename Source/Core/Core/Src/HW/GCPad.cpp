@@ -1,19 +1,6 @@
-// Copyright (C) 2010 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "GCPadStatus.h"
@@ -23,6 +10,7 @@
 #include "../ConfigManager.h"
 
 #include "../../InputCommon/Src/InputConfig.h"
+#include "Host.h"
 
 namespace Pad
 {
@@ -89,9 +77,11 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 }
 
 // __________________________________________________________________________________________________
-// Function: PAD_Rumble
+// Function: Rumble
 // Purpose:  Pad rumble!
-// input:	 PAD number, Command type (Stop=0, Rumble=1, Stop Hard=2) and strength of Rumble
+// input:    _numPad    - Which pad to rumble.
+//           _uType     - Command type (Stop=0, Rumble=1, Stop Hard=2).
+//           _uStrength - Strength of the Rumble
 // output:   none
 //
 void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
@@ -116,8 +106,9 @@ void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 // __________________________________________________________________________________________________
 // Function: Motor
 // Purpose:  For devices with constant Force feedback
-// input:	 Type - 06 = Motor On, 04 = Motor Off
-//           Strength - 00 = Left Strong, 127 = Left Weak, 128 = Right Weak, 255 = Right Strong
+// input:    _numPAD    - The pad to operate on 
+//           _uType     - 06 = Motor On, 04 = Motor Off
+//           _uStrength - 00 = Left Strong, 127 = Left Weak, 128 = Right Weak, 255 = Right Strong
 // output:   none
 //
 void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)

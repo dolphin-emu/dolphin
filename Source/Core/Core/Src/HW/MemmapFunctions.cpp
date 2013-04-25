@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
@@ -227,11 +227,15 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 		{
 			int x = (em_address & 0xfff) >> 2;
 			int y = (em_address >> 12) & 0x3ff;
+
 			// TODO figure out a way to send data without falling into the template trap
-			if (em_address & 0x00400000) {
+			if (em_address & 0x00400000)
+			{
 				g_video_backend->Video_AccessEFB(POKE_Z, x, y, (u32)data);
 				DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", (u32)data, x, y);
-			} else {
+			}
+			else
+			{
 				g_video_backend->Video_AccessEFB(POKE_COLOR, x, y,(u32)data);
 				DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", (u32)data, x, y);
 			}
@@ -331,18 +335,20 @@ u32 Read_Opcode(u32 _Address)
 			return 0;
 		}
 		else
+		{
 			_Address = tlb_addr;
+		}
 	}
 
 	return PowerPC::ppcState.iCache.ReadInstruction(_Address);
 }
 
 u8 Read_U8(const u32 _Address)
-{    
+{
 	u8 _var = 0;
 	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK
-    TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
+	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
@@ -369,7 +375,7 @@ u16 Read_U16(const u32 _Address)
 
 u32 Read_U32(const u32 _Address)
 {
-	u32 _var = 0;	
+	u32 _var = 0;
 	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
@@ -451,14 +457,15 @@ void Write_U32(const u32 _Data, const u32 _Address)
 #endif
 	WriteToHardware<u32>(_Address, _Data, _Address, FLAG_WRITE);
 }
-void Write_U32_Swap(const u32 _Data, const u32 _Address) {
+void Write_U32_Swap(const u32 _Data, const u32 _Address)
+{
 	Write_U32(Common::swap32(_Data), _Address);
 }
 
 void Write_U64(const u64 _Data, const u32 _Address)
 {
 #ifdef ENABLE_MEM_CHECK
-    TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
+	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
@@ -491,7 +498,7 @@ void WriteUnchecked_U8(const u8 _iValue, const u32 _Address)
 {
 	WriteToHardware<u8>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
 }
- 
+
 
 void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 {
@@ -571,7 +578,7 @@ union UPTE1
 		u32 API    : 6;
 		u32 H      : 1;
 		u32 VSID   : 24;
-		u32 V      : 1;        
+		u32 V      : 1;
 	};
 	u32 Hex;
 };
@@ -817,8 +824,8 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 	u32 pteg_addr = ((hash1 & pagetable_hashmask) << 6) | pagetable_base;
 
 	// hash1
-	for (int i = 0; i < 8; i++) 
-	{ 
+	for (int i = 0; i < 8; i++)
+	{
 		UPTE1 PTE1;
 		PTE1.Hex = bswap(*(u32*)&pRAM[pteg_addr]);
 
@@ -838,7 +845,7 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 				case FLAG_WRITE:    PTE2.C = 1; break;
 				case FLAG_NO_EXCEPTION: break;
 				case FLAG_OPCODE: break;
-				}              
+				}
 				*(u32*)&pRAM[(pteg_addr + 4)] = bswap(PTE2.Hex);
 
 				return ((PTE2.RPN << 12) | offset);
@@ -851,11 +858,11 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 	hash1 = ~hash1;
 	pteg_addr = ((hash1 & pagetable_hashmask) << 6) | pagetable_base;
 	for (int i = 0; i < 8; i++) 
-	{ 
+	{
 		u32 pte = bswap(*(u32*)&pRAM[pteg_addr]);
-		if ((pte & PTE1_V) && (pte & PTE1_H)) 
+		if ((pte & PTE1_V) && (pte & PTE1_H))
 		{
-			if (VSID == PTE1_VSID(pte) && (api == PTE1_API(pte))) 
+			if (VSID == PTE1_VSID(pte) && (api == PTE1_API(pte)))
 			{
 				UPTE2 PTE2;
 				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
@@ -898,7 +905,8 @@ u32 TranslateBlockAddress(const u32 addr, const XCheckTLBFlag _Flag)
 	// Check for enhanced mode (secondary BAT enable) using 8 BATs
 	int bats = (Core::g_CoreStartupParameter.bWii && HID4.SBE)?8:4;
 
-	for (int i = 0; i < bats; i++) {
+	for (int i = 0; i < bats; i++)
+	{
 		if (_Flag != FLAG_OPCODE)
 		{
 			u32 bl17 = ~(BATU_BL(PowerPC::ppcState.spr[SPR_DBAT0U + i * 2]) << 17);
@@ -966,7 +974,9 @@ u32 TranslateAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 		}
 	}
 	else
+	{
 		return tlb_addr;
+	}
 
 	return 0;
 }

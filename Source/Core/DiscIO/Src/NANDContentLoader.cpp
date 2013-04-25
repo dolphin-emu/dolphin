@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "NANDContentLoader.h"
 
@@ -260,17 +247,18 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		rContent.m_Size= (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
 		memcpy(rContent.m_SHA1Hash, pTMD + 0x01f4 + 0x24*i, 20);
 		memcpy(rContent.m_Header, pTMD + 0x01e4 + 0x24*i, 36);
+
 		if (m_isWAD)
 		{
-		u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
-		rContent.m_pData = new u8[RoundedSize];
+			u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
+			rContent.m_pData = new u8[RoundedSize];
 		
-		memset(IV, 0, sizeof IV);
-		memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
-		AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
+			memset(IV, 0, sizeof IV);
+			memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
+			AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
 
-		pDataApp += RoundedSize;
-		continue;
+			pDataApp += RoundedSize;
+			continue;
 		}
 
 		rContent.m_pData = NULL;
@@ -282,7 +270,9 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 			strcpy(szFilename, Filename.c_str());
 		}
 		else
+		{
 			sprintf(szFilename, "%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
+		}
 
 		INFO_LOG(DISCIO, "NANDContentLoader: load %s", szFilename);
 

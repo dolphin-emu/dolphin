@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "FifoAnalyzer.h"
 #include "FifoDataFile.h"
@@ -57,7 +44,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 		FifoAnalyzer::LoadCPReg(0x70 + i, cpMem[0x70 + i], m_CpMem);
 		FifoAnalyzer::LoadCPReg(0x80 + i, cpMem[0x80 + i], m_CpMem);
 		FifoAnalyzer::LoadCPReg(0x90 + i, cpMem[0x90 + i], m_CpMem);
-	}	
+	}
 	
 	frameInfo.clear();
 	frameInfo.resize(file->GetFrameCount());
@@ -77,12 +64,12 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 
 		while (cmdStart < frame.fifoDataSize)
 		{
-			// Add memory updates that have occured before this point in the frame
+			// Add memory updates that have occurred before this point in the frame
 			while (nextMemUpdate < frame.memoryUpdates.size() && frame.memoryUpdates[nextMemUpdate].fifoPosition <= cmdStart)
 			{
 				AddMemoryUpdate(frame.memoryUpdates[nextMemUpdate], analyzed);
 				++nextMemUpdate;
-			}			
+			}
 
 			bool wasDrawing = m_DrawingObject;
 
@@ -112,7 +99,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 					analyzed.objectStarts.push_back(cmdStart);
 				else
 					analyzed.objectEnds.push_back(cmdStart);
-			}		
+			}
 
 			cmdStart += cmdSize;
 		}
@@ -149,7 +136,7 @@ void FifoPlaybackAnalyzer::AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrame
 				u32 bytesToRangeEnd = range.end - memUpdate.address;
 				memUpdate.data += bytesToRangeEnd;
 				memUpdate.size = postSize;
-				memUpdate.address = range.end;				
+				memUpdate.address = range.end;
 			}
 			else if (preSize > 0)
 			{
@@ -172,50 +159,50 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
 
 	int cmd = ReadFifo8(data);
 
-    switch(cmd)
-    {
-    case GX_NOP:
+	switch(cmd)
+	{
+	case GX_NOP:
 	case 0x44:
 	case GX_CMD_INVL_VC:
-        break;
+		break;
 
-    case GX_LOAD_CP_REG:
-        {
-            m_DrawingObject = false;
+	case GX_LOAD_CP_REG:
+		{
+			m_DrawingObject = false;
 
 			u32 cmd2 = ReadFifo8(data);
 			u32 value = ReadFifo32(data);
-			FifoAnalyzer::LoadCPReg(cmd2, value, m_CpMem);	
-        }
-        break;
+			FifoAnalyzer::LoadCPReg(cmd2, value, m_CpMem);
+		}
+		break;
 
-    case GX_LOAD_XF_REG:
-        {
-            m_DrawingObject = false;
+	case GX_LOAD_XF_REG:
+		{
+			m_DrawingObject = false;
 
 			u32 cmd2 = ReadFifo32(data);
-            u8 streamSize = ((cmd2 >> 16) & 15) + 1;
+			u8 streamSize = ((cmd2 >> 16) & 15) + 1;
 
-			data += streamSize * 4;			
-        }
-        break;
+			data += streamSize * 4;
+		}
+		break;
 
-    case GX_LOAD_INDX_A:
-    case GX_LOAD_INDX_B:
-    case GX_LOAD_INDX_C:
-    case GX_LOAD_INDX_D:		
+	case GX_LOAD_INDX_A:
+	case GX_LOAD_INDX_B:
+	case GX_LOAD_INDX_C:
+	case GX_LOAD_INDX_D:
 		m_DrawingObject = false;
-		data += 4;		
-        break;
+		data += 4;
+		break;
 
-    case GX_CMD_CALL_DL:
+	case GX_CMD_CALL_DL:
 		// The recorder should have expanded display lists into the fifo stream and skipped the call to start them
 		// That is done to make it easier to track where memory is updated
 		_assert_(false);
 		data += 8;
-        break;
+		break;
 
-    case GX_LOAD_BP_REG:
+	case GX_LOAD_BP_REG:
 		{
 			m_DrawingObject = false;
 
@@ -227,11 +214,11 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
 			if (bp.address == BPMEM_TRIGGER_EFB_COPY)
 				StoreEfbCopyRegion();
 		}
-        break;
+		break;
 
-    default:
-        if (cmd & 0x80)
-        {
+	default:
+		if (cmd & 0x80)
+		{
 			m_DrawingObject = true;
 
 			u32 vtxAttrGroup = cmd & GX_VAT_MASK;
@@ -239,15 +226,15 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
 
 			u16 streamSize = ReadFifo16(data);
 
-			data += streamSize * vertexSize;			
-        }
-        else
-        {
-            PanicAlert("FifoPlayer: Unknown Opcode (0x%x).\nAborting frame analysis.\n", cmd);            
-            return 0;
-        }
-        break;
-    }
+			data += streamSize * vertexSize;
+		}
+		else
+		{
+			PanicAlert("FifoPlayer: Unknown Opcode (0x%x).\nAborting frame analysis.\n", cmd);
+			return 0;
+		}
+		break;
+	}
 
 	return data - dataStart;
 }
@@ -326,8 +313,8 @@ void FifoPlaybackAnalyzer::StoreWrittenRegion(u32 address, u32 size)
 				used.end = std::max(used.end, range.end);
 
 				// Remove this entry
-				iter = m_WrittenMemory.erase(iter);				
-			}			
+				iter = m_WrittenMemory.erase(iter);
+			}
 		}
 		else
 		{

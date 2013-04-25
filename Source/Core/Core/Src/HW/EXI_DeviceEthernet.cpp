@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Memmap.h"
 #include "EXI_Device.h"
@@ -87,11 +74,16 @@ CEXIETHERNET::CEXIETHERNET()
 		for (size_t i = 0; i < mac_addr_setting.size() && x < 12; i++)
 		{
 			char c = mac_addr_setting.at(i);
-			if (c >= '0' && c <= '9') {
+			if (c >= '0' && c <= '9')
+			{
 				mac_addr[x / 2] |= (c - '0') << ((x & 1) ? 0 : 4); x++;
-			} else if (c >= 'A' && c <= 'F') {
+			}
+			else if (c >= 'A' && c <= 'F')
+			{
 				mac_addr[x / 2] |= (c - 'A' + 10) << ((x & 1) ? 0 : 4); x++;
-			} else if (c >= 'a' && c <= 'f') {
+			}
+			else if (c >= 'a' && c <= 'f')
+			{
 				mac_addr[x / 2] |= (c - 'a' + 10) << ((x & 1) ? 0 : 4); x++;
 			}
 		}
@@ -113,7 +105,7 @@ CEXIETHERNET::CEXIETHERNET()
 		memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_addr, 6);
 	}
 
-	// hax .. fully established 100BASE-T link
+	// HACK: .. fully established 100BASE-T link
 	mBbaMem[BBA_NWAYS] = NWAYS_LS100 | NWAYS_LPNWAY | NWAYS_100TXF | NWAYS_ANCLPT;
 
 #if defined(_WIN32)
@@ -175,7 +167,7 @@ void CEXIETHERNET::ImmWrite(u32 data,  u32 size)
 
 		if (transfer.address == BBA_IOB && transfer.region == transfer.MX)
 		{
-			ERROR_LOG(SP1, "Usage of BBA_IOB indicates that the rx packet descriptor has been corrupted, killing dolphin...");
+			ERROR_LOG(SP1, "Usage of BBA_IOB indicates that the rx packet descriptor has been corrupted. Killing Dolphin...");
 			exit(0);
 		}
 
@@ -248,7 +240,7 @@ u32 CEXIETHERNET::ImmRead(u32 size)
 
 void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
 {
-	DEBUG_LOG(SP1, "dma w: %08x %x", addr, size);
+	DEBUG_LOG(SP1, "DMA write: %08x %x", addr, size);
 
 	if (transfer.region == transfer.MX &&
 		transfer.direction == transfer.WRITE &&
@@ -258,7 +250,7 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
 	}
 	else
 	{
-		ERROR_LOG(SP1, "dma w in %s %s mode - not implemented",
+		ERROR_LOG(SP1, "DMA write in %s %s mode - not implemented",
 			transfer.region == transfer.EXI ? "exi" : "mx",
 			transfer.direction == transfer.READ ? "read" : "write");
 	}
@@ -266,7 +258,7 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
 
 void CEXIETHERNET::DMARead(u32 addr, u32 size)
 {
-	DEBUG_LOG(SP1, "dma r: %08x %x", addr, size);
+	DEBUG_LOG(SP1, "DMA read: %08x %x", addr, size);
 	
 	memcpy(Memory::GetPointer(addr), &mBbaMem[transfer.address], size);
 
@@ -382,7 +374,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 	case BBA_NCRA:
 		if (data & NCRA_RESET)
 		{
-			DEBUG_LOG(SP1, "software reset");
+			DEBUG_LOG(SP1, "Software reset");
 			//MXSoftReset();
 			Activate();
 		}
@@ -400,16 +392,16 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 		// Only start transfer if there isn't one currently running
 		if (!(mBbaMem[BBA_NCRA] & (NCRA_ST0 | NCRA_ST1)))
 		{
-			// Technically transfer dma status is kept in TXDMA - not implemented
+			// Technically transfer DMA status is kept in TXDMA - not implemented
 
 			if (data & NCRA_ST0)
 			{
-				WARN_LOG(SP1, "start tx - local dma");
+				WARN_LOG(SP1, "start tx - local DMA");
 				SendFromPacketBuffer();
 			}
 			else if (data & NCRA_ST1)
 			{
-				DEBUG_LOG(SP1, "start tx - direct fifo");
+				DEBUG_LOG(SP1, "start tx - direct FIFO");
 				SendFromDirectFIFO();
 				// Kind of a hack: send completes instantly, so we don't
 				// actually write the "send in status" bit to the register
@@ -451,7 +443,7 @@ void CEXIETHERNET::DirectFIFOWrite(u8 *data, u32 size)
 	memcpy(tx_fifo + *tx_fifo_count, data, size);
 
 	*tx_fifo_count += size;
-	// TODO not sure this mask is correct.
+	// TODO: not sure this mask is correct.
 	// However, BBA_TXFIFOCNT should never get even close to this amount,
 	// so it shouldn't matter
 	*tx_fifo_count &= (1 << 12) - 1;
@@ -464,7 +456,7 @@ void CEXIETHERNET::SendFromDirectFIFO()
 
 void CEXIETHERNET::SendFromPacketBuffer()
 {
-	ERROR_LOG(SP1, "tx packet buffer not implemented");
+	ERROR_LOG(SP1, "tx packet buffer not implemented.");
 }
 
 void CEXIETHERNET::SendComplete()
@@ -484,7 +476,7 @@ void CEXIETHERNET::SendComplete()
 
 inline u8 CEXIETHERNET::HashIndex(u8 *dest_eth_addr)
 {
-	// Calculate crc
+	// Calculate CRC
 	u32 crc = 0xffffffff;
 
 	for (size_t byte_num = 0; byte_num < 6; ++byte_num)
@@ -496,7 +488,7 @@ inline u8 CEXIETHERNET::HashIndex(u8 *dest_eth_addr)
 			crc <<= 1;
 			cur_byte >>= 1;
 			if (carry)
-				crc = (crc ^ 0x4c11db6) | carry;			
+				crc = (crc ^ 0x4c11db6) | carry;
 		}
 	}
 
@@ -545,7 +537,7 @@ inline void CEXIETHERNET::inc_rwp()
 		(*rwp)++;
 }
 
-// This function is on the critical path for recving data.
+// This function is on the critical path for receiving data.
 // Be very careful about calling into the logger and other slow things
 bool CEXIETHERNET::RecvHandlePacket()
 {
@@ -601,7 +593,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 			if (AUTORCVR)
 				discard bad packet
 			else
-				inc MPC instad of recving packets
+				inc MPC instead of receiving packets
 			*/
 			status |= DESC_FO | DESC_BF;
 			mBbaMem[BBA_IR] |= mBbaMem[BBA_IMR] & INT_RBF;

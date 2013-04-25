@@ -21,6 +21,10 @@ elseif(X11_FOUND)
 	set(SRCS	${SRCS}
 				Src/ControllerInterface/SDL/SDL.cpp
 				Src/ControllerInterface/Xlib/Xlib.cpp)
+elseif(ANDROID)
+	set(SRCS	${SRCS}
+				Src/ControllerInterface/Android/Android.cpp
+				Src/Android/ButtonManager.cpp)
 endif()
 
 add_library(inputcommon ${SRCS})

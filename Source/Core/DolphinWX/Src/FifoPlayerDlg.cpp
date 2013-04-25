@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "FifoPlayerDlg.h"
@@ -387,18 +374,23 @@ void FifoPlayerDlg::OnCheckEarlyMemoryUpdates(wxCommandEvent& event)
 
 void FifoPlayerDlg::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 {
+	// Pointer to the file data that was created as a result of recording.
 	FifoDataFile *file = FifoRecorder::GetInstance().GetRecordedFile();
 
 	if (file)
-		{
+	{
+		// Bring up a save file dialog. The location the user chooses will be assigned to this variable.
 		wxString path = wxSaveFileSelector(_("Dolphin FIFO"), wxT("dff"), wxEmptyString, this);
 
+		// Has a valid file path
 		if (!path.empty())
 		{
+			// Attempt to save the file to the path the user chose
 			wxBeginBusyCursor();
 			bool result = file->Save(WxStrToStr(path).c_str());
 			wxEndBusyCursor();
 			
+			// Wasn't able to save the file, shit's whack, yo.
 			if (!result)
 				PanicAlert("Error saving file");
 		}
@@ -409,14 +401,21 @@ void FifoPlayerDlg::OnRecordStop(wxCommandEvent& WXUNUSED(event))
 {
 	FifoRecorder& recorder = FifoRecorder::GetInstance();
 
+	// Recorder is still recording
 	if (recorder.IsRecording())
 	{
+		// Then stop recording
 		recorder.StopRecording();
+
+		// and disable the button to stop recording
 		m_RecordStop->Disable();
 	}
-	else
+	else // Recorder is actually about to start recording
 	{
+		// So start recording
 		recorder.StartRecording(m_FramesToRecord, RecordingFinished);
+
+		// and change the button label accordingly.
 		m_RecordStop->SetLabel(_("Stop"));
 	}
 }
@@ -839,10 +838,12 @@ void FifoPlayerDlg::UpdateAnalyzerGui()
 	if ((int)m_framesList->GetCount() != num_frames)
 	{
 		m_framesList->Clear();
+
 		for (int i = 0; i < num_frames; ++i)
 		{
 			m_framesList->Append(wxString::Format(wxT("Frame %i"), i));
 		}
+
 		wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
 		ev.SetInt(-1);
 		OnFrameListSelectionChanged(ev);

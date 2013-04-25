@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Globals.h"
 
@@ -50,7 +37,7 @@ extern NativeVertexFormat *g_nativeVertexFmt;
 
 namespace OGL
 {
-//This are the initially requeted size for the buffers expresed in bytes
+//This are the initially requested size for the buffers expressed in bytes
 const u32 MAX_IBUFFER_SIZE =  2*1024*1024;
 const u32 MAX_VBUFFER_SIZE = 16*1024*1024;
 
@@ -124,10 +111,12 @@ void VertexManager::Draw(u32 stride)
 	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
 	u32 line_index_size = IndexGenerator::GetLineindexLen();
 	u32 point_index_size = IndexGenerator::GetPointindexLen();
+	GLenum triangle_mode = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart?GL_TRIANGLE_STRIP:GL_TRIANGLES;
+	
 	if(g_ogl_config.bSupportsGLBaseVertex) {
 		if (triangle_index_size > 0)
 		{
-			glDrawElementsBaseVertex(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
+			glDrawElementsBaseVertex(triangle_mode, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
@@ -143,7 +132,7 @@ void VertexManager::Draw(u32 stride)
 	} else {
 		if (triangle_index_size > 0)
 		{
-			glDrawElements(GL_TRIANGLES, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
+			glDrawElements(triangle_mode, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
@@ -234,7 +223,7 @@ void VertexManager::vFlush()
 				PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height, 0, 0);
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+				ERROR_LOG(VIDEO, "Error loading texture");
 		}
 	}
 

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
 #include "Common.h"
@@ -74,9 +61,12 @@ void DSPLLE::DoState(PointerWrap &p)
 	p.Do(g_dsp.reg_stack_ptr);
 	p.Do(g_dsp.exceptions);
 	p.Do(g_dsp.external_interrupt_waiting);
-	for (int i = 0; i < 4; i++) {
+
+	for (int i = 0; i < 4; i++)
+	{
 		p.Do(g_dsp.reg_stack[i]);
 	}
+
 	p.Do(g_dsp.iram_crc);
 	p.Do(g_dsp.step_counter);
 	p.Do(g_dsp.ifx_regs);
@@ -270,7 +260,7 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, u16 _uHighMail)
 	}
 	else
 	{
-		ERROR_LOG(DSPLLE, "CPU cant write to DSP mailbox");
+		ERROR_LOG(DSPLLE, "CPU can't write to DSP mailbox");
 	}
 }
 
@@ -282,7 +272,7 @@ void DSPLLE::DSP_WriteMailBoxLow(bool _CPUMailbox, u16 _uLowMail)
 	}
 	else
 	{
-		ERROR_LOG(DSPLLE, "CPU cant write to DSP mailbox");
+		ERROR_LOG(DSPLLE, "CPU can't write to DSP mailbox");
 	}
 }
 
@@ -324,6 +314,11 @@ void DSPLLE::DSP_Update(int cycles)
 		dspEvent.Set();
 
 	}
+}
+
+u32 DSPLLE::DSP_UpdateRate()
+{
+	return 12600; // TO BE TWEAKED
 }
 
 void DSPLLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)

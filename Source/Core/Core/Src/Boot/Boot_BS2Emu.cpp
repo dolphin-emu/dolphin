@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "CommonPaths.h"
@@ -187,10 +174,10 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	switch((DiscIO::IVolume::ECountry)_CountryCode)
 	{
 	case DiscIO::IVolume::COUNTRY_KOREA:
-        region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_KOR_SETTING;
-        break;
+		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_KOR_SETTING;
+		break;
 	case DiscIO::IVolume::COUNTRY_TAIWAN: 
-        // TODO: Determine if Taiwan has their own specific settings.
+		// TODO: Determine if Taiwan has their own specific settings.
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		region_filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_JAP_SETTING;
 		break;
@@ -234,7 +221,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	0x80000038	Start of FST
 	0x8000003c	Size of FST Size
 	0x80000060	Copyright code
-	*/	
+	*/
 
 	DVDInterface::DVDRead(0x00000000, 0x00000000, 0x20); // Game Code
 	Memory::Write_U32(0x0D15EA5E, 0x00000020);		// Another magic word
@@ -297,7 +284,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 // copy the apploader to 0x81200000
 // execute the apploader
 bool CBoot::EmulatedBS2_Wii()
-{	
+{
 	INFO_LOG(BOOT, "Faking Wii BS2...");
 
 	// setup wii memory

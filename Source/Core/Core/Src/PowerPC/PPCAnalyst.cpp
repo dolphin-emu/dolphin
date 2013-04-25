@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <string>
 #include <queue>
@@ -264,15 +251,15 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 		int regInA = a.regsIn[j];
 		int regInB = b.regsIn[j];
 		if (regInA >= 0 && 
-		    (b.regsOut[0] == regInA ||
-		     b.regsOut[1] == regInA))
+			(b.regsOut[0] == regInA ||
+			 b.regsOut[1] == regInA))
 		{
 			// reg collision! don't swap
 			return false;
 		}
 		if (regInB >= 0 &&
-		    (a.regsOut[0] == regInB ||
-		     a.regsOut[1] == regInB))
+			(a.regsOut[0] == regInB ||
+			 a.regsOut[1] == regInB))
 		{
 			// reg collision! don't swap
 			return false;
@@ -290,7 +277,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 			int capacity_of_merged_addresses, int& size_of_merged_addresses)
 {
 	if (capacity_of_merged_addresses < FUNCTION_FOLLOWING_THRESHOLD) {
-		PanicAlert("capacity of merged_addresses is too small!");
+		PanicAlert("Capacity of merged_addresses is too small!");
 	}
 	std::fill_n(merged_addresses, capacity_of_merged_addresses, 0);
 	merged_addresses[0] = address;
@@ -342,7 +329,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 		if (!cst1_instructions.empty())
 		{
 			// If the Gecko CST1 instruction queue is not empty,
-			// we comsume the first instruction.
+			// we consume the first instruction.
 			inst = UGeckoInstruction(cst1_instructions.front());
 			cst1_instructions.pop();
 			address -= 4;
@@ -697,7 +684,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 	{
 		if (iter->second.address == 4)
 		{
-			WARN_LOG(OSHLE, "weird function");
+			WARN_LOG(OSHLE, "Weird function");
 			continue;
 		}
 		AnalyzeFunction2(&(iter->second));
@@ -740,7 +727,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 	if (numNice == 0)
 		niceSize = 0;
 	else
-        niceSize /= numNice;
+		niceSize /= numNice;
 
 	if (numUnNice == 0)
 		unniceSize = 0;

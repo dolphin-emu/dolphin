@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 // File description
 // -------------
@@ -55,7 +43,7 @@ namespace BootManager
 struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF,
-		bVBeam, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2;
+		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2;
 	int iTLBHack, iCPUCore;
 	std::string strBackend;
 };
@@ -78,7 +66,8 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.hInstance = Host_GetInstance();
 
 	// If for example the ISO file is bad we return here
-	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT)) return false;
+	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT))
+		return false;
 
 	// Load game specific settings
 	IniFile game_ini;
@@ -94,7 +83,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bMMU = StartUp.bMMU;
 		config_cache.bDCBZOFF = StartUp.bDCBZOFF;
 		config_cache.iTLBHack = StartUp.iTLBHack;
-		config_cache.bVBeam = StartUp.bVBeam;
+		config_cache.bVBeamSpeedHack = StartUp.bVBeamSpeedHack;
 		config_cache.bSyncGPU = StartUp.bSyncGPU;
 		config_cache.bFastDiscSpeed = StartUp.bFastDiscSpeed;
 		config_cache.bMergeBlocks = StartUp.bMergeBlocks;
@@ -109,7 +98,7 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "MMU",					&StartUp.bMMU, StartUp.bMMU);
 		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
 		game_ini.Get("Core", "DCBZ",				&StartUp.bDCBZOFF, StartUp.bDCBZOFF);
-		game_ini.Get("Core", "VBeam",				&StartUp.bVBeam, StartUp.bVBeam);
+		game_ini.Get("Core", "VBeam",				&StartUp.bVBeamSpeedHack, StartUp.bVBeamSpeedHack);
 		game_ini.Get("Core", "SyncGPU",				&StartUp.bSyncGPU, StartUp.bSyncGPU);
 		game_ini.Get("Core", "FastDiscSpeed",		&StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
 		game_ini.Get("Core", "BlockMerging",		&StartUp.bMergeBlocks, StartUp.bMergeBlocks);
@@ -169,7 +158,7 @@ void Stop()
 		StartUp.bMMU = config_cache.bMMU;
 		StartUp.bDCBZOFF = config_cache.bDCBZOFF;
 		StartUp.iTLBHack = config_cache.iTLBHack;
-		StartUp.bVBeam = config_cache.bVBeam;
+		StartUp.bVBeamSpeedHack = config_cache.bVBeamSpeedHack;
 		StartUp.bSyncGPU = config_cache.bSyncGPU;
 		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
 		StartUp.bMergeBlocks = config_cache.bMergeBlocks;

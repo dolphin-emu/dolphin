@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "../../HW/Memmap.h"
 #include "../../HW/CPU.h"
@@ -82,14 +69,16 @@ void Trace( UGeckoInstruction &instCode )
 {
 	char reg[25]="";
 	std::string regs = "";
-	for (int i=0; i<32; i++) {
+	for (int i=0; i<32; i++)
+	{
 		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
 		regs.append(reg);
 	}
 
 	char freg[25]="";
 	std::string fregs = "";
-	for (int i=0; i<32; i++) {
+	for (int i=0; i<32; i++)
+	{
 		sprintf(freg, "f%02d: %08llx %08llx ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
 		fregs.append(freg);
 	}
@@ -182,7 +171,7 @@ int Interpreter::SingleStepInner(void)
 	}
 	PowerPC::ppcState.DebugCount++;
 #endif
-    patches();
+	patches();
 
 	GekkoOPInfo *opinfo = GetOpInfo(instCode);
 	return opinfo->numCyclesMinusOne + 1;
@@ -306,7 +295,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 		DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc, disasm, 256);
 		NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm);
 		Dolphin_Debugger::PrintCallstack();
-		_dbg_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instr %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
+		_dbg_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
 	}
 
 }

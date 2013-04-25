@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _LIGHTINGSHADERGEN_H_
 #define _LIGHTINGSHADERGEN_H_
@@ -62,14 +49,18 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 {
 	const LitChannel& chan = (litchan_index > 1) ? xfregs.alpha[litchan_index-2] : xfregs.color[litchan_index];
 	const char* swizzle = "xyzw";
-	if (coloralpha == 1 ) swizzle = "xyz";
-	else if (coloralpha == 2 ) swizzle = "w";
+	if (coloralpha == 1)
+		swizzle = "xyz";
+	else if (coloralpha == 2)
+		swizzle = "w";
 
 	uid_data.lit_chans[litchan_index].attnfunc = chan.attnfunc;
 	uid_data.lit_chans[litchan_index].diffusefunc = chan.diffusefunc;
-	if (!(chan.attnfunc & 1)) {
+	if (!(chan.attnfunc & 1))
+	{
 		// atten disabled
-		switch (chan.diffusefunc) {
+		switch (chan.diffusefunc)
+		{
 			case LIGHTDIF_NONE:
 				object.Write("lacc.%s += %s;\n", swizzle, LightCol(lightsName, index, swizzle));
 				break;
@@ -82,8 +73,8 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 			default: _assert_(0);
 		}
 	}
-	else { // spec and spot
-
+	else // spec and spot
+	{
 		if (chan.attnfunc == 3)
 		{ // spot
 			object.Write("ldir = %s.xyz - pos.xyz;\n", LightPos(lightsName, index));
@@ -134,7 +125,8 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		object.Write("{\n");
 
 		uid_data.lit_chans[j].matsource = xfregs.color[j].matsource;
-		if (color.matsource) {// from vertex
+		if (color.matsource) // from vertex
+		{
 			if (components & (VB_HAS_COL0 << j))
 				object.Write("mat = %s%d;\n", inColorName, j);
 			else if (components & VB_HAS_COL0)
@@ -143,12 +135,16 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 				object.Write("mat = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 		}
 		else // from color
+		{
 			object.Write("mat = %s[%d];\n", materialsName, j+2);
+		}
 
 		uid_data.lit_chans[j].enablelighting = xfregs.color[j].enablelighting;
-		if (color.enablelighting) {
+		if (color.enablelighting)
+		{
 			uid_data.lit_chans[j].ambsource = xfregs.color[j].ambsource;
-			if (color.ambsource) { // from vertex
+			if (color.ambsource) // from vertex
+			{
 				if (components & (VB_HAS_COL0<<j) )
 					object.Write("lacc = %s%d;\n", inColorName, j);
 				else if (components & VB_HAS_COL0 )
@@ -157,7 +153,9 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 					object.Write("lacc = float4(0.0f, 0.0f, 0.0f, 0.0f);\n");
 			}
 			else // from color
+			{
 				object.Write("lacc = %s[%d];\n", materialsName, j);
+			}
 		}
 		else
 		{
@@ -166,8 +164,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 
 		// check if alpha is different
 		uid_data.lit_chans[j+2].matsource = xfregs.alpha[j].matsource;
-		if (alpha.matsource != color.matsource) {
-			if (alpha.matsource) {// from vertex
+		if (alpha.matsource != color.matsource)
+		{
+			if (alpha.matsource) // from vertex
+			{
 				if (components & (VB_HAS_COL0<<j))
 					object.Write("mat.w = %s%d.w;\n", inColorName, j);
 				else if (components & VB_HAS_COL0)
@@ -175,14 +175,17 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 				else object.Write("mat.w = 1.0f;\n");
 			}
 			else // from color
+			{
 				object.Write("mat.w = %s[%d].w;\n", materialsName, j+2);
+			}
 		}
 
 		uid_data.lit_chans[j+2].enablelighting = xfregs.alpha[j].enablelighting;
 		if (alpha.enablelighting)
 		{
 			uid_data.lit_chans[j+2].ambsource = xfregs.alpha[j].ambsource;
-			if (alpha.ambsource) {// from vertex
+			if (alpha.ambsource) // from vertex
+			{
 				if (components & (VB_HAS_COL0<<j) )
 					object.Write("lacc.w = %s%d.w;\n", inColorName, j);
 				else if (components & VB_HAS_COL0 )
@@ -191,7 +194,9 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 					object.Write("lacc.w = 0.0f;\n");
 			}
 			else // from color
+			{
 				object.Write("lacc.w = %s[%d].w;\n", materialsName, j);
+			}
 		}
 		else
 		{

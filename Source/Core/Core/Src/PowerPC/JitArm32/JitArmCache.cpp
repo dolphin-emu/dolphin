@@ -33,6 +33,7 @@ using namespace ArmGen;
 	{
 		ARMXEmitter emit(location);
 		emit.B(address);
+		emit.FlushIcache();
 	}
 	void JitArmBlockCache::WriteDestroyBlock(const u8* location, u32 address)
 	{
@@ -41,6 +42,7 @@ using namespace ArmGen;
 		emit.MOVI2R(R12, (u32)jit->GetAsmRoutines()->dispatcher);
 		emit.STR(R11, R9, PPCSTATE_OFF(pc));
 		emit.B(R12);
+		emit.FlushIcache();
 	}
 
 

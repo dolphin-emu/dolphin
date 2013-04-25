@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include <iostream>
@@ -36,13 +23,13 @@ BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
 	EVT_MENU_RANGE(ID_RUNTOOL, ID_SHOWPCTOOL, DSPDebuggerLLE::OnChangeState)
 	EVT_TEXT_ENTER(ID_ADDRBOX, DSPDebuggerLLE::OnAddrBoxChange)
-    EVT_LISTBOX(ID_SYMBOLLIST, DSPDebuggerLLE::OnSymbolListChange)
+	EVT_LISTBOX(ID_SYMBOLLIST, DSPDebuggerLLE::OnSymbolListChange)
 END_EVENT_TABLE()
 
 
 DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize,
-		   	wxTAB_TRAVERSAL, _("DSP LLE Debugger"))
+			wxTAB_TRAVERSAL, _("DSP LLE Debugger"))
 	, m_CachedStepCounter(-1)
 {
 	m_DebuggerFrame = this;
@@ -184,14 +171,14 @@ void DSPDebuggerLLE::FocusOnPC()
 void DSPDebuggerLLE::UpdateState()
 {
 	if (DSPCore_GetState() == DSPCORE_RUNNING)
-   	{
+	{
 		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Pause"));
 		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
 			wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10,10)));
 		m_Toolbar->EnableTool(ID_STEPTOOL, false);
 	}
-   	else
-   	{
+	else
+	{
 		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Run"));
 		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
 			wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_OTHER, wxSize(10,10)));

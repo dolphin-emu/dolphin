@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <vector>
 #include <string>
@@ -218,7 +205,7 @@ bool DolphinApp::OnInit()
 	RegisterMsgAlertHandler(&wxMsgAlert);
 	RegisterStringTranslator(&wxStringTranslator);
 
-	// "ExtendedTrace" looks freakin dangerous!!!
+	// "ExtendedTrace" looks freakin' dangerous!!!
 #ifdef _WIN32
 	EXTENDEDTRACEINITIALIZE(".");
 	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
@@ -239,7 +226,7 @@ bool DolphinApp::OnInit()
 #ifdef __APPLE__
 	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_7)
 	{
-		PanicAlertT("Hi,\n\nDolphin requires OS X 10.7 or greater.\n"
+		PanicAlertT("Hi,\n\nDolphin requires Mac OS X 10.7 or greater.\n"
 				"Unfortunately you're running an old version of OS X.\n"
 				"The last Dolphin version to support OS X 10.6 is Dolphin 3.5\n"
 				"Please upgrade to 10.7 or greater to use the newest Dolphin version.\n\n"
@@ -251,7 +238,7 @@ bool DolphinApp::OnInit()
 #ifdef _WIN32
 	if (!wxSetWorkingDirectory(StrToWxStr(File::GetExeDirectory())))
 	{
-		INFO_LOG(CONSOLE, "set working directory failed");
+		INFO_LOG(CONSOLE, "Set working directory failed");
 	}
 #else
 	//create all necessary directories in user directory
@@ -313,7 +300,7 @@ bool DolphinApp::OnInit()
 		MessageBox(NULL,
 				   L"This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
 				   L"download Dolphin from the official website instead: http://dolphin-emu.org/",
-                   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
+				   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
 		ShellExecute(NULL, L"open", L"http://dolphin-emu.org/?ref=badver", NULL, NULL, SW_SHOWDEFAULT);
 		exit(0);
 	}
@@ -376,7 +363,9 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 				main_frame->BootGame(WxStrToStr(FileToLoad));
 			}
 			else
+			{
 				main_frame->BootGame(std::string(""));
+			}
 		}
 	}
 
@@ -516,7 +505,7 @@ void* Host_GetInstance()
 
 void* Host_GetRenderHandle()
 {
-    return main_frame->GetRenderHandle();
+	return main_frame->GetRenderHandle();
 }
 
 // OK, this thread boundary is DANGEROUS on linux
@@ -627,7 +616,7 @@ void Host_SetStartupDebuggingParameters()
 {
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	if (main_frame->g_pCodeWindow)
-	{    
+	{
 		StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
 		StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
 		StartUp.bJITNoBlockCache = main_frame->g_pCodeWindow->JITNoBlockCache();

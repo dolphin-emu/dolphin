@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <wx/button.h>
 #include <wx/textctrl.h>
@@ -79,7 +66,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 {
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerRight = new wxBoxSizer(wxVERTICAL);
-	// Didn't see anything usefull in the left part
+	// Didn't see anything useful in the left part
 	//wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
 
 	DebugInterface* di = &PowerPC::debug_interface;
@@ -341,13 +328,13 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 		newsize = rawData.size();
 
 		if (pad)
-	   	{
+		{
 			tmpstr = new char[newsize + 2];
 			memset(tmpstr, 0, newsize + 2);
 			tmpstr[0] = '0';
 		}
-	   	else
-	   	{
+		else
+		{
 			tmpstr = new char[newsize + 1];
 			memset(tmpstr, 0, newsize + 1);
 		}
@@ -368,7 +355,9 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 			i += 1;
 		}
 		delete[] tmpstr;
-	} else {
+	}
+	else
+	{
 		//Looking for an ascii string
 		size = rawData.size();
 		Dest.resize(size+1);

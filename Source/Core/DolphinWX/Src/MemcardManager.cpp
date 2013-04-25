@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "MemcardManager.h"
 #include "Common.h"
@@ -466,7 +453,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 		break;
 	case DELETE_FAIL:
 		PanicAlertT("Order of files in the File Directory do not match the block order\n"
-				"Right click and export all of the saves,\nand import the the saves to a new memcard\n");
+				"Right click and export all of the saves,\nand import the saves to a new memcard\n");
 		break;
 	default:
 		PanicAlert(E_UNK);
@@ -508,7 +495,10 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		{
 			SuccessAlertT("The checksum was successfully fixed");
 		}
-		else PanicAlert(E_SAVEFAILED);
+		else
+		{
+			PanicAlert(E_SAVEFAILED);
+		}
 		break; 
 	case ID_CONVERTTOGCI:
 		fileName2 = "convert";
@@ -533,7 +523,10 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				wxEmptyString, wxEmptyString, wxT(".gci"),
 				_("GCI File(*.gci)") + wxString(_T("|*.gci")),
 				wxFD_OVERWRITE_PROMPT|wxFD_SAVE, this);
-			if (temp2.empty()) break;
+
+			if (temp2.empty())
+				break;
+
 			fileName2 = WxStrToStr(temp2);
 		}
 		if (fileName.length() > 0)
@@ -552,7 +545,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			std::string gciFilename;
 			if (!memoryCard[slot]->GCI_FileName(index, gciFilename))
 			{
-				PanicAlert("invalid index");
+				PanicAlert("Invalid index");
 				return;
 			}
 			wxString fileName = wxFileSelector(
@@ -610,7 +603,8 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	// TODO: add error checking and animate icons
 	memoryCard[card] = new GCMemcard(fileName);
 
-	if (!memoryCard[card]->IsValid()) return false;
+	if (!memoryCard[card]->IsValid())
+		return false;
 
 	int j;
 
@@ -671,7 +665,10 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		{
 			memset(pxdata,0,96*32*4);
 			int frames=3;
-			if (numFrames<frames) frames=numFrames;
+
+			if (numFrames<frames)
+				frames=numFrames;
+
 			for (int f=0;f<frames;f++)
 			{
 				for (int y=0;y<32;y++)
@@ -714,7 +711,10 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxComment);
 
 		blocks = memoryCard[card]->DEntry_BlockCount(fileIndex);
-		if (blocks == 0xFFFF) blocks = 0;
+		
+		if (blocks == 0xFFFF)
+			blocks = 0;
+		
 		wxBlock.Printf(wxT("%10d"), blocks);
 		m_MemcardList[card]->SetItem(index,COLUMN_BLOCKS, wxBlock);
 		firstblock = memoryCard[card]->DEntry_FirstBlock(fileIndex);
@@ -801,7 +801,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu->Append(ID_NEXTPAGE_A + slot, _("Next Page"));
 		popupMenu->Append(ID_MEMCARDPATH_A + slot, wxString::Format(_("Set as default Memcard %c"), 'A' + slot));
 		popupMenu->AppendCheckItem(ID_USEPAGES, _("Enable pages"));
-	
+
 		popupMenu->FindItem(ID_PREVPAGE_A + slot)->Enable(prevPage && __mcmSettings.usePages);
 		popupMenu->FindItem(ID_NEXTPAGE_A + slot)->Enable(nextPage && __mcmSettings.usePages);
 		popupMenu->FindItem(ID_USEPAGES)->Check(__mcmSettings.usePages);

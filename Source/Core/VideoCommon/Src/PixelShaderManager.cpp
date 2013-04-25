@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <cmath>
 
@@ -123,7 +110,7 @@ void PixelShaderManager::SetConstants(u32 components)
 	static int saved_updates = 0;
 	static int necessary_updates = 0;
 
-
+// TODO: Remove this!
 #define IncStuff() { \
 	saved_updates++; \
 	/*printf("Saved a constant update at line %d! Saved %d against %d now!\n", __LINE__, saved_updates, necessary_updates);*/ }
@@ -224,8 +211,10 @@ void PixelShaderManager::SetConstants(u32 components)
         }
         else if ((s_nIndTexScaleChanged & 0x03)) IncStuff();
 
-        if ((s_nIndTexScaleChanged & 0x0c) && constant_profile.ConstantIsUsed(C_INDTEXSCALE+1)) {
-            for (u32 i = 2; i < 4; ++i) {
+        if ((s_nIndTexScaleChanged & 0x0c) && constant_profile.ConstantIsUsed(C_INDTEXSCALE+1))
+		{
+            for (u32 i = 2; i < 4; ++i)
+			{
                 f[2 * i] = bpmem.texscale[1].getScaleS(i & 1);
                 f[2 * i + 1] = bpmem.texscale[1].getScaleT(i & 1);
                 PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
@@ -305,18 +294,20 @@ void PixelShaderManager::SetConstants(u32 components)
 		{
 			//bpmem.fogRange.Base.Center : center of the viewport in x axis. observation: bpmem.fogRange.Base.Center = realcenter + 342;
 			int center = ((u32)bpmem.fogRange.Base.Center) - 342;
-			// normalice center to make calculations easy
+			// normalize center to make calculations easy
 			float ScreenSpaceCenter = center / (2.0f * xfregs.viewport.wd);
 			ScreenSpaceCenter = (ScreenSpaceCenter * 2.0f) - 1.0f;
-			//bpmem.fogRange.K seems to be  a table of precalculated coeficients for the adjust factor
-			//observations: bpmem.fogRange.K[0].LO apears to be the lowest value and bpmem.fogRange.K[4].HI the largest
-			// they always seems to be larger than 256 so my teory is :
-			// they are the coeficients from the center to th e border of the screen
-			// so to simplify i use the hi coeficient as K in the shader taking 256 as the scale
+			//bpmem.fogRange.K seems to be  a table of precalculated coefficients for the adjust factor
+			//observations: bpmem.fogRange.K[0].LO appears to be the lowest value and bpmem.fogRange.K[4].HI the largest
+			// they always seems to be larger than 256 so my theory is :
+			// they are the coefficients from the center to the border of the screen
+			// so to simplify I use the hi coefficient as K in the shader taking 256 as the scale
 			SetPSConstant4f(C_FOG + 2, ScreenSpaceCenter, (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.viewport.wd)), bpmem.fogRange.K[4].HI / 256.0f,0.0f);
 		}
 		else
+		{
 			SetPSConstant4f(C_FOG + 2, 0.0f, 1.0f, 1.0f, 0.0f); // Need to update these values for older hardware that fails to divide by zero in shaders.
+		}
 
 		s_bFogRangeAdjustChanged = false;
 	}else if ( s_bFogRangeAdjustChanged) IncStuff();
@@ -353,7 +344,9 @@ void PixelShaderManager::SetConstants(u32 components)
 						SetPSConstant4f(C_PLIGHTS+5*i+j+1, 0.00001f, xfmemptr[1], xfmemptr[2], 0);
 					}
 					else
+					{
 						SetPSConstant4fv(C_PLIGHTS+5*i+j+1, xfmemptr);
+					}
 				}
 			}
 
@@ -423,17 +416,22 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 void PixelShaderManager::SetColorChanged(int type, int num, bool high)
 {
 	float *pf = &lastRGBAfull[type][num][0];
-	if (!high) {
+
+	if (!high)
+	{
 		int r = bpmem.tevregs[num].low.a;
 		int a = bpmem.tevregs[num].low.b;
 		pf[0] = (float)r * (1.0f / 255.0f);
 		pf[3] = (float)a * (1.0f / 255.0f);
-	} else {
+	}
+	else
+	{
 		int b = bpmem.tevregs[num].high.a;
 		int g = bpmem.tevregs[num].high.b;
 		pf[1] = (float)g * (1.0f / 255.0f);
 		pf[2] = (float)b * (1.0f / 255.0f);
 	}
+
 	s_nColorsChanged[type] |= 1 << num;
 	PRIM_LOG("pixel %scolor%d: %f %f %f %f\n", type?"k":"", num, pf[0], pf[1], pf[2], pf[3]);
 }

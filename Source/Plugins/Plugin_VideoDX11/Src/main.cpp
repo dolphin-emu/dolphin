@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <wx/wx.h>
 
@@ -35,6 +22,7 @@
 #include "Debugger/DebuggerPanel.h"
 #include "DLCache.h"
 #include "EmuWindow.h"
+#include "IndexGenerator.h"
 #include "FileUtil.h"
 #include "Globals.h"
 #include "IniFile.h"
@@ -96,6 +84,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
+	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -119,9 +108,9 @@ void InitBackendInfo()
 			modes = DX11::D3D::EnumAAModes(ad);
 			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
-				if (i == 0) sprintf_s(buf, 32, "None");
-				else if (modes[i].Quality) sprintf_s(buf, 32, "%d samples (quality level %d)", modes[i].Count, modes[i].Quality);
-				else sprintf_s(buf, 32, "%d samples", modes[i].Count);
+				if (i == 0) sprintf_s(buf, 32, _trans("None"));
+				else if (modes[i].Quality) sprintf_s(buf, 32, _trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
+				else sprintf_s(buf, 32, _trans("%d samples"), modes[i].Count);
 				g_Config.backend_info.AAModes.push_back(buf);
 			}
 		}
@@ -192,6 +181,7 @@ void VideoBackend::Video_Prepare()
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
+	IndexGenerator::Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
 	VertexShaderManager::Init();

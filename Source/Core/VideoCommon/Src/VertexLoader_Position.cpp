@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <limits>
 
@@ -81,7 +68,9 @@ float PosScale(T val)
 
 template <>
 float PosScale(float val)
-{ return val; }
+{
+	return val;
+}
 
 template <typename T, int N>
 void LOADERDECL Pos_ReadDirect()
@@ -179,11 +168,13 @@ static int tableReadPositionVertexSize[4][8][2] = {
 };
 
 
-void VertexLoader_Position::Init(void) {
+void VertexLoader_Position::Init(void)
+{
 
 #if _M_SSE >= 0x301
 
-	if (cpu_info.bSSSE3) {
+	if (cpu_info.bSSSE3)
+	{
 		tableReadPosition[2][4][0] = Pos_ReadIndex_Float_SSSE3<u8, false>;
 		tableReadPosition[2][4][1] = Pos_ReadIndex_Float_SSSE3<u8, true>;
 		tableReadPosition[3][4][0] = Pos_ReadIndex_Float_SSSE3<u16, false>;
@@ -194,10 +185,12 @@ void VertexLoader_Position::Init(void) {
 
 }
 
-unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements) {
+unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements)
+{
 	return tableReadPositionVertexSize[_type][_format][_elements];
 }
 
-TPipelineFunction VertexLoader_Position::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements) {
+TPipelineFunction VertexLoader_Position::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements)
+{
 	return tableReadPosition[_type][_format][_elements];
 }
