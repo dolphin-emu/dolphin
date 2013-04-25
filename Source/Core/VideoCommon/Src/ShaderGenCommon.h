@@ -27,18 +27,55 @@
 #include "CommonTypes.h"
 #include "VideoCommon.h"
 
+/**
+ * Common interface for classes that need to go through the shader generation path (GenerateVertexShader, GeneratePixelShader)
+ * In particular, this includes the shader code generator (ShaderCode).
+ * A different class (ShaderUid) can be used to uniquely identify each ShaderCode object.
+ * More interesting things can be done with this, e.g. ShaderConstantProfile checks what shader constants are being used. This can be used to optimize buffer management.
+ * Each of the ShaderCode, ShaderUid and ShaderConstantProfile child classes only implement the subset of ShaderGeneratorInterface methods that are required for the specific tasks.
+ */
 class ShaderGeneratorInterface
 {
 public:
+	/*
+	 * Used when the shader generator would write a piece of ShaderCode.
+	 * Can be used like printf.
+	 * @note In the ShaderCode implementation, this does indeed write the parameter string to an internal buffer. However, you're free to do whatever you like with the parameter.
+	 */
 	void Write(const char* fmt, ...) {}
+
+	/*
+	 * Returns a read pointer to the internal buffer.
+	 * @note When implementing this method in a child class, you likely want to return the argument of the last SetBuffer call here
+	 * @note SetBuffer() should be called before using GetBuffer().
+	 */
 	const char* GetBuffer() { return NULL; }
+
+	/*
+	 * Can be used to give the object a place to write to. This should be called before using Write().
+	 * @param buffer pointer to a char buffer that the object can write to
+	 */
 	void SetBuffer(char* buffer) { }
+
+	/*
+	 * Tells us that a specific constant range (including last_index) is being used by the shader
+	 */
 	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
 
+	/*
+	 * Returns a pointer to an internally stored object of the uid_data type.
+	 * @warning since most child classes use the default implementation you shouldn't access this directly without adding precautions against NULL access (e.g. via adding a dummy structure, cf. the vertex/pixel shader generators)
+	 */
 	template<class uid_data>
 	uid_data& GetUidData() { return *(uid_data*)NULL; }
 };
 
+/**
+ * Shader UID class used to uniquely identify the ShaderCode output written in the shader generator.
+ * uid_data can be any struct of parameters that uniquely identify each shader code output.
+ * Unless performance is not an issue, uid_data should be tightly packed to reduce memory footprint.
+ * Shader generators will write to specific uid_data fields; ShaderUid methods will only read raw u32 values from a union.
+ */
 template<class uid_data>
 class ShaderUid : public ShaderGeneratorInterface
 {
@@ -59,9 +96,10 @@ public:
 		return memcmp(this->values, obj.values, sizeof(values)) != 0;
 	}
 
-	// TODO: Store last frame used and order by that? makes much more sense anyway...
+	// determines the storage order inside STL containers
 	bool operator < (const ShaderUid& obj) const
 	{
+		// TODO: Store last frame used and order by that? makes much more sense anyway...
 		for (unsigned int i = 0; i < sizeof(uid_data) / sizeof(u32); ++i)
 		{
 			if (this->values[i] < obj.values[i])
@@ -107,6 +145,9 @@ private:
 	char* write_ptr;
 };
 
+/**
+ * Generates a shader constant profile which can be used to query which constants are used in a shader
+ */
 class ShaderConstantProfile : public ShaderGeneratorInterface
 {
 public:
@@ -120,6 +161,7 @@ public:
 
 	inline bool ConstantIsUsed(unsigned int index)
 	{
+		// TODO: Not ready for usage yet
 		return true;
 //		return constant_usage[index];
 	}
@@ -154,6 +196,10 @@ static void DeclareUniform(T& object, API_TYPE api_type, bool using_ubos, const 
 	object.Write(";\n");
 }
 
+/**
+ * Common uid data used for shader generators that use lighting calculations.
+ * Expected to be stored as a member called "lighting".
+ */
 struct LightingUidData
 {
 	struct
@@ -167,9 +213,13 @@ struct LightingUidData
 	} lit_chans[4];
 };
 
+/**
+ * Checks if there has been
+ */
 template<class UidT, class CodeT>
 void CheckForUidMismatch(CodeT& new_code, const UidT& new_uid, const char* shader_type, const char* dump_prefix)
 {
+	// TODO: Might be sensitive to config changes
 	static std::map<UidT,std::string> s_shaders;
 	static std::vector<UidT> s_uids;
 
