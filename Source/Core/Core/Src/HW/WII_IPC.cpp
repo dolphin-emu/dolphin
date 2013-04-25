@@ -182,7 +182,6 @@ void Write32(const u32 _Value, const u32 _Address)
 			if (ctrl.X1)
 			{
 				INFO_LOG(WII_IPC, "New pointer available: %08x", ppc_msg);
-				WII_IPC_HLE_Interface::Update();	
 				// Let the HLE handle the request on it's own time
 				WII_IPC_HLE_Interface::EnqRequest(ppc_msg);
 			}
@@ -212,12 +211,9 @@ void Write32(const u32 _Value, const u32 _Address)
 	default:
 		_dbg_assert_msg_(WII_IPC, 0, "w32 %08x @ %08x", _Value, _Address);
 		break;
-	}	
-	
-	if((_Address & 0xFFFF) != IPC_PPCCTRL)
-	{
-		WII_IPC_HLE_Interface::Update();	
 	}
+	
+	WII_IPC_HLE_Interface::Update();
 	CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
 }
 
