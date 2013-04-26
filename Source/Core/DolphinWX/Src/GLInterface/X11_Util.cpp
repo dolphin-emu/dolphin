@@ -157,7 +157,7 @@ void cX11Window::CreateXWindow(void)
 
 void cX11Window::DestroyXWindow(void)
 {
-	XUnmapWindow(GLWin.dpy, GLWin.win);
+	XUnmapWindow(GLWin.evdpy, GLWin.win);
 	GLWin.win = 0;
 	if (GLWin.xEventThread.joinable())
 		GLWin.xEventThread.join();
@@ -175,9 +175,9 @@ void cX11Window::XEventThread()
 	{
 		XEvent event;
 		KeySym key;
-		for (int num_events = XPending(GLWin.dpy); num_events > 0; num_events--)
+		for (int num_events = XPending(GLWin.evdpy); num_events > 0; num_events--)
 		{
-			XNextEvent(GLWin.dpy, &event);
+			XNextEvent(GLWin.evdpy, &event);
 			switch(event.type) {
 				case KeyPress:
 					key = XLookupKeysym((XKeyEvent*)&event, 0);
@@ -305,17 +305,17 @@ void cX11Window::XEventThread()
 				case ConfigureNotify:
 					Window winDummy;
 					unsigned int borderDummy, depthDummy;
-					XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
+					XGetGeometry(GLWin.evdpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
 							&GLWin.width, &GLWin.height, &borderDummy, &depthDummy);
 					GLInterface->SetBackBufferDimensions(GLWin.width, GLWin.height);
 					break;
 				case ClientMessage:
 					if ((unsigned long) event.xclient.data.l[0] ==
-							XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
+							XInternAtom(GLWin.evdpy, "WM_DELETE_WINDOW", False))
 						Host_Message(WM_USER_STOP);
 					if ((unsigned long) event.xclient.data.l[0] ==
-							XInternAtom(GLWin.dpy, "RESIZE", False))
-						XMoveResizeWindow(GLWin.dpy, GLWin.win,
+							XInternAtom(GLWin.evdpy, "RESIZE", False))
+						XMoveResizeWindow(GLWin.evdpy, GLWin.win,
 								event.xclient.data.l[1], event.xclient.data.l[2],
 								event.xclient.data.l[3], event.xclient.data.l[4]);
 					break;
