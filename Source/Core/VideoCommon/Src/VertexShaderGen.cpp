@@ -80,11 +80,6 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
 
 	bool is_d3d = (api_type & API_D3D9 || api_type == API_D3D11);
-	u32 lightMask = 0;
-	if (xfregs.numChan.numColorChans > 0)
-		lightMask |= xfregs.color[0].GetFullLightMask() | xfregs.alpha[0].GetFullLightMask();
-	if (xfregs.numChan.numColorChans > 1)
-		lightMask |= xfregs.color[1].GetFullLightMask() | xfregs.alpha[1].GetFullLightMask();
 
 	// uniforms
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
@@ -112,7 +107,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	{
 		out.Write("ATTRIN float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
 		if (components & VB_HAS_POSMTXIDX)
-			out.Write("ATTRIN float posmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+			out.Write("ATTRIN float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 		if (components & VB_HAS_NRM0)
 			out.Write("ATTRIN float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
 		if (components & VB_HAS_NRM1)
