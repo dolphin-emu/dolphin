@@ -233,26 +233,6 @@ static void BuildSwapModeTable()
 	}
 }
 
-const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
-{
-	if (ApiType == API_OPENGL)
-		return ""; // Nothing to do here
-
-	static char result[64];
-	sprintf(result, " : register(%s%d)", prefix, num);
-	return result;
-}
-
-const char *WriteLocation(API_TYPE ApiType)
-{
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		return "";
-
-	static char result[64];
-	sprintf(result, "uniform ");
-	return result;
-}
-
 template<class T>
 static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
@@ -273,8 +253,8 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	bool per_pixel_depth = bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable;
 
 	out.Write("//Pixel Shader for TEV stages\n");
-	out.Write("//%i TEV stages, %i texgens, XXX IND stages\n",
-		numStages, numTexgen/*, bpmem.genMode.numindstages*/);
+	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
+		numStages, numTexgen, bpmem.genMode.numindstages);
 
 	uid_data.dstAlphaMode = dstAlphaMode;
 	uid_data.genMode.numindstages = bpmem.genMode.numindstages;
@@ -299,7 +279,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	{
 		// Declare samplers
 		for (int i = 0; i < 8; ++i)
-			out.Write("%s samp%d %s;\n", (ApiType == API_D3D11) ? "sampler" : "uniform sampler2D", i, WriteRegister(ApiType, "s", i));
+			out.Write("%s samp%d : register(s%d);\n", (ApiType == API_D3D11) ? "sampler" : "uniform sampler2D", i, i);
 
 		if (ApiType == API_D3D11)
 		{
@@ -315,18 +295,18 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		out.Write("layout(std140) uniform PSBlock {\n");
 
-	out.Write("\t%sfloat4 " I_COLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_COLORS)); // TODO: first element not used??
-	out.Write("\t%sfloat4 " I_KCOLORS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_KCOLORS));
-	out.Write("\t%sfloat4 " I_ALPHA"[1] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_ALPHA)); // TODO: Why is this an array...-.-
-	out.Write("\t%sfloat4 " I_TEXDIMS"[8] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXDIMS));
-	out.Write("\t%sfloat4 " I_ZBIAS"[2] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_ZBIAS));
-	out.Write("\t%sfloat4 " I_INDTEXSCALE"[2] %s;\n", WriteLocation(ApiType),  WriteRegister(ApiType, "c", C_INDTEXSCALE));
-	out.Write("\t%sfloat4 " I_INDTEXMTX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_INDTEXMTX));
-	out.Write("\t%sfloat4 " I_FOG"[3] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_FOG));
+	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_COLORS, "float4", I_COLORS"[4]");
+	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_KCOLORS, "float4", I_KCOLORS"[4]");
+	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_ALPHA, "float4", I_ALPHA"[1]");  // TODO: Why is this an array...-.-
+	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_TEXDIMS, "float4", I_TEXDIMS"[8]");
+	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_ZBIAS, "float4", I_ZBIAS"[2]");
+	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_INDTEXSCALE, "float4", I_INDTEXSCALE"[2]");
+	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_INDTEXMTX, "float4", I_INDTEXMTX"[6]");
+	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_FOG, "float4", I_FOG"[3]");
 
 	// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
-	out.Write("\t%sfloat4 " I_PLIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PLIGHTS));
-	out.Write("\t%sfloat4 " I_PMATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PMATERIALS));
+	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_PLIGHTS, "float4", I_PLIGHTS"[40]");
+	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_PMATERIALS, "float4", I_PMATERIALS"[4]");
 
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		out.Write("};\n");
