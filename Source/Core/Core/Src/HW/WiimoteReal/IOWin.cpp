@@ -87,8 +87,8 @@ inline void init_lib()
 		hid_lib = LoadLibrary(_T("hid.dll"));
 		if (!hid_lib)
 		{
-			PanicAlertT("Failed to load hid.dll");
-			exit(EXIT_FAILURE);
+			PanicAlertT("Failed to load hid.dll! Connecting real Wiimotes won't work and Dolphin might crash unexpectedly!");
+			return;
 		}
 
 		HidD_GetHidGuid = (PHidD_GetHidGuid)GetProcAddress(hid_lib, "HidD_GetHidGuid");
@@ -98,15 +98,15 @@ inline void init_lib()
 		if (!HidD_GetHidGuid || !HidD_GetAttributes ||
 			!HidD_SetOutputReport || !HidD_GetProductString)
 		{
-			PanicAlertT("Failed to load hid.dll");
-			exit(EXIT_FAILURE);
+			PanicAlertT("Failed to load hid.dll! Connecting real Wiimotes won't work and Dolphin might crash unexpectedly!");
+			return;
 		}
 
 		bthprops_lib = LoadLibrary(_T("bthprops.cpl"));
 		if (!bthprops_lib)
 		{
-			PanicAlertT("Failed to load bthprops.cpl");
-			exit(EXIT_FAILURE);
+			PanicAlertT("Failed to load bthprops.cpl! Connecting real Wiimotes won't work and Dolphin might crash unexpectedly!");
+			return;
 		}
 
 		Bth_BluetoothFindDeviceClose = (PBth_BluetoothFindDeviceClose)GetProcAddress(bthprops_lib, "BluetoothFindDeviceClose");
@@ -128,8 +128,8 @@ inline void init_lib()
 			!Bth_BluetoothSetServiceState || !Bth_BluetoothAuthenticateDevice ||
 			!Bth_BluetoothEnumerateInstalledServices)
 		{
-			PanicAlertT("Failed to load bthprops.cpl");
-			exit(EXIT_FAILURE);
+			PanicAlertT("Failed to load bthprops.cpl! Connecting real Wiimotes won't work and Dolphin might crash unexpectedly!");
+			return;
 		}
 
 		initialized = true;
