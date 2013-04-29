@@ -44,7 +44,7 @@ private:
 		wxTextCtrl		*textctrl_notes;
 		wxListBox	*listbox_codes;
 	} m_infobox;
-
+	wxButton* btn_download;
 };
 
 

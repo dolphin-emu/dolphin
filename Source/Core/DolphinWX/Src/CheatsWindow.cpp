@@ -39,7 +39,7 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 	{
 		m_gameini_path = File::GetUserPath(D_GAMECONFIG_IDX) + vol->GetUniqueID() + ".ini";
 		m_gameini.Load(m_gameini_path);
-		m_geckocode_panel->LoadCodes(m_gameini);
+		m_geckocode_panel->LoadCodes(m_gameini, Core::g_CoreStartupParameter.GetUniqueID());
 	}
 	}
 

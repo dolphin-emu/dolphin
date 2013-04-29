@@ -41,7 +41,8 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 
 	// button sizer
 	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
-	wxButton* const btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
+	btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
+	btn_download->Enable(false);
 	btn_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CodeConfigPanel::DownloadCodes, this);
 	sizer_buttons->AddStretchSpacer(1);
 	sizer_buttons->Add(btn_download, 1, wxEXPAND);
@@ -60,6 +61,9 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 
 void CodeConfigPanel::UpdateCodeList()
 {
+	// disable the button if it doesn't have an effect
+	btn_download->Enable(!m_gameid.empty());
+
 	m_listbox_gcodes->Clear();
 	// add the codes to the listbox
 	std::vector<GeckoCode>::const_iterator
