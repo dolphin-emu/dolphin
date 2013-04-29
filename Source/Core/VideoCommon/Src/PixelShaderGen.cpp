@@ -790,10 +790,10 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
 	{
 		const int i = bpmem.combiners[n].alphaC.rswap;
-		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2  ].swap1 << (i*2);
-		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2+1].swap1 << (i*2 + 1);
-		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2  ].swap2 << (i*2 + 16);
-		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2+1].swap2 << (i*2 + 17);
+		uid_data.tevksel[i*2  ].swap1 = bpmem.tevksel[i*2  ].swap1;
+		uid_data.tevksel[i*2+1].swap1 = bpmem.tevksel[i*2+1].swap1;
+		uid_data.tevksel[i*2  ].swap2 = bpmem.tevksel[i*2  ].swap2;
+		uid_data.tevksel[i*2+1].swap2 = bpmem.tevksel[i*2+1].swap2;
 
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		out.Write("rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
@@ -813,13 +813,14 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		}
 
 		const int i = bpmem.combiners[n].alphaC.tswap;
-		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2  ].swap1 << (i*2);
-		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2+1].swap1 << (i*2 + 1);
-		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2  ].swap2 << (i*2 + 16);
-		uid_data.tevksel_n_swap |= bpmem.tevksel[i*2+1].swap2 << (i*2 + 17);
+		uid_data.tevksel[i*2  ].swap1 = bpmem.tevksel[i*2  ].swap1;
+		uid_data.tevksel[i*2+1].swap1 = bpmem.tevksel[i*2+1].swap1;
+		uid_data.tevksel[i*2  ].swap2 = bpmem.tevksel[i*2  ].swap2;
+		uid_data.tevksel[i*2+1].swap2 = bpmem.tevksel[i*2+1].swap2;
 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
+		uid_data.tevindref.SetTexmap(i, texmap);
 		SampleTexture<T>(out, "textemp", "tevcoord", texswap, texmap, ApiType);
 	}
 	else
@@ -833,6 +834,8 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	{
 		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
+		uid_data.tevksel[n/2].set_kcsel(n & 1, kc);
+		uid_data.tevksel[n/2].set_kasel(n & 1, ka);
 		out.Write("konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 		if(kc > 7 || ka > 7)
 		{

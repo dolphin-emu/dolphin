@@ -93,6 +93,13 @@ struct pixel_shader_uid_data
 			else if (index == 2) { bc3 = texcoord; bi2 = texmap; }
 			else if (index == 3) { bc4 = texcoord; bi4 = texmap; }
 		}
+		inline void SetTexmap(int index, u32 texmap)
+		{
+			if (index == 0) { bi0 = texmap; }
+			else if (index == 1) { bi1 = texmap; }
+			else if (index == 2) { bi2 = texmap; }
+			else if (index == 3) { bi4 = texmap; }
+		}
 	} tevindref;
 
 	u32 tevorders_n_texcoord1 : 24; // 8 x 3 bit
@@ -135,7 +142,19 @@ struct pixel_shader_uid_data
 		}
 	} tevind_n;
 
-	u32 tevksel_n_swap : 32; // 8 x 2 bit (swap1) + 8 x 2 bit (swap2)
+	struct
+	{
+		u32 swap1 : 2;
+		u32 swap2 : 2;
+		u32 kcsel0 : 5;
+		u32 kasel0 : 5;
+		u32 kcsel1 : 5;
+		u32 kasel1 : 5;
+
+		void set_kcsel(int i, u32 value) { if (i) kcsel1 = value; else kcsel0 = value; }
+		void set_kasel(int i, u32 value) { if( i) kasel1 = value; else kasel0 = value; }
+	} tevksel[8];
+
 	struct
 	{
 		union {
