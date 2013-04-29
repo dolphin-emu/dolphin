@@ -38,6 +38,9 @@ private:
 	static VSCache vshaders;
 	static const VSCacheEntry *last_entry;
 	static VertexShaderUid last_uid;
+
+	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
+
 	static void Clear();
 
 public:

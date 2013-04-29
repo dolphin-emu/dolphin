@@ -31,6 +31,7 @@ namespace DX9
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry *PixelShaderCache::last_entry;
 PixelShaderUid PixelShaderCache::last_uid;
+UidChecker<PixelShaderUid,PixelShaderCode> PixelShaderCache::pixel_uid_checker;
 
 static LinearDiskCache<PixelShaderUid, u8> g_ps_disk_cache;
 static std::set<u32> unique_shaders;
@@ -284,6 +285,7 @@ void PixelShaderCache::Clear()
 	for (PSCache::iterator iter = PixelShaders.begin(); iter != PixelShaders.end(); iter++)
 		iter->second.Destroy();
 	PixelShaders.clear();
+	pixel_uid_checker.Invalidate();
 
 	last_entry = NULL;
 }
@@ -322,6 +324,12 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	const API_TYPE api = ((D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF) < 3 ? API_D3D9_SM20 : API_D3D9_SM30;
 	PixelShaderUid uid;
 	GetPixelShaderUid(uid, dstAlphaMode, API_D3D9, components);
+	if (g_ActiveConfig.bEnableShaderDebugging)
+	{
+		PixelShaderCode code;
+		GeneratePixelShaderCode(code, dstAlphaMode, API_D3D9, components);
+		pixel_uid_checker.AddToIndexAndCheck(code, uid, "Pixel", "p");
+	}
 
 	// Check if the shader is already set
 	if (last_entry)

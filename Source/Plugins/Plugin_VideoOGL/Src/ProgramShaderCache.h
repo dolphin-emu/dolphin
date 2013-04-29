@@ -106,6 +106,9 @@ private:
 	static PCacheEntry* last_entry;
 	static SHADERUID last_uid;
 
+	static UidChecker<PixelShaderUid,PixelShaderCode> pixel_uid_checker;
+	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
+
 	static GLintptr s_vs_data_size;
 	static GLintptr s_ps_data_size;
 	static GLintptr s_vs_data_offset;

@@ -392,7 +392,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		if (numTexgen < 7)
 		{
-			for (int i = 0; i < numTexgen; ++i)
+			for (unsigned int i = 0; i < numTexgen; ++i)
 				out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", optCentroid, i, i);
 			out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", optCentroid, numTexgen);
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
@@ -1190,13 +1190,6 @@ static void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
 	GeneratePixelShader<PixelShaderUid>(object, dstAlphaMode, ApiType, components);
-
-	if (g_ActiveConfig.bEnableShaderDebugging)
-	{
-		PixelShaderCode code;
-		GeneratePixelShaderCode(code, dstAlphaMode, API_OPENGL, components);
-		CheckForUidMismatch<PixelShaderUid,PixelShaderCode>(code, object, "Pixel", "p");
-	}
 }
 
 void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)

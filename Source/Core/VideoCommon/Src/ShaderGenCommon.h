@@ -113,6 +113,9 @@ public:
 	template<class T>
 	inline T& GetUidData() { return data; }
 
+	const uid_data& GetUidData() const { return data; }
+	size_t GetUidDataSize() const { return sizeof(values); }
+
 private:
 	union
 	{
@@ -217,42 +220,68 @@ struct LightingUidData
  * Checks if there has been
  */
 template<class UidT, class CodeT>
-void CheckForUidMismatch(CodeT& new_code, const UidT& new_uid, const char* shader_type, const char* dump_prefix)
+class UidChecker
 {
-	// TODO: Might be sensitive to config changes
-	static std::map<UidT,std::string> s_shaders;
-	static std::vector<UidT> s_uids;
-
-	bool uid_is_indexed = std::find(s_uids.begin(), s_uids.end(), new_uid) != s_uids.end();
-	if (!uid_is_indexed)
+public:
+	void Invalidate()
 	{
-		s_uids.push_back(new_uid);
-		s_shaders[new_uid] = new_code.GetBuffer();
+		m_shaders.clear();
+		m_uids.clear();
 	}
-	else
+
+	void AddToIndexAndCheck(CodeT& new_code, const UidT& new_uid, const char* shader_type, const char* dump_prefix)
 	{
-		// uid is already in the index => check if there's a shader with the same uid but different code
-		auto& old_code = s_shaders[new_uid];
-		if (strcmp(old_code.c_str(), new_code.GetBuffer()) != 0)
+		bool uid_is_indexed = std::find(m_uids.begin(), m_uids.end(), new_uid) != m_uids.end();
+		if (!uid_is_indexed)
 		{
-			static int num_failures = 0;
+			m_uids.push_back(new_uid);
+			m_shaders[new_uid] = new_code.GetBuffer();
+		}
+		else
+		{
+			// uid is already in the index => check if there's a shader with the same uid but different code
+			auto& old_code = m_shaders[new_uid];
+			if (strcmp(old_code.c_str(), new_code.GetBuffer()) != 0)
+			{
+				static int num_failures = 0;
 
-			char szTemp[MAX_PATH];
-			sprintf(szTemp, "%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-					dump_prefix,
-					++num_failures);
+				char szTemp[MAX_PATH];
+				sprintf(szTemp, "%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
+						dump_prefix,
+						++num_failures);
 
-			// TODO: Should also dump uids
-			std::ofstream file;
-			OpenFStream(file, szTemp, std::ios_base::out);
-			file << "Old shader code:\n" << old_code;
-			file << "\n\nNew shader code:\n" << new_code.GetBuffer();
-			file.close();
+				// TODO: Should also dump uids
+				std::ofstream file;
+				OpenFStream(file, szTemp, std::ios_base::out);
+				file << "Old shader code:\n" << old_code;
+				file << "\n\nNew shader code:\n" << new_code.GetBuffer();
+				file << "\n\nShader uid:\n";
+				for (unsigned int i = 0; i < new_uid.GetUidDataSize(); ++i)
+				{
+					u32 value = ((u32*)&new_uid.GetUidData())[i];
+					if ((i % 4) == 0)
+					{
+						unsigned int last_value = (i+3 < new_uid.GetUidDataSize()-1) ? i+3 : new_uid.GetUidDataSize();
+						file << std::setfill(' ') << std::dec;
+						file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
+					}
 
-			// TODO: Make this more idiot-proof
-			ERROR_LOG(VIDEO, "%s shader uid mismatch!", shader_type);
+					file << std::setw(8) << std::setfill('0') << std::hex << value << std::setw(1);
+					if ((i % 4) < 3)
+						file << ' ';
+					else
+						file << std::endl;
+				}
+				file.close();
+
+				ERROR_LOG(VIDEO, "%s shader uid mismatch! See %s for details", shader_type, szTemp);
+			}
 		}
 	}
-}
+	
+private:
+	std::map<UidT,std::string> m_shaders;
+	std::vector<UidT> m_uids;
+};
 
 #endif // _SHADERGENCOMMON_H

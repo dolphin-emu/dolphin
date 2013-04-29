@@ -26,6 +26,7 @@ namespace DX9
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 VertexShaderUid VertexShaderCache::last_uid;
+UidChecker<VertexShaderUid,VertexShaderCode> VertexShaderCache::vertex_uid_checker;
 
 #define MAX_SSAA_SHADERS 3
 
@@ -150,6 +151,7 @@ void VertexShaderCache::Clear()
 	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
 		iter->second.Destroy();
 	vshaders.clear();
+	vertex_uid_checker.Invalidate();
 
 	last_entry = NULL;
 }
@@ -176,6 +178,13 @@ bool VertexShaderCache::SetShader(u32 components)
 {
 	VertexShaderUid uid;
 	GetVertexShaderUid(uid, components, API_D3D9);
+	if (g_ActiveConfig.bEnableShaderDebugging)
+	{
+		VertexShaderCode code;
+		GenerateVertexShaderCode(code, components, API_D3D9);
+		vertex_uid_checker.AddToIndexAndCheck(code, uid, "Vertex", "v");
+	}
+
 	if (last_entry)
 	{
 		if (uid == last_uid)

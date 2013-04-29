@@ -29,6 +29,8 @@ static GLuint CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_entry;
 SHADERUID ProgramShaderCache::last_uid;
+UidChecker<PixelShaderUid,PixelShaderCode> ProgramShaderCache::pixel_uid_checker;
+UidChecker<VertexShaderUid,VertexShaderCode> ProgramShaderCache::vertex_uid_checker;
 
 static char s_glsl_header[1024] = "";
 
@@ -351,6 +353,17 @@ void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode,
 {
 	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL, components);
 	GetVertexShaderUid(uid->vuid, components, API_OPENGL);
+
+	if (g_ActiveConfig.bEnableShaderDebugging)
+	{
+		PixelShaderCode pcode;
+		GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
+		pixel_uid_checker.AddToIndexAndCheck(pcode, uid->puid, "Pixel", "p");
+
+		VertexShaderCode vcode;
+		GenerateVertexShaderCode(vcode, components, API_OPENGL);
+		vertex_uid_checker.AddToIndexAndCheck(vcode, uid->vuid, "Vertex", "v");
+	}
 }
 
 ProgramShaderCache::PCacheEntry ProgramShaderCache::GetShaderProgram(void)
@@ -447,6 +460,9 @@ void ProgramShaderCache::Shutdown(void)
 	for (; iter != pshaders.end(); ++iter)
 		iter->second.Destroy();
 	pshaders.clear();
+
+	pixel_uid_checker.Invalidate();
+	vertex_uid_checker.Invalidate();
 
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{

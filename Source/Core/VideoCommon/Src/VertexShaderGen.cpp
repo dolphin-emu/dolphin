@@ -538,13 +538,6 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type)
 {
 	GenerateVertexShader<VertexShaderUid>(object, components, api_type);
-
-	if (g_ActiveConfig.bEnableShaderDebugging)
-	{
-		VertexShaderCode code;
-		GenerateVertexShaderCode(code, components, API_OPENGL);
-		CheckForUidMismatch<VertexShaderUid,VertexShaderCode>(code, object, "Vertex", "v");
-	}
 }
 
 void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type)
