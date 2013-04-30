@@ -35,6 +35,7 @@ static const struct {
 
 	{ "ToggleFullscreen",	70 /* 'F' */,		2 /* wxMOD_CMD */ },
 	{ "Screenshot",			83 /* 'S' */,		2 /* wxMOD_CMD */ },
+	{ "Exit",	0,	0 /* wxMOD_NONE */ },
 
 	{ "Wiimote1Connect",	49 /* '1' */,		2 /* wxMOD_CMD */ },
 	{ "Wiimote2Connect",	50 /* '2' */,		2 /* wxMOD_CMD */ },
@@ -57,6 +58,7 @@ static const struct {
 
 	{ "ToggleFullscreen",	13 /* WXK_RETURN */,	1 /* wxMOD_ALT */ },
 	{ "Screenshot",		348 /* WXK_F9 */,	0 /* wxMOD_NONE */ },
+	{ "Exit",	0,	0 /* wxMOD_NONE */ },
 
 	{ "Wiimote1Connect",	344 /* WXK_F5 */,	1 /* wxMOD_ALT */ },
 	{ "Wiimote2Connect",	345 /* WXK_F6 */,	1 /* wxMOD_ALT */ },
@@ -81,6 +83,19 @@ static const struct {
 	{ "SaveStateSlot6",	345 /* WXK_F6 */,	4 /* wxMOD_SHIFT */ },
 	{ "SaveStateSlot7",	346 /* WXK_F7 */,	4 /* wxMOD_SHIFT */ },
 	{ "SaveStateSlot8",	347 /* WXK_F8 */,	4 /* wxMOD_SHIFT */ },
+
+	{ "LoadLastState1",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadLastState2",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadLastState3",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadLastState4",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadLastState5",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadLastState6",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadLastState7",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadLastState8",	0,	0 /* wxMOD_NONE */ },
+
+	{ "SaveFirstState",	0,	0 /* wxMOD_NONE */ },
+	{ "UndoLoadState",	351 /* WXK_F12 */,	0 /* wxMOD_NONE */ },
+	{ "UndoSaveState",	351 /* WXK_F12 */,	4 /* wxMOD_SHIFT */ },
 };
 
 SConfig::SConfig()
