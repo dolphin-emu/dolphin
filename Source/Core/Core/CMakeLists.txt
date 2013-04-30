@@ -111,6 +111,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/SI.cpp
 			Src/HW/SI_DeviceAMBaseboard.cpp
 			Src/HW/SI_Device.cpp
+			Src/HW/SI_DeviceDanceMat.cpp
 			Src/HW/SI_DeviceGBA.cpp
 			Src/HW/SI_DeviceGCController.cpp
 			Src/HW/SI_DeviceGCSteeringWheel.cpp
