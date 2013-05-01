@@ -215,7 +215,12 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	}
 
 	mcdFile.Close();
+	
+	initDirBatPointers();
+}
 
+void GCMemcard::initDirBatPointers() 
+{
 	if (BE16(dir.UpdateCounter) > (BE16(dir_backup.UpdateCounter)))
 	{
 		CurrentDir = &dir;
@@ -1273,7 +1278,8 @@ bool GCMemcard::Format(bool sjis, u16 SizeMb)
 		GCMBlock b;
 		mc_data_blocks.push_back(b);
 	}
-
+	
+	initDirBatPointers();
 	m_valid = true;
 
 	return Save();
