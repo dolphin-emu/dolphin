@@ -34,8 +34,8 @@ FifoPlayerDlg::FifoPlayerDlg(wxWindow * const parent) :
 {
 	CreateGUIControls();
 
-	sMutex.lock();	
-	m_EvtHandler = GetEventHandler();	
+	sMutex.lock();
+	m_EvtHandler = GetEventHandler();
 	sMutex.unlock();
 
 	FifoPlayer::GetInstance().SetFileLoadedCallback(FileLoaded);
@@ -65,7 +65,7 @@ FifoPlayerDlg::~FifoPlayerDlg()
 
 	FifoPlayer::GetInstance().SetFrameWrittenCallback(NULL);
 
-	sMutex.lock();	
+	sMutex.lock();
 	m_EvtHandler = NULL;
 	sMutex.unlock();
 }
@@ -407,8 +407,8 @@ void FifoPlayerDlg::OnRecordStop(wxCommandEvent& WXUNUSED(event))
 		// Then stop recording
 		recorder.StopRecording();
 
-		// and disable the button to stop recording
-		m_RecordStop->Disable();
+		// and change the button label accordingly.
+		m_RecordStop->SetLabel(_("Record"));
 	}
 	else // Recorder is actually about to start recording
 	{
