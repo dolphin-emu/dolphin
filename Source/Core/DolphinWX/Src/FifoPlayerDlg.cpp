@@ -193,7 +193,7 @@ void FifoPlayerDlg::CreateGUIControls()
 	sRecordingOptions->Add(m_FramesToRecordLabel, 0, wxALL, 5);
 	
 	wxString initialNum = wxString::Format(_T("%d"), m_FramesToRecord);
-	m_FramesToRecordCtrl = new wxSpinCtrl(m_RecordPage, wxID_ANY, initialNum, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000);
+	m_FramesToRecordCtrl = new wxSpinCtrl(m_RecordPage, wxID_ANY, initialNum, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 1);
 	sRecordingOptions->Add(m_FramesToRecordCtrl, 0, wxALL, 5);
 	
 	sRecordPage->Add(sRecordingOptions, 0, wxEXPAND, 5);
