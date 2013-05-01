@@ -92,6 +92,11 @@ namespace OGL
 
 std::string VideoBackend::GetName()
 {
+	return "OGL";
+}
+
+std::string VideoBackend::GetDisplayName()
+{
 	return "OpenGL";
 }
 

@@ -72,7 +72,7 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 
 std::string VideoBackend::GetName()
 {
-	return "Direct3D9";
+	return "DX9";
 }
 
 std::string VideoBackend::GetDisplayName()
