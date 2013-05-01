@@ -199,22 +199,21 @@ static void DeclareUniform(T& object, API_TYPE api_type, bool using_ubos, const 
 	object.Write(";\n");
 }
 
+#pragma pack(4)
 /**
  * Common uid data used for shader generators that use lighting calculations.
  * Expected to be stored as a member called "lighting".
  */
 struct LightingUidData
 {
-	struct
-	{
-		u32 matsource : 1;
-		u32 enablelighting : 1;
-		u32 ambsource : 1;
-		u32 diffusefunc : 2;
-		u32 attnfunc : 2;
-		u32 light_mask : 8;
-	} lit_chans[4];
+	u32 matsource : 4; // 4x1 bit
+	u32 enablelighting : 4; // 4x1 bit
+	u32 ambsource : 4; // 4x1 bit
+	u32 diffusefunc : 8; // 4x2 bits
+	u32 attnfunc : 8; // 4x2 bits
+	u32 light_mask : 32; // 4x8 bits
 };
+#pragma pack()
 
 /**
  * Checks if there has been

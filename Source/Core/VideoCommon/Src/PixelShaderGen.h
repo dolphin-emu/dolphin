@@ -55,162 +55,119 @@ const s_svar PSVar_Loc[] = { {I_COLORS, C_COLORS, 4 },
 						{I_PMATERIALS, C_PMATERIALS, 4 },
 						};
 
+// TODO: Packing?
+//#pragma pack(4)
 struct pixel_shader_uid_data
 {
 	u32 components;
-	DSTALPHA_MODE dstAlphaMode; // TODO: as u32 :2
-	AlphaTest::TEST_RESULT Pretest; // TODO: As :2
+	u32 dstAlphaMode : 2;
+	u32 Pretest : 2;
+
+	u32 genMode_numtexgens : 4;
+	u32 genMode_numtevstages : 4;
+	u32 genMode_numindstages : 3;
+
 	u32 nIndirectStagesUsed : 8;
-	struct {
-        u32 numtexgens : 4;
-        u32 numtevstages : 4;
-		u32 numindstages : 3;
-	} genMode;
-	struct
+
+	u32 texMtxInfo_n_unknown : 8; // 8x1 bit
+	u32 texMtxInfo_n_projection : 8; // 8x1 bit
+	u32 texMtxInfo_n_inputform : 16; // 8x2 bits
+	u32 texMtxInfo_n_texgentype : 24; // 8x3 bits
+	u64 texMtxInfo_n_sourcerow : 40; // 8x5 bits
+	u32 texMtxInfo_n_embosssourceshift : 24; // 8x3 bits
+	u32 texMtxInfo_n_embosslightshift : 24; // 8x3 bits
+
+	u32 tevindref_bi0 : 3;
+	u32 tevindref_bc0 : 3;
+	u32 tevindref_bi1 : 3;
+	u32 tevindref_bc1 : 3;
+	u32 tevindref_bi2 : 3;
+	u32 tevindref_bc3 : 3;
+	u32 tevindref_bi4 : 3;
+	u32 tevindref_bc4 : 3;
+	inline void SetTevindrefValues(int index, u32 texcoord, u32 texmap)
 	{
-		u32 unknown : 1;
-		u32 projection : 1; // XF_TEXPROJ_X
-		u32 inputform : 2; // XF_TEXINPUT_X
-		u32 texgentype : 3; // XF_TEXGEN_X
-		u32 sourcerow : 5; // XF_SRCGEOM_X
-		u32 embosssourceshift : 3; // what generated texcoord to use
-		u32 embosslightshift : 3; // light index that is used
-	} texMtxInfo[8];
-	struct
+		if (index == 0) { tevindref_bc0 = texcoord; tevindref_bi0 = texmap; }
+		else if (index == 1) { tevindref_bc1 = texcoord; tevindref_bi1 = texmap; }
+		else if (index == 2) { tevindref_bc3 = texcoord; tevindref_bi2 = texmap; }
+		else if (index == 3) { tevindref_bc4 = texcoord; tevindref_bi4 = texmap; }
+	}
+	inline void SetTevindrefTexmap(int index, u32 texmap)
 	{
-        u32 bi0 : 3; // indirect tex stage 0 ntexmap
-        u32 bc0 : 3; // indirect tex stage 0 ntexcoord
-        u32 bi1 : 3;
-        u32 bc1 : 3;
-        u32 bi2 : 3;
-        u32 bc3 : 3;
-        u32 bi4 : 3;
-        u32 bc4 : 3;
-		inline void SetValues(int index, u32 texcoord, u32 texmap)
-		{
-			if (index == 0) { bc0 = texcoord; bi0 = texmap; }
-			else if (index == 1) { bc1 = texcoord; bi1 = texmap; }
-			else if (index == 2) { bc3 = texcoord; bi2 = texmap; }
-			else if (index == 3) { bc4 = texcoord; bi4 = texmap; }
-		}
-		inline void SetTexmap(int index, u32 texmap)
-		{
-			if (index == 0) { bi0 = texmap; }
-			else if (index == 1) { bi1 = texmap; }
-			else if (index == 2) { bi2 = texmap; }
-			else if (index == 3) { bi4 = texmap; }
-		}
-	} tevindref;
+		if (index == 0) { tevindref_bi0 = texmap; }
+		else if (index == 1) { tevindref_bi1 = texmap; }
+		else if (index == 2) { tevindref_bi2 = texmap; }
+		else if (index == 3) { tevindref_bi4 = texmap; }
+	}
 
-	u32 tevorders_n_texcoord1 : 24; // 8 x 3 bit
-	u32 tevorders_n_texcoord2 : 24; // 8 x 3 bit
-	struct
+	u64 tevorders_n_texcoord : 48; // 16 x 3 bits
+
+	u64 tevind_n_sw : 48;         // 16 x 3 bits
+	u64 tevind_n_tw : 48;         // 16 x 3 bits
+	u32 tevind_n_fb_addprev : 16; // 16 x 1 bit
+	u32 tevind_n_bs : 32;         // 16 x 2 bits
+	u32 tevind_n_fmt : 32;        // 16 x 2 bits
+	u32 tevind_n_bt : 32;         // 16 x 2 bits
+	u64 tevind_n_bias : 48;       // 16 x 3 bits
+	u64 tevind_n_mid : 64;        // 16 x 4 bits
+
+	// NOTE: These assume that the affected bits are zero before calling
+	void Set_tevind_sw(int index, u64 val)
 	{
-		u32 sw1 : 24;        // 8 x 3 bit
-		u32 sw2 : 24;        // 8 x 3 bit
-		u32 tw1 : 24;        // 8 x 3 bit
-		u32 tw2 : 24;        // 8 x 3 bit
-		u32 fb_addprev : 16; // 16 x 1 bit
-		u32 bs : 32;         // 16 x 2 bit
-		u32 fmt : 32;        // 16 x 2 bit
-		u32 bt : 32;         // 16 x 2 bit
-		u32 bias1 : 24;      // 8 x 3 bit
-		u32 bias2 : 24;      // 8 x 3 bit
-		u32 mid1 : 32;       // 8 x 4 bit
-		u32 mid2 : 32;       // 8 x 4 bit
-
-		// NOTE: These assume that the affected bits are zero before calling
-		void Set_sw(int index, u32 val)
-		{
-			if (index < 8) sw1 |= val << (3*index);
-			else sw2 |= val << (3*index - 24);
-		}
-		void Set_tw(int index, u32 val)
-		{
-			if (index < 8) tw1 |= val << (3*index);
-			else tw2 |= val << (3*index - 24);
-		}
-		void Set_bias(int index, u32 val)
-		{
-			if (index < 8) bias1 |= val << (3*index);
-			else bias2 |= val << (3*index - 24);
-		}
-		void Set_mid(int index, u32 val)
-		{
-			if (index < 8) mid1 |= val << (4*index);
-			else mid2 |= val << (4*index - 32);
-		}
-	} tevind_n;
-
-	struct
+		tevind_n_sw |= val << (3*index);
+	}
+	void Set_tevind_tw(int index, u64 val)
 	{
-		u32 swap1 : 2;
-		u32 swap2 : 2;
-		u32 kcsel0 : 5;
-		u32 kasel0 : 5;
-		u32 kcsel1 : 5;
-		u32 kasel1 : 5;
-
-		void set_kcsel(int i, u32 value) { if (i) kcsel1 = value; else kcsel0 = value; }
-		void set_kasel(int i, u32 value) { if( i) kasel1 = value; else kasel0 = value; }
-	} tevksel[8];
-
-	struct
+		tevind_n_tw |= val << (3*index);
+	}
+	void Set_tevind_bias(int index, u64 val)
 	{
-		union {
-			struct  //abc=8bit,d=10bit
-			{
-				u32 d : 4; // TEVSELCC_X
-				u32 c : 4; // TEVSELCC_X
-				u32 b : 4; // TEVSELCC_X
-				u32 a : 4; // TEVSELCC_X
-
-				u32 bias : 2;
-				u32 op : 1;
-				u32 clamp : 1;
-
-				u32 shift : 2;
-				u32 dest : 2;  //1,2,3
-			};
-			u32 hex : 24;
-		} colorC;
-		union {
-			struct
-			{
-				u32 rswap : 2;
-				u32 tswap : 2;
-				u32 d : 3; // TEVSELCA_
-				u32 c : 3; // TEVSELCA_
-				u32 b : 3; // TEVSELCA_
-				u32 a : 3; // TEVSELCA_
-
-				u32 bias : 2; //GXTevBias
-				u32 op : 1;
-				u32 clamp : 1;
-
-				u32 shift : 2;
-				u32 dest : 2;  //1,2,3
-			};
-			u32 hex : 24;
-		} alphaC;
-	} combiners[16];
-	struct
+		tevind_n_bias |= val << (3*index);
+	}
+	void Set_tevind_mid(int index, u64 val)
 	{
-		u32 comp0 : 3;
-		u32 comp1 : 3;
-		u32 logic : 2;
-		u32 use_zcomploc_hack : 1;
-	} alpha_test;
+		tevind_n_mid |= val << (4*index);
+	}
 
-	union {
-		struct
-		{
-			u32 proj : 1; // 0 - perspective, 1 - orthographic
-			u32 fsel : 3; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
-			u32 RangeBaseEnabled : 1;
-		};
-		u32 hex : 4;
-	} fog;
+	u32 tevksel_n_swap1 : 16; // 8x2 bits
+	u32 tevksel_n_swap2 : 16; // 8x2 bits
+	u64 tevksel_n_kcsel0 : 40; // 8x5 bits
+	u64 tevksel_n_kasel0 : 40; // 8x5 bits
+	u64 tevksel_n_kcsel1 : 40; // 8x5 bits
+	u64 tevksel_n_kasel1 : 40; // 8x5 bits
+	void set_tevksel_kcsel(int index, int i, u32 value) { if (i) tevksel_n_kcsel1 |= value << (5*index); else tevksel_n_kcsel0 |= value << (5*index); }
+	void set_tevksel_kasel(int index, int i, u32 value) { if( i) tevksel_n_kasel1 |= value << (5*index); else tevksel_n_kasel0 |= value << (5*index); }
+
+	u64 cc_n_d : 64; // 16x4 bits
+	u64 cc_n_c : 64; // 16x4 bits
+	u64 cc_n_b : 64; // 16x4 bits
+	u64 cc_n_a : 64; // 16x4 bits
+	u32 cc_n_bias : 32; // 16x2 bits
+	u32 cc_n_op : 16; // 16x1 bit
+	u32 cc_n_clamp : 16; // 16x1 bit
+	u32 cc_n_shift : 32; // 16x2 bits
+	u32 cc_n_dest : 32; // 16x2 bits
+
+	u32 ac_n_rswap : 32; // 16x2 bits
+	u32 ac_n_tswap : 32; // 16x2 bits
+	u64 ac_n_d : 48; // 16x3 bits
+	u64 ac_n_c : 48; // 16x3 bits
+	u64 ac_n_b : 48; // 16x3 bits
+	u64 ac_n_a : 48; // 16x3 bits
+	u32 ac_n_bias : 32; // 16x2 bits
+	u32 ac_n_op : 16; // 16x1 bit
+	u32 ac_n_clamp : 16; // 16x1 bit
+	u32 ac_n_shift : 32; // 16x2 bits
+	u32 ac_n_dest : 32; // 16x2 bits
+
+	u32 alpha_test_comp0 : 3;
+	u32 alpha_test_comp1 : 3;
+	u32 alpha_test_logic : 2;
+	u32 alpha_test_use_zcomploc_hack : 1;
+
+	u32 fog_proj : 1;
+	u32 fog_fsel : 3;
+	u32 fog_RangeBaseEnabled : 1;
 
 	u32 ztex_op : 2;
 
@@ -221,6 +178,7 @@ struct pixel_shader_uid_data
 
 	LightingUidData lighting;
 };
+//#pragma pack()
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 typedef ShaderCode PixelShaderCode; // TODO: Obsolete

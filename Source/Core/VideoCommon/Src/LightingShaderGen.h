@@ -54,8 +54,8 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 	else if (coloralpha == 2)
 		swizzle = "w";
 
-	uid_data.lit_chans[litchan_index].attnfunc = chan.attnfunc;
-	uid_data.lit_chans[litchan_index].diffusefunc = chan.diffusefunc;
+	uid_data.attnfunc |= chan.attnfunc << (2*litchan_index);
+	uid_data.diffusefunc |= chan.diffusefunc << (2*litchan_index);
 	if (!(chan.attnfunc & 1))
 	{
 		// atten disabled
@@ -124,7 +124,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 
 		object.Write("{\n");
 
-		uid_data.lit_chans[j].matsource = xfregs.color[j].matsource;
+		uid_data.matsource |= xfregs.color[j].matsource << j;
 		if (color.matsource) // from vertex
 		{
 			if (components & (VB_HAS_COL0 << j))
@@ -139,10 +139,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			object.Write("mat = %s[%d];\n", materialsName, j+2);
 		}
 
-		uid_data.lit_chans[j].enablelighting = xfregs.color[j].enablelighting;
+		uid_data.enablelighting |= xfregs.color[j].enablelighting << j;
 		if (color.enablelighting)
 		{
-			uid_data.lit_chans[j].ambsource = xfregs.color[j].ambsource;
+			uid_data.ambsource |= xfregs.color[j].ambsource << j;
 			if (color.ambsource) // from vertex
 			{
 				if (components & (VB_HAS_COL0<<j) )
@@ -163,7 +163,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		}
 
 		// check if alpha is different
-		uid_data.lit_chans[j+2].matsource = xfregs.alpha[j].matsource;
+		uid_data.matsource |= xfregs.alpha[j].matsource << (j+2);
 		if (alpha.matsource != color.matsource)
 		{
 			if (alpha.matsource) // from vertex
@@ -180,10 +180,10 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			}
 		}
 
-		uid_data.lit_chans[j+2].enablelighting = xfregs.alpha[j].enablelighting;
+		uid_data.enablelighting |= xfregs.alpha[j].enablelighting << (j+2);
 		if (alpha.enablelighting)
 		{
-			uid_data.lit_chans[j+2].ambsource = xfregs.alpha[j].ambsource;
+			uid_data.ambsource |= xfregs.alpha[j].ambsource << (j+2);
 			if (alpha.ambsource) // from vertex
 			{
 				if (components & (VB_HAS_COL0<<j) )
@@ -207,12 +207,12 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		{
 			// both have lighting, test if they use the same lights
 			int mask = 0;
-			uid_data.lit_chans[j].attnfunc = color.attnfunc;
-			uid_data.lit_chans[j+2].attnfunc = alpha.attnfunc;
-			uid_data.lit_chans[j].diffusefunc = color.diffusefunc;
-			uid_data.lit_chans[j+2].diffusefunc = alpha.diffusefunc;
-			uid_data.lit_chans[j].light_mask = color.GetFullLightMask();
-			uid_data.lit_chans[j+2].light_mask = alpha.GetFullLightMask();
+			uid_data.attnfunc |= color.attnfunc << (2*j);
+			uid_data.attnfunc |= alpha.attnfunc << (2*(j+2));
+			uid_data.diffusefunc |= color.diffusefunc << (2*j);
+			uid_data.diffusefunc |= alpha.diffusefunc << (2*(j+2));
+			uid_data.light_mask |= color.GetFullLightMask() << (8*j);
+			uid_data.light_mask |= alpha.GetFullLightMask() << (8*(j+2));
 			if(color.lightparams == alpha.lightparams)
 			{
 				mask = color.GetFullLightMask() & alpha.GetFullLightMask();
@@ -244,7 +244,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			const int lit_index = color.enablelighting ? j : (j+2);
 			int coloralpha = color.enablelighting ? 1 : 2;
 
-			uid_data.lit_chans[lit_index].light_mask = workingchannel.GetFullLightMask();
+			uid_data.light_mask |= workingchannel.GetFullLightMask() << (8*lit_index);
 			for (int i = 0; i < 8; ++i)
 			{
 				if (workingchannel.GetFullLightMask() & (1<<i))

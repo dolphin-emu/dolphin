@@ -376,7 +376,7 @@ struct TevStageCombiner
 
 	union TwoTevStageOrders
 	{
-		struct 
+		struct
 		{
 			u32 texmap0    : 3; // indirect tex stage texmap
 			u32 texcoord0  : 3;

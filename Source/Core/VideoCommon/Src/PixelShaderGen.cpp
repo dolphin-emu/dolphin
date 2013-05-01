@@ -241,6 +241,8 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	pixel_shader_uid_data& uid_data = (&out.template GetUidData<pixel_shader_uid_data>() != NULL)
 										? out.template GetUidData<pixel_shader_uid_data>() : dummy_data;
 
+	ERROR_LOG(VIDEO, "%lu", sizeof(pixel_shader_uid_data));
+
 	out.SetBuffer(text);
 	if (out.GetBuffer() != NULL)
 		setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
@@ -257,9 +259,9 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		numStages, numTexgen, bpmem.genMode.numindstages);
 
 	uid_data.dstAlphaMode = dstAlphaMode;
-	uid_data.genMode.numindstages = bpmem.genMode.numindstages;
-	uid_data.genMode.numtevstages = bpmem.genMode.numtevstages;
-	uid_data.genMode.numtexgens = bpmem.genMode.numtexgens;
+	uid_data.genMode_numindstages = bpmem.genMode.numindstages;
+	uid_data.genMode_numtevstages = bpmem.genMode.numtevstages;
+	uid_data.genMode_numtexgens = bpmem.genMode.numtexgens;
 
 	if (ApiType == API_OPENGL)
 	{
@@ -466,7 +468,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		for (unsigned int i = 0; i < numTexgen; ++i)
 		{
 			// optional perspective divides
-			uid_data.texMtxInfo[i].projection = xfregs.texMtxInfo[i].projection;
+			uid_data.texMtxInfo_n_projection |= xfregs.texMtxInfo[i].projection << i;
 			if (xfregs.texMtxInfo[i].projection == XF_TEXPROJ_STQ)
 			{
 				out.Write("\tif (uv%d.z != 0.0f)", i);
@@ -496,7 +498,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 			unsigned int texcoord = bpmem.tevindref.getTexCoord(i);
 			unsigned int texmap = bpmem.tevindref.getTexMap(i);
 
-			uid_data.tevindref.SetValues(i, texcoord, texmap);
+			uid_data.SetTevindrefValues(i, texcoord, texmap);
 			if (texcoord < numTexgen)
 			{
 				out.SetConstantsUsed(C_INDTEXSCALE+i/2,C_INDTEXSCALE+i/2);
@@ -566,7 +568,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	// Note: depth textures are disabled if early depth test is enabled
 	uid_data.ztex_op = bpmem.ztex2.op;
 	uid_data.per_pixel_depth = per_pixel_depth;
-	uid_data.fog.fsel = bpmem.fog.c_proj_fsel.fsel;
+	uid_data.fog_fsel = bpmem.fog.c_proj_fsel.fsel;
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
 	bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
@@ -687,13 +689,12 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	out.Write("// TEV stage %d\n", n);
 
 	uid_data.bHasIndStage |= bHasIndStage << n;
-	if (n < 8) { uid_data.tevorders_n_texcoord1 |= texcoord << (3 * n); }
-	else uid_data.tevorders_n_texcoord2 |= texcoord << (3 * n - 24);
+	uid_data.tevorders_n_texcoord |= texcoord << (3 * n);
 	if (bHasIndStage)
 	{
-		uid_data.tevind_n.bs |= bpmem.tevind[n].bs << (2*n);
-		uid_data.tevind_n.bt |= bpmem.tevind[n].bt << (2*n);
-		uid_data.tevind_n.fmt |= bpmem.tevind[n].fmt << (2*n);
+		uid_data.tevind_n_bs |= bpmem.tevind[n].bs << (2*n);
+		uid_data.tevind_n_bt |= bpmem.tevind[n].bt << (2*n);
+		uid_data.tevind_n_fmt |= bpmem.tevind[n].fmt << (2*n);
 
 		out.Write("// indirect op\n");
 		// perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
@@ -708,12 +709,12 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		out.Write("float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
 
 		// bias
-		uid_data.tevind_n.Set_bias(n, bpmem.tevind[n].bias);
+		uid_data.Set_tevind_bias(n, bpmem.tevind[n].bias);
 		if (bpmem.tevind[n].bias != ITB_NONE )
 			out.Write("indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 
 		// multiply by offset matrix and scale
-		uid_data.tevind_n.Set_mid(n, bpmem.tevind[n].mid);
+		uid_data.Set_tevind_mid(n, bpmem.tevind[n].mid);
 		if (bpmem.tevind[n].mid != 0)
 		{
 			if (bpmem.tevind[n].mid <= 3)
@@ -750,9 +751,9 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		// ---------
 		// Wrapping
 		// ---------
-		uid_data.tevind_n.Set_sw(n, bpmem.tevind[n].sw);
-		uid_data.tevind_n.Set_tw(n, bpmem.tevind[n].tw);
-		uid_data.tevind_n.fb_addprev |= bpmem.tevind[n].fb_addprev << n;
+		uid_data.Set_tevind_sw(n, bpmem.tevind[n].sw);
+		uid_data.Set_tevind_tw(n, bpmem.tevind[n].tw);
+		uid_data.tevind_n_fb_addprev |= bpmem.tevind[n].fb_addprev << n;
 
 		// wrap S
 		if (bpmem.tevind[n].sw == ITW_OFF)
@@ -779,8 +780,26 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
-	uid_data.combiners[n].colorC.hex = cc.hex & 0xFFFFFF;
-	uid_data.combiners[n].alphaC.hex = ac.hex & 0xFFFFFF;
+	uid_data.cc_n_d = cc.d;
+	uid_data.cc_n_c = cc.c;
+	uid_data.cc_n_b = cc.b;
+	uid_data.cc_n_a = cc.a;
+	uid_data.cc_n_bias = cc.bias;
+	uid_data.cc_n_op = cc.op;
+	uid_data.cc_n_clamp = cc.clamp;
+	uid_data.cc_n_shift = cc.shift;
+	uid_data.cc_n_dest = cc.dest;
+	uid_data.ac_n_rswap = ac.rswap;
+	uid_data.ac_n_tswap = ac.tswap;
+	uid_data.ac_n_d = ac.d;
+	uid_data.ac_n_c = ac.c;
+	uid_data.ac_n_b = ac.b;
+	uid_data.ac_n_a = ac.a;
+	uid_data.ac_n_bias = ac.bias;
+	uid_data.ac_n_op = ac.op;
+	uid_data.ac_n_clamp = ac.clamp;
+	uid_data.ac_n_shift = ac.shift;
+	uid_data.ac_n_dest = ac.dest;
 
 	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
 		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
@@ -790,10 +809,10 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
 	{
 		const int i = bpmem.combiners[n].alphaC.rswap;
-		uid_data.tevksel[i*2  ].swap1 = bpmem.tevksel[i*2  ].swap1;
-		uid_data.tevksel[i*2+1].swap1 = bpmem.tevksel[i*2+1].swap1;
-		uid_data.tevksel[i*2  ].swap2 = bpmem.tevksel[i*2  ].swap2;
-		uid_data.tevksel[i*2+1].swap2 = bpmem.tevksel[i*2+1].swap2;
+		uid_data.tevksel_n_swap1 = bpmem.tevksel[i*2  ].swap1 << (2 * (i*2  ));
+		uid_data.tevksel_n_swap1 = bpmem.tevksel[i*2+1].swap1 << (2 * (i*2+1));
+		uid_data.tevksel_n_swap2 = bpmem.tevksel[i*2  ].swap2 << (2 * (i*2  ));
+		uid_data.tevksel_n_swap2 = bpmem.tevksel[i*2+1].swap2 << (2 * (i*2+1));
 
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		out.Write("rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
@@ -813,14 +832,14 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		}
 
 		const int i = bpmem.combiners[n].alphaC.tswap;
-		uid_data.tevksel[i*2  ].swap1 = bpmem.tevksel[i*2  ].swap1;
-		uid_data.tevksel[i*2+1].swap1 = bpmem.tevksel[i*2+1].swap1;
-		uid_data.tevksel[i*2  ].swap2 = bpmem.tevksel[i*2  ].swap2;
-		uid_data.tevksel[i*2+1].swap2 = bpmem.tevksel[i*2+1].swap2;
+		uid_data.tevksel_n_swap1 = bpmem.tevksel[i*2  ].swap1 << (2 * (i*2  ));
+		uid_data.tevksel_n_swap1 = bpmem.tevksel[i*2+1].swap1 << (2 * (i*2+1));
+		uid_data.tevksel_n_swap2 = bpmem.tevksel[i*2  ].swap2 << (2 * (i*2  ));
+		uid_data.tevksel_n_swap2 = bpmem.tevksel[i*2+1].swap2 << (2 * (i*2+1));
 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
-		uid_data.tevindref.SetTexmap(i, texmap);
+		uid_data.SetTevindrefTexmap(i, texmap);
 		SampleTexture<T>(out, "textemp", "tevcoord", texswap, texmap, ApiType);
 	}
 	else
@@ -834,8 +853,8 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	{
 		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
-		uid_data.tevksel[n/2].set_kcsel(n & 1, kc);
-		uid_data.tevksel[n/2].set_kasel(n & 1, ka);
+		uid_data.set_tevksel_kcsel(n/2, n & 1, kc);
+		uid_data.set_tevksel_kasel(n/2, n & 1, ka);
 		out.Write("konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 		if(kc > 7 || ka > 7)
 		{
@@ -1086,9 +1105,9 @@ static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE Api
 	// using discard then return works the same in cg and dx9 but not in dx11
 	out.Write("\tif(!( ");
 
-	uid_data.alpha_test.comp0 = bpmem.alpha_test.comp0;
-	uid_data.alpha_test.logic = bpmem.alpha_test.comp1;
-	uid_data.alpha_test.logic = bpmem.alpha_test.logic;
+	uid_data.alpha_test_comp0 = bpmem.alpha_test.comp0;
+	uid_data.alpha_test_logic = bpmem.alpha_test.comp1;
+	uid_data.alpha_test_logic = bpmem.alpha_test.logic;
 
 	// Lookup the first component from the alpha function table
 	int compindex = bpmem.alpha_test.comp0;
@@ -1117,7 +1136,7 @@ static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE Api
 	// when the alpha test fail. This is not a correct implementation because
 	// even if the depth test fails the fragment could be alpha blended, but
 	// we don't have a choice.
-	uid_data.alpha_test.use_zcomploc_hack = bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable;
+	uid_data.alpha_test_use_zcomploc_hack = bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable;
 	if (!(bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable))
 	{
 		out.Write("\t\tdiscard;\n");
@@ -1143,11 +1162,11 @@ static const char *tevFogFuncsTable[] =
 template<class T>
 static void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 {
-	uid_data.fog.fsel = bpmem.fog.c_proj_fsel.fsel;
+	uid_data.fog_fsel = bpmem.fog.c_proj_fsel.fsel;
 	if(bpmem.fog.c_proj_fsel.fsel == 0)
 		return; // no Fog
 
-	uid_data.fog.proj = bpmem.fog.c_proj_fsel.proj;
+	uid_data.fog_proj = bpmem.fog.c_proj_fsel.proj;
 
 	out.SetConstantsUsed(C_FOG, C_FOG+1);
 	if (bpmem.fog.c_proj_fsel.proj == 0)
@@ -1166,7 +1185,7 @@ static void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
 	// ze *= x_adjust
 	// this is completely theoretical as the real hardware seems to use a table intead of calculating the values.
-	uid_data.fog.RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
+	uid_data.fog_RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
 	if (bpmem.fogRange.Base.Enabled)
 	{
 		out.SetConstantsUsed(C_FOG+2, C_FOG+2);
