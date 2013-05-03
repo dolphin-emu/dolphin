@@ -690,7 +690,9 @@ void Do_ARAM_DMA()
 	if (g_arDMA.Cnt.count == 32)
 	{
 		// Beyond Good and Evil (GGEE41) sends count 32
+		// Lost Kingdoms 2 needs the exception check here in DSP HLE mode
 		GenerateDSPInterrupt(INT_ARAM);
+		CoreTiming::ForceExceptionCheck(100);
 	}
 	else
 	{
