@@ -14,6 +14,7 @@
 #include "WxUtils.h"
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY	256
+const std::string title = _("Cheats Manager");
 
 extern std::vector<ActionReplay::ARCode> arCodes;
 extern CFrame* main_frame;
@@ -22,26 +23,15 @@ extern CFrame* main_frame;
 static wxCheatsWindow *g_cheat_window;
 
 wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
-	: wxDialog(parent, wxID_ANY, _("Cheats Manager"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxDIALOG_NO_PARENT)
+	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxDIALOG_NO_PARENT)
 {
 	::g_cheat_window = this;
 
 	// Create the GUI controls
 	Init_ChildControls();
 
-	// Load Data
-	Load_ARCodes();
-
-	// Load Gecko Codes :/
-	{
-	const DiscIO::IVolume* const vol = VolumeHandler::GetVolume();
-	if (vol)
-	{
-		m_gameini_path = File::GetUserPath(D_GAMECONFIG_IDX) + vol->GetUniqueID() + ".ini";
-		m_gameini.Load(m_gameini_path);
-		m_geckocode_panel->LoadCodes(m_gameini, Core::g_CoreStartupParameter.GetUniqueID());
-	}
-	}
+	// load codes
+	UpdateGUI();
 
 	SetSize(wxSize(-1, 600));
 	Center();
@@ -119,7 +109,7 @@ void wxCheatsWindow::Init_ChildControls()
 	m_Notebook_Main->AddPage(m_Tab_Log, _("Logging"));
 
 	// Button Strip
-	wxButton* const button_apply = new wxButton(panel, wxID_APPLY, _("Apply"), wxDefaultPosition, wxDefaultSize);
+	button_apply = new wxButton(panel, wxID_APPLY, _("Apply"), wxDefaultPosition, wxDefaultSize);
 	button_apply->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &wxCheatsWindow::OnEvent_ApplyChanges_Press, this);
 	wxButton* const button_cancel = new wxButton(panel, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize);
 	button_cancel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &wxCheatsWindow::OnEvent_ButtonClose_Press, this);
@@ -249,11 +239,33 @@ void wxCheatsWindow::OnEvent_Close(wxCloseEvent& ev)
 	Destroy();
 }
 
+// load codes for a new ISO ID
+void wxCheatsWindow::UpdateGUI()
+{
+	// load code
+	m_gameini_path = File::GetUserPath(D_GAMECONFIG_IDX) + Core::g_CoreStartupParameter.GetUniqueID() + ".ini";
+	m_gameini.Load(m_gameini_path);
+	Load_ARCodes();
+	Load_GeckoCodes();
+
+	// enable controls
+	button_apply->Enable(Core::IsRunning());
+
+	// write the ISO name in the title
+	if (Core::IsRunning())
+		SetTitle(title + ": " + Core::g_CoreStartupParameter.GetUniqueID() + " - " + Core::g_CoreStartupParameter.m_strName);
+	else
+		SetTitle(title);
+}
+
 void wxCheatsWindow::Load_ARCodes()
 {
 	using namespace ActionReplay;
 
 	m_CheckListBox_CheatsList->Clear();
+
+	if (!Core::IsRunning())
+		return;
 
 	indexList.clear();
 	size_t size = GetCodeListSize();
@@ -267,6 +279,11 @@ void wxCheatsWindow::Load_ARCodes()
 		ind.uiIndex = index;
 		indexList.push_back(ind);
 	}
+}
+
+void wxCheatsWindow::Load_GeckoCodes()
+{
+	m_geckocode_panel->LoadCodes(m_gameini, Core::g_CoreStartupParameter.GetUniqueID(), true);
 }
 
 void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (event))

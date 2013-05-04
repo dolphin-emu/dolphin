@@ -20,7 +20,7 @@ public:
 	CodeConfigPanel(wxWindow* const parent);
 
 
-	void LoadCodes(const IniFile& inifile, const std::string& gameid = "");
+	void LoadCodes(const IniFile& inifile, const std::string& gameid = "", bool checkRunning = false);
 	const std::vector<GeckoCode>& GetCodes() const { return m_gcodes; }
 
 protected:
@@ -29,7 +29,7 @@ protected:
 	void DownloadCodes(wxCommandEvent&);
 	//void ApplyChanges(wxCommandEvent&);
 
-	void UpdateCodeList();
+	void UpdateCodeList(bool checkRunning = false);
 
 private:
 	std::vector<GeckoCode> m_gcodes;
