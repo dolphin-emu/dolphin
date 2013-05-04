@@ -23,6 +23,7 @@ u32 ProgramShaderCache::s_ubo_buffer_size;
 bool ProgramShaderCache::s_ubo_dirty;
 
 static StreamBuffer *s_buffer;
+static int num_failures = 0;
 
 LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
 static GLuint CurrentProgram = 0;
@@ -287,11 +288,19 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		glGetProgramInfoLog(pid, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sp_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), pid);
+		sprintf(szTemp, "%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
 		std::ofstream file;
 		OpenFStream(file, szTemp, std::ios_base::out);
 		file << infoLog << s_glsl_header << vcode << s_glsl_header << pcode;
 		file.close();
+		
+		PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
+			szTemp,
+			g_ogl_config.gl_vendor,
+			g_ogl_config.gl_renderer,
+			g_ogl_config.gl_version,
+			infoLog);
+		
 		delete [] infoLog;
 	}
 	if (linkStatus != GL_TRUE)
@@ -328,11 +337,24 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "PS Shader info log:\n%s", infoLog);
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sps_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), result);
+		sprintf(szTemp, 
+			"%sbad_%s_%04i.txt", 
+			File::GetUserPath(D_DUMP_IDX).c_str(), 
+			type==GL_VERTEX_SHADER ? "vs" : "ps", 
+			num_failures++);
 		std::ofstream file;
 		OpenFStream(file, szTemp, std::ios_base::out);
 		file << infoLog << s_glsl_header << code;
 		file.close();
+		
+		PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
+			type==GL_VERTEX_SHADER ? "vertex" : "pixel",
+			szTemp,
+			g_ogl_config.gl_vendor,
+			g_ogl_config.gl_renderer,
+			g_ogl_config.gl_version,
+			infoLog);
+		
 		delete[] infoLog;
 	}
 	if (compileStatus != GL_TRUE)
