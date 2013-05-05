@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "GeckoCodeDiag.h"
+#include "Core.h"
 #include "WxUtils.h"
 
 #include <SFML/Network/Http.hpp>
@@ -59,10 +60,10 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	SetSizerAndFit(sizer_main);
 }
 
-void CodeConfigPanel::UpdateCodeList()
+void CodeConfigPanel::UpdateCodeList(bool checkRunning)
 {
 	// disable the button if it doesn't have an effect
-	btn_download->Enable(!m_gameid.empty());
+	btn_download->Enable((!checkRunning || Core::IsRunning()) && !m_gameid.empty());
 
 	m_listbox_gcodes->Clear();
 	// add the codes to the listbox
@@ -80,14 +81,15 @@ void CodeConfigPanel::UpdateCodeList()
 	UpdateInfoBox(evt);
 }
 
-void CodeConfigPanel::LoadCodes(const IniFile& inifile, const std::string& gameid)
+void CodeConfigPanel::LoadCodes(const IniFile& inifile, const std::string& gameid, bool checkRunning)
 {
 	m_gameid = gameid;
 
 	m_gcodes.clear();
-	Gecko::LoadCodes(inifile, m_gcodes);
+	if (!checkRunning || Core::IsRunning())
+		Gecko::LoadCodes(inifile, m_gcodes);
 
-	UpdateCodeList();
+	UpdateCodeList(checkRunning);
 }
 
 void CodeConfigPanel::ToggleCode(wxCommandEvent& evt)

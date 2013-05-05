@@ -96,6 +96,7 @@ class wxCheatsWindow : public wxDialog
 	public:
 		wxCheatsWindow(wxWindow* const parent);
 		~wxCheatsWindow();
+		void UpdateGUI();
 
 	protected:
 
@@ -105,6 +106,7 @@ class wxCheatsWindow : public wxDialog
 		};
 
 		// --- GUI Controls ---
+		wxButton* button_apply;
 		wxNotebook *m_Notebook_Main;
 
 		wxPanel *m_Tab_Cheats;
@@ -134,6 +136,7 @@ class wxCheatsWindow : public wxDialog
 		void Init_ChildControls();
 
 		void Load_ARCodes();
+		void Load_GeckoCodes();
 
 		// --- Wx Events Handlers ---
 

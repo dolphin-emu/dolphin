@@ -1133,6 +1133,7 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 	CConfigMain ConfigMain(this);
 	if (ConfigMain.ShowModal() == wxID_OK)
 		m_GameListCtrl->Update();
+	UpdateGUI();
 }
 
 void CFrame::OnConfigGFX(wxCommandEvent& WXUNUSED (event))
@@ -1568,6 +1569,9 @@ void CFrame::UpdateGUI()
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU).IsValid())
 		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 
+	// Tools
+	GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
+
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(RunningWii);
@@ -1675,6 +1679,15 @@ void CFrame::UpdateGUI()
 
 	// Commit changes to manager
 	m_Mgr->Update();
+
+	// Update non-modal windows
+	if (g_CheatsWindow)
+	{
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+			g_CheatsWindow->UpdateGUI();
+		else
+			g_CheatsWindow->Close();
+	}
 }
 
 void CFrame::UpdateGameList()
