@@ -283,9 +283,8 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 						break;
 					}
 
-					// code with this name+creator exists
-					if (existing_gcodes_iter->name == gcodes_iter->name &&
-						existing_gcodes_iter->creator == gcodes_iter->creator)
+					// code exists
+					if (existing_gcodes_iter->Compare(*gcodes_iter))
 						break;
 				}
 			}

@@ -63,6 +63,38 @@ u32 GeckoCode::Code::GetAddress() const
 	return gcaddress + (use_po ? pointer_address : (base_address & 0xFE000000));
 }
 
+// return true if a code exists
+bool GeckoCode::Exist(u32 address, u32 data)
+{
+	std::vector<GeckoCode::Code>::const_iterator
+		codes_iter = codes.begin(),
+		codes_end = codes.end();
+	for (; codes_iter != codes_end; ++codes_iter)
+	{
+		if (codes_iter->address == address && codes_iter->data == data)
+			return true;
+	}
+	return false;
+}
+
+// return true if the code is identical
+bool GeckoCode::Compare(GeckoCode compare) const
+{
+	if (codes.size() != compare.codes.size())
+		return false;
+
+	int exist = 0;
+	std::vector<GeckoCode::Code>::const_iterator
+		codes_iter = codes.begin(),
+		codes_end = codes.end();
+	for (; codes_iter != codes_end; ++codes_iter)
+	{
+		if (compare.Exist(codes_iter->address, codes_iter->data))
+			exist++;
+	}
+	return exist == codes.size();
+}
+
 static std::mutex active_codes_lock;
 
 // currently running code

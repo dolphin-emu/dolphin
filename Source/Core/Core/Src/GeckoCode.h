@@ -66,6 +66,9 @@ namespace Gecko
 		std::vector<std::string>	notes;
 
 		bool	enabled;
+
+		bool Compare(GeckoCode compare) const;
+		bool Exist(u32 address, u32 data);
 	};
 
 	void SetActiveCodes(const std::vector<GeckoCode>& gcodes);
