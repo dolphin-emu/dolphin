@@ -14,7 +14,7 @@
 #include "WxUtils.h"
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY	256
-const std::string title = _("Cheats Manager");
+const wxString title = _("Cheats Manager");
 
 extern std::vector<ActionReplay::ARCode> arCodes;
 extern CFrame* main_frame;
