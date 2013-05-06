@@ -73,7 +73,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE, m_efbDepth);
-		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE, 0);
 
@@ -160,7 +160,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glViewport(0, 0, m_targetWidth, m_targetHeight);
 	glScissor(0, 0, m_targetWidth, m_targetHeight);
 	glClearColor(0.f, 0.f, 0.f, 1.f);
-	glClearDepth(1.0);
+	glClearDepthf(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 
