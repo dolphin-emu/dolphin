@@ -89,6 +89,19 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 		}
 		break;
 
+	case BPMEM_ZCOMPARE:
+		{
+			SetRegName(BPMEM_ZCOMPARE);
+			PE_CONTROL config; config.hex = cmddata;
+			const char* pixel_formats[] = { "RGB8_Z24", "RGBA6_Z24", "RGB565_Z16", "Z24", "Y8", "U8", "V8", "YUV420" };
+			const char* zformats[] = { "linear", "compressed (near)", "compressed (mid)", "compressed (far)", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)" };
+			snprintf(desc, desc_size, "EFB pixel format: %s\n"
+									"Depth format: %s\n"
+									"Early depth test: %s\n",
+									pixel_formats[config.pixel_format], zformats[config.zformat], no_yes[config.early_ztest]);
+		}
+		break;
+
 	case BPMEM_EFB_BR: // 0x4A
 		{
 			// TODO: Misleading name, should be BPMEM_EFB_WH instead
@@ -160,6 +173,21 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 	case BPMEM_COPYFILTER1: // 0x54
 		SetRegName(BPMEM_COPYFILTER1);
 		// TODO: Description
+		break;
+
+	case BPMEM_TX_SETIMAGE3: // 0x94
+	case BPMEM_TX_SETIMAGE3+1:
+	case BPMEM_TX_SETIMAGE3+2:
+	case BPMEM_TX_SETIMAGE3+3:
+	case BPMEM_TX_SETIMAGE3_4: // 0xB4
+	case BPMEM_TX_SETIMAGE3_4+1:
+	case BPMEM_TX_SETIMAGE3_4+2:
+	case BPMEM_TX_SETIMAGE3_4+3:
+		{
+			SetRegName(BPMEM_TX_SETIMAGE3);
+			TexImage3 teximg; teximg.hex = cmddata;
+			snprintf(desc, desc_size, "Source address (32 byte aligned): 0x%06X", teximg.image_base << 5);
+		}
 		break;
 
 	case BPMEM_TEV_COLOR_ENV: // 0xC0
