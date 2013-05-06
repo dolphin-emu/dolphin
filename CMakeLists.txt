@@ -7,7 +7,8 @@ option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(USE_X11 "Enables X11 Support" ON)
 option(USE_WAYLAND "Enables Wayland Support" OFF)
-option(USE_GLES "Enables GLES And EGL, disables OGL" OFF)
+option(USE_GLES "Enables GLES2 And EGL, disables OGL" OFF)
+option(USE_GLES3 "Enables GLES3 and EGL" OFF)
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 
 option(FASTLOG "Enable all logs" OFF)
@@ -261,11 +262,19 @@ endif()
 
 # For now GLES and EGL are tied to each other.
 # Enabling GLES also disables the OpenGL plugin.
-if(USE_GLES)
-	message("GLES rendering enabled")
-	add_definitions(-DUSE_GLES=1)
-	add_definitions(-DUSE_EGL=1)
+if(USE_GLES3)
+	message("GLES3 rendering enabled")
+	add_definitions(-DUSE_GLES=1 -DUSE_EGL=1 -DUSE_GLES3=1)
+	include_directories(Externals/GLES3)
 	set(USE_EGL True)
+	set(USE_GLES True)
+else()
+	if(USE_GLES)
+		message("GLES2 rendering enabled. OpenGL disabled")
+		add_definitions(-DUSE_GLES=1)
+		add_definitions(-DUSE_EGL=1)
+		set(USE_EGL True)
+	endif()
 endif()
 # For now Wayland and EGL are tied to each other.
 # The alternative would be an shm path

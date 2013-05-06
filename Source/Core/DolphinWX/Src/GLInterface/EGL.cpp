@@ -52,7 +52,11 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		EGL_BLUE_SIZE, 8,
 		EGL_DEPTH_SIZE, 24,
 #ifdef USE_GLES
+#ifdef USE_GLES3
+		EGL_RENDERABLE_TYPE, (1 << 6) /* EGL_OPENGL_ES3_BIT */,
+#else
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+#endif
 #else
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
 #endif

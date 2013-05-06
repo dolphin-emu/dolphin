@@ -217,7 +217,7 @@ endif()
 
 set(LIBS bdisasm inputcommon videosoftware sfml-network)
 
-if(NOT USE_GLES)
+if(NOT USE_GLES OR USE_GLES3)
 	set(LIBS ${LIBS} videoogl)
 endif()
 
