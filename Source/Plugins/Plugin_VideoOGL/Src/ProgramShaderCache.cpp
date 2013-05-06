@@ -103,6 +103,7 @@ void SHADER::SetProgramVariables()
 
 void SHADER::SetProgramBindings()
 {
+#ifndef USE_GLES3
 	if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 	{
 		// So we do support extended blending
@@ -120,7 +121,7 @@ void SHADER::SetProgramBindings()
 		// ogl2 shaders don't need to bind output colors.
 		// gl_FragColor already point to color channel
 	}
-
+#endif
 	// Need to set some attribute locations
 	glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
 	
@@ -516,11 +517,6 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define float3 vec3\n"
 		"#define float4 vec4\n"
 
-		// hlsl to glsl function translation
-		"#define frac(x) fract(x)\n"
-		"#define saturate(x) clamp(x, 0.0f, 1.0f)\n"
-		"#define lerp(x, y, z) mix(x, y, z)\n"
-		
 		// glsl 120 hack
 		"%s\n"
 		"%s\n"

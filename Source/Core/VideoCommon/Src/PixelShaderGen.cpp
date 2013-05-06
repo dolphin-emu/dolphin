@@ -272,7 +272,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType);
 static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
 static void WriteAlphaTest(char *&p, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
-static void WriteFog(char *&p);
+static void WriteFog(char *&p, API_TYPE ApiType);
 
 static const char *tevKSelTableC[] = // KCSEL
 {
@@ -480,6 +480,17 @@ static void BuildSwapModeTable()
 	}
 }
 
+// We can't use function defines since the Qualcomm shader compiler doesn't support it
+static const char *GLSLConvertFunctions[] =
+{
+	"frac", // HLSL
+	"fract", // GLSL
+	"lerp",
+	"mix"
+};
+#define FUNC_FRAC 0
+#define FUNC_LERP 2
+
 const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 {
 	if (ApiType == API_OPENGL)
@@ -508,7 +519,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	int numTexgen = bpmem.genMode.numtexgens;
 
 	bool per_pixel_depth = bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable;
-
+	bool bOpenGL = ApiType == API_OPENGL;
 	char *p = text;
 	WRITE(p, "//Pixel Shader for TEV stages\n");
 	WRITE(p, "//%i TEV stages, %i texgens, XXX IND stages\n",
@@ -802,7 +813,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 	// emulation of unsigned 8 overflow when casting if needed
 	if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
-		WRITE(p, "\tprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+		WRITE(p, "\tprev = %s(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	if (Pretest == AlphaTest::UNDETERMINED)
@@ -826,7 +837,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 		// scale to make result from frac correct
 		WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
-		WRITE(p, "zCoord = frac(zCoord);\n");
+		WRITE(p, "zCoord = %s(zCoord);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
 		WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
 
 		// Note: depth texture out put is only written to depth buffer if late depth test is used
@@ -840,7 +851,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	}
 	else
 	{
-		WriteFog(p);
+		WriteFog(p, ApiType);
 		WRITE(p, "\tocol0 = prev;\n");
 	}
 
@@ -913,16 +924,14 @@ static const char *TEVCMPAlphaOPTable[16] =
 	"   %s.a + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5f/255.0f) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_EQ 13
 	"   %s.a + ((%s.a >= (%s.a + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_A8_GT 14
 	"   %s.a + (abs(%s.a - %s.a) < (0.5f/255.0f) ? %s.a : 0.0f)"//#define TEVCMP_A8_EQ 15
-
 };
-
 
 static void WriteStage(char *&p, int n, API_TYPE ApiType)
 {
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
 	bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
 	bool bHasIndStage = bpmem.tevind[n].IsActive() && bpmem.tevind[n].bt < bpmem.genMode.numindstages;
-
+	bool bOpenGL = ApiType == API_OPENGL;
 	// HACK to handle cases where the tex gen is not enabled
 	if (!bHasTexCoord)
 		texcoord = 0;
@@ -1016,7 +1025,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		WRITE(p, "rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
-		WRITE(p, "crastemp = frac(rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+		WRITE(p, "crastemp = %s(rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
 	}
 
 
@@ -1049,7 +1058,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		WRITE(p, "konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 		if (kc > 7 || ka > 7)
 		{
-			WRITE(p, "ckonsttemp = frac(konsttemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+			WRITE(p, "ckonsttemp = %s(konsttemp * (255.0f/256.0f)) * (256.0f/255.0f);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
 		}
 		else
 		{
@@ -1064,7 +1073,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		if(RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
 		{
-			WRITE(p, "cprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+			WRITE(p, "cprev = %s(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
 			RegisterStates[0].AlphaNeedOverflowControl = false;
 			RegisterStates[0].ColorNeedOverflowControl = false;
 		}
@@ -1082,7 +1091,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		if(RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
 		{
-			WRITE(p, "cc0 = frac(c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+			WRITE(p, "cc0 = %s(c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
 			RegisterStates[1].AlphaNeedOverflowControl = false;
 			RegisterStates[1].ColorNeedOverflowControl = false;
 		}
@@ -1100,7 +1109,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		if(RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
 		{
-			WRITE(p, "cc1 = frac(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+			WRITE(p, "cc1 = %s(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
 			RegisterStates[2].AlphaNeedOverflowControl = false;
 			RegisterStates[2].ColorNeedOverflowControl = false;
 		}
@@ -1118,7 +1127,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	{
 		if(RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
 		{
-			WRITE(p, "cc2 = frac(c2 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+			WRITE(p, "cc2 = %s(c2 * (255.0f/256.0f)) * (256.0f/255.0f);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
 			RegisterStates[3].AlphaNeedOverflowControl = false;
 			RegisterStates[3].ColorNeedOverflowControl = false;
 		}
@@ -1135,7 +1144,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	// combine the color channel
 	WRITE(p, "// color combine\n");
 	if (cc.clamp)
-		WRITE(p, "%s = saturate(", tevCOutputTable[cc.dest]);
+		WRITE(p, "%s = clamp(", tevCOutputTable[cc.dest]);
 	else
 		WRITE(p, "%s = ", tevCOutputTable[cc.dest]);
 
@@ -1160,7 +1169,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		else if (cc.b == TEVCOLORARG_ZERO)
 			WRITE(p, "%s*(float3(1.0f, 1.0f, 1.0f)-%s)", tevCInputTable[cc.a + 16], tevCInputTable[cc.c + 16]);
 		else
-			WRITE(p, "lerp(%s, %s, %s)", tevCInputTable[cc.a + 16], tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
+			WRITE(p, "%s(%s, %s, %s)", GLSLConvertFunctions[FUNC_LERP + bOpenGL], tevCInputTable[cc.a + 16], tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
 
 		WRITE(p, "%s", tevBiasTable[cc.bias]);
 
@@ -1177,7 +1186,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 				tevCInputTable[cc.c + 16]);
 	}
 	if (cc.clamp)
-		WRITE(p, ")");
+		WRITE(p, ", 0.0, 1.0)");
 	WRITE(p,";\n");
 
 	RegisterStates[ac.dest].AlphaNeedOverflowControl = (ac.clamp == 0);
@@ -1186,7 +1195,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 	// combine the alpha channel
 	WRITE(p, "// alpha combine\n");
 	if (ac.clamp)
-		WRITE(p, "%s = saturate(", tevAOutputTable[ac.dest]);
+		WRITE(p, "%s = clamp(", tevAOutputTable[ac.dest]);
 	else
 		WRITE(p, "%s = ", tevAOutputTable[ac.dest]);
 
@@ -1208,7 +1217,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 		else if (ac.b == TEVALPHAARG_ZERO)
 			WRITE(p, "%s.a*(1.0f-%s.a)", tevAInputTable[ac.a + 8], tevAInputTable[ac.c + 8]);
 		else
-			WRITE(p, "lerp(%s.a, %s.a, %s.a)", tevAInputTable[ac.a + 8], tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
+			WRITE(p, "%s(%s.a, %s.a, %s.a)", GLSLConvertFunctions[FUNC_LERP + bOpenGL], tevAInputTable[ac.a + 8], tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
 
 		WRITE(p, "%s",tevBiasTable[ac.bias]);
 
@@ -1227,7 +1236,7 @@ static void WriteStage(char *&p, int n, API_TYPE ApiType)
 				tevAInputTable[ac.c + 8]);
 	}
 	if (ac.clamp)
-		WRITE(p, ")");
+		WRITE(p, ", 0.0, 1.0)");
 	WRITE(p, ";\n\n");
 	WRITE(p, "// TEV done\n");
 }
@@ -1319,8 +1328,10 @@ static const char *tevFogFuncsTable[] =
 	"\tfog = 1.0f - fog;\n   fog = pow(2.0f, -8.0f * fog * fog);\n"	// backward exp2
 };
 
-static void WriteFog(char *&p)
+static void WriteFog(char *&p, API_TYPE ApiType)
 {
+	bool bOpenGL = ApiType == API_OPENGL;
+
 	if (bpmem.fog.c_proj_fsel.fsel == 0)
 		return; // no Fog
 
@@ -1347,7 +1358,7 @@ static void WriteFog(char *&p)
 		WRITE (p, "\tze *= x_adjust;\n");
 	}
 
-	WRITE (p, "\tfloat fog = saturate(ze - " I_FOG"[1].z);\n");
+	WRITE (p, "\tfloat fog = clamp(ze - " I_FOG"[1].z, 0.0, 1.0);\n");
 
 	if (bpmem.fog.c_proj_fsel.fsel > 3)
 	{
@@ -1359,5 +1370,5 @@ static void WriteFog(char *&p)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 
-	WRITE(p, "\tprev.rgb = lerp(prev.rgb, " I_FOG"[0].rgb, fog);\n");
+	WRITE(p, "\tprev.rgb = %s(prev.rgb, " I_FOG"[0].rgb, fog);\n", GLSLConvertFunctions[FUNC_LERP + bOpenGL]);
 }

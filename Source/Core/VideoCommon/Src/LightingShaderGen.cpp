@@ -213,7 +213,7 @@ char *GenerateLightingShader(char *p, int components, const char* materialsName,
 					p = GenerateLightShader(p, i, workingchannel, lightsName, coloralpha);
 			}
 		}
-		WRITE(p, "%s%d = mat * saturate(lacc);\n", dest, j);
+		WRITE(p, "%s%d = mat * clamp(lacc, 0.0, 1.0);\n", dest, j);
 		WRITE(p, "}\n");
 	}
 

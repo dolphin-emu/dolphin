@@ -1276,6 +1276,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	// Frame dumps are handled a little differently in Windows
+	// Frame dumping disabled entirely on GLES3
+#ifndef USE_GLES3
 #if defined _WIN32 || defined HAVE_LIBAV
 	if (g_ActiveConfig.bDumpFrames)
 	{
@@ -1372,7 +1374,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		bLastFrameDumped = false;
 	}
 #endif
-
+#endif
 	// Finish up the current frame, print some stats
 
 	SetWindowSize(fbWidth, fbHeight);

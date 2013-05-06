@@ -86,6 +86,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		GL_REPORT_FBO_ERROR();
 	}
+#ifndef USE_GLES3
 	else
 	{
 		// EFB targets will be renderbuffers in MSAA mode (required by OpenGL).
@@ -151,7 +152,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
 	}
-
+#endif
 	// Create XFB framebuffer; targets will be created elsewhere.
 
 	glGenFramebuffers(1, &m_xfbFramebuffer);
