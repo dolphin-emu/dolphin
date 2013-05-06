@@ -55,7 +55,7 @@ FifoPlayerDlg::~FifoPlayerDlg()
 	m_ObjectToCtrl->Unbind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnObjectTo, this);
 	m_EarlyMemoryUpdates->Unbind(wxEVT_COMMAND_CHECKBOX_CLICKED, &FifoPlayerDlg::OnCheckEarlyMemoryUpdates, this);
 	m_RecordStop->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnRecordStop, this);
-	m_Save->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnSaveFile, this);	
+	m_Save->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnSaveFile, this);
 	m_FramesToRecordCtrl->Unbind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnNumFramesToRecord, this);
 	m_Close->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnCloseClick, this);
 
@@ -253,9 +253,7 @@ void FifoPlayerDlg::CreateGUIControls()
 	m_findNext = new wxButton(m_AnalyzePage, wxID_ANY, _("Find next"));
 	m_findPrevious = new wxButton(m_AnalyzePage, wxID_ANY, _("Find previous"));
 
-	m_beginSearch->Disable();
-	m_findNext->Disable();
-	m_findPrevious->Disable();
+	ResetSearch();
 
 	sSearchButtons->Add(m_beginSearch, 0, wxALL, 5);
 	sSearchButtons->Add(m_findNext, 0, wxALL, 5);
@@ -500,16 +498,12 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 
 	ChangeSearchResult(0);
 	m_beginSearch->Disable();
-	m_findNext->Enable();
-	m_findPrevious->Enable();
 	m_numResultsText->SetLabel(wxString::Format(_("Found %d results for \'"), search_results.size()) + m_searchField->GetValue() + _("\'"));
 }
 
 void FifoPlayerDlg::OnSearchFieldTextChanged(wxCommandEvent& event)
 {
-	m_beginSearch->Enable(m_searchField->GetLineLength(0) > 0);
-	m_findNext->Disable();
-	m_findPrevious->Disable();
+	ResetSearch();
 }
 
 void FifoPlayerDlg::OnFindNextClick(wxCommandEvent& event)
@@ -552,7 +546,7 @@ void FifoPlayerDlg::OnFindPreviousClick(wxCommandEvent& event)
 
 void FifoPlayerDlg::ChangeSearchResult(unsigned int result_idx)
 {
-	if (search_results.size() > result_idx)
+	if (result_idx < search_results.size()) // if index is valid
 	{
 		m_search_result_idx = result_idx;
 		int prev_frame = m_framesList->GetSelection();
@@ -578,11 +572,23 @@ void FifoPlayerDlg::ChangeSearchResult(unsigned int result_idx)
 			ev.SetInt(m_objectCmdList->GetSelection());
 			OnObjectCmdListSelectionChanged(ev);
 		}
+
+		m_findNext->Enable(result_idx+1 < search_results.size());
+		m_findPrevious->Enable(result_idx != 0);
 	}
 	else if (search_results.size())
 	{
 		ChangeSearchResult(search_results.size() - 1);
 	}
+}
+
+void FifoPlayerDlg::ResetSearch()
+{
+	m_beginSearch->Enable(m_searchField->GetLineLength(0) > 0);
+	m_findNext->Disable();
+	m_findPrevious->Disable();
+
+	search_results.clear();
 }
 
 void FifoPlayerDlg::OnFrameListSelectionChanged(wxCommandEvent& event)
@@ -601,6 +607,8 @@ void FifoPlayerDlg::OnFrameListSelectionChanged(wxCommandEvent& event)
 	wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
 	ev.SetInt(-1);
 	OnObjectListSelectionChanged(ev);
+
+	ResetSearch();
 }
 
 void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
@@ -728,6 +736,8 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 	wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
 	ev.SetInt(-1);
 	OnObjectCmdListSelectionChanged(ev);
+
+	ResetSearch();
 }
 
 void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
