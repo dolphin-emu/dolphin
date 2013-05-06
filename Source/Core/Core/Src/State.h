@@ -49,8 +49,6 @@ void SaveToBuffer(std::vector<u8>& buffer);
 void LoadFromBuffer(std::vector<u8>& buffer);
 void VerifyBuffer(std::vector<u8>& buffer);
 
-static std::string MakeStateFilename(int number);
-
 void LoadLastSaved(int i = 1);
 void SaveFirstSaved();
 void UndoSaveState();

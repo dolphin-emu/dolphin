@@ -157,7 +157,7 @@ void VerifyBuffer(std::vector<u8>& buffer)
 // return state number not in map
 int GetEmptySlot(std::map<double, int> m)
 {
-	for (int i = 1; i <= NUM_STATES; i++)
+	for (int i = 1; i <= (int)NUM_STATES; i++)
 	{
 		bool found = false;
 		for (std::map<double, int>::iterator it = m.begin(); it != m.end(); it++)
@@ -173,12 +173,14 @@ int GetEmptySlot(std::map<double, int> m)
 	return -1;
 }
 
+static std::string MakeStateFilename(int number);
+
 // read state timestamps
 std::map<double, int> GetSavedStates()
 {
 	StateHeader header;
 	std::map<double, int> m;
-	for (int i = 1; i <= NUM_STATES; i++)
+	for (int i = 1; i <= (int)NUM_STATES; i++)
 	{
 		if (File::Exists(MakeStateFilename(i)))
 		{
@@ -570,7 +572,7 @@ void LoadLastSaved(int i)
 {
 	std::map<double, int> savedStates = GetSavedStates();
 
-	if (i > savedStates.size())
+	if (i > (int)savedStates.size())
 		Core::DisplayMessage("State doesn't exist", 2000);
 	else
 	{

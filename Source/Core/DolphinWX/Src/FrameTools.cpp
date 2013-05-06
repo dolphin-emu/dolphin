@@ -159,14 +159,14 @@ void CFrame::CreateMenu()
 	loadMenu->Append(IDM_UNDOLOADSTATE, GetMenuLabel(HK_UNDO_LOAD_STATE));
 	loadMenu->AppendSeparator();
 
-	for (int i = 1; i <= State::NUM_STATES; i++)
+	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
 	{
 		loadMenu->Append(IDM_LOADSLOT1 + i - 1, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i - 1));
 		saveMenu->Append(IDM_SAVESLOT1 + i - 1, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i - 1));
 	}
 
 	loadMenu->AppendSeparator();
-	for (int i = 1; i <= State::NUM_STATES; i++)
+	for (unsigned int i = 1; i <= State::NUM_STATES; i++)
 		loadMenu->Append(IDM_LOADLAST1 + i - 1, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i - 1));
 
 	m_MenuBar->Append(emulationMenu, _("&Emulation"));
