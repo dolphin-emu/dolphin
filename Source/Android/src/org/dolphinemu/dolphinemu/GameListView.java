@@ -28,7 +28,7 @@ import android.widget.Toast;
 
 public class GameListView extends ListActivity {
 	private GameListAdapter adapter;
-	private static File currentDir = null;
+	private static List<File> currentDir;
 	private MenuDrawer mDrawer;
 	
     private SideMenuAdapter mAdapter;
@@ -37,38 +37,42 @@ public class GameListView extends ListActivity {
     public static native String GetConfig(String Key, String Value, String Default);
     public static native void SetConfig(String Key, String Value, String Default);
 	
-	private void Fill(File f)
+	private void Fill()
     {
-		File[]dirs = f.listFiles();
+		
+		
 		this.setTitle("Game List");
-		List<GameListItem>dir = new ArrayList<GameListItem>();
 		List<GameListItem>fls = new ArrayList<GameListItem>();
-         
-		try
+		String Directories = GetConfig("General", "GCMPathes", "0");
+		int intDirectories = Integer.parseInt(Directories);
+		for (int a = 0; a < intDirectories; ++a)
 		{
-			for(File ff: dirs)
+			String BrowseDir = GetConfig("General", "GCMPaths" + Integer.toString(a), "");
+			File currentDir = new File(BrowseDir);
+			File[]dirs = currentDir.listFiles();
+			try
 			{
-				if (ff.getName().charAt(0) != '.')
-					if(!ff.isDirectory())
-	                	if (ff.getName().toLowerCase().contains(".gcm") ||
-	                		ff.getName().toLowerCase().contains(".iso") ||
-	                		ff.getName().toLowerCase().contains(".wbfs") ||
-	                		ff.getName().toLowerCase().contains(".gcz") ||
-	                		ff.getName().toLowerCase().contains(".dol") ||
-	                		ff.getName().toLowerCase().contains(".elf"))
-	                			fls.add(new GameListItem(getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
-             }
-         }
-         catch(Exception e)
-         {
-         }
-         
-         Collections.sort(dir);
-         Collections.sort(fls);
-         dir.addAll(fls);
-         
-         adapter = new GameListAdapter(this,R.layout.main,dir);
-		 this.setListAdapter(adapter);
+				for(File ff: dirs)
+				{
+					if (ff.getName().charAt(0) != '.')
+						if(!ff.isDirectory())
+			            	if (ff.getName().toLowerCase().contains(".gcm") ||
+			            		ff.getName().toLowerCase().contains(".iso") ||
+			            		ff.getName().toLowerCase().contains(".wbfs") ||
+			            		ff.getName().toLowerCase().contains(".gcz") ||
+			            		ff.getName().toLowerCase().contains(".dol") ||
+			            		ff.getName().toLowerCase().contains(".elf"))
+			            			fls.add(new GameListItem(getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
+				}
+			}
+			catch(Exception e)
+			{
+			}
+		}
+		Collections.sort(fls);
+		 
+		adapter = new GameListAdapter(this,R.layout.main, fls);
+		this.setListAdapter(adapter);
     }
 	
 	@Override
@@ -103,11 +107,13 @@ public class GameListView extends ListActivity {
 		{
 			String FileName = data.getStringExtra("Select");
 			Toast.makeText(this, "Folder Selected: " + FileName, Toast.LENGTH_SHORT).show();
-			SetConfig("General", "GCMPathes", "1");
-			SetConfig("General", "GCMPaths0", FileName);
+			String Directories = GetConfig("General", "GCMPathes", "0");
+			int intDirectories = Integer.parseInt(Directories);
+			Directories = Integer.toString(intDirectories + 1);
+			SetConfig("General", "GCMPathes", Directories);
+			SetConfig("General", "GCMPaths" + Integer.toString(intDirectories), FileName);
 			
-			currentDir = new File(FileName);
-			Fill(currentDir);
+			Fill();
 		}
 	}
 	
@@ -119,10 +125,8 @@ public class GameListView extends ListActivity {
 		 
 		mDrawer = MenuDrawer.attach(this, MenuDrawer.MENU_DRAG_CONTENT);
 		 
-		String BrowseDir = GetConfig("General", "GCMPaths0", "");
-		if(currentDir == null)
-			currentDir = new File(BrowseDir);
-		Fill(currentDir);
+		
+		Fill();
 		 
 		List<SideMenuItem>dir = new ArrayList<SideMenuItem>();
 		dir.add(new SideMenuItem("Browse Folder", 0));

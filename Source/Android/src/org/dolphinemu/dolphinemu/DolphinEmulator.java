@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import net.simonvt.menudrawer.MenuDrawer;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -25,7 +23,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 	
 	private float screenWidth;
 	private float screenHeight;
-	
+
 	public static native void onTouchEvent(int Action, float X, float Y);
 	
 	static
