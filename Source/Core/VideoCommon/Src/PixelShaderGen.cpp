@@ -95,22 +95,23 @@ void GetPixelShaderId(PIXELSHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 compo
 	uid->values[0] |= bpmem.genMode.numtevstages; // 4
 	uid->values[0] |= bpmem.genMode.numtexgens << 4; // 4
 	uid->values[0] |= dstAlphaMode << 8; // 2
+	uid->values[0] |= g_ActiveConfig.bFastDepthCalc << 10; // 1
 
 	bool enablePL = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
-	uid->values[0] |= enablePL << 10; // 1
+	uid->values[0] |= enablePL << 11; // 1
 
 	if (!enablePL)
 	{
-		uid->values[0] |= xfregs.numTexGen.numTexGens << 11; // 4
+		uid->values[0] |= xfregs.numTexGen.numTexGens << 12; // 4
 	}
 
 	AlphaTest::TEST_RESULT alphaPreTest = bpmem.alpha_test.TestResult();
-	uid->values[0] |= alphaPreTest << 15; // 2
+	uid->values[0] |= alphaPreTest << 16; // 2
 
 	// numtexgens should be <= 8
 	for (unsigned int i = 0; i < bpmem.genMode.numtexgens; ++i)
 	{
-		uid->values[0] |= xfregs.texMtxInfo[i].projection << (17+i); // 1
+		uid->values[0] |= xfregs.texMtxInfo[i].projection << (18+i); // 1
 	}
 
 	uid->values[1] = bpmem.genMode.numindstages; // 3
@@ -180,8 +181,9 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 	*ptr++ = bpmem.ztex2.hex; // 2
 	*ptr++ = bpmem.zcontrol.hex; // 3
 	*ptr++ = bpmem.zmode.hex; // 4
-	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting; // 5
-	*ptr++ = xfregs.numTexGen.hex; // 6
+	*ptr++ = g_ActiveConfig.bFastDepthCalc; // 5
+	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting; // 6
+	*ptr++ = xfregs.numTexGen.hex; // 7
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -193,28 +195,28 @@ void GetSafePixelShaderId(PIXELSHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u
 	}
 
 	for (unsigned int i = 0; i < 8; ++i)
-		*ptr++ = xfregs.texMtxInfo[i].hex; // 7-14
+		*ptr++ = xfregs.texMtxInfo[i].hex; // 8-15
 
 	for (unsigned int i = 0; i < 16; ++i)
-		*ptr++ = bpmem.tevind[i].hex; // 15-30
+		*ptr++ = bpmem.tevind[i].hex; // 16-31
 
-	*ptr++ = bpmem.tevindref.hex; // 31
+	*ptr++ = bpmem.tevindref.hex; // 32
 
 	for (u32 i = 0; i < bpmem.genMode.numtevstages+1u; ++i) // up to 16 times
 	{
-		*ptr++ = bpmem.combiners[i].colorC.hex; // 32+5*i
-		*ptr++ = bpmem.combiners[i].alphaC.hex; // 33+5*i
-		*ptr++ = bpmem.tevind[i].hex; // 34+5*i
-		*ptr++ = bpmem.tevksel[i/2].hex; // 35+5*i
-		*ptr++ = bpmem.tevorders[i/2].hex; // 36+5*i
+		*ptr++ = bpmem.combiners[i].colorC.hex; // 33+5*i
+		*ptr++ = bpmem.combiners[i].alphaC.hex; // 34+5*i
+		*ptr++ = bpmem.tevind[i].hex; // 35+5*i
+		*ptr++ = bpmem.tevksel[i/2].hex; // 36+5*i
+		*ptr++ = bpmem.tevorders[i/2].hex; // 37+5*i
 	}
 
-	ptr = &uid->values[112];
+	ptr = &uid->values[113];
 
-	*ptr++ = bpmem.alpha_test.hex; // 112
+	*ptr++ = bpmem.alpha_test.hex; // 113
 
-	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 113
-	*ptr++ = bpmem.fogRange.Base.hex; // 114
+	*ptr++ = bpmem.fog.c_proj_fsel.hex; // 114
+	*ptr++ = bpmem.fogRange.Base.hex; // 115
 
 	_assert_((ptr - uid->values) == uid->GetNumValues());
 }
@@ -518,7 +520,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	int numStages = bpmem.genMode.numtevstages + 1;
 	int numTexgen = bpmem.genMode.numtexgens;
 
-	bool per_pixel_depth = bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable;
+	bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable) || !g_ActiveConfig.bFastDepthCalc;
 	bool bOpenGL = ApiType == API_OPENGL;
 	char *p = text;
 	WRITE(p, "//Pixel Shader for TEV stages\n");
@@ -820,15 +822,18 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WriteAlphaTest(p, ApiType, dstAlphaMode, per_pixel_depth);
 
 	
-	// the screen space depth value = far z + (clip z / clip w) * z range
-	if(ApiType == API_OPENGL || ApiType == API_D3D11)
+	// dx9 doesn't support readback of depth in pixel shader, so we always have to calculate it again
+	// shouldn't be a performance issue as early_z is still possible, but there may be depth issues with z-textures
+	if((ApiType == API_OPENGL || ApiType == API_D3D11) && g_ActiveConfig.bFastDepthCalc)
 		WRITE(p, "float zCoord = rawpos.z;\n");
 	else
-		// dx9 doesn't support 4 component position, so we have to calculate it again
+		// the screen space depth value = far z + (clip z / clip w) * z range
 		WRITE(p, "float zCoord = " I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS"[1].y;\n");
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
 	bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
+	
+	// Note: depth texture out put is only written to depth buffer if late depth test is used
 	if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !skip_ztexture)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
@@ -839,11 +844,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
 		WRITE(p, "zCoord = %s(zCoord);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
 		WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
-
-		// Note: depth texture out put is only written to depth buffer if late depth test is used
-		if (per_pixel_depth)
-			WRITE(p, "depth = zCoord;\n");
 	}
+	
+	if (per_pixel_depth)
+		WRITE(p, "depth = zCoord;\n");
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 	{
