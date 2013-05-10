@@ -823,7 +823,8 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 
 	
 	// dx9 doesn't support readback of depth in pixel shader, so we always have to calculate it again
-	// shouldn't be a performance issue as early_z is still possible, but there may be depth issues with z-textures
+	// shouldn't be a performance issue as the written depth is usually still from perspective division
+	// but this isn't true for z-textures, so there will be depth issues between enabled and disabled z-textures fragments
 	if((ApiType == API_OPENGL || ApiType == API_D3D11) && g_ActiveConfig.bFastDepthCalc)
 		WRITE(p, "float zCoord = rawpos.z;\n");
 	else
@@ -833,7 +834,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
 	bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
 	
-	// Note: depth texture out put is only written to depth buffer if late depth test is used
+	// Note: z-textures are not written to depth buffer if early depth test is used
+	if (per_pixel_depth && bpmem.zcontrol.early_ztest)
+		WRITE(p, "depth = zCoord;\n");
+	
 	if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !skip_ztexture)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
@@ -846,7 +850,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
 	}
 	
-	if (per_pixel_depth)
+	if (per_pixel_depth && !bpmem.zcontrol.early_ztest)
 		WRITE(p, "depth = zCoord;\n");
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
